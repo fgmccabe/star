@@ -1,0 +1,13 @@
+-- meta syntax for cafe
+
+import foundation;
+
+type location is noWhere or location{string,#int,#int,#int};
+
+type ast is aId{location,string}
+         or aInt{location,#int}
+	 or aLong{location,long}
+         or aFloat{location,float}
+         or aChar{location,char}
+         or aStr{location,string}
+         or aApply{location,ast,list<ast>};

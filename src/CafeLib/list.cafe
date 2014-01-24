@@ -1,0 +1,10 @@
+import "cafe:foundation.cafe";
+
+type list#contract<%l,%t> is list#{
+  (%l)=>logical; -- empty
+  (%l)=>%t; -- head
+  (%l)=>%l; -- tail
+  (%t,%l)=>%l -- cons
+  %l<=(%t,%l) -- pair  
+};
+

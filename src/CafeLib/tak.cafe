@@ -1,0 +1,29 @@
+-- Takeuchi function benchamrk
+
+function tak(X:#int,Y:#int,Z:#int):#int=>
+  valof{
+    if X<=Y then
+      valis Y
+    else {
+      var X1:#int is X-1;
+      var A1:#int is tak(X1,Y,Z);
+      var Y1:#int is Y-1;
+      var A2:#int is tak(Y1,Z,X);
+      var Z1:#int is Z-1;
+      var A3:#int is tak(Z1,X,Y);
+      valis tak(A1,A2,A3)
+    }
+  };
+
+procedure main(){
+  var Start:#int is __#nanos();
+  --    var T:#int is tak(18,12,6);
+  var T:#int is tak(19,13,5);
+  var Stop:#int is __#nanos();
+  var Tm:#int is Stop-Start;
+
+   __#outInt(__#logFile,T);
+   __#outStr(__#logFile,"\n");
+   __#outInt(__#logFile,Tm);
+   __#outStr(__#logFile,"\n");
+}

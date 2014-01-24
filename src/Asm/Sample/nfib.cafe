@@ -1,0 +1,51 @@
+-- nfib in cafe assembler
+-- equivalent to
+-- nfib(N) where N<2 is 1
+-- nfib(N) is nfib(N-1)+nfib(N-2)
+
+nfib:: "F(i)i" : "(F(i)i)"
+     enter 0
+     ld a[0]
+     ld 2
+     cmp
+     bge recurse
+     ld 1
+     ret
+recurse:
+     ld a[0]
+     dec over
+     ld e[0]
+     frame "(iF(i)i)"
+     call
+     ld a[0]
+     ld 2
+     sub over
+     ld e[0]
+     frame "(iF(i)i)"
+     call
+     add over
+     inc over
+     ret
+over:
+     ld -1
+     ret
+     end
+
+_main:: "F()()" : "()"
+     enter 1
+     ld 0                        -- dummy
+     alloc nfib
+     dup
+     dup
+     st [0]                      -- set up the recursive reference
+l0:
+     st l[0]
+     ld 30			 -- small to start with
+     ld l[0]
+     frame "(iF(i)i)"
+     call
+lx:
+     escape "show"
+     halt
+i    local 0 "F(i)i" l0 lx
+     end

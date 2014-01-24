@@ -1,0 +1,5 @@
+import "cafe:foundation.cafe";
+import "cafe:list.cafe";
+
+function stdCaf$package() is let{
+} in {};

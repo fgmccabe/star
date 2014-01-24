@@ -1,0 +1,8 @@
+valof {
+  var I:#int := 23;
+  var j:#int := 56;
+  I := __#int_plus(I,j);
+  valis __#int_minus(I,1);
+  j := __#int_plus(j,1);
+  valis j
+}

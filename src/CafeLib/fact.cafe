@@ -1,0 +1,18 @@
+function fact(X:#int):#int => valof{
+  if X=1 then
+    valis 1
+  else{
+    var F1:#int is fact(X-1);
+    valis F1*X
+  };
+  overflow :: {
+    __#outStr(__#logFile,"overflow\n");
+    valis 0;
+  }
+};
+
+procedure main(I:#int){
+  var R:#int is fact(I);
+  __#outInt(__#logFile,R);
+  __#outStr(__#logFile,"\n");
+}

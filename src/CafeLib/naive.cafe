@@ -1,0 +1,81 @@
+-- Naive reverse benchmark
+type int#list is nil or cons{#int,int#list};
+
+function append(X:int#list, Y:int#list):int#list  =>
+  switch X in {
+    nil -> Y;
+    cons{H:#int, Tl:int#list} -> valof{
+      var Z:int#list is append(Tl,Y);
+      valis cons{H,Z}
+    }
+  };
+
+function naive(X:int#list):int#list =>
+  switch X in {
+    nil -> nil;
+    cons{H:#int,Tl:int#list} -> valof{
+      var R:int#list is naive(Tl);
+      var N:int#list is nil;
+      var El:int#list is cons{H,N};
+      valis append(R,El)
+    }
+  };
+
+function iota(Mn:#int, Mx:#int):int#list =>
+  valof{
+    if Mn>Mx then
+      valis nil	
+    else{
+      var Nx:#int is Mn+1;
+      var Rest:int#list is iota(Nx,Mx);
+      valis cons{Mn,Rest};
+    }
+  };
+
+procedure display(io:#file, L:int#list){
+  __#outStr(io,"[");
+  var sep:#string := "";
+  var Ls:int#list := L;
+  LL :: loop {
+    switch Ls in {
+      nil -> leave LL;
+      cons{H:#int,Tl:int#list} -> {
+        __#outStr(io,sep);
+        sep := ", ";
+        __#outInt(io,H);
+        Ls := Tl;
+      }
+    }
+  };
+  __#outStr(io,"]\n");
+};
+  
+function bench(I:int#list,C:#int):#long => valof{
+  var Ix:#int := 0;
+  var Start:#long is __#nanos();
+  while Ix<C do{
+    var Res:int#list := naive(I);
+    Ix := Ix+1;
+  };
+  var End:#long is __#nanos();
+  valis End-Start;
+};
+
+procedure main(X:#int,C:#int){
+  var I:int#list is iota(1,X);
+  display(__#logFile,I);
+  var Nanos:#long is bench(I,C);
+  __#outFloat(__#logFile,(Nanos:#float)/1.0e9);
+  __#outStr(__#logFile," seconds\n");
+  -- Total:#float is (Nanos:#float);
+  -- Count:#float is (C:#float);
+  var Count:#long is (C:#long)*1000000000l;
+  var LIP:#long := (X:#long);
+  LIP := LIP*LIP+LIP;
+  LIP := LIP/2l;
+  __#outLong(__#logFile,LIP);
+  __#outStr(__#logFile,"steps\n");
+  var LIPS:#long is (LIP*Count:#long)/Nanos;
+  __#outLong(__#logFile,LIPS);
+  __#outStr(__#logFile," inferences/second\n");
+};

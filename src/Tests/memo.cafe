@@ -1,0 +1,32 @@
+-- Test the memo function
+
+memo when:#long is __#nanos();
+
+function last(X:#int):()=>#int => 
+  let{
+    memo who:#int is X;
+  } in who;
+
+procedure main()
+{
+  var N:#long := __#nanos();
+  __#outStr(__#logFile,"now ");
+  __#outLong(__#logFile,N);
+  __#outStr(__#logFile,"\n");
+  var W:#long is when();
+  __#outStr(__#logFile,"testing when ");
+  __#outLong(__#logFile,W);
+  __#outStr(__#logFile,"\n");
+  __#sleep(100L);
+  var WW:#long is when(); -- should return the same value
+  __#outStr(__#logFile,"now when ");
+  __#outLong(__#logFile,WW);
+  __#outStr(__#logFile,"\n");
+  N:=__#nanos();
+  __#outStr(__#logFile,"now ");
+  __#outLong(__#logFile,N);
+  __#outStr(__#logFile,"\n");
+}  
+  
+  
+

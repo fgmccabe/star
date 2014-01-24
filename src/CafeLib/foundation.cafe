@@ -1,0 +1,12 @@
+type logical is true or false;
+
+type $1<%t1> is $1{%t1};
+type $2<%t1,%t2> is $2{%t1,%t2};
+type $3<%t1,%t2,%t3> is $3{%t1,%t2,%t3};
+type $4<%t1,%t2,%t3,%t4> is $4{%t1,%t2,%t3,%t4};
+type $5<%t1,%t2,%t3,%t4,%t5> is $5{%t1,%t2,%t3,%t4,%t5};
+type $6<%t1,%t2,%t3,%t4,%t5,%t6> is $6{%t1,%t2,%t3,%t4,%t5,%t6};
+type $7<%t1,%t2,%t3,%t4,%t5,%t6,%t7> is $7{%t1,%t2,%t3,%t4,%t5,%t6,%t7};
+type $8<%t1,%t2,%t3,%t4,%t5,%t6,%t7,%t8> is $8{%t1,%t2,%t3,%t4,%t5,%t6,%t7,%t8};
+
+type maybe<%t> is impossible or just{%t};

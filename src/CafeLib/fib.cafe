@@ -1,0 +1,49 @@
+function fib(X:#int):#int =>
+  valof {
+    if X<=1 then 
+      valis 1
+    else{
+      var X1:#int := X-1;
+      X1 := fib(X1);
+      var X2:#int := X-2;
+      X2 := fib(X2);
+      valis X1+X2;
+    }
+  };
+
+function nfib(X:#int):#int =>
+  valof {
+    if X<=1 then 
+      valis 1
+    else{
+      var X1:#int is nfib(X-1);
+      var X2:#int is nfib(X-2);
+      valis X1+X2+1;
+    }
+  };
+
+procedure main(X:#int){
+  var Start:#long is __#nanos();
+  var R:#int is nfib(X);
+  var Stop:#long is __#nanos();
+
+  __#outStr(__#logFile,"fib(");
+  __#outInt(__#logFile,X);
+  __#outStr(__#logFile,") = ");
+  __#outInt(__#logFile,R);
+  __#outStr(__#logFile,"\n");
+
+  var Tm:#float is (Stop-Start:#float);
+--  __#outFloat(__#logFile,Tm);
+--  __#outStr(__#logFile,"\n");
+
+  var Count:#float is (R:#float);
+--  __#outStr(__#logFile,"Count = ");
+--  __#outFloat(__#logFile,Count);
+--  __#outStr(__#logFile,"\n");
+
+  var Nanos:#float is Tm/Count;
+  __#outStr(__#logFile,"nanos per call = ");
+  __#outFloat(__#logFile,Nanos);
+  __#outStr(__#logFile,"\n");
+}
