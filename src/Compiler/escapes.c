@@ -48,7 +48,7 @@ retCode compileEscape(locationPo loc,uniChar *name,sxPo *expected,
 		      uniChar *path,
 		      dictPo dict,dictPo outer,
 		      exitPo exit,
-		      mtdPo mtd,lxPo args,
+		      mtdCxtPo mtd,lxPo args,
 		      contFun cont,void *cl)
 {
   escapeFun escape = Search(name,escapes);
@@ -81,7 +81,7 @@ static retCode loadArgReg(locationPo loc,varInfoPo src,void *cl,assemPo code);
 retCode compileCCall(sxPo call,sxPo *expected,
 		     uniChar *path,
 		     dictPo dict,dictPo outer,
-		     exitPo exit,mtdPo mtd,
+		     exitPo exit,mtdCxtPo mtd,
 		     contFun cont,void *cl)
 {
   assemPo code = methodCode(mtd);
@@ -201,7 +201,7 @@ retCode compileLibVar(locationPo loc,uniChar *name,
 		      sxPo *expected,
 		      uniChar *path,
 		      dictPo dict,dictPo outer,
-		      exitPo exit, mtdPo mtd,
+		      exitPo exit, mtdCxtPo mtd,
 		      contFun cont,void *cl)
 {
   varInfoPo var = findLibVar(name);

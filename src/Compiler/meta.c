@@ -122,6 +122,27 @@ logical sxIsIdentifier(sxPo sx,uniChar *name)
     return False;
 }
 
+sxPo sxPackage(locationPo loc,sxPo name,lxPo definitions)
+{
+  return sxBinary(loc,kwPackage,name,sxBlock(loc,definitions));
+}
+
+logical isSxPackage(sxPo term){
+  return sxIsBinary(term,kwPackage) && sxIsIden(sxArg(term,0)) && sxIsBlock(sxArg(term,1));
+}
+
+sxPo sxPackageName(sxPo term){
+  assert(isSxPackage(term));
+
+  return sxArg(term,0);
+}
+
+lxPo sxPackageContent(sxPo term){
+  assert(isSxPackage(term));
+
+  return sxBlockContent(sxArg(term,1));
+}
+
 // An import looks like:
 // import(<pkg>)
 sxPo sxImport(locationPo loc, uniChar *pkg)
@@ -142,16 +163,16 @@ uniChar *sxImportPkg(sxPo sx)
 }
 
 // A type definition looks like
-// type(<type>, {<constructors>} )
+// type(<type>)
 
-sxPo sxTypeDef(locationPo loc,sxPo type,lxPo constructors)
+sxPo sxTypeDef(locationPo loc,sxPo type)
 {
-  return sxBinary(loc,kwType,type,sxBlock(loc,constructors));
+  return sxUnary(loc,kwType,type);
 }
 
 logical sxIsTypeDef(sxPo sx)
 {
-  return sxIsBinary(sx,kwType);
+  return sxIsUnary(sx,kwType);
 }
 
 sxPo sxTypeDefType(sxPo sx)
@@ -189,7 +210,7 @@ static lxPo extractArgTypes(lxPo args)
 
 sxPo sxFunction(locationPo loc,uniChar *name,sxPo type,lxPo args,sxPo sx)
 {
-  sxPo funType = sxArrowType(loc,extractArgTypes(args),type);
+  sxPo funType = sxArrowType(loc,sxTupleType(loc,extractArgTypes(args)),type);
   sxPo lval = sxTypedExp(loc,mId(loc,name),funType);
   sxPo head = sxApply(loc,kwFunction,args);
   sxPo def = sxBinary(loc,kwArrow,head,sx);
@@ -237,7 +258,7 @@ lxPo sxFunArgs(sxPo sx)
 //
 sxPo sxMemo(locationPo loc,uniChar *name,sxPo type,sxPo exp)
 {
-  sxPo funType = sxArrowType(loc,nil,type);
+  sxPo funType = sxArrowType(loc,sxTupleType(loc,nil),type);
   sxPo lval = sxTypedExp(loc,mId(loc,name),funType);
   sxPo def = sxUnary(loc,kwMemo,exp);
   return sxIsDeclaration(loc,lval,def);
@@ -274,7 +295,7 @@ sxPo sxMemoExp(sxPo sx)
 // <name>:<type> is procedure(<arg1>,...,<argn>) do <action>
 sxPo sxProcedure(locationPo loc,uniChar *name,lxPo args,sxPo body)
 {
-  sxPo prcType = sxArrowType(loc,extractArgTypes(args),voidType);
+  sxPo prcType = sxArrowType(loc,sxTupleType(loc,extractArgTypes(args)),voidType);
   sxPo lval = sxTypedExp(loc,mId(loc,name),prcType);
   sxPo head = sxApply(loc,kwProcedure,args);
   sxPo def = sxBinary(loc,kwDo,head,body);
@@ -323,7 +344,7 @@ sxPo sxProcBody(sxPo sx)
 sxPo sxPattern(locationPo loc,uniChar *name,lxPo args,sxPo type,
 		      sxPo ptn,sxPo cond)
 {
-  sxPo ptnType = sxPttrnType(loc,extractArgTypes(args),type);
+  sxPo ptnType = sxPttrnType(loc,sxTupleType(loc,extractArgTypes(args)),type);
   sxPo lval = sxTypedExp(loc,mId(loc,name),ptnType);
   sxPo head = sxApply(loc,kwPattern,args);
   sxPo body = (cond==Null?ptn:sxBinary(loc,kwIf,ptn,cond));
@@ -1101,43 +1122,6 @@ logical sxIsTypeVar(sxPo sx);
 logical sxIsEnum(sxPo sx);
 
 uniChar *sxEnumName(sxPo sx);
-
-extern int yyparse(ioPo inFile, lxPo *result);
-
-lxPo parseContent(uniChar *path)
-{
-  ioPo file = openURI(path, unknownEncoding);
-
-  if(file!=Null){
-    uniChar ch = inCh(file);		/* We skip over #! */
-
-    if(ch=='#'){			/* look for standard #!/.... header */
-      if((ch=inCh(file))=='!'){
-	while((ch=inCh(file))!=uniEOF && ch!='\n')
-	  ;			        /* consume the interpreter statement */
-      }
-      else{
-	unGetChar(file,ch);
-	unGetChar(file,'#');
-      }
-    }
-    else
-      unGetChar(file,ch);
-    
-    lxPo content = nil;
-    int errors = yyparse(file,&content);
-    
-    closeFile(file);			/* close the source string file */
-    if(!errors)
-      return content;
-    else{
-      outMsg(logFile,"could not parse %U\n",path);
-      return Null;
-    }
-  }
-  else
-    return Null;
-}
 
 static retCode dispMeta(ppDisplayPo disp,policyPo pol,sxPo m);
 

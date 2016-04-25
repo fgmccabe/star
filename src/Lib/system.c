@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "libNames.h"
+#include "signature.h"
 #include "escapes.h"
 
 #include <ooio.h>
@@ -21,7 +22,7 @@ static uint64 nanos(uint64 *tos)
 }
 
 static uniChar nanoName[] = { 'n', 'a', 'n', 'o', 's', 0};
-static uniChar nanoSig[] = { escSig, '(', ')', 'i', 0 };
+static uniChar nanoSig[] = { funSig, '(', ')', INTEGER_SIG, 0 };
 static EscapeRec escapeNano = {
   .name = nanoName,
   .sig = nanoSig,

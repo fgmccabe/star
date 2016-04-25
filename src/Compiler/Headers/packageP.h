@@ -5,6 +5,7 @@
 
 typedef struct _package_ {
   uniChar *url;
+  uniChar *name;
   dictPo dict;
   packageFun entry;
 } PackageRec;

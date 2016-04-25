@@ -13,7 +13,7 @@ retCode compileCatch(sxPo act,sxPo *expected,
 		     uniChar *path,
 		     dictPo dict,dictPo outer,
 		     exitPo exit,
-		     mtdPo mtd,
+		     mtdCxtPo mtd,
 		     contFun cont,void *cl)
 {
   assemPo code = methodCode(mtd);
@@ -44,7 +44,7 @@ retCode compileCatch(sxPo act,sxPo *expected,
   return Ok;
 }
 
-retCode genCatchBlocks(mtdPo mtd,lPo catch)
+retCode genCatchBlocks(mtdCxtPo mtd,lPo catch)
 {
   assemPo code = methodCode(mtd);
   AAlignTo(code,POINTER_SIZE);

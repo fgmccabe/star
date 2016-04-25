@@ -18,9 +18,9 @@ void initMethod()
   literalPool = newPool(sizeof(LiteralRecord),256);
 }
 
-mtdPo newMethod(uniChar *name)
+mtdCxtPo newMethod(uniChar *name)
 {
-  mtdPo mtd = (mtdPo)allocPool(mtdPool);
+  mtdCxtPo mtd = (mtdCxtPo)allocPool(mtdPool);
   mtd->defName = uniIntern(name);
   mtd->literals = emptyList;
   mtd->tryBlocks = Null;
@@ -30,12 +30,12 @@ mtdPo newMethod(uniChar *name)
   return mtd;
 }
 
-assemPo methodCode(mtdPo mtd)
+assemPo methodCode(mtdCxtPo mtd)
 {
   return mtd->code;
 }
 
-cafeFun genMethodCode(mtdPo mtd,lPo entryPoint)
+cafeFun genMethodCode(mtdCxtPo mtd,lPo entryPoint)
 {
   return mtd->generated = generateCode(mtd->code,entryPoint);
 }
@@ -47,7 +47,7 @@ static logical isStringLiteral(void *d,void *cl)
   return lit->type==stringLiteral && uniCmp(lit->lit.str,str)==0;
 }
 
-lPo defineLiteralString(mtdPo mtd,uniChar *str)
+lPo defineLiteralString(mtdCxtPo mtd,uniChar *str)
 {
   assemPo code = methodCode(mtd);
   literalPo lit = findInList(mtd->literals,isStringLiteral,str);
@@ -77,7 +77,7 @@ static logical isOtherLiteral(void *d,void *cl)
   return lit->type==otherLiteral && lit->lit.other.add==cl;
 }
 
-lPo defineLiteralOther(mtdPo mtd,void *data, long size)
+lPo defineLiteralOther(mtdCxtPo mtd,void *data, long size)
 {
   literalPo lit = findInList(mtd->literals,isOtherLiteral,data);
   if(lit==Null){
@@ -121,7 +121,7 @@ static retCode dumpLiteral(void *r,void *cl)
   }
 }
 
-void addCatchBlock(mtdPo mtd,lPo start,lPo end,lPo recover)
+void addCatchBlock(mtdCxtPo mtd,lPo start,lPo end,lPo recover)
 {
   tryPo catch = (tryPo)allocPool(tryBlockPool);
   catch->from = start;
@@ -131,7 +131,7 @@ void addCatchBlock(mtdPo mtd,lPo start,lPo end,lPo recover)
   mtd->tryBlocks = catch;
 }
 
-tryPo methodCatchBlocks(mtdPo mtd)
+tryPo methodCatchBlocks(mtdCxtPo mtd)
 {
   return mtd->tryBlocks;
 }
@@ -167,7 +167,7 @@ static retCode dumpGcBlock(gcScanPo block,ioPo io)
   return processList(block->references,dumpRef,io);
 }
 
-static retCode dumpCallSites(mtdPo mtd,ioPo io)
+static retCode dumpCallSites(mtdCxtPo mtd,ioPo io)
 {
   gcScanPo block = mtd->scanBlocks;
   retCode ret = Ok;
@@ -180,7 +180,7 @@ static retCode dumpCallSites(mtdPo mtd,ioPo io)
 
 static retCode dumpMethod(void *v,void *c)
 {
-  mtdPo mtd = (mtdPo)v;
+  mtdCxtPo mtd = (mtdCxtPo)v;
   ioPo io = (ioPo)c;
 
   outMsg(io,"Definition: %U\n",mtd->defName);
@@ -192,7 +192,7 @@ static retCode dumpMethod(void *v,void *c)
   return Ok;
 }
 
-void dM(mtdPo mtd)
+void dM(mtdCxtPo mtd)
 {
   dumpMethod(mtd,logFile);
   flushOut();

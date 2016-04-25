@@ -257,6 +257,20 @@ void popDict(dictPo dict)
   freePool(dictPool,dict);
 }
 
+static Register nextLocal(dictPo dict, sxPo type){
+  Register reg = {lclReg, dict->nextLocal};
+  dict->nextLocal += typeSize(type);
+  return reg;
+}
+
+static Register nextFree(dictPo dict, sxPo type){
+  if(dict->freeSize==0)
+    dict->freeSize = POINTER_SIZE;
+  Register reg = {freeReg, dict->freeSize};
+  dict->freeSize+=typeSize(type);
+  return reg;
+}
+
 varInfoPo reserve(locationPo loc,uniChar *name, sxPo type, rwMode access,
 		  logical isLocal, sourceKind kind,dictPo dict)
 {
@@ -269,18 +283,10 @@ varInfoPo reserve(locationPo loc,uniChar *name, sxPo type, rwMode access,
   var->where = basedVar;
   var->kind = kind;
   var->inited = False;
-  if(isLocal){
-    var->base = FP;
-    var->l.off = dict->nextLocal;
-    dict->nextLocal+=typeSize(type);
-  }
-  else{
-    var->base = ENV;
-    if(dict->freeSize==0)
-      dict->freeSize = POINTER_SIZE;
-    var->l.off = dict->freeSize;
-    dict->freeSize+=typeSize(type);
-  }
+  if(isLocal)
+    var->base = nextLocal(dict,type);
+  else
+    var -> base = nextFree(dict,type);
 
   return var;
 }
@@ -295,6 +301,16 @@ void declareVar(varInfoPo info,dictPo dict)
   pushUndo(var->name,VarDef,dict);
 }
 
+static Register localRg(int off){
+  Register reg = {lclReg, off};
+  return reg;
+}
+
+static Register freeRg(int off){
+  Register reg = {freeReg, off};
+  return reg;
+}
+
 varInfoPo declare(locationPo loc,uniChar *name, sxPo type, rwMode access,
 		  logical isLocal, sourceKind kind,int offset,
 		  dictPo dict)
@@ -307,15 +323,12 @@ varInfoPo declare(locationPo loc,uniChar *name, sxPo type, rwMode access,
   var->access = access;
 
   if(isLocal)
-    var->base = FP;
+    var->base = localRg(offset);
   else
-    var->base = ENV;
-
-  var->l.off = offset;
+    var->base = freeRg(offset);
 
   var->where = basedVar;
   var->kind = kind;
-  var->l.off = offset;
   var->inited = False;
 
   Install(var->name,var,dict->vars);
@@ -374,12 +387,12 @@ sourceKind vrInfKind(varInfoPo var)
 
 logical isVrLocal(varInfoPo var)
 {
-  return var->where==basedVar && var->base==FP;
+  return var->where==basedVar && var->base.regCl==lclReg;
 }
 
 logical isVrFree(varInfoPo var)
 {
-  return var->where==basedVar && var->base==ENV;
+  return var->where==basedVar &&  var->base.regCl==freeReg;
 }
 
 int vrInfOffset(varInfoPo var)
@@ -545,18 +558,30 @@ char *accessName(rwMode access)
   }
 }
 
+static retCode showReg(ioPo f,Register reg,char *cont){
+  switch(reg.regCl){
+    case argReg:
+      return outMsg(f,"A[%d]%s",reg.regNo,cont);
+    case lclReg:
+      return outMsg(f,"L[%d]%s",reg.regNo,cont);
+    case freeReg:
+      return outMsg(f,"F[%d]%s",reg.regNo,cont);
+  }
+}
+
 retCode dVar(ioPo f,varInfoPo var)
 {
   outMsg(f,"%U[%s]:%T->",var->name,accessName(var->access),var->type);
   switch(var->where){
   case registr:
-    return outMsg(f,"%s\n",showReg(var->l.reg));
+    return showReg(f,var->base,"\n");
   case literal:
     return outMsg(f,"%B\n",var->l.lit);
   case label:
     return outMsg(f,"B\n",var->l.lit);
   case basedVar:
-    return outMsg(f,"%s[%d]\n",showReg(var->base), var->l.off);
+    showReg(f,var->base,"");
+    return outMsg(f,".%d\n",var->l.off);
   default:
     return outMsg(f,"??\n",var->name);
   }

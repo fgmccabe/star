@@ -3,13 +3,10 @@
 %option yylineno
 %option bison-bridge bison-locations 
 %option noyywrap nounput
-/* %option debug */
 
 %x comment
 %x string
 %x quoted
-
-%option header-file="grammar.h"
 
 %{
 
@@ -91,51 +88,36 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 <comment>"*"+[^*/\n]*           
 <comment>"*"+"/"                BEGIN(INITIAL);
 
-"procedure"   RTN(PROCEDURE);
+"package"     RTN(PKG);
 "function"    RTN(FUNCTION);
 "pattern"     RTN(PATTERN);
 "memo"        RTN(MEMO);
 "import"      RTN(IMPORT);
 "type"        RTN(TYPE);
-"or"          RTN(OR);
+"struct"      RTN(STRUCT);
+"enum"        RTN(ENUM);
+"all"         RTN(ALL);
+"st"          RTN(ST);
+
 "switch"      RTN(SWITCH);
 "default"     RTN(DEFAULT);
 "let"         RTN(LET);
 "in"          RTN(IN);
-"valof"       RTN(VALOF);
 "is"          RTN(IS);
+"def"         RTN(DEF);
 "var"         RTN(VAR);
-"try"         RTN(TRY);
-"catch"       RTN(CATCH);
-"matches"     RTN(MATCHES);
-"assert"      RTN(ASSERT);
-
-":="          RTN(ASSIGN);
-":"           RTN(COLON);
-"="           RTN(EQUAL);
-"!="          RTN(NOTEQUAL);
-"<"           RTN(LESS);
-"<="          RTN(LEQ);
-">"           RTN(GT);
-">="          RTN(GEQ);
-
-"+"           RTN(PLUS);
-"-"           RTN(MINUS);
-"*"           RTN(TIMES);
-"/"           RTN(DIVIDE);
-"<<"          RTN(LSHIFT);
-">>"          RTN(RSHIFT);
-".&."         RTN(BITAND);
-".+."         RTN(BITOR);
-".^."         RTN(BITXOR);
-".~."         RTN(BITNEG);
-
-"valis"       RTN(VALIS);
-"do"          RTN(DO);
-"while"       RTN(WHILE);
 "if"          RTN(IF);
 "then"        RTN(THEN);
 "else"        RTN(ELSE);
+"matches"     RTN(MATCHES);
+"or"          RTN(OR);
+"and"         RTN(AND);
+"not"         RTN(NOT);
+"where"       RTN(WHERE);
+
+":="          RTN(ASSIGN);
+":"           RTN(COLON);
+"="           RTN(EQ);
 
 "_"           RTN(ANON);
 
@@ -143,10 +125,14 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 ")"           RTN(RPAR)
 "{"           RTN(LBRCE)
 "}"           RTN(RBRCE)
+"<"           RTN(LANGLE);
+">"           RTN(RANGLE);
 ","           RTN(COMMA)
 ";"           RTN(SEMI)
+"."           RTN(PERIOD)
 "%"           RTN(PRCENT)
-"=>"          RTN(ARROW)
+"<="          RTN(LARROW);
+"=>"          RTN(RARROW);
 "->"          RTN(THINARROW)
 
 [1-9]{DECDIGIT}* { 

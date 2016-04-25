@@ -12,13 +12,13 @@
 
 static retCode compileBlock(lxPo actions,sxPo *expected,uniChar *path,
 			    dictPo dict,dictPo outer,
-			    exitPo exit, mtdPo mtd, 
+			    exitPo exit, mtdCxtPo mtd, 
 			    contFun cont,void *cl);
 
 static retCode compileVarDeclaration(sxPo var,rwMode access,
 				     sxPo value,uniChar *path,
 				     dictPo dict,dictPo outer,
-				     exitPo exit,mtdPo mtd);
+				     exitPo exit,mtdCxtPo mtd);
 
 static retCode thrower(locationPo loc,varInfoPo src,void *cl,assemPo code);
 static retCode unwinder(locationPo loc,varInfoPo src,void *cl,assemPo code);
@@ -26,7 +26,7 @@ static retCode asserter(locationPo loc,varInfoPo src,void *cl,assemPo code);
 
 retCode compileAction(sxPo act,sxPo *expected,uniChar *path,
 		      dictPo dict,dictPo outer,exitPo exit,
-		      mtdPo mtd, contFun cont,void *cl)
+		      mtdCxtPo mtd, contFun cont,void *cl)
 {
   locationPo loc = sxLoc(act);
   assemPo code = methodCode(mtd);
@@ -223,7 +223,7 @@ retCode compileAction(sxPo act,sxPo *expected,uniChar *path,
 
 retCode compileBlock(lxPo actions, sxPo *expected,uniChar *path,
 		     dictPo dict,dictPo outer, exitPo exit,
-		     mtdPo mtd, contFun cont,void *cl)
+		     mtdCxtPo mtd, contFun cont,void *cl)
 {
   int stCount = sxLength(actions);
   exitPo blockExits = exit;
@@ -274,7 +274,7 @@ retCode compileBlock(lxPo actions, sxPo *expected,uniChar *path,
 
 retCode compileVarDeclaration(sxPo var,rwMode access,sxPo value,uniChar *path,
 			      dictPo dict,dictPo outer,
-			      exitPo exit,mtdPo mtd)
+			      exitPo exit,mtdCxtPo mtd)
 {
   locationPo loc = sxLoc(var);
   if(sxIsCast(var) && sxIsIden(sxCastExp(var))){

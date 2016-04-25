@@ -25,12 +25,12 @@ retCode parseContent(uniChar *path,uniChar *outPath)
 
     if(ch=='#'){			/* look for standard #!/.... header */
       if((ch=inCh(file))=='!'){
-	while((ch=inCh(file))!=uniEOF && ch!='\n')
-	  ;			        /* consume the interpreter statement */
+      	while((ch=inCh(file))!=uniEOF && ch!='\n')
+      	  ;			        /* consume the interpreter statement */
       }
       else{
-	unGetChar(file,ch);
-	unGetChar(file,'#');
+      	unGetChar(file,ch);
+      	unGetChar(file,'#');
       }
     }
     else

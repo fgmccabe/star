@@ -13,7 +13,7 @@
  * code unless we know it will match. (That is done by the case analysis). 
  */
 
-retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdPo mtd)
+retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
 
@@ -54,7 +54,7 @@ retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdPo mtd)
   }
 }
 
-retCode genPtnArgs(lxPo args,uniChar *path,dictPo dict,mtdPo mtd)
+retCode genPtnArgs(lxPo args,uniChar *path,dictPo dict,mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
   long arity = sxLength(args);

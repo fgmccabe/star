@@ -9,6 +9,7 @@
 #include "cafeOptions.h"
 #include "utils.h"
 #include "engine.h"
+#include "signature.h"
 #include "decode.h"
 #include "escapes.h"
 #include "opcodes.h"
@@ -18,6 +19,7 @@
  * This implements a binary decoder. Can be used to load executable code.
  */
 
+static retCode dec_tos(ioPo in,OpCode op,insPo *code);
 static retCode dec_nOp(ioPo in,OpCode op,insPo *code);
 static retCode dec_i32(ioPo in,OpCode op,insPo *code);
 static retCode dec_arg(ioPo in,OpCode op,insPo *code);
@@ -335,8 +337,10 @@ static void *getLcl(void *data,int64 ix)
  */
 retCode decodeMtd(ioPo in,methodPo *tgt,hashPo dict)
 {
-  int64 codeSize,poolCount,frameCount,localCount;
+  int64 codeSize,poolCount,frameCount,localCount,sigCon,freeSigCon;
 
+  tryRet(decInteger(in,&sigCon));
+  tryRet(decInteger(in,&freeSigCon));
   tryRet(decInteger(in,&poolCount));
   tryRet(decInteger(in,&frameCount));
   tryRet(decInteger(in,&localCount));
@@ -344,6 +348,8 @@ retCode decodeMtd(ioPo in,methodPo *tgt,hashPo dict)
   
   methodPo mtd = *tgt = (methodPo)malloc(sizeof(MethodRec)+poolCount*sizeof(ConstantRec));
 
+  mtd->typeSig = sigCon;
+  mtd->freeSig = freeSigCon;
   mtd->poolCount = poolCount;
   mtd->codeSize = codeSize;
   mtd->frameCount = frameCount;
@@ -416,6 +422,12 @@ retCode decodeMtd(ioPo in,methodPo *tgt,hashPo dict)
   mtd->jitSize = -1;
 
   return ret;
+}
+
+retCode dec_tos(ioPo in,OpCode op,insPo *code)
+{
+  *(*code)++ = op;
+  return Ok;
 }
 
 retCode dec_nOp(ioPo in,OpCode op,insPo *code)

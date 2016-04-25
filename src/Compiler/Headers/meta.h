@@ -8,6 +8,14 @@
 #include "type.h"
 #include <ooio.h>
 
+extern logical isSxPackage(sxPo term);
+
+extern sxPo sxPackage(locationPo loc,sxPo name,lxPo definitions);
+
+extern sxPo sxPackageName(sxPo term);
+
+extern lxPo sxPackageContent(sxPo term);
+
 extern sxPo sxIdent(locationPo loc,uniChar *name,sxPo type);
 
 extern logical sxIsIdent(sxPo sx);
@@ -19,14 +27,6 @@ extern sxPo sxImport(locationPo loc,uniChar *pkg);
 extern logical sxIsImport(sxPo sx);
 
 extern uniChar *sxImportPkg(sxPo sx);
-
-extern sxPo sxTypeDef(locationPo loc,sxPo type,lxPo cons);
-
-extern logical sxIsTypeDef(sxPo sx);
-
-extern sxPo sxTypeDefType(sxPo sx);
-
-extern lxPo sxTypeDefCons(sxPo sx);
 
 extern sxPo sxFunction(locationPo loc,uniChar *name,sxPo type,lxPo args,sxPo sx);
 
@@ -117,6 +117,16 @@ extern sxPo sxCastExp(sxPo sx);
 
 extern sxPo sxCastType(sxPo sx);
 
+extern sxPo sxOr(locationPo loc,sxPo lhs,sxPo rhs);
+
+extern sxPo sxAnd(locationPo loc,sxPo lhs,sxPo rhs);
+
+extern sxPo sxNot(locationPo loc,sxPo rhs);
+
+extern sxPo sxIsTrue(locationPo loc,sxPo exp);
+
+extern sxPo sxMatches(locationPo loc,sxPo exp,sxPo ptn);
+
 extern sxPo sxApply(locationPo loc,uniChar *name,lxPo args);
 
 extern logical sxIsApply(sxPo sx);
@@ -124,6 +134,8 @@ extern logical sxIsApply(sxPo sx);
 extern uniChar *sxApplyOp(sxPo sx);
 
 extern lxPo sxApplyArgs(sxPo sx);
+
+extern sxPo sxSequence(locationPo loc,lxPo els);
 
 extern lxPo sxList(locationPo loc,...);
 
@@ -323,6 +335,6 @@ extern sxPo sxLhs(sxPo sx);
 
 extern sxPo sxRhs(sxPo sx);
 
-extern lxPo parseContent(uniChar *path);
+extern sxPo parseContent(uniChar *path);
 
 #endif

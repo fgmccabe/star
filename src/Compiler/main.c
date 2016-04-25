@@ -10,6 +10,7 @@
 #include "compiler.h"
 #include "compile.h"
 #include "cafeOptions.h"
+#include "options.h"
 #include "package.h"
 #include "heap.h"
 #include "lex.h"

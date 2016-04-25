@@ -2,9 +2,9 @@
 #include <ooio.h>
 #include "signature.h"
 
-uniChar integerSig[] = { rawInt, 0};
-uniChar stringSig[] = { rawString, 0};
-uniChar floatSig[] = { rawFloat, 0};
+uniChar integerSig[] = { INTEGER_SIG, 0};
+uniChar stringSig[] = { STRING_SIG, 0};
+uniChar floatSig[] = { FLOAT_SIG, 0};
 
 static logical validSig(uniChar *sig,int32 *start,int32 end);
 
@@ -16,24 +16,46 @@ logical validSignature(uniChar *sig)
   return validSig(sig,&pos,end) && pos==end;
 }
 
+static logical skipId(uniChar *sig,int32 *start,int32 end)
+{
+  while(*start<end)
+    if(sig[(*start)++]==';')
+      break;
+  return *start<=end;
+}
+
 logical validSig(uniChar *sig,int32 *start,int32 end)
 {
   switch(sig[(*start)++]){
-  case intSig:
-  case fltSig:
-  case strSig:
-    return True;
   case usrSig:
-  case tVSig:
-    while(*start<end)
-      if(sig[(*start)++]==';')
-	break;
-    return *start<end;
+  case tVrSig:
+    return skipId(sig,start,end);
+  case rawSig:{
+    while(*start<end){
+      uniChar ch = (*start)++;
+      if(sig[ch]==';')
+        break;
+      else if(!isNdChar(ch))
+        return False;
+    }
+    return *start<=end;
+  }
   case tplSig:{
     while(*start<end && sig[*start]!=')')
       if(!validSig(sig,start,end))
-	return False;
+      	return False;
     if(sig[*start]==')'){
+      (*start)++;
+      return True;
+    }
+    else
+      return False;
+  }
+  case fceSig:{
+    while(*start<end && sig[*start]!='}')
+      if(!skipId(sig,start,end) || !validSig(sig,start,end))
+        return False;
+    if(sig[*start]=='}'){
       (*start)++;
       return True;
     }
@@ -42,10 +64,12 @@ logical validSig(uniChar *sig,int32 *start,int32 end)
   }
   case funSig:				/* Function signature */
   case conSig:				/* Type constructor */
-  case exSig:				/* Existential quantifier */
+  case xstSig:				/* Existential quantifier */
   case allSig:				/* Universal quantifier */
     return validSig(sig,start,end) &&
       validSig(sig,start,end);
+  case repSig:
+    return validSig(sig,start,end);
   default:
     return False;			/* Not a valid signature */
   }
@@ -57,12 +81,9 @@ static retCode tplArity(uniChar *sig,int32 *arity,int32 *start,int32 end);
 static retCode funArity(uniChar *sig,int32 *arity,int32 *start,int32 end)
 {
   switch(sig[(*start)++]){
-  case intSig:
-  case fltSig:
-  case strSig:
   case usrSig:
   case conSig:				/* Type constructor */
-  case tVSig:
+  case tVrSig:
     return Error;			/* top-level must be a tuple type */
   case tplSig:{
     *arity = 0;
@@ -78,10 +99,9 @@ static retCode funArity(uniChar *sig,int32 *arity,int32 *start,int32 end)
     else
       return Error;
   }
-  case escSig:				/* Escape signature */
   case funSig:				/* Function signature */
     return tplArity(sig,arity,start,end);
-  case exSig:				/* Existential quantifier */
+  case xstSig:				/* Existential quantifier */
   case allSig:				/* Universal quantifier */
     tryRet(skipSig(sig,start,end));
     return funArity(sig,arity,start,end);
@@ -116,7 +136,7 @@ static retCode tplArity(uniChar *sig,int32 *arity,int32 *start,int32 end)
     else
       return Error;
   }
-  case exSig:				/* Existential quantifier */
+  case xstSig:				/* Existential quantifier */
   case allSig:				/* Universal quantifier */
     tryRet(skipSig(sig,start,end));
     return tplArity(sig,arity,start,end);
@@ -133,19 +153,15 @@ retCode tupleArity(uniChar *sig,int32 *arity)
   return tplArity(sig,arity,&pos,end);
 }
 
-
 retCode skipSig(uniChar *sig,int32 *start,int32 end)
 {
   switch(sig[(*start)++]){
-  case intSig:
-  case fltSig:
-  case strSig:
-    return Ok;
   case usrSig:
-  case tVSig:
+  case tVrSig:
+  case rawSig:
     while(*start<end)
       if(sig[(*start)++]==';')
-	break;
+      	break;
     if(*start<end)
       return Ok;
     else
@@ -161,43 +177,64 @@ retCode skipSig(uniChar *sig,int32 *start,int32 end)
     else
       return Error;
   }
-  case escSig:				/* Escape signature */
+  case fceSig:{
+    while(*start<end && sig[*start]!='}'){
+      if(!skipId(sig,start,end))
+        return Error;
+      else
+        tryRet(skipSig(sig,start,end));
+    }
+
+    if(sig[*start]=='}'){
+      (*start)++;
+      return Ok;
+    }
+    else
+      return Error;
+  }
   case funSig:				/* Function signature */
   case conSig:				/* Type constructor */
-  case exSig:				/* Existential quantifier */
+  case xstSig:				/* Existential quantifier */
   case allSig:				/* Universal quantifier */
     tryRet(skipSig(sig,start,end));
     return skipSig(sig,start,end);
-
+  case repSig:
+    return skipSig(sig,start,end);
   default:
     return Error;			/* Not a valid signature */
   }
 }
 
+retCode showSig(ioPo out,uniChar *sig)
+{
+  int32 pos = 0;
+  int32 end = uniStrLen(sig);
+
+  return showSignature(out,sig,&pos,end);
+}
+
+static retCode showSigId(ioPo out,uniChar *sig,int32 *start,int32 end){
+  while(*start<end){
+    uniChar ch = (*start)++;
+    if(sig[ch]==';')
+      break;
+    else
+      tryRet(outChar(out,ch));
+  }
+  if(*start<end)
+    return Ok;
+  else
+    return Error;
+}
+
 retCode showSignature(ioPo out,uniChar *sig,int32 *start,int32 end)
 {
   switch(sig[(*start)++]){
-  case intSig:
-    return outMsg(out,"integer_");
-  case fltSig:
-    return outMsg(out,"float_");
-  case strSig:
-    return outMsg(out,"string_");
-  case tVSig:
+  case tVrSig:
     tryRet(outChar(out,'%'));
-  case usrSig:{
-    while(*start<end){
-      uniChar ch = (*start)++;
-      if(sig[ch]==';')
-	break;
-      else
-	tryRet(outChar(out,ch));
-    }
-    if(*start<end)
-      return Ok;
-    else
-      return Error;
-  }
+  case rawSig:
+  case usrSig:
+    return showSigId(out,sig,start,end);
   case tplSig:{
     tryRet(outChar(out,'('));
     char *sep = "";
@@ -215,10 +252,25 @@ retCode showSignature(ioPo out,uniChar *sig,int32 *start,int32 end)
     else
       return Error;
   }
-  case escSig:				/* Escape signature */
-    tryRet(showSignature(out,sig,start,end));
-    tryRet(outStr(out,"->"));
-    return showSignature(out,sig,start,end);
+  case fceSig:{
+    tryRet(outChar(out,'{'));
+    char *sep = "";
+
+    while(*start<end && sig[*start]!='}'){
+      tryRet(outStr(out,sep));
+      sep = ", ";
+      tryRet(showSigId(out,sig,start,end));
+      tryRet(outStr(out,":"));
+      tryRet(showSignature(out,sig,start,end));
+    }
+
+    if(sig[*start]=='}'){
+      (*start)++;
+      return outChar(out,'}');
+    }
+    else
+      return Error;
+  }
   case funSig:				/* Function signature */
     tryRet(showSignature(out,sig,start,end));
     tryRet(outStr(out,"=>"));
@@ -227,7 +279,7 @@ retCode showSignature(ioPo out,uniChar *sig,int32 *start,int32 end)
     tryRet(showSignature(out,sig,start,end));
     tryRet(outStr(out," <=> "));
     return showSignature(out,sig,start,end);
-  case exSig:				/* Existential quantifier */
+  case xstSig:				/* Existential quantifier */
     tryRet(outStr(out,"exists "));
     tryRet(showSignature(out,sig,start,end));
     tryRet(outStr(out," such that "));
@@ -237,6 +289,10 @@ retCode showSignature(ioPo out,uniChar *sig,int32 *start,int32 end)
     tryRet(showSignature(out,sig,start,end));
     tryRet(outStr(out," such that "));
     return showSignature(out,sig,start,end);
+  case repSig:
+    tryRet(outStr(out,"["));
+    tryRet(showSignature(out,sig,start,end));
+    return outStr(out,"]");
   default:
     return Error;			/* Not a valid signature */
   }

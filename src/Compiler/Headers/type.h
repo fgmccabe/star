@@ -47,25 +47,33 @@ extern logical isTypeVar(sxPo type);
 extern sxPo sxTypeVar(locationPo loc,uniChar *name);
 extern uniChar *tpVarName(sxPo t);
 
-extern sxPo sxTypeExp(locationPo loc,uniChar *name, lxPo args);
+extern sxPo sxAllType(locationPo loc,lxPo argTypes,sxPo resType);
+extern sxPo sxTypeExp(locationPo loc,sxPo type, sxPo argAtype);
 extern sxPo sxTypeFun(locationPo loc,sxPo op,lxPo args);
 extern sxPo sxTypeOp(sxPo tp);
 extern logical isTypeExp(sxPo t);
 extern logical isTypeFun(sxPo t);
 extern uniChar *typeExpName(sxPo tp);
 extern lxPo sxTypeArgs(sxPo tp);
-
-extern sxPo sxArrowType(locationPo loc,lxPo argTypes,sxPo resType);
+extern sxPo sxTypeDef(locationPo loc,sxPo type);
+extern logical sxIsTypeDef(sxPo sx);
+extern sxPo sxTypeDefType(sxPo sx);
+extern lxPo sxTypeDefCons(sxPo sx);
+extern sxPo sxEnumDef(locationPo loc,sxPo name,sxPo args,sxPo type);
+extern sxPo sxStructDef(locationPo loc,sxPo name,sxPo args,sxPo type);
+extern sxPo sxField(locationPo loc,sxPo name,sxPo type);
+extern sxPo sxTupleType(locationPo loc,lxPo fields);
+extern sxPo sxRecordType(locationPo loc,lxPo fields);
+extern sxPo sxArrowType(locationPo loc,sxPo argType,sxPo resType);
 extern logical isArrowType(sxPo type);
-extern lxPo arrowArgTypes(sxPo type);
+extern sxPo arrowArgType(sxPo type);
 extern sxPo arrowResType(sxPo type);
 extern sxPo arrowThrows(sxPo type);
 extern sxPo arrowtypeArg(sxPo type,int ix);
 
-extern sxPo sxPttrnType(locationPo loc,lxPo args, sxPo ptnType);
+extern sxPo sxPttrnType(locationPo loc,sxPo argType, sxPo ptnType);
 extern logical isPttrnType(sxPo type);
-extern lxPo ptnArgTypes(sxPo type);
-extern sxPo ptnTypeArg(sxPo type,int ix);
+extern sxPo ptnArgType(sxPo type);
 extern sxPo ptnPtnType(sxPo type);
 
 extern retCode checkType(sxPo actual, sxPo *expected,locationPo loc);

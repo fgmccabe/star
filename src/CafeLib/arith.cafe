@@ -1,0 +1,23 @@
+/*
+ * Test contract driven arithmetic
+ */
+
+arith package {
+  type $arith<t>
+  enum all t st $arith{ '+' : (t,t)=>t; '-' : (t,t)=>t; '*' : (t,t)=>t; _uminus : (t)=>t } : $arith<t>
+
+  def $arith#integer : $arith<integer> is let{
+    function __integer_uminus(X:integer):integer is __integer_minus(0,X)
+  } in $arith{
+    '+' = __integer_plus;
+    '-' = __integer_minus;
+    '*' = __integer_times;
+    _uminus = __integer_uminus
+  }
+
+  function fact(X:integer):integer is 
+    case X in {
+      0 -> 1;
+      N -> $arith#integer.'*'(N,fact($arith#integer.'-'(N,1)))
+    }
+}

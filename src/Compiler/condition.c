@@ -11,7 +11,7 @@
 retCode compileCondition(sxPo cond,uniChar *path,
 			 dictPo dict,dictPo outer,
 			 jumpMode sense,lPo tgt,
-			 exitPo exit,mtdPo mtd)
+			 exitPo exit,mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
   locationPo loc = sxLoc(cond);

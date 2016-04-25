@@ -22,7 +22,7 @@ lPo findKFun(locationPo loc,sxPo type)
   sourceKind kind = typeRep(type);
   uniChar *kName = strMsg(buffer,NumberOf(buffer),".K%s",kindName(kind));
 
-  mtdPo kMtd =  newMethod(kName);
+  mtdCxtPo kMtd =  newMethod(kName);
   assemPo code = methodCode(kMtd);
 
   lPo catch = newLbl(code,genSym(".C"));

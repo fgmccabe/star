@@ -13,7 +13,7 @@
 retCode compileExp(sxPo exp,sxPo *expected,
 		   uniChar *path,
 		   dictPo dict,dictPo outer,
-		   exitPo exit,mtdPo mtd,
+		   exitPo exit,mtdCxtPo mtd,
 		   contFun cont,void *cl)
 {
   locationPo loc = sxLoc(exp);
@@ -263,7 +263,7 @@ long argSize(sxPo type)
 retCode compileArgs(lxPo args,lxPo argTypes,
 		    int depth,uniChar *path,
 		    dictPo dict,dictPo outer,
-		    exitPo exit,mtdPo mtd)
+		    exitPo exit,mtdCxtPo mtd)
 {
   long arity = sxLength(args);
   int offset = depth;

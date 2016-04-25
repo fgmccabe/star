@@ -44,6 +44,7 @@ typedef struct _assem_method_ {
   int32 sig;				/* Signature of this method */
   int32 freeSig;			/* Signature of free variables */
   listPo locals;			/* Local variables */
+  listPo frames;      /* Active frames in the method */
 } AssemMethod;
 
 typedef struct _local_data_ {

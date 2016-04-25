@@ -52,7 +52,7 @@ int findConstructorMax(lxPo cases, dictPo dict)
 retCode compileSwitch(sxPo caseExp,sxPo *expected,
 		      uniChar *path,
 		      dictPo dict,dictPo outer,
-		      exitPo exit, mtdPo mtd,
+		      exitPo exit, mtdCxtPo mtd,
 		      compileFun bodyFun,contFun cont,void *cl)
 {
   Register tgt = R0;
@@ -72,7 +72,7 @@ retCode compileSwitch(sxPo caseExp,sxPo *expected,
 retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
 			    lxPo cases,uniChar *path,
 			    dictPo dict,dictPo outer,
-			    exitPo exit, mtdPo mtd,
+			    exitPo exit, mtdCxtPo mtd,
 			    compileFun bodyFun,contFun cont,void *cl)
 {
   int maxIx = findConstructorMax(cases,dict)/POINTER_SIZE;
@@ -174,7 +174,7 @@ retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
 retCode compileScalarCase(locationPo loc,varInfoPo src,sxPo *expected,
 			  lxPo cases,uniChar *path,
 			  dictPo dict,dictPo outer,
-			  exitPo exit, mtdPo mtd,
+			  exitPo exit, mtdCxtPo mtd,
 			  compileFun bodyFun,contFun cont,void *cl)
 {
   int count = sxLength(cases);

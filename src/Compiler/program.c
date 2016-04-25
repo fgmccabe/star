@@ -22,51 +22,51 @@ static sxPo refactorContent(lxPo defs,int argc,char **argv);
 
 retCode compileAndGo(uniChar *path,int argc, char **argv)
 {
-  lxPo defs = parseContent(path);
+  sxPo pkg = parseContent(path);
 
-  if(defs!=Null){
+  if(pkg!=Null){
     if(parseOnly)
-      return outMsg(logFile,"Parsed %U is %#S\n",path,defs);
+      return outMsg(logFile,"Parsed %U is %A\n",path,pkg);
 
     if(defs!=Null && sxLength(defs)>0){
       sxPo mainProg = refactorContent(mCons(voidSpec,defs),argc,argv);
 
       if(mainProg!=Null){
-	mtdPo mtd = newMethod(MainName);
-	assemPo code = methodCode(mtd);
-	lPo entryPoint = newLbl(code,uniNewStr((unsigned char*)"$START"));
-	defineLbl(code,entryPoint);
-	
-	long localSize = ALIGN(countLocalsInDefs(defs),16);
-      
-	AEnterCFun(code,localSize);	/* we are implementing a C function */
-      
-	dictPo dict = funDict(-localSize,rootDict);
-      
-	int retVal = 0;
-	sxPo resType = Null;
+      	mtdCxtPo mtd = newMethod(MainName);
+      	assemPo code = methodCode(mtd);
+      	lPo entryPoint = newLbl(code,uniNewStr((unsigned char*)"$START"));
+      	defineLbl(code,entryPoint);
+      	
+      	long localSize = ALIGN(countLocalsInDefs(defs),16);
+            
+      	AEnterCFun(code,localSize);	/* we are implementing a C function */
+            
+      	dictPo dict = funDict(-localSize,rootDict);
+            
+      	int retVal = 0;
+      	sxPo resType = Null;
 
-	compileAction(mainProg,&resType,path,dict,rootDict,
-		      Null,mtd,returnMain,&retVal);
+      	compileAction(mainProg,&resType,path,dict,rootDict,
+      		      Null,mtd,returnMain,&retVal);
 
-	if(compileOnly){
-	  outMsg(logFile,"Program: %U\n",mainProg);
-	  dumpPkgCode(code);
-	  return Ok;
-	}
-	else if(isErrorFree()){
-	  cafeFun fun = generateCode(code,entryPoint);
-	  double time = getNanoTime();
-	  integer reslt = fun();
-	  time = getNanoTime()-time;
-	  
-	  if(reslt!=0)
-	    outMsg(logFile,"%d exit code",reslt);
-	  outMsg(logFile,"%f secs\n",time);
-	  return Ok;
-	}
-	else
-	  return Error;
+      	if(compileOnly){
+      	  outMsg(logFile,"Program: %U\n",mainProg);
+      	  dumpPkgCode(code);
+      	  return Ok;
+      	}
+      	else if(isErrorFree()){
+      	  cafeFun fun = generateCode(code,entryPoint);
+      	  double time = getNanoTime();
+      	  integer reslt = fun();
+      	  time = getNanoTime()-time;
+      	  
+      	  if(reslt!=0)
+      	    outMsg(logFile,"%d exit code",reslt);
+      	  outMsg(logFile,"%f secs\n",time);
+      	  return Ok;
+      	}
+      	else
+      	  return Error;
       }
       else
 	return Error;
@@ -94,6 +94,42 @@ static sxPo findMainProc(lxPo defs)
   }
 }
 
+extern int yyparse(ioPo inFile, sxPo *result);
+
+sxPo parseContent(uniChar *path)
+{
+  ioPo file = openURI(path, unknownEncoding);
+
+  if(file!=Null){
+    uniChar ch = inCh(file);    /* We skip over #! */
+
+    if(ch=='#'){      /* look for standard #!/.... header */
+      if((ch=inCh(file))=='!'){
+        while((ch=inCh(file))!=uniEOF && ch!='\n')
+          ;             /* consume the interpreter statement */
+      }
+      else{
+        unGetChar(file,ch);
+        unGetChar(file,'#');
+      }
+    }
+    else
+      unGetChar(file,ch);
+    
+    sxPo content;
+    int errors = yyparse(file,&content);
+    
+    closeFile(file);      /* close the source string file */
+    if(!errors)
+      return content;
+    else{
+      outMsg(logFile,"could not parse %U\n",path);
+      return Null;
+    }
+  }
+  else
+    return Null;
+}
 
 /*
  * We transform the program into a form that handles the actual call args
@@ -143,31 +179,27 @@ sxPo refactorContent(lxPo defs,int argc,char **args)
       sxPo argType = sxEl(typeArgs,ix);
 
       if(isRawCharType(argType))
-	callArgs = mCons(mChar(mainLoc,args[ix][0]),callArgs);
+      	callArgs = mCons(mChar(mainLoc,args[ix][0]),callArgs);
       else if(isRawIntType(argType)){
-	integer i = parseInteger(buffer,uniStrLen(buffer));
-	callArgs = mCons(mInt(mainLoc,i),callArgs);
+      	integer i = parseInteger(buffer,uniStrLen(buffer));
+      	callArgs = mCons(mInt(mainLoc,i),callArgs);
       } else if(isRawLongType(argType)){
-	integer i = parseInteger(buffer,uniStrLen(buffer));
-	callArgs = mCons(mLong(mainLoc,i),callArgs);
+      	integer i = parseInteger(buffer,uniStrLen(buffer));
+      	callArgs = mCons(mLong(mainLoc,i),callArgs);
       } else if(isRawFloatType(argType)){
-	double d = parseNumber(buffer,uniStrLen(buffer));
-	callArgs = mCons(mFloat(mainLoc,d),callArgs);
+      	double d = parseNumber(buffer,uniStrLen(buffer));
+      	callArgs = mCons(mFloat(mainLoc,d),callArgs);
       }
       else if(isRawStringType(argType))
-	callArgs = mCons(mStr(mainLoc,uniDuplicate(buffer)),callArgs);
+      	callArgs = mCons(mStr(mainLoc,uniDuplicate(buffer)),callArgs);
       else{
-	reportError(mainLoc,
-		    "types should be integer, float or string, not %T",
-		    argType);
-	return Null;
+      	reportError(mainLoc,
+      		    "types should be integer, float or string, not %T",
+      		    argType);
+      	return Null;
       }
     }
 
     return sxLet(mainLoc,defs,sxCall(mainLoc,MainName,callArgs));
   }
 }
-
-
-
-

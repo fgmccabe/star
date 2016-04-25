@@ -22,13 +22,12 @@
 %debug
 
 %parse-param { ioPo yyInfile }
-%parse-param { lxPo *result }
+%parse-param { sxPo *result }
 %lex-param { ioPo yyInfile } 
 
 %start topLevel
 
-%union{
-  uniChar *op;
+%union {
   uniChar *str;
   uniChar *id;
   uniChar ch;
@@ -40,27 +39,20 @@
 
 // Symbolic tokens
 %token COMMA SEMI
-%token PRCENT
-%token COLON ASSIGN ARROW THINARROW EQUAL
+%token PRCENT PERIOD
+%token EQ COLON ASSIGN RARROW LARROW THINARROW
 %token LPAR RPAR
 %token LBRCE RBRCE
+%token LANGLE RANGLE
 %token ANON
+%token IF THEN ELSE
 
  // Keywords
-%token PROCEDURE FUNCTION PATTERN MEMO 
-%token TYPE OR 
-%token LET SWITCH DEFAULT IN VALOF VALIS IMPORT
-%token VAR IS 
-%token NOTHING DO WHILE IF THEN ELSE 
-%token TRY CATCH THROW
-%token MATCHES
-%token ASSERT
-
- // Compare Operators
-%token LESS LEQ GT GEQ NOTEQUAL
-
- // Arithmetic operators
-%token PLUS MINUS TIMES DIVIDE LSHIFT RSHIFT UMINUS BITAND BITOR BITXOR BITNEG
+%token FUNCTION PATTERN MEMO IMPORT PKG WHERE
+%token TYPE STRUCT ENUM ALL ST
+%token LET SWITCH DEFAULT IN 
+%token VAR DEF IS
+%token MATCHES OR NOT AND
 
 // Number and value tokens
 %token <i> DECIMAL LONG
@@ -71,42 +63,39 @@
 %right SEMI COMMA ELSE
 %nonassoc IN
 %nonassoc LPAR
-%left PLUS MINUS BITOR BITXOR
-%left TIMES DIVIDE PRCENT BITAND 
-%nonassoc LSHIFT RSHIFT
-%right ARROW
-%left LEQ
-%left UMINUS BITNEG
+%nonassoc NOT
+%left AND
+%left OR
+%right LARROW RARROW
+%left ST
 
-%type <s> topLevel 
+%type <a> topLevel package
 %type <a> expression atom name arith ident literal pattern 
-%type <a> apply
-%type <a> letExp switchExp switchAction valofExp 
-%type <a> condition
-%type <a> definition switchExpCase switchActCase
+%type <a> apply field fieldExp
+%type <a> letExp switchExp conditionalExp 
+%type <a> condition sequence
+%type <a> definition switchExpCase
 %type <a> isDeclaration varDeclaration 
-%type <a> action block 
-%type <a> conSpec
 %type <a> type typeVar
 %type <s> types 
 
-%type <s> definitions switchActCases switchExpCases 
-%type <s> actions idents conSpecs args ariths
+%type <s> definitions switchExpCases 
+%type <s> names idents args ariths fields expressions
 
 %type <str> path
 
 %{
-  static void yyerror(YYLTYPE *loc,ioPo yyFile,lxPo *l, char const *errmsg);
+  static void yyerror(YYLTYPE *loc,ioPo yyFile,sxPo *l, char const *errmsg);
   extern int yylex (YYSTYPE * yylval_param,YYLTYPE * yylloc_param, ioPo yyFile);
-
-  static sxPo negative(locationPo loc,sxPo neg);
 
   #define locOf(yyloc) \
     newLocation(fileName(yyInfile),yyloc.first_line,yyloc.last_line)
   %}
 %%
 
-topLevel: definitions { *result = $1; }
+topLevel: package { *result = $1;}
+
+package: name PKG LBRCE definitions RBRCE { $$ = sxPackage(locOf(@$),$1,$4); }
 
 definitions: {$$ = nil; }
 | definition { $$ = mCons($1,nil); }
@@ -115,13 +104,16 @@ definitions: {$$ = nil; }
 
 definition: 
   isDeclaration { $$=$1; }
-| FUNCTION ID args COLON type ARROW expression { $$ = sxFunction(locOf(@$),$2,$5,$3,$7); }
-| PROCEDURE ID args action { $$ = sxProcedure(locOf(@$),$2,$3,$4); }
+| varDeclaration { $$=$1; }
+| FUNCTION ID args COLON type IS expression { $$ = sxFunction(locOf(@$),$2,$5,$3,$7); }
 | PATTERN ID args COLON type MATCHES pattern { $$ = sxPattern(locOf(@$),$2,$3,$5,$7,Null); }
-| PATTERN ID args COLON type MATCHES pattern IF condition { $$ = sxPattern(locOf(@$),$2,$3,$5,$7,$9); }
+| PATTERN ID args COLON type MATCHES pattern WHERE condition { $$ = sxPattern(locOf(@$),$2,$3,$5,$7,$9); }
 | MEMO ID COLON type IS expression { $$ = sxMemo(locOf(@$),$2,$4,$6); }
 | IMPORT path { $$ = sxImport(locOf(@$),$2); }
-| TYPE type IS conSpecs { $$ = sxTypeDef(locOf(@$),$2,$4); }
+| TYPE type { $$ = sxTypeDef(locOf(@$),$2); }
+| ENUM name COLON type { $$ = sxEnumDef(locOf(@$),$2,sxTupleType(locOf(@$),nil),$4); }
+| ENUM name LPAR idents RPAR COLON type { $$ = sxEnumDef(locOf(@$),$2,sxTupleType(locOf(@$),$4),$7); }
+| STRUCT name LBRCE idents RBRCE COLON type { $$ = sxStructDef(locOf(@$),$2,sxRecordType(locOf(@$),$4),$7); }
 ;
 
 path: STRING;
@@ -130,33 +122,27 @@ varDeclaration:
 VAR pattern ASSIGN expression { $$ = sxVarDeclaration(locOf(@$),$2,$4); }
 
 isDeclaration: 
-VAR pattern IS expression { $$ = sxIsDeclaration(locOf(@$),$2,$4); }
+DEF pattern IS expression { $$ = sxIsDeclaration(locOf(@$),$2,$4); }
 
 args: LPAR idents RPAR { $$ = $2; }
 
 expression: arith
 | apply
+| fieldExp
 | letExp
 | switchExp
-| valofExp
+| conditionalExp
+| sequence
+
+expressions: { $$ = nil; }
+| expression { $$ = mCons($1,nil); }
+| expression COMMA expressions { $$ = mCons($1,$3); }
 
 atom: name
 | literal
 | LPAR expression COLON type RPAR { $$ = sxTypedExp(locOf(@$),$2,$4); }
 
 arith: atom 
-| arith PLUS arith { $$ = sxBinary(locOf(@$),AddOp,$1,$3); }
-| arith MINUS arith { $$ = sxBinary(locOf(@$),SubtractOp,$1,$3); }
-| arith TIMES arith { $$ = sxBinary(locOf(@$),TimesOp,$1,$3); }
-| arith DIVIDE arith { $$ = sxBinary(locOf(@$),DivideOp,$1,$3); }
-| arith PRCENT arith { $$ = sxBinary(locOf(@$),RemainderOp,$1,$3); }
-| arith LSHIFT arith { $$ = sxBinary(locOf(@$),LshiftOp,$1,$3); }
-| arith RSHIFT arith { $$ = sxBinary(locOf(@$),RshiftOp,$1,$3); }
-| arith BITAND arith { $$ = sxBinary(locOf(@$),BitAndOp,$1,$3); }
-| arith BITOR arith { $$ = sxBinary(locOf(@$),BitOrOp,$1,$3); }
-| arith BITXOR arith { $$ = sxBinary(locOf(@$),BitXorOp,$1,$3); }
-| BITNEG arith { $$ = sxUnary(locOf(@$),BitNegOp,$2); } %prec UMINUS
-| MINUS arith { $$ = negative(locOf(@$),$2); } %prec UMINUS
 
 ariths: { $$ = nil; }
 | arith { $$ = mCons($1,nil); }
@@ -172,8 +158,18 @@ pattern: ident
 | ID LBRCE idents RBRCE { $$ = sxConstructor(locOf(@$),$1,$3); }
 | literal;
 
+fields: { $$ = nil; }
+| field { $$ = mCons($1,nil); }
+| field COMMA fields { $$ = mCons($1,$3); }
+;
+
+field: name EQ arith { $$ = sxField(locOf(@$),$1,$3); }
+;
+
+fieldExp: arith PERIOD ID { $$ = sxField(locOf(@$),$1, mId(locOf(@$),$3));}
+
 apply: ID LPAR ariths RPAR { $$ = sxCall(locOf(@$),$1,$3); };
-| ID LBRCE ariths RBRCE { $$ = sxConstructor(locOf(@$),$1,$3); }
+| ID LBRCE fields RBRCE { $$ = sxConstructor(locOf(@$),$1,$3); }
 
 letExp: LET LBRCE definitions RBRCE IN expression 
 { $$ = sxLet(locOf(@$),$3,$6); }
@@ -188,47 +184,15 @@ switchExpCases: { $$ = nil; }
 switchExpCase: pattern THINARROW expression { $$=sxCaseRule(locOf(@$),$1,$3);}
 | DEFAULT expression { $$=sxDefaultRule(locOf(@$),$2); }
 
-switchAction: SWITCH arith IN LBRCE switchActCases RBRCE 
-{ $$ = sxSwitch(locOf(@$),$2,$5); }
+conditionalExp: IF condition THEN expression ELSE expression { $$ = sxConditional(locOf(@$),$2,$4,$6); }
 
-switchActCases: { $$ = nil; }
-| switchActCase { $$ = mCons($1,nil); }
-| switchActCase SEMI switchActCases { $$=mCons($1,$3); }
+condition: expression MATCHES pattern { $$ = sxMatches(locOf(@$),$1,$3); }
+| expression { $$ = sxIsTrue(locOf(@$),$1); }
+| condition OR condition { $$ = sxOr(locOf(@$),$1,$3); }
+| condition AND condition { $$ = sxAnd(locOf(@$),$1,$3); }
+| NOT condition { $$ = sxNot(locOf(@$),$2); }
 
-switchActCase: pattern THINARROW action { $$ = sxCaseRule(locOf(@$),$1,$3); }
-| DEFAULT action { $$ = sxDefaultRule(locOf(@$),$2); }
-
-valofExp: VALOF block { $$ = sxValof(locOf(@$),$2); }
-
-actions: { $$ = nil; }
-| action { $$ = mCons($1,nil); }
-| action SEMI actions { $$ = mCons($1,$3); }
-
-action: block
-| apply
-| IF condition THEN action ELSE action { $$=sxConditional(locOf(@$),$2,$4,$6); }
-| isDeclaration
-| varDeclaration
-| name ASSIGN expression { $$ = sxAssignment(locOf(@$),$1,$3); }
-| switchAction
-| VALIS expression { $$ = sxValis(locOf(@$),$2); }
-| WHILE condition DO block { $$ = sxWhileAction(locOf(@$),$2,$4); }
-| TRY action CATCH LBRCE switchActCases RBRCE { $$ = sxCatch(locOf(@$),$2,$5); }
-| THROW expression { $$ = sxThrowAction(locOf(@$),$2); }
-| NOTHING { $$ = sxNothing(locOf(@$)); }
-| LET LBRCE definitions RBRCE IN action { $$ = sxLet(locOf(@$),$3,$6); }
-| ASSERT condition { $$=sxAssert(locOf(@$),$2); }
-;
-
-block: LBRCE actions RBRCE { $$ = sxBlock(locOf(@$),$2); }
-
-condition: atom
-| arith EQUAL arith { $$ = sxBinary(locOf(@$),EqualName,$1,$3); }
-| arith NOTEQUAL arith { $$ = sxBinary(locOf(@$),NotEqualName,$1,$3); }
-| arith LESS arith { $$ = sxBinary(locOf(@$),LessName,$1,$3); }
-| arith LEQ arith { $$ = sxBinary(locOf(@$),LessEqualName,$1,$3); }
-| arith GT arith { $$ = sxBinary(locOf(@$),GreaterName,$1,$3); }
-| arith GEQ arith { $$ = sxBinary(locOf(@$),GreaterEqualName,$3,$1); }
+sequence: LBRCE expressions RBRCE { $$ = sxSequence(locOf(@$),$2); }
 
 idents: { $$ = nil; }
 | ident { $$ = mCons($1,nil); }
@@ -239,19 +203,18 @@ ident: ID COLON type { $$ = sxIdent(locOf(@$),$1,$3); }
 
 name: ID { $$ = mId(locOf(@$),$1); }
 
-conSpecs:  { $$ = nil; }
-| conSpec { $$ = mCons($1,nil); }
-| conSpec OR conSpecs { $$ = mCons($1,$3); } 
-;
-
-conSpec: ID LBRCE types RBRCE { $$ = sxConstructor(locOf(@$),$1,$3); }
-| ID { $$ = mId(locOf(@$),$1); }
+names: { $$ = nil; }
+| name { $$ = mCons($1,nil); }
+| name COMMA names { $$ = mCons($1,$3); } 
 
 type: typeVar
-| ID { $$ = mId(locOf(@$),$1); }
-| ID LESS types GT { $$ = sxTypeExp(locOf(@$),$1,$3); }
-| LPAR types RPAR ARROW type { $$ = sxArrowType(locOf(@$),$2,$5); }
-| type LEQ LPAR types RPAR { $$ = sxPttrnType(locOf(@$),$4,$1); }
+| name { $$ = $1; }
+| name LANGLE types RANGLE { $$ = sxTypeExp(locOf(@$),$1,sxTupleType(locOf(@$),$3)); }
+| ALL names ST type { $$ = sxAllType(locOf(@$),$2,$4); }
+| LPAR types RPAR { $$ = sxTupleType(locOf(@$),$2); }
+| type RARROW type { $$ = sxArrowType(locOf(@$),$1,$3); }
+| type LARROW type  { $$ = sxPttrnType(locOf(@$),$3,$1); }
+| LBRCE idents RBRCE { $$ = sxRecordType(locOf(@$),$2); }
 ;
 
 typeVar: PRCENT ID { $$ = sxTypeVar(locOf(@$),$2); }
@@ -262,23 +225,10 @@ types: { $$ = nil; }
 
 %%
 
-static void yyerror(YYLTYPE *loc,ioPo yyFile,lxPo *a, char const *errmsg)
+static void yyerror(YYLTYPE *loc,ioPo yyFile,sxPo *a, char const *errmsg)
 {
   LocationRec lc = {.fileName=fileName(yyFile),
 		    .firstLine=loc->first_line,
 		    .lastLine=loc->last_line};
   reportError(&lc,"syntax error: %s",errmsg);
 }
-
-static sxPo negative(locationPo loc,sxPo neg)
-{
-  if(sxIsInt(neg))
-    return mInt(loc,-sxInt(neg));
-  else if(sxIsFloat(neg))
-    return mFloat(loc,-sxFloat(neg));
-  else
-    return sxBinary(loc,SubtractOp,mInt(loc,0),neg);
-}
-
-    
-

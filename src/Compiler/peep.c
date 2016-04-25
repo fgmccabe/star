@@ -36,6 +36,6 @@ static retCode peepSeg(void *n,void *r,void *c)
   return Ok;
 
 }
-void peepHole(mtdPo mtd){
+void peepHole(mtdCxtPo mtd){
   
 }

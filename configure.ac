@@ -227,17 +227,11 @@ AC_DEFINE(ZEROARRAYSIZE, 0, [How to specify a zero array size])
 AC_MSG_RESULT(yes))
 CFLAGS="$save_cflags"
 
-dnl  lightning/Makefile
-dnl  src/Asm/Makefile
-dnl  src/Jit/Makefile
-dnl  src/Compiler/Headers/Makefile
-dnl  src/Compiler/Makefile
-dnl  src/Tests/Makefile
-
 AC_CONFIG_FILES([
   Makefile
   src/Makefile
   src/Headers/Makefile
+  src/Memory/Makefile
   src/Util/Makefile
   src/Util/UnicodeStuff/Makefile
   src/Lib/Makefile
@@ -245,5 +239,8 @@ AC_CONFIG_FILES([
   src/Asm/Makefile
   src/Engine/Headers/Makefile
   src/Engine/Makefile
+  src/Compiler/Headers/Makefile
+  src/Compiler/Makefile
+  src/Tests/Makefile
 ])
 AC_OUTPUT

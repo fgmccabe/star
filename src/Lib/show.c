@@ -2,6 +2,7 @@
 #include "ooio.h"
 
 #include "escapes.h"
+#include "signature.h"
 #include "libNames.h"
 
 static uint64 showInt(uint64 *tos)
@@ -12,10 +13,10 @@ static uint64 showInt(uint64 *tos)
 }
 
 static uniChar showName[] = { 's', 'h', 'o', 'w', 0 };
-static uniChar showSig[] = { escSig, '(', 'i', ')', 'i', 0 };
+static uniChar signature[] = { funSig, '(', INTEGER_SIG, ')', 'i', 0 };
 static EscapeRec escapeShow = {
   .name = showName,
-  .sig = showSig,
+  .sig = signature,
   .esc = showInt,
   .arity = 0
 };

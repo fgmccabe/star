@@ -1,1 +1,1 @@
-SUBDIRS = Headers Util Lib Asm Engine
+SUBDIRS = Headers Memory Util Lib Asm Engine Tests Compiler

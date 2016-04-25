@@ -2,12 +2,12 @@
  * Grammar for Cafe assembler
  */
 
-%code top{
+%{
 #include <math.h>
 #include <ooio.h>
 #include "assem.h"
 #include "errors.h"
-}
+%}
 
 %locations
 %pure-parser
@@ -24,7 +24,6 @@
 %start program
 
 %union{
-  uniChar ch;
   uniChar *op;
   uniChar *str;
   uniChar *id;
@@ -34,7 +33,7 @@
   lPo lbl;
  }
 
-%code {
+%{
   static void sserror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg);
   extern int sslex (YYSTYPE * asmlval_param,YYLTYPE * asmlloc_param, ioPo asmFile);
 
@@ -42,7 +41,7 @@
     newLocation(fileName(asmInfile),asmloc.first_line,asmloc.last_line)
 
   static mtdPo currMtd;
-}
+%}
 
 // Assembler mnemonics
 %token HALT
@@ -64,7 +63,6 @@
 %token NL
 
 // Number and value tokens
-%token <ch> CHAR
 %token <i> DECIMAL
 %token <str> STRING
 %token <id> ID
@@ -76,7 +74,7 @@
 
 %%
 
-   program: program optnls function | ;
+   program: program function | ;
 
  function: header instructions trailer ;
 
@@ -90,8 +88,6 @@
 trailer: END nls { endFunction(currMtd); }
 
  nls: nls NL | NL;
-
- optnls: nls | ;
 
  instruction: halt
      | call

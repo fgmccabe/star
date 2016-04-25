@@ -5,8 +5,6 @@
 #ifndef _ENCODING_H_
 #define _ENCODING_H_
 
-#include "signature.h"
-
 /*
  * A universal data value encoding scheme. This can be used to represent any
  * value.
@@ -17,8 +15,8 @@
 
 typedef enum {
   trmChr = 0x10,			/* What follows is a character */
-  trmInt = 0x20,			/* What follows is a 32 bit int */
-  trmFlt = 0x40,			/* What follows is a double float */
+  trmInt = 0x20,			/* What follows is an integer */
+  trmFlt = 0x40,			/* What follows is a float */
   trmStr = 0x50,			/* A length-encoded string */
   trmEsc = 0x70,			/* An escape reference */
   trmCde = 0x80,			/* A code block */

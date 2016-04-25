@@ -14,7 +14,7 @@
   Contact: Francis McCabe <frankmccabe@mac.com>
 */
 
-instruction(Halt,nOp,halt,"Stop execution")
+instruction(Halt,tos,halt,"Stop execution")
 
 instruction(Call,nOp,call,"Call ")
 instruction(Escape,Es,escape,"call C escape")
@@ -28,15 +28,18 @@ instruction(Jmp,off,jmp,"jump lbl")
 
 instruction(Pop,nOp,pop,"pop top of stack")
 instruction(Dup,nOp,dup,"duplicate top of stack")
+instruction(Pull,i32,pull,"pull nth stack entry to top of stack")
 instruction(Swap,nOp,swap,"swap top 2 elements of stack")
 
 instruction(LdInt,i32,ld,"load small integer literal ")
 instruction(LdConst,lit,ld,"load literal from constant pool")
-instruction(LdArg,arg,ld,"load stack from argument[xx]")
+instruction(LdArg,arg,ld,"load stack from args[xx]")
 instruction(LdLocal,lcl,ld,"load stack from local[xx]")
 instruction(LdEnv,env,ld,"load stack from env[xx]")
 instruction(StLocal,lcl,st,"store tos to local[xx]")
+instruction(StArg,env,st,"store tos to args[xx]")
 instruction(StEnv,env,st,"store tos to env[xx]")
+
 instruction(Nth,i32,nth,"pick up the nth element")
 instruction(StNth,i32,stnth,"store in nth element")
 

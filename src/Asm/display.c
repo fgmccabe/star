@@ -11,6 +11,11 @@
 #include <assert.h>
 #include "formioP.h"
 
+static retCode disp_tos(ioPo f,mtdPo mtd,assemInsPo ins,char *op)
+{
+  return outMsg(f,"%s\n",op);
+}
+
 static retCode disp_nOp(ioPo f,mtdPo mtd,assemInsPo ins,char *op)
 {
   return outMsg(f,"%s\n",op);
@@ -47,7 +52,7 @@ static retCode showConstant(ioPo f,mtdPo mtd,int32 ix)
   if(con!=Null)
     return con->show(f,con);
   else
-    return outMsg(f," <bad constant %d>\n",ix);
+    return outMsg(f," <bad constant %d>",ix);
 }
 
 static retCode disp_lit(ioPo f,mtdPo mtd,assemInsPo ins,char *op)
@@ -79,7 +84,8 @@ retCode dumpIns(ioPo f,mtdPo mtd,assemInsPo ins)
 
   case DefineFrame:
     tryRet(outMsg(f,"frame "));
-    return showConstant(f,mtd,ins->i);
+    tryRet(showConstant(f,mtd,ins->i));
+    return outMsg(f,"\n");
 
   default:
     return Error;
@@ -100,9 +106,9 @@ static retCode showLocal(ioPo o,mtdPo mtd,localVarPo lcl)
       outMsg(o,"%U:%U [%d]",name,sig,lcl->off);
 
       if(lcl->from->pc!=Null && lcl->to->pc!=Null)
-	return outMsg(o," (0x%x-0x%x)",lcl->from->pc->pc,lcl->to->pc->pc);
+      	return outMsg(o," (0x%x-0x%x)\n",lcl->from->pc->pc,lcl->to->pc->pc);
       else
-	return Ok;
+      	return outMsg(o,"\n");
     }
   }
 
@@ -113,7 +119,7 @@ retCode dumpMethod(void *r,void *c)
 {
   mtdPo mtd = (mtdPo)r;
   ioPo io = (ioPo)c;
-  outMsg(io,"method %U:\n",mtd->name);
+  outMsg(io,"method %U: %U\n",mtd->name,methodSignature(mtd));
 
   assemInsPo ins = mtd->first;
   while(ins!=Null){
@@ -130,12 +136,12 @@ retCode dumpMethod(void *r,void *c)
     lcl = tail(lcl);
   }
 
-  return Ok;
+  return outMsg(io,"free: %U\n",freeSignature(mtd));
 }
 
 void dumpPkgCode(pkgPo pkg)
 {
-  outMsg(logFile,"%U:\n",pkg->name);
+  outMsg(logFile,"Package %U:\n",pkg->name);
   processList(pkg->methods,dumpMethod,logFile);
   flushOut();
 }

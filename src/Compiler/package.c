@@ -35,26 +35,26 @@ static packagePo makePackage(uniChar *url)
   return pkg;
 }
 
-extern int ssparse(ioPo inFile, assemPo pkg);
+extern int ssparse(ioPo file,pkgPo context);
 
 static retCode compilePkgExp(sxPo exp,sxPo *expected,
 			     uniChar *path,
 			     dictPo dict,dictPo outer,exitPo exit,
-			     mtdPo mtd, contFun cont,void *cl);
+			     mtdCxtPo mtd, contFun cont,void *cl);
 
 packagePo findPackage(uniChar *path)
 {
   packagePo pkg = hashGet(build,path);
 
   if(pkg==Null){
-    lxPo content = parseContent(path);
+    sxPo content = parseContent(path);
 
     if(content!=Null && sxLength(content)>0){
       path = uniIntern(path);
       packagePo pkg = makePackage(path);
       hashPut(build,path,pkg);
 
-      mtdPo mtd = newMethod(genUSym(path));
+      mtdCxtPo mtd = newMethod(genUSym(path));
       assemPo code = methodCode(mtd);
 
       uniChar *curr = currSegment(code);
@@ -115,7 +115,7 @@ packagePo findPackage(uniChar *path)
 
 retCode compilePkgExp(sxPo exp,sxPo *expected,uniChar *path,
 		      dictPo dict,dictPo outer,exitPo exit,
-		      mtdPo mtd, contFun cont,void *cl)
+		      mtdCxtPo mtd, contFun cont,void *cl)
 {
   assert(dict!=Null);
 
@@ -158,7 +158,7 @@ static packagePo loadAssem(uniChar *path)
 {
   ioPo file = openURI(path, unknownEncoding);
 
-  assemPo pkg = newAssem(path);
+  pkgPo pkg = newAssem(path);
   int errors = ssparse(file,pkg);
 
   closeFile(file);			/* close the source file */

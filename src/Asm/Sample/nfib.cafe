@@ -3,7 +3,7 @@
 -- nfib(N) where N<2 is 1
 -- nfib(N) is nfib(N-1)+nfib(N-2)
 
-nfib:: "F(i)i" : "(F(i)i)"
+nfib:: "F(Tinteger;)Tinteger;" : "(F(Tinteger;)Tinteger;)"
      enter 0
      ld a[0]
      ld 2
@@ -15,13 +15,13 @@ recurse:
      ld a[0]
      dec over
      ld e[0]
-     frame "(iF(i)i)"
+     frame "(Tinteger;F(Tinteger;)Tinteger;)"
      call
      ld a[0]
      ld 2
      sub over
      ld e[0]
-     frame "(iF(i)i)"
+     frame "(Tinteger;F(Tinteger;)Tinteger;)"
      call
      add over
      inc over
@@ -42,10 +42,10 @@ l0:
      st l[0]
      ld 30			 -- small to start with
      ld l[0]
-     frame "(iF(i)i)"
+     frame "(Tinteger;F(Tinteger;)Tinteger;)"
      call
 lx:
      escape "show"
      halt
-i    local 0 "F(i)i" l0 lx
+i    local 0 "F(Tinteger;)Tinteger;" l0 lx
      end

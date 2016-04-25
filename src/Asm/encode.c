@@ -46,6 +46,8 @@ retCode encodeMethod(ioPo out,mtdPo mtd)
   tryRet(encodeStr(out,mtd->name,trmTag)); /* signal tag w/name */
 
   tryRet(outByte(out,trmCde));		/* signal a code block */
+  tryRet(encodeInteger(out,mtd->sig));        /* Constant id for the type signature */
+  tryRet(encodeInteger(out,mtd->freeSig));    /* Which constant is the free signature? */
   tryRet(encodeInteger(out,poolCount(mtd)));
   tryRet(encodeInteger(out,frameCount(mtd))); /* Number of frame records */
   tryRet(encodeInteger(out,localCount(mtd))); /* Number of local var records */
@@ -85,6 +87,11 @@ retCode encodeLocal(ioPo out,mtdPo mtd,localVarPo lcl)
   tryRet(encodeInteger(out,lcl->off));
   tryRet(encodeInteger(out,lcl->from->pc->pc/sizeof(uint16)));
   return encodeInteger(out,lcl->to->pc->pc/sizeof(uint16));
+}
+
+static retCode enc_tos(ioPo out,assemInsPo ins)
+{
+  return Ok;
 }
 
 static retCode enc_nOp(ioPo out,assemInsPo ins)

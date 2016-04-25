@@ -4,7 +4,7 @@
 -- tlFact(0,X) is X;
 -- tlFact(N,A) is tlFact(N-1,N*A)
 
-tlFact:: "F(ii)i" : "(F(ii)i)"
+tlFact:: "F(Tinteger;Tinteger;)Tinteger;" : "(F(Tinteger;Tinteger;)Tinteger;)"
      enter 0
      ld a[0]
      bnz nonZero
@@ -23,7 +23,7 @@ over:
      ret
      end
 
-fact :: "F(i)i" : "(F(ii)i)"
+fact :: "F(Tinteger;)Tinteger;" : "(F(Tinteger;Tinteger;)Tinteger;)"
      enter 0
      ld 1
      ld a[0]

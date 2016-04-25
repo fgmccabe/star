@@ -35,7 +35,7 @@ typedef struct _stack_frame_ {
 extern void initHeap(long heapSize);
 extern void initEngine();
 extern int loadAndGo(uniChar *prog,int argc,char **argv);
-extern void run(processPo P,heapPo heap);
+extern uint64 run(processPo P,heapPo heap);
 extern void markRoot(void **addr);
 extern closurePo allocate(heapPo heap,methodPo mtd);
 

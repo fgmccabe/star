@@ -1,0 +1,61 @@
+-- fact in cafe assembler
+-- Tail recursive factorial, equivalent to
+-- fact(N) is tlFact(N,1)
+-- tlFact(0,X) is X;
+-- tlFact(N,A) is tlFact(N-1,N*A)
+
+tlFact:: class "(F(Tinteger;Tinteger;)Tinteger;)"
+apply: method "F(Tinteger;Tinteger;)Tinteger;"
+     enter 0
+     ld a[0]
+     bnz nonZero
+     ld a[1]			-- tlFact(0,X) is X
+     ret
+nonZero:			-- start tail call to tlFact(N-1,N*A)
+     ld a[0] 			-- arguments in reverse order
+     ld a[1]
+     mul over
+     ld a[0]
+     dec over
+     ld e[0]			-- tlFact itself
+     tail
+over:
+     ld -1			-- return a bad value
+     ret
+     end
+
+init: method "F(F(Tinteger;Tinteger;)Tinteger;)()"
+     enter 0
+     ld   a[0]
+     st   e[0]
+     ret
+     end
+     end
+
+_main:: class "()"
+
+     apply "F()()"
+     enter 2
+     ld 0                        -- dummy
+     alloc tlFact
+     dup
+     dup
+     fixup                       -- fix up the references
+
+     ld l[0]		         -- pass in tlFact to fact
+     alloc fact
+     st l[1]                     -- remember fact
+
+     ld 5
+     ld l[1]
+     call
+     halt
+     end
+     
+     init "F()()"
+     enter 0
+     ret
+     end
+     end
+     
+

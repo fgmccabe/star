@@ -33,6 +33,8 @@ typedef struct _method_ {
   jitCode jit;				/* Pointer to jit'ed code */
   long jitSize;				/* How big is the Jit code? */
 
+  int32 typeSig;      /* Which constant has the type signature? */
+  int32 freeSig;      /* which has the free signature? */
   int32 arity;				/* How many argument bytes in method */
   int32 freeCount;			/* Number of 64 bit free words */
   int32 poolCount;			/* Size of constants in pool */
@@ -75,12 +77,12 @@ static inline int32 freeCount(closurePo cl)
 
 static inline uniChar* mtdSignature(methodPo mtd)
 {
-  return (uniChar*)mtd->pool[0].data;
+  return (uniChar*)mtd->pool[mtd->typeSig].data;
 }
 
 static inline uniChar* mtdFreeSignature(methodPo mtd)
 {
-  return (uniChar*)mtd->pool[1].data;
+  return (uniChar*)mtd->pool[mtd->freeSig].data;
 }
 
 #endif

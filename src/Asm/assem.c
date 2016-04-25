@@ -175,6 +175,7 @@ void endFunction(mtdPo mtd)
 
 #undef instruction
 
+#define sztos
 #define sznOp
 #define szi32 pc+=sizeof(int32);
 #define szarg pc+=sizeof(int32);
@@ -193,6 +194,7 @@ void endFunction(mtdPo mtd)
 #include "instructions.h"
 
 #undef instruction
+#undef sztos
 #undef szi32
 #undef szarg
 #undef szlcl
@@ -277,6 +279,10 @@ retCode delLabel(void *n,void *r)
 {
   freePool(lblPool,(lPo)r);
   return Ok;
+}
+
+static void fixup_tos(assemInsPo ins)
+{
 }
 
 static void fixup_nOp(assemInsPo ins)
@@ -448,7 +454,7 @@ int32 newFloatConstant(mtdPo mtd,double dx)
 
 retCode showStringConstant(ioPo f,constPo cn)
 {
-  return outMsg(f,"#%U\n",cn->value.txt);
+  return outMsg(f,"#%U",cn->value.txt);
 }
 
 retCode encodeStringConstant(ioPo f,constPo c)
@@ -478,6 +484,14 @@ uniChar *methodSignature(mtdPo mtd)
 {
   if(mtd->sig>=0)
     return ((constPo)listNthElement(mtd->constants,mtd->sig))->value.txt;
+  else
+    return Null;
+}
+
+uniChar *freeSignature(mtdPo mtd)
+{
+  if(mtd->freeSig>=0)
+    return ((constPo)listNthElement(mtd->constants,mtd->freeSig))->value.txt;
   else
     return Null;
 }
@@ -556,6 +570,12 @@ int32 newEscapeConstant(mtdPo mtd,uniChar *str)
     return cx;
 }
 
+static assemInsPo asm_tos(mtdPo mtd,OpCode op)
+{
+  assemInsPo ins = newIns(mtd,op);
+  return ins;
+}
+
 static assemInsPo asm_nOp(mtdPo mtd,OpCode op)
 {
   assemInsPo ins = newIns(mtd,op);
@@ -615,7 +635,9 @@ static assemInsPo asm_off(mtdPo mtd,OpCode op,lPo lbl)
 
 #undef instruction
 
+#define optos(X)
 #define opnOp(X)
+#define argtos(X)
 #define argnOp(X)
 
 #define opi32(X) ,int32 i##X
@@ -648,7 +670,9 @@ static assemInsPo asm_off(mtdPo mtd,OpCode op,lPo lbl)
 #include "instructions.h"
 
 #undef instruction
+#undef optos
 #undef opnOp
+#undef argtos
 #undef argnOp
 #undef opi32
 #undef argi32
@@ -674,6 +698,7 @@ int32 codeSize(mtdPo mtd)
 #undef instruction
 
 #define sznOp
+#define sztos
 #define szi32 pc+=(sizeof(int32)/sizeof(uint16));
 #define szarg pc+=(sizeof(int32)/sizeof(uint16));
 #define szlcl pc+=(sizeof(int32)/sizeof(uint16));
@@ -691,6 +716,7 @@ int32 codeSize(mtdPo mtd)
 #include "instructions.h"
 
 #undef instruction
+#undef sztos
 #undef szi32
 #undef szarg
 #undef szlcl

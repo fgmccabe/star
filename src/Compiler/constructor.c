@@ -81,16 +81,16 @@ retCode compileTypeDef(sxPo def,uniChar *path,dictPo dict)
   return ret;
 }
 
-static lPo genEvacCode(mtdPo mtd,int conIx,lPo entry,sxPo con);
-static lPo genScavCode(mtdPo mtd,int conIx,sxPo con);
+static lPo genEvacCode(mtdCxtPo mtd,int conIx,lPo entry,sxPo con);
+static lPo genScavCode(mtdCxtPo mtd,int conIx,sxPo con);
 static long sizeofConstructor(sxPo con);
-static lPo genFieldTable(mtdPo mtd,sxPo con);
+static lPo genFieldTable(mtdCxtPo mtd,sxPo con);
 
 retCode genConstructor(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 {
   uniChar *op = sxCallOp(con);
   long conSize = sizeofConstructor(con);
-  mtdPo mtd = newMethod(op);
+  mtdCxtPo mtd = newMethod(op);
   assemPo code = methodCode(mtd);
   lPo conCode = newLbl(code,genSym(".L")); /* Pointer to constructor */
   lPo evac = genEvacCode(mtd,conIx,conCode,con); /* evacuation GC code */
@@ -123,7 +123,7 @@ retCode genConstructor(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 retCode genEnumerated(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 {
   uniChar *op = sxIden(con);
-  mtdPo mtd = newMethod(op);
+  mtdCxtPo mtd = newMethod(op);
   assemPo code = methodCode(mtd);
   lPo evac = newLbl(code,genSym(".E"));	/* special evac code for enums */
   lPo scav = newLbl(code,genSym(".S"));	/* should never be invoked */
@@ -169,7 +169,7 @@ static long countFields(lxPo args)
   return count;
 }
 
-static lPo genFieldTable(mtdPo mtd,sxPo con)
+static lPo genFieldTable(mtdCxtPo mtd,sxPo con)
 {
   assemPo code = methodCode(mtd);
   lPo dotLabel = currLbl(code,genSym(".D"));
@@ -217,7 +217,7 @@ static lPo genFieldTable(mtdPo mtd,sxPo con)
  * one argument: the constructor instance being collected. This ode copies the
  * constructor out to the new heap. Return the new location of the constructor
  */
-lPo genEvacCode(mtdPo mtd,int conIx,lPo entryPoint,sxPo con)
+lPo genEvacCode(mtdCxtPo mtd,int conIx,lPo entryPoint,sxPo con)
 {
   assemPo code = methodCode(mtd);
   lPo fwdLabel = newLbl(code,genSym(".F")); /* The forwarding code that replaces */
@@ -290,7 +290,7 @@ lPo genEvacCode(mtdPo mtd,int conIx,lPo entryPoint,sxPo con)
  * a regular cafe function, meaning that the constructor data shows up as the
  * environment of this function.
  */
-lPo genScavCode(mtdPo mtd,int conIx,sxPo con)
+lPo genScavCode(mtdCxtPo mtd,int conIx,sxPo con)
 {
   assemPo code = methodCode(mtd);
   lPo gcLabel = currLbl(code,genSym(".L"));
@@ -355,7 +355,7 @@ long sizeofConstructor(sxPo con)
 retCode compileConstructor(sxPo exp,sxPo *expected,
 			   uniChar *path,
 			   dictPo dict,dictPo outer,exitPo exit,
-			   mtdPo mtd,contFun cont,void *cl)
+			   mtdCxtPo mtd,contFun cont,void *cl)
 {
   assemPo code = methodCode(mtd);
   locationPo loc = sxLoc(exp);

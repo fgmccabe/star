@@ -14,13 +14,13 @@
 static retCode compileFpArithmetic(sxPo exp,uniChar *path,
 				   dictPo dict,dictPo outer,
 				   exitPo exit,
-				   mtdPo mtd,
+				   mtdCxtPo mtd,
 				   int stkDepth,contFun cont,void *cl);
 static retCode compileArith(sxPo exp,sxPo *expected,
 			    sourceKind kind,
 			    uniChar *path,
 			    dictPo dict,dictPo outer,
-			    exitPo exit, mtdPo mtd,
+			    exitPo exit, mtdCxtPo mtd,
 			    int stkDepth,contFun cont,void *cl);
 
 static Register stkRegs[] = {R0, R1, R2, R3};
@@ -30,7 +30,7 @@ retCode compileArithmetic(sxPo exp,sxPo *expected,
 			  uniChar *path,
 			  dictPo dict,dictPo outer,
 			  exitPo exit,
-			  mtdPo mtd,contFun cont,void *cl)
+			  mtdCxtPo mtd,contFun cont,void *cl)
 {
   sourceKind kind = expMode(exp,dict);
 
@@ -52,7 +52,7 @@ retCode compileArithmetic(sxPo exp,sxPo *expected,
 retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
 		     uniChar *path,
 		     dictPo dict,dictPo outer,
-		     exitPo exit, mtdPo mtd,
+		     exitPo exit, mtdCxtPo mtd,
 		     int stkDepth,contFun cont,void *cl)
 {
   assemPo code = methodCode(mtd);
@@ -99,33 +99,33 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
     if(rSrc.where==literal){
       switch(kind){
       case rawChar:
-	AIncC(code,lSrc.l.reg);
-	break;
+      	AIncC(code,lSrc.l.reg);
+      	break;
       case rawInt:
-	AIncI(code,lSrc.l.reg);
-	break;
+      	AIncI(code,lSrc.l.reg);
+      	break;
       case rawLong:
-	AIncL(code,lSrc.l.reg);
-	break;
+      	AIncL(code,lSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
     else{
       switch(kind){
       case rawChar:
-	AAddC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	AAddC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	AAddI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	AAddI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	AAddL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	AAddL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
     if(fail!=Null)
@@ -135,33 +135,33 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
     if(rSrc.where==literal){
       switch(kind){
       case rawChar:
-	ADecC(code,lSrc.l.reg);
-	break;
+      	ADecC(code,lSrc.l.reg);
+      	break;
       case rawInt:
-	ADecI(code,lSrc.l.reg);
-	break;
+      	ADecI(code,lSrc.l.reg);
+      	break;
       case rawLong:
-	ADecL(code,lSrc.l.reg);
-	break;
+      	ADecL(code,lSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
     else{
       switch(kind){
       case rawChar:
-	ASubC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ASubC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	ASubI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ASubI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	ASubL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ASubL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
     if(fail!=Null)
@@ -173,17 +173,17 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
     else{
       switch(kind){
       case rawChar:
-	AMulC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	AMulC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	AMulI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	AMulI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	AMulL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	AMulL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
     if(fail!=Null)
@@ -197,26 +197,26 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
 
       switch(kind){
       case rawChar:
-	if(zero!=Null)
-	  ABzC(code,rSrc.l.reg,(lPo)zero->cl);
-	ADivC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	if(zero!=Null)
+      	  ABzC(code,rSrc.l.reg,(lPo)zero->cl);
+      	ADivC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	if(zero!=Null)
-	  ABzI(code,rSrc.l.reg,(lPo)zero->cl);
-	ADivI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	if(zero!=Null)
+      	  ABzI(code,rSrc.l.reg,(lPo)zero->cl);
+      	ADivI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	if(zero!=Null)
-	  ABzL(code,rSrc.l.reg,(lPo)zero->cl);
-	ADivL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	if(zero!=Null)
+      	  ABzL(code,rSrc.l.reg,(lPo)zero->cl);
+      	ADivL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
       if(fail!=Null)
-	ABov(code,fail);
+      	ABov(code,fail);
     }
   }
   else if(op==RemainderOp){
@@ -226,26 +226,26 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
       exitPo zero = exitLabel(exit,ArithZeroDivide);
       switch(kind){
       case rawChar:
-	if(zero!=Null)
-	  ABzC(code,rSrc.l.reg,(lPo)zero->cl);
-	ARemC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	if(zero!=Null)
+      	  ABzC(code,rSrc.l.reg,(lPo)zero->cl);
+      	ARemC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	if(zero!=Null)
-	  ABzI(code,rSrc.l.reg,(lPo)zero->cl);
-	ARemI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	if(zero!=Null)
+      	  ABzI(code,rSrc.l.reg,(lPo)zero->cl);
+      	ARemI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	if(zero!=Null)
-	  ABzL(code,rSrc.l.reg,(lPo)zero->cl);
-	ARemL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	if(zero!=Null)
+      	  ABzL(code,rSrc.l.reg,(lPo)zero->cl);
+      	ARemL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
       if(fail!=Null)
-	ABov(code,fail);
+      	ABov(code,fail);
     }
   }
   else if(op==LshiftOp){
@@ -254,17 +254,17 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
     else{
       switch(kind){
       case rawChar:
-	ALeftC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ALeftC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	ALeftI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ALeftI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	ALeftL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ALeftL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
   }
@@ -274,17 +274,17 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
     else{
       switch(kind){
       case rawChar:
-	ARightC(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ARightC(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawInt:
-	ARightI(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ARightI(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       case rawLong:
-	ARightL(code,lSrc.l.reg,rSrc.l.reg);
-	break;
+      	ARightL(code,lSrc.l.reg,rSrc.l.reg);
+      	break;
       default:
-	reportError(loc,"invalid arithmetic expression: %A",exp);
-	return Error;
+      	reportError(loc,"invalid arithmetic expression: %A",exp);
+      	return Error;
       }
     }
   }
@@ -299,7 +299,7 @@ retCode compileArith(sxPo exp,sxPo *expected,sourceKind kind,
 retCode compileFpArithmetic(sxPo exp,uniChar *path,
 			    dictPo dict,dictPo outer,
 			    exitPo exit,
-			    mtdPo mtd, int stkDepth,contFun cont,void *cl)
+			    mtdCxtPo mtd, int stkDepth,contFun cont,void *cl)
 {
   assemPo code = methodCode(mtd);
   sxPo lhs = sxLhs(exp);

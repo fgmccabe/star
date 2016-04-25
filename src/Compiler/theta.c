@@ -25,44 +25,44 @@
  * compilation of lambdas.
  */
 
-static retCode fixupFree(dictPo dict,dictPo outer,mtdPo mtd,int vOffset);
+static retCode fixupFree(dictPo dict,dictPo outer,mtdCxtPo mtd,int vOffset);
 
 typedef retCode (*comp)(uniChar *name,sxPo def,
 			lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 			uniChar *path,dictPo dict,
 			dictPo *funDict,
-			mtdPo mtd);
+			mtdCxtPo mtd);
 
 static retCode compileClosure(sxPo def,
 			      contFun cont,varInfoPo var,
 			      uniChar *path,
 			      dictPo thetaDict,
 			      dictPo *fnDict,
-			      mtdPo outer,
+			      mtdCxtPo outer,
 			      comp progCompiler);
 
 static retCode compFunction(uniChar *name,sxPo def,
 			    lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 			    uniChar *path,dictPo dict,
-			    dictPo *funDict,mtdPo mtd);
+			    dictPo *funDict,mtdCxtPo mtd);
 static retCode compMemo(uniChar *name,sxPo def,
 			lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 			uniChar *path,dictPo dict,
-			dictPo *funDict,mtdPo mtd);
+			dictPo *funDict,mtdCxtPo mtd);
 static retCode compProcedure(uniChar *name,sxPo def,
 			     lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 			     uniChar *path,dictPo dict,
 			     dictPo *funDict,
-			     mtdPo mtd);
+			     mtdCxtPo mtd);
 
 static retCode compileImport(sxPo import,uniChar *path,
-			     dictPo dict,mtdPo mtd);
+			     dictPo dict,mtdCxtPo mtd);
 
 retCode compileTheta(lxPo defs,uniChar *path,
 		     dictPo dict,dictPo outer,
 		     compileFun bound, sxPo *expected,sxPo cl,
 		     exitPo exit,
-		     mtdPo mtd,
+		     mtdCxtPo mtd,
 		     contFun cont,void *ccl)
 {
   int count = sxLength(defs);
@@ -208,18 +208,18 @@ typedef struct {
   dictPo dict;
   lxPo free;
   uniChar *path;
-  mtdPo mtd;
+  mtdCxtPo mtd;
 } FreeCollectRecord;
 
 retCode compileClosure(sxPo def,
 		       contFun cont,varInfoPo var,uniChar *path,
 		       dictPo thetaDict,
 		       dictPo *fnDict,
-		       mtdPo outer,
+		       mtdCxtPo outer,
 		       comp compiler)
 {
   uniChar *name = var->name;
-  mtdPo mtd = newMethod(name);
+  mtdCxtPo mtd = newMethod(name);
   assemPo code = methodCode(mtd);
 
   lPo catch = newLbl(code,genSym(".C"));
@@ -311,7 +311,7 @@ static retCode initClosureVar(uniChar *name,varInfoPo var, void *cl)
   return Ok;
 }
 
-retCode declareArgs(lxPo args,dictPo fDict,dictPo outer,mtdPo mtd)
+retCode declareArgs(lxPo args,dictPo fDict,dictPo outer,mtdCxtPo mtd)
 {
  // Pick out the arguments and declare them as local variables
   retCode status = Ok;
@@ -374,7 +374,7 @@ retCode compFunction(uniChar *name,sxPo def,
 		     lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 		     uniChar *path,dictPo dict,
 		     dictPo *fnDict,
-		     mtdPo mtd)
+		     mtdCxtPo mtd)
 {
   lxPo args = sxFunArgs(def);
   assemPo code = methodCode(mtd);
@@ -419,7 +419,7 @@ retCode compMemo(uniChar *name,sxPo def,
 		 lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 		 uniChar *path,dictPo dict,
 		 dictPo *fnDict,
-		 mtdPo mtd)
+		 mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
 
@@ -457,7 +457,7 @@ retCode compProcedure(uniChar *name,sxPo def,
 		      lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 		      uniChar *path,dictPo dict,
 		      dictPo *fnDict,
-		      mtdPo mtd)
+		      mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
 
@@ -494,7 +494,7 @@ retCode compProcedure(uniChar *name,sxPo def,
   return status;
 }
 
-retCode compileImport(sxPo import,uniChar *path,dictPo dict,mtdPo mtd)
+retCode compileImport(sxPo import,uniChar *path,dictPo dict,mtdCxtPo mtd)
 {
   uniChar buff[MAXLINE];
   uniChar *url = resolveURI(path,sxImportPkg(import),buff,NumberOf(buff));
@@ -566,7 +566,7 @@ static retCode fixupEntry(uniChar *name,varInfoPo var,void *cl)
 }
 
   
-retCode fixupFree(dictPo dict,dictPo outer,mtdPo mtd,int vOffset)
+retCode fixupFree(dictPo dict,dictPo outer,mtdCxtPo mtd,int vOffset)
 {
   assemPo code = methodCode(mtd);
   FixRec fix = {.outer=outer, .code=code, .total=0, .rootOff=vOffset};

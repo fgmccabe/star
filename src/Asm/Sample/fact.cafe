@@ -3,7 +3,7 @@
 -- fact(0) is 1
 -- fact(N) is fact(N-1)*N
 
-fact :: "F(i)i" : "(F(i)i)"
+fact :: "F(Tinteger;)Tinteger;" : "(F(Tinteger;)Tinteger;)"
      enter 0
      ld a[0]
      bnz nonZero

@@ -47,6 +47,7 @@ extern void defineLocal(mtdPo mtd,uniChar *name,uniChar *sig,int32 off,
 // Define the instruction functions themselves
 #undef instruction
 
+#define optos(X)
 #define opnOp(X)
 #define opi32(X) ,int32 i##X
 
@@ -63,6 +64,7 @@ extern assemInsPo A##Op(mtdPo code op##A1(1));
 #include "instructions.h"
 
 #undef instruction
+#undef optos
 #undef opnOp
 #undef opi32
 #undef oplcl

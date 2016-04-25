@@ -25,6 +25,13 @@ extern char *sourceName(varSource where);
 extern char *kindName(sourceKind kind);
 extern char *accessName(rwMode access);
 
+typedef enum { argReg, lclReg, freeReg} RegisterClass;
+
+typedef struct {
+  RegisterClass regCl;
+  short regNo;
+} Register;
+
 typedef struct _varinfo_ {
   locationPo loc;
   uniChar *name;
@@ -35,7 +42,6 @@ typedef struct _varinfo_ {
   varSource where;
   union{
     Register reg;			/* If the value is in a register */
-    FpRegister fpReg;			/* Or in a floating point */
     int off;				/* or is based off of the base */
     lPo lit;				/* or has a known address */
     integer ix;				/* or is a literal integer */

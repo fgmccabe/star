@@ -45,7 +45,7 @@ retCode compThunk(sxPo def,
 		  lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
 		  uniChar *path,dictPo dict,
 		  dictPo *fnDict,
-		  mtdPo mtd)
+		  mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
 

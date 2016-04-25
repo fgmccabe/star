@@ -194,14 +194,14 @@ lxPo sxTypeArgs(sxPo tp)
   return sxBlockContent(sxRhs(tp));
 }
 
-sxPo sxArrowType(locationPo loc,lxPo args, sxPo resType)
+sxPo sxArrowType(locationPo loc,sxPo args, sxPo resType)
 {
-  return sxBinary(loc,ARROW_TYPE,sxBlock(loc,args),resType);
+  return sxBinary(loc,ARROW_TYPE,args,resType);
 }
 
 logical isArrowType(sxPo type)
 {
-  return sxIsBinary(type,ARROW_TYPE) && sxIsBlock(sxLhs(type));
+  return sxIsBinary(type,ARROW_TYPE));
 }
 
 lxPo arrowArgTypes(sxPo type)

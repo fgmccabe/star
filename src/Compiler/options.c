@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "version.h"			/* Version ID for the Cafe system */
+#include "options.h"
 
 logical tracing = False;		/* tracing option */
 logical debugAssem = False;		/* debug the assembling process */
@@ -19,7 +20,9 @@ logical compileOnly = False;		/* set to true for compile only */
 long heapSize = 200*1024;		/* How much memory to give the heap */
 long stackSize = 1024;			/* How big is the stack */
 
-static long parseSize(char *text);
+#ifdef ALLTRACE
+extern int yy_flex_debug;
+#endif
 
 static retCode debugOption(char *option,logical enable,void *cl)
 {

@@ -3,7 +3,6 @@
 
 #include "escapes.h"
 #include "libNames.h"
-#include "signature.h"
 
 static hashPo escapes = NULL;
 

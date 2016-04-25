@@ -48,7 +48,7 @@ void initHeap(long heapSize)
  * Generate the GC copy out code for the closure. Leave behind a pointer to the
  * new structure.
  */
-retCode genClosEvac(mtdPo mtd,lPo entryPoint,lPo evacLbl,lPo scanLbl,
+retCode genClosEvac(mtdCxtPo mtd,lPo entryPoint,lPo evacLbl,lPo scanLbl,
 		    lPo scavLbl, lxPo free,dictPo dict,int frSize)
 {
   assemPo code = methodCode(mtd);
@@ -123,7 +123,7 @@ retCode genClosEvac(mtdPo mtd,lPo entryPoint,lPo evacLbl,lPo scanLbl,
  * a regular cafe function, meaning that the free data shows up as the
  * environment of this function.
  */
-retCode genClosScav(mtdPo mtd,lPo scav,lxPo free,dictPo dict)
+retCode genClosScav(mtdCxtPo mtd,lPo scav,lxPo free,dictPo dict)
 {
   assemPo code = methodCode(mtd);
   defineLbl(code,scav);
@@ -162,7 +162,7 @@ retCode genClosScav(mtdPo mtd,lPo scav,lxPo free,dictPo dict)
  * Generate scanners for the locals a function
  */
 
-static gcScanPo newScanRecord(mtdPo mtd,lPo callSite,listPo references)
+static gcScanPo newScanRecord(mtdCxtPo mtd,lPo callSite,listPo references)
 {
   assemPo code = methodCode(mtd);
   gcScanPo blocks = mtd->scanBlocks;
@@ -189,7 +189,7 @@ static gcScanPo newScanRecord(mtdPo mtd,lPo callSite,listPo references)
 }
 
 typedef struct {
-  mtdPo mtd;
+  mtdCxtPo mtd;
   listPo references;
 } VrGcListRecord, *vrGcPo;
 
@@ -202,7 +202,7 @@ static retCode vrGcCheck(uniChar *name,varInfoPo var,void *cl)
   return Ok;
 }
 
-void gcCallSite(mtdPo mtd,dictPo dict)
+void gcCallSite(mtdCxtPo mtd,dictPo dict)
 {
   VrGcListRecord info = {mtd,emptyList};
 
@@ -211,7 +211,7 @@ void gcCallSite(mtdPo mtd,dictPo dict)
   newScanRecord(mtd,currLbl(methodCode(mtd),genSym(".L")),info.references);
 }
 
-void genLocalScanner(lPo scanTable,dictPo dict,mtdPo mtd)
+void genLocalScanner(lPo scanTable,dictPo dict,mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
   gcScanPo block = mtd->scanBlocks;

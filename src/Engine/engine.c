@@ -15,7 +15,7 @@
 #include "escapes.h"
 
 
-static poolPo prPool;			/* pool of processes */
+static poolPo prPool;     /* pool of processes */
 static uniChar UMAIN[] = {'_','m','a','i','n',0};
 
 void initEngine()
@@ -29,16 +29,16 @@ int loadAndGo(uniChar *boot,int argc,char* args[])
   ioPo in = openURI(boot,rawEncoding);
 
   if(in!=Null){
-    uniChar ch = inCh(in);		/* We skip over #! */
+    uniChar ch = inCh(in);    /* We skip over #! */
 
-    if(ch=='#'){			/* look for standard #!/.... header */
+    if(ch=='#'){      /* look for standard #!/.... header */
       if((ch=inCh(in))=='!'){
-	while((ch=inCh(in))!=uniEOF && ch!='\n')
-	  ;			        /* consume the interpreter statement */
+        while((ch=inCh(in))!=uniEOF && ch!='\n')
+        ;             /* consume the interpreter statement */
       }
       else{
-	unGetChar(in,ch);
-	unGetChar(in,'#');
+        unGetChar(in,ch);
+        unGetChar(in,'#');
       }
     }
     else
@@ -48,15 +48,19 @@ int loadAndGo(uniChar *boot,int argc,char* args[])
     if(pkg!=Null){
       methodPo umain = (methodPo)hashGet(pkg,UMAIN);
       if(umain!=Null){
-	closurePo mainCl = allocate(currHeap,umain);
-	assert(mainCl!=Null);
-	processPo p = newProcess(mainCl);
-	run(p,currHeap);
-	return 0;
+        closurePo mainCl = allocate(currHeap,umain);
+        assert(mainCl!=Null);
+        processPo p = newProcess(mainCl);
+        uint64 reslt = run(p,currHeap);
+#ifdef TRACEEXEC
+        if(tracing)
+          outMsg(logFile,"tos = %ld\n",reslt);
+#endif
+        return 0;
       }
       else{
-	syserr("no _main");
-	return 1;
+        syserr("no _main");
+        return 1;
       }
     }
     else{
