@@ -33,7 +33,7 @@ typedef struct {
 
 typedef struct _sock_class_ {
   ObjectClassRec objectPart;
-  ManagedClassPartRec managedPart;      /* The managed part of the sock */
+  LockClassPart lockPart;      /* The managed part of the sock */
   IoClassPartRec ioPart;              /* the io part of the class information */
   FileClassPartRec filePart;
   SockClassPartRec sockPart;
@@ -46,7 +46,7 @@ typedef struct _sock_part_{        /* The file specific part of a file object */
 
 typedef struct _sock_object_ {
   ObjectRec object;                     /* object level of the io structure */
-  ManagedRec managed;                   /* The managed part of the socket */
+  LockedRecord locked;                   /* The managed part of the socket */
   IoPart io;                            /* Io level of io object */
   FilePart file;                        /* File level of file object */
   SockPart sock;                        /* Socket level part of the file */

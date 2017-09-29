@@ -11,10 +11,10 @@
 #include "compile.h"
 #include "codegen.h"
 #include "escapes.h"
-#include "arith.h"
+#include "multi.h"
 #include "type.h"
 
-static ioPo openStdURI(uniChar *uri,ioEncoding encoding);
+static ioPo openStdURI(char *uri,ioEncoding encoding);
 
 static void initStdUri();
 
@@ -38,7 +38,7 @@ void initCompiler()
   voidSpec = sxTypeDef(Null,voidCon,constructors);
 }
 
-exitPo exitLabel(exitPo exit,uniChar *name)
+exitPo exitLabel(exitPo exit,char *name)
 {
   while(exit!=Null){
     if(uniCmp(name,exit->name)==0)
@@ -49,19 +49,19 @@ exitPo exitLabel(exitPo exit,uniChar *name)
   return Null;
 }
 
-static uniChar *CAFE_HOME = NULL;
+static char *CAFE_HOME = NULL;
 
-void setCafeHome(uniChar *home)
+void setCafeHome(char *home)
 {
   CAFE_HOME = home;
 }
 
-static ioPo openStdURI(uniChar *uri,ioEncoding encoding)
+static ioPo openStdURI(char *uri,ioEncoding encoding)
 {
-  uniChar scheme[MAXFILELEN];
-  uniChar user[MAXFILELEN],pass[MAXFILELEN];
-  uniChar host[MAXFILELEN],path[MAXLINE];
-  uniChar query[MAXFILELEN],frag[MAXLINE];
+  char scheme[MAXFILELEN];
+  char user[MAXFILELEN],pass[MAXFILELEN];
+  char host[MAXFILELEN],path[MAXLINE];
+  char query[MAXFILELEN],frag[MAXLINE];
   long port;
 
   if(CAFE_HOME==NULL){
@@ -73,7 +73,7 @@ static ioPo openStdURI(uniChar *uri,ioEncoding encoding)
 		   host,NumberOf(host),&port,path,NumberOf(path),
 		   query,NumberOf(query),frag,NumberOf(frag))==Ok &&
 	  uniIsLit(scheme,"cafe")){
-    uniChar newUri[MAXFILELEN];
+    char newUri[MAXFILELEN];
     resolveURI(CAFE_HOME,path,newUri,NumberOf(newUri));
     return openURI(newUri,encoding);
   }
@@ -89,7 +89,7 @@ static void initStdUri()
     if(home!=NULL)
       CAFE_HOME = mkInterned(home);
     else{
-      uniChar buff[MAXFILELEN];
+      char buff[MAXFILELEN];
       strMsg(buff,NumberOf(buff),"file:%s/share/stdlib/",CAFEDIR);
       CAFE_HOME = uniIntern(buff);
     }

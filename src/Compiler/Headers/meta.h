@@ -16,23 +16,23 @@ extern sxPo sxPackageName(sxPo term);
 
 extern lxPo sxPackageContent(sxPo term);
 
-extern sxPo sxIdent(locationPo loc,uniChar *name,sxPo type);
+extern sxPo sxIdent(locationPo loc,char *name,sxPo type);
 
 extern logical sxIsIdent(sxPo sx);
 
-extern logical sxIsIdentifier(sxPo sx,uniChar *name);
+extern logical sxIsIdentifier(sxPo sx,char *name);
 
-extern sxPo sxImport(locationPo loc,uniChar *pkg);
+extern sxPo sxImport(locationPo loc,char *pkg);
 
 extern logical sxIsImport(sxPo sx);
 
-extern uniChar *sxImportPkg(sxPo sx);
+extern char *sxImportPkg(sxPo sx);
 
-extern sxPo sxFunction(locationPo loc,uniChar *name,sxPo type,lxPo args,sxPo sx);
+extern sxPo sxFunction(locationPo loc,char *name,sxPo type,lxPo args,sxPo sx);
 
 extern logical sxIsFunction(sxPo sx);
 
-extern uniChar *sxFunName(sxPo sx);
+extern char *sxFunName(sxPo sx);
 
 extern sxPo sxFunType(sxPo sx);
 
@@ -40,21 +40,21 @@ extern sxPo sxFunExp(sxPo sx);
 
 extern lxPo sxFunArgs(sxPo sx);
 
-extern sxPo sxMemo(locationPo loc,uniChar *name,sxPo type,sxPo exp);
+extern sxPo sxMemo(locationPo loc,char *name,sxPo type,sxPo exp);
 
 extern logical sxIsMemo(sxPo sx);
 
-extern uniChar *sxMemoName(sxPo sx);
+extern char *sxMemoName(sxPo sx);
 
 extern sxPo sxMemoType(sxPo sx);
 
 extern sxPo sxMemoExp(sxPo sx);
 
-extern sxPo sxProcedure(locationPo loc,uniChar *name,lxPo args,sxPo sx);
+extern sxPo sxProcedure(locationPo loc,char *name,lxPo args,sxPo sx);
 
 extern logical sxIsProcedure(sxPo sx);
 
-extern uniChar *sxProcName(sxPo sx);
+extern char *sxProcName(sxPo sx);
 
 extern lxPo sxProcArgs(sxPo sx);
 
@@ -62,20 +62,20 @@ extern sxPo sxProcType(sxPo sx);
 
 extern sxPo sxProcBody(sxPo sx);
 
-extern sxPo sxThunk(locationPo loc,uniChar *name,sxPo type,sxPo sx);
+extern sxPo sxThunk(locationPo loc,char *name,sxPo type,sxPo sx);
 
 extern logical sxIsThunk(sxPo sx);
 
-extern uniChar *sxThunkName(sxPo sx);
+extern char *sxThunkName(sxPo sx);
 
 extern sxPo sxThunkType(sxPo sx);
 
 extern sxPo sxThunkExp(sxPo sx);
 
-extern sxPo sxPattern(locationPo loc,uniChar *name,lxPo args,sxPo type,
+extern sxPo sxPattern(locationPo loc,char *name,lxPo args,sxPo type,
 		      sxPo ptn,sxPo cond);
 
-extern uniChar *sxPatternName(sxPo sx);
+extern char *sxPatternName(sxPo sx);
 
 extern logical sxIsIsDeclaration(sxPo sx);
 
@@ -83,7 +83,7 @@ extern sxPo sxIsDeclaration(locationPo loc,sxPo lval,sxPo rval);
 
 extern sxPo sxDeclLval(sxPo sx);
 
-extern uniChar* sxLvalName(sxPo sx);
+extern char* sxLvalName(sxPo sx);
 
 extern sxPo sxLvalType(sxPo sx);
 
@@ -93,13 +93,13 @@ extern sxPo sxVarDeclaration(locationPo loc,sxPo lval,sxPo rval);
 
 extern logical sxIsVarDeclaration(sxPo sx);
 
-extern uniChar *sxDeclaredVarName(sxPo sx);
+extern char *sxDeclaredVarName(sxPo sx);
 
 extern sxPo sxResourceDeclaration(locationPo loc,sxPo lval,sxPo rval);
 
 extern logical sxIsResourceDeclaration(sxPo sx);
 
-extern uniChar *sxDeclaredResourceName(sxPo sx);
+extern char *sxDeclaredResourceName(sxPo sx);
 
 extern sxPo sxAssignment(locationPo loc,sxPo lval,sxPo rval);
 
@@ -127,11 +127,11 @@ extern sxPo sxIsTrue(locationPo loc,sxPo exp);
 
 extern sxPo sxMatches(locationPo loc,sxPo exp,sxPo ptn);
 
-extern sxPo sxApply(locationPo loc,uniChar *name,lxPo args);
+extern sxPo sxApply(locationPo loc,char *name,lxPo args);
 
 extern logical sxIsApply(sxPo sx);
 
-extern uniChar *sxApplyOp(sxPo sx);
+extern char *sxApplyOp(sxPo sx);
 
 extern lxPo sxApplyArgs(sxPo sx);
 
@@ -139,41 +139,41 @@ extern sxPo sxSequence(locationPo loc,lxPo els);
 
 extern lxPo sxList(locationPo loc,...);
 
-extern sxPo sxContinue(locationPo loc,uniChar *lbl,lxPo args);
+extern sxPo sxContinue(locationPo loc,char *lbl,lxPo args);
 
 extern logical sxIsContinue(sxPo sx);
 
-extern uniChar* sxContinueOp(sxPo sx);
+extern char* sxContinueOp(sxPo sx);
 
 extern lxPo sxContinueArgs(sxPo sx);
 
 extern logical sxIsArithExp(sxPo sx);
 
-extern uniChar* sxArithOp(sxPo sx);
+extern char* sxArithOp(sxPo sx);
 
 extern sxPo sxArithLhs(sxPo sx);
 
 extern sxPo sxArithRhs(sxPo sx);
 
-extern sxPo sxUnary(locationPo loc,uniChar *name,sxPo rhs);
+extern sxPo sxUnary(locationPo loc,char *name,sxPo rhs);
 
 extern logical sxIsUnry(sxPo sx);
 
-extern logical sxIsUnary(sxPo sx,uniChar *op);
+extern logical sxIsUnary(sxPo sx,char *op);
 
 extern sxPo sxUnaryArg(sxPo sx);
 
-extern sxPo sxBinary(locationPo loc,uniChar *name,sxPo lhs,sxPo rhs);
+extern sxPo sxBinary(locationPo loc,char *name,sxPo lhs,sxPo rhs);
 
 extern sxPo sxLhs(sxPo sx);
 
 extern sxPo sxRhs(sxPo sx);
 
-extern sxPo sxTernary(locationPo loc,uniChar *name,sxPo lhs,sxPo mdl,sxPo rhs);
+extern sxPo sxTernary(locationPo loc,char *name,sxPo lhs,sxPo mdl,sxPo rhs);
 
 extern logical sxIsTern(sxPo sx);
 
-extern logical sxIsTernary(sxPo sx,uniChar *name);
+extern logical sxIsTernary(sxPo sx,char *name);
 
 extern sxPo sxTernaryLhs(sxPo sx);
 
@@ -181,19 +181,19 @@ extern sxPo sxTernaryMdl(sxPo sx);
 
 extern sxPo sxTernaryRhs(sxPo sx);
 
-extern sxPo sxCall(locationPo loc,uniChar *name,lxPo args);
+extern sxPo sxCall(locationPo loc,char *name,lxPo args);
 
 extern logical sxIsCall(sxPo call);
 
-extern uniChar *sxCallOp(sxPo sx);
+extern char *sxCallOp(sxPo sx);
 
 extern lxPo sxCallArgs(sxPo sx);
 
-extern sxPo sxConstructor(locationPo loc,uniChar *name,lxPo args);
+extern sxPo sxConstructor(locationPo loc,char *name,lxPo args);
 
 extern logical sxIsConstructor(sxPo call);
 
-extern uniChar *sxConstructorOp(sxPo sx);
+extern char *sxConstructorOp(sxPo sx);
 
 extern lxPo sxConstructorArgs(sxPo sx);
 
@@ -255,7 +255,7 @@ extern lxPo sxBlockContent(sxPo sx);
 
 extern logical sxIsCondition(sxPo sx);
 
-extern uniChar *sxConditionOp(sxPo sx);
+extern char *sxConditionOp(sxPo sx);
 
 extern logical sxIsConditional(sxPo sx);
 
@@ -265,25 +265,25 @@ extern sxPo sxConditionalThen(sxPo sx);
 
 extern sxPo sxConditionalElse(sxPo sx);
 
-extern sxPo sxLabeledAction(locationPo loc,uniChar *lbl,sxPo sx);
+extern sxPo sxLabeledAction(locationPo loc,char *lbl,sxPo sx);
 
 extern logical sxIsLabeled(sxPo sx);
 
-extern uniChar *sxLabeledLabel(sxPo sx);
+extern char *sxLabeledLabel(sxPo sx);
 
 extern sxPo sxLabeledBody(sxPo sx);
 
-extern sxPo sxLeaveAction(locationPo loc,uniChar *lbl);
+extern sxPo sxLeaveAction(locationPo loc,char *lbl);
 
 extern logical sxIsLeaveAction(sxPo sx);
 
-extern uniChar *sxLeaveLabel(sxPo sx);
+extern char *sxLeaveLabel(sxPo sx);
 
-extern sxPo sxGotoAction(locationPo loc,uniChar *lbl);
+extern sxPo sxGotoAction(locationPo loc,char *lbl);
 
 extern logical sxIsGotoAction(sxPo sx);
 
-extern uniChar * sxGotoLabel(sxPo sx);
+extern char * sxGotoLabel(sxPo sx);
 
 extern sxPo sxSync(locationPo loc,sxPo var,sxPo act);
 
@@ -325,16 +325,16 @@ extern sxPo sxNothing(locationPo loc);
 
 extern logical isNothing(sxPo sx);
 
-extern sxPo sxConSpec(locationPo loc,uniChar *name,lxPo args);
+extern sxPo sxConSpec(locationPo loc,char *name,lxPo args);
 
 extern logical sxIsBin(sxPo sx);
 
-extern logical sxIsBinary(sxPo sx,uniChar *op);
+extern logical sxIsBinary(sxPo sx,char *op);
 
 extern sxPo sxLhs(sxPo sx);
 
 extern sxPo sxRhs(sxPo sx);
 
-extern sxPo parseContent(uniChar *path);
+extern sxPo parseContent(char *path);
 
 #endif

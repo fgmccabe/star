@@ -11,22 +11,22 @@
 #include <stdlib.h>
 #include "pp.h"
 
-uniChar *rawIntType;
-uniChar *rawLongType;
-uniChar *rawFloatType;
-uniChar *rawCharType;
-uniChar *rawStringType;
-uniChar *rawFileType;
-uniChar *rawErrorType;
+char *rawIntType;
+char *rawLongType;
+char *rawFloatType;
+char *rawCharType;
+char *rawStringType;
+char *rawFileType;
+char *rawErrorType;
 
-uniChar *TYPE_VAR;
-uniChar *ARROW_TYPE;
-uniChar *PTN_TYPE;
-uniChar *TYPE_EXP;
+char *TYPE_VAR;
+char *ARROW_TYPE;
+char *PTN_TYPE;
+char *TYPE_EXP;
 
-uniChar *VOID_TYPE;
-uniChar *DICT_TYPE;
-uniChar *BOOL_TYPE;
+char *VOID_TYPE;
+char *DICT_TYPE;
+char *BOOL_TYPE;
 
 sxPo voidType,intType,longType,floatType,charType,stringType,fileCafeType,
   errorType,dictType,booleanType;
@@ -122,9 +122,9 @@ logical isVoidType(sxPo type)
 
 logical isRawType(sxPo type)
 {
-  return isRawIntType(type) || isRawLongType(type) || isRawFloatType(type)
-    || isRawCharType(type) || isRawStringType(type) || isVoidType(type)
-    || isRawFileType(type);
+  return (logical) (isRawIntType(type) || isRawLongType(type) || isRawFloatType(type)
+                    || isRawCharType(type) || isRawStringType(type) || isVoidType(type)
+                    || isRawFileType(type));
 }
 
 TypeKind tpKind(sxPo type)
@@ -141,12 +141,12 @@ TypeKind tpKind(sxPo type)
 // A type variable is represented using
 // %var(<name>)
 
-sxPo sxTypeVar(locationPo loc,uniChar *name)
+sxPo sxTypeVar(locationPo loc,char *name)
 {
   return sxUnary(loc,TYPE_VAR,mId(loc,name));
 }
 
-uniChar *tpVarName(sxPo t)
+char *tpVarName(sxPo t)
 {
   assert(isTypeVar(t));
   return sxIden(sxUnaryArg(t));
@@ -154,7 +154,7 @@ uniChar *tpVarName(sxPo t)
 
 // A type expression is represented using
 // %type(<name>,{<args>})
-sxPo sxTypeExp(locationPo loc,uniChar *name, lxPo args)
+sxPo sxTypeExp(locationPo loc,char *name, lxPo args)
 {
   assert(name!=Null && args!=Null);
 
@@ -176,7 +176,7 @@ logical isTypeExp(sxPo t)
   return isTypeFun(t) && sxIsIden(sxLhs(t));
 }
 
-uniChar *typeExpName(sxPo tp)
+char *typeExpName(sxPo tp)
 {
   assert(isTypeExp(tp));
   return sxIden(sxLhs(tp));
@@ -299,9 +299,9 @@ static void deRef(sxPo *t,hashPo *e)
   }
 }
 
-static logical occursCheck(uniChar *v,hashPo vE,sxPo tp,hashPo e);
+static logical occursCheck(char *v,hashPo vE,sxPo tp,hashPo e);
 
-static logical occursCheckArgs(uniChar *v,hashPo vE,lxPo tps,hashPo e)
+static logical occursCheckArgs(char *v,hashPo vE,lxPo tps,hashPo e)
 {
   while(tps!=nil){
     if(occursCheck(v,vE,sxHead(tps),e))
@@ -312,7 +312,7 @@ static logical occursCheckArgs(uniChar *v,hashPo vE,lxPo tps,hashPo e)
   return False;
 }
 
-static logical occursCheck(uniChar *v,hashPo vE,sxPo tp,hashPo e)
+static logical occursCheck(char *v,hashPo vE,sxPo tp,hashPo e)
 {
   deRef(&tp,&e);
   if(isTypeVar(tp)){
@@ -337,7 +337,7 @@ static logical occursCheck(uniChar *v,hashPo vE,sxPo tp,hashPo e)
     return False;
 }
 
-static retCode bind(uniChar *v,hashPo vE,sxPo tp,hashPo e,locationPo loc)
+static retCode bind(char *v,hashPo vE,sxPo tp,hashPo e,locationPo loc)
 {
   if(isRawType(tp)){
     reportError(loc,"may not bind to a raw type: %T",tp);

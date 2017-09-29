@@ -24,7 +24,7 @@ typedef struct _literal_ {
   union {
     integer i;
     double d;
-    uniChar *str;
+    char *str;
     struct {
       void *add;
       long size;
@@ -35,7 +35,7 @@ typedef struct _literal_ {
 } LiteralRecord;
 
 typedef struct _method_context_ {
-  uniChar *defName;			/* Name of this definition */
+  char *defName;			/* Name of this definition */
   listPo literals;
   tryPo tryBlocks;
   gcScanPo scanBlocks;

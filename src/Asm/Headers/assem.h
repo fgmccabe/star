@@ -16,18 +16,18 @@ typedef struct _label_ *lPo;
 typedef struct _assem_instruction_ *assemInsPo;
 
 extern void initAssem();
-extern pkgPo newPkg(uniChar *name);
+extern pkgPo newPkg(char *name);
 extern void dumpPkgCode(pkgPo pkg);
 
-extern int32 findMethod(mtdPo mtd,uniChar *name);
-extern mtdPo defineMethod(pkgPo pkg,uniChar *name,uniChar *sig,uniChar *freeSig);
-extern uniChar *methodSignature(mtdPo mtd);
-extern uniChar *freeSignature(mtdPo mtd);
+extern int32 findMethod(mtdPo mtd,char *name);
+extern mtdPo defineMethod(pkgPo pkg, logical public, char *name, char *sig, char *freeSig);
+extern char *methodSignature(mtdPo mtd);
+extern char *freeSignature(mtdPo mtd);
 
 extern void endFunction(mtdPo mtd);
 
-extern lPo newLbl(mtdPo code,uniChar *name);
-extern lPo currLbl(mtdPo code,uniChar *name);
+extern lPo newLbl(mtdPo code,char *name);
+extern lPo currLbl(mtdPo code,char *name);
 extern void defineLbl(mtdPo code, lPo lbl);
 extern logical labelDefined(lPo lbl);
 
@@ -37,17 +37,18 @@ extern void removeIns(mtdPo code,assemInsPo ins);
 
 extern int32 newIntegerConstant(mtdPo mtd,int64 ix);
 extern int32 newFloatConstant(mtdPo mtd,double dx);
-extern int32 newStringConstant(mtdPo mtd,uniChar *str);
-extern int32 newEscapeConstant(mtdPo mtd,uniChar *str);
+extern int32 newStringConstant(mtdPo mtd,char *str);
+extern int32 newStrctConstant(mtdPo mtd,char *str,integer ar);
+extern int32 newPrgConstant(mtdPo mtd,char *str,integer ar);
+extern int32 newEscapeConstant(mtdPo mtd,char *str);
 
-extern void defineFrame(mtdPo mtd,uniChar *str);
-extern void defineLocal(mtdPo mtd,uniChar *name,uniChar *sig,int32 off,
+extern void defineFrame(mtdPo mtd,char *str);
+extern void defineLocal(mtdPo mtd,char *name,char *sig,int32 off,
 			lPo from,lPo to);
 
 // Define the instruction functions themselves
 #undef instruction
 
-#define optos(X)
 #define opnOp(X)
 #define opi32(X) ,int32 i##X
 
@@ -58,7 +59,7 @@ extern void defineLocal(mtdPo mtd,uniChar *name,uniChar *sig,int32 off,
 #define opoff(X) ,lPo l##X
 #define opEs(X) ,int32 f##X
 
-#define instruction(Op,A1,A2,Cmt) \
+#define instruction(Op,A1,Cmt) \
 extern assemInsPo A##Op(mtdPo code op##A1(1));
 
 #include "instructions.h"

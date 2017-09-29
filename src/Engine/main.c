@@ -1,18 +1,16 @@
 /*
  * main program for the run-time
  */
-#include "config.h"
-#include <ooio.h>
-#include <unistd.h>
-#include <string.h>
+#include "utils.h"
 #include <stdlib.h>
-
+#include <manifest.h>
+#include "clock.h"
+#include "args.h"
 #include "engine.h"
 
-char copyRight[]="(c) 2010-2014 F.G.McCabe\nAll rights reserved";
+char copyRight[] = "(c) 2010-2017 F.G.McCabe\nAll rights reserved";
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   int narg;
 
 #ifdef HAVE_LOCALECONV
@@ -24,30 +22,44 @@ int main(int argc, char **argv)
   textdomain(PACKAGE);
 #endif
 
-  {
-    uniChar fn[]={'-',0};
-    initLogfile(fn);
-  }
+  initLogfile("-");
 
-  if((narg=getOptions(argc,argv))<0){
+  strMsg(entry, NumberOf(entry), "star.boot@__boot");
+
+  defltRepoDir();
+  defltCWD();
+
+  if ((narg = getOptions(argc, argv)) < 0) {
     usage(argv[0]);
     exit(1);
   }
 
-  initHeap(heapSize);
+  /* IMPORTANT -- Keep the order of these set up calls */
+
+  // Set up repository directory
+  initHeap(initHeapSize);
+
+  loadDefltManifest();
+
+  initClass();        /* Initialize the class handlers */
+  initPrograms();      /* Initialize program handling */
+  initDict();        /* Start up the dictionaries */
+  install_escapes();      /* Initialize the escape table */
+  initFiles();        /* initialize file tables */
+  init_args(argv, argc, narg);    /* Initialize the argument list */
+  init_time();        /* Initialize time stuff */
+  setupSignals();
+
   initEngine();
 
-  if(narg<argc){
-    uniChar *deflt = defaultURI(NULL);
-    uniChar buff[MAXLINE],uriBuff[MAXLINE];
-    _uni((unsigned char*)argv[narg],buff,NumberOf(buff));
-    
-    uniChar *boot = resolveURI(deflt,buff,uriBuff,NumberOf(uriBuff));
+#ifdef EXECTRACE
+  if (traceCount)
+    atexit(dumpInsCount);
+#endif
 
-    return loadAndGo(boot,argc-narg-1,&argv[narg+1]);
-  }
-  else
-    usage(argv[0]);
+  bootstrap(entry, bootPkg, bootVer);
+
+  return EXIT_SUCCEED;          /* exit the lo system cleanly */
 }
     
     

@@ -1,4 +1,6 @@
 *.
+.idea/
+cmake-build-debug/
 src/Asm/.deps
 src/Compiler/.deps
 src/Memory/.deps

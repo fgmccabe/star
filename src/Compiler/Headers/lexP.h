@@ -10,7 +10,7 @@ typedef struct _lex_state_ {
   long currCharNumber;
   ioPo in;
   stringPo tkBuffer;			/* buffer for collecting token text */
-  uniChar *srcName;
+  char *srcName;
   Token head;
 } TokenState;
 

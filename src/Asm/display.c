@@ -46,7 +46,7 @@ static retCode disp_off(ioPo f,mtdPo mtd,assemInsPo ins,char *op)
   return outMsg(f,"%s %B\n",op, ins->lbl);
 }
 
-static retCode showConstant(ioPo f,mtdPo mtd,int32 ix)
+static retCode showConstant(ioPo f,mtdPo mtd,int64 ix)
 {
   constPo con = poolConstant(mtd,ix);
   if(con!=Null)
@@ -74,15 +74,15 @@ retCode dumpIns(ioPo f,mtdPo mtd,assemInsPo ins)
   switch(ins->op){
 #undef instruction
 
-#define instruction(Op,A1,AOp,Cmt) \
+#define instruction(Op,A1,Cmt) \
     case Op:\
-      return disp_##A1(f,mtd,ins,#AOp);
+      return disp_##A1(f,mtd,ins,#Op);
 
 #include "instructions.h"
-  case DefineLbl:
+  case label:
     return outMsg(f,"%B:\n",ins->lbl);
 
-  case DefineFrame:
+  case frame:
     tryRet(outMsg(f,"frame "));
     tryRet(showConstant(f,mtd,ins->i));
     return outMsg(f,"\n");
@@ -96,12 +96,12 @@ static retCode showLocal(ioPo o,mtdPo mtd,localVarPo lcl)
 {
   constPo c = poolConstant(mtd,lcl->name);
   if(c!=Null){
-    uniChar *name = c->value.txt;
+    char *name = c->value.txt;
 
     c = poolConstant(mtd,lcl->sig);
 
     if(c!=Null){
-      uniChar *sig = c->value.txt;
+      char *sig = c->value.txt;
 
       outMsg(o,"%U:%U [%d]",name,sig,lcl->off);
 
@@ -115,7 +115,7 @@ static retCode showLocal(ioPo o,mtdPo mtd,localVarPo lcl)
   return Error;
 }
 
-retCode dumpMethod(void *r,void *c)
+retCode dumpMethod(objectPo r,void *c)
 {
   mtdPo mtd = (mtdPo)r;
   ioPo io = (ioPo)c;
@@ -128,7 +128,7 @@ retCode dumpMethod(void *r,void *c)
   }
 
   listPo lcl = mtd->locals;
-  while(lcl!=emptyList){
+  while(lcl!=nilList){
     localVarPo local = (localVarPo)head(lcl);
 
     tryRet(showLocal(io,mtd,local));

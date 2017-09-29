@@ -1,17 +1,14 @@
-/*
- * Some standard functions for processing command line options
- */
+//
+// Created by Francis McCabe on 6/29/17.
+//
 
-#include "config.h"		/* Invoke configuration header */
-#include "options.h"
-#include "file.h"
-#include <string.h>
+#include <memory.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <options.h>
+#include <ooio.h>
 
-void splitFirstArg(int argc, char **argv,int *newArgc, char ***newArgv)
-{
-  /* 
+void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
+  /*
      Splits the first command-line argument into multiple
      arguments if it starts with "-%". The
      delimiter is the first character following the percent sign.
@@ -26,10 +23,10 @@ void splitFirstArg(int argc, char **argv,int *newArgc, char ***newArgv)
   *newArgc = argc;
   *newArgv = argv;
 
-  if (argc<2)
+  if (argc < 2)
     return;
 
-  if(strncmp(argv[1],"-%",2)==0){
+  if (uniNCmp(argv[1], "-%", 2) == same) {
     char delimiter = argv[1][2];
     int extra = 0, arg = 1;
     char *p;
@@ -38,8 +35,8 @@ void splitFirstArg(int argc, char **argv,int *newArgc, char ***newArgv)
     p = argv[1] + 3;
     do {
       char *q = strchr(p, delimiter);
-      if (q == NULL) 
-	break;
+      if (q == NULL)
+        break;
 
       p = q + 1;
       extra++;
@@ -59,100 +56,70 @@ void splitFirstArg(int argc, char **argv,int *newArgc, char ***newArgv)
     do {
       char *q = strchr(p, delimiter);
       if (q == NULL) {
-	(*newArgv)[arg++] = p;
-	break;
-      }
-      else {
-	int len = q - p;
-	char *data = (char *) malloc(len + 1);
-	
-	strncpy(data, p, len);
-	data[len] = '\0';
-	(*newArgv)[arg++] = data;
-	p = q + 1;
+        (*newArgv)[arg++] = p;
+        break;
+      } else {
+        size_t len = (size_t) (q - p);
+        char *data = (char *) malloc(len + 1);
+
+        strncpy(data, p, len);
+        data[len] = '\0';
+        (*newArgv)[arg++] = data;
+        p = q + 1;
       }
     } while (True);
   }
 }
 
-int processOptions(int argc, char **argv, Option options[], int numOpts)
-{
+int processOptions(int argc, char **argv, Option options[], int optionCount) {
   int ix;
 
-  for(ix=1;ix<argc;ix++) {
+  for (ix = 0; ix < argc; ix++) {
     char *opt = argv[ix];
 
-    if(opt[0]=='-'){
-      if(opt[1]=='-'){
-	char *longName = &opt[2];	/* look for a long form name */
-	if(strcmp(longName,"")==0)	/* -- on its own is end of options */
-	  return ix+1;
-	else{
-	  for(int ox=0;ox<numOpts;ox++){
-	    if(options[ox].longName!=NULL &&
-	       strcmp(options[ox].longName,longName)==0){
-	      if(options[ox].hasArg){
-		if(ix<argc-1){
-		  if(options[ox].handler(argv[++ix],False,options[ox].cl)!=Ok)
-		    return showUsage(argv[0],options,numOpts);
-		}
-		else
-		  return showUsage(argv[0],options,numOpts);
-	      }
-	      else if(options[ox].handler(NULL,False,options[ox].cl)!=Ok)
-		return showUsage(argv[0],options,numOpts);
-	      goto argLoop;
-	    }
-	  }
-	  return showUsage(argv[0],options,numOpts);
-	}
+    if (uniIsLitPrefix(opt, "-") && uniStrLen(opt) > 1) {
+      char shortOpt = opt[1];
+      for (int j = 0; j < optionCount; j++) {
+        if (options[j].shortName == shortOpt) {
+          if (options[j].hasArg) {
+            if(uniStrLen(opt)==2){
+              if(ix<argc-1){
+                if(options[j].setter(argv[++ix],True,options[j].cl)!=Ok)
+                  goto failOptions;
+                else
+                  break;
+              } else
+                goto failOptions;
+            } else{
+              if(options[j].setter(opt+2,True,options[j].cl)!=Ok)
+                goto failOptions;
+              else
+                break;
+            }
+          } else if (uniStrLen(opt) == 2) {
+            if(options[j].setter(NULL,True,options[j].cl)!=Ok)
+              goto failOptions;
+            else
+              break;
+          } else
+            goto failOptions;
+        }
       }
-      else if(opt[1]!='\0'){
-	char shortName = opt[1];
-	char *optArg = &opt[2];
-
-	for(int ox=0;ox<numOpts;ox++){
-	  if(options[ox].shortName==shortName){
-	    if(options[ox].hasArg){
-	      if(strcmp(optArg,"")==0){
-		if(ix<argc-1)
-		  optArg = argv[++ix];
-		else
-		  return showUsage(argv[0],options,numOpts);
-	      }
-
-	      if(options[ox].handler(optArg,False,options[ox].cl)!=Ok)
-		return showUsage(argv[0],options,numOpts);
-	    }
-	    else{
-	      if(options[ox].handler(NULL,False,options[ox].cl)!=Ok)
-		return showUsage(argv[0],options,numOpts);
-	    }
-	    goto argLoop;
-	  }
-	}
-	return showUsage(argv[0],options,numOpts);
-      }
-      else
-	return showUsage(argv[0],options,numOpts);
-  argLoop:;
     }
-    else
-      return ix;
   }
   return ix;
-}
 
-int showUsage(char *name,Option options[],int numOpts)
-{
-  char *sep = "";
-  outMsg(logFile,"\nusage: %s ",name);
-  for(int ix=0;ix<numOpts;ix++){
-    outStr(logFile,sep);
-    outStr(logFile,options[ix].usage);
-    sep = " ";
-  }
-  outStr(logFile,"\n");
-  flushOut();
+  failOptions:
+  showUsage(argv[0], options, optionCount);
   return -1;
 }
+
+void showUsage(char *name,Option options[], int optionCount){
+  ioPo stdErr = OpenStderr();
+
+  outMsg(stdErr,"Usage: %s\n",name);
+  for(int ix=0;ix<optionCount;ix++){
+    outMsg(stdErr,"    %s\n",options[ix].usage);
+  }
+}
+

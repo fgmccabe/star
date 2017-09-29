@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 #endif
 
   {
-    uniChar fn[]={'-',0};
+    char fn[]={'-',0};
     initLogfile(fn);
   }
 
@@ -43,11 +43,11 @@ int main(int argc, char **argv)
   initCompiler();
 
   if(narg<argc){
-    uniChar buff[1024];
+    char buff[1024];
     _uni((unsigned char*)argv[narg],buff,NumberOf(buff));
-    uniChar pathBuff[MAXLINE];
+    char pathBuff[MAXLINE];
     resolveURI(defaultURI(NULL),buff,pathBuff,NumberOf(pathBuff));
-    uniChar *path = uniIntern(pathBuff);
+    char *path = uniIntern(pathBuff);
 
     initHeap(heapSize);
 

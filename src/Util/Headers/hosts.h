@@ -1,35 +1,32 @@
 /*
   Host name functions
-  (c) 1994-1998 Imperial College and F.G. McCabe
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-  Contact: Francis McCabe <fmccabe@gmail.com>
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
 */
 
-#ifndef _GO_HOST_H_
-#define _GO_HOST_H_
+#ifndef _LO_HOST_H_
+#define _LO_HOST_H_
+
+#include "object.h"
+#include "unicode.h"
 
 /* Host name management and interface */
-uniChar *getHostname(uniChar *name);
-struct in_addr *getHostIP(uniChar *name,int i);
-uniChar *getNthHostIP(uniChar *name,unsigned long i,uniChar *buffer,unsigned long len);
-uniChar *machineName(void);
-uniChar *machineIP(void);
-logical isIPofHost(uniChar *name,unsigned long ip);
-void markHostUnavail(uniChar *name);
+char * getHostname(char * name);
+struct in_addr *getHostIP(char * name,int i);
+char * getNthHostIP(char * name,unsigned long i,char * buffer,unsigned long len);
+char * machineName(void);
+char * machineIP(void);
+logical isIPofHost(char * name,unsigned long ip);
+void markHostUnavail(char * name);
 
 // The public part of the host class interface
 

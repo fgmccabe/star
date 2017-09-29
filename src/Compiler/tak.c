@@ -32,7 +32,7 @@ static double getNanoTime()
 int main(int argc, char **args)
 {
   {
-    uniChar fn[]={'-',0};
+    char fn[]={'-',0};
     initLogfile(fn);
   }
 

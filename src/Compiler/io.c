@@ -6,7 +6,7 @@
 
 #include <ooio.h>
 
-retCode outUniStr(ioPo io,uniChar *str)
+retCode outUniStr(ioPo io,char *str)
 {
   return outText(io,str,uniStrLen(str));
 }

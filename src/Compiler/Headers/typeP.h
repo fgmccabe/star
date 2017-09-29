@@ -4,12 +4,12 @@
 #include "type.h"
 
 typedef struct _typeVar_object_ {
-  uniChar *name;
+  char *name;
   typeTuplePo constraints;
 } TypeVarO;
 
 typedef struct _typeExp_object_ {
-  uniChar *name;
+  char *name;
   typeTuplePo args;
 } TypeExpO;
 
@@ -21,7 +21,7 @@ typedef struct _arrow_type_object_ {
 
 typedef struct _type_attributes_object_ {
   typeTuplePo tpl;
-  uniChar **names;
+  char **names;
 } RecordTypeO;
 
 typedef struct _type_ {

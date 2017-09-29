@@ -28,10 +28,10 @@ typedef struct _sexp_object_ {
   locationPo loc;			/* Location object of this s-exp */
   union{
     ApplyPair app;			/* Op and Args */
-    uniChar *text;			/* Text of string or identifier */
+    char *text;			/* Text of string or identifier */
     double d;				/* A floating point number */
     integer ix;				/* An integer */
-    uniChar ch;
+    char ch;
   } S;
 } SexpObject;
 

@@ -5,7 +5,7 @@
 
 extern retCode initArith();
 
-extern uniChar *AddOp, *SubtractOp, *TimesOp, *DivideOp, *RemainderOp,
+extern char *AddOp, *SubtractOp, *TimesOp, *DivideOp, *RemainderOp,
   *LshiftOp, *RshiftOp, *BitAndOp, *BitOrOp, *BitXorOp, *BitNegOp;
 
 #endif

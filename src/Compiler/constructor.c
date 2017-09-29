@@ -59,7 +59,7 @@ static retCode genConstructor(sxPo con,int conIx,int maxIx,
 static retCode genEnumerated(sxPo con,int conIx,int maxIx,
 			     sxPo type,dictPo dict);
 
-retCode compileTypeDef(sxPo def,uniChar *path,dictPo dict)
+retCode compileTypeDef(sxPo def,char *path,dictPo dict)
 {
   lxPo constructors = sxTypeDefCons(def);
   sxPo type = sxTypeDefType(def);
@@ -88,7 +88,7 @@ static lPo genFieldTable(mtdCxtPo mtd,sxPo con);
 
 retCode genConstructor(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 {
-  uniChar *op = sxCallOp(con);
+  char *op = sxCallOp(con);
   long conSize = sizeofConstructor(con);
   mtdCxtPo mtd = newMethod(op);
   assemPo code = methodCode(mtd);
@@ -122,7 +122,7 @@ retCode genConstructor(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
  */
 retCode genEnumerated(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 {
-  uniChar *op = sxIden(con);
+  char *op = sxIden(con);
   mtdCxtPo mtd = newMethod(op);
   assemPo code = methodCode(mtd);
   lPo evac = newLbl(code,genSym(".E"));	/* special evac code for enums */
@@ -228,7 +228,7 @@ lPo genEvacCode(mtdCxtPo mtd,int conIx,lPo entryPoint,sxPo con)
   AAllocH(code,R2,sizeofConstructor(con),failAlloc);
   AStLbl(code,R2,0,entryPoint);
 
-  uniChar *currSeg = currSegment(code);
+  char *currSeg = currSegment(code);
   setSegment(code,genSym(".gc"));
   defineLbl(code,failAlloc);		/* We start filling in the block */
   AHalt(code,99);
@@ -353,7 +353,7 @@ long sizeofConstructor(sxPo con)
 }
 
 retCode compileConstructor(sxPo exp,sxPo *expected,
-			   uniChar *path,
+			   char *path,
 			   dictPo dict,dictPo outer,exitPo exit,
 			   mtdCxtPo mtd,contFun cont,void *cl)
 {
@@ -361,7 +361,7 @@ retCode compileConstructor(sxPo exp,sxPo *expected,
   locationPo loc = sxLoc(exp);
 
   if(sxIsIden(exp)){
-    uniChar *conName = sxIden(exp);
+    char *conName = sxIden(exp);
     conDefPo con = findConstructor(conName,dict);
 
     assert(con!=Null);
@@ -382,7 +382,7 @@ retCode compileConstructor(sxPo exp,sxPo *expected,
     }
   }
   else if(sxIsConstructor(exp)){
-    uniChar *conName = sxConstructorOp(exp);
+    char *conName = sxConstructorOp(exp);
     lxPo args = sxConstructorArgs(exp);
     conDefPo def = findConstructor(conName,dict);
     locationPo loc = sxLoc(exp);
@@ -416,7 +416,7 @@ retCode compileConstructor(sxPo exp,sxPo *expected,
       AMove(code,TRM,R1);
       AStLbl(code,R1,0,def->lbl);
 
-      uniChar *currSeg = currSegment(code);
+      char *currSeg = currSegment(code);
       setSegment(code,genSym(".gc"));
       defineLbl(code,failAlloc);	/* We start filling in the block */
       AGc(code,def->conSize);

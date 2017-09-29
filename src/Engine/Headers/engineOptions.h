@@ -6,7 +6,6 @@
  */
 
 #include "config.h"
-#include "ooio.h"
 #include "cafeOptions.h"
 
 #ifdef ALLTRACE
@@ -24,15 +23,21 @@ extern logical tracing;
 
 extern char copyRight[];
 
-extern logical tracing;		    /* tracing option */
-extern logical interactive;	    /* interactive instruction tracing option */
+extern logical tracing;        /* tracing option */
+extern logical debugging;
+extern logical interactive;      /* interactive instruction tracing option */
 
-extern logical traceMemory;	    /* memory tracing */
+extern logical traceMemory;      /* memory tracing */
 
-extern long heapSize;		/* How much memory to give the heap */
-extern long stackSize;		/* How big is the stack */
+extern long initHeapSize;    /* How much memory to give the heap */
+extern long initStackSize;    /* How big is the stack */
+
+extern char entry[MAX_SYMB_LEN];
+extern char bootPkg[MAX_SYMB_LEN];  // boot package
+extern char bootVer[MAX_SYMB_LEN];
 
 int getOptions(int argc, char **argv);
 void usage(char *name);
+void defltCWD();
 
 #endif

@@ -2,74 +2,66 @@
    Managed object implementation
    This is an abstract class -- would not normally be instantiated by itself
  
-   (c) 2004 F.G. McCabe
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   
-   Contact: Francis McCabe <mccabe@fla.fujitsu.com>
-*/ 
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
+*/
 
-#include "config.h"		/* Invoke configuration header */
 #include "managedP.h"
 
-#include <stdlib.h>
-#include <assert.h>
-
-static void initManagedClass(classPo class,classPo request);
-static void manageObject(objectPo m,va_list *args);
+static void initManagedClass(classPo class, classPo request);
+static void manageObject(objectPo m, va_list *args);
 static void unmanageObject(objectPo o);
 
 ManagedClassRec ManagedClass = {
   {
-    &ObjectClass,                         /* parent class is object */
+    (classPo)&LockedClass,                /* parent class is lockable */
     "managed",                            /* this is the managed class */
     NULL,                                 /* deal with inheritance */
     initManagedClass,                     /* MANAGED class initializer */
     O_INHERIT_DEF,                        /* MANAGED object element creation */
     unmanageObject,                       /* MANAGED objectdestruction */
     O_INHERIT_DEF,                        /* erasure */
-    manageObject,			  /* initialization of an Io buffer */
-    sizeof(ManagedObject), /* min size of an managed record -- should never use */
-    NULL,				  /* pool of values for this class */
-    PTHREAD_ONCE_INIT,			  /* not yet initialized */
+    manageObject,                          /* initialization of an Io buffer */
+    sizeof(ManagedObject),                /* min size of an managed record -- should never use */
+    NULL,                                  /* pool of values for this class */
+    O_INHERIT_DEF,                        // Hash function is inherited
+    O_INHERIT_DEF,                        // Equality function is also inherited
+    PTHREAD_ONCE_INIT,                    /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
+  {},
   {
-    NULL				/* the chain of managed objects */
+    NULL        /* the chain of managed objects */
   }
 };
 
-classPo managedClass = (classPo)&ManagedClass;
+classPo managedClass = (classPo) &ManagedClass;
 
-static void initManagedClass(classPo class,classPo request)
-{
-  ManagedClassRec *req = (ManagedClassRec*)request;
+static void initManagedClass(classPo class, classPo request) {
+  ManagedClassRec *req = (ManagedClassRec *) request;
 
   req->managedPart.instances = NULL;
 }
 
 // Managed part of initialization -- does not consume any arguments from the constructor
-static void manageObject(objectPo o,va_list *args){
+static void manageObject(objectPo o, va_list *args) {
   managedPo m = O_MANAGED(o);
-  ManagedClassRec *class = (ManagedClassRec*)o->class;
+  ManagedClassRec *class = (ManagedClassRec *) o->class;
 
   lockClass(o->class);
 
-  if(class->managedPart.instances==NULL)
+  if (class->managedPart.instances == NULL)
     class->managedPart.instances = m->managed.next = m->managed.prev = m;
-  else{
+  else {
     m->managed.next = class->managedPart.instances;
     m->managed.prev = class->managedPart.instances->managed.prev;
     class->managedPart.instances->managed.prev->managed.next = m;
@@ -79,11 +71,10 @@ static void manageObject(objectPo o,va_list *args){
   unlockClass(o->class);
 }
 
-static void unmanageObject(objectPo o)
-{
+static void unmanageObject(objectPo o) {
 
   managedPo m = O_MANAGED(o);
-  ManagedClassRec *class = (ManagedClassRec*)o->class;
+  ManagedClassRec *class = (ManagedClassRec *) o->class;
 
   lockClass(o->class);
 
@@ -94,34 +85,33 @@ static void unmanageObject(objectPo o)
     next->managed.prev = prev;
     prev->managed.next = next;            /* We have unlinked this managed object */
 
-    if(class->managedPart.instances == m){
-      if(next!=m)
-	class->managedPart.instances = next;
-      else if(prev!=m)
-	class->managedPart.instances = prev;
-      else 
-	class->managedPart.instances = NULL; /* The last managed object just disappeared*/
+    if (class->managedPart.instances == m) {
+      if (next != m)
+        class->managedPart.instances = next;
+      else if (prev != m)
+        class->managedPart.instances = prev;
+      else
+        class->managedPart.instances = NULL; /* The last managed object just disappeared*/
     }
   }
 
   unlockClass(o->class);
 }
 
-retCode processAll(classPo class,manageProc proc,void *cd)
-{
+retCode processAll(classPo class, manageProc proc, void *cd) {
   retCode ret = Ok;
-  ManagedClassRec *managed = (ManagedClassRec*)class;
+  ManagedClassRec *managed = (ManagedClassRec *) class;
 
   lockClass(class);
 
   {
     managedPo m = managed->managedPart.instances;
 
-    if(m!=NULL){
-      do{
-	ret = proc(m,cd);
-	m = m->managed.next;
-      }while(ret==Ok && m!=managed->managedPart.instances);
+    if (m != NULL) {
+      do {
+        ret = proc(m, cd);
+        m = m->managed.next;
+      } while (ret == Ok && m != managed->managedPart.instances);
     }
   }
 
@@ -129,14 +119,13 @@ retCode processAll(classPo class,manageProc proc,void *cd)
   return ret;
 }
 
-void destroyAll(classPo class)
-{
-  ManagedClassRec *managed = (ManagedClassRec*)class;
-  
+void destroyAll(classPo class) {
+  ManagedClassRec *managed = (ManagedClassRec *) class;
+
   lockClass(class);
 
   {
-    while(managed->managedPart.instances!=NULL)
+    while (managed->managedPart.instances != NULL)
       destroyObject(O_OBJECT(managed->managedPart.instances));
   }
   unlockClass(class);

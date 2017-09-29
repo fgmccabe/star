@@ -8,7 +8,7 @@
 #include "compile.h"
 #include "codegen.h"
 
-retCode compileCondition(sxPo cond,uniChar *path,
+retCode compileCondition(sxPo cond,char *path,
 			 dictPo dict,dictPo outer,
 			 jumpMode sense,lPo tgt,
 			 exitPo exit,mtdCxtPo mtd)
@@ -20,7 +20,7 @@ retCode compileCondition(sxPo cond,uniChar *path,
     sxPo lhs = sxLhs(cond);
     sxPo rhs = sxRhs(cond);
 
-    uniChar *pred = sxConditionOp(cond);
+    char *pred = sxConditionOp(cond);
 
     sourceKind lMode = expMode(lhs,dict);
     sourceKind rMode = expMode(rhs,dict);

@@ -8,7 +8,7 @@
 
 #include "libNames.h"
 #include "signature.h"
-#include "escapes.h"
+#include "escape.h"
 
 #include <ooio.h>
 
@@ -16,13 +16,13 @@
 #define NANOS 1000000000
 
 
-static uint64 nanos(uint64 *tos)
+static integer nanos(ptrPo tos)
 {
-  return clock()*(NANOS/CLOCKS_PER_SEC);
+  return (integer)clock()*(NANOS/CLOCKS_PER_SEC);
 }
 
-static uniChar nanoName[] = { 'n', 'a', 'n', 'o', 's', 0};
-static uniChar nanoSig[] = { funSig, '(', ')', INTEGER_SIG, 0 };
+static char nanoName[] = "nanos";
+static char nanoSig[] = { funSig, '(', ')', intSig, 0 };
 static EscapeRec escapeNano = {
   .name = nanoName,
   .sig = nanoSig,
@@ -61,7 +61,7 @@ void sleep(integer amnt)
     
 
 /* Fatal system error */
-void syserr(string msg)
+void syserr(const char * msg)
 {
   outMsg(logFile,"Fatal error: %U\n", msg);
   exit(99);

@@ -7,25 +7,25 @@
 extern void initEscapes();
 
 typedef retCode (*escapeFun)(locationPo loc,sxPo *expected,
-			     uniChar *path,
+			     char *path,
 			     dictPo dict,dictPo outer,
 			     exitPo exit,
 			     mtdCxtPo mtd,lxPo args,
 			     contFun cont,void *cl);
 
-extern logical isEscape(uniChar *name);
-extern logical isLibVar(uniChar *name);
-extern logical isLibFun(uniChar *name);
+extern logical isEscape(char *name);
+extern logical isLibVar(char *name);
+extern logical isLibFun(char *name);
 
-extern retCode compileEscape(locationPo loc,uniChar *name,sxPo *expected,
-			     uniChar *path,
+extern retCode compileEscape(locationPo loc,char *name,sxPo *expected,
+			     char *path,
 			     dictPo dict,dictPo outer,
 			     exitPo exit,
 			     mtdCxtPo mtd,lxPo args,
 			     contFun cont,void *cl);
 
-extern retCode compileLibVar(locationPo loc,uniChar *name,sxPo *expected,
-			     uniChar *path,
+extern retCode compileLibVar(locationPo loc,char *name,sxPo *expected,
+			     char *path,
 			     dictPo dict,dictPo outer,
 			     exitPo exit,
 			     mtdCxtPo mtd,
@@ -39,7 +39,7 @@ extern void initLibFuns();
 extern void genDeclare(assemPo code,varInfoPo info,dictPo dict);
 
 extern retCode compileCCall(sxPo call,sxPo *expected,
-			    uniChar *path,
+			    char *path,
 			    dictPo dict,dictPo outer,
 			    exitPo exit,
 			    mtdCxtPo mtd,

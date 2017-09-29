@@ -1,197 +1,190 @@
 /*
   Character classification of UNICODE characters
-  (c) 1999-2000 F.G.McCabe
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
 
-  Contact: Francis McCabe <fgm@fla.fujitsu.com>
- */
+*/
 
 #include "config.h"
-#include "ioP.h"
 #include <assert.h>
 #include <stdlib.h>
-#include "unichar.h"
+#include "unicodeP.h"
 
-logical isChar(uniChar ch)
+logical isChar(codePoint ch)
 {
-  return genCatTbl[ch]!=Other;
+  return (logical)(genCatTbl[ch]!=Other);
 }
 
 /* Other, Control */
-logical isCcChar(uniChar ch){
-  return genCatTbl[ch]==Cc;
+logical isCcChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Cc);
 }
 
 /* Other, format */
-logical isCfChar(uniChar ch){
-  return genCatTbl[ch]==Cf;
+logical isCfChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Cf);
 }
 
 /* Other, unassigned */
-logical isCnChar(uniChar ch){
-  return genCatTbl[ch]==Cn;
+logical isCnChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Cn);
 }
 
 /* Other, private */
-logical isCoChar(uniChar ch){
-  return genCatTbl[ch]==Co;
+logical isCoChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Co);
 }
 
 /* Other, surrogate */
-logical isCsChar(uniChar ch){
-  return genCatTbl[ch]==Cs;
+logical isCsChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Cs);
 }
 
 /* Letter, lowercase */
-logical isLlChar(uniChar ch){
-  return genCatTbl[ch]==Ll;
+logical isLlChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Ll);
 }
 
 /* Letter, modifier */
-logical isLmChar(uniChar ch){
-  return genCatTbl[ch]==Lm;
+logical isLmChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Lm);
 }
 
 /* Letter, other */
-logical isLoChar(uniChar ch){
-  return genCatTbl[ch]==Lo;
+logical isLoChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Lo);
 }
 
 /* Letter, titlecase */
-logical isLtChar(uniChar ch){
-  return genCatTbl[ch]==Lt;
+logical isLtChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Lt);
 }
 
 /* Letter, uppercase */
-logical isLuChar(uniChar ch){
-  return genCatTbl[ch]==Lu;
+logical isLuChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Lu);
 }
 
 /* Mark, spacing combining */
-logical isMcChar(uniChar ch){
-  return genCatTbl[ch]==Mc;
+logical isMcChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Mc);
 }
 
 /* Mark, enclosing */
-logical isMeChar(uniChar ch){
-  return genCatTbl[ch]==Me;
+logical isMeChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Me);
 }
 
 /* Mark, nonspacing */
-logical isMnChar(uniChar ch){
-  return genCatTbl[ch]==Mn;
+logical isMnChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Mn);
 }
 
 /* Number, decimal digit */
-logical isNdChar(uniChar ch){
-  return genCatTbl[ch]==Nd;
+logical isNdChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Nd);
 }
 
 /* Number, letter */
-logical isNlChar(uniChar ch){
-  return genCatTbl[ch]==Nl;
+logical isNlChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Nl);
 }
 
 /* Number, other */
-logical isNoChar(uniChar ch){
-  return genCatTbl[ch]==No;
+logical isNoChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==No);
 }
 
 /* Punctuation, connector */
-logical isPcChar(uniChar ch){
-  return genCatTbl[ch]==Pc;
+logical isPcChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Pc);
 }
 
 /* Punctuation, dash */
-logical isPdChar(uniChar ch){
-  return genCatTbl[ch]==Pd;
+logical isPdChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Pd);
 }
 
 /* Punctuation, close */
-logical isPeChar(uniChar ch){
-  return genCatTbl[ch]==Pe;
+logical isPeChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Pe);
 }
 
 /* Punctuation, final quote */
-logical isPfChar(uniChar ch){
-  return genCatTbl[ch]==Pf;
+logical isPfChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Pf);
 }
 
 /* Punctuation, initial quote */
-logical isPiChar(uniChar ch){
-  return genCatTbl[ch]==Pi;
+logical isPiChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Pi);
 }
 
 /* Punctuation, other */
-logical isPoChar(uniChar ch){
-  return genCatTbl[ch]==Po;
+logical isPoChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Po);
 }
 
 /* Punctuation, open */
-logical isPsChar(uniChar ch){
-  return genCatTbl[ch]==Ps;
+logical isPsChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Ps);
 }
 
 /* Symbol, currency */
-logical isScChar(uniChar ch){
-  return genCatTbl[ch]==Sc;
+logical isScChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Sc);
 }
 
 /* Symbol, modifier */
-logical isSkChar(uniChar ch){
-  return genCatTbl[ch]==Sk;
+logical isSkChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Sk);
 }
 
 /* Symbol, math */
-logical isSmChar(uniChar ch){
-  return genCatTbl[ch]==Sm;
+logical isSmChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Sm);
 }
 
 /* Symbol, other */
-logical isSoChar(uniChar ch){
-  return genCatTbl[ch]==So;
+logical isSoChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==So);
 }
 
 /* Separator, line */
-logical isZlChar(uniChar ch){
-  return genCatTbl[ch]==Zl;
+logical isZlChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Zl);
 }
 
 /* Separator, paragraph */
-logical isZpChar(uniChar ch){
-  return genCatTbl[ch]==Zp;
+logical isZpChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Zp);
 }
 
 /* Separator, space */
-logical isZsChar(uniChar ch){
-  return genCatTbl[ch]==Zs;
+logical isZsChar(codePoint ch){
+  return (logical)(genCatTbl[ch]==Zs);
 }
 
-logical isLetterChar(uniChar ch)
+logical isLetterChar(codePoint ch)
 {
-  return genCatTbl[ch]==Lu||genCatTbl[ch]==Ll||genCatTbl[ch]==Lt||genCatTbl[ch]==Lm||genCatTbl[ch]==Lo||genCatTbl[ch]==Nl;
+  return (logical)(genCatTbl[ch]==Lu||genCatTbl[ch]==Ll||genCatTbl[ch]==Lt||genCatTbl[ch]==Lm||genCatTbl[ch]==Lo||genCatTbl[ch]==Nl);
 }
 
-logical isSpaceChar(uniChar ch)
+logical isSpaceChar(codePoint ch)
 {
-  return ch==' '||ch=='\t'||ch=='\n'||ch=='\r';
+  return (logical)(ch==' '||ch=='\t'||ch=='\n'||ch=='\r');
 }
 
-
-uniChar lowerOf(uniChar ch)             /* <<<<< Fix me <<<<< */
+codePoint lowerOf(codePoint ch)             /* <<<<< Fix me <<<<< */
 {
   if((ch >= 'A' && ch <= 'Z') ||
      (ch >= 192 && ch <= 214) ||
@@ -201,7 +194,7 @@ uniChar lowerOf(uniChar ch)             /* <<<<< Fix me <<<<< */
     return ch;
 }
 
-uniChar upperOf(uniChar ch)             /* <<<<< Fix me <<<<< */
+codePoint upperOf(codePoint ch)             /* <<<<< Fix me <<<<< */
 {
   if((ch >= 'a' && ch <= 'z') ||
      (ch >= 224 && ch <= 246) ||
@@ -212,7 +205,7 @@ uniChar upperOf(uniChar ch)             /* <<<<< Fix me <<<<< */
 }
 
 /* Compute the digit value associated with a unicode digit character */
-int digitValue(uniChar ch)
+int digitValue(codePoint ch)
 {
   if(isNdChar(ch)){
     if(0x30<=ch && ch<=0x39)	/* ASCII digits */
@@ -221,6 +214,8 @@ int digitValue(uniChar ch)
       return ch-0x660;
     else if(0x6F0<=ch && ch<=0x6F9) /* extended arabic */
       return ch-0x6f0;
+    else if(0x7c0<=ch && ch<=0x7c9) /* ??? */
+      return ch-0x7c0;
     else if(0x966<=ch && ch<=0x96f) /* devanagari digits */
       return ch-0x966;
     else if(0x9e6<=ch && ch<=0x9ef) /* Bengali digits */
@@ -279,18 +274,3 @@ int digitValue(uniChar ch)
   else
     return -1;
 }
-
-logical isUniIdentifier(uniChar *str)
-{
-  if(str!=NULL && *str!='\0' && isLetterChar(*str)){
-    while(*str!='\0'){
-      if(!(isLetterChar(*str) || isNdChar(*str)))
-	return False;
-      str++;
-    }
-    return True;
-  }
-  else
-    return False;
-}
-

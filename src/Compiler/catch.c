@@ -10,7 +10,7 @@
 #include "codegen.h"
 
 retCode compileCatch(sxPo act,sxPo *expected,
-		     uniChar *path,
+		     char *path,
 		     dictPo dict,dictPo outer,
 		     exitPo exit,
 		     mtdCxtPo mtd,
@@ -32,7 +32,7 @@ retCode compileCatch(sxPo act,sxPo *expected,
 
   lPo end = currLbl(code,genSym(".E"));
   
-  uniChar *currSeg = currSegment(code);
+  char *currSeg = currSegment(code);
   setSegment(code,genSym(".CC"));
   
   defineLbl(code,recover);

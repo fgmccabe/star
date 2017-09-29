@@ -2,7 +2,7 @@
  * Test contract driven arithmetic
  */
 
-arith package {
+arith {
   type $arith<t>
   enum all t st $arith{ '+' : (t,t)=>t; '-' : (t,t)=>t; '*' : (t,t)=>t; _uminus : (t)=>t } : $arith<t>
 

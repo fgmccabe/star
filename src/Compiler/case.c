@@ -17,7 +17,7 @@ int findConstructorMax(lxPo cases, dictPo dict)
   for(int ix=0;ix<count;ix++){
     sxPo csePtn = sxCasePtn(sxEl(cases,ix));
     if(sxIsConstructor(csePtn)){
-      uniChar *con = sxConstructorOp(csePtn);
+      char *con = sxConstructorOp(csePtn);
       conDefPo def = findConstructor(con,dict);
       if(def==Null){
 	reportError(sxLoc(csePtn),"constructor %A not declared",csePtn);
@@ -28,7 +28,7 @@ int findConstructorMax(lxPo cases, dictPo dict)
       continue;
     }
     else if(sxIsIden(csePtn)){
-      uniChar *con = sxIden(csePtn);
+      char *con = sxIden(csePtn);
       conDefPo def = findConstructor(con,dict);
       if(def==Null){
 	reportError(sxLoc(csePtn),"symbol %A not declared",csePtn);
@@ -50,7 +50,7 @@ int findConstructorMax(lxPo cases, dictPo dict)
 }
 
 retCode compileSwitch(sxPo caseExp,sxPo *expected,
-		      uniChar *path,
+		      char *path,
 		      dictPo dict,dictPo outer,
 		      exitPo exit, mtdCxtPo mtd,
 		      compileFun bodyFun,contFun cont,void *cl)
@@ -70,7 +70,7 @@ retCode compileSwitch(sxPo caseExp,sxPo *expected,
 }
 
 retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
-			    lxPo cases,uniChar *path,
+			    lxPo cases,char *path,
 			    dictPo dict,dictPo outer,
 			    exitPo exit, mtdCxtPo mtd,
 			    compileFun bodyFun,contFun cont,void *cl)
@@ -83,7 +83,7 @@ retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
   lPo caseLabels = newLbl(code,genSym(".C"));
   retCode res = Ok;
 
-  uniChar *seg = currSegment(code);
+  char *seg = currSegment(code);
 
   ACase(code,tgt,maxIx,caseLabels);	/* Do the case jump */
 
@@ -100,7 +100,7 @@ retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
       setSegment(code,genSym(".C"));	/* each case in a different segment */
 
       if(sxIsConstructor(ptn)){
-	uniChar *con = sxConstructorOp(ptn);
+	char *con = sxConstructorOp(ptn);
 	conDefPo def = findConstructor(con,dict);
 	
 	lPo cseLbl = currLbl(code,genSym(".L"));
@@ -109,7 +109,7 @@ retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
 	if(res==Ok)
 	  res = bodyFun(body,expected,path,dict,outer,exit,mtd,cont,cl);
       } else if(sxIsIden(ptn)){
-	uniChar *con = sxIden(ptn);
+	char *con = sxIden(ptn);
 	conDefPo def = findConstructor(con,dict);
 	if(def!=Null){
 	  if(def->conSize!=0){
@@ -172,7 +172,7 @@ retCode compileCaseAnalysis(locationPo loc,Register tgt,sxPo *expected,
 }
 
 retCode compileScalarCase(locationPo loc,varInfoPo src,sxPo *expected,
-			  lxPo cases,uniChar *path,
+			  lxPo cases,char *path,
 			  dictPo dict,dictPo outer,
 			  exitPo exit, mtdCxtPo mtd,
 			  compileFun bodyFun,contFun cont,void *cl)

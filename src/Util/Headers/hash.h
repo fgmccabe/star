@@ -1,23 +1,17 @@
-/***********************************************************************
-(c) 1994-2010 Imperial College, F.G. McCabe
+/*
+  HashTable header
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-You should have received a copy of the GNU Library General Public
-License along with this library; if not, write to the
-Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA  02111-1307, USA.
-
-Contact: frankmccabe@mac.com
-***********************************************************************/
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
+*/
 #ifndef _LIB_HASH_H_
 #define _LIB_HASH_H_
 
@@ -27,22 +21,15 @@ Contact: frankmccabe@mac.com
 /* Hash table interface */
 typedef struct _hashtable_ *hashPo;
 
-typedef uinteger (*hashFun)(void *); /* Hashing function */
-typedef int (*compFun)(void *, void *); /* Comparison function */
+typedef integer (*hashFun)(void *); /* Hashing function */
+typedef comparison (*compFun)(void *, void *); /* Comparison function */
 typedef retCode (*destFun)(void *, void *); /* Destroy function */
 typedef retCode (*procFun)(void *n, void *r, void *c); /* Processing func */
-
-integer nextPrime(integer min);
 
 /* Build a new hash table */
 hashPo NewHash(long size,hashFun hash,compFun cmp,destFun dest);
 retCode DelHash(hashPo hp);
 retCode ProcessTable(procFun pr,hashPo tbl,void *c);
-
-// Deprecated
-retCode Install(void *name, void *r,hashPo htbl); /* install a new entry */
-void *Search(void *name,hashPo htbl); /* search for an entry */
-retCode Uninstall(void *name,hashPo htbl); /* remove an entry from the hash table */
 
 // Use these instead
 retCode hashPut(hashPo htbl,void *name, void *r); // install a new entry
@@ -53,7 +40,7 @@ long hashSize(hashPo htbl);
 void lockHash(hashPo tbl);
 void unlockHash(hashPo tbl);
 
-uinteger strhash(void *name);
-int strcomp(void *n1,void *n2);
+integer strhash(void *name);
+comparison strcomp(void *n1,void *n2);
 
 #endif

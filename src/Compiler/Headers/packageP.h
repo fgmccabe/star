@@ -4,8 +4,8 @@
 #include "package.h"
 
 typedef struct _package_ {
-  uniChar *url;
-  uniChar *name;
+  char *url;
+  char *name;
   dictPo dict;
   packageFun entry;
 } PackageRec;

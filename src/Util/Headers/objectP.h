@@ -1,23 +1,17 @@
 /*
   Object base class private header
-  (c) 1999 F.G.McCabe
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-  Contact: Francis McCabe <fgm@fla.fujitsu.com>
- */
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
+*/
 
 #include "config.h"
 #include "object.h"
@@ -31,6 +25,8 @@ typedef void (*objectProc)(objectPo o);
 typedef objectPo (*objectCreateProc)(classPo cl);
 typedef void (*objectClassProc)(classPo class);
 typedef void (*classInitProc)(classPo class,classPo request);
+typedef integer (*hashProc)(objectPo o);
+typedef logical (*equalityProc)(objectPo o,objectPo p);
 
 #ifndef O_INHERIT_DEF
 #define O_INHERIT_DEF ((void*)-1)
@@ -38,7 +34,7 @@ typedef void (*classInitProc)(classPo class,classPo request);
 
 typedef struct _object_ {
   classPo class;                        /* class of the object */
-  pthread_mutex_t mutex;		/* Every object has a lock available */
+  int32 refCount;                       /* reference count of object */
 } ObjectRec;
 
 typedef struct _class_ {
@@ -51,7 +47,9 @@ typedef struct _class_ {
   objectProc erase;                    /* procedure to remove object's memory */
   void (*init)(objectPo o,va_list *args); /* procedure to initialize an object */
   size_t size;                            /* size of an individual object */
-  poolPo pool;                            /* pool of records for this class*/
+  hashProc hashCode;                      // Hashcode function for this class
+  equalityProc equality;                  // Equality function for this class
+  poolPo pool;                            // What pool is sued for this class?
   pthread_once_t inited;		/* This flag controls initialization */
   pthread_mutex_t mutex;		/* This allows a class-level lock */
 } ObjectClassRec;

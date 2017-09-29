@@ -9,16 +9,16 @@
 #include "meta.h"
 #include "pp.h"
 
-extern uniChar *rawIntType;
-extern uniChar *rawLongType;
-extern uniChar *rawFloatType;
-extern uniChar *rawCharType;
-extern uniChar *rawStringType;
-extern uniChar *BOOL_TYPE;
-extern uniChar *ARROW_TYPE;
-extern uniChar *TUPLE_TYPE;
-extern uniChar *VOID_TYPE;
-extern uniChar *DICT_TYPE;
+extern char *rawIntType;
+extern char *rawLongType;
+extern char *rawFloatType;
+extern char *rawCharType;
+extern char *rawStringType;
+extern char *BOOL_TYPE;
+extern char *ARROW_TYPE;
+extern char *TUPLE_TYPE;
+extern char *VOID_TYPE;
+extern char *DICT_TYPE;
 
 extern logical isRawIntType(sxPo type);
 extern logical isRawLongType(sxPo type);
@@ -44,8 +44,8 @@ extern sxPo voidCon;
 extern TypeKind tpKind(sxPo type);
 
 extern logical isTypeVar(sxPo type);
-extern sxPo sxTypeVar(locationPo loc,uniChar *name);
-extern uniChar *tpVarName(sxPo t);
+extern sxPo sxTypeVar(locationPo loc,char *name);
+extern char *tpVarName(sxPo t);
 
 extern sxPo sxAllType(locationPo loc,lxPo argTypes,sxPo resType);
 extern sxPo sxTypeExp(locationPo loc,sxPo type, sxPo argAtype);
@@ -53,7 +53,7 @@ extern sxPo sxTypeFun(locationPo loc,sxPo op,lxPo args);
 extern sxPo sxTypeOp(sxPo tp);
 extern logical isTypeExp(sxPo t);
 extern logical isTypeFun(sxPo t);
-extern uniChar *typeExpName(sxPo tp);
+extern char *typeExpName(sxPo tp);
 extern lxPo sxTypeArgs(sxPo tp);
 extern sxPo sxTypeDef(locationPo loc,sxPo type);
 extern logical sxIsTypeDef(sxPo sx);

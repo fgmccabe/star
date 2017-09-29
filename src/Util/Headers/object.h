@@ -1,30 +1,26 @@
-/*
-  Object base class header
-  (c) 1999 F.G.McCabe
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-  Contact: Francis McCabe <fgm@fla.fujitsu.com>
- */
 #ifndef _OBJECT_H_
 #define _OBJECT_H_
 
+/*
+  Public definition of object
+  Copyright (c) 2016, 2017. Francis G. McCabe
+
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
+*/
+
 #include "config.h"
 #include "logical.h"
-#include "number.h"
 #include "retcode.h"
+#include "integer.h"
+#include "utils.h"
 #include <pthread.h>
 
 typedef struct _object_ *objectPo;
@@ -40,18 +36,22 @@ logical isSubClass(classPo class,classPo parent);
 classPo parentClass(classPo class);
 
 classPo classOfObject(objectPo o);
-logical isObjectOfClass(objectPo o,classPo parent);
+logical objectHasClass(objectPo o, classPo parent);
 logical isObject(objectPo o);
 
-void lock(objectPo o);
-retCode timedLock(objectPo o, number tmout);
-void unlock(objectPo o);
+integer hashCode(objectPo o);
+logical equals(objectPo o1,objectPo o2);
 
 void lockClass(classPo c);
 void unlockClass(classPo c);
 
 // A convenience hack
 void initRecursiveMutex(pthread_mutex_t *mutex);
+
+// Reference count memory management
+void incReference(objectPo o);
+void decReference(objectPo o);
+long referenceCount(objectPo o);
 
 #ifdef VERIFY_OBJECT
 #define O_OBJECT(c) ((objectPo)(checkCast((c),objClass)))

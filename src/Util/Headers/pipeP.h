@@ -1,22 +1,16 @@
 /* 
    Pipe library (private header)
-   (c) 1994-2004 Imperial College and F.G. McCabe
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   
-   Contact: Francis McCabe <fgm@fla.fujitsu.com>
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
 */ 
 
 #ifndef _IO_PIPE_P_H_
@@ -32,7 +26,7 @@ typedef struct {
 
 typedef struct _pipe_class_ {
   ObjectClassRec objectPart;
-  ManagedClassPartRec managedPart;
+  LockClassPart lockPart;
   IoClassPartRec ioPart;              /* the io part of the class information */
   FileClassPartRec filePart;
   PipeClassPartRec pipePart;
@@ -47,7 +41,7 @@ typedef struct _pipe_part_{
 
 typedef struct _pipe_object_ {
   ObjectRec object;                     /* object level of the io structure */
-  ManagedRec managed;
+  LockObjectRec lock;                   // Lock part of object
   IoPart io;                            /* Io level of io object */
   FilePart file;                        /* File level of file object */
   PipePart pipe;                        /* Pipeet level part of the file */

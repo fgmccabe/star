@@ -1,0 +1,27 @@
+/* Automatically generated, do not edit */
+
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2]).
+
+  isOperator(O) :-
+    operator(O,_).
+
+  infixOp(Op,L,P,R) :-
+    operator(Op,Ops),
+    is_in(infixOp(L,P,R),Ops),!.
+
+  prefixOp(Op,P,R) :-
+    operator(Op,Ops),
+    is_in(prefixOp(P,R),Ops),!.
+
+  postfixOp(Op,L,P) :-
+    operator(Op,Ops),
+    is_in(postfixOp(L,P),Ops),!.
+
+  is_in(X,[X|_]).
+  is_in(X,[_|Y]) :- is_in(X,Y).
+
+#(Operators)
+
+#(Follows)
+
+#(Final)

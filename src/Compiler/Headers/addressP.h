@@ -7,13 +7,13 @@
 typedef struct _address_context_ {
   long currentNext;
   long size; 
-  uniChar *name;
+  char *name;
   hashPo entries;
 } ContextRecord;
 
 typedef struct _label_ {
   locationPo loc;
-  uniChar *name;
+  char *name;
   long offset;
   contextPo cxt;
 } LabelRecord;

@@ -3,22 +3,22 @@
 
 #include <ooio.h>
 #include "assem.h"
-#include "opcodes.h"
-#include "codeP.h"
-#include "list.h"
+#include <../Engine/Headers/ops.h>
+#include "../../Engine/Headers/codeP.h"
+#include "lists.h"
 
 typedef struct _fixup_ *fixupPo;
 
 typedef struct _local_data_ *localVarPo;
 
 typedef struct _label_ {
-  uniChar *lbl;
+  char *lbl;
   void *address;			/* Used for absolute addresses */
   assemInsPo pc;			/* Which instruction */
 } LabelRec;
 
 typedef struct _pool_constant_ *constPo;
-typedef logical (*constCmp)(constPo,uniChar *sig,void *con);
+typedef logical (*constCmp)(constPo,char *sig,void *con);
 typedef retCode (*constDump)(ioPo,constPo);
 
 typedef struct _pool_constant_ {
@@ -26,16 +26,16 @@ typedef struct _pool_constant_ {
     double dx;				/* float value */
     mtdPo mtd;				/* a method */
     integer ix;				/* integer value */
-    uniChar *txt;			/* String */
+    char *txt;			/* String */
   } value;				/* What is this constant? */
-  uniChar *sig;				/* Type signature */
+  char *sig;				/* Type signature */
   constCmp same;			/* Used to test for equality */
   constDump show;			/* Used to display constant */
   constDump encode;			/* Used to encode */
 } PoolConstantRecord;
 
 typedef struct _assem_method_ {
-  uniChar *name;			/* The name of this code block */
+  char *name;			/* The name of this code block */
   hashPo labels;			/* All the labels in this code */
   assemInsPo first;			/* Instructions */
   assemInsPo last;			/* Last instruction */
@@ -64,23 +64,24 @@ typedef struct _assem_instruction_ {
 } AssemInstruction;
 
 typedef struct _assem_package_ {
-  uniChar *name;		 /* name of the package */
+  char *name;		 /* name of the package */
+  char *version;
   listPo methods;		 /* All the functions defined in this package */
 } AssemPackage;
 
 extern retCode encodePkg(ioPo out,pkgPo pkg);
-extern mtdPo getPkgMethod(pkgPo pkg,uniChar *name);
-extern mtdPo createMethod(pkgPo pkg,uniChar *name,uniChar *sig);
+extern mtdPo getPkgMethod(pkgPo pkg,char *name);
+extern mtdPo createMethod(pkgPo pkg,char *name,char *sig);
 
 extern retCode dumpIns(ioPo f,mtdPo mtd,assemInsPo ins);
 extern int32 codeSize(mtdPo mtd);
-extern int32 poolCount(mtdPo mtd);
+extern int64 poolCount(mtdPo mtd);
 extern int32 frameCount(mtdPo mtd);
-extern constPo poolConstant(mtdPo mtd,int32 ix);
+extern constPo poolConstant(mtdPo mtd, int64 ix);
 
 static inline int32 localCount(mtdPo mtd)
 {
-  return listCount(mtd->locals);
+  return (int32)listCount(mtd->locals);
 }
 
 #endif

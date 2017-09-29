@@ -18,9 +18,9 @@
 //
 lPo findKFun(locationPo loc,sxPo type)
 {
-  uniChar buffer[1024];
+  char buffer[1024];
   sourceKind kind = typeRep(type);
-  uniChar *kName = strMsg(buffer,NumberOf(buffer),".K%s",kindName(kind));
+  char *kName = strMsg(buffer,NumberOf(buffer),".K%s",kindName(kind));
 
   mtdCxtPo kMtd =  newMethod(kName);
   assemPo code = methodCode(kMtd);

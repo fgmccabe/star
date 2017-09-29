@@ -1,44 +1,54 @@
 /* 
-   High level I/O handling functions
-   (c) 1994-2000 Imperial College and F.G. McCabe
+  High level I/O handling functions
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   
-   Contact: Francis McCabe <fgm@fla.fujitsu.com>
-*/ 
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
+*/
 
 #ifndef _IO_FORMIO_H_
 #define _IO_FORMIO_H_
 
 #include "io.h"
 
-retCode int2Uni(integer i,int base,logical sign,uniChar *buff,long len);
-retCode outInteger(ioPo f,long long i,int base,int width,int precision,
-		     uniChar pad,logical left,char *prefix,logical sign);
-retCode outDouble(ioPo out,double x,char mode,int width,int precision,
-		    uniChar pad,logical left,char *prefix,logical sign);
-retCode outMsg(ioPo f,char *fmt,...);
-retCode logMsg(ioPo out,char *fmt,...);
+retCode outInteger(ioPo f, integer i, uint16 base, int width, int precision,
+                   codePoint pad, logical left, char * prefix, logical sign);
+retCode outDouble(ioPo out, double x, char mode, int width, int precision,
+                  codePoint pad, logical left, char * prefix, logical sign);
+retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, char *frmt, integer formatLen);
+retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, char *frmt, integer formatLen);
+retCode outMsg(ioPo f, char *fmt, ...);
+retCode logMsg(ioPo out, char *fmt, ...);
 
-retCode outUniString(ioPo f,uniChar *str,int len,int width,int precision,
-		     uniChar pad,logical leftPad,logical alt);
-retCode outInt(ioPo f,integer i);
-retCode outFloat(ioPo out,double x);
-retCode outUStr(ioPo f,uniChar *str);
+retCode outUniString(ioPo f, char * str, long len, long width, int precision,
+                     codePoint pad, logical leftPad, logical alt);
+retCode outInt(ioPo f, integer i);
+retCode outFloat(ioPo out, double x);
+retCode outUStr(ioPo f, char * str);
 
-integer parseInteger(uniChar *s,long len);
-double  parseNumber(uniChar *s,long len);
+integer int2StrByBase(char *str, integer i, integer pos, uint16 base);
+
+
+typedef enum {
+  fractional, scientific, general
+} FloatDisplayMode;
+
+retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, char *prefix,
+                     logical sign);
+
+integer parseInteger(char *s, integer len);
+double parseNumber(char *s, long len);
+
+char * strMsg(char *buffer, long len, char *fmt, ...);
+char * strAppend(byte *buffer, long len, char *fmt, ...);
+
+retCode lookingAt(ioPo in, char *test);
 
 #endif

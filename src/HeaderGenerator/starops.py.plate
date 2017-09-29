@@ -1,0 +1,90 @@
+# Automatically generated, do not edit
+
+__all__ = ['__isOperator', 'isPrefix', 'isInfix', 'isPostfix', 'follows', 'isFinal']
+
+class Operator(object):
+    def __init__(self, priority):
+        self.prior = priority
+
+    @property
+    def priority(self):
+        return self.prior
+
+
+class PrefixOp(Operator):
+    def __init__(self, priority, right):
+        Operator.__init__(self, priority)
+        self.rightPr = right
+
+    @property
+    def right(self):
+        return self.rightPr
+
+
+class InfixOp(Operator):
+    def __init__(self, leftPr, priority, rightPr):
+        Operator.__init__(self, priority)
+        self.leftPr = leftPr
+        self.rightPr = rightPr
+
+    @property
+    def right(self):
+        return self.rightPr
+
+    @property
+    def left(self):
+        return self.leftPr
+
+
+class PostfixOp(Operator):
+    def __init__(self, leftPr, priority):
+        Operator.__init__(self, priority)
+        self.leftPr = leftPr
+
+    @property
+    def left(self):
+        return self.leftPr
+
+
+__operators = {
+#(Operators)
+}
+
+def __isOperator(op, Tp):
+    if op in __operators:
+        entries = __operators[op]
+        for o in entries:
+            if isinstance(o, Tp):
+                return o
+    return None
+
+def isOperator(op):
+    return op in __operators
+
+def isInfix(op):
+    return __isOperator(op, InfixOp)
+
+def isPrefix(op):
+    return __isOperator(op, PrefixOp)
+
+
+def isPostfix(op):
+    return __isOperator(op, PostfixOp)
+
+__follows = {
+#(Follows)
+}
+
+def follows(prefix,char):
+    if prefix in __follows:
+        subset = __follows[prefix]
+        if char in subset:
+            return subset[char]
+    return None
+
+__final = {
+#(Final)
+}
+
+def isFinal(nm):
+    return nm in __final

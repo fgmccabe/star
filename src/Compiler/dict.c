@@ -16,7 +16,7 @@ static poolPo fieldPool = Null;
 static poolPo conPool = Null;
 static poolPo undoPool = Null;
 
-uniChar *ArithOverFlow, *ArithZeroDivide, 
+char *ArithOverFlow, *ArithZeroDivide,
   *TrueName, *FalseName, *ValofName, *CatchName,
   *MainName, *ProgramName, *TailName, *PkgDictVarName,
   *VoidName,
@@ -25,21 +25,21 @@ uniChar *ArithOverFlow, *ArithZeroDivide,
   *EvalName,
   *NilName;
 
-uniChar *ANONYMOUS;
+char *ANONYMOUS;
 
-uniChar *EqualName;
-uniChar *NotEqualName;
-uniChar *LessEqualName;
-uniChar *LessName;
-uniChar *GreaterEqualName;
-uniChar *GreaterName;
+char *EqualName;
+char *NotEqualName;
+char *LessEqualName;
+char *LessName;
+char *GreaterEqualName;
+char *GreaterName;
 
-uniChar *Nothing;
+char *Nothing;
 
 dictPo rootDict = Null;		       /* Cannot be initialized until codegen */
 
 static retCode displayVar(ioPo f,void *p,long width,long prec,logical alt);
-static dictStatePo pushUndo(uniChar *name,VarDefType entryType,dictPo dict);
+static dictStatePo pushUndo(char *name,VarDefType entryType,dictPo dict);
 
 void initDict()
 {
@@ -181,12 +181,12 @@ static retCode releaseVar(void *n,void *r,void *cl)
   return Ok;
 }
 
-varInfoPo search(uniChar *name,dictPo dict)
+varInfoPo search(char *name,dictPo dict)
 {
   return (varInfoPo)Search(name,dict->vars);
 }
 
-varInfoPo varReference(uniChar *name,dictPo dict)
+varInfoPo varReference(char *name,dictPo dict)
 {
   varInfoPo var = search(name,dict);
 
@@ -206,7 +206,7 @@ varInfoPo varReference(uniChar *name,dictPo dict)
     return Null;
 }
 
-conDefPo findConstructor(uniChar *name,dictPo dict)
+conDefPo findConstructor(char *name,dictPo dict)
 {
   while(dict!=Null){
     conDefPo con = (conDefPo)Search(name,dict->constructors);
@@ -218,12 +218,12 @@ conDefPo findConstructor(uniChar *name,dictPo dict)
   return Null;
 }
 
-logical isConstructor(uniChar *name,dictPo dict)
+logical isConstructor(char *name,dictPo dict)
 {
   return findConstructor(name,dict)!=Null;
 }
 
-logical isEnumerated(uniChar *name,dictPo dict)
+logical isEnumerated(char *name,dictPo dict)
 {
   conDefPo con = findConstructor(name,dict);
   if(con!=Null)
@@ -232,7 +232,7 @@ logical isEnumerated(uniChar *name,dictPo dict)
     return False;
 }
 
-lPo findEnumerated(uniChar *name,dictPo dict)
+lPo findEnumerated(char *name,dictPo dict)
 {
   conDefPo con = findConstructor(name,dict);
   assert(con!=Null && sxLength(con->args)==0);
@@ -271,7 +271,7 @@ static Register nextFree(dictPo dict, sxPo type){
   return reg;
 }
 
-varInfoPo reserve(locationPo loc,uniChar *name, sxPo type, rwMode access,
+varInfoPo reserve(locationPo loc,char *name, sxPo type, rwMode access,
 		  logical isLocal, sourceKind kind,dictPo dict)
 {
   varInfoPo var = (varInfoPo)allocPool(varPool);
@@ -311,7 +311,7 @@ static Register freeRg(int off){
   return reg;
 }
 
-varInfoPo declare(locationPo loc,uniChar *name, sxPo type, rwMode access,
+varInfoPo declare(locationPo loc,char *name, sxPo type, rwMode access,
 		  logical isLocal, sourceKind kind,int offset,
 		  dictPo dict)
 {
@@ -336,7 +336,7 @@ varInfoPo declare(locationPo loc,uniChar *name, sxPo type, rwMode access,
   return var;
 }
 
-void declareLit(locationPo loc,uniChar *name,uniChar *str,
+void declareLit(locationPo loc,char *name,char *str,
 		sxPo type,sourceKind kind,dictPo dict)
 {
   varInfoPo var = (varInfoPo)allocPool(varPool);
@@ -354,7 +354,7 @@ void declareLit(locationPo loc,uniChar *name,uniChar *str,
   pushUndo(var->name,VarDef,dict);
 }
 
-void declareInfo(varInfoPo info,uniChar *str,dictPo dict)
+void declareInfo(varInfoPo info,char *str,dictPo dict)
 {
   varInfoPo var = (varInfoPo)allocPool(varPool);
   var->name = info->name;
@@ -370,7 +370,7 @@ void declareInfo(varInfoPo info,uniChar *str,dictPo dict)
   pushUndo(var->name,VarDef,dict);
 }
 
-uniChar* vrInfName(varInfoPo var)
+char* vrInfName(varInfoPo var)
 {
   return var->name;
 }
@@ -415,7 +415,7 @@ logical isInited(varInfoPo var)
   return var->inited;
 }
 
-static dictStatePo pushUndo(uniChar *name,VarDefType entryType,dictPo dict)
+static dictStatePo pushUndo(char *name,VarDefType entryType,dictPo dict)
 {
   dictStatePo undo = (dictStatePo)allocPool(undoPool);
   undo->name = name;
@@ -460,7 +460,7 @@ void resetDict(dictPo dict,dictStatePo mark)
   }
 }
 
-typeDefPo declareType(uniChar *name,sxPo tp,dictPo dict)
+typeDefPo declareType(char *name,sxPo tp,dictPo dict)
 {
   typeDefPo type = (typeDefPo)allocPool(typePool);
 
@@ -471,17 +471,17 @@ typeDefPo declareType(uniChar *name,sxPo tp,dictPo dict)
   return type;
 }
 
-typeDefPo findType(uniChar *name,dictPo dict)
+typeDefPo findType(char *name,dictPo dict)
 {
   return (typeDefPo)hashGet(dict->types,name);
 }
 
-fieldPo findFieldSpec(uniChar *name,typeDefPo desc)
+fieldPo findFieldSpec(char *name,typeDefPo desc)
 {
   return (fieldPo)hashGet(desc->fields,name);
 }
 
-fieldPo declareField(uniChar *name,sxPo fieldType,typeDefPo type)
+fieldPo declareField(char *name,sxPo fieldType,typeDefPo type)
 {
   fieldPo field = (fieldPo)allocPool(fieldPool);
   field->name = uniIntern(name);
@@ -490,7 +490,7 @@ fieldPo declareField(uniChar *name,sxPo fieldType,typeDefPo type)
   return field;
 }
 
-conDefPo declareConstructor(uniChar *name, int conIx, int maxIx,
+conDefPo declareConstructor(char *name, int conIx, int maxIx,
 			    long conSize, lxPo args, sxPo type, lPo lbl,
 			    dictPo dict)
 {

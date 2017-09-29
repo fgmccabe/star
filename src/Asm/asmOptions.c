@@ -3,11 +3,9 @@
  */
 #include "config.h"
 #include "asm.h"
-#include <ooio.h>
-#include <utils.h>
-#include <stdlib.h>
 
 #include "version.h"			/* Version ID for the Cafe system */
+#include <options.h>
 #include "asmOptions.h"
 
 logical debugAssem = False;		/* debug the assembling process */
@@ -78,23 +76,18 @@ static retCode setParseOnly(char *option,logical enable,void *cl)
 
 static retCode setHome(char *option,logical enable,void *cl)
 {
-  setCafeHome(uniNewStr((unsigned char *)option));
+  setCafeHome(uniDuplicate(option));
   return Ok;
 }
 
-static retCode setLogFile(char *option,logical envale, void *cl)
+static retCode setLogFile(char *option,logical enable, void *cl)
 {
-  uniChar buff[MAXFILELEN];
-  _uni((unsigned char*)option,buff,NumberOf(buff));
-  initLogfile(buff);
-  return Ok;
+  return initLogfile(option);
 }
 
 static retCode setOutput(char *option,logical enable,void *cl)
 {
-  uniChar buff[MAXFILELEN];
-  _uni((unsigned char*)option,buff,NumberOf(buff));
-  setOutputFile(buff);
+  setOutputFile(option);
   return Ok;
 }
 
@@ -108,8 +101,7 @@ Option options[] = {
 
 int getOptions(int argc, char **argv)
 {
-  //  splitFirstArg(argc,argv,&argc,&argv);
-
+  splitFirstArg(argc,argv,&argc,&argv);
   return processOptions(argc,argv,options,NumberOf(options));
 }
 

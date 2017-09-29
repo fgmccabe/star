@@ -1,26 +1,18 @@
 /*
   Input scanning functions for I/O library
-  (c) 1994-2000 Imperial College, F.G. McCabe  and Fujitsu Labs
+  Copyright (c) 2016, 2017. Francis G. McCabe
 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Library General Public
-  License as published by the Free Software Foundation; either
-  version 2 of the License, or (at your option) any later version.
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+  except in compliance with the License. You may obtain a copy of the License at
 
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Library General Public License for more details.
+  http://www.apache.org/licenses/LICENSE-2.0
 
-  You should have received a copy of the GNU Library General Public
-  License along with this library; if not, write to the
-  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-  Boston, MA  02111-1307, USA.
-  
-  Contact: fgm@fla.fujitsu.com
+  Unless required by applicable law or agreed to in writing, software distributed under the
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the specific language governing
+  permissions and limitations under the License.
 */
 
-#include "config.h"		/* Invoke configuration header */
 #include "io.h"
 #include "formioP.h"
 
@@ -29,90 +21,116 @@
 /* 
  * Scan a unicode string, looking for a number of a given base
  */
-integer parseInteger(uniChar *s,long l)
-{
+integer parseInteger(char *s, integer l) {
   logical positive = True;
   integer x = 0;
   int digit;
 
-  if(*s=='-'||*s==0x2212){
+  if (*s == '-') {
     positive = False;
     s++;
     l--;
-  }
-  else if(*s=='+'){
+  } else if (*s == '+') {
     positive = True;
     s++;
     l--;
   }
-  while(l>0 && (digit=digitValue(*s++))>=0){
+  while (l > 0 && (digit = digitValue((codePoint)(*s++))) >= 0) {
     l--;
-    x = x*10+digit;
+    x = x * 10 + digit;
   }
-  if(positive)
+  if (positive)
     return x;
   else
     return -x;
 }
 
-double parseNumber(uniChar *s,long l)
-{
+double parseNumber(char *s, long l) {
   logical positive = True;
-  number x = 0;
+  double x = 0;
   int exp = 0;
   int digit;
 
-  if(*s=='-'||*s==0x2212){
+  if (*s == '-') {
     positive = False;
     s++;
     l--;
-  }
-  else if(*s=='+'){
+  } else if (*s == '+') {
     positive = True;
     s++;
     l--;
   }
-  while(l>0 && (digit=digitValue(*s))>=0){
+  while (l > 0 && (digit = digitValue((codePoint)(*s))) >= 0) {
     l--;
-    x = x*10+digit;
+    x = x * 10 + digit;
     s++;
   }
-  
-  if(l>0 && *s=='.'){
-    number power = 0.1;
-    s++; l--;
-    
-    while(l>0 && (digit=digitValue(*s))>=0){
-      l--;    s++;
-      x=x+digit*power;
-      power /=10;
+
+  if (l > 0 && *s == '.') {
+    double power = 0.1;
+    s++;
+    l--;
+
+    while (l > 0 && (digit = digitValue((codePoint)(*s))) >= 0) {
+      l--;
+      s++;
+      x = x + digit * power;
+      power /= 10;
     }
-    
-    if(l>0 && (*s=='e'||*s=='E')){
-    	logical eSign=True;
-    	l--; s++;
-    	
-    	if(l>0 && (*s=='-'||*s==0x2212)){
-    	  eSign=False; l--; s++;
-    	}
-    	else if(l>0 && *s=='+'){
-    	  l--; s++;
-    	}
-    	
-    	while(l>0 && (digit=digitValue(*s))>=0){
-          l--; s++;
-          exp = exp*10+digit;
-    	}
-    	
-    	if(!eSign)
-    	  exp = -exp;
+
+    if (l > 0 && (*s == 'e' || *s == 'E')) {
+      logical eSign = True;
+      l--;
+      s++;
+
+      if (l > 0 && (*s == '-')) {
+        eSign = False;
+        l--;
+        s++;
+      } else if (l > 0 && *s == '+') {
+        l--;
+        s++;
+      }
+
+      while (l > 0 && (digit = digitValue((codePoint)(*s))) >= 0) {
+        l--;
+        s++;
+        exp = exp * 10 + digit;
+      }
+
+      if (!eSign)
+        exp = -exp;
     }
   }
 
-  if(positive)
-    return x*pow(10,exp);
+  if (positive)
+    return x * pow(10, exp);
   else
-    return -x*pow(10,exp);
+    return -x * pow(10, exp);
 }
 
+retCode lookingAt(ioPo in, char *test) {
+  integer mark;
+  retCode ret = markIo(in, &mark);
 
+  if (ret == Ok) { // Can we mark this stream?
+    while (*test != 0) {
+      codePoint ch;
+      ret = inChar(in, &ch);
+      if (ret == Ok && ch == *test++)
+        continue;
+      else if (ret == Ok) {
+        resetToMark(in, mark);
+        return Fail;
+      } else {
+        resetToMark(in, mark);
+        return ret;
+      }
+    }
+    if (*test != 0)
+      resetToMark(in, mark);
+    return ret;
+  }
+
+  return ret;
+}

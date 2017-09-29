@@ -24,7 +24,7 @@ typedef enum {
 } VarDefType;
 
 typedef struct _dict_state_ {
-  uniChar *name;
+  char *name;
   dictPo dict;
   VarDefType entryType;
   dictStatePo prev;

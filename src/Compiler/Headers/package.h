@@ -9,11 +9,11 @@ typedef struct _package_ *packagePo;
 
 typedef void (*packageFun)(dictPo dict);
 
-packagePo findPackage(uniChar *path);
+packagePo findPackage(char *path);
 
 extern retCode ppPackage(ioPo io,packagePo pkg,int d);
 
-extern uniChar *pkgName(packagePo pkg);
+extern char *pkgName(packagePo pkg);
 extern dictPo pkgDict(packagePo pkg);
 extern packageFun pkgEntry(packagePo pkg);
 

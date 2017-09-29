@@ -33,9 +33,9 @@ typedef struct _sequence_object_ *lxPo;
 
 extern lxPo nil;
 
-extern sxPo mId(locationPo loc,uniChar *name);
-extern sxPo mChar(locationPo loc,uniChar ch);
-extern sxPo mStr(locationPo loc,uniChar *str);
+extern sxPo mId(locationPo loc,char *name);
+extern sxPo mChar(locationPo loc,char ch);
+extern sxPo mStr(locationPo loc,char *str);
 extern sxPo mInt(locationPo loc,int i);
 extern sxPo mLong(locationPo loc,integer i);
 extern sxPo mFloat(locationPo loc,double d);
@@ -56,14 +56,14 @@ extern logical sxIsApply(sxPo sx);
 
 extern locationPo sxLoc(sxPo sexp);
 
-extern uniChar sxChar(sxPo sx);
-extern int sxInt(sxPo sx);
+extern char sxChar(sxPo sx);
+extern integer sxInt(sxPo sx);
 extern integer sxLong(sxPo sx);
 extern double sxFloat(sxPo sx);
-extern uniChar* sxIden(sxPo sx);
-extern uniChar* sxText(sxPo sx);
+extern char* sxIden(sxPo sx);
+extern char* sxText(sxPo sx);
 
-extern sxPo sxTerm(locationPo loc,uniChar *op,...);
+extern sxPo sxTerm(locationPo loc,char *op,...);
 
 extern sxPo sxOp(sxPo sx);
 extern lxPo sxArgs(sxPo sx);
@@ -71,7 +71,7 @@ extern lxPo sxArgs(sxPo sx);
 extern sxPo setOp(sxPo sx,sxPo op);
 extern sxPo setArgs(sxPo sx,lxPo args);
 extern sxPo sxArg(sxPo sx,int ix);
-extern sxPo sxTerm(locationPo loc,uniChar *op,...);
+extern sxPo sxTerm(locationPo loc,char *op,...);
 
 extern lxPo setTail(lxPo lx,lxPo tail);
 extern logical sxIsList(lxPo sx,int len);
@@ -79,14 +79,14 @@ extern sxPo sxEl(lxPo sq,int ix);
 extern int sxLength(lxPo sx);
 
 extern void initSexpressions();
-extern retCode testSexpr(uniChar *name);
+extern retCode testSexpr(char *name);
 
-extern logical sxIsUnary(sxPo sx,uniChar *name);
-extern logical sxIsBinary(sxPo sx,uniChar *name);
-extern logical sxIsTernary(sxPo sx,uniChar *name);
+extern logical sxIsUnary(sxPo sx,char *name);
+extern logical sxIsBinary(sxPo sx,char *name);
+extern logical sxIsTernary(sxPo sx,char *name);
 
-extern sxPo sxUnary(locationPo loc,uniChar *name,sxPo arg);
-extern sxPo sxBinary(locationPo loc,uniChar *name,sxPo left,sxPo right);
-extern sxPo sxTernary(locationPo loc,uniChar *name,sxPo left,sxPo mdl,sxPo right);
+extern sxPo sxUnary(locationPo loc,char *name,sxPo arg);
+extern sxPo sxBinary(locationPo loc,char *name,sxPo left,sxPo right);
+extern sxPo sxTernary(locationPo loc,char *name,sxPo left,sxPo mdl,sxPo right);
 
 #endif

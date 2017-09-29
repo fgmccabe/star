@@ -2,7 +2,7 @@
 #define _METHOD_H_
 
 #include "dict.h"
-#include "code.h"
+#include "../../Engine/Headers/code.h"
 #include "assem.h"
 
 typedef struct _method_context_ *mtdCxtPo;
@@ -10,7 +10,7 @@ typedef struct _try_block_ *tryPo;
 
 extern void initMethod();
 
-extern mtdCxtPo newMethod(uniChar *name);
+extern mtdCxtPo newMethod(char *name);
 extern mtdPo methodCode(mtdCxtPo mtd);
 extern cafeFun genMethodCode(mtdCxtPo mtd,lPo entryPoint);
 
@@ -25,7 +25,7 @@ extern tryPo tryBlockNext(tryPo try);
 
 extern void gcCallSite(mtdCxtPo mtd,dictPo dict);
 
-extern lPo defineLiteralString(mtdCxtPo mtd,uniChar *str);
+extern lPo defineLiteralString(mtdCxtPo mtd,char *str);
 extern lPo defineLiteralOther(mtdCxtPo mtd,void *data, long size);
 
 extern retCode genClosEvac(mtdCxtPo mtd,lPo entryPoint,lPo evacLbl,lPo scanLbl,

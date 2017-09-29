@@ -13,8 +13,7 @@
 #include "compiler.h"
 #include "dict.h"
 #include "sexpP.h"
-#include "locationP.h"
-#include "pp.h"
+#include "Headers/locationP.h"
 
 static poolPo sxPool = Null;
 static poolPo lxPool = Null;
@@ -30,7 +29,7 @@ void initSexpressions()
   initLocation();
 }
 
-sxPo mId(locationPo loc,uniChar *name)
+sxPo mId(locationPo loc,char *name)
 {
   sxPo trm = (sxPo)allocPool(sxPool);
   trm->loc = loc;
@@ -39,7 +38,7 @@ sxPo mId(locationPo loc,uniChar *name)
   return trm;
 }
 
-sxPo mChar(locationPo loc,uniChar ch)
+sxPo mChar(locationPo loc,char ch)
 {
   sxPo trm = (sxPo)allocPool(sxPool);
   trm->loc = loc;
@@ -48,7 +47,7 @@ sxPo mChar(locationPo loc,uniChar ch)
   return trm;
 }
 
-sxPo mStr(locationPo loc,uniChar *str)
+sxPo mStr(locationPo loc,char *str)
 {
   sxPo trm = (sxPo)allocPool(sxPool);
   trm->loc = loc;
@@ -111,37 +110,37 @@ lxPo mCons(sxPo head,lxPo tail)
 
 logical sxIsApply(sxPo sx)
 {
-  return sx->con==applyCon;
+  return (logical) (sx->con == applyCon);
 }
 
 logical sxIsIden(sxPo sx)
 {
-  return sx->con==symbCon;
+  return (logical) (sx->con == symbCon);
 }
 
 logical sxIsChar(sxPo sx)
 {
-  return sx->con==charCon;
+  (logical)(return sx->con==charCon);
 }
 
 logical sxIsStr(sxPo sx)
 {
-  return sx->con==stringCon;
+  return (logical) (sx->con == stringCon);
 }
 
 logical sxIsInt(sxPo sx)
 {
-  return sx->con==intCon;
+  return (logical) (sx->con == intCon);
 }
 
 logical sxIsLong(sxPo sx)
 {
-  return sx->con==integerCon;
+  return (logical) (sx->con == integerCon);
 }
 
 logical sxIsFloat(sxPo sx)
 {
-  return sx->con==floatCon;
+  return (logical) (sx->con == floatCon);
 }
 
 locationPo sxLoc(sxPo sx)
@@ -149,14 +148,14 @@ locationPo sxLoc(sxPo sx)
   return sx->loc;
 }
 
-uniChar sxChar(sxPo sx)
+char sxChar(sxPo sx)
 {
   assert(sxIsChar(sx));
 
   return sx->S.ch;
 }
 
-int sxInt(sxPo sx)
+integer sxInt(sxPo sx)
 {
   assert(sxIsInt(sx));
   return sx->S.ix;
@@ -174,27 +173,27 @@ double sxFloat(sxPo sx)
   return sx->S.d;
 }
 
-uniChar* sxIden(sxPo sx)
+char* sxIden(sxPo sx)
 {
   assert(sxIsIden(sx));
 
   return sx->S.text;
 }
 
-uniChar* sxText(sxPo sx)
+char* sxText(sxPo sx)
 {
   assert(sxIsStr(sx));
 
   return sx->S.text;
 }
   
-sxPo sxApply(locationPo loc,uniChar *name,lxPo args)
+sxPo sxApply(locationPo loc,char *name,lxPo args)
 {
   sxPo op = mId(loc,name);
   return mApply(loc,op,args);
 }
 
-uniChar *sxApplyOp(sxPo sx)
+char *sxApplyOp(sxPo sx)
 {
   assert(sxIsApply(sx));
   return sxIden(sxOp(sx));
@@ -293,7 +292,7 @@ lxPo sxList(locationPo loc,...)
   return list;
 }
 
-sxPo sxTerm(locationPo loc,uniChar *op,...)
+sxPo sxTerm(locationPo loc,char *op,...)
 {
   va_list args;
   va_start(args,op);

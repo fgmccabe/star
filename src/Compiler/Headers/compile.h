@@ -16,23 +16,23 @@ typedef retCode (*contFun)(locationPo loc,varInfoPo src,void *cl,mtdPo code);
 typedef struct _exit_stack_ *exitPo;
 
 typedef struct _exit_stack_ {
-  uniChar *name;
+  char *name;
   contFun cont;
   void *cl;
   exitPo outer;
 } ExitLabel;
 
-extern exitPo exitLabel(exitPo exit,uniChar *name);
+extern exitPo exitLabel(exitPo exit,char *name);
 
 typedef retCode (*compileFun)(sxPo exp,sxPo *expected,
-			      uniChar *path,
+			      char *path,
 			      dictPo dict,dictPo outer,
 			      exitPo exit, mtdCxtPo mtd, 
 			      contFun cont,void *cl);
 
-extern retCode compileAndGo(uniChar *path,int argc, char **args);
+extern retCode compileAndGo(char *path,int argc, char **args);
 
-extern retCode compileTheta(lxPo defs,uniChar *path,
+extern retCode compileTheta(lxPo defs,char *path,
 			    dictPo dict,dictPo outer,
 			    compileFun bound,sxPo *expected,sxPo cl,
 			    exitPo exit,mtdCxtPo mtd,
@@ -42,27 +42,27 @@ extern retCode declareArgs(lxPo args,dictPo fDict,dictPo outer,mtdCxtPo mtd);
 
 
 extern retCode compileExp(sxPo exp,sxPo *expectedType,
-			  uniChar *path,
+			  char *path,
 			  dictPo dict,dictPo outer,
 			  exitPo exit,mtdCxtPo mtd,
 			  contFun cont,void *cl);
 
 extern retCode compileArgs(lxPo args,lxPo argTypes,
-			   int depth,uniChar *path,
+			   int depth,char *path,
 			   dictPo dict,dictPo outer,exitPo exit,
 			   mtdCxtPo mtd);
 
 extern sourceKind expMode(sxPo exp,dictPo dict);
 
 extern retCode compileArithmetic(sxPo exp,sxPo *expected,
-				 uniChar *path,
+				 char *path,
 				 dictPo dict,dictPo outer,
 				 exitPo exit,
 				 mtdCxtPo mtd, 
 				 contFun cont,void *cl);
 
 extern retCode compileSwitch(sxPo cse,sxPo *expected,
-			     uniChar *path,
+			     char *path,
 			     dictPo dict,dictPo outer,
 			     exitPo exit, mtdCxtPo mtd,
 			     compileFun comp,
@@ -71,52 +71,52 @@ extern retCode compileSwitch(sxPo cse,sxPo *expected,
 extern retCode compileCaseAnalysis(locationPo loc,Register tgt,
 				   sxPo *expected,
 				   lxPo cases,
-				   uniChar *path,
+				   char *path,
 				   dictPo dict,dictPo outer,
 				   exitPo exit,mtdCxtPo mtd,
 				   compileFun bodyFun,
 				   contFun cont,void *cl);
 
 extern retCode compileAction(sxPo act,sxPo *expected,
-			     uniChar *path,
+			     char *path,
 			     dictPo dict,dictPo outer,
 			     exitPo exit,mtdCxtPo mtd,
 			     contFun cont,void *cl);
 
 typedef enum { onSuccess, onFailure } jumpMode;
 
-extern retCode compileCondition(sxPo cond,uniChar *path,
+extern retCode compileCondition(sxPo cond,char *path,
 				dictPo dict,dictPo outer,
 				jumpMode sense,
 				lPo fail,exitPo exit,mtdCxtPo mtd);
 
 extern retCode compileCatch(sxPo act,sxPo *expected,
-			    uniChar *path,
+			    char *path,
 			    dictPo dict,dictPo outer,exitPo exit,mtdCxtPo mtd,
 			    contFun cont,void *cl);
 
-extern retCode compileThrow(sxPo exp,uniChar *path,
+extern retCode compileThrow(sxPo exp,char *path,
 			    dictPo dict, dictPo outer,exitPo exit,mtdCxtPo mtd,
 			    contFun cont,void *cl);
 
-extern retCode compileTypeDef(sxPo type,uniChar *path,
+extern retCode compileTypeDef(sxPo type,char *path,
 			      dictPo dict);
 
 extern retCode compileConstructor(sxPo exp,sxPo *expected,
-				  uniChar *path,
+				  char *path,
 				  dictPo dict,dictPo outer,
 				  exitPo exit,mtdCxtPo mtd,
 				  contFun cont,void *cl);
 
 extern retCode compileRecord(sxPo exp,sxPo *expected,
-			     uniChar *path,
+			     char *path,
 			     dictPo dict,dictPo outer,
 			     exitPo exit,mtdCxtPo mtd,
 			     contFun cont,void *cl);
 
-extern retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdCxtPo mtd);
+extern retCode genPtnCode(sxPo con,char *path,dictPo dict,mtdCxtPo mtd);
 
-extern retCode genPtnArgs(lxPo args,uniChar *path,dictPo dict,mtdCxtPo mtd);
+extern retCode genPtnArgs(lxPo args,char *path,dictPo dict,mtdCxtPo mtd);
 
 extern retCode genCatchBlocks(mtdCxtPo mtd,lPo catch);
 

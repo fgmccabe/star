@@ -2,7 +2,7 @@
 #define _LABELS_H_
 
 
-extern exitPo exitLabel(exitPo exit,uniChar *name);
+extern exitPo exitLabel(exitPo exit,char *name);
 
 
 #endif

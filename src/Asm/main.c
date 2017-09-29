@@ -16,9 +16,9 @@
 
 char copyRight[]="(c) 2010-2014 F.G.McCabe\nAll rights reserved";
 
-static uniChar *outPath = Null;
+static char *outPath = Null;
 
-static uniChar *computeOutputPath(uniChar *path);
+static char *computeOutputPath(char *path);
 
 int main(int argc, char **argv)
 {
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 #endif
 
   {
-    uniChar fn[]={'-',0};
+    char fn[]={'-',0};
     initLogfile(fn);
   }
 
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
   initAssem();
 
   if(narg<argc){
-    uniChar path[1024];
+    char path[1024];
     _uni((unsigned char*)argv[narg],path,NumberOf(path));
 
     parseContent(path,computeOutputPath(path));
@@ -57,17 +57,17 @@ int main(int argc, char **argv)
     usage(argv[0]);
 }
 
-void setOutputFile(uniChar *path)
+void setOutputFile(char *path)
 {
   outPath = uniIntern(path);
 }
 
-uniChar *computeOutputPath(uniChar *path)
+char *computeOutputPath(char *path)
 {
   if(outPath==Null){
     long pathLen = uniStrLen(path);
     long lastPos = uniLastIndexOf(path,pathLen,'.');
-    uniChar buff[4096];
+    char buff[4096];
     uniSubStr(path,pathLen,0,lastPos,buff,NumberOf(buff));
     uniTack(buff,NumberOf(buff),".co");
     return uniIntern(buff);

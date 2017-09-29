@@ -23,6 +23,6 @@ retCode reportWarning(locationPo loc,char *fmt,...);
 logical isErrorFree();
 void reportErrorCount();
 
-extern void setCafeHome(uniChar *home);
+extern void setCafeHome(char *home);
 
 #endif

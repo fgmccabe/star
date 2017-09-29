@@ -11,10 +11,10 @@ extern logical debugParse;
 
 extern int getOptions(int argc, char **argv);
 
-extern void setOutputFile(uniChar *path);
+extern void setOutputFile(char *path);
 
-extern retCode parseContent(uniChar *path,uniChar *outPath);
+extern retCode parseContent(char *path,char *outPath);
 
-extern void setCafeHome(uniChar *home);
+extern void setCafeHome(char *home);
 
 #endif

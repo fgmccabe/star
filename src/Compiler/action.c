@@ -10,13 +10,13 @@
 #include "escapes.h"
 #include "codegen.h"
 
-static retCode compileBlock(lxPo actions,sxPo *expected,uniChar *path,
+static retCode compileBlock(lxPo actions,sxPo *expected,char *path,
 			    dictPo dict,dictPo outer,
 			    exitPo exit, mtdCxtPo mtd, 
 			    contFun cont,void *cl);
 
 static retCode compileVarDeclaration(sxPo var,rwMode access,
-				     sxPo value,uniChar *path,
+				     sxPo value,char *path,
 				     dictPo dict,dictPo outer,
 				     exitPo exit,mtdCxtPo mtd);
 
@@ -24,7 +24,7 @@ static retCode thrower(locationPo loc,varInfoPo src,void *cl,assemPo code);
 static retCode unwinder(locationPo loc,varInfoPo src,void *cl,assemPo code);
 static retCode asserter(locationPo loc,varInfoPo src,void *cl,assemPo code);
 
-retCode compileAction(sxPo act,sxPo *expected,uniChar *path,
+retCode compileAction(sxPo act,sxPo *expected,char *path,
 		      dictPo dict,dictPo outer,exitPo exit,
 		      mtdCxtPo mtd, contFun cont,void *cl)
 {
@@ -37,7 +37,7 @@ retCode compileAction(sxPo act,sxPo *expected,uniChar *path,
     return compileBlock(sxBlockContent(act),expected,
 			path,dict,outer,exit,mtd,cont,cl);
   else if(sxIsCall(act)){
-    uniChar *op = sxCallOp(act);
+    char *op = sxCallOp(act);
     sxPo resultType = Null;
     lxPo args = sxCallArgs(act);
 
@@ -221,7 +221,7 @@ retCode compileAction(sxPo act,sxPo *expected,uniChar *path,
   }
 }
 
-retCode compileBlock(lxPo actions, sxPo *expected,uniChar *path,
+retCode compileBlock(lxPo actions, sxPo *expected,char *path,
 		     dictPo dict,dictPo outer, exitPo exit,
 		     mtdCxtPo mtd, contFun cont,void *cl)
 {
@@ -272,13 +272,13 @@ retCode compileBlock(lxPo actions, sxPo *expected,uniChar *path,
   return res;
 }
 
-retCode compileVarDeclaration(sxPo var,rwMode access,sxPo value,uniChar *path,
+retCode compileVarDeclaration(sxPo var,rwMode access,sxPo value,char *path,
 			      dictPo dict,dictPo outer,
 			      exitPo exit,mtdCxtPo mtd)
 {
   locationPo loc = sxLoc(var);
   if(sxIsCast(var) && sxIsIden(sxCastExp(var))){
-    uniChar *vrName = sxIden(sxCastExp(var));
+    char *vrName = sxIden(sxCastExp(var));
     sxPo vrType = sxCastType(var);
     sourceKind kind = typeRep(vrType);
     varInfoPo info = reserve(loc,vrName,vrType,access,True,kind,dict);

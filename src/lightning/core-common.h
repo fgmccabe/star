@@ -1,1 +1,0 @@
-/usr/local/include/lightning/core-common.h

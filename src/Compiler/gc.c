@@ -62,7 +62,7 @@ retCode genClosEvac(mtdCxtPo mtd,lPo entryPoint,lPo evacLbl,lPo scanLbl,
   AAllocH(code,treg,frSize,failAlloc);
   AStLbl(code,treg,0,entryPoint);
 
-  uniChar *currSeg = currSegment(code);
+  char *currSeg = currSegment(code);
   setSegment(code,genSym(".gc"));
   defineLbl(code,failAlloc);		/* We start filling in the block */
   AHalt(code,99);			/* We are done if we need to GC here */
@@ -193,7 +193,7 @@ typedef struct {
   listPo references;
 } VrGcListRecord, *vrGcPo;
 
-static retCode vrGcCheck(uniChar *name,varInfoPo var,void *cl)
+static retCode vrGcCheck(char *name,varInfoPo var,void *cl)
 {
   if(isVrLocal(var) && !isRawType(vrInfType(var))){
     vrGcPo info = (vrGcPo)cl;

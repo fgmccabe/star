@@ -18,7 +18,7 @@ void initMethod()
   literalPool = newPool(sizeof(LiteralRecord),256);
 }
 
-mtdCxtPo newMethod(uniChar *name)
+mtdCxtPo newMethod(char *name)
 {
   mtdCxtPo mtd = (mtdCxtPo)allocPool(mtdPool);
   mtd->defName = uniIntern(name);
@@ -43,11 +43,11 @@ cafeFun genMethodCode(mtdCxtPo mtd,lPo entryPoint)
 static logical isStringLiteral(void *d,void *cl)
 {
   literalPo lit = (literalPo)d;
-  uniChar *str = (uniChar*)cl;
+  char *str = (char*)cl;
   return lit->type==stringLiteral && uniCmp(lit->lit.str,str)==0;
 }
 
-lPo defineLiteralString(mtdCxtPo mtd,uniChar *str)
+lPo defineLiteralString(mtdCxtPo mtd,char *str)
 {
   assemPo code = methodCode(mtd);
   literalPo lit = findInList(mtd->literals,isStringLiteral,str);
@@ -58,7 +58,7 @@ lPo defineLiteralString(mtdCxtPo mtd,uniChar *str)
     lit->type = stringLiteral;
     lit->lit.str = str;
 
-    uniChar *curr = currSegment(code);
+    char *curr = currSegment(code);
     setSegment(code,dataSegment);
     AAlignTo(code,POINTER_SIZE);
     lit->lbl = currLbl(code,genSym(".S"));
@@ -88,7 +88,7 @@ lPo defineLiteralOther(mtdCxtPo mtd,void *data, long size)
     lit->lit.other.size = size;
 
     assemPo code = methodCode(mtd);
-    uniChar *curr = currSegment(code);
+    char *curr = currSegment(code);
     setSegment(code,dataSegment);
     AAlignTo(code,POINTER_SIZE);
     lit->lbl = currLbl(code,genSym(".O"));

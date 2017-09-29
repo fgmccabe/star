@@ -20,7 +20,7 @@
 static sxPo refactorContent(lxPo defs,int argc,char **argv);
 
 
-retCode compileAndGo(uniChar *path,int argc, char **argv)
+retCode compileAndGo(char *path,int argc, char **argv)
 {
   sxPo pkg = parseContent(path);
 
@@ -96,12 +96,12 @@ static sxPo findMainProc(lxPo defs)
 
 extern int yyparse(ioPo inFile, sxPo *result);
 
-sxPo parseContent(uniChar *path)
+sxPo parseContent(char *path)
 {
   ioPo file = openURI(path, unknownEncoding);
 
   if(file!=Null){
-    uniChar ch = inCh(file);    /* We skip over #! */
+    char ch = inCh(file);    /* We skip over #! */
 
     if(ch=='#'){      /* look for standard #!/.... header */
       if((ch=inCh(file))=='!'){
@@ -173,7 +173,7 @@ sxPo refactorContent(lxPo defs,int argc,char **args)
 
     lxPo callArgs = nil;
     for(int ix=count-1;ix>=0;ix--){
-      uniChar buffer[1024];
+      char buffer[1024];
       _uni((unsigned char*)args[ix],buffer,NumberOf(buffer));
 
       sxPo argType = sxEl(typeArgs,ix);

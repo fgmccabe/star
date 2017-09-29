@@ -27,38 +27,38 @@
 
 static retCode fixupFree(dictPo dict,dictPo outer,mtdCxtPo mtd,int vOffset);
 
-typedef retCode (*comp)(uniChar *name,sxPo def,
+typedef retCode (*comp)(char *name,sxPo def,
 			lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-			uniChar *path,dictPo dict,
+			char *path,dictPo dict,
 			dictPo *funDict,
 			mtdCxtPo mtd);
 
 static retCode compileClosure(sxPo def,
 			      contFun cont,varInfoPo var,
-			      uniChar *path,
+			      char *path,
 			      dictPo thetaDict,
 			      dictPo *fnDict,
 			      mtdCxtPo outer,
 			      comp progCompiler);
 
-static retCode compFunction(uniChar *name,sxPo def,
+static retCode compFunction(char *name,sxPo def,
 			    lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-			    uniChar *path,dictPo dict,
+			    char *path,dictPo dict,
 			    dictPo *funDict,mtdCxtPo mtd);
-static retCode compMemo(uniChar *name,sxPo def,
+static retCode compMemo(char *name,sxPo def,
 			lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-			uniChar *path,dictPo dict,
+			char *path,dictPo dict,
 			dictPo *funDict,mtdCxtPo mtd);
-static retCode compProcedure(uniChar *name,sxPo def,
+static retCode compProcedure(char *name,sxPo def,
 			     lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-			     uniChar *path,dictPo dict,
+			     char *path,dictPo dict,
 			     dictPo *funDict,
 			     mtdCxtPo mtd);
 
-static retCode compileImport(sxPo import,uniChar *path,
+static retCode compileImport(sxPo import,char *path,
 			     dictPo dict,mtdCxtPo mtd);
 
-retCode compileTheta(lxPo defs,uniChar *path,
+retCode compileTheta(lxPo defs,char *path,
 		     dictPo dict,dictPo outer,
 		     compileFun bound, sxPo *expected,sxPo cl,
 		     exitPo exit,
@@ -78,19 +78,19 @@ retCode compileTheta(lxPo defs,uniChar *path,
     else if(sxIsTypeDef(def))
       ret = compileTypeDef(def,path,dict);
     else if(sxIsFunction(def)){
-      string name = sxFunName(def);
+      char * name = sxFunName(def);
       locationPo loc = sxLoc(def);
       sxPo fType = sxFunType(def);
       varInfoPo info = reserve(loc,name,fType,readOnly,True,general,dict);
       declareVar(info,dict);
     } else if(sxIsMemo(def)){
-      string name = sxMemoName(def);
+      char * name = sxMemoName(def);
       locationPo loc = sxLoc(def);
       sxPo fType = sxMemoType(def);
       varInfoPo info = reserve(loc,name,fType,readOnly,True,general,dict);
       declareVar(info,dict);
     } else if(sxIsProcedure(def)){
-      string name = sxProcName(def);
+      char * name = sxProcName(def);
       locationPo loc = sxLoc(def);
       sxPo fType = sxProcType(def);
       varInfoPo info = reserve(loc,name,fType,readOnly,True,general,dict);
@@ -98,7 +98,7 @@ retCode compileTheta(lxPo defs,uniChar *path,
     } else if(sxIsIsDeclaration(def)){
       sxPo var = sxDeclLval(def);
       locationPo loc = sxLoc(var);
-      uniChar *vrName = sxLvalName(def);
+      char *vrName = sxLvalName(def);
       sxPo vrType = sxLvalType(def);
       sourceKind kind = typeRep(vrType);
       declareVar(reserve(loc,vrName,vrType,readOnly,True,kind,dict),
@@ -202,23 +202,23 @@ retCode compileTheta(lxPo defs,uniChar *path,
  * marking the locals.
  */
 
-static retCode initClosureVar(uniChar *name,varInfoPo var, void *cl);
+static retCode initClosureVar(char *name,varInfoPo var, void *cl);
 
 typedef struct {
   dictPo dict;
   lxPo free;
-  uniChar *path;
+  char *path;
   mtdCxtPo mtd;
 } FreeCollectRecord;
 
 retCode compileClosure(sxPo def,
-		       contFun cont,varInfoPo var,uniChar *path,
+		       contFun cont,varInfoPo var,char *path,
 		       dictPo thetaDict,
 		       dictPo *fnDict,
 		       mtdCxtPo outer,
 		       comp compiler)
 {
-  uniChar *name = var->name;
+  char *name = var->name;
   mtdCxtPo mtd = newMethod(name);
   assemPo code = methodCode(mtd);
 
@@ -226,7 +226,7 @@ retCode compileClosure(sxPo def,
   lPo scan = newLbl(code,genSym(".S"));
   lPo evac = newLbl(code,genSym(".E"));
   lPo scav = newLbl(code,genSym(".V"));
-  uniChar buffer[1024];
+  char buffer[1024];
   lPo entryPoint = newLbl(code,strMsg(buffer,NumberOf(buffer),".%U",name));
   locationPo loc = sxLoc(def);
 
@@ -236,7 +236,7 @@ retCode compileClosure(sxPo def,
   int closureSize = freeSize(*fnDict);
 
   if(closureSize==0){			/* No free variables, fixed closure */
-    uniChar* curr = currSegment(code);
+    char* curr = currSegment(code);
     setSegment(code,genSym(".gc"));
     defineLbl(code,evac);		/* evac returns this */
     AEnterCFun(code,0);
@@ -271,8 +271,8 @@ retCode compileClosure(sxPo def,
 
     processDict(*fnDict,initClosureVar,&cl);
 
-    uniChar *curr = currSegment(outerCode);
-    uniChar *gcSeg = genSym(".gc");
+    char *curr = currSegment(outerCode);
+    char *gcSeg = genSym(".gc");
     setSegment(outerCode,gcSeg);
 
     defineLbl(outerCode,failAlloc);	/* We start filling in the block */
@@ -291,7 +291,7 @@ retCode compileClosure(sxPo def,
   return Ok;
 }
 
-static retCode initClosureVar(uniChar *name,varInfoPo var, void *cl)
+static retCode initClosureVar(char *name,varInfoPo var, void *cl)
 {
   FreeCollectRecord *c = (FreeCollectRecord *)cl;
 
@@ -322,7 +322,7 @@ retCode declareArgs(lxPo args,dictPo fDict,dictPo outer,mtdCxtPo mtd)
   for(int ix=0;status==Ok && ix<argCount;ix++){
     sxPo arg = sxEl(args,ix);
     if(sxIsCast(arg) && sxIsIden(sxCastExp(arg))){
-      uniChar *aName = sxIden(sxCastExp(arg));
+      char *aName = sxIden(sxCastExp(arg));
       sxPo aType = sxCastType(arg);
       sourceKind kind = typeRep(aType);
 
@@ -370,9 +370,9 @@ long countLocalsInDefs(lxPo defs)
   return size;
 }
 
-retCode compFunction(uniChar *name,sxPo def,
+retCode compFunction(char *name,sxPo def,
 		     lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-		     uniChar *path,dictPo dict,
+		     char *path,dictPo dict,
 		     dictPo *fnDict,
 		     mtdCxtPo mtd)
 {
@@ -415,9 +415,9 @@ retCode compFunction(uniChar *name,sxPo def,
 // Except that the function 'rewrites' itself with the value so subsequent
 // calls simply pick up the value
 
-retCode compMemo(uniChar *name,sxPo def,
+retCode compMemo(char *name,sxPo def,
 		 lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-		 uniChar *path,dictPo dict,
+		 char *path,dictPo dict,
 		 dictPo *fnDict,
 		 mtdCxtPo mtd)
 {
@@ -453,9 +453,9 @@ retCode compMemo(uniChar *name,sxPo def,
   return status;
 }
 
-retCode compProcedure(uniChar *name,sxPo def,
+retCode compProcedure(char *name,sxPo def,
 		      lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-		      uniChar *path,dictPo dict,
+		      char *path,dictPo dict,
 		      dictPo *fnDict,
 		      mtdCxtPo mtd)
 {
@@ -494,10 +494,10 @@ retCode compProcedure(uniChar *name,sxPo def,
   return status;
 }
 
-retCode compileImport(sxPo import,uniChar *path,dictPo dict,mtdCxtPo mtd)
+retCode compileImport(sxPo import,char *path,dictPo dict,mtdCxtPo mtd)
 {
-  uniChar buff[MAXLINE];
-  uniChar *url = resolveURI(path,sxImportPkg(import),buff,NumberOf(buff));
+  char buff[MAXLINE];
+  char *url = resolveURI(path,sxImportPkg(import),buff,NumberOf(buff));
   packagePo pkg = findPackage(url);
   if(pkg==Null){
     reportError(sxLoc(import),"cannot import %U",sxImportPkg(import));
@@ -516,7 +516,7 @@ typedef struct {
   int rootOff;
 } FixRec;
 
-static retCode fixupEntry(uniChar *name,varInfoPo var,void *cl)
+static retCode fixupEntry(char *name,varInfoPo var,void *cl)
 {
   FixRec *fix = (FixRec*)cl;
   assemPo code = fix->code;

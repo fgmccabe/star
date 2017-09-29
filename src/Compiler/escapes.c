@@ -18,7 +18,7 @@
 #include "hash.h"
 #include "pool.h"
 
-#include "arith.h"
+#include "multi.h"
 
 static hashPo escapes;
 
@@ -44,8 +44,8 @@ void initEscapes()
   initIoFuns();
 }
 
-retCode compileEscape(locationPo loc,uniChar *name,sxPo *expected,
-		      uniChar *path,
+retCode compileEscape(locationPo loc,char *name,sxPo *expected,
+		      char *path,
 		      dictPo dict,dictPo outer,
 		      exitPo exit,
 		      mtdCxtPo mtd,lxPo args,
@@ -79,14 +79,14 @@ typedef struct {
 static retCode loadArgReg(locationPo loc,varInfoPo src,void *cl,assemPo code);
 
 retCode compileCCall(sxPo call,sxPo *expected,
-		     uniChar *path,
+		     char *path,
 		     dictPo dict,dictPo outer,
 		     exitPo exit,mtdCxtPo mtd,
 		     contFun cont,void *cl)
 {
   assemPo code = methodCode(mtd);
   locationPo loc = sxLoc(call);
-  string name = sxCallOp(call);
+  char * name = sxCallOp(call);
   lxPo args = sxCallArgs(call);
   varInfoPo lib = findLibFun(name);
 
@@ -197,9 +197,9 @@ static int fpArgCount(sxPo type)
   return count;
 }
 
-retCode compileLibVar(locationPo loc,uniChar *name,
+retCode compileLibVar(locationPo loc,char *name,
 		      sxPo *expected,
-		      uniChar *path,
+		      char *path,
 		      dictPo dict,dictPo outer,
 		      exitPo exit, mtdCxtPo mtd,
 		      contFun cont,void *cl)
@@ -219,14 +219,14 @@ retCode compileLibVar(locationPo loc,uniChar *name,
   return cont(loc,var,cl,code);
 }
 
-logical isEscape(uniChar *name)
+logical isEscape(char *name)
 {
   return Search(name,escapes)!=Null;
 }
 
 void defineEscape(char *name, escapeFun escape)
 {
-  uniChar nameU[1024];
+  char nameU[1024];
 
   _uni((unsigned char*)name,nameU,NumberOf(nameU));
   Install(uniIntern(nameU),escape,escapes);
@@ -252,7 +252,7 @@ void genDeclare(assemPo code,varInfoPo info,dictPo dict)
   ACallLib(code,(libFun)declareInfo);
 }
 
-static retCode dEsc(uniChar *n,escapeFun esc,void *c)
+static retCode dEsc(char *n,escapeFun esc,void *c)
 {
   return outMsg(logFile,"%U->%x",n,esc);
 }

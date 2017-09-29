@@ -142,7 +142,7 @@ static retCode setHome(char *option,logical enable,void *cl)
 
 static retCode setLogFile(char *option,logical envale, void *cl)
 {
-  uniChar buff[MAXFILELEN];
+  char buff[MAXFILELEN];
   _uni((unsigned char*)option,buff,NumberOf(buff));
   initLogfile(buff);
   return Ok;

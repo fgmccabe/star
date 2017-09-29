@@ -8,7 +8,7 @@ typedef struct _constructor_spec_ {
   long fill;
   scav scavenger;
   evac evacuator;
-  uniChar [] name;
+  char [] name;
 } ConstructorSpecifier;
 
 typedef struct _constructor_ {

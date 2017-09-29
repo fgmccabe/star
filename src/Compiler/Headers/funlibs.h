@@ -7,17 +7,17 @@
 
 typedef int (*cFunPo)();
 
-extern logical isLibFun(uniChar *name);
+extern logical isLibFun(char *name);
 
-extern varInfoPo findLibFun(uniChar *name);
+extern varInfoPo findLibFun(char *name);
 
 extern void defineLibFun(char *name,sxPo type,cFunPo fun);
 
-extern logical isLibVar(uniChar *name);
+extern logical isLibVar(char *name);
 
 extern void defineLibVar(char *name,sxPo type,void *address);
 
-extern varInfoPo findLibVar(uniChar *name);
+extern varInfoPo findLibVar(char *name);
 
 extern void initIoFuns();
 

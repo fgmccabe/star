@@ -11,7 +11,7 @@
 #include "codegen.h"
 
 retCode compileExp(sxPo exp,sxPo *expected,
-		   uniChar *path,
+		   char *path,
 		   dictPo dict,dictPo outer,
 		   exitPo exit,mtdCxtPo mtd,
 		   contFun cont,void *cl)
@@ -20,7 +20,7 @@ retCode compileExp(sxPo exp,sxPo *expected,
   assemPo code = methodCode(mtd);
 
   if(sxIsIden(exp)){
-    uniChar *vrName = sxIden(exp);
+    char *vrName = sxIden(exp);
 
     if(isConstructor(vrName,dict))
       return compileConstructor(exp,expected,
@@ -68,7 +68,7 @@ retCode compileExp(sxPo exp,sxPo *expected,
   else if(sxIsConstructor(exp))
     return compileConstructor(exp,expected,path,dict,outer,exit,mtd,cont,cl);
   else if(sxIsCall(exp)){
-    uniChar *op = sxCallOp(exp);
+    char *op = sxCallOp(exp);
     lxPo args = sxCallArgs(exp);
 
     if(isEscape(op))
@@ -261,7 +261,7 @@ long argSize(sxPo type)
 }
 
 retCode compileArgs(lxPo args,lxPo argTypes,
-		    int depth,uniChar *path,
+		    int depth,char *path,
 		    dictPo dict,dictPo outer,
 		    exitPo exit,mtdCxtPo mtd)
 {

@@ -26,7 +26,7 @@ void initPackages()
 
 // Function that will populate a dictionary
 
-static packagePo makePackage(uniChar *url)
+static packagePo makePackage(char *url)
 {
   packagePo pkg = (packagePo)allocPool(packagePool);
   pkg->url = url;
@@ -38,11 +38,11 @@ static packagePo makePackage(uniChar *url)
 extern int ssparse(ioPo file,pkgPo context);
 
 static retCode compilePkgExp(sxPo exp,sxPo *expected,
-			     uniChar *path,
+			     char *path,
 			     dictPo dict,dictPo outer,exitPo exit,
 			     mtdCxtPo mtd, contFun cont,void *cl);
 
-packagePo findPackage(uniChar *path)
+packagePo findPackage(char *path)
 {
   packagePo pkg = hashGet(build,path);
 
@@ -57,7 +57,7 @@ packagePo findPackage(uniChar *path)
       mtdCxtPo mtd = newMethod(genUSym(path));
       assemPo code = methodCode(mtd);
 
-      uniChar *curr = currSegment(code);
+      char *curr = currSegment(code);
       setSegment(code,genUSym(path));
 
       lPo catch = newLbl(code,genSym(".C"));
@@ -113,7 +113,7 @@ packagePo findPackage(uniChar *path)
     return pkg;
 }
 
-retCode compilePkgExp(sxPo exp,sxPo *expected,uniChar *path,
+retCode compilePkgExp(sxPo exp,sxPo *expected,char *path,
 		      dictPo dict,dictPo outer,exitPo exit,
 		      mtdCxtPo mtd, contFun cont,void *cl)
 {
@@ -127,7 +127,7 @@ retCode compilePkgExp(sxPo exp,sxPo *expected,uniChar *path,
     sxPo def = sxEl(content,ix);
 
     if(sxIsFunction(def)){
-      string name = sxFunName(def);
+      char * name = sxFunName(def);
       varInfoPo info = varReference(name,dict);
 
       // Set up the call to declareLit
@@ -135,7 +135,7 @@ retCode compilePkgExp(sxPo exp,sxPo *expected,uniChar *path,
       break;
     }
     else if(sxIsProcedure(def)){
-      string name = sxProcName(def);
+      char * name = sxProcName(def);
       varInfoPo info = varReference(name,dict);
 
       // Set up the call to declareLit
@@ -143,7 +143,7 @@ retCode compilePkgExp(sxPo exp,sxPo *expected,uniChar *path,
       break;
     }
     else if(sxIsVarDeclaration(def)||sxIsIsDeclaration(def)){
-      string name = sxLvalName(sxDeclLval(def));
+      char * name = sxLvalName(sxDeclLval(def));
       varInfoPo info = varReference(name,dict);
       
       // Set up the call to declareLit
@@ -154,7 +154,7 @@ retCode compilePkgExp(sxPo exp,sxPo *expected,uniChar *path,
   return Ok;
 }
 
-static packagePo loadAssem(uniChar *path)
+static packagePo loadAssem(char *path)
 {
   ioPo file = openURI(path, unknownEncoding);
 
@@ -177,7 +177,7 @@ retCode ppPackage(ioPo io,packagePo pkg,int d)
     return outMsg(io,"no package given\n");
 }
 
-uniChar *pkgPath(packagePo pkg)
+char *pkgPath(packagePo pkg)
 {
   return pkg->url;
 }

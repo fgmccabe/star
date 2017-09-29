@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "compiler.h"
-#include "locationP.h"
+#include "Headers/locationP.h"
 
 #include "hash.h"
 #include "pool.h"
@@ -20,7 +20,7 @@ void initLocation()
   installMsgProc('L',displayLocation);	/* extend outMsg to cope with locations */
 }
 
-locationPo newLocation(uniChar *name,int firstLine,int lastLine)
+locationPo newLocation(char *name,int firstLine,int lastLine)
 {
   if(locationPool == Null)
     initLocation();
@@ -33,7 +33,7 @@ locationPo newLocation(uniChar *name,int firstLine,int lastLine)
   return loc;
 }
 
-locationPo newLoc(uniChar *name,int lineNumber,int start,int end)
+locationPo newLoc(char *name,int lineNumber,int start,int end)
 {
   locationPo loc = (locationPo)allocPool(locationPool);
 

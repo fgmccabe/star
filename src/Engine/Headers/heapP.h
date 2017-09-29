@@ -9,12 +9,12 @@ typedef enum {
 } AllocMode;
 
 typedef struct _heap_ {
-  uint64 *start;
-  uint64 *curr;
-  uint64 *limit;
-  uint64 *outerLimit;			/* The real */
-  uint64 *base;
-  uint64 *old;
+  integer *start;
+  integer *curr;
+  integer *limit;
+  integer *outerLimit;			/* The real */
+  integer *base;
+  integer *old;
   AllocMode allocMode;
 } HeapRecord;
 

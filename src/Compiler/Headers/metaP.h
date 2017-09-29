@@ -4,22 +4,22 @@
 #include "meta.h"
 
 // Keywords in the meta-language
-extern uniChar *kwImport;
+extern char *kwImport;
 
-extern uniChar *kwType,*kwArrow;
+extern char *kwType,*kwArrow;
 
-extern uniChar *kwFunction, *kwProcedure, *kwPattern, *kwLet;
+extern char *kwFunction, *kwProcedure, *kwPattern, *kwLet;
 
-extern uniChar *kwIs, *kwVar;
+extern char *kwIs, *kwVar;
 
-extern uniChar *kwAssign, *kwColon;
+extern char *kwAssign, *kwColon;
 
-extern uniChar *kwLabel, *kwLeave, *kwGoto;
+extern char *kwLabel, *kwLeave, *kwGoto;
 
-extern uniChar *kwContinue, *kwSwitch;
+extern char *kwContinue, *kwSwitch;
 
-extern uniChar *kwPlus, *kwMinus, *kwTimes, *kwDivide, *kwRemainder;
-extern uniChar *kwShiftLeft, *kwShiftRight;
+extern char *kwPlus, *kwMinus, *kwTimes, *kwDivide, *kwRemainder;
+extern char *kwShiftLeft, *kwShiftRight;
 
 void initMeta();
 
@@ -30,7 +30,7 @@ typedef struct _constructor_spec_ {
   long fill;
   scavengerPo scavenger;
   evac evacuator;
-  uniChar [] name;
+  char [] name;
 } ConstructorSpecifier;
 
 typedef struct _constructor_ {

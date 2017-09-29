@@ -1,7 +1,7 @@
 #include "config.h"
 #include <ooio.h>
 
-#include "escapes.h"
+#include "escape.h"
 #include "libNames.h"
 
 static hashPo escapes = NULL;
@@ -18,10 +18,10 @@ void initEscapes()
 
 void installEscape(char *name,escapePo escape)
 {
-  hashPut(escapes,mkInterned(name),escape);
+  //hashPut(escapes,mkInterned(name),escape);
 }
 
-escapePo findEscape(uniChar *name)
+escapePo findEscape(char *name)
 {
   return (escapePo)hashGet(escapes,name);
 }

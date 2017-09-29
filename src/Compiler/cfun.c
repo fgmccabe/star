@@ -17,22 +17,22 @@ void initLibFuns()
   libVars = NewHash(255,(hashFun)uniHash, (compFun)uniCmp,NULL);
 }
 
-logical isLibVar(uniChar *name)
+logical isLibVar(char *name)
 {
   return Search(name,libVars)!=Null;
 }
 
-varInfoPo findLibVar(uniChar *name)
+varInfoPo findLibVar(char *name)
 {
   return (varInfoPo)Search(name,libVars);
 }
 
 void defineLibVar(char *name,sxPo type,void *address)
 {
-  uniChar nameU[1024];
+  char nameU[1024];
 
   _uni((unsigned char*)name,nameU,NumberOf(nameU));
-  string libName = uniIntern(nameU);
+  char * libName = uniIntern(nameU);
 
   varInfoPo libRec = (varInfoPo)malloc(sizeof(VarInfoRec));
   libRec->where = label;
@@ -48,22 +48,22 @@ void defineLibVar(char *name,sxPo type,void *address)
   Install(libName,libRec,libVars);
 }
 
-logical isLibFun(uniChar *name)
+logical isLibFun(char *name)
 {
   return Search(name,libFuns)!=Null;
 }
 
-varInfoPo findLibFun(uniChar *name)
+varInfoPo findLibFun(char *name)
 {
   return (varInfoPo)Search(name,libFuns);
 }
 
 void defineLibFun(char *name,sxPo type,cFunPo fun)
 {
-  uniChar nameU[1024];
+  char nameU[1024];
 
   _uni((unsigned char*)name,nameU,NumberOf(nameU));
-  string libName = uniIntern(nameU);
+  char * libName = uniIntern(nameU);
 
   varInfoPo libRec = (varInfoPo)malloc(sizeof(VarInfoRec));
   libRec->where = label;

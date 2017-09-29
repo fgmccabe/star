@@ -1,123 +1,270 @@
 // Incremental instruction debugger
 
-#include "config.h"
 #include "engine.h"
 #include "signature.h"
-#include "escapes.h"
+#include "escape.h"
 #include <stdlib.h>
 
-static retCode showConstant(ioPo out,closurePo cl,int off);
+#include "debug.h"
 
-static void showRegisters(int32 pcCount,processPo p,closurePo env,insPo pc,framePo fp,ptrPo sp);
+logical tracing = True;  /* do we show each step */
+logical debugging = False;
+logical interactive = False;
 
-void debug_stop(int32 pcCount,processPo p,closurePo env,insPo pc,framePo fp,ptrPo sp)
-{
-  int ch;
-  static uniChar line[256] = {'n',0};
+typedef struct _break_point_ *breakPointPo;
+
+typedef struct _break_point_ {
+  short arity;
+  char name[MAX_SYMB_LEN];
+} BreakPoint;
+
+static retCode addBreakPoint(breakPointPo bp);
+static logical breakPointHit(char *name, short arity);
+static retCode clearBreakPoint(breakPointPo bp);
+static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
+
+retCode g__ins_debug(processPo P, ptrPo a) {
+  debugging = interactive = True;
+  return Ok;
+}
+
+/* waiting for next instruction */
+long cmdCounter = 0;
+
+#ifdef TRACEEXEC
+
+static long cmdCount(char *cmdLine) {
+  int64 count = (long) parseInteger(cmdLine, uniStrLen((char *) cmdLine));
+  if (count == 0)
+    return 1; /* never return 0 */
+  else
+    return count;
+}
+
+static processPo focus = NULL;
+
+static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
+
+static void clrCmdLine(char *cmdLine, long len) {
+  strMsg(cmdLine, len, "n\n"); /* default to next instruction */
+}
+
+static BreakPoint breakPoints[10];
+static int breakPointCount = 0;
+
+retCode addBreakPoint(breakPointPo bp) {
+  for (int ix = 0; ix < breakPointCount; ix++) {
+    if (breakPoints[ix].arity == -1) {
+      breakPoints[ix] = *bp;
+      return Ok;
+    }
+  }
+  if (breakPointCount < NumberOf(breakPoints)) {
+    breakPoints[breakPointCount++] = *bp;
+    return Ok;
+  } else
+    return Fail;
+}
+
+logical breakPointHit(char *name, short arity) {
+  for (int ix = 0; ix < breakPointCount; ix++) {
+    if (breakPoints[ix].arity == arity && uniCmp(breakPoints[ix].name, name) == same)
+      return True;
+  }
+  return False;
+}
+
+retCode clearBreakPoint(breakPointPo bp) {
+  for (int ix = 0; ix < breakPointCount; ix++) {
+    if (breakPoints[ix].arity == bp->arity && uniCmp(breakPoints[ix].name, bp->name) == same) {
+      if (ix == breakPointCount - 1) {
+        breakPointCount--;
+        while (breakPointCount >= 0 && breakPoints[breakPointCount].arity == -1)
+          breakPointCount--;
+        return Ok;
+      } else {
+        breakPoints[ix].arity = -1;
+        return Ok;
+      }
+    }
+  }
+
+  return Fail;
+}
+
+static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
+  long b = 0;
+  long ix = 0;
+
+  while (ix < bLen && buffer[ix] == ' ')
+    ix++;
+
+  while (ix < bLen) {
+    codePoint cp = nextCodePoint(buffer, &ix, bLen);
+    switch (cp) {
+      case '\n':
+      case 0:
+        appendCodePoint(bp->name, &b, NumberOf(bp->name), 0);
+        bp->arity = 0;
+        return Eof;
+      case '/': {
+        appendCodePoint(bp->name, &b, NumberOf(bp->name), 0);
+        integer arity = parseInteger(&buffer[ix], (integer) (bLen - ix));
+        bp->arity = (short) arity;
+        return Ok;
+      }
+      default:
+        appendCodePoint(bp->name, &b, NumberOf(bp->name), cp);
+        continue;
+    }
+  }
+  return Error;
+}
+
+retCode breakPoint(processPo P) {
+  return Ok;
+}
+
+void dC(termPo w) {
+  outMsg(logFile, "%w\n", w);
+  flushOut();
+}
+
+static retCode showConstant(ioPo out, closurePo cl, int off);
+
+static void showRegisters(int64 pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp);
+
+void debug_stop(integer pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp) {
+  static char line[256] = {'n', 0};
 
   static processPo focus = NULL; /* non-null implies only interested in this */
-  static int32 traceCount = 0;
+  static integer traceCount = 0;
 
-  if(focus==NULL || focus==p){
-    disass(pcCount,p,env,pc,fp,sp);
-    if(!interactive || traceCount>0){
-      if(traceCount==0)
-      	outMsg(logFile,"\n");
-      else{
-      	traceCount--;
-      	if(traceCount>0)
-      	  outMsg(logFile,"\n");
+  if (focus == NULL || focus == p) {
+    insWord PCX = *pc;
+
+    switch (opCode(PCX)) {
+      case Call:
+      case Tail: {
+        closurePo prg = (closurePo) (*sp);
+
+      }
+
+      default:;
+
+    }
+
+    disass(pcCount, p, env, pc, fp, sp);
+    if (!interactive || traceCount > 0) {
+      if (traceCount == 0)
+        outMsg(logFile, "\n");
+      else {
+        traceCount--;
+        if (traceCount > 0)
+          outMsg(logFile, "\n");
       }
       flushFile(logFile);
     }
 
-    while(interactive && traceCount==0){
-      uniChar *ln = line;
-      outMsg(logFile," => ");
+    while (interactive && traceCount == 0) {
+      char *ln = line;
+      outMsg(logFile, " => ");
       flushFile(logFile);
 
-      //      reset_stdin();
+      codePoint ch;
+      retCode res = inChar(stdIn, &ch);
 
-      if((ch=inCh(stdIn))!='\n' && ch!=uniEOF){
-      	do{
-      	  *ln++=ch;
-      	  ch = inCh(stdIn);
-      	} while(ch!='\n' && ch!=uniEOF);
-      	*ln++='\0';
-      }
-
-      //      setup_stdin();
-    
-      switch(line[0]){
-      case ' ':
-      case 'n':
-      case '\n':
-      	break;
-      case 'f':
-      	focus = p;
-      	uniLit(line,NumberOf(line),"n\n");
-      	break;
-      case 'u':
-      	focus = NULL;
-      	uniLit(line,NumberOf(line),"n\n");
-      	break;
-      case 'q':
-      	outMsg(logFile,"terminating session");
-      	exit(0);
-
-      case 't':
-      	interactive = False;
-      	break;
-      case uniEOF:
-      case 'c':
-      	tracing=False;
-      	break;
-      case 'r':			/* dump the registers */
-      	showRegisters(pcCount,p,env,pc,fp,sp);
-      	continue;
-      case 'l':{		/* dump a local variable */
-      	logMsg(logFile,"not implemented\n");
-      	continue;
-      }
-      case 'e':{		/* dump an environment variable */
-      	logMsg(logFile,"not implemented\n");
-      	continue;
-      }
-      case 'P':{		/* Display all processes */
-      	logMsg(logFile,"not implemented\n");
-      	continue;
+      if (res == Ok && ch != '\n') {
+        do {
+          *ln++ = (char) ch;
+          res = inChar(stdIn, &ch);
+        } while (ch != '\n' && res == Ok);
+        *ln++ = '\0';
       }
 
-      case 's':			/* Show a stack trace of this process */
-      	logMsg(logFile,"not implemented\n");
-      	continue;
+      switch (line[0]) {
+        case ' ':
+        case 'n':
+          cmdCounter = cmdCount(line+1);
+          tracing = True;
+          clrCmdLine(line,NumberOf(line));
+          p->waitFor = nextIns;
+          break;
+        case '\n':
+          break;
+        case 'f':
+          focus = p;
+          clrCmdLine(line,NumberOf(line));
+          break;
+        case 'u':
+          focus = NULL;
+          clrCmdLine(line,NumberOf(line));
+          break;
+        case 'q':
+          outMsg(logFile, "terminating session");
+          exit(0);
 
-      case '0': case '1': case '2': case '3': case '4': case '5': 
-      case '6': case '7': case '8': case '9': {
-      	traceCount = parseInteger(line,uniStrLen(line));
-      	continue;
-      }
-      
-      case 'i':{
-      	integer off=parseInteger(line+1,uniStrLen(line+1));
-      	integer i;
-      	insPo pc0 = pc;
-      	
-      	for(i=0;i<off;i++){
-      	  pc0 = disass(pcCount+i,p,env,pc0,fp,sp);
-      	  outChar(logFile,'\n');
-      	}
-      	uniLit(line,NumberOf(line),"n\n");
-      	continue;
-      }
-        
-      default:
-      	outMsg(logFile,"'n' = step, 'c' = continue, 't' = trace mode, 'q' = stop\n");
-      	outMsg(logFile,"'<n>' = step <n>\n");
-      	outMsg(logFile,"'r' = registers, 'l <n>' = local, 'e <n>' = env var\n");
-      	outMsg(logFile,"'i'<n> = list n instructions, 's' = stack trace\n");
-      	outMsg(logFile,"'f' = focus on this process, 'u' = unfocus \n");
-      	continue;
+        case 't':
+          interactive = False;
+          break;
+        case 'c':
+          tracing = False;
+          break;
+        case 'r':      /* dump the registers */
+          showRegisters(pcCount, p, env, pc, fp, sp);
+          continue;
+        case 'l': {    /* dump a local variable */
+          logMsg(logFile, "not implemented\n");
+          continue;
+        }
+        case 'e': {    /* dump an environment variable */
+          logMsg(logFile, "not implemented\n");
+          continue;
+        }
+        case 'P': {    /* Display all processes */
+          logMsg(logFile, "not implemented\n");
+          continue;
+        }
+
+        case 's':      /* Show a stack trace of this process */
+          logMsg(logFile, "not implemented\n");
+          continue;
+
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9': {
+          traceCount = parseInteger(line, uniStrLen(line));
+          continue;
+        }
+
+        case 'i': {
+          integer off = parseInteger(line + 1, uniStrLen(line + 1));
+          integer i;
+          insPo pc0 = pc;
+
+          for (i = 0; i < off; i++) {
+            pc0 = disass(pcCount + i, p, env, pc0, fp, sp);
+            outChar(logFile, '\n');
+          }
+
+          clrCmdLine(line,NumberOf(line));
+          continue;
+        }
+
+        default:
+          outMsg(logFile, "'n' = step, 'c' = continue, 't' = trace mode, 'q' = stop\n");
+          outMsg(logFile, "'<n>' = step <n>\n");
+          outMsg(logFile, "'r' = registers, 'l <n>' = local, 'e <n>' = env var\n");
+          outMsg(logFile, "'i'<n> = list n instructions, 's' = stack trace\n");
+          outMsg(logFile, "'f' = focus on this process, 'u' = unfocus \n");
+          continue;
       }
       return;
     }
@@ -127,21 +274,19 @@ void debug_stop(int32 pcCount,processPo p,closurePo env,insPo pc,framePo fp,ptrP
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(*pc++), lo32 = *pc++, ((hi32<<16)|lo32)
 
-static void showEscape(closurePo cl,int32 escNo)
-{
+static void showEscape(closurePo cl, int32 escNo) {
   constantPo escCon = &codeLiterals(cl)[escNo];
-  escapePo esc = (escapePo)escCon->data;
+  escapePo esc = (escapePo) escCon->data;
 
-  outMsg(logFile," (%U)",esc->name);
+  outMsg(logFile, " (%U)", esc->name);
 }
 
-insPo disass(int32 pcCount,processPo p,closurePo env,insPo pc,framePo fp,ptrPo sp)
-{
-  int32 hi32,lo32;
+insPo disass(integer pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp) {
+  int32 hi32, lo32;
 
-  outMsg(logFile,"0x%x [%d]",pc,pcCount);
+  outMsg(logFile, "0x%x [%d]", pc, pcCount);
 
-  switch(*pc++){
+  switch (*pc++) {
 #undef instruction
 
 #define show_nOp
@@ -154,60 +299,57 @@ insPo disass(int32 pcCount,processPo p,closurePo env,insPo pc,framePo fp,ptrPo s
 #define show_Es showEscape(env,collectI32(pc))
 #define show_lit showConstant(logFile,env,collectI32(pc))
 
-#define instruction(AOp,A1,Op,Cmt)		\
-    case AOp:					\
-      outMsg(logFile," %s",#Op);		\
-      show_##A1;				\
-	return pc;
+#define instruction(AOp, A1, Op, Cmt)    \
+    case AOp:          \
+      outMsg(logFile," %s",#Op);    \
+      show_##A1;        \
+  return pc;
 
 #include "instructions.h"
 
-  default:
-    return pc;
+    default:
+      return pc;
   }
 }
 
-static int showBySig(ioPo out,uniChar *sig,int32 pos,void *data);
+static integer showBySig(ioPo out, char *sig, integer pos, void *data);
 
-static retCode showConstant(ioPo out,closurePo cl,int off)
-{
+static retCode showConstant(ioPo out, closurePo cl, int off) {
   methodPo mtd = clMethod(cl);
 
   void *data = mtd->pool[off].data;
-  uniChar *sig = mtd->pool[off].sig;
-  showBySig(out,sig,0,data);
+  char *sig = mtd->pool[off].sig;
+  showBySig(out, sig, 0, data);
   return Ok;
 }
 
-void showRegisters(int32 pcCount,processPo p,closurePo env,insPo pc,framePo fp,ptrPo sp)
-{
-  outMsg(logFile,"p: 0x%x, cl: 0x%x, pc: 0x%x, fp: 0x%x, sp: 0x%x\n",
-	 p,env,pc,fp,sp);
+void showRegisters(int64 pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp) {
+  outMsg(logFile, "p: 0x%x, cl: 0x%x, pc: 0x%x, fp: 0x%x, sp: 0x%x\n",
+         p, env, pc, fp, sp);
 
   methodPo mtd = clMethod(env);
-  int32 pcOffset = pc-mtd->code;
+  integer pcOffset = pc - mtd->code;
 
   localPtr locals = mtd->locals;
 
-  for(int32 ix=0;ix<mtd->localCount;ix++){
-    if(locals[ix].from<=pcOffset && locals[ix].to>pcOffset){
-      int32 off = locals[ix].off;
-      ptrPo var = localVar(fp,off);
-      uniChar *vrName = mtd->pool[locals[ix].name].data;
-      uniChar *sig = mtd->pool[locals[ix].sig].data;
+  for (int32 ix = 0; ix < mtd->localCount; ix++) {
+    if (locals[ix].from <= pcOffset && locals[ix].to > pcOffset) {
+      int64 off = locals[ix].off;
+      termPo var = localVar(fp, off);
+      char *vrName = mtd->pool[locals[ix].name].data;
+      char *sig = mtd->pool[locals[ix].sig].data;
 
-      outMsg(logFile,"%U [%d]:%U ",vrName,off,sig);
-      showBySig(logFile,sig,0,var);
-      outMsg(logFile,"\n");
+      outMsg(logFile, "%U [%d]:%U ", vrName, off, sig);
+      showBySig(logFile, sig, 0, var);
+      outMsg(logFile, "\n");
     }
   }
 }
 
-int showBySig(ioPo out,uniChar *sig,int32 pos,void *data)
-{
-  int32 end = uniStrLen(sig);
+integer showBySig(ioPo out, char *sig, integer pos, void *data) {
+  integer end = uniStrLen(sig);
 
-  showSignature(out,sig,&pos,end);
+  showSignature(out, sig, &pos, end);
   return pos;
 }
 

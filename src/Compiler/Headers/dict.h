@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct _varinfo_ {
   locationPo loc;
-  uniChar *name;
+  char *name;
   sxPo type;
   rwMode access;
   Register base;
@@ -46,14 +46,14 @@ typedef struct _varinfo_ {
     lPo lit;				/* or has a known address */
     integer ix;				/* or is a literal integer */
     double d;				/* or is a literal float */
-    uniChar *str;			/* or is a literal string */
+    char *str;			/* or is a literal string */
     void *bx;				/* or is an arbitrary value */
   } l;
   logical inited;
 } VarInfoRec;
 
 typedef struct _con_def_ {
-  uniChar *name;
+  char *name;
   lPo lbl;
   lxPo args;
   sxPo type;
@@ -63,45 +63,45 @@ typedef struct _con_def_ {
 } ConstructorRecord, *conDefPo;
 
 typedef struct _type_def_ {
-  uniChar *name;
+  char *name;
   sxPo typeSpec;
   hashPo fields;
 } TypeDefRecord, *typeDefPo;
 
 typedef struct _field_spec_ {
-  uniChar *name;			/* name of the field */
+  char *name;			/* name of the field */
   sxPo type;
 } FieldSpecRecord, *fieldPo;
 
 extern void initDict();
 extern dictPo rootDict;
 
-extern varInfoPo search(uniChar *name, dictPo dict);
+extern varInfoPo search(char *name, dictPo dict);
 
-extern varInfoPo varReference(uniChar *name,dictPo dict);
+extern varInfoPo varReference(char *name,dictPo dict);
 
-extern varInfoPo reserve(locationPo loc,uniChar *name, sxPo type, rwMode access,
+extern varInfoPo reserve(locationPo loc,char *name, sxPo type, rwMode access,
 			 logical isLocal, sourceKind kind,dictPo dict);
 
 extern void declareVar(varInfoPo var,dictPo dict);
 
-extern varInfoPo declare(locationPo loc,uniChar *name, sxPo type,
+extern varInfoPo declare(locationPo loc,char *name, sxPo type,
 			 rwMode access, logical isLocal, sourceKind kind,
 			 int offset,
 			 dictPo dict);
 
-extern void declareLit(locationPo loc,uniChar *name,uniChar *str,
+extern void declareLit(locationPo loc,char *name,char *str,
 		       sxPo type,sourceKind kind,dictPo dict);
 
-extern void declareInfo(varInfoPo info,uniChar *str,dictPo dict);
+extern void declareInfo(varInfoPo info,char *str,dictPo dict);
 
-typedef retCode (*dictProc)(uniChar *name,varInfoPo var,void *cl);
+typedef retCode (*dictProc)(char *name,varInfoPo var,void *cl);
 
 extern retCode processDict(dictPo dict,dictProc proc,void *cl);
 
 extern void dDict(dictPo dict);
 
-extern uniChar* vrInfName(varInfoPo var);
+extern char* vrInfName(varInfoPo var);
 extern varSource vrInfSource(varInfoPo var);
 extern sourceKind vrInfKind(varInfoPo var);
 extern logical isVrLocal(varInfoPo var);
@@ -110,18 +110,18 @@ extern int vrInfOffset(varInfoPo var);
 extern sxPo vrInfType(varInfoPo var);
 extern locationPo vrLoc(varInfoPo var);
 
-extern logical isConstructor(uniChar *name,dictPo dict);
-extern conDefPo findConstructor(uniChar *name,dictPo dict);
-extern logical isEnumerated(uniChar *name,dictPo dict);
-extern lPo findEnumerated(uniChar *name,dictPo dict);
+extern logical isConstructor(char *name,dictPo dict);
+extern conDefPo findConstructor(char *name,dictPo dict);
+extern logical isEnumerated(char *name,dictPo dict);
+extern lPo findEnumerated(char *name,dictPo dict);
 
-extern typeDefPo findType(uniChar *name,dictPo dict);
-extern fieldPo findFieldSpec(uniChar *name,typeDefPo desc);
+extern typeDefPo findType(char *name,dictPo dict);
+extern fieldPo findFieldSpec(char *name,typeDefPo desc);
 
-extern typeDefPo declareType(uniChar *name,sxPo type,dictPo dict);
-extern fieldPo declareField(uniChar *name,sxPo fieldType,typeDefPo type);
+extern typeDefPo declareType(char *name,sxPo type,dictPo dict);
+extern fieldPo declareField(char *name,sxPo fieldType,typeDefPo type);
 
-extern conDefPo declareConstructor(uniChar *name,int conIx,int maxIx,
+extern conDefPo declareConstructor(char *name,int conIx,int maxIx,
 				   long conSize,
 				   lxPo args,
 				   sxPo type,
@@ -144,32 +144,32 @@ extern long localsSize(dictPo dict);
 extern long localDepth(dictPo dict);
 extern long freeSize(dictPo dict);
 
-extern uniChar *ArithOverFlow;
-extern uniChar *ArithZeroDivide;
-extern uniChar *TrueName;
-extern uniChar *FalseName;
-extern uniChar *ValofName;
-extern uniChar *CatchName;
-extern uniChar *TailName;
-extern uniChar *ColonName;
-extern uniChar *QuoteName;
-extern uniChar *EvalName;
-extern uniChar *MainName;
-extern uniChar *NilName;
-extern uniChar *VoidName;
+extern char *ArithOverFlow;
+extern char *ArithZeroDivide;
+extern char *TrueName;
+extern char *FalseName;
+extern char *ValofName;
+extern char *CatchName;
+extern char *TailName;
+extern char *ColonName;
+extern char *QuoteName;
+extern char *EvalName;
+extern char *MainName;
+extern char *NilName;
+extern char *VoidName;
 
-extern uniChar *PkgDictVarName;
+extern char *PkgDictVarName;
 
-extern uniChar *EqualName;
-extern uniChar *NotEqualName;
-extern uniChar *LessEqualName;
-extern uniChar *LessName;
-extern uniChar *GreaterEqualName;
-extern uniChar *GreaterName;
+extern char *EqualName;
+extern char *NotEqualName;
+extern char *LessEqualName;
+extern char *LessName;
+extern char *GreaterEqualName;
+extern char *GreaterName;
 
-extern uniChar *ANONYMOUS;
+extern char *ANONYMOUS;
 
-extern uniChar *Nothing;
+extern char *Nothing;
 
 
 #endif

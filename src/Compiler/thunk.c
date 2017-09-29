@@ -43,7 +43,7 @@ retCode thunkCont(locationPo loc,varInfoPo src,void *cl,assemPo code)
 
 retCode compThunk(sxPo def,
 		  lPo scan,lPo evac,lPo scav,lPo entryPoint,lPo catch,
-		  uniChar *path,dictPo dict,
+		  char *path,dictPo dict,
 		  dictPo *fnDict,
 		  mtdCxtPo mtd)
 {

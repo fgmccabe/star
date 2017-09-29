@@ -15,26 +15,26 @@
 #include <formioP.h>
 
 // Keywords in the meta-language
-uniChar *kwImport;
+char *kwImport;
 
-uniChar *kwType, *kwArrow, *kwDo;
+char *kwType, *kwArrow, *kwDo;
 
-uniChar *kwFunction, *kwProcedure, *kwMemo, *kwPattern, *kwLet, *kwCall, *kwConstructor;
+char *kwFunction, *kwProcedure, *kwMemo, *kwPattern, *kwLet, *kwCall, *kwConstructor;
 
-uniChar *kwIs, *kwVar, *kwResource, *kwEqual, *kwMatches;
+char *kwIs, *kwVar, *kwResource, *kwEqual, *kwMatches;
 
-uniChar *kwAssign, *kwColon, *kwBlock, *kwSync;
+char *kwAssign, *kwColon, *kwBlock, *kwSync;
 
-uniChar *kwLabel, *kwLeave, *kwGoto, *kwNothing;
-uniChar *kwValof, *kwValis, *kwAssert;
-uniChar *kwIf, *kwThen, *kwElse;
+char *kwLabel, *kwLeave, *kwGoto, *kwNothing;
+char *kwValof, *kwValis, *kwAssert;
+char *kwIf, *kwThen, *kwElse;
 
-uniChar *kwContinue, *kwWhile, *kwSwitch, *kwIn, *kwCase, *kwDeflt, *kwOtherwise, *kwLoop;
+char *kwContinue, *kwWhile, *kwSwitch, *kwIn, *kwCase, *kwDeflt, *kwOtherwise, *kwLoop;
 
-uniChar *kwTry,*kwCatch,*kwThrow;
+char *kwTry,*kwCatch,*kwThrow;
 
-uniChar *kwPlus, *kwMinus, *kwTimes, *kwDivide, *kwRemainder;
-uniChar *kwShiftLeft, *kwShiftRight;
+char *kwPlus, *kwMinus, *kwTimes, *kwDivide, *kwRemainder;
+char *kwShiftLeft, *kwShiftRight;
 
 static retCode displayMeta(ioPo f,void *p,long width,long prec,logical alt);
 static retCode displaySexp(ioPo f,void *p,long width,long prec,logical alt);
@@ -114,7 +114,7 @@ void initMeta()
   installMsgProc('M',displayMeta);   // extend outMsg to cope with meta
 }
 
-logical sxIsIdentifier(sxPo sx,uniChar *name)
+logical sxIsIdentifier(sxPo sx,char *name)
 {
   if(sxIsIden(sx))
     return uniCmp(sxIden(sx),name)==0;
@@ -145,7 +145,7 @@ lxPo sxPackageContent(sxPo term){
 
 // An import looks like:
 // import(<pkg>)
-sxPo sxImport(locationPo loc, uniChar *pkg)
+sxPo sxImport(locationPo loc, char *pkg)
 {
   return sxUnary(loc,kwImport,mId(loc,pkg));
 }
@@ -155,7 +155,7 @@ logical sxIsImport(sxPo sx)
   return sxIsUnary(sx,kwImport) && sxIsIden(sxArg(sx,0));
 }
 
-uniChar *sxImportPkg(sxPo sx)
+char *sxImportPkg(sxPo sx)
 {
   assert(sxIsImport(sx));
 
@@ -208,7 +208,7 @@ static lxPo extractArgTypes(lxPo args)
 // A function definition looks like:
 // <name>:<type> is function(<arg1>,...,<argn>) => <exp>
 
-sxPo sxFunction(locationPo loc,uniChar *name,sxPo type,lxPo args,sxPo sx)
+sxPo sxFunction(locationPo loc,char *name,sxPo type,lxPo args,sxPo sx)
 {
   sxPo funType = sxArrowType(loc,sxTupleType(loc,extractArgTypes(args)),type);
   sxPo lval = sxTypedExp(loc,mId(loc,name),funType);
@@ -226,7 +226,7 @@ logical sxIsFunction(sxPo sx)
     && sxIsIdentifier(sxOp(sxLhs(sxDeclValue(sx))),kwFunction);
 }
 
-uniChar *sxFunName(sxPo sx)
+char *sxFunName(sxPo sx)
 {
   assert(sxIsFunction(sx));
   return sxIden(sxCastExp(sxArg(sx,0)));
@@ -256,7 +256,7 @@ lxPo sxFunArgs(sxPo sx)
 // A memo looks like:
 // <name>:<type> is memo(exp)
 //
-sxPo sxMemo(locationPo loc,uniChar *name,sxPo type,sxPo exp)
+sxPo sxMemo(locationPo loc,char *name,sxPo type,sxPo exp)
 {
   sxPo funType = sxArrowType(loc,sxTupleType(loc,nil),type);
   sxPo lval = sxTypedExp(loc,mId(loc,name),funType);
@@ -271,7 +271,7 @@ logical sxIsMemo(sxPo sx)
     && sxIsUnary(sxDeclValue(sx),kwMemo);
 }
 
-uniChar *sxMemoName(sxPo sx)
+char *sxMemoName(sxPo sx)
 {
   assert(sxIsMemo(sx));
   return sxIden(sxCastExp(sxLhs(sx)));
@@ -293,7 +293,7 @@ sxPo sxMemoExp(sxPo sx)
 
 // A procedure looks like:
 // <name>:<type> is procedure(<arg1>,...,<argn>) do <action>
-sxPo sxProcedure(locationPo loc,uniChar *name,lxPo args,sxPo body)
+sxPo sxProcedure(locationPo loc,char *name,lxPo args,sxPo body)
 {
   sxPo prcType = sxArrowType(loc,sxTupleType(loc,extractArgTypes(args)),voidType);
   sxPo lval = sxTypedExp(loc,mId(loc,name),prcType);
@@ -311,7 +311,7 @@ logical sxIsProcedure(sxPo sx)
     && sxIsIdentifier(sxOp(sxLhs(sxDeclValue(sx))),kwProcedure);
 }
 
-uniChar *sxProcName(sxPo sx)
+char *sxProcName(sxPo sx)
 {
   assert(sxIsProcedure(sx));
 
@@ -341,7 +341,7 @@ sxPo sxProcBody(sxPo sx)
 
 // A pattern looks like:
 // pattern <name>(<id>:<type>,...,<id>:<type>) matches <pattern>:<type> [if <condition>]
-sxPo sxPattern(locationPo loc,uniChar *name,lxPo args,sxPo type,
+sxPo sxPattern(locationPo loc,char *name,lxPo args,sxPo type,
 		      sxPo ptn,sxPo cond)
 {
   sxPo ptnType = sxPttrnType(loc,sxTupleType(loc,extractArgTypes(args)),type);
@@ -361,7 +361,7 @@ logical sxIsPattern(sxPo sx)
     && sxIsIdentifier(sxOp(sxLhs(sxDeclValue(sx))),kwProcedure);
 }
 
-uniChar *sxPtnName(sxPo sx)
+char *sxPtnName(sxPo sx)
 {
   assert(sxIsProcedure(sx));
 
@@ -421,7 +421,7 @@ sxPo sxDeclLval(sxPo sx)
   return sxLhs(sx);
 }
 
-uniChar* sxLvalName(sxPo sx)
+char* sxLvalName(sxPo sx)
 {
   return sxIden(sxCastExp(sxDeclLval(sx)));
 }
@@ -462,7 +462,7 @@ logical sxIsResourceDeclaration(sxPo sx)
   return sxIsBinary(sx,kwResource) && sxIsCast(sxLhs(sx));
 }
 
-uniChar *sxDeclaredVarName(sxPo sx)
+char *sxDeclaredVarName(sxPo sx)
 {
   return sxLvalName(sx);
 }
@@ -499,7 +499,7 @@ sxPo sxTypedExp(locationPo loc,sxPo exp,sxPo type)
   return sxBinary(loc,kwColon,exp,type);
 }
 
-sxPo sxIdent(locationPo loc,uniChar *name,sxPo type)
+sxPo sxIdent(locationPo loc,char *name,sxPo type)
 {
   return sxTypedExp(loc,mId(loc,name),type);
 }
@@ -523,7 +523,7 @@ sxPo sxCastType(sxPo sx)
   return sxRhs(sx);
 }
 
-sxPo sxContinue(locationPo loc,uniChar *lbl,lxPo args)
+sxPo sxContinue(locationPo loc,char *lbl,lxPo args)
 {
   return sxBinary(loc,kwContinue,mId(loc,lbl),sxBlock(loc,args));
 }
@@ -534,7 +534,7 @@ logical sxIsContinue(sxPo sx)
     sxIsBlock(sxRhs(sx));
 }
 
-uniChar* sxContinueOp(sxPo sx)
+char* sxContinueOp(sxPo sx)
 {
   assert(sxIsContinue(sx));
 
@@ -550,7 +550,7 @@ lxPo sxContinueArgs(sxPo sx)
 
 // A call looks like
 // call(<op>,{args})
-sxPo sxCall(locationPo loc,uniChar *name,lxPo args)
+sxPo sxCall(locationPo loc,char *name,lxPo args)
 {
   return sxBinary(loc,kwCall,mId(loc,name),sxBlock(loc,args));
 }
@@ -560,7 +560,7 @@ logical sxIsCall(sxPo call)
   return sxIsBinary(call,kwCall) && sxIsIden(sxLhs(call)) && sxIsBlock(sxRhs(call));
 }
 
-uniChar *sxCallOp(sxPo call)
+char *sxCallOp(sxPo call)
 {
   assert(sxIsCall(call));
 
@@ -576,7 +576,7 @@ lxPo sxCallArgs(sxPo call)
 
 // A constructor looks like
 // con(<op>,{args})
-sxPo sxConstructor(locationPo loc,uniChar *name,lxPo args)
+sxPo sxConstructor(locationPo loc,char *name,lxPo args)
 {
   return sxBinary(loc,kwConstructor,mId(loc,name),sxBlock(loc,args));
 }
@@ -586,7 +586,7 @@ logical sxIsConstructor(sxPo call)
   return sxIsBinary(call,kwConstructor) && sxIsIden(sxLhs(call)) && sxIsBlock(sxRhs(call));
 }
 
-uniChar *sxConstructorOp(sxPo call)
+char *sxConstructorOp(sxPo call)
 {
   assert(sxIsConstructor(call));
 
@@ -611,7 +611,7 @@ logical sxIsArithExp(sxPo sx)
     || sxIsBinary(sx,kwShiftRight);
 }
 
-uniChar* sxArithOp(sxPo sx)
+char* sxArithOp(sxPo sx)
 {
   assert(sxIsArithExp(sx));
 
@@ -641,13 +641,13 @@ logical sxIsCondition(sxPo sx)
     || sxIsBinary(sx,GreaterEqualName);
 }
 
-uniChar *sxConditionOp(sxPo sx)
+char *sxConditionOp(sxPo sx)
 {
   return sxIden(sxOp(sx));
 }
 
 
-sxPo sxUnary(locationPo loc,uniChar *name,sxPo arg)
+sxPo sxUnary(locationPo loc,char *name,sxPo arg)
 {
   return mApply(loc,mId(loc,name),mCons(arg,nil));
 }
@@ -657,7 +657,7 @@ logical sxIsUnry(sxPo sx)
   return sxIsApply(sx) && sxLength(sxArgs(sx))==1;
 }
 
-logical sxIsUnary(sxPo sx,uniChar *op)
+logical sxIsUnary(sxPo sx,char *op)
 {
   return sxIsUnry(sx) && sxIsIdentifier(sxOp(sx),op);
 }
@@ -669,7 +669,7 @@ sxPo sxUnaryArg(sxPo sx)
   return sxArg(sx,0);
 }
 
-sxPo sxBinary(locationPo loc,uniChar *name,sxPo lhs,sxPo rhs)
+sxPo sxBinary(locationPo loc,char *name,sxPo lhs,sxPo rhs)
 {
   return mApply(loc,mId(loc,name),mCons(lhs,mCons(rhs,nil)));
 }
@@ -679,7 +679,7 @@ logical sxIsBin(sxPo sx)
   return sxIsApply(sx) && sxLength(sxArgs(sx))==2;
 }
 
-logical sxIsBinary(sxPo sx,uniChar *op)
+logical sxIsBinary(sxPo sx,char *op)
 {
   return sxIsBin(sx) && sxIsIdentifier(sxOp(sx),op);
 }
@@ -698,7 +698,7 @@ sxPo sxRhs(sxPo sx)
   return sxArg(sx,1);
 }
 
-sxPo sxTernary(locationPo loc,uniChar *name,sxPo lhs,sxPo mdl,sxPo rhs)
+sxPo sxTernary(locationPo loc,char *name,sxPo lhs,sxPo mdl,sxPo rhs)
 {
   return mApply(loc,mId(loc,name),mCons(lhs,mCons(mdl,mCons(rhs,nil))));
 }
@@ -708,7 +708,7 @@ logical sxIsTern(sxPo sx)
   return sxIsApply(sx) && sxLength(sxArgs(sx))==3;
 }
 
-logical sxIsTernary(sxPo sx,uniChar *name)
+logical sxIsTernary(sxPo sx,char *name)
 {
   return sxIsTern(sx) && sxIsIdentifier(sxOp(sx),name);
 }
@@ -946,7 +946,7 @@ sxPo sxConditionalElse(sxPo sx)
 
 // A labeled action looks like:
 // label :: action
-sxPo sxLabeledAction(locationPo loc,uniChar *lbl,sxPo sx)
+sxPo sxLabeledAction(locationPo loc,char *lbl,sxPo sx)
 {
   return sxBinary(loc,kwColon,mId(loc,lbl),sx);
 }
@@ -956,7 +956,7 @@ logical sxIsLabeled(sxPo sx)
   return sxIsBinary(sx,kwColon) && sxIsIden(sxLhs(sx));
 }
 
-uniChar * sxLabeledLabel(sxPo sx)
+char * sxLabeledLabel(sxPo sx)
 {
   assert(sxIsLabeled(sx));
 
@@ -977,12 +977,12 @@ logical sxIsLeaveAction(sxPo sx)
   return sxIsUnary(sx,kwLeave) && sxIsIden(sxUnaryArg(sx));
 }
 
-sxPo sxLeaveAction(locationPo loc,uniChar *lbl)
+sxPo sxLeaveAction(locationPo loc,char *lbl)
 {
   return sxUnary(loc,kwLeave,mId(loc,lbl));
 }
 
-uniChar * sxLeaveLabel(sxPo sx)
+char * sxLeaveLabel(sxPo sx)
 {
   assert(sxIsLeaveAction(sx));
 
@@ -991,7 +991,7 @@ uniChar * sxLeaveLabel(sxPo sx)
 
 // A goto action looks like:
 // goto(label)
-sxPo sxGotoAction(locationPo loc,uniChar *lbl)
+sxPo sxGotoAction(locationPo loc,char *lbl)
 {
   return sxUnary(loc,kwGoto,mId(loc,lbl));
 }
@@ -1001,7 +1001,7 @@ logical sxIsGotoAction(sxPo sx)
   return sxIsUnary(sx,kwGoto) && sxIsIden(sxUnaryArg(sx));
 }
 
-uniChar * sxGotoLabel(sxPo sx)
+char * sxGotoLabel(sxPo sx)
 {
   assert(sxIsGotoAction(sx));
 
@@ -1121,7 +1121,7 @@ logical sxIsTypeVar(sxPo sx);
 
 logical sxIsEnum(sxPo sx);
 
-uniChar *sxEnumName(sxPo sx);
+char *sxEnumName(sxPo sx);
 
 static retCode dispMeta(ppDisplayPo disp,policyPo pol,sxPo m);
 

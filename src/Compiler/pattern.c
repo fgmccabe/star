@@ -13,7 +13,7 @@
  * code unless we know it will match. (That is done by the case analysis). 
  */
 
-retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdCxtPo mtd)
+retCode genPtnCode(sxPo con,char *path,dictPo dict,mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
 
@@ -31,7 +31,7 @@ retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdCxtPo mtd)
       locationPo loc = sxLoc(arg);
       if(sxIsCast(arg) && sxIsIden(sxCastExp(arg))){ /* name:type */
 	sxPo argType = sxCastType(arg);
-	uniChar *var = sxIden(sxCastExp(arg));
+	char *var = sxIden(sxCastExp(arg));
 	sourceKind kind = typeRep(argType);
 
 	if(uniCmp(var,ANONYMOUS)!=0){
@@ -54,7 +54,7 @@ retCode genPtnCode(sxPo con,uniChar *path,dictPo dict,mtdCxtPo mtd)
   }
 }
 
-retCode genPtnArgs(lxPo args,uniChar *path,dictPo dict,mtdCxtPo mtd)
+retCode genPtnArgs(lxPo args,char *path,dictPo dict,mtdCxtPo mtd)
 {
   assemPo code = methodCode(mtd);
   long arity = sxLength(args);
@@ -67,7 +67,7 @@ retCode genPtnArgs(lxPo args,uniChar *path,dictPo dict,mtdCxtPo mtd)
     locationPo loc = sxLoc(arg);
     if(sxIsCast(arg) && sxIsIden(sxCastExp(arg))){
       sxPo argType = sxCastType(arg);
-      uniChar *var = sxIden(sxCastExp(arg));
+      char *var = sxIden(sxCastExp(arg));
       sourceKind kind = typeRep(argType);
     
       if(uniCmp(var,ANONYMOUS)!=0){

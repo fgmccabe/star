@@ -1,9 +1,11 @@
-#ifndef _LIB_NAMES_H_
-#define _LIB_NAMES_H_
+//
+// Created by Francis McCabe on 9/10/17.
+//
 
-#include <ooio.h>
+#ifndef CAFE_LIBNAMES_H
+#define CAFE_LIBNAMES_H
 
 extern void installSystem();
 extern void installShow();
 
-#endif
+#endif //CAFE_LIBNAMES_H
