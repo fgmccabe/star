@@ -52,13 +52,11 @@ formatEnums([Nm|M],[strg(Nm)|R]) :-
   formatEnums(M,R).
 
 formatContracts([],[]).
-formatContracts([contract(Nm,CnNm,_,FullSpec,Face)|M],[tpl([strg(Nm),strg(CnNm),strg(CSig),strg(FSig)])|R]) :-
-  encodeConstraint(FullSpec,CChars,[]),
+formatContracts([contract(Nm,CnNm,Spec)|M],[tpl([strg(Nm),strg(CnNm),strg(CSig)])|R]) :-
+  encodeType(Spec,CChars,[]),
   string_chars(CSig,CChars),
-  encodeType(Face,FChars,[]),
-  string_chars(FSig,FChars),
   formatContracts(M,R).
-  
+
 formatImpls([],[]).
 formatImpls([imp(Nm,Spec)|M],[tpl([strg(Nm),strg(Sig)])|R]) :-
   encodeConstraint(Spec,Chars,[]),

@@ -16,9 +16,9 @@ overloadDefs(D,Dict,RD) :-
 
 overloadDef(function(Lc,Nm,Tp,Cx,Eqns),Dict,RF) :-
   overloadFunction(Lc,Nm,Tp,Cx,Eqns,Dict,RF).
-overloadDef(predicate(Lc,Nm,Tp,Cx,Cls),Dict,RP) :-
-  overloadPredicate(Lc,Nm,Tp,Cx,Cls,Dict,RP).
 overloadDef(defn(Lc,Nm,Cx,Cond,Tp,Value),Dict,RD) :-
+  overloadDefn(Lc,Nm,Cx,Cond,Tp,Value,Dict,RD).
+overloadDef(vdefn(Lc,Nm,Cx,Cond,Tp,Value),Dict,RD) :-
   overloadDefn(Lc,Nm,Cx,Cond,Tp,Value,Dict,RD).
 overloadDef(enum(Lc,Nm,Tp,Cx,Rules,Face),Dict,RE) :-
   overloadEnum(Lc,Nm,Tp,Cx,Rules,Face,Dict,RE).
@@ -29,9 +29,9 @@ overloadDef(grammar(Lc,Nm,Tp,Cx,Rules),Dict,RG) :-
 overloadDef(T,_,T) :-
   T = typeDef(_,_,_,_).
 overloadDef(C,_,C) :-
-  C = contract(_,_,_,_,_).
-overloadDef(implementation(Lc,INm,ImplName,Spec,OCx,AC,ThDefs,BodyDefs,Types,Others),Dict,RI) :-
-  overloadImplementation(Lc,INm,ImplName,Spec,OCx,AC,ThDefs,BodyDefs,Types,Others,Dict,RI).
+  C = contract(_,_,_).
+overloadDef(implementation(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others),Dict,RI) :-
+  overloadImplementation(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others,Dict,RI).
 
 overloadFunction(Lc,Nm,Tp,[],Eqns,Dict,function(Lc,Nm,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns).
@@ -48,30 +48,11 @@ overloadEquation(Extra,equation(Lc,Nm,Args,Cond,Exp),Dict,equation(Lc,Nm,RArgs,R
   resolveCond(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
 
-overloadPredicate(Lc,Nm,Tp,[],Cls,Dict,predicate(Lc,Nm,Tp,[],RCls)) :-
-  overloadClauses(Cls,Dict,[],RCls).
-overloadPredicate(Lc,Nm,Tp,Cx,Cls,Dict,predicate(Lc,Nm,Tp,[],RCls)) :-
-  defineCVars(Lc,Cx,Dict,CVars,FDict),
-  overloadClauses(Cls,FDict,CVars,RCls).
-
-overloadClauses(Eqns,Dict,Extra,REqns) :-
-  overloadList(Eqns,overloadClause(Extra),Dict,REqns).
-
-overloadClause(Extra,clause(Lc,Nm,Args,Cond,Body),Dict,clause(Lc,Nm,RArgs,RCond,RBody)) :-
-  resolveTerms(Args,Dict,RA),
-  concat(Extra,RA,RArgs),
-  resolveCond(Cond,Dict,RCond),
-  resolveCond(Body,Dict,RBody).
-
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
 overloadRule(equation(Lc,Nm,Args,Cond,Exp),Dict,equation(Lc,Nm,RArgs,RCond,RExp)) :-
   resolveTerms(Args,Dict,RArgs),
   resolveCond(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
-overloadRule(clause(Lc,Nm,Args,Cond,Body),Dict,clause(Lc,Nm,RArgs,RCond,RBody)) :-
-  resolveTerms(Args,Dict,RArgs),
-  resolveCond(Cond,Dict,RCond),
-  resolveCond(Body,Dict,RBody).
 overloadRule(grammarRule(Lc,Nm,Args,PB,Body),Dict,grammarRule(Lc,Nm,RArgs,RPB,RBody)) :-
   resolveTerms(Args,Dict,RArgs),
   resolveTerminals(PB,Dict,RPB),
@@ -143,6 +124,8 @@ resolveTerm(over(Lc,T,Cx),Dict,Over) :-
       Over = T).
 resolveTerm(mtd(Lc,Nm),_,v(Lc,Nm)) :-
   reportError("cannot find implementation for %s",[Nm],Lc).
+resolveTerm(satisfied(Lc,Cond),Dict,satisfied(Lc,OCond)) :-
+  resolveCond(Cond,Dict,OCond).
 resolveTerm(lambda(Rl),Dict,lambda(ORl)) :-
   overloadRule(Rl,Dict,ORl).
 
@@ -269,7 +252,7 @@ resolveContract(Lc,C,_,v(Lc,ImpNm)) :-
 
 resolve(v(Lc,Nm),_,_,_,_,v(Lc,Nm)) :-!.
 resolve(I,C,ImpNm,Lc,Dict,Over) :-
-  freshenContract(I,_,Con),
+  freshenConstraint([],_,I,[],Con),
   moveConstraints(Con,Cx,CT),
   sameContract(CT,C,[]),
   resolveDependents(Cx,Lc,Dict,Args,[]),
@@ -289,7 +272,7 @@ genVar(Nm,Lc,v(Lc,NV)) :-
   genstr(Nm,NV).
 
 declareImplementations([],Dict,Dict).
-declareImplementations([implementation(_,_,ImplName,Spec,_,_,_,_,_,_)|Defs],Dict,RDict) :-
+declareImplementations([implementation(_,_,ImplName,Spec,_,_,_,_,_)|Defs],Dict,RDict) :-
   declareImplementations(Defs,[(ImplName,Spec)|Dict],RDict).
 declareImplementations([_|Defs],Dict,RDict) :-
   declareImplementations(Defs,Dict,RDict).
@@ -297,15 +280,13 @@ declareImplementations([_|Defs],Dict,RDict) :-
 findImplementation(ImplName,Dict,Spec) :-
   is_member((ImplName,Spec),Dict).
 
-overloadImplementation(Lc,INm,ImplName,Spec,OCx,AC,ThDefs,Face,Types,Others,Dict,
-    impl(Lc,INm,ImplName,Arity,Spec,OCx,implBody(Lc,Hd,RThDefs,ROthers,Types),InhRules,faceType(Face))) :-
+overloadImplementation(Lc,INm,ImplName,Spec,AC,ThDefs,Face,Types,Others,Dict,
+    impl(Lc,INm,ImplName,Arity,Spec,implBody(Lc,Hd,RThDefs,ROthers,Types),faceType(Face))) :-
   defineCVars(Lc,AC,Dict,CVars,FDict),
   overload(ThDefs,FDict,FODict,RThDefs),
   overloadOthers(Others,FODict,ROthers),
-  resolveDependents(OCx,Lc,FODict,[],Inherits),
   length(CVars,Arity),
-  (CVars=[] -> Hd = enum(Lc,ImplName) ; Hd = apply(v(Lc,ImplName),CVars)),
-  inheritImplementations(Inherits,Hd,InhRules).
+  (CVars=[] -> Hd = enum(Lc,ImplName) ; Hd = apply(v(Lc,ImplName),CVars)).
 
 inheritImplementations([],_,[]).
 inheritImplementations([Impl|L],Hd,[rule(Hd,Impl)|M]) :-
@@ -329,20 +310,15 @@ overloadClass(Lc,Nm,Tp,Cx,Rules,Face,Dict,class(Lc,Nm,Tp,[],ORules,Face)) :-
   defineCVars(Lc,Cx,Dict,EVars,EDict),
   overloadClassRules(Rules,EVars,EDict,ORules).
 
-overloadClassRule(labelRule(Lc,Nm,Hd,Repl,Face),CVars,Dict,labelRule(Lc,Nm,OHd,ORepl,Face)) :-
-  resolveHead(Hd,CVars,OHd),
-  resolveTerm(Repl,Dict,ORepl).
-overloadClassRule(classBody(Lc,Nm,Hd,Stmts,Others,Types),CVars,Dict,classBody(Lc,Nm,OHd,OStmts,OOthers,Types)) :-
-  resolveHead(Hd,CVars,OHd),
-  overloadDefs(Stmts,Dict,OStmts),
-  overloadOthers(Others,Dict,OOthers).
-
 resolveHead(Hd,[],Hd).
 resolveHead(enum(Lc,Nm),CVars,apply(v(Lc,Nm),CVars)).
 resolveHead(apply(v(Lc,Nm),Args),CVars,apply(v(Lc,Nm),OArgs)) :-
   concat(CVars,Args,OArgs).
 
-overloadClassRules([],_,_,[]).
-overloadClassRules([Rl|L],V,D,[ORl|M]) :-
-  overloadClassRule(Rl,V,D,ORl),
-  overloadClassRules(L,V,D,M).
+overloadClassRules(Rules,V,D,ORules) :-
+  overloadList(Rules,resolve:overloadClassRule(V),D,ORules).
+
+overloadClassRule(CVars,labelRule(Lc,Nm,Hd,Cond,Repl,Face),Dict,labelRule(Lc,Nm,OHd,OCond,ORepl,Face)) :-
+  resolveHead(Hd,CVars,OHd),
+  resolveCond(Cond,Dict,OCond),
+  resolveTerm(Repl,Dict,ORepl).

@@ -16,8 +16,8 @@
 #include <io.h>
 #include <math.h>
 #include <unicode.h>
-#include "asmGrammar.h"
 #include "assem.h"
+#include "asmGrammar.h"
 
 #define MAX_STR_CONST 2048
 
@@ -144,11 +144,12 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "dec"         RT(DECI);
 "inc"         RT(INCI);
 
-"left"        RT(LEFT);
-"right"       RT(RIGHT);
+"left"        RT(LFT);
+"right"       RT(RGT);
 "asr"         RT(ASR);
 
-"cmp"         RT(CMP);
+"cmp"         RT(CMPI);
+"lcmp"        RT(LCMP);
 "cmpf"        RT(CMPF);
 
 "bz"          RT(BZ);

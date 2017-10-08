@@ -1,4 +1,4 @@
-:- module(lexer,[nextToken/3,allTokens/2,locOfToken/2,subTokenize/3,isToken/1,dispToken/2]).
+:- module(lexer,[nextToken/3,allTokens/2,locOfToken/2,isToken/1,dispToken/2]).
 :- use_module(operators).
 :- use_module(errors).
 
@@ -42,6 +42,8 @@ locOfToken(idTok(_,Lc),Lc).
 locOfToken(idQTok(_,Lc),Lc).
 locOfToken(lqpar(Lc),Lc).
 locOfToken(rqpar(Lc),Lc).
+locOfToken(rqbrce(Lc),Lc).
+locOfToken(lqbrce(Lc),Lc).
 locOfToken(integerTok(_,Lc),Lc).
 locOfToken(floatTok(_,Lc),Lc).
 locOfToken(stringTok(_,Lc),Lc).
@@ -54,6 +56,8 @@ dispToken(lbra(_),['[']).
 dispToken(rbra(_),[']']).
 dispToken(lbrce(_),['{']).
 dispToken(rbrce(_),['}']).
+dispToken(lqbrce(_),['{','.']).
+dispToken(rqbrce(_),['.','}']).
 dispToken(idQTok(Id,_),St) :- string_chars(Id,St).
 dispToken(idTok(Id,_),St) :- string_chars(Id,St).
 dispToken(lqpar(_),['<','|']).
@@ -110,6 +114,8 @@ nxTok(St,NxSt,lpar(Lc)) :- lookingAt(St,NxSt,['('],Lc).
 nxTok(St,NxSt,rpar(Lc)) :- lookingAt(St,NxSt,[')'],Lc).
 nxTok(St,NxSt,lbra(Lc)) :- lookingAt(St,NxSt,['['],Lc).
 nxTok(St,NxSt,rbra(Lc)) :- lookingAt(St,NxSt,[']'],Lc).
+nxTok(St,NxSt,lqbrce(Lc)) :- lookingAt(St,NxSt,['{','.'],Lc).
+nxTok(St,NxSt,rqbrce(Lc)) :- lookingAt(St,NxSt,['.','}'],Lc).
 nxTok(St,NxSt,lbrce(Lc)) :- lookingAt(St,NxSt,['{'],Lc).
 nxTok(St,NxSt,rbrce(Lc)) :- lookingAt(St,NxSt,['}'],Lc).
 nxTok(St,NxSt,lqpar(Lc)) :- lookingAt(St,NxSt,['<','|'],Lc).
@@ -199,8 +205,3 @@ tokenize(St,NxSt,Toks) :- skipToNx(St,St1), nxTokenize(St1,NxSt,Toks).
 
 nxTokenize(St,St,[]) :- isTerminal(St).
 nxTokenize(St,NxSt,[Tok|More]) :- nxTok(St,St1,Tok), !, tokenize(St1,NxSt,More).
-
-subTokenize(loc(LineNo,Column,Base,_),Chars,Toks) :-
-    initSt(Chars,LineNo,Column,Base,St),
-    nxTokenize(St,NxSt,Toks),!,
-    (isTerminal(NxSt) ; writef("Extra characters: %w\n",[NxSt])).

@@ -28,7 +28,7 @@ sm(tupleType(A1),tupleType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), smList(A2,A1,Env).
 sm(ptnType(A1,R1),ptnType(A2,R2),Env) :- sameType(R1,R2,Env), smList(A2,A1,Env).
 sm(grammarType(A1,R1),grammarType(A2,R2),Env) :- sameType(R1,R2,Env), smList(A2,A1,Env).
-sm(consType(A1,R1),consType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
+sm(consType(A1,R1),consType(A2,R2),Env) :- sameType(R1,R2,Env), smList(A1,A2,Env).
 sm(faceType(E1),faceType(E2),Env) :- length(E1,L), length(E2,L), smFields(E1,E2,Env).
 
 varBinding(T1,T2,_) :- isIdenticalVar(T1,T2),!.
@@ -68,7 +68,7 @@ surfaceBound([E|M]) :- deRef(E,EE), \+isUnbound(EE), surfaceBound(M).
 checkForImpl(conTract(Nm,Args,Deps),Env) :-
   getImplementations(Nm,Env,Impls),
   is_member(impl(_,ITp),Impls),
-  freshen(ITp,voidType,[],_,FTp),
+  freshen(ITp,Env,[],_,FTp),
   sameType(FTp,conTract(Nm,Args,Deps),Env),!.
 
 sameContract(conTract(Nm,A1,D1),conTract(Nm,A2,D2),Env) :-
@@ -93,11 +93,11 @@ getTypeFace(T,Env,Face) :-
 
 getFace(type(Nm),Env,Face) :- !,
   isType(Nm,Env,tpDef(_,_,FaceRule)),
-  freshen(FaceRule,voidType,[],_,typeExists(Lhs,Face)),
+  freshen(FaceRule,Env,[],_,typeExists(Lhs,Face)),
   sameType(type(Nm),Lhs,Env),!.
 getFace(typeExp(Op,Args),Env,Face) :- deRef(Op,tpFun(Nm,Ar)), length(Args,Ar),!,
   isType(Nm,Env,tpDef(_,_,FaceRule)),
-  freshen(FaceRule,voidType,[],_,Rl),
+  freshen(FaceRule,Env,[],_,Rl),
   moveConstraints(Rl,_,typeExists(Lhs,Face)),
   sameType(Lhs,typeExp(Op,Args),Env),!.
 getFace(T,Env,faceType(Face)) :- isUnbound(T), !,

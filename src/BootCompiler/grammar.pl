@@ -58,6 +58,7 @@ legalNextRight([idQTok(_,_)|_],_).
 legalNextRight([lpar(_)|_],_).
 legalNextRight([lbra(_)|_],_).
 legalNextRight([lbrce(_)|_],_).
+legalNextRight([lqbrce(_)|_],_).
 legalNextRight([lqpar(_)|_],_).
 legalNextRight([stringTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
@@ -71,6 +72,12 @@ term0([lbrce(Lc0),rbrce(Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :-
 term0([lbrce(Lcx)|Tks],tuple(Lc,"{}",Seq),Toks,rbrce) :-
   terms(Tks,Tks2,Seq),
   checkToken(Tks2,Toks,rbrce(Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
+  mergeLoc(Lcx,Lcy,Lc).
+term0([lqbrce(Lc0),rqbrce(Lc2)|Toks],tuple(Lc,"{..}",[]),Toks,rbrce) :-
+  mergeLoc(Lc0,Lc2,Lc).
+term0([lqbrce(Lcx)|Tks],tuple(Lc,"{..}",Seq),Toks,rbrce) :-
+  terms(Tks,Tks2,Seq),
+  checkToken(Tks2,Toks,rqbrce(Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
   mergeLoc(Lcx,Lcy,Lc).
 term0([lqpar(Lcx)|Tks],unary(Lc,"<||>",T),Toks,rpar) :-
   term(Tks,2000,T,Tks2,_),
@@ -134,6 +141,16 @@ termArgs([lbrce(_)|Tks],Op,T,Toks,_,rbrce) :-
     checkToken(Tks2,Toks,rbrce(Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
     mergeLoc(Lcx,Lcy,Lc),
     apply(Lc,Op,tuple(Lc,"{}",Seq),T).
+termArgs([lqbrce(_),rqbrce(Lcy)|Tks],Op,T,Tks,_,rbrce) :-
+    locOfAst(Op,Lcx),
+    mergeLoc(Lcx,Lcy,Lc),
+    apply(Lc,Op,tuple(Lc,"{..}",[]),T).
+termArgs([lqbrce(_)|Tks],Op,T,Toks,_,rbrce) :-
+    locOfAst(Op,Lcx),
+    terms(Tks,Tks2,Seq),
+    checkToken(Tks2,Toks,rqbrce(Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
+    mergeLoc(Lcx,Lcy,Lc),
+    apply(Lc,Op,tuple(Lc,"{..}",Seq),T).
 termArgs([idTok(".",_),idTok(Fld,LcF)|Tks],Op,T,Toks,_,Lst) :-
     locOfAst(Op,Lcx),
     mergeLoc(Lcx,LcF,Lc),
@@ -165,19 +182,3 @@ scanForTerminator([term(_)|Tks],Tks).
 scanForTerminator([],[]).
 scanForTerminator([_|Tk],Tks) :-
   scanForTerminator(Tk,Tks).
-
-stringSegments([],[]).
-stringSegments([Seg|More],[H|T]) :- stringSegment(Seg,H),!, stringSegments(More,T).
-
-stringSegment(segment(Str,Lc),S) :-
-  unary(Lc,"ss",string(Lc,Str),S).
-stringSegment(interpolate(Text,"",Lc),Disp) :-
-  subTokenize(Lc,Text,Toks),
-  term(Toks,2000,Term,TksX,_),
-  unary(Lc,"disp",Term,Disp),
-  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
-stringSegment(interpolate(Text,Fmt,Lc),Disp) :-
-  subTokenize(Lc,Text,Toks),
-  term(Toks,2000,Term,TksX,_),
-  binary(Lc,"frmt",Term,string(Lc,Fmt),Disp),
-  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).

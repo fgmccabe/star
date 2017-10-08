@@ -65,6 +65,7 @@
   operator("public", [prefixOp(1700, 1699)]).
   operator("ref", [prefixOp(900, 899)]).
   operator(".~.", [prefixOp(650, 649)]).
+  operator("where", [infixOp(929, 930, 929)]).
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 949)]).
@@ -164,7 +165,7 @@
 
   final('%',"%").	 /* modulo */
   final('%%',"%%").	 /* grammar parse */
-  final('&&',"&&").	 /* conjunction, semantic guard */
+  final('&&',"&&").	 /* conjunction */
   final('*',"*").	 /* multiplication */
   final('**',"**").	 /* exponentiation */
   final('+',"+").	 /* lookahead in grammar rule */
@@ -216,3 +217,4 @@
   final('@',"@").	 /* meta annotation */
   final('#',"#").	 /* Macro statement marker */
   final('$',"$").	 /* Used for curried functions and types */
+

@@ -37,9 +37,11 @@ escape(_flt_mod,False,False,"F(ff)f","modulo remainder")
 escape(_int_abs,False,False,"F(i)i","integer absolute value")
 escape(_flt_abs,False,False,"F(i)i","float absolute value")
 
+escape(_int_eq,False,False,"F(ii)l","integer equality")
 escape(_int_lt,False,False,"F(ii)l","integer less than")
 escape(_int_ge,False,False,"F(ii)l","integer greater or equal")
 
+escape(_flt_eq,False,False,"F(ff)l","float equality")
 escape(_flt_lt,False,False,"F(ff)l","float less than")
 escape(_flt_ge,False,False,"F(ff)l","float greater or equal")
 
@@ -222,6 +224,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_str2flt,False,False,"F(S)f","parse a string as a float")
   escape(_str2int,False,False,"F(S)i","parse a string as an integer")
 
+  escape(_str_eq,False,False,"F(SS)l","String equality")
   escape(_str_lt,False,False,"F(SS)l","String 1 is less than string 2")
   escape(_str_ge,False,False,"F(SS)l","String 1 is greater than or equals to string 2")
 

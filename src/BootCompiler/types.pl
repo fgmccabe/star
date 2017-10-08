@@ -2,7 +2,7 @@
       typeArity/2,isFunctionType/2,isGrammarType/2,isPtnType/1,isPtnType/2,isClassType/2,
       dispType/1,showType/3,showConstraint/3,
       occursIn/2,isUnbound/1,isBound/1, constraints/2, isIdenticalVar/2,
-      bind/2, moveQuants/3,
+      bind/2, moveQuants/3,reQuantTps/3,
       moveConstraints/3,moveConstraints/4,setConstraint/2,setConstraints/2, implementationName/2]).
 :- use_module(misc).
 
@@ -95,6 +95,14 @@ moveQuants(univType(B,Tp),[B|Q],Tmpl) :- !,
   moveQuants(Tp,Q,Tmpl).
 moveQuants(Tp,[],Tp).
 
+reQuantTps(Tp,[],Tp).
+reQuantTps(Tp,[(_,Vt)|Q],QTp) :-
+  \+ isUnbound(Vt),!,
+  reQuantTps(Tp,Q,QTp).
+reQuantTps(Tp,[(V,Vr)|Q],univType(kVar(V),QTp)) :-
+  isUnbound(Vr),
+  reQuantTps(Tp,Q,QTp).
+
 moveConstraints(constrained(Tp,Con),[Con|C],Tmp) :-!,
   moveConstraints(Tp,C,Tmp).
 moveConstraints(Tp,[],Tp).
@@ -123,6 +131,7 @@ showType(univType(V,Tp),O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMo
 showType(existType(V,Tp),O,Ox) :- appStr("exist ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,showType,O2,Ox).
 showType(faceType(Els),O,Ox) :- appStr("{ ",O,O1), showTypeFields(Els,O1,O2), appStr("}",O2,Ox).
 showType(typeExists(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("<~",O1,O2),showType(Bd,O2,Ox).
+showType(contractExists(Spc,Fc),O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,O2,Ox).
 showType(constrained(Tp,Con),O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
 
 showMoreConstraints(constrained(Tp,Con),O,Ox) :- appStr(",",O,O1), showConstraint(Con,O1,O2), showMoreConstraints(Tp,O2,Ox).
@@ -174,15 +183,17 @@ dispType(Tp) :-
   string_chars(Text,Chrs),
   writeln(Text).
 
-typeArity(univType(_,Tp),Ar) :- typeArity(Tp,Ar).
-typeArity(existType(_,Tp),Ar) :- typeArity(Tp,Ar).
-typeArity(constrained(Tp,_),Ar) :- typeArity(Tp,Ar).
-typeArity(funType(A,_),Ar) :- length(A,Ar).
-typeArity(ptnType(A,_),Ar) :- length(A,Ar).
-typeArity(grammarType(A,_),Ar) :- length(A,Ar).
-typeArity(consType(A,_),Ar) :- length(A,Ar).
-typeArity(refType(A),Ar) :- typeArity(A,Ar).
-typeArity(_,0).
+typeArity(Tp,Ar) :- deRef(Tp,TTp), tpArity(TTp,Ar).
+
+tpArity(univType(_,Tp),Ar) :- typeArity(Tp,Ar).
+tpArity(existType(_,Tp),Ar) :- typeArity(Tp,Ar).
+tpArity(constrained(Tp,_),Ar) :- typeArity(Tp,Ar).
+tpArity(funType(A,_),Ar) :- length(A,Ar).
+tpArity(ptnType(A,_),Ar) :- length(A,Ar).
+tpArity(grammarType(A,_),Ar) :- length(A,Ar).
+tpArity(consType(A,_),Ar) :- length(A,Ar).
+tpArity(refType(A),Ar) :- typeArity(A,Ar).
+tpArity(_,0).
 
 isFunctionType(univType(_,Tp),Ar) :- isFunctionType(Tp,Ar).
 isFunctionType(funType(A,_),Ar) :- length(A,Ar).

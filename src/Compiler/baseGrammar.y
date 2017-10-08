@@ -29,7 +29,6 @@
 %union {
   char *str;
   char *id;
-  char ch;
   integer i;
   double f;
   sxPo a;
@@ -105,8 +104,7 @@ definition:
   isDeclaration { $$=$1; }
 | varDeclaration { $$=$1; }
 | FUNCTION ID args COLON type IS expression { $$ = sxFunction(locOf(@$),$2,$5,$3,$7); }
-| PATTERN ID args COLON type MATCHES pattern { $$ = sxPattern(locOf(@$),$2,$3,$5,$7,Null); }
-| PATTERN ID args COLON type MATCHES pattern WHERE condition { $$ = sxPattern(locOf(@$),$2,$3,$5,$7,$9); }
+| PATTERN ID args COLON type MATCHES pattern { $$ = sxPattern(locOf(@$),$2,$3,$5,$7); }
 | MEMO ID COLON type IS expression { $$ = sxMemo(locOf(@$),$2,$4,$6); }
 | importSpec { $$=$1; }
 | TYPE type { $$ = sxTypeDef(locOf(@$),$2); }

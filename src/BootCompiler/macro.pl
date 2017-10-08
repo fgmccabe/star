@@ -7,6 +7,7 @@
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
+:- use_module(polyfill).
 
 
 % rewrite a sequence of statements into another sequence.
@@ -45,7 +46,7 @@ noMark(_,Stmt,Stmt).
 
 convertAlgebraic(Lc,Mark,Quants,Constraints,Head,Body,[TypeRule|Elements],Tail) :-
   algebraicFace(Body,[],Els),
-  isBraceTuple(Face,Lc,Els),
+  braceTuple(Lc,Els,Face),
   typeExists(Lc,Quants,Constraints,Head,Face,FaceRule),
   call(Mark,Lc,FaceRule,TypeRule),
   convertConstructors(Body,Head,Mark,Quants,Constraints,Elements,Tail).
@@ -60,35 +61,51 @@ convertConstructors(Term,Head,Mark,Quants,Constraints,Elements,Tail) :-
 convertConstructor(name(Lc,Nm),Tp,Mark,Quants,Constraints,[TpRule,BodyRule|Tail],Tail) :-
   wrapConstraints(Constraints,Lc,Tp,TpCon),
   wrapQuants(Quants,Lc,TpCon,QTp),
-  hasType(Lc,Nm,QTp,TpRl),
+  markTypeAnnot(Lc,Nm,QTp,TpRl),
   call(Mark,Lc,TpRl,TpRule),
-  bodyRule(Lc,name(Lc,Nm),[],BodyRule). /* construct con(_,..,_) <= {} */
+  braceTerm(Lc,name(Lc,Nm),[],BodyRule). /* iden{} */
 convertConstructor(Con,Tp,Mark,Quants,Constraints,[TpRule,BodyRule|Tail],Tail) :-
-  isRound(Con,Nm,Args),!, /* Construct con:(T1,..,Tn)<=>Tp */
+  isRound(Con,Nm,A),!, /* Construct con:(T1,..,Tn)<=>Tp */
   locOfAst(Con,Lc),
-  isTuple(ArgTypes,Lc,Args),
-  consType(Lc,ArgTypes,Tp,ClassType),
-  wrapConstraints(Constraints,Lc,ClassType,CTp),
-  wrapQuants(Quants,Lc,CTp,QTp),
-  hasType(Lc,Nm,QTp,TpRl),
-  call(Mark,Lc,TpRl,TpRule),
-  genAnonArgs(Args,AArgs),       /* Construct con(_,..,_) <= thing */
-  roundTerm(Lc,Nm,AArgs,Hd),
-  bodyRule(Lc,Hd,[],BodyRule).
-convertConstructor(Con,Tp,Mark,Quants,Constraints,[TpRule,BodyRule|Tail],Tail) :-
-  isBraceTerm(Con,Lc,Op,Els),
-  isIden(Op,TpNm),
-  pullIntegrities(Els,As,FldTps),
-  isBraceTuple(Args,Lc,FldTps),
+  roundTuple(Lc,A,Args),
   consType(Lc,Args,Tp,ClassType),
   wrapConstraints(Constraints,Lc,ClassType,CTp),
   wrapQuants(Quants,Lc,CTp,QTp),
-  hasType(Lc,TpNm,QTp,TpRl),
+  markTypeAnnot(Lc,Nm,QTp,TpRl),
   call(Mark,Lc,TpRl,TpRule),
-  genFieldArgs(FldTps,Defs,W),
-  braceTerm(Lc,Op,Defs,Hd),
-  rewriteList(As,W,Ass),
-  bodyRule(Lc,Hd,Ass,BodyRule).
+  genAnonArgs(A,AArgs),       /* Construct con(_,..,_){} */
+  roundTerm(Lc,Nm,AArgs,Hd),
+  braceTerm(Lc,Hd,[],BodyRule).
+convertConstructor(Con,Tp,Mark,Quants,Constraints,[TpRule,BodyRule|Tail],Tail) :-
+  isBrace(Con,Nm,Els),
+  locOfAst(Con,Lc),
+  pullIntegrities(Els,As,FldTps),
+  sortElements(FldTps,FTps),
+  braceTuple(Lc,FTps,ATps),
+  consType(Lc,ATps,Tp,ClassType),
+  wrapConstraints(Constraints,Lc,ClassType,CTp),
+  wrapQuants(Quants,Lc,CTp,QTp),
+  markTypeAnnot(Lc,Nm,QTp,TpRl),
+  call(Mark,Lc,TpRl,TpRule),
+  genFieldArgs(FTps,Fs,_,W),
+  rewriteList(As,W,AAs),
+  concat(Fs,AAs,Body),
+  braceTerm(Lc,name(Lc,Nm),Body,BodyRule).
+
+sortElements(Fields,Sorted) :-
+  quickSort(Fields,macro:cmpFields,Sorted).
+
+cmpFields(F1,F2) :-
+  isBinary(F1,":",L1,_),
+  isBinary(F2,":",L2,_),
+  isIden(L1,N1),
+  isIden(L2,N2),
+  '_str_lt'(N1,N2).
+
+pullFieldTypes([],[],[]).
+pullFieldTypes([F|L],[N1|Ns],[T1|Ts]) :-
+  isBinary(F,":",N1,T1),
+  pullFieldTypes(L,Ns,Ts).
 
 pullIntegrities([],[],[]).
 pullIntegrities([T|L],[T|I],E) :-
@@ -155,18 +172,18 @@ listComma([T|R],Lc,CT) :-
 genAnonArgs([],[]).
 genAnonArgs([T|M],[name(Lc,"_")|A]) :- locOfAst(T,Lc), genAnonArgs(M,A).
 
-genFieldArgs([],[],[]).
-genFieldArgs([F|M],[FA|AR],[(Nm,V)|Fx]) :-
+genFieldArgs([],[],[],[]).
+genFieldArgs([F|M],[FA|AR],[name(Lc,V)|As],[(Nm,V)|Fx]) :-
   isBinary(F,Lc,":",L,_),
   isIden(L,Nm),
   genstr("_",V),
   binary(Lc,"=",L,name(Lc,V),FA),
-  genFieldArgs(M,AR,Fx).
+  genFieldArgs(M,AR,As,Fx).
 
-hasType(Lc,Nm,Tp,St) :-
+markTypeAnnot(Lc,Nm,Tp,St) :-
   binary(Lc,":",name(Lc,Nm),Tp,St).
 
-consType(Lc,A,Res,Tp) :- binary(Lc,"<=>",A,Res,Tp).
+consType(Lc,Args,Res,Tp) :- binary(Lc,"<=>",Args,Res,Tp).
 funType(Lc,Args,Res,Tp) :- isTuple(A,Lc,Args),binary(Lc,"=>",A,Res,Tp).
 ptnType(Lc,Args,Res,Tp) :- isTuple(A,Lc,Args),binary(Lc,"<=",A,Res,Tp).
 genericType(Lc,Nm,Args,Tp) :- squareTerm(Lc,Nm,Args,Tp).
@@ -174,8 +191,6 @@ genericType(Lc,Nm,Args,Tp) :- squareTerm(Lc,Nm,Args,Tp).
 bodyRule(Lc,Hd,Els,Body) :-
   isBraceTuple(Rhs,Lc,Els),
   binary(Lc,"<=>",Hd,Rhs,Body).
-
-thingType(name(Lc,"thing"),Lc).
 
 generateAnnotations([],_,_,Stmts,Stmts).
 generateAnnotations([Def|Els],Quants,Constraints,[Annot|Stmts],S0) :-

@@ -39,16 +39,14 @@ showTypeDef((_,Type),O,Ox) :-
 showContracts(Cons,O,Ox) :-
   listShow(Cons,plog:showContract,".\n",O,Ox).
 
-showContract(contract(LclNm,Nm,_,Con,Mtds),O,Ox) :-
+showContract(contract(LclNm,Nm,Con),O,Ox) :-
   appStr("contract: ",O,O0),
   appStr(LclNm,O0,O1),
   appStr("@",O1,O2),
   appStr(Nm,O2,O3),
   appStr(":",O3,O4),
-  showConstraint(Con,O4,O5),
-  appStr(" <~ ",O5,O6),
-  showType(Mtds,O6,O7),
-  appStr(".\n",O7,Ox).
+  showType(Con,O4,O5),
+  appStr(".\n",O5,Ox).
 
 showClasses([],O,O).
 showClasses([(Nm,Access,Tp)|Cl],O,Ox) :-

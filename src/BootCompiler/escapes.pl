@@ -19,8 +19,10 @@ escapeType("_flt_div",funType([type("star.core*float"),type("star.core*float")],
 escapeType("_flt_mod",funType([type("star.core*float"),type("star.core*float")],type("star.core*float"))).
 escapeType("_int_abs",funType([type("star.core*integer")],type("star.core*integer"))).
 escapeType("_flt_abs",funType([type("star.core*integer")],type("star.core*integer"))).
+escapeType("_int_eq",funType([type("star.core*integer"),type("star.core*integer")],type("star.core*logical"))).
 escapeType("_int_lt",funType([type("star.core*integer"),type("star.core*integer")],type("star.core*logical"))).
 escapeType("_int_ge",funType([type("star.core*integer"),type("star.core*integer")],type("star.core*logical"))).
+escapeType("_flt_eq",funType([type("star.core*float"),type("star.core*float")],type("star.core*logical"))).
 escapeType("_flt_lt",funType([type("star.core*float"),type("star.core*float")],type("star.core*logical"))).
 escapeType("_flt_ge",funType([type("star.core*float"),type("star.core*float")],type("star.core*logical"))).
 escapeType("_int2flt",funType([type("star.core*integer")],type("star.core*float"))).
@@ -156,6 +158,7 @@ escapeType("_int_format",funType([type("star.core*integer"),type("star.core*stri
 escapeType("_flt_format",funType([type("star.core*float"),type("star.core*string")],type("star.core*string"))).
 escapeType("_str2flt",funType([type("star.core*string")],type("star.core*float"))).
 escapeType("_str2int",funType([type("star.core*string")],type("star.core*integer"))).
+escapeType("_str_eq",funType([type("star.core*string"),type("star.core*string")],type("star.core*logical"))).
 escapeType("_str_lt",funType([type("star.core*string"),type("star.core*string")],type("star.core*logical"))).
 escapeType("_str_ge",funType([type("star.core*string"),type("star.core*string")],type("star.core*logical"))).
 escapeType("_str_hash",funType([type("star.core*string")],type("star.core*integer"))).
@@ -204,8 +207,10 @@ isEscape("_flt_div").
 isEscape("_flt_mod").
 isEscape("_int_abs").
 isEscape("_flt_abs").
+isEscape("_int_eq").
 isEscape("_int_lt").
 isEscape("_int_ge").
+isEscape("_flt_eq").
 isEscape("_flt_lt").
 isEscape("_flt_ge").
 isEscape("_int2flt").
@@ -341,6 +346,7 @@ isEscape("_int_format").
 isEscape("_flt_format").
 isEscape("_str2flt").
 isEscape("_str2int").
+isEscape("_str_eq").
 isEscape("_str_lt").
 isEscape("_str_ge").
 isEscape("_str_hash").

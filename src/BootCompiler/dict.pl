@@ -1,4 +1,5 @@
 :- module(dict,[declareType/4,isType/3,
+    declareTypeVars/4,isTypeVar/3,
     declareVar/4,isVar/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
     declareImplementation/4,getImplementations/3,allImplements/3,
@@ -9,7 +10,6 @@
 :- use_module(misc).
 :- use_module(types).
 :- use_module(escapes).
-:- use_module(freshen).
 
 isType(Nm,Env,Tp) :-
   marker(type,M),
@@ -23,6 +23,16 @@ typeInD(Key,[_|Env],Tp) :- typeInD(Key,Env,Tp).
 declareType(Nm,TpDef,[scope(Types,Nms,Cns,Impls,Contracts)|Outer],[scope(Types1,Nms,Cns,Impls,Contracts)|Outer]) :-
   makeKey(Nm,Key),
   put_dict(Key,Types,TpDef,Types1).
+
+declareTypeVars([],_,Env,Env).
+declareTypeVars([(thisType,_)|Vars],Lc,Env,Ex) :- !,
+  declareTypeVars(Vars,Lc,Env,Ex).
+declareTypeVars([(Nm,Tp)|Vars],Lc,Env,Ex) :-
+  declareType(Nm,tpDef(Lc,Tp,voidType),Env,E0),
+  declareTypeVars(Vars,Lc,E0,Ex).
+
+isTypeVar(Nm,Env,Tp) :-
+  isType(Nm,Env,tpDef(_,Tp,voidType)),!.
 
 declareVar(Nm,Vr,[scope(Types,Names,Cns,Impls,Contracts)|Outer],[scope(Types,Names1,Cns,Impls,Contracts)|Outer]) :-
   makeKey(Nm,Key),

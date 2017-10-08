@@ -75,7 +75,7 @@ OCTDIGIT [0-7]
 IDLETTER [a-zA-Z_.$@#]
 IDLETTERDIGIT [a-zA-Z_.$@0-9#]
 
-ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
+ID ({IDLETTER}{IDLETTERDIGIT}*)
 
 %%
 

@@ -1,30 +1,44 @@
-star.c {
+star.core {
 
   public all t ~~ option[t] ::= none | some(t).
 
   public contract all x ~~ equality[x] ::= {
     (==): (x,x)=>logical.
-    hash:(x)=>integer.
+    hash: (x)=>integer.
   }
 
-  /*
   public (\==):all x ~~ equality[x] |: (x,x)=>logical.
   x \== y => \+ x==y.
 
-  public implementation equality[float] => {
-    X == Y => __flt_eq(X,Y).
-    hash(X) => _flt_hash(X).
+  public implementation equality[string] => {
+    X == Y => _str_eq(X,Y).
+    hash(X) => _str_hash(X).
   }
 
-  public (>) : all t ~~ comp[t] |: (t,t)=>logical.
-  X > Y => Y<X.
-  */
+  public implementation all t ~~ equality[t] |: equality[option[t]] => {
+    X == Y => optEql(X,Y).
+    hash(X) => optHash(X).
+  }
+
+  optEql:all t ~~ equality[t] |: (option[t],option[t]) => logical.
+  optEql(none,none) => true.
+  optEql(some(X),some(Y)) => X==Y.
+  optEql(_,_) => false.
+
+  optHash:all t ~~ equality[t] |: (option[t]) => integer.
+  optHash(none) => 0.
+  optHash(some(X)) => hash(X).
 
   -- Not strictly necessary, but makes for better symmetry.
   public logical ::= true | false.
 
-  all t ~~ equality[t] |: person[t] ::= someOne{ name : t. spouse: option[person[t]]. assert name \== foo}.
+  all t ~~ equality[t] |: person[t] ::= someOne{ name : t. spouse: option[person[t]]. assert spouse\==none}.
 
   foo : string.
   foo = "".
+
+  fp : person[string].
+  fp = someOne{ name = foo. spouse = none. assert name == foo}
+
+  assert fp.name == "".
 }

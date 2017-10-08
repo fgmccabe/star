@@ -8,7 +8,8 @@
         stringHash/3,hashSixtyFour/2,stringEndsWith/2,
         marker/2,
         same/2,
-        interleave/3,concatStrings/2]).
+        interleave/3,concatStrings/2,
+        quickSort/3]).
 
 same(X,X).
 
@@ -161,3 +162,21 @@ listShowMore([E|L],C,S,O,Ox) :-
 
 stringEndsWith(S,E) :-
   string_concat(_,E,S).
+
+split([],_,_,[],[]).
+split([T|L],Cmp,Ix,[T|L1],L2) :-
+  call(Cmp,T,Ix),
+  split(L,Cmp,Ix,L1,L2).
+split([T|L],Cmp,Ix,L1,[T|L2]) :-
+  \+ call(Cmp,T,Ix),
+  split(L,Cmp,Ix,L1,L2).
+
+quickSort(L,C,S) :- qSort(L,C,S),!.
+
+qSort([],_,[]).
+qSort([T],_,[T]).
+qSort([T|L],Cmp,S) :-
+  split(L,Cmp,T,L1,L2),
+  qSort(L1,Cmp,S1),
+  qSort(L2,Cmp,S2),
+  concat(S1,[T|S2],S).

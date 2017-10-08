@@ -56,12 +56,8 @@ pickupContracts(C,Cons) :-
   findContracts(C,Cons,[]).
 
 findContracts([],C,C).
-findContracts([tpl([strg(Nm),strg(CnNm),strg(Sig),strg(FSig)])|M],[contract(Nm,CnNm,Spec,FullSpec,Face)|C],Cx) :-
-  decodeConstraint(Sig,FullSpec),
-  moveQuants(FullSpec,Q,FS),
-  moveConstraints(FS,_,S),
-  moveQuants(Spec,Q,S),
-  decodeSignature(FSig,Face),
+findContracts([tpl([strg(Nm),strg(CnNm),strg(Sig)])|M],[contract(Nm,CnNm,Spec)|C],Cx) :-
+  decodeType(Sig,Spec),
   findContracts(M,C,Cx).
 
 processImplementations(Env,Impls,MoreImpls) :-

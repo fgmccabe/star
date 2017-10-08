@@ -134,7 +134,7 @@ trailer: END nls { endFunction(currMtd); }
 
  literal: FLOAT { newFloatConstant(currMtd,$1); }
    | STRING { newStringConstant(currMtd,$1); }
-   | ID COLON DECIMAL { newStructConstant(currMtd,$1,$3); }
+   | ID COLON DECIMAL { newStrctConstant(currMtd,$1,$3); }
    | ID SLASH DECIMAL { newPrgConstant(currMtd,$1,$3); }
    ;
 

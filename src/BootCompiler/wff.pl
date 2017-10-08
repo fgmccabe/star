@@ -1,9 +1,12 @@
-:-module(wff,[isAlgebraicTypeStmt/6,isQuantified/3,getQuantifiers/3,isConstrainedTp/3,
+:-module(wff,[isAlgebraicTypeStmt/6,isQuantified/3,getQuantifiers/3,
+    isConstrained/3,
     isContractStmt/6,isImplementationStmt/6,isTypeExistsStmt/6,isTypeFunStmt/6,
     isImport/2, isMacro/2,
     isConstructorStmt/5,isGrammarRule/5,
-    isIntegrity/3,isCondExpr/5,isEquation/5,isPtnRule/5,isDefn/5,isVarDefn/5,
-    packageName/2,pkgName/2,sameLength/3,deComma/2,tupleize/4,
+    isIntegrity/3,isShow/3,isIgnore/3,
+    isCondExpr/5,isEquation/5,isPtnRule/5,isDefn/5,isAssignment/5,
+    isWhere/3,isCoerce/4,isCond/1,
+    packageName/2,pkgName/2,deComma/2,tupleize/4,
     rewrite/3,rewriteList/3]).
 :-use_module(abstract).
 :-use_module(misc).
@@ -65,8 +68,7 @@ implSpec(S,[],[],Con,Body) :-
   isBraceTuple(B,_,Body).
 
 isConstrainedTp(T,C,R) :-
-  isBinary(T,"|:",L,R),
-  deComma(L,C).
+  isConstrained(T,R,C),!.
 isConstrainedTp(T,[],T).
 
 deComma(T,LL) :-
@@ -75,6 +77,10 @@ deComma(T,LL) :-
   deComma(R,Rf),
   concat(Lf,Rf,LL).
 deComma(T,[T]).
+
+isConstrained(Tp,T,Cx) :-
+  isBinary(Tp,"|:",L,T),
+  deComma(L,Cx).
 
 isTypeExistsStmt(St,Lc,Q,Cx,L,R) :-
   isQuantified(St,V,B),
@@ -94,10 +100,19 @@ isTypeFunStmt(St,Lc,[],[],L,R) :-
 
 isConstructorStmt(St,Lc,Hd,Cond,R) :-
   isBinary(St,Lc,"<=>",H,R),
-  (isBinary(H,"&&",Hd,Cond) ; H=Hd,Cond=name(Lc,"true")),!.
+  (isBinary(H,"where",Hd,Cond) ; H=Hd,Cond=name(Lc,"true")),!.
+isConstructorStmt(St,Lc,Hd,name(Lc,"true"),R) :-
+  isBraceTerm(St,Lc,Hd,A),
+  braceTuple(Lc,A,R).
 
 isIntegrity(St,Lc,C) :-
   isUnary(St,Lc,"assert",C).
+
+isShow(St,Lc,Ex) :-
+  isUnary(St,Lc,"show",Ex).
+
+isIgnore(St,Lc,Ex) :-
+  isUnary(St,Lc,"ignore",Ex).
 
 isCondExpr(Term,Lc,Cond,Th,El) :-
   isBinary(Term,Lc,"|",L,El),
@@ -105,23 +120,42 @@ isCondExpr(Term,Lc,Cond,Th,El) :-
 
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
-  (isBinary(L,"&&",Lhs,Cond) | Lhs=L, Cond=name(Lc,"true")).
+  (isWhere(L,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
 isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"<=",L,Rhs),
-  (isBinary(L,"&&",Lhs,Cond) | Lhs=L, Cond=name(Lc,"true")).
+  (isWhere(L,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
-isGrammarRule(Trm,Lc,Lhs,PushBack,Rhs) :-
+isGrammarRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"-->",L,Rhs),
-  (isBinary(L,",",Lhs,PushBack) | Lhs=L, PushBack=tuple(Lc,"[]",[])).
+  (isWhere(L,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
 isDefn(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=",L,Rhs),
-  (isBinary(L,"&&",Lhs,Cond) | Lhs=L, Cond=name(Lc,"true")).
+  (isWhere(L,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
-isVarDefn(Trm,Lc,Lhs,Cond,Rhs) :-
+isAssignment(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,":=",L,Rhs),
-  (isBinary(L,"&&",Lhs,Cond) | Lhs=L, Cond=name(Lc,"true")).
+  (isWhere(L,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
+
+isWhere(Trm,Lhs,Rhs) :-
+  isBinary(Trm,"where",Lhs,Rhs).
+
+isCoerce(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,"::",Lhs,Rhs).
+
+isCond(Trm) :-
+  isUnary(Trm,"\\+",_),!.
+isCond(Trm) :-
+  isBinary(Trm,"&&",_,_),!.
+isCond(Trm) :-
+  isBinary(Trm,"||",_,_),!.
+isCond(Trm) :-
+  isBinary(Trm,"%%",_,_),!.
+isCond(Trm) :-
+  isBinary(Trm,".=",_,_),!.
+isCond(Trm) :-
+  isBinary(Trm,"=.",_,_),!.
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).
@@ -146,11 +180,6 @@ packageVersion(T,Pkg) :- isBinary(T,".",L,R),
   packageVersion(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
-
-sameLength(L1,L2,_) :- length(L1,L), length(L2,L),!.
-sameLength(L1,_,Lc) :-
-  length(L1,L),
-  reportError("expecting %s elements",[L],Lc).
 
 tupleize(app(_,name(_,","),tuple(_,"()",[L,R])), Lc, Op, tuple(Lc,Op,[L|Rest])) :-
     getTupleArgs(R,Rest).

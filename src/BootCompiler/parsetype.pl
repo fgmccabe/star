@@ -1,6 +1,7 @@
 :- module(parsetype,[parseType/3,
-  parseTypeDef/4,
-  parseTypeRule/4,parseTypeCore/3,parseContract/4,parseContractConstraint/4,rewriteConstraints/4,bindAT/4]).
+  parseBoundTpVars/3,
+  parseTypeRule/4,parseTypeCore/3,parseContract/4,
+  parseConstraints/5,parseContractConstraint/7,rewriteConstraints/4,bindAT/4]).
 
 :- use_module(abstract).
 :- use_module(dict).
@@ -21,9 +22,9 @@ parseType(Tp,Env,B,C,C,PT) :-
   parseType(BT,Env,B0,[],C0,BTp),
   wrapConstraints(C0,BTp,Inner).
 parseType(F,Env,B,C0,Cx,Tp) :-
-  isBinary(F,"|:",L,R),!,
-  parseConstraint(L,Env,B,C0,C1),
-  parseType(R,Env,B,C1,Cx,Tp).
+  isConstrained(F,T,C),!,
+  parseConstraints(C,Env,B,C0,C1),
+  parseType(T,Env,B,C1,Cx,Tp).
 parseType(Nm,Env,B,C0,Cx,Tp) :-
   isIden(Nm,Lc,Id), !,
   parseTypeName(Lc,Id,Env,B,C0,Cx,Tp).
@@ -63,9 +64,9 @@ parseType(T,Env,B,C0,Cx,AT) :-
 parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
   isTuple(T,A),!,
   parseTypes(A,Env,B,C0,Cx,AT).
-parseType(T,Env,B,C0,Cx,faceType(AT)) :-
+parseType(T,Env,B,Cx,Cx,faceType(AT)) :-
   isBraceTuple(T,_,L),!,
-  parseTypeFields(L,Env,B,C0,Cx,[],AT).
+  parseTypeFields(L,Env,B,[],AT).
 parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
   reportError("cannot understand type %s",[T],Lc).
@@ -76,7 +77,7 @@ parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,Q,C,C,Tp) :-
   isType(Id,Env,tpDef(_,TpSpec,_)),
-  freshen(TpSpec,voidType,Q,_,Tp).
+  freshen(TpSpec,Env,Q,_,Tp).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
@@ -140,10 +141,10 @@ parseBoundVar(N,Q,Q) :-
   locOfAst(N,Lc),
   reportError("invalid bound variable: %s",[N],Lc).
 
-parseTypeFace(T,Env,Bound,C0,Cx,faceType(AT)) :-
+parseTypeFace(T,Env,Bound,AT) :-
   isBraceTuple(T,_,L),
-  parseTypeFields(L,Env,Bound,C0,Cx,[],AT).
-parseTypeFace(T,_,_,Cx,Cx,faceType([])) :-
+  parseTypeFields(L,Env,Bound,[],AT).
+parseTypeFace(T,_,_,[]) :-
   locOfAst(T,Lc),
   reportError("%s is not a type interface",[T],Lc).
 
@@ -154,8 +155,8 @@ parseConstraint(T,Env,B,C0,Cx) :-
 parseConstraint(T,Env,B,C0,Cx) :-
   isBinary(T,"<~",L,R),
   parseType(L,Env,B,C0,C1,TV),
-  parseTypeFace(R,Env,B,C1,C2,faceType(AT)),
-  addConstraint(implementsFace(TV,AT),C2,Cx).
+  parseTypeFace(R,Env,B,AT),
+  addConstraint(implementsFace(TV,AT),C1,Cx).
 parseConstraint(Sq,Env,B,C0,Cx) :-
   isSquare(Sq,Lc,N,Args),
   parseContractArgs(Args,Env,B,C0,C1,ArgTps,Deps),
@@ -172,19 +173,6 @@ parseConstraints([Ct|L],E,Q,C,Cx) :-
   parseConstraint(Ct,E,Q,C,C0),
   parseConstraints(L,E,Q,C0,Cx).
 
-parseContractConstraint(T,Env,N,Con) :-
-  parseContractConstraint(T,Env,[],[],Cons,N,Tp),!,
-  wrapConstraints(Cons,Tp,Con).
-
-parseContractConstraint(Tp,Env,B,C,C,N,PT) :-
-  isQuantified(Tp,V,BT),
-  parseBound(V,B,B0,PT,Inner),
-  parseContractConstraint(BT,Env,B0,[],C0,N,BTp),
-  wrapConstraints(C0,BTp,Inner).
-parseContractConstraint(Tp,Env,B,C0,Cx,N,Cn) :-
-  isBinary(Tp,"|:",L,R),
-  parseConstraint(L,Env,B,C0,C1),
-  parseContractConstraint(R,Env,B,C1,Cx,N,Cn).
 parseContractConstraint(Sq,Env,Q,C0,Cx,N,conTract(Op,ArgTps,Deps)) :-
   isSquare(Sq,Lc,N,Args),
   parseContractArgs(Args,Env,Q,C0,Cx,ArgTps,Deps),
@@ -197,8 +185,8 @@ addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
 
 parseContractName(_,Id,Env,_,FTp) :-
-  getContract(Id,Env,contract(_,_,Con,_,_)),
-  freshenConstraint(Con,FTp).
+  getContract(Id,Env,contract(_,_,Con)),
+  freshen(Con,Env,[],_,contractExists(FTp,_)).
 
 parseContractArgs([A],Env,B,C0,Cx,Args,Deps) :-
   isBinary(A,"->>",L,R),!,
@@ -227,15 +215,13 @@ parseTypeFields([F|L],Env,Bound,C,Cx,Flds,Fields) :-
   isUnary(F,"@",_,_),
   parseTypeFields(L,Env,Bound,C,Cx,Flds, Fields).
 
-parseContract(T,Env,Path,contract(Nm,ConNm,Spec,FullSpec,Face)) :-
+parseContract(T,Env,Path,contract(Nm,ConNm,ConRule)) :-
   isContractStmt(T,_,Quants,C0,Con,Els),
   parseBoundTpVars(Quants,[],Q),
-  parseContractSpec(Con,Q,C0,Cx,Env,Spc,Nm,ConNm,Path),
-  parseTypeFields(Els,Env,Q,Cx,_,[],Fc),
-  reQuant(Q,faceType(Fc),Face),
-  reQuant(Q,Spc,Spec),
-  moveConstraints(SpcC,Cx,Spc),
-  reQuant(Q,SpcC,FullSpec).
+  parseContractSpec(Con,Q,C0,C1,Env,SpC,Nm,ConNm,Path),
+  parseTypeFields(Els,Env,Q,C1,Cx,[],Fc),
+  moveConstraints(Crl,Cx,contractExists(SpC,faceType(Fc))),
+  reQuant(Q,Crl,ConRule).
 
 % reapply quantifiers to a type to get full form
 reQuant([],Tp,Tp).
@@ -252,34 +238,39 @@ parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
   marker(conTract,Marker),
   subPath(Path,Marker,Nm,ConNm).
 
-parseTypeDef(St,E,Path,typeDef(Lc,Nm,Type,FaceRule)) :-
-  isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),
-  parseBoundTpVars(Quants,[],Q),
-  parseTypeHead(Hd,Q,Tp,Nm,Path),
-  isBraceTuple(Body,_,Els),
-  parseConstraints(Ct,E,Q,[],C0),
-  parseTypeFields(Els,E,Q,C0,Cx,[],F),
-  wrapConstraints(Cx,typeExists(Tp,faceType(F)),Rl),
-  reQuant(Q,Rl,FaceRule),
-  reQuant(Q,Tp,Type).
-parseTypeDef(St,E,Path,typeDef(Lc,Nm,Type,FaceRule)) :-
-  isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
-  parseBoundTpVars(Quants,[],Q),
-  parseConstraints(Ct,E,Q,[],C0),
-  parseTypeHead(Hd,Q,Tp,Nm,Path),
-  parseType(Bd,E,Q,C0,Cx,RpTp),
-  wrapConstraints(Cx,typeLambda(Tp,RpTp),Rl),
-  reQuant(Q,Rl,FaceRule),
-  reQuant(Q,Tp,Type).
-
-computeFaceOfCons(T,Q,E,F0,Fx) :-
+algebraicFace(T,SoFar,Face) :-
   isBinary(T,"|",L,R),
-  computeFaceOfCons(L,Q,E,F0,F1),
-  computeFaceOfCons(R,Q,E,F1,Fx).
-computeFaceOfCons(T,Q,E,F0,Fx) :-
-  isBraceTerm(T,_,_,Els),
-  parseTypeFields(Els,E,Q,[],_,F0,Fx).
-computeFaceOfCons(_,_,_,F,F).
+  algebraicFace(L,SoFar,SF),
+  algebraicFace(R,SF,Face).
+  algebraicFace(T,SoFar,SoFar) :-
+  isRound(T,_,_),!.
+  algebraicFace(T,Face,Face) :-
+  isIden(T,_,_),!.
+  algebraicFace(T,SoFar,Face) :-
+  isBraceTerm(T,_,_,Args),
+  pickupFields(Args,SoFar,Face).
+
+pickupFields([],Face,Face).
+  pickupFields([T|M],SF,Face) :-
+  isBinary(T,Lc,":",L,R),
+  isIden(L,_,Nm),
+  checkSoFar(Lc,Nm,R,SF,SF0),
+  pickupFields(M,[T|SF0],Face).
+  pickupFields([T|M],F,Fx) :-
+  isIntegrity(T,_,_),
+  pickupFields(M,F,Fx).
+  pickupFields([T|M],SF,Face) :-
+  locOfAst(T,Lc),
+  reportError("invalid type field: %s",[T],Lc),
+  pickupFields(M,SF,Face).
+
+checkSoFar(_,_,_,[],[]).
+checkSoFar(Lc,Nm,T,[P|L],L) :-
+  isBinary(P,":",NN,RR),
+  isIden(NN,_,Nm),
+  (sameTerm(RR,T) ; reportError("field %s:%s must be identical to: %s",[Nm,T,RR],Lc)).
+  checkSoFar(Lc,Nm,T,[P|L],[P|LL]) :-
+  checkSoFar(Lc,Nm,T,L,LL).
 
 parseTypeRule(St,Env,Rule,Path) :-
   parseTypeRule(St,[],[],_,Env,Rule,Path).
@@ -290,9 +281,9 @@ parseTypeRule(St,B,C,C,Env,Rule,Path) :-
   parseTypeRule(Body,B0,[],Cx,Env,Inner,Path),
   wrapConstraints(Cx,Inner,Rl).
 parseTypeRule(St,B,C0,Cx,Env,Rule,Path) :-
-  isBinary(St,"|:",L,R),
-  parseConstraint(L,Env,B,C0,C1),
-  parseTypeRule(R,B,C1,Cx,Env,Rule,Path).
+  isConstrained(St,T,C),
+  parseConstraints(C,Env,B,C0,C1),
+  parseTypeRule(T,B,C1,Cx,Env,Rule,Path).
 parseTypeRule(St,B,C0,Cx,Env,typeExists(Lhs,Rhs),Path) :-
   isBinary(St,"<~",L,R),
   parseTypeHead(L,B,Lhs,_,Path),!,
@@ -314,7 +305,7 @@ getFace(typeExp(Op,Args),Env,Face) :-
   rewriteType(F,BB,Face).
 getFace(type(Nm),Env,Face) :- !,
   isType(Nm,Env,tpDef(_,_,FaceRule)),
-  freshen(FaceRule,voidType,[],_,typeExists(Lhs,Face)),
+  freshen(FaceRule,Env,[],_,typeExists(Lhs,Face)),
   sameType(type(Nm),Lhs,Env),!.
 getFace(T,Env,faceType(Face)) :- isUnbound(T), !,
   constraints(T,C),

@@ -1,4 +1,4 @@
-:- module(dependencies,[dependencies/6]).
+:- module(dependencies,[dependencies/3,collectDefinitions/6]).
 
 :- use_module(topsort).
 :- use_module(abstract).
@@ -7,8 +7,7 @@
 :- use_module(keywords).
 :- use_module(wff).
 
-dependencies(Els,Groups,Public,Annots,Imports,Other) :-
-  collectDefinitions(Els,Dfs,Public,Annots,Imports,Other),
+dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],AllRefs),
   collectThetaRefs(Dfs,AllRefs,Annots,Defs),
   topsort(Defs,Groups,misc:same),
@@ -52,15 +51,15 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,I,I,O,O,_) :-
 collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
   isTypeExistsStmt(St,Lc,_,_,L,_),
   typeName(L,Nm),
-  call(Export,Nm,P,Px).
+  call(Export,tpe(Nm),P,Px).
 collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
   isTypeFunStmt(St,Lc,_,_,L,_),
   typeName(L,Nm),
-  call(Export,Nm,P,Px).
+  call(Export,var(Nm),P,Px).
 collectDefinition(St,Stmts,Stmts,[(cns(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
   isConstructorStmt(St,Lc,Hd,_,_),
   headName(Hd,Nm),
-  call(Export,Nm,P,Px).
+  call(Export,cns(Nm),P,Px).
 collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
   ruleName(St,Nm,Kind),
   locOfAst(St,Lc),
@@ -120,10 +119,10 @@ headOfRule(St,Hd) :-
   isBinary(St,":=",Hd,_).
 headOfRule(St,Hd) :-
   isBinary(St,"=>",H,_),
-  (isBinary(H,"&&",Hd,_) ; H=Hd),!.
+  (isWhere(H,Hd,_) ; H=Hd).
 headOfRule(St,Hd) :-
   isBinary(St,"<=",H,_),
-  (isBinary(H,"&&",Hd,_) ; H=Hd),!.
+  (isWhere(H,Hd,_) ; H=Hd).
 headOfRule(St,Hd) :-
   isBraceTerm(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
@@ -167,35 +166,41 @@ collectStmtRefs([St|Stmts],All,Annots,SoFar,Refs) :-
   collectStmtRefs(Stmts,All,Annots,S0,Refs).
 
 collRefs(St,All,Annots,SoFar,Refs) :-
-  isBinary(St,"=",H,Exp),
+  isDefn(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectExpRefs(Exp,All,R1,Refs).
+  collectCondRefs(Cond,All,R1,R2),
+  collectExpRefs(Exp,All,R2,Refs).
 collRefs(St,All,Annots,SoFar,Refs) :-
-  isBinary(St,":=",H,Exp),
+  isAssignment(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectExpRefs(Exp,All,R1,Refs).
+  collectCondRefs(Cond,All,R1,R2),
+  collectExpRefs(Exp,All,R2,Refs).
 collRefs(St,All,Annots,SoFar,Refs) :-
-  isBinary(St,"=>",H,Exp),
+  isEquation(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectExpRefs(Exp,All,R1,Refs).
+  collectCondRefs(Cond,All,R1,R2),
+  collectExpRefs(Exp,All,R2,Refs).
 collRefs(St,All,Annots,SoFar,Refs) :-
-  isBinary(St,"-->",H,Body),
-  collectAnnotRefs(H,All,Annots,SoFar,R0),
-  collectGrHeadRefs(H,All,R0,R1),
-  collectNTRefs(Body,All,R1,Refs).
-collRefs(St,All,Annots,SoFar,Refs) :-
-  isBinary(St,"<=",H,Exp),
+  isGrammarRule(St,_,H,Cond,Body),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectLabelRefs(Exp,All,R1,Refs).
+  collectCondRefs(Cond,All,R1,R2),
+  collectNTRefs(Body,All,R2,Refs).
+collRefs(St,All,Annots,SoFar,Refs) :-
+  isPtnRule(St,_,H,Cond,Ptn),
+  collectAnnotRefs(H,All,Annots,SoFar,R0),
+  collectHeadRefs(H,All,R0,R1),
+  collectCondRefs(Cond,All,R1,R2),
+  collectExpRefs(Ptn,All,R2,Refs).
 collRefs(St,All,Annots,R0,Refs) :-
-  isBinary(St,_,"<=>",H,R),
+  isConstructorStmt(St,_,H,Cond,R),
   collectAnnotRefs(H,All,Annots,R0,R1),
   collectHeadRefs(H,All,R1,R2),
-  collectExpRefs(R,All,R2,Refs).
+  collectCondRefs(Cond,All,R2,R3),
+  collectExpRefs(R,All,R3,Refs).
 collRefs(St,All,_,R0,Refs) :-
   isTypeExistsStmt(St,_,_,_,_,Tp),
   collectTypeRefs(Tp,All,R0,Refs).
@@ -219,9 +224,9 @@ collRefs(St,_,_,R,R) :-
   reportError("Cannot fathom %s",[St],Lc).
 
 collectHeadRefs(Hd,All,R0,Refs) :-
-  isBinary(Hd,"&&",L,R),
+  isWhere(Hd,L,C),
   collectHeadRefs(L,All,R0,R1),
-  collectCondRefs(R,All,R1,Refs).
+  collectCondRefs(C,All,R1,Refs).
 collectHeadRefs(Hd,All,R0,Refs) :-
   isRoundTerm(Hd,_,A),
   collectPtnListRefs(A,All,R0,Refs).

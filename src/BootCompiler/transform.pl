@@ -5,6 +5,7 @@
 :- use_module(errors).
 :- use_module(types).
 :- use_module(debug).
+%:- use_module(matcher).
 :- use_module(misc).
 :- use_module(escapes).
 :- use_module(location).
@@ -27,8 +28,6 @@ transformMdlDef(function(Lc,Nm,Tp,Cx,Eqns),_,Map,Opts,Rules,Rx,Ex,Exx) :-
   transformFunction(Map,Opts,function(Lc,Nm,Tp,Cx,Eqns),Rules,Rx,Ex,Exx).
 transformMdlDef(grammar(Lc,Nm,Tp,Cx,Rls),_,Map,Opts,Rules,Rx,Ex,Exx) :-
   transformGrammar(Map,Opts,grammar(Lc,Nm,Tp,Cx,Rls),_,Rules,Rx,Ex,Exx).
-transformMdlDef(predicate(Lc,Nm,Tp,Cx,Clses),_,Map,Opts,Rules,Rx,Ex,Exx) :-
-  transformPredicate(Map,Opts,predicate(Lc,Nm,Tp,Cx,Clses),Rules,Rx,Ex,Exx).
 transformMdlDef(defn(Lc,Nm,_,Cond,_,Value),_,Map,Opts,Rules,Rx,Ex,Exx) :-
   transformDefn(Map,Opts,Lc,Nm,Cond,Value,Rules,Rx,Ex,Exx).
 transformMdlDef(class(Lc,Nm,Tp,Cx,Defs,Face),_,Map,Opts,Rules,Rx,Ex,Exx) :-
@@ -39,7 +38,7 @@ transformMdlDef(enum(Lc,Nm,Tp,Cx,Defs,Face),Prefix,Map,Opts,Rules,Rx,Ex,Exx) :-
   localName(Prefix,"#",Nm,EnumName),
   Ex0 = [clse([],prg(LclName,1),[enum(EnumName)],[neck])|Exx].
 transformMdlDef(typeDef(_,_,_,_),_,_,_,Rules,Rules,Ex,Ex).
-transformMdlDef(contract(_,_,_,_,_),_,_,_,Rules,Rules,Ex,Ex).
+transformMdlDef(contract(_,_,_),_,_,_,Rules,Rules,Ex,Ex).
 transformMdlDef(impl(Lc,_,ImplName,_,_,_,Body,_,Face),_,Map,Opts,Rules,Rx,Ex,Exx) :-
   transformImplementation(Lc,ImplName,Body,Face,Map,Opts,Rules,Rx,Ex,Exx).
 
@@ -64,7 +63,7 @@ transformEquations(Map,Opts,LclPrg,Extra,[Eqn|Defs],No,Nx,Rules,Rx,Ex,Exx) :-
   N1 is No+1,
   transformEquations(Map,Opts,LclPrg,Extra,Defs,N1,Nx,R0,Rx,Ex0,Exx).
 
-transformEqn(equation(Lc,Nm,A,Cond,Value),Map,Opts,LclPrg,Extra,QNo,[clse(Q,LclPrg,Args,Body)|Rx],Rx,Ex,Exx) :-
+transformEqn(equation(Lc,Nm,A,Cond,Value),Map,Opts,LclPrg,Extra,QNo,[eqn(Lc,Q,LclPrg,Args,Body)|Rx],Rx,Ex,Exx) :-
   debugPreamble(Nm,Extra,Q0,LbLx,FBg,Opts,ClOpts),        % are we debugging?
   trPtns(A,Args,[Rep|Extra],Q0,Q1,PreG,PreGx,PostG,PreV,Map,ClOpts,Ex,Ex0), % head args
   trGoal(Cond,PreGx,[neck|CGx],Q1,Q2,Map,ClOpts,Ex0,Ex1),   % condition goals
@@ -83,33 +82,6 @@ genRaise(Lc,LclName,[raise(cons(strct("error",4),[LclName,intgr(Lno),intgr(Off),
   lcLine(Lc,Lno),
   lcColumn(Lc,Off),
   lcSize(Lc,Sz).
-
-transformPredicate(Map,Opts,predicate(_,Nm,_,[],Clses),Rules,Rx,Ex,Exx) :-
-  lookupRelName(Map,Nm,Reslt),
-  programAccess(Reslt,LclFun,_,_,Arity),
-  extraVars(Map,Extra),
-  extraArity(Arity,Extra,Ar),
-  LclPrg = prg(LclFun,Ar),
-  pushOpt(Opts,inProg(Nm),POpts),
-  transformClauses(Map,POpts,LclPrg,Extra,Clses,1,_,Rules,Rx,Ex,Ex0),
-  closureEntry(Map,Nm,Ex0,Exx).
-
-transformClauses(_,_,_,_,[],No,No,Rules,Rules,Ex,Ex).
-transformClauses(Map,Opts,LclFun,Extra,[Cl|Defs],No,Nx,Rules,Rx,Ex,Exx) :-
-  transformClause(Map,Opts,LclFun,Extra,No,Cl,Rules,R0,Ex,Ex0),
-  N1 is No+1,
-  transformClauses(Map,Opts,LclFun,Extra,Defs,N1,Nx,R0,Rx,Ex0,Exx).
-
-transformClause(Map,Opts,LclFun,Extra,QNo,clause(Lc,Nm,A,Cond,Body),[clse(Q,LclFun,Args,Goals)|Rx],Rx,Ex,Exx) :-
-  debugPreamble(Nm,Extra,Q0,G0,G1,Opts,ClOpts),        % are we debugging?
-  trPtns(A,Args,Extra,Q0,Q1,G4,G5,G7,G8,Map,ClOpts,Ex,Ex0), % head args
-  trGoal(Cond,G5,G6,Q1,Q2,Map,ClOpts,Ex0,Ex1),       % condition goals
-  trGoal(Body,G6,G7,Q2,Q3,Map,ClOpts,Ex1,Exx),
-  labelAccess(Q3,Q,Map,Goals,G0),                       % generate label access goals
-  frameDebug(Nm,QNo,G1,G2,Q,ClOpts),                     % generate frame entry debugging
-  lineDebug(Lc,G2,G3,ClOpts),                           % line debug after setting up frame
-  deframeDebug(Nm,QNo,G8,[],ClOpts),                      % generate frame exit debugging
-  breakDebug(Nm,G3,G4,ClOpts).                           % generate break point debugging
 
 transformDefn(Map,Opts,Lc,Nm,Cond,Value,
       [clse(Q,prg(LclName,Arity),[Rep|Extra],Body)|Rx],Rx,Ex,Exx) :-
