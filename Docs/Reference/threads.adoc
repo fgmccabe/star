@@ -1,0 +1,272 @@
+%!TEX root = reference.tex
+= Concurrent Execution
+[[threads]]
+(((Concurrent execution)))
+(((threads)))
+
+Concurrent execution involves the use of `spawn` (and the related parallel execution operator `//`) to initiate concurrent execution; together with a set of features intended to constrain that concurrent execution.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Action]]Action&\arrowplus&<<ParallelAction>>\\
+&nbsp;&nbsp;| <<SpawnAction>>\\
+&nbsp;&nbsp;| <<WaitAction>>\\
+&nbsp;&nbsp;| <<SyncAction>>%\\
+%&nbsp;&nbsp;| <<AtomicAction>>
+\end{eqnarray*}
+.Thread and Parallel Action
+[[threadActionFig]]
+\end{figure}
+
+== Spawning Concurrent Execution
+[[threadSpawning]]
+
+There are three `levels' of operator relating to initiating and terminating concurrent execution: the parallel execution operator `//`, the `spawn` action/expression and the `threadStart` and `threadWaitfor` operators.
+
+=== Parallel Execution
+[[parallelExecution]]
+
+The `//` operator is used to signal that two actions should proceed in parallel.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_ParallelAction_::=<<Action>>\ `//`\ <<Action>>
+\end{eqnarray*}
+.parallel Execution Action
+[[parallelExecutionFig]]
+\end{figure}
+
+An action of the form:
+[listing]
+_LeftAction_//_RightAction_
+
+executes both of `_LeftAction_` and `_RightAction_` -- in some indeterminate, possibly interleaved, order. The action itself does not terminate until both `_LeftAction_` and `_RightAction_` have terminated.
+
+For example, to perform a `request` action (see <<request>>) to two different targets in parallel, one might use:
+[listing]
+...;\{ request A to oneThing() \}//\{request B to otherThing()\};...
+
+It would be also possible to ask the _same_ target to perform operations in parallel but that raises issues relating to accessing shared resources. For one way of managing this, see <<syncAction>>. %and <<transaction>>.
+
+== Thread Spawning
+\begin{aside}
+The `spawn` action/expression is slightly more low-level than the `//` operator. The `fork` primitive is lower-level still; and gives the finest level of control of initiating a concurrent execution.
+\end{aside}
+
+=== The `thread` Type
+[[threadType]]
+(((threads,type of)))
+
+The `thread` type is a standard type that is used to represent threads of execution. It does not have a standard constructor; and hence cannot be defined using normal type definition notation. However, it is generic; a type expression of the form:
+[listing]
+thread of integer
+
+denotes the type of a thread which will ultimately yield an `integer` value when it completes.
+
+\begin{aside}
+Not all threads yield a value; in which case the type expression is simply `thread`. (i.e., the type expressions `thread of _type_` and `thread` refer to different kinds of threads -- in one case returning a value and in the other not.
+\end{aside}
+
+=== Spawn Action
+[[spawnAction]]
+(((spawn action@`spawn` action)))
+(((parallel execution)))
+
+A `spawn` action executes an _Action_ in parallel with the `main' action.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[SpawnAction]]SpawnAction::=`spawn`\ <<Action>>
+\end{eqnarray*}
+.Spawning a thread[[spawnSyntaxFig]]
+\end{figure}
+When executed, a `spawn` action completes `immediately' -- without waiting for the `spawn`ed action to complete. The `spawn`ed action itself is executed as a separate thread of activity.
+
+==== Variables in a `spawn`ed action
+(((spawn action@`spawn` action,variables in a)))
+(((variables in a `spawn` action)))
+
+Any variables that are _free_ in a `spawn`ed action are treated as read-only within the `spawn`ed action -- with the exception of `resource` variables (see <<reassignableVars>>). Thus an action of the form:
+[listing]
+\{
+  var X := 1;
+  ...
+  spawn \{ X := X+1; \}
+  ...
+\}
+
+is not legal since the variable `X` is not a `resource` variable, and hence it may not be reassigned to within the `spawn`ed action.
+
+The value assigned to reassignable variables within a `spawn` action is `fixed' at the time that the `spawn` is performed.
+
+However, in the fragment:
+[listing]
+\{
+  resource var R := 1;
+  ...
+  spawn \{ R:=R+1; \}
+  ...
+\}
+
+the variable `R` is a `resource` variable. Hence `R` may be reassigned to within the `spawn`ed action, and its value always reflects the last assignment to the variable.
+\begin{aside}
+Of course, this also represents a major risk to the safety of programs. The programmer should ensure that any reference or assignment to shared `resource` variables is in the context of an `atomic` action. Otherwise, there is a high risk of unexpected race conditions and corruption in the values of such variables.
+\end{aside}
+
+==== Type Safety
+
+\begin{prooftree}
+\AxiomC{\typesafe{E}{_Action_}}
+\UnaryInfC{\typesafe{E}{`spawn`\ _Action_}}
+\end{prooftree}
+
+=== Spawn Expression
+[[spawnExpression]]
+The `spawn` expression -- likes its action counterpart (see <<spawnAction>>) -- is used to spawn off an expression evaluation to be evaluated concurrently with the invoking computation.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Expression_&\arrowplus&<<SpawnExpression>>\\
+[[SpawnExpression]]SpawnExpression::=`spawn`\ <<Expression>>
+\end{eqnarray*}
+.Spawning an expression[[spawnExpressionSyntaxFig]]
+\end{figure}
+
+==== Type Safety
+The type of a `spawn` expression is `thread`. However, the `thread` type is generic, intended to denote the result of the `spawn`ed expression as it is re-captured by the corresponding `wait` expression.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{Ex}{T}}
+\UnaryInfC{\typeprd{E}{`spawn` Ex}{`thread of `T}}
+\end{prooftree}
+
+=== Thread Wait Action
+[[threadWaitAction]]
+(((spawn action@`spawn` action,wait for termination)))
+The `waitfor` action blocks until an identified thread has terminated. If the `thread` has a value associated with it, then that value also becomes the value returned by `waitfor`.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Action_&\arrowplus&<<WaitAction>>\\
+[[WaitAction]]WaitAction::=`waitfor`\ <<Expression>>
+\end{eqnarray*}
+.WaitFor action[[waitforActionSyntaxFig]]
+\end{figure}
+
+=== `wait` expression
+[[waitExpression]]
+The `wait` expression takes a `thread` as an argument and has as its value the value returned by the `thread`. The `wait` expression does suspends execution until the `thread` has completed.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Expression_&\arrowplus&<<WaitExpression>>\\
+[[WaitExpression]]WaitExpression::=`waitfor`\ <<Expression>>
+\end{eqnarray*}
+.WaitFor expression[[waitforExpressionSyntaxFig]]
+\end{figure}
+
+==== Type Safety
+The type of a `spawn` expression is `thread`. The type of a `wait` expression is the type of the value returned by the `thread`.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{E\sub{spawn}}{`thread of `T}}
+\UnaryInfC{\typeprd{E}{`wait`\ E\sub{spawn}}{T}}
+\end{prooftree}
+
+=== The `sync`hronized Action
+[[syncAction]]
+(((sync action@`sync` action)))
+
+The `sync` action is used to manage contention in accessing resources that are potentially shared across `spawn`ed actions. There are two forms of `sync` action -- a standard form and the guarded form. In both cases, `sync` revolves around access to a shared resource.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[SyncAction]]SyncAction::=`sync(`<<Expression>>`)\{`<<SyncBody>>`\`}\\
+[[SyncBody]]SyncBody::=<<SyncGuard>>\sequence{;}<<SyncGuard>>\\
+&nbsp;&nbsp;| <<Action>>\\
+[[SyncGuard]]SyncGuard::=`when`\ <<Condition>>\ `do`\ <<Action>>
+\end{eqnarray*}
+.Synchronized Action[[syncActionSyntaxFig]]
+\end{figure}
+
+The `sync` action's resource _Expression_ may evaluate to any term value; however, we recommend that `something obvious' is used. For example, in the context of a set of actions revolving around a <<ThetaRecord>> the `this` keyword identifies the <<ThetaRecord>> itself.
+
+Only one `sync` action may be executing at any given time on a given resource. If another `spawn`ed action is executing a `sync` action involving the same resource then this action is paused until that action completes.
+
+If the guarded form is used, each <<SyncGuard>> defines a condition that must be satisfied in order for access to the shared resource to be valid. These guards are evaluated in a left-to-right order: the first guard to be satisfied fires its corresponding action.
+
+The process of acquiring exclusive access to a shared resource when using <<SyncGuard>>s can be described:
+\begin{enumerate}
+\item A lock on the shared resource is acquired.
+\item For each <<SyncGuard>>, its guard <<Condition>> is evaluated:
+\begin{itemize}
+\item  If the guard is satisfied, then the corresponding guarded <<Action>> is performed. At the end of which the lock on the shared resource is released and the <<SyncAction>> is completed.
+\item If the guard is not satisfied, then the next <<SyncGuard>> is considered.
+\end{itemize}
+\item If no remaining <<SyncGuard>> exists; the lock on the shared resource is released, the <<SyncAction>> is suspended, and a new attempt on a lock on the shared resource will be made after another thread has successfully acquired and released the lock. At which point, execution of the <<SyncAction>> will be restarted.
+\end{enumerate}
+
+\begin{aside}
+This is equivalent to the `monitor' exclusion pattern for controlling access to shared resources.
+\end{aside}
+
+\begin{aside}
+The `sync` action is a fairly low-level mechanism. It can be difficult to use `sync` actions to achieve high performance. However, it can be used to build higher-level mechanisms such as semaphores and atomic transactions. For example, Program~\vref{semaphoreProg} shows how a semaphore can be implemented in terms of the `sync` action.
+%
+%We recommend using the `atomic` action (see <<atomicAction>>) as an alternative easier-to-use mechanism for most regular scenarios.
+\end{aside}
+\begin{program}
+[listing]
+semaphore(Count) is \{
+  private var Lvl := Count;
+
+  grab() do \{
+    sync(this)\{
+      when Lvl>0 do \{
+        Lvl := Lvl-1;
+      \}
+    \};
+  \};
+
+  release() do \{
+    sync(this)\{
+      Lvl := Lvl+1;
+    \}
+  \}
+\}
+
+.A Semaphore Generating Function[[semaphoreProg]]
+\end{program}
+
+==== Type Safety
+\begin{prooftree}
+\AxiomC{\typeprd{E}{_S_}{_t_}}
+\AxiomC{\typesafe{E}{_Action_}}
+\BinaryInfC{\typesafe{E}{`sync(`_S_`)\{`_Action_`\`}}}
+\end{prooftree}
+
+%== Transactional Isolation of Concurrent Threads
+%[[transaction]]
+
+
+
+%=== Atomic Actions
+%[[atomicAction]]
+%(((atomic actions)))
+%(((transactions)))
+%
+%An `atomic` action performs its argument action in a way that is _atomic_ with respect to other parallel activities -- such as those `spawn`ed off. In particular, other threads cannot see any changes to variables, or any speech actions that are performed, until the `atomic` action is completed.
+%
+%\begin{figure}[htbp]
+%\begin{eqnarray*}
+%[[AtomicAction]]AtomicAction::=`atomic`\ _Action_
+%\end{eqnarray*}
+%.Atomic Action[[atomicSyntaxFig]]
+%\end{figure}
+%
+%`atomic` actions denote an equivalent of _transactions_. They are intended to support _isolation_ of side-effects between concurrent activities; and hence enable better management of interactions.
+%
+%==== Type Safety
+%
+%\begin{prooftree}
+%\AxiomC{\typesafe{E}{_Action_}}
+%\UnaryInfC{\typesafe{E}{`atomic`\ _Action_}}
+%\end{prooftree}

@@ -1,6 +1,6 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,
-        merge/3,intersect/3,subtract/3,replace/4,
-        collect/4,map/3,rfold/4,
+        merge/3,intersect/3,subtract/3,replace/4,filter/3,
+        collect/4,map/3,rfold/4,project0/2,project1/2,
         appStr/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,genstr/2,
         subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
         localName/4,
@@ -61,6 +61,22 @@ interleave([F|L],S,[F|M]) :-
 
 mixin([],_,[]).
 mixin([F|L],S,[S,F|M]) :- mixin(L,S,M).
+
+project0([],[]).
+project0([(E,_)|L],[E|K]) :-
+  project0(L,K).
+
+project1([],[]).
+project1([(_,E)|L],[E|K]) :-
+  project1(L,K).
+
+
+filter([],_,[]) :- !.
+filter([E|L],F,[E|M]) :-
+  call(F,E),!,
+  filter(L,F,M).
+filter([_|L],F,M) :-
+  filter(L,F,M).
 
 concatStrings(L,S) :-
   concStrings(L,S,"").

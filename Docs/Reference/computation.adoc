@@ -1,0 +1,426 @@
+%!TEX root = reference.tex
+= Computation Expressions
+[[computation]]
+Computation expressions are a special form of expression notation that permits computations to be performed in an augmented fashion. One standard example is the `task` expression -- see <<concurrent>> -- where the computations identified may be performed in parallel or asynchronously.
+
+The core concepts behind <<ComputationExpression>>s are captured in three contracts -- the  `computation` contract (see Program~\vref{computationContractProg}), the `execution` contract (see Program~\vref{executionContractProg}), and the `injection` contract (see Program~\vref{injectionContractProg}).
+
+There is a standard transformation of <<ComputationExpression>>s into uses of these contracts. An expression may be _encapsulated_ as a computation, <<ComputationExpression>>s may be _combined_ and they may be _performed_ in order to access the value computed.
+
+The `augmentation' of a <<ComputationExpression>> depends on the mode of the expression -- its monad type. For example, the `task` expression allows computations to be interleaved and executed in parallel on a suitable processor. `task` expressions and general concurrency are covered in detail in <<concurrent>>.
+
+\begin{aside}
+The <<ComputationExpression>> and the `computation` contract have an analogous relationship as Haskell's Monad class and it's `do` notation. However, the `computation` contract is not identical to the Monad class.
+\end{aside}
+
+== The `computation` contract
+[[computationContract]]
+The `computation` contract defines two key concepts: the `encapsulation' of an expression as a computation that leads to the value of that expression; and the `combination' of two computations.
+
+
+\begin{program}
+[listing]
+contract (computation) over m determines e is {
+  _encapsulate has type for all t such that (t)=>m of t
+  _combine has type for all s,t such that
+      (m of s,(s)=>m of t)=>m of t
+  _abort has type for all t such that (e)=>m of t
+  _handle has type for all t such that
+      (m of t,(e)=>m of t)=>m of t
+  _delay has type for all t such that (()=>m of t)=>m of t
+  _delay(F) default is _combine(_encapsulate(()),(_) => F())
+}
+
+.The Standard `computation` Contract[[computationContractProg]]
+\end{program}
+
+\begin{aside}
+The name of the contract -- `(computation)` -- is parenthesized in Program~\vref{computationContractProg} and in other references to the contract. This is required because `computation` is the operator used to signal a <<ComputationExpression>>.
+\end{aside}
+
+\begin{aside}
+The `\_encapsulate` function corresponds to the Monad `return`; and the `\_combine` function corresponds to Monad `bind`. `\_abort` corresponds to `fail`. However, the `\_handle` and `\_delay` functions do _not_ typically appear in Monads.
+\end{aside}
+
+The higher-kinded type variable `c` mentioned in the `computation` contract denotes the Monad of the <<ComputationExpression>>. The computation type involving `c` has a single argument -- which is used to denote the value associated with the <<ComputationExpression>>s. For example, `task of integer` is the type of a `task` expression whose value is an `integer`.
+
+=== `\_encapsulate` -- encapsulate a computation value
+[[encapsulateFunction]]
+(((computation contract@`computation` contract,_encapsulate@`\_encapsulate`)))
+`\_encapsulate` is part of the standard `computation` contract.
+[listing]
+\_encapsulate has type for all m,t,e such that (t)=>m of t
+                       where (computation) over m determines e
+
+The `\_encapsulate` function is used to encapsulate a value into a computation that has the value as its value. I.e., the `\_encapsulate` function is at the core of providing the additional indirection between values and computations returning those values.
+
+\begin{aside}
+If a computation has no value associated with it then `\_encapsulate` should be invoked with the empty tuple -- `()`.
+\end{aside}
+
+=== `\_combine` -- combine two computation values
+[[combineFunction]]
+(((computation contract@`computation` contract,_combine@`\_combine`)))
+`\_combine` is part of the standard `computation` contract.
+[listing]
+\_combine has type for all m,s,t,e such that (m of s, (s)=>m of t)=>m of t
+                   where (computation) over m determines e
+
+The `\_combine` function constructs a new computation value by applying a transforming function to an existing computation value. Typically, the transforming function represents the `next step' in the computation.
+
+=== `\_abort` -- abort a computation
+[[abortFunction]]
+(((computation contract@`computation` contract,_abort@`\_abort`)))
+`\_abort` is part of the standard `computation` contract.
+[listing]
+\_abort has type for all m,t,e such that (e)=>m of t
+                 where (computation) over m determines e
+
+
+The `\_abort` function is used to represent a failed computation. `\_abort` takes a single argument -- of type `e` -- and returns a computation value.
+
+\begin{aside}
+Normally, the `\_abort` implementation will wrap the `e` value in a way that a subsequent `\_handle` or `\_perform` can leverage.
+\end{aside}
+
+When an `\_abort`ed computation is `\_perform`ed; the abort handler function will be  invoked with the value passed in to `\_abort`.
+
+=== `\_handle` -- handle an aborted computation
+[[handleFunction]]
+(((computation contract@`computation` contract,_handle@`\_handle`)))
+`\_handle` is part of the standard `computation` contract.
+[listing]
+\_handle has type for all m,t,e such that
+                  (m of t, (e)=>m of t) => m of t
+                  where (computation) over m determines e
+
+
+The `\_handle` function is used to potentially recover from a failed computation -- while continuing the computation. If the first argument to `\_handle` represents an aborted computation, then the second argument -- a handler function -- is invoked with the exception. It is the responsibility of this handler function to either recover from the exception or to propagate the exception.
+
+=== `\_delay` -- construct a delayed computation
+[[delayFunction]]
+(((computation contract@`computation` contract,_delay@`\_delay`)))
+`\_delay` is part of the standard `computation` contract.
+[listing]
+\_delay has type for all m,t,e such that (()=>m of t)=>m of t
+                 where (computation) over m determines e
+
+The `\_delay` function constructs a new `delayed' computation value. It is used in the construction of <<ComputationExpression>>s -- at the top level -- to ensure that <<ComputationExpression>>s are evaluated at the appropriate time.
+
+The `\_delay` function has a default implementation -- which may be used in case that a particular implementation of `computation` does not require a specific implementation. The default implementation is:
+[listing]
+_delay(F) default is _combine(_encapsulate(()),(_) => F())
+
+
+== The `execution` Contract
+[[execution]]
+
+The `execution` contract has a single function defined in it -- encapsulating the concept of performing a computation.
+
+\begin{program}
+[listing]
+contract execution over m is \{
+  _perform has type for all t,e such that (m of t) => t;
+\}
+
+.The Standard `execution` Contract[[executionContractProg]]
+\end{program}
+
+=== `\_perform` -- dereference a computation value
+[[performFunction]]
+(((execution contract@`execution` contract,_perform@`\_perform`)))
+`\_perform` is part of the standard `execution` contract.
+[listing]
+\_perform has type for all m,t,e such that (m of t)=>t
+                   where (computation) over m
+
+The `\_perform` function is used to `extract' the value of a computation. As such it is the natural inverse to the `\_encapsulate` function.
+
+If the computation fails, then, typically, an exception will be raised -- see <<exceptionType>>.
+
+\begin{aside}
+The standard monad does _not_ include the equivalent of a `\_perform`. One reason being that not all encapsulation functions have an inverse.
+\end{aside}
+
+== The `injection` Contract
+[[injection]]
+
+The `injection` contract refers to the `injection' of one computation into another. This occurs most often when a <<ComputationExpression>> contains a `perform` action. Such an action represents an `injection' of the inner performed monad into the outer monad.
+
+\begin{program}
+[listing]
+contract injection over (m,n) is \{
+  \_inject has type for all t such that (m of t)=>n of t;
+\}
+
+.The Standard `injection` Contract[[injectionContractProg]]
+\end{program}
+
+The `injection` contract is a multi-type contract. I.e., implementations of the `injection` contract necessarily mention two types: the source Monad and the destination Monad.
+
+=== `\_inject` -- inject one computation into another
+[[injectFunction]]
+(((injection contract@`injection` contract,_inject@`\_inject`)))
+`\_inject` is part of the standard `injection` contract.
+[listing]
+\_inject has type for all m,n,t such that (m of t)=>n of t
+                  where injection over (m,n)
+
+The `\_inject` function is used to migrate a computation from one monad to another.
+
+There are two primary requirements for the `\_inject` function: a normal computation must be migrated as a normal computation in the target monad; and an aborted computation must be represented as an aborted computation.
+
+In addition to implementing injection in a pairwise manner between monads, it is advisable to implement null-ary `self injection' -- i.e., to and from the same monad.
+
+=== Monadic Laws
+[[monadicAxioms]]
+Additionally to the type signatures of the functions defined in the `computation` contract, <<ComputationExpression>>s depend on some additional properties of any implementations of the contract.
+\begin{aside}
+These laws are assumed -- they cannot be verified by the compiler. In particular, if the `computation` contract is implemented for a user-defined type, then the `implementation` must respect the laws identified here.
+\end{aside}
+
+The first law relates the `\_encapsulate` and the `\_combine` functions. Specifically, if we combine an `\_encapsulate` with a `\_combine` the value is the same as applying the encapsulated value to the combining function:
+\[\begin{array}{rcl}
+`\_combine(\_encapsulate(X),F)`&=&`F(X)`
+\end{array}\]
+
+The second law is the complement, combining with encapsulation itself leaves the result alone:
+\[\begin{array}{rcl}
+`\_combine(X,\_encapsulate)`&=&`X`
+\end{array}\]
+
+The third law expresses the associativity of `\_combine`:
+\[\begin{array}{rcl}
+`\_combine(X, (U) => combine(F(U),G))`&=&`\_combine(\_combine(X,F),G)`
+\end{array}\]
+
+The abort law expresses the meaning of `\_abort`:
+\[\begin{array}{rcl}
+`\_combine(\_abort(E),\_)`&=&`\_abort(E)`
+\end{array}\]
+I.e., once a computation is aborted, then it effectively stops -- unless it is handled.
+
+The handle law expresses how aborted computations may be recovered from:
+\[\begin{array}{rcl}
+`\_handle(\_abort(E),F)`&=&`F(E)`\\
+`\_handle(\_encapsulate(X),\_)`&=&`\_encapsulate(X)`
+\end{array}
+\]
+`Handling' an encapsulated computation -- i.e., a normal non-aborted computation -- has no effect.
+
+== Computation Expression Semantics
+
+
+== The `action` Monad
+[[actionMonad]]
+
+The `action` type may be used to represent normal actions as <<ComputationExpression>>s. The `action` type is defined in Program~\vref{actionTypeProg}.
+
+\begin{program}
+[listing]
+type action of t is
+     _delayed(()=>action of t)
+  or _aborted(exception)
+  or _done(t);
+
+.The `action` Contract[[actionTypeProg]]
+\end{program}
+
+The different constructors in the `action` type are intended to represent the three `phases' of an action computation: `\_done` denotes a completed computation, `\_delayed` represents a suspended computation and `\_aborted` denotes a failed computation.
+
+The standard implementations of the `computation`, `execution` and the nullary implementation of the `injection` contract are shown in Program~\vref{actionImplementationProgram}.
+
+\begin{program}
+[listing]
+implementation (computation) over action determines exception is {
+  _encapsulate(V) is _done(V);
+  _abort(E) is _aborted(E);
+  _handle(A,H) is runCombo(A,_encapsulate,H)
+  _combine(A,C) is _delayed(()=>runCombo(A,C,_abort))
+  _delay(F) is _delayed(F);
+}
+implementation execution over action determines exception is {
+  _perform(A,H) is runCombo(A,id,H)
+};
+implementation injection over (action,action) is {
+  _inject(C) is C;
+}
+private
+runCombo(_delayed(D),C,H) is runCombo(D(),C,H)
+ |  runCombo(_done(X),C,_) is C(X)
+ |  runCombo(_aborted(E),_,H) is H(E)
+
+.Implementation of Standard `execution` Contracts for the `action` Monad[[actionImplementationProgram]]
+\end{program}
+
+== Computation Expressions
+[[computationExpression]]
+
+A <<ComputationExpression>> is a special syntax for writing expressions involving the various computation contracts. The compiler will automatically translate <<ComputationExpression>>s into appropriate combinations of the functions in the `computation`, `execution` and `injection` contracts.
+
+A <<ComputationExpression>> consists of an <<ActionBlock>>; i.e., a sequence of <<Action>>s preceded by the `computation` keyword and the name of a generic unary type -- as defined in <<computationExpressionFig>>.
+
+\begin{figure}[H]
+\begin{eqnarray*}
+_Expression_&\arrowplus&<<ComputationExpression>>\\
+[[ComputationExpression]]ComputationExpression::=<<Identifier>>\ `computation`\ `\{`\ <<Action>>\sequence{;}<<Action>>`\`}\end{eqnarray*}
+.Computation Expression
+[[computationExpressionFig]]
+\end{figure}
+
+The type identified in the <<ComputationExpression>> must implement the `computation` contract. For example, the `maybe` type:
+[listing]
+type maybe of \%t is possible(\%t) or impossible(exception)
+
+might have the implementation defined in Program~\vref{maybeProgram} for the `computation` contract.
+
+\begin{program}
+[listing]
+implementation (computation) over maybe determines exception is {
+  _encapsulate(X) is possible(X);
+  _combine(possible(S),F) is F(S);
+   |  _combine(impossible(R),_) is impossible(R);
+  _abort(Reason) is impossible(Reason);
+  _handle(M matching possible(_),_) is M;
+   |  _handle(impossible(E),F) is F(E);
+}
+
+.Implementing the  `computation` contract for `maybe`[[maybeProgram]]
+\end{program}
+
+Given such a definition, we can construct `maybe` <<ComputationExpression>>s, such as in the function `find` in:
+[listing]
+find(K,L) is maybe computation \{
+  for (KK,V) in L do\{
+    if K=KK then
+      valis V;
+  \};
+  raise "not found";
+\};
+
+
+Note that the `find` function does _not_ directly look for a value in a sequence. The value of a call to `find` is a computation that, when evaluated, will return the result of looking for a value.
+
+=== Accessing the value of a computation expression
+Where the <<ComputationExpression>> notation is used to construct a computation; the `valof` form is used to access the value denoted.
+
+There are two variations of `valof` expressions, outlined in <<valofFig>>.
+
+\begin{figure}[hbtp]
+\begin{eqnarray*}
+_Expression_&\arrowplus&<<ValofComputation>>\\
+[[ValofComputation]]ValofComputation::=`valof`\ <<Expression>>\\
+&nbsp;&nbsp;| `valof`\ <<Expression>>\ `on abort`\ <<CaseActionBody>>
+\end{eqnarray*}
+.Valof computation expression
+[[valofFig]]
+\end{figure}
+
+The first form simply accesses the value associated with the computation -- and assumes that it was successful. For example, given a list:
+[listing]
+M is list of [(1,"alpha"), (2,"beta"), (3,"gamma"), (4,"delta")];
+
+then the expression:
+[listing]
+valof find(2,MM)
+
+will have value
+[listing]
+"beta"
+
+
+The second form uses an `on abort` handler to cope with reported failure in the <<ComputationExpression>>. For example, the expression:
+[listing]
+valof ff(5,MM) on abort \{ exception(_,E cast string,_) do valis E \}
+
+will have value the string `"not found"`.
+
+=== Performing a computation
+[[performComputation]]
+The <<PerformComputation>> is the analog of <<ValofComputation>> where the computation is an action that does not have a return value.
+
+\begin{figure}[hbtp]
+\begin{eqnarray*}
+_Action_&\arrowplus&<<PerformComputation>>\\
+[[PerformComputation]]PerformComputation::=`perform`\ <<Expression>>\\
+&nbsp;&nbsp;| `perform`\ <<Expression>>\ `on abort`\ <<ActionCaseBody>>
+\end{eqnarray*}
+.Perform Computation Action
+[[performFig]]
+\end{figure}
+
+The `perform` action is used when an action -- typically in a sequence of actions -- is the performance of a <<ComputationExpression>>.
+
+\begin{aside}
+The type of computation being `perform`ed _does not_ have to be the same as the performing computation. For example, it is permissible to mix `task` computations with `maybe` computations:
+[listing]
+TT is task\{
+  perform ff(5,MM)
+\}
+
+Note that, as with all actions, any value returned by the performed computation is discarded.
+\end{aside}
+
+\begin{aside}
+`perform` within a <<ComputationExpression>> denotes a use of the `\_inject` function. I.e., the `perform`:
+[listing]
+perform ff(5,MM)
+    on abort \{ exception(_,E case string,_) do logMsg(info,E) \}
+
+is represented by the expression:
+[listing]
+\_inject(ff(5,MM), (E) => valof\{ logMsg(info,E); valis () \})
+
+The normal overloading rules will ensure that the appropriate implementation of injection between monads is invoked.
+\end{aside}
+
+=== Handling Failure
+[[failAction]]
+
+When a computation should _fail_ instead of succeeding normally, the <<AbortAction>> is used to signal the failure. The failure itself is handled using an
+The <<OnAbort>> action is used to handle a failed (i.e., `\_abort`ed) computation -- while continuing the <<ComputationExpression>> itself.
+
+\begin{figure}[hbtp]
+\begin{eqnarray*}
+_Action_&\arrowplus&<<OnAbort>>\\
+[[OnAbort]]OnAbort::=`try`\ <<Action>>\ `on abort`\ <<ActionCaseBody>>
+\end{eqnarray*}
+.Abort Handler Action
+[[failHandleFig]]
+\end{figure}
+
+The `on abort` action is used to recover from a failed computation, specifically from an <<AbortAction>>. The <<ActionCaseBody>> is a rule that matches the failure and performs appropriate recovery action. For example, the action in:
+[listing]
+task\{
+  try P(X) on abort \{ E do logMsg(info,"exceptional \$E") \}
+\}
+
+calls the procedure `P`; but if that results in an abort, then the abort handler is entered with the variable `E` being matched against the exception.
+
+The type of the exception variable is the determined type from the `computation` contract.
+
+It is equivalent to a call of the contract function `\_handle`. I.e., the above action is equivalent to:
+[listing]
+\_handle(P(X),
+         (E) => valof \{ logMsg(info,"exceptional \$E"); valis () \})
+
+
+=== `action` Expressions
+[[actionExpression]]
+A basic variant of the <<ComputationExpression>> is the `action` expression. `action` expressions take the form:
+[listing]
+action\{ <<Action>>\sequence{;}<<Action>> \}
+
+which is shorthand for:
+[listing]
+action computation \{ <<Action>>\sequence{;}<<Action>> \}
+
+
+\begin{aside}
+There is a strong connection between `action` expressions and <<ValueExpression>>s. In particular, we have the equivalence:
+\[\begin{array}{rcl}
+`valof\{` <<Action>>\sequence{;}<<Action>>`\`}&=&`valof action\{`<<Action>>\sequence{;}<<Action>>`\`}
+\end{array}
+\]
+However, a crucial distinction between `action` expressions and <<ValueExpression>>s is that the former may be manipulated and combined in addition to the value being determined.
+\end{aside}

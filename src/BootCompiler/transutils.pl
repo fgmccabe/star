@@ -107,9 +107,10 @@ makeImportsMap([Import|Rest],Map,Mx) :-
   makeImportsMap(Rest,M0,Mx).
 makeImportsMap([],Map,Map).
 
-makeImportMap(import(_,pkg(Pkg,_),faceType(Fields),_,Enums,_,Impls),Map,Mx) :-
+makeImportMap(import(_,pkg(Pkg,_),faceType(Fields,Types),_,Enums,_,Impls),Map,Mx) :-
   importFields(Pkg,Enums,Fields,Map,M0),
-  importImplementations(Impls,M0,Mx).
+  importImplementations(Impls,M0,M1),
+  importTypes(Types,M1,Mx).
 
 importFields(_,_,[],Map,Map).
 importFields(Pkg,Enums,[(Nm,Tp)|Fields],Map,Mx) :-
@@ -124,7 +125,7 @@ importImplementations([imp(Nm,Con)|L],[(Nm,moduleImpl(Nm,Struct))|M],Mx) :-
   contractStruct(Ar,Nm,Struct),
   importImplementations(L,M,Mx).
 
-contractArity(univType(_,Con),Ar) :- contractArity(Con,Ar).
+contractArity(allType(_,Con),Ar) :- contractArity(Con,Ar).
 contractArity(constrained(Con,_),Ar) :- contractArity(Con,A), Ar is A+1.
 contractArity(_,0).
 
@@ -135,13 +136,13 @@ makeImportEntry(funType(A,_),_,Pkg,Nm,[(Nm,moduleFun(Pkg,LclName,AccessName,Clos
   localName(Pkg,"@",Nm,LclName),
   localName(Pkg,"%",Nm,AccessName),
   localName(Pkg,"^",Nm,ClosureName),
-  length(A,Ar),
+  typeArity(A,Ar),
   Arity is Ar+1.
 makeImportEntry(grammarType(A,_),_,Pkg,Nm,[(Nm,moduleRel(Pkg,LclName,AccessName,ClosureName,Arity))|Mx],Mx) :-
   localName(Pkg,"@",Nm,LclName),
   localName(Pkg,"%",Nm,AccessName),
   localName(Pkg,"^",Nm,ClosureName),
-  length(A,Ar),
+  typeArity(A,Ar),
   Arity is Ar+2.
 makeImportEntry(_,Enums,Pkg,Nm,[(Nm,moduleClass(LclName,AccessName,0))|Mx],Mx) :-
   is_member(Nm,Enums),!,

@@ -1,0 +1,253 @@
+%!TEX root = reference.tex
+= Variables
+[[variables]]
+
+(((variable)))
+(((expressions,variable)))
+
+A <<Variable>> is a placeholder that denotes a value. Variables may be used to denote many kinds of values -- arithmetic values, complex data structures and programs.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Variable]]Variable::=<<Identifier>>
+\end{eqnarray*}
+\vskip-1.5ex.Variables[[variableFig]]
+\end{figure}
+
+\begin{aside}
+Any given variable has a single type associated with it and may only be bound to values of that type. footnote:[We sometimes informally refer to a variable being `bound' to a value X (say). This means that the value associated with the variable is X.]
+\end{aside}
+
+Variables have a `scope' -- a syntactic range over which they are defined. Variables can be said to be `free' in a given scope -- including functions that they are referenced within.
+
+Variables can be classified into `single-assignment' variables (variables that denote values and are therefore not reassignable) and `re-assignable' variables. The latter have a different type signature that signals the re-assignable property.
+
+== Variable Declaration
+[[VariableDeclaration]]
+(((variable,declaration of)))
+
+A <<VariableDeclaration>> is a <<Definition>> or an <<Action>> that explicitly denotes the declaration of a variable. <<VariableDeclaration>>s may appear in <<thetaEnvironment>>s and <<Action>>s.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[VariableDeclaration]]VariableDeclaration::=`def`<<Pattern>>\ `is`\ <<Expression>>\\
+&nbsp;&nbsp;| `var`\ <<Identifier>>\ `:=`\ <<Expression>>
+\end{eqnarray*}
+.Variable Declaration[[variableDeclarationFig]]
+\end{figure}
+
+(((single assignment variable)))
+The left-hand side of a single assignment declaration may be a _Pattern_. This permits multiple variables to be declared in a single statement. This, in turn, facilitates the handling of functions that return more than one value.
+
+For example, assuming that `split` partitions a `list` into a front half and a back half, returning both in a 2-tuple, the declaration:
+[listing]
+def (L,R) is split(Lst)
+
+will bind the variables `L` and `R` to the front and back halves respectively.
+
+(((reassignable variable)))
+A re-assignable variable is declared using the form:
+[listing][mathescape=true]
+var $<<Variable>>$ := $<<Expression>>$
+
+
+\begin{aside}
+Unlike single assignment variable declarations, the re-assignable variable declaration is restricted to defining individual variables.
+\end{aside}
+
+\begin{aside}
+It is not possible to declare a variable without also giving it a value.
+\end{aside}
+
+=== Variable Scope
+[[scope]]
+\hypertarget{Scope}{}
+(((scope,variables, of)))
+(((variable scope)))
+
+In general, the scope of a variable extends to include the entire context in which it is declared. In the case of a variable declaration in a <<thetaEnvironment>>, the scope includes the entire <<thetaEnvironment>> and any associated bound element. In the case of an <<ActionBlock>> the scope extends from the action following the declaration through to the end of the enclosing <<ActionBlock>>.
+
+The precise rules for the scope of a variable are slightly complex but result in a natural interpretation for the scopes of variables:
+
+\begin{itemize}
+(((pattern)))
+\item Variables that are defined in patterns are limited to the element that is `naturally' associated with that pattern:
+\begin{itemize}
+\item Variables declared in the head pattern of an equation or other rule are scoped to that equation or rule.
+(((conditional expression)))
+(((expressions,conditional)))
+(((loop,for@`for`)))
+\item If a pattern governs a conditional expression or statement, variables declared in the pattern extend to the `then' part of the conditional but not to any `else' part.
+\item If a pattern governs a `for` loop, or a `while` loop, then variables declared in the pattern extend to the body of the loop. (See <<forLoop>> and <<whileLoop>>).
+\end{itemize}
+\item Variables that are defined in a <<Condition>> are bound by the scope of the <<Condition>>.
+\item Variables that are declared in a <<thetaEnvironment>> extend to all the  definitions in the <<thetaEnvironment>> and to any bound expression or action.
+\begin{aside}
+In particular, variables defined within a <<thetaEnvironment>> may be _mutually recursive_.
+\begin{aside}
+Note that it is _not_ permissible for a non-program variable to be involved in a mutually recursive group of variables. I.e., if a group of mutually recursive of variables occurs in a <<thetaEnvironment>> then all the variables must be bound to functions or other program elements.
+\end{aside}
+\end{aside}
+\item Variables that are `import`ed into a package body from another package extend to the entire body of the importing `package`.
+\item Variables that are declared in an <<ActionBlock>> extend from the end of their <<VarDeclaration>> to the end of the block that they are defined in. The scope of a variable does not include its <<VarDeclaration>>.
+
+It is not permitted for a variable to be declared more than once in a given action block.
+\end{itemize}
+
+=== Scope Hiding
+[[scopeHiding]]
+(((scope,hiding)))
+(((variable scope,hiding)))
+It is not permitted to define a variable with the same name as another variable that is already in scope. This applies to variables declared in patterns as well as variables declared in <<thetaEnvironment>>s.
+
+For example, the function:
+[listing]
+hider(X) is let{
+  def X is 1;
+} in X
+
+is _not_ permitted because there would be two `X` variables with overlapping scope.
+\begin{aside}
+The reason for this rule is that scope hiding can be extremely confusing. The meaning of `X` in the `hider` function is very likely to be misunderstood by programmers and by others reading the program. There could be long distances between a local declaration of a variable and the same variable occurring in an outer scope.
+\end{aside}
+
+== Re-assignable Variables
+[[reassignableVars]]
+
+(((variable,re-assignable)))
+Re-assignable variables serve two primary roles within programs: to hold and represent state and to facilitate several classes of algorithms that rely on the manipulation of temporary state in order to compute a result.
+
+In order to facilitate program combinations -- including procedural abstraction involving re-assignable variables -- there are additional differences between re-assignable variables and single-assignment variables.
+
+=== The `ref` Type
+[[refType]]
+(((ref type@`ref` type)))
+(((type,ref@`ref`)))
+Re-assignable variables have a distinguished type compared to single-valued variables. The type of a re-assignable variable takes the form:
+[listing][mathescape=true]
+ref $<<Type>>$
+
+rather than simply <<Type>>. For example, given the declaration:
+[listing]
+var Ix := 0
+
+the variable `Ix` has type `ref integer`; whereas the declaration:
+[listing]
+def Jx is 0
+
+results in the variable `Jx` having type `integer`.
+
+In addition to the different type, there are two operators that are associated with re-assignable variables: `ref` and `!` (pronounced _shriek_). The former is used in situations where a variable's name is intended to mean the variable itself -- rather than its value. The latter is the converse: where an expression denotes a reference value that must be `dereferenced'.
+
+=== Re-assignable Variables in Expressions
+[[referRef]]
+(((referring to re-assignable variables,in expressions)))
+There are two modes of referring to re-assignable variables footnote:[Here we automatically include local variables, theta variables and record fields in this discussion.] in expressions: to access the value of the variable and to access the variable itself. The primary reason for the latter may be to assign to the variable, or to permit a later assignment.
+
+By default, an undecorated occurrence of a variable denotes access to the variable's value. Thus, given a variable declaration:
+[listing]
+var Cx := 0
+
+then the reference to `Cx` in the expression:
+[listing]
+Cx+3
+
+is understood to refer to the value of the variable:
+[listing]
+!Cx+3
+
+This is formalized in the inference rule:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{V}{`ref `T}}
+\UnaryInfC{\typeprd{E}{V}{T}}
+\end{prooftree}
+
+If an expression is prefixed by the `ref` operator then this value interpretation is suppressed. I.e., if the expression has a `ref`erence type, then prefixing the expression with a `ref` suppresses this default `dereferencing' semantics:
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{V}{`ref `T}}
+\UnaryInfC{\typeprd{E}{`ref `V}{`ref `T}}
+\end{prooftree}
+
+In the case that it is necessary to manually dereference an expression, the `!` operator may be used to achieve that:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{Ex}{`ref `T}}
+\UnaryInfC{\typeprd{E}{`!`Ex}{T}}
+\end{prooftree}
+
+=== Re-assignable Variables in Patterns
+[[reVarInPattern]]
+(((referring to re-assignable variables,in patterns)))
+Patterns are used to introduce variables as well as to denote an implicit equality test. The semantics of re-assignable variables in patterns mirrors that of expressions: an undecorated reference to a re-assignable variable footnote:[It must be the case that there is a prior declaration or introduction of the variable that denotes it as re-assignable.] it understood to refer to the value of the variable.
+
+A pattern of the form:
+[listing][mathescape=true]
+ref $<<Identifier>>$
+
+is understood to refer to the introduction of a re-assignable variable.
+
+For example, the procedure definition head:
+[listing]
+prc assign(ref X,V) do X:=V
+
+introduces the variable `X` as a re-assignable variable.
+\begin{aside}
+When used in patterns of procedures (or other program rules), `ref`erence arguments _must_ be accompanied by `ref` expressions when the procedure is called. Thus, the `assign` procedure can be called only by explicitly `ref`erring to a variable:
+[listing]
+assign(ref X,34)
+
+\begin{aside}
+This example shows that it is straightforward to abstract over assignment when designing procedures.
+\end{aside}
+\end{aside}
+The type of a `ref` pattern is also a `ref` type:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{V}{T}}
+\UnaryInfC{\typeprd{E}{`ref `V}{`ref `T}}
+\end{prooftree}
+\begin{aside}
+The type of the `assign` procedure above is:
+[listing]
+for all t such that (ref t,t)=>()
+
+\end{aside}
+
+== Variable Assignment
+[[variableAssignment]]
+(((assignment to variables)))
+(((variables,assignment to)))
+
+Assignment is an action that replaces the value of a re-assignable variable with another value. The variable being re-assigned must have a `ref` type -- there is no `implicit' assignability of a variable or field.
+
+Assignment is defined in <<assignment>>.
+
+=== Modifying Fields of Records
+[[fieldModify]]
+Assignability of variables does _not_ automatically imply that the value of the variable is itself modifiable. Thus, given a variable declaration such as:
+[listing]
+var P := someone{ name="fred"; age=23 }
+
+the assignment:
+[listing]
+P.age := 24
+
+is not valid -- because, while we can assign a new value to `P`, that does not confer an ability to modify the value that `P` has.
+
+However, by marking a _field_ of a record type as a `ref` type, then we _can_ change that field of the record. Thus, for example, if the type of `person` were:
+[listing]
+type person is person{
+  name has type string;
+  age has type ref integer;
+}
+
+then the assignment:
+[listing]
+P.age := 24
+
+is valid.
+\begin{aside}
+Note that one may change a suitably declared field of a record even when the variable 'holding' the record it not itself re-assignable.
+[listing]
+P is someone{ name="fred"; age := 23 }
+
+I.e., re-assignability depends only on whether the target is re-assignable.
+\end{aside}

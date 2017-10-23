@@ -6,6 +6,7 @@
 #include <stringBuffer.h>
 #include "trie.h"
 #include "ooio.h"
+#include "formioP.h"
 #include "template.h"
 
 /* Generate a Python module or Star package, that knows about the standard operators */
@@ -15,6 +16,7 @@ static void genPrefix(hashPo operators, char *op, int prior, int right, char *cm
 static void genPostfix(hashPo operators, char *op, int left, int prior, char *cmt);
 static void genToken(char *op, char *cmt);
 static retCode procEntries(void *n, void *r, void *c);
+static retCode genPrologStr(ioPo f, void *data, long depth, long precision, logical alt);
 
 #undef lastOp
 #define lastOp sep = "\t";
@@ -46,7 +48,7 @@ static char *pC(char *buff, long *ix, char c) {
 }
 
 enum {
-  genPython, genProlog, genStar
+  genProlog, genStar
 } genMode = genProlog;
 
 typedef struct {
@@ -75,9 +77,6 @@ int getOptions(int argc, char **argv) {
       case 'p':
         genMode = genProlog;
         break;
-      case 'y':
-        genMode = genPython;
-        break;
       case 'c':
         genMode = genStar;
         prefix = optarg;
@@ -97,37 +96,16 @@ typedef struct {
   char last[MAXLINE];
 } FollowCl;
 
-static void dumpFollows(char *K, void *V, void *cl) {
+static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
   FollowCl *c = (FollowCl *) cl;
 
-  char *prefix = (char *) calloc(sizeof(char), strlen(K));
-  for (int ix = 0; ix < strlen(K) - 1; ix++)
-    prefix[ix] = K[ix];
-  char last = K[strlen(K) - 1];
-  char b1[32], b2[32], b3[32];
-
-  pS(&b1[0], prefix);
-  long ix = 0;
-  pC(b2, &ix, last);
-  pS(b3, K);
-
   switch (genMode) {
-    case genPython:
-      if (uniCmp(prefix, c->last) != same) {
-        uniCpy(c->last, NumberOf(c->last), prefix);
-        outMsg(c->out, "%s    '%s': {'%s': '%s'", c->sep, b1, b2, b3);
-        c->sep = "},\n";
-      } else {
-        outMsg(c->out, ", '%s': '%s'", b2, b3);
-      }
-      break;
     case genProlog:
-      outMsg(c->out, "  follows('%s','%s','%s').\n", b1, b2, b3);
+      outMsg(c->out, "  follows('%P','%#c','%P%#c').\n", prefix, last, prefix, last);
       break;
     case genStar:
       break;
   }
-
 }
 
 static void genFollows(ioPo out) {
@@ -136,19 +114,14 @@ static void genFollows(ioPo out) {
   outMsg(out, "%s", cl.sep);
 }
 
-static void dumpFinal(char *K, void *V, void *cl) {
+static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
   tokenPo op = (tokenPo) V;
   ioPo out = (ioPo) cl;
-  char b1[32], b2[32];
 
   if (op != NULL) {
     switch (genMode) {
-      case genPython:
-        outMsg(out, "'%#s', ", op->name);
-        break;
-
       case genProlog:
-        outMsg(out, "  final('%s',\"%s\").\t /* %s */\n", pS(b1, K), pS(b2, op->name), op->cmt);
+        outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix,last, op->name, op->cmt);
         break;
       case genStar:
         break;
@@ -170,6 +143,7 @@ logical isAlphaNumeric(char *p) {
 
 int main(int argc, char **argv) {
   initTries();
+  installMsgProc('P', genPrologStr);
   int narg = getOptions(argc, argv);
 
   if (narg < 0) {
@@ -227,9 +201,8 @@ int main(int argc, char **argv) {
     genFinal(O_IO(finalBuff));
     hashPut(vars, "Final", getTextFromBuffer(&len, finalBuff));
 
-    processTemplate(out, plate, vars, NULL, NULL);
+    retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 
-    flushFile(out);
     closeFile(out);
     exit(0);
   }
@@ -294,15 +267,6 @@ static void genPostfix(hashPo operators, char *op, int left, int prior, char *cm
 
 static retCode procOper(ioPo out, char *sep, opPo op) {
   switch (genMode) {
-    case genPython:
-      switch (op->style) {
-        case prefixOp:
-          return outMsg(out, "%sPrefixOp(%d, %d)", sep, op->prior, op->right);
-        case infixOp:
-          return outMsg(out, "%sInfixOp(%d, %d, %d)", sep, op->left, op->prior, op->right);
-        case postfixOp:
-          return outMsg(out, "%sPostfixOp(%d, %d)", sep, op->left, op->prior);
-      }
     case genProlog:
       switch (op->style) {
         case prefixOp:
@@ -326,11 +290,8 @@ static retCode procEntries(void *n, void *r, void *c) {
   char *sep = "";
 
   switch (genMode) {
-    case genPython:
-      ret = outMsg(out, "    '%#s': [", nm);
-      break;
     case genProlog:
-      ret = outMsg(out, "  operator(\"%#s\", [", nm);
+      ret = outMsg(out, "  operator(\"%P\", [", nm);
       break;
     default:
       break;
@@ -344,14 +305,82 @@ static retCode procEntries(void *n, void *r, void *c) {
 
   if (ret == Ok)
     switch (genMode) {
-      case genPython:
-        ret = outStr(out, "],\n");
-        break;
       case genProlog:
         ret = outStr(out, "]).\n");
         break;
       default:
         break;
     }
+  return ret;
+}
+
+static inline byte hxDgit(integer h) {
+  if (h < 10)
+    return (byte) (h | '0');
+  else
+    return (byte) (h + 'a' - 10);
+}
+
+static retCode quoteChar(ioPo f, codePoint ch) {
+  retCode ret;
+  switch (ch) {
+    case '\a':
+      ret = outStr(f, "\\a");
+      break;
+    case '\b':
+      ret = outStr(f, "\\b");
+      break;
+    case '\x7f':
+      ret = outStr(f, "\\d");
+      break;
+    case '\x1b':
+      ret = outStr(f, "\\e");
+      break;
+    case '\f':
+      ret = outStr(f, "\\f");
+      break;
+    case '\n':
+      ret = outStr(f, "\\n");
+      break;
+    case '\r':
+      ret = outStr(f, "\\r");
+      break;
+    case '\t':
+      ret = outStr(f, "\\t");
+      break;
+    case '\v':
+      ret = outStr(f, "\\v");
+      break;
+    case '\\':
+      ret = outStr(f, "\\\\");
+      break;
+    case '\"':
+      ret = outStr(f, "\\\"");
+      break;
+    default:
+      if (ch < ' ') {
+        ret = outChar(f, '\\');
+        if (ret == Ok)
+          ret = outChar(f, ((ch >> 6) & 3) | '0');
+        if (ret == Ok)
+          ret = outChar(f, ((ch >> 3) & 7) | '0');
+        if (ret == Ok)
+          ret = outChar(f, (ch & 7) | '0');
+      } else
+        ret = outChar(f, ch);
+  }
+  return ret;
+}
+
+retCode genPrologStr(ioPo f, void *data, long depth, long precision, logical alt) {
+  char *txt = (char *) data;
+  integer len = (integer)strlen(txt);
+  integer pos = 0;
+
+  retCode ret = Ok;
+  while (ret == Ok && pos<len){
+    codePoint cp = nextCodePoint(txt,&pos,len);
+    ret = quoteChar(f, cp);
+  }
   return ret;
 }

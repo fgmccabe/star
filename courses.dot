@@ -1,0 +1,17 @@
+digraph CC {
+  subgraph clusterWinter {
+    CSE100;
+  }
+  subgraph clusterSpring {
+    rank = same;
+    CSE101 -> CSE100;
+    CSE110 -> CSE100;
+    CSE130 -> CSE105;
+    CSE130 -> CSE100;
+  }
+  subgraph clusterFall2018 {
+    rank = same;
+    CSE120 -> CSE101;
+    CSE120 -> CSE110;
+  }
+}

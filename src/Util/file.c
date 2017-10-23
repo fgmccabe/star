@@ -122,6 +122,7 @@ void FileInit(objectPo o, va_list *args) {
   f->file.in_pos = 0;
   f->file.out_pos = 0;
   f->file.in_len = 0;
+  configureIo(f,turnOnBlocking);
   f->file.fno = va_arg(*args, int);             // set up the file number
   setEncoding(O_IO(f), va_arg(*args, ioEncoding));     // set up the encoding
   f->io.mode = va_arg(*args, ioDirection);

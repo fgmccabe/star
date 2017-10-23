@@ -610,30 +610,7 @@ static retCode quoteChar(ioPo f, codePoint ch, long *gaps) {
       (*gaps)--;
       break;
     default:
-      if (ch < ' ') {
-        ret = outChar(f, '\\');
-        if (ret == Ok)
-          ret = outChar(f, ((ch >> 6) & 3) | '0');
-        if (ret == Ok)
-          ret = outChar(f, ((ch >> 3) & 7) | '0');
-        if (ret == Ok)
-          ret = outChar(f, (ch & 7) | '0');
-        (*gaps) -= 4;
-      } else if (ch > 255) {
-        ret = outStr(f, "\\+");
-        if (ret == Ok)
-          ret = outChar(f, hxDgit((ch >> 12) & 0xf));
-        if (ret == Ok)
-          ret = outChar(f, hxDgit((ch >> 8) & 0xf));
-        if (ret == Ok)
-          ret = outChar(f, hxDgit((ch >> 4) & 0xf));
-        if (ret == Ok)
-          ret = outChar(f, hxDgit(ch & 0xf));
-        if (ret == Ok)
-          ret = outChar(f, ';');
-        (*gaps) -= 6;
-      } else
-        ret = outChar(f, ch);
+      ret = outChar(f, ch);
   }
   return ret;
 }
@@ -667,7 +644,7 @@ retCode outUniString(ioPo f, char *str, long len, long width, int precision,
       if (alt) {
         while (ret == Ok && len-- > 0) {
           char ch = *str++;
-          quoteChar(f, (codePoint) ch, &gaps);
+          ret = quoteChar(f, (codePoint) ch, &gaps);
         }
       } else
         ret = outText(f, str, len);
@@ -789,7 +766,11 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
             case 'c': {    /* Display an integer value as a char */
               codePoint i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
 
-              ret = outChar(f, i);
+              if (alternate) {
+                long gaps = 0;
+                ret = quoteChar(f, i, &gaps);
+              } else
+                ret = outChar(f, i);
               break;
             }
             case 'd': {    /* Display an integer value */

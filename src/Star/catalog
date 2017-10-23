@@ -1,5 +1,6 @@
 {
 	"content": {
+	  "cafe.d" : "d.star",
 		"lo": "lo.lo",
 		"lo.action" : "action.lo",
 		"lo.array": "arrays.lo",

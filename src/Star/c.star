@@ -1,4 +1,11 @@
 star.core {
+  public implementation all t ~~ equality[t] |: equality[option[t]] => {.
+    none == none => true.
+    some(X) == some(Y) => X==Y.
+    _ == _ => false.
+
+    hash(X) => optHash(X).
+  .}
 
   public all t ~~ option[t] ::= none | some(t).
 
@@ -15,16 +22,6 @@ star.core {
     hash(X) => _str_hash(X).
   }
 
-  public implementation all t ~~ equality[t] |: equality[option[t]] => {
-    X == Y => optEql(X,Y).
-    hash(X) => optHash(X).
-  }
-
-  optEql:all t ~~ equality[t] |: (option[t],option[t]) => logical.
-  optEql(none,none) => true.
-  optEql(some(X),some(Y)) => X==Y.
-  optEql(_,_) => false.
-
   optHash:all t ~~ equality[t] |: (option[t]) => integer.
   optHash(none) => 0.
   optHash(some(X)) => hash(X).
@@ -32,7 +29,7 @@ star.core {
   -- Not strictly necessary, but makes for better symmetry.
   public logical ::= true | false.
 
-  all t ~~ equality[t] |: person[t] ::= someOne{ name : t. spouse: option[person[t]]. assert spouse\==none}.
+  all t ~~ equality[t] |: person[t] ::= someOne{ name : t. spouse: option[person[t]]. assert spouse\==none}
 
   foo : string.
   foo = "".
@@ -41,4 +38,7 @@ star.core {
   fp = someOne{ name = foo. spouse = none. assert name == foo}
 
   assert fp.name == "".
+
+  id: all x ~~ (x)=>x.
+  id(X) => X.
 }

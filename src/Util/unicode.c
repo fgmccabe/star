@@ -22,7 +22,7 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
   integer pos = *start;
 
   if (pos < end) {
-    char b = src[pos++];
+    unsigned char b = (unsigned char) src[pos++];
 
     if (b <= 0x7f) {
       *code = (codePoint) b;
@@ -30,7 +30,7 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
       return Ok;
     } else if (UC80(b)) {
       if (pos < end) {
-        char nb = src[pos++];
+        unsigned char nb = (unsigned char)src[pos++];
         codePoint ch = (codePoint) (UX80(b) << 6 | UXR(nb));
 
         if (ch < 0x7ff) {
@@ -42,9 +42,9 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
       } else
         return Eof;
     } else if (UC800(b)) {
-      if (pos + 2 < end) {
-        char md = src[pos++];
-        char up = src[pos++];
+      if (pos + 1 < end) {
+        unsigned char md = (unsigned char)src[pos++];
+        unsigned char up = (unsigned char)src[pos++];
 
         codePoint ch = (codePoint) ((UX800(b) << 12) | (UXR(md) << 6) | (UXR(up)));
 

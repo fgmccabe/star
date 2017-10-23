@@ -770,13 +770,13 @@ trGoalDot(Rec,C,G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
 genClassMap(Map,Opts,Lc,LclName,Defs,Face,[lyr(LclName,List,Lc,LblGl,LbVr,ThVr,void)|Map],Entry,En,Ex,Exx) :-
   genVar("LbV",LbVr),
   genVar("ThV",ThVr),
-  pickAllFieldsFromFace(Face,Fields),
+  pickAllFieldsFromFace(Face,Fields,_),
   makeClassMtdMap(Defs,LclName,LbVr,ThVr,LblGl,[],L0,Fields,Map,Opts,Ex,Ex0),
   makeInheritanceMap(Defs,LclName,LbVr,ThVr,Map,Opts,L0,List,Fields,Entry,En,Ex0,Exx).
 
-pickAllFieldsFromFace(Tp,Fields) :-
+pickAllFieldsFromFace(Tp,Fields,Types) :-
   moveQuants(Tp,_,QTp),
-  moveConstraints(QTp,_,faceType(Fields)).
+  moveConstraints(QTp,_,faceType(Fields,Types)).
 
 makeClassMtdMap([],_,_,_,void,List,List,_,_,_,Ex,Ex).
 makeClassMtdMap([classBody(_,_,enum(_,_),Stmts,_,_)|Rules],LclName,LbVr,ThVr,LblGl,List,Lx,Fields,Map,Opts,Ex,Exx) :-
@@ -793,7 +793,7 @@ makeClassMtdMap([classBody(_,_,Hd,Stmts,_,_)|Rules],LclName,LbVr,ThVr,LblGl,List
   extraVars(Map,Extra),
   makeLblTerm(Lbl,Extra,LblTerm),
   makeClassMtdMap(Rules,LclName,LbVr,ThVr,_,L1,Lx,Fields,Map,Opts,Ex0,Exx).
-makeClassMtdMap([labelRule(_,_,_,_,_)|Rules],LclName,LbVr,ThVr,LblGl,List,L0,Fields,Map,Opts,Ex,Exx) :-
+makeClassMtdMap([labelRule(_,_,_)|Rules],LclName,LbVr,ThVr,LblGl,List,L0,Fields,Map,Opts,Ex,Exx) :-
   makeClassMtdMap(Rules,LclName,LbVr,ThVr,LblGl,List,L0,Fields,Map,Opts,Ex,Exx).
 makeClassMtdMap([implBody(_,enum(_,_),Stmts,_,_)|Rules],LclName,LbVr,ThVr,LblGl,List,Lx,Fields,Map,Opts,Ex,Exx) :-
   collectMtds(Stmts,LclName,LbVr,ThVr,List,L0,Fields),
@@ -822,7 +822,7 @@ makeInheritanceMap([classBody(_,_,_,_,_,_)|Defs],LclName,LbVr,ThVr,Map,Opts,List
 makeInheritanceMap([implBody(_,_,_,_,_)|Defs],LclName,LbVr,ThVr,Map,Opts,List,Lx,Fields,Entry,En,Ex,Exx) :-
   makeInheritanceMap(Defs,LclName,LbVr,ThVr,Map,Opts,List,Lx,Fields,Entry,En,Ex,Exx).
 makeInheritanceMap([labelRule(_,_,P,R,FaceTp)|Defs],LclName,LbVr,ThVr,Map,Opts,List,Lx,Fields,Entry,En,Ex,Exx) :-
-  pickAllFieldsFromFace(FaceTp,InhFields),
+  pickAllFieldsFromFace(FaceTp,InhFields,_),
   extraVars(Map,Extra),
   genVar("CV",CV),
   trPtn(P,Ptn,Extra,Q0,Body,Pre0,Pre0,Prx,Map,Opts,Ex,Ex0),
@@ -852,7 +852,6 @@ inheritClause(Name,Tp,Prefix,Super,[clse(Q,prg(Prefix,3),[cons(Con,Args),LbVr,Th
   trCons(Name,Arity,Con).
 
 fieldArity(Tp,Arity) :- isFunctionType(Tp,Ar), !, Arity is Ar+1.
-fieldArity(Tp,Arity) :- isPredType(Tp,Arity),!.
 fieldArity(Tp,Arity) :- isClassType(Tp,Ar), !, Arity is Ar+1.
 fieldArity(_,1).
 

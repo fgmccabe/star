@@ -3,12 +3,11 @@
 :- use_module(misc).
 :- use_module(types).
 
-displayPlRules(export(_,Imports,Fields,Types,Classes,Rules,Contracts,Impls)) :-
+displayPlRules(export(_,Imports,Fields,Classes,Rules,Contracts,Impls)) :-
   showImports(Imports,Chrs,O1),
-  showType(faceType(Fields),O1,O2),
+  showType(Fields,O1,O2),
   appStr(".\n",O2,O3),
-  showTypeDefs(Types,O3,O4),
-  showContracts(Contracts,O4,O5),
+  showContracts(Contracts,O3,O5),
   showClasses(Classes,O5,O6),
   showPlRules(Rules,O6,O7),
   showImpls(Impls,O7,[]),
@@ -22,13 +21,14 @@ showImports([I|More],O,Ox) :-
 
 showImport(import(Viz,pkg(Pkg,_),_,_,_,_,_),O,Ox) :-
   showViz(Viz,O,O1),
-  appStr(Pkg,O1,O2),
-  appStr(".\n",O2,Ox).
+  appStr("import ",O1,O2),
+  appStr(Pkg,O2,O3),
+  appStr(".\n",O3,Ox).
 
 showViz(private,O,Ox) :-
-  appStr("private import ",O,Ox).
+  appStr("private ",O,Ox).
 showViz(public,O,Ox) :-
-  appStr("public import ",O,Ox).
+  appStr("public ",O,Ox).
 
 showTypeDefs(L,O,Ox) :-
   listShow(L,plog:showTypeDef,"\n",O,Ox).

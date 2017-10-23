@@ -11,20 +11,19 @@ genRules(export(Pkg,Imports,Fields,Types,Enums,Rules,Contracts,Impls),Text) :-
   genPlRules(Rules,O1,[]),
   string_chars(Text,Chrs).
 
-genPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,O,Ox) :-
-  constructPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,Term),
+genPkgSig(Pkg,Imports,Fields,Enums,Contracts,Impls,O,Ox) :-
+  constructPkgSig(Pkg,Imports,Fields,Enums,Contracts,Impls,Term),
   appQuoted("#pkg",'''',O,O1),
   appStr("(",O1,O2),
   encodeTerm(Term,TChrs,[]),
   appQuoted(TChrs,'"',O2,O3),
   appStr(").\n",O3,Ox).
 
-constructPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,
-    tpl([PkgNm,tpl(Imps),FTps,TTps,tpl(ClsSigs),tpl(ConSigs),tpl(ImplSigs)])) :-
+constructPkgSig(Pkg,Imports,Fields,Enums,Contracts,Impls,
+    tpl([PkgNm,tpl(Imps),FTps,tpl(ClsSigs),tpl(ConSigs),tpl(ImplSigs)])) :-
   encPkg(Pkg,PkgNm),
   encImports(Imports,Imps),
-  encTypes(Fields,FTps),
-  encTypes(Types,TTps),
+  encType(Fields,FTps),
   formatEnums(Enums,ClsSigs),
   formatContracts(Contracts,ConSigs),
   formatImpls(Impls,ImplSigs).
@@ -42,10 +41,6 @@ encImports([I|M],[IP|L]) :-
 
 encImport(import(Viz,Pkg,_,_,_,_,_),cons(strct("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
-
-encTypes(Fields,strg(Sig)) :-
-  encodeType(faceType(Fields),Chars,[]),
-  string_chars(Sig,Chars).
 
 formatEnums([],[]).
 formatEnums([Nm|M],[strg(Nm)|R]) :-

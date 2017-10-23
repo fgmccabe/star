@@ -1,0 +1,57 @@
+= Star Language Definition
+Francis G. McCabe
+V1.0
+:doctype: book
+:stem:
+:sectnums:
+:sectlinks:
+
+:leveloffset: +1
+
+include::intro.adoc[]
+
+include::lexical.adoc[]
+
+include::grammar.adoc[]
+
+include::programs.adoc[]
+
+include::types.adoc[]
+
+include::expressions.adoc[]
+
+include::patterns.adoc[]
+
+include::actions.adoc[]
+
+include::conditions.adoc[]
+
+include::queries.adoc[]
+
+include::numbers.adoc[]
+
+include::string.adoc[]
+
+include::lists.adoc[]
+
+include::maps.adoc[]
+
+include::io.adoc[]
+
+include::json.adoc[]
+
+include::computation.adoc[]
+
+include::concurrent.adoc[]
+
+include::actors.adoc[]
+
+include::date.adoc[]
+
+include::parsing.adoc[]
+
+include::system.adoc[]
+
+include::macro.adoc[]
+
+:leveloffset: -1

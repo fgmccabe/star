@@ -1,0 +1,127 @@
+%!TEX root = reference.tex
+= System Functions
+[[systemFunctions]]
+
+== Time Functions
+[[timeFunctions]]
+(((time functions)))
+
+=== `nanos` -- Time since start
+[listing]
+nanos has type ()=>long
+
+
+The `nanos` function returns the number of nanoseconds since the application started.
+\begin{aside}
+Note that the returned time may not actually be accurate to the nearest nanosecond. The precise accuracy depends on the accuracy of the clock available to the operating system.
+\end{aside}
+\begin{aside}
+For long running applications, the `nanos` clock may `roll-over' after approximately 290 years.
+\end{aside}
+
+
+=== `sleep` -- Sleep for a period of time
+
+[listing]
+sleep has type (long)=>()
+
+The `sleep` action procedure causes the current activity to suspend for a specified number of milliseconds.
+\begin{aside}
+Other activities, in particular other `actor` activities will continue while this activity is suspended.
+\end{aside}
+
+== Logging
+An application may log output to standard logging facilities using the `logMsg` action procedure.
+
+=== `level` -- type
+(((level type@`level` type)))
+[[levelType]]
+
+The `level` type defines a set of logging levels that may be used to indicate the severity of the logged message.
+[listing]
+type level is finest
+  or finer
+  or fine
+  or config
+  or info
+  or warning
+  or severe;
+
+
+The different logging levels have an intended interpretation designed to facilitate users of applications manage the type and quantity of logging flow:
+\begin{description}
+finest:: is used for very fine grained logging, typically debugging.
+finer:: is used for fine grained logging.
+fine:: is used for reporting of internally significant events within an application.
+config:: is used to report application configuration events.
+info:: is used to report important application events.
+warning:: is used to report a recoverable error condition.
+severe:: is used to report an unrecoverable error.
+\end{description}
+
+=== `logMsg` -- log an event
+[[logMsg]]
+[listing]
+logMsg has type (level,string)=>()
+
+
+`logMsg` is similar to `logger`, except that the category is fixed to `com.starview.starrules`.
+
+For example, to log an `info` level message one can use
+[listing]
+logMsg(info,"You need a tune-up")
+
+
+== Shell Commands
+[[shellCommand]]
+
+The `exec` function allows a *Star* program to execute other processes and to access the return code from the sub-process.
+
+=== `exec` -- Execute Sub-Process
+[[exec]]
+(((exec@`exec`,sub-process)))
+(((sub-process execution)))
+
+The `exec` function executes a sub-process and returns the integer return code from running the command.
+
+[listing]
+exec has type (string,dictionary of (string,string))=>integer;
+
+
+The first argument is the command line to execute. The format of this, and the valid commands to execute, is system dependent.
+
+The second argument is a `dictionary` of environment variables and their values. If the dictionary is empty then the environment variables of the current program are inherited by the sub-process.
+
+The return value from executing the command is returned by `exec`. By convention, a return value of zero means that the command succeeded.
+
+\begin{aside}
+The `exec`'ed command is executed to completion _before_ the `exec` call returns. If it is desired to execute a sub-process asynchronously then use the `spawn` action:
+[listing]
+spawn\{ exec("ls -l", dictionary of \{\}) \}
+
+\end{aside}
+
+
+=== `getenv` -- Get Environment Variable
+[[getenv]]
+(((environment variable)))
+(((getenv@`getenv`,environment variable)))
+
+[listing]
+getenv has type (string,string)=>string
+
+
+Get the value of an environment variable. The first argument is the name of the variable, the second is a default value should the variable not exist.
+
+=== `exit` -- Terminate this Process
+[[exit]]
+(((exit@`exit` application)))
+
+The `exit` action procedure does not return. Instead, it results in the termination of the process performing the `exit`.
+
+
+[listing]
+exit has type (integer)=>()
+
+
+The argument of `exit` is used as the value of the process itself. An `exit` value of zero implies that the process terminated successfully.

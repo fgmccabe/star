@@ -49,13 +49,13 @@ encodeType(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeType(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(typeExp(T,Args),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeTypes(Args,O1,Ox).
-encodeType(funType(Args,Tp),['F'|O],Ox) :- encodeTypes(Args,O,O1), encodeType(Tp,O1,Ox).
+encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeType(ptnType(Args,Tp),['p'|O],Ox) :- encodeTypes(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeType(grammarType(Args,Tp),['G'|O],Ox) :- encodeTypes(Args,O,O1), encodeType(Tp,O1,Ox).
-encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeTypes(Args,O,O1), encodeType(Tp,O1,Ox).
+encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeType(tupleType(Args),['T'|O],Ox) :- encodeTypes(Args,O,Ox).
-encodeType(faceType(Fields),['I'|O],Ox) :- encodeFieldTypes(Fields,O,Ox).
-encodeType(univType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
+encodeType(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
+encodeType(allType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
 encodeType(constrained(Tp,Con),['|'|O],Ox) :- encodeType(Tp,O,O1),encodeConstraint(Con,O1,Ox).
 encodeType(typeExists(L,R),['Y'|O],Ox) :- encodeType(L,O,O1), encodeType(R,O1,Ox).
 
@@ -98,7 +98,7 @@ encodeFieldTypes(Fields,O,Ox) :- length(Fields,L), encodeInt(L,O,O1),encodeField
 encodeFieldTps([],O,O).
 encodeFieldTps([(Nm,Tp)|More],O,Ox) :- encodeText(Nm,O,O1),encodeType(Tp,O1,O2), encodeFieldTps(More,O2,Ox).
 
-encodeConstraint(univType(V,C),[':'|O],Ox) :-
+encodeConstraint(allType(V,C),[':'|O],Ox) :-
   encodeType(V,O,O1),
   encodeConstraint(C,O1,Ox).
 encodeConstraint(constrained(Con,Extra),['|'|O],Ox) :-

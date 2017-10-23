@@ -16,11 +16,6 @@ dispAst(name(_,Nm),_,O,E) :- appStr(Nm,O,E).
 dispAst(integer(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(float(_,Nm),_,O,E) :- number_chars(Nm,Chrs), concat(Chrs,E,O).
 dispAst(string(_,S),_,['"'|O],E) :- appStr(S,O,O1), appStr("""",O1,E).
-dispAst(display(_,Term),Pr,['<','<'|O],E) :- dispAst(Term,Pr,O,['>','>'|E]).
-dispAst(format(_,Term,Fmt),Pr,['<','<'|O],E) :- dispAst(Term,Pr,O,O1),
-    string_chars(Fmt,FChrs),
-    concat([':'|FChrs],O2,O1),
-    concat(['>','>'],E,O2).
 dispAst(tuple(_,Nm,A),_,O,E) :- bracket(Nm,Left,Right,Sep,Pr),
     appStr(Left,O,O1),
     writeEls(A,Pr,Sep,O1,O2),
@@ -54,6 +49,7 @@ bracket("()","(",")",", ",1000).
 bracket("[]","[","]",", ",2000).
 bracket("{}","{","}",".\n",2000).
 bracket("<||>","<|","|>",". ",2000).
+bracket("{..}","{.",".}",".\n",2000).
 
 writeEls([],_,_,O,O) :- !.
 writeEls([H|M],Pr,Sep,O,E) :- dispAst(H,Pr,O,O1), writeMoreEls(M,Pr,Sep,O1,E).

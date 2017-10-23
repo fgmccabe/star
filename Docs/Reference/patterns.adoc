@@ -1,0 +1,676 @@
+%!TEX root = reference.tex
+= Patterns
+[[patterns]]
+(((patterns)))
+Patterns are templates that are used to match against a value; possibly binding one or more variables to components of the matched value. Patterns are used as guards in equations, as filters in query expressions and in `for` loops. Patterns represent one of the fundamental mechanisms that can guide the course of a computation.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Pattern]]Pattern::=<<ScalarPattern>>\\
+&nbsp;&nbsp;| <<Variable>>\\
+&nbsp;&nbsp;| <<ConstructorPattern>>\\
+&nbsp;&nbsp;| <<EnumeratedSymbolPattern>>\\
+&nbsp;&nbsp;| <<RecordPattern>>\\
+&nbsp;&nbsp;| <<GuardedPattern>>\\
+&nbsp;&nbsp;| <<MatchingPattern>>\\
+%&nbsp;&nbsp;| <<TypeCastPattern>>\\
+&nbsp;&nbsp;| <<TypeAnnotatedPattern>>\\
+&nbsp;&nbsp;| <<PatternApplication>>\\
+&nbsp;&nbsp;| <<SequencePattern>>\\
+&nbsp;&nbsp;| <<QuotedPattern>>
+\end{eqnarray*}
+.Patterns
+[[patternsFig]]
+\end{figure}
+
+\paragraph{Patterns and Types}
+[[patternType]]
+(((patterns,type of)))
+Every pattern has a type associated with it. This is the type of values that the pattern is valid to match against. In the type safety productions involving patterns, we use the same meta predicate: $\typeprd{E}{P}{T}$ as for expressions.
+
+== Variables in Patterns
+[[patternVariables]]
+(((pattern,variable pattern)))
+(((variables)))
+Variables in patterns are used to bind variables to elements of the input being matched against.
+
+Due to the scope hiding rule -- see <<scopeHiding>> -- it is required that all variables occurring in a pattern are not `already in scope'.
+
+\begin{aside}
+A repeated occurrence of a variable in a pattern is equivalent to a call to the `=` predicate. For example, the pattern:
+[listing]
+(X,Y,X)
+
+is equivalent to the <<GuardedPattern>> (see <<guardPattern>>):
+[listing]
+(X,Y,X1) where X=X1
+
+The `=` predicate is defined in the standard `equality` contract (see <<equalityPredicates>>); and therefore, the call and the pattern may not be valid if `equality` is not implemented for the type of `X`.
+\end{aside}
+
+=== Scope of Pattern Variables
+(((variables,scope of)))
+A pattern always occurs in the context of a _scope extension_ -- a new potential scope for variables. For example, in the equation:
+[listing]
+fact(N) is N*fact(N-1)
+
+the pattern on the left hand side of the equation:
+[listing]
+fact(N)
+
+introduces variables that are in scope on the right hand side of the equation:
+[listing]
+N*fact(N-1)
+
+
+The actual scope of a pattern variable depends on the syntactic structure in which the pattern occurs:
+\begin{description}
+equations::
+Pattern variables introduced in the left hand side of an equation are in scope on the right hand side of the equation and in any semantic guards associated with the equation. See <<equations>>.
+action procedures::
+Pattern variables introduced in the head of an action procedure are in scope in the body of the rule. See <<procedures>>.
+`for` loop::
+Variables introduced in the pattern of a `for` loop extend to the body of the loop. see <<forLoop>>.
+query expressions::
+(((query,constraint)))
+Variables introduced in the body of a query condition -- see <<conditions>> -- are in scope throughout the body of the query and within the bound expression.
+event rule::
+Variables that are introduced in event patterns and conditions in event rules -- see <<actorRules>> -- are in scope throughout the event rule; including the body of the event rule.
+\end{description}
+
+=== Anonymous Variable Pattern
+[[anonymousVariable]]
+The special identifier -- `\_` -- is used on those occasions where a filler of some kind is needed. _Every_ occurrence of `\_` refers to a different variable. A match with `\_` is always successful, but the value itself is ignored.
+
+==== Type Safety
+The type of a variable pattern is automatically _inferred_ from the expected type for the pattern.
+
+== Scalar Literal Patterns
+[[scalarPatterns]]
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[ScalarPattern]]ScalarPattern::=<<StringLiteral>>\\
+&nbsp;&nbsp;| <<NumericLiteral>>
+\end{eqnarray*}
+.Scalar Literal Patterns
+[[scalarLiteralPtnFig]]
+\end{figure}
+
+
+=== Literal String Patterns
+[[literalStringPattern]]
+(((string@`string`,pattern)))
+(((patterns,literal string)))
+
+A literal string as a pattern matches exactly that string; the type of a string pattern is `string`.
+
+\begin{aside}
+The operators that are used to denoted string interpolation expressions (see <<StringInterpolation>>) must _not_ be used in string patterns. In particular, the dollar and hash characters _must_ be quoted in a string pattern.
+
+For example, in the function:
+[listing]
+hasDollar("has$") is true
+
+the string pattern `"has\$"` is not legal. You should use:
+[listing]
+hasDollar("has\$") is true
+
+
+On the other hand, regular expression patterns are treated with special semantics (see <<regularExpressions>>).
+\end{aside}
+
+=== Literal Numbers
+[[literalNumberPattern]]
+(((number pattern)))
+(((patterns,literal number)))
+
+A literal number as a pattern matches exactly that number.
+
+The type of the pattern depends on the type of the number literal: `integer` literals have type `integer`, `float` literals have type `float` and so on.
+
+
+== Regular Expression Patterns
+[[regularExpressions]]
+(((patterns,regexp)))
+(((patterns,string)))
+A regular expression denotes a pattern that can potentially match a `string`. Regular expressions are written using a notation that is very close to the standard regexp notation; the regular expression itself is enclosed in backquote characters: ```
+
+For example, a regular expression that matches the common ASCII notion of identifier would be:
+[listing]
+`[a-zA-Z_][a-zA-Z_0-9]*`
+
+
+Most of the commonly used regular expression operators are supported -- character classes, star iteration and so on. In addition, there is a smooth integration of variables in regular expressions -- it is possible to mark a sub-expression to be bound to a variable.
+
+(((regular expression,character reference)))
+The simplest form of a regular expression is simply a character; which is denoted using a character reference. See <<CharacterReference>>.
+
+=== Character Class
+[[characterClass]]
+(((regular expression,character class)))
+A character class denotes a range of characters that will match the regular expression. Character classes may be designated explicitly -- using the `[a-z]` style notation -- or may refer to one of the standard pre-defined character classes.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[CharacterClass]CharacterClass::=`[`[`\uphat`]<<RegChar>>...<<RegChar>>`]]`\\
+&nbsp;&nbsp;| `\bsl``d`|`\bsl``D`\\
+&nbsp;&nbsp;| `\bsl``s`|`\bsl``S`\\
+&nbsp;&nbsp;| `\bsl``w`|`\bsl``W`\\
+[[RegChar]RegChar::=<<CharRef>>\ [`-`<<CharRef>>]]
+\end{eqnarray*}
+.Character Class
+[[charClassFig]]
+\end{figure}
+
+The standard character classes are listed in <<charClassTable>>.
+
+\begin{table}[htbp]
+\centering{
+.Standard Character Classes[[charClassTable]]
+\vspace{0.5ex}
+\begin{tabular}{|c|l|}
+\hline
+Char Class&Meaning\\
+\hline
+\tt \bsl{}d&Digit character `[0-9]`\\
+\tt \bsl{}D&Non-digit character\\
+\tt \bsl{}s&Whitespace character\\
+\tt \bsl{}S&Non-whitespace character\\
+\tt \bsl{}w&Word character `[a-zA-Z\_0-9]`\\
+\tt \bsl{}W&Non-Word character `[\uphat{`a-zA-Z\_0-9]}\\
+\hline
+\end{tabular}
+}
+\end{table}
+If the first character in a character class is the `\uphat` character, then the sense of the class is inverted: it matches all characters _except_ those mentioned in the remaining characters of the class.
+\begin{aside}
+In order to have a character class that positively looks for a `\uphat` character, it may either be escaped, as in:
+[listing]
+[\^]
+
+or the class arranged so that `\uphat` is not the first character:
+[listing]
+[ab^c]
+
+
+Analogously, in order to positively specify the `-` character in a character class it should either be escaped:
+[listing]
+[a\-b]
+
+or put at the beginning of the character class (possibly after a leading `\uphat`):
+[listing]
+[-ab]
+
+\end{aside}
+
+=== Disjunctive Regular Expressions
+[[disjunctiveRegexp]]
+(((regular expression,disjunctive)))
+Two or more regular expressions separated by the `|` character denote _disjunctive groups_.
+
+Disjunctive groups are enclosed in parentheses.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[DisjunctiveGroup]]DisjunctiveGroup::=`(`<<Regex>>\sequence{|}<<Regex>>`)`
+\end{eqnarray*}
+.Disjunctive Regular Expression
+[[regexpDisjunctionFig]]
+\end{figure}
+
+=== Regular Expression Cardinality
+A regular expression can be optional or repeated a number of times.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Cardinality]]Cardinality::=`?`\ |\ `*`\ |\ `+`
+\end{eqnarray*}
+.Regular Expression Cardinality
+[[regexpCardinalityFig]]
+\end{figure}
+
+The cardinality operators always refer to the regular expression immediately to the left of the operator. They control how many times that expression should be matched:
+\begin{description}
+`?`:: A cardinality of `?` means that the regular expression to the left is optional. For example,
+[listing]
+`[-+]?`
+
+will match a `-` or `+` character if present.
+`*`::
+A cardinality of `*` means that the regular expression to the left may be matched zero or more times.
+
+For example, the pattern:
+[listing]
+`[0-9]*`
+
+will match any number of digit characters. footnote:[ASCII digit characters that is. Unicode contains many other digit characters not matched by this regular expression.] The classic regular for an identifier is:
+[listing]
+`[a-zA-Z_][a-zA-Z0-9_]*`
+
+meaning a letter followed by any number of letters and digits.
+
+\begin{aside}
+This is a so-called `greedy match': the pattern matches as many as possible of the pattern. This makes a difference if the pattern immediately following a star pattern may also match or partially match the starred pattern:
+[listing]
+`[a-f]*[a-z]*`
+
+\end{aside}
+`+`:: The `+` cardinality means that the regular expression to the left must be matched at least once, but can be matched any number of times beyond that.
+
+For example, the definition of an `integer` literal in many programming languages looks like:
+[listing]
+`[-+]?[0-9]+`
+
+I.e., an optional leading sign, followed by at least one decimal digit character.
+\end{description}
+
+=== Variables in Regular Expressions
+[[variableRegexp]]
+(((regular expression,variables)))
+(((variables,in regular expressions)))
+A variable in a regular expression is denoted by a colon character followed by the identifier. The entire regular expression is enclosed in parentheses.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Binding]]Binding::=`(`<<Regex>>\ `:`\ <<Identifier>>`)`
+\end{eqnarray*}
+.Variable Binding
+[[ergexpBindingFig]]
+\end{figure}
+
+If the match is successful, then the variable is bound to the part of the string that corresponds to the regular expression within the parentheses. The type of the variable is `string`.
+
+For example, to pick out the third character of a `string`, and bind it to the variable `T`, we can use the pattern:
+[listing]
+`..(.:T).*`
+
+Any arbitrary subexpression can be extracted; for example, the regular expression:
+[listing]
+`.*(a+:T).*`
+
+looks for the first substring consisting of `a` characters.
+\begin{aside}
+It is not defined if a variable regular expression is itself repeated, or is part of an optional regular expression. For example, the meaning of:
+[listing]
+`([a-z]+:I)?`
+
+is undefined (since the variable pattern itself is optional, it is possible to match a string against this pattern without binding the variable `I`).
+\end{aside}
+
+== Constructor Patterns
+[[tuplePattern]]
+(((tuple,pattern)))
+(((patterns,tuple)))
+A constructor pattern denotes an occurrence of a value that has been declared within an algebraic type definition (see <<algebraicTypeDefinitions>>).
+
+A constructor pattern mimics the form of the constructor definition itself: for a <<TermConstructor>> it consists of an identifier followed by a sequence of patterns, enclosed in parentheses and separated by commas, denoting the arguments to the <<TermConstructor>>.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[ConstructorPattern]]ConstructorPattern::=<<TuplePattern>>\\
+&nbsp;&nbsp;| <<RecordPattern>>
+\end{eqnarray*}
+.Constructor Pattern
+[[constructorPtnFig]]
+\end{figure}
+
+\begin{aside}
+Tuple patterns are the only way that a tuple value may be inspected and elements of it extracted. There are no indexing operators over tuples (whether labeled or not) because it is not possible to give a consistent typing to such operators.
+\end{aside}
+
+=== Tuple Patterns
+[[posConPattern]]
+(((patterns,positional constructor)))
+(((positional constructor patterns)))
+A tuple pattern consists of a constructor label followed by the argument patterns -- as introduced in the appropriate algebraic type definition.
+
+The special, unlabeled, form of tuple pattern omits the label and refers to the `anonymous' tuple type.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[TuplePattern]]TuplePattern::=<<Identifier>>`(`<<Pattern>>\sequence{,}<<Pattern>>`)`\\
+&nbsp;&nbsp;| `(`<<Pattern>>\sequence{,}<<Pattern>>`)`
+\end{eqnarray*}
+.Tuple Pattern
+[[tuplePtnFig]]
+\end{figure}
+
+==== Type Safety
+Positional constructors must be declared in an algebraic type definition (see <<algebraicTypeDefinitions>>). The required arity and types of the arguments of the positional constructor are determined from that type definition.
+
+==== Anonymous Tuple Patterns
+[[anonTuplePattern]]
+
+Anonymous tuple patterns can be used to extract values from tuple values (see <<TupleTerms>>). For example, the pattern `(X,Y)` in the query expression:
+[listing]
+list of {all X where (X,Y) in R}
+
+matches against the elements of `R` -- assuming that it is a `list` --
+(((lists)))
+and `binds' the local variables `X` and `Y` to the first and second tuple member of each successive elements of `R`.
+
+\begin{aside}
+As noted in <<tupleType>>, anonymous tuples are essentially syntactic sugar for automatically defined algebraic types. The above query is equivalent to:
+[listing][escapechar=|]
+list of { all X where $2(X,Y)| footnote:[Noting, of course, that `\$2` is not a legal *Star* identifier.}| in R]
+
+
+\end{aside}
+
+== Enumerated Symbol Patterns
+[[enumPattern]]
+(((patterns,enumerated symbol)))
+(((enumerated symbol pattern)))
+
+An enumerated symbol -- as a pattern -- matches the same symbol only. Enumerated symbol patterns are technically degenerate forms of tuple patterns; the empty parentheses are simply omitted for syntactic convenience.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[EnumeratedSymbolPattern]]EnumeratedSymbolPattern::=<<Identifier>>
+\end{eqnarray*}
+.Enumerated Symbol Pattern
+[[enumSumbolPtn]]
+\end{figure}
+
+== Record Patterns
+[[aggregateConPattern]]
+(((patterns,record constructor)))
+(((record constructor pattern)))
+A record pattern consists of the record label, followed by attribute patterns enclosed in braces.
+
+Each attribute pattern takes the form:
+[listing][escapechar=|]
+|<<Identifier>>|=|<<Pattern>>|
+
+where _Pattern_ is a pattern that the <<Identifier>> attribute must satisfy.
+
+Unlike positional constructor patterns, it is not required for all of the attributes to be mentioned in a record constructor pattern. At its limit, a pattern of the form:
+[listing]
+label{}
+
+becomes a test that the `label` record literal is present -- with no constraints on the attributes of the record.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[RecordPattern]]RecordPattern::=<<Identifier>>`\{`<<AttributePattern>>\sequence{;}<<AttributePattern>>`\`}\\
+&nbsp;&nbsp;| <<AnonymousRecordPattern>>\\
+[[AttributePattern]]AttributePattern::=<<Identifier>>\ `=`\ <<Pattern>>
+\end{eqnarray*}
+.Record Patterns
+[[aggregateConPtnFig]]
+\end{figure}
+
+==== Type Safety
+A record constructor pattern is type consist if the record has been declared, and if each of the fields in the pattern have been declared to be part of the record -- and the corresponding patterns are type consistent.
+
+=== Anonymous Record Patterns
+[[anonAggPtn]]
+(((matching anonymous records)))
+(((pattern,anonymous record)))
+(((anonymous record pattern)))
+An anonymous record pattern is written in an analogous form to the regular record pattern, except that there is no label prefixed to it.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[AnonymousRecordPattern]]AnonymousRecordPattern::=`\{`<<AttributePattern>>\sequence{;}<<AttributePattern>>`\`}
+\end{eqnarray*}
+.Anonymous Record Patterns
+[[anonAggregateConPtnFig]]
+\end{figure}
+
+\noindent
+For example,
+[listing]
+{name=N;address=A} in R
+
+uses an anonymous record pattern to match elements of the list `R`.
+
+\begin{aside}
+Unlike with most other patterns, the type checker is generally _not_ able to reliably infer the type of an anonymous record pattern. As a result, it must _always_ be the case that the anonymous record pattern occurs in a context where the type may be inferred. In the above example, the type of the anonymous record pattern:
+[listing]
+{name=N;address=A}
+
+can be inferred from the context it occurs in, and the type of `R`. However, if `R`'s type is not already known by other means, then a syntax error will result.
+
+\begin{aside}
+The reason for this is that, like other record patterns, an anonymous record pattern need not contain an element for every attribute defined.
+\end{aside}
+\end{aside}
+
+
+== Guarded Patterns
+[[guardPattern]]
+(((patterns,guarded)))
+(((guarded patterns)))
+
+A guarded pattern attaches a semantic condition on a pattern. It consists of a pattern, followed by the `where` keyword and a predication condition -- all enclosed in parentheses.
+
+Guarded patterns are useful in enhancing the specificity of patterns -- which apart from guarded patterns are purely syntactic in nature.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[GuardedPattern]]GuardedPattern::=`(`<<Pattern>>\ `where`\ <<Condition>>\ )
+\end{eqnarray*}
+.Guarded Patterns
+[[guardPtnFig]]
+\end{figure}
+
+==== Type Safety
+A guarded pattern has a type assignment based on the type of the left hand side, and the type safety of the condition.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{P}{T}}
+\AxiomC{\typesafe{E}{_C_}}
+\BinaryInfC{\typeprd{E}{P\ `where`\ C}{T}}
+\end{prooftree}
+
+The type safety of conditions is covered in more detail in <<conditions>>.
+
+== Matching Pattern
+[[matchingPattern]]
+(((patterns,matching)))
+(((matching patterns)))
+
+The `matching` pattern allows the same input to be matched against two patterns. This is typically used to combine a variable assignment pattern with a structured pattern.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[MatchingPattern]]MatchingPattern::=`(`<<Pattern>>\ `matching`\ <<Pattern>>\ )
+\end{eqnarray*}
+.Matching Patterns
+[[matchingPtnFig]]
+\end{figure}
+
+==== Type Safety
+The two patterns in a `matching` pattern are used to match the same input -- hence they must be of the same type.
+== Type Annotated Pattern
+[[typeAnnotatedPattern]]
+(((patterns,type annotated)))
+(((type annotation,pattern)))
+(((cast@`cast`,pattern)))
+
+A type annotated pattern is a form of semantic pattern where the type of the pattern is explicitly annotated.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[TypeAnnotatedPattern]]TypeAnnotatedPattern::=`(`<<Pattern>>\ `has type`\ <<Type>>`)`
+\end{eqnarray*}
+.Type Annotated Pattern
+[[typeAnnotatedPtnFig]]
+\end{figure}
+
+A pattern of the form:
+[listing][escapechar=|]
+(|<<Pattern>>| has type |<<Type>>|)
+
+implies that <<Pattern>> has type <<Type>>.
+
+\begin{aside}
+One important role for <<TypeAnnotatedPattern>>s is to explicitly declare the type of a pattern variable footnote:[Recall that all variable declarations take the form of a pattern.] This specifically permits a variable to be given a higher-ranked type. For example, in:
+[listing]
+fn poly((F has type for all t such that (t)=>t)) is
+      (F(1),F("alpha"))
+
+would not be well typed without the explicit type annotation on the argument `F` because type inference cannot infer polymorphic types.
+\end{aside}
+\begin{aside}
+The parentheses are necessary for this form of pattern because of the relative priority of `has type` operator which is higher than is usually permitted in the context of patterns.
+\end{aside}
+
+==== Type Safety
+The type of a type annotated pattern is implicitly determined by the expected type of the pattern. The type of the embedded pattern is set by the type cast itself.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{P}{T\sub{P}}}
+\AxiomC{\entail{E,\theta}{T\sub{P}\equivt{} T}}
+\BinaryInfC{\typeprd{E}{P` has type `T}{T}}
+\end{prooftree}
+
+This rule states that the type of a type annotated pattern is its annotated type.
+
+== Pattern Abstraction Application
+[[patternApplication]]
+(((patterns,application)))
+(((pattern abstraction application)))
+
+A pattern abstraction application is a pattern where a <<PatternAbstraction>> is being applied.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[PatternApplication]]PatternApplication::=<<Expression>>`(`<<Pattern>>\sequence{,}<<Pattern>>`)`
+\end{eqnarray*}
+.Pattern Application Pattern
+[[patternApplicationFig]]
+\end{figure}
+
+A pattern of the form:
+[listing][escapechar=|]
+|_PtnAb_|(|_Ptn\sub1_\sequence{,}_Ptn\subn_|)
+
+denotes the application of a pattern abstraction -- identified by `_PtnAb_` -- to the argument patterns `_Ptn\subi_`
+
+\begin{aside}
+The applied pattern abstraction is denoted by _Expression_ in <<patternApplicationFig>>. If the pattern application is in the head of a rule -- such as an equation -- then the pattern abstraction must be a _Variable_: in fact a _free variable_ of the rule.
+\end{aside}
+
+\begin{aside}
+It is possible for a pattern abstraction to `return' computed values; i.e., values that are not directly in the original data being matched. For example, the pattern abstraction:
+[listing]
+ptn parent(P) from C where (P,C) in children;
+
+will match anyone that is known to have a parent -- in the `children` collection -- and will return the parent of the child. A match using this:
+[listing]
+"john" matches parent(PJ)
+
+will result in the variable `PJ` being bound to `"john"`'s parent -- if it is known. Only one of `"john"`'s parents will be found, however.
+\end{aside}
+
+The type signature for a pattern abstraction is of the form:
+[listing][escapechar=|]
+(t|\sub1\sequence{,}|t|\subn|) <= t
+
+where the `t\subi` are return values from the match and `t` is the type of the value being matched.
+
+Where a pattern application is part of a larger pattern the match type refers to a single value being matched. However, in the case of the `matches` condition, it is possible to match against multiple values:
+[listing][escapechar=|]
+(E|\sub1\sequence{,}|E|\sub{m}|) matches P(V|\sub1\sequence{,}|V|\subn|)
+
+In this case, the type of the pattern abstract `P` would be of the form:
+[listing][escapechar=|]
+(Vt|\sub1\sequence{,}|Vt|\subn|) <= (Et|\sub1\sequence{,}|Et|\sub{m}|)
+
+
+
+==== Type Safety
+The type of a application pattern is determined by the type of the applied pattern abstraction.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{`P`}{`(`t\sub1,...,t\subn`)<=`T}}
+\AxiomC{\typeprd{E}{P\sub1}{t\sub1}\sequence{\quad}\typeprd{E}{P\subn}{t\subn}}
+\BinaryInfC{\typeprd{E}{`P(P\sub1`\sequence{,}`P\subn)`}{T}}
+\end{prooftree}
+
+\begin{aside}
+Pattern abstraction applications are also important in the `abstract data type' pattern. In that pattern, a contract is used to define one or more pattern abstractions and programs using that contract are, in effect, shielded from knowing the concrete types involved.
+\end{aside}
+
+
+== Sequence Patterns
+[[sequencePattern]]
+(((sequence,patterns)))
+(((patterns,sequence)))
+(((of@`of`,pattern)))
+
+A sequence pattern represents a use of the standard `sequence` contract to match sequences of values.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[SequencePattern]SequencePattern::=<<SequenceType>>\ `of``[`<<PtnSequence>>`]` \ |\ `[`<<PtnSequence>>`]]`\\
+[[PtnSequence]PtnSequence::=[<<Pattern>>`..,`]<<Pattern>>\sequence{,}<<Pattern>>[`,..`<<Pattern>>]]
+\end{eqnarray*}
+.Sequence Pattern
+[[sequencePatternFig]]
+\end{figure}
+
+Like <<SequenceExp>>s, a <<sequencePattern>> is syntactic sugar for terms involving the `sequence` contract -- which is defined in Program~\vref{sequenceContractDef}.
+
+A pattern of the form:
+[listing][escapechar=|]
+|_Label_| of [|_Ptn\sub1_\sequence{,}_Ptn\subn_|]
+
+is equivalent to the pattern:
+[listing][escapechar=|]
+_pair(|_Ptn\sub1_|, |...|, _pair(|_Ptn\subn_|,_empty())|...|) has type |_Label_| of %_
+
+_provided that \emph{Label_ is the label of a type that implements the `sequence` contract}. Included in that contract are two pattern abstractions -- denoting the empty sequence (`\_empty()`) and a non-empty sequence (`\_pair()`).
+
+
+==== Type Safety
+Since a sequence pattern is essentially a macro for the use of the `sequence` contract, its type safety is determined by the `sequence` contract.
+
+== Quoted Syntax Patterns
+[[quotedPatterns]]
+
+Analogously to quoted expressions -- see <<quotedText>> -- a quoted syntactic form may be used as a pattern.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[QuotedPattern]]QuotedPattern::=`quote(`<<Pattern>>`)`\\
+&nbsp;&nbsp;| `<|`<<Pattern>>`|>`
+\end{eqnarray*}
+.Quoted Patterns
+[[quotedPtnFig]]
+\end{figure}
+
+A pattern of the form:
+`<| _SyntacticForm_ |>`
+denotes a pattern of type `quoted` footnote:[The `quoted` type is defined in Program~\vref{quotedProg}.] where the input must match `_SyntacticForm_`.
+
+As with quoted expressions, it is possible to put a `hole' in a quoted pattern by using the `unquote` or `?` forms. For example, the pattern:
+[listing]
+<| ?A * 45 |>
+
+will match with a quoted form such as:
+[listing]
+(Alpha+Beta)*45
+
+by binding the unquoted variable `A` with the equivalent of:
+[listing]
+<| (Alpha+Beta) |>
+
+\begin{aside}
+The parentheses used in the original expression remain explicit in the quoted form. This pattern is equivalent to the pattern:
+[listing]
+applyAst(_, nameAst(_, "\$1"), array of [
+  applyAst(_, nameAst(_, "+"),
+    array of [nameAst(_,"Alpha"), nameAst(_,"Beta")])
+  ])
+
+\begin{aside}
+The location of the abstract syntax tree terms is _not_ matched in a quoted pattern. This is denoted by the use of anonymous variables in the location argument.
+\end{aside}
+\begin{aside}
+Anonymous tuples have as their label a name of the form `"\$_arity_"` where _arity_ is the number of elements in the anonymous tuple.
+\end{aside}
+\end{aside}
+The type of the variable `A` must also be `quoted`.

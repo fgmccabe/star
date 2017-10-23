@@ -34,6 +34,7 @@
   keyword("private").
   keyword("contract").
   keyword("implementation").
+  keyword("type").
   keyword("where").
   keyword("void").
   keyword("all").

@@ -157,22 +157,12 @@ static char *dumpSig(char *sig, bufferPo out) {
       outStr(O_IO(out), ")");
       break;
     case funSig:
-      switch (genMode) {
-        case genProlog:
-          outStr(O_IO(out), "funType(");
-          sig = dTple(sig, out);
-          outStr(O_IO(out), ",");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          return sig;
-        case genStar:
-          outStr(O_IO(out), "funType(");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ",");
-          sig = dumpSig(sig, out);
-          outStr(O_IO(out), ")");
-          return sig;
-      }
+      outStr(O_IO(out), "funType(");
+      sig = dumpSig(sig, out);
+      outStr(O_IO(out), ",");
+      sig = dumpSig(sig, out);
+      outStr(O_IO(out), ")");
+      return sig;
     case conSig:
       switch (genMode) {
         case genProlog:

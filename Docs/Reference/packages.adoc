@@ -1,0 +1,492 @@
+%!TEX root = reference.tex
+= Packages and Libraries
+[[packages]]
+(((package@`package` structure)))
+A <<Package>> represents a `unit of compilation' -- i.e., the contents of a source file.
+
+(((libraries)))
+*Star* libraries are built using a combination of <<Package>>s and catalogs. A catalog is a mapping from names to locations that is used to inform the *Star* language system of the physical locations of <<Package>>s.
+
+== Package Structure
+[[packageStructure]]
+(((what is in a package@what is in a `package`)))
+
+A <<Package>> consists of the identification of the package and a set of <<Definition>>s enclosed in braces. For example, the text:
+[listing]
+hello is package{
+  hello() is "hello";
+}
+
+defines a `package` -- called `hello` -- that contains a single function -- also called `hello`.
+
+\begin{aside}
+The name of a <<Package>> must be reflected in the name of the physical file that contains the source text. In particular, if a file contains the package `_P_`, then the name of the file should take the form:
+[listing][language=bash]
+.../Directory/P.star
+
+\end{aside}
+
+The body of the <<Package>> may contain <<Definition>>s which may also include <<ImportStatement>>s.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Package]]Package::=<<Identifier>>\ `is`\ `package\{`<<Definition>>\sequence{;}<<Definition>>\ `\`}
+\end{eqnarray*}
+.Package Structure[[packageFig]]
+\end{figure}
+
+A <<Package>> consists of all the elements that are defined in a package source:
+\begin{itemize}
+\item The types defined with the source unit
+\item The functions and other variables defined
+\item Macros and other meta-rules (such as validation rules)
+\item Operator definitions
+\end{itemize}
+
+
+=== Top-level Variables
+[[packageVariable]]
+(((top-level variable)))
+
+Any variable that is defined at the top-level of a <<Package>> is assumed to be _global_ across all uses of the package.
+
+This has implications especially for top-level reassignable variables. If such a variable is changed then all importing packages will `see' the changed value.
+\begin{aside}
+Such shared global variables should be used sparingly if the programmer is to avoid unnecessary bugs.
+\end{aside}
+
+
+=== Managing Exposed Elements of a Package
+By default, all the elements that are defined in a `package` are exported as part of the `package`. However, like other <<thetaEnvironment>>s, elements of the package that are marked `private` are not exported: i.e., they will not be visible when the package is imported.
+
+
+== Importing
+[[packageImport]]
+A `package` may use another package by `import`ing it. The `import` statement  denotes a requirement that the types, programs and other elements of the `import`ed package are made available to the importing package.
+
+In addition to the `import` statement, the `java` statement allows access to programs defined in Java -- see <<javaImport>>.
+
+=== The `import` statement
+[[import]]
+The `import` statement is used to denote that the exported elements of a package should be made available within a package. There are two variants of the <<ImportStatement>>: the `open `import`' and the `named `import`'. In addition, the package to be imported may be specified by name or by URI.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[ImportStatement]ImportStatement::=[`private`]]\ `import`\ <<PackageRef>>\\
+&nbsp;&nbsp;| <<Identifier>>\ `is`\ `import`\ <<PackageRef>>\\
+[[PackageRef]]PackageRef::=<<Identifier>>\\
+&nbsp;&nbsp;| <<String>>
+\end{eqnarray*}
+.Import Package Statement
+[[importStatementFig]]
+\end{figure}
+
+\begin{aside}
+The <<String>> variant of the `import` must take the form of a URI string. For example, to import the package located in the file `pkg.star` in the same directory as the referencing package, use the form:
+[listing]
+import "pkg.star"
+
+\end{aside}
+
+\begin{aside}
+Not all installations of the language system are required to support the same set of URI schemes. However, all must support the standard schemes shown in <<standardURISchemes>>. See <<resources>> for a discussion on resources and URIs.
+\end{aside}
+
+==== Open Import
+[[openImport]]
+(((import@`import`,open)))
+An <<ImportStatement>> of the form:
+[listing]
+import Pkg
+
+imports all the definitions that are located with the `Pkg` and declares them as being at the _same_ scope level as other <<Definition>>s within the package.
+
+\begin{aside}
+Note that it is possible, this way, for a `package` to implicitly _re-export_ some elements of `package`s that the `package` imports.
+\end{aside}
+
+This has two primary implications: all the exported definitions may be used without qualification as though they had been defined locally. However, if a given name is declared twice -- even if in two separate packages -- then the compiler will show an error.
+
+In addition to the regular functions and types defined in the imported package, any contracts, macros and operator definitions that are defined in the imported package are also `in scope'.
+
+\begin{aside}
+This form of <<ImportStatement>> also imports operator definitions and macro definitions from the imported package. Hence, the open import is especially important when accessing packages that contain implementations of domain specific language extensions to *Star*.
+\end{aside}
+
+==== Named Import
+[[namedImport]]
+(((import@`import`,named)))
+An <<ImportStatement>> of the form:
+[listing]
+P is import Pkg
+
+is a _named import_ -- so-called because it establishes a <<Variable>> whose value is the contents of the imported package and whose name is used to access the imported package.
+
+Definitions that are imported as a named import are not immediately defined to be in scope. Instead, they must be accessed via the package variable -- using <<RecordAccess>> expressions.
+
+For example, if `Pkg` exports a type `person` and a function `someone`, then to use the type and function they are referenced from the `P` variable -- much like accessing <<Record>> fields:
+[listing]
+Joe has type P.person;
+def Joe is P.someone("Joe")
+
+
+Using named imports in this way is a convenient way to establish different name spaces. Since all the definitions within the package must be accessed via the <<RecordAccess>> operator, the name used to import the package effectively becomes a local name space for that package and will not clash with neither other imported packages nor locally defined functions and types.
+
+\begin{aside}
+Note that neither macros nor operators are accessible from a named import.
+\end{aside}
+
+==== Private Imports
+[[privateImport]]
+If an open <<ImportStatement>> is marked `private` then the definitions contained within the imported package are _not_ re-exported by the containing package. Conversely, an <<ImportStatement>> that is not `private` will result in all the definitions contained within the imported package are re-exported.
+
+Private imports are useful in the situation where a package needs auxiliary definitions that are not intended to be part of the `published' specification of the package.
+
+\begin{aside}
+A named `import` is always `private`.
+\end{aside}
+
+=== Importing `java` Code
+[[javaImport]]
+
+The `java` statement may be used to import a certain class (sic) of Java\tm{} functions.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_ImportStatement_&\arrowplus&`java`\ _JavaClass_\\
+\end{eqnarray*}
+.Java Import Statement
+[[javaImportFig]]
+\end{figure}
+
+For example, to import the functions defined in
+[listing][language=Java]
+package com.example;
+
+public class SimpleFuns
+{
+  public static String javaFoo(Integer x, int y)
+  {
+    return Integer.toString(x * y);
+  }
+
+  public static void doSomething(String s, double d)
+  {
+    System.out.println("We are supposed to " + s + " to " + d);
+  }
+}
+
+the programmer uses:
+[listing]
+useSimple is package{
+  java com.example.SimpleFuns;
+
+  main() do
+    doSomething(javaFoo(23,45),45.23);
+}
+
+which will result in
+[listing]
+We are supposed to 1035 to 45.22999954223633
+
+appearing on the standard output console.
+
+Due to the semantic `gap' between Java\tm{} and *Star* there are some restrictions on the functions that can be incorporated using the `java` import. In particular, there is a restricted set of Java\tm{} types that are supported; and only `static` methods are imported from the class.
+
+The supported types are:
+\begin{description}
+`int` and `Integer`:: A Java\tm{} `int` or `Integer` type is mapped to the *Star* type `integer`.
+`long` and `Long`:: A Java\tm{} `long` or `Long` type is mapped to the *Star* type `long`.
+`float` and `Float`:: A Java\tm{} `float` or `Float` type is mapped to the *Star* type `float`.
+`double` and `Double`:: A Java\tm{} `double` or `Double` type is mapped to the *Star* type `float`.
+`BigDecimal`:: A Java\tm{} `BigDecimal` type is mapped to the *Star* type `decimal`.
+`String`:: A Java\tm{} `String` type is mapped to the *Star* type `string`
+any:: All other Java\tm{} types are mapped to the *Star* type `any`. This permits a *Star* program to `carry' any Java\tm{} object, but it cannot be inspected by a *Star* program.
+\begin{aside}
+The primary utility of this is to allow the Java object to be passed to another function.
+\end{aside}
+\end{description}
+
+
+\begin{aside}
+\begin{aside}
+The `java` import requires that the Java\tm{} class being imported is accessible on the Java\tm{} CLASSPATH. How this is done is outside the scope of this document.
+\end{aside}
+\end{aside}
+
+== Libraries
+[[libraries]]
+(((libraries)))
+
+A library is a collection of packages that forms a coherent whole. Physically, a library takes the form of a normal package. However, typically, a library package simply imports a set of other packages -- the packages in the library.
+
+=== Importing Libraries
+[[libraryImport]]
+A library is imported in precisely the same way as any individual package -- using an <<ImportStatement>>. From the perspective of a client of the library, the client does not `know' the difference between importing an individual package or a library.
+
+=== Structure of a Library
+[[libraryStructure]]
+(((libraries,structure)))
+
+The classic structure of a library consists of a directory containing the packages that make up the library, together with a catalog and a library driver package footnote:[In this discussion we refer to the concept of a directory in a metaphorical sense. The actual organization of a library is represented in terms of the URIs of the packages that make up the library; not any physical system of files and directories. A `directory' in URI terms is simply a URI whose path ends with a `/` character -- denoting the potential for further elements in the path.] see <<libraryFig>>.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[width=\textwidth]{diagrams/library}
+.Library Structure
+[[libraryFig]]
+\end{center}
+\end{figure}
+
+The library driver package typically has a standard form: it consists of a series of <<ImportStatement>>s. The library is, in effect, defined by these `import`s.
+
+The normal semantics of an `import` statement imply that the contents of all the `import`ed packages will be `re-exported' by the library driver package. The effect is that when the library driver package is imported, the entire contents of the library will be imported.
+
+The second element of a library structure is the catalog. This typically contains the mapping from the names of packages to their URIs within the library `directory'.
+
+Following the standard process of determining the catalog and URI of an `import`ed package, when the library driver `package` is imported, the library catalog will be accessed in order to interpret the contents of the library driver `package`.
+
+== Resources and Catalogs
+[[resources]]
+
+A package is an instance of a resource. A resource is any entity that can be identified. Examples of resources include package files (both source and compiled), and libraries. Resources need not be ‘static’: in principle, a service or a running application may also be viewed as a resource. However, in respect to the *Star* language, we are mostly concerned with *Star* package resources.
+
+=== Identifying Resources
+(((Unified Resource Identifier)))
+The standard for identifying resources is the URI \cite{rfc2396}. *Star* uses URIs to locate source packages. Specifically, the *Star* language system _must_ support the URI schemes identified in <<standardURISchemes>>; however, it is free to support other schemes.
+
+Program~\vref{uriProg} gives the *Star* definition of the standard `uri` type. This structure reflects the standard structure of a so-called hierarchic URI.  In addition to the `unpacked' `uri` structure, the <<TypeCoercion>> expression:
+
+[listing]
+"..." as uri
+
+represents a convenient way of writing URIs. The standard notation for URIs for supported schemes is supported by such expressions.
+
+\begin{program}
+[listing]
+type uri is uri{
+  scheme has type string;
+  authority has type uriAuthority;
+  path has type string;
+  query has type string;
+  fragment has type string
+}
+
+type uriAuthority is authority{
+  user has type string;
+  host has type string;
+  port has type integer
+} or noAuthority;
+
+.The Standard `uri` Type Description[[uriProg]]
+\end{program}
+
+\begin{aside}
+When a `uri` is used to denote an `import`ed package, the last part of the path must reflect the package name. I.e., if a package is called `pkg`, then the `uri` path must terminate in `.star`.
+\end{aside}
+
+\paragraph{Query Structure}
+The `query` portion of a URI should take the form of a sequence of key=value pairs, separated by semi-colons. For example, a file URI with a VERSION attribute will look like:
+[listing]
+file:///foo/bar.star?VERSION=1.3;ACCESS=public
+
+
+==== Standard URI Schemes
+[[standardSchemes]]
+The compiler recognizes a number of URI schemes as `standard': i.e., the compiler knows how to access the identified resources. In addition, the compiler also supports a technique for extending the set of known schemes with methods for locating the resources.
+\begin{aside}
+Technically, a URI contains no reliable indication of the physical location of the identified resource. However, for practical purposes it is often convenient to encode assumptions about physical location.
+\end{aside}
+
+The standard schemes supported by the compiler are listed in <<standardURISchemes>>.
+
+\begin{table}[H]
+.Standard URI Schemes[[standardURISchemes]]
+\begin{center}
+\begin{tabular}{|lll|}
+\hline
+Scheme&Type&Physical Location\\
+\hline
+`file:`&Local file&File path on system\\
+`std:`&Built-in&Internal to compiler\\
+`http:`&HTTP URL&Web page\\
+`\$quoted\$:`&Quoted URI&Within URI's fragment\\
+`star:`&Star source&File on local system\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\begin{description}
+`file:`::A `file:` URI takes the form:
+[listing]
+file://_Computer_/_FilePath_
+
+If the _Computer_ is omitted then the current machine that the compiler is executing on is assumed. If the `Computer` is not omitted, it may not be possible to access the remote computer.
+`std:`:: A `std:` URI refers to resources that are properly part of the compiler itself. This are `hard-coded' in the sense that their location is established when the compiler is installed.
+`star:`:: A `star:` URI refers to the default location that the compiler uses to find source files. This is often simply the working directory of the compiler; but may be configured with a command-line option.
+`http:`:: A `http:` URI refers to a standard WEB URL. The compiler will attempt to access the resource by means of an HTTP request to the identified URL.
+`\$quoted\$:`:: A `\$quoted\$` contains the source within the URI itself.
+
+For example, the URI:
+[listing]
+$quoted$://hello#hello\%20is\%20package\%7b\%0a\%20\%20fun\%20hello
+                                \%28\%29\%20is\%20\%22hello\%22\%3b\%0a\%7d
+
+denotes the package:
+[listing]
+hello is package{
+  hello() is "hello";
+}
+
+\begin{aside}
+The standard notation for URIs requires that all the special characters used in a typical *Star* source must be encoded as `\%` hex pairs.
+
+This URI is shown on two lines for convenience of display, but must actually be a contiguous sequence of characters.
+\end{aside}
+\begin{aside}
+It is possible, if slightly redundant, to use quoted URIs to import a package:
+[listing]
+...
+import "$quoted$://hello#hello%20is%20package
+                 %7b%0a%20%20fun%20hello%28%29%20is%20%22
+                 hello%22%3b%0a%7d";
+...
+
+However, a more important use of quoted URIs is to support dynamically compilation of *Star* in cases where the compiler is embedded.
+\end{aside}
+\end{description}
+
+==== Defining New Resource Schemes
+[[newResoureScheme]]
+A new resource scheme may be introduced as a command line parameter using the `-DTRANSDUCER=` flag (see <<compileFlags>>).
+
+The value of this flag is special form rule that takes the form:
+[listing]
+_Ptn_==>_Repl_
+
+The syntax accepted by the pattern of the rule is the same as <<RegularExpression>>; in particular, named groups are supported.
+
+The purpose of this rule to map a new form of URI scheme into a predefined one.
+
+In fact, the normal `star:` scheme can be expressed using a `TRANSDUCER` rule of the form:
+[listing]
+"star:(.*/)?([^/]+:V)==>file://_tgtDir_/$V"
+
+where `tgtDir` is the directory selected for finding source *Star* programs.
+
+This particular rule locates the path component of the `star:` URI and translates it to a `file:`-based URI. It does not permit either a query or a fragment specifier; although these could be added they would have to be ignored.
+
+
+==== Resource Versions
+[[uriVersion]]
+A resource URI may have a version indicator that identifies a particular version of the resource. The version indicator is a value associated with the `VERSION` keyword in the query portion of the URI.
+
+For example, to specify version 2.1 of a resource, one might use the URI:
+[listing]
+file:///foo/bar.star?VERSION=2.1
+
+
+The notation for version number is based on a release-version-update scheme.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[Version]Version::=<<Release>>[`.`<<Version>>[`.`<<Update>>]]]\\
+[[Release]]Release::=<<Digit>>\sequence{}<<Digit>>\\
+[[Version]]Version::=<<Digit>>\sequence{}<<Digit>>\\
+[[Update]]Update::=<<Digit>>\sequence{}<<Digit>>
+\end{eqnarray*}
+.Version Numbering
+[[versionNumberScheme]]
+\end{figure}
+Version numbers are numeric, alphabetic version numbers are not permitted.
+
+The requirement for any transducer that accesses a URI is either:
+\begin{itemize}
+\item if the URI references a specific version then that version of the resource should be accessed by the transducer;
+\item if the URI does not reference a version, and if there are multiple versions of a resource, then the transducer must access the resource with the largest version number associated with it.
+\end{itemize}
+
+
+=== Packages and Paths
+[[packagePath]]
+The URI used to identify a package must identify the package's name. Specifically, if the path component of a URI takes the form:
+[listing]
+Dir/Dir\sequence{/}Name._Ext_
+
+then the name of the package -- as identified within the package source -- must be the same as the `Name` part of the package's URI.
+
+This can be expressed more precisely as the substring of the URI's path gotten by removing both any leading folder names (separated by `/` characters) and any trailing extension (denoted as the remaining text following the last occurrence of a `.` character) must be the same as the name identified within the package source.
+
+=== Catalogs
+[[catalog]]
+A catalog is a mapping from logical names to URIs. The *Star* language system uses this mapping to locate source files and compiled code when the corresponding resource is `import`ed by name.
+
+Catalogs offer an additional `level of indirection’ between a name and the named entity. This indirection can be used, for example, to implement versioned access to resources. In addition, catalogs serve the role of ‘pulling together’ the resources that a program or application needs into a coherent set.
+
+Thus, when a package is imported by name, as in:
+[listing]
+world is package\{
+  import hello;
+  ...
+\}
+
+then the *Star* language system uses the catalog mapping to resolve the name `hello` to a `uri` in order to actually access the package. The *Star* type of `catalog` is shown in Program~\vref{catalogProg}.
+
+\begin{program}
+[listing]
+type catalog is catalog\{
+  content has type dictionary of (string,uri);
+  version has type string;
+  version default is nonString;
+\}
+
+.The `catalog` Type[[catalogProg]]
+\end{program}
+
+For example, the catalog definition:
+[listing]
+myCatalog is catalog\{
+  content is dictionary of \{
+    "hello" -> "file:///First/Second/hello.star";
+    "stdlib" ->
+       "http://www.star-lang.org/extensions/StdLib/stdlib.star";
+    "AlpsLib" ->
+       "model://example.com/Alps/Libraries/AlpsLib/AlpsLib.star";
+    "star" -> "std:star.star"
+  \}
+\}
+
+is a typical catalog denoting the programs available to a *Star* application.
+
+==== Accessing Packages Using Catalogs
+(((accessing packages with catalogs)))
+(((catalog,accessing packages with)))
+The process of accessing a package involves:
+\begin{enumerate}
+\item If the package is identified by name, the URI of the package is looked up within the `current' catalog.
+\begin{enumerate}
+\item If the name is not present in the catalog, a fall-back catalog is searched if available.
+\item If the name is not present, and there is no fall-back, exit with an error.
+\end{enumerate}
+\item The located URI is resolved against the URI of the current catalog. This allows catalogs themselves to contain relative URIs where possible.  This is the so-called target URI.
+
+\item The target URI is dereferenced -- using a transducer -- and accessed. If the resource does not exist, or is not valid, exit with an error.
+\item The catalog uri:
+[listing]
+"../catalog"
+
+is resolved against the URI of the package containing the reference.
+\begin{enumerate}
+\item If a catalog exists in this location then that catalog is used to resolve references within the target resource.
+\item If there is no catalog, then a catalog _may_ be synthesized by `exploring' the space around the target URI.
+\end{enumerate}
+\end{enumerate}
+
+==== Multiple Versions of a Package
+A code repository may contain multiple versions of a package. A programmer may specify a specific version to import by specifying the version in the package's URI: either directly in the <<ImportStatement>> or in the catalog.
+
+If no version is specified, then importing a package will always reference the package in the repository with the largest version number.
+
+When compiling a package, the version of the package may be specified as a command-line option to the compiler or by defining a non-trivial value for the `version` attribute in the catalog structure.
+
+However specified, the versions that a package is compiled against are fixed during the compilation of the package. I.e., when a package is compiled, it is compiled against specific versions of imported packages. When the package is later executed, the specific versions that were accessed at compile time are also used at run-time.

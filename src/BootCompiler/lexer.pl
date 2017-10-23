@@ -34,6 +34,8 @@ isToken(T) :- locOfToken(T,_).
 
 locOfToken(lpar(Lc),Lc).
 locOfToken(rpar(Lc),Lc).
+locOfToken(ldpar(Lc),Lc).
+locOfToken(rdpar(Lc),Lc).
 locOfToken(lbra(Lc),Lc).
 locOfToken(rbra(Lc),Lc).
 locOfToken(lbrce(Lc),Lc).
@@ -52,6 +54,8 @@ locOfToken(terminal,missing).
 
 dispToken(lpar(_),['(']).
 dispToken(rpar(_),[')']).
+dispToken(ldpar(_),['(','.']).
+dispToken(rdpar(_),['.',')']).
 dispToken(lbra(_),['[']).
 dispToken(rbra(_),[']']).
 dispToken(lbrce(_),['{']).
@@ -110,6 +114,8 @@ nxTok(St,NxSt,idQTok(Id,Lc)) :- nextSt(St,St1,''''), readQuoted(St1,NxSt,'''',Id
 nxTok(St,NxSt,stringTok(Seg,Lc)) :- lookingAt(St,St1,['"','"','"']), stringBlob(St1,St2,Txt),lookingAt(St2,NxSt,['"','"','"']),string_chars(Seg,Txt),makeLoc(St1,St2,Lc).
 nxTok(St,NxSt,stringTok(Str,Lc)) :- nextSt(St,St1,'"'), readQuoted(St1,NxSt,'"',Str), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,idTok(Id,Lc)) :- hedChar(St,Ch), idStart(Ch), readIden(St,NxSt,Id), makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,ldpar(Lc)) :- lookingAt(St,NxSt,['(','.'],Lc).
+nxTok(St,NxSt,rdpar(Lc)) :- lookingAt(St,NxSt,['.',')'],Lc).
 nxTok(St,NxSt,lpar(Lc)) :- lookingAt(St,NxSt,['('],Lc).
 nxTok(St,NxSt,rpar(Lc)) :- lookingAt(St,NxSt,[')'],Lc).
 nxTok(St,NxSt,lbra(Lc)) :- lookingAt(St,NxSt,['['],Lc).
@@ -123,7 +129,6 @@ nxTok(St,NxSt,rqpar(Lc)) :- lookingAt(St,NxSt,['|','>'],Lc).
 nxTok(St,NxSt,term(Lc)) :- lookingAt(St,NxSt,['.',' '],Lc).
 nxTok(St,NxSt,term(Lc)) :- lookingAt(St,NxSt,['.','\t'],Lc).
 nxTok(St,NxSt,term(Lc)) :- lookingAt(St,NxSt,['.','\n'],Lc).
-nxTok(St,NxSt,term(Lc)) :- nextSt(St,NxSt,'.'), nextSt(NxSt,_,'}'), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,idTok(Id,Lc)) :- nextSt(St,St1,Ch), follows('',Ch,_), followGraph(Ch,Id,St1,NxSt), !, makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,Tk) :-
   nextSt(St,St1,Ch),

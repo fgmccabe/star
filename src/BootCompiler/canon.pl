@@ -16,18 +16,14 @@ isCanon(call(_,_,_)).
 isCanon(dot(_,_)).
 isCanon(enum(_,_)).
 isCanon(theta(_,_,_,_)).
-isCanon(true(_)).
-isCanon(false(_)).
+isCanon(record(_,_,_,_)).
 isCanon(where(_,_)).
-isCanon(conj(_,_)).
-isCanon(disj(_,_)).
-isCanon(conditional(_,_,_)).
-isCanon(unify(_,_,_)).
-isCanon(satisfied(_,_)).
-isCanon(isTrue(_,_)).
+isCanon(conj(_,_,_)).
+isCanon(disj(_,_,_)).
+isCanon(conditional(_,_,_,_)).
 isCanon(match(_,_,_)).
-isCanon(one(_)).
-isCanon(neg(_)).
+isCanon(one(_,_)).
+isCanon(neg(_,_)).
 isCanon(forall(_,_)).
 isCanon(over(_,_,_)).
 isCanon(mtd(_,_)).
@@ -73,6 +69,9 @@ showCanonTerm(call(_,Op,Args),O,Ox) :-
   appStr("(",O1,O2),
   showTerms(Args,O2,O3),
   appStr(")",O3,Ox).
+showCanonTerm(cons(_,Op,A),O,Ox) :-
+  showCanonTerm(Op,O,O1),
+  showCanonTerm(A,O1,Ox).
 showCanonTerm(dot(Rc,Fld),O,Ox) :-
   showCanonTerm(Rc,O,O1),
   appStr(".",O1,O2),
@@ -87,14 +86,16 @@ showCanonTerm(theta(_,Defs,Others,Types),O,Ox) :-
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr(" }",O4,Ox).
+showCanonTerm(record(_,Defs,Others,Types),O,Ox) :-
+  appStr("{. ",O,O1),
+  showTypeDefs(Types,O1,O2),
+  showDefs(Defs,O2,O3),
+  showOthers(Others,O3,O4),
+  appStr(" .}",O4,Ox).
 showCanonTerm(tuple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
-showCanonTerm(true(_),O,Ox) :-
-  appStr("true",O,Ox).
-showCanonTerm(false(_),O,Ox) :-
-  appStr("false",O,Ox).
 showCanonTerm(mtd(_,Nm),O,Ox) :-
   appStr("&",O,O1),
   appStr(Nm,O1,Ox).
@@ -107,10 +108,7 @@ showCanonTerm(where(Ptn,Cond),O,Ox) :-
   appStr(" where ",O1,O2),
   showCanonTerm(Cond,O2,O3),
   appStr(")",O3,Ox).
-showCanonTerm(satisfied(_,C),O,Ox) :-
-  appStr("satisfied ",O,O1),
-  showCanonTerm(C,O1,Ox).
-showCanonTerm(conj(L,R),O,Ox) :-
+showCanonTerm(conj(_,L,R),O,Ox) :-
   showCanonTerm(L,O,O1),
   appStr(" && ",O1,O2),
   showCanonTerm(R,O2,Ox).
@@ -128,9 +126,6 @@ showCanonTerm(conditional(_,Test,Either,Or),O,Ox) :-
   appStr(" | ",O4,O5),
   showCanonTerm(Or,O5,O6),
   appStr(")",O6,Ox).
-showCanonTerm(isTrue(_,E),O,Ox) :-
-  appStr("istrue ",O,O1),
-  showCanonTerm(E,O1,Ox).
 showCanonTerm(match(_,L,R),O,Ox) :-
   showCanonTerm(L,O,O1),
   appStr(" .= ",O1,O2),
@@ -275,21 +270,21 @@ showDef(vdefn(Lc,Nm,Cx,Cond,Tp,Value),O,Ox) :-
   appStr(" := ",O10,O11),
   showCanonTerm(Value,O11,O12),
   appStr(".\n",O12,Ox).
-showDef(enum(Lc,Nm,_Type,Cx,Rules,Face),O,Ox) :-
+showDef(enum(Lc,Nm,Type,Cx,Rules),O,Ox) :-
   appStr("enum: ",O,O1),
   appStr(Nm,O1,O2),
   appStr(":",O2,O3),
-  showType(Face,O3,O4),
+  showType(Type,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
   appStr("\n",O6,O7),
   showConstraints(Cx,O7,O8),
   showClassRules(Rules,O8,Ox).
-showDef(class(Lc,Nm,_Type,Cx,Rules,Face),O,Ox) :-
+showDef(class(Lc,Nm,Type,Cx,Rules),O,Ox) :-
   appStr("class: ",O,O1),
   appStr(Nm,O1,O2),
   appStr(":",O2,O3),
-  showType(Face,O3,O4),
+  showType(Type,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
   appStr("\n",O6,O7),
@@ -327,24 +322,21 @@ showClassRules([Rl|Rules],O,Ox) :-
   showClassRule(Rl,O,O1),
   showClassRules(Rules,O1,Ox).
 
-showClassRule(labelRule(_,_,Hd,Cond,Repl,_),O,Ox) :-
-  showCanonTerm(Hd,O,O0),
-  showGuard(Cond,O0,O1),
-  appStr(" => ",O1,O2),
-  showCanonTerm(Repl,O2,O3),
-  appStr(".\n",O3,Ox).
+showClassRule(labelRule(_,_,Hd,Ots),O,Ox) :-
+  showCanonTerm(Hd,O,O1),
+  appStr(" {",O1,O2),
+  showOthers(Ots,O2,O3),
+  appStr("}.\n",O3,Ox).
 
 showEq(equation(_,Nm,Args,Cond,Value),O,Ox) :-
   appStr(Nm,O,O1),
-  appStr("(",O1,O2),
-  showTerms(Args,O2,O3),
-  appStr(") ",O3,O4),
-  showGuard(Cond,O4,O5),
+  showCanonTerm(Args,O1,O2),
+  showGuard(Cond,O2,O5),
   appStr(" => ",O5,O6),
   showCanonTerm(Value,O6,O7),
   appStr(".",O7,Ox).
 
-showGuard(true(_),O,O) :- !.
+showGuard(v(_,"true"),O,O) :- !.
 showGuard(C,O,Ox) :-
   appStr(" where ",O,O1),
   showCanonTerm(C,O1,Ox).

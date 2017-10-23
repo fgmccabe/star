@@ -1,0 +1,453 @@
+= Lexical Syntax
+[[lexical]]
+
+== Characters
+(((character set)))(((Unicode)))*Star* source text is based on the Unicode character set. This means that identifiers and string values may directly use any Unicode characters. However, all the standard operators and keywords fall in the ASCII subset of Unicode.
+
+== Comments and White Space
+
+Input is tokenized according to rules that are similar to most modern programming languages: contiguous sequences of characters are assumed to belong to the same token unless the class of character changes -- for example, a punctuation mark separates sequences of letter characters. In addition, white space and comments serve as token boundaries; otherwise white space and comments are ignored by the higher-level semantics of the language.
+
+[[ignorableFig]]
+.Ignorable Characters
+:hardbreaks:
+****
+[[Ignorable]]Ignorable ::=<<LineComment>>
+&nbsp;&nbsp; | <<BlockComment>>
+&nbsp;&nbsp; | _WhiteSpace_
+****
+
+There are two forms of comment: line comment and block comment.
+
+=== Line Comment
+(((comment,line)))(((line comment)))A line comment consists of a ```-- ``` or a ```--\t``` followed by all characters up to the next new-line. Here,  ```\t``` refers to the Horizontal Tab.
+
+.Line Comment
+:hardbreaks:
+****
+[[LineComment]]LineComment ::= (`-- ` | `--\t`) _Char_ .. _Char_`\n`
+****
+
+=== Block Comment
+(((comment,block)))(((block comment)))A block comment consists of the characters `/*` followed by any characters and terminated by the characters `*/`.
+
+.Block Comment
+:hardbreaks:
+****
+[[BlockComment]]BlockComment ::= `/\*` _char_ .. _char_ `*/`
+****
+[[blockCommentFig]]
+
+Each form of comment overrides the other: a `/*` sequence in a line comment is _not_ the start of a block comment, and a ``-- `` sequence in a block comment is similarly not the start of a line comment but the continuation of the block comment.
+
+== Number Literals
+[[numericLiteral]]
+*Star* supports integer values, floating point values, decimal values and character codes as numeric values.
+
+.Numeric Literals
+****
+[[NumericLiteral]]NumericLiteral ::= <<IntegerLiteral>>
+&nbsp;&nbsp;| <<Hexadecimal>>
+&nbsp;&nbsp;| <<FloatingPoint>>
+&nbsp;&nbsp;| <<Decimal>>
+&nbsp;&nbsp;| <<CharacterCode>>
+****
+
+[TIP]
+The lexical syntax for numeric values is for positive values only. The interpretation of negative numeric literals is part of the grammar, not the lexical notation.
+
+=== Integer Literals
+[[Integers]]
+(((integer)))(((number,integer)))(((syntax,integer)))An integer is written using the normal decimal notation (see Figure<<decimalFig>>):
+[listing]
+1  34 -99
+
+.Integer Literals
+[[decimalFig]]
+****
+[[IntegerLiteral]]IntegerLiteral::=_Digit_ ... _Digit_+
+
+[[Digit]]Digit::=`0`|`1`|`2`|`3`|`4`|`5`|`6`|`7`|`8`|`9`
+****
+
+[TIP]
+All integers are represented as at least 64 bit values.
+
+=== Hexadecimal Integers
+[[Hexadecimals]]
+(((hexadecimal)))(((number,hexadecimal)))(((syntax,hexadecimal)))A hexadecimal number is an integer written using hexadecimal notation. A hexadecimal number consists of a leading `0x` followed by a sequence of hex digits. For example,
+[listing]
+0x0 0xff 0x34fe
+
+are all hexadecimals.
+
+.Hexadecimal numbers
+[[hexadecimalFig]]
+****
+[[Hexadecimal]]Hexadecimal::= `0x` _Hex_ ... _Hex_+
+
+[[Hex]]Hex::= `0`|`1`|`2`|`3`|`4`|`5`|`6`|`7`|`8`|`9`|`a`|`b`|`c`|`d`|`e`|`f`
+****
+
+
+=== Floating Point Numbers
+(((floating point)))(((number,floating point)))
+(((syntax,floating point number)))
+[[FloatingPoint]]
+Floating point numbers are written using a notation that is familiar. For example,
+[listing]
+234.45  1.0e45
+
+See <<floatingPointFig>> for a complete syntax diagram for floating point numbers.
+
+[[floatingPointFig]]
+.Floating Point numbers
+****
+[[FloatingPoint]]FloatingPoint::=<<Digit>> ... <<Digit>>+ ``.`` <<Digit>>...<<Digit>>+ [``e``[`-`]<<Digit>>...<<Digit>>+]]
+****
+
+
+[TIP]
+All floating point number are represented to a precision that is at least equal to 64-bit double precision. There is no equivalent of single-precision floating pointer numbers.
+
+=== Character Codes
+(((character code)))(((number,character code)))(((syntax,character code)))The character code notation allows a number to be based on the coding value of a character. Any Unicode character code point can be entered in this way:
+[listing]
+0cX 0c[ 0c\n 0c
+
+For example, `0c\n` is the code point associated with the new line character, i.e., its value is `10`.
+
+[TIP]
+Unicode has the capability to represent up to one million character code points.
+
+[[characterCodeFig]]
+.Character Codes
+****
+[[CharacterCode]]CharacterCode::=`0c`<<CharRef>>
+****
+
+A <<CharacterCode>> has type `integer`.
+
+== Strings and Characters
+[[string]]
+(((string literal)))
+(((character reference)))
+(((syntax,string literal)))
+
+A `string` consists of a sequence of characters -- specifically <<CharRef>>s. There is no specific type in *Star* for the characters themselves.
+
+[CAUTION]
+The reasons for this are due to the fact that Unicode `string` values cannot be easily represented as a unique sequence.
+
+=== Character Reference
+[[CharacterReference]]
+(((character reference)))(((syntax, character reference)))A <<CharRef>> is a denotation of a single character.
+
+[[charRefFig]]
+.Character Reference
+****
+[[CharRef]]CharRef ::= _Char_ | <<Escape>>
+
+[[Escape]]Escape::=`\b`|`\d`|`\e`|`\f`|`\n`|`\r`|`\t`|`\v` |
+&nbsp; \ _Char_ | `\u`<<Hex>> ... <<Hex>>``;``
+****
+
+For most characters, the character reference for that character is the character itself. For example, the string `"T"` contains the character `T`. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically written `\n`. The standard escapes references are shown in <<CharEscape>>.
+
+
+[[CharEscape]]
+.Character Escapes
+[cols="1,4"]
+|===
+| Escape | Meaning
+
+|`\b` | Back space
+|`\d` | Delete
+|`\e` | Escape
+|`\f` | Form Feed
+|`\n` | New line
+|`\r` | Carriage return
+|`\t` | Tab
+|`\v` | Vertical Tab
+|`\u<<Hex>>..<<Hex>>;`|Unicode code point
+|`\ _Char_` | The _Char_ itself
+
+|===
+
+
+Apart from the standard character references, there is a hex encoding for directly encoding unicode characters that may not be available on a given keyboard:
+[listing]
+\u34ff;
+
+This notation accommodates the Unicode's varying width of character codes -- from 8 bits through to 20 bits.
+
+=== Quoted Strings
+[[quotedString]]
+A string is a sequence of character references (see <<CharacterReference>>) enclosed in double quotes; alternately a string may take the form of a <<blockString>>.
+
+[[quotedStringFig]]
+.Quoted String
+****
+[[StringLiteral]]StringLiteral ::= `"` <<StrChar>> ... <<StrChar>> `"` | <<BlockString>>
+
+[[StrChar]]StrChar ::= <<CharRef>> | <<Interpolation>>
+
+[[Interpolation]]Interpolation ::= [`$`| `\#`] <<Identifier>>[`:`<<FormattingSpec>> `;`]]
+&nbsp;&nbsp;| [`$` | `#` ] `(`<<Expression>> `)`[`:`<<FormattingSpec>> `;`]
+
+[[FormattingSpec]]FormattingSpec ::= <<CharRef>> ... <<CharRef>>
+****
+
+
+[TIP]
+Strings are _not_ permitted to contain the new-line character -- other than as a character reference.
+
+[listing]
+"This string has a \nnew line in the middle"
+
+
+[[blockString]]
+=== Block String
+(((strings,block form of)))(((block of data)))
+
+In addition to the normal notation for strings, there is a block form of string that permits raw character data to be processed as a string.
+
+[[blockStringFig]]
+.Block String Literal
+****
+[[BlockString]]BlockString::=`"""` _Char_ ... _Char_ `"""`
+****
+
+The block form of string allows any characters in the text and performs no interpretation of those characters.
+
+Block strings are written using triple quote characters at either end. Any new-line characters enclosed by the block quotes are considered to be part of the strings.
+
+The normal interpretation of `$` and `#` characters as interpolation markers is suppressed within a block string.
+[listing]
+"""This is a block string with $ and
+uninterpreted # characters"""
+
+[TIP]
+This form of string literal can be a convenient method for including block text into a program source.
+
+[[regexps]]
+== Regular Expressions
+(((regular expression)))
+
+A regular expression may be used to match against string values. Regular expressions are written using a regexp notation that is close to the common formats; with some simplifications and extensions.
+
+[[regFig]]
+.Regular Expressions
+****
+[[RegularExpression]]RegularExpression::=```<<Regex>>```
+
+[[Regex]]Regex ::= `.` | `^` | `$`
+&nbsp;&nbsp;| <<CharRef>>
+&nbsp;&nbsp;| <<DisjunctiveGroup>>
+&nbsp;&nbsp;| <<CharacterClass>>
+&nbsp;&nbsp;| <<Binding>>
+&nbsp;&nbsp;| <<Regex>> <<Cardinality>>
+&nbsp;&nbsp;| <<Regex>> <<Regex>>
+****
+
+<<regFig>> shows the lexical syntax of regular expressions; however, see <<regularExpressions>> for a more detailed explanations of regular expression syntax and semantics.
+
+[[identifiers]]
+== Identifiers
+(((identifier)))
+
+Identifiers are used to denote operators, keywords and variables. There are four main kinds of identifier: regular alpha-numeric identifiers, graphic identifiers, multi-word identifiers and quoted identifiers. However, semantically, all these are essentially equivalent: they all identify some variable or some type.
+
+[[alphaIdentifier]]
+=== Alphanumeric Identifiers
+(((alpha numeric identifier)))
+
+Identifiers in *Star* are based on the Unicode definition of identifier. For the ASCII subset of characters, the definition corresponds to the common form of identifier -- a letter followed by a sequence of digits and letters. However, non-ASCII characters are also permitted in an identifier.
+
+[[identifierFig]]
+.Identifier Syntax
+****
+[[Identifier]]Identifier::=<<AlphaNumeric>>
+&nbsp;&nbsp;| <<MultiWordIdentifier>>
+&nbsp;&nbsp;| <<GraphicIdentifier>>
+&nbsp;&nbsp;| <<QuotedIdentifier>>
+
+[[AlphaNumeric]]AlphaNumeric::=<<LeadChar>><<BodyChar>>...<<BodyChar>>
+
+[[LeadChar]]LeadChar::=_LetterNumber_
+&nbsp;&nbsp;| _LowerCase_
+&nbsp;&nbsp;| _UpperCase_
+&nbsp;&nbsp;| _TitleCase_
+&nbsp;&nbsp;| _OtherNumber_
+&nbsp;&nbsp;| _OtherLetter_
+&nbsp;&nbsp;| _ConnectorPunctuation_
+
+[[BodyChar]]BodyChar::=_LeadChar_
+&nbsp;&nbsp;| _ModifierLetter_
+&nbsp;&nbsp;| _Digit_
+****
+The terms _LetterNumber_, _ModifierLetter_ and so on; referred to in <<identifierFig>> refer to standard character categories defined in Unicode 3.0.
+
+[TIP]
+This definition of _Identifier_ closely follows the standard definition of Identifier as contained in the Unicode specification.
+
+[[punctuation]]
+=== Punctuation Symbols and Graphic Identifiers
+The standard operators often have a graphic form -- such as `+`, and `=<`. <<standardGraphicsTable>> contains a complete listing of all the standard graphic-form identifiers.
+
+
+[[graphicIdentifierFig]]
+.Graphic Identifiers
+****
+[[GraphicIdentifier]]GraphicIdentifier ::= <<SymbolicChar>>...<<SymbolicChar>>
+
+[[SymbolicChar]]SymbolicChar ::= _Char_ excepting <<BodyChar>>
+****
+
+[[standardGraphicsTable]]
+.Standard Graphic-form Identifiers
+[cols="8*"]
+|===
+`!` | `#<` |`%%` | `-->` | `:!` | `;` | `=>` | `\|` |
+`!`=| `#<>` | `*` | `->` | `:\|` | `;*` | `\|>` | `*` |
+`#` | `#@` | `**` | `.` | `:*` | `<` |`<\|` | `>` |
+`##` | `+` | `..,` |`:+` |`<=` | `>=` | `~` |
+`\`#\$|`\`$|`+`+|`.`/|`:`-|`<`=>|`?`|`\`#*\\
+`\`$\$|`,`|`/`|`:`:|`<`||`@`|`\`#+|`\`$=>\\
+`,`..|`/`/|`:`=|`=`|`@`@|`\`#:|`\`%|`-`\\
+`:`|`:`||`=`=>|`\`_|`?`.|||\\
+|===
+
+[TIP]
+Apart from their graphic form there is no particular semantic distinction between a graphic form identifier and a alphanumeric form identifier. In fact, new graphical tokens may be introduced as a result of declaring an operator -- see <<symbolicOperators>>.
+
+
+[[keywords]]
+=== Standard Keywords
+(((standard keywords)))
+(((keywords)))
+
+There are a number of keywords which are reserved by the language -- these may not be used as identifiers or in any other role.
+
+<<keywordTable>> lists the standard keywords.
+
+[[keywordTable]]
+.Standard Keywords
+[cols="4*"]
+|===
+`memo` | `request` |
+`for` | `merge` | `spawn` |
+`alias` | `all` | `not` | `substitute` |
+`all` |
+`and` | `from` | `notify` | `suchthat` |
+`any` | `fun` | `of` | `switch` |
+`any of` | `function` | `on` | `sync` |
+`has` | `on abort` | `then` |
+`as` | `has kind` | `open` | `to` |
+`assert` | `has type` | `or` | `try` |
+`bound to` | `hastype` | `order by` | `tuple` |
+`case` | `identifier` | `order descending by` | `type` |
+`cast` | `if` | `otherwise` | `unique` |
+`catch` | `ignore` | `over` | `unquote` |
+`computation` | `implementation` | `package` | `update` |
+`contract` | `implements` | `pattern` | `using` |
+`counts as` | `implies` | `perform` | `valis` |
+`def` | `import` | `valof` |
+`default` | `in` | `private` |
+`delete` | `instance of` | `procedure` | `waitfor` |
+`descending by` | `is` | `when` |
+`determines` | `is tuple` | `query` | `where` |
+`do` | `java` | `quote` | `while` |
+`down` | `kind` | `raise` | `with` |
+`else` | `let` | `reduction` |
+`exists` | `matches` | `ref` | `yield` |
+`extend` | `matching` | `remove`
+|===
+
+[TIP]
+====
+On those occasions where it is important to have an identifier that is a keyword it is possible to achieve this by enclosing the keyword in parentheses.
+
+For example, while `type` is a keyword in the language; enclosing the word in parentheses: `(type)` has the effect of suppressing the keyword interpretation.
+
+Enclosing a name in parentheses also has the effect of suppressing any operator information about the name.
+====
+
+[[multiword]]
+=== Multi-word Identifiers
+(((identifier,multi-word)))
+(((multiple word identifiers)))
+
+A <<MultiWordIdentifier>> is an <<Identifier>> that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a <<MultiWordIdentifier>> is logically a _single_ identifier. For example, the combination of words:
+[listing]
+such that
+
+is logically a single multi-word identifier whose name is `such that`.
+
+
+[[multiWordIentifierFig]]
+.Multi-Word Identifier
+****
+[[MultiWordIdentifier]]MultiWordIdentifier::=<<AlphaNumeric>>+
+****
+
+There are a few standard <<MultiWordIdentifier>>s, as outlined in <<multiWords>>. In addition, <<MultiWordIdentifier>>s can be defined as operators (see <<multiWordOperators>>).
+
+[[multiWords]]
+.Multi-Word Keywords
+[cols="4*"]
+|===
+`any of` | `is tuple` | `group by` | `has value` |
+`such that` | `counts as` | `for all` | `order by` |
+`order descending by` | `has kind` | `instance of` | `descending by` |
+`has type` | `bound to` | `or else` | `on abort` |
+|===
+
+Parts of a <<MultiWordIdentifier>> may be separated by spaces and/or comments.
+
+If a part of a <<MultiWordIdentifier>> occurs out of sequence, i.e., not as part of the sequence that defines the identifier, then it is interpreted as a normal <<AlphaNumeric>> identifier.
+
+[[operatorDefinedTokens]]
+=== Operator Defined Tokens
+(((identifer,operator defined)))
+(((operator defined tokens)))
+
+When a new operator is defined -- see <<newOperator>> -- it may be that it takes the form of a normal identifier; as in:
+[listing]
+#infix("hello",50)
+
+
+However, it is also possible to define an operator from special characters:
+[listing]
+#prefix("||",80);
+
+The operator identifier -- `||` -- is not a normal alphanumeric identifier.
+
+When such a declaration is processed, the tokenizer extends itself to include the new operator identifier as a valid token. Hence an operator may be constructed out of any characters.
+
+[WARNING]
+It is not permissible to mix alphanumeric characters with non-alphanumeric characters in an operator.
+
+I.e., the operator declaration:
+[listing]
+#postfix("alpha%|beta",90)
+
+will not be processable as a single token. Hence such operators are not permitted.
+
+[[quotedQidentifiers]]
+=== Quoted Identifiers
+(((identifier,quoted)))
+(((quoted identifiers)))
+
+A quoted identifiers is denoted by a sequence of <<charRef>>s enclosed in single quotes. Recall that strings are enclosed in double quotes.
+
+[[quotedIdentFig]]
+.Quoted Identifier
+****
+[[QuotedIdentifier]]QuotedIdentifier ::= ``'``<<StrChar>>...<<StrChar>>``'``
+****
+
+A quoted identifier suppresses any operator or keyword interpretation that the identifier might otherwise have.
+
+[TIP]
+This can be useful for external facing interfaces where, for example, the name of a field in a structure must have a particular form -- even if that would otherwise be a keyword.

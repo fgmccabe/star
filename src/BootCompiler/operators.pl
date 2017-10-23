@@ -20,7 +20,7 @@
   is_in(X,[X|_]).
   is_in(X,[_|Y]) :- is_in(X,Y).
 
-  operator("all", [prefixOp(1239, 1238)]).
+  operator("all", [prefixOp(1010, 1009)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
@@ -44,7 +44,8 @@
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [prefixOp(1, 0), infixOp(450, 450, 449)]).
   operator("/", [infixOp(700, 700, 699)]).
-  operator("exists", [prefixOp(1239, 1238)]).
+  operator("exists", [prefixOp(1010, 1009)]).
+  operator("•", [infixOp(450, 450, 449)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
@@ -80,13 +81,14 @@
   operator(">>=", [infixOp(899, 900, 900)]).
   operator("^/", [infixOp(800, 800, 799)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
+  operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("|", [infixOp(1219, 1220, 1220)]).
+  operator("|", [infixOp(1248, 1249, 1249)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(920, 920, 919)]).
-  operator("::=", [infixOp(1230, 1231, 1230)]).
+  operator("::=", [infixOp(1249, 1250, 1249)]).
   operator(">=", [infixOp(899, 900, 899)]).
 
 
@@ -108,6 +110,7 @@
   follows('','>','>').
   follows('','?','?').
   follows('','@','@').
+  follows('','•','•').
   follows('','#','#').
   follows('','$','$').
   follows('%','%','%%').
@@ -215,6 +218,7 @@
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
+  final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
   final('$',"$").	 /* Used for curried functions and types */
 

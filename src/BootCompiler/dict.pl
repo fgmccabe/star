@@ -1,9 +1,9 @@
 :- module(dict,[declareType/4,isType/3,
     declareTypeVars/4,isTypeVar/3,
-    declareVar/4,isVar/3,currentVar/3,restoreVar/4,
+    declareVar/4,isVar/3,hasType/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
     declareImplementation/4,getImplementations/3,allImplements/3,
-    declareConstraint/3,isConstrained/2,
+    declareConstraint/3,allConstraints/2,
     processNames/3,processTypes/3,
     pushScope/2,pushFace/4,makeKey/2,stdDict/1]).
 
@@ -20,7 +20,7 @@ isType(Nm,Env,Tp) :-
 typeInD(Key,[scope(Types,_,_,_,_)|_],Tp) :- get_dict(Key,Types,Tp),!.
 typeInD(Key,[_|Env],Tp) :- typeInD(Key,Env,Tp).
 
-declareType(Nm,TpDef,[scope(Types,Nms,Cns,Impls,Contracts)|Outer],[scope(Types1,Nms,Cns,Impls,Contracts)|Outer]) :-
+declareType(Nm,TpDef,[scope(Types,Nms,Cons,Impls,Contracts)|Outer],[scope(Types1,Nms,Cons,Impls,Contracts)|Outer]) :-
   makeKey(Nm,Key),
   put_dict(Key,Types,TpDef,Types1).
 
@@ -44,6 +44,10 @@ isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
 isVr(Key,[scope(_,Names,_,_,_)|_],Vr) :- get_dict(Key,Names,Vr),!.
 isVr(Key,[_|Outer],Vr) :- isVr(Key,Outer,Vr).
 
+hasType(Nm,Env,Tp) :-
+  makeKey(Nm,Ky),
+  isVr(Ky,Env,vr(_,_,Tp)),!.
+
 currentVar(Nm,Env,some(Vr)) :- makeKey(Nm,Key), isVr(Key,Env,Vr),!.
 currentVar(_,_,none).
 
@@ -66,8 +70,10 @@ contractInD(Key,[_|Env],Con) :- contractInD(Key,Env,Con).
 
 declareConstraint(Con,[scope(Types,Nms,Cns,Impl,Cons)|Outer],[scope(Types,Nms,[Con|Cns],Impl,Cons)|Outer]).
 
-isConstrained(Con,[scope(_,_,Cns,_,_)|_]) :- is_member(Con,Cns).
-isConstrained(Con,[_|Outer]) :- isConstrained(Con,Outer).
+allConstraints([],[]).
+allConstraints([scope(_,_,Cns,_,_)|Env],All) :-
+  allConstraints(Env,Outer),
+  concat(Cns,Outer,All).
 
 allImplements(T,Env,Face) :-
   allImplements(T,Env,Env,[],Face).
@@ -98,10 +104,19 @@ implInD(Key,[_|Env],Con) :- implInD(Key,Env,Con).
 
 pushScope(Env,[scope(types{},vars{},[],impls{},contracts{})|Env]).
 
-pushFace([],_,Env,Env).
-pushFace([(Nm,Tp)|Fields],Lc,Env,ThEnv) :-
+pushFace(faceType(Vrs,Tps),Lc,Env,ThEnv) :-
+  pushFields(Vrs,Lc,Env,E0),
+  pushTypes(Tps,Lc,E0,ThEnv).
+
+pushFields([],_,Env,Env).
+pushFields([(Nm,Tp)|Fields],Lc,Env,ThEnv) :-
   declareVar(Nm,vr(Nm,Lc,Tp),Env,Env0),
-  pushFace(Fields,Lc,Env0,ThEnv).
+  pushFields(Fields,Lc,Env0,ThEnv).
+
+pushTypes([],_,Env,Env).
+pushTypes([(N,Type)|Tps],Lc,Env,ThEnv) :-
+  declareType(N,tpDef(Lc,Type,faceType([],[])),Env,E0),
+  pushTypes(Tps,Lc,E0,ThEnv).
 
 processNames(Dict,P,Result) :-
   processNames(Dict,P,[],Result).
@@ -138,6 +153,6 @@ stdVar(Nm,Vr,Env,Ex) :- declareVar(Nm,'std',Vr,Env,Ex).
 
 stdDict(Base) :-
   pushScope([],B),
-  declareType("string",tpDef(std,type("star.core*string"),typeExists(type("star.core*string"),faceType([]))),B,B0),
-  declareType("integer",tpDef(std,type("star.core*integer"),typeExists(type("star.core*integer"),faceType([]))),B0,B1),
-  declareType("float",tpDef(std,type("star.core*float"),typeExists(type("star.core*float"),faceType([]))),B1,Base).
+  declareType("string",tpDef(std,type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))),B,B0),
+  declareType("integer",tpDef(std,type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))),B0,B1),
+  declareType("float",tpDef(std,type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))),B1,Base).

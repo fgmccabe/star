@@ -1,0 +1,491 @@
+= Grammar
+[[Grammar]]
+
+The grammar of *Star* is based on a notation which makes extensibility easier to achieve. Thus, at the core, the grammar is very simple and straightforward -- it is based on an _operator precedence grammar_.
+
+[TIP]
+This choice gives us two key benefits: it is simple to understand and it is simple to extend. The latter is particularly important in *Star* as a significant part of its functionality is derived from _profiles_ which are similar to macros.
+
+However, it also makes certain other aspects more challenging. In particular, an operator precedence grammar knows less about the program as it is parsed. This means that syntax errors are liable to less informative.
+
+
+== Operator Precedence Grammar
+An operator grammar allows us to write expressions like:
+[listing]
+X * Y + X / Y
+
+and to know that this means the equivalent of:
+[listing]
+(X * Y) + (X / Y)
+
+or more specifically:
+[listing]
++(*(X, Y), /(X, Y))
+
+Operator precedence grammars are often used to capture arithmetic-style expressions. In *Star* we extend the concept to cover the entire language.
+
+For example, an equation such as:
+[listing]
+double(X) => X*X
+
+can be interpreted -- by treating `=>` as an operator -- as:
+[listing]
+'=>'(double(X),'*'(X,X
+
+Of course, this is merely a _parse_ of the equation. The real task of the compiler is to interpret this abstract syntax as an equation rather than as an attempt to apply the `=>` function.footnote:[The entire operator precedence grammar (not including tokenization) is very succinct, as can be seen in <<srOpPrecGrammar>>.]
+
+[[standardOperators]]
+== Standard Operators
+
+A key input to the grammar is the table of operators. *Star* starts with a number of standard operators, but this can be extended via the use of _package_ extensions to the language (see <<packages>>).
+
+The standard operators that are part of the core language and the base extensions are listed in <<StandardOps>>. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to `prefix`, `infix`, `postfix`, or some combination of the three.
+
+The priority of an operator is the indication of the `importance' of the operator: the higher the priority the nearer the top of the abstract syntax tree the corresponding structure will be.
+
+Priorities are numbers in the range 1..2000; by convention, priorities in the range 1..899 refer to entities that normally take the role of expressions, priorities in the range 900..1000 refer to predicates and predicate-level connectives and priorities in the range 1001..2000 refer to entries that have a statement or program level interpretation.
+
+
+[[StandardOps]]
+.Standard Operators
+[cols="3*"]
+|===
+
+`#right(";",2000)` |
+`#postfix(";",2000)` |
+`\#prefix("#",1350)` |
+`#infix(":-",1347)` |
+`#infix("-->",1347)` |
+`#infix("==>",1347)` |
+`#right(":\|",1345)` |
+`#right(":",1344)` |
+`#prefix(":!",1343)` |
+`\#infix("##",1342)` |
+`#infix("::",1341)` |
+`#infix("\|*",1340)` |
+`#infix(":*",1340)` |
+`#infix(":+",1340)` |
+`#infix(";*",1340)` |
+`#prefix("private",1320)` |
+`#prefix("java",1300)` |
+`#prefix("var",1300)` |
+`#prefix("contract",1300)` |
+`#prefix("open",1300)` |
+`#prefix("on",1300)` |
+`#prefix("implementation",1300)` |
+`#prefix("case",1290)` |
+`#right("\|",1290)` |
+`#prefix("type",1250)` |
+`#infix("counts as",1200)` |
+`#right("else",1200)` |
+`#infix("is",1200)` |
+`#right("do",1200)` |
+`#prefix("remove",1200)` |
+`#infix("then",1180)` |
+`#prefix("if",1175)` |
+`#prefix("while",1175)` |
+`#prefix("for",1175)` |
+`#infix("to",1130)` |
+`#infix("from",1130)` |
+`#infix(":=",1120)` |
+`#prefix("perform",1120)` |
+`#prefix("merge",1100)` |
+`#prefix("extend",1100)` |
+`#prefix("notify",1100)` |
+`#postfix("default",1100)` |
+`#prefix("assert",1100)` |
+`#prefix("valis",1100)` |
+`#prefix("try",1100)` |
+`#prefix("update",1100)` |
+`#prefix("delete",1100)` |
+`#prefix("ignore",1100)` |
+`#infix("//",1100)` |
+`#infix(",..",1099)` |
+`#infix("..,",1098)` |
+`#infix("catch",1050)` |
+`#prefix("request",1050)` |
+`#infix("with",1050)` |
+`#prefix("switch",1020)` |
+`#infix("has type",1020)` |
+`#right("such that",1010)` |
+`#assoc("exists",1005)` |
+`#assoc("for all",1005)` |
+`#right(",",1000)` |
+`#infix("default",1000)` |
+`#prefix("raise",1000)` |
+`#prefix("query",1000)` |
+`#prefix("import",1000)` |
+`#prefix("memo",999)` |
+`#prefix("without",999)` |
+`#infix("computation",999)` |
+`#infix("./",999)` |
+`#prefix("with",999)` |
+`#right(":",960)` |
+`#postfix(":",960)` |
+`#left("group by",960)` |
+`#prefix("when",950)` |
+`#right("?",950)` |
+`#right("~",950)` |
+`#infix("order descending by",950)` |
+`#prefix("waitfor",950)` |
+`#prefix("spawn",950)` |
+`#infix("order by",950)` |
+`#infix("descending by",950)` |
+`#infix("where",940)` |
+`#prefix("any of",935)` |
+`#prefix("all",935)` |
+`#right("otherwise",930)` |
+`#right("or",930)` |
+`#right("implies",920)` |
+`#right("and",920)` |
+`#right("=>",910)` |
+`#right("$=>",910)` |
+`#prefix("not",910)` |
+`#right("<=>",910)` |
+`#prefix("let",909)` |
+`#left("using",908)` |
+`#infix("in",908)` |
+`#right("or else",900)` |
+`#infix("matches",900)` |
+`#infix("!=",900)` |
+`#infix("<",900)` |
+`#infix("=",900)` |
+`#infix(">",900)` |
+`#infix("substitute",900)` |
+`#infix("<=",900)` |
+`#prefix("ref",900)` |
+`#infix("=<",900)` |
+`#prefix("kind",900)` |
+`#postfix("is tuple",900)` |
+`#infix("->",900)` |
+`#infix("has kind",900)` |
+`#infix("bound to",900)` |
+`#infix("has value",900)` |
+`#infix(">=",900)` |
+`#right("implements",900)` |
+`#infix("on",900)` |
+`#right("over",900)` |
+`#infix("instance of",900)` |
+`#infix("determines",895)` |
+`#right("++",850)` |
+`#right("of",840)` |
+`#prefix("reduction",830)` |
+`#infix("matching",800)` |
+`#left("+",720)` |
+`#left("-",720)` |
+`#left("%",700)` |
+`#left("*",700)` |
+`#left("/",700)` |
+`#infix("**",650)` |
+`#prefix("valof",500)` |
+`#infix("on abort",475)` |
+`#infix("as",420)` |
+`#prefix("unique",400)` |
+`#infix("@@",200)` |
+`#infix("@",200)` |
+`\#infix("#@",200)` |
+`#left(".",175)` |
+`#left("?.",175)` |
+`#prefix("!",150)` |
+`#prefix("+",100)` |
+`#prefix("-",100)` |
+`#prefix("$",75)` |
+`#prefix("%",75)` |
+`#prefix("?",75)` |
+`#prefix("%%",75)` |
+`\#prefix("#$",50)` |
+`\#prefix("#*",50)` |
+`\#right("#+",50)` |
+`\#prefix("#:",50)` |
+`#prefix("$$",50)` |
+`#right("$$",50)` |
+`\#prefix("#~",50)` |
+|===
+
+== Defining new Operators
+[[newOperator]]
+(((defining new operators)))
+(((operators,defining new)))
+
+[[operatorDeclarationFig]]
+.Operator Declaration
+:hardbreaks:
+****
+[[OperatorDeclaration]]OperatorDeclaration ::= `#` [`force`] ( <<PrefixOperator>> | <<InfixOperator>> | <<PostfixOperator>>
+ | <<BracketDeclaration>>)
+
+[[PrefixOperator]]PrefixOperator ::= `prefix(`  <<OperatorName>> `,` <<Integer>> `,` <<Integer>> `)` |
+&nbsp; &nbsp; `prefixAssoc(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)`
+
+[[InfixOperator]]InfixOperator ::= `left(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)` |
+ &nbsp; &nbsp; `infix(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)` |
+ &nbsp; &nbsp; `right(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)`
+
+[[PostfixOperator]]PostfixOperator ::= `postfix(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)` |
+ &nbsp; &nbsp; `postfixAssoc(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)`
+
+[[BracketDeclaration]]BracketDeclaration ::=`pair (` <<OperatorName>> `,` <<OperatorName>> `,` <<Integer>>`)`
+
+[[OperatorName]]OperatorName ::= <<StringLiteral>>
+****
+
+
+A new operator is defined using an operator definition statements:
+
+infix::
+A statement of the form:
+[listing]
+#infix("myOp",730);
+
+defines the operator `myOp` to be an infix operator, with priority 730.
+
+Defining an operator does _not_ define anything about its semantics -- except that in the case of an `infix` operator, it has two arguments.
+
+left::
+A statement of the form:
+[listing]
+#left("lftOp",730);
+
+defines the operator `lftOp` to be a left-associative infix operator, with priority 730. That means that expression such as
+[listing]
+A lftOp B lftOp C lftOp D
+
+will be parsed as though written:
+[listing]
+((A lftOp B) lftOp C) lftOp D
+
+right::
+A statement of the form:
+[listing]
+#right("rgtOp",730);
+
+defines the operator `rgtOp` to be a right associate infix operator, with priority 730. Exressions such as
+[listing]
+A rgtOp B rgtOp C rgtOp D
+
+will be parsed as though written:
+[listing]
+(A rgtOp (B rgtOp (C rgtOp D)))
+
+prefix::
+A statement of the form:
+[listing]
+#prefix("prOp",730);
+
+defines the operator `prOp` to be a prefix operator, with priority 730.
+
+prefixAssoc::
+A statement of the form:
+[listing]
+#prefixAssoc("prOp",730);
+
+defines the operator `prOp` to be an _associative_ prefix operator, with priority 730. That means that expressions such as:
+[listing]
+prOp prOp prOp A
+
+are permitted, and have interpretation:
+[listing]
+(prOp (prOp (prOp A)))
+
+postfix::
+A statement of the form:
+[listing]
+#postfix("psOp",730);
+
+defines the operator `psOp` to be a postfix operator, with priority 730.
+
+postfixAssoc::
+A statement of the form:
+[listing]
+#postfixAssoc("psOp",730);
+
+defines the operator `psOp` to be an _associative_ postfix operator, with priority 730. That means that expressions such as:
+[listing]
+A psOp psOp psOp
+
+are permitted, and have interpretation:
+[listing]
+(((A psOp) psOp) psOp)
+
+An operator declaration may only take place in a `package` body. Its scope is from the declaration statement to the end of the `package` body. In the latter case, when a `profile` is imported via the `use` statement, any operator definitions are also made available to the importing context.
+
+=== Forced Operator Declaration
+Normally, any attempt to re-declare an operator will result in a syntax error being raised. However, there may be situations where it is important to be able to change an existing operator declaration.
+
+[TIP]
+Note that a given symbol may be defined as a prefix operator, an infix operator and a postfix operator. Each of these are treated separately.
+
+The `force` directive is used in this situation:
+[listing]
+#force(infix("as",200));
+
+has the effect of _changing_ the existing operator priority of the `as` operator as an infix operator to 200 -- whatever its previous priority was.
+
+[[symbolicOperators]]
+=== Symbolic Operators
+An operator may consist of a single <<Identifier>>, a sequence of <<Identifier>>s or it may consist of a <<StringLiteral>> containing a sequence of so-called symbolic characters. In this form, the first character of the operator may not be a digit or a letter. In addition, none of the characters may be a space or other white-space character.
+
+However, other than these constraints the characters in the operator declaration may be any legal unicode character.
+[TIP]
+For the sake of programmers' sanity we strongly suggest not using characters that overlap with other categories. For example, do not include a parenthesis in the operator name.
+
+For example, the declaration:
+[listing]
+#infix("**",700)
+
+declares `**` to be a new infix operator.
+
+The lexical analyzer is able to incorporate the newly declared operator as a distinct token. Thus, for example, with the `**` declaration above, `**` becomes a distinct token to the normal symbol for multiplication.
+
+=== Multi-word Operators
+[[multiWordOperators]]
+(((multi-word operators)))
+(((operators,defining multi-word operators)))
+
+A multi-word operator defines a new <<MultiWordIdentifier>>; i.e., a special combination of alpha numeric words that form a single logical identifier.
+
+Multi-word operators are defined like regular operators, except that their names contain spaces. For example, the operator declaration:
+[listing]
+#infix("no more",500);
+
+defines the combination of words ```no`'' followed by ```more`'' as a single operator of priority 500.
+
+A multi-word operator is only an operator when all of its constituent words are present. If one or more of the constituent words are not present (or have other tokens intervening) then the sequence is not interpreted as a single operator but is parsed separately. For example, in the text:
+[listing]
+5 no more 10
+
+is interpreted as the equivalent of:
+[listing]
+'no more'(5,10)
+
+but the text
+[listing]
+5 no (more) 10
+
+is not, and, in this case, will be reported as a syntax error.
+
+[TIP]
+====
+It _is_ permissible to interpose comments between the words of a multi-word operator. Thus:
+[listing]
+5 no /* way */ more 10
+
+is legal.
+====
+
+[TIP]
+====
+A given word can be an operator in its own right, as well as participating in a multi-word operator. The combination may have different priorities to the individual pieces.
+
+For example, in the standard operator declarations:
+[listing]
+#prefix("type",1250);
+#infix("has type",1020);
+
+the word `type` is a prefix operator when it appears by itself, and is part of the infix operator `has type` in combination.
+====
+
+=== Minimum Priorities
+In some circumstances, it becomes important to control the extent to which a name is interpreted as an operator. Recall that the priority of an operator defines not only the circumstances in which it occurs legally but also the expected priorities of terms on the left or right (depending on the form of the operator).
+
+When an operator is defined, it is possible to also specify a _minimum_ priority as well as a maximum priority for the operator. Specifying a minimum priority for an operator has the effect of suppressing the operator definition when the expected priority of a fragment is lower than the minimum.
+
+For example, the `type` standard operator is defined to be a prefix operator with priority 1250 and a minimum priority of 1200:
+[listing]
+#prefix("type",1250,1200)
+
+This means that `type` is an operator of priority 1250 -- unless the expected priority is less than 1200 in which case it is not an operator.
+
+Thus, in the fragment:
+[listing]
+type foo has kind type
+
+the first occurrence of `type` is as a prefix operator, but the second occurrence is as a simple identifier -- because the priority of `kind` is 900 which is lower than `type`'s minimum priority.
+
+By default, the minimum priority of an operator is zero, which means that it is always an operator.
+
+[TIP]
+Setting a minimum priority on an operator should be done sparingly.
+
+
+=== Bracketing pairs
+The *Star* grammar also permits a special feature that may be used to support language extensions -- _defined bracket pairs_.
+
+A regular bracket pair is a pair of tokens such as `()` which are used to 'protect' expressions where there may be an operator precedence clash -- the classic example being
+[listing]
+(2+3)*4
+
+which has a different meaning to
+[listing]
+2+3*5
+
+Declaring bracket operators allows new forms of syntax. For example, the statement:
+[listing]
+#pair("begin","end",2000)
+
+can be used to all programmers to use Algol-style `begin`...`end` statements.
+
+Program~\vref{beginEndProgram} shows a collection of macro definitions
+that permits a pascal-style form of procedure definition, such as:
+[listing]
+procedure iFact(N)
+  var F := 1;
+  var Ix := 1;
+  while Ix < N do
+  begin
+    F := F*Ix;
+    Ix := Ix+1;
+  end;
+  return F;
+end;
+
+
+.Macros that implement Pascal-style programs
+[listing]
+----
+#prefix("return",1200);
+#pair("procedure","end",2000);
+#pair("begin","end",2000);
+
+#procedure ?Tmpl ; ?body end :: statement :- body;*action;
+#begin ?B end :: action :- B;*action;
+#begin end :: action;
+
+#procedure ?Tmpl ; ?body./#(return ?E)# end ==>
+  Tmpl => valof {body./#(valis E)#};
+#procedure ?Tmpl ; ?body end ==> prc Tmpl do body ;
+
+#begin ?B end ==> {B};
+#begin end ==> {};
+----
+
+[[StandardBrackets]]
+.Standard Brackets
+[cols="1,1,2,3"]
+|===
+Begin | End | Inner Priority | Description
+
+| `(` | `)` | 1200 | expression
+| `{` | `}` | 2000 | brace expression
+| `[` | `]` | 1000 | index expression
+| `#(` | `)#` | 2000 | meta parentheses
+| `<\|` | `\|>` | 2000 | quoting parentheses
+| `#<` | `>#` | 2000 | macro tupling
+|===
+
+[TIP]
+====
+The so-called meta brackets -- `\#(` and `)#` -- are particularly useful for meta-programming because they mimic conventional parentheses in conventional programming languages. At the meta-level, a term such as
+[listing]
+(A)
+
+is not equivalent to
+[listing]
+A
+
+whereas
+[listing]
+\#(A)#
+
+is.
+====

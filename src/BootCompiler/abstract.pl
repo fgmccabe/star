@@ -2,8 +2,8 @@
       nary/4,binary/5,unary/4,zeroary/3,apply/4,isApply/3,
       isUnary/3,isUnary/4,isBinary/4,isBinary/5,isBinaryTerm/4,
       isTernary/5,ternary/6,
-      roundTerm/4,isRound/3,isRound/4,isRoundTerm/3,isRoundTerm/4,isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
-      braceTerm/4,isBrace/3,isBraceTerm/4,isBraceTuple/3,braceTuple/3,
+      roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
+      braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,isEmptyBrace/1,
       qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
       squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,
       isName/2,isIden/1,isIden/2,isIden/3,genIden/2,isString/2,isInteger/2,
@@ -26,9 +26,7 @@ roundTuple(Lc,Args,tuple(Lc,"()",Args)).
 
 roundTerm(Lc,Op,Args,app(Lc,name(Lc,Op),tuple(Lc,"()",Args))).
 
-isRound(app(_,name(_,Op),tuple(_,"()",Args)),Op,Args).
-
-isRound(app(Lc,name(_,Op),tuple(_,"()",Args)),Lc,Op,Args).
+isRound(app(Lc,name(_,Op),A),Lc,Op,A) :- isRoundTuple(A,_,_), \+ isKeyword(Op).
 
 isKeyOp(name(_,Op)) :- isKeyword(Op).
 
@@ -60,19 +58,21 @@ nary(Lc,Op,Args,app(Lc,name(Lc,Op),tuple(Lc,"()",Args))).
 
 braceTerm(Lc,Op,Els,app(Lc,Op,tuple(Lc,"{}",Els))).
 
-isBrace(app(_,name(_,Op),tuple(_,"{}",L)),Op,L).
+isBrace(app(Lc,name(_,Op),tuple(_,"{}",L)),Lc,Op,L) :- \+ isKeyword(Op).
 
-isBraceTerm(app(Lc,Op,tuple(_,"{}",A)),Lc,Op,A).
+isBraceTerm(app(Lc,Op,tuple(_,"{}",A)),Lc,Op,A) :- \+isKeyOp(Op).
 
 isBraceTuple(tuple(Lc,"{}",L),Lc,L).
+
+isEmptyBrace(tuple(_,"{}",[])).
 
 braceTuple(Lc,L,tuple(Lc,"{}",L)).
 
 qbraceTerm(Lc,Op,Els,app(Lc,Op,tuple(Lc,"{..}",Els))).
 
-isQBrace(app(_,name(_,Op),tuple(_,"{..}",L)),Op,L).
+isQBrace(app(_,name(_,Op),tuple(_,"{..}",L)),Op,L) :- \+ isKeyword(Op).
 
-isQBraceTerm(app(Lc,Op,tuple(_,"{..}",A)),Lc,Op,A).
+isQBraceTerm(app(Lc,Op,tuple(_,"{..}",A)),Lc,Op,A) :- \+isKeyOp(Op).
 
 isQBraceTuple(tuple(Lc,"{..}",L),Lc,L).
 

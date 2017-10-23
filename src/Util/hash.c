@@ -36,16 +36,11 @@ typedef struct bucket {
 
 typedef struct _hashtable_ {
   long size; // The number of entries in the table
-  long entries;
-  /* how many entries do we have? */
-  bucketPo *table;
-  /* The table of entries */
-  hashFun hash;
-  /* The hashing function */
-  compFun compare;
-  /* The comparison function */
-  destFun destroy;
-  /* Entry destruction function */
+  long entries; /* how many entries do we have? */
+  bucketPo *table; /* The table of entries */
+  hashFun hash; /* The hashing function */
+  compFun compare; /* The comparison function */
+  destFun destroy; /* Entry destruction function */
   pthread_mutex_t mutex;    /* Mutex associated with table */
 } HashTableRec;
 
@@ -139,7 +134,8 @@ void *hashGet(hashPo htbl, void *name) {
   pthread_mutex_lock(&htbl->mutex);
 
   {
-    register bucketPo b = htbl->table[(htbl->hash)(name) % htbl->size];
+    register integer offset = labs((htbl->hash)(name) % htbl->size);
+    register bucketPo b = htbl->table[offset];
 
     while (b != NULL) {
       if ((htbl->compare)(b->nme, name) == same) { /* we have found the entry */
@@ -160,7 +156,7 @@ retCode hashPut(hashPo htbl, void *name, void *r) {
   pthread_mutex_lock(&htbl->mutex);
 
   {
-    register integer offset = (htbl->hash)(name) % htbl->size;
+    register integer offset = labs((htbl->hash)(name) % htbl->size);
     register bucketPo b = htbl->table[offset];
 
     while (b != NULL) {
@@ -200,7 +196,7 @@ retCode hashRemove(hashPo htbl, void *name) {
   pthread_mutex_lock(&htbl->mutex);
 
   {
-    register integer offset = (htbl->hash)(name) % htbl->size;
+    register integer offset = labs((htbl->hash)(name) % htbl->size);
     register bucketPo *b = &htbl->table[offset];
 
     while (*b != NULL) {
@@ -257,7 +253,7 @@ static void rehash(hashPo tbl) {
       bucketPo b = old[i];
 
       while (b != NULL) {
-        register unsigned long offset = (unsigned long)((tbl->hash)(b->nme) % tbl->size);
+        register long offset = labs((tbl->hash)(b->nme) % tbl->size);
         register bucketPo bb = b; /* switch bucket from old table to new table */
 
         b = b->link;

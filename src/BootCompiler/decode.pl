@@ -65,13 +65,13 @@ decodeType(type(Nm)) --> ['t'], decodeText(Nm).
 decodeType(tpFun(Nm,Ar)) --> ['z'], typeLen(Ar), decodeText(Nm).
 decodeType(typeExp(tpFun("lo.core*list",1),[ElTp])) --> ['L'], decodeType(ElTp).
 decodeType(typeExp(Op,ArgTypes)) --> ['U'], decodeType(Op), decodeTypes(ArgTypes).
-decodeType(univType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).
+decodeType(allType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).
 decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con).
-decodeType(faceType(Fields)) --> ['I'], decodeFields(Fields).
-decodeType(funType(A,T)) --> ['F'], decodeArgTypes(A), decodeType(T).
+decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(Tps).
+decodeType(funType(A,T)) --> ['F'], decodeType(A), decodeType(T).
 decodeType(ptnType(A,T)) --> ['p'], decodeArgTypes(A), decodeType(T).
 decodeType(grammarType(A,T)) --> ['G'], decodeArgTypes(A), decodeType(T).
-decodeType(consType(A,T)) --> ['C'], decodeArgTypes(A), decodeType(T).
+decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
 decodeType(tupleType(Tps)) --> ['T'], decodeTypes(Tps).
 decodeType(typeExists(L,R)) --> ['Y'], decodeType(L), decodeType(R).
 
@@ -101,8 +101,8 @@ decodeConstraint(S,Con) :-
 
 decodeConstraint(constrained(Con,Extra)) --> ['|'], decodeConstraint(Con), decodeConstraint(Extra).
 decodeConstraint(conTract(Nm,Args,Deps)) --> ['c'], decodeText(Nm), decodeType(tupleType(Args)), decodeType(tupleType(Deps)).
-decodeConstraint(implementsFace(Tp,Face)) --> ['a'], decodeType(Tp), decodeType(faceType(Face)).
-decodeConstraint(univType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Con).
+decodeConstraint(implementsFace(Tp,Face)) --> ['a'], decodeType(Tp), decodeType(faceType(Face,[])).
+decodeConstraint(allType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Con).
 
 collectUntil(C,[]) --> [C].
 collectUntil(C,[B|More]) --> [B], collectUntil(C,More).

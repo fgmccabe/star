@@ -1,0 +1,286 @@
+%!TEX root = reference.tex
+= Queries
+[[queries]]
+(((queries)))
+A <<Query>> is an expression that denotes a value implicitly -- by operations and constraints on other identified values. Typically, the result of a query is an `list` but it may be of any <<Type>> -- provided that it implements the `sequence` contract.
+
+There are several `flavors' of query: the `all` query (shown in <<allSolutionsFig>>) projects a subset over one or more base collections; the _N_ `of` query extracts a list containing at most _N_ tuples from a collection; and the `any` query extracts a tuple that satisfies the query.
+
+The results of a query may be sorted and may be filtered for uniqueness.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Expression_&\arrowplus&<<Query>>\\
+[[Query]]Query::=<<SequenceQuery>>\ |\ <<ReductionQuery>>\ |\ <<SatisfactionQuery>>
+\end{eqnarray*}
+.Query Expression[[relationQueryFig]]
+\end{figure}
+
+== Sequence Queries
+[[sequenceQueries]]
+
+A <<SequenceQuery>> returns a collection of answers -- either all of them or some subset of them.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[SequenceQuery]]SequenceQuery::=<<SequenceType>>\ `of`\ `\{`<<QueryExpression>>\ `\`}\\
+[[QueryExpression]]QueryExpression::=<<AllSolutionsQuery>>\\
+&nbsp;&nbsp;| <<BoundedCardinalityQuery>>
+\end{eqnarray*}
+.Sequence Query Expression[[sequenceQueryFig]]
+\end{figure}
+
+\noindent
+where the <<SequenceType>> plays a similar role in identifying the type of the result to that in <<SequenceExpression>>s. If the <<SequenceType>> is the keyword `sequence` then the result type is determined by the context of the <<Query>> expression. Otherwise, <<SequenceType>> identifies the name of a <<Type>> -- which must implement the `sequence` contract (see Program~\vref{sequenceContractDef}) -- that denotes the result type of the query.
+
+There are two variants of the <<SequenceQuery>> -- <<AllSolutionsQuery>> which returns a collection of all the answers to a question and <<BoundedCardinalityQuery>> which returns some bounded subset of the query answers.
+
+=== All Solutions Queries
+[[allSolutions]]
+(((query,all solutions)))
+The all solutions query expressions return results corresponding to all the different ways that a condition may be satisfied. There are variants corresponding to finding distinct solutions and having the result sets ordered.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[AllSolutionsQuery]AllSolutionsQuery::=[`all`|`unique`]\ <<Expression>>\ `where`\ <<Condition>>\ [<<Modifier>>]]\\
+[[Modifier]Modifier::=`order`\ [`descending`]\ `by`\ <<Expression>>\ [`using`\ <<Expression>>]]
+\end{eqnarray*}
+.All Solutions Query[[allSolutionsFig]]
+\end{figure}
+
+For example, given a `list` bound to the variable `Tble`:
+[listing]
+def Tble is list of [
+  ("john",23),
+  ("sam",19),
+  ("peter",21)
+]
+
+the query
+[listing]
+list of { all Who where (Who,A) in Tble and A>20 }
+
+is a <<SequenceQuery>> over the `Tble` list defined above. Its value is the `list`:
+[listing]
+list of [
+  "john",
+  "peter"
+]
+
+`"john"` and `"peter"` are in the result because both `("john",23)` and `("peter",21)` are in `Tble` and satisfy the condition that `A` is greater than 20.
+
+(((queries,bound expression)))
+In principle, any expression may follow the `all` clause in a query. The `bound expression' may mention variables that are `bound' within the query constraint.
+
+==== Ordered Result Sets
+The `order by` modifier is associated with a _path expression_ -- like the bound expression it is evaluated in the context of a successful solution to the condition. The results of an `order`ed query expression are sorted according to the values of this path expression. The type of this expression must be one that admits to being compared -- i.e., the type must implement the `comparable` contract.
+
+For example, to return an ordered `cons` list footnote:[The type of the resulting collection is depends on whether the <<Query>> is governed by an enclosing <<SequenceType>> if available, or of type `array` by default.] of people over the age of 20 we can use the query expression:
+[listing]
+cons of { all Who where (Who,A) in Tble and A>20
+                        order by A}
+
+which would give the result:
+[listing]
+cons of [
+  "peter",
+  "john"
+]
+
+
+The `using` modifier may be used in conjunction with the `order by` modifier to override the default concept of less than. If given, the `using` keyword should be followed by a `boolean`-valued function defined over the same type as the `order by` expression.
+
+For example, to override the use of `<` in the `order by` query above, with say `>`, we can use:
+[listing]
+cons of { all Who where (Who,A) in Tble and A>20
+                        order by A using (>)}
+
+which would give the result
+[listing]
+cons of [
+  "john",
+  "peter"
+]
+
+
+==== Duplicate Elimination
+[[duplicateElim]]
+(((eliminating duplicates in queries)))
+(((query,eliminating duplicates)))
+(((unique@`unique` queries)))
+
+The `unique` keyword is used, instead of the `all` keyword, to signal a query where duplicate elements are eliminated from the answer set.
+
+For example, the query:
+[listing]
+list of { unique Sib where (P,Who) in parent and
+                           (P,Sib) in parent and Who!=Sib }
+
+would have the effect of eliminating duplication caused by the fact that most people have two recorded parents.
+
+The `unique` query requires that the type of the `bound expression' implements the `comparable` contract -- i.e., that `<` is defined for the type.
+
+\begin{aside}
+The `unique` query is potentially more expensive than the `all` query -- since it involves post-processing the results as the `all` query to perform the duplicate elimination.
+\end{aside}
+
+%==== Type Safety
+%By default, the type of an `all` query is an `array` type; it requires that the condition be type safe:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\BinaryInfC{\typeprd{E}{`all`\ B\ `where`\ C}{`list of `T}}
+%\end{prooftree}
+%
+%The type safety rule for `unique` queries very similar, except that the bound element must be of a type that implements the `comparable` contract:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{B}{T\ `where comparable over `T}}
+%\AxiomC{\typesat{E}{C}}
+%\BinaryInfC{\typeprd{E}{`unique`\ B\ `where`\ C}{`list of `T}}
+%\end{prooftree}
+%
+%(((query,sorted)))
+%(((sorted queries)))
+%(((creating a sorted list from a query)))
+%In the case of an `ordered` query, the path expression must implement `comparable` and the result is a `list`:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\AxiomC{\typeprd{E}{P}{P\sub{T}\ `where comparable over `P\sub{T}}}
+%\TrinaryInfC{\typeprd{E}{`all`\ B\ `where`\ C\ `order by`\ P}{`list of `T}}
+%\end{prooftree}
+%
+=== Bounded Cardinality Queries
+The _N_ `of` quantifier delivers _at most_ N solutions to the query. For example, the query:
+[listing]
+list of { 5 of X where (P,X) in children }
+
+returns an `list` of the first 5 children of `P`.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[BoundedCardinalityQuery]BoundedCardinalityQuery::=<<QueryQuantifier>>\ `where`\ <<Condition>>\ [<<Modifier>>]]\\
+[[QueryQuantifier]QueryQuantifier::=[`unique`]]\ <<Expression>>\ `of`\ <<Expression>>
+\end{eqnarray*}
+.Bounded Cardinality Query[[boundedCardinalityFig]]
+\end{figure}
+
+==== Duplicate Elimination
+If the `unique` keyword is used with the bounded cardinality then duplication elimination is performed _before_ counting the results. I.e., a query of the form:
+[listing]
+list of { unique 5 of X where (P,X) in children }
+
+is guaranteed to find 5 unique answers -- assuming that there are at least 5 unique ways of solving the `(P,X) in children` condition.
+
+==== Ordered Result Sets
+If the `ordered by` modifier is _not_ present, there is no defined ordering for the answers in the result. In particular, if _N_ answers are requested, they could be any _N_ answers that satisfy the condition.
+
+If an `order by` clause is specified then the result consists of the `smallest' results. I.e., if there are 5 answers to the query:
+[listing]
+list of { all X where (P,X) in children }
+
+then the query
+[listing]
+list of { 3 of X where (P,X) in children order by X }
+
+results in an `array` of 3 elements that are guaranteed to be smaller or equal to any remaining answers.
+
+If the `order descending` modifier is used then the `largest' results will be the ones returned.
+\begin{aside}
+Of course, in order to compute this smallest set, all the answers must first be computed. The result set sorted and only then the first elements picked.
+\end{aside}
+
+%==== Type Safety
+%The type of a bounded query is a `list` type; it requires that the condition be type safe, and that the bound is an `integer`:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{N}{`integer`}}
+%\AxiomC{\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\TrinaryInfC{\typeprd{E}{N\ `of`\ B\ `where`\ C}{`list of `T}}
+%\end{prooftree}
+%
+%In the case of an `ordered` bounded query, the path expression must implement `comparable` and the result is a `list`:
+%\begin{prooftree}
+%\AxiomC{\typeprd{E}{N}{`integer`}\quad\typeprd{E}{B}{T}}
+%\AxiomC{\typesat{E}{C}}
+%\AxiomC{\typeprd{E}{P}{P\sub{T}`where comparable over `P\sub{T}}}
+%\TrinaryInfC{\typeprd{E}{N\ `of`\ B\ `where`\ C\ `order by`\ P}{`list of `T}}
+%\end{prooftree}
+
+== Satisfaction Queries
+A <<Satisfaction>> is used to find an individual that satisfies the condition. It returns a  _single_ result corresponding to a solution of the query -- as an `option`al value.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[SatisfactionQuery]SatisfactionQuery::=`any of`\ <<Expression>>\ `where`\ <<Condition>>\ [<<Modifier>>]]
+\end{eqnarray*}
+.Satisfaction Query[[satisfactionQueryFig]]
+\end{figure}
+
+For example, to find a child of `P` one could use the expression:
+[listing]
+any of X where (P,X) in children
+
+
+The `default` clause is used in the case that the <<Condition>> is _not_ satisfiable. For example, assuming that we did not have a record of `"fred"`'s parents, then the query
+[listing]
+any of P where (P,"fred") in children default "not known"
+
+would result in the answer `"not known"`.
+
+==== A Sorted Satisfaction Query
+The `order by` clause can be used to select the `smallest' solution to the query: the result of an `any of` query that is governed by an `order by` clause is effectively the _least_ solution to the query. If the `order descending` modifier is used then the result is the largest solution to the query.
+
+For example, to find the youngest child of `"john"` we can use the query:
+[listing]
+any of X where ("john",X) in children and (X,A) in ages order by A
+
+
+==== Type Safety
+A satisfaction query's type is `option` of the type of the bound expression. As with other queries, it requires that the condition is safe:
+\begin{prooftree}
+\AxiomC{\typeprd{E$\cup{}$varsIn(C)}{B}{T}}
+\AxiomC{\typesat{E}{C}}
+\BinaryInfC{\typeprd{E}{`any of`\ B\ `where`\ C}{`option of `T}}
+\end{prooftree}
+
+In the case of an `order`ed satisfaction query, the path expression must implement `comparable`:
+\begin{prooftree}
+\AxiomC{\typeprd{E$\cup{}$varsIn(C)}{B}{T}}
+\AxiomC{\typesat{E}{C}}
+\AxiomC{\typeprd{E}{P}{P\sub{T}\ `where comparable over `P\sub{T}}}
+\TrinaryInfC{\typeprd{E}{`any of`\ B\ `where`\ C\ `order by`\ P}{`option of `T}}
+\end{prooftree}
+
+== Reduction Query
+[[reductionQuery]]
+(((accumulating over a query)))
+(((applying a function to the results of a query)))
+
+A <<ReductionQuery>> differs from other forms of query in that the results of satisfying the <<Condition>> are `fed' to a function rather than being returned as some form of collection.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[ReductionQuery]]ReductionQuery::=`reduction`\ <<Expression>>\ `of`\ <<QueryExpression>>
+\end{eqnarray*}
+.Reduction Query[[reductionQueryFig]]
+\end{figure}
+
+The reduction function should have the type:
+[listing]
+(t\sub{E},t\sub{E})=>t\sub{E}
+
+were `t\sub{E`} is the type of the bound expression in the <<QueryExpression>>.
+
+For example, to add up all the salaries in a department, one could use a query of the form:
+[listing]
+reduction (+) of { all E.salary where E in employees }
+
+
+\begin{aside}
+The reducing function is only applied if there is more than one solution to the query. In this sense, it is closer in semantics to `leftFold1` than to `leftFold` -- see <<foldableContract>>.
+\end{aside}
+
+\begin{aside}
+The <<ReductionQuery>> may be used with all the normal variants of <<QueryExpression>>.
+\end{aside}
