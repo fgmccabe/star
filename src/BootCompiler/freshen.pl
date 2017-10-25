@@ -8,7 +8,8 @@
 :- use_module(dict).
 
 freshen(Tp,Env,Bx,FTp) :-
-  freshQuants(Tp,[],Bx,T0),
+  deRef(Tp,T),
+  freshQuants(T,[],Bx,T0),
   freshn(T0,Env,Bx,FTp),!.
 
 freshenConstraint(Q,Qx,Con,E,FCon) :-
@@ -28,25 +29,28 @@ boundVars([kFun(V,_)|L],[(V,TV)|Lx]) :- newTypeVar(V,TV),
 
 hasQuants(allType(_,_)).
 
-freshQuants(allType(kVar(V),Tp),B,BV,FTp) :- newTypeVar(V,TV),freshQuants(Tp,[(V,TV)|B],BV,FTp).
-freshQuants(allType(kFun(V,_),Tp),B,BV,FTp) :- newTypeVar(V,TV),freshQuants(Tp,[(V,TV)|B],BV,FTp).
-freshQuants(existType(kVar(V),Tp),B,BV,FTp) :- genSkolemFun(V,B,TV),freshQuants(Tp,[(V,TV)|B],BV,FTp).
+freshQuants(allType(kVar(V),Tp),B,BV,FTp) :- newTypeVar(V,TV),deRef(Tp,T),freshQuants(T,[(V,TV)|B],BV,FTp).
+freshQuants(allType(kFun(V,_),Tp),B,BV,FTp) :- newTypeVar(V,TV),deRef(Tp,T),freshQuants(T,[(V,TV)|B],BV,FTp).
+freshQuants(existType(kVar(V),Tp),B,BV,FTp) :- genSkolemFun(V,B,TV),deRef(Tp,T),freshQuants(T,[(V,TV)|B],BV,FTp).
 freshQuants(Tp,B,B,Tp).
 
+genSkolemFun(Nm,[],V) :-
+  skolemVar(Nm,V).
 genSkolemFun(Nm,Q,typeExp(NN,Args)) :-
   length(Q,Ar),
   skolemFun(Nm,Ar,NN),
   project1(Q,Args).
 
 evidence(Tp,Env,Q,ProgramType) :-
-  skolemize(Tp,[],Q,SkTp),
+  deRef(Tp,T),
+  skolemize(T,[],Q,SkTp),
   freshn(SkTp,Env,Q,ProgramType).
 
 freshn(Tp,Env,Q,FTp) :- deRef(Tp,T),frshn(T,Env,Q,FTp),!.
 
-skolemize(allType(kVar(V),Tp),B,BV,FTp) :- skolemVar(V,TV),skolemize(Tp,[(V,TV)|B],BV,FTp).
-skolemize(allType(kFun(V,Ar),Tp),B,BV,FTp) :- skolemFun(V,Ar,TV),skolemize(Tp,[(V,TV)|B],BV,FTp).
-skolemize(existType(kVar(V),Tp),B,BV,FTp) :- newTypeVar(V,TV), skolemize(Tp,[(V,TV)|B],BV,FTp).
+skolemize(allType(kVar(V),Tp),B,BV,FTp) :- skolemVar(V,TV),deRef(Tp,T),skolemize(T,[(V,TV)|B],BV,FTp).
+skolemize(allType(kFun(V,Ar),Tp),B,BV,FTp) :- skolemFun(V,Ar,TV),deRef(Tp,T),skolemize(T,[(V,TV)|B],BV,FTp).
+skolemize(existType(kVar(V),Tp),B,BV,FTp) :- newTypeVar(V,TV), deRef(Tp,T),skolemize(T,[(V,TV)|B],BV,FTp).
 skolemize(Tp,B,B,Tp).
 
 rewriteType(T,E,Q,WTp) :-

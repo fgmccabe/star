@@ -168,6 +168,9 @@ terms(Tks,Match,Toks,[T|R]) :-
     parse(Tks,T,Tks2),
     terms(Tks2,Match,Toks,R).
 
+tupleize(T,Lc,Op,tuple(Lc,Op,Els)) :-
+  deComma(T,Els).
+
 lookAhead(Tk,[Tk|_]).
 
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.

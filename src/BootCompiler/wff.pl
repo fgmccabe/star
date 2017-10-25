@@ -11,7 +11,7 @@
     isWhere/4,isCoerce/4,
     isConjunct/4,isDisjunct/4,isNegation/3,
     packageName/2,pkgName/2,
-    deComma/2,reComma/2,tupleize/4,
+    deComma/2,reComma/2,
     rewrite/3,rewriteList/3]).
 :-use_module(abstract).
 :-use_module(misc).
@@ -226,9 +226,6 @@ packageVersion(T,Pkg) :- isBinary(T,".",L,R),
   packageVersion(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
-
-tupleize(T,Lc,Op,tuple(Lc,Op,Els)) :-
-  deComma(T,Els).
 
 rewriteList([],_,[]).
 rewriteList([T|L],Q,[WT|WL]) :-

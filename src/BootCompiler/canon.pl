@@ -76,10 +76,13 @@ showCanonTerm(dot(Rc,Fld),O,Ox) :-
   showCanonTerm(Rc,O,O1),
   appStr(".",O1,O2),
   appStr(Fld,O2,Ox).
-showCanonTerm(enum(_,Nm),O,Ox) :-
+showCanonTerm(enm(_,Nm),O,Ox) :-
   appStr("'",O,O1),
   appStr(Nm,O1,O2),
   appStr("'",O2,Ox).
+showCanonTerm(cns(_,Nm),O,Ox) :-
+  appStr("%",O,O1),
+  appStr(Nm,O1,Ox).
 showCanonTerm(theta(_,Defs,Others,Types),O,Ox) :-
   appStr("{ ",O,O1),
   showTypeDefs(Types,O1,O2),
@@ -280,16 +283,16 @@ showDef(enum(Lc,Nm,Type,Cx,Rules),O,Ox) :-
   appStr("\n",O6,O7),
   showConstraints(Cx,O7,O8),
   showClassRules(Rules,O8,Ox).
-showDef(class(Lc,Nm,Type,Cx,Rules),O,Ox) :-
-  appStr("class: ",O,O1),
+showDef(conDef(Lc,Nm,V,Type),O,Ox) :-
+  appStr("constructor: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr(":",O2,O3),
-  showType(Type,O3,O4),
-  appStr(" @ ",O4,O5),
-  showLocation(Lc,O5,O6),
-  appStr("\n",O6,O7),
-  showConstraints(Cx,O7,O8),
-  showClassRules(Rules,O8,Ox).
+  appStr("/",O2,O3),
+  showCanonTerm(V,O3,O4),
+  appStr(":",O4,O5),
+  showType(Type,O5,O6),
+  appStr(" @ ",O6,O7),
+  showLocation(Lc,O7,O8),
+  appStr("\n",O8,Ox).
 showDef(grammar(Lc,Nm,Tp,Cx,Rules),O,Ox) :-
   appStr("grammar: ",O,O1),
   appStr(Nm,O1,O2),

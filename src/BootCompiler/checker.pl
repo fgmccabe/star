@@ -17,6 +17,7 @@
 :- use_module(transitive).
 :- use_module(resolve).
 :- use_module(display).
+:- use_module(vartypes).
 
 checkProgram(Prog,Vers,Repo,prog(pkg(Pkg,Vers),Imports,ODefs,OOthers,Exports,Types,Contracts,Impls)) :-
   stdDict(Base),
@@ -168,7 +169,7 @@ checkGroup([(con(N),Lc,[ConStmt])|More],[Contract|Defs],Dx,Env,Ex,Face,Path) :-
   defineContract(N,Lc,Contract,Env,E0),
   checkGroup(More,Defs,Dx,E0,Ex,Face,Path).
 checkGroup([(cns(Nm),Lc,[St])|More],Defs,Dx,Env,Ex,Face,Path) :-
-  parseConstructor(Nm,Lc,Stm,Env,E0,Defs,D0),
+  parseConstructor(Nm,Lc,St,Env,E0,Defs,D0,Path),
   checkGroup(More,D0,Dx,E0,Ex,Face,Path).
 checkGroup([(var(N),Lc,Stmts)|More],Defs,Dx,Env,Ex,Face,Path) :-
   checkVarRules(N,Lc,Stmts,Env,Defs,D0,Face,Path),
@@ -199,14 +200,6 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   declareVar(Nm,mtd(Lc,Nm,MTp),Env,E0),
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
-defineType(N,Lc,_,Env,T,T,_) :-
-  isType(N,Env,tpDef(_,OLc,_)),!,
-  reportError("type %s already defined at %s",[N,OLc],Lc).
-defineType(N,_,St,_,T,[(N,Type)|T],Path) :-
-  parseTypeCore(St,Type,Path).
-defineType(_,Lc,St,_,T,T,_) :-
-  reportError("cannot parse type statement %s",[St],Lc).
-
 parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
   isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),
   parseBoundTpVars(Quants,[],Q),
@@ -228,11 +221,13 @@ parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
   reQuant(Q,Tp,Type),
   declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev).
 
-parseConstructor(Nm,Lc,T,Env,Ev,[conDef(Lc,Nm,Tp)|Defs],Defs) :-
+parseConstructor(Nm,Lc,T,Env,Ev,[conDef(Lc,Nm,ConVr,Tp)|Defs],Defs,Path) :-
   parseType(T,Env,Tp),
+  marker(value,Marker),
+  subPath(Path,Marker,Nm,CnNm),
   (isConType(Tp) ->
-    declareVar(Nm,cons(Nm,Lc,Tp),Env,Ev) ;
-    declareVar(Nm,enum(Nm,Lc,Tp),Env,Ev)).
+    declareVar(Nm,cons(CnNm,Lc,Tp),Env,Ev), ConVr=cns(Lc,CnNm) ;
+    declareVar(Nm,enum(CnNm,Lc,Tp),Env,Ev), ConVr=enm(Lc,CnNm)).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -253,6 +248,18 @@ parseAnnotation(Nm,_,_,Annots,Env,F,[(Nm,Tp)|F]) :-
 parseAnnotation(N,_,faceType(Fields,_),_,_,F,[(N,Tp)|F]) :-
   is_member((N,Tp),Fields),!.
 parseAnnotation(N,Lc,_,_,_,Face,Face) :-
+  reportError("no type annotation for variable %s",[N],Lc).
+
+defineType(N,_,_,Env,T,[(N,Tp)|T],_) :-
+  isType(N,Env,tpDef(_,Tp,_)),!.
+defineType(N,_,St,_,T,[(N,Type)|T],Path) :-
+  parseTypeCore(St,Type,Path).
+defineType(_,Lc,St,_,T,T,_) :-
+  reportError("cannot parse type statement %s",[St],Lc).
+
+parseTypeAnnotation(N,_,faceType(_,Types),_,_,F,[(N,Tp)|F]) :-
+  is_member((N,Tp),Types),!.
+parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
   reportError("no type annotation for variable %s",[N],Lc).
 
 checkVarRules(N,Lc,Stmts,Env,Defs,Dx,Face,Path) :-
@@ -563,12 +570,15 @@ typeOfTerm(Term,Tp,Env,Ev,Exp) :-
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("F",FnTp),
+  newTypeVar("A",At),
   genTpVars(A,AT),
   typeOfKnown(F,FnTp,Env,E0,Fun),
-  (sameType(funType(tupleType(AT),Tp),FnTp,E0) ->
+  (sameType(funType(At,Tp),FnTp,E0) ->
+    evidence(At,E0,_,tupleType(AT)),
     typeOfTerms(A,AT,E0,Ev,Lc,Args),
     Exp = apply(Fun,Args) ;
-   sameType(consType(tupleType(AT),Tp),FnTp,E0) ->
+   sameType(consType(At,Tp),FnTp,E0) ->
+    evidence(At,E0,_,tupleType(AT)),
     typeOfTerms(A,AT,E0,Ev,Lc,Args),
     Exp = cons(Lc,Fun,tuple(Lc,Args));
    reportError("invalid function %s in call",[Fun],Lc)).
@@ -647,6 +657,9 @@ typeOfTerm(Term,Tp,Env,Env,void) :-
 
 funLbl(over(_,T,_),L) :- funLbl(T,L).
 funLbl(v(_,L),L).
+funLbl(cns(_,Nm),Nm).
+funLbl(enm(_,Nm),Nm).
+funLbl(mtd(_,Nm),Nm).
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp) :-
   isBinary(Arg,"->",Ky,Vl),!,
@@ -687,23 +700,6 @@ fieldInFace(Fields,_,Nm,_,Tp) :-
   is_member((Nm,Tp),Fields),!.
 fieldInFace(_,Tp,Nm,Lc,anonType) :-
   reportError("field %s not declared in %s",[Nm,Tp],Lc).
-
-typeOfVar(Lc,Nm,Tp,vr(_,_,VT),Env,Ev,Exp) :-
-  freshen(VT,Env,_,VrTp),
-  manageConstraints(VrTp,[],Lc,v(Lc,Nm),MTp,Exp,Env,Ev),
-  checkType(Lc,MTp,Tp,Env).
-typeOfVar(Lc,Nm,Tp,mtd(_,_,MTp),Env,Ev,Exp) :-
-  freshen(MTp,Env,_,VrTp),
-  manageConstraints(VrTp,[],Lc,mtd(Lc,Nm),MtTp,Exp,Env,Ev),
-  checkType(Lc,MtTp,Tp,Env).
-
-manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Exp,Env,Ev) :- !,
-  declareConstraint(implementsFace(TV,Fc),Env,E0),
-  manageConstraints(Tp,Cons,Lc,V,MTp,Exp,E0,Ev).
-manageConstraints(constrained(Tp,Con),Cons,Lc,V,MTp,Exp,Env,Ev) :- !,
-  manageConstraints(Tp,[Con|Cons],Lc,V,MTp,Exp,Env,Ev).
-manageConstraints(Tp,[],_,V,Tp,V,Env,Env) :- !.
-manageConstraints(Tp,RCons,Lc,V,Tp,over(Lc,V,Cons),Env,Env) :- reverse(RCons,Cons).
 
 typeOfKnown(T,Tp,Env,Ev,Exp) :-
   isIden(T,Lc,Nm),

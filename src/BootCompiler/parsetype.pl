@@ -12,6 +12,7 @@
 :- use_module(unify).
 :- use_module(wff).
 :- use_module(types).
+:- use_module(vartypes).
 
 parseType(T,Env,Type) :-
   parseType(T,Env,[],[],Cons,Tp),
@@ -74,6 +75,18 @@ parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
 parseType(T,Env,B,Cx,Cx,faceType(AT,FT)) :-
   isBraceTuple(T,_,L),!,
   parseTypeFields(L,Env,B,[],AT,[],FT).
+parseType(Term,Env,_,C,Cx,Tp) :-
+  isBinary(Term,Lc,".",L,F), !,
+  isIden(L,Nm),
+  isIden(F,Fld),
+  newTypeVar(Nm,RTp),
+  isVar(Nm,Env,Spec),!,
+  typeOfVar(Lc,Nm,RTp,Spec,Env,_,_),
+  faceOfType(RTp,Env,Face),
+  freshen(Face,Env,_,FFace),
+  moveConstraints(FFace,C0,faceType(_,Types)),
+  fieldInFace(Types,RTp,Fld,Lc,Tp),
+  concat(C0,C,Cx).
 parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
   reportError("cannot understand type %s",[T],Lc).
@@ -83,6 +96,11 @@ parseArgType(T,Env,Q,C,Cx,tupleType(AT)) :-
   parseTypes(A,Env,Q,C,Cx,AT).
 parseArgType(T,Env,Q,C,Cx,Tp) :-
   parseType(T,Env,Q,C,Cx,Tp).
+
+fieldInFace(Fields,_,Nm,_,Tp) :-
+  is_member((Nm,Tp),Fields),!.
+fieldInFace(_,Tp,Nm,Lc,anonType) :-
+  reportError("type %s not declared in %s",[Nm,Tp],Lc).
 
 parseTypeName(_,"_",_,_,C,C,anonType).
 parseTypeName(_,"void",_,_,C,C,voidType).

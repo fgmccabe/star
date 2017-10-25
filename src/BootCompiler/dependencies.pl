@@ -255,7 +255,7 @@ allRefs([(N,_,_)|Defs],SoFar,AllRefs) :-
 allRefs([],SoFar,SoFar).
 
 collectThetaRefs([],_,_,[]).
-collectThetaRefs([(cns(Nm),Lc,[Def])|Defs],AllRefs,Annots,[(cns(Nm),Refs,Lc,Def)|Dfns]) :-
+collectThetaRefs([(cns(Nm),Lc,[Def])|Defs],AllRefs,Annots,[(cns(Nm),Refs,Lc,[Def])|Dfns]) :-
   collectTypeRefs(Def,AllRefs,[],Refs),
   collectThetaRefs(Defs,AllRefs,Annots,Dfns).
 collectThetaRefs([(Defines,Lc,Def)|Defs],AllRefs,Annots,[(Defines,Refs,Lc,Def)|Dfns]) :-
@@ -584,6 +584,9 @@ collectTypeRefs(C,All,SoFar,Refs) :-
   isBinary(C,",",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Refs).
+collectTypeRefs(T,All,R,Refs) :-
+  isBinary(T,".",L,_),
+  collectTermRefs(L,All,R,Refs).
 collectTypeRefs(T,All,SoFar,Refs) :-
   isUnary(T,"ref",L),
   collectTypeRefs(L,All,SoFar,Refs).

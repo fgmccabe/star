@@ -121,6 +121,7 @@ showType(faceType(Els,Tps),O,Ox) :- appStr("{ ",O,O1),
     showTypeFields(Tps,Sp,_,O2,O3),
     appStr("}",O3,Ox).
 showType(typeExists(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("<~",O1,O2),showType(Bd,O2,Ox).
+showType(typeLambda(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("~>",O1,O2),showType(Bd,O2,Ox).
 showType(contractExists(Spc,Fc),O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,O2,Ox).
 showType(constrained(Tp,Con),O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
 
