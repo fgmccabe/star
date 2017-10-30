@@ -1,4 +1,4 @@
-cafe.d{
+star.d{
   xx : index[logical].
   xx = xc{
     get(false) => 0.

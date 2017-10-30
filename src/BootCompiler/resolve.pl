@@ -14,28 +14,24 @@ overload(Defs,Dict,RDict,RDefs) :-
 overloadDefs(D,Dict,RD) :-
   overloadList(D,overloadDef,Dict,RD).
 
-overloadDef(function(Lc,Nm,Tp,Cx,Eqns),Dict,RF) :-
+overloadDef(funDef(Lc,Nm,Tp,Cx,Eqns),Dict,RF) :-
   overloadFunction(Lc,Nm,Tp,Cx,Eqns,Dict,RF).
 overloadDef(defn(Lc,Nm,Cx,Cond,Tp,Value),Dict,RD) :-
   overloadDefn(Lc,Nm,Cx,Cond,Tp,Value,Dict,RD).
 overloadDef(vdefn(Lc,Nm,Cx,Cond,Tp,Value),Dict,RD) :-
   overloadDefn(Lc,Nm,Cx,Cond,Tp,Value,Dict,RD).
-overloadDef(enum(Lc,Nm,Tp,Cx,Rules),Dict,RE) :-
-  overloadEnum(Lc,Nm,Tp,Cx,Rules,Dict,RE).
-overloadDef(class(Lc,Nm,Tp,Cx,Rules),Dict,RC) :-
-  overloadClass(Lc,Nm,Tp,Cx,Rules,Dict,RC).
-overloadDef(grammar(Lc,Nm,Tp,Cx,Rules),Dict,RG) :-
+overloadDef(grDef(Lc,Nm,Tp,Cx,Rules),Dict,RG) :-
   overloadGrammar(Lc,Nm,Tp,Cx,Rules,Dict,RG).
 overloadDef(T,_,T) :-
   T = typeDef(_,_,_,_).
 overloadDef(C,_,C) :-
-  C = contract(_,_,_).
-overloadDef(implementation(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others),Dict,RI) :-
+  C = conDef(_,_,_,_).
+overloadDef(implDef(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others),Dict,RI) :-
   overloadImplementation(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others,Dict,RI).
 
-overloadFunction(Lc,Nm,Tp,[],Eqns,Dict,function(Lc,Nm,Tp,[],REqns)) :-
+overloadFunction(Lc,Nm,Tp,[],Eqns,Dict,funDef(Lc,Nm,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns).
-overloadFunction(Lc,Nm,Tp,Cx,Eqns,Dict,function(Lc,Nm,Tp,[],REqns)) :-
+overloadFunction(Lc,Nm,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,Tp,[],REqns)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquations(Eqns,FDict,CVars,REqns).
 
@@ -53,9 +49,9 @@ overloadRule(equation(Lc,Nm,Args,Cond,Exp),Dict,equation(Lc,Nm,RArgs,RCond,RExp)
   resolveTerm(Args,Dict,RArgs),
   resolveTerm(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
-overloadRule(grammarRule(Lc,Nm,Args,PB,Body),Dict,grammarRule(Lc,Nm,RArgs,RPB,RBody)) :-
+overloadRule(grRule(Lc,Nm,Args,Cond,Body),Dict,grRule(Lc,Nm,RArgs,RCond,RBody)) :-
   resolveTerm(Args,Dict,RArgs),
-  resolveTerminals(PB,Dict,RPB),
+  resolveTerm(Cond,Dict,RCond),
   resolveGr(Body,Dict,RBody).
 
 overloadDefn(Lc,Nm,[],Cond,Tp,Exp,Dict,defn(Lc,Nm,[],RCond,Tp,RExp)) :-
@@ -67,16 +63,16 @@ overloadDefn(Lc,Nm,Cx,Cond,Tp,Exp,Dict,
   resolveTerm(Cond,FDict,RCond),
   resolveTerm(Exp,FDict,RExp).
 
-overloadGrammar(Lc,Nm,Tp,[],Rules,Dict,grammar(Lc,Nm,Tp,[],RRules)) :-
+overloadGrammar(Lc,Nm,Tp,[],Rules,Dict,grDef(Lc,Nm,Tp,[],RRules)) :-
   overloadGrRules(Rules,Dict,[],RRules).
-overloadGrammar(Lc,Nm,Tp,Cx,Rules,Dict,grammar(Lc,Nm,Tp,[],RRules)) :-
+overloadGrammar(Lc,Nm,Tp,Cx,Rules,Dict,grDef(Lc,Nm,Tp,[],RRules)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadGrRules(Rules,FDict,CVars,RRules).
 
 overloadGrRules(Rules,Dict,Extra,RRules) :-
   overloadList(Rules,overloadGrRule(Extra),Dict,RRules).
 
-overloadGrRule(Extra,grammarRule(Lc,Nm,Args,Cond,Body),Dict,grammarRule(Lc,Nm,RArgs,RCond,RBody)) :-
+overloadGrRule(Extra,grRule(Lc,Nm,Args,Cond,Body),Dict,grRule(Lc,Nm,RArgs,RCond,RBody)) :-
   resolveTerm(Args,Dict,RA),
   addExtra(Extra,RA,RArgs),
   resolveTerm(Cond,Dict,RCond),
@@ -96,8 +92,9 @@ resolveTerm(intLit(Ix),_,intLit(Ix)).
 resolveTerm(floatLit(Ix),_,floatLit(Ix)).
 resolveTerm(stringLit(Sx),_,stringLit(Sx)).
 resolveTerm(dot(Rc,Fld),Dict,dot(RRc,Fld)) :- resolveTerm(Rc,Dict,RRc).
-resolveTerm(enum(Lc,Rf),_,enum(Lc,Rf)).
-resolveTerm(tuple(Lc,Args),Dict,tuple(Lc,RArgs)) :-
+resolveTerm(enm(Lc,Rf),_,enm(Lc,Rf)).
+resolveTerm(cns(Lc,Rf),_,cns(Lc,Rf)).
+resolveTerm(tple(Lc,Args),Dict,tple(Lc,RArgs)) :-
   resolveTerms(Args,Dict,RArgs).
 resolveTerm(theta(Path,Defs,Others,Types),Dict,theta(Path,RDefs,ROthers,Types)) :-
   overload(Defs,Dict,RDict,RDefs),
@@ -114,7 +111,7 @@ resolveTerm(conj(Lc,L,R),Dict,conj(Lc,RL,RR)) :-
 resolveTerm(disj(Lc,L,R),Dict,disj(Lc,RL,RR)) :-
   resolveTerm(L,Dict,RL),
   resolveTerm(R,Dict,RR).
-resolveTerm(conditional(Lc,T,L,R),Dict,conditional(Lc,RT,RL,RR)) :-
+resolveTerm(cond(Lc,T,L,R),Dict,cond(Lc,RT,RL,RR)) :-
   resolveTerm(T,Dict,RT),
   resolveTerm(L,Dict,RL),
   resolveTerm(R,Dict,RR).
@@ -132,11 +129,11 @@ resolveTerm(phrase(Lc,T,S),Dict,phrase(Lc,RT,RS)) :-
   resolveTerm(S,Dict,RS).
 resolveTerm(apply(over(Lc,T,Cx),Args),Dict,apply(OverOp,NArgs)) :-
   resolveContracts(Lc,Cx,Dict,DTerms),
-  resolveTerms(Args,Dict,RArgs),
+  resolveTerm(Args,Dict,RArgs),
   overloadRef(Lc,T,DTerms,RArgs,OverOp,NArgs).
 resolveTerm(apply(Op,Args),Dict,apply(ROp,RArgs)) :-
   resolveTerm(Op,Dict,ROp),
-  resolveTerms(Args,Dict,RArgs).
+  resolveTerm(Args,Dict,RArgs).
 resolveTerm(cons(Lc,O,A),Dict,cons(Lc,OO,OA)) :-
   resolveTerm(O,Dict,OO),
   resolveTerm(A,Dict,OA).
@@ -169,7 +166,7 @@ resolveGr(conj(Lc,L,R),Dict,conj(Lc,RL,RR)) :-
 resolveGr(disj(Lc,L,R),Dict,disj(Lc,RL,RR)) :-
   resolveGr(L,Dict,RL),
   resolveGr(R,Dict,RR).
-resolveGr(conditional(Lc,T,L,R),Dict,conditional(Lc,RT,RL,RR)) :-
+resolveGr(cond(Lc,T,L,R),Dict,cond(Lc,RT,RL,RR)) :-
   resolveGr(T,Dict,RT),
   resolveGr(L,Dict,RL),
   resolveGr(R,Dict,RR).
@@ -248,12 +245,12 @@ findImplementation(ImplName,Dict,Spec) :-
   is_member((ImplName,Spec),Dict).
 
 overloadImplementation(Lc,INm,ImplName,Spec,AC,ThDefs,Face,Types,Others,Dict,
-    impl(Lc,INm,ImplName,Arity,Spec,implBody(Lc,Hd,RThDefs,ROthers,Types),faceType(Face,Types))) :-
+    implDef(Lc,INm,ImplName,Arity,Spec,implBody(Lc,Hd,RThDefs,ROthers,Types),faceType(Face,Types))) :-
   defineCVars(Lc,AC,Dict,CVars,FDict),
   overload(ThDefs,FDict,FODict,RThDefs),
   overloadOthers(Others,FODict,ROthers),
   length(CVars,Arity),
-  (CVars=[] -> Hd = enum(Lc,ImplName) ; Hd = apply(v(Lc,ImplName),CVars)).
+  (CVars=[] -> Hd = enum(Lc,ImplName) ; Hd = apply(v(Lc,ImplName),tple(Lc,CVars))).
 
 inheritImplementations([],_,[]).
 inheritImplementations([Impl|L],Hd,[rule(Hd,Impl)|M]) :-
@@ -293,7 +290,7 @@ resolveHead(record(Lbl,Defs,[],[]),CVars,record(Lbl,RDefs,[],[])) :-
 resolveHead(theta(Lbl,Defs,[],[]),CVars,theta(Lbl,RDefs,[],[])) :-
   addExtraDefs(CVars,Defs,RDefs).
 
-addExtra(Extra,tuple(Lc,Els),tuple(Lc,EEls)) :- concat(Extra,Els,EEls).
+addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :- concat(Extra,Els,EEls).
 
 addExtraDefs([],Els,Els).
 addExtraDefs([v(Lc,Nm)|Ex],Els,REls) :-

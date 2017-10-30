@@ -19,13 +19,17 @@ collectDefinitions([St|Stmts],Defs,P,A,I,Other) :-
 collectDefinitions([],[],[],[],[],[]).
 
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|I],I,Other,Other,_) :-
-  isImport(St,_).
+  isImport(St,_,_).
+collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|I],I,Other,Other,_) :-
+  isOpen(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isMacro(St,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isIntegrity(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
-  isUnary(St,"show",_).
+  isShow(St,_,_).
+collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
+  isIgnore(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
   isTypeAnnotation(St,_,L,T),
   isIden(L,V),

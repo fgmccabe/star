@@ -1,9 +1,10 @@
-:-module(keywords, [keyword/1,isKeyword/1,isRuleKeyword/1]).
+:-module(keywords, [keyword/1,isKeyword/1]).
 
   isKeyword(X):- keyword(X), !.
 
   keyword("|").
   keyword("||").
+  keyword("&&").
   keyword(";").
   keyword(":").
   keyword("::").
@@ -24,30 +25,28 @@
   keyword("::=").
   keyword("<=").
   keyword("<~").
+  keyword("~>").
   keyword("\\+").
+  keyword(",..").
   keyword(".").
+  keyword("|:").
   keyword("%%").
   keyword("@").
   keyword("this").
+  keyword("ref").
   keyword("import").
   keyword("public").
   keyword("private").
+  keyword("open").
   keyword("contract").
   keyword("implementation").
   keyword("type").
   keyword("where").
   keyword("void").
   keyword("all").
+  keyword("exists").
+  keyword("assert").
+  keyword("show").
+  keyword("ignore").
   keyword("#").
-
-  isRuleKeyword(X):- ruleKeyword(X), !.
-
-  ruleKeyword("~~").
-  ruleKeyword("=>").
-  ruleKeyword("<=>").
-  ruleKeyword("->").
-  ruleKeyword(":-").
-  ruleKeyword("-->").
-  ruleKeyword("::=").
-  ruleKeyword("<=").
-  ruleKeyword("<~").
+  keyword("$").

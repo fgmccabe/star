@@ -76,9 +76,8 @@ parseType(T,Env,B,Cx,Cx,faceType(AT,FT)) :-
   isBraceTuple(T,_,L),!,
   parseTypeFields(L,Env,B,[],AT,[],FT).
 parseType(Term,Env,_,C,Cx,Tp) :-
-  isBinary(Term,Lc,".",L,F), !,
+  isFieldAcc(Term,Lc,L,Fld),!,
   isIden(L,Nm),
-  isIden(F,Fld),
   newTypeVar(Nm,RTp),
   isVar(Nm,Env,Spec),!,
   typeOfVar(Lc,Nm,RTp,Spec,Env,_,_),
@@ -254,7 +253,7 @@ parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
   reportError("invalid field type %s",[FS],Lc).
 
-parseContract(T,Env,Path,contract(Nm,ConNm,ConRule)) :-
+parseContract(T,Env,Path,conDef(Nm,ConNm,ConRule)) :-
   isContractStmt(T,_,Quants,C0,Con,Els),
   parseBoundTpVars(Quants,[],Q),
   parseContractSpec(Con,Q,C0,Cx,Env,SpC,Nm,ConNm,Path),

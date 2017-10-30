@@ -3,28 +3,27 @@
     isConstrained/3,reConstrain/3,
     isContractStmt/6,isImplementationStmt/6,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
-    isImport/2, isMacro/2,isPrivate/3,isPublic/3,
+    isImport/3, isMacro/2,isPrivate/3,isPublic/3,
     isGrammarRule/5,
-    isIntegrity/3,isShow/3,isIgnore/3,
+    isIntegrity/3,isShow/3,isIgnore/3,isOpen/3,
     isConditional/5,
     isEquation/5,isPtnRule/5,isDefn/5,isAssignment/5,
-    isWhere/4,isCoerce/4,
-    isConjunct/4,isDisjunct/4,isNegation/3,
+    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,
+    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,
     packageName/2,pkgName/2,
     deComma/2,reComma/2,
     rewrite/3,rewriteList/3]).
 :-use_module(abstract).
 :-use_module(misc).
-:-use_module(errors).
 
-isImport(St,M) :-
-  isUnary(St,"public",I),!,
-  isImport(I,M).
-isImport(St,M) :-
-  isUnary(St,"private",I),!,
-  isImport(I,M).
-isImport(St,M) :-
-  isUnary(St,"import",M).
+isImport(St,Lc,M) :-
+  isUnary(St,Lc,"public",I),!,
+  isImport(I,_,M).
+isImport(St,Lc,M) :-
+  isUnary(St,Lc,"private",I),!,
+  isImport(I,_,M).
+isImport(St,Lc,M) :-
+  isUnary(St,Lc,"import",M).
 
 isPrivate(St,Lc,I) :-
   isUnary(St,Lc,"private",I).
@@ -164,6 +163,9 @@ isShow(St,Lc,Ex) :-
 isIgnore(St,Lc,Ex) :-
   isUnary(St,Lc,"ignore",Ex).
 
+isOpen(St,Lc,Ex) :-
+  isUnary(St,Lc,"open",Ex).
+
 isConditional(Term,Lc,Cond,Th,El) :-
   isBinary(Term,Lc,"|",L,El),
   isBinary(L,_,"?",Cond,Th).
@@ -202,6 +204,18 @@ isDisjunct(Trm,Lc,L,R) :-
 
 isNegation(Trm,Lc,L) :-
   isUnary(Trm,"\\+",Lc,L).
+
+isMatch(Trm,Lc,P,E) :-
+  isBinary(Trm,Lc,".=",P,E),!.
+isMatch(Trm,Lc,P,E) :-
+  isBinary(Trm,Lc,"=.",E,P).
+
+isFieldAcc(Trm,Lc,R,Fld) :-
+  isBinary(Trm,Lc,R,F),
+  isIden(F,Fld).
+
+isVarRef(Trm,Lc,In) :-
+  isUnary(Trm,Lc,"!",In).
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).

@@ -19,7 +19,8 @@
 :- use_module(display).
 :- use_module(vartypes).
 
-checkProgram(Prog,Vers,Repo,prog(pkg(Pkg,Vers),Imports,ODefs,OOthers,Exports,Types,Contracts,Impls)) :-
+checkProgram(Prog,Vers,Repo,
+    prog(pkg(Pkg,Vers),Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   isBraceTerm(Prog,Lc,Pk,Els),
   packageName(Pk,Pkg),
@@ -28,7 +29,7 @@ checkProgram(Prog,Vers,Repo,prog(pkg(Pkg,Vers),Imports,ODefs,OOthers,Exports,Typ
   findImportedImplementations(Imports,[],OverDict),
   overload(Defs,OverDict,ODict,ODefs),
   overloadOthers(Others,ODict,OOthers),
-  computeExport(ODefs,faceType([],[]),Public,Exports,Types,Contracts,Impls),
+  computeExport(ODefs,faceType([],[]),Public,Exports,Types,Cons,Impls),
   dischargeConstraints(Base,OEnv),!.
 
 thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
@@ -67,7 +68,7 @@ findImport(St,Lc,_,Spec) :-
   isPublic(St,Lc,I),
   findImport(I,_,public,Spec).
 findImport(St,Lc,Viz,import(Viz,Pkg)) :-
-  isUnary(St,Lc,"import",P),
+  isImport(St,Lc,P),
   pkgName(P,Pkg).
 
 importAll(Imports,Repo,AllImports) :-
@@ -80,7 +81,7 @@ importDefs(spec(_,faceType(Exported,Types),_,Cons,_,_),Lc,Env,Ex) :-
 
 declareFields([],_,Env,Env).
 declareFields([(Nm,Tp)|More],Lc,Env,Ex) :-
-  declareVar(Nm,vr(Nm,Lc,Tp),Env,E0),
+  declareVr(Lc,Nm,Tp,Env,E0),
   declareFields(More,Lc,E0,Ex).
 
 importTypes([],_,Env,Env).
@@ -102,15 +103,15 @@ pickTypeTemplate(typeExp(Op,_),Op).
 
 importAllDefs([],_,[],_,Env,Env).
 importAllDefs([import(Viz,Pkg)|More],Lc,
-      [import(Viz,Pkg,Exported,Types,Classes,Contracts,Impls)|Specs],Repo,Env,Ex) :-
+      [import(Viz,Pkg,Exported,Types,Classes,Cons,Impls)|Specs],Repo,Env,Ex) :-
   importPkg(Pkg,Repo,Spec),
-  Spec = spec(_,Exported,Types,Classes,Contracts,Impls,_),
+  Spec = spec(_,Exported,Types,Classes,Cons,Impls,_),
   importDefs(Spec,Lc,Env,Ev0),
   importAllDefs(More,Lc,Specs,Repo,Ev0,Ex).
 
 importContracts([],_,Env,Env).
 importContracts([C|L],Lc,E,Env) :-
-  C = contract(Nm,_,_),
+  C = conDef(Nm,_,_),
   defineContract(Nm,Lc,C,E,E0),
   importContracts(L,Lc,E0,Env).
 
@@ -144,15 +145,19 @@ checkOthers([St|Stmts],Ass,Env,Path) :-
   checkOthers(Stmts,Ass,Env,Path).
 
 checkOther(St,[assertion(Lc,Cond)|More],More,Env,_) :-
-  isUnary(St,Lc,"assert",C),!,
+  isIntegrity(St,Lc,C),!,
   findType("logical",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,Env,_,Cond).
 checkOther(St,[show(Lc,Show)|More],More,Env,_) :-
-  isUnary(St,Lc,"show",E),!,
+  isShow(St,Lc,E),!,
   unary(Lc,"disp",E,Ex),
   unary(Lc,"formatSS",Ex,FC), % create the call formatSS(disp(E))
   findType("string",Lc,Env,StringTp),
   typeOfTerm(FC,StringTp,Env,_,Show).
+checkOther(St,[ignore(Lc,Exp)|More],More,Env,_) :-
+  isIgnore(St,Lc,Trm),!,
+  newTypeVar("_",V),
+  typeOfTerm(Trm,V,Env,_,Exp).
 
 checkGroups([],_,_,[],E,E,_).
 checkGroups([Gp|More],Fields,Annots,Defs,E,Ev,Path) :-
@@ -172,8 +177,8 @@ checkGroup([(cns(Nm),Lc,[St])|More],Defs,Dx,Env,Ex,Face,Path) :-
   parseConstructor(Nm,Lc,St,Env,E0,Defs,D0,Path),
   checkGroup(More,D0,Dx,E0,Ex,Face,Path).
 checkGroup([(var(N),Lc,Stmts)|More],Defs,Dx,Env,Ex,Face,Path) :-
-  checkVarRules(N,Lc,Stmts,Env,Defs,D0,Face,Path),
-  checkGroup(More,D0,Dx,Env,Ex,Face,Path).
+  checkVarRules(N,Lc,Stmts,Env,E0,Defs,D0,Face,Path),
+  checkGroup(More,D0,Dx,E0,Ex,Face,Path).
 checkGroup([(imp(Nm),_,[Stmt])|More],Defs,Dx,Env,Ex,Face,Path) :-
   checkImplementation(Stmt,Nm,Defs,D0,Env,E0,Face,Path),
   checkGroup(More,D0,Dx,E0,Ex,Face,Path).
@@ -186,7 +191,7 @@ defineContract(N,Lc,Contract,E0,Ex) :-
   declareContract(N,Contract,E0,E1),
   declareMethods(Contract,Lc,E1,Ex).
 
-declareMethods(contract(_,_,ConEx),Lc,Env,Ev) :-
+declareMethods(conDef(_,_,ConEx),Lc,Env,Ev) :-
   moveQuants(ConEx,Q,C1),
   moveConstraints(C1,Cx,contractExists(CTract,faceType(Methods,[]))),
   formMethods(Methods,Lc,Q,Cx,CTract,Env,Ev).
@@ -197,7 +202,7 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   merge(FQ,Q,MQ),
   moveConstraints(CC,Cx,constrained(QTp,Con)),
   moveQuants(MTp,MQ,CC),
-  declareVar(Nm,mtd(Lc,Nm,MTp),Env,E0),
+  declareVr(Lc,Nm,MTp,Env,E0),
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
 parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
@@ -226,8 +231,8 @@ parseConstructor(Nm,Lc,T,Env,Ev,[conDef(Lc,Nm,ConVr,Tp)|Defs],Defs,Path) :-
   marker(value,Marker),
   subPath(Path,Marker,Nm,CnNm),
   (isConType(Tp) ->
-    declareVar(Nm,cons(CnNm,Lc,Tp),Env,Ev), ConVr=cns(Lc,CnNm) ;
-    declareVar(Nm,enum(CnNm,Lc,Tp),Env,Ev), ConVr=enm(Lc,CnNm)).
+    declareCns(Lc,Nm,CnNm,Tp,Env,Ev), ConVr=cns(Lc,CnNm) ;
+    declareEnum(Lc,Nm,CnNm,Tp,Env,Ev), ConVr=enm(Lc,CnNm)).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -262,34 +267,14 @@ parseTypeAnnotation(N,_,faceType(_,Types),_,_,F,[(N,Tp)|F]) :-
 parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
   reportError("no type annotation for variable %s",[N],Lc).
 
-checkVarRules(N,Lc,Stmts,Env,Defs,Dx,Face,Path) :-
+checkVarRules(N,Lc,Stmts,Env,Ev,Defs,Dx,Face,Path) :-
   pickupVarType(N,Lc,Face,Tp),
   evidence(Tp,Env,Q,PT),
   declareTypeVars(Q,Lc,Env,SEnv),
   moveConstraints(PT,Cx,ProgramType),
   declareConstraints(Cx,SEnv,StmtEnv),
   processStmts(Stmts,ProgramType,Rules,[],StmtEnv,Path),
-  collectPrograms(Rules,Env,Tp,Cx,Defs,Dx).
-
-pickupVarType(N,_,faceType(F,_),Tp) :-
-  is_member((N,Tp),F),!.
-pickupVarType(N,Lc,_,anonType) :- reportError("%s not declared",[N],Lc).
-
-pickupThisType(Env,Tp) :-
-  isVar("this",Env,vr(_,_,Tp)),!.
-pickupThisType(_,voidType).
-
-checkEvidenceBinding(_,_).
-
-declareConstraints([],Env,Env).
-declareConstraints([C|L],E,Ex) :-
-  declareConstraint(C,E,E0),
-  declareConstraints(L,E0,Ex).
-
-findType(Nm,_,Env,Tp) :-
-  isType(Nm,Env,tpDef(_,Tp,_)),!.
-findType(Nm,Lc,_,anonType) :-
-  reportError("type %s not known",[Nm],Lc).
+  collectPrograms(Rules,Env,Ev,Tp,Cx,Defs,Dx).
 
 processStmts([],_,Defs,Defs,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Env,Path) :-
@@ -314,6 +299,24 @@ processStmt(St,Tp,Defs,Dx,E,_) :-
 processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
+
+pickupVarType(N,_,faceType(F,_),Tp) :-
+  is_member((N,Tp),F),!.
+pickupVarType(N,Lc,_,anonType) :- reportError("%s not declared",[N],Lc).
+
+pickupThisType(Env,Tp) :-
+  isVar("this",Env,vr(_,_,Tp)),!.
+pickupThisType(_,voidType).
+
+declareConstraints([],Env,Env).
+declareConstraints([C|L],E,Ex) :-
+  declareConstraint(C,E,E0),
+  declareConstraints(L,E0,Ex).
+
+findType(Nm,_,Env,Tp) :-
+  isType(Nm,Env,tpDef(_,Tp,_)),!.
+findType(Nm,Lc,_,anonType) :-
+  reportError("type %s not known",[Nm],Lc).
 
 checkEquation(Lc,H,C,R,funType(AT,RT),[equation(Lc,Nm,Args,Cond,Exp)|Defs],Defs,E) :-
   splitHead(H,Nm,A),
@@ -360,7 +363,7 @@ checkThetaBody(Tp,Lc,Els,Env,Defs,Others,Types,ClassPath) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  declareVar("this",vr("this",Lc,Tp),BaseEnv,ThEnv),
+  declareVr(Lc,"this",Tp,Face,BaseEnv,ThEnv),
   thetaEnv(ClassPath,nullRepo,Lc,Els,Face,ThEnv,OEnv,Defs,Public,_Imports,Others),
   computeExport(Defs,Face,Public,_,Types,[],[]),
   dischargeConstraints(Env,OEnv).
@@ -372,7 +375,7 @@ checkRecordBody(Tp,Lc,Els,Env,Defs,Others,Types,ClassPath) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  declareVar("this",vr("this",Lc,Tp),BaseEnv,ThEnv),
+  declareVr(Lc,"this",Tp,Face,BaseEnv,ThEnv),
   recordEnv(ClassPath,nullRepo,Lc,Els,CFace,ThEnv,OEnv,Defs,Public,_Imports,Others),
   computeExport(Defs,CFace,Public,_,Types,[],[]),
   dischargeConstraints(Env,OEnv).
@@ -389,26 +392,27 @@ splitHd(Id,Nm,none) :-
 splitHd(Term,"()",Term) :-
   isTuple(Term,_).
 
-collectPrograms([],_,_,_,Defs,Defs).
-collectPrograms([Eqn|Stmts],Env,Tp,Cx,[function(Lc,Nm,Tp,Cx,[Eqn|Eqns])|Defs],Dx) :-
+collectPrograms([],Env,Env,_,_,Defs,Defs).
+collectPrograms([Eqn|Stmts],Env,Ev,Tp,Cx,[funDef(Lc,Nm,Tp,Cx,[Eqn|Eqns])|Defs],Dx) :-
   Eqn = equation(Lc,Nm,_,_,_),
   collectEquations(Stmts,S0,Nm,Eqns),
-  collectPrograms(S0,Env,Tp,Cx,Defs,Dx).
-collectPrograms([defn(Lc,Nm,Cond,Value)|Stmts],Env,Tp,Cx,[defn(Lc,Nm,Cx,Cond,Tp,Value)|Defs],Dx) :-
-  collectPrograms(Stmts,Env,Tp,Cx,Defs,Dx).
-collectPrograms([vdefn(Lc,Nm,Cond,Value)|Stmts],Env,Tp,Cx,[vdefn(Lc,Nm,Cx,Cond,Tp,Value)|Defs],Dx) :-
-  collectPrograms(Stmts,Env,Tp,Cx,Defs,Dx).
-collectPrograms([Cl|Stmts],Env,Tp,Cx,[enum(Lc,Nm,Tp)|Defs],Dx) :-
-  isRuleForEnum(Cl,Lc,Nm,_),!,
-  collectPrograms(Stmts,Env,Tp,Cx,Defs,Dx).
-collectPrograms([Cl|Stmts],Env,Tp,Cx,[class(Lc,Nm,Tp,Cx,[Cl|Rules])|Defs],Dx) :-
-  isRuleForClass(Cl,Lc,Nm),!,
-  collectClassRules(Stmts,S0,Nm,Rules),
-  collectPrograms(S0,Env,Tp,Cx,Defs,Dx).
-collectPrograms([Rl|Stmts],Env,Tp,Cx,[grammar(Lc,Nm,Tp,Cx,[Rl|Rules])|Defs],Dx) :-
+  declareVr(Lc,Nm,Tp,Env,E0),
+  collectPrograms(S0,E0,Ev,Tp,Cx,Defs,Dx).
+collectPrograms([defn(Lc,Nm,Cond,Value)|Stmts],Env,Ev,Tp,Cx,
+    [defn(Lc,Nm,Cx,Cond,Tp,Value)|Defs],Dx) :-
+  faceOfType(Tp,Env,Face),
+  freshen(Face,Env,_,VFace),
+  declareVr(Lc,Nm,VFace,Tp,Env,E0),
+  collectPrograms(Stmts,E0,Ev,Tp,Cx,Defs,Dx).
+collectPrograms([vdefn(Lc,Nm,Cond,Value)|Stmts],Env,Ev,Tp,Cx,
+    [vdefn(Lc,Nm,Cx,Cond,Tp,Value)|Defs],Dx) :-
+  declareVr(Lc,Nm,refType(Tp),Env,E0),
+  collectPrograms(Stmts,E0,Ev,Tp,Cx,Defs,Dx).
+collectPrograms([Rl|Stmts],Env,Ev,Tp,Cx,[grDef(Lc,Nm,Tp,Cx,[Rl|Rules])|Defs],Dx) :-
   isGrammarRule(Rl,Lc,Nm),
   collectGrammarRules(Stmts,S0,Nm,Rules),
-  collectPrograms(S0,Env,Tp,Cx,Defs,Dx).
+  declareVr(Lc,Nm,Tp,Env,E0),
+  collectPrograms(S0,E0,Ev,Tp,Cx,Defs,Dx).
 
 collectEquations([Eqn|Stmts],Sx,Nm,[Eqn|Ex]) :-
   Eqn = equation(_,Nm,_,_,_),
@@ -424,25 +428,7 @@ collectGrammarRules([Rl|Stmts],[Rl|Sx],Nm,Eqns) :-
   collectGrammarRules(Stmts,Sx,Nm,Eqns).
 collectGrammarRules([],[],_,[]).
 
-isGrammarRule(grammarRule(Lc,Nm,_,_,_),Lc,Nm).
-
-collectClassRules([Cl|Stmts],Sx,Nm,[Cl|Ex]) :-
-  isRuleForClass(Cl,_,Nm),!,
-  collectClassRules(Stmts,Sx,Nm,Ex).
-collectClassRules([Rl|Stmts],[Rl|Sx],Nm,Eqns) :-
-  collectClassRules(Stmts,Sx,Nm,Eqns).
-collectClassRules([],[],_,[]).
-
-isRuleForClass(labelRule(Lc,Nm,_,_),Lc,Nm).
-
-collectEnumRules([Cl|Stmts],Sx,Nm,[Cl|Ex]) :-
-  isRuleForEnum(Cl,_,Nm,_),!,
-  collectEnumRules(Stmts,Sx,Nm,Ex).
-collectEnumRules([Rl|Stmts],[Rl|Sx],Nm,Eqns) :-
-  collectEnumRules(Stmts,Sx,Nm,Eqns).
-collectEnumRules([],[],_,[]).
-
-isRuleForEnum(labelRule(Lc,Nm,enum(_,_),O),Lc,Nm,O).
+isGrammarRule(grRule(Lc,Nm,_,_,_),Lc,Nm).
 
 checkImplementation(Stmt,INm,[Impl|Dfs],Dfs,Env,Ex,_,Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
@@ -450,12 +436,14 @@ checkImplementation(Stmt,INm,[Impl|Dfs],Dfs,Env,Ex,_,Path) :-
   evidence(ConSpec,Env,IQ,CnSpec),
   moveConstraints(CnSpec,AC,contractExists(Spec,IFace)),
   declareTypeVars(IQ,Lc,Env,ThEnv),
-  (isBraceTuple(IBody,_,Els) -> thetaEnv(Path,nullRepo,Lc,Els,IFace,ThEnv,OEnv,ThDefs,Public,_,Others) ;
-   isQBraceTuple(IBody,_,Els) -> recordEnv(Path,nullRepo,Lc,Els,IFace,ThEnv,OEnv,ThDefs,Public,_,Others) ;
+  (isBraceTuple(IBody,_,Els) ->
+     thetaEnv(Path,nullRepo,Lc,Els,IFace,ThEnv,OEnv,ThDefs,Public,_,Others) ;
+   isQBraceTuple(IBody,_,Els) ->
+     recordEnv(Path,nullRepo,Lc,Els,IFace,ThEnv,OEnv,ThDefs,Public,_,Others) ;
    reportError("expecting better than this %s",[IBody],Lc)),
   computeExport(ThDefs,IFace,Public,BodyDefs,Types,[],[]),
   implementationName(Spec,ImplName),
-  Impl = implementation(Lc,INm,ImplName,Spec,AC,ThDefs,BodyDefs,Types,Others),
+  Impl = implDef(Lc,INm,ImplName,Spec,AC,ThDefs,BodyDefs,Types,Others),
   declareImplementation(Nm,Impl,Env,Ex),
   dischargeConstraints(Env,OEnv),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
@@ -469,7 +457,7 @@ sameLength(L1,_,Lc) :-
 
 declImpl(imp(ImplNm,Spec),SoFar,[(ImplNm,Spec)|SoFar]).
 
-typeOfArgTerm(T,Tp,Env,Ev,tuple(Lc,Els)) :-
+typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Els)) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
@@ -486,7 +474,7 @@ typeOfTerm(V,Tp,Env,Ev,Term) :-
   typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term).
 typeOfTerm(V,Tp,Ev,Env,v(Lc,N)) :-
   isIden(V,Lc,N),
-  declareVar(N,vr(Lc,N,Tp),Ev,Env).
+  declareVr(Lc,N,Tp,Ev,Env).
 typeOfTerm(integer(Lc,Ix),Tp,Env,Env,intLit(Ix)) :- !,
   findType("integer",Lc,Env,IntTp),
   checkType(Lc,IntTp,Tp,Env).
@@ -512,10 +500,9 @@ typeOfTerm(P,Tp,Env,Ex,where(Lc,Ptn,Cond)) :-
   findType("logical",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,E0,Ex,Cond).
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
-  isBinary(Term,Lc,".",L,F), !,
-  isIden(F,Fld),
-  recordAccessExp(Lc,L,Fld,Tp,Env,Ev,Exp).
-typeOfTerm(Term,Tp,Env,Ev,conditional(Lc,Test,Then,Else)) :-
+  isFieldAcc(Term,Lc,Rc,Fld),!,
+  recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp).
+typeOfTerm(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else)) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   findType("logical",Lc,Env,LogicalTp),
   typeOfTerm(Tst,LogicalTp,Env,E0,Test),
@@ -544,10 +531,12 @@ typeOfTerm(Term,Tp,Env,Env,record(Lbl,Defs,Others,Types)) :-
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
   checkRecordBody(FnTp,Lc,Els,E0,Defs,Others,Types,Lbl).
-typeOfTerm(tuple(_,"()",[Inner]),Tp,Env,Ev,Exp) :-
+typeOfTerm(Trm,Tp,Env,Ev,Exp) :-
+  isTuple(Trm,_,[Inner]),
   \+ isTuple(Inner,_), !,
   typeOfTerm(Inner,Tp,Env,Ev,Exp).
-typeOfTerm(tuple(Lc,"()",A),Tp,Env,Ev,tuple(Lc,Els)) :-
+typeOfTerm(Trm,Tp,Env,Ev,tple(Lc,Els)) :-
+  isTuple(Trm,Lc,A),
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els).
@@ -571,59 +560,53 @@ typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("F",FnTp),
   newTypeVar("A",At),
-  genTpVars(A,AT),
   typeOfKnown(F,FnTp,Env,E0,Fun),
   (sameType(funType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,tupleType(AT)),
-    typeOfTerms(A,AT,E0,Ev,Lc,Args),
+    evidence(At,E0,_,AT),
+    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args),
     Exp = apply(Fun,Args) ;
    sameType(consType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,tupleType(AT)),
-    typeOfTerms(A,AT,E0,Ev,Lc,Args),
-    Exp = cons(Lc,Fun,tuple(Lc,Args));
+    evidence(At,E0,_,AT),
+    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args),
+    Exp = cons(Lc,Fun,Args);
    reportError("invalid function %s in call",[Fun],Lc)).
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp).
-typeOfTerm(Term,Tp,Env,Env,lambda(equation(Lc,"$",Args,v(Lc,"true"),Exp))) :-
-  isBinary(Term,Lc,"=>",H,R),
+typeOfTerm(Term,Tp,Env,Env,lambda(equation(Lc,"$",Args,Cond,Exp))) :-
+  isEquation(Term,Lc,H,C,R),
   isTuple(H,_,A),
   genTpVars(A,AT),
   newTypeVar("_E",RT),
   checkType(Lc,funType(tupleType(AT),RT),Tp,Env),
   typeOfTerms(A,AT,Env,E1,Lc,Args),
-  typeOfTerm(R,RT,E1,_,Exp).
+  findType("logical",Lc,Env,LogicalTp),
+  typeOfTerm(C,LogicalTp,E1,E2,Cond),
+  typeOfTerm(R,RT,E2,_,Exp).
 typeOfTerm(Term,Tp,Env,Ex,conj(Lc,Lhs,Rhs)) :-
-  isBinary(Term,Lc,"&&",L,R), !,
+  isConjunct(Term,Lc,L,R),!,
   findType("logical",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfTerm(L,LogicalTp,Env,E1,Lhs),
   typeOfTerm(R,LogicalTp,E1,Ex,Rhs).
 typeOfTerm(Term,Tp,Env,Ex,disj(Lc,Lhs,Rhs)) :-
-  isBinary(Term,Lc,"||",L,R), !,
+  isDisjunct(Term,Lc,L,R),!,
   findType("logical",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfTerm(L,LogicalTp,Env,E1,Lhs),
   typeOfTerm(R,LogicalTp,E1,Ex,Rhs).
 typeOfTerm(Term,Tp,Env,Ex,neg(Lc,Rhs)) :-
-  isUnary(Term,Lc,"\\+",R), !,
+  isNegation(Term,Lc,R),!,
   findType("logical",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfTerm(R,LogicalTp,Env,Ex,Rhs).
 typeOfTerm(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs)) :-
-  isBinary(Term,Lc,".=",L,R),!,
+  isMatch(Term,Lc,P,E),!,
   findType("logical",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   newTypeVar("_#",TV),
-  typeOfTerm(L,TV,Env,E0,Lhs),
-  typeOfTerm(R,TV,E0,Ev,Rhs).
-typeOfTerm(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs)) :-
-  isBinary(Term,Lc,"=.",R,L),!,
-  findType("logical",Lc,Env,LogicalTp),
-  checkType(Lc,LogicalTp,Tp,Env),
-  newTypeVar("_#",TV),
-  typeOfTerm(L,TV,Env,E0,Lhs),
-  typeOfTerm(R,TV,E0,Ev,Rhs).
+  typeOfTerm(P,TV,Env,E0,Lhs),
+  typeOfTerm(E,TV,E0,Ev,Rhs).
 typeOfTerm(Term,Tp,Env,Ev,phrase(Lc,NT,Strm,Rest)) :-
   isBinary(Term,Lc,"%%",L,R),
   isBinary(R,"~",S,M),!,
@@ -635,7 +618,7 @@ typeOfTerm(Term,Tp,Env,Ev,phrase(Lc,NT,Strm,Rest)) :-
   typeOfTerm(S,StrmTp,Env,E0,Strm),
   typeOfTerm(M,StrmTp,E0,E1,Rest),
   currentVar("stream",E1,OV),
-  declareVar("stream",vr("stream",Lc,StrmTp),E1,E2),
+  declareVr(Lc,"stream",StrmTp,E1,E2),
   checkNonTerminal(L,StrmTp,ElTp,E2,E3,NT),
   restoreVar("stream",E3,OV,Ev).
 typeOfTerm(Term,Tp,Env,Ev,phrase(Lc,NT,Strm)) :-
@@ -648,7 +631,7 @@ typeOfTerm(Term,Tp,Env,Ev,phrase(Lc,NT,Strm)) :-
   typeOfTerm(R,StrmTp,Env,E1,Strm),
   binary(Lc,",",L,name(Lc,"eof"),Phrase),
   currentVar("stream",E1,OV),
-  declareVar("stream",vr("stream",Lc,StrmTp),E1,E2),
+  declareVr(Lc,"stream",StrmTp,E1,E2),
   checkNonTerminal(Phrase,StrmTp,ElTp,E2,E3,NT),
   restoreVar("stream",E3,OV,Ev).
 typeOfTerm(Term,Tp,Env,Env,void) :-
@@ -678,13 +661,20 @@ genTpVars([_|I],[Tp|More]) :-
   newTypeVar("__",Tp),
   genTpVars(I,More).
 
-recordAccessExp(Lc,Rc,Fld,ET,Env,Ev,dot(Rec,Fld)) :-
+recordFace(Trm,Env,Env,v(Lc,Nm),Face) :-
+  isIden(Trm,Lc,Nm),
+  isVar(Nm,Env,vr(_,_,Face,_)),!.
+recordFace(Trm,Env,Ev,Rec,Face) :-
   newTypeVar("_R",AT),
-  typeOfKnown(Rc,AT,Env,Ev,Rec),
-  faceOfType(AT,Env,Face),
-  moveConstraints(Face,_,faceType(Fields,_)),
-  fieldInFace(Fields,AT,Fld,Lc,FTp),!,
-  freshen(FTp,Env,_,Tp), % the record is this to the right of dot.
+  typeOfKnown(Trm,AT,Env,Ev,Rec),
+  faceOfType(AT,Env,Fc),
+  freshen(Fc,Env,_,Face).
+
+recordAccessExp(Lc,Rc,Fld,ET,Env,Ev,dot(Rec,Fld)) :-
+  recordFace(Rc,Env,Ev,Rec,Fce),
+  deRef(Fce,Face),
+  fieldInFace(Face,Fld,Lc,FTp),!,
+  freshen(FTp,Env,_,Tp),
   checkType(Lc,Tp,ET,Env).
 
 macroMapEntries(Lc,[],name(Lc,"_empty")).
@@ -696,9 +686,9 @@ macroMapEntries(Lc,[E|L],T) :-
   reportError("invalid entry in map %s",[E],Lc),
   macroMapEntries(Lc,L,T).
 
-fieldInFace(Fields,_,Nm,_,Tp) :-
+fieldInFace(faceType(Fields,_),Nm,_,Tp) :-
   is_member((Nm,Tp),Fields),!.
-fieldInFace(_,Tp,Nm,Lc,anonType) :-
+fieldInFace(Tp,Nm,Lc,anonType) :-
   reportError("field %s not declared in %s",[Nm,Tp],Lc).
 
 typeOfKnown(T,Tp,Env,Ev,Exp) :-
@@ -760,13 +750,13 @@ isListType(Tp,Env) :-
 
 typeOfListTerm([],Lc,_,ListTp,Env,Ev,Exp) :-
   typeOfTerm(name(Lc,"[]"),ListTp,Env,Ev,Exp).
-typeOfListTerm([Last],_,ElTp,ListTp,Env,Ev,apply(Op,[Hd,Tl])) :-
+typeOfListTerm([Last],_,ElTp,ListTp,Env,Ev,apply(Op,tple(Lc,[Hd,Tl]))) :-
   isBinary(Last,Lc,",..",L,R),
   newTypeVar("_",LiTp),
   typeOfKnown(name(Lc,",.."),LiTp,Env,E0,Op),
   typeOfTerm(L,ElTp,E0,E1,Hd),
   typeOfTerm(R,ListTp,E1,Ev,Tl).
-typeOfListTerm([El|More],_,ElTp,ListTp,Env,Ev,apply(Op,[Hd,Tl])) :-
+typeOfListTerm([El|More],_,ElTp,ListTp,Env,Ev,apply(Op,tple(Lc,[Hd,Tl]))) :-
   locOfAst(El,Lc),
   newTypeVar("_",LiTp),
   typeOfKnown(name(Lc,",.."),LiTp,Env,E0,Op),
@@ -793,25 +783,27 @@ checkType(_,Actual,Expected,Env) :-
 checkType(Lc,S,T,_) :-
   reportError("%s not consistent with expected type %s",[S,T],Lc).
 
-checkCallArgs(Lc,Pred,A,ArgTps,Env,Ev,call(Lc,Pred,Args)) :-
+checkCallArgs(Lc,Pred,A,ArgTps,Env,Ev,apply(Pred,Args)) :-
+
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Args).
 checkCallArgs(Lc,Pred,A,ArgTps,Env,Env,void) :-
-  reportError("arguments %s of %s not consistent with expected types %s",[A,Pred,tupleType(ArgTps)],Lc).
+  reportError("arguments %s of %s not consistent with expected types %s",
+      [A,Pred,tupleType(ArgTps)],Lc).
 
 checkGrammarType(Lc,Env,Tp,ElTp) :-
-  getContract("stream",Env,contract(_,_,Spec)),
+  getContract("stream",Env,conDef(_,_,Spec)),
   freshen(Spec,Env,_,contractExists(conTract(_,[Arg],[Dep]),_)),
   checkType(Lc,Arg,Tp,Env),
   checkType(Lc,Dep,ElTp,Env).
 
-checkGrammarRule(Lc,L,C,R,grammarType(AT,Tp),[grammarRule(Lc,Nm,Args,Cond,Body)|Defs],Defs,E) :-
+checkGrammarRule(Lc,L,C,R,grammarType(AT,Tp),[grRule(Lc,Nm,Args,Cnd,Body)|Dfs],Dfs,E) :-
   splitHead(L,Nm,A),
   pushScope(E,E0),
-  declareVar("stream",vr("stream",Lc,Tp),E0,E1),
+  declareVr(Lc,"stream",Tp,E0,E1),
   newTypeVar("_E",ElTp),
   typeOfArgTerm(A,AT,E1,E2,Args),!,
   findType("logical",Lc,E,LogicalTp),
-  typeOfterm(C,LogicalTp,E2,E3,Cond),
+  typeOfterm(C,LogicalTp,E2,E3,Cnd),
   checkNonTerminal(R,Tp,ElTp,E2,E3,Body),
   dischargeConstraints(E,E3).
 
@@ -819,14 +811,14 @@ checkNonTerminal(tuple(Lc,"[]",Els),_,ElTp,E,Env,terminals(Lc,Terms)) :- !,
   checkTerminals(Els,"_hdtl",Terms,ElTp,E,Env).
 checkNonTerminal(string(Lc,Text),_,ElTp,Env,Env,terminals(Lc,Terms)) :- !,
   explodeStringLit(Lc,Text,IntLits),
-  checkTerminals(IntLits,"_hdtl",Terms,ElTp,Env,_).  % strings are exploded into code points
+  checkTerminals(IntLits,"_hdtl",Terms,ElTp,Env,_).  % explode strings into code points
 checkNonTerminal(tuple(Lc,"()",NT),Tp,ElTp,Env,Ex,GrNT) :-
   checkNonTerminals(NT,Lc,Tp,ElTp,Env,Ex,GrNT).
 checkNonTerminal(Term,Tp,ElTp,Env,Ex,conj(Lc,Lhs,Rhs)) :-
   isBinary(Term,Lc,",",L,R), !,
   checkNonTerminal(L,Tp,ElTp,Env,E1,Lhs),
   checkNonTerminal(R,Tp,ElTp,E1,Ex,Rhs).
-checkNonTerminal(Term,Tp,ElTp,Env,Ex,conditional(Lc,Test,Either,Or)) :-
+checkNonTerminal(Term,Tp,ElTp,Env,Ex,cond(Lc,Test,Either,Or)) :-
   isConditional(Term,Lc,T,L,R),!,
   checkNonTerminal(T,Tp,ElTp,Env,E0,Test),
   checkNonTerminal(L,Tp,ElTp,E0,E1,Either),
@@ -898,29 +890,26 @@ checkTerminals([T|More],V,[term(Lc,Cond)|Out],ElTp,Env,Ex) :-
   checkTerminals(More,V,Out,ElTp,E1,Ex).
 
 computeExport([],_,_,[],[],[],[]).
-computeExport([Def|Defs],Fields,Public,Exports,Types,Contracts,Impls) :-
-  exportDef(Def,Fields,Public,Exports,Ex,Types,Tx,Contracts,Cx,Impls,Ix),!,
+computeExport([Def|Defs],Fields,Public,Exports,Types,Cons,Impls) :-
+  exportDef(Def,Fields,Public,Exports,Ex,Types,Tx,Cons,Cx,Impls,Ix),!,
   computeExport(Defs,Fields,Public,Ex,Tx,Cx,Ix).
 
-exportDef(function(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Types,Types,Cons,Cons,Impl,Impl) :-
+exportDef(funDef(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
-exportDef(class(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Types,Types,Cons,Cons,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public).
-exportDef(enum(_,Nm,Tp),Fields,Public,[(Nm,Tp)|Ex],Ex,Types,Types,Cons,Cons,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public).
-exportDef(typeDef(_,Nm,_,FaceRule),_,Public,Exports,Exports,[(Nm,FaceRule)|Tx],Tx,Cons,Cons,Impl,Impl) :-
+exportDef(typeDef(_,Nm,_,FRule),_,Public,Ex,Ex,[(Nm,FRule)|Tx],Tx,Cx,Cx,Impl,Impl) :-
   isPublicType(Nm,Public).
-exportDef(defn(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Types,Types,Cons,Cons,Impl,Impl) :-
+exportDef(defn(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
-exportDef(vdefn(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Types,Types,Cons,Cons,Impl,Impl) :-
+exportDef(vdefn(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl):-
   isPublicVar(Nm,Fields,Public).
-exportDef(grammar(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Types,Types,Cons,Cons,Impl,Impl) :-
+exportDef(grDef(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
-exportDef(Con,_,Public,Ex,Ex,Types,Types,[Con|Cons],Cons,Impl,Impl) :-
+exportDef(Con,_,Public,Ex,Ex,Types,Types,[Con|Cx],Cx,Impl,Impl) :-
   isPublicContract(Con,Public).
-exportDef(implementation(_,INm,ImplName,Spec,_,_,_,_,_),_,Public,Ex,Ex,Tps,Tps,Cons,Cons,[imp(ImplName,Spec)|Ix],Ix) :-
+exportDef(implDef(_,INm,IName,Spec,_,_,_,_,_),_,Public,Ex,Ex,Tps,Tps,Cx,Cx,
+    [imp(IName,Spec)|Ix],Ix) :-
   is_member(imp(INm),Public),!.
-exportDef(_,_,_,Ex,Ex,Tps,Tps,Cons,Cons,Impls,Impls).
+exportDef(_,_,_,Ex,Ex,Tps,Tps,Cx,Cx,Impls,Impls).
 
 isPublicVar(Nm,_,Public) :-
   is_member(var(Nm),Public),!.
@@ -930,18 +919,7 @@ isPublicVar(Nm,Fields,_) :-
 isPublicType(Nm,Public) :-
   is_member(tpe(Nm),Public),!.
 
-isPublicContract(contract(Nm,_,_),Public) :-
+isPublicContract(conDef(Nm,_,_),Public) :-
   is_member(con(Nm),Public),!.
-
-matchTypes(type(Nm),type(Nm),[]) :-!.
-matchTypes(typeExp(T1,L),typeExp(T2,R),Binding) :-
-  matchTypes(T1,T2,Binding),
-  matchArgTypes(L,R,Binding).
-
-matchArgTypes([],[],[]).
-matchArgTypes([kVar(Nm)|L],[kVar(Nm)|R],Binding) :- !,
-  matchArgTypes(L,R,Binding).
-matchArgTypes([Tp|L],[kVar(Ot)|R],[(Ot,Tp)|Binding]) :-
-  matchArgTypes(L,R,Binding).
 
 dischargeConstraints(_,_).

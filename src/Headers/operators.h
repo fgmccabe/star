@@ -78,12 +78,12 @@ prefixOp("import",900,899,"import module")
 prefixOp("return",899,890,"wrap value in monad")
 prefixOp("raise",899,890,"error return in monad")
 prefixOp(".~.",650,649,"bitwise 1's complement")
-prefixOp("-",300,299,"arithmetic negation")
 lastPreOp
-prefixOp(".",1,0,"label prefix")
+prefixOp("-",300,299,"arithmetic negation")
 
 postfixOp(". ",1899,1900,"statement terminator")
-lastPostOp
 postfixOp("+",759,760,"lookahead in grammar rule")
+lastPostOp
+postfixOp("!",99,100,"pick up a value from a ref cell")
 
 token("$","Used for curried functions and types")

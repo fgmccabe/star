@@ -33,6 +33,16 @@ sm(faceType(E1,T1),faceType(E2,T2),Env) :- sameLength(E1,E2),
     sameLength(T1,T2),
     smFields(E1,E2,Env),
     smFields(T1,T2,Env).
+sm(existType(K,T1),existType(K,T2),Env) :-
+  sameType(T1,T2,Env).
+sm(existType(kVar(K1),T1),existType(kVar(K2),T2),Env) :-
+  rewriteType(T2,Env,[(K2,K1)],TT2),
+  sameType(T1,TT2,Env).
+sm(allType(K,T1),allType(K,T2),Env) :-!,
+sameType(T1,T2,Env).
+sm(allType(kVar(K1),T1),allType(kVar(K2),T2),Env) :-
+rewriteType(T2,Env,[(K2,K1)],TT2),
+sameType(T1,TT2,Env).
 
 varBinding(T1,T2,_) :- isIdenticalVar(T1,T2),!.
 varBinding(T1,T2,Env) :-
@@ -72,7 +82,7 @@ surfaceBound([E|M]) :- deRef(E,EE), \+isUnbound(EE), surfaceBound(M).
 
 checkForImpl(conTract(Nm,Args,Deps),Env) :-
   getImplementations(Nm,Env,Impls),
-  is_member(impl(_,ITp),Impls),
+  is_member(implDef(_,ITp),Impls),
   freshen(ITp,Env,_,FTp),
   sameType(FTp,conTract(Nm,Args,Deps),Env),!.
 

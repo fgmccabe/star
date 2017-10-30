@@ -25,7 +25,7 @@ freeVars(tuple(_,Els),Q,F,FV) :- freeVarsList(Els,Q,F,FV).
 freeVars(apply(Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVarsList(A,Q,F0,FV).
 freeVars(dot(Rc,_),Q,F,FV) :- freeVars(Rc,Q,F,FV).
 freeVars(where(T,C),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,FV).
-freeVars(conditional(_,C,T,E),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,F1),freeVars(E,Q,F1,FV).
+freeVars(cond(_,C,T,E),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,F1),freeVars(E,Q,F1,FV).
 freeVars(lambda(Rl),Q,F,FV) :- freeVarsInRule(Rl,Q,F,FV).
 freeVars(conj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(disj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
@@ -39,7 +39,7 @@ freeVarsInNT(terminals(_,Terms),Q,F,FV) :- freeVarsInTerms(Terms,Q,F,FV).
 freeVarsInNT(eof(_,S),Q,F,FV) :- freeVars(S,Q,F,FV).
 freeVarsInNT(conj(_,L,R),Q,F,FV) :- freeVarsInNT(L,Q,F,F0),freeVarsInNT(R,Q,F0,FV).
 freeVarsInNT(disj(_,L,R),Q,F,FV) :- freeVarsInNT(L,Q,F,F0),freeVarsInNT(R,Q,F0,FV).
-freeVarsInNT(conditional(_,T,L,R),Q,F,FV) :- freeVarsInNT(T,Q,F,F0),freeVarsInNT(L,Q,F0,F1),freeVarsInNT(R,Q,F1,FV).
+freeVarsInNT(cond(_,T,L,R),Q,F,FV) :- freeVarsInNT(T,Q,F,F0),freeVarsInNT(L,Q,F0,F1),freeVarsInNT(R,Q,F1,FV).
 freeVarsInNT(one(_,L),Q,F,FV) :- freeVarsInNT(L,Q,F,FV).
 freeVarsInNT(neg(_,L),Q,F,FV) :- freeVarsInNT(L,Q,F,FV).
 freeVarsInNT(ahead(_,L),Q,F,FV) :- freeVarsInNT(L,Q,F,FV).

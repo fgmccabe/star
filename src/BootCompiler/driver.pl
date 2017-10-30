@@ -99,6 +99,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   parseFile(Src,Term),!,
   noErrors,
   checkProgram(Term,Vers,Repo,Prog),!,
+  dispProg(Prog),
   noErrors,
   transformProg(Prog,Opts,Rules),!,
   noErrors,

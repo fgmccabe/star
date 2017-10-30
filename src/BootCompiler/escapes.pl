@@ -5,7 +5,7 @@
 escapeType("_exit",funType(tupleType([type("star.core*integer")]),voidType)).
 escapeType("_command_line",funType(tupleType([]),typeExp(tpFun("star.core*list",1),[type("star.core*string")]))).
 escapeType("_command_opts",funType(tupleType([]),typeExp(tpFun("star.core*list",1),[tupleType([type("star.core*string"),type("star.core*string")])]))).
-escapeType("_identical",allType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*logical")))).
+escapeType("_identical",univType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*logical")))).
 escapeType("_defined",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*logical"))).
 escapeType("_int_plus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_minus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
@@ -164,7 +164,7 @@ escapeType("_str_ge",funType(tupleType([type("star.core*string"),type("star.core
 escapeType("_str_hash",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
 escapeType("_str_len",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
 escapeType("_str_gen",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
-escapeType("_stringOf",allType(kVar("t"),funType(tupleType([kVar("t"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string")))).
+escapeType("_stringOf",univType(kVar("t"),funType(tupleType([kVar("t"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string")))).
 escapeType("_trim",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("explode",funType(tupleType([type("star.core*string")]),typeExp(tpFun("star.core*list",1),[type("star.core*integer")]))).
 escapeType("implode",funType(tupleType([typeExp(tpFun("star.core*list",1),[type("star.core*integer")])]),type("star.core*string"))).

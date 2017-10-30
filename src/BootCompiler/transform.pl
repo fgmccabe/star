@@ -139,7 +139,7 @@ dcgBody(conj(_,Lhs,Rhs),G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx) :-
   dcgBody(Rhs,G0,Gx,Strm0,Strmx,Q0,Qx,Map,Opts,Ex0,Exx).
 dcgBody(disj(_,Lhs,Rhs),G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx) :-
   dcgDisj(Lhs,Rhs,G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx).
-dcgBody(conditional(_,Tst,Lhs,Rhs),G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx) :-
+dcgBody(cond(_,Tst,Lhs,Rhs),G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx) :-
   dcgConditional(Tst,Lhs,Rhs,G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx).
 dcgBody(one(_,Tst),G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx) :-
   dcgOne(Tst,G,Gx,Strm,Strmx,Q,Qx,Map,Opts,Ex,Exx).
@@ -499,7 +499,7 @@ trExp(dot(Rec,Fld),Exp,Q,Qx,Pre,Px,Tail,Tailx,Map,Opts,Ex,Exx) :-
 trExp(where(P,C),Ptn,Q,Qx,Pre,Px,Post,Pstx,Map,Opts,Ex,Exx) :-
   trExp(P,Ptn,Q,Q0,Pre,P0,Post,Pstx,Map,Opts,Ex,Ex0),
   trGoal(C,P0,Px,Q0,Qx,Map,Opts,Ex0,Exx).
-trExp(conditional(Lc,T,L,R),Rslt,Q,Qx,Pre,Prx,Post,Post,Map,Opts,Ex,Exx) :- !,
+trExp(cond(Lc,T,L,R),Rslt,Q,Qx,Pre,Prx,Post,Post,Map,Opts,Ex,Exx) :- !,
   genVar("CndV",Rslt),
   lineDebug(Lc,Pre,[call(CondPr,[Rslt|LQ])|Prx],Opts),
   trGoal(T,TG,[neck|LG],[],Q0,Map,Opts,Ex,Ex0),
@@ -667,7 +667,7 @@ trGoal(disj(Lc,L,R),G,Gx,Q,Qx,Map,Opts,Ex,Exx) :- !,
   Cl2 = clse(LQ,DisjPr,LQ,RG),
   Ex1 = [Cl1,Cl2|Exx],
   merge(LQ,Q,Qx).
-trGoal(conditional(Lc,T,L,R),G,Gx,Q,Qx,Map,Opts,Ex,Exx) :- !,
+trGoal(cond(Lc,T,L,R),G,Gx,Q,Qx,Map,Opts,Ex,Exx) :- !,
   lineDebug(Lc,G,[call(CondPr,LQ)|Gx],Opts),
   trGoal(T,TG,[neck|LG],[],Q0,Map,Opts,Ex,Ex0),
   trGoal(L,LG,[],Q0,Q1,Map,Opts,Ex0,Ex1),

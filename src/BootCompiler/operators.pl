@@ -31,6 +31,7 @@
   operator("->", [infixOp(899, 900, 899)]).
   operator("raise", [prefixOp(899, 890)]).
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
+  operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("%", [infixOp(700, 700, 699)]).
@@ -42,7 +43,7 @@
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
-  operator(".", [prefixOp(1, 0), infixOp(450, 450, 449)]).
+  operator(".", [infixOp(450, 450, 449)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("•", [infixOp(450, 450, 449)]).
@@ -110,6 +111,7 @@
   follows('','>','>').
   follows('','?','?').
   follows('','@','@').
+  follows('','!','!').
   follows('','•','•').
   follows('','#','#').
   follows('','$','$').
@@ -178,7 +180,7 @@
   final('-->',"-->").	 /* grammar rule */
   final('->',"->").	 /* map entry */
   final('->>',"->>").	 /* dependent type marker */
-  final('.',".").	 /* label prefix */
+  final('.',".").	 /* object access */
   final('.#.',".#.").	 /* test nth bit */
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
@@ -218,6 +220,7 @@
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
+  final('!',"!").	 /* pick up a value from a ref cell */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
   final('$',"$").	 /* Used for curried functions and types */
