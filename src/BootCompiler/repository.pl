@@ -60,7 +60,7 @@ addPrologPackage(repo(Root,Man),U,pkg(Pkg,Vers),Text,repo(Root,NM)) :-
 packageHash(Pkg,defltVersion,Hash) :-
   stringHash(0,Pkg,H),
   hashSixtyFour(H,Hash).
-packageHash(Pkg,v(V),Hash) :-
+packageHash(Pkg,ver(V),Hash) :-
   stringHash(0,Pkg,H1),
   stringHash(H1,V,H2),
   hashSixtyFour(H2,Hash).

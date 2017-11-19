@@ -55,22 +55,21 @@ decodeSignature(S,Tp) :-
 decodeType(anonType) --> ['_'].
 decodeType(voidType) --> ['v'].
 decodeType(thisType) --> ['h'].
-decodeType(type("lo.core*integer")) --> ['i'].
-decodeType(type("lo.core*float")) --> ['f'].
-decodeType(type("lo.core*string")) --> ['S'].
-decodeType(type("lo.core*logical")) --> ['l'].
+decodeType(type("star.core*integer")) --> ['i'].
+decodeType(type("star.core*float")) --> ['f'].
+decodeType(type("star.core*string")) --> ['S'].
+decodeType(type("star.core*logical")) --> ['l'].
 decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).
 decodeType(kFun(Nm,Ar)) --> ['K'], typeLen(Ar), decodeText(Nm).
 decodeType(type(Nm)) --> ['t'], decodeText(Nm).
 decodeType(tpFun(Nm,Ar)) --> ['z'], typeLen(Ar), decodeText(Nm).
-decodeType(typeExp(tpFun("lo.core*list",1),[ElTp])) --> ['L'], decodeType(ElTp).
+decodeType(typeExp(tpFun("star.core*list",1),[ElTp])) --> ['L'], decodeType(ElTp).
 decodeType(typeExp(Op,ArgTypes)) --> ['U'], decodeType(Op), decodeTypes(ArgTypes).
 decodeType(allType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).
 decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con).
 decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(Tps).
 decodeType(funType(A,T)) --> ['F'], decodeType(A), decodeType(T).
 decodeType(ptnType(A,T)) --> ['p'], decodeArgTypes(A), decodeType(T).
-decodeType(grammarType(A,T)) --> ['G'], decodeArgTypes(A), decodeType(T).
 decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
 decodeType(tupleType(Tps)) --> ['T'], decodeTypes(Tps).
 decodeType(typeExists(L,R)) --> ['Y'], decodeType(L), decodeType(R).

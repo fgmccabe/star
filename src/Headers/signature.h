@@ -21,6 +21,7 @@ typedef enum {
   kvrSig = 'k', /* quantified type variable */
   kfnSig = 'K', /* quantified type function */
   tpeSig = 't',  /* A named type */
+  refSig = 'r', /* A reference type */
   tpfnSig = 'z', /* A type function */
 
   lstSig = 'L', /* List */
@@ -73,4 +74,3 @@ extern retCode showSignature(ioPo out, char *sig, integer *start, integer end);
 extern retCode showConstraint(ioPo out, char *sig, integer *start, integer end);
 extern retCode showSig(ioPo out, char *sig);
 #endif
-

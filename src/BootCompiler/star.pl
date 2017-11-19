@@ -1,4 +1,4 @@
-:- module(lo,[main/1]).
+:- module(star,[main/1]).
 
 :- use_module(polyfill).
 :- use_module(repository).
@@ -89,7 +89,7 @@ processImports([import(_,Pkg)|Imports],Loaded,Ldx,Repo,Pr,Prx) :-
   processPackage(Pkg,Repo,Loaded,LdI,Pr,Pr0),
   processImports(Imports,LdI,Ldx,Repo,Pr0,Prx).
 
-parsePkgName(P,pkg(Pkg,v(Version))) :-
+parsePkgName(P,pkg(Pkg,ver(Version))) :-
   sub_string(P,Before,_,After,"#"),!,
   sub_string(P,0,Before,_,Pkg),
   sub_string(P,_,After,0,Version).

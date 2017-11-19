@@ -58,6 +58,9 @@ escapeType("_blsr",funType(tupleType([type("star.core*integer"),type("star.core*
 escapeType("_basr",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_bnot",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_nthb",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*logical"))).
+escapeType("_cell",univType(kVar("t"),funType(tupleType([kVar("t")]),ref(kVar("t"))))).
+escapeType("_get",univType(kVar("t"),funType(tupleType([ref(kVar("t"))]),kVar("t")))).
+escapeType("_assign",univType(kVar("t"),funType(tupleType([ref(kVar("t")),kVar("t")]),ref(kVar("t"))))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_put_file",funType(tupleType([type("star.core*string"),type("star.core*string")]),tpFun("star.core*resultType",0))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
@@ -246,6 +249,9 @@ isEscape("_blsr").
 isEscape("_basr").
 isEscape("_bnot").
 isEscape("_nthb").
+isEscape("_cell").
+isEscape("_get").
+isEscape("_assign").
 isEscape("_get_file").
 isEscape("_put_file").
 isEscape("_cwd").

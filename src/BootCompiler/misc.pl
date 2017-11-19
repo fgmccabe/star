@@ -1,4 +1,4 @@
-:-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,
+:-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
         collect/4,map/3,rfold/4,project0/2,project1/2,
         appStr/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,genstr/2,
@@ -33,6 +33,9 @@ last([_|Rest],El) :- last(Rest,El).
 
 is_member(X,[X|_]).
 is_member(X,[_|Y]) :- is_member(X,Y).
+
+add_mem(X,L,L) :- is_member(X,L),!.
+add_mem(X,L,[X|L]).
 
 merge([],X,X).
 merge([E|X],Y,Z) :-

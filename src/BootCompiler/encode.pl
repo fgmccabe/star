@@ -39,11 +39,11 @@ encodeInt(N,O,Ox) :- N1 is N div 10, encodeInt(N1,O,[D|Ox]), K is N mod 10, digi
 encodeType(anonType,['_'|O],O).
 encodeType(voidType,['v'|O],O).
 encodeType(thisType,['h'|O],O).
-encodeType(typeExp(Tp,[T]),['L'|O],Ox) :- deRef(Tp,tpFun("lo.core*list",1)),!,encodeType(T,O,Ox).
-encodeType(type("lo.core*logical"),['l'|O],O).
-encodeType(type("lo.core*integer"),['i'|O],O).
-encodeType(type("lo.core*float"),['f'|O],O).
-encodeType(type("lo.core*string"),['S'|O],O).
+encodeType(typeExp(Tp,[T]),['L'|O],Ox) :- deRef(Tp,tpFun("star.core*list",1)),!,encodeType(T,O,Ox).
+encodeType(type("star.core*logical"),['l'|O],O).
+encodeType(type("star.core*integer"),['i'|O],O).
+encodeType(type("star.core*float"),['f'|O],O).
+encodeType(type("star.core*string"),['S'|O],O).
 encodeType(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeType(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
@@ -51,7 +51,6 @@ encodeType(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(typeExp(T,Args),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encodeTypes(Args,O1,Ox).
 encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeType(ptnType(Args,Tp),['p'|O],Ox) :- encodeTypes(Args,O,O1), encodeType(Tp,O1,Ox).
-encodeType(grammarType(Args,Tp),['G'|O],Ox) :- encodeTypes(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
 encodeType(tupleType(Args),['T'|O],Ox) :- encodeTypes(Args,O,Ox).
 encodeType(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).

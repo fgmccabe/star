@@ -10,7 +10,7 @@ ADD_FLEX_BISON_DEPENDENCY(AsmTokeniser AsmGrammar)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
-include_directories("../Headers" "Headers" "../Engine/Headers" "../Util/Headers")
+include_directories("../Headers" "Headers" "../Engine/Headers" "../Util/Headers" ${BISON_AsmGrammar_OUTPUTS})
 
 set(HEADER_FILES
         Headers/asm.h

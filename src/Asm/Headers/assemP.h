@@ -36,6 +36,7 @@ typedef struct _pool_constant_ {
 
 typedef struct _assem_method_ {
   char *name;			/* The name of this code block */
+  int arity;
   hashPo labels;			/* All the labels in this code */
   assemInsPo first;			/* Instructions */
   assemInsPo last;			/* Last instruction */

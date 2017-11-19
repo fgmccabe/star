@@ -49,6 +49,8 @@ logical validSig(char *sig, integer *start, integer end) {
     case kvrSig:
     case tpeSig:
       return skipId(sig, start, end);
+    case refSig:
+      return validSig(sig,start,env);
     case kfnSig:
       return (logical) (skipId(sig, start, end) && skipInt(sig, start, end));
     case tplSig: {
@@ -193,6 +195,8 @@ retCode skipSig(char *sig, integer *start, integer end) {
           return Ok;
         else
           return Error;
+      case refSig:
+        return skipSig(sig,start,end);
       case kfnSig:
         if (skipId(sig, start, end) && skipInt(sig, start, end))
           return Ok;
@@ -347,6 +351,10 @@ retCode showSignature(ioPo out, char *sig, integer *start, integer end) {
       return showSigInt(out, sig, start, end);
     case tpeSig:
       return showSigId(out, sig, start, end);
+    case refSig:
+      tryRet(outStr(out,"ref("));
+      tryRet(showSignature(out,sig,start,end));
+      return outStr(out,")");
     case tpeExpSig:
       tryRet(showSigId(out, sig, start, end));
       tryRet(outStr(out, "["));

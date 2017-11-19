@@ -32,7 +32,7 @@ encPkg(pkg(Nm,Vers),cons(strct("pkg",2),[strg(Nm),V])) :-
   encVer(Vers,V).
 
 encVer(defltVersion,enum("*")).
-encVer(v(V),strg(V)).
+encVer(ver(V),strg(V)).
 
 encImports([],[]).
 encImports([I|M],[IP|L]) :-
@@ -121,7 +121,7 @@ genGoal(match(L,R),O,Ox) :-
   appStr(" = ",O1,O2),
   genTerm(R,O2,Ox).
 genGoal(isTru(E),O,Ox) :-
-  appStr("'lo.core@true'(",O,O1),
+  appStr("'star.core@true'(",O,O1),
   genTerm(E,O1,O2),
   appStr(")",O2,Ox).
 genGoal(raise(T),O,Ox) :-

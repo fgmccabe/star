@@ -28,8 +28,8 @@ resolveVersion(pkg(Pkg,defltVersion),Cat,pkg(Pkg,V)) :-
   catalogVersion(Cat,V).
 resolveVersion(Pkg,_,Pkg).
 
-catalogVersion(Cat,v(V)) :-
-  is_member(version(V),Cat),!.
+catalogVersion(Cat,ver(V)) :-
+  is_member(ver(V),Cat),!.
 catalogVersion(_,defltVersion).
 
 parseJsonCat(Chrs,U,Cat):-
@@ -49,7 +49,7 @@ jsonStmt(("content",jColl(C)),entries(JC)) :-
   jsonEntries(C,JC).
 jsonStmt(("base",jTxt(B)),base(U)) :-
   parseURI(B,U).
-jsonStmt(("version",jTxt(V)),version(V)).
+jsonStmt(("version",jTxt(V)),ver(V)).
 jsonStmt(("default",jTxt(D)),default(U)) :-
   parseURI(D,U).
 

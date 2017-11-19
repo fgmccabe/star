@@ -1,4 +1,4 @@
-:- module(matcher,[compileMatch/3,functionMatcher/3]).
+:- module(matcher,[functionMatcher/3]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -12,7 +12,7 @@ functionMatcher(Tp,Eqns,Reslt) :-
   typeArity(Tp,Ar),
   genVars(Ar,NVrs),
   makeTriples(Eqns,matcher:makeEqnTriple,Tpls),
-  firstLoc(Eqns,Lc,Nm)
+  firstLoc(Eqns,Lc,Nm),
   compileMatch(Lc,NVrs,Tpls,matcher:genFunction(Nm,Lc),Reslt).
 
 
@@ -20,10 +20,9 @@ argMode(v(_,_),inVars).
 argMode(intLit(_),inScalars).
 argMode(floatLit(_),inScalars).
 argMode(stringLit(_),inScalars).
-argMode(where(T,_),M) :- argMode(T,M).
-argMode(enumLit(_),inConstructors).
-argMode(consApply(_,_),inConstructors).
-
+argMode(where(_,T,_),M) :- argMode(T,M).
+argMode(enm(_,_),inConstructors).
+argMode(apply(_,cns(_,_),_),inConstructors).
 
 firstLoc(Eqns,Nm,Lc) :- is_member(equation(Lc,Nm,_,_,_),Eqns),!.
 

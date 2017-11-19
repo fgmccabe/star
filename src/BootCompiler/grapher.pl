@@ -42,7 +42,7 @@ scanPkg(Pkg,Repo,Cat,CWD,Pi,Px) :-
 consistentPkg(pkg(P,V1),pkg(P,V2)) :- consistentVersion(V1,V2).
 
 consistentVersion(defltVersion,_).
-consistentVersion(v(V),v(V)).
+consistentVersion(ver(V),ver(V)).
 
 parsePkgName(P,pkg(Pkg,Version)) :-
   sub_string(P,Before,_,After,"#"),!,
@@ -142,5 +142,5 @@ showPkgs([P|L],S) :-
 
 showPkg(pkg(P,defltVersion)) :-
   writef("%w",[P]).
-showPkg(pkg(P,v(V))) :-
+showPkg(pkg(P,ver(V))) :-
   writef("%w#%w",[P,V]).

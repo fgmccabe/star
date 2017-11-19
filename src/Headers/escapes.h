@@ -86,6 +86,10 @@ escape(_basr,False,False,"F(ii)i","arithmetic right shift")
 escape(_bnot,False,False,"F(i)i","bitwise negate number")
 escape(_nthb,False,False,"F(ii)l","is nth bit set?")
 
+escape(_cell,False,False,":k't'F(k't')rk't'","create a reference cell")
+escape(_get,False,False,":k't'F(rk't')k't'","access contents of reference cell")
+escape(_assign,False,False,":k't'F(rk't'k't')rk't'","update contents of reference cell")
+
 /*
 
 escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bound")

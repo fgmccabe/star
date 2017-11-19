@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <assemP.h>
 #include "formioP.h"
 #include "lists.h"
 
@@ -58,7 +59,7 @@ mtdPo getPkgMethod(pkgPo pkg, char *name) {
 
 static void defineSig(mtdPo mtd, char *sig);
 
-mtdPo defineMethod(pkgPo pkg, logical public, char *name, char *sig, char *free) {
+mtdPo defineMethod(pkgPo pkg, logical public, char *name, int arity, char *sig, char *free) {
   mtdPo existing = getPkgMethod(pkg, name);
 
   if (existing == Null) {
@@ -453,10 +454,10 @@ retCode showMtdConstant(ioPo f, constPo cn) {
 }
 
 retCode encodeMtdConstant(ioPo f, constPo c) {
-  return encodeRef(f, c->value.mtd->name);
+  return encodeStrct(f, c->value.mtd->name,c->value.mtd->arity);
 }
 
-int32 findMethod(mtdPo mtd, char *name) {
+int32 findMethod(mtdPo mtd, char *name, int arity) {
   pkgPo pkg = mtd->owner;
 
   mtdPo other = getPkgMethod(pkg, name);
@@ -478,7 +479,7 @@ int32 findMethod(mtdPo mtd, char *name) {
       return (int32)listCount(mtd->constants) - 1;
     }
   } else {
-    other = defineMethod(pkg, False, name, Null, Null);
+    other = defineMethod(pkg, False, name, arity, Null, Null);
     constPo conn = (constPo) allocPool(constPool);
     conn->sig = Null;
     conn->same = sameMtd;
@@ -596,7 +597,7 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define opEs(X) ,int32 f##X
 #define argEs(X) , f##X
 
-#define instruction(Op, A1, A2, Cmt)    \
+#define instruction(Op, A1, Cmt)    \
   assemInsPo A##Op(mtdPo mtd op##A1(1))    \
   {\
   return asm_##A1(mtd,Op arg##A1(1));\

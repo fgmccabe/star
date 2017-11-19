@@ -18,6 +18,7 @@
 :- use_module(import).
 :- use_module(repository).
 :- use_module(grapher).
+:- use_module(terms).
 
 parseFlags([],CWD,CWD,[],[]).
 parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-
@@ -35,7 +36,7 @@ parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-
   resolveURI(CWD,RU,Ruri),
   openRepository(Ruri,Repo),
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-v', V|More],CWD,Cx,[version(Vers)|Opts],Files) :-
+parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-
   atom_string(V,Vers),
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['--'|More], CWD,CWD, [], Files) :- stringify(More,Files).
@@ -102,12 +103,13 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   dispProg(Prog),
   noErrors,
   transformProg(Prog,Opts,Rules),!,
+  displayRules(Rules),
   noErrors,
   genRules(Rules,Text),
   addPrologPackage(Repo,SrcUri,Pkg,Text,Rx).
 
-packageVersion(Opts,v(Vers)) :-
-  is_member(version(Vers),Opts),!.
+packageVersion(Opts,ver(Vers)) :-
+  is_member(ver(Vers),Opts),!.
 packageVersion(_,defltVersion).
 
 parseFile(Txt,Term) :-

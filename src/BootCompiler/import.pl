@@ -31,10 +31,10 @@ pickupPkg(cons(strct("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
   (consistentVersion(Vers,VV) ; writef("version of imported pkg %w#%w not consistent with %w",[Nm,VV,Vers])).
 
 pickupVersion(enum("*"),defltVersion).
-pickupVersion(strg(V),v(V)).
+pickupVersion(strg(V),ver(V)).
 
 consistentVersion(defltVersion,_).
-consistentVersion(v(V),v(V)).
+consistentVersion(ver(V),ver(V)).
 
 pickupImports([],[]).
 pickupImports([cons(strct("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-

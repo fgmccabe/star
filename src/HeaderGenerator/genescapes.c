@@ -131,6 +131,13 @@ static char *dumpSig(char *sig, bufferPo out) {
           outMsg(O_IO(out), ")");
       }
       break;
+      
+    case refSig:{
+      outMsg(O_IO(out),"ref(");
+      sig = dumpSig(sig, out);
+      outStr(O_IO(out), ")");
+      break;
+    }
 
     case tpfnSig: {
       outStr(O_IO(out), "tpFun(");

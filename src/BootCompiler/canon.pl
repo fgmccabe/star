@@ -1,4 +1,8 @@
-:- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,showCanon/3,showCanonTerm/3,isCanon/1,isAssertion/1,isShow/1]).
+:- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
+    showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
+    showImpls/3,
+    isCanon/1,isAssertion/1,
+    thetaLoc/2,thetaDefs/2]).
 
 :- use_module(misc).
 :- use_module(operators).
@@ -6,31 +10,33 @@
 :- use_module(location).
 :- use_module(uri).
 
-isCanon(prog(_,_,_,_)).
+isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_)).
+isCanon(over(_,_,_)).
+isCanon(mtd(_,_)).
 isCanon(intLit(_)).
 isCanon(floatLit(_)).
 isCanon(stringLit(_)).
-isCanon(apply(_,_)).
-isCanon(call(_,_,_)).
-isCanon(dot(_,_)).
-isCanon(enum(_,_)).
-isCanon(theta(_,_,_,_)).
-isCanon(record(_,_,_,_)).
-isCanon(where(_,_)).
+isCanon(apply(_,_,_)).
+isCanon(dot(_,_,_)).
+isCanon(enm(_,_)).
+isCanon(cns(_,_)).
+isCanon(theta(_,_,_,_,_)).
+isCanon(record(_,_,_,_,_)).
+isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
 isCanon(cond(_,_,_,_)).
 isCanon(match(_,_,_)).
-isCanon(one(_,_)).
 isCanon(neg(_,_)).
-isCanon(forall(_,_)).
-isCanon(over(_,_,_)).
-isCanon(mtd(_,_)).
 
 isAssertion(assertion(_,_)).
 
-isShow(show(_,_)).
+thetaLoc(theta(Lc,_,_,_,_),Lc).
+thetaLoc(record(Lc,_,_,_,_),Lc).
+
+thetaDefs(theta(_,_,Defs,_,_),Defs).
+thetaDefs(record(_,_,Defs,_,_),Defs).
 
 displayCanon(Term) :- showCanon(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
@@ -44,7 +50,7 @@ dispProg(Pr) :-
   showCanon(Pr,Chrs,[]),
   string_chars(Res,Chrs),writeln(Res).
 
-showCanon(prog(Pkg,Imports,Defs,Others,_Fields,Types,Cons,Impls),O,Ox) :-
+showCanon(prog(Pkg,_,Imports,Defs,Others,_Fields,Types,Cons,Impls),O,Ox) :-
   showPkg(Pkg,O,O1),
   appStr("{\n",O1,O2),
   showImports(Imports,O2,O3),!,
@@ -61,7 +67,7 @@ showPkg(pkg(Nm,V),O,Ox) :-
   showVersion(V,O1,Ox).
 
 showVersion(defltVersion,O,O).
-showVersion(v(V),O,Ox) :-
+showVersion(ver(V),O,Ox) :-
   appStr("#",O,O1),
   appStr(V,O1,Ox).
 
@@ -72,13 +78,13 @@ showCanonTerm(stringLit(Str),O,Ox) :-
   appStr("""",O,O1),
   appStr(Str,O1,O2),
   appStr("""",O2,Ox).
-showCanonTerm(apply(Op,Args),O,Ox) :-
+showCanonTerm(apply(_,Op,Args),O,Ox) :-
   showCanonTerm(Op,O,O1),
   showCanonTerm(Args,O1,Ox).
 showCanonTerm(cons(_,Op,A),O,Ox) :-
   showCanonTerm(Op,O,O1),
   showCanonTerm(A,O1,Ox).
-showCanonTerm(dot(Rc,Fld),O,Ox) :-
+showCanonTerm(dot(_,Rc,Fld),O,Ox) :-
   showCanonTerm(Rc,O,O1),
   appStr(".",O1,O2),
   appStr(Fld,O2,Ox).
@@ -89,13 +95,13 @@ showCanonTerm(enm(_,Nm),O,Ox) :-
 showCanonTerm(cns(_,Nm),O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
-showCanonTerm(theta(_,Defs,Others,Types),O,Ox) :-
+showCanonTerm(theta(_,_,Defs,Others,Types),O,Ox) :-
   appStr("{ ",O,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr(" }",O4,Ox).
-showCanonTerm(record(_,Defs,Others,Types),O,Ox) :-
+showCanonTerm(record(_,_,Defs,Others,Types),O,Ox) :-
   appStr("{. ",O,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
@@ -111,7 +117,7 @@ showCanonTerm(mtd(_,Nm),O,Ox) :-
 showCanonTerm(over(_,V,Cons),O,Ox) :-
   showConstraints(Cons,O,O1),
   showCanonTerm(V,O1,Ox).
-showCanonTerm(where(Ptn,Cond),O,Ox) :-
+showCanonTerm(where(_,Ptn,Cond),O,Ox) :-
   showCanonTerm(Ptn,O,O1),
   showGuard(Cond,O1,Ox).
 showCanonTerm(conj(_,L,R),O,Ox) :-
@@ -139,16 +145,6 @@ showCanonTerm(match(_,L,R),O,Ox) :-
 showCanonTerm(neg(_,R),O,Ox) :-
   appStr("\\+",O,O1),
   showCanonTerm(R,O1,Ox).
-showCanonTerm(phrase(_,NT,Strm),O,Ox) :-
-  showNonTerminal(NT,O,O1),
-  appStr("%%",O1,O2),
-  showCanonTerm(Strm,O2,Ox).
-showCanonTerm(phrase(_,NT,Strm,Rem),O,Ox) :-
-  showCanonTerm(NT,O,O1),
-  appStr("%%",O1,O2),
-  showCanonTerm(Strm,O2,O3),
-  appStr("~~",O3,O4),
-  showCanonTerm(Rem,O4,Ox).
 
 showTerms([],O,O).
 showTerms([T|More],O,Ox) :-
@@ -242,7 +238,7 @@ showDef(funDef(Lc,Nm,Type,Cx,Eqns),O,Ox) :-
   showConstraints(Cx,O6,O7),
   appStr("\n",O7,O8),
   listShow(Eqns,canon:showEq,"\n",O8,Ox),!.
-showDef(defn(Lc,Nm,Cx,Cond,Tp,Value),O,Ox) :-
+showDef(varDef(Lc,Nm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
   appStr(":",O2,O3),
@@ -252,11 +248,10 @@ showDef(defn(Lc,Nm,Cx,Cond,Tp,Value),O,Ox) :-
   showConstraints(Cx,O6,O7),
   appStr("\n",O7,O8),
   appStr(Nm,O8,O9),
-  showGuard(Cond,O9,O10),
-  appStr(" = ",O10,O11),
+  appStr(" = ",O9,O11),
   showCanonTerm(Value,O11,O12),
   appStr(".\n",O12,Ox).
-showDef(vdefn(Lc,Nm,Cx,Cond,Tp,Value),O,Ox) :-
+showDef(vdefn(Lc,Nm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
   appStr(":",O2,O3),
@@ -266,11 +261,10 @@ showDef(vdefn(Lc,Nm,Cx,Cond,Tp,Value),O,Ox) :-
   showConstraints(Cx,O6,O7),
   appStr("\n",O7,O8),
   appStr(Nm,O8,O9),
-  showGuard(Cond,O9,O10),
-  appStr(" := ",O10,O11),
+  appStr(" := ",O9,O11),
   showCanonTerm(Value,O11,O12),
   appStr(".\n",O12,Ox).
-showDef(conDef(Lc,Nm,V,Type),O,Ox) :-
+showDef(cnsDef(Lc,Nm,V,Type),O,Ox) :-
   appStr("constructor: ",O,O1),
   appStr(Nm,O1,O2),
   appStr("/",O2,O3),
@@ -280,16 +274,6 @@ showDef(conDef(Lc,Nm,V,Type),O,Ox) :-
   appStr(" @ ",O6,O7),
   showLocation(Lc,O7,O8),
   appStr("\n",O8,Ox).
-showDef(grDef(Lc,Nm,Tp,Cx,Rules),O,Ox) :-
-  appStr("grammar: ",O,O1),
-  appStr(Nm,O1,O2),
-  appStr(":",O2,O3),
-  showType(Tp,O3,O4),
-  appStr(" @ ",O4,O5),
-  showLocation(Lc,O5,O6),
-  appStr("\n",O6,O7),
-  showConstraints(Cx,O7,O8),
-  showGrammarRules(Rules,O8,Ox).
 showDef(typeDef(Lc,Nm,Tp,Rl),O,Ox) :-
   appStr("type: ",O,O1),
   appStr(Nm,O1,O2),
@@ -326,84 +310,10 @@ showEq(equation(_,Nm,Args,Cond,Value),O,Ox) :-
   showCanonTerm(Value,O6,O7),
   appStr(".",O7,Ox).
 
-showGuard(enm(_,"core.star@true"),O,O) :- !.
+showGuard(enm(_,"true"),O,O) :- !.
 showGuard(C,O,Ox) :-
   appStr(" where ",O,O1),
   showCanonTerm(C,O1,Ox).
-
-showGrammarRules([],O,O).
-showGrammarRules([Rl|Rules],O,Ox) :-
-  showGrammarRule(Rl,O,O1),
-  showGrammarRules(Rules,O1,Ox).
-
-showGrammarRule(grammarRule(_,Nm,Args,PB,Body),O,Ox) :-
-  appStr(Nm,O,O1),
-  appStr("(",O1,O2),
-  showTerms(Args,O2,O3),
-  appStr(") ",O3,O4),
-  showPushBack(PB,O4,O5),
-  appStr(" --> ",O5,O6),
-  showNonTerminal(Body,O6,O7),
-  appStr(".\n",O7,Ox).
-
-showPushBack([],O,O).
-showPushBack(Els,O,Ox) :-
-  appStr("[",O,O1),
-  showTerminals(Els,O1,O2),
-  appStr("]",O2,Ox).
-
-showTerminals([],O,O).
-showTerminals([term(_,_,T)|L],O,Ox) :-
-  showCanonTerm(T,O,O1),
-  showMoreTerminals(L,O1,Ox).
-
-showMoreTerminals([],O,O).
-showMoreTerminals([term(_,_,T)|L],O,Ox) :-
-  appStr(", ",O,O1),
-  showCanonTerm(T,O1,O2),
-  showMoreTerminals(L,O2,Ox).
-
-showNonTerminal(terminals(_,Terms),O,Ox) :-
-  showPushBack(Terms,O,Ox).
-showNonTerminal(conj(_,Lhs,Rhs),O,Ox) :-
-  showNonTerminal(Lhs,O,O1),
-  appStr(" && ",O1,O2),
-  showNonTerminal(Rhs,O2,Ox).
-showNonTerminal(guard(_,Lhs,Rhs),O,Ox) :-
-  showNonTerminal(Lhs,O,O1),
-  appStr(" where ",O1,O2),
-  showCanonTerm(Rhs,O2,Ox).
-showNonTerminal(disj(_,Lhs,Rhs),O,Ox) :-
-  appStr("(",O,O0),
-  showNonTerminal(Lhs,O0,O1),
-  appStr(" || ",O1,O2),
-  showNonTerminal(Rhs,O2,O3),
-  appStr(")",O3,Ox).
-showNonTerminal(cond(_,Test,Lhs,Rhs),O,Ox) :-
-  appStr("(",O,O0),
-  showNonTerminal(Test,O0,O1),
-  appStr("?",O1,O2),
-  showNonTerminal(Lhs,O2,O3),
-  appStr(" | ",O3,O4),
-  showNonTerminal(Rhs,O4,O5),
-  appStr(")",O5,Ox).
-showNonTerminal(neg(_,Rhs),O,Ox) :-
-  appStr("(",O,O1),
-  appStr("\\+",O1,O2),
-  showNonTerminal(Rhs,O2,O3),
-  appStr(")",O3,Ox).
-showNonTerminal(ahead(_,Rhs),O,Ox) :-
-  appStr("(",O,O1),
-  showNonTerminal(Rhs,O1,O2),
-  appStr(")+",O2,Ox).
-showNonTerminal(goal(_,Rhs),O,Ox) :-
-  appStr("{",O,O1),
-  showCanonTerm(Rhs,O1,O2),
-  appStr(")",O2,Ox).
-showNonTerminal(eof(_,_),O,Ox) :-
-  appStr("eof",O,Ox).
-showNonTerminal(NT,O,Ox) :-
-  showCanonTerm(NT,O,Ox).
 
 showOthers([],O,O).
 showOthers([Stmt|Stmts],O,Ox) :-
@@ -415,6 +325,6 @@ showStmt(assertion(_,Cond),O,Ox) :-
   appStr("  assert ",O,O1),
   showCanonTerm(Cond,O1,Ox).
 
-showStmt(show(_,Exp),O,Ox) :-
-  appStr("  show ",O,O1),
+showStmt(ignore(_,Exp),O,Ox) :-
+  appStr("  ignore ",O,O1),
   showCanonTerm(Exp,O1,Ox).

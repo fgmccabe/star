@@ -54,8 +54,8 @@ exit(X) :- halt(X).
 
 explode(S,C) :- string_codes(S,CC), listify(CC,C).
 
-listify([],'lo.core#[]').
-listify([E|L],'lo.core#,..'(E,LL)) :- listify(L,LL).
+listify([],'star.core#[]').
+listify([E|L],'star.core#,..'(E,LL)) :- listify(L,LL).
 
 implode(C,S) :- listify(L,C),string_codes(S,L).
 
@@ -156,8 +156,8 @@ codeGe([C|L],[C|M]) :-
 '_str_multicat'(A,B) :-
   multiStrCat(A,"",B),!.
 
-multiStrCat('lo.core#[]',S,S).
-multiStrCat('lo.core#,..'(S,L),F,O) :-
+multiStrCat('star.core#[]',S,S).
+multiStrCat('star.core#,..'(S,L),F,O) :-
   string_concat(F,S,F1),
   multiStrCat(L,F1,O).
 
@@ -232,8 +232,8 @@ hashCodes([C|More],H0,Hx) :-
 
 '_ls'(D,L) :- expand_file_name(D,LL), stringify(LL,L).
 
-stringify([],'lo.core#[]').
-stringify([E|L],'lo.core#,..'(S,LL)) :- atom_string(E,S), stringify(L,LL).
+stringify([],'star.core#[]').
+stringify([E|L],'star.core#,..'(S,LL)) :- atom_string(E,S), stringify(L,LL).
 
 '_stringOf'(T,_,_,S) :-
   swritef(S,'%w',[T]).

@@ -45,25 +45,20 @@ static long hextoi(char *text);
 
 #define RT(K) { yylloc->first_line = yylloc->last_line = yylineno; return K;}
 
-static char *newStr(char *text,int len){
-  char buff[len+1];
-  return uniIntern(_uni((unsigned char*)text,buff,NumberOf(buff)));
+static char *newStr(char *src,int len){
+  char buffer[len+1];
+  uniNCpy(buffer, NumberOf(buffer),  src, len);
+  return uniDuplicate(buffer);
 }
 
 static long parseLong(char *text)
 {
-  long len = strlen(text)+1;
-  char buff[len];
-  _uni((unsigned char*)text,buff,len);
-  return parseInteger(buff,len-1);
+  return parseInteger(text,strlen(text));
 }
 
 static double parseFloat(char *text)
 {
-  long len = strlen(text)+1;
-  char buff[len];
-  _uni((unsigned char*)text,buff,len);
-  return parseNumber(buff,len-1);
+  return parseNumber(text,strlen(text));
 }
 
 %}
@@ -222,7 +217,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
   \'                        { 
     BEGIN(INITIAL);
     putChar('\0');
-    yylval->str = uniIntern(text);
+    yylval->str = uniDuplicate(text);
     clear();
     RT(ID);
   }
@@ -255,7 +250,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
   \"                        { 
     BEGIN(INITIAL);
     putChar('\0');
-    yylval->str = uniIntern(text);
+    yylval->str = uniDuplicate(text);
     clear();
     RT(STRING);
   }

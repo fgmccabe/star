@@ -20,7 +20,7 @@
 :- use_module(vartypes).
 
 checkProgram(Prog,Vers,Repo,
-    prog(pkg(Pkg,Vers),Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
+    prog(pkg(Pkg,Vers),Lc,Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   isBraceTerm(Prog,Lc,Pk,Els),
   packageName(Pk,Pkg),
@@ -148,12 +148,6 @@ checkOther(St,[assertion(Lc,Cond)|More],More,Env,_) :-
   isIntegrity(St,Lc,C),!,
   findType("logical",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,Env,_,Cond).
-checkOther(St,[show(Lc,Show)|More],More,Env,_) :-
-  isShow(St,Lc,E),!,
-  unary(Lc,"disp",E,Ex),
-  unary(Lc,"formatSS",Ex,FC), % create the call formatSS(disp(E))
-  findType("string",Lc,Env,StringTp),
-  typeOfTerm(FC,StringTp,Env,_,Show).
 checkOther(St,[ignore(Lc,Exp)|More],More,Env,_) :-
   isIgnore(St,Lc,Trm),!,
   newTypeVar("_",V),
@@ -226,13 +220,11 @@ parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
   reQuant(Q,Tp,Type),
   declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev).
 
-parseConstructor(Nm,Lc,T,Env,Ev,[conDef(Lc,Nm,ConVr,Tp)|Defs],Defs,Path) :-
+parseConstructor(Nm,Lc,T,Env,Ev,[cnsDef(Lc,Nm,ConVr,Tp)|Defs],Defs,_) :-
   parseType(T,Env,Tp),
-  marker(value,Marker),
-  subPath(Path,Marker,Nm,CnNm),
   (isConType(Tp) ->
-    declareCns(Lc,Nm,CnNm,Tp,Env,Ev), ConVr=cns(Lc,CnNm) ;
-    declareEnum(Lc,Nm,CnNm,Tp,Env,Ev), ConVr=enm(Lc,CnNm)).
+    declareCns(Lc,Nm,Tp,Env,Ev), ConVr=cns(Lc,Nm) ;
+    declareEnum(Lc,Nm,Tp,Env,Ev), ConVr=enm(Lc,Nm)).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -285,17 +277,14 @@ processStmt(St,ProgramType,Defs,Defx,E,_) :-
   isEquation(St,Lc,L,Cond,R),!,
   checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,E).
 processStmt(St,Tp,[Def|Defs],Defs,Env,_) :-
-  isDefn(St,Lc,L,Cond,R),!,
-  checkDefn(Lc,L,Cond,R,Tp,Def,Env).
+  isDefn(St,Lc,L,R),!,
+  checkDefn(Lc,L,R,Tp,Def,Env).
 processStmt(St,Tp,[Def|Defs],Defs,Env,_) :-
-  isAssignment(St,Lc,L,Cond,R),!,
-  checkVarDefn(Lc,L,Cond,R,Tp,Def,Env).
+  isAssignment(St,Lc,L,R),!,
+  checkVarDefn(Lc,L,R,Tp,Def,Env).
 processStmt(St,Tp,Defs,Defx,E,_) :-
   isPtnRule(St,Lc,L,C,R),
   checkPtnRule(Lc,L,C,R,Tp,Defs,Defx,E).
-processStmt(St,Tp,Defs,Dx,E,_) :-
-  isGrammarRule(St,Lc,L,C,R),
-  checkGrammarRule(Lc,L,C,R,Tp,Defs,Dx,E).
 processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
@@ -340,21 +329,17 @@ checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Nm,Args,Cond,Exp)|Defs],Defs,E)
 checkPtnRule(Lc,_,_,_,ProgramType,Defs,Defs,_) :-
   reportError("pattern rule not consistent with expected type: %s",[ProgramType],Lc).
 
-checkDefn(Lc,L,C,R,Tp,defn(Lc,Nm,Cond,Value),Env) :-
+checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,[],Tp,Value),Env) :-
   splitHead(L,Nm,none),
   pushScope(Env,E),
-  findType("logical",Lc,Env,LogicalTp),
-  typeOfTerm(C,LogicalTp,E,E1,Cond),
-  typeOfTerm(R,Tp,E1,E2,Value),
+  typeOfTerm(R,Tp,E,E2,Value),
   dischargeConstraints(E,E2).
 
-checkVarDefn(Lc,L,C,R,ref(Tp),vdefn(Lc,Nm,Cond,Value),Env) :-
+checkVarDefn(Lc,L,R,ref(Tp),vdefn(Lc,Nm,[],Tp,Value),Env) :-
   splitHead(L,Nm,none),
-  pushScope(Env,E),
-  findType("logical",Lc,Env,LogicalTp),
-  typeOfTerm(C,LogicalTp,E,E1,Cond),
+  pushScope(Env,E1),
   typeOfTerm(R,Tp,E1,E2,Value),
-  dischargeConstraints(E,E2).
+  dischargeConstraints(Env,E2).
 
 checkThetaBody(Tp,Lc,Els,Env,Defs,Others,Types,ClassPath) :-
   evidence(Tp,Env,Q,ETp),
@@ -398,21 +383,16 @@ collectPrograms([Eqn|Stmts],Env,Ev,Tp,Cx,[funDef(Lc,Nm,Tp,Cx,[Eqn|Eqns])|Defs],D
   collectEquations(Stmts,S0,Nm,Eqns),
   declareVr(Lc,Nm,Tp,Env,E0),
   collectPrograms(S0,E0,Ev,Tp,Cx,Defs,Dx).
-collectPrograms([defn(Lc,Nm,Cond,Value)|Stmts],Env,Ev,Tp,Cx,
-    [defn(Lc,Nm,Cx,Cond,Tp,Value)|Defs],Dx) :-
+collectPrograms([varDef(Lc,Nm,_,Tp,Value)|Stmts],Env,Ev,Tp,Cx,
+    [varDef(Lc,Nm,Cx,Tp,Value)|Defs],Dx) :-
   faceOfType(Tp,Env,Face),
   freshen(Face,Env,_,VFace),
   declareVr(Lc,Nm,VFace,Tp,Env,E0),
   collectPrograms(Stmts,E0,Ev,Tp,Cx,Defs,Dx).
-collectPrograms([vdefn(Lc,Nm,Cond,Value)|Stmts],Env,Ev,Tp,Cx,
-    [vdefn(Lc,Nm,Cx,Cond,Tp,Value)|Defs],Dx) :-
+collectPrograms([vdefn(Lc,Nm,_,Tp,Value)|Stmts],Env,Ev,Tp,Cx,
+    [vdefn(Lc,Nm,Cx,Tp,Value)|Defs],Dx) :-
   declareVr(Lc,Nm,refType(Tp),Env,E0),
   collectPrograms(Stmts,E0,Ev,Tp,Cx,Defs,Dx).
-collectPrograms([Rl|Stmts],Env,Ev,Tp,Cx,[grDef(Lc,Nm,Tp,Cx,[Rl|Rules])|Defs],Dx) :-
-  isGrammarRule(Rl,Lc,Nm),
-  collectGrammarRules(Stmts,S0,Nm,Rules),
-  declareVr(Lc,Nm,Tp,Env,E0),
-  collectPrograms(S0,E0,Ev,Tp,Cx,Defs,Dx).
 
 collectEquations([Eqn|Stmts],Sx,Nm,[Eqn|Ex]) :-
   Eqn = equation(_,Nm,_,_,_),
@@ -420,15 +400,6 @@ collectEquations([Eqn|Stmts],Sx,Nm,[Eqn|Ex]) :-
 collectEquations([Rl|Stmts],[Rl|Sx],Nm,Eqns) :-
   collectEquations(Stmts,Sx,Nm,Eqns).
 collectEquations([],[],_,[]).
-
-collectGrammarRules([Rl|Stmts],Sx,Nm,[Rl|Ex]) :-
-  isGrammarRule(Rl,_,Nm),
-  collectGrammarRules(Stmts,Sx,Nm,Ex).
-collectGrammarRules([Rl|Stmts],[Rl|Sx],Nm,Eqns) :-
-  collectGrammarRules(Stmts,Sx,Nm,Eqns).
-collectGrammarRules([],[],_,[]).
-
-isGrammarRule(grRule(Lc,Nm,_,_,_),Lc,Nm).
 
 checkImplementation(Stmt,INm,[Impl|Dfs],Dfs,Env,Ex,_,Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
@@ -511,21 +482,21 @@ typeOfTerm(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else)) :-
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isSquareTuple(Term,Lc,Els), !,
   checkSquareTuple(Lc,Els,Tp,Env,Ev,Exp).
-typeOfTerm(Term,Tp,Env,Env,theta(Path,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,theta(Lc,Path,Defs,Others,Types)) :-
   isBraceTuple(Term,Lc,Els),
   genstr("theta",Path),
   checkThetaBody(Tp,Lc,Els,Env,Defs,Others,Types,Path).
-typeOfTerm(Term,Tp,Env,Env,record(Path,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,record(Lc,Path,Defs,Others,Types)) :-
   isQBraceTuple(Term,Lc,Els),
   genstr("record",Path),
   checkRecordBody(Tp,Lc,Els,Env,Defs,Others,Types,Path).
-typeOfTerm(Term,Tp,Env,Env,theta(Lbl,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,theta(Lc,Lbl,Defs,Others,Types)) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
   checkThetaBody(FnTp,Lc,Els,E0,Defs,Others,Types,Lbl).
-typeOfTerm(Term,Tp,Env,Env,record(Lbl,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,record(Lc,Lbl,Defs,Others,Types)) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
@@ -564,7 +535,7 @@ typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   (sameType(funType(At,Tp),FnTp,E0) ->
     evidence(At,E0,_,AT),
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args),
-    Exp = apply(Fun,Args) ;
+    Exp = apply(Lc,Fun,Args) ;
    sameType(consType(At,Tp),FnTp,E0) ->
     evidence(At,E0,_,AT),
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args),
@@ -573,13 +544,12 @@ typeOfTerm(Term,Tp,Env,Ev,Exp) :-
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp).
-typeOfTerm(Term,Tp,Env,Env,lambda(equation(Lc,"$",Args,Cond,Exp))) :-
+typeOfTerm(Term,Tp,Env,Env,lambda(Lc,equation(Lc,"$",Args,Cond,Exp))) :-
   isEquation(Term,Lc,H,C,R),
-  isTuple(H,_,A),
-  genTpVars(A,AT),
+  newTypeVar("_A",AT),
+  typeOfArgTerm(H,AT,Env,E1,Args),
   newTypeVar("_E",RT),
-  checkType(Lc,funType(tupleType(AT),RT),Tp,Env),
-  typeOfTerms(A,AT,Env,E1,Lc,Args),
+  checkType(Lc,funType(AT,RT),Tp,Env),
   findType("logical",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,E1,E2,Cond),
   typeOfTerm(R,RT,E2,_,Exp).
@@ -607,33 +577,6 @@ typeOfTerm(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs)) :-
   newTypeVar("_#",TV),
   typeOfTerm(P,TV,Env,E0,Lhs),
   typeOfTerm(E,TV,E0,Ev,Rhs).
-typeOfTerm(Term,Tp,Env,Ev,phrase(Lc,NT,Strm,Rest)) :-
-  isBinary(Term,Lc,"%%",L,R),
-  isBinary(R,"~",S,M),!,
-  findType("logical",Lc,Env,LogicalTp),
-  checkType(Lc,LogicalTp,Tp,Env),
-  newTypeVar("_S",StrmTp),
-  newTypeVar("_E",ElTp),
-  checkGrammarType(Lc,Env,StrmTp,ElTp),
-  typeOfTerm(S,StrmTp,Env,E0,Strm),
-  typeOfTerm(M,StrmTp,E0,E1,Rest),
-  currentVar("stream",E1,OV),
-  declareVr(Lc,"stream",StrmTp,E1,E2),
-  checkNonTerminal(L,StrmTp,ElTp,E2,E3,NT),
-  restoreVar("stream",E3,OV,Ev).
-typeOfTerm(Term,Tp,Env,Ev,phrase(Lc,NT,Strm)) :-
-  isBinary(Term,Lc,"%%",L,R),
-  findType("logical",Lc,Env,LogicalTp),
-  checkType(Lc,LogicalTp,Tp,Env),
-  newTypeVar("_S",StrmTp),
-  newTypeVar("_E",ElTp),
-  checkGrammarType(Lc,Env,StrmTp,ElTp),
-  typeOfTerm(R,StrmTp,Env,E1,Strm),
-  binary(Lc,",",L,name(Lc,"eof"),Phrase),
-  currentVar("stream",E1,OV),
-  declareVr(Lc,"stream",StrmTp,E1,E2),
-  checkNonTerminal(Phrase,StrmTp,ElTp,E2,E3,NT),
-  restoreVar("stream",E3,OV,Ev).
 typeOfTerm(Term,Tp,Env,Env,void) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -670,7 +613,7 @@ recordFace(Trm,Env,Ev,Rec,Face) :-
   faceOfType(AT,Env,Fc),
   freshen(Fc,Env,_,Face).
 
-recordAccessExp(Lc,Rc,Fld,ET,Env,Ev,dot(Rec,Fld)) :-
+recordAccessExp(Lc,Rc,Fld,ET,Env,Ev,dot(Lc,Rec,Fld)) :-
   recordFace(Rc,Env,Ev,Rec,Fce),
   deRef(Fce,Face),
   fieldInFace(Face,Fld,Lc,FTp),!,
@@ -783,112 +726,6 @@ checkType(_,Actual,Expected,Env) :-
 checkType(Lc,S,T,_) :-
   reportError("%s not consistent with expected type %s",[S,T],Lc).
 
-checkCallArgs(Lc,Pred,A,ArgTps,Env,Ev,apply(Pred,Args)) :-
-
-  typeOfTerms(A,ArgTps,Env,Ev,Lc,Args).
-checkCallArgs(Lc,Pred,A,ArgTps,Env,Env,void) :-
-  reportError("arguments %s of %s not consistent with expected types %s",
-      [A,Pred,tupleType(ArgTps)],Lc).
-
-checkGrammarType(Lc,Env,Tp,ElTp) :-
-  getContract("stream",Env,conDef(_,_,Spec)),
-  freshen(Spec,Env,_,contractExists(conTract(_,[Arg],[Dep]),_)),
-  checkType(Lc,Arg,Tp,Env),
-  checkType(Lc,Dep,ElTp,Env).
-
-checkGrammarRule(Lc,L,C,R,grammarType(AT,Tp),[grRule(Lc,Nm,Args,Cnd,Body)|Dfs],Dfs,E) :-
-  splitHead(L,Nm,A),
-  pushScope(E,E0),
-  declareVr(Lc,"stream",Tp,E0,E1),
-  newTypeVar("_E",ElTp),
-  typeOfArgTerm(A,AT,E1,E2,Args),!,
-  findType("logical",Lc,E,LogicalTp),
-  typeOfterm(C,LogicalTp,E2,E3,Cnd),
-  checkNonTerminal(R,Tp,ElTp,E2,E3,Body),
-  dischargeConstraints(E,E3).
-
-checkNonTerminal(tuple(Lc,"[]",Els),_,ElTp,E,Env,terminals(Lc,Terms)) :- !,
-  checkTerminals(Els,"_hdtl",Terms,ElTp,E,Env).
-checkNonTerminal(string(Lc,Text),_,ElTp,Env,Env,terminals(Lc,Terms)) :- !,
-  explodeStringLit(Lc,Text,IntLits),
-  checkTerminals(IntLits,"_hdtl",Terms,ElTp,Env,_).  % explode strings into code points
-checkNonTerminal(tuple(Lc,"()",NT),Tp,ElTp,Env,Ex,GrNT) :-
-  checkNonTerminals(NT,Lc,Tp,ElTp,Env,Ex,GrNT).
-checkNonTerminal(Term,Tp,ElTp,Env,Ex,conj(Lc,Lhs,Rhs)) :-
-  isBinary(Term,Lc,",",L,R), !,
-  checkNonTerminal(L,Tp,ElTp,Env,E1,Lhs),
-  checkNonTerminal(R,Tp,ElTp,E1,Ex,Rhs).
-checkNonTerminal(Term,Tp,ElTp,Env,Ex,cond(Lc,Test,Either,Or)) :-
-  isConditional(Term,Lc,T,L,R),!,
-  checkNonTerminal(T,Tp,ElTp,Env,E0,Test),
-  checkNonTerminal(L,Tp,ElTp,E0,E1,Either),
-  checkNonTerminal(R,Tp,ElTp,E1,Ex,Or).
-checkNonTerminal(Term,Tp,ElTp,Env,Ex,disj(Lc,Either,Or)) :-
-  isBinary(Term,Lc,"|",L,R),!,
-  checkNonTerminal(L,Tp,ElTp,Env,E1,Either),
-  checkNonTerminal(R,Tp,ElTp,E1,Ex,Or).
-checkNonTerminal(Term,Tp,ElTp,Env,Ex,one(Lc,Test)) :-
-  isUnary(Term,Lc,"!",N),!,
-  checkNonTerminal(N,Tp,ElTp,Env,Ex,Test).
-checkNonTerminal(Term,Tp,ElTp,Env,Env,neg(Lc,Test)) :-
-  isUnary(Term,Lc,"\\+",N),!,
-  checkNonTerminal(N,Tp,ElTp,Env,_,Test).
-checkNonTerminal(Term,Tp,ElTp,Env,Env,ahead(Lc,Test)) :-
-  isUnary(Term,Lc,"+",N),!,
-  checkNonTerminal(N,Tp,ElTp,Env,_,Test).
-checkNonTerminal(Term,_,_,Env,Ev,goal(Lc,unify(Lc,Lhs,Rhs))) :-
-  isBinary(Term,Lc,"=",L,R),!,
-  newTypeVar("_#",TV),
-  typeOfTerm(L,TV,Env,E0,Lhs),
-  typeOfTerm(R,TV,E0,Ev,Rhs).
-checkNonTerminal(Term,_,_,Env,Ev,goal(Lc,neg(Lc,unify(Lc,Lhs,Rhs)))) :-
-  isBinary(Term,Lc,"\\=",L,R),!,
-  newTypeVar("_#",TV),
-  typeOfTerm(L,TV,Env,E0,Lhs),
-  typeOfTerm(R,TV,E0,Ev,Rhs).
-checkNonTerminal(Term,Tp,_,Env,Ev,NT) :-
-  isRoundTerm(Term,Lc,F,A),
-  newTypeVar("_G",GrTp),
-  typeOfKnown(F,GrTp,Env,E0,Pred),
-  deRef(GrTp,GrType),
-  checkGrCall(Lc,Pred,A,Tp,GrType,NT,E0,Ev).
-checkNonTerminal(Term,_,_,Env,Env,goal(Lc,Cond)) :-
-  isIden(Term,Lc,"eof"),
-  unary(Lc,"_eof",name(Lc,"stream"),C),
-  findType("logical",Lc,Env,LogicalTp),
-  typeOfterm(C,LogicalTp,Env,_,Cond).
-checkNonTerminal(Term,_,_,Env,Ex,goal(Lc,Cond)) :-
-  isBraceTuple(Term,Lc,[C]),
-  findType("logical",Lc,Env,LogicalTp),
-  typeOfterm(C,LogicalTp,Env,Ex,Cond).
-
-checkNonTerminals([],Lc,_,_,Env,Env,terminals(Lc,[])).
-checkNonTerminals([N],_,Tp,ElTp,Env,Ev,NT) :- checkNonTerminal(N,Tp,ElTp,Env,Ev,NT).
-checkNonTerminals([N|L],Lc,Tp,ElTp,Env,Ev,conj(Lc,Lhs,Rhs)) :-
-  checkNonTerminal(N,Tp,ElTp,Env,E0,Lhs),
-  locOfAst(N,LLc),
-  checkNonTerminals(L,LLc,Tp,ElTp,E0,Ev,Rhs).
-
-explodeStringLit(Lc,Str,Terms) :-
-  string_codes(Str,Codes),
-  map(Codes,checker:makeIntLit(Lc),Terms).
-
-makeIntLit(Lc,C,integer(Lc,C)).
-
-checkGrCall(Lc,Pred,A,Tp,grammarType(ArgTps,StrmTp),Call,Env,Ev) :-
-  checkType(Lc,StrmTp,Tp,Env),
-  checkCallArgs(Lc,Pred,A,ArgTps,Env,Ev,Call).
-checkGrCall(Lc,Pred,_,StrmTp,Tp,terminals(Lc,[]),Env,Env) :-
-  reportError("type of %s:%s not a grammar of right type %s",[Pred,StrmTp,Tp],Lc).
-
-checkTerminals([],_,[],_,Env,Env) :- !.
-checkTerminals([T|More],V,[term(Lc,Cond)|Out],ElTp,Env,Ex) :-
-  locOfAst(T,Lc),
-  ternary(Lc,V,name(Lc,"stream"),T,name(Lc,"stream"),C),
-  findType("logical",Lc,Env,LogicalTp),
-  typeOfterm(C,LogicalTp,Env,E1,Cond),
-  checkTerminals(More,V,Out,ElTp,E1,Ex).
-
 computeExport([],_,_,[],[],[],[]).
 computeExport([Def|Defs],Fields,Public,Exports,Types,Cons,Impls) :-
   exportDef(Def,Fields,Public,Exports,Ex,Types,Tx,Cons,Cx,Impls,Ix),!,
@@ -898,11 +735,9 @@ exportDef(funDef(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Imp
   isPublicVar(Nm,Fields,Public).
 exportDef(typeDef(_,Nm,_,FRule),_,Public,Ex,Ex,[(Nm,FRule)|Tx],Tx,Cx,Cx,Impl,Impl) :-
   isPublicType(Nm,Public).
-exportDef(defn(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
+exportDef(varDef(_,Nm,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
-exportDef(vdefn(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl):-
-  isPublicVar(Nm,Fields,Public).
-exportDef(grDef(_,Nm,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
+exportDef(vdefn(_,Nm,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl):-
   isPublicVar(Nm,Fields,Public).
 exportDef(Con,_,Public,Ex,Ex,Types,Types,[Con|Cx],Cx,Impl,Impl) :-
   isPublicContract(Con,Public).

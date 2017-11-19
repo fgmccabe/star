@@ -33,7 +33,7 @@
  }
 
 %{
-  static void sserror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg);
+  static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg);
   extern int sslex (YYSTYPE * asmlval_param,YYLTYPE * asmlloc_param, ioPo asmFile);
 
   #define locOf(asmloc)							\
@@ -211,14 +211,13 @@ trailer: END nls { endFunction(currMtd); }
  libName: STRING { $$ = newEscapeConstant(currMtd,$1); }
 
  signature: STRING { $$ = $1; if(!validSignature($1)){
-  sserror(&yyloc,yyInfile,pkg,"invalid signature");
-  YYERROR;
+  yyerror(&yyloc,asmFile,pkg,"invalid signature");
  }
  }
 
 %%
 
-static void sserror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg)
+static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg)
 {
   reportError(loc->first_line,"%s\n",errmsg);
 }

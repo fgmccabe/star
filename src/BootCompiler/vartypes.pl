@@ -1,4 +1,4 @@
-:- module(vartypes,[typeOfVar/7,declareVr/5,declareVr/6,declareEnum/6,declareCns/6,declareMtd/5]).
+:- module(vartypes,[typeOfVar/7,declareVr/5,declareVr/6,declareEnum/5,declareCns/5,declareMtd/5]).
 
 :- use_module(freshen).
 :- use_module(unify).
@@ -31,10 +31,10 @@ declareVr(Lc,Nm,Tp,Face,Env,Ev) :-
   declareVar(Nm,entry(Lc,vartypes:mkVr(Nm),Tp,vartypes:gtType(Face)),Env,Ev).
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,entry(Lc,vartypes:mkMtd(Nm,Tp),Tp,vartypes:faceTp(Tp)),Env,Ev).
-declareEnum(Lc,Nm,EnNm,Tp,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkEnum(EnNm),Tp,vartypes:faceTp(Tp)),Env,Ev).
-declareCns(Lc,Nm,CnNm,Tp,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkCns(CnNm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+declareEnum(Lc,Nm,Tp,Env,Ev) :-
+  declareVar(Nm,entry(Lc,vartypes:mkEnum(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+declareCns(Lc,Nm,Tp,Env,Ev) :-
+  declareVar(Nm,entry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 
 mkVr(Nm,Lc,v(Lc,Nm)).
 mkMtd(Nm,Tp,Lc,mtd(Nm,Lc,Tp)).

@@ -31,7 +31,7 @@ jsonVersion(P,("*",jColl(Dtl)),(pkg(P,defltVersion),SrcUri,fl(Code))) :-!,
   is_member(("source",jTxt(Src)),Dtl),
   is_member(("prolog",jTxt(Code)),Dtl),
   parseURI(Src,SrcUri).
-jsonVersion(P,(V,jColl(Dtl)),(pkg(P,v(V)),SrcUri,fl(Code))) :-
+jsonVersion(P,(V,jColl(Dtl)),(pkg(P,ver(V)),SrcUri,fl(Code))) :-
   is_member(("source",jTxt(Src)),Dtl),
   is_member(("prolog",jTxt(Code)),Dtl),
   parseURI(Src,SrcUri).
@@ -68,7 +68,7 @@ showVersion((pkg(_,V),U,F),O,Ox) :-
   showUri(U,O5,O6),
   appStr("]\n",O6,Ox).
 
-showV(v(V),O,Ox) :-
+showV(ver(V),O,Ox) :-
   appStr(V,O,Ox).
 showV(defltVersion,O,Ox) :-
   appStr("*",O,Ox).
@@ -91,7 +91,7 @@ manifestVersions([V|L],[J|M]) :-
 
 manifestVersion((pkg(_,defltVersion),Src,fl(CodeFn)), ("*",VV)) :-
   manifestDetails(CodeFn,Src,VV).
-manifestVersion((pkg(_,v(Ver)),Src,fl(CodeFn)), (Ver,VV)) :-
+manifestVersion((pkg(_,ver(Ver)),Src,fl(CodeFn)), (Ver,VV)) :-
   manifestDetails(CodeFn,Src,VV).
 
 manifestDetails(Fn,Uri,jColl([("source",jTxt(U)),("prolog",jTxt(Fn))])) :-

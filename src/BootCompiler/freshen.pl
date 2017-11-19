@@ -74,9 +74,6 @@ frshn(funType(A,R),E,B,funType(FA,FR)) :-
 frshn(ptnType(A,R),E,B,ptnType(FA,FR)) :-
   rewriteTypes(A,E,B,FA),
   rewriteType(R,E,B,FR).
-frshn(grammarType(A,R),E,B,grammarType(FA,FR)) :-
-  rewriteTypes(A,E,B,FA),
-  rewriteType(R,E,B,FR).
 frshn(consType(A,R),E,B,consType(FA,FR)) :-
   rewriteType(A,E,B,FA),
   rewriteType(R,E,B,FR).

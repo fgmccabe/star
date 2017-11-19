@@ -46,7 +46,6 @@
   keyword("all").
   keyword("exists").
   keyword("assert").
-  keyword("show").
   keyword("ignore").
   keyword("#").
   keyword("$").

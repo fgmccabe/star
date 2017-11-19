@@ -4,10 +4,9 @@
     isContractStmt/6,isImplementationStmt/6,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
     isImport/3, isMacro/2,isPrivate/3,isPublic/3,
-    isGrammarRule/5,
-    isIntegrity/3,isShow/3,isIgnore/3,isOpen/3,
+    isIntegrity/3,isIgnore/3,isOpen/3,
     isConditional/5,
-    isEquation/5,isPtnRule/5,isDefn/5,isAssignment/5,
+    isEquation/5,isPtnRule/5,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,
     packageName/2,pkgName/2,
@@ -157,9 +156,6 @@ isTypeFunStmt(St,Lc,[],[],L,R) :-
 isIntegrity(St,Lc,C) :-
   isUnary(St,Lc,"assert",C).
 
-isShow(St,Lc,Ex) :-
-  isUnary(St,Lc,"show",Ex).
-
 isIgnore(St,Lc,Ex) :-
   isUnary(St,Lc,"ignore",Ex).
 
@@ -178,17 +174,11 @@ isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"<=",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
-isGrammarRule(Trm,Lc,Lhs,Cond,Rhs) :-
-  isBinary(Trm,Lc,"-->",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
+isDefn(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,"=",Lhs,Rhs).
 
-isDefn(Trm,Lc,Lhs,Cond,Rhs) :-
-  isBinary(Trm,Lc,"=",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
-
-isAssignment(Trm,Lc,Lhs,Cond,Rhs) :-
-  isBinary(Trm,Lc,":=",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
+isAssignment(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,":=",Lhs,Rhs).
 
 isWhere(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"where",Lhs,Rhs).
@@ -211,7 +201,7 @@ isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"=.",E,P).
 
 isFieldAcc(Trm,Lc,R,Fld) :-
-  isBinary(Trm,Lc,R,F),
+  isBinary(Trm,Lc,".",R,F),
   isIden(F,Fld).
 
 isVarRef(Trm,Lc,In) :-
@@ -225,7 +215,7 @@ packageName(T,Pkg) :- isBinary(T,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-pkgName(T,pkg(Pkg,v(Version))) :-
+pkgName(T,pkg(Pkg,ver(Version))) :-
   isBinary(T,"#",L,R),
   packageName(L,Pkg),
   packageVersion(R,Version).

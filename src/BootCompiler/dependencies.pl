@@ -27,8 +27,6 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isIntegrity(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
-  isShow(St,_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isIgnore(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
   isTypeAnnotation(St,_,L,T),
@@ -272,29 +270,21 @@ collectStmtRefs([St|Stmts],All,Annots,SoFar,Refs) :-
   collectStmtRefs(Stmts,All,Annots,S0,Refs).
 
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isDefn(St,_,H,Cond,Exp),
+  isDefn(St,_,H,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectCondRefs(Cond,All,R1,R2),
-  collectTermRefs(Exp,All,R2,Refs).
+  collectTermRefs(Exp,All,R1,Refs).
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isAssignment(St,_,H,Cond,Exp),
+  isAssignment(St,_,H,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
-  collectCondRefs(Cond,All,R1,R2),
-  collectTermRefs(Exp,All,R2,Refs).
+  collectTermRefs(Exp,All,R1,Refs).
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
   isEquation(St,_,H,Cond,Exp),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
   collectHeadRefs(H,All,R0,R1),
   collectCondRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
-collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isGrammarRule(St,_,H,Cond,Body),
-  collectAnnotRefs(H,All,Annots,SoFar,R0),
-  collectHeadRefs(H,All,R0,R1),
-  collectCondRefs(Cond,All,R1,R2),
-  collectNTRefs(Body,All,R2,Refs).
 collStmtRefs(St,All,Annots,SoFar,Refs) :-
   isPtnRule(St,_,H,Cond,Ptn),
   collectAnnotRefs(H,All,Annots,SoFar,R0),
@@ -365,51 +355,6 @@ collConRefs(C,All,R,Refs) :-
   isBrace(C,_,_,A),
   collectFaceTypes(A,All,R,Refs).
 
-collectNTRefs(T,All,R,Refs) :-
-  isSquareTuple(T,_,Els),
-  collectTermListRefs(Els,All,R,Refs).
-collectNTRefs(T,All,R,Refs) :-
-  isRoundTuple(T,_,Els),
-  collectNTRefList(Els,All,R,Refs).
-collectNTRefs(T,All,R,Refs) :-
-  isBraceTuple(T,_,Els),
-  collectCondListRefs(Els,All,R,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isConditional(T,_,Ts,Th,El),
-  collectNTRefs(Ts,All,Rf,R0),
-  collectNTRefs(Th,All,R0,R1),
-  collectNTRefs(El,All,R1,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isBinary(T,"||",L,R),
-  collectNTRefs(L,All,Rf,R0),
-  collectNTRefs(R,All,R0,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isBinary(T,",",L,R),
-  collectNTRefs(L,All,Rf,R0),
-  collectNTRefs(R,All,R0,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isUnary(T,"!",L),
-  collectNTRefs(L,All,Rf,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isUnary(T,"\\+",L),
-  collectNTRefs(L,All,Rf,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isUnary(T,"+",L),
-  collectNTRefs(L,All,Rf,Refs).
-collectNTRefs(T,All,Rf,Refs) :-
-  isRoundTerm(T,_,O,A),
-  collectTermRefs(O,All,Rf,R0),
-  collectTermListRefs(A,All,R0,Refs).
-collectNTRefs(T,_,Rf,Rf) :-
-  isString(T,_).
-collectNTRefs(T,_,Rf,Rf) :-
-  isIden(T,_,"eof").
-
-collectNTRefList([],_,R,R).
-collectNTRefList([C|L],All,R,Refs) :-
-  collectNTRefs(C,All,R,R0),
-  collectNTRefList(L,All,R0,Refs).
-
 collectClassRefs(Defs,All,SoFar,Refs) :-
   locallyDefined(Defs,All,Rest),
   collectStmtRefs(Defs,Rest,[],SoFar,Refs).
@@ -460,16 +405,6 @@ collectCondRefs(C,A,R0,Refs) :-
 collectCondRefs(C,A,R0,Refs) :-
   isNegation(C,_,R),
   collectCondRefs(R,A,R0,Refs).
-collectCondRefs(C,A,R0,Refs) :-
-  isBinary(C,"%%",L,R),
-  isBinary(R,"~",St,Re),
-  collectNTRefs(L,A,R0,R1),
-  collectTermRefs(St,A,R1,R2),
-  collectTermRefs(Re,A,R2,Refs).
-collectCondRefs(C,A,R0,Refs) :-
-  isBinary(C,"%%",L,R),
-  collectNTRefs(L,A,R0,R1),
-  collectTermRefs(R,A,R1,Refs).
 collectCondRefs(C,A,R0,Refs) :-
   isTuple(C,[Inner]),
   collectCondRefs(Inner,A,R0,Refs).
@@ -523,10 +458,6 @@ collectTermRefs(T,All,R0,Refs) :-
   collectTermRefs(L,All,R0,R1),
   collectCondRefs(C,All,R1,R2),
   collectTermRefs(R,All,R2,Refs).
-collectTermRefs(T,All,R0,Refs) :-
-  isBinary(T,"-->",L,R),
-  collectTermRefs(L,All,R0,R1),
-  collectNTRefs(R,All,R1,Refs).
 collectTermRefs(_,_,Refs,Refs).
 
 collectTermListRefs([],_,Refs,Refs).
