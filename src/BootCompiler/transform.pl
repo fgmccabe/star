@@ -48,7 +48,6 @@
   which requires an additional agumentation for thetaXX:
 
   thetaXX_A((X),Lbl) => aXX(Lbl,X)
-
 */
 
 transformProg(prog(pkg(Pkg,Vers),Lc,Imports,Defs,Others,Fields,Types,Contracts,Impls),
