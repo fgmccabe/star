@@ -1,6 +1,6 @@
 :- module(dict,[declareType/4,isType/3,
     declareTypeVars/4,isTypeVar/3,
-    declareVar/4,isVar/3,hasType/3,currentVar/3,restoreVar/4,
+    declareVar/4,mkVr/3,isVar/3,hasType/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
     declareImplementation/4,getImplementations/3,allImplements/3,
     declareConstraint/3,allConstraints/2,
@@ -38,15 +38,18 @@ declareVar(Nm,Vr,[scope(Types,Names,Cns,Impls,Contracts)|Outer],[scope(Types,Nam
   makeKey(Nm,Key),
   put_dict(Key,Names,Vr,Names1).
 
-isVar(Nm,_,vr(Nm,std,Tp)) :- escapeType(Nm,Tp),!.
+isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp,dict:noFace)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
+
+mkVr(Nm,Lc,v(Lc,Nm)).
+noFace(_,faceType([],[])).
 
 isVr(Key,[scope(_,Names,_,_,_)|_],Vr) :- get_dict(Key,Names,Vr),!.
 isVr(Key,[_|Outer],Vr) :- isVr(Key,Outer,Vr).
 
 hasType(Nm,Env,Tp) :-
   makeKey(Nm,Ky),
-  isVr(Ky,Env,vr(_,_,Tp)),!.
+  isVr(Ky,Env,vrEntry(_,_,Tp)),!.
 
 currentVar(Nm,Env,some(Vr)) :- makeKey(Nm,Key), isVr(Key,Env,Vr),!.
 currentVar(_,_,none).
@@ -110,7 +113,7 @@ pushFace(faceType(Vrs,Tps),Lc,Env,ThEnv) :-
 
 pushFields([],_,Env,Env).
 pushFields([(Nm,Tp)|Fields],Lc,Env,ThEnv) :-
-  declareVar(Nm,vr(Nm,Lc,Tp),Env,Env0),
+  declareVar(Nm,vrEntry(Nm,Lc,Tp),Env,Env0),
   pushFields(Fields,Lc,Env0,ThEnv).
 
 pushTypes([],_,Env,Env).
@@ -148,8 +151,6 @@ procTypes([K-V|More],P,SoFar,Result) :-
 
 makeKey(Id,Key) :-
   atom_string(Key,Id).
-
-stdVar(Nm,Vr,Env,Ex) :- declareVar(Nm,'std',Vr,Env,Ex).
 
 stdDict(Base) :-
   pushScope([],B),

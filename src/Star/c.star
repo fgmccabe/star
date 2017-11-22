@@ -29,13 +29,13 @@ star.core {
   -- Not strictly necessary, but makes for better symmetry.
   public logical ::= true | false.
 
-  all t ~~ equality[t] |: person[t] ::= someOne{ name : t. spouse: option[person[t]]. assert spouse\==none}
+all t ~~ equality[t] |: person[t] ::= someOne{ name : t. spouse: option[person[t]]. /* assert spouse\==none */}
 
   foo : string.
   foo = "".
 
   fp : person[string].
-  fp = someOne{ name = foo. spouse = none. assert name == foo}
+  fp = someOne{ name = foo. spouse = none. /* assert name == foo */}
 
   assert fp.name == "".
 

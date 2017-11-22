@@ -51,7 +51,7 @@
 */
 
 transformProg(prog(pkg(Pkg,Vers),Lc,Imports,Defs,Others,Fields,Types,Contracts,Impls),
-    Opts,export(pkg(Pkg,Vers),Imports,Fields,Types,Classes,Dfs,Contracts,Impls)) :-
+    Opts,module(pkg(Pkg,Vers),Imports,Fields,Types,Classes,Dfs,Contracts,Impls)) :-
   makePkgMap(Pkg,Defs,Types,Imports,Classes,Map),
   transformModuleDefs(Defs,Pkg,Map,Opts,Dfs,D0),
   transformOthers(Pkg,Map,Opts,Others,Inits,D0,D1),
@@ -187,13 +187,14 @@ genRaise(Lc,LclName,[raise(cns(strct("error",4),[LclName,intgr(Lno),intgr(Off),i
   lcColumn(Lc,Off),
   lcSize(Lc,Sz).
 
-transformDefn(Map,Opts,Lc,Nm,Value,[vrDef(Lc,Q,prg(LclName,Arity),Extra,Body)|Dx],Dxx) :-
+transformDefn(Map,Opts,Lc,Nm,Value,[fnDef(Lc,VrProg,[eqn(Lc,Q,prg(LclName,Arity),Extra,Body)])|Dx],Dxx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,_,_,_),
   extraVars(Map,Extra),                                   % extra variables coming from labels
   liftExp(Value,Rep,[],Q0,Map,Opts,Dx,Dxx),
   labelAccess(Q0,Q,Map,Lc,G0),                        % generate label access goals
   length(Extra,Arity),
+  VrProg = prg(LclName,Arity),
   mergeWhere(Rep,G0,Lc,Body).
 
 transformOthers(_,_,_,[],enu("core.star#true"),Rx,Rx).
@@ -207,7 +208,7 @@ transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,[fnDef(Lc,LclPrg,Rules)|Ex],E
   rfold(Asserts,transform:collectGoal,enm(Lc,"true"),G),
   localName(Pkg,"@","assert",LclName),
   LclPrg = prg(LclName,0),
-  transformEqn(equation(Lc,LclName,tple(Lc,[]),G,tple(Lc,[])),Map,Opts,LclPrg,Rules,[],Ex,Exx).
+  transformEqn(equation(Lc,LclName,tple(Lc,[]),enm(Lc,"true"),G),Map,Opts,LclPrg,Rules,[],Ex,Exx).
 
 collectGoal(assertion(_,G),enm(_,"true"),G) :-!.
 collectGoal(assertion(Lc,G),O,conj(Lc,O,G)).

@@ -5,7 +5,7 @@
 :- use_module(operators).
 :- use_module(location).
 
-showRules(export(Pkg,Imports,_,Types,_,Defs,Contracts,Impls),O,Ox) :-
+showRules(module(Pkg,Imports,_,Types,_,Defs,Contracts,Impls),O,Ox) :-
   showPkg(Pkg,O,O1),
   appStr("{\n",O1,O2),
   showImports(Imports,O2,O3),!,
@@ -13,7 +13,7 @@ showRules(export(Pkg,Imports,_,Types,_,Defs,Contracts,Impls),O,Ox) :-
   showContracts(Contracts,O4,O5),!,
   showImpls(Impls,O5,O6),!,
   showRuleSets(Defs,O6,O7),!,
-  appStr("}.\n",O7,Ox),!.
+  appStr("\n}.\n",O7,Ox),!.
 
 displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
@@ -23,13 +23,6 @@ showRuleSets(L,O,Ox) :-
 showRuleSet(fnDef(_,_,Eqns),O,Ox) :-
   appStr("Function:\n",O,O1),
   listShow(Eqns,terms:showRule,"\n",O1,Ox).
-showRuleSet(vrDef(_,_,Nm,Args,Value),O,Ox) :-
-  appStr("Var: ",O,O1),
-  showTerm(Nm,O1,O2),
-  showArgs(Args,O2,O3),
-  appStr("=",O3,O4),
-  showTerm(Value,O4,O5),
-  appStr("\n",O5,Ox).
 
 showRule(eqn(_,_,Nm,Args,Value),O,Ox) :-
   showTerm(Nm,O,O1),

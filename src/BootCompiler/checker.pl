@@ -294,7 +294,7 @@ pickupVarType(N,_,faceType(F,_),Tp) :-
 pickupVarType(N,Lc,_,anonType) :- reportError("%s not declared",[N],Lc).
 
 pickupThisType(Env,Tp) :-
-  isVar("this",Env,vr(_,_,Tp)),!.
+  isVar("this",Env,vrEntry(_,_,Tp,_)),!.
 pickupThisType(_,voidType).
 
 declareConstraints([],Env,Env).
@@ -371,7 +371,9 @@ splitHead(Term,Nm,Args) :-
   splitHd(Term,Nm,Args).
 
 splitHd(Term,Nm,A) :-
-  isRound(Term,_,Nm,A).
+  isRoundTerm(Term,Lc,O,Args),
+  isIden(O,_,Nm),
+  roundTuple(Lc,Args,A).
 splitHd(Id,Nm,none) :-
   isIden(Id,_,Nm),!.
 splitHd(Term,"()",Term) :-
@@ -606,7 +608,7 @@ genTpVars([_|I],[Tp|More]) :-
 
 recordFace(Trm,Env,Env,v(Lc,Nm),Face) :-
   isIden(Trm,Lc,Nm),
-  isVar(Nm,Env,vr(_,_,Face,_)),!.
+  isVar(Nm,Env,vrEntry(_,_,Face,_)),!.
 recordFace(Trm,Env,Ev,Rec,Face) :-
   newTypeVar("_R",AT),
   typeOfKnown(Trm,AT,Env,Ev,Rec),

@@ -11,9 +11,9 @@ sm(_,anonType,_).
 sm(anonType,_,_).
 sm(voidType,voidType,_).
 sm(thisType,thisType,_) :-!.
-sm(thisType,T2,Env) :- isVar("this",Env,vr(_,_,T1)),!,
+sm(thisType,T2,Env) :- isVar("this",Env,vrEntry(_,_,T1,_)),!,
   sameType(T1,T2,Env).
-sm(T1,thisType,Env) :- isVar("this",Env,vr(_,_,T2)),!,
+sm(T1,thisType,Env) :- isVar("this",Env,vrEntry(_,_,T2,_)),!,
   sameType(T1,T2,Env).
 sm(kVar(Nm),kVar(Nm),_).
 sm(kFun(Nm,Ar),kFun(Nm,Ar),_).

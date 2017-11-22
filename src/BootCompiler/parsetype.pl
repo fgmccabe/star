@@ -32,11 +32,11 @@ parseType(Tp,Env,B,C,C,PT) :-
   parseType(BT,Env,Q,[],C0,BTp),
   wrapConstraints(C0,BTp,Inner),
   reQuantX(B0,Inner,PT).
-parseType(F,Env,B,C0,Cx,Tp) :-
+parseType(F,Env,B,C0,Cx,Typ) :-
   isConstrained(F,T,C),!,
   parseConstraints(C,Env,B,C0,C1),
-  parseType(T,Env,B,C1,Cx,T),
-  wrapConstraints(Cx,T,Tp).
+  parseType(T,Env,B,C1,Cx,Tp),
+  wrapConstraints(Cx,Tp,Typ).
 parseType(Nm,Env,B,C0,Cx,Tp) :-
   isIden(Nm,Lc,Id), !,
   parseTypeName(Lc,Id,Env,B,C0,Cx,Tp).
@@ -208,7 +208,7 @@ addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
 
 parseContractName(_,Id,Env,_,FCon) :-
-  getContract(Id,Env,contract(_,_,Con)),
+  getContract(Id,Env,conDef(_,_,Con)),
   freshen(Con,Env,_,FCon).
 
 parseContractArgs([A],Env,B,C0,Cx,Args,Deps) :-

@@ -5,9 +5,8 @@
 :- use_module(dict).
 :- use_module(errors).
 
-typeOfVar(Lc,_,Tp,entry(_,MkTerm,VTp,_),Env,Ev,Term) :-
+typeOfVar(Lc,_,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   freshen(VTp,Env,_,VrTp),
-  checkType(Lc,VrTp,Tp,Env),
   call(MkTerm,Lc,Exp),
   manageConstraints(VrTp,[],Lc,Exp,MTp,Env,Ev,Term),
   checkType(Lc,MTp,Tp,Env).
@@ -26,17 +25,16 @@ checkType(Lc,S,T,_) :-
   reportError("%s not consistent with expected type %s",[S,T],Lc).
 
 declareVr(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkVr(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 declareVr(Lc,Nm,Tp,Face,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkVr(Nm),Tp,vartypes:gtType(Face)),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp,vartypes:gtType(Face)),Env,Ev).
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkMtd(Nm,Tp),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,vartypes:mkMtd(Nm,Tp),Tp,vartypes:faceTp(Tp)),Env,Ev).
 declareEnum(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkEnum(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 declareCns(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,entry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 
-mkVr(Nm,Lc,v(Lc,Nm)).
 mkMtd(Nm,Tp,Lc,mtd(Nm,Lc,Tp)).
 mkCns(Nm,Lc,cns(Lc,Nm)).
 mkEnum(Nm,Lc,enm(Lc,Nm)).

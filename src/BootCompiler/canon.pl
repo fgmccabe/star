@@ -207,7 +207,7 @@ showImpl(imp(ImplName,Spec),O,Ox) :-
   showConstraint(Spec,O3,O4),
   appStr("\n",O4,Ox).
 
-showImplementation(implementation(Lc,_,_,Spec,Cx,Body,_Defs,Types,Others),O,Ox) :-
+showImplementation(Lc,_,_,Spec,Cx,Body,_Defs,Types,Others,O,Ox) :-
   appStr("implementation: ",O,O1),
   showConstraints(Cx,O1,O4),
   showConstraint(Spec,O4,O5),
@@ -288,8 +288,8 @@ showDef(Con,O,Ox) :-
   Con = conDef(_,_,_),
   showContract(Con,O,O2),
   appStr("\n",O2,Ox).
-showDef(implementation(Lc,INm,ImplName,Spec,Cx,Defs,Body,Types,Others),O,Ox) :-
-  showImplementation(implementation(Lc,INm,ImplName,Spec,Cx,Defs,Body,Types,Others),O,Ox).
+showDef(implDef(Lc,INm,ImplName,Spec,Cx,Defs,Body,Types,Others),O,Ox) :-
+  showImplementation(Lc,INm,ImplName,Spec,Cx,Defs,Body,Types,Others,O,Ox).
 
 showClassRules([],O,O).
 showClassRules([Rl|Rules],O,Ox) :-

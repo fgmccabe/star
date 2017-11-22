@@ -193,7 +193,7 @@ isDisjunct(Trm,Lc,L,R) :-
   isBinary(Trm,"||",Lc,L,R).
 
 isNegation(Trm,Lc,L) :-
-  isUnary(Trm,"\\+",Lc,L).
+  isUnary(Trm,Lc,"\\+",L).
 
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,".=",P,E),!.
