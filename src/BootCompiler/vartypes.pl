@@ -35,7 +35,7 @@ declareEnum(Lc,Nm,Tp,Env,Ev) :-
 declareCns(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 
-mkMtd(Nm,Tp,Lc,mtd(Nm,Lc,Tp)).
+mkMtd(Nm,Tp,Lc,mtd(Lc,Nm,Tp)).
 mkCns(Nm,Lc,cns(Lc,Nm)).
 mkEnum(Nm,Lc,enm(Lc,Nm)).
 

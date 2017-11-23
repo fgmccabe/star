@@ -81,7 +81,7 @@ surfaceBound([E|M]) :- deRef(E,EE), \+isUnbound(EE), surfaceBound(M).
 
 checkForImpl(conTract(Nm,Args,Deps),Env) :-
   getImplementations(Nm,Env,Impls),
-  is_member(implDef(_,ITp),Impls),
+  is_member(implDef(_,_,_,ITp),Impls),
   freshen(ITp,Env,_,FTp),
   sameType(FTp,conTract(Nm,Args,Deps),Env),!.
 

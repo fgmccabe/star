@@ -53,8 +53,8 @@ showTerm(ocall(_,Call,Rec),O,Ox) :-
   showTerm(Rec,O,O1),
   appStr(".",O1,O2),
   showTerm(Call,O2,Ox).
-showTerm(ecll(_,Op,Args),O,Ox) :-
-  showTerm(Op,O,O1),
+showTerm(ecll(_,Es,Args),O,Ox) :-
+  appStr(Es,O,O1),
   showArgs(Args,O1,Ox).
 showTerm(cns(Op,A),O,Ox) :-
   showTerm(Op,O,O1),
@@ -102,7 +102,7 @@ showTerm(ng(_,R),O,Ox) :-
   appStr("\\+",O,O1),
   showTerm(R,O1,Ox).
 
-showTermGuard(enu("core.star#true"),Ox,Ox) :- !.
+showTermGuard(enu("star.core#true"),Ox,Ox) :- !.
 showTermGuard(T,O,Ox) :-
   appStr(" where ",O,O1),
   showTerm(T,O1,Ox).

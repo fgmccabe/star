@@ -39,8 +39,8 @@ thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   processImportGroup(Imps,Imports,Repo,Base,IBase),
   pushFace(Fields,Lc,IBase,Env),
   checkGroups(Groups,Fields,Annots,Defs,Env,TheEnv,Pkg),
-  checkOthers(Otrs,Others,TheEnv,Pkg),
-  dispDefs(Defs).
+  checkOthers(Otrs,Others,TheEnv,Pkg).
+%  dispDefs(Defs).
 
 recordEnv(Path,Repo,_Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   macroRewrite(Els,Stmts),
@@ -48,8 +48,8 @@ recordEnv(Path,Repo,_Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   processImportGroup(Imps,Imports,Repo,Base,TmpEnv),
   parseAnnotations(Dfs,Fields,Annots,TmpEnv,Path,Face),
   checkGroup(Dfs,Defs,[],TmpEnv,TheEnv,Face,Path),
-  checkOthers(Otrs,Others,TheEnv,Path),
-  dispDefs(Defs).
+  checkOthers(Otrs,Others,TheEnv,Path).
+%  dispDefs(Defs).
 
 processImportGroup(Stmts,ImportSpecs,Repo,Env,Ex) :-
   findAllImports(Stmts,Lc,Imports),
@@ -196,7 +196,7 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   merge(FQ,Q,MQ),
   moveConstraints(CC,Cx,constrained(QTp,Con)),
   moveQuants(MTp,MQ,CC),
-  declareVr(Lc,Nm,MTp,Env,E0),
+  declareMtd(Lc,Nm,MTp,Env,E0),
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
 parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
@@ -348,7 +348,7 @@ checkThetaBody(Tp,Lc,Els,Env,Defs,Others,Types,ClassPath) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  declareVr(Lc,"this",Tp,Face,BaseEnv,ThEnv),
+  declareVr(Lc,"this",ETp,Face,BaseEnv,ThEnv),
   thetaEnv(ClassPath,nullRepo,Lc,Els,Face,ThEnv,OEnv,Defs,Public,_Imports,Others),
   computeExport(Defs,Face,Public,_,Types,[],[]),
   dischargeConstraints(Env,OEnv).
@@ -389,9 +389,9 @@ collectPrograms([varDef(Lc,Nm,_,Tp,Value)|Stmts],Env,Ev,Tp,Cx,
     [varDef(Lc,Nm,Cx,Tp,Value)|Defs],Dx) :-
   faceOfType(Tp,Env,Face),
   freshen(Face,Env,_,VFace),
-  declareVr(Lc,Nm,VFace,Tp,Env,E0),
+  declareVr(Lc,Nm,Tp,VFace,Env,E0),
   collectPrograms(Stmts,E0,Ev,Tp,Cx,Defs,Dx).
-collectPrograms([vdefn(Lc,Nm,_,Tp,Value)|Stmts],Env,Ev,Tp,Cx,
+collectPrograms([varDef(Lc,Nm,_,refType(Tp),Value)|Stmts],Env,Ev,Tp,Cx,
     [vdefn(Lc,Nm,Cx,Tp,Value)|Defs],Dx) :-
   declareVr(Lc,Nm,refType(Tp),Env,E0),
   collectPrograms(Stmts,E0,Ev,Tp,Cx,Defs,Dx).
@@ -403,22 +403,18 @@ collectEquations([Rl|Stmts],[Rl|Sx],Nm,Eqns) :-
   collectEquations(Stmts,Sx,Nm,Eqns).
 collectEquations([],[],_,[]).
 
-checkImplementation(Stmt,INm,[Impl|Dfs],Dfs,Env,Ex,_,Path) :-
+checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
   parseContractConstraint(Quants,Cons,Sq,Env,Nm,ConSpec),
   evidence(ConSpec,Env,IQ,CnSpec),
   moveConstraints(CnSpec,AC,contractExists(Spec,IFace)),
   declareTypeVars(IQ,Lc,Env,ThEnv),
-  (isBraceTuple(IBody,_,Els) ->
-     thetaEnv(Path,nullRepo,Lc,Els,IFace,ThEnv,OEnv,ThDefs,Public,_,Others) ;
-   isQBraceTuple(IBody,_,Els) ->
-     recordEnv(Path,nullRepo,Lc,Els,IFace,ThEnv,OEnv,ThDefs,Public,_,Others) ;
-   reportError("expecting better than this %s",[IBody],Lc)),
-  computeExport(ThDefs,IFace,Public,BodyDefs,Types,[],[]),
+  typeOfTerm(IBody,IFace,ThEnv,ThEv,ImplTerm),
   implementationName(Spec,ImplName),
-  Impl = implDef(Lc,INm,ImplName,Spec,AC,ThDefs,BodyDefs,Types,Others),
+  Impl = implDef(Lc,INm,ImplName,Spec),
+  ImplDef = funDef(Lc,ImplName,funType(tupleType([]),IFace),AC,[equation(Lc,ImplName,tple(Lc,[]),enm(Lc,"true"),ImplTerm)]),
   declareImplementation(Nm,Impl,Env,Ex),
-  dischargeConstraints(Env,OEnv),!.
+  dischargeConstraints(Env,ThEv),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement",[Lc]).
@@ -497,7 +493,8 @@ typeOfTerm(Term,Tp,Env,Env,theta(Lc,Lbl,Defs,Others,Types)) :-
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
-  checkThetaBody(FnTp,Lc,Els,E0,Defs,Others,Types,Lbl).
+  deRef(FnTp,BTp),
+  checkThetaBody(BTp,Lc,Els,E0,Defs,Others,Types,Lbl).
 typeOfTerm(Term,Tp,Env,Env,record(Lc,Lbl,Defs,Others,Types)) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
@@ -608,7 +605,8 @@ genTpVars([_|I],[Tp|More]) :-
 
 recordFace(Trm,Env,Env,v(Lc,Nm),Face) :-
   isIden(Trm,Lc,Nm),
-  isVar(Nm,Env,vrEntry(_,_,Face,_)),!.
+  isVar(Nm,Env,vrEntry(_,_,_,Fce)),!,
+  call(Fce,Env,Face).
 recordFace(Trm,Env,Ev,Rec,Face) :-
   newTypeVar("_R",AT),
   typeOfKnown(Trm,AT,Env,Ev,Rec),
@@ -743,7 +741,7 @@ exportDef(vdefn(_,Nm,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl
   isPublicVar(Nm,Fields,Public).
 exportDef(Con,_,Public,Ex,Ex,Types,Types,[Con|Cx],Cx,Impl,Impl) :-
   isPublicContract(Con,Public).
-exportDef(implDef(_,INm,IName,Spec,_,_,_,_,_),_,Public,Ex,Ex,Tps,Tps,Cx,Cx,
+exportDef(implDef(_,INm,IName,Spec),_,Public,Ex,Ex,Tps,Tps,Cx,Cx,
     [imp(IName,Spec)|Ix],Ix) :-
   is_member(imp(INm),Public),!.
 exportDef(_,_,_,Ex,Ex,Tps,Tps,Cx,Cx,Impls,Impls).

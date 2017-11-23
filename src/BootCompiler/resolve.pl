@@ -22,8 +22,10 @@ overloadDef(T,_,T) :-
   T = typeDef(_,_,_,_).
 overloadDef(C,_,C) :-
   C = cnsDef(_,_,_,_).
-overloadDef(implDef(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others),Dict,RI) :-
-  overloadImplementation(Lc,INm,ImplName,Spec,OCx,ThDefs,BodyDefs,Types,Others,Dict,RI).
+overloadDef(C,_,C) :-
+  C = conDef(_,_,_).
+overloadDef(C,_,C) :-
+  C = implDef(_,_,_,_).
 
 overloadFunction(Lc,Nm,Tp,[],Eqns,Dict,funDef(Lc,Nm,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns).
@@ -95,9 +97,9 @@ resolveTerm(neg(Lc,T),Dict,neg(Lc,RT)) :-
 resolveTerm(match(Lc,L,R),Dict,match(Lc,RL,RR)) :-
   resolveTerm(L,Dict,RL),
   resolveTerm(R,Dict,RR).
-resolveTerm(apply(ALc,over(Lc,T,Cx),Args),Dict,apply(ALc,OverOp,NArgs)) :-
+resolveTerm(apply(ALc,over(Lc,T,Cx),Args),Dict,apply(ALc,OverOp,tple(LcA,NArgs))) :-
   resolveContracts(Lc,Cx,Dict,DTerms),
-  resolveTerm(Args,Dict,RArgs),
+  resolveTerm(Args,Dict,tple(LcA,RArgs)),
   overloadRef(Lc,T,DTerms,RArgs,OverOp,NArgs).
 resolveTerm(apply(Lc,Op,Args),Dict,apply(Lc,ROp,RArgs)) :-
   resolveTerm(Op,Dict,ROp),
@@ -124,7 +126,7 @@ overloadList([T|L],C,D,[RT|RL]) :-
 resolveTerms(L,D,RL) :-
   overloadList(L,resolve:resolveTerm,D,RL).
 
-overloadRef(_,mtd(Lc,Nm),[DT],RArgs,dot(Lc,DT,Nm),RArgs).
+overloadRef(_,mtd(Lc,Nm,_),[DT],RArgs,dot(Lc,DT,Nm),RArgs).
 overloadRef(_,v(Lc,Nm),DT,RArgs,v(Lc,Nm),Args) :- concat(DT,RArgs,Args).
 
 resolveContracts(_,[],_,[]).
@@ -162,21 +164,13 @@ genVar(Nm,Lc,v(Lc,NV)) :-
   genstr(Nm,NV).
 
 declareImplementations([],Dict,Dict).
-declareImplementations([implementation(_,_,ImplName,Spec,_,_,_,_,_)|Defs],Dict,RDict) :-
+declareImplementations([implDef(_,_,ImplName,Spec)|Defs],Dict,RDict) :-
   declareImplementations(Defs,[(ImplName,Spec)|Dict],RDict).
 declareImplementations([_|Defs],Dict,RDict) :-
   declareImplementations(Defs,Dict,RDict).
 
 findImplementation(ImplName,Dict,Spec) :-
   is_member((ImplName,Spec),Dict).
-
-overloadImplementation(Lc,INm,ImplName,Spec,AC,ThDefs,Face,Types,Others,Dict,
-    implDef(Lc,INm,ImplName,Arity,Spec,implBody(Lc,Hd,RThDefs,ROthers,Types),faceType(Face,Types))) :-
-  defineCVars(Lc,AC,Dict,CVars,FDict),
-  overload(ThDefs,FDict,FODict,RThDefs),
-  overloadOthers(Others,FODict,ROthers),
-  length(CVars,Arity),
-  (CVars=[] -> Hd = enum(Lc,ImplName) ; Hd = apply(Lc,v(Lc,ImplName),tple(Lc,CVars))).
 
 inheritImplementations([],_,[]).
 inheritImplementations([Impl|L],Hd,[rule(Hd,Impl)|M]) :-

@@ -113,7 +113,7 @@ pushFace(faceType(Vrs,Tps),Lc,Env,ThEnv) :-
 
 pushFields([],_,Env,Env).
 pushFields([(Nm,Tp)|Fields],Lc,Env,ThEnv) :-
-  declareVar(Nm,vrEntry(Nm,Lc,Tp),Env,Env0),
+  declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp,vartypes:faceTp(Tp)),Env,Env0),
   pushFields(Fields,Lc,Env0,ThEnv).
 
 pushTypes([],_,Env,Env).

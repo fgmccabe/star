@@ -188,12 +188,12 @@ showTypeDef((_,Type),O,Ox) :-
 showContracts(L,O,Ox) :-
   listShow(L,canon:showContract,"\n",O,Ox).
 
-showContract(conDef(LclNm,Nm,ConRule),O,Ox) :-
-  appStr("contract: ",O,O0),
-  appStr(LclNm,O0,O1),
-  appStr("@",O1,O2),
+showContract(conDef(LclNm,Nm,ConRule),O,Ox) :-,
+  appStr(LclNm,O,O0)
+  appStr("contract: ",O0,O1),
+  appStr("\n",O1,O2),
   appStr(Nm,O2,O3),
-  appStr(":",O3,O4),
+  appStr(" : ",O3,O4),
   showType(ConRule,O4,O5),
   appStr(".\n",O5,Ox).
 
@@ -207,18 +207,13 @@ showImpl(imp(ImplName,Spec),O,Ox) :-
   showConstraint(Spec,O3,O4),
   appStr("\n",O4,Ox).
 
-showImplementation(Lc,_,_,Spec,Cx,Body,_Defs,Types,Others,O,Ox) :-
+showImplementation(Lc,Nm,Spec,O,Ox) :-
   appStr("implementation: ",O,O1),
-  showConstraints(Cx,O1,O4),
-  showConstraint(Spec,O4,O5),
+  appStr(Nm,O1,O2),
+  showConstraint(Spec,O2,O5),
   appStr("@",O5,O6),
   showLocation(Lc,O6,O7),
-  appStr("\n",O7,O8),
-  appStr("<= {\n",O8,O9),
-  showTypeDefs(Types,O9,O10),
-  showDefs(Body,O10,O11),
-  showOthers(Others,O11,O12),
-  appStr("}\n",O12,Ox).
+  appStr("\n",O7,Ox).
 
 showConstraints([],Ox,Ox).
 showConstraints(Cons,O,Ox) :-
@@ -267,7 +262,7 @@ showDef(vdefn(Lc,Nm,Cx,Tp,Value),O,Ox) :-
 showDef(cnsDef(Lc,Nm,V,Type),O,Ox) :-
   appStr("constructor: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("/",O2,O3),
+  appStr("\n",O2,O3),
   showCanonTerm(V,O3,O4),
   appStr(":",O4,O5),
   showType(Type,O5,O6),
@@ -277,7 +272,7 @@ showDef(cnsDef(Lc,Nm,V,Type),O,Ox) :-
 showDef(typeDef(Lc,Nm,Tp,Rl),O,Ox) :-
   appStr("type: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr(":",O2,O3),
+  appStr("\n",O2,O3),
   showType(Tp,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
@@ -288,8 +283,8 @@ showDef(Con,O,Ox) :-
   Con = conDef(_,_,_),
   showContract(Con,O,O2),
   appStr("\n",O2,Ox).
-showDef(implDef(Lc,INm,ImplName,Spec,Cx,Defs,Body,Types,Others),O,Ox) :-
-  showImplementation(Lc,INm,ImplName,Spec,Cx,Defs,Body,Types,Others,O,Ox).
+showDef(implDef(Lc,_,ImplName,Spec),O,Ox) :-
+  showImplementation(Lc,ImplName,Spec,O,Ox).
 
 showClassRules([],O,O).
 showClassRules([Rl|Rules],O,Ox) :-
