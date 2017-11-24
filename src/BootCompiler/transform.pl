@@ -301,6 +301,8 @@ liftPtn(tple(_,Ptns),tpl(P),Q,Qx,Map,Opts,Ex,Exx) :-
 liftPtn(apply(Lc,v(_,Nm),A),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,[],Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
+liftPtn(where(_,P,enm(_,"true")),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftPtn(P,Ptn,Q,Qx,Map,Opts,Ex,Exx).
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
@@ -374,6 +376,8 @@ liftExp(cons(Lc,Op,tple(_,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(dot(Lc,Rec,Fld),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Rec,LRec,Q,Q0,Map,Opts,Ex,Ex0),
   trDotExp(Lc,LRec,Fld,Exp,Q0,Qx,Map,Opts,Ex0,Exx).
+liftExp(where(_,E,enm(_,"true")),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).

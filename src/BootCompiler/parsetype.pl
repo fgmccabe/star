@@ -1,7 +1,7 @@
 :- module(parsetype,[parseType/3,parseType/6,
   parseBoundTpVars/3,reQuant/3,reQuantX/3,wrapConstraints/3,
   parseTypeHead/5,
-  parseTypeRule/4,parseTypeCore/3,parseContract/4,parseTypeFields/7,
+  parseTypeRule/4,parseTypeCore/3,parseContract/4,
   parseConstraints/5,parseContractConstraint/6,rewriteConstraints/4,bindAT/4]).
 
 :- use_module(abstract).

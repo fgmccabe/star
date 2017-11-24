@@ -33,6 +33,7 @@
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
+  operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).

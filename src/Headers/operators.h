@@ -82,6 +82,7 @@ lastPreOp
 prefixOp("-",300,299,"arithmetic negation")
 
 postfixOp(". ",1899,1900,"statement terminator")
+postfixOp("default",939,940,"default value marker")
 postfixOp("+",759,760,"lookahead in grammar rule")
 lastPostOp
 postfixOp("!",99,100,"pick up a value from a ref cell")

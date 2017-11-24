@@ -10,8 +10,8 @@
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],AllRefs),
   collectThetaRefs(Dfs,AllRefs,Annots,Defs),
-  topsort(Defs,Groups,misc:same).
-  % showGroups(Groups).
+  topsort(Defs,Groups,misc:same),
+  showGroups(Groups).
 
 collectDefinitions([St|Stmts],Defs,P,A,I,Other) :-
   collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,I,I0,Other,O0,dependencies:nop),
@@ -82,7 +82,7 @@ reformAlgebraic(St,[(tpe(Nm),Lc,[TpRule])|Lst],Lx,A,Ax,Export,P,Px) :-
   binary(Lc,"<~",Head,Face,TRl),
   reConstrain(Constraints,TRl,CTrl),
   reUQuant(Quants,CTrl,TpRule),
-  buildConstructors(Body,Quants,Constraints,Head,Lst,Lx,A,Ax,Export,P,Px).
+  buildConstructors(Body,Quants,Constraints,Nm,Head,Lst,Lx,A,Ax,Export,P,Px).
 
 algebraicFace(C,F) :-
   isBinary(C,"|",L,R),
@@ -97,7 +97,8 @@ algebraicFace(C,Face) :-
   braceTuple(Lc,[],Face).
 algebraicFace(C,Face) :-
   isBraceCon(C,XQ,XC,Lc,_,Els,dependencies:nop,_,_),
-  braceTuple(Lc,Els,F),
+  pullOthers(Els,Entries,_Asserts,_Defaults),
+  braceTuple(Lc,Entries,F),
   reConstrain(XC,F,CF),
   reXQuant(XQ,CF,Face).
 
@@ -110,41 +111,42 @@ combineFaces(F0,F1,F0) :-
   isBraceTuple(F1,_,_),
   reportError("only one constructor may be a record ",[Lc]).
 
-buildConstructors(Body,Quants,Constraints,Tp,Lst,Lx,A,Ax,Export,P,Px) :-
+buildConstructors(Body,Quants,Constraints,Nm,Tp,Lst,Lx,A,Ax,Export,P,Px) :-
   isBinary(Body,"|",L,R),
-  buildConstructors(L,Quants,Constraints,Tp,Lst,L0,A,A0,Export,P,P0),
-  buildConstructors(R,Quants,Constraints,Tp,L0,Lx,A0,Ax,Export,P0,Px).
-buildConstructors(C,Quants,Constraints,Tp,[St|Lx],Lx,A,Ax,Export,P,Px) :-
-  buildConstructor(C,Quants,Constraints,Tp,St,A,Ax,Export,P,Px).
-buildConstructors(C,_,_,_,Defs,Defs,Ax,Ax,_,Px,Px) :-
+  buildConstructors(L,Quants,Constraints,Nm,Tp,Lst,L0,A,A0,Export,P,P0),
+  buildConstructors(R,Quants,Constraints,Nm,Tp,L0,Lx,A0,Ax,Export,P0,Px).
+buildConstructors(C,Quants,Constraints,Nm,Tp,[St|L0],Lx,A,Ax,Export,P,Px) :-
+  buildConstructor(C,Quants,Constraints,Nm,Tp,St,L0,Lx,A,Ax,Export,P,Px).
+buildConstructors(C,_,_,_,_,Defs,Defs,Ax,Ax,_,Px,Px) :-
   locOfAst(C,Lc),
   reportError("invalid constructor: %s",[C],Lc).
 
-buildConstructor(N,Quants,Constraints,Tp,(cns(Nm),Lc,[St]),[(Nm,St)|Ax],Ax,Export,P,Px) :-
+buildConstructor(N,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
   isIden(N,Lc,Nm),
   reConstrain(Constraints,Tp,Rl),
   reUQuant(Quants,Rl,St),
   call(Export,Nm,P,Px).
-buildConstructor(C,Quants,Constraints,Tp,(cns(Nm),Lc,[St]),[(Nm,St)|Ax],Ax,Export,P,Px) :-
+buildConstructor(C,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
   isRoundCon(C,_,_,Lc,Nm,Args,Export,P,Px),
   roundTuple(Lc,Args,Hd),
   binary(Lc,"<=>",Hd,Tp,Rl),
   reConstrain(Constraints,Rl,CRl),
   reUQuant(Quants,CRl,St).
-buildConstructor(C,Quants,Constraints,Tp,(cns(Nm),Lc,[St]),[(Nm,St)|Ax],Ax,Export,P,Px) :-
+buildConstructor(C,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
   isBraceCon(C,XQ,XC,Lc,Nm,Els,Export,P,Px),
-  braceTuple(Lc,Els,Hd),
+  pullOthers(Els,Entries,_Asserts,_Defaults),
+  braceTuple(Lc,Entries,Hd),
   reConstrain(XC,Hd,XHd),
   reXQuant(XQ,XHd,QHd),
   binary(Lc,"<=>",QHd,Tp,Rl),
   reConstrain(Constraints,Rl,CRl),
   reUQuant(Quants,CRl,St).
-buildConstructor(C,Quants,Constraints,Tp,St,A,Ax,_,P,Px) :-
+buildConstructor(C,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,_,P,Px) :-
   isPrivate(C,_,I),
-  buildConstructor(I,Quants,Constraints,Tp,St,A,Ax,dependencies:nop,P,Px).
-buildConstructor(C,Quants,Constraints,Tp,St,A,Ax,_,P,Px) :-
+  buildConstructor(I,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,dependencies:nop,P,Px).
+buildConstructor(C,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,_,P,Px) :-
   isPublic(C,_,I),
-  buildConstructor(I,Quants,Constraints,Tp,St,A,Ax,dependencies:export,P,Px).
+  buildConstructor(I,Quants,Constraints,Nm,Tp,St,L,Lx,A,Ax,dependencies:export,P,Px).
 
 isRoundCon(C,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
   isCon(C,abstract:isRound,XQ,XC,Lc,Nm,Els,Export,P,Px).
@@ -161,6 +163,16 @@ isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
 isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
   isConstrained(C,XC,I),
   isCon(I,Tst,XQ,_,Lc,Nm,Els,Export,P,Px).
+
+pullOthers([],[],[],[]).
+pullOthers([St|Els],Entries,[St|Asserts],Deflts) :-
+  isIntegrity(St,_,_),!,
+  pullOthers(Els,Entries,Asserts,Deflts).
+pullOthers([St|Els],Entries,Asserts,[St|Deflts]) :-
+  isDefault(St,_,_,_),!,
+  pullOthers(Els,Entries,Asserts,Deflts).
+pullOthers([St|Els],[St|Entries],Asserts,Deflts) :-
+  pullOthers(Els,Entries,Asserts,Deflts).
 
 ruleName(St,var(Nm),value) :-
   headOfRule(St,Hd),

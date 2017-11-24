@@ -3,7 +3,7 @@
     isConstrained/3,reConstrain/3,
     isContractStmt/6,isImplementationStmt/6,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
-    isImport/3, isMacro/2,isPrivate/3,isPublic/3,
+    isImport/3, isMacro/2,isPrivate/3,isPublic/3,isDefault/4,
     isIntegrity/3,isIgnore/3,isOpen/3,
     isConditional/5,
     isEquation/5,isPtnRule/5,isDefn/4,isAssignment/4,
@@ -155,6 +155,10 @@ isTypeFunStmt(St,Lc,[],[],L,R) :-
 
 isIntegrity(St,Lc,C) :-
   isUnary(St,Lc,"assert",C).
+
+isDefault(St,Lc,Ptn,Val) :-
+  isDefn(St,Lc,Lhs,Val),
+  isUnary(Lhs,"default",Ptn).
 
 isIgnore(St,Lc,Ex) :-
   isUnary(St,Lc,"ignore",Ex).
