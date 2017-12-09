@@ -32,11 +32,10 @@ parseType(Tp,Env,B,C,C,PT) :-
   parseType(BT,Env,Q,[],C0,BTp),
   wrapConstraints(C0,BTp,Inner),
   reQuantX(B0,Inner,PT).
-parseType(F,Env,B,C0,Cx,Typ) :-
+parseType(F,Env,B,C0,Cx,Tp) :-
   isConstrained(F,T,C),!,
   parseConstraints(C,Env,B,C0,C1),
-  parseType(T,Env,B,C1,Cx,Tp),
-  wrapConstraints(Cx,Tp,Typ).
+  parseType(T,Env,B,C1,Cx,Tp).
 parseType(Nm,Env,B,C0,Cx,Tp) :-
   isIden(Nm,Lc,Id), !,
   parseTypeName(Lc,Id,Env,B,C0,Cx,Tp).
@@ -72,15 +71,13 @@ parseType(T,Env,B,Cx,Cx,faceType(AT,FT)) :-
   isBraceTuple(T,_,L),!,
   parseTypeFields(L,Env,B,[],AT,[],FT).
 parseType(Term,Env,_,C,Cx,Tp) :-
-  isFieldAcc(Term,Lc,L,Fld),!,
+  isFieldAcc(Term,Lc,L,Fld),
   isIden(L,Nm),
-  newTypeVar(Nm,RTp),
-  isVar(Nm,Env,Spec),!,
-  typeOfVar(Lc,Nm,RTp,Spec,Env,_,_),
-  faceOfType(RTp,Env,Face),
+  isVar(Nm,Env,vrEntry(_,_,RcTp,Fc)),!,
+  call(Fc,Env,Face),
   freshen(Face,Env,_,FFace),
   moveConstraints(FFace,C0,faceType(_,Types)),
-  fieldInFace(Types,RTp,Fld,Lc,Tp),
+  fieldInFace(Types,Fld,RcTp,Lc,Tp),
   concat(C0,C,Cx).
 parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
@@ -92,10 +89,10 @@ parseArgType(T,Env,Q,C,Cx,tupleType(AT)) :-
 parseArgType(T,Env,Q,C,Cx,Tp) :-
   parseType(T,Env,Q,C,Cx,Tp).
 
-fieldInFace(Fields,_,Nm,_,Tp) :-
+fieldInFace(Fields,Nm,_,_,Tp) :-
   is_member((Nm,Tp),Fields),!.
-fieldInFace(_,Tp,Nm,Lc,anonType) :-
-  reportError("type %s not declared in %s",[Nm,Tp],Lc).
+fieldInFace(_,Nm,RcTp,Lc,anonType) :-
+  reportError("type %s not declared in %s",[Nm,RcTp],Lc).
 
 parseTypeName(_,"_",_,_,C,C,anonType).
 parseTypeName(_,"void",_,_,C,C,voidType).
@@ -174,8 +171,8 @@ parseConstraint(T,Env,B,C0,Cx) :-
 parseConstraint(T,Env,B,C0,Cx) :-
   isBinary(T,"<~",L,R),
   parseType(L,Env,B,C0,C1,TV),
-  parseTypeFace(R,Env,B,AT),
-  addConstraint(implementsFace(TV,AT),C1,Cx).
+  parseType(R,Env,B,C1,C2,AT),
+  addConstraint(implementsFace(TV,AT),C2,Cx).
 parseConstraint(Sq,Env,B,C0,Cx) :-
   isSquare(Sq,Lc,N,Args),
   parseContractArgs(Args,Env,B,C0,C1,ArgTps,Deps),

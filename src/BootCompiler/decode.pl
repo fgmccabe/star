@@ -66,33 +66,27 @@ decodeType(tpFun(Nm,Ar)) --> ['z'], typeLen(Ar), decodeText(Nm).
 decodeType(typeExp(tpFun("star.core*list",1),[ElTp])) --> ['L'], decodeType(ElTp).
 decodeType(typeExp(Op,ArgTypes)) --> ['U'], decodeType(Op), decodeTypes(ArgTypes).
 decodeType(allType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).
+decodeType(existType(TV,Tp)) --> ['e'], decodeType(TV), decodeType(Tp).
 decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con).
 decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(Tps).
 decodeType(funType(A,T)) --> ['F'], decodeType(A), decodeType(T).
-decodeType(ptnType(A,T)) --> ['p'], decodeArgTypes(A), decodeType(T).
+decodeType(ptnType(A,T)) --> ['p'], decodeType(A), decodeType(T).
 decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
 decodeType(tupleType(Tps)) --> ['T'], decodeTypes(Tps).
 decodeType(typeExists(L,R)) --> ['Y'], decodeType(L), decodeType(R).
-
+decodeType(contractExists(L,R)) --> ['Z'], decodeConstraint(L), decodeType(R).
 
 typeLen(Len) --> digits(0,Len).
 
-decodeTypes(0,[]) --> [].
-decodeTypes(Ln,[A|More]) --> { Ln > 0 }, decodeType(A), {L1 is Ln-1}, decodeTypes(L1,More).
-decodeTypes(Types) --> typeLen(Len), decodeTypes(Len,Types).
+decodeTypes(Tps) --> ['('], decodeTps(Tps).
 
-decodeArgTypes(0,[]) --> [].
-decodeArgTypes(Ln,[A|More]) --> { Ln > 0 }, decodeMode(_), decodeType(A), {L1 is Ln-1}, decodeArgTypes(L1,More).
-decodeArgTypes(Types) --> typeLen(Len), decodeArgTypes(Len,Types).
+decodeTps([]) --> [')'].
+decodeTps([A|More]) --> decodeType(A), decodeTps(More).
 
-decodeFields(0,[]) --> [].
-decodeFields(Ln,[(Nm,Tp)|More]) --> { Ln > 0 }, decodeText(Nm), decodeType(Tp), {L1 is Ln-1}, decodeFields(L1,More).
-decodeFields(Fields) --> typeLen(Len), decodeFields(Len,Fields).
+decodeFields(Flds) --> ['{'], decodeFlds(Flds).
 
-decodeMode(inMode) --> ['+'].
-decodeMode(outMode) --> ['-'].
-decodeMode(biMode) --> ['?'].
-decodeMode(biMode) --> [].
+decodeFlds([]) --> ['}'].
+decodeFlds([(Nm,Tp)|More]) --> decodeText(Nm), decodeType(Tp),decodeFlds(More).
 
 decodeConstraint(S,Con) :-
   string_chars(S,Chrs),

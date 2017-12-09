@@ -82,7 +82,8 @@ reformAlgebraic(St,[(tpe(Nm),Lc,[TpRule])|Lst],Lx,A,Ax,Export,P,Px) :-
   binary(Lc,"<~",Head,Face,TRl),
   reConstrain(Constraints,TRl,CTrl),
   reUQuant(Quants,CTrl,TpRule),
-  buildConstructors(Body,Quants,Constraints,Nm,Head,Lst,Lx,A,Ax,Export,P,Px).
+  call(Export,tpe(Nm),P,P0),
+  buildConstructors(Body,Quants,Constraints,Nm,Head,Lst,Lx,A,Ax,Export,P0,Px).
 
 algebraicFace(C,F) :-
   isBinary(C,"|",L,R),
@@ -125,7 +126,7 @@ buildConstructor(N,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],
   isIden(N,Lc,Nm),
   reConstrain(Constraints,Tp,Rl),
   reUQuant(Quants,Rl,St),
-  call(Export,Nm,P,Px).
+  call(Export,var(Nm),P,Px).
 buildConstructor(C,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
   isRoundCon(C,_,_,Lc,Nm,Args,Export,P,Px),
   roundTuple(Lc,Args,Hd),
@@ -156,7 +157,7 @@ isBraceCon(C,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
 
 isCon(C,Tst,[],[],Lc,Nm,Els,Export,P,Px) :-
   call(Tst,C,Lc,Nm,Els),
-  call(Export,cns(Nm),P,Px).
+  call(Export,var(Nm),P,Px).
 isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
   isXQuantified(C,XQ,I),
   isCon(I,Tst,_,XC,Lc,Nm,Els,Export,P,Px).

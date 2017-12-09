@@ -34,17 +34,28 @@ star.core {
       name : t.
       spouse: option[person[t]].
       spouse default = none.
-      /* assert spouse\==none */
+      assert spouse\==none
     }
 
   foo : string.
   foo = "".
 
   fp : person[string].
-  fp = someOne{ name = foo. spouse = none. assert name == foo}
+  fp = someOne{ name = foo. spouse = none. /*assert name == foo*/}
 
   assert fp.name == "".
 
   id: all x ~~ (x)=>x.
   id(X) => X.
+
+  public implementation equality[integer] => {
+    X == Y => _int_eq(X,Y).
+    hash(X) => X.
+  }
+
+  fct:(integer)=>integer.
+  fct(0)=>1.
+  fct(N) => _int_times(N,fct(_int_minus(N,1))).
+
+  assert fct(3)==6.
 }

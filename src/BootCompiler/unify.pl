@@ -120,11 +120,10 @@ getFace(typeExp(Op,Args),Env,Face) :- deRef(Op,tpFun(Nm,Ar)), length(Args,Ar),!,
   moveConstraints(Rl,_,typeExists(Lhs,FTp)),
   sameType(Lhs,typeExp(Op,Args),Env),!,
   getFace(FTp,Env,Face).
-getFace(T,Env,faceType(Face,[])) :- isUnbound(T), !, % fix me - implement types
-  constraints(T,C),
-  collectImplements(C,Env,[],Face).
-getFace(T,Env,faceType(Face,[])) :- isKvar(T),!,
-  collectImplementsConstraints(T,Env,Face).
+getFace(T,Env,Face) :- deRef(T,TT),isUnbound(TT), !, % fix me - implement types
+  collectImplements(TT,Env,Face).
+getFace(T,Env,Face) :- isKvar(T),!,
+  collectImplements(T,Env,Face).
 getFace(faceType(Face,Tps),_,faceType(Face,Tps)) :- !.
 getFace(existType(V,T),Env,existType(V,F)) :-
   faceOfType(T,Env,F).
@@ -133,19 +132,21 @@ getFace(allType(V,T),Env,allType(V,F)) :-
 
 isKvar(V) :- deRef(V,kVar(_)).
 
-collectImplementsConstraints(T,Env,Face) :-
-  allImplements(T,Env,Face).
+collectImplements(V,Env,faceType(Fields,Types)) :-
+  allConstraints(Env,Cons),
+  pickupImplements(V,Cons,[],Fields,[],Types).
 
-collectImplements(C,_,Face,Face) :- var(C),!.
-collectImplements([C|_],_,Face,Face) :- var(C),!.
-collectImplements([implementsFace(_,F)|R],Env,SoFar,Face) :-!,
-  mergeFace(F,Env,SoFar,SF),
-  collectImplements(R,Env,SF,Face).
-collectImplements([typeExp(_,_)|R],Env,SoFar,Face) :-!,
-  collectImplements(R,Env,SoFar,Face).
+pickupImplements(_,[],_,F,F,T,T).
+pickupImplements(V,[implementsFace(TV,faceType(Fv,Tv))|Cons],Env,F,Fx,T,Tx) :-
+  isIdenticalVar(V,TV),!,
+  mergeFields(F,Env,Fv,F0),
+  mergeFields(T,Env,Tv,T0),
+  pickupImplements(V,Cons,Env,F0,Fx,T0,Tx).
+pickupImplements(V,[_|Cons],Env,F,Fx,T,Tx) :-
+  pickupImplements(V,Cons,Env,F,Fx,T,Tx).
 
-mergeFace([],_,Face,Face) :-!.
-mergeFace([(Nm,Tp)|R],Env,SoFar,Face) :- is_member((Nm,STp),SoFar),!,
+mergeFields([],_,Face,Face) :-!.
+mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- is_member((Nm,STp),SoFar),!,
   sameType(Tp,STp,Env),
-  mergeFace(R,Env,SoFar,Face).
-mergeFace([(Nm,Tp)|R],Env,SoFar,Face) :- mergeFace(R,Env,[(Nm,Tp)|SoFar],Face).
+  mergeFields(R,Env,SoFar,Face).
+mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- mergeFields(R,Env,[(Nm,Tp)|SoFar],Face).

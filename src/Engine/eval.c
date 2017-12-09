@@ -175,10 +175,6 @@ integer run(processPo P, heapPo heap) {
         continue;
       }
 
-      case LdE:
-        push(free(collectI32(PC))); /* load from free variables */
-        continue;
-
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
         closurePo cl = (closurePo) pop();  /* which closure? */
@@ -199,10 +195,6 @@ integer run(processPo P, heapPo heap) {
         *dest = (termPo) pop();     /* store as argument */
         continue;
       }
-
-      case StE:          /* store into free. Should not normally happen */
-        free(collectI32(PC)) = pop();
-        continue;
 
       case StNth: {      /* store into a closure */
         int32 ix = collectI32(PC);

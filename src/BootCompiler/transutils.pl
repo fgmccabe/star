@@ -90,11 +90,11 @@ extraVars([lyr(_,_,_,ThVr)|_],[ThVr]).
 
 thisVar([lyr(_,_,_,ThVr)|_],ThVr) :- ThVr \= void.
 
-mergeGoal(enu("core.star#true"),G,_,G).
-mergeGoal(G,enu("core.star#true"),_,G).
+mergeGoal(enu("star.core#true"),G,_,G).
+mergeGoal(G,enu("star.core#true"),_,G).
 mergeGoal(G1,G2,Lc,cnj(Lc,G1,G2)).
 
-mergeWhere(Exp,enu("core.star#true"),_,Exp).
+mergeWhere(Exp,enu("star.core#true"),_,Exp).
 mergeWhere(Exp,G,Lc,whr(Lc,Exp,G)).
 
 pushOpt(Opts,Opt,[Opt|Opts]).

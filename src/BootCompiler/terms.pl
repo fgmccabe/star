@@ -1,4 +1,4 @@
-:- module(terms,[displayRules/1,showRules/3]).
+:- module(terms,[displayRules/1,showRules/3,substTerm/3]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -20,12 +20,9 @@ displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res
 showRuleSets(L,O,Ox) :-
   listShow(L,terms:showRuleSet,"\n\n",O,Ox).
 
-showRuleSet(fnDef(_,_,Eqns),O,Ox) :-
-  appStr("Function:\n",O,O1),
-  listShow(Eqns,terms:showRule,"\n",O1,Ox).
-
-showRule(eqn(_,_,Nm,Args,Value),O,Ox) :-
-  showTerm(Nm,O,O1),
+showRuleSet(fnDef(_,Nm,Args,Value),O,Ox) :-
+  appStr("Function:\n",O,O0),
+  showTerm(Nm,O0,O1),
   showArgs(Args,O1,O2),
   appStr(" => ",O2,O3),
   showTerm(Value,O3,O4),
@@ -56,7 +53,7 @@ showTerm(ocall(_,Call,Rec),O,Ox) :-
 showTerm(ecll(_,Es,Args),O,Ox) :-
   appStr(Es,O,O1),
   showArgs(Args,O1,Ox).
-showTerm(cns(Op,A),O,Ox) :-
+showTerm(ctpl(Op,A),O,Ox) :-
   showTerm(Op,O,O1),
   showArgs(A,O1,Ox).
 showTerm(enu(Nm),O,Ox) :-
@@ -76,6 +73,16 @@ showTerm(tpl(Els),O,Ox) :-
 showTerm(whr(_,Ptn,Cond),O,Ox) :-
   showTerm(Ptn,O,O1),
   showTermGuard(Cond,O1,Ox).
+showTerm(varNames(_,Vars,Value),O,Ox) :-
+  appStr("varDebug: ",O,O0),
+  showVarNames(Vars,O0,O1),
+  appStr(" $ ",O1,O2),
+  showTerm(Value,O2,Ox).
+showTerm(case(_,T,Cases),O,Ox) :-
+  appStr("case ",O,O1),
+  showTerm(T,O1,O2),
+  appStr(" in ",O2,O3),
+  showCases(Cases,O3,Ox).
 showTerm(cnj(_,L,R),O,Ox) :-
   showTerm(L,O,O1),
   appStr(" && ",O1,O2),
@@ -106,3 +113,67 @@ showTermGuard(enu("star.core#true"),Ox,Ox) :- !.
 showTermGuard(T,O,Ox) :-
   appStr(" where ",O,O1),
   showTerm(T,O1,Ox).
+
+showVarNames([],O,O).
+showVarNames([(V,Vx)|Vrs],O,Ox) :-
+  appStr(V,O,O1),
+  appStr(" -> ",O1,O2),
+  showTerm(Vx,O2,O3),
+  appStr(", ",O3,O4),
+  showVarNames(Vrs,O4,Ox).
+
+substTerm(_,intgr(Ix),intgr(Ix)).
+substTerm(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
+substTerm(_,idnt(Nm),idnt(Nm)).
+substTerm(_,float(Dx),float(Dx)).
+substTerm(_,strg(Sx),strg(Sx)).
+substTerm(_,enu(Nm),enu(Nm)).
+substTerm(_,strct(Nm,Ar),strct(Nm,Ar)).
+substTerm(_,prg(Nm,Ar),prg(Nm,Ar)).
+substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
+  substTerm(Q,Op,NOp),
+  substTerms(Q,Args,NArgs).
+substTerm(Q,ocall(Lc,Call,Rec),ocall(Lc,NCall,NRec)) :-
+  substTerm(Q,Call,NCall),
+  substTerm(Q,Rec,NRec).
+substTerm(Q,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
+  substTerm(Q,Op,NOp),
+  substTerms(Q,Args,NArgs).
+substTerm(Q,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
+  substTerms(Q,Args,NArgs).
+substTerm(Q,tpl(Els),tpl(NEls)) :-
+  substTerms(Q,Els,NEls).
+substTerm(Q,whr(Lc,T,C),whr(Lc,NT,NC)) :-
+  substTerm(Q,T,NT),
+  substTerm(Q,C,NC).
+substTerm(Q,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
+  map(V,terms:substVN(Q),NV),
+  substTerm(Q,T,NT).
+substTerm(Q,case(Lc,T,C),case(Lc,NT,NC)) :-
+  substTerm(Q,T,NT),
+  map(C,terms:substCase(Q),NC).
+substTerm(Q,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
+  substTerm(Q,L,NL),
+  substTerm(Q,R,NR).
+substTerm(Q,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
+  substTerm(Q,L,NL),
+  substTerm(Q,R,NR).
+substTerm(Q,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
+  substTerm(Q,T,NT),
+  substTerm(Q,L,NL),
+  substTerm(Q,R,NR).
+substTerm(Q,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
+  substTerm(Q,L,NL),
+  substTerm(Q,R,NR).
+substTerm(Q,ng(Lc,R),ng(Lc,NR)) :-
+  substTerm(Q,R,NR).
+
+substTerms(Q,Els,NEls):-
+  map(Els,terms:substTerm(Q),NEls).
+
+substVN(Q,(T,E),(T,NE)) :-
+  substTerm(Q,E,NE).
+
+substCase(Q,(T,E),(NT,NE)) :-
+  substTerm(Q,T,NT),
+  substTerm(Q,E,NE).

@@ -1,4 +1,4 @@
-:- module(genprolog,[genRules/2]).
+:- module(genprolog,[genRules/3]).
 
 :- use_module(misc).
 :- use_module(types).
@@ -6,24 +6,21 @@
 :- use_module(encode).
 :- use_module(uri).
 
-genRules(export(Pkg,Imports,Fields,Types,Enums,Rules,Contracts,Impls),Text) :-
-  genPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,Chrs,O1),
-  genPlRules(Rules,O1,[]),
+genRules(module(Pkg,Imports,Fields,Types,Enums,Defs,Contracts,Impls),Sig,Text) :-
+  genPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,Sig),
+  genPlDefs(Defs,Chrs,[]),
   string_chars(Text,Chrs).
 
-genPkgSig(Pkg,Imports,Fields,Enums,Contracts,Impls,O,Ox) :-
-  constructPkgSig(Pkg,Imports,Fields,Enums,Contracts,Impls,Term),
-  appQuoted("#pkg",'''',O,O1),
-  appStr("(",O1,O2),
-  encodeTerm(Term,TChrs,[]),
-  appQuoted(TChrs,'"',O2,O3),
-  appStr(").\n",O3,Ox).
+genPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,Sig) :-
+  constructPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,Term),
+  encodeTerm(Term,Chrs,[]),
+  string_chars(Sig,Chrs).
 
-constructPkgSig(Pkg,Imports,Fields,Enums,Contracts,Impls,
-    tpl([PkgNm,tpl(Imps),FTps,tpl(ClsSigs),tpl(ConSigs),tpl(ImplSigs)])) :-
+constructPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,
+    tpl([PkgNm,tpl(Imps),strg(Sig),tpl(ClsSigs),tpl(ConSigs),tpl(ImplSigs)])) :-
   encPkg(Pkg,PkgNm),
   encImports(Imports,Imps),
-  encType(Fields,FTps),
+  encType(faceType(Fields,Types),Sig),
   formatEnums(Enums,ClsSigs),
   formatContracts(Contracts,ConSigs),
   formatImpls(Impls,ImplSigs).
@@ -47,7 +44,7 @@ formatEnums([Nm|M],[strg(Nm)|R]) :-
   formatEnums(M,R).
 
 formatContracts([],[]).
-formatContracts([contract(Nm,CnNm,Spec)|M],[tpl([strg(Nm),strg(CnNm),strg(CSig)])|R]) :-
+formatContracts([conDef(Nm,CnNm,Spec)|M],[tpl([strg(Nm),strg(CnNm),strg(CSig)])|R]) :-
   encodeType(Spec,CChars,[]),
   string_chars(CSig,CChars),
   formatContracts(M,R).
@@ -58,27 +55,22 @@ formatImpls([imp(Nm,Spec)|M],[tpl([strg(Nm),strg(Sig)])|R]) :-
   string_chars(Sig,Chars),
   formatImpls(M,R).
 
-genPlRules(Rls,O,Ox) :-
-  rfold(Rls,genprolog:genPlRule,O,Ox).
+genPlDefs(Defs,O,Ox) :-
+  rfold(Defs,genprolog:genDef,O,Ox).
 
-genPlRule(clse(_,Nm,Args,Body),O,Ox) :-
+genDef(fnDef(_,Nm,Rules),O,Ox) :-
+  genPlRules(Rules,Nm,O,Ox).
+
+genPlRules(Rls,Nm,O,Ox) :-
+  rfold(Rls,genprolog:genPlRule(Nm),O,Ox).
+
+genPlRule(Nm,eqn(_,Args,Body),O,Ox) :-
   genTerm(Nm,O,O2),
   appStr("(",O2,O3),
   genTerms(Args,O3,O4),
   appStr(")",O4,O5),
   genBody(Body,O5,O6),
   appStr(".\n",O6,Ox).
-
-genQuants([],O,O) :- !.
-genQuants([V|Q],O,Ox) :-
-  appStr("all ",O,O1),
-  genTerm(V,O1,O2),
-  rfold(Q,genprolog:genMoreQuant,O2,O3),
-  appStr(" ~~ ",O3,Ox).
-
-genMoreQuant(V,O,Ox) :-
-  appStr(", ",O,O0),
-  genTerm(V,O0,Ox).
 
 genBody([],O,O).
 genBody([G|Body],O,Ox) :-

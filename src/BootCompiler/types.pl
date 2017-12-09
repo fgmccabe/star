@@ -11,7 +11,6 @@ isType(voidType).
 isType(thisType).
 isType(kVar(_)).
 isType(tVar(_,_,_,_)).
-isType(tFun(_,_,_,_)).
 isType(type(_)).
 isType(typeExp(_,_)).
 isType(refType(_)).
@@ -42,6 +41,9 @@ deRef(tVar(Curr,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
 deRef(T,T).
 
 isIdenticalVar(tVar(_,_,_,Id),tVar(_,_,_,Id)).
+isIdenticalVar(kVar(Id),kVar(Id)).
+isIdenticalVar(kFun(Id,Ar),kFun(Id,Ar)).
+
 
 isUnbound(T) :- deRef(T,tVar(Curr,_,_,_)), var(Curr).
 
@@ -121,7 +123,8 @@ showType(typeLambda(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("~>",O1,O2),showTy
 showType(contractExists(Spc,Fc),O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,O2,Ox).
 showType(constrained(Tp,Con),O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
 
-showMoreConstraints(constrained(Tp,Con),O,Ox) :- appStr(",",O,O1), showConstraint(Con,O1,O2), showMoreConstraints(Tp,O2,Ox).
+showMoreConstraints(constrained(Tp,Con),O,Ox) :-
+  appStr(",",O,O1), showConstraint(Con,O1,O2), showMoreConstraints(Tp,O2,Ox).
 showMoreConstraints(Tp,O,Ox) :- appStr("|:",O,O1),showType(Tp,O1,Ox).
 
 showConstraint(allType(V,B),O,Ox) :-
@@ -137,10 +140,10 @@ showConstraint(conTract(Nm,Els,Deps),O,Ox) :-
   appStr("->>",O3,O4),
   showTypeEls(Deps,O4,O5),
   appStr("]",O5,Ox).
-showConstraint(implementsFace(Tp,Els),O,Ox) :-
+showConstraint(implementsFace(Tp,Face),O,Ox) :-
   showType(Tp,O,O1),
   appStr("<~",O1,O2),
-  showType(faceType(Els,[]),O2,Ox).
+  showType(Face,O2,Ox).
 showConstraint(constrained(Con,Extra),O,Ox) :-
   showConstraint(Extra,O,O1),
   appStr("|:",O1,O2),
@@ -163,7 +166,8 @@ showFieldTypes([F|More],Sep,Spx,O,E) :- appStr(Sep,O,O0),showField(F,O0,O1), sho
 showField((Nm,Tp),O,E) :- appStr(Nm,O,O1), appStr(" : ",O1,O2), showType(Tp,O2,E).
 
 showTypeFields([],Sp,Sp,O,O).
-showTypeFields([F|More],Sep,Spx,O,E) :- appStr(Sep,O,O0),showTypeField(F,O0,O1), showTypeFields(More,". ",Spx,O1,E).
+showTypeFields([F|More],Sep,Spx,O,E) :-
+  appStr(Sep,O,O0),showTypeField(F,O0,O1), showTypeFields(More,". ",Spx,O1,E).
 
 showTypeField((Nm,Tp),O,E) :- appStr(Nm,O,O1), appStr(" ~> ",O1,O2), showType(Tp,O2,E).
 
@@ -176,7 +180,7 @@ typeArity(Tp,Ar) :- deRef(Tp,TTp), tpArity(TTp,Ar).
 
 tpArity(allType(_,Tp),Ar) :- typeArity(Tp,Ar).
 tpArity(existType(_,Tp),Ar) :- typeArity(Tp,Ar).
-tpArity(constrained(Tp,_),Ar) :- typeArity(Tp,Ar).
+tpArity(constrained(Tp,_),Ar) :- typeArity(Tp,A), Ar is A+1.
 tpArity(funType(A,_),Ar) :- typeArity(A,Ar).
 tpArity(ptnType(A,_),Ar) :- typeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- tpArity(A,Ar).

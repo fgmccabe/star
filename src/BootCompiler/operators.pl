@@ -48,6 +48,7 @@
   operator("/", [infixOp(700, 700, 699)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("•", [infixOp(450, 450, 449)]).
+  operator("<<", [infixOp(499, 500, 499)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
@@ -159,6 +160,7 @@
   follows(':','=',':=').
   follows('::','=','::=').
   follows('<','~','<~').
+  follows('<','<','<<').
   follows('<','=','<=').
   follows('<=','>','<=>').
   follows('=','<','=<').
@@ -210,6 +212,7 @@
   final(':=',":=").	 /* reassignable variable definition */
   final('<',"<").	 /* less than */
   final('<~',"<~").	 /* type rule */
+  final('<<',"<<").	 /* string formatting */
   final('<=',"<=").	 /* pattern arrow */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */

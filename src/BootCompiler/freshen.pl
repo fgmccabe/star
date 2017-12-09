@@ -108,9 +108,9 @@ frshnConstraint(Con,_,[],Con) :- !.
 frshnConstraint(conTract(Nm,Args,Deps),E,B,conTract(Nm,FArgs,FDeps)) :-
   rewriteTypes(Args,E,B,FArgs),
   rewriteTypes(Deps,E,B,FDeps).
-frshnConstraint(implementsFace(Tp,Els),E,B,implementsFace(FTp,FL)) :-
+frshnConstraint(implementsFace(Tp,Face),E,B,implementsFace(FTp,FFace)) :-
   frshn(Tp,E,B,FTp),
-  frshnFields(Els,E,B,FL).
+  frshn(Face,E,B,FFace).
 frshnConstraint(constrained(C1,C2),E,B,constrained(FC1,FC2)) :-
   frshnConstraint(C1,E,B,FC1),
   frshnConstraint(C2,E,B,FC2).

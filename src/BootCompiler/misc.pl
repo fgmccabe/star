@@ -1,6 +1,6 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
-        collect/4,map/3,rfold/4,project0/2,project1/2,
+        collect/4,map/3,rfold/4,project0/2,project1/2,zip/3,
         appStr/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,genstr/2,
         subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
         localName/4,
@@ -9,7 +9,7 @@
         marker/2,
         same/2,
         interleave/3,concatStrings/2,
-        quickSort/3]).
+        quickSort/3,sortedMerge/4]).
 
 same(X,X).
 
@@ -73,6 +73,9 @@ project1([],[]).
 project1([(_,E)|L],[E|K]) :-
   project1(L,K).
 
+zip([],[],[]).
+zip([E1|L1],[E2|L2],[(E1,E2)|L3]) :-
+  zip(L1,L2,L3).
 
 filter([],_,[]) :- !.
 filter([E|L],F,[E|M]) :-
@@ -199,3 +202,12 @@ qSort([T|L],Cmp,S) :-
   qSort(L1,Cmp,S1),
   qSort(L2,Cmp,S2),
   concat(S1,[T|S2],S).
+
+sortedMerge([],L,_,L).
+sortedMerge(L,[],_,L).
+sortedMerge([E1|L1],[E2|L2],C,[E1|Lx]) :-
+  call(C,E1,E2),!,
+  sortedMerge(L1,[E2|L2],C,Lx).
+sortedMerge([E1|L1],[E2|L2],C,[E2|Lx]) :-
+  \+call(C,E1,E2),!,
+  sortedMerge([E1|L1],L2,C,Lx).

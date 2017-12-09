@@ -1,7 +1,7 @@
 :- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
-    isCanon/1,isAssertion/1,
+    isCanon/1,isAssertion/1,ruleArity/2,
     thetaLoc/2,thetaDefs/2]).
 
 :- use_module(misc).
@@ -188,8 +188,8 @@ showTypeDef((_,Type),O,Ox) :-
 showContracts(L,O,Ox) :-
   listShow(L,canon:showContract,"\n",O,Ox).
 
-showContract(conDef(LclNm,Nm,ConRule),O,Ox) :-,
-  appStr(LclNm,O,O0)
+showContract(conDef(LclNm,Nm,ConRule),O,Ox) :-
+  appStr(LclNm,O,O0),
   appStr("contract: ",O0,O1),
   appStr("\n",O1,O2),
   appStr(Nm,O2,O3),
@@ -323,3 +323,6 @@ showStmt(assertion(_,Cond),O,Ox) :-
 showStmt(ignore(_,Exp),O,Ox) :-
   appStr("  ignore ",O,O1),
   showCanonTerm(Exp,O1,Ox).
+
+ruleArity(equation(_,_,tple(_,A),_),Ar) :-
+  length(A,Ar).

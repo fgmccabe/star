@@ -105,8 +105,8 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   transformProg(Prog,Opts,Rules),!,
   displayRules(Rules),
   noErrors,
-  genRules(Rules,Text),
-  addPrologPackage(Repo,SrcUri,Pkg,Text,Rx).
+  genRules(Rules,Sig,Text),
+  addPrologPackage(Repo,SrcUri,Pkg,Sig,Text,Rx).
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.

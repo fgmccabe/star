@@ -1,7 +1,7 @@
 /* Lexical scanner for the Cafe assembler */
 
 %option yylineno
-%option bison-bridge bison-locations 
+%option bison-bridge bison-locations
 %option noyywrap nounput
 %option nodefault
 
@@ -45,12 +45,6 @@ static long hextoi(char *text);
 
 #define RT(K) { yylloc->first_line = yylloc->last_line = yylineno; return K;}
 
-static char *newStr(char *src,int len){
-  char buffer[len+1];
-  uniNCpy(buffer, NumberOf(buffer),  src, len);
-  return uniDuplicate(buffer);
-}
-
 static long parseLong(char *text)
 {
   return parseInteger(text,strlen(text));
@@ -83,14 +77,13 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "--"[ \t].*\n RT(NL);			/* line comment */
 
 "/*"                            BEGIN(comment);
-<comment>\n                     
-<comment>[^*\n]*                
-<comment>"*"+[^*/\n]*           
+<comment>\n
+<comment>[^*\n]*
+<comment>"*"+[^*/\n]*
 <comment>"*"+"/"                BEGIN(INITIAL);
 
 "a"           RT(A);
 "l"           RT(L);
-"e"           RT(E);
 
 "halt"        RT(HALT);
 
@@ -173,7 +166,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "#"           RT(HASH);
 "/"           RT(SLASH);
 
--?[1-9]{DECDIGIT}* { 
+-?[1-9]{DECDIGIT}* {
   yylval->i = parseLong(yytext);
   RT(DECIMAL);
 		   }
@@ -182,11 +175,11 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 
 "0"{OCTDIGIT}*     { yylval->i = octtoi(yytext); RT(DECIMAL); }
 
-{DECDIGIT}+("."{DECDIGIT}+)?([eE][-+]?{DECDIGIT}+)? { 
+{DECDIGIT}+("."{DECDIGIT}+)?([eE][-+]?{DECDIGIT}+)? {
   yylval->f = parseFloat(yytext); RT(FLOAT);
 	       }
 
-{ID}          { yylval->str = newStr(yytext,strlen(yytext)); RT(ID); }
+{ID}          { yylval->str = uniDuplicate(yytext); RT(ID); }
 
 
 %{
@@ -210,11 +203,11 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 #define restart() { text = &buff[0]; pos=0; size=NumberOf(buff); }
 #define clear() { if(text!=buff){ free(text); restart(); } }
 %}
-  
+
 \'                             { restart(); BEGIN(quoted); }
 
 <quoted>{
-  \'                        { 
+  \'                        {
     BEGIN(INITIAL);
     putChar('\0');
     yylval->str = uniDuplicate(text);
@@ -247,7 +240,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 \"                             { restart(); BEGIN(string); }
 
 <string>{
-  \"                        { 
+  \"                        {
     BEGIN(INITIAL);
     putChar('\0');
     yylval->str = uniDuplicate(text);
@@ -319,7 +312,7 @@ static long hextoi(char *text)
 
     while(*hexStr!='\0'){
       int Hex = hexValue(*hexStr++);
-      
+
       if(0<=Hex && Hex<16)
 	val = val*16+Hex;
       else
@@ -330,7 +323,7 @@ static long hextoi(char *text)
     char *hexStr = text+1;
     while(*hexStr!='\0' && *hexStr!=';'){
       int Hex = hexValue(*hexStr++);
-      
+
       if(0<=Hex && Hex<16)
 	val = val*16+Hex;
       else
@@ -339,6 +332,6 @@ static long hextoi(char *text)
   }
   else
     outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
-  
+
   return val;
 }

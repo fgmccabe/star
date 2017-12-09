@@ -27,13 +27,15 @@ jsonVersions(P,[V|L],[Vers|More]) :-
   jsonVersion(P,V,Vers),
   jsonVersions(P,L,More).
 
-jsonVersion(P,("*",jColl(Dtl)),(pkg(P,defltVersion),SrcUri,fl(Code))) :-!,
+jsonVersion(P,("*",jColl(Dtl)),(pkg(P,defltVersion),Sig,SrcUri,fl(Code))) :-!,
   is_member(("source",jTxt(Src)),Dtl),
   is_member(("prolog",jTxt(Code)),Dtl),
+  is_member(("signature",jTxt(Sig)),Dtl),
   parseURI(Src,SrcUri).
-jsonVersion(P,(V,jColl(Dtl)),(pkg(P,ver(V)),SrcUri,fl(Code))) :-
+jsonVersion(P,(V,jColl(Dtl)),(pkg(P,ver(V)),Sig,SrcUri,fl(Code))) :-
   is_member(("source",jTxt(Src)),Dtl),
   is_member(("prolog",jTxt(Code)),Dtl),
+  is_member(("signature",jTxt(Sig)),Dtl),
   parseURI(Src,SrcUri).
 
 showManifest(man(E),O,Ox) :-
@@ -59,14 +61,16 @@ showVersions([V|M],O,Ox) :-
   showVersion(V,O,O1),
   showVersions(M,O1,Ox).
 
-showVersion((pkg(_,V),U,F),O,Ox) :-
+showVersion((pkg(_,V),Sig,U,F),O,Ox) :-
   appStr("    ",O,O1),
   showV(V,O1,O2),
-  appStr("=",O2,O3),
-  showFileName(F,O3,O4),
-  appStr("[",O4,O5),
-  showUri(U,O5,O6),
-  appStr("]\n",O6,Ox).
+  appStr(":",O2,O3),
+  appQuoted(Sig,'"',O3,O4),
+  appStr("@",O4,O5),
+  showFileName(F,O5,O6),
+  appStr("[",O6,O7),
+  showUri(U,O7,O8),
+  appStr("]\n",O8,Ox).
 
 showV(ver(V),O,Ox) :-
   appStr(V,O,Ox).
@@ -89,12 +93,12 @@ manifestVersions([V|L],[J|M]) :-
   manifestVersion(V,J),
   manifestVersions(L,M).
 
-manifestVersion((pkg(_,defltVersion),Src,fl(CodeFn)), ("*",VV)) :-
-  manifestDetails(CodeFn,Src,VV).
-manifestVersion((pkg(_,ver(Ver)),Src,fl(CodeFn)), (Ver,VV)) :-
-  manifestDetails(CodeFn,Src,VV).
+manifestVersion((pkg(_,defltVersion),Sig,Src,fl(CodeFn)), ("*",VV)) :-
+  manifestDetails(CodeFn,Sig,Src,VV).
+manifestVersion((pkg(_,ver(Ver)),Sig,Src,fl(CodeFn)), (Ver,VV)) :-
+  manifestDetails(CodeFn,Sig,Src,VV).
 
-manifestDetails(Fn,Uri,jColl([("source",jTxt(U)),("prolog",jTxt(Fn))])) :-
+manifestDetails(Fn,Sig,Uri,jColl([("source",jTxt(U)),("prolog",jTxt(Fn)),("signature",jTxt(Sig))])) :-
   showUri(Uri,C,[]),
   string_chars(U,C).
 

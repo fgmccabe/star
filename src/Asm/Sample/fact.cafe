@@ -1,9 +1,9 @@
 -- fact in cafe assembler
 -- Equivalent to
--- fact(0) is 1
--- fact(N) is fact(N-1)*N
+-- fact(0) => 1
+-- fact(N) => fact(N-1)*N
 
-fact :: "F(i)i" : "(F(i)i)"
+fact/1 :: "F(i)i"
      enter 0
      ld a[0]
      bnz nonZero
@@ -11,28 +11,17 @@ fact :: "F(i)i" : "(F(i)i)"
      ret
 nonZero:
      ld a[0]  -- start call to fact(N-1)
-     dec over
-     ld e[0] -- fact itself
-     call
+     deci
+     call fact/1 -- fact itself
      ld a[0]
-     mul over
-     ret
-over:
-     ld -1 -- return a bad value
+     muli
      ret
      end
 
-_main:: "F()()" : "()"
-     enter 1
-     ld 0                        -- dummy
-     alloc fact
-     dup
-     dup
-     st [0]                      -- set up the recursive reference
-     st l[0]
+_main/0:: "F()()"
+     enter 0
      ld 5
-     ld l[0]
-     call
+     call fact/1
      halt
      end
 
