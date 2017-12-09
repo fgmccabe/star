@@ -1,0 +1,649 @@
+#Chattering Agents[chattering-agents]
+
+Software agents represent one of those concepts that are very compelling -- perhaps precisely because it speaks to natural human intuitions. Agents are also a popular model for distributed systems. Distributed systems are often characterized by multiple loci of control -- typically one per machine in the system -- and assigning an agent to each locus is a very natural architecture.
+
+In this chapter we look at how we can build agent-based systems and hence distributed systems.
+
+>You will notice that the style of this chapter is a little different from previous chapters. This is because many of the concepts we discuss relatively high-level and are not commonly directly grounded in conventional programming paradigms. However, building distributed systems _is_ a programming task; even if many of the issues and concepts don't have much in the way of touch points in language features.
+
+On the other hand, **Star** does have some important features that simplify building this style of application: notably the _actor_, _speech actions_ and support for _component architectures_.
+
+##A Taxonomy of Agents[a-taxonomy-of-agents]
+
+There is a natural hierarchy of types of agent -- which roughly aligns with their roles and capabilities in distributed applications:
+
+**Agent**
+: An _agent_ is an entity that can act; often on behalf of another entity. By extension, a software agent is one that acts primarily in the software domain.
+
+The difference between an agent and a function is that the latter must be invoked before any actions in it's body can be performed; whereas an agent is 'already' ready to act.
+
+There is a vast potential range in capabilities of agents; for example, at a lower limit, one can argue that a thermostat can be viewed as a very simple agent -- because it represents a localized responsibility for controlling the temperature in a room. Another common, though considerably more complex example, is the web browser: from the perspective of most web servers, browsers are agents that acts in the network for and on behalf of consumers.
+
+>There is even a fair amount of autonomy in browsers: modern browsers have features that attempt to keep their owners safe from phishing attacks and also are able to warn users that certain websites are dangerous to visit.
+
+We have already encountered a **Star** feature that can be interpreted as being agent-like -- the `task`. In fact, tasks have quite a few characteristics of autonomy: they can be performed in the background, they can collaborate via rendezvous and they can be used to implement systems involving multiple loci of activity.
+
+However, a more accurate assessment would be that `task`s and the rendezvous are good candidate technologies to _realize_ an agent; just as bits of wire and bimetal can be bent together to make a thermostat. Moreover, **Star**'s concurrency concepts are more suited to constructing concurrent algorithms than whole distributed systems. This is because the primary issues that drive the complexity of distributed systems are different to those of concurrent algorithms: in particular, the necessity of handling communication between different computers.
+
+Given the basic concept of agent, one might ask what are the characteristic attributes of an agent. Clearly, the most basic attribute is a capacity for action (this is built in to the definition of agenthood). A corollary of this is some kind of sensing capability -- to determine what action to take (or not).
+
+Once one can sense and act, the next required capability is the capacity to decide to act. This leads us to a hierarchy of introspective capabilities which we call _cognition_:
+
+**Cognitive Agent**
+: A software agent that has an explicit representation of its own activities and capabilities.
+
+Typically, this model takes the form of internal data structures that contain representations of some of the data the agent has (beliefs), some of the activities the agent is engaged in (actions) and some of the objectives the agent is pursuing (goals). Cognitive agents may also have explicit structures that describe the capabilities of the agent (plans).
+
+Note that mechanical thermostats cannot be considered to be cognitive: there is no representation within a typical thermostat of its switching capabilities: it simply flips when the temperature moves; it cannot know that that is what it is doing -- much less know about about the heating system it controls. On the other hand, some modern advanced computer-controlled thermostats certainly do understand that they are controlling heating and cooling systems.
+
+Cognitive agent architectures are useful in situations where the activities of the agent are likely to be dynamic; perhaps responding to multiple stimuli, perhaps being able to perform a range of different capabilities.
+
+![Cognitive Agent][cogAgent]
+
+[cogAgent]:images/headnbody.png width=300px
+
+A cognitive system can be interacted with at a higher level too. One can ask such a system if it is busy, for example. 
+
+One systematic way of endowing a software system with such a model is to model the beliefs, goals and ongoing actions as logical structures, perhaps as RDF graphs:
+
+```
+...
+beliefs has type graph of fact
+goals has type graph of goal
+actions has type graph of action
+capabilities has type graph of plan
+...
+```
+
+Together, of course, with the semantics that links changes in the real world with changes in these variables and with rules that allow beliefs, goals and actions to be properly integrated.
+
+>We should also emphasize that many software systems already do have some limited cognitive capabilities. For example, a system with a 'plug-in' architecture can be said to have some awareness of its capabilities; similarly, in multi-threaded systems, _task queues_ represent a simple form of self-awareness of current activities.
+
+  However, having a _systematic_ representation of beliefs, desires, intentions and capabilities should simplify and accelerate the development of heterogenous agent-based applications.
+
+While the difference between a 'dumb agent' and a cognitive agent may be one of degree, self-awareness is viewed as _the_ major distinguishing feature of cognitive agents. Self-awareness is especially useful in situations where agents have to deal with complex overlapping scenarios; such as, for example, with human-computer interaction; or when trying to make sense of noisy physical data with multiple potential interpretations.
+
+A self aware agent can even refuse to perform some activity -- one of the more popular definitions of software agents is that they are _autonomous_ systems. This can arise when a cognitive agent can _measure_ the utility value for performing tasks: the basis for refusing to do something would be if the utility is below some
+threshold.
+
+>Even for agent systems that do have explicit representations of themselves there is always a large and deep 'sub-conscious' part of the agent -- i.e., that part of the agent that is not modeled within the agent. It is simply not possible for an agent to know everything about itself -- a situation familiar to most human agents.
+
+**Collaborative Agent**
+: A collaborative agent is one which participates in a network of agents; and is able to achieve goals by involving other agents in the network. A particularly interesting case of collaboration is where one agent _recruits_ one or more agents to help it achieve it's goals.
+
+Collaborative agents abound in distributed systems; for example, the triumvirate of the browser, the web server and the database server can be viewed as three collaborating agents.
+
+Collaboration is independent of cognition. It is perfectly feasible to design networks of agents that have limited or no self-awareness. Conversely, cognitive agents are not _required_ to participate in a network; although much of the motivation for self-awareness disappears if the agent has no-one to talk to.
+
+The obvious hallmark of collaborative agents is _communication_: you cannot recruit others to do your bidding if you can't talk to them. There are many styles of communication possible between software entities; the one that we suggest for use in **Star** agents is based on _speech actions_.
+
+##Speech Actions[speech-actions]
+
+As the term suggests, speech actions are a communications model based on an anthropomorphic understanding of how agents communicate. Speech actions were first investigated by John Austin[][#austin:60] in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by John Searle [][#searle:69] and standardized in KQML [][#kqml:93] and FIPA [][#FIPA].
+
+Beyond the anthropomorphism, there are sound technical justifications basing computer communications on speech act theory.
+
+**Speech Action**
+: A speech action is a communication action intended to have an effect on the listener.
+
+For example, the classic:
+
+>I pronounce you man and wife
+
+is a speech action. It has an effect; even though no boulders are moved directly as a result of it, it has a substantial impact on the social fabric and therefore can have unbounded consequences in the physical world.
+
+Informally, a speech action can be considered to be a pair -- a _performative_ verb and a _content_ -- which in some formalizations takes the form of a _declarative proposition_. The performative, a communication verb like _inform_, _command_, _query_, or _declare_, indicates how the content is to be interpreted by a listener. This is highly stylized of course, but it represented a huge advance at the time regarding how communication between intelligent entities (people) should be understood.
+
+Another aspect of speech actions is that context is very important. It matters that the agent speaking has the authority to make the pronouncement, and that it is done in the right way and in the appropriate situation. Imagine a real judge saying ''I pronounce you man and wife'' in a theatrical play.
+
+Under normal circumstances, i.e., in the setting where the judge would typically make such a pronouncement, the result of the utterance is a new married couple. However, in this case it would not _count as_ an official action because of the fact it was a line in a play. The person making the declaration is the right person, and has the authority to perform the action but the context is wrong.
+
+>An interesting implication here is that _within the play_ the characters should respond to the matrimonial as though it were real -- if the play is to be believable!
+
+Speech actions are a great basis for expressing the content of communication between software agents -- they permit systematization of communication at a far higher level than purely syntactic structures (such as XML and JSON). That higher level enables us to build a common platform that addresses some key questions:
+
+*  Is the communication valid, authenticated, and authorized?
+*  Is any requested action _congruent_ with our own objectives?
+*  Can I reliably route the communication to another agent -- in a way   that properly conveys the intention of the communication?
+
+The latter issue relates to the question of _public semantics_. This is often misunderstood, but can be defined:
+
+**Public Semantics**
+: A communication has a public semantics if a third party listening to the communication would understand the communication in the same manner as the sender and receiver of the communication.
+
+Note that public semantics does _not require_ a third party listening in to every communication; it only requires the adherence to shared standards when communicating speech actions.
+
+Since we _are_ talking about communication in the context of software, other considerations are also important; in particular, _type safety_, _crossing machine boundaries_ and _efficiency_.
+
+##Programming Speech[programming-speech]
+
+A critical aspect of human communication is the vocabulary employed -- more formally the _ontology_ being referenced. The natural analog of this in software systems is the Application Programming Interface (API). An API specifies which functions you may invoke, what their types are and what the expected results of invoking the functions should be.
+
+>The major semantic difference between an API and an Ontology is that the latter can often convey more semantics. For example, it is possible, in an ontology but not in a typical API, to express the fact that a function called `plus` adds its numbers together.[^There are definite technical limits to this specificity though.]
+
+As it happens, **Star** has a natural way of expressing a complete API -- by using the _record type_. For example, the record type defined with the type alias:
+
+```
+type myAPI is alias of {
+  products has type list of (string,string)
+  quantity has type (string)=>integer
+}
+```
+
+can be viewed as the specification of an API. We are not limited to exposing functions in APIs: we can expose literal values, variables and even types.
+
+Having a type that can represent an entire API also allows us to be careful about distinguishing the API from _access_ to the API. We determine access to an API by computing a value whose type is the API -- for example by having a variable of the right type:
+
+```
+A has type myAPI
+```
+
+Here the API is determined by the `myAPI` type; access to it is mediated via the variable `A`. We access the API by accessing `A`, as in:
+
+```
+show list of { all y where 
+    (y,"1in-washer") in A.products and
+    A.quantity(y)>20 }
+```
+
+While perfectly serviceable, there are some substantial issues with this approach to accessing APIs. For example, we have this `A` variable showing up everywhere; and it is hard -- at first glance -- to see how this style of API can help us with building distributed systems.
+
+###Queries
+
+We have, in **Star**, a better, more systematic, approach to describing and implementing public APIs -- based on speech actions.[^And contracts of course.] For example, assuming that `Ag` had the appropriate type similar to that of `A` above, we could issue a speech action against `Ag` with a very similar query:
+
+```
+query Ag with list of { all y where 
+    (y,"1in-washer") in products and
+    quantity(y)>20 }
+```
+
+One of the most obvious differences here being where the target of the API is mentioned: it is only mentioned at the top of the query. The type of `Ag`, assuming nothing else is known about it, takes the form:[^This is a simplification of the actual speech contract form.]
+
+```
+Ag has type t where speech over t determines myAPI
+```
+
+This type annotation highlights two important aspects of speech actions as **Star** program fragments: the entity being queried must implement the `speech` contract and that the API of the queried entity is also baked into its type -- albeit via the `speech` contract. Actual concrete implementations of `speech` tend to show the relationship more directly -- as we shall see below when we look at [actors][actors].
+
+As we already noted, in classical speech action theory a speech action is a combination of a performative and content. **Star** supports three performatives: `notify` which corresponds to a notification that something has happened, `query` which corresponds to a question, and `request` which corresponds to a request to perform an action. We have found that these three performatives are sufficient to cover the vast majority of communication requirements in practical software systems.
+
+The general form of the `query` speech action is an _expression_ of the form:
+
+`query` _Agent_ `with` _Expression_
+
+where _Agent_ is an entity with a constrained type that implements the `speech` contract.
+
+>The `query` is an expression -- how can it be a speech action? The straightforward response is that it is not the expression that is the action, the speech action as a whole consists of the `query` performative and the content of the action is an expression. Syntactically, because the `query` has a value, it makes the most sense for the `query` to be presented to the programmer as an expression.
+
+####Free Variables in Speech[free-variables-in-speech]
+
+Although the body of a `query` speech action might be any expression, there are some syntactic restrictions on the valid forms of `query` expression. The primary reason for these restrictions is to make it simpler to determine the _scopes_ of identifiers occurring in the query expression. Specifically, we need to be able to determine for any identifier occurring in the queried expression whether or not it refers to the agent being queried or the outer context.
+
+For example, consider the simple `query`:
+
+```
+query Ag with quantity("W-S-23")>0
+```
+
+In this query the function `quantity` is part of the API of `Ag`; but the function `>` is not -- it is actually a standard function defined as part of the `comparable` contract.
+
+The **Star** compiler has to be able to reliably determine the scope of any identifier, including identifiers in embedded query speech actions. We address this in one of two ways: the speech action processor is able to 'understand' sufficient of the standard query notation that it can determine which of the identifiers in the query should be part of the remote agent's API and which should be local. I.e., we can use `query` speech actions like:
+
+```
+query Ag with list of { all X where ("W-S-23",X) in products }
+```
+
+and the compiler will assume that `products` refers to something that belongs to `Ag`.
+
+The second way in which we can inform the compiler which identifiers belong to the agent is explicitly. For example, we can write:
+
+```
+query Ag's quantity with quantity("W-S-23")>0
+```
+
+>This is definitely more clumsy than one would like. Sometimes it is not possible to satisfy all requirements in the design of a programming language.
+
+Why, one should ask, cant the compiler simply rely on the type of `Ag`? The answer is two-fold: of course, if `Ag`'s type is known then it will rely on it. However, **Star**'s type system is based on type inference -- it is quite possible that the only signal that `Ag` is a speech action correspondent is the presence of this speech action. In that scenario there is not enough information to also determine the types of all the free variables.
+
+###Notifications[notifications]
+
+A `notify` speech action is intended to communicate the occurrence of an event of some form. In the context of software systems it corresponds to a message being sent on a named channel; however that seems low level in comparison.
+
+The form of a `notify` is a little different to the `query`:
+
+`notify` _Agent_ `with` _Expression_ `on` _Channel_
+
+To notify `Ag` that there is a new stock item might take the
+form:
+
+```
+notify Ag with 
+  ("MS-345","3/4in Machine Screw")
+  on stock
+```
+
+The content here is the tuple term
+
+```
+("MS-345","3/4in Machine Screw")
+```
+
+and `stock` is the 'channel' of communication. In order for this to be valid we have to assign a new element to `Ag`'s API interface -- one that defines `stock` and the type of event it may respond to:
+
+```
+type myAPI is alias of {
+  products has type list of (string,string)
+  quantity has type (string)=>integer
+  stock has type occurrence of (string,string)
+}
+```
+
+Here we mark the ability to `notify` on the `stock` channel by giving `stock` an `occurrence` type. Later, when we look at how agents can be implemented, we will see how notifications are handled. For now, we note that `occurrence of (string,string)` denotes a program that can consume events whose data consists of values of tuple type `(string,string)`.
+
+####No Time[no-time]
+
+The `notify` speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.
+
+Furthermore, not all applications _need_ time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock's ticking would confirm that neither tick nor tock is timestamped! However, each tick does announce the passing of another second. Instead, it is assumed that the listener has some other way of determining the time (by looking at the clock face). In general, it is expected that each application will incorporate an appropriate model of time for its `notify` events.
+
+###Requests[requests]
+
+Our final form of speech action is the `request`. A `request` is intended to denote a request that the recipient perform some action. This is subtly different to the `query` in that -- apart from answering the question -- a `query` should not cause any change of state in the recipient, whereas the `request` likely would.
+
+>Even though the difference between `query` and `request` may seem subtle to the average programmer the key difference is in the intended use.
+
+The form of a `request` reflects the fact that an action is involved:
+
+`request` _Agent_ `to` _Action_
+
+A simple request may be to invoke a procedure from the API; however complex scripts are also possible. For example, we can request that all stock items that are empty be deleted:
+
+```
+request Ag to delete (Id,_) from stocks where quantity(Id)=0
+```
+
+The action
+
+```
+delete (Id,_) from stocks where quantity(Id)=0
+```
+
+is part of the standard CRUD (Create-Read-Update-Delete) feature that allows collections to be updated.
+
+###A Missing Performative
+
+**Star** does not have a `declare` performative -- currently. It may be instructive to see why not, especially since we introduced speech action theory with a classic declaration. While it is not likely that a software agent will marry couples any time soon, there are legitimate reasons for wanting the ability to make declarations.
+
+A declaration is a speech action whose effect is embedded within the speech action itself. Declarations establish new facts that are shared by the listener and potentially others in the context. Perhaps the best example comes from transaction processing: declaring that a transaction has been committed to is the same as committing to the transaction. Similarly, declaring that a couple is married is the same as marrying them.
+
+The real reason why there is no `declare` relates to it's putative argument -- which must be a proposition. For example, in signing a contract, each party says to the other:
+
+>I agree to be bound by this contract
+
+where contract refers to the normal human interpretation, not **Star**'s contracts. How, we must ask, might we represent this in a way that is amenable to automated processing? To answer this, we must try to unpack what a contract is.
+
+A legal contract has two elements: it is a statement of constraints on potential behaviors of the parties involved and it defines a _value exchange_ (I exchange my money for your house). Very few programming languages, and essentially no 'conventional languages' have any way of representing concepts like value exchange and constraints on behavior.
+
+A more general approach is to use a logical language in which we can encode contracts and the like. At the time of this writing **Star** does not have ready access to a well developed logical language (but see [our treatment of RDF][rdf]). As a result, there is no appropriate partner for the `declare` speech action.
+
+Developing a usable logical language is fairly substantial task; however, once it exists, we have exactly the right speech action for it!
+
+##Actors[actors]
+
+So far we have discussed what talkative agents say to each other but not on how they are built. The simplest structure that responds to this is the `actor`. Actors are lightweight entities that can respond to speech actions. For example, this `actor` models some aspects of a bank:
+
+```
+agentBank is actor{
+  private var accts := dictionary of []
+  fun balance(N) where accts[N] matches Ac is Ac.balance()
+  prc transfer(F,T,Amt) do{
+    def Fr is accts[F]
+    def To is accts[T]
+    Fr.debit(Amt)
+    To.credit(Amt)
+  }
+}
+```
+
+The public elements of the `actor` determine the kinds of speech actions it can respond to. This `actor` can respond to a `balance` query:
+
+```
+query agentBank with balance("fred")
+```
+
+and can also respond to a `request` to transfer some money between two of its accounts:
+
+```
+request agentBank to transfer("fred","tom",100.0)
+```
+
+If we wanted our bank to be able to respond to events, such as check posting events then we need to add an occurrence handler for them. Occurrence handlers take the form of an `on...do` rule, such as:
+
+```
+on deposit(Nm,Amnt) on cashier do
+  accts[Nm].debit(Amnt)
+```
+
+There are three parts to an `on...do` rule: the _pattern_ that denotes the kind of events this rule will respond to, a _channel_ identifier and an _action_ that is performed when a suitable event is received. The complete rule is effectively a program that has type: `occurrence of` _type_; or in the case of this rule:
+
+```
+cashier has type occurrence of moneyTransaction
+```
+
+assuming that `deposit` was a constructor in the type:
+
+```
+type moneyTransaction is 
+  deposit(string,float) or
+  withdraw(string,float)
+```
+
+Multiple rules for the same channel may be present, and if two or more rules fire for a given occurrence then they all will be executed -- although the relative order of performing the rules is _not_ defined. This multiple rule firing is useful at times; for example it makes it easier to implement over-arching processing as well as specific processing:
+
+```
+on Tx on cashier do
+  logMsg(info,"Transaction $Tx")
+on deposit(Nm,Amnt) on cashier do
+  accts[Nm].debit(Amnt)
+```
+
+In this case two actions will take place when a `deposit` is received: it will be logged and the appropriate account will be debited.
+
+>If two occurrence rules fire for a given `notify` the order of their firing is not defined: it may be either order. Therefore, you should make sure that occurrence rules that overlap should not overlap in their actions.
+
+Actors have a type of the form `actor of` _recordType_; where _recordType_ is the actor's API. For example, if we include our occurrence processing rules in our `agentBank`; then its type will be:
+
+```
+agentBank has type actor of {
+  balance has type (string)=>float
+  transfer has type (string,string)=>()
+  cashier has type occurrence of moneyTransaction
+}
+```
+
+One common technique when programming with actors is to use functions that generate actors. One is likely to need only a single bank actor in a system, but one may well need multiple client actors.
+
+###Performance Characteristics of Actors[performance-characteristics-of-actors]
+
+Actors are comparatively efficient at processing speech actions; and they are trusting: that is, they do not perform any validation on the speech actions. One resulting limitation is that they are definitely not safe in a concurrent environment. Again, no interlocking checks are performed -- which means that if you use a regular actor in background tasks (say) then you will likely get inconsistent results.
+
+Also, actors are somewhat _stateful_ in nature. They are intended to encapsulate the processing of speech actions; and that implies that they normally carry some form of state.
+
+A corollary of `actor`s' execution profile is that they are _re-entrant_: multiple tasks can access the same actor concurrently. This can be advantageous in certain circumstances where the actor is actually stateless and performance is critical.
+
+However, in most concurrent situations the normal `actor`'s execution model is too dangerous. To make speech action processing safer it is necessary to _serialize_ access to the actor -- something that is accomplished with concurrent actors.
+
+###Concurrent Actors[concurrent-actors]
+
+A _concurrent actor_ is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.
+
+However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.
+
+It should be noted that the internal structure of a concurrent actor is more complex than that of a regular light weight actor. This may translate into a run-time performance difference.
+
+A `concurrent actor` is written using the `concurrent` prefix. For example, we can make our `agentBank` concurrent very straightforwardly:
+
+```
+agentBank is concurrent actor{
+  private var accts := dictionary of []
+  fun balance(N) is accts[N].balance()
+  prc transfer(F,T,Amt) do{
+    accts[F].debit(Amt)
+    accts[T].credit(Amt)
+  }
+  on deposit(Nm,Amnt) on cashier do
+    accts[Nm].debit(Amnt)
+}
+```
+
+As might be clear if you have read up this point, a `concurrent actor` works by having an internal `background task` that is actually responsible for processing speech actions. This background task is responsible for actually responding to speech actions and it 'serializes' them -- ensuring that only one is performed at any one time.
+
+Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type -- `concActor of` _t_ -- which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the `balQuery` function:[^Like other references to the `speech` contract, the types in this function are slightly simplified.]
+
+```
+balQuery has type for for all t,a such that
+    (t,string)=>float where
+      speech over t determines a and
+      a implements { balance has type (string)=>float }
+balQuery(A,U) is query A with balance(U)
+```
+
+will work with either of `actor`, `concurrent actor` or any entity that implements `speech` and whose API includes the `balance` function -- because it's type is carefully circumscribed. However, functions that have been type-specialized to work with `actor`s will not type check when used with `concurrent actor`s.
+
+##Boxes and Arrows[boxes-and-arrows]
+
+It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:
+
+![A System for Splitting Orders][BoxNArrows]
+
+[BoxNArrows]:images/boxNarrows.png width=300px
+
+could be used to explain the system for managing the way parts are ordered in a car factory that supported a 'build-to-order' model for manufacturing customized vehicles.
+
+The different boxes show the major sub-systems and the arrows between them show the major flows between them: we have an input **Orders** sub-system that accepts incoming orders for cars, we have a **Split**ter that breaks up the orders into orders for specific assemblies and parts. We also have a **Parts** database that 'knows' how different order requirements translate into specific assemblies. The outputs of the system are orders for parts that will go to individual suppliers **S**~0~ through **S**~n~.
+
+There have been a number of attempts to take the boxes-and-arrows intuition and turn it into something that is more actionable. Here, we take an approach that focuses on boxes representing _components_ that denote areas of responsibility and where arrows represent interactions between the components.
+
+>I.e., we tighten up on one rather important aspect of designing systems: all interactions between components are explicitly identified.
+
+We also tighten up the model with type correct interfaces and we also find a way for components to talk to each other.
+
+For example, if we zoom in on the **Split** component above, and draw it in isolation we might arrive at:
+
+![The Split Component][SplitComponent]
+
+[SplitComponent]:images/splitComponent.png width=300px
+
+The main new feature in this diagram -- compared to the informal version -- are the different _ports_ that represent the entry and exit points to components. The `SplitComponent` above has three different ports on it: a _responding_ port that handles incoming orders, an _originating_ port that will be connected to a database and a _publishing port_ that will be connected to multiple supplier components. Given this diagramming notation, the order processing system would look something like:
+
+![An Order Processing System][OrderProcessing]
+
+[OrderProcessing]:images/orderProcessing.png width=350px
+
+The main difference between this diagram and the original boxes-and-arrows picture is a slight formalization of the notation: we have crystalized the role of boxes (into processing components) and we have formalized the connections in terms of different kinds of ports.
+
+What has been left out so far is why bother with the formalization? The answer is both surprising and powerful: with some support from **Star** we can turn diagrams like these into executable code that can be deployed over distributed systems. The result is a powerful platform that can be a major productivity booster.
+
+###Ports and Speech[ports-and-speech]
+
+First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.
+
+>This is an important point: unlike most programming languages, and unlike **Star** itself, our diagramming notation does not rely on _scoping_. Instead, all connections and references are explicit. This is a strong constraint that helps to enforce so-called _loose coupling_ between components. This greatly simplifies the kinds of task of assembling applications from components.
+
+Ports denote types as well as data flow: each port is associated with an API _schema_ that determines the type of data that is going through the port. For example, the responding port of the `SplitComponent` has a schema associated with it that shows that the component expects `Order`s coming in:
+
+![An Order Port][OrderPort]
+
+[OrderPort]:images/orderPort.png width=350px
+
+The originating port will be connected to a data source component. It's type schema declares what kind of data it is looking for:
+
+![The Parts DB Port][dbPort]
+
+[dbPort]:images/dbPort.png width=350px
+
+It should come as no surprise at this point that we also declare that ports are intimately associated with speech actions: communication between components is mediated by speech actions and ports codify both the sender/receiver relationship and the type of communication.
+
+Notice that we are speaking in terms of _originating_ and _responding_ here. This reflects the fact that in any given speech action we have an originating speaker and a responding listener. We have deliberately avoided using terms such as input or output here because connections between components can involve _both_ flows of information but only one side ever initiates the action. For example, the `SplitComponent` will raise a query to the `PartsDB` component: the query itself involves sending the query in one direction and receiving the data from the `PartsDB` component in the other.
+
+Our final kind of port is a specialization of the originating port: the _publishing port_ as in:
+
+![The Supplier Port][supplierPort]
+
+[supplierPort]:images/supplierPort.png width=360px
+
+The difference between a normal originating port and a publishing port is two-fold: it represents a one-to-many fan-out -- i.e., it may be connected to an arbitrary number of other components -- and it also has an additional feature: the _discrimination function_ that will allow the `SplitComponent` internally to 'select' the right supplier to send parts orders to.
+
+The net effect of this is that we have a diagramming notation that supports a high-level modeling of applications that is intuitive to many software engineers. Furthermore, we can support type safety of communication between elements of the application.
+
+>This notation is not quite a complete 'spanning set' if the end goal is to construct a platform for building a variety of distributed applications. However, it is the kernel of such a set and can easily form the basis of a complete distributed applications platform.
+
+###A Component in Star[a-component-in-Star]
+
+One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application.[^By _functional_ we mean _important to the solution_ not necessarily as in functional programming.] The intuition is that individual components have a specific role in the application; but that they are typically 'quite large'. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.
+
+One of the non-goals of boxes-and-arrows diagrams is to be a complete programming language. Instead, the idea is to capture the large scale granularity in a picture but to use text for the actual programming of components. Actually building components is best left to 'real' code; in our case, we denote the code of a component as a **Star** `component`; which is a special form of `package`.
+
+>The one exception to the strategy of using written code to build components is with _composite components_ -- components built by assembling and wiring other components. However, this is outside the scope of this book.
+
+The code for a component must implement the various ports that the component has on the diagram and must also implement the functionality of the component. For example, our `SplitComponent` may start it's implementation with:
+
+```
+import boxesNarrows
+splitComponent is component{
+  port incoming is respond{
+    on O on order do
+      processOrder(O)
+  }
+  port suppliers is publish{
+    discriminator has type (string) => port of { 
+      order has type occurrence of Order
+    }
+  }
+  port parts is originate{
+    assembly has type set of (part,list of part)
+    supplier has type set of (part,list of supplier)
+  }
+  ...
+}
+```
+
+The ports that are surfaced in the order processing diagram are also represented in the code for the `splitComponent`. Responding ports have a body that essentially the same as for an actor (or concurrent actor); typically most of the activity within a component is initiated by code that is present in or referred from responding ports.
+
+Notice that, unlike regular actors, outgoing speech actions are also strongly indicated. Any outgoing speech actions must be 'applied' to one of the originating ports. For example, part of processing a parts order will be a query to the `partsDB` component; but the `partsDB` component is not explicitly identified in the `splitComponent`. Instead, the query is directed to the `parts` originating port:
+
+```
+fun assemblySuppliers(A) is 
+  query parts with list of { unique S where 
+      (A,Ps) in assembly and P in Ps and
+      (P,Ss) in supplier and
+      S in Ss
+    }
+```
+
+This function can be used by the order processing code to query the parts database for all the suppliers involved in a given assembly. It works by formulating the appropriate `query` speech action to the originating `parts` port.
+
+>The `unique` keyword here implies that the result will have duplicates eliminated from it.
+
+Using a publishing port is slightly more complex than using a regular originating port. Since there may be any number of components attached to a publishing port we must first of all select which one we want to address our speech action to. We do this using the embedded _discriminator function_ that is part of the publishing port. For example, to place a parts order for the supplier "Alpha Wheels Inc."" we perform:
+
+```
+prc placeOrder(S,parts) do
+  notify suppliers.discriminator(S.name) with 
+    order{ content=parts } on order
+```
+
+Notice that this is a regular speech action; the primary difference is that instead of a fixed recipient we compute who the recipient will be -- based on the name of the supplier.
+
+###Re-purposing Components[re-purposing-components]
+
+One of the distinguishing features of the boxes-and-arrows diagram is that it highlights the major sources of input and output in the system. This is in marked contrast with most programming languages where the I/O functionality is buried deep within the code itself. For example, our `splitComponent` does not directly communicate with a database; instead it poses a `query` to the `partsDB` component. Similarly, the components for recovering incoming orders and sending out orders to suppliers are mostly about implementing the appropriate I/O operations.
+
+The `partsDB` component is interesting for another reason: it can be modeled as an adapter to a normal database engine. In fact, the `partsDB` is quite an interesting component.
+
+Consider the problem of the `partsDB` component: if we are to build this component in a robust fashion then it must respond to arbitrary queries about the two `relation`s that are exposed in its responding port. However, we assume that the data it uses to answer those queries is not 'in' the component itself but is stored in some actual database; perhaps an SQL database.
+
+In order to see how we can achieve this we need to look a little deeper into how speech actions are actually represented. Recall that we stated that a speech action requires an entity that implements the `speech` contract. That contract, in simplified form, is:
+
+```
+contract speech over t determines a is {
+  _query has type for all s such that 
+    (t,(a)=>s,()=>quoted,()=>dictionary of (string,quoted))=>s
+  _request has type 
+    (t,(a)=>(),()=>quoted,()=>dictionary of (string,quoted))=>()
+  _notify has type (t,(a)=>())=>()
+}
+```
+
+>The actual contract is somewhat more involved and involves the use of the `execution` contract -- which is part of the support for **Star**'s concurrency features. However, this variant is sufficient for us to expose the required issues.
+
+The salient element here is the entry for `_query`. A speech action like:
+
+```
+query parts with list of { unique S where 
+      (A,Ps) in assembly and P in Ps and
+      (P,Ss) in supplier and
+      S in Ss
+    }
+```
+
+is translated -- by a standard built-in macro processor -- into a call to `_query` of the form:
+
+```
+_query(parts,
+  (Ax)=>list of { unique S where
+    (A,Ps) in Ax.assembly and P in Ps and
+    (P,Ss) in Ax.supplier and S in Ss },
+  ()=><|list of { unique S where 
+      (A,Ps) in assembly and P in Ps and
+      (P,Ss) in supplier and
+      S in Ss
+    }|>,
+  ()=>dictionary of ["A"->A as quoted]
+)
+```
+
+This is kind of complicated to follow at first; but is quite straightforward if taken one step at a time.
+
+* The first argument to `_query` is the entity being queried with the `query` speech action. The structure of the `speech` contract allows a responder to a speech action to 'pass on' the action to another responder.
+
+* The second argument is the expression that must be evaluated by the actual responding entity. It is encapsulated in a single argument function -- the argument being a record that implements the speech action API. Evaluating this function in the appropriate context has the effect of computing the response to the `query` speech action -- and the result of the function is returned as the value of the `query` speech action itself.
+
+* The third and final arguments are used when the responder cannot or does not wish to use the 'compiled query'. The third argument is a function that returns the original 'text' of the query -- as a `quoted` value. The fourth argument is also a function, one that returns the values of any _free_ variables in the `query` -- variables whose values are determined by the context of the speech action itself. In this case there is only one free variable -- `A` -- which was the part that our `splitComponent` needed to find suppliers for.
+
+This arrangement allows for two kinds of speech action processing: if the respondent trusts the originator of the speech action then a very rapid response to the `query` is possible -- by evaluating the embedded function. However, in the case where the respondent does not want to simply execute the query function, or it cannot, then the respondent has access to the original text of the query -- together with the values of any free variables that appear in the `query`.
+
+In the case of the `partsDB` component it cannot simply trust the `query`; even if it wanted to. This is because the query must be mapped into a form that the attached SQL database can understand. In effect, the query must be translated from **Star**'s query language to SQL.
+
+![The PartsDB Component][partsDB]
+
+[partsDB]:images/dbComponent.png width=330px
+
+I.e., the query expression is translated by the `partsDB` component into SQL:
+
+```
+select S from table assembly as As, supplier as Sp, Ps, Ss where
+  As.part="Alloy Wheel" and Ps.partno=As.partno and 
+  Ps.supplier = Sp.id and
+  Ps.supplier=Ss.id and Ss.supplier=S
+```
+
+The details of how this translation are achieved are beyond the scope of this book; but it involves similar techniques to those we saw in [our chapter on DSLs][application-policy-mechanism].
+
+One important point to note here is that the machinery for translating queries into SQL is quite general; and not at all restricted to our parts database. In fact, if we provide the actual database component with a URL of the database we are interested in, the DSL processor is able to dynamically inspect the actual database, construct the appropriate responder port for the `partsDB` component as well as being able to answer queries by mapping them to SQL.
+
+As a result, we can construct a general purpose adapter component that is able to be used for _any_ database, not just the one we are using in this application. The result of which is that the application is populated with a mixture of standard components that are configured and specifically written components that implement the specific functionality of the application.
+
+###Wiring up Boxes and Arrows[wiring-up-boxes-and-arrows]
+
+We started this section with a graphical depiction of an application as boxes and arrows between them. However, not many computers can execute boxes, and so if we want to run the application we have to construct a complete _written_ program that represents the _drawn_ diagram.
+
+The written form of our car part sourcing application is not that hard to follow, given the material we have covered so far:
+
+```
+import boxesNarrows
+partSource is application{
+  def ordersIn is import ordersInComponent
+  def split is import splitComponent
+  def db is import dbComponent
+  import supplier
+
+  ordersIn.out connect to split.incoming
+  split.parts connect to db.queryIn
+  split.suppliers publish to {
+    def megaWheel is supplier("MegaWheel")
+    ...
+    def discriminator("Mega") is megaWheel
+    ...
+  }
+}
+```
+
+This sketch shows how we can construct a written version of the boxes-and-arrows diagram in a way that lends itself to executable code.
+
+###There is more to a platform than this
+
+We have actually just scratched the surface of the potential of this kind of programming platform. In truth, like many of the chapters in this book, a full treatment of a boxes-and-arrows platform would justify a book in its own right.
+
+Other aspects that we have omitted include composite components, component templates, wiring diagrams as **Star** programs, the dynamic behavior or components and so on.

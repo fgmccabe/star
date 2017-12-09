@@ -1,0 +1,33 @@
+# Index File for the Cafe Programmer Book
+
+metadata.txt
+
+# Introduction to book
+intro.mmd
+
+# Tour of Star
+tour.mmd
+
+# A look at functional programming in Star
+func.mmd
+
+# The Star collections
+collections.mmd
+
+# Modular programming in Star
+modular.mmd
+
+# Concurrent programming
+concurrency.mmd
+
+# Domain Specific Languages
+dsl.mmd
+
+# Agents
+agents.mmd
+
+#Conclusion
+arewedone.mmd
+
+# Bibliography
+bibliography.mmd

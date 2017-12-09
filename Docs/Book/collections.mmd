@@ -1,0 +1,1295 @@
+#Collections[collections]
+
+Modern programming — whether it is OO programming, functional programming or just plain C programming — relies on a rich standard library. Given that nearly every program needs to be able to manage collections of _things_, the central pearl of any standard library is the _collections_ library. Recalling our mantra of hiding recursion; a well designed collections library can make a huge difference to the programmer's productivity, often by hiding a lot of the recursions and iterations required to process collections.
+
+The collections architecture in **Star** has four main components:
+
+1.  a range of standard collection types — including array-like lists, cons lists, red-black trees, first-in first-out queues, and dictionaries;
+
+1.  a range of standard functions — mostly defined in contracts — that define the core capabilities of functions over collection;
+
+1.  special notations that make programming with collections in a type independent way more straightforward; and
+
+1.  the final major component of the collections architecture is _queries_. **Star** has a simple yet powerful set of features aimed at simplifying querying collections.
+
+##Sequence Notation[sequence-notation]
+A sequence is simply an ordered collection; a _sequence expression_ is an expression involving a complete or partial enumeration of the values in the collection. **Star** has a simple notation for expressing sequences of any underlying type; for example, a `cons` sequence of integers from 1 through 5 can be written:
+
+```
+cons of [1, 2, 3, 4, 5]
+```
+
+In situations where we do not know or do not wish to specify the collection type, we can write instead:
+
+```
+[1, 2, 3, 4, 5]
+```
+
+This term — it could be either an expression or a pattern — denotes the sequence _without_ specifying the underlying collection type. The difference in the types of the two terms is telling:
+
+```
+cons of integer
+```
+
+and
+
+```
+c where sequence over c determines integer
+```
+
+respectively — where `c` is a type variable. The first is a concrete type expression, the second is a constrained type — a type variable that may only be instantiated with a type that is known to satisfy one or more constraints, in this case to implement the `sequence` contract.
+
+>Although the second type expression is longer, and a bit more complex to read, it is also less constraining. The type expression `cons of integer` is concrete and does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.
+
+The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:
+
+```
+[1,2,..X]
+```
+
+denotes the sequence whose first two elements are `1` and `2` and whose remainder is denoted by the variable `X` — which must also be a sequence of the correct type. Similarly, the term:
+
+```
+[F..,23]
+```
+
+denotes the sequence obtained by glueing `23` to the back of the sequence `F`.
+
+There is a strong relationship between the 'regular' sequence notation and the partial sequence notation. In particular, the sequence expression
+
+```
+cons of [1,2]
+```
+
+is equivalent to:
+
+```
+cons of [1,..cons of [2,..cons of []]]
+```
+
+However, we are not permitted to use both of `,..` and `..,` in the same expression:
+
+```
+[F..,2,3,..B]
+```
+
+is not permitted (since it amounts to a concatenation of two sequences which implies a non-deterministic search when used as a pattern).
+
+The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type _and_ to do so in a syntax which is concise.
+
+For example, we can use sequence notation to write functions over sequences; such as the `concat` function that concatenates two sequences:
+
+```
+fun concat([],X) is X
+ |  concat([E,..X],Y) is [E,..concat(X,Y)]
+```
+
+This function will work equally well with `cons` lists, `list`s, `string`s, even your own collection types. All that is required is that there are implementations of the `sequence` contract for the actual type.
+
+###Types and Sequence Notation[types-and-sequence-notation]
+
+However, there is a small failure of type inference with the `concat` program as written. Our compiler is very careful to construct the most general type when inferring the types of functions; in this case the compiler is a little too careful! The equations as written do not constrain the type of the function in the way that you might expect. The type as computed by the compiler is:
+
+```
+concat has type for all e,s,t such that
+    (s,t)=>t where
+        sequence over s determines e and
+        sequence over t determines e
+```
+
+I.e., the types of the two input sequences are _not_ constrained to be the same, and the output type is gotten only from the second argument sequence. In some situations this would be exactly what was needed — if the programmer wanted to concatenate a `cons` list to a `list` value (say) to produce a result `list`. However, in most situations this is too general and can cause problems when two or more `concat` expressions are used together; especially with general sequences:
+
+```
+concat(cons of [1],concat([2,3],[3,4]))
+```
+
+The issue is that the type of the intermediate expression — `concat([2,3],[3,4])` — is _too_ under-specified and the compiler does not have enough information to go on. It could literally be any type of collection and there is no way to constrain it.
+
+>Notice that this is a _small_ failure; if non-literal sequence expressions, or simply variables, had been used in the intermediate `concat` expression, the compiler would have had no issues with type inference.
+
+A human programmer noticing this situation would observe that the type of the intermediate sequence _does not matter_ and we could just pick any type — most likely the type of the sequence being consumed. However, compilers are not as smart (generally) as human programmers and are definitely much more literal-minded. The result is an error along the lines of
+
+```
+unresolved variable: concat
+```
+
+A more intuitive type for `concat` that also fixes the problem would be:
+
+```
+concat has type for all e,s such that
+    (s,s)=>s where
+        sequence over s determines e
+```
+
+This is a more restrictive type, but fits actual usage better. Furthermore, by tying the types of the two arguments together it means that the compiler will be able to type check the program properly.
+
+The net effect is that the `concat` function, as written, needs an explicit type annotation for it to be generally useful.
+
+###The Sequence Contract[the-sequence-contract]
+
+Underlying the sequence notation is the `sequence` contract. This contract contains type signatures in it that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.
+
+The actual `sequence` contract is
+
+```
+contract sequence over t determines e is {
+  _nil has type ()=>t      — empty sequence
+  _cons has type (e,t)=>t  — add to front
+  _apnd has type (t,e)=>e  — add to back
+  _empty has type ()<=t    — match empty sequence
+  _pair has type (e,t)<=t  — match front
+  _back has type (t,e)<=t  — match back
+}
+```
+
+The first three entries in this contract should be fairly self-evident:
+
+* `_nil` is a function that returns an empty sequence;
+* `_cons` is a function that 'glues' a new element to the front of
+the collection; and
+* `_apnd` appends elements to the _back_ of the collection.
+
+The compiler uses these three functions to transform sequence expressions into function calls. For example, the sequence expression:
+
+```
+[1,2,3]
+```
+
+is transformed into
+
+```
+_cons(1,_cons(2,_cons(3,_nil())))
+```
+
+If a sequence expression has an explicit type marker on it, then its translation is slightly different — to allow the type checker to make use of the type information. For example, `cons of [1,2]` is translated:
+
+```
+_cons(1,_cons(2,_nil())) has type cons of %_
+```
+
+This annotation is all that is needed to force the compiler to treat the result as a concrete `cons` list.
+
+> The type expression `%_` is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.
+
+###Sequence Patterns[sequence-patterns]
+
+The complete `sequence` contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence _patterns_ rather than sequence _expressions_. They also introduce a new form of type expression — the _pattern type_. For example, the signature for `_pair` — which is used to decompose sequences into a head and tail — is:
+
+```
+_pair has type (e,t)<=t
+```
+
+Notice the direction of the arrow: this is a new form of type, and relates to a new form of capability that we have not encountered yet in this book — pattern abstractions.
+
+**Pattern Abstraction**
+:	A _pattern abstraction_ is an expression that denotes a pattern, allowing its re-use.
+
+Pattern abstractions are exactly analogous to functions — another name for which is _expression abstraction_. Pattern abstractions allow patterns to be encapsulated and reused in the same way that functions allow expressions to be encapsulated and reused.
+
+>In this case, the pattern abstraction is critical because general sequence notation is independent of the types of the collections involved — and so we have no way of knowing what concrete patterns to apply.
+
+Pattern abstractions are applied using the same application notation as for function application; for example, the `_pair` pattern in
+
+```
+fun first(_pair(H,T)) is H
+```
+
+is a pattern that is applied to the argument of `first`. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables `H` and `T` in the call to `_pair` will be bound to the first element of the collection and the remainder respectively.
+
+For example, applying `_pair` to `[1,2]` binds `H` to the value `1` and binds `T` to the sequence `[2]`. The value returned by `first` will be `1`.
+
+Obviously, there must also be a way of defining pattern abstractions. We can define a `cPair` pattern abstraction that applies to `cons` lists thus:
+
+```
+ptn cPair(H,T) from cons(H,T)
+```
+
+This takes a little careful reading, but is ultimately straightforward: the right hand side is the pattern that is being abstracted, the left hand side is an application template.
+
+We also have a new keyword here: `ptn`. Just as `fun` introduces a function, `def` introduces a single-assignment variable, so `ptn` introduces a pattern abstraction.
+
+The general form of a pattern abstraction is:
+
+`ptn` _name_(_E~1~_`,..,`_E~n~_`) from` _Pattern_
+
+where the various _E~i~_ are _expressions_ that represent the values 'read off' the _Pattern_ — should the pattern be satisfied. This is quite analogous to the situation for rewrite equations — except that the roles of patterns and expressions are reversed.
+
+>Like functions, pattern abstractions may be defined with multiple pattern rules; and the pattern abstraction is satisfiable exactly when one of its pattern rules is.
+
+>Pattern abstractions are not as ubiquitous as functions; however, they certainly play a vital role in the overall design of **Star**; and are indispensable in the right circumstances.
+
+  One special use for pattern abstractions is to give higher-level names to particular patterns. This mimics the use of functions naming expressions, and has a similar importance for program design.
+
+Given that we have seen how sequence expressions are transformed into function calls from the `sequence` contract, we can now straightforwardly give the equivalent translation for sequence patterns. Syntactically, there is no distinction between sequence expressions and sequence patterns — what distinguishes them is context: sequence patterns show up as patterns in functions and sequence expressions show up in the expression context.
+
+A sequence pattern, as in the pattern `[E,..X]` for the non-empty case in `concat`:
+
+```
+fun concat([E,..X],Y) is [E,..concat(X,Y)]
+```
+
+is transformed into the pattern:
+
+```
+_pair(E,X)
+```
+
+and the entire rewrite equation becomes:
+
+```
+fun concat(_pair(E,X),Y) is _cons(E,concat(X,Y))
+```
+
+We can combine multiple pattern abstraction applications; for example, the function:
+
+```
+fun single([H]) is H
+```
+
+which is a function that only matches singleton sequences requires two pattern applications from the `sequence` contract:
+
+```
+fun single(_pair(H,_empty())) is H
+```
+
+###Notation and Contract-Based Semantics[notation-and-contract-based-semantics]
+
+One of the distinctive features of the sequence notation is that it is an example of _syntax_ that is underwritten by a semantics expressed as a _contract_. The merit of this approach is that we can have a special notation expressing a salient concept — in this case the sequence — and we can realize the notation without undue commitment in its lower-level details. In the case of sequence notation, we can have a notation of sequences without having to commit to the type of the sequence itself.
+
+This has a parallel in modern OO languages like Java and C# where important contracts are expressed as interfaces rather than concrete types. However, **Star** extends the concept by permitting special notation as well as abstract interfaces — as many mathematicians understand, a good notation can make a hard problem easy. In **Star** we further separate interfaces from types by separating the type definition from any contracts that may be implemented by it.
+
+This is part of a general pattern in **Star**: there are many _sub-languages_ that are actually underwritten by contracts for their realization. For example, the _indexing_ notation has the same pattern: of a special notation backed by contract.
+
+##Indexing[indexing]
+
+Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing 'traditional' notation for accessing arrays:
+
+```
+L[ix]
+```
+
+where `L` is some array or other collection and `ix` is an integer offset into the array. **Star** uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and _slices_ (contiguous sub-regions of collections).
+
+Before we explore **Star**'s indexing notation it is worth looking at the contract that underlies it — the `indexable` contract.
+
+###The `indexable` Contract[the-indexable-contract]
+
+The `indexable` contract captures the essence of accessing a collection in a random-access fashion. There are functions in the contract to access a directly accessed element, to replace and to delete elements from the collection:
+
+```
+contract indexable over s determines (k,v) is {
+  _index has type (s,k)=> option of v
+  _set_indexed has type (s,k,v)=>s
+  _delete_indexed has type (s,k)=>s
+}
+```
+
+There are several noteworthy points here:
+
+* the form of the contract itself; the signature for `_index` which accesses elements; and
+* the signatures for `_set_indexed` and `_delete_indexed` which return new collections rather than
+modifying in-place.
+
+Recall that the `sequence` contract had the form:
+
+```
+contract sequence over s determines e is ...
+```
+
+the `determines e` clause allows the implementation of the contract to functionally determine (sic) the type of the elements of the collection.
+
+In the case of `indexable`, the contract form is:
+
+```
+contract indexable over s determines (k,v) is ...
+```
+
+The `indexable` contract determines two types `k` and `v`. The type `k` denotes the type of the key used to access the collection and `v` denotes the type of the elements of the collection. Each individual implementation of `indexable` is free to specify these types; usually in a way that best reflects the natural structure of the collection.
+
+For example, the implementation of `indexable` for `string`s starts:
+
+```
+implementation indexable over string determines (integer,char) ...
+```
+
+reflecting the fact that the natural index for `string`s is `integer` and the natural element type is `char` (neither being explicitly part of the `string` type name).
+On the other hand, the implementation for dictionaries starts:
+
+```
+implementation for all k,v such that
+      indexable over dictionary of (k,v) determines (k,v)
+```
+
+reflecting the fact that dictionaries are naturally generic over both the key and value types.
+
+>Notice that we mark `k` and `v` as type variable via the explicit `for all` quantification in the `implementation` statement.
+
+###Tentative Computation[the-option-type]
+
+If we look at the signature for `_index` we can see that this function does not directly return a value from the collection, but instead returns an `option` value. This bears further explanation.
+
+The great unknown of accessing elements of a collection is 'is it there?'. Its not guaranteed of course, and we need to be able to handle failure. 
+
+This is where the concept of 'tentative computation' becomes important. 
+
+**Tentative Computation**
+:	A tentative computation is denoted by an expression that is inherently plausible to not have a value.
+
+When we want to open a file, access an element of a dictionary, parse a string with a regular expression we need to be able to express the possibility of failure as well as of success. There are also times when 'no answer' is a legitimate response.
+
+We encode this tentativeness (sic) in the `option` type. The type definition for `option` is straightforward:
+
+```
+type option of t is some(t) or none
+```
+where `none` is intended to denote the non-existence of a value and `some` denotes an actual value.
+
+The `option` type is intended to be used in cases where functions are known to be partial.[^A partial function does not have a value across the whole range of its arguments.] The `option` return type signals that the function may not always have a value.
+
+In the case of the `_index` function, its responsibility is to either return a value wrapped as a `some` value — if the index lookup is successful — or the signal `none` if the index lookup fails. Just to be clear, `_index` can act both as a lookup _and_ as a test for membership in the collection.
+
+In addition to the `option` type, there are a series of operators that make tentative computations easier to express: these are the optional field access operator — `?.` — the option default operator — `or else` — and the `has value` binding predicate.
+
+The `or else` operator allows one to unpack an optional value but to give a default in the case that the optional value is `none`.
+
+We can see where the latter may be useful when accessing dictionaries. For example, the `fillIn` function accesses a dictionary for a key but uses a default value when it is not there:
+
+```
+fun fillIn(Tr,Ky,Def) where _index(Tr,Ky) has value Vl is Vl
+ |  fillIn(Tr,_,Def) is Def
+```
+
+The condition
+```
+_index(Tr,Ky) has value Vl
+```
+is satisfied if the `_index` call returns a proper value and it also binds the variable `Vl` to that value (specifically, it _matches_ the value against the variable `Vl`.
+
+While the `has value` operator is very useful in unpacking an optional value, the `or else` operator allows us to handle cases where we always need to be able to give the optional a value. For example, normally a `dictionary` returns `none` if an entry is not present. However, a _cache_ is structured differently: if a value is not present in a cache then we must go fetch it:
+
+```
+fun cacheValue(K) is cache[K] or else fetch(K)
+```
+
+There is, clearly, a strong relationship between `has value` and `or else`: each can be expressed in terms of the other.
+
+>The `option` type — and the `some` and `none` values — play some of the same roles as NULL does in other languages.
+
+For someone approaching a functional language from most imperative languages they will be struck — and maybe upset — by the lack of a `null` (or `nil` or `NULL` or `undefined`). After all, if it's good enough for Java, why can't **Star** have it too?
+
+Perhaps the biggest single reasons for not having a universal NULL value are that it corrupts the type system and that it makes reasoning about programs harder.
+
+In a language which has a universal NULL value, the programmer (and the compiler) must be ever vigilant about references: is the value actually a NULL value? This is true even in those cases where the programmer knows values cannot be NULL. By isolating nullability (sic) into a single concept it allows the programmer to use the feature where it is actually needed.
+
+In a language like Java which has a universal NULL value, the type assigned to NULL turns out to be a little strange. Under most circumstances, a value can be assigned a single unique type; but a universal NULL can be literally of any type. So, universal NULL is a value that denotes no actual value, yet it can be of any type.
+
+This distorts the logic of the type system by introducing a bottom value into the type lattice. **Star**'s type system is not based on the concept of sub-types; which makes a universal NULL value even more difficult to accommodate. 
+
+Overall, the `option` type is part of an elegant approach to nullability that is easily incorporated into **Star**'s (and similar) type system.
+
+###Adding and Removing Elements From a Collection[adding-and-removing-elements-from-a-collection]
+
+The function `_set_indexed` is used to add an element to a collection associating it with a particular index position; and the function `delete_indexed` removes an identified element from the collection.
+
+Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on _persistent data structures_[^A _persistent_ structure is one which is never modified.] and on _declarative programming_.
+
+One might believe that this is a bit wasteful and expensive — returning new collections instead of side-effecting the collection. However, that is something of a misconception: modern functional data structures have excellent computational properties and approach the best side-effecting structures in efficiency. At the same time, persistent data structures have many advantages — including substantially better correctness properties and behavior in parallel execution contexts.
+
+>It should also be stressed that the `indexable` contract allows and encourages persistence but does not _enforce_ it. It is quite possible to implement indexing for data structures that are not persistent.
+
+###The Index Notation[the-index-notation]
+
+Given the `indexable` contract we can now show the specific notation that **Star** has for accessing elements of a collection.
+
+Accessing a collection by index follows conventional notation:
+
+```
+C[ix]
+```
+
+will access the collection `C` with element identified by `ix`. For example, given a dictionary `D` of strings to strings, we can access the entry associated with `alpha` using:
+
+```
+D["alpha"]
+```
+
+Similarly, we can access the third character in a string `S` using:
+
+```
+S[2]
+```
+
+As might be expected, given the discussion above, the type of an index expression is `option`al. This is because the element may not be there; i.e., it is an example of a _tentative computation_.
+
+The most natural way of making use of an index expression is to use it in combination with a `has value` condition or an `or else` expression — which allows for smooth handling of the case where the index fails. For example, we might have:
+
+```
+fun nameOf(F) where names[F] has value N is N
+ |  nameOf(F) is ...
+```
+
+>We will take a deeper look at exceptions and more elaborate management of tentative computation in the section on [Computation Expressions](computation-expression).
+
+**Star** also has specific notation to represent modified collections. For example, the expression
+
+```
+D[with "beta"->"three"]
+```
+
+denotes the dictionary `D` with the entry associated with `"beta"` replaced by the value `"three"`. Note that the value of this expression is the updated `dictionary`.
+
+For familiarity's sake, we also suppose a form of assignment for the case where the collection is part of a read-write variable. The action:
+
+```
+D["beta"] := "three"
+```
+is entirely equivalent to:
+
+```
+D := D[with "beta"->"three"]
+```
+
+always assuming that the type of `D` permits assignment.
+
+Similarly, the expression:
+
+```
+D[without "gamma"]
+```
+
+which denotes the dictionary `D` where the value associated with the key `"gamma"` has been removed has an action equivalent:
+
+```
+remove D["gamma"]
+```
+is the same as:
+
+```
+D := D[without "gamma"]
+```
+
+In addition to these forms, there is also a test expression:
+
+```
+present D["delta"]
+```
+
+which is a predicate that is true if the dictionary `D` contains an entry for `"delta"`.
+
+>Although, in these examples, we have assumed that `D` is a `dictionary` value (where `dictionary` is a standard type in **Star**); in fact the index notation does not specify the type. As with the sequence notation, the only requirement is that the `indexable` contract is implemented for the collection being indexed.
+
+In particular, index notation is supported for the built-in `list` types, and is even supported for the `string` type.
+
+###Implementing Indexing
+
+Of course, this includes our own types. For example, before, when looking at [generic types][generic-types] we saw the `tree` type:
+
+```
+type tree of t is tEmpty or tNode(tree of t,t,tree of t)
+```
+
+We can define an implementation for the `indexable` contract for this type — if we arrange for the tree to be a tree of key-value pairs:
+
+```
+implementation for all k,v such that
+    indexable over tree of ((k,v)) determines (k,v) where
+      comparable over k and
+      equality over k is {
+  fun _index(T,K) is findInTree(T,K)
+  fun _set_indexed(T,K,V) is setKinTree(T,K,V)
+  fun _delete_indexed(T,K) is removeKfromTree(T,K)
+}
+```
+
+>The form of the type expression `tree of ((k,v))` is required to avoid confusion — `tree` takes a single type argument that, in this case, is a tuple type. The extra set of parentheses ensures that `tree` is not interpreted (incorrectly) as a type that takes two type arguments.
+
+With this statement in scope, we can treat appropriate `tree` expressions as though they were regular arrays or dictionaries:
+
+```
+def T is tNode(tEmpty,("alpha","one"),tEmpty)
+assert T["alpha"]="one"
+def U is T[with "beta"->"two"]
+assert U["alpha"]="one"
+assert present U["beta"]
+assert not present U["gamma"]
+```
+
+The implementation statement relies on another feature of **Star**'s type system — we need to constrain the implementation of `indexable` to a certain subset of possible instances of `tree` types — namely, where the element type of the `tree` is a _pair_ — a two-tuple — and secondly we require that the first element of the pair is comparable — i.e., it has the `comparable` contract defined for it.
+
+This is captured in the contract clause of the `implementation` statement:
+
+```
+implementation for all k,v such that
+    indexable over tree of ((k,v)) determines (k,v) where
+      comparable over k and
+      equality over k
+```
+
+This implementation statement is fairly long; but it is exquisitely targeted at precisely the right kind of `tree` without us having to make any unnecessary assumptions.
+
+Implementing the contract requires us to implement three functions: `findInTree`, `setKinTree` and `removeKfromTree`. The `findInTree` function is quite straightforward:
+
+```
+fun findInTree(tEmpty,_) is none
+ |  findInTree(tNode(_,(K,V),_),K) is some(V)
+ |  findInTree(tNode(L,(K1,_),_),K) where K1>K is findInTree(L,K)
+ |  findInTree(tNode(_,(K1,_),R),K) where K1<K is findInTree(R,K)
+```
+
+Notice that each 'label' in the tree is a 2-tuple — consisting of the key and the value. This function is also where we need the key type to be both `comparable` and supporting `equality`. The `comparable` constraint has an obvious source: we perform inequality tests on the key.
+
+The `equality` constraint comes from a slightly less obvious source: the repeated occurrence of the `K` variable in the second equation. This equation is actually equivalent to:
+
+```
+fun findInTree(tNode(_,(K,V),_),K1) where K=K1 is some(V)
+```
+
+We leave the implementations of `setKinTree` and `removeKfromTree` as an exercise for the reader.
+
+###Index Slices[index-slices]
+
+Related to accessing and manipulating individual elements of collections are the _indexed slice_ operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:
+
+```
+C[fx:tx]
+```
+
+denotes the subsequence of `C` starting — and including — the element indexed at `fx` and ending — but _not_ including the element indexed at `tx`.
+
+As might be expected, the index slice notation is also governed by a contract — the `sliceable` contract. This contract defines the core functions for slicing collections and for updating subsequences of collections:
+
+```
+contract sliceable over s determines k is {
+  _slice has type (s,k,k)=>s
+  _tail has type (s,k)=>s
+  _splice has type (s,k,k,s)=>s
+}
+```
+
+The `_slice` function is used extract a slice from the collection, `_tail` is a variant that returns the 'rest' of the collection, and `_splice` is used to replace a subset of the collection with another collection.
+
+Like the indexing notation, there is notation for each of the three cases:
+
+```
+C[fx:]
+```
+
+denotes the tail of the collection — all the elements in `C` that come after `fx` (including `fx` itself); and
+
+```
+C[with fx:tx->D]
+```
+
+denotes the result of splicing `D` into `C`. This last form has an additional incarnation — in the form of an assignment statement:
+
+```
+C[fx:tx] := D
+```
+
+This action is equivalent to the assignment:
+
+```
+C := _splice(C,fx,tx,D)
+```
+
+which, of course, assumes that `C` is correctly defined as a read/write variable.
+
+>**Star** encourages declarative programming but we fully recognize that side-effecting behavioral code is often the most effective solution to the problem.
+
+The slice notation is an interesting edge case in domain specific languages. It is arguably a little obscure, and, furthermore, the use case it represents is not all that common. On the other hand, without specific support, the functionality of slicing is hard to duplicate with the standard indexing functions.
+
+##Doing Stuff With Collections[doing-stuff-with-collections]
+
+One of the most powerful features of collections is the ability to treat a collection as a whole. We have already seen a little of this in our analysis of the [visitor pattern](going-even-further). Of course, the point of collections is to be able to operate over them as entities in their own right. As should now be obvious, most of the features we discuss are governed by contracts and it is paradigmatic to focus on contract specifications rather than specific implementations.
+
+The number of things that people want to do with collections is only limited by our imagination; however, we can summarize a class of operations in terms several patterns:
+
+* Filtering
+* Transforming into new collections
+* Summarizing collections
+* Querying collections
+
+Each of these patterns has some support from **Star**'s standard repertoire of functions.
+
+###Filtering With `filter`[filtering-with-filter]
+
+The simplest operation on a collection is to subset it. The standard function `filter` allows us to do this with some elegance. For example, to remove all odd numbers from a collection we can use the expression:
+
+```
+filter((X)=>X%2=0,Nums)
+```
+
+For example, if `Nums` were the `list`:
+
+```
+list of [1,2,3,4,5,6,7,8,9]
+```
+
+then the value of the `filter` expression would be
+
+```
+list of [2,4,6,8]
+```
+
+The first argument to `filter` is a _predicate_: a function that returns a `boolean` value. The `filter` function (which is part of a standard contract) is required to apply the predicate to every element of its second argument and return a _new_ collection of every element that satisfies the predicate.[^The original collection is unaffected by the `filter`.]
+
+Note that the `%` function is arithmetic remainder, and the expression `X%2=0` amounts to a test that `X` is even (its remainder modulo `2` is `0`).
+
+By using a function argument to represent the predicate it is possible to construct many filtering algorithms whilst not making any recursion explicit. However, not all filters are easily handled in this way; for example, a prime number filter _can_ be written
+
+```
+filter(isPrime,N)
+```
+
+but such an expression is likely to be very expensive (the `isPrime` test is difficult to do well).
+
+###The Sieve of Erastosthenese[original-sieve]
+
+One of the classic algorithms for finding primes can be expressed using filters however — the so-called sieve of Erastosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of `filter` operations.
+
+The core of the sieve algorithm involves taking a list of numbers and removing multiples of a given number from the list. This is very similar to our even-number finding task, and we can easily define a function that achieves this:
+
+```
+fun filterMultiples(K,N) is filter((X)=>X%K!=0,N)
+```
+
+The overall Erastosthenes algorithm works by taking the first element of a candidate list of numbers as the first prime, removing multiples of that number from the rest, and recursing on the result:
+
+```
+fun sieve([N,..rest]) is [N,..sieve(filterMultiples(N,rest))]
+```
+
+There is a base case of course, when the list of numbers is exhausted then we have no more primes:
+
+```
+fun sieve([]) is []
+```
+
+The complete prime finding program is hardly larger than the original filter specification:
+
+```
+fun primes(Max) is let{
+  fun sieve([]) is []
+   |  sieve([N,..rest]) is [N,..sieve(filterMultiples(N,rest))]
+  fun filterMultiples(K,N) is filter((X)=>X%K!=0,N)
+  
+  fun iota(Mx,St) where Mx>Max is list of []
+   |  iota(Cx,St) is list of [Cx,..iota(Cx+St,St)]
+} in list of [2,..sieve(iota(3,2))]
+```
+
+The `iota` function is used to construct a list of numbers, in this case the integer range from `3` through to `Max` with an increment of `2`. We start the sieve with `2` and the list of integers with `3` since we are making use of our prior knowledge that `2` is prime.
+
+>It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each 'sweep' of the list of numbers results in a new list of numbers; many of which too will eventually be discarded.
+
+We might ask wether the `sieve` function can also be expressed as a `filter`. The straightforward answer is that it cannot: the `sieve` _is_ a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard `filter` function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.
+
+###Mapping to Make New Collections[mapping-to-make-new-collections]
+
+One of the limitations of the `filter` function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The `map` function can be used to perform many transformations of collections.
+
+For example, to compute the lengths of strings in a list we can use the expression:
+
+```
+map(size,list of ["alpha","beta","gamma"])
+```
+
+which results in the list:
+
+```
+list of [5,4,5]
+```
+
+The `map` function is actually defined via the `mappable` contract — thus allowing different implementations for different collection types:
+
+```
+contract mappable over c is {
+  map has type for all e,f such that
+    ((e)=>f,c of e)=>c of f
+}
+```
+
+Notice how the contract specifies the collection type — `c` — without specifying the type of the collection's element type. We are using a different technique here than we used for the `sequence` contract. Instead of using functional dependency to connect the type of the collection to the type of the element, we denote the full type of the input and output collections using a type variable as the _type constructor_ as in `c of e` and `c of f`.
+
+The reason for this is that _mapping_ implies creating a new collection from an old collection; with a possibly different element type. This is only possible if the collection is generic and hence the type expressions `c of e` and `c of f`.
+
+>One might ask whether we could not have used a contract of the form:
+
+>```
+  contract mappable2 over c determines (e,f) is {
+    map has type ((e)=>f,c)=>c
+  }
+  ```
+
+  However, _this_ contract forces the types of the result of the map to be identical to its input type, it also allows the implementer of the `mappable2` contract to fix the types of the collection elements — not at all what we want from a `map`.
+
+It is not all that common that we need to construct a list of sizes of strings. A much more realistic use of `map` is for _projection_. For example, if we wanted to compute the average age of a collection of people, which is characterized by the type definition:
+
+```
+type person is someOne{
+  name has type string;
+  age has type ()=>float;
+}
+```
+
+Suppose that we already had a function `average` that could average a collection of numbers; but which (of course) does not understand people. We can use our `average` by first of all projecting out the ages and then applying the average function:
+
+```
+average(map((X)=>X.age(),People))
+```
+
+In this expression we project out from the `People` collection the ages of the people and then use that as input to the `average` function.
+
+There is something a little magic about the lambda function in this expression: how does the type checker 'know' that `X` can have a field `age` in it? How much does the type checker know about types anyway?
+
+In this particular situation the type checker could infer the type of the lambda via the linking between the type of the `map` function and the type of the `People` variable. However, the type checker is actually capable of giving a type to the lambda even without this context. Consider the function:
+
+```
+fun nameOf(R) is R.name
+```
+
+This function takes an arbitrary record as input and returns the value of the `name` field. Notice that we don't, and do not need to, explicitly annotate the `nameOf` function — this function will work with _any_ record that has a `name` field.
+
+The `nameOf` function _is_ well typed, and the type inference system is able to assign a quite interesting type to it:
+
+```
+nameOf has type for all r,n such that
+   (r)=>n where r implements { name has type n }
+```
+
+This is another example of a constrained type: in this case, the constraint on `r` is that it has a field called `name` whose type is the same as that returned by `nameOf` itself.
+
+With this type signature, we can use `nameOf` with any type that that a `name` field. This can be a record type; it can also be a type defined with an algebraic type definition.
+
+###Compressing Collections With a Fold[compressing-collections-with-a-fold]
+
+Another way of using collections is to summarize or aggregate over them. For example, the `average` function computes a single number from an entire collection of numbers — as do many of the other statistical functions. We can define `average` using the standard `leftFold1` function:
+
+```
+fun average(C) is leftFold1((+),C) as float/size(C) as float
+```
+
+>Notice the use of coercion here — coercing both the result of the `leftFold1` and `size` to `float`. The reason for doing this is that functions like `average` are 'naturally' real functions.[^Real as in the Real numbers.] Without the explicit coercion, averaging a list of integers will also result in an `integer` value — which is likely to be inaccurate.
+
+  Of course, we needed to coerce both the numerator and denominator of the division because **Star** does not have implicit coercion.
+
+The `leftFold1` function applies a left-associative binary operator to a collection: starting from the first element and successively 'adding up' each of the elements in the collection using the supplied operator. 
+
+The type signature for `leftFold1` details this:
+
+```
+leftFold1 has type for all c,e such that
+  ((e,e)=>e,c of e)=>e
+```
+
+![Left Folding a Collection][folding]
+
+[folding]: images/folding.jpg width=240px
+
+Our definition of the `average` function is therefore about as close to a specification of average as is possible in a programming language!
+
+While it is convenient for computing averages, there are several restrictions in the signature for `leftFold1`: the most egregious is that the result type and the types of the elements of the collection must be identical. A more refined function is possible that liberates us from this:
+
+```
+leftFold has type for all c,e,ac such that
+  ((ac,e)=>ac,ac,c of e)=>ac
+```
+
+In this variant of fold, we separate out an 'accumulator' (of type `ac`) from the type of the elements of the collection.[^We saw something similar with the [visitor pattern][going-even-further].] The `leftFold` function applies its argument function in a similar way to `leftFold1`, except that it does not require that the type of the accumulator is the same as the elements of the collection. Furthermore, it does not use the first element of the collection as a 'seed' of the aggregation — instead, the initial seed is explicitly given.
+
+![Left Folding a Collection With a Seed][leftFolding]
+
+[leftFolding]: images/leftfold.png width=270px
+
+We can still use `leftFold` in situations where we would use `leftFold1`, for example our `average` function is equally well written as:
+
+```
+fun average(C) is leftFold((+),0,C) as float/size(C) as float
+```
+
+But we can do much more than computing averages with a fold. Recall that when we realized the [sieve of Erastosthenes][original-sieve], we still had a recursive structure to the program. Furthermore, the way our original program was written each filter results in a new list of numbers being produced. Instead of doing this, we can construct a cascade of filter functions.
+
+Consider the task of adding a filter to an existing filter. What is needed is a new function that combines the effect of the new filter with the old one. The `cascade` function takes a filter function and a prime as arguments and constructs a new function that checks both the prime _and_ the existing filter:
+
+```
+fun cascade(F,K) is (X)=>(F(X) and X%K!=0)
+```
+
+This is a truly higher-order function: it takes a function as argument and returns a another function.
+
+>Notice the use of parentheses in the returned lambda. This is because the operator priority of `and` is higher than that of the lambda operator `=>`.
+
+Given `cascade`, we can reformulate the sieve function itself as a `leftFold` — at each new prime step we 'accumulate' a new cascaded filter function:
+
+```
+fun step(F,X) where F(X) is cascade(F,X)
+ |  step(F,X) is F
+```
+
+At each step in the fold we want to know whether to continue to propagate the existing filter or whether to construct a new filter — the conditional expression allows us to achieve that.
+
+The `sieve` function itself is now very short: we simply invoke `leftFold` using `step` and an initial 'state' consisting of a function that checks for odd numbers:
+
+```
+fun sieve(C) is leftFold(step,(K)=>K%2!=0,C)
+```
+
+The initial 'state' is a function that filters out even numbers
+
+This version of `sieve` is not quite satisfactory as, while it does find prime numbers, it does not report them. A more complete version has to also accumulate a list of primes that are found. We can do this by expanding the accumulated state to include both the cascaded filter function and the list of found primes. The main alteration is to the `step` function:
+
+```
+fun prStep((P,F),X) where F(X) is (list of [P..,X],cascade(F,X))
+ |  prStep((P,F),_) is (P,F)
+```
+
+and the initial state has an empty list:
+
+```
+fun sieve(C) is first(leftFold(prStep,(list of [],(K)=>K%2!=0),C))
+```
+
+where `first` and `second` pick the left and right hand sides of a tuple pair:
+
+```
+fun first((L,R)) is L
+fun second((L,R)) is R
+```
+
+There is one final step we can make before leaving our sieve of Erastosthenes — we can do something about the initial list of integers. As it stands, while the program does not construct any intermediate lists of integers, it still requires an initial list of integers to filter for primes. However, this particular sequence can be represented in a very compact form — as a `range` term.
+
+`range` terms are special forms of collections that denote ranges of numeric values; using a `range` term, we can denote the list of primes less than 1000 with
+
+```
+fun primes(Max) is let{
+  fun cascade(F,K) is (X)=>(F(X) and X%K!=0)
+  fun prStep((P,F),X) where F(X) is (list of [P..,X],cascade(F,X))
+   |  prStep((P,F),_) is (P,F)
+  fun sieve(C) is first(leftFold(prStep,(list of [],(K)=>K%2!=0),C))
+  fun first((L,R)) is L
+} in sieve(range(3,Max,2))
+
+show primes(1000)
+```
+
+This final program has an important property: there are no explicit recursions in it — in addition, apart from the `leftFold` function, there are no recursive programs at all in the definition of `primes`.
+
+As before, the `leftFold` function is not defined directly but is part of a `foldable` contract. This contract defines both `leftFold` and `leftFold1` and the corresponding `rightFold` and `rightFold1` functions for right associative operations. The `foldable` contract has a further surprise for us:
+
+```
+contract foldable over c determines e is {
+  leftFold has type for all st such that ((st,e)=>st,st,c)=>st;
+  leftFold1 has type ((e,e)=>e,c) => e;
+  rightFold has type for all st such that ((e,st)=>st,st,c)=>st;
+  rightFold1 has type ((e,e)=>e,c)=>e;
+}
+```
+
+If you look closely at the type signature for `leftFold` (and also `rightFold`) you will see that there is an explicit quantifier. Up until now, any time that we have had a quantifier _inside_ a type; it has always been at the outermost — or left most — level.
+
+What the special quantification means is that any implementation of the `foldable` contract must allow for a generic transition function — from state to state. Exactly what we would expect of a contract for folding sequences: the implementation must not constrain the accumulator function unnecessarily.
+
+The `rightFold` and `rightFold1` functions process collections 'from the right' rather than 'from the left'. In most cases, you will be using the left oriented functions as most collections are optimized for accessing in order.
+
+##Iteration[iteration]
+
+We now take a look at how we can process collections using actions rather than expressions. Iteration is one of those areas where history has resulted in two quite different traditions: OO-style languages and functional languages have markedly different approaches to iteration; and yet, as we will see, they can be seen as twins of each other.
+
+A classic iteration over a collection, written in Java in this case, looks something like:
+
+```
+int len = 0;
+for(String s:myColl){
+  len = len+s.length();  // do something with s
+}
+```
+
+As we have seen, the functional approach to this kind of computation would be to capture the implicit recursion into a use of `leftFold`:
+
+```
+leftFold((A,E)=>A+size(E),0,myColl)
+```
+
+Although the Java and **Star** code fragments are computing the same value — the total length of string data in the collection — and even though they are nearly the same length; there are radical differences between the two, differences that can make a substantial difference in large programs.
+
+The first salient point is that the iteration/recursion is exposed in the Java code and hidden in the **Star** code. This is potentially very significant in the event that we want to change how the iteration is implemented — replace a sequential iteration by a parallel one, for example. More subtly, if there are any _access_ issues with the collection — if access to it requires special care with locking or related features — these same issues can be dealt with once — in the implementation of `leftFold` rather than repeatedly for each loop.
+
+The second salient feature is that the relationship between the iteration and the body of the iteration is inverted. We can see this if we unpack the Java loop, which involves an explicit `Iterator` object:
+
+```
+int len = 0;
+for(Iterator<String> it=myColl.iterator();it.hasNext();){
+  String s = it.next();
+  len = len+s.length();  // do something with s
+}
+```
+
+The `Iterator` object 'carries' most of the information needed to process the collection properly. Each call to `next` results in `s` being bound to the next element of `myColl`.
+
+If we squint appropriately, we can see that the body of the Java loop 'drives' the iteration — via the call to `it.next()`. In effect, the body code is the _client_ of the collection, and the `Iterator` object is the server in the code fragment.
+
+In the case of the functional code, the loop is encapsulated in the `leftFold` function which drives the loop by calling the 'body function' when needed. It is possible to write Java code that approximates to this style; it would be something like:
+
+```
+Folding.leftFold((A,E)->{return A+E.length()},0,myColl)
+```
+
+assuming that `leftFold` were a static function in the `Folding` class.[^This relies on new syntax introduced in Java 8. The `leftFold` would be much clumsier in earlier versions of the language.]
+
+The third saliency is not actually obvious from these fragments, but the functional approach has more variability in the loop structures than Java. Java has several forms of loop, but there is only one loop that is oriented to processing collections — the 'for each' loop. On the other hand, in **Star** — like most functional programming languages — we have `map` to transform a collection, `filter` to remove unwanted elements, `leftFold` and its relatives to reduce collections.
+
+The range of looping functions reflects an underlying vocabulary of 'things we do' to collections.
+
+The final, perhaps most unexpected point, is that the fundamental computational cost of the two styles of iteration is almost identical! Under reasonable assumptions of optimization for both Java and **Star**, it is possible to show that the number of steps needed to compute the two fragments is very similar. The details are beyond the scope of this book.
+
+##Queries[queries]
+Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a `list` of parents and children:
+
+```
+def parent is list of [("john","peter), ("peter","jane"), ... ]
+```
+
+and that we wanted to construct a result along the lines of:
+
+```
+def GC is list of [("john","jane"),...]
+```
+
+This involves searching the `parent`s for pairs or pairs that satisfy the grandparent relationship. Based on the collection operators we have seen so far, we can build such a search using two `leftFold` operations:
+
+```
+leftFold(
+  (SoFar,(X,Z)) => leftFold(
+    let {
+      fun acc(gp1,(ZZ,Y)) where Z=ZZ is list of [gp1..,(X,Y)]
+       |  acc(gp1,_) is gp1
+    } in acc,
+    SoFar,parent),
+  list of [],
+  parent)
+```
+
+This, rather intimidating, expression uses one `leftFold` to look for the grandparent, for each candidate grandparent a second `leftFold` finds all the grand-children. All without any explicit recursion.
+
+>The `acc` function defined above in the `let` expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
+
+The various `filter`, `map` and `leftFold` functions _are_ powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+
+It turns out that **Star** has a special notation that makes this kind of complex computation significantly easier to write and comprehend. **Star**'s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
+
+```
+def GC is list of { all (X,Y) where 
+                      (X,Z) in parent and (Z,Y) in parent }
+```
+
+It may not be obvious, but these expressions compute the same values! What is obvious is that the query is much easier to read and easier to verify that it is correct.
+
+>The syntax and style of **Star**'s query notation is similar to SQL's syntax — deliberately so.
+
+  Specifically, we take SQL's _relational calculus_ subset — the language of `where`s and of boolean combinations. **Star**'s query expressions do not have the equivalent of explicit relational `join` operators.
+
+There are several variations of query expression, but the most common form is:
+
+_SequenceType_ `of {` _QuantifierTerm_ `where` _Condition Modifier_ `}`
+
+where _SequenceType_ is any type name that implements the `sequence` contract, _QuantifierTerm_ is a form that indicates the form of the result of the query, _Condition_ is a condition and the optional _Modifier_ is used to signal properties of the result — such as whether the result is grouped or sorted.
+
+###Satisfaction[satisfaction]
+
+The foundation for the query notation is the notation for conditions. Conditions are boolean valued — but they are not always expressions. For example, the first condition for grandparent is that there is a parent; this was expressed using the condition:
+
+```
+(X,Z) in parent
+```
+
+This condition is not evaluated in the way that expressions are normally evaluated — by _testing_ to see if a given pair of `X` and `Z` are in the `parent` collection. Instead, the condition is evaluated by trying to find `X` and `Z` that are in the collection. In effect, the condition becomes a search for suitable candidate pairs.
+
+Technically this is called _satisfying_ the condition — to distinguish what is going on from _evaluating_ the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
+
+In addition to individual _search conditions_ like this, it is also possible to use logical operators — called _connectives_ — to combine conditions. In the case of our grand-parent query, there is a conjunction; which involves a variable `Z` that acts as a kind of glue to the two search conditions.
+
+In database parlance the conjunction amounts to an inner join operation; however, it is also simply logical conjunction.
+
+The available connectives include the usual favorites: `and`, `or`, and `not`. They also include some less familiar connectives: `implies` and `otherwise`.
+
+The `implies` connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
+
+```
+fun managerOk(M) is (X,M) in worksFor implies X.salary=<M.salary
+```
+
+Notice that we can use conditions' satisfaction-oriented semantics outside of query expressions.
+
+###Query Quantifiers[query-quantifiers]
+
+The _QuantifierTerm_ in a query specifies 'how many' answers we want. There are essentially three forms of _QuantifierTerm_ — if we want all the answers then we use a term of the form:
+
+```
+{ all (X,Y) where ... }
+```
+
+On the other hand, if we want a fixed number, then we use:
+
+```
+{ 5 of (X,Y) where ... }
+```
+
+Of course, there might not be five answers, and so this is called a bounded _QuantifierTerm_.
+
+We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of **Star**'s most powerful and high-level features.
+
+##Types of Collection[types-of-collection]
+
+Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of adding to the collection, the cost of _accessing_ elements of the collection and the cost of _modifying_ elements in the collection.
+
+>There is a strong emphasis on _persistent_ semantics for the types and functions that make up **Star**'s collections architecture. This is manifest in the fact, for example, that functions that add and remove elements from collections _do not_ modify the original collection.
+
+However, even without that constraint, different implementation techniques for collections tend to favor some operations at the cost of others. Hence, there are different types of collection that favor different patterns of use.
+
+###The `cons` Type[the-cons-type]
+
+This is the simplest collection type; and is perhaps the original collection type used in functional programming languages. It is defined by the type declaration:
+
+```
+type cons of t is nil or cons(t,cons of t)
+```
+
+Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a `cons` list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to the end of a `cons` list is linear in the length of the list.
+
+###The `list` Type[the-list-type]
+
+The `list` type offers a different trade-off to the `cons` type: where the latter is optimal for ease of constructing and for traversing complete lists, the `list` type offers constant-time access to random elements within the array — at the potential cost of more expensive construction of lists.
+
+Unlike the `cons` type, the `list` type does not have a straightforward definition as an algebraic type. Internally, an `list` structure consists of an array of locations with a 'control pointer' giving the portion of the array block that represents a given `list` value.
+
+The `list` type is optimized for random access and for shared storage — recall that **Star** collection types are persistent: that means that different values can share some or all of their internal structure. The  [diagram](twoArrays) shows two `list` values that overlap in their elements and consequently share some of their structure.
+
+![Two `lists` Sharing Structure][twoArrays]
+
+[twoArrays]:images/twoarrays.jpg width=270px
+
+
+###The `dictionary` Type[the-dictionary-type]
+
+Unlike the `cons` or `array` type, the `dictionary` type is oriented for access by arbitrary keys. The `dictionary` is also quite different to hash trees as found in Java (say), the `dictionary` type is _persistent_: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of the `dictionary` is quite comparable to Java's `HashMap`.
+
+The template for the `dictionary` type is:
+
+```
+for all k,v such that dictionary of (k,v) where equality over k
+```
+
+Notice that there is an implied constraint here: the `dictionary` assumes that the keys in the dictionary can be compared for equality.
+
+A `dictionary` value can be written using the sequence notation, using tuple pairs for the key-value pairs:
+
+```
+dictionary of [(1,"alpha"),(2,"beta")]
+```
+
+Dictionaries also have a special variant of the sequence notation; instead of writing the pairs as tuples we can use an arrow notation for `dictionary` terms:
+
+```
+dictionary of [1->"alpha", 2->"beta"]
+```
+
+Dictionaries also have their own special variant of a _query search condition_. A condition of the form
+
+```
+K->V in D
+```
+
+where `D` is a `dictionary` will be satisfied if there is a key/value pair in `D` corresponding to `K` and `V`. For example, the condition:
+
+```
+K->V in dictionary of [1->"alpha", 2->"beta"] and V="alpha"
+```
+
+is satisfied for only one pair of `K` and `V`: `1` and `"alpha"` respectively.
+
+>For the curious, dictionaries are implemented using techniques similar to Ideal Hash Trees, as described by Bagwell [][#Bagwell01idealhash]. This results in a structure with an effective O(1) cost for accessing elements _and_ for modifying the dictionary — all the while offering an applicative data structure.
+
+### The `Set` Type [the-set-type] ###
+There are many instances where a programmer needs a collection but does _not_ wish specify any ordering or mapping relationship. The standard `set` type allows you to construct such entities.
+
+Using a `set` type offers the programmer a signal that minimizes assumptions about the structures: the `set` type is not ordered, and offers no ordering guarantees. It does, however, offer a guarantee that operations such as element insertion, search and set operations like set `union` are implemented efficiently. 
+
+Like `dictionary`, the `set` type is not publicly defined using an algebraic type definition: its implementation is private. It's type is given by the template:
+
+```
+type set of t where equality over t
+```
+
+###The `range` Type[the-range-type]
+
+The `range` type is a very particular form of collection type: a `range` denotes a range of numbers. Its type description says it all:
+
+```
+type range of t where arithmetic over t and comparable over t is
+  range(t,t,t);
+```
+
+This type description has some special features; in particular it is a constrained type: a type expression of the form:
+
+```
+range of T
+```
+
+is only valid if `T` is an arithmetic type; specifically a type that supports `arithmetic` and is `comparable`. Thus a type expression such as `range of integer` is fine, but `range of list of integer` will result in a syntax error!
+
+Range terms are used to compactly represent regular ranges of numbers; for example the term
+
+```
+range(0,100,1)
+```
+
+denotes the first 100 integers. But, of course, we have already seen the `range` collection in our exploration of the [sieve of Erastosthenes](original-sieve).
+
+There is a specific property of the `range` type that is difficult to capture with this type definition — specifically, we rely in many places on `range`s _half closed_ property: that is, the range of numbers in the range include the first number but does not include the second. This property makes combining ranges much smoother than either a fully closed range (includes both ends) or an open range (includes neither end).
+
+For example the following assertion is expected to hold for `range` terms:
+
+```
+range(F,I,Ix)++range(I,T,Ix)=range(F,T,Ix)
+```
+
+where `++` is the standard function — i.e., is part of the `concatenate` contract — for expressing sequence concatenation.
+
+##Queries and Maps for Statistical Purposes
+
+We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.
+
+Statistics is, of course, one of the key application areas of computers in general. However, there is often a substantial gap between the theoretical aspects of statistical processing and the pragmatics of collecting and processing data. We aim to demonstrate **Star**'s power in both areas.
+
+One fecund source of statistics is the web; we can even get statistics about the web. The on-line tool [Web Page Test](http://www.webpagetest.org) can be used to generate a lot of data about how a browser responds to a website. Furthermore, we can down this data as a file of comma separated values (CSV). The first few lines of this file shows the detail of the data collected:
+
+```
+Date,...,URL,Response Code,Time to Load (ms),...,Bytes In,...
+9/12/14,...,/,302,397,...1272,...
+```
+
+There are over 70 columns there. Suppose that we wanted to process this to find out how much time is spent loading Javascript data. Our first step is to introduce the CSV file to **Star** which we can do with a special macro:
+
+```
+import metaCSV
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv"
+
+  ...
+}
+```
+
+The `generateCSV` line is a [macro][macro-rules] that parses the sample CSV file, constructs a type (`Wpt`) that reflects the entries in the file and a parser that can parse similar CSV files into `Wpt` entries. The generated `Wpt` type looks like:
+
+```
+type Wpt is Wpt{
+    Date has type string
+    ...
+    URL has type string
+    Response Code has type integer
+    Time to Load \(ms\) has type integer
+    ...
+    Bytes In has type integer
+    ...
+  };
+```
+
+One immediate feature to notice is that some of the field names have back-slashes and other decidedly non-identifier-like characters in them! **Star** allows a variable (and by extension a field) identifier to have any characters in them — so long as they are escaped. This allows us to access 'foreign' data structures like this CSV file in a straightforward way.
+
+Given the implicit generation of the type, and of a parser, we can use this to process real data files. For example, we can extract out from the CSV file records containing just the URLs, the file sizes and the load times using a query:
+
+```
+import metaCSV
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv"
+
+  def wptData is WptParser("http:www.webpagetool.org/...csv")
+  def extracted is list of { all 
+    { URL=D.URL
+     size=D.Bytes\ In
+     loadTime=D.Time to Load \(ms\)} where
+    D in wptData}
+  ...
+}
+```
+
+We used the generated parser to reach out to the website for the data and to parse the resulting content — in a single high-powered statement.
+
+A single run of the web page test may involve many separate browser actions — the purpose of the tool is to test the performance of a website, which needs many trials to achieve statistical significance. So a better organization of the data is to categorize the raw data by URL. We can do this using a `group by` query:
+
+```
+import metaCSV
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv"
+
+  def wptData is WptParser("http:www.webpagetool.org/...csv")
+  def extracted is list of { all 
+    {URL=D.URL
+     size=D.Bytes In
+     loadTime=D.Time to Load \(ms\)} where
+    D in wptData} group by ((X)=>X.URL)
+  ...
+}
+```
+
+The `group by` operator takes a collection, and a categorization function, are produces a dictionary of collections.
+
+We want to produce average load times and standard deviations of the load times — to smooth out the vagaries of the Internet. For now, we will assume that we have `average` and `stddev` functions that have type signatures:
+
+```
+average has type for all c,e such that
+  (c,(e=>float))=>float where sequence over c determines e
+stddev has type for all c,e such that
+  (c,(e=>float))=>float where sequence over c determines e
+```
+
+I.e., we are assuming functions that take collections, and an 'accessor' function, and return the average and standard deviation respectively.
+
+Given these functions, we can compute our statistics using:
+
+```
+import metaCSV
+import stats;
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv"
+
+  def wptData is WptParser("http:www.webpagetool.org/...csv");
+  def extracted is list of { all 
+    { URL=D.URL;loadTime=D.Time to Load \(ms\)} where
+        D in wptData} group by ((X)=>X.URL)
+        
+  fun ldTime(D) is D.loadTime as float
+  show list of { all (K,average(V,ldTime),stddev(V,ldTime)) where
+        K->V in extracted }
+}
+```
+
+The query condition:
+
+```
+K->V in extracted
+```
+
+is analogous to the regular search condition:
+
+```
+D in wptData
+```
+
+except that it is used to search within a dictionary-based collection. The pattern `K->V` matches the successive key/value pairs in the dictionary.
+
+That is it! The final query should get output along the lines of:
+
+```
+...
+("/o/oauth2/auth?...", 337.0, 0.0),
+("/main-thumb-58380181-100-yqpttun...", 101.18518518519, 24.41468441456),
+("/main-thumb-49759239-100-pcgldxn...",93.48148148148, 19.03285636867),
+...
+```
+
+Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.[^A standard deviation of `0.0` is likely a signal that the indicated URL only occurred once in the sample data.]
+
+##Summary[summary]
+
+Collections form an important part of any modern programming language. The suite of features that make up the collections architecture in **Star** consists of a number of data types, contracts and special syntax that combine to significantly reduce the burden of the programmer.

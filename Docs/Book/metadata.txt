@@ -1,0 +1,4 @@
+Title:	Cafe Programmer
+Author:	Francis G. McCabe
+Bibliography Title:	Bibliography
+BibTex:	star.bib

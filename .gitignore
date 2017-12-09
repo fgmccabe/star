@@ -1,11 +1,3 @@
-*.
 .idea/
+.DS_Store
 cmake-build-debug/
-src/Asm/.deps
-src/Compiler/.deps
-src/Memory/.deps
-src/Engine/.deps
-src/Jit/.deps
-src/Lib/.deps
-src/Util/.deps
-stamp-h1
