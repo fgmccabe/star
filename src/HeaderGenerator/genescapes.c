@@ -95,7 +95,7 @@ static char *dumpSig(char *sig, bufferPo out) {
       dumpStdType("star.core*string", out);
       break;
     case logSig:
-      dumpStdType("star.core*logical", out);
+      dumpStdType("star.core*boolean", out);
       break;
     case kvrSig:
       outStr(O_IO(out), "kVar(");

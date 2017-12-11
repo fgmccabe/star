@@ -58,7 +58,7 @@ decodeType(thisType) --> ['h'].
 decodeType(type("star.core*integer")) --> ['i'].
 decodeType(type("star.core*float")) --> ['f'].
 decodeType(type("star.core*string")) --> ['S'].
-decodeType(type("star.core*logical")) --> ['l'].
+decodeType(type("star.core*boolean")) --> ['l'].
 decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).
 decodeType(kFun(Nm,Ar)) --> ['K'], typeLen(Ar), decodeText(Nm).
 decodeType(type(Nm)) --> ['t'], decodeText(Nm).

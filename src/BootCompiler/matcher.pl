@@ -15,13 +15,15 @@ functionMatcher(Lc,Ar,Nm,Eqns,fnDef(Lc,Nm,[eqn(Lc,NVrs,Reslt)])) :-
   genRaise(Lc,Error),
   matchTriples(Lc,NVrs,Tpls,Error,Reslt).
 
+genRaise(Lc,error(Lc,"no matches")).
+
 matchTriples(_,[],Tps,Deflt,Reslt) :-
   conditionalize(Tps,Deflt,Reslt).
 matchTriples(Lc,Vrs,Tpls,Deflt,Reslt) :-
   partitionTriples(Tpls,Segments),
   matchSegments(Segments,Vrs,Lc,Deflt,Reslt).
 
-matchSegments([],_,Lc,Deflt,Deflt).
+matchSegments([],_,_,Deflt,Deflt).
 matchSegments([Seg|M],Vrs,Lc,Deflt,Reslt) :-
   matchSegments(M,Vrs,Lc,Deflt,Partial),
   matchSegment(Seg,Vrs,Lc,Partial,Reslt).
@@ -38,9 +40,9 @@ compileMatch(inScalars,Tpls,Vrs,Lc,Deflt,Reslt) :-
 compileMatch(inConstructors,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchConstructors(Lc,Tpls,Vrs,Deflt,Reslt).
 compileMatch(inTuples,Tpls,Vrs,Lc,Deflt,Reslt) :-
-  matchTuples(Lc,Tpls,Vrs,Deflt,Reslt.
+  matchTuples(Lc,Tpls,Vrs,Deflt,Reslt).
 compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
-  matchVars(Lc,Tpls,Vrs,Deflt,Reslt).
+  matchVars(Lc,Vrs,Tpls,Deflt,Reslt).
 
 conditionalize([(_,(_,[],Value),_)|_],Value).
 conditionalize([(_,(Lc,Bnds,Value),_)|_],varNames(Lc,Bnds,Value)).
@@ -63,7 +65,7 @@ makeTriples([Rl|L],Ix,[Tr|LL]) :-
   makeTriples(L,Ix1,LL).
 
 partitionTriples([Tr|L],[[Tr|LL]|Tx]) :-
-  argMode(Tr,M),
+  tripleArgMode(Tr,M),
   partTriples(L,L0,M,LL),
   partitionTriples(L0,Tx).
 partitionTriples([],[]).
@@ -71,14 +73,11 @@ partitionTriples([],[]).
 partTriples([],[],_,[]).
 partTriples([Tr|L],Lx,M,[Tr|LL]) :-
   tripleArgMode(Tr,M),
-  partTriples(L,M,LL).
+  partTriples(L,Lx,M,LL).
 partTriples(L,L,_,[]).
 
 tripleArgMode(([A|_],_,_),Mode) :-
   argMode(A,Mode),!.
-
-triplesMode([Tr|_],M) :-
-  tripleArgMode(Tr,M).
 
 genVars(0,[]).
 genVars(Ar,[idnt(NN)|LL]) :-
@@ -97,11 +96,11 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,case(Lc,V,Cases,Deflt)) :-
   formCases(ST,matcher:sameScalarTriple,Lc,Vrs,Deflt,Cases).
 
 matchConstructors(Lc,Tpls,[V|Vrs],Deflt,case(Lc,V,Cases,Deflt)) :-
-  quickSort(CT,matcher:compareConstructorTriple,ST),
+  quickSort(Tpls,matcher:compareConstructorTriple,ST),
   formCases(ST,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Cases).
 
-formCases([],_,_,[],_,_) :- !.
-formCases([],_,Lc,Vrs,Deflt,[]).
+formCases([],_,_,[],Deflt,Deflt) :- !.
+formCases([],_,_,_,_,[]).
 formCases([Tr|Trpls],Cmp,Lc,Vrs,Deflt,[(Lbl,Case)|Cses]) :-
   pickMoreCases(Tr,Trpls,Tx,Cmp,More),
   formCase(Tr,Lbl,[Tr|Tx],Lc,Vrs,Deflt,Case),

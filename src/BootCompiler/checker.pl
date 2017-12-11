@@ -146,7 +146,7 @@ checkOthers([St|Stmts],Ass,Env,Path) :-
 
 checkOther(St,[assertion(Lc,Cond)|More],More,Env,_) :-
   isIntegrity(St,Lc,C),!,
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,Env,_,Cond).
 checkOther(St,[ignore(Lc,Exp)|More],More,Env,_) :-
   isIgnore(St,Lc,Trm),!,
@@ -311,7 +311,7 @@ checkEquation(Lc,H,C,R,funType(AT,RT),[equation(Lc,Nm,Args,Cond,Exp)|Defs],Defs,
   splitHead(H,Nm,A),
   pushScope(E,Env),
   typeOfArgTerm(A,AT,Env,E0,Args),
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,E0,E1,Cond),
   typeOfTerm(R,RT,E1,E2,Exp),
   dischargeConstraints(E,E2).
@@ -322,7 +322,7 @@ checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Nm,Args,Cond,Exp)|Defs],Defs,E)
   splitHead(H,Nm,A),
   pushScope(E,Env),
   typeOfArgTerm(A,AT,Env,E0,Args),
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   typeOfTerm(G,LogicalTp,E0,E1,Cond),
   typeOfTerm(R,RT,E1,E2,Exp),
   dischargeConstraints(E,E2).
@@ -466,14 +466,14 @@ typeOfTerm(Term,Tp,Env,Ev,Exp) :-
 typeOfTerm(P,Tp,Env,Ex,where(Lc,Ptn,Cond)) :-
   isWhere(P,Lc,L,C),
   typeOfTerm(L,Tp,Env,E0,Ptn),
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,E0,Ex,Cond).
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp).
 typeOfTerm(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else)) :-
   isConditional(Term,Lc,Tst,Th,El),!,
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   typeOfTerm(Tst,LogicalTp,Env,E0,Test),
   typeOfTerm(Th,Tp,E0,E1,Then),
   typeOfTerm(El,Tp,E1,Ev,Else).
@@ -549,29 +549,29 @@ typeOfTerm(Term,Tp,Env,Env,lambda(Lc,equation(Lc,"$",Args,Cond,Exp))) :-
   typeOfArgTerm(H,AT,Env,E1,Args),
   newTypeVar("_E",RT),
   checkType(Lc,funType(AT,RT),Tp,Env),
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   typeOfTerm(C,LogicalTp,E1,E2,Cond),
   typeOfTerm(R,RT,E2,_,Exp).
 typeOfTerm(Term,Tp,Env,Ex,conj(Lc,Lhs,Rhs)) :-
   isConjunct(Term,Lc,L,R),!,
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfTerm(L,LogicalTp,Env,E1,Lhs),
   typeOfTerm(R,LogicalTp,E1,Ex,Rhs).
 typeOfTerm(Term,Tp,Env,Ex,disj(Lc,Lhs,Rhs)) :-
   isDisjunct(Term,Lc,L,R),!,
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfTerm(L,LogicalTp,Env,E1,Lhs),
   typeOfTerm(R,LogicalTp,E1,Ex,Rhs).
 typeOfTerm(Term,Tp,Env,Ex,neg(Lc,Rhs)) :-
   isNegation(Term,Lc,R),!,
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfTerm(R,LogicalTp,Env,Ex,Rhs).
 typeOfTerm(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs)) :-
   isMatch(Term,Lc,P,E),!,
-  findType("logical",Lc,Env,LogicalTp),
+  findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   newTypeVar("_#",TV),
   typeOfTerm(P,TV,Env,E0,Lhs),

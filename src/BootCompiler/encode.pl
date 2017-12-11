@@ -44,7 +44,7 @@ encodeType(anonType,['_'|O],O).
 encodeType(voidType,['v'|O],O).
 encodeType(thisType,['h'|O],O).
 encodeType(typeExp(Tp,[T]),['L'|O],Ox) :- deRef(Tp,tpFun("star.core*list",1)),!,encodeType(T,O,Ox).
-encodeType(type("star.core*logical"),['l'|O],O).
+encodeType(type("star.core*boolean"),['l'|O],O).
 encodeType(type("star.core*integer"),['i'|O],O).
 encodeType(type("star.core*float"),['f'|O],O).
 encodeType(type("star.core*string"),['S'|O],O).

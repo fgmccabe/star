@@ -10,11 +10,11 @@ star.core {
   public all t ~~ option[t] ::= none | some(t).
 
   public contract all x ~~ equality[x] ::= {
-    (==): (x,x)=>logical.
+    (==): (x,x)=>boolean.
     hash: (x)=>integer.
   }
 
-  public (\==):all x ~~ equality[x] |: (x,x)=>logical.
+  public (\==):all x ~~ equality[x] |: (x,x)=>boolean.
   x \== y => \+ x==y.
 
   public implementation equality[string] => {
@@ -27,7 +27,7 @@ star.core {
   optHash(some(X)) => hash(X).
 
   -- Not strictly necessary, but makes for better symmetry.
-  public logical ::= true | false.
+  public boolean ::= true | false.
 
   all t ~~ equality[t] |: person[t] ::=
     someOne{
