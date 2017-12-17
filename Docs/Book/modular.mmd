@@ -1,15 +1,12 @@
 #Boiling the Ocean[boiling-the-ocean]
 
-It is a commonplace in software engineering that you should not try to 'boil the ocean'; which is a synonym for 'biting off more than you can chew'. However, it _is_ possible to build very large scale systems if you approach it in the right way. This is the purview of architecture.
+It is a commonplace in software engineering that you should not try to 'boil the ocean'; which is a synonym for 'biting off more than you can chew'. However, it _is_ possible to build very large scale systems if you approach it in the right way. This is the purview of architecture and of software development teams.
 
 >The 'right' way to boil an ocean is one cup at a time. The 'smart' way to do it is to build a machine that makes cups that boil the ocean.
-
-All software projects are team efforts. Even if you feel you wrote everything in your project yourself, it is unlikely that you also wrote the compiler, run-time library, editor and operating system too! Even within a single project, most of the time you are working in the context of a team of co-developers and other professionals.
 
 Building software in the context of a team is quite different to writing individual functions in a program. It is not enough for your code to compute the correct function; it must also interact properly with the environment it is in. As a result, professional programmers find themselves often more concerned with making sure that all the 'pieces' are in the right place than simply the correctness of an algorithm.[^This is not to deny that correctness is important. It is just that algorithm correctness is _not enough_.] Interfaces, contracts, APIs and integration issues often dominate the system builder's landscape.
 
 >One's attitude to basic language features like types is also different: having to deal with the knowledge that is in your co-worker's head (and not yours) should be enough to convince anyone of the merits of strong static types.
-
 
 **Star**'s modularity features are built from the same functional programming foundation as the other features of the language. This has important implications for the programmability of larger systems.
 
@@ -21,7 +18,6 @@ We have already seen the two basic forms of compilation unit in **Star**: the `p
 
 ### Package [package]
 
-
 **Package**
 : A `package` is a collection of definitions that are intended to represent some coherent functionality or purpose.
 
@@ -29,25 +25,25 @@ This is, of course, a vague and non-actionable definition. There _are_ higher-le
 
 For all of its vagueness, the basic idea of a `package` is that it is a container for a collection of definitions. **Star**'s modularity makes it quite straightforward to refactor your package hierarchy should you need to.
 
-The form of a `package` is
+The form of a package is
 
-_Identifier_ `is package {` _Definitions_ `}`
+_Package Identifier_ `{` _Definitions_ `}`
 
 
-The _Identifier_ at the beginning of the package definition is the name of the package. Normally it has little role within the package itself; it is used when referring to the package externally.
+The _Package Identifier_ at the beginning of the package definition is the name of the package. It typically consists of a sequence of identifiers separated by periods. Normally a package identifier has little role within the package itself; it is used when referring to the package externally.
 
 Most of the _Definitions_ are those that we have already seen: function definitions, variable definitions and type definitions. There are some additional forms however, including the `import` statement — that allows one to import elements from other packages.
 
 ####The `main` Program[the-main-program]
 
-If a package defines a main procedure[^A procedure, in **Star**, is a function that returns the void tuple `()`.] then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a `list of string`s.
+If a package defines a main procedure[^A procedure, in **Star**, is a function that returns the void tuple `()`.] then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a `list[string]`s.
 
 If the `main` procedure is defined then automatic coercion from command line arguments to internal types is performed. For example,
 
 ```
-myProgram is package{
-  main has type (integer,string)=>()
-  prc main(Count,Name) do {
+myProgram{
+  main:(integer,string)=>().
+  main(Count,Name) do {
     ...
   }
 }
@@ -61,7 +57,7 @@ $ Star myProgram 34 fred
 
 where the run-time verifies verifies that exactly two arguments are passed, the first being an integer. In principle, the arguments of `main` may be of _any_ type — so long as the type is known to implement the `coercion` contract:
 
-`coercion over (string,`_T_`)`
+`coercion[string,`_T_`]`
 
 where _T_ is the type being passed to the `main` function. I.e., so long as there is a way of parsing a `string` value we can pass such arguments from the command line to our main program. However, there is another constraint: the ability of the operating system to pass in arbitrary strings to a command line program.
 
@@ -80,9 +76,9 @@ However, for program safety reasons, it is not permitted to coerce strings into 
 If you want to manage all the command-line arguments, then define the procedure `_main` instead:
 
 ```
-myProgram is package{
-  _main has type (list of string)=>()
-  prc _main(args) do { ... }
+myProgram{
+  _main:(list of string)=>()
+  _main(args) do { ... }
 }
 ```
 
@@ -100,8 +96,8 @@ The contents of a worksheet may be anything that counts as a definition — incl
 : `perform` an action. For example:
 
 ```
-worksheet{ 
-  perform task { 
+worksheet{
+  perform task {
     logMsg(info,"This is an action")
   }
 }
@@ -112,7 +108,7 @@ worksheet{
 **`ignore`**
 : Evaluate an expression for side-effect purposes; ignoring its value.
 
-  This is used in those cases where a computation has a value that we wish to ignore – i.e., is evaluated for its effect only. 
+  This is used in those cases where a computation has a value that we wish to ignore – i.e., is evaluated for its effect only.
 
   In many programming languages expressions are automatically 'promoted' to statements. For example, if you have the expression `3+X` in Java (say) then it is also a statement:
 
@@ -178,7 +174,7 @@ There are two basic ways of importing a package[^You cannot import a worksheet.]
 
 ```
 worksheet{
-  import myPackage
+  import myPackage.
 
   -- Use definitions from myPackage
 }
@@ -187,7 +183,7 @@ worksheet{
 You can also import packages outside the `worksheet` structure:
 
 ```
-import myPackage
+import myPackage.
 worksheet{
   -- Use definitions from myPackage
 }
@@ -211,10 +207,11 @@ worksheet{
 For example, suppose that `myPackage` looked like:
 
 ```
-myPackage is package{
-  type foo of t is foo(t) or bar
+myPackage{
+  public all t ~~ foo[t] ::= foo(t) | bar.
 
-  fun unFoo(foo(X)) is X
+  public unFoo:all t ~~ (foo[t]) => t.
+  unFoo(foo(X)) => X.
 }
 ```
 
@@ -222,31 +219,22 @@ To use the `unFoo` function in our second worksheet, we simply reference it as a
 
 ```
 worksheet{
-  mP is import myPackage
+  mP is import myPackage.
 
-  fun getTheStuff(F) is mP.unFoo(F)
+  getTheStuff:all t ~~ (mP.foo[t])=>t.
+  getTheStuff(F) is mP.unFoo(F).
 }
 ```
 
-What may be a little surprising is that this applies to the `foo` type also:
+What may be a little surprising is that this applies to the `foo` type also, and also to the `foo` and `bar` constructors:
 
 ```
 worksheet{
-  mP is import myPackage
+  mP is import myPackage.
 
-  getTheStuff has type (mP.foo of integer)=>integer
-  fun getTheStuff(F) is mP.unFoo(F)
-}
-```
-
-and also to the `foo` and `bar` constructors:
-
-```
-worksheet{
-  mP is import myPackage;
-
-  fun wrapF(nonInteger) is mP.bar
-   |  wrapF(X) is mP.foo(X)
+  wrapF:all t ~~ (option[t])=>foo[t].
+  wrapF(none) => mP.bar.
+  wrapF(some(X)) => mP.foo(X).
 }
 ```
 
@@ -254,53 +242,29 @@ One of the benefits of the named import is that it makes it possible to import p
 
 By using named imports the effect is to establish a local _namespace_ for the imported package. Different definitions imported from different places can be reliably distinguished using the normal record field access syntax (i.e., a period).
 
-####Private Imports[private-imports]
+####Private and Public Imports[private-imports]
+By default, when a package is imported, it is privately imported -- the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.
 
-In addition to accessing imported definitions, an `open` import has the additional effect that those definitions are automatically re-exported by the importing package.
+However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exposes the structure of the library to clients; something that is typically not desirable.]
 
->This makes sense for two reasons: it makes it straightforward to construct a _library_ in terms of other packages; and, secondly, it allows builders of a library to _hide_ essential aspects of the _implementation_ of the library (the user of a library does not need to know which individual packages the different elements of the library came from).
+In order to facilitate the construction of libraries, and larger scale packages, we allow for so-called public imports.
 
-However, it is not always desirable to automatically re-export the contents of a package. To suppress this, we can mark the import statement with the keyword `private`:
-
-```
-private import myPackage
-```
-
-Any definitions that are in a privately imported package are not re-exported.
-
-In fact, the `private` keyword is not specific to importing packages. There are other situations where it is required to manage the externally visible definitions. A common case of this is in a record expression; such as:
+A public import is written:
 
 ```
-def F is {
-  fun fib(N) is fibT(N,1,0,0)
+public import fooPkg.
+```
+This will have the effect of re-exporting elements of `fooPkg` as though they were directly exported (made `public`) by the current package.
 
-  private
-  fun fibT(1,X,Y,Z) is X
-   |  fibT(I,X,Y,Z) is fibT(I-1,Y,Z,X+Y)
+One common pattern for specifying libraries -- that are made of multiple packages -- is though a stub package that just consists of a sequence of `public` imports:
+
+```
+libraryPkg{
+  public import part1.
+  public import part2.
+  ...
 }
 ```
-
-The `fibT` function is strictly part of the implementation of `fib` and is not, nor should it be, part of the `F` record. The `private` keyword ensures that `fibT` is not exposed.
-
-In fact, `private` is more for convenience than necessity; it does not introduce any new expressiveness to the language. For example, the above definition for `F` can be rewritten using a `let` instead of `private` definitions:
-
-```
-def F is let{
-  fun fibT(1,X,Y,Z) is X
-   |  fibT(I,X,Y,Z) is fibT(I-1,Y,Z,X+Y)
-} in { fun fib(N) is fibT(N,1,0,0) } -- actual record
-```
-
-However, such transformations have the potential for distorting the programmer's intention. In particular, if several definitions are being privatized (sic) then the resulting program may be quite distorted.
-
-The same applies to privately importing packages: it is possible to restructure a package so that no imports are explicitly `private`, but the result of adding `let` expressions into the program structure may well be ugly.
-
->It is probably good practice to always use `private` import of packages; unless you are deliberately designing a library package.
-
->>If, as we suggest, `private` imports are good practice, then why does the language not make that the default form of import and instead require you to explicitly publish those elements you want to export?
-
-  The answer is that `private` is useful in many other contexts than importing packages. In most of those contexts, the better default is to explicitly mark elements as private than to mark exported ones. Such is the life of a language designer!
-
 
 ##Code Products[code-products]
 
@@ -534,7 +498,7 @@ In the equation that defines `d` we have not explicit referenced `t`; but the ru
 If we had forgotten the `arithmetic` constraint:
 
 ```
-d has type for all t such that (t)=>t 
+d has type for all t such that (t)=>t
 fun d(X) is X+X
 ```
 
@@ -570,7 +534,7 @@ def simple is let{
 Externally, when we use the record, the opposite happens: we can make use of the existence of `foo` but we cannot further constrain it. We can use `simple`'s `foo` type, as well as the `fooMe` function that relies on it; for example, in:
 
 ```
-m has type for all t such that 
+m has type for all t such that
   (t)=>simple.foo of t
 fun m(X) is simple.fooMe(X)
 ```
@@ -773,7 +737,7 @@ let{
   def F0 is frParse("3/4")
   def F1 is fraction(1,2)
   def F2 is frPlus(F0,F1)
-} do 
+} do
   show frToString(F2)   -- results in 5/4
 ```
 
@@ -897,7 +861,7 @@ The configuration parameter here is obviously the `Pass` value; this is an impor
 We can use the function returning approach to inject an appropriate value of `Pass`:
 
 ```
-fun passes(Pass) is 
+fun passes(Pass) is
   (L)=>fraction(
      size(list of { all X where X in L and X.score>Pass}),
      size(L))

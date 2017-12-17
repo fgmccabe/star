@@ -44,8 +44,8 @@ compileMatch(inTuples,Tpls,Vrs,Lc,Deflt,Reslt) :-
 compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchVars(Lc,Vrs,Tpls,Deflt,Reslt).
 
-conditionalize([(_,(_,[],Value),_)|_],Value).
-conditionalize([(_,(Lc,Bnds,Value),_)|_],varNames(Lc,Bnds,Value)).
+conditionalize([(_,(_,[],Value),_)|_],_,Value).
+conditionalize([(_,(Lc,Bnds,Value),_)|_],_,varNames(Lc,Bnds,Value)).
 
 argMode(idnt(_),inVars).
 argMode(intgr(_),inScalars).
@@ -99,7 +99,7 @@ matchConstructors(Lc,Tpls,[V|Vrs],Deflt,case(Lc,V,Cases,Deflt)) :-
   quickSort(Tpls,matcher:compareConstructorTriple,ST),
   formCases(ST,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Cases).
 
-formCases([],_,_,[],Deflt,Deflt) :- !.
+formCases([],_,_,[],_,[]) :- !.
 formCases([],_,_,_,_,[]).
 formCases([Tr|Trpls],Cmp,Lc,Vrs,Deflt,[(Lbl,Case)|Cses]) :-
   pickMoreCases(Tr,Trpls,Tx,Cmp,More),

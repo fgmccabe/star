@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(ASM)
 
-find_package(BISON 3.0.4)
-find_package(FLEX 2.6.4)
-
 BISON_TARGET(AsmGrammar asmGrammar.y ${CMAKE_CURRENT_BINARY_DIR}/asmGrammar.c)
 FLEX_TARGET(AsmTokeniser asmToken.l ${CMAKE_CURRENT_BINARY_DIR}/asmToken.c)
 ADD_FLEX_BISON_DEPENDENCY(AsmTokeniser AsmGrammar)

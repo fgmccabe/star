@@ -8,9 +8,9 @@ In particular, the most basic assumption
 
 >the value of a variable stays the same until it is modified
 
-is _not_ valid when the variable in question is shared by multiple concurrent activities. It is difficult to overstate the importance of this.
+is _not_ valid when the variable in question is shared by multiple concurrent activities. Or rather, technically, it is, but when a variable is shared, it is both difficult and tedious to determine when or if the variable has the expected state. It is difficult to overstate the importance of this.
 
->An interesting parallel shows up in dealing with weightlessness in space: astronauts regularly complain of items drifting about in the space station — 'nothing stays where you left it'. As a result, astronauts must get used to taping everything down while they are working.
+>An interesting parallel shows up in dealing with weightlessness in space: astronauts 'complain' of items drifting about in the space station — 'nothing stays where you left it'. As a result, astronauts must get used to taping everything down while they are working.
 
 >Programmers building concurrent systems have a similar experience: they are constantly having to 'tape down' pieces of state to make sure that they 'stay put'.
 
@@ -25,9 +25,9 @@ A task expression denotes a _suspended computation_ — which itself is a sequen
 A `task` expression is written as a sequence of actions, enclosed in a `task` block; for example, in:
 
 ```
-def T is task{
-  def X is 1
-  def Y is 2
+T = task{
+  X = 1;
+  Y = 2;
   valis X+Y
 }
 ```
@@ -38,10 +38,10 @@ the variable `T` is bound to a `task` expression whose returned value will be `3
 valis X+Y
 ```
 
-Task expressions have a type: `task of t` where `t` is the type of the value returned by the `task`. So, for example, the type of `T` above is given by
+Task expressions have a type: `task[t]` where `t` is the type of the value returned by the `task`. So, for example, the type of `T` above is given by
 
 ```
-T has type task of integer
+T:task[integer].
 ```
 
 as it produces an `integer` value.
@@ -62,7 +62,7 @@ valof T
 
 denotes the value returned by the task computation `T`.
 
-It is important to remember, in thinking about tasks, that there is the extra level of indirection. The type of `T` is `task of integer`; the type of `T`'s value is `integer`.
+It is important to remember, in thinking about tasks, that there is the extra level of indirection.
 
 Note that the `valof` operator also has the effect of forcing the completion of the task `T`; in particular, the `valof` operator _is blocked_ until the task has completed and its value can be returned.
 
@@ -71,7 +71,7 @@ Note that the `valof` operator also has the effect of forcing the completion of 
 If a `task` does not return a value then its type will be
 
 ```
-task of ()
+task[()]
 ```
 
 Obviously a `task` that does not have a value does not require it's body to contain a `valis` action; however, if it does, then that action should be:
@@ -155,7 +155,7 @@ fun parmap2(F,L) is let{
   fun spread(list of []) is list of []
    |  spread(list of [X,..Y]) is list of [
         background task{ valis F(X)} ,.. spread(Y)]
-            
+
   fun collect(list of []) is list of []
    |  collect(list of [T,..Ts]) is list of [valof T,..collect(Ts)]
 } in collect(spread(L))
@@ -182,7 +182,7 @@ This `parmap` function is a `task`-valued function; its type is given by:
 
 ```
 parmap has type for all t,e,f such that
-  ((e)=>f,t of e)=>task of t of f where mappable over t 
+  ((e)=>f,t of e)=>task of t of f where mappable over t
 ```
 
 The type of `parmap`, in particular the role of the type variables `t`, bears further explanation.
@@ -530,7 +530,7 @@ The main loop of the semaphore's internal task is modeled using a mutual recursi
 ```
 fun grabR(X) is
   wrapRv(recvRv(grabCh), (_) => semLoop(X-1)
-fun releaseR(X) is 
+fun releaseR(X) is
   wrapRv(recvRv(releaseCh), (_) => semLoop(X+1))
 ```
 
@@ -538,7 +538,7 @@ The `wrapRv` operator is a function that takes a rendezvous and a function as ar
 
 In the case of `grabR`, the effect is that a message on the `grabCh` channel is passed to the lambda; which ignores the actual message but recursively invokes the semaphore loop function — with an decremented 'resource counter'. The `releaseR` function is similar except that `semLoop` will be invoked with an incremented counter and that it is listening to the `releaseCh` channel rather than the `grabR` channel.
 
-The `wrapRv` function is a useful way to 'do something' during a rendezvous. It is also the best way of converting a rendezvous of one form into that of another — to allow, for example, a combination rendezvous. 
+The `wrapRv` function is a useful way to 'do something' during a rendezvous. It is also the best way of converting a rendezvous of one form into that of another — to allow, for example, a combination rendezvous.
 
 There is an analogous operator — `guardRv` that has the effect of enabling a rendezvous only if some condition is met.
 
@@ -569,8 +569,8 @@ We are now in a position to show the complete workings of the `semaphore` functi
 fun semaphore(Count) is let{
   def grabCh is channel()
   def releaseCh is channel()
- 
-  fun releaseR(X) is 
+
+  fun releaseR(X) is
     wrapRv(recvRv(releaseCh), (_) => semLoop(X+1))
 
   fun grabR(X) is
@@ -614,7 +614,7 @@ perform R.grab()    -- get right fork
 perform T.release() -- release the table
 
 sleep(random(15L))  -- eat some
-  
+
 perform L.release() -- let go of left fork
 perform R.release() -- let go of right fork
 ```
@@ -635,7 +635,7 @@ fun phil(n,L,R) is task{
     perform L.release() -- let go of left fork
     perform R.release() -- let go of right fork
   }
-} 
+}
 ```
 
 >The eagled-eyed reader will notice that while `L` and `R` are parameters of the `phil` function, the `T` variable is not. Indeed, it is a free variable that must be bound in an outer scope.
@@ -645,14 +645,14 @@ The complete setup for the dining philosophers involves creating separate semaph
 ```
 prc dining(Count) do let{
   def T is semaphore(1)  -- The table
-  
+
   fun phil(n,L,R) is task{ ... }
 } in {
   def fork1 is semaphore(1)
   def fork2 is semaphore(1)
   def fork3 is semaphore(1)
   def fork4 is semaphore(1)
-  
+
   def phil1 is background phil(1,fork1,fork2)
   def phil2 is background phil(2,fork2,fork3)
   def phil3 is background phil(3,fork3,fork4)
@@ -709,8 +709,8 @@ fun msgQ() is let{
 
   fun qLoop(Q) where isEmpty(Q) is wait for postM(Q)
    |  qLoop(Q) default is wait for postM(Q) or pollM(Q)
- 
-  fun postM(Q) is 
+
+  fun postM(Q) is
     wrapRv(recvRv(postMsgChnl), (A) => qLoop([Q..,A]))
 
   fun pollM([A,..Q]) is let{
@@ -719,7 +719,7 @@ fun msgQ() is let{
       valis qLoop(Q)
     }
   } in wrapRv(recvRv(grabMsgChnl), reply)
-    
+
   { ignore background qLoop(queue of []) }
 } in {
   fun post(A) is wait for sendRv(postMsgChnl,A)
@@ -769,12 +769,12 @@ We can use our message queue to knock up a quick simulation of a system of worke
 worksheet{
   ...
   fun sender(Q) is task{
-    for i in range(0,1000,1) do 
+    for i in range(0,1000,1) do
       perform Q.post(i)
     sleep(3000L)
     logMsg(info,"all done")
   }
-  
+
   fun worker(W,Q) is task{
     while true do{
       def Nx is valof Q.poll()
@@ -782,11 +782,11 @@ worksheet{
       sleep(random(100L))
     }
   }
-  
+
   def MQ is msgQ()
   ignore background worker("alpha",MQ)
   ignore background worker("beta",MQ)
-  
+
   ignore valof sender(MQ)
 }
 ```
