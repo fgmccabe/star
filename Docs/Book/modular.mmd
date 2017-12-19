@@ -67,7 +67,7 @@ where _T_ is the type being passed to the `main` function. I.e., so long as ther
 $ Star myProgram "list of [1,2,3]"
 ```
 
-In practice, this means that most simple types can easily be passed to a `main` procedure; and, with some difficulty, collection types such as `list of integer` may also be used.
+In practice, this means that most simple types can easily be passed to a `main` procedure; and, with some difficulty, collection types such as `list[integer]` may also be used.
 
 >This capability is not often provided in programming languages. Normally, you are limited to passing in an array of strings to the top-level main function. Why this is the case is a question best asked of the respective programming language designers.
 
@@ -77,12 +77,12 @@ If you want to manage all the command-line arguments, then define the procedure 
 
 ```
 myProgram{
-  _main:(list of string)=>()
+  _main:(list[string])=>()
   _main(args) do { ... }
 }
 ```
 
-The `_main` procedure is given all the command line arguments as a `list of string`. This variant of `_main` (you cannot have both in the same package) is useful if you want to process command line arguments with dash-options.
+The `_main` procedure is given all the command line arguments as a `list[string]`. This variant of `_main` (you cannot have both in the same package) is useful if you want to process command line arguments with dash-options.
 
 ###Worksheet[worksheet]
 
@@ -398,7 +398,7 @@ def ss is let{
 Since there is a variable being defined here — the package variable `ss` — we might ask what is its type:
 
 ```
-ss has type { double has type (integer)=>integer }
+ss:{ double:(integer)=>integer }
 def ss is let{
   fun double(X) is X*2
 } in {double=double}
@@ -419,13 +419,13 @@ simple is package{
 Exporting types — and their constructors — is an extremely important part of the package functionality. However, it turns out that we can account for types too in our semantics of packages. Similarly to our previous unfolding, the `simple` package is equivalent to:
 
 ```
-simple has type {
+simple:{
   foo has kind type of type
-  foo has type for all t such that
+  foo:for all t ~~
     (t)<=>foo of t
-  bar has type for all t such that
+  bar:for all t ~~
     ()<=>foo of t
-  fooMe has type for all t such that (t)=>foo of t
+  fooMe:for all t ~~ (t)=>foo of t
 }
 def simple is let{
   type foo of t is foo(t) or bar
@@ -464,7 +464,7 @@ What does it mean to have a type in a record? From a programmer's point of view 
 The type expression in our record type:
 
 ```
-simple has type {
+simple:{
   foo has kind type of type
   ...
 }
@@ -473,7 +473,7 @@ simple has type {
 is itself a kind of macro form. The true meaning of the declaration of the `foo` type involves the use of an _existential_ quantifier:
 
 ```
-simple has type exists f such that {
+simple:exists f ~~ {
   type foo=f
   ...
 } where f has kind type of type
@@ -488,7 +488,7 @@ To get a better grip on type quantification in general and existentially quantif
 Consider the simple function `d` with its type declaration:
 
 ```
-d has type for all t such that
+d:for all t ~~
   (t)=>t where arithmetic over t
 fun d(X) is X+X
 ```
@@ -498,7 +498,7 @@ In the equation that defines `d` we have not explicit referenced `t`; but the ru
 If we had forgotten the `arithmetic` constraint:
 
 ```
-d has type for all t such that (t)=>t
+d:for all t ~~ (t)=>t
 fun d(X) is X+X
 ```
 
@@ -513,10 +513,10 @@ For existentially quantified types the situation is reversed: within an expressi
 For various reasons, which we will explore further, existentially quantified types are mostly associated with records — like the package record we saw earlier. Let us look again at our simple package type:
 
 ```
-simple has type exists f such that {
+simple:exists f ~~ {
   type foo=f
   ...
-  fooMe has type for all t such that (t)=>foo of t
+  fooMe:for all t ~~ (t)=>foo of t
 } where f has kind type of type
 ```
 
@@ -534,7 +534,7 @@ def simple is let{
 Externally, when we use the record, the opposite happens: we can make use of the existence of `foo` but we cannot further constrain it. We can use `simple`'s `foo` type, as well as the `fooMe` function that relies on it; for example, in:
 
 ```
-m has type for all t such that
+m:for all t ~~
   (t)=>simple.foo of t
 fun m(X) is simple.fooMe(X)
 ```
@@ -562,8 +562,8 @@ The second is related to this:
 Think about a function with the type:
 
 ```
-exFn has type for all t such that
-  (t)=>exists e such that R of (e,t)
+exFn:for all t ~~
+  (t)=>exists e ~~ R of (e,t)
 ```
 
 For the moment, we don't much care about `R`. Now, consider how we might use `exFn`:
@@ -593,10 +593,10 @@ I.e., once a type has been introduced as a Skolem type, it behaves just like any
 We can see this a little clearly by looking at the effective type annotations of `Y1` and `Y2`:
 
 ```
-Y1 has type R of (e345,string)
+Y1:R of (e345,string)
 def Y1 is exFn("alpha")
 ...
-Y2 has type R of (e345,string)
+Y2:R of (e345,string)
 def Y2 is Y1
 ```
 
@@ -605,10 +605,10 @@ where `e345` is the skolemized variant of the existential type `e`.
 The effective annotations for `X1` and `X2` will have different skolem constants:
 
 ```
-X1 has type R of (e235,string)
+X1:R of (e235,string)
 def X1 is exFn("alpha")
 ...
-X2 has type R of (e678,string)
+X2:R of (e678,string)
 def X2 is exFn("alpha")
 ```
 
@@ -630,10 +630,10 @@ One might start with a type definition:
 ```
 type genSet is genSet{
   coll has kind type of type
-  z has type for all t such that coll of t
-  addElement has type for all t such that
+  z:for all t ~~ coll of t
+  addElement:for all t ~~
     (t,coll of t)=>coll of t
-  present has type for all t such that
+  present:for all t ~~
     (t,coll of t)=>boolean
 }
 ```
@@ -675,13 +675,13 @@ def Two is LS,addElement(2,One)
 The type of `LS` gives no clue as to the internal type used to represent sets generated by it:
 
 ```
-LS has type genSet
+LS:genSet
 ```
 
 But `Z`, `One` and `Two` have more interesting types:
 
 ```
-Z has type collK341 of integer
+Z:collK341 of integer
 ```
 
 where `collK341` is a Skolem type — a unique type generated when we assign a type to `LS`. In effect, `LS` is a module that exports the set type and associated operators; this module is referenced by name and is used to construct particular sets.
@@ -705,10 +705,10 @@ Let us start with an interface; which in this case will take the form of a recor
 ```
 type fractionals is fracts{
   fraction has kind type
-  frPlus has type (fraction,fraction)=>fraction
-  frToString has type (fraction)=>string
-  frParse has type (string)=>fraction
-  fraction has type (integer,integer)=>fraction
+  frPlus:(fraction,fraction)=>fraction
+  frToString:(fraction)=>string
+  frParse:(string)=>fraction
+  fraction:(integer,integer)=>fraction
 }
 ```
 
@@ -717,7 +717,7 @@ One of the first things to note here is that `fraction` is existentially quantif
 Here we are mostly concerned with _using_ `fraction`s, so we will assume that we have at least one implementation — courtesy of the `FR` variable:
 
 ```
-FR has type fractionals
+FR:fractionals
 ```
 
 One way to use our implementation of fractions would be to reference the needed operators via the `FR` variable:
@@ -800,8 +800,8 @@ There is a straightforward way we can do this. Our original signature for `fract
   fraction has kind type where arithmetic over fraction
        and coercion over (string,fraction)
        and coercion over (fraction,string)
-  frPlus has type (fraction,fraction)=>fraction
-  fraction has type (integer,integer)=>fraction
+  frPlus:(fraction,fraction)=>fraction
+  fraction:(integer,integer)=>fraction
 }
 ```
 
@@ -884,27 +884,26 @@ Sometimes, rather than configuring a program with a numeric value (or any other 
 For example, you might need to build a system that attempts to predict the behavior of equipment based on historical performance and current demand. This kind of software could be very useful in determining a proper maintenance schedule. Suppose that you determine that what is important in predicting potential breakdowns is the number of units processed and the number of days since the last scheduled maintenance. You might keep track of this in a record:
 
 ```
-type maint is maint{
-  date has type date
-  units has type integer
+maint ::= maint{
+  date:date.
+  units:integer.
 }
 ```
 
 And you will also probably have a description of each piece of equipment:
 
 ```
-type equip is equip{
-  id has type string
-  eqpType has type string
-  nextMaint has type date
+equip ::= equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
 }
 ```
 
 Using this, and similar records, together with some clever algorithms, you design a function that determines the next most likely piece of equipment to fail — perhaps together with an expected failure date:
 
 ```
-nextToFail has type
-  (list of maint,list of equip)=>(equip,date)
+nextToFail:(list[maint],list[equip])=>(equip,date)
 ...
 ```
 
@@ -928,10 +927,10 @@ with the result that the customer data is lost. An alternative approach is to al
 
 ```
 type equip of t is equip{
-  id has type string
-  eqpType has type string
-  nextMaint has type date
-  extra has type t
+  id:string
+  eqpType:string
+  nextMaint:date
+  extra:t
 }
 ```
 
@@ -952,11 +951,11 @@ Instead of universal quantification, we can use an existential type for the `ext
 
 ```
 type equip is equip{
-  id has type string
-  eqpType has type string
-  nextMaint has type date
+  id:string
+  eqpType:string
+  nextMaint:date
   t has kind type
-  extra has type t
+  extra:t
 }
 ```
 
@@ -968,12 +967,12 @@ A simple way is to add to the `equip` record a set of extensibility functions th
 
 ```
 type equip is equip{
-  id has type string
-  eqpType has type string
-  nextMaint has type date
+  id:string
+  eqpType:string
+  nextMaint:date
   t has kind type
-  extra has type t
-  extraDate has type (t,date)=>date
+  extra:t
+  extraDate:(t,date)=>date
 }
 ```
 

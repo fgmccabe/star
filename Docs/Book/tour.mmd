@@ -58,7 +58,7 @@ The type annotation statement:
 fact : (integer)=>integer.
 ```
 
-is a statement that declares that the type of `fact` is a function of one `integer` argument and which returns an `integer` result. 
+is a statement that declares that the type of `fact` is a function of one `integer` argument and which returns an `integer` result.
 
 **Star** requires all top-level definitions – like `fact` here – to have explicit type annotations. For top-level functions, that annotation is often contiguous in the text; but in other cases that may not be the case.
 
@@ -67,7 +67,6 @@ Other variables – like the variable `N` which is part of the second recursive 
 The result is that a lot of the 'clutter' that can pervade a strongly typed language is just not necessary;  but the use of explicit type annotations for top-level definitions provides useful structure and documentation.
 
 >Note that the requirement is that top-level[^The definition of _top-level_ is simply whether the definition statement is immediately embedded in a `{}` sequence of statements – it is quite possible to have top-level definitions appearing within expressions.] definitions have explicit type annotations. We don't distinguish functions in any way here. In particular, functions which are _not_ part of a top-level  definition – for example lambda functions – do not need type annotations; on the other hand, other top-level variables still need an explicit type annotation.
-
 
 ###Rules
 
@@ -81,7 +80,7 @@ In addition, as we shall see later on, the partitioning of programs into cases l
 
 ###Patterns
 
-Patterns are ubiquitous in **Star**: they form the basis of many rules: they are used to define equations, they are used to control action programs, they are used to implement macros. 
+Patterns are ubiquitous in **Star**: they form the basis of many rules: they are used to define equations, they are used to control action programs, they are used to implement macros.
 
 A pattern can be viewed as a combination of a test — does a value match a particular pattern — and as a way ( _the_ way in **Star**) of binding a variable to a value.
 
@@ -290,7 +289,7 @@ Notice that we identified a special case of `noOne` in our `Person` type. One re
 
 Explicit `null` values, as found in Java and similar languages, cause a great number of problems: for example, `null` must have a special universal type; there are many scenarios where it is not possible for a variable to be `null` but the compiler must discover those for itself; and there is often a consequent tendency in defensive programming to test for `null`.
 
-**Star** has no direct equivalent of a global `null` value. However, the standard [`option` type][the-option-type] allows the equivalent of selective nullability. Any variable that might not have a proper value can be marked with the `option` type rather than the `Person` type. And you can use `none` in those cases to indicate the equivalent of no value. 
+**Star** has no direct equivalent of a global `null` value. However, the standard [`option` type][the-option-type] allows the equivalent of selective nullability. Any variable that might not have a proper value can be marked with the `option` type rather than the `Person` type. And you can use `none` in those cases to indicate the equivalent of no value.
 
 So, for example, suppose that a `Person` might have a spouse — who is also a `Person` — but is not guaranteed to have one. Such a type can be described using:
 
@@ -409,7 +408,7 @@ Like other functional languages, **Star** has a range of higher-order operators 
 leftFold((+),0,L)
 ```
 
-where `leftFold` means 
+where `leftFold` means
 
 >apply an accumulating function to the elements of the data, assuming that the applied operator is left associative.
 
@@ -501,7 +500,7 @@ worksheet{
   }
   double : all t ~~ four[t] |: (t)=>t.
   double(X) => plus(X,X).
-  
+
   show double(2)
 }
 ```
@@ -509,9 +508,9 @@ worksheet{
 we would get a compiler error along the lines of:
 
 ```
-2 has type integer
+2:integer
   which is not consistent with
-    pPrint[t_12] , four[t_12] |: t_12 
+    pPrint[t_12] , four[t_12] |: t_12
   because four[integer] not known to be implemented
 ```
 This error message is effectively warning us that we have defined the `four` contract but we have not implemented it. Until we do, the program is not complete. However, if we do supply an `implementation` of `four` over `integer`s:
@@ -526,7 +525,7 @@ worksheet{
   }
   double : all t ~~ four[t] |: (t)=>t.
   double(X) => plus(X,X).
-  
+
   implementation four[integer] => {
     plus(x,y) => x+y.
     sub(x,y) => x-y.

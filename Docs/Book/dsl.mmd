@@ -86,7 +86,7 @@ Joe has four-legs
 ```
 
 These inferences are part of the semantics of RDFS; they are added to the graph as a consequence of the other facts. A graph simply consists of a set of such 'triples'; often there are many millions of triples when modeling complex domains.
- 
+
 Just having a graph is much like having a flat data structure; its utility for describing policies comes from being able to process it effectively, specifically to be able to _query_ it. There are many possible ways of querying triple graphs; will look at a simple one which can be easily integrated with **Star**'s standard query notation.
 
 >It is popular to use a meta-syntax such as XML and JSON to encode policy expressions. The fundamental problem with using these is that they do not easily support type consistency and programming languages typically do not give good integration between XML/JSON strings and program code. The net effect is one of clumsiness and needless complexity.
@@ -125,7 +125,7 @@ The role of the UML diagram is to make it clear what the key features and compon
 ###Nouns and Verbs[nouns-and-verbs]
 
 Natural language grammar often has many kinds of words; but the two most important kinds of words are nouns and verbs. The same is usually true of computer languages: there are _things_ that we want to represent and process in some way and there are _actions_ that we want to be be able to model.[^Even in a pure expression language, a similar distinction holds: there is data and there are operators over that data. To be fair, there is an extreme variant of functional programming that only has functions; but even there the distinction between data and operators is still meaningful.]
- 
+
 The kind of UML-based analysis that we have used so far often leads naturally to a classification of the things in the DSL. Knowing what you want to do with those things may be harder to clarify. However, we have not finished with our use of UML.
 
 One way of defining action, as illustrated in the UML diagram is:
@@ -175,7 +175,7 @@ More generally, we have:
 
 Not all DSLs make all the features of an action explicit. However, the exercise of iterating through the different aspects of action will often lead to a clear conceptualization of the nouns and the verbs that form the core of the DSL.
 
-In the case of our RDF language, the principal actions relate to store and recall. We need to be able to manipulate triple graphs and we need to be able to query them. Here, we focus on querying because that is core to the role of any knowledge store. 
+In the case of our RDF language, the principal actions relate to store and recall. We need to be able to manipulate triple graphs and we need to be able to query them. Here, we focus on querying because that is core to the role of any knowledge store.
 
 ##Designing Syntax[designing-syntax]
 
@@ -298,7 +298,7 @@ X-(Y-Z)
 All this can be put together in a single **Star** statement: the operator declaration. In the case of our triple we are using two operators `!` and `$` to 'glue' together the parts of a triple. We also use the `:` operator to mark named concepts. The operator declarations we need to represent them are:
 
 ```
-#right("!",500) 
+#right("!",500)
 #right("$",450)
 #prefix(":",100)
 #infix("says",908)
@@ -377,7 +377,7 @@ Since this is a first class value, we can have variables bound to triple graphs,
 ```
 OrgTree is graph {
   [:peter, :john] ! :in_department $ :accounting
-  ... 
+  ...
 }
 ```
 
@@ -398,7 +398,7 @@ The purpose of a validation rule is two fold: it defines the legal syntactic for
 A validation rule uses patterns to define legal instances of syntactic _categories_. The top-level categories are `expression`, `pattern`, `statement` and `action`; however, it is often useful to introduce additional categories. For example, one validation rule that we use for defining the legal forms of triple might be:
 
 ```
-# ?S ! ?P $ ?O :: triple :- 
+# ?S ! ?P $ ?O :: triple :-
     S::concept :& P::concept :& O::concept
 ```
 
@@ -438,25 +438,25 @@ Because we want to allow different variations on the legal forms of triple, the 
 ```
 # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase
 # ?T :: triple :- error("$T is not a valid triple")
- 
+
 # ?P $ ?O :: verbPhrase :- P::verb :& O::nounPhrase
 # [ ?VP ] :: verbPhrase :- VP::verbPhrases
-# ?VP :: verbPhrase :- 
+# ?VP :: verbPhrase :-
     error("$VP must have at least one predicate and one object")
- 
+
 # ?A,?B :: verbPhrases :- A::verbPhrase :& B::verbPhrases
 # ?A :: verbPhrases :- A::verbPhrase
- 
+
 # [?V] :: verb :- V::verbs
 # ?V :: verb :- V::concept
- 
+
 # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs
 # ?V :: verbs :- V::concept
 
 # [ ?NP ] :: nounPhrase :- NP :: nounPhrases
 # string :: nounPhrase
 # ?C :: nounPhrase :- C::concept
- 
+
 # #(?NP1,?NPr)# :: nounPhrases :- NP1::nounPhrase :&
      NPr::nounPhrases
 # ?NP :: nounPhrases :- NP::nounPhrase
@@ -465,7 +465,7 @@ Because we want to allow different variations on the legal forms of triple, the 
 One thing to notice about these validation rules are the rules of the form:
 
 ```
-# ?VP :: verbPhrase :- 
+# ?VP :: verbPhrase :-
     error("$VP must have at least one predicate and one object")
 ```
 
@@ -561,7 +561,7 @@ Notice that here we are being explicit about the strong connection between subje
 A triple graph may be represented in a variety of ways — it is effectively a collection of triples. However, for the purposes of exposition, we will assume that triple graphs are represented as lists of triples. We can capture this with a type alias statement:
 
 ```
-type n3Graph is alias of list of n3Triple
+type n3Graph is alias of list[n3Triple]
 ```
 
 >A more robust implementation of the triple graph store would provide better support for querying triple graphs by the individual subjects, predicates and objects of triples. This would normally involve being able to index the triples by their subjects, predicates and objects.
@@ -655,8 +655,8 @@ means the _name_ of the expression; for compiler-buffs this is effectively the _
 ```
 type quoted is nameAst(string)          -- identifier
             or integerAst(integer)      -- integer literal
-            or applyAst(quoted,quoted)  -- application 
-            or tupleAst(list of quoted) -- tuple term
+            or applyAst(quoted,quoted)  -- application
+            or tupleAst(list[quoted]) -- tuple term
             ...
 ```
 
@@ -719,7 +719,7 @@ Code macros are embedded within a macro rule, in particular on the right hand si
 
 ```
  # graph{?Graph} ==> list of [triples(Graph) ] ## {
-  #fun triples(A) is wrapComma(mapSemi(triple,A))     
+  #fun triples(A) is wrapComma(mapSemi(triple,A))
   ...
 ```
 
@@ -749,7 +749,7 @@ fun mapSemi(F,A) is
 where `unwrapSemi` unfolds the sequence of terms from a `;`-based structure to a list. Notice that `mapSemi` is not itself a code macro: it is simply a regular **Star** function; a fact that is reflected in it's type signature:
 
 ```
-mapSemi has type ((quoted)=>quoted,quoted)=>list of quoted
+mapSemi:((quoted)=>quoted,quoted)=>list[quoted]
 ```
 
 >There are some restrictions — you may not invoke any **Star** functions defined in the _same_ package as the code macro itself is; other than functions defined within the same `##` block. You can, however, refer to functions that have been imported from other packages. (This is more difficult to say than to follow.)
@@ -776,7 +776,7 @@ We use an _accumulator_ style of programming that is similar to what we saw earl
 For example, the function `triple` may result in any number of actual triples being generated; so it must generate a list of triples. It takes the form:
 
 ```
-fun triple(SoFar,<| ?Sub ! ?VP |>) is 
+fun triple(SoFar,<| ?Sub ! ?VP |>) is
     SoFar++
     tripleJoin(trNounPhrase(list of [],Sub),
         trVerbPhrase(list of [],VP))
@@ -789,9 +789,9 @@ Here, `SoFar` refers to the triples found so far. This is appended to the triple
 The function `trNounPhrase` may find a list of nouns — i.e., a list of concepts — in the subject part of the triple. The `trVerbPhrase` performs a similar function for the predicate and it also invokes `trNounPhrase` to scan for objects:
 
 ```
-fun trVerbPhrase(SoFar,<| [ ?VPs ] |>) is 
-      SoFar++mapComma(trVerbPhrase,VPs) 
- |  trVerbPhrase(SoFar,<| ?V $ ?O |>) is 
+fun trVerbPhrase(SoFar,<| [ ?VPs ] |>) is
+      SoFar++mapComma(trVerbPhrase,VPs)
+ |  trVerbPhrase(SoFar,<| ?V $ ?O |>) is
       SoFar++pairJoin(trVerb(list of [],V),
         trNounPhrase(list of [],O))
 ```
@@ -824,12 +824,12 @@ A better approach is to insulate the architectural choice point by introducing a
 
 ```
 contract graphStructure over t is {
-  emptyGraph has type t
-  addToGraph has type (t,n3Triple)=>t
-  findAllSubjects has type (t,n3Concept)=>list of n3Triple
-  findAllPredicates has type (t,n3Concept)=>list of n3Triple
-  findAllObjects has type (t,n3Concept)=>list of n3Triple
-  removeFromGraph has type (t,n3Triple)=>t
+  emptyGraph:t
+  addToGraph:(t,n3Triple)=>t
+  findAllSubjects:(t,n3Concept)=>list[n3Triple]
+  findAllPredicates:(t,n3Concept)=>list[n3Triple]
+  findAllObjects:(t,n3Concept)=>list[n3Triple]
+  removeFromGraph:(t,n3Triple)=>t
 }
 ```
 
@@ -848,7 +848,7 @@ There are three primary areas that we need to point out:
 1.  Tooling is harder for languages that support macro extensions. This is a serious issue; especially given the relatively weak technology often given to enable editors to be customized. [^fn2]
 
 [^fn2]:Editor customization is almost universally based on using _regular expressions_ which are often too weak to handle **Star**'s syntactic features.
-  
+
 	However, the author recommends Emacs and Sublime Text; in part for their excellent customization features.
 
 Overall, as we noted above, it comes down to a choice: of the _curated garden_ or the _wild democracy_. On balance, we believe that the power of being able to craft your own DSL, your own policy framework; or even to be able to rapidly respond to a changing requirement, outweighs the risks associated with being able to define your own macros.

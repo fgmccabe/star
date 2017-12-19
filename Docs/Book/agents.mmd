@@ -48,10 +48,10 @@ One systematic way of endowing a software system with such a model is to model t
 
 ```
 ...
-beliefs has type graph of fact
-goals has type graph of goal
-actions has type graph of action
-capabilities has type graph of plan
+beliefs:graph[fact]
+goals:graph[goal]
+actions:graph[action]
+capabilities:graph[plan]
 ...
 ```
 
@@ -125,8 +125,8 @@ As it happens, **Star** has a natural way of expressing a complete API -- by usi
 
 ```
 type myAPI is alias of {
-  products has type list of (string,string)
-  quantity has type (string)=>integer
+  products:list of (string,string)
+  quantity:(string)=>integer
 }
 ```
 
@@ -135,7 +135,7 @@ can be viewed as the specification of an API. We are not limited to exposing fun
 Having a type that can represent an entire API also allows us to be careful about distinguishing the API from _access_ to the API. We determine access to an API by computing a value whose type is the API -- for example by having a variable of the right type:
 
 ```
-A has type myAPI
+A:myAPI
 ```
 
 Here the API is determined by the `myAPI` type; access to it is mediated via the variable `A`. We access the API by accessing `A`, as in:
@@ -161,7 +161,7 @@ query Ag with list of { all y where
 One of the most obvious differences here being where the target of the API is mentioned: it is only mentioned at the top of the query. The type of `Ag`, assuming nothing else is known about it, takes the form:[^This is a simplification of the actual speech contract form.]
 
 ```
-Ag has type t where speech over t determines myAPI
+Ag:t where speech over t determines myAPI
 ```
 
 This type annotation highlights two important aspects of speech actions as **Star** program fragments: the entity being queried must implement the `speech` contract and that the API of the queried entity is also baked into its type -- albeit via the `speech` contract. Actual concrete implementations of `speech` tend to show the relationship more directly -- as we shall see below when we look at [actors][actors].
@@ -233,9 +233,9 @@ and `stock` is the 'channel' of communication. In order for this to be valid we 
 
 ```
 type myAPI is alias of {
-  products has type list of (string,string)
-  quantity has type (string)=>integer
-  stock has type occurrence of (string,string)
+  products:list of (string,string)
+  quantity:(string)=>integer
+  stock:occurrence of (string,string)
 }
 ```
 
@@ -328,7 +328,7 @@ on deposit(Nm,Amnt) on cashier do
 There are three parts to an `on...do` rule: the _pattern_ that denotes the kind of events this rule will respond to, a _channel_ identifier and an _action_ that is performed when a suitable event is received. The complete rule is effectively a program that has type: `occurrence of` _type_; or in the case of this rule:
 
 ```
-cashier has type occurrence of moneyTransaction
+cashier:occurrence of moneyTransaction
 ```
 
 assuming that `deposit` was a constructor in the type:
@@ -355,10 +355,10 @@ In this case two actions will take place when a `deposit` is received: it will b
 Actors have a type of the form `actor of` _recordType_; where _recordType_ is the actor's API. For example, if we include our occurrence processing rules in our `agentBank`; then its type will be:
 
 ```
-agentBank has type actor of {
-  balance has type (string)=>float
-  transfer has type (string,string)=>()
-  cashier has type occurrence of moneyTransaction
+agentBank:actor of {
+  balance:(string)=>float
+  transfer:(string,string)=>()
+  cashier:occurrence of moneyTransaction
 }
 ```
 
@@ -402,10 +402,10 @@ As might be clear if you have read up this point, a `concurrent actor` works by 
 Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type -- `concActor of` _t_ -- which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the `balQuery` function:[^Like other references to the `speech` contract, the types in this function are slightly simplified.]
 
 ```
-balQuery has type for for all t,a such that
+balQuery:for for all t,a ~~
     (t,string)=>float where
       speech over t determines a and
-      a implements { balance has type (string)=>float }
+      a implements { balance:(string)=>float }
 balQuery(A,U) is query A with balance(U)
 ```
 

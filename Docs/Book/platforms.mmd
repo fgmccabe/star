@@ -1,5 +1,5 @@
 #Its a Team Effort [platforms]
-We noted in the introduction that developing software is a team sport. 
+We noted in the introduction that developing software is a team sport.
 
 
 
@@ -96,13 +96,13 @@ splitComponent is component{
       processOrder(O)
   }
   port suppliers is publish{
-    discriminator has type (string) => port of {
-      order has type occurrence of Order
+    discriminator:(string) => port of {
+      order:occurrence of Order
     }
   }
   port parts is originate{
-    assembly has type set of (part,list of part)
-    supplier has type set of (part,list of supplier)
+    assembly:set of (part,list[part])
+    supplier:set of (part,list[supplier])
   }
   ...
 }
@@ -147,11 +147,11 @@ In order to see how we can achieve this we need to look a little deeper into how
 
 ```
 contract speech over t determines a is {
-  _query has type for all s such that
+  _query:for all s ~~
     (t,(a)=>s,()=>quoted,()=>dictionary of (string,quoted))=>s
   _request has type
     (t,(a)=>(),()=>quoted,()=>dictionary of (string,quoted))=>()
-  _notify has type (t,(a)=>())=>()
+  _notify:(t,(a)=>())=>()
 }
 ```
 

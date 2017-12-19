@@ -14,13 +14,17 @@ is _not_ valid when the variable in question is shared by multiple concurrent ac
 
 >Programmers building concurrent systems have a similar experience: they are constantly having to 'tape down' pieces of state to make sure that they 'stay put'.
 
-**Star** enables programmers to write concurrent and parallel programs with _tasks_ and _rendezvous_. Tasks allow us to manage when activities are performed; rendezvous are used to coordinate tasks when they must interact with each other.
+There are many potential models for concurrency in programming. However, two core ideas seem to stand out: the idea of _sequence_ and the idea of _sharing_. Sequencing actions in most programming languages is almost completely implicit: the idea of performing actions in sequence is so hard-wired in languages like Java and C/C++ that one must think hard to step outside that frame of reference. However, in a concurrent execution, sequentiality is lost: two activitivies can proceed in parallel[^We reserve the right to conflate strict parallelism with apparent parellelism here.] and the relative order of actions between the activities is not possible to predict.
+
+The second concept that is so implicit is that of sharing: in a sequential program we assume that subsequent actions share the effects of earlier actions. But, again in a concurrent context, sharing is not obvious; and it is hard to reason about.
+
+Our approach is to make _explicit_ that which is _implicit_. We reason about actions and their order explicitly -- by employing the classic software engineer's approach of taking an extra level of indirection: we take a handle on the computation itself using the concept of a first-class task as a unit of execution. Similarly, we reason about sharing by focusing on explicit _coordination_ between tasks and on explicitly modeling sharing by _communicating_ between them.
 
 ##Tasks[tasks]
 
-A task expression denotes a _suspended computation_ — which itself is a sequence of actions — and which may have a value when the computation is performed. In simple terms, tasks provide an extra level of indirection between expressions and values.
+A task expression denotes a possibly suspended _computation_ — which itself is a sequence of actions — and which may have a value when the computation is performed. Furthermore, tasks have the potential to be executed concurrently or even in parallel with other tasks.
 
->Like tasks, functions can also be viewed as representing suspended computations. However, unlike functions, a task expression represents a single suspended computation. Furthermore, functions also incorporate the concept of abstraction. Essentially, it does not make sense to apply a `task` to arguments.
+>Like tasks, functions can also be viewed as representing suspended computations. However, unlike functions, a task expression represents a single suspended computation.
 
 A `task` expression is written as a sequence of actions, enclosed in a `task` block; for example, in:
 
@@ -54,7 +58,7 @@ As we saw above, a task computation produces a value by performing the `valis` a
 valis X+Y
 ```
 
-The _value_ of a `task` is obtained using the `valof` operator:
+The _value_ of a `task` value is obtained using the `valof` operator:
 
 ```
 valof T
@@ -96,15 +100,14 @@ Void tasks are occasionally useful — for example, multi-tasked applications of
 
 ####Getting the value more than once[getting-the-value-more-than-once]
 
-Note that it is possible to ask a `task` for its value multiple times. However, the actions in the task body will only ever be performed once: subsequent attempts to get the value of the task simply return the value previously computed.
+Note that it is possible to access a `task` value multiple times. However, the actions in the task body will only ever be performed once: subsequent attempts to get the value of the task simply return the value previously computed.
 
 ###Background Tasks[background-tasks]
 
 A `task` can be started in the background — i.e., concurrently with other `task`s — by using the `background` operator, which is a function from `task`s to `task`s. It's type is given by
 
 ```
-background has type for all t such that
-  (task of t)=>task of t
+background:all t ~~ (task[t])=>task[t].
 ```
 
 Applying `background` to a task not only yields a task of the same type, but also one yielding the same value.
@@ -115,35 +118,34 @@ The `background` operator has a simple effect — it starts its argument `task` 
 
 ###Computing with tasks[computing-with-tasks]
 
-Like other values, `task`s are first class: they can be assigned to variables, kept in data structures, passed to and from functions and so forth. This flexibility leads to great expressive power — many patterns of computations can be readily encoded as `task`-valued
-functions.
+Like other values, `task`s are first class: they can be assigned to variables, kept in data structures, passed to and from functions and so forth. This flexibility leads to great expressive power — many patterns of computations can be readily encoded as `task`-valued functions.
 
-For example, consider the `mp` function — which is a facsimile of the standard `map` function specialized for `list`
-values:
+For example, consider the `mp` function — which is a facsimile of the standard `map` function specialized for `list` values:
 
 ```
-fun mp(F,list of []) is list of []
- |  mp(F,list of [X,..Y]) is list of [F(X),..mp(Y)]
+mp:all s,t ~~ ((s)=>t,list[s])=>list[t].
+mp(F,[]) => [].
+mp(F,[X,..Y]) => [F(X),..mp(Y)].
 ```
 
-In this `mp` function, the functional variable `F` denotes the computation to be applied to each element of the input list. Suppose that each computation of `F` were non-trivial, and we wanted to spread the load across multiple cores — i.e., to perform the map operations in parallel. The `task` notation, in particular `background` tasks will help us to achieve that.
+In this `mp` function,[^Notice that we do not need to mark the sequence expressions as `list` sequences -- type inference takes care of this for us.] the functional variable `F` denotes the computation to be applied to each element of the input list. Suppose that each computation of `F` were non-trivial, and we wanted to spread the load across multiple cores — i.e., to perform the map operations in parallel. The `task` notation, in particular `background` tasks will help us to achieve that.
 
->Recall that `map` is a standard **Star** function that is defined in the `mapping` contract and is implemented for many different collection types.
+>Recall that `map` is a standard **Star** function that is defined in the `mappable` contract and is implemented for many different collection types.
 
 We will first of all transform `mp` to use tasks rather than simply calling the function:
 
 ```
-fun taskmap(F,list of []) is list of []
- |  taskmap(F,list of [X,..Y]) is list of
-      [valof task{ valis F(X) } ,.. taskmap(F,Y)]
+taskmap:all s,t ~~ ((s)=>t,list[s])=>list[t].
+taskmap(F,[]) => [].
+taskmap(F,[X,..Y]) => [valof task{ valis F(X) } ,.. taskmap(F,Y)].
 ```
 
 As it stands, this function has very similar performance characteristics to `mp`; except that we are using the `task` expression notation. In order to run the different elements in parallel we need to also use the `background` operator:
 
 ```
-fun parmap1(F,list of []) is list of []
- |  parmap1(F,list of [X,..Y]) is
-      list of [valof background task{valis F(X)} ,.. parmap1(F,Y)]
+parmap1:all s,t ~~ ((s)=>t,list[s])=>list[t].
+parmap1(F,[]) => [].
+parmap1(F,[X,..Y]) => [valof background task{valis F(X)} ,.. parmap1(F,Y)].
 ```
 
 This program computes each element of the result in a separate background task. However, it is not a true parallel map because we wait for each element before continuing to the next element.
@@ -151,13 +153,15 @@ This program computes each element of the result in a separate background task. 
 A better approach is to first of all construct a list of `task`s and then to separately collect their values in a second phase:
 
 ```
-fun parmap2(F,L) is let{
-  fun spread(list of []) is list of []
-   |  spread(list of [X,..Y]) is list of [
-        background task{ valis F(X)} ,.. spread(Y)]
+parmap2:all s,t ~~ ((s)=>t,list[s])=>list[t].
+parmap2(F,L) => let{
+  spread:(list[s])=>list[task[t]].
+  spread([]) => [].
+  spread([X,..Y]) => [background task{ valis F(X)} ,.. spread(Y)].
 
-  fun collect(list of []) is list of []
-   |  collect(list of [T,..Ts]) is list of [valof T,..collect(Ts)]
+  collect:(list[task[t]])=>list[t].
+  collect([]) => [].
+  collect([T,..Ts]) => [valof T,..collect(Ts)].
 } in collect(spread(L))
 ```
 
@@ -170,26 +174,16 @@ A good rule of thumb is:
 So, a more idiomatic way of writing the `parmap` function is to make it a `task` valued function; we also generalize away from the specific `list` collection type and use the standard `map` function to allow for any collection type:
 
 ```
-fun parmap(L,T) is let{
-  fun spread() is map((X)=>background task{valis F(X)},L)
-  fun collect(Lt) is map((T)=>valof T,Lt)
+parmap:all s,t,c/1 ~~ mappable[c] |: ((s)=>t,c[s])=>task[c[t]].
+parmap(F,L) => let{
+  spread:()=>list[task[t]].
+  spread() => map((X)=>background task{valis F(X)},L).
+  collect:(list[task[t]])=>list[t].
+  collect(Lt) is map((T)=>valof T,Lt).
 } in task{
   valis collect(spread())
 }
 ```
-
-This `parmap` function is a `task`-valued function; its type is given by:
-
-```
-parmap has type for all t,e,f such that
-  ((e)=>f,t of e)=>task of t of f where mappable over t
-```
-
-The type of `parmap`, in particular the role of the type variables `t`, bears further explanation.
-
-####Variable Type Constructor[variable-type-constructor]
-
-So far, we have seen type variables that represent a type, normally a universally quantified type. In the type for `parmap` we see a different kind of type variable: here `t` denotes a variable type constructor, as in `t of e` and `t of f`. This represents a generalization of type variables; similar to that where a function is denoted by a variable.
 
 ###Computation Expressions and the **_M_** word [computation-expression]
 
@@ -197,8 +191,8 @@ Task expressions are instances of a more general **Star** feature: the _computat
 
 ```
 valof{
-  def x is 2
-  def y is f(x)
+  x = 2;
+  y = f(x);
   valis x+y
 }
 ```
@@ -207,8 +201,8 @@ is actually a degenerate case of an `action` computation expression:
 
 ```
 valof action computation {
-  def x is 2
-  def y is valof f(x)
+  x = 2;
+  y = f(x);
   valis x+y
 }
 ```
@@ -220,7 +214,7 @@ Monads represent a generalization of the kind of deferred computation we see in 
 The computation expression is syntactic support for using the monad contract — actually called `computation`. We can see the extent of this support by looking at the 'raw' version of the `action` function:
 
 ```
-fun AA(f) is action computation {
+AA(f) is action computation {
   def x is 2
   def y is valof f(x)
   valis x+y
@@ -230,11 +224,12 @@ fun AA(f) is action computation {
 The `AA` function becomes the somewhat more complex form:[^This is actually a somewhat sanitized version of the raw code. This is because we have hidden a required transformation from action sequences to functional expressions that encode the computation's ordering as function calls.]
 
 ```
-fun AA(f) is _delay(() => valof{
-  def x is 2
-  def y is _perform(f(x), raiser_fun)
+AA:((integer)=>integer)=>integer.
+AA(f) => _delay(() => valof{
+  x = 2;
+  y = _perform(f(x), raiser_fun);
   valis _encapsulate(x+y)
-})
+}).
 ```
 
 Note how the inner `valof` expression is transformed to a call to `_perform`; whereas the result of the `action computation` is encapsulated in a call to the function `_delay`. These are all functions in the standard `computation` contract; and so will actually be further specialized to be specific for the `action` expression.
@@ -256,13 +251,13 @@ A rendezvous is an object describing an event that may or may not happen in the 
 This is reflected in the `rendezvous` type itself:
 
 ```
-for all t such that rendezvous of t
+all t ~~ rendezvous[t]
 ```
 
 One of the simplest forms of rendezvous denotes a _timeout_:
 
 ```
-timeoutRv has type (integer) => rendezvous of ()
+timeoutRv:(integer) => rendezvous[()].
 ```
 
 The rendezvous returned by `timeoutRv(10)` describes an ''alarm clock'' event that happens 10 milliseconds in the future. Note that the type of the rendezvous returned specifies `()` as the type of the value yielded by the event - the timeout event provides no information other than that it happened.
@@ -313,16 +308,16 @@ However, it is also true that synchronous communication is essentially impossibl
 The `channel` function creates such a synchronous channel:
 
 ```
-channel has type for all t such that () => channel of t
+channel:for all t ~~ () => channel[t]
 ```
 
 There are two rendezvous operators for sending and for receiving data on a channel:
 
 ```
-sendRv has type for all t such that
-  (channel of t, t) => rendezvous of ()
-recvRv has type for all t such that
-  (channel of t) => rendezvous of t
+sendRv:for all t ~~
+  (channel[t], t) => rendezvous of ()
+recvRv:for all t ~~
+  (channel[t]) => rendezvous of t
 ```
 
 Notice that the `sendRV` operator returns a void-valued rendezvous; whereas the `recvRv` operator returns a rendezvous with a value.
@@ -687,8 +682,8 @@ We start by defining a type that denotes the interface to the queue. For conveni
 
 ```
 type messageQ of a is alias of {
-  post has type (a)=>task of ()
-  poll has type ()=>task of a
+  post:(a)=>task of ()
+  poll:()=>task of a
 }
 ```
 
@@ -701,7 +696,7 @@ The `messageQ` is likely to be used in the context of `task` expressions; and ce
 Like the semaphore that we saw earlier, we will build the message queue using an internal background task that manages the actual queue of messages.
 
 ```
-msgQ has type for all a such that
+msgQ:for all a ~~
   ()=>messageQ of a
 fun msgQ() is let{
   def postMsgChnl is channel()
