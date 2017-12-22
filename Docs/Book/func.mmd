@@ -145,7 +145,7 @@ There is no automatic coercion of values to see if they _might_ match. In partic
 Conditions are `boolean`-valued and the guard succeeds if both the pattern matches and if the condition is _satisfied_. **Star** has a normal complement of special conditional expressions which we shall explore as we encounter the need. In the case of the equation:
 
 ```
- sign(X) where X>0 
+ sign(X) where X>0
 ```
 
 the guard pattern is equivalent to:
@@ -209,7 +209,7 @@ is such a generic type (assuming that `x` is a type variable -- see below).
 
 All type variables must be bound by a quantifier in some enclosing scope. If a type variable is not bound, it is considered _free_ in that type expression.
 
-A  _quantified type_ is a type that introduces (i.e., binds) a type variable. There are two quantifiers in **Star**: a universal quantifier and an existential quantifier. 
+A  _quantified type_ is a type that introduces (i.e., binds) a type variable. There are two quantifiers in **Star**: a universal quantifier and an existential quantifier.
 
 The most common quantifier is the  _universal quantifier_ and universally quantified types correspond closely to generic types in other languages.
 
@@ -232,7 +232,7 @@ We noted above that the type of the standard equality predicate was 'almost' the
 ```
 all x ~~ (x,x)=>boolean
 ```
-This type denotes a universally quantified function type that can be applied to arguments of any given type. However, equality in a normal programming language is *not* universal: not all values admit to being reliably tested for equality. A great example of such a limitation are functions – equality between functions is not well defined.[^Strictly, not decidable.] 
+This type denotes a universally quantified function type that can be applied to arguments of any given type. However, equality in a normal programming language is *not* universal: not all values admit to being reliably tested for equality. A great example of such a limitation are functions – equality between functions is not well defined.[^Strictly, not decidable.]
 
 To capture this, we need to be able to constrain the scope of the quantifier; specifically to those argument types that do admit equality.
 
@@ -340,7 +340,7 @@ In addition to constructor functions, an algebraic type definition can introduce
 daysOfWeek ::= monday
            | tuesday
            | wednesday
-           | thursday 
+           | thursday
            | friday
            | saturday
            | sunday.
@@ -452,7 +452,7 @@ It is important to note that, as a programmer, you will never 'see' a closure in
 
 Pragmatically, one of the important roles of closures is to capture any free variables that occur in the function. Most functional programming languages implement functions using closure structures. Most functional programming languages (including **Star**) do not permit direct manipulation of the closure structure: the only thing that you can _do_ with a closure structure is to use it as a function.
 
->In the world of programming languages, there is a lot of confusion  about closures. Sometimes you will see a closure referring to a function that captures one or more free variables. 
+>In the world of programming languages, there is a lot of confusion  about closures. Sometimes you will see a closure referring to a function that captures one or more free variables.
 
 ###Let Binding Environments[let-binding-environments]
 
@@ -746,7 +746,7 @@ This type is an example of a _constrained type_. It is generic in `c` and `t` bu
 The type signature for `check`, however, does care about the types of the elements:
 
 ```
-check:all c,t ~~ 
+check:all c,t ~~
     visitor[c->>t], equality[c] |: (c,t)=>boolean
 ```
 
@@ -828,7 +828,7 @@ genFact(N) => N*genFact(N-one).
 We can actually introduce other numeric literals without compromising our type by using _coercion_; although it is more clumsy:
 
 ```
-factorialC:all t ~~ 
+factorialC:all t ~~
     arithmetic[t],coercion[integer,t] |: (t)=>t.
 factorialC(N) where N==0 :: t => 1 :: t.
 factorialC(N) => N*factorialC(N-1 :: t).
