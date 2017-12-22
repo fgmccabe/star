@@ -1,14 +1,27 @@
 #Its a Team Effort [platforms]
-We noted in the introduction that developing software is a team sport.
+We noted in the introduction that developing software is a team sport. This is true at multiple levels -- from building libraries to constructing platforms that support thousands of applications and users. In this chapter we turn our attention to the issues involved in the latter and see how **Star**'s features can support this goal.
 
+One of the most robust form of relationships is that between vendor and customer. The reason for this is that it is easy to be clear about the different responsibilities of the parties: the vendor supplies the solution and the customer uses it; and pays for it. This relationship is key to understanding the reason why platforms are compelling and also why it can be hard to execute.
 
+It is easy to see that an applications platform can be viewed as a marketplace where clients can access solutions and providers can offer technologies:
 
+**Applications Platform**
+: An _applications platform_ is a system which can act as a vehicle to bring together clients and providers to gain efficiencies of scale.
 
+##Responding to Change
+One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.
 
+There are three common sources of change at the macro-level: a need to _reuse_ a software artifact, a need to _repurpose_ the artifact and/or a need to _refactor_ the artifact. The first corresponds to using a software artifact in a similar role but in a different context. For example, when a Math library developed for real-time analytics is to be used for a Machine Learning application: it is still a Math library but its context is new.
 
+Repurposing occurs when the artifact is being used to solve a different problem. For example, a messaging platform might be repurposed as an Applications server (because the technology involved can be helpful).
 
+Refactoring occurs when new requirements mean that new properties are desired. For example, a Json parser might be refactored to make it faster when the scale of the data being processed increases.
 
+Another form of refactoring occurs when the implementation technology changes -- for example if the Json parser needs to be reimplemented in C++ because its original Java implementation 'does not fit' any more.
 
+All these kinds of change often expose assumptions that were implicit before. It is these hidden assumptions that can increase the difficulty and friction in responding to change.
+
+Although it is impossible to completely avoid assumptions -- otherwise known as architectural committments -- the best way of preparing for evolution is to minimize all assumptions and to make dependencies explicit through the judicious use of interfaces. This use of interfaces is the hallmark of our approach to building platforms.
 
 ##Boxes and Arrows[boxes-and-arrows]
 
