@@ -1,4 +1,4 @@
-:- module(encode,[encodeTerm/3,encodeType/3,encodeConstraint/3]).
+:- module(encode,[encodeTerm/3,encType/2,encodeType/3,encodeConstraint/3]).
 
 :- use_module(types).
 :- use_module(misc).

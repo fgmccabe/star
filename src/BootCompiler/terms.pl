@@ -20,9 +20,17 @@ displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res
 showRuleSets(L,O,Ox) :-
   listShow(L,terms:showRuleSet,"\n\n",O,Ox).
 
-showRuleSet(fnDef(_,Nm,Args,Value),O,Ox) :-
-  appStr("Function:\n",O,O0),
+showRuleSet(fnDef(_,Nm,Eqns),O,Ox) :-
+  appStr("Function: ",O,O0),
   showTerm(Nm,O0,O1),
+  appStr("\n",O1,O2),
+  showEqns(Eqns,Nm,O2,Ox).
+
+showEqns(L,Nm,O,Ox) :-
+  listShow(L,terms:showEqn(Nm),"\n",O,Ox).
+
+showEqn(Nm,eqn(_,Args,Value),O,Ox) :-
+  showTerm(Nm,O,O1),
   showArgs(Args,O1,O2),
   appStr(" => ",O2,O3),
   showTerm(Value,O3,O4),
@@ -74,15 +82,17 @@ showTerm(whr(_,Ptn,Cond),O,Ox) :-
   showTerm(Ptn,O,O1),
   showTermGuard(Cond,O1,Ox).
 showTerm(varNames(_,Vars,Value),O,Ox) :-
-  appStr("varDebug: ",O,O0),
+  appStr("varDebug: [",O,O0),
   showVarNames(Vars,O0,O1),
-  appStr(" $ ",O1,O2),
+  appStr("] -> ",O1,O2),
   showTerm(Value,O2,Ox).
-showTerm(case(_,T,Cases),O,Ox) :-
+showTerm(case(_,T,Cases,Deflt),O,Ox) :-
   appStr("case ",O,O1),
   showTerm(T,O1,O2),
-  appStr(" in ",O2,O3),
-  showCases(Cases,O3,Ox).
+  appStr(" in {\n",O2,O3),
+  showCases(Cases,O3,O4),
+  appStr("}\nelse ",O4,O5),
+  showTerm(Deflt,O5,Ox).
 showTerm(cnj(_,L,R),O,Ox) :-
   showTerm(L,O,O1),
   appStr(" && ",O1,O2),
@@ -108,19 +118,30 @@ showTerm(mtch(_,L,R),O,Ox) :-
 showTerm(ng(_,R),O,Ox) :-
   appStr("\\+",O,O1),
   showTerm(R,O1,Ox).
+showTerm(error(_,Msg),O,Ox) :-
+  appStr("error: ",O,O1),
+  appQuoted(Msg,"\"",O1,Ox).
 
 showTermGuard(enu("star.core#true"),Ox,Ox) :- !.
 showTermGuard(T,O,Ox) :-
   appStr(" where ",O,O1),
   showTerm(T,O1,Ox).
 
-showVarNames([],O,O).
-showVarNames([(V,Vx)|Vrs],O,Ox) :-
+showVarNames(Vrs,O,Ox) :-
+  listShow(Vrs,terms:showVarBinding,", ",O,Ox).
+
+showVarBinding((V,Vx),O,Ox) :-
   appStr(V,O,O1),
-  appStr(" -> ",O1,O2),
-  showTerm(Vx,O2,O3),
-  appStr(", ",O3,O4),
-  showVarNames(Vrs,O4,Ox).
+  appStr("/",O1,O2),
+  showTerm(Vx,O2,Ox).
+
+showCases(Cases,O,Ox) :-
+  listShow(Cases,terms:showCase,"\n| ",O,Ox).
+
+showCase((Lbl,Val),O,Ox) :-
+  showTerm(Lbl,O,O1),
+  appStr(": ",O1,O2),
+  showTerm(Val,O2,Ox).
 
 substTerm(_,intgr(Ix),intgr(Ix)).
 substTerm(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
