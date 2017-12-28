@@ -139,7 +139,9 @@ One way of defining action, as illustrated in the UML diagram is:
 
 Here, 'force' is intended to be broadly interpreted — it can include, for example, calling a function as well as lifting a rock.
 
-Under this definition of action, if a tree in a forest falls on a squirrel and squashes it that was not an action because the tree did not (cannot) intend to fall on the squirrel. On the other hand, the jump the squirrel makes when it sees the tree falling is an action: it intends the application of force on the rock it was sitting on — in order to escape the falling tree.
+Agency -- itself a term that can be difficult to define -- it core to the notion of action. If a tree in a forest falls on a squirrel and squashes it that was not an action because the tree did not (cannot) intend to fall on the squirrel: it has no agency for this class of action.
+
+ On the other hand, the jump the squirrel makes when it sees the tree falling is an action: it intends the application of force on the rock it was sitting on — in order to escape the falling tree.
 
 This analysis of action is important because it gives us all kinds of hooks for designing the verbs in our DSLs. For example, a lot of object-oriented programming can be understood by letting the _target_ of an action be a data value.
 
@@ -189,20 +191,20 @@ Notice that we identify a _graph_ as being a sub-class of _expression_; this rep
 
 The focal structure in a triple graph is the _triple_. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the [N3][#N3-W3C] notation — which is a more human readable version of the standard XML RDF syntax adopted by W3C:
 
-_Subject_ `!` _Predicate_ `$` _Object_
+_Subject_ `!` _Predicate_ `$` _Object_.
 
 The idea is to make it easy to represent facts like:
 
 ```
-john ! likes $ mary
-peter ! in_department $ accounting
+john ! likes $ mary.
+peter ! in_department $ accounting.
 ```
 
 We also allow raw `string`s in our triples, to enable us to represent information that is _external_ to the graph:
 
 ```
-john ! address $ "2 smart place"
-john ! name $ "John Smith"
+john ! address $ "2 smart place".
+john ! name $ "John Smith".
 ```
 
 ####Design is Iteration[design-is-iteration]
@@ -215,15 +217,15 @@ So, we need an extension to standard query conditions that allow us to:
 set of { all X where OrgTree says X ! department $ accounting }
 ```
 
-However, we immediately hit a road-block: what about  =variables? How can we distinguish the occurrence of `X` above to denote a variable whilst allowing `accounting` to be the fixed name of a concept: they are both identifiers.
+However, we immediately hit a road-block: what about variables? How can we distinguish the occurrence of `X` above to denote a variable whilst allowing `accounting` to be the fixed name of a concept: they are both identifiers.
 
 We are pretty much guaranteed to encounter variables in query expressions; but we may also encounter them in `graph` expressions — especially if we construct graphs dynamically. To ensure that we can reliably distinguish variables from named concepts we have to modify the design of our triple graph language.
 
 So, to resolve this, we modify the syntax for named concepts to have a leading colon operator; our simple graph above becomes:
 
 ```
-:john ! :likes $ :mary
-:peter ! :in_department $ :accounting
+:john ! :likes $ :mary.
+:peter ! :in_department $ :accounting.
 ```
 
 and the query becomes:
@@ -239,20 +241,20 @@ Now the occurrence of `X` above is clearly a variable and not the name of a conc
 With this change, we can represent our original giraffe example in our RDF DSL:
 
 ```
-:Joe ! isa $ :giraffe
-:giraffe ! isa $ class
-:giraffe ! subclass $ :mammal
-:giraffe ! has $ :long-neck
-:mammal ! isa $ class
-:mammal ! subclass $ :animal
-:mammal ! has $ :four-legs
+:Joe ! isa $ :giraffe.
+:giraffe ! isa $ class.
+:giraffe ! subclass $ :mammal.
+:giraffe ! has $ :long-neck.
+:mammal ! isa $ class.
+:mammal ! subclass $ :animal.
+:mammal ! has $ :four-legs.
 ```
 
 With the inferred triples:
 
 ```
-:Joe ! has $ :long-neck
-:Joe ! has $ :four-legs
+:Joe ! has $ :long-neck.
+:Joe ! has $ :four-legs.
 ```
 
 Designing DSLs, like designing anything, is often an iterative process. It is important to remain flexible when designing language features. For example, one rather glaring limitation to our triple graph notation is that it is limited to symbolic concepts and literal strings. We leave as an exercise to the reader how to modify the notation to allow arbitrary **Star** values to be referenced in triple graphs.
@@ -298,10 +300,10 @@ X-(Y-Z)
 All this can be put together in a single **Star** statement: the operator declaration. In the case of our triple we are using two operators `!` and `$` to 'glue' together the parts of a triple. We also use the `:` operator to mark named concepts. The operator declarations we need to represent them are:
 
 ```
-#right("!",500)
-#right("$",450)
-#prefix(":",100)
-#infix("says",908)
+#right("!",500).
+#right("$",450).
+#prefix(":",100).
+#infix("says",908).
 ```
 
 One may ask where these priority numbers come from? Operators in **Star** are stratified into different levels depending on their syntactic role: 0-899 represent expressions, 900-999 represent predicates and conditions, 1000-1199  are used for forms that can be either expressions or actions, 1200-1499 represent actions and 1500-200 represent statements. The choice of 908 for `says` is to make it the same as the built-in predicate operator: `in`. The main effect of choosing the 'wrong' value for the priority of an operator is that expressions don't parse the way you would like.
@@ -319,23 +321,23 @@ We chose to use a word-style operator here — `says` — to introduce the tripl
 The standard N3 notation includes some simple extensions to make certain patterns of facts easier to write. For example, we can write:
 
 ```
-:Joe ! isa $ :giraffe
-:giraffe ! [subclass $ :mammal, has $ :long-neck]
-:mammal ! [subclass $ :animal, has $ :four-legs]
-[:giraffe, :mammal, :animal] ! isa $ class
+:Joe ! isa $ :giraffe.
+:giraffe ! [subclass $ :mammal, has $ :long-neck].
+:mammal ! [subclass $ :animal, has $ :four-legs].
+[:giraffe, :mammal, :animal] ! isa $ class.
 ```
 
 instead of
 
 ```
-:Joe ! isa $ :giraffe
-:giraffe ! isa $ class
-:giraffe ! subclass $ :mammal
-:giraffe ! has $ :long-neck
-:mammal ! isa $ class
-:mammal ! subclass $ :animal
-:mammal ! has $ :four-legs
-:animal ! isa $ class
+:Joe ! isa $ :giraffe.
+:giraffe ! isa $ class.
+:giraffe ! subclass $ :mammal.
+:giraffe ! has $ :long-neck.
+:mammal ! isa $ class.
+:mammal ! subclass $ :animal.
+:mammal ! has $ :four-legs.
+:animal ! isa $ class.
 ```
 
 For the purposes of the operator grammar, literal values like strings, numbers and _bracketed values_ have a priority of 0. However, within a bracketed term — such as
@@ -366,17 +368,18 @@ Continuing in this tradition we will use a similar syntactic structure to repres
 
 ```
 graph{
-  [:peter, :john] ! :in_department $ :accounting
-  :john ! :address $ "2 smart place"
-  :john ! :name $ "John Smith"
+  [:peter, :john] ! :in_department $ :accounting.
+  :john ! :address $ "2 smart place".
+  :john ! :name $ "John Smith".
 }
 ```
 
 Since this is a first class value, we can have variables bound to triple graphs, as in:
 
 ```
-OrgTree is graph {
-  [:peter, :john] ! :in_department $ :accounting
+OrgTree : graph[string].
+OrgTree = graph {
+  [:peter, :john] ! :in_department $ :accounting.
   ...
 }
 ```

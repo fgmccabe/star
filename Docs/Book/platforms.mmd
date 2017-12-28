@@ -1,16 +1,16 @@
 # At the Watering Hole [platforms]
 We noted in the introduction that developing software is a team sport. This is true at multiple levels -- from building libraries to constructing platforms that support thousands of applications and users. In this chapter we turn our attention to the issues involved in the latter and see how **Star**'s features can support this goal.
 
-One of the most robust form of relationships is that between vendor and customer. The reason for this is that it is easy to be clear about the different responsibilities of the parties: the vendor supplies the solution and the customer uses it; and pays for it. This relationship is key to understanding the reason why platforms are compelling and also why it can be hard to execute.
+One of the most robust form of relationships is that between vendor and customer. The reason for this is that it is easy to be clear about the different responsibilities of the parties: the vendor supplies the solution and the customer uses it; and pays for it. This relationship is key to understanding the reason why platforms are compelling and also why it can be hard to implement.
 
 It is easy to see that an applications platform can be viewed as a marketplace where clients can access solutions and providers can offer technologies:
 
 **Applications Platform**
 : An _applications platform_ is a system which allows clients and providers to share technologies and to gain efficiencies of scale.
 
-What distinguishes a good platform from a poor one is a combination of the ease with which clients and providers can interact -- and choose alternatives -- and the richness of the offerings: both in terms of the number of potential clients (the size of the market) and the variety of the technologies on offer (the size of the market).
+What distinguishes a good platform from a poor one is a combination of the ease with which clients and providers can interact[^Interact here means more than simple message passing. When clients use an offering in their application, they are interacting with the providers of the technology.] -- and choose alternatives -- and the richness of the offerings: both in terms of the number of potential clients (the size of the market) and the variety of the technologies on offer (the size of the market).
 
-We cannot mandate a large platform here; but we can explore the technical aspects of what makes a platform great.
+We cannot mandate a large platform in this book; but we _can_ explore the technical aspects of what makes a platform great.
 
 ## Responding to Change
 One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.
@@ -29,7 +29,7 @@ Although it is impossible to completely avoid assumptions -- otherwise known as 
 
 ## Boxes and Arrows[boxes-and-arrows]
 
-It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:[^There are other systems of boxes and arrows that have utility. The most well-known example is probably the quite of diagrams that make up UML.]
+It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:[^There are other systems of boxes and arrows that have utility. The most well-known example is probably the suite of diagrams that make up UML.]
 
 ![A System for Splitting Orders][BoxNArrows]
 
@@ -68,7 +68,7 @@ It turns out that, with some support from **Star**, we can turn diagrams like th
 
 First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.
 
->This is an important point: unlike most programming languages, and unlike **Star** itself, our diagramming notation does not rely on _scoping_. Instead, all connections and references are explicit. This is a strong constraint that helps to enforce so-called _loose coupling_ between components. This greatly simplifies the kinds of task of assembling applications from components.
+>This is an important point: unlike most programming languages, and unlike **Star** itself, our diagramming notation does not rely on _scoping_ to communicate between elements. Instead, all connections and references are explicit. This is a strong constraint that helps to enforce so-called _loose coupling_ between components. This greatly simplifies the kinds of task of assembling applications from components.
 
 Ports denote types as well as data flow: each port is associated with an API _schema_ that determines the type of data that is going through the port. For example, the responding port of the `SplitComponent` has a schema associated with it that shows that the component expects `Order`s coming in:
 
@@ -84,7 +84,7 @@ The originating port will be connected to a data source component. It's type sch
 
 It should come as no surprise at this point that we also declare that ports are intimately associated with speech actions: communication between components is mediated by speech actions and ports codify both the sender/receiver relationship and the type of communication.
 
-Notice that we are speaking in terms of _originating_ and _responding_ here. This reflects the fact that in any given speech action we have an originating speaker and a responding listener. We have deliberately avoided using terms such as input or output here because connections between components can involve _both_ flows of information but only one side ever initiates the action. For example, the `SplitComponent` will raise a query to the `PartsDB` component: the query itself involves sending the query in one direction and receiving the data from the `PartsDB` component in the other.
+Notice that we are speaking in terms of _originating_ and _responding_ here. This reflects the fact that in any given communication we have an originating speaker and a responding listener. We have deliberately avoided using terms such as input or output here because connections between components can involve _both_ flows of information but only one side ever initiates the action. For example, the `SplitComponent` will raise a query to the `PartsDB` component: the query itself involves sending the query in one direction and receiving the data from the `PartsDB` component in the other.
 
 Our final kind of port is a specialization of the originating port: the _publishing port_ as in:
 
@@ -98,7 +98,7 @@ The net effect of this is that we have a diagramming notation that supports a hi
 
 >This notation is not quite a complete 'spanning set' if the end goal is to construct a platform for building a variety of distributed applications. However, it is the kernel of such a set and can easily form the basis of a complete distributed applications platform.
 
-### A Component in Star[a-component-in-Star]
+## A Component in Star[a-component-in-Star]
 
 One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application.[^By _functional_ we mean _important to the solution_ not necessarily as in functional programming.] The intuition is that individual components have a specific role in the application; but that they are typically 'quite large'. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.
 
@@ -109,20 +109,21 @@ One of the non-goals of boxes-and-arrows diagrams is to be a complete programmin
 The code for a component must implement the various ports that the component has on the diagram and must also implement the functionality of the component. For example, our `SplitComponent` may start it's implementation with:
 
 ```
-import boxesNarrows
-splitComponent is component{
-  port incoming is respond{
+import boxesNarrows.
+component splitComponent => {
+  respond incoming : {
+    orders:event[order].
+  }
+  incoming = respond{
     on O on order do
       processOrder(O)
   }
-  port suppliers is publish{
-    discriminator:(string) => port of {
-      order:occurrence of Order
-    }
+  publish suppliers : {
+    discriminator:(string)=>port[{order:event[order]}].
   }
-  port parts is originate{
-    assembly:set of (part,list[part])
-    supplier:set of (part,list[supplier])
+  originate parts : {
+    assembly:set[(part,list[part])].
+    supplier:set[(part,list[supplier])].
   }
   ...
 }
@@ -133,10 +134,11 @@ The ports that are surfaced in the order processing diagram are also represented
 Notice that, unlike regular actors, outgoing speech actions are also strongly indicated. Any outgoing speech actions must be 'applied' to one of the originating ports. For example, part of processing a parts order will be a query to the `partsDB` component; but the `partsDB` component is not explicitly identified in the `splitComponent`. Instead, the query is directed to the `parts` originating port:
 
 ```
-fun assemblySuppliers(A) is
+assemblySuppliers:(part)=>list[supplier].
+assemblySuppliers(A) =>
   query parts with list of { unique S where
-      (A,Ps) in assembly and P in Ps and
-      (P,Ss) in supplier and
+      (A,Ps) in assembly && P in Ps &&
+      (P,Ss) in supplier &&
       S in Ss
     }
 ```
@@ -148,7 +150,7 @@ This function can be used by the order processing code to query the parts databa
 Using a publishing port is slightly more complex than using a regular originating port. Since there may be any number of components attached to a publishing port we must first of all select which one we want to address our speech action to. We do this using the embedded _discriminator function_ that is part of the publishing port. For example, to place a parts order for the supplier "Alpha Wheels Inc."" we perform:
 
 ```
-prc placeOrder(S,parts) do
+placeOrder(S,parts) do
   notify suppliers.discriminator(S.name) with
     order{ content=parts } on order
 ```
@@ -166,11 +168,11 @@ Consider the problem of the `partsDB` component: if we are to build this compone
 In order to see how we can achieve this we need to look a little deeper into how speech actions are actually represented. Recall that we stated that a speech action requires an entity that implements the `speech` contract. That contract, in simplified form, is:
 
 ```
-contract speech over t determines a is {
-  _query:for all s ~~
-    (t,(a)=>s,()=>quoted,()=>dictionary of (string,quoted))=>s
-  _request has type
-    (t,(a)=>(),()=>quoted,()=>dictionary of (string,quoted))=>()
+contract all t,a ~~ speech[t->>a] ::= {
+  _query:all s ~~
+    (t,(a)=>s,()=>quoted,()=>dictionary[string,quoted])=>s.
+  _request:
+    (t,(a)=>(),()=>quoted,()=>dictionary[string,quoted])=>().
   _notify:(t,(a)=>())=>()
 }
 ```
@@ -181,25 +183,24 @@ The salient element here is the entry for `_query`. A speech action like:
 
 ```
 query parts with list of { unique S where
-      (A,Ps) in assembly and P in Ps and
-      (P,Ss) in supplier and
-      S in Ss
-    }
+    (A,Ps) in assembly && P in Ps &&
+    (P,Ss) in supplier &&
+    S in Ss
+  }
 ```
 
-is translated -- by a standard built-in macro processor -- into a call to `_query` of the form:
+is translated -- by a standard built-in macro processor -- into a call to `_query` of the form:[^This is not the final form, we have chosen to not macro-process the query expression itself. In practice, the compiler would also convert the query into an executable form -- see Chapter 4.]
 
 ```
 _query(parts,
   (Ax)=>list of { unique S where
-    (A,Ps) in Ax.assembly and P in Ps and
-    (P,Ss) in Ax.supplier and S in Ss },
+    (A,Ps) in Ax.assembly && P in Ps &&
+    (P,Ss) in Ax.supplier && S in Ss },
   ()=><|list of { unique S where
-      (A,Ps) in assembly and P in Ps and
-      (P,Ss) in supplier and
-      S in Ss
+      (A,Ps) in assembly && P in Ps &&
+      (P,Ss) in supplier && S in Ss
     }|>,
-  ()=>dictionary of ["A"->A as quoted]
+  ()=>["A"->A::quoted]
 )
 ```
 
@@ -209,7 +210,16 @@ This is kind of complicated to follow at first; but is quite straightforward if 
 
 * The second argument is the expression that must be evaluated by the actual responding entity. It is encapsulated in a single argument function -- the argument being a record that implements the speech action API. Evaluating this function in the appropriate context has the effect of computing the response to the `query` speech action -- and the result of the function is returned as the value of the `query` speech action itself.
 
-* The third and final arguments are used when the responder cannot or does not wish to use the 'compiled query'. The third argument is a function that returns the original 'text' of the query -- as a `quoted` value. The fourth argument is also a function, one that returns the values of any _free_ variables in the `query` -- variables whose values are determined by the context of the speech action itself. In this case there is only one free variable -- `A` -- which was the part that our `splitComponent` needed to find suppliers for.
+* The third and final arguments are used when the responder cannot or does not wish to use the 'compiled query'. The third argument is a function that returns the original 'text' of the query -- as a `quoted` value. The expression:
+  ```
+  <|list of { unique S where
+      (A,Ps) in assembly && P in Ps &&
+      (P,Ss) in supplier && S in Ss
+    }|>
+  ```
+  has, as its value, an AST term -- of type `quoted`. This form allows a receiver of the request to inspect the query and determine for itself how to interpret it. This is analogous to applications processing queries expressed in terms of Json or XML; except here we allow **Star**'s syntax.
+
+* The fourth argument is also a function, one that returns the values of any _free_ variables in the `query` -- variables whose values are determined by the context of the speech action itself. In this case there is only one free variable -- `A` -- which was the part that our `splitComponent` needed to find suppliers for.
 
 This arrangement allows for two kinds of speech action processing: if the respondent trusts the originator of the speech action then a very rapid response to the `query` is possible -- by evaluating the embedded function. However, in the case where the respondent does not want to simply execute the query function, or it cannot, then the respondent has access to the original text of the query -- together with the values of any free variables that appear in the `query`.
 
@@ -261,7 +271,7 @@ partSource is application{
 
 This sketch shows how we can construct a written version of the boxes-and-arrows diagram in a way that lends itself to executable code.
 
-### There is more to a platform than this
+## There is more to a platform than this
 
 We have actually just scratched the surface of the potential of this kind of programming platform. In truth, like many of the chapters in this book, a full treatment of a boxes-and-arrows platform would justify a book in its own right.
 

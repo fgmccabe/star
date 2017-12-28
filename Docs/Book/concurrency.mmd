@@ -20,13 +20,16 @@ The second concept that is so implicit is that of sharing: in a sequential progr
 
 Our approach is to make _explicit_ that which is _implicit_. We reason about actions and their order explicitly -- by employing the classic software engineer's approach of taking an extra level of indirection: we take a handle on the computation itself using the concept of a first-class task as a unit of execution. Similarly, we reason about sharing by focusing on explicit _coordination_ between tasks and on explicitly modeling sharing by _communicating_ between them.
 
+>One thing that may strike the reader is that tasks, and as we shall see more generally computation expressions, are associated with actions. This is new in our text so far -- we have mostly focused on functions and related concepts.
+>The reason for the change is straightforward: concurrency is inherently about the relative ordering of computation. That makes the action paradigm a natural fit for tasks and concurrency. However, we are fairly disciplined in our approach to actions; in particular, we strongly regulate implicit sharing of state. In fact, it is the implicit sharing of state that is the biggest issue with sequential programming.
+
 ##Tasks[tasks]
 
 A task expression denotes a possibly suspended _computation_ — which itself is a sequence of actions — and which may have a value when the computation is performed. Furthermore, tasks have the potential to be executed concurrently or even in parallel with other tasks.
 
 >Like tasks, functions can also be viewed as representing suspended computations. However, unlike functions, a task expression represents a single suspended computation.
 
-A `task` expression is written as a sequence of actions, enclosed in a `task` block; for example, in:
+A `task` expression is written as a sequence of actions, enclosed in a `task` block; for example, in:[^As in other programming languages, actions are separated by semi-colons in **Star**.]
 
 ```
 T = task{
@@ -185,7 +188,7 @@ parmap(F,L) => let{
 }
 ```
 
-###Computation Expressions and the **_M_** word [computation-expression]
+##Computation Expressions and the **_M_** word [computation-expression]
 
 Task expressions are instances of a more general **Star** feature: the _computation expression_. Task expressions are oriented towards the concurrent execution of computations; other forms of computation expression have different purposes. In particular, the simple `valof` expression:
 
@@ -458,8 +461,8 @@ fun collectTerms(ch,Count) is background task{
 Given this function, we augment our sieve with the additional channel for sending the results to:
 
 ```
-fun sieve(inChannel,results) is valof{
-  def nxPrime is valof (wait for recvRv(inChannel))
+sieve(inChannel,results) => valof{
+  nxPrime = valof (wait for recvRv(inChannel))
   perform wait for sendRv(results,nxPrime)
   valis sieve(filter(nxPrime,inChannel),results)
 }
@@ -468,8 +471,8 @@ fun sieve(inChannel,results) is valof{
 The complete system can be put together into a `primes` function that uses multiple tasks to sieve for primes:
 
 ```
-fun primes(Max) is let{
-  def resltCh is channel()
+primes(Max) => let{
+  resltCh = channel().
   { ignore background task { valis sieve(naturals, resltCh)}}
 } in valof collectTerms(resltCh,Max)
 ```
@@ -523,10 +526,10 @@ One way of implementing such a unique resource is to use an internal background 
 The main loop of the semaphore's internal task is modeled using a mutual recursion between the `grabR` function, `releaseR` function and the `semLoop` functions. The forms of `grabR` and `releaseR` are actually very similar:
 
 ```
-fun grabR(X) is
-  wrapRv(recvRv(grabCh), (_) => semLoop(X-1)
-fun releaseR(X) is
-  wrapRv(recvRv(releaseCh), (_) => semLoop(X+1))
+grabR(X) =>
+  wrapRv(recvRv(grabCh), (_) => semLoop(X-1).
+releaseR(X) =>
+  wrapRv(recvRv(releaseCh), (_) => semLoop(X+1)).
 ```
 
 The `wrapRv` operator is a function that takes a rendezvous and a function as argument; it returns a new 'wrapped' rendezvous as its result. If the argument rendezvous fires then the result of that rendezvous is passed to the function argument — which in turn becomes the value returned by the `wrapRv` rendezvous.
@@ -561,23 +564,26 @@ Notice that the disjunctive rendezvous is only entered when the value passed to 
 We are now in a position to show the complete workings of the `semaphore` function in:
 
 ```
-fun semaphore(Count) is let{
-  def grabCh is channel()
-  def releaseCh is channel()
+semaphore:(integer) => { grab:()=>rendevous[()], release:()=>rendezvous[()]. }.
+semaphore(Count) => let{
+  grabCh:channel[()] = channel().
+  releaseCh:channel[()] = channel().
 
-  fun releaseR(X) is
-    wrapRv(recvRv(releaseCh), (_) => semLoop(X+1))
+  releaseR:(integer)=>rendevous[()].
+  releaseR(X) =>
+    wrapRv(recvRv(releaseCh), (_) => semLoop(X+1)).
 
-  fun grabR(X) is
-    wrapRv(recvRv(grabCh), (_) => semLoop(X-1)
+  grabR(X) =>
+    wrapRv(recvRv(grabCh), (_) => semLoop(X-1).
 
-  fun semLoop(0) is wait for releaseR(0)
-   |  semLoop(X) default is wait for grabR(X) or releaseR(X)
+  semLoop:(integer) => rendevous[()].
+  semLoop(0) => wait for releaseR(0).
+  semLoop(X) default => wait for grabR(X) || releaseR(X)
 
   { ignore background semLoop(Count) }
 } in {
-  fun grab() is wait for send(grabCh,())
-  fun release() is wait for send(releaseCh,())
+  grab() => wait for send(grabCh,()).
+  release() => wait for send(releaseCh,()).
 }
 ```
 
