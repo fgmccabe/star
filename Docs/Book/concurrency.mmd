@@ -1,4 +1,4 @@
-#Concurrency[concurrency]
+# Concurrency[concurrency]
 
 Concurrency is about doing more than one thing at once. Concurrency in programming languages is important for two basic reasons: modern processors are easily capable of executing many tasks in parallel (and by implication, if your program does not then you may not be making good use of the machine) and many applications have to be able to respond to events without having to process everything in a fixed order.
 
@@ -23,7 +23,7 @@ Our approach is to make _explicit_ that which is _implicit_. We reason about act
 >One thing that may strike the reader is that tasks, and as we shall see more generally computation expressions, are associated with actions. This is new in our text so far -- we have mostly focused on functions and related concepts.
 >The reason for the change is straightforward: concurrency is inherently about the relative ordering of computation. That makes the action paradigm a natural fit for tasks and concurrency. However, we are fairly disciplined in our approach to actions; in particular, we strongly regulate implicit sharing of state. In fact, it is the implicit sharing of state that is the biggest issue with sequential programming.
 
-##Tasks[tasks]
+## Tasks[tasks]
 
 A task expression denotes a possibly suspended _computation_ — which itself is a sequence of actions — and which may have a value when the computation is performed. Furthermore, tasks have the potential to be executed concurrently or even in parallel with other tasks.
 
@@ -53,7 +53,7 @@ T:task[integer].
 
 as it produces an `integer` value.
 
-###The Value of a Task[the-value-of-a-task]
+### The Value of a Task[the-value-of-a-task]
 
 As we saw above, a task computation produces a value by performing the `valis` action:
 
@@ -101,11 +101,11 @@ performs the `task` (which does `nothing`) and waits for nothing to finish (sic)
 
 Void tasks are occasionally useful — for example, multi-tasked applications often contain a _server_ component: a component that responds to requests made by other tasks. Such a component typically is not expected to return and so does not have a useful return value.
 
-####Getting the value more than once[getting-the-value-more-than-once]
+#### Getting the value more than once[getting-the-value-more-than-once]
 
 Note that it is possible to access a `task` value multiple times. However, the actions in the task body will only ever be performed once: subsequent attempts to get the value of the task simply return the value previously computed.
 
-###Background Tasks[background-tasks]
+### Background Tasks[background-tasks]
 
 A `task` can be started in the background — i.e., concurrently with other `task`s — by using the `background` operator, which is a function from `task`s to `task`s. It's type is given by
 
@@ -119,7 +119,7 @@ The `background` operator has a simple effect — it starts its argument `task` 
 
 >If it happened to be the case that a backgrounded task already completed, then the `background` operator has no effect.
 
-###Computing with tasks[computing-with-tasks]
+### Computing with tasks[computing-with-tasks]
 
 Like other values, `task`s are first class: they can be assigned to variables, kept in data structures, passed to and from functions and so forth. This flexibility leads to great expressive power — many patterns of computations can be readily encoded as `task`-valued functions.
 
@@ -188,7 +188,7 @@ parmap(F,L) => let{
 }
 ```
 
-##Computation Expressions and the **_M_** word [computation-expression]
+## Computation Expressions and the **_M_** word [computation-expression]
 
 Task expressions are instances of a more general **Star** feature: the _computation expression_. Task expressions are oriented towards the concurrent execution of computations; other forms of computation expression have different purposes. In particular, the simple `valof` expression:
 
@@ -239,7 +239,7 @@ Note how the inner `valof` expression is transformed to a call to `_perform`; wh
 
 It is beyond the scope of this book to explore more deeply the handling of monadic computations. However, if you wish to explore further, a more complete description of computation expressions is given in the **Star** language definition.
 
-##Rendezvous[rendezvous]
+## Rendezvous[rendezvous]
 
 Tasks support a very simple communication pattern between parts of a computation: a task computes for a while, and then (if appropriate) returns a result to anyone asking for its value — typically a parent task. While a task can spawn sub-tasks, there is no immediate way for tasks to communicate with each other _while_ they are running. Many applications, however, require more fine-grained coordination between tasks.
 
@@ -247,7 +247,7 @@ To permit this better coordination, and to permit data to flow between tasks, we
 
 The rendezvous mechanism is inspired by Reppy's Concurrent ML _events_ [][#Reppy1999], and by Hoare's Communicating Sequential Processes[][#hoare78] [][#hoare85] (which also involves the rendezvous concept). As we shall see, the rendezvous is a simple mechanism that allows implementing almost arbitrarily complex choreographies between concurrent computations. However, we shall also see that the rendezvous mechanism is relatively low-level and there are good higher-level abstractions that make writing concurrent applications significantly easier.
 
-###A `rendezvous` is a Future Event[the-rendezvous-type]
+### A `rendezvous` is a Future Event[the-rendezvous-type]
 
 A rendezvous is an object describing an event that may or may not happen in the future. The basic operation for a rendezvous is _waiting for_ the event, and when the event happens, it may yield or consume a value.
 
@@ -269,7 +269,7 @@ It may seem a little odd that a rendezvous — which is after all a meeting — 
 
 Timeouts can be useful in their own right, but they are commonly used in conjunction with other rendezvous. The pattern being that if one of the other 'things going on' does _not_ happen, then the timeout will tell us that. However, _recovering_ from a timeout can be very problematic — since you now have to decide what to do about the other activities that were pending.
 
-###Waiting for Events[waiting-for-events]
+### Waiting for Events[waiting-for-events]
 
 The `wait for` operator takes a rendezvous and yields a `task` that waits for the event described by the rendezvous to happen. So, for example:
 
@@ -293,7 +293,7 @@ There are quite a few pieces here: the `timeoutRv` event itself, the `wait for` 
 
 This separation into distinct phases helps in flexibility of the concurrency features but, of course, can make straightforward scenarios complex to construct. We shall see below that there is a library of concurrency features that are quite high-level and may be more appropriate than 'rolling your own' setup.
 
-###Channels of Communication[channels-of-communication]
+### Channels of Communication[channels-of-communication]
 
 In many cases the requirement for synchronization between tasks is based on needing reliable communication between them. Instead of building communication on top of a model of 'shared resources', we use direct 'message passing': one task sends a message to another. The mechanism we use is called the `channel`.
 
@@ -343,13 +343,13 @@ The communication occurs when both `background`ed tasks reach their appropriate 
 
 In our message passing sequence, we actually do _not_ want the task arguments to complete in a sequential order — so `ignore`ing (sic) the task is the appropriate command.
 
-###Computing Primes With Tasks[computing-primes-with-tasks]
+### Computing Primes With Tasks[computing-primes-with-tasks]
 
 Before, we looked at implementing the sieve of Eratosthenes using operations over collections. The Sieve, as it is affectionately known, is also a great demonstrator of concurrent programming.
 
 Recall that The Sieve has two parts: a collection of activities that filter a sequence of numbers looking for multiples of previously found primes and a master that grows the set of filters as new primes are found.
 
-####Filtering for Primes[filtering-for-primes]
+#### Filtering for Primes[filtering-for-primes]
 
 Let us start with modeling each filter as a concurrent task; which can be implemented using:
 
@@ -390,7 +390,7 @@ will clearly not finish until the loop finishes; which it will not.
 
 Our `filter` task will never terminate, indeed the entire Sieve consists of a network of tasks that do not terminate of their own accord.
 
-####A Stream of Naturals[a-stream-of-naturals]
+#### A Stream of Naturals[a-stream-of-naturals]
 
 Before we look at the main sieve, let us see how we construct a generator stream. In the case of the sieve, we need a stream of positive integers (naturals) that will act as the source of potential prime numbers (to be filtered of course).
 
@@ -418,7 +418,7 @@ perform wait for sendRv(natChannel,counter)
 
 will only complete if there is a task that is waiting for the message. So this streamer will _not_ gush out numbers unless there is someone listening.
 
-####Sieving for Primes[sieving-for-primes]
+#### Sieving for Primes[sieving-for-primes]
 
 The final piece of The Sieve is the `sieve` function which constructs a network of filters to sieve out the primes.
 
@@ -477,7 +477,7 @@ primes(Max) => let{
 } in valof collectTerms(resltCh,Max)
 ```
 
-###Philosophers Have to Eat
+### Philosophers Have to Eat
 Too[philosophers-have-to-eat-too]
 
 The analog of the 'hello world' example in concurrent programming is probably the in-famous dining philosophers problem. Made famous in this form by C.A.R. Hoare (also of QuickSort fame), the set up for this puzzle is quite straightforward: there are four philosophers sitting at a table wanting to eat. The catch being that there are only four forks on the table and a philosopher needs to use two forks to eat something from the table.
@@ -496,7 +496,7 @@ There are two well-known solutions to the dining philosophers problem; one is du
 
 In essence, the Hoare solution depends on a combination of _semaphores_ to manage the status of the various forks and an additional _arbitrator_ to ensure deadlock-free execution.
 
-####Using Channels and Rendezvous to Implement
+#### Using Channels and Rendezvous to Implement
 Semaphores[using-channels-and-rendezvous-to-implement-semaphores]
 
 A semaphore is a general structure for implementing mutual exclusive access to some resource.
@@ -597,7 +597,7 @@ is an invocation of the `grab` function from that record — and denotes an atte
 
 Because the inner workings of the semaphore are protected by a `let` expression, they cannot be seen externally by other programs — only the `grab` and `release` functions are exposed; hence meeting one of the key requirements of the semaphore implementation.
 
-####A Meeting of Philosophers[a-meeting-of-philosophers]
+#### A Meeting of Philosophers[a-meeting-of-philosophers]
 
 We can model a philosopher as a `task` function that iteratively acquires a left and right fork, 'eats' for a random period, and then stops eating after relinquishing its two forks (so another philosopher can eat).
 
@@ -670,7 +670,7 @@ This program will run the simulation for four philosophers for a `Count` number 
 
 The dining philosophers is a toy example; nevertheless it highlights many of the issues found in regular parallel applications where there is some shared resource.
 
-##Asynchronous Communication[asynchronous-communication]
+## Asynchronous Communication[asynchronous-communication]
 
 We stated at the beginning that 'synchronous communication was more basic' than asynchronous communication. Nevertheless, there are times when asynchronous communication is called for.
 
@@ -682,7 +682,7 @@ One pattern that makes inherent use of asynchronous communication is the worker-
 
 Other patterns that make use of asynchronous communications include the _publish-subscribe_ and the _actor_ patterns. In applications where there is essentially a one-way flow of information from publishers to subscribers there is less need to tightly synchronize communications. Similarly, actors denote semi-autonomous activities that collaborate with each other to solve shared _goals_. In fact, almost _every_ multi-user application can be modeled in terms of agents.
 
-###A Message Queue[a-message-queue]
+### A Message Queue[a-message-queue]
 
 We start by defining a type that denotes the interface to the queue. For convenience, we use a _type alias_ to a record with a `post` function and a `poll` function within it:
 
@@ -794,7 +794,7 @@ worksheet{
 
 This example spins up 1000 work items and expects the `"alpha"` and `"beta"` workers to process them. Typical bosses attitude!
 
-##Comment[comment]
+## Comment[comment]
 
 The concurrency features of task expressions and rendezvous avoid the synchronization problems that plague concurrent and parallel programming in traditional languages. Moreover, tasks and rendezvous scale easily to hundreds of thousands of threads.
 

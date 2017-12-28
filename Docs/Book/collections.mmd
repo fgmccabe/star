@@ -1,4 +1,4 @@
-#Collections[collections]
+# Collections[collections]
 
 Modern programming — whether it is OO programming, functional programming or just plain C programming — relies on a rich standard library. Given that nearly every program needs to be able to manage collections of _things_, the central pearl of any standard library is the _collections_ library. Recalling our mantra of hiding recursion; a well designed collections library can make a huge difference to the programmer's productivity, often by hiding many of the recursions and iterations required to process collections.
 
@@ -12,7 +12,7 @@ The collections architecture in **Star** has four main components:
 
 1.  the final major component of the collections architecture is _queries_. **Star** has a simple yet powerful set of features aimed at simplifying querying collections.
 
-##Sequence Notation[sequence-notation]
+## Sequence Notation[sequence-notation]
 A sequence is simply an ordered collection; a _sequence expression_ is an expression involving a complete or partial enumeration of the values in the collection. **Star** has a simple notation for expressing sequences of any underlying type; for example, a `cons` sequence of integers from 1 through 5 can be written:
 
 ```
@@ -88,7 +88,7 @@ concat([E,..X],Y) => [E,..concat(X,Y)].
 
 This function will work equally well with `cons` lists, `list`s, `string`s, even your own collection types. All that is required is that there are implementations of the `sequence` contract for the actual type being concatenated.
 
-###The Sequence Contract[the-sequence-contract]
+### The Sequence Contract[the-sequence-contract]
 
 Underlying the sequence notation is the `sequence` contract. This contract contains type signatures in it that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.
 
@@ -134,7 +134,7 @@ This annotation is all that is needed to force the compiler to treat the result 
 
 > The type expression `_` is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.
 
-###Sequence Patterns[sequence-patterns]
+### Sequence Patterns[sequence-patterns]
 
 The complete `sequence` contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence _patterns_ rather than sequence _expressions_. They also introduce a new form of type expression — the _pattern type_. For example, the signature for `_pair` — which is used to decompose sequences into a head and tail — is:
 
@@ -218,7 +218,7 @@ single(_pair(H,_empty())) => H
 
 The `sequence` contract is one of the most important and commonly used contracts in the **Star** library. As we shall see further, many of the standard functions are built on top of the `sequence` contract.
 
-###Notation and Contract-Based Semantics[notation-and-contract-based-semantics]
+### Notation and Contract-Based Semantics[notation-and-contract-based-semantics]
 
 One of the distinctive features of the sequence notation is that it is an example of _syntax_ that is underwritten by a semantics expressed as a _contract_. This is part of a widespread pattern in **Star**.
 
@@ -228,7 +228,7 @@ This is part of a general pattern in **Star**: there are many _sub-languages_ th
 
 The merit of this combination of special syntax and contracts is that we can have the special notation expressing a salient concept — in this case the sequence — and we can realize the notation without undue commitment in its lower-level details. In the case of sequence notation, we can have a notation of sequences without having to commit to the type of the sequence itself.
 
-##Indexing[indexing]
+## Indexing[indexing]
 
 Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing 'traditional' notation for accessing arrays:
 
@@ -240,7 +240,7 @@ where `L` is some array or other collection and `ix` is an integer offset into t
 
 Before we explore **Star**'s indexing notation it is worth looking at the contract that underlies it — the `indexable` contract.
 
-###The `indexable` Contract[the-indexable-contract]
+### The `indexable` Contract[the-indexable-contract]
 
 The `indexable` contract captures the essence of accessing a collection in a random-access fashion. There are functions in the contract to access a directly accessed element, to replace and to delete elements from the collection:
 
@@ -293,7 +293,7 @@ implementation all k,v ~~
 
 reflecting the fact that dictionaries are naturally generic over both the key and value types.
 
-###Tentative Computation[the-option-type]
+### Tentative Computation[the-option-type]
 
 If we look at the signature for `_index` we can see that this function does not directly return a value from the collection, but instead returns an `option` value. This bears further explanation.
 
@@ -357,7 +357,7 @@ This distorts the logic of the type system by introducing a bottom value into th
 
 Overall, the `option` type is part of an elegant approach to nullability that is easily incorporated into **Star**'s (and similar) type system.
 
-###Adding and Removing Elements From a Collection[adding-and-removing-elements-from-a-collection]
+### Adding and Removing Elements From a Collection[adding-and-removing-elements-from-a-collection]
 
 The function `_set_indexed` is used to add an element to a collection associating it with a particular index position; and the function `delete_indexed` removes an identified element from the collection.
 
@@ -367,7 +367,7 @@ One might believe that this is a bit wasteful and expensive — returning new co
 
 >It should also be stressed that the `indexable` contract allows and encourages persistence but does not _enforce_ it. It is quite possible to implement indexing for data structures that are not persistent.
 
-###The Index Notation[the-index-notation]
+### The Index Notation[the-index-notation]
 
 Given the `indexable` contract we can now show the specific notation that **Star** has for accessing elements of a collection.
 
@@ -454,7 +454,7 @@ which is understood by indexable types as denoting the contruction of a literal.
 
 >Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexable types: they should implement a specific form of `sequence` contract. Both are actually part of the semantics of representing indexable literals.
 
-###Implementing Indexing
+### Implementing Indexing
 
 Of course, this includes our own types. For example, before, when looking at [generic types][generic-types] we saw the `tree` type:
 
@@ -535,7 +535,7 @@ implementation all k,v ~~ comparable[k], equality[k] |:
 ```
 where, again, we leave the implementation of the remaining part of the contract to the reader.[^It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. This has the effect of making tree expressions like `tree of [1->"alpha",2->"beta"]` be equivalent to `tree of [2->"beta",1->"alpah"]`.]
 
-###Index Slices[index-slices]
+### Index Slices[index-slices]
 
 Related to accessing and manipulating individual elements of collections are the _indexed slice_ operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:
 
@@ -587,7 +587,7 @@ which, of course, assumes that `C` is correctly defined as a read/write variable
 
 The slice notation is an interesting edge case in domain specific languages. It is arguably a little obscure, and, furthermore, the use case it represents is not all that common. On the other hand, without specific support, the functionality of slicing is hard to duplicate with the standard indexing functions.
 
-##Doing Stuff With Collections[doing-stuff-with-collections]
+## Doing Stuff With Collections[doing-stuff-with-collections]
 
 One of the most powerful features of collections is the ability to treat a collection as a whole. We have already seen a little of this in our analysis of the [visitor pattern](going-even-further). Of course, the point of collections is to be able to operate over them as entities in their own right. As should now be obvious, most of the features we discuss are governed by contracts and it is paradigmatic to focus on contract specifications rather than specific implementations.
 
@@ -600,7 +600,7 @@ The number of things that people want to do with collections is only limited by 
 
 Each of these patterns has some support from **Star**'s standard repertoire of functions.
 
-###Filtering With `filter`[filtering-with-filter]
+### Filtering With `filter`[filtering-with-filter]
 
 The simplest operation on a collection is to subset it. The standard function `filter` allows us to do this with some elegance.
 
@@ -643,7 +643,7 @@ contract all c,e ~~ filterable[c->e] ::= {
 }
 ```
 
-###The Sieve of Erastosthenese[original-sieve]
+### The Sieve of Erastosthenese[original-sieve]
 
 One of the classic algorithms for finding primes can be expressed using filters — the so-called sieve of Erastosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of `filter` operations.
 
@@ -691,7 +691,7 @@ The `iota` function is used to construct a list of numbers, in this case the int
 
 We might ask whether the `sieve` function can also be expressed as a `filter`. The straightforward answer is that it cannot: the `sieve` _is_ a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard `filter` function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.
 
-###Mapping to Make New Collections[mapping-to-make-new-collections]
+### Mapping to Make New Collections[mapping-to-make-new-collections]
 
 One of the limitations of the `filter` function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The `map` function -- part of the `mappable` contract -- can be used to perform many transformations of collections.
 
@@ -776,7 +776,7 @@ means that any type bound to `r` must have a `name` field whose type is denoted 
 
 With this type signature, we can use `nameOf` with any type that that a `name` field. This can be a record type; it can also be a type defined with an algebraic type definition.
 
-###Compressing Collections With a Fold[compressing-collections-with-a-fold]
+### Compressing Collections With a Fold[compressing-collections-with-a-fold]
 
 Another way of using collections is to summarize or aggregate over them. For example, the `average` function computes a single number from an entire collection of numbers — as do many of the other statistical functions. We can define `average` using the standard `leftFold1` function, which is part of the standard `folding` contract:
 
@@ -905,7 +905,7 @@ show primes(1000)
 
 This final program has an important property: there are no explicit recursions in it — in addition, apart from the `leftFold` function, there are no recursive programs at all in the definition of `primes`.
 
-##Iteration[iteration]
+## Iteration[iteration]
 
 We now take a look at how we can process collections using actions rather than expressions. Iteration is one of those areas where history has resulted in two quite different traditions: OO-style languages and functional languages have markedly different approaches to iteration; and yet, as we will see, they can be seen as twins of each other.
 
@@ -956,7 +956,7 @@ The range of looping functions reflects an underlying vocabulary of 'things we d
 
 The final, perhaps most unexpected point, is that the fundamental computational cost of the two styles of iteration is almost identical! Under reasonable assumptions of optimization for both Java and **Star**, it is possible to show that the number of steps needed to compute the two fragments is very similar. The details are beyond the scope of this book.
 
-##Queries[queries]
+## Queries[queries]
 Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a `list` of parents and children:
 
 ```
@@ -1011,7 +1011,7 @@ _SequenceType_ `of {` _QuantifierTerm_ `where` _Condition Modifier_ `}`
 
 where _SequenceType_ is any type name that implements the `sequence` contract, _QuantifierTerm_ is a form that indicates the form of the result of the query, _Condition_ is a condition and the optional _Modifier_ is used to signal properties of the result — such as whether the result is grouped or sorted.
 
-###Satisfaction[satisfaction]
+### Satisfaction[satisfaction]
 
 The foundation for the query notation is the notation for conditions. Conditions are boolean valued — but they are not always expressions. For example, the first condition for grandparent is that there is a parent; this was expressed using the condition:
 
@@ -1038,7 +1038,7 @@ managerOk(M) => (X,M) in worksFor implies X.salary=<M.salary.
 
 Notice that we can use conditions' satisfaction-oriented semantics outside of query expressions.
 
-###Query Quantifiers[query-quantifiers]
+### Query Quantifiers[query-quantifiers]
 
 The _QuantifierTerm_ in a query specifies 'how many' answers we want. There are essentially three forms of _QuantifierTerm_ — if we want all the answers then we use a term of the form:
 
@@ -1056,7 +1056,7 @@ Of course, there might not be five answers, and so this is called a bounded _Qua
 
 We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of **Star**'s most powerful and high-level features.
 
-##Types of Collection[types-of-collection]
+## Types of Collection[types-of-collection]
 
 Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of adding to the collection, the cost of _accessing_ elements of the collection and the cost of _modifying_ elements in the collection.
 
@@ -1064,7 +1064,7 @@ Just as there are many uses of collections, so there are different performance r
 
 However, even without that constraint, different implementation techniques for collections tend to favor some operations at the cost of others. Hence, there are different types of collection that favor different patterns of use.
 
-###The `cons` Type[the-cons-type]
+### The `cons` Type[the-cons-type]
 
 This is the simplest collection type; and is perhaps the original collection type used in functional programming languages. It is defined by the type declaration:
 
@@ -1074,7 +1074,7 @@ all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 
 Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a `cons` list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to the end of a `cons` list is linear in the length of the list.
 
-###The `list` Type[the-list-type]
+### The `list` Type[the-list-type]
 
 The `list` type offers a different trade-off to the `cons` type: where the latter is optimal for ease of constructing and for traversing complete lists, the `list` type offers constant-time access to random elements within the array — at the potential cost of more expensive construction of lists.
 
@@ -1087,7 +1087,7 @@ The `list` type is optimized for random access and for shared storage — recall
 [twoArrays]:images/twoarrays.jpg width=270px
 
 
-###The `dictionary` Type[the-dictionary-type]
+### The `dictionary` Type[the-dictionary-type]
 
 Unlike the `cons` or `list` type, the `dictionary` type is oriented for access by arbitrary keys. The `dictionary` is also quite different to hash trees as found in Java (say), the `dictionary` type is _persistent_: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of the `dictionary` is quite comparable to Java's `HashMap`.
 
@@ -1138,7 +1138,7 @@ Like `dictionary`, the `set` type is not publicly defined using an algebraic typ
 all t ~~ equality[t] |: set[t]
 ```
 
-###The `range` Type[the-range-type]
+### The `range` Type[the-range-type]
 
 The `range` type is a very particular form of collection type: a `range` denotes a range of numbers. Its type description says it all:
 
@@ -1172,7 +1172,7 @@ range(F,I,Ix)++range(I,T,Ix)=range(F,T,Ix)
 
 where `++` is the standard function — i.e., is part of the `concatenate` contract — for expressing sequence concatenation.
 
-##Queries and Maps for Statistical Purposes
+## Queries and Maps for Statistical Purposes
 
 We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.
 
@@ -1318,7 +1318,7 @@ That is it! The final query should get output along the lines of:
 
 Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.[^A standard deviation of `0.0` is likely a signal that the indicated URL only occurred once in the sample data.]
 
-##Summary[summary]
+## Summary[summary]
 
 Collections form an important part of any modern programming language. The suite of features that make up the collections architecture in **Star** consists of a number of data types, contracts and special syntax that combine to significantly reduce the burden of the programmer.
 

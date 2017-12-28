@@ -1,4 +1,4 @@
-#Functional Programming[functional-programming]
+# Functional Programming[functional-programming]
 
 There is a perception of functional programming that it is _weird_ and _difficult_. This is unfortunate for a number of reasons; the most important being that functional programming is _not_ weirder than procedural programming and that all programmers can benefit by programming functionally.
 
@@ -8,7 +8,7 @@ What may be surprising to the reader who is not familiar with functional program
 
 In this chapter we will show how we can utilize **Star** as a vehicle for functional programming. As a side-goal, we also hope to demystify some of the language and ideas found in functional programming.
 
-##What is Functional Programming?
+## What is Functional Programming?
 
 The foundations of functional programming rest on two principles:
 
@@ -23,7 +23,7 @@ This last principle is what people mean when they refer to functions as being _f
 **Star** is not actually a _pure_ functional programming language; i.e., it is possible to write programs that violate the declarative principle. However, it is a _functional-first_ programming language: a declarative style is strongly encouraged. In this chapter we shall focus on writing pure functional programs in
 **Star**.
 
-##Basics
+## Basics
 
 There are two variants of function — the anonymous or _lambda_ function and the named function. We have already seen some simple examples both forms; for now, we continue to focus on named functions.
 
@@ -58,11 +58,11 @@ sign(X) default => 1.
 
 An explicitly marked `default` equation does not need to be the last equation; but, wherever it is written, default equations are only attempted after all other equations have failed to apply.
 
-###Patterns
+### Patterns
 
 A function is defined as a sequence of _rewrite equations_ each of which consist of a _pattern_ and an _expression_. There are three general forms of rewrite equations:
 
-_Pattern_ `=>` _Expression_  
+_Pattern_ `=>` _Expression_
 
 or
 
@@ -177,7 +177,7 @@ or just:
 same(X,X1) => X==X1
 ```
 
-###Order of Evaluation
+### Order of Evaluation
 
 **Star** is a so-called _strict_ language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
 
@@ -198,7 +198,7 @@ The other dimension in evaluation order relates to the rewrite equations used to
 ## Another Look at Types
 Organizing data is fundamental to any programming language. **Star**'s data types are organized around the _algebraic data type_. In addition, **Star**'s supports *quantified types* of several varieties.
 
-###Quantified Types
+### Quantified Types
 
 A *generic* type is one which has one or more type variables in it. For example, the type expression:
 
@@ -272,7 +272,7 @@ implementation equality[string] => {
 
 We shall explore more fully the power of this form of type constraint in later sections and chapters. For now, the core concept is that quantified types can be constrained to allow very precise formulations of types.
 
-###Algebraic Data Types[algebraic-data-types]
+### Algebraic Data Types[algebraic-data-types]
 
 An algebraic data type definition achieves several things simultaneously: it introduces a new type into scope, it gives an enumeration of the legal values of the new type and it defines both constructors for the values and it defines patterns for decomposing values. This is a lot for a single statement to do!
 
@@ -405,7 +405,7 @@ show check(T,"alpha").           -- results in true
 show check(T,"delta").          -- results in false
 ```
 
-##Functions as Values
+## Functions as Values
 
 The second principle of functional programming is that functions are first class. What that means is that we can have functions that are bound to variables, passed into functions and returned as the values of functions. In effect, a function is a legal _expression_ in the language. It also means that we can have _function types_ in addition to having types about data.
 
@@ -441,7 +441,7 @@ Free variables are a powerful feature of functional programming languages becaus
 
 Interestingly, it would be difficult to define a top-level function that is equivalent to this lambda because of the occurrence of the variable `S` in the body of the lambda. This is an example of a _free variable_: a variable that is mentioned in the body of a function but which is defined outside the function. Because `S` is free, because it is not mentioned in the arguments, one cannot simply have a function which is equivalent to the lambda as a top-level function.
 
-###Functions and Closures
+### Functions and Closures
 
 If a function is an expression, what is the value of the function expression? The conventional name for this value is _closure_:
 
@@ -454,7 +454,7 @@ Pragmatically, one of the important roles of closures is to capture any free var
 
 >In the world of programming languages, there is a lot of confusion  about closures. Sometimes you will see a closure referring to a function that captures one or more free variables.
 
-###Let Binding Environments[let-binding-environments]
+### Let Binding Environments[let-binding-environments]
 
 We noted that it is difficult to achieve the effect of the `(X)=>X==S` lambda expression with named functions. The reason is that the free variable `S` is defined as a parameter to the `check` function — in particular, the lambda is _not_ defined in the same way that named functions are defined. If we wanted to define a named function which also captures `S`, we would have to be able to define functions inside expressions.
 
@@ -507,7 +507,7 @@ In short, we would use a `let` expression when the function being defined is at 
 
 Assembling functions in this way, either by using anonymous lambdas or by using `let` expressions, is one of the hallmarks of functional programming.
 
-##Generic Programs[generic-programs]
+## Generic Programs[generic-programs]
 If we take a slightly closer look at `fTest`, we can see that it seems pretty generic: it has a function as argument that it calls in the right places; but otherwise makes few assumptions about the function it calls. However, the type annotation of `fTest` is rather specific:
 
 ```
@@ -516,7 +516,7 @@ fTest : (sTree,(string)=>boolean)=>boolean
 
 which means, for example, that its second argument _must_ be a function from `string` to `boolean`. On the other hand, nothing in the actual definition of `fTest` seems to depend on `string`s.
 
-###Generic Types[generic-types]
+### Generic Types[generic-types]
 
 What actually makes `fTest` more constrained than it could be is the type definition of `sTree` itself. It too is unnecessarily restrictive: why not allow trees of any type? We can, using the type definition for `tree`:
 
@@ -569,7 +569,7 @@ The type `tree[t]` on the right hand side of `tEmpty`'s type annotation raises a
 
 2.  The type of a literal `tEmpty` expression — assuming that no further information is available — will be of the form `tree[t34]` where `t34` is a 'new' type variable not occurring anywhere else in the program. In effect, the type of `tEmpty` is `tree` of _some type_ `t34` where we don't know anything more about `t34`.
 
-###Generic Functions
+### Generic Functions
 
 Given this definition of the `tree` type, we can construct a more general form of the tree test function; which is almost identical to `fTest`:
 
@@ -599,7 +599,7 @@ I.e., `check` can be used to find any type of element in a tree — providing th
 check:all t ~~ equality[t] |: (tree[t],t) => boolean
 ```
 
-##Going Further[going-further]
+## Going Further[going-further]
 
 Although better than the original `sTest` program there is still one major sense in which the `test` program is not general enough. We can see by looking at another example: a function that counts elements in the tree:
 
@@ -670,7 +670,7 @@ tVisit:all a,t ~~(tree[t],(a,t)=>a,a)=>a
 
 Just like regular variables, type variables have scope and points of introduction. Also like regular variables, a type variable may be _free_ in a given type expression; although it must ultimately be _bound_ by a quantifier.
 
-###Going Even Further[going-even-further]
+### Going Even Further[going-even-further]
 
 We have focused so far on generalizing the visitor from the perspective of the `tree` type. But there is another sense in which we are still _architecturally entangled_: from the perspective of the `check` and `count` functions themselves.
 
@@ -786,7 +786,7 @@ The combination of `contract` and `implementation` represents a quite formal way
 
 There is something else here that is quite important too: we are able to define and implement the `visitor` contract _without_ having to modify in any way the type definition of `tree` or `sTree`. From a software engineering point of view this is quite important: we are able to gain all the benefits of interfaces without needing to entangle them with our types. This becomes critical in situations where we are not able to modify types — because they don't belong to us and/or we don't have access to the source.
 
-###Polymorphic Arithmetic[polymorphic-arithmetic]
+### Polymorphic Arithmetic[polymorphic-arithmetic]
 
 There are other ways in which programs can be polymorphic. In particular, let us focus for a while on arithmetic. One of the issues in arithmetic functions is that there are many different kinds of numbers. Pretty much every programming language distinguishes several kinds of numbers; for example, Java distinguishes `byte`, `short`, `int`, `long`, `float`, `double`, `BigInteger` and `BigDecimal` — and this does not count the wrapped versions. Other languages have even more choice.
 
@@ -840,7 +840,7 @@ Of course, coercion is also governed by contract, a fact represented in the type
 
 In any case, using these techniques, it is possible to write numeric functions without unnecessarily committing to specific number types. That in turn helps to make them more useful.
 
-##A Word About Type Inference
+## A Word About Type Inference
 
 We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that **Star** only requires programmers to explicitly declare the types of top-level variables and functions. It is worth pausing a little to see how this might be done.
 
@@ -911,7 +911,7 @@ However, we would note that the apparent restriction to the type system imposed 
 
 We are only able to scratch the surface of the type system here. It is certainly true that — like many modern functional languages — **Star**'s type system is complex and subtle. The primary motivation for this complexity is to reduce the burden for the programmer: by being able to infer types automatically, and by being able to address many programming subtleties, the type system comes to be seen as the programmer's friend rather than as an obstacle to be 'gotten around'.
 
-##Are We There Yet?[are-we-there-yet]
+## Are We There Yet?[are-we-there-yet]
 
 The straightforward answer to this is no. There is a great deal more to functional programming than can be captured in a few pages. However, we have covered some of the key features of functional programming — particularly as it applies to **Star**. In subsequent chapters we will take a closer look at collections, at modular programming, at concurrency and even take a pot shot at Monads.
 

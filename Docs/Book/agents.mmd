@@ -1,4 +1,4 @@
-#Chattering Agents[chattering-agents]
+# Chattering Agents[chattering-agents]
 
 Software agents represent one of those concepts that are very compelling -- perhaps precisely because it speaks to natural human intuitions. Agents are also a popular model for distributed systems. Distributed systems are often characterized by multiple loci of control -- typically one per machine in the system -- and assigning an agent to each locus is a very natural architecture.
 
@@ -8,7 +8,7 @@ In this chapter we look at how we can build agent-based systems and hence distri
 
 On the other hand, **Star** does have some important features that simplify building this style of application: notably the _actor_, _speech actions_ and support for _component architectures_.
 
-##A Taxonomy of Agents[a-taxonomy-of-agents]
+## A Taxonomy of Agents[a-taxonomy-of-agents]
 
 There is a natural hierarchy of types of agent -- which roughly aligns with their roles and capabilities in distributed applications:
 
@@ -77,7 +77,7 @@ Collaboration is independent of cognition. It is perfectly feasible to design ne
 
 The obvious hallmark of collaborative agents is _communication_: you cannot recruit others to do your bidding if you can't talk to them. There are many styles of communication possible between software entities; the one that we suggest for use in **Star** agents is based on _speech actions_.
 
-##Speech Actions[speech-actions]
+## Speech Actions[speech-actions]
 
 As the term suggests, speech actions are a communications model based on an anthropomorphic understanding of how agents communicate. Speech actions were first investigated by John Austin[][#austin:60] in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by John Searle [][#searle:69] and standardized in KQML [][#kqml:93] and FIPA [][#FIPA].
 
@@ -115,7 +115,7 @@ Note that public semantics does _not require_ a third party listening in to ever
 
 Since we _are_ talking about communication in the context of software, other considerations are also important; in particular, _type safety_, _crossing machine boundaries_ and _efficiency_.
 
-##Programming Speech[programming-speech]
+## Programming Speech[programming-speech]
 
 A critical aspect of human communication is the vocabulary employed -- more formally the _ontology_ being referenced. The natural analog of this in software systems is the Application Programming Interface (API). An API specifies which functions you may invoke, what their types are and what the expected results of invoking the functions should be.
 
@@ -148,7 +148,7 @@ show list of { all y where
 
 While perfectly serviceable, there are some substantial issues with this approach to accessing APIs. For example, we have this `A` variable showing up everywhere; and it is hard -- at first glance -- to see how this style of API can help us with building distributed systems.
 
-###Queries
+### Queries
 
 We have, in **Star**, a better, more systematic, approach to describing and implementing public APIs -- based on speech actions.[^And contracts of course.] For example, assuming that `Ag` had the appropriate type similar to that of `A` above, we could issue a speech action against `Ag` with a very similar query:
 
@@ -176,7 +176,7 @@ where _Agent_ is an entity with a constrained type that implements the `speech` 
 
 >The `query` is an expression -- how can it be a speech action? The straightforward response is that it is not the expression that is the action, the speech action as a whole consists of the `query` performative and the content of the action is an expression. Syntactically, because the `query` has a value, it makes the most sense for the `query` to be presented to the programmer as an expression.
 
-####Free Variables in Speech[free-variables-in-speech]
+#### Free Variables in Speech[free-variables-in-speech]
 
 Although the body of a `query` speech action might be any expression, there are some syntactic restrictions on the valid forms of `query` expression. The primary reason for these restrictions is to make it simpler to determine the _scopes_ of identifiers occurring in the query expression. Specifically, we need to be able to determine for any identifier occurring in the queried expression whether or not it refers to the agent being queried or the outer context.
 
@@ -206,7 +206,7 @@ query Ag's quantity with quantity("W-S-23")>0
 
 Why, one should ask, cant the compiler simply rely on the type of `Ag`? The answer is two-fold: of course, if `Ag`'s type is known then it will rely on it. However, **Star**'s type system is based on type inference -- it is quite possible that the only signal that `Ag` is a speech action correspondent is the presence of this speech action. In that scenario there is not enough information to also determine the types of all the free variables.
 
-###Notifications[notifications]
+### Notifications[notifications]
 
 A `notify` speech action is intended to communicate the occurrence of an event of some form. In the context of software systems it corresponds to a message being sent on a named channel; however that seems low level in comparison.
 
@@ -241,13 +241,13 @@ type myAPI is alias of {
 
 Here we mark the ability to `notify` on the `stock` channel by giving `stock` an `occurrence` type. Later, when we look at how agents can be implemented, we will see how notifications are handled. For now, we note that `occurrence of (string,string)` denotes a program that can consume events whose data consists of values of tuple type `(string,string)`.
 
-####No Time[no-time]
+#### No Time[no-time]
 
 The `notify` speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.
 
 Furthermore, not all applications _need_ time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock's ticking would confirm that neither tick nor tock is timestamped! However, each tick does announce the passing of another second. Instead, it is assumed that the listener has some other way of determining the time (by looking at the clock face). In general, it is expected that each application will incorporate an appropriate model of time for its `notify` events.
 
-###Requests[requests]
+### Requests[requests]
 
 Our final form of speech action is the `request`. A `request` is intended to denote a request that the recipient perform some action. This is subtly different to the `query` in that -- apart from answering the question -- a `query` should not cause any change of state in the recipient, whereas the `request` likely would.
 
@@ -271,7 +271,7 @@ delete (Id,_) from stocks where quantity(Id)=0
 
 is part of the standard CRUD (Create-Read-Update-Delete) feature that allows collections to be updated.
 
-###A Missing Performative
+### A Missing Performative
 
 **Star** does not have a `declare` performative -- currently. It may be instructive to see why not, especially since we introduced speech action theory with a classic declaration. While it is not likely that a software agent will marry couples any time soon, there are legitimate reasons for wanting the ability to make declarations.
 
@@ -289,7 +289,7 @@ A more general approach is to use a logical language in which we can encode cont
 
 Developing a usable logical language is fairly substantial task; however, once it exists, we have exactly the right speech action for it!
 
-##Actors[actors]
+## Actors[actors]
 
 So far we have discussed what talkative agents say to each other but not on how they are built. The simplest structure that responds to this is the `actor`. Actors are lightweight entities that can respond to speech actions. For example, this `actor` models some aspects of a bank:
 
@@ -364,7 +364,7 @@ agentBank:actor of {
 
 One common technique when programming with actors is to use functions that generate actors. One is likely to need only a single bank actor in a system, but one may well need multiple client actors.
 
-###Performance Characteristics of Actors[performance-characteristics-of-actors]
+### Performance Characteristics of Actors[performance-characteristics-of-actors]
 
 Actors are comparatively efficient at processing speech actions; and they are trusting: that is, they do not perform any validation on the speech actions. One resulting limitation is that they are definitely not safe in a concurrent environment. Again, no interlocking checks are performed -- which means that if you use a regular actor in background tasks (say) then you will likely get inconsistent results.
 
@@ -374,7 +374,7 @@ A corollary of `actor`s' execution profile is that they are _re-entrant_: multip
 
 However, in most concurrent situations the normal `actor`'s execution model is too dangerous. To make speech action processing safer it is necessary to _serialize_ access to the actor -- something that is accomplished with concurrent actors.
 
-###Concurrent Actors[concurrent-actors]
+### Concurrent Actors[concurrent-actors]
 
 A _concurrent actor_ is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.
 
@@ -411,4 +411,4 @@ balQuery(A,U) is query A with balance(U)
 
 will work with either of `actor`, `concurrent actor` or any entity that implements `speech` and whose API includes the `balance` function -- because it's type is carefully circumscribed. However, functions that have been type-specialized to work with `actor`s will not type check when used with `concurrent actor`s.
 
-##Summary
+## Summary

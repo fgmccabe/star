@@ -1,4 +1,4 @@
-#Boiling the Ocean[boiling-the-ocean]
+# Boiling the Ocean[boiling-the-ocean]
 
 It is a commonplace in software engineering that you should not try to 'boil the ocean'; which is a synonym for 'biting off more than you can chew'. However, it _is_ possible to build very large scale systems if you approach it in the right way. This is the purview of architecture and of software development teams.
 
@@ -10,7 +10,7 @@ Building software in the context of a team is quite different to writing individ
 
 **Star**'s modularity features are built from the same functional programming foundation as the other features of the language. This has important implications for the programmability of larger systems.
 
-##Packages and Worksheets[packages-and-worksheets]
+## Packages and Worksheets[packages-and-worksheets]
 
 We have already seen the two basic forms of compilation unit in **Star**: the `package` and the `worksheet`.
 
@@ -34,7 +34,7 @@ The _Package Identifier_ at the beginning of the package definition is the name 
 
 Most of the _Definitions_ are those that we have already seen: function definitions, variable definitions and type definitions. There are some additional forms however, including the `import` statement — that allows one to import elements from other packages.
 
-####The `main` Program[the-main-program]
+#### The `main` Program[the-main-program]
 
 If a package defines a main procedure[^A procedure, in **Star**, is a function that returns the void tuple `()`.] then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a `list[string]`s.
 
@@ -84,7 +84,7 @@ myProgram{
 
 The `_main` procedure is given all the command line arguments as a `list[string]`. This variant of `_main` (you cannot have both in the same package) is useful if you want to process command line arguments with dash-options.
 
-###Worksheet[worksheet]
+### Worksheet[worksheet]
 
 We have already seen a number of examples of using worksheets. They represent a modern replacement for the traditional REPL — or Read-Eval-Print-Loop. The main advantages of worksheets over the traditional REPL are that they simultaneously act as their own transcript and they integrate well with editor-centric IDEs.
 
@@ -168,7 +168,7 @@ Unlike a traditional REPL, because the worksheet is in a file, there is much mor
 
 >It _is_ possible to include actions in a regular `package`. However, especially in cases where the package is to be imported into another program this practice is not recommended.
 
-###Importing Packages[importing-packages]
+### Importing Packages[importing-packages]
 
 There are two basic ways of importing a package[^You cannot import a worksheet.] into your code: the _open import_ and the _named import_. The open import is the simplest; to import a package you just import it (sic):
 
@@ -242,7 +242,7 @@ One of the benefits of the named import is that it makes it possible to import p
 
 By using named imports the effect is to establish a local _namespace_ for the imported package. Different definitions imported from different places can be reliably distinguished using the normal record field access syntax (i.e., a period).
 
-####Private and Public Imports[private-imports]
+#### Private and Public Imports[private-imports]
 By default, when a package is imported, it is privately imported -- the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.
 
 However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exposes the structure of the library to clients; something that is typically not desirable.]
@@ -266,13 +266,13 @@ libraryPkg{
 }
 ```
 
-##Code Products[code-products]
+## Code Products[code-products]
 
 One important question that must be answered in any scheme that permits importing is "where is the code coming from?". **Star** has three architectural elements that are the basis of code management: the _code repository_, a system of _universal resource identifiers_ (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.
 
 >The issues that show up when managing resources tend to fall in the 'annoyingly complex' rather than 'rocket science' category. However,that does not make them less important, and addressing them certainly helps with that oceanic problem.
 
-###Code Repository[code-repository]
+### Code Repository[code-repository]
 
 Apart from simply being a place compiled code can be kept, a _code repository_ has several other responsibilities: it must be possible to access the compiled code from multiple packages — including packages that were imported. In fact, a **Star** code repository is able to contain the compiled code of any number of packages — since code repositories are also used to hold compiled libraries as well as applications.
 
@@ -282,7 +282,7 @@ The scale of the repository is also flexible: ranging from a and we must be able
 
 We will not go into the details of **Star**'s code repositories here. However, note that code repositories may store their code in different ways — file systems, memory, in a _Star Archive_. Furthermore, repositories can be combined into composite repositories.
 
-###Universal Resource Identifier[universal-resource-identifier]
+### Universal Resource Identifier[universal-resource-identifier]
 
 Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.
 
@@ -299,13 +299,13 @@ file://foo/bar/x/y.star
 
 looks like a file-based name: one might be tempted to believe that the file `x.Star` resides in the directory `/foo/bar/x`. While it is possible that it might, there is actually no such commitment. Furthermore, the same resource may be someplace else (and _will be_ if the identified file is in a code repository).
 
-####Transducer[transducer]
+#### Transducer[transducer]
 
 The connection between a URI and the actual resource must be established by a _transducer_. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.
 
 The **Star** compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.
 
-####Standard URI Schemes[standard-uri-schemes]
+#### Standard URI Schemes[standard-uri-schemes]
 
 Although the **Star** compiler can, in principle, utilize any URI scheme, some schemes are 'built-in' — in the sense that there is a standard transducer for them. It is obviously an implementation dependent aspect of the language: different compilers may support different schemes; but all should support at least the following:
 
@@ -320,7 +320,7 @@ Although the **Star** compiler can, in principle, utilize any URI scheme, some s
 
 In addition, the compiler may support the **file** scheme and other schemes as appropriate.
 
-####Package URIs[package-uris]
+#### Package URIs[package-uris]
 
 We stated earlier that an `import` statement looks like:
 
@@ -344,7 +344,7 @@ It turns out that, most of the time, specifying imported packages with explicit 
 
 However, while correct, this is unnecessarily clumsy. Instead, we allow identifiers to name package URIs (as we have been throughout this book) and use our third mechanism to bridge the gap: the _catalog_.
 
-###Catalogs[catalogs]
+### Catalogs[catalogs]
 
 A _catalog_ is a mapping from identifiers to package URIs; i.e., it is the missing link between package identifiers and package URIs. Catalogs are sometimes written explicitly — in the form of a file that you can place in the same directory as your source files — but usually the compiler makes an automatic catalog depending on where the source code of a package is actually located.
 
@@ -375,7 +375,7 @@ In either case, the compiler will determine the exact version of a package to im
 
 For most projects you will not need to be very aware of code repositories, catalogs and so on. However, the code product architecture is an important part of **Star**'s strategy for helping you building all scales of system.
 
-##Existentialism[existentialism]
+## Existentialism[existentialism]
 
 If we take a slightly deeper look at the `package` we will see some surprising features; features that are sadly not very common in programming languages.
 
@@ -439,7 +439,7 @@ Having constructors in a type is only a small extension to the conventional noti
 
 On the other hand, having a type in a record is quite different.
 
-####Type Variables and their Kind[type-variables-and-their-kind]
+#### Type Variables and their Kind[type-variables-and-their-kind]
 We also have a new form of statement about types in this type signature: a `kind` annotation.
 
 In general, types have a _kind_ associated with them; kinds serve the same role for types as types do for expressions and values. In particular, when a type variable is used in a type expression, its kind must be consistent with its use. A significant difference between kind expressions and type expressions is that there are very few different forms of kind:
@@ -458,7 +458,7 @@ foo has kind type of type
 
 The `kind` annotation is a way of declaring that the `foo` type exists, without being specific about what the type actually is.
 
-###Existential Types[existential-types]
+### Existential Types[existential-types]
 What does it mean to have a type in a record? From a programmer's point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn't have types in it. However, the logic of this bears a deeper look.
 
 The type expression in our record type:
@@ -482,7 +482,7 @@ Notice how the `kind` annotation is still there, it is simply attached to a type
 
 The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists — with possible constraints as in this case.
 
-####Use and Evidence[use-and-evidence]
+#### Use and Evidence[use-and-evidence]
 To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of _using_ a variable or whether one is defining it — or providing _evidence_ for it.
 
 Consider the simple function `d` with its type declaration:
@@ -547,7 +547,7 @@ Normally such dynamic types do cause substantial problems. The presence of a dyn
 
 However, the type rules for existentially quantified variables are crafted so that _it must not matter_ what the actual type `simple.foo` is. So long as no additional constraints on the `simple.foo` are permitted then the program is provably compile-time type-safe. I.e., uses of an existentially quantified type may not further constrain the type — the exact complement of the situation with universally quantified types.
 
-####Using Existentially Quantified Types[using-existentially-quantified-types]
+#### Using Existentially Quantified Types[using-existentially-quantified-types]
 
 So, what _are_ the rules for existentially quantified types?
 
@@ -614,7 +614,7 @@ def X2 is exFn("alpha")
 
 >If `Y1` or `Y2` were declared to be re-assignable variables then, once again, we would not be able to connect the types of `Y1` and `Y2` together.
 
-##Abstract Data Types[abstract-data-types]
+## Abstract Data Types[abstract-data-types]
 
 Abstract data types can be viewed as the mathematics behind object oriented programming.[^Not to be confused with _Algebraic Data Types_ — which represent the mathematical foundation for enumerations and other non-object values.]
 
@@ -690,7 +690,7 @@ A reasonable question here is 'where is the Abstract Data Type?'. What we have i
 
 Notice how we index off the `LS` variable to access the operators for this set; even while passing into it instances of sets created and modified by `LS`. This is one of the hallmarks of a module system.
 
-###Opening Up[opening-up]
+### Opening Up[opening-up]
 
 One of the reasons that we are so interested in establishing a 'normal' semantics for modules and ADTs is that we can develop systems where the contents of a module depends on some additional computation; i.e., we can use _functions over modules_. For example, we can show that _aspect oriented programming_ and _dependency injection_ can be realized just using normal code structuring with functions and `let` environments.
 
@@ -842,7 +842,7 @@ let{
 
 This is virtually equivalent to the code we might have written if we were importing a package with the definition of the `fraction` type in it. The difference is that we have access to the full expressive power of the language in computing `FX`.
 
-###Injection[injection]
+### Injection[injection]
 
 Injection is a technique where we specialize a program with additional information; especially where that additional information is not part of the normal argument flow. Of course, it can be hard to be crisp about 'not part of the normal argument flow'; but injection is an architectural technique to apply if and when it makes a difference in the readability of your code.
 
@@ -877,7 +877,7 @@ def allPass is list of { all C where C in Courses and HS(C)>0.80 }
 
 >The two-step process is a key part of the injection technique.
 
-###Extensible Types[extensible-types]
+### Extensible Types[extensible-types]
 
 Sometimes, rather than configuring a program with a numeric value (or any other value for that matter), we need to configure it with a _type_. This does not happen that often, and **Star**'s type constraints can eliminate many cases where it might be needed; but the requirement still shows up occasionally. Where it can show up is in situations where you need to develop customizable applications — applications that can be extended further by your customers without you having to change a line of your own code.
 
@@ -1012,7 +1012,7 @@ fun equip(Id,Tp,Maint) is equip{
 
 This approach meets our goals: we can allow customers of our software access to key data structures in a safe way that does not require use to modify our code for each customer or even to recompile it.
 
-##Phew
+## Phew
 
 This Chapter covers some difficult material! We start with a requirement to scale — to be able to scale code from a single module through to applications built by assembling libraries. Along the way we take in existential quantification and abstract data types.
 

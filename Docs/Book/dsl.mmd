@@ -1,4 +1,4 @@
-#Application = Policy + Mechanism[dsl]
+# Application = Policy + Mechanism[dsl]
 
 It should be clear at this point that **Star** is quite a rich language. There are many features and _sub-languages_ that form the whole. We have seen several of these, including quite complex features like queries. In Chapter [chattering-agents][] we will also see a sophisticated sub-language based on actors and speech actions. It may surprise you to learn that the core of **Star** is quite small, with many features implemented in **Star** itself. Our task now is to introduce you to some of the techniques available to build your own extensions.
 
@@ -26,7 +26,7 @@ On the other hand, designing for extensibility does not necessarily mean adoptin
 
 Together, there are sufficient facilities for making a huge range of potential extensions and sub-languages.
 
-##How to Design a Domain Specific Language[how-to-design-a-domain-specific-language]
+## How to Design a Domain Specific Language[how-to-design-a-domain-specific-language]
 
 One of the primary reasons for wanting to have domain specific languages is to be able to succinctly express _policy_. Pretty much every significant application and module tends to be more general than the individual problem it was designed for; which means that actually applying the application (sic) amounts to using a subset of the capabilities of a general mechanism to solve the specific problem.
 
@@ -51,7 +51,7 @@ The pressure to factor the problem into mechanism and policy is so strong that i
 
 DSLs and policy languages often involve quite different _semantics_ from the host language; they are often _declarative_ in nature — specifying _what_ needs to be done and leaving the _how_ to the mechanism. One of the simplest purely declarative language systems is the _triple logic_ as seen in RDF. RDF makes a great basis for representing graph structures generally and _configurations_ specifically.
 
-##Resource Definition Framework[rdf]
+## Resource Definition Framework[rdf]
 RDF semantics is extremely simple: a RDF graph is a set of _triples_ consisting of a _subject_, _predicate_ and _object_; each of which is a _concept_. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.
 
 RDF is good for representing the simple 'facts' that one often sees in applications that have to model aspects of the real world. A classic example of this is in modeling things like giraffes: if we have a Giraffe called Joe, then we typically want to be able to say things like:
@@ -91,7 +91,7 @@ Just having a graph is much like having a flat data structure; its utility for d
 
 >It is popular to use a meta-syntax such as XML and JSON to encode policy expressions. The fundamental problem with using these is that they do not easily support type consistency and programming languages typically do not give good integration between XML/JSON strings and program code. The net effect is one of clumsiness and needless complexity.
 
-###There is Methodology in my Ontology[there-is-methodology-in-my-ontology]
+### There is Methodology in my Ontology[there-is-methodology-in-my-ontology]
 
 The most important initial task in designing a DSL or policy framework has nothing to do with operators, macros or any of the facilities of **Star** — you must identify the appropriate structure and semantics for your language. More formally, this can be defined as identifying the _ontology_ of the language.
 
@@ -122,7 +122,7 @@ The role of the UML diagram is to make it clear what the key features and compon
 
 >The careful reader will notice that we have actually extended the ontology to include the concepts of _class_, _cub-class_ and _instance_; which are actually part of RDFS more than basic RDF.
 
-###Nouns and Verbs[nouns-and-verbs]
+### Nouns and Verbs[nouns-and-verbs]
 
 Natural language grammar often has many kinds of words; but the two most important kinds of words are nouns and verbs. The same is usually true of computer languages: there are _things_ that we want to represent and process in some way and there are _actions_ that we want to be be able to model.[^Even in a pure expression language, a similar distinction holds: there is data and there are operators over that data. To be fair, there is an extreme variant of functional programming that only has functions; but even there the distinction between data and operators is still meaningful.]
 
@@ -179,7 +179,7 @@ Not all DSLs make all the features of an action explicit. However, the exercise 
 
 In the case of our RDF language, the principal actions relate to store and recall. We need to be able to manipulate triple graphs and we need to be able to query them. Here, we focus on querying because that is core to the role of any knowledge store.
 
-##Designing Syntax[designing-syntax]
+## Designing Syntax[designing-syntax]
 
 Once we have at least an approximate conceptualization, our next step is to design the syntax. Syntax is important because it encodes the manner in which different features of the DSL can be expressed and combined.
 
@@ -187,7 +187,7 @@ Once we have at least an approximate conceptualization, our next step is to desi
 
 Notice that we identify a _graph_ as being a sub-class of _expression_; this represents an important choice point in DSL design: whether we are extending _expressions_, _statements_, _actions_, or _types_. Of course, in complex projects you may find yourself implementing multiple kinds of extensions. We choose to model graphs as _expressions_ as that gives us the maximum flexibility in using triple graphs to represent policies.
 
-###Triple Notation[triple-notation]
+### Triple Notation[triple-notation]
 
 The focal structure in a triple graph is the _triple_. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the [N3][#N3-W3C] notation — which is a more human readable version of the standard XML RDF syntax adopted by W3C:
 
@@ -207,7 +207,7 @@ john ! address $ "2 smart place".
 john ! name $ "John Smith".
 ```
 
-####Design is Iteration[design-is-iteration]
+#### Design is Iteration[design-is-iteration]
 
 As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we _could_ create a query language specifically for triple graphs. However, a more subtle and integrated approach is to _extend_ the standard built-in query language with conditions that are tailored to work with triple graphs. This has the advantage that we can leverage standard query processing to help process triple graphs.
 
@@ -259,7 +259,7 @@ With the inferred triples:
 
 Designing DSLs, like designing anything, is often an iterative process. It is important to remain flexible when designing language features. For example, one rather glaring limitation to our triple graph notation is that it is limited to symbolic concepts and literal strings. We leave as an exercise to the reader how to modify the notation to allow arbitrary **Star** values to be referenced in triple graphs.
 
-###Operator Precedence Grammar[operator-precedence-grammar]
+### Operator Precedence Grammar[operator-precedence-grammar]
 
 **Star** has a very flexible syntactic foundation based on a _Operator Precedence Grammar_. You are already quite familiar with operator precedence grammars — they are used in nearly every programming language to represent arithmetic expressions. For example
 
@@ -300,10 +300,10 @@ X-(Y-Z)
 All this can be put together in a single **Star** statement: the operator declaration. In the case of our triple we are using two operators `!` and `$` to 'glue' together the parts of a triple. We also use the `:` operator to mark named concepts. The operator declarations we need to represent them are:
 
 ```
-#right("!",500).
-#right("$",450).
-#prefix(":",100).
-#infix("says",908).
+# right("!",500).
+# right("$",450).
+# prefix(":",100).
+# infix("says",908).
 ```
 
 One may ask where these priority numbers come from? Operators in **Star** are stratified into different levels depending on their syntactic role: 0-899 represent expressions, 900-999 represent predicates and conditions, 1000-1199  are used for forms that can be either expressions or actions, 1200-1499 represent actions and 1500-200 represent statements. The choice of 908 for `says` is to make it the same as the built-in predicate operator: `in`. The main effect of choosing the 'wrong' value for the priority of an operator is that expressions don't parse the way you would like.
@@ -316,7 +316,7 @@ We chose to use a word-style operator here — `says` — to introduce the tripl
 
 >Picking the right priority for operators is one of the most subtle aspects of designing syntactic extensions to **Star**. The language definition has a table of all the standard operators and their priorities.
 
-####Mixing Operators[mixing-operators]
+#### Mixing Operators[mixing-operators]
 
 The standard N3 notation includes some simple extensions to make certain patterns of facts easier to write. For example, we can write:
 
@@ -348,7 +348,7 @@ For the purposes of the operator grammar, literal values like strings, numbers a
 
 each element of the list has an expected priority; in case of lists the expected priority is 999. I.e., the maximum priority of any term in a list sequence is 999. If you want to embed an operator expression whose top-level operator is higher than 999 in a list then you need to surround it with parentheses.
 
-###Embedding Graphs[embedding-graphs]
+### Embedding Graphs[embedding-graphs]
 
 One of **Star**'s standard syntactic paradigms is the 'brace term'. We use it to represent records, as in:
 
@@ -392,7 +392,7 @@ list of {all X where OrgTree says X ! :department $ :accounting }
 
 So far, we have designed a new syntax for a triple graph extension to **Star** with very little effort: a few operator declarations. However, we are not done yet., we need to make sure that the **Star** compiler understands the new syntax.
 
-##Validation[validation]
+## Validation[validation]
 
 Simply defining operators is not enough to design a language extension. We must be able to make sure that the operators are used sensibly in the appropriate context, and that the **Star** compiler can make sense of the new syntax. To help with this, **Star** has a standard way of representing the valid syntactic forms of language extensions — using a set of _validation rules_.
 
@@ -430,12 +430,12 @@ These rules state that the two legal forms of concept are a colon-prefixed ident
 # identifier :: concept
 ```
 
-####Escaping our DSL
+#### Escaping our DSL
 We are making a subtle choice with these validation rules for `concept`. We are affirming that the only way that we can embed 'normal' **Star** expressions in a concept graph is through variables.
 
 In general, it is normally desirable to allow arbitrary expressions to be embedded in DSL extensions. However, one has to design the syntactic mechanism that permits this escape. In our case we take the extremely simple approach of only allowing variables.
 
-####Variations on a Theme
+#### Variations on a Theme
 Because we want to allow different variations on the legal forms of triple, the complete validation rules for `triple` are more complex and involve several different categories:
 
 ```
@@ -519,7 +519,7 @@ The form `G;*triple` is a validation condition that states that `G` must be a se
 
 Since, the natural scope rules for validation rules is one of cascading and augmentation rather than replacement, the meaning of the `##` is a little different to the normal `let` expression. The validation rules that are located within the body of the `##` are applied before other validation rules located externally.
 
-###Validating Triple Conditions[validating-triple-conditions]
+### Validating Triple Conditions[validating-triple-conditions]
 
 Recall that we also introduced a new form of condition that is suited for querying triple graphs. We need to validate such conditions too.
 
@@ -535,11 +535,11 @@ Notice that this rule simply states that a `says` condition is valid if `G` is a
 
 >Unlike the rules for triples, this must must _not_ be embedded within a `##` condition. The reason is that we must be able to find `says` conditions anywhere in a program — not just inside a triple `graph`.
 
-##Translating Graphs[translating-graphs]
+## Translating Graphs[translating-graphs]
 
 Once we have rules for validating `graph` expressions in place the compiler is able to verify the form of triple graph expressions but is not able to type check or compile them. For this we need to be able to translate triple graphs to something the compiler can understand; for that we use _macros_.
 
-###Representing Triple Graphs[representing-triple-graphs]
+### Representing Triple Graphs[representing-triple-graphs]
 
 We start with representing triple graphs. Reflecting the ontology we constructed above, we can define three types to represent _concepts_, _triples_, and _graphs_.
 
@@ -569,7 +569,7 @@ type n3Graph is alias of list[n3Triple]
 
 >A more robust implementation of the triple graph store would provide better support for querying triple graphs by the individual subjects, predicates and objects of triples. This would normally involve being able to index the triples by their subjects, predicates and objects.
 
-###Macro Rules[macro-rules]
+### Macro Rules[macro-rules]
 
 Macros are programs that are executed by the compiler in order to transform terms into simpler forms — with the eventual goal that the terms produced by macro processing are directly understood by the main compiler.
 
@@ -625,8 +625,8 @@ n3(trCon(:john),trCon(:works_in),trCon(D)) in personnel
 This translation is not complete because `trCon` is not a known function symbol. In fact, we also want to map `:john` etc. into concepts, i.e., into `n3Concept` terms; for which we need another set of macro rules:
 
 ```
-#trCon(string?S) ==> n3S(S)
-#trCon(: #(identifier?N)# ) ==> n3C(N)
+# trCon(string?S) ==> n3S(S)
+# trCon(: #(identifier?N)# ) ==> n3C(N)
 ```
 
 The macro pattern `string?S` matches any literal string — and, if successful, binds the macro variable `S` to the matched string; similarly the macro pattern `identifier?N` matches any identifier and binds `N` to the found identifier.
@@ -634,12 +634,12 @@ The macro pattern `string?S` matches any literal string — and, if successful, 
 We also need a third rule that allows for _graph variables_ by mapping identifiers directly to identifiers:
 
 ```
-#trCon(identifier?N) ==> N
+# trCon(identifier?N) ==> N
 ```
 
 Notice that, even in this simple situation of matching concept, we had to construct a two-level macro cascade involving the strictly macro-time `trCon` symbol to ensure that they were translated appropriately. This requirement is one the weaknesses of the macro rule.
 
-###Meta Language[meta-language]
+### Meta Language[meta-language]
 
 **Star** has a _meta language_ and a standard type to go with it. This means that expressions in the language may also be values. For example, consider the expression:
 
@@ -679,7 +679,7 @@ Any macro (whether its a macro rule or a code macro) is a function whose type si
 
 The special feature of macro programs is that they are invoked by the compiler on the source program itself — hence the 'meta' in 'meta-language'.
 
-####Meta Variables[meta-variables]
+#### Meta Variables[meta-variables]
 
 In addition to the basic quote notation for expressions, it also has support for _meta-variables_. Meta variables are variables embedded in quoted terms — they are variables of the quoted term, not variables in the _object language_. They are very useful in programs that process quoted expressions — both as expressions and as patterns.
 
@@ -714,7 +714,7 @@ var T is <| :john ! :name $ "John Smith" |>
 
 The quoted notation is sufficiently powerful to almost never require explicit use of the constructors that actually make of the `quoted` type definition. This is reinforced by the implementation of the `coercion` contract between standard types and `quoted`.
 
-###Code Macros[code-macros]
+### Code Macros[code-macros]
 
 Code macros, as their name suggests, are normal **Star** functions that are invoked by the compiler on the text that the compiler is compiling. Code macros give the macro programmer almost the full power of **Star** to implement translation; in particular they can call other functions and use other types than `quoted` internally. However, code macros are a little more awkward to use than macro rules — there are some special restrictions on their form and what their scope is.
 
@@ -817,7 +817,7 @@ fun tripleJoin(L1,L2) is
 
 The complete program (which we have not shown here) that implements the transformation of triple graphs is some 50 lines long. It is, in fact, part of **Star**'s standard library.
 
-##After the Translation[after-the-translation]
+## After the Translation[after-the-translation]
 
 Translating a DSL into core **Star** is not always the end of the story. In addition it is important to consider what other ways it should be integrated with the language. For example, we designed a new `condition` so that triple graphs could participate in queries. In addition, there may be one or more standard contracts that should be implemented for elements of the DSL.
 
@@ -838,7 +838,7 @@ contract graphStructure over t is {
 
 Using such a contract as an underlying specification of requirements for implementation has the merit of allowing evolution in the representation of triple graphs; because, like all languages, we should expect our DSL to evolve too.
 
-###Is There a Downside to DSLs?[is-there-a-downside-to-dsls]
+### Is There a Downside to DSLs?[is-there-a-downside-to-dsls]
 
 Nothing comes without risks, for every yin there is a yang. What, we should ask, are the risk factors in having a programming language that encourages programmers to create DSLs?
 

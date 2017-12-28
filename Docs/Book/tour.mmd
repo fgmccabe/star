@@ -1,17 +1,17 @@
-#A Tour of **Star**
+# A Tour of **Star**
 
 Our first task is to introduce you to the **Star** language. It is difficult to find the right order in which to present a programming language like **Star**; this is because many of the features are highly inter-related. For example, types depend on values which depend on functions which depend on types!
 
 Instead, our approach in this book is to take a series of horizontal slices through the whole language; going progressively deeper as you become more comfortable with the language. Each layer represents a reasonably workable subset of the complete language.
 
-Since a layered approach means that a given description may be incomplete or slightly inaccurate, there is a temptation to use footnote annotations which declare '`...` but there is also `...`'.[^Please forgive these pedantic notes when you see them.]
+Since a layered approach means that any given description may be incomplete or slightly inaccurate, there is a temptation to use footnote annotations which declare '`...` but there is also `...`'.[^Please forgive these pedantic notes when you see them.]
 
-##A First **Star** Program[a-first-Star-program]
+## A First **Star** Program[a-first-Star-program]
 
-It is kind of traditional to introduce a new programming language with something like the hello world example. Which we will do in a moment. However, the `factorial` function often makes a better first example for functional programming languages:
+It is traditional to introduce a new programming language with something like the hello world example. Which we will do in a moment. However, the `factorial` function often makes a better first example for functional programming languages:
 
 ```
-factorial{
+sample.factorial{
   import star.               -- Access standard Star language features
 
   public fact : (integer)=>integer.
@@ -19,11 +19,13 @@ factorial{
   fact(N) where N>0 => N*fact(N-1).
 }
 ```
-This is not an executable program per se.; however, it does represent a more typical source code unit — most programs are built from many smaller modules which come together to make the application. The `factorial` package is small, but already introduces many of the key elements of the **Star** language.
+This is not an executable program per se.; however, it does represent a more typical source code unit — most programs are built from many smaller modules which come together to make the application. This package is small, but already introduces many of the key elements of the **Star** language.
 
-In this module, we see the name of the module – `factorial` – and an `import` statement and a function definition -- of the `fact` function.
+In this module, we see the name of the module – `sample.factorial` – and an `import` statement and a function definition -- of the `fact` function.
 
-##Texture
+>Source code can be in any form of textual container. There is, for example, no specific requirement that this `sample.factorial` package be in a file called `factorial.star`; although that may be good advice. Instead, the **Star** system relies on a catalog based system that maps package names to text entities. The catalog system also serves as an anchor point in the version management of **Star** programs.
+
+## Texture
 
 All programming languages can be said to have a particular  _style_ or  _texture_. This is often so strong that it is often possible to identify a programming language from a single line of source code. In the case of **Star**, this line might be:
 
@@ -48,7 +50,7 @@ Notice that every statement is terminated with a period. This is one of those pl
 
 >The precise rule is slightly more nuanced: a period is required to terminate a statement; unless the last character of the statement is a closing brace -- or unless the statement is itself the last statement in a brace sequence.[^This is one of those somewhat pedantic notes!]
 
-###Types
+### Types
 
 **Star** is a strongly, statically typed language. This means that all variables and expressions have a single type; and that all type constraints are enforceable at compile-time. This is a fairly strong (sic) statement but it is a key aspect of **Star**'s design – we need everything to be well typed and we also want to guarantee completeness of the type system.
 
@@ -68,7 +70,7 @@ The result is that a lot of the 'clutter' that can pervade a strongly typed lang
 
 >Note that the requirement is that top-level[^The definition of _top-level_ is simply whether the definition statement is immediately embedded in a `{}` sequence of statements – it is quite possible to have top-level definitions appearing within expressions.] definitions have explicit type annotations. We don't distinguish functions in any way here. In particular, functions which are _not_ part of a top-level  definition – for example lambda functions – do not need type annotations; on the other hand, other top-level variables still need an explicit type annotation.
 
-###Rules
+### Rules
 
 In **Star**, most programs are defined using  _rules_. In this case, `fact` is defined using  _equations_. The equations that make up a function definition (or any program definition for that matter) are statements that are written in order.
 
@@ -78,7 +80,7 @@ In addition, as we shall see later on, the partitioning of programs into cases l
 
 **Star** has various kinds of rules, including function definitions, pattern definitions, variable definitions and macro definitions. Furthermore, it is possible for new kinds of rules to be introduced – via the extensibility mechanisms of **Star** (more on that in [Chapter 5][dsl]).
 
-###Patterns
+### Patterns
 
 Patterns are ubiquitous in **Star**: they form the basis of many rules: they are used to define equations, they are used to control action programs, they are used to implement macros.
 
@@ -110,7 +112,7 @@ We did not because having the guard outside the arguments is neater.
 
 Note that the `fact` function's equations are not fully covering: there are no cases for `fact` for negative numbers. This means that `fact` is _partial_; and if called with a negative number will result in a run-time exception.
 
-###Packages
+### Packages
 
 The normal compilation unit is a *package*. The `factorial` package contains just the function `fact`, but packages can contain functions, type definitions, `import` statements and many other elements that we will encounter.
 
@@ -118,7 +120,7 @@ Package names and references to packages do not refer to file names; package nam
 
 The *catalog* and *repository* system explored in [Chapter 4][boiling-the-ocean] that supports the language ensures a proper connection between files and packages.
 
-###Worksheets
+### Worksheets
 
 The other main kind of compilation unit is the *worksheet*. Worksheets are a modern replacement for the REPL[^Read-Eval-Print-Loop] that you see in many functional programming languages.
 
@@ -146,7 +148,7 @@ Worksheets are like a combination of a module and the transcript of a session. I
 
 The key features of a `worksheet` that we will use are the ability to import packages, define elements, show the results of computations and define assertions.
 
-###String Interpolation [string-interpolation]
+### String Interpolation [string-interpolation]
 The expression
 
 ```
@@ -155,7 +157,7 @@ The expression
 
 is a  _interpolated string_ expression. It means the string `"fact(10) is \(fact(10))"` with the substring `\(fact(10))` replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of [contracts][contractsandconstraints], are also type safe.
 
-##Types, More Types and Even More Types
+## Types, More Types and Even More Types
 
 In many ways, the defining characteristic of a programming language is the approach to types. As we shall see, **Star**'s type system is quite extensive and powerful; however, simple types are quite straightforward.
 
@@ -178,7 +180,7 @@ There is some surprising variability to the answer to this question; for example
 
 For example, the standard type `integer` is nominative — its name gives no hint as to the representation, structure or kinds of values that are modeled by `integer`.[^I.e., everything you thought you knew about integers may or may not apply to the values denoted by `integer`.] However, a nominate type often indicates some actual entity being modeled – in this case integer values. Two nominative types which have different names always denote distinct values, whereas two structural types that look the same are actually identical.
 
-###Nominative Types
+### Nominative Types
 
 A nominative type is normally defined using an  _algebraic type definition_. This both introduces a type and defines all the legal values that belong to the type. For example, we might introduce a `Person` type with the type definition:
 
@@ -284,7 +286,7 @@ clearly indicates what one can use `f` to do, but it does not indicate anything 
 
 In summary, use nominative types when you are modeling 'real world' entities and structural types when the focus is on operations and structure more than on what the intention is. In practice, of course, you will use both in some combination.
 
-###Optional Values
+### Optional Values
 Notice that we identified a special case of `noOne` in our `Person` type. One reason for including this in a type is to be able to cope with non-existent people. However, this approach is not always the most effective one when modeling situations where a variable or field may not have a value.
 
 Explicit `null` values, as found in Java and similar languages, cause a great number of problems: for example, `null` must have a special universal type; there are many scenarios where it is not possible for a variable to be `null` but the compiler must discover those for itself; and there is often a consequent tendency in defensive programming to test for `null`.
@@ -328,7 +330,7 @@ freddy.spouse := some(lisa)
 lisa.spouse := some(freddy)
 ```
 
-###The Flavors of Equality
+### The Flavors of Equality
 Equality in programming languages is typically a very subtle topic. The issues can range from the nature of floating point numbers, the difference between integers and long values and the multiple potential concepts of equality for objects.
 
 Equality in **Star** is always between values of the  _same type_ and it is always  _semantic_. So, for example, an equality condition such as:
@@ -349,7 +351,7 @@ The second principle is that equality is semantic. What that means is that the `
 
 In effect, equality is  _not_ considered to be privileged; and it is definable by the programmer — albeit with some important useful default implementations.
 
-##A Tale of Three Loops
+## A Tale of Three Loops
 
 Imagine that your task is to add up a list of numbers. Sounds simple enough: in most procedural or OO languages (such as Java) one would write a fragment of code that looks like:
 
@@ -384,7 +386,7 @@ This program is essentially equivalent to the Java loop; although there are some
 
 While one loop is not going to hurt anyone; real code in languages like Java typically has many such loops. Especially when nesting loops to any depth, such code quickly becomes impossible to follow.
 
-###A Functional Loop
+### A Functional Loop
 
 A more idiomatic way of expressing a computation like the totalizer is to use a function. For example, we can write:
 
@@ -416,7 +418,7 @@ This is clearly both more concise and higher-level; and it begins to illustrate 
 
 Using `leftFold` means that we can often abstract away the machinery of loops and recursion completely — instead we can solve the problem at a more holistic level. This is one of the hallmarks of functional programming – it is possible to eliminate many instances of explicit loops and recursions.
 
-###A Totalizer Query
+### A Totalizer Query
 
 While concise, expressions involving much use of `leftFold` (and the analogous `rightFold`) can be difficult to follow. An even clearer way of adding up numbers is to use a  _query expression_:
 
@@ -440,7 +442,7 @@ The query expression is also very close to the natural specification:
 
 Of course, SQL programmers have long had access to this kind of conciseness and declarative expressiveness. However, SQL is constrained by the fact that it is intended to represent queries and actions over a very particular form of data — the relational table.
 
-###The Homunculus in the Machine
+### The Homunculus in the Machine
 
 Programming is often taught in terms of constructing sequences of steps that must be followed. What does that imply for the programmer? It means that the programmer has to be able to imagine what it is like to be a computer following instructions.
 
@@ -448,7 +450,7 @@ It is like imagining a little person — a homunculus — in the machine that is
 
 Not everyone finds such feats of imagination easy. It is certainly often tedious to do so. Using query expressions and other higher-order abstractions significantly reduces the programmer's burden — precisely by being able to take a declarative approach to programming.
 
-##Contracts and Constraints
+## Contracts and Constraints
 
 The concepts of interface and contract are foundational in modern software engineering. This is because explicit interfaces make it substantially easier to develop and evolve systems. A **Star** contract goes beyond the traditional concept of interface in important ways: we do not mark the definition of a type with its implemented contracts and we allow contracts to involve multiple types.
 
@@ -487,7 +489,7 @@ double : all t ~~ four[t] |: (t)=>t.
 
 I.e., it inherits the same constraint as the function `plus` has. There are several kinds of type constraint in **Star**'s type system; but the  _contract constraint_ is the most significant of them.
 
-###Implementing Contracts
+### Implementing Contracts
 Defining a contract is a big step, but it is not generally sufficient to produce working programs. If we had a `worksheet` containing only:
 
 ```
@@ -548,7 +550,7 @@ This is because the `show` action also results in a type constraint being involv
 
 As may be expected, arithmetic itself is also mediated via the `arithmetic` contract in **Star**. This is how we can support multiple numeric types using a common set of operators: there are standard implementations of `arithmetic` for `integer`s, and `float`ing point numbers.
 
-###Coercion, not Casting
+### Coercion, not Casting
 
 **Star** does not support automatic type casting, as found in languages like Java and C/C++. This is for many reasons, not the least of which is safety and predictability of code.
 
@@ -604,6 +606,6 @@ This implementation gives the implementation for coercing `integer`s to `float`s
 
 Having coercion as a contract makes it straightforward to add new forms of coercion. This is used quite extensively within **Star** itself: for example, parsing JSON can be viewed as coercion from `string` values to `json` values. Thus the interface to parsers can be standard across all types and parsers.
 
-##There is More
+## There is More
 
 As we have noted, **Star** is a rich language and it would be impossible to try to cover it in a short introduction. Later chapters will look at some of the other features such as a deeper look at contracts, queries, actors, concurrency, existential types, and extending **Star** with domain specific languages. Chapter [2][functional-programming] starts this process by looking at functional programming in **Star**.
