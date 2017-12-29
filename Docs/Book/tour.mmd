@@ -23,7 +23,7 @@ This is not an executable program per se.; however, it does represent a more typ
 
 In this module, we see the name of the module – `sample.factorial` – and an `import` statement and a function definition -- of the `fact` function.
 
->Source code can be in any form of textual container. There is, for example, no specific requirement that this `sample.factorial` package be in a file called `factorial.star`; although that may be good advice. Instead, the **Star** system relies on a catalog based system that maps package names to text entities. The catalog system also serves as an anchor point in the version management of **Star** programs.
+>Source code can be in any form of textual container. There is, for example, no specific requirement that this `sample.factorial` package be in a file called `factorial.star`; although that may be good advice. Instead, the **Star** system relies on a catalog based system that maps package names to text entities. The catalog system also serves as an anchor point in the version management of **Star** programs. We will cover this, and the related repository system for generated artifacts, in [Chapter 4][modular].
 
 ## Texture
 
@@ -86,13 +86,13 @@ Patterns are ubiquitous in **Star**: they form the basis of many rules: they are
 
 A pattern can be viewed as a combination of a test — does a value match a particular pattern — and as a way ( _the_ way in **Star**) of binding a variable to a value.
 
-The first equation for `fact` above:
+An equation's pattern defines when the equation is applicable. The first equation for `fact` above:
 
 ```
 fact(0) => 1.
 ```
 
-has a literal pattern on the left hand side of the `=>` operator. An equation's pattern defines when the equation is applicable. This equation only applies when `fact` is called with zero as its argument.
+has a literal pattern on the left hand side of the `=>` operator. This equation only applies when `fact` is called with zero as its argument.
 
 The pattern in the second equation:
 
