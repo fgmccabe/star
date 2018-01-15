@@ -1,0 +1,17 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Actors are comparatively efficient at processing speech actions; and they are trusting: that is, they do not perform any validation on the speech actions. One resulting limitation is that they are definitely not safe in a concurrent environment. Again, no interlocking checks are performed \'96 which means that if you use a regular actor in background tasks (say) then you will likely get inconsistent results.\
+Also, actors are somewhat 
+\i stateful
+\i0  in nature. They are intended to encapsulate the processing of speech actions; and that implies that they normally carry some form of state.\
+A corollary of actors\'92 execution profile is that they are 
+\i re-entrant
+\i0 : multiple tasks can access the same actor concurrently. This can be advantageous in certain circumstances where the actor is actually stateless and performance is critical.\
+However, in most concurrent situations the normal actor\'92s execution model is too dangerous. To make speech action processing safer it is necessary to 
+\i serialize
+\i0  access to the actor \'96 something that is accomplished with concurrent actors.}

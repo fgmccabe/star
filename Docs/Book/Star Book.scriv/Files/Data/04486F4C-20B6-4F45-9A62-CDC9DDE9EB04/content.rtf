@@ -1,0 +1,19 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 There are three common sources of change at the macro-level: a need to 
+\i reuse
+\i0  a software artifact, a need to 
+\i repurpose
+\i0  the artifact and/or a need to 
+\i refactor
+\i0  the artifact. The first corresponds to using a software artifact in a similar role but in a different context. For example, when a Math library developed for real-time analytics is to be used for a Machine Learning application: it is still a Math library but its context is new.\
+Repurposing occurs when the artifact is being used to solve a different problem. For example, a messaging platform might be repurposed as an Applications server (because the technology involved can be helpful).\
+Refactoring occurs when new requirements mean that new properties are desired. For example, a Json parser might be refactored to make it faster when the scale of the data being processed increases.\
+Another form of refactoring occurs when the implementation technology changes \'96 for example if the Json parser needs to be reimplemented in C++ because its original Java implementation \'91does not fit\'92 any more.\
+All these kinds of change often expose assumptions that were implicit before. It is these hidden assumptions that can increase the difficulty and friction in responding to change.\
+Although it is impossible to completely avoid assumptions \'96 otherwise known as architectural committments \'96 the best way of preparing for evolution is to minimize all assumptions and to make dependencies explicit through the judicious use of interfaces. This use of interfaces is the hallmark of our approach to building platforms.}

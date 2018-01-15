@@ -1,0 +1,70 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\b\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Star
+\b0  has a very flexible syntactic foundation based on a 
+\i Operator Precedence Grammar
+\i0 . You are already quite familiar with operator precedence grammars \'97 they are used in nearly every programming language to represent arithmetic expressions. For example\
+X+Y*3\
+is a very common way of representing the addition of X to the result of multiplying Y by 3. It also represents the application of two operators: + and * which happen to be 
+\i binary
+\i0  operators.\
+The operator structure of an expression is completely independent of any type information or its run-time performance.\
+We should be careful to note that the term 
+\i operator
+\i0  here has at least two overlaid meanings: there is the sense in which operator is a 
+\i syntactic
+\i0  structure \'97 with rules for legal sequences of tokens \'97 and there is the sense in which operator is a 
+\i function
+\i0  to be applied to arguments \'97 with rules for type safety and information flow. In this section, we are focused on the syntactic aspects of operators.\
+
+\b Star
+\b0  makes quite extensive use of operators in its own grammar, nearly every feature of the language relies on operators for its syntax.\
+There are many different kinds of operator: we can have 
+\i prefix
+\i0  operators like unary -; 
+\i infix
+\i0  operators like * and 
+\i postfix
+\i0  operators like ;. Although prefix and infix forms tend to be much more commonly used than the postfix form. It is quite possible for the same operator to have multiple forms: for example the - is both infix and prefix \'97 which allows us to use the same symbol for subtraction and to represent negative numbers.\
+To support parsing and operator combination, an operator is associated with a 
+\i priority
+\i0  number \'97 which encodes the relationship between operators. In the case of 
+\b Star
+\b0 \'92s operators, this is an integer in the range 0 to 2000; where the higher the priority the more dominant the operator is in the syntax. For example, the priorities for + and * are 720 and 700 respectively. It is this relative difference that determines that X+Y*3 means the same as X+(Y*3) and not (X+Y)*3.\
+The final attribute of an operator is its 
+\i associativity
+\i0 . Associativity determines what happens when you have multiple operators of the same priority in sequence. For example, arithmetic operators are traditionally 
+\i left associative
+\i0 . This means that\
+X-Y-Z\
+is the same as\
+(X-Y)-Z\
+rather than\
+X-(Y-Z)\
+All this can be put together in a single 
+\b Star
+\b0  statement: the operator declaration. In the case of our triple we are using two operators ! and $ to \'91glue\'92 together the parts of a triple. We also use the : operator to mark named concepts. The operator declarations we need to represent them are:\
+ # right("!",500).\
+ # right("$",450).\
+ # prefix(":",100).\
+ # infix("says",908).\
+One may ask where these priority numbers come from? Operators in 
+\b Star
+\b0  are stratified into different levels depending on their syntactic role: 0\'96899 represent expressions, 900\'96999 represent predicates and conditions, 1000\'961199 are used for forms that can be either expressions or actions, 1200\'961499 represent actions and 1500\'96200 represent statements. The choice of 908 for says is to make it the same as the built-in predicate operator: in. The main effect of choosing the \'91wrong\'92 value for the priority of an operator is that expressions don\'92t parse the way you would like.\
+Notice that the word says is also an operator! 
+\b Star
+\b0  allows us to use words as operators as well as using \'91graphical\'92 symbols like +.\
+We chose to use a word-style operator here \'97 says \'97 to introduce the triple condition; yet we chose graphical operators for the triples themselves. One of the ways that taste shows up in designing DSLs is in areas like this: what names do we use.\
+As it happens, part of the texture of 
+\b Star
+\b0  is to use keywords frequently. There are graphical operators of course, but one of the hallmarks of 
+\b Star
+\b0  is its liberal use of keywords. While this undoubtably makes for more typing it also makes for a more readable language.\
+Picking the right priority for operators is one of the most subtle aspects of designing syntactic extensions to 
+\b Star
+\b0 . The language definition has a table of all the standard operators and their priorities.}

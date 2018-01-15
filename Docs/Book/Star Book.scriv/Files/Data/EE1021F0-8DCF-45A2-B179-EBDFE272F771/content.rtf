@@ -1,0 +1,16 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue233;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c0\c0\c93333;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 The list type offers a different trade-off to the cons type: where the latter is optimal for ease of constructing and for traversing complete lists, the list type offers constant-time access to random elements within the array \'97 at the potential cost of more expensive construction of lists.\
+Unlike the cons type, the list type does not have a straightforward definition as an algebraic type. Internally, an list structure consists of an array of locations with a \'91control pointer\'92 giving the portion of the array block that represents a given list value.\
+The list type is optimized for random access and for shared storage \'97 recall that 
+\b Star
+\b0  collection types are persistent: that means that different values can share some or all of their internal structure. The {\field{\*\fldinst{HYPERLINK "file:///Users/fgm/Projects/Cafe/Docs/Book/twoArrays"}}{\fldrslt \cf3 \ul \ulc3 \strokec3 diagram}} shows two list values that overlap in their elements and consequently share some of their structure.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+\cf2 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+\cf2 \
+Two lists Sharing Structure}

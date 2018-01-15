@@ -114,7 +114,7 @@ Note that the `fact` function's equations are not fully covering: there are no c
 
 ### Packages
 
-The normal compilation unit is a *package*. The `factorial` package contains just the function `fact`, but packages can contain functions, type definitions, `import` statements and many other elements that we will encounter.
+The normal compilation unit is a *package*. The `sample.factorial` package contains just the function `fact`, but packages can contain functions, type definitions, `import` statements and many other elements that we will encounter.
 
 Package names and references to packages do not refer to file names; package names are symbolic – in general a package name consists of a sequence of identifiers separated by periods.
 
@@ -138,15 +138,15 @@ We can also use a worksheet to display the results of using and testing our `fac
 
 ```
 worksheet{
-  import fact.
+  import sample.factorial.
   show "fact(10) is \(fact(10))".
   assert fact(5) == 120.
 }
 ```
 
-Worksheets are like a combination of a module and the transcript of a session. In an IDE, the ideal mode of displaying a `worksheet` is via an interactive editor that responds to edit changes by recomputing the transcript and displaying the results in-line.
+Worksheets are like a combination of a module and the transcript of a session. In an IDE, the ideal mode of displaying a worksheet is via an interactive editor that responds to edit changes by recomputing the transcript and displaying the results in-line.
 
-The key features of a `worksheet` that we will use are the ability to import packages, define elements, show the results of computations and define assertions.
+The key features of a worksheet that we will use are the ability to import packages, define elements, show the results of computations and define assertions.
 
 ### String Interpolation [string-interpolation]
 The expression

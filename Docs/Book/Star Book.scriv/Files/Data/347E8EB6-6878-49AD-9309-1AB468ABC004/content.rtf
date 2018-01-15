@@ -1,0 +1,75 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+A more idiomatic way of expressing a computation like the totalizer is to use a function. For example, we can write:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 let\{\
+  total:(cons[integer])=>integer.\
+  total(nil) => 0.\
+  total(cons(E,L)) => total(L)+E\
+ \} in total(L)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 while short, this code too has some of the same drawbacks as the for iteration.\
+The type expression 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 cons[integer]
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  refers to the standard type of \'91cons lists\'92. Similarly, 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 nil
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  refers to the empty list and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 cons(E,L)
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  refers to the list obtained by prepending E to the list L. We will explore this in more detail in {\field{\*\fldinst{HYPERLINK "scrivlnk://D7266A1E-7AFB-4D05-884C-B2A2DB1909A5"}}{\fldrslt Chapter 2}}.\
+Even if it is more declarative, there is still a lot of extra detail and architectural commitments here \'97 like the commitment to cons lists and the commitment to integers. These result in a function that is needlessly restricted.\
+Like other functional languages, 
+\b Star
+\b0  has a range of higher-order operators that may come to the rescue. For example, we can avoid the explicit recursion altogether by using 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 leftFold
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 :\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 leftFold((+),0,L)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 where 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 leftFold
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  means\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 <$Scr_Ps::1>
+\f0 apply an accumulating function to the elements of the data, assuming that the applied operator is left associative.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf2 <!$Scr_Ps::1>
+\f0\fs26 This expression is clearly both more concise and higher-level than either the explicit loop or the explicit recursion; and it begins to illustrate the productivity gains that are potentially available to the functional programmer.\
+Using 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 leftFold
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  means that we can often abstract away the machinery of loops and recursion completely \'97 instead we can solve the problem at a more holistic level. This is one of the hallmarks of functional programming \'96 it is possible to eliminate many instances of explicit loops and recursions.}

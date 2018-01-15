@@ -1,0 +1,51 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of 
+\b \cf2 Star
+\b0 \cf2 : Haskell and Standard ML \'96 both of which are excellent; but not perfect.\
+For the functional programmer, the principal benefits of 
+\b \cf2 Star
+\b0 \cf2  are 
+\i \cf2 readability
+\i0 \cf2 , 
+\i \cf2 modernity
+\i0 \cf2  and 
+\i \cf2 predictability
+\i0 \cf2 .\
+One of the major drivers of the design of Haskell and (to a lesser extent) ML is conciseness. However, conciseness is not the same as readability. In modern software development environments there are many stakeholders beyond the developer. Having a language that is easy to follow by non-technical readers is a major benefit in mixed skill teams.\
+Like Haskell, 
+\b \cf2 Star
+\b0 \cf2  has a powerful type system. 
+\b \cf2 Star
+\b0 \cf2 \'92s type system has many features in common with Haskell\'92s type system \'96 features that typically go beyond the capabilities of many OO languages. In particular, 
+\b \cf2 Star
+\b0 \cf2 \'92s contract system is reminiscent of Haskell\'92s type classes; and 
+\b \cf2 Star
+\b0 \cf2 \'92s existential and higher-kinded types give considerable expressive power to the programmer.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 Star
+\b0 \cf2  does not follow all of Haskell\'92s type features; and some type concepts are rephrased into terminology that is more familiar to main-stream (sic) programmers.\
+Like ML, 
+\b \cf2 Star
+\b0 \cf2  has a powerful module system. However, unlike ML\'92s functors, 
+\b \cf2 Star
+\b0 \cf2  modules are first class values. This means that there is no artificial separation between \'91ordinary\'92 programs and \'91functor\'92 programs.\
+The result is a balanced set of type features that provides capabilities that scale well from small programs to large systems.\
+
+\b \cf2 Star
+\b0 \cf2 \'92s evaluation is, like that of ML but unlike Haskell, strict. We believe that that makes it significantly easier to reason about the actual behavior and performance of programs. However, 
+\b \cf2 Star
+\b0 \cf2  has a rich set of features that support productive concurrent and parallel programming \'96 based on a combination of system threads and the features of Concurrent ML.\
+Like ML, 
+\b \cf2 Star
+\b0 \cf2  is not a strictly \'91pure\'92 language. This was neither an accident nor an afterthought. Computer systems are built to fulfill purposeful activity (although there may be many times when the actual purpose is hard to discern). For example, if I deposit a check into my bank account, I require that the bank\'92s state is updated to reflect my new balance: the world has changed as a result of my action.\
+However, the converse does not follow: just because the world is stateful does not mean that all our programs should be needlessly stateful. Much, if not most, of a given application program can and should be crafted in a mathematical style \'96 the merits of functional programming are very great.\
+Overall, the primary rationale in the design of 
+\b \cf2 Star
+\b0 \cf2  is to empower the programmer in making obviously correct programs.}

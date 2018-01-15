@@ -1,0 +1,98 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Sometimes, rather than configuring a program with a numeric value (or any other value for that matter), we need to configure it with a 
+\i type
+\i0 . This does not happen that often, and 
+\b Star
+\b0 \'92s type constraints can eliminate many cases where it might be needed; but the requirement still shows up occasionally. Where it can show up is in situations where you need to develop customizable applications \'97 applications that can be extended further by your customers without you having to change a line of your own code.\
+For example, you might need to build a system that attempts to predict the behavior of equipment based on historical performance and current demand. This kind of software could be very useful in determining a proper maintenance schedule. Suppose that you determine that what is important in predicting potential breakdowns is the number of units processed and the number of days since the last scheduled maintenance. You might keep track of this in a record:\
+maint ::= maint\{\
+  date:date.\
+  units:integer.\
+\}\
+And you will also probably have a description of each piece of equipment:\
+equip ::= equip\{\
+  id:string.\
+  eqpType:string.\
+  nextMaint:date.\
+\}\
+Using this, and similar records, together with some clever algorithms, you design a function that determines the next most likely piece of equipment to fail \'97 perhaps together with an expected failure date:\
+nextToFail:(list[maint],list[equip])=>(equip,date)\
+...\
+The details of this algorithm, while critical to an actual application, are of no concern to us here.\
+Now, you deliver your software to your customer and the first thing that they ask for is an ability to tweak it. You see, you designed it for generic pieces of equipment and they have particular pieces of equipment, with particular foibles affecting the computations needed to determine when equipment needs maintenance. And they need to keep some information in the description of equipment and maybe also in the maintenance records that is not in your types.\
+Your challenge is to permit this kind of extension without requiring your code to be modified or even recompiled for each customer.\
+The standard OO approach to addressing would be to permit the customer to 
+\i sub-class
+\i0  some of the critical types (such as maint and equip). However, there are problems with using sub-types: in particular, if your algorithm requires computing 
+\i new
+\i0  instances of data structures then sub-classing cannot work: when your algorithm creates a new equip record, it will not know how to create a customer variant of that record:\
+fun updateEquip(E,W) is equip\{\
+  id = E.id\
+  eqpType = E.eqpType\
+  nextMaint = W\
+\}\
+with the result that the customer data is lost. An alternative approach is to allow some extensibility in the record by having a special extra field:\
+type equip of t is equip\{\
+  id:string\
+  eqpType:string\
+  nextMaint:date\
+  extra:t\
+\}\
+Since we do not want to constrain the kind of information our customizer can store we make its type quantified. The extra field is there to support extensions; and, because we know about its existence, we can carry the data with us:\
+fun updateEquip(E,W) is equip\{\
+  id = E.id\
+  eqpType = E.eqpType\
+  nextMaint = W\
+  extra = E.extra\
+\}\
+The problem with adding such an extra field is its type: this version changes the unquantified equip type into a quantified one. This will have potentially devastating impact on your code \'97 especially if you want to allow multiple extensions for multiple data structures. The reason is that potentially a large number of functions will be required to carry the type parameters in their type signatures. This is doubly galling as these extra type parameters do not have any significance in the main code: they are there only to support potential customizations.\
+Instead of universal quantification, we can use an existential type for the extra field:\
+type equip is equip\{\
+  id:string\
+  eqpType:string\
+  nextMaint:date\
+  t has kind type\
+  extra:t\
+\}\
+This has the effect of permitting a local extension to a record type while also effectively hiding the type from the main code.\
+Of course, in order for extra to have any effect on our code, we have to be able to make use of it within our algorithm. This is another customization point in the code: not only do we need to allow additional data but we need to be able to reference it appropriately. For example, we might decide that the extra field should have a say in determining the next maintenance date; so our updateEquip function should take it into account \'97 but how?\
+A simple way is to add to the equip record a set of extensibility functions that the customer must supply, in addition to the data itself:\
+type equip is equip\{\
+  id:string\
+  eqpType:string\
+  nextMaint:date\
+  t has kind type\
+  extra:t\
+  extraDate:(t,date)=>date\
+\}\
+Then, our updateEquip function calls this extraDate function when computing the new maintenance schedule:\
+fun updateEquip(E,W) is equip\{\
+  id = E.id\
+  eqpType = E.eqpType\
+  nextMaint = E.extraDate(E.extra,W)\
+  type t = E.t     \'97 note evidence for type\
+  extra = E.extra\
+  extraDate = E.extraDate\
+\}\
+A more succinct way of expressing this would be to use 
+\b Star
+\b0 \'92s substitute operator:\
+fun updateEquip(E,W) is E substitute \{\
+  nextMaint = E.extraDate(E.extra,W)\
+\}\
+Of course, the customer has to provide functions that create the initial data structures, and the initial values of extra and the updating function extraDate. You, as the provider of the software, will offer a default implementation:\
+fun equip(Id,Tp,Maint) is equip\{\
+  id = Id\
+  eqpType = Tp\
+  nextMaint = Maint\
+  type t = ()  \'97 () is Star's void type\
+  extra = ()\
+  extraDate = (_,W) => W\
+\}\
+This approach meets our goals: we can allow customers of our software access to key data structures in a safe way that does not require use to modify our code for each customer or even to recompile it.}

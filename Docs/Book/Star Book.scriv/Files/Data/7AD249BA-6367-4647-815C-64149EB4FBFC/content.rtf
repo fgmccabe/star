@@ -1,0 +1,83 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+There are other ways in which programs can be polymorphic. In particular, let us focus for a while on arithmetic. One of the issues in arithmetic functions is that there are many different kinds of numbers. Pretty much every programming language distinguishes several kinds of numbers; for example, Java distinguishes byte, short, int, long, float, double, BigInteger and BigDecimal \'97 and this does not count the wrapped versions. Other languages have even more choice.\
+One question that might seem relevant is why? The basic answer is that different applications call for different properties of numbers and no one numeric type seems to fit all needs. However, the variety comes at a cost: when we 
+\i use
+\i0  numbers we tend to have to make too early a choice for the numeric type.\
+For example, consider the double function we saw earlier:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 double(X) => X+X\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 What type should double have? In particular, what should the type of + be? Most people would be reluctant to use different arithmetic operators for different types of {\field{\*\fldinst{HYPERLINK "scrivcmt://DB6FE325-2EF1-4966-8E77-F5922876FC32"}}{\fldrslt numbers.}} This is resolved in 
+\b Star
+\b0  by relying on contracts for the arithmetic operations.\
+The result is that the type computed for double is exquisitely tuned:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 double:all t ~~ arithmetic[t] |: (t)=>t\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This type is precisely the minimal type that double could have. Any further constraints result in making a potentially premature choice for the numeric type.\
+If we take another look at our factorial function:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 fact(0) => 1\
+fact(N) => N*fact(N-1)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 this is constrained to be a function from integer to integer because we introduced the literal integers 0 and 1. However, the arithmetic contract contains synonyms for these very common literals. Using 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 zero
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 one
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  allow us to be abstract in many arithmetic functions:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 genFact:all a ~~ arithmetic[a] |: (a)=>a.\
+genFact(zero) => one.\
+genFact(N) => N*genFact(N-one).\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 We call out zero and one for special treatment because they occur very frequently in numerical functions.\
+We can actually introduce other numeric literals without compromising our type by using 
+\i coercion
+\i0 ; although it is more clumsy:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 factorialC:all t ~~\
+    arithmetic[t],coercion[integer,t] |: (t)=>t.\
+factorialC(N) where N==0 :: t => 1 :: t.\
+factorialC(N) => N*factorialC(N-1 :: t).\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 The expressions 0 :: t and 1 :: t are coercions from integer to t.\
+Of course, coercion is also governed by contract, a fact represented in the type signature by the coercion contract constraints on the type of t.\
+In any case, using these techniques, it is possible to write numeric functions without unnecessarily committing to specific number types. That in turn helps to make them more useful.}

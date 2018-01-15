@@ -1,0 +1,19 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+By default, when a package is imported, it is privately imported \'96 the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.\
+However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exposes the structure of the library to clients; something that is typically not desirable.]\
+In order to facilitate the construction of libraries, and larger scale packages, we allow for so-called public imports.\
+A public import is written:\
+public import fooPkg.\
+This will have the effect of re-exporting elements of fooPkg as though they were directly exported (made public) by the current package.\
+One common pattern for specifying libraries \'96 that are made of multiple packages \'96 is though a stub package that just consists of a sequence of public imports:\
+libraryPkg\{\
+  public import part1.\
+  public import part2.\
+  ...\
+\}}

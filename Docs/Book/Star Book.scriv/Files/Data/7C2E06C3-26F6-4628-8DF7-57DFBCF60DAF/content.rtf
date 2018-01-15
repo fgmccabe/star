@@ -1,0 +1,30 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 We started this section with a graphical depiction of an application as boxes and arrows between them. However, not many computers can execute boxes, and so if we want to run the application we have to construct a complete 
+\i written
+\i0  program that represents the 
+\i drawn
+\i0  diagram.\
+The written form of our car part sourcing application is not that hard to follow, given the material we have covered so far:\
+import boxesNarrows\
+partSource is application\{\
+  def ordersIn is import ordersInComponent\
+  def split is import splitComponent\
+  def db is import dbComponent\
+  import supplier\
+\
+  ordersIn.out connect to split.incoming\
+  split.parts connect to db.queryIn\
+  split.suppliers publish to \{\
+    def megaWheel is supplier("MegaWheel")\
+    ...\
+    def discriminator("Mega") is megaWheel\
+    ...\
+  \}\
+\}\
+This sketch shows how we can construct a written version of the boxes-and-arrows diagram in a way that lends itself to executable code.}

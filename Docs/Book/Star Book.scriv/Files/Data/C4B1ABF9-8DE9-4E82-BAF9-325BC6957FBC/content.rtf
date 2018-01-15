@@ -1,0 +1,26 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Injection is a technique where we specialize a program with additional information; especially where that additional information is not part of the normal argument flow. Of course, it can be hard to be crisp about \'91not part of the normal argument flow\'92; but injection is an architectural technique to apply if and when it makes a difference in the readability of your code.\
+Injection is often used to manage 
+\i configuration
+\i0  of code: the configuration is injected into the main program; for example, we might configure an application server with the path name of a particular application, or with the port on which the app server should be listening. Neither of these would normally be considered part of the normal information flow in an application server.\
+There is a standard functional programming style that can be used to represent injection \'97 namely functions that return functions. To take an extremely simple example, suppose that we wanted to have a function that counted the percentage of a class that passes an exam. The function itself is pretty simple:\
+fun passes(L) is fraction(\
+   size(list of \{ all X where X in L and X.score>Pass\}),\
+   size(L))\
+The configuration parameter here is obviously the Pass value; this is an important parameter to the function but is not part of the normal argument flow (think about computing the pass count for an entire school).\
+We can use the function returning approach to inject an appropriate value of Pass:\
+fun passes(Pass) is\
+  (L)=>fraction(\
+     size(list of \{ all X where X in L and X.score>Pass\}),\
+     size(L))\
+Using this passes is a two-step process; we first use a specific passing grade to construct the test function and then use this to measure performance on groups of students:\
+def HS is passes(60)\
+\
+def allPass is list of \{ all C where C in Courses and HS(C)>0.80 \}\
+The two-step process is a key part of the injection technique.}

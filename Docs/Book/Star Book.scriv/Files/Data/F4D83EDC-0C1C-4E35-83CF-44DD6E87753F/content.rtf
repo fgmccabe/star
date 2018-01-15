@@ -1,0 +1,35 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 One of the classic algorithms for finding primes can be expressed using filters \'97 the so-called sieve of Erastosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of filter operations.\
+The core of the sieve algorithm involves taking a list of numbers and removing multiples of a given number from the list. This is very similar to our even-number finding task, and we can easily define a function that achieves this:\
+filterMultiples:(integer,list[integer])=>list[integer].\
+filterMultiples(K,N) => filter((X)=>X%K=!=0,N).\
+The overall Erastosthenes algorithm works by taking the first element of a candidate list of numbers as the first prime, removing multiples of that number from the rest, and recursing on the result:\
+seive:(list[integer])=>list[integer].\
+sieve([N,..rest]) => [N,..sieve(filterMultiples(N,rest))].\
+There is a base case of course, when the list of numbers is exhausted then we have no more primes:\
+sieve([]) => [].\
+The complete prime finding program is hardly larger than the original filter specification:\
+primes:(integer)=>list[integer].\
+primes(Max) => let\{\
+  sieve:(list[integer])=>list[integer].\
+  sieve([]) => [].\
+  sieve([N,..rest]) => [N,..sieve(filterMultiples(N,rest))].\
+\
+  filterMultiples:(integer,list[integer])=>list[integer].\
+  filterMultiples(K,N) => filter((X)=>X%K=!=0,N).\
+\
+  iota:(integer,integer)=>list[integer].\
+  iota(Mx,St) where Mx>Max => [].\
+  iota(Cx,St) => [Cx,..iota(Cx+St,St)].\
+\} in [2,..sieve(iota(3,2))]\
+The iota function is used to construct a list of numbers, in this case the integer range from 3 through to Max with an increment of 2. We start the sieve with 2 and the list of integers with 3 since we are making use of our prior knowledge that 2 is prime.\
+It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each \'91sweep\'92 of the list of numbers results in a new list of numbers; many of which too will eventually be discarded.\
+We might ask whether the sieve function can also be expressed as a filter. The straightforward answer is that it cannot: the sieve 
+\i is
+\i0  a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard filter function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.}

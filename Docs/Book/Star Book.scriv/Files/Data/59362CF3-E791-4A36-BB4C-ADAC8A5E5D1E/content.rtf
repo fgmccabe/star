@@ -1,0 +1,27 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 A rendezvous is an object describing an event that may or may not happen in the future. The basic operation for a rendezvous is 
+\i waiting for
+\i0  the event, and when the event happens, it may yield or consume a value.\
+This is reflected in the rendezvous type itself:\
+all t ~~ rendezvous[t]\
+One of the simplest forms of rendezvous denotes a 
+\i timeout
+\i0 :\
+timeoutRv:(integer) => rendezvous[()].\
+The rendezvous returned by timeoutRv(10) describes an \'91\'91alarm clock\'92\'92 event that happens 10 milliseconds in the future. Note that the type of the rendezvous returned specifies () as the type of the value yielded by the event - the timeout event provides no information other than that it happened.\
+It may seem a little odd that a rendezvous \'97 which is after all a meeting \'97 is denoted by an actual value. The primary reason for this is that is allows specific synchronizations between tasks to be 
+\i computed
+\i0 , not just 
+\i programmed
+\i0 . This is a simple but major departure from the approach taken to concurrency by languages that support locking features; but is actually highly reminiscent of Unix\'92s select function.\
+Timeouts can be useful in their own right, but they are commonly used in conjunction with other rendezvous. The pattern being that if one of the other \'91things going on\'92 does 
+\i not
+\i0  happen, then the timeout will tell us that. However, 
+\i recovering
+\i0  from a timeout can be very problematic \'97 since you now have to decide what to do about the other activities that were pending.}

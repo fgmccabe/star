@@ -1,0 +1,34 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 One of 
+\b Star
+\b0 \'92s standard syntactic paradigms is the \'91brace term\'92. We use it to represent records, as in:\
+someone\{ name="fred" \}\
+We also use it to represent more complex entities like packages and worksheets:\
+worksheet\{\
+  show 1+2\
+\}\
+Continuing in this tradition we will use a similar syntactic structure to represent complete triple graphs:\
+graph\{\
+  [:peter, :john] ! :in_department $ :accounting.\
+  :john ! :address $ "2 smart place".\
+  :john ! :name $ "John Smith".\
+\}\
+Since this is a first class value, we can have variables bound to triple graphs, as in:\
+OrgTree : graph[string].\
+OrgTree = graph \{\
+  [:peter, :john] ! :in_department $ :accounting.\
+  ...\
+\}\
+and our queries\
+list of \{all X where OrgTree says X ! :department $ :accounting \}\
+So far, we have designed a new syntax for a triple graph extension to 
+\b Star
+\b0  with very little effort: a few operator declarations. However, we are not done yet., we need to make sure that the 
+\b Star
+\b0  compiler understands the new syntax.}

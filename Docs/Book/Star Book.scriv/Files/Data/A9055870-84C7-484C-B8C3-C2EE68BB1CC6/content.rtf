@@ -1,0 +1,76 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 We have already seen a number of examples of using worksheets. They represent a modern replacement for the traditional REPL \'97 or Read-Eval-Print-Loop. The main advantages of worksheets over the traditional REPL are that they simultaneously act as their own transcript and they integrate well with editor-centric IDEs.\
+We prefer worksheets to normal packages for the same situations as one might prefer a REPL over a traditional file: worksheets make it easy to set up simple experiments and \'91see what happens\'92 when you try something.\
+The contents of a worksheet may be anything that counts as a definition \'97 including import statements. In addition, there are some special \'91actions\'92 that may be specified; some of which we have already seen:\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 perform\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 perform an action. For example:\
+worksheet\{\
+  perform task \{\
+    logMsg(info,"This is an action")\
+  \}\
+\}\
+perform is used to perform a task expression.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 ignore\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 Evaluate an expression for side-effect purposes; ignoring its value.\
+This is used in those cases where a computation has a value that we wish to ignore \'96 i.e., is evaluated for its effect only.\
+In many programming languages expressions are automatically \'91promoted\'92 to statements. For example, if you have the expression 3+X in Java (say) then it is also a statement:\
+while(true)\{\
+  3+X;\
+\}\
+Of course, in this case, the expression 3+X doesn\'92t do anything; but the feature is commonly used to allow a function call in a situation where the returned value is thrown away or \'91ignored\'92.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 Star
+\b0  does not have an 
+\i automatic
+\i0  way of promoting expressions to actions; but you can use the ignore keyword for the same effect. The action\
+ignore 3+X\
+is the way that you would write 3+X as an action.\
+
+\b show\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 Evaluate an expression and show its value.\
+For example:\
+worksheet\{ show 1+2 \}\
+show is probably the most used special action in a worksheet. After all, the purpose of a worksheet is to help figure out what is going on\'85\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 **assert\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 assert a condition.\
+For example:\
+worksheet\{ assert 3>2 \}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 \{ \'85 \}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 Perform a block of actions, enclosed in parentheses.\
+For example:\
+worksheet\{\
+  \{\
+    for Ix in range(0,10,1) do\{\
+      logMsg(info,"hello $Ix")\
+  \}\
+\}\
+In many cases, the actions that are used most often are the show and the assert actions; in conjunction with a set of regular definitions. This reflects one of the main purposes of the worksheet: to give some insight into the behavior of a program.\
+Unlike a traditional REPL, because the worksheet is in a file, there is much more freedom within a worksheet to order things. In particular the definitions can be in any order: a later definition may be referenced explicitly or implicitly in a show action.\
+It 
+\i is
+\i0  possible to include actions in a regular package. However, especially in cases where the package is to be imported into another program this practice is not recommended.}

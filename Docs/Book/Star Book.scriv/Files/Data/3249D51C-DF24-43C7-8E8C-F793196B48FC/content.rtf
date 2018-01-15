@@ -1,0 +1,56 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+Task expressions are instances of a more general 
+\b Star
+\b0  feature: the 
+\i \cf2 computation expression
+\i0 \cf2 . Task expressions are oriented towards the concurrent execution of computations; other forms of computation expression have different purposes. In particular, the simple valof expression:\
+valof\{\
+  x = 2;\
+  y = f(x);\
+  valis x+y\
+\}\
+is actually a degenerate case of an action computation expression:\
+valof action computation \{\
+  x = 2;\
+  y = f(x);\
+  valis x+y\
+\}\
+There are several forms of computation expression in the 
+\b Star
+\b0  library; they are used for expressing tests for example. In fact, computation expressions are 
+\i \cf2 syntactic sugar
+\i0 \cf2  for 
+\i \cf2 monadic
+\i0 \cf2  expressions \'97 and play the same role in 
+\b Star
+\b0  as the do notation plays in Haskell.\
+Monads represent a generalization of the kind of deferred computation we see in task expressions. In effect, monads represent a standard way of 
+\i \cf2 composing computations
+\i0 \cf2 .\
+The computation expression is syntactic support for using the monad contract \'97 actually called computation. We can see the extent of this support by looking at the \'91raw\'92 version of the action function:\
+AA(f) is action computation \{\
+  def x is 2\
+  def y is valof f(x)\
+  valis x+y\
+\}\
+The AA function becomes the somewhat more complex form:
+\f1\fs24 \{\\Scrv_fn=
+\f0\fs26 This is actually a somewhat sanitized version of the raw code. This is because we have hidden a required transformation from action sequences to functional expressions that encode the computation\'92s ordering as function calls.
+\f1\fs24 \\end_Scrv_fn\}
+\f0\fs26 \
+AA:((integer)=>integer)=>integer.\
+AA(f) => _delay(() => valof\{\
+  x = 2;\
+  y = _perform(f(x), raiser_fun);\
+  valis _encapsulate(x+y)\
+\}).\
+Note how the inner valof expression is transformed to a call to _perform; whereas the result of the action computation is encapsulated in a call to the function _delay. These are all functions in the standard computation contract; and so will actually be further specialized to be specific for the action expression.\
+It is beyond the scope of this book to explore more deeply the handling of monadic computations. However, if you wish to explore further, a more complete description of computation expressions is given in the 
+\b Star
+\b0  language definition.}

@@ -1,0 +1,96 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 We start by defining a type that denotes the interface to the queue. For convenience, we use a 
+\i type alias
+\i0  to a record with a post function and a poll function within it:\
+type messageQ of a is alias of \{\
+  post:(a)=>task of ()\
+  poll:()=>task of a\
+\}\
+In effect, the record type is a specification of an API for accessing a message queue.\
+One might ask why do we use task oriented types like task of () and task of a types? I.e., why wrap the type of the message in a task type?\
+The messageQ is likely to be used in the context of task expressions; and certainly its implementation requires tasks. By exposing this task-nature we actually improve the potential responsiveness of the message queue and of functions that use it.\
+Like the semaphore that we saw earlier, we will build the message queue using an internal background task that manages the actual queue of messages.\
+msgQ:for all a ~~\
+  ()=>messageQ of a\
+fun msgQ() is let\{\
+  def postMsgChnl is channel()\
+  def grabMsgChnl is channel()\
+\
+  fun qLoop(Q) where isEmpty(Q) is wait for postM(Q)\
+   |  qLoop(Q) default is wait for postM(Q) or pollM(Q)\
+\
+  fun postM(Q) is\
+    wrapRv(recvRv(postMsgChnl), (A) => qLoop([Q..,A]))\
+\
+  fun pollM([A,..Q]) is let\{\
+    fun reply(R) is valof\{\
+      perform send(R,A)    -- reply on the one-time channel\
+      valis qLoop(Q)\
+    \}\
+  \} in wrapRv(recvRv(grabMsgChnl), reply)\
+\
+  \{ ignore background qLoop(queue of []) \}\
+\} in \{\
+  fun post(A) is wait for sendRv(postMsgChnl,A)\
+  fun poll() is task\{\
+    var ReplyChnl is channel()\
+    perform wait for sendRv(grabMsgChnl,ReplyChnl)\
+    valis valof (wait for recvRv(ReplyChnl))\
+  \}\
+\}\
+This code is quite complex in places. However, if we break it down and examine it piece by piece its secrets will be exposed. Let us start with the qLoop/postM/pollM triumvirate. These three functions form the heart of the message queue\'92s mechanism.\
+The qLoop function has a similar structure to the semLoop function we saw in the semaphore. This time, instead of deciding what branch to take based on a resource counter, we decide based on the size of the actual queue of data.\
+The queue data type is a builtin type to 
+\b Star
+\b0 . It implements a queue functionality allowing elements to be posted at one end and removed from the other. Like other collection types, the sequence contract is implemented for it; which means that we can use sequence notation when writing queue expressions and patterns.\
+The postM function \'97 like its cousin the releaseM function in the semaphore \'97 is a rendezvous-valued function that the qLoop function will wait for. It\'92s inner core is a recursive call to qLoop with a queue that is enhanced with the new work item.\
+The pollM function has a similar structure; but it is more complex because \'97 in addition to setting up the next qLoop recursion \'97 we also want to export the entry from the queue itself.\
+Polling from the message queue is accomplished by sending a special one-time channel to the message Q task. Somewhat paradoxically, the poll function asks for the next element of the message queue by sending the one-time channel to the message queue\'92s grabMsgChnl:\
+fun poll() is task\{\
+  def ReplyChnl is channel()\
+  perform wait for sendRv(grabMsgChnl,ReplyChnl)\
+  valis valof (wait for recvRv(ReplyChnl))\
+\}\
+The first two actions in the task expression of the poll function are fairly normal: we create a channel, and send that on the grabMsgChnl channel. The third line bears some more examination: what exactly is that valis valof doing?\
+The simple answer here is that this is a task-valued function, and the value of the wait for expression is also a task \'97 it happens to be the task that we want to return. But, normally, a task expression that performs a valis E action would have type\
+task of E
+\fs20 \dn3 t
+\fs26 \up0 \
+so, apparently, we take the value of the task returned by the wait for and rewrap it back as a task!\
+In fact, this particular combination is a part of the overall task notation: instead of performing this unwrap and rewrap, the value returned by the wait for will be returned directly 
+\i without necessarily waiting for the task to finish
+\i0 . We can do this safely because the overall value of the sequence is also a task.\
+There is a further complication here. Recall that the task notation is based on monads. There are potentially many kinds of monads and the valis valof combination allows us to 
+\i change monads
+\i0 . This, however, is a topic beyond the scope of this book.\
+We can use our message queue to knock up a quick simulation of a system of workers and a work queue:\
+worksheet\{\
+  ...\
+  fun sender(Q) is task\{\
+    for i in range(0,1000,1) do\
+      perform Q.post(i)\
+    sleep(3000L)\
+    logMsg(info,"all done")\
+  \}\
+\
+  fun worker(W,Q) is task\{\
+    while true do\{\
+      def Nx is valof Q.poll()\
+      logMsg(info,"$W doing $Nx")\
+      sleep(random(100L))\
+    \}\
+  \}\
+\
+  def MQ is msgQ()\
+  ignore background worker("alpha",MQ)\
+  ignore background worker("beta",MQ)\
+\
+  ignore valof sender(MQ)\
+\}\
+This example spins up 1000 work items and expects the "alpha" and "beta" workers to process them. Typical bosses attitude!}

@@ -1,0 +1,16 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Tasks support a very simple communication pattern between parts of a computation: a task computes for a while, and then (if appropriate) returns a result to anyone asking for its value \'97 typically a parent task. While a task can spawn sub-tasks, there is no immediate way for tasks to communicate with each other 
+\i while
+\i0  they are running. Many applications, however, require more fine-grained coordination between tasks.\
+To permit this better coordination, and to permit data to flow between tasks, we have the 
+\i rendezvous
+\i0 . A rendezvous is a meeting between two or more tasks or other computations. Data can flow between tasks at a rendezvous; with the guarantee that the data is consistent for the parties at the rendezvous.\
+The rendezvous mechanism is inspired by Reppy\'92s Concurrent ML 
+\i events
+\i0  [#Reppy1999], and by Hoare\'92s Communicating Sequential Processes[#hoare78] [#hoare85] (which also involves the rendezvous concept). As we shall see, the rendezvous is a simple mechanism that allows implementing almost arbitrarily complex choreographies between concurrent computations. However, we shall also see that the rendezvous mechanism is relatively low-level and there are good higher-level abstractions that make writing concurrent applications significantly easier.}

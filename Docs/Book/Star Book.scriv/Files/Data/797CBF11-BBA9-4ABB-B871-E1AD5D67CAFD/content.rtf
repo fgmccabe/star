@@ -1,0 +1,89 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 A semaphore is a general structure for implementing mutual exclusive access to some resource.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 Semaphore\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 A 
+\b semaphore
+\b0  is a variable, with associated 
+\b grab
+\b0  and 
+\b release
+\b0  operations, that can be used to manage access to a shared resource by multiple concurrent activities.\
+It is traditional in designing semaphores to allow an arbitrary \'97 but controlled \'97 number of clients access to the resource. A non-recursive 
+\i lock
+\i0  is equivalent to a semaphore with a count of 1.\
+Given a semaphore, it is used in a sequence that looks like:\
+S.grab()\
+... -- access the shared resource\
+S.release()\
+The idea is, of course, that if the resource is not currently available then activities that attempt to 
+\b grab
+\b0  the semaphore will be blocked. When the resource becomes available (by someone else performing the semaphore\'92s 
+\b release
+\b0  action) then the 
+\b grab
+\b0  may be re-attempted.\
+Semaphores are useful, but they are prone to mis-programming. Use of a semaphore relies on the programmer ensuring that the 
+\b release
+\b0  is invoked after a 
+\b grab
+\b0  and, furthermore, any connection between the semaphore and the governed resource is purely implicit. Both of these are common sources of errors in concurrent programs.\
+To build a semaphore we have to arrange for a unique resource\{\\SCRV_FN=Not to be confused with the resource that is governed by the semaphore.\\END_SCRV_FN\} together with coordinated access to it; preferably without exposing the resource itself (to prevent it from being 
+\i contaminated
+\i0  by external code).\
+One way of implementing such a unique resource is to use an internal background task and to map calls to grab and release to communication to the task. This internal task only needs a simple structure: it is simply listening for messages either to grab or to release. The crux is that, at any one time, either a grab or a release message might arrive and we cannot control this ahead of time. In effect, we have to be able to listen to more than one potential message, and the choice rendezvous allows us to do this.\
+The main loop of the semaphore\'92s internal task is modeled using a mutual recursion between the grabR function, releaseR function and the semLoop functions. The forms of grabR and releaseR are actually very similar:\
+grabR(X) =>\
+  wrapRv(recvRv(grabCh), (_) => semLoop(X-1).\
+releaseR(X) =>\
+  wrapRv(recvRv(releaseCh), (_) => semLoop(X+1)).\
+The wrapRv operator is a function that takes a rendezvous and a function as argument; it returns a new \'91wrapped\'92 rendezvous as its result. If the argument rendezvous fires then the result of that rendezvous is passed to the function argument \'97 which in turn becomes the value returned by the wrapRv rendezvous.\
+In the case of grabR, the effect is that a message on the grabCh channel is passed to the lambda; which ignores the actual message but recursively invokes the semaphore loop function \'97 with an decremented \'91resource counter\'92. The releaseR function is similar except that semLoop will be invoked with an incremented counter and that it is listening to the releaseCh channel rather than the grabR channel.\
+The wrapRv function is a useful way to \'91do something\'92 during a rendezvous. It is also the best way of converting a rendezvous of one form into that of another \'97 to allow, for example, a combination rendezvous.\
+There is an analogous operator \'97 guardRv that has the effect of enabling a rendezvous only if some condition is met.\
+In both cases, the result is a new invocation of semLoop which \'97 depending on whether the counter is zero or not \'97 will either listen for a release or both a releaseR or grabR:\
+fun semLoop(0) is wait for releaseR(0)\
+ |  semLoop(X) default is wait for grabR(X) or releaseR(X)\
+In implementations of 
+\b Star
+\b0  that do not support tail recursion, this code would need to be rewritten as a loop. However, we leave it as a recursion for expository purposes.\
+If we focus on the disjunction in:\
+wait for grabR(X) or releaseR(X)\
+This is a rendezvous that is composed of two rendezvous; and the wait for operator waits for either one to occur. Disjunctive rendezvous like this are critical for many concurrent applications.\
+It is important to emphasize that the disjunctive wait for waits for exactly one rendezvous to occur. In the situation that both happen simultaneously then only one will be picked for this choice. The unchosen rendezvous may be \'91picked up\'92 by another wait for operation.\
+Notice that the disjunctive rendezvous is only entered when the value passed to semLoop is non-zero (it will actually be positive). If the value was zero then the task will only wait for a releaseR rendezvous. This captures the essential requirement that a rendezvous will limit access to its associated resource to a fix number of clients.\
+We are now in a position to show the complete workings of the semaphore function in:\
+semaphore:(integer) => \{ grab:()=>rendevous[()], release:()=>rendezvous[()]. \}.\
+semaphore(Count) => let\{\
+  grabCh:channel[()] = channel().\
+  releaseCh:channel[()] = channel().\
+\
+  releaseR:(integer)=>rendevous[()].\
+  releaseR(X) =>\
+    wrapRv(recvRv(releaseCh), (_) => semLoop(X+1)).\
+\
+  grabR(X) =>\
+    wrapRv(recvRv(grabCh), (_) => semLoop(X-1).\
+\
+  semLoop:(integer) => rendevous[()].\
+  semLoop(0) => wait for releaseR(0).\
+  semLoop(X) default => wait for grabR(X) || releaseR(X)\
+\
+  \{ ignore background semLoop(Count) \}\
+\} in \{\
+  grab() => wait for send(grabCh,()).\
+  release() => wait for send(releaseCh,()).\
+\}\
+Notice that the value returned by the semaphore function is itself a record \'97 with the two functions grab and release embedded in it. Thus an expression of the form:\
+S.grab()\
+is an invocation of the grab function from that record \'97 and denotes an attempt to \'91grab\'92 the resource managed by the semaphore. Similarly, S.release() counts as releasing the resource.\
+Because the inner workings of the semaphore are protected by a let expression, they cannot be seen externally by other programs \'97 only the grab and release functions are exposed; hence meeting one of the key requirements of the semaphore implementation.}

@@ -300,10 +300,10 @@ X-(Y-Z)
 All this can be put together in a single **Star** statement: the operator declaration. In the case of our triple we are using two operators `!` and `$` to 'glue' together the parts of a triple. We also use the `:` operator to mark named concepts. The operator declarations we need to represent them are:
 
 ```
-# right("!",500).
-# right("$",450).
-# prefix(":",100).
-# infix("says",908).
+ # right("!",500).
+ # right("$",450).
+ # prefix(":",100).
+ # infix("says",908).
 ```
 
 One may ask where these priority numbers come from? Operators in **Star** are stratified into different levels depending on their syntactic role: 0-899 represent expressions, 900-999 represent predicates and conditions, 1000-1199  are used for forms that can be either expressions or actions, 1200-1499 represent actions and 1500-200 represent statements. The choice of 908 for `says` is to make it the same as the built-in predicate operator: `in`. The main effect of choosing the 'wrong' value for the priority of an operator is that expressions don't parse the way you would like.
@@ -401,7 +401,7 @@ The purpose of a validation rule is two fold: it defines the legal syntactic for
 A validation rule uses patterns to define legal instances of syntactic _categories_. The top-level categories are `expression`, `pattern`, `statement` and `action`; however, it is often useful to introduce additional categories. For example, one validation rule that we use for defining the legal forms of triple might be:
 
 ```
-# ?S ! ?P $ ?O :: triple :-
+ # ?S ! ?P $ ?O :: triple :-
     S::concept :& P::concept :& O::concept
 ```
 
@@ -418,16 +418,16 @@ are `triple`s providing that `:john`, `:name` and `"John Smith"` are concepts. T
 The validation rules for `concept` allow for the two basic forms of concept:
 
 ```
-# : identifier :: concept
-# string :: concept
+ # : identifier :: concept
+ # string :: concept
 ```
 
 These rules state that the two legal forms of concept are a colon-prefixed identifier and a literal string. However, we might want to allow simple identifiers also — given that such 'concept variables' may also appear:
 
 ```
-# : identifier :: concept
-# string :: concept
-# identifier :: concept
+ # : identifier :: concept
+ # string :: concept
+ # identifier :: concept
 ```
 
 #### Escaping our DSL
@@ -439,36 +439,36 @@ In general, it is normally desirable to allow arbitrary expressions to be embedd
 Because we want to allow different variations on the legal forms of triple, the complete validation rules for `triple` are more complex and involve several different categories:
 
 ```
-# ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase
-# ?T :: triple :- error("$T is not a valid triple")
+ # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase
+ # ?T :: triple :- error("$T is not a valid triple")
 
-# ?P $ ?O :: verbPhrase :- P::verb :& O::nounPhrase
-# [ ?VP ] :: verbPhrase :- VP::verbPhrases
-# ?VP :: verbPhrase :-
+ # ?P $ ?O :: verbPhrase :- P::verb :& O::nounPhrase
+ # [ ?VP ] :: verbPhrase :- VP::verbPhrases
+ # ?VP :: verbPhrase :-
     error("$VP must have at least one predicate and one object")
 
-# ?A,?B :: verbPhrases :- A::verbPhrase :& B::verbPhrases
-# ?A :: verbPhrases :- A::verbPhrase
+ # ?A,?B :: verbPhrases :- A::verbPhrase :& B::verbPhrases
+ # ?A :: verbPhrases :- A::verbPhrase
 
-# [?V] :: verb :- V::verbs
-# ?V :: verb :- V::concept
+ # [?V] :: verb :- V::verbs
+ # ?V :: verb :- V::concept
 
-# #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs
-# ?V :: verbs :- V::concept
+ # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs
+ # ?V :: verbs :- V::concept
 
-# [ ?NP ] :: nounPhrase :- NP :: nounPhrases
-# string :: nounPhrase
-# ?C :: nounPhrase :- C::concept
+ # [ ?NP ] :: nounPhrase :- NP :: nounPhrases
+ # string :: nounPhrase
+ # ?C :: nounPhrase :- C::concept
 
-# #(?NP1,?NPr)# :: nounPhrases :- NP1::nounPhrase :&
+ # #(?NP1,?NPr)# :: nounPhrases :- NP1::nounPhrase :&
      NPr::nounPhrases
-# ?NP :: nounPhrases :- NP::nounPhrase
+ # ?NP :: nounPhrases :- NP::nounPhrase
 ```
 
 One thing to notice about these validation rules are the rules of the form:
 
 ```
-# ?VP :: verbPhrase :-
+ # ?VP :: verbPhrase :-
     error("$VP must have at least one predicate and one object")
 ```
 
@@ -477,7 +477,7 @@ What this rule is saying is that if the earlier rules for `verbPhrase` don't app
 One other thing to notice can be seen in the rule for `verbs`:
 
 ```
-# #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs
+ # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs
 ```
 
 The term `#(?V1,?Vr)#` is a special kind of parenthesized term that means the same as (in this case) `?V1,?Vr`. We use `#()#`'s parentheses because the regular parentheses `()`'s are not dropped during parsing by the operator grammar, whereas `#()#`'s are.
@@ -489,7 +489,7 @@ The term `#(?V1,?Vr)#` is a special kind of parenthesized term that means the sa
 The intention of the `verbs` rule is to allow multiple `verbs` in a predicate of a `triple` — its context is the rule that picks up on the `[]` form of predicate:
 
 ```
-# [?V] :: verb :- V::verbs
+ # [?V] :: verb :- V::verbs
 ```
 
 This rule allows multiple verbs in a `triple`:
@@ -507,7 +507,7 @@ Having rules for `triple` is not sufficient to ensure validation of triple graph
 We stated earlier that a triple graph will be treated as an _expression_ in the larger context. So, the natural entry point for validating triple graphs is as expressions; which we can formalize by defining a new rule for validating expressions:
 
 ```
-# graph{?G} :: expression :-
+ # graph{?G} :: expression :-
     G;*triple ## {
       # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase
       # ?T :: triple :- error("$T is not a valid triple")
@@ -519,14 +519,14 @@ The form `G;*triple` is a validation condition that states that `G` must be a se
 
 Since, the natural scope rules for validation rules is one of cascading and augmentation rather than replacement, the meaning of the `##` is a little different to the normal `let` expression. The validation rules that are located within the body of the `##` are applied before other validation rules located externally.
 
-### Validating Triple Conditions[validating-triple-conditions]
+ ### Validating Triple Conditions[validating-triple-conditions]
 
 Recall that we also introduced a new form of condition that is suited for querying triple graphs. We need to validate such conditions too.
 
 In some ways our `says` condition is simpler than the triple itself because we choose not to allow our complex noun phrase terminology in the condition. This results in a very simple validation rule for a query `condition` involving triple graphs:
 
 ```
-# ?G says ?S ! ?P $ ?O :: condition :-
+ ?G says ?S ! ?P $ ?O :: condition :-
   S :: concept :& P :: concept :& O :: concept :&
   G :: expression
 ```
@@ -576,7 +576,7 @@ Macros are programs that are executed by the compiler in order to transform term
 There are two kinds of macros in **Star**: the _macro rule_ and the _code macro_. A macro rule is a substitution rule that is applied by the **Star** compiler during normal compilation. For example, the macro rule:
 
 ```
-# - ?X ==> __uminus(X)
+ - ?X ==> __uminus(X)
 ```
 
 is used by the compiler to replace occurrences of unary minus with a call to the standard `__uminus` function that is part of the standard `arithmetic` contract.
@@ -586,7 +586,7 @@ This rule will 'fire' whenever an occurrence of unary minus occurs in your progr
 Like validation rules, macro rules are pattern based: that is, the left hand side of a macro rule is a pattern that is applied to input **Star** terms. In particular, there may be multiple macro rules that potentially match a given term. This makes macro rules quite a bit more expressive than either the macros in C/C++ or LISP. For example, the following macro rule can replace a multiplication by 2 with an addition:
 
 ```
-# 2 * ?X ==> let { def x is X } in x+x
+ 2 * ?X ==> let { def x is X } in x+x
 ```
 
 This rule will _only_ match multiplication expressions where the left hand side is the literal integer 2. It will not fire for any other form of multiplicative expression.
@@ -596,7 +596,7 @@ This rule will _only_ match multiplication expressions where the left hand side 
 Although we can use operators when we write macro rules, they are actually _insensitive_ to operators. For example, we could have written this macro rule using a normal function call pattern on the left hand side:
 
 ```
-# (*)(2,?X) ==> let { def x is X } in x+x
+ (*)(2,?X) ==> let { def x is X } in x+x
 ```
 
 >The `(*)` forces the compiler to suppress any operator interpretation of the the `*` character.
@@ -606,7 +606,7 @@ Macros written with macro rules can be quite complex, and it is possible to cons
 In our case, we will use a macro rule to handle the translation of a `says` condition:
 
 ```
-#  ?G says ?S ! ?P $ ?O ==>
+  ?G says ?S ! ?P $ ?O ==>
     n3(trCon(S),trCon(P),trCon(O)) in G
 ```
 
@@ -625,8 +625,8 @@ n3(trCon(:john),trCon(:works_in),trCon(D)) in personnel
 This translation is not complete because `trCon` is not a known function symbol. In fact, we also want to map `:john` etc. into concepts, i.e., into `n3Concept` terms; for which we need another set of macro rules:
 
 ```
-# trCon(string?S) ==> n3S(S)
-# trCon(: #(identifier?N)# ) ==> n3C(N)
+ trCon(string?S) ==> n3S(S)
+ trCon(: #(identifier?N)# ) ==> n3C(N)
 ```
 
 The macro pattern `string?S` matches any literal string — and, if successful, binds the macro variable `S` to the matched string; similarly the macro pattern `identifier?N` matches any identifier and binds `N` to the found identifier.
@@ -634,7 +634,7 @@ The macro pattern `string?S` matches any literal string — and, if successful, 
 We also need a third rule that allows for _graph variables_ by mapping identifiers directly to identifiers:
 
 ```
-# trCon(identifier?N) ==> N
+ trCon(identifier?N) ==> N
 ```
 
 Notice that, even in this simple situation of matching concept, we had to construct a two-level macro cascade involving the strictly macro-time `trCon` symbol to ensure that they were translated appropriately. This requirement is one the weaknesses of the macro rule.

@@ -1,0 +1,49 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 One of the primary reasons for wanting to have domain specific languages is to be able to succinctly express 
+\i policy
+\i0 . Pretty much every significant application and module tends to be more general than the individual problem it was designed for; which means that actually applying the application (sic) amounts to using a subset of the capabilities of a general mechanism to solve the specific problem.\
+Policy has a number of definitions, one of which is\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 Policy\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 An expression of a constraint that governs the behaviors of a system.\
+The term 
+\i system
+\i0  here is intended to be used broadly, in particular to include users and humans agents participating in the system.\
+It is possible to see \'97 without squinting too hard \'97 that a policy is a statement that describes a subset of the potential behaviors of a system. Furthermore, one can often express a particular use of a capability or application in terms of constraints \'97 i.e., in terms of policies.\
+An example might help. Suppose that you want to apply statistical algorithms to measure how well your stocks are doing. You might want to know if your portfolio is doing better than the average for example.\
+If you did not have access to any statistical functions, then you would have a choice when it comes to computing the average performance: you can construct a function that only computes the average of your stock portfolio, or you can be sensible and split the problem in two: write (or get) the necessary statistical code and 
+\i apply it
+\i0  to the problem of computing averages in your portfolio. In fact, you are most likely to construct a range of \'91portfolio functions\'92 in the expectation that you may have other calculations to make: like computing overall profit and loss of your stock; you will then select which function to apply when you use the application.\
+In this case, the core algorithms for computing statistical averages (and other statistical functions) form a 
+\i mechanisn
+\i0  that can be applied to solving the problem at hand. Using the portfolio analysis application becomes, in effect, a matter of choosing which policy to use to 
+\i constrain
+\i0  all the available uses of statistics into the one that is important.\
+It might seem a stretch to refer to selecting a function as a constraint, but consider a slightly different scenario: suppose that there are several forms of 
+\i regression analysis
+\i0  {\field{\*\fldinst{HYPERLINK "scrivcmt://0E5C654F-AFC9-4362-A006-8AF94DA57051"}}{\fldrslt functions}} in your library. You want to pick the best one to enable you to forecast your stock. Picking the best regression function is often a case of selecting which features are most important \'97 i.e., it is a matter of policy.\
+The pressure to factor the problem into mechanism and policy is so strong that it is easy to believe that this split 
+\i is the only way of solving the problem
+\i0 . It isn\'92t, of course, and there are many less obvious examples than figuring out portfolios.\
+DSLs and policy languages often involve quite different 
+\i semantics
+\i0  from the host language; they are often 
+\i declarative
+\i0  in nature \'97 specifying 
+\i what
+\i0  needs to be done and leaving the 
+\i how
+\i0  to the mechanism. One of the simplest purely declarative language systems is the 
+\i triple logic
+\i0  as seen in RDF. RDF makes a great basis for representing graph structures generally and 
+\i configurations
+\i0  specifically.}

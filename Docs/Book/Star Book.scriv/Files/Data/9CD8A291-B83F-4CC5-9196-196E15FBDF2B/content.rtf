@@ -1,0 +1,52 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a quantified type. Occurrences of a type variable can be classified into two forms \'97 depending on whether the context is one of using a variable or whether one is defining it \'97 or providing evidence for it.\
+Consider the simple function d with its type declaration:\
+d:all t ~~ arithmetic[t] |: (t)=>t.\
+d(X) => X+X\
+In the equation that defines d we have not explicit referenced t; but the rules of type inference lead us to determine that \'97 within the equation \'97 type of X is t.\
+If we had forgotten the arithmetic constraint:\
+d:all t ~~ (t)=>t.\
+d(X) => X+X\
+the compiler would have complained with a type error. The reason being that, because t is universally quantified, we are not permitted to further constrain t 
+\i \cf2 within
+\i0 \cf2  the body of the function. Requiring that t support addition is such a constraint and we are not permitted to assume it.\
+On the other hand, when we 
+\i \cf2 call
+\i0 \cf2  d, the rules are more generous: calls of the forms d(2) and d(2.4) are both permitted because we are allowed to 
+\i \cf2 use
+\i0 \cf2  any type \'97 that implements the arithmetic contract \'97 when we call d.\
+The reason we can substitute any type for t is a result of the universal quantifier: a all quantifier means we can use any type for t.\
+For existentially quantified types the situation is reversed: within an expression involving an existential type we can use what ever type we want \'97 again, providing that other constraints have been met \'97 but 
+\i \cf2 outside
+\i0 \cf2  the defining expression we can\'92t make any assumptions or additional constraints about the quantified type.\
+For various reasons, which we will explore further, existentially quantified types are mostly associated with records \'97 like the package record we saw earlier. Let us look again at our simple package type:\
+simple:exists foo/1 ~~ \{\
+  ...\
+  fooMe:for all t ~~ (t)=>foo[t].\
+\}\
+As with universally quantified types, there are two kinds of contexts in which we use existentially quantified type variables: 
+\i \cf2 use
+\i0 \cf2  and 
+\i \cf2 evidence
+\i0 \cf2  contexts. In the former we are using the type and in the latter we are providing evidence that an expression has the right type.\
+The existential quantifier means is that within an instance of this record we can instantiate foo to any type that meets the constraints. The simplest way is to provide a type definition for foo:\
+simple = let\{\
+  all t ~~ foo[t] ::= foo(t) | bar.\
+\
+  fooMe(X) => foo(X).\
+\} in \{. type foo=foo; foo=foo; bar=bar; fooMe=fooMe .\}\
+Externally, when we use the record, the opposite happens: we can make use of the existence of foo but we cannot further constrain it. We can use simple\'92s foo type, as well as the fooMe function that relies on it; for example, in:\
+m:for all t ~~ (t)=>simple.foo[t].\
+m(X) => simple.fooMe(X).\
+There is something a little different going on here: the type of m appears to be dependent on a field of the variable simple; i.e., the type of m apparently depends on the value of simple. This is not something that we would normally sanction in a type system because of the potential for disaster.\
+For example, consider the scenario where \'91simple is not simple\'92; i.e., suppose that its value were computed; for example suppose that the value of simple depended on a conditional computation. In that case the actual type simple.foo might also depend on the conditional computation; why does this not cause problems?\
+Normally such dynamic types do cause substantial problems. The presence of a dynamic type is one of the hallmarks of dynamically typed languages and it makes most type inference impossible at compile time.\
+However, the type rules for existentially quantified variables are crafted so that 
+\i \cf2 it must not matter
+\i0 \cf2  what the actual type simple.foo is. So long as no additional constraints on the simple.foo are permitted then the program is provably compile-time type-safe. I.e., uses of an existentially quantified type may not further constrain the type \'97 the exact complement of the situation with universally quantified types.}

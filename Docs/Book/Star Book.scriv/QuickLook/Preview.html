@@ -1,0 +1,1644 @@
+<html>
+
+<head>
+<title>Star Book</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<!-- NOTE: margin property = top-right-bottom-left -->
+<style type="text/css">
+
+	body {background-color: #e2e2e2}
+    
+    p.topLevelItemTitle {
+    	margin: 30px 0px 5px 0px;
+    	font-family: Times, Times New Roman, Palatino, Cochin, Serif;
+    	font-size: 30px;
+    	}
+    	
+    p.folderTitle {
+    	margin: 30px 0px 5px 0px;
+    	font-family: Times, Times New Roman, Palatino, Cochin, Serif;
+    	font-size: 18px;
+    	}
+    
+    p.itemTitle {
+    	margin: 30px 0px 5px 0px;
+    	font-family: Helvetica, Arial, Sans-Serif;
+    	font-size: 12px;
+    	font-weight: bold;
+    	}
+    	
+    p.itemText {
+    	margin: 0px 0px 10px 0px;
+    	font-family: Helvetica, Arial, Sans-Serif;
+    	font-size: 12px;
+    	}
+    	
+    p.itemTextStart {
+    	margin: 30px 0px 10px 0px;
+    	font-family: Helvetica, Arial, Sans-Serif;
+    	font-size: 12px;
+    	}
+    
+    .page {border: 1px solid #c0c0c0; background: #fff}
+    
+    hr {
+        border: none;
+        height: 1px;
+        color: #d4d4d4;
+        background-color: #d4d4d4;
+      	}
+      	
+    hr.afterTitle {
+    	margin-top: -3px;
+    }
+      	
+    hr.afterText {
+    	margin-top: 30px;
+    }
+      	
+    ul {
+      	list-style-type: none;
+      	padding-left: 30px;
+      	}
+      	
+</style>
+
+</head>
+
+<body>
+
+<table border="0" width="100%" cellspacing="3">
+<tr>
+<td>
+
+<table class="page" width="100%" cellspacing="10" cellpadding="2">
+
+<!-- Top margin -->
+<!-- Not needed, because of the padding above titles. -->
+<!--<tr><td height="15px"></td></tr>-->
+
+<tr>
+
+<!-- 42 + 30 of list indent = 72 - one inch. -->
+<!-- Actually that ends up too much, so we do 25 + 30 = 55px. -->
+<td width="25px">
+
+<td valign="top">
+
+<ul>
+<li>
+<p class="topLevelItemTitle">Why Be a Star Programmer</p>
+<p class="itemText">This book is about the programming language called Star. Why, you may ask, do you need to learn yet another language? We hope to answer that question and more in the course of this book. We also aim to show you how to program effectively in Star to solve real world problems.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Programming has Changed</p>
+</li>
+<hr class="afterTitle"/>
+<ul>
+<li>
+<p class="itemTitle">Programs are huge</p>
+<p class="itemText"> If your program is 100 lines long, it does not actually matter what programming language you use to write it in – unless you are learning programming for the first time.</p>
+<p class="itemText">However, in practice, software systems are huge. It is normal to develop and to encounter programs measured in 100 Klocs (thousands of lines of code) and it is not uncommon to encounter software systems measured in the millions of lines.</p>
+<p class="itemText">Software development at this scale does not share much with developing small systems. Large...</p>
+</li>
+<li>
+<p class="itemTitle">Planning for Change</p>
+<p class="itemText">Furthermore, change is the dominant fact of life for large systems. Software systems evolve, grow, are repurposed to meet new objectives, and are re-implemented to take advantage of new technologies.</p>
+<p class="itemText">Managing change in code is often left to Source Code Control Systems; but these systems only address part of the problem. For example, code re-use is also a requirement and a challenge for large systems. In fact, one could image the “three R’s” for large systems: reusing, repurposing, and refactorin...</p>
+</li>
+<li>
+<p class="itemTitle">Programming Safely and Effectively</p>
+<p class="itemText"> At the same time, safety and security are also critical: no-one likes to have their private information exposed to the bad guys. Most main-stream programming languages were designed in an era when safety was not uppermost in programmers’ minds – usually it was performance. Some seemingly trivial design choices – such as C’s conventions for laying out strings in memory – turn out to have potentially devastating security implications.</p>
+<p class="itemText">In addition, systems that are built assuming a shielded execut...</p>
+</li>
+<li>
+<p class="itemTitle">Real-time is normal time</p>
+<p class="itemText">Many kinds of business are becoming more and more ‘real-time’: a 100 millisecond slowdown in loading a web page can mean the loss of 5% of revenue for an e-commerce site; an unrented car, like an unrented hotel room, represents a permanent loss of business and a competitive disadvantage.</p>
+<p class="itemText">For the modern programmer, this means that applications must be engineered from the start to be responsive and multitasking – aspects that challenge even the most professional of programmers.</p>
+</li>
+<li>
+<p class="itemTitle">This Train is Leaving the Station</p>
+<p class="itemText">Perhaps most importantly, we need to be able to do these things now – time to market is a critical factor in many if not most modern applications. Its no good developing the world’s best widget if you run out of ‘runway’ trying to build it.</p>
+<p class="itemText">A major bottleneck is the relative poor productivity of most modern programming languages. It is simply too hard to produce correct robust code in languages like C/C++, Python etc.</p>
+<p class="itemText">Productivity is an issue for individual programmers but is especially salient ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Is Star for you?</p>
+<p class="itemText">Choosing a programming language – when you actually have a choice – is highly personal. Here are some reasons to think about Star.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">If You Are Already a Java (or C#, or C++) Programmer</p>
+<p class="itemText">Most OO languages are embracing some of the simpler features of functional languages. Even Java 8 with its lambda expressions and stream features represents a nod to the power of functional programming.</p>
+<p class="itemText">However, at the same time, there is a substantial gap in the capabilities of most OO languages compared to modern functional programming languages. This is a problem because the better a language is able to ‘understand’ your objectives, the better the tools will be able to support those objective...</p>
+</li>
+<li>
+<p class="itemTitle">If You Are Already a Functional Programmer</p>
+<p class="itemText">You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of Star: Haskell and Standard ML – both of which are excellent; but not perfect.</p>
+<p class="itemText">For the functional programmer, the principal benefits of Star are readability, modernity and predictability.</p>
+<p class="itemText">One of the major drivers of the design of Haskell and (to a lesser extent) ML is conciseness. However, conciseness is ...</p>
+</li>
+<li>
+<p class="itemTitle">Technology</p>
+<p class="itemText">The technology platform that programs are written for is also changing. Just a few decades ago most computers were single-core; nowadays most computers are multi-core and are capable of significant parallelism.</p>
+<p class="itemText">Especially spectacular is the parallelism available in modern GPUs; where a high end graphics processor may have thousands of cores capable of processing instructions in parallel. We expect that the days of personal computers with thousands of cores is not too far in the future.</p>
+<p class="itemText">Programmi...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Design Goals for Star</p>
+<p class="itemText">Star is a multi-paradigm high-level symbolic language. It is designed to be scalable, readable, accurate, high performing and extensible.</p>
+<p class="itemText">Paradoxically, scalability in a programming language is always about large and small chunks of code. Scalability in Star is fostered by a range of elements that facilitate composition, change and re-use:</p>
+<p class="itemText"> • The language is strongly statically typed. This encourages both safety and documentation.</p>
+<p class="itemText"> • The type system is strong enough that there is very limited ne...</p>
+</li>
+<li>
+<p class="itemTitle">About this book</p>
+<p class="itemText">This book acts as an introduction to the language and to its use. The basic features of the language are introduced; however, this is not a reference manual: it is not intended to be a complete description of the language.</p>
+<p class="itemText">That can be found in the Star Language Definition.</p>
+<p class="itemText">Introducing a programming language like Star can be a challenge in presentation. This is because there is a significant amount of mutual support between elements of the language.</p>
+<p class="itemText">Our strategy is to take a layered approach – we...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Getting hold of Star</p>
+<p class="itemText">The easiest way to access the compiler is to pick up the released code from Github.  </p>
+<p class="itemText">Assuming that you have downloaded the release files, assuming that you have your Star files in the current directory, you can compile and run a Star program using:</p>
+<p class="itemText">$ Star fact.star 10</p>
+<p class="itemText">This will compile the file fact.star and run it, passing the integer 10 to the embedded program.</p>
+<p class="itemText">The first time you run the compiler it will be a little slow. This is because it also compiles the standard library into the sub-dire...</p>
+</li>
+<li>
+<p class="itemTitle">Typographical Conventions</p>
+<p class="itemText">Any text on a programming language often has a significant number of examples of programs and program fragments. We show these using a typewriter-like font, often broken out in a display form:</p>
+<p class="itemText">P:integer;</p>
+<p class="itemText">...</p>
+<p class="itemText">We use the ... ellipsis to explicitly indicate a fragment of a program that may not be syntactically correct as it stands.</p>
+<p class="itemText">As we noted above, Star is a rich language with many features. As a result, some parts of the text may require more careful reading, or represent comments about potentia...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Acknowledgements</p>
+<p class="itemText">Noone is an island, and no project of this scale is one person’s work. I have had the great fortune to be able to develop Star in the context of real world applications solving hard problems. Individuals have also played a large role; and it can be hard to ensure that all are properly acknowledged: please forgive any omissions.</p>
+<p class="itemText">Of particular significance, I would like to thank Michael Sperber for our many discussions on the finer topics of language design; and for his not insignificant contribut...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">A Tour of Star</p>
+<p class="itemText">Our first task is to introduce you to the Star language. It is difficult to find the right order in which to present a programming language like Star; this is because many of the features are highly inter-related. For example, types depend on values which depend on functions which depend on types!</p>
+<p class="itemText">Instead, our approach in this book is to take a series of horizontal slices through the whole language; going progressively deeper as you become more comfortable with the language. Each layer represent...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">A First Star Program</p>
+<p class="itemText">It is traditional to introduce a new programming language with something like the hello world example. Which we will do in a moment. However, the factorial function often makes a better first example for functional programming languages:</p>
+<p class="itemText">sample.factorial{</p>
+<p class="itemText">  import star.               -- Access standard language features</p>
+<p class="itemText"></p>
+<p class="itemText">  public fact : (integer)=>integer.</p>
+<p class="itemText">  fact(0) => 1.              -- base case</p>
+<p class="itemText">  fact(N) where N>0 => N*fact(N-1).</p>
+<p class="itemText">}</p>
+<p class="itemText">This is not an executable program per se.; however, it does r...</p>
+</li>
+<li>
+<p class="itemTitle">Texture</p>
+<p class="itemText">All programming languages can be said to have a particular style or texture. This is often so strong that it is often possible to identify a programming language from a single line of source code. In the case of Star, this line might be:</p>
+<p class="itemText">public fact : (integer)=>integer.</p>
+<p class="itemText">which is a type annotation statement declaring the type of the function fact.</p>
+<p class="itemText">The public annotation means that the function is exported by this module and will be available in other modules if the sample.factorial module is impo...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Lexical Style</p>
+<p class="itemText">Star’s lexical syntax is a combination of special operators and keywords.</p>
+<p class="itemText">It can be difficult for language designers to decide when to use a keyword and when to use a special operator. In the case of Star we use special operators for common elements and keywords when either a graphical operator would be obscure and/or are not common.</p>
+<p class="itemText">For example, in the factorial module, we use braces for grouping; but we also use the import and the where keywords. The rationale here is that programmers have bec...</p>
+</li>
+<li>
+<p class="itemTitle">Types</p>
+<p class="itemText">Star is a strongly, statically typed language. This means that all variables and expressions have a single type; and that all type constraints are enforceable at compile-time. This is a fairly strong (sic) statement but it is a key aspect of Star’s design – we need everything to be well typed and we also want to guarantee completeness of the type system.</p>
+<p class="itemText">The type annotation statement:</p>
+<p class="itemText">fact : (integer)=>integer.</p>
+<p class="itemText">is a statement that declares that the type of fact is a function of one integer argum...</p>
+</li>
+<li>
+<p class="itemTitle">Rules</p>
+<p class="itemText">In Star, most programs are defined using rules. In this case, fact is defined using equations. The equations that make up a function definition (or any program definition for that matter) are statements that are written in order.</p>
+<p class="itemText">Rule-based programs support a case driven approach to programming: a program is defined in terms of the different cases or situations that apply. Using rules to cover different cases allows the programmer to focus on each case in relative isolation.</p>
+<p class="itemText">In addition, as we s...</p>
+</li>
+<li>
+<p class="itemTitle">Patterns</p>
+<p class="itemText">Patterns are ubiquitous in Star: they form the basis of many rules: they are used to define equations, they are used to control action programs, they are used to implement macros.</p>
+<p class="itemText">A pattern can be viewed as a combination of a test — does a value match a particular pattern — and as a way ( the way in Star) of binding a variable to a value.</p>
+<p class="itemText">An equation’s pattern defines when the equation is applicable. The first equation for fact above:</p>
+<p class="itemText">fact(0) => 1.</p>
+<p class="itemText">has a literal pattern on the left hand side of ...</p>
+</li>
+<li>
+<p class="itemTitle">Packages</p>
+<p class="itemText">The normal compilation unit is a package. The sample.factorial package contains just the function fact, but packages can contain functions, type definitions, import statements and many other elements that we will encounter.</p>
+<p class="itemText">Package names and references to packages do not refer to file names; package names are symbolic – in general a package name consists of a sequence of identifiers separated by periods.</p>
+<p class="itemText">The catalog and repository system explored in Chapter 7 that supports the language ensures a...</p>
+</li>
+<li>
+<p class="itemTitle">Worksheets</p>
+<p class="itemText">The other main kind of compilation unit is the worksheet. Worksheets are a modern replacement for the REPL that you see in many functional programming languages.</p>
+<p class="itemText">We say a modern replacement for REPLs because worksheets fit much better in the typical environment of an IDE.</p>
+<p class="itemText">A worksheet can be used to implement the infamous hello world example in just a few lines:</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  show "hello world".</p>
+<p class="itemText">}</p>
+<p class="itemText">We can also use a worksheet to display the results of using and testing our fact function:</p>
+<p class="itemText">worksheet{...</p>
+</li>
+<li>
+<p class="itemTitle">String Interpolation</p>
+<p class="itemText">The expression</p>
+<p class="itemText">"fact(10) is \(fact(10))"</p>
+<p class="itemText">is an interpolated string expression. It means the string "fact(10) is \(fact(10))" with the substring \(fact(10)) replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Types, More Types and Even More Types</p>
+<p class="itemText">In many ways, the defining characteristic of a programming language is the approach to types. As we shall see, Star’s type system is quite extensive and powerful; however, simple types are quite straightforward.</p>
+<p class="itemText">The most basic question to ask about types is</p>
+<p class="itemText">What is a type?</p>
+<p class="itemText">There is some surprising variability to the answer to this question; for example, in many OO languages, types are conflated with classes. Star types are terms – i.e., names – that denote different kinds of values.</p>
+<p class="itemText">Type</p>
+<p class="itemText">A type ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Nominative Types</p>
+<p class="itemText">A nominative type is normally defined using an algebraic type definition. This both introduces a type and defines all the legal values that belong to the type. For example, we might introduce a Person type with the type definition:</p>
+<p class="itemText">Person ::= noOne</p>
+<p class="itemText">         | someOne{</p>
+<p class="itemText">              name : string.</p>
+<p class="itemText">              dob : date.</p>
+<p class="itemText">            }</p>
+<p class="itemText">This statement tells us that there are two kinds of Person: a someOne who has a name and date of birth (dob) associated with them; and a distinguished individual ...</p>
+</li>
+<li>
+<p class="itemTitle">Structural Types</p>
+<p class="itemText"> A structural type is, informally, a type that looks like a value. For example, the type</p>
+<p class="itemText">(integer,string,employee)</p>
+<p class="itemText">is a tuple type – it denotes the type of a triple of values, consisting of an integer, a string and an employee in this case.</p>
+<p class="itemText">Star has several forms of structural type, the tuple type is one of them; others include record types and function types.</p>
+<p class="itemText">We shall see more of these as we introduce the rest of the language. However, it is worth pausing to ask the question Why? Briefly, nomin...</p>
+</li>
+<li>
+<p class="itemTitle">Optional Values </p>
+<p class="itemText">Notice that we identified a special case of noOne in our Person type. One reason for including this in a type is to be able to cope with non-existent people. However, this approach is not always the most effective one when modeling situations where a variable or field may not have a value.</p>
+<p class="itemText">Explicit null values, as found in Java and similar languages, cause a great number of problems: for example, null must have a special universal type; there are many scenarios where it is not possible for a var...</p>
+</li>
+<li>
+<p class="itemTitle">The Flavors of Equality </p>
+<p class="itemText">Equality in programming languages is typically a very subtle topic. The issues can range from the nature of floating point numbers, the difference between integers and long values and the multiple potential concepts of equality for objects.</p>
+<p class="itemText">Equality in Star is always between values of the same type and it is always semantic. So, for example, an equality condition such as:</p>
+<p class="itemText">3==3.0</p>
+<p class="itemText">is not considered type safe — because 3 is an integer literal and 3.0 is a float literal. If you need to compare an in...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">A Tale of Three Loops</p>
+<p class="itemText">Imagine that your task is to add up a list of numbers. Sounds simple enough: in most procedural or OO languages (such as Java) one would write a fragment of code that looks like:</p>
+<p class="itemText">int total = 0;</p>
+<p class="itemText">for(Integer ix:L)</p>
+<p class="itemText">  total += ix;</p>
+<p class="itemText">However, this code is also full of pitfalls. For one thing we have a lot of extra detail in this code that represents additional commitments beyond those we might be comfortable with:</p>
+<p class="itemText"> • we have had to fix on the type of the number being totaled;</p>
+<p class="itemText"> • we had to know about Ja...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">A Functional Loop</p>
+<p class="itemText">A more idiomatic way of expressing a computation like the totalizer is to use a function. For example, we can write:</p>
+<p class="itemText">let{</p>
+<p class="itemText">  total:(cons[integer])=>integer.</p>
+<p class="itemText">  total(nil) => 0.</p>
+<p class="itemText">  total(cons(E,L)) => total(L)+E</p>
+<p class="itemText"> } in total(L)</p>
+<p class="itemText">while short, this code too has some of the same drawbacks as the for iteration.</p>
+<p class="itemText">The type expression cons[integer] refers to the standard type of ‘cons lists’. Similarly, nil refers to the empty list and cons(E,L) refers to the list obtained by prepending E to the list L. We wi...</p>
+</li>
+<li>
+<p class="itemTitle">A Totalizer Query</p>
+<p class="itemText">While concise, expressions involving much use of leftFold (and the analogous rightFold) can be difficult to follow. An even clearer way of adding up numbers is to use a query expression:</p>
+<p class="itemText">fold X with (+) where X in L</p>
+<p class="itemText">or the even more succinct</p>
+<p class="itemText">total X where X in L</p>
+<p class="itemText">This query expression frees us from most of the commitments we endured before: it can add up the elements of any kind of collection — not just cons lists — and it can add up floating point numbers just as easily as integers. Finally, we ...</p>
+</li>
+<li>
+<p class="itemTitle">The Homunculus in the Machine</p>
+<p class="itemText">Programming is often taught in terms of constructing sequences of steps that must be followed. What does that imply for the programmer? It means that the programmer has to be able to imagine what it is like to be a computer following instructions.</p>
+<p class="itemText">It is like imagining a little person — a homunculus — in the machine that is listening to your instructions and following them literally. You, the programmer, have to imagine yourself in the position of the homunculus if you want to write effective pro...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Contracts and Constraints</p>
+<p class="itemText">The concepts of interface and contract are foundational in modern software engineering. This is because explicit interfaces make it substantially easier to develop and evolve systems. A Star contract goes beyond the traditional concept of interface in important ways: we do not mark the definition of a type with its implemented contracts and we allow contracts to involve multiple types.</p>
+<p class="itemText">A contract defines a collection of signatures and an implementation provides specific implementations for those...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Implementing Contracts</p>
+<p class="itemText"> Defining a contract is a big step, but it is not generally sufficient to produce working programs. If we had a worksheet containing only:</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  contract all t ~~ four[t] ::= {</p>
+<p class="itemText">    plus : (t,t)=>t.</p>
+<p class="itemText">    sub : (t,t)=>t.</p>
+<p class="itemText">    mul : (t,t)=>t.</p>
+<p class="itemText">    div : (t,t)=>t.</p>
+<p class="itemText">  }</p>
+<p class="itemText">  double : all t ~~ four[t] |: (t)=>t.</p>
+<p class="itemText">  double(X) => plus(X,X).</p>
+<p class="itemText"></p>
+<p class="itemText">  show double(2)</p>
+<p class="itemText">}</p>
+<p class="itemText">we would get a compiler error along the lines of:</p>
+<p class="itemText">2:integer</p>
+<p class="itemText">  which is not consistent with</p>
+<p class="itemText">    pPrint[t_12] , four[t_12] |: t_12</p>
+<p class="itemText">  because four[in...</p>
+</li>
+<li>
+<p class="itemTitle">Coercion, not Casting</p>
+<p class="itemText">Star does not support automatic type casting, as found in languages like Java and C/C++. This is for many reasons, not the least of which is safety and predictability of code.</p>
+<p class="itemText">Casting in many languages is really two kinds of operations-in-one which we can refer to as casting and coercion. Casting is mapping of a value from one type to another without changing the value itself; and coercion involves converting a value from one type to another.</p>
+<p class="itemText">For example, the Java cast expression:</p>
+<p class="itemText">(Person)X</p>
+<p class="itemText">amou...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">There is More</p>
+<p class="itemText">As we have noted, Star is a rich language and it would be impossible to try to cover it in a short introduction. Later chapters will look at some of the other features such as a deeper look at contracts, queries, actors, concurrency, existential types, and extending Star with domain specific languages. Chapter [2][functional-programming] starts this process by looking at functional programming in Star.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Functional Programming</p>
+<p class="itemText">There is a perception of functional programming that it is weird and difficult. This is unfortunate for a number of reasons; the most important being that functional programming is not weirder than procedural programming and that all programmers can benefit by programming functionally.</p>
+<p class="itemText">As for being difficult, a more accurate description would be that there is a deeper range of features in functional programming than in most modern programming languages: so a perception of complexity can arise si...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">What is Functional Programming?</p>
+<p class="itemText">The foundations of functional programming rest on two principles:</p>
+<p class="itemText"> 1. Programs are expressed in terms of functions, where a somewhat mathematical view of functions is taken — functions always produce the same output for the same input. This is what people mean when they say that functional programs are declarative.</p>
+<p class="itemText"> 2. Functions are values: they can be passed as arguments to functions, returned from functions, and they can be put into and retrieved from data structures.</p>
+<p class="itemText">This last principle is wh...</p>
+</li>
+<li>
+<p class="itemTitle">Basics</p>
+<p class="itemText">There are two variants of function — the anonymous or lambda function and the named function. We have already seen some simple examples both forms; for now, we continue to focus on named functions.</p>
+<p class="itemText">It is often easier to introduce functional programming using numerical examples. Last chapter we saw, for example, the factorial program. This is mostly because most programmers are already familiar with numbers. Continuing that tradition, here is a function that returns the sign of a number:</p>
+<p class="itemText">sign:(in...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Patterns</p>
+<p class="itemText">A function is defined as a sequence of rewrite equations each of which consist of a pattern and an expression. There are three general forms of rewrite equations:</p>
+<p class="itemText">Pattern => Expression</p>
+<p class="itemText">or</p>
+<p class="itemText">Pattern where Condition => Expression</p>
+<p class="itemText">or</p>
+<p class="itemText">Pattern default => Expression</p>
+<p class="itemText">The left hand side of a rewrite equation consists of the pattern which determines the applicability of the equation; and the right hand side represents the value of the function if the pattern matches.</p>
+<p class="itemText">Pattern</p>
+<p class="itemText">A pattern represents a test or ...</p>
+</li>
+<li>
+<p class="itemTitle">Order of Evaluation</p>
+<p class="itemText">Star is a so-called strict language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:</p>
+<p class="itemText"> 1. It is significantly easier for programmers to predict the evaluation characteristics of a strict language.</p>
+<p class="itemText"> 2. It is also easier to implement a strict language efficiently on modern hardware. Suffice it to say that modern hardware was designed for evaluating strict languages, so this argument is somewhat ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Another Look at Types</p>
+<p class="itemText">Organizing data is fundamental to any programming language. Star’s data types are organized around the algebraic data type. In addition, Star’s supports quantified types of several varieties.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Quantified Types</p>
+<p class="itemText">A generic type is one which has one or more type variables in it. For example, the type expression:</p>
+<p class="itemText">(x,x)=>boolean</p>
+<p class="itemText">is such a generic type (assuming that x is a type variable – see below).</p>
+<p class="itemText">All type variables must be bound by a quantifier in some enclosing scope. If a type variable is not bound, it is considered free in that type expression.</p>
+<p class="itemText">A quantified type is a type that introduces (i.e., binds) a type variable. There are two quantifiers in Star: a universal quantifier and an existential quanti...</p>
+</li>
+<li>
+<p class="itemTitle">Contract Constrained Types</p>
+<p class="itemText">We noted above that the type of the standard equality predicate was ‘almost’ the same as:</p>
+<p class="itemText">all x ~~ (x,x)=>boolean</p>
+<p class="itemText">This type denotes a universally quantified function type that can be applied to arguments of any given type. However, equality in a normal programming language is not universal: not all values admit to being reliably tested for equality. A great example of such a limitation are functions – equality between functions is not well defined.</p>
+<p class="itemText">To capture this, we need to be able to constrai...</p>
+</li>
+<li>
+<p class="itemTitle">Algebraic Data Types</p>
+<p class="itemText">An algebraic data type definition achieves several things simultaneously: it introduces a new type into scope, it gives an enumeration of the legal values of the new type and it defines both constructors for the values and it defines patterns for decomposing values. This is a lot for a single statement to do!</p>
+<p class="itemText">For example, we can define a type that denotes a point in a two-dimensional space:</p>
+<p class="itemText">type point ::= cart(float,float).</p>
+<p class="itemText">This kind of statement is called a type definition statement and is lega...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Functions as Values</p>
+<p class="itemText">The second principle of functional programming is that functions are first class. What that means is that we can have functions that are bound to variables, passed into functions and returned as the values of functions. In effect, a function is a legal expression in the language. It also means that we can have function types in addition to having types about data.</p>
+<p class="itemText">We can see this best by looking at a few examples. One of the benefits of passing functions as arguments to other functions is that i...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Functions and Closures</p>
+<p class="itemText">If a function is an expression, what is the value of the function expression? The conventional name for this value is closure:</p>
+<p class="itemText">Closure</p>
+<p class="itemText">A closure is a structure that is the value of a function expression and which may be applied to arguments.</p>
+<p class="itemText">It is important to note that, as a programmer, you will never ‘see’ a closure in your program. It is an implementation artifact in the same way that the representation of floating point numbers is an implementation artifact that allow computers to represent ...</p>
+</li>
+<li>
+<p class="itemTitle">Let Binding Environments</p>
+<p class="itemText">We noted that it is difficult to achieve the effect of the (X)=>X==S lambda expression with named functions. The reason is that the lambda is not defined in the same way that named functions are defined — because it occurs as an expression not as a statement. If we wanted to define a named function which also captures S, we would have to be able to define functions inside expressions.</p>
+<p class="itemText">There is an expression that allows us to do this: the let expression. A let expression allows us to introduce lo...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Generic Programs</p>
+<p class="itemText">If we take a slightly closer look at fTest, we can see that it seems pretty generic: it has a function as argument that it calls in the right places; but otherwise makes few assumptions about the function it calls. However, the type annotation of fTest is rather specific:</p>
+<p class="itemText">fTest : (sTree,(string)=>boolean)=>boolean</p>
+<p class="itemText">which means, for example, that its second argument must be a function from string to boolean. On the other hand, nothing in the actual definition of fTest seems to depend on strings.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Generic Types</p>
+<p class="itemText">What actually makes fTest more constrained than it could be is the type definition of sTree itself. It too is unnecessarily restrictive: why not allow trees of any type? We can, using the type definition for tree:</p>
+<p class="itemText">all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).</p>
+<p class="itemText">Like the original sTree type definition, this statement introduces a new type: tree[t] which can be read as ‘tree of something’. The name tree is not actually a type identifier — although we often refer to the tree type — but it i...</p>
+</li>
+<li>
+<p class="itemTitle">Generic Functions</p>
+<p class="itemText">Given this definition of the tree type, we can construct a more general form of the tree test function; which is almost identical to fTest:</p>
+<p class="itemText">test:all t ~~ (tree[t],(t)=>boolean)=>boolean.</p>
+<p class="itemText">test(tEmpty,_) => false.</p>
+<p class="itemText">test(tNode(L,Lb,R),F) => F(Lb) || test(L,F) || test(R,F).</p>
+<p class="itemText">and our original string check function becomes:</p>
+<p class="itemText">check(T,S) => test(T,(X) => X==S)</p>
+<p class="itemText">The type of check is also more generic:</p>
+<p class="itemText">check:all t ~~ (tree[t],t)=>boolean</p>
+<p class="itemText">I.e., check can be used to find any type of element in a tree — providin...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Going Further</p>
+<p class="itemText">Although better than the original sTest program there is still one major sense in which the test program is not general enough. We can see by looking at another example: a function that counts elements in the tree:</p>
+<p class="itemText">count:all t ~~ (tree[t]) => integer.</p>
+<p class="itemText">count(tEmpty) => 0.</p>
+<p class="itemText">count(tNode(L,_,R)) => count(L)+count(R)+1</p>
+<p class="itemText">This code is very similar, but not identical, to the test function.</p>
+<p class="itemText">The issue is that test is trying to do two things simultaneously: in order to apply its test predicate to a binary tr...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Going Even Further</p>
+<p class="itemText">We have focused so far on generalizing the visitor from the perspective of the tree type. But there is another sense in which we are still architecturally entangled: from the perspective of the check and count functions themselves.</p>
+<p class="itemText">In short, they are both tied to our tree type. However, there are many possible collection data types; Star for instance has some 5 or 6 different standard collection types. We would prefer not to have to re-implement the check and count functions for each type.</p>
+<p class="itemText">The g...</p>
+</li>
+<li>
+<p class="itemTitle">Polymorphic Arithmetic</p>
+<p class="itemText">There are other ways in which programs can be polymorphic. In particular, let us focus for a while on arithmetic. One of the issues in arithmetic functions is that there are many different kinds of numbers. Pretty much every programming language distinguishes several kinds of numbers; for example, Java distinguishes byte, short, int, long, float, double, BigInteger and BigDecimal — and this does not count the wrapped versions. Other languages have even more choice.</p>
+<p class="itemText">One question that might seem r...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">A Word About Type Inference</p>
+<p class="itemText">We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that Star only requires programmers to explicitly declare the types of top-level variables and functions. It is worth pausing a little to see how this might be done.</p>
+<p class="itemText">Recall our original factorial function:</p>
+<p class="itemText">fact(0) => 1.</p>
+<p class="itemText">fact(N) => N*fact(N-1).</p>
+<p class="itemText">The compiler is able to compute the types of the various variables automatically through...</p>
+</li>
+<li>
+<p class="itemTitle">Are We There Yet?</p>
+<p class="itemText">The straightforward answer to this is no. There is a great deal more to functional programming than can be captured in a few pages. However, we have covered some of the key features of functional programming — particularly as it applies to Star. In subsequent chapters we will take a closer look at collections, at modular programming, at concurrency and even take a pot shot at Monads.</p>
+<p class="itemText">If there is a single idea to take away from this chapter it should be that functional programming is natural. If ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Collections</p>
+<p class="itemText">Modern programming — whether it is OO programming, functional programming or just plain C programming — relies on a rich standard library. Given that nearly every program needs to be able to manage collections of things, the central pearl of any standard library is the collections library. Recalling our mantra of hiding recursion; a well designed collections library can make a huge difference to the programmer’s productivity, often by hiding many of the recursions and iterations required to proc...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Sequence Notation</p>
+<p class="itemText">A sequence is simply an ordered collection; a sequence expression is an expression involving a complete or partial enumeration of the values in the collection. Star has a simple notation for expressing sequences of any underlying type; for example, a cons sequence of integers from 1 through 5 can be written:</p>
+<p class="itemText">cons of [1, 2, 3, 4, 5]</p>
+<p class="itemText">In situations where we do not know or do not wish to specify the collection type, we can write instead:</p>
+<p class="itemText">[1, 2, 3, 4, 5]</p>
+<p class="itemText">This term — it could be either an expression o...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The Sequence Contract</p>
+<p class="itemText">Underlying the sequence notation is the sequence contract. This contract contains type signatures in it that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.</p>
+<p class="itemText">The actual sequence contract is</p>
+<p class="itemText">contract sequence[t->>e] ::= {</p>
+<p class="itemText">  _nil:()=>t.     -- empty sequence</p>
+<p class="itemText">  _cons:(e,t)=>t. -- add to front</p>
+<p class="itemText">  _apnd:(t,e)=>e. -- add to back</p>
+<p class="itemText">  _empty:()<=t.   -- match empty sequence</p>
+<p class="itemText">  ...</p>
+</li>
+<li>
+<p class="itemTitle">Sequence Patterns</p>
+<p class="itemText">The complete sequence contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence patterns rather than sequence expressions. They also introduce a new form of type expression — the pattern type. For example, the signature for _pair — which is used to decompose sequences into a head and tail — is:</p>
+<p class="itemText">_pair:(e,t)<=t.</p>
+<p class="itemText">Notice the direction of the arrow: we have not seen this form of type so far, and relates to a capability that we have not ...</p>
+</li>
+<li>
+<p class="itemTitle">Notation and Contract-Based Semantics</p>
+<p class="itemText">One of the distinctive features of the sequence notation is that it is an example of syntax that is underwritten by a semantics expressed as a contract. This is part of a widespread pattern in Star.</p>
+<p class="itemText">This has a parallel in modern OO languages like Java and C# where important contracts are expressed as interfaces rather than concrete types. However, Star extends the concept by permitting special notation as well as abstract interfaces — as many mathematicians understand, a good notation can make a...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Indexing</p>
+<p class="itemText">Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing ‘traditional’ notation for accessing arrays:</p>
+<p class="itemText">L[ix]</p>
+<p class="itemText">where L is some array or other collection and ix is an integer offset into the array. Star uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and slices (contiguous sub-regions of collections).</p>
+<p class="itemText">Befor...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The indexable Contract</p>
+<p class="itemText">The indexable contract captures the essence of accessing a collection in a random-access fashion. There are functions in the contract to access a directly accessed element, to replace and to delete elements from the collection:</p>
+<p class="itemText">contract all s,k,v ~~ indexable[s->>k,v] ::= {</p>
+<p class="itemText">  _index:(s,k)=>option[v].</p>
+<p class="itemText">  _set_indexed:(s,k,v)=>s.</p>
+<p class="itemText">  _delete_indexed:(s,k)=>s.</p>
+<p class="itemText">}</p>
+<p class="itemText">There are several noteworthy points here:</p>
+<p class="itemText"> • the form of the contract itself; the signature for _index which accesses elements; and</p>
+<p class="itemText"> • the si...</p>
+</li>
+<li>
+<p class="itemTitle">Tentative Computation</p>
+<p class="itemText">If we look at the signature for _index we can see that this function does not directly return a value from the collection, but instead returns an option value. This bears further explanation.</p>
+<p class="itemText">The great unknown of accessing elements of a collection is ‘is it there?’. Its not guaranteed of course, and we need to be able to handle failure.</p>
+<p class="itemText">This is where the concept of ‘tentative computation’ becomes important.</p>
+<p class="itemText">Tentative Computation</p>
+<p class="itemText">A tentative computation is denoted by an expression that is inheren...</p>
+</li>
+<li>
+<p class="itemTitle">Adding and Removing Elements From a Collection</p>
+<p class="itemText">The function _set_indexed is used to add an element to a collection associating it with a particular index position; and the function delete_indexed removes an identified element from the collection.</p>
+<p class="itemText">Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on _persistent data structures_A persistent stru...</p>
+</li>
+<li>
+<p class="itemTitle">The Index Notation</p>
+<p class="itemText">Given the indexable contract we can now show the specific notation that Star has for accessing elements of a collection.</p>
+<p class="itemText">Accessing a collection by index follows conventional notation:</p>
+<p class="itemText">C[ix]</p>
+<p class="itemText">will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with alpha using:</p>
+<p class="itemText">D["alpha"]</p>
+<p class="itemText">Similarly, we can access the third character in a string S using:</p>
+<p class="itemText">S[2]</p>
+<p class="itemText">As might be expected, given the discussion above, the type...</p>
+</li>
+<li>
+<p class="itemTitle">Implementing Indexing</p>
+<p class="itemText">Of course, this includes our own types. For example, before, when looking at [generic types][generic-types] we saw the tree type:</p>
+<p class="itemText">all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).</p>
+<p class="itemText">We can define an implementation for the indexable contract for this type — if we arrange for the tree to be a tree of key-value pairs:</p>
+<p class="itemText">implementation all k,v ~~</p>
+<p class="itemText">    comparable[k], equality[k] |:</p>
+<p class="itemText">      indexable[tree[(k,v)]->>k,v] => {</p>
+<p class="itemText">  _index(T,K) => findInTree(T,K).</p>
+<p class="itemText">  _set_indexed(T,K,V) => setKinTree(T,K,V).</p>
+<p class="itemText"> ...</p>
+</li>
+<li>
+<p class="itemTitle">Index Slices</p>
+<p class="itemText">Related to accessing and manipulating individual elements of collections are the indexed slice operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:</p>
+<p class="itemText">C[fx:tx]</p>
+<p class="itemText">denotes the subsequence of C starting — and including — the element indexed at fx and ending — but not including the element indexed at tx.</p>
+<p class="itemText">As might be expected, the index slice notation is also governed by a contract — the sliceable contract. This contract defines the core functions for s...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Doing Stuff With Collections</p>
+<p class="itemText">One of the most powerful features of collections is the ability to treat a collection as a whole. We have already seen a little of this in our analysis of the visitor pattern. Of course, the point of collections is to be able to operate over them as entities in their own right. As should now be obvious, most of the features we discuss are governed by contracts and it is paradigmatic to focus on contract specifications rather than specific implementations.</p>
+<p class="itemText">The number of things that people want to...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Filtering With filter</p>
+<p class="itemText">The simplest operation on a collection is to subset it. The standard function filter allows us to do this with some elegance.</p>
+<p class="itemText">Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:</p>
+<p class="itemText">filter((X)=>X%2==0,Nums)</p>
+<p class="itemText">For example, if Nums were the list:</p>
+<p class="itemText">list of [1,2,3,4,5,6,7,8,9]</p>
+<p class="itemText">then the value of the filter expression would be</p>
+<p class="itemText">list of [2,4,6,8]</p>
+<p class="itemText">The first argument to filter is a predicate: a function that returns a boolean value. The filt...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The filterable contract</p>
+<p class="itemText">As noted above, the filter function is governed by a contract, the filterable contract:</p>
+<p class="itemText">contract all c,e ~~ filterable[c->e] ::= {</p>
+<p class="itemText">  filter:((e)=>boolean,c) => c.</p>
+<p class="itemText">}</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">The Sieve of Erastosthenese</p>
+<p class="itemText">One of the classic algorithms for finding primes can be expressed using filters — the so-called sieve of Erastosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of filter operations.</p>
+<p class="itemText">The core of the sieve algorithm involves taking a list of numbers and removing multiples of a given number from the list...</p>
+</li>
+<li>
+<p class="itemTitle">Mapping to Make New Collections</p>
+<p class="itemText">One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The map function – part of the mappable contract – can be used to perform many transformations of collections.</p>
+<p class="itemText">For example, to compute the lengths of strings in a list we can use the expression:</p>
+<p class="itemText">map(size,list of ["alpha","beta","gamma"])</p>
+<p class="itemText">which results in the list:</p>
+<p class="itemText">list of [5,4,5]</p>
+<p class="itemText">The map function is defined via the mappable contrac...</p>
+</li>
+<li>
+<p class="itemTitle">Compressing Collections With a Fold</p>
+<p class="itemText">Another way of using collections is to summarize or aggregate over them. For example, the average function computes a single number from an entire collection of numbers — as do many of the other statistical functions. We can define average using the standard leftFold1 function, which is part of the standard folding contract:</p>
+<p class="itemText">average(C) is leftFold1((+),C)::float/size(C)::float</p>
+<p class="itemText">Notice the use of coercion here — coercing both the result of the leftFold1 and size to float. The reason for doing this...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Iteration</p>
+<p class="itemText">We now take a look at how we can process collections using actions rather than expressions. Iteration is one of those areas where history has resulted in two quite different traditions: OO-style languages and functional languages have markedly different approaches to iteration; and yet, as we will see, they can be seen as twins of each other.</p>
+<p class="itemText">A classic iteration over a collection, written in Java in this case, looks something like:</p>
+<p class="itemText">int len = 0;</p>
+<p class="itemText">for(String s:myColl){</p>
+<p class="itemText">  len = len+s.length();  // d...</p>
+</li>
+<li>
+<p class="itemTitle">Queries</p>
+<p class="itemText">Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a list of parents and children:</p>
+<p class="itemText">parent:list[(string,string)].</p>
+<p class="itemText">parent = [("john","peter), ("peter","jane"), ... ].</p>
+<p class="itemText">and that we wanted to construct a result along the lines of:</p>
+<p class="itemText">GC:list[(string,string)].</p>
+<p class="itemText">GC = [("john","jane"),...].</p>
+<p class="itemText">This involves searching the parents for pairs or pairs that satisfy the grandparent relationship. Ba...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Satisfaction Semantics</p>
+<p class="itemText">The foundation for the query notation is the notation for conditions. Conditions are boolean valued — but they are not always expressions. For example, the first condition for grandparent is that there is a parent; this was expressed using the condition:</p>
+<p class="itemText">(X,Z) in parent</p>
+<p class="itemText">This condition is not evaluated in the way that expressions are normally evaluated — by testing to see if a given pair of X and Z are in the parent collection. Instead, the condition is evaluated by trying to find X and Z that ar...</p>
+</li>
+<li>
+<p class="itemTitle">Query Quantifiers</p>
+<p class="itemText">The QuantifierTerm in a query specifies ‘how many’ answers we want. There are essentially three forms of QuantifierTerm — if we want all the answers then we use a term of the form:</p>
+<p class="itemText">{ all (X,Y) where ... }</p>
+<p class="itemText">On the other hand, if we want a fixed number, then we use:</p>
+<p class="itemText">{ 5 of (X,Y) where ... }</p>
+<p class="itemText">Of course, there might not be five answers, and so this is called a bounded QuantifierTerm.</p>
+<p class="itemText">We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of Star’s most po...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Types of Collection</p>
+<p class="itemText">Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of adding to the collection, the cost of accessing elements of the collection and the cost of modifying elements in the collection.</p>
+<p class="itemText">There is a strong emphasis on persistent semantics for the types and functions that make up Star’s collections architecture. This is manifest in the fact, for example...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The cons Type</p>
+<p class="itemText">This is the simplest collection type; and is perhaps the original collection type used in functional programming languages. It is defined by the type declaration:</p>
+<p class="itemText">all t ~~ cons[t] ::= nil | cons(t,cons[t]).</p>
+<p class="itemText">Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a cons list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to t...</p>
+</li>
+<li>
+<p class="itemTitle">The list Type</p>
+<p class="itemText">The list type offers a different trade-off to the cons type: where the latter is optimal for ease of constructing and for traversing complete lists, the list type offers constant-time access to random elements within the array — at the potential cost of more expensive construction of lists.</p>
+<p class="itemText">Unlike the cons type, the list type does not have a straightforward definition as an algebraic type. Internally, an list structure consists of an array of locations with a ‘control pointer’ giving the portion...</p>
+</li>
+<li>
+<p class="itemTitle">The dictionary Type</p>
+<p class="itemText">Unlike the cons or list type, the dictionary type is oriented for access by arbitrary keys. The dictionary is also quite different to hash trees as found in Java (say), the dictionary type is persistent: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of the dictionary is quite comparable to Java’s HashMap.</p>
+<p class="itemText">The template for the dictionary type is:</p>
+<p class="itemText">all k,v ~~ equality[k] ...</p>
+</li>
+<li>
+<p class="itemTitle">The Set Type</p>
+<p class="itemText">There are many instances where a programmer needs a collection but does not wish specify any ordering or mapping relationship. The standard set type allows you to construct such entities.</p>
+<p class="itemText">Using a set type offers the programmer a signal that minimizes assumptions about the structures: the set type is not ordered, and offers no ordering guarantees. It does, however, offer a guarantee that operations such as element insertion, search and set operations like set union are implemented efficiently.</p>
+<p class="itemText">Li...</p>
+</li>
+<li>
+<p class="itemTitle">The range Type</p>
+<p class="itemText">The range type is a very particular form of collection type: a range denotes a range of numbers. Its type description says it all:</p>
+<p class="itemText">all t ~~ arithmetic[t] |: range[t] ::= range(t,t,t).</p>
+<p class="itemText">This type description has some special features; in particular it is a constrained type: a type expression of the form:</p>
+<p class="itemText">range[T]</p>
+<p class="itemText">is only valid if T is an arithmetic type; specifically a type that supports arithmetic and is comparable. Thus a type expression such as range[integer] is fine, but range[list[integer]] w...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Queries and Maps for Statistical Purposes</p>
+<p class="itemText">We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.</p>
+<p class="itemText">Statistics is, of course, one of the key application areas of computers in general. However, there is often a substantial gap between the theoretical aspects of statistical processing and the pragmatics of collecting and processing data. We aim to demonstrate Star’s power in both areas.</p>
+<p class="itemText">One fecund source ...</p>
+</li>
+<li>
+<p class="itemTitle">Summary</p>
+<p class="itemText">Collections form an important part of any modern programming language. The suite of features that make up the collections architecture in Star consists of a number of data types, contracts and special syntax that combine to significantly reduce the burden of the programmer.</p>
+<p class="itemText">The collections facility amounts to a form of DSL – Domain Specific Language – that is, in this case, built-in to the language. We shall see later on that, like many DSLs, this results in a pattern where there is a syntactic ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Boiling the Ocean</p>
+<p class="itemText">It is a commonplace in software engineering that you should not try to ‘boil the ocean’; which is a synonym for ‘biting off more than you can chew’. However, it is possible to build very large scale systems if you approach it in the right way. This is the purview of architecture and of software development teams.</p>
+<p class="itemText">The ‘right’ way to boil an ocean is one cup at a time. The ‘smart’ way to do it is to build a machine that makes cups that boil the ocean.</p>
+<p class="itemText">Building software in the context of a team is ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Packages and Worksheets</p>
+<p class="itemText">We have already seen the two basic forms of compilation unit in Star: the package and the worksheet.</p>
+<p class="itemText">Since Star is an extensible language, it is quite possible to create other forms of compilation unit.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Package [package] </p>
+<p class="itemText">Packages are the foundational unit of compilation; there is also an intended semantics:</p>
+<p class="itemText">Package</p>
+<p class="itemText">A package is a collection of definitions that are intended to represent some coherent functionality or purpose.</p>
+<p class="itemText">This is, of course, a vague and non-actionable definition. There are higher-level notions of what ‘functionality’ might mean: for example, in the context of Service Oriented Architecture, a service is the ‘manifestation of a business functionality’. If that is clearer, then a package is a ma...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The main Program</p>
+<p class="itemText">If a package defines a main procedureA procedure, in Star, is a function that returns the void tuple (). then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a list[string]s.</p>
+<p class="itemText">If the main procedure is defined then automatic coercion from command line arguments to internal types is performed. For example,</p>
+<p class="itemText">myProgr...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Worksheet</p>
+<p class="itemText">We have already seen a number of examples of using worksheets. They represent a modern replacement for the traditional REPL — or Read-Eval-Print-Loop. The main advantages of worksheets over the traditional REPL are that they simultaneously act as their own transcript and they integrate well with editor-centric IDEs.</p>
+<p class="itemText">We prefer worksheets to normal packages for the same situations as one might prefer a REPL over a traditional file: worksheets make it easy to set up simple experiments and ‘see what...</p>
+</li>
+<li>
+<p class="itemTitle">Importing Packages</p>
+<p class="itemText">There are two basic ways of importing a packageYou cannot import a worksheet. into your code: the open import and the named import. The open import is the simplest; to import a package you just import it (sic):</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  import myPackage.</p>
+<p class="itemText"></p>
+<p class="itemText">  -- Use definitions from myPackage</p>
+<p class="itemText">}</p>
+<p class="itemText">You can also import packages outside the worksheet structure:</p>
+<p class="itemText">import myPackage.</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  -- Use definitions from myPackage</p>
+<p class="itemText">}</p>
+<p class="itemText">Any definition that is contained in myPackage is available throughout the worksheet (or ot...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Private and Public Imports</p>
+<p class="itemText">By default, when a package is imported, it is privately imported – the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.</p>
+<p class="itemText">However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exp...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Code Products</p>
+<p class="itemText">One important question that must be answered in any scheme that permits importing is “where is the code coming from?”. Star has three architectural elements that are the basis of code management: the code repository, a system of universal resource identifiers (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.</p>
+<p class="itemText">The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not ma...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Code Repository</p>
+<p class="itemText">Apart from simply being a place compiled code can be kept, a code repository has several other responsibilities: it must be possible to access the compiled code from multiple packages — including packages that were imported. In fact, a Star code repository is able to contain the compiled code of any number of packages — since code repositories are also used to hold compiled libraries as well as applications.</p>
+<p class="itemText">In addition, we have to be able to manage multiple versions of a given compiled package;...</p>
+</li>
+<li>
+<p class="itemTitle">Universal Resource Identifier</p>
+<p class="itemText">Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.</p>
+<p class="itemText">The URI has an IETF standard specification (RFC 2396) [#rfc2396].</p>
+<p class="itemText">One important source of confusion with the IETF URI is the distinction between URIs and URLs. Although they share a common syntax a URI is not intended to convey the location of the resource.</p>
+<p class="itemText">For example, the URI</p>
+<p class="itemText">file://foo/bar/x/y.star</p>
+<p class="itemText">looks like a file-based name: one might be tempted to believe that the file x.Star re...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Transducer</p>
+<p class="itemText">The connection between a URI and the actual resource must be established by a transducer. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.</p>
+<p class="itemText">The Star compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.</p>
+</li>
+<li>
+<p class="itemTitle">Standard URI Schemes</p>
+<p class="itemText">Although the Star compiler can, in principle, utilize any URI scheme, some schemes are ‘built-in’ — in the sense that there is a standard transducer for them. It is obviously an implementation dependent aspect of the language: different compilers may support different schemes; but all should support at least the following:</p>
+<p class="itemText">star</p>
+<p class="itemText">E.g. Star://foo/bar/gar.star. This is intended to be used as a system dependent but universal way of identifying Star files. I.e., each system is free to choose how to fi...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Catalogs</p>
+<p class="itemText">A catalog is a mapping from identifiers to package URIs; i.e., it is the missing link between package identifiers and package URIs. Catalogs are sometimes written explicitly — in the form of a file that you can place in the same directory as your source files — but usually the compiler makes an automatic catalog depending on where the source code of a package is actually located.</p>
+<p class="itemText">Like other features, the catalog system is under-pinned by a contract – in this case, the contract is used by the com...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Existentialism</p>
+<p class="itemText">If we take a slightly deeper look at the package we will see some surprising features; features that are sadly not very common in programming languages.</p>
+<p class="itemText">Lets start with a super simple source package:</p>
+<p class="itemText">ss{</p>
+<p class="itemText">  public double:(integer)=>integer.</p>
+<p class="itemText">  double(X) is X*2.</p>
+<p class="itemText">}</p>
+<p class="itemText">This package structure is semantically equivalent to:</p>
+<p class="itemText">ss:{double:(integer)=>integer}.</p>
+<p class="itemText">ss = let{</p>
+<p class="itemText">  public double:(integer)=>integer.</p>
+<p class="itemText">  double(X) is X*2</p>
+<p class="itemText">} in {. double=double .}</p>
+<p class="itemText">In effect, a package reduces to a variable declaration whose t...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Existential Types</p>
+<p class="itemText">What does it mean to have a type in a record? From a programmer’s point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn’t have types in it. However, the logic of this bears a deeper look.</p>
+<p class="itemText">The declaration of the foo type involves the use of an existential quantifier:</p>
+<p class="itemText">simple:exists f/1 ~~ {</p>
+<p class="itemText">  foo ~> f.</p>
+<p class="itemText">  ...</p>
+<p class="itemText">}</p>
+<p class="itemText">The meaning of an existentially quantified type is complementary to the universally quantifie...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Use and Evidence</p>
+<p class="itemText">To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.</p>
+<p class="itemText">Consider the simple function d with its type declaration:</p>
+<p class="itemText">d:all t ~~ arithmetic[t] |: (t)=>t.</p>
+<p class="itemText">d(X) => X+X</p>
+<p class="itemText">In the equation th...</p>
+</li>
+<li>
+<p class="itemTitle">Using Existentially Quantified Types</p>
+<p class="itemText">So, what are the rules for existentially quantified types?</p>
+<p class="itemText">The first is one that we have already been looking at:</p>
+<p class="itemText">An existential variable may be bound to a type when providing evidence that a value has a certain type, but may not be constrained when using a value with an existential quantifier in its type.</p>
+<p class="itemText">The second is related to this:</p>
+<p class="itemText">Each occurrence of an existentially quantified type is potentially different.</p>
+<p class="itemText">Think about a function with the type:</p>
+<p class="itemText">exFn:for all t ~~</p>
+<p class="itemText">  (t)=>exists e ~~ R of (e,...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Abstract Data Types</p>
+<p class="itemText">Abstract data types can be viewed as the mathematics behind object oriented programming.Not to be confused with Algebraic Data Types — which represent the mathematical foundation for enumerations and other non-object values.</p>
+<p class="itemText">Abstract Data Type</p>
+<p class="itemText">An abstract data type is a mathematical model of a set of related values that share a common set of semantics.</p>
+<p class="itemText">In programming, it is the common semantics that defines the structure; but, of course, programming languages are not able to capture the full sem...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Opening Up</p>
+<p class="itemText">One of the reasons that we are so interested in establishing a ‘normal’ semantics for modules and ADTs is that we can develop systems where the contents of a module depends on some additional computation; i.e., we can use functions over modules. For example, we can show that aspect oriented programming and dependency injection can be realized just using normal code structuring with functions and let environments.</p>
+<p class="itemText">Techniques like dependency injection are typically applied to large programs; unfor...</p>
+</li>
+<li>
+<p class="itemTitle">Injection</p>
+<p class="itemText">Injection is a technique where we specialize a program with additional information; especially where that additional information is not part of the normal argument flow. Of course, it can be hard to be crisp about ‘not part of the normal argument flow’; but injection is an architectural technique to apply if and when it makes a difference in the readability of your code.</p>
+<p class="itemText">Injection is often used to manage configuration of code: the configuration is injected into the main program; for example, we ...</p>
+</li>
+<li>
+<p class="itemTitle">Extensible Types</p>
+<p class="itemText">Sometimes, rather than configuring a program with a numeric value (or any other value for that matter), we need to configure it with a type. This does not happen that often, and Star’s type constraints can eliminate many cases where it might be needed; but the requirement still shows up occasionally. Where it can show up is in situations where you need to develop customizable applications — applications that can be extended further by your customers without you having to change a line of your ow...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Phew</p>
+<p class="itemText">This Chapter covers some difficult material! We start with a requirement to scale — to be able to scale code from a single module through to applications built by assembling libraries. Along the way we take in existential quantification and abstract data types.</p>
+<p class="itemText">What we have not yet addressed are the needs of distributed applications. Managing distributed applications is one of the most tedious and difficult challenges of modern software development. However, before we can demonstrate Star’s appr...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Concurrency</p>
+<p class="itemText">Concurrency is about doing more than one thing at once. Concurrency in programming languages is important for two basic reasons: modern processors are easily capable of executing many tasks in parallel (and by implication, if your program does not then you may not be making good use of the machine) and many applications have to be able to respond to events without having to process everything in a fixed order.</p>
+<p class="itemText">Building concurrent applications is hard for programmers primarily because many of the...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Tasks</p>
+<p class="itemText">A task expression denotes a possibly suspended computation — which itself is a sequence of actions — and which may have a value when the computation is performed. Furthermore, tasks have the potential to be executed concurrently or even in parallel with other tasks.</p>
+<p class="itemText">Like tasks, functions can also be viewed as representing suspended computations. However, unlike functions, a task expression represents a single suspended computation.</p>
+<p class="itemText">A task expression is written as a sequence of actions, enclosed ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The Value of a Task</p>
+<p class="itemText">As we saw above, a task computation produces a value by performing the valis action:</p>
+<p class="itemText">valis X+Y</p>
+<p class="itemText">The value of a task value is obtained using the valof operator:</p>
+<p class="itemText">valof T</p>
+<p class="itemText">denotes the value returned by the task computation T.</p>
+<p class="itemText">It is important to remember, in thinking about tasks, that there is the extra level of indirection.</p>
+<p class="itemText">Note that the valof operator also has the effect of forcing the completion of the task T; in particular, the valof operator is blocked until the task has completed and its value c...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Getting the value more than once</p>
+<p class="itemText">Note that it is possible to access a task value multiple times. However, the actions in the task body will only ever be performed once: subsequent attempts to get the value of the task simply return the value previously computed.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Background Tasks</p>
+<p class="itemText">A task can be started in the background — i.e., concurrently with other tasks — by using the background operator, which is a function from tasks to tasks. It’s type is given by</p>
+<p class="itemText">background:all t ~~ (task[t])=>task[t].</p>
+<p class="itemText">Applying background to a task not only yields a task of the same type, but also one yielding the same value.</p>
+<p class="itemText">The background operator has a simple effect — it starts its argument task so that it will operate in parallel with other computations.</p>
+<p class="itemText">If it happened to be the case that a ba...</p>
+</li>
+<li>
+<p class="itemTitle">Computing with tasks</p>
+<p class="itemText">Like other values, tasks are first class: they can be assigned to variables, kept in data structures, passed to and from functions and so forth. This flexibility leads to great expressive power — many patterns of computations can be readily encoded as task-valued functions.</p>
+<p class="itemText">For example, consider the mp function — which is a facsimile of the standard map function specialized for list values:</p>
+<p class="itemText">mp:all s,t ~~ ((s)=>t,list[s])=>list[t].</p>
+<p class="itemText">mp(F,[]) => [].</p>
+<p class="itemText">mp(F,[X,..Y]) => [F(X),..mp(Y)].</p>
+<p class="itemText">In this mp funct...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Computation Expressions and the M word</p>
+<p class="itemText">Task expressions are instances of a more general Star feature: the computation expression. Task expressions are oriented towards the concurrent execution of computations; other forms of computation expression have different purposes. In particular, the simple valof expression:</p>
+<p class="itemText">valof{</p>
+<p class="itemText">  x = 2;</p>
+<p class="itemText">  y = f(x);</p>
+<p class="itemText">  valis x+y</p>
+<p class="itemText">}</p>
+<p class="itemText">is actually a degenerate case of an action computation expression:</p>
+<p class="itemText">valof action computation {</p>
+<p class="itemText">  x = 2;</p>
+<p class="itemText">  y = f(x);</p>
+<p class="itemText">  valis x+y</p>
+<p class="itemText">}</p>
+<p class="itemText">There are several forms of computation expression i...</p>
+</li>
+<li>
+<p class="itemTitle">Rendezvous</p>
+<p class="itemText">Tasks support a very simple communication pattern between parts of a computation: a task computes for a while, and then (if appropriate) returns a result to anyone asking for its value — typically a parent task. While a task can spawn sub-tasks, there is no immediate way for tasks to communicate with each other while they are running. Many applications, however, require more fine-grained coordination between tasks.</p>
+<p class="itemText">To permit this better coordination, and to permit data to flow between tasks, we ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">A rendezvous is a Future Event</p>
+<p class="itemText">A rendezvous is an object describing an event that may or may not happen in the future. The basic operation for a rendezvous is waiting for the event, and when the event happens, it may yield or consume a value.</p>
+<p class="itemText">This is reflected in the rendezvous type itself:</p>
+<p class="itemText">all t ~~ rendezvous[t]</p>
+<p class="itemText">One of the simplest forms of rendezvous denotes a timeout:</p>
+<p class="itemText">timeoutRv:(integer) => rendezvous[()].</p>
+<p class="itemText">The rendezvous returned by timeoutRv(10) describes an ‘‘alarm clock’’ event that happens 10 milliseconds in the future...</p>
+</li>
+<li>
+<p class="itemTitle">Waiting for Events</p>
+<p class="itemText">The wait for operator takes a rendezvous and yields a task that waits for the event described by the rendezvous to happen. So, for example:</p>
+<p class="itemText">wait for timeoutRv(2000)</p>
+<p class="itemText">is a task that, when performed, does nothing for 2 seconds, and yields the () value.</p>
+<p class="itemText">Note that wait for returns a task - it does not execute it. To actually wait for an event, the task must be performed. Typically, within a task block, it is used like so:</p>
+<p class="itemText">task {</p>
+<p class="itemText">  ...</p>
+<p class="itemText">  perform wait for timeoutRv(2000)</p>
+<p class="itemText">  ...</p>
+<p class="itemText">}</p>
+<p class="itemText">There are quite a few p...</p>
+</li>
+<li>
+<p class="itemTitle">Channels of Communication</p>
+<p class="itemText">In many cases the requirement for synchronization between tasks is based on needing reliable communication between them. Instead of building communication on top of a model of ‘shared resources’, we use direct ‘message passing’: one task sends a message to another. The mechanism we use is called the channel.</p>
+<p class="itemText">Channel</p>
+<p class="itemText">A channel is a means by which two (or more) tasks can pass data in a type-safe way between themselves.</p>
+<p class="itemText">Channels are synchronous: in order for data to be passed between tasks they mus...</p>
+</li>
+<li>
+<p class="itemTitle">Computing Primes With Tasks</p>
+<p class="itemText">Before, we looked at implementing the sieve of Eratosthenes using operations over collections. The Sieve, as it is affectionately known, is also a great demonstrator of concurrent programming.</p>
+<p class="itemText">Recall that The Sieve has two parts: a collection of activities that filter a sequence of numbers looking for multiples of previously found primes and a master that grows the set of filters as new primes are found.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Filtering for Primes</p>
+<p class="itemText">Let us start with modeling each filter as a concurrent task; which can be implemented using:</p>
+<p class="itemText">fun filter(P,inChannel) is let{</p>
+<p class="itemText">  def outChannel is channel()</p>
+<p class="itemText">  fun loop() is task{</p>
+<p class="itemText">    while true do {</p>
+<p class="itemText">      def I is valof (wait for recvRv(inChannel))</p>
+<p class="itemText">      if I%P!=0 then -- not a multiple, pass it on</p>
+<p class="itemText">        perform wait for sendRv(outChannel,I)</p>
+<p class="itemText">    }</p>
+<p class="itemText">  }</p>
+<p class="itemText"></p>
+<p class="itemText">  { ignore background loop() }</p>
+<p class="itemText">} in outChannel</p>
+<p class="itemText">The heart of the filter function is a concurrently executing task that listens for input, checks t...</p>
+</li>
+<li>
+<p class="itemTitle">A Stream of Naturals</p>
+<p class="itemText">Before we look at the main sieve, let us see how we construct a generator stream. In the case of the sieve, we need a stream of positive integers (naturals) that will act as the source of potential prime numbers (to be filtered of course).</p>
+<p class="itemText">The naturals function is set up to return a channel on which will be placed the odd integers greater than 2:</p>
+<p class="itemText">def naturals is let {</p>
+<p class="itemText">  def natChannel is channel()</p>
+<p class="itemText">  { ignore background task {</p>
+<p class="itemText">      var counter := 3</p>
+<p class="itemText">      while true do{</p>
+<p class="itemText">        perform wait for s...</p>
+</li>
+<li>
+<p class="itemTitle">Sieving for Primes</p>
+<p class="itemText">The final piece of The Sieve is the sieve function which constructs a network of filters to sieve out the primes.</p>
+<p class="itemText">At any one time there is an existing network of filters removing multiples of prime numbers found so far. For example, after processing 13, the next number to look at will be 15 and the network of filters will look like:</p>
+<p class="itemText"></p>
+<p class="itemText">The Sieve of Eratosthenes at 13</p>
+<p class="itemText">The 3 filter removes 15 because 15 is a multiple of 3. However, the following number — 17 — survives all the filters and the sieve r...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Philosophers Have to Eat Too</p>
+<p class="itemText">The analog of the ‘hello world’ example in concurrent programming is probably the in-famous dining philosophers problem. Made famous in this form by C.A.R. Hoare (also of QuickSort fame), the set up for this puzzle is quite straightforward: there are four philosophers sitting at a table wanting to eat. The catch being that there are only four forks on the table and a philosopher needs to use two forks to eat something from the table.</p>
+<p class="itemText"></p>
+<p class="itemText">Four Dining Philosophers</p>
+<p class="itemText">Of course, it is only a little eccen...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Using Channels and Rendezvous to Implement Semaphores</p>
+<p class="itemText">A semaphore is a general structure for implementing mutual exclusive access to some resource.</p>
+<p class="itemText">Semaphore</p>
+<p class="itemText">A semaphore is a variable, with associated grab and release operations, that can be used to manage access to a shared resource by multiple concurrent activities.</p>
+<p class="itemText">It is traditional in designing semaphores to allow an arbitrary — but controlled — number of clients access to the resource. A non-recursive lock is equivalent to a semaphore with a count of 1.</p>
+<p class="itemText">Given a semaphore, it is used in a seque...</p>
+</li>
+<li>
+<p class="itemTitle">A Meeting of Philosophers</p>
+<p class="itemText">We can model a philosopher as a task function that iteratively acquires a left and right fork, ‘eats’ for a random period, and then stops eating after relinquishing its two forks (so another philosopher can eat).</p>
+<p class="itemText">The classic Hoare solution to the deadlock problem is to invoke an additional element: a central ‘table’. The role of the table is to ensure that only one philosopher at a time is requesting forks; this, in turn, prevents a deadlock situation where two or more philosophers can start the...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Asynchronous Communication</p>
+<p class="itemText">We stated at the beginning that ‘synchronous communication was more basic’ than asynchronous communication. Nevertheless, there are times when asynchronous communication is called for.</p>
+<p class="itemText">In general, asynchrony increases the potential for parallelism; it also increases the complexity of coordination.</p>
+<p class="itemText">One pattern that makes inherent use of asynchronous communication is the worker-queue pattern. The worker-queue pattern consists of a source of ‘work’, a queue to hold unfinished work items and one or ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">A Message Queue</p>
+<p class="itemText">We start by defining a type that denotes the interface to the queue. For convenience, we use a type alias to a record with a post function and a poll function within it:</p>
+<p class="itemText">type messageQ of a is alias of {</p>
+<p class="itemText">  post:(a)=>task of ()</p>
+<p class="itemText">  poll:()=>task of a</p>
+<p class="itemText">}</p>
+<p class="itemText">In effect, the record type is a specification of an API for accessing a message queue.</p>
+<p class="itemText">One might ask why do we use task oriented types like task of () and task of a types? I.e., why wrap the type of the message in a task type?</p>
+<p class="itemText">The messageQ is likely t...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Comment</p>
+<p class="itemText">The concurrency features of task expressions and rendezvous avoid the synchronization problems that plague concurrent and parallel programming in traditional languages. Moreover, tasks and rendezvous scale easily to hundreds of thousands of threads.</p>
+<p class="itemText">However, it should also be clear that they are also a little low-level: in order to program something like a semaphore or a message queue requires fairly careful attention to detail.</p>
+<p class="itemText">The true merit of Star’s concurrency features is that they do allow...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Application = Policy + Mechanism</p>
+<p class="itemText">It should be clear at this point that Star is quite a rich language. There are many features and sub-languages that form the whole. We have seen several of these, including quite complex features like queries. In Chapter [chattering-agents][] we will also see a sophisticated sub-language based on actors and speech actions. It may surprise you to learn that the core of Star is quite small, with many features implemented in Star itself. Our task now is to introduce you to some of the techniques av...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">How to Design a Domain Specific Language[how-to-design-a-domain-specific-language]</p>
+<p class="itemText">One of the primary reasons for wanting to have domain specific languages is to be able to succinctly express policy. Pretty much every significant application and module tends to be more general than the individual problem it was designed for; which means that actually applying the application (sic) amounts to using a subset of the capabilities of a general mechanism to solve the specific problem.</p>
+<p class="itemText">Policy has a number of definitions, one of which is</p>
+<p class="itemText">Policy</p>
+<p class="itemText">An expression of a constraint that gover...</p>
+</li>
+<li>
+<p class="itemTitle">Resource Definition Framework[rdf] RDF semantics is extremely simple: a RDF graph is a set of triples consisting of a subject, predicate and object; each of which is a concept. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.</p>
+<p class="itemText">RDF is good for representing the simple ‘facts’ that one often sees in applications that have to model aspects of the real world. A classic example of this is in modeling things like giraffes: if we have a Giraffe called Joe, then we typically want to be able to say things like:</p>
+<p class="itemText">Joe isa giraffe</p>
+<p class="itemText">which means</p>
+<p class="itemText">Joe is a Giraffe</p>
+<p class="itemText">RDF is not especially powerful — which is actually one of the key design points in the language. Its simplicity means that it is easily manipulated and processed.</p>
+<p class="itemText">Another nice...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">There is Methodology in my Ontology[there-is-methodology-in-my-ontology]</p>
+<p class="itemText">The most important initial task in designing a DSL or policy framework has nothing to do with operators, macros or any of the facilities of Star — you must identify the appropriate structure and semantics for your language. More formally, this can be defined as identifying the ontology of the language.</p>
+<p class="itemText">Ontology, as a discipline, dates back to Aristotle. He was one of the first people to attempt to systematically classify the known world. Nowadays, Ontology refers to the study of the relationship...</p>
+</li>
+<li>
+<p class="itemTitle">Nouns and Verbs[nouns-and-verbs]</p>
+<p class="itemText">Natural language grammar often has many kinds of words; but the two most important kinds of words are nouns and verbs. The same is usually true of computer languages: there are things that we want to represent and process in some way and there are actions that we want to be be able to model.</p>
+<p class="itemText">The kind of UML-based analysis that we have used so far often leads naturally to a classification of the things in the DSL. Knowing what you want to do with those things may be harder to clarify. However, we...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Designing Syntax[designing-syntax]</p>
+<p class="itemText">Once we have at least an approximate conceptualization, our next step is to design the syntax. Syntax is important because it encodes the manner in which different features of the DSL can be expressed and combined.</p>
+<p class="itemText">There is an inevitable requirement for taste in designing the syntax of a language extension. One of the foundations for this taste is knowledge of the existing syntactic patterns in the host language. Another is an awareness of the combinatorial potential in the language — i.e., what...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Triple Notation[triple-notation]</p>
+<p class="itemText">The focal structure in a triple graph is the triple. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the [N3][#N3-W3C] notation — which is a more human readable version of the standard XML RDF syntax adopted by W3C:</p>
+<p class="itemText">Subject ! Predicate $ Object.</p>
+<p class="itemText">The idea is to make it easy to represent facts like:</p>
+<p class="itemText">john ! likes $ mary.</p>
+<p class="itemText">peter ! in_department $ accounting.</p>
+<p class="itemText">We also allow raw strings in our triples, to enable us to represent information that is...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Design is Iteration[design-is-iteration]</p>
+<p class="itemText">As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we could create a query language specifically for triple graphs. However, a more subtle and integrated approach is to extend the standard built-in query language with conditions that are tailored to work with triple graphs. This has the advantage that we can leverage standard query processing to help process triple graphs.</p>
+<p class="itemText">So, we need an extension to standard q...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Operator Precedence Grammar[operator-precedence-grammar]</p>
+<p class="itemText">Star has a very flexible syntactic foundation based on a Operator Precedence Grammar. You are already quite familiar with operator precedence grammars — they are used in nearly every programming language to represent arithmetic expressions. For example</p>
+<p class="itemText">X+Y*3</p>
+<p class="itemText">is a very common way of representing the addition of X to the result of multiplying Y by 3. It also represents the application of two operators: + and * which happen to be binary operators.</p>
+<p class="itemText">The operator structure of an expression is complete...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Mixing Operators[mixing-operators]</p>
+<p class="itemText">The standard N3 notation includes some simple extensions to make certain patterns of facts easier to write. For example, we can write:</p>
+<p class="itemText">:Joe ! isa $ :giraffe.</p>
+<p class="itemText">:giraffe ! [subclass $ :mammal, has $ :long-neck].</p>
+<p class="itemText">:mammal ! [subclass $ :animal, has $ :four-legs].</p>
+<p class="itemText">[:giraffe, :mammal, :animal] ! isa $ class.</p>
+<p class="itemText">instead of</p>
+<p class="itemText">:Joe ! isa $ :giraffe.</p>
+<p class="itemText">:giraffe ! isa $ class.</p>
+<p class="itemText">:giraffe ! subclass $ :mammal.</p>
+<p class="itemText">:giraffe ! has $ :long-neck.</p>
+<p class="itemText">:mammal ! isa $ class.</p>
+<p class="itemText">:mammal ! subclass $ :animal.</p>
+<p class="itemText">:mammal ! has $ :four-legs...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Embedding Graphs[embedding-graphs]</p>
+<p class="itemText">One of Star’s standard syntactic paradigms is the ‘brace term’. We use it to represent records, as in:</p>
+<p class="itemText">someone{ name="fred" }</p>
+<p class="itemText">We also use it to represent more complex entities like packages and worksheets:</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  show 1+2</p>
+<p class="itemText">}</p>
+<p class="itemText">Continuing in this tradition we will use a similar syntactic structure to represent complete triple graphs:</p>
+<p class="itemText">graph{</p>
+<p class="itemText">  [:peter, :john] ! :in_department $ :accounting.</p>
+<p class="itemText">  :john ! :address $ "2 smart place".</p>
+<p class="itemText">  :john ! :name $ "John Smith".</p>
+<p class="itemText">}</p>
+<p class="itemText">Since this is a first class value...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Validation[validation]</p>
+<p class="itemText">Simply defining operators is not enough to design a language extension. We must be able to make sure that the operators are used sensibly in the appropriate context, and that the Star compiler can make sense of the new syntax. To help with this, Star has a standard way of representing the valid syntactic forms of language extensions — using a set of validation rules.</p>
+<p class="itemText">The purpose of a validation rule is two fold: it defines the legal syntactic forms and it enables a language extension designer to...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Escaping our DSL We are making a subtle choice with these validation rules for concept. We are affirming that the only way that we can embed ‘normal’ Star expressions in a concept graph is through variables.</p>
+<p class="itemText">In general, it is normally desirable to allow arbitrary expressions to be embedded in DSL extensions. However, one has to design the syntactic mechanism that permits this escape. In our case we take the extremely simple approach of only allowing variables.</p>
+</li>
+<li>
+<p class="itemTitle">Variations on a Theme Because we want to allow different variations on the legal forms of triple, the complete validation rules for triple are more complex and involve several different categories:</p>
+<p class="itemText"> # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase</p>
+<p class="itemText"> # ?T :: triple :- error("$T is not a valid triple")</p>
+<p class="itemText"></p>
+<p class="itemText"> # ?P $ ?O :: verbPhrase :- P::verb :& O::nounPhrase</p>
+<p class="itemText"> # [ ?VP ] :: verbPhrase :- VP::verbPhrases</p>
+<p class="itemText"> # ?VP :: verbPhrase :-</p>
+<p class="itemText">    error("$VP must have at least one predicate and one object")</p>
+<p class="itemText"></p>
+<p class="itemText"> # ?A,?B :: verbPhrases :- A::verbPhrase :& B::verbPhrases</p>
+<p class="itemText"> # ?A :: verbPhrases :- A::verbPhrase</p>
+<p class="itemText"></p>
+<p class="itemText"> # [?V] :: verb :- V::verbs</p>
+<p class="itemText"> # ?V :: verb :- V::concept</p>
+<p class="itemText"></p>
+<p class="itemText"> # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::ver...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Translating Graphs[translating-graphs]</p>
+<p class="itemText">Once we have rules for validating graph expressions in place the compiler is able to verify the form of triple graph expressions but is not able to type check or compile them. For this we need to be able to translate triple graphs to something the compiler can understand; for that we use macros.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Representing Triple Graphs[representing-triple-graphs]</p>
+<p class="itemText">We start with representing triple graphs. Reflecting the ontology we constructed above, we can define three types to represent concepts, triples, and graphs.</p>
+<p class="itemText">There are two kinds of concept, and we want to keep them distinct in our representation:</p>
+<p class="itemText">type n3Concept is n3C(string) or n3S(string)</p>
+<p class="itemText">The two kinds of concept are the named concept — identified by the n3C constructor — and the literal string — identified by the n3S constructor.</p>
+<p class="itemText">The triple is similarly represented by a type definition:</p>
+<p class="itemText">type ...</p>
+</li>
+<li>
+<p class="itemTitle">Macro Rules[macro-rules]</p>
+<p class="itemText">Macros are programs that are executed by the compiler in order to transform terms into simpler forms — with the eventual goal that the terms produced by macro processing are directly understood by the main compiler.</p>
+<p class="itemText">There are two kinds of macros in Star: the macro rule and the code macro. A macro rule is a substitution rule that is applied by the Star compiler during normal compilation. For example, the macro rule:</p>
+<p class="itemText"> - ?X ==> __uminus(X)</p>
+<p class="itemText">is used by the compiler to replace occurrences of unary min...</p>
+</li>
+<li>
+<p class="itemTitle">Meta Language[meta-language]</p>
+<p class="itemText">Star has a meta language and a standard type to go with it. This means that expressions in the language may also be values. For example, consider the expression:</p>
+<p class="itemText">X+2</p>
+<p class="itemText">If the value of X is 3, then the value of this expression is 5. However, we can also examine the language that this expression is made of — by using the quote notation. The expression:</p>
+<p class="itemText"><| X+2 |></p>
+<p class="itemText">means the name of the expression; for compiler-buffs this is effectively the abstract syntax tree of the expression. Star has a standard ty...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Meta Variables[meta-variables]</p>
+<p class="itemText">In addition to the basic quote notation for expressions, it also has support for meta-variables. Meta variables are variables embedded in quoted terms — they are variables of the quoted term, not variables in the object language. They are very useful in programs that process quoted expressions — both as expressions and as patterns.</p>
+<p class="itemText">For example, to denote a triple pattern one may construct the quoted pattern:</p>
+<p class="itemText"><| ?S ! ?P $ ?O |></p>
+<p class="itemText">where S, P and O are meta-variables that would be bound to the subjec...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Code Macros[code-macros]</p>
+<p class="itemText">Code macros, as their name suggests, are normal Star functions that are invoked by the compiler on the text that the compiler is compiling. Code macros give the macro programmer almost the full power of Star to implement translation; in particular they can call other functions and use other types than quoted internally. However, code macros are a little more awkward to use than macro rules — there are some special restrictions on their form and what their scope is.</p>
+<p class="itemText">Code macros are embedded withi...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">After the Translation[after-the-translation]</p>
+<p class="itemText">Translating a DSL into core Star is not always the end of the story. In addition it is important to consider what other ways it should be integrated with the language. For example, we designed a new condition so that triple graphs could participate in queries. In addition, there may be one or more standard contracts that should be implemented for elements of the DSL.</p>
+<p class="itemText">Finally, we recall that we fixed on the representation of a triple graph as a list of triples, specifically of n3Triple terms. How...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Is There a Downside to DSLs?[is-there-a-downside-to-dsls]</p>
+<p class="itemText">Nothing comes without risks, for every yin there is a yang. What, we should ask, are the risk factors in having a programming language that encourages programmers to create DSLs?</p>
+<p class="itemText">There are three primary areas that we need to point out:</p>
+<p class="itemText"> 1. Programming DSLs is somewhat more difficult than regular programming. This is certainly true: programming with macros requires a certain facility with meta-language. There is much in common between developing compilers and developing macro packages for a DSL. ...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Chattering Agents</p>
+<p class="itemText">Software agents represent one of those concepts that are very compelling – perhaps precisely because it speaks to natural human intuitions. Agents are also a popular model for distributed systems. Distributed systems are often characterized by multiple loci of control – typically one per machine in the system – and assigning an agent to each locus is a very natural architecture.</p>
+<p class="itemText">In this chapter we look at how we can build agent-based systems and hence distributed systems.</p>
+<p class="itemText">You will notice that th...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">A Taxonomy of Agents[a-taxonomy-of-agents]</p>
+<p class="itemText">There is a natural hierarchy of types of agent – which roughly aligns with their roles and capabilities in distributed applications:</p>
+<p class="itemText">Agent</p>
+<p class="itemText">An agent is an entity that can act; often on behalf of another entity. By extension, a software agent is one that acts primarily in the software domain.</p>
+<p class="itemText">The difference between an agent and a function is that the latter must be invoked before any actions in it’s body can be performed; whereas an agent is ‘already’ ready to act.</p>
+<p class="itemText">There is a vast potential range ...</p>
+</li>
+<li>
+<p class="itemTitle">Speech Actions[speech-actions]</p>
+<p class="itemText">As the term suggests, speech actions are a communications model based on an anthropomorphic understanding of how agents communicate. Speech actions were first investigated by John Austin[#austin:60] in the 1940’s as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by John Searle [#searle:69] and standardized in KQML [#kqml:93] and FIPA [#FIPA].</p>
+<p class="itemText">Beyond the anthropomorphism, there are sound technical justifications ...</p>
+</li>
+<li>
+<p class="itemTitle">Programming Speech[programming-speech]</p>
+<p class="itemText">A critical aspect of human communication is the vocabulary employed – more formally the ontology being referenced. The natural analog of this in software systems is the Application Programming Interface (API). An API specifies which functions you may invoke, what their types are and what the expected results of invoking the functions should be.</p>
+<p class="itemText">The major semantic difference between an API and an Ontology is that the latter can often convey more semantics. For example, it is possible, in an ontol...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Queries</p>
+<p class="itemText">We have, in Star, a better, more systematic, approach to describing and implementing public APIs – based on speech actions.And contracts of course. For example, assuming that Ag had the appropriate type similar to that of A above, we could issue a speech action against Ag with a very similar query:</p>
+<p class="itemText">query Ag with list of { all y where</p>
+<p class="itemText">    (y,"1in-washer") in products and</p>
+<p class="itemText">    quantity(y)>20 }</p>
+<p class="itemText">One of the most obvious differences here being where the target of the API is mentioned: it is only mentio...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Free Variables in Speech[free-variables-in-speech]</p>
+<p class="itemText">Although the body of a query speech action might be any expression, there are some syntactic restrictions on the valid forms of query expression. The primary reason for these restrictions is to make it simpler to determine the scopes of identifiers occurring in the query expression. Specifically, we need to be able to determine for any identifier occurring in the queried expression whether or not it refers to the agent being queried or the outer context.</p>
+<p class="itemText">For example, consider the simple query:</p>
+<p class="itemText">q...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Notifications[notifications]</p>
+<p class="itemText">A notify speech action is intended to communicate the occurrence of an event of some form. In the context of software systems it corresponds to a message being sent on a named channel; however that seems low level in comparison.</p>
+<p class="itemText">The form of a notify is a little different to the query:</p>
+<p class="itemText">notify Agent with Expression on Channel</p>
+<p class="itemText">To notify Ag that there is a new stock item might take the form:</p>
+<p class="itemText">notify Ag with</p>
+<p class="itemText">  ("MS-345","3/4in Machine Screw")</p>
+<p class="itemText">  on stock</p>
+<p class="itemText">The content here is the tuple term</p>
+<p class="itemText">("MS-345","3/...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">No Time[no-time]</p>
+<p class="itemText">The notify speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.</p>
+<p class="itemText">Furthermore, not all applications need time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock’s ticking would confirm that neither tick nor tock is timesta...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Requests[requests]</p>
+<p class="itemText">Our final form of speech action is the request. A request is intended to denote a request that the recipient perform some action. This is subtly different to the query in that – apart from answering the question – a query should not cause any change of state in the recipient, whereas the request likely would.</p>
+<p class="itemText">Even though the difference between query and request may seem subtle to the average programmer the key difference is in the intended use.</p>
+<p class="itemText">The form of a request reflects the fact that an act...</p>
+</li>
+<li>
+<p class="itemTitle">A Missing Performative</p>
+<p class="itemText">Star does not have a declare performative – currently. It may be instructive to see why not, especially since we introduced speech action theory with a classic declaration. While it is not likely that a software agent will marry couples any time soon, there are legitimate reasons for wanting the ability to make declarations.</p>
+<p class="itemText">A declaration is a speech action whose effect is embedded within the speech action itself. Declarations establish new facts that are shared by the listener and potentially o...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Actors[actors]</p>
+<p class="itemText">So far we have discussed what talkative agents say to each other but not on how they are built. The simplest structure that responds to this is the actor. Actors are lightweight entities that can respond to speech actions. For example, this actor models some aspects of a bank:</p>
+<p class="itemText">agentBank is actor{</p>
+<p class="itemText">  private var accts := dictionary of []</p>
+<p class="itemText">  fun balance(N) where accts[N] matches Ac is Ac.balance()</p>
+<p class="itemText">  prc transfer(F,T,Amt) do{</p>
+<p class="itemText">    def Fr is accts[F]</p>
+<p class="itemText">    def To is accts[T]</p>
+<p class="itemText">    Fr.debit(Amt)</p>
+<p class="itemText">    To.cred...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Performance Characteristics of Actors[performance-characteristics-of-actors]</p>
+<p class="itemText">Actors are comparatively efficient at processing speech actions; and they are trusting: that is, they do not perform any validation on the speech actions. One resulting limitation is that they are definitely not safe in a concurrent environment. Again, no interlocking checks are performed – which means that if you use a regular actor in background tasks (say) then you will likely get inconsistent results.</p>
+<p class="itemText">Also, actors are somewhat stateful in nature. They are intended to encapsulate the processi...</p>
+</li>
+<li>
+<p class="itemTitle">Concurrent Actors[concurrent-actors]</p>
+<p class="itemText">A concurrent actor is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.</p>
+<p class="itemText">However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.</p>
+<p class="itemText">It should be no...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Summary</p>
+</li>
+</ul>
+<hr class="afterTitle"/>
+
+<li>
+<p class="topLevelItemTitle">At the Watering Hole</p>
+<p class="itemText">We noted in the introduction that developing software is a team sport. This is true at multiple levels – from building libraries to constructing platforms that support thousands of applications and users. In this chapter we turn our attention to the issues involved in the latter and see how Star’s features can support this goal.</p>
+<p class="itemText">One of the most robust form of relationships is that between vendor and customer. The reason for this is that it is easy to be clear about the different responsibilities...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Responding to Change One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.</p>
+<p class="itemText">There are three common sources of change at the macro-level: a need to reuse a software artifact, a need to repurpose the artifact and/or a need to refactor the artifact. The first corresponds to using a software artifact in a similar role but in a different context. For example, when a Math library developed for real-time analytics is to be used for a Machine Learning application: it is still a Math library but its context is new.</p>
+<p class="itemText">Repurposing occurs when the artifact is being used to solve a di...</p>
+</li>
+<li>
+<p class="itemTitle">Boxes and Arrows[boxes-and-arrows]</p>
+<p class="itemText">It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:There are other systems of boxes and arrows that have utility. The most well-known example is probably the suite of diagrams that make up UML.</p>
+<p class="itemText">#</p>
+<p class="itemText">A System for Splitting Orders</p>
+<p class="itemText">could be used to explain the system for managing the way parts are ordered in a car factory that supported a ‘build-to-order’ model for manufactur...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Ports and Speech[ports-and-speech]</p>
+<p class="itemText">First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.</p>
+<p class="itemText">This is an important point: unlike most programming languages, and unlike Star itself, our diagramming notation does not rely on scoping to commu...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">A Component in Star[a-component-in-Star]</p>
+<p class="itemText">One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application.By functional we mean important to the solution not necessarily as in functional programming. The intuition is that individual components have a specific role in the application; but that they are typically ‘quite large’. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.</p>
+<p class="itemText">One of the non-goals of box...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Re-purposing Components[re-purposing-components]</p>
+<p class="itemText">One of the distinguishing features of the boxes-and-arrows diagram is that it highlights the major sources of input and output in the system. This is in marked contrast with most programming languages where the I/O functionality is buried deep within the code itself. For example, our splitComponent does not directly communicate with a database; instead it poses a query to the partsDB component. Similarly, the components for recovering incoming orders and sending out orders to suppliers are mostl...</p>
+</li>
+<li>
+<p class="itemTitle">Wiring up Boxes and Arrows[wiring-up-boxes-and-arrows]</p>
+<p class="itemText">We started this section with a graphical depiction of an application as boxes and arrows between them. However, not many computers can execute boxes, and so if we want to run the application we have to construct a complete written program that represents the drawn diagram.</p>
+<p class="itemText">The written form of our car part sourcing application is not that hard to follow, given the material we have covered so far:</p>
+<p class="itemText">import boxesNarrows</p>
+<p class="itemText">partSource is application{</p>
+<p class="itemText">  def ordersIn is import ordersInComponent</p>
+<p class="itemText">  def split...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">There is more to a platform than this</p>
+<p class="itemText">We have actually just scratched the surface of the potential of this kind of programming platform. In truth, like many of the chapters in this book, a full treatment of a boxes-and-arrows platform would justify a book in its own right.</p>
+<p class="itemText">Other aspects that we have omitted include composite components, component templates, wiring diagrams as Star programs, the dynamic behavior or components and so on.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Are We Done Yet?</p>
+<p class="itemText">This book takes you on a journey starting with very simple Star programs and ending with a platform that is capable of being deployed on large scale distributed networks. In the meantime we also explored some quite deep topics in functional programming, concurrency and developing domain specific languages.</p>
+<p class="itemText">The truth is, of course, that we are only able to scratch the surface of many of the topics we cover. So, the question is what next?</p>
+<p class="itemText">If you want to go deeper into Star itself then the natural ...</p>
+</li>
+</ul>
+
+</td>
+<td width="55px">
+</td>
+</tr>
+
+<!-- Bottom margin -->
+<tr><td height="15px"></td></tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,20 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Our final form of speech action is the request. A request is intended to denote a request that the recipient perform some action. This is subtly different to the query in that \'96 apart from answering the question \'96 a query should not cause any change of state in the recipient, whereas the request likely would.\
+Even though the difference between query and request may seem subtle to the average programmer the key difference is in the intended use.\
+The form of a request reflects the fact that an action is involved:\
+request 
+\i Agent
+\i0  to 
+\i Action
+\i0 \
+A simple request may be to invoke a procedure from the API; however complex scripts are also possible. For example, we can request that all stock items that are empty be deleted:\
+request Ag to delete (Id,_) from stocks where quantity(Id)=0\
+The action\
+delete (Id,_) from stocks where quantity(Id)=0\
+is part of the standard CRUD (Create-Read-Update-Delete) feature that allows collections to be updated.}

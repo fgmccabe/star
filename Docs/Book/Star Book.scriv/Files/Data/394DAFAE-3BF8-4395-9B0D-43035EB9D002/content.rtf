@@ -1,0 +1,58 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 So, what 
+\i are
+\i0  the rules for existentially quantified types?\
+The first is one that we have already been looking at:\
+An existential variable may be bound to a type when providing 
+\i evidence
+\i0  that a value has a certain type, but may not be constrained when 
+\i using
+\i0  a value with an existential quantifier in its type.\
+The second is related to this:\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\i \cf2 Each occurrence of an existentially quantified type is potentially different
+\i0 .\
+Think about a function with the type:\
+exFn:for all t ~~\
+  (t)=>exists e ~~ R of (e,t)\
+For the moment, we don\'92t much care about R. Now, consider how we might use exFn:\
+def X1 is exFn("alpha")\
+...\
+def X2 is exFn("alpha")\
+An important question is \'93what is the relationship between the type of X1 and the type of X2?\'94. Unfortunately, the fundamental answer is \'91we cannot know in general\'92; which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of exFn may result in 
+\i different
+\i0  instantiations for e for each invocation. The result is we cannot assume any link between the types of X1 and X2: they are different.\
+On the other hand, consider the similar sequence of definitions:\
+def Y1 is exFn("alpha")\
+...\
+def Y2 is Y1\
+In this case we do know that the type of Y1 is identical to the type of Y2. This leads us to the third rule:\
+Each 
+\i use
+\i0  of an existential quantification introduces a new type \'97 called a _Skolem type_\{\\SCRV_FN=Technically, the type is denoted by a 
+\i Skolem Constant
+\i0  or a 
+\i Skolem Function
+\i0 .\\END_SCRV_FN\} \'97 that follows the normal inference rules for all types.\
+I.e., once a type has been introduced as a Skolem type, it behaves just like any regular type and the normal rules of inference apply. This applies equally to the two fragments of code above; but the additional constraint on the immutable values of Y1 and Y2 make it easier to propagate type information.\
+We can see this a little clearly by looking at the effective type annotations of Y1 and Y2:\
+Y1:R of (e345,string)\
+def Y1 is exFn("alpha")\
+...\
+Y2:R of (e345,string)\
+def Y2 is Y1\
+where e345 is the skolemized variant of the existential type e.\
+The effective annotations for X1 and X2 will have different skolem constants:\
+X1:R of (e235,string)\
+def X1 is exFn("alpha")\
+...\
+X2:R of (e678,string)\
+def X2 is exFn("alpha")\
+If Y1 or Y2 were declared to be re-assignable variables then, once again, we would not be able to connect the types of Y1 and Y2 together.}

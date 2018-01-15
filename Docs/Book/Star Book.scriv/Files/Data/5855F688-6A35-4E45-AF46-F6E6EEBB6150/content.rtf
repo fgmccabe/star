@@ -1,0 +1,56 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The map function \'96 part of the mappable contract \'96 can be used to perform many transformations of collections.\
+For example, to compute the lengths of strings in a list we can use the expression:\
+map(size,list of ["alpha","beta","gamma"])\
+which results in the list:\
+list of [5,4,5]\
+The map function is defined via the mappable contract \'97 thus allowing different implementations for different collection types:\
+contract all c/1 ~~ mappable[c] is \{\
+  map:all e,f ~~ ((e)=>f,c[e])=>c[f]\
+\}\
+Notice how the contract specifies the collection type \'97 c \'97 without specifying the type of the collection\'92s element type. We are using a different technique here than we used for the sequence contract. Instead of using functional dependency to connect the type of the collection to the type of the element, we denote the full type of the input and output collections using a type variable as the 
+\i type constructor
+\i0  as in c[e] and c[f].\
+We are also using a variant of the quantifier. A quantified type variable of the form c/1 denotes a type variable that refers to a type constructor that takes one argument.\
+The reason for this form of contract is that mappable implies creating a new collection from an old collection; with a possibly different element type. This is only possible if the collection is generic and hence the type expressions c[e] and c[f].\
+One might ask whether we could not have used a contract of the form:\
+  contract all c,e,f ~~ mappable2[c->>e,f] ::=  \{\
+    map:((e)=>f,c)=>c.\
+  \}\
+However, 
+\i this
+\i0  contract forces the types of the result of the map to be identical to its input type, it also allows the implementer of the mappable2 contract to fix the types of the collection elements \'97 not at all what we want from a map.\
+It is not all that common that we need to construct a list of sizes of strings. A much more realistic use of map is for 
+\i projection
+\i0 . For example, if we wanted to compute the average age of a collection of people, which is characterized by the type definition:\
+person ::= someOne\{\
+  name:string.\
+  age:()=>float.\
+\}\
+Suppose that we already had a function average that could average a collection of numbers; but which (of course) does not understand people. We can use our average by first of all projecting out the ages and then applying the average function:\
+average(map((X)=>X.age(),People))\
+In this expression we project out from the People collection the ages of the people and then use that as input to the average function.\
+There is something a little magic about the lambda function in this expression: how does the type checker \'91know\'92 that X can have a field age in it? How much does the type checker know about types anyway?\
+In this particular situation the type checker could infer the type of the lambda via the linking between the type of the map function and the type of the People variable. However, the type checker is actually capable of giving a type to the lambda even without this context. Consider the function:\
+nameOf(R) => R.name\
+This function takes an arbitrary record as input and returns the value of the name field. Notice that we don\'92t, and do not need to, explicitly annotate the nameOf function \'97 this function will work with 
+\i any
+\i0  record that has a name field.\
+The nameOf function 
+\i is
+\i0  well typed, its type annotation just needs a slightly different form than that we have seen so far:\
+nameOf:all r,n ~~\
+   r <~ \{name:n\} |: (r)=>n\
+This is another example of a 
+\i constrained type
+\i0 : in this case, the constraint on r is that it has a field called name whose type is the same as that returned by nameOf itself.\
+The type constraint:\
+r <~ \{name:n\}\
+means that any type bound to r must have a name field whose type is denoted by the type variable n in this case.\
+With this type signature, we can use nameOf with any type that that a name field. This can be a record type; it can also be a type defined with an algebraic type definition.}

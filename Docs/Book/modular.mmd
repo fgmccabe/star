@@ -17,6 +17,7 @@ We have already seen the two basic forms of compilation unit in **Star**: the `p
 >Since **Star** is an extensible language, it is quite possible to create other forms of compilation unit.
 
 ### Package [package]
+Packages are the foundational unit of compilation; there is also an intended semantics:
 
 **Package**
 : A `package` is a collection of definitions that are intended to represent some coherent functionality or purpose.
@@ -27,10 +28,10 @@ For all of its vagueness, the basic idea of a `package` is that it is a containe
 
 The form of a package is
 
-_Package Identifier_ `{` _Definitions_ `}`
+_PackageIdentifier_ `{` _Definitions_ `}`
 
 
-The _Package Identifier_ at the beginning of the package definition is the name of the package. It typically consists of a sequence of identifiers separated by periods. Normally a package identifier has little role within the package itself; it is used when referring to the package externally.
+The _PackageIdentifier_ at the beginning of the package definition is the name of the package. It typically consists of a sequence of identifiers separated by periods. Normally a package identifier has little role within the package itself – it is used when referring to the package externally.
 
 Most of the _Definitions_ are those that we have already seen: function definitions, variable definitions and type definitions. There are some additional forms however, including the `import` statement — that allows one to import elements from other packages.
 
@@ -77,7 +78,7 @@ If you want to manage all the command-line arguments, then define the procedure 
 
 ```
 myProgram{
-  _main:(list[string])=>()
+  _main:(list[string])=>().
   _main(args) do { ... }
 }
 ```
@@ -198,7 +199,7 @@ The second way of importing a package is to use the _named import_. As suggested
 
 ```
 worksheet{
-  mP is import myPackage
+  import myPackage as mP.
 
   -- Use definitions from myPackage via mP
 }
@@ -219,7 +220,7 @@ To use the `unFoo` function in our second worksheet, we simply reference it as a
 
 ```
 worksheet{
-  mP is import myPackage.
+  import myPackage as mP.
 
   getTheStuff:all t ~~ (mP.foo[t])=>t.
   getTheStuff(F) is mP.unFoo(F).
@@ -230,7 +231,7 @@ What may be a little surprising is that this applies to the `foo` type also, and
 
 ```
 worksheet{
-  mP is import myPackage.
+  import myPackage as mP.
 
   wrapF:all t ~~ (option[t])=>foo[t].
   wrapF(none) => mP.bar.
@@ -270,7 +271,7 @@ libraryPkg{
 
 One important question that must be answered in any scheme that permits importing is "where is the code coming from?". **Star** has three architectural elements that are the basis of code management: the _code repository_, a system of _universal resource identifiers_ (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.
 
->The issues that show up when managing resources tend to fall in the 'annoyingly complex' rather than 'rocket science' category. However,that does not make them less important, and addressing them certainly helps with that oceanic problem.
+>The issues that show up when managing resources tend to fall in the 'annoyingly complex' rather than 'rocket science' category. However, that does not make them less important, and addressing them certainly helps with that oceanic problem.
 
 ### Code Repository[code-repository]
 
@@ -309,7 +310,7 @@ The **Star** compiler has a range of transducers built-in to it; and also has a 
 
 Although the **Star** compiler can, in principle, utilize any URI scheme, some schemes are 'built-in' — in the sense that there is a standard transducer for them. It is obviously an implementation dependent aspect of the language: different compilers may support different schemes; but all should support at least the following:
 
-**Star**
+**star**
 : E.g. `Star://foo/bar/gar.star`. This is intended to be used as a system dependent but universal way of identifying **Star** files. I.e., each system is free to choose how to find resources using the **Star** scheme in its own way. It is also  expected that methods would be provided for importing and exporting resources between the system and other systems (e.g., mobile vs desktop computers).
 
 **http**
@@ -320,60 +321,37 @@ Although the **Star** compiler can, in principle, utilize any URI scheme, some s
 
 In addition, the compiler may support the **file** scheme and other schemes as appropriate.
 
-#### Package URIs[package-uris]
-
-We stated earlier that an `import` statement looks like:
-
-```
-import myPackage
-```
-
-where `myPackage` was an identifier that named the required package to import. Such simple identifiers hardly qualify as URIs of course. In fact, the full form of an import is:
-
-`import` "_scheme_:/_host_/_path_?_version_"
-
-where _scheme_ is one of the supported URI schemes, _path_ is the name of the resource and _version_ is an optional _version specification_.
-
-It turns out that, most of the time, specifying imported packages with explicit URIs in this way is awkward; and subject to errors when refactoring a code base.[^fn2]
-
-[^fn2]:The linguistically precise version of the `import` statement would be even worse; since strings are not actually the same thing as URIs. The accurate version should have been something like:
-
-	```
-	import "http:/foo.com/bar/x/y.star" as uri
-	```
-
-However, while correct, this is unnecessarily clumsy. Instead, we allow identifiers to name package URIs (as we have been throughout this book) and use our third mechanism to bridge the gap: the _catalog_.
-
 ### Catalogs[catalogs]
 
 A _catalog_ is a mapping from identifiers to package URIs; i.e., it is the missing link between package identifiers and package URIs. Catalogs are sometimes written explicitly — in the form of a file that you can place in the same directory as your source files — but usually the compiler makes an automatic catalog depending on where the source code of a package is actually located.
 
-A `catalog` is a **Star** term that looks like:
+Like other features, the catalog system is under-pinned by a contract – in this case, the contract is used by the compiler to access the source URIs. 
+
+The `catalog` contract looks like:
 
 ```
-catalog{
-  version = "2.3.1";
-  baseURI = "http://path";
-  content = dictionary of [
-    "myPackage" -> "file:/example.com/foo/bar/myPackage"
-    "yourLib" -> "http://example.com/foo/lib/youLib?version=3.4"
-  ]
+contract catalog ::= {
+  defltVersion: version.
+  catalogEntry:(string)=>uri.
+}
+```
+Having the catalog be driven by a contract allows for multiple potential implementations. One standard implementation is via JSON files.
+
+A sample JSON catalog file looks like:
+
+```
+{
+  "content": {
+    "sample.factorial": "factorial.star"
+  },
+  "fallback" : "../Star/catalog",
+  "version": "2.3.1"
 }
 ```
 
-The catalog term is placed in a file — also called `catalog` — that is in the same directory as the source files of the packages that this catalog supports. (I.e., one catalog file supports a whole directory worth of source files.)
+Other implementations of catalogs are possible; one of the other standard catalog structures automatically populates a catalog based on the contents of a directory.
 
-Most of the contents of the catalog are optional. The `version` information defines the version that will be appended to any programs that are compiled using this catalog. Similarly, the `baseURI` is used to override the default URI; allowing the compiler to attach special URIs to compiled code — no matter where the source code itself lives.
-
-The `content` field defines a set of mappings from identifiers to URIs. The target URI is denoted as a string that follows the standard RFC2396 syntax for naming URIs.
-
-If a target URI identifies a `version`, then exactly that version will be searched for in the code repository. This is the feature that allows large applications to reference multiple versions of a package.
-
-If a target does not reference a specific version then the repository will be searched for the latest version of the requested package and that version will be used at run-time.
-
-In either case, the compiler will determine the exact version of a package to import — not the run-time.
-
-For most projects you will not need to be very aware of code repositories, catalogs and so on. However, the code product architecture is an important part of **Star**'s strategy for helping you building all scales of system.
+For most projects you will not need to be very aware of code repositories, catalogs and so on. However, the code product architecture is an important part of **Star**'s strategy for helping you building all scales of system. 
 
 ## Existentialism[existentialism]
 
@@ -382,26 +360,20 @@ If we take a slightly deeper look at the `package` we will see some surprising f
 Lets start with a super simple source `package`:
 
 ```
-ss is package{
-  fun double(X) is X*2
+ss{
+  public double:(integer)=>integer.
+  double(X) is X*2.
 }
 ```
 
 This package structure is semantically equivalent to:
 
 ```
-def ss is let{
-  fun double(X) is X*2
-} in {double=double}
-```
-
-Since there is a variable being defined here — the package variable `ss` — we might ask what is its type:
-
-```
-ss:{ double:(integer)=>integer }
-def ss is let{
-  fun double(X) is X*2
-} in {double=double}
+ss:{double:(integer)=>integer}.
+ss = let{
+  public double:(integer)=>integer.
+  double(X) is X*2
+} in {. double=double .}
 ```
 
 In effect, a package reduces to a variable declaration whose type is a record type and whose value is an anonymous record of all the functions defined in the package.
@@ -409,78 +381,49 @@ In effect, a package reduces to a variable declaration whose type is a record ty
 What about types though? **Star** allows us to export types from packages too:
 
 ```
-simple is package{
-  type foo of t is foo(t) or bar
+simple{
+  all t ~~ foo[t] ::= foo(t) | bar.
 
-  fooMe(X) is foo(X)
+  fooMe:all t ~~ (t)=>foo[t].
+  fooMe(X) => foo(X)
 }
 ```
 
 Exporting types — and their constructors — is an extremely important part of the package functionality. However, it turns out that we can account for types too in our semantics of packages. Similarly to our previous unfolding, the `simple` package is equivalent to:
 
 ```
-simple:{
-  foo has kind type of type
-  foo:for all t ~~
-    (t)<=>foo of t
-  bar:for all t ~~
-    ()<=>foo of t
-  fooMe:for all t ~~ (t)=>foo of t
+simple: exists foo/1 ~~ {
+  foo:all t ~~ (t)<=>foo[t].
+  bar:all t ~~ foo[t].
+  fooMe:all t ~~ (t)=>foo[t].
 }
-def simple is let{
-  type foo of t is foo(t) or bar
-  fooMe(X) is foo(X)
-} in { type foo=foo; foo=foo; bar=bar; fooMe=fooMe}
-```
+simple = let{
+  all t ~~ foo[t] ::= foo(t) | bar.
 
+  fooMe:all t ~~ (t)=>foo[t].
+  fooMe(X) => foo(X)
+} in {. type foo=foo. foo=foo. bar=bar. fooMe=fooMe .}
+```
+.
 This is clearly quite a bit more complex than our super-simple example; but the basic story is still there: a package consists of a variable definition whose value is an anonymous record. In this case, the anonymous record contains a type, two constructors as well as a regular function.
 
 Having constructors in a type is only a small extension to the conventional notion of a record — while many languages restrict records to containing just data values, most functional programming languages do allow functions in records. A constructor is just a special kind of function.
 
 On the other hand, having a type in a record is quite different.
 
-#### Type Variables and their Kind[type-variables-and-their-kind]
-We also have a new form of statement about types in this type signature: a `kind` annotation.
-
-In general, types have a _kind_ associated with them; kinds serve the same role for types as types do for expressions and values. In particular, when a type variable is used in a type expression, its kind must be consistent with its use. A significant difference between kind expressions and type expressions is that there are very few different forms of kind:
-
-```
-type t has kind type
-type u has kind type of type
-type v has kind type of (type,type,...,type)
-```
-
-The statement about the `foo` type asserts that it is a regular generic type:
-
-```
-foo has kind type of type
-```
-
-The `kind` annotation is a way of declaring that the `foo` type exists, without being specific about what the type actually is.
-
 ### Existential Types[existential-types]
 What does it mean to have a type in a record? From a programmer's point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn't have types in it. However, the logic of this bears a deeper look.
 
-The type expression in our record type:
+The declaration of the `foo` type involves the use of an _existential_ quantifier:
 
 ```
-simple:{
-  foo has kind type of type
+simple:exists f/1 ~~ {
+  foo ~> f.
   ...
 }
 ```
 
-is itself a kind of macro form. The true meaning of the declaration of the `foo` type involves the use of an _existential_ quantifier:
-
-```
-simple:exists f ~~ {
-  type foo=f
-  ...
-} where f has kind type of type
-```
-Notice how the `kind` annotation is still there, it is simply attached to a type variable, specifically an existentially quantified type.
-
-The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists — with possible constraints as in this case.
+The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that `foo` exists and is a type constructor of 1 argument.
 
 #### Use and Evidence[use-and-evidence]
 To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of _using_ a variable or whether one is defining it — or providing _evidence_ for it.
@@ -488,9 +431,8 @@ To get a better grip on type quantification in general and existentially quantif
 Consider the simple function `d` with its type declaration:
 
 ```
-d:for all t ~~
-  (t)=>t where arithmetic over t
-fun d(X) is X+X
+d:all t ~~ arithmetic[t] |: (t)=>t.
+d(X) => X+X
 ```
 
 In the equation that defines `d` we have not explicit referenced `t`; but the rules of type inference lead us to determine that — within the equation — type of `X` is `t`.
@@ -498,26 +440,25 @@ In the equation that defines `d` we have not explicit referenced `t`; but the ru
 If we had forgotten the `arithmetic` constraint:
 
 ```
-d:for all t ~~ (t)=>t
-fun d(X) is X+X
+d:all t ~~ (t)=>t.
+d(X) => X+X
 ```
 
 the compiler would have complained with a type error. The reason being that, because `t` is universally quantified, we are not permitted to further constrain `t` _within_ the body of the function. Requiring that `t` support addition is such a constraint and we are not permitted to assume it.
 
 On the other hand, when we _call_ `d`, the rules are more generous: calls of the forms `d(2)` and `d(2.4)` are both permitted because we are allowed to _use_ any type — that implements the `arithmetic` contract — when we call `d`.
 
->The reason we can substitute any type for `t` is a result of the universal quantifier: a `for all` quantifier means we can use any type for `t`.
+>The reason we can substitute any type for `t` is a result of the universal quantifier: a `all` quantifier means we can use any type for `t`.
 
 For existentially quantified types the situation is reversed: within an expression involving an existential type we can use what ever type we want — again, providing that other constraints have been met — but _outside_ the defining expression we can't make any assumptions or additional constraints about the quantified type.
 
 For various reasons, which we will explore further, existentially quantified types are mostly associated with records — like the package record we saw earlier. Let us look again at our simple package type:
 
 ```
-simple:exists f ~~ {
-  type foo=f
+simple:exists foo/1 ~~ {
   ...
-  fooMe:for all t ~~ (t)=>foo of t
-} where f has kind type of type
+  fooMe:for all t ~~ (t)=>foo[t].
+}
 ```
 
 As with universally quantified types, there are two kinds of contexts in which we use existentially quantified type variables: _use_ and _evidence_ contexts. In the former we are using the type and in the latter we are providing evidence that an expression has the right type.
@@ -525,18 +466,18 @@ As with universally quantified types, there are two kinds of contexts in which w
 The existential quantifier means is that within an instance of this record we can instantiate `foo` to any type that meets the constraints. The simplest way is to provide a type definition for `foo`:
 
 ```
-def simple is let{
-  type foo of t is foo(t) or bar
-  fun fooMe(X) is foo(X)
-} in { type foo=foo; foo=foo; bar=bar; fooMe=fooMe}
+simple = let{
+  all t ~~ foo[t] ::= foo(t) | bar.
+
+  fooMe(X) => foo(X).
+} in {. type foo=foo; foo=foo; bar=bar; fooMe=fooMe .}
 ```
 
 Externally, when we use the record, the opposite happens: we can make use of the existence of `foo` but we cannot further constrain it. We can use `simple`'s `foo` type, as well as the `fooMe` function that relies on it; for example, in:
 
 ```
-m:for all t ~~
-  (t)=>simple.foo of t
-fun m(X) is simple.fooMe(X)
+m:for all t ~~ (t)=>simple.foo[t].
+m(X) => simple.fooMe(X).
 ```
 
 There is something a little different going on here: the type of `m` appears to be dependent on a field of the variable `simple`; i.e., the type of `m` apparently depends on the value of `simple`. This is not something that we would normally sanction in a type system because of the potential for disaster.

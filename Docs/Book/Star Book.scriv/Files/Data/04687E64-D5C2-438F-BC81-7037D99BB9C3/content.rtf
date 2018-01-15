@@ -1,0 +1,80 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2  # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase\
+ # ?T :: triple :- error("$T is not a valid triple")\
+\
+ # ?P $ ?O :: verbPhrase :- P::verb :& O::nounPhrase\
+ # [ ?VP ] :: verbPhrase :- VP::verbPhrases\
+ # ?VP :: verbPhrase :-\
+    error("$VP must have at least one predicate and one object")\
+\
+ # ?A,?B :: verbPhrases :- A::verbPhrase :& B::verbPhrases\
+ # ?A :: verbPhrases :- A::verbPhrase\
+\
+ # [?V] :: verb :- V::verbs\
+ # ?V :: verb :- V::concept\
+\
+ # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs\
+ # ?V :: verbs :- V::concept\
+\
+ # [ ?NP ] :: nounPhrase :- NP :: nounPhrases\
+ # string :: nounPhrase\
+ # ?C :: nounPhrase :- C::concept\
+\
+ # #(?NP1,?NPr)# :: nounPhrases :- NP1::nounPhrase :&\
+     NPr::nounPhrases\
+ # ?NP :: nounPhrases :- NP::nounPhrase\
+One thing to notice about these validation rules are the rules of the form:\
+ # ?VP :: verbPhrase :-\
+    error("$VP must have at least one predicate and one object")\
+What this rule is saying is that if the earlier rules for verbPhrase don\'92t apply then the compiler should report an error message. The notable thing is that the error message is in the context of the triple graph notation: i.e., the compiler is able to report syntax errors in terms of a language extension that is itself not known to the compiler! This is important because it helps to prevent 
+\i abstraction leaks
+\i0  \'97 where the user of a system must understand what triples might compile to before understanding what is wrong with their program.\
+One other thing to notice can be seen in the rule for verbs:\
+ # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs\
+The term #(?V1,?Vr)# is a special kind of parenthesized term that means the same as (in this case) ?V1,?Vr. We use #()#\'92s parentheses because the regular parentheses ()\'92s are not dropped during parsing by the operator grammar, whereas #()#\'92s are.\
+This is because of the importance that regular parentheses play in the language: apart from operator precedence overriding (their most common use in programming languages), ()\'92s are used for type expressions and for tuple terms. In general, terms of the form (
+\i E
+\i0 ) are 
+\i not
+\i0  syntactically identical to 
+\i E
+\i0 .\
+The compiler applies parentheses reduction later in the compilation process; when it can be proved to be safe to eliminate regular parentheses.\
+The intention of the verbs rule is to allow multiple verbs in a predicate of a triple \'97 its context is the rule that picks up on the [] form of predicate:\
+ # [?V] :: verb :- V::verbs\
+This rule allows multiple verbs in a triple:\
+:john ! [:in_department, :works_at] $ :accounting\
+This form is equivalent to two triples with the same subject and object with with different predicates.\
+Having rules for triple is not sufficient to ensure validation of triple graphs. This is because the compiler has no a priori reason to understand or look for rules about triple. We need to establish the entry point into the validation.\
+At the top-most level, the compiler attempts to validate the entire input as a sequence of statements. It so happens that packages and worksheets count as statements.\
+We stated earlier that a triple graph will be treated as an 
+\i expression
+\i0  in the larger context. So, the natural entry point for validating triple graphs is as expressions; which we can formalize by defining a new rule for validating expressions:\
+ # graph\{?G\} :: expression :-\
+    G;*triple ## \{\
+      # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase\
+      # ?T :: triple :- error("$T is not a valid triple")\
+    ...\
+\}\
+The form G;*triple is a validation condition that states that G must be a sequence of terms (optionally separated by semi-colons) and each term must be a triple. In addition, we nested the set of validation rules for triple within the rule for graph. The ## operator is analogous to the let operator for expressions; except that here we use it to denote that we should look for the rules for triple within the braces.\
+Since, the natural scope rules for validation rules is one of cascading and augmentation rather than replacement, the meaning of the ## is a little different to the normal let expression. The validation rules that are located within the body of the ## are applied before other validation rules located externally.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b \cf2 Validating Triple Conditions\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\b0 \cf2 Recall that we also introduced a new form of condition that is suited for querying triple graphs. We need to validate such conditions too.\
+In some ways our says condition is simpler than the triple itself because we choose not to allow our complex noun phrase terminology in the condition. This results in a very simple validation rule for a query condition involving triple graphs:\
+ ?G says ?S ! ?P $ ?O :: condition :-\
+  S :: concept :& P :: concept :& O :: concept :&\
+  G :: expression\
+Notice that this rule simply states that a says condition is valid if G is an expression. We do not require that G is a literal graph; although its type will need to be consistent.\
+Unlike the rules for triples, this must must 
+\i not
+\i0  be embedded within a ## condition. The reason is that we must be able to find says conditions anywhere in a program \'97 not just inside a triple graph.}

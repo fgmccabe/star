@@ -1,0 +1,54 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 Macros are programs that are executed by the compiler in order to transform terms into simpler forms \'97 with the eventual goal that the terms produced by macro processing are directly understood by the main compiler.\
+There are two kinds of macros in 
+\b Star
+\b0 : the 
+\i macro rule
+\i0  and the 
+\i code macro
+\i0 . A macro rule is a substitution rule that is applied by the 
+\b Star
+\b0  compiler during normal compilation. For example, the macro rule:\
+ - ?X ==> __uminus(X)\
+is used by the compiler to replace occurrences of unary minus with a call to the standard __uminus function that is part of the standard arithmetic contract.\
+This rule will \'91fire\'92 whenever an occurrence of unary minus occurs in your program. It will 
+\i not
+\i0  fire for regular subtraction \'97 since the pattern on the left of the ==> arrow only matches the unary case.\
+Like validation rules, macro rules are pattern based: that is, the left hand side of a macro rule is a pattern that is applied to input 
+\b Star
+\b0  terms. In particular, there may be multiple macro rules that potentially match a given term. This makes macro rules quite a bit more expressive than either the macros in C/C++ or LISP. For example, the following macro rule can replace a multiplication by 2 with an addition:\
+ 2 * ?X ==> let \{ def x is X \} in x+x\
+This rule will 
+\i only
+\i0  match multiplication expressions where the left hand side is the literal integer 2. It will not fire for any other form of multiplicative expression.\
+The eagled-eyed reader may notice a small problem with this macro rule \'97 the variable x may already be free within X. The macro rule notation has a way of dealing with this scenario; which we omit for the sake of {\field{\*\fldinst{HYPERLINK "scrivcmt://2C842B20-07FC-4370-B5AE-04B6136DC503"}}{\fldrslt clarity.}}\
+Although we can use operators when we write macro rules, they are actually 
+\i insensitive
+\i0  to operators. For example, we could have written this macro rule using a normal function call pattern on the left hand side:\
+ (*)(2,?X) ==> let \{ def x is X \} in x+x\
+The (*) forces the compiler to suppress any operator interpretation of the the * character.\
+Macros written with macro rules can be quite complex, and it is possible to construct cascading sequences of macro rules to implement some impressive transformations. For example, the actor notation and the [speech action notation][speech-actions] is transformed into more regular 
+\b Star
+\b0  by means of a package of macro rules.\
+In our case, we will use a macro rule to handle the translation of a says condition:\
+  ?G says ?S ! ?P $ ?O ==>\
+    n3(trCon(S),trCon(P),trCon(O)) in G\
+By itself, rule would translate the term denoting the condition:\
+personnel says :john :works_in D\
+into the term:\
+n3(trCon(:john),trCon(:works_in),trCon(D)) in personnel\
+This translation is not complete because trCon is not a known function symbol. In fact, we also want to map :john etc. into concepts, i.e., into n3Concept terms; for which we need another set of macro rules:\
+ trCon(string?S) ==> n3S(S)\
+ trCon(: #(identifier?N)# ) ==> n3C(N)\
+The macro pattern string?S matches any literal string \'97 and, if successful, binds the macro variable S to the matched string; similarly the macro pattern identifier?N matches any identifier and binds N to the found identifier.\
+We also need a third rule that allows for 
+\i graph variables
+\i0  by mapping identifiers directly to identifiers:\
+ trCon(identifier?N) ==> N\
+Notice that, even in this simple situation of matching concept, we had to construct a two-level macro cascade involving the strictly macro-time trCon symbol to ensure that they were translated appropriately. This requirement is one the weaknesses of the macro rule.}

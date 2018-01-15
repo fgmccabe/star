@@ -1,0 +1,35 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\b\fs26 \cf2 \expnd0\expndtw0\kerning0
+Star
+\b0 \'92s lexical syntax is a combination of special operators and keywords.\
+It can be difficult for language designers to decide when to use a keyword and when to use a special operator. In the case of 
+\b Star
+\b0  we use special operators for common elements and keywords when either a graphical operator would be obscure and/or are not common.\
+For example, in the factorial module, we use braces for grouping; but we also use the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::0>
+\f2\fs22 import
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::0>
+\f0\fs26  and the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::0>
+\f2\fs22 where
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::0>
+\f0\fs26  keywords. The rationale here is that programmers have become used to seeing braces for grouping {\field{\*\fldinst{HYPERLINK "scrivcmt://37810132-A120-4AAA-AEF8-46EAC7D54BEA"}}{\fldrslt statements;}} whereas the import and where elements are somewhat rarer.\
+Notice that every statement is terminated with a period. This is one of those places where a little redundancy can help when building large programs: the statement terminator is not technically necessary; but it helps to reduce the scope of error {\field{\*\fldinst{HYPERLINK "scrivcmt://9FE1086B-7C1B-406E-A80B-DA3359CAC512"}}{\fldrslt \cf2 messages.}}\
+The precise rule is slightly more nuanced: a period is required to terminate a statement; unless the last character of the statement is a closing brace \'96 or unless the statement is itself the last statement in a brace {\field{\*\fldinst{HYPERLINK "scrivcmt://145E3FCB-38EE-44A2-BAA5-CEBAEB266B49"}}{\fldrslt \cf2 sequence.}}\
+Another aspect of 
+\b Star
+\b0 \'92s texture that may not be visible at this stage is the reliance on an underlying meta-grammar \'96 specifically on an 
+\i \cf2 operator precedence grammar
+\i0 \cf2 . OPGs are likely already familiar to you: it is the almost universally used grammar that underpins arithmetic expressions. We take the OPG and stretch its use to include the whole language. The relevance of this will be apparrent when we look at 
+\i \cf2 extending
+\i0 \cf2  
+\b Star
+\b0  with new language features.}

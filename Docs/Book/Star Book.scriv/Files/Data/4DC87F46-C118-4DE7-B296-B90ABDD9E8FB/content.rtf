@@ -1,0 +1,63 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+Consider, if you will, the problem of finding a set of grandparent-grandchild pairs \'97 given information about parent-child relationships. For example, suppose that we had a list of parents and children:\
+parent:list[(string,string)].\
+parent = [("john","peter), ("peter","jane"), ... ].\
+and that we wanted to construct a result along the lines of:\
+GC:list[(string,string)].\
+GC = [("john","jane"),...].\
+This involves searching the parents for pairs or pairs that satisfy the grandparent relationship. Based on the collection operators we have seen so far, we can build such a search using two leftFold operations:\
+leftFold(\
+  (SoFar,(X,Z)) => leftFold(\
+    let \{\
+      acc:(list[(string,string)],(string,string))=>list[(string,string)].\
+      acc(gp1,(ZZ,Y)) where Z==ZZ => [gp1..,(X,Y)].\
+      acc(gp1,_) => gp1\
+    \} in acc,\
+    SoFar,parent),\
+  list of [],\
+  parent)\
+This, rather intimidating, expression uses one leftFold to look for the grandparent, for each candidate grandparent a second leftFold finds all the grand-children. All without any explicit recursion.\
+The acc function defined above in the let expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.\
+The various filter, map and leftFold functions 
+\i \cf2 are
+\i0 \cf2  powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.\
+It turns out that 
+\b Star
+\b0  has a special notation that makes this kind of complex computation significantly easier to write and comprehend. 
+\b Star
+\b0 \'92s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:\
+GC = list of \{ all (X,Y) where\
+                      (X,Z) in parent && (Z,Y) in parent \}\
+It may not be obvious, but these expressions compute the same values! What should be obvious is that the query is much easier to read and easier to verify that it is correct.\
+The syntax and style of 
+\b Star
+\b0 \'92s query notation is similar to SQL\'92s syntax \'97 deliberately so.\
+Specifically, we take SQL\'92s 
+\i \cf2 relational calculus
+\i0 \cf2  subset \'97 the language of wheres and of boolean combinations. 
+\b Star
+\b0 \'92s query expressions do not have the equivalent of explicit relational join operators.\
+There are several variations of query expression, but the most common form is:\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\i \cf2 SequenceType
+\i0 \cf2  of \{ 
+\i \cf2 QuantifierTerm
+\i0 \cf2  where 
+\i \cf2 Condition Modifier
+\i0 \cf2  \}\
+where 
+\i \cf2 SequenceType
+\i0 \cf2  is any type name that implements the sequence contract, 
+\i \cf2 QuantifierTerm
+\i0 \cf2  is a form that indicates the form of the result of the query, 
+\i \cf2 Condition
+\i0 \cf2  is a condition and the optional 
+\i \cf2 Modifier
+\i0 \cf2  is used to signal properties of the result \'97 such as whether the result is grouped or sorted.}

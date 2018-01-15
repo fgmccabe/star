@@ -1,0 +1,59 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 We can model a philosopher as a task function that iteratively acquires a left and right fork, \'91eats\'92 for a random period, and then stops eating after relinquishing its two forks (so another philosopher can eat).\
+The classic Hoare solution to the deadlock problem is to invoke an additional element: a central \'91table\'92. The role of the table is to ensure that only one philosopher at a time is requesting forks; this, in turn, prevents a deadlock situation where two or more philosophers can start the process of acquiring their forks but are unable to complete because the another philosopher \'91has\'92 the other fork.\
+The table can be modeled straightforwardly as a semaphore with a limit of 1: only one philosopher can be starting to eat at any given time. Note that this does not mean that only one philosopher is eating at any one time: as soon as a philosopher has gotten two forks, another philosopher can start the process. Of course, given that there are four forks, only two philosophers can actually be eating simultaneously.\
+The main cycle for the philosopher task then looks like:\
+sleep(random(10L))  -- chat some\
+perform T.grab()    -- get permission first\
+perform L.grab()    -- get left fork\
+perform R.grab()    -- get right fork\
+perform T.release() -- release the table\
+\
+sleep(random(15L))  -- eat some\
+\
+perform L.release() -- let go of left fork\
+perform R.release() -- let go of right fork\
+The sleep calls in this sequence stand for some arbitrary activity \'97 such as chatting or eating \'97 that does not involve forks and/or the central table.\
+The complete phil function returns a task that performs this cycle a fixed number of times. The program below shows the phil function that takes the semaphores for the left and right forks as argument, together with an identifying philosopher number for debugging purposes.\
+fun phil(n,L,R) is task\{\
+  for Ix in range(0,Count,1) do\{\
+    sleep(random(10L))  -- chat some\
+    perform T.grab()    -- get permission first\
+    perform L.grab()    -- get left fork\
+    perform R.grab()    -- get right fork\
+    perform T.release() -- release the table\
+    sleep(random(15L))  -- eat some\
+    perform L.release() -- let go of left fork\
+    perform R.release() -- let go of right fork\
+  \}\
+\}\
+The eagled-eyed reader will notice that while L and R are parameters of the phil function, the T variable is not. Indeed, it is a free variable that must be bound in an outer scope.\
+The complete setup for the dining philosophers involves creating separate semaphores for each of the forks and for the table, spinning off background tasks for the philosophers, and then forcing them to run with a sequence of perform actions is given in:\
+prc dining(Count) do let\{\
+  def T is semaphore(1)  -- The table\
+\
+  fun phil(n,L,R) is task\{ ... \}\
+\} in \{\
+  def fork1 is semaphore(1)\
+  def fork2 is semaphore(1)\
+  def fork3 is semaphore(1)\
+  def fork4 is semaphore(1)\
+\
+  def phil1 is background phil(1,fork1,fork2)\
+  def phil2 is background phil(2,fork2,fork3)\
+  def phil3 is background phil(3,fork3,fork4)\
+  def phil4 is background phil(4,fork4,fork1)\
+\
+  perform phil1\
+  perform phil2\
+  perform phil3\
+  perform phil4\
+\}\
+This program will run the simulation for four philosophers for a Count number of times. We have not added any trace information, so there will not actually be any output; however, that is relatively straightforward to do.\
+The dining philosophers is a toy example; nevertheless it highlights many of the issues found in regular parallel applications where there is some shared resource.}

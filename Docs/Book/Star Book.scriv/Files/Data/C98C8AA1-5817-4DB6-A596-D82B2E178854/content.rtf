@@ -1,0 +1,102 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
+ Defining a contract is a big step, but it is not generally sufficient to produce working programs. If we had a worksheet containing only:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 worksheet\{\
+  contract all t ~~ four[t] ::= \{\
+    plus : (t,t)=>t.\
+    sub : (t,t)=>t.\
+    mul : (t,t)=>t.\
+    div : (t,t)=>t.\
+  \}\
+  double : all t ~~ four[t] |: (t)=>t.\
+  double(X) => plus(X,X).\
+\
+  show double(2)\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 we would get a compiler error along the lines of:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 2:integer\
+  which is not consistent with\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+\cf2     pPrint[t_12] , four[t_12] |: t_12\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+\cf0   because four[integer] not known to be implemented\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This error message is effectively warning us that we have defined the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 four
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract but we have not implemented it. Until we do, the program is not complete. However, if we do supply an implementation of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 four
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  over integers:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 worksheet\{\
+   contract all t ~~ four[t] ::= \{\
+    plus : (t,t)=>t.\
+    sub : (t,t)=>t.\
+    mul : (t,t)=>t.\
+    div : (t,t)=>t.\
+  \}\
+  double : all t ~~ four[t] |: (t)=>t.\
+  double(X) => plus(X,X).\
+\
+  implementation four[integer] => \{\
+    plus(x,y) => x+y.\
+    sub(x,y) => x-y.\
+    mul(x,y) => x*y.\
+    div(x,y) => x/y.\
+  \}\
+  show double(2)\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 then everything works as expected.\
+Notice that the error message above shows that type t_12 actually has two type constraints:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 pPrint[t_12] , four[t_12] |: t_12\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This is because the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 show
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  action also results in a type constraint being involved. The 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 pPrint
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract is used to display values in a number of circumstances; including the string formatting we saw {\field{\*\fldinst{HYPERLINK "scrivlnk://157CC4CD-C6BD-464A-9317-4F129C3C2458"}}{\fldrslt above}}.\
+As may be expected, arithmetic itself is also mediated via the arithmetic contract in 
+\b Star
+\b0 . This is how we can support multiple numeric types using a common set of operators: there are standard implementations of arithmetic for integers, and floating point numbers.}
