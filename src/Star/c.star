@@ -14,8 +14,8 @@ star.core {
     hash: (x)=>integer.
   }
 
-  public (\==):all x ~~ equality[x] |: (x,x)=>boolean.
-  x \== y => \+ x==y.
+  public (=!=):all x ~~ equality[x] |: (x,x)=>boolean.
+  x =!= y => \+ x==y.
 
   public implementation equality[string] => {
     X == Y => _str_eq(X,Y).
@@ -34,7 +34,7 @@ star.core {
       name : t.
       spouse: option[person[t]].
       spouse default = none.
-      assert spouse\==none
+      assert spouse=!=none
     }
 
   foo : string.

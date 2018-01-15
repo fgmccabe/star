@@ -563,3 +563,7 @@ char *uniDuplicate(char *s) {
   memcpy(copy, s, len + 1);
   return copy;
 }
+
+void uniDestroy(char *s){
+  free(s);
+}

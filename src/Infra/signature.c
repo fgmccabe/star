@@ -1,4 +1,7 @@
-
+//
+// Created by Francis McCabe on 1/13/18.
+//
+#include "config.h"
 #include <ooio.h>
 #include "signature.h"
 
@@ -50,7 +53,7 @@ logical validSig(char *sig, integer *start, integer end) {
     case tpeSig:
       return skipId(sig, start, end);
     case refSig:
-      return validSig(sig,start,env);
+      return validSig(sig,start,end);
     case kfnSig:
       return (logical) (skipId(sig, start, end) && skipInt(sig, start, end));
     case tplSig: {
@@ -83,8 +86,8 @@ logical validSig(char *sig, integer *start, integer end) {
     case allSig:        /* Universal quantifier */
     case tpruleSig:
     case tplambdaSig:
-      if (validConstraint(sig, start, end))
-        return validConstraint(sig, start, end);
+      if (validSig(sig, start, end))
+        return validSig(sig, start, end);
       else
         return False;
     case constrainedSig:
@@ -141,7 +144,7 @@ static retCode funArity(char *sig, integer *arity, integer *start, integer end) 
   return Error;
 }
 
-retCode functionArity(char *sig, integer *arity) {
+retCode funSigArity(char *sig, integer *arity) {
   integer pos = 0;
   integer end = uniStrLen(sig);
 

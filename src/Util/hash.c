@@ -161,7 +161,9 @@ retCode hashPut(hashPo htbl, void *name, void *r) {
 
     while (b != NULL) {
       if ((htbl->compare)(b->nme, name) == same) { /* we have found the entry */
+        htbl->destroy(b->nme,b->r);
         b->nme = name;
+
         b->r = r;
 
         pthread_mutex_unlock(&htbl->mutex);

@@ -103,9 +103,9 @@ definitions: {$$ = nil; }
 definition: 
   isDeclaration { $$=$1; }
 | varDeclaration { $$=$1; }
-| FUNCTION ID args COLON type IS expression { $$ = sxFunction(locOf(@$),$2,$5,$3,$7); }
+| FUNCTION ID args COLON type EQ expression { $$ = sxFunction(locOf(@$),$2,$5,$3,$7); }
 | PATTERN ID args COLON type MATCHES pattern { $$ = sxPattern(locOf(@$),$2,$3,$5,$7); }
-| MEMO ID COLON type IS expression { $$ = sxMemo(locOf(@$),$2,$4,$6); }
+| MEMO ID COLON type EQ expression { $$ = sxMemo(locOf(@$),$2,$4,$6); }
 | importSpec { $$=$1; }
 | TYPE type { $$ = sxTypeDef(locOf(@$),$2); }
 | ENUM name COLON type { $$ = sxEnumDef(locOf(@$),$2,sxTupleType(locOf(@$),nil),$4); }
@@ -121,7 +121,7 @@ varDeclaration:
 VAR pattern ASSIGN expression { $$ = sxVarDeclaration(locOf(@$),$2,$4); }
 
 isDeclaration: 
-DEF pattern IS expression { $$ = sxIsDeclaration(locOf(@$),$2,$4); }
+DEF pattern EQ expression { $$ = sxIsDeclaration(locOf(@$),$2,$4); }
 
 args: LPAR idents RPAR { $$ = $2; }
 
@@ -149,7 +149,6 @@ ariths: { $$ = nil; }
 
 literal: STRING  {$$ = mStr(locOf(@$),$1); }
 | DECIMAL { $$ = mInt(locOf(@$),$1); }
-| LONG { $$ = mLong(locOf(@$),$1); }
 | FLOAT { $$ = mFloat(locOf(@$),$1);}
 
 pattern: ident 

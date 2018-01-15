@@ -6,10 +6,13 @@
 
 #include "cafe.h"
 #include "engineOptions.h"
+#include "pkgP.h"
 #include "codeP.h"
 #include "heap.h"
 #include "opcodes.h"
 #include "signals.h"
+
+#define MAX_OPERANDS 1024
 
 typedef struct _processRec_ *processPo;
 typedef struct _stack_frame_ *framePo;
@@ -52,6 +55,12 @@ extern void syserr(const char *msg);
 extern processPo newProcess(closurePo cl);
 
 extern termPo localVar(framePo fp, int64 off);
+
+void initPackages();
+
+packagePo loadedPackage(char *package);
+
+char *loadedVersion(char *package);
 
 void bootstrap(char *entry, char *bootPkg, char *version);
 

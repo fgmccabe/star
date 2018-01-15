@@ -7,14 +7,13 @@
 #include "assem.h"
 
 extern logical debugAssem;
-extern logical debugParse;
 
 extern int getOptions(int argc, char **argv);
 
-extern void setOutputFile(char *path);
-
-extern retCode parseContent(char *path,char *outPath);
+extern retCode parseContent(char *path);
 
 extern void setCafeHome(char *home);
+
+extern char copyright[], version[];
 
 #endif

@@ -3,6 +3,8 @@
 -- fact(0) => 1
 -- fact(N) => fact(N-1)*N
 
+package test.fact
+
 fact/1 :: "F(i)i"
      enter 0
      ld a[0]
@@ -11,18 +13,25 @@ fact/1 :: "F(i)i"
      ret
 nonZero:
      ld a[0]  -- start call to fact(N-1)
-     deci
+     dec
      call fact/1 -- fact itself
+     frame "()"
      ld a[0]
      muli
      ret
      end
 
 _main/0:: "F()()"
+local X "i" next last
+next:
      enter 0
      ld 5
      call fact/1
+     frame "()"
+last:
      halt
+     end
+
      end
 
      

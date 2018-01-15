@@ -191,3 +191,7 @@ void *listFold(listPo l, folder f, void *state) {
   }
   return state;
 }
+
+void releaseList(listPo l){
+  eraseList(O_OBJECT(l));
+}

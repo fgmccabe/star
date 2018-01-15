@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "libNames.h"
 #include "signature.h"
 #include "escape.h"
 
@@ -26,13 +25,12 @@ static char nanoSig[] = { funSig, '(', ')', intSig, 0 };
 static EscapeRec escapeNano = {
   .name = nanoName,
   .sig = nanoSig,
-  .esc = nanos,
   .arity = 0
 };
 
 void installSystem()
 {
-  installEscape("nanos",&escapeNano);
+  installEscape("nanos", NULL, NULL);
 }
 
 void sleep(integer amnt)

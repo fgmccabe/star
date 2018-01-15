@@ -91,7 +91,6 @@ ioDirection fileMode(ioPo f);
 integer inBPos(ioPo f);
 integer inCPos(ioPo f);
 integer outBPos(ioPo f);
-integer outCPos(ioPo f);
 retCode ioSeek(ioPo f, integer pos);
 
 typedef retCode (*ioPropertyFun)(ioPo f, void *k, void *v, void *c); /* Processing func */

@@ -10,16 +10,24 @@ ADD_FLEX_BISON_DEPENDENCY(BaseTokeniser BaseGrammar)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
-include_directories("../Headers" "Headers" "../Util/Headers")
+include_directories("../Headers" "Headers" "../Util/Headers" "../Asm/Headers")
 
 set(HEADER_FILES Headers/sexp.h Headers/sexpP.h
-        Headers/catalog.h Headers/catalogP.h)
+        Headers/arith.h
+        Headers/catalog.h Headers/catalogP.h
+        Headers/codegen.h
+        Headers/compile.h Headers/compiler.h
+        Headers/dict.h Headers/dictP.h
+        Headers/esc.h
+        Headers/heap.h Headers/heapP.h
+        Headers/type.h Headers/typeP.h
+        Headers/method.h Headers/methodP.h)
 
 set(SOURCE_FILES
-        action.c
+#        action.c
         arith.c
         case.c
-        catalog.c
+#        catalog.c
         catch.c
         cfun.c
         compile.c
@@ -58,6 +66,6 @@ set(SOURCE_FILES
  )
 
 add_executable(compiler ${SOURCE_FILES})
-target_link_libraries(compiler ooio)
+target_link_libraries(compiler ooio infra)
 
 install(TARGETS compiler DESTINATION lib)

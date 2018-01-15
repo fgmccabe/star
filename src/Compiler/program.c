@@ -32,7 +32,7 @@ retCode compileAndGo(char *path,int argc, char **argv)
       sxPo mainProg = refactorContent(mCons(voidSpec,defs),argc,argv);
 
       if(mainProg!=Null){
-      	mtdCxtPo mtd = newMethod(MainName);
+      	mtdCxtPo mtd = newMethod(NULL, MainName, 0);
       	assemPo code = methodCode(mtd);
       	lPo entryPoint = newLbl(code,uniNewStr((unsigned char*)"$START"));
       	defineLbl(code,entryPoint);

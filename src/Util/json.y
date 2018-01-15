@@ -16,7 +16,7 @@
 %}
 
 %locations
-%pure_parser
+%pure-parser
 %defines
 %error-verbose
 

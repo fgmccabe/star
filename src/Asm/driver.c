@@ -5,17 +5,15 @@
 #include "asm.h"
 #include "errors.h"
 #include "assemP.h"
-#include "utils.h"
-#include "asmGrammar.h"
+#include "manifest.h"
 
-#include "ooio.h"
 #include <stdlib.h>
 
-extern int ssparse(ioPo file, pkgPo context);
+extern int ssparse(ioPo file, pkgPo *pkg);
 
 static void initStdUri();
 
-retCode parseContent(char *path, char *outPath) {
+retCode parseContent(char *path) {
   initStdUri();
   ioPo file = openInFile(path, utf8Encoding);
 
@@ -37,18 +35,28 @@ retCode parseContent(char *path, char *outPath) {
       } else
         unGetChar(file, ch);
 
-      pkgPo pkg = newPkg(path);
-      ssparse(file, pkg);
+      pkgPo pkg = Null;
+      ssparse(file, &pkg);
 
       if (debugAssem)
         dumpPkgCode(pkg);
 
       closeFile(file);      /* close the source string file */
       if (isErrorFree()) {
+        char buff[MAXFILELEN], outFn[MAXFILELEN];
+        char *codeName = manifestOutPath(pkg->name, pkg->version, "co", buff, NumberOf(buff));
+        char *outPath = repoRsrcPath(codeName,outFn,NumberOf(outFn));
         ioPo out = openOutFile(outPath, rawEncoding);
         ret = encodePkg(out, pkg);
 
         closeFile(out);
+
+        if(ret==Ok){
+          ret = addToManifest(pkg->name,pkg->version,"code",codeName);
+
+          if(ret==Ok)
+            ret = flushManifest();
+        }
 
         return ret;
       } else {

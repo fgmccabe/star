@@ -7,7 +7,7 @@
 #include "utils.h"
 #include "meta.h"
 #include "compile.h"
-#include "escapes.h"
+#include "esc.h"
 #include "codegen.h"
 
 static retCode compileBlock(lxPo actions,sxPo *expected,char *path,

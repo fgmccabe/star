@@ -54,7 +54,7 @@ packagePo findPackage(char *path)
       packagePo pkg = makePackage(path);
       hashPut(build,path,pkg);
 
-      mtdCxtPo mtd = newMethod(genUSym(path));
+      mtdCxtPo mtd = newMethod(NULL, genUSym(path), 0);
       assemPo code = methodCode(mtd);
 
       char *curr = currSegment(code);

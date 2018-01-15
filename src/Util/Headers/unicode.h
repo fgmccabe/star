@@ -102,6 +102,7 @@ char * uniSearchAny(char *s, integer len, char *term);
 codePoint uniSearchDelims(char *s, integer len, char *t);
 char * uniLast(char *s, integer l, codePoint c);
 char * uniDuplicate(char * s);
+void uniDestroy(char *s);
 logical uniIsLit(const char *s1, const char *s2);
 logical uniIsLitPrefix(const char *s1, const char *s2);
 char * uniEndStr(char * s);

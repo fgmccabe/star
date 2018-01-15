@@ -6,6 +6,7 @@
 #define CAFE_CATALOGP_H
 
 #include "catalog.h"
+#include "cafeOptions.h"
 
 typedef struct _catalog_ {
   hashPo entries;

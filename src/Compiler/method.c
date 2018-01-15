@@ -4,8 +4,6 @@
 #include "compiler.h"
 #include "methodP.h"
 
-#include <ooio.h>
-#include <formioP.h>
 
 static poolPo tryBlockPool;
 static poolPo mtdPool;
@@ -18,10 +16,10 @@ void initMethod()
   literalPool = newPool(sizeof(LiteralRecord),256);
 }
 
-mtdCxtPo newMethod(char *name)
+mtdCxtPo newMethod(pkgPo pkg, char *name)
 {
   mtdCxtPo mtd = (mtdCxtPo)allocPool(mtdPool);
-  mtd->defName = uniIntern(name);
+  mtd->defName = uniDuplicate(name);
   mtd->literals = emptyList;
   mtd->tryBlocks = Null;
   mtd->scanBlocks = Null;
@@ -30,9 +28,18 @@ mtdCxtPo newMethod(char *name)
   return mtd;
 }
 
-assemPo methodCode(mtdCxtPo mtd)
+assemInsPo methodCode(mtdCxtPo mtd)
 {
   return mtd->code;
+}
+
+retCode updateMtdIns(mtdCxtPo mtd,assemInsPo ins,assemInsPo prev){
+  if(mtd->code!=prev)
+    return Error;
+  else{
+    mtd->code = ins;
+    return Ok;
+  }
 }
 
 cafeFun genMethodCode(mtdCxtPo mtd,lPo entryPoint)

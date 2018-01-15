@@ -11,7 +11,8 @@
 :- use_module(transform).
 :- use_module(plog).
 :- use_module(errors).
-:- use_module(genprolog).
+:- use_module(gensig).
+:- use_module(genjs).
 :- use_module(uri).
 :- use_module(catalog).
 :- use_module(misc).
@@ -105,7 +106,8 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   transformProg(Prog,Opts,Rules),!,
   displayRules(Rules),
   noErrors,
-  genRules(Rules,Sig,Text),
+  genPkgSig(Rules,Sig),
+  genJs(Rules,Text),
   addPrologPackage(Repo,SrcUri,Pkg,Sig,Text,Rx).
 
 packageVersion(Opts,ver(Vers)) :-

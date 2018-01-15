@@ -54,13 +54,6 @@ extern retCode compileArgs(lxPo args,lxPo argTypes,
 
 extern sourceKind expMode(sxPo exp,dictPo dict);
 
-extern retCode compileArithmetic(sxPo exp,sxPo *expected,
-				 char *path,
-				 dictPo dict,dictPo outer,
-				 exitPo exit,
-				 mtdCxtPo mtd, 
-				 contFun cont,void *cl);
-
 extern retCode compileSwitch(sxPo cse,sxPo *expected,
 			     char *path,
 			     dictPo dict,dictPo outer,

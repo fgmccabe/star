@@ -11,8 +11,6 @@
 #ifdef DEBUGPARSE
 extern int ssdebug;
 extern int ss_flex_debug;
-
-extern logical debugParse;
 #endif
 
 #ifdef TRACEASSM

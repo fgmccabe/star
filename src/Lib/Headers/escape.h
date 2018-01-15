@@ -4,19 +4,18 @@
 #include "config.h"
 #include "heap.h"
 
-typedef ptrPo (*libFun)(ptrPo tos);
+typedef retCode (*libFun)(ptrPo *tos);
 
 typedef struct {
   char *name;         /* Name of the escape */
   char *sig;          /* Signature of the escape */
-  int32 code;         /* What is the code number for the escape? */
-  libFun esc;         /* The function itself */
-  int32 arity;        /* How many arguments */
+  libFun fun;         /* The function itself */
+  integer arity;      /* How many arguments */
 } EscapeRec, *escapePo;
 
 void initEscapes();
 
-void installEscape(char *name, escapePo esc);
+void installEscape(char *name, char *sig, libFun fun);
 
 escapePo findEscape(char *name);
 

@@ -54,19 +54,16 @@ typedef enum {
   intTrm = 'x',        // Integer value
   fltTrm = 'd',        // Floating point value
   strTrm = 's',        // String value
-  enuTrm = 'o',        // Symbol name
+  enuTrm = 'e',        // Symbol name
   dtaTrm = 'n',        // Constructor data value
+  strctTrm = 'o',      // A structure idientifier
+  prgTrm = 'p',        // A program identifier
 } cafeTermSig;
 
-/* First Star version */
-// First four bytes of any code sequence must be this magic number
-#define SIGNATURE 0x01030507L  /* code signature */
-#define SIGNBSWAP 0x03010705L  /* signature when we must swap bytes not words */
-#define SIGNWSWAP 0x05070103L  /* signature to sap words only */
-#define SIGNBWSWP 0x07050301L  /* when we have to swap words and bytes */
 
 extern logical validSignature(char *s);
-extern retCode functionArity(char *sig, integer *arity);
+extern retCode
+funSigArity(char *sig, integer *arity);
 extern retCode tupleArity(char *sig, integer *arity);
 extern retCode skipSig(char *sig, integer *start, integer end);
 extern retCode skipConstraint(char *sig, integer *start, integer end);

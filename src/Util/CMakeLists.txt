@@ -38,6 +38,9 @@ set(SOURCE_FILES
         unitable.c
         utils.c
 
+        json.y
+        jtoken.l
+
         ${BISON_JsonParser_OUTPUTS}
         ${FLEX_JsonTokeniser_OUTPUTS}
 
@@ -50,7 +53,7 @@ set(SOURCE_FILES
         Headers/stringBuffer.h Headers/stringBufferP.h
         Headers/timer.h
         Headers/unicode.h Headers/unicodeP.h Headers/utils.h
-        Headers/jsonEvent.h Headers/udp.h Headers/udpP.h Headers/ooio.h options.c Headers/options.h Headers/template.h)
+        Headers/jsonEvent.h Headers/udp.h Headers/udpP.h Headers/ooio.h options.c Headers/options.h Headers/template.h Headers/pp.h Headers/ppP.h)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 

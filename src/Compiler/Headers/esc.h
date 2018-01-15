@@ -36,8 +36,6 @@ extern void defineEscape(char *name, escapeFun escape);
 
 extern void initLibFuns();
 
-extern void genDeclare(assemPo code,varInfoPo info,dictPo dict);
-
 extern retCode compileCCall(sxPo call,sxPo *expected,
 			    char *path,
 			    dictPo dict,dictPo outer,

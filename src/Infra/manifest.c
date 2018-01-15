@@ -1,6 +1,6 @@
 /*
   Manifest & repository handling
-  Copyright (c) 2017. Francis G. McCabe
+  Copyright (c) 2017-2018. Francis G. McCabe
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
   except in compliance with the License. You may obtain a copy of the License at
@@ -14,10 +14,10 @@
 */
 
 #include <stdlib.h>
-#include "cafe.h"
+#include <unistd.h>
+#include "cafeOptions.h"
 #include "jsonEvent.h"
 #include "manifestP.h"
-#include "pkg.h"
 
 // Use the JSON event parser to parse a manifest file and build up a manifest structure
 
@@ -53,7 +53,7 @@ JsonCallBacks manEvents = {
 
 static poolPo manifestPool = NULL;
 static poolPo versionPool = NULL;
-static poolPo filePool = NULL;
+static poolPo rsrcPool = NULL;
 
 static hashPo manifest;
 
@@ -62,10 +62,9 @@ char repoDir[MAXFILELEN];
 void initManifest() {
   manifestPool = newPool(sizeof(ManifestEntryRecord), 128);
   versionPool = newPool(sizeof(ManifestVersionRecord), 128);
-  filePool = newPool(sizeof(ManifestFileRecord), 128);
+  rsrcPool = newPool(sizeof(ManifestRsrcRecord), 128);
   manifest = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
 }
-
 
 // Manage the manifest
 
@@ -90,10 +89,16 @@ manifestEntryPo getEntry(const char *name) {
   return entry;
 }
 
-manifestVersionPo newVersion(const char *version) {
+static void destRsrc(char *knd, manifestRsrcPo rsrc) {
+  freePool(rsrcPool, rsrc);
+}
+
+manifestVersionPo newVersion(manifestEntryPo entry, const char *version) {
   manifestVersionPo vEntry = (manifestVersionPo) allocPool(versionPool);
   uniCpy((char *) &vEntry->version, NumberOf(vEntry->version), version);
-  vEntry->resources = NewHash(3, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  vEntry->resources = NewHash(3, (hashFun) uniHash, (compFun) uniCmp, (destFun) destRsrc);
+  hashPut(entry->versions, &vEntry->version, vEntry);
+
   return vEntry;
 }
 
@@ -103,22 +108,17 @@ static retCode pickAny(void *n, void *r, void *c) {
   return Eof;
 }
 
-manifestVersionPo manifestVersion(char *package, char *version) {
-  manifestEntryPo entry = manifestEntry(package);
-
-  if (entry != NULL) {
-    if (uniCmp(version, "*") == same) {
-      manifestVersionPo deflt = NULL;
-      ProcessTable(pickAny, entry->versions, &deflt);
-      return deflt;
-    } else
-      return (manifestVersionPo) hashGet(entry->versions, version);
+manifestVersionPo manifestVersion(manifestEntryPo entry, char *version) {
+  if (uniCmp(version, "*") == same) {
+    manifestVersionPo deflt = NULL;
+    ProcessTable(pickAny, entry->versions, &deflt);
+    return deflt;
   } else
-    return NULL;
+    return (manifestVersionPo) hashGet(entry->versions, version);
 }
 
-manifestFilePo newManifestResource(const char *kind, const char *fileNm) {
-  manifestFilePo f = (manifestFilePo) allocPool(filePool);
+manifestRsrcPo newManifestResource(const char *kind, const char *fileNm) {
+  manifestRsrcPo f = (manifestRsrcPo) allocPool(rsrcPool);
 
   uniCpy((char *) &f->kind, NumberOf(f->kind), kind);
   uniCpy((char *) &f->fn, NumberOf(f->fn), fileNm);
@@ -126,29 +126,37 @@ manifestFilePo newManifestResource(const char *kind, const char *fileNm) {
   return f;
 }
 
-void addResource(manifestVersionPo version, const char *kind, const char *fileNm) {
-  manifestFilePo f = newManifestResource(kind, fileNm);
+retCode addResource(manifestVersionPo version, const char *kind, const char *rscrc) {
+  manifestRsrcPo f = newManifestResource(kind, rscrc);
 
-  hashPut(version->resources, &f->kind, f);
+  return hashPut(version->resources, &f->kind, f);
 }
 
-char *manifestResource(char *package, char *version, char *kind, char *fl, long flLen) {
-  manifestVersionPo v = manifestVersion(package, version);
+char *manifestResource(char *package, char *version, char *kind) {
+  manifestEntryPo entry = manifestEntry(package);
 
-  if (v != NULL) {
-    manifestFilePo f = hashGet(v->resources, kind);
+  if (entry != NULL) {
+    manifestVersionPo v = manifestVersion(entry, version);
 
-    if (f != NULL) {
-      strMsg(fl, flLen, "%s/%s", repoDir, &f->fn);
-      return fl;
-    } else
-      return NULL;
-  } else
-    return NULL;
+    if (v != NULL) {
+      manifestRsrcPo f = hashGet(v->resources, kind);
+
+      if (f != NULL)
+        return f->fn;
+    }
+  }
+  return NULL;
 }
 
-char *packageCodeFile(char *package, char *version, char *flNm, long flLen) {
-  return manifestResource(package, version, "code", flNm, flLen);
+retCode addToManifest(char *package, char *version, char *kind, char *resrc) {
+  manifestEntryPo entry = getEntry(package);
+
+  manifestVersionPo v = manifestVersion(entry, version);
+  if (v == NULL) {
+    v = newVersion(entry, version);
+  }
+
+  return addResource(v, kind, resrc);
 }
 
 typedef enum {
@@ -170,14 +178,12 @@ typedef struct {
   ParseState state;
 } ParsingState, *statePo;
 
-retCode loadManifest(char *dir) {
-  uniCpy(repoDir, NumberOf(repoDir), dir);
+retCode loadManifest() {
   initManifest();
-  initPackages();
 
   char manifestName[MAXFILELEN];
 
-  strMsg(manifestName, NumberOf(manifestName), "%s/manifest", dir);
+  strMsg(manifestName, NumberOf(manifestName), "%s/manifest", repoDir);
 
   ioPo inFile = openInFile(manifestName, utf8Encoding);
 
@@ -185,14 +191,8 @@ retCode loadManifest(char *dir) {
     ParsingState info;
     yyparse(inFile, &manEvents, &info);
     return Ok;
-  } else
-    return Error;
-}
-
-void loadDefltManifest() {
-  if (loadManifest(repoDir) != Ok) {
-    outMsg(logFile, "error in loading repository from %s", repoDir);
-    exit(99);
+  } else {
+    return Fail;
   }
 }
 
@@ -285,8 +285,7 @@ retCode startEntry(const char *name, void *cl) {
     }
     case inVersion:
       uniCpy((char *) &info->ver, NumberOf(info->ver), name);
-      info->version = newVersion(name);
-      hashPut(info->entry->versions, &info->version->version, info->version);
+      info->version = newVersion(info->entry, name);
       break;
     case inResource:
       uniCpy((char *) &info->kind, NumberOf(info->kind), name);
@@ -353,9 +352,98 @@ retCode errorEntry(const char *name, void *cl) {
 
 void defltRepoDir() {
   if (uniIsLit(repoDir, "")) { // overridden?
-    char *dir = getenv("STAR_DIR"); /* pick up the installation directory */
+    char *dir = getenv("CAFE_DIR"); /* pick up the installation directory */
     if (dir == NULL)
-      dir = LODIR;                  /* Default installation path */
+      dir = CAFEDIR;                  /* Default installation path */
     uniCpy(repoDir, NumberOf(repoDir), dir);
   }
+}
+
+typedef struct {
+  ioPo out;
+  int indent;
+} IndentPolicy;
+
+retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
+  IndentPolicy *policy = (IndentPolicy *) cl;
+
+  return outMsg(policy->out, "%p\"%s\":\"%s\"\n", policy->indent, rsrc->kind, rsrc->fn);
+}
+
+retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
+  IndentPolicy *policy = (IndentPolicy *) cl;
+  IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out};
+
+  retCode ret = outMsg(policy->out, "%p\"%s\":{\n", policy->indent, vers->version);
+
+  if (ret == Ok)
+    ret = ProcessTable((procFun) dumpRsrc, vers->resources, &inner);
+
+  if (ret == Ok)
+    ret = outMsg(policy->out, "%p}\n", policy->indent);
+  return ret;
+}
+
+retCode dumpEntry(char *v, manifestEntryPo entry, void *cl) {
+  IndentPolicy *policy = (IndentPolicy *) cl;
+  IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out};
+
+  retCode ret = outMsg(policy->out, "%p\"%s\":{\n", policy->indent, entry->package);
+
+  if (ret == Ok)
+    ret = ProcessTable((procFun) dumpVersion, entry->versions, &inner);
+
+  if (ret == Ok)
+    ret = outMsg(policy->out, "%p}\n", policy->indent);
+  return ret;
+}
+
+retCode dumpManifest(ioPo out) {
+  IndentPolicy policy = {.indent=2, .out=out};
+
+  retCode ret = outMsg(out, "{\n");
+
+  if (ret == Ok)
+    ret = ProcessTable((procFun) dumpEntry, manifest, &policy);
+
+  if (ret == Ok)
+    ret = outMsg(out, "}\n");
+  return ret;
+}
+
+retCode flushManifest() {
+  char manifestName[MAXFILELEN];
+
+  strMsg(manifestName, NumberOf(manifestName), "%s/manifest", repoDir);
+
+  ioPo outFile = openOutFile(manifestName, utf8Encoding);
+
+  if (outFile != NULL) {
+    retCode ret = dumpManifest(outFile);
+
+    if (ret == Ok)
+      ret = closeFile(outFile);
+    return ret;
+  } else
+    return Fail;
+}
+
+char *manifestOutPath(char *pkg, char *version, char *suff, char *buffer, int bufLen) {
+  integer pkgHash = uniHash(pkg);
+  integer verHash = uniHash(version);
+  pkgHash = pkgHash * 37 + verHash;
+  return strMsg(buffer, bufLen, "%s%d.%s", pkg, pkgHash, suff);
+}
+
+char *repoRsrcPath(char *name, char *buffer, int bufLen) {
+  return strMsg(buffer, bufLen, "%s/%s", repoDir, name);
+}
+
+void setManifestPath(char *path) {
+  if (path[0] != '/') {
+    char wd[MAXFILELEN];
+    getcwd(wd, sizeof(wd));
+    strMsg(repoDir, NumberOf(repoDir), "%s/%s", wd, path);
+  } else
+    strMsg(repoDir, NumberOf(repoDir), "%s", path);
 }

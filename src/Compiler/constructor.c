@@ -90,7 +90,7 @@ retCode genConstructor(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 {
   char *op = sxCallOp(con);
   long conSize = sizeofConstructor(con);
-  mtdCxtPo mtd = newMethod(op);
+  mtdCxtPo mtd = newMethod(NULL, op, 0);
   assemPo code = methodCode(mtd);
   lPo conCode = newLbl(code,genSym(".L")); /* Pointer to constructor */
   lPo evac = genEvacCode(mtd,conIx,conCode,con); /* evacuation GC code */
@@ -123,7 +123,7 @@ retCode genConstructor(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 retCode genEnumerated(sxPo con,int conIx,int maxIx,sxPo type,dictPo dict)
 {
   char *op = sxIden(con);
-  mtdCxtPo mtd = newMethod(op);
+  mtdCxtPo mtd = newMethod(NULL, op, 0);
   assemPo code = methodCode(mtd);
   lPo evac = newLbl(code,genSym(".E"));	/* special evac code for enums */
   lPo scav = newLbl(code,genSym(".S"));	/* should never be invoked */

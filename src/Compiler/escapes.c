@@ -11,14 +11,12 @@
 
 #include "compile.h"
 #include "codegen.h"
-#include "escapes.h"
 #include "funlibs.h"
-#include "libNames.h"
+#include "arith.h"
 
 #include "hash.h"
 #include "pool.h"
 
-#include "multi.h"
 
 static hashPo escapes;
 

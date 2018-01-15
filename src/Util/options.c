@@ -74,7 +74,7 @@ void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
 int processOptions(int argc, char **argv, Option options[], int optionCount) {
   int ix;
 
-  for (ix = 0; ix < argc; ix++) {
+  for (ix = 1; ix < argc; ix++) {
     char *opt = argv[ix];
 
     if (uniIsLitPrefix(opt, "-") && uniStrLen(opt) > 1) {
@@ -106,6 +106,8 @@ int processOptions(int argc, char **argv, Option options[], int optionCount) {
         }
       }
     }
+    else
+      return ix;
   }
   return ix;
 

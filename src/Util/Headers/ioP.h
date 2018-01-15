@@ -67,7 +67,6 @@ typedef struct _io_part_{
   integer inCpos;                        /* Character in counter */
 
   integer outBpos;                       /* Byte out counter */
-  integer outCpos;                       /* Character out counter */
 
   long currColumn;			                /* No. characters since last lf */
 

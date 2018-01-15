@@ -19,7 +19,7 @@ typedef enum { readOnly, readWrite} rwMode;
 typedef enum {basedVar, registr, literal, label, fixed } varSource;
 
 // The kind of value
-typedef enum {general, rawChar, rawInt, rawLong, rawFloat } sourceKind;
+typedef enum {ptrTerm, rawChar, rawInt, rawLong, rawFloat } sourceKind;
 
 extern char *sourceName(varSource where);
 extern char *kindName(sourceKind kind);

@@ -8,6 +8,7 @@
 
 #include "version.h"			/* Version ID for the Cafe system */
 #include "options.h"
+#include "asmOptions.h"
 
 logical tracing = False;		/* tracing option */
 logical debugAssem = False;		/* debug the assembling process */
@@ -136,7 +137,7 @@ static retCode setParseOnly(char *option,logical enable,void *cl)
 
 static retCode setHome(char *option,logical enable,void *cl)
 {
-  setCafeHome(mkInterned(option));
+  setCafeHome(uniDuplicate(option));
   return Ok;
 }
 

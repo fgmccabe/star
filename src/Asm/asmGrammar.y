@@ -9,6 +9,8 @@
 #include "errors.h"
 %}
 
+/* %define api.prefix {ss} */
+
 %locations
 %pure-parser
 %defines
@@ -17,8 +19,10 @@
 %debug
 
 %parse-param { ioPo asmFile }
-%parse-param { pkgPo pkg }
+%parse-param { pkgPo *pkg }
 %lex-param { ioPo asmFile }
+
+%define api.prefix {ss}
 
 %start program
 
@@ -33,7 +37,7 @@
  }
 
 %{
-  static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg);
+  static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo *p, char const *errmsg);
   extern int sslex (YYSTYPE * asmlval_param,YYLTYPE * asmlloc_param, ioPo asmFile);
 
   #define locOf(asmloc)							\
@@ -84,23 +88,24 @@
 %token <id> ID
 %token <f> FLOAT
 
-%type <lbl> label, funLbl;
+%type <lbl> label;
 %type <i> libName;
 %type <str> signature;
-%type <i> literal;
+%type <i> literal local;
 
 %%
 
-   program: package defs trailer;
+   program: nls package defs trailer;
 
-   package: ;
+   package: PKG ID HASH ID nls { *pkg = newPkg($2,$4); }
+     | PKG ID nls { *pkg = newPkg($2,"*"); }
 
    defs: defs function | ;
 
  function: header instructions trailer ;
 
- header: funLbl DCOLON signature nls { currMtd = defineMethod(pkg,False,$1,$3,$5); }
-     | PUBLIC funLbl DCOLON signature nls { currMtd = defineMethod(pkg,True,$2,$4,$6); }
+ header: ID SLASH DECIMAL DCOLON signature nls { currMtd = defineMethod(*pkg,False,$1,$3,$5); }
+     | PUBLIC ID SLASH DECIMAL DCOLON signature nls { currMtd = defineMethod(*pkg,True,$2,$4,$6); }
 
  instructions: instructions instruction nls
      | instructions error nls
@@ -124,18 +129,18 @@ trailer: END nls { endFunction(currMtd); }
      ;
  halt: HALT { AHalt(currMtd); };
 
- call: CALL { ACall(currMtd); }
+ call: CALL literal { ACall(currMtd,$2); }
    | ESCAPE libName { AEscape(currMtd,$2); }
-   | TAIL { ATail(currMtd); }
+   | TAIL literal { ATail(currMtd,$2); }
    | ENTER DECIMAL { AEnter(currMtd,$2); }
-   | RET DECIMAL { ARet(currMtd,$2); }
+   | RET { ARet(currMtd); }
    | JMP label { AJmp(currMtd,$2); }
    ;
 
- literal: FLOAT { newFloatConstant(currMtd,$1); }
-   | STRING { newStringConstant(currMtd,$1); }
-   | ID COLON DECIMAL { newStrctConstant(currMtd,$1,$3); }
-   | ID SLASH DECIMAL { newPrgConstant(currMtd,$1,$3); }
+ literal: FLOAT { $$=newFloatConstant(currMtd,$1); }
+   | STRING { $$=newStringConstant(currMtd,$1); }
+   | ID COLON DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
+   | ID SLASH DECIMAL { $$=newPrgConstant(currMtd,$1,$3); }
    ;
 
  load: LD DECIMAL { ALdI(currMtd,$2); }
@@ -149,14 +154,21 @@ trailer: END nls { endFunction(currMtd); }
    | LD LBRA DECIMAL RBRA { ANth(currMtd,$3); }
    ;
 
- store: ST L LBRA DECIMAL RBRA { AStL(currMtd, $4); }
-   | ST LBRA DECIMAL RBRA { AStNth(currMtd,$3); }
+ store: ST L LBRA local RBRA { AStL(currMtd,$4); }
+   | ST LBRA local RBRA { AStNth(currMtd,$3); }
    | CAS label { ACas(currMtd,$2); }
    ;
 
+ local: ID {
+    $$=findLocal(currMtd,$1);
+    if($1<0){
+      yyerror(&yylloc,asmFile,pkg,"local var not defined");
+    }
+  };
+
  caseins: CASE DECIMAL { ACase(currMtd,$2); };
 
- heap: ALLOC ID { AAlloc(currMtd,findMethod(currMtd,$2)); }
+ heap: ALLOC DECIMAL { AAlloc(currMtd,$2); }
    ;
 
  convert: F2I { AF2i(currMtd); }
@@ -201,23 +213,21 @@ trailer: END nls { endFunction(currMtd); }
 
  directive: label COLON { defineLbl(currMtd,$1); }
    | FRAME signature { defineFrame(currMtd,$2); }
-   | ID LOCAL DECIMAL signature label label { defineLocal(currMtd,$1,$4,$3,$5,$6); }
+   | LOCAL ID signature label label { defineLocal(currMtd,$2,$3,$4,$5); }
    ;
-
- funLbl : ID SLASH DECIMAL { $$ = newProgLbl(currMtd$1,$3); }
 
  label: ID { $$ = newLbl(currMtd,$1); };
 
  libName: STRING { $$ = newEscapeConstant(currMtd,$1); }
 
  signature: STRING { $$ = $1; if(!validSignature($1)){
-  yyerror(&yyloc,asmFile,pkg,"invalid signature");
+  yyerror(&yylloc,asmFile,pkg,"invalid signature");
  }
  }
 
 %%
 
-static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo p, char const *errmsg)
+static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo *p, char const *errmsg)
 {
   reportError(loc->first_line,"%s\n",errmsg);
 }

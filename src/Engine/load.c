@@ -16,12 +16,12 @@
  */
 
 #include "base64.h"
-#include "pkg.h"
+#include "pkgP.h"
 
 #include "engine.h"
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
-#include "manifestP.h"
+#include "../Infra/Headers/manifestP.h"
 #include "tpl.h"
 
 static poolPo packagePool = NULL;

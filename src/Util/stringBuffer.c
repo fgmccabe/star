@@ -25,7 +25,7 @@ static void BufferDestroy(objectPo o);
 
 static void BufferInit(objectPo o, va_list *args);
 
-static retCode bufferInBytes(ioPo f, byte *ch, integer count, integer *actual);
+static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual);
 
 static retCode bufferOutBytes(ioPo f, byte *b, integer count, integer *actual);
 

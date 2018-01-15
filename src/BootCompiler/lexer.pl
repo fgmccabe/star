@@ -49,7 +49,7 @@ locOfToken(lqbrce(Lc),Lc).
 locOfToken(integerTok(_,Lc),Lc).
 locOfToken(floatTok(_,Lc),Lc).
 locOfToken(stringTok(_,Lc),Lc).
-locOfToken(term(Lc),Lc).
+locOfToken(termTok(Lc),Lc).
 locOfToken(terminal,missing).
 
 dispToken(lpar(_),['(']).
@@ -69,7 +69,7 @@ dispToken(rqpar(_),['|','>']).
 dispToken(integerTok(Ix,_),Str) :- number_string(Ix,St),string_chars(St,Str).
 dispToken(floatTok(Dx,_),Str) :- number_string(Dx,St),string_chars(St,Str).
 dispToken(stringTok(St,_),Str) :- string_chars(St,Str).
-dispToken(term(_),['.',' ']).
+dispToken(termTok(_),['.',' ']).
 dispToken(terminal,[]).
 
 isSpace(' ').
@@ -111,8 +111,8 @@ nxTok(St,NxSt,integerTok(Code,Lc)) :- lookingAt(St,St1,['0','c'],_), charRef(St1
 nxTok(St,NxSt,integerTok(Hx,Lc)) :- lookingAt(St,St1,['0','x'],_), readHex(St1,NxSt,0,Hx), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,Tk) :- hedChar(St,Ch), isDigit(Ch,_), readNumber(St,NxSt,Tk).
 nxTok(St,NxSt,idQTok(Id,Lc)) :- nextSt(St,St1,''''), readQuoted(St1,NxSt,'''',Id), makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,stringTok(Seg,Lc)) :- lookingAt(St,St1,['"','"','"']), stringBlob(St1,St2,Txt),lookingAt(St2,NxSt,['"','"','"']),string_chars(Seg,Txt),makeLoc(St1,St2,Lc).
-nxTok(St,NxSt,stringTok(Str,Lc)) :- nextSt(St,St1,'"'), readQuoted(St1,NxSt,'"',Str), makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,stringTok([segment(Seg)],Lc)) :- lookingAt(St,St1,['"','"','"']), stringBlob(St1,St2,Txt),lookingAt(St2,NxSt,['"','"','"']),string_chars(Seg,Txt),makeLoc(St1,St2,Lc).
+nxTok(St,NxSt,Str) :- nextSt(St,St1,'"'), readString(St1,NxSt,Str).
 nxTok(St,NxSt,idTok(Id,Lc)) :- hedChar(St,Ch), idStart(Ch), readIden(St,NxSt,Id), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,ldpar(Lc)) :- lookingAt(St,NxSt,['(','.'],Lc).
 nxTok(St,NxSt,rdpar(Lc)) :- lookingAt(St,NxSt,['.',')'],Lc).
@@ -126,9 +126,9 @@ nxTok(St,NxSt,lbrce(Lc)) :- lookingAt(St,NxSt,['{'],Lc).
 nxTok(St,NxSt,rbrce(Lc)) :- lookingAt(St,NxSt,['}'],Lc).
 nxTok(St,NxSt,lqpar(Lc)) :- lookingAt(St,NxSt,['<','|'],Lc).
 nxTok(St,NxSt,rqpar(Lc)) :- lookingAt(St,NxSt,['|','>'],Lc).
-nxTok(St,NxSt,term(Lc)) :- lookingAt(St,NxSt,['.',' '],Lc).
-nxTok(St,NxSt,term(Lc)) :- lookingAt(St,NxSt,['.','\t'],Lc).
-nxTok(St,NxSt,term(Lc)) :- lookingAt(St,NxSt,['.','\n'],Lc).
+nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.',' '],Lc).
+nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\t'],Lc).
+nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\n'],Lc).
 nxTok(St,NxSt,idTok(Id,Lc)) :- nextSt(St,St1,Ch), follows('',Ch,_), followGraph(Ch,Id,St1,NxSt), !, makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,Tk) :-
   nextSt(St,St1,Ch),
@@ -182,6 +182,47 @@ readUntil(St,NxSt,Stop,[Ch|Chrs]) :- charRef(St,St1,Ch), readUntil(St1,NxSt,Stop
 
 stringBlob(St,St,[]) :- lookingAt(St,_,['"','"','"']).
 stringBlob(St,NxSt,[Ch|L]) :- nextSt(St,St1,Ch), stringBlob(St1,NxSt,L).
+
+readString(St,NxSt,stringTok(Str,Lc)) :- readMoreString(St,St2,Str), makeLoc(St,St2,Lc), nextSt(St2,NxSt,'"').
+
+readMoreString(St,St,[]) :- hedChar(St,'"').
+readMoreString(St,NxSt,[Seg|Segments]) :-
+      nextSt(St,St1,'\\'),
+      hedChar(St1,'('),!,
+      interpolation(St1,St2,Seg),
+      readMoreString(St2,NxSt,Segments).
+readMoreString(St,NxSt,Segments) :-
+      readStr(St,St1,Chars),!,
+      string_chars(Seg,Chars),
+      makeLoc(St,St1,Lc),
+      appendSegment(Seg,Lc,Segments,More),
+      readMoreString(St1,NxSt,More).
+
+appendSegment("",_,Segments,Segments).
+appendSegment(Seg,Lc,[segment(Seg,Lc)|More],More) :-
+  \+Seg="".
+
+readStr(St,St,[]) :- hedChar(St,'"'). /* Terminated by end of string */
+readStr(St,St,[]) :- hedChar(St,'\\'), hedHedChar(St,'('). /* or an interpolation marker */
+readStr(St,St1,[]) :- nextSt(St,St1,'\n'), !,
+  makeLoc(St,St1,Lc),
+  reportError("new line found in string",[],Lc).
+readStr(St,NxSt,[Ch|Seg]) :- charRef(St,St1,Ch), readStr(St1,NxSt,Seg).
+
+interpolation(St,NxSt,interpolate(Text,Fmt,Lc)) :-
+    bracketCount(St,St1,[],Text),
+    readFormat(St1,NxSt,FmtChars),
+    string_chars(Fmt,FmtChars),
+    makeLoc(St,NxSt,Lc).
+
+bracketCount(St,NxSt,Stk,Chrs) :- nextSt(St,St1,Ch), bracketCount(St,St1,NxSt,Ch,Stk,Chrs).
+
+bracketCount(_,St1,NxSt,Cl,[Cl|Stk],[Cl|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,Stk,Chrs).
+bracketCount(_,St1,NxSt,'(',Stk,['('|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,[')'|Stk],Chrs).
+bracketCount(_,St1,NxSt,'[',Stk,['['|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,[']'|Stk],Chrs).
+bracketCount(_,St1,NxSt,'{',Stk,['{'|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,['}'|Stk],Chrs).
+bracketCount(St,_,St,_,[],[]). /* stop if the bracket stack is empty */
+bracketCount(_,St1,NxSt,Ch,Stk,[Ch|Chrs]) :- nextSt(St1,St2,Chr), bracketCount(St1,St2,NxSt,Chr,Stk,Chrs).
 
 readFormat(St,NxSt,Chrs) :- nextSt(St,St1,':'), readUntil(St1,NxSt,';',Chrs).
 readFormat(St,St,[]) :- \+ hedChar(St,':').

@@ -17,10 +17,10 @@ typedef struct _manifest_version_ {
   hashPo resources;
 } ManifestVersionRecord;
 
-typedef struct _manifest_file_name_ {
+typedef struct _manifest_resource_ {
   char kind[MAX_SYMB_LEN];
   char fn[MAXFILELEN];
-} ManifestFileRecord;
+} ManifestRsrcRecord;
 
 
 #endif //LANDO_MANIFESTP_H

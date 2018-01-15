@@ -10,8 +10,9 @@ typedef struct _try_block_ *tryPo;
 
 extern void initMethod();
 
-extern mtdCxtPo newMethod(char *name);
-extern mtdPo methodCode(mtdCxtPo mtd);
+extern mtdCxtPo newMethod(pkgPo pkg, char *name);
+extern assemInsPo methodCode(mtdCxtPo mtd);
+extern retCode updateMtdIns(mtdCxtPo mtd,assemInsPo ins,assemInsPo prev);
 extern cafeFun genMethodCode(mtdCxtPo mtd,lPo entryPoint);
 
 extern tryPo methodCatchBlocks(mtdCxtPo mtd);

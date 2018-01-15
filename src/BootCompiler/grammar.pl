@@ -65,7 +65,8 @@ legalNextRight([stringTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
 legalNextRight([floatTok(_,_)|_],_).
 
-term0([stringTok(St,Lc)|Toks],string(Lc,St),Toks,id).
+term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
+  handleInterpolation(St,Lc,Str).
 term0([integerTok(In,Lc)|Toks],integer(Lc,In),Toks,id).
 term0([floatTok(Fl,Lc)|Toks],float(Lc,Fl),Toks,id).
 term0([lbrce(Lc0),rbrce(Lc2)|Toks],tuple(Lc,"{}",[]),Toks,rbrce) :-
@@ -173,12 +174,35 @@ tupleize(T,Lc,Op,tuple(Lc,Op,Els)) :-
 
 lookAhead(Tk,[Tk|_]).
 
+handleInterpolation([segment(Str,Lc)],_,string(Lc,Str)).
+handleInterpolation([],Lc,string(Lc,"")).
+handleInterpolation(Segments,Lc,Term) :-
+  stringSegments(Segments,Inters),
+  tupleize(Inters,Lc,"[]",Arg),
+  unary(Lc,"interpolate",Arg,Term).
+
+stringSegments([],[]).
+stringSegments([Seg|More],[H|T]) :- stringSegment(Seg,H),!, stringSegments(More,T).
+
+stringSegment(segment(Str,Lc),S) :-
+  unary(Lc,"ss",string(Lc,Str),S).
+stringSegment(interpolate(Text,"",Lc),Disp) :-
+  subTokenize(Lc,Text,Toks),
+  term(Toks,2000,Term,TksX,_),
+  unary(Lc,"disp",Term,Disp),
+  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
+stringSegment(interpolate(Text,Fmt,Lc),Disp) :-
+  subTokenize(Lc,Text,Toks),
+  term(Toks,2000,Term,TksX,_),
+  binary(Lc,"frmt",Term,string(Lc,Fmt),Disp),
+  ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
+
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
 checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
 
 checkTerminator(_,[],[]).
 checkTerminator(_,Toks,Toks) :- Toks = [rbrce(_)|_].
-checkTerminator(_,[term(_)|Toks],Toks) .
+checkTerminator(_,[termTok(_)|Toks],Toks) .
 checkTerminator(rbrce,Toks,Toks).
 checkTerminator(_,[Tk|Tks],RTks) :-
   locOfToken(Tk,Lc),

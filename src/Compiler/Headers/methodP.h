@@ -1,8 +1,9 @@
 #ifndef _METHOD_P_H_
 #define _METHOD_P_H_
 
+#include <lists.h>
+#include "ooio.h"
 #include "method.h"
-#include "list.h"
 
 typedef struct _gc_scan_block_ *gcScanPo;
 typedef struct _gc_scan_block_ {
@@ -39,7 +40,7 @@ typedef struct _method_context_ {
   listPo literals;
   tryPo tryBlocks;
   gcScanPo scanBlocks;
-  assemPo code;				/* What package are we in? */
+  assemInsPo code;				/* What package are we in? */
   cafeFun generated;			/* Generated code */
 } Method;
 

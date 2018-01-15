@@ -219,7 +219,7 @@ retCode compileClosure(sxPo def,
 		       comp compiler)
 {
   char *name = var->name;
-  mtdCxtPo mtd = newMethod(name);
+  mtdCxtPo mtd = newMethod(NULL, name, 0);
   assemPo code = methodCode(mtd);
 
   lPo catch = newLbl(code,genSym(".C"));

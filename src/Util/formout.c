@@ -211,7 +211,7 @@ static int countSignificants(const char *frmt, integer from, integer limit, cons
 static retCode
 formatDigits(logical isSigned, const char *digits, int64 precision, const char *format, integer fLen, char *out,
              integer outLen,
-             integer *outPos);
+             integer *pos);
 
 retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, char *frmt, integer formatLen) {
   logical isSigned = False;
@@ -860,6 +860,16 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
                   ret = outUniString(f, str, uniStrLen(str), width, precision, ' ', leftPad, alternate);
               } else
                 ret = outStr(f, "(NULL)");
+              break;
+            }
+            case 'p': {    /* Display some spaces */
+              integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
+
+              ret = outStr(f,prefix);
+              while(ret==Ok && i-->0){
+                ret = outChar(f,' ');
+              }
+
               break;
             }
 

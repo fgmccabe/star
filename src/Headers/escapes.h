@@ -23,6 +23,7 @@ escape(_identical,False,False,":k't'F(k't'k't')l","test for identicality")
 escape(_defined,True,False,"F(Si)l","test for defined name")
 
 escape(_int_plus,False,False,"F(ii)i","add two integers")
+
 escape(_int_minus,False,False,"F(ii)i","subtract two integers")
 escape(_int_times,False,False,"F(ii)i","multiply two integers")
 escape(_int_div,False,False,"F(ii)i","divide two integers")

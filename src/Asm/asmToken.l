@@ -1,14 +1,16 @@
 /* Lexical scanner for the Cafe assembler */
 
+%option nodefault
+
 %option yylineno
 %option bison-bridge bison-locations
 %option noyywrap nounput
-%option nodefault
+%option debug
+%option prefix="ss"
 
 %x comment
 %x string
 %x quoted
-%option prefix="ss"
 
 %{
 #include <config.h>
@@ -16,21 +18,23 @@
 #include <io.h>
 #include <math.h>
 #include <unicode.h>
+#include <assemP.h>
 #include "assem.h"
+
 #include "asmGrammar.h"
 
 #define MAX_STR_CONST 2048
 
-#define YY_DECL int sslex(union YYSTYPE *yylval_param, YYLTYPE *yylloc_param, ioPo yyFile_param)
-extern int sslex(union YYSTYPE *yylval_param, YYLTYPE *yylloc_param, ioPo yyFile);
+#define YY_DECL int sslex(union SSSTYPE *yylval_param, SSLTYPE *yylloc_param, ioPo yyFile_param)
+extern int sslex(union SSSTYPE *yylval_param, SSLTYPE *yylloc_param, ioPo ssFile);
 
-static ioPo yyFile;
+static ioPo ssFile;
 
-#define YY_USER_INIT yyFile = yyFile_param;
+#define YY_USER_INIT ssFile = yyFile_param;
 
 #define YY_INPUT(buf,result,max) {\
-    long act;\
-    retCode ret = inBytes(yyFile,(unsigned char*)buf,max,&act);	\
+    integer act;\
+    retCode ret = inBytes(ssFile,(unsigned char*)buf,max,&act);	\
     if(ret==Eof)\
       result = YY_NULL;				\
     else\
@@ -38,6 +42,9 @@ static ioPo yyFile;
   }
 
 #define YY_NO_INPUT
+
+#define YYLTYPE SSLTYPE
+#define YYSTYPE SSSTYPE
 
 static void parseError(char *msg,int lineNo);
 static long octtoi(char *text);
@@ -275,7 +282,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 
 static void parseError(char *msg, int lineno)
 {
-  outMsg(logFile,"problem %s with token at %U/%l",msg,fileName(yyFile),lineno);
+  outMsg(logFile,"problem %s with token at %U/%l",msg,fileName(ssFile),lineno);
 }
 
 static int octValue(char ch)
@@ -293,7 +300,7 @@ static long octtoi(char *text)
     if(0<=Oct && Oct<8)
       val = val*8+Oct;
     else
-      outMsg(logFile,"octal number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
+      outMsg(logFile,"octal number %s not valid at %U/%l",text,fileName(ssFile),yylineno);
   }
   return val;
 }
@@ -316,7 +323,7 @@ static long hextoi(char *text)
       if(0<=Hex && Hex<16)
 	val = val*16+Hex;
       else
-	outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
+	outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(ssFile),yylineno);
     }
   }
   else if(strncmp(text,"+",1)==0){
@@ -327,11 +334,11 @@ static long hextoi(char *text)
       if(0<=Hex && Hex<16)
 	val = val*16+Hex;
       else
-	outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
+	outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(ssFile),yylineno);
     }
   }
   else
-    outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
+    outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(ssFile),yylineno);
 
   return val;
 }

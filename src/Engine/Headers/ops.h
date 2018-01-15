@@ -4,8 +4,10 @@
 typedef enum {
   Halt,
   Call,
+  OCall,
   Escape,
   Tail,
+  OTail,
   Enter,
   Ret,
   Jmp,

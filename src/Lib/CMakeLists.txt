@@ -10,13 +10,16 @@ set(HEADER_FILES
         Headers/clock.h
         ../Engine/Headers/engine.h
         ../Engine/Headers/escodes.h
-        ../Headers/escapes.h)
+        ../Headers/escapes.h
+        Headers/args.h
+        Headers/arithmetic.h)
 
 set(SOURCE_FILES
-        escapes.c
+        ${HEADER_FILES}
+        esc.c
         clock.c
         show.c
-        system.c Headers/args.h Headers/libNames.h)
+        system.c arithmetic.c)
 
 add_library(escapes STATIC ${SOURCE_FILES})
 

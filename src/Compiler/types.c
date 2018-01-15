@@ -9,24 +9,22 @@
 #include <ooio.h>
 #include <formioP.h>
 #include <stdlib.h>
-#include "pp.h"
+#include "ppP.h"
 
-char *rawIntType;
-char *rawLongType;
-char *rawFloatType;
-char *rawCharType;
-char *rawStringType;
-char *rawFileType;
-char *rawErrorType;
+char *rawIntType = "star.core*integer";
+char *rawFloatType = "star.core*float";
+char *rawStringType = "star.core*string";
+char *rawFileType = "star.io*file";
+char *rawErrorType = "star.core*error";
 
-char *TYPE_VAR;
-char *ARROW_TYPE;
-char *PTN_TYPE;
-char *TYPE_EXP;
+char *TYPE_VAR = "%tvar";
+char *ARROW_TYPE = "=>";
+char *PTN_TYPE = "<=";
+char *TYPE_EXP = "%type";
 
-char *VOID_TYPE;
-char *DICT_TYPE;
-char *BOOL_TYPE;
+char *VOID_TYPE = "void";
+char *DICT_TYPE = "$dict$";
+char *BOOL_TYPE = "boolean";
 
 sxPo voidType,intType,longType,floatType,charType,stringType,fileCafeType,
   errorType,dictType,booleanType;
@@ -47,23 +45,6 @@ static poolPo bindPool;
 
 void initTypes()
 {
-  VOID_TYPE = mkInterned("void");
-  DICT_TYPE = mkInterned("$dict$");
-  BOOL_TYPE = mkInterned("boolean");
-    
-  rawIntType = mkInterned("#int");
-  rawLongType = mkInterned("#long");
-  rawFloatType = mkInterned("#float");
-  rawCharType = mkInterned("#char");
-  rawStringType = mkInterned("#string");
-  rawFileType = mkInterned("#file");
-  rawErrorType = mkInterned("#error");
-
-  ARROW_TYPE = mkInterned("=>");
-  PTN_TYPE = mkInterned("<=");
-  TYPE_VAR = mkInterned("%tvar");
-  TYPE_EXP = mkInterned("%type");
-  
   installMsgProc('T',displayType);	  /* extend outMsg with types */
     
   voidType = mId(Null,VOID_TYPE);
@@ -154,11 +135,11 @@ char *tpVarName(sxPo t)
 
 // A type expression is represented using
 // %type(<name>,{<args>})
-sxPo sxTypeExp(locationPo loc,char *name, lxPo args)
+sxPo sxTypeExp(locationPo loc,sxPo name, sxPo args)
 {
   assert(name!=Null && args!=Null);
 
-  return sxBinary(loc,TYPE_EXP,mId(loc,name),sxBlock(loc,args));
+  return sxBinary(loc,TYPE_EXP,name,args);
 }
 
 sxPo sxTypeFun(locationPo loc,sxPo op,lxPo args)
@@ -201,7 +182,7 @@ sxPo sxArrowType(locationPo loc,sxPo args, sxPo resType)
 
 logical isArrowType(sxPo type)
 {
-  return sxIsBinary(type,ARROW_TYPE));
+  return sxIsBinary(type,ARROW_TYPE);
 }
 
 lxPo arrowArgTypes(sxPo type)
@@ -223,14 +204,14 @@ sxPo arrowResType(sxPo type)
   return sxRhs(type);
 }
 
-sxPo sxPttrnType(locationPo loc,lxPo args, sxPo ptnType)
+sxPo sxPttrnType(locationPo loc,sxPo args, sxPo ptnType)
 {
-  return sxBinary(loc,PTN_TYPE,sxBlock(loc,args),ptnType);
+  return sxBinary(loc,PTN_TYPE,args,ptnType);
 }
 
 logical isPttrnType(sxPo type)
 {
-  return sxIsBinary(type,PTN_TYPE) && sxIsBlock(sxLhs(type));
+  return (logical)(sxIsBinary(type,PTN_TYPE) && sxIsBlock(sxLhs(type)));
 }
 
 lxPo ptnArgTypes(sxPo type)
@@ -428,7 +409,7 @@ retCode dispType(ppDisplayPo disp,policyPo pol,sxPo t)
 {
   if(isTypeVar(t)){
     ppAppend(disp,pol,"%");
-    return ppAppendU(disp,pol,tpVarName(t));
+    return ppAppend(disp,pol,tpVarName(t));
   }
   else if(sxIsIden(t))
     return ppAppendId(disp,pol,sxIden(t));

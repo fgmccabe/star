@@ -25,14 +25,16 @@
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("import", [prefixOp(900, 899)]).
-  operator("\\==", [infixOp(899, 900, 899)]).
+  operator("?.", [infixOp(450, 450, 449)]).
   operator(",..", [infixOp(999, 1000, 1000)]).
+  operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
   operator("raise", [prefixOp(899, 890)]).
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
+  operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("%", [infixOp(700, 700, 699)]).
@@ -53,6 +55,7 @@
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
   operator("<", [infixOp(899, 900, 899)]).
+  operator(".=", [infixOp(899, 900, 899)]).
   operator("=", [infixOp(949, 950, 949)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1260, 1259)]).
@@ -75,10 +78,12 @@
   operator("=>", [infixOp(949, 950, 949)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("%%", [infixOp(499, 500, 499)]).
+  operator("?|", [infixOp(1248, 1249, 1249)]).
   operator("private", [prefixOp(1700, 1699)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
   operator("::", [infixOp(399, 400, 399)]).
+  operator("?.=", [infixOp(899, 900, 899)]).
   operator(":=", [infixOp(949, 950, 949)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator(">>=", [infixOp(899, 900, 900)]).
@@ -132,6 +137,7 @@
   follows('.','~','.~').
   follows('.','<','.<').
   follows('.','^','.^').
+  follows('.','=','.=').
   follows('.','>','.>').
   follows('.',' ','. ').
   follows('.#','.','.#.').
@@ -152,8 +158,6 @@
   follows('~','~','~~').
   follows('~','>','~>').
   follows('\\','+','\\+').
-  follows('\\','=','\\=').
-  follows('\\=','=','\\==').
   follows('^','/','^/').
   follows('^/','/','^//').
   follows(':',':','::').
@@ -164,11 +168,17 @@
   follows('<','=','<=').
   follows('<=','>','<=>').
   follows('=','<','=<').
+  follows('=','!','=!').
   follows('=','=','==').
   follows('=','>','=>').
+  follows('=!','=','=!=').
+  follows('==','>','==>').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
+  follows('?','.','?.').
+  follows('?','|','?|').
+  follows('?.','=','?.=').
 
 
   final('%',"%").	 /* modulo */
@@ -190,6 +200,7 @@
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
   final('.^.',".^.").	 /* bitwise xor */
+  final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
   final('. ',". ").	 /* statement terminator */
@@ -203,7 +214,6 @@
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type alias definition */
   final('\\+',"\\+").	 /* logical negation */
-  final('\\==',"\\==").	 /* not equals */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
   final(':',":").	 /* type annotation */
@@ -217,12 +227,17 @@
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
   final('=<',"=<").	 /* less than or equal */
+  final('=!=',"=!=").	 /* not equals */
   final('==',"==").	 /* equality predicate */
+  final('==>',"==>").	 /* macro arrow */
   final('=>',"=>").	 /* function arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
+  final('?.',"?.").	 /* optional object access */
+  final('?.=',"?.=").	 /* optional decomposition match */
+  final('?|',"?|").	 /* option or-else operator */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up a value from a ref cell */
   final('•',"•").	 /* function composition */

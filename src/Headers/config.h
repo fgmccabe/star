@@ -54,4 +54,4 @@ typedef unsigned long long uint64;
 
 #define VERIFY_OBJECT
 
-#define LODIR "/opt/lo/lo"
+#define CAFEDIR "/opt/star/star"

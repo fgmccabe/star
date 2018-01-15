@@ -2,7 +2,7 @@
   I/O handling library, common framework module
   This is an abstract class -- cannot be instantiated by itself
  
-  Copyright (c) 2016, 2017. Francis G. McCabe
+  Copyright (c) 2016, 2017, 2018. Francis G. McCabe
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
   except in compliance with the License. You may obtain a copy of the License at
@@ -192,7 +192,6 @@ static void IoInit(objectPo o, va_list *args) {
   f->io.inBpos = 0;
   f->io.inCpos = 0;
   f->io.outBpos = 0;
-  f->io.outCpos = 0;
   f->io.currColumn = 0;
   f->io.encoding = unknownEncoding;
 
@@ -493,8 +492,11 @@ retCode outChar(ioPo io, codePoint ch) {
       break;
   }
 
-  if (ret == Ok)
-    return ((IoClassRec *) io->object.class)->ioPart.write(io, (byte *) chbuff, len, &actual);
+  if (ret == Ok) {
+    ret = ((IoClassRec *) io->object.class)->ioPart.write(io, (byte *) chbuff, len, &actual);
+    io->io.outBpos += actual;
+    return ret;
+  }
   else
     return ret;
 }
@@ -509,6 +511,7 @@ retCode outText(ioPo f, char *text, integer len) {
     ret = ((IoClassRec *) f->object.class)->ioPart.write(f, (byte *) &text[pos], remaining, &count);
     remaining -= count;
     pos += count;
+    f->io.outBpos += count;
   }
 
   return ret;
@@ -800,16 +803,6 @@ integer outBPos(ioPo f) {
   bPos = f->io.outBpos;
   unlock(O_LOCKED(o));
   return bPos;
-}
-
-integer outCPos(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  integer cPos;
-
-  lock(O_LOCKED(o));
-  cPos = f->io.outCpos;
-  unlock(O_LOCKED(o));
-  return cPos;
 }
 
 long outColumn(ioPo f) {

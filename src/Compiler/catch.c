@@ -16,7 +16,7 @@ retCode compileCatch(sxPo act,sxPo *expected,
 		     mtdCxtPo mtd,
 		     contFun cont,void *cl)
 {
-  assemPo code = methodCode(mtd);
+  assemInsPo code = methodCode(mtd);
   sxPo body = sxCatchBody(act);
   lxPo clauses = sxCatchClauses(act);
   locationPo loc = sxLoc(act);
@@ -46,9 +46,8 @@ retCode compileCatch(sxPo act,sxPo *expected,
 
 retCode genCatchBlocks(mtdCxtPo mtd,lPo catch)
 {
-  assemPo code = methodCode(mtd);
-  AAlignTo(code,POINTER_SIZE);
-  defineLbl(code,catch);
+  assemInsPo code = methodCode(mtd);
+  defineLbl(mtd,catch);
   tryPo catches = methodCatchBlocks(mtd);
   while(catches!=Null){
     AConstP(code,tryBlockStart(catches));

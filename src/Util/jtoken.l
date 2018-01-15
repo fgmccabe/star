@@ -42,11 +42,6 @@ static void parseError(char *msg,int lineNo);
 
 #define RTN(K) { yylloc->first_line = yylloc->last_line = yylineno; return K;}
 
-static long parseLong(char *text)
-{
-  long len = strlen(text);
-  return parseInteger(text,len);
-}
 
 static double parseFloat(char *text)
 {

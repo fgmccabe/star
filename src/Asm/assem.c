@@ -2,96 +2,158 @@
  * Assembler for the Cafe machine code
  */
 
-#include "ooio.h"
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-#include <assemP.h>
-#include "formioP.h"
-#include "lists.h"
-
 #include "assemP.h"
+#include "formioP.h"
+#include "stringBuffer.h"
+
 #include "encoding.h"
-#include "esc.h"
-#include "ops.h"
 
 static poolPo pkgPool;      /* pool of packages */
 static poolPo mtdPool;      /* pool of method blocks */
 static poolPo insPool;      /* pool of instructions */
-static poolPo constPool;    /* pool of constant values */
 static poolPo varPool;      /* pool of local variable records */
 static poolPo lblPool;      /* pool of labels */
 
 static retCode displayLabel(ioPo f, void *p, long width, long prec, logical alt);
 
+static comparison localComp(localVarPo l1, localVarPo l2);
+static integer localHash(localVarPo l);
+
 static char stringSig[] = {strSig, 0};
 static char integerSig[] = {intSig, 0};
 static char floatSig[] = {fltSig, 0};
+static char strctSig[] = {conSig, 0};
+
+static void constInit(objectPo o, va_list *args);
+
+ConstClassRec ConstClass = {
+  {
+    (classPo) &ObjectClass,
+    "constant",
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    constInit,
+    sizeof(ConstRecord),
+    NULL,
+    NULL,
+    NULL,
+    PTHREAD_ONCE_INIT,                      /* not yet initialized */
+    PTHREAD_MUTEX_INITIALIZER
+  },
+  {}
+};
+
+classPo constClass = (classPo) &ConstClass;
+
+void constInit(objectPo o, va_list *args) {
+  constPo c = O_CONST(o);
+
+  c->con.sig = va_arg(*args, char *);
+  c->con.same = va_arg(*args, constCmp);
+  c->con.show = va_arg(*args, constDump);
+  c->con.encode = va_arg(*args, constDump);
+  c->con.value = *va_arg(*args, ConValue*);
+}
+
+constPo newConstant(char *sig, constCmp same, constDump show, constDump encode, ConValue *value) {
+  return O_CONST(newObject(constClass, sig, same, show, encode, value));
+}
 
 void initAssem() {
   pkgPool = newPool(sizeof(AssemPackage), 3);
   mtdPool = newPool(sizeof(AssemMethod), 16);
   insPool = newPool(sizeof(AssemInstruction), 1024);
-  constPool = newPool(sizeof(PoolConstantRecord), 256);
   varPool = newPool(sizeof(LocalVarRecord), 256);
   lblPool = newPool(sizeof(LabelRec), 128);
 
   installMsgProc('B', displayLabel);
-  initEscapes();
 }
 
 static retCode delLabel(void *n, void *r);
+static retCode delMtd(strctPo nm, mtdPo mtd);
 
-pkgPo newPkg(char *name) {
+pkgPo newPkg(char *name, char *version) {
   pkgPo pkg = (pkgPo) allocPool(pkgPool);
   pkg->name = uniDuplicate(name);
-  pkg->methods = nilList;
+  pkg->version = uniDuplicate(version);
+  pkg->methods = NewHash(16, (hashFun) strctHash, (compFun) strctComp, (destFun) delMtd);
   return pkg;
 }
 
-static logical isRightMethod(objectPo d, void *cl) {
-  return (logical) (uniCmp(((mtdPo) d)->name, (char *) cl) == same);
+integer strctHash(strctPo st) {
+  return uniHash(st->name) * 37 + st->arity;
 }
 
-mtdPo getPkgMethod(pkgPo pkg, char *name) {
-  return (mtdPo) findInList(pkg->methods, isRightMethod, name);
+comparison strctComp(strctPo st1, strctPo st2) {
+  comparison comp = uniCmp(st1->name, st2->name);
+
+  if (comp == same) {
+    if (st1->arity < st2->arity)
+      comp = smaller;
+    else if (st1->arity > st2->arity)
+      comp = bigger;
+  }
+  return comp;
+}
+
+static logical isRightMethod(objectPo d, void *cl) {
+  StrctLbl *mtd = (StrctLbl *) cl;
+  mtdPo m = (mtdPo) d;
+  return (logical) (strctComp(mtd, &m->name) == same);
+}
+
+mtdPo getPkgMethod(pkgPo pkg, const char *name, integer arity) {
+  StrctLbl mtd = {.name =name, .arity=arity};
+  return (mtdPo) hashGet(pkg->methods, &mtd);
 }
 
 static void defineSig(mtdPo mtd, char *sig);
 
-mtdPo defineMethod(pkgPo pkg, logical public, char *name, int arity, char *sig, char *free) {
-  mtdPo existing = getPkgMethod(pkg, name);
+mtdPo defineMethod(pkgPo pkg, logical public, char *name, integer arity, char *sig) {
+  mtdPo existing = getPkgMethod(pkg, name, 0);
 
   if (existing == Null) {
     mtdPo mtd = (mtdPo) allocPool(mtdPool);
-    mtd->name = uniDuplicate(name);
+    mtd->name.name = uniDuplicate(name);
+    mtd->name.arity = arity;
     mtd->labels = NewHash(16, (hashFun) uniHash, (compFun) uniCmp, delLabel);
     mtd->constants = nilList;
     mtd->first = mtd->last = Null;
-    mtd->owner = pkg;
     mtd->sig = -1;
-    mtd->locals = nilList;
-    pkg->methods = tack((objectPo) mtd, pkg->methods);
+    mtd->locals = NewHash(16, (hashFun) localHash, (compFun) localComp, NULL);
+
+    newPrgConstant(mtd, name, arity);
+
+    hashPut(pkg->methods, &mtd->name, mtd);
 
     if (sig != Null) {
       defineSig(mtd, sig);    /* should be the first constant */
-      mtd->freeSig = newStringConstant(mtd, free);
     }
 
     return mtd;
   } else if (existing->sig < 0 && sig != Null) {
     defineSig(existing, sig);
-    existing->freeSig = newStringConstant(existing, free);
   }
 
   return existing;
+}
+
+static retCode delMtd(strctPo nm, mtdPo mtd){
+  DelHash(mtd->locals);
+  DelHash(mtd->frames);
+  DelHash(mtd->labels);
+  releaseList(mtd->constants);
+  return Ok;
 }
 
 static void defineSig(mtdPo mtd, char *sig) {
   assert(mtd->sig < 0);
 
   mtd->sig = newStringConstant(mtd, sig);
-  assert(mtd->sig == 0);
+  assert(mtd->sig == 1);
 }
 
 static assemInsPo asm_i32(mtdPo mtd, OpCode op, int32 ix);
@@ -112,20 +174,60 @@ int32 frameCount(mtdPo mtd) {
   return cx;
 }
 
-void defineLocal(mtdPo mtd, char *name, char *sig, int32 off, lPo from, lPo to) {
+void defineLocal(mtdPo mtd, char *name, char *sig, lPo from, lPo to) {
   localVarPo var = (localVarPo) allocPool(varPool);
-  var->name = newStringConstant(mtd, name);
+  var->name = uniDuplicate(name);
   var->sig = newStringConstant(mtd, sig);
-  var->off = off;
+  var->off = (int32) hashSize(mtd->locals);
   var->from = from;
   var->to = to;
-  mtd->locals = cons((objectPo) var, mtd->locals);
+  hashPut(mtd->locals, &var->name, var);
+}
+
+typedef struct {
+  mtdPo mtd;
+  const char *name;
+  int32 count;
+} Counter;
+
+static logical lookforName(objectPo data, void *cl) {
+  Counter *cnt = (Counter *) cl;
+  localVarPo var = (localVarPo) data;
+  char *varName;
+
+  if (getStringConstant(cnt->mtd, &varName) == Ok) {
+    if (uniCmp(varName, cnt->name) == same)
+      return True;
+  }
+
+  cnt->count++;
+  return False;
+}
+
+int32 findLocal(mtdPo mtd, const char *name) {
+  Counter cnt = {.mtd=mtd, .name=name, .count=0};
+
+  localVarPo lclVar = (localVarPo) hashGet(mtd->locals, (void *) name);
+  if (lclVar != Null)
+    return lclVar->off;
+  else
+    return -1;
+}
+
+comparison localComp(localVarPo l1, localVarPo l2) {
+  return uniCmp(l1->name, l2->name);
+}
+
+static integer localHash(localVarPo l){
+  return uniHash(l->name);
 }
 
 retCode delFunction(pkgPo pkg, mtdPo mtd) {
-  pkg->methods = removeElements(pkg->methods, isRightMethod, mtd->name);
+  hashRemove(pkg->methods, &mtd->name);
 
   DelHash(mtd->labels);
+  DelHash(mtd->frames);
+  DelHash(mtd->locals);
 
   assemInsPo ins = mtd->first;
   while (ins != Null) {
@@ -134,11 +236,6 @@ retCode delFunction(pkgPo pkg, mtdPo mtd) {
     ins = next;
   }
 
-  listPo cons = mtd->constants;
-  while (cons != nilList) {
-    freePool(constPool, head(cons));
-    cons = tail(cons);
-  }
   releaseList(mtd->constants);
 
   freePool(mtdPool, mtd);
@@ -171,7 +268,6 @@ void endFunction(mtdPo mtd) {
 #define szi32 pc+=sizeof(int32);
 #define szarg pc+=sizeof(int32);
 #define szlcl pc+=sizeof(int32);
-#define szenv pc+=sizeof(int32);
 #define szoff pc+=sizeof(int32);
 #define szEs pc+=sizeof(int32);
 #define szlit pc+=sizeof(int32);
@@ -190,7 +286,6 @@ void endFunction(mtdPo mtd) {
 #undef szi32
 #undef szarg
 #undef szlcl
-#undef szenv
 #undef szoff
 #undef szEs
 #undef szlit
@@ -318,26 +413,30 @@ retCode displayLabel(ioPo f, void *p, long width, long prec, logical alt) {
 }
 
 logical labelDefined(lPo lbl) {
-  return (logical)(lbl->pc != Null);
+  return (logical) (lbl->pc != Null);
+}
+
+char *lblName(lPo lbl) {
+  return lbl->lbl;
 }
 
 static logical sameString(constPo a1, char *sig, void *con) {
   if (uniCmp(sig, stringSig) == same)
-    return (logical)(uniCmp(a1->value.txt, (char *) con) == same);
+    return (logical) (uniCmp(a1->con.value.txt, (char *) con) == same);
   else
     return False;
 }
 
 static logical sameInteger(constPo a1, char *sig, void *con) {
   if (uniCmp(sig, integerSig) == same)
-    return (logical)(a1->value.ix == *(int64 *) con);
+    return (logical) (a1->con.value.ix == *(int64 *) con);
   else
     return False;
 }
 
 static logical sameFloat(constPo a1, char *sig, void *con) {
   if (uniCmp(sig, floatSig) == same)
-    return (logical)(a1->value.dx == *(double *) con);
+    return (logical) (a1->con.value.dx == *(double *) con);
   else
     return False;
 }
@@ -345,7 +444,15 @@ static logical sameFloat(constPo a1, char *sig, void *con) {
 static logical sameMtd(constPo a1, char *sig, void *con) {
   mtdPo other = (mtdPo) con;
 
-  return (logical)(a1->value.mtd == other);
+  return (logical) (a1->con.value.mtd == other);
+}
+
+static logical isStruct(strctPo str1, strctPo str2) {
+  return (logical) (uniCmp(str1->name, str2->name) == same && str1->arity == str2->arity);
+}
+
+static logical sameStruct(constPo a1, char *sig, void *con) {
+  return (logical) (uniCmp(a1->con.sig, sig) == same && isStruct(&a1->con.value.strct, (strctPo) con));
 }
 
 static int32 findConstant(mtdPo mtd, char *sig, void *con) {
@@ -353,7 +460,7 @@ static int32 findConstant(mtdPo mtd, char *sig, void *con) {
   int32 count = 0;
   while (consts != nilList) {
     constPo cn = (constPo) head(consts);
-    if (cn->same(cn, sig, con))
+    if (cn->con.same(cn, sig, con))
       return count;
 
     count++;
@@ -364,155 +471,136 @@ static int32 findConstant(mtdPo mtd, char *sig, void *con) {
 }
 
 retCode showIntegerConstant(ioPo f, constPo cn) {
-  return outMsg(f, "#%l", cn->value.ix);
+  return outMsg(f, "#%l", cn->con.value.ix);
 }
 
 retCode encodeIntegerConstant(ioPo f, constPo c) {
-  return encodeInt(f, c->value.ix);
+  return encodeInt(f, c->con.value.ix);
 }
 
 int32 newIntegerConstant(mtdPo mtd, int64 ix) {
   int32 cx = findConstant(mtd, integerSig, &ix);
 
   if (cx < 0) {
-    constPo conn = (constPo) allocPool(constPool);
-    conn->sig = integerSig;
-    conn->same = sameInteger;
-    conn->show = showIntegerConstant;
-    conn->encode = encodeIntegerConstant;
-    conn->value.ix = ix;
+    ConValue value = {.ix=ix};
+
+    constPo conn = newConstant(integerSig, sameInteger, showIntegerConstant, encodeIntegerConstant, &value);
+
     mtd->constants = tack(O_OBJECT(conn), mtd->constants);
-    return (int32)listCount(mtd->constants) - 1;
+    return (int32) listCount(mtd->constants) - 1;
   } else
     return cx;
 }
 
 retCode showFloatConstant(ioPo f, constPo cn) {
-  return outMsg(f, "#%ld", cn->value.dx);
+  return outMsg(f, "#%ld", cn->con.value.dx);
 }
 
 retCode encodeFloatConstant(ioPo f, constPo c) {
-  return encodeFlt(f, c->value.dx);
+  return encodeFlt(f, c->con.value.dx);
 }
 
 int32 newFloatConstant(mtdPo mtd, double dx) {
   int32 cx = findConstant(mtd, floatSig, &dx);
 
   if (cx < 0) {
-    constPo conn = (constPo) allocPool(constPool);
-    conn->sig = floatSig;
-    conn->same = sameFloat;
-    conn->show = showFloatConstant;
-    conn->encode = encodeFloatConstant;
-    conn->value.dx = dx;
+    ConValue value = {.dx=dx};
+
+    constPo conn = newConstant(floatSig, sameFloat, showFloatConstant, encodeFloatConstant, &value);
+
     mtd->constants = tack(O_OBJECT(conn), mtd->constants);
-    return (int32)(listCount(mtd->constants) - 1);
+    return (int32) (listCount(mtd->constants) - 1);
   } else
     return cx;
 }
 
 retCode showStringConstant(ioPo f, constPo cn) {
-  return outMsg(f, "#%U", cn->value.txt);
+  return outMsg(f, "#%U", cn->con.value.txt);
 }
 
 retCode encodeStringConstant(ioPo f, constPo c) {
-  return encodeStr(f, c->value.txt);
+  return encodeStr(f, c->con.value.txt);
 }
 
 int32 newStringConstant(mtdPo mtd, char *str) {
   int32 cx = findConstant(mtd, stringSig, str);
 
   if (cx < 0) {
-    constPo conn = (constPo) allocPool(constPool);
-    conn->sig = stringSig;
-    conn->same = sameString;
-    conn->show = showStringConstant;
-    conn->encode = encodeStringConstant;
-    conn->value.txt = uniDuplicate(str);
+    ConValue value = {.txt=uniDuplicate(str)};
+
+    constPo conn = newConstant(stringSig, sameString, showStringConstant, encodeStringConstant, &value);
+
     mtd->constants = tack((objectPo) conn, mtd->constants);
-    return (int32)(listCount(mtd->constants) - 1);
+    return (int32) (listCount(mtd->constants) - 1);
+  } else
+    return cx;
+}
+
+retCode getStringConstant(mtdPo mtd, char **name) {
+  int32 cx = findConstant(mtd, stringSig, name);
+  if (cx < 0)
+    return Fail;
+  else
+    return Ok;
+}
+
+retCode showStructConstant(ioPo f, constPo cn) {
+  return outMsg(f, "%s:%d", cn->con.value.strct.name, cn->con.value.strct.arity);
+}
+
+retCode encodeStructConstant(ioPo f, constPo c) {
+  return encodeStrct(f, (char*)c->con.value.strct.name, c->con.value.strct.arity);
+}
+
+retCode showPrgConstant(ioPo f, constPo cn) {
+  return outMsg(f, "%s/%d", cn->con.value.strct.name, cn->con.value.strct.arity);
+}
+
+retCode encodePrgConstant(ioPo f, constPo c) {
+  return encodePrg(f, (char*)c->con.value.strct.name, c->con.value.strct.arity);
+}
+
+int32 newStrctConstant(mtdPo mtd, char *str, integer ar) {
+  StrctLbl S = {str, ar};
+
+  int32 cx = findConstant(mtd, strctSig, &S);
+
+  if (cx < 0) {
+    ConValue value = {.strct={.name=uniDuplicate(str), .arity=ar}};
+
+    constPo conn = newConstant(strctSig, sameStruct, showStructConstant, encodeStructConstant, &value);
+
+    mtd->constants = tack((objectPo) conn, mtd->constants);
+    return (int32) (listCount(mtd->constants) - 1);
+  } else
+    return cx;
+}
+
+int32 newPrgConstant(mtdPo mtd, char *str, integer ar) {
+  StrctLbl S = {str, ar};
+
+  int32 cx = findConstant(mtd, strctSig, &S);
+
+  if (cx < 0) {
+    ConValue value = {.strct={.name=uniDuplicate(str), .arity=ar}};
+
+    constPo conn = newConstant(strctSig, sameStruct, showPrgConstant, encodePrgConstant, &value);
+
+    mtd->constants = tack((objectPo) conn, mtd->constants);
+    return (int32) (listCount(mtd->constants) - 1);
   } else
     return cx;
 }
 
 char *methodSignature(mtdPo mtd) {
   if (mtd->sig >= 0)
-    return ((constPo) listNthElement(mtd->constants, mtd->sig))->value.txt;
+    return ((constPo) listNthElement(mtd->constants, mtd->sig))->con.value.txt;
   else
     return Null;
-}
-
-char *freeSignature(mtdPo mtd) {
-  if (mtd->freeSig >= 0)
-    return ((constPo) listNthElement(mtd->constants, mtd->freeSig))->value.txt;
-  else
-    return Null;
-}
-
-retCode showMtdConstant(ioPo f, constPo cn) {
-  return outMsg(f, "[%U]\n", cn->value.mtd->name);
-}
-
-retCode encodeMtdConstant(ioPo f, constPo c) {
-  return encodeStrct(f, c->value.mtd->name,c->value.mtd->arity);
-}
-
-int32 findMethod(mtdPo mtd, char *name, int arity) {
-  pkgPo pkg = mtd->owner;
-
-  mtdPo other = getPkgMethod(pkg, name);
-
-  if (other != Null) {
-    char *mtdSig = methodSignature(other);
-    int32 cx = findConstant(mtd, mtdSig, name);
-
-    if (cx >= 0)
-      return cx;
-    else {
-      constPo conn = (constPo) allocPool(constPool);
-      conn->sig = mtdSig;
-      conn->same = sameMtd;
-      conn->show = showMtdConstant;
-      conn->encode = encodeMtdConstant;
-      conn->value.mtd = other;
-      mtd->constants = tack(O_OBJECT(conn), mtd->constants);
-      return (int32)listCount(mtd->constants) - 1;
-    }
-  } else {
-    other = defineMethod(pkg, False, name, arity, Null, Null);
-    constPo conn = (constPo) allocPool(constPool);
-    conn->sig = Null;
-    conn->same = sameMtd;
-    conn->show = showMtdConstant;
-    conn->encode = encodeMtdConstant;
-    conn->value.mtd = other;
-    mtd->constants = tack(O_OBJECT(conn), mtd->constants);
-    return (int32)listCount(mtd->constants) - 1;
-  }
-}
-
-retCode showEscapeConstant(ioPo f, constPo cn) {
-  return outMsg(f, "#%U\n", cn->value.txt);
-}
-
-retCode encodeEscapeConstant(ioPo f, constPo c) {
-  return encodeEscapeRef(f, c->value.txt);
 }
 
 int32 newEscapeConstant(mtdPo mtd, char *str) {
-  int32 cx = findConstant(mtd, stringSig, str);
-
-  if (cx < 0) {
-    constPo conn = (constPo) allocPool(constPool);
-    conn->sig = stringSig;
-    conn->same = sameString;
-    conn->show = showEscapeConstant;
-    conn->encode = encodeEscapeConstant;
-    conn->value.txt = uniDuplicate(str);
-    mtd->constants = tack(O_OBJECT(conn), mtd->constants);
-    return (int32)listCount(mtd->constants) - 1;
-  } else
-    return cx;
+  return newStringConstant(mtd, str);
 }
 
 static assemInsPo asm_tos(mtdPo mtd, OpCode op) {
@@ -598,9 +686,10 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define argEs(X) , f##X
 
 #define instruction(Op, A1, Cmt)    \
-  assemInsPo A##Op(mtdPo mtd op##A1(1))    \
+  retCode A##Op(mtdPo mtd op##A1(1))    \
   {\
-  return asm_##A1(mtd,Op arg##A1(1));\
+    asm_##A1(mtd,Op arg##A1(1));\
+    return Ok;\
   }
 
 #include "instructions.h"
@@ -637,7 +726,6 @@ int32 codeSize(mtdPo mtd) {
 #define szi32 pc+=(sizeof(int32)/sizeof(uint16));
 #define szarg pc+=(sizeof(int32)/sizeof(uint16));
 #define szlcl pc+=(sizeof(int32)/sizeof(uint16));
-#define szenv pc+=(sizeof(int32)/sizeof(uint16));
 #define szoff pc+=(sizeof(int32)/sizeof(uint16));
 #define szEs pc+=(sizeof(int32)/sizeof(uint16));
 #define szlit pc+=(sizeof(int32)/sizeof(uint16));
@@ -655,10 +743,13 @@ int32 codeSize(mtdPo mtd) {
 #undef szi32
 #undef szarg
 #undef szlcl
-#undef szenv
 #undef szoff
 #undef szEs
 #undef szlit
+#undef sznOp
+      case frame:
+        pc++;
+        break;
       default:;
     }
 
@@ -667,10 +758,70 @@ int32 codeSize(mtdPo mtd) {
   return pc;
 }
 
+int32 codeCount(mtdPo mtd) {
+  int32 count = 0;
+  assemInsPo ins = mtd->first;
+
+  while (ins != Null) {
+    switch (ins->op) {
+      case label:
+        break;
+      default:
+        count++;
+    }
+
+    ins = ins->next;
+  }
+
+  return count;
+}
+
 int64 poolCount(mtdPo mtd) {
   return listCount(mtd->constants);
 }
 
 constPo poolConstant(mtdPo mtd, int64 ix) {
   return (constPo) listNthElement(mtd->constants, ix);
+}
+
+static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
+  assemInsPo ins = mtd->first;
+  retCode ret = Ok;
+
+  while (ret == Ok && ins != Null) {
+    switch (ins->op) {
+
+#undef instruction
+
+#define sznOp
+#define szi32 if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szarg if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szlcl if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szoff if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szEs if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+
+#define instruction(Op, A1, Cmt)    \
+      case Op:          \
+        ret = outByte(O_IO(bfr),Op);\
+  sz##A1          \
+    break;
+
+#include "instructions.h"
+
+#undef instruction
+#undef sztos
+#undef szi32
+#undef szarg
+#undef szlcl
+#undef szoff
+#undef szEs
+#undef szlit
+#undef sznOp
+      default:;
+    }
+
+    ins = ins->next;
+  }
+  return ret;
 }
