@@ -8,12 +8,10 @@
 #include "config.h"
 
 #include <debug.h>
-
+#include "engineP.h"
 #include "escape.h"      /* escape call handling */
 
-#ifdef TRACEEXEC
-extern logical tracing;     /* true if debugging instructions */
-#endif
+
 
 #define collectI32(pc) (hi32 = (uint32)(*pc++), lo32 = *pc++, ((hi32<<16)|lo32))
 
@@ -29,11 +27,11 @@ extern logical tracing;     /* true if debugging instructions */
 /*
  * Execute program on a given process/thread structure
  */
-integer run(processPo P, heapPo heap) {
+retCode run(processPo P, heapPo heap) {
   register insPo PC = P->pc;    /* Program counter */
   register framePo FP = P->fp;    /* Current locals + = arguments, - = locals */
-  register closurePo ENV = P->prog; /* Current executing closure */
-  register constantPo LITS = codeLiterals(ENV); /* pool of literals */
+  register methodPo PROG = P->prog; /* Current executing closure */
+  register constantPo LITS = codeLiterals(PROG); /* pool of literals */
 
   register ptrPo SP = P->sp;         /* Current 'top' of stack (grows down) */
 
@@ -48,18 +46,18 @@ integer run(processPo P, heapPo heap) {
     pcCount++;        /* increment total number of executed */
 
     if (tracing)
-      debug_stop(pcCount, P, ENV, PC, FP, SP);
+      debug_stop(pcCount, P, PROG, PC, FP, SP);
 #endif
 
     switch (*PC++) {
       case Halt:
-        return (integer) *SP;
+        return Ok;
 
-      case Call:        /* Call tos a1 .. an -->   */
-        ENV = (closurePo) SP;   /* set up env for callee */
+      case OCall:        /* Call tos a1 .. an -->   */
+        PROG = C_MTD(*SP++);       /* set up for callee */
         push(PC);       /* build up the frame. */
-        PC = entryPoint(ENV);
-        LITS = codeLiterals(ENV);
+        PC = entryPoint(PROG);
+        LITS = codeLiterals(PROG);
         continue;
 
       case Enter: {      /* set up the local env of locals */
@@ -421,7 +419,8 @@ integer run(processPo P, heapPo heap) {
   }
 }
 
-logical compare_and_swap(closurePo cl, int64 old, int64 nw) {
+logical compare_and_swap(termPo cl, int64 old, int64 nw) {
+  int
   integer *check = &cl->free[0];
   return __sync_bool_compare_and_swap(check, old, nw);
 }

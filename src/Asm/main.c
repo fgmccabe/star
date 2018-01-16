@@ -5,11 +5,13 @@
 #include "asm.h"
 #include "manifest.h"
 #include "asmOptions.h"
+#include "formexts.h"
+#include "formioP.h"
 #include "errors.h"
 #include <stdlib.h>
 
 char copyRight[] = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
-char version[] = PACKAGE " assembler - " VERSION " - " __DATE__ ;
+char version[] = PACKAGE " assembler - " VERSION " - " __DATE__;
 
 int main(int argc, char **argv) {
   int narg;
@@ -39,6 +41,8 @@ int main(int argc, char **argv) {
     outMsg(logFile, "error in loading repository");
     exit(99);
   }
+
+  installMsgProc('Q', genQuotedStr);
 
   if (narg < argc) {
     char path[1024];

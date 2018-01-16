@@ -84,13 +84,19 @@ static retCode setManifest(char *option, logical enable, void *cl) {
   return Ok;
 }
 
+static retCode setVersion(char *option, logical enable, void *cl) {
+  setPkgVersion(option);
+  return Ok;
+}
+
 Option options[] = {
   {'d', "debug",      True,  debugOption,    Null, "-d|--debug <flags>"},
   {'v', "version",    False, displayVersion, Null, "-v|--version"},
   {'P', "parseOnly",  False, setParseOnly,   Null, "-P|--parseOnly"},
   {'H', "cafeHome",   True,  setHome,        Null, "-H|--cafeHome <path>"},
   {'L', "logFile",    True,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'R', "repository", True,  setManifest,    Null, "-R|--repository <path>"}};
+  {'R', "repository", True,  setManifest,    Null, "-R|--repository <path>"},
+  {'V', "pkg-version", True, setVersion,     Null, "-V|--set-version <version>"}};
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

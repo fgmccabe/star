@@ -14,6 +14,10 @@ extern retCode parseContent(char *path);
 
 extern void setCafeHome(char *home);
 
+extern void setPkgVersion(char *vers);
+
+extern char *defltPkgVersion();
+
 extern char copyright[], version[];
 
 #endif

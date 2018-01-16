@@ -7,8 +7,10 @@
 #include "clock.h"
 #include "args.h"
 #include "engine.h"
+#include "formioP.h"
+#include "codeP.h"
 
-char copyRight[] = "(c) 2010-2017 F.G.McCabe\nAll rights reserved";
+char copyRight[] = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
 
 int main(int argc, char **argv) {
   int narg;
@@ -28,6 +30,9 @@ int main(int argc, char **argv) {
 
   defltRepoDir();
   defltCWD();
+
+  installMsgProc('M', showMtdLbl);
+  initCode();
 
   if ((narg = getOptions(argc, argv)) < 0) {
     usage(argv[0]);

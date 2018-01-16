@@ -1,6 +1,6 @@
 // Incremental instruction debugger
 
-#include "engine.h"
+#include "engineP.h"
 #include "signature.h"
 #include "escape.h"
 #include <stdlib.h>
@@ -130,11 +130,11 @@ void dC(termPo w) {
   flushOut();
 }
 
-static retCode showConstant(ioPo out, closurePo cl, int off);
+static retCode showConstant(ioPo out, methodPo mtd, int off);
 
-static void showRegisters(int64 pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp);
+static void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
-void debug_stop(integer pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp) {
+void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   static char line[256] = {'n', 0};
 
   static processPo focus = NULL; /* non-null implies only interested in this */
@@ -154,7 +154,7 @@ void debug_stop(integer pcCount, processPo p, closurePo env, insPo pc, framePo f
 
     }
 
-    disass(pcCount, p, env, pc, fp, sp);
+    disass(pcCount, p, mtd, pc, fp, sp);
     if (!interactive || traceCount > 0) {
       if (traceCount == 0)
         outMsg(logFile, "\n");
@@ -211,7 +211,7 @@ void debug_stop(integer pcCount, processPo p, closurePo env, insPo pc, framePo f
           tracing = False;
           break;
         case 'r':      /* dump the registers */
-          showRegisters(pcCount, p, env, pc, fp, sp);
+          showRegisters(pcCount, p, mtd, pc, fp, sp);
           continue;
         case 'l': {    /* dump a local variable */
           logMsg(logFile, "not implemented\n");
@@ -250,7 +250,7 @@ void debug_stop(integer pcCount, processPo p, closurePo env, insPo pc, framePo f
           insPo pc0 = pc;
 
           for (i = 0; i < off; i++) {
-            pc0 = disass(pcCount + i, p, env, pc0, fp, sp);
+            pc0 = disass(pcCount + i, p, mtd, pc0, fp, sp);
             outChar(logFile, '\n');
           }
 
@@ -281,7 +281,7 @@ static void showEscape(closurePo cl, int32 escNo) {
   outMsg(logFile, " (%U)", esc->name);
 }
 
-insPo disass(integer pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp) {
+insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   int32 hi32, lo32;
 
   outMsg(logFile, "0x%x [%d]", pc, pcCount);
@@ -314,8 +314,7 @@ insPo disass(integer pcCount, processPo p, closurePo env, insPo pc, framePo fp, 
 
 static integer showBySig(ioPo out, char *sig, integer pos, void *data);
 
-static retCode showConstant(ioPo out, closurePo cl, int off) {
-  methodPo mtd = clMethod(cl);
+static retCode showConstant(ioPo out, methodPo mtd, int off) {
 
   void *data = mtd->pool[off].data;
   char *sig = mtd->pool[off].sig;
@@ -323,12 +322,11 @@ static retCode showConstant(ioPo out, closurePo cl, int off) {
   return Ok;
 }
 
-void showRegisters(int64 pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp) {
-  outMsg(logFile, "p: 0x%x, cl: 0x%x, pc: 0x%x, fp: 0x%x, sp: 0x%x\n",
-         p, env, pc, fp, sp);
+void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+  outMsg(logFile, "p: 0x%x, mtd: %M, pc: 0x%x, fp: 0x%x, sp: 0x%x\n",
+         p, mtd, pc, fp, sp);
 
-  methodPo mtd = clMethod(env);
-  integer pcOffset = pc - mtd->code;
+  integer pcOffset = (integer)(pc - mtd->code);
 
   localPtr locals = mtd->locals;
 
@@ -336,11 +334,10 @@ void showRegisters(int64 pcCount, processPo p, closurePo env, insPo pc, framePo 
     if (locals[ix].from <= pcOffset && locals[ix].to > pcOffset) {
       int64 off = locals[ix].off;
       termPo var = localVar(fp, off);
-      char *vrName = mtd->pool[locals[ix].name].data;
-      char *sig = mtd->pool[locals[ix].sig].data;
+      termPo vrName = mtd->pool[locals[ix].name].data;
+      termPo sig = mtd->pool[locals[ix].sig].data;
 
-      outMsg(logFile, "%U [%d]:%U ", vrName, off, sig);
-      showBySig(logFile, sig, 0, var);
+      outMsg(logFile, "%T [%d]:%T ", vrName, off, sig);
       outMsg(logFile, "\n");
     }
   }

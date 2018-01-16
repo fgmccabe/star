@@ -6,7 +6,7 @@
 #define CAFE_ARITH_H_H
 
 #include "engine.h"
-#include "term.h"
+#include "termP.h"
 
 // Integer structure
 typedef struct int_struct *intPo;
@@ -14,6 +14,8 @@ typedef struct int_struct *intPo;
 extern clssPo integerClass;
 
 extern termPo allocateInteger(heapPo H, int64);
+
+extern termPo allocateLocalInteger(processPo P,int64 ix);
 
 static inline logical isInteger(termPo p) {
   return hasClass(p, integerClass);
@@ -29,6 +31,8 @@ typedef struct float_struct *fltPo;
 extern clssPo floatClass;
 
 extern termPo allocateFloat(heapPo H, double dx);
+
+extern termPo allocateLocalFloat(processPo P,double dx);
 
 static inline logical isFloat(termPo p) {
   return hasClass(p, floatClass);

@@ -12,12 +12,18 @@ typedef struct special_class *specialClassPo;
 
 typedef struct enum_struct *termClassPo;
 
-extern termPo allocateEnum(heapPo H,char *nm,int64 arity);
+typedef struct _program_label_ *labelPo;
 
-extern termPo allocateObject(heapPo H,termPo cons);
+extern clssPo labelClass;
 
-extern termPo nthArg(termPo term,int64 nth);
+extern labelPo C_LBL(termPo t);
 
-extern void setArg(termPo term,int64 ix, termPo arg);
+extern termPo allocateEnum(heapPo H, char *nm, int64 arity);
+
+extern termPo allocateObject(heapPo H, termPo cons);
+
+extern termPo nthArg(termPo term, int64 nth);
+
+extern void setArg(termPo term, int64 ix, termPo arg);
 
 #endif //CAFE_TERM_H

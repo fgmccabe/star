@@ -75,6 +75,16 @@ void setCafeHome(char *home) {
   CAFE_HOME = home;
 }
 
+static char *PKG_VERSION = "*";
+
+void setPkgVersion(char *vers){
+  PKG_VERSION = vers;
+}
+
+char *defltPkgVersion(){
+  return PKG_VERSION;
+}
+
 
 static void initStdUri() {
   if (CAFE_HOME == NULL) {

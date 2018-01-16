@@ -8,8 +8,9 @@ include_directories("Headers" "../Headers" "../Util/Headers" "../Lib/Headers")
 set(HEADER_FILES
         Headers/manifest.h Headers/manifestP.h Headers/pkg.h Headers/pkgP.h Headers/encoding.h
         ../Headers/signature.h
+        Headers/formexts.h
         )
 
-set(SOURCE_FILES ${HEADER_FILES} manifest.c pkg.c encode.c signature.c)
+set(SOURCE_FILES ${HEADER_FILES} manifest.c pkg.c encode.c signature.c formexts.c )
 
 add_library(infra ${SOURCE_FILES} ${HEADER_FILES})

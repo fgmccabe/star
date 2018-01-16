@@ -123,7 +123,7 @@ void FileInit(objectPo o, va_list *args) {
   f->file.out_pos = 0;
   f->file.in_len = 0;
   f->file.fno = va_arg(*args, int);             // set up the file number
-  configureIo(f,turnOnBlocking);
+  configureIo(f, turnOnBlocking);
   setEncoding(O_IO(f), va_arg(*args, ioEncoding));     // set up the encoding
   f->io.mode = va_arg(*args, ioDirection);
 }
@@ -592,7 +592,7 @@ ioPo openOutFile(char *name, ioEncoding encoding) {
   switch (isRegularFile(name)) {
     case Ok:
     case Fail: {      // File not previously found
-      int outFileRefNum = open((const char *) name, O_WRONLY | O_CREAT, STD_PERMISSIONS);
+      int outFileRefNum = open((const char *) name, O_WRONLY | O_CREAT | O_TRUNC, STD_PERMISSIONS);
 
       if (outFileRefNum == -1)
         return NULL;
@@ -841,7 +841,7 @@ retCode rewindFile(filePo f) {
 void pU(char *p) {
   retCode ret = Ok;
   while (ret == Ok && *p != 0)
-    ret = outChar(logFile, (codePoint)*p++);
+    ret = outChar(logFile, (codePoint) *p++);
   outChar(logFile, '\n');
   flushFile(logFile);
 }

@@ -362,44 +362,54 @@ void defltRepoDir() {
 typedef struct {
   ioPo out;
   int indent;
+  logical first;
 } IndentPolicy;
 
 retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
 
-  return outMsg(policy->out, "%p\"%s\":\"%s\"\n", policy->indent, rsrc->kind, rsrc->fn);
+  char *sep = policy->first ? "" : ",\n";
+  policy->first = False;
+
+  return outMsg(policy->out, "%s%p\"%Q\":\"%Q\"", sep, policy->indent, rsrc->kind, rsrc->fn);
 }
 
 retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
-  IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out};
+  IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out, .first=True};
 
-  retCode ret = outMsg(policy->out, "%p\"%s\":{\n", policy->indent, vers->version);
+  char *sep = policy->first ? "" : ",\n";
+  policy->first = False;
+
+  retCode ret = outMsg(policy->out, "%s%p\"%Q\":{\n", sep, policy->indent, vers->version);
 
   if (ret == Ok)
     ret = ProcessTable((procFun) dumpRsrc, vers->resources, &inner);
 
   if (ret == Ok)
-    ret = outMsg(policy->out, "%p}\n", policy->indent);
+    ret = outMsg(policy->out, "}");
   return ret;
 }
 
 retCode dumpEntry(char *v, manifestEntryPo entry, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
-  IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out};
+  IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out, .first=True};
 
-  retCode ret = outMsg(policy->out, "%p\"%s\":{\n", policy->indent, entry->package);
+  char *sep = policy->first ? "" : ",\n";
+  policy->first = False;
+
+  retCode ret = outMsg(policy->out, "%s%p\"%Q\":{\n", sep, policy->indent, entry->package);
 
   if (ret == Ok)
     ret = ProcessTable((procFun) dumpVersion, entry->versions, &inner);
 
   if (ret == Ok)
-    ret = outMsg(policy->out, "%p}\n", policy->indent);
+    ret = outMsg(policy->out, "}");
   return ret;
 }
 
 retCode dumpManifest(ioPo out) {
-  IndentPolicy policy = {.indent=2, .out=out};
+  IndentPolicy policy = {.indent=2, .out=out, .first=True};
 
   retCode ret = outMsg(out, "{\n");
 
@@ -407,7 +417,7 @@ retCode dumpManifest(ioPo out) {
     ret = ProcessTable((procFun) dumpEntry, manifest, &policy);
 
   if (ret == Ok)
-    ret = outMsg(out, "}\n");
+    ret = outMsg(out, "}");
   return ret;
 }
 

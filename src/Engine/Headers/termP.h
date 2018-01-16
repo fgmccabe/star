@@ -11,30 +11,25 @@ typedef struct term_record {
   termPo sig;                    // Every value has a signature, which is a 'class' pointer, which is also a term
 } Term;
 
+typedef struct class_record{
+  termPo sig;
+} Class;
+
 /*
  * A program label structure
  */
 
 typedef struct _program_label_ {
-  integer arity;                 // Arity of program
-  byte name[ZEROARRAYSIZE];     // Program's print name
-} Label, *labelPo;
-
-typedef struct class_record{
-  termPo sig;
-} Class;
-
-typedef struct enum_struct {
-  Class clss;                // The sig of this clss should be equal to ClassClass
-  integer hash;
-  Label lbl;
-} EnumRecord;
+  Class clss;                   // == labelClass
+  integer arity;                // Arity of label
+  methodPo mtd;                 // Optimization - is a method defined for this label?
+  char *name;                   // Program's print name
+} Label;
 
 typedef struct normal_term {
   Class clss;
   termPo args[ZEROARRAYSIZE];
 } Normal, *normalPtr;
-
 
 // Some typedefs to help with working with classes
 

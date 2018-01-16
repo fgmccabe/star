@@ -2,8 +2,8 @@
 #define _HEAP_H_
 
 #include "config.h"
-#include "retcode.h"
-#include "integer.h"
+#include "ooio.h"
+#include "code.h"
 
 typedef struct _heap_ *heapPo;
 
@@ -17,7 +17,11 @@ typedef struct class_record *clssPo;
 
 extern termPo allocateStruct(heapPo H, clssPo class, integer size);
 
-extern retCode reserveSpace(heapPo H,size_t amnt);
+extern retCode reserveSpace(heapPo H, size_t amnt);
+
+extern void markRoot(heapPo heap,ptrPo addr);
+
+extern logical compare_and_swap(termPo cl, int64 expect, int64 repl);
 
 #define PTRSZE (sizeof(void*))
 

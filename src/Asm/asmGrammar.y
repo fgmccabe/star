@@ -5,7 +5,7 @@
 %{
 #include <math.h>
 #include <ooio.h>
-#include "assem.h"
+#include "asm.h"
 #include "errors.h"
 %}
 
@@ -98,7 +98,7 @@
    program: nls package defs trailer;
 
    package: PKG ID HASH ID nls { *pkg = newPkg($2,$4); }
-     | PKG ID nls { *pkg = newPkg($2,"*"); }
+     | PKG ID nls { *pkg = newPkg($2,defltPkgVersion()); }
 
    defs: defs function | ;
 

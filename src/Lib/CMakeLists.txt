@@ -19,7 +19,7 @@ set(SOURCE_FILES
         esc.c
         clock.c
         show.c
-        system.c arithmetic.c)
+        system.c arithmetic.c Headers/errorCodes.h)
 
 add_library(escapes STATIC ${SOURCE_FILES})
 

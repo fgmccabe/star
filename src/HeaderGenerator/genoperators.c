@@ -8,6 +8,7 @@
 #include "ooio.h"
 #include "formioP.h"
 #include "template.h"
+#include "formexts.h"
 
 /* Generate a Python module or Star package, that knows about the standard operators */
 
@@ -16,7 +17,6 @@ static void genPrefix(hashPo operators, char *op, int prior, int right, char *cm
 static void genPostfix(hashPo operators, char *op, int left, int prior, char *cmt);
 static void genToken(char *op, char *cmt);
 static retCode procEntries(void *n, void *r, void *c);
-static retCode genPrologStr(ioPo f, void *data, long depth, long precision, logical alt);
 
 #undef lastOp
 #define lastOp sep = "\t";
@@ -143,7 +143,7 @@ logical isAlphaNumeric(char *p) {
 
 int main(int argc, char **argv) {
   initTries();
-  installMsgProc('P', genPrologStr);
+  installMsgProc('P', genQuotedStr);
   int narg = getOptions(argc, argv);
 
   if (narg < 0) {
@@ -319,68 +319,4 @@ static inline byte hxDgit(integer h) {
     return (byte) (h | '0');
   else
     return (byte) (h + 'a' - 10);
-}
-
-static retCode quoteChar(ioPo f, codePoint ch) {
-  retCode ret;
-  switch (ch) {
-    case '\a':
-      ret = outStr(f, "\\a");
-      break;
-    case '\b':
-      ret = outStr(f, "\\b");
-      break;
-    case '\x7f':
-      ret = outStr(f, "\\d");
-      break;
-    case '\x1b':
-      ret = outStr(f, "\\e");
-      break;
-    case '\f':
-      ret = outStr(f, "\\f");
-      break;
-    case '\n':
-      ret = outStr(f, "\\n");
-      break;
-    case '\r':
-      ret = outStr(f, "\\r");
-      break;
-    case '\t':
-      ret = outStr(f, "\\t");
-      break;
-    case '\v':
-      ret = outStr(f, "\\v");
-      break;
-    case '\\':
-      ret = outStr(f, "\\\\");
-      break;
-    case '\"':
-      ret = outStr(f, "\\\"");
-      break;
-    default:
-      if (ch < ' ') {
-        ret = outChar(f, '\\');
-        if (ret == Ok)
-          ret = outChar(f, ((ch >> 6) & 3) | '0');
-        if (ret == Ok)
-          ret = outChar(f, ((ch >> 3) & 7) | '0');
-        if (ret == Ok)
-          ret = outChar(f, (ch & 7) | '0');
-      } else
-        ret = outChar(f, ch);
-  }
-  return ret;
-}
-
-retCode genPrologStr(ioPo f, void *data, long depth, long precision, logical alt) {
-  char *txt = (char *) data;
-  integer len = (integer)strlen(txt);
-  integer pos = 0;
-
-  retCode ret = Ok;
-  while (ret == Ok && pos<len){
-    codePoint cp = nextCodePoint(txt,&pos,len);
-    ret = quoteChar(f, cp);
-  }
-  return ret;
 }

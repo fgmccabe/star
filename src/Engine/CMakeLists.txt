@@ -14,16 +14,21 @@ set(HEADER_FILES
         ../Lib/Headers/escape.h
         Headers/code.h Headers/codeP.h
         Headers/engine.h
-        Headers/decode.h ../Infra/Headers/encoding.h Headers/decodeP.h
+        Headers/decode.h
+        ../Infra/Headers/encoding.h Headers/decodeP.h
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
         Headers/cafe.h
         Headers/opcodes.h Headers/ops.h
         ../Headers/cafeOptions.h
         Headers/heap.h Headers/heapP.h
-        Headers/term.h Headers/termP.h Headers/str.h Headers/strP.h Headers/arith.h Headers/arithP.h
-        Headers/debug.h)
+        Headers/term.h Headers/termP.h Headers/str.h Headers/strP.h ../Lib/Headers/arith.h ../Lib/Headers/arithP.h
+        Headers/debug.h
+        Headers/tpl.h Headers/engineP.h
+        Headers/engineOptions.h)
 
-set(SOURCE_FILES boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c heap.c load.c main.c Headers/tpl.h)
+set(SOURCE_FILES
+        boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c heap.c load.c main.c
+        ${HEADER_FILES} code.c term.c)
 
 add_executable(cafe ${SOURCE_FILES} ${HEADER_FILES})
 

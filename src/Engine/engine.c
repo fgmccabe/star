@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "engine.h"
+#include "engineP.h"
 #include "escape.h"
 #include "decode.h"
 

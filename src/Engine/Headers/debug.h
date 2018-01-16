@@ -14,9 +14,8 @@ extern logical debugging;	/* Level of debugging */
 #endif
 
 extern long cmdCounter;
-extern logical tracing;	        /* do we show each instruction */
 
-extern void debug_stop(integer pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp);
-extern insPo disass(unsigned long long int pcCount, processPo p, closurePo env, insPo pc, framePo fp, ptrPo sp);
+extern void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+extern insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
 #endif //CAFE_DEBUG_H

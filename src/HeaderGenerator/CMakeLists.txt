@@ -3,14 +3,14 @@ project(gen)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
-include_directories("Headers" "../Headers" "../Engine/Headers" "../Util/Headers")
+include_directories("Headers" "../Headers" "../Engine/Headers" "../Util/Headers" "../Infra/Headers")
 
 set(SOURCE_FILES opcodes.c ../Headers/instructions.h)
 
 add_executable(opcodes ${SOURCE_FILES})
 
 add_executable(ops genoperators.c trie.c ../Headers/operators.h trie.h trieP.h)
-target_link_libraries(ops ooio)
+target_link_libraries(ops ooio infra)
 
 set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/signature.h)
 add_executable(genesc ${ESC_SOURCE_FILES})

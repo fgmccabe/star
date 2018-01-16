@@ -4,7 +4,7 @@
 #include "config.h"
 #include "heap.h"
 
-typedef retCode (*libFun)(ptrPo *tos);
+typedef retCode (*libFun)(processPo p,ptrPo tos);
 
 typedef struct {
   char *name;         /* Name of the escape */

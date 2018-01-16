@@ -8,8 +8,11 @@
 #include "config.h"
 #include "ooio.h"
 
+#include "engine.h"
 #include "escape.h"
 
-extern retCode _int_plus(ptrPo *tos);
+extern retCode g_int_plus(processPo P,ptrPo *tos);
+
+
 
 #endif //CAFE_ARITHMETIC_H

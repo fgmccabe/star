@@ -1,5 +1,6 @@
 #include "config.h"
 #include <ooio.h>
+#include "engine.h"
 #include "escape.h"
 #include "signature.h"
 
@@ -8,7 +9,8 @@ static poolPo escPool;
 
 #undef escape
 #define escape(Fun,Visible,Sys,Sig,Cmnt)\
-  installEscape(##Fun,Sig,Fun);
+extern retCode g_##Fun(processPo p,ptrPo tos);\
+  installEscape(#Fun,Sig,g_##Fun);
 
 void initEscapes()
 {
