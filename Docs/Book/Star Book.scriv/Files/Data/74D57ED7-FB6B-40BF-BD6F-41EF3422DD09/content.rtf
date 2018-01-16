@@ -1,78 +1,171 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+\f3\fnil\fcharset0 Menlo-Italic;}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 The complete sequence contract has six signatures in it \'97 the latter three signatures play an analogous role to the first three but for sequence 
+The complete sequence contract has six signatures in it \'97 the latter three signatures play an analogous role to the first three but for sequence 
 \i patterns
 \i0  rather than sequence 
 \i expressions
 \i0 . They also introduce a new form of type expression \'97 the 
 \i pattern type
-\i0 . For example, the signature for _pair \'97 which is used to decompose sequences into a head and tail \'97 is:\
-_pair:(e,t)<=t.\
-Notice the direction of the arrow: we have not seen this form of type so far, and relates to a capability that we have not encountered yet in this book \'97 pattern abstractions.\
+\i0 . For example, the signature for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 _pair
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  \'97 which is used to decompose sequences into a head and tail \'97 is:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 _pair:(e,t)<=t.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\b \cf2 Pattern Abstraction\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 Notice the direction of the arrow: we have not seen this form of type so far, and relates to a capability that we have not encountered yet in this book \'97 pattern abstractions.\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 <$Scr_Ps::1>
+\f0\b Pattern Abstraction\
 
 \b0 \cf2 A 
 \i pattern abstraction
 \i0  is an expression that denotes a pattern.\
-Pattern abstractions are exactly analogous to functions \'97 another name for which is 
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf2 <!$Scr_Ps::1>
+\f0\fs26 Pattern abstractions are exactly analogous to functions \'97 another name for which is 
 \i expression abstraction
 \i0 . Pattern abstractions allow patterns to be encapsulated and reused in the same way that functions allow expressions to be encapsulated and reused.\
 In this case, the pattern abstraction is critical because general sequence notation is independent of the types of the collections involved \'97 and so we have no way of knowing what concrete patterns to apply.\
 Pattern abstractions are applied using the same application notation as for function application; for example, the _pair pattern in\
-first:all c,e ~~ sequence[c->>e] |: (c)=>e.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 first:all c,e ~~ sequence[c->>e] |: (c)=>e.\
 first(_pair(H,T)) => H.\
-is a pattern that is applied to the argument of first. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables H and T in the call to _pair will be bound to the first element of the collection and the remainder respectively.\
-For example, applying _pair to [1,2] binds H to the value 1 and binds T to the sequence [2]. The value returned by first will be 1. We can combine pattern applications in an exactly analogous manner to the way we combine function calls.\
-Obviously, there must also be a way of defining pattern abstractions. We can define a cPair pattern abstraction that applies to cons lists thus:\
-cPair:all e ~~ (e,cons[e])<=cons[e].\
-cPair(H,T) <= cons(H,T).\
-This takes a little careful reading, but is ultimately straightforward: the right hand side is the pattern that is being abstracted, the left hand side is an application template.\
-The general form of a pattern abstraction is:\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\i \cf2 name
-\i0 (
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 is a pattern that is applied to the argument of first. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables H and T in the call to _pair will be bound to the first element of the collection and the remainder respectively.\
+For example, applying 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 _pair
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  to 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 [1,2]
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  binds H to the value 1 and binds T to the sequence 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 [2]
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 . The value returned by first will be 1. We can combine pattern applications in an exactly analogous manner to the way we combine function calls.\
+Obviously, there must also be a way of defining pattern abstractions. We can define a cPair pattern abstraction that applies to cons lists thus:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 cPair:all e ~~ (e,cons[e])<=cons[e].\
+cPair(H,T) <= cons(H,T).\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This takes a little careful reading, but is ultimately straightforward: the right hand side is the pattern that is being abstracted, the left hand side is an application template.\
+The general form of a pattern abstraction is:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f3\i\fs22 name
+\f2\i0 (
+\f3\i E\sub 1
+\f2\i0 \nosupersub ,..,
+\f3\i E\sub n
+\f2\i0 \nosupersub ) <= 
+\f3\i Pattern
+\f2\i0 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 where the various 
 \i E
-\fs20 \dn3 1
-\i0\fs26 \up0 ,..,
-\i E
-\fs20 \dn3 n
-\i0\fs26 \up0 ) <= 
-\i Pattern
-\i0 \
-where the various 
-\i E
-\fs20 \dn3 i
-\i0\fs26 \up0  are 
+\fs20 \cf2 \dn3 i
+\i0\fs26 \cf2 \up0  are 
 \i expressions
 \i0  that represent the values \'91read off\'92 the 
 \i Pattern
 \i0  \'97 should the pattern be satisfied. This is quite analogous to the situation for rewrite equations \'97 except that the roles of patterns and expressions are reversed.\
 Like functions, pattern abstractions may be defined with multiple pattern rules; and the pattern abstraction is satisfiable exactly when one of its pattern rules is.\
 Pattern abstractions are not as ubiquitous as functions; however, they certainly play a vital role in the overall design of 
-\b Star
-\b0 ; and are indispensable in the right circumstances.\
+\b \cf2 Star
+\b0 \cf2 ; and are indispensable in the right circumstances.\
 One special use for pattern abstractions is to give higher-level names to particular patterns. This mimics the use of functions naming expressions, and has a similar importance for program design.\
 Given that we have seen how sequence expressions are transformed into function calls from the sequence contract, we can now straightforwardly give the equivalent translation for sequence patterns. Syntactically, there is no distinction between sequence expressions and sequence patterns \'97 what distinguishes them is context: sequence patterns show up as patterns in functions and sequence expressions show up in the expression context.\
-A sequence pattern, as in the pattern [E,..X] for the non-empty case in concat:\
-concat([E,..X],Y) => [E,..concat(X,Y)]\
-is transformed into the pattern:\
-_pair(E,X)\
-and the entire rewrite equation becomes:\
-concat(_pair(E,X),Y) => _cons(E,concat(X,Y))\
-We can combine multiple pattern abstraction applications; for example, the function:\
-single:all c,e ~~ sequence[c->>e] |: (c)=>e.\
+A sequence pattern, as in the pattern 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 [E,..X]
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  for the non-empty case in 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 concat
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 :\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 concat([E,..X],Y) => [E,..concat(X,Y)]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 is transformed into the pattern:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 _pair(E,X)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 and the entire rewrite equation becomes:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 concat(_pair(E,X),Y) => _cons(E,concat(X,Y))\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 We can combine multiple pattern abstraction applications; for example, the function:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 single:all c,e ~~ sequence[c->>e] |: (c)=>e.\
 single([H]) => H\
-which is a function that only matches singleton sequences requires two pattern applications from the sequence contract:\
-single(_pair(H,_empty())) => H\
-The sequence contract is one of the most important and commonly used contracts in the 
-\b Star
-\b0  library. As we shall see further, many of the standard functions are built on top of the sequence contract.}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 which is a function that only matches singleton sequences requires two pattern applications from the sequence contract:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 single(_pair(H,_empty())) => H\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 The sequence contract is one of the most important and commonly used contracts in the 
+\b \cf2 Star
+\b0 \cf2  library. As we shall see further, many of the standard functions are built on top of the sequence contract.}

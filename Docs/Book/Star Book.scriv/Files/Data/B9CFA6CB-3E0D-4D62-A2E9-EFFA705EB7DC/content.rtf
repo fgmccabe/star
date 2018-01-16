@@ -22,16 +22,22 @@ fact(N) => N*fact(N-1).\
 \f0\fs26 The compiler is able to compute the types of the various variables automatically through a process known as 
 \i type inference
 \i0 . Type inference may seem magical, but is actually (mostly) quite simple. Let us take a look at the expression:\
-N-1\
-which is buried within the recursive call in fact. Although it looks like a special operator, 
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 N-1\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 which is buried within the recursive call in fact. Although it looks like a special operator, 
 \b \cf2 Star
 \b0 \cf2  does not treat arithmetic expressions in a special way; the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
 \f2\fs22 -
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::3>
-\f0\fs26  function is just a function from numbers to numbers.\
-The type of arithmetic subtraction is given {\field{\*\fldinst{HYPERLINK "scrivcmt://2818B85B-690E-4108-A989-95174D97D315"}}{\fldrslt by:}}\
+\f0\fs26  function is just a function from numbers to numbers; its type is given {\field{\*\fldinst{HYPERLINK "scrivcmt://2818B85B-690E-4108-A989-95174D97D315"}}{\fldrslt by:}}\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -40,7 +46,12 @@ The type of arithmetic subtraction is given {\field{\*\fldinst{HYPERLINK "scrivc
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 However, we should simplify this a little in order to make the explanation of type inference a little simpler:\
+\f0\fs26 However, we should simplify this type a little in order to make the explanation of type inference a little simpler. In what follows, we assume that the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 (-)
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  is:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -112,15 +123,29 @@ The (-) function has two arguments whose types can be expressed as a tuple of ty
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::2>
-\f0\fs26 Unification matches equals with equals and handles (type) variables by substitutions \'97 for example, we can unify these two type expressions by 
+\f0\fs26 Unification matches equals with equals and handles (type) variables by substitutions \'97 for example, we can make these two type expressions equal by 
 \i binding
-\i0  the type variable tN to integer.\
+\i0  the type variable tN to 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 integer
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26 .\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 \cf2 \expnd0\expndtw0\kerning0
-We initially picked the type of N to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of N in a context where an integer is expected is enough to allow the compiler to infer that the type of N is indeed integer and not t
+We initially picked the type of N to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of N in a context where an integer is expected is enough to allow the compiler to infer that the type of N is indeed 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 integer
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  and not t
 \fs20 \cf2 \dn3 N
 \fs26 \cf2 \up0 .\
-Of course, if there are multiple occurrences of N then each of those occurrences must also be consistent with integer; and if an occurrence is not consistent then the compiler will report an error \'97 a given variable may only have one type!\
+Of course, if there are multiple occurrences of N then each of those occurrences must also be consistent with 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 integer
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26 ; and if an occurrence is not consistent then the compiler will report an error \'97 a given expression may only have one type!\
 The bottom line is that 
 \b \cf2 Star
 \b0 \cf2 \'92s types are based on a combination of unification for comparing types and a series of type rules that have the effect of introducing 

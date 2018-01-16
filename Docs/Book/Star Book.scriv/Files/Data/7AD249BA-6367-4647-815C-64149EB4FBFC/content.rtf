@@ -19,7 +19,7 @@ For example, consider the double function we saw earlier:\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 What type should double have? In particular, what should the type of + be? Most people would be reluctant to use different arithmetic operators for different types of {\field{\*\fldinst{HYPERLINK "scrivcmt://DB6FE325-2EF1-4966-8E77-F5922876FC32"}}{\fldrslt numbers.}} This is resolved in 
+\f0\fs26 What type should double have? In particular, what should the type of + be? Most people would be reluctant to use different arithmetic operators for different types of {\field{\*\fldinst{HYPERLINK "scrivcmt://DD656115-1C83-4B52-B61A-4E66AD2CD264"}}{\fldrslt numbers.}} This is resolved in 
 \b Star
 \b0  by relying on contracts for the arithmetic operations.\
 The result is that the type computed for double is exquisitely tuned:\
@@ -63,8 +63,17 @@ genFact(N) => N*genFact(N-one).\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 We call out zero and one for special treatment because they occur very frequently in numerical functions.\
-We can actually introduce other numeric literals without compromising our type by using 
+\f0\fs26 We call out 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 zero
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 one
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  for special treatment because they occur very frequently in numerical functions. We can introduce other numeric literals without compromising our type by using 
 \i coercion
 \i0 ; although it is more clumsy:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
@@ -79,5 +88,10 @@ factorialC(N) => N*factorialC(N-1 :: t).\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 The expressions 0 :: t and 1 :: t are coercions from integer to t.\
-Of course, coercion is also governed by contract, a fact represented in the type signature by the coercion contract constraints on the type of t.\
+Of course, coercion is also governed by contract, a fact represented in the type signature by the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 coercion
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract constraints on the type of t.\
 In any case, using these techniques, it is possible to write numeric functions without unnecessarily committing to specific number types. That in turn helps to make them more useful.}

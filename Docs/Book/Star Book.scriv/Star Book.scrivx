@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="634D2E60-4D5C-40BF-8509-110DC41F876C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-01-14 16:02:20 -0800" ModID="7C627C56-E518-48F3-B91E-7C2EBF0C3261">
+<ScrivenerProject Identifier="634D2E60-4D5C-40BF-8509-110DC41F876C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-01-15 22:38:26 -0800" ModID="77C044D2-26BD-4848-B467-9889640EE07B">
     <Binder>
         <BinderItem UUID="9FFBA333-8432-41C1-91F5-1302DFE283CA" Type="Text" Created="2018-01-02 14:51:51 -0800" Modified="2018-01-02 14:51:51 -0800">
             <Title>Non-Fiction Format</Title>
@@ -417,7 +417,7 @@
                         <Bookmark BinderUUID="347E8EB6-6878-49AD-9309-1AB468ABC004"></Bookmark>
                     </Bookmarks>
                     <Children>
-                        <BinderItem UUID="44BCD44F-C15C-4CBF-959A-1A4C0FC1AFBA" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-13 20:04:09 -0800">
+                        <BinderItem UUID="44BCD44F-C15C-4CBF-959A-1A4C0FC1AFBA" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 18:20:25 -0800">
                             <Title>What is Functional Programming?</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
@@ -426,7 +426,7 @@
                                 <TextSelection>316,0</TextSelection>
                             </TextSettings>
                         </BinderItem>
-                        <BinderItem UUID="F74D32DE-B624-4D96-AD66-77C3B5612B20" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-12 21:48:39 -0800">
+                        <BinderItem UUID="F74D32DE-B624-4D96-AD66-77C3B5612B20" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 18:24:24 -0800">
                             <Title>Basics</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
@@ -444,7 +444,7 @@
                                         <TextSelection>4661,0</TextSelection>
                                     </TextSettings>
                                 </BinderItem>
-                                <BinderItem UUID="5C36B898-91CD-4AB4-8B99-FB158146929A" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-12 21:58:45 -0800">
+                                <BinderItem UUID="5C36B898-91CD-4AB4-8B99-FB158146929A" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 18:23:42 -0800">
                                     <Title>Order of Evaluation</Title>
                                     <MetaData>
                                         <IncludeInCompile>Yes</IncludeInCompile>
@@ -572,7 +572,7 @@
                                         <TextSelection>0,0</TextSelection>
                                     </TextSettings>
                                 </BinderItem>
-                                <BinderItem UUID="7AD249BA-6367-4647-815C-64149EB4FBFC" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-14 15:51:30 -0800">
+                                <BinderItem UUID="7AD249BA-6367-4647-815C-64149EB4FBFC" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 18:31:31 -0800">
                                     <Title>Polymorphic Arithmetic</Title>
                                     <MetaData>
                                         <IncludeInCompile>Yes</IncludeInCompile>
@@ -586,7 +586,7 @@
                                 </BinderItem>
                             </Children>
                         </BinderItem>
-                        <BinderItem UUID="B9CFA6CB-3E0D-4D62-A2E9-EFFA705EB7DC" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-14 16:01:36 -0800">
+                        <BinderItem UUID="B9CFA6CB-3E0D-4D62-A2E9-EFFA705EB7DC" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 18:34:24 -0800">
                             <Title>A Word About Type Inference</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
@@ -606,7 +606,7 @@
                         </BinderItem>
                     </Children>
                 </BinderItem>
-                <BinderItem UUID="4553DA12-6965-4712-90EB-977C6D47475C" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-09 20:31:40 -0800">
+                <BinderItem UUID="4553DA12-6965-4712-90EB-977C6D47475C" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 22:26:50 -0800">
                     <Title>Collections</Title>
                     <MetaData>
                         <IncludeInCompile>Yes</IncludeInCompile>
@@ -618,7 +618,7 @@
                         <Bookmark BinderUUID="4B92C099-83BF-4515-AA63-7B20E776B132"></Bookmark>
                     </Bookmarks>
                     <Children>
-                        <BinderItem UUID="F62377AA-8944-426E-9BC9-CD265F374AA5" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-09 20:32:20 -0800">
+                        <BinderItem UUID="F62377AA-8944-426E-9BC9-CD265F374AA5" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 22:30:13 -0800">
                             <Title>Sequence Notation</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
@@ -627,7 +627,7 @@
                                 <TextSelection>668,0</TextSelection>
                             </TextSettings>
                             <Children>
-                                <BinderItem UUID="8C6974CC-7B21-4DE5-B49A-13C8896CB47F" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-09 20:32:35 -0800">
+                                <BinderItem UUID="8C6974CC-7B21-4DE5-B49A-13C8896CB47F" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 22:32:46 -0800">
                                     <Title>The Sequence Contract</Title>
                                     <MetaData>
                                         <IncludeInCompile>Yes</IncludeInCompile>
@@ -636,7 +636,7 @@
                                         <TextSelection>0,0</TextSelection>
                                     </TextSettings>
                                 </BinderItem>
-                                <BinderItem UUID="74D57ED7-FB6B-40BF-BD6F-41EF3422DD09" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-09 20:32:41 -0800">
+                                <BinderItem UUID="74D57ED7-FB6B-40BF-BD6F-41EF3422DD09" Type="Text" Created="2017-12-28 20:34:38 -0800" Modified="2018-01-15 22:38:26 -0800">
                                     <Title>Sequence Patterns</Title>
                                     <MetaData>
                                         <IncludeInCompile>Yes</IncludeInCompile>
@@ -2045,11 +2045,11 @@
     <ProjectTargets Notify="No">
         <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="Yes" Deadline="2011-04-12 05:24:39 -0700" IgnoreDeadline="Yes">0</DraftTarget>
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="No" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
-        <PreviousSession Words="62" Characters="369" Date="2018-01-13 20:37:40 -0800"></PreviousSession>
+        <PreviousSession Words="93" Characters="581" Date="2018-01-13 20:37:40 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-01-14 00:00:00 -0800">
-        <DraftWordCount>-42</DraftWordCount>
-        <DraftCharCount>-247</DraftCharCount>
+    <RecentWritingHistory Date="2018-01-15 00:00:00 -0800">
+        <DraftWordCount>31</DraftWordCount>
+        <DraftCharCount>212</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>
         <OtherCharCount>0</OtherCharCount>
     </RecentWritingHistory>
