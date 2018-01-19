@@ -1,50 +1,136 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue233;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;\cssrgb\c0\c0\c93333;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Given the indexable contract we can now show the specific notation that 
-\b Star
-\b0  has for accessing elements of a collection.\
-Accessing a collection by index follows conventional notation:\
-C[ix]\
-will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with alpha using:\
-D["alpha"]\
-Similarly, we can access the third character in a string S using:\
-S[2]\
-As might be expected, given the discussion above, the type of an index expression is optional. This is because the element may not be there; i.e., it is an example of a 
+Given the indexable contract we can now show the specific notation that 
+\b \cf2 Star
+\b0 \cf2  has for accessing elements of a collection. Accessing a collection by index follows conventional notation:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 C[ix]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with alpha using:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 D["alpha"]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 Similarly, we can access the third character in a string S using:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 S[2]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 As might be expected, given the discussion above, the type of an index expression is 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 option
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 al. This is because the element may not be there; i.e., it is an example of a 
 \i tentative computation
 \i0 .\
 The most natural way of making use of an index expression is to use it in combination with a ?.= condition or an ?| expression \'97 which allows for smooth handling of the case where the index fails. For example, we might have:\
-nameOf(F) where N ?.= names[F] => N.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 nameOf(F) where N ?.= names[F] => N.\
 nameOf(F) => ...\
-We will take a deeper look at exceptions and more elaborate management of tentative computation in the section on {\field{\*\fldinst{HYPERLINK "file:///Users/fgm/Projects/Cafe/Docs/Book/computation-expression"}}{\fldrslt \cf3 \ul \ulc3 \strokec3 Computation Expressions}}.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 We will take a deeper look at exceptions and more elaborate management of tentative computation in the section on {\field{\*\fldinst{HYPERLINK "file:///Users/fgm/Projects/Cafe/Docs/Book/computation-expression"}}{\fldrslt \cf3 \ul \ulc3 Computation Expressions}}.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \b \cf2 Star
-\b0  also has specific notation to represent modified collections. For example, the expression\
-D["beta"->"three"]\
-denotes the dictionary D with the entry associated with "beta" replaced by the value "three". Note that the value of this expression is the updated dictionary.\
+\b0 \cf2  also has specific notation to represent modified collections. For example, the expression\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 D["beta"->"three"]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 denotes the dictionary D with the entry associated with "beta" replaced by the value "three". Note that the value of this expression is the updated dictionary.\
 For familiarity\'92s sake, we also suppose a form of assignment for the case where the collection is part of a read-write variable. The action:\
-D["beta"] := "three"\
-is entirely equivalent to:\
-D := D["beta"->"three"]\
-always assuming that the type of D permits assignment.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 D["beta"] := "three"\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 is entirely equivalent to:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 D := D["beta"->"three"]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 always assuming that the type of D permits assignment.\
 Similarly, the expression:\
-D[\\+"gamma"]\
-which denotes the dictionary D where the value associated with the key "gamma" has been removed.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 D[\\+"gamma"]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 which denotes the dictionary D where the value associated with the key "gamma" has been removed.\
 In addition to these forms, there is also a test expression:\
-present D["delta"]\
-which is a predicate that is true if the dictionary D contains an entry for "delta".\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 present D["delta"]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 which is a predicate that is true if the dictionary D contains an entry for "delta".\
 Although, in these examples, we have assumed that D is a dictionary value (where dictionary is a standard type in 
-\b Star
-\b0 ); in fact the index notation does not specify the type. As with the sequence notation, the only requirement is that the indexable contract is implemented for the collection being indexed.\
+\b \cf2 Star
+\b0 \cf2 ); in fact the index notation does not specify the type. As with the sequence notation, the only requirement is that the indexable contract is implemented for the collection being indexed.\
 In particular, index notation is supported for the built-in list types, and is even supported for the string type.\
 In addition to the indexed access notation described so far, 
-\b Star
-\b0  also allows a variant of the sequence notation for constructing indexable literals (aka dictionaries). In particular, an expression of the form:\
-["alpha"->1, "beta"->2, "gamma"->3]\
-is equivalent to a sequence of tuples, or to: _cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil()))) which is understood by indexable types as denoting the contruction of a literal.\
+\b \cf2 Star
+\b0 \cf2  also allows a variant of the sequence notation for constructing indexable literals (aka dictionaries). In particular, an expression of the form:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 ["alpha"->1, "beta"->2, "gamma"->3]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 is equivalent to a sequence of tuples, or to: \
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1><$Scr_Ps::0>
+\f2\fs22 _cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil())))
+\f1\fs24 <!$Scr_Cs::1>
+\f2\fs22  \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 which is understood by indexable types as denoting the contruction of a literal.\
 Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexable types: they should implement a specific form of sequence contract. Both are actually part of the semantics of representing indexable literals.}

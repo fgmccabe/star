@@ -1,35 +1,93 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Related to accessing and manipulating individual elements of collections are the 
+Related to accessing and manipulating individual elements of collections are the 
 \i indexed slice
 \i0  operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:\
-C[fx:tx]\
-denotes the subsequence of C starting \'97 and including \'97 the element indexed at fx and ending \'97 but 
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 C[fx:tx]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 denotes the subsequence of C starting \'97 and including \'97 the element indexed at fx and ending \'97 but 
 \i not
 \i0  including the element indexed at tx.\
 As might be expected, the index slice notation is also governed by a contract \'97 the sliceable contract. This contract defines the core functions for slicing collections and for updating subsequences of collections:\
-contract all s,k ~~ sliceable[s->>k] ::= \{\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 contract all s,k ~~ sliceable[s->>k] ::= \{\
   _slice:(s,k,k)=>s.\
   _tail:(s,k)=>s.\
   _splice:(s,k,k,s)=>s.\
 \}\
-The _slice function is used extract a slice from the collection, _tail is a variant that returns the \'91rest\'92 of the collection, and _splice is used to replace a subset of the collection with another collection.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 The 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 _slice
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function is used extract a slice from the collection, 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 _tail
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is a variant that returns the \'91rest\'92 of the collection, and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 _splice
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is used to replace a subset of the collection with another collection.\
 Like the indexing notation, there is notation for each of the three cases:\
-C[fx:]\
-denotes the tail of the collection \'97 all the elements in C that come after fx (including fx itself); and\
-C[fx:tx->D]\
-denotes the result of splicing D into C. This last form has an additional incarnation \'97 in the form of an assignment statement:\
-C[fx:tx] := D\
-This action is equivalent to the assignment:\
-C := _splice(C,fx,tx,D)\
-which, of course, assumes that C is correctly defined as a read/write variable.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 C[fx:]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 denotes the tail of the collection \'97 all the elements in C that come after fx (including fx itself); and\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 C[fx:tx->D]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 denotes the result of splicing D into C. This last form has an additional incarnation \'97 in the form of an assignment statement:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 C[fx:tx] := D\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This action is equivalent to the assignment:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 C := _splice(C,fx,tx,D)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 which, of course, assumes that C is correctly defined as a read/write variable.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \b \cf2 Star
-\b0  encourages declarative programming but we fully recognize that side-effecting behavioral code is often the most effective solution to the problem.\
+\b0 \cf2  encourages declarative programming but we fully recognize that side-effecting behavioral code is often the most effective solution to the problem.\
 The slice notation is an interesting edge case in domain specific languages. It is arguably a little obscure, and, furthermore, the use case it represents is not all that common. On the other hand, without specific support, the functionality of slicing is hard to duplicate with the standard indexing functions.}

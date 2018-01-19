@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Comments>
+    <Comment ID="7A957835-1C1C-4025-8F7D-117844C6A5C7" Footnote="Yes" Color="0.949769 0.949769 0.949769"><![CDATA[{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 This also means that the collection type in 
+\f1\fs22 fmap
+\f0\fs24  must be generic: it is not possible to implement 
+\f1\fs22 functor
+\f0\fs24  for strings.}]]></Comment>
+</Comments>

@@ -1,5 +1,6 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 {\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
@@ -7,32 +8,78 @@
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 The indexable contract captures the essence of accessing a collection in a random-access fashion. There are functions in the contract to access a directly accessed element, to replace and to delete elements from the collection:\
-contract all s,k,v ~~ indexable[s->>k,v] ::= \{\
+The indexable contract captures the essence of accessing a collection in a random-access fashion. There are functions in the contract to access a directly accessed element, to replace and to delete elements from the collection:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 contract all s,k,v ~~ indexable[s->>k,v] ::= \{\
   _index:(s,k)=>option[v].\
   _set_indexed:(s,k,v)=>s.\
   _delete_indexed:(s,k)=>s.\
 \}\
-There are several noteworthy points here:\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 There are several noteworthy points here:\
 \pard\tx220\tx720\pardeftab720\li720\fi-720\sl264\slmult1\pardirnatural\partightenfactor0
-\ls1\ilvl0\cf2 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 the form of the contract itself; the signature for _index which accesses elements; and\
-\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 the signatures for _set_indexed and _delete_indexed which return new collections rather than modifying in-place.\
+\ls1\ilvl0\cf2 \kerning1\expnd0\expndtw0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+the form of the contract itself; the signature for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 _index
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  which accesses elements; and\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+the signatures for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 _set_indexed
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 _delete_indexed
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  which return new collections rather than modifying in-place.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 \cf2 Recall that the sequence contract had the form:\
-contract all s, e ~~ sequence[s->>e] ::= ...\
-the s->>e clause allows the implementation of the contract to functionally determine (sic) the type of the elements of the collection.\
-In the case of indexable, the contract form is:\
-contract all s,k,v ~~ indexable[s->>k,v] := ...\
-The indexable contract determines 
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 contract all s, e ~~ sequence[s->>e] ::= ...\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 the s->>e clause allows the implementation of the contract to functionally determine (sic) the type of the elements of the collection.\
+In the case of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 , the contract form determines 
 \i two
 \i0  types denoted by k and v. The type k denotes the type of the key used to access the collection and v denotes the type of the elements of the collection. Each individual implementation of indexable is free to specify these types; usually in a way that best reflects the natural structure of the collection.\
 For example, the implementation of indexable for strings starts:\
-implementation indexable[string ->> integer,char] => ...\
-reflecting the fact that the natural index for strings is integer and the natural element type is char (neither being explicitly part of the string type name).\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 implementation indexable[string ->> integer,char] => ...\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 reflecting the fact that the natural index for strings is integer and the natural element type is char (neither being explicitly part of the string type name).\
 In fact, char is a synonym for integer; but that is not relevant here.\
 On the other hand, the implementation for dictionaries starts:\
-implementation all k,v ~~\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 implementation all k,v ~~\
       indexable[dictionary[k,v] ->> k,v]\
-reflecting the fact that dictionaries are naturally generic over both the key and value types.}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 reflecting the fact that dictionaries are naturally generic over both the key and value types.}

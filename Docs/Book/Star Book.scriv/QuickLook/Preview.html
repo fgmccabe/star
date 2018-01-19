@@ -619,10 +619,10 @@
 
 <li>
 <p class="itemTitle">Indexing</p>
-<p class="itemText">Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing ‘traditional’ notation for accessing arrays:</p>
+<p class="itemText">Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing traditional notation for accessing arrays:</p>
 <p class="itemText">L[ix]</p>
 <p class="itemText">where L is some array or other collection and ix is an integer offset into the array. Star uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and slices (contiguous sub-regions of collections).</p>
-<p class="itemText">Befor...</p>
+<p class="itemText">Before ...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -649,12 +649,11 @@
 <li>
 <p class="itemTitle">Adding and Removing Elements From a Collection</p>
 <p class="itemText">The function _set_indexed is used to add an element to a collection associating it with a particular index position; and the function delete_indexed removes an identified element from the collection.</p>
-<p class="itemText">Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on _persistent data structures_A persistent stru...</p>
+<p class="itemText">Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on persistent data structures and on declarative...</p>
 </li>
 <li>
 <p class="itemTitle">The Index Notation</p>
-<p class="itemText">Given the indexable contract we can now show the specific notation that Star has for accessing elements of a collection.</p>
-<p class="itemText">Accessing a collection by index follows conventional notation:</p>
+<p class="itemText">Given the indexable contract we can now show the specific notation that Star has for accessing elements of a collection. Accessing a collection by index follows conventional notation:</p>
 <p class="itemText">C[ix]</p>
 <p class="itemText">will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with alpha using:</p>
 <p class="itemText">D["alpha"]</p>
@@ -664,7 +663,7 @@
 </li>
 <li>
 <p class="itemTitle">Implementing Indexing</p>
-<p class="itemText">Of course, this includes our own types. For example, before, when looking at [generic types][generic-types] we saw the tree type:</p>
+<p class="itemText">Of course, this includes our own types. For example, before, when looking at generic types we saw the tree type:</p>
 <p class="itemText">all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).</p>
 <p class="itemText">We can define an implementation for the indexable contract for this type — if we arrange for the tree to be a tree of key-value pairs:</p>
 <p class="itemText">implementation all k,v ~~</p>
@@ -672,7 +671,7 @@
 <p class="itemText">      indexable[tree[(k,v)]->>k,v] => {</p>
 <p class="itemText">  _index(T,K) => findInTree(T,K).</p>
 <p class="itemText">  _set_indexed(T,K,V) => setKinTree(T,K,V).</p>
-<p class="itemText"> ...</p>
+<p class="itemText">  _delete_indexed(...</p>
 </li>
 <li>
 <p class="itemTitle">Index Slices</p>
@@ -721,12 +720,12 @@
 </li>
 <li>
 <p class="itemTitle">Mapping to Make New Collections</p>
-<p class="itemText">One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The map function – part of the mappable contract – can be used to perform many transformations of collections.</p>
+<p class="itemText">One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The fmap function – part of the functor contract – can be used to perform many transformations of collections.</p>
 <p class="itemText">For example, to compute the lengths of strings in a list we can use the expression:</p>
-<p class="itemText">map(size,list of ["alpha","beta","gamma"])</p>
+<p class="itemText">fmap(size,list of ["alpha","beta","gamma"])</p>
 <p class="itemText">which results in the list:</p>
 <p class="itemText">list of [5,4,5]</p>
-<p class="itemText">The map function is defined via the mappable contrac...</p>
+<p class="itemText">The fmap function is defined via the functor contra...</p>
 </li>
 <li>
 <p class="itemTitle">Compressing Collections With a Fold</p>
@@ -808,10 +807,10 @@
 <li>
 <p class="itemTitle">The range Type</p>
 <p class="itemText">The range type is a very particular form of collection type: a range denotes a range of numbers. Its type description says it all:</p>
-<p class="itemText">all t ~~ arithmetic[t] |: range[t] ::= range(t,t,t).</p>
+<p class="itemText">all t ~~ arithmetic[t],comparable[t] |: range[t] ::= range(t,t,t).</p>
 <p class="itemText">This type description has some special features; in particular it is a constrained type: a type expression of the form:</p>
 <p class="itemText">range[T]</p>
-<p class="itemText">is only valid if T is an arithmetic type; specifically a type that supports arithmetic and is comparable. Thus a type expression such as range[integer] is fine, but range[list[integer]] w...</p>
+<p class="itemText">is only valid if T is an arithmetic type; specifically a type that supports arithmetic and is comparable. Thus a type expression such as range[integer] is fine, but range[li...</p>
 </li>
 </ul>
 <hr class="afterText"/>
