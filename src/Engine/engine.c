@@ -6,40 +6,26 @@
 #include <assert.h>
 
 #include "engineP.h"
-#include "escape.h"
 #include "decode.h"
 
 static poolPo prPool;     /* pool of processes */
-static char UMAIN[] = {'_', 'm', 'a', 'i', 'n', 0};
+static char *UMAIN = "_main";
 
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
-  initEscapes();
 }
 
 int loadAndGo(char *boot, int argc, char *args[]) {
   ioPo in = openInFile(boot, rawEncoding);
 
   if (in != Null) {
-    char ch = inCh(in);    /* We skip over #! */
+    retCode ret = skipShellPreamble(in);
 
-    if (ch == '#') {      /* look for standard #!/.... header */
-      if ((ch = inCh(in)) == '!') {
-        while ((ch = inCh(in)) != uniEOF && ch != '\n');             /* consume the interpreter statement */
-      } else {
-        unGetChar(in, ch);
-        unGetChar(in, '#');
-      }
-    } else
-      unGetChar(in, ch);
-
-    hashPo pkg = decodePkg(in);
+    hashPo pkg = decodePkg(in,currHeap);
     if (pkg != Null) {
       methodPo umain = (methodPo) hashGet(pkg, UMAIN);
       if (umain != Null) {
-        closurePo mainCl = allocate(currHeap, umain);
-        assert(mainCl != Null);
-        processPo p = newProcess(mainCl);
+        processPo p = newProcess(umain);
         integer reslt = run(p, currHeap);
 #ifdef TRACEEXEC
         if (tracing)
@@ -62,7 +48,7 @@ int loadAndGo(char *boot, int argc, char *args[]) {
 
 static uint16 haltCode[] = {Halt};
 
-processPo newProcess(closurePo cl) {
+processPo newProcess(methodPo cl) {
   processPo P = (processPo) allocPool(prPool);
 
   P->prog = cl;
@@ -74,9 +60,9 @@ processPo newProcess(closurePo cl) {
 
   // cap the stack with a halting stop.
 
-  termPo sp = (termPo) P->fp;
-  *--sp = (integer) cl;
-  *--sp = (integer) &haltCode[0];
+  ptrPo sp = (ptrPo) P->fp;
+  *--sp = (termPo) cl;
+  *--sp = (termPo) &haltCode[0];
 
   P->sp = sp;
 

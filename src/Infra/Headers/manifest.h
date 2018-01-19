@@ -16,8 +16,10 @@ manifestEntryPo manifestEntry(char *package);
 
 char *manifestResource(char *package, char *version, char *kind);
 
-retCode addToManifest(char *package, char *version, char *kind, char *resrc);
-char * manifestOutPath(char *pkg, char *version, char *suff, char *buffer, int bufLen);
+char *manifestRsrcFlNm(char *package, char *version, char *kind, char *buffer, integer buffLen);
+
+retCode addToManifest(packagePo package, char *kind, char *resrc);
+char *manifestOutPath(packagePo pkg, char *suff, char *buffer, int bufLen);
 char *repoRsrcPath(char *name,char *buffer,int bufLen);
 
 retCode dumpManifest(ioPo out);

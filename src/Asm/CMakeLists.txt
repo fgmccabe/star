@@ -18,7 +18,6 @@ set(HEADER_FILES
 
         ../Headers/instructions.h
         ../Infra/Headers/encoding.h
-        ../Engine/Headers/ops.h
         ../Infra/Headers/manifest.h
 
         ../Util/Headers/io.h)

@@ -11,11 +11,13 @@
 // Integer structure
 typedef struct int_struct *intPo;
 
+extern intPo C_INT(termPo t);
+
 extern clssPo integerClass;
 
 extern termPo allocateInteger(heapPo H, int64);
 
-extern termPo allocateLocalInteger(processPo P,int64 ix);
+extern termPo allocateLocalInteger(processPo P, int64 ix);
 
 static inline logical isInteger(termPo p) {
   return hasClass(p, integerClass);
@@ -32,7 +34,7 @@ extern clssPo floatClass;
 
 extern termPo allocateFloat(heapPo H, double dx);
 
-extern termPo allocateLocalFloat(processPo P,double dx);
+extern termPo allocateLocalFloat(processPo P, double dx);
 
 static inline logical isFloat(termPo p) {
   return hasClass(p, floatClass);

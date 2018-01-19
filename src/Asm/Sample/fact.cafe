@@ -8,16 +8,22 @@ package test.fact
 fact/1 :: "F(i)i"
      enter 0
      ld a[0]
-     bnz nonZero
+     ld 0
+     escape _int_eq
+     frame "()"
+     bf nonZero
      ld 1
      ret
 nonZero:
      ld a[0]  -- start call to fact(N-1)
-     dec
+     ld 1
+     escape _int_minus
+     frame "()"
      call fact/1 -- fact itself
      frame "()"
      ld a[0]
-     muli
+     escape _int_times
+     frame "()"
      ret
      end
 

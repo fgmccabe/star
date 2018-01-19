@@ -20,53 +20,43 @@ retCode parseContent(char *path) {
   if (file != Null) {
     codePoint ch;
 
-    retCode ret = inChar(file, &ch);
+    retCode ret = skipShellPreamble(file);
 
-    if (ret == Ok) {
-      if (ch == '#') {      /* look for standard #!/.... header */
-        ret = inChar(file, &ch);
-        if (ret == Ok && ch == '!') {
-          while ((inChar(file, &ch)) == Ok && ch != uniEOF &&
-                 ch != '\n');              /* consume the interpreter statement */
-        } else {
-          unGetChar(file, ch);
-          unGetChar(file, '#');
-        }
-      } else
-        unGetChar(file, ch);
+    pkgPo pkg = Null;
+    ssparse(file, &pkg);
 
-      pkgPo pkg = Null;
-      ssparse(file, &pkg);
+    if (debugAssem)
+      dumpPkgCode(pkg);
 
-      if (debugAssem)
-        dumpPkgCode(pkg);
+    closeFile(file);      /* close the source string file */
+    if (isErrorFree()) {
+      char buff[MAXFILELEN], outFn[MAXFILELEN];
+      char *codeName = manifestOutPath(&pkg->pkg, "co", buff, NumberOf(buff));
+      char *outPath = repoRsrcPath(codeName, outFn, NumberOf(outFn));
+      ioPo out = openOutFile(outPath, rawEncoding);
+      ret = encodePkg(out, pkg);
 
-      closeFile(file);      /* close the source string file */
-      if (isErrorFree()) {
-        char buff[MAXFILELEN], outFn[MAXFILELEN];
-        char *codeName = manifestOutPath(pkg->name, pkg->version, "co", buff, NumberOf(buff));
-        char *outPath = repoRsrcPath(codeName,outFn,NumberOf(outFn));
-        ioPo out = openOutFile(outPath, rawEncoding);
-        ret = encodePkg(out, pkg);
+      closeFile(out);
 
-        closeFile(out);
+      if (ret == Ok) {
+        ret = addToManifest(&pkg->pkg, "code", codeName);
 
-        if(ret==Ok){
-          ret = addToManifest(pkg->name,pkg->version,"code",codeName);
-
-          if(ret==Ok)
-            ret = flushManifest();
-        }
-
-        return ret;
-      } else {
-        outMsg(logFile, "output not written\n");
-        return Fail;
+        if (ret == Ok)
+          ret = flushManifest();
       }
-    } else
+
+      return ret;
+    } else {
+      outMsg(logFile, "output not written\n");
       return Fail;
+    }
   } else
     return Fail;
+}
+
+else
+return
+Fail;
 }
 
 static char *CAFE_HOME = NULL;
@@ -77,14 +67,13 @@ void setCafeHome(char *home) {
 
 static char *PKG_VERSION = "*";
 
-void setPkgVersion(char *vers){
+void setPkgVersion(char *vers) {
   PKG_VERSION = vers;
 }
 
-char *defltPkgVersion(){
+char *defltPkgVersion() {
   return PKG_VERSION;
 }
-
 
 static void initStdUri() {
   if (CAFE_HOME == NULL) {

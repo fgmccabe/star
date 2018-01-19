@@ -12,9 +12,9 @@ retCode encodeInt(ioPo out, int64 ix) {
   return outInt(out, ix);
 }
 
-retCode encodeStr(ioPo out, char *str) {
+retCode encodeStr(ioPo out, char *str, integer len) {
   tryRet(outChar(out, strTrm));
-  return encodeTxt(out, str);
+  return encodeTxt(out, str, len);
 }
 
 static codePoint findDelim(char *str, char *choices, codePoint deflt) {
@@ -32,9 +32,8 @@ static codePoint findDelim(char *str, char *choices, codePoint deflt) {
   return deflt;
 }
 
-retCode encodeTxt(ioPo out, char *str) {
+retCode encodeTxt(ioPo out, char *str, integer len) {
   codePoint delim = findDelim(str, "'\"|/%", '\"');
-  integer len = uniStrLen(str);
   codePoint ch;
   retCode ret = outChar(out, delim);
 
@@ -60,12 +59,12 @@ retCode encodeFlt(ioPo out, double dx) {
 retCode encodePrg(ioPo out, char *sx, integer ar) {
   tryRet(outChar(out, prgTrm));
   tryRet(outInt(out, ar));
-  return encodeTxt(out, sx);
+  return encodeTxt(out, sx, uniStrLen(sx));
 }
 
 retCode encodeStrct(ioPo out, char *sx, integer ar) {
   tryRet(outChar(out, strctTrm));
   tryRet(outInt(out, ar));
-  return encodeTxt(out, sx);
+  return encodeTxt(out, sx, uniStrLen(sx));
 }
 

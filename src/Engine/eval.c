@@ -10,18 +10,17 @@
 #include <debug.h>
 #include "engineP.h"
 #include "escape.h"      /* escape call handling */
+#include "arithP.h"
 
+#define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
 
+#define collectOff(pc) (hi32 = collectI32(pc)/sizeof(uint16), (pc)+(int32)hi32)
 
-#define collectI32(pc) (hi32 = (uint32)(*pc++), lo32 = *pc++, ((hi32<<16)|lo32))
+#define push(X) *--SP = ((termPo)(X))
+#define pop() (*SP++)
 
-#define collectOff(pc) (hi32 = collectI32(pc)/sizeof(uint16), pc+(int32)hi32)
-
-#define push(X) *--SP = ((integer)(X))
-#define pop() ((integer)(*SP++))
-
-#define local(off) &(((ptrPo)FP)[-off-1])
-#define arg(off) (((ptrPo)(FP+1))+off)
+#define local(off) &(((ptrPo)FP)[-(off)-1])
+#define arg(off) (((ptrPo)(FP+1))+(off))
 #define free(off) (ENV->free[off])
 
 /*
@@ -53,30 +52,41 @@ retCode run(processPo P, heapPo heap) {
       case Halt:
         return Ok;
 
-      case OCall:        /* Call tos a1 .. an -->   */
+      case Call: {
+        PROG = C_MTD(LITS[collectI32(PC)].data);   // Which program do we want?
+        push(PC);       // Set up for a return
+        PC = entryPoint(PROG);
+        LITS = codeLiterals(PROG);
+        continue;
+      }
+
+      case OCall: {        /* Call tos a1 .. an -->   */
         PROG = C_MTD(*SP++);       /* set up for callee */
         push(PC);       /* build up the frame. */
         PC = entryPoint(PROG);
         LITS = codeLiterals(PROG);
         continue;
+      }
 
-      case Enter: {      /* set up the local env of locals */
-        push(FP);
-        FP = (framePo) SP;     /* set the new frame pointer */
-        int32 lclCnt = collectI32(PC);  /* How many locals do we have */
-        SP -= lclCnt;
+      case Escape: {     /* call escape */
+        int32 escNo = collectI32(PC); /* escape number */
+        escapePo esc = (escapePo) LITS[escNo].data;
+        termPo ret = (termPo) esc->fun(P, SP);  /* invoke the escape */
+        SP += esc->arity;     /* drop arguments */
+        *--SP = ret;
         continue;
       }
 
-      case Tail: {       /* Tail call */
+      case Tail: {       /* Tail call of explicit program */
         // Pick up existing frame
         framePo oldFp = FP->fp;
         insPo oldPc = FP->rtn;
-        int64 argCnt = argCount(ENV); /* How many arguments in caller? */
-        ENV = (closurePo) *SP;   /* Our new closure is at top of stack */
+        int64 argCnt = argCount(PROG); /* How many arguments in caller? */
+
+        PROG = C_MTD(LITS[collectI32(PC)].data);   // Which program do we want?
 
         // slide new arguments over old frame
-        int64 nArgCnt = argCount(ENV);  /* prepare to slide arguments over caller */
+        int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
 
         ptrPo tgt = arg(argCnt);
         ptrPo src = SP + nArgCnt + 1;   /* base of argument vector */
@@ -88,16 +98,53 @@ retCode run(processPo P, heapPo heap) {
         SP = tgt;
 
         // set up new frame
-        *--SP = (termPo) ENV;
+        *--SP = (termPo) PROG;
         *--SP = (termPo) oldPc;  /* make sure we return where the caller returns */
 
-        PC = entryPoint(ENV);
-        LITS = codeLiterals(ENV);
+        PC = entryPoint(PROG);
+        LITS = codeLiterals(PROG);
         continue;       /* Were done */
       }
 
+      case OTail: {       /* Tail call */
+        // Pick up existing frame
+        framePo oldFp = FP->fp;
+        insPo oldPc = FP->rtn;
+        int64 argCnt = argCount(PROG); /* How many arguments in caller? */
+
+        PROG = C_MTD(*SP++);       /* set up for callee */
+
+        // slide new arguments over old frame
+        int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
+
+        ptrPo tgt = arg(argCnt);
+        ptrPo src = SP + nArgCnt + 1;   /* base of argument vector */
+
+        FP = oldFp;
+
+        for (int ix = 0; ix < nArgCnt; ix++)
+          *--tgt = *--src;    /* copy the argument vector */
+        SP = tgt;
+
+        // set up new frame
+        *--SP = (termPo) PROG;
+        *--SP = (termPo) oldPc;  /* make sure we return where the caller returns */
+
+        PC = entryPoint(PROG);
+        LITS = codeLiterals(PROG);
+        continue;       /* Were done */
+      }
+
+      case Enter: {      /* set up the local env of locals */
+        push(FP);
+        FP = (framePo) SP;     /* set the new frame pointer */
+        int32 lclCnt = collectI32(PC);  /* How many locals do we have */
+        SP -= lclCnt;
+        continue;
+      }
+
       case Ret: {        /* return from function */
-        int64 argCnt = argCount(ENV);
+        int64 argCnt = argCount(PROG);
         termPo ret = *SP;     /* and return value */
 
         SP = arg(argCnt);     /* reset stack */
@@ -105,20 +152,11 @@ retCode run(processPo P, heapPo heap) {
         PC = FP->rtn;     /* and return address */
         FP = FP->fp;      /* and old frame pointer */
 
-        ENV = FP->env;      /* pick up parent code */
-        LITS = codeLiterals(ENV);   /* reset pointer to code literals */
+        PROG = FP->prog;      /* pick up parent code */
+        LITS = codeLiterals(PROG);   /* reset pointer to code literals */
 
         push(ret);      /* push return value */
         continue;       /* and carry on regardless */
-      }
-
-      case Escape: {     /* call escape */
-        int32 escNo = collectI32(PC); /* escape number */
-        escapePo esc = (escapePo) LITS[escNo].data;
-        termPo ret = (termPo) esc->esc(SP);  /* invoke the escape */
-        SP += esc->arity;     /* drop arguments */
-        *--SP = ret;
-        continue;
       }
 
       case Jmp:       /* jump to local offset */
@@ -144,16 +182,12 @@ retCode run(processPo P, heapPo heap) {
 
       case Rot: {
         int32 offset = collectI32(PC);    // How far down to reach into the stack
-        termPo se = SP[offset-1];
-        for(int32 ix=offset-1;ix>0;ix--)
-          SP[ix] = SP[ix-1];
+        termPo se = SP[offset - 1];
+        for (int32 ix = offset - 1; ix > 0; ix--)
+          SP[ix] = SP[ix - 1];
         *SP = se;
         continue;
       }
-
-      case LdI:       /* load integer literal */
-        push(collectI32(PC));
-        continue;
 
       case LdC:     /* load literal value from pool */
         push(LITS[collectI32(PC)].data);
@@ -175,8 +209,8 @@ retCode run(processPo P, heapPo heap) {
 
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
-        closurePo cl = (closurePo) pop();  /* which closure? */
-        push(cl->free[ix]);
+        normalPo cl = C_TERM(pop());  /* which term? */
+        push(cl->args[ix]);
         continue;
       }
 
@@ -196,9 +230,9 @@ retCode run(processPo P, heapPo heap) {
 
       case StNth: {      /* store into a closure */
         int32 ix = collectI32(PC);
-        integer tos = pop();
-        closurePo cl = (closurePo) pop();
-        cl->free[ix] = tos;
+        termPo tos = pop();
+        normalPo cl = C_TERM(pop());
+        cl->args[ix] = tos;
         continue;
       }
 
@@ -213,198 +247,36 @@ retCode run(processPo P, heapPo heap) {
         continue;
       }
 
-      case Alloc: {      /* heap allocate closure */
-        methodPo cd = (methodPo) (codeLiterals(ENV)[collectI32(PC)].data);
-        closurePo cl = allocate(heap, cd); /* allocate a closure on the heap */
-        for (int ix = 0; ix < cd->freeCount; ix++)
-          cl->free[ix] = pop();   /* fill in free variables by popping from stack */
+      case Alloc: {      /* heap allocate term */
+        labelPo cd = C_LBL(LITS[collectI32(PC)].data);
+        normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
+        for (int ix = 0; ix < cd->arity; ix++)
+          cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the closure back on the stack */
         continue;
       }
 
-      case I2f:       /* convert from int to float */
-        *(double *) SP = (double) (*(int64 *) SP);
-        continue;
-
-      case F2i:       /* convert from float to int */
-        *(int64 *) SP = (int64) (*(double *) SP);
-        continue;
-
-      case AddI: {        /* tos:=tos+tos-1, integer addition */
-        int64 i = *(int64 *) SP++;
-        *(int64 *) SP = i + (*(int64 *) SP);
-        collectOff(PC);     /* ignore failure case for now */
-        continue;
-      }
-      case AddF: {       /* tos:=tos+tos-1  floating point addition */
-        double i = (double) pop();
-        double j = (double) pop();
-        collectOff(PC);     /* ignore failure case for now */
-        push(i + j);
-        continue;
-      }
-
-      case IncI: {        /* tos:=tos+1, integer increment */
-        collectOff(PC);     /* ignore failure case for now */
-        int64 i = *(int64 *) SP;
-        *(int64 *) SP = i + 1;
-        continue;
-      }
-
-      case SubI: {        /* tos:=tos-tos-1, integer subtract */
-        collectOff(PC);     /* ignore failure case for now */
-        int64 i = *(int64 *) SP++;
-        *(int64 *) SP = (*(int64 *) SP) - i;
-        continue;
-      }
-
-      case SubF: {       /* tos:=tos-tos-1  floating point subtract */
-        double j = (double) pop();
-        double i = (double) pop();
-        push(i - j);
-        collectOff(PC);     /* ignore failure case for now */
-        continue;
-      }
-
-      case DecI: {        /* tos:=tos-1, integer decrement */
-        collectOff(PC);     /* ignore failure case for now */
-        int64 i = *(int64 *) SP;
-        *(int64 *) SP = i - 1;
-        continue;
-      }
-
-      case MulI: {        /* tos:=tos*tos-1, integer multiply */
-        collectOff(PC);     /* ignore failure case for now */
-        int64 i = pop();
-        int64 j = pop();
-        push(i * j);
-        continue;
-      }
-
-      case MulF: {       /* tos:=tos*tos-1  floating point multiple */
-        collectOff(PC);     /* ignore failure case for now */
-        double i = (double) pop();
-        double j = (double) pop();
-        push(i * j);
-        continue;
-      }
-
-      case DivI: {        /* tos:=tos/tos-1, integer divide */
-        collectOff(PC);     /* ignore failure case for now */
-        int64 j = (int64) pop();
-        int64 i = (int64) pop();
-        push(i / j);
-        continue;
-      }
-
-      case DivF: {       /* tos:=tos/tos-1  floating point divide */
-        collectOff(PC);     /* ignore failure case for now */
-        double j = (double) pop();
-        double i = (double) pop();
-        push(i / j);
-        continue;
-      }
-
-      case RemI: {        /* tos:=tos%tos-1, 32bit width */
-        collectOff(PC);     /* ignore failure case for now */
-        int64 j = (int64) pop();
-        int64 i = (int64) pop();
-        push(i % j);
-        continue;
-      }
-
-      case Lft: {       /* Shift left */
-        int64 j = (int64) pop();
-        int64 i = (int64) pop();
-        push(i << j);
-        continue;
-      }
-
-      case Asr: {        /* Arithmetic shift right */
-        int64 j = (int64) pop();
-        int64 i = (int64) pop();
-        push(i >> j);
-        continue;
-      }
-
-      case Rgt: {      /* Logical shift right */
-        integer j = (integer) pop();
-        int64 i = (int64) pop();
-        push(i >> j);
-        continue;
-      }
-
-      case CmpI: {        /* compare integer, leave tos with -1,0,1 */
-        int64 j = (int64) pop();
-        int64 i = (int64) pop();
-        push(i > j ? 1 : i < j ? -1 : 0);
-        continue;
-      }
-
-      case CmpF: {       /* compare float, leave tos with -1,0,1 */
-        double j = (double) pop();
-        double i = (double) pop();
-        push(i > j ? 1 : i < j ? -1 : 0);
-        continue;
-      }
-
-      case Bz: {       /* Branch on zero */
-        int64 i = pop();
+      case Bf: {       /* Branch on false */
+        termPo i = pop();
         insPo exit = collectOff(PC);
-        if (i == 0)
+        if (i == falseEnum)
           PC = exit;
         continue;
       }
 
-      case Bnz: {        /* Branch on non-zero */
-        int64 i = pop();
+      case Bt: {        /* Branch on true */
+        termPo i = pop();
         insPo exit = collectOff(PC);
 
-        if (i != 0)
+        if (i == trueEnum)
           PC = exit;
-        continue;
-      }
-
-      case Blt: {        /* branch on less than zero */
-        int64 i = pop();
-        insPo exit = collectOff(PC);
-
-        if (i < 0)
-          PC = exit;
-        continue;
-      }
-
-      case Ble: {        /* branch on less or equal to zero */
-        int64 i = pop();
-        insPo exit = collectOff(PC);
-
-        if (i <= 0)
-          PC = exit;
-        continue;
-      }
-
-      case Bge: {        /* branch on greater or equal to zero */
-        int64 i = pop();
-        insPo exit = collectOff(PC);
-
-        if (i >= 0)
-          PC = exit;
-        continue;
-      }
-      case Bgt: {        /* branch on greater than zero */
-        int64 i = pop();
-        insPo exit = collectOff(PC);
-
-        if (i > 0)
-          PC = exit;
-
         continue;
       }
 
       case Cas: {        /* compare and swap, branch if not zero */
-        int64 nw = pop();     /* new value */
-        int64 old = pop();    /* compare value */
-        closurePo p = (closurePo) pop(); /* lock */
+        integer nw = integerVal(pop());     /* new value */
+        integer old = integerVal(pop());    /* compare value */
+        normalPo p = C_TERM(pop()); /* lock */
         insPo exit = collectOff(PC);
 
         if (!compare_and_swap(p, old, nw))
@@ -419,9 +291,8 @@ retCode run(processPo P, heapPo heap) {
   }
 }
 
-logical compare_and_swap(termPo cl, int64 old, int64 nw) {
-  int
-  integer *check = &cl->free[0];
+logical compare_and_swap(normalPo cl, int64 old, int64 nw) {
+  integer *check = &(C_INT(cl->args[0]))->ix;
   return __sync_bool_compare_and_swap(check, old, nw);
 }
 

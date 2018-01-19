@@ -4,6 +4,8 @@
 #include "config.h"
 #include "ooio.h"
 #include "term.h"
+#include "heap.h"
+#include "opcodes.h"
 
 typedef uint16 insWord, *insPo;
 
@@ -19,5 +21,9 @@ extern methodPo C_MTD(termPo t);
 typedef void (*jitCode)();
 typedef integer (*cafeFun)();
 typedef cafeFun (*pkgFun)();
+
+static inline OpCode opCode(insWord w){
+  return (OpCode) w;
+}
 
 #endif

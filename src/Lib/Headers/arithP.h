@@ -9,7 +9,7 @@
 
 // Integer structure
 typedef struct int_struct {
-  Term termPart;          // == integerCLass
+  Class clss;          // == integerCLass
   int64 ix;
 } IntegerRec;
 
@@ -17,7 +17,7 @@ typedef struct int_struct {
 
 // Float structure
 typedef struct float_struct {
-  Term termPart;          // == floatClass
+  Class clss;          // == floatClass
   double dx;
 } FloatRec;
 

@@ -3,7 +3,7 @@
 
 #include "config.h"
 #include "ooio.h"
-#include "code.h"
+#include "term.h"
 
 typedef struct _heap_ *heapPo;
 
@@ -11,17 +11,17 @@ extern void initHeap(long heapSize);
 
 extern heapPo currHeap;
 
-typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
+extern termPo allocateEnum(heapPo H, char *nm, int64 arity);
 
-typedef struct class_record *clssPo;
+extern termPo allocateObject(heapPo H, termPo cons);
 
-extern termPo allocateStruct(heapPo H, clssPo class, integer size);
+extern normalPo allocateStruct(heapPo H, labelPo lbl);
 
 extern retCode reserveSpace(heapPo H, size_t amnt);
 
 extern void markRoot(heapPo heap,ptrPo addr);
 
-extern logical compare_and_swap(termPo cl, int64 expect, int64 repl);
+extern logical compare_and_swap(normalPo cl, int64 expect, int64 repl);
 
 #define PTRSZE (sizeof(void*))
 

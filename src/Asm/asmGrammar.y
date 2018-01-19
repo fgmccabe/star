@@ -54,28 +54,14 @@
 
 %token HALT
 %token CALL TAIL ENTER ESCAPE
-%token RET JMP CASE
-%token DROP DUP PULL ROT CAS
+%token RET JMP CASE HSH
+%token DROP DUP PULL ROT CAS BF BT
 
-%token LD ST
+%token LD ST T
 
 %token A L
 %token ALLOC
 
-%token I2F F2I
-
-%token ADDI ADDF LADD INCI
-%token SUBI SUBF LSUB DECI
-%token MULI MULF LMUL
-%token DIVI DIVF LDIV
-%token REMI REMF LREM
-
-%token LFT LLFT
-%token RGT ASR
-
-%token CMPI LCMP CMPF
-
-%token BZ BNZ BF BNF BLE BLT BGE BGT
 %token FRAME LOCAL
 %token END
 
@@ -95,17 +81,23 @@
 
 %%
 
-   program: nls package defs trailer;
+   program: nls package imports defs trailer;
 
    package: PKG ID HASH ID nls { *pkg = newPkg($2,$4); }
      | PKG ID nls { *pkg = newPkg($2,defltPkgVersion()); }
+
+   imports: imports import | ;
+
+   import: IMPORT ID HASH ID nls { addImport(*pkg,$2,$4,False); }
+   | IMPORT ID nls { addImport(*pkg,$2,"*",False); }
+   | PUBLIC IMPORT ID HASH ID nls { addImport(*pkg,$3,$5,True); }
+   | PUBLIC IMPORT ID nls { addImport(*pkg,$3,"*",True); }
 
    defs: defs function | ;
 
  function: header instructions trailer ;
 
- header: ID SLASH DECIMAL DCOLON signature nls { currMtd = defineMethod(*pkg,False,$1,$3,$5); }
-     | PUBLIC ID SLASH DECIMAL DCOLON signature nls { currMtd = defineMethod(*pkg,True,$2,$4,$6); }
+ header: ID SLASH DECIMAL DCOLON signature nls { currMtd = defineMethod(*pkg,$1,$3,$5); }
 
  instructions: instructions instruction nls
      | instructions error nls
@@ -122,9 +114,6 @@ trailer: END nls { endFunction(currMtd); }
      | store
      | caseins
      | heap
-     | convert
-     | arith
-     | cond
      | directive
      ;
  halt: HALT { AHalt(currMtd); };
@@ -135,16 +124,18 @@ trailer: END nls { endFunction(currMtd); }
    | ENTER DECIMAL { AEnter(currMtd,$2); }
    | RET { ARet(currMtd); }
    | JMP label { AJmp(currMtd,$2); }
+   | BF label { ABf(currMtd,$2); }
+   | BT label {ABt(currMtd,$2); }
    ;
 
  literal: FLOAT { $$=newFloatConstant(currMtd,$1); }
    | STRING { $$=newStringConstant(currMtd,$1); }
+   | DECIMAL { $$ = newIntegerConstant(currMtd,$1); }
    | ID COLON DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
    | ID SLASH DECIMAL { $$=newPrgConstant(currMtd,$1,$3); }
    ;
 
- load: LD DECIMAL { ALdI(currMtd,$2); }
-   | LD literal { ALdC(currMtd,$2); }
+ load: LD literal { ALdC(currMtd,$2); }
    | LD A LBRA DECIMAL RBRA { ALdA(currMtd,$4); }
    | LD L LBRA DECIMAL RBRA { ALdL(currMtd,$4); }
    | DROP { ADrop(currMtd); }
@@ -156,7 +147,9 @@ trailer: END nls { endFunction(currMtd); }
 
  store: ST L LBRA local RBRA { AStL(currMtd,$4); }
    | ST LBRA local RBRA { AStNth(currMtd,$3); }
+   | T L LBRA local RBRA { ATL(currMtd,$4); }
    | CAS label { ACas(currMtd,$2); }
+
    ;
 
  local: ID {
@@ -166,59 +159,21 @@ trailer: END nls { endFunction(currMtd); }
     }
   };
 
- caseins: CASE DECIMAL { ACase(currMtd,$2); };
+ caseins: CASE DECIMAL { ACase(currMtd,$2); }
+   | HSH {AHash(currMtd); };
 
  heap: ALLOC DECIMAL { AAlloc(currMtd,$2); }
    ;
 
- convert: F2I { AF2i(currMtd); }
-   | I2F { AI2f(currMtd); }
-   ;
-
- arith: ADDI { AAddI(currMtd); }
-   | ADDF { AAddF(currMtd); }
-   | LADD { ALAdd(currMtd); }
-   | SUBI { ASubI(currMtd); }
-   | LSUB { ALSub(currMtd); }
-   | SUBF { ASubF(currMtd); }
-   | INCI { AIncI(currMtd); }
-   | DECI { ADecI(currMtd); }
-   | MULI { AMulI(currMtd); }
-   | LMUL { ALMul(currMtd); }
-   | MULF { AMulF(currMtd); }
-   | DIVI { ADivI(currMtd); }
-   | LDIV { ALDiv(currMtd); }
-   | DIVF { ADivF(currMtd); }
-   | REMI { ARemI(currMtd); }
-   | LREM { ALRem(currMtd); }
-   | REMF { ARemF(currMtd); }
-   | LFT { ALft(currMtd); }
-   | LLFT { ALLft(currMtd); }
-   | ASR { AAsr(currMtd); }
-   | RGT { ARgt(currMtd); }
-   | CMPI { ACmpI(currMtd); }
-   | LCMP { ALCmp(currMtd); }
-   | CMPF { ACmpF(currMtd); }
-   ;
-
- cond: BZ label { ABz(currMtd,$2); }
-   | BNZ label { ABnz(currMtd,$2); }
-   | BF label { ABf(currMtd,$2); }
-   | BNF label { ABnf(currMtd,$2); }
-   | BLT label { ABlt(currMtd,$2); }
-   | BLE label { ABle(currMtd,$2); }
-   | BGE label { ABge(currMtd,$2); }
-   | BGT label { ABgt(currMtd,$2); }
-   ;
-
  directive: label COLON { defineLbl(currMtd,$1); }
-   | FRAME signature { defineFrame(currMtd,$2); }
+   | FRAME signature { AFrame(currMtd,newStringConstant(currMtd,$2)); }
    | LOCAL ID signature label label { defineLocal(currMtd,$2,$3,$4,$5); }
    ;
 
  label: ID { $$ = newLbl(currMtd,$1); };
 
- libName: STRING { $$ = newEscapeConstant(currMtd,$1); }
+ libName: STRING { $$ = newStringConstant(currMtd,$1); }
+   | ID { $$ = newStringConstant(currMtd,$1); }
 
  signature: STRING { $$ = $1; if(!validSignature($1)){
   yyerror(&yylloc,asmFile,pkg,"invalid signature");

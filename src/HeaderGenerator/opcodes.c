@@ -20,7 +20,6 @@ int main(int argc, char **argv) {
   fprintf(out, "typedef enum {\n");
 #include "instructions.h" /* Pick up the instructions specification */
   fprintf(out, "  label,\n");
-  fprintf(out, "  frame,\n");
   fprintf(out, "  illegalOp\n");
   fprintf(out, "} OpCode;\n\n");
   fprintf(out,"#endif //_CAFE_OPCODE_H_\n");

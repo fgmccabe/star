@@ -15,6 +15,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <pkgP.h>
 #include "cafeOptions.h"
 #include "jsonEvent.h"
 #include "manifestP.h"
@@ -148,12 +149,21 @@ char *manifestResource(char *package, char *version, char *kind) {
   return NULL;
 }
 
-retCode addToManifest(char *package, char *version, char *kind, char *resrc) {
-  manifestEntryPo entry = getEntry(package);
+char *manifestRsrcFlNm(char *package, char *version, char *kind, char *buffer, integer buffLen) {
+  char *rsrc = manifestResource(package, version, kind);
 
-  manifestVersionPo v = manifestVersion(entry, version);
+  if (rsrc != Null) {
+    return strMsg(buffer, buffLen, "%s/%s", repoDir, rsrc);
+  } else
+    return Null;
+}
+
+retCode addToManifest(packagePo package, char *kind, char *resrc) {
+  manifestEntryPo entry = getEntry(package->packageName);
+
+  manifestVersionPo v = manifestVersion(entry, package->version);
   if (v == NULL) {
-    v = newVersion(entry, version);
+    v = newVersion(entry, package->version);
   }
 
   return addResource(v, kind, resrc);
@@ -438,11 +448,9 @@ retCode flushManifest() {
     return Fail;
 }
 
-char *manifestOutPath(char *pkg, char *version, char *suff, char *buffer, int bufLen) {
-  integer pkgHash = uniHash(pkg);
-  integer verHash = uniHash(version);
-  pkgHash = pkgHash * 37 + verHash;
-  return strMsg(buffer, bufLen, "%s%d.%s", pkg, pkgHash, suff);
+char *manifestOutPath(packagePo pkg, char *suff, char *buffer, int bufLen) {
+  integer hash = pkgHash(pkg);
+  return strMsg(buffer, bufLen, "%s%d.%s", pkg->packageName, hash, suff);
 }
 
 char *repoRsrcPath(char *name, char *buffer, int bufLen) {

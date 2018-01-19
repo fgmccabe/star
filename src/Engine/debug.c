@@ -93,8 +93,8 @@ retCode clearBreakPoint(breakPointPo bp) {
 }
 
 static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
-  long b = 0;
-  long ix = 0;
+  integer b = 0;
+  integer ix = 0;
 
   while (ix < bLen && buffer[ix] == ' ')
     ix++;
@@ -146,7 +146,7 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
     switch (opCode(PCX)) {
       case Call:
       case Tail: {
-        closurePo prg = (closurePo) (*sp);
+        methodPo prg = C_MTD(*sp);
 
       }
 
@@ -274,7 +274,7 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(*pc++), lo32 = *pc++, ((hi32<<16)|lo32)
 
-static void showEscape(closurePo cl, int32 escNo) {
+static void showEscape(methodPo cl, int32 escNo) {
   constantPo escCon = &codeLiterals(cl)[escNo];
   escapePo esc = (escapePo) escCon->data;
 
@@ -290,17 +290,15 @@ insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, p
 #undef instruction
 
 #define show_nOp
-#define show_tos
 #define show_i32 outMsg(logFile," #%d",collectI32(pc))
 #define show_arg outMsg(logFile," a[%d]",collectI32(pc))
 #define show_lcl outMsg(logFile," l[%d]",collectI32(pc))
-#define show_env outMsg(logFile," e[%d]",collectI32(pc))
 #define show_off outMsg(logFile," 0x%x",(collI32(pc)+pc))
 #define show_Es showEscape(env,collectI32(pc))
-#define show_lit showConstant(logFile,env,collectI32(pc))
+#define show_lit showConstant(logFile,mtd,collectI32(pc))
 
-#define instruction(AOp, A1, Op, Cmt)    \
-    case AOp:          \
+#define instruction(Op, A1, Cmt)    \
+    case Op:          \
       outMsg(logFile," %s",#Op);    \
       show_##A1;        \
   return pc;

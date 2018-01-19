@@ -8,11 +8,11 @@
 #include "term.h"
 
 typedef struct term_record {
-  termPo sig;                    // Every value has a signature, which is a 'class' pointer, which is also a term
+  clssPo sig;                    // Every value has a signature, which is a 'class' pointer
 } Term;
 
 typedef struct class_record{
-  termPo sig;
+  clssPo sig;
 } Class;
 
 /*
@@ -29,7 +29,20 @@ typedef struct _program_label_ {
 typedef struct normal_term {
   Class clss;
   termPo args[ZEROARRAYSIZE];
-} Normal, *normalPtr;
+} Normal;
+
+typedef struct enum_term {
+  Class clss;                   // == enumClass
+  integer hash;
+  integer length;               // Size of name
+  char name[ZEROARRAYSIZE];
+} EnumRecord;
+
+typedef struct string_term {
+  Class clss;                   // == stringClass
+  integer length;
+  char txt[ZEROARRAYSIZE];
+} StringRecord;
 
 // Some typedefs to help with working with classes
 

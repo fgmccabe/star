@@ -58,7 +58,8 @@ retCode unGetChar(ioPo f, codePoint ch);   /* put a single character back */
 retCode inLine(ioPo f, char *buffer, integer len, integer *actual, char *term);
 
 retCode inBlock(ioPo f, byte *buffer, long len);
-retCode inBytes(ioPo f, byte *buffer, integer len, integer *act);
+
+retCode skipShellPreamble(ioPo f);
 
 retCode pushBack(ioPo f, char *str, integer from, integer len);
 retCode skipBlanks(ioPo f);

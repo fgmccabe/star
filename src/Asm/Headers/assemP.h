@@ -3,13 +3,13 @@
 
 #include <ooio.h>
 #include "assem.h"
-#include <ops.h>
-#include "../../Engine/Headers/codeP.h"
+#include "opcodes.h"
+#include "codeP.h"
 #include "lists.h"
 #include "objectP.h"
+#include "pkgP.h"
 
 typedef struct _fixup_ *fixupPo;
-
 
 typedef struct _label_ {
   char *lbl;
@@ -22,9 +22,14 @@ typedef struct _assem_struct_ {
   integer arity;
 } StrctLbl, *strctPo;
 
+typedef struct _import_struct_ {
+  PackageRec pkg;
+  logical isPublic;
+} ImportRec, *importPo;
+
 extern integer strctHash(strctPo st);
 
-extern comparison strctComp(strctPo st1,strctPo st2);
+extern comparison strctComp(strctPo st1, strctPo st2);
 
 /* Set up a class structure for pool constants */
 typedef struct _const_record_ *constPo;
@@ -100,8 +105,8 @@ typedef struct _assem_instruction_ {
 } AssemInstruction;
 
 typedef struct _assem_package_ {
-  char *name;     /* name of the package */
-  char *version;
+  PackageRec pkg;
+  hashPo imports;     /* All the imports in this package */
   hashPo methods;     /* All the functions defined in this package */
 } AssemPackage;
 

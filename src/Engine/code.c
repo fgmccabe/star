@@ -56,7 +56,7 @@ retCode labelDel(labelPo lbl, labelPo mtd){
 }
 
 static void markMtd(heapPo h,methodPo mtd){
-  
+
 }
 
 static retCode markLabel(void *n,void *r,void *c){

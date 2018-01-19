@@ -6,24 +6,33 @@
 #define CAFE_TERM_H
 
 #include "config.h"
-#include "heap.h"
 
 typedef struct special_class *specialClassPo;
 
-typedef struct enum_struct *termClassPo;
+typedef struct enum_struct *enumPo;
 
 typedef struct _program_label_ *labelPo;
 
-extern clssPo labelClass;
+typedef struct normal_term *normalPo;
+
+typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured value */
+
+typedef struct class_record *clssPo;
+
+extern clssPo labelClass, normalClass, enumClass;
 
 extern labelPo C_LBL(termPo t);
 
-extern termPo allocateEnum(heapPo H, char *nm, int64 arity);
+extern normalPo C_TERM(termPo t);
 
-extern termPo allocateObject(heapPo H, termPo cons);
+extern enumPo C_ENUM(termPo t);
+
 
 extern termPo nthArg(termPo term, int64 nth);
 
 extern void setArg(termPo term, int64 ix, termPo arg);
+
+extern termPo falseEnum;
+extern termPo trueEnum;
 
 #endif //CAFE_TERM_H

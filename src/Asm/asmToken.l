@@ -19,6 +19,10 @@
 #include <math.h>
 #include <unicode.h>
 #include <assemP.h>
+
+normalPo
+#include <assem.h>
+
 #include "assem.h"
 
 #include "asmGrammar.h"
@@ -91,6 +95,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 
 "a"           RT(A);
 "l"           RT(L);
+"t"           RT(T);
 
 "halt"        RT(HALT);
 
@@ -102,6 +107,10 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "ret"         RT(RET);
 "jmp"         RT(JMP);
 "case"        RT(CASE);
+"hash"        RT(HSH);
+
+"bt"          RT(BT);
+"bf"          RT(BF);
 
 "drop"        RT(DROP)
 "dup"         RT(DUP)
@@ -112,49 +121,6 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "st"          RT(ST);
 
 "alloc"       RT(ALLOC);
-
-"f2i"         RT(F2I);
-"i2f"         RT(I2F);
-
-"addi"        RT(ADDI);
-"addf"        RT(ADDF);
-"ladd"        RT(LADD);
-
-"subi"        RT(SUBI);
-"subf"        RT(SUBF);
-"lsub"        RT(LSUB);
-
-"muli"        RT(MULI);
-"mulf"        RT(MULF);
-"lmul"        RT(LMUL);
-
-"divi"        RT(DIVI);
-"divf"        RT(DIVF);
-"ldiv"        RT(LDIV);
-
-"remi"        RT(REMI);
-"remf"        RT(REMF);
-"lrem"        RT(LREM);
-
-"dec"         RT(DECI);
-"inc"         RT(INCI);
-
-"left"        RT(LFT);
-"right"       RT(RGT);
-"asr"         RT(ASR);
-
-"cmp"         RT(CMPI);
-"lcmp"        RT(LCMP);
-"cmpf"        RT(CMPF);
-
-"bz"          RT(BZ);
-"bnz"         RT(BNZ);
-"bf"          RT(BF);
-"bnf"         RT(BNF);
-"bge"         RT(BGE);
-"ble"         RT(BLE);
-"blt"         RT(BLT);
-"bgt"         RT(BGT);
 
 "cas"         RT(CAS);
 

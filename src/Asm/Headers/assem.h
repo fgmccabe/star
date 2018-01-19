@@ -20,7 +20,9 @@ extern void initAssem();
 extern pkgPo newPkg(char *name, char *version);
 extern void dumpPkgCode(pkgPo pkg);
 
-extern mtdPo defineMethod(pkgPo pkg, logical public, char *name, integer arity, char *sig);
+extern void addImport(pkgPo pkg, char *name, char *version, logical isPublic);
+
+extern mtdPo defineMethod(pkgPo pkg, char *name, integer arity, char *sig);
 extern char *methodSignature(mtdPo mtd);
 extern int32 findMethod(mtdPo mtd, char *name, int arity);
 

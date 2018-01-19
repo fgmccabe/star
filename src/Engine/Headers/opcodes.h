@@ -1,13 +1,22 @@
 /* 
  * Access the opcodes of the Star machine
- * (c) 2013 F.G.McCabe
+ * (c) 2013, 2018 F.G.McCabe
  * all rights reserved
  **/
 
 #ifndef _OPCODES_H_
 #define _OPCODES_H_
 
-#include "ops.h"
+#undef instruction
+#define instruction(Op,Nd,Cmt) Op,
+
+typedef enum {
+#include "instructions.h"
+#undef instruction
+  label,
+  illegalOp
+}OpCode;
+
 
 /*
  * Assume a byte code architecture. This makes transitioning between 32bit and
@@ -34,15 +43,12 @@ typedef enum {
  i32,					/* 32 bit literal operand */
  arg,					/* argument variable offset */
  lcl,					/* local variable offset */
- env,					/* free variable offset */
  off,					/* offset within current code */
  Es,					// escape code 0..65535
  lit					/* constant literal */
 } opAndSpec;                    // Specification code for an operand
 
-static inline OpCode opCode(insWord w){
-  return (OpCode) w;
-}
+
 
 #endif
 

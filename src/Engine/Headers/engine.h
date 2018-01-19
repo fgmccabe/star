@@ -21,10 +21,12 @@ typedef enum {
 } DebugWaitFor;
 
 typedef enum {
-  wait_timer
+  wait_io,
+  wait_timer,
+  runnable,
 } ProcessState;
 
-extern processPo newProcess(closurePo cl);
+extern processPo newProcess(methodPo cl);
 extern void switchProcessState(processPo p, ProcessState state);
 extern void setProcessRunnable(processPo p);
 

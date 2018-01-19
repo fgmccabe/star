@@ -55,7 +55,8 @@ static retCode disp_lit(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
 
 static retCode disp_Es(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   tryRet(outMsg(f, "%s ", op));
-  return showConstant(f, mtd, ins->i);
+  tryRet(showConstant(f, mtd, ins->i));
+  return outMsg(f, "\n");
 }
 
 retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins) {
@@ -73,11 +74,6 @@ retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins) {
     case label:
       return outMsg(f, "%B:\n", ins->lbl);
 
-    case frame:
-      tryRet(outMsg(f, "frame "));
-      tryRet(showConstant(f, mtd, ins->i));
-      return outMsg(f, "\n");
-
     default:
       return Error;
   }
@@ -88,9 +84,9 @@ typedef struct {
   mtdPo mtd;
 } MtdData;
 
-static retCode showLocal(void *nm, void*r,void *cl) {
-  MtdData *data = (MtdData*)cl;
-  localVarPo lcl = (localVarPo)r;
+static retCode showLocal(void *nm, void *r, void *cl) {
+  MtdData *data = (MtdData *) cl;
+  localVarPo lcl = (localVarPo) r;
 
   constPo c = poolConstant(data->mtd, lcl->sig);
 
@@ -121,14 +117,22 @@ retCode dumpMethod(void *n, void *r, void *c) {
 
   MtdData data = {.out = io, .mtd = mtd};
 
-  ProcessTable(showLocal,mtd->locals,&data);
+  ProcessTable(showLocal, mtd->locals, &data);
 
   return Ok;
 }
 
+retCode showImport(void *n, void *r, void *c) {
+  ioPo out = (ioPo) c;
+  importPo imp = (importPo)r;
+
+  return outMsg(out, "%simport %P\n",imp->isPublic?"public ":"",&imp->pkg);
+}
+
 void dumpPkgCode(pkgPo pkg) {
-  outMsg(logFile, "Package %s#%s:\n", pkg->name, pkg->version);
-  ProcessTable(dumpMethod,pkg->methods,logFile);
+  outMsg(logFile, "Package %P:\n", &pkg->pkg);
+  ProcessTable(showImport, pkg->imports, logFile);
+  ProcessTable(dumpMethod, pkg->methods, logFile);
   flushOut();
 }
 

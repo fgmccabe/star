@@ -11,6 +11,7 @@
 #include "codeP.h"
 #include "opcodes.h"
 #include "signals.h"
+#include "heapP.h"
 
 typedef struct _processRec_ {
   insPo pc;           /* current program counter */

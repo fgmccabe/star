@@ -1,8 +1,5 @@
 /*
-  Header file giving the interface for tuples
-  Copyright (c) 2016, 2017. Francis G. McCabe
-  
-  Created by Francis McCabe on 2/3/17.
+  Copyright (c) 2016, 2017, 2018. Francis G. McCabe
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
   except in compliance with the License. You may obtain a copy of the License at
@@ -21,8 +18,7 @@
 #include "engine.h"
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
-#include "../Infra/Headers/manifestP.h"
-#include "tpl.h"
+#include "manifest.h"
 
 static poolPo packagePool = NULL;
 static hashPo loadedPackages = NULL;
@@ -85,7 +81,7 @@ static retCode loadSegments(ioPo file, packagePo owner, char *errorMsg, long msg
 
 static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   char flNm[MAXFILELEN];
-  char *fn = packageCodeFile(pkgName, vers, flNm, NumberOf(flNm));
+  char *fn = manifestRsrcFlNm(pkgName, vers, "code", flNm, NumberOf(flNm));
   retCode ret = Ok;
 
   if (fn == NULL) {

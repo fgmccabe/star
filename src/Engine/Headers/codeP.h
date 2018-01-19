@@ -57,7 +57,7 @@ static inline methodPo clMethod(termPo cl) {
 }
 
 static inline constantPo codeLiterals(methodPo cl) {
-  assert(isMethod((termPo)cl));
+  assert(isMethod((termPo) cl));
   return cl->pool;
 }
 
@@ -65,9 +65,8 @@ static inline insPo entryPoint(methodPo mtd) {
   return mtd->code;
 }
 
-static inline int64 argCount(termPo cl) {
-  assert(isMethod(cl));
-  return clMethod(cl)->arity;
+static inline int64 argCount(methodPo cl) {
+  return cl->arity;
 }
 
 static inline char *mtdSignature(methodPo mtd) {

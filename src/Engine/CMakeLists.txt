@@ -18,10 +18,10 @@ set(HEADER_FILES
         ../Infra/Headers/encoding.h Headers/decodeP.h
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
         Headers/cafe.h
-        Headers/opcodes.h Headers/ops.h
+        Headers/opcodes.h
         ../Headers/cafeOptions.h
         Headers/heap.h Headers/heapP.h
-        Headers/term.h Headers/termP.h Headers/str.h Headers/strP.h ../Lib/Headers/arith.h ../Lib/Headers/arithP.h
+        Headers/term.h Headers/termP.h Headers/str.h ../Lib/Headers/arith.h ../Lib/Headers/arithP.h
         Headers/debug.h
         Headers/tpl.h Headers/engineP.h
         Headers/engineOptions.h)

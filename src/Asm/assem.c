@@ -2,6 +2,7 @@
  * Assembler for the Cafe machine code
  */
 
+#include <assemP.h>
 #include "assemP.h"
 #include "formioP.h"
 #include "stringBuffer.h"
@@ -13,6 +14,7 @@ static poolPo mtdPool;      /* pool of method blocks */
 static poolPo insPool;      /* pool of instructions */
 static poolPo varPool;      /* pool of local variable records */
 static poolPo lblPool;      /* pool of labels */
+static poolPo impPool;      /* pool of imported package labels */
 
 static retCode displayLabel(ioPo f, void *p, long width, long prec, logical alt);
 
@@ -68,19 +70,27 @@ void initAssem() {
   insPool = newPool(sizeof(AssemInstruction), 1024);
   varPool = newPool(sizeof(LocalVarRecord), 256);
   lblPool = newPool(sizeof(LabelRec), 128);
+  impPool = newPool(sizeof(ImportRec), 16);
 
   installMsgProc('B', displayLabel);
+  installMsgProc('P', dispPkgNm);
 }
 
 static retCode delLabel(void *n, void *r);
 static retCode delMtd(strctPo nm, mtdPo mtd);
+static retCode delImport(packagePo p, importPo q);
 
 pkgPo newPkg(char *name, char *version) {
   pkgPo pkg = (pkgPo) allocPool(pkgPool);
-  pkg->name = uniDuplicate(name);
-  pkg->version = uniDuplicate(version);
+  pkg->pkg = makePkg(name, version);
   pkg->methods = NewHash(16, (hashFun) strctHash, (compFun) strctComp, (destFun) delMtd);
+  pkg->imports = NewHash(16, (hashFun) pkgHash, (compFun) compPkg, (destFun) delImport);
   return pkg;
+}
+
+retCode delImport(packagePo p, importPo q) {
+  freePool(impPool, p);
+  return Ok;
 }
 
 integer strctHash(strctPo st) {
@@ -105,6 +115,18 @@ static logical isRightMethod(objectPo d, void *cl) {
   return (logical) (strctComp(mtd, &m->name) == same);
 }
 
+void addImport(pkgPo pkg, char *name, char *version, logical isPublic) {
+  PackageRec p = makePkg(name, version);
+  importPo ex = hashGet(pkg->imports, &p);
+
+  if (ex == Null) {
+    ex = (importPo) allocPool(impPool);
+    ex->pkg = p;
+    ex->isPublic = isPublic;
+  }
+  hashPut(pkg->imports, ex, ex);
+}
+
 mtdPo getPkgMethod(pkgPo pkg, const char *name, integer arity) {
   StrctLbl mtd = {.name =name, .arity=arity};
   return (mtdPo) hashGet(pkg->methods, &mtd);
@@ -112,7 +134,7 @@ mtdPo getPkgMethod(pkgPo pkg, const char *name, integer arity) {
 
 static void defineSig(mtdPo mtd, char *sig);
 
-mtdPo defineMethod(pkgPo pkg, logical public, char *name, integer arity, char *sig) {
+mtdPo defineMethod(pkgPo pkg, char *name, integer arity, char *sig) {
   mtdPo existing = getPkgMethod(pkg, name, 0);
 
   if (existing == Null) {
@@ -141,7 +163,7 @@ mtdPo defineMethod(pkgPo pkg, logical public, char *name, integer arity, char *s
   return existing;
 }
 
-static retCode delMtd(strctPo nm, mtdPo mtd){
+static retCode delMtd(strctPo nm, mtdPo mtd) {
   DelHash(mtd->locals);
   DelHash(mtd->frames);
   DelHash(mtd->labels);
@@ -159,7 +181,7 @@ static void defineSig(mtdPo mtd, char *sig) {
 static assemInsPo asm_i32(mtdPo mtd, OpCode op, int32 ix);
 
 void defineFrame(mtdPo mtd, char *sig) {
-  asm_i32(mtd, frame, newStringConstant(mtd, sig));
+  asm_i32(mtd, Frame, newStringConstant(mtd, sig));
 }
 
 int32 frameCount(mtdPo mtd) {
@@ -167,7 +189,7 @@ int32 frameCount(mtdPo mtd) {
   assemInsPo ins = mtd->first;
 
   while (ins != Null) {
-    if (ins->op == frame)
+    if (ins->op == Frame)
       cx++;
     ins = ins->next;
   }
@@ -218,7 +240,7 @@ comparison localComp(localVarPo l1, localVarPo l2) {
   return uniCmp(l1->name, l2->name);
 }
 
-static integer localHash(localVarPo l){
+static integer localHash(localVarPo l) {
   return uniHash(l->name);
 }
 
@@ -401,7 +423,6 @@ static void fixup(assemInsPo ins) {
 #include "instructions.h"
 
     case label:
-    case frame:
     case illegalOp:;
 #undef instruction
   }
@@ -471,7 +492,7 @@ static int32 findConstant(mtdPo mtd, char *sig, void *con) {
 }
 
 retCode showIntegerConstant(ioPo f, constPo cn) {
-  return outMsg(f, "#%l", cn->con.value.ix);
+  return outMsg(f, "#%d", cn->con.value.ix);
 }
 
 retCode encodeIntegerConstant(ioPo f, constPo c) {
@@ -515,11 +536,11 @@ int32 newFloatConstant(mtdPo mtd, double dx) {
 }
 
 retCode showStringConstant(ioPo f, constPo cn) {
-  return outMsg(f, "#%U", cn->con.value.txt);
+  return outMsg(f, "#\"%Q\"", cn->con.value.txt);
 }
 
 retCode encodeStringConstant(ioPo f, constPo c) {
-  return encodeStr(f, c->con.value.txt);
+  return encodeStr(f, c->con.value.txt, uniStrLen(c->con.value.txt));
 }
 
 int32 newStringConstant(mtdPo mtd, char *str) {
@@ -549,7 +570,7 @@ retCode showStructConstant(ioPo f, constPo cn) {
 }
 
 retCode encodeStructConstant(ioPo f, constPo c) {
-  return encodeStrct(f, (char*)c->con.value.strct.name, c->con.value.strct.arity);
+  return encodeStrct(f, (char *) c->con.value.strct.name, c->con.value.strct.arity);
 }
 
 retCode showPrgConstant(ioPo f, constPo cn) {
@@ -557,7 +578,7 @@ retCode showPrgConstant(ioPo f, constPo cn) {
 }
 
 retCode encodePrgConstant(ioPo f, constPo c) {
-  return encodePrg(f, (char*)c->con.value.strct.name, c->con.value.strct.arity);
+  return encodePrg(f, (char *) c->con.value.strct.name, c->con.value.strct.arity);
 }
 
 int32 newStrctConstant(mtdPo mtd, char *str, integer ar) {
@@ -747,9 +768,6 @@ int32 codeSize(mtdPo mtd) {
 #undef szEs
 #undef szlit
 #undef sznOp
-      case frame:
-        pc++;
-        break;
       default:;
     }
 

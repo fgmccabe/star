@@ -13,8 +13,8 @@
 
 retCode encodeInt(ioPo out, integer ix);
 retCode encodeFlt(ioPo out, double dx);
-retCode encodeStr(ioPo out, char *dx);
-retCode encodeTxt(ioPo out, char *sx);
+retCode encodeStr(ioPo out, char *dx, integer len);
+retCode encodeTxt(ioPo out, char *sx, integer len);
 retCode encodeEnum(ioPo out, char *nm);
 retCode encodePrg(ioPo out, char *sx, integer ar);
 retCode encodeStrct(ioPo out, char *sx, integer ar);

@@ -12,4 +12,7 @@ typedef struct _package_record_ *packagePo;
 char *pkgName(packagePo pkg);
 char *pkgVers(packagePo pkg);
 
+integer pkgHash(packagePo pkg);
+comparison compPkg(packagePo p1,packagePo p2);
+
 #endif

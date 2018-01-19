@@ -13,4 +13,15 @@ typedef struct _package_record_ {
   char version[MAX_SYMB_LEN];
 } PackageRec;
 
+static inline PackageRec makePkg(char *name,char *vers){
+  PackageRec pkg;
+
+  uniCpy(pkg.packageName,NumberOf(pkg.packageName),name);
+  uniCpy(pkg.version,NumberOf(pkg.version),vers);
+
+  return pkg;
+}
+
+extern retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt);
+
 #endif //CAFE_PKGP_H

@@ -12,8 +12,7 @@ static retCode encodeIns(ioPo out, assemInsPo ins);
 static retCode encodeMethod(ioPo out, mtdPo mtd);
 
 static retCode encodeFrame(ioPo out, mtdPo mtd, assemInsPo ins);
-static retCode encodeLocal(void *n,void *r,void *cl);
-
+static retCode encodeLocal(void *n, void *r, void *cl);
 
 typedef struct {
   ioPo out;
@@ -21,15 +20,35 @@ typedef struct {
 } MtdData;
 
 static retCode encMtd(void *n, void *r, void *cl) {
-  ioPo out = (ioPo)cl;
-  mtdPo mtd = (mtdPo)r;
+  ioPo out = (ioPo) cl;
+  mtdPo mtd = (mtdPo) r;
 
   return encodeMethod(out, mtd);
 }
 
+static retCode encodePkgName(ioPo out,packagePo pkg){
+  tryRet(encodeStrct(out,"pkg",2));
+  tryRet(encodeStr(out,pkg->packageName,uniStrLen(pkg->packageName)));
+  if(uniIsLit(pkg->version,"*")){
+    return encodeEnum(out,"*");
+  } else{
+    tryRet(encodeStrct(out,"v",1));
+    return encodeStr(out,pkg->version,uniStrLen(pkg->version));
+  }
+}
+
+static retCode encImport(void *n, void *r, void *cl) {
+  ioPo out = (ioPo)cl;
+  importPo i = (importPo)r;
+
+  tryRet(encodeStrct(out, "import", 2));
+  tryRet(encodeEnum(out,i->isPublic?"public":"private"));
+  tryRet(encodePkgName(out,&i->pkg));
+  return Ok;
+}
+
 retCode encodePkg(ioPo out, pkgPo pkg) {
-  MtdData data = {.out = out,};
-  return ProcessTable(encMtd,pkg->methods,out);
+  return ProcessTable(encMtd, pkg->methods, out);
 }
 
 static retCode encodeConstant(ioPo out, constPo con) {
@@ -47,7 +66,7 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   assert(mtd->sig == 1);
 
   tryRet(encodeStrct(out, "#code", 6));
-  tryRet(encodeStrct(out, (char*)mtd->name.name, mtd->name.arity)); /* signal tag w/name */
+  tryRet(encodeStrct(out, (char *) mtd->name.name, mtd->name.arity)); /* signal tag w/name */
 
   tryRet(encodeInt(out, mtd->sig));        /* Constant id for the type signature */
 
@@ -69,26 +88,25 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   tryRet(encodeTplCount(out, localCount(mtd))); /* Number of local var records */
 
   MtdData data = {.mtd = mtd, .out = out};
-  ProcessTable(encodeLocal,mtd->locals,&data);
-
+  ProcessTable(encodeLocal, mtd->locals, &data);
 
   return Ok;
 }
 
 retCode encodeFrame(ioPo out, mtdPo mtd, assemInsPo ins) {
-  if (ins->op == frame) {
+  if (ins->op == Frame) {
     tryRet(encodeInt(out, ins->i));
     tryRet(encodeInt(out, ins->pc / sizeof(uint16)));
   }
   return Ok;
 }
 
-retCode encodeLocal(void *n,void *r,void *cl){
-  MtdData *data = (MtdData*)cl;
+retCode encodeLocal(void *n, void *r, void *cl) {
+  MtdData *data = (MtdData *) cl;
   ioPo out = data->out;
-  localVarPo lcl = (localVarPo)r;
+  localVarPo lcl = (localVarPo) r;
 
-  tryRet(encodeStr(out, lcl->name));
+  tryRet(encodeStr(out, lcl->name, uniStrLen(lcl->name)));
   tryRet(encodeInt(out, lcl->sig));
   tryRet(encodeInt(out, lcl->off));
   tryRet(encodeInt(out, lcl->from->pc->pc / sizeof(uint16)));
@@ -105,31 +123,31 @@ static retCode enc_i32(ioPo out, assemInsPo ins) {
 
 static retCode enc_arg(ioPo out, assemInsPo ins) {
   tryRet(encodeTplCount(out, 2));
-  tryRet(encodeInt(out,ins->op));
+  tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
 
 static retCode enc_lcl(ioPo out, assemInsPo ins) {
   tryRet(encodeTplCount(out, 2));
-  tryRet(encodeInt(out,ins->op));
+  tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
 
 static retCode enc_off(ioPo out, assemInsPo ins) {
   tryRet(encodeTplCount(out, 2));
-  tryRet(encodeInt(out,ins->op));
+  tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
 
 static retCode enc_lit(ioPo out, assemInsPo ins) {
   tryRet(encodeTplCount(out, 2));
-  tryRet(encodeInt(out,ins->op));
+  tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
 
 static retCode enc_Es(ioPo out, assemInsPo ins) {
   tryRet(encodeTplCount(out, 2));
-  tryRet(encodeInt(out,ins->op));
+  tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
 
@@ -144,10 +162,6 @@ retCode encodeIns(ioPo out, assemInsPo ins) {
 
     case label:
       return Ok;
-    case frame:
-      tryRet(encodeTplCount(out, 2));
-      tryRet(encodeInt(out,ins->op));
-      return encodeInt(out, ins->i);
     default:
       return Error;
   }

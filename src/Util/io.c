@@ -287,6 +287,27 @@ retCode resetToMark(ioPo f, integer mark) {      /* Rewind file to mark point, i
   return ret;
 }
 
+// Utility to skip shell preamble at start of file
+retCode skipShellPreamble(ioPo f){
+  codePoint ch;
+  retCode ret = inChar(f, &ch);
+
+  if (ret == Ok) {
+    if (ch == '#') {      /* look for standard #!/.... header */
+      ret = inChar(f, &ch);
+      if (ret == Ok && ch == '!') {
+        while ((inChar(f, &ch)) == Ok && ch != uniEOF &&
+               ch != '\n');              /* consume the interpreter statement */
+      } else {
+        unGetChar(f, ch);
+        unGetChar(f, '#');
+      }
+    } else
+      unGetChar(f, ch);
+  }
+  return ret;
+}
+
 /* Byte level output */
 
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {

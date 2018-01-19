@@ -1,11 +1,9 @@
 
 #include <unistd.h>
 #include <hash.h>
-#include <decodeP.h>
-
 #include "decodeP.h"
 #include "arithP.h"
-#include "strP.h"
+#include "signature.h"
 
 /*
  * Decode a structure from an input stream
@@ -132,7 +130,7 @@ static retCode estimateFlt(double dx, void *cl) {
 static retCode estimateString(char *nm, integer size, void *cl) {
   Estimation *info = (Estimation *) cl;
 
-  info->amnt += CellCount(sizeof(StringRec) + (size + 1) * sizeof(byte));
+  info->amnt += CellCount(sizeof(StringRecord) + (size + 1) * sizeof(byte));
   return Ok;
 }
 
@@ -141,7 +139,7 @@ static retCode estimateEnum(char *nm, integer arity, void *cl) {
 
   integer length = uniStrLen(nm);
 
-  info->amnt += CellCount(sizeof(EnumRecord) + (length + 1) * sizeof(byte));
+  info->amnt += CellCount(sizeof(EnumRecord) + (length + 1) * sizeof(char));
   return Ok;
 }
 
@@ -395,8 +393,8 @@ retCode processTpl(ioPo in, heapPo heap, char *errorMsg, long msgSize, decodeFun
       for (integer ix = 0; res == Ok && ix < arity; ix++) {
         res = dec(in, heap, errorMsg, msgSize, ix, cl);
       }
-      return res;
     }
+    return res;
   }
 }
 
@@ -472,7 +470,7 @@ static retCode encodeName(ioPo out, char *sx, integer len) {
     delim = '"';
 
   retCode ret = outChar(out, delim);
-  long ix = 0;
+  integer ix = 0;
   while (ret == Ok && ix < len) {
     codePoint ch = nextCodePoint(sx, &ix, len);
     if (ch == '\\')
@@ -501,7 +499,8 @@ static retCode copyEnum(char *nm, integer ar, void *cl) {
 
 static retCode copyCons(integer ar, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
-  return encodeCons(out, ar);
+  outChar(out, dtaTrm);
+  return encodeInt(out, ar);
 }
 
 static DecodeCallBacks copyCB = {
@@ -606,20 +605,3 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
     }
   }
 }
-
-/*
- * A code block looks like:
- *   <codesize>
- *   <constantcount>
- *   <framecount>
- *   <localcount>
- *     <constant>*
- *   (<opCode><Operands>*)*
- *   (<sig><pc>)*  frames
- *   (<id><sig><lcl><from><to>)* locals
- *
- * The first constant must be the signature of the function.
- * The second constant must be the signature of free variables
- * The third constant is usually the name of the function. Used for debugging purposes only.
- *
- */
