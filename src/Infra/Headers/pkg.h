@@ -15,4 +15,5 @@ char *pkgVers(packagePo pkg);
 integer pkgHash(packagePo pkg);
 comparison compPkg(packagePo p1,packagePo p2);
 
+logical compatiblVersion(char *rqVer, char *ver);
 #endif

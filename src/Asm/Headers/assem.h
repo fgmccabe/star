@@ -17,7 +17,7 @@ typedef struct _assem_instruction_ *assemInsPo;
 typedef struct _local_data_ *localVarPo;
 
 extern void initAssem();
-extern pkgPo newPkg(char *name, char *version);
+extern pkgPo newPkg(char *name, char *version, char *signature);
 extern void dumpPkgCode(pkgPo pkg);
 
 extern void addImport(pkgPo pkg, char *name, char *version, logical isPublic);
@@ -60,7 +60,7 @@ extern int32 findLocal(mtdPo mtd, const char *name);
 #define oparg(X) ,int32 i##X
 #define oplit(X) ,int32 i##X
 #define opoff(X) ,lPo l##X
-#define opEs(X) ,int32 f##X
+#define opEs(X) ,char * f##X
 
 #define instruction(Op,A1,Cmt) \
 extern retCode A##Op(mtdPo mtd op##A1(1));

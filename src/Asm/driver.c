@@ -18,10 +18,6 @@ retCode parseContent(char *path) {
   ioPo file = openInFile(path, utf8Encoding);
 
   if (file != Null) {
-    codePoint ch;
-
-    retCode ret = skipShellPreamble(file);
-
     pkgPo pkg = Null;
     ssparse(file, &pkg);
 
@@ -34,7 +30,7 @@ retCode parseContent(char *path) {
       char *codeName = manifestOutPath(&pkg->pkg, "co", buff, NumberOf(buff));
       char *outPath = repoRsrcPath(codeName, outFn, NumberOf(outFn));
       ioPo out = openOutFile(outPath, rawEncoding);
-      ret = encodePkg(out, pkg);
+      retCode ret = encodePkg(out, pkg);
 
       closeFile(out);
 
@@ -52,11 +48,6 @@ retCode parseContent(char *path) {
     }
   } else
     return Fail;
-}
-
-else
-return
-Fail;
 }
 
 static char *CAFE_HOME = NULL;

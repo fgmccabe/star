@@ -10,11 +10,14 @@
 typedef uint16 insWord, *insPo;
 
 typedef struct _method_ *methodPo;
-typedef struct _constant_ *constantPo;
+typedef struct _pkg_record_ *pkgPo;
 
 labelPo declareLbl(char *name, integer arity);
 void initCode();
 void markLabels(heapPo heap);
+
+labelPo
+defineMtd(insPo ins, integer insCount, char *name, integer arity, normalPo pool, normalPo frames, normalPo locals);
 
 extern methodPo C_MTD(termPo t);
 
@@ -22,8 +25,18 @@ typedef void (*jitCode)();
 typedef integer (*cafeFun)();
 typedef cafeFun (*pkgFun)();
 
-static inline OpCode opCode(insWord w){
+static inline OpCode opCode(insWord w) {
   return (OpCode) w;
 }
+
+extern normalPo codeConstants(methodPo mtd);
+
+extern pkgPo loadedPackage(char *package);
+extern char *loadedVersion(char *package);
+
+extern pkgPo markLoaded(char *package, char *version);
+extern pkgPo createPkg(char *name, char *version);
+
+extern retCode installMethod(pkgPo pkg, labelPo lbl);
 
 #endif

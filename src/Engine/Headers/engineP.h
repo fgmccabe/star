@@ -39,10 +39,6 @@ extern retCode run(processPo P, heapPo heap);
 
 void initPackages();
 
-packagePo loadedPackage(char *package);
-
-char *loadedVersion(char *package);
-
 void bootstrap(char *entry, char *bootPkg, char *version);
 
 #endif //CAFE_ENGINEP_H

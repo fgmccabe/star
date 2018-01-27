@@ -3,7 +3,6 @@
 //
 
 #include "pkgP.h"
-#include "formioP.h"
 
 char *pkgName(packagePo pkg) {
   return (char *) &pkg->packageName;

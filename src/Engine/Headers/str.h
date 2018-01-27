@@ -5,17 +5,16 @@
 #ifndef CAFE_STR_H
 #define CAFE_STR_H
 
-#include "engine.h"
 #include "term.h"
 
 // String structure
-typedef struct string_struct *stringPo;
+typedef struct string_term *stringPo;
 
 extern clssPo stringClass;
 
-typedef retCode (*charProc)(codePoint ch, integer ix, void *cl);
+extern stringPo C_STR(termPo t);
 
-extern termPo allocateString(heapPo H, char *txt, long length);
+typedef retCode (*charProc)(codePoint ch, integer ix, void *cl);
 
 static inline logical isString(termPo p) {
   return hasClass(p, stringClass);
@@ -25,7 +24,9 @@ extern const char *stringVal(termPo o, integer *size);
 
 extern integer stringHash(stringPo str);
 
-extern retCode processString(stringPo str,charProc p,void *cl);
+extern termPo allocateString(heapPo H, char *txt, long length);
+
+extern retCode processString(stringPo str, charProc p, void *cl);
 
 extern retCode copyString2Buff(stringPo str, char *buffer, integer buffLen);
 

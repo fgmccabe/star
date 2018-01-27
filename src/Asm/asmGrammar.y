@@ -75,7 +75,7 @@
 %token <f> FLOAT
 
 %type <lbl> label;
-%type <i> libName;
+%type <str> libName;
 %type <str> signature;
 %type <i> literal local;
 
@@ -83,8 +83,8 @@
 
    program: nls package imports defs trailer;
 
-   package: PKG ID HASH ID nls { *pkg = newPkg($2,$4); }
-     | PKG ID nls { *pkg = newPkg($2,defltPkgVersion()); }
+   package: PKG ID HASH ID DCOLON signature nls { *pkg = newPkg($2,$4,$6); }
+     | PKG ID DCOLON signature nls { *pkg = newPkg($2,defltPkgVersion(),$4); }
 
    imports: imports import | ;
 
@@ -172,8 +172,8 @@ trailer: END nls { endFunction(currMtd); }
 
  label: ID { $$ = newLbl(currMtd,$1); };
 
- libName: STRING { $$ = newStringConstant(currMtd,$1); }
-   | ID { $$ = newStringConstant(currMtd,$1); }
+ libName: STRING { $$ = $1; }
+   | ID { $$ = $1; }
 
  signature: STRING { $$ = $1; if(!validSignature($1)){
   yyerror(&yylloc,asmFile,pkg,"invalid signature");

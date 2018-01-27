@@ -56,7 +56,7 @@ encodeType(typeExp(T,Args),['U'|O],Ox) :- deRef(T,Tp),encodeType(Tp,O,O1), encod
 encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeType(ptnType(AT,Tp),['p'|O],Ox) :- encodeType(AT,O,O1), encodeType(Tp,O1,Ox).
 encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeType(Args,O,O1), encodeType(Tp,O1,Ox).
-encodeType(tupleType(Args),['T'|O],Ox) :- encodeTypes(Args,O,Ox).
+encodeType(tupleType(Args),O,Ox) :- encodeTypes(Args,O,Ox).
 encodeType(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).
 encodeType(allType(B,Tp),[':'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).
 encodeType(existType(B,Tp),['e'|O],Ox) :- encodeType(B,O,O1),encodeType(Tp,O1,Ox).

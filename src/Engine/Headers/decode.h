@@ -6,6 +6,7 @@
 retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize);
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen);
 retCode copyEncoded(ioPo in, ioPo out, char *errorMsg, long msgLen);
+retCode decodeNm(ioPo in, char *buffer, integer buffLen);
 
 typedef retCode (*decodeFun) (ioPo in,heapPo heap, char *errorMsg, long msgSize, integer ix, void *cl);
 

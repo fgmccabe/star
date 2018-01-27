@@ -21,14 +21,15 @@ set(HEADER_FILES
         Headers/opcodes.h
         ../Headers/cafeOptions.h
         Headers/heap.h Headers/heapP.h
-        Headers/term.h Headers/termP.h Headers/str.h ../Lib/Headers/arith.h ../Lib/Headers/arithP.h
+        Headers/term.h Headers/termP.h Headers/str.h Headers/arith.h
         Headers/debug.h
+        Headers/esc.h
         Headers/tpl.h Headers/engineP.h
-        Headers/engineOptions.h)
+        Headers/local.h Headers/engineOptions.h)
 
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c heap.c load.c main.c
-        ${HEADER_FILES} code.c term.c)
+        ${HEADER_FILES} code.c term.c Headers/arithP.h Headers/strP.h)
 
 add_executable(cafe ${SOURCE_FILES} ${HEADER_FILES})
 

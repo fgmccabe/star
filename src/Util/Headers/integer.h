@@ -19,6 +19,7 @@
 #include "config.h"
 typedef int64 integer;
 typedef unsigned char byte;
+typedef uint64 uinteger;
 
 #define LARGE_INT64 ((integer)(((uint64)-1)>>1))
 #define LARGE_INT32 ((int32)(((uint32)-1)>>1))

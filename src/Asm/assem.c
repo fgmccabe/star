@@ -80,9 +80,10 @@ static retCode delLabel(void *n, void *r);
 static retCode delMtd(strctPo nm, mtdPo mtd);
 static retCode delImport(packagePo p, importPo q);
 
-pkgPo newPkg(char *name, char *version) {
+pkgPo newPkg(char *name, char *version, char *signature) {
   pkgPo pkg = (pkgPo) allocPool(pkgPool);
   pkg->pkg = makePkg(name, version);
+  pkg->signature = uniDuplicate(signature);
   pkg->methods = NewHash(16, (hashFun) strctHash, (compFun) strctComp, (destFun) delMtd);
   pkg->imports = NewHash(16, (hashFun) pkgHash, (compFun) compPkg, (destFun) delImport);
   return pkg;
@@ -664,9 +665,9 @@ static assemInsPo asm_lit(mtdPo mtd, OpCode op, int32 ix) {
   return ins;
 }
 
-static assemInsPo asm_Es(mtdPo mtd, OpCode op, int32 es) {
+static assemInsPo asm_Es(mtdPo mtd, OpCode op, char * es) {
   assemInsPo ins = newIns(mtd, op);
-  ins->i = es;
+  ins->txt = es;
   return ins;
 }
 
@@ -694,16 +695,13 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define oplcl(X) ,int32 i##X
 #define arglcl(X) , i##X
 
-#define openv(X) ,int32 i##X
-#define argenv(X) , i##X
-
 #define opoff(X) ,lPo l##X
 #define argoff(X) ,l##X
 
 #define oplit(X) ,int32 l##X
 #define arglit(X) ,l##X
 
-#define opEs(X) ,int32 f##X
+#define opEs(X) ,char * f##X
 #define argEs(X) , f##X
 
 #define instruction(Op, A1, Cmt)    \
@@ -816,7 +814,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #define szarg if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szlcl if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szoff if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
-#define szEs if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szEs if(ret==Ok)ret = encodeStr(O_IO(bfr),ins->txt,uniStrLen(ins->txt));
 #define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 
 #define instruction(Op, A1, Cmt)    \

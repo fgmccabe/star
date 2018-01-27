@@ -30,7 +30,7 @@ retCode run(processPo P, heapPo heap) {
   register insPo PC = P->pc;    /* Program counter */
   register framePo FP = P->fp;    /* Current locals + = arguments, - = locals */
   register methodPo PROG = P->prog; /* Current executing closure */
-  register constantPo LITS = codeLiterals(PROG); /* pool of literals */
+  register normalPo LITS = codeLits(PROG); /* pool of literals */
 
   register ptrPo SP = P->sp;         /* Current 'top' of stack (grows down) */
 
@@ -53,10 +53,10 @@ retCode run(processPo P, heapPo heap) {
         return Ok;
 
       case Call: {
-        PROG = C_MTD(LITS[collectI32(PC)].data);   // Which program do we want?
+        PROG = C_MTD(nthArg(LITS,collectI32(PC)));   // Which program do we want?
         push(PC);       // Set up for a return
         PC = entryPoint(PROG);
-        LITS = codeLiterals(PROG);
+        LITS = codeLits(PROG);
         continue;
       }
 
@@ -64,13 +64,13 @@ retCode run(processPo P, heapPo heap) {
         PROG = C_MTD(*SP++);       /* set up for callee */
         push(PC);       /* build up the frame. */
         PC = entryPoint(PROG);
-        LITS = codeLiterals(PROG);
+        LITS = codeLits(PROG);
         continue;
       }
 
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
-        escapePo esc = (escapePo) LITS[escNo].data;
+        escapePo esc = getEscape(escNo);
         termPo ret = (termPo) esc->fun(P, SP);  /* invoke the escape */
         SP += esc->arity;     /* drop arguments */
         *--SP = ret;
@@ -83,7 +83,7 @@ retCode run(processPo P, heapPo heap) {
         insPo oldPc = FP->rtn;
         int64 argCnt = argCount(PROG); /* How many arguments in caller? */
 
-        PROG = C_MTD(LITS[collectI32(PC)].data);   // Which program do we want?
+        PROG = C_MTD(nthArg(LITS,collectI32(PC)));   // Which program do we want?
 
         // slide new arguments over old frame
         int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
@@ -102,7 +102,7 @@ retCode run(processPo P, heapPo heap) {
         *--SP = (termPo) oldPc;  /* make sure we return where the caller returns */
 
         PC = entryPoint(PROG);
-        LITS = codeLiterals(PROG);
+        LITS = codeLits(PROG);
         continue;       /* Were done */
       }
 
@@ -131,7 +131,7 @@ retCode run(processPo P, heapPo heap) {
         *--SP = (termPo) oldPc;  /* make sure we return where the caller returns */
 
         PC = entryPoint(PROG);
-        LITS = codeLiterals(PROG);
+        LITS = codeLits(PROG);
         continue;       /* Were done */
       }
 
@@ -153,7 +153,7 @@ retCode run(processPo P, heapPo heap) {
         FP = FP->fp;      /* and old frame pointer */
 
         PROG = FP->prog;      /* pick up parent code */
-        LITS = codeLiterals(PROG);   /* reset pointer to code literals */
+        LITS = codeLits(PROG);   /* reset pointer to code literals */
 
         push(ret);      /* push return value */
         continue;       /* and carry on regardless */
@@ -190,7 +190,7 @@ retCode run(processPo P, heapPo heap) {
       }
 
       case LdC:     /* load literal value from pool */
-        push(LITS[collectI32(PC)].data);
+        push(nthArg(LITS,collectI32(PC)));
         continue;
 
       case LdA: {
@@ -248,7 +248,7 @@ retCode run(processPo P, heapPo heap) {
       }
 
       case Alloc: {      /* heap allocate term */
-        labelPo cd = C_LBL(LITS[collectI32(PC)].data);
+        labelPo cd = C_LBL(nthArg(LITS,collectI32(PC)));
         normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */

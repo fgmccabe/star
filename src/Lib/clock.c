@@ -20,7 +20,7 @@
 #include "ooio.h"
 #include "clock.h"
 #include "engine.h"
-#include "arith.h"
+#include "arithP.h"
 #include "errorCodes.h"
 
 long timezone_offset;    // offset in seconds from GMT
@@ -122,7 +122,7 @@ retCode g_sleep(processPo P, ptrPo tos) {
 
 /* Return the current time */
 retCode g_now(processPo P, ptrPo tos) {
-  termPo now = allocateLocalFloat(P, get_time());
+  termPo now = allocateFloat(currHeap, get_time());
   if (now != Null) {
     *tos = now;
     return Ok;
@@ -132,7 +132,7 @@ retCode g_now(processPo P, ptrPo tos) {
 
 /* Return the time at midnight */
 retCode g_today(processPo P, ptrPo tos) {
-  termPo now = allocateLocalFloat(P, get_date());
+  termPo now = allocateFloat(currHeap, get_date());
   if (now != Null) {
     *tos = now;
     return Ok;
@@ -149,7 +149,7 @@ double get_ticks(void) {
 }
 
 retCode g_ticks(processPo P, ptrPo tos) {
-  termPo now = allocateLocalFloat(P, get_ticks());
+  termPo now = allocateFloat(currHeap, get_ticks());
   if (now != Null) {
     *tos = now;
     return Ok;

@@ -12,6 +12,7 @@
   permissions and limitations under the License.
  */
 
+#include <stdlib.h>
 #include "base64.h"
 #include "pkgP.h"
 
@@ -19,65 +20,21 @@
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
 #include "manifest.h"
-
-static poolPo packagePool = NULL;
-static hashPo loadedPackages = NULL;
-
-void initPackages() {
-  packagePool = newPool(sizeof(PackageRec), 128);
-  loadedPackages = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
-}
-
-packagePo loadedPackage(char *package) {
-  return (packagePo) hashGet(loadedPackages, package);
-}
-
-char *loadedVersion(char *package) {
-  packagePo pkg = loadedPackage(package);
-
-  if (pkg != NULL)
-    return (char *) &pkg->version;
-
-  return NULL;
-}
-
-char *pkgName(packagePo pkg) {
-  return (char *) &pkg->packageName;
-}
-
-char *pkgVers(packagePo pkg) {
-  return (char *) &pkg->version;
-}
-
-static logical compatiblVersion(char *rqVer, char *ver) {
-  return (logical) (uniCmp(rqVer, "*") == same || uniCmp(rqVer, ver) == same);
-}
-
-static packagePo markLoaded(char *package, char *version) {
-  packagePo pkg = loadedPackage(package);
-
-  if (pkg != NULL) {
-    if (!compatiblVersion((char *) &pkg->version, version))
-      return Null;
-    else
-      return pkg;
-  } else {
-    pkg = (packagePo) allocPool(packagePool);
-    uniCpy((char *) &pkg->packageName, NumberOf(pkg->packageName), package);
-    uniCpy((char *) &pkg->version, NumberOf(pkg->version), version);
-    hashPut(loadedPackages, &pkg->packageName, pkg);
-    return pkg;
-  }
-}
+#include "esc.h"
+#include "codeP.h"
 
 typedef retCode (*pickupPkg)(char *pkgNm, char *vers, char *errorMsg, long msgLen, void *cl);
 
 static retCode decodePkgName(ioPo in, char *nm, long nmLen, char *v, long vLen);
 static retCode decodePrgName(ioPo in, char *nm, long nmLen, integer *arity);
-static retCode decodeLoadedPkg(char *pkgNm, long nmLen, char *vrNm, long vrLen, bufferPo sigBuffer);
+static retCode decodeLoadedPkg(char *pkgNm, long nmLen, char *vrNm, long vrLen, ioPo in);
 static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
+static retCode decodeTplCount(ioPo in, integer *count);
 
-static retCode loadSegments(ioPo file, packagePo owner, char *errorMsg, long msgLen);
+static retCode loadSegments(ioPo file, pkgPo owner, char *errorMsg, long msgLen);
+
+static char stringSig[] = {strTrm, 0};
+static char *pkgSig = "n4o4'()4'";
 
 static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   char flNm[MAXFILELEN];
@@ -97,35 +54,27 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 #endif
 
   if (file != NULL) {
-    byte ch;
-
-    if ((ch = inB(file)) == '#') { /* look for standard #!/.... header */
-      if ((ch = inB(file)) == '!') {
-        while (inByte(file, &ch) == Ok && ch != NEW_LINE);                      // consume the interpreter statement
-      } else {
-        putBackByte(file, ch);
-        putBackByte(file, '#');
-      }
-    } else
-      putBackByte(file, ch);
-
     if (fileStatus(file) == Ok) {
+      skipShellPreamble(file);
+
       char pkgNm[MAX_SYMB_LEN];
       char vrNm[MAX_SYMB_LEN];
       bufferPo sigBuffer = newStringBuffer();
 
-      if ((ret = isLookingAt(file, "s")) == Ok)
+      if ((ret = isLookingAt(file, stringSig)) == Ok)
         ret = decodeText(file, sigBuffer);
 
-      if (ret == Ok)
-        ret = decodeLoadedPkg(pkgNm, NumberOf(pkgNm), vrNm, NumberOf(vrNm), sigBuffer);
+      if (ret == Ok) {
+        rewindBuffer(sigBuffer);
+        ret = decodeLoadedPkg(pkgNm, NumberOf(pkgNm), vrNm, NumberOf(vrNm), O_IO(sigBuffer));
+      }
 
       if (ret == Ok && uniCmp((char *) pkgNm, pkgName) != same) {
         outMsg(logFile, "loaded package: %s not what was expected %w\n", (char *) pkgNm, pkgName);
         return Error;
       }
 
-      packagePo pkg = markLoaded(pkgNm, vrNm);
+      pkgPo pkg = markLoaded(pkgNm, vrNm);
 
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
@@ -180,15 +129,20 @@ installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pick
   if ((ret = isLookingAt(O_IO(inBuff), "s")) == Ok)
     ret = decodeText(O_IO(inBuff), sigBuffer);
 
-  if (ret == Ok)
-    ret = decodeLoadedPkg(pkgNm, NumberOf(pkgNm), vrNm, NumberOf(vrNm), sigBuffer);
+  if (ret == Ok) {
+    rewindBuffer(sigBuffer);
+    ret = decodeLoadedPkg(pkgNm, NumberOf(pkgNm), vrNm, NumberOf(vrNm), O_IO(sigBuffer));
 
-  packagePo pkg = markLoaded(pkgNm, vrNm);
+    if (ret == Ok) {
 
-  ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
+      pkgPo pkg = markLoaded(pkgNm, vrNm);
 
-  if (ret == Ok)
-    ret = loadSegments(O_IO(inBuff), pkg, errorMsg, msgSize);
+      ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
+
+      if (ret == Ok)
+        ret = loadSegments(O_IO(inBuff), pkg, errorMsg, msgSize);
+    }
+  }
 
   closeFile(O_IO(inBuff));
 
@@ -210,11 +164,9 @@ installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pick
  * We are only interested in the first two the pkg and the imports.
  */
 
-retCode decodeLoadedPkg(char *pkgNm, long nmLen, char *vrNm, long vrLen, bufferPo sigBuffer) {
-  rewindBuffer(sigBuffer);
-
-  if (isLookingAt(O_IO(sigBuffer), "n7o7'()7'") == Ok)
-    return decodePkgName(O_IO(sigBuffer), pkgNm, nmLen, vrNm, vrLen);
+retCode decodeLoadedPkg(char *pkgNm, long nmLen, char *vrNm, long vrLen, ioPo in) {
+  if (isLookingAt(in, pkgSig) == Ok)
+    return decodePkgName(in, pkgNm, nmLen, vrNm, vrLen);
   else
     return Error;
 }
@@ -223,7 +175,7 @@ static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen,
   rewindBuffer(sigBuffer);
   ioPo in = O_IO(sigBuffer);
 
-  if (isLookingAt(in, "n7o7'()7'") == Ok) {
+  if (isLookingAt(in, pkgSig) == Ok) {
     retCode ret = skipEncoded(in, errorMsg, msgLen);
     if (ret != Ok)
       return ret;
@@ -303,65 +255,24 @@ retCode decodePrgName(ioPo in, char *nm, long nmLen, integer *arity) {
     return Error;
 }
 
-static retCode loadCodeSegment(ioPo in, heapPo heap, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadCodeSegment(ioPo in, heapPo heap, pkgPo owner, char *errorMsg, long msgSize);
 
-retCode loadSegments(ioPo file, packagePo owner, char *errorMsg, long msgLen) {
+retCode loadSegments(ioPo file, pkgPo owner, char *errorMsg, long msgLen) {
   retCode ret = Ok;
 
   while (ret == Ok) {
-    ret = loadCodeSegment(file, NULL, owner, errorMsg, msgLen);
+    ret = loadCodeSegment(file, currHeap, owner, errorMsg, msgLen);
   }
 
   return ret;
 }
 
-/* swap bytes in the little endian game */
-static inline void SwapBytes(unsigned long *x) {
-  *x = ((*x & 0xff) << 8) | ((*x >> 8) & 0xff) | ((*x & 0x00ff0000L) << 8)
-       | ((*x & 0xff000000L) >> 8);
-}
-
-static inline void SwapWords(unsigned long *x) {
-  *x = (*x & 0x0000ffffL) << 16 | (*x & 0xffff0000L) >> 16;
-}
-
-static retCode in32(ioPo in, int32 *tgt) {
-  byte b1 = 0, b2 = 0, b3 = 0, b4 = 0;
-
-  retCode ret = inByte(in, &b1);
-
-  if (ret == Ok)
-    ret = inByte(in, &b2);
-
-  if (ret == Ok)
-    ret = inByte(in, &b3);
-
-  if (ret == Ok)
-    ret = inByte(in, &b4);
-
-  if (ret == Ok)
-    *tgt = b1 << 24 | b2 << 16 | b3 << 8 | b4;
-  return ret;
-}
-
-
-static retCode in16(ioPo in, uint16 *tgt) {
-  byte b1 = 0, b2 = 0;
-
-  retCode ret = inByte(in, &b1);
-
-  if (ret == Ok)
-    ret = inByte(in, &b2);
-
-  if (ret == Ok)
-    *tgt = b1 << 8 | b2 ;
-  return ret;
-}
 
 // Decode a code segment.
 // Each segment consists of
 // a. The program name/arity being defined
-// b. A char * containing the code as a base64 encoded char *.
+// b. An integer defining the constant id of the signature
+// b. A tuple of the instructions
 // c. A tuple of literals associated with the code segment
 // d. A tuple of variable specifications
 // e. A tuple of frame entries
@@ -378,7 +289,16 @@ static retCode in16(ioPo in, uint16 *tgt) {
 // d. The pc offset of the start of the validity range
 // e. The pc offset of the end of the validity range
 
-retCode loadCodeSegment(ioPo in, heapPo heap, packagePo owner, char *errorMsg, long msgSize) {
+static integer writeOperand(insPo ins, int32 val, integer ix) {
+  int32 upper = (val >> 16) & 0xffff;
+  int32 lower = (val & 0xffff);
+
+  ins[ix++] = (uint16) upper;
+  ins[ix++] = (uint16) lower;
+  return ix;
+}
+
+retCode loadCodeSegment(ioPo in, heapPo heap, pkgPo owner, char *errorMsg, long msgSize) {
   EncodeSupport sp = {
     errorMsg,
     msgSize,
@@ -388,7 +308,7 @@ retCode loadCodeSegment(ioPo in, heapPo heap, packagePo owner, char *errorMsg, l
   if (isFileAtEof(in) == Eof)
     return Eof;
   else {
-    retCode ret = isLookingAt(in, "n4o4'#code'");
+    retCode ret = isLookingAt(in, "n6o6'#code'");
 
     if (ret != Ok) {
       strMsg(errorMsg, msgSize, "invalid code stream");
@@ -404,195 +324,80 @@ retCode loadCodeSegment(ioPo in, heapPo heap, packagePo owner, char *errorMsg, l
       outMsg(logFile, "loading code %s/%d\n%_", prgName, arity);
 #endif
 
-    if (ret == Ok && isLookingAt(in, "s") == Ok) {
-      bufferPo buff = newStringBuffer();
+    integer sigNum;
+    if (ret == Ok) {
+      ret = decInt(in, &sigNum);
 
-      ret = decodeText(in, buff); // Pick up the code - as base64 char *
+      integer insCount;
+      if (ret == Ok) {
+        ret = decodeTplCount(in, &insCount);
 
-      if (ret != Ok || isLookingAt(in, "n") != Ok) { // Look for the tuple of literals
-        closeFile(O_IO(buff));
-        return ret;
-      }
+        if (ret == Ok) {
+          insPo ins = (insPo) malloc(sizeof(insWord) * insCount);
+          for (integer ix = 0; ret == Ok && ix < insCount;) {
+            integer op, and;
+            char escNm[MAX_SYMB_LEN];
+            ret = decInt(in, &op);
+            ins[ix++] = (insWord) op;
+            switch (op) {
+#define sznOp
+#define szi32 if(ret==Ok){ret = decInt(in,&and); ix=writeOperand(ins,(int32)and,ix);}
+#define szarg if(ret==Ok){ret = decInt(in,&and); ix=writeOperand(ins,(int32)and,ix);}
+#define szlcl if(ret==Ok){ret = decInt(in,&and); ix=writeOperand(ins,(int32)and,ix);}
+#define szoff if(ret==Ok){ret = decInt(in,&and); ix=writeOperand(ins,(int32)and,ix);}
+#define szEs if(ret==Ok){ret = decodeNm(in,escNm,NumberOf(escNm)); ix=writeOperand(ins,lookupEscape(escNm),ix);}
+#define szlit if(ret==Ok){ret = decInt(in,&and);  ix=writeOperand(ins,and,ix);}
 
-      rewindBuffer(buff); // tmpBufer should contain base64 text
+#define instruction(Op, A1, Cmt)    \
+      case Op:          \
+  sz##A1          \
+    break;
 
-      integer litCount = 0;
+#include "instructions.h"
 
-      ret = decInt(in, &litCount);
-
-      if (ret == Ok)
-        ret = skipEncoded(in, errorMsg, msgSize);
-
-      if (ret != Ok) {
-        closeFile(O_IO(buff));
-        return ret;
-      } else {
-        // Decode the base64 text
-        bufferPo cdeBuffer = newStringBuffer();
-
-        ret = decode64(O_IO(cdeBuffer), O_IO(buff));
-        rewindBuffer(cdeBuffer);
-
-        if (ret != Ok) {
-          closeFile(O_IO(buff));
-          closeFile((O_IO(cdeBuffer)));
-          return ret;
-        } else {
-          integer codeCount = (bufferSize(cdeBuffer) / SIZEOF_INT) - 1;
-          int32 signature;
-
-          ret = in32(O_IO(cdeBuffer), &signature); // verify correct code signature
-
-          ptrI pc = permCode((unsigned long) codeCount, (uinteger) litCount, owner);
-
-          insPo cd = FirstInstruction(pc);
-          ptrI el = kvoid;
-
-          rootPo root = gcAddRoot(GH, &pc); /* in case of GC ... */
-          gcAddRoot(GH, &el); /* we need a temporary pointer */
-
-          ptrI prg = newProgLbl((char *) prgName, (short) arity);
-          gcAddRoot(GH, &prg);
-
-          /* get the instructions */
-          for (long i = 0; ret == Ok && i < codeCount; i++)
-            ret = in16(O_IO(cdeBuffer), &cd[i]);
-
-          if (ret != Ok) {
-            closeFile(O_IO(buff));
-            closeFile((O_IO(cdeBuffer)));
-            gcRemoveRoot(GH, root); /* clear the GC root */
-            return ret;
-          } else {
-            /* Now convert the main code to handle little endians etc */
-            if (signature == SIGNATURE) {
-            } /* endian load same as endian save */
-            else if (signature == SIGNBSWAP) { /* swap bytes keep words */
-              unsigned long *xx = (unsigned long *) FirstInstruction(pc);
-              long cnt = codeCount;
-              for (; cnt--; xx++)
-                SwapBytes(xx);
-            } else if (signature == SIGNWSWAP) { /* swap words keep bytes */
-              unsigned long *xx = (unsigned long *) FirstInstruction(pc);
-              long cnt = codeCount;
-              for (; cnt--; xx++)
-                SwapWords(xx);
-            } else if (signature == SIGNBWSWP) { /* swap words and bytes */
-              unsigned long *xx = (unsigned long *) FirstInstruction(pc);
-              long cnt = codeCount;
-              for (; cnt--; xx++) {
-                SwapWords(xx);
-                SwapBytes(xx);
-              }
+#undef instruction
+#undef szi32
+#undef szarg
+#undef szlcl
+#undef szoff
+#undef szEs
+#undef szlit
+#undef sznOp
+              default:
+                return Error;
             }
-
-            codeV(pc)->arity = (uint16) arity; /* set the arity of the program */
-
-            // Now we find the literals
-
-            for (long i = 0; ret == Ok && i < litCount; i++) {
-              if ((ret = decode(in, &sp, GH, &el, buff)) != Ok) /* read each element of term */
-                break; /* we might need to skip out early */
-              else {
-                updateCodeLit(codeV(pc), i, el);
-              }
-            }
+          }
+          if (ret == Ok) {
+            termPo pool;
+            ret = decodeTerm(in, heap, &pool, errorMsg, msgSize);
 
             if (ret == Ok) {
-              ret = decode(in, &sp, GH, &el, buff);  // Decode the source map
+              int root = gcAddRoot(&pool);
 
-              if (ret == Ok)
-                codeV(pc)->srcMap = el;
+              termPo frames;
+              ret = decodeTerm(in, heap, &frames, errorMsg, msgSize);
+
+              if (ret == Ok) {
+                gcAddRoot(&frames);
+
+                termPo locals;
+                ret = decodeTerm(in, heap, &locals, errorMsg, msgSize);
+
+                if (ret == Ok) {
+                  labelPo lbl = defineMtd(ins, insCount, prgName, arity, C_TERM(pool), C_TERM(frames), C_TERM(locals));
+
+                  gcReleaseRoot(root);
+                  return installMethod(owner, lbl);
+                }
+
+              }
             }
 
-            closeFile(O_IO(buff));
-            closeFile((O_IO(cdeBuffer)));
-
-            gcRemoveRoot(GH, root); /* clear the GC root */
-
-            if (ret == Ok && enableVerify)
-              ret = verifyCode(pc, prgName, errorMsg, msgSize);
-
-            if (ret == Ok)
-              defineProg(prg, pc);
-
-            return ret;
           }
         }
       }
     }
+
     return ret;
-  }
-}
-
-typedef struct {
-  heapPo H;
-  ptrPo lst;
-  ptrPo el;
-  ptrPo pk;
-  ptrPo vr;
-} BuildSupportRec;
-
-static retCode buildImport(char *pkg, char *ver, char *errorMsg, long msgLen, void *cl) {
-  BuildSupportRec *x = (BuildSupportRec *) cl;
-
-  *x->pk = allocateCString(x->H, (char *) pkg);
-  *x->vr = allocateCString(x->H, (char *) ver);
-  *x->el = tuplePair(x->H, *x->pk, *x->vr);
-  *x->lst = consLsPair(x->H, *x->el, *x->lst);
-  return Ok;
-}
-
-retCode g__install_pkg(processPo P, ptrPo a) {
-  ptrI pkgText = deRefI(&a[1]);
-
-  if (isvar(pkgText))
-    return liberror(P, "_install_pkg", eINSUFARG);
-  else if (!IsString(pkgText))
-    return liberror(P, "_install_pkg", eINVAL);
-  else {
-    switchProcessState(P, wait_io); /* Potentially nec. to wait */
-
-    heapPo H = &P->proc.heap;
-    ptrI lst = emptyList;
-    ptrI el = kvoid;
-    ptrI ky = kvoid;
-    ptrI vl = kvoid;
-    rootPo root = gcAddRoot(H, &lst);
-
-    gcAddRoot(H, &el);
-    gcAddRoot(H, &ky);
-    gcAddRoot(H, &vl);
-
-    BuildSupportRec x = {
-      H,
-      &lst,
-      &el,
-      &ky,
-      &vl
-    };
-
-    stringPo text = stringV(pkgText);
-
-    retCode ret = installPackage(stringVal(text), stringLen(text), P->proc.errorMsg,
-                                 NumberOf(P->proc.errorMsg), buildImport, &x);
-    setProcessRunnable(P);
-
-    gcRemoveRoot(H, root);
-
-    switch (ret) {
-      case Ok:
-        return equal(P, &lst, &a[2]);
-      case Error:
-      case Eof:
-        return liberror(P, "_install_pkg", eINVAL);
-      case Fail:
-        return Fail;
-      case Space:
-        outMsg(logFile, "Out of heap space, increase and try again\n%_");
-        return liberror(P, "_install_pkg", eSPACE);
-      default:
-        return liberror(P, "_install_pkg", eINVAL);
-    }
   }
 }

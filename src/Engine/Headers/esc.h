@@ -9,4 +9,6 @@
 
 extern void initEscapes();
 
+extern int32 lookupEscape(char *name);
+
 #endif //CAFE_ESC_H

@@ -19,4 +19,6 @@ void installEscape(char *name, char *sig, libFun fun);
 
 escapePo findEscape(char *name);
 
+escapePo getEscape(int32 escNo);
+
 #endif

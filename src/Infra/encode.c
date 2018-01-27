@@ -51,6 +51,14 @@ retCode encodeTxt(ioPo out, char *str, integer len) {
   return ret;
 }
 
+retCode encodeEnum(ioPo out, char *nm){
+  retCode ret = outChar(out,enuTrm);
+
+  if(ret==Ok)
+    ret = encodeTxt(out,nm,uniStrLen(nm));
+  return ret;
+}
+
 retCode encodeFlt(ioPo out, double dx) {
   tryRet(outChar(out,fltTrm));
   return outFloat(out, dx);
@@ -68,3 +76,7 @@ retCode encodeStrct(ioPo out, char *sx, integer ar) {
   return encodeTxt(out, sx, uniStrLen(sx));
 }
 
+retCode encodeCons(ioPo out, integer arity){
+  tryRet(outChar(out,dtaTrm));
+  return outInt(out,arity);
+}

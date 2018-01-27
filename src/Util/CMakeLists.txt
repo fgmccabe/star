@@ -12,6 +12,21 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
 include_directories("../Headers" "Headers")
 
+set(HEADER_FILES
+        Headers/base64.h Headers/io.h Headers/ioP.h Headers/file.h Headers/fileP.h Headers/formio.h Headers/formioP.h
+        Headers/hash.h Headers/hosts.h Headers/hostsP.h Headers/integer.h
+        Headers/iosockP.h Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/ixTreeP.h Headers/jsonEvent.h
+        Headers/lists.h Headers/listsP.h Headers/lockable.h Headers/lockableP.h Headers/logical.h
+        Headers/managed.h Headers/managedP.h Headers/object.h Headers/objectP.h
+        Headers/pair.h Headers/pairP.h
+        Headers/pool.h Headers/retcode.h Headers/pipe.h Headers/pipeP.h
+        Headers/stringBuffer.h Headers/stringBufferP.h
+        Headers/timer.h
+        Headers/unicode.h Headers/unicodeP.h Headers/utils.h
+        Headers/jsonEvent.h Headers/udp.h Headers/udpP.h Headers/ooio.h options.c
+        Headers/options.h Headers/template.h Headers/pp.h Headers/ppP.h
+        )
+
 set(SOURCE_FILES
         class.c
         file.c
@@ -44,16 +59,8 @@ set(SOURCE_FILES
         ${BISON_JsonParser_OUTPUTS}
         ${FLEX_JsonTokeniser_OUTPUTS}
 
-        base64.c Headers/base64.h Headers/io.h Headers/ioP.h Headers/file.h Headers/fileP.h Headers/formio.h Headers/formioP.h
-        Headers/hash.h Headers/hosts.h Headers/hostsP.h Headers/integer.h
-        Headers/iosockP.h Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/ixTreeP.h Headers/jsonEvent.h
-        Headers/lists.h Headers/listsP.h Headers/lockable.h Headers/lockableP.h Headers/logical.h
-        Headers/managed.h Headers/managedP.h Headers/object.h Headers/objectP.h
-        Headers/pool.h Headers/retcode.h Headers/pipe.h Headers/pipeP.h
-        Headers/stringBuffer.h Headers/stringBufferP.h
-        Headers/timer.h
-        Headers/unicode.h Headers/unicodeP.h Headers/utils.h
-        Headers/jsonEvent.h Headers/udp.h Headers/udpP.h Headers/ooio.h options.c Headers/options.h Headers/template.h Headers/pp.h Headers/ppP.h)
+        base64.c
+        ${HEADER_FILES})
 
 add_library(ooio STATIC ${SOURCE_FILES})
 

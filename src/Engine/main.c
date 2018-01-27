@@ -3,12 +3,13 @@
  */
 #include "utils.h"
 #include <stdlib.h>
-#include "../Infra/Headers/manifest.h"
+#include <engineP.h>
+#include "manifest.h"
 #include "clock.h"
 #include "args.h"
-#include "engine.h"
 #include "formioP.h"
 #include "codeP.h"
+#include "termP.h"
 
 char copyRight[] = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
 
@@ -44,16 +45,13 @@ int main(int argc, char **argv) {
   // Set up repository directory
   initHeap(initHeapSize);
 
-  loadDefltManifest();
+  loadManifest();
 
-  initClass();        /* Initialize the class handlers */
-  initPrograms();      /* Initialize program handling */
-  initDict();        /* Start up the dictionaries */
-  install_escapes();      /* Initialize the escape table */
-  initFiles();        /* initialize file tables */
   init_args(argv, argc, narg);    /* Initialize the argument list */
   init_time();        /* Initialize time stuff */
   setupSignals();
+  initTerm();
+  initCode();
 
   initEngine();
 

@@ -6,16 +6,18 @@
 #include "heapP.h"
 #include "Headers/codeP.h"
 
-HeapRecord heap,oldHeap;
+HeapRecord heap, oldHeap;
 heapPo currHeap = NULL;
 
-void initHeap(long heapSize)
-{
-  if(currHeap==NULL){
-    heap.curr = heap.old = heap.base = heap.start = 
-      (integer*)malloc(sizeof(integer)*heapSize); /* Allocate heap */
-    heap.outerLimit = heap.base+heapSize;	/* The actual outer limit */
-    heap.limit = heap.base+heapSize/2;
+static ptrPo roots[1024];
+static int rootTop = 0;
+
+void initHeap(long heapSize) {
+  if (currHeap == NULL) {
+    heap.curr = heap.old = heap.base = heap.start =
+      (integer *) malloc(sizeof(integer) * heapSize); /* Allocate heap */
+    heap.outerLimit = heap.base + heapSize;  /* The actual outer limit */
+    heap.limit = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
 
     currHeap = &heap;
@@ -29,12 +31,23 @@ void initHeap(long heapSize)
   }
 }
 
-closurePo allocate(heapPo heap,methodPo mtd)
-{
-  int64 freeCount = mtd->freeCount;
-  closurePo cl = (closurePo)heap->curr;
-  heap->curr += freeCount+sizeof(ClosureRec)/sizeof(integer);
-  cl->sig = (termPo)mtd;
-  bzero(&cl->free,freeCount*sizeof(integer));
-  return cl;
+int gcAddRoot(ptrPo addr) {
+  assert(rootTop < NumberOf(roots));
+
+  roots[rootTop] = addr;
+  return rootTop++;
 }
+
+void gcReleaseRoot(int mark) {
+  assert(mark >= 0 && mark < NumberOf(roots));
+  rootTop = mark;
+}
+
+retCode reserveSpace(heapPo H, size_t amnt) {
+  if ((integer*)((byte*)currHeap->curr + amnt) < currHeap->limit)
+    return Ok;
+  else
+    return Error;
+}
+
+

@@ -13,14 +13,6 @@
 #define TRACEEXEC
 #endif
 
-#ifdef MEMTRACE
-extern logical traceMemory;
-#endif
-
-#ifdef TRACEEXEC
-extern logical tracing;
-#endif
-
 extern char copyRight[];
 
 extern logical tracing;        /* tracing option */

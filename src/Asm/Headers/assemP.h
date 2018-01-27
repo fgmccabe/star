@@ -101,11 +101,13 @@ typedef struct _assem_instruction_ {
   OpCode op;        /* The opcode of the instruction */
   int64 i;        /* most operands are integer */
   lPo lbl;        /* they may be a label somewhere */
+  char *txt;            // There may be a reference to a literal string (escape)
   assemInsPo next;      /* Next instruction in sequence */
 } AssemInstruction;
 
 typedef struct _assem_package_ {
   PackageRec pkg;
+  char *signature;    // The package signature
   hashPo imports;     /* All the imports in this package */
   hashPo methods;     /* All the functions defined in this package */
 } AssemPackage;

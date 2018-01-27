@@ -6,10 +6,15 @@
 #include <stdlib.h>
 
 #include "debug.h"
+#include "arith.h"
+#include "term.h"
 
 logical tracing = True;  /* do we show each step */
 logical debugging = False;
 logical interactive = False;
+
+logical altDebug = False;
+long maxDepth = MAX_INT;
 
 typedef struct _break_point_ *breakPointPo;
 
@@ -30,8 +35,6 @@ retCode g__ins_debug(processPo P, ptrPo a) {
 
 /* waiting for next instruction */
 long cmdCounter = 0;
-
-#ifdef TRACEEXEC
 
 static long cmdCount(char *cmdLine) {
   int64 count = (long) parseInteger(cmdLine, uniStrLen((char *) cmdLine));
@@ -130,7 +133,11 @@ void dC(termPo w) {
   flushOut();
 }
 
-static retCode showConstant(ioPo out, methodPo mtd, int off);
+static retCode showConstant(ioPo out, methodPo mtd, int off) {
+  termPo t = nthArg(mtd->pool, off);
+
+  return dispTerm(out, t, maxDepth, altDebug);
+}
 
 static void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
@@ -185,20 +192,20 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
       switch (line[0]) {
         case ' ':
         case 'n':
-          cmdCounter = cmdCount(line+1);
+          cmdCounter = cmdCount(line + 1);
           tracing = True;
-          clrCmdLine(line,NumberOf(line));
+          clrCmdLine(line, NumberOf(line));
           p->waitFor = nextIns;
           break;
         case '\n':
           break;
         case 'f':
           focus = p;
-          clrCmdLine(line,NumberOf(line));
+          clrCmdLine(line, NumberOf(line));
           break;
         case 'u':
           focus = NULL;
-          clrCmdLine(line,NumberOf(line));
+          clrCmdLine(line, NumberOf(line));
           break;
         case 'q':
           outMsg(logFile, "terminating session");
@@ -254,14 +261,14 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
             outChar(logFile, '\n');
           }
 
-          clrCmdLine(line,NumberOf(line));
+          clrCmdLine(line, NumberOf(line));
           continue;
         }
 
         default:
           outMsg(logFile, "'n' = step, 'c' = continue, 't' = trace mode, 'q' = stop\n");
           outMsg(logFile, "'<n>' = step <n>\n");
-          outMsg(logFile, "'r' = registers, 'l <n>' = local, 'e <n>' = env var\n");
+          outMsg(logFile, "'r' = registers, 'l <n>' = local\n");
           outMsg(logFile, "'i'<n> = list n instructions, 's' = stack trace\n");
           outMsg(logFile, "'f' = focus on this process, 'u' = unfocus \n");
           continue;
@@ -272,11 +279,10 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
 }
 
 #define collectI32(pc) (collI32(pc))
-#define collI32(pc) hi32 = (uint32)(*pc++), lo32 = *pc++, ((hi32<<16)|lo32)
+#define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
 static void showEscape(methodPo cl, int32 escNo) {
-  constantPo escCon = &codeLiterals(cl)[escNo];
-  escapePo esc = (escapePo) escCon->data;
+  escapePo esc = getEscape(escNo);
 
   outMsg(logFile, " (%U)", esc->name);
 }
@@ -294,7 +300,7 @@ insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, p
 #define show_arg outMsg(logFile," a[%d]",collectI32(pc))
 #define show_lcl outMsg(logFile," l[%d]",collectI32(pc))
 #define show_off outMsg(logFile," 0x%x",(collI32(pc)+pc))
-#define show_Es showEscape(env,collectI32(pc))
+#define show_Es showEscape(mtd,collectI32(pc))
 #define show_lit showConstant(logFile,mtd,collectI32(pc))
 
 #define instruction(Op, A1, Cmt)    \
@@ -310,41 +316,29 @@ insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, p
   }
 }
 
-static integer showBySig(ioPo out, char *sig, integer pos, void *data);
-
-static retCode showConstant(ioPo out, methodPo mtd, int off) {
-
-  void *data = mtd->pool[off].data;
-  char *sig = mtd->pool[off].sig;
-  showBySig(out, sig, 0, data);
-  return Ok;
-}
-
 void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   outMsg(logFile, "p: 0x%x, mtd: %M, pc: 0x%x, fp: 0x%x, sp: 0x%x\n",
          p, mtd, pc, fp, sp);
 
-  integer pcOffset = (integer)(pc - mtd->code);
+  integer pcOffset = (integer) (pc - mtd->code);
 
-  localPtr locals = mtd->locals;
+  normalPo locals = mtd->locals;
+  int64 numLocals = termArity(locals);
 
-  for (int32 ix = 0; ix < mtd->localCount; ix++) {
-    if (locals[ix].from <= pcOffset && locals[ix].to > pcOffset) {
-      int64 off = locals[ix].off;
+  for (int32 ix = 0; ix < numLocals; ix++) {
+    normalPo lcl = C_TERM(nthArg(locals, ix));
+
+    integer from = integerVal(nthArg(lcl, 0));
+    integer to = integerVal(nthArg(lcl, 1));
+
+    if (from <= pcOffset && to > pcOffset) {
+      integer off = integerVal(nthArg(lcl, 2));
       termPo var = localVar(fp, off);
-      termPo vrName = mtd->pool[locals[ix].name].data;
-      termPo sig = mtd->pool[locals[ix].sig].data;
+      termPo vrName = nthArg(lcl, 4);
+      termPo sig = nthArg(lcl, 3);
 
       outMsg(logFile, "%T [%d]:%T ", vrName, off, sig);
       outMsg(logFile, "\n");
     }
   }
 }
-
-integer showBySig(ioPo out, char *sig, integer pos, void *data) {
-  integer end = uniStrLen(sig);
-
-  showSignature(out, sig, &pos, end);
-  return pos;
-}
-

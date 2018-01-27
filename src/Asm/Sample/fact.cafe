@@ -3,14 +3,14 @@
 -- fact(0) => 1
 -- fact(N) => fact(N-1)*N
 
-package test.fact
+package test.fact :: "I{'fact'F(i)i'_main'F()()}{}"
 
 fact/1 :: "F(i)i"
      enter 0
      ld a[0]
      ld 0
      escape _int_eq
-     frame "()"
+     frame "()(ii)"
      bf nonZero
      ld 1
      ret
@@ -18,12 +18,12 @@ nonZero:
      ld a[0]  -- start call to fact(N-1)
      ld 1
      escape _int_minus
-     frame "()"
+     frame "()(ii)"
      call fact/1 -- fact itself
-     frame "()"
+     frame "()(i)"
      ld a[0]
      escape _int_times
-     frame "()"
+     frame "()(ii)"
      ret
      end
 
@@ -33,7 +33,7 @@ next:
      enter 0
      ld 5
      call fact/1
-     frame "()"
+     frame "()(i)"
 last:
      halt
      end

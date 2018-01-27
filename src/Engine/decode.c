@@ -3,6 +3,8 @@
 #include <hash.h>
 #include "decodeP.h"
 #include "arithP.h"
+#include "strP.h"
+#include "heap.h"
 #include "signature.h"
 
 /*
@@ -130,7 +132,7 @@ static retCode estimateFlt(double dx, void *cl) {
 static retCode estimateString(char *nm, integer size, void *cl) {
   Estimation *info = (Estimation *) cl;
 
-  info->amnt += CellCount(sizeof(StringRecord) + (size + 1) * sizeof(byte));
+  info->amnt += CellCount(sizeof(StringRecord) + (size + 1) * sizeof(char));
   return Ok;
 }
 
@@ -239,6 +241,28 @@ retCode decodeName(ioPo in, bufferPo buffer) {
     }
     return ret;
   }
+}
+
+retCode decodeNm(ioPo in, char *buffer, integer buffLen) {
+  codePoint delim;
+
+  retCode ret = inChar(in, &delim);
+
+  if (ret != Ok)
+    return ret;
+  else {
+    codePoint ch;
+    integer ix = 0;
+    while (ix < buffLen && (ret = inChar(in, &ch)) == Ok && ch != delim) {
+      ix = appendCodePoint(buffer, &ix, buffLen, ch);
+    }
+    if (ix < buffLen) {
+      appendCodePoint(buffer, &ix, buffLen, 0);
+      return ret;
+    } else
+      return Error;
+  }
+
 }
 
 retCode decodeText(ioPo in, bufferPo buffer) {
@@ -547,7 +571,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       integer i;
       if ((res = decInt(in, &i)) != Ok)
         return res;
-      *tgt = allocateInteger(H, i);
+      *tgt = (termPo) allocateInteger(H, i);
       return Ok;
     }
     case fltTrm: {
@@ -566,7 +590,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
       if ((res = decodeName(in, tmpBuffer)) == Ok) {
         long len;
-        *tgt = allocateEnum(H, getTextFromBuffer(&len, tmpBuffer), arity);
+        *tgt = (termPo) allocateEnum(H, getTextFromBuffer(&len, tmpBuffer), arity);
       }
       return res;
     }
@@ -582,7 +606,8 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if (res == Ok) {
-        termPo obj = *tgt = allocateObject(H, class);
+        normalPo obj = allocateStruct(H, C_LBL(class));
+        *tgt = (termPo)(obj);
 
         termPo el = NULL;
         integer i;

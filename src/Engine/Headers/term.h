@@ -5,6 +5,8 @@
 #ifndef CAFE_TERM_H
 #define CAFE_TERM_H
 
+#include <integer.h>
+#include "logical.h"
 #include "config.h"
 
 typedef struct special_class *specialClassPo;
@@ -21,18 +23,33 @@ typedef struct class_record *clssPo;
 
 extern clssPo labelClass, normalClass, enumClass;
 
+typedef struct term_record {
+  clssPo clss;
+} TermRecord;
+
 extern labelPo C_LBL(termPo t);
 
 extern normalPo C_TERM(termPo t);
 
 extern enumPo C_ENUM(termPo t);
 
+extern int64 termArity(normalPo term);
 
-extern termPo nthArg(termPo term, int64 nth);
+extern termPo nthArg(normalPo term, int64 nth);
 
-extern void setArg(termPo term, int64 ix, termPo arg);
+extern void setArg(normalPo term, int64 ix, termPo arg);
 
 extern termPo falseEnum;
 extern termPo trueEnum;
+
+static inline clssPo classOf(termPo obj) {
+  return obj->clss;
+}
+
+static inline logical hasClass(termPo obj, clssPo clss) {
+  return (logical) ((clssPo) obj->clss == clss);
+}
+
+retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
 
 #endif //CAFE_TERM_H

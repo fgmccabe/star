@@ -20,7 +20,6 @@
 #include <unicode.h>
 #include <assemP.h>
 
-normalPo
 #include <assem.h>
 
 #include "assem.h"
