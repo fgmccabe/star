@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SearchIndexes Version="1.0">
+    <Documents>
+        <Document ID="606E2F6A-318D-44EA-A9BC-81093A72CD2F">
+            <Title>Section</Title>
+        </Document>
+        <Document ID="6A2981D0-EE77-461E-BF97-D9ED0D27A5D2">
+            <Title>Endnotes</Title>
+            <Text>&lt;$--ENDNOTES--&gt;</Text>
+            <Notes>The &lt;$--ENDNOTES--&gt; tag will be replaced by the footnotes during Compile. Using this tag allows us to have the footnotes inserted wherever we like, without having a separator placed above them.</Notes>
+        </Document>
+        <Document ID="B0417A1B-D617-4CBD-900A-14A6AB12C289">
+            <Title>Ideas</Title>
+        </Document>
+        <Document ID="A097A466-32FF-491F-8E6B-6DCD12185DE1">
+            <Title>Foreword</Title>
+        </Document>
+        <Document ID="833DF1C1-C636-4034-9053-01C6641E9578">
+            <Title>Contents</Title>
+        </Document>
+        <Document ID="BB360289-7F77-4AF1-A155-43057C51131A">
+            <Title>Title Page</Title>
+            <Synopsis>Title page to the manuscript.</Synopsis>
+            <Text>Your Name
+Your Address
+Your phone number
+Your e-mail address
+
+(Your agent’s name)
+(Your agent’s address)
+&lt;$wc100&gt; words
+
+
+
+
+
+
+
+
+
+
+&lt;$projecttitle&gt;
+
+by &lt;$fullname&gt;</Text>
+            <Notes>This is the title page of the manuscript. Note that its “Section Type” is automatically set to “Front Matter” in the Metadata pane of the Inspector, allowing the title page to be formatted differently from body text during Compile.
+
+The &lt;$PROJECTTITLE&gt; and &lt;$fullname&gt; tags get replaced with metadata information you can set when compiling. Other information is taken from Contacts when the project is created.
+
+The &lt;$wc100&gt; words tag will be replaced with the word count rounded to the nearest 100 during Compile (this and other tags can be inserted from the Insert menu).
+
+Feel free to edit the text of the title page as required.</Notes>
+        </Document>
+        <Document ID="3D707F9E-6E7B-4A2B-BF04-64BD98EC07A8">
+            <Title>Notes</Title>
+            <Text>&lt;$--ENDNOTES--&gt;</Text>
+            <Notes>The &lt;$--ENDNOTES--&gt; tag will be replaced by the footnotes during Compile. Using this tag allows us to have the footnotes inserted wherever we like, without having a separator placed above them.</Notes>
+        </Document>
+        <Document ID="07B0D7C6-57CE-4D6F-8AD9-11F06A261A5F">
+            <Title>Notes</Title>
+        </Document>
+        <Document ID="B5BAD6CD-B8F5-469F-9D65-288D1D5001DD">
+            <Title>Dedication</Title>
+            <Text>
+
+
+
+
+Your dedication here.</Text>
+            <Notes>Feel free to delete this document if you don’t need it.</Notes>
+        </Document>
+        <Document ID="9FFBA333-8432-41C1-91F5-1302DFE283CA">
+            <Title>Non-Fiction Format</Title>
+            <Text>GENERAL NON-FICTION
+
+About This Template
+When compiled (File &gt; Compile), this project will generate a document in the standard manuscript format used for many types of non-fiction. Settings are also provided to make it easy to compile to a paperback-style PDF for self-publishing or an EPUB or Kindle ebook.
+
+How To Use This Template
+	•	Inside the “Manuscript” folder, create a new folder for each chapter and title each folder with the name of the chapter. (You do not need to—and indeed shouldn’t—title the folders “Chapter One” and so on, because chapter numbering will be taken care of automatically during the Compile process.) The first chapter folder has been created for you with the placeholder title “Chapter”.
+	⁃	Note: The “Manuscript” folder is what we refer to in the documentation as the “Draft folder”. It’s just been renamed “Manuscript” in this template.
+	•	Create a new text document for each section inside the chapter folders. (Upon export, sections will be separated with the “#” character for standard manuscript format, or with a blank line for other formats.)
+	•	If you don’t require a foreword, move the “Foreword” document to the Trash folder. Alternatively, rename it “Preface” or “Introduction” if you prefer.
+	•	“Notes” and “Ideas” folders have been provided for your convenience, although you can replace them or create different top-level folders for your research materials if necessary (these are just regular folders that have had custom icons assigned to them using the Documents &gt; Change Icon feature).
+
+Tables and Figures
+If you need to use tables or figures in your manuscript, you can label them using the following tags, replacing “KEYWORD” with a unique word that identifies your table or figure.
+
+!fig(KEYWORD)
+!table(KEYWORD)
+
+These tags will be replaced with numbers in the compiled document, with the numbering stream for figures being separate from the numbering stream for tables.
+
+You can refer to such tags as follows:
+
+#fig(KEYWORD)
+#table(KEYWORD)
+
+Here’s an example:
+
+Table !table(sales): Sales 2011
+Table !table(dates): Shipment dates
+Figure !fig(skeleton): The skeleton of the gnu.
+Figure !fig(malcolmreynolds): The second coolest character in Firefly.
+
+… (For sales figures, see table #table(sales))… For shipment dates, see table #table(dates)… where he discovered the skeleton of a gnarled gnu (see figure #fig(skeleton))… Chronicles providing a similar role, albeit without the Castle actor (see figure #fig(malcolmreynolds)).
+
+In the compiled document, the above text would look like this:
+
+Table 1: Sales 2011
+Table 2: Shipment dates
+Figure 1: The skeleton of the gnu.
+Figure 2: The second coolest character in Firefly.
+
+… (For sales figures, see table 1)… For shipment dates, see table 2… where he discovered the skeleton of a gnarled gnu (see figure 1)… Chronicles providing a similar role, albeit without the Castle actor (see figure 2).
+
+Compiling
+	•	Title pages and front matter are all provided in the “Front Matter” folder. Different front matter is used for different formats.
+	•	A “Back Matter” folder is also provided. Here you can add any back matter hat is specific to each Compile format. Currently this only contains documents for storying endnotes (see below).
+	•	Tip: You can open this document in a Quick Reference panel and have it open alongside the Compile panel if you need to refer to these instructions while compiling.
+
+	•	To compile to standard manuscript format:
+	◦	Edit the “Title Page” document inside the Front Matter/Manuscript Format folder to ensure that it contains the correct information (by default it will use information from Contacts).
+	◦	To create your table of contents:
+	⁃	Holding down the Command key, select all the documents you wish to be included in the contents listing. (Usually this will be “Foreword” and all chapter folders, but not the individual sections inside chapter folders. If you have footnotes and wish them to be added to the end of the manuscript as endnotes, you should also include the “Endnotes” document inside “Back Matter”.)
+	⁃	Go to Edit &gt; Copy Special &gt; Copy Documents as ToC.
+	⁃	Paste into the “Contents” document in the “Manuscript Format” front matter folder. (Tip: Use Format &gt; Font &gt; Underline to change or remove the dotted underline between the chapter names and page numbers.)
+	⁃	The resulting linked text and page number tags will be replaced with the final chapter names and page numbers in the compiled document.
+	⁃	Note that you don’t need to do this every time you compile, only when chapters have been added, deleted, renamed or moved around. (Note to Microsoft Word users: If you export to Word, you may need to generate a print preview in Word to force the page numbers to show up correctly - they may appear as question marks before doing so.)
+	⁃	You don’t have to use “Copy Documents as ToC” to create a table of contents, by the way. You could equally construct one yourself using document links and placeholders - see “List of All Placeholders…” in the Help menu for more information on the latter.
+	◦	Go to File &gt; Compile…
+	◦	Next to “Compile for”, select “Print”, “PDF” or one of the rich text file formats such as RTF, Word or OpenOffice.
+	◦	Select either “Non-Fiction Manuscript (Courier)” or “Non-Fiction Manuscript (Times)” from the list of formats on the left.
+	◦	Ensure that the “Add front matter” button is ticked under the contents list on the right and that the “Manuscript Format” folder is selected in the pop-up button next to it. (This has already been set up for you.)
+	◦	If you have footnotes in your text, they can either be included at the end of each page (the default) or as endnotes. To have them included as endnotes:
+	⁃	Beneath the list of documents on the right side of the Compile pane, tick “Add back matter”. This will include the “Endnotes” document from the Back Matter/Manuscript Format folder.
+	⁃	Click on the gear icon in the right-most header bar in Compile.
+	⁃	Tick “Export inspector footnotes as endnotes” and “Export inline footnotes as endnotes”.
+	◦	Click on “Compile”.
+
+•	To compile to paperback PDF format:
+	◦	Edit the front matter pages contained inside the Front Matter/Paperback folder.
+	◦	Follow the instructions under compiling for standard manuscript format for creating a table of contents, but this time paste the contents list into the Front Matter/Paperback/Contents document.
+	◦	Go to File &gt; Compile…
+	◦	Next to “Compile for”, select “PDF”.
+	◦	Select “Paperback (5.06” x 7.81”)” from the list of formats on the left.
+	◦	Ensure that the “Add front matter” button is ticked under the contents list on the right and that the “Paperback” folder is selected in the pop-up button next to it if it. (This has already been set up for you.)
+	◦	If you have footnotes in your text, they can either be included at the end of each page or as endnotes. See the instructions under compiling for standard manuscript format for information on how to include footnotes as endnotes (in this case, however, clicking “Add Back Matter” will include the “Paperback” back matter folder).
+	◦	Click on “Compile”.
+
+	•	To compile to ebook format:
+	◦	Edit or remove the dedication page contained inside the Front Matter/Ebook folder. Feel free to add any other front matter documents as required.
+	◦	Import a cover image (preferably in JPG or PNG format).
+	⁃	You can store this anywhere, but it makes sense to place it in the “Ebook” front matter folder. A placeholder cover image is already provided—you will want to delete that once you have imported your own.
+	⁃	Be sure to check online for recommended image sizes, because the recommendations are constantly changing. The sample cover image provided is 2,500 x 1,563 pixels, based on Amazon’s recommended size and proportions for a Kindle cover at the time this template was created.
+	◦	Go to File &gt; Compile…
+	◦	From the “Compile for” menu, select one of the ebook formats.
+	⁃	To create an ePub file, choose the “ePub 3” format.
+	⁃	To create a Kindle file, choose the “Kindle KF8/Mobi” format.
+	⁃	“ePub 2” and “Kindle Mobi” are older versions of the formats. They are mainly provided for supporting projects created in older versions of Scrivener.
+	◦	Select “Ebook” from the list of formats on the left.
+	◦	If you have front matter documents other than the cover image, ensure that the “Add front matter” button is ticked under the contents list on the right and that the “Ebook” folder is selected in the pop-up button next to it. If you don’t have any front matter documents, you can un-tick “Add front matter”. (Un-ticking this does not affect the cover image.)
+	◦	Above the contents list in the rightmost header bar are six buttons. Click on each of them in turn to go through the various available settings, changing what you need. In particular:
+	⁃	Fill in the metadata such as author name and book title.
+	⁃	Ensure your cover image is selected and shown.
+	◦	Click on “Compile”.
+
+Adding Sub-Heads
+If you want your chapters divided into sections that each have their own sub-headings, simply use blank file groups for each heading, with each section under that heading a subdocument of the file group, like this:
+
+#
+
+Customising the Ebook Table of Contents
+When exporting to ebook format, Scrivener automatically generates a table of contents. If you would like to customise what appears in the contents, follow these instructions:
+	1.	Create a document for your table of contents inside the Front Matter/Ebook folder.
+	2.	Name the document “Contents”.
+	3.	In the binder, select the documents you would like to appear in the table of contents (hold down Command to select more than one document).
+	4.	For a simple flat list, hit Cmd-C or use Edit &gt; Copy. Alternatively, if you would like the table of contents indented to match the binder structure, go to Edit &gt; Copy Special &gt; Copy Documents as Structured Link List.
+	5.	Click into the text of the “Contents” document and hit Cmd-V or use Edit &gt; Paste. The documents you wish to appear in the table of contents will now appear as a list of links.
+	6.	If you intend to export to an older ebook format (ePub 2 or non-KF8 Mobi), select all of the text and change it to use a 12-point font.
+	7.	If you wish to centre the table of contents, select the text and centre it.
+	8.	In the Inspector, change the “Section Type” of the “Contents” document to “Table of Contents”. Now, when you Compile, your custom “Contents” document will be used instead of the automatically-generated one. The titles in the links of the “Contents” document will automatically be updated to match those of the final compiled ebook.
+
+Sample Document
+See the “Sample MS” PDF file in the Research folder for an example of a document that has been created using this template.
+
+Final Note
+Scrivener project templates are flexible and are not intended to restrict you to a particular workflow. You can change, delete or move the files and folders contained in the template to suit how you work.
+
+Like all templates in Scrivener, this project was originally created from the “Blank” template. We’ve simply added a few folders and set everything up in ways that should be useful to non-fiction authors. Everything you can do with this project, you could equally do by creating a “Blank” project and setting it up yourself.
+
+You can create your own templates by setting up a skeletal project with the files, folders and settings you would like to use for new projects and using File &gt; Save As Template.</Text>
+        </Document>
+        <Document ID="3ECF6511-EC5A-4B9A-B12F-039C0CDD2CB7">
+            <Title>Copyright</Title>
+            <Text>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright © &lt;$year&gt; &lt;$author&gt;
+All rights reserved.
+ISBN:
+ISBN-13:
+</Text>
+            <Notes>Feel free to delete this document if you don’t need it, or edit it for your needs.</Notes>
+        </Document>
+        <Document ID="3B425F17-6AEB-4983-8C67-5167CFE5B4E9">
+            <Title>Dedication</Title>
+            <Text>
+
+
+
+
+
+
+
+
+
+
+Insert dedication here.</Text>
+            <Notes>Feel free to delete this document if you don’t need it.</Notes>
+        </Document>
+        <Document ID="CB0EEE35-84F6-4D12-9A81-6827BED783B8">
+            <Title>Paperback</Title>
+        </Document>
+        <Document ID="520C484F-808A-4651-B417-C1CF776CEA07">
+            <Title>Title Page</Title>
+            <Text>
+
+
+
+
+
+
+
+
+
+
+&lt;$PROJECTTITLE&gt;
+
+&lt;$author&gt;</Text>
+            <Notes>These tags get replaced with the information set in the Metadata pane of Compile. Alternatively, you can simply replace this text altogether.</Notes>
+        </Document>
+        <Document ID="60D37027-5A0F-4CA1-BA8F-0F527FC7BB6D">
+            <Title>Contents</Title>
+        </Document>
+        <Document ID="0EB16FF9-6C9D-4FA9-B47D-F8902B6AD165">
+            <Text>Amy Nonomusse
+Your manuscript should have your address
+and contact details
+on the first page only.
+If you have an agent, your agent’s address can be included beneath.
+900 words
+Non-Fiction Standard Manuscript Format by A. Nonomusse
+Contents
+Foreword 1 Chapter One - Folder Names Become Subtitles 2 Chapter Two - Another Chapter Folder 4
+Foreword
+Non-fiction works often feature a foreword or preface. This usually comes after the table of contents, but not always—sometimes the foreword precedes the table of contents. If you need your foreword to come before the table of contents, place the “Contents” document after “Foreword” in the Manuscript folder. You can also rename “Foreword” to "Preface" or "Introduction", or delete it entirely, depending on your requirements.
+The table of contents is generated using Scrivener's Edit &gt; Copy Special &gt; Copy Documents as ToC feature. Simply select the documents in the binder that you want to include in your table of contents, select "Copy Documents as ToC" from the Edit &gt; Copy Special menu, and then hit Edit &gt; Paste (cmd-V) in the "Contents" document. The results won't look much in Scrivener's editor—a bunch of linked text with "&lt;$p&gt;" page number tags after it—but when compiled this will become a proper table of contents using the correct chapter titles. Remember to update your table of contents if you move, add, delete or rename any chapters.
+Nonomusse / NON-FICTION MS / 1
+Chapter One
+Folder Names Become Subtitles
+Standard manuscript format is often required for novels so that work can easily be read by editors. It allows editors to estimate word count and determine roughly how many pages will be required to produce a book using the page size, style and font used by their house.1 This PDF file was generated using Scrivener's Compile feature and was created using the “General Non-Fiction” project template.
+Manuscripts for full-length novels require a separate title page. The author's name, address, telephone number and e-mail address should be shown in the upper-left corner of the title page, single-spaced. The title of the work should appear about half-way down the page. The author's name follows the title on the by-line as the author wants it to appear when published. A real name or pseudonym may be used and may include initials, actual given name or professional designation.
+A table of contents and foreword, preface or introduction may follow the title page, preceding the main text.
+All text should be double-spaced and left-justified with a ragged right margin.
+Nonomusse / NON-FICTION MS / 2
+Paragraphs should be indented by about five spaces (half an inch) and not separated by an additional blank line. (It used to be traditional to separate each sentence with two spaces, but in these days of word processors this is now less common.) A 12-point font such as Courier, Times New Roman or Arial should be used throughout. In Scrivener, however, you can write using any font and formatting you choose —the Compile options can be used to change the formatting in the final document. In the “General Non-Fiction” project template, the Compile settings will deal with changing the font and formatting to those required for standard manuscript format.
+Top, bottom, left and right margins should all be approximately one inch, not allowing for the page header. Each page except for the title page should include a header comprising the author's real surname, the title of the work (or a key word from the title) in capitals, and the page number. In Scrivener, all of this is handled by the Compile settings.
+#
+Section breaks are indicated with the hash character. Do not simply add an extra line space as this can be missed by the typesetter. In general, this will be handled by Compile in Scrivener,
+however, so that you can either leave empty lines in the text (and Scrivener will insert the hash character during Compile) or use different documents for different sections (and Scrivener will add the hash between them).
+Some editors and publishers prefer emphasis to be indicated by underlining rather than italics. In Scrivener, this conversion can be handled by Compile. The “General Non- Fiction (Courier)” Compile format will convert italics to underlines, whereas the “General Non-Fiction (Times)” format will not.
+Nonomusse / NON-FICTION MS / 3
+Chapter Two Another Chapter Folder
+Begin each new chapter on a new page like this with the chapter number about a third of the way down the page. In Scrivener, all of this is handled automatically by the “General Non- Fiction” compile formats.
+Although it is often said that writers should not use the word-count features of their computers to determine the number of words in a manuscript, most publishers and editors will happily accept a word processor word count these days. In Scrivener, you can insert a word count of your manuscript by using Edit &gt; Insert &gt; Draft Word Count (for a manuscript, you may wish to have the word count rounded to the nearest 100, in which case select Edit &gt; Insert &gt; Draft Word Count &gt; Rounded To Nearest 100—this feature is used on the title page of this manuscript, in fact). Note that the actual word count will not be inserted, but a tag that will be substituted for the word count upon export.
+#
+Footnotes should generally be numbered sequentially throughout the manuscript and appear
+as endnotes at the very end.2 However, different editors and publishers have different
+Nonomusse / NON-FICTION MS / 4
+requirements when it comes to footnotes, so you should always check the submission guidelines.3
+In reality, the formatting of a manuscript is often only really crucial when submitting directly to a publisher—first time authors will usually submit to an agent first, and agents are often less picky about format and will point you in the right direction before submitting your work to a publisher.
+Nonomusse / NON-FICTION MS / 5
+Endnotes
+1. Much of the information contained in this document is based on a description of novel manuscript format by Matt Carless for the BBC Writers' Room website (http:// www.bbc.co.uk/writersroom), along with various web resources describing non-fiction manuscript format (the basics of standard manuscript format is commonly used for both fiction and non-fiction).
+2. Useful information about non-fiction manuscript formatting was also taken from this web page: http://calemccaskey.blogspot.com/2011/05/how-to-prepare-non-fiction- manuscript.html
+3. Note that if you require more advanced footnote and endnote layout, or if you require indexes, you should compile to RTF or Word format and open the generated file in your word processor of choice for a final pass.
+Nonomusse / NON-FICTION MS / 6
+</Text>
+        </Document>
+        <Document ID="96776348-B035-46DA-A5A5-210E99B93774">
+            <Title>Front Matter</Title>
+            <Notes>Note that in the “Metadata” pane of the Inspector, under “Section Type”, the “Default Subdocument Type” is set to “Front Matter”. This setting causes all subdocuments of this folder to use the “Front Matter” section type by default (that is, when “Structure-Based” is selected as the section type).
+
+This saves us from having to manually assign the “Front Matter” section type for each document we place into this folder.
+
+During Compile, documents assigned the “Front Matter” section type will be laid out differently from documents in the main body of the manuscript.</Notes>
+        </Document>
+    </Documents>
+</SearchIndexes>

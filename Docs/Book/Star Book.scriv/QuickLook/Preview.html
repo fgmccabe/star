@@ -593,6 +593,16 @@
 <hr class="afterText"/>
 <ul>
 <li>
+<p class="itemTitle">Partial Sequence Notation</p>
+<p class="itemText"></p>
+<p class="itemText">The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:</p>
+<p class="itemText">[1,2,..X]</p>
+<p class="itemText">denotes the sequence whose first two elements are 1 and 2 and whose remainder is denoted by the variable X — which must also be a sequence of the correct type. Similarly, the term:</p>
+<p class="itemText">[F..,23]</p>
+<p class="itemText">denotes the sequence obtained by gluing 23 to the back of the sequence F.</p>
+<p class="itemText">There is a strong relationship between t...</p>
+</li>
+<li>
 <p class="itemTitle">The Sequence Contract</p>
 <p class="itemText">Underlying the sequence notation is the sequence contract. This contract contains type signatures in it that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.</p>
 <p class="itemText">The actual sequence contract is</p>
@@ -648,18 +658,18 @@
 </li>
 <li>
 <p class="itemTitle">Adding and Removing Elements From a Collection</p>
-<p class="itemText">The function _set_indexed is used to add an element to a collection associating it with a particular index position; and the function delete_indexed removes an identified element from the collection.</p>
-<p class="itemText">Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on persistent data structures and on declarative...</p>
+<p class="itemText">The function _set_indexed is used to add an element to a collection associating it with a particular index position; and the function _delete_indexed removes an identified element from the collection.</p>
+<p class="itemText">Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on persistent data structures and on declarativ...</p>
 </li>
 <li>
 <p class="itemTitle">The Index Notation</p>
 <p class="itemText">Given the indexable contract we can now show the specific notation that Star has for accessing elements of a collection. Accessing a collection by index follows conventional notation:</p>
 <p class="itemText">C[ix]</p>
-<p class="itemText">will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with alpha using:</p>
+<p class="itemText">will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with “alpha” using:</p>
 <p class="itemText">D["alpha"]</p>
 <p class="itemText">Similarly, we can access the third character in a string S using:</p>
 <p class="itemText">S[2]</p>
-<p class="itemText">As might be expected, given the discussion above, the type...</p>
+<p class="itemText">As might be expected, given the discussion above, the ty...</p>
 </li>
 <li>
 <p class="itemTitle">Implementing Indexing</p>
@@ -677,8 +687,8 @@
 <p class="itemTitle">Index Slices</p>
 <p class="itemText">Related to accessing and manipulating individual elements of collections are the indexed slice operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:</p>
 <p class="itemText">C[fx:tx]</p>
-<p class="itemText">denotes the subsequence of C starting — and including — the element indexed at fx and ending — but not including the element indexed at tx.</p>
-<p class="itemText">As might be expected, the index slice notation is also governed by a contract — the sliceable contract. This contract defines the core functions for s...</p>
+<p class="itemText">denotes the subsequence of C starting with — and including — the element indexed at fx and ending — but not including the element indexed at tx.</p>
+<p class="itemText">As might be expected, the index slice notation is also governed by a contract — the sliceable contract. This contract defines the core functions ...</p>
 </li>
 </ul>
 <hr class="afterText"/>
@@ -692,8 +702,7 @@
 <ul>
 <li>
 <p class="itemTitle">Filtering With filter</p>
-<p class="itemText">The simplest operation on a collection is to subset it. The standard function filter allows us to do this with some elegance.</p>
-<p class="itemText">Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:</p>
+<p class="itemText">The simplest operation on a collection is to subset it. The standard function filter allows us to do this with some elegance. Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:</p>
 <p class="itemText">filter((X)=>X%2==0,Nums)</p>
 <p class="itemText">For example, if Nums were the list:</p>
 <p class="itemText">list of [1,2,3,4,5,6,7,8,9]</p>
@@ -737,22 +746,14 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Iteration</p>
-<p class="itemText">We now take a look at how we can process collections using actions rather than expressions. Iteration is one of those areas where history has resulted in two quite different traditions: OO-style languages and functional languages have markedly different approaches to iteration; and yet, as we will see, they can be seen as twins of each other.</p>
-<p class="itemText">A classic iteration over a collection, written in Java in this case, looks something like:</p>
-<p class="itemText">int len = 0;</p>
-<p class="itemText">for(String s:myColl){</p>
-<p class="itemText">  len = len+s.length();  // d...</p>
-</li>
-<li>
 <p class="itemTitle">Queries</p>
-<p class="itemText">Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a list of parents and children:</p>
+<p class="itemText">Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a list of pairs - each pair indicating a parent and child:</p>
 <p class="itemText">parent:list[(string,string)].</p>
 <p class="itemText">parent = [("john","peter), ("peter","jane"), ... ].</p>
-<p class="itemText">and that we wanted to construct a result along the lines of:</p>
+<p class="itemText">and that we wanted to construct a result list – also pairs – along the lines of:</p>
 <p class="itemText">GC:list[(string,string)].</p>
 <p class="itemText">GC = [("john","jane"),...].</p>
-<p class="itemText">This involves searching the parents for pairs or pairs that satisfy the grandparent relationship. Ba...</p>
+<p class="itemText">Computing the list grandparent/grandchildren pairs in...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -838,121 +839,20 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Packages and Worksheets</p>
-<p class="itemText">We have already seen the two basic forms of compilation unit in Star: the package and the worksheet.</p>
-<p class="itemText">Since Star is an extensible language, it is quite possible to create other forms of compilation unit.</p>
-</li>
-<hr class="afterText"/>
-<ul>
-<li>
-<p class="itemTitle">Package [package] </p>
-<p class="itemText">Packages are the foundational unit of compilation; there is also an intended semantics:</p>
-<p class="itemText">Package</p>
-<p class="itemText">A package is a collection of definitions that are intended to represent some coherent functionality or purpose.</p>
-<p class="itemText">This is, of course, a vague and non-actionable definition. There are higher-level notions of what ‘functionality’ might mean: for example, in the context of Service Oriented Architecture, a service is the ‘manifestation of a business functionality’. If that is clearer, then a package is a ma...</p>
-</li>
-<hr class="afterText"/>
-<ul>
-<li>
-<p class="itemTitle">The main Program</p>
-<p class="itemText">If a package defines a main procedureA procedure, in Star, is a function that returns the void tuple (). then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a list[string]s.</p>
-<p class="itemText">If the main procedure is defined then automatic coercion from command line arguments to internal types is performed. For example,</p>
-<p class="itemText">myProgr...</p>
-</li>
-</ul>
-<hr class="afterText"/>
-
-<li>
-<p class="itemTitle">Worksheet</p>
-<p class="itemText">We have already seen a number of examples of using worksheets. They represent a modern replacement for the traditional REPL — or Read-Eval-Print-Loop. The main advantages of worksheets over the traditional REPL are that they simultaneously act as their own transcript and they integrate well with editor-centric IDEs.</p>
-<p class="itemText">We prefer worksheets to normal packages for the same situations as one might prefer a REPL over a traditional file: worksheets make it easy to set up simple experiments and ‘see what...</p>
-</li>
-<li>
-<p class="itemTitle">Importing Packages</p>
-<p class="itemText">There are two basic ways of importing a packageYou cannot import a worksheet. into your code: the open import and the named import. The open import is the simplest; to import a package you just import it (sic):</p>
-<p class="itemText">worksheet{</p>
-<p class="itemText">  import myPackage.</p>
-<p class="itemText"></p>
-<p class="itemText">  -- Use definitions from myPackage</p>
-<p class="itemText">}</p>
-<p class="itemText">You can also import packages outside the worksheet structure:</p>
-<p class="itemText">import myPackage.</p>
-<p class="itemText">worksheet{</p>
-<p class="itemText">  -- Use definitions from myPackage</p>
-<p class="itemText">}</p>
-<p class="itemText">Any definition that is contained in myPackage is available throughout the worksheet (or ot...</p>
-</li>
-<hr class="afterText"/>
-<ul>
-<li>
-<p class="itemTitle">Private and Public Imports</p>
-<p class="itemText">By default, when a package is imported, it is privately imported – the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.</p>
-<p class="itemText">However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exp...</p>
-</li>
-</ul>
-</ul>
-<hr class="afterText"/>
-
-<li>
-<p class="itemTitle">Code Products</p>
-<p class="itemText">One important question that must be answered in any scheme that permits importing is “where is the code coming from?”. Star has three architectural elements that are the basis of code management: the code repository, a system of universal resource identifiers (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.</p>
-<p class="itemText">The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not ma...</p>
-</li>
-<hr class="afterText"/>
-<ul>
-<li>
-<p class="itemTitle">Code Repository</p>
-<p class="itemText">Apart from simply being a place compiled code can be kept, a code repository has several other responsibilities: it must be possible to access the compiled code from multiple packages — including packages that were imported. In fact, a Star code repository is able to contain the compiled code of any number of packages — since code repositories are also used to hold compiled libraries as well as applications.</p>
-<p class="itemText">In addition, we have to be able to manage multiple versions of a given compiled package;...</p>
-</li>
-<li>
-<p class="itemTitle">Universal Resource Identifier</p>
-<p class="itemText">Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.</p>
-<p class="itemText">The URI has an IETF standard specification (RFC 2396) [#rfc2396].</p>
-<p class="itemText">One important source of confusion with the IETF URI is the distinction between URIs and URLs. Although they share a common syntax a URI is not intended to convey the location of the resource.</p>
-<p class="itemText">For example, the URI</p>
-<p class="itemText">file://foo/bar/x/y.star</p>
-<p class="itemText">looks like a file-based name: one might be tempted to believe that the file x.Star re...</p>
-</li>
-<hr class="afterText"/>
-<ul>
-<li>
-<p class="itemTitle">Transducer</p>
-<p class="itemText">The connection between a URI and the actual resource must be established by a transducer. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.</p>
-<p class="itemText">The Star compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.</p>
-</li>
-<li>
-<p class="itemTitle">Standard URI Schemes</p>
-<p class="itemText">Although the Star compiler can, in principle, utilize any URI scheme, some schemes are ‘built-in’ — in the sense that there is a standard transducer for them. It is obviously an implementation dependent aspect of the language: different compilers may support different schemes; but all should support at least the following:</p>
-<p class="itemText">star</p>
-<p class="itemText">E.g. Star://foo/bar/gar.star. This is intended to be used as a system dependent but universal way of identifying Star files. I.e., each system is free to choose how to fi...</p>
-</li>
-</ul>
-<hr class="afterText"/>
-
-<li>
-<p class="itemTitle">Catalogs</p>
-<p class="itemText">A catalog is a mapping from identifiers to package URIs; i.e., it is the missing link between package identifiers and package URIs. Catalogs are sometimes written explicitly — in the form of a file that you can place in the same directory as your source files — but usually the compiler makes an automatic catalog depending on where the source code of a package is actually located.</p>
-<p class="itemText">Like other features, the catalog system is under-pinned by a contract – in this case, the contract is used by the com...</p>
-</li>
-</ul>
-<hr class="afterText"/>
-
-<li>
-<p class="itemTitle">Existentialism</p>
-<p class="itemText">If we take a slightly deeper look at the package we will see some surprising features; features that are sadly not very common in programming languages.</p>
-<p class="itemText">Lets start with a super simple source package:</p>
+<p class="itemTitle">Packages are Records</p>
+<p class="itemText">If we take a slightly deeper look at Star’s package we will see some surprising features; features that are sadly not very common in programming languages.</p>
+<p class="itemText">Let’s start with a super simple source package:</p>
 <p class="itemText">ss{</p>
 <p class="itemText">  public double:(integer)=>integer.</p>
 <p class="itemText">  double(X) is X*2.</p>
 <p class="itemText">}</p>
-<p class="itemText">This package structure is semantically equivalent to:</p>
+<p class="itemText">This package structure is semantically equivalent to a function:</p>
 <p class="itemText">ss:{double:(integer)=>integer}.</p>
 <p class="itemText">ss = let{</p>
 <p class="itemText">  public double:(integer)=>integer.</p>
 <p class="itemText">  double(X) is X*2</p>
 <p class="itemText">} in {. double=double .}</p>
-<p class="itemText">In effect, a package reduces to a variable declaration whose t...</p>
+<p class="itemText">In effect, a package reduces to a variable decl...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -961,10 +861,9 @@
 <p class="itemText">What does it mean to have a type in a record? From a programmer’s point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn’t have types in it. However, the logic of this bears a deeper look.</p>
 <p class="itemText">The declaration of the foo type involves the use of an existential quantifier:</p>
 <p class="itemText">simple:exists f/1 ~~ {</p>
-<p class="itemText">  foo ~> f.</p>
 <p class="itemText">  ...</p>
 <p class="itemText">}</p>
-<p class="itemText">The meaning of an existentially quantified type is complementary to the universally quantifie...</p>
+<p class="itemText">The meaning of an existentially quantified type is complementary to the universally quantified type. An e...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -1047,8 +946,8 @@
 <p class="itemText">The value of a task value is obtained using the valof operator:</p>
 <p class="itemText">valof T</p>
 <p class="itemText">denotes the value returned by the task computation T.</p>
-<p class="itemText">It is important to remember, in thinking about tasks, that there is the extra level of indirection.</p>
-<p class="itemText">Note that the valof operator also has the effect of forcing the completion of the task T; in particular, the valof operator is blocked until the task has completed and its value c...</p>
+<p class="itemText">It is important to remember, in thinking about tasks, that there is the extra level of indirection: the value of a task expression is a computation. When the computation is performed, it too has a value.</p>
+<p class="itemText">Note that the valof operator also has the effect of forcing the completion ...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -1626,6 +1525,115 @@
 <p class="itemText">The truth is, of course, that we are only able to scratch the surface of many of the topics we cover. So, the question is what next?</p>
 <p class="itemText">If you want to go deeper into Star itself then the natural ...</p>
 </li>
+<li>
+<p class="topLevelItemTitle">Appendix</p>
+</li>
+<hr class="afterTitle"/>
+<ul>
+<li>
+<p class="itemTitle">Packages and Worksheets</p>
+<p class="itemText">We have already seen the two basic forms of compilation unit in Star: the package and the worksheet.</p>
+<p class="itemText">Since Star is an extensible language, it is quite possible to create other forms of compilation unit.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Package</p>
+<p class="itemText">Packages are the foundational unit of compilation; there is also an intended semantics:</p>
+<p class="itemText">Package</p>
+<p class="itemText">A package is a collection of definitions that are intended to represent some coherent functionality or purpose.</p>
+<p class="itemText">This is, of course, a vague and non-actionable definition. There are higher-level notions of what ‘functionality’ might mean: for example, in the context of Service Oriented Architecture, a service is the ‘manifestation of a business functionality’. If that is clearer, then a package is a ma...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">The main Program</p>
+<p class="itemText">If a package defines a main procedure then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a list[string]s.</p>
+<p class="itemText">If the main procedure is defined then automatic coercion from command line arguments to internal types is performed. For example,</p>
+<p class="itemText">myProgram{</p>
+<p class="itemText">  main:(integer,string)=>().</p>
+<p class="itemText">  main(Count,Name) do {</p>
+<p class="itemText">    ...</p>
+<p class="itemText">  ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Worksheet</p>
+<p class="itemText">We have already seen a number of examples of using worksheets. They represent a modern replacement for the traditional REPL — or Read-Eval-Print-Loop. The main advantages of worksheets over the traditional REPL are that they simultaneously act as their own transcript and they integrate well with editor-centric IDEs.</p>
+<p class="itemText">We prefer worksheets to normal packages for the same situations as one might prefer a REPL over a traditional file: worksheets make it easy to set up simple experiments and ‘see what...</p>
+</li>
+<li>
+<p class="itemTitle">Importing Packages</p>
+<p class="itemText">There are two basic ways of importing a packageYou cannot import a worksheet. into your code: the open import and the named import. The open import is the simplest; to import a package you just import it (sic):</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  import myPackage.</p>
+<p class="itemText"></p>
+<p class="itemText">  -- Use definitions from myPackage</p>
+<p class="itemText">}</p>
+<p class="itemText">You can also import packages outside the worksheet structure:</p>
+<p class="itemText">import myPackage.</p>
+<p class="itemText">worksheet{</p>
+<p class="itemText">  -- Use definitions from myPackage</p>
+<p class="itemText">}</p>
+<p class="itemText">Any definition that is contained in myPackage is available throughout the worksheet (or ot...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Private and Public Imports</p>
+<p class="itemText">By default, when a package is imported, it is privately imported – the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.</p>
+<p class="itemText">However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exp...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Code Products</p>
+<p class="itemText">One important question that must be answered in any scheme that permits importing is “where is the code coming from?”. Star has three architectural elements that are the basis of code management: the code repository, a system of universal resource identifiers (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.</p>
+<p class="itemText">The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not ma...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Code Repository</p>
+<p class="itemText">Apart from simply being a place compiled code can be kept, a code repository has several other responsibilities: it must be possible to access the compiled code from multiple packages — including packages that were imported. In fact, a Star code repository is able to contain the compiled code of any number of packages — since code repositories are also used to hold compiled libraries as well as applications.</p>
+<p class="itemText">In addition, we have to be able to manage multiple versions of a given compiled package;...</p>
+</li>
+<li>
+<p class="itemTitle">Universal Resource Identifier</p>
+<p class="itemText">Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.</p>
+<p class="itemText">The URI has an IETF standard specification (RFC 2396) [#rfc2396].</p>
+<p class="itemText">One important source of confusion with the IETF URI is the distinction between URIs and URLs. Although they share a common syntax a URI is not intended to convey the location of the resource.</p>
+<p class="itemText">For example, the URI</p>
+<p class="itemText">file://foo/bar/x/y.star</p>
+<p class="itemText">looks like a file-based name: one might be tempted to believe that the file x.Star re...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Transducer</p>
+<p class="itemText">The connection between a URI and the actual resource must be established by a transducer. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.</p>
+<p class="itemText">The Star compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.</p>
+</li>
+<li>
+<p class="itemTitle">Standard URI Schemes</p>
+<p class="itemText">Although the Star compiler can, in principle, utilize any URI scheme, some schemes are ‘built-in’ — in the sense that there is a standard transducer for them. It is obviously an implementation dependent aspect of the language: different compilers may support different schemes; but all should support at least the following:</p>
+<p class="itemText">star</p>
+<p class="itemText">E.g. Star://foo/bar/gar.star. This is intended to be used as a system dependent but universal way of identifying Star files. I.e., each system is free to choose how to fi...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Catalogs</p>
+<p class="itemText">A catalog is a mapping from identifiers to package URIs; i.e., it is the missing link between package identifiers and package URIs. Catalogs are sometimes written explicitly — in the form of a file that you can place in the same directory as your source files — but usually the compiler makes an automatic catalog depending on where the source code of a package is actually located.</p>
+<p class="itemText">Like other features, the catalog system is under-pinned by a contract – in this case, the contract is used by the com...</p>
+</li>
+</ul>
+</ul>
 </ul>
 
 </td>

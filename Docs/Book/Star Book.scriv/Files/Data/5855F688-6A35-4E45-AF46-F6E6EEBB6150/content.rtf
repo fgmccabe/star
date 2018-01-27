@@ -71,9 +71,14 @@ For example, to compute the lengths of strings in a list we can use the expressi
 \f2\fs22 sequence
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  contract. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a type variable as the 
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 filterable
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contracts. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a 
 \i type constructor
-\i0  as in 
+\i0  variable as in 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 c[e] 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -89,7 +94,17 @@ We are also using a variant of the quantifier. A quantified type variable of the
 \f2\fs22 c/1
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  denotes a type variable that refers to a type constructor that takes one argument.\
+\f0\fs26  denotes a type constructor variable rather than a regular type variable. In this case, 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 c/1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  means that the variable 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 c
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  must be a type constructor that takes one argument.\
 The reason for this form of contract is that 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 functor
@@ -98,15 +113,28 @@ The reason for this form of contract is that
 \f0\fs26  implies creating a new collection from an old collection; with a possibly different element type. This is only possible if the collection is generic and hence the type expressions 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 c[e]
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  for the second argument type of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 fmap
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  and 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 c[f]
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  for its return type.\cf2 \expnd0\expndtw0\kerning0
+\
+One might ask whether we could not have used functional dependencies in a similar way to 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 sequence
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  and 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 c[f]
+\f2\fs22 filterable
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 .\
-One might ask whether we could not have used a contract of the form:\
+\f0\fs26 ; for example, a contract of the form:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -154,7 +182,17 @@ It is not all that common that we need to construct a list of sizes of strings. 
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 Suppose that we already had a function average that could average a collection of numbers; but which (of course) does not understand people. We can use our average by first of all projecting out the ages and then applying the average function:\
+\f0\fs26 Suppose that we already had a function 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 average
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  that could average a collection of numbers; but which (of course) does not understand people. We can use our 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 average
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  by first of all projecting out the ages and then applying the average function:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -174,7 +212,17 @@ It is not all that common that we need to construct a list of sizes of strings. 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  function.\
-There is something a little magic about the lambda function in this expression: how does the type checker \'91know\'92 that X can have a field age in it? How much does the type checker know about types anyway?\
+There is something a little magic about the lambda function in this expression: how does the type checker \'91know\'92 that 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  can have a field 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 age
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  in it? How much does the type checker know about types anyway?\
 In this particular situation the type checker could infer the type of the lambda via the linking between the type of the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 fmap

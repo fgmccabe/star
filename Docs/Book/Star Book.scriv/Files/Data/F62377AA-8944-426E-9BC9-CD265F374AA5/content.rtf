@@ -49,92 +49,25 @@ A sequence is simply an ordered collection; a sequence expression is an expressi
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 respectively \'97 where c is a type variable. The first is a concrete type expression, the second is a constrained type \'97 a type variable that may only be instantiated with a type that is known to satisfy one or more constraints, in this case to implement the sequence contract.\
-Although the second type expression is longer, and a bit more complex to read, it is also less constraining. The type expression 
+\f0\fs26 respectively \'97 where 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 cons[integer]
+\f2\fs22 c
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.\
-The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:\
-\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 [1,2,..X]\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Ps::0>
-\f0\fs26 denotes the sequence whose first two elements are 1 and 2 and whose remainder is denoted by the variable X \'97 which must also be a sequence of the correct type. Similarly, the term:\
-\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 [F..,23]\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Ps::0>
-\f0\fs26 denotes the sequence obtained by gluing 23 to the back of the sequence F.\
-There is a strong relationship between the normal sequence notation and the partial sequence notation. In particular, the sequence expression\
-\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 cons of [1,2]\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Ps::0>
-\f0\fs26 is equivalent to:\
-\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 cons of [1,..cons of [2,..cons of []]]\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Ps::0>
-\f0\fs26 However, we are not permitted to use both of 
+\f0\fs26  is a type variable. The first is a concrete type expression, the second is a constrained type \'97  in this case 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 ,..
+\f2\fs22 c
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  and 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 ..,
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Cs::1>
-\f0\fs26  in the same expression:\
-\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 [F..,2,3,..B]\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Ps::0>
-\f0\fs26 is not permitted (since it amounts to a concatenation of two sequences which implies a non-deterministic decomposition when used as a pattern).\
-The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type 
-\i and
-\i0  to do so in a syntax which is concise: the only constraint is the sequence contract.\
-For example, we can use sequence notation to write functions over sequences; such as the concat function that concatenates two sequences:\
-\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 concat:all c,e ~~ sequence[c->>e] |: (c,c)=>c.\
-concat([],X) => X.\
-concat([E,..X],Y) => [E,..concat(X,Y)].\
-\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Ps::0>
-\f0\fs26 This function will work equally well with 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 cons
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Cs::1>
-\f0\fs26  lists, lists, strings, even your own collection types. All that is required is that there are implementations of the 
+\f0\fs26  must implement the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 sequence
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  contract for the actual type being concatenated.}
+\f0\fs26  contract.\
+Although the second type expression is longer, and a bit more complex to read, it is also actually less constraining. The type expression 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 cons[integer]
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.}

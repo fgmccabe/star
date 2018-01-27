@@ -36,7 +36,12 @@ sieve([N,..rest]) => [N,..sieve(filterMultiples(N,rest))].\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The complete prime finding program is hardly larger than the original filter specification:\
+\f0\fs26 The complete prime finding program is hardly larger than the original 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 filter
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  specification:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -63,7 +68,14 @@ primes(Max) => let\{\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  function is used to construct a list of numbers, in this case the integer range from 3 through to Max with an increment of 2. We start the sieve with 2 and the list of integers with 3 since we are making use of our prior knowledge that 2 is prime.\
-It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each \'91sweep\'92 of the list of numbers results in a new list of numbers; many of which too will eventually be discarded.\
+It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each \'91sweep\'92 of the list of numbers results in a new list of numbers; many of which too will eventually be discarded. Furthermore, the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 filterMultiples
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function examines every integer in the list; it does not make effective use of the fact that successive multiples occupy predictable slots in the list of integers. In fact, building a highly optimized version of the sieve of Erastosthnese is not actually the main point here \'96 it is to illustrate the power of 
+\b \cf2 Star
+\b0 \cf2 \'92s collections processing functions.\
 We might ask whether the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 sieve

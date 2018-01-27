@@ -235,43 +235,42 @@ We will not go into the details of Star’s code repositories here. However, not
         </Document>
         <Document ID="5855F688-6A35-4E45-AF46-F6E6EEBB6150">
             <Title>Mapping to Make New Collections</Title>
-            <Text>One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The map function – part of the mappable contract – can be used to perform many transformations of collections.
+            <Text>One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The fmap function – part of the functor contract – can be used to perform many transformations of collections.
 For example, to compute the lengths of strings in a list we can use the expression:
-map(size,list of ["alpha","beta","gamma"])
+fmap(size,list of ["alpha","beta","gamma"])
 which results in the list:
 list of [5,4,5]
-The map function is defined via the mappable contract — thus allowing different implementations for different collection types:
-contract all c/1 ~~ mappable[c] is {
-  map:all e,f ~~ ((e)=&gt;f,c[e])=&gt;c[f]
+The fmap function is defined via the functor contract — thus allowing different implementations for different collection types:
+contract all c/1 ~~ functor[c] is {
+  fmap:all e,f ~~ ((e)=&gt;f,c[e])=&gt;c[f]
 }
-Notice how the contract specifies the collection type — c — without specifying the type of the collection’s element type. We are using a different technique here than we used for the sequence contract. Instead of using functional dependency to connect the type of the collection to the type of the element, we denote the full type of the input and output collections using a type variable as the type constructor as in c[e] and c[f].
-We are also using a variant of the quantifier. A quantified type variable of the form c/1 denotes a type variable that refers to a type constructor that takes one argument.
-The reason for this form of contract is that mappable implies creating a new collection from an old collection; with a possibly different element type. This is only possible if the collection is generic and hence the type expressions c[e] and c[f].
-One might ask whether we could not have used a contract of the form:
-  contract all c,e,f ~~ mappable2[c-&gt;&gt;e,f] ::=  {
-    map:((e)=&gt;f,c)=&gt;c.
+Notice how the contract specifies the collection type — c — without specifying the type of the collection’s element type. We are using a different technique here than we used for the sequence and filterable contracts. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a type constructor variable as in c[e] and c[f].
+We are also using a variant of the quantifier. A quantified type variable of the form c/1 denotes a type constructor variable rather than a regular type variable. In this case, c/1 means that the variable c must be a type constructor that takes one argument.
+The reason for this form of contract is that functor implies creating a new collection from an old collection; with a possibly different element type. This is only possible if the collection is generic and hence the type expressions c[e] for the second argument type of fmap and c[f] for its return type.
+One might ask whether we could not have used functional dependencies in a similar way to sequence and filterable; for example, a contract of the form:
+  contract all c,e,f ~~ mappable[c-&gt;&gt;e,f] ::=  {
+    mmap:((e)=&gt;f,c)=&gt;c.
   }
-However, this contract forces the types of the result of the map to be identical to its input type, it also allows the implementer of the mappable2 contract to fix the types of the collection elements — not at all what we want from a map.
-It is not all that common that we need to construct a list of sizes of strings. A much more realistic use of map is for projection. For example, if we wanted to compute the average age of a collection of people, which is characterized by the type definition:
+However, this contract forces the types of the result of the mmap to be identical to its input type, it also allows the implementer of the mappable contract to fix the types of the collection elements — not at all what we want from a fmap.
+It is not all that common that we need to construct a list of sizes of strings. A much more realistic use of fmap is for projection. For example, if we wanted to compute the average age of a collection of people, which is characterized by the type definition:
 person ::= someOne{
   name:string.
   age:()=&gt;float.
 }
 Suppose that we already had a function average that could average a collection of numbers; but which (of course) does not understand people. We can use our average by first of all projecting out the ages and then applying the average function:
-average(map((X)=&gt;X.age(),People))
+average(fmap((X)=&gt;X.age(),People))
 In this expression we project out from the People collection the ages of the people and then use that as input to the average function.
 There is something a little magic about the lambda function in this expression: how does the type checker ‘know’ that X can have a field age in it? How much does the type checker know about types anyway?
-In this particular situation the type checker could infer the type of the lambda via the linking between the type of the map function and the type of the People variable. However, the type checker is actually capable of giving a type to the lambda even without this context. Consider the function:
+In this particular situation the type checker could infer the type of the lambda via the linking between the type of the fmap function and the type of the People variable. However, the type checker is actually capable of giving a type to the lambda even without this context. Consider the function:
 nameOf(R) =&gt; R.name
-This function takes an arbitrary record as input and returns the value of the name field. Notice that we don’t, and do not need to, explicitly annotate the nameOf function — this function will work with any record that has a name field.
-The nameOf function is well typed, its type annotation just needs a slightly different form than that we have seen so far:
-nameOf:all r,n ~~
-   r &lt;~ {name:n} |: (r)=&gt;n
+This function takes an arbitrary record as input and returns the value of the name field. The nameOf function is well typed, its type annotation just needs a slightly different form than that we have seen so far:
+nameOf:all r,n ~~ r &lt;~ {name:n} |: (r)=&gt;n
 This is another example of a constrained type: in this case, the constraint on r is that it has a field called name whose type is the same as that returned by nameOf itself.
 The type constraint:
 r &lt;~ {name:n}
 means that any type bound to r must have a name field whose type is denoted by the type variable n in this case.
-With this type signature, we can use nameOf with any type that that a name field. This can be a record type; it can also be a type defined with an algebraic type definition.</Text>
+With this type signature, we can use nameOf with any type that that a name field. This can be a record type; it can also be a type defined with an algebraic type definition that includes a record constructor.</Text>
+            <Comments>This also means that the collection type in fmap must be generic: it is not possible to implement functor for strings.</Comments>
         </Document>
         <Document ID="C4EF0362-9FB3-4B1F-AB5E-B7CB6F16734B">
             <Title>A Component in Star[a-component-in-Star]</Title>
@@ -447,7 +446,7 @@ primes(Max) =&gt; let{
   iota(Cx,St) =&gt; [Cx,..iota(Cx+St,St)].
 } in [2,..sieve(iota(3,2))]
 The iota function is used to construct a list of numbers, in this case the integer range from 3 through to Max with an increment of 2. We start the sieve with 2 and the list of integers with 3 since we are making use of our prior knowledge that 2 is prime.
-It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each ‘sweep’ of the list of numbers results in a new list of numbers; many of which too will eventually be discarded.
+It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each ‘sweep’ of the list of numbers results in a new list of numbers; many of which too will eventually be discarded. Furthermore, the filterMultiples function examines every integer in the list; it does not make effective use of the fact that successive multiples occupy predictable slots in the list of integers. In fact, building a highly optimized version of the sieve of Erastosthnese is not actually the main point here – it is to illustrate the power of Star’s collections processing functions.
 We might ask whether the sieve function can also be expressed as a filter. The straightforward answer is that it cannot: the sieve is a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard filter function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.</Text>
         </Document>
         <Document ID="CE3E8CAA-6CAE-4253-AEA7-9F7CF73B5448">
@@ -457,6 +456,9 @@ In general, asynchrony increases the potential for parallelism; it also increase
 One pattern that makes inherent use of asynchronous communication is the worker-queue pattern. The worker-queue pattern consists of a source of ‘work’, a queue to hold unfinished work items and one or more ‘workers’ that perform a typically compute intensive task on each item. For example, an image rendering farm might consist of an image generator, a queue and a set of image renderers. (Image rendering, such as resizing an image encoded in JPEG or converting from one form to another, often takes considerable compute resources.)
 Our focus here will be on the implementation of the queue, rather than the implementation of any image rendering process.
 Other patterns that make use of asynchronous communications include the publish-subscribe and the actor patterns. In applications where there is essentially a one-way flow of information from publishers to subscribers there is less need to tightly synchronize communications. Similarly, actors denote semi-autonomous activities that collaborate with each other to solve shared goals. In fact, almost every multi-user application can be modeled in terms of agents.</Text>
+        </Document>
+        <Document ID="09207F79-BF79-406C-B420-C68496956E8E">
+            <Title>Appendix</Title>
         </Document>
         <Document ID="EEB7CF66-23BF-4AE3-9BB6-BE9E2DEC331B">
             <Title>Meta Language[meta-language]</Title>
@@ -482,10 +484,12 @@ The special feature of macro programs is that they are invoked by the compiler o
             <Text>What does it mean to have a type in a record? From a programmer’s point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn’t have types in it. However, the logic of this bears a deeper look.
 The declaration of the foo type involves the use of an existential quantifier:
 simple:exists f/1 ~~ {
-  foo ~&gt; f.
   ...
 }
-The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that foo exists and is a type constructor of 1 argument.</Text>
+The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that f exists and is a type constructor of 1 argument.
+The statement:
+  all t ~~ foo[t] ~&gt; f[t].
+is actually a normal type alias statement. It states that the type </Text>
         </Document>
         <Document ID="87331D24-0387-4B16-A93F-BA6C1C57FBDA">
             <Title>Types, More Types and Even More Types</Title>
@@ -508,9 +512,9 @@ I.e., everything you thought you knew about integers may or may not apply to the
             <Title>Collections</Title>
             <Text>Modern programming — whether it is OO programming, functional programming or just plain C programming — relies on a rich standard library. Given that nearly every program needs to be able to manage collections of things, the central pearl of any standard library is the collections library. Recalling our mantra of hiding recursion; a well designed collections library can make a huge difference to the programmer’s productivity, often by hiding many of the recursions and iterations required to process collections.
 The collections architecture in Star has four main components:
-	1.	a range of standard collection types — including array-like lists, cons lists, red-black trees, first-in first-out queues, and dictionaries; 
-	2.	a range of standard functions — mostly defined in contracts — that define the core capabilities of functions over collection; 
-	3.	special notations that make programming with collections in a type independent way more straightforward; and 
+	1.	a range of standard collection types — including array-like lists, cons lists, red-black trees, first-in first-out queues, and dictionaries;
+	2.	a range of standard functions — mostly defined in contracts — that define the core capabilities of functions over collection;
+	3.	special notations that make programming with collections in a type independent way more straightforward; and
 	4.	the final major component of the collections architecture is queries. Star has a simple yet powerful set of features aimed at simplifying querying collections.</Text>
         </Document>
         <Document ID="B416D9BA-4D3F-4899-8E12-7388F398863A">
@@ -525,7 +529,7 @@ As we noted above, Star is a rich language with many features. As a result, some
             <Title>Index Slices</Title>
             <Text>Related to accessing and manipulating individual elements of collections are the indexed slice operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:
 C[fx:tx]
-denotes the subsequence of C starting — and including — the element indexed at fx and ending — but not including the element indexed at tx.
+denotes the subsequence of C starting with — and including — the element indexed at fx and ending — but not including the element indexed at tx.
 As might be expected, the index slice notation is also governed by a contract — the sliceable contract. This contract defines the core functions for slicing collections and for updating subsequences of collections:
 contract all s,k ~~ sliceable[s-&gt;&gt;k] ::= {
   _slice:(s,k,k)=&gt;s.
@@ -557,8 +561,8 @@ In this case, the pattern abstraction is critical because general sequence notat
 Pattern abstractions are applied using the same application notation as for function application; for example, the _pair pattern in
 first:all c,e ~~ sequence[c-&gt;&gt;e] |: (c)=&gt;e.
 first(_pair(H,T)) =&gt; H.
-is a pattern that is applied to the argument of first. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables H and T in the call to _pair will be bound to the first element of the collection and the remainder respectively.
-For example, applying _pair to [1,2] binds H to the value 1 and binds T to the sequence [2]. The value returned by first will be 1. We can combine pattern applications in an exactly analogous manner to the way we combine function calls.
+is a pattern abstraction that is applied to the argument of first. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables H and T in the call to _pair will be bound to the first element of the collection and the remainder respectively.
+For example, applying _pair(H,T) to [1,2] binds H to the value 1 and binds T to the sequence [2]. The value returned by first will be 1. We can combine pattern applications in an exactly analogous manner to the way we combine function calls.
 Obviously, there must also be a way of defining pattern abstractions. We can define a cPair pattern abstraction that applies to cons lists thus:
 cPair:all e ~~ (e,cons[e])&lt;=cons[e].
 cPair(H,T) &lt;= cons(H,T).
@@ -581,7 +585,7 @@ single:all c,e ~~ sequence[c-&gt;&gt;e] |: (c)=&gt;e.
 single([H]) =&gt; H
 which is a function that only matches singleton sequences requires two pattern applications from the sequence contract:
 single(_pair(H,_empty())) =&gt; H
-The sequence contract is one of the most important and commonly used contracts in the Star library. As we shall see further, many of the standard functions are built on top of the sequence contract.</Text>
+The sequence contract is one of the most important and commonly used contracts in the Star library. As we shall see further, many of the standard collections functions are built on top of it.</Text>
         </Document>
         <Document ID="8C6974CC-7B21-4DE5-B49A-13C8896CB47F">
             <Title>The Sequence Contract</Title>
@@ -596,17 +600,21 @@ contract sequence[t-&gt;&gt;e] ::= {
   _back:(t,e)&lt;=t. -- match back
 }
 The first three entries in this contract should be fairly self-evident:
-	•	_nil is a function that returns an empty sequence;This could also have been a simple value.
+	•	_nil is a function that returns an empty sequence;
 	•	_cons is a function that ‘glues’ a new element to the front of the collection; and
 	•	_apnd appends elements to the back of the collection.
-The compiler uses these three functions to transform sequence expressions into function calls. For example, the sequence expression:
+The compiler uses these three functions to transform sequence expressions into function calls. 
+For example, the sequence expression:
 [1,2,3]
 is transformed into
 _cons(1,_cons(2,_cons(3,_nil())))
-If a sequence expression has an explicit type marker on it, then its translation is slightly different — to allow the type checker to make use of the type information. For example, cons of [1,2] is translated as:
+If a sequence expression has an explicit type marker on it, then its translation is slightly different — to allow the type checker to make use of the type information. For example, 
+cons of [1,2]
+is translated as:
 _cons(1,_cons(2,_nil())):cons[_]
-This annotation is all that is needed to force the compiler to treat the result as a concrete cons list. Type inference does the rest of the hard work.
-The type expression _ is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.</Text>
+This annotation is all that is needed to force the compiler to treat the result as a concrete cons list. Type inference does the rest of the hard work.</Text>
+            <Comments>This could also have been a simple value.
+The type expression _ is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.</Comments>
         </Document>
         <Document ID="44BCD44F-C15C-4CBF-959A-1A4C0FC1AFBA">
             <Title>What is Functional Programming?</Title>
@@ -614,7 +622,9 @@ The type expression _ is a special type that denotes an anonymous type: each occ
 	1.	Programs are expressed in terms of functions, where a somewhat mathematical view of functions is taken — functions always produce the same output for the same input. This is what people mean when they say that functional programs are declarative.
 	2.	Functions are values: they can be passed as arguments to functions, returned from functions, and they can be put into and retrieved from data structures.
 This last principle is what people mean when they refer to functions as being first class values. It is also what is meant when we say that functional programming languages are higher order.
-Star is not actually a pure functional programming language; i.e., it is possible to write programs that violate the declarative principle. However, it is a functional-first programming language: a declarative style is strongly encouraged. In this chapter we shall focus on writing pure functional programs in Star.</Text>
+It is worth asking why these two principles are so important. Although most early programmers were mathematicians; one would not have seen much evidence of mathematical thinking in the way that people program. However, almost by accident, programming and mathematics share some attributes: the importance of composition and the power of abstraction. Functional programming is almost ideally placed to exploit both of these to the full.
+Star is not actually a pure functional programming language; i.e., it is possible to write programs that violate the declarative principle. However, it is a functional-first programming language: a declarative style is strongly encouraged. In this book we shall mostly focus on writing pure functional programs in Star.
+</Text>
             <Comments>The term declarative has a technical definition. But this captures much of the essence of declarativeness (sic).</Comments>
         </Document>
         <Document ID="B8F8E3CD-1E05-4966-BE2C-6651CD48C0A4">
@@ -624,7 +634,7 @@ Star is not actually a pure functional programming language; i.e., it is possibl
 On the other hand, if we want a fixed number, then we use:
 { 5 of (X,Y) where ... }
 Of course, there might not be five answers, and so this is called a bounded QuantifierTerm.
-We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of Star’s most powerful and high-level features.</Text>
+We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of Star’s most powerful high-level features.</Text>
         </Document>
         <Document ID="FE0B0903-65A9-4DEF-85A4-45F9EE63FB4B">
             <Title>The filterable contract</Title>
@@ -724,21 +734,24 @@ When the code base is over 500 Kloc, the theoretical probability of being able t
 The need to repurpose reflects the fact that requirements change and that software written for one purpose may be used for something different. Finally, even if the requirements dont change, the context almost certainly will: increasing workload can lead to a need to refactor existing code to enable it to meet changing needs.</Text>
         </Document>
         <Document ID="EAAFEE6B-5316-410E-8511-9C8C97F642DB">
-            <Title>Existentialism</Title>
-            <Text>If we take a slightly deeper look at the package we will see some surprising features; features that are sadly not very common in programming languages.
-Lets start with a super simple source package:
+            <Title>Packages are Records</Title>
+            <Text>If we take a slightly deeper look at Star’s package we will see some surprising features; features that are sadly not very common in programming languages.
+Let’s start with a super simple source package:
 ss{
   public double:(integer)=&gt;integer.
   double(X) is X*2.
 }
-This package structure is semantically equivalent to:
+This package structure is semantically equivalent to a function:
 ss:{double:(integer)=&gt;integer}.
 ss = let{
   public double:(integer)=&gt;integer.
   double(X) is X*2
 } in {. double=double .}
 In effect, a package reduces to a variable declaration whose type is a record type and whose value is an anonymous record of all the functions defined in the package.
-What about types though? Star allows us to export types from packages too:
+The special form:
+{. double=double .}
+is a record structure; the periods in the braces signify that the record is not recursive: the definitions within the record cannot reference each other.
+What about types though? Like other programming languagesm Star allows us to export types from packages too:
 simple{
   all t ~~ foo[t] ::= foo(t) | bar.
 
@@ -746,18 +759,19 @@ simple{
   fooMe(X) =&gt; foo(X)
 }
 Exporting types — and their constructors — is an extremely important part of the package functionality. However, it turns out that we can account for types too in our semantics of packages. Similarly to our previous unfolding, the simple package is equivalent to:
-simple: exists foo/1 ~~ {
-  foo:all t ~~ (t)&lt;=&gt;foo[t].
-  bar:all t ~~ foo[t].
-  fooMe:all t ~~ (t)=&gt;foo[t].
+simple: exists f/1 ~~ {
+  type foo/1.
+  foo:all t ~~ (t)&lt;=&gt;f[t].
+  bar:all t ~~ f[t].
+  fooMe:all t ~~ (t)=&gt;f[t].
 }
 simple = let{
   all t ~~ foo[t] ::= foo(t) | bar.
 
   fooMe:all t ~~ (t)=&gt;foo[t].
   fooMe(X) =&gt; foo(X)
-} in {. type foo=foo. foo=foo. bar=bar. fooMe=fooMe .}
-. This is clearly quite a bit more complex than our super-simple example; but the basic story is still there: a package consists of a variable definition whose value is an anonymous record. In this case, the anonymous record contains a type, two constructors as well as a regular function.
+} in {. type f=foo. foo=foo. bar=bar. fooMe=fooMe .}
+This is clearly quite a bit more complex than our super-simple example; but the basic story is still there: a package consists of a variable definition whose value is an anonymous record. In this case, the anonymous record contains a type, two constructors as well as a regular function.
 Having constructors in a type is only a small extension to the conventional notion of a record — while many languages restrict records to containing just data values, most functional programming languages do allow functions in records. A constructor is just a special kind of function.
 On the other hand, having a type in a record is quite different.</Text>
         </Document>
@@ -957,35 +971,36 @@ This notation is not quite a complete ‘spanning set’ if the end goal is to c
         </Document>
         <Document ID="4DC87F46-C118-4DE7-B296-B90ABDD9E8FB">
             <Title>Queries</Title>
-            <Text>Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a list of parents and children:
+            <Text>Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a list of pairs - each pair indicating a parent and child:
 parent:list[(string,string)].
 parent = [("john","peter), ("peter","jane"), ... ].
-and that we wanted to construct a result along the lines of:
+and that we wanted to construct a result list – also pairs – along the lines of:
 GC:list[(string,string)].
 GC = [("john","jane"),...].
-This involves searching the parents for pairs or pairs that satisfy the grandparent relationship. Based on the collection operators we have seen so far, we can build such a search using two leftFold operations:
+Computing the list grandparent/grandchildren pairs involves searching the parents for pairs  that satisfy the grandparent relationship. This involves a double iteration: each pair in the parents list might represent the upper or lower half of a grandparent/grandchild relationship. Based on the collection operators we have seen so far, we can build such a search using two leftFold operations:
 leftFold(
   (SoFar,(X,Z)) =&gt; leftFold(
     let {
       acc:(list[(string,string)],(string,string))=&gt;list[(string,string)].
       acc(gp1,(ZZ,Y)) where Z==ZZ =&gt; [gp1..,(X,Y)].
-      acc(gp1,_) =&gt; gp1
+      acc(gp1,_) =&gt; gp1.
     } in acc,
     SoFar,parent),
   list of [],
   parent)
 This, rather intimidating, expression uses one leftFold to look for the grandparent, for each candidate grandparent a second leftFold finds all the grand-children. All without any explicit recursion.
 The acc function defined above in the let expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
-The various filter, map and leftFold functions are powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+The various filter, fmap and leftFold functions are powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
 It turns out that Star has a special notation that makes this kind of complex computation significantly easier to write and comprehend. Star’s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
 GC = list of { all (X,Y) where
                       (X,Z) in parent &amp;&amp; (Z,Y) in parent }
-It may not be obvious, but these expressions compute the same values! What should be obvious is that the query is much easier to read and easier to verify that it is correct.
+It may not be obvious, but these expressions compute the same values. What should be obvious is that the query is much easier to read and easier to verify that it is correct.
 The syntax and style of Star’s query notation is similar to SQL’s syntax — deliberately so.
 Specifically, we take SQL’s relational calculus subset — the language of wheres and of boolean combinations. Star’s query expressions do not have the equivalent of explicit relational join operators.
 There are several variations of query expression, but the most common form is:
 SequenceType of { QuantifierTerm where Condition Modifier }
 where SequenceType is any type name that implements the sequence contract, QuantifierTerm is a form that indicates the form of the result of the query, Condition is a condition and the optional Modifier is used to signal properties of the result — such as whether the result is grouped or sorted.</Text>
+            <Comments>There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!</Comments>
         </Document>
         <Document ID="5372808E-9B3B-40C7-8058-28764840DF39">
             <Title>Comment</Title>
@@ -1032,9 +1047,10 @@ This is one of those somewhat pedantic notes!</Comments>
             <Title>Boiling the Ocean</Title>
             <Text>It is a commonplace in software engineering that you should not try to ‘boil the ocean’; which is a synonym for ‘biting off more than you can chew’. However, it is possible to build very large scale systems if you approach it in the right way. This is the purview of architecture and of software development teams.
 The ‘right’ way to boil an ocean is one cup at a time. The ‘smart’ way to do it is to build a machine that makes cups that boil the ocean.
-Building software in the context of a team is quite different to writing individual functions in a program. It is not enough for your code to compute the correct function; it must also interact properly with the environment it is in. As a result, professional programmers find themselves often more concerned with making sure that all the ‘pieces’ are in the right place than simply the correctness of an algorithm.This is not to deny that correctness is important. It is just that algorithm correctness is not enough. Interfaces, contracts, APIs and integration issues often dominate the system builder’s landscape.
-One’s attitude to basic language features like types is also different: having to deal with the knowledge that is in your co-worker’s head (and not yours) should be enough to convince anyone of the merits of strong static types.
+Building software in the context of a team is quite different to writing individual functions in a program. It is not enough for your code to compute the correct function; it must also interact properly with the environment it is in. As a result, professional programmers find themselves often more concerned with making sure that all the ‘pieces’ are in the right place than simply the correctness of an algorithm. Interfaces, contracts, APIs and integration issues often dominate the system builder’s landscape.
+One’s attitude to basic language features like types is also different: having to deal with the knowledge that is in your co-worker’s head (and not in yours) should be enough to convince anyone of the merits of strong static types.
 Star’s modularity features are built from the same functional programming foundation as the other features of the language. This has important implications for the programmability of larger systems.</Text>
+            <Comments>This is not to deny that correctness is important. It is just that algorithm correctness is not enough.</Comments>
         </Document>
         <Document ID="E2994B4F-05AF-4F0D-96AA-A8036DBDC38B">
             <Title>Chattering Agents</Title>
@@ -1071,8 +1087,8 @@ Star’s query expressions — which are similar to but also more expressive tha
 Of course, SQL programmers have long had access to this kind of conciseness and declarative expressiveness. However, SQL is constrained by the fact that it is intended to represent queries and actions over a very particular form of data — the relational table.</Text>
         </Document>
         <Document ID="4FAA6B1B-12CF-46C9-9C53-6CF5581C2E7F">
-            <Title>Let Binding Environments[let-binding-environments]</Title>
-            <Text>We noted that it is difficult to achieve the effect of the (X)=&gt;X==S lambda expression with named functions. The reason is that the free variable S is defined as a parameter to the check function — in particular, the lambda is not defined in the same way that named functions are defined. If we wanted to define a named function which also captures S, we would have to be able to define functions inside expressions.
+            <Title>Let Binding Environments</Title>
+            <Text>We noted that it is difficult to achieve the effect of the (X)=&gt;X==S lambda expression with named functions. The reason is that the lambda is not defined in the same way that named functions are defined — because it occurs as an expression not as a statement. If we wanted to define a named function which also captures S, we would have to be able to define functions inside expressions.
 There is an expression that allows us to do this: the let expression. A let expression allows us to introduce local definitions anywhere within an expression. We can define our lambda as the named function isS using the let expression:
 let{
   isS:(string)=&gt;boolean.
@@ -1084,18 +1100,14 @@ check(T,S) =&gt; fTest(T,
     isS:(string)=&gt;boolean.
     isS(X) =&gt; X==S.
   } in isS)
-This is a somewhat long-winded way of achieving what we did with the anonymous lambda function. However, there is a strong inter-relationship between anonymous lambdas, let expressions and variable definitions. These are all equivalent:
-let{
-    isS:(string)=&gt;boolean.
-    isS(X) =&gt; X==S.
-} in isS
+This is a somewhat long-winded way of achieving what we did with the anonymous lambda function — we would not normally recommend this way of writing the check function as it is significantly more complicated than our earlier version. However, there is a strong inter-relationship between anonymous lambdas, let expressions and variable definitions. In particular, these are equivalent:
 let{
   isS:(string)=&gt;boolean.
   isS = (X) =&gt; X==S
 } in isS
 and
 (X)=&gt;X==S
-Apart from being long-winded, the let expression is significantly more flexible than a simple lambda. It is much easier within a let expression to define functions with more than one rewrite equation; or to define multiple functions. We can even define local types within a let binding environment.
+Apart from being long-winded, the let expression is significantly more flexible than a simple lambda. It is much easier within a let expression to define functions with more than one rewrite equation; or to define multiple functions. We can even define local types within the let binding environment.
 Conversely, lambda functions are so compact because they have strong limitations: you cannot easily define a multi-rewrite equation function with a lambda and you cannot easily define a recursive function as a lambda.
 In short, we would use a let expression when the function being defined is at all complex; and we would use a lambda when the function being defined is simple and small.
 Assembling functions in this way, either by using anonymous lambdas or by using let expressions, is one of the hallmarks of functional programming.</Text>
@@ -1240,14 +1252,15 @@ check(T,S) =&gt; fTest(T,(X)=&gt;X==S)
 We have a new form of expression here: the anonymous function or lambda expression. The expression
 (X)=&gt;X==S
 denotes a function of one argument, which returns true if its argument is the same value as S.
-Free variables are a powerful feature of functional programming languages because they have an encapsulating effect (the lambda encapsulates the free variable so that the fTest function does not need knowledge of S).
-Interestingly, it would be difficult to define a top-level function that is equivalent to this lambda because of the occurrence of the variable S in the body of the lambda. This is an example of a free variable: a variable that is mentioned in the body of a function but which is defined outside the function. Because S is free, because it is not mentioned in the arguments, one cannot simply have a function which is equivalent to the lambda as a top-level function.</Text>
+Interestingly, it would be difficult to define a top-level function that is equivalent to this lambda because of the occurrence of the variable S in the body of the lambda. This is an example of a free variable: a variable that is mentioned in the body of a function but which is defined outside the function. Because S is free, because it is not mentioned in the arguments, one cannot simply have a function which is equivalent to the lambda as a top-level function.
+Free variables are a powerful feature of functional programming languages because they have an encapsulating effect:  in this case the lambda encapsulates the free variable so that the fTest function does not need knowledge of S.
+</Text>
         </Document>
         <Document ID="5FF6F734-FE66-4497-9EAD-7CBBB3B733E9">
-            <Title>Generic Types[generic-types]</Title>
+            <Title>Generic Types</Title>
             <Text>What actually makes fTest more constrained than it could be is the type definition of sTree itself. It too is unnecessarily restrictive: why not allow trees of any type? We can, using the type definition for tree:
 all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).
-Like the original sTree type definition, this statement introduces a new type: tree[t] which can be read as ‘tree of something’. The name tree is not actually a type identifier — although we often refer to the tree type — but is a type constructor.
+Like the original sTree type definition, this statement introduces a new type: tree[t] which can be read as ‘tree of something’. The name tree is not actually a type identifier — although we often refer to the tree type — but it is a type constructor.
 In an analogous fashion to constructor functions, a type constructor constructs types from other types. Type constructors are even bijections — one-to-one functions from types to types.
 The identifier t in the type definition for tree denotes a type variable. Again, similarly to regular variables and parameters, a type variable denotes a single unspecified type. The role of the type variable t is like a parameter in a function: it identifies the unknown type and its role.
 The tree type is a universally quantified type. What that means is that instead of defining a single type it defines a family of related types: for example:
@@ -1259,13 +1272,13 @@ tree[tree[string]]
 We capture this genericity of the tree type by using a universal quantifier:
 all t ~~ tree[t]
 What this type expression denotes is a set of possible types: for any type t, tree[t] is also a type. There are infinitely many such types of course.
-The all quantifier is important: as in logic, there are two kinds of quantifiers in Star’s type system: the universal all and the existential exists. We will take a deeper look at the latter in a later chapter on modular programming.
+The all quantifier is important: as in logic, there are two kinds of quantifiers in Star’s type system: the universal quantifier all and the existential quantifier exists. We will take a deeper look at the latter in a later chapter when we look deeper at modular programming.
 Star uses context to determine whether an identifier is a type variable or a type name. Specifically, if an identifier is bound by a quantifier then it must refer to a type variable.
 The types of the two constructors introduced in the tree type definition are similarly quantified:
-tEmpty:all t ~~ tree[t]
-.tNode:all t ~~ (tree[t],t,tree[t)]&lt;=&gt;tree[t].
+tEmpty:all t ~~ tree[t].
+tNode:all t ~~ (tree[t],t,tree[t)]&lt;=&gt;tree[t].
 The type tree[t] on the right hand side of tEmpty’s type annotation raises a couple of interesting points:
-	1.	This looks like a type annotation with no associated definition. The fact that the tEmpty symbol was originally introduced in a type definition is enough of a signal for the compiler to avoid looking for a definition for the name. 
+	1.	This looks like a type annotation with no associated definition. The fact that the tEmpty symbol was originally introduced in a type definition is enough of a signal for the compiler to avoid looking for a definition for the name.
 	2.	The type of a literal tEmpty expression — assuming that no further information is available — will be of the form tree[t34] where t34 is a ‘new’ type variable not occurring anywhere else in the program. In effect, the type of tEmpty is tree of some type t34 where we don’t know anything more about t34.</Text>
         </Document>
         <Document ID="67214C4B-A175-4498-9FD7-53BDED8BA242">
@@ -1397,8 +1410,7 @@ The Star compiler has a range of transducers built-in to it; and also has a exte
         </Document>
         <Document ID="F74D32DE-B624-4D96-AD66-77C3B5612B20">
             <Title>Basics</Title>
-            <Text>There are two variants of function — the anonymous or lambda function and the named function. We have already seen some simple examples both forms; for now, we continue to focus on named functions.
-It is often easier to introduce functional programming using numerical examples. Last chapter we saw, for example, the factorial program. This is mostly because most programmers are already familiar with numbers. Continuing that tradition, here is a function that returns the sign of a number:
+            <Text>It is often easier to introduce functional programming using numerical examples. Last chapter we saw, for example, the factorial program. This is mostly because most programmers are already familiar with numbers. Continuing that tradition, here is a function that returns the sign of a number:
 sign:(integer) =&gt; integer.
 sign(X) where X&lt;0 =&gt; -1.
 sign(0) =&gt; 0.
@@ -1414,6 +1426,7 @@ sign(X) where X&lt;0 =&gt; -1.
 sign(0) =&gt; 0.
 sign(X) default =&gt; 1.
 An explicitly marked default equation does not need to be the last equation; but, wherever it is written, default equations are only attempted after all other equations have failed to apply.</Text>
+            <Comments>There is a theorem — called the Church Rosser Theorem — that guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to require programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.</Comments>
         </Document>
         <Document ID="3FE72617-6BC9-44E8-8C48-8424BA92465E">
             <Title>A Taxonomy of Agents[a-taxonomy-of-agents]</Title>
@@ -1525,10 +1538,11 @@ as it produces an integer value.</Text>
         </Document>
         <Document ID="0203591A-3978-471E-925A-EB6DEF00B015">
             <Title>Adding and Removing Elements From a Collection</Title>
-            <Text>The function _set_indexed is used to add an element to a collection associating it with a particular index position; and the function delete_indexed removes an identified element from the collection.
-Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on _persistent data structures_A persistent structure is one which is never modified. and on declarative programming.
+            <Text>The function _set_indexed is used to add an element to a collection associating it with a particular index position; and the function _delete_indexed removes an identified element from the collection.
+Both of these functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on persistent data structures and on declarative programming.
 One might believe that this is a bit wasteful and expensive — returning new collections instead of side-effecting the collection. However, that is something of a misconception: modern functional data structures have excellent computational properties and approach the best side-effecting structures in efficiency. At the same time, persistent data structures have many advantages — including substantially better correctness properties and behavior in parallel execution contexts.
 It should also be stressed that the indexable contract allows and encourages persistence but does not enforce it. It is quite possible to implement indexing for data structures that are not persistent.</Text>
+            <Comments>A persistent structure is one which is never modified.</Comments>
         </Document>
         <Document ID="CD1800D1-0F12-4B86-AD24-4E703F0AEF54">
             <Title>Embedding Graphs[embedding-graphs]</Title>
@@ -1563,18 +1577,18 @@ Since a layered approach means that any given description may be incomplete or s
         </Document>
         <Document ID="17D72D59-F230-4554-A7F7-79E7401E1526">
             <Title>Filtering With filter</Title>
-            <Text>The simplest operation on a collection is to subset it. The standard function filter allows us to do this with some elegance.
-Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:
+            <Text>The simplest operation on a collection is to subset it. The standard function filter allows us to do this with some elegance. Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:
 filter((X)=&gt;X%2==0,Nums)
 For example, if Nums were the list:
 list of [1,2,3,4,5,6,7,8,9]
 then the value of the filter expression would be
 list of [2,4,6,8]
-The first argument to filter is a predicate: a function that returns a boolean value. The filter function (which is part of a standard contract) is required to apply the predicate to every element of its second argument and return a new collection of every element that satisfies the predicate.The original collection is unaffected by the filter.
+The first argument to filter is a predicate: a function that returns a boolean value. The filter function (which is part of a standard contract) is required to apply the predicate to every element of its second argument and return a new collection of every element that satisfies the predicate.
 Note that the % function is arithmetic remainder, and the expression X%2==0 amounts to a test that X is even (its remainder modulo 2 is 0).
 By using a function argument to represent the predicate it is possible to construct many filtering algorithms whilst not making any recursion explicit. However, not all filters are easily handled in this way; for example, a prime number filter can be written
 filter(isPrime,N)
 but such an expression is likely to be very expensive (the isPrime test is difficult to do well).</Text>
+            <Comments>The original collection is unaffected by the filter.</Comments>
         </Document>
         <Document ID="758594EB-4005-4184-A4B3-3301CB58CF79">
             <Title>Cover</Title>
@@ -1652,10 +1666,9 @@ will only complete if there is a task that is waiting for the message. So this s
         </Document>
         <Document ID="8AEC929A-ECD3-4FF5-9C39-C470EE03CF7B">
             <Title>The Index Notation</Title>
-            <Text>Given the indexable contract we can now show the specific notation that Star has for accessing elements of a collection.
-Accessing a collection by index follows conventional notation:
+            <Text>Given the indexable contract we can now show the specific notation that Star has for accessing elements of a collection. Accessing a collection by index follows conventional notation:
 C[ix]
-will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with alpha using:
+will access the collection C with element identified by ix. For example, given a dictionary D of strings to strings, we can access the entry associated with “alpha” using:
 D["alpha"]
 Similarly, we can access the third character in a string S using:
 S[2]
@@ -1678,16 +1691,19 @@ which denotes the dictionary D where the value associated with the key "gamma" h
 In addition to these forms, there is also a test expression:
 present D["delta"]
 which is a predicate that is true if the dictionary D contains an entry for "delta".
-Although, in these examples, we have assumed that D is a dictionary value (where dictionary is a standard type in Star); in fact the index notation does not specify the type. As with the sequence notation, the only requirement is that the indexable contract is implemented for the collection being indexed.
+Although, in these examples, we have assumed that D is a dictionary value (which is a standard type in Star); in fact the index notation does not specify the type. As with the sequence notation, the only requirement is that the indexable contract is implemented for the collection being indexed.
 In particular, index notation is supported for the built-in list types, and is even supported for the string type.
 In addition to the indexed access notation described so far, Star also allows a variant of the sequence notation for constructing indexable literals (aka dictionaries). In particular, an expression of the form:
 ["alpha"-&gt;1, "beta"-&gt;2, "gamma"-&gt;3]
-is equivalent to a sequence of tuples, or to: _cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil()))) which is understood by indexable types as denoting the contruction of a literal.
+is equivalent to a sequence of tuples, or to: 
+_cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil()))) 
+which is understood by indexable types as denoting the contruction of a literal.
 Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexable types: they should implement a specific form of sequence contract. Both are actually part of the semantics of representing indexable literals.</Text>
         </Document>
         <Document ID="B5F004D8-3919-461F-85D7-00415199CE6C">
-            <Title>Generic Programs[generic-programs] If we take a slightly closer look at fTest, we can see that it seems pretty generic: it has a function as argument that it calls in the right places; but otherwise makes few assumptions about the function it calls. However, the type annotation of fTest is rather specific:</Title>
-            <Text>fTest : (sTree,(string)=&gt;boolean)=&gt;boolean
+            <Title>Generic Programs</Title>
+            <Text>If we take a slightly closer look at fTest, we can see that it seems pretty generic: it has a function as argument that it calls in the right places; but otherwise makes few assumptions about the function it calls. However, the type annotation of fTest is rather specific:
+fTest : (sTree,(string)=&gt;boolean)=&gt;boolean
 which means, for example, that its second argument must be a function from string to boolean. On the other hand, nothing in the actual definition of fTest seems to depend on strings.</Text>
         </Document>
         <Document ID="BB360289-7F77-4AF1-A155-43057C51131A">
@@ -1830,7 +1846,7 @@ In the world of programming languages, there is a lot of confusion about closure
         </Document>
         <Document ID="2D2560F1-727C-4521-8811-6C795E63B61F">
             <Title>Indexing</Title>
-            <Text>Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing ‘traditional’ notation for accessing arrays:
+            <Text>Accessing collections conveniently is arguably more important than a good notation for representing them. There is a long standing traditional notation for accessing arrays:
 L[ix]
 where L is some array or other collection and ix is an integer offset into the array. Star uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and slices (contiguous sub-regions of collections).
 Before we explore Star’s indexing notation it is worth looking at the contract that underlies it — the indexable contract.</Text>
@@ -1850,7 +1866,7 @@ test(tEmpty,_) =&gt; false.
 test(tNode(L,Lb,R),F) =&gt; F(Lb) || test(L,F) || test(R,F).
 and our original string check function becomes:
 check(T,S) =&gt; test(T,(X) =&gt; X==S)
-The type of check can also be more generic:
+The type of check is also more generic:
 check:all t ~~ (tree[t],t)=&gt;boolean
 I.e., check can be used to find any type of element in a tree — providing that the types align of course.
 Actually, this is not the correct the type for check. This is because we do not, in general, know that the type can support equality. The precise type for check should take this into account:
@@ -1942,8 +1958,7 @@ It may, however, affect whether you get a result. Different strategies for evalu
 One other kind of evaluation that is often considered is lazy evaluation. Lazy evaluation means simply that expressions are only evaluated when needed. Lazy evaluation has many potential benefits: it certainly enables some very elegant programming techniques.
 Essentially for the reasons noted above, Star does not use lazy evaluation; however, as we shall see, there are features of Star that allow us to recover some of the power of lazy evaluation.
 The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, Star uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written — with the one exception being any default equation which is always tried last.</Text>
-            <Comments>Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the default evaluation style.
-There is a theorem — called the Church Rosser Theorem — that guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to require programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.</Comments>
+            <Comments>Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the default evaluation style.</Comments>
         </Document>
         <Document ID="E311189B-D01A-476D-9DC2-6AACB13E99C2">
             <Title>Acknowledgements</Title>
@@ -1960,10 +1975,10 @@ This condition is not evaluated in the way that expressions are normally evaluat
 Technically this is called satisfying the condition — to distinguish what is going on from evaluating the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
 In addition to individual search conditions like this, it is also possible to use logical operators — called connectives — to combine conditions. In the case of our grand-parent query, there is a conjunction; which involves a variable Z that acts as a kind of glue to the two search conditions.
 In database parlance the conjunction amounts to an inner join operation; however, it is also simply logical conjunction.
-The available connectives include the usual favorites: &amp;&amp;, ||, and \+. They also include some less familiar connectives: implies and otherwise.
+The available connectives include the usual favorites: &amp;&amp;, ||, and \+. They also include some less familiar connectives: *&gt; (read as implies) and otherwise.
 The implies connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
 managerOk:(string)=&gt;boolean.
-managerOk(M) =&gt; (X,M) in worksFor implies X.salary=&lt;M.salary.
+managerOk(M) =&gt; (X,M) in worksFor *&gt; X.salary=&lt;M.salary.
 Notice that we can use conditions’ satisfaction-oriented semantics outside of query expressions.</Text>
         </Document>
         <Document ID="048F7A58-7D73-4F12-A40B-2C15AA5D4328">
@@ -2103,7 +2118,7 @@ As it happens, part of the texture of Star is to use keywords frequently. There 
 Picking the right priority for operators is one of the most subtle aspects of designing syntactic extensions to Star. The language definition has a table of all the standard operators and their priorities.</Text>
         </Document>
         <Document ID="D52D46B3-BB78-479F-82E7-542FDD9A0A70">
-            <Title>Going Even Further[going-even-further]</Title>
+            <Title>Going Even Further</Title>
             <Text>We have focused so far on generalizing the visitor from the perspective of the tree type. But there is another sense in which we are still architecturally entangled: from the perspective of the check and count functions themselves.
 In short, they are both tied to our tree type. However, there are many possible collection data types; Star for instance has some 5 or 6 different standard collection types. We would prefer not to have to re-implement the check and count functions for each type.
 The good news is that, using contracts, we can write a single definition of check and count that will work for a range of collection types.
@@ -2512,27 +2527,8 @@ This term — it could be either an expression or a pattern — denotes the sequ
 cons[integer]
 and
 sequence[c-&gt;&gt;integer] |: c
-respectively — where c is a type variable. The first is a concrete type expression, the second is a constrained type — a type variable that may only be instantiated with a type that is known to satisfy one or more constraints, in this case to implement the sequence contract.
-Although the second type expression is longer, and a bit more complex to read, it is also less constraining. The type expression cons[integer] is concrete and does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.
-The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:
-[1,2,..X]
-denotes the sequence whose first two elements are 1 and 2 and whose remainder is denoted by the variable X — which must also be a sequence of the correct type. Similarly, the term:
-[F..,23]
-denotes the sequence obtained by gluing 23 to the back of the sequence F.
-There is a strong relationship between the ‘regular’ sequence notation and the partial sequence notation. In particular, the sequence expression
-cons of [1,2]
-is equivalent to:
-cons of [1,..cons of [2,..cons of []]]
-However, we are not permitted to use both of ,.. and .., in the same expression:
-[F..,2,3,..B]
-is not permitted (since it amounts to a concatenation of two sequences which implies a non-deterministic decomposition when used as a pattern).
-The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type and to do so in a syntax which is concise: the only constraint is the sequence contract.
-For example, we can use sequence notation to write functions over sequences; such as the concat function that concatenates two sequences:
-concat:all c,e ~~ sequence[c-&gt;&gt;e] |:
-  (c,c)=&gt;c.
-concat([],X) =&gt; X.
-concat([E,..X],Y) =&gt; [E,..concat(X,Y)].
-This function will work equally well with cons lists, lists, strings, even your own collection types. All that is required is that there are implementations of the sequence contract for the actual type being concatenated.</Text>
+respectively — where c is a type variable. The first is a concrete type expression, the second is a constrained type —  in this case c must implement the sequence contract.
+Although the second type expression is longer, and a bit more complex to read, it is also actually less constraining. The type expression cons[integer] does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.</Text>
         </Document>
         <Document ID="2CB9697E-729D-4BD7-A451-B4FC296117FD">
             <Title>Notation and Contract-Based Semantics</Title>
@@ -2556,7 +2552,8 @@ Developing a usable logical language is fairly substantial task; however, once i
             <Title>The cons Type</Title>
             <Text>This is the simplest collection type; and is perhaps the original collection type used in functional programming languages. It is defined by the type declaration:
 all t ~~ cons[t] ::= nil | cons(t,cons[t]).
-Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a cons list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to the end of a cons list is linear in the length of the list.</Text>
+Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a cons list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to the end of a cons list is linear in the length of the list.
+The main merit of the cons list is the sheer simplicity of its definition. Also, for small collections, its simple implementation outweighs the advantages that more complex collections offer.</Text>
         </Document>
         <Document ID="3249D51C-DF24-43C7-8E8C-F793196B48FC">
             <Title>Computation Expressions and the M word</Title>
@@ -2595,7 +2592,7 @@ It is beyond the scope of this book to explore more deeply the handling of monad
         </Document>
         <Document ID="85F49EB4-E3E4-49C7-BBE5-4B6F733FD7B6">
             <Title>The main Program</Title>
-            <Text>If a package defines a main procedureA procedure, in Star, is a function that returns the void tuple (). then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a list[string]s.
+            <Text>If a package defines a main procedure then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a list[string]s.
 If the main procedure is defined then automatic coercion from command line arguments to internal types is performed. For example,
 myProgram{
   main:(integer,string)=&gt;().
@@ -2619,6 +2616,7 @@ myProgram{
   _main(args) do { ... }
 }
 The _main procedure is given all the command line arguments as a list[string]. This variant of _main (you cannot have both in the same package) is useful if you want to process command line arguments with dash-options.</Text>
+            <Comments>A procedure, in Star, is a function that returns the void tuple ().</Comments>
         </Document>
         <Document ID="89A5E220-CE38-43E1-BE4E-548CAC8B5966">
             <Title>Types of Collection</Title>
@@ -2665,16 +2663,13 @@ There are several noteworthy points here:
 Recall that the sequence contract had the form:
 contract all s, e ~~ sequence[s-&gt;&gt;e] ::= ...
 the s-&gt;&gt;e clause allows the implementation of the contract to functionally determine (sic) the type of the elements of the collection.
-In the case of indexable, the contract form is:
-contract all s,k,v ~~ indexable[s-&gt;&gt;k,v] := ...
-The indexable contract determines two types denoted by k and v. The type k denotes the type of the key used to access the collection and v denotes the type of the elements of the collection. Each individual implementation of indexable is free to specify these types; usually in a way that best reflects the natural structure of the collection.
+In the case of indexable, the contract form determines two types denoted by k and v. The type k denotes the type of the key used to access the collection and v denotes the type of the elements of the collection. Each individual implementation of indexable is free to specify these types; usually in a way that best reflects the natural structure of the collection.
 For example, the implementation of indexable for strings starts:
 implementation indexable[string -&gt;&gt; integer,char] =&gt; ...
-reflecting the fact that the natural index for strings is integer and the natural element type is char (neither being explicitly part of the string type name).
-In fact, char is a synonym for integer; but that is not relevant here.
-On the other hand, the implementation for dictionaries starts:
+reflecting the fact that the natural index for strings is integer and the natural element type is char (neither being explicitly part of the string type name).  Note that char is a synonym for integer; but that is not relevant here.
+On the other hand, the implementation of indexable for the concrete type dictionary starts:
 implementation all k,v ~~
-      indexable[dictionary[k,v] -&gt;&gt; k,v]
+      indexable[dictionary[k,v] -&gt;&gt; k,v] =&gt; ...
 reflecting the fact that dictionaries are naturally generic over both the key and value types.</Text>
         </Document>
         <Document ID="40224EA6-46AD-4534-9654-A94129E07813">
@@ -2726,16 +2721,16 @@ These rules state that the two legal forms of concept are a colon-prefixed ident
             <Title>Compressing Collections With a Fold</Title>
             <Text>Another way of using collections is to summarize or aggregate over them. For example, the average function computes a single number from an entire collection of numbers — as do many of the other statistical functions. We can define average using the standard leftFold1 function, which is part of the standard folding contract:
 average(C) is leftFold1((+),C)::float/size(C)::float
-Notice the use of coercion here — coercing both the result of the leftFold1 and size to float. The reason for doing this is that functions like average are ‘naturally’ real functions.Real as in the Real numbers. Without the explicit coercion, averaging a list of integers will also result in an integer value — which is likely to be inaccurate.
-Of course, we needed to coerce both the numerator and denominator of the division because Star does not have implicit coercion.
+Notice the use of coercion here — coercing both the result of the leftFold1 and size to float. The reason for doing this is that functions like average are ‘naturally’ real functions. Without the explicit coercion, averaging a list of integers will also result in an integer value — which is likely to be inaccurate.
+Of course, in our definition of average we need to coerce both the numerator and denominator of the division because Star does not have implicit coercion.
 The leftFold1 function applies a left-associative binary operator to a collection: starting from the first element and successively ‘adding up’ each of the elements in the collection using the supplied operator.
-As we noted above, leftFold1 is part of the foldable contract. Like the mappable contract, this uses some more subtle type constraints:
+As we noted above, leftFold1 is part of the foldable contract. Like the functor contract, this uses some more subtle type constraints:
 contract all c/1 ~~ foldable[c] ::= {
   leftFold1:all e ~~ ((e,e)=&gt;e,c[e])=&gt;e.
   ...
 }
 Notice that this contract – which we have not fully written down here – uses quantifiers in two places: once in the contract specification and once in the type signature for leftFold1. What we are trying to express here is that any implementation of foldable must allow for a generic accumulator function.
-
+#
 Left Folding a Collection
 Our definition of the average function is therefore about as close to a specification of average as is possible in a programming language!
 While it is convenient for computing averages, there are several restrictions in the signature for leftFold1: the most egregious is that the result type and the types of the elements of the collection must be identical. A more refined function is possible that liberates us from this:
@@ -2745,13 +2740,13 @@ contract all c/1 ~~ folding[c] ::= {
   ...
 }
 
-leftFold is also part of the foldable contract; as are the analogous rightFold and rightFold functions.
-In this variant of fold, we separate out an ‘accumulator’ (of type ac) from the type of the elements of the collection.We saw something similar with the [visitor pattern[going-even-further].] The leftFold function applies its argument function in a similar way to leftFold1, except that it does not require that the type of the accumulator is the same as the elements of the collection. Furthermore, it does not use the first element of the collection as a ‘seed’ of the aggregation — instead, the initial seed is explicitly given.
+leftFold is also part of the foldable contract; as are the analogous rightFold and rightFold1 functions.
+In this variant of fold, we separate out an ‘accumulator’ (of type ac) from the type of the elements of the collection. We saw something similar with the visitor pattern. The leftFold function applies its argument function in a similar way to leftFold1, except that it does not require that the type of the accumulator is the same as the elements of the collection. Furthermore, it does not use the first element of the collection as a ‘seed’ of the aggregation — instead, the initial seed is explicitly given.
 ￼
 Left Folding a Collection With a Seed
 We can still use leftFold in situations where we would use leftFold1, for example our average function is equally well written as:
 average(C) =&gt; leftFold((+),0,C)::float/size(C)::float
-But we can do much more than computing averages with a fold. Recall that when we realized the [sieve of Erastosthenes][original-sieve], we still had a recursive structure to the program. Furthermore, the way our original program was written each filter results in a new list of numbers being produced. Instead of doing this, we can construct a cascade of filter functions.
+But we can do much more than computing averages with a fold. Recall that when we realized the sieve of Erastosthenes, we still had a recursive structure to the program. Furthermore, the way our original program was written each filter results in a new list of numbers being produced. Instead of doing this, we can construct a cascade of filter functions.
 Consider the task of adding a filter to an existing filter. What is needed is a new function that combines the effect of the new filter with the old one. The cascade function takes a filter function and a prime as arguments and constructs a new function that checks both the prime and the existing filter:
 cascade:((integer)=&gt;boolean,integer)=&gt;((integer)=&gt;boolean).
 cascade(F,K) =&gt; (X)=&gt;F(X) &amp;&amp; X%K=!=0.
@@ -2760,12 +2755,12 @@ Given cascade, we can reformulate the sieve function itself as a leftFold — at
 step:((integer)=&gt;boolean,integer)=&gt;((integer)=&gt;boolean).
 step(F,X) where F(X) =&gt; cascade(F,X).
 step(F,X) =&gt; F.
-At each step in the fold we want to know whether to continue to propagate the existing filter or whether to construct a new filter — the conditional expression allows us to achieve that.
+At each step in the fold we want to know whether to continue to propagate the existing filter or whether to construct a new filter.
 The sieve function itself is now very short: we simply invoke leftFold using step and an initial ‘state’ consisting of a function that checks for odd numbers:
 sieve(C) =&gt; leftFold(step,(K)=&gt;K%2=!=0,C).
-The initial ‘state’ is a function that filters out even numbers.
 This version of sieve is not quite satisfactory as, while it does find prime numbers, it does not report them. A more complete version has to also accumulate a list of primes that are found. We can do this by expanding the accumulated state to include both the cascaded filter function and the list of found primes. The main alteration is to the step function:
-prStep:((list[integer],(integer)=&gt;boolean),integer)=&gt;(list[integer],(integer)=&gt;boolean).
+prStep:((list[integer],(integer)=&gt;boolean),integer) =&gt;
+				(list[integer],(integer)=&gt;boolean).
 prStep((P,F),X) where F(X) =&gt; ([P..,X],cascade(F,X))
 prStep((P,F),_) =&gt; (P,F)
 and the initial state has an empty list:
@@ -2775,13 +2770,17 @@ fst:all s,t ~~ ((s,t))=&gt;s.
 fst((L,R)) =&gt; L
 snd:all s,t ~~ ((s,t))=&gt;t.
 snd((L,R)) =&gt; R
-There is one final step we can make before leaving our sieve of Erastosthenes — we can do something about the initial list of integers. As it stands, while the program does not construct any intermediate lists of integers, it still requires an initial list of integers to filter for primes. However, this particular sequence can be represented in a very compact form — as a range term.
-range terms are special forms of collections that denote ranges of numeric values; using a range term, we can denote the list of primes less than 1000 with
+There is one final step we can make before leaving our sieve of Erastosthenes — we can do something about the initial list of integers. As it stands, while the sieve program does not construct any intermediate lists of integers, it still requires an initial list of integers to filter. However, this particular sequence can be represented in a very compact form — as a range term.
+range terms are special forms of collections that denote ranges of numeric values. For example, the expression
+range(0,100,2)
+denotes the sequence of integers starting at zero, not including 100, each succesive integer being incremented by 2.
+Using a similar range term, we can denote the list of primes less than 1000 with
 primes(Max) =&gt; let{
   cascade:((integer)=&gt;boolean,integer)=&gt;((integer)=&gt;boolean).
   cascade(F,K) =&gt; (X)=&gt;(F(X) &amp;&amp; X%K=!=0).
 
-  prStep:((list[integer],(integer)=&gt;boolean),integer)=&gt;(list[integer],(integer)=&gt;boolean).
+  prStep:((list[integer],(integer)=&gt;boolean),integer) =&gt;
+				(list[integer],(integer)=&gt;boolean).
   prStep((P,F),X) where F(X) =&gt; ([P..,X],cascade(F,X)).
   prStep((P,F),_) =&gt; (P,F).
 
@@ -2791,6 +2790,7 @@ primes(Max) =&gt; let{
 
 show primes(1000)
 This final program has an important property: there are no explicit recursions in it — in addition, apart from the leftFold function, there are no recursive programs at all in the definition of primes.</Text>
+            <Comments>Real as in the Real numbers.</Comments>
         </Document>
         <Document ID="88E5CD14-82A3-4086-903A-E4F0331A25C3">
             <Title>Waiting for Events</Title>
@@ -2863,9 +2863,31 @@ A more robust implementation of the triple graph store would provide better supp
             <Title>The list Type</Title>
             <Text>The list type offers a different trade-off to the cons type: where the latter is optimal for ease of constructing and for traversing complete lists, the list type offers constant-time access to random elements within the array — at the potential cost of more expensive construction of lists.
 Unlike the cons type, the list type does not have a straightforward definition as an algebraic type. Internally, an list structure consists of an array of locations with a ‘control pointer’ giving the portion of the array block that represents a given list value.
-The list type is optimized for random access and for shared storage — recall that Star collection types are persistent: that means that different values can share some or all of their internal structure. The diagram shows two list values that overlap in their elements and consequently share some of their structure.
-
+The list type is optimized for random access and for shared storage — recall that Star collection types are persistent: that means that different values can share some or all of their internal structure. The diagram below shows two list values that overlap in their elements and consequently share some of their structure.
+#
 Two lists Sharing Structure</Text>
+        </Document>
+        <Document ID="C4F8ECB6-3E66-43A7-9ABB-62B88C2666D1">
+            <Title>Partial Sequence Notation</Title>
+            <Text>
+The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:
+[1,2,..X]
+denotes the sequence whose first two elements are 1 and 2 and whose remainder is denoted by the variable X — which must also be a sequence of the correct type. Similarly, the term:
+[F..,23]
+denotes the sequence obtained by gluing 23 to the back of the sequence F.
+There is a strong relationship between the normal sequence notation and the partial sequence notation. In particular, the sequence expression
+cons of [1,2]
+is equivalent to:
+cons of [1,..cons of [2,..cons of []]]
+However, we are not permitted to use both of ,.. and .., in the same expression:
+[F..,2,3,..B]
+is not permitted (since it amounts to a concatenation of two sequences which implies a non-deterministic decomposition when used as a pattern).
+The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type and to do so in a syntax which is concise: the only constraint is the sequence contract.
+For example, we can use sequence notation to write functions over sequences; such as the concat function that concatenates two sequences:
+concat:all c,e ~~ sequence[c-&gt;&gt;e] |: (c,c)=&gt;c.
+concat([],X) =&gt; X.
+concat([E,..X],Y) =&gt; [E,..concat(X,Y)].
+This function will work equally well with cons lists, lists, strings, even your own collection types. All that is required is that there is an implementation of the sequence contract for the actual type being concatenated.</Text>
         </Document>
         <Document ID="F93A7A74-62CB-4006-9DB7-1171F17FD13A">
             <Title>Translating Graphs[translating-graphs]</Title>
@@ -2988,8 +3010,8 @@ The Iterator object ‘carries’ most of the information needed to process the 
 If we squint appropriately, we can see that the body of the Java loop ‘drives’ the iteration — via the call to it.next(). In effect, the body code is the client of the collection, and the Iterator object is the server in the code fragment.
 In the case of the functional code, the loop is encapsulated in the leftFold function which drives the loop by calling the ‘body function’ when needed. It is possible to write Java code that approximates to this style; it would be something like:
 Folding.leftFold((A,E)-&gt;{return A+E.length()},0,myColl)
-assuming that leftFold were a static function in the Folding class.This relies on new syntax introduced in Java 8. The leftFold would be much clumsier in earlier versions of the language.
-The third saliency is not actually obvious from these fragments, but the functional approach has more variability in the loop structures than Java. Java has several forms of loop, but there is only one loop that is oriented to processing collections — the ‘for each’ loop. On the other hand, in Star — like most functional programming languages — we have map to transform a collection, filter to remove unwanted elements, leftFold and its relatives to reduce collections.
+assuming that leftFold were a static function in the Folding class. This relies on new syntax introduced in Java 8. The leftFold would have been much clumsier in earlier versions of the language.
+The third saliency is not actually obvious from these fragments, but the functional approach has more variability in the loop structures than Java. Java has several forms of loop, but there is only one loop that is oriented to processing collections — the ‘for each’ loop. On the other hand, in Star — like most functional programming languages — we have fmap to transform a collection, filter to remove unwanted elements, leftFold and its relatives to reduce collections.
 The range of looping functions reflects an underlying vocabulary of ‘things we do’ to collections.
 The final, perhaps most unexpected point, is that the fundamental computational cost of the two styles of iteration is almost identical! Under reasonable assumptions of optimization for both Java and Star, it is possible to show that the number of steps needed to compute the two fragments is very similar. The details are beyond the scope of this book.</Text>
         </Document>
@@ -3007,7 +3029,7 @@ For the most part, examples in the text of the book are executable. You are enco
 One question that might seem relevant is why? The basic answer is that different applications call for different properties of numbers and no one numeric type seems to fit all needs. However, the variety comes at a cost: when we use numbers we tend to have to make too early a choice for the numeric type.
 For example, consider the double function we saw earlier:
 double(X) =&gt; X+X
-What type should double have? In particular, what should the type of + be? Most people would be reluctant to use different arithmetic operators for different types of numbers.Although some languages — such as ML — do require this. This is resolved in Star by relying on contracts for the arithmetic operations.
+What type should double have? In particular, what should the type of + be? Most people would be reluctant to use different arithmetic operators for different types of numbers. This is resolved in Star by relying on contracts for the arithmetic operations.
 The result is that the type computed for double is exquisitely tuned:
 double:all t ~~ arithmetic[t] |: (t)=&gt;t
 This type is precisely the minimal type that double could have. Any further constraints result in making a potentially premature choice for the numeric type.
@@ -3018,8 +3040,7 @@ this is constrained to be a function from integer to integer because we introduc
 genFact:all a ~~ arithmetic[a] |: (a)=&gt;a.
 genFact(zero) =&gt; one.
 genFact(N) =&gt; N*genFact(N-one).
-We call out zero and one for special treatment because they occur very frequently in numerical functions.
-We can actually introduce other numeric literals without compromising our type by using coercion; although it is more clumsy:
+We call out zero and one for special treatment because they occur very frequently in numerical functions. We can introduce other numeric literals without compromising our type by using coercion; although it is more clumsy:
 factorialC:all t ~~
     arithmetic[t],coercion[integer,t] |: (t)=&gt;t.
 factorialC(N) where N==0 :: t =&gt; 1 :: t.
@@ -3027,6 +3048,7 @@ factorialC(N) =&gt; N*factorialC(N-1 :: t).
 The expressions 0 :: t and 1 :: t are coercions from integer to t.
 Of course, coercion is also governed by contract, a fact represented in the type signature by the coercion contract constraints on the type of t.
 In any case, using these techniques, it is possible to write numeric functions without unnecessarily committing to specific number types. That in turn helps to make them more useful.</Text>
+            <Comments>Although some languages — such as ML — do require this.</Comments>
         </Document>
         <Document ID="8F2A5D69-042B-44B4-9E7D-952E34B29B65">
             <Title>Designing Syntax[designing-syntax]</Title>
@@ -3179,7 +3201,7 @@ worksheet{
 
   ...
 }
-The generateCSV line is a [macro][macro-rules] that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:
+The generateCSV line is a macro that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:
 Wpt ::= Wpt{
     Date:string.
     ...
@@ -3262,7 +3284,8 @@ That is it! The final query should get output along the lines of:
 ("/main-thumb-58380181-100-yqpttun...", 101.18518518519, 24.41468441456),
 ("/main-thumb-49759239-100-pcgldxn...",93.48148148148, 19.03285636867),
 ...
-Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.A standard deviation of 0.0 is likely a signal that the indicated URL only occurred once in the sample data.</Text>
+Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.</Text>
+            <Comments>A standard deviation of 0.0 is likely a signal that the indicated URL only occurred once in the sample data.</Comments>
         </Document>
         <Document ID="3F025EB6-8DDE-4ADE-A283-F7F4E19F12CA">
             <Title>The dictionary Type</Title>
@@ -3271,14 +3294,14 @@ The template for the dictionary type is:
 all k,v ~~ equality[k] |: dictionary[k,v]
 Notice that there is an implied constraint here: the dictionary assumes that the keys in the dictionary can be compared for equality.
 A dictionary value can be written using the sequence notation, using tuple pairs for the key-value pairs:
-dictionary of [(1,"alpha"),(2,"beta")]
+dictionary of [(1,"alpha"),(2,"beta”)]
 Dictionaries also have a special variant of the sequence notation; instead of writing the pairs as tuples we can use an arrow notation for dictionary terms:
 dictionary of [1-&gt;"alpha", 2-&gt;"beta"]
 Dictionaries also have their own special variant of a query search condition. A condition of the form
 K-&gt;V in D
 where D is a dictionary will be satisfied if there is a key/value pair in D corresponding to K and V. For example, the condition:
 K-&gt;V in dictionary of [1-&gt;"alpha", 2-&gt;"beta"] &amp;&amp; V=="alpha"
-is satisfied for only one pair of K and V: 1 and "alpha" respectively.
+is satisfied for only one pair of K and V: namely 1 and "alpha" respectively.
 For the curious, dictionaries are implemented using techniques similar to Ideal Hash Trees, as described by Bagwell [#Bagwell01idealhash]. This results in a structure with an effective O(1) cost for accessing elements and for modifying the dictionary — all the while offering an applicative data structure.</Text>
         </Document>
         <Document ID="E2266586-7BB7-4E74-94CA-E1615F0AD4CB">
@@ -3366,7 +3389,7 @@ D.dept := "my department"</Text>
         </Document>
         <Document ID="BC183BD7-3020-4119-B0B1-139B4FAE98A7">
             <Title>Implementing Indexing</Title>
-            <Text>Of course, this includes our own types. For example, before, when looking at [generic types][generic-types] we saw the tree type:
+            <Text>Of course, this includes our own types. For example, before, when looking at generic types we saw the tree type:
 all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).
 We can define an implementation for the indexable contract for this type — if we arrange for the tree to be a tree of key-value pairs:
 implementation all k,v ~~
@@ -3392,7 +3415,6 @@ implementation all k,v ~~
     comparable[k], equality[k] |:
       indexable[tree[(k,v)]-&gt;&gt;k,v] =&gt; ...
 This implementation statement is fairly long, and the type constraints are fairly complex; but it is exquisitely targeted at precisely the right kind of tree without us having to make any unnecessary assumptions.
-It is also true that most programmers will not be constructing new implementations of the indexable contract very frequently.
 Implementing the indexable contract requires us to implement three functions: findInTree, setKinTree and removeKfromTree. The findInTree function is quite straightforward:
 findInTree:all k,v ~~ (tree[(k,v)],k)=&gt;option[v].
 findInTree(tEmpty,_) =&gt; none.
@@ -3410,7 +3432,11 @@ implementation all k,v ~~ comparable[k], equality[k] |:
   _cons((K,V),T) =&gt; setKinTree(T,K,V).
   ...
 }
-where, again, we leave the implementation of the remaining part of the contract to the reader.It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. This has the effect of making tree expressions like tree of [1-&gt;"alpha",2-&gt;"beta" be equivalent to tree of [2-&gt;"beta",1-&gt;"alpah"].]</Text>
+where, again, we leave the implementation of the remaining part of the contract to the reader. The reason for implementing sequence is that that will allow users of the tree to use the dictionary variant of the sequence notation for writing tree literals; as in:
+tree of [1-&gt;”alpha”, 2-&gt;”beta”]
+The sequence contract includes a pattern that can be used to match sequences. It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree value.</Text>
+            <Comments>It is also true that most programmers will not be constructing new implementations of the indexable contract very frequently.
+With the possible exception of tree balance.</Comments>
         </Document>
         <Document ID="6A5FAE33-927D-4843-B7A1-6DEDDF975B80">
             <Title>Another Look at Types</Title>
@@ -3427,28 +3453,27 @@ When we want to open a file, access an element of a dictionary, parse a string w
 We encode this tentativeness (sic) in the option type. The type definition for option is straightforward:
 all t ~~ option[t] ::= none | some(t).
 where none is intended to denote the non-existence of a value and some denotes an actual value.
-The option type is intended to be used in cases where functions are known to be partial.A partial function does not have a value across the whole range of its arguments. The option return type signals that the function may not always have a value.
+The option type is intended to be used in cases where functions are known to be partial. The option return type signals that the function may not always have a value.
 In the case of the _index function, its responsibility is to either return a value wrapped as a some value — if the index lookup is successful — or the signal none if the index lookup fails. Just to be clear, _index can act both as a lookup and as a test for membership in the collection.
-In addition to the option type, there are a series of operators that make tentative computations easier to express: these are the optional field access operator — ?. — the option default operator — ?| — and the ?.= binding predicate.
+In addition to the option type, there are a series of operators that make tentative computations easier to express: these are the optional field access operator — ?. — the option default operator — ?| — and the ?.= optional binding predicate.
 The ?| operator allows one to unpack an optional value but to give a default in the case that the optional value is none.
 We can see where the latter may be useful when accessing dictionaries. For example, the fillIn function accesses a dictionary for a key but uses a default value when it is not there:
 fillIn:all k,v ~~ (dictionary[k,v],k,v)=&gt;v.
 fillIn(Tr,Ky,Def) where Vl ?.= _index(Tr,Ky) =&gt; Vl.
 fillIn(Tr,_,Def) =&gt; Def.
 The condition Vl ?.= _index(Tr,Ky) is satisfied if the _index call returns a proper value and it also binds the variable Vl to that value (specifically, it matches the value against the variable Vl.
-While the ?.= operator is very useful in unpacking an optional value, the ?| operator allows us to handle cases where we always need to be able to give the optional a value. For example, normally a dictionary returns none if an entry is not present. However, a cache is structured differently: if a value is not present in a cache then we must go fetch it:
+While the ?.= operator is very useful in unpacking an optional value, the ?| operator allows us to handle cases where we always need to be able to give some kind of value. For example, normally a dictionary returns none if an entry is not present. However, a cache is structured differently: if a value is not present in a cache then we must go fetch it:
 cacheValue(K) =&gt; cache[K] ?| fetch(K)
-There is, clearly, a strong relationship between ?.= and ?|: each can be expressed in terms of the other.
-The option type — and the some and none values — play some of the same roles as NULL does in other languages.
-For someone approaching a functional language from most imperative languages they will be struck — and maybe upset — by the lack of a null (or nil or NULL or undefined). After all, if it’s good enough for Java, why can’t Star have it too?
+There is, clearly, a strong relationship between ?.= and ?| — each can be expressed in terms of the other.
+The option type — and the some and none values — play some of the same roles as NULL does in other languages. For someone approaching a functional language from most imperative languages they will be struck — and maybe upset — by the lack of a null (or nil or NULL or undefined). After all, if it’s good enough for Java, why can’t Star have it too?
 Perhaps the biggest single reasons for not having a universal NULL value are that it corrupts the type system and that it makes reasoning about programs harder.
 In a language which has a universal NULL value, the programmer (and the compiler) must be ever vigilant about references: is the value actually a NULL value? This is true even in those cases where the programmer knows values cannot be NULL. By isolating nullability (sic) into a single concept it allows the programmer to use the feature where it is actually needed.
-In a language like Java which has a universal NULL value, the type assigned to NULL turns out to be a little strange. Under most circumstances, a value can be assigned a single unique type; but a universal NULL can be literally of any type. So, universal NULL is a value that denotes no actual value, yet it can be of any type.
-This distorts the logic of the type system by introducing a bottom value into the type lattice. Star’s type system is not based on the concept of sub-types; which makes a universal NULL value even more difficult to accommodate.
 Overall, the option type is part of an elegant approach to nullability that is easily incorporated into Star’s (and similar) type system.</Text>
+            <Comments>A partial function does not have a value across the whole range of its arguments.
+Read as ‘has a value’.</Comments>
         </Document>
         <Document ID="B3B24A43-1771-40B9-BE0C-5CFCA7474528">
-            <Title>Package [package] </Title>
+            <Title>Package</Title>
             <Text>Packages are the foundational unit of compilation; there is also an intended semantics:
 Package
 A package is a collection of definitions that are intended to represent some coherent functionality or purpose.
@@ -3815,7 +3840,7 @@ As may be expected, arithmetic itself is also mediated via the arithmetic contra
         <Document ID="596015F8-8E60-4786-891E-5D8F26BC0F29">
             <Title>The range Type</Title>
             <Text>The range type is a very particular form of collection type: a range denotes a range of numbers. Its type description says it all:
-all t ~~ arithmetic[t] |: range[t] ::= range(t,t,t).
+all t ~~ arithmetic[t],comparable[t] |: range[t] ::= range(t,t,t).
 This type description has some special features; in particular it is a constrained type: a type expression of the form:
 range[T]
 is only valid if T is an arithmetic type; specifically a type that supports arithmetic and is comparable. Thus a type expression such as range[integer] is fine, but range[list[integer]] will result in a syntax error!
@@ -3878,31 +3903,31 @@ fact(0) =&gt; 1.
 fact(N) =&gt; N*fact(N-1).
 The compiler is able to compute the types of the various variables automatically through a process known as type inference. Type inference may seem magical, but is actually (mostly) quite simple. Let us take a look at the expression:
 N-1
-which is buried within the recursive call in fact. Although it looks like a special operator, Star does not treat arithmetic expressions in a special way; the - function is just a function from numbers to numbers.
-The type of arithmetic subtraction is given by:
+which is buried within the recursive call in fact. Although it looks like a special operator, Star does not treat arithmetic expressions in a special way; the - function is just a function from numbers to numbers; its type is given by:
   (-) : all t ~~ arithmetic[t] |: (t,t)=&gt;t
-However, we should simplify this a little in order to make the explanation of type inference a little simpler:
+However, we should simplify this type a little in order to make the explanation of type inference a little simpler. In what follows, we assume that the type of (-) is:
 (-) : (integer,integer)=&gt;integer
-This is a legal Star type annotation: the parentheses around the - operator are used to signal a use of the operator as a stand-alone identifier; and to suppress its use as an infix operator.
 Type inference proceeds by using special type inference rules which relate expressions to types, in this case the applicable rule is that a function application is consistent if the function’s parameter types are consistent with the types of the actual arguments. If they are consistent, then the type of the function application is the return type of the function.
 The type inference process initially gives every variable an unknown type — represented by a new type variable not appearing anywhere else. For our tiny N-1 example, we will give N the type tN.
 The (-) function has two arguments whose types can be expressed as a tuple of types:
 (integer,integer)
 and the types of the actual arguments are also a tuple:
-(tN ,integer)
+(tN,integer)
 In order for the expression to be type correct, the actual types of the arguments must be consistent with the expected types of the function; which we can do by making them the same. There is a particular process used to do this — called unification.
-
+#
 Inferring the Type of N-1
 Unification
 An algorithm that replaces variables with values in such a way as to make two terms identical.
-Unification matches equals with equals and handles (type) variables by substitutions — for example, we can unify these two type expressions by binding the type variable tN to integer.
+Unification matches equals with equals and handles (type) variables by substitutions — for example, we can make these two type expressions equal by binding the type variable tN to integer.
 We initially picked the type of N to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of N in a context where an integer is expected is enough to allow the compiler to infer that the type of N is indeed integer and not tN.
-Of course, if there are multiple occurrences of N then each of those occurrences must also be consistent with integer; and if an occurrence is not consistent then the compiler will report an error — a given variable may only have one type!
+Of course, if there are multiple occurrences of N then each of those occurrences must also be consistent with integer; and if an occurrence is not consistent then the compiler will report an error — a given expression may only have one type!
 The bottom line is that Star’s types are based on a combination of unification for comparing types and a series of type rules that have the effect of introducing constraints on types based on which language features the programmer uses. The type checker is really a constraint solver: if the constraints are not satisfiable (for example by trying to ‘call’ a variable and add a number to it) then there is a type error in the program.
 The magic of type inference arises because it turns out that solving these constraints is sufficient for robustly type checking programs.
-A sharp-eyed reader will notice that Star’s type system is different in nature to that found (say) in OO languages. In Star’s type system, types are considered to be consistent in Star if they are equal.This is a slight over-simplification. This is quite different to the notion of consistency in OO languages where an argument to a function is consistent if its type is a sub-type of the expected type.
+A sharp-eyed reader will notice that Star’s type system is different in nature to that found (say) in OO languages. In Star’s type system, types are considered to be consistent in Star if they are equal. This is quite different to the notion of consistency in OO languages where an argument to a function is consistent if its type is a sub-type of the expected type.
 However, we would note that the apparent restriction to the type system imposed by type equality is much less severe in practice than in theory — and that OO languages’ type systems also incorporate some of the same restrictions.
 We are only able to scratch the surface of the type system here. It is certainly true that — like many modern functional languages — Star’s type system is complex and subtle. The primary motivation for this complexity is to reduce the burden for the programmer: by being able to infer types automatically, and by being able to address many programming subtleties, the type system comes to be seen as the programmer’s friend rather than as an obstacle to be ‘gotten around’.</Text>
+            <Comments>We put the (-) in parentheses to highlight the use of an operator as a normal symbol.
+This is a slight over-simplification.</Comments>
         </Document>
         <Document ID="B5BAD6CD-B8F5-469F-9D65-288D1D5001DD">
             <Title>Dedication</Title>
@@ -3911,7 +3936,7 @@ We are only able to scratch the surface of the type system here. It is certainly
 
 
 
-Your dedication here.</Text>
+For the Family.</Text>
             <Notes>Feel free to delete this document if you don’t need it.</Notes>
         </Document>
         <Document ID="2AAECE44-6809-4086-BC47-48067A961C78">

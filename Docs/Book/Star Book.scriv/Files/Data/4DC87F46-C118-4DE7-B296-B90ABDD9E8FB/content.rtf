@@ -6,7 +6,7 @@
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-Consider, if you will, the problem of finding a set of grandparent-grandchild pairs \'97 given information about parent-child relationships. For example, suppose that we had a list of parents and children:\
+Consider, if you will, the problem of finding a set of grandparent-grandchild pairs \'97 given information about parent-child relationships. For example, suppose that we had a list of pairs - each pair indicating a parent and child:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -16,7 +16,7 @@ parent = [("john","peter), ("peter","jane"), ... ].\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 and that we wanted to construct a result along the lines of:\
+\f0\fs26 and that we wanted to construct a result list \'96 also pairs \'96 along the lines of:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -26,17 +26,22 @@ GC = [("john","jane"),...].\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This involves searching the 
+\f0\fs26 Computing the list grandparent/grandchildren pairs involves searching the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 parents
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  for pairs or pairs that satisfy the 
+\f0\fs26  for pairs  that satisfy the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 grandparent
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  relationship. Based on the collection operators we have seen so far, we can build such a search using two 
+\f0\fs26  relationship. This involves a double iteration: each pair in the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 parents
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  list might represent the upper or lower half of a grandparent/grandchild relationship. Based on the collection operators we have seen so far, we can build such a search using two 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 leftFold
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -108,7 +113,7 @@ It turns out that
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 It may not be obvious, but these expressions compute the same values! What should be obvious is that the query is much easier to read and easier to verify that it is correct.\
+\f0\fs26 It may not be obvious, but these expressions compute the same values. What should be obvious is that the query is much easier to read and easier to verify that it is correct.\
 The syntax and style of 
 \b Star
 \b0 \'92s query notation is similar to SQL\'92s syntax \'97 deliberately so.\

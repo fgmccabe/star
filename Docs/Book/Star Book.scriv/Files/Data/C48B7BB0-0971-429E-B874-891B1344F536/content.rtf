@@ -29,7 +29,17 @@ This is where the concept of \'91tentative computation\'92 becomes important.\
 
 \f1 \cf2 <!$Scr_Ps::0>
 \f0\fs26 When we want to open a file, access an element of a dictionary, parse a string with a regular expression we need to be able to express the possibility of failure as well as of success. There are also times when \'91no answer\'92 is a legitimate response.\
-We encode this tentativeness (sic) in the option type. The type definition for option is straightforward:\
+We encode this tentativeness (sic) in the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 option
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  type. The type definition for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 option
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  is straightforward:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
@@ -43,8 +53,18 @@ We encode this tentativeness (sic) in the option type. The type definition for o
 \f2\fs22 none
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
-\f0\fs26  is intended to denote the non-existence of a value and some denotes an actual value.\
-The option type is intended to be used in cases where functions are known to be {\field{\*\fldinst{HYPERLINK "scrivcmt://482B1423-E63B-4FBA-B016-E9EA9E1B9D3C"}}{\fldrslt partial.}} The 
+\f0\fs26  is intended to denote the non-existence of a value and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 some
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  denotes an actual value.\
+The 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 option
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  type is intended to be used in cases where functions are known to be {\field{\*\fldinst{HYPERLINK "scrivcmt://482B1423-E63B-4FBA-B016-E9EA9E1B9D3C"}}{\fldrslt partial.}} The 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
 \f2\fs22 option
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -186,16 +206,16 @@ The
 \f2\fs22 none
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
-\f0\fs26  values \'97 play some of the same roles as NULL does in other languages.\
-For someone approaching a functional language from most imperative languages they will be struck \'97 and maybe upset \'97 by the lack of a null (or nil or NULL or undefined). After all, if it\'92s good enough for Java, why can\'92t 
+\f0\fs26  values \'97 play some of the same roles as NULL does in other languages. For someone approaching a functional language from most imperative languages they will be struck \'97 and maybe upset \'97 by the lack of a null (or nil or NULL or undefined). After all, if it\'92s good enough for Java, why can\'92t 
 \b \cf2 Star
 \b0 \cf2  have it too?\
 Perhaps the biggest single reasons for not having a universal NULL value are that it corrupts the type system and that it makes reasoning about programs harder.\
 In a language which has a universal NULL value, the programmer (and the compiler) must be ever vigilant about references: is the value actually a NULL value? This is true even in those cases where the programmer knows values cannot be NULL. By isolating nullability (sic) into a single concept it allows the programmer to use the feature where it is actually needed.\
-In a language like Java which has a universal NULL value, the type assigned to NULL turns out to be a little strange. Under most circumstances, a value can be assigned a single unique type; but a universal NULL can be literally of any type. So, universal NULL is a value that denotes no actual value, yet it can be of any type.\
-This distorts the logic of the type system by introducing a bottom value into the type lattice. 
-\b \cf2 Star
-\b0 \cf2 \'92s type system is not based on the concept of sub-types; which makes a universal NULL value even more difficult to accommodate.\
-Overall, the option type is part of an elegant approach to nullability that is easily incorporated into 
+Overall, the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 option
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  type is part of an elegant approach to nullability that is easily incorporated into 
 \b \cf2 Star
 \b0 \cf2 \'92s (and similar) type system.}

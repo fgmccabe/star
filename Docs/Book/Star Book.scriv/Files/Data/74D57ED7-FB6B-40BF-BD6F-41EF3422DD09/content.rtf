@@ -52,10 +52,30 @@ first(_pair(H,T)) => H.\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 is a pattern that is applied to the argument of first. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables H and T in the call to _pair will be bound to the first element of the collection and the remainder respectively.\
-For example, applying 
+\f0\fs26 is a pattern abstraction that is applied to the argument of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 first
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 . What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 H
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 T
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  in the call to 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
 \f2\fs22 _pair
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  will be bound to the first element of the collection and the remainder respectively.\
+For example, applying 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 _pair(H,T)
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
 \f0\fs26  to 
@@ -63,13 +83,38 @@ For example, applying
 \f2\fs22 [1,2]
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
-\f0\fs26  binds H to the value 1 and binds T to the sequence 
+\f0\fs26  binds H to the value 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and binds 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 T
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  to the sequence 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
 \f2\fs22 [2]
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
-\f0\fs26 . The value returned by first will be 1. We can combine pattern applications in an exactly analogous manner to the way we combine function calls.\
-Obviously, there must also be a way of defining pattern abstractions. We can define a cPair pattern abstraction that applies to cons lists thus:\
+\f0\fs26 . The value returned by 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 first
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  will be 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 . We can combine pattern applications in an exactly analogous manner to the way we combine function calls.\
+Obviously, there must also be a way of defining pattern abstractions. We can define a cPair pattern abstraction that applies to 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 cons
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  lists thus:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -166,6 +211,11 @@ single([H]) => H\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The sequence contract is one of the most important and commonly used contracts in the 
+\f0\fs26 The 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 sequence
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  contract is one of the most important and commonly used contracts in the 
 \b \cf2 Star
-\b0 \cf2  library. As we shall see further, many of the standard functions are built on top of the sequence contract.}
+\b0 \cf2  library. As we shall see further, many of the standard collections functions are built on top of it.}
