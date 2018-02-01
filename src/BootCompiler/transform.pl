@@ -186,7 +186,7 @@ genRaise(Lc,LclName,[raise(ctpl(strct("error",4),[LclName,intgr(Lno),intgr(Off),
   lcColumn(Lc,Off),
   lcSize(Lc,Sz).
 
-transformDefn(Map,Opts,Lc,Nm,Value,[fnDef(Lc,VrProg,[eqn(Lc,Extra,Body)])|Dx],Dxx) :-
+transformDefn(Map,Opts,Lc,Nm,Value,[fnDef(Lc,VrProg,Tp,[eqn(Lc,Extra,Body)])|Dx],Dxx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,_,_,_),
   extraVars(Map,Extra),                                   % extra variables coming from labels
@@ -248,10 +248,10 @@ transformThetaDefs(Map,Opts,[Def|Defs],Ex,Exx) :-
   transformThetaDef(Map,Opts,Def,Ex,Ex1),
   transformThetaDefs(Map,Opts,Defs,Ex1,Exx).
 
-transformThetaDef(Map,Opts,funDef(Lc,Nm,_,_,Eqns),Dx,Dxx) :-
-  transformFunction(Lc,Nm,Eqns,Map,Opts,Dx,Dxx).
-transformThetaDef(Map,Opts,varDef(Lc,Nm,_,_,Value),Dx,Dxx) :-
-  transformDefn(Map,Opts,Lc,Nm,Value,Dx,Dxx).
+transformThetaDef(Map,Opts,funDef(Lc,Nm,Tp,_,Eqns),Dx,Dxx) :-
+  transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,Dx,Dxx).
+transformThetaDef(Map,Opts,varDef(Lc,Nm,_,Tp,Value),Dx,Dxx) :-
+  transformDefn(Map,Opts,Lc,Nm,Tp,Value,Dx,Dxx).
 transformThetaDef(Map,Opts,cnsDef(Lc,Nm,Con,Tp),Dx,Dxx) :-
   transformCnsDef(Map,Opts,Lc,Nm,Con,Tp,Dx,Dxx).
 transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).

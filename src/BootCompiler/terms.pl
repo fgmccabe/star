@@ -20,11 +20,13 @@ displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res
 showRuleSets(L,O,Ox) :-
   listShow(L,terms:showRuleSet,"\n\n",O,Ox).
 
-showRuleSet(fnDef(_,Nm,Eqns),O,Ox) :-
+showRuleSet(fnDef(_,Nm,Tp,Eqns),O,Ox) :-
   appStr("Function: ",O,O0),
   showTerm(Nm,O0,O1),
-  appStr("\n",O1,O2),
-  showEqns(Eqns,Nm,O2,Ox).
+  appStr(":",O1,O2),
+  showType(Tp,O2,O3),
+  appStr("\n",O3,O4),
+  showEqns(Eqns,Nm,O4,Ox).
 
 showEqns(L,Nm,O,Ox) :-
   listShow(L,terms:showEqn(Nm),"\n",O,Ox).

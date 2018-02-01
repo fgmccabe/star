@@ -3,7 +3,8 @@
           openPackageAsStream/6,
           openPrologPackageAsStream/6,
           addPrologPackage/6,
-          prologPackagePresent/7]).
+          prologPackagePresent/7,
+          addGoLangPackage/6]).
 
 % Implement a file-based repository.
 
@@ -53,6 +54,16 @@ addPrologPackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
   string_concat(Pkg,Hash,Fn),
   string_concat(Fn,".pl",PrFn),
   resolveFile(Root,PrFn,FileNm),
+  writeFile(FileNm,Text),!,
+  addToManifest(Man,U,Pkg,Vers,Sig,fl(PrFn),NM),
+  flushManifest(Root,NM).
+
+
+addGoLangPackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
+  packageHash(Pkg,Vers,Hash),
+  string_concat(Pkg,Hash,Fn),
+  string_concat(Fn,".go",GoFn),
+  resolveFile(Root,GoFn,FileNm),
   writeFile(FileNm,Text),!,
   addToManifest(Man,U,Pkg,Vers,Sig,fl(PrFn),NM),
   flushManifest(Root,NM).

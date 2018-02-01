@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/5]).
+:- module(matcher,[functionMatcher/6]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -9,7 +9,7 @@
 :- use_module(terms).
 :- use_module(polyfill).
 
-functionMatcher(Lc,Ar,Nm,Eqns,fnDef(Lc,Nm,[eqn(Lc,NVrs,Reslt)])) :-
+functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,[eqn(Lc,NVrs,Reslt)])) :-
   genVars(Ar,NVrs),
   makeTriples(Eqns,0,Tpls),
   genRaise(Lc,Error),
