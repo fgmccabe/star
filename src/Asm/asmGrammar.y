@@ -162,7 +162,7 @@ trailer: END nls { endFunction(currMtd); }
  caseins: CASE DECIMAL { ACase(currMtd,$2); }
    | HSH {AHash(currMtd); };
 
- heap: ALLOC DECIMAL { AAlloc(currMtd,$2); }
+ heap: ALLOC literal { AAlloc(currMtd,$2); }
    ;
 
  directive: label COLON { defineLbl(currMtd,$1); }

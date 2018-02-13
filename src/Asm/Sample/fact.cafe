@@ -10,7 +10,7 @@ fact/1 :: "F(i)i"
      ld a[0]
      ld 0
      escape _int_eq
-     frame "()(ii)"
+     frame "0:2"
      bf nonZero
      ld 1
      ret
@@ -18,12 +18,12 @@ nonZero:
      ld a[0]  -- start call to fact(N-1)
      ld 1
      escape _int_minus
-     frame "()(ii)"
+     frame "0:2"
      call fact/1 -- fact itself
-     frame "()(i)"
+     frame "0:1"
      ld a[0]
      escape _int_times
-     frame "()(ii)"
+     frame "0:2"
      ret
      end
 
@@ -33,7 +33,7 @@ next:
      enter 0
      ld 5
      call fact/1
-     frame "()(i)"
+     frame "0:1"
 last:
      halt
      end
