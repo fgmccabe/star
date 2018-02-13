@@ -32,6 +32,7 @@
   keyword("|:").
   keyword("%%").
   keyword("@").
+  keyword("let").
   keyword("this").
   keyword("ref").
   keyword("import").

@@ -1,4 +1,6 @@
-:- module(uri,[parseURI/2,uri//1,resolveURI/3,showUri/3,getUriPath/2,makePath/2,uriPath/2,uriHash/2]).
+:- module(uri,[parseURI/2,uri//1,
+              resolveURI/3,showUri/3,getUriPath/2,makePath/2,uriPath/2,uriHash/2,
+              getCWDUri/1]).
 
 :- use_module(misc).
 :- use_module(encode).
@@ -14,7 +16,7 @@ uri(relUri(Path,Query)) --> relativeURI(Path,Query).
 isAbsoluteURI(absUri(_,_,_)).
 
 absoluteURI(Scheme,Path,Query) -->
-    scheme(Sc), [':'], {string_chars(Scheme,Sc)}, 
+    scheme(Sc), [':'], {string_chars(Scheme,Sc)},
     hierPart(Path,Query).
 
 relativeURI(Path,Query) -->
@@ -270,3 +272,9 @@ segHash(H0,[],H0).
 segHash(H0,[Seg|More],Hx) :-
   stringHash(H0,Seg,H1),
   segHash(H1,More,Hx).
+
+getCWDUri(WD) :-
+  working_directory(C,C),
+  atom_string(C,D),
+  string_concat("file:",D,DT),
+  parseURI(DT,WD).

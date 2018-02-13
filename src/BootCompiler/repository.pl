@@ -65,7 +65,7 @@ addGoLangPackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
   string_concat(Fn,".go",GoFn),
   resolveFile(Root,GoFn,FileNm),
   writeFile(FileNm,Text),!,
-  addToManifest(Man,U,Pkg,Vers,Sig,fl(PrFn),NM),
+  addToManifest(Man,U,Pkg,Vers,Sig,fl(GoFn),NM),
   flushManifest(Root,NM).
 
 packageHash(Pkg,defltVersion,Hash) :-

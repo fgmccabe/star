@@ -26,7 +26,7 @@ pickupPkgSpec('#pkg'(Enc),Pkg,Imports,Export,Types,Classes,Contracts,Implementat
   pickupContracts(ConSigs,Contracts),
   pickupImplementations(ImplSigs,Implementations,[]).
 
-pickupPkg(cons(strct("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
+pickupPkg(ctpl(strct("pkg",2),[strg(Nm),V]),pkg(Nm,Vers)) :-
   pickupVersion(V,VV),
   (consistentVersion(Vers,VV) ; writef("version of imported pkg %w#%w not consistent with %w",[Nm,VV,Vers])).
 
@@ -37,7 +37,7 @@ consistentVersion(defltVersion,_).
 consistentVersion(ver(V),ver(V)).
 
 pickupImports([],[]).
-pickupImports([cons(strct("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-
+pickupImports([ctpl(strct("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-
   pickupViz(V,Viz),
   pickupPkg(P,Pkg),
   pickupImports(L,M).

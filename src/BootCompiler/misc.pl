@@ -1,7 +1,7 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
         collect/4,map/3,rfold/4,project0/2,project1/2,zip/3,
-        appStr/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,genstr/2,
+        appStr/3,appStrs/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,genstr/2,
         subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
         localName/4,
         listShow/5,
@@ -110,6 +110,9 @@ rfold([E|L],F,S,Sx) :-
   rfold(L,F,S0,Sx).
 
 appStr(Str,O,E) :- string_chars(Str,Chrs), concat(Chrs,E,O).
+
+appStrs([],O,O).
+appStrs([S|L],O,Ox) :- appStr(S,O,O1), appStrs(L,O1,Ox).
 
 appQuoted(Str,Qt,O,E) :- appStr(Qt,O,O1), string_chars(Qt,[Q]),string_chars(Str,Chars), quoteConcat(Q,Chars,O1,O2), appStr(Qt,O2,E).
 

@@ -46,7 +46,7 @@
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
-  operator(".", [infixOp(450, 450, 449)]).
+  operator(".", [infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("•", [infixOp(450, 450, 449)]).
@@ -62,7 +62,7 @@
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(899, 890)]).
   operator("?", [infixOp(1199, 1200, 1199)]).
-  operator("@", [prefixOp(1255, 1255), infixOp(1254, 1255, 1255)]).
+  operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).

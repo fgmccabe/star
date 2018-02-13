@@ -65,20 +65,23 @@ defineCVars(Lc,[implementsFace(_,_)|Cx],Dict,CVars,FDict) :-
 
 resolveTerm(void,_,void).
 resolveTerm(v(Lc,Nm),_,v(Lc,Nm)).
-resolveTerm(intLit(Ix),_,intLit(Ix)).
-resolveTerm(floatLit(Ix),_,floatLit(Ix)).
-resolveTerm(stringLit(Sx),_,stringLit(Sx)).
+resolveTerm(intLit(Ix,Tp),_,intLit(Ix,Tp)).
+resolveTerm(floatLit(Ix,Tp),_,floatLit(Ix,Tp)).
+resolveTerm(stringLit(Sx,Tp),_,stringLit(Sx,Tp)).
 resolveTerm(dot(Lc,Rc,Fld),Dict,dot(Lc,RRc,Fld)) :- resolveTerm(Rc,Dict,RRc).
 resolveTerm(enm(Lc,Rf),_,enm(Lc,Rf)).
 resolveTerm(cns(Lc,Rf),_,cns(Lc,Rf)).
-resolveTerm(tple(Lc,Args),Dict,tple(Lc,RArgs)) :-
+resolveTerm(tple(Lc,Tp,Args),Dict,tple(Lc,Tp,RArgs)) :-
   resolveTerms(Args,Dict,RArgs).
-resolveTerm(theta(Lc,Path,Defs,Others,Types),Dict,theta(Lc,Path,RDefs,ROthers,Types)) :-
+resolveTerm(theta(Lc,Path,Defs,Others,Types,Sig),Dict,theta(Lc,Path,RDefs,ROthers,Types,Sig)) :-
   overload(Defs,Dict,RDict,RDefs),
   overloadOthers(Others,RDict,ROthers).
-resolveTerm(record(Lc,Path,Defs,Others,Types),Dict,record(Lc,Path,RDefs,ROthers,Types)) :-
+resolveTerm(record(Lc,Path,Defs,Others,Types,Sig),Dict,record(Lc,Path,RDefs,ROthers,Types,Sig)) :-
   overload(Defs,Dict,RDict,RDefs),
   overloadOthers(Others,RDict,ROthers).
+resolveTerm(letExp(Lc,Env,Bound),Dict,letExp(Lc,REnv,RBound)) :-
+  resolveTerm(Env,Dict,REnv),
+  resolveTerm(Bound,Dict,RBound).
 resolveTerm(where(Lc,Trm,Cond),Dict,where(Lc,RTrm,RCond)) :-
   resolveTerm(Trm,Dict,RTrm),
   resolveTerm(Cond,Dict,RCond).
@@ -104,9 +107,6 @@ resolveTerm(apply(ALc,over(Lc,T,Cx),Args),Dict,apply(ALc,OverOp,tple(LcA,NArgs))
 resolveTerm(apply(Lc,Op,Args),Dict,apply(Lc,ROp,RArgs)) :-
   resolveTerm(Op,Dict,ROp),
   resolveTerm(Args,Dict,RArgs).
-resolveTerm(cons(Lc,O,A),Dict,cons(Lc,OO,OA)) :-
-  resolveTerm(O,Dict,OO),
-  resolveTerm(A,Dict,OA).
 resolveTerm(over(Lc,T,Cx),Dict,Over) :-
   ( resolveContracts(Lc,Cx,Dict,DTerms) ->
       overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
@@ -115,7 +115,7 @@ resolveTerm(over(Lc,T,Cx),Dict,Over) :-
       Over = T).
 resolveTerm(mtd(Lc,Nm),_,v(Lc,Nm)) :-
   reportError("cannot find implementation for %s",[Nm],Lc).
-resolveTerm(lambda(Lc,Rl),Dict,lambda(Lc,ORl)) :-
+resolveTerm(lambda(Lc,Rl,Tp),Dict,lambda(Lc,ORl,Tp)) :-
   overloadRule(Rl,Dict,ORl).
 
 overloadList([],_,_,[]):-!.
@@ -205,12 +205,13 @@ resolveHead(Hd,[],Hd).
 resolveHead(enm(Lc,Nm),CVars,apply(Lc,v(Lc,Nm),CVars)).
 resolveHead(apply(Lc,v(ALc,Nm),Args),CVars,apply(Lc,v(ALc,Nm),OArgs)) :-
   addExtra(CVars,Args,OArgs).
-resolveHead(record(Lc,Lbl,Defs,[],[]),CVars,record(Lc,Lbl,RDefs,[],[])) :-
+resolveHead(record(Lc,Lbl,Defs,[],[],Sig),CVars,record(Lc,Lbl,RDefs,[],[],Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
-resolveHead(theta(Lc,Lbl,Defs,[],[]),CVars,theta(Lc,Lbl,RDefs,[],[])) :-
+resolveHead(theta(Lc,Lbl,Defs,[],[],Sig),CVars,theta(Lc,Lbl,RDefs,[],[],Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
 
-addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :- concat(Extra,Els,EEls).
+addExtra(Extra,tple(Lc,tupleType(Tps),Els),tple(Lc,tupleType(XTps),EEls)) :-
+  concat(Extra,Els,EEls).
 
 addExtraDefs([],Els,Els).
 addExtraDefs([v(Lc,Nm)|Ex],Els,REls) :-

@@ -51,6 +51,15 @@ termRight([idTok(Id,_)|Tks],Pr,LPr,Left,T,Toks,_,Lst) :-
   mergeLoc(Lcx,Lcy,Lc),
   binary(Lc,Id,Left,Right,NewLeft),
   termRight(Tks1,Pr,InfOpPr,NewLeft,T,Toks,LLst,Lst).
+termRight(Tks,Pr,LPr,Left,T,Toks,_,Lst) :-
+  leftBracket(Tks),!,
+  LPr<100,
+  term0(Tks,Arg,RTks,_),
+  locOfAst(Left,LL),
+  locOfAst(Arg,AL),
+  mergeLoc(LL,AL,ALc),
+  apply(ALc,Left,Arg,RLeft),
+  termRight(RTks,Pr,0,RLeft,T,Toks,rpar,Lst).
 termRight(Toks,_,_,Left,Left,Toks,Lst,Lst).
 
 legalNextRight([idTok(I,_)|_],Pr) :- ( prefixOp(I,PPr,_), PPr=<Pr ; \+ isOperator(I)) , !.
@@ -64,6 +73,11 @@ legalNextRight([lqpar(_)|_],_).
 legalNextRight([stringTok(_,_)|_],_).
 legalNextRight([integerTok(_,_)|_],_).
 legalNextRight([floatTok(_,_)|_],_).
+
+leftBracket([lpar(_)|_]).
+leftBracket([lbra(_)|_]).
+leftBracket([lbrce(_)|_]).
+leftBracket([lqbrce(_)|_]).
 
 term0([stringTok(St,Lc)|Toks],Str,Toks,id) :-
   handleInterpolation(St,Lc,Str).

@@ -9,6 +9,7 @@
     isEquation/5,isPtnRule/5,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,
+    isLetDef/4,
     packageName/2,pkgName/2,
     deComma/2,reComma/2,
     rewrite/3,rewriteList/3]).
@@ -180,6 +181,10 @@ isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
 
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
+
+isLetDef(Trm,Lc,Body,Exp) :-
+  isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
+  (isBraceTuple(Body,_,_);isQBraceTuple(Body,_,_)),!.
 
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).

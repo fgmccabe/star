@@ -2,7 +2,7 @@
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
     isCanon/1,isAssertion/1,ruleArity/2,
-    thetaLoc/2,thetaDefs/2]).
+    thetaLoc/2,thetaDefs/2,thetaSig/2]).
 
 :- use_module(misc).
 :- use_module(operators).
@@ -14,15 +14,15 @@ isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_)).
 isCanon(over(_,_,_)).
 isCanon(mtd(_,_)).
-isCanon(intLit(_)).
-isCanon(floatLit(_)).
-isCanon(stringLit(_)).
+isCanon(intLit(_,_)).
+isCanon(floatLit(_,_)).
+isCanon(stringLit(_,_)).
 isCanon(apply(_,_,_)).
 isCanon(dot(_,_,_)).
 isCanon(enm(_,_)).
 isCanon(cns(_,_)).
-isCanon(theta(_,_,_,_,_)).
-isCanon(record(_,_,_,_,_)).
+isCanon(theta(_,_,_,_,_,_)).
+isCanon(record(_,_,_,_,_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
@@ -32,11 +32,14 @@ isCanon(neg(_,_)).
 
 isAssertion(assertion(_,_)).
 
-thetaLoc(theta(Lc,_,_,_,_),Lc).
-thetaLoc(record(Lc,_,_,_,_),Lc).
+thetaLoc(theta(Lc,_,_,_,_,_),Lc).
+thetaLoc(record(Lc,_,_,_,_,_),Lc).
 
-thetaDefs(theta(_,_,Defs,_,_),Defs).
-thetaDefs(record(_,_,Defs,_,_),Defs).
+thetaDefs(theta(_,_,Defs,_,_,_),Defs).
+thetaDefs(record(_,_,Defs,_,_,_),Defs).
+
+thetaSig(theta(_,_,_,_,_,Sig),Sig).
+thetaSig(record(_,_,_,_,_,Sig),Sig).
 
 displayCanon(Term) :- showCanon(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
@@ -72,18 +75,15 @@ showVersion(ver(V),O,Ox) :-
   appStr(V,O1,Ox).
 
 showCanonTerm(v(_,Nm),O,Ox) :- appStr(Nm,O,Ox).
-showCanonTerm(intLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(floatLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(stringLit(Str),O,Ox) :-
+showCanonTerm(intLit(Ix,_),O,Ox) :- appInt(Ix,O,Ox).
+showCanonTerm(floatLit(Ix,_),O,Ox) :- appInt(Ix,O,Ox).
+showCanonTerm(stringLit(Str,_),O,Ox) :-
   appStr("""",O,O1),
   appStr(Str,O1,O2),
   appStr("""",O2,Ox).
 showCanonTerm(apply(_,Op,Args),O,Ox) :-
   showCanonTerm(Op,O,O1),
   showCanonTerm(Args,O1,Ox).
-showCanonTerm(cons(_,Op,A),O,Ox) :-
-  showCanonTerm(Op,O,O1),
-  showCanonTerm(A,O1,Ox).
 showCanonTerm(dot(_,Rc,Fld),O,Ox) :-
   showCanonTerm(Rc,O,O1),
   appStr(".",O1,O2),
@@ -95,19 +95,19 @@ showCanonTerm(enm(_,Nm),O,Ox) :-
 showCanonTerm(cns(_,Nm),O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
-showCanonTerm(theta(_,_,Defs,Others,Types),O,Ox) :-
+showCanonTerm(theta(_,_,Defs,Others,Types,_),O,Ox) :-
   appStr("{ ",O,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr(" }",O4,Ox).
-showCanonTerm(record(_,_,Defs,Others,Types),O,Ox) :-
+showCanonTerm(record(_,_,Defs,Others,Types,_),O,Ox) :-
   appStr("{. ",O,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr(" .}",O4,Ox).
-showCanonTerm(tple(_,Els),O,Ox) :-
+showCanonTerm(tple(_,_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
@@ -324,5 +324,5 @@ showStmt(ignore(_,Exp),O,Ox) :-
   appStr("  ignore ",O,O1),
   showCanonTerm(Exp,O1,Ox).
 
-ruleArity(equation(_,_,tple(_,A),_),Ar) :-
+ruleArity(equation(_,_,tple(_,_,A),_),Ar) :-
   length(A,Ar).

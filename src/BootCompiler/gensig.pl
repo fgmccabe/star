@@ -6,7 +6,7 @@
 :- use_module(encode).
 :- use_module(uri).
 
-genPkgSig(module(Pkg,Imports,Fields,Types,Enums,Defs,Contracts,Impls),Sig) :-
+genPkgSig(module(Pkg,Imports,Fields,Types,Enums,_Defs,Contracts,Impls),Sig) :-
   constructPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,Term),
   encodeTerm(Term,Chrs,[]),
   string_chars(Sig,Chrs).
@@ -20,7 +20,7 @@ constructPkgSig(Pkg,Imports,Fields,Types,Enums,Contracts,Impls,
   formatContracts(Contracts,ConSigs),
   formatImpls(Impls,ImplSigs).
 
-encPkg(pkg(Nm,Vers),cons(strct("pkg",2),[strg(Nm),V])) :-
+encPkg(pkg(Nm,Vers),ctpl(strct("pkg",2),[strg(Nm),V])) :-
   encVer(Vers,V).
 
 encVer(defltVersion,enum("*")).
@@ -31,7 +31,7 @@ encImports([I|M],[IP|L]) :-
   encImport(I,IP),
   encImports(M,L).
 
-encImport(import(Viz,Pkg,_,_,_,_,_),cons(strct("import",2),[enum(Viz),Enc])) :-
+encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(strct("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
 
 formatEnums([],[]).

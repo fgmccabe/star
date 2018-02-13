@@ -142,10 +142,10 @@ transformModuleDefs([Def|Defs],Pkg,Map,Opts,Ex,Exx) :-
   transformMdlDef(Def,Pkg,Map,Opts,Ex,Ex1),
   transformModuleDefs(Defs,Pkg,Map,Opts,Ex1,Exx).
 
-transformMdlDef(funDef(Lc,Nm,_,[],Eqns),_,Map,Opts,Dx,Dxx) :-
-  transformFunction(Lc,Nm,Eqns,Map,Opts,Dx,Dxx).
-transformMdlDef(varDef(Lc,Nm,[],_,Value),_,Map,Opts,Dx,Dxx) :-
-  transformDefn(Map,Opts,Lc,Nm,Value,Dx,Dxx).
+transformMdlDef(funDef(Lc,Nm,Tp,[],Eqns),_,Map,Opts,Dx,Dxx) :-
+  transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,Dx,Dxx).
+transformMdlDef(varDef(Lc,Nm,[],Tp,Value),_,Map,Opts,Dx,Dxx) :-
+  transformDefn(Map,Opts,Lc,Nm,Tp,Value,Dx,Dxx).
 transformMdlDef(cnsDef(_,_,_,_),_,_,_,Dx,Dx).
 transformMdlDef(typeDef(_,_,_,_),_,_,_,Dx,Dx).
 transformMdlDef(conDef(_,_,_),_,_,_,Dx,Dx).
@@ -155,7 +155,7 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformFunction(Lc,Nm,Eqns,Map,Opts,[Fun|Ex],Exx) :-
+transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   lookupFunName(Map,Nm,Reslt),
   programAccess(Reslt,LclFun,_,_,Arity),
   pushOpt(Opts,inProg(Nm),FOpts),
@@ -164,14 +164,14 @@ transformFunction(Lc,Nm,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   LclPrg = prg(LclFun,Ar),
   transformEquations(Map,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Ex0,Exx),
-  functionMatcher(Lc,Ar,LclPrg,Rules,Fun).
+  functionMatcher(Lc,Ar,LclPrg,Tp,Rules,Fun).
 
 transformEquations(_,_,_,[],Rules,Rules,Ex,Ex).
 transformEquations(Map,Opts,LclPrg,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
   transformEqn(Eqn,Map,Opts,LclPrg,Rules,R0,Ex,Ex0),
   transformEquations(Map,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
 
-transformEqn(equation(Lc,_,tple(_,A),Cond,Value),Map,Opts,_LclPrg,
+transformEqn(equation(Lc,_,tple(_,_Tp,A),Cond,Value),Map,Opts,_LclPrg,
     [eqn(Lc,Args,Rhs)|Rx],Rx,Ex,Exx) :-
   extraVars(Map,Extra),
   liftPtns(A,Args,Extra,Extra,Q1,Map,Opts,Ex,Ex0), % head args
@@ -186,7 +186,7 @@ genRaise(Lc,LclName,[raise(ctpl(strct("error",4),[LclName,intgr(Lno),intgr(Off),
   lcColumn(Lc,Off),
   lcSize(Lc,Sz).
 
-transformDefn(Map,Opts,Lc,Nm,Value,[fnDef(Lc,VrProg,Tp,[eqn(Lc,Extra,Body)])|Dx],Dxx) :-
+transformDefn(Map,Opts,Lc,Nm,Tp,Value,[fnDef(Lc,VrProg,Tp,[eqn(Lc,Extra,Body)])|Dx],Dxx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,_,_,_),
   extraVars(Map,Extra),                                   % extra variables coming from labels
@@ -203,16 +203,17 @@ transformOthers(Pkg,Map,Opts,[assertion(Lc,G)|Others],Inits,Rules,Rx) :-
   transformOthers(Pkg,Map,Opts,Rest,More,R0,Rx),
   mergeGoal(cll(Lc,AssertName,[]),More,Lc,Inits).
 
-transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,[fnDef(Lc,LclPrg,[eqn(Lc,[],Goal)])|Ex],Exx) :-
+transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,[fnDef(Lc,LclPrg,funType(tupleType([]),BoolTp),[eqn(Lc,[],Goal)])|Ex],Exx) :-
   rfold(Asserts,transform:collectGoal,enm(Lc,"true"),G),
   localName(Pkg,"@","assert",LclName),
   LclPrg = prg(LclName,0),
-  liftExp(G,Goal,[],_Q,Map,Opts,Ex,Exx).
+  liftExp(G,Goal,[],_Q,Map,Opts,Ex,Exx),
+  stdType("boolean",BoolTp).
 
 collectGoal(assertion(_,G),enm(_,"true"),G) :-!.
 collectGoal(assertion(Lc,G),O,conj(Lc,O,G)).
 
-packageInit(Pkg,Lc,_,_,Inits,[fnDef(Lc,InitPrg,[eqn(Lc,[],Inits)])|R],R) :-
+packageInit(Pkg,Lc,_,_,Inits,[fnDef(Lc,InitPrg,funType(tupleType([]),tupleType([])),[eqn(Lc,[],Inits)])|R],R) :-
   localName(Pkg,"@","init",InitNm),
   InitPrg = prg(InitNm,0).
 
@@ -221,14 +222,14 @@ transformCnsDef(Map,Opts,Lc,Nm,enm(_,_),Tp,Ex,Exx) :-
 transformCnsDef(Map,Opts,Lc,Nm,cns(_,_),Tp,Ex,Exx) :-
   transformCns(Map,Opts,Lc,Nm,Tp,Ex,Exx).
 
-transformEnum(Map,Opts,Lc,Nm,_Tp,Dfs,Dx) :-
-  labelDefn(Map,Opts,Lc,Nm,_LclName,Dfs,Dx).
+transformEnum(Map,Opts,Lc,Nm,Tp,Dfs,Dx) :-
+  labelDefn(Map,Opts,Lc,Nm,_LclName,Tp,Dfs,Dx).
 
-transformCns(Map,Opts,Lc,Nm,_Tp,Dfs,Dx) :-
-  labelDefn(Map,Opts,Lc,Nm,_LclName,Dfs,Dx).
+transformCns(Map,Opts,Lc,Nm,Tp,Dfs,Dx) :-
+  labelDefn(Map,Opts,Lc,Nm,_LclName,Tp,Dfs,Dx).
 
-labelDefn(Map,_Opts,Lc,Nm,LclName,[fnDef(Lc,prg(Access,ArA),
-    [eqn(Lc,[ctpl(Con,[LblTerm])|Extra],Lblx)])|Rx],Rx) :-
+labelDefn(Map,_Opts,Lc,Nm,LclName,[fnDef(Lc,prg(Access,ArA),funType(tupleType([]),Tp),
+    Tp,[eqn(Lc,[tpl(Con,[LblTerm])|Extra],Lblx)])|Rx],Rx) :-
   lookupVarName(Map,Nm,Spec),
   trCons(Nm,1,Con),
   makeLabelTerm(Spec,Access,LblTerm,LclName),
@@ -258,7 +259,7 @@ transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).
 transformThetaDef(_,_,contract(_,_,_),Dx,Dx).
 transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).
 
-closureEntry(Map,Lc,Name,[fnDef(Lc,prg(Closure,2),[eqn(Lc,[CallStrct,ClosureCons],
+closureEntry(Map,Lc,Name,[fnDef(Lc,prg(Closure,2),funType(tupleType([]),voidType),[eqn(Lc,[CallStrct,ClosureCons],
     cll(Lc,prg(Prog,ArX),Q))])|L],L) :-
   lookupVarName(Map,Name,Reslt),
   programAccess(Reslt,Prog,_,Closure,Arity),
@@ -268,11 +269,11 @@ closureEntry(Map,Lc,Name,[fnDef(Lc,prg(Closure,2),[eqn(Lc,[CallStrct,ClosureCons
   trCons("_call",Arity,Con),
   CallStrct = ctpl(Con,Args),
   length(Extra,ExAr),
-  (Extra=[] -> ClosureCons = enu(Closure) | ClosureCons = ctpl(strct(Closure,ExAr),Extra)),
+  (Extra=[] -> ClosureCons = enu(Closure) ; ClosureCons = ctpl(strct(Closure,ExAr),Extra)),
   length(Q,ArX).
 
 transformImplementation(Lc,ImplName,Def,Face,Map,Opts,Rules,Rx,Ex,Exx) :-
-  labelDefn(Map,Opts,Lc,ImplName,_,Rules,R0),
+  labelDefn(Map,Opts,Lc,ImplName,_,Face,Rules,R0),
   genClassMap(Map,Opts,Lc,ImplName,[Def],Face,CMap,R0,En0,Ex,Ex1),!,
   transformClassBody([Def],CMap,Opts,En1,Rx,En0,En1,Ex1,Exx).
 
@@ -290,17 +291,17 @@ liftPtn(enm(Lc,Nm),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
 liftPtn(intLit(Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(floatLit(Ix),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftPtn(stringLit(Ix),strg(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftPtn(stringLit(Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(dot(Lc,Rc,Fld),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   genVar("XV",X),
   trCons(Fld,1,S),
   trDotExp(Lc,Rc,ctpl(S,[X]),X,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftPtn(tple(_,Ptns),tpl(P),Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(tple(_,Tp,Ptns),tpl(Tp,P),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(Ptns,P,[],Q,Qx,Map,Opts,Ex,Exx).
-liftPtn(apply(Lc,v(_,Nm),A),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,v(_,Nm),tple(_,Tps,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,[],Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(cons(Lc,cns(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,cns(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,[],Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
 liftPtn(where(_,P,enm(_,"true")),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -364,15 +365,12 @@ liftExp(enm(Lc,Nm),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Vr,Q,Qx,Map,Opts).
 liftExp(cns(Lc,Nm),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Vr,Q,Qx,Map,Opts).
-liftExp(intLit(Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(floatLit(Ix),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(stringLit(Ix),strg(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(tple(_,A),tpl(TA),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(intLit(Ix,Tp),intgr(Ix,Tp),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(floatLit(Ix,Tp),float(Ix,Tp),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(stringLit(Ix,Tp),strg(Ix,Tp),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(tple(_,Tp,A),tpl(TA),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExps(A,TA,[],Q,Qx,Map,Opts,Ex,Exx).
-liftExp(apply(Lc,Op,tple(_,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
-  trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(cons(Lc,Op,tple(_,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(apply(Lc,Op,tple(_,Tp,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(dot(Lc,Rec,Fld),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -386,7 +384,7 @@ liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
 liftExp(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(L,LL,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(dinj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(disj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(L,LL,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(neg(Lc,R),ng(Lc,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -398,12 +396,12 @@ liftExp(cond(Lc,T,L,R),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftExp(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftPtn(L,Lx,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(theta(Lc,Path,Defs,Others,Types),Theta,Q,Q,Map,Opts,Ex,Exx) :-
-  liftTheta(theta(Lc,Path,Defs,Others,Types),Theta,Q,Map,Opts,Ex,Exx).
-liftExp(record(Lc,Path,Defs,Others,Types),Theta,Q,Q,Map,Opts,Ex,Exx) :-
-  liftTheta(record(Lc,Path,Defs,Others,Types),Theta,Q,Map,Opts,Ex,Exx).
-liftExp(lambda(Lc,Rl),Rslt,Q,Q,Map,Opts,Ex,Exx) :-
-  trLambdaRule(Lc,Rl,Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-
+  liftTheta(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
+liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-
+  liftTheta(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
+liftExp(lambda(Lc,Rl,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-
+  trLambdaRule(Lc,Rl,Tp,Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).
 
@@ -429,16 +427,16 @@ implementVarExp(localVar(Vn,_,ThVr),Lc,_,cll(Lc,prg(Vn,1),[ThVr]),Q,Qx) :-
 implementVarExp(moduleVar(_,V,_),Lc,_,cll(Lc,prg(V,0),[]),Qx,Qx).
 implementVarExp(labelArg(N,ThVar),_,_,N,Q,Qx) :-
   merge([N,ThVar],Q,Qx).
-implementVarExp(moduleCons(Enum,_,0),_,_,enu(Enum),Q,Q).
+implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),Q,Q).
 implementVarExp(moduleCons(C,_,Ar),_,_,Cns,Q,Q) :-
   trCons(C,Ar,Cns).
-implementVarExp(moduleImpl(_,enu(Enum)),_,_,enu(Enum),Q,Q).
+implementVarExp(moduleImpl(_,enum(Enum)),_,_,enum(Enum),Q,Q).
 implementVarExp(localClass(Enum,_,_,ThVr),_,_,ctpl(Enum,[ThVr]),Q,Qx) :-
   merge([ThVr],Q,Qx).
 implementVarExp(notInMap,_,Nm,idnt(Nm),Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
-implementVarExp(moduleFun(_,_,_,Acc,_),_,_,enu(Acc),Q,Q).
-implementVarExp(moduleRel(_,_,_,Acc,_),_,_,enu(Acc),Q,Q).
+implementVarExp(moduleFun(_,_,_,Acc,_),_,_,enum(Acc),Q,Q).
+implementVarExp(moduleRel(_,_,_,Acc,_),_,_,enum(Acc),Q,Q).
 implementVarExp(localFun(_,_,Closure,_,ThVr),_,_,ctpl(strct(Closure,1),[ThVr]),Q,Q).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),Q,Q) :-
   reportError("cannot handle %s in expression",[Nm],Lc).
@@ -480,13 +478,13 @@ implementFunCall(Lc,notInMap,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,dot(v(Lc,Nm),"_call"),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
 % We build $$(_call(Args<>Rep),$$(Free),_) :- Cond, !, replacement
-trLambdaRule(Lc,Rule,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+trLambdaRule(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(Rule,Q,Map,LclName,Closure,LMap,Ex,Ex0),
   transformEqn(Rule,LMap,Opts,LclName,Rl,[],Ex0,Exx),
   extraVars(LMap,Extra),
   mkClosure(LclName,Extra,Closure),
   ruleArity(Rl,Ar),
-  functionMatcher(Lc,Ar,LclName,[Rl],LamFun).
+  functionMatcher(Lc,Ar,LclName,Tp,[Rl],LamFun).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -534,8 +532,9 @@ liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
   thetaMap(Theta,Q,Map,Opts,ThLbl,LblTerm,ThMap,EnRls,Ex,Ex0),
   thetaLoc(Theta,Lc),
   thetaDefs(Theta,Defs),
+  thetaSig(Theta,Sig),
   transformThetaDefs(ThMap,Opts,Defs,Ex0,Exx),
-  functionMatcher(Lc,2,prg(ThLbl,2),EnRls,ThetaFun).
+  functionMatcher(Lc,2,prg(ThLbl,2),funType(tupleType([]),Sig),EnRls,ThetaFun).
 
 thetaMap(Theta,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Exx) :-
   genVar("ThV",ThVr),
@@ -547,19 +546,19 @@ thetaMap(Theta,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnR
   makeLblTerm(LclName,ThVars,LblTerm),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx,EnRls,[]).
 
-thetaLbl(theta(_,Path,_,_,_),Map,Lbl) :-
+thetaLbl(theta(_,Path,_,_,_,_),Map,Lbl) :-
   layerName(Map,Outer),
   localName(Outer,"•",Path,Lbl).
-thetaLbl(record(_,Path,_,_,_),Map,Lbl) :-
+thetaLbl(record(_,Path,_,_,_,_),Map,Lbl) :-
   layerName(Map,Outer),
   localName(Outer,"•",Path,Lbl).
 
 makeLblTerm(Nm,[],enu(Nm)) :- !.
 makeLblTerm(Nm,Extra,ctpl(strct(Nm,Ar),Extra)) :- length(Extra,Ar).
 
-makeMtdMap(theta(_,_,Defs,_,_),OuterNm,ThVr,L,Lx,Ex,Exx) :-
+makeMtdMap(theta(_,_,Defs,_,_,_),OuterNm,ThVr,L,Lx,Ex,Exx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx,Ex,Exx).
-makeMtdMap(record(_,_,Defs,_,_),OuterNm,ThVr,L,Lx,Ex,Exx) :-
+makeMtdMap(record(_,_,Defs,_,_,_),OuterNm,ThVr,L,Lx,Ex,Exx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx,Ex,Exx).
 
 collectMtds([],_,_,List,List,Ex,Ex).

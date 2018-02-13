@@ -463,6 +463,14 @@ collectTermRefs(T,All,R,Refs) :-
   isQBraceTuple(T,_,Els),
   collectStmtRefs(Els,All,[],R,Refs).
 collectTermRefs(T,All,R,Refs) :-
+  isBraceTerm(T,_,Op,Els),
+  collectTermRefs(Op,All,R,R0),
+  collectClassRefs(Els,All,R0,Refs).
+collectTermRefs(T,All,R,Refs) :-
+  isQBraceTerm(T,_,Op,Els),
+  collectTermRefs(Op,All,R,R0),
+  collectStmtRefs(Els,All,[],R0,Refs).
+collectTermRefs(T,All,R,Refs) :-
   isSquareTerm(T,Op,A),
   collectTermRefs(Op,All,R,R0),
   collectIndexRefs(A,All,R0,Refs).

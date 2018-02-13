@@ -412,7 +412,7 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_) :-
   typeOfTerm(IBody,IFace,ThEnv,ThEv,ImplTerm),
   implementationName(Spec,ImplName),
   Impl = implDef(Lc,INm,ImplName,Spec),
-  ImplDef = funDef(Lc,ImplName,funType(tupleType([]),IFace),AC,[equation(Lc,ImplName,tple(Lc,[]),enm(Lc,"true"),ImplTerm)]),
+  ImplDef = funDef(Lc,ImplName,funType(tupleType([]),IFace),AC,[equation(Lc,ImplName,tple(Lc,tupleType([]),[]),enm(Lc,"true"),ImplTerm)]),
   declareImplementation(Nm,Impl,Env,Ex),
   dischargeConstraints(Env,ThEv),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
@@ -426,7 +426,7 @@ sameLength(L1,_,Lc) :-
 
 declImpl(imp(ImplNm,Spec),SoFar,[(ImplNm,Spec)|SoFar]).
 
-typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Els)) :-
+typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Tp,Els)) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
@@ -444,13 +444,13 @@ typeOfTerm(V,Tp,Env,Ev,Term) :-
 typeOfTerm(V,Tp,Ev,Env,v(Lc,N)) :-
   isIden(V,Lc,N),
   declareVr(Lc,N,Tp,Ev,Env).
-typeOfTerm(integer(Lc,Ix),Tp,Env,Env,intLit(Ix)) :- !,
+typeOfTerm(integer(Lc,Ix),Tp,Env,Env,intLit(Ix,Tp)) :- !,
   findType("integer",Lc,Env,IntTp),
   checkType(Lc,IntTp,Tp,Env).
-typeOfTerm(float(Lc,Ix),Tp,Env,Env,floatLit(Ix)) :- !,
+typeOfTerm(float(Lc,Ix),Tp,Env,Env,floatLit(Ix,Tp)) :- !,
   findType("float",Lc,Env,FltTp),
   checkType(Lc,FltTp,Tp,Env).
-typeOfTerm(string(Lc,Ix),Tp,Env,Env,stringLit(Ix)) :- !,
+typeOfTerm(string(Lc,Ix),Tp,Env,Env,stringLit(Ix,Tp)) :- !,
   findType("string",Lc,Env,StrTp),
   checkType(Lc,StrTp,Tp,Env).
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
@@ -480,32 +480,39 @@ typeOfTerm(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else)) :-
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isSquareTuple(Term,Lc,Els), !,
   checkSquareTuple(Lc,Els,Tp,Env,Ev,Exp).
-typeOfTerm(Term,Tp,Env,Env,theta(Lc,Path,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,theta(Lc,Path,Defs,Others,Types,Tp)) :-
   isBraceTuple(Term,Lc,Els),
   genstr("theta",Path),
   checkThetaBody(Tp,Lc,Els,Env,Defs,Others,Types,Path).
-typeOfTerm(Term,Tp,Env,Env,record(Lc,Path,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,record(Lc,Path,Defs,Others,Types,Tp)) :-
   isQBraceTuple(Term,Lc,Els),
   genstr("record",Path),
   checkRecordBody(Tp,Lc,Els,Env,Defs,Others,Types,Path).
-typeOfTerm(Term,Tp,Env,Env,theta(Lc,Lbl,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,theta(Lc,Lbl,Defs,Others,Types,Tp)) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
   deRef(FnTp,BTp),
   checkThetaBody(BTp,Lc,Els,E0,Defs,Others,Types,Lbl).
-typeOfTerm(Term,Tp,Env,Env,record(Lc,Lbl,Defs,Others,Types)) :-
+typeOfTerm(Term,Tp,Env,Env,record(Lc,Lbl,Defs,Others,Types,Tp)) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
   checkRecordBody(FnTp,Lc,Els,E0,Defs,Others,Types,Lbl).
+typeOfTerm(Term,Tp,Env,Env,letExp(Lc,Theta,Bound)) :-
+  isLetDef(Term,Lc,Th,Ex),
+  newTypeVar("ThLet",LtVr),
+  typeOfTerm(Th,LtVr,Env,_,Theta),
+  faceOfType(LtVr,Fce),
+  pushFace(Fce,Lc,Env,E0),
+  typeOfTerm(Ex,Tp,E0,_,Bound).
 typeOfTerm(Trm,Tp,Env,Ev,Exp) :-
   isTuple(Trm,_,[Inner]),
   \+ isTuple(Inner,_), !,
   typeOfTerm(Inner,Tp,Env,Ev,Exp).
-typeOfTerm(Trm,Tp,Env,Ev,tple(Lc,Els)) :-
+typeOfTerm(Trm,Tp,Env,Ev,tple(Lc,Tp,Els)) :-
   isTuple(Trm,Lc,A),
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
@@ -538,12 +545,12 @@ typeOfTerm(Term,Tp,Env,Ev,Exp) :-
    sameType(consType(At,Tp),FnTp,E0) ->
     evidence(At,E0,_,AT),
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args),
-    Exp = cons(Lc,Fun,Args);
+    Exp = apply(Lc,Fun,Args);
    reportError("invalid function %s in call",[Fun],Lc)).
 typeOfTerm(Term,Tp,Env,Ev,Exp) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp).
-typeOfTerm(Term,Tp,Env,Env,lambda(Lc,equation(Lc,"$",Args,Cond,Exp))) :-
+typeOfTerm(Term,Tp,Env,Env,lambda(Lc,equation(Lc,"$",Args,Cond,Exp),Tp)) :-
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
   typeOfArgTerm(H,AT,Env,E1,Args),
@@ -693,13 +700,13 @@ isListType(Tp,Env) :-
 
 typeOfListTerm([],Lc,_,ListTp,Env,Ev,Exp) :-
   typeOfTerm(name(Lc,"[]"),ListTp,Env,Ev,Exp).
-typeOfListTerm([Last],_,ElTp,ListTp,Env,Ev,apply(Op,tple(Lc,[Hd,Tl]))) :-
+typeOfListTerm([Last],_,ElTp,ListTp,Env,Ev,apply(Op,tple(Lc,tupleType([ElTp,ListTp]),[Hd,Tl]))) :-
   isBinary(Last,Lc,",..",L,R),
   newTypeVar("_",LiTp),
   typeOfKnown(name(Lc,",.."),LiTp,Env,E0,Op),
   typeOfTerm(L,ElTp,E0,E1,Hd),
   typeOfTerm(R,ListTp,E1,Ev,Tl).
-typeOfListTerm([El|More],_,ElTp,ListTp,Env,Ev,apply(Op,tple(Lc,[Hd,Tl]))) :-
+typeOfListTerm([El|More],_,ElTp,ListTp,Env,Ev,apply(Op,tple(Lc,tupleType([ElTp,ListTp]),[Hd,Tl]))) :-
   locOfAst(El,Lc),
   newTypeVar("_",LiTp),
   typeOfKnown(name(Lc,",.."),LiTp,Env,E0,Op),

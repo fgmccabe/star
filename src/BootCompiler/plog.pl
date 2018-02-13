@@ -145,8 +145,7 @@ showTerm(intgr(Ix),O,Ox) :-
   appInt(Ix,O,Ox).
 showTerm(float(Dx),O,Ox) :-
   appFlt(Dx,O,Ox).
-showTerm(strg(Str),O,Ox) :-
-  appStr("""",O,O1),
+showTerm(strg(Str),O,Ox),
   appStr(Str,O1,O2),
   appStr("""",O2,Ox).
 showTerm(enum(Nm),O,Ox) :-
@@ -154,7 +153,7 @@ showTerm(enum(Nm),O,Ox) :-
 showTerm(idnt(Nm),O,Ox) :-
   appStr("?",O,O0),
   appStr(Nm,O0,Ox).
-showTerm(cons(Op,Args),O,Ox) :-
+showTerm(ctpl(Op,Args),O,Ox) :-
   showTerm(Op,O,O1),
   appStr("(",O1,O2),
   showTerms(Args,O2,O3),

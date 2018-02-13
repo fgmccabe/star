@@ -1,9 +1,10 @@
-:- module(terms,[displayRules/1,showRules/3,substTerm/3]).
+:- module(terms,[displayRules/1,showRules/3,substTerm/3,genTplStruct/2]).
 
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(operators).
 :- use_module(location).
+:- use_module(types).
 
 showRules(module(Pkg,Imports,_,Types,_,Defs,Contracts,Impls),O,Ox) :-
   showPkg(Pkg,O,O1),
@@ -200,3 +201,6 @@ substVN(Q,(T,E),(T,NE)) :-
 substCase(Q,(T,E),(NT,NE)) :-
   substTerm(Q,T,NT),
   substTerm(Q,E,NE).
+
+genTplStruct(Cnt,strct(Nm,Cnt)) :-
+  swritef(Nm,"()%d",[Cnt]).

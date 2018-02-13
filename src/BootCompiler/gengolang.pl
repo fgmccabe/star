@@ -1,52 +1,42 @@
 :- module(gengolang,[genGoLang/2]).
 
-% Generate javascript code
+% Generate go-lang code
 
 :- use_module(misc).
 :- use_module(types).
 :- use_module(transutils).
 :- use_module(encode).
 :- use_module(uri).
+:- use_module(template).
 
 genGoLang(module(Pkg,Imports,_Fields,_Types,_Enums,Defs,_Contracts,_Impls),Text) :-
-  genGoPkg(Pkg,Chrs,C0),
-  genGoImports(Imports,C0,C1),
-  genGoDefs(Defs,C1,[]),
+  genGoPkgName(Pkg,[],V0),
+  genGoImports(Imports,V0,V1),
+  genGoDefs(Defs,V1,Vx),
+  processTemplateFile("internal://Go/pkg.go.plate",Vx,Chrs),
   string_chars(Text,Chrs).
 
-genGoPkg(pkg(Nm,_),C,Cx) :-
-  appStr("package ",C,C0),
-  makeGoPkgNm(Nm,GoNm),
-  appStr(GoNm,C0,C1),
-  appStr("\n",C1,Cx).
+genGoPkgName(pkg(Nm,_),C,[("pkgName",GoNm)|C]) :-
+  makeGoPkgNm(Nm,GoNm).
 
 makeGoPkgNm(Nm,GoNm) :-
   string_chars(Nm,Chrs),
   replace(Chrs,'.','_',RChrs),
   string_chars(GoNm,RChrs).
 
+genGoImports([],V,V).
+
 genGoDefs(Defs,O,Ox) :-
   rfold(Defs,gengolang:genGoDef,O,Ox).
 
-genGoDef(fnDef(_,Nm,Tp,[Eqn]),O,Ox) :-
-  genFun(Eqn,Nm,Tp,O,Ox).
+genGoDef(fnDef(_,Nm,_,[eqn(_,Args,Value)]),O,[Txt|O]) :-
+  genNm(Nm,"Name",[],D0),
+  genArgDefs(Args,D0,D1),
+  genTerm(Value,D1,Dx),
+  processTemplateFile("internal://Go/func.go.plate",Dx,Chrs),
+  string_chars(Txt,Chrs).
 
-genFun(Nm,eqn(_,Args,Body),O,Ox) :-
-  appStr("func ",O,O1),
-  genTerm(Nm,O,O2),
-  appStr("(",O2,O3),
-  genTerms(Args,O3,O4),
-  appStr("){\n",O4,O5),
-  appStr("  var _answer=undefined;\n",O5,O6),
-  genBody(Body,O6,O7),
-  appStr("  return _answer;",O7,O8),
-  appStr("}\n",O8,Ox).
-
-genBody(T,O,Ox) :-
-  genTerm(T,genJs:appAnswer,O,O1),
-  appStr(";\n",O2,Ox).
-
-genTerm(prg(Nm,_),Cl,O,Ox) :-
+genTerm(prg(Nm,_),O,Ox) :-
   appQuoted(Nm,'''',O,Ox).
 genTerm(strct(Nm,_),O,Ox) :-
   genQuoted(Nm,O,Ox).
@@ -63,7 +53,7 @@ genTerm(enum(Nm),O,Ox) :-
 genTerm(idnt(Nm),O,Ox) :-
   appStr("X",O,O0),
   genVar(Nm,O0,Ox).
-genTerm(cons(Op,Args),O,Ox) :-
+genTerm(ctpl(Op,Args),O,Ox) :-
   genTerm(Op,O,O1),
   appStr("(",O1,O2),
   genTerms(Args,O2,O3),

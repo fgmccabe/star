@@ -13,8 +13,8 @@ encodeTerm(strct(Nm,Arity),['o'|O],Ox) :-
   encodeInt(Arity,O,O1),
   encodeText(Nm,O1,Ox).
 encodeTerm(prg(Nm,Arity),['p'|O],Ox) :- encodeInt(Arity,O,O1), encodeText(Nm,O1,Ox).
-encodeTerm(tpl(Els),O,Ox) :- tupleSig(Els,Con), encodeTerm(cons(Con,Els),O,Ox).
-encodeTerm(cons(Con,Els),['n'|O],Ox) :-
+encodeTerm(tpl(Els),O,Ox) :- tupleSig(Els,Con), encodeTerm(ctpl(Con,Els),O,Ox).
+encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   length(Els,Ln),
   encodeInt(Ln,O,O1),
   encodeTerm(Con,O1,O2),

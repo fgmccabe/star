@@ -21,13 +21,13 @@ frameDebug(Nm,QNo,G,Gx,Q,Opts) :-
   trCons("frame",3,RlNm),
   constructFrameList(Q,FQ),
   G=[unify(FrVr,FQ),
-      ocall(cons(RlNm,[strg(Nm),intgr(QNo),FrVr]),DgVr,DgVr)|Gx].
+      ocall(ctpl(RlNm,[strg(Nm),intgr(QNo),FrVr]),DgVr,DgVr)|Gx].
 frameDebug(_,_,F,F,_,_).
 
 deframeDebug(Nm,QNo,FB,FBx,Opts) :-
   isOption(dbgVars(Nm,DgVr,FrVr),Opts),!,
   trCons("deframe",3,RlNm),
-  FB=[ocall(cons(RlNm,[strg(Nm),intgr(QNo),FrVr]),DgVr,DgVr)|FBx].
+  FB=[ocall(ctpl(RlNm,[strg(Nm),intgr(QNo),FrVr]),DgVr,DgVr)|FBx].
 deframeDebug(_,_,F,F,_).
 
 constructFrameList([],enum("lo.list#[]")).
@@ -35,15 +35,15 @@ constructFrameList([idnt(V)|Vars],FQ) :-
   starts_with(V,"_"),!,
   constructFrameList(Vars,FQ).
 constructFrameList([idnt(V)|Vars],
-      cons(strct("lo.list#,..",2),[tpl([strg(V),idnt(V)]),Q])) :-
+      ctpl(strct("lo.list#,..",2),[tpl([strg(V),idnt(V)]),Q])) :-
   constructFrameList(Vars,Q).
 
-breakDebug(Nm,[ocall(cons(BC,[strg(Nm)]),DgVr,DgVr)|BG],BG,Opts) :-
+breakDebug(Nm,[ocall(ctpl(BC,[strg(Nm)]),DgVr,DgVr)|BG],BG,Opts) :-
   isOption(dbgVars(Nm,DgVr,_),Opts),!,
   trCons("break",1,BC).
 breakDebug(_,G,G,_).
 
-lineDebug(Lc,[ocall(cons(RlNm,[strg(PkgName),intgr(Lno),intgr(Off),intgr(Sz)]),DgVr,DgVr)|P],P,Opts) :-
+lineDebug(Lc,[ocall(ctpl(RlNm,[strg(PkgName),intgr(Lno),intgr(Off),intgr(Sz)]),DgVr,DgVr)|P],P,Opts) :-
   isOption(dbgVars(_,DgVr,_),Opts),!,
   trCons("line",4,RlNm),
   isOption(pkgName(PkgName),Opts),!,
@@ -51,4 +51,3 @@ lineDebug(Lc,[ocall(cons(RlNm,[strg(PkgName),intgr(Lno),intgr(Off),intgr(Sz)]),D
   lcColumn(Lc,Off),
   lcSize(Lc,Sz).
 lineDebug(_,P,P,_).
-

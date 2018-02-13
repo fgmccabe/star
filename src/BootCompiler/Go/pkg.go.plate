@@ -1,0 +1,8 @@
+package #(pkgName)
+
+import (
+  "term"
+  #*(pkgImports)
+)
+
+#*(pkgDefs)

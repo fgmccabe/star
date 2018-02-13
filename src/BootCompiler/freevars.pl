@@ -6,25 +6,24 @@ freeVars(v(Lc,Lb),Q,F,[v(Lc,Lb)|F]) :- \+is_member(v(_,Lb),Q),!.
 freeVars(v(_,_),_,F,F).
 freeVars(enm(_,_),_,F,F).
 freeVars(cns(_,_),_,F,F).
-freeVars(intLit(_),_,F,F).
-freeVars(floatLit(_),_,F,F).
-freeVars(stringLit(_),_,F,F).
+freeVars(intLit(_,_),_,F,F).
+freeVars(floatLit(_,_),_,F,F).
+freeVars(stringLit(_,_),_,F,F).
 freeVars(tuple(_,Els),Q,F,FV) :- freeVarsList(Els,Q,F,FV).
 freeVars(apply(_,Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVarsList(A,Q,F0,FV).
-freeVars(cons(_,Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVarsList(A,Q,F0,FV).
 freeVars(dot(_,Rc,_),Q,F,FV) :- freeVars(Rc,Q,F,FV).
 freeVars(where(_,T,C),Q,F,FV) :- freeVars(T,Q,F,F0),freeCondVars(C,Q,F0,FV).
 freeVars(cond(_,C,T,E),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,F1),freeVars(E,Q,F1,FV).
-freeVars(lambda(_,Rl),Q,F,FV) :- freeVarsInRule(Rl,Q,F,FV).
+freeVars(lambda(_,Rl,_),Q,F,FV) :- freeVarsInRule(Rl,Q,F,FV).
 freeVars(conj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(disj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(neg(_,L),Q,F,FV) :- freeVars(L,Q,F,FV).
 freeVars(match(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
-freeVars(theta(_,_,Defs,Others,_),Q,F,Fv) :-
+freeVars(theta(_,_,Defs,Others,_,_),Q,F,Fv) :-
   definedVars(Defs,Q,Q1),
   freeVarsInDefs(Defs,Q1,F,F0),
   freeVarsInOthers(Others,Q1,F0,Fv).
-freeVars(record(_,_,Defs,Others,_),Q,F,Fv) :-
+freeVars(record(_,_,Defs,Others,_,_),Q,F,Fv) :-
   definedVars(Defs,Q,Q1),
   freeVarsInDefs(Defs,Q1,F,F0),
   freeVarsInOthers(Others,Q1,F0,Fv).
@@ -74,9 +73,8 @@ ptnVars(cns(_,_),_,Q,Q).
 ptnVars(where(_,Ptn,C),F,Q,Qx) :- ptnVars(Ptn,F,Q,Q0), ptnGoalVars(C,F,Q0,Qx).
 ptnVars(tuple(_,Els),F,Q,Qx) :- ptnVarsInList(Els,F,Q,Qx).
 ptnVars(apply(_,_,A),F,Q,Qx) :- ptnVars(A,F,Q,Qx).
-ptnVars(cons(_,_,A),F,Q,Qx) :- ptnVars(A,F,Q,Qx).
-ptnVars(theta(_,_,Els,_,_),F,Q,Qx) :- ptnVarsInDefs(Els,F,Q,Qx).
-ptnVars(record(_,_,Els,_,_),F,Q,Qx) :- ptnVarsInDefs(Els,F,Q,Qx).
+ptnVars(theta(_,_,Els,_,_,_),F,Q,Qx) :- ptnVarsInDefs(Els,F,Q,Qx).
+ptnVars(record(_,_,Els,_,_,_),F,Q,Qx) :- ptnVarsInDefs(Els,F,Q,Qx).
 
 ptnVarsInList([],_,Q,Q).
 ptnVarsInList([P|L],F,Q,Qx) :-
