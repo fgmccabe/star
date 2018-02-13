@@ -1,57 +1,191 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Abstract data types can be viewed as the mathematics behind object oriented programming.\{\\SCRV_FN=Not to be confused with 
-\i Algebraic Data Types
-\i0  \'97 which represent the mathematical foundation for enumerations and other non-object values.\\END_SCRV_FN\}\
+Abstract data types can be viewed as the mathematics behind object oriented {\field{\*\fldinst{HYPERLINK "scrivcmt://4325BC63-18D2-46EA-ABE3-A8C3CD3D33D8"}}{\fldrslt \cf2 programming.}}\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\b \cf2 Abstract Data Type\
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f0\b\fs26 Abstract Data Type\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\b0 \cf2 An 
-\i abstract data type
-\i0  is a mathematical model of a set of related values that share a common set of semantics.\
-In programming, it is the 
+\f1\b0\fs24 \cf0 <!$Scr_Ps::0><$Scr_Ps::1>
+\f0\i\fs26 An abstract data type is a mathematical model of a set of related values that share a common set of semantics.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\i0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::1>
+\f0\fs26 In programming, it is the 
 \i common
 \i0  semantics that defines the structure; but, of course, programming languages are not able to capture the full semantics of a program or type and hence the stand-in for this is usually a type specification.\
-Perhaps an example is overdue. In our chapter on [Collections][collections] we looked at many operators over collections and not a few example collection types. Although programs using the sequence contract are fairly abstract, the type of the collection itself is still visible. Suppose we wanted to build a set structure where only the fact that there is a set, and the set-like operators over the set were visible. The representation type for the set should otherwise be completely opaque.\
-One might start with a type definition:\
-type genSet is genSet\{\
-  coll has kind type of type\
-  z:for all t ~~ coll of t\
-  addElement:for all t ~~\
-    (t,coll of t)=>coll of t\
-  present:for all t ~~\
-    (t,coll of t)=>boolean\
+Perhaps an example is overdue. In our chapter on {\field{\*\fldinst{HYPERLINK "scrivlnk://4553DA12-6965-4712-90EB-977C6D47475C"}}{\fldrslt \cf2 Collections}} we looked at many operators over collections and not a few example collection types. Although programs using the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 sequence
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  contract are fairly abstract, the type of the collection itself is still visible. Suppose we wanted to build a set structure where only the fact that there is a set, and the set-like operators over the set were visible. The representation type for the set should otherwise be completely opaque.\
+One might start with a type definition that defines some operators over sets:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::2>
+\f2\fs22 type exists coll/1 ~~ genSet ::= genSet\{\
+  type coll/1.\
+  z:all t ~~ coll[t].\
+  addElement:all t ~~ (t,coll[t])=>coll[t].\
+  present:all t ~~ (t,coll[t])=>boolean.\
 \}\
-The essence of this type declaration is a collection of operators that define set-style operators. By protecting the coll type with an existential quantifier, we ensure that the representation of genSet values is not accessible externally; whilst at the same time we do allow other programs to 
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 The essence of this type declaration is a collection of operators that define set-style operators. By protecting the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 coll
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  type with an existential quantifier, we ensure that the representation of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 genSet
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  values is not accessible externally; whilst at the same time we do allow other programs to 
 \i use
 \i0  the set operators.\
-One example implementation of genSet might use lists to represent the set structure itself:\
-def LS is genSet\{\
-  type list counts as coll\
-  def z is list of []\
-  fun addElement(X,L) where X in L is L\
-   |  addElement(X,L) is list of [X,..L]\
-  fun present(X,L) is X in L\
+One example implementation of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 genSet
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  might use lists to represent the set structure itself:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::2>
+\f2\fs22 LS = genSet\{\
+  all t ~~ coll[t] <~ list[t].\
+  z = list of [].\
+  addElement(X,L) where X in L => L.\
+  addElement(X,L) => list of [X,..L].\
+  present(X,L) => X in L\
 \}\
-The statement:\
-type list counts as coll\
-is one of the ways that we can give evidence for the existence (sic) of the coll type. Type inference \'97 of the evidence gathering kind \'97 will link coll internally to list. The counts as statement can be viewed as a more fluent way of writing:\
-type coll = list\
-Given LS, we can use it like a set generator \'97 LS provides a set of operators over sets:\
-def Z is LS.z\
-def One is LS.addElement(1,Z)\
-def Two is LS,addElement(2,One)\
-The type of LS gives no clue as to the internal type used to represent sets generated by it:\
-LS:genSet\
-But Z, One and Two have more interesting types:\
-Z:collK341 of integer\
-where collK341 is a Skolem type \'97 a unique type generated when we assign a type to LS. In effect, LS is a module that exports the set type and associated operators; this module is referenced by name and is used to construct particular sets.\
-A reasonable question here is \'91where is the Abstract Data Type?\'92. What we have is a record with a type and some functions in it. Recall that an ADT is a \'91model of a set of related values that share a common set of semantics\'92. The semantics in common are the functions in the record; and the type itself is the existentially quantified type in that record \'97 coll.\
-Notice how we index off the LS variable to access the operators for this set; even while passing into it instances of sets created and modified by LS. This is one of the hallmarks of a module system.}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 The statement:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::2>
+\f2\fs22 all t ~~ coll[t] <~ list[t].\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 which is a type alias statement, represents \cf0 \kerning1\expnd0\expndtw0 one of the ways that we can give evidence for the existence (sic) of the 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 coll
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26  type. We could also have simply declared that:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::2>
+\f2\fs22 type coll = list\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 Given 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26 , we can use it like a set generator \'97 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  provides a set of operators over sets:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::2>
+\f2\fs22 Z = LS.z\
+One = LS.addElement(1,Z)\
+Two = LS.addElement(2,One)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 The type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  gives no clue as to the internal type used to represent sets generated by it:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::2>
+\f2\fs22 LS:genSet\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 But 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 Z
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26 , 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 One
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 Two
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  have more interesting types:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::2>
+\f2\fs22 Z:collK341[integer]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
+\f0\fs26 where 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 collK341
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  is a Skolem type \'97 a unique type generated when we assign a type to 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26 . In effect, 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  is a module that exports the set type and associated operators; this module is referenced by name and is used to construct particular sets.\
+A reasonable question here is \'91where is the Abstract Data Type?\'92. What we have is a record with a type and some functions in it. Recall that an ADT is a \'91model of a set of related values that share a common set of semantics\'92. The semantics in common are the functions in the record; and the type itself is the existentially quantified type in that record \'97 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 coll
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26 .\
+Notice how we index off the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26  variable to access the operators for this set; even while passing into it instances of sets created and modified by 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3>
+\f2\fs22 LS
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::3>
+\f0\fs26 . This is one of the hallmarks of a module system.}

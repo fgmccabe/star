@@ -7,15 +7,15 @@
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Nothing comes without risks, for every yin there is a yang. What, we should ask, are the risk factors in having a programming language that encourages programmers to create DSLs?\
+Nothing comes without risks, for every yin there is a yang. What, we should ask, are the risk factors in having a programming language that encourages programmers to create DSLs?\
 There are three primary areas that we need to point out:\
 \pard\tx220\tx720\pardeftab720\li720\fi-720\sl264\slmult1\pardirnatural\partightenfactor0
-\ls1\ilvl0\cf2 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	1.	}\expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Programming DSLs is somewhat more difficult than regular programming. This is certainly true: programming with macros requires a certain facility with meta-language. There is much in common between developing compilers and developing macro packages for a DSL. You have to be able to comprehend how to synthesize the appropriate implementations for your chosen DSL. To be fair, developing a macro package is several orders of magnitude simpler than developing a complete compiler: much of the \'91heavy lifting\'92 has been done for you.\uc0\u8232 \
-\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	2.	}\expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Risk of programmer confusion. This is the primary reason that languages like Java and C# do not have macro capabilities: it is easy to develop macro packages that end up causing confusion in the mind of your target audience. Our response to this is that macros are not special in this regard; any time that you build a library intended to be shared by other programmers there is a similar risk of introducing a poorly designed API.\uc0\u8232 \
-\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	3.	}\expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Tooling is harder for languages that support macro extensions. This is a serious issue; especially given the relatively weak technology often given to enable editors to be {\field{\*\fldinst{HYPERLINK "scrivcmt://D83F31B1-BDD6-4087-A066-5A2430641D04"}}{\fldrslt customized.}} \
+\ls1\ilvl0\cf2 \kerning1\expnd0\expndtw0 {\listtext	1.	}\expnd0\expndtw0\kerning0
+Programming DSLs is somewhat more difficult than regular programming. This is certainly true: programming with macros requires a certain facility with meta-language. There is much in common between developing compilers and developing macro packages for a DSL. You have to be able to comprehend how to synthesize the appropriate implementations for your chosen DSL. To be fair, developing a macro package is several orders of magnitude simpler than developing a complete compiler: much of the \'91heavy lifting\'92 has been done for you.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	2.	}\expnd0\expndtw0\kerning0
+Risk of programmer confusion. This is the primary reason that languages like Java and C# do not have macro capabilities: it is easy to develop macro packages that end up causing confusion in the mind of your target audience. Our response to this is that macros are not special in this regard; any time that you build a library intended to be shared by other programmers there is a similar risk of introducing a poorly designed API.\
+\ls1\ilvl0\kerning1\expnd0\expndtw0 {\listtext	3.	}\expnd0\expndtw0\kerning0
+Tooling is harder for languages that support macro extensions. This is a serious issue; especially given the relatively weak technology often given to enable editors to be {\field{\*\fldinst{HYPERLINK "scrivcmt://D83F31B1-BDD6-4087-A066-5A2430641D04"}}{\fldrslt customized.}} \
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 \cf2 Overall, as we noted above, it comes down to a choice: of the 
 \i curated garden

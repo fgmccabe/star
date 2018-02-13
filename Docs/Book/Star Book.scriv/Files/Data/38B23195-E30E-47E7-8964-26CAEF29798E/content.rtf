@@ -1,17 +1,21 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 A 
+A 
 \i concurrent actor
 \i0  is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.\
 However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.\
 It should be noted that the internal structure of a concurrent actor is more complex than that of a regular light weight actor. This may translate into a run-time performance difference.\
 A concurrent actor is written using the concurrent prefix. For example, we can make our agentBank concurrent very straightforwardly:\
-agentBank is concurrent actor\{\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 agentBank = concurrent actor\{\
   private var accts := dictionary of []\
   fun balance(N) is accts[N].balance()\
   prc transfer(F,T,Amt) do\{\
@@ -21,13 +25,22 @@ agentBank is concurrent actor\{\
   on deposit(Nm,Amnt) on cashier do\
     accts[Nm].debit(Amnt)\
 \}\
-As might be clear if you have read up this point, a concurrent actor works by having an internal background task that is actually responsible for processing speech actions. This background task is responsible for actually responding to speech actions and it \'91serializes\'92 them \'96 ensuring that only one is performed at any one time.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 As might be clear if you have read up this point, a concurrent actor works by having an internal background task that is actually responsible for processing speech actions. This background task is responsible for actually responding to speech actions and it \'91serializes\'92 them \'96 ensuring that only one is performed at any one time.\
 Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type \'96 concActor of 
 \i t
-\i0  \'96 which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the balQuery function:\{\\SCRV_FN=Like other references to the speech contract, the types in this function are slightly simplified.\\END_SCRV_FN\}\
-balQuery:for for all t,a ~~\
-    (t,string)=>float where\
-      speech over t determines a and\
-      a implements \{ balance:(string)=>float \}\
-balQuery(A,U) is query A with balance(U)\
-will work with either of actor, concurrent actor or any entity that implements speech and whose API includes the balance function \'96 because it\'92s type is carefully circumscribed. However, functions that have been type-specialized to work with actors will not type check when used with concurrent actors.}
+\i0  \'96 which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the balQuery {\field{\*\fldinst{HYPERLINK "scrivcmt://9617CB16-FED2-47B5-A58C-E5D666ED994D"}}{\fldrslt function:}}\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 balQuery:all t,a ~~ speech[t->>a], a<~\{balance:(string)=>float\} |:\
+    (t,string)=>float.\
+balQuery(A,U) => query A with balance(U)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 will work with either of actor, concurrent actor or any entity that implements speech and whose API includes the balance function \'96 because it\'92s type is carefully circumscribed. However, functions that have been type-specialized to work with actors will not type check when used with concurrent actors.}

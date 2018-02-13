@@ -1,28 +1,63 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we 
+As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we 
 \i could
 \i0  create a query language specifically for triple graphs. However, a more subtle and integrated approach is to 
 \i extend
 \i0  the standard built-in query language with conditions that are tailored to work with triple graphs. This has the advantage that we can leverage standard query processing to help process triple graphs.\
 So, we need an extension to standard query conditions that allow us to:\
-set of \{ all X where OrgTree says X ! department $ accounting \}\
-However, we immediately hit a road-block: what about variables? How can we distinguish the occurrence of X above to denote a variable whilst allowing accounting to be the fixed name of a concept: they are both identifiers.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 set of \{ all X where OrgTree says X ! department $ accounting \}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 However, we immediately hit a road-block: what about variables? How can we distinguish the occurrence of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  above to denote a variable whilst allowing accounting to be the fixed name of a concept: they are both identifiers.\
 We are pretty much guaranteed to encounter variables in query expressions; but we may also encounter them in graph expressions \'97 especially if we construct graphs dynamically. To ensure that we can reliably distinguish variables from named concepts we have to modify the design of our triple graph language.\
 So, to resolve this, we modify the syntax for named concepts to have a leading colon operator; our simple graph above becomes:\
-:john ! :likes $ :mary.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 :john ! :likes $ :mary.\
 :peter ! :in_department $ :accounting.\
-and the query becomes:\
-set of \{all X where OrgTree says X ! :department $ :accounting \}\
-Now the occurrence of X above is clearly a variable and not the name of a concept.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 and the query becomes:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 set of \{all X where OrgTree says X ! :department $ :accounting \}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 Now the occurrence of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  above is clearly a variable and not the name of a concept.\
 There is an additional reason for choosing to lead a concept with a colon: when dealing with multiple graphs it may be useful for one graph to refer to a concept in another graph. However, we will leave this extension for another day.\
 With this change, we can represent our original giraffe example in our RDF DSL:\
-:Joe ! isa $ :giraffe.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 :Joe ! isa $ :giraffe.\
 :giraffe ! isa $ class.\
 :giraffe ! subclass $ :mammal.\
 :giraffe ! has $ :long-neck.\
@@ -32,6 +67,10 @@ With this change, we can represent our original giraffe example in our RDF DSL:\
 With the inferred triples:\
 :Joe ! has $ :long-neck.\
 :Joe ! has $ :four-legs.\
-Designing DSLs, like designing anything, is often an iterative process. It is important to remain flexible when designing language features. For example, one rather glaring limitation to our triple graph notation is that it is limited to symbolic concepts and literal strings. We leave as an exercise to the reader how to modify the notation to allow arbitrary 
-\b Star
-\b0  values to be referenced in triple graphs.}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 Designing DSLs, like designing anything, is often an iterative process. It is important to remain flexible when designing language features. For example, one rather glaring limitation to our triple graph notation is that it is limited to symbolic concepts and literal strings. We leave as an exercise to the reader how to modify the notation to allow arbitrary 
+\b \cf2 Star
+\b0 \cf2  values to be referenced in triple graphs.}

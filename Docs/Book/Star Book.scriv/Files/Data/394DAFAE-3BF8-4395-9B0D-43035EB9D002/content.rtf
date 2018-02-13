@@ -1,58 +1,218 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 So, what 
+So, what 
 \i are
 \i0  the rules for existentially quantified types?\
 The first is one that we have already been looking at:\
-An existential variable may be bound to a type when providing 
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 <$Scr_Ps::0>
+\f0 An existential variable may be bound to a type when providing 
 \i evidence
 \i0  that a value has a certain type, but may not be constrained when 
 \i using
 \i0  a value with an existential quantifier in its type.\
-The second is related to this:\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\i \cf2 Each occurrence of an existentially quantified type is potentially different
+\f1 \cf2 <!$Scr_Ps::0>
+\f0\fs26 The second is related to this:\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 <$Scr_Ps::0>
+\f0\i Each occurrence of an existentially quantified type is potentially different
 \i0 .\
-Think about a function with the type:\
-exFn:for all t ~~\
-  (t)=>exists e ~~ R of (e,t)\
-For the moment, we don\'92t much care about R. Now, consider how we might use exFn:\
-def X1 is exFn("alpha")\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf2 <!$Scr_Ps::0>
+\f0\fs26 Think about a function with the type:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f2\fs22 exFn:for all t ~~\
+  (t)=>exists e ~~ R[e,t]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::1>
+\f0\fs26 For the moment, we don\'92t much care about 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 R
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 . Now, consider how we might use 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 exFn
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 :\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f2\fs22 X1 = exFn("alpha")\
 ...\
-def X2 is exFn("alpha")\
-An important question is \'93what is the relationship between the type of X1 and the type of X2?\'94. Unfortunately, the fundamental answer is \'91we cannot know in general\'92; which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of exFn may result in 
+X2 = exFn(\'93alpha\'94)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::1>
+\f0\fs26 An important question is \'93what is the relationship between the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 X1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 X2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 ?\'94. Unfortunately, the fundamental answer is \'91we cannot know in general\'92; which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 exFn
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  may result in 
 \i different
-\i0  instantiations for e for each invocation. The result is we cannot assume any link between the types of X1 and X2: they are different.\
+\i0  instantiations for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 e
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  for each invocation. The result is we cannot assume any link between the types of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 X1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 X2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 : they are different. This has some serious consequences for how we use existentially quantified types.\
 On the other hand, consider the similar sequence of definitions:\
-def Y1 is exFn("alpha")\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f2\fs22 Y1 = exFn("alpha")\
 ...\
-def Y2 is Y1\
-In this case we do know that the type of Y1 is identical to the type of Y2. This leads us to the third rule:\
-Each 
+Y2 = Y1\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::1>
+\f0\fs26 In this case we do know that the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  is identical to the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 . This leads us to the third rule:\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 <$Scr_Ps::0>
+\f0 Each 
 \i use
-\i0  of an existential quantification introduces a new type \'97 called a _Skolem type_\{\\SCRV_FN=Technically, the type is denoted by a 
-\i Skolem Constant
-\i0  or a 
-\i Skolem Function
-\i0 .\\END_SCRV_FN\} \'97 that follows the normal inference rules for all types.\
-I.e., once a type has been introduced as a Skolem type, it behaves just like any regular type and the normal rules of inference apply. This applies equally to the two fragments of code above; but the additional constraint on the immutable values of Y1 and Y2 make it easier to propagate type information.\
-We can see this a little clearly by looking at the effective type annotations of Y1 and Y2:\
-Y1:R of (e345,string)\
-def Y1 is exFn("alpha")\
+\i0  of an existential quantification introduces a new type \'97 called a 
+\i Skolem {\field{\*\fldinst{HYPERLINK "scrivcmt://1AB09B4A-681B-4C87-9212-AE4ECBF20BD7"}}{\fldrslt type}}
+\i0  \'97 that follows the normal inference rules for all types.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf2 <!$Scr_Ps::0>
+\f0\fs26 I.e., once a type has been introduced as a Skolem type, it behaves just like any regular type and the normal rules of inference apply. This applies equally to the two fragments of code above; but the additional constraint on the immutable values of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  make it easier to propagate type information.\
+We can see this a little clearly by looking at the effective type annotations of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 :\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f2\fs22 Y1:R[e345,string]\
+Y1 = exFn("alpha")\
 ...\
-Y2:R of (e345,string)\
-def Y2 is Y1\
-where e345 is the skolemized variant of the existential type e.\
-The effective annotations for X1 and X2 will have different skolem constants:\
-X1:R of (e235,string)\
-def X1 is exFn("alpha")\
+Y2:R[e345,string]\
+Y2 = Y1\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::1>
+\f0\fs26 where 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 e345
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  is the skolemized variant of the existential type 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 e
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26 .\
+The effective annotations for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 X1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 X2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  will have different skolem constants:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f2\fs22 X1:R[e235,string]\
+X1 = exFn("alpha")\
 ...\
-X2:R of (e678,string)\
-def X2 is exFn("alpha")\
-If Y1 or Y2 were declared to be re-assignable variables then, once again, we would not be able to connect the types of Y1 and Y2 together.}
+X2:R[e678,string]\
+X2 = exFn("alpha")\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::1>
+\f0\fs26 If 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  or 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  were declared to be re-assignable variables then, once again, we would not be able to connect the types of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 Y2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::2>
+\f0\fs26  together.}

@@ -854,8 +854,6 @@
 <p class="itemText">} in {. double=double .}</p>
 <p class="itemText">In effect, a package reduces to a variable decl...</p>
 </li>
-<hr class="afterText"/>
-<ul>
 <li>
 <p class="itemTitle">Existential Types</p>
 <p class="itemText">What does it mean to have a type in a record? From a programmer’s point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn’t have types in it. However, the logic of this bears a deeper look.</p>
@@ -869,11 +867,11 @@
 <ul>
 <li>
 <p class="itemTitle">Use and Evidence</p>
-<p class="itemText">To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.</p>
+<p class="itemText">To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.</p>
 <p class="itemText">Consider the simple function d with its type declaration:</p>
-<p class="itemText">d:all t ~~ arithmetic[t] |: (t)=>t.</p>
-<p class="itemText">d(X) => X+X</p>
-<p class="itemText">In the equation th...</p>
+<p class="itemText">d:all t ~~ arith[t] |: (t)=>t.</p>
+<p class="itemText">d(X) => X+X.</p>
+<p class="itemText">In the equ...</p>
 </li>
 <li>
 <p class="itemTitle">Using Existentially Quantified Types</p>
@@ -884,18 +882,36 @@
 <p class="itemText">Each occurrence of an existentially quantified type is potentially different.</p>
 <p class="itemText">Think about a function with the type:</p>
 <p class="itemText">exFn:for all t ~~</p>
-<p class="itemText">  (t)=>exists e ~~ R of (e,...</p>
+<p class="itemText">  (t)=>exists e ~~ R[e,t]</p>
+<p class="itemText">F...</p>
 </li>
-</ul>
+<li>
+<p class="itemTitle">Wrapping Up Packages</p>
+<p class="itemText">Our original simple package record had the type</p>
+<p class="itemText">simple: exists f/1 ~~ {</p>
+<p class="itemText">  type foo/1.</p>
+<p class="itemText">  foo:all t ~~ (t) <=> f[t].</p>
+<p class="itemText">  bar:all t ~~ f[t].</p>
+<p class="itemText">  fooMe:all t ~~ (t)=>f[t].</p>
+<p class="itemText">}</p>
+<p class="itemText">The type signature has a type foo and a constructor foo in it. This is permitted because types and values have different name spaces in Star. This is not in fact quite accurate; the precise type of the simple package record should be:</p>
+<p class="itemText"></p>
+<p class="itemText">simple: exists foo/1 ~~ {</p>
+<p class="itemText">  type foo/1.</p>
+<p class="itemText">  foo:all t ~~ (t) <=> foo[t].</p>
+<p class="itemText">  bar:all t ~~ foo[t].</p>
+<p class="itemText">  fo...</p>
+</li>
 </ul>
 <hr class="afterText"/>
 
 <li>
 <p class="itemTitle">Abstract Data Types</p>
-<p class="itemText">Abstract data types can be viewed as the mathematics behind object oriented programming.Not to be confused with Algebraic Data Types — which represent the mathematical foundation for enumerations and other non-object values.</p>
+<p class="itemText">Abstract data types can be viewed as the mathematics behind object oriented programming.</p>
 <p class="itemText">Abstract Data Type</p>
 <p class="itemText">An abstract data type is a mathematical model of a set of related values that share a common set of semantics.</p>
-<p class="itemText">In programming, it is the common semantics that defines the structure; but, of course, programming languages are not able to capture the full sem...</p>
+<p class="itemText">In programming, it is the common semantics that defines the structure; but, of course, programming languages are not able to capture the full semantics of a program or type and hence the stand-in for this is usually a type specification.</p>
+<p class="itemText">Perhaps an example is overdue. In our chapt...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -969,11 +985,11 @@
 <li>
 <p class="itemTitle">Computing with tasks</p>
 <p class="itemText">Like other values, tasks are first class: they can be assigned to variables, kept in data structures, passed to and from functions and so forth. This flexibility leads to great expressive power — many patterns of computations can be readily encoded as task-valued functions.</p>
-<p class="itemText">For example, consider the mp function — which is a facsimile of the standard map function specialized for list values:</p>
+<p class="itemText">For example, consider the mp function — which is a facsimile of the standard fmap function specialized for list values:</p>
 <p class="itemText">mp:all s,t ~~ ((s)=>t,list[s])=>list[t].</p>
 <p class="itemText">mp(F,[]) => [].</p>
 <p class="itemText">mp(F,[X,..Y]) => [F(X),..mp(Y)].</p>
-<p class="itemText">In this mp funct...</p>
+<p class="itemText">In this mp func...</p>
 </li>
 </ul>
 <hr class="afterText"/>
@@ -1135,35 +1151,31 @@
 
 <li>
 <p class="topLevelItemTitle">Application = Policy + Mechanism</p>
-<p class="itemText">It should be clear at this point that Star is quite a rich language. There are many features and sub-languages that form the whole. We have seen several of these, including quite complex features like queries. In Chapter [chattering-agents][] we will also see a sophisticated sub-language based on actors and speech actions. It may surprise you to learn that the core of Star is quite small, with many features implemented in Star itself. Our task now is to introduce you to some of the techniques av...</p>
+<p class="itemText">It should be clear at this point that Star is quite a rich language. There are many features and sub-languages that form the whole. We have seen several of these, including quite complex features like queries. In Chapter  we will also see a sophisticated sub-language based on actors and speech actions. It may surprise you to learn that the core of Star is quite small, with many features implemented in Star itself. Our task now is to introduce you to some of the techniques available to build your...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">How to Design a Domain Specific Language[how-to-design-a-domain-specific-language]</p>
+<p class="itemTitle">How to Design a Domain Specific Language</p>
 <p class="itemText">One of the primary reasons for wanting to have domain specific languages is to be able to succinctly express policy. Pretty much every significant application and module tends to be more general than the individual problem it was designed for; which means that actually applying the application (sic) amounts to using a subset of the capabilities of a general mechanism to solve the specific problem.</p>
 <p class="itemText">Policy has a number of definitions, one of which is</p>
 <p class="itemText">Policy</p>
 <p class="itemText">An expression of a constraint that gover...</p>
 </li>
 <li>
-<p class="itemTitle">Resource Definition Framework[rdf] RDF semantics is extremely simple: a RDF graph is a set of triples consisting of a subject, predicate and object; each of which is a concept. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.</p>
-<p class="itemText">RDF is good for representing the simple ‘facts’ that one often sees in applications that have to model aspects of the real world. A classic example of this is in modeling things like giraffes: if we have a Giraffe called Joe, then we typically want to be able to say things like:</p>
-<p class="itemText">Joe isa giraffe</p>
-<p class="itemText">which means</p>
-<p class="itemText">Joe is a Giraffe</p>
-<p class="itemText">RDF is not especially powerful — which is actually one of the key design points in the language. Its simplicity means that it is easily manipulated and processed.</p>
-<p class="itemText">Another nice...</p>
+<p class="itemTitle">Resource Definition Framework</p>
+<p class="itemText">RDF semantics is extremely simple: a RDF graph is a set of triples consisting of a subject, predicate and object; each of which is a concept. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.</p>
+<p class="itemText">RDF is good for representing the simple ‘facts’ that one often sees in applications that have to model aspects of the real world. A clas...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">There is Methodology in my Ontology[there-is-methodology-in-my-ontology]</p>
+<p class="itemTitle">There is Methodology in my Ontology</p>
 <p class="itemText">The most important initial task in designing a DSL or policy framework has nothing to do with operators, macros or any of the facilities of Star — you must identify the appropriate structure and semantics for your language. More formally, this can be defined as identifying the ontology of the language.</p>
 <p class="itemText">Ontology, as a discipline, dates back to Aristotle. He was one of the first people to attempt to systematically classify the known world. Nowadays, Ontology refers to the study of the relationship...</p>
 </li>
 <li>
-<p class="itemTitle">Nouns and Verbs[nouns-and-verbs]</p>
+<p class="itemTitle">Nouns and Verbs</p>
 <p class="itemText">Natural language grammar often has many kinds of words; but the two most important kinds of words are nouns and verbs. The same is usually true of computer languages: there are things that we want to represent and process in some way and there are actions that we want to be be able to model.</p>
 <p class="itemText">The kind of UML-based analysis that we have used so far often leads naturally to a classification of the things in the DSL. Knowing what you want to do with those things may be harder to clarify. However, we...</p>
 </li>
@@ -1171,14 +1183,14 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Designing Syntax[designing-syntax]</p>
+<p class="itemTitle">Designing Syntax</p>
 <p class="itemText">Once we have at least an approximate conceptualization, our next step is to design the syntax. Syntax is important because it encodes the manner in which different features of the DSL can be expressed and combined.</p>
 <p class="itemText">There is an inevitable requirement for taste in designing the syntax of a language extension. One of the foundations for this taste is knowledge of the existing syntactic patterns in the host language. Another is an awareness of the combinatorial potential in the language — i.e., what...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Triple Notation[triple-notation]</p>
+<p class="itemTitle">Triple Notation</p>
 <p class="itemText">The focal structure in a triple graph is the triple. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the [N3][#N3-W3C] notation — which is a more human readable version of the standard XML RDF syntax adopted by W3C:</p>
 <p class="itemText">Subject ! Predicate $ Object.</p>
 <p class="itemText">The idea is to make it easy to represent facts like:</p>
@@ -1189,7 +1201,7 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Design is Iteration[design-is-iteration]</p>
+<p class="itemTitle">Design is Iteration</p>
 <p class="itemText">As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we could create a query language specifically for triple graphs. However, a more subtle and integrated approach is to extend the standard built-in query language with conditions that are tailored to work with triple graphs. This has the advantage that we can leverage standard query processing to help process triple graphs.</p>
 <p class="itemText">So, we need an extension to standard q...</p>
 </li>
@@ -1197,16 +1209,16 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Operator Precedence Grammar[operator-precedence-grammar]</p>
-<p class="itemText">Star has a very flexible syntactic foundation based on a Operator Precedence Grammar. You are already quite familiar with operator precedence grammars — they are used in nearly every programming language to represent arithmetic expressions. For example</p>
+<p class="itemTitle">Operator Precedence Grammar</p>
+<p class="itemText">Star has a very flexible syntactic foundation based on Operator Precedence Grammars. You are already quite familiar with operator precedence grammars — they are used in nearly every programming language to represent arithmetic expressions. For example</p>
 <p class="itemText">X+Y*3</p>
 <p class="itemText">is a very common way of representing the addition of X to the result of multiplying Y by 3. It also represents the application of two operators: + and * which happen to be binary operators.</p>
-<p class="itemText">The operator structure of an expression is complete...</p>
+<p class="itemText">The operator structure of an expression is completel...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Mixing Operators[mixing-operators]</p>
+<p class="itemTitle">Mixing Operators</p>
 <p class="itemText">The standard N3 notation includes some simple extensions to make certain patterns of facts easier to write. For example, we can write:</p>
 <p class="itemText">:Joe ! isa $ :giraffe.</p>
 <p class="itemText">:giraffe ! [subclass $ :mammal, has $ :long-neck].</p>
@@ -1225,7 +1237,7 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Embedding Graphs[embedding-graphs]</p>
+<p class="itemTitle">Embedding Graphs</p>
 <p class="itemText">One of Star’s standard syntactic paradigms is the ‘brace term’. We use it to represent records, as in:</p>
 <p class="itemText">someone{ name="fred" }</p>
 <p class="itemText">We also use it to represent more complex entities like packages and worksheets:</p>
@@ -1244,18 +1256,20 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Validation[validation]</p>
+<p class="itemTitle">Validation</p>
 <p class="itemText">Simply defining operators is not enough to design a language extension. We must be able to make sure that the operators are used sensibly in the appropriate context, and that the Star compiler can make sense of the new syntax. To help with this, Star has a standard way of representing the valid syntactic forms of language extensions — using a set of validation rules.</p>
 <p class="itemText">The purpose of a validation rule is two fold: it defines the legal syntactic forms and it enables a language extension designer to...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Escaping our DSL We are making a subtle choice with these validation rules for concept. We are affirming that the only way that we can embed ‘normal’ Star expressions in a concept graph is through variables.</p>
+<p class="itemTitle">Escaping our DSL</p>
+<p class="itemText">We are making a subtle choice with these validation rules for concept. We are affirming that the only way that we can embed ‘normal’ Star expressions in a concept graph is through variables.</p>
 <p class="itemText">In general, it is normally desirable to allow arbitrary expressions to be embedded in DSL extensions. However, one has to design the syntactic mechanism that permits this escape. In our case we take the extremely simple approach of only allowing variables.</p>
 </li>
 <li>
-<p class="itemTitle">Variations on a Theme Because we want to allow different variations on the legal forms of triple, the complete validation rules for triple are more complex and involve several different categories:</p>
+<p class="itemTitle">Variations on a Theme</p>
+<p class="itemText">Because we want to allow different variations on the legal forms of triple, the complete validation rules for triple are more complex and involve several different categories:</p>
 <p class="itemText"> # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase</p>
 <p class="itemText"> # ?T :: triple :- error("$T is not a valid triple")</p>
 <p class="itemText"></p>
@@ -1264,25 +1278,19 @@
 <p class="itemText"> # ?VP :: verbPhrase :-</p>
 <p class="itemText">    error("$VP must have at least one predicate and one object")</p>
 <p class="itemText"></p>
-<p class="itemText"> # ?A,?B :: verbPhrases :- A::verbPhrase :& B::verbPhrases</p>
-<p class="itemText"> # ?A :: verbPhrases :- A::verbPhrase</p>
-<p class="itemText"></p>
-<p class="itemText"> # [?V] :: verb :- V::verbs</p>
-<p class="itemText"> # ?V :: verb :- V::concept</p>
-<p class="itemText"></p>
-<p class="itemText"> # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::ver...</p>
+<p class="itemText"> # ?A,?B :: verbPhrases :- A...</p>
 </li>
 </ul>
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Translating Graphs[translating-graphs]</p>
+<p class="itemTitle">Translating Graphs</p>
 <p class="itemText">Once we have rules for validating graph expressions in place the compiler is able to verify the form of triple graph expressions but is not able to type check or compile them. For this we need to be able to translate triple graphs to something the compiler can understand; for that we use macros.</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Representing Triple Graphs[representing-triple-graphs]</p>
+<p class="itemTitle">Representing Triple Graphs</p>
 <p class="itemText">We start with representing triple graphs. Reflecting the ontology we constructed above, we can define three types to represent concepts, triples, and graphs.</p>
 <p class="itemText">There are two kinds of concept, and we want to keep them distinct in our representation:</p>
 <p class="itemText">type n3Concept is n3C(string) or n3S(string)</p>
@@ -1298,7 +1306,7 @@
 <p class="itemText">is used by the compiler to replace occurrences of unary min...</p>
 </li>
 <li>
-<p class="itemTitle">Meta Language[meta-language]</p>
+<p class="itemTitle">Meta Language</p>
 <p class="itemText">Star has a meta language and a standard type to go with it. This means that expressions in the language may also be values. For example, consider the expression:</p>
 <p class="itemText">X+2</p>
 <p class="itemText">If the value of X is 3, then the value of this expression is 5. However, we can also examine the language that this expression is made of — by using the quote notation. The expression:</p>
@@ -1308,7 +1316,7 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Meta Variables[meta-variables]</p>
+<p class="itemTitle">Meta Variables</p>
 <p class="itemText">In addition to the basic quote notation for expressions, it also has support for meta-variables. Meta variables are variables embedded in quoted terms — they are variables of the quoted term, not variables in the object language. They are very useful in programs that process quoted expressions — both as expressions and as patterns.</p>
 <p class="itemText">For example, to denote a triple pattern one may construct the quoted pattern:</p>
 <p class="itemText"><| ?S ! ?P $ ?O |></p>
@@ -1318,7 +1326,7 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Code Macros[code-macros]</p>
+<p class="itemTitle">Code Macros</p>
 <p class="itemText">Code macros, as their name suggests, are normal Star functions that are invoked by the compiler on the text that the compiler is compiling. Code macros give the macro programmer almost the full power of Star to implement translation; in particular they can call other functions and use other types than quoted internally. However, code macros are a little more awkward to use than macro rules — there are some special restrictions on their form and what their scope is.</p>
 <p class="itemText">Code macros are embedded withi...</p>
 </li>
@@ -1326,14 +1334,14 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">After the Translation[after-the-translation]</p>
+<p class="itemTitle">After the Translation</p>
 <p class="itemText">Translating a DSL into core Star is not always the end of the story. In addition it is important to consider what other ways it should be integrated with the language. For example, we designed a new condition so that triple graphs could participate in queries. In addition, there may be one or more standard contracts that should be implemented for elements of the DSL.</p>
 <p class="itemText">Finally, we recall that we fixed on the representation of a triple graph as a list of triples, specifically of n3Triple terms. How...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Is There a Downside to DSLs?[is-there-a-downside-to-dsls]</p>
+<p class="itemTitle">Is There a Downside to DSLs?</p>
 <p class="itemText">Nothing comes without risks, for every yin there is a yang. What, we should ask, are the risk factors in having a programming language that encourages programmers to create DSLs?</p>
 <p class="itemText">There are three primary areas that we need to point out:</p>
 <p class="itemText"> 1. Programming DSLs is somewhat more difficult than regular programming. This is certainly true: programming with macros requires a certain facility with meta-language. There is much in common between developing compilers and developing macro packages for a DSL. ...</p>
@@ -1351,20 +1359,21 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">A Taxonomy of Agents[a-taxonomy-of-agents]</p>
+<p class="itemTitle">A Taxonomy of Agents</p>
 <p class="itemText">There is a natural hierarchy of types of agent – which roughly aligns with their roles and capabilities in distributed applications:</p>
 <p class="itemText">Agent</p>
-<p class="itemText">An agent is an entity that can act; often on behalf of another entity. By extension, a software agent is one that acts primarily in the software domain.</p>
+<p class="itemText">An agent is an entity that can act; often on behalf of another entity.</p>
+<p class="itemText">By extension, a software agent is one that acts primarily in the software domain.</p>
 <p class="itemText">The difference between an agent and a function is that the latter must be invoked before any actions in it’s body can be performed; whereas an agent is ‘already’ ready to act.</p>
 <p class="itemText">There is a vast potential range ...</p>
 </li>
 <li>
-<p class="itemTitle">Speech Actions[speech-actions]</p>
+<p class="itemTitle">Speech Actions</p>
 <p class="itemText">As the term suggests, speech actions are a communications model based on an anthropomorphic understanding of how agents communicate. Speech actions were first investigated by John Austin[#austin:60] in the 1940’s as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by John Searle [#searle:69] and standardized in KQML [#kqml:93] and FIPA [#FIPA].</p>
 <p class="itemText">Beyond the anthropomorphism, there are sound technical justifications ...</p>
 </li>
 <li>
-<p class="itemTitle">Programming Speech[programming-speech]</p>
+<p class="itemTitle">Programming Speech</p>
 <p class="itemText">A critical aspect of human communication is the vocabulary employed – more formally the ontology being referenced. The natural analog of this in software systems is the Application Programming Interface (API). An API specifies which functions you may invoke, what their types are and what the expected results of invoking the functions should be.</p>
 <p class="itemText">The major semantic difference between an API and an Ontology is that the latter can often convey more semantics. For example, it is possible, in an ontol...</p>
 </li>
@@ -1372,16 +1381,16 @@
 <ul>
 <li>
 <p class="itemTitle">Queries</p>
-<p class="itemText">We have, in Star, a better, more systematic, approach to describing and implementing public APIs – based on speech actions.And contracts of course. For example, assuming that Ag had the appropriate type similar to that of A above, we could issue a speech action against Ag with a very similar query:</p>
+<p class="itemText">We have, in Star, a better, more systematic, approach to describing and implementing public APIs – based on speech actions. For example, assuming that Ag had the appropriate type similar to that of A above, we could issue a speech action against Ag with a very similar query:</p>
 <p class="itemText">query Ag with list of { all y where</p>
 <p class="itemText">    (y,"1in-washer") in products and</p>
 <p class="itemText">    quantity(y)>20 }</p>
-<p class="itemText">One of the most obvious differences here being where the target of the API is mentioned: it is only mentio...</p>
+<p class="itemText">One of the most obvious differences here being where the target of the API is mentioned: it is only mentioned at the top of the qu...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Free Variables in Speech[free-variables-in-speech]</p>
+<p class="itemTitle">Free Variables in Speech</p>
 <p class="itemText">Although the body of a query speech action might be any expression, there are some syntactic restrictions on the valid forms of query expression. The primary reason for these restrictions is to make it simpler to determine the scopes of identifiers occurring in the query expression. Specifically, we need to be able to determine for any identifier occurring in the queried expression whether or not it refers to the agent being queried or the outer context.</p>
 <p class="itemText">For example, consider the simple query:</p>
 <p class="itemText">q...</p>
@@ -1390,7 +1399,7 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Notifications[notifications]</p>
+<p class="itemTitle">Notifications</p>
 <p class="itemText">A notify speech action is intended to communicate the occurrence of an event of some form. In the context of software systems it corresponds to a message being sent on a named channel; however that seems low level in comparison.</p>
 <p class="itemText">The form of a notify is a little different to the query:</p>
 <p class="itemText">notify Agent with Expression on Channel</p>
@@ -1404,7 +1413,7 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">No Time[no-time]</p>
+<p class="itemTitle">No Time</p>
 <p class="itemText">The notify speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.</p>
 <p class="itemText">Furthermore, not all applications need time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock’s ticking would confirm that neither tick nor tock is timesta...</p>
 </li>
@@ -1412,7 +1421,7 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Requests[requests]</p>
+<p class="itemTitle">Requests</p>
 <p class="itemText">Our final form of speech action is the request. A request is intended to denote a request that the recipient perform some action. This is subtly different to the query in that – apart from answering the question – a query should not cause any change of state in the recipient, whereas the request likely would.</p>
 <p class="itemText">Even though the difference between query and request may seem subtle to the average programmer the key difference is in the intended use.</p>
 <p class="itemText">The form of a request reflects the fact that an act...</p>
@@ -1426,7 +1435,7 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">Actors[actors]</p>
+<p class="itemTitle">Actors</p>
 <p class="itemText">So far we have discussed what talkative agents say to each other but not on how they are built. The simplest structure that responds to this is the actor. Actors are lightweight entities that can respond to speech actions. For example, this actor models some aspects of a bank:</p>
 <p class="itemText">agentBank is actor{</p>
 <p class="itemText">  private var accts := dictionary of []</p>
@@ -1440,12 +1449,12 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Performance Characteristics of Actors[performance-characteristics-of-actors]</p>
+<p class="itemTitle">Performance Characteristics of Actors</p>
 <p class="itemText">Actors are comparatively efficient at processing speech actions; and they are trusting: that is, they do not perform any validation on the speech actions. One resulting limitation is that they are definitely not safe in a concurrent environment. Again, no interlocking checks are performed – which means that if you use a regular actor in background tasks (say) then you will likely get inconsistent results.</p>
 <p class="itemText">Also, actors are somewhat stateful in nature. They are intended to encapsulate the processi...</p>
 </li>
 <li>
-<p class="itemTitle">Concurrent Actors[concurrent-actors]</p>
+<p class="itemTitle">Concurrent Actors</p>
 <p class="itemText">A concurrent actor is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.</p>
 <p class="itemText">However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.</p>
 <p class="itemText">It should be no...</p>
@@ -1467,21 +1476,22 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Responding to Change One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.</p>
-<p class="itemText">There are three common sources of change at the macro-level: a need to reuse a software artifact, a need to repurpose the artifact and/or a need to refactor the artifact. The first corresponds to using a software artifact in a similar role but in a different context. For example, when a Math library developed for real-time analytics is to be used for a Machine Learning application: it is still a Math library but its context is new.</p>
-<p class="itemText">Repurposing occurs when the artifact is being used to solve a di...</p>
+<p class="itemTitle">Responding to Change</p>
+<p class="itemText">One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.</p>
+<p class="itemText">There are three common sources of change at the macro-level: a need to reuse a software artifact, a need to repurpose the artifact and/or a need to refactor the artifact. The first correspo...</p>
 </li>
 <li>
-<p class="itemTitle">Boxes and Arrows[boxes-and-arrows]</p>
-<p class="itemText">It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:There are other systems of boxes and arrows that have utility. The most well-known example is probably the suite of diagrams that make up UML.</p>
-<p class="itemText">#</p>
+<p class="itemTitle">Boxes and Arrows</p>
+<p class="itemText">It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:</p>
+<p class="itemText"></p>
 <p class="itemText">A System for Splitting Orders</p>
-<p class="itemText">could be used to explain the system for managing the way parts are ordered in a car factory that supported a ‘build-to-order’ model for manufactur...</p>
+<p class="itemText">could be used to explain the system for managing the way parts are ordered in a car factory that supported a ‘build-to-order’ model for manufacturing customized vehicles.</p>
+<p class="itemText">The different boxes show the major sub-systems and the arrows between them show the major flows between them: we have ...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Ports and Speech[ports-and-speech]</p>
+<p class="itemTitle">Ports and Speech</p>
 <p class="itemText">First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.</p>
 <p class="itemText">This is an important point: unlike most programming languages, and unlike Star itself, our diagramming notation does not rely on scoping to commu...</p>
 </li>
@@ -1489,18 +1499,18 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">A Component in Star[a-component-in-Star]</p>
-<p class="itemText">One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application.By functional we mean important to the solution not necessarily as in functional programming. The intuition is that individual components have a specific role in the application; but that they are typically ‘quite large’. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.</p>
-<p class="itemText">One of the non-goals of box...</p>
+<p class="itemTitle">A Component in Star</p>
+<p class="itemText">One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application. The intuition is that individual components have a specific role in the application; but that they are typically ‘quite large’. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.</p>
+<p class="itemText">One of the non-goals of boxes-and-arrows diagrams is to be a complete programming language. Instead, the idea is to capt...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Re-purposing Components[re-purposing-components]</p>
+<p class="itemTitle">Re-purposing Components</p>
 <p class="itemText">One of the distinguishing features of the boxes-and-arrows diagram is that it highlights the major sources of input and output in the system. This is in marked contrast with most programming languages where the I/O functionality is buried deep within the code itself. For example, our splitComponent does not directly communicate with a database; instead it poses a query to the partsDB component. Similarly, the components for recovering incoming orders and sending out orders to suppliers are mostl...</p>
 </li>
 <li>
-<p class="itemTitle">Wiring up Boxes and Arrows[wiring-up-boxes-and-arrows]</p>
+<p class="itemTitle">Wiring up Boxes and Arrows</p>
 <p class="itemText">We started this section with a graphical depiction of an application as boxes and arrows between them. However, not many computers can execute boxes, and so if we want to run the application we have to construct a complete written program that represents the drawn diagram.</p>
 <p class="itemText">The written form of our car part sourcing application is not that hard to follow, given the material we have covered so far:</p>
 <p class="itemText">import boxesNarrows</p>

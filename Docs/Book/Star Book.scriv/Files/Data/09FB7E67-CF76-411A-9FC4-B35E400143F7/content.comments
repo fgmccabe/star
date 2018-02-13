@@ -7,10 +7,10 @@
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
 
 \f0\fs24 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Editor customization is almost universally based on using 
-\i regular expressions
-\i0  which are often too weak to handle 
-\b Star
-\b0 \'92s syntactic features.\uc0\u8232 \
+Editor customization is almost universally based on using 
+\i \cf2 regular expressions
+\i0 \cf2  which are often too weak to handle 
+\b \cf2 Star
+\b0 \cf2 \'92s syntactic features.\uc0\u8232 \
 However, the author recommends Emacs and Sublime Text; in part for their excellent customization features.}]]></Comment>
 </Comments>

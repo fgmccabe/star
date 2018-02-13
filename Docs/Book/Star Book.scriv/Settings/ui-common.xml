@@ -6,19 +6,12 @@
         <SubdocumentCounts>No</SubdocumentCounts>
         <ExpandedItems>
             <ItemID>7A583553-3A84-40D6-B9B9-0430B8CD3E39</ItemID>
-            <ItemID>4F8EB340-2D47-4C32-9408-4FF0F6FF0CC6</ItemID>
-            <ItemID>16476111-0FDE-42C5-8641-519DBB129794</ItemID>
-            <ItemID>048F7A58-7D73-4F12-A40B-2C15AA5D4328</ItemID>
             <ItemID>09207F79-BF79-406C-B420-C68496956E8E</ItemID>
-            <ItemID>96776348-B035-46DA-A5A5-210E99B93774</ItemID>
-            <ItemID>CB0EEE35-84F6-4D12-9A81-6827BED783B8</ItemID>
-            <ItemID>4DAE20E1-E8B4-402B-BA96-7067A8A89451</ItemID>
-            <ItemID>07B0D7C6-57CE-4D6F-8AD9-11F06A261A5F</ItemID>
             <ItemID>B0417A1B-D617-4CBD-900A-14A6AB12C289</ItemID>
             <ItemID>6B6E864E-D14F-4EF7-8C5F-1D489706989A</ItemID>
         </ExpandedItems>
         <Selection>
-            <ItemID>16476111-0FDE-42C5-8641-519DBB129794</ItemID>
+            <ItemID>4F8EB340-2D47-4C32-9408-4FF0F6FF0CC6</ItemID>
         </Selection>
     </Binder>
     <Inspector Show="Yes" View="Comments">
@@ -112,11 +105,11 @@
             <View>
                 <ShowHeader>Yes</ShowHeader>
                 <ShowFooter>Yes</ShowFooter>
-                <GroupsViewMode>Corkboard</GroupsViewMode>
+                <GroupsViewMode>Scrivenings</GroupsViewMode>
                 <CurrentViewMode>Scrivenings</CurrentViewMode>
                 <SelectionAffects>None</SelectionAffects>
                 <Content>
-                    <ItemID>16476111-0FDE-42C5-8641-519DBB129794</ItemID>
+                    <ItemID>4F8EB340-2D47-4C32-9408-4FF0F6FF0CC6</ItemID>
                 </Content>
             </View>
             <Text>

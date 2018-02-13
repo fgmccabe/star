@@ -43,35 +43,32 @@ A function is defined as a sequence of
 \f0\fs26 or\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2><$Scr_Ps::0>
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::3><$Scr_Ps::0>
 \f2\i\fs22 Pattern
 \f3\i0  default => 
 \f2\i Expression
-\f1\i0\fs24 <!$Scr_Cs::2>
+\f1\i0\fs24 <!$Scr_Cs::3>
 \f3\fs22 \
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 The left hand side of a rewrite equation consists of the pattern which determines the applicability of the equation; and the right hand side represents the value of the function if the pattern matches.\
-\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 <$Scr_Ps::1>
-\f0\b Pattern\
-
-\b0 A 
-\i pattern
-\i0  represents a test or guard on a value. Patterns can be said to 
-\i succeed
-\i0  or 
-\i fail
-\i0  depending on whether the value being tested matches the pattern.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1 \cf2 <!$Scr_Ps::1>
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f0\b\fs26 Pattern\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs24 \cf0 <!$Scr_Ps::1><$Scr_Ps::2>
+\f0\i\fs26 A pattern represents a test or guard on a value. Patterns can be said to succeed or fail depending on whether the value being tested matches the pattern.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\i0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
 \f0\fs26 We also refer to a pattern being 
 \i satisfied
-\i0  when matching a {\field{\*\fldinst{HYPERLINK "scrivcmt://58B5191B-1C75-4CE3-ABEE-4F5145B3F2E6"}}{\fldrslt value.}}\
+\i0  when matching a {\field{\*\fldinst{HYPERLINK "scrivcmt://58B5191B-1C75-4CE3-ABEE-4F5145B3F2E6"}}{\fldrslt \cf2 value.}}\
 The pattern in a rewrite equation is a guard on the arguments of the function call. For example, given a call\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
@@ -88,19 +85,18 @@ When the pattern on the left hand side of a rewrite equation succeeds then the e
 As we noted earlier, patterns are ubiquitous in 
 \b Star
 \b0 . They are used in equations, in variable declarations, in queries and in many other places. Here, we shall look at three main kinds of pattern, and in later sections, we look at additional forms of patterns.\
-\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 <$Scr_Ps::1>
-\f0\b Variable Pattern\
-
-\b0 A 
-\i variable pattern
-\i0  is denoted by an identifier; specifically by the 
-\i first occurrence
-\i0  of an identifier.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1 \cf2 <!$Scr_Ps::1>
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f0\b\fs26 Variable Pattern\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs24 \cf0 <!$Scr_Ps::1><$Scr_Ps::2>
+\f0\i\fs26 A variable pattern is denoted by an identifier; specifically by the first occurrence of an identifier.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\i0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
 \f0\fs26 A variable pattern always succeeds and has the additional effect of 
 \i binding
 \i0  the variable to the value being matched.\
@@ -131,17 +127,18 @@ Variables are never redeclared within a given scope. It is not permitted to hide
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 \cf2 This is somewhat different to the scope rule for most other functional (and non-functional) languages \'97 which allow outer scoped variables to be effectively eclipsed or hidden by inner variables.\
 The rationale for this choice is based on the observation that errors that arise from mistakenly hiding outer variables are often particularly difficult to track down.\
-\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 <$Scr_Ps::1>
-\f0\b Literal Pattern\
-
-\b0 A 
-\i literal pattern
-\i0  \'97 such as a numeric literal or a string literal \'97 only matches the identical number or string.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1 \cf2 <!$Scr_Ps::1>
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f0\b\fs26 Literal Pattern\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs24 \cf0 <!$Scr_Ps::1><$Scr_Ps::2>
+\f0\i\fs26 A literal pattern \'97 such as a numeric literal or a string literal \'97 only matches the identical number or string.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\i0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::2>
 \f0\fs26 Clearly, a literal match amounts to a comparison of two values: the pattern match succeeds if they are identical and fails otherwise.\
 Equality is based on 
 \i semantic equality
@@ -152,29 +149,29 @@ There is no automatic coercion of values to see if they
 \i might
 \i0  match. In particular, an integer pattern will only match an integer value and will not match a float value \'97 even if the numerical values are the same. I.e., there will be no attempt made to coerce either the pattern or the value to fit.\
 This, too, is based on the desire to avoid hard-to-detect bugs from leaking into a program.\
-\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
-
-\f1\fs24 \cf2 <$Scr_Ps::1>
-\f0\b Guard Pattern\
-
-\b0 Sometimes known as a 
-\i semantic guard
-\i0 , a guard pattern consists of a pair of a pattern and a 
-\i condition
-\i0 :\
-
-\i Pattern
-\i0  
-\f1 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
-\f3\fs22 where
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Cs::2>
-\f0  
-\i Condition
-\i0 \
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1 \cf2 <!$Scr_Ps::1>
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::1>
+\f0\b\fs26 Guard Pattern\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\b0\fs24 \cf0 <!$Scr_Ps::1><$Scr_Ps::2>
+\f0\i\fs26 Sometimes known as a semantic guard, a guard pattern consists of a pair of a pattern and a condition:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\i0\fs24 \cf0 <!$Scr_Ps::2><$Scr_Ps::0>
+\f2\i\fs22 Pattern
+\f3\i0  
+\f1\fs24 <$Scr_Cs::3>
+\f3\fs22 where
+\f1\fs24 <!$Scr_Cs::3>
+\f3\fs22  
+\f2\i Condition
+\f3\i0 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
 \f0\fs26 Conditions are boolean-valued and the guard succeeds if both the pattern matches and if the condition is 
 \i satisfied
 \i0 . 

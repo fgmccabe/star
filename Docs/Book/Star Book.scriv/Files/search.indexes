@@ -2,7 +2,7 @@
 <SearchIndexes Version="1.0">
     <Documents>
         <Document ID="91B366E0-2440-4CFA-AC38-F3998A6E3A2A">
-            <Title>Code Macros[code-macros]</Title>
+            <Title>Code Macros</Title>
             <Text>Code macros, as their name suggests, are normal Star functions that are invoked by the compiler on the text that the compiler is compiling. Code macros give the macro programmer almost the full power of Star to implement translation; in particular they can call other functions and use other types than quoted internally. However, code macros are a little more awkward to use than macro rules — there are some special restrictions on their form and what their scope is.
 Code macros are embedded within a macro rule, in particular on the right hand side of a macro rule we can use a ## form — which, like its counterpart for validation rules, is a way of introducing nested scoping. For example, the top-level macro rule for processing triple graphs looks like:
  # graph{?Graph} ==&gt; list of [triples(Graph) ] ## {
@@ -24,7 +24,7 @@ The wrapComma function is a kind of inverse to unwrapSemi except that it takes a
 fun wrapComma(list of [El]) is &lt;| ?El |&gt;
  |  wrapComma(list of [El,..More]) is &lt;| ?El , ?wrapComma(More) |&gt;
 The definition of wrapComma makes good use of Star’s meta-language: in constructing what will be a list literal we have to form it from the appropriate structures. This figure illustrates the AST structure of the contents of a list literal:
-#
+￼
 Graphical View of a list Expression
 It is useful that, in addition to being used to separate arguments in a list of arguments, the comma is also one of Star’s standard operators.
 The most complex macros in our RDF macro package are those devoted to the processing of triples. The complexity arises from the inherent flexibility of the notation; in particular, any or all of the subject, predicate or object may be individual strings, named concepts or even lists of them.
@@ -89,72 +89,71 @@ equip ::= equip{
   nextMaint:date.
 }
 Using this, and similar records, together with some clever algorithms, you design a function that determines the next most likely piece of equipment to fail — perhaps together with an expected failure date:
-nextToFail:(list[maint],list[equip])=&gt;(equip,date)
-...
+nextToFail:(list[maint],list[equip])=&gt;(equip,date).
 The details of this algorithm, while critical to an actual application, are of no concern to us here.
 Now, you deliver your software to your customer and the first thing that they ask for is an ability to tweak it. You see, you designed it for generic pieces of equipment and they have particular pieces of equipment, with particular foibles affecting the computations needed to determine when equipment needs maintenance. And they need to keep some information in the description of equipment and maybe also in the maintenance records that is not in your types.
 Your challenge is to permit this kind of extension without requiring your code to be modified or even recompiled for each customer.
 The standard OO approach to addressing would be to permit the customer to sub-class some of the critical types (such as maint and equip). However, there are problems with using sub-types: in particular, if your algorithm requires computing new instances of data structures then sub-classing cannot work: when your algorithm creates a new equip record, it will not know how to create a customer variant of that record:
-fun updateEquip(E,W) is equip{
-  id = E.id
-  eqpType = E.eqpType
-  nextMaint = W
+updateEquip(E,W) =&gt; equip{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = W.
 }
 with the result that the customer data is lost. An alternative approach is to allow some extensibility in the record by having a special extra field:
-type equip of t is equip{
-  id:string
-  eqpType:string
-  nextMaint:date
-  extra:t
+equip[t] ::= equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  extra:t.
 }
 Since we do not want to constrain the kind of information our customizer can store we make its type quantified. The extra field is there to support extensions; and, because we know about its existence, we can carry the data with us:
-fun updateEquip(E,W) is equip{
-  id = E.id
-  eqpType = E.eqpType
-  nextMaint = W
-  extra = E.extra
+updateEquip(E,W) =&gt; equip{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = W.
+  extra = E.extra.
 }
 The problem with adding such an extra field is its type: this version changes the unquantified equip type into a quantified one. This will have potentially devastating impact on your code — especially if you want to allow multiple extensions for multiple data structures. The reason is that potentially a large number of functions will be required to carry the type parameters in their type signatures. This is doubly galling as these extra type parameters do not have any significance in the main code: they are there only to support potential customizations.
 Instead of universal quantification, we can use an existential type for the extra field:
-type equip is equip{
-  id:string
-  eqpType:string
-  nextMaint:date
-  t has kind type
-  extra:t
+equip ::= exists t ~~ equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  type t.
+  extra:t.
 }
 This has the effect of permitting a local extension to a record type while also effectively hiding the type from the main code.
 Of course, in order for extra to have any effect on our code, we have to be able to make use of it within our algorithm. This is another customization point in the code: not only do we need to allow additional data but we need to be able to reference it appropriately. For example, we might decide that the extra field should have a say in determining the next maintenance date; so our updateEquip function should take it into account — but how?
 A simple way is to add to the equip record a set of extensibility functions that the customer must supply, in addition to the data itself:
-type equip is equip{
-  id:string
-  eqpType:string
-  nextMaint:date
-  t has kind type
-  extra:t
-  extraDate:(t,date)=&gt;date
+equip ::= exists t ~~ equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  type t.
+  extra:t.
+  extraDate:(t,date)=&gt;date.
 }
 Then, our updateEquip function calls this extraDate function when computing the new maintenance schedule:
-fun updateEquip(E,W) is equip{
-  id = E.id
-  eqpType = E.eqpType
-  nextMaint = E.extraDate(E.extra,W)
-  type t = E.t     — note evidence for type
-  extra = E.extra
-  extraDate = E.extraDate
+updateEquip(E,W) =&gt; equip{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = E.extraDate(E.extra,W).
+  type t = E.t.     — note evidence for type
+  extra = E.extra.
+  extraDate = E.extraDate.
 }
 A more succinct way of expressing this would be to use Star’s substitute operator:
-fun updateEquip(E,W) is E substitute {
+updateEquip(E,W) =&gt; E substitute {
   nextMaint = E.extraDate(E.extra,W)
 }
 Of course, the customer has to provide functions that create the initial data structures, and the initial values of extra and the updating function extraDate. You, as the provider of the software, will offer a default implementation:
-fun equip(Id,Tp,Maint) is equip{
-  id = Id
-  eqpType = Tp
-  nextMaint = Maint
-  type t = ()  — () is Star's void type
-  extra = ()
-  extraDate = (_,W) =&gt; W
+equip(Id,Tp,Maint) =&gt; equip{
+  id = Id.
+  eqpType = Tp.
+  nextMaint = Maint.
+  type t = ().  -- () is Star's void type
+  extra = ().
+  extraDate = (_,W) =&gt; W.
 }
 This approach meets our goals: we can allow customers of our software access to key data structures in a safe way that does not require use to modify our code for each customer or even to recompile it.</Text>
         </Document>
@@ -204,6 +203,32 @@ The number of things that people want to do with collections is only limited by 
 	•	Summarizing collections
 	•	Querying collections
 Each of these patterns has some support from Star’s standard repertoire of functions.</Text>
+        </Document>
+        <Document ID="EE17D847-A0F2-4AC2-98F4-30FCBBFA4ACA">
+            <Title>Wrapping Up Packages</Title>
+            <Text>Our original simple package record had the type
+simple: exists f/1 ~~ {
+  type foo/1.
+  foo:all t ~~ (t) &lt;=&gt; f[t].
+  bar:all t ~~ f[t].
+  fooMe:all t ~~ (t)=&gt;f[t].
+}
+The type signature has a type foo and a constructor foo in it. This is permitted because types and values have different name spaces in Star. This is not in fact quite accurate; the precise type of the simple package record should be:
+
+simple: exists foo/1 ~~ {
+  type foo/1.
+  foo:all t ~~ (t) &lt;=&gt; foo[t].
+  bar:all t ~~ foo[t].
+  fooMe:all t ~~ (t)=&gt;foo[t].
+}
+
+Otherwise we could not assume that the type simple.foo was the same as the type returned by fooMe (for example). We did not introduce it this way because the proliferation of foos in the example could lead to confusion. However, this formulation also means that we do not need to have the extra type alias in our package record itself.
+Why, one might ask, is it so important for packages to have this kind of semantics? After all, few other programming languages make the effort to give a first class semantics for modules. The most straightforward answer is that it likely will not matter unless your programs because very large.
+In mega-scale applications, programming between modules can easily become a major headache if not semantized (sic) correctly. However, we shall see an application of this for much smaller systems in Chapter 8 when we discuss building platforms rather than simple applications.
+
+</Text>
+            <Comments>Not allowing that would cause significant hardship for programmers: it would require that program names could not be the same as type names; including constructors like foo.
+A notable exception being SML.</Comments>
         </Document>
         <Document ID="347E8EB6-6878-49AD-9309-1AB468ABC004">
             <Title>A Functional Loop</Title>
@@ -273,8 +298,8 @@ With this type signature, we can use nameOf with any type that that a name field
             <Comments>This also means that the collection type in fmap must be generic: it is not possible to implement functor for strings.</Comments>
         </Document>
         <Document ID="C4EF0362-9FB3-4B1F-AB5E-B7CB6F16734B">
-            <Title>A Component in Star[a-component-in-Star]</Title>
-            <Text>One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application.By functional we mean important to the solution not necessarily as in functional programming. The intuition is that individual components have a specific role in the application; but that they are typically ‘quite large’. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.
+            <Title>A Component in Star</Title>
+            <Text>One of the intentions behind boxes-and-arrows diagrams is to call out the major functional pieces of an application. The intuition is that individual components have a specific role in the application; but that they are typically ‘quite large’. We have already seen that a component may have multiple ports but we have not exposed what kind of computation may be going on inside.
 One of the non-goals of boxes-and-arrows diagrams is to be a complete programming language. Instead, the idea is to capture the large scale granularity in a picture but to use text for the actual programming of components. Actually building components is best left to ‘real’ code; in our case, we denote the code of a component as a Star component; which is a special form of package.
 The one exception to the strategy of using written code to build components is with composite components – components built by assembling and wiring other components. However, this is outside the scope of this book.
 The code for a component must implement the various ports that the component has on the diagram and must also implement the functionality of the component. For example, our SplitComponent may start it’s implementation with:
@@ -312,6 +337,7 @@ placeOrder(S,parts) do
   notify suppliers.discriminator(S.name) with
     order{ content=parts } on order
 Notice that this is a regular speech action; the primary difference is that instead of a fixed recipient we compute who the recipient will be – based on the name of the supplier.</Text>
+            <Comments>By functional we mean important to the solution not necessarily as in functional programming.</Comments>
         </Document>
         <Document ID="97D45E2F-EF81-4609-A86C-00F2C15F3887">
             <Title>Are We Done Yet?</Title>
@@ -337,12 +363,12 @@ However, the converse does not follow: just because the world is stateful does n
 Overall, the primary rationale in the design of Star is to empower the programmer in making obviously correct programs.</Text>
         </Document>
         <Document ID="38B23195-E30E-47E7-8964-26CAEF29798E">
-            <Title>Concurrent Actors[concurrent-actors]</Title>
+            <Title>Concurrent Actors</Title>
             <Text>A concurrent actor is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.
 However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.
 It should be noted that the internal structure of a concurrent actor is more complex than that of a regular light weight actor. This may translate into a run-time performance difference.
 A concurrent actor is written using the concurrent prefix. For example, we can make our agentBank concurrent very straightforwardly:
-agentBank is concurrent actor{
+agentBank = concurrent actor{
   private var accts := dictionary of []
   fun balance(N) is accts[N].balance()
   prc transfer(F,T,Amt) do{
@@ -353,16 +379,15 @@ agentBank is concurrent actor{
     accts[Nm].debit(Amnt)
 }
 As might be clear if you have read up this point, a concurrent actor works by having an internal background task that is actually responsible for processing speech actions. This background task is responsible for actually responding to speech actions and it ‘serializes’ them – ensuring that only one is performed at any one time.
-Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type – concActor of t – which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the balQuery function:Like other references to the speech contract, the types in this function are slightly simplified.
-balQuery:for for all t,a ~~
-    (t,string)=&gt;float where
-      speech over t determines a and
-      a implements { balance:(string)=&gt;float }
-balQuery(A,U) is query A with balance(U)
+Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type – concActor of t – which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the balQuery function:
+balQuery:all t,a ~~ speech[t-&gt;&gt;a], a&lt;~{balance:(string)=&gt;float} |:
+    (t,string)=&gt;float.
+balQuery(A,U) =&gt; query A with balance(U)
 will work with either of actor, concurrent actor or any entity that implements speech and whose API includes the balance function – because it’s type is carefully circumscribed. However, functions that have been type-specialized to work with actors will not type check when used with concurrent actors.</Text>
+            <Comments>Like other references to the speech contract, the types in this function are slightly simplified.</Comments>
         </Document>
         <Document ID="898FBDE9-3A90-4F47-8F02-6185DD628B38">
-            <Title>Requests[requests]</Title>
+            <Title>Requests</Title>
             <Text>Our final form of speech action is the request. A request is intended to denote a request that the recipient perform some action. This is subtly different to the query in that – apart from answering the question – a query should not cause any change of state in the recipient, whereas the request likely would.
 Even though the difference between query and request may seem subtle to the average programmer the key difference is in the intended use.
 The form of a request reflects the fact that an action is involved:
@@ -461,7 +486,7 @@ Other patterns that make use of asynchronous communications include the publish-
             <Title>Appendix</Title>
         </Document>
         <Document ID="EEB7CF66-23BF-4AE3-9BB6-BE9E2DEC331B">
-            <Title>Meta Language[meta-language]</Title>
+            <Title>Meta Language</Title>
             <Text>Star has a meta language and a standard type to go with it. This means that expressions in the language may also be values. For example, consider the expression:
 X+2
 If the value of X is 3, then the value of this expression is 5. However, we can also examine the language that this expression is made of — by using the quote notation. The expression:
@@ -488,8 +513,8 @@ simple:exists f/1 ~~ {
 }
 The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that f exists and is a type constructor of 1 argument.
 The statement:
-  all t ~~ foo[t] ~&gt; f[t].
-is actually a normal type alias statement. It states that the type </Text>
+  all t ~~ f[t] &lt;~ foo[t].
+is actually a normal type alias statement. It states that the type f[t] is the same as the type foo[t] – for all t. A type alias statement is a way of giving a new name to a type; here we are using it to provide evidence that the record contains the required evidence for f.</Text>
         </Document>
         <Document ID="87331D24-0387-4B16-A93F-BA6C1C57FBDA">
             <Title>Types, More Types and Even More Types</Title>
@@ -689,37 +714,39 @@ The second is related to this:
 Each occurrence of an existentially quantified type is potentially different.
 Think about a function with the type:
 exFn:for all t ~~
-  (t)=&gt;exists e ~~ R of (e,t)
+  (t)=&gt;exists e ~~ R[e,t]
 For the moment, we don’t much care about R. Now, consider how we might use exFn:
-def X1 is exFn("alpha")
+X1 = exFn("alpha")
 ...
-def X2 is exFn("alpha")
-An important question is “what is the relationship between the type of X1 and the type of X2?”. Unfortunately, the fundamental answer is ‘we cannot know in general’; which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of exFn may result in different instantiations for e for each invocation. The result is we cannot assume any link between the types of X1 and X2: they are different.
+X2 = exFn(“alpha”)
+An important question is “what is the relationship between the type of X1 and the type of X2?”. Unfortunately, the fundamental answer is ‘we cannot know in general’; which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of exFn may result in different instantiations for e for each invocation. The result is we cannot assume any link between the types of X1 and X2: they are different. This has some serious consequences for how we use existentially quantified types.
 On the other hand, consider the similar sequence of definitions:
-def Y1 is exFn("alpha")
+Y1 = exFn("alpha")
 ...
-def Y2 is Y1
+Y2 = Y1
 In this case we do know that the type of Y1 is identical to the type of Y2. This leads us to the third rule:
-Each use of an existential quantification introduces a new type — called a _Skolem type_Technically, the type is denoted by a Skolem Constant or a Skolem Function. — that follows the normal inference rules for all types.
+Each use of an existential quantification introduces a new type — called a Skolem type — that follows the normal inference rules for all types.
 I.e., once a type has been introduced as a Skolem type, it behaves just like any regular type and the normal rules of inference apply. This applies equally to the two fragments of code above; but the additional constraint on the immutable values of Y1 and Y2 make it easier to propagate type information.
 We can see this a little clearly by looking at the effective type annotations of Y1 and Y2:
-Y1:R of (e345,string)
-def Y1 is exFn("alpha")
+Y1:R[e345,string]
+Y1 = exFn("alpha")
 ...
-Y2:R of (e345,string)
-def Y2 is Y1
+Y2:R[e345,string]
+Y2 = Y1
 where e345 is the skolemized variant of the existential type e.
 The effective annotations for X1 and X2 will have different skolem constants:
-X1:R of (e235,string)
-def X1 is exFn("alpha")
+X1:R[e235,string]
+X1 = exFn("alpha")
 ...
-X2:R of (e678,string)
-def X2 is exFn("alpha")
+X2:R[e678,string]
+X2 = exFn("alpha")
 If Y1 or Y2 were declared to be re-assignable variables then, once again, we would not be able to connect the types of Y1 and Y2 together.</Text>
+            <Comments>Technically, the type is denoted by a Skolem Constant or a Skolem Function.</Comments>
         </Document>
         <Document ID="04486F4C-20B6-4F45-9A62-CDC9DDE9EB04">
-            <Title>Responding to Change One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.</Title>
-            <Text>There are three common sources of change at the macro-level: a need to reuse a software artifact, a need to repurpose the artifact and/or a need to refactor the artifact. The first corresponds to using a software artifact in a similar role but in a different context. For example, when a Math library developed for real-time analytics is to be used for a Machine Learning application: it is still a Math library but its context is new.
+            <Title>Responding to Change</Title>
+            <Text>One of the sources of inefficiencies in software development is the effort needed to adopt a technology: be it a library, a service or a programming technique. This becomes especially obvious when some change is necessary; for example, when changing technologies or when responding to a change in requirements.
+There are three common sources of change at the macro-level: a need to reuse a software artifact, a need to repurpose the artifact and/or a need to refactor the artifact. The first corresponds to using a software artifact in a similar role but in a different context. For example, when a Math library developed for real-time analytics is to be used for a Machine Learning application: it is still a Math library but its context is new.
 Repurposing occurs when the artifact is being used to solve a different problem. For example, a messaging platform might be repurposed as an Applications server (because the technology involved can be helpful).
 Refactoring occurs when new requirements mean that new properties are desired. For example, a Json parser might be refactored to make it faster when the scale of the data being processed increases.
 Another form of refactoring occurs when the implementation technology changes – for example if the Json parser needs to be reimplemented in C++ because its original Java implementation ‘does not fit’ any more.
@@ -751,29 +778,32 @@ In effect, a package reduces to a variable declaration whose type is a record ty
 The special form:
 {. double=double .}
 is a record structure; the periods in the braces signify that the record is not recursive: the definitions within the record cannot reference each other.
-What about types though? Like other programming languagesm Star allows us to export types from packages too:
+What about types though? Like other programming languages Star allows us to export types from packages too:
 simple{
-  all t ~~ foo[t] ::= foo(t) | bar.
+  public all t ~~ foo[t] ::= foo(t) | bar.
 
-  fooMe:all t ~~ (t)=&gt;foo[t].
+  public fooMe:all t ~~ (t)=&gt;foo[t].
   fooMe(X) =&gt; foo(X)
 }
-Exporting types — and their constructors — is an extremely important part of the package functionality. However, it turns out that we can account for types too in our semantics of packages. Similarly to our previous unfolding, the simple package is equivalent to:
+The ability to export types — and their constructors — is an extremely important part of the package functionality. However, it turns out that we can account for types too in our semantics of packages. Similarly to our previous unfolding, the simple package is equivalent to:
 simple: exists f/1 ~~ {
   type foo/1.
-  foo:all t ~~ (t)&lt;=&gt;f[t].
+  foo:all t ~~ (t) &lt;=&gt; f[t].
   bar:all t ~~ f[t].
   fooMe:all t ~~ (t)=&gt;f[t].
 }
-simple = let{
+simple = {
   all t ~~ foo[t] ::= foo(t) | bar.
 
   fooMe:all t ~~ (t)=&gt;foo[t].
-  fooMe(X) =&gt; foo(X)
-} in {. type f=foo. foo=foo. bar=bar. fooMe=fooMe .}
-This is clearly quite a bit more complex than our super-simple example; but the basic story is still there: a package consists of a variable definition whose value is an anonymous record. In this case, the anonymous record contains a type, two constructors as well as a regular function.
+  fooMe(X) =&gt; foo(X).
+
+  all t ~~ f[t] &lt;~ foo[t].
+}
+This is clearly quite a bit more complex than our super-simple example; but the basic story is still there: a package consists of a variable definition whose value is an anonymous record. In this case, the anonymous record contains a type, two constructors as well as a regular function. It also includes a type alias statement that, in this case, informs the type system where the existentially quantified type f is realized as the foo type.
 Having constructors in a type is only a small extension to the conventional notion of a record — while many languages restrict records to containing just data values, most functional programming languages do allow functions in records. A constructor is just a special kind of function.
 On the other hand, having a type in a record is quite different.</Text>
+            <Comments>This is somewhat analogous to the difference between a let and a letrec form in languages like SML.</Comments>
         </Document>
         <Document ID="CB0EEE35-84F6-4D12-9A81-6827BED783B8">
             <Title>Paperback</Title>
@@ -918,7 +948,7 @@ For most projects you will not need to be very aware of code repositories, catal
             <Title>Sieving for Primes</Title>
             <Text>The final piece of The Sieve is the sieve function which constructs a network of filters to sieve out the primes.
 At any one time there is an existing network of filters removing multiples of prime numbers found so far. For example, after processing 13, the next number to look at will be 15 and the network of filters will look like:
-￼
+#
 The Sieve of Eratosthenes at 13
 The 3 filter removes 15 because 15 is a multiple of 3. However, the following number — 17 — survives all the filters and the sieve responds by spinning off a new filter for 17 at the end of the chain:
 ￼
@@ -951,7 +981,7 @@ primes(Max) =&gt; let{
 } in valof collectTerms(resltCh,Max)</Text>
         </Document>
         <Document ID="497CB634-2C60-4813-BB33-E7C2F764443C">
-            <Title>Ports and Speech[ports-and-speech]</Title>
+            <Title>Ports and Speech</Title>
             <Text>First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.
 This is an important point: unlike most programming languages, and unlike Star itself, our diagramming notation does not rely on scoping to communicate between elements. Instead, all connections and references are explicit. This is a strong constraint that helps to enforce so-called loose coupling between components. This greatly simplifies the kinds of task of assembling applications from components.
 Ports denote types as well as data flow: each port is associated with an API schema that determines the type of data that is going through the port. For example, the responding port of the SplitComponent has a schema associated with it that shows that the component expects Orders coming in:
@@ -1016,7 +1046,7 @@ valis X+Y
 The value of a task value is obtained using the valof operator:
 valof T
 denotes the value returned by the task computation T.
-It is important to remember, in thinking about tasks, that there is the extra level of indirection.
+It is important to remember, in thinking about tasks, that there is the extra level of indirection: the value of a task expression is a computation. When the computation is performed, it too has a value.
 Note that the valof operator also has the effect of forcing the completion of the task T; in particular, the valof operator is blocked until the task has completed and its value can be returned.
 Although the valof operator denotes the end of the computation, it does not denote the start of the computation.
 If a task does not return a value then its type will be
@@ -1050,7 +1080,7 @@ The ‘right’ way to boil an ocean is one cup at a time. The ‘smart’ way t
 Building software in the context of a team is quite different to writing individual functions in a program. It is not enough for your code to compute the correct function; it must also interact properly with the environment it is in. As a result, professional programmers find themselves often more concerned with making sure that all the ‘pieces’ are in the right place than simply the correctness of an algorithm. Interfaces, contracts, APIs and integration issues often dominate the system builder’s landscape.
 One’s attitude to basic language features like types is also different: having to deal with the knowledge that is in your co-worker’s head (and not in yours) should be enough to convince anyone of the merits of strong static types.
 Star’s modularity features are built from the same functional programming foundation as the other features of the language. This has important implications for the programmability of larger systems.</Text>
-            <Comments>This is not to deny that correctness is important. It is just that algorithm correctness is not enough.</Comments>
+            <Comments>This is not to deny that correctness is important. It is just that algorithmic correctness is not enough.</Comments>
         </Document>
         <Document ID="E2994B4F-05AF-4F0D-96AA-A8036DBDC38B">
             <Title>Chattering Agents</Title>
@@ -1113,7 +1143,7 @@ In short, we would use a let expression when the function being defined is at al
 Assembling functions in this way, either by using anonymous lambdas or by using let expressions, is one of the hallmarks of functional programming.</Text>
         </Document>
         <Document ID="A4ADB48E-CDA1-4202-B137-AA6D77618C91">
-            <Title>Mixing Operators[mixing-operators]</Title>
+            <Title>Mixing Operators</Title>
             <Text>The standard N3 notation includes some simple extensions to make certain patterns of facts easier to write. For example, we can write:
 :Joe ! isa $ :giraffe.
 :giraffe ! [subclass $ :mammal, has $ :long-neck].
@@ -1133,8 +1163,9 @@ For the purposes of the operator grammar, literal values like strings, numbers a
 each element of the list has an expected priority; in case of lists the expected priority is 999. I.e., the maximum priority of any term in a list sequence is 999. If you want to embed an operator expression whose top-level operator is higher than 999 in a list then you need to surround it with parentheses.</Text>
         </Document>
         <Document ID="E085F2D9-429D-4493-B767-3C924A758ACE">
-            <Title>Escaping our DSL We are making a subtle choice with these validation rules for concept. We are affirming that the only way that we can embed ‘normal’ Star expressions in a concept graph is through variables.</Title>
-            <Text>In general, it is normally desirable to allow arbitrary expressions to be embedded in DSL extensions. However, one has to design the syntactic mechanism that permits this escape. In our case we take the extremely simple approach of only allowing variables.</Text>
+            <Title>Escaping our DSL</Title>
+            <Text>We are making a subtle choice with these validation rules for concept. We are affirming that the only way that we can embed ‘normal’ Star expressions in a concept graph is through variables.
+In general, it is normally desirable to allow arbitrary expressions to be embedded in DSL extensions. However, one has to design the syntactic mechanism that permits this escape. In our case we take the extremely simple approach of only allowing variables.</Text>
         </Document>
         <Document ID="2BB80CC2-1EE6-4A27-B426-3E4F17CB5C64">
             <Title>Macro Rules[macro-rules]</Title>
@@ -1170,12 +1201,12 @@ Notice that, even in this simple situation of matching concept, we had to constr
         <Document ID="1C82C9B2-39A7-4406-B7A3-1D13A61AE0AB">
             <Title>Computing with tasks</Title>
             <Text>Like other values, tasks are first class: they can be assigned to variables, kept in data structures, passed to and from functions and so forth. This flexibility leads to great expressive power — many patterns of computations can be readily encoded as task-valued functions.
-For example, consider the mp function — which is a facsimile of the standard map function specialized for list values:
+For example, consider the mp function — which is a facsimile of the standard fmap function specialized for list values:
 mp:all s,t ~~ ((s)=&gt;t,list[s])=&gt;list[t].
 mp(F,[]) =&gt; [].
 mp(F,[X,..Y]) =&gt; [F(X),..mp(Y)].
-In this mp function,Notice that we do not need to mark the sequence expressions as list sequences – type inference takes care of this for us. the functional variable F denotes the computation to be applied to each element of the input list. Suppose that each computation of F were non-trivial, and we wanted to spread the load across multiple cores — i.e., to perform the map operations in parallel. The task notation, in particular background tasks will help us to achieve that.
-Recall that map is a standard Star function that is defined in the mappable contract and is implemented for many different collection types.
+In this mp function, the functional variable F denotes the computation to be applied to each element of the input list. Suppose that each computation of F were non-trivial, and we wanted to spread the load across multiple cores — i.e., to perform the map operations in parallel. The task notation, in particular background tasks will help us to achieve that.
+Recall that fmap is a standard Star function that is defined in the functor contract and is implemented for many different collection types.
 We will first of all transform mp to use tasks rather than simply calling the function:
 taskmap:all s,t ~~ ((s)=&gt;t,list[s])=&gt;list[t].
 taskmap(F,[]) =&gt; [].
@@ -1184,7 +1215,7 @@ As it stands, this function has very similar performance characteristics to mp; 
 parmap1:all s,t ~~ ((s)=&gt;t,list[s])=&gt;list[t].
 parmap1(F,[]) =&gt; [].
 parmap1(F,[X,..Y]) =&gt; [valof background task{valis F(X)} ,.. parmap1(F,Y)].
-This program computes each element of the result in a separate background task. However, it is not a true parallel map because we wait for each element before continuing to the next element.
+This program computes each element of the result in a separate background task. However, it is not a true parallel fmap because we wait for each element before continuing to the next element.
 A better approach is to first of all construct a list of tasks and then to separately collect their values in a second phase:
 parmap2:all s,t ~~ ((s)=&gt;t,list[s])=&gt;list[t].
 parmap2(F,L) =&gt; let{
@@ -1199,16 +1230,17 @@ parmap2(F,L) =&gt; let{
 This function does not wait for any task to complete until they have all been spun out into background activities. This gives the maximum opportunity for the independent tasks to complete before we actually need their values.
 A good rule of thumb is:
 when you are programming with tasks, everything that is not a completely task-less subcomputation should be enclosed in task brackets.
-So, a more idiomatic way of writing the parmap function is to make it a task valued function; we also generalize away from the specific list collection type and use the standard map function to allow for any collection type:
-parmap:all s,t,c/1 ~~ mappable[c] |: ((s)=&gt;t,c[s])=&gt;task[c[t]].
+So, a more idiomatic way of writing the parmap function is to make it a task valued function; we also generalize away from the specific list collection type and use the standard fmap function to allow for any collection type:
+parmap:all s,t,c/1 ~~ functor[c] |: ((s)=&gt;t,c[s])=&gt;task[c[t]].
 parmap(F,L) =&gt; let{
   spread:()=&gt;list[task[t]].
   spread() =&gt; map((X)=&gt;background task{valis F(X)},L).
   collect:(list[task[t]])=&gt;list[t].
-  collect(Lt) is map((T)=&gt;valof T,Lt).
+  collect(Lt) is fmap((T)=&gt;valof T,Lt).
 } in task{
   valis collect(spread())
 }</Text>
+            <Comments>Notice that we do not need to mark the sequence expressions as list sequences – type inference takes care of this for us.</Comments>
         </Document>
         <Document ID="68CFB316-5DD5-47BA-8943-0F70F9604FED">
             <Title>The Homunculus in the Machine</Title>
@@ -1217,12 +1249,12 @@ It is like imagining a little person — a homunculus — in the machine that is
 Not everyone finds such feats of imagination easy. It is certainly often tedious to do so. Using query expressions and other higher-order abstractions significantly reduces the programmer’s burden — precisely by being able to take a declarative approach to programming.</Text>
         </Document>
         <Document ID="45A93B69-E22A-479B-A731-1653A81468E6">
-            <Title>Programming Speech[programming-speech]</Title>
+            <Title>Programming Speech</Title>
             <Text>A critical aspect of human communication is the vocabulary employed – more formally the ontology being referenced. The natural analog of this in software systems is the Application Programming Interface (API). An API specifies which functions you may invoke, what their types are and what the expected results of invoking the functions should be.
-The major semantic difference between an API and an Ontology is that the latter can often convey more semantics. For example, it is possible, in an ontology but not in a typical API, to express the fact that a function called plus adds its numbers together.There are definite technical limits to this specificity though.
+The major semantic difference between an API and an Ontology is that the latter can often convey more semantics. For example, it is possible, in an ontology but not in a typical API, to express the fact that a function called plus adds its numbers together.
 As it happens, Star has a natural way of expressing a complete API – by using the record type. For example, the record type defined with the type alias:
-type myAPI is alias of {
-  products:list of (string,string)
+myAPI &lt;~ {
+  products:list[(string,string)].
   quantity:(string)=&gt;integer
 }
 can be viewed as the specification of an API. We are not limited to exposing functions in APIs: we can expose literal values, variables and even types.
@@ -1233,6 +1265,7 @@ show list of { all y where
     (y,"1in-washer") in A.products and
     A.quantity(y)&gt;20 }
 While perfectly serviceable, there are some substantial issues with this approach to accessing APIs. For example, we have this A variable showing up everywhere; and it is hard – at first glance – to see how this style of API can help us with building distributed systems.</Text>
+            <Comments>There are definite technical limits to this specificity though.</Comments>
         </Document>
         <Document ID="B0417A1B-D617-4CBD-900A-14A6AB12C289">
             <Title>Ideas</Title>
@@ -1354,7 +1387,7 @@ same(X,X1) =&gt; X==X1</Text>
             <Comments>This terminology originates from Logic — where a formula can be satisfied (made true) by observations from the world.</Comments>
         </Document>
         <Document ID="0BC7C19E-EC39-46EC-891F-3639865149D0">
-            <Title>After the Translation[after-the-translation]</Title>
+            <Title>After the Translation</Title>
             <Text>Translating a DSL into core Star is not always the end of the story. In addition it is important to consider what other ways it should be integrated with the language. For example, we designed a new condition so that triple graphs could participate in queries. In addition, there may be one or more standard contracts that should be implemented for elements of the DSL.
 Finally, we recall that we fixed on the representation of a triple graph as a list of triples, specifically of n3Triple terms. However, this was, perhaps not the best ultimate representation — who is to say that a list is the best way of representing all graphs? In fact, fixing on lists to represent graphs represents a premature commitment: and no single choice is necessarily any better than lists.
 A better approach is to insulate the architectural choice point by introducing a contract layer. The purpose of the contract is to delay the actual implementation choice to a point where the choice is easier to make. The contract should encapsulate the choice point; in this case we would specify the operations we might expect of a triple graph:
@@ -1371,7 +1404,7 @@ Using such a contract as an underlying specification of requirements for impleme
         <Document ID="D4CF0A06-98DD-4E9E-B7E6-E9C8BC65119A">
             <Title>Phew</Title>
             <Text>This Chapter covers some difficult material! We start with a requirement to scale — to be able to scale code from a single module through to applications built by assembling libraries. Along the way we take in existential quantification and abstract data types.
-What we have not yet addressed are the needs of distributed applications. Managing distributed applications is one of the most tedious and difficult challenges of modern software development. However, before we can demonstrate Star’s approach to this, we must look at agent oriented systems and actors — the subject of [Chattering Agents][chattering-agents].</Text>
+What we have not yet addressed are the needs of distributed applications. Managing distributed applications is one of the most tedious and difficult challenges of modern software development. However, before we can demonstrate Star’s approach to this, we must look at agent oriented systems and actors — the subject of Chattering Agents.</Text>
         </Document>
         <Document ID="185096CD-6C52-48D5-B7CA-8378849F8AD1">
             <Title>Real-time is normal time</Title>
@@ -1429,10 +1462,11 @@ An explicitly marked default equation does not need to be the last equation; but
             <Comments>There is a theorem — called the Church Rosser Theorem — that guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to require programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.</Comments>
         </Document>
         <Document ID="3FE72617-6BC9-44E8-8C48-8424BA92465E">
-            <Title>A Taxonomy of Agents[a-taxonomy-of-agents]</Title>
+            <Title>A Taxonomy of Agents</Title>
             <Text>There is a natural hierarchy of types of agent – which roughly aligns with their roles and capabilities in distributed applications:
 Agent
-An agent is an entity that can act; often on behalf of another entity. By extension, a software agent is one that acts primarily in the software domain.
+An agent is an entity that can act; often on behalf of another entity.
+By extension, a software agent is one that acts primarily in the software domain.
 The difference between an agent and a function is that the latter must be invoked before any actions in it’s body can be performed; whereas an agent is ‘already’ ready to act.
 There is a vast potential range in capabilities of agents; for example, at a lower limit, one can argue that a thermostat can be viewed as a very simple agent – because it represents a localized responsibility for controlling the temperature in a room. Another common, though considerably more complex example, is the web browser: from the perspective of most web servers, browsers are agents that acts in the network for and on behalf of consumers.
 There is even a fair amount of autonomy in browsers: modern browsers have features that attempt to keep their owners safe from phishing attacks and also are able to warn users that certain websites are dangerous to visit.
@@ -1462,7 +1496,8 @@ While the difference between a ‘dumb agent’ and a cognitive agent may be one
 A self aware agent can even refuse to perform some activity – one of the more popular definitions of software agents is that they are autonomous systems. This can arise when a cognitive agent can measure the utility value for performing tasks: the basis for refusing to do something would be if the utility is below some threshold.
 Even for agent systems that do have explicit representations of themselves there is always a large and deep ‘sub-conscious’ part of the agent – i.e., that part of the agent that is not modeled within the agent. It is simply not possible for an agent to know everything about itself – a situation familiar to most human agents.
 Collaborative Agent
-A collaborative agent is one which participates in a network of agents; and is able to achieve goals by involving other agents in the network. A particularly interesting case of collaboration is where one agent recruits one or more agents to help it achieve it’s goals.
+A collaborative agent is one which participates in a network of agents; and is able to achieve goals by involving other agents in the network.
+A particularly interesting case of collaboration is where one agent recruits one or more agents to help it achieve it’s goals.
 Collaborative agents abound in distributed systems; for example, the triumvirate of the browser, the web server and the database server can be viewed as three collaborating agents.
 Collaboration is independent of cognition. It is perfectly feasible to design networks of agents that have limited or no self-awareness. Conversely, cognitive agents are not required to participate in a network; although much of the motivation for self-awareness disappears if the agent has no-one to talk to.
 The obvious hallmark of collaborative agents is communication: you cannot recruit others to do your bidding if you can’t talk to them. There are many styles of communication possible between software entities; the one that we suggest for use in Star agents is based on speech actions.</Text>
@@ -1477,44 +1512,43 @@ If it happened to be the case that a backgrounded task already completed, then t
         </Document>
         <Document ID="553112C1-C7EF-4D29-BDA8-C80B30245C5B">
             <Title>Abstract Data Types</Title>
-            <Text>Abstract data types can be viewed as the mathematics behind object oriented programming.Not to be confused with Algebraic Data Types — which represent the mathematical foundation for enumerations and other non-object values.
+            <Text>Abstract data types can be viewed as the mathematics behind object oriented programming.
 Abstract Data Type
 An abstract data type is a mathematical model of a set of related values that share a common set of semantics.
 In programming, it is the common semantics that defines the structure; but, of course, programming languages are not able to capture the full semantics of a program or type and hence the stand-in for this is usually a type specification.
-Perhaps an example is overdue. In our chapter on [Collections][collections] we looked at many operators over collections and not a few example collection types. Although programs using the sequence contract are fairly abstract, the type of the collection itself is still visible. Suppose we wanted to build a set structure where only the fact that there is a set, and the set-like operators over the set were visible. The representation type for the set should otherwise be completely opaque.
-One might start with a type definition:
-type genSet is genSet{
-  coll has kind type of type
-  z:for all t ~~ coll of t
-  addElement:for all t ~~
-    (t,coll of t)=&gt;coll of t
-  present:for all t ~~
-    (t,coll of t)=&gt;boolean
+Perhaps an example is overdue. In our chapter on Collections we looked at many operators over collections and not a few example collection types. Although programs using the sequence contract are fairly abstract, the type of the collection itself is still visible. Suppose we wanted to build a set structure where only the fact that there is a set, and the set-like operators over the set were visible. The representation type for the set should otherwise be completely opaque.
+One might start with a type definition that defines some operators over sets:
+type exists coll/1 ~~ genSet ::= genSet{
+  type coll/1.
+  z:all t ~~ coll[t].
+  addElement:all t ~~ (t,coll[t])=&gt;coll[t].
+  present:all t ~~ (t,coll[t])=&gt;boolean.
 }
 The essence of this type declaration is a collection of operators that define set-style operators. By protecting the coll type with an existential quantifier, we ensure that the representation of genSet values is not accessible externally; whilst at the same time we do allow other programs to use the set operators.
 One example implementation of genSet might use lists to represent the set structure itself:
-def LS is genSet{
-  type list counts as coll
-  def z is list of []
-  fun addElement(X,L) where X in L is L
-   |  addElement(X,L) is list of [X,..L]
-  fun present(X,L) is X in L
+LS = genSet{
+  all t ~~ coll[t] &lt;~ list[t].
+  z = list of [].
+  addElement(X,L) where X in L =&gt; L.
+  addElement(X,L) =&gt; list of [X,..L].
+  present(X,L) =&gt; X in L
 }
 The statement:
-type list counts as coll
-is one of the ways that we can give evidence for the existence (sic) of the coll type. Type inference — of the evidence gathering kind — will link coll internally to list. The counts as statement can be viewed as a more fluent way of writing:
+all t ~~ coll[t] &lt;~ list[t].
+which is a type alias statement, represents one of the ways that we can give evidence for the existence (sic) of the coll type. We could also have simply declared that:
 type coll = list
 Given LS, we can use it like a set generator — LS provides a set of operators over sets:
-def Z is LS.z
-def One is LS.addElement(1,Z)
-def Two is LS,addElement(2,One)
+Z = LS.z
+One = LS.addElement(1,Z)
+Two = LS.addElement(2,One)
 The type of LS gives no clue as to the internal type used to represent sets generated by it:
 LS:genSet
 But Z, One and Two have more interesting types:
-Z:collK341 of integer
+Z:collK341[integer]
 where collK341 is a Skolem type — a unique type generated when we assign a type to LS. In effect, LS is a module that exports the set type and associated operators; this module is referenced by name and is used to construct particular sets.
 A reasonable question here is ‘where is the Abstract Data Type?’. What we have is a record with a type and some functions in it. Recall that an ADT is a ‘model of a set of related values that share a common set of semantics’. The semantics in common are the functions in the record; and the type itself is the existentially quantified type in that record — coll.
 Notice how we index off the LS variable to access the operators for this set; even while passing into it instances of sets created and modified by LS. This is one of the hallmarks of a module system.</Text>
+            <Comments>Not to be confused with Algebraic Data Types — which represent the mathematical foundation for enumerations and other non-object values.</Comments>
         </Document>
         <Document ID="4942CDCA-7653-45FC-9CE7-E95FFEF1C7D4">
             <Title>Is Star for you?</Title>
@@ -1524,7 +1558,7 @@ Notice how we index off the LS variable to access the operators for this set; ev
             <Title>Tasks</Title>
             <Text>A task expression denotes a possibly suspended computation — which itself is a sequence of actions — and which may have a value when the computation is performed. Furthermore, tasks have the potential to be executed concurrently or even in parallel with other tasks.
 Like tasks, functions can also be viewed as representing suspended computations. However, unlike functions, a task expression represents a single suspended computation.
-A task expression is written as a sequence of actions, enclosed in a task block; for example, in:As in other programming languages, actions are separated by semi-colons in Star.
+A task expression is written as a sequence of actions, enclosed in a task block; for example, in:
 T = task{
   X = 1;
   Y = 2;
@@ -1533,8 +1567,9 @@ T = task{
 the variable T is bound to a task expression whose returned value will be 3 — the value returned by the action:
 valis X+Y
 Task expressions have a type: task[t] where t is the type of the value returned by the task. So, for example, the type of T above is given by
-T:task[integer].
+T:task[integer]
 as it produces an integer value.</Text>
+            <Comments>As in other programming languages, actions are separated by semi-colons in Star.</Comments>
         </Document>
         <Document ID="0203591A-3978-471E-925A-EB6DEF00B015">
             <Title>Adding and Removing Elements From a Collection</Title>
@@ -1545,7 +1580,7 @@ It should also be stressed that the indexable contract allows and encourages per
             <Comments>A persistent structure is one which is never modified.</Comments>
         </Document>
         <Document ID="CD1800D1-0F12-4B86-AD24-4E703F0AEF54">
-            <Title>Embedding Graphs[embedding-graphs]</Title>
+            <Title>Embedding Graphs</Title>
             <Text>One of Star’s standard syntactic paradigms is the ‘brace term’. We use it to represent records, as in:
 someone{ name="fred" }
 We also use it to represent more complex entities like packages and worksheets:
@@ -1594,7 +1629,7 @@ but such an expression is likely to be very expensive (the isPrime test is diffi
             <Title>Cover</Title>
         </Document>
         <Document ID="B8977328-6A9C-47D9-BC5B-9765393225D9">
-            <Title>No Time[no-time]</Title>
+            <Title>No Time</Title>
             <Text>The notify speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.
 Furthermore, not all applications need time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock’s ticking would confirm that neither tick nor tock is timestamped! However, each tick does announce the passing of another second. Instead, it is assumed that the listener has some other way of determining the time (by looking at the clock face). In general, it is expected that each application will incorporate an appropriate model of time for its notify events.</Text>
         </Document>
@@ -1607,10 +1642,11 @@ the value of a variable stays the same until it is modified
 is not valid when the variable in question is shared by multiple concurrent activities. Or rather, technically, it is, but when a variable is shared, it is both difficult and tedious to determine when or if the variable has the expected state. It is difficult to overstate the importance of this.
 An interesting parallel shows up in dealing with weightlessness in space: astronauts ‘complain’ of items drifting about in the space station — ‘nothing stays where you left it’. As a result, astronauts must get used to taping everything down while they are working.
 Programmers building concurrent systems have a similar experience: they are constantly having to ‘tape down’ pieces of state to make sure that they ‘stay put’.
-There are many potential models for concurrency in programming. However, two core ideas seem to stand out: the idea of sequence and the idea of sharing. Sequencing actions in most programming languages is almost completely implicit: the idea of performing actions in sequence is so hard-wired in languages like Java and C/C++ that one must think hard to step outside that frame of reference. However, in a concurrent execution, sequentiality is lost: two activitivies can proceed in parallelWe reserve the right to conflate strict parallelism with apparent parellelism here. and the relative order of actions between the activities is not possible to predict.
+There are many potential models for concurrency in programming. However, two core ideas seem to stand out: the idea of sequence and the idea of sharing. Sequencing actions in most programming languages is almost completely implicit: the idea of performing actions in sequence is so hard-wired in languages like Java and C/C++ that one must think hard to step outside that frame of reference. However, in a concurrent execution, sequentiality is lost: two activitivies can proceed in parallel and the relative order of actions between the activities is not possible to predict.
 The second concept that is so implicit is that of sharing: in a sequential program we assume that subsequent actions share the effects of earlier actions. But, again in a concurrent context, sharing is not obvious; and it is hard to reason about.
 Our approach is to make explicit that which is implicit. We reason about actions and their order explicitly – by employing the classic software engineer’s approach of taking an extra level of indirection: we take a handle on the computation itself using the concept of a first-class task as a unit of execution. Similarly, we reason about sharing by focusing on explicit coordination between tasks and on explicitly modeling sharing by communicating between them.
 One thing that may strike the reader is that tasks, and as we shall see more generally computation expressions, are associated with actions. This is new in our text so far – we have mostly focused on functions and related concepts. The reason for the change is straightforward: concurrency is inherently about the relative ordering of computation. That makes the action paradigm a natural fit for tasks and concurrency. However, we are fairly disciplined in our approach to actions; in particular, we strongly regulate implicit sharing of state. In fact, it is the implicit sharing of state that is the biggest issue with sequential programming.</Text>
+            <Comments>We reserve the right to conflate strict parallelism with apparent parellelism here.</Comments>
         </Document>
         <Document ID="55FFCE35-60F0-4B83-81CB-FF9958ECB2AB">
             <Title>Programming has Changed</Title>
@@ -1738,6 +1774,9 @@ The &lt;$wc100&gt; words tag will be replaced with the word count rounded to the
 
 Feel free to edit the text of the title page as required.</Notes>
         </Document>
+        <Document ID="CCFD0B3E-955C-46BB-BC11-D8D2E66DC79B">
+            <Title>frontCover</Title>
+        </Document>
         <Document ID="59362CF3-E791-4A36-BB4C-ADAC8A5E5D1E">
             <Title>A rendezvous is a Future Event</Title>
             <Text>A rendezvous is an object describing an event that may or may not happen in the future. The basic operation for a rendezvous is waiting for the event, and when the event happens, it may yield or consume a value.
@@ -1750,7 +1789,7 @@ It may seem a little odd that a rendezvous — which is after all a meeting — 
 Timeouts can be useful in their own right, but they are commonly used in conjunction with other rendezvous. The pattern being that if one of the other ‘things going on’ does not happen, then the timeout will tell us that. However, recovering from a timeout can be very problematic — since you now have to decide what to do about the other activities that were pending.</Text>
         </Document>
         <Document ID="4137AD24-515E-4399-B662-85BA016DAAE4">
-            <Title>Speech Actions[speech-actions]</Title>
+            <Title>Speech Actions</Title>
             <Text>As the term suggests, speech actions are a communications model based on an anthropomorphic understanding of how agents communicate. Speech actions were first investigated by John Austin[#austin:60] in the 1940’s as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by John Searle [#searle:69] and standardized in KQML [#kqml:93] and FIPA [#FIPA].
 Beyond the anthropomorphism, there are sound technical justifications basing computer communications on speech act theory.
 Speech Action
@@ -1813,19 +1852,18 @@ The catalog and repository system explored in Chapter 7 that supports the langua
             <Text>Injection is a technique where we specialize a program with additional information; especially where that additional information is not part of the normal argument flow. Of course, it can be hard to be crisp about ‘not part of the normal argument flow’; but injection is an architectural technique to apply if and when it makes a difference in the readability of your code.
 Injection is often used to manage configuration of code: the configuration is injected into the main program; for example, we might configure an application server with the path name of a particular application, or with the port on which the app server should be listening. Neither of these would normally be considered part of the normal information flow in an application server.
 There is a standard functional programming style that can be used to represent injection — namely functions that return functions. To take an extremely simple example, suppose that we wanted to have a function that counted the percentage of a class that passes an exam. The function itself is pretty simple:
-fun passes(L) is fraction(
+passes(L) =&gt; fraction(
    size(list of { all X where X in L and X.score&gt;Pass}),
    size(L))
 The configuration parameter here is obviously the Pass value; this is an important parameter to the function but is not part of the normal argument flow (think about computing the pass count for an entire school).
 We can use the function returning approach to inject an appropriate value of Pass:
-fun passes(Pass) is
+passes(Pass) =&gt;
   (L)=&gt;fraction(
      size(list of { all X where X in L and X.score&gt;Pass}),
      size(L))
 Using this passes is a two-step process; we first use a specific passing grade to construct the test function and then use this to measure performance on groups of students:
-def HS is passes(60)
-
-def allPass is list of { all C where C in Courses and HS(C)&gt;0.80 }
+HS = passes(60)
+allPass = list of { all C where C in Courses and HS(C)&gt;0.80 }
 The two-step process is a key part of the injection technique.</Text>
         </Document>
         <Document ID="1DB553CD-C2B4-4AFD-93DE-B09715BE22A2">
@@ -1874,44 +1912,43 @@ check:all t ~~ equality[t] |: (tree[t],t) =&gt; boolean</Text>
         </Document>
         <Document ID="9CD8A291-B83F-4CC5-9196-196E15FBDF2B">
             <Title>Use and Evidence</Title>
-            <Text>To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.
+            <Text>To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.
 Consider the simple function d with its type declaration:
-d:all t ~~ arithmetic[t] |: (t)=&gt;t.
-d(X) =&gt; X+X
-In the equation that defines d we have not explicit referenced t; but the rules of type inference lead us to determine that — within the equation — type of X is t.
-If we had forgotten the arithmetic constraint:
-d:all t ~~ (t)=&gt;t.
-d(X) =&gt; X+X
-the compiler would have complained with a type error. The reason being that, because t is universally quantified, we are not permitted to further constrain t within the body of the function. Requiring that t support addition is such a constraint and we are not permitted to assume it.
-On the other hand, when we call d, the rules are more generous: calls of the forms d(2) and d(2.4) are both permitted because we are allowed to use any type — that implements the arithmetic contract — when we call d.
-The reason we can substitute any type for t is a result of the universal quantifier: a all quantifier means we can use any type for t.
-For existentially quantified types the situation is reversed: within an expression involving an existential type we can use what ever type we want — again, providing that other constraints have been met — but outside the defining expression we can’t make any assumptions or additional constraints about the quantified type.
-For various reasons, which we will explore further, existentially quantified types are mostly associated with records — like the package record we saw earlier. Let us look again at our simple package type:
-simple:exists foo/1 ~~ {
-  ...
-  fooMe:for all t ~~ (t)=&gt;foo[t].
-}
+d:all t ~~ arith[t] |: (t)=&gt;t.
+d(X) =&gt; X+X.
+In the equation that defines d the rules of type inference lead us to determine that — within the equation — type of X is t. The only assumption we can make about t is that it implements the arith contract; no other constraints on t are permitted. For example, if we had forgotten the arith constraint, the compiler would have complained because we try to add X to itself, which implies that X had an arithmetic type.
+In general, whenever we define a universally quantified type we cannot make any assumptions about what it can and cannot do – apart from any explicitly defined constraints.
+On the other hand, when we call d, the rules are more generous: calls of the forms d(2) and d(2.4) are both permitted because we are allowed to use any type — that implements the arith contract.
+The reason we can substitute any type for t is a result of the universal quantifier: an all quantifier means we can use any type for t.
+We can summarize this by stating that, for a universally quantified type, 
+	•	we can use it for any type, but
+	•	we can make no assumptions about it when giving evidence for a correct implementation. 
+For existentially quantified types the situation is reversed: when giving evidence in an implementation involving an existential type we can use what ever type we want — again, providing that other constraints have been met — but outside the defining expression we can’t make any assumptions or additional constraints about the quantified type.
+For various reasons, which we will explore further, existentially quantified types are mostly associated with records — like the package record we saw earlier. 
 As with universally quantified types, there are two kinds of contexts in which we use existentially quantified type variables: use and evidence contexts. In the former we are using the type and in the latter we are providing evidence that an expression has the right type.
-The existential quantifier means is that within an instance of this record we can instantiate foo to any type that meets the constraints. The simplest way is to provide a type definition for foo:
-simple = let{
+The existential quantifier means that within an instance of this record we can instantiate f to any type that meets the constraints. The simplest way is to provide a type definition for f:
+simple = {
+  all t ~~ f[t] &lt;~ foo[t].
   all t ~~ foo[t] ::= foo(t) | bar.
 
   fooMe(X) =&gt; foo(X).
-} in {. type foo=foo; foo=foo; bar=bar; fooMe=fooMe .}
-Externally, when we use the record, the opposite happens: we can make use of the existence of foo but we cannot further constrain it. We can use simple’s foo type, as well as the fooMe function that relies on it; for example, in:
+}
+The type alias statement gives evidence for f by identifying it with the type foo – which is declared within the theta record. We can do this because, within the implementing expression, we can do whatever we like for the type f – so long as it exists.
+Notice that we are actually need to achieve two separate but related goals when describing the package as a record: we need to define a type within the record and we need to be able to have external references to the foo type field.
+Externally, when we use the psckage record, the opposite happens: we can make use of the existence of foo but we cannot further constrain it. We can use simple’s foo type, as well as the fooMe function that relies on it; for example, in:
 m:for all t ~~ (t)=&gt;simple.foo[t].
 m(X) =&gt; simple.fooMe(X).
 There is something a little different going on here: the type of m appears to be dependent on a field of the variable simple; i.e., the type of m apparently depends on the value of simple. This is not something that we would normally sanction in a type system because of the potential for disaster.
 For example, consider the scenario where ‘simple is not simple’; i.e., suppose that its value were computed; for example suppose that the value of simple depended on a conditional computation. In that case the actual type simple.foo might also depend on the conditional computation; why does this not cause problems?
-Normally such dynamic types do cause substantial problems. The presence of a dynamic type is one of the hallmarks of dynamically typed languages and it makes most type inference impossible at compile time.
-However, the type rules for existentially quantified variables are crafted so that it must not matter what the actual type simple.foo is. So long as no additional constraints on the simple.foo are permitted then the program is provably compile-time type-safe. I.e., uses of an existentially quantified type may not further constrain the type — the exact complement of the situation with universally quantified types.</Text>
+Normally such ‘dynamic types’ do cause substantial problems. However, the type rules for existentially quantified variables are crafted so that it must not matter what the actual type simple.foo is. So long as no additional constraints on the simple.foo are permitted then the program is provably compile-time type-safe. I.e., uses of an existentially quantified type may not further constrain the type — the exact complement of the situation with universally quantified types. 
+Of course, as with universally quantified types, we can constrain the existential type with a type constraint. This would mean that, when implementing it we have to give evidence for the constraint being satisfied and when using it we could rely on that implementation – without knowledge of the actual implementation.</Text>
         </Document>
         <Document ID="3EACB397-C9FC-446E-A918-EF014078DB0D">
-            <Title>How to Design a Domain Specific Language[how-to-design-a-domain-specific-language]</Title>
+            <Title>How to Design a Domain Specific Language</Title>
             <Text>One of the primary reasons for wanting to have domain specific languages is to be able to succinctly express policy. Pretty much every significant application and module tends to be more general than the individual problem it was designed for; which means that actually applying the application (sic) amounts to using a subset of the capabilities of a general mechanism to solve the specific problem.
 Policy has a number of definitions, one of which is
 Policy
-An expression of a constraint that governs the behaviors of a system.
+An expression of a constraint that governs the behavior of a system.
 The term system here is intended to be used broadly, in particular to include users and humans agents participating in the system.
 It is possible to see — without squinting too hard — that a policy is a statement that describes a subset of the potential behaviors of a system. Furthermore, one can often express a particular use of a capability or application in terms of constraints — i.e., in terms of policies.
 An example might help. Suppose that you want to apply statistical algorithms to measure how well your stocks are doing. You might want to know if your portfolio is doing better than the average for example.
@@ -1987,7 +2024,7 @@ Notice that we can use conditions’ satisfaction-oriented semantics outside of 
 The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not make them less important, and addressing them certainly helps with that oceanic problem.</Text>
         </Document>
         <Document ID="91CB4723-CD35-4EAA-B92C-835D5AEA6951">
-            <Title>Actors[actors]</Title>
+            <Title>Actors</Title>
             <Text>So far we have discussed what talkative agents say to each other but not on how they are built. The simplest structure that responds to this is the actor. Actors are lightweight entities that can respond to speech actions. For example, this actor models some aspects of a bank:
 agentBank is actor{
   private var accts := dictionary of []
@@ -2074,7 +2111,7 @@ One of the benefits of the named import is that it makes it possible to import p
 By using named imports the effect is to establish a local namespace for the imported package. Different definitions imported from different places can be reliably distinguished using the normal record field access syntax (i.e., a period).</Text>
         </Document>
         <Document ID="5EB99001-4959-47B8-BAD9-0B336E57A86B">
-            <Title>Meta Variables[meta-variables]</Title>
+            <Title>Meta Variables</Title>
             <Text>In addition to the basic quote notation for expressions, it also has support for meta-variables. Meta variables are variables embedded in quoted terms — they are variables of the quoted term, not variables in the object language. They are very useful in programs that process quoted expressions — both as expressions and as patterns.
 For example, to denote a triple pattern one may construct the quoted pattern:
 &lt;| ?S ! ?P $ ?O |&gt;
@@ -2091,8 +2128,8 @@ var T is &lt;| :john ! :name $ "John Smith" |&gt;
 The quoted notation is sufficiently powerful to almost never require explicit use of the constructors that actually make of the quoted type definition. This is reinforced by the implementation of the coercion contract between standard types and quoted.</Text>
         </Document>
         <Document ID="77D82D77-D581-4179-8169-6968B0D46347">
-            <Title>Operator Precedence Grammar[operator-precedence-grammar]</Title>
-            <Text>Star has a very flexible syntactic foundation based on a Operator Precedence Grammar. You are already quite familiar with operator precedence grammars — they are used in nearly every programming language to represent arithmetic expressions. For example
+            <Title>Operator Precedence Grammar</Title>
+            <Text>Star has a very flexible syntactic foundation based on Operator Precedence Grammars. You are already quite familiar with operator precedence grammars — they are used in nearly every programming language to represent arithmetic expressions. For example
 X+Y*3
 is a very common way of representing the addition of X to the result of multiplying Y by 3. It also represents the application of two operators: + and * which happen to be binary operators.
 The operator structure of an expression is completely independent of any type information or its run-time performance.
@@ -2255,7 +2292,7 @@ This program will run the simulation for four philosophers for a Count number of
 The dining philosophers is a toy example; nevertheless it highlights many of the issues found in regular parallel applications where there is some shared resource.</Text>
         </Document>
         <Document ID="7C2E06C3-26F6-4628-8DF7-57DFBCF60DAF">
-            <Title>Wiring up Boxes and Arrows[wiring-up-boxes-and-arrows]</Title>
+            <Title>Wiring up Boxes and Arrows</Title>
             <Text>We started this section with a graphical depiction of an application as boxes and arrows between them. However, not many computers can execute boxes, and so if we want to run the application we have to construct a complete written program that represents the drawn diagram.
 The written form of our car part sourcing application is not that hard to follow, given the material we have covered so far:
 import boxesNarrows
@@ -2384,7 +2421,7 @@ Because the inner workings of the semaphore are protected by a let expression, t
         <Document ID="B3B0B724-F387-41BC-9806-84D42A91B9E3">
             <Title>Philosophers Have to Eat Too</Title>
             <Text>The analog of the ‘hello world’ example in concurrent programming is probably the in-famous dining philosophers problem. Made famous in this form by C.A.R. Hoare (also of QuickSort fame), the set up for this puzzle is quite straightforward: there are four philosophers sitting at a table wanting to eat. The catch being that there are only four forks on the table and a philosopher needs to use two forks to eat something from the table.
-￼
+#
 Four Dining Philosophers
 Of course, it is only a little eccentric that the philosophers eat with two forks rather than a knife and fork!
 Being philosophers, they don’t eat constantly: they spend some time talking too; which means that it is possible for them to share the forks. Each philosopher has access to the two forks nearest him; each fork is shared by two philosophers; but a given fork can not be in use by more than one philosopher simultaneously.
@@ -2399,55 +2436,55 @@ Techniques like dependency injection are typically applied to large programs; un
 Floating point numbers are fractions. But they do not permit the representation of all fractions — e.g., it is not possible to represent 1/3 exactly in IEEE 754.
 However, while we want to expose the type, and a set of operator functions, we definitely do not want to expose anything about the implementation of fractional numbers: as far as users are to be concerned, the type fraction is to be completely opaque and might be implemented in any way.
 Let us start with an interface; which in this case will take the form of a record type:
-type fractionals is fracts{
-  fraction has kind type
-  frPlus:(fraction,fraction)=&gt;fraction
-  frToString:(fraction)=&gt;string
-  frParse:(string)=&gt;fraction
+fractionals ::= exists fraction ~~ fracts{
+  type fraction.
+  frPlus:(fraction,fraction)=&gt;fraction.
+  frToString:(fraction)=&gt;string.
+  frParse:(string)=&gt;fraction.
   fraction:(integer,integer)=&gt;fraction
 }
-One of the first things to note here is that fraction is existentially quantified; secondly we need to ensure that the set of operators we expose is complete. Our interface is not really complete, but includes two critical operators: a means of constructing fractions and a means of escaping from the world of fractions to other types (in this case string).
+One of the first things to note here is that fraction is existentially quantified; secondly we need to ensure that the set of operators we expose is complete. Our interface is not really complete, but includes two critical operators: a means of constructing fractions – via the fractions and frParse functions – and a means of escaping from the world of fractions to other types (in this case string via frToString).
 Here we are mostly concerned with using fractions, so we will assume that we have at least one implementation — courtesy of the FR variable:
 FR:fractionals
 One way to use our implementation of fractions would be to reference the needed operators via the FR variable:
-def F0 is FR.frParse("3/4")
-def F1 is FR.fraction(1,2)
-def F2 is FR.frPlus(F0,F1)
+F0 = FR.frParse("3/4")
+F1 = FR.fraction(1,2)
+F2 = FR.frPlus(F0,F1)
 show FR.frToString(F2)   -- results in 5/4
-However, we can do rather better than this in Star. We have already encountered the import statement; there is an analogous statement that allows us to unwrap a record like FR in a binding environment — such as a let:
+However, we can do rather better than this in Star. We have already encountered the import statement; there is an analogous statement that allows us to unwrap a record like FR in a binding environment — such as:
 let{
   open FR
-  def F0 is frParse("3/4")
-  def F1 is fraction(1,2)
-  def F2 is frPlus(F0,F1)
+  F0 = frParse("3/4")
+  F1 = fraction(1,2)
+  F2 = frPlus(F0,F1)
 } do
   show frToString(F2)   -- results in 5/4
 The open statement has a similar effect to the package import: it enables the functions, types and other elements that are embedded in a record to be made available as normal identifiers within the normal scope of the let action (or expression).
-Of course, this code is still fairly clumsy; since we would like to use normal arithmetic notation over fractions; which we can do by implementing the arithmetic contract:
+Of course, this code is still fairly clumsy; since we would like to use normal arithmetic notation over fractions; which we can do by implementing the arith contract:
 let{
   open FR
-  implementation arithmetic over fraction is {
-    X+Y is frPlus(X,Y)
+  implementation arith[fraction] =&gt; {
+    X+Y =&gt; frPlus(X,Y)
    ... -- more operators needed
   }
 } do {
-   def F0 is frParse("3/4")
-   def F1 is fraction(1,2)
-   def F2 is F0+F1
+   F0 = frParse("3/4")
+   F1 = fraction(1,2)
+   F2 = F0+F1
    show frString(F2)
 }
 We can improve this further by also implementing the coercion contract between strings and fractions:
 let{
   open FR
-  implementation arithmetic over fraction is {
-    X+Y is frPlus(X,Y)
+  implementation arith[fraction] =&gt; {
+    X+Y =&gt; frPlus(X,Y)
    ... -- more operators needed
   }
-  implementation coercion over (string,fraction) is {
-    coerce(S) is frParse(S)
+  implementation coercion[string,fraction] =&gt; {
+    coerce(S) =&gt; frParse(S)
   }
-  implementation coercion over (fraction,string) is {
-    coerce(F) is frToString(F)
+  implementation coercion[fraction,string] =&gt; {
+    coerce(F) =&gt; frToString(F)
   }
 }
 This allows us to use a more natural notation for expressions involving our fractions:
@@ -2455,45 +2492,44 @@ let{
   open FR
   ...
 } do {
-   def F0 is "3/4" as fraction
-   def F1 is fraction(1,2)
+   F0 = "3/4" :: fraction
+   F1 = fraction(1,2)
    show F0+F1
 }
 While much better than our original, we still have too much code to write to use the fraction type: we have to get the type and then demonstrate the appropriate implementations. We want to be able to combine everything that is important about fractions into a single structure.
-There is a straightforward way we can do this. Our original signature for fractionals simply required the presence of the fraction type. What we can do is further require that the arithmetic and appropriate coercion contracts are also implemented; we do this by constraining the type definition for fractionals:
- type fractionals is fracts{
-  fraction has kind type where arithmetic over fraction
-       and coercion over (string,fraction)
-       and coercion over (fraction,string)
-  frPlus:(fraction,fraction)=&gt;fraction
-  fraction:(integer,integer)=&gt;fraction
+There is a straightforward way we can do this. Our original signature for fractionals simply required the presence of the fraction type. What we can do is further require that the arith and appropriate coercion contracts are also implemented; we do this by constraining the type definition for fractionals:
+ fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts{
+  type fraction.
+  frPlus:(fraction,fraction)=&gt;fraction.
+  fraction:(integer,integer)=&gt;fraction.
 }
 Since we are using contracts we do not need the explicit frParse and frToString functions in the signature any more.
-When we instantiate a fracts record we must provide — within the record itself — appropriate implementations of arithmetic and coercion:
-def FX is fracts{
-  type myFraction counts as fraction
-  implementation arithmetic over myFraction is {
-    fun X+Y is frPlus(X,Y)
+When we instantiate a fracts record we must provide — within the record itself — appropriate implementations of arith and coercion:
+FX = fracts{
+  fraction &lt;~ myFraction.
+  implementation arith[myFraction] =&gt; {
+    X+Y =&gt; frPlus(X,Y).
    ... — more operators needed
   }
-  implementation coercion over (string,myFraction) is {
-    fun coerce(S) is frParse(S);
+  implementation coercion[string,myFraction] =&gt; {
+    coerce(S) =&gt; frParse(S)
   }
-  implementation coercion over (myFraction,string) is {
-    fun coerce(F) is frToString(F)
+  implementation coercion[myFraction,string] =&gt; {
+    coerce(F) =&gt; frToString(F)
   }
   ...
 }
 Notice that we implemented arithmetic for the internal myFraction type. We could have equally implemented the contract for fraction type too; the key requirement is to provide evidence that arithmetic is implemented for the type.
-The FX record now has everything we want to expose about fractional numbers.Assuming that we added the missing operators that we would actually need. If we open the structure then indeed we can write programs like:
+The FX record now has everything we want to expose about fractional numbers. If we open the structure then indeed we can write programs like:
 let{
   open FX
 } do {
-   def F0 is "3/4" as fraction
-   def F1 is fraction(1,2)
+   F0 = "3/4" :: fraction
+   F1 = fraction(1,2)
    show F0+F1
 }
 This is virtually equivalent to the code we might have written if we were importing a package with the definition of the fraction type in it. The difference is that we have access to the full expressive power of the language in computing FX.</Text>
+            <Comments>Assuming that we added the missing operators that we would actually need.</Comments>
         </Document>
         <Document ID="439D5074-37F6-44F2-9358-2E379B7BD238">
             <Title>There is More</Title>
@@ -2501,18 +2537,18 @@ This is virtually equivalent to the code we might have written if we were import
         </Document>
         <Document ID="A15F7AA4-5D6D-49F9-A22C-813E63D84054">
             <Title>Application = Policy + Mechanism</Title>
-            <Text>It should be clear at this point that Star is quite a rich language. There are many features and sub-languages that form the whole. We have seen several of these, including quite complex features like queries. In Chapter [chattering-agents][] we will also see a sophisticated sub-language based on actors and speech actions. It may surprise you to learn that the core of Star is quite small, with many features implemented in Star itself. Our task now is to introduce you to some of the techniques available to build your own extensions.
+            <Text>It should be clear at this point that Star is quite a rich language. There are many features and sub-languages that form the whole. We have seen several of these, including quite complex features like queries. In Chapter  we will also see a sophisticated sub-language based on actors and speech actions. It may surprise you to learn that the core of Star is quite small, with many features implemented in Star itself. Our task now is to introduce you to some of the techniques available to build your own extensions.
 One of the most fundamental and surprisingly difficult issues in language design is whether to allow ‘regular’ programmers to extend it. Different language communities have taken radically different stances to this: languages like C/C++ and the LISP family were designed to be extensible by the programmer. On the other hand, the Java designers explicitly chose not to include any form of macro feature — their rationale being that macros make it easy to confuse programmers with strange syntax features.
 However, no language that is in active use is fixed. Simply using a programming language is often enough to point to ways in which it might be improved; and language stewards are understandably interested in ensuring the continued relevance of the language in their care by augmenting it with new features.
 In the end, it reduces to a question of democracy on the one hand and a curated environment on the other. Language designers can choose to allow evolution to occur ‘in the wild’ or can choose to try to control it with a disciplined process.
-Neither strategy is inherently better than the other. Both carry risks. A bottom-up approach risks splintering and difficulties with effective tooling. A top-down approach is often slower and more deliberate; which can mean being made irrelevant in a fast paced world.
+Neither strategy is inherently better than the other. Both carry risks. A bottom-up approach risks splintering and difficulties with effective tooling. A top-down approach is often slower and more deliberate; which can mean being made irrelevant in a fast paced world. It also can put users in a difficult situation – if a potentially useful feature is missing from the language.
 For better or worse, Star was designed to allow programmers to extend it without requiring changes to the basic compiler — i.e., the language has facilities to support its own evolution and, particularly, the development of Domain Specific Languages.
 Although Star permits regular programmers to define extensions, you should be prepared for some difficult and complex topics. Designing and extending programming languages is a subtle art that calls for some obscure concepts at times.
 On the other hand, designing for extensibility does not necessarily mean adopting macro language features like those in either C/C++ or LISP. Designing the language extensibility features needs to be done with the same care as the ‘main’ language.
 Star’s has a well developed set of language elements that are designed to make it easier to develop reliable extensions to the core language. The primary features involved are:
-	•	an extensible grammar — allowing new operators to be defined; 
-	•	a rule-based system for defining well-formed notations; and 
-	•	a powerful macro language system that is used to implement extensions by mapping them to core language elements. 
+	•	an extensible grammar — allowing new operators to be defined;
+	•	a rule-based system for defining well-formed notations; and
+	•	a powerful macro language system that is used to implement extensions by mapping them to core language elements.
 Together, there are sufficient facilities for making a huge range of potential extensions and sub-languages.</Text>
             <Comments>With LISP arguably being more successful in that.
 We believe better of course.</Comments>
@@ -2572,12 +2608,13 @@ valof action computation {
 There are several forms of computation expression in the Star library; they are used for expressing tests for example. In fact, computation expressions are syntactic sugar for monadic expressions — and play the same role in Star as the do notation plays in Haskell.
 Monads represent a generalization of the kind of deferred computation we see in task expressions. In effect, monads represent a standard way of composing computations.
 The computation expression is syntactic support for using the monad contract — actually called computation. We can see the extent of this support by looking at the ‘raw’ version of the action function:
+AA:((integer)=&gt;integer)=&gt;integer.
 AA(f) is action computation {
-  def x is 2
-  def y is valof f(x)
+  x = 2
+  y = valof f(x)
   valis x+y
 }
-The AA function becomes the somewhat more complex form:This is actually a somewhat sanitized version of the raw code. This is because we have hidden a required transformation from action sequences to functional expressions that encode the computation’s ordering as function calls.
+The AA function becomes the somewhat more complex form:
 AA:((integer)=&gt;integer)=&gt;integer.
 AA(f) =&gt; _delay(() =&gt; valof{
   x = 2;
@@ -2586,6 +2623,7 @@ AA(f) =&gt; _delay(() =&gt; valof{
 }).
 Note how the inner valof expression is transformed to a call to _perform; whereas the result of the action computation is encapsulated in a call to the function _delay. These are all functions in the standard computation contract; and so will actually be further specialized to be specific for the action expression.
 It is beyond the scope of this book to explore more deeply the handling of monadic computations. However, if you wish to explore further, a more complete description of computation expressions is given in the Star language definition.</Text>
+            <Comments>This is actually a somewhat sanitized version of the raw code. This is because we have hidden a required transformation from action sequences to functional expressions that encode the computation’s ordering as function calls.</Comments>
         </Document>
         <Document ID="07B0D7C6-57CE-4D6F-8AD9-11F06A261A5F">
             <Title>Notes</Title>
@@ -2699,7 +2737,7 @@ While one loop is not going to hurt anyone; real code in languages like Java typ
             <Title>Contents</Title>
         </Document>
         <Document ID="A73083E0-B7EF-4FA9-96EC-5440403F59D6">
-            <Title>Validation[validation]</Title>
+            <Title>Validation</Title>
             <Text>Simply defining operators is not enough to design a language extension. We must be able to make sure that the operators are used sensibly in the appropriate context, and that the Star compiler can make sense of the new syntax. To help with this, Star has a standard way of representing the valid syntactic forms of language extensions — using a set of validation rules.
 The purpose of a validation rule is two fold: it defines the legal syntactic forms and it enables a language extension designer to report syntax errors in terms of the DSL rather than in terms of operators (which most users of the DSL should not have to understand).
 A validation rule uses patterns to define legal instances of syntactic categories. The top-level categories are expression, pattern, statement and action; however, it is often useful to introduce additional categories. For example, one validation rule that we use for defining the legal forms of triple might be:
@@ -2807,7 +2845,7 @@ There are quite a few pieces here: the timeoutRv event itself, the wait for task
 This separation into distinct phases helps in flexibility of the concurrency features but, of course, can make straightforward scenarios complex to construct. We shall see below that there is a library of concurrency features that are quite high-level and may be more appropriate than ‘rolling your own’ setup.</Text>
         </Document>
         <Document ID="BDC25B8F-9D69-4B56-BFA4-F35EAA7939F0">
-            <Title>Performance Characteristics of Actors[performance-characteristics-of-actors]</Title>
+            <Title>Performance Characteristics of Actors</Title>
             <Text>Actors are comparatively efficient at processing speech actions; and they are trusting: that is, they do not perform any validation on the speech actions. One resulting limitation is that they are definitely not safe in a concurrent environment. Again, no interlocking checks are performed – which means that if you use a regular actor in background tasks (say) then you will likely get inconsistent results.
 Also, actors are somewhat stateful in nature. They are intended to encapsulate the processing of speech actions; and that implies that they normally carry some form of state.
 A corollary of actors’ execution profile is that they are re-entrant: multiple tasks can access the same actor concurrently. This can be advantageous in certain circumstances where the actor is actually stateless and performance is critical.
@@ -2832,7 +2870,7 @@ However, in most concurrent situations the normal actor’s execution model is t
             <Notes>These tags get replaced with the information set in the Metadata pane of Compile. Alternatively, you can simply replace this text altogether.</Notes>
         </Document>
         <Document ID="0C48D92D-481D-471E-91FE-508C9FF114D9">
-            <Title>Free Variables in Speech[free-variables-in-speech]</Title>
+            <Title>Free Variables in Speech</Title>
             <Text>Although the body of a query speech action might be any expression, there are some syntactic restrictions on the valid forms of query expression. The primary reason for these restrictions is to make it simpler to determine the scopes of identifiers occurring in the query expression. Specifically, we need to be able to determine for any identifier occurring in the queried expression whether or not it refers to the agent being queried or the outer context.
 For example, consider the simple query:
 query Ag with quantity("W-S-23")&gt;0
@@ -2846,7 +2884,7 @@ This is definitely more clumsy than one would like. Sometimes it is not possible
 Why, one should ask, cant the compiler simply rely on the type of Ag? The answer is two-fold: of course, if Ag’s type is known then it will rely on it. However, Star’s type system is based on type inference – it is quite possible that the only signal that Ag is a speech action correspondent is the presence of this speech action. In that scenario there is not enough information to also determine the types of all the free variables.</Text>
         </Document>
         <Document ID="D656362C-1141-4D7D-8F24-A14D76F42943">
-            <Title>Representing Triple Graphs[representing-triple-graphs]</Title>
+            <Title>Representing Triple Graphs</Title>
             <Text>We start with representing triple graphs. Reflecting the ontology we constructed above, we can define three types to represent concepts, triples, and graphs.
 There are two kinds of concept, and we want to keep them distinct in our representation:
 type n3Concept is n3C(string) or n3S(string)
@@ -2890,7 +2928,7 @@ concat([E,..X],Y) =&gt; [E,..concat(X,Y)].
 This function will work equally well with cons lists, lists, strings, even your own collection types. All that is required is that there is an implementation of the sequence contract for the actual type being concatenated.</Text>
         </Document>
         <Document ID="F93A7A74-62CB-4006-9DB7-1171F17FD13A">
-            <Title>Translating Graphs[translating-graphs]</Title>
+            <Title>Translating Graphs</Title>
             <Text>Once we have rules for validating graph expressions in place the compiler is able to verify the form of triple graph expressions but is not able to type check or compile them. For this we need to be able to translate triple graphs to something the compiler can understand; for that we use macros.</Text>
         </Document>
         <Document ID="56E076D8-6607-4B95-B2E4-B02659DC3BDE">
@@ -2901,8 +2939,9 @@ Programming parallel machines with conventional languages is an exercise in frus
 However, Star has adopted some of the recent innovations in that make dealing with multi-tasking and parallel execution easier. These innovations layer on top of basic features such as threading and provide simpler models of execution than ‘conventional’ threaded models. Star’s computation expressions combine the best of fork-join queues and map-reduce frameworks whilst enabling a more normal style of programming.</Text>
         </Document>
         <Document ID="04687E64-D5C2-438F-BC81-7037D99BB9C3">
-            <Title>Variations on a Theme Because we want to allow different variations on the legal forms of triple, the complete validation rules for triple are more complex and involve several different categories:</Title>
-            <Text> # ?S ! ?V :: triple :- S::nounPhrase :&amp; V::verbPhrase
+            <Title>Variations on a Theme</Title>
+            <Text>Because we want to allow different variations on the legal forms of triple, the complete validation rules for triple are more complex and involve several different categories:
+ # ?S ! ?V :: triple :- S::nounPhrase :&amp; V::verbPhrase
  # ?T :: triple :- error("$T is not a valid triple")
 
  # ?P $ ?O :: verbPhrase :- P::verb :&amp; O::nounPhrase
@@ -2988,6 +3027,14 @@ The second principle is that equality is semantic. What that means is that the =
 In effect, equality is not considered to be privileged; and it is definable by the programmer — albeit with some important useful default implementations.</Text>
             <Comments>The expression 3::float is a coercion expression that converts the integer 3 into a float value.</Comments>
         </Document>
+        <Document ID="AC738EB3-2EC4-4EBC-B361-5276F4871E82">
+            <Title>About this book</Title>
+            <Text>This book acts as an introduction to the language and to its use. The basic features of the language are introduced; however, this is not a reference manual: it is not intended to be a complete description of the language.
+That can be found in the Star Language Definition.
+Introducing a programming language like Star can be a challenge in presentation. This is because there is a significant amount of mutual support between elements of the language.
+Our strategy is to take a layered approach – we start with simple examples, occasionally skipping over certain aspects of the language without explanation. Later chapters focus on deeper, more complex topics.
+For the most part, examples in the text of the book are executable. You are encouraged to try to get them running on your own system.</Text>
+        </Document>
         <Document ID="DF8A31D9-8748-4B74-9C38-F0D2C458FD9A">
             <Title>Iteration</Title>
             <Text>We now take a look at how we can process collections using actions rather than expressions. Iteration is one of those areas where history has resulted in two quite different traditions: OO-style languages and functional languages have markedly different approaches to iteration; and yet, as we will see, they can be seen as twins of each other.
@@ -3014,14 +3061,6 @@ assuming that leftFold were a static function in the Folding class. This relies 
 The third saliency is not actually obvious from these fragments, but the functional approach has more variability in the loop structures than Java. Java has several forms of loop, but there is only one loop that is oriented to processing collections — the ‘for each’ loop. On the other hand, in Star — like most functional programming languages — we have fmap to transform a collection, filter to remove unwanted elements, leftFold and its relatives to reduce collections.
 The range of looping functions reflects an underlying vocabulary of ‘things we do’ to collections.
 The final, perhaps most unexpected point, is that the fundamental computational cost of the two styles of iteration is almost identical! Under reasonable assumptions of optimization for both Java and Star, it is possible to show that the number of steps needed to compute the two fragments is very similar. The details are beyond the scope of this book.</Text>
-        </Document>
-        <Document ID="AC738EB3-2EC4-4EBC-B361-5276F4871E82">
-            <Title>About this book</Title>
-            <Text>This book acts as an introduction to the language and to its use. The basic features of the language are introduced; however, this is not a reference manual: it is not intended to be a complete description of the language.
-That can be found in the Star Language Definition.
-Introducing a programming language like Star can be a challenge in presentation. This is because there is a significant amount of mutual support between elements of the language.
-Our strategy is to take a layered approach – we start with simple examples, occasionally skipping over certain aspects of the language without explanation. Later chapters focus on deeper, more complex topics.
-For the most part, examples in the text of the book are executable. You are encouraged to try to get them running on your own system.</Text>
         </Document>
         <Document ID="7AD249BA-6367-4647-815C-64149EB4FBFC">
             <Title>Polymorphic Arithmetic</Title>
@@ -3051,15 +3090,110 @@ In any case, using these techniques, it is possible to write numeric functions w
             <Comments>Although some languages — such as ML — do require this.</Comments>
         </Document>
         <Document ID="8F2A5D69-042B-44B4-9E7D-952E34B29B65">
-            <Title>Designing Syntax[designing-syntax]</Title>
+            <Title>Designing Syntax</Title>
             <Text>Once we have at least an approximate conceptualization, our next step is to design the syntax. Syntax is important because it encodes the manner in which different features of the DSL can be expressed and combined.
 There is an inevitable requirement for taste in designing the syntax of a language extension. One of the foundations for this taste is knowledge of the existing syntactic patterns in the host language. Another is an awareness of the combinatorial potential in the language — i.e., what can be combined with what.
 Notice that we identify a graph as being a sub-class of expression; this represents an important choice point in DSL design: whether we are extending expressions, statements, actions, or types. Of course, in complex projects you may find yourself implementing multiple kinds of extensions. We choose to model graphs as expressions as that gives us the maximum flexibility in using triple graphs to represent policies.</Text>
         </Document>
-        <Document ID="6B2294B0-E706-47B3-A1C9-8599AB5C74BE">
-            <Title>Packages and Worksheets</Title>
-            <Text>We have already seen the two basic forms of compilation unit in Star: the package and the worksheet.
-Since Star is an extensible language, it is quite possible to create other forms of compilation unit.</Text>
+        <Document ID="52BE1A92-ACB6-4873-9C98-D2BB53D4A3EE">
+            <Title>Queries and Maps for Statistical Purposes</Title>
+            <Text>We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.
+Statistics is, of course, one of the key application areas of computers in general. However, there is often a substantial gap between the theoretical aspects of statistical processing and the pragmatics of collecting and processing data. We aim to demonstrate Star’s power in both areas.
+One fecund source of statistics is the web; we can even get statistics about the web. The on-line tool Web Page Test can be used to generate a lot of data about how a browser responds to a website. Furthermore, we can down this data as a file of comma separated values (CSV). The first few lines of this file shows the detail of the data collected:
+Date,...,URL,Response Code,Time to Load (ms),...,Bytes In,...
+9/12/14,...,/,302,397,...1272,...
+There are over 70 columns there. Suppose that we wanted to process this to find out how much time is spent loading Javascript data. Our first step is to introduce the CSV file to Star which we can do with a special macro:
+import metaCSV.
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv".
+
+  ...
+}
+The generateCSV line is a macro that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:
+Wpt ::= Wpt{
+    Date:string.
+    ...
+    URL:string.
+    'Response Code':integer.
+    'Time to Load (ms)':integer.
+    ...
+    'Bytes In':integer.
+    ...
+  };
+One immediate feature to notice is that some of the field names are quoted. Star allows a variable (and by extension a field) identifier to have any characters in them — so long as the identifier is quoted. This allows us to access ‘foreign’ data structures like this CSV file in a straightforward way.
+Given the implicit generation of the type, and of a parser, we can use this to process real data files. For example, we can extract out from the CSV file records containing just the URLs, the file sizes and the load times using a query:
+import metaCSV.
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv".
+
+  wptData:Wpt.
+  wptData = WptParser("http:www.webpagetool.org/...csv").
+
+  extracted:list[{URL:string. size:integer. loadTime:integer}].
+  extracted = list of { all
+    { URL=D.URL
+     size=D.'Bytes In'
+     loadTime=D.'Time to Load (ms)'} where
+    D in wptData}
+  ...
+}
+We used the generated parser to reach out to the website for the data and to parse the resulting content — in a single high-powered statement.
+A single run of the web page test may involve many separate browser actions — the purpose of the tool is to test the performance of a website, which needs many trials to achieve statistical significance. So a better organization of the data is to categorize the raw data by URL. We can do this using a group by query:
+import metaCSV.
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv".
+
+  wptData:Wpt.
+  wptData = WptParser("http:www.webpagetool.org/...csv").
+
+  extracted:list[{URL:string. size:integer. loadTime:integer}].
+  extracted = list of { all
+    { URL=D.URL.
+     size=D.'Bytes In'.
+     loadTime=D.'Time to Load (ms)'} where
+    D in wptData} group by ((X)=&gt;X.URL)
+  ...
+}
+The group by operator takes a collection, and a categorization function, are produces a dictionary of collections.
+We want to produce average load times and standard deviations of the load times — to smooth out the vagaries of the Internet. For now, we will assume that we have average and stddev functions that have type signatures:
+average:all c,e ~~ sequence[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
+stddev:all c,e ~~ sequence[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
+I.e., we are assuming functions that take collections, and an ‘accessor’ function, and return the average and standard deviation respectively.
+Given these functions, we can compute our statistics using:
+import metaCSV.
+import stats.
+worksheet{
+  generateCSV Wpt from "file:WPT_Sample.csv".
+
+  wptData:Wpt.
+  wptData = WptParser("http:www.webpagetool.org/...csv").
+
+  extracted:list[{URL:string. size:integer. loadTime:integer}].
+  extracted = list of { all
+    { URL=D.URL.
+     size=D.'Bytes In'.
+     loadTime=D.'Time to Load (ms)'} where
+    D in wptData} group by ((X)=&gt;X.URL)
+
+  ldTime:(Wpt)=&gt;float.
+  ldTime(D) =&gt; D.loadTime::float.
+
+  show list of { all (K,average(V,ldTime),stddev(V,ldTime)) where
+        K-&gt;V in extracted }
+}
+The query condition:
+K-&gt;V in extracted
+is analogous to the regular search condition:
+D in wptData
+except that it is used to search within a dictionary-based collection. The pattern K-&gt;V matches the successive key/value pairs in the dictionary.
+That is it! The final query should get output along the lines of:
+...
+("/o/oauth2/auth?...", 337.0, 0.0),
+("/main-thumb-58380181-100-yqpttun...", 101.18518518519, 24.41468441456),
+("/main-thumb-49759239-100-pcgldxn...",93.48148148148, 19.03285636867),
+...
+Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.</Text>
+            <Comments>A standard deviation of 0.0 is likely a signal that the indicated URL only occurred once in the sample data.</Comments>
         </Document>
         <Document ID="9FFBA333-8432-41C1-91F5-1302DFE283CA">
             <Title>Non-Fiction Format</Title>
@@ -3187,106 +3321,6 @@ You can create your own templates by setting up a skeletal project with the file
             <Title>Why Be a Star Programmer</Title>
             <Text>This book is about the programming language called Star. Why, you may ask, do you need to learn yet another language? We hope to answer that question and more in the course of this book. We also aim to show you how to program effectively in Star to solve real world problems.</Text>
         </Document>
-        <Document ID="52BE1A92-ACB6-4873-9C98-D2BB53D4A3EE">
-            <Title>Queries and Maps for Statistical Purposes</Title>
-            <Text>We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.
-Statistics is, of course, one of the key application areas of computers in general. However, there is often a substantial gap between the theoretical aspects of statistical processing and the pragmatics of collecting and processing data. We aim to demonstrate Star’s power in both areas.
-One fecund source of statistics is the web; we can even get statistics about the web. The on-line tool Web Page Test can be used to generate a lot of data about how a browser responds to a website. Furthermore, we can down this data as a file of comma separated values (CSV). The first few lines of this file shows the detail of the data collected:
-Date,...,URL,Response Code,Time to Load (ms),...,Bytes In,...
-9/12/14,...,/,302,397,...1272,...
-There are over 70 columns there. Suppose that we wanted to process this to find out how much time is spent loading Javascript data. Our first step is to introduce the CSV file to Star which we can do with a special macro:
-import metaCSV.
-worksheet{
-  generateCSV Wpt from "file:WPT_Sample.csv".
-
-  ...
-}
-The generateCSV line is a macro that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:
-Wpt ::= Wpt{
-    Date:string.
-    ...
-    URL:string.
-    'Response Code':integer.
-    'Time to Load (ms)':integer.
-    ...
-    'Bytes In':integer.
-    ...
-  };
-One immediate feature to notice is that some of the field names are quoted. Star allows a variable (and by extension a field) identifier to have any characters in them — so long as the identifier is quoted. This allows us to access ‘foreign’ data structures like this CSV file in a straightforward way.
-Given the implicit generation of the type, and of a parser, we can use this to process real data files. For example, we can extract out from the CSV file records containing just the URLs, the file sizes and the load times using a query:
-import metaCSV.
-worksheet{
-  generateCSV Wpt from "file:WPT_Sample.csv".
-
-  wptData:Wpt.
-  wptData = WptParser("http:www.webpagetool.org/...csv").
-
-  extracted:list[{URL:string. size:integer. loadTime:integer}].
-  extracted = list of { all
-    { URL=D.URL
-     size=D.'Bytes In'
-     loadTime=D.'Time to Load (ms)'} where
-    D in wptData}
-  ...
-}
-We used the generated parser to reach out to the website for the data and to parse the resulting content — in a single high-powered statement.
-A single run of the web page test may involve many separate browser actions — the purpose of the tool is to test the performance of a website, which needs many trials to achieve statistical significance. So a better organization of the data is to categorize the raw data by URL. We can do this using a group by query:
-import metaCSV.
-worksheet{
-  generateCSV Wpt from "file:WPT_Sample.csv".
-
-  wptData:Wpt.
-  wptData = WptParser("http:www.webpagetool.org/...csv").
-
-  extracted:list[{URL:string. size:integer. loadTime:integer}].
-  extracted = list of { all
-    { URL=D.URL.
-     size=D.'Bytes In'.
-     loadTime=D.'Time to Load (ms)'} where
-    D in wptData} group by ((X)=&gt;X.URL)
-  ...
-}
-The group by operator takes a collection, and a categorization function, are produces a dictionary of collections.
-We want to produce average load times and standard deviations of the load times — to smooth out the vagaries of the Internet. For now, we will assume that we have average and stddev functions that have type signatures:
-average:all c,e ~~ sequence[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
-stddev:all c,e ~~ sequence[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
-I.e., we are assuming functions that take collections, and an ‘accessor’ function, and return the average and standard deviation respectively.
-Given these functions, we can compute our statistics using:
-import metaCSV.
-import stats.
-worksheet{
-  generateCSV Wpt from "file:WPT_Sample.csv".
-
-  wptData:Wpt.
-  wptData = WptParser("http:www.webpagetool.org/...csv").
-
-  extracted:list[{URL:string. size:integer. loadTime:integer}].
-  extracted = list of { all
-    { URL=D.URL.
-     size=D.'Bytes In'.
-     loadTime=D.'Time to Load (ms)'} where
-    D in wptData} group by ((X)=&gt;X.URL)
-
-  ldTime:(Wpt)=&gt;float.
-  ldTime(D) =&gt; D.loadTime::float.
-
-  show list of { all (K,average(V,ldTime),stddev(V,ldTime)) where
-        K-&gt;V in extracted }
-}
-The query condition:
-K-&gt;V in extracted
-is analogous to the regular search condition:
-D in wptData
-except that it is used to search within a dictionary-based collection. The pattern K-&gt;V matches the successive key/value pairs in the dictionary.
-That is it! The final query should get output along the lines of:
-...
-("/o/oauth2/auth?...", 337.0, 0.0),
-("/main-thumb-58380181-100-yqpttun...", 101.18518518519, 24.41468441456),
-("/main-thumb-49759239-100-pcgldxn...",93.48148148148, 19.03285636867),
-...
-Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.</Text>
-            <Comments>A standard deviation of 0.0 is likely a signal that the indicated URL only occurred once in the sample data.</Comments>
-        </Document>
         <Document ID="3F025EB6-8DDE-4ADE-A283-F7F4E19F12CA">
             <Title>The dictionary Type</Title>
             <Text>Unlike the cons or list type, the dictionary type is oriented for access by arbitrary keys. The dictionary is also quite different to hash trees as found in Java (say), the dictionary type is persistent: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of the dictionary is quite comparable to Java’s HashMap.
@@ -3303,41 +3337,6 @@ where D is a dictionary will be satisfied if there is a key/value pair in D corr
 K-&gt;V in dictionary of [1-&gt;"alpha", 2-&gt;"beta"] &amp;&amp; V=="alpha"
 is satisfied for only one pair of K and V: namely 1 and "alpha" respectively.
 For the curious, dictionaries are implemented using techniques similar to Ideal Hash Trees, as described by Bagwell [#Bagwell01idealhash]. This results in a structure with an effective O(1) cost for accessing elements and for modifying the dictionary — all the while offering an applicative data structure.</Text>
-        </Document>
-        <Document ID="E2266586-7BB7-4E74-94CA-E1615F0AD4CB">
-            <Title>Nouns and Verbs[nouns-and-verbs]</Title>
-            <Text>Natural language grammar often has many kinds of words; but the two most important kinds of words are nouns and verbs. The same is usually true of computer languages: there are things that we want to represent and process in some way and there are actions that we want to be be able to model.
-The kind of UML-based analysis that we have used so far often leads naturally to a classification of the things in the DSL. Knowing what you want to do with those things may be harder to clarify. However, we have not finished with our use of UML.
-One way of defining action, as illustrated in the UML diagram is:
-#
-Ontology of Action
-Action
-An action is the intentional application of force to achieve an objective.
-Here, ‘force’ is intended to be broadly interpreted — it can include, for example, calling a function as well as lifting a rock.
-Agency – itself a term that can be difficult to define – it core to the notion of action. If a tree in a forest falls on a squirrel and squashes it that was not an action because the tree did not (cannot) intend to fall on the squirrel: it has no agency for this class of action.
-On the other hand, the jump the squirrel makes when it sees the tree falling is an action: it intends the application of force on the rock it was sitting on — in order to escape the falling tree.
-This analysis of action is important because it gives us all kinds of hooks for designing the verbs in our DSLs. For example, a lot of object-oriented programming can be understood by letting the target of an action be a data value.
-More generally, we have:
-Target
-The target of an action is the thing that is being operated on. Not all actions have an obvious target; for example, the true target in an e-mail marketing campaign is not the e-mail system but the human readers of e-mail.
-Instrument
-The instrument is the means by which the action is performed. In the case of the squirrel above, the instrument is the squirrel itself; in the case of calling an API it is the API method.
-Force
-This can be difficult to get one’s head around. Without force though, there is no action. In the case of a computer program, force amounts to execution: the action is performed when the corresponding program fragment is executed.
-Agent
-Agency is what distinguishes action from random events.
-There are many possible interpretations of agent; we shall see some of them in [our chapter on communicating agents][chattering-agents]. The simplest form of agent in a programming language is simply the thread of control. However, if your DSL is about multiple threads or parallelism in some way, then you will likely need to focus on agent as a specific concept.
-Intention
-A key aspect of action is that it is intentional — or to put it counterfactually: an action is not an accident.
-When designing a DSL, the verbs in the DSL that correspond to actions are normally some form of command. A command also pre-supposes an agent that issues the order.
-What difference does this make? There may be other kinds of verbs that you will need in your DSL. For example, declaratives state something about what is (or should be) true. Declaratives are not actions; if for no other reason than declaratives are not associated with intention.
-Objective
-It is the objective that often gives the most concrete guidance in designing DSLs. There may be many objectives and any given objective may have many actions associated with it. However, if you list your actions’ objectives, then you may have the beginnings of a list of verbs.
-Note that we make a distinction between objectives and goals. Agents have goals, actions have objectives. Goals can be viewed as desirable states of the world, an objective is a measurable state. Goals are often not directly observable; by their nature, objectives observable in principle — though not necessarily by everyone.
-Objectives also allow us to distinguish between intended results and unintended effects.
-Not all DSLs make all the features of an action explicit. However, the exercise of iterating through the different aspects of action will often lead to a clear conceptualization of the nouns and the verbs that form the core of the DSL.
-In the case of our RDF language, the principal actions relate to store and recall. We need to be able to manipulate triple graphs and we need to be able to query them. Here, we focus on querying because that is core to the role of any knowledge store.</Text>
-            <Comments>Even in a pure expression language, a similar distinction holds: there is data and there are operators over that data. To be fair, there is an extreme variant of functional programming that only has functions; but even there the distinction between data and operators is still meaningful.</Comments>
         </Document>
         <Document ID="A9FE36BE-4894-4EE9-A729-A0E03E82D7A5">
             <Title>Nominative Types</Title>
@@ -3386,6 +3385,51 @@ D = employee{
 }
 then, even though D itself cannot be re-assigned to, the dept field of D can be altered:
 D.dept := "my department"</Text>
+        </Document>
+        <Document ID="E2266586-7BB7-4E74-94CA-E1615F0AD4CB">
+            <Title>Nouns and Verbs</Title>
+            <Text>Natural language grammar often has many kinds of words; but the two most important kinds of words are nouns and verbs. The same is usually true of computer languages: there are things that we want to represent and process in some way and there are actions that we want to be be able to model.
+The kind of UML-based analysis that we have used so far often leads naturally to a classification of the things in the DSL. Knowing what you want to do with those things may be harder to clarify. However, we have not finished with our use of UML.
+One way of defining action, as illustrated in the UML diagram is:
+#
+Ontology of Action
+Action
+An action is the intentional application of force to achieve an objective.
+Here, ‘force’ is intended to be broadly interpreted — it can include, for example, calling a function as well as lifting a rock.
+Agency – itself a term that can be difficult to define – it core to the notion of action. If a tree in a forest falls on a squirrel and squashes it that was not an action because the tree did not (cannot) intend to fall on the squirrel: it has no agency for this class of action.
+On the other hand, the jump the squirrel makes when it sees the tree falling is an action: it intends the application of force on the rock it was sitting on — in order to escape the falling tree.
+This analysis of action is important because it gives us all kinds of hooks for designing the verbs in our DSLs. For example, a lot of object-oriented programming can be understood by letting the target of an action be a data value.
+More generally, we have:
+Target
+The target of an action is the thing that is being operated on.
+Not all actions have an obvious target; for example, the true target in an e-mail marketing campaign is not the e-mail system but the human readers of e-mail.
+Instrument
+The instrument is the means by which the action is performed.
+In the case of the squirrel above, the instrument is the squirrel itself; in the case of calling an API it is the API method.
+Force
+The diversion of potential energy into actual work.
+This can be difficult to get one’s head around. Without force though, there is no action. In the case of a computer program, force amounts to execution: the action is performed when the corresponding program fragment is executed.
+Agent
+Agency is what distinguishes action from random events.
+There are many possible interpretations of agent; we shall see some of them in our chapter on communicating agents. The simplest form of agent in a programming language is simply the thread of control. However, if your DSL is about multiple threads or parallelism in some way, then you will likely need to focus on agent as a specific concept.
+Intention
+An internal state which is potentially causal for action.
+A key aspect of action is that it is intentional — or to put it counterfactually: an action is not an accident.
+When designing a DSL, the verbs in the DSL that correspond to actions are normally some form of command. A command also pre-supposes an agent that issues the order.
+What difference does this make? There may be other kinds of verbs that you will need in your DSL. For example, declaratives state something about what is (or should be) true. Declaratives are not actions; if for no other reason than declaratives are not associated with intention.
+Objective
+It is the objective that often gives the most concrete guidance in designing DSLs. There may be many objectives and any given objective may have many actions associated with it. However, if you list your actions’ objectives, then you may have the beginnings of a list of verbs.
+Note that we make a distinction between objectives and goals. Agents have goals, actions have objectives. Goals can be viewed as desirable states of the world, an objective is a measurable state. Goals are often not directly observable; by their nature, objectives observable in principle — though not necessarily by everyone.
+Objectives also allow us to distinguish between intended results and unintended effects.
+Not all DSLs make all the features of an action explicit. However, the exercise of iterating through the different aspects of action will often lead to a clear conceptualization of the nouns and the verbs that form the core of the DSL.
+In the case of our RDF language, the principal actions relate to store and recall. We need to be able to manipulate triple graphs and we need to be able to query them. Here, we focus on querying because that is core to the role of any knowledge store.</Text>
+            <Comments>Even in a pure expression language, a similar distinction holds: there is data and there are operators over that data. To be fair, there is an extreme variant of functional programming that only has functions; but even there the distinction between data and operators is still meaningful.
+There are actions that tree can be said to have agency in; for example, some trees alert their neighbors when they are attacked by insects.</Comments>
+        </Document>
+        <Document ID="6B2294B0-E706-47B3-A1C9-8599AB5C74BE">
+            <Title>Packages and Worksheets</Title>
+            <Text>We have already seen the two basic forms of compilation unit in Star: the package and the worksheet.
+Since Star is an extensible language, it is quite possible to create other forms of compilation unit.</Text>
         </Document>
         <Document ID="BC183BD7-3020-4119-B0B1-139B4FAE98A7">
             <Title>Implementing Indexing</Title>
@@ -3472,21 +3516,9 @@ Overall, the option type is part of an elegant approach to nullability that is e
             <Comments>A partial function does not have a value across the whole range of its arguments.
 Read as ‘has a value’.</Comments>
         </Document>
-        <Document ID="B3B24A43-1771-40B9-BE0C-5CFCA7474528">
-            <Title>Package</Title>
-            <Text>Packages are the foundational unit of compilation; there is also an intended semantics:
-Package
-A package is a collection of definitions that are intended to represent some coherent functionality or purpose.
-This is, of course, a vague and non-actionable definition. There are higher-level notions of what ‘functionality’ might mean: for example, in the context of Service Oriented Architecture, a service is the ‘manifestation of a business functionality’. If that is clearer, then a package is a manifestation of an application functionality. Purpose is a topic we will return to in our chapter on agents.
-For all of its vagueness, the basic idea of a package is that it is a container for a collection of definitions. Star’s modularity makes it quite straightforward to refactor your package hierarchy should you need to.
-The form of a package is
-PackageIdentifier { Definitions }
-The PackageIdentifier at the beginning of the package definition is the name of the package. It typically consists of a sequence of identifiers separated by periods. Normally a package identifier has little role within the package itself – it is used when referring to the package externally.
-Most of the Definitions are those that we have already seen: function definitions, variable definitions and type definitions. There are some additional forms however, including the import statement — that allows one to import elements from other packages.</Text>
-        </Document>
         <Document ID="4F174B3A-4B94-4F1D-BF6E-E4D780DE6155">
-            <Title>Boxes and Arrows[boxes-and-arrows]</Title>
-            <Text>It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:There are other systems of boxes and arrows that have utility. The most well-known example is probably the suite of diagrams that make up UML.
+            <Title>Boxes and Arrows</Title>
+            <Text>It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:
 #
 A System for Splitting Orders
 could be used to explain the system for managing the way parts are ordered in a car factory that supported a ‘build-to-order’ model for manufacturing customized vehicles.
@@ -3504,24 +3536,39 @@ In addition, we emphasize that the key architectural constraint that we adopt is
 wiring between components belongs to the containers in which the components are embedded.
 Other aspects of platforms which would be necessary to complete the picture include the market place itself: how can clients select components for use in their applications and how can providers make their offerings known? We will come back to these questions below.
 It turns out that, with some support from Star, we can turn diagrams like these into executable code that can be deployed over distributed systems. Let us see how we might go about this…</Text>
+            <Comments>There are other systems of boxes and arrows that have utility. The most well-known example is probably the suite of diagrams that make up UML.</Comments>
+        </Document>
+        <Document ID="B3B24A43-1771-40B9-BE0C-5CFCA7474528">
+            <Title>Package</Title>
+            <Text>Packages are the foundational unit of compilation; there is also an intended semantics:
+Package
+A package is a collection of definitions that are intended to represent some coherent functionality or purpose.
+This is, of course, a vague and non-actionable definition. There are higher-level notions of what ‘functionality’ might mean: for example, in the context of Service Oriented Architecture, a service is the ‘manifestation of a business functionality’. If that is clearer, then a package is a manifestation of an application functionality. Purpose is a topic we will return to in our chapter on agents.
+For all of its vagueness, the basic idea of a package is that it is a container for a collection of definitions. Star’s modularity makes it quite straightforward to refactor your package hierarchy should you need to.
+The form of a package is
+PackageIdentifier { Definitions }
+The PackageIdentifier at the beginning of the package definition is the name of the package. It typically consists of a sequence of identifiers separated by periods. Normally a package identifier has little role within the package itself – it is used when referring to the package externally.
+Most of the Definitions are those that we have already seen: function definitions, variable definitions and type definitions. There are some additional forms however, including the import statement — that allows one to import elements from other packages.</Text>
         </Document>
         <Document ID="1E9B6C57-88EB-4377-8EF5-A0E0B4F30590">
             <Title>Queries</Title>
-            <Text>We have, in Star, a better, more systematic, approach to describing and implementing public APIs – based on speech actions.And contracts of course. For example, assuming that Ag had the appropriate type similar to that of A above, we could issue a speech action against Ag with a very similar query:
+            <Text>We have, in Star, a better, more systematic, approach to describing and implementing public APIs – based on speech actions. For example, assuming that Ag had the appropriate type similar to that of A above, we could issue a speech action against Ag with a very similar query:
 query Ag with list of { all y where
     (y,"1in-washer") in products and
     quantity(y)&gt;20 }
-One of the most obvious differences here being where the target of the API is mentioned: it is only mentioned at the top of the query. The type of Ag, assuming nothing else is known about it, takes the form:This is a simplification of the actual speech contract form.
-Ag:t where speech over t determines myAPI
-This type annotation highlights two important aspects of speech actions as Star program fragments: the entity being queried must implement the speech contract and that the API of the queried entity is also baked into its type – albeit via the speech contract. Actual concrete implementations of speech tend to show the relationship more directly – as we shall see below when we look at [actors][actors].
+One of the most obvious differences here being where the target of the API is mentioned: it is only mentioned at the top of the query. The type of Ag, assuming nothing else is known about it, takes the form:
+Ag:speech[t-&gt;&gt;myAPI] |: t
+This type annotation highlights two important aspects of speech actions as Star program fragments: the entity being queried must implement the speech contract and that the API of the queried entity is also baked into its type – albeit via the speech contract. Actual concrete implementations of speech tend to show the relationship more directly – as we shall see below when we look at [actors].
 As we already noted, in classical speech action theory a speech action is a combination of a performative and content. Star supports three performatives: notify which corresponds to a notification that something has happened, query which corresponds to a question, and request which corresponds to a request to perform an action. We have found that these three performatives are sufficient to cover the vast majority of communication requirements in practical software systems.
 The general form of the query speech action is an expression of the form:
 query Agent with Expression
 where Agent is an entity with a constrained type that implements the speech contract.
 The query is an expression – how can it be a speech action? The straightforward response is that it is not the expression that is the action, the speech action as a whole consists of the query performative and the content of the action is an expression. Syntactically, because the query has a value, it makes the most sense for the query to be presented to the programmer as an expression.</Text>
+            <Comments>And contracts of course.
+This is a simplification of the actual speech contract form.</Comments>
         </Document>
         <Document ID="0B40E167-6808-45A5-8494-1FB4867ECB4C">
-            <Title>Triple Notation[triple-notation]</Title>
+            <Title>Triple Notation</Title>
             <Text>The focal structure in a triple graph is the triple. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the [N3][#N3-W3C] notation — which is a more human readable version of the standard XML RDF syntax adopted by W3C:
 Subject ! Predicate $ Object.
 The idea is to make it easy to represent facts like:
@@ -3532,11 +3579,11 @@ john ! address $ "2 smart place".
 john ! name $ "John Smith".</Text>
         </Document>
         <Document ID="09FB7E67-CF76-411A-9FC4-B35E400143F7">
-            <Title>Is There a Downside to DSLs?[is-there-a-downside-to-dsls]</Title>
+            <Title>Is There a Downside to DSLs?</Title>
             <Text>Nothing comes without risks, for every yin there is a yang. What, we should ask, are the risk factors in having a programming language that encourages programmers to create DSLs?
 There are three primary areas that we need to point out:
-	1.	Programming DSLs is somewhat more difficult than regular programming. This is certainly true: programming with macros requires a certain facility with meta-language. There is much in common between developing compilers and developing macro packages for a DSL. You have to be able to comprehend how to synthesize the appropriate implementations for your chosen DSL. To be fair, developing a macro package is several orders of magnitude simpler than developing a complete compiler: much of the ‘heavy lifting’ has been done for you. 
-	2.	Risk of programmer confusion. This is the primary reason that languages like Java and C# do not have macro capabilities: it is easy to develop macro packages that end up causing confusion in the mind of your target audience. Our response to this is that macros are not special in this regard; any time that you build a library intended to be shared by other programmers there is a similar risk of introducing a poorly designed API. 
+	1.	Programming DSLs is somewhat more difficult than regular programming. This is certainly true: programming with macros requires a certain facility with meta-language. There is much in common between developing compilers and developing macro packages for a DSL. You have to be able to comprehend how to synthesize the appropriate implementations for your chosen DSL. To be fair, developing a macro package is several orders of magnitude simpler than developing a complete compiler: much of the ‘heavy lifting’ has been done for you.
+	2.	Risk of programmer confusion. This is the primary reason that languages like Java and C# do not have macro capabilities: it is easy to develop macro packages that end up causing confusion in the mind of your target audience. Our response to this is that macros are not special in this regard; any time that you build a library intended to be shared by other programmers there is a similar risk of introducing a poorly designed API.
 	3.	Tooling is harder for languages that support macro extensions. This is a serious issue; especially given the relatively weak technology often given to enable editors to be customized. 
 Overall, as we noted above, it comes down to a choice: of the curated garden or the wild democracy. On balance, we believe that the power of being able to craft your own DSL, your own policy framework; or even to be able to rapidly respond to a changing requirement, outweighs the risks associated with being able to define your own macros.</Text>
             <Comments>Editor customization is almost universally based on using regular expressions which are often too weak to handle Star’s syntactic features. 
@@ -3589,7 +3636,7 @@ double : all t ~~ four[t] |: (t)=&gt;t.
 I.e., it inherits the same constraint as the function plus has. There are several kinds of type constraint in Star’s type system; but the contract constraint is the most significant of them.</Text>
         </Document>
         <Document ID="A274FFA7-B07B-43A7-9756-C5ACCB43A7C4">
-            <Title>Notifications[notifications]</Title>
+            <Title>Notifications</Title>
             <Text>A notify speech action is intended to communicate the occurrence of an event of some form. In the context of software systems it corresponds to a message being sent on a named channel; however that seems low level in comparison.
 The form of a notify is a little different to the query:
 notify Agent with Expression on Channel
@@ -3608,7 +3655,7 @@ type myAPI is alias of {
 Here we mark the ability to notify on the stock channel by giving stock an occurrence type. Later, when we look at how agents can be implemented, we will see how notifications are handled. For now, we note that occurrence of (string,string) denotes a program that can consume events whose data consists of values of tuple type (string,string).</Text>
         </Document>
         <Document ID="A093493A-FD06-4459-B286-6AAA14A8FF6B">
-            <Title>Re-purposing Components[re-purposing-components]</Title>
+            <Title>Re-purposing Components</Title>
             <Text>One of the distinguishing features of the boxes-and-arrows diagram is that it highlights the major sources of input and output in the system. This is in marked contrast with most programming languages where the I/O functionality is buried deep within the code itself. For example, our splitComponent does not directly communicate with a database; instead it poses a query to the partsDB component. Similarly, the components for recovering incoming orders and sending out orders to suppliers are mostly about implementing the appropriate I/O operations.
 The partsDB component is interesting for another reason: it can be modeled as an adapter to a normal database engine. In fact, the partsDB is quite an interesting component.
 Consider the problem of the partsDB component: if we are to build this component in a robust fashion then it must respond to arbitrary queries about the two relations that are exposed in its responding port. However, we assume that the data it uses to answer those queries is not ‘in’ the component itself but is stored in some actual database; perhaps an SQL database.
@@ -3627,7 +3674,7 @@ query parts with list of { unique S where
     (P,Ss) in supplier &amp;&amp;
     S in Ss
   }
-is translated – by a standard built-in macro processor – into a call to _query of the form:This is not the final form, we have chosen to not macro-process the query expression itself. In practice, the compiler would also convert the query into an executable form – see Chapter 4.
+is translated – by a standard built-in macro processor – into a call to _query of the form:
 _query(parts,
   (Ax)=&gt;list of { unique S where
     (A,Ps) in Ax.assembly &amp;&amp; P in Ps &amp;&amp;
@@ -3639,10 +3686,10 @@ _query(parts,
   ()=&gt;["A"-&gt;A::quoted]
 )
 This is kind of complicated to follow at first; but is quite straightforward if taken one step at a time.
-	•	The first argument to _query is the entity being queried with the query speech action. The structure of the speech contract allows a responder to a speech action to ‘pass on’ the action to another responder. 
-	•	The second argument is the expression that must be evaluated by the actual responding entity. It is encapsulated in a single argument function – the argument being a record that implements the speech action API. Evaluating this function in the appropriate context has the effect of computing the response to the query speech action – and the result of the function is returned as the value of the query speech action itself. 
-	•	The third and final arguments are used when the responder cannot or does not wish to use the ‘compiled query’. The third argument is a function that returns the original ‘text’ of the query – as a quoted value. The expression: &lt;|list of { unique S where (A,Ps) in assembly &amp;&amp; P in Ps &amp;&amp; (P,Ss) in supplier &amp;&amp; S in Ss }|&gt; has, as its value, an AST term – of type quoted. This form allows a receiver of the request to inspect the query and determine for itself how to interpret it. This is analogous to applications processing queries expressed in terms of Json or XML; except here we allow Star’s syntax. 
-	•	The fourth argument is also a function, one that returns the values of any free variables in the query – variables whose values are determined by the context of the speech action itself. In this case there is only one free variable – A – which was the part that our splitComponent needed to find suppliers for. 
+	•	The first argument to _query is the entity being queried with the query speech action. The structure of the speech contract allows a responder to a speech action to ‘pass on’ the action to another responder.
+	•	The second argument is the expression that must be evaluated by the actual responding entity. It is encapsulated in a single argument function – the argument being a record that implements the speech action API. Evaluating this function in the appropriate context has the effect of computing the response to the query speech action – and the result of the function is returned as the value of the query speech action itself.
+	•	The third and final arguments are used when the responder cannot or does not wish to use the ‘compiled query’. The third argument is a function that returns the original ‘text’ of the query – as a quoted value. The expression: &lt;|list of { unique S where (A,Ps) in assembly &amp;&amp; P in Ps &amp;&amp; (P,Ss) in supplier &amp;&amp; S in Ss }|&gt; has, as its value, an AST term – of type quoted. This form allows a receiver of the request to inspect the query and determine for itself how to interpret it. This is analogous to applications processing queries expressed in terms of Json or XML; except here we allow Star’s syntax.
+	•	The fourth argument is also a function, one that returns the values of any free variables in the query – variables whose values are determined by the context of the speech action itself. In this case there is only one free variable – A – which was the part that our splitComponent needed to find suppliers for.
 This arrangement allows for two kinds of speech action processing: if the respondent trusts the originator of the speech action then a very rapid response to the query is possible – by evaluating the embedded function. However, in the case where the respondent does not want to simply execute the query function, or it cannot, then the respondent has access to the original text of the query – together with the values of any free variables that appear in the query.
 In the case of the partsDB component it cannot simply trust the query; even if it wanted to. This is because the query must be mapped into a form that the attached SQL database can understand. In effect, the query must be translated from Star’s query language to SQL.
 #
@@ -3655,10 +3702,12 @@ select S from table assembly as As, supplier as Sp, Ps, Ss where
 The details of how this translation are achieved are beyond the scope of this book; but it involves similar techniques to those we saw in [our chapter on DSLs][application-policy-mechanism].
 One important point to note here is that the machinery for translating queries into SQL is quite general; and not at all restricted to our parts database. In fact, if we provide the actual database component with a URL of the database we are interested in, the DSL processor is able to dynamically inspect the actual database, construct the appropriate responder port for the partsDB component as well as being able to answer queries by mapping them to SQL.
 As a result, we can construct a general purpose adapter component that is able to be used for any database, not just the one we are using in this application. The result of which is that the application is populated with a mixture of standard components that are configured and specifically written components that implement the specific functionality of the application.</Text>
+            <Comments>This is not the final form, we have chosen to not macro-process the query expression itself. In practice, the compiler would also convert the query into an executable form – see Chapter 4.</Comments>
         </Document>
         <Document ID="42BCB097-B93B-405B-BC9E-4ED21CEBE1CC">
-            <Title>Resource Definition Framework[rdf] RDF semantics is extremely simple: a RDF graph is a set of triples consisting of a subject, predicate and object; each of which is a concept. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.</Title>
-            <Text>RDF is good for representing the simple ‘facts’ that one often sees in applications that have to model aspects of the real world. A classic example of this is in modeling things like giraffes: if we have a Giraffe called Joe, then we typically want to be able to say things like:
+            <Title>Resource Definition Framework</Title>
+            <Text>RDF semantics is extremely simple: a RDF graph is a set of triples consisting of a subject, predicate and object; each of which is a concept. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.
+RDF is good for representing the simple ‘facts’ that one often sees in applications that have to model aspects of the real world. A classic example of this is in modeling things like giraffes: if we have a Giraffe called Joe, then we typically want to be able to say things like:
 Joe isa giraffe
 which means
 Joe is a Giraffe
@@ -3761,7 +3810,7 @@ worksheet{
 This example spins up 1000 work items and expects the "alpha" and "beta" workers to process them. Typical bosses attitude!</Text>
         </Document>
         <Document ID="6F897244-F56F-47D7-8853-7F9B193D15EA">
-            <Title>Design is Iteration[design-is-iteration]</Title>
+            <Title>Design is Iteration</Title>
             <Text>As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we could create a query language specifically for triple graphs. However, a more subtle and integrated approach is to extend the standard built-in query language with conditions that are tailored to work with triple graphs. This has the advantage that we can leverage standard query processing to help process triple graphs.
 So, we need an extension to standard query conditions that allow us to:
 set of { all X where OrgTree says X ! department $ accounting }
@@ -3853,13 +3902,13 @@ range(F,I,Ix)++range(I,T,Ix)=range(F,T,Ix)
 where ++ is the standard function — i.e., is part of the concatenate contract — for expressing sequence concatenation.</Text>
         </Document>
         <Document ID="302DB081-7E23-4C26-B524-83C54A155EEF">
-            <Title>There is Methodology in my Ontology[there-is-methodology-in-my-ontology]</Title>
+            <Title>There is Methodology in my Ontology</Title>
             <Text>The most important initial task in designing a DSL or policy framework has nothing to do with operators, macros or any of the facilities of Star — you must identify the appropriate structure and semantics for your language. More formally, this can be defined as identifying the ontology of the language.
 Ontology, as a discipline, dates back to Aristotle. He was one of the first people to attempt to systematically classify the known world. Nowadays, Ontology refers to the study of the relationship between concepts and the real world.
-Ontology
+Ontology 
 A description of a set of concepts and how they relate to each other and to the intended domain.
 A systematic, or formal, ontology is often written in a language that allows automated verification of desirable aspects of the ontology — such as its consistency.
-Developing an ontology often starts by brainstorming a set of words that seem to be important in the domain. For example, an ontology of pet animals would include the concepts of Dog, Cat, Giraffe and so on. It would also include the concepts of caring for a pet and of breeding them.
+Developing an ontology often starts by brainstorming a set of words that seem to be important in the domain. For example, an ontology of pet animals would include the concepts of Dog, Cat, Giraffe and so on. It would likely also include the concepts of caring for a pet and of breeding them.
 Our RDF triple language also has an ontology — about the concepts involved in knowledge graphs. The figure below shows such a collection, which, while it is not the complete set needed for conceptualizing triple graphs, makes a good start:
 #
 A Collection of Concepts Important to Triple Graphs
