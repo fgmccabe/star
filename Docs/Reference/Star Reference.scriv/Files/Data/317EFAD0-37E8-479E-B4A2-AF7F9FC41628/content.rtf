@@ -1,0 +1,549 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\ftech\fcharset77 Symbol;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 = Programs\
+[[programs]]\
+\
+This chapter focuses on the organization of programs using functions, procedures and other computational forms. Apart from program values themselves, a key concept is the <<thetaEnvironment>>. This is where many programs, types etc. are defined. <<thetaEnvironment>>s are also first-class values -- showing up as <<AnonymousRecord>>s.\
+\
+\
+[[thetaEnvironment]]\
+== Theta Environment\
+(((theta environment)))\
+(((program declaration)))\
+\
+A <<thetaEnvironment>> consists of a set of definitions of types, programs and variables.\
+\
+[[statementFig]]\
+.Theta Environment\
+:hardbreaks:\
+****\
+[[ThetaEnvironment]]ThetaEnvironment ::= `\{` <<Definition>> ; ... ; <<Definition>> `\}`\
+\
+[[Definition]]Definition ::= <<TypeDefinition>>\
+  | <<Annotation>>\
+  | <<VariableDeclaration>>\
+  | <<FunctionDefinition>>\
+  | <<ProcedureDefinition>>\
+  | <<PatternAbstraction>>\
+  | <<Contract>>\
+  | <<Implementation>>\
+  | <<OpenStatement>>\
+  | <<ImportStatement>>\
+  | <<LocalAction>>\
+\
+[[LocalAction]]LocalAction ::= `\{` <<Action>> ; ... ; <<Action>> `\}`\
+  | `assert` <<Condition>>\
+****\
+\
+Many of the definitions in a <<thetaEnvironment>> define entities that may be recursive and mutually recursive.\
+\
+(((type,definition)))\
+[horizontal]\
+Type definition:: is the definition of a type. See <<typeDefinitions>>\
+(((type,declaration)))\
+Type declaration:: is a statement that defines the type of a variable or program. See <<typeAnnotation>>\
+(((variable,definition)))\
+Variable definition:: is a statement that defines a variable and gives it a value. There are two forms of variable definition corresponding to a normal single assignment variable and a re-assignable variable. See <<VariableDeclaration>>\
+Function definition::\
+(((function,definition)))is a group of equations that defines a function. See <<equations>>.\
+Procedure definition::\
+(((procedure,definition))) is a statement that defines an action procedure. See <<procedures>>.\
+LocalAction::\
+(((actions,in a theta environment)))A <<LocalAction>> is an action -- enclosed in braces -- that is performed prior to the bound expression of a <<thetaEnvironment>>.\
+Contract definition::\
+(((contract,definition)))is a statement that defines a coherent collection of functions and procedures that may be associated with different types. See <<ContractDefinition>>.\
+Contract implementation::\
+(((contract,implementation)))\
+is a statement that establishes that a particular type _implements_ a contract -- and gives the implementation. See <<ContractImplementation>>.\
+Macro definition::\
+(((macro,definition)))is a statement that indicates how source programs should be interpreted. See <<MacroLanguage>>. Macro statements may only appear at the `package`-level: they are not permitted within the body of a `let` expression, for example.\
+\
+\
+[[functions]]\
+== Functions and Equations\
+\
+A function is a program for computing values; organized as a set of equations.\
+\
+[[functionFig]]\
+.Functions\
+****\
+[[Function]]Function ::= <<Equation>> ... <<Equation>>\
+\
+[[Equation]]Equation ::= <<RuleHead>> [<<RuleGuard>>]] `\\=>` <<Expression>>\
+  | <<DefltEquation>>\
+\
+[[DefltEquation]]DefltEquation ::= <<RuleHead>> `default` `\\=>` <<Expression>>\
+\
+[[RuleHead]]RuleHead ::= <<Identifier>>`(`<<Pattern>>,...,<<Pattern>>>`)`\
+\
+[[RuleGuard]]RuleGuard ::= `default` | <<GuardCondition>>>\
+\
+[[GuardCondition]]GuardCondition ::= `::` <<Condition>>\
+****\
+\
+[TIP]\
+Functions and other program values are first class values; as a result they may be passed as arguments to other functions as well as being assigned as attributes of records.\
+\
+[FunctionType]\
+=== Function Type\
+The function type takes the form:\
+\
+****\
+__TupleType__ \\=> _Type_\
+****\
+\
+where <<TupleType>> is a type denoting a tuple of values.\
+\
+Functions can be defined in a <<thetaEnvironment>> -- which case they must be associated with an explicit or implicit <<TypeAnnotation>> -- or they may be _anonymous_ -- i.e., appear as a function literal in an expression.\
+\
+[[equations]]\
+=== Equations\
+An equation is a rule for deciding how to rewrite an expression into a simpler expression. Each equation consists of a <<TuplePattern>> that is used to match the call to the function and a replacement expression. The left hand side of the function may also have a guard associated with it, this guard may use variables introduced in the pattern.\
+\
+[TIP]\
+An equation is said to apply iff the patterns in the left hand side of the equation (including any `::` clauses) all match the corresponding actual arguments to the function application.\
+\
+\
+(((theta environment)))\
+Functions are defined in the context of a <<thetaEnvironment>> -- for example, in the body of a `let` expression (see <<letExpression>>), or at the top-level of a `package`.\
+\
+It is not necessary for the equations that define a function to be contiguous within a <<thetaEnvironment>>. However, all the equations for a function must be present in the _same_ <<thetaEnvironment>>.\
+\
+[TIP]\
+The equations that define a function must be contiguous. This helps to avoid a certain kind of error where equations seem to `go missing' but are just misplaced.\
+\
+==== Type Safety\
+The type safety of a function is addressed in stages. In the first place, we give the rules for individual equations:\
+\
+****\
+_E_ |= ``A``:AT /\\ _E'_ |= ``R``:RT => _E_ |= `A\\=>R` : AT\\=>RT\
+****\
+\
+If the equation has a <<GuardCondition>>, that that condition must be type satisfiable:\
+\
+****\
+_E_ |= A:AT /\\ _E'_ |= sat\\(C) /\\ _E''_ |= R:RT => _E_ |= A::C => R : AT\\=>RT\
+****\
+\
+where _E'_ is the original environment _E_ extended with the variable definitions found in the pattern `A` and _E''_ is _E'_ extended with the variables found in the condition `C`.\
+\
+In fact this rule slightly understates the type safety requirement. For any statement in a theta environment we also have:\
+\
+****\
+F:T &in; E &iff; E|=F:T\
+****\
+\
+I.e, top-level definitions _must_ have a type annotation associated with them; and that actual definitions _must_ be consistent with those annotations.\
+\
+=== Evaluation Order of Equations\
+[[functionEvaluation]]\
+(((equations,evaluation order)))\
+\
+Using multiple equations to define a function permits a case-base approach to function design -- each equation relates to a single case in the function. When such a function is _applied_ to actual arguments then only one of the equations in the definition may apply.\
+\
+Equations are applied in the order that they are written -- apart from any equation that is marked `default`. If two equations overlap in their patterns then the first equation to apply is the one used.\
+\
+=== Default Equations\
+[[defaultEquation]]\
+(((default equation@`default` equation)))\
+(((functions,default@`default` equation)))\
+\
+It is permitted to assign one of the equations in a function definition to be the `default` equation. An equation marked as `default` is guaranteed _not_ to be used if any of the non-default equations apply. Thus, a `default` equation may be used to capture any remaining cases not covered by other equations.\
+\
+(((patterns,variable pattern)))A `default` equation may not have a where clause associated with it, and furthermore, the patterns in the left hand-side should be generally be variable patterns (see <<patternVariables>>).\
+\
+[TIP]\
+In particular, it _should_ be guaranteed that a `default` equation cannot fail to apply.\
+\
+\
+=== Evaluation Order of Arguments\
+(((function application,evaluation order)))\
+\
+There is _no_ guarantee as to the order of evaluation of arguments to a function application. In fact, there is no guarantee that a given expression will, in fact, be evaluated.\
+\
+[TIP]\
+The programmer should also _not_ assume that argument expressions will _not_ be evaluated!\
+\
+In general, the programmer should make the fewest possible assumptions about order of evaluation.\
+\
+=== Pattern Coverage\
+[[patternCoverage]]\
+(((patterns,coverage of)))\
+\
+Any given equation in a function definition need not completely cover the possible arguments to the function. For example, in\
+[listing]\
+F : (integer)=>integer;\
+F(0) => 1\
+F(X) => X*F(X-1)\
+\
+the first equation only applies if the actual argument is the number `0`; which is certainly not all the `integer`s.\
+\
+The set of equations that define a function also define a coverage of the potential values of the actual arguments. In general, the coverage of a set of equations is smaller than the possible values as determined by the type of the function.\
+\
+If a function is _partial_ -- i.e., if the coverage implied by the patterns of the function's equations is not complete with respect to the types -- then the compiler may issue an incomplete coverage warning.\
+\
+[TIP]\
+The programmer is advised to make functions _total_ by supplying an appropriate `default` equation. In the case of the `F`actorial function above, we can make the `default` case explicit as is shown in <<factorialFun>>.\
+\
+\
+[[factorialFun]]\
+.Factorial Function\
+[listing]\
+fact : (integer)=>integer\
+fact(X) :: X>0 => X*fact(X-1)\
+fact(X) default => 1\
+\
+[[anonymousFunction]]\
+=== Anonymous Function\
+(((anonymous function)))\
+(((expressions,function)))\
+\
+Anonymous functions are expressions of the form:\
+[listing]\
+(X) => X+Y\
+\
+Anonymous functions may appear anywhere a function value is permitted.\
+\
+\
+[[anonymousFunctionFig]]\
+.Anonymous Function\
+****\
+[[AnonymousFunction]]AnonymousFunction ::= <<TuplePattern>> `\\=>` <<Expression>>\
+****\
+\
+[TIP]\
+====\
+If it desired to have a single-argument anonymous function that takes a tuple pattern then use double parentheses:\
+[listing]\
+((X,Y)) => X+Y\
+====\
+\
+For example, an anonymous function to add 1 to its single argument would be:\
+[listing]\
+(X) => X+1\
+\
+Anonymous functions are often used in function-valued functions. For example in:\
+[listing]\
+addX:(integer)=>((integer)=>integer);\
+addX(X) => ((Y) => X+Y)\
+\
+the value returned by `addX` is another function -- a single argument function that adds a fixed number to its argument.\
+\
+[NOTE]\
+Note the extra set of parentheses around both the embedded function type and around the returned function value.\
+\
+[NOTE]\
+Anonymous functions may reference free variables.\
+\
+\
+==== Type Safety\
+The type of an anonymous function is determined by the types of the argument patterns and the return type. Unlike named functions, anonymous functions are not explicitly typed.\
+\
+****\
+_E_ |= ``A``:AT /\\ _E_ |= ``R``:RT => _E_ |= `A\\=>R` : AT\\=>RT\
+****\
+\
+=== Overloaded Functions\
+[[overloadedFunctions]]\
+The type of an overloaded function has a characteristic signature: it's type is universally quantified but with a constraint on the bound type variables.\
+\
+For example, given the definition:\
+[listing]\
+dble:all t ~~ arithmetic[t] |: (t)=>t\
+dble(X) => X+X\
+\
+the generalized type assigned to the `dble` variable is:\
+[listing]\
+all t ~~ arithmetic[t] |: (t)=>t\
+\
+As noted in <<overloading>>, the `dble` function is converted to a function with an explicit dictionary argument that carries the implementation of the `arithmetic` contract:\
+[listing]\
+dble:all t ~~ (arithmetic[t])$=>(t)=>t\
+dble(A) => let\{\
+  dble_:(t)=>t\
+  dble_(X) => (A.+)(X,X)\
+\} in dble_\
+\
+In effect, this means that the `dble` has _two_ types assigned to it: the constrained type above that is inferred through type inference and an overloaded type that results from its translation.\
+[listing]\
+all t ~~ (arithmetic[t])$=>(t)=>t\
+\
+[NOTE]\
+Overloaded types are function types, but we use a different types symbol -- `$\\=>` -- to help distinguish the special role that overloaded types have.\
+\
+[TIP]\
+The existence of an overloaded type associated with a variable is an important signal: it means that references to the variable must be resolved -- that appropriate `implementation`s of the required contracts are found.\
+\
+When an overloaded function variable is referenced the normal type of the variable expression is identical to the normal rule for variable expressions: the type of the expression is the refreshed type of the constrained type associated with the variable.\
+\
+However, the existence of the overloaded type associated with the variable acts as a signal that the overloading must be resolved.\
+\
+For example, in the function:\
+[listing]\
+quad:all t ~~ arithmetic[t] |: (t)=>t\
+quad(X) => dble(dble(X))\
+\
+the type of each `dble` variable expression is determined to be:\
+[listing]\
+arithmetic[t] |: (t)=>t\
+\
+[NOTE]\
+They are the same type in this case because of the calling pattern for `dble`.\
+\
+Since `dble` originally had a constrained type -- together with its associated overloaded type -- both references must be resolved by supplying an implementation of `arithmetic`. I.e., both `dble` expressions are interpreted as:\
+[listing]\
+dble[A](dble[A](X))\
+\
+where we use `dble[A]` as a special form function call footnote:[We use this notation for exposition purposes only -- it is not normal `Star syntax'.] that denotes a use of the overloaded function.\
+\
+The `quad` function is generic, and so its type is also a generalized constrained type:\
+[listing]\
+quad:all t ~~ arithmetic[t] |: (t)=>t\
+\
+and is also transformed into the overloaded definition:\
+[listing]\
+quad:all t ~~ (arithmetic[t]) $=> (t)=>t\
+quad(A) => let\{\
+  quad_:(t)=>t\
+  quad_(X) => dble[A](dble[A](X))\
+\} in quad_\
+\
+In effect, the resolved dictionary for `arithmetic` is `pulled out' to a larger scope.\
+\
+In all cases, for overloaded functions to be invoked correctly, there must be some outermost point where an overloaded function is invoked with a concrete implementation value.\
+\
+If an overloaded variable is not properly resolved, then the compiler will issue a syntax error.\
+\
+In most cases, the outermost scope of a program is package-level. It is possible for a package to export an overloaded function -- in which case imports of the package must resolve the overloaded function.\
+\
+=== Open Statement\
+[[openStatement]]\
+(((open statement)))\
+(((opening a record)))\
+(((record,opening)))\
+\
+The <<OpenStatement>> takes a <<Record>>-valued expression and `opens its contents' in a <<thetaEnvironment>>. It is analogous to an <<Import>> of the record.\
+\
+[[openStatementFig]]\
+.Open Statement\
+****\
+[[OpenStatement]]OpenStatement ::= `open` <<Expression>>\
+****\
+\
+\
+Any fields and types that are declared within the <<Expression>>'s type become defined within the enclosing <<thetaEnvironment>>.\
+[TIP]\
+The existing scope rules continue to apply; in particular, if there is a name that is duplicated already in scope then a duplicate definition error will be signaled.\
+\
+[TIP]\
+Normal type inference is not able to infer anything about the type of the ``open``ed <<Expression>>. Hence, this statement requires that the type of the expression is already known.\
+\
+For example, given the definition:\
+[listing]\
+R : \{ type elem; op:(elem,elem)=>elem; zero:elem\}\
+R = \{\
+  type integer counts as elem\
+  op(X,Y) => X+Y\
+  zero = 0\
+\}\
+\
+then we can `open` `R` in a <<LetExpression>>:\
+[listing]\
+let\{\
+  open R\
+  Z : elem\
+  Z = zero\
+\} in Z\
+\
+[TIP]\
+====\
+Although the `open` statement makes available the types and fields embedded in a record; existential abstraction still applies. In particular, in this case the fact that the `elem` type is manifest as `integer` within the record expression `R` is hidden.\
+\
+The `elem` type (and the `zero` and `op` fields) are available within the `let`; but no information about what `elem` actually is is available.\
+====\
+\
+[[localAction]]\
+=== Local Actions\
+(((Actions executed within a <<thetaEnvironment>>)))\
+\
+A local action is a sequence of actions -- enclosed in braces -- that are performed when the theta environment is first entered and before any dependent bound expressions are evaluated.\
+\
+For example, in:\
+[listing]\
+traceF : (integer)=>integer\
+traceF(X) =>\
+  let\{\
+    f:(integer)=>integer\
+    f(0) => 1\
+    f(XX) => XX*f(XX-1)\
+    \{\
+      logMsg(info,"in theta environment");\
+    \}\
+  \} in f(X)\
+\
+The action\
+[listing]\
+logMsg(info,"in theta environment")\
+\
+is executed as part of establishing the <<thetaEnvironment>> prior to the function `f` being evaluated.\
+\
+Local actions are useful for situations where proper initialization of the entries in the theta environment are more extensive than binding a variable to a value.\
+\
+[TIP]\
+There is no predetermined order of execution of <<LocalAction>>s -- for example, if there is more than one in a given <<thetaEnvironment>>. The compiler ensures that all the preconditions for the <<LocalAction>> -- specifically definitions that are referenced by the <<LocalAction>> -- are established prior to the execution of the action.\
+\
+[[procedures]]\
+== Procedures\
+\
+An action procedure is an action script -- a program for performing actions. Analogously to functions and other rule types, procedures are written as a set of action rules.\
+\
+[[procedureSyntaxFig]]\
+.Procedures and Action Rules\
+****\
+[[Procedure]]Procedure ::=  <<ActionRule>> ... <<ActionRule>>\
+\
+[[ActionRule]]ActionRule::= <<RuleHead>> [<<RuleGuard>>]] `do` <<Action>>\
+****\
+\
+Action rules are analogous to the use of equations for defining functions; except that an action is being specified.\
+\
+The equivalent of `Hello World' as a procedure would be:\
+[listing]\
+hello:()=>()\
+hello() do logMsg(info,"Hello World")\
+\
+The left hand side of an action rule may contain patterns other than variables, it may also include _guard_ conditions:\
+[listing]\
+displaySigned:(integer) => ()\
+displaySigned(X) :: X>0 do logMsg(info,"$X is positive")\
+displaySigned(X) default do logMsg(info,"$X is not positive")\
+\
+[NOTE]\
+The type of a procedure looks like a function type -- where the return type is the empty tuple. This is because that is what procedures are: functions that do not return a value.\
+\
+==== Type Safety\
+\
+A procedure is type safe if the action(s) in the body are type safe -- in the environment augmented by the variables in the head of the procedure.\
+\
+****\
+_E_ |= ``A``:AT /\\ E' |= safeAction(XX) => E |= `A do XX` : AT\\=>()\
+****\
+\
+If the action rule has a <<GuardCondition>>, that that condition must be type satisfiable:\
+\
+****\
+_E_ |= A:AT /\\ _E'_ |= sat\\(C) /\\ _E''_ |= safeAction(XX) => _E_ |= A::C do XX : AT\\=>()\
+****\
+\
+\
+=== Anonymous Procedure\
+[[anonymousAction]]\
+(((anonymous action procedure)))\
+(((expressions,procedure)))\
+\
+A procedure is a "first class value" and can be assigned to variables, passed in functions and so on. In addition, a procedure may be expressed as a _literal expression_ in the form of an _anonymous procedure_ expression. An anonymous action procedure consists of an action procedure -- using `procedure` as the `name' of the procedure.\
+\
+\
+[[anonymousProcedureFig]]\
+.Anonymous Action Procedure\
+****\
+[[AnonProcedure]]AnonProcedure ::= <<TuplePattern>> `do` <<Action>>\
+****\
+\
+For example, to use the tree walk as defined in <<treeWalkProg>> to display all the leaf nodes, we pass in to `walk` an anonymous procedure to display the leaf:\
+[listing]\
+walk(Tr,((X) do logMsg(info,"$X")))\
+\
+Anonymous procedures may access free variables; but may not be directly recursive (see <<anonymousFunction>>).\
+\
+\
+[[tauPattern]]\
+== Pattern Abstractions\
+A *pattern abstraction* allows patterns to be treated as first class values; in an analogous way that lambda abstractions allow expressions to be processed.\
+(((pattern abstractions)))\
+\
+\
+[[tauPtnFig]]\
+.Pattern Abstraction Definitions\
+****\
+_Expression_ ::+= <<AnonymousPattern>>\
+\
+[[AnonymousPattern]]AnonymousPattern ::= <<TupleLiteral>>` \\<= ` <<Pattern>>\
+\
+[[PatternAbstraction]]PatternAbstraction ::=  <<PatternRule>> ... <<PatternRule>>\
+\
+[[PatternRule]]PatternRule::=<<Identifier>>``(``<<Expression>> ,..., <<Expression>>``) \\<=`` <<Pattern>>\
+****\
+\
+A pattern of the form\
+[listing]\
+$_Ab_$($_Ptn\\sub1_\\sequence\{,\}_Ptn_$)\
+\
+represents an application of the pattern abstraction `_Ab_`; i.e., the pattern matches if the abstracted pattern within the definition `_Ab_` matches _and_ that `_Ptn\\subi_` match the `returned' values from the pattern.\
+\
+For example, the definition:\
+[listing]\
+TM(X) <= ("fred",X)\
+\
+defines `TM` as a pattern that will match binary tuples -- of which the first element is the string `"fred"` and returns the second element of the tuple.\
+\
+We can use `TM` to match such tuples, as in:\
+[listing]\
+for TM(Y) in R do\
+  ...\
+\
+assuming that the type of `R` was appropriately a `list` of 2-tuples.\
+\
+The application argument of a pattern abstraction is also a pattern; so we can look for special forms of `TM` patterns in `R`:\
+[listing]\
+if TM(3) in R then\
+  ...\
+\
+The pattern application `TM(3)` is equivalent to the pattern\
+[listing]\
+("fred",3)\
+\
+<<filterProg>> is a more elaborate example that uses a pattern abstraction to filter elements of a `list`, removing elements that are less than zero.\
+(((filtering elements of a `list` with pattern abstractions)))\
+(((list,filtering with pattern abstractions)))\
+(((pattern abstractions,using to filtering lists)))\
+\
+[[filterProg]]\
+.Filtering ``list``s with Pattern Abstractions\
+[listing]\
+----\
+positive:(integer) <= integer\
+positive(I) <= I :: I>=0\
+\
+filter:all s,t ~~ (list[t], (s)<=t) => list[s]\
+filter(L,P) => let\{\
+  flt:(list[t])=>list[s]\
+  flt([]) => []\
+  flt([P(I),..More]) => [I,..flt(More)]\
+  flt([_,..More]) default => flt(More)\
+\} in flt(L)\
+----\
+\
+The result of evaluating the expression\
+[listing]\
+filter([1,3,-2,0,10,-20],positive)\
+\
+is\
+\
+[listing]\
+----\
+[1,3,0,10]\
+----\
+\
+==== Type Safety\
+The type of a pattern abstraction is determined by the type of pattern matched by the abstraction:\
+****\
+E |= P:PT /\\ E' |= XX:XT 
+\f1 \uc0\u8658 
+\f0  E |= XX \\<= P  : XT\\<=PT\
+****\
+}

@@ -1,0 +1,1144 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 %!TEX root = reference.tex\
+= Sequences and Collections\
+[[lists]]\
+[[listExpressions]]\
+(((list expression)))\
+(((expressions,list)))\
+There are many primary contracts that together relate to collections and sequences:\
+\\begin\{description\}\
+`concatenate`:: defines what it means to concatenate two collections.\
+`explosion`:: defines the twin functions of explode and implode. Typically used to inspect and pack scalar entities.\
+`foldable`:: is a contract that defines the classic `fold' functions of leftFold, rightFold, leftFold1 and rightFold1.\
+`indexable` and `sliceable`:: are functions that define random access within a collection.\
+`iterable` and `indexed\\_iterable`:: define processing a collection with a client function -- used for iterations and queries.\
+`reversible`:: defines the `reverse` function.\
+`sequence`:: is a core set of patterns and functions that defines what it means to process and/or build a collection sequentially.\
+`sets`:: define the set-oriented functions of intersection, union and complement.\
+`sizeable`:: is a pair of functions that define the size of a collection and whether the collection is empty or not.\
+`sorting`:: defines the sort function.\
+`updateable`:: is a set of functions that define the updating of collections by adding to a collection, merging collections, updating based on patterns and so on.\
+\\end\{description\}\
+Many of these contracts are associated with special syntactic forms.\
+\\begin\{aside\}\
+The term `collection' is used informally here. Not all types need implement all the contracts defined here. However, for a type to be considered a collection, it should implement all four contracts.\
+\\end\{aside\}\
+\
+In addition to the standard collection contracts, there are several standard types,  `list` and `cons` that represent basic forms of sequence.\
+\
+\
+== Sequence Notation\
+[[sequenceNotation]]\
+The `sequence` contract has additional syntactic support in the form of specific sequence notation for expressions (see <<sequenceExpression>>) and patterns (see <<sequencePattern>>).\
+\
+An expression of the form:\
+[listing][escapechar=|]\
+[E|\\sub1\\sequence\{,\}|E|\\subn|]\
+\
+is equivalent to the expression:\
+[listing][escapechar=|]\
+_cons(E|\\sub1|,|\\sequence\{\}|_cons(E|\\subn|,_nil())|\\sequence\{\}|)\
+\
+Similarly, the pattern:\
+[listing][escapechar=|]\
+[P|\\sub1\\sequence\{,\}|P|\\subn|]\
+is equivalent to the expanded pattern:\
+[listing][escapechar=|]\
+_pair(P|\\sub1,\\sequence\{\}|_pair(P|\\subn|,_empty())|\\sequence\{\}|)\
+\
+This notation makes literals involving the `sequence` contract easier to write.\
+\
+=== The `sequence` Contract\
+[[sequenceContract]]\
+(((sequence contract@`sequence` contract)))\
+The `sequence` contract defines the equivalent of an abstract type that is `about' sequences. It is defined in Program~\\vref\{sequenceContractDef\}. The elements of the `sequence` contract are sufficient to allow abstract sequential processing of sequences.\
+\
+\\begin\{program\}[hbtp]\
+[listing]\
+contract sequence over s determines e is \{\
+  _empty has type ()<=s;\
+  _pair has type (e,s)<=s;\
+  _cons has type (e,s)=>s;\
+  _apnd has type (s,e)=>s;\
+  _back has type (s,e)<=s;\
+  _nil has type ()=>s;\
+\}\
+\
+.The Standard `sequence` Contract[[sequenceContractDef]]\
+\\end\{program\}\
+\\noindent\
+For example, the `reverse` function in Program~\\vref\{reverseProgram\} is defined for any form of sequence; i.e., for any type that implements the `sequence` contract.\
+\\begin\{program\}[hbtp]\
+[listing]\
+reverse has type for all e,t such that (t)=>t where\
+  sequence over t determines e\
+reverse(S) is let\{\
+  rev(_empty(),R) is R\
+  |  rev(_pair(H,T),R) is rev(T,_cons(H,R))\
+\} in rev(S,_nil());\
+\
+.A `sequence` Reversal Function[[reverseProgram]]\
+\\end\{program\}\
+\\begin\{aside\}\
+The `sequence` contract has a _functional dependency_ -- see <<ContractFunctionalDependency>>. This captures the intuition that sequences are about an element type; but the actual type of each element depends on the particular implementation of the `sequence`.\
+\\end\{aside\}\
+\
+=== `\\_empty` -- Empty Sequence Pattern\
+[[emptyPattern]]\
+(((sequence contract@`sequence` contract,empty@`empty`)))\
+[listing]\
+_empty has type for all e,t such that ()<=t\
+                 where sequence over t determines e\
+\
+\
+The `\\_empty` pattern is satisfied when matching an empty sequence.\
+\
+\\begin\{aside\}\
+The use of pattern abstractions is a normal feature of contracts that are aimed at defining an abstract type.\
+\\end\{aside\}\
+\
+=== `\\_pair` -- Non-Empty Sequence Pattern\
+[[nonEmptyPattern]]\
+(((sequence contract@`sequence` contract,pair@`pair`)))\
+[listing]\
+_pair has type type for all e,t such that (e,t)<=t\
+                     where sequence over t determines e\
+\
+\
+The `\\_pair` pattern is satisfied when matching an non-empty sequence. A successful match results in the head and tail part of the sequence also being match.\
+\
+=== `\\_cons` -- Add to Front of Sequence\
+[[consFunction]]\
+(((sequence contract@`sequence` contract,cons@`cons`)))\
+[listing]\
+_cons has type type for all e,t such that (e,t)=>t\
+                     where sequence over t determines e\
+\
+The `\\_cons` function is used to `cons' an element to the front of a `sequence` -- returning a new sequence with the new element at the front.\
+\
+=== `\\_apnd` -- Add to End of Sequence\
+[[appendFunction]]\
+(((sequence contract@`sequence` contract,apnd@`apnd`)))\
+[listing]\
+_apnd has type type for all e,t such that (t,e)=>t\
+                     where sequence over t determines e\
+\
+The `\\_apnd` function is used to append an element to the end of a `sequence`. I.e., a subsequent match against the `sequence` using the `\\_pair` pattern will 'pick up' the newly appended element only after all existing elements have been removed.\
+\
+\\begin\{aside\}\
+Depending on the implementation type that backs a particular `sequence`, the performance of the `\\_cons` and `\\_apnd` functions may be radically different.\
+\\end\{aside\}\
+\
+=== `\\_back` -- Non-Empty Sequence Pattern\
+[[backPattern]]\
+(((sequence contract@`sequence` contract,back@`back`)))\
+[listing]\
+_back has type type for all e,t such that (t,e)<=t\
+                     where sequence over t determines e\
+\
+\
+Like the `\\_pair` pattern, the `\\_back` pattern is satisfied when matching an non-empty sequence. A successful match results in the last element of the sequence being matched -- as well as the front portion of the sequence.\
+\
+\\begin\{aside\}\
+Depending on the implementation type that backs a particular `sequence`, the performance of the `\\_pair` and `\\_back` patterns may be radically different.\
+\\end\{aside\}\
+\
+=== `\\_nil` -- Construct Empty Sequence\
+[[newFunction]]\
+(((sequence contract@`sequence` contract,cons@`cons`)))\
+[listing]\
+_nil has type type for all e,t such that ()=>t\
+                    where sequence over t determines e\
+\
+The `\\_nil` function is used to construct an empty instance of the sequence.\
+\
+== Collection Notation\
+Like the sequence notation, the collection notation is intended to allow collections that are not known to be sequences to be represented concisely in a type-independent way.\
+\
+== The `concatenate` Contract\
+[[concatenateContract]]\
+(((concatenate contract@`concatenate` contract)))\
+The `concatenate` contract defines a single function that implements the `concatenation' of two values together.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract concatenate over s is \{\
+  (++) has type (s,s)=>s;\
+\}\
+\
+.The Standard `concatenate` Contract[[concatenateContractDef]]\
+\\end\{program\}\
+\\noindent\
+\
+=== `++` -- Concatenate Sequences\
+[[concatFunction]]\
+(((concatenate contract@`concatenate` contract,++@`++`)))\
+(((concatenate sequences)))\
+[listing]\
+(++) has type for all s such that (s,s)=>s where concatenate over s\
+\
+The meaning of `S++T` is a new sequence where the elements of `S` come `first' and the elements of `T` come `next'.\
+\
+== The `reversible` Contract\
+[[reversibleContract]]\
+(((reversible contract@`reversible` contract)))\
+The `reversible` contract defines a single function that implements the `reverse' of function.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract reversible over s is \{\
+  reverse has type (s)=>s;\
+\}\
+\
+.The Standard `reversible` Contract[[reversibleContractDef]]\
+\\end\{program\}\
+\\noindent\
+\
+=== `reverse` -- Reverse Sequences\
+[[reverseFunction]]\
+(((reversible contract@`reversible` contract,reverse`reverse`)))\
+(((reverse sequences)))\
+[listing]\
+reverse has type for all s such that (s)=>s where reversible over s\
+\
+The meaning of `reverse(S)` is a new sequence where the elements of `S` are reversed.\
+\
+\\begin\{aside\}\
+The `reversible` contract is implemented for `list`s, `cons` lists and `string`s.\
+\\end\{aside\}\
+== The `sets` Contract\
+[[setsContract]]\
+The standard `sets` contract defines set operations over collections.\
+(((sets contract@`sets` contract)))\
+\
+\\begin\{program\}[hbtp]\
+[listing]\
+contract sets over s is \{\
+  union has type (s,s)=>s;\
+  intersect has type (s,s)=>s;\
+  complement has type (s,s)=>s;\
+\}\
+\
+.The Standard `sets` Contract[[setContractDef]]\
+\\end\{program\}\
+\\noindent\
+\
+=== `union` -- Union\
+[[unionFunction]]\
+(((sets contract@`sets` contract,union@`union`)))\
+(((union sequences)))\
+[listing]\
+union has type for all s such that (s,s)=>s where sets over s\
+\
+The meaning of `union(S,T)` is a new sequence consisting of elements of `S` merged with elements of `T`. Duplicate elements -- elements that appear in both `S` and `T` will not be duplicated in the result.\
+\
+\\begin\{aside\}\
+Although duplicates are eliminated as noted, if either of `S` or `T` already contains duplicates, then there may be duplicates in the result.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+There is no guarantee that the order of elements in the result reflects the order of elements in either of the sources of the `union` -- unless the type implementing the `sets` contract is already ordered.\
+\\end\{aside\}\
+\
+=== `intersect` -- Intersection\
+[[intersectFunction]]\
+(((sets contract@`sets` contract,intersect@`intersect`)))\
+(((intersect sequences)))\
+[listing]\
+intersect has type for all s such that (s,s)=>s where sets over s\
+\
+The meaning of `intersect(S,T)` is a new sequence consisting of elements of `S` intersected with elements of `T`. Only elements that appear in both `S` and `T` will appear in the result.\
+\
+\\begin\{aside\}\
+There is no guarantee as to the order of elements in the result of `intersect`.\
+\\end\{aside\}\
+\
+=== `complement` -- Complement\
+[[complementFunction]]\
+(((sets contract@`sets` contract,complement@`complement`)))\
+(((complement sequences)))\
+[listing]\
+complement has type for all s such that (s,s)=>s where sets over s\
+\
+The meaning of `complement(S,T)` is a new sequence consisting of elements of `S` which _do not_ occur within `T`.\
+\
+\\begin\{aside\}\
+There is no guarantee as to the order of elements in the result of `complement`.\
+\\end\{aside\}\
+\
+\
+== The `sorting` Contract\
+[[sortingContract]]\
+The `sorting` contract defines what it means to `sort' a collection. The contract itself is defined in Program~\\vref\{sortContractProg\}.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract sorting over coll determines el is \{\
+  sort has type\
+      (coll,(el,el)=>boolean) => coll;\
+\}\
+\
+.The `sorting` Contract[[sortContractProg]]\
+\\end\{program\}\
+\
+=== `sort` -- Sort a Collection\
+[[sortFunction]]\
+(((sorting contract@`sorting` contract,sort`sort`)))\
+(((sort a collection)))\
+[listing]\
+sort has type for all el, coll such that\
+    (coll,(el,el)=>boolean) => coll where\
+       sorting over coll determines el\
+\
+\
+The `sort` function sorts a function -- using a supplied comparator function to compare elements. The comparator function should return true if the second argument is greater than or equal to the first.\
+\
+\\begin\{aside\}\
+The actual sort algorithm used is not represented here.\
+\\end\{aside\}\
+\
+The `sorting` contract is implemented for the `list` type and the `cons` list type.\
+\
+== The `sizeable` Contract\
+[[sizeableContract]]\
+The standard `sizeable` contract is defined for those collections that have a concept of size associated with them.\
+\
+(((type,contracts! sizeable@`sizeable`)))\
+(((sizeable contract@`sizeable` contract)))\
+\
+The `sizeable` contract -- which is defined in Program~\\vref\{sizeableContractProg\} -- defines the functions `size` and `isEmpty`.\
+\
+\\begin\{program\}\
+[listing]\
+contract sizeable of t is \{\
+  size has type (t) => integer;\
+  isEmpty has type (t) => boolean;\
+\}\
+\
+.The Standard `sizeable` Contract[[sizeableContractProg]]\
+\\end\{program\}\
+\
+=== `size` -- Size of a `sizeable` Collection\
+[[sizeFunction]]\
+(((sizeable contract@`sizeable` contract,size@`size`)))\
+[listing]\
+size has type for all t such that (t)=>integer where sizeable over t\
+\
+\
+The `size` function returns the number of elements of a `sizeable` collection. The precise meaning of the `size` function is likely to be type-specific; for example, for `string`s, the `size` of a `string` is the number of characters in the string.\
+\
+=== `isEmpty` -- Is a `sizeable` Collection Empty\
+[[isEmptyFunction]]\
+(((sizeable contract@`sizeable` contract,isEmpty@`isEmpty`)))\
+[listing]\
+isEmpty has type for all t such that (t)=>boolean where sizeable over t\
+\
+The `isEmpty` function returns `true` if the collection has no elements.\
+\
+== The `indexable` Contract\
+[[indexableContract]]\
+The `indexable` contract defines the functions that relate to the `indexable' expressions.\
+\
+\\begin\{program\}\
+[listing]\
+contract indexable over s determines (k,v) is \{\
+  _index has type (s,k)=>option of v;\
+  _set_indexed has type (s,k,v)=>s;\
+  _delete_indexed has type (s,k)=>s;\
+\}\
+\
+.The Standard `indexable` Contract[[indexableContractDef]]\
+\\end\{program\}\
+\
+The `indexable` contract defines what it means to access an element of a collection by index, and how such collections may be updated. The contract is parameterized both over the collection type and the index type -- a fact made use of to allow `dictionary` values to also be indexed.\
+\
+\\begin\{aside\}\
+Note that special notation supports high-level access to the `indexable` and `sliceable` contracts, as can be seen in <<indexNotation>> and <<sequenceUpdate>>.\
+\\end\{aside\}\
+\
+=== `\\_index` -- Index Element\
+[[indexFunction]]\
+(((indexable contract@`indexable` contract,_index@`\\_index`)))\
+[listing]\
+_index has type for all s,k,v such that (s,k)=>option of v\
+                where indexable over s determines (k,v)\
+\
+\\begin\{aside\}\
+The type of the index depends on the implementation of the contract. In the case of `list`s, the index is `integer`; and the first index is zero.\
+\\end\{aside\}\
+\\begin\{aside\}\
+If the index is not valid, for example if the index into a list is longer than the list, then `none` is returned.\
+\\end\{aside\}\
+\
+=== `\\_set\\_indexed` -- Replace Element\
+[[indexReplaceFunction]]\
+(((indexable contract@`indexable` contract,_set_indexed@`\\_set\\_indexed`)))\
+(((replace element in collection)))\
+[listing]\
+_set_indexed has type for all s,k,v such that (s,k,v)=>s\
+                        where indexable over s determines (k,v)\
+\
+The `\\_set\\_indexed` function is used to represent the result of replacing an indexed element of a collection with a new value. The value returned is a new collection with every element identical to the original except that the ix\\super\{th\} element is replaced.\
+\
+If the index is out of range, i.e., if there is no element in the collection that corresponds to the requested index, then an error exception will be raised.\
+\
+=== `\\_delete\\_indexed` -- Remove Element\
+[[indexDeleteFunction]]\
+(((indexable contract@`indexable` contract,_delete_indexed@`\\_delete\\_indexed`)))\
+(((remove element from collection)))\
+\
+[listing]\
+_delete_indexed has type for all s,k,v such that (s,k)=>s\
+                           where indexable over s determines (k,v)\
+\
+The `\\_delete\\_indexed` function is used to remove an element from a collection. The `\\_delete\\_indexed` function returns a collection with the identified element removed. The element to delete is identified by its key, not by the kay/value pair.\
+\
+\\begin\{aside\}\
+If the index is out of range, i.e., if there is no element in the collection that corresponds to the requested index, then an error exception may be raised -- depending on the implementation of the contract.\
+\\end\{aside\}\
+\
+== The `sliceable` Contract\
+[[sliceableContract]]\
+The `sliceable` contract defines what it means to extract and update sub-sequences of collections. The contract -- defined in Program~\\vref\{sliceableContractProg\} -- contains functions that extract a subsequence and replace a subsequence.\
+\\begin\{program\}[htb]\
+[listing]\
+contract sliceable over t is \{\
+  _slice has type (t,integer,integer)=>t;\
+  _splice has type (t,integer,integer,t)=>t;\
+\}\
+\
+.The `sliceable` Contract[[sliceableContractProg]]\
+\\end\{program\}\
+As detailed below, the `sliceable` contract is supported by a `slice' notation that is based on the square bracket notation used to support indexing elements of collections.\
+\
+=== `\\_slice` -- Extract Subsequence\
+[[sliceFunction]]\
+(((sliceable contract@`sliceable` contract,_slice@`\\_slice`)))\
+(((extract subsequence of sequence)))\
+[listing]\
+_slice has type for all t such that (t,integer,integer)=>t\
+                 where sliceable over t\
+\
+The meaning of `\\_slice(S,Fr,To)` is that a subset of the sequence in `S` is extracted, starting with index position `Fr` up to -- but not including -- the index position `To`. The first index of the sequence is assumed to be zero.\
+\
+If `To` is smaller than the length of the sequence then then the result will be shortened accordingly.\
+\
+The `\\_slice` function has a special syntax which is similar to that used for list indexing:\
+[listing]\
+C[Fr:To]\
+\
+is equivalent to the expression\
+[listing]\
+_slice(C,Fr,To)\
+\
+\
+\\begin\{aside\}\
+The contract signature, and the type signature for `\\_slice` do not mention the type of the elements of the sequence.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+For any sequence `S`, for any positive integers `F` $\\ge0$ and `T`$\\ge$`F`, the following identity is expected to hold for implementations of `\\_slice`:\
+[listing]\
+S[F:T]++S[T:size(S)] = S\
+\
+Note, in particular if `F` is greater than or equal to the `size` of the sequence then the result of `\\_slice` will be an empty sequence. This is different to the behavior for `\\_index` where an exception is `raise`d when the index is not present in the sequence.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+In addition to being implemented for `list`s, and `cons` lists, the `sliceable` contract is also implemented for `string`s. In the latter case, the `sliceable` contract defines the equivalent of sub-string and string-replace.\
+\\end\{aside\}\
+\
+=== `\\_splice` -- Replace Subsequence\
+[[spliceFunction]]\
+(((sliceable contract@`sliceable` contract,_splice@`\\_splice`)))\
+(((replace subsequence of sequence)))\
+[listing]\
+_splice has type for all t such that (t,integer,integer,t)=>t\
+                  where sliceable over t\
+\
+The meaning of `\\_splice(S,Fr,To,R)` is that a subsequence of `S` is replace with `R`. Starting with index position `Fr`, the elements up until -- but not including -- the position `To` are replaced by `R`. The first index of the sequence is assumed to be zero.\
+\
+If `To` is greater than or equal to the `size` of the sequence then the result will be to replace the remaining of the sequence with the new elements.\
+\
+The `\\_splice` function has a special syntax which is similar to that used for updating list elements:\
+[listing]\
+C[Fr:To] := S\
+\
+is equivalent to the action\
+[listing]\
+C := _splice(C,Fr,To,S)\
+\
+\
+== The `iterable` Contract\
+[[iterableContract]]\
+The `iterable` contract defines what it means to `iterate' over a collection. The contract itself is defined in Program~\\vref\{iterateContractProg\} and it makes use of the standard `IterState` type.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract iterable over coll determines el is \{\
+  _iterate has type\
+    for all r such that\
+      (coll,(el,IterState of r)=>IterState of r,IterState of r) =>\
+        IterState of r;\
+\}\
+\
+type IterState of t is NoneFound or NoMore(t) or ContinueWith(t);\
+\
+.The `iterable` Contract[[iterateContractProg]]\
+\\end\{program\}\
+\
+The `iterable` contract defines a single function -- `\\_iterate` -- which is used to `iterate' over a collection applying a client function to each element of the collection.\
+\
+=== `\\_iterate` -- Iterate over collection\
+[[iterateFunction]]\
+(((iterable contract@`iterable` contract,\\_iterate@`\\_iterate`)))\
+(((iterate over collection)))\
+[listing]\
+_iterate has type\
+    for all coll, el, r such that\
+      (coll,(el,IterState of r)=>IterState of r,IterState of r) =>\
+        IterState of r\
+      where iterable over coll determines el\
+\
+\
+The `\\_iterate` function traverses a collection -- in an order that is `natural' to teh type of the collection -- applying a `client function' to each element.\
+\
+The client function has the type:\
+[listing]\
+(el,IterState of r)=>IterState of r\
+\
+where `El` is an element of the collection and `State` and `NewState` represent the `state' of the iteration and are of the type `IterState`.\
+\
+\\begin\{aside\}\
+The idea is that the client function `processes' the candidate in the context of previous invocations of the client function and returns a new state that reflects the result.\
+\\end\{aside\}\
+\
+\\begin\{description\}\
+`NoneFound`:: The `NoneFound` enumerated symbol denotes an empty state. The client may return a `NoneFound` result if the state represents a null situation.\
+\
+\\begin\{aside\}\
+The `\\_iterate` function should not interpret `NoneFound` as a signal to terminate the iteration.\
+\\end\{aside\}\
+`ContinueWith`::\
+The `ContinueWith` constructor is used to denote a partially completed state. The client function returns a `ContinueWith` when the denoted state may be augmented by further processing of elements of the collection.\
+`NoMore`::\
+The `NoMore` constructor is used to denote a completed state. The client function returns a `NoMore` value when it intends to signal that no further processing of the collection by the `\\_iterate` function should be performed.\
+\
+The `\\_iterate` function should terminate processing the collection if the client function returns an `NoMore` value.\
+\\end\{description\}\
+\
+For example, to find positive integer values in a collection this client function could be used:\
+[listing]\
+findPositive(X, ContinueWith(L)) where X>=0 is\
+       ContinueWith(cons(X,L))\
+ |  findPositive(_,S) default is S;\
+\
+\\begin\{aside\}\
+The `\\_iterate` function is used automatically for <<SearchCondition>>s; however, the programmer is also free to explicitly use the `\\_iterate` function.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+The precise form of the declaration of `\\_iterate` within the `iterable` contract bears some additional explanation -- since it takes the form of an explicitly quantified type.\
+\
+The `\\_iterate` function is somewhat independent of the nature of the client function -- it applies the client function and terminates when the client function indicates that it is `done'. However, the precise state information that the client function is collecting is not relevant to the `\\_iterate` function. In effect, the `\\_iterate` function needs its client function to be generic.\
+\
+In addition, since the semantics of the `\\_iterate` function does not depend on the generic state that the client function collects it would not be correct to incorporate `r` as an additional type argument to the contract itself.\
+\
+Hence the formulation of `\\_iterate` as an explicitly universally quantified function _within_ the contract.\
+\\end\{aside\}\
+\
+== The `indexed\\_iterable` Contract\
+[[indexedIterableContract]]\
+The `indexed\\_iterable` contract defines what it means to `iterate' over a sequence where elements have a location within the sequence. The contract itself is defined in Program~\\vref\{indexedIterateContractProg\} and it also makes use of the standard `IterState` type seen in Program~\\vref\{iterateContractProg\}.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract indexed_iterable over s determines (k,v) is \{\
+  _ixiterate has type\
+    for all r such that\
+      (s,(k,v,IterState of r)=>IterState of r,IterState of r) =>\
+        IterState of r;\
+\}\
+\
+.The `indexed\\_iterable` Contract[[indexedIterateContractProg]]\
+\\end\{program\}\
+\
+The `indexed\\_iterable` contract defines a single function -- `\\_ixiterate` -- which is used to `iterate' over a sequence applying a client function to each element of the collection whilst keeping track of the index of the element within the collection that is being processed.\
+\
+=== `\\_ixiterate` -- Iterate over collection\
+[[indexIterateFunction]]\
+(((indexed\\_iterable contract@`indexed\\_iterable` contract,\\_ixiterate@`\\_ixiterate`)))\
+(((iterate over collection)))\
+[listing]\
+_ixiterate has type\
+    for all coll,k,v,r such that\
+      (coll,(k,v,IterState of r)=>IterState of r,IterState of r) =>\
+        IterState of r\
+      where indexed\\_iterable over coll determines (k,v)\
+\
+\
+The `\\_ixiterate` function traverses a collection -- in an order that is `natural' to the type of the collection -- applying a `client function' to each element. As it traverses the collection `\\_ixiterate` keeps track of the index of the element within the collection.\
+\
+The client function takes the form:\
+[listing]\
+client(Ix,El,State) is NewState\
+\
+where `Ix` is a value that denotes the `position' of the element within the collection, `El` is an element of the collection and `State` and `NewState` represent the `state' of the iteration and are of the type `IterState`.\
+\
+The interpretation of the `State` is the same as for the `iterable` contract.\
+\
+For example, to find the location within a `cons` list[an] element that is greater than zero we can use the client function:\
+[listing]\
+indexOfPositive(Ix,X, ContinueWith(L)) where X>=0 is\
+      ContinueWith(cons(Ix,L))\
+ |  indexOfPositive(_,_,S) default is S;\
+\
+\\begin\{aside\}\
+The `\\_ixiterate` function is used automatically in <<IndexedSearch>> conditions; however, the programmer is also free to explicitly use the `indexed\\_iterable` contract.\
+\\end\{aside\}\
+\
+== The `mappable` Contract\
+[[mappableContract]]\
+The `mappable` contract defines what it means to be able to apply a function over a collection. It contains a single `map` function:\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract mappable over c is \{\
+  map has type for all e,f such that ((e)=>f,c of e) => c of f;\
+\}\
+\
+.The `mappable` Contract[[mapContractProg]]\
+\\end\{program\}\
+\
+=== `map` -- Apply a transformation to a collection\
+[[mapFunction]]\
+\
+The `map` function applies a function to a collection to produce a new collection. Its type is given by:\
+[listing]\
+map has type for all e,f such that ((e)=>f,c of e) => c of f where\
+  mappable over c\
+\
+For example, we can use `map` to construct a list of `string` representations of `integer` values by mapping `display` (see \\vref\{displayFunction\}):\
+\
+[listing]\
+map(list of [1,2,3,4],display)\
+\
+the value of which is the `list`:\
+[listing]\
+list of ["1","2","3","4"]\
+\
+\
+Note the slightly unusual quantification over the collection type. The `map` function must be able to accept a generic function as its transformation function.\
+\
+== The `filterable` Contract\
+[[filterableContract]]\
+The `filterable` contract contains a single function -- `filter` -- that can be used to filter elements from a collection.\
+\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract filterable over t determines e is \{\
+  filter has type ((e)=>boolean,t) => t\
+\}\
+\
+.The `filterable` Contract[[filterContractProg]]\
+\\end\{program\}\
+\
+\
+=== `filter` -- Apply a predicate to a collection\
+[[filterFunction]]\
+\
+The `filter` function applies a predicate to a collection to produce a new collection -- containing only elements that satisfy the predicate. Its type is given by:\
+[listing]\
+filter has type for all e,t such that ((e)=>boolean,t) => t where\
+  filterable over t determines e\
+\
+For example, we can use `filter` to eliminate odd numbers from a list of `integer`s:\
+[listing]\
+filter(list of [1,2,3,4,5,6],(X)=>X%2=0)\
+\
+which has value:\
+[listing]\
+list of [2,4,6]\
+\
+\
+== The `foldable` Contract\
+[[foldableContract]]\
+The `foldable` contract defines another variant of iterating over collections while aggregating. The `foldable` contract defines two functions: `leftFold` and `rightFold`.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract foldable over c determines e is \{\
+  leftFold has type for all st such that ((st,e)=>st,st,c)=>st;\
+  leftFold1 has type ((e,e)=>e,c) => e;\
+  rightFold has type for all st such that ((e,st)=>st,st,c)=>st;\
+  rightFold1 has type ((e,e)=>e,c)=>e;\
+\}\
+\
+.The `foldable` Contract[[foldableContractProg]]\
+\\end\{program\}\
+\
+For example, to add together a collection of `integer`s, one can use a `leftFold` (or equivalently a `rightFold`) expression:\
+[listing]\
+leftFold((+),0,list of [1, 2, 3, 4])\
+\
+which has value `10`.\
+\
+\\begin\{aside\}\
+The appropriateness of using `leftFold` or `rightFold` depends on whether the function being applied is left associative or right associative. If the function is left associative, it is normally better (in the sense of being closer to what one might expect) to use `leftFold`.\
+\
+The `leftFold1` and `rightFold1` variants are used in cases where there is no natural `zero' for the function being applied.\
+\
+Some functions are commutative -- like `(+)` -- in which case the value returned by `leftFold` is equal to the value returned by `rightFold`.\
+\\end\{aside\}\
+\
+=== `leftFold` -- Aggregate from the Left\
+[[leftFold]]\
+The `leftFold` function reduces a sequence by successively applying a function from the beginning of the sequence.\
+[listing]\
+leftFold has type for all e,c,s such that\
+    ((s,e)=>s,s,c) => s where foldable over c determines e\
+\
+The client function takes the form:\
+[listing][escapechar=|]\
+leftClient(|_Acc_|,|_El_|) is |_Acc'_|\
+\
+where `_Acc_` is the accumulated result so far, `_El_` is successive elements of the collection and `_Acc'_` is the result of applying the client function to the element.\
+\
+=== `leftFold1` -- Non-zero Aggregate from the Left\
+[[leftFold1]]\
+The `leftFold1` function reduces a sequence by successively applying a function from the beginning of the sequence. The first element of the sequence is used as the initial `state':\
+[listing]\
+leftFold1 has type for all e,c such that\
+    ((e,e)=>e,c) => c where foldable over c determines e\
+\
+The client function takes the form:\
+[listing][escapechar=|]\
+leftClient(|_Acc_|,|_El_|) is |_Acc'_|\
+\
+where `_Acc_` is the accumulated result so far, `_El_` is successive elements of the collection and `_Acc'_` is the result of applying the client function to the element.\
+\
+\\begin\{aside\}\
+The client function has a simpler form of type than that for `leftFold`. In particular, the types of both arguments and the result are identical. This is because `leftFold1` uses the first element of the sequence as the initial seed of the computation -- as opposed to an externally provided zero.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+If the sequence is empty then `leftFold1` will raise an exception.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+The standard contract for `foldable` includes a _default_ implementation of `leftFold1`. This default implementation is used in cases where a concrete implementation does not include a definition for `leftFold1`.\
+\\end\{aside\}\
+\
+=== `rightFold` -- Aggregate from the Right\
+[[rightFold]]\
+The `rightFold` function reduces a sequence by successively applying a function from the end of the sequence.\
+[listing]\
+rightFold has type for all e,c,s such that\
+    ((e,s)=>s,s,c) => s where foldable over c determines e\
+\
+The client function takes the form:\
+[listing][escapechar=|]\
+rightClient(|_El_|,|_Acc_|) is |_Acc'_|\
+\
+where `_Acc_` is the accumulated result so far, `_El_` is succesive elements of the collection and `_Acc'_` is the result of applying the client function to the element.\
+\
+\\begin\{aside\}\
+Note that the order of the arguments in the left client and the right client is different: the right client function has the `element' argument first whereas the left client has the element argument second.\
+\
+This reflects the difference in expected associativity of the clients.\
+\\end\{aside\}\
+\
+=== `rightFold1` -- Non-zero Aggregate from the Right\
+[[rightFold1]]\
+The `rightFold1` function reduces a sequence by successively applying a function from the end of the sequence. The last element of the sequence is used as the initial `state':\
+[listing]\
+rightFold1 has type for all e,c such that\
+    ((e,e)=>e,c) => c where foldable over c determines e\
+\
+\
+\\begin\{aside\}\
+The client function has the same form as that for `leftFold1`; in particular its type is the same. However, the order of arguments is different: in particular, the client function should take the form:\
+[listing][escapechar=|]\
+rightClient(|_El_|,|_Acc_|) is |_Acc'_|\
+\
+with successive elements being passed in to the first argument and the accumulated state in the second.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+If the sequence is empty then `rightFold1` will raise an exception.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+The standard contract for `foldable` includes a _default_ implementation of `rightFold1` -- which is based on the non-default implementation of `rightFold`.\
+\\end\{aside\}\
+\
+%== The `iotaC` Sequence Generation Contract\
+%[[iotaContract]]\
+%\
+%The `iota` function -- defined in the `iotaC` contract -- is used to generate sequences typically based on numbers.\
+%\
+%\\begin\{program\}[H]\
+%[listing]\
+%contract iotaC over (r,t) is \\\{\
+%  iota has type (t,t,t) => r of t\
+%\\\}\
+%\
+%.The `iotaC` Contract[[iotaContractProg]]\
+%\\end\{program\}\
+%The `iotaC` contract has two type parameters -- the first is actually a <<TypeConstructor>>: the name of a generic type. The second type is typically a numeric type that defines the type of the elements in the generated sequence.\
+%\
+%=== `iota` -- Sequence Generation\
+%[listing]\
+%iota has type iota has type for all r,t (t,t,t) => r of t\
+%                            where iotaC over (r, t)\
+%\
+%\
+%A call to `iota` of the form:\
+%[listing]\
+%iota(_F_,_T_,_S_)\
+%\
+%returns a sequence, starting at _F_, incrementing by _S_ and ending when the next number in the sequence would be `past' _T_.\
+%\
+%If the range is ascending, if _S_ is positive, then the sequence is terminated by the first number that is larger than _T_. Conversely, for descending sequences, when _S_ is negative, the sequence is terminated by the last number that is larger than _T_.\
+%\
+%For example, the call\
+%[listing]\
+%iota(1,12,3)\
+%\
+%returns the `list`\
+%[listing]\
+%list of [1, 4, 7, 10]\
+%\
+%(since the next number in the sequence -- 13 -- is larger than 12) and the call\
+%[listing]\
+%iota(10.0,0.0,-1.0)\
+%\
+%returns the `list`\
+%[listing]\
+%list of [10.0, 9.0, 8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 0.0]\
+%\
+%\
+%\
+\
+== The `updateable` Contract\
+[[updateableContract]]\
+(((updateable contract@`updateable` contract)))\
+(((modifying collections)))\
+(((contract,updateable@`updateable`)))\
+The `updateable` contract captures some key functions involved in updating collections. The contract -- which is defined in Program~\\vref\{updateableContractProg\} -- contains definitions for adding elements to a collection, merging two collections, updating a collection and deleting elements from the collection.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract updateable over r determines t is \{\
+    _extend has type (r,t)=>r;\
+    _merge has type (r, r) => r;\
+    _delete has type (r, ()<=t) => r;\
+    _update has type (r, ()<=t, (t)=>t) => r;\
+\}\
+\
+.The `updateable` Contract[[updateableContractProg]]\
+\\end\{program\}\
+\
+The `updateable` contract is implemented for all the standard collection types: `cons`, `list`, `queue` and `dictionary`.\
+\
+=== Syntax for Updating Collections\
+[[updateSyntax]]\
+Along with the contract, there is a standard notation for describing the updating of collections. This syntax is defined in <<updateSyntaxFig>>.\
+\
+\\begin\{figure\}[htbp]\
+\\begin\{eqnarray*\}\
+[[UpdateAction]]UpdateAction::=`extend`\\ <<Target>>\\ `with`\\ <<Expression>>\\\\\
+  | `merge`\\ <<Target>>\\ `with`\\ <<Expression>>\\\\\
+  | `update`\\ <<Pattern>>\\ `in`\\ <<Target>>\\ `with`\\ <<Expression>>\\\\\
+  | `delete`\\ <<Pattern>>\\ `in`\\ <<Target>>\
+\\end\{eqnarray*\}\
+.Notation for updating collections[[updateSyntaxFig]]\
+\\end\{figure\}\
+\
+The first `argument' of many of these actions is a <<Target>>, i.e., they have the same semantics as the left hand side of an assignment action -- see <<assignment>>. In fact, one of the requirements of an <<UpdateAction>> is that the collection being modified is in a re-assignable variable or field.\
+\
+=== `\\_extend` a Collection\
+[[extend]]\
+The `\\_extend` function is used to `add' an element to a collection:\
+[listing]\
+_extend has type for all r,t such that (r,t)=>r\
+                  where updateable over r determines t\
+\
+\
+As an example of the use of `\\_extend`, consider the <<Action>>:\
+[listing]\
+extend R with ("fred",23)\
+\
+assuming that `R` was defined as a list:\
+[listing]\
+var R := list of [ ("peter",20) ]\
+\
+then after the `extend`, `R` will contain two tuples:\
+[listing]\
+list of [ ("fred", 23), ("peter",20) ]\
+\
+\
+\\begin\{aside\}\
+Note that there is no implied commitment to preserve order of insertion into a collection. I.e., a sequence of `\\_extend`s into a collection may not be visible when the collection is iterated over or searched.\
+\\end\{aside\}\
+\
+The relationship between the `extend` action and the `\\_extend` function is captured in the macro rule:\
+[listing]\
+#extend ?Tgt with ?Exp ==> Tgt := _extend(Tgt,Exp)\
+\
+\
+\
+=== `\\_merge` a Collection\
+[[merge]]\
+The `\\_merge` function is used to merge a collection with another one.\
+[listing]\
+_merge has type for all r,t such that (r,r)=>r\
+                 where updateable over r determines t\
+\
+\
+\\begin\{aside\}\
+Technically a `\\_merge` is equivalent to a sequence of `\\_extend`s. However, for situations where many elements may be added simultaneously, using `\\_merge` offer opportunities for more optimal implementations.\
+\\end\{aside\}\
+\
+As an example of the use of `\\_merge`, consider the <<Action>>:\
+[listing]\
+merge R with list of [("john",2), ("alfred",10)]\
+\
+then, assuming the same `R` as above, after the `merge`, `R` will contain:\
+[listing]\
+list of [("fred", 23), ("john",2), ("alfred",10), ("peter",20)]\
+\
+\
+The relationship between the `merge` action and the `\\_merge` function is captured in the macro rule:\
+[listing]\
+#merge ?Tgt with ?Rel ==> Tgt := _merge(Tgt,Rel)\
+\
+\
+\\begin\{aside\}\
+One constraint of the `\\_merge` function is that the type of the two collections must be the same. This is not necessary if an iteration is hand-coded using separate `\\_extend` calls.\
+\\end\{aside\}\
+\
+=== `\\_update` a Collection\
+[[update]]\
+The `\\_update` function is used to update one or more elements in a collection simultaneously.\
+[listing]\
+_update has type for all r,t such that (r, ()<=t, (t)=>t) => r\
+                  where updateable over r determines t\
+\
+This function takes three arguments: the collection to be updated, a <<Pattern>> to identify which elements of the collection to update and a <<Function>> to transform selected elements.\
+\
+\\begin\{aside\}\
+The <<UpdateAction>> notation for `update` hides the existence of the pattern and function by automatically constructing the necessary programs.\
+\\end\{aside\}\
+\
+The `\\_update` function `tests' each element of the collection to see if it should be updated. If an element is to be updated, then the transform function performs the change.\
+\
+For example, to double all entries in `R` then we can use the action:\
+[listing]\
+update (N,X) in R with (N,X+X)\
+\
+If we wanted to constrain the update to entries whose first element was less than `"fred"` we could use:\
+[listing]\
+update ((N,X) where N<"fred") in R with (N,2*X)\
+\
+This last action would change `R` to:\
+[listing]\
+list of [ ("fred", 23), ("john",2), ("alfred",20), ("peter",20) ]\
+\
+(since only `"alfred"` is less than `"fred"` in the standard lexicographical ordering).\
+\
+The macro that defines the `update` notation in terms of `\\_update` is:\
+[listing]\
+#update ?Ptn in ?Tgt with ?Exp ==> Tgt :=\
+   _update(Tgt,(() from Ptn), (Ptn) => Exp)\
+\
+\
+\
+=== `\\_delete` Elements from a Collection\
+[[delete]]\
+The `\\_delete` function is used to remove selected elements from a collection.\
+[listing]\
+_delete has type for all r,t such that (r, ()<=t) => r\
+                  where updateable over r determines t\
+\
+This function takes two arguments: the collection to be updated and a <<Pattern>> to identify which elements of the collection to remove.\
+\
+\\begin\{aside\}\
+The <<UpdateAction>> notation for `delete` hides the explicit existence of the pattern abstraction.\
+\\end\{aside\}\
+\
+The `\\_delete` function `tests' each element of the collection to see if it should be deleted.\
+\
+For example, to delete all entries in `R`  whose second element is less than 10 we can use the action:\
+[listing]\
+delete ((N,X) where X<10) in R\
+\
+This last action would change `R` to:\
+[listing]\
+list of [("fred", 23), ("alfred",20), ("peter",20)]\
+\
+\
+The macro that defines the `delete` notation in terms of `\\_delete` is:\
+[listing]\
+#delete ?Ptn in ?Tgt with ?Exp ==> Tgt := _delete(Tgt,(() from Ptn))\
+\
+\
+\
+== The `explosion` Contract\
+[[explosionContract]]\
+The `explosion` contract defines what it means to `pack' or 'unpack' a collection. Many sequences have a dual nature: for example `string`s can be viewed as compact entities that are effectively atomic, or as sequences of characters.\
+\
+When exploding a `string`, the result is a sequence of `integer`s -- each representing a separate _code point_ in the string. This form is useful when the contents of the `string` needs to be processed and the former is useful when `string`s are processed as a whole.\
+\
+\\begin\{aside\}\
+Exploding a string into code points does not guarantee a unique decomposition. Some unicode characters have multiple representations as codepoints. However, alternate decompositions are guaranteed to be semantically equivalent.\
+\\end\{aside\}\
+\
+The explosion contract is defined in Program~\\vref\{explosionContractProg\}.\
+\
+\\begin\{program\}[H]\
+[listing]\
+contract explosion over (coll,packed) is \{\
+  implode has type (coll)=>packed;\
+  explode has type (packed) => coll;\
+\}\
+\
+.The `explosion` Contract[[explosionContractProg]]\
+\\end\{program\}\
+\
+=== `implode` -- Implode a Collection in packed form\
+[[implodeFunction]]\
+(((explosion contract@`explosion` contract,implode`implode`)))\
+(((pack a collection)))\
+\
+[listing]\
+implode has type for all coll, packed such that\
+  (coll)=>packed where explosion over (coll,packed)\
+\
+\
+\\noindent\
+The `implode` function takes a collection and packs it into a suitably compressed form -- whose type depends on the implementation.\
+\
+\\begin\{aside\}\
+One typical use is to implode a `cons` list of `integer`s (which are interpreted as unicode code points) into a `string`.\\end\{aside\}\
+\
+=== `explode` -- Explode a Packed Entity into a Collection\
+[[explodeFunction]]\
+(((explosion contract@`explosion` contract,explode`explode`)))\
+(((un a collection)))\
+\
+[listing]\
+explode has type has type for all coll, packed such that\
+  (packed) => coll of el where explosion over (coll,packed)\
+\
+\
+\\noindent\
+The `explode` function takes a packed object and expands it into a suitable collection.\
+\
+\\begin\{aside\}\
+One typical use is to explode a `string` into a `cons` list of `integer` code points.\\end\{aside\}\
+\
+== The `list` Type\
+[[arrayType]]\
+The `list` type is a standard type that has implementations of several contracts, including the `sequence`, `indexable`, `sizeable`, `iterable` and `foldable` contracts.\
+\
+The `list` type's implementation is optimized for random access: i.e., for its implementation of the `indexable` contract.\
+\
+=== List Literal Expressions and Patterns\
+[[listLiteral]]\
+(((list@`list`,literal)))\
+Since the `list` type implements the `sequence` contract, the standard sequence notation can be used to represent list values and patterns (see <<sequenceExpression>> and <<sequencePattern>>). I.e., an expression of the form:\
+[listing][escapechar=|]\
+list of [E|\\sub1\\sequence\{,\}|E|\\subn|]\
+\
+denotes the `list` of elements `E\\sub1` through `E\\subn`.\
+\
+For example:\
+[listing]\
+list of [1, 3, -10, 5]\
+\
+denotes an list[four] `integer` elements. The expression:\
+[listing]\
+list of []\
+\
+denotes the empty `list`. Partial `list` expressions are also permitted:\
+[listing]\
+list of [1, 3, -10 ,.. X]\
+\
+denotes the result of `cons`ing the elements `1`, `3` and `-10` to the front of the list `X`.\
+\\begin\{aside\}\
+The `tail' of an `list of` expression must also be an `list` value.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+Of course, in most cases the `tail' part of a partial `list` pattern is denoted by a variable. In which case the tail variable is bound to a `list` that denotes the appropriate remainder of the `list`.\
+\
+For example, if the pattern `list of [X1,X2,..Tl]` is matched against:\
+[listing]\
+list of [1, 2, 3, 4, 5]\
+\
+then the variables `X1` and `X2` will be bound to `1` and `2` respectively, and `Tl` will be bound to:\
+[listing]\
+list of [3, 4, 5]\
+\
+\\end\{aside\}\
+\
+== The `cons` Type\
+[[consType]]\
+The `cons` type is a list type that implements the contracts `sequence`, `indexable`, `sizeable` and `iterable`. It is optimized for sequential processing. Unlike the `list` type, it is defined as a regular <<AlgebraicType>> -- as can be seen in Program~\\vref\{consTypeProg\}.\
+\
+\\begin\{program\}[H]\
+[listing]\
+type cons[t] is nil or cons(t,cons[t])\
+\
+.The Standard `cons` Type[[consTypeProg]]\
+\\end\{program\}\
+\
+The <<SequenceExpression>> and <<SequencePattern>> notations also apply to `cons` terms. So, an expression of the form\
+[listing]\
+cons of ["alpha", "beta", "gamma"]\
+\
+is equivalent to\
+[listing]\
+cons("alpha", cons("beta", cons("gamma",Nil)))\
+\
+\
+\\begin\{aside\}\
+The `cons` implementation of the `sequence` contract is asymmetric: `\\_cons`ing an element to the front of the `cons` sequence if fundamentally a constant-time operation; as is the corresponding match using `\\_pair`. However, the `\\_apnd` and `\\_back` operations are _linear_ on the size of the `cons` list.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+The cost of `indexing' an element of a `cons` structure is linear on the size of the `cons` list. Thus `cons` lists are probably not a good choice for representing data that requires such indexed access.\
+\\end\{aside\}\
+\
+== The `queue` Type\
+[[queueType]]\
+The `queue` type is a sequence type that is symmetric to adding/removing elements from the front or the back. It is defined by the standard definition as shown in Program~\\vref\{queueTypeProg\}.\
+\
+\\begin\{program\}\
+[listing]\
+type queue of t is queue\{\
+  front has type cons[t]; -- The 'front' portion of the queue\
+  back has type cons[t];  -- The 'back' portion of the queue\
+\}\
+\
+.The Standard `queue` Type[[queueTypeProg]]\
+\\end\{program\}\
+\\begin\{aside\}\
+The elements in the `front` and `back` portions of the `queue` are stored in insertion order -- that is, they are reversed with respect to each other. This may require occasional reversing of either the `front` or `back` portions of the `queue`.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+The amortized cost of reversing the `front`  or `back` portions of the `queue` is linear on the size of the `queue`; and hence is constant for any given element. Indeed, if a `queue` is used exclusively as a queue: inserting elements at one end and removing them from the other end then all insert and deletion operations have constant time.\
+\\end\{aside\}\
+\
+\\begin\{aside\}\
+The cost of `indexing' an element of a `queue` structure is linear on the size of the `queue`. Thus `queue`s are probably not a good choice for representing data that requires such indexed access.\
+\\end\{aside\}\
+}

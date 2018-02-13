@@ -1,2 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Favorites Version="1.0"></Favorites>
+<Favorites Version="1.0">
+    <MoveTo>
+        <Recent>
+            <UUID Date="2018-02-11 20:33:19 -0800">46B27619-B0EA-4E99-A9D4-953153A414AF</UUID>
+        </Recent>
+        <Popular>
+            <UUID Used="1" Date="2018-02-11 20:33:19 -0800">46B27619-B0EA-4E99-A9D4-953153A414AF</UUID>
+        </Popular>
+    </MoveTo>
+</Favorites>

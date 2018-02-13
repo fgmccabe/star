@@ -91,14 +91,672 @@
 <p class="topLevelItemTitle">Foreword</p>
 </li>
 <li>
-<p class="topLevelItemTitle">Chapter</p>
+<p class="topLevelItemTitle">Introduction</p>
+<p class="itemText">Star is a high-level symbolic programming language oriented to the needs of large-scale high performance processing in modern parallel and distributed computing environments.</p>
+<p class="itemText">Star is a functional-first language -- in that functions and other programs are first class values. However, it is explicitly not a pure language: it has support for updatable variables and structures. However, its bias is definitely in favor of functional programming and in order to get the best value from programming in S...</p>
 </li>
-<hr class="afterTitle"/>
+<hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Section</p>
+<p class="itemTitle">About This Reference</p>
+<p class="itemText">This reference is the language definition of the Star language. It is intended to be thorough and as precise as possible in the features discussed. However, where appropriate, we give simple examples as illustrative background to the specification itself.</p>
+</li>
+<li>
+<p class="itemTitle">Syntax Rules</p>
+<p class="itemText">Throughout this document we introduce many syntactic features of the language. We use a variant of traditional BNF grammars to do this. The meta-grammar can be described using itself; as shown below.</p>
+
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Meta Grammar</p>
+<p class="itemText"></p>
+<p class="itemText">MetaGrammar ::= Production .. Production</p>
+<p class="itemText">Production ::= NonTerminal ::=  Body</p>
+<p class="itemText">Production ::+= NonTerminal ::+= Body</p>
+<p class="itemText">Body ::= Quoted | NonTerminal | Choice | Optional | Sequence | ( Body )</p>
+<p class="itemText">Quoted ::= Characters</p>
+<p class="itemText">NonTerminal ::= Identifier</p>
+<p class="itemText">Choice ::= Body |..| Body</p>
+<p class="itemText">Optional ::= [ Body ]</p>
+<p class="itemText">Sequence ::= Body  op .. op Body [+]</p>
+<p class="itemText">Meta-Grammar Used in this Reference</p>
+<p class="itemText">Some grammar combinations are worth explaining as they occur quite frequently and may not be standard in BNF-style grammars. For example the ...</p>
 </li>
 </ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Typographical Conventions</p>
+<p class="itemText">Any text on a programming language often has a significant number of examples of programs and program fragments. In this reference, we show these using a typewriter-like font, often broken out in a display form:</p>
+<p class="itemText">...</p>
+<p class="itemText">P : integer</p>
+<p class="itemText">...</p>
+<p class="itemText">We use the ... ellipsis to explicitly indicate a fragment of a program that is embedded in a context.</p>
+<p class="itemText">Occasionally, we have to show a somewhat generic fragment of a program where you, the programmer, are expected to put your own text in. We highlight such areas using ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Syntax</p>
+<p class="itemText">Given the extensible nature of Star, this description of syntax focuses on the term-level syntax: well formed forms of the language. This is composed of two layers: the lexical syntax which defines legal tokens and the grammar which defines legal combinations of tokens.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Lexical Syntax</p>
+<p class="itemText">Star source text is based on the Unicode character set. This means that identifiers and string values may directly use any Unicode characters. However, all the standard operators and keywords fall in the ASCII subset of Unicode.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Comments and White Space</p>
+<p class="itemText"></p>
+<p class="itemText">Input is tokenized according to rules that are similar to most modern programming languages: contiguous sequences of characters are assumed to belong to the same token unless the class of character changes -- for example, a punctuation mark separates sequences of letter characters. In addition, white space and comments serve as token boundaries; otherwise white space and comments are ignored by the higher-level semantics of the language.</p>
+<p class="itemText">Ignorable ::= LineComment</p>
+<p class="itemText"> | BlockComment</p>
+<p class="itemText"> | WhiteSpace</p>
+<p class="itemText">I...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Line Comment </p>
+<p class="itemText">A line comment consists of a --  (a double dash followed by a space) or a --\t followed by all characters up to the next new-line. Here,  \t refers to the Horizontal Tab.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">LineComment ::= (--  | --\t) Char .. Char \n</p>
+<p class="itemText">Line Comment</p>
+</li>
+<li>
+<p class="itemTitle">Block Comment</p>
+<p class="itemText">A block comment consists of the characters /* followed by any characters and terminated by the characters */.</p>
+<p class="itemText"></p>
+<p class="itemText">BlockComment ::= /* Char .. Char */</p>
+<p class="itemText">Block Comment</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">Each form of comment overrides the other: a /* sequence in a line comment is not the start of a block comment, and a --  sequence in a block comment is similarly not the start of a line comment but the continuation of the block comment.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Number Literals</p>
+<p class="itemText">Star supports integer values, floating point values, and character codes as numeric values.</p>
+<p class="itemText">NumericLiteral ::= IntegerLiteral</p>
+<p class="itemText">  | Hexadecimal</p>
+<p class="itemText">  | FloatingPoint</p>
+<p class="itemText">  | CharacterCode</p>
+<p class="itemText">Numeric Literals</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP] The lexical syntax for numeric values is for positive values only. The interpretation of negative numeric literals is part of the grammar, not the lexical notation.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Integer Literals</p>
+<p class="itemText">An integer is written using the normal decimal notation:</p>
+<p class="itemText">1  34 -99</p>
+<p class="itemText"></p>
+<p class="itemText">IntegerLiteral::=Digit ... Digit+</p>
+<p class="itemText">Digit::=0|1|2|3|4|5|6|7|8|9</p>
+<p class="itemText">Integer Literals</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP]</p>
+<p class="itemText">All integers are represented as at least 64 bit values.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Hexadecimal Integers</p>
+<p class="itemText">A hexadecimal number is an integer written using hexadecimal notation. A hexadecimal number consists of a leading 0x followed by a sequence of hex digits. For example,</p>
+<p class="itemText">0x0 0xff 0x34fe</p>
+<p class="itemText">are all hexadecimals.</p>
+<p class="itemText"></p>
+<p class="itemText">Hexadecimal::= 0x Hex ... Hex+</p>
+<p class="itemText">Hex::= 0|1|2|3|4|5|6|7|8|9|a|b|c|d|e|f</p>
+<p class="itemText">Hexadecimal numbers</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Floating Point Numbers</p>
+<p class="itemText">Floating point numbers are written using a notation that is familiar. For example,</p>
+<p class="itemText">234.45  1.0e45</p>
+<p class="itemText"></p>
+<p class="itemText">The notation for floating point is:</p>
+<p class="itemText">FloatingPoint::=Digit ... Digit+ .  Digit ... Digit+ [e[-]Digit …Digit+]]</p>
+<p class="itemText">Floating Point numbers</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP] All floating point number are represented to a precision that is at least equal to 64-bit double precision. There is no equivalent of single-precision floating pointer numbers.</p>
+</li>
+<li>
+<p class="itemTitle">Character Codes</p>
+<p class="itemText">The character code notation allows a number to be based on the coding value of a character. Any Unicode character code point can be entered in this way:</p>
+<p class="itemText">0cX 0c[ 0c\n 0c</p>
+<p class="itemText"></p>
+<p class="itemText">For example, 0c\n is the code point associated with the new line character, i.e., its value is 10.</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP] Unicode has the capability to represent up to one million character code points.</p>
+<p class="itemText"></p>
+<p class="itemText">CharacterCode::=0cCharRef</p>
+<p class="itemText">Character Codes</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP] A CharacterCode is an integer. This notation allows string processing programs to represent c...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Strings and Characters</p>
+<p class="itemText">A string consists of a sequence of characters -- specifically CharRefs. There is no specific type in Star for the characters themselves.</p>
+<p class="itemText"></p>
+<p class="itemText">[CAUTION] The reasons for this are due to the fact that Unicode string values cannot be easily represented as a unique sequence.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Character Reference</p>
+<p class="itemText">A CharRef is a denotation of a single character.</p>
+<p class="itemText"></p>
+<p class="itemText">CharRef ::= Char | Escape</p>
+<p class="itemText">Escape::=\b|\d|\e|\f|\n|\r|\t|\v |\ Char | \u Hex ... Hex;</p>
+<p class="itemText">Character Reference</p>
+<p class="itemText"></p>
+<p class="itemText">For most characters, the character reference for that character is the character itself. For example, the string "T" contains the character T. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically writt...</p>
+</li>
+<li>
+<p class="itemTitle">Quoted Strings</p>
+<p class="itemText">A string is a sequence of character references (CharRef) enclosed in double quotes; alternately a string may take the form of a triple-quoted BlockString. In addition, quoted strings support interpolation — expressions that are embedded in a string and are formatted in place.</p>
+<p class="itemText"></p>
+<p class="itemText">StringLiteral ::= " StrChar ... StrChar “ | BlockString</p>
+<p class="itemText">StrChar ::= CharRef | Interpolation</p>
+<p class="itemText">Interpolation ::= [$| #] Identifier [FormattingSpec]]</p>
+<p class="itemText">  |[$| #] ( Expression ) [FormattingSpec ]</p>
+<p class="itemText">FormattingSpec ::= : CharRef ... ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Block String </p>
+<p class="itemText">In addition to the normal notation for strings, there is a block form of string that permits raw character data to be processed as a string.</p>
+<p class="itemText"></p>
+<p class="itemText">BlockString::=""" Char ... Char """</p>
+<p class="itemText">Block String Literal</p>
+<p class="itemText">The block form of string allows any characters in the text and performs no interpretation of those characters.</p>
+<p class="itemText">Block strings are written using triple quote characters at either end. Any new-line characters enclosed by the block quotes are considered to be part of the strings.</p>
+<p class="itemText">The normal interpretatio...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Identifiers</p>
+<p class="itemText">Identifiers are used to denote operators, keywords and variables. There are four main kinds of identifier: regular alpha-numeric identifiers, graphic identifiers, multi-word identifiers and quoted identifiers. However, semantically, all these are essentially equivalent: they all identify some variable or some type.</p>
+<p class="itemText">Identifier::=AlphaNumeric</p>
+<p class="itemText">  | MultiWordIdentifier</p>
+<p class="itemText">  | GraphicIdentifier</p>
+<p class="itemText">  | QuotedIdentifier</p>
+<p class="itemText">Identifier Syntax</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Alphanumeric Identifiers</p>
+<p class="itemText">Identifiers in Star are based on the Unicode definition of identifier. For the ASCII subset of characters, the definition corresponds to the common form of identifier -- a letter followed by a sequence of digits and letters. However, non-ASCII characters are also permitted in an identifier.</p>
+<p class="itemText">AlphaNumeric::=LeadChar BodyChar ...BodyChar</p>
+<p class="itemText"></p>
+<p class="itemText">LeadChar::=LetterNumber</p>
+<p class="itemText">  | LowerCase</p>
+<p class="itemText">  | UpperCase</p>
+<p class="itemText">  | TitleCase</p>
+<p class="itemText">  | OtherNumber</p>
+<p class="itemText">  | OtherLetter</p>
+<p class="itemText">  | ConnectorPunctuation</p>
+<p class="itemText"></p>
+<p class="itemText">BodyChar::=LeadChar</p>
+<p class="itemText">  | ModifierLetter...</p>
+</li>
+<li>
+<p class="itemTitle">Multi-word Identifiers</p>
+<p class="itemText">Multi-word Identifiers</p>
+<p class="itemText">(((identifier,multi-word)))</p>
+<p class="itemText">(((multiple word identifiers)))</p>
+<p class="itemText"></p>
+<p class="itemText">A <<MultiWordIdentifier>> is an <<Identifier>> that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a <<MultiWordIdentifier>> is logically a _single_ identifier. For example, the combination of words:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">such that</p>
+<p class="itemText"></p>
+<p class="itemText">is logically a single multi-word identifier whose name is `such that`.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[multiWordIentifierFig]]</p>
+<p class="itemText">.Multi-Word Identifier</p>
+<p class="itemText">****</p>
+<p class="itemText">[[MultiWordIdentifie...</p>
+</li>
+<li>
+<p class="itemTitle">Punctuation Symbols and Graphic Identifiers</p>
+<p class="itemText">The standard operators often have a graphic form -- such as +, and =<. <<standardGraphicsTable>> contains a complete listing of all the standard graphic-form identifiers.</p>
+<p class="itemText"></p>
+<p class="itemText">GraphicIdentifier ::= SymbolicChar .. SymbolicChar</p>
+<p class="itemText">SymbolicChar ::= Char excepting BodyChar</p>
+<p class="itemText">Graphic Identifiers</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">`!` | `#<` |`%%` | `-->` | `:!` | `;` | `=>` | `\|` |</p>
+<p class="itemText">`!`=| `#<>` | `*` | `->` | `:\|` | `;*` | `\|>` | `*` |</p>
+<p class="itemText">`#` | `#@` | `**` | `.` | `:*` | `<` |`<\|` | `>` |</p>
+<p class="itemText">`##` | `+` | `..,` |`:+` |`<=` | `>=` | `~` |</p>
+<p class="itemText">`\`#\$...</p>
+</li>
+<li>
+<p class="itemTitle">Operator Defined Tokens</p>
+<p class="itemText">When a new operator is defined -- see <<newOperator>> -- it may be that it takes the form of a normal identifier; as in:</p>
+<p class="itemText">#infix("hello",50)</p>
+<p class="itemText">However, it is also possible to define an operator from special characters:</p>
+<p class="itemText">#prefix("||",80);</p>
+<p class="itemText">The operator identifier — || — is not a normal alphanumeric identifier.</p>
+<p class="itemText">When such a declaration is processed, the tokenizer extends itself to include the new operator identifier as a valid token. Hence an operator may be constructed out of any characters.</p>
+<p class="itemText"></p>
+<p class="itemText">[WARNING]...</p>
+</li>
+<li>
+<p class="itemTitle">Quoted Identifiers</p>
+<p class="itemText">A quoted identifiers is denoted by a sequence of CharRefs enclosed in single quotes. Recall that strings are enclosed in double quotes.</p>
+<p class="itemText">QuotedIdentifier ::= 'StrChar .. StrChar'</p>
+<p class="itemText">Quoted Identifier</p>
+<p class="itemText">A quoted identifier suppresses any operator or keyword interpretation that the identifier might otherwise have.</p>
+<p class="itemText">[TIP] This can be useful for external facing interfaces where, for example, the name of a field in a structure must have a particular form -- even if that would otherwise be a keyword.</p>
+
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Standard Keywords</p>
+<p class="itemText">There are a number of keywords which are reserved by the language -- these may not be used as identifiers or in any other role.</p>
+<p class="itemText"></p>
+<p class="itemText">This table lists the standard keywords:</p>
+<p class="itemText"></p>
+<p class="itemText">`memo` | `request` |</p>
+<p class="itemText">`for` | `merge` | `spawn` |</p>
+<p class="itemText">`alias` | `all` | `not` | `substitute` |</p>
+<p class="itemText">`all` |</p>
+<p class="itemText">`and` | `from` | `notify` | `suchthat` |</p>
+<p class="itemText">`any` | `fun` | `of` | `switch` |</p>
+<p class="itemText">`any of` | `function` | `on` | `sync` |</p>
+<p class="itemText">`has` | `on abort` | `then` |</p>
+<p class="itemText">`as` | `has kind` | `open` | `to` |</p>
+<p class="itemText">`assert` | `has type` | `or` | `try` |</p>
+<p class="itemText">`bound to` |...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Grammar</p>
+<p class="itemText">= Grammar</p>
+<p class="itemText">[[Grammar]]</p>
+<p class="itemText"></p>
+<p class="itemText">The grammar of Star is based on a notation which makes extensibility easier to achieve. Thus, at the core, the grammar is very simple and straightforward -- it is based on an _operator precedence grammar_.</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP]</p>
+<p class="itemText">This choice gives us two key benefits: it is simple to understand and it is simple to extend. The latter is particularly important in Star as a significant part of its functionality is derived from _profiles_ which are similar to macros.</p>
+<p class="itemText"></p>
+<p class="itemText">However, it also makes ce...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Types</p>
+<p class="itemText">[[types]]</p>
+<p class="itemText">= Types</p>
+<p class="itemText">(((type system)))</p>
+<p class="itemText">Star is a strongly, statically, typed language. That means that all values and all variables must have a unique well-defined type that is determinable by inspecting the text of the program -- effectively at `compile time'.</p>
+<p class="itemText"></p>
+<p class="itemText">The type system of Star consists of a method for declaring new types, for annotating variables (and by extension programs) with their types and a system of verifying the type consistency of programs.</p>
+<p class="itemText"></p>
+<p class="itemText">== What is a Type?</p>
+<p class="itemText">A <<Type>> is an exp...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Programs</p>
+<p class="itemText">= Programs</p>
+<p class="itemText">[[programs]]</p>
+<p class="itemText"></p>
+<p class="itemText">This chapter focuses on the organization of programs using functions, procedures and other computational forms. Apart from program values themselves, a key concept is the <<thetaEnvironment>>. This is where many programs, types etc. are defined. <<thetaEnvironment>>s are also first-class values -- showing up as <<AnonymousRecord>>s.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[thetaEnvironment]]</p>
+<p class="itemText">== Theta Environment</p>
+<p class="itemText">(((theta environment)))</p>
+<p class="itemText">(((program declaration)))</p>
+<p class="itemText"></p>
+<p class="itemText">A <<thetaEnvironment>> consists of a set of d...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Expressions</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Expressions</p>
+<p class="itemText">[[expressions]]</p>
+<p class="itemText"></p>
+<p class="itemText">An expression is a form that denotes a _value_. Evaluation is the computational process of realizing the denoted value.</p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[Expression]]Expression::=<<Variable>>\\</p>
+<p class="itemText">  | <<ScalarLiteral>>\\</p>
+<p class="itemText">  | <<AlgebraicConstructor>>\\</p>
+<p class="itemText">  | <<ApplicativeExpression>>\\</p>
+<p class="itemText">  | <<ConditionalExpression>>\\</p>
+<p class="itemText">  | <<CaseExpression>>\\</p>
+<p class="itemText">  | <<Condition>>\\</p>
+<p class="itemText">  | <<LetExpression>>\\</p>
+<p class="itemText">  | <<ValueExpression>>\\</p>
+<p class="itemText">  | <<AnonymousFunction>>\\...</p>
+</li>
+<li>
+<p class="itemTitle">Variables</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Variables</p>
+<p class="itemText">[[variables]]</p>
+<p class="itemText"></p>
+<p class="itemText">(((variable)))</p>
+<p class="itemText">(((expressions,variable)))</p>
+<p class="itemText"></p>
+<p class="itemText">A <<Variable>> is a placeholder that denotes a value. Variables may be used to denote many kinds of values -- arithmetic values, complex data structures and programs.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[Variable]]Variable::=<<Identifier>></p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">\vskip-1.5ex.Variables[[variableFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">Any given variable has a single type associated with it and may only be boun...</p>
+</li>
+<li>
+<p class="itemTitle">Patterns</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Patterns</p>
+<p class="itemText">[[patterns]]</p>
+<p class="itemText">(((patterns)))</p>
+<p class="itemText">Patterns are templates that are used to match against a value; possibly binding one or more variables to components of the matched value. Patterns are used as guards in equations, as filters in query expressions and in `for` loops. Patterns represent one of the fundamental mechanisms that can guide the course of a computation.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[Pattern]]Pattern::=<<ScalarPattern>>\\</p>
+<p class="itemText">  | <<Variable>>\\</p>
+<p class="itemText">  | <...</p>
+</li>
+<li>
+<p class="itemTitle">Conditions</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Conditions</p>
+<p class="itemText">[[conditions]]</p>
+<p class="itemText">Conditions are used to express constraints. For example, a `where` pattern (see <<guardPattern>>) uses a condition to attach a semantic guard to a pattern. Conditions are also as guards on _equations_ (see <<equations>>) and in other forms of rule.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">Conditions should not be confused with `boolean`-values expressions; the fundamental semantics of conditions is based on _satisfiability_ -- not _evaluation_ -- see <<querySemantic...</p>
+</li>
+<li>
+<p class="itemTitle">Grammar Rules</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Parsing Text</p>
+<p class="itemText">[[parsing]]</p>
+<p class="itemText"></p>
+<p class="itemText">String processing is one of the most important functions in many applications. In addition to the use of regular expressions for basic string processing, there is also support for more powerful string processing in the form of a built-in grammar notation.</p>
+<p class="itemText">(((parsing text)))</p>
+<p class="itemText">(((text parsing)))</p>
+<p class="itemText">(((string,parsing)))</p>
+<p class="itemText">(((grammar notation)))</p>
+<p class="itemText"></p>
+<p class="itemText">Program~\vref{exprGrammar} shows a simple example of a grammar that can be used to parse and evaluate simp...</p>
+</li>
+<li>
+<p class="itemTitle">Macros</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Macro Language</p>
+<p class="itemText">[[MacroLanguage]]</p>
+<p class="itemText">The macro language supports the rewriting of parse tree structures -- prior to type checking.</p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">The fact that macro processing applies before type checking implies that it is both possible and required to translate non-native Star program fragments into Star programming constructs.</p>
+<p class="itemText">\end{aside}</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">As a result it is not possible to use the macro  language to construct a program expression that is unparsable -- al...</p>
+</li>
+<li>
+<p class="itemTitle">Packages</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Packages and Libraries</p>
+<p class="itemText">[[packages]]</p>
+<p class="itemText">(((package@`package` structure)))</p>
+<p class="itemText">A <<Package>> represents a `unit of compilation' -- i.e., the contents of a source file.</p>
+<p class="itemText"></p>
+<p class="itemText">(((libraries)))</p>
+<p class="itemText">Star libraries are built using a combination of <<Package>>s and catalogs. A catalog is a mapping from names to locations that is used to inform the Star language system of the physical locations of <<Package>>s.</p>
+<p class="itemText"></p>
+<p class="itemText">== Package Structure</p>
+<p class="itemText">[[packageStructure]]</p>
+<p class="itemText">(((what is in a package@what is in a `p...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Computation</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Computation Expressions</p>
+<p class="itemText">[[computation]]</p>
+<p class="itemText">Computation expressions are a special form of expression notation that permits computations to be performed in an augmented fashion. One standard example is the `task` expression -- see <<concurrent>> -- where the computations identified may be performed in parallel or asynchronously.</p>
+<p class="itemText"></p>
+<p class="itemText">The core concepts behind <<ComputationExpression>>s are captured in three contracts -- the  `computation` contract (see Program~\vref{computatio...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Actions</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Actions</p>
+<p class="itemText">[[actions]]</p>
+<p class="itemText">(((action)))</p>
+<p class="itemText"></p>
+<p class="itemText">An action is the performance of an operation in a particular context.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[Action]]Action::=<<NullAction>>\ |\ <<ActionBlock>>\\</p>
+<p class="itemText">  | <<LocalVariable>>\ |\ <<TypeAnnotation>>\\</p>
+<p class="itemText">  | <<Assignment>>\ |\ <<InvokeAction>>\ |\ <<IgnoreAction>>\\</p>
+<p class="itemText">  | <<ForLoop>>\ |\ <<WhileLoop>>\ |\ <<ConditionAction>>\\</p>
+<p class="itemText">  | <<SwitchAction>>\ |\ <<LetAction>>\\</p>
+<p class="itemText">  | <<ValisAction>>\ |\ <<AssertAction>>\\</p>
+<p class="itemText">  | <<AbortAction...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Strings</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Strings</p>
+<p class="itemText">[[strings]]</p>
+<p class="itemText">A string is a sequence of Unicode characters that denotes a fragment of text. This chapter focuses on the built-in functions that are based on the `string` type.</p>
+<p class="itemText"></p>
+<p class="itemText">== The Structured String `pP` Type</p>
+<p class="itemText">[[ppType]]</p>
+<p class="itemText">(((pP type)))</p>
+<p class="itemText">(((type,pP@`pP`)))</p>
+<p class="itemText">The `pP` type -- as defined in Program~\vref{ppTypeProg} -- denotes a `structured `string`' value where the structure may be used to represent lines, sub sequences and so on.</p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">A primary purpose of...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Sequences</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Sequences and Collections</p>
+<p class="itemText">[[lists]]</p>
+<p class="itemText">[[listExpressions]]</p>
+<p class="itemText">(((list expression)))</p>
+<p class="itemText">(((expressions,list)))</p>
+<p class="itemText">There are many primary contracts that together relate to collections and sequences:</p>
+<p class="itemText">\begin{description}</p>
+<p class="itemText">`concatenate`:: defines what it means to concatenate two collections.</p>
+<p class="itemText">`explosion`:: defines the twin functions of explode and implode. Typically used to inspect and pack scalar entities.</p>
+<p class="itemText">`foldable`:: is a contract that defines the classic `fold' functions of leftFol...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Associative Dictionaries</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Associative Dictionaries</p>
+<p class="itemText">[[associativeMap]]</p>
+<p class="itemText"></p>
+<p class="itemText">(((expressions,associative dictionary)))</p>
+<p class="itemText">(((associative dictionary expression)))</p>
+<p class="itemText">Dictionaries allow the programmer to establish an associative mapping between pairs of elements. They are convenient when it is not known what the actual elements of the association will be at design time.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">An important property of dictionaries is that there can be at most _one_ value associated with a given key. This is one of t...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Numeric Expressions</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Numeric Expressions</p>
+<p class="itemText">[[numbers]]</p>
+<p class="itemText">(((expressions,arithmetic)))</p>
+<p class="itemText"></p>
+<p class="itemText">The basis of artithmetic expressions are several contracts: the `arithmetic` contract which provides definitions of the familiar `calculator' functions of `+`, `-`, `*` and `/`; the `math` contract which defines the extended set of mathematical functions; the `trig` contract which defines standard trigonometric functions; and the `bitstring` contract which gives definitions for bitwise manipulation of inte...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Queries</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Queries</p>
+<p class="itemText">[[queries]]</p>
+<p class="itemText">(((queries)))</p>
+<p class="itemText">A <<Query>> is an expression that denotes a value implicitly -- by operations and constraints on other identified values. Typically, the result of a query is an `list` but it may be of any <<Type>> -- provided that it implements the `sequence` contract.</p>
+<p class="itemText"></p>
+<p class="itemText">There are several `flavors' of query: the `all` query (shown in <<allSolutionsFig>>) projects a subset over one or more base collections; the _N_ `of` query extracts a list containin...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Concurrency</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Concurrent Execution</p>
+<p class="itemText">[[concurrent]]</p>
+<p class="itemText">(((concurrent execution)))</p>
+<p class="itemText">(((execution,parallel)))</p>
+<p class="itemText"></p>
+<p class="itemText">Concurrent and parallel execution of Star programs involves two inter-related concepts: the `task` and the `rendezvous`. A `task` is a form of <<ComputationExpression>> with support for parallel and asynchronous execution.  A `rendezvous` represents a `meeting place' between two or more independent activities. In particular, messages may be exchanged between `task`s at a `rendezv...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Time and Date</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">\chapter{Date and Time}</p>
+<p class="itemText">\label{dateAndTime}</p>
+<p class="itemText"></p>
+<p class="itemText">\section{The `date` Type}</p>
+<p class="itemText">Date and time support revolves around the `date` built-in type. The type definition for `date` is straightforward:</p>
+<p class="itemText"></p>
+<p class="itemText">[listing]</p>
+<p class="itemText">type date is date(\_long) or never</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">The `\_long` argument to the constructor is a so-called `raw value', not to be confused with the `long` built-in type (see <<longType>>). The `\_long` value is the number of milliseconds since Jan 1, 1970.</p>
+<p class="itemText"></p>
+<p class="itemText">Under normal circu...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Actors</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Actors</p>
+<p class="itemText">[[actors]]</p>
+<p class="itemText">(((actors)))</p>
+<p class="itemText"></p>
+<p class="itemText">An `actor` is an encapsulation of behavior and state that is capable of interacting with other `actor`s. footnote:[Actors in Star should not be confused with Hewitt actors \cite{agha-hew:87}. Although both Hewitt actors and Star actors are a paradigm for distributed computing; Star actors are somewhat higher-level in that their primary mode of interaction is based on speech actions. Star actors are like actors in a play: they recite li...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Input Output</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Input and Output</p>
+<p class="itemText">[[io]]</p>
+<p class="itemText"></p>
+<p class="itemText">Input and output features include mechanisms for reading and writing streams of characters, mechanisms for accessing and navigating file directories and mechanisms for the appropriate formatting and parsing of data.</p>
+<p class="itemText"></p>
+<p class="itemText">The I/O streaming features are organized into a number of layers:</p>
+<p class="itemText">\begin{itemize}</p>
+<p class="itemText">\item At the `block' layer, an I/O operation is represented as a `task` -- see <<concurrent>> and <<computation>>. The value of an input task is ty...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Threads</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Concurrent Execution</p>
+<p class="itemText">[[threads]]</p>
+<p class="itemText">(((Concurrent execution)))</p>
+<p class="itemText">(((threads)))</p>
+<p class="itemText"></p>
+<p class="itemText">Concurrent execution involves the use of `spawn` (and the related parallel execution operator `//`) to initiate concurrent execution; together with a set of features intended to constrain that concurrent execution.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[Action]]Action&\arrowplus&<<ParallelAction>>\\</p>
+<p class="itemText">  | <<SpawnAction>>\\</p>
+<p class="itemText">  | <<WaitAction>>\\</p>
+<p class="itemText">  | <<SyncAction>>%\\</p>
+<p class="itemText">%  | <<AtomicAction>></p>
+<p class="itemText">\end{...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">System Functions</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= System Functions</p>
+<p class="itemText">[[systemFunctions]]</p>
+<p class="itemText"></p>
+<p class="itemText">== Time Functions</p>
+<p class="itemText">[[timeFunctions]]</p>
+<p class="itemText">(((time functions)))</p>
+<p class="itemText"></p>
+<p class="itemText">=== `nanos` -- Time since start</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">nanos has type ()=>long</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">The `nanos` function returns the number of nanoseconds since the application started.</p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">Note that the returned time may not actually be accurate to the nearest nanosecond. The precise accuracy depends on the accuracy of the clock available to the operating system.</p>
+<p class="itemText">\end{aside}</p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">For ...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Concepts and Ontologies</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= Concepts and Ontologies</p>
+<p class="itemText">[[ontology]]</p>
+<p class="itemText"></p>
+<p class="itemText">Many programs have embedded within them numerous `constant' values that often denote specific concepts. Often these concepts refer to data that the program expects to see in its input at some point, or will produce in its output.</p>
+<p class="itemText"></p>
+<p class="itemText">Related to this, an application may need to be _internationalized_ -- that is, be translated for use in different countries by people speaking different languages -- and/or _localized_ -- that is, be pr...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">JSON</p>
+<p class="itemText">%!TEX root = reference.tex</p>
+<p class="itemText">= JSON</p>
+<p class="itemText">(((JSON}\index{Using the JSON type)))</p>
+<p class="itemText"></p>
+<p class="itemText">The JSON Infoset type, or just `json` type, allows values to be represented in a way that is easily digestible by many web-based tools -- including browsers. The `json` type is semantically equivalent to the JSON structure defined in \cite{rfc4627}. However, the `json` type represents a statically typed representation of JSON values.</p>
+<p class="itemText"></p>
+<p class="itemText">In addition to basic handling of JSON values, Star provides a form of path notation that a...</p>
+</li>
 </ul>
 
 </td>

@@ -7,15 +7,23 @@
         <ExpandedItems>
             <ItemID>7A583553-3A84-40D6-B9B9-0430B8CD3E39</ItemID>
             <ItemID>6C3BDCCC-F6C3-4AF9-B7CD-475616712EAE</ItemID>
+            <ItemID>30096F7F-91FE-4A55-BBAC-DBD62E601765</ItemID>
+            <ItemID>689098BC-F022-418B-9746-F26E3604F031</ItemID>
+            <ItemID>46B27619-B0EA-4E99-A9D4-953153A414AF</ItemID>
+            <ItemID>B6F16654-A4A9-459E-9FE1-F29E4F9AE7A7</ItemID>
+            <ItemID>EF396EE9-E3E7-41DD-B642-097B90152DE7</ItemID>
+            <ItemID>427761AB-26EB-418D-83B4-74B91E896759</ItemID>
+            <ItemID>2D319D51-FC64-4545-9CE4-45763E4BE291</ItemID>
+            <ItemID>6C073C2B-0171-43EF-A6AA-E34E11EBF7F9</ItemID>
             <ItemID>07B0D7C6-57CE-4D6F-8AD9-11F06A261A5F</ItemID>
             <ItemID>B0417A1B-D617-4CBD-900A-14A6AB12C289</ItemID>
             <ItemID>6B6E864E-D14F-4EF7-8C5F-1D489706989A</ItemID>
         </ExpandedItems>
         <Selection>
-            <ItemID>6C3BDCCC-F6C3-4AF9-B7CD-475616712EAE</ItemID>
+            <ItemID>46B27619-B0EA-4E99-A9D4-953153A414AF</ItemID>
         </Selection>
     </Binder>
-    <Inspector Show="Yes" View="Notes">
+    <Inspector Show="Yes" View="Comments">
         <ShowProjectBookmarks>No</ShowProjectBookmarks>
         <Collapse>CustomMetaData</Collapse>
         <FootnoteNumbers Prompt="No">No</FootnoteNumbers>
@@ -40,7 +48,7 @@
     <Text>
         <ShowFormatBar>Yes</ShowFormatBar>
         <UseVerticalLayout>No</UseVerticalLayout>
-        <ShowScriveningsTitles>No</ShowScriveningsTitles>
+        <ShowScriveningsTitles>Yes</ShowScriveningsTitles>
         <ShowInvisibles>No</ShowInvisibles>
         <RevisionMode>0</RevisionMode>
         <TextChecking>
@@ -60,11 +68,11 @@
             <View>
                 <ShowHeader>Yes</ShowHeader>
                 <ShowFooter>Yes</ShowFooter>
-                <GroupsViewMode>Corkboard</GroupsViewMode>
-                <CurrentViewMode>Corkboard</CurrentViewMode>
+                <GroupsViewMode>Scrivenings</GroupsViewMode>
+                <CurrentViewMode>Scrivenings</CurrentViewMode>
                 <SelectionAffects>None</SelectionAffects>
                 <Content>
-                    <ItemID>6C3BDCCC-F6C3-4AF9-B7CD-475616712EAE</ItemID>
+                    <ItemID>46B27619-B0EA-4E99-A9D4-953153A414AF</ItemID>
                 </Content>
             </View>
             <Text>
