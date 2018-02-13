@@ -21,7 +21,6 @@
 
 #define local(off) &(((ptrPo)FP)[-(off)-1])
 #define arg(off) (((ptrPo)(FP+1))+(off))
-#define free(off) (ENV->free[off])
 
 /*
  * Execute program on a given process/thread structure

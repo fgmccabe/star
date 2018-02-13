@@ -5,7 +5,6 @@
  */
 
 infixOp(". ",1899,1900,1900,"statement separator")
-infixOp("@",1254,1255,1255,"meta annotation")
 infixOp("::=",1249,1250,1249,"algebraic type definition")
 infixOp("|",1248,1249,1249,"type union and conditional")
 infixOp("?|",1248,1249,1249,"option or-else operator")
@@ -61,10 +60,11 @@ infixOp("<<",499,500,499,"string formatting")
 infixOp("%%",499,500,499,"grammar parse")
 infixOp("~",489,499,489,"grammar remainder")
 infixOp("•",450,450,449,"function composition")
-infixOp(".",450,450,449,"object access")
 infixOp("?.",450,450,449,"optional object access")
-lastInfOp
+infixOp("@",399,400,400,"meta annotation")
 infixOp("::",399,400,399,"type coercion")
+lastInfOp
+infixOp(".",100,100,99,"object access")
 
 prefixOp("#",1750,1749,"Macro statement marker")
 prefixOp("private",1700,1699,"private program")
@@ -73,7 +73,6 @@ prefixOp("assert", 1260,1259,"assert condition")
 prefixOp("show", 1260,1259,"display debug message")
 prefixOp("contract",1260,1259,"contract definition")
 prefixOp("implementation",1260,1259,"contract implementation")
-prefixOp("@",1255,1255,"meta annotation")
 prefixOp("type",1251,1250,"type marker")
 prefixOp("all",1010,1009,"universal quantifier")
 prefixOp("exists",1010,1009,"existential quantifier")
@@ -84,6 +83,7 @@ prefixOp("import",900,899,"import module")
 prefixOp("return",899,890,"wrap value in monad")
 prefixOp("raise",899,890,"error return in monad")
 prefixOp(".~.",650,649,"bitwise 1's complement")
+prefixOp("@",400,399,"meta annotation")
 lastPreOp
 prefixOp("-",300,299,"arithmetic negation")
 

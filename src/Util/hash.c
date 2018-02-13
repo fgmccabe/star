@@ -141,8 +141,7 @@ void *hashGet(hashPo htbl, void *name) {
       if ((htbl->compare)(b->nme, name) == same) { /* we have found the entry */
         result = b->r;
         break;
-      }
-      else
+      } else
         b = b->link;    /* down the chain */
     }
   }
@@ -161,24 +160,23 @@ retCode hashPut(hashPo htbl, void *name, void *r) {
 
     while (b != NULL) {
       if ((htbl->compare)(b->nme, name) == same) { /* we have found the entry */
-        htbl->destroy(b->nme,b->r);
+        if (htbl->destroy != Null)
+          htbl->destroy(b->nme, b->r);
         b->nme = name;
 
         b->r = r;
 
         pthread_mutex_unlock(&htbl->mutex);
         return Ok;    /* we found an old entry */
-      }
-      else
+      } else
         b = b->link;    /* down the chain */
     }
 
     if (htbl->entries >= htbl->size) { /* table is full */
       rehash(htbl);
       pthread_mutex_unlock(&htbl->mutex);
-      return hashPut(htbl,name, r);
-    }
-    else {
+      return hashPut(htbl, name, r);
+    } else {
       b = allocPool(bpool);  /* create a new entry in the chain */
       b->nme = name;
       b->r = r;
@@ -217,8 +215,7 @@ retCode hashRemove(hashPo htbl, void *name) {
 
         pthread_mutex_unlock(&htbl->mutex);
         return stat;
-      }
-      else
+      } else
         b = &(*b)->link;
     }
   }
@@ -311,7 +308,7 @@ logical verifyHash(hashPo htbl) {
       if (htbl->table[i] != NULL) {
         bucketPo b = htbl->table[i];
         while (stat && b != NULL) {
-          if (hashGet(htbl,b->nme) != b->r)
+          if (hashGet(htbl, b->nme) != b->r)
             stat = False;
 
           b = b->link;
@@ -397,8 +394,7 @@ static size_t nextPrime(integer min) {
         if (candidate % soFar->pr == 0) {
           candidate += 2;
           goto again;
-        }
-        else if (soFar->next == NULL) {  // We have a new prime
+        } else if (soFar->next == NULL) {  // We have a new prime
           primePo new = (primePo) allocPool(prpool);
 
           new->pr = candidate;
@@ -432,6 +428,6 @@ integer strhash(void *n) {
 }
 
 comparison strcomp(void *n1, void *n2) {
-  return uniCmp((char *)n1,(char *)n2);
+  return uniCmp((char *) n1, (char *) n2);
 }
 

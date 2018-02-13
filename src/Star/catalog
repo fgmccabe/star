@@ -1,7 +1,7 @@
 {
 	"content": {
 	  "star.d" : "d.star",
-		"lo": "lo.lo",
+		"star": "star.star",
 		"lo.action" : "action.lo",
 		"lo.array": "arrays.lo",
 		"lo.boot": "boot.lo",
