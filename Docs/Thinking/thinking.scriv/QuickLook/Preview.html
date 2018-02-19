@@ -1,0 +1,435 @@
+<html>
+
+<head>
+<title>thinking</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<!-- NOTE: margin property = top-right-bottom-left -->
+<style type="text/css">
+
+	body {background-color: #e2e2e2}
+    
+    p.topLevelItemTitle {
+    	margin: 30px 0px 5px 0px;
+    	font-family: Times, Times New Roman, Palatino, Cochin, Serif;
+    	font-size: 30px;
+    	}
+    	
+    p.folderTitle {
+    	margin: 30px 0px 5px 0px;
+    	font-family: Times, Times New Roman, Palatino, Cochin, Serif;
+    	font-size: 18px;
+    	}
+    
+    p.itemTitle {
+    	margin: 30px 0px 5px 0px;
+    	font-family: Helvetica, Arial, Sans-Serif;
+    	font-size: 12px;
+    	font-weight: bold;
+    	}
+    	
+    p.itemText {
+    	margin: 0px 0px 10px 0px;
+    	font-family: Helvetica, Arial, Sans-Serif;
+    	font-size: 12px;
+    	}
+    	
+    p.itemTextStart {
+    	margin: 30px 0px 10px 0px;
+    	font-family: Helvetica, Arial, Sans-Serif;
+    	font-size: 12px;
+    	}
+    
+    .page {border: 1px solid #c0c0c0; background: #fff}
+    
+    hr {
+        border: none;
+        height: 1px;
+        color: #d4d4d4;
+        background-color: #d4d4d4;
+      	}
+      	
+    hr.afterTitle {
+    	margin-top: -3px;
+    }
+      	
+    hr.afterText {
+    	margin-top: 30px;
+    }
+      	
+    ul {
+      	list-style-type: none;
+      	padding-left: 30px;
+      	}
+      	
+</style>
+
+</head>
+
+<body>
+
+<table border="0" width="100%" cellspacing="3">
+<tr>
+<td>
+
+<table class="page" width="100%" cellspacing="10" cellpadding="2">
+
+<!-- Top margin -->
+<!-- Not needed, because of the padding above titles. -->
+<!--<tr><td height="15px"></td></tr>-->
+
+<tr>
+
+<!-- 42 + 30 of list indent = 72 - one inch. -->
+<!-- Actually that ends up too much, so we do 25 + 30 = 55px. -->
+<td width="25px">
+
+<td valign="top">
+
+<ul>
+<li>
+<p class="topLevelItemTitle">Abstract</p>
+<p class="itemText">Star is a functional, multi-paradigm and extensible programming language. It is a full-scale language, capable of expressing many kinds of program. As such it is a rich language with many features.</p>
+<p class="itemText">Star was originally developed as part of a framework for processing a range of real-time business applications such as factory scheduling and data analytics.</p>
+<p class="itemText">This white paper explores some of the basic features of the language and shows by example how it can be used to solve problems.</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Why Star</p>
+<p class="itemText">Star is first of all a general purpose programming language. You can use it to effectively solve problems in many domains. Star was developed to help write analytical and statistical applications. However, it has evolved into a general purpose problem-oriented programming language. Many of the features and functionalities of the platform are expressed in a way that is consistent with Star. As such, it plays a key role in enabling the different elements of an application built on the platform to ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Functional Programming</p>
+<p class="itemText">Functional programming has roots that go back to the origins of programming itself. However, it has been recently gaining in prominence because of some of the inherent advantages in the paradigm:</p>
+<p class="itemText">Its ‘declarative’ nature makes reasoning about functional programs easier than for ‘procedural’ programs.</p>
+<p class="itemText">This benefits programmers in a surprising number of ways. Of course, the most obvious one is that correctness and type safety are easier to establish than for a program built out of assignment and f...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">It's verbs as well as nouns</p>
+<p class="itemText">Object oriented languages have a very finely developed sense of the noun. An object is intrinsically a noun; objects reference concrete or abstract things that a programmer is manipulating. The notation of classes, interfaces, inheritance and so on represents a powerful set of concepts for organizing the application’s nouns.</p>
+<p class="itemText">However, just as in spoken languages like English, verbs are also important: what you do with objects is at least as important as the objects themselves. Most OO languages d...</p>
+</li>
+<li>
+<p class="itemTitle">Equations as cases</p>
+<p class="itemText">Many functional programming languages — including Star — are based on an ‘equational style’. Equational programs are written as a series of equations; for example, in the credit function:</p>
+<p class="itemText">credit:(customer)=>float.</p>
+<p class="itemText">credit(C) where inGoodStanding(C) => 0.15.</p>
+<p class="itemText">credit(C) where inDefault(C) => -0.1.</p>
+<p class="itemText">  ...</p>
+<p class="itemText">credit(_) default => 0.0.</p>
+<p class="itemText">Each line of this definition is an equation. It specifies the meaning of the credit function in a restricted setting – the complete function is understood by combining the c...</p>
+</li>
+<li>
+<p class="itemTitle">Non-sequential Code</p>
+<p class="itemText">Another benefit that perhaps explains some of the modern excitement is that functional programming represents a more tractable route to developing parallel and multi-threaded programs.</p>
+<p class="itemText">A program written in a classic von Neumann style is best understood in terms of instructions to a simple machine. Each successive instruction modifies the state of the machine in some way – such as storing values in cells or printing a result.</p>
+<p class="itemText">The issue with this programming model is that modern machines do not fi...</p>
+</li>
+<li>
+<p class="itemTitle">Explicit State</p>
+<p class="itemText">Contrary to some expectations, it is possible to write stateful programs in a functional style. The difference is that you have to be explicit about the state. For example, the function:</p>
+<p class="itemText">addAll:(integer,integer)=>integer.</p>
+<p class="itemText">addAll(from,to) => let{</p>
+<p class="itemText">  accum(ix,acc) where ix>=to => acc.</p>
+<p class="itemText">  accum(ix,acc) => accum(ix+1,acc+ix).</p>
+<p class="itemText">} in accum(from,0).</p>
+<p class="itemText">is the ‘functional equivalent’ of the normal Java loop:</p>
+<p class="itemText">int addAll(int from,int to){</p>
+<p class="itemText">  int acc = 0;</p>
+<p class="itemText">  for(int ix=from;ix<to;ix++)</p>
+<p class="itemText">    acc = acc+ix;</p>
+<p class="itemText">  return a...</p>
+</li>
+<li>
+<p class="itemTitle">Functional First</p>
+<p class="itemText">Star is a ‘functional-first’ programming language. What this means is that Star makes it easier and more natural to write in a functional style. However, not all problems are best addressed in the functional way and it is certainly possible to write procedural Star programs.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Texture</p>
+<p class="itemText">All programming languages can be said to have a particular style or texture. This is often so strong that it only needs a single line of source code to be able to identify a programming language. In the case of Star, this line might be (we explain what it means a bit later on):</p>
+<p class="itemText">factorial:all t ~~ arith[t] |: (t)=>t.</p>
+<p class="itemText">Overall, the texture of Star is designed to enhance the readability of programs. Readability is important because many people have to be able to read programs; perhaps more than are ...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Collections</p>
+<p class="itemText">Star has a standard way of writing sequences and collections – like lists and dictionaries. For example, the expression</p>
+<p class="itemText">list of [4, 8, 15, 16, 42]</p>
+<p class="itemText">denotes the list with the numbers 4, 8, 15, 16 and 42 in it. This notation – which is called the sequence notation – is quite general. We can denote a different kind of collection, containing cons elements for example, using:</p>
+<p class="itemText">cons of [4, 8, 15, 16, 42]</p>
+<p class="itemText">or, we can even denote a general collection without being explicit about the type of collection:</p>
+<p class="itemText">[4,...</p>
+</li>
+<li>
+<p class="itemTitle">Pattern Matching</p>
+<p class="itemText">Patterns and pattern matching are ubiquitous in Star. Nearly all literal forms have a pattern equivalent that allows matching and, most importantly, de-structuring such values.</p>
+<p class="itemText">For example, we can define functions over collections that allow us to (say) compute the maximum element in a collection:</p>
+<p class="itemText">maximum:all t ~~ arith[t] |: (list[t],t)=>t.</p>
+<p class="itemText">maximum([H,..T]) => let{</p>
+<p class="itemText">  max([],Mx) => Mx.</p>
+<p class="itemText">  max([F,..R],Mx) where F>Mx => max(R,F).</p>
+<p class="itemText">  max([_,..R],Mx) default => max(R,Mx).</p>
+<p class="itemText">} in max(T,H)</p>
+<p class="itemText">The max functio...</p>
+</li>
+<li>
+<p class="itemTitle">Defining Types</p>
+<p class="itemText">Like most functional languages, Star supports many forms of sequence collection natively. One of the more common kinds of list is the ‘cons list’ a.k.a. single-linked list. Cons lists are defined using a type definition that introduces the type and its different ‘shapes’:</p>
+<p class="itemText">all t ~~ cons[t] ::= nil | cons(t,cons[t]).</p>
+<p class="itemText">This states that there are two forms of cons lists: the empty cons list nil, and a pairing cons(x, xs) where x is the first element, and xs is the rest of the list. The all quantifier...</p>
+</li>
+<li>
+<p class="itemTitle">Higher-order Functions</p>
+<p class="itemText">Star supports higher-order functions. The following apply function corresponds to the familiar map function from other functional languages.</p>
+<p class="itemText">apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].</p>
+<p class="itemText">apply(f, nil) => nil.</p>
+<p class="itemText">apply(f, cons(x, xs)) =></p>
+<p class="itemText">      cons(f(x), apply(f, xs)).</p>
+<p class="itemText">Although Star has a sophisticated type system that supports automatic type inference, we strongly recommend that programmers supply type annotations, which often improve readability. Here the type annotation for apply:</p>
+<p class="itemText">apply:all s,t ~~ ...</p>
+</li>
+<li>
+<p class="itemTitle">Query Expressions</p>
+<p class="itemText">Star has a built-in query expression notation that allows us to avoid a lot of common recursive forms of definition. For example, the apply function can be written more succinctly using:</p>
+<p class="itemText">apply(f,C) => cons of { all f(X) where X in C}</p>
+<p class="itemText">the meaning of the expression is equivalent to the recursive definition we saw of apply above.</p>
+</li>
+<li>
+<p class="itemTitle">Star is rich</p>
+<p class="itemText">Star is a full-featured language. It is an intentionally rich language. In addition to the features described here are concurrency features, data abstraction features that include the concept of existentially quantified types – that enables abstract data types – and computation expressions – that are important when designing systems that rely on being able to delay and control how expressions are evaluated; and many more.</p>
+<p class="itemText">In the chapters that follow, we will focus on three major features of Star...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">A Little Context</p>
+<p class="itemText">The origins of Star lie in a platform that was originally oriented towards complex event processing applications.\cite{luckham:2012} StarRules — as it was known then — was a rules language that allowed one to express CEP-style rules succinctly.</p>
+<p class="itemText">However, as often happens, requirements evolved and CEP itself became just one of many application areas that the Starview platform can address. The same pressures for generality in the platform lead to a greater interest in extensibility and generality i...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Requirements Change, Features Evolve</p>
+<p class="itemText">One particular scenario played out several times: we developed some high-level but specific feature that was designed to meet a particular goal; but, in order to address a slightly different goal we were forced to evolve to a simpler but more general form.</p>
+<p class="itemText">For example, initially Star had a high-level concurrency model to allow multiple agents to process events with some degree of parallelism. This model was elegant and had an intuitive semantics, but did not fit certain kinds of applications tha...</p>
+</li>
+<li>
+<p class="itemTitle">All Projects are Team Projects</p>
+<p class="itemText">A key observation about successful software projects is that they involve teams; even if they start out as solo projects, they invariably become team projects. Furthermore, deployment targets will often extend to span a range of devices from smart phones to multi-cluster super computers. Finally, software is rarely completely useful in isolation: integration with other systems if often key to realizing the benefits of a given system. These aspects have continually influenced Star’s design.</p>
+<p class="itemText">Anoth...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">More To Think About</p>
+<p class="itemText">In the following chapters we explore some of the key features of Star in more depth. We start with the concepts of agent-hood and actors — one of the more unique aspects of Star.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Actors</p>
+<p class="itemText">Agenthood is often a useful metaphor in structuring large systems Singh3, Wooldridge4. The intuition is that an agent represents a focus of responsibility within a system: by structuring the system in terms of who is responsible for what it can make large systems more tractable. Star supports the agent metaphor with two key concepts: the concept of a speech action and the concept of an actor.</p>
+<p class="itemText">There may be many technical distinctions between agents and objects. The essential distinction is not te...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Speech Actions</p>
+<p class="itemText">Speech actions were first investigated by John Austin5 in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by Searle6 and standardized in KQML7 and FIPA.8</p>
+<p class="itemText">Within Star, a speech action can be viewed as a generalization of a method call where the method to be invoked can be a complete script or expression. Star supports three performatives: notify — which corresponds to one entity informing another tha...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Query Speech</p>
+<p class="itemText">The second form of speech action is the query. This represents a question being posed. For example, to query an (augmented) account actor for its balances one might use:</p>
+<p class="itemText">query B with</p>
+<p class="itemText">  cons of { all X where X in balances &&</p>
+<p class="itemText">    X.ts>=yesterday}</p>
+<p class="itemText">Note that this expression combines two different elements of Star: a query speech action and a query expression. The expression</p>
+<p class="itemText">cons of { all X where X in balances and X.ts>=yesterday }</p>
+<p class="itemText">represents the question:</p>
+<p class="itemText">All the X's, where X is in the balances coll...</p>
+</li>
+<li>
+<p class="itemTitle">Request Speech</p>
+<p class="itemText">Query speech actions have an implied intention that the query expression is not intended to modify the state of the listener. The final form of speech action request assumes that the listener should do something.</p>
+<p class="itemText">For example, we can ask an actor to clear all balances that are negative using a request along the lines of:</p>
+<p class="itemText">request C to {</p>
+<p class="itemText">  for B in accounts and B.balance<0 do</p>
+<p class="itemText">    clear(B)</p>
+<p class="itemText">}</p>
+<p class="itemText">Notice that the argument of a request is a whole action. In effect it is a small script. It is possible for t...</p>
+</li>
+<li>
+<p class="itemTitle">Missing Speech</p>
+</li>
+</ul>
+<hr class="afterTitle"/>
+
+<li>
+<p class="itemTitle">Other Kinds of Agent</p>
+<p class="itemText">The Star actor represents the simplest possible entity that can respond to speech actions. In that sense, a Star actor is the simplest possible mechanism for embodying responsibility.</p>
+<p class="itemText">There are other entities that also implement the speech contract; in particular, an agent could be seen as being the simplest entity that both responds to speech actions and has some awareness of its own goals and activities.</p>
+<p class="itemText">Thus actors and agents span a range of scales from the very small to the very large, but w...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Contracts</p>
+<p class="itemText">The concept of a contract is fundamental to good software engineering. This is because it allows separation between the specification of a concept and its implementation.</p>
+<p class="itemText">A Star contract takes the form of a description of a set of functions and values - in effect a type. For example, the contract for basic arithmetic is</p>
+<p class="itemText">contract all t ~~ arith[t] ::= {</p>
+<p class="itemText">    (+) : (t,t)=>t.</p>
+<p class="itemText">    (-) : (t,t)=>t.</p>
+<p class="itemText">    (*) : (t,t)=>t.</p>
+<p class="itemText">    (/) : (t,t)=>t.</p>
+<p class="itemText">    one : t.</p>
+<p class="itemText">    zero : t.</p>
+<p class="itemText">}</p>
+<p class="itemText">This has the effect of declaring a g...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Contracts as Interfaces</p>
+<p class="itemText">At their most basic, contracts are a way of denoting `overloaded' functions. I.e., by giving different implementations of a contract for different types, it is possible to provide multiple implementations of a function. For example, there are several implementations of arith for integers, floats, and so on. It is also straightforward to implement arith for your own type.</p>
+<p class="itemText">However, another pattern of use of contracts is as an analog of interfaces. For example, we saw in Actors that actors used spe...</p>
+</li>
+<li>
+<p class="itemTitle">Accessing Collections</p>
+<p class="itemText">Contracts are deeply embedded within the Star language. For example, consider the task of accessing a collection. This is captured in the standard indexable contract; which includes a definition of the _index function. It includes other functions too; which we omit in this discussion.</p>
+<p class="itemText">contract all c,k,v ~~ indexable[c->>k,v] ::= {</p>
+<p class="itemText">  _index:(c,k)=>option[v]</p>
+<p class="itemText"> ...</p>
+<p class="itemText">}</p>
+<p class="itemText">The _index function is rarely used directly; instead it is accessed via the index expression, as in:</p>
+<p class="itemText">L[34]</p>
+<p class="itemText">Accessing collections alway...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Application = Policy + Mechanism</p>
+<p class="itemText">It can be said with some justification that any programs over 100 lines of code can be structured in terms of a basic engine and a policy for using the engine. The reason for this is very simple: it is often much easier to customize a general solution to a problem than to solve the specifics.</p>
+<p class="itemText">A policy tends to be different to a machine. Perhaps that is because policies express what the application is supposed to do (or not to do) where the mechanics describe how the application performs its func...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Extending Star</p>
+<p class="itemText">Star has three main features that contribute to developing DSLs: an extensible syntax, a powerful macro language and a module system that includes support for the first two.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Extensible Syntax</p>
+<p class="itemText">Star's core grammar is more of a meta-grammar than a conventional grammar. It is known as an operator precedence grammar. This is very similar to the approach taken in Prolog and similar languages.</p>
+<p class="itemText">A programmer can introduce new operators into the language, including new graphic tokens. For example:</p>
+<p class="itemText">#infix(">\\",999)</p>
+<p class="itemText">defines a new infix operator >\ that was previously unknown to the Star compiler.</p>
+<p class="itemText">We can also define multi-word tokens. This capability can be useful when grammar suggests multiple ...</p>
+</li>
+<li>
+<p class="itemTitle">Macro Language</p>
+<p class="itemText">A macro is a program that is used to `replace' some source text with other source text. Except that we do not mean literal string text here. Star's macros operate on abstract syntax terms; i.e., the result of parsing the source text using the operator precedence grammar.</p>
+<p class="itemText">We have already seen some simple examples of macros. There are two kinds of macros in Star: macro rules, like this rule which implements a form of lambda expression:</p>
+<p class="itemText"># ?L >\ ?E ==> (L) => E</p>
+<p class="itemText">and code macros. Code macros are simpl...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Implementing Knowledge</p>
+<p class="itemText">As a somewhat larger demonstration of the capabilities of Star's macro language, let us look at a significant example: representing knowledge.</p>
+<p class="itemText">There are many knowledge representation languages; here we use one that is based on N3 notation15. In order to be relatively brief, we focus on a very reduced form of this notation: the knowledge triple. A statement of the form:</p>
+<p class="itemText">john ! parent $ sam</p>
+<p class="itemText">is intended to mean</p>
+<p class="itemText">john is parent of sam</p>
+<p class="itemText">more specifically,</p>
+<p class="itemText">john is the subject, parent is the relationship...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Validation</p>
+<p class="itemText">If you actually try to run this program you will get an error along the lines of:</p>
+<p class="itemText">`!(john, (parent, sam))' not a valid statement</p>
+<p class="itemText">In general, new syntax elements that a DSL author adds to Star are not already valid expressions in the language. To help with this, Star also has a tool for extending Star's concept of valid forms. In this case, we need to tell the compiler that the graph expression is a special kind of expression that has triples in it. We can do that with the two rules:</p>
+<p class="itemText">#graph{?B} :...</p>
+</li>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Scheduling Factories</p>
+<p class="itemText">Star has been used for a number of applications. One of these – an application to schedule the processing of wafers in a semiconductor factory (a.k.a. fab) – illustrates how the different features of Star come together in a whole.</p>
+<p class="itemText">One of the first applications of the emerging Starview Enterprise Platform was ALPS (‘Advanced Logistics and Planning System’), a system for scheduling semiconductor fabs.</p>
+<p class="itemText">Semiconductor fabrication is a complex process, with modern microprocessors going through (on the...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Purely Functional Programming</p>
+<p class="itemText">The queue-time problem described above puts a severe strain on existing scheduling solutions for semiconductor fabrication.</p>
+<p class="itemText">The scheduler needs to predict whether a given lot that is just about to enter a queue-time zone will make it through the zone in the time allotted for it. Thus, the scheduler needs to ‘see into the future’, or at least make an educated guess as to what the future might be.</p>
+<p class="itemText">To that end, ALPS implements speculative simulation: it simulates the operation of the fab up to the ...</p>
+</li>
+<li>
+<p class="itemTitle">Algebraic Datatypes</p>
+<p class="itemText">While the previous section showed how ALPS 4 solves the hardest problem associated with the queue-time problem, the solution starts with a seemingly trivial aspect of the system: how to representroutes in the system.</p>
+<p class="itemText">A route lists the sequence of production steps a lot goes through as it traverses the fab. This suggests a simple list data structure to represent it. However, a route needs to represent the queue-time zones within the sequence. They could be stored in a separate list, which contain...</p>
+</li>
+<li>
+<p class="itemTitle">Monads</p>
+<p class="itemText">Fab scheduling poses a particularly intricate problem to schedulers: As equipment in the fab breaks down so frequently, instructions from the scheduler to the fab have only the status of recommendations. The scheduler needs to be able to deal with circumstances where its instructions do not get executed. Moreover, the fab typically will not give feedback when it cannot execute a scheduler instruction – the scheduler can only observe that actions did not happen that should be the consequence of e...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">References</p>
+<p class="itemText">Event Processing for Business: Organizing the Real-Time Enterprise , David Luckham, John Wiley & Sons, 2012</p>
+<p class="itemText"></p>
+<p class="itemText">Multi-Agent Systems, A Theoretical Framework for Intentions, Know-How, and Communications,Munindar P. Singh, Springer-Verlag,1993</p>
+<p class="itemText"></p>
+<p class="itemText">An Introduction to MultiAgent Systems, Wooldridge, Michael, Wiley 2009</p>
+<p class="itemText"></p>
+<p class="itemText">How to do things with words, John L. Austin, Oxford : Clarendon 1962</p>
+<p class="itemText"></p>
+<p class="itemText"> Speech acts: an essay in the philosophy of language, J. R. Searle, Cambridge University Press 1969</p>
+<p class="itemText"></p>
+<p class="itemText">DRAFT specificati...</p>
+</li>
+</ul>
+
+</td>
+<td width="55px">
+</td>
+</tr>
+
+<!-- Bottom margin -->
+<tr><td height="15px"></td></tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

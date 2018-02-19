@@ -1,0 +1,128 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fnil\fcharset0 Georgia;\f2\fswiss\fcharset0 Helvetica;
+\f3\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 Like most functional languages, Star supports many forms of sequence collection natively. One of the more common kinds of list is the \'91cons list\'92 a.k.a. single-linked list. Cons lists are defined using a type definition that introduces the type and its different \'91shapes\'92:
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2 \cf2 <$Scr_Ps::0>
+\f3 all t ~~ cons[t] ::= nil\'a0|\'a0cons(t,cons[t]).\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 This states that there are two forms of 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 cons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  lists: the empty cons list 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 nil
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26 , and a pairing
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22  cons(x, xs) 
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26 where 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 x
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  is the first element, and 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 xs
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  is the rest of the list. The 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 all
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  quantifier at the beginning of the declaration of the 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 cons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  type marks the type as a generic type \'96 specifically a universal type.
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+
+\f0\fs26 \cf0 \kerning1\expnd0\expndtw0 All Star values can be written as literals, including user defined types like cons. For example, the 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 cons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  list:
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2 \cf2 <$Scr_Ps::0>
+\f3 cons(\'93alpha\'94,cons(\'93beta\'94,cons(\'93gamma\'94,nil)))\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 contains the strings 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 \'93alpha\'94
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26 , 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 \'93beta\'94
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  and 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 \'93gamma\'94
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26 .\'a0\
+The standard implementation of 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 cons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  lists in Star also supports the sequence notation we saw above. So, this list can be written:
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2 \cf2 <$Scr_Ps::0>
+\f3 cons of [\'93alpha\'94, \'93beta\'94, \'93gamma\'94]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 Note that we are not allowed to mix strings and integers in the same list. That is because Star is strongly, statically typed and such a heterogeneous list is not permitted.\
+Just as with sequences, we can define functions over 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 cons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  lists via pattern matching:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 maxCons:(cons[integer]) => integer.\
+maxCons(cons(x, nil)) => x.\
+maxCons(cons(x, xs)) default => let \{\
+     maxRest = maxCons(xs).\
+   \} in (x > maxRest ? x : maxRest)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 The first maxCons equation is for 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 cons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  lists with one element, where 
+\f2\fs24 <$Scr_Cs::1>
+\f3\fs22 maxCons
+\f2\fs24 <!$Scr_Cs::1>
+\f0\fs26  simply returns that element. The second equation first computes the maximum of the rest of the list via a recursive call, and uses a conditional expression to compute the maximum for the entire list.\
+The expression
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2 \cf2 <$Scr_Ps::0>
+\f3 (x > maxRest ? x : maxRest)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 is a conditional expression: if x is greater then maxRest then it is the maximum; otherwise maxRest is. This is an example of a very well known form of expression that uses symbolic operators rather than keywords. Similar forms of expression can be found in all the major programming languages; so it would have seemed curmudgeonly to invent special keywords for it.}

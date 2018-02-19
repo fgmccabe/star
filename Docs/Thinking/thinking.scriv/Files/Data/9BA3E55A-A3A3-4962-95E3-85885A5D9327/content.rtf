@@ -1,0 +1,43 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 Contrary to some expectations, it is possible to write stateful programs in a functional style. The difference is that you have to be explicit about the state. For example, the function:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\pardeftab720\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f2 addAll:(integer,integer)=>integer.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+\cf2 addAll(from,to) => let\{\
+  accum(ix,acc) where ix>=to => acc.\
+  accum(ix,acc) => accum(ix+1,acc+ix).\
+\} in accum(from,0).\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 is the \'91functional equivalent\'92 of the normal Java loop:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\pardeftab720\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f2 int addAll(int from,int to)\{\
+  int acc = 0;\
+  for(int ix=from;ix<to;ix++)\
+    acc = acc+ix;\
+  return acc;\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 Apart from the use of recursion, the other main difference is that the \'91state\'92 \'96 which in both cases is held in the 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 acc
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  variable \'96 is explicitly handed down the functional program, whereas the Java program handles state implicitly.\
+The issue for the Java programmer is that what works for simple programs can become unmanageable for complex multi-threaded systems. On the other hand, while the functional programmer may be more burdened for simple cases, complex parallel programs are not much harder than the simple case.\
+Functional programming, with its declarative and explicit manipulation of state makes crafting parallel programs significantly simpler and less error-prone.\
+}

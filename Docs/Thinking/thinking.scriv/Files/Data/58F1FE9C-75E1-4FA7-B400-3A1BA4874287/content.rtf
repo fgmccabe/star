@@ -1,0 +1,271 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+\f3\fnil\fcharset0 Georgia;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 Contracts are deeply embedded within the Star language. For example, consider the task of accessing a collection. This is captured in the standard 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  contract; which includes a definition of the 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 _index
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  function. It includes other functions too; which we omit in this discussion.
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 contract all c,k,v ~~ indexable[c->>k,v] ::= \{\
+\'a0\'a0_index:(c,k)=>option[v]\
+\'a0...\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 The 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 _index
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  function is rarely used directly; instead it is accessed via the index expression, as in:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 L[34]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 Accessing collections always introduces the element of 
+\i tentativeness
+\i0 : it cannot normally be shown at compile time that 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 L[34]
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  exists. Star does not have the equivalent of Java 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 null
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  values; instead we make extensive use of the 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 option
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  type when we want to represent a tentative result.\
+Thus the type of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 L[34]
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  is not 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 integer
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 , but\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f2 option[integer]
+\f0\fs26 \cf0 \kerning1\expnd0\expndtw0 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 This 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  contract also introduces an important feature of contracts: functional dependencies. The clause:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 indexable[c->>k,v]\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 declares that any implementation of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  for a type \'97 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 c
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  \'97 will `fix' two further types \'97 in this case the `index type' and the `element type' of the elements of the collection.\
+For example, the implementation of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  for the standard 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 list
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  type starts with:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 implementation all t ~~ indexable[list[t]->>integer,t] => \'85\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 This states that implementing 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  for lists requires that the index type is an 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 integer
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  and that the element type is the type of the element of the list. Much as one might expect. This allows expressions like 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 L[34]
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  to be typed as expected.\
+The 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 indexable
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  contract is also implemented for associative dictionaries. In this case the index type is the type of the keys in the dictionary and the element type is the type of the values in the dictionary:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 implementation all k,v ~~ indexable[dictionary[k,v]->>k,v] => \'85
+\f3 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 Thus, if we had a dictionary 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 M
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  whose keys were 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 strings
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  and whose values were 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 integer
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 , then the expression:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 M["alpha"]
+\f3 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 would have the type 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 option[integer]
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 .\
+There is no requirement that the index type be a simple type. For example, consider the representation of JSON values. The standard 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 infoset
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  type allows JSON values to be represented abstractly in a way that permits easy processing of the data.\
+The most appropriate way of extracting elements from a JSON/infoset value is by using a path. For example, the path to the image title in the JSON value:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 \{\
+\'a0\'a0"Image": \{\
+\'a0\'a0\'a0\'a0"Width": 800,\
+\'a0\'a0\'a0\'a0"Height": 600,\
+\'a0\'a0\'a0\'a0"Title": "View from 15th Floor",\
+\'a0\'a0\'a0\'a0"Thumbnail": \{\
+\'a0\'a0\'a0\'a0\'a0\'a0"Url": "http://www.example.com/image/481989943",\
+\'a0\'a0\'a0\'a0\'a0\'a0"Height": 125,\
+\'a0\'a0\'a0\'a0\'a0\'a0"Width": "100"\
+\'a0\'a0\'a0\'a0\},\
+\'a0\'a0\'a0\'a0"IDs": [116, 943, 234, 38793]\
+\'a0\'a0\}\
+\}
+\f3 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 may be expressed as 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 Image.Title
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 , and the last ID might be expressed as the path 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 Image.IDS.3
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 . If the 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 infoset
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  of this value were bound to the variable 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 I
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 , then we can express these values using the expressions:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 I[[kString("Image"),kString("Title")]]
+\f3 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 and
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 I[[kString("Image"), kString("IDs"), kInt(3)]]
+\f3 \
+\pard\pardeftab720\sl280\qj\partightenfactor0
+
+\f1 \cf2 <!$Scr_Ps::0>
+\f3 respectively.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \kerning1\expnd0\expndtw0 Note that the elements of the path are not simply bare strings and integers. This is because a structure like:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 [1, "fred", 2]
+\f3 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 is not well typed. The elements of the path are from the iKey type which is written as an algebraic type definition:
+\f3\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1 \cf2 <$Scr_Ps::0>
+\f2 iKey ::= kString(string) | kInt(integer)
+\f3 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 Wrapping the path elements as 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 iKey
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  values makes the path expression a legal Star value.\
+In summary, the simple contract specification for indexing can be applied to lists (arrays), to associative dictionaries and to tree-like structures. This has a powerful unifying effect on Star programs.\
+In the {\field{\*\fldinst{HYPERLINK "scrivlnk://AC3C6512-B2F7-47BD-AA92-6D1774AC7D3E"}}{\fldrslt next chapter}} we show how syntactic features \'97 like our indexing notation \'97 can be implemented in Star.\
+}

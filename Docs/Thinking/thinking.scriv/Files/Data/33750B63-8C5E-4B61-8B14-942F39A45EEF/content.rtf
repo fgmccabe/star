@@ -1,0 +1,83 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fnil\fcharset0 Georgia;\f2\fswiss\fcharset0 Helvetica;
+\f3\fnil\fcharset0 Menlo-Regular;\f4\fmodern\fcharset0 Courier-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 Speech actions were first investigated by John Austin{\field{\*\fldinst{HYPERLINK "applewebdata://107F1418-2FB1-44C9-A238-ACBF51AFC32F/Text/footnotes.xhtml#fn5"}}{\fldrslt 5}} in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by Searle{\field{\*\fldinst{HYPERLINK "applewebdata://107F1418-2FB1-44C9-A238-ACBF51AFC32F/Text/footnotes.xhtml#fn6"}}{\fldrslt 6}} and standardized in KQML{\field{\*\fldinst{HYPERLINK "applewebdata://107F1418-2FB1-44C9-A238-ACBF51AFC32F/Text/footnotes.xhtml#fn7"}}{\fldrslt 7}} and FIPA.{\field{\*\fldinst{HYPERLINK "applewebdata://107F1418-2FB1-44C9-A238-ACBF51AFC32F/Text/footnotes.xhtml#fn8"}}{\fldrslt 8}}\
+Within Star, a speech action can be viewed as a generalization of a method call where the method to be invoked can be a complete script or expression. Star supports three {\field{\*\fldinst{HYPERLINK "scrivcmt://6C8B2B70-E454-4718-A45A-AB8E9949964B"}}{\fldrslt performatives:}} notify \'97 which corresponds to one entity informing another that something has happened \'97 query \'97 which corresponds to a question \'97 and request \'97 which corresponds to a request to perform an action.\
+Star supports this simplified model of speech action with special syntax. A notify is written:
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2 \cf2 <$Scr_Ps::0>
+\f3 notify A with withdrawn(45.6) on account\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 This 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 notify
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  means\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::1>
+\f1\i that the 
+\f4 account
+\f1  channel should handle 
+\f4 withdrawn(45.6)
+\f1 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2\i0 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::1>
+\f0\fs26 or, in the terminology of speech act theory,\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::1>
+\f1\i Inform agent 
+\f4 A
+\f1  that 
+\f4 withdrawn(45.6)
+\f1 has occurred.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2\i0 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::1>
+\f0\fs26 The 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 notify
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  speech action does not explicitly refer to time. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech.\
+How the listening agent responds to speech actions depends of course on its internal structure. An actor reacts to a notify by means of an event rule:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 A = actor\{\
+  balance := 0.0.\
+\
+  on withdrawn(Am) on account do\
+    balance := balance-Am\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 The type annotation for 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 A
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  declares that it is an actor that responds to certain speech actions; specifically, it will respond to notify actions on the account channel. When that happens, the event rule simply states that the balance will be decremented by the amount Am that is embedded within thewithdrawn message.\
+What is not stated here is what happens to the notifier while the responding actor handles the notification. In fact, there are several variants of entity that can respond to speech actions; each has a different way of handling the run-time semantics. However, all agents must obey the following rule:\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf0 <$Scr_Ps::1>
+\f0 All speech actions from one entity to another are processed in order.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 <!$Scr_Ps::1>
+\f0\fs26 This pairwise rule covers many situations; but not all. However, we leave that discussion to another document.\
+}

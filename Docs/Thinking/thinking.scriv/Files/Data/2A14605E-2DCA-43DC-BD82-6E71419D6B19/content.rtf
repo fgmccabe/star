@@ -1,0 +1,156 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fnil\fcharset0 Georgia;\f2\fswiss\fcharset0 Helvetica;
+\f3\fnil\fcharset0 Menlo-Regular;\f4\fmodern\fcharset0 Courier;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 As a somewhat larger demonstration of the capabilities of Star's macro language, let us look at a significant example: representing knowledge.\
+There are many knowledge representation languages; here we use one that is based on N3 notation{\field{\*\fldinst{HYPERLINK "applewebdata://5E5A3E68-BF73-4C1F-8018-E8601F8C9AC4/Text/footnotes.xhtml#fn15"}}{\fldrslt 15}}. In order to be relatively brief, we focus on a very reduced form of this notation: the knowledge triple. A statement of the form:
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2 \cf2 <$Scr_Ps::0>
+\f3 john ! parent $ sam
+\f1 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 is intended to mean\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf0 <$Scr_Ps::1>
+\f0 john is parent of sam\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 <!$Scr_Ps::1>
+\f0\fs26 more specifically,\
+\pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf0 <$Scr_Ps::1>
+\f0 john is the subject, parent is the relationship and sam is the object\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 <!$Scr_Ps::1>
+\f0\fs26 Such a representation has many uses; one salient one for our purposes is that this kind of notation is very suited to representing configurations of various kinds.\
+It should also be obvious that such statements are not ordinary expressions or statements. Hence, to integrate such statements into a Star program we have a little work to do!\
+The first step is to bound the occurrences of such statements \'97 to decide where they are legal. There are several ways of doing this; depending on the kind of extension we want to implement. In this case, we define a new kind of expression \'97 the knowledge graph. N3 statements are legal only in knowledge graph expressions.\
+For example,\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 graph\{\
+  john ! parent $ sam\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 is such a knowledge graph expression. We also have to define 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 !
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  and 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 $
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  as infix operators \'97 which can be done using:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 #right("!",500)\
+#right("\\$",450)
+\f4 \cf2 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 We have to escape the $ because it is a special character in Star string syntax.\
+The second step is to define how to represent such graphs. We choose to do so by using a data structure:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 n3Graph(\
+  list of [\
+    triple(concept("john"),concept("parent"),concept("sam"))\
+  ]\
+)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 So, the task of the macro code is to translate the 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 graph
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  expression into an 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 n3Graph
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  term. The latter is readily understood by the Star compiler.\
+We are not addressing here how to use such graph expressions.\
+The core transformation of triples is handled by the macro rule:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 # ?S ! ?P $ ? O ==>\
+  triple(concept(S),concept(P),concept(O))\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 We use an intermediate concept of 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 concept
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  because the N3 language includes other kinds of concepts \'97 such as strings and numbers.\
+Notice that the macro rule for triples directly matches the triples that we want to handle. This makes it very clear what the macro is intended to match against.\
+The concept is also transformed using a macro rule:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 #concept(identifier?C) ==> concept($$C)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 There are many special purpose operators in the macro language. The 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 $$
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  operator `converts' an identifier into a string literal. This allows us to reinterpret the john identifier as the string literal 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 "john"
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26 .\
+The graph itself it handled in a similar way to individual triples. Since triples are only valid inside a graph, we reflect that with the graph macro too:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 #graph\{?B\} ==> n3Graph(list of [ B ]) ## \{\
+  # ?S ! ?P $ ? O ==>\
+    triple(concept(S),concept(P),concept(O))\
+\}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 The macro replacement form:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f2\fs24 \cf2 \expnd0\expndtw0\kerning0
+<$Scr_Ps::0>
+\f3 Repl ## \{ Macros \}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f2 \cf0 \kerning1\expnd0\expndtw0 <!$Scr_Ps::0>
+\f0\fs26 is the macro analog of a let expression: the macro rules in 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 Macros
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26  are in scope for macro processing the expression 
+\f2\fs24 <$Scr_Cs::2>
+\f3\fs22 Repl
+\f2\fs24 <!$Scr_Cs::2>
+\f0\fs26 .}
