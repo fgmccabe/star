@@ -24,7 +24,7 @@ The wrapComma function is a kind of inverse to unwrapSemi except that it takes a
 fun wrapComma(list of [El]) is &lt;| ?El |&gt;
  |  wrapComma(list of [El,..More]) is &lt;| ?El , ?wrapComma(More) |&gt;
 The definition of wrapComma makes good use of Star’s meta-language: in constructing what will be a list literal we have to form it from the appropriate structures. This figure illustrates the AST structure of the contents of a list literal:
-￼
+#
 Graphical View of a list Expression
 It is useful that, in addition to being used to separate arguments in a list of arguments, the comma is also one of Star’s standard operators.
 The most complex macros in our RDF macro package are those devoted to the processing of triples. The complexity arises from the inherent flexibility of the notation; in particular, any or all of the subject, predicate or object may be individual strings, named concepts or even lists of them.
@@ -51,21 +51,34 @@ fun tripleJoin(L1,L2) is
     S in L1 and (V,O) in L2 }
 The complete program (which we have not shown here) that implements the transformation of triple graphs is some 50 lines long. It is, in fact, part of Star’s standard library.</Text>
         </Document>
-        <Document ID="3B425F17-6AEB-4983-8C67-5167CFE5B4E9">
-            <Title>Dedication</Title>
-            <Text>
-
-
-
-
-
-
-
-
-
-
-Insert dedication here.</Text>
-            <Notes>Feel free to delete this document if you don’t need it.</Notes>
+        <Document ID="14CDAA3D-AB4A-404A-A8ED-E9BDF3D057A0">
+            <Title>Optional Values </Title>
+            <Text>Notice that we identified a special case of noOne in our Person type. One reason for including this in a type is to be able to cope with non-existent people. However, this approach is not always the most effective one when modeling situations where a variable or field may not have a value.
+Explicit null values, as found in Java and similar languages, cause a great number of problems: for example, null must have a special universal type; there are many scenarios where it is not possible for a variable to be null but the compiler must discover those for itself; and there is often a consequent tendency in defensive programming to test for null.
+Star has no direct equivalent of a global null value. However, the standard option type allows the equivalent of selective nullability. Any variable that might not have a proper value can be marked with the option type rather than the underlying type. And you can use none in those cases to indicate the equivalent of no value.
+So, for example, suppose that a Person might have a spouse — who is also a Person — but is not guaranteed to have one. Such a type can be described using:
+Person ::= someOne{
+   name : string.
+   dob : date.
+   spouse : ref option[Person]
+}
+Here we have done two things: we have eliminated the noOne case for Person and we have marked the spouse as being both read-write and optional.
+Someone with no spouse would be written:
+freddy : Person.
+freddy = someOne{
+  name = "Freddy".
+  dob = today().
+  spouse := none
+}
+whereas someone who has a spouse would be written:
+someOne{
+  name = "Lisa".
+  dob = lastYear.
+  spouse := some(johnny)
+}
+Of course, we can record freddy’s marriage to lisa using an assignment:
+freddy.spouse := some(lisa)
+lisa.spouse := some(freddy)</Text>
         </Document>
         <Document ID="D7266A1E-7AFB-4D05-884C-B2A2DB1909A5">
             <Title>Functional Programming</Title>
@@ -165,34 +178,21 @@ This saves us from having to manually assign the “Front Matter” section type
 
 During Compile, documents assigned the “Front Matter” section type will be laid out differently from documents in the main body of the manuscript.</Notes>
         </Document>
-        <Document ID="14CDAA3D-AB4A-404A-A8ED-E9BDF3D057A0">
-            <Title>Optional Values </Title>
-            <Text>Notice that we identified a special case of noOne in our Person type. One reason for including this in a type is to be able to cope with non-existent people. However, this approach is not always the most effective one when modeling situations where a variable or field may not have a value.
-Explicit null values, as found in Java and similar languages, cause a great number of problems: for example, null must have a special universal type; there are many scenarios where it is not possible for a variable to be null but the compiler must discover those for itself; and there is often a consequent tendency in defensive programming to test for null.
-Star has no direct equivalent of a global null value. However, the standard option type allows the equivalent of selective nullability. Any variable that might not have a proper value can be marked with the option type rather than the underlying type. And you can use none in those cases to indicate the equivalent of no value.
-So, for example, suppose that a Person might have a spouse — who is also a Person — but is not guaranteed to have one. Such a type can be described using:
-Person ::= someOne{
-   name : string.
-   dob : date.
-   spouse : ref option[Person]
-}
-Here we have done two things: we have eliminated the noOne case for Person and we have marked the spouse as being both read-write and optional.
-Someone with no spouse would be written:
-freddy : Person.
-freddy = someOne{
-  name = "Freddy".
-  dob = today().
-  spouse := none
-}
-whereas someone who has a spouse would be written:
-someOne{
-  name = "Lisa".
-  dob = lastYear.
-  spouse := some(johnny)
-}
-Of course, we can record freddy’s marriage to lisa using an assignment:
-freddy.spouse := some(lisa)
-lisa.spouse := some(freddy)</Text>
+        <Document ID="3B425F17-6AEB-4983-8C67-5167CFE5B4E9">
+            <Title>Dedication</Title>
+            <Text>
+
+
+
+
+
+
+
+
+
+
+Insert dedication here.</Text>
+            <Notes>Feel free to delete this document if you don’t need it.</Notes>
         </Document>
         <Document ID="2CE5E8C5-B016-4FE5-A5DC-4900BD2A9764">
             <Title>Doing Stuff With Collections</Title>
@@ -248,15 +248,36 @@ apply an accumulating function to the elements of the data, assuming that the ap
 This expression is clearly both more concise and higher-level than either the explicit loop or the explicit recursion; and it begins to illustrate the productivity gains that are potentially available to the functional programmer.
 Using leftFold means that we can often abstract away the machinery of loops and recursion completely — instead we can solve the problem at a more holistic level. This is one of the hallmarks of functional programming – it is possible to eliminate many instances of explicit loops and recursions.</Text>
         </Document>
-        <Document ID="60D37027-5A0F-4CA1-BA8F-0F527FC7BB6D">
-            <Title>Contents</Title>
-        </Document>
         <Document ID="6C84FEFB-DF6A-4B22-BA78-FF26ABF6C8EE">
             <Title>Code Repository</Title>
             <Text>Apart from simply being a place compiled code can be kept, a code repository has several other responsibilities: it must be possible to access the compiled code from multiple packages — including packages that were imported. In fact, a Star code repository is able to contain the compiled code of any number of packages — since code repositories are also used to hold compiled libraries as well as applications.
 In addition, we have to be able to manage multiple versions of a given compiled package; in some cases an application may be using multiple versions of a package (different libraries may have dependencies on specific versions of a package).
 The scale of the repository is also flexible: ranging from a and we must be able to manage different kinds of code repository: from individual packages, libraries of packages and even large-scale collections of libraries.
 We will not go into the details of Star’s code repositories here. However, note that code repositories may store their code in different ways — file systems, memory, in a Star Archive. Furthermore, repositories can be combined into composite repositories.</Text>
+        </Document>
+        <Document ID="38B23195-E30E-47E7-8964-26CAEF29798E">
+            <Title>Concurrent Actors</Title>
+            <Text>A concurrent actor is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.
+However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.
+It should be noted that the internal structure of a concurrent actor is more complex than that of a regular light weight actor. This may translate into a run-time performance difference.
+A concurrent actor is written using the concurrent prefix. For example, we can make our agentBank concurrent very straightforwardly:
+agentBank = concurrent actor{
+  private var accts := dictionary of []
+  fun balance(N) is accts[N].balance()
+  prc transfer(F,T,Amt) do{
+    accts[F].debit(Amt)
+    accts[T].credit(Amt)
+  }
+  on deposit(Nm,Amnt) on cashier do
+    accts[Nm].debit(Amnt)
+}
+As might be clear if you have read up this point, a concurrent actor works by having an internal background task that is actually responsible for processing speech actions. This background task is responsible for actually responding to speech actions and it ‘serializes’ them – ensuring that only one is performed at any one time.
+Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type – concActor of t – which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the balQuery function:
+balQuery:all t,a ~~ speech[t-&gt;&gt;a], a&lt;~{balance:(string)=&gt;float} |:
+    (t,string)=&gt;float.
+balQuery(A,U) =&gt; query A with balance(U)
+will work with either of actor, concurrent actor or any entity that implements speech and whose API includes the balance function – because it’s type is carefully circumscribed. However, functions that have been type-specialized to work with actors will not type check when used with concurrent actors.</Text>
+            <Comments>Like other references to the speech contract, the types in this function are slightly simplified.</Comments>
         </Document>
         <Document ID="5855F688-6A35-4E45-AF46-F6E6EEBB6150">
             <Title>Mapping to Make New Collections</Title>
@@ -296,6 +317,20 @@ r &lt;~ {name:n}
 means that any type bound to r must have a name field whose type is denoted by the type variable n in this case.
 With this type signature, we can use nameOf with any type that that a name field. This can be a record type; it can also be a type defined with an algebraic type definition that includes a record constructor.</Text>
             <Comments>This also means that the collection type in fmap must be generic: it is not possible to implement functor for strings.</Comments>
+        </Document>
+        <Document ID="B3856A1E-A9B1-4A0C-AFB3-047EDD257F92">
+            <Title>If You Are Already a Functional Programmer</Title>
+            <Text>You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of Star: Haskell and Standard ML – both of which are excellent; but not perfect.
+For the functional programmer, the principal benefits of Star are readability, modernity and predictability.
+One of the major drivers of the design of Haskell and (to a lesser extent) ML is conciseness. However, conciseness is not the same as readability. In modern software development environments there are many stakeholders beyond the developer. Having a language that is easy to follow by non-technical readers is a major benefit in mixed skill teams.
+Like Haskell, Star has a powerful type system. Star’s type system has many features in common with Haskell’s type system – features that typically go beyond the capabilities of many OO languages. In particular, Star’s contract system is reminiscent of Haskell’s type classes; and Star’s existential and higher-kinded types give considerable expressive power to the programmer.
+Star does not follow all of Haskell’s type features; and some type concepts are rephrased into terminology that is more familiar to main-stream (sic) programmers.
+Like ML, Star has a powerful module system. However, unlike ML’s functors, Star modules are first class values. This means that there is no artificial separation between ‘ordinary’ programs and ‘functor’ programs.
+The result is a balanced set of type features that provides capabilities that scale well from small programs to large systems.
+Star’s evaluation is, like that of ML but unlike Haskell, strict. We believe that that makes it significantly easier to reason about the actual behavior and performance of programs. However, Star has a rich set of features that support productive concurrent and parallel programming – based on a combination of system threads and the features of Concurrent ML.
+Like ML, Star is not a strictly ‘pure’ language. This was neither an accident nor an afterthought. Computer systems are built to fulfill purposeful activity (although there may be many times when the actual purpose is hard to discern). For example, if I deposit a check into my bank account, I require that the bank’s state is updated to reflect my new balance: the world has changed as a result of my action.
+However, the converse does not follow: just because the world is stateful does not mean that all our programs should be needlessly stateful. Much, if not most, of a given application program can and should be crafted in a mathematical style – the merits of functional programming are very great.
+Overall, the primary rationale in the design of Star is to empower the programmer in making obviously correct programs.</Text>
         </Document>
         <Document ID="C4EF0362-9FB3-4B1F-AB5E-B7CB6F16734B">
             <Title>A Component in Star</Title>
@@ -348,44 +383,6 @@ If you want to go deeper in concurrency then there are several sources one may g
 There is much material on agent programming of various flavors. A good place to start is also Wikipedia. For a variety of reasons we also recommend investigating the different specifications produced by the Foundation of Physical Intelligent Agents FIPA.
 Finally, dear reader, I would like to thank you for staying the course. I would like to recommend that you check out Star with your own programs and please keep us informed of your adventures by writing: fmccabe@gmail.com.</Text>
         </Document>
-        <Document ID="B3856A1E-A9B1-4A0C-AFB3-047EDD257F92">
-            <Title>If You Are Already a Functional Programmer</Title>
-            <Text>You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of Star: Haskell and Standard ML – both of which are excellent; but not perfect.
-For the functional programmer, the principal benefits of Star are readability, modernity and predictability.
-One of the major drivers of the design of Haskell and (to a lesser extent) ML is conciseness. However, conciseness is not the same as readability. In modern software development environments there are many stakeholders beyond the developer. Having a language that is easy to follow by non-technical readers is a major benefit in mixed skill teams.
-Like Haskell, Star has a powerful type system. Star’s type system has many features in common with Haskell’s type system – features that typically go beyond the capabilities of many OO languages. In particular, Star’s contract system is reminiscent of Haskell’s type classes; and Star’s existential and higher-kinded types give considerable expressive power to the programmer.
-Star does not follow all of Haskell’s type features; and some type concepts are rephrased into terminology that is more familiar to main-stream (sic) programmers.
-Like ML, Star has a powerful module system. However, unlike ML’s functors, Star modules are first class values. This means that there is no artificial separation between ‘ordinary’ programs and ‘functor’ programs.
-The result is a balanced set of type features that provides capabilities that scale well from small programs to large systems.
-Star’s evaluation is, like that of ML but unlike Haskell, strict. We believe that that makes it significantly easier to reason about the actual behavior and performance of programs. However, Star has a rich set of features that support productive concurrent and parallel programming – based on a combination of system threads and the features of Concurrent ML.
-Like ML, Star is not a strictly ‘pure’ language. This was neither an accident nor an afterthought. Computer systems are built to fulfill purposeful activity (although there may be many times when the actual purpose is hard to discern). For example, if I deposit a check into my bank account, I require that the bank’s state is updated to reflect my new balance: the world has changed as a result of my action.
-However, the converse does not follow: just because the world is stateful does not mean that all our programs should be needlessly stateful. Much, if not most, of a given application program can and should be crafted in a mathematical style – the merits of functional programming are very great.
-Overall, the primary rationale in the design of Star is to empower the programmer in making obviously correct programs.</Text>
-        </Document>
-        <Document ID="38B23195-E30E-47E7-8964-26CAEF29798E">
-            <Title>Concurrent Actors</Title>
-            <Text>A concurrent actor is similar to a regular light weight actor in that you can communicate with a concurrent actor using speech actions and you can define event rules for the concurrent actor.
-However, a concurrent actor has an important performance guarantee: only one speech action may be processed concurrently by the actor. This makes it straightforward to ensure that the internal state of a concurrent actor is always consistent in the presence of concurrent access to the actor.
-It should be noted that the internal structure of a concurrent actor is more complex than that of a regular light weight actor. This may translate into a run-time performance difference.
-A concurrent actor is written using the concurrent prefix. For example, we can make our agentBank concurrent very straightforwardly:
-agentBank = concurrent actor{
-  private var accts := dictionary of []
-  fun balance(N) is accts[N].balance()
-  prc transfer(F,T,Amt) do{
-    accts[F].debit(Amt)
-    accts[T].credit(Amt)
-  }
-  on deposit(Nm,Amnt) on cashier do
-    accts[Nm].debit(Amnt)
-}
-As might be clear if you have read up this point, a concurrent actor works by having an internal background task that is actually responsible for processing speech actions. This background task is responsible for actually responding to speech actions and it ‘serializes’ them – ensuring that only one is performed at any one time.
-Performing speech actions on concurrent actors is identical to performing them on regular actors. However, concurrent actors have a different type – concActor of t – which means that one has to be careful when constructing functions that are to work with both kinds of actor. For example, the balQuery function:
-balQuery:all t,a ~~ speech[t-&gt;&gt;a], a&lt;~{balance:(string)=&gt;float} |:
-    (t,string)=&gt;float.
-balQuery(A,U) =&gt; query A with balance(U)
-will work with either of actor, concurrent actor or any entity that implements speech and whose API includes the balance function – because it’s type is carefully circumscribed. However, functions that have been type-specialized to work with actors will not type check when used with concurrent actors.</Text>
-            <Comments>Like other references to the speech contract, the types in this function are slightly simplified.</Comments>
-        </Document>
         <Document ID="898FBDE9-3A90-4F47-8F02-6185DD628B38">
             <Title>Requests</Title>
             <Text>Our final form of speech action is the request. A request is intended to denote a request that the recipient perform some action. This is subtly different to the query in that – apart from answering the question – a query should not cause any change of state in the recipient, whereas the request likely would.
@@ -398,17 +395,8 @@ The action
 delete (Id,_) from stocks where quantity(Id)=0
 is part of the standard CRUD (Create-Read-Update-Delete) feature that allows collections to be updated.</Text>
         </Document>
-        <Document ID="CDE60377-7E81-41EE-87B9-6FBF3DD701CB">
-            <Title>Universal Resource Identifier</Title>
-            <Text>Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.
-The URI has an IETF standard specification (RFC 2396) [#rfc2396].
-One important source of confusion with the IETF URI is the distinction between URIs and URLs. Although they share a common syntax a URI is not intended to convey the location of the resource.
-For example, the URI
-file://foo/bar/x/y.star
-looks like a file-based name: one might be tempted to believe that the file x.Star resides in the directory /foo/bar/x. While it is possible that it might, there is actually no such commitment. Furthermore, the same resource may be someplace else (and will be if the identified file is in a code repository).</Text>
-        </Document>
-        <Document ID="0778B444-3F1F-4924-83BA-B2AB7028AC3E">
-            <Title>Back Matter</Title>
+        <Document ID="60D37027-5A0F-4CA1-BA8F-0F527FC7BB6D">
+            <Title>Contents</Title>
         </Document>
         <Document ID="181BF4A6-AD8F-4E1F-B733-31D14717121E">
             <Title>Design Goals for Star</Title>
@@ -431,19 +419,17 @@ Virtually every non-trivial program can be factored into a combination of genera
 Many of Star’s own features – such as its query notation and its actor notation – are built using these extension mechanisms.</Text>
             <Comments>The term type declaration is reserved for defining a new type. Variable types are defined through type annotations.</Comments>
         </Document>
-        <Document ID="C8CF3047-F965-4A63-903D-9A26625F4FA3">
-            <Title>Computing Primes With Tasks</Title>
-            <Text>Before, we looked at implementing the sieve of Eratosthenes using operations over collections. The Sieve, as it is affectionately known, is also a great demonstrator of concurrent programming.
-Recall that The Sieve has two parts: a collection of activities that filter a sequence of numbers looking for multiples of previously found primes and a master that grows the set of filters as new primes are found.</Text>
+        <Document ID="CDE60377-7E81-41EE-87B9-6FBF3DD701CB">
+            <Title>Universal Resource Identifier</Title>
+            <Text>Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.
+The URI has an IETF standard specification (RFC 2396) [#rfc2396].
+One important source of confusion with the IETF URI is the distinction between URIs and URLs. Although they share a common syntax a URI is not intended to convey the location of the resource.
+For example, the URI
+file://foo/bar/x/y.star
+looks like a file-based name: one might be tempted to believe that the file x.Star resides in the directory /foo/bar/x. While it is possible that it might, there is actually no such commitment. Furthermore, the same resource may be someplace else (and will be if the identified file is in a code repository).</Text>
         </Document>
-        <Document ID="157CC4CD-C6BD-464A-9317-4F129C3C2458">
-            <Title>String Interpolation</Title>
-            <Text>The expression
-"fact(10) is \(fact(10))"
-is an interpolated string expression. It means the string "fact(10) is \(fact(10))" with the substring \(fact(10)) replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.</Text>
-        </Document>
-        <Document ID="BC0DC62B-D666-419C-A37C-870C3C678050">
-            <Title>Manuscript Format</Title>
+        <Document ID="0778B444-3F1F-4924-83BA-B2AB7028AC3E">
+            <Title>Back Matter</Title>
         </Document>
         <Document ID="F4D83EDC-0C1C-4E35-83CF-44DD6E87753F">
             <Title>The Sieve of Erastosthenese</Title>
@@ -473,6 +459,20 @@ primes(Max) =&gt; let{
 The iota function is used to construct a list of numbers, in this case the integer range from 3 through to Max with an increment of 2. We start the sieve with 2 and the list of integers with 3 since we are making use of our prior knowledge that 2 is prime.
 It should be emphasized that the sieve of Erastosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each ‘sweep’ of the list of numbers results in a new list of numbers; many of which too will eventually be discarded. Furthermore, the filterMultiples function examines every integer in the list; it does not make effective use of the fact that successive multiples occupy predictable slots in the list of integers. In fact, building a highly optimized version of the sieve of Erastosthnese is not actually the main point here – it is to illustrate the power of Star’s collections processing functions.
 We might ask whether the sieve function can also be expressed as a filter. The straightforward answer is that it cannot: the sieve is a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard filter function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.</Text>
+        </Document>
+        <Document ID="157CC4CD-C6BD-464A-9317-4F129C3C2458">
+            <Title>String Interpolation</Title>
+            <Text>The expression
+"fact(10) is \(fact(10))"
+is an interpolated string expression. It means the string "fact(10) is \(fact(10))" with the substring \(fact(10)) replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.</Text>
+        </Document>
+        <Document ID="C8CF3047-F965-4A63-903D-9A26625F4FA3">
+            <Title>Computing Primes With Tasks</Title>
+            <Text>Before, we looked at implementing the sieve of Eratosthenes using operations over collections. The Sieve, as it is affectionately known, is also a great demonstrator of concurrent programming.
+Recall that The Sieve has two parts: a collection of activities that filter a sequence of numbers looking for multiples of previously found primes and a master that grows the set of filters as new primes are found.</Text>
+        </Document>
+        <Document ID="BC0DC62B-D666-419C-A37C-870C3C678050">
+            <Title>Manuscript Format</Title>
         </Document>
         <Document ID="CE3E8CAA-6CAE-4253-AEA7-9F7CF73B5448">
             <Title>Asynchronous Communication</Title>
@@ -813,9 +813,6 @@ On the other hand, having a type in a record is quite different.</Text>
             <Text>The straightforward answer to this is no. There is a great deal more to functional programming than can be captured in a few pages. However, we have covered some of the key features of functional programming — particularly as it applies to Star. In subsequent chapters we will take a closer look at collections, at modular programming, at concurrency and even take a pot shot at Monads.
 If there is a single idea to take away from this chapter it should be that functional programming is natural. If there is a single piece of advice for the budding functional Star programmer, it should be to hide the recursion. If there is a single bit of comfort to offer programmers it should be that Rome was not built in a day.</Text>
         </Document>
-        <Document ID="E984488B-35BC-4EAB-87B4-24D553312EB9">
-            <Title>Summary</Title>
-        </Document>
         <Document ID="EFA77E9F-5A99-428C-B6C7-4D091FDD98FF">
             <Title>A First Star Program</Title>
             <Text>It is traditional to introduce a new programming language with something like the hello world example. Which we will do in a moment. However, the factorial function often makes a better first example for functional programming languages:
@@ -829,6 +826,9 @@ sample.factorial{
 This is not an executable program per se.; however, it does represent a more typical source code unit — most programs are built from many smaller modules which come together to make the application. This program is small, but already introduces many of the key elements of the Star language.
 In this module, we see the name of the module – sample.factorial – and an import statement and a function definition – of the fact function.
 Source code can be in any form of textual container. There is, for example, no specific requirement that this sample.factorial package be in a file called factorial.star; although that may be good advice. Instead, the Star system relies on a catalog based system that maps package names to text entities. The catalog system also serves as an anchor point in the version management of Star programs. We will cover this, and the related repository system for generated artifacts, in Chapter 4.</Text>
+        </Document>
+        <Document ID="E984488B-35BC-4EAB-87B4-24D553312EB9">
+            <Title>Summary</Title>
         </Document>
         <Document ID="C419AC6E-0AA3-4B30-96FF-30359CE254E9">
             <Title>Programming Safely and Effectively</Title>
@@ -980,25 +980,6 @@ primes(Max) =&gt; let{
   { ignore background task { valis sieve(naturals, resltCh)}}
 } in valof collectTerms(resltCh,Max)</Text>
         </Document>
-        <Document ID="497CB634-2C60-4813-BB33-E7C2F764443C">
-            <Title>Ports and Speech</Title>
-            <Text>First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.
-This is an important point: unlike most programming languages, and unlike Star itself, our diagramming notation does not rely on scoping to communicate between elements. Instead, all connections and references are explicit. This is a strong constraint that helps to enforce so-called loose coupling between components. This greatly simplifies the kinds of task of assembling applications from components.
-Ports denote types as well as data flow: each port is associated with an API schema that determines the type of data that is going through the port. For example, the responding port of the SplitComponent has a schema associated with it that shows that the component expects Orders coming in:
-#
-An Order Port
-The originating port will be connected to a data source component. It’s type schema declares what kind of data it is looking for:
-￼
-The Parts DB Port
-It should come as no surprise at this point that we also declare that ports are intimately associated with speech actions: communication between components is mediated by speech actions and ports codify both the sender/receiver relationship and the type of communication.
-Notice that we are speaking in terms of originating and responding here. This reflects the fact that in any given communication we have an originating speaker and a responding listener. We have deliberately avoided using terms such as input or output here because connections between components can involve both flows of information but only one side ever initiates the action. For example, the SplitComponent will raise a query to the PartsDB component: the query itself involves sending the query in one direction and receiving the data from the PartsDB component in the other.
-Our final kind of port is a specialization of the originating port: the publishing port as in:
-￼
-The Supplier Port
-The difference between a normal originating port and a publishing port is two-fold: it represents a one-to-many fan-out – i.e., it may be connected to an arbitrary number of other components – and it also has an additional feature: the discrimination function that will allow the SplitComponent internally to ‘select’ the right supplier to send parts orders to.
-The net effect of this is that we have a diagramming notation that supports a high-level modeling of applications that is intuitive to many software engineers. Furthermore, we can support type safety of communication between elements of the application.
-This notation is not quite a complete ‘spanning set’ if the end goal is to construct a platform for building a variety of distributed applications. However, it is the kernel of such a set and can easily form the basis of a complete distributed applications platform.</Text>
-        </Document>
         <Document ID="4DC87F46-C118-4DE7-B296-B90ABDD9E8FB">
             <Title>Queries</Title>
             <Text>Consider, if you will, the problem of finding a set of grandparent-grandchild pairs — given information about parent-child relationships. For example, suppose that we had a list of pairs - each pair indicating a parent and child:
@@ -1031,6 +1012,25 @@ There are several variations of query expression, but the most common form is:
 SequenceType of { QuantifierTerm where Condition Modifier }
 where SequenceType is any type name that implements the sequence contract, QuantifierTerm is a form that indicates the form of the result of the query, Condition is a condition and the optional Modifier is used to signal properties of the result — such as whether the result is grouped or sorted.</Text>
             <Comments>There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!</Comments>
+        </Document>
+        <Document ID="497CB634-2C60-4813-BB33-E7C2F764443C">
+            <Title>Ports and Speech</Title>
+            <Text>First, let us take a slightly deeper look at the anatomy of a port. Ports are intended to represent the points of connectivity of a component: in effect, they form the gateways into and out of the component. By restricting ourselves to components that only interact via their ports we foster re-usability of components and re-purposability (sic) of code.
+This is an important point: unlike most programming languages, and unlike Star itself, our diagramming notation does not rely on scoping to communicate between elements. Instead, all connections and references are explicit. This is a strong constraint that helps to enforce so-called loose coupling between components. This greatly simplifies the kinds of task of assembling applications from components.
+Ports denote types as well as data flow: each port is associated with an API schema that determines the type of data that is going through the port. For example, the responding port of the SplitComponent has a schema associated with it that shows that the component expects Orders coming in:
+#
+An Order Port
+The originating port will be connected to a data source component. It’s type schema declares what kind of data it is looking for:
+￼
+The Parts DB Port
+It should come as no surprise at this point that we also declare that ports are intimately associated with speech actions: communication between components is mediated by speech actions and ports codify both the sender/receiver relationship and the type of communication.
+Notice that we are speaking in terms of originating and responding here. This reflects the fact that in any given communication we have an originating speaker and a responding listener. We have deliberately avoided using terms such as input or output here because connections between components can involve both flows of information but only one side ever initiates the action. For example, the SplitComponent will raise a query to the PartsDB component: the query itself involves sending the query in one direction and receiving the data from the PartsDB component in the other.
+Our final kind of port is a specialization of the originating port: the publishing port as in:
+￼
+The Supplier Port
+The difference between a normal originating port and a publishing port is two-fold: it represents a one-to-many fan-out – i.e., it may be connected to an arbitrary number of other components – and it also has an additional feature: the discrimination function that will allow the SplitComponent internally to ‘select’ the right supplier to send parts orders to.
+The net effect of this is that we have a diagramming notation that supports a high-level modeling of applications that is intuitive to many software engineers. Furthermore, we can support type safety of communication between elements of the application.
+This notation is not quite a complete ‘spanning set’ if the end goal is to construct a platform for building a variety of distributed applications. However, it is the kernel of such a set and can easily form the basis of a complete distributed applications platform.</Text>
         </Document>
         <Document ID="5372808E-9B3B-40C7-8058-28764840DF39">
             <Title>Comment</Title>
@@ -1436,31 +1436,6 @@ implementation coercion[integer,float] =&gt; { ... }
 This implementation gives the implementation for coercing integers to floats. Other implementation statements give the definitions for other forms of coercion.
 Having coercion as a contract makes it straightforward to add new forms of coercion. This is used quite extensively within Star itself: for example, parsing JSON can be viewed as coercion from string values to json values. Thus the interface to parsers can be standard across all types and parsers.</Text>
         </Document>
-        <Document ID="10F335DB-5C4B-4685-8C61-B865FBC86D1C">
-            <Title>Transducer</Title>
-            <Text>The connection between a URI and the actual resource must be established by a transducer. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.
-The Star compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.</Text>
-        </Document>
-        <Document ID="F74D32DE-B624-4D96-AD66-77C3B5612B20">
-            <Title>Basics</Title>
-            <Text>It is often easier to introduce functional programming using numerical examples. Last chapter we saw, for example, the factorial program. This is mostly because most programmers are already familiar with numbers. Continuing that tradition, here is a function that returns the sign of a number:
-sign:(integer) =&gt; integer.
-sign(X) where X&lt;0 =&gt; -1.
-sign(0) =&gt; 0.
-sign(X) where X&gt;0 =&gt; 1.
-Each of these equations applies to different situations: the first equation applies when the input argument is negative, the second when it is exactly zero and the third when it is strictly positive. These represent the three possible cases in the definition of the sign function.
-A Star function may be built from any number of rewrite equations; however, they must all be contiguous within the same group of statements.
-Although it is good practice to ensure that equations in a function definition do not overlap, Star will try the equations in a function definition in the order they are written in. We could have relied on this and written sign using:
-sign(X) where X&lt;0 =&gt; -1.
-sign(0) =&gt; 0.
-sign(X) =&gt; 1.
-Sometimes it is important to mark a particular equation as the default case: i.e., an equation that should be used if none of the other cases apply:
-sign(X) where X&lt;0 =&gt; -1.
-sign(0) =&gt; 0.
-sign(X) default =&gt; 1.
-An explicitly marked default equation does not need to be the last equation; but, wherever it is written, default equations are only attempted after all other equations have failed to apply.</Text>
-            <Comments>There is a theorem — called the Church Rosser Theorem — that guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to require programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.</Comments>
-        </Document>
         <Document ID="3FE72617-6BC9-44E8-8C48-8424BA92465E">
             <Title>A Taxonomy of Agents</Title>
             <Text>There is a natural hierarchy of types of agent – which roughly aligns with their roles and capabilities in distributed applications:
@@ -1502,6 +1477,26 @@ Collaborative agents abound in distributed systems; for example, the triumvirate
 Collaboration is independent of cognition. It is perfectly feasible to design networks of agents that have limited or no self-awareness. Conversely, cognitive agents are not required to participate in a network; although much of the motivation for self-awareness disappears if the agent has no-one to talk to.
 The obvious hallmark of collaborative agents is communication: you cannot recruit others to do your bidding if you can’t talk to them. There are many styles of communication possible between software entities; the one that we suggest for use in Star agents is based on speech actions.</Text>
         </Document>
+        <Document ID="F74D32DE-B624-4D96-AD66-77C3B5612B20">
+            <Title>Basics</Title>
+            <Text>It is often easier to introduce functional programming using numerical examples. Last chapter we saw, for example, the factorial program. This is mostly because most programmers are already familiar with numbers. Continuing that tradition, here is a function that returns the sign of a number:
+sign:(integer) =&gt; integer.
+sign(X) where X&lt;0 =&gt; -1.
+sign(0) =&gt; 0.
+sign(X) where X&gt;0 =&gt; 1.
+Each of these equations applies to different situations: the first equation applies when the input argument is negative, the second when it is exactly zero and the third when it is strictly positive. These represent the three possible cases in the definition of the sign function.
+A Star function may be built from any number of rewrite equations; however, they must all be contiguous within the same group of statements.
+Although it is good practice to ensure that equations in a function definition do not overlap, Star will try the equations in a function definition in the order they are written in. We could have relied on this and written sign using:
+sign(X) where X&lt;0 =&gt; -1.
+sign(0) =&gt; 0.
+sign(X) =&gt; 1.
+Sometimes it is important to mark a particular equation as the default case: i.e., an equation that should be used if none of the other cases apply:
+sign(X) where X&lt;0 =&gt; -1.
+sign(0) =&gt; 0.
+sign(X) default =&gt; 1.
+An explicitly marked default equation does not need to be the last equation; but, wherever it is written, default equations are only attempted after all other equations have failed to apply.</Text>
+            <Comments>There is a theorem — called the Church Rosser Theorem — that guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to require programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.</Comments>
+        </Document>
         <Document ID="0E6C19EF-E552-403E-914B-BC27945AB6BB">
             <Title>Background Tasks</Title>
             <Text>A task can be started in the background — i.e., concurrently with other tasks — by using the background operator, which is a function from tasks to tasks. It’s type is given by
@@ -1509,6 +1504,11 @@ background:all t ~~ (task[t])=&gt;task[t].
 Applying background to a task not only yields a task of the same type, but also one yielding the same value.
 The background operator has a simple effect — it starts its argument task so that it will operate in parallel with other computations.
 If it happened to be the case that a backgrounded task already completed, then the background operator has no effect.</Text>
+        </Document>
+        <Document ID="10F335DB-5C4B-4685-8C61-B865FBC86D1C">
+            <Title>Transducer</Title>
+            <Text>The connection between a URI and the actual resource must be established by a transducer. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.
+The Star compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.</Text>
         </Document>
         <Document ID="553112C1-C7EF-4D29-BDA8-C80B30245C5B">
             <Title>Abstract Data Types</Title>
@@ -1625,14 +1625,6 @@ filter(isPrime,N)
 but such an expression is likely to be very expensive (the isPrime test is difficult to do well).</Text>
             <Comments>The original collection is unaffected by the filter.</Comments>
         </Document>
-        <Document ID="758594EB-4005-4184-A4B3-3301CB58CF79">
-            <Title>Cover</Title>
-        </Document>
-        <Document ID="B8977328-6A9C-47D9-BC5B-9765393225D9">
-            <Title>No Time</Title>
-            <Text>The notify speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.
-Furthermore, not all applications need time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock’s ticking would confirm that neither tick nor tock is timestamped! However, each tick does announce the passing of another second. Instead, it is assumed that the listener has some other way of determining the time (by looking at the clock face). In general, it is expected that each application will incorporate an appropriate model of time for its notify events.</Text>
-        </Document>
         <Document ID="65021070-164A-464B-943A-3D18D18C241F">
             <Title>Concurrency</Title>
             <Text>Concurrency is about doing more than one thing at once. Concurrency in programming languages is important for two basic reasons: modern processors are easily capable of executing many tasks in parallel (and by implication, if your program does not then you may not be making good use of the machine) and many applications have to be able to respond to events without having to process everything in a fixed order.
@@ -1647,6 +1639,14 @@ The second concept that is so implicit is that of sharing: in a sequential progr
 Our approach is to make explicit that which is implicit. We reason about actions and their order explicitly – by employing the classic software engineer’s approach of taking an extra level of indirection: we take a handle on the computation itself using the concept of a first-class task as a unit of execution. Similarly, we reason about sharing by focusing on explicit coordination between tasks and on explicitly modeling sharing by communicating between them.
 One thing that may strike the reader is that tasks, and as we shall see more generally computation expressions, are associated with actions. This is new in our text so far – we have mostly focused on functions and related concepts. The reason for the change is straightforward: concurrency is inherently about the relative ordering of computation. That makes the action paradigm a natural fit for tasks and concurrency. However, we are fairly disciplined in our approach to actions; in particular, we strongly regulate implicit sharing of state. In fact, it is the implicit sharing of state that is the biggest issue with sequential programming.</Text>
             <Comments>We reserve the right to conflate strict parallelism with apparent parellelism here.</Comments>
+        </Document>
+        <Document ID="B8977328-6A9C-47D9-BC5B-9765393225D9">
+            <Title>No Time</Title>
+            <Text>The notify speech action does not explicitly refer to time, including the time of the event itself. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech action.
+Furthermore, not all applications need time to be explicitly identified. An extreme example of this would be the ticking of a clock. Any listener to a mechanical clock’s ticking would confirm that neither tick nor tock is timestamped! However, each tick does announce the passing of another second. Instead, it is assumed that the listener has some other way of determining the time (by looking at the clock face). In general, it is expected that each application will incorporate an appropriate model of time for its notify events.</Text>
+        </Document>
+        <Document ID="758594EB-4005-4184-A4B3-3301CB58CF79">
+            <Title>Cover</Title>
         </Document>
         <Document ID="55FFCE35-60F0-4B83-81CB-FF9958ECB2AB">
             <Title>Programming has Changed</Title>
@@ -1959,6 +1959,18 @@ The pressure to factor the problem into mechanism and policy is so strong that i
 DSLs and policy languages often involve quite different semantics from the host language; they are often declarative in nature — specifying what needs to be done and leaving the how to the mechanism. One of the simplest purely declarative language systems is the triple logic as seen in RDF. RDF makes a great basis for representing graph structures generally and configurations specifically.</Text>
             <Comments>A regression function is a line fitting function.</Comments>
         </Document>
+        <Document ID="5C36B898-91CD-4AB4-8B99-FB158146929A">
+            <Title>Order of Evaluation</Title>
+            <Text>Star is a so-called strict language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
+	1.	It is significantly easier for programmers to predict the evaluation characteristics of a strict language.
+	2.	It is also easier to implement a strict language efficiently on modern hardware. Suffice it to say that modern hardware was designed for evaluating strict languages, so this argument is somewhat circular.
+There many possible styles of evaluation order; one of the great merits of programming declaratively is that the order of evaluation does not affect the actual results of the computation.
+It may, however, affect whether you get a result. Different strategies for evaluating expressions can easily lead to differences in which programs terminate and which do not.
+One other kind of evaluation that is often considered is lazy evaluation. Lazy evaluation means simply that expressions are only evaluated when needed. Lazy evaluation has many potential benefits: it certainly enables some very elegant programming techniques.
+Essentially for the reasons noted above, Star does not use lazy evaluation; however, as we shall see, there are features of Star that allow us to recover some of the power of lazy evaluation.
+The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, Star uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written — with the one exception being any default equation which is always tried last.</Text>
+            <Comments>Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the default evaluation style.</Comments>
+        </Document>
         <Document ID="3ECF6511-EC5A-4B9A-B12F-039C0CDD2CB7">
             <Title>Copyright</Title>
             <Text>
@@ -1985,18 +1997,6 @@ ISBN-13:
 </Text>
             <Notes>Feel free to delete this document if you don’t need it, or edit it for your needs.</Notes>
         </Document>
-        <Document ID="5C36B898-91CD-4AB4-8B99-FB158146929A">
-            <Title>Order of Evaluation</Title>
-            <Text>Star is a so-called strict language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
-	1.	It is significantly easier for programmers to predict the evaluation characteristics of a strict language.
-	2.	It is also easier to implement a strict language efficiently on modern hardware. Suffice it to say that modern hardware was designed for evaluating strict languages, so this argument is somewhat circular.
-There many possible styles of evaluation order; one of the great merits of programming declaratively is that the order of evaluation does not affect the actual results of the computation.
-It may, however, affect whether you get a result. Different strategies for evaluating expressions can easily lead to differences in which programs terminate and which do not.
-One other kind of evaluation that is often considered is lazy evaluation. Lazy evaluation means simply that expressions are only evaluated when needed. Lazy evaluation has many potential benefits: it certainly enables some very elegant programming techniques.
-Essentially for the reasons noted above, Star does not use lazy evaluation; however, as we shall see, there are features of Star that allow us to recover some of the power of lazy evaluation.
-The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, Star uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written — with the one exception being any default equation which is always tried last.</Text>
-            <Comments>Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the default evaluation style.</Comments>
-        </Document>
         <Document ID="E311189B-D01A-476D-9DC2-6AACB13E99C2">
             <Title>Acknowledgements</Title>
             <Text>Noone is an island, and no project of this scale is one person’s work. I have had the great fortune to be able to develop Star in the context of real world applications solving hard problems. Individuals have also played a large role; and it can be hard to ensure that all are properly acknowledged: please forgive any omissions.
@@ -2017,11 +2017,6 @@ The implies connective is a way of testing complete compliance with a condition;
 managerOk:(string)=&gt;boolean.
 managerOk(M) =&gt; (X,M) in worksFor *&gt; X.salary=&lt;M.salary.
 Notice that we can use conditions’ satisfaction-oriented semantics outside of query expressions.</Text>
-        </Document>
-        <Document ID="048F7A58-7D73-4F12-A40B-2C15AA5D4328">
-            <Title>Code Products</Title>
-            <Text>One important question that must be answered in any scheme that permits importing is “where is the code coming from?”. Star has three architectural elements that are the basis of code management: the code repository, a system of universal resource identifiers (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.
-The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not make them less important, and addressing them certainly helps with that oceanic problem.</Text>
         </Document>
         <Document ID="91CB4723-CD35-4EAA-B92C-835D5AEA6951">
             <Title>Actors</Title>
@@ -2063,6 +2058,11 @@ agentBank:actor of {
   cashier:occurrence of moneyTransaction
 }
 One common technique when programming with actors is to use functions that generate actors. One is likely to need only a single bank actor in a system, but one may well need multiple client actors.</Text>
+        </Document>
+        <Document ID="048F7A58-7D73-4F12-A40B-2C15AA5D4328">
+            <Title>Code Products</Title>
+            <Text>One important question that must be answered in any scheme that permits importing is “where is the code coming from?”. Star has three architectural elements that are the basis of code management: the code repository, a system of universal resource identifiers (URI) to identify packages uniquely, and _catalog_s to reduce the bureaucratic burden.
+The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not make them less important, and addressing them certainly helps with that oceanic problem.</Text>
         </Document>
         <Document ID="DDFC701A-4AE4-4B57-84E4-C31E10EBA7C1">
             <Title>Importing Packages</Title>
@@ -2291,6 +2291,76 @@ prc dining(Count) do let{
 This program will run the simulation for four philosophers for a Count number of times. We have not added any trace information, so there will not actually be any output; however, that is relatively straightforward to do.
 The dining philosophers is a toy example; nevertheless it highlights many of the issues found in regular parallel applications where there is some shared resource.</Text>
         </Document>
+        <Document ID="B3B0B724-F387-41BC-9806-84D42A91B9E3">
+            <Title>Philosophers Have to Eat Too</Title>
+            <Text>The analog of the ‘hello world’ example in concurrent programming is probably the in-famous dining philosophers problem. Made famous in this form by C.A.R. Hoare (also of QuickSort fame), the set up for this puzzle is quite straightforward: there are four philosophers sitting at a table wanting to eat. The catch being that there are only four forks on the table and a philosopher needs to use two forks to eat something from the table.
+#
+Four Dining Philosophers
+Of course, it is only a little eccentric that the philosophers eat with two forks rather than a knife and fork!
+Being philosophers, they don’t eat constantly: they spend some time talking too; which means that it is possible for them to share the forks. Each philosopher has access to the two forks nearest him; each fork is shared by two philosophers; but a given fork can not be in use by more than one philosopher simultaneously.
+This problem is one of resource contention and the underlying issue is to avoid the different kinds of contention issues — such as deadlock (where everyone is stuck and no progress can be made), livelock (where no effective progress is made) and starvation where one or more of the philosophers receives an unfair allocation of the forks — preventing others from using the forks.
+There are two well-known solutions to the dining philosophers problem; one is due to Hoare and the other is due to Mani Chandy. We will show how to realize Hoare’s solution as it introduces some additional features of our concurrency platform.
+In essence, the Hoare solution depends on a combination of semaphores to manage the status of the various forks and an additional arbitrator to ensure deadlock-free execution.</Text>
+        </Document>
+        <Document ID="797CBF11-BBA9-4ABB-B871-E1AD5D67CAFD">
+            <Title>Using Channels and Rendezvous to Implement Semaphores</Title>
+            <Text>A semaphore is a general structure for implementing mutual exclusive access to some resource.
+Semaphore
+A semaphore is a variable, with associated grab and release operations, that can be used to manage access to a shared resource by multiple concurrent activities.
+It is traditional in designing semaphores to allow an arbitrary — but controlled — number of clients access to the resource. A non-recursive lock is equivalent to a semaphore with a count of 1.
+Given a semaphore, it is used in a sequence that looks like:
+S.grab()
+... -- access the shared resource
+S.release()
+The idea is, of course, that if the resource is not currently available then activities that attempt to grab the semaphore will be blocked. When the resource becomes available (by someone else performing the semaphore’s release action) then the grab may be re-attempted.
+Semaphores are useful, but they are prone to mis-programming. Use of a semaphore relies on the programmer ensuring that the release is invoked after a grab and, furthermore, any connection between the semaphore and the governed resource is purely implicit. Both of these are common sources of errors in concurrent programs.
+To build a semaphore we have to arrange for a unique resourceNot to be confused with the resource that is governed by the semaphore. together with coordinated access to it; preferably without exposing the resource itself (to prevent it from being contaminated by external code).
+One way of implementing such a unique resource is to use an internal background task and to map calls to grab and release to communication to the task. This internal task only needs a simple structure: it is simply listening for messages either to grab or to release. The crux is that, at any one time, either a grab or a release message might arrive and we cannot control this ahead of time. In effect, we have to be able to listen to more than one potential message, and the choice rendezvous allows us to do this.
+The main loop of the semaphore’s internal task is modeled using a mutual recursion between the grabR function, releaseR function and the semLoop functions. The forms of grabR and releaseR are actually very similar:
+grabR(X) =&gt;
+  wrapRv(recvRv(grabCh), (_) =&gt; semLoop(X-1).
+releaseR(X) =&gt;
+  wrapRv(recvRv(releaseCh), (_) =&gt; semLoop(X+1)).
+The wrapRv operator is a function that takes a rendezvous and a function as argument; it returns a new ‘wrapped’ rendezvous as its result. If the argument rendezvous fires then the result of that rendezvous is passed to the function argument — which in turn becomes the value returned by the wrapRv rendezvous.
+In the case of grabR, the effect is that a message on the grabCh channel is passed to the lambda; which ignores the actual message but recursively invokes the semaphore loop function — with an decremented ‘resource counter’. The releaseR function is similar except that semLoop will be invoked with an incremented counter and that it is listening to the releaseCh channel rather than the grabR channel.
+The wrapRv function is a useful way to ‘do something’ during a rendezvous. It is also the best way of converting a rendezvous of one form into that of another — to allow, for example, a combination rendezvous.
+There is an analogous operator — guardRv that has the effect of enabling a rendezvous only if some condition is met.
+In both cases, the result is a new invocation of semLoop which — depending on whether the counter is zero or not — will either listen for a release or both a releaseR or grabR:
+fun semLoop(0) is wait for releaseR(0)
+ |  semLoop(X) default is wait for grabR(X) or releaseR(X)
+In implementations of Star that do not support tail recursion, this code would need to be rewritten as a loop. However, we leave it as a recursion for expository purposes.
+If we focus on the disjunction in:
+wait for grabR(X) or releaseR(X)
+This is a rendezvous that is composed of two rendezvous; and the wait for operator waits for either one to occur. Disjunctive rendezvous like this are critical for many concurrent applications.
+It is important to emphasize that the disjunctive wait for waits for exactly one rendezvous to occur. In the situation that both happen simultaneously then only one will be picked for this choice. The unchosen rendezvous may be ‘picked up’ by another wait for operation.
+Notice that the disjunctive rendezvous is only entered when the value passed to semLoop is non-zero (it will actually be positive). If the value was zero then the task will only wait for a releaseR rendezvous. This captures the essential requirement that a rendezvous will limit access to its associated resource to a fix number of clients.
+We are now in a position to show the complete workings of the semaphore function in:
+semaphore:(integer) =&gt; { grab:()=&gt;rendevous[()], release:()=&gt;rendezvous[()]. }.
+semaphore(Count) =&gt; let{
+  grabCh:channel[()] = channel().
+  releaseCh:channel[()] = channel().
+
+  releaseR:(integer)=&gt;rendevous[()].
+  releaseR(X) =&gt;
+    wrapRv(recvRv(releaseCh), (_) =&gt; semLoop(X+1)).
+
+  grabR(X) =&gt;
+    wrapRv(recvRv(grabCh), (_) =&gt; semLoop(X-1).
+
+  semLoop:(integer) =&gt; rendevous[()].
+  semLoop(0) =&gt; wait for releaseR(0).
+  semLoop(X) default =&gt; wait for grabR(X) || releaseR(X)
+
+  { ignore background semLoop(Count) }
+} in {
+  grab() =&gt; wait for send(grabCh,()).
+  release() =&gt; wait for send(releaseCh,()).
+}
+Notice that the value returned by the semaphore function is itself a record — with the two functions grab and release embedded in it. Thus an expression of the form:
+S.grab()
+is an invocation of the grab function from that record — and denotes an attempt to ‘grab’ the resource managed by the semaphore. Similarly, S.release() counts as releasing the resource.
+Because the inner workings of the semaphore are protected by a let expression, they cannot be seen externally by other programs — only the grab and release functions are exposed; hence meeting one of the key requirements of the semaphore implementation.</Text>
+        </Document>
         <Document ID="7C2E06C3-26F6-4628-8DF7-57DFBCF60DAF">
             <Title>Wiring up Boxes and Arrows</Title>
             <Text>We started this section with a graphical depiction of an application as boxes and arrows between them. However, not many computers can execute boxes, and so if we want to run the application we have to construct a complete written program that represents the drawn diagram.
@@ -2358,76 +2428,6 @@ worksheet{
 In many cases, the actions that are used most often are the show and the assert actions; in conjunction with a set of regular definitions. This reflects one of the main purposes of the worksheet: to give some insight into the behavior of a program.
 Unlike a traditional REPL, because the worksheet is in a file, there is much more freedom within a worksheet to order things. In particular the definitions can be in any order: a later definition may be referenced explicitly or implicitly in a show action.
 It is possible to include actions in a regular package. However, especially in cases where the package is to be imported into another program this practice is not recommended.</Text>
-        </Document>
-        <Document ID="797CBF11-BBA9-4ABB-B871-E1AD5D67CAFD">
-            <Title>Using Channels and Rendezvous to Implement Semaphores</Title>
-            <Text>A semaphore is a general structure for implementing mutual exclusive access to some resource.
-Semaphore
-A semaphore is a variable, with associated grab and release operations, that can be used to manage access to a shared resource by multiple concurrent activities.
-It is traditional in designing semaphores to allow an arbitrary — but controlled — number of clients access to the resource. A non-recursive lock is equivalent to a semaphore with a count of 1.
-Given a semaphore, it is used in a sequence that looks like:
-S.grab()
-... -- access the shared resource
-S.release()
-The idea is, of course, that if the resource is not currently available then activities that attempt to grab the semaphore will be blocked. When the resource becomes available (by someone else performing the semaphore’s release action) then the grab may be re-attempted.
-Semaphores are useful, but they are prone to mis-programming. Use of a semaphore relies on the programmer ensuring that the release is invoked after a grab and, furthermore, any connection between the semaphore and the governed resource is purely implicit. Both of these are common sources of errors in concurrent programs.
-To build a semaphore we have to arrange for a unique resourceNot to be confused with the resource that is governed by the semaphore. together with coordinated access to it; preferably without exposing the resource itself (to prevent it from being contaminated by external code).
-One way of implementing such a unique resource is to use an internal background task and to map calls to grab and release to communication to the task. This internal task only needs a simple structure: it is simply listening for messages either to grab or to release. The crux is that, at any one time, either a grab or a release message might arrive and we cannot control this ahead of time. In effect, we have to be able to listen to more than one potential message, and the choice rendezvous allows us to do this.
-The main loop of the semaphore’s internal task is modeled using a mutual recursion between the grabR function, releaseR function and the semLoop functions. The forms of grabR and releaseR are actually very similar:
-grabR(X) =&gt;
-  wrapRv(recvRv(grabCh), (_) =&gt; semLoop(X-1).
-releaseR(X) =&gt;
-  wrapRv(recvRv(releaseCh), (_) =&gt; semLoop(X+1)).
-The wrapRv operator is a function that takes a rendezvous and a function as argument; it returns a new ‘wrapped’ rendezvous as its result. If the argument rendezvous fires then the result of that rendezvous is passed to the function argument — which in turn becomes the value returned by the wrapRv rendezvous.
-In the case of grabR, the effect is that a message on the grabCh channel is passed to the lambda; which ignores the actual message but recursively invokes the semaphore loop function — with an decremented ‘resource counter’. The releaseR function is similar except that semLoop will be invoked with an incremented counter and that it is listening to the releaseCh channel rather than the grabR channel.
-The wrapRv function is a useful way to ‘do something’ during a rendezvous. It is also the best way of converting a rendezvous of one form into that of another — to allow, for example, a combination rendezvous.
-There is an analogous operator — guardRv that has the effect of enabling a rendezvous only if some condition is met.
-In both cases, the result is a new invocation of semLoop which — depending on whether the counter is zero or not — will either listen for a release or both a releaseR or grabR:
-fun semLoop(0) is wait for releaseR(0)
- |  semLoop(X) default is wait for grabR(X) or releaseR(X)
-In implementations of Star that do not support tail recursion, this code would need to be rewritten as a loop. However, we leave it as a recursion for expository purposes.
-If we focus on the disjunction in:
-wait for grabR(X) or releaseR(X)
-This is a rendezvous that is composed of two rendezvous; and the wait for operator waits for either one to occur. Disjunctive rendezvous like this are critical for many concurrent applications.
-It is important to emphasize that the disjunctive wait for waits for exactly one rendezvous to occur. In the situation that both happen simultaneously then only one will be picked for this choice. The unchosen rendezvous may be ‘picked up’ by another wait for operation.
-Notice that the disjunctive rendezvous is only entered when the value passed to semLoop is non-zero (it will actually be positive). If the value was zero then the task will only wait for a releaseR rendezvous. This captures the essential requirement that a rendezvous will limit access to its associated resource to a fix number of clients.
-We are now in a position to show the complete workings of the semaphore function in:
-semaphore:(integer) =&gt; { grab:()=&gt;rendevous[()], release:()=&gt;rendezvous[()]. }.
-semaphore(Count) =&gt; let{
-  grabCh:channel[()] = channel().
-  releaseCh:channel[()] = channel().
-
-  releaseR:(integer)=&gt;rendevous[()].
-  releaseR(X) =&gt;
-    wrapRv(recvRv(releaseCh), (_) =&gt; semLoop(X+1)).
-
-  grabR(X) =&gt;
-    wrapRv(recvRv(grabCh), (_) =&gt; semLoop(X-1).
-
-  semLoop:(integer) =&gt; rendevous[()].
-  semLoop(0) =&gt; wait for releaseR(0).
-  semLoop(X) default =&gt; wait for grabR(X) || releaseR(X)
-
-  { ignore background semLoop(Count) }
-} in {
-  grab() =&gt; wait for send(grabCh,()).
-  release() =&gt; wait for send(releaseCh,()).
-}
-Notice that the value returned by the semaphore function is itself a record — with the two functions grab and release embedded in it. Thus an expression of the form:
-S.grab()
-is an invocation of the grab function from that record — and denotes an attempt to ‘grab’ the resource managed by the semaphore. Similarly, S.release() counts as releasing the resource.
-Because the inner workings of the semaphore are protected by a let expression, they cannot be seen externally by other programs — only the grab and release functions are exposed; hence meeting one of the key requirements of the semaphore implementation.</Text>
-        </Document>
-        <Document ID="B3B0B724-F387-41BC-9806-84D42A91B9E3">
-            <Title>Philosophers Have to Eat Too</Title>
-            <Text>The analog of the ‘hello world’ example in concurrent programming is probably the in-famous dining philosophers problem. Made famous in this form by C.A.R. Hoare (also of QuickSort fame), the set up for this puzzle is quite straightforward: there are four philosophers sitting at a table wanting to eat. The catch being that there are only four forks on the table and a philosopher needs to use two forks to eat something from the table.
-#
-Four Dining Philosophers
-Of course, it is only a little eccentric that the philosophers eat with two forks rather than a knife and fork!
-Being philosophers, they don’t eat constantly: they spend some time talking too; which means that it is possible for them to share the forks. Each philosopher has access to the two forks nearest him; each fork is shared by two philosophers; but a given fork can not be in use by more than one philosopher simultaneously.
-This problem is one of resource contention and the underlying issue is to avoid the different kinds of contention issues — such as deadlock (where everyone is stuck and no progress can be made), livelock (where no effective progress is made) and starvation where one or more of the philosophers receives an unfair allocation of the forks — preventing others from using the forks.
-There are two well-known solutions to the dining philosophers problem; one is due to Hoare and the other is due to Mani Chandy. We will show how to realize Hoare’s solution as it introduces some additional features of our concurrency platform.
-In essence, the Hoare solution depends on a combination of semaphores to manage the status of the various forks and an additional arbitrator to ensure deadlock-free execution.</Text>
         </Document>
         <Document ID="50F5AF1C-FAFF-4D46-B605-F99E77DA7482">
             <Title>Opening Up</Title>
@@ -2656,12 +2656,6 @@ myProgram{
 The _main procedure is given all the command line arguments as a list[string]. This variant of _main (you cannot have both in the same package) is useful if you want to process command line arguments with dash-options.</Text>
             <Comments>A procedure, in Star, is a function that returns the void tuple ().</Comments>
         </Document>
-        <Document ID="89A5E220-CE38-43E1-BE4E-548CAC8B5966">
-            <Title>Types of Collection</Title>
-            <Text>Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of adding to the collection, the cost of accessing elements of the collection and the cost of modifying elements in the collection.
-There is a strong emphasis on persistent semantics for the types and functions that make up Star’s collections architecture. This is manifest in the fact, for example, that functions that add and remove elements from collections do not modify the original collection.
-However, even without that constraint, different implementation techniques for collections tend to favor some operations at the cost of others. Hence, there are different types of collection that favor different patterns of use.</Text>
-        </Document>
         <Document ID="93BBADB1-462B-4F6B-8087-5508B7C718B3">
             <Title>Filtering for Primes</Title>
             <Text>Let us start with modeling each filter as a concurrent task; which can be implemented using:
@@ -2733,27 +2727,11 @@ The valof/valis combination is a neat way of segueing from the ‘world of expre
 This program is essentially equivalent to the Java loop; although there are some subtleties about the nature of valof/valis that go beyond Java. As a result, it has similar architectural issues.
 While one loop is not going to hurt anyone; real code in languages like Java typically has many such loops. Especially when nesting loops to any depth, such code quickly becomes impossible to follow.</Text>
         </Document>
-        <Document ID="833DF1C1-C636-4034-9053-01C6641E9578">
-            <Title>Contents</Title>
-        </Document>
-        <Document ID="A73083E0-B7EF-4FA9-96EC-5440403F59D6">
-            <Title>Validation</Title>
-            <Text>Simply defining operators is not enough to design a language extension. We must be able to make sure that the operators are used sensibly in the appropriate context, and that the Star compiler can make sense of the new syntax. To help with this, Star has a standard way of representing the valid syntactic forms of language extensions — using a set of validation rules.
-The purpose of a validation rule is two fold: it defines the legal syntactic forms and it enables a language extension designer to report syntax errors in terms of the DSL rather than in terms of operators (which most users of the DSL should not have to understand).
-A validation rule uses patterns to define legal instances of syntactic categories. The top-level categories are expression, pattern, statement and action; however, it is often useful to introduce additional categories. For example, one validation rule that we use for defining the legal forms of triple might be:
- # ?S ! ?P $ ?O :: triple :-
-    S::concept :&amp; P::concept :&amp; O::concept
-This validation rule states that terms such as
-:john ! :name $ "John Smith"
-are triples providing that :john, :name and "John Smith" are concepts. The operator :: is a standard operator that can be read to mean ‘has syntactic category’. The :- is read as ‘if’ and :&amp; is read as ‘and’.
-The meta language features of Star have a completely different texture and style to regular programs. This is deliberate; it allows a clear separation between regular code and meta code.
-The validation rules for concept allow for the two basic forms of concept:
- # : identifier :: concept
- # string :: concept
-These rules state that the two legal forms of concept are a colon-prefixed identifier and a literal string. However, we might want to allow simple identifiers also — given that such ‘concept variables’ may also appear:
- # : identifier :: concept
- # string :: concept
- # identifier :: concept</Text>
+        <Document ID="89A5E220-CE38-43E1-BE4E-548CAC8B5966">
+            <Title>Types of Collection</Title>
+            <Text>Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of adding to the collection, the cost of accessing elements of the collection and the cost of modifying elements in the collection.
+There is a strong emphasis on persistent semantics for the types and functions that make up Star’s collections architecture. This is manifest in the fact, for example, that functions that add and remove elements from collections do not modify the original collection.
+However, even without that constraint, different implementation techniques for collections tend to favor some operations at the cost of others. Hence, there are different types of collection that favor different patterns of use.</Text>
         </Document>
         <Document ID="D6CF1CA6-767F-4E40-9EBE-14BF8EA3E63B">
             <Title>Compressing Collections With a Fold</Title>
@@ -2830,6 +2808,25 @@ show primes(1000)
 This final program has an important property: there are no explicit recursions in it — in addition, apart from the leftFold function, there are no recursive programs at all in the definition of primes.</Text>
             <Comments>Real as in the Real numbers.</Comments>
         </Document>
+        <Document ID="A73083E0-B7EF-4FA9-96EC-5440403F59D6">
+            <Title>Validation</Title>
+            <Text>Simply defining operators is not enough to design a language extension. We must be able to make sure that the operators are used sensibly in the appropriate context, and that the Star compiler can make sense of the new syntax. To help with this, Star has a standard way of representing the valid syntactic forms of language extensions — using a set of validation rules.
+The purpose of a validation rule is two fold: it defines the legal syntactic forms and it enables a language extension designer to report syntax errors in terms of the DSL rather than in terms of operators (which most users of the DSL should not have to understand).
+A validation rule uses patterns to define legal instances of syntactic categories. The top-level categories are expression, pattern, statement and action; however, it is often useful to introduce additional categories. For example, one validation rule that we use for defining the legal forms of triple might be:
+ # ?S ! ?P $ ?O :: triple :-
+    S::concept :&amp; P::concept :&amp; O::concept
+This validation rule states that terms such as
+:john ! :name $ "John Smith"
+are triples providing that :john, :name and "John Smith" are concepts. The operator :: is a standard operator that can be read to mean ‘has syntactic category’. The :- is read as ‘if’ and :&amp; is read as ‘and’.
+The meta language features of Star have a completely different texture and style to regular programs. This is deliberate; it allows a clear separation between regular code and meta code.
+The validation rules for concept allow for the two basic forms of concept:
+ # : identifier :: concept
+ # string :: concept
+These rules state that the two legal forms of concept are a colon-prefixed identifier and a literal string. However, we might want to allow simple identifiers also — given that such ‘concept variables’ may also appear:
+ # : identifier :: concept
+ # string :: concept
+ # identifier :: concept</Text>
+        </Document>
         <Document ID="88E5CD14-82A3-4086-903A-E4F0331A25C3">
             <Title>Waiting for Events</Title>
             <Text>The wait for operator takes a rendezvous and yields a task that waits for the event described by the rendezvous to happen. So, for example:
@@ -2843,6 +2840,9 @@ task {
 }
 There are quite a few pieces here: the timeoutRv event itself, the wait for task function and the performance of the task itself.
 This separation into distinct phases helps in flexibility of the concurrency features but, of course, can make straightforward scenarios complex to construct. We shall see below that there is a library of concurrency features that are quite high-level and may be more appropriate than ‘rolling your own’ setup.</Text>
+        </Document>
+        <Document ID="833DF1C1-C636-4034-9053-01C6641E9578">
+            <Title>Contents</Title>
         </Document>
         <Document ID="BDC25B8F-9D69-4B56-BFA4-F35EAA7939F0">
             <Title>Performance Characteristics of Actors</Title>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="634D2E60-4D5C-40BF-8509-110DC41F876C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-11 20:51:25 -0800" ModID="DF6818F9-66AD-47D3-A614-EE0DE73932ED">
+<ScrivenerProject Identifier="634D2E60-4D5C-40BF-8509-110DC41F876C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-18 08:33:27 -0800" ModID="40588921-5D72-4CC1-A256-A8BA774BC499">
     <Binder>
         <BinderItem UUID="9FFBA333-8432-41C1-91F5-1302DFE283CA" Type="Text" Created="2018-01-02 14:51:51 -0800" Modified="2018-01-02 14:51:51 -0800">
             <Title>Non-Fiction Format</Title>
@@ -30,11 +30,11 @@
                         <CorkboardSettings>
                             <Arrangement>Linear</Arrangement>
                             <FreeformCorkboardDocuments>
-                                <IndexCardBinderUUID Position="0.056667,0.7966" TimeStamp="2018-01-02 18:18:19 -0800">AC738EB3-2EC4-4EBC-B361-5276F4871E82</IndexCardBinderUUID>
                                 <IndexCardBinderUUID Position="2.176667,0.07" TimeStamp="2018-01-02 18:18:19 -0800">181BF4A6-AD8F-4E1F-B733-31D14717121E</IndexCardBinderUUID>
+                                <IndexCardBinderUUID Position="0.123333,0.1" TimeStamp="2018-01-02 18:18:19 -0800">55FFCE35-60F0-4B83-81CB-FF9958ECB2AB</IndexCardBinderUUID>
+                                <IndexCardBinderUUID Position="0.056667,0.7966" TimeStamp="2018-01-02 18:18:19 -0800">AC738EB3-2EC4-4EBC-B361-5276F4871E82</IndexCardBinderUUID>
                                 <IndexCardBinderUUID Position="1.07,0.7566" TimeStamp="2018-01-02 18:18:19 -0800">E311189B-D01A-476D-9DC2-6AACB13E99C2</IndexCardBinderUUID>
                                 <IndexCardBinderUUID Position="1.076667,0.1" TimeStamp="2018-01-02 18:18:19 -0800">4942CDCA-7653-45FC-9CE7-E95FFEF1C7D4</IndexCardBinderUUID>
-                                <IndexCardBinderUUID Position="0.123333,0.1" TimeStamp="2018-01-02 18:18:19 -0800">55FFCE35-60F0-4B83-81CB-FF9958ECB2AB</IndexCardBinderUUID>
                             </FreeformCorkboardDocuments>
                         </CorkboardSettings>
                     </CorkboardAndOutliner>
@@ -2106,11 +2106,11 @@
     <ProjectTargets Notify="No">
         <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="Yes" Deadline="2011-04-12 05:24:39 -0700" IgnoreDeadline="Yes">0</DraftTarget>
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="No" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
-        <PreviousSession Words="0" Characters="1" Date="2018-02-11 15:24:43 -0800"></PreviousSession>
+        <PreviousSession Words="0" Characters="0" Date="2018-02-18 08:33:13 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-02-11 00:00:00 -0800">
+    <RecentWritingHistory Date="2018-02-18 00:00:00 -0800">
         <DraftWordCount>0</DraftWordCount>
-        <DraftCharCount>1</DraftCharCount>
+        <DraftCharCount>0</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>
         <OtherCharCount>0</OtherCharCount>
     </RecentWritingHistory>
