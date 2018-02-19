@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-12 20:27:39 -0800" ModID="9ED1FCF1-ABCF-4FEE-BD01-CDD3AC6231E3">
+<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-18 08:15:23 -0800" ModID="C0F61AE1-0492-4980-B796-76B856465436">
     <Binder>
         <BinderItem UUID="7A583553-3A84-40D6-B9B9-0430B8CD3E39" Type="DraftFolder" Created="2018-01-21 13:22:31 -0800" Modified="2018-02-11 16:00:39 -0800">
             <Title>Star Language Reference</Title>
@@ -218,13 +218,13 @@
                                                 <TextSelection>650,0</TextSelection>
                                             </TextSettings>
                                         </BinderItem>
-                                        <BinderItem UUID="DAF1D39A-EE62-4A68-9A51-F347A1E9B506" Type="Text" Created="2018-02-11 20:36:01 -0800" Modified="2018-02-11 20:36:29 -0800">
+                                        <BinderItem UUID="DAF1D39A-EE62-4A68-9A51-F347A1E9B506" Type="Text" Created="2018-02-11 20:36:01 -0800" Modified="2018-02-13 21:03:30 -0800">
                                             <Title>Multi-word Identifiers</Title>
                                             <MetaData>
                                                 <IncludeInCompile>Yes</IncludeInCompile>
                                             </MetaData>
                                             <TextSettings>
-                                                <TextSelection>1313,0</TextSelection>
+                                                <TextSelection>1075,0</TextSelection>
                                             </TextSettings>
                                         </BinderItem>
                                         <BinderItem UUID="A46C342F-E12E-4CD0-B27D-753026C284C6" Type="Text" Created="2018-02-11 20:35:31 -0800" Modified="2018-02-11 21:15:07 -0800">
@@ -236,7 +236,7 @@
                                                 <TextSelection>693,0</TextSelection>
                                             </TextSettings>
                                         </BinderItem>
-                                        <BinderItem UUID="EA0BD8D8-C08A-40E2-ABF8-BE66FBA25DE5" Type="Text" Created="2018-02-11 20:36:19 -0800" Modified="2018-02-11 21:12:11 -0800">
+                                        <BinderItem UUID="EA0BD8D8-C08A-40E2-ABF8-BE66FBA25DE5" Type="Text" Created="2018-02-11 20:36:19 -0800" Modified="2018-02-13 21:02:35 -0800">
                                             <Title>Operator Defined Tokens</Title>
                                             <MetaData>
                                                 <IncludeInCompile>Yes</IncludeInCompile>
@@ -256,7 +256,7 @@
                                         </BinderItem>
                                     </Children>
                                 </BinderItem>
-                                <BinderItem UUID="E7BE68CA-0A6E-40BE-8CC4-B20046F68A9C" Type="Text" Created="2018-02-11 20:35:46 -0800" Modified="2018-02-11 21:20:03 -0800">
+                                <BinderItem UUID="E7BE68CA-0A6E-40BE-8CC4-B20046F68A9C" Type="Text" Created="2018-02-11 20:35:46 -0800" Modified="2018-02-13 21:01:39 -0800">
                                     <Title>Standard Keywords</Title>
                                     <MetaData>
                                         <IncludeInCompile>Yes</IncludeInCompile>
@@ -267,14 +267,43 @@
                                 </BinderItem>
                             </Children>
                         </BinderItem>
-                        <BinderItem UUID="70A256C9-FC97-4114-9325-5F7B61F7278B" Type="Text" Created="2018-02-11 15:40:01 -0800" Modified="2018-02-11 19:54:16 -0800">
+                        <BinderItem UUID="70A256C9-FC97-4114-9325-5F7B61F7278B" Type="Text" Created="2018-02-11 15:40:01 -0800" Modified="2018-02-13 21:05:28 -0800">
                             <Title>Grammar</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
                             </MetaData>
                             <TextSettings>
-                                <TextSelection>16124,0</TextSelection>
+                                <TextSelection>522,0</TextSelection>
                             </TextSettings>
+                            <Children>
+                                <BinderItem UUID="768110F9-E803-4840-BF13-934F52E202FD" Type="Text" Created="2018-02-13 21:05:02 -0800" Modified="2018-02-13 21:07:56 -0800">
+                                    <Title>Operator Precedence Grammar</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>646,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="0133ABB9-B885-4F8D-8A9B-59E5B0B2159D" Type="Text" Created="2018-02-13 21:07:35 -0800" Modified="2018-02-13 21:09:05 -0800">
+                                    <Title>Standard Operators</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>4641,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="0AEEC462-0442-4278-9F5E-F9ECDDD9BC4B" Type="Text" Created="2018-02-13 21:09:03 -0800" Modified="2018-02-13 21:10:18 -0800">
+                                    <Title>Defining new Operators</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>380,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
                         </BinderItem>
                     </Children>
                 </BinderItem>
@@ -808,9 +837,9 @@
     <ProjectTargets Notify="No">
         <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="Yes" Deadline="2011-04-12 05:24:39 -0700" IgnoreDeadline="Yes">0</DraftTarget>
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="No" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
-        <PreviousSession Words="16765" Characters="117169" Date="2018-02-11 19:34:30 -0800"></PreviousSession>
+        <PreviousSession Words="0" Characters="0" Date="2018-02-16 15:34:12 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-02-12 00:00:00 -0800">
+    <RecentWritingHistory Date="2018-02-18 00:00:00 -0800">
         <DraftWordCount>0</DraftWordCount>
         <DraftCharCount>0</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>

@@ -4,22 +4,11 @@
 {\*\expandedcolortbl;;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f0\fs26 \cf0 Multi-word Identifiers\
-(((identifier,multi-word)))\
-(((multiple word identifiers)))\
-\
-A <<MultiWordIdentifier>> is an <<Identifier>> that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a <<MultiWordIdentifier>> is logically a _single_ identifier. For example, the combination of words:\
+\f0\fs26 \cf0 A <<MultiWordIdentifier>> is an <<Identifier>> that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a <<MultiWordIdentifier>> is logically a _single_ identifier. For example, the combination of words:\
 [listing]\
 such that\
 \
 is logically a single multi-word identifier whose name is `such that`.\
-\
-\
-[[multiWordIentifierFig]]\
-.Multi-Word Identifier\
-****\
-[[MultiWordIdentifier]]MultiWordIdentifier::=<<AlphaNumeric>>+\
-****\
 \
 There are a few standard <<MultiWordIdentifier>>s, as outlined in <<multiWords>>. In addition, <<MultiWordIdentifier>>s can be defined as operators (see <<multiWordOperators>>).\
 \
@@ -36,6 +25,4 @@ There are a few standard <<MultiWordIdentifier>>s, as outlined in <<multiWords>>
 Parts of a <<MultiWordIdentifier>> may be separated by spaces and/or comments.\
 \
 If a part of a <<MultiWordIdentifier>> occurs out of sequence, i.e., not as part of the sequence that defines the identifier, then it is interpreted as a normal <<AlphaNumeric>> identifier.\
-\
-[[operatorDefinedTokens]]\
-===}
+}

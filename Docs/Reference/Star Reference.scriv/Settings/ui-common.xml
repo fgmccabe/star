@@ -15,12 +15,13 @@
             <ItemID>427761AB-26EB-418D-83B4-74B91E896759</ItemID>
             <ItemID>2D319D51-FC64-4545-9CE4-45763E4BE291</ItemID>
             <ItemID>6C073C2B-0171-43EF-A6AA-E34E11EBF7F9</ItemID>
+            <ItemID>70A256C9-FC97-4114-9325-5F7B61F7278B</ItemID>
             <ItemID>07B0D7C6-57CE-4D6F-8AD9-11F06A261A5F</ItemID>
             <ItemID>B0417A1B-D617-4CBD-900A-14A6AB12C289</ItemID>
             <ItemID>6B6E864E-D14F-4EF7-8C5F-1D489706989A</ItemID>
         </ExpandedItems>
         <Selection>
-            <ItemID>46B27619-B0EA-4E99-A9D4-953153A414AF</ItemID>
+            <ItemID>0133ABB9-B885-4F8D-8A9B-59E5B0B2159D</ItemID>
         </Selection>
     </Binder>
     <Inspector Show="Yes" View="Comments">
@@ -69,10 +70,10 @@
                 <ShowHeader>Yes</ShowHeader>
                 <ShowFooter>Yes</ShowFooter>
                 <GroupsViewMode>Scrivenings</GroupsViewMode>
-                <CurrentViewMode>Scrivenings</CurrentViewMode>
+                <CurrentViewMode>Single</CurrentViewMode>
                 <SelectionAffects>None</SelectionAffects>
                 <Content>
-                    <ItemID>46B27619-B0EA-4E99-A9D4-953153A414AF</ItemID>
+                    <ItemID>0AEEC462-0442-4278-9F5E-F9ECDDD9BC4B</ItemID>
                 </Content>
             </View>
             <Text>
