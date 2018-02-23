@@ -48,7 +48,7 @@ Semiconductor fabrication is a complex process, with modern microprocessors goin
 There is often significant competitive pressure to use leading edge technology. The result is that equipment is fickle and breaks down or fails to operate at specification frequently.
 Moreover, many fabs are moving to highly diversified product mixes. It is not 10 times harder to make 100 products instead of 10, it is 1000’s of times harder.
 Consequently, long-term planning of the fab operation is impossible, and scheduling systems need to strike a delicate balance between the planning required to make good decisions and simultaneously not relying on the fab actually executing the plans generated.
-The problem is further exacerbated by problems quite specific to semiconductors: for example, some production routes – the sequences of production steps involved in making a product – involvequeue-time zones. A queue-time zone is a sub-sequence that, once entered, has to be completed within a certain time. If a wafer does not complete a queue-time zone on time, chemical processes cause it to ‘go bad’ resulting in a reworking of some of the process at best and a scrapping of work at worst.
+The problem is further exacerbated by problems quite specific to semiconductors: for example, some production routes – the sequences of production steps involved in making a product – involve queue-time zones. A queue-time zone is a sub-sequence that, once entered, has to be completed within a certain time. If a wafer does not complete a queue-time zone on time, chemical processes cause it to ‘go bad’ resulting in a reworking of some of the process at best and a scrapping of work at worst.
 The latest iteration of the ALPS system ‘ALPS 4’ makes use of almost all of Star's advanced facilities:
 	•	ALPS uses Star's advanced type system to provide high-level compositional models of conceptual entities such as tools, wafers, and routes.
 	•	Parametric polymorphism is used extensively to abstract over type definitions for concrete equipment, wafers, production recipes etc., making ALPS into a modular framework.
@@ -151,9 +151,7 @@ For the Family.</Text>
             <Title>Implementing Knowledge</Title>
             <Text>As a somewhat larger demonstration of the capabilities of Star's macro language, let us look at a significant example: representing knowledge.
 There are many knowledge representation languages; here we use one that is based on N3 notation15. In order to be relatively brief, we focus on a very reduced form of this notation: the knowledge triple. A statement of the form:
- 
 john ! parent $ sam
- 
 is intended to mean
 john is parent of sam
 more specifically,
@@ -168,13 +166,12 @@ graph{
 is such a knowledge graph expression. We also have to define ! and $ as infix operators — which can be done using:
 #right("!",500)
 #right("\$",450)
-  
-We have to escape the $ because it is a special character in Star syntax.
+We have to escape the $ because it is a special character in Star string syntax.
 The second step is to define how to represent such graphs. We choose to do so by using a data structure:
 n3Graph(
-  list of {
+  list of [
     triple(concept("john"),concept("parent"),concept("sam"))
-  }
+  ]
 )
 So, the task of the macro code is to translate the graph expression into an n3Graph term. The latter is readily understood by the Star compiler.
 We are not addressing here how to use such graph expressions.
@@ -185,16 +182,15 @@ We use an intermediate concept of concept because the N3 language includes other
 Notice that the macro rule for triples directly matches the triples that we want to handle. This makes it very clear what the macro is intended to match against.
 The concept is also transformed using a macro rule:
 #concept(identifier?C) ==&gt; concept($$C)
-There are many special purpose operators in the macro language. The $$ operator `converts' an identifier into a string literal. This allows us to reinterpret the john identifier as the string literal"john".
+There are many special purpose operators in the macro language. The $$ operator `converts' an identifier into a string literal. This allows us to reinterpret the john identifier as the string literal "john".
 The graph itself it handled in a similar way to individual triples. Since triples are only valid inside a graph, we reflect that with the graph macro too:
-#graph{?B} ==&gt; n3Graph(list of { B }) ## {
+#graph{?B} ==&gt; n3Graph(list of [ B ]) ## {
   # ?S ! ?P $ ? O ==&gt;
     triple(concept(S),concept(P),concept(O))
 }
 The macro replacement form:
 Repl ## { Macros }
-is the macro analog of a let expression: the macro rules in Macros are in scope for macro processing the expression Repl.
-</Text>
+is the macro analog of a let expression: the macro rules in Macros are in scope for macro processing the expression Repl.</Text>
         </Document>
         <Document ID="9BA3E55A-A3A3-4962-95E3-85885A5D9327">
             <Title>Explicit State</Title>
@@ -269,26 +265,22 @@ The impact of this benefit can be quite dramatic: similar in effect to the intro
             <Text>While the previous section showed how ALPS 4 solves the hardest problem associated with the queue-time problem, the solution starts with a seemingly trivial aspect of the system: how to representroutes in the system.
 A route lists the sequence of production steps a lot goes through as it traverses the fab. This suggests a simple list data structure to represent it. However, a route needs to represent the queue-time zones within the sequence. They could be stored in a separate list, which contains pointers or indices into the first list. However, this creates potential consistency problems between the two lists – changes in the list of steps may affect the list with the queue-time zones.
 Moreover, the system also needs to represent progress within a route. Naïvely, this would be done using a pointer into the first list. In addition, the system would have to keep track of the queue-time zones that have already been entered. This creates additional potential consistency problems, and keeping the information about queue-time zones up-to-date as lots enter and exit them makes this representation hard to manipulate. Moreover, the position pointer needs to be checked against the end of the first list, and any potential queue-time zones. Moreover, the search for queue-time zones about to be entered is cumbersome and expensive.
-ALPS 4 uses an alternative representation for routes that unifies the route itself and the ``position with the route'': It uses a single type RouteRem to represent the route remainder – what remains to be done of a route. In the beginning, the route remainder is the entire route, and as fabrication progresses, the route remainder gets shorter and shorter.
+ALPS 4 uses an alternative representation for routes that unifies the route itself and the position with the route: It uses a single type RouteRem to represent the route remainder – what remains to be done of a route. In the beginning, the route remainder is the entire route, and as fabrication progresses, the route remainder gets shorter and shorter.
 Ignoring queue-time zones for now, here is the simple definition of route remainders:
-type RouteRem is
-  RouteList(cons of RouteElement)
-type RouteElement is
-  RouteOp(Operation)
+RouteRem ::= RouteList(cons[RouteElement]).
+RouteElement ::= RouteOp(Operation)
 This Star type corresponds nicely to the definition:
 A route remainder is a list of route elements.
 A route element is a single operation.
-Moreover, the representation is easily extensible to also handle queue-time zones: A queue-time zone is essentially a ``rub-route'' embedded in the route. An extension to the RouteElement type reflects this notion:
-type RouteElement is
-     RouteOp(Operation)
-  or RouteQTZone(Duration, RouteRem)
+Moreover, the representation is easily extensible to also handle queue-time zones: A queue-time zone is essentially a sub-route embedded in the route. An extension to the RouteElement type reflects this notion:
+RouteElement ::= RouteOp(Operation) 
+             | RouteQTZone(Duration, RouteRem)
 Now a route element can also be a queue-time zone, consisting of a maximum duration (assuming an appropriate definition for the Duration type), and a sub-route represented by the RouteRemcomponent.
 This definition is not quite complete, however: While RouteQTZone can represent a queue-time zone before it is entered, it is not sufficient to represent a queue-time zone ‘in progress’. For this, we add a case to RouteRem:
-  type RouteRem is
-     RouteList(cons of RouteElement)
-  or RouteQTLimit(Time, RouteRem, RouteRem)
+  RouteRem ::= RouteList(cons[RouteElement])
+           | RouteQTLimit(Time, RouteRem, RouteRem)
 The RouteQTLimit constructor carries the time when the queue-time zone ends, as well as a route remainder within the queue-time zone and the remaining route after the queue-time zone.
-While simple and elegant, this is also almost exactly the representation ALPS 4 uses for routes. In particular, it is compositional: Routes are assembled (‘composed’) from smaller routes, thus enabling flexible manipulation and construction without rigid hierarchies that are characteristic of more traditional designs. Moreover, Star's algebraic datatypes subsequently guide the design of functions operating on routes, making their implementation drastically easier than would be the case with index- or pointer-based representations. Furthermore, this representation quite naturally handles nested queue-time zones.19
+While simple and elegant, this is also almost exactly the representation ALPS 4 uses for routes. In particular, it is compositional: routes are assembled (‘composed’) from smaller routes, thus enabling flexible manipulation and construction without rigid hierarchies that are characteristic of more traditional designs. Moreover, Star's algebraic datatypes subsequently guide the design of functions operating on routes, making their implementation drastically easier than would be the case with index- or pointer-based representations. Furthermore, this representation quite naturally handles nested queue-time zones.
 In particular, this representation is easily extensible: For example, conditional branches – such as needed to insert metrology, for example – can be handled by extending the RouteElement type, and without invalidating the existing code.
 Compositional representations such as the one for routes occur at all levels of the ALPS 4 systems: They describe the structure of composite tools (such as multi-chamber tools), scheduling strategies, scheduling policies, and hope. (For details on the latter, see the next section.)
 </Text>
@@ -299,27 +291,22 @@ Compositional representations such as the one for routes occur at all levels of 
         </Document>
         <Document ID="D661594B-5563-4BF5-9BFB-8BC1498475E9">
             <Title>Contracts as Interfaces</Title>
-            <Text>At their most basic, contracts are a way of denoting `overloaded' functions. I.e., by giving different implementations of a contract for different types, it is possible to provide multiple implementations of a function. For example, there are several implementations of arith for integers, floats, and so on. It is also strsaightforward to implement arith for your own type.
+            <Text>At their most basic, contracts are a way of denoting `overloaded' functions. I.e., by giving different implementations of a contract for different types, it is possible to provide multiple implementations of a function. For example, there are several implementations of arith for integers, floats, and so on. It is also straightforward to implement arith for your own type.
 However, another pattern of use of contracts is as an analog of interfaces. For example, we saw in Actors that actors used speech actions to express communication between them.
-In fact, there are many entities that can handle speech actions. In addition to basic actors, Star also has concurrent actors — which have a completely different implementation — and ports.13
+In fact, there are many entities that can handle speech actions. In addition to basic actors, Star also has concurrent actors — which have a completely different implementation.
 In addition to these implementations we can envisage many other entities that will want to be able to handle speech actions.
-To enable all these diverse uses of speech actions we encapsulate the semantics of speech actions in a contract:14
+To enable all these diverse uses of speech actions we encapsulate the semantics of speech actions in a contract:
 contract all t ~~ speech[t] ::= {
   _notify:all x ~~ (t,(x)=&gt;())=&gt;().
   _query: all x,s ~~ (t,(x)=&gt;s) =&gt; s.
   _request: all x ~~ (t,(x)=&gt;())=&gt;()
 }
 As we shall see in Application = Policy + Mechanism, a speech action such as:
- 
 query A with list of { all X where X in R }
- 
 is translated by macros into the call to the function _query:
- 
 _query(A,(AA) =&gt; list of { all X where X in AA.R }))
- 
 Now the role of the speech contract may be highlighted: it serves as the specification of the semantics of speech actions. More informally, one can think of the language of speech actions as a kind of `ceiling': the DSL defines a language that is embedded within Star. The speech contract, on the other hand, represents a `floor' to the speech action language.
-As a specification of semantics, contracts do not address all the issues. It is not possible, for example, to express that implementations of arithmetic obey the normal Peano axioms of arithmetic. However, it is possible to place assertions in a contract that are verified when the implementation is created.
-</Text>
+As a specification of semantics, contracts do not address all the issues. It is not possible, for example, to express that implementations of arithmetic obey the normal Peano axioms of arithmetic. However, it is possible to place assertions in a contract that are verified when the implementation is created.</Text>
         </Document>
         <Document ID="8E6D3927-5152-47B2-B2AA-325A1256A9B1">
             <Title>Contents</Title>
@@ -367,45 +354,29 @@ Generalising Monads to Arrows, John Hughes, Science of Computer Programming, 200
         </Document>
         <Document ID="58F1FE9C-75E1-4FA7-B400-3A1BA4874287">
             <Title>Accessing Collections</Title>
-            <Text>Contracts are deeply embedded within the Star language. For example, consider the task of accessing a collection. This is captured in the standard indexable contract; which includes a definition of the_index function. It includes other functions too; which we omit in this discussion.
- 
-contract indexable over c determines (k,v) is {
-  _index has type (c,k)=&gt;option of v
+            <Text>Contracts are deeply embedded within the Star language. For example, consider the task of accessing a collection. This is captured in the standard indexable contract; which includes a definition of the _index function. It includes other functions too; which we omit in this discussion.
+contract all c,k,v ~~ indexable[c-&gt;&gt;k,v] ::= {
+  _index:(c,k)=&gt;option[v]
  ...
 }
- 
 The _index function is rarely used directly; instead it is accessed via the index expression, as in:
- 
 L[34]
- 
-Accessing collections in this ways always introduces the element of tentativeness: it cannot normally be shown at compile time that L[34] exists. Star does not have the equivalent of Java null values; instead we make extensive use of the option type when we want to represent a tentative result.
-Thus the type of L[34] is
-option of integer
-rather than simply integer
-The indexable contract introduces an important feature of contracts: functional dependencies. The clause:
- 
-indexable over c determines (k,v)
- 
-states that any implementation of indexable for a type will `fix' two further types — in this case the `index type' and the `element type' of the elements of the collection.
-For example, the implementation of indexable for lists starts with:
- 
-implementation indexable over list of %t
-  determines (integer,%t) is …
- 
-This states that implementing indexable over lists requires that the index type is an integer and that the element type is the type of the element of the list. Much as one might expect. This allows expressions like L[34] to be typed as expected.
+Accessing collections always introduces the element of tentativeness: it cannot normally be shown at compile time that L[34] exists. Star does not have the equivalent of Java null values; instead we make extensive use of the option type when we want to represent a tentative result.
+Thus the type of L[34] is not integer, but
+option[integer]
+This indexable contract also introduces an important feature of contracts: functional dependencies. The clause:
+indexable[c-&gt;&gt;k,v]
+declares that any implementation of indexable for a type — c — will `fix' two further types — in this case the `index type' and the `element type' of the elements of the collection.
+For example, the implementation of indexable for the standard list type starts with:
+implementation all t ~~ indexable[list[t]-&gt;&gt;integer,t] =&gt; …
+This states that implementing indexable for lists requires that the index type is an integer and that the element type is the type of the element of the list. Much as one might expect. This allows expressions like L[34] to be typed as expected.
 The indexable contract is also implemented for associative dictionaries. In this case the index type is the type of the keys in the dictionary and the element type is the type of the values in the dictionary:
- 
-implementation indexable over dictionary of (%k,%v)
-  determines (%k,%v) is …
- 
+implementation all k,v ~~ indexable[dictionary[k,v]-&gt;&gt;k,v] =&gt; …
 Thus, if we had a dictionary M whose keys were strings and whose values were integer, then the expression:
- 
 M["alpha"]
- 
-would have the type option of integer.
+would have the type option[integer].
 There is no requirement that the index type be a simple type. For example, consider the representation of JSON values. The standard infoset type allows JSON values to be represented abstractly in a way that permits easy processing of the data.
 The most appropriate way of extracting elements from a JSON/infoset value is by using a path. For example, the path to the image title in the JSON value:
- 
 {
   "Image": {
     "Width": 800,
@@ -419,24 +390,15 @@ The most appropriate way of extracting elements from a JSON/infoset value is by 
     "IDs": [116, 943, 234, 38793]
   }
 }
- 
-may be expressed as Image.Title, and the last ID might be expressed as the path Image.IDS.3. If theinfoset of this value were bound to the variable I, then we can express these values using the expressions:
- 
-I[list of [kString("Image"),kString("Title")]]
- 
+may be expressed as Image.Title, and the last ID might be expressed as the path Image.IDS.3. If the infoset of this value were bound to the variable I, then we can express these values using the expressions:
+I[[kString("Image"),kString("Title")]]
 and
- 
-I[list of [kString("Image"), kString("IDs"), kInt(3)]]
- 
+I[[kString("Image"), kString("IDs"), kInt(3)]]
 respectively.
 Note that the elements of the path are not simply bare strings and integers. This is because a structure like:
- 
-list of [1, "fred", 2]
- 
+[1, "fred", 2]
 is not well typed. The elements of the path are from the iKey type which is written as an algebraic type definition:
- 
-type iKey is kString(string) or kInt(integer)
- 
+iKey ::= kString(string) | kInt(integer)
 Wrapping the path elements as iKey values makes the path expression a legal Star value.
 In summary, the simple contract specification for indexing can be applied to lists (arrays), to associative dictionaries and to tree-like structures. This has a powerful unifying effect on Star programs.
 In the next chapter we show how syntactic features — like our indexing notation — can be implemented in Star.
@@ -447,24 +409,18 @@ In the next chapter we show how syntactic features — like our indexing notatio
             <Text>It can be said with some justification that any programs over 100 lines of code can be structured in terms of a basic engine and a policy for using the engine. The reason for this is very simple: it is often much easier to customize a general solution to a problem than to solve the specifics.
 A policy tends to be different to a machine. Perhaps that is because policies express what the application is supposed to do (or not to do) where the mechanics describe how the application performs its function.
 The distinction between policy and mechanism does not only apply to the overall application. It can be seen to apply at many different levels within libraries and within applications. For example, the speech actions introduced in Actors and the index notation introduced in Accessing Collections are both examples of the same policy vs mechanism distinction — albeit at a fine granularity.
-There is no single `policy language' that is suitable for all purposes. Instead, Star makes it straightforward for programmers to design their own policy frameworks. This is by enabling so-calleddomain specific languages (DSLs).
-A domain specific language is a complex name for a simple idea: a DSL is a notation that is tailored for specific purposes. In particular, there is no requirement that DSLs be `full languages'; this is especially true in the context of a language like Star, which has strong support for DSLs. Instead, a Star-based DSL can selectively focus on a particular kind of policy expression. This, in turn, greatly simplifies the task of designing and implementing such DSLs.
-</Text>
+There is no single `policy language' that is suitable for all purposes. Instead, Star makes it straightforward for programmers to design their own policy frameworks. This is by enabling so-called domain specific languages (DSLs).
+A domain specific language is a complex name for a simple idea: a DSL is a notation that is tailored for specific purposes. In particular, there is no requirement that DSLs be `full languages'; this is especially true in the context of a language like Star, which has strong support for DSLs. Instead, a Star-based DSL can selectively focus on a particular kind of policy expression. This, in turn, greatly simplifies the task of designing and implementing such DSLs.</Text>
         </Document>
         <Document ID="04BB9EC1-E0C7-488A-8475-F59BB42689AA">
             <Title>Extensible Syntax</Title>
             <Text>Star's core grammar is more of a meta-grammar than a conventional grammar. It is known as an operator precedence grammar. This is very similar to the approach taken in Prolog and similar languages.
 A programmer can introduce new operators into the language, including new graphic tokens. For example:
- 
 #infix("&gt;\\",999)
- 
 defines a new infix operator &gt;\ that was previously unknown to the Star compiler.
-We can also define multi-word tokens. This capability can be useful when grammar suggests multiple worded keywords. Some of Star's keywords are defined as multi-word operators; for example, the for all prefix to a universal quantifier is defined by the declaration:
- 
-#prefixA("for all",1005)
- 
-The meta-grammar allows arbitrary spaces and comments between the words of such an operator — but no other text.
-</Text>
+We can also define multi-word tokens. This capability can be useful when grammar suggests multiple worded keywords. Some of Star's keywords are defined as multi-word operators; for example, the group by operator is defined by the declaration:
+#infix(“group by“,1005)
+The meta-grammar allows arbitrary spaces and comments between the words of such an operator — but no other text.</Text>
         </Document>
         <Document ID="9BAADB07-3706-4247-8A51-DBD5A1312703">
             <Title>Dedication</Title>
@@ -499,7 +455,7 @@ dictionary of [ “alpha”-&gt;1, “beta”-&gt;2 ]</Text>
         <Document ID="774CA63B-75F7-4FA2-85B5-696588786EAC">
             <Title>Contracts</Title>
             <Text>The concept of a contract is fundamental to good software engineering. This is because it allows separation between the specification of a concept and its implementation.
-A Star contract takes the form of a description of a set of functions and values. For example, the contract for basic arithmetic is
+A Star contract takes the form of a description of a set of functions and values - in effect a type. For example, the contract for basic arithmetic is
 contract all t ~~ arith[t] ::= {
     (+) : (t,t)=&gt;t.
     (-) : (t,t)=&gt;t.
@@ -509,8 +465,6 @@ contract all t ~~ arith[t] ::= {
     zero : t.
 }
 This has the effect of declaring a group of functions that work together to form a basic arithmetic.
-Notice that there are two identifiers defined here that may make one pause: zero and one.
-These address a somewhat pernicious problem: how to handle literal numbers. By explicitly identifying zero and one as elements of the arith contract we can use them in lieu of 0 and 1 respectively without committing to integers. (Note: Star does not support implicit coercion of numeric literals.)
 Once defined, a contract can be used simply by mentioning one of its members. Thus, in Star, all arithmetic depends on the arith contract:
 fact(0) =&gt; 1.
 fact(X) =&gt; X*fact(X-1)
@@ -519,15 +473,15 @@ F : arith[t] |: t
 This has the effect to declaring that F's type is a type variable — but one that is constrained such that whatever concrete type it eventually gets, it must be one that is defined for arith.12
 In fact, however, this version of factorial is not the most paradigmatic (sic) version. The reason is that the type signature for fact is not generic but tied to integer:
 fact:(integer)=&gt;integer
-The reason that fact is not fully generic is interesting: its the presence of the literal numbers 0 and 1 in the program. The type of any literal integer is integer! This is enough to force the type of fact.  Recall that Star does not support automatic implicit coercion; that includes not coercing literals into some other type (such as float).
-The solution is simple, if a little strange: we declared in the arith contract two non-function entries: zero and one. These are intended to represent the ‘0’ and ‘1’ values for the arithmetic being described. Using these, we can write a much more paradigmatic version of the factorial function:
+The reason that fact is not fully generic is interesting: it’s the presence of the literal numbers 0 and 1 in the program. The type of any literal integer is integer! This is enough to force the type of fact to be restricted to integers.  In particular, Star does not support implicit coercion, including coercion of literal numbers from integer to any other type.
+The solution is simple, if a little strange: we declared in the arith contract two non-function entries: zero and one.  By explicitly identifying zero and one as elements of the arith contract we can use them in lieu of 0 and 1 respectively without committing to integers. 
+Using these, we can write a much more paradigmatic version of the factorial function:
 factorial(zero) =&gt; one.
-factorial(N) =&gt; factorial(N-1)*N.
+factorial(N) =&gt; factorial(N-one)*N.
 This function is quite generic, and its type signature is given by:
-factorial: all t ~~ arith[t] |: (t)=&gt;t.
-Of course, in this case, our definition of factorial is not well defined for the real numbers; but that is a different issue!
-</Text>
-            <Comments>There is some Mathematical justification for this: the arith contract defines a Field which requires zero elements for the two operators (+ and *).</Comments>
+factorial: all t ~~ arith[t] |: (t)=&gt;t.</Text>
+            <Comments>There is some Mathematical justification for this: the arith contract defines a Field which requires zero elements for the two operators (+ and *).
+Of course, in this case, our definition of factorial is not well defined for the real numbers; but that is a different issue!</Comments>
         </Document>
         <Document ID="45D3FD4F-91F0-4C8E-BF2B-A4409487149E">
             <Title>Monads</Title>
@@ -543,13 +497,12 @@ The most important basic idea is that hope can be represented as a function that
 	•	A hope can be deferred in the form of a new hope, which may or may not be identical to the original hope.
 As the hope checks on the world, it may also issue instructions to expedite fulfillment. Figure 3 illustrates the concept.
 The two aspects of a hope interacting with the outside world – observing what has happened in the world as well as issuing instructions – are examples of handling state. Hope can observe as well as modify state. Consequently, hope functions have this type:
-type Hope of (a, s) is alias of
-  ((s) =&gt; HopeResult of (a, s))
-The %s type parameter represents the state, and the %a represents the potential payload from the hope. The hope function can observe the state going in, and can modify it by returning a different state. The definition of the HopeResult type corresponds directly to Figure 3:
-type HopeResult of (a, s) is
+all a,s ~~ Hope[a, s] &lt;~ ((s) =&gt; HopeResult of (a, s))
+The s type parameter represents the state, and the a represents the potential payload from the hope. The hope function can observe the state going in, and can modify it by returning a different state. The definition of the HopeResult type corresponds directly to Figure 3:
+all a,s ~~ HopeResult[a, s] ::=
    HopeFulfilled(a, s)
-or HopeShattered(string)
-or HopeDeferred(Hope of (a, s), s)
+ | HopeShattered(string)
+ | HopeDeferred(Hope[a, s], s)
 This definition may seem simple, but is indeed the basis for all management of hope in the ALPS 4 system, and has replaced all previous, more complicated and cumbersome mechanisms in the system.
 This makes the system exceedingly flexible and easy to adapt to new kinds of processes within a fab. Again, the powerful type-definition facilities in Star guides the design of simple solutions such as this one.
 The definition is the outcome of viewing hope as a monad. Monads are a powerful pattern in functional programming, and thus directly accessible to Star programmers. In this case, they provide a framework for constructing hope that is compositional, providing the advantages described in the previous section.
@@ -613,15 +566,11 @@ Notice that the argument of a request is a whole action. In effect it is a small
             <Title>Macro Language</Title>
             <Text>A macro is a program that is used to `replace' some source text with other source text. Except that we do not mean literal string text here. Star's macros operate on abstract syntax terms; i.e., the result of parsing the source text using the operator precedence grammar.
 We have already seen some simple examples of macros. There are two kinds of macros in Star: macro rules, like this rule which implements a form of lambda expression:
- 
 # ?L &gt;\ ?E ==&gt; (L) =&gt; E
- 
 and code macros. Code macros are simply normal Star functions that are applied to the program rather than to input data.
 The macro language is sufficiently powerful to allow arbitrary transformations of source programs. This is important because there are many occasions where the transformations required can involve expression forms and semantics that are unknown to the core Star language.
 A good example of this is the built-in query notation used for conditions, queries and so on in Star. The semantics of a condition like:
- 
-(X,Y) in R1 and (Y,Z) in R2
- 
+(X,Y) in R1 &amp;&amp; (Y,Z) in R2
 are not based on evaluation but on satisfaction. The condition is satisfied if there are bindings for X, Yand Z that make the predicates true. In particular, it may be that one or more of these variables is completely defined within the condition and is not referenced externally.
 The satisfaction semantics has to be implemented by transforming the condition into an equivalent expression that uses evaluation to compute the necessary bindings.</Text>
         </Document>
@@ -662,15 +611,15 @@ List&lt;Thing&gt; lis = new List&lt;Thing&gt;();
   lis.add(thing1);
   lis.add(thing2);
   ...
-This code fragment first creates an empty list lis and then adds elements to them. Each addition isdestructive in the sense that the state of the list before an addition is no longer present after it: For example, after the addition of thing1, lis has one element, and after the addition thing, it has two elements: The state where lis had one element no longer exists.
+This code fragment first creates an empty list lis and then adds elements to them. Each addition is destructive in the sense that the state of the list before an addition is no longer present after it: For example, after the addition of thing1, lis has one element, and after the addition thing, it has two elements: The state where lis had one element no longer exists.
 Contrast this to Star's cons lists, for example:
 let {
-  def lis0 is .nil
-  def lis1 is cons(thing1, lis0)
-  def lis2 is cons(thing2, lis1)
+  lis0 = nil.
+  lis1 = cons(thing1, lis0).
+  lis2 = cons(thing2, lis1).
   ...
 } in ...
-In this example, even though lis2 is built from lis1, lis1 is still present and has one element, while lis2has two. Thus, lis1 persists even after the program has created lis2. Moreover, despite the fact that lis1and lis2 appear to be completely independent objects, they share the memory occupied by lis1.
+In this example, even though lis2 is built from lis1, lis1 is still present and has one element, while lis2 has two. Thus, lis1 persists even after the program has created lis2. Moreover, despite the fact that lis1 and lis2 appear to be completely independent objects, they share the memory occupied by lis1.
 ￼
 Star's cons lists are persistent
 Figure 2 shows the memory layout of the cons lists from the example, and illustrates the sharing. Thus, it is possible for a program to have two different lists with a million elements each, and have them share the memory for identical portions, and using significantly less memory than would be needed for two completely different lists.
@@ -740,36 +689,36 @@ In general, new syntax elements that a DSL author adds to Star are not already v
 #graph{?B} :: expression :- B;*triple
 
 #?S ! ?P $ ?O :: triple
-These rules declare that graph expressions are expressions.16 provided that they contain only triples.
+These rules declare that graph expressions are expressions. provided that they contain only triples.
 Together, these validation rules, the operator declarations, and the macro rules allow Star to process a new form of expression.
 The complete package to implement this tiny DSL is just a few lines:
-miniN3 is package{
-  #right((!),500)
-  #right(($),450)
+miniN3{
+  #right((!),500).
+  #right(($),450).
 
-  type n3Graph is n3Graph(list of triple)
+  n3Graph ::= n3Graph(list[triple]).
 
-  type triple is triple(concept,concept,concept)
+  triple ::= triple(concept,concept,concept).
 
-  type concept is concept(string)
+  concept ::= concept(string).
 
-  #graph{?B} :: expression :- B;*triple
+  #graph{?B} :: expression :- B;*triple.
 
-  #?S ! ?P $ ?O :: triple
+  #?S ! ?P $ ?O :: triple.
 
-  #graph{?B} ==&gt; n3Graph(list of { B }) ## {
-    # ?S ! ?P $ ?O ==&gt; triple(concept(S),concept(P),concept(O))
-    #concept(identifier?I) ==&gt; concept($$I)
+  #graph{?B} ==&gt; n3Graph(list of [ B ]) ## {
+    # ?S ! ?P $ ?O ==&gt; triple(concept(S),concept(P),concept(O)).
+    #concept(identifier?I) ==&gt; concept($$I).
   }
 }
 We can use this DSL simply by importing the package in our code:
 worksheet{
-  import miniN3
-  def G is graph{
-    john ! parent $ sam
-    sam ! parent $ joe
+  import miniN3.
+  G = graph{
+    john ! parent $ sam.
+    sam ! parent $ joe.
   }
-  show G
+  show G.
 }
 which results in:
 n3Graph(list of [

@@ -39,39 +39,99 @@ Because we want to allow different variations on the legal forms of triple, the 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 One thing to notice about these validation rules are the rules of the form:\
- # ?VP :: verbPhrase :-\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22  # ?VP :: verbPhrase :-\
     error("$VP must have at least one predicate and one object")\
-What this rule is saying is that if the earlier rules for verbPhrase don\'92t apply then the compiler should report an error message. The notable thing is that the error message is in the context of the triple graph notation: i.e., the compiler is able to report syntax errors in terms of a language extension that is itself not known to the compiler! This is important because it helps to prevent 
-\i abstraction leaks
-\i0  \'97 where the user of a system must understand what triples might compile to before understanding what is wrong with their program.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 What this rule is saying is that if the earlier rules for verbPhrase don\'92t apply then the compiler should report an error message. The notable thing is that the error message is in the context of the triple graph notation: i.e., the compiler is able to report syntax errors in terms of a language extension that is itself not known to the compiler! This is important because it helps to prevent 
+\i \cf2 abstraction leaks
+\i0 \cf2  \'97 where the user of a system must understand what triples might compile to before understanding what is wrong with their program.\
 One other thing to notice can be seen in the rule for verbs:\
- # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs\
-The term #(?V1,?Vr)# is a special kind of parenthesized term that means the same as (in this case) ?V1,?Vr. We use #()#\'92s parentheses because the regular parentheses ()\'92s are not dropped during parsing by the operator grammar, whereas #()#\'92s are.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22  # #(?V1,?Vr)# :: verbs :- V1::concept :& Vr::verbs\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 The term 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 #(?V1,?Vr)#
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is a special kind of parenthesized term that means the same as (in this case) as 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 ?V1,?Vr
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 . We use 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 #()#
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 \'92s parentheses because the regular parentheses ()\'92s are not dropped during parsing by the operator grammar, whereas 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 #()#
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 \'92s are.\
 This is because of the importance that regular parentheses play in the language: apart from operator precedence overriding (their most common use in programming languages), ()\'92s are used for type expressions and for tuple terms. In general, terms of the form (
-\i E
-\i0 ) are 
-\i not
-\i0  syntactically identical to 
-\i E
-\i0 .\
+\i \cf2 E
+\i0 \cf2 ) are 
+\i \cf2 not
+\i0 \cf2  syntactically identical to 
+\i \cf2 E
+\i0 \cf2 .\
 The compiler applies parentheses reduction later in the compilation process; when it can be proved to be safe to eliminate regular parentheses.\
 The intention of the verbs rule is to allow multiple verbs in a predicate of a triple \'97 its context is the rule that picks up on the [] form of predicate:\
- # [?V] :: verb :- V::verbs\
-This rule allows multiple verbs in a triple:\
-:john ! [:in_department, :works_at] $ :accounting\
-This form is equivalent to two triples with the same subject and object with with different predicates.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22  # [?V] :: verb :- V::verbs\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This rule allows multiple verbs in a triple:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 :john ! [:in_department, :works_at] $ :accounting\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This form is equivalent to two triples with the same subject and object with with different predicates.\
 Having rules for triple is not sufficient to ensure validation of triple graphs. This is because the compiler has no a priori reason to understand or look for rules about triple. We need to establish the entry point into the validation.\
 At the top-most level, the compiler attempts to validate the entire input as a sequence of statements. It so happens that packages and worksheets count as statements.\
 We stated earlier that a triple graph will be treated as an 
-\i expression
-\i0  in the larger context. So, the natural entry point for validating triple graphs is as expressions; which we can formalize by defining a new rule for validating expressions:\
- # graph\{?G\} :: expression :-\
+\i \cf2 expression
+\i0 \cf2  in the larger context. So, the natural entry point for validating triple graphs is as expressions; which we can formalize by defining a new rule for validating expressions:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22  # graph\{?G\} :: expression :-\
     G;*triple ## \{\
       # ?S ! ?V :: triple :- S::nounPhrase :& V::verbPhrase\
       # ?T :: triple :- error("$T is not a valid triple")\
     ...\
 \}\
-The form G;*triple is a validation condition that states that G must be a sequence of terms (optionally separated by semi-colons) and each term must be a triple. In addition, we nested the set of validation rules for triple within the rule for graph. The ## operator is analogous to the let operator for expressions; except that here we use it to denote that we should look for the rules for triple within the braces.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 The form 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 G;*triple
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is a validation condition that states that G must be a sequence of terms (optionally separated by semi-colons) and each term must be a triple. In addition, we nested the set of validation rules for triple within the rule for graph. The ## operator is analogous to the let operator for expressions; except that here we use it to denote that we should look for the rules for triple within the braces.\
 Since, the natural scope rules for validation rules is one of cascading and augmentation rather than replacement, the meaning of the ## is a little different to the normal let expression. The validation rules that are located within the body of the ## are applied before other validation rules located externally.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
@@ -85,5 +145,5 @@ In some ways our says condition is simpler than the triple itself because we cho
   G :: expression\
 Notice that this rule simply states that a says condition is valid if G is an expression. We do not require that G is a literal graph; although its type will need to be consistent.\
 Unlike the rules for triples, this must must 
-\i not
-\i0  be embedded within a ## condition. The reason is that we must be able to find says conditions anywhere in a program \'97 not just inside a triple graph.}
+\i \cf2 not
+\i0 \cf2  be embedded within a ## condition. The reason is that we must be able to find says conditions anywhere in a program \'97 not just inside a triple graph.}

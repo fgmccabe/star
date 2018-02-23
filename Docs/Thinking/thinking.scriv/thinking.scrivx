@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="E73EA801-0695-4621-9495-3EA0C932BE70" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-18 14:58:16 -0800" ModID="DF4FA9FE-189B-4C19-BCA7-03E4A4C4C9AE">
+<ScrivenerProject Identifier="E73EA801-0695-4621-9495-3EA0C932BE70" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-20 19:46:04 -0800" ModID="9431FC29-19FB-4260-88FF-527BAD11F5D4">
     <Binder>
         <BinderItem UUID="614CFC60-7364-4E40-A63B-BE12334DDD32" Type="DraftFolder" Created="2018-02-15 21:49:08 -0800" Modified="2018-02-16 15:52:31 -0800">
             <Title>Thinking About Star - A White Paper</Title>
@@ -656,11 +656,11 @@
     <ProjectTargets Notify="No">
         <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="No" Deadline="2018-02-15 21:49:07 -0800" IgnoreDeadline="Yes">0</DraftTarget>
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="Yes" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
-        <PreviousSession Words="-122" Characters="-664" Date="2018-02-18 08:33:18 -0800"></PreviousSession>
+        <PreviousSession Words="0" Characters="0" Date="2018-02-19 21:00:31 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-02-18 00:00:00 -0800">
-        <DraftWordCount>60</DraftWordCount>
-        <DraftCharCount>403</DraftCharCount>
+    <RecentWritingHistory Date="2018-02-20 00:00:00 -0800">
+        <DraftWordCount>0</DraftWordCount>
+        <DraftCharCount>0</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>
         <OtherCharCount>0</OtherCharCount>
     </RecentWritingHistory>

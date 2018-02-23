@@ -1,98 +1,183 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;\f2\froman\fcharset0 Palatino-Roman;
 }
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f0\b\fs26 \cf2 \expnd0\expndtw0\kerning0
-Star
-\b0 \cf2  has a very flexible syntactic foundation based on 
-\i Operator Precedence Grammars
-\i0 . You are already quite familiar with operator precedence grammars \'97 they are used in nearly every programming language to represent arithmetic expressions. For example\
+\f0\fs24 \cf0 <$Scr_Cs::1>
+\f1\fs22 Star
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  has a very flexible syntactic foundation based on 
+\i \cf2 Operator Precedence Grammars
+\i0 \cf2 . You are already quite familiar with operator precedence grammars \'97 they are used in nearly every programming language to represent arithmetic expressions. For example\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 X+Y*3\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 X+Y*3\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 is a very common way of representing the addition of 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 X
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26 is a very common way of representing the addition of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 X
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  to the result of multiplying 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 Y
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26  to the result of multiplying 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 Y
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  by 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 3
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26  by 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 3
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 . It also represents the application of two operators: 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 +
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26 . It also represents the application of two operators: 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 +
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  and 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 *
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 *
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  which happen to be 
-\i binary
-\i0  operators.\
+\f2\fs26  which happen to be 
+\i \cf2 binary
+\i0 \cf2  operators.\
 The operator structure of an expression is completely independent of any type information or its run-time performance.\
 We should be careful to note that the term 
-\i operator
-\i0  here has at least two overlaid meanings: there is the sense in which operator is a 
-\i syntactic
-\i0  structure \'97 with rules for legal sequences of tokens \'97 and there is the sense in which operator is a 
-\i function
-\i0  to be applied to arguments \'97 with rules for type safety and information flow. In this section, we are focused on the syntactic aspects of operators.\
+\i \cf2 operator
+\i0 \cf2  here has at least two overlaid meanings: there is the sense in which operator is a 
+\i \cf2 syntactic
+\i0 \cf2  structure \'97 with rules for legal sequences of tokens \'97 and there is the sense in which operator is a 
+\i \cf2 function
+\i0 \cf2  to be applied to arguments \'97 with rules for type safety and information flow. In this section, we are focused on the syntactic aspects of operators.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \b \cf2 Star
 \b0 \cf2  makes quite extensive use of operators in its own grammar, nearly every feature of the language relies on operators for its syntax.\
 There are many different kinds of operator: we can have 
-\i prefix
-\i0  operators like unary -; 
-\i infix
-\i0  operators like * and 
-\i postfix
-\i0  operators like ;. Although prefix and infix forms tend to be much more commonly used than the postfix form. It is quite possible for the same operator to have multiple forms: for example the - is both infix and prefix \'97 which allows us to use the same symbol for subtraction and to represent negative numbers.\
+\i \cf2 prefix
+\i0 \cf2  operators like unary 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 -
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 ; 
+\i \cf2 infix
+\i0 \cf2  operators like 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 *
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\i \cf2 postfix
+\i0 \cf2  operators like 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 ;
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 . Prefix and infix forms tend to be much more commonly used than the postfix form. It is quite possible for the same operator to have multiple forms: for example the - is both infix and prefix \'97 which allows us to use the same symbol for subtraction and to represent negative numbers.\
 To support parsing and operator combination, an operator is associated with a 
-\i priority
-\i0  number \'97 which encodes the relationship between operators. In the case of 
+\i \cf2 priority
+\i0 \cf2  number \'97 which encodes the relationship between operators. In the case of 
 \b \cf2 Star
-\b0 \cf2 \'92s operators, this is an integer in the range 0 to 2000; where the higher the priority the more dominant the operator is in the syntax. For example, the priorities for + and * are 720 and 700 respectively. It is this relative difference that determines that X+Y*3 means the same as X+(Y*3) and not (X+Y)*3.\
+\b0 \cf2 \'92s operators, this is an integer in the range 0 to 2000; where the higher the priority the more dominant the operator is in the syntax. For example, the priorities for 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 +
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 *
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  are 720 and 700 respectively. It is this relative difference that determines that 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 X+Y*3
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  means the same as 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 X+(Y*3)
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and not 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 (X+Y)*3
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 .\
 The final attribute of an operator is its 
-\i associativity
-\i0 . Associativity determines what happens when you have multiple operators of the same priority in sequence. For example, arithmetic operators are traditionally 
-\i left associative
-\i0 . This means that\
-X-Y-Z\
-is the same as\
-(X-Y)-Z\
-rather than\
-X-(Y-Z)\
-All this can be put together in a single 
+\i \cf2 associativity
+\i0 \cf2 . Associativity determines what happens when you have multiple operators of the same priority in sequence. For example, arithmetic operators are traditionally 
+\i \cf2 left associative
+\i0 \cf2 . This means that\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 X-Y-Z\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f2\fs26 is the same as\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 (X-Y)-Z\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f2\fs26 rather than\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 X-(Y-Z)\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f2\fs26 All this can be put together in a single 
 \b \cf2 Star
-\b0 \cf2  statement: the operator declaration. In the case of our triple we are using two operators ! and $ to \'91glue\'92 together the parts of a triple. We also use the : operator to mark named concepts. The operator declarations we need to represent them are:\
- # right("!",500).\
+\b0 \cf2  statement: the operator declaration. In the case of our triple we are using two operators 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 !
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 $
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  to \'91glue\'92 together the parts of a triple. We also use the : operator to mark named concepts. The operator declarations we need to represent them are:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22  # right("!",500).\
  # right("$",450).\
  # prefix(":",100).\
  # infix("says",908).\
-One may ask where these priority numbers come from? Operators in 
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f2\fs26 One may ask where these priority numbers come from? Operators in 
 \b \cf2 Star
 \b0 \cf2  are stratified into different levels depending on their syntactic role: 0\'96899 represent expressions, 900\'96999 represent predicates and conditions, 1000\'961199 are used for forms that can be either expressions or actions, 1200\'961499 represent actions and 1500\'96200 represent statements. The choice of 908 for says is to make it the same as the built-in predicate operator: in. The main effect of choosing the \'91wrong\'92 value for the priority of an operator is that expressions don\'92t parse the way you would like.\
 Notice that the word says is also an operator! 
 \b \cf2 Star
-\b0 \cf2  allows us to use words as operators as well as using \'91graphical\'92 symbols like +.\
+\b0 \cf2  allows us to use words as operators as well as using \'91graphical\'92 symbols like 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 +
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 .\
 We chose to use a word-style operator here \'97 says \'97 to introduce the triple condition; yet we chose graphical operators for the triples themselves. One of the ways that taste shows up in designing DSLs is in areas like this: what names do we use.\
 As it happens, part of the texture of 
 \b \cf2 Star

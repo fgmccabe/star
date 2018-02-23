@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-18 08:15:23 -0800" ModID="C0F61AE1-0492-4980-B796-76B856465436">
+<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-20 19:46:04 -0800" ModID="EC3B482D-572A-4633-8757-A96FD9B4D371">
     <Binder>
         <BinderItem UUID="7A583553-3A84-40D6-B9B9-0430B8CD3E39" Type="DraftFolder" Created="2018-01-21 13:22:31 -0800" Modified="2018-02-11 16:00:39 -0800">
             <Title>Star Language Reference</Title>
@@ -837,9 +837,9 @@
     <ProjectTargets Notify="No">
         <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="Yes" Deadline="2011-04-12 05:24:39 -0700" IgnoreDeadline="Yes">0</DraftTarget>
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="No" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
-        <PreviousSession Words="0" Characters="0" Date="2018-02-16 15:34:12 -0800"></PreviousSession>
+        <PreviousSession Words="0" Characters="0" Date="2018-02-19 21:00:25 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-02-18 00:00:00 -0800">
+    <RecentWritingHistory Date="2018-02-20 00:00:00 -0800">
         <DraftWordCount>0</DraftWordCount>
         <DraftCharCount>0</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>
