@@ -1,6 +1,6 @@
 :- module(types,[isType/1,isConType/1,isConstraint/1,newTypeVar/2,skolemVar/2,skolemFun/3,deRef/2,
       typeArity/2,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,
-      dispType/1,showType/3,showConstraint/3,contractType/2,
+      dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
       occursIn/2,isUnbound/1,isBound/1, constraints/2, isIdenticalVar/2,
       bind/2, moveQuants/3,reQuantTps/3,
       moveConstraints/3,moveConstraints/4, implementationName/2,
@@ -225,6 +225,9 @@ surfaceName(tupleType(Els),Nm) :-
 contractType(conTract(Nm,A,D),typeExp(tpFun(Nm,Ar),Args)) :-
   concat(A,D,Args),
   length(Args,Ar).
+
+contractTypes(CTs,TPs) :-
+  map(CTs,types:contractType,TPs).
 
 stdType("int",type("star.core*integer")).
 stdType("float",type("star.core*float")).

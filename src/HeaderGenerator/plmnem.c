@@ -4,26 +4,31 @@
 #include <getopt.h>
 #include "opcodes.h"
 
-/* Generate an L&O package, that knows about instructions and their
-   mnemonics */
+/* Generate a Prolog module, that knows how to assemble a program*/
 
 #undef instruction
-#define instruction(M, O, A1, A2, cmt) genIns(out,#M,O,A1,A2,cmt);
+#define instruction(M, A1, cmt) genIns(out,#M,M,A1,cmt);
 
 #define lastInstruction
 
-static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt);
+static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt);
 
-char *prefix = "lo.comp.code.asm";
+char *prefix = "star.comp.assem";
+
+enum {
+  genProlog, genStar
+} genMode = genProlog;
 
 int getOptions(int argc, char **argv) {
   int opt;
-  extern char *optarg;
-  extern int optind;
 
-  while ((opt = getopt(argc, argv, "c:")) >= 0) {
+  while ((opt = getopt(argc, argv, "pc:")) >= 0) {
     switch (opt) {
+      case 'p':
+        genMode = genProlog;
+        break;
       case 'c':
+        genMode = genStar;
         prefix = optarg;
         break;
       default:;
@@ -45,102 +50,68 @@ int main(int argc, char **argv) {
       out = fopen(argv[narg], "w");
   }
 
-  fprintf(out, "%s{\n", prefix);
   fprintf(out, "/* Automatically generated, do not edit */\n\n");
 
-  fprintf(out, "  import lo.\n");
-  fprintf(out, "  import lo.comp.escapes.\n");
-  fprintf(out, "  import lo.comp.package.\n");
-  fprintf(out, "  import lo.comp.term.\n");
-  fprintf(out, "  import lo.comp.code.code.\n");
-  fprintf(out, "  import lo.comp.code.instructions.\n");
-  fprintf(out, "  import lo.comp.code.registers.\n\n");
+  fprintf(out, ":- module(assemble,[assem/2]).\n");
+  fprintf(out, ":- use_module(misc).\n");
+  fprintf(out, ":- use_module(terms).\n");
+  fprintf(out, ":- use_module(encode).\n\n");
 
-  fprintf(out, "  public codeSeg ::= codeSeg(term,list[integer],list[term],list[term]).\n");
-  fprintf(out, "  public codeMdl ::= codeMdl(pkgSpec,list[codeSeg]).\n\n");
+  fprintf(out, "assem([method(Nm,Sig)|Ins],MTpl) :-\n");
+  fprintf(out, "    genLblTbl(Ins,0,[],Lbs),\n");
+  fprintf(out, "    mnem(Ins,Lbs,[],Lts,[],_Lcs,0,Cde),\n");
+  fprintf(out, "    mkInsTpl(Cde,Code),\n");
+  fprintf(out, "    mkLitTpl(Lts,LtTpl),\n");
+  fprintf(out, "    mkTpl([Nm,strg(Sig),Code,LtTpl],MTpl).\n\n");
 
-  fprintf(out, "  public asm:(assem)=>codeSeg.\n");
-  fprintf(out,
-          "  asm(assem(Nm,Ins,Lits,SrcMap)) => codeSeg(Nm,mnem(Ins,Lbls,genLitTbl(Lits,0,[]),0),Lits//((litrl(_,T))=>T),genSrcMap(SrcMap,Lbls)) :-\n"
-            "      Lbls = genLblTbl(Ins,0,[]).\n\n");
-
-  fprintf(out, "  private mnem:(list[instruction],map[string,integer],map[string,integer],integer)=>list[integer].\n");
-  fprintf(out, "  mnem([],_,_,_) => [].\n");
-  fprintf(out, "  mnem([iLbl(_),..I],Lbls,Lits,Pc) => mnem(I,Lbls,Lits,Pc).\n");
+  fprintf(out, "mnem([],_,Lt,Lt,Lc,Lc,_,[]).\n");
+  fprintf(out, "mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).\n");
 
 #include "instructions.h"
 
   fprintf(out, "\n");
 
-  fprintf(out, "  private genLblTbl:(list[instruction],integer,map[string,integer]) => map[string,integer].\n");
-  fprintf(out, "  genLblTbl([],_,D) => D.\n");
-  fprintf(out, "  genLblTbl([iLbl(Lbl),..I],Pc,D) => genLblTbl(I,Pc,D[Lbl->Pc]).\n");
-  fprintf(out, "  genLblTbl([_,..I],Pc,D) => genLblTbl(I,Pc+1,D).\n\n");
+  fprintf(out, "genLblTbl([],_,Lbls,Lbls).\n");
+  fprintf(out, "genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).\n");
+  fprintf(out, "genLblTbl([_|Ins],Pc,Lb,Lbx) :- Pc1 is Pc+1, genLblTbl(Ins,Pc1,Lb,Lbx).\n\n");
 
-  fprintf(out, "  private genLitTbl:(list[litrl],integer,map[string,integer]) => map[string,integer].\n");
-  fprintf(out, "  genLitTbl([],_,D) => D.\n");
-  fprintf(out, "  genLitTbl([litrl(Lbl,_),..I],Pc,D) => genLitTbl(I,Pc+1,D[Lbl->Pc]).\n\n");
+  fprintf(out, "findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.\n\n");
+  fprintf(out, "pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc-1.\n\n");
 
-  fprintf(out, "  private genSrcMap:(list[(string,string,tloc)],map[string,integer])=>list[term].\n");
-  fprintf(out, "  genSrcMap([],_) => [].\n");
-  fprintf(out,
-          "  genSrcMap([(S,E,tloc(Line,Off,Col,Ln)),..L],M) => [cons(strct(\"()4\",4),[intgr(Sx),intgr(Ex),intgr(Off),intgr(Ln)]),..genSrcMap(L,M)] :-\n");
-  fprintf(out, "    present(M,S,Sx),\n");
-  fprintf(out, "    present(M,E,Ex).\n\n");
+  fprintf(out, "findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.\n");
+  fprintf(out, "findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).\n\n");
 
-  fprintf(out, "  private ltOff:(string,map[string,integer]) => integer.\n");
-  fprintf(out, "  ltOff(Lb,Lbls) => Tgt :-\n");
-  fprintf(out, "    present(Lbls,Lb,Tgt).\n\n");
+  fprintf(out, "mkLitTpl(Lits,Tpl) :-\n");
+  fprintf(out, "    reverse(Lits,RLit),\n");
+  fprintf(out, "    project0(RLit,Els),\n");
+  fprintf(out, "    mkTpl(Els,Tpl).\n\n");
 
-  fprintf(out, "  private pcGap:(integer,string,map[string,integer],integer) => integer.\n");
-  fprintf(out, "  pcGap(pc,Lb,Lbls,mx) => Gap :-\n");
-  fprintf(out, "    present(Lbls,Lb,Tgt),\n");
-  fprintf(out, "    Gap = Tgt-pc-1,\n");
-  fprintf(out, "    Gap=<mx.\n\n");
+  fprintf(out, "mkInsTpl(Is,Tpl) :-\n");
+  fprintf(out, "    map(Is,assemble:mkIns,Ins),\n");
+  fprintf(out, "    mkTpl(Ins,Tpl).\n\n");
 
-  fprintf(out, "}               -- end of generated module\n");
+  fprintf(out, "mkIns((O,A),Tpl) :-\n");
+  fprintf(out, "    wrap(A,WA),\n");
+  fprintf(out, "    mkTpl([intgr(O),WA],Tpl).\n");
+  fprintf(out, "mkIns(O,intgr(O)) :- number(O).\n\n");
+  fprintf(out, "wrap(O,intgr(O)) :- number(O).\n");
+  fprintf(out, "wrap(S,strg(S)) :- string(S).\n\n");
+
   fclose(out);
   exit(0);
 }
 
-static char *genArg(FILE *out, char *sep, int *V, opAndSpec A) {
+static char *genArg(FILE *out, char *sep, opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
       return sep;
-    case iAh:                             // input argument register in upper slot (0..255)
-    case oAh:                             // output argument register in upper slot (0..255)
-    case iAm:                             // input argument register in middle slot (0..255)
-    case oAm:                             // output argument register in middle slot (0..255)
-    case iAl:                             // input argument register in lower slot (0..255)
-    case oAl:                             // output argument register in lower slot (0..255)
-    case iLh:        // input local variable offset (0..255)
-    case iLm:        // input local variable offset (0..255)
-    case iLl:        // input local variable offset (0..255)
-    case iLc:             // input local variable offset (0..65535)
-    case oLh:            /* output local variable, offset 0..255 */
-    case oLm:            /* output local variable, offset 0..255 */
-    case oLl:            /* output local variable, offset 0..255 */
-    case oLc:           // output local variable offset  (0..65535)
-      fprintf(out, "%sV%d", sep, (*V)++);
-      return ",";
-    case iSt:                             // input at current structure pointer
-    case oSt:                             // output to current structure pointer
-      return sep;
-    case oAr:        /* Arity in upper slot */
-    case uAr:                             // Arity in upper slot
-    case uLt:                             // small literal in upper slot (-128..127)
-    case Ltl:                              // 16bit literal (-32768..32767)
-    case vSz:                             // Size of local variable vector
-    case lSz:                             // Size of local variable vector
-      fprintf(out, "%sV%d", sep, (*V)++);
-      return ",";
-    case Es:                              // escape code (0..65535)
-      fprintf(out, "%sV%d", sep, (*V)++);
-      return ",";
-    case pcr:                             // program counter relative offset (-32768..32767)
-    case pcl:                             // long pc relative offset (-0x80000000..0x7fffffff) (24bit)
-    case ltl:                             // literal number (0..65535)
-      fprintf(out, "%sV%d", sep, (*V)++);
+    case lit:
+    case Es:
+    case i32:
+    case arg:
+    case lcl:
+    case off:
+      fprintf(out, "%sV", sep);
       return ",";
     default:
       printf("Problem in generating opcode type\n");
@@ -148,59 +119,37 @@ static char *genArg(FILE *out, char *sep, int *V, opAndSpec A) {
   }
 }
 
-static void genCode(FILE *out, int *V, opAndSpec A) {
+char *headTail = "|M]) :- Pc1 is Pc+1,\n";
+char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).\n";
+
+static void genCode(FILE *out, int op, opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
+      fprintf(out, "%d%s", op, headTail);
+      break;
+    case lit:
+      fprintf(out, "(%d,LtNo)%s", op, headTail);
+      fprintf(out, "      findLit(Lt,V,LtNo,Lt1),\n");
+      fprintf(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).\n");
       return;
-    case iAh:                             // input argument register in upper slot (0..255)
-    case oAh:                             // output argument register in upper slot (0..255)
-    case oAr:        /* Arity in upper slot */
-    case uAr:                             // Arity in upper slot
-    case uLt:                             // small literal in upper slot (-128..127)
-    case iLh:        /* input local variable, offset 0..255 */
-    case oLh:        /* output local variable, offset 0..255 */
-      fprintf(out, ".|.(V%d.<<.24)", (*V)++);
-      return;
-    case iAm:                             // input argument register in middle slot (0..255)
-    case oAm:                             // output argument register in middle slot (0..255)
-    case iLm:        /* input local variable, offset 0..255 */
-    case oLm:        /* output local variable, offset 0..255 */
-      fprintf(out, ".|.(V%d.<<.16)", (*V)++);
-      return;
-    case iAl:                             // input argument register in lower slot (0..255)
-    case oAl:                             // output argument register in lower slot (0..255)
-    case iLl:        /* input local variable, offset 0..255 */
-    case oLl:        /* output local variable, offset 0..255 */
-      fprintf(out, ".|.(V%d.<<.8)", (*V)++);
-      return;
-    case iLc:                             // input local variable offset (0..65535)
-    case oLc:                             // output local variable offset  (0..65535)
-    case vSz:                             // Size of local variable vector
-    case lSz:                             // Size of local variable vector
-    case Ltl: {                              // 16bit literal (-32768..32767)
-      int off = (*V)++;
-      fprintf(out, ".|.(V%d.<<.8)", off);
-      return;
-    }
-    case iSt:                             // input at current structure pointer
-    case oSt:                             // output to current structure pointer
-      return;
+    case i32:
+    case arg:
+    case lcl:
+      fprintf(out, "(%d,V)%s", op, headTail);
+      break;
     case Es:                              // escape code (0..65535)
-      fprintf(out, ".|.(escCode(V%d).<<.8)", (*V)++);
-      return;
-    case pcr:                             // program counter relative offset (-32768..32767)
-      fprintf(out, ".|.(pcGap(pc,V%d,Lbls,65535).<<.8)", (*V)++);
-      return;
-    case pcl:                             // long pc relative offset (-0x80000000..0x7fffffff) (24bit)
-      fprintf(out, ".|.(pcGap(pc,V%d,Lbls,16777215).<<.8)", (*V)++);
-      return;
-    case ltl:                             // literal number (0..65535)
-      fprintf(out, ".|.(ltOff(V%d,Lits).<<.8)", (*V)++);
-      return;
+      fprintf(out, "(%d,V)%s", op, headTail);
+      break;
+    case off:                            // program counter relative offset
+      fprintf(out, "(%d,Off)%s", op, headTail);
+      fprintf(out, "      findLbl(V,Lbls,Tgt),\n");
+      fprintf(out, "      pcGap(Pc,Tgt,Off),\n");
+      break;
     default:
       fprintf(stderr, "Unknown instruction type code\n");
       exit(1);
   }
+  fprintf(out, "%s", tail);
 }
 
 static char *capitalize(char *str) {
@@ -212,26 +161,19 @@ static char *capitalize(char *str) {
   return buffer;
 }
 
-static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, opAndSpec A2, char *cmt) {
+static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
   char *sep = "(";
-  int V = 0;
 
-  fprintf(out, "  mnem([i%s", capitalize(mnem));
+  fprintf(out, "mnem([i%s", capitalize(mnem));
 
-  sep = genArg(out, sep, &V, A1);
-  sep = genArg(out, sep, &V, A2);
+  sep = genArg(out, sep, A1);
 
   if (strcmp(sep, ",") == 0)
     sep = ")";
   else
     sep = "";
 
-  fprintf(out, "%s,..I],Lbls,Lits,pc) => [%d", sep, (unsigned char) (op));
+  fprintf(out, "%s|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[", sep);
 
-  V = 0;
-
-  genCode(out, &V, A1);
-  genCode(out, &V, A2);
-
-  fprintf(out, ",..mnem(I,Lbls,Lits,pc+1)].\n");
+  genCode(out, op, A1);
 }

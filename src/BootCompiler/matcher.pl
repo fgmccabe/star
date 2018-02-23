@@ -39,8 +39,6 @@ compileMatch(inScalars,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchScalars(Tpls,Vrs,Lc,Deflt,Reslt).
 compileMatch(inConstructors,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchConstructors(Lc,Tpls,Vrs,Deflt,Reslt).
-compileMatch(inTuples,Tpls,Vrs,Lc,Deflt,Reslt) :-
-  matchTuples(Lc,Tpls,Vrs,Deflt,Reslt).
 compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchVars(Lc,Vrs,Tpls,Deflt,Reslt).
 
@@ -52,9 +50,8 @@ argMode(intgr(_),inScalars).
 argMode(float(_),inScalars).
 argMode(strg(_),inScalars).
 argMode(whr(_,T,_),M) :- argMode(T,M).
-argMode(enu(_),inConstructors).
+argMode(enum(_),inConstructors).
 argMode(ctpl(_,_),inConstructors).
-argMode(tpl(_),inTuples).
 
 makeEqnTriple(eqn(Lc,Args,Value),Ix,(Args,(Lc,[],Value),Ix)).
 
@@ -92,11 +89,11 @@ newVars([_|L],V,[idnt(NN)|VV]) :-
   newVars(L,V,VV).
 
 matchScalars(Tpls,[V|Vrs],Lc,Deflt,case(Lc,V,Cases,Deflt)) :-
-  quickSort(Tpls,matcher:compareScalarTriple,ST),
+  sort(Tpls,matcher:compareScalarTriple,ST),
   formCases(ST,matcher:sameScalarTriple,Lc,Vrs,Deflt,Cases).
 
 matchConstructors(Lc,Tpls,[V|Vrs],Deflt,case(Lc,V,Cases,Deflt)) :-
-  quickSort(Tpls,matcher:compareConstructorTriple,ST),
+  sort(Tpls,matcher:compareConstructorTriple,ST),
   formCases(ST,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Cases).
 
 formCases([],_,_,[],_,[]) :- !.
@@ -126,7 +123,7 @@ pickMoreCases(_,Trpls,[],_,Trpls).
 isScalar(intgr(_)).
 isScalar(float(_)).
 isScalar(strg(_)).
-isScalar(enu(_)).
+isScalar(enum(_)).
 
 mergeTriples(L1,L2,L3) :-
   sortedMerge(L1,L2,matcher:earlierIndex,L3).
@@ -158,7 +155,7 @@ sameConstructor(A,B) :-
   constructorName(A,Nm),
   constructorName(B,Nm).
 
-constructorName(enu(Nm),Nm).
+constructorName(enum(Nm),Nm).
 constructorName(strct(Nm,_),Nm).
 constructorName(ctpl(C,_),Nm) :-
   constructorName(C,Nm).

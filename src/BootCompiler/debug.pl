@@ -35,7 +35,8 @@ constructFrameList([idnt(V)|Vars],FQ) :-
   starts_with(V,"_"),!,
   constructFrameList(Vars,FQ).
 constructFrameList([idnt(V)|Vars],
-      ctpl(strct("lo.list#,..",2),[tpl([strg(V),idnt(V)]),Q])) :-
+      ctpl(strct("lo.list#,..",2),[VF,Q])) :-
+  mkTpl([strg(V),idnt(V)],VF),
   constructFrameList(Vars,Q).
 
 breakDebug(Nm,[ocall(ctpl(BC,[strg(Nm)]),DgVr,DgVr)|BG],BG,Opts) :-

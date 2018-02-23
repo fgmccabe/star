@@ -17,7 +17,7 @@ importPkg(Pkg,Repo,spec(Act,Export,Types,Classes,Contracts,Implementations,Impor
   pickupPkgSpec(SigTerm,Pkg,Imports,Export,Types,Classes,Contracts,Implementations).
 
 pickupPkgSpec('#pkg'(Enc),Pkg,Imports,Export,Types,Classes,Contracts,Implementations) :-
-  decodeValue(Enc,tpl([Pk,tpl(Imps),FTps,TTps,tpl(ClsSigs),tpl(ConSigs),tpl(ImplSigs)])),
+  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),FTps,TTps,ctpl(_,ClsSigs),ctpl(_,ConSigs),ctpl(_,ImplSigs)])),
   pickupPkg(Pk,Pkg),
   pickupImports(Imps,Imports),
   pickupFace(FTps,Export),
@@ -56,16 +56,16 @@ pickupContracts(C,Cons) :-
   findContracts(C,Cons,[]).
 
 findContracts([],C,C).
-findContracts([tpl([strg(Nm),strg(CnNm),strg(Sig)])|M],[contract(Nm,CnNm,Spec)|C],Cx) :-
+findContracts([ctpl(_,[strg(Nm),strg(CnNm),strg(Sig)])|M],[contract(Nm,CnNm,Spec)|C],Cx) :-
   decodeType(Sig,Spec),
   findContracts(M,C,Cx).
 
 processImplementations(Env,Impls,MoreImpls) :-
-  decodeValue(Env,tpl(Els)),
+  decodeValue(Env,ctpl(_,Els)),
   pickupImplementations(Els,Impls,MoreImpls).
 
 pickupImplementations([],I,I).
-pickupImplementations([tpl([strg(Nm),strg(Sig)])|M],[imp(Nm,Spec)|I],RI) :-
+pickupImplementations([ctpl(_,[strg(Nm),strg(Sig)])|M],[imp(Nm,Spec)|I],RI) :-
   decodeConstraint(Sig,Spec),
   pickupImplementations(M,I,RI).
 

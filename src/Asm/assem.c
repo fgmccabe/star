@@ -2,10 +2,11 @@
  * Assembler for the Cafe machine code
  */
 
-#include <assemP.h>
+#include <assert.h>
 #include "assemP.h"
 #include "formioP.h"
 #include "stringBuffer.h"
+
 
 #include "encoding.h"
 

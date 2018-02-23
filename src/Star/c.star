@@ -29,6 +29,7 @@ star.core {
   -- Not strictly necessary, but makes for better symmetry.
   public boolean ::= true | false.
 
+/*
   all t ~~ equality[t] |: person[t] ::=
     someOne{
       name : t.
@@ -41,7 +42,7 @@ star.core {
   foo = "".
 
   fp : person[string].
-  fp = someOne{ name = foo. spouse = none. /*assert name == foo*/}
+  fp = someOne{ name = foo. spouse = none. /*assert name == foo* /}
 
   assert fp.name == "".
 
@@ -58,4 +59,5 @@ star.core {
   fct(N) => _int_times(N,fct(_int_minus(N,1))).
 
   assert fct(3)==6.
+  */
 }

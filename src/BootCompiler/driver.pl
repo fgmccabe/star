@@ -12,7 +12,7 @@
 :- use_module(plog).
 :- use_module(errors).
 :- use_module(gensig).
-:- use_module(gengolang).
+:- use_module(gencode).
 :- use_module(uri).
 :- use_module(catalog).
 :- use_module(misc).
@@ -112,8 +112,8 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   displayRules(Rules),
   noErrors,
   genPkgSig(Rules,Sig),
-  genGoLang(Rules,Text),
-  addGoLangPackage(Repo,SrcUri,Pkg,Sig,Text,Rx).
+  genCode(Rules,Text),
+  addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx).
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.

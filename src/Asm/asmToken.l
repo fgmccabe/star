@@ -99,15 +99,17 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "halt"        RT(HALT);
 
 "call"        RT(CALL);
+"ocall"       RT(OCALL);
 "enter"       RT(ENTER);
 "escape"      RT(ESCAPE);
 "tail"        RT(TAIL);
+"otail"       RT(OTAIL);
 
 "ret"         RT(RET);
 "jmp"         RT(JMP);
 "case"        RT(CASE);
-"hash"        RT(HSH);
 
+"cmp"         RT(CMP);
 "bt"          RT(BT);
 "bf"          RT(BF);
 

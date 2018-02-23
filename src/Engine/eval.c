@@ -18,6 +18,7 @@
 
 #define push(X) *--SP = ((termPo)(X))
 #define pop() (*SP++)
+#define top() (*SP)
 
 #define local(off) &(((ptrPo)FP)[-(off)-1])
 #define arg(off) (((ptrPo)(FP+1))+(off))
@@ -52,7 +53,7 @@ retCode run(processPo P, heapPo heap) {
         return Ok;
 
       case Call: {
-        PROG = C_MTD(nthArg(LITS,collectI32(PC)));   // Which program do we want?
+        PROG = C_MTD(nthArg(LITS, collectI32(PC)));   // Which program do we want?
         push(PC);       // Set up for a return
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -82,7 +83,7 @@ retCode run(processPo P, heapPo heap) {
         insPo oldPc = FP->rtn;
         int64 argCnt = argCount(PROG); /* How many arguments in caller? */
 
-        PROG = C_MTD(nthArg(LITS,collectI32(PC)));   // Which program do we want?
+        PROG = C_MTD(nthArg(LITS, collectI32(PC)));   // Which program do we want?
 
         // slide new arguments over old frame
         int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
@@ -189,7 +190,7 @@ retCode run(processPo P, heapPo heap) {
       }
 
       case LdC:     /* load literal value from pool */
-        push(nthArg(LITS,collectI32(PC)));
+        push(nthArg(LITS, collectI32(PC)));
         continue;
 
       case LdA: {
@@ -203,6 +204,20 @@ retCode run(processPo P, heapPo heap) {
         int32 offset = collectI32(PC);
         ptrPo src = local(offset);
         push(*src);     /* load local */
+        continue;
+      }
+
+      case Lbl: {
+        termPo t = pop();
+        termPo l = pop();
+        insPo exit = collectOff(PC);
+
+        if (isNormalPo(t)) {
+          normalPo cl = C_TERM(t);
+          if (!sameTerm(l, termLbl(cl)))
+            PC = exit;
+        } else
+          PC = exit;
         continue;
       }
 
@@ -237,21 +252,28 @@ retCode run(processPo P, heapPo heap) {
 
       case Case: {      /* case instruction */
         int32 mx = collectI32(PC);
-        int32 ix = (int32) pop();    /* tos has an index */
+        termPo tos = top();
+        integer hx = termHash(tos) % mx;
 
-        if (ix > 0 && ix < mx)     /* size of a jump instruction */
-          PC = (insPo) ((void *) PC + (sizeof(insPo *) + sizeof(int32)));
-        /* otherwise default to next instruction */
-
+        PC = (insPo) ((void *) PC + (sizeof(insPo *) + sizeof(int32)));
         continue;
       }
 
       case Alloc: {      /* heap allocate term */
-        labelPo cd = C_LBL(nthArg(LITS,collectI32(PC)));
+        labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
         normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the closure back on the stack */
+        continue;
+      }
+
+      case Cmp: {
+        termPo i = pop();
+        termPo j = pop();
+        insPo exit = collectOff(PC);
+        if (!sameTerm(i, j))
+          PC = exit;
         continue;
       }
 

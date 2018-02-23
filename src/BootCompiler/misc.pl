@@ -9,7 +9,11 @@
         marker/2,
         same/2,
         interleave/3,concatStrings/2,
-        quickSort/3,sortedMerge/4]).
+        sort/3,sortedMerge/4,
+        nextPrime/2,sieve/2,
+        (*>)/2]).
+
+:- op(900,xfx,(*>)).
 
 same(X,X).
 
@@ -84,6 +88,9 @@ filter([E|L],F,[E|M]) :-
 filter([_|L],F,M) :-
   filter(L,F,M).
 
+X *> Y :-
+  \+((call(X),\+call(Y))).
+
 concatStrings(L,S) :-
   concStrings(L,S,"").
 
@@ -153,7 +160,8 @@ genstr(Prefix,S) :-
 
 stringHash(H,Str,Hx) :-
   string_codes(Str,Codes),
-  hashCodes(Codes,H,Hx).
+  hashCodes(Codes,H,Hs),
+  hashSixtyFour(Hs,Hx).
 
 hashCodes([],H,H).
 hashCodes([C|More],H0,Hx) :-
@@ -196,7 +204,7 @@ split([T|L],Cmp,Ix,L1,[T|L2]) :-
   \+ call(Cmp,T,Ix),
   split(L,Cmp,Ix,L1,L2).
 
-quickSort(L,C,S) :- qSort(L,C,S),!.
+sort(L,C,S) :- qSort(L,C,S),!.
 
 qSort([],_,[]).
 qSort([T],_,[T]).
@@ -214,3 +222,35 @@ sortedMerge([E1|L1],[E2|L2],C,[E1|Lx]) :-
 sortedMerge([E1|L1],[E2|L2],C,[E2|Lx]) :-
   \+call(C,E1,E2),!,
   sortedMerge([E1|L1],L2,C,Lx).
+
+somePrimes([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,
+  101,103,107,109,113,127,131,137,139,149,151,157,163,167,173,179,181,191,193,
+  197,199,211,223,227,229,233,239,241,251,257,263,269,271,277,281,283,293,307,
+  311,313,317,331,337,347,349,353,359,367,373,379,383,389,397,401,409,419,421,
+  431,433,439,443,449,457,461,463,467,479,487,491,499,503,509,521,523,541,547,
+  557,563,569,571,577,587,593,599,601,607,613,617,619,631,641,643,647,653,659,
+  661,673,677,683,691,701,709,719,727,733,739,743,751,757,761,769,773,787,797,
+  809,811,821,823,827,829,839,853,857,859,863,877,881,883,887,907,911,919,929,
+  937,941,947,953,967,971,977,983,991,997]).
+
+nextPrime(X,Pr) :-
+  somePrimes(Prs),
+  is_member(Pr,Prs),
+  Pr>=X.
+
+sieve([],[]).
+sieve([C|I],[C|Pr]) :-
+  filterDups(C,I,Nx),
+  sieve(Nx,Pr).
+
+filterDups(C,Ps,FPs) :-
+  filter(Ps,misc:isntDup(C),FPs).
+
+isntDup(C,N) :-
+  N mod C =\= 0.
+
+iota(C,Mx,_,[]) :-
+  C>Mx,!.
+iota(C,Mx,St,[C|I]) :-
+  C1 is C+St,
+  iota(C1,Mx,St,I).

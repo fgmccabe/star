@@ -65,13 +65,13 @@ defineCVars(Lc,[implementsFace(_,_)|Cx],Dict,CVars,FDict) :-
 
 resolveTerm(void,_,void).
 resolveTerm(v(Lc,Nm),_,v(Lc,Nm)).
-resolveTerm(intLit(Ix,Tp),_,intLit(Ix,Tp)).
-resolveTerm(floatLit(Ix,Tp),_,floatLit(Ix,Tp)).
-resolveTerm(stringLit(Sx,Tp),_,stringLit(Sx,Tp)).
+resolveTerm(intLit(Ix),_,intLit(Ix)).
+resolveTerm(floatLit(Ix),_,floatLit(Ix)).
+resolveTerm(stringLit(Sx),_,stringLit(Sx)).
 resolveTerm(dot(Lc,Rc,Fld),Dict,dot(Lc,RRc,Fld)) :- resolveTerm(Rc,Dict,RRc).
 resolveTerm(enm(Lc,Rf),_,enm(Lc,Rf)).
 resolveTerm(cns(Lc,Rf),_,cns(Lc,Rf)).
-resolveTerm(tple(Lc,Tp,Args),Dict,tple(Lc,Tp,RArgs)) :-
+resolveTerm(tple(Lc,Args),Dict,tple(Lc,RArgs)) :-
   resolveTerms(Args,Dict,RArgs).
 resolveTerm(theta(Lc,Path,Defs,Others,Types,Sig),Dict,theta(Lc,Path,RDefs,ROthers,Types,Sig)) :-
   overload(Defs,Dict,RDict,RDefs),
@@ -210,7 +210,7 @@ resolveHead(record(Lc,Lbl,Defs,[],[],Sig),CVars,record(Lc,Lbl,RDefs,[],[],Sig)) 
 resolveHead(theta(Lc,Lbl,Defs,[],[],Sig),CVars,theta(Lc,Lbl,RDefs,[],[],Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
 
-addExtra(Extra,tple(Lc,tupleType(Tps),Els),tple(Lc,tupleType(XTps),EEls)) :-
+addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
   concat(Extra,Els,EEls).
 
 addExtraDefs([],Els,Els).

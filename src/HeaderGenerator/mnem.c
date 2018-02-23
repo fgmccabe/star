@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -219,8 +218,8 @@ static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, opAndSpec A2, ch
 
   fprintf(out, "  mnem([i%s", capitalize(mnem));
 
-  sep = genArg(out, sep, &V, A1);
-  sep = genArg(out, sep, &V, A2);
+  sep = genArg(out, sep, A1);
+  sep = genArg(out, sep, A2);
 
   if (strcmp(sep, ",") == 0)
     sep = ")";

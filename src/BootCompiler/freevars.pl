@@ -6,9 +6,9 @@ freeVars(v(Lc,Lb),Q,F,[v(Lc,Lb)|F]) :- \+is_member(v(_,Lb),Q),!.
 freeVars(v(_,_),_,F,F).
 freeVars(enm(_,_),_,F,F).
 freeVars(cns(_,_),_,F,F).
-freeVars(intLit(_,_),_,F,F).
-freeVars(floatLit(_,_),_,F,F).
-freeVars(stringLit(_,_),_,F,F).
+freeVars(intLit(_),_,F,F).
+freeVars(floatLit(_),_,F,F).
+freeVars(stringLit(_),_,F,F).
 freeVars(tuple(_,Els),Q,F,FV) :- freeVarsList(Els,Q,F,FV).
 freeVars(apply(_,Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVarsList(A,Q,F0,FV).
 freeVars(dot(_,Rc,_),Q,F,FV) :- freeVars(Rc,Q,F,FV).
@@ -19,8 +19,8 @@ freeVars(conj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(disj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(neg(_,L),Q,F,FV) :- freeVars(L,Q,F,FV).
 freeVars(match(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
-freeVars(theta(_,_,Defs,Others,_,_),Q,F,Fv) :-
-  definedVars(Defs,Q,Q1),
+freeVars(theta(_,_,Defs,Others,_,_),_,F,Fv) :-
+  definedVars(Defs,[],Q1),
   freeVarsInDefs(Defs,Q1,F,F0),
   freeVarsInOthers(Others,Q1,F0,Fv).
 freeVars(record(_,_,Defs,Others,_,_),Q,F,Fv) :-

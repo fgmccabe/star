@@ -22,6 +22,15 @@ set(ASM_SOURCE_FILES mnem.c)
 add_executable(mnem ${ASM_SOURCE_FILES})
 target_link_libraries(mnem ooio)
 
+set(ASM_SOURCE_FILES plmnem.c)
+add_executable(plmnem ${ASM_SOURCE_FILES})
+target_link_libraries(plmnem ooio)
+
+set(OPCODES_FILES opcodes.c)
+add_executable(opcodes ${OPCODES_FILES})
+target_link_libraries(opcodes ooio)
+
+
 #set(ASM_LO ${CMAKE_CURRENT_SOURCE_DIR}/../LOCompiler/asm.lo)
 #set(INSTRUCTIONS_LO ${CMAKE_CURRENT_SOURCE_DIR}/../LOCompiler/instructions.lo)
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)
@@ -29,6 +38,8 @@ set(ESCAPES_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/escapes.star)
 set(OPERATORS_PY ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/operators.py)
 set(OPERATORS_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/operators.pl)
 set(ESCAPES_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/escapes.pl)
+set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
+set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 
 add_custom_target(generate ALL
 #        COMMAND mnem ${ASM_LO}
@@ -38,4 +49,6 @@ add_custom_target(generate ALL
          COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate ${OPERATORS_PL}
 #        COMMAND genesc -c lo.comp.escapes ${ESCAPES_ST}
         COMMAND genesc -p ${ESCAPES_PL}
+        COMMAND plmnem -p ${ASM_PL}
+#        COMMAND opcodes ${OPCODES_H}
         )

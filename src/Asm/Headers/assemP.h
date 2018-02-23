@@ -4,7 +4,6 @@
 #include <ooio.h>
 #include "assem.h"
 #include "opcodes.h"
-#include "codeP.h"
 #include "lists.h"
 #include "objectP.h"
 #include "pkgP.h"

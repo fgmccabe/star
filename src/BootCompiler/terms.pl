@@ -1,4 +1,7 @@
-:- module(terms,[displayRules/1,showRules/3,substTerm/3,genTplStruct/2]).
+:- module(terms,[displayRules/1,showRules/3,substTerm/3,
+        genTplStruct/2,isTplStruct/1,isLiteral/1,mkTpl/2,
+        termHash/2,
+        locTerm/2]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -6,11 +9,11 @@
 :- use_module(location).
 :- use_module(types).
 
-showRules(module(Pkg,Imports,_,Types,_,Defs,Contracts,Impls),O,Ox) :-
+showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
   showPkg(Pkg,O,O1),
   appStr("{\n",O1,O2),
   showImports(Imports,O2,O3),!,
-  showTypeDefs(Types,O3,O4),!,
+  showType(Types,O3,O4),!,
   showContracts(Contracts,O4,O5),!,
   showImpls(Impls,O5,O6),!,
   showRuleSets(Defs,O6,O7),!,
@@ -67,7 +70,7 @@ showTerm(ecll(_,Es,Args),O,Ox) :-
 showTerm(ctpl(Op,A),O,Ox) :-
   showTerm(Op,O,O1),
   showArgs(A,O1,Ox).
-showTerm(enu(Nm),O,Ox) :-
+showTerm(enum(Nm),O,Ox) :-
   appStr("'",O,O1),
   appStr(Nm,O1,O2),
   appStr("'",O2,Ox).
@@ -79,8 +82,6 @@ showTerm(prg(Nm,Ar),O,Ox) :-
   appStr(Nm,O,O1),
   appStr("/",O1,O2),
   appInt(Ar,O2,Ox).
-showTerm(tpl(Els),O,Ox) :-
-  showArgs(Els,O,Ox).
 showTerm(whr(_,Ptn,Cond),O,Ox) :-
   showTerm(Ptn,O,O1),
   showTermGuard(Cond,O1,Ox).
@@ -125,7 +126,7 @@ showTerm(error(_,Msg),O,Ox) :-
   appStr("error: ",O,O1),
   appQuoted(Msg,"\"",O1,Ox).
 
-showTermGuard(enu("star.core#true"),Ox,Ox) :- !.
+showTermGuard(enum("star.core#true"),Ox,Ox) :- !.
 showTermGuard(T,O,Ox) :-
   appStr(" where ",O,O1),
   showTerm(T,O1,Ox).
@@ -151,7 +152,7 @@ substTerm(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
 substTerm(_,idnt(Nm),idnt(Nm)).
 substTerm(_,float(Dx),float(Dx)).
 substTerm(_,strg(Sx),strg(Sx)).
-substTerm(_,enu(Nm),enu(Nm)).
+substTerm(_,enum(Nm),enum(Nm)).
 substTerm(_,strct(Nm,Ar),strct(Nm,Ar)).
 substTerm(_,prg(Nm,Ar),prg(Nm,Ar)).
 substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
@@ -165,8 +166,6 @@ substTerm(Q,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   substTerms(Q,Args,NArgs).
 substTerm(Q,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
   substTerms(Q,Args,NArgs).
-substTerm(Q,tpl(Els),tpl(NEls)) :-
-  substTerms(Q,Els,NEls).
 substTerm(Q,whr(Lc,T,C),whr(Lc,NT,NC)) :-
   substTerm(Q,T,NT),
   substTerm(Q,C,NC).
@@ -204,3 +203,29 @@ substCase(Q,(T,E),(NT,NE)) :-
 
 genTplStruct(Cnt,strct(Nm,Cnt)) :-
   swritef(Nm,"()%d",[Cnt]).
+
+isTplStruct(strct(Nm,Ar)) :- string_concat("()",A,Nm),number_string(Ar,A).
+
+mkTpl(Els,ctpl(C,Els)) :-
+  length(Els,Cnt),
+  genTplStruct(Cnt,C).
+
+isLiteral(intgr(_)).
+isLiteral(float(_)).
+isLiteral(strg(_)).
+isLiteral(enum(_)).
+isLiteral(strct(_,_)).
+isLiteral(prg(_,_)).
+
+termHash(intgr(Ix),Ix).
+termHash(float(Dx),Ix) :- Ix is round(Dx).
+termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
+termHash(enum(Sx),Ix) :- stringHash(0,Sx,Ix).
+termHash(strct(Nm,Ar),Ix) :-
+  stringHash(0,Nm,H0),
+  Ix is H0*47+Ar.
+termHash(prg(Nm,Ar),Ix) :-
+  stringHash(0,Nm,H0),
+  Ix is H0*47+Ar.
+
+locTerm(loc(Ln,Off,Str,Len),ctpl(strct("loc",4),[intgr(Ln),intgr(Off),intgr(Str),intgr(Len)])).

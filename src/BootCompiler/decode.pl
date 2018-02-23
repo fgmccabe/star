@@ -30,11 +30,7 @@ decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeTerm(strct(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(prg(Nm,Ar)) --> ['p'], decInt(Ar), decodeText(Nm).
-decodeTerm(Term) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els),
-   { isTupleSig(Con) -> Term = tpl(Els) | Term = ctpl(Con,Els)}.
-
-
-isTupleSig(strct(Nm,Ar)) :- string_concat("()",A,Nm),number_string(Ar,A).
+decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
 
 decTerms(0,[]) --> [].
 decTerms(Count,[D|M]) --> { Count>0}, decodeTerm(D), { C is Count-1}, decTerms(C,M).

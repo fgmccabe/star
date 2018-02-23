@@ -53,9 +53,9 @@
 %token PUBLIC PKG IMPORT
 
 %token HALT
-%token CALL TAIL ENTER ESCAPE
-%token RET JMP CASE HSH
-%token DROP DUP PULL ROT CAS BF BT
+%token CALL OCALL TAIL OTAIL ENTER ESCAPE
+%token RET JMP CASE
+%token DROP DUP PULL ROT CAS BF BT CMP
 
 %token LD ST T
 
@@ -119,13 +119,16 @@ trailer: END nls { endFunction(currMtd); }
  halt: HALT { AHalt(currMtd); };
 
  call: CALL literal { ACall(currMtd,$2); }
+   | OCALL { AOCall(currMtd); }
    | ESCAPE libName { AEscape(currMtd,$2); }
    | TAIL literal { ATail(currMtd,$2); }
+   | OTAIL { AOTail(currMtd); }
    | ENTER DECIMAL { AEnter(currMtd,$2); }
    | RET { ARet(currMtd); }
    | JMP label { AJmp(currMtd,$2); }
    | BF label { ABf(currMtd,$2); }
    | BT label {ABt(currMtd,$2); }
+   | CMP label {ACmp(currMtd,$2);}
    ;
 
  literal: FLOAT { $$=newFloatConstant(currMtd,$1); }
@@ -159,8 +162,7 @@ trailer: END nls { endFunction(currMtd); }
     }
   };
 
- caseins: CASE DECIMAL { ACase(currMtd,$2); }
-   | HSH {AHash(currMtd); };
+ caseins: CASE DECIMAL { ACase(currMtd,$2); } ;
 
  heap: ALLOC literal { AAlloc(currMtd,$2); }
    ;

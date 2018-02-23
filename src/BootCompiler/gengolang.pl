@@ -9,7 +9,7 @@
 :- use_module(uri).
 :- use_module(template).
 
-genGoLang(module(Pkg,Imports,_Fields,_Types,_Enums,Defs,_Contracts,_Impls),Text) :-
+genGoLang(mdule(Pkg,Imports,_Face,_Enums,Defs,_Contracts,_Impls),Text) :-
   genGoPkgName(Pkg,[],V0),
   genGoImports(Imports,V0,V1),
   genGoDefs(Defs,V1,Vx),
@@ -54,16 +54,10 @@ genTerm(idnt(Nm),O,Ox) :-
   appStr("X",O,O0),
   genVar(Nm,O0,Ox).
 genTerm(ctpl(Op,Args),O,Ox) :-
-  genTerm(Op,O,O1),
+  (isTupleStrct(Op) -> O=O1 ;  genTerm(Op,O,O1)),
   appStr("(",O1,O2),
   genTerms(Args,O2,O3),
   appStr(")",O3,Ox).
-genTerm(tpl([]),O,Ox) :-!,
-  appQuoted("()","'",O,Ox).
-genTerm(tpl(Args),O,Ox) :-
-  appStr("(",O,O5),
-  genTerms(Args,O5,O6),
-  appStr(")",O6,Ox).
 
 genVar(Nm,O,Ox) :-
   string_chars(Nm,Chars),

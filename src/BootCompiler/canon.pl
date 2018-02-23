@@ -14,9 +14,9 @@ isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_)).
 isCanon(over(_,_,_)).
 isCanon(mtd(_,_)).
-isCanon(intLit(_,_)).
-isCanon(floatLit(_,_)).
-isCanon(stringLit(_,_)).
+isCanon(intLit(_)).
+isCanon(floatLit(_)).
+isCanon(stringLit(_)).
 isCanon(apply(_,_,_)).
 isCanon(dot(_,_,_)).
 isCanon(enm(_,_)).
@@ -50,6 +50,7 @@ dispCanonTerm(Term) :- showCanonTerm(Term,Chrs,[]), string_chars(Res,Chrs), writ
 dispDefs(Defs) :- showDefs(Defs,Chrs,[]),string_chars(Res,Chrs),writeln(Res).
 
 dispProg(Pr) :-
+  writeln("Type checked code\n"),
   showCanon(Pr,Chrs,[]),
   string_chars(Res,Chrs),writeln(Res).
 
@@ -58,7 +59,8 @@ showCanon(prog(Pkg,_,Imports,Defs,Others,_Fields,Types,Cons,Impls),O,Ox) :-
   appStr("{\n",O1,O2),
   showImports(Imports,O2,O3),!,
   showTypeDefs(Types,O3,O4),!,
-  showContracts(Cons,O4,O5),!,
+  appStr("\n",O4,O4a),
+  showContracts(Cons,O4a,O5),!,
   showImpls(Impls,O5,O6),!,
   showDefs(Defs,O6,O7),!,
   appStr("\nOthers:\n",O7,O8),
@@ -75,9 +77,9 @@ showVersion(ver(V),O,Ox) :-
   appStr(V,O1,Ox).
 
 showCanonTerm(v(_,Nm),O,Ox) :- appStr(Nm,O,Ox).
-showCanonTerm(intLit(Ix,_),O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(floatLit(Ix,_),O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(stringLit(Str,_),O,Ox) :-
+showCanonTerm(intLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
+showCanonTerm(floatLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
+showCanonTerm(stringLit(Str),O,Ox) :-
   appStr("""",O,O1),
   appStr(Str,O1,O2),
   appStr("""",O2,Ox).
@@ -107,7 +109,7 @@ showCanonTerm(record(_,_,Defs,Others,Types,_),O,Ox) :-
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr(" .}",O4,Ox).
-showCanonTerm(tple(_,_,Els),O,Ox) :-
+showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
@@ -188,11 +190,9 @@ showTypeDef((_,Type),O,Ox) :-
 showContracts(L,O,Ox) :-
   listShow(L,canon:showContract,"\n",O,Ox).
 
-showContract(conDef(LclNm,Nm,ConRule),O,Ox) :-
-  appStr(LclNm,O,O0),
-  appStr("contract: ",O0,O1),
-  appStr("\n",O1,O2),
-  appStr(Nm,O2,O3),
+showContract(conDef(_,Nm,ConRule),O,Ox) :-
+  appStr("contract: ",O,O1),
+  appStr(Nm,O1,O3),
   appStr(" : ",O3,O4),
   showType(ConRule,O4,O5),
   appStr(".\n",O5,Ox).
@@ -324,5 +324,5 @@ showStmt(ignore(_,Exp),O,Ox) :-
   appStr("  ignore ",O,O1),
   showCanonTerm(Exp,O1,Ox).
 
-ruleArity(equation(_,_,tple(_,_,A),_),Ar) :-
+ruleArity(equation(_,_,tple(_,A),_),Ar) :-
   length(A,Ar).

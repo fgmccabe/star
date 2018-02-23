@@ -145,9 +145,8 @@ showTerm(intgr(Ix),O,Ox) :-
   appInt(Ix,O,Ox).
 showTerm(float(Dx),O,Ox) :-
   appFlt(Dx,O,Ox).
-showTerm(strg(Str),O,Ox),
-  appStr(Str,O1,O2),
-  appStr("""",O2,Ox).
+showTerm(strg(Str),O,Ox) :-
+  appQuoted(Str,"""",O,Ox).
 showTerm(enum(Nm),O,Ox) :-
   appStr(Nm,O,Ox).
 showTerm(idnt(Nm),O,Ox) :-
@@ -158,10 +157,6 @@ showTerm(ctpl(Op,Args),O,Ox) :-
   appStr("(",O1,O2),
   showTerms(Args,O2,O3),
   appStr(")",O3,Ox).
-showTerm(tpl(Args),O,Ox) :-
-  appStr("(",O,O1),
-  showTerms(Args,O1,O2),
-  appStr(")",O2,Ox).
 showTerm(anon,O,Ox) :-
   appStr("_",O,Ox).
 

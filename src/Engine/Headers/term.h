@@ -31,7 +31,13 @@ extern labelPo C_LBL(termPo t);
 
 extern normalPo C_TERM(termPo t);
 
+extern logical isNormalPo(termPo t);
+
+extern termPo termLbl(normalPo t);
+
 extern enumPo C_ENUM(termPo t);
+
+extern integer termHash(termPo t);
 
 extern int64 termArity(normalPo term);
 
@@ -51,5 +57,7 @@ static inline logical hasClass(termPo obj, clssPo clss) {
 }
 
 retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
+
+logical sameTerm(termPo t1,termPo t2);
 
 #endif //CAFE_TERM_H

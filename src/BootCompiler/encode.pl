@@ -1,8 +1,12 @@
-:- module(encode,[encodeTerm/3,encType/2,encodeType/3,encodeConstraint/3]).
+:- module(encode,[encode/2,encodeTerm/3,encType/2,encodeType/3,encodeConstraint/3]).
 
 :- use_module(types).
 :- use_module(misc).
 :- use_module(base64).
+
+encode(T,Str) :-
+  encodeTerm(T,Chrs,[]),
+  string_chars(Str,Chrs).
 
 encodeTerm(anon,['a'|O],O).
 encodeTerm(intgr(Ix),['x'|O],Ox) :- encodeInt(Ix,O,Ox).
@@ -13,7 +17,6 @@ encodeTerm(strct(Nm,Arity),['o'|O],Ox) :-
   encodeInt(Arity,O,O1),
   encodeText(Nm,O1,Ox).
 encodeTerm(prg(Nm,Arity),['p'|O],Ox) :- encodeInt(Arity,O,O1), encodeText(Nm,O1,Ox).
-encodeTerm(tpl(Els),O,Ox) :- tupleSig(Els,Con), encodeTerm(ctpl(Con,Els),O,Ox).
 encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   length(Els,Ln),
   encodeInt(Ln,O,O1),
@@ -24,8 +27,6 @@ encodeTerm(code(Tp,Bytes,Lits),['#'|O],Ox) :-
   encodeTerm(Lits,O1,O2),
   encode64(Bytes,Chrs,[]),
   encodeChars(Chrs,'''',O2,Ox).
-
-tupleSig(Els,strct(Con,Ar)) :- length(Els,Ar), number_string(Ar,A),string_concat("()",A,Con).
 
 encodeTerms([],O,O).
 encodeTerms([T|R],O,Ox) :-

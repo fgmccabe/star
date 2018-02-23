@@ -40,17 +40,21 @@ instruction(StL,lcl,"store tos to local[xx]")
 instruction(TL,lcl,"copy tos to local[xx]")
 instruction(StA,arg,"store tos to args[xx]")
 
-instruction(Nth,i32,"pick up the nth element")
-instruction(StNth,i32,"store in nth element")
+instruction(CLbl,off,"T --> Lbl, test for a data term, branch if not")
+instruction(Nth,i32,"T --> el, pick up the nth element")
+instruction(StNth,i32,"T el --> store in nth element")
 
-instruction(Hash,nOp,"x --> hash(x), access hash of tos")
-instruction(Case,i32,"hash --> , case <Max> ")
+instruction(Case,i32,"T --> , case <Max> ")
 
 instruction(Alloc,lit,"new closure, code from constant pool")
+
+instruction(Cmp,off,"t1 t2 --> , branch to offset if not same literal")
 
 instruction(Bf,off,"bool --> branch if false")
 instruction(Bt,off,"bool --> branch if true")
 
 instruction(Cas,off,"... x y z --> ... ( x := z if [x]=y, else branch)")
 
-instruction(Frame,lit,"frame instruction")
+instruction(Rais,lit," --> raise an exception")
+instruction(Frame,i32,"frame instruction")
+
