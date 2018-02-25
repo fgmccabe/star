@@ -6,7 +6,6 @@
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\
 The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
@@ -16,7 +15,22 @@ The sequence notation also allows for the specification of partial sequences; th
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 denotes the sequence whose first two elements are 1 and 2 and whose remainder is denoted by the variable X \'97 which must also be a sequence of the correct type. Similarly, the term:\
+\f0\fs26 denotes the sequence whose first two elements are 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 1
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 2
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  and whose remainder is denoted by the variable 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  \'97 which must also be a sequence of the correct type. Similarly, the term:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -76,7 +90,12 @@ There is a strong relationship between the normal sequence notation and the part
 \f0\fs26 is not permitted (since it amounts to a concatenation of two sequences which implies a non-deterministic decomposition when used as a pattern).\
 The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type 
 \i and
-\i0  to do so in a syntax which is concise: the only constraint is the sequence contract.\
+\i0  to do so in a syntax which is concise: the only constraint is the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 sequence
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract.\
 For example, we can use sequence notation to write functions over sequences; such as the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 concat

@@ -58,7 +58,7 @@
 
 \f0\fs24 \cf0 Attributes}]]></Format>
     </Style>
-    <Style Name="Code Block" ID="AE6C1C8D-CE45-483A-94D2-924E00689B9F" Type="Para+Char" FontChange="Face+Size" Next="AE6C1C8D-CE45-483A-94D2-924E00689B9F" Shortcut="7">
+    <Style Name="Code Block" ID="AE6C1C8D-CE45-483A-94D2-924E00689B9F" Type="Para+Char" FontChange="Face+Size" Box="0.9 0.9 0.999819" Next="AE6C1C8D-CE45-483A-94D2-924E00689B9F" Shortcut="7">
         <Format><![CDATA[{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
 {\fonttbl\f0\fnil\fcharset0 Menlo-Regular;}
 {\colortbl;\red255\green255\blue255;}

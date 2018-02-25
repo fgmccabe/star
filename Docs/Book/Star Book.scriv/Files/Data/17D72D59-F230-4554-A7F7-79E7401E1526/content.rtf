@@ -57,13 +57,23 @@ The simplest operation on a collection is to subset it. The standard function
 <!$Scr_Cs::1>
 \f0\fs26  function (which is part of a standard contract) is required to apply the predicate to every element of its second argument and return a 
 \i new
-\i0  collection of every element that satisfies the {\field{\*\fldinst{HYPERLINK "scrivcmt://86A09DBB-709D-4764-BF87-3CB56FA40A08"}}{\fldrslt predicate.}}\
-Note that the % function is arithmetic remainder, and the expression 
+\i0  collection of every element that satisfies the {\field{\*\fldinst{HYPERLINK "scrivcmt://86A09DBB-709D-4764-BF87-3CB56FA40A08"}}{\fldrslt \cf2 predicate.}}\
+Note that the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 %
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function is arithmetic remainder, and the expression 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 X%2==0
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  amounts to a test that X is even (its remainder modulo 2 is 0).\
+\f0\fs26  amounts to a test that 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is even (its remainder modulo 2 is 0).\
 By using a function argument to represent the predicate it is possible to construct many filtering algorithms whilst not making any recursion explicit. However, not all filters are easily handled in this way; for example, a prime number filter 
 \i can
 \i0  be written\

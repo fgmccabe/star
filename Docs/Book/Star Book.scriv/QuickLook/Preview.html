@@ -338,12 +338,11 @@
 <p class="itemTitle">A Functional Loop</p>
 <p class="itemText">A more idiomatic way of expressing a computation like the totalizer is to use a function. For example, we can write:</p>
 <p class="itemText">let{</p>
-<p class="itemText">  total:(cons[integer])=>integer.</p>
 <p class="itemText">  total(nil) => 0.</p>
 <p class="itemText">  total(cons(E,L)) => total(L)+E</p>
 <p class="itemText"> } in total(L)</p>
 <p class="itemText">while short, this code too has some of the same drawbacks as the for iteration.</p>
-<p class="itemText">The type expression cons[integer] refers to the standard type of ‘cons lists’. Similarly, nil refers to the empty list and cons(E,L) refers to the list obtained by prepending E to the list L. We wi...</p>
+<p class="itemText">The type expression cons[integer] refers to the standard type of ‘cons lists’. Similarly, nil refers to the empty list and cons(E,L) refers to the list obtained by prepending E to the list L. We will explore this in more detail in ...</p>
 </li>
 <li>
 <p class="itemTitle">A Totalizer Query</p>
@@ -424,11 +423,10 @@
 <li>
 <p class="itemTitle">Basics</p>
 <p class="itemText">It is often easier to introduce functional programming using numerical examples. Last chapter we saw, for example, the factorial program. This is mostly because most programmers are already familiar with numbers. Continuing that tradition, here is a function that returns the sign of a number:</p>
-<p class="itemText">sign:(integer) => integer.</p>
 <p class="itemText">sign(X) where X<0 => -1.</p>
 <p class="itemText">sign(0) => 0.</p>
 <p class="itemText">sign(X) where X>0 => 1.</p>
-<p class="itemText">Each of these equations applies to different situations: the first equation applies when the input argument is negat...</p>
+<p class="itemText">Each of these equations applies to different situations: the first equation applies when the input argument is negative, the second when it is ...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -478,8 +476,8 @@
 <p class="itemTitle">Algebraic Data Types</p>
 <p class="itemText">An algebraic data type definition achieves several things simultaneously: it introduces a new type into scope, it gives an enumeration of the legal values of the new type and it defines both constructors for the values and it defines patterns for decomposing values. This is a lot for a single statement to do!</p>
 <p class="itemText">For example, we can define a type that denotes a point in a two-dimensional space:</p>
-<p class="itemText">type point ::= cart(float,float).</p>
-<p class="itemText">This kind of statement is called a type definition statement and is lega...</p>
+<p class="itemText">point ::= cart(float,float).</p>
+<p class="itemText">This kind of statement is called a type definition statement and is legal in ...</p>
 </li>
 </ul>
 <hr class="afterText"/>
@@ -508,7 +506,7 @@
 
 <li>
 <p class="itemTitle">Generic Programs</p>
-<p class="itemText">If we take a slightly closer look at fTest, we can see that it seems pretty generic: it has a function as argument that it calls in the right places; but otherwise makes few assumptions about the function it calls. However, the type annotation of fTest is rather specific:</p>
+<p class="itemText">If we take a slightly closer look at fTest, we can see that it seems pretty generic: it has a function as argument that it calls in the right places; but otherwise makes few assumptions about the function it calls. However, the type signature of fTest is rather specific:</p>
 <p class="itemText">fTest : (sTree,(string)=>boolean)=>boolean</p>
 <p class="itemText">which means, for example, that its second argument must be a function from string to boolean. On the other hand, nothing in the actual definition of fTest seems to depend on strings.</p>
 </li>
@@ -537,12 +535,12 @@
 
 <li>
 <p class="itemTitle">Going Further</p>
-<p class="itemText">Although better than the original sTest program there is still one major sense in which the test program is not general enough. We can see by looking at another example: a function that counts elements in the tree:</p>
+<p class="itemText">Although better than the original sTest program there is still one major sense in which the test program is not general enough. We can see this by looking at another example: a function that counts elements in the tree:</p>
 <p class="itemText">count:all t ~~ (tree[t]) => integer.</p>
 <p class="itemText">count(tEmpty) => 0.</p>
 <p class="itemText">count(tNode(L,_,R)) => count(L)+count(R)+1</p>
 <p class="itemText">This code is very similar, but not identical, to the test function.</p>
-<p class="itemText">The issue is that test is trying to do two things simultaneously: in order to apply its test predicate to a binary tr...</p>
+<p class="itemText">The issue is that test is trying to do two things simultaneously: in order to apply its test predicate to a bina...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -562,11 +560,11 @@
 
 <li>
 <p class="itemTitle">A Word About Type Inference</p>
-<p class="itemText">We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that Star only requires programmers to explicitly declare the types of top-level variables and functions. It is worth pausing a little to see how this might be done.</p>
-<p class="itemText">Recall our original factorial function:</p>
+<p class="itemText">We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that Star only requires programmers to explicitly declare the types of quantified variables and functions. It is worth pausing a little to see how this might be done.</p>
+<p class="itemText">Recall our original fact function:</p>
 <p class="itemText">fact(0) => 1.</p>
 <p class="itemText">fact(N) => N*fact(N-1).</p>
-<p class="itemText">The compiler is able to compute the types of the various variables automatically through...</p>
+<p class="itemText">The compiler is able to compute the types of the various variables automatically through a p...</p>
 </li>
 <li>
 <p class="itemTitle">Are We There Yet?</p>
@@ -594,24 +592,23 @@
 <ul>
 <li>
 <p class="itemTitle">Partial Sequence Notation</p>
-<p class="itemText"></p>
 <p class="itemText">The sequence notation also allows for the specification of partial sequences; this is particularly useful in writing functions that construct and traverse sequences. The sequence term:</p>
 <p class="itemText">[1,2,..X]</p>
 <p class="itemText">denotes the sequence whose first two elements are 1 and 2 and whose remainder is denoted by the variable X — which must also be a sequence of the correct type. Similarly, the term:</p>
 <p class="itemText">[F..,23]</p>
 <p class="itemText">denotes the sequence obtained by gluing 23 to the back of the sequence F.</p>
-<p class="itemText">There is a strong relationship between t...</p>
+<p class="itemText">There is a strong relationship between th...</p>
 </li>
 <li>
 <p class="itemTitle">The Sequence Contract</p>
-<p class="itemText">Underlying the sequence notation is the sequence contract. This contract contains type signatures in it that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.</p>
+<p class="itemText">Underlying the sequence notation is the sequence contract. This contract contains type signatures that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.</p>
 <p class="itemText">The actual sequence contract is</p>
 <p class="itemText">contract sequence[t->>e] ::= {</p>
 <p class="itemText">  _nil:()=>t.     -- empty sequence</p>
 <p class="itemText">  _cons:(e,t)=>t. -- add to front</p>
 <p class="itemText">  _apnd:(t,e)=>e. -- add to back</p>
 <p class="itemText">  _empty:()<=t.   -- match empty sequence</p>
-<p class="itemText">  ...</p>
+<p class="itemText">  _pair:...</p>
 </li>
 <li>
 <p class="itemTitle">Sequence Patterns</p>
@@ -723,9 +720,9 @@
 <hr class="afterText"/>
 
 <li>
-<p class="itemTitle">The Sieve of Erastosthenese</p>
-<p class="itemText">One of the classic algorithms for finding primes can be expressed using filters — the so-called sieve of Erastosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of filter operations.</p>
-<p class="itemText">The core of the sieve algorithm involves taking a list of numbers and removing multiples of a given number from the list...</p>
+<p class="itemTitle">The Sieve of Eratosthenes</p>
+<p class="itemText">One of the classic algorithms for finding primes can be expressed using filters — the so-called sieve of Eratosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of filter operations.</p>
+<p class="itemText">The core of the sieve algorithm involves taking a list of numbers and removing multiples of a given number from the list....</p>
 </li>
 <li>
 <p class="itemTitle">Mapping to Make New Collections</p>
@@ -858,20 +855,20 @@
 <p class="itemTitle">Existential Types</p>
 <p class="itemText">What does it mean to have a type in a record? From a programmer’s point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn’t have types in it. However, the logic of this bears a deeper look.</p>
 <p class="itemText">The declaration of the foo type involves the use of an existential quantifier:</p>
-<p class="itemText">simple:exists f/1 ~~ {</p>
+<p class="itemText">simple:exists foo/1 ~~ {</p>
 <p class="itemText">  ...</p>
 <p class="itemText">}</p>
-<p class="itemText">The meaning of an existentially quantified type is complementary to the universally quantified type. An e...</p>
+<p class="itemText">The meaning of an existentially quantified type is complementary to the universally quantified type. An...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
 <p class="itemTitle">Use and Evidence</p>
 <p class="itemText">To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.</p>
-<p class="itemText">Consider the simple function d with its type declaration:</p>
+<p class="itemText">Consider the simple function d with its type annotation:</p>
 <p class="itemText">d:all t ~~ arith[t] |: (t)=>t.</p>
 <p class="itemText">d(X) => X+X.</p>
-<p class="itemText">In the equ...</p>
+<p class="itemText">In the equa...</p>
 </li>
 <li>
 <p class="itemTitle">Using Existentially Quantified Types</p>
@@ -1085,9 +1082,9 @@
 <p class="itemTitle">Sieving for Primes</p>
 <p class="itemText">The final piece of The Sieve is the sieve function which constructs a network of filters to sieve out the primes.</p>
 <p class="itemText">At any one time there is an existing network of filters removing multiples of prime numbers found so far. For example, after processing 13, the next number to look at will be 15 and the network of filters will look like:</p>
-<p class="itemText">#</p>
+<p class="itemText"></p>
 <p class="itemText">The Sieve of Eratosthenes at 13</p>
-<p class="itemText">The 3 filter removes 15 because 15 is a multiple of 3. However, the following number — 17 — survives all the filters and the sieve ...</p>
+<p class="itemText">The 3 filter removes 15 because 15 is a multiple of 3. However, the following number — 17 — survives all the filters and the sieve r...</p>
 </li>
 </ul>
 <hr class="afterText"/>
@@ -1095,9 +1092,9 @@
 <li>
 <p class="itemTitle">Philosophers Have to Eat Too</p>
 <p class="itemText">The analog of the ‘hello world’ example in concurrent programming is probably the in-famous dining philosophers problem. Made famous in this form by C.A.R. Hoare (also of QuickSort fame), the set up for this puzzle is quite straightforward: there are four philosophers sitting at a table wanting to eat. The catch being that there are only four forks on the table and a philosopher needs to use two forks to eat something from the table.</p>
-<p class="itemText">#</p>
+<p class="itemText"></p>
 <p class="itemText">Four Dining Philosophers</p>
-<p class="itemText">Of course, it is only a little ecce...</p>
+<p class="itemText">Of course, it is only a little eccen...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -1483,10 +1480,10 @@
 <li>
 <p class="itemTitle">Boxes and Arrows</p>
 <p class="itemText">It is a kind of truism that whenever engineers need to explain their systems to each other they tend to resort to drawing pictures with boxes and arrows between them. For example:</p>
-<p class="itemText">#</p>
+<p class="itemText"></p>
 <p class="itemText">A System for Splitting Orders</p>
 <p class="itemText">could be used to explain the system for managing the way parts are ordered in a car factory that supported a ‘build-to-order’ model for manufacturing customized vehicles.</p>
-<p class="itemText">The different boxes show the major sub-systems and the arrows between them show the major flows between them: we have...</p>
+<p class="itemText">The different boxes show the major sub-systems and the arrows between them show the major flows between them: we have ...</p>
 </li>
 <hr class="afterText"/>
 <ul>

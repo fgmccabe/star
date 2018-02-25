@@ -8,8 +8,13 @@
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
 We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that 
 \b Star
-\b0  only requires programmers to explicitly declare the types of top-level variables and functions. It is worth pausing a little to see how this might be done.\
-Recall our original factorial function:\
+\b0  only requires programmers to explicitly declare the types of quantified variables and functions. It is worth pausing a little to see how this might be done.\
+Recall our original 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 fact
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::4>
+\f0\fs26  function:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -30,7 +35,12 @@ fact(N) => N*fact(N-1).\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 which is buried within the recursive call in fact. Although it looks like a special operator, 
+\f0\fs26 which is buried within the recursive call in 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 fact
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::4>
+\f0\fs26 . Although it looks like a special operator, 
 \b Star
 \b0  does not treat arithmetic expressions in a special way; the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
@@ -41,7 +51,7 @@ fact(N) => N*fact(N-1).\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22   (-) : all t ~~ arithmetic[t] |: (t,t)=>t\
+\f2\fs22   (-) : all t ~~ arith[t] |: (t,t)=>t\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -76,9 +86,9 @@ The type inference process initially gives every variable an unknown type \'97 r
 <!$Scr_Cs::4>
 \f0\fs26  the type 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
-\f2\fs22 tN
+\f2\fs22 t\sub N
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Cs::4>
+\nosupersub <!$Scr_Cs::4>
 \f0\fs26 .\
 The (-) function has two arguments whose types can be expressed as a tuple of types:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
@@ -93,7 +103,7 @@ The (-) function has two arguments whose types can be expressed as a tuple of ty
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 (tN,integer)\
+\f2\fs22 (t\sub N\nosupersub ,integer)\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -132,15 +142,38 @@ The (-) function has two arguments whose types can be expressed as a tuple of ty
 \f0\fs26 .\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 \cf2 \expnd0\expndtw0\kerning0
-We initially picked the type of N to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of N in a context where an integer is expected is enough to allow the compiler to infer that the type of N is indeed 
+We initially picked the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 N
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::4>
+\f0\fs26  to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 N
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::4>
+\f0\fs26  in a context where an integer is expected is enough to allow the compiler to infer that the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 N
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::4>
+\f0\fs26  is indeed 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
 \f2\fs22 integer
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::4>
-\f0\fs26  and not t
-\fs20 \cf2 \dn3 N
-\fs26 \cf2 \up0 .\
-Of course, if there are multiple occurrences of N then each of those occurrences must also be consistent with 
+\f0\fs26  and not 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 t\sub N
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\nosupersub <!$Scr_Cs::4>
+\f0\fs26 .\
+Of course, if there are multiple occurrences of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
+\f2\fs22 N
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::4>
+\f0\fs26  then each of those occurrences must also be consistent with 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::4>
 \f2\fs22 integer
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0

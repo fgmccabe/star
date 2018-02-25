@@ -7,9 +7,9 @@
 
 \f0\b\fs26 \cf2 \expnd0\expndtw0\kerning0
 Star
-\b0 \cf2  is a strongly, statically typed language. This means that all variables and expressions have a single type; and that all type constraints are enforceable at compile-time. This is a fairly strong (sic) statement but it is a key aspect of 
-\b \cf2 Star
-\b0 \cf2 \'92s design \'96 we need everything to be well typed and we also want to guarantee completeness of the type system.\
+\b0  is a strongly, statically typed language. This means that all variables and expressions have a single type; and that all type constraints are enforceable at compile-time. This is a fairly strong (sic) statement but it is a key aspect of 
+\b Star
+\b0 \'92s design \'96 we need everything to be well typed and we also want to guarantee completeness of the type system.\
 The type annotation statement:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
@@ -28,21 +28,18 @@ The type annotation statement:\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \b \cf2 Star
-\b0 \cf2  requires all top-level definitions \'96 like 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 fact
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Cs::1>
-\f0\fs26  here \'96 to have explicit type annotations. For top-level functions, that annotation is often contiguous in the text; but in other cases that may not be the case.\
+\b0  encourages, but does not require, most programs to have explicit type annotations. The precise rule is a little subtle: variables whose type are not quantified 
+\i may
+\i0  have their type automatically inferred. For top-level functions, that annotation is often contiguous in the text; but in other cases that may not be the case.\
 Other variables \'96 like the variable 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 N
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  which is part of the second recursive equation \'96 do not need type annotations. This is possible because underlying the type system is a powerful 
-\i \cf2 type inference
-\i0 \cf2  system that can actually infer all types.\
+\i type inference
+\i0  system that can actually infer all types.\
 The result is that a lot of the \'91clutter\'92 that can pervade a strongly typed language is just not necessary; but the use of explicit type annotations for top-level definitions provides useful structure and documentation.\
-Note that the requirement is that {\field{\*\fldinst{HYPERLINK "scrivcmt://D451B913-A8D6-4A30-B3CA-2548EDD44F19"}}{\fldrslt \cf2 top-level}} definitions have explicit type annotations. We don\'92t distinguish functions in any way here. In particular, functions which are 
-\i \cf2 not
-\i0 \cf2  part of a top-level definition \'96 for example lambda functions \'96 do not need type annotations; on the other hand, other top-level variables still need an explicit type annotation.}
+Note that the requirement is that quantified definitions have explicit type annotations. We don\'92t distinguish functions in any way here. In particular, functions which are 
+\i not
+\i0  part of a top-level definition \'96 for example lambda functions \'96 do not need type annotations.}

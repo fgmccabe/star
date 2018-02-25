@@ -13,7 +13,7 @@ The declaration of the foo type involves the use of an
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 simple:exists f/1 ~~ \{\
+\f2\fs22 simple:exists foo/1 ~~ \{\
   ...\
 \}\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
@@ -22,7 +22,7 @@ The declaration of the foo type involves the use of an
 <!$Scr_Ps::0>
 \f0\fs26 The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 f
+\f2\fs22 foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  exists and is a type constructor of 1 argument.\
@@ -31,22 +31,28 @@ The statement:
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 <$Scr_Ps::0>
-\f2\fs22   all t ~~ f[t] <~ foo[t].\
+\f2\fs22 type foo/1.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 <!$Scr_Ps::0>
-\f0\fs26 is actually a normal 
-\i type alias
-\i0  statement. It states that the type 
+\f0\fs26 is a 
+\i type
+\i0  statement. Its role is to \'91bridge the gap\'92 between the quantifier and external views of the record: in effect, it is a reminder that a 
+\i type annotation
+\i0  such as\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 X:simple.foo\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 means to use the type that is embedded in the 
 \f1\fs24 <$Scr_Cs::1>
-\f2\fs22 f[t]
+\f2\fs22 simple
 \f1\fs24 <!$Scr_Cs::1>
-\f0\fs26  is the same as the type 
+\f0\fs26  record (actually package) and assign 
 \f1\fs24 <$Scr_Cs::1>
-\f2\fs22 foo[t]
+\f2\fs22 X
 \f1\fs24 <!$Scr_Cs::1>
-\f0\fs26  \'96 for all 
-\f1\fs24 <$Scr_Cs::1>
-\f2\fs22 t
-\f1\fs24 <!$Scr_Cs::1>
-\f0\fs26 . A type alias statement is a way of giving a new name to a type; here we are using it to provide evidence that the record contains the required evidence for f.}
+\f0\fs26 \'92s type to that embedded type.}

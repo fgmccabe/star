@@ -7,10 +7,13 @@
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
 There are other ways in which programs can be polymorphic. In particular, let us focus for a while on arithmetic. One of the issues in arithmetic functions is that there are many different kinds of numbers. Pretty much every programming language distinguishes several kinds of numbers; for example, Java distinguishes byte, short, int, long, float, double, BigInteger and BigDecimal \'97 and this does not count the wrapped versions. Other languages have even more choice.\
-One question that might seem relevant is why? The basic answer is that different applications call for different properties of numbers and no one numeric type seems to fit all needs. However, the variety comes at a cost: when we 
-\i use
-\i0  numbers we tend to have to make too early a choice for the numeric type.\
-For example, consider the double function we saw earlier:\
+One question that might seem relevant is why? The basic answer is that different applications call for different properties of numbers and no one numeric type seems to fit all needs. However, that variety comes at a cost: when we use numbers we tend to have to make too early a choice for the numeric type.\
+For example, consider the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 double
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function we saw earlier:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -19,20 +22,45 @@ For example, consider the double function we saw earlier:\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 What type should double have? In particular, what should the type of + be? Most people would be reluctant to use different arithmetic operators for different types of {\field{\*\fldinst{HYPERLINK "scrivcmt://DD656115-1C83-4B52-B61A-4E66AD2CD264"}}{\fldrslt numbers.}} This is resolved in 
+\f0\fs26 What type should 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 double
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  have? In particular, what should the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 +
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  be? Most people would be reluctant to use different arithmetic operators for different types of {\field{\*\fldinst{HYPERLINK "scrivcmt://DD656115-1C83-4B52-B61A-4E66AD2CD264"}}{\fldrslt \cf2 numbers.}} This is resolved in 
 \b Star
 \b0  by relying on contracts for the arithmetic operations.\
-The result is that the type computed for double is exquisitely tuned:\
+The result is that the most appropriate type signature for 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 double
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is exquisitely tuned:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 double:all t ~~ arithmetic[t] |: (t)=>t\
+\f2\fs22 double:all t ~~ arith[t] |: (t)=>t\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This type is precisely the minimal type that double could have. Any further constraints result in making a potentially premature choice for the numeric type.\
-If we take another look at our factorial function:\
+\f0\fs26 This type is precisely the minimal type that 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 double
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  could have. Any further constraints result in making a potentially premature choice for the numeric type.\
+If we take another look at our original 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 fact
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -42,7 +70,22 @@ fact(N) => N*fact(N-1)\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 this is constrained to be a function from integer to integer because we introduced the literal integers 0 and 1. However, the arithmetic contract contains synonyms for these very common literals. Using 
+\f0\fs26 this is constrained to be a function from 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 integer
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  to 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 integer
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  because we introduced the literal integers 0 and 1. However, the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 arith
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract contains synonyms for these very common literals. Using 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 zero
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -56,7 +99,7 @@ fact(N) => N*fact(N-1)\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 genFact:all a ~~ arithmetic[a] |: (a)=>a.\
+\f2\fs22 genFact:all a ~~ arith[a] |: (a)=>a.\
 genFact(zero) => one.\
 genFact(N) => N*genFact(N-one).\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
@@ -80,18 +123,43 @@ genFact(N) => N*genFact(N-one).\
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
 \f2\fs22 factorialC:all t ~~\
-    arithmetic[t],coercion[integer,t] |: (t)=>t.\
+    arith[t],coercion[integer,t] |: (t)=>t.\
 factorialC(N) where N==0 :: t => 1 :: t.\
 factorialC(N) => N*factorialC(N-1 :: t).\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The expressions 0 :: t and 1 :: t are coercions from integer to t.\
+\f0\fs26 The expressions 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 0 :: t 
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 and 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 1 :: t
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  are coercions from 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 integer
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  to 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 t
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 .\
 Of course, coercion is also governed by contract, a fact represented in the type signature by the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 coercion
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  contract constraints on the type of t.\
+\f0\fs26  contract constraints on the type of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 t
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 .\
 In any case, using these techniques, it is possible to write numeric functions without unnecessarily committing to specific number types. That in turn helps to make them more useful.}

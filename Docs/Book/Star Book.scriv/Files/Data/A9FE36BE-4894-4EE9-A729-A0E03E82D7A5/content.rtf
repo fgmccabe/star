@@ -7,8 +7,8 @@
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
 A nominative type is normally defined using an 
-\i \cf2 algebraic type definition
-\i0 \cf2 . This both introduces a type and defines all the legal values that belong to the type. For example, we might introduce a Person type with the type definition:\
+\i algebraic type definition
+\i0 . This both introduces a type and defines all the legal values that belong to the type. For example, we might introduce a Person type with the type definition:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -37,8 +37,8 @@ A nominative type is normally defined using an
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26 . The no-one individual 
-\i \cf2 does not
-\i0 \cf2  have a name or date of birth.\
+\i does not
+\i0  have a name or date of birth.\
 Notice how the type annotation statement we saw for declaring the type of fact is also used for defining the types of fields in the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 someOne
@@ -46,18 +46,18 @@ Notice how the type annotation statement we saw for declaring the type of fact i
 <!$Scr_Cs::1>
 \f0\fs26  record.\
 We can 
-\i \cf2 make
-\i0 \cf2  a 
+\i make
+\i0  a 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 Person
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  value with a labeled record expression:\
+\f0\fs26  value with a labeled record expression:
+\f2\fs22 \cf0 \kerning1\expnd0\expndtw0 \
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 S : Person.\
-S = someOne\{\
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 S = someOne\{\
   name = "fred".\
   dob = today()\
 \}\
@@ -121,12 +121,12 @@ An important detail about the someOne record defined above is that the fields wi
 <!$Scr_Cs::1>
 \f0\fs26  record to be modifiable.\
 Only fields that have a ref type are modifiable in records. This is even true when a record is assigned to a reassignable variable.\
-A reassignable variable is declared using the := operator:\
+A reassignable variable is declared using the := operator:
+\f2\fs22 \cf0 \kerning1\expnd0\expndtw0 \
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 N : ref employee.\
-N := employee\{\
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 N := employee\{\
   dept := "your department".\
   name = "Anon. Y. Mouse"\
 \}\
@@ -166,12 +166,12 @@ N := employee\{\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  type.\
-Notice that the re-assignability of variables and fields does not \'91inherit\'92: each field or variable is separate. So, for example, if we declared a single-assignment variable D to be an employee:\
+Notice that the re-assignability of variables and fields does not \'91inherit\'92: each field or variable is separate. So, for example, if we declared a single-assignment variable D to be an employee:
+\f2\fs22 \cf0 \kerning1\expnd0\expndtw0 \
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 D : employee.\
-D = employee\{\
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 D = employee\{\
   dept := "his department".\
   name = "Your Name Here"\
 \}\
@@ -180,8 +180,8 @@ D = employee\{\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 then, even though D itself cannot be re-assigned to, the dept field of D 
-\i \cf2 can
-\i0 \cf2  be altered:\
+\i can
+\i0  be altered:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>

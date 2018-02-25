@@ -11,7 +11,6 @@ A more idiomatic way of expressing a computation like the totalizer is to use a 
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
 \f2\fs22 let\{\
-  total:(cons[integer])=>integer.\
   total(nil) => 0.\
   total(cons(E,L)) => total(L)+E\
  \} in total(L)\
@@ -35,7 +34,7 @@ The type expression
 \f2\fs22 cons(E,L)
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
-\f0\fs26  refers to the list obtained by prepending E to the list L. We will explore this in more detail in {\field{\*\fldinst{HYPERLINK "scrivlnk://D7266A1E-7AFB-4D05-884C-B2A2DB1909A5"}}{\fldrslt Chapter 2}}.\
+\f0\fs26  refers to the list obtained by prepending E to the list L. We will explore this in more detail in {\field{\*\fldinst{HYPERLINK "scrivlnk://D7266A1E-7AFB-4D05-884C-B2A2DB1909A5"}}{\fldrslt \cf2 Chapter 2}}.\
 Even if it is more declarative, there is still a lot of extra detail and architectural commitments here \'97 like the commitment to cons lists and the commitment to integers. These result in a function that is needlessly restricted.\
 Like other functional languages, 
 \b Star

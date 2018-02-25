@@ -6,7 +6,7 @@
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-Of course, this includes our own types. For example, before, when looking at {\field{\*\fldinst{HYPERLINK "scrivlnk://5FF6F734-FE66-4497-9EAD-7CBBB3B733E9"}}{\fldrslt generic types}} we saw the tree type:\
+Of course, this includes our own types. For example, before, when looking at {\field{\*\fldinst{HYPERLINK "scrivlnk://5FF6F734-FE66-4497-9EAD-7CBBB3B733E9"}}{\fldrslt \cf2 generic types}} we saw the tree type:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -60,10 +60,8 @@ With this statement in scope, we can treat appropriate
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 T : tree[(string,string)].\
-T = tNode(tEmpty,("alpha","one"),tEmpty)\
+\f2\fs22 T = tNode(tEmpty,("alpha","one"),tEmpty)\
 assert T["alpha"]=="one".\
-U : tree[(string,string)].\
 U = T["beta"->"two"]. -- Add in "beta"\
 assert U["alpha"]=="one".\
 assert present U["beta"].\
@@ -73,8 +71,8 @@ assert \\+ present U["gamma"].\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 The implementation statement relies on another feature of 
-\b \cf2 Star
-\b0 \cf2 \'92s type system \'97 we need to constrain the implementation of 
+\b Star
+\b0 \'92s type system \'97 we need to constrain the implementation of 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 indexable
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -98,7 +96,7 @@ This is captured in the contract clause of the implementation statement:\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This implementation statement is fairly long, and the type constraints are fairly complex; but it is exquisitely targeted at precisely the right kind of tree without us having to make any unnecessary {\field{\*\fldinst{HYPERLINK "scrivcmt://1F233DB8-8F14-49AE-AE20-C955727DB5FC"}}{\fldrslt assumptions.}}\
+\f0\fs26 This implementation statement is fairly long, and the type constraints are fairly complex; but it is exquisitely targeted at precisely the right kind of tree without us having to make any unnecessary {\field{\*\fldinst{HYPERLINK "scrivcmt://1F233DB8-8F14-49AE-AE20-C955727DB5FC"}}{\fldrslt \cf2 assumptions.}}\
 Implementing the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 indexable
@@ -232,4 +230,4 @@ Along with the implementation of
 \f2\fs22 tree
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 . The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree {\field{\*\fldinst{HYPERLINK "scrivcmt://00D1C237-2F47-46D2-A749-4FC929EC2878"}}{\fldrslt value.}}}
+\f0\fs26 . The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree {\field{\*\fldinst{HYPERLINK "scrivcmt://00D1C237-2F47-46D2-A749-4FC929EC2878"}}{\fldrslt \cf2 value.}}}

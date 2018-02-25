@@ -164,8 +164,6 @@
 <li>
 <p class="itemTitle">Line Comment </p>
 <p class="itemText">A line comment consists of a --  (a double dash followed by a space) or a --\t followed by all characters up to the next new-line. Here,  \t refers to the Horizontal Tab.</p>
-<p class="itemText"></p>
-<p class="itemText"></p>
 <p class="itemText">LineComment ::= (--  | --\t) Char .. Char \n</p>
 <p class="itemText">Line Comment</p>
 </li>
@@ -175,8 +173,6 @@
 <p class="itemText"></p>
 <p class="itemText">BlockComment ::= /* Char .. Char */</p>
 <p class="itemText">Block Comment</p>
-<p class="itemText"></p>
-<p class="itemText"></p>
 <p class="itemText">Each form of comment overrides the other: a /* sequence in a line comment is not the start of a block comment, and a --  sequence in a block comment is similarly not the start of a line comment but the continuation of the block comment.</p>
 </li>
 </ul>
@@ -204,8 +200,7 @@
 <p class="itemText">Digit::=0|1|2|3|4|5|6|7|8|9</p>
 <p class="itemText">Integer Literals</p>
 <p class="itemText"></p>
-<p class="itemText">[TIP]</p>
-<p class="itemText">All integers are represented as at least 64 bit values.</p>
+<p class="itemText">[TIP] All integers are represented as at least 64 bit values.</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -226,26 +221,20 @@
 <p class="itemTitle">Floating Point Numbers</p>
 <p class="itemText">Floating point numbers are written using a notation that is familiar. For example,</p>
 <p class="itemText">234.45  1.0e45</p>
-<p class="itemText"></p>
 <p class="itemText">The notation for floating point is:</p>
 <p class="itemText">FloatingPoint::=Digit ... Digit+ .  Digit ... Digit+ [e[-]Digit …Digit+]]</p>
 <p class="itemText">Floating Point numbers</p>
-<p class="itemText"></p>
 <p class="itemText">[TIP] All floating point number are represented to a precision that is at least equal to 64-bit double precision. There is no equivalent of single-precision floating pointer numbers.</p>
 </li>
 <li>
 <p class="itemTitle">Character Codes</p>
-<p class="itemText">The character code notation allows a number to be based on the coding value of a character. Any Unicode character code point can be entered in this way:</p>
+<p class="itemText">The character code notation allows a number to be based on the Unicode CodePoint value of a character. Any Unicode character code point can be entered in this way:</p>
 <p class="itemText">0cX 0c[ 0c\n 0c</p>
-<p class="itemText"></p>
-<p class="itemText">For example, 0c\n is the code point associated with the new line character, i.e., its value is 10.</p>
-<p class="itemText"></p>
+<p class="itemText">For example, 0c\n is the codepoint associated with the new line character, i.e., its value is 10.</p>
 <p class="itemText">[TIP] Unicode has the capability to represent up to one million character code points.</p>
-<p class="itemText"></p>
 <p class="itemText">CharacterCode::=0cCharRef</p>
 <p class="itemText">Character Codes</p>
-<p class="itemText"></p>
-<p class="itemText">[TIP] A CharacterCode is an integer. This notation allows string processing programs to represent c...</p>
+<p class="itemText">[TIP] A CharacterCode is an integer. This notation allows string processing programs to repre...</p>
 </li>
 </ul>
 <hr class="afterText"/>
@@ -253,7 +242,6 @@
 <li>
 <p class="itemTitle">Strings and Characters</p>
 <p class="itemText">A string consists of a sequence of characters -- specifically CharRefs. There is no specific type in Star for the characters themselves.</p>
-<p class="itemText"></p>
 <p class="itemText">[CAUTION] The reasons for this are due to the fact that Unicode string values cannot be easily represented as a unique sequence.</p>
 </li>
 <hr class="afterText"/>
@@ -261,34 +249,30 @@
 <li>
 <p class="itemTitle">Character Reference</p>
 <p class="itemText">A CharRef is a denotation of a single character.</p>
-<p class="itemText"></p>
 <p class="itemText">CharRef ::= Char | Escape</p>
 <p class="itemText">Escape::=\b|\d|\e|\f|\n|\r|\t|\v |\ Char | \u Hex ... Hex;</p>
 <p class="itemText">Character Reference</p>
-<p class="itemText"></p>
-<p class="itemText">For most characters, the character reference for that character is the character itself. For example, the string "T" contains the character T. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically writt...</p>
+<p class="itemText">For most characters, the character reference for that character is the character itself. For example, the string "T" contains the character T. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically written...</p>
 </li>
 <li>
 <p class="itemTitle">Quoted Strings</p>
 <p class="itemText">A string is a sequence of character references (CharRef) enclosed in double quotes; alternately a string may take the form of a triple-quoted BlockString. In addition, quoted strings support interpolation — expressions that are embedded in a string and are formatted in place.</p>
-<p class="itemText"></p>
 <p class="itemText">StringLiteral ::= " StrChar ... StrChar “ | BlockString</p>
 <p class="itemText">StrChar ::= CharRef | Interpolation</p>
 <p class="itemText">Interpolation ::= [$| #] Identifier [FormattingSpec]]</p>
 <p class="itemText">  |[$| #] ( Expression ) [FormattingSpec ]</p>
-<p class="itemText">FormattingSpec ::= : CharRef ... ...</p>
+<p class="itemText">FormattingSpec ::= : CharRef ... C...</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
 <p class="itemTitle">Block String </p>
 <p class="itemText">In addition to the normal notation for strings, there is a block form of string that permits raw character data to be processed as a string.</p>
-<p class="itemText"></p>
 <p class="itemText">BlockString::=""" Char ... Char """</p>
 <p class="itemText">Block String Literal</p>
 <p class="itemText">The block form of string allows any characters in the text and performs no interpretation of those characters.</p>
 <p class="itemText">Block strings are written using triple quote characters at either end. Any new-line characters enclosed by the block quotes are considered to be part of the strings.</p>
-<p class="itemText">The normal interpretatio...</p>
+<p class="itemText">The normal interpretation...</p>
 </li>
 </ul>
 </ul>
@@ -308,8 +292,7 @@
 <li>
 <p class="itemTitle">Alphanumeric Identifiers</p>
 <p class="itemText">Identifiers in Star are based on the Unicode definition of identifier. For the ASCII subset of characters, the definition corresponds to the common form of identifier -- a letter followed by a sequence of digits and letters. However, non-ASCII characters are also permitted in an identifier.</p>
-<p class="itemText">AlphaNumeric::=LeadChar BodyChar ...BodyChar</p>
-<p class="itemText"></p>
+<p class="itemText">AlphaNumeric::=LeadChar BodyChar...BodyChar</p>
 <p class="itemText">LeadChar::=LetterNumber</p>
 <p class="itemText">  | LowerCase</p>
 <p class="itemText">  | UpperCase</p>
@@ -317,45 +300,41 @@
 <p class="itemText">  | OtherNumber</p>
 <p class="itemText">  | OtherLetter</p>
 <p class="itemText">  | ConnectorPunctuation</p>
-<p class="itemText"></p>
 <p class="itemText">BodyChar::=LeadChar</p>
-<p class="itemText">  | ModifierLetter...</p>
+<p class="itemText">  | ModifierLetter</p>
+<p class="itemText">  ...</p>
 </li>
 <li>
 <p class="itemTitle">Multi-word Identifiers</p>
-<p class="itemText">A <<MultiWordIdentifier>> is an <<Identifier>> that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a <<MultiWordIdentifier>> is logically a _single_ identifier. For example, the combination of words:</p>
-<p class="itemText">[listing]</p>
+<p class="itemText">A MultiWordIdentifier is an Identifier that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a MultiWordIdentifier is logically a single identifier. For example, the combination of words:</p>
 <p class="itemText">such that</p>
+<p class="itemText">is logically a single multi-word identifier whose name is such that.</p>
+<p class="itemText">There are a few standard MultiWordIdentifiers, as outlined below. In addition, MultiWordIdentifiers can be defined as operators (see <<multiWordOperators>>).</p>
 <p class="itemText"></p>
-<p class="itemText">is logically a single multi-word identifier whose name is `such that`.</p>
-<p class="itemText"></p>
-<p class="itemText">There are a few standard <<MultiWordIdentifier>>s, as outlined in <<multiWords>>. In addition, <<MultiWordIdentifier>>s can be defined as operators (see <<mult...</p>
+<p class="itemText">`any of` | `is tuple` | `gro...</p>
 </li>
 <li>
 <p class="itemTitle">Punctuation Symbols and Graphic Identifiers</p>
 <p class="itemText">The standard operators often have a graphic form -- such as +, and =<. <<standardGraphicsTable>> contains a complete listing of all the standard graphic-form identifiers.</p>
-<p class="itemText"></p>
 <p class="itemText">GraphicIdentifier ::= SymbolicChar .. SymbolicChar</p>
 <p class="itemText">SymbolicChar ::= Char excepting BodyChar</p>
 <p class="itemText">Graphic Identifiers</p>
-<p class="itemText"></p>
 <p class="itemText"></p>
 <p class="itemText">`!` | `#<` |`%%` | `-->` | `:!` | `;` | `=>` | `\|` |</p>
 <p class="itemText">`!`=| `#<>` | `*` | `->` | `:\|` | `;*` | `\|>` | `*` |</p>
 <p class="itemText">`#` | `#@` | `**` | `.` | `:*` | `<` |`<\|` | `>` |</p>
 <p class="itemText">`##` | `+` | `..,` |`:+` |`<=` | `>=` | `~` |</p>
-<p class="itemText">`\`#\$...</p>
+<p class="itemText">`\`#\$|`...</p>
 </li>
 <li>
 <p class="itemTitle">Operator Defined Tokens</p>
-<p class="itemText">When a new operator is defined -- see <<newOperator>> -- it may be that it takes the form of a normal identifier; as in:</p>
+<p class="itemText">When a new operator is defined it may be that it takes the form of a normal identifier; as in:</p>
 <p class="itemText">#infix("hello",50)</p>
 <p class="itemText">However, it is also possible to define an operator from special characters:</p>
-<p class="itemText">#prefix("||",80)</p>
-<p class="itemText">The operator identifier — || — is not a normal alphanumeric identifier.</p>
+<p class="itemText">#prefix(“|.|”,80)</p>
+<p class="itemText">The operator identifier — |.| — is not a normal alphanumeric identifier.</p>
 <p class="itemText">When such a declaration is processed, the tokenizer extends itself to include the new operator identifier as a valid token. Hence an operator may be constructed out of any characters.</p>
-<p class="itemText"></p>
-<p class="itemText">[WARNING] ...</p>
+<p class="itemText">[WARNING] It is not permissible to ...</p>
 </li>
 <li>
 <p class="itemTitle">Quoted Identifiers</p>
@@ -364,7 +343,6 @@
 <p class="itemText">Quoted Identifier</p>
 <p class="itemText">A quoted identifier suppresses any operator or keyword interpretation that the identifier might otherwise have.</p>
 <p class="itemText">[TIP] This can be useful for external facing interfaces where, for example, the name of a field in a structure must have a particular form -- even if that would otherwise be a keyword.</p>
-
 </li>
 </ul>
 <hr class="afterText"/>
@@ -389,10 +367,8 @@
 <p class="itemText">all</p>
 <p class="itemText">exists</p>
 <p class="itemText">Standard Keywords</p>
-<p class="itemText"></p>
 <p class="itemText">[TIP] On those occasions where it is important to have an identifier that is a keyword it is possible to achieve this by enclosing the keyword in single quotes.</p>
-<p class="itemText"></p>
-<p class="itemText">For example, while type is a keyword in the language; enc...</p>
+<p class="itemText">For example, while type is a keyword in the language; enclo...</p>
 </li>
 </ul>
 <hr class="afterText"/>
@@ -400,10 +376,8 @@
 <li>
 <p class="itemTitle">Grammar</p>
 <p class="itemText">The grammar of Star is based on a notation which makes extensibility easier to achieve. Thus, at the core, the grammar is very simple and straightforward -- it is based on an operator precedence grammar.</p>
-<p class="itemText"></p>
 <p class="itemText">[TIP] This choice gives us two key benefits: it is simple to understand and it is simple to extend.</p>
-<p class="itemText"></p>
-<p class="itemText">However, it also makes certain other aspects more challenging. In particular, an operator precedence grammar knows less about the program as it is parsed. This means that syntax errors are liabl...</p>
+<p class="itemText">However, it also makes certain other aspects more challenging. In particular, an operator precedence grammar knows less about the program as it is parsed. This means that syntax errors are liable ...</p>
 </li>
 <hr class="afterText"/>
 <ul>
@@ -425,9 +399,8 @@
 <li>
 <p class="itemTitle">Standard Operators</p>
 <p class="itemText">A key input to the grammar is the table of operators. Star starts with a number of standard operators, but this can be extended via the use of extensions to the language.</p>
-<p class="itemText">The standard operators that are part of the core language and the base extensions are listed in <<StandardOps>>. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to `prefix`, `infix`, `postfix`, or some combination of the three.</p>
-<p class="itemText"></p>
-<p class="itemText">The priority of an operator is t...</p>
+<p class="itemText">The standard operators that are part of the core language and the base extensions are listed below. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to `prefix`, `infix`, `postfix`, or some combination of the three.</p>
+<p class="itemText">The priority of an operator is the indication ...</p>
 </li>
 <li>
 <p class="itemTitle">Defining new Operators</p>

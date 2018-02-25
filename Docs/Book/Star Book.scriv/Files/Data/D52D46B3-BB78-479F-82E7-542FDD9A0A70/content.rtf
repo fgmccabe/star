@@ -1,30 +1,58 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 Menlo-Regular;\f2\froman\fcharset0 Palatino-Roman;
 }
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-We have focused so far on generalizing the visitor from the perspective of the tree type. But there is another sense in which we are still 
+\f0\fs24 \cf0 <$Scr_Cs::1>
+\f1\fs22 We
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  have focused so far on generalizing the visitor from the perspective of the tree type. But there is another sense in which we are still 
 \i architecturally entangled
 \i0 : from the perspective of the check and count functions themselves.\
 In short, they are both tied to our tree type. However, there are many possible collection data types; 
-\b \cf2 Star
-\b0 \cf2  for instance has some 5 or 6 different standard collection types. We would prefer not to have to re-implement the check and count functions for each type.\
-The good news is that, using contracts, we can write a single definition of check and count that will work for a range of collection types.\
+\b Star
+\b0  for instance has some 5 or 6 different standard collection types. We would prefer not to have to re-implement the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 check
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  functions for each type.\
+The good news is that, using contracts, we can write a single definition of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 check
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  that will work for a range of collection types.\
 Let us start by defining a contract that encapsulates what it means to visit a collection:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 contract visitor[c->>t] ::= \{\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 contract visitor[c->>t] ::= \{\
   visit:all a ~~ (c,(a,t)=>a,a)=>a\
 \}\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This visitor contract defines a single function that embodies what it means to 
+\f2\fs26 This 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visitor
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  contract defines a single function that embodies what it means to 
 \i visit
 \i0  a collection structure. There are quite a few pieces here, and it is worth examining them carefully.\
 A contract header has a template that defines a form of 
@@ -32,138 +60,353 @@ A contract header has a template that defines a form of
 \i0 . The clause\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 visitor[c ->> t]\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 visitor[c ->> t]\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 is such a constraint. The sub-clause\
+\f2\fs26 is such a constraint. The sub-clause\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22         c ->> t\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22         c ->> t\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 refers to two types: c and t. The presence of the ->> term identifies the fact that t depends on c.\
-The visitor contract itself is about the collection type c. But, within the contract, we need to refer to both the collection type and to the type of elements in the collection: the visit function is over the collection, it applies a function to elements of the collection.\
+\f2\fs26 refers to two types: 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 t
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 . The presence of the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 ->>
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  term identifies the fact that 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 t
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  depends on 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 .\
+The 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visitor
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  contract itself is about the collection type 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 . But, within the contract, we need to refer to both the collection type and to the type of elements in the collection: the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  function is over the collection, it applies a function to elements of the collection.\
 Furthermore, as we design the contract, we 
 \i do not know
 \i0  the exact relationship between the collection type and the element type. For example, the collection type may be generic in one argument type \'97 in which case the element type is likely that argument type; conversely, if the type is 
 \i not
-\i0  generic (like string say), then we have no direct handle on the element type.\
+\i0  generic (like 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 string
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  say), then we have no direct handle on the element type.\
 We 
 \i do know
 \i0  that within the contract the element type is 
 \i functionally determined
 \i0  by the collection type: if you know the collection type then you should be able to figure out the element type.\
-We express this dependency relationship with the the c ->> t form: whatever type c is, t must be based on it.\
+We express this dependency relationship with the the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c ->> t
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  form: whatever type 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  is, 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 t
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  must be based on it.\
 The body of the contract contains a single type annotation:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 visit:all a ~~(c,(a,t)=>a,a)=>a\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 visit:all a ~~(c,(a,t)=>a,a)=>a\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This type annotation has three type variables: the types c and t come from the contract header and a is local to the signature. What the signature means is\
-Given the visitor contract, the visit function is from the collection type c, a function argument and an initial state and returns a new accumulation state.\
-It is worth comparing the type of visit with the type of tVisit:\
+\f2\fs26 This type annotation has three type variables: the types 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 t
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  come from the contract header and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 a
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  is local to the signature. What the signature means is\
+Given the visitor contract, the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  function is from the collection type 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 , a function argument and an initial state and returns a new accumulation state.\
+It is worth comparing the type of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  with the type of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tVisit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 :\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 tVisit:all t,a ~~(tree[t],(a,t)=>a,a)=>a\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 tVisit:all t,a ~~(tree[t],(a,t)=>a,a)=>a\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The most significant difference here is that in tVisit the type of the first argument is fixed to tree[t] whereas in visit it is left simply as c (our collection type).\
-Given this contract, we can re-implement our two check and count functions even more succinctly:\
+\f2\fs26 The most significant difference here is that in 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tVisit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  the type of the first argument is fixed to 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tree[t]
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  whereas in visit it is left simply as 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  (our collection type).\
+Given this contract, we can re-implement our two 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 check
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  functions even more succinctly:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 check(T,S) => visit(T, (A,X)=>A || X==S,false)\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 check(T,S) => visit(T, (A,X)=>A || X==S,false)\
 count(T) => visit(T, (A,X)=>A+1,0)\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 These functions will apply to 
+\f2\fs26 These functions will apply to 
 \i any
-\i0  type that satisfies \'97 or implements \'97 the visitor contract. This is made visible in the revised type signature for count:\
+\i0  type that satisfies \'97 or implements \'97 the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visitor
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  contract. This is made visible in the revised type signatures for 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 :\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 count:all c,t ~~ visitor[c->>t] |: (c)=>integer\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 count:all c,t ~~ visitor[c->>t] |: (c)=>integer\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This type is an example of a 
+\f2\fs26 This type is an example of a 
 \i constrained type
-\i0 . It is generic in c and t but that generality is constrained by the requirement that the visitor contract is appropriately implemented. The eagled-eyed reader will notice that count does not actually depend on the type of the elements in the collection: this is what we should expect since count does not actually care about the elements themselves.\
-The type signature for check, however, does care about the types of the elements:\
+\i0 . It is generic in 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 c
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 t
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  but that generality is constrained by the requirement that the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visitor
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  contract is appropriately implemented. The eagled-eyed reader will notice that 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  does not actually depend on the type of the elements in the collection: this is what we should expect since 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  does not actually care about the elements themselves.\
+The type signature for 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 check
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 , however, does care about the types of the elements:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 check:all c,t ~~\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 check:all c,t ~~\
     visitor[c->>t], equality[c] |: (c,t)=>boolean\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 This type annotation now has two contract constraints associated with it: the collection must be something that is visitable and the elements of the collection must support equality.\
-Given the work we have done, we can implement the visitor contract for our tree[t] type quite straightforwardly:\
+\f2\fs26 This type annotation now has two contract constraints associated with it: the collection must be something that is visitable and the elements of the collection must support equality.\
+Given the work we have done, we can implement the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visitor
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  contract for our 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tree[t]
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  type quite straightforwardly:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 implementation visitor[tree[t]->>t] => \{\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 implementation all t ~~ visitor[tree[t]->>t] => \{\
   visit = tVisit\
 \}\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 Notice that header of the implementation statement provides the connection between the collection type (which is 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 tree[t]
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26 Notice that header of the implementation statement provides the connection between the collection type (which is 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tree[t]
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 ) with the element type (t). The clause\
+\f2\fs26 ) with the element type (t). The clause\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 visitor[tree[t]->>t]\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 visitor[tree[t]->>t]\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 is effectively a declaration of that connection.\
-Now that we have disconnected visit from tree types, we can extend our program by implementing it for other types. In particular, we could also implement the visitor for the sTree type:\
+\f2\fs26 is effectively a declaration of that connection.\
+Now that we have disconnected 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  from 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tree
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  types, we can extend our program by implementing it for other types. In particular, we could also implement the visitor for the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 sTree
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  type:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 implementation visitor[Tree ->> string] => \{\
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f1\fs22 implementation visitor[Tree ->> string] => \{\
   visit = sVisit\
 \}\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 however, we leave the definition of 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 sVisit
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+\f2\fs26 however, we leave the definition of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 sVisit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  as a simple exercise for the reader.\
-Our final versions of count and check are now quite general: they rely on a generic implementation of the visit function to hide the recursion and are effectively independent of the actual collection types involved.\
-If we take a second look at our visitor contract we can see something quite remarkable: it counts as a definition of the famous 
+\f2\fs26  as a simple exercise for the reader.\
+Our final versions of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 count
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  and 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 check
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  are now quite general: they rely on a generic implementation of the 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visit
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  function to hide the recursion and are effectively independent of the actual collection types involved.\
+If we take a second look at our 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 visitor
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  contract we can see something quite remarkable: it counts as a definition of the famous 
 \i visitor pattern
 \i0 . This is remarkable because although visitor patterns are a common design pattern in OO languages, it is often hard in those languages to be crisp about them; in fact, they are called patterns because they represent patterns of use which may be encoded in Java (say) whilst not necessarily being definable in them.\
 The combination of contract and implementation represents a quite formal way of defining patterns like the visitor pattern.\
 There is something else here that is quite important too: we are able to define and implement the visitor contract 
 \i without
-\i0  having to modify in any way the type definition of tree or sTree. From a software engineering point of view this is quite important: we are able to gain all the benefits of interfaces without needing to entangle them with our types. This becomes critical in situations where we are not able to modify types \'97 because they don\'92t belong to us and/or we don\'92t have access to the source.}
+\i0  having to modify in any way the type definition of 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 tree
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26  or 
+\f0\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f1\fs22 sTree
+\f0\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f2\fs26 . From a software engineering point of view this is quite important: we are able to gain all the benefits of interfaces without needing to entangle them with our types. This becomes critical in situations where we are not able to modify types \'97 because they don\'92t belong to us and/or we don\'92t have access to the source.}

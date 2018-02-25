@@ -13,8 +13,9 @@ Notice that we identified a special case of
 <!$Scr_Cs::1>
 \f0\fs26  in our Person type. One reason for including this in a type is to be able to cope with non-existent people. However, this approach is not always the most effective one when modeling situations where a variable or field may not have a value.\
 Explicit null values, as found in Java and similar languages, cause a great number of problems: for example, null must have a special universal type; there are many scenarios where it is not possible for a variable to be null but the compiler must discover those for itself; and there is often a consequent tendency in defensive programming to test for null.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\b Star
+\b \cf2 Star
 \b0  has no direct equivalent of a global null value. However, the standard 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 option
@@ -70,12 +71,12 @@ So, for example, suppose that a
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  as being both read-write and optional.\
-Someone with no spouse would be written:\
+Someone with no spouse would be written:
+\f2\fs22 \cf0 \kerning1\expnd0\expndtw0 \
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 freddy : Person.\
-freddy = someOne\{\
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 freddy = someOne\{\
   name = "Freddy".\
   dob = today().\
   spouse := none\

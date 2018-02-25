@@ -12,18 +12,37 @@ The second principle of functional programming is that functions are first class
 \i function types
 \i0  in addition to having types about data.\
 We can see this best by looking at a few examples. One of the benefits of passing functions as arguments to other functions is that it makes certain kinds of parameterization easy. For example, suppose that you wanted to generalize check to apply an arbitrary test to each node \'97 rather than just looking for a particular string.\
-We will first of all define our fTest function itself:\
+We will first of all define our 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 fTest
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function itself:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
-\f2\fs22 fTest:(sTree,(string)=>boolean)=>boolean.\
-fTest(sEmpty,_) => false.\
+\f2\fs22 fTest(sEmpty,_) => false.\
 fTest(sNode(L,Lb,R),F) => F(Lb) || fTest(L,F) || fTest(R,F).\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The substantial change here is that, rather than passing a string to look for, we pass fTest a boolean-valued function to apply; within fTest we replace the equality test 
+\f0\fs26 The substantial change here is that, rather than passing a string to look for, we pass 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 fTest
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  a 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 boolean
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 -valued function to apply; within 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 fTest
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  we replace the equality test 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 Lb==S
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -55,7 +74,12 @@ Given
 \f2\fs22 fTest
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 , we can redefine our earlier check function with:\
+\f0\fs26 , we can redefine our earlier 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 check
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function with:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -82,10 +106,25 @@ Given
 \f2\fs22 true
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  if its argument is the same value as S.\
-Interestingly, it would be difficult to define a top-level function that is equivalent to this lambda because of the occurrence of the variable S in the body of the lambda. This is an example of a 
+\f0\fs26  if its argument is the same value as 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 S
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 .\
+Interestingly, it would be difficult to define a top-level function that is equivalent to this lambda because of the occurrence of the variable 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 S
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  in the body of the lambda. This is an example of a 
 \i free variable
-\i0 : a variable that is mentioned in the body of a function but which is defined outside the function. Because S is free, because it is not mentioned in the arguments, one cannot simply have a function which is equivalent to the lambda as a top-level function.\
+\i0 : a variable that is mentioned in the body of a function but which is defined outside the function. Because 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 S
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is free, because it is not mentioned in the arguments, one cannot simply have a function which is equivalent to the lambda as a top-level function.\
 Free variables are a powerful feature of functional programming languages because they have an 
 \i encapsulating
 \i0  effect:  in this case the lambda encapsulates the free variable so that the 
@@ -93,5 +132,10 @@ Free variables are a powerful feature of functional programming languages becaus
 \f2\fs22 fTest
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  function does not need knowledge of S.\
+\f0\fs26  function does not need knowledge of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 S
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26 .\
 }

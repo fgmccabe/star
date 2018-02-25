@@ -1,22 +1,13 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf0 A key input to the grammar is the table of operators. Star starts with a number of standard operators, but this can be extended via the use of extensions to the language.\
-The standard operators that are part of the core language and the base extensions are listed in <<StandardOps>>. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to `prefix`, `infix`, `postfix`, or some combination of the three.\
-\
+The standard operators that are part of the core language and the base extensions are listed below. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to `prefix`, `infix`, `postfix`, or some combination of the three.\
 The priority of an operator is the indication of the `importance' of the operator: the higher the priority the nearer the top of the abstract syntax tree the corresponding structure will be.\
-\
 Priorities are numbers in the range 1..2000; by convention, priorities in the range 1..899 refer to entities that normally take the role of expressions, priorities in the range 900..1000 refer to predicates and predicate-level connectives and priorities in the range 1001..2000 refer to entries that have a statement or program level interpretation.\
-\
-\
-[[StandardOps]]\
-.Standard Operators\
-[cols="3*"]\
-|===\
-\
 `#right(";",2000)` |\
 `#postfix(";",2000)` |\
 `\\#prefix("#",1350)` |\
@@ -166,6 +157,8 @@ Priorities are numbers in the range 1..2000; by convention, priorities in the ra
 `#prefix("$$",50)` |\
 `#right("$$",50)` |\
 `\\#prefix("#~",50)` |\
-|===\
-\
-==}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl264\slmult1\sa160\pardirnatural\qc\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f0\fs26 Standard Operators
+\f1\fs24 <!$Scr_Ps::0>}

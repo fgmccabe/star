@@ -8,8 +8,8 @@
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
 We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.\
 Statistics is, of course, one of the key application areas of computers in general. However, there is often a substantial gap between the theoretical aspects of statistical processing and the pragmatics of collecting and processing data. We aim to demonstrate 
-\b \cf2 Star
-\b0 \cf2 \'92s power in both areas.\
+\b Star
+\b0 \'92s power in both areas.\
 One fecund source of statistics is the web; we can even get statistics about the web. The on-line tool {\field{\*\fldinst{HYPERLINK "http://www.webpagetest.org/"}}{\fldrslt \cf3 \ul \ulc3 Web Page Test}} can be used to generate a lot of data about how a browser responds to a website. Furthermore, we can down this data as a file of comma separated values (CSV). The first few lines of this file shows the detail of the data collected:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
@@ -21,8 +21,8 @@ One fecund source of statistics is the web; we can even get statistics about the
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 There are over 70 columns there. Suppose that we wanted to process this to find out how much time is spent loading Javascript data. Our first step is to introduce the CSV file to 
-\b \cf2 Star
-\b0 \cf2  which we can do with a special macro:\
+\b Star
+\b0  which we can do with a special macro:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -36,7 +36,7 @@ worksheet\{\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The generateCSV line is a {\field{\*\fldinst{HYPERLINK "scrivlnk://2BB80CC2-1EE6-4A27-B426-3E4F17CB5C64"}}{\fldrslt macro}} that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:\
+\f0\fs26 The generateCSV line is a {\field{\*\fldinst{HYPERLINK "scrivlnk://2BB80CC2-1EE6-4A27-B426-3E4F17CB5C64"}}{\fldrslt \cf2 macro}} that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -55,8 +55,8 @@ worksheet\{\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
 \f0\fs26 One immediate feature to notice is that some of the field names are quoted. 
-\b \cf2 Star
-\b0 \cf2  allows a variable (and by extension a field) identifier to have any characters in them \'97 so long as the identifier is quoted. This allows us to access \'91foreign\'92 data structures like this CSV file in a straightforward way.\
+\b Star
+\b0  allows a variable (and by extension a field) identifier to have any characters in them \'97 so long as the identifier is quoted. This allows us to access \'91foreign\'92 data structures like this CSV file in a straightforward way.\
 Given the implicit generation of the type, and of a parser, we can use this to process real data files. For example, we can extract out from the CSV file records containing just the URLs, the file sizes and the load times using a query:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
@@ -65,10 +65,8 @@ Given the implicit generation of the type, and of a parser, we can use this to p
 worksheet\{\
   generateCSV Wpt from "file:WPT_Sample.csv".\
 \
-  wptData:Wpt.\
   wptData = WptParser("http:www.webpagetool.org/...csv").\
 \
-  extracted:list[\{URL:string. size:integer. loadTime:integer\}].\
   extracted = list of \{ all\
     \{ URL=D.URL\
      size=D.'Bytes In'\
@@ -89,10 +87,8 @@ A single run of the web page test may involve many separate browser actions \'97
 worksheet\{\
   generateCSV Wpt from "file:WPT_Sample.csv".\
 \
-  wptData:Wpt.\
   wptData = WptParser("http:www.webpagetool.org/...csv").\
 \
-  extracted:list[\{URL:string. size:integer. loadTime:integer\}].\
   extracted = list of \{ all\
     \{ URL=D.URL.\
      size=D.'Bytes In'.\
@@ -130,10 +126,8 @@ import stats.\
 worksheet\{\
   generateCSV Wpt from "file:WPT_Sample.csv".\
 \
-  wptData:Wpt.\
   wptData = WptParser("http:www.webpagetool.org/...csv").\
 \
-  extracted:list[\{URL:string. size:integer. loadTime:integer\}].\
   extracted = list of \{ all\
     \{ URL=D.URL.\
      size=D.'Bytes In'.\
@@ -187,4 +181,4 @@ That is it! The final query should get output along the lines of:\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and {\field{\*\fldinst{HYPERLINK "scrivcmt://60757320-5CA3-4C8E-93E5-EA0B2D5E315D"}}{\fldrslt process.}}}
+\f0\fs26 Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and {\field{\*\fldinst{HYPERLINK "scrivcmt://60757320-5CA3-4C8E-93E5-EA0B2D5E315D"}}{\fldrslt \cf2 process.}}}

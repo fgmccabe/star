@@ -8,13 +8,17 @@
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of a type variable can be classified into two forms \'97 depending on whether the context is one of using a variable or whether one is defining it \'97 or providing evidence for it.\
+To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of any type variable can be classified into two forms \'97 depending on whether the context is one of 
+\i using
+\i0  a variable or whether one is 
+\i defining
+\i0  it \'97 or providing evidence for it.\
 Consider the simple function 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 d
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  with its type declaration:\
+\f0\fs26  with its type annotation:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -46,13 +50,34 @@ d(X) => X+X.\
 \f2\fs22 t
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  is that it implements the arith contract; no other constraints on 
+\f0\fs26  is that it implements the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 arith
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract; no other constraints on 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 t
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  are permitted. For example, if we had forgotten the arith constraint, the compiler would have complained because we try to add X to itself, which implies that X had an arithmetic type.\
-In general, whenever we define a universally quantified type we cannot make any assumptions about what it can and cannot do \'96 apart from any explicitly defined constraints.\
+\f0\fs26  are permitted.\
+For example, if we had forgotten the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 arith
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  constraint, the compiler would have complained because we try to add 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  to itself, which implies that 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 X
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  had an arithmetic type.\
+In general, whenever we define a universally quantified type we cannot make any assumptions about what it can and cannot do \'96 apart from any explicitly introduced constraints.\
 On the other hand, when we 
 \i call
 \i0  
@@ -60,7 +85,7 @@ On the other hand, when we
 \f2\fs22 d
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 , the rules are more generous: calls of the forms 
+\f0\fs26 , the rules for type variables are more generous: calls of the forms 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 d(2)
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -83,7 +108,12 @@ The reason we can substitute any type for
 \f2\fs22 t
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  is a result of the universal quantifier: an 
+\f0\fs26  is because 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 t
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  is bound by a\cf2 \expnd0\expndtw0\kerning0
+ universal quantifier: an 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 all
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -118,15 +148,14 @@ As with universally quantified types, there are two kinds of contexts in which w
 \i0  contexts. In the former we are using the type and in the latter we are providing evidence that an expression has the right type.\
 The existential quantifier means that within an instance of this record we can instantiate 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 f
+\f2\fs22 foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  to any type that meets the constraints. The simplest way is to provide a type definition for f:\
+\f0\fs26  to any type that meets the constraints. The simplest way is to provide a type definition for it:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
 \f2\fs22 simple = \{\
-  all t ~~ f[t] <~ foo[t].\
   all t ~~ foo[t] ::= foo(t) | bar.\
 \
   fooMe(X) => foo(X).\
@@ -135,24 +164,19 @@ The existential quantifier means that within an instance of this record we can i
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 The type alias statement gives evidence for 
-\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 f
-\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
-<!$Scr_Cs::1>
-\f0\fs26  by identifying it with the type 
+\f0\fs26 We can do this because, within the implementing expression, we can do whatever we like for the type 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  \'96 which is declared within the theta record. We can do this because, within the implementing expression, we can do whatever we like for the type 
+\f0\fs26  \'96 so long as it exists.\
+Notice that we are actually need to achieve two separate but related goals when describing the package as a record: we need to define a type within the record and we need to be able to have external references to the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
-\f2\fs22 f
+\f2\fs22 foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  \'96 so long as it exists.\
-Notice that we are actually need to achieve two separate but related goals when describing the package as a record: we need to define a type within the record and we need to be able to have external references to the foo type field.\
-Externally, when we use the psckage record, the opposite happens: we can make use of the existence of 
+\f0\fs26  type field.\
+Externally, when we use the record, the opposite happens: we can make use of the existence of 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -198,7 +222,12 @@ m(X) => simple.fooMe(X).\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26 . This is not something that we would normally sanction in a type system because of the potential for disaster.\
-For example, consider the scenario where \'91simple is not simple\'92; i.e., suppose that its value were computed; for example suppose that the value of simple depended on a conditional computation. In that case the actual type 
+For example, consider the scenario where \'91
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 simple
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  is not simple\'92; i.e., suppose that its value were computed; for example suppose that the value of simple depended on a conditional computation. In that case the actual type 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 simple.foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0

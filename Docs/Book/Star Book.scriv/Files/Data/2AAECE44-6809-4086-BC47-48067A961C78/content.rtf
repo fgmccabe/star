@@ -17,7 +17,7 @@ We noted above that the type of the standard equality predicate was \'91almost\'
 <!$Scr_Ps::0>
 \f0\fs26 This type denotes a universally quantified function type that can be applied to arguments of any given type. However, equality in a normal programming language is 
 \i not
-\i0  universal: not all values admit to being reliably tested for equality. A great example of such a limitation are functions \'96 equality between functions is not well {\field{\*\fldinst{HYPERLINK "scrivcmt://97EF48A7-D569-4A9A-9D29-0E2DF790F1C8"}}{\fldrslt defined.}}\
+\i0  universal: not all values admit to being reliably tested for equality. A great example of such a limitation are functions \'96 equality between functions is not well {\field{\*\fldinst{HYPERLINK "scrivcmt://97EF48A7-D569-4A9A-9D29-0E2DF790F1C8"}}{\fldrslt \cf2 defined.}}\
 To capture this, we need to be able to constrain the scope of the quantifier; specifically to those argument types that do admit equality.\
 We can do this by adding a 
 \i contract constraint
@@ -35,14 +35,13 @@ We can do this by adding a
 \f2\fs22 equality[x] |: 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 clause states that the type variable x must satisfy the equality contract.\
-What is implied when we state this? This is captured in the definition of the contract itself, in this case the 
+\f0\fs26 clause states that the type variable x must satisfy the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 equality
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  contract.\
-The equality contract is defined using a contract statement:\
+What is implied when we state this? This is captured in the definition of the contract itself, in this case:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
@@ -54,7 +53,12 @@ The equality contract is defined using a contract statement:\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::0>
-\f0\fs26 In effect, the equality contract states that there must be two functions defined \'96 
+\f0\fs26 In effect, the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 equality
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract states that there must be two functions defined \'96 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 ==
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -65,12 +69,22 @@ The equality contract is defined using a contract statement:\
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26 .\
-If this seems a little circular, it is not. The equality contract is effectively saying that the 
+If this seems a little circular, it is not. The 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 equality
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract is effectively saying that the 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 ==
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  function must be defined for the type; and we constrain function (and other) types with the equality contract constraint when we need to ensure that 
+\f0\fs26  function must be defined for the type; and we constrain function (and other) types with the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 equality
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  contract constraint when we need to ensure that 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 ==
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
