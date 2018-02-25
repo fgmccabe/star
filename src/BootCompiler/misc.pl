@@ -11,9 +11,7 @@
         interleave/3,concatStrings/2,
         sort/3,sortedMerge/4,
         nextPrime/2,sieve/2,
-        (*>)/2]).
-
-:- op(900,xfx,(*>)).
+        forall/2]).
 
 same(X,X).
 
@@ -88,7 +86,7 @@ filter([E|L],F,[E|M]) :-
 filter([_|L],F,M) :-
   filter(L,F,M).
 
-X *> Y :-
+forall(X,Y) :-
   \+((call(X),\+call(Y))).
 
 concatStrings(L,S) :-

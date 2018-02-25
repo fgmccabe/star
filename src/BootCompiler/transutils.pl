@@ -1,5 +1,6 @@
 :- module(transUtils,[trCons/3,mergeGoal/4,mergeWhere/4,extraVars/2,thisVar/2,
           lookupVarName/3,lookupFunName/3,lookupClassName/3,
+          definedProgs/2,
           genVar/2,
           pushOpt/3, isOption/2,layerName/2,
           genAnons/2,genVars/2]).
@@ -89,6 +90,25 @@ extraVars([lyr(_,_,_,void)|_],[]) :- !.
 extraVars([lyr(_,_,_,ThVr)|_],[ThVr]).
 
 thisVar([lyr(_,_,_,ThVr)|_],ThVr) :- ThVr \= void.
+
+definedProgs(Map,Prgs) :-
+  definedProgs(Map,[],Prgs).
+
+definedProgs([],Pr,Pr).
+definedProgs([lyr(_,Defs,_,_)|Map],Pr,Prx) :-
+  definedInDefs(Defs,Pr,Pr0),
+  definedProgs(Map,Pr0,Prx).
+
+definedInDefs([],Pr,Pr).
+definedInDefs([(Nm,Entry)|Defs],Pr,Prx) :-
+  definedP(Nm,Entry,P),!,
+  (is_member(P,Pr) -> Pr0=Pr ; Pr0=[P|Pr]),
+  definedInDefs(Defs,Pr0,Prx).
+definedInDefs([_|Defs],Pr,Prx) :-
+  definedInDefs(Defs,Pr,Prx).
+
+definedP(Nm,moduleFun(_,_,_,_,Arity),prg(Nm,Arity)).
+definedP(Nm,localFun(_,_,_,_,Arity),prg(Nm,Arity)).
 
 mergeGoal(enu("star.core#true"),G,_,G).
 mergeGoal(G,enu("star.core#true"),_,G).

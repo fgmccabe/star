@@ -29,12 +29,12 @@ jsonVersions(P,[V|L],[Vers|More]) :-
 
 jsonVersion(P,("*",jColl(Dtl)),(pkg(P,defltVersion),Sig,SrcUri,fl(Code))) :-!,
   is_member(("source",jTxt(Src)),Dtl),
-  is_member(("prolog",jTxt(Code)),Dtl),
+  is_member(("code",jTxt(Code)),Dtl),
   is_member(("signature",jTxt(Sig)),Dtl),
   parseURI(Src,SrcUri).
 jsonVersion(P,(V,jColl(Dtl)),(pkg(P,ver(V)),Sig,SrcUri,fl(Code))) :-
   is_member(("source",jTxt(Src)),Dtl),
-  is_member(("prolog",jTxt(Code)),Dtl),
+  is_member(("code",jTxt(Code)),Dtl),
   is_member(("signature",jTxt(Sig)),Dtl),
   parseURI(Src,SrcUri).
 
@@ -98,7 +98,7 @@ manifestVersion((pkg(_,defltVersion),Sig,Src,fl(CodeFn)), ("*",VV)) :-
 manifestVersion((pkg(_,ver(Ver)),Sig,Src,fl(CodeFn)), (Ver,VV)) :-
   manifestDetails(CodeFn,Sig,Src,VV).
 
-manifestDetails(Fn,Sig,Uri,jColl([("source",jTxt(U)),("prolog",jTxt(Fn)),("signature",jTxt(Sig))])) :-
+manifestDetails(Fn,Sig,Uri,jColl([("source",jTxt(U)),("code",jTxt(Fn)),("signature",jTxt(Sig))])) :-
   showUri(Uri,C,[]),
   string_chars(U,C).
 

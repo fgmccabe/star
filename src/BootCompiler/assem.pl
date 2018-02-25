@@ -7,13 +7,19 @@
 
 assem([method(Nm,Sig)|Ins],MTpl) :-
     genLblTbl(Ins,0,[],Lbs),
-    mnem(Ins,Lbs,[],Lts,[],_Lcs,0,Cde),
+    mnem(Ins,Lbs,[],Lts,[],Lcs,0,Cde),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
-    mkTpl([Nm,strg(Sig),Code,LtTpl],MTpl).
+    mkTpl(Lcs,LcsTpl),
+    mkTpl([Nm,strg(Sig),Code,LtTpl,LcsTpl],MTpl).
 
 mnem([],_,Lt,Lt,Lc,Lc,_,[]).
 mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).
+mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-
+    findLbl(Frm,Lbs,F),
+    findLbl(End,Lbs,T),
+    mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
+    mnem(Ins,Lbs,Lt,Lts,[Entry|Lc],Lcx,Pc,Code).
 mnem([iHalt|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[0|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(1,LtNo)|M]) :- Pc1 is Pc+1,
@@ -91,6 +97,9 @@ mnem([iRais(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(28,LtNo)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
 mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(29,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
+mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(30,LtNo)|M]) :- Pc1 is Pc+1,
+      findLit(Lt,V,LtNo,Lt1),
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
 
 genLblTbl([],_,Lbls,Lbls).
 genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).

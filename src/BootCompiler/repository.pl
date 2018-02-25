@@ -1,10 +1,9 @@
 :- module(repository,[openRepository/2,
           locatePackage/6,
           openPackageAsStream/6,
-          openPrologPackageAsStream/6,
-          addPrologPackage/6,
-          prologPackagePresent/7,
-          addGoLangPackage/6]).
+          openCodePackageAsStream/6,
+          codePackagePresent/7,
+          addCodePackage/6]).
 
 % Implement a file-based repository.
 
@@ -37,7 +36,7 @@ openPackageAsStream(repo(Root,Man),Pkg,Act,Sig,U,Stream) :-
   resolveFile(Root,Fn,Fl),
   open(Fl,read,Stream).
 
-openPrologPackageAsStream(repo(Root,Man),Pkg,Act,Sig,U,Stream) :-
+openCodePackageAsStream(repo(Root,Man),Pkg,Act,Sig,U,Stream) :-
   locateVersion(Man,Pkg,Act,U,Sig,fl(PrFn)),
   resolveFile(Root,PrFn,Fl),
   open(Fl,read,Stream).
@@ -49,20 +48,10 @@ locateVersion(man(Entries),pkg(Pkg,Vers),Act,Sig,U,Fn) :-
 getVersion(Vers,V,pkg(Pkg,Vers),Sig,U,Fn) :- is_member((pkg(Pkg,Vers),Sig,U,Fn),V),!.
 getVersion(defltVersion,V,Act,Sig,U,Fn) :- is_member((Act,Sig,U,Fn),V),!.
 
-addPrologPackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
+addCodePackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
   packageHash(Pkg,Vers,Hash),
   string_concat(Pkg,Hash,Fn),
-  string_concat(Fn,".pl",PrFn),
-  resolveFile(Root,PrFn,FileNm),
-  writeFile(FileNm,Text),!,
-  addToManifest(Man,U,Pkg,Vers,Sig,fl(PrFn),NM),
-  flushManifest(Root,NM).
-
-
-addGoLangPackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
-  packageHash(Pkg,Vers,Hash),
-  string_concat(Pkg,Hash,Fn),
-  string_concat(Fn,".go",GoFn),
+  string_concat(Fn,".cafe",GoFn),
   resolveFile(Root,GoFn,FileNm),
   writeFile(FileNm,Text),!,
   addToManifest(Man,U,Pkg,Vers,Sig,fl(GoFn),NM),
@@ -76,7 +65,7 @@ packageHash(Pkg,ver(V),Hash) :-
   stringHash(H1,V,H2),
   hashSixtyFour(H2,Hash).
 
-prologPackagePresent(repo(Root,Man),Pkg,Act,Sig,U,SrcWhen,When) :-
+codePackagePresent(repo(Root,Man),Pkg,Act,Sig,U,SrcWhen,When) :-
   locateVersion(Man,Pkg,Act,U,Sig,fl(PrFn)),
   resolveFile(Root,PrFn,FileNm),
   access_file(FileNm,read),

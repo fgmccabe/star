@@ -267,11 +267,6 @@ closureEntry(Map,Lc,Name,[fnDef(Lc,prg(Closure,2),funType(tupleType([]),voidType
   (Extra=[] -> ClosureCons = enum(Closure) ; ClosureCons = ctpl(strct(Closure,ExAr),Extra)),
   length(Q,ArX).
 
-transformImplementation(Lc,ImplName,Def,Face,Map,Opts,Rules,Rx,Ex,Exx) :-
-  labelDefn(Map,Opts,Lc,ImplName,_,Face,Rules,R0),
-  genClassMap(Map,Opts,Lc,ImplName,[Def],Face,CMap,R0,En0,Ex,Ex1),!,
-  transformClassBody([Def],CMap,Opts,En1,Rx,En0,En1,Ex1,Exx).
-
 liftPtns([],Args,Args,Q,Q,_,_,Ex,Ex) :-!.
 liftPtns([P|More],[A|Args],Ax,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,A,Q,Q0,Map,Opts,Ex,Ex0),
@@ -537,12 +532,23 @@ liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
 thetaMap(Theta,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Exx) :-
   genVar("ThV",ThVr),
   extraVars(Map,Extra),
-  freeVars(Theta,Q,Extra,ThFr),
+  definedProgs(Map,Df),
+  refineQ(Df,Q,Q0),
+  freeVars(Theta,Q0,Extra,ThFr),
   thetaLbl(Theta,Map,LclName),
   collectLabelVars(ThFr,ThVr,[],L0),
   liftExps(ThFr,ThVars,Extra,ThFr,_,Map,Opts,Ex,Exx),
   makeLblTerm(LclName,ThVars,LblTerm),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx,EnRls,[]).
+
+refineQ(Df,Q,Qx) :-
+  filter(Q,transform:notVar,Q0),
+  map(Q0,transform:mkV,Q1),
+  merge(Df,Q1,Qx).
+
+notVar(V) :- V\=idnt(_).
+
+mkV(idnt(Nm),v(_,Nm)).
 
 thetaLbl(theta(_,Path,_,_,_,_),Map,Lbl) :-
   layerName(Map,Outer),

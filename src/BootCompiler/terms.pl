@@ -1,7 +1,6 @@
 :- module(terms,[displayRules/1,showRules/3,substTerm/3,
         genTplStruct/2,isTplStruct/1,isLiteral/1,mkTpl/2,
-        termHash/2,
-        locTerm/2]).
+        termHash/2,dispTerm/2,locTerm/2]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -146,6 +145,10 @@ showCase((Lbl,Val),O,Ox) :-
   showTerm(Lbl,O,O1),
   appStr(": ",O1,O2),
   showTerm(Val,O2,Ox).
+
+dispTerm(T,Txt) :-
+  showTerm(T,Chrs,[]),
+  string_chars(Txt,Chrs).
 
 substTerm(_,intgr(Ix),intgr(Ix)).
 substTerm(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.

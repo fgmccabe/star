@@ -31,7 +31,7 @@ scanPkg(pkg(Pkg,RqV),_,_,_,SoFar,SoFar) :-
   is_member((pkg(Pkg,V),_,_,_),SoFar),
   consistentVersion(RqV,V),!.
 scanPkg(Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
-  prologPackagePresent(Repo,Pkg,_,_,SrcFn,SrcWhen,CodeWhen),
+  codePackagePresent(Repo,Pkg,_,_,SrcFn,SrcWhen,CodeWhen),
   ( CodeWhen>SrcWhen ->
     importPkg(Pkg,Repo,Spec),
     checkPkg(Spec,Repo,Cat,CWD,SrcFn,SoFar,Pkgs) ;
@@ -113,7 +113,7 @@ scanStmt(St,[pkg(Pk,defltVersion)|More],More) :-
 scanStmt(_,Imp,Imp).
 
 pkgOk(Pkg,Repo) :-
-  prologPackagePresent(Repo,Pkg,_,_,_,SrcWhen,CodeWhen),
+  codePackagePresent(Repo,Pkg,_,_,_,SrcWhen,CodeWhen),
   CodeWhen>SrcWhen.
 
 showGroups([]).

@@ -57,4 +57,5 @@ instruction(Cas,off,"... x y z --> ... ( x := z if [x]=y, else branch)")
 
 instruction(Rais,lit," --> raise an exception")
 instruction(Frame,i32,"frame instruction")
+instruction(Line,lit," --> Source line number notification")
 

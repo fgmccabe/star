@@ -98,17 +98,17 @@ showCanonTerm(cns(_,Nm),O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(theta(_,_,Defs,Others,Types,_),O,Ox) :-
-  appStr("{ ",O,O1),
+  appStr("{\n",O,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
-  appStr(" }",O4,Ox).
+  appStr("\n}",O4,Ox).
 showCanonTerm(record(_,_,Defs,Others,Types,_),O,Ox) :-
-  appStr("{. ",O,O1),
+  appStr("{.\n",O,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
-  appStr(" .}",O4,Ox).
+  appStr("\n.}",O4,Ox).
 showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
@@ -226,13 +226,14 @@ showDefs(L,O,Ox) :-
 showDef(funDef(Lc,Nm,Type,Cx,Eqns),O,Ox) :-
   appStr("function: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr(":",O2,O3),
-  showType(Type,O3,O4),
-  appStr(" @ ",O4,O5),
-  showLocation(Lc,O5,O6),
-  showConstraints(Cx,O6,O7),
-  appStr("\n",O7,O8),
-  listShow(Eqns,canon:showEq,"\n",O8,Ox),!.
+  appStr(" @ ",O2,O3),
+  showLocation(Lc,O3,O6),
+  appStr("\n",O6,O7),
+  showType(Type,O7,O8),
+  showConstraints(Cx,O8,O9),
+  appStr("\n",O9,O10),
+  listShow(Eqns,canon:showEq,"\n",O10,O11),
+  appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
@@ -262,29 +263,23 @@ showDef(vdefn(Lc,Nm,Cx,Tp,Value),O,Ox) :-
 showDef(cnsDef(Lc,Nm,V,Type),O,Ox) :-
   appStr("constructor: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("\n",O2,O3),
-  showCanonTerm(V,O3,O4),
-  appStr(":",O4,O5),
-  showType(Type,O5,O6),
-  appStr(" @ ",O6,O7),
-  showLocation(Lc,O7,O8),
+  appStr(" @ ",O2,O3),
+  showLocation(Lc,O3,O4),
+  appStr("\n",O4,O5),
+  showCanonTerm(V,O5,O6),
+  appStr(":",O6,O7),
+  showType(Type,O7,O8),
   appStr("\n",O8,Ox).
-showDef(typeDef(Lc,Nm,Tp,Rl),O,Ox) :-
+showDef(typeDef(Lc,Nm,_Tp,Rl),O,Ox) :-
   appStr("type: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("\n",O2,O3),
-  showType(Tp,O3,O4),
-  appStr(" @ ",O4,O5),
+  appStr(" @ ",O2,O5),
   showLocation(Lc,O5,O6),
   appStr("\n",O6,O7),
   showType(Rl,O7,O8),
   appStr("\n",O8,Ox).
-showDef(Con,O,Ox) :-
-  Con = conDef(_,_,_),
-  showContract(Con,O,O2),
-  appStr("\n",O2,Ox).
-showDef(implDef(Lc,_,ImplName,Spec),O,Ox) :-
-  showImplementation(Lc,ImplName,Spec,O,Ox).
+showDef(conDef(_,_,_),O,O).
+showDef(implDef(_,_,_,_),O,O).
 
 showClassRules([],O,O).
 showClassRules([Rl|Rules],O,Ox) :-

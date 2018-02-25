@@ -59,13 +59,20 @@ int main(int argc, char **argv) {
 
   fprintf(out, "assem([method(Nm,Sig)|Ins],MTpl) :-\n");
   fprintf(out, "    genLblTbl(Ins,0,[],Lbs),\n");
-  fprintf(out, "    mnem(Ins,Lbs,[],Lts,[],_Lcs,0,Cde),\n");
+  fprintf(out, "    mnem(Ins,Lbs,[],Lts,[],Lcs,0,Cde),\n");
   fprintf(out, "    mkInsTpl(Cde,Code),\n");
   fprintf(out, "    mkLitTpl(Lts,LtTpl),\n");
-  fprintf(out, "    mkTpl([Nm,strg(Sig),Code,LtTpl],MTpl).\n\n");
+  fprintf(out, "    mkTpl(Lcs,LcsTpl),\n");
+  fprintf(out, "    mkTpl([Nm,strg(Sig),Code,LtTpl,LcsTpl],MTpl).\n\n");
 
   fprintf(out, "mnem([],_,Lt,Lt,Lc,Lc,_,[]).\n");
   fprintf(out, "mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).\n");
+
+  fprintf(out, "mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-\n");
+  fprintf(out, "    findLbl(Frm,Lbs,F),\n");
+  fprintf(out, "    findLbl(End,Lbs,T),\n");
+  fprintf(out, "    mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),\n");
+  fprintf(out, "    mnem(Ins,Lbs,Lt,Lts,[Entry|Lc],Lcx,Pc,Code).\n");
 
 #include "instructions.h"
 

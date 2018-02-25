@@ -1,4 +1,4 @@
-:- module(gensig,[genPkgSig/2]).
+:- module(gensig,[genPkgSig/2,encPkg/2]).
 
 :- use_module(misc).
 :- use_module(terms).
