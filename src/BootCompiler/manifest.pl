@@ -93,12 +93,12 @@ manifestVersions([V|L],[J|M]) :-
   manifestVersion(V,J),
   manifestVersions(L,M).
 
-manifestVersion((pkg(_,defltVersion),Sig,Src,fl(CodeFn)), ("*",VV)) :-
-  manifestDetails(CodeFn,Sig,Src,VV).
-manifestVersion((pkg(_,ver(Ver)),Sig,Src,fl(CodeFn)), (Ver,VV)) :-
-  manifestDetails(CodeFn,Sig,Src,VV).
+manifestVersion((pkg(_,defltVersion),Uri,Sig,fl(CodeFn)), ("*",VV)) :-
+  manifestDetails(CodeFn,Uri,Sig,VV).
+manifestVersion((pkg(_,ver(Ver)),Uri,Sig,fl(CodeFn)), (Ver,VV)) :-
+  manifestDetails(CodeFn,Uri,Sig,VV).
 
-manifestDetails(Fn,Sig,Uri,jColl([("source",jTxt(U)),("code",jTxt(Fn)),("signature",jTxt(Sig))])) :-
+manifestDetails(Fn,Uri,Sig,jColl([("source",jTxt(U)),("code",jTxt(Fn)),("signature",jTxt(Sig))])) :-
   showUri(Uri,C,[]),
   string_chars(U,C).
 

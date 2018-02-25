@@ -41,7 +41,7 @@ readStr(So,Txt) --> ['\\','f'], readStr(['\f'|So],Txt).
 readStr(So,Txt) --> ['\\','n'], readStr(['\n'|So],Txt).
 readStr(So,Txt) --> ['\\','t'], readStr(['\t'|So],Txt).
 readStr(So,Txt) --> ['\\','r'], readStr(['\r'|So],Txt).
-readStr(So,Txt) --> ['\\','\\'], [B], readStr([B|So],Txt).
+readStr(So,Txt) --> ['\\'], [B], readStr([B|So],Txt).
 readStr(So,Txt) --> [C], { C\='\"'}, readStr([C|So],Txt).
 readStr(So,Txt) --> [], { reverse(So,T),string_chars(Txt,T)}.
 
