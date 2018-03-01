@@ -163,8 +163,8 @@
 <ul>
 <li>
 <p class="itemTitle">Line Comment </p>
-<p class="itemText">A line comment consists of a --  (a double dash followed by a space) or a --\t followed by all characters up to the next new-line. Here,  \t refers to the Horizontal Tab.</p>
-<p class="itemText">LineComment ::= (--  | --\t) Char .. Char \n</p>
+<p class="itemText">A line comment consists of a --␠ (a double dash followed by a space) or a --\t followed by all characters up to the next new-line. Here,  \t refers to the Horizontal Tab.</p>
+<p class="itemText">LineComment ::= ( --␠  | --\t) Char .. Char \n</p>
 <p class="itemText">Line Comment</p>
 </li>
 <li>
@@ -181,7 +181,7 @@
 <li>
 <p class="itemTitle">Number Literals</p>
 <p class="itemText">Star supports integer values, floating point values, and character codes as numeric values.</p>
-<p class="itemText">NumericLiteral ::= IntegerLiteral</p>
+<p class="itemText">NumericLiteral ::= Decimal</p>
 <p class="itemText">  | Hexadecimal</p>
 <p class="itemText">  | FloatingPoint</p>
 <p class="itemText">  | CharacterCode</p>
@@ -192,11 +192,11 @@
 <hr class="afterText"/>
 <ul>
 <li>
-<p class="itemTitle">Integer Literals</p>
+<p class="itemTitle">Decimal Literals</p>
 <p class="itemText">An integer is written using the normal decimal notation:</p>
 <p class="itemText">1  34 -99</p>
 <p class="itemText"></p>
-<p class="itemText">IntegerLiteral::=Digit ... Digit+</p>
+<p class="itemText">Decimal::=Digit ... Digit+</p>
 <p class="itemText">Digit::=0|1|2|3|4|5|6|7|8|9</p>
 <p class="itemText">Integer Literals</p>
 <p class="itemText"></p>
@@ -222,7 +222,7 @@
 <p class="itemText">Floating point numbers are written using a notation that is familiar. For example,</p>
 <p class="itemText">234.45  1.0e45</p>
 <p class="itemText">The notation for floating point is:</p>
-<p class="itemText">FloatingPoint::=Digit ... Digit+ .  Digit ... Digit+ [e[-]Digit …Digit+]]</p>
+<p class="itemText">FloatingPoint::=Decimal . Decimal [e[-]Decimal]]</p>
 <p class="itemText">Floating Point numbers</p>
 <p class="itemText">[TIP] All floating point number are represented to a precision that is at least equal to 64-bit double precision. There is no equivalent of single-precision floating pointer numbers.</p>
 </li>
@@ -242,17 +242,17 @@
 <li>
 <p class="itemTitle">Strings and Characters</p>
 <p class="itemText">A string consists of a sequence of characters -- specifically CharRefs. There is no specific type in Star for the characters themselves.</p>
-<p class="itemText">[CAUTION] The reasons for this are due to the fact that Unicode string values cannot be easily represented as a unique sequence.</p>
+<p class="itemText">[CAUTION] The reasons for this are due to the fact that Unicode string values cannot be always be represented as a unique sequence.</p>
 </li>
 <hr class="afterText"/>
 <ul>
 <li>
 <p class="itemTitle">Character Reference</p>
-<p class="itemText">A CharRef is a denotation of a single character.</p>
+<p class="itemText">A CharRef is a denotation of a single character; which is either a ‘regular’ character or an escape sequence.</p>
 <p class="itemText">CharRef ::= Char | Escape</p>
 <p class="itemText">Escape::=\b|\d|\e|\f|\n|\r|\t|\v |\ Char | \u Hex ... Hex;</p>
 <p class="itemText">Character Reference</p>
-<p class="itemText">For most characters, the character reference for that character is the character itself. For example, the string "T" contains the character T. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other characters; for example, the new-line character is typically written...</p>
+<p class="itemText">For most characters, the character reference for that character is the character itself. For example, the string "T" contains the character T. However, certain standard characters are normally referenced by escape sequences consisting of a backslash character followed by other charact...</p>
 </li>
 <li>
 <p class="itemTitle">Quoted Strings</p>
@@ -307,11 +307,12 @@
 <li>
 <p class="itemTitle">Multi-word Identifiers</p>
 <p class="itemText">A MultiWordIdentifier is an Identifier that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a MultiWordIdentifier is logically a single identifier. For example, the combination of words:</p>
-<p class="itemText">such that</p>
-<p class="itemText">is logically a single multi-word identifier whose name is such that.</p>
-<p class="itemText">There are a few standard MultiWordIdentifiers, as outlined below. In addition, MultiWordIdentifiers can be defined as operators (see <<multiWordOperators>>).</p>
+<p class="itemText">group by</p>
+<p class="itemText">is logically a single multi-word identifier whose name is ‘group by’.</p>
+<p class="itemText">There are a few standard MultiWordIdentifiers, as outlined below. In addition, MultiWordIdentifiers can be defined as operators.</p>
 <p class="itemText"></p>
-<p class="itemText">`any of` | `is tuple` | `gro...</p>
+<p class="itemText">`any of` | `group by` | `has value` |</p>
+<p class="itemText">`such that` | `coun...</p>
 </li>
 <li>
 <p class="itemTitle">Punctuation Symbols and Graphic Identifiers</p>
@@ -329,9 +330,9 @@
 <li>
 <p class="itemTitle">Operator Defined Tokens</p>
 <p class="itemText">When a new operator is defined it may be that it takes the form of a normal identifier; as in:</p>
-<p class="itemText">#infix("hello",50)</p>
+<p class="itemText">#infix(‘hello’,50)</p>
 <p class="itemText">However, it is also possible to define an operator from special characters:</p>
-<p class="itemText">#prefix(“|.|”,80)</p>
+<p class="itemText">#prefix(‘|.|’,80)</p>
 <p class="itemText">The operator identifier — |.| — is not a normal alphanumeric identifier.</p>
 <p class="itemText">When such a declaration is processed, the tokenizer extends itself to include the new operator identifier as a valid token. Hence an operator may be constructed out of any characters.</p>
 <p class="itemText">[WARNING] It is not permissible to ...</p>
@@ -399,36 +400,1036 @@
 <li>
 <p class="itemTitle">Standard Operators</p>
 <p class="itemText">A key input to the grammar is the table of operators. Star starts with a number of standard operators, but this can be extended via the use of extensions to the language.</p>
-<p class="itemText">The standard operators that are part of the core language and the base extensions are listed below. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to `prefix`, `infix`, `postfix`, or some combination of the three.</p>
-<p class="itemText">The priority of an operator is the indication ...</p>
+<p class="itemText">The standard operators that are part of the core language and the base extensions are listed below. Operators in this table are listed in order of priority. Together with a priority, operators can also be considered to prefix, infix, postfix, or some combination of the three.</p>
+<p class="itemText">The priority of an operator is the indication of the...</p>
 </li>
 <li>
 <p class="itemTitle">Defining new Operators</p>
 <p class="itemText">Operators can be defined using one of the meta-statements listed below:</p>
-<p class="itemText">OperatorDeclaration ::= `#` [`force`] ( <<PrefixOperator>> | <<InfixOperator>> | <<PostfixOperator>></p>
-<p class="itemText"> | <<BracketDeclaration>>)</p>
-<p class="itemText"></p>
-<p class="itemText">[[PrefixOperator]]PrefixOperator ::= `prefix(`  <<OperatorName>> `,` <<Integer>> `,` <<Integer>> `)` |</p>
-<p class="itemText">    `prefixAssoc(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)`</p>
-<p class="itemText"></p>
-<p class="itemText">[[InfixOperator]]InfixOperator ::= `left(` <<OperatorName>> `,` <<Integer>> [ `,` <<Integer>> ] `)` |</p>
-<p class="itemText">     `infix(` <<O...</p>
+<p class="itemText">OperatorDeclaration ::= # [force] ( PrefixOperator | InfixOperator | PostfixOperator</p>
+<p class="itemText"> | BracketDeclaration)</p>
+<p class="itemText">PrefixOperator ::= prefix( OperatorName , Integer) |</p>
+<p class="itemText">    prefixAssoc( OperatorName , Integer )</p>
+<p class="itemText">InfixOperator ::= left( OperatorName , Integer ) |</p>
+<p class="itemText">     infix( OperatorName , Integer ) |</p>
+<p class="itemText">     right( OperatorName , Integer )</p>
+<p class="itemText">PostfixOperator ::= postfix( OperatorName , Integer) |</p>
+<p class="itemText">    postfixAssoc( OperatorName , Integer )</p>
+<p class="itemText">...</p>
 </li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Infix Operator Definition</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#infix(‘myOp’,730).</p>
+<p class="itemText">defines the operator myOp to be an infix operator, with priority 730.</p>
+<p class="itemText">Defining an operator does not define anything about its semantics -- except that in the case of an infix operator, it has two arguments.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Left Associative Infix Operator</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#left(‘lftOp’,730).</p>
+<p class="itemText">defines the operator lftOp to be a left-associative infix operator, with priority 730. That means that expression such as</p>
+<p class="itemText">A lftOp B lftOp C lftOp D</p>
+<p class="itemText">will be parsed as though written:</p>
+<p class="itemText">((A lftOp B) lftOp C) lftOp D</p>
+</li>
+<li>
+<p class="itemTitle">Right Associative Infix Operator</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#right(‘rgtOp’,730).</p>
+<p class="itemText">defines the operator rgtOp to be a right associate infix operator, with priority 730. Exressions such as</p>
+<p class="itemText">A rgtOp B rgtOp C rgtOp D</p>
+<p class="itemText">will be parsed as though written:</p>
+<p class="itemText">(A rgtOp (B rgtOp (C rgtOp D)))</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Prefix Operator</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#prefix(‘prOp’,730).</p>
+<p class="itemText">defines the operator prOp to be a prefix operator, with priority 730.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Associative Prefix Operator</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#prefixAssoc(‘prOp’,730).</p>
+<p class="itemText">defines the operator prOp to be an _associative_ prefix operator, with priority 730. That means that expressions such as:</p>
+<p class="itemText">prOp prOp prOp A</p>
+<p class="itemText">are permitted, and have interpretation:</p>
+<p class="itemText">(prOp (prOp (prOp A)))</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Postifx Operator</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#postfix(‘psOp’,730).</p>
+<p class="itemText">defines the operator psOp to be a postfix operator, with priority 730.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Associative Postfix Operator</p>
+<p class="itemText">A statement of the form:</p>
+<p class="itemText">#postfixAssoc(‘psOp’,730).</p>
+<p class="itemText">defines the operator psOp to be an associative postfix operator, with priority 730. That means that expressions such as:</p>
+<p class="itemText">A psOp psOp psOp</p>
+<p class="itemText">are permitted, and have interpretation:</p>
+<p class="itemText">(((A psOp) psOp) psOp)</p>
+
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Forced Operator Declaration</p>
+<p class="itemText">Normally, any attempt to re-declare an operator will result in a syntax error being raised. However, there may be situations where it is important to be able to change an existing operator declaration.</p>
+<p class="itemText">[TIP] Note that a given identifier may be defined as a prefix operator, an infix operator and a postfix operator. Each of these are treated separately.</p>
+<p class="itemText">The force directive is used in this situation:</p>
+<p class="itemText">#force(infix(‘as’,200)).</p>
+<p class="itemText">has the effect of changing the existing operator priority of the as operat...</p>
+</li>
+<li>
+<p class="itemTitle">Symbolic Operators</p>
+<p class="itemText">An operator may consist of a single Identifier, a sequence of Identifiers or it may consist of a QuotedIdentifier containing a sequence of so-called symbolic characters. In this form, the first character of the operator may not be a digit or a letter. In addition, none of the characters may be a space or other white-space character.</p>
+<p class="itemText">However, other than these constraints the characters in the operator declaration may be any legal unicode character.</p>
+<p class="itemText">[TIP] For the sake of programmers' sanity we str...</p>
+</li>
+<li>
+<p class="itemTitle"> Multi-word Operators</p>
+<p class="itemText">A multi-word operator defines a new MultiWordIdentifier; i.e., a special combination of alpha numeric words that form a single logical identifier.</p>
+<p class="itemText">Multi-word operators are defined like regular operators, except that their names contain spaces. For example, the operator declaration:</p>
+<p class="itemText">#infix(‘no more’,500).</p>
+<p class="itemText">defines the combination of words no followed by more as a single operator of priority 500.</p>
+<p class="itemText">A multi-word operator is only an operator when all of its constituent words are present. If one or more...</p>
+</li>
+<li>
+<p class="itemTitle">Bracketing pairs</p>
+<p class="itemText">The Star grammar also permits a special feature that may be used to support language extensions -- defined bracket pairs.</p>
+<p class="itemText">A regular bracket pair is a pair of tokens such as ( and ) which are used to 'protect' expressions where there may be an operator precedence clash -- the classic example being</p>
+<p class="itemText">(2+3)*4</p>
+<p class="itemText">which has a different meaning to</p>
+<p class="itemText">2+3*5</p>
+<p class="itemText">Declaring bracket operators allows new forms of syntax. For example, the statement:</p>
+<p class="itemText">#pair(‘begin’,’end’,2000).</p>
+<p class="itemText">can be used to all programmers to use Algol-...</p>
+</li>
+</ul>
 </ul>
 </ul>
 <hr class="afterText"/>
 
 <li>
 <p class="topLevelItemTitle">Types</p>
-<p class="itemText">[[types]]</p>
-<p class="itemText">= Types</p>
-<p class="itemText">(((type system)))</p>
 <p class="itemText">Star is a strongly, statically, typed language. That means that all values and all variables must have a unique well-defined type that is determinable by inspecting the text of the program -- effectively at `compile time'.</p>
-<p class="itemText"></p>
 <p class="itemText">The type system of Star consists of a method for declaring new types, for annotating variables (and by extension programs) with their types and a system of verifying the type consistency of programs.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">What is a Type?</p>
+<p class="itemText">A Type is an expression that denotes a set of values.</p>
+<p class="itemText">[TIP] Although a type is an expression, type expressions should not be confused with normal expressions. Types play no part in evaluation.</p>
+<p class="itemText">Viewed as sets, types have some particular properties: no value may be a member of more than one type set; all values are members of exactly one type set.</p>
+<p class="itemText">A TypeDefinition introduces a new type and defines what values belong to the type. A TypeAnnotation is an assertion that a particular expression -- usua...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Type Safety</p>
+<p class="itemText">The connection between the argument type of a `cons` type expression and the actual elements of lists is denoted by a type inference rule. Type inference rules are rules for relating expressions and statements in the language to the types associated with that statement. For example, the rule:</p>
+<p class="itemText">E |= El1:T .. E |= Eln:T => E |= cons of [El1,..,Eln] : cons[T]</p>
+<p class="itemText">says that if the expressions El1:T through Eln:T all have type T, then the list expression</p>
+<p class="itemText">cons of [El1,..,Eln]</p>
+<p class="itemText">has type cons[T]. This is the ...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Type Annotations</p>
+<p class="itemText">In most cases it is not necessary to explicitly declare the type of a variable. However, it is good practice to declare explicitly the types of programs; especially within thetaEnvironments.</p>
+<p class="itemText">For example, a generic function consLength that takes a `cons` list and returns an integer would have the declaration:</p>
+<p class="itemText">consLength:all t ~~ (cons[t])=>integer</p>
 <p class="itemText"></p>
-<p class="itemText">== What is a Type?</p>
-<p class="itemText">A <<Type>> is an exp...</p>
+<p class="itemText">This is an example of a universally quantified type -- see <<universalType>> for more details.</p>
+<p class="itemText"></p>
+<p class="itemText">==== Kind Annotations</p>
+<p class="itemText">[[kindAnnotation]]</p>
+<p class="itemText">Just as value...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Type Expressions</p>
+<p class="itemText"><<typeFig>> illustrates the top-levels of the different kinds of type expressions that the Star programmer will encounter.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[typeFig]]</p>
+<p class="itemText">.Types of Types</p>
+<p class="itemText">:hardbreaks:</p>
+<p class="itemText">****</p>
+<p class="itemText">[[Type]]Type::=<<TypeExpression>></p>
+<p class="itemText">  | <<TypeVariable>> | <<ReferenceType>></p>
+<p class="itemText">  | <<TupleType>> | <<RecordType>></p>
+<p class="itemText">  | <<FunctionType>> | <<PatternType>> | <<ConstructorType>></p>
+<p class="itemText">  | <<TypeQuantifier>> `~~` <<Type>></p>
+<p class="itemText">  | <<TypeConstraint>> ``|:`` <<Type>></p>
+<p class="itemText">  | `(` <<Type>> `)`</p>
+<p class="itemText">  | <<EncapsulatedType>></p>
+<p class="itemText"></p>
+<p class="itemText">[[TypeQuantifier]]TypeQuantifier ::...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Type Expressions</p>
+<p class="itemText"></p>
+<p class="itemText">=== Type Expressions</p>
+<p class="itemText">[[typeNames]]</p>
+<p class="itemText">(((type)))</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[typeExpressionFig]]</p>
+<p class="itemText">.Type Expressions</p>
+<p class="itemText">:hardbreaks:</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TypeExpression]]TypeExpression ::= <<TypeConstructor>> `[`<<Type>> ,..., <<Type>> `]`</p>
+<p class="itemText">  | <<Identifier>></p>
+<p class="itemText"></p>
+<p class="itemText">[[TypeConstructor]]TypeConstructor ::= <<Identifier>> | <<TypeVar>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">A <<TypeExpression>> is a term that identifies a class of values by name. The name may or may not have <<TypeArgument>>s -- in which case, the type is said to be _parameterized_.</p>
+<p class="itemText">(((type,parameterized)))</p>
+<p class="itemText">(((para...</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="topLevelItemTitle">Simple Types</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+<p class="itemText">[[simpleType]]</p>
+<p class="itemText">(((type,simple)))</p>
+<p class="itemText">A simple type is <<TypeExpression>> with no type arguments. Some simple types are pre-defined, <<predefinedTypes>> gives a table of such types.</p>
+<p class="itemText">(((standard,simple types)))</p>
+<p class="itemText"></p>
+<p class="itemText">[[predefinedTypes]]</p>
+<p class="itemText">.Standard Pre-defined Types</p>
+<p class="itemText">[cols="1,3"]</p>
+<p class="itemText">|===</p>
+<p class="itemText">| Type | Description</p>
+<p class="itemText">| `boolean` | used for logical values and conditions</p>
+<p class="itemText">| `float` | type of floating point numbers</p>
+<p class="itemText">| `integer` | type of integer values</p>
+<p class="itemText">| `string` | type of string values</p>
+<p class="itemText">| `quoted` | type of abstract syn...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Parameterized Types</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+<p class="itemText">[[parameterizedType]]</p>
+<p class="itemText">(((type,parameterized)))</p>
+<p class="itemText">(((parameterized type)))</p>
+<p class="itemText"></p>
+<p class="itemText">A parameterized <<TypeExpression>> consists of a <<TypeConstructor>> applied to one of more <<Type>> arguments. For example, the standard `cons` type constructor has one type argument -- the type of elements of the `cons`.</p>
+<p class="itemText"></p>
+<p class="itemText">A parameterized type has a _type arity_ -- the number of type arguments it expects. This is defined when the type itself is defined. It is an error to write a type expression involving an incorrect...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Variable Type Constructors</p>
+<p class="itemText"></p>
+<p class="itemText">[[variableConstructor]]</p>
+<p class="itemText">(((type,variable constructor)))</p>
+<p class="itemText">(((type constructor expression)))</p>
+<p class="itemText"></p>
+<p class="itemText">A type expression of the form:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">c[t1,...,tn]</p>
+<p class="itemText"></p>
+<p class="itemText">where `c` is a</p>
+<p class="itemText">type variable -- i.e., bound by a quantifier -- denotes a rather special form of type: a type constructor expression. Like other parameterized type expressions, this expression does not denote a single type; but a set of types. For example, the type expression:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">c of integer</p>
+<p class="itemText"></p>
+<p class="itemText">denotes a type `something of `integer`'.</p>
+<p class="itemText"></p>
+<p class="itemText">A subseque...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Tuple Types</p>
+<p class="itemText"></p>
+<p class="itemText">[[tupleType]]</p>
+<p class="itemText">A tuple type is a tuple of types; written as a sequence of type expressions enclosed in parentheses.</p>
+<p class="itemText"></p>
+<p class="itemText">.Tuple Type</p>
+<p class="itemText">[[tupleTypeFig]]</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TupleType]]TupleType ::= `()`</p>
+<p class="itemText">  | ``\((`` <<Type>> ``))``</p>
+<p class="itemText">  | `(`<<Type>> ,.., <<Type>>``)``+2</p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">A tuple type denotes a fixed grouping of elements. Each element of the tuple may have a different type.</p>
+<p class="itemText"></p>
+<p class="itemText">There are two special cases in <<TupleType>>s: the empty tuple and the singleton tuple type.</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Empty Tuple Type</p>
+<p class="itemText"></p>
+<p class="itemText">(((tuple,empty tuple type)))</p>
+<p class="itemText"></p>
+<p class="itemText">The empty tuple type:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">()</p>
+<p class="itemText"></p>
+<p class="itemText">refers to the empty tuple. It is useful primarily for writing function types where the function has no arguments:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">()=>string</p>
+<p class="itemText"></p>
+<p class="itemText">When used as the return type of a function, the `()` type denotes a void result:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">(integer)=>()</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP]</p>
+<p class="itemText">The `()` type -- sometimes referred to as the _unit type_ -- is also used to denote the return type of some actions.</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Singleton Tuple Type</p>
+<p class="itemText"></p>
+<p class="itemText">(((tuple,singleton tuple type)))</p>
+<p class="itemText"></p>
+<p class="itemText">A singleton tuple must be written with two parentheses. This is to disambiguate such terms from simple expression parentheses. A type expression of the form:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">(integer)</p>
+<p class="itemText"></p>
+<p class="itemText">is equivalent to just the `integer` type; whereas</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">((integer))</p>
+<p class="itemText"></p>
+<p class="itemText">denotes the single element tuple type whose element type is `integer`.</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Record Type</p>
+<p class="itemText"></p>
+<p class="itemText">[[recordType]]</p>
+<p class="itemText">===</p>
+<p class="itemText">A <<RecordType>> is a type expression that denotes a named association of fields and types. A record type is written as a sequence of type annotations enclosed in braces.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[recordTypeFig]]</p>
+<p class="itemText">.Record Type</p>
+<p class="itemText">****</p>
+<p class="itemText">[[RecordType]]RecordType ::= `{`<<Annotation>> ; .. ;<<Annotation>> `}`</p>
+<p class="itemText"></p>
+<p class="itemText">[[TypeEquality]]TypeEquality ::= `type` <<Identifier>> `=` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">Record types are used as the type of anonymous records (see <<anonRecord>>). They are also the basis of other features of th...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Function Type</p>
+<p class="itemText"></p>
+<p class="itemText">[[functionType]]</p>
+<p class="itemText">===</p>
+<p class="itemText">(((function type)))(((type,function)))A function type denotes a function value. It takes the form of a possibly empty sequence of argument types -- denoting the types of the arguments to the function -- enclosed in parentheses; followed by the result type of the function. <<functionTypeFig>> highlights the form of the function type:</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[functionTypeFig]]</p>
+<p class="itemText">.Function Type</p>
+<p class="itemText">****</p>
+<p class="itemText">[[FunctionType]]FunctionType ::= <<TupleType>> `\=>` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">For example, a function of two ar...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Procedure Type</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+<p class="itemText">[[procedureType]]</p>
+<p class="itemText">(((procedure type)))</p>
+<p class="itemText">(((type,procedure)))</p>
+<p class="itemText"></p>
+<p class="itemText">A procedure is an abstraction of an action. I.e., a procedure is a function that does not return a value but is executed purely for its side effect(s). This is expressed in the form of procedure types, which take the form of a function type that returns an empty tuple:</p>
+<p class="itemText"></p>
+<p class="itemText">****</p>
+<p class="itemText"><<TupleType>> `\=> ()`</p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">For example, a procedure that takes `string` and `integer` arguments would have the type signature:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">(string,integer)=>...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Pattern Abstraction Type</p>
+<p class="itemText"></p>
+<p class="itemText">A <<PatternAbstraction>> is an abstraction of a pattern. Pattern abstractions allow patterns to be treated as first class values -- i.e., passed in as arguments to programs and bound to variables -- and they may be applied in contexts where patterns are valid.</p>
+<p class="itemText"></p>
+<p class="itemText">The form of a pattern abstraction type is defined in <<patternAbTypeFig>>.</p>
+<p class="itemText"></p>
+<p class="itemText">[[patternAbTypeFig]]</p>
+<p class="itemText">.Pattern Type</p>
+<p class="itemText">****</p>
+<p class="itemText">[[PatternType]]PatternType ::= <<TupleType>> `\<=` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">Pattern abstractions match a pattern, and extract value...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Constructor Type</p>
+<p class="itemText"></p>
+<p class="itemText">[[constructorType]]</p>
+<p class="itemText">(((constructor type)))</p>
+<p class="itemText">(((type,constructor)))</p>
+<p class="itemText"></p>
+<p class="itemText">A constructor is a special function that is introduced in an <<AlgebraicType>> definition.</p>
+<p class="itemText"></p>
+<p class="itemText">[NOTE]</p>
+<p class="itemText">Constructors are special because they can be viewed simultaneously as a function and as a pattern. Hence the form of the constructor reflects that bidirectionality.</p>
+<p class="itemText"></p>
+<p class="itemText">The form of a constructor type is given in <<constructorTypeFig>>.</p>
+<p class="itemText"></p>
+<p class="itemText">[[constructorTypeFig]]</p>
+<p class="itemText">.Constructor Type</p>
+<p class="itemText">****</p>
+<p class="itemText">[[ConstructorType]]ConstructorType::=<<Type>> `\<\=>`...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Reference Type</p>
+<p class="itemText"></p>
+<p class="itemText">[[referenceType]]</p>
+<p class="itemText">(((reference type)))</p>
+<p class="itemText">(((type,ref@`ref`)))</p>
+<p class="itemText"></p>
+<p class="itemText">A re-assignable variable is given a ``ref``erence type.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[referenceTypeFig]]</p>
+<p class="itemText">.Reference Type</p>
+<p class="itemText">****</p>
+<p class="itemText">[[ReferenceType]]ReferenceType ::= `ref` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">Reference types allow the programmer to distinguish re-assignable variables from other values; in particular they allow one to distinguish between binding to the _value_ of a re-assignable variable or to its _name_.</p>
+<p class="itemText"></p>
+<p class="itemText">[NOTE]</p>
+<p class="itemText">The latter is not as common, but is important to support a...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Variables</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeVariable]]</p>
+<p class="itemText">(((type,variable)))</p>
+<p class="itemText"></p>
+<p class="itemText">A type variable is a variable which may be bound to a type. Depending on whether the scope of a type variable is explicitly determined or implicitly determined, type variables are written as regular identifiers -- they are distinguished from regular named types by virtue of the quantifier they are bound by.</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeVariableFig]]</p>
+<p class="itemText">.Type Variables</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TypeVariable]]TypeVariable ::= <<Identifier>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Variable Kind</p>
+<p class="itemText">Type variables are associated wi...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Scope of Type Variables</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeVarScope]]</p>
+<p class="itemText">(((type,variable!scope)))</p>
+<p class="itemText"></p>
+<p class="itemText">All type variables have a scope which generally follows the scoping rules for normal variables.</p>
+<p class="itemText"></p>
+<p class="itemText">There are two particular cases that are important: type variables introduced via <<TypeDefinition>>s and those introduced via explicitly quantified type expressions.</p>
+<p class="itemText"></p>
+<p class="itemText">A variable introduced in the head of an <<AlgebraicType>> definition, or in the head of a <<Contract>> definition are in scope throughout the definition or contract respectively.</p>
+<p class="itemText"></p>
+<p class="itemText">===</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Universally Quantified Types</p>
+<p class="itemText"></p>
+<p class="itemText">[[universalType]]</p>
+<p class="itemText">(((types,universally quantified)))</p>
+<p class="itemText">(((universally quantified type)))</p>
+<p class="itemText"></p>
+<p class="itemText">A universal type denotes a type that is valid for all substitutions of a type variable.</p>
+<p class="itemText"></p>
+<p class="itemText">[[universalTypeFig]]</p>
+<p class="itemText">.Universal Type Expression</p>
+<p class="itemText">****</p>
+<p class="itemText">[[UniversalType]]UniversalType::= `all` <<BoundType>>,..,<<BoundType>>\ `~~` <<Type>></p>
+<p class="itemText"></p>
+<p class="itemText">[[BoundType]]BoundType ::= <<Identifier>> | <<Identifier>>``/``<<Decimal>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">The first form of <<BoundType>> introduces a regular type variable -- i.e., a variable of <<Kind>> `t...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Existentially Quantified Types</p>
+<p class="itemText"></p>
+<p class="itemText">(((types,existentially quantified)))</p>
+<p class="itemText">(((existentially quantified type)))</p>
+<p class="itemText">(((exists`exists`)))</p>
+<p class="itemText"></p>
+<p class="itemText">An existential type denotes an _abstract_ type.</p>
+<p class="itemText"></p>
+<p class="itemText">[[existentialTypeFig]]</p>
+<p class="itemText">.Existential Type Expression</p>
+<p class="itemText">****</p>
+<p class="itemText">[[ExistentialType]]ExistentialType ::= `exists` <<BoundType>>,..,<<BoundType>> `~~` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">An existentially quantified type denotes a type within which there is an _abstract type_: i.e., the type exists but the expression is not explicit about which type.</p>
+<p class="itemText"></p>
+<p class="itemText">Existential types are most often ...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Encapsulated Types</p>
+<p class="itemText"></p>
+<p class="itemText">[[encapsulatedType]]</p>
+<p class="itemText">(((encapsulated type)))</p>
+<p class="itemText">(((type,encapsulated in record)))</p>
+<p class="itemText">(((existential type)))</p>
+<p class="itemText">(((heterogenous types)))</p>
+<p class="itemText"></p>
+<p class="itemText">An <<EncapsulatedType>> is a reference to a type that is embedded within a record.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[encapsulatedTypeFig]]</p>
+<p class="itemText">.Encapsulated Type</p>
+<p class="itemText">****</p>
+<p class="itemText">[[EncapsulatedType]]EncapsulatedType::=<<Expression>>``.``<<Identifier>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">As noted above, record literals may have types embedded within them. Such a record type is existentially quantified.</p>
+<p class="itemText"></p>
+<p class="itemText">It is possible to access the type embedde...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Constraints</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeConstraints]]</p>
+<p class="itemText">(((type,constraints)))</p>
+<p class="itemText"></p>
+<p class="itemText">A <<TypeConstraint>> is a constraint on a <<Type>>; usually implying a constraint on the possible binding of a <<TypeVariable>>.</p>
+<p class="itemText"></p>
+<p class="itemText">Generally, a <<TypeConstraint>> on a <<TypeVariable>> restricts in some sense the possible bindings for that type variable. For example, a <<Contract>> refers to a named collection of functions and a <<TypeVariable>> constrained by a <<ContractConstraint>> means that any concrete instantiation of the <<TypeVariable>> must b...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Contract Constraints</p>
+<p class="itemText"></p>
+<p class="itemText">[[contractContraint]]</p>
+<p class="itemText">(((type,constraints!contract)))</p>
+<p class="itemText">(((contract constraint)))</p>
+<p class="itemText"></p>
+<p class="itemText">A <<ContractConstraint>> is a requirement on a <<Type>> -- or tuple of <<Type>>s -- that whatever type it is, that there must exist an `implementation` of the <<Contract>> for the <<Type>> (see <<contracts>>).</p>
+<p class="itemText"></p>
+<p class="itemText">For example, the type constraint expression:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">comparable[t]</p>
+<p class="itemText"></p>
+<p class="itemText">means that the type variable `t` may only unify with concrete types that implement the `comparable` contract.</p>
+<p class="itemText">[NOTE]</p>
+<p class="itemText">If `t` is unified wi...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Field Constraints</p>
+<p class="itemText"></p>
+<p class="itemText">[[attributeConstraint]]</p>
+<p class="itemText">(((type,field)))</p>
+<p class="itemText">(((type,constraints!field)))</p>
+<p class="itemText"></p>
+<p class="itemText">A _FieldConstraint_ is a requirement on a variable that whatever type it is, it should have particular attributes of particular types defined for it.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[attributeConstraintFig]]</p>
+<p class="itemText">.Field Constraint</p>
+<p class="itemText">****</p>
+<p class="itemText">[[FieldConstraint]]FieldConstraint ::= <<Type>> `<~` { <<TypeAnnotation>> ;..; <<Annotation>> }</p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">For example, in</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">r <~ { alpha : string; beta : long }</p>
+<p class="itemText"></p>
+<p class="itemText">if `r` is unified against a concrete type then that type's <...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Instance Constraint</p>
+<p class="itemText"></p>
+<p class="itemText">[[instanceConstraint]]</p>
+<p class="itemText">(((type,constraints!instance)))</p>
+<p class="itemText"></p>
+<p class="itemText">An <<InstanceConstraint>> is a requirement on a variable that any instantiation of the variable is an `instance of' a type -- typically that is a universally quantified type.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[instanceConstraintFig]]</p>
+<p class="itemText">.Instance Type Constraint</p>
+<p class="itemText">****</p>
+<p class="itemText">[[InstanceConstraint]]InstanceConstraint ::= <<TypeVar>> `instance of` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">For example, in</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">r instance of (all t ~~ (t)=>t)</p>
+<p class="itemText"></p>
+<p class="itemText">we establish a constraint on `r` that any binding of `r` must be...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Annotations</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeAnnotation]]</p>
+<p class="itemText">An <<Annotation>> is a statement that declares a variable to have a certain <<Type>> or a <<Type>> to have a certain <<Kind>>.</p>
+<p class="itemText"></p>
+<p class="itemText">For example,</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">alpha:all t ~~~ (t)=>string</p>
+<p class="itemText"></p>
+<p class="itemText">is a <<TypeAnnotation>>, whereas</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">el :: type</p>
+<p class="itemText"></p>
+<p class="itemText">is a <<KindAnnotation>>.</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeAnnotationFig]]</p>
+<p class="itemText">.Type Annotations</p>
+<p class="itemText">****</p>
+<p class="itemText">[[Annotation]]Annotation ::= <<TypeAnnotation>> | <<KindAnnotation>></p>
+<p class="itemText"></p>
+<p class="itemText">[[TypeAnnotation]]TypeAnnotation ::= <<Identifier>> `:` <<Type>></p>
+<p class="itemText"></p>
+<p class="itemText">[[KindAnnotation]]KindAnnotation ::= <...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Definitions</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeDefinitions]]</p>
+<p class="itemText">(((type,definition)))</p>
+<p class="itemText"></p>
+<p class="itemText">A type definition is a statement that introduces a new type into the current scope. There are two forms of type definition statement: the <<TypeAlias>> definition and the <<AlgebraicType>> definition. In addition, the <<TypeWitness>> is used to `declare' a type.</p>
+<p class="itemText"></p>
+<p class="itemText">.Type Definition Statements</p>
+<p class="itemText">[[typeDefinitionFig]]</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TypeDefinition]]TypeDefinition ::= <<TypeAlias>> | <<AlgebraicType>> | <<TypeWitness>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">===</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Alias</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeAlias]]</p>
+<p class="itemText">(((type,alias)))</p>
+<p class="itemText">A type alias is a statement that introduces a new type name by mapping it to an existing type expression.</p>
+<p class="itemText"></p>
+<p class="itemText">.Type Alias Definition Statement</p>
+<p class="itemText">[[typeAliasDefinitionFig]]</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TypeAlias]]TypeAlias::=`type` <<TypeSpec>> `\=>` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">[NOTE]</p>
+<p class="itemText">====</p>
+<p class="itemText">Type aliases may be parameterized -- in the sense that the type being defined may be parameterized and that the definiens may also be parameterized.</p>
+<p class="itemText"></p>
+<p class="itemText">Note that the any type variables on the right hand side of a <<TypeA...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Algebraic Type Definitions</p>
+<p class="itemText"></p>
+<p class="itemText">[[algebraicTypeDefinitions]]</p>
+<p class="itemText">An algebraic type definition is a statement that introduces a new type; it also defines the possible values associated with the type.</p>
+<p class="itemText"></p>
+<p class="itemText">As illustrated in <<algebraicDefinitionFig>>, an algebraic type definition introduces the new type and defines one or more <<Constructor>>s -- separated by the `|` operator.</p>
+<p class="itemText"></p>
+<p class="itemText">A <<Constructor>> is a specification of a value of a type; i.e., constructors `paint a picture' of the shape of potential values of the type.</p>
+<p class="itemText"></p>
+<p class="itemText">There are three k...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Enumerated Symbol</p>
+<p class="itemText"></p>
+<p class="itemText">[[enumSymbol]]</p>
+<p class="itemText">(((constructor,enumerated symbol)))</p>
+<p class="itemText">(((enumerated symbol)))</p>
+<p class="itemText">(((type,enumerated)))</p>
+<p class="itemText"></p>
+<p class="itemText">An enumerated symbol is written as an identifier. The fact that an identifier has been mentioned in a type definition is sufficient to `mark' it as a value -- and not as a variable for example.</p>
+<p class="itemText"></p>
+<p class="itemText">[[enumSymbolFig]]</p>
+<p class="itemText">.Enumerated Symbols</p>
+<p class="itemText">****</p>
+<p class="itemText">[[EnumeratedSymbol]]EnumeratedSymbol::=<<Identifier>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">The standard type `boolean` is defined in terms of two enumerated symbols: `true` and `false`:</p>
+<p class="itemText">[listing...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Safety</p>
+<p class="itemText"></p>
+<p class="itemText">An enumerated symbol occurring within a type definition has the defined type.</p>
+<p class="itemText"></p>
+<p class="itemText">[NOTE]</p>
+<p class="itemText">A particular consideration should be made for the case where an enumerated symbol is part of a universally quantified type.</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Term Constructor</p>
+<p class="itemText"></p>
+<p class="itemText">[[conFun]]</p>
+<p class="itemText">(((constructor,positional constructor)))</p>
+<p class="itemText">(((positional constructor)))</p>
+<p class="itemText">(((type,positional constructor)))</p>
+<p class="itemText"></p>
+<p class="itemText">A term constructor expression or pattern is written in the style of a function call. The specification of the term constructor uses _types_ in argument positions to denote the type of the corresponding argument.</p>
+<p class="itemText"></p>
+<p class="itemText">[[positionalConFig]]</p>
+<p class="itemText">.Term Specifier</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TermConstructor]]TermConstructor ::= <<Identifier>> `(` <<Type>> ,.., <<Type>> `)`</p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">For example, a type definition for wr...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Record Constructor</p>
+<p class="itemText"></p>
+<p class="itemText">[[aggCon]]</p>
+<p class="itemText">(((constructor,record constructor)))</p>
+<p class="itemText">(((record constructor)))</p>
+<p class="itemText">(((type,record constructor)))</p>
+<p class="itemText"></p>
+<p class="itemText">Labeled records denote constructors whose elements are addressed by name rather than by argument position. A labeled record specification consists of a collection type annotations (see <<typeAnnotationFig>>), separated by semicolons. In addition, the record specification may include _default_ values for some (or all) of the attributes of the record.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[aggregateConFig]]</p>
+<p class="itemText">.Labeled Record Const...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Default Values</p>
+<p class="itemText"></p>
+<p class="itemText">[[defaultValues]]</p>
+<p class="itemText">(((type,record constructor!default values)))</p>
+<p class="itemText">(((default values,record constructor)))</p>
+<p class="itemText"></p>
+<p class="itemText">It is permitted to associate a _default value_ with a field of an record constructor. A default value is simply an expression for an attribute that is used should a particular record literal expression (see <<recordLiteral>>) not contain a value for that field.</p>
+<p class="itemText"></p>
+<p class="itemText">For example, for convenience, we might add `default` annotations in the `twoThree` type defined above, resulting in the type definit...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Defaults of ref Fields</p>
+<p class="itemText"></p>
+<p class="itemText">(((expressions,default!assignable field)))</p>
+<p class="itemText">(((ref field@`ref` field,default value)))</p>
+<p class="itemText"></p>
+<p class="itemText">To declare a `default` value for a `ref` field, the form:</p>
+<p class="itemText">****</p>
+<p class="itemText"><<Identifier>> default := <<Expression>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">should be used. For example, in the type:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">account ::= account{</p>
+<p class="itemText">  balance:ref integer;</p>
+<p class="itemText">  balance default := 0</p>
+<p class="itemText">}</p>
+<p class="itemText"></p>
+<p class="itemText">the `balance` field is a `ref` field, and its default value is `0`.</p>
+<p class="itemText"></p>
+<p class="itemText">====</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Variables and Safe Algebraic Type Definitions</p>
+<p class="itemText"></p>
+<p class="itemText">(((type variables in an algebraic type definition)))</p>
+<p class="itemText">(((constructor type variables)))</p>
+<p class="itemText"></p>
+<p class="itemText">For an <<AlgebraicType>> definition to be safe requires a constraint on type variables within the definition. In particular, it is not permitted to `introduce' a type variable in any of the constructors in the definition.</p>
+<p class="itemText"></p>
+<p class="itemText">[NOTE]</p>
+<p class="itemText">Specifically, any unbound type variables mentioned in a type definition must also occur within the <<TypeSpec>> or be bound by an enclosing type quantifier.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">For example, the type d...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Automatic Synthesis of Contract Implementations</p>
+<p class="itemText"></p>
+<p class="itemText">(((automatically synthesizing implementations)))</p>
+<p class="itemText">(((implementing contracts@`implementing` contracts)))</p>
+<p class="itemText"></p>
+<p class="itemText">In some cases, the `regular' implementation of a contract by be predicted by examining the algebraic type definition itself. The Star compiler automatically generates implementations of the `equality` and the `pPrint` contracts, for example, by inspecting the type definition itself.</p>
+<p class="itemText"></p>
+<p class="itemText">A programmer may extend this system of atomically implementing contracts by implementing a special macro whose...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Algebraic Interface Record</p>
+<p class="itemText"></p>
+<p class="itemText">[[algebraicInterface]]</p>
+<p class="itemText">An <<AlgebraicType>> definition induces an interface that is composed of all the fields in any of the <<RecordConstructor>>s that are defined within the definition.</p>
+<p class="itemText"></p>
+<p class="itemText">This interface -- which takes the form of a <<RecordType>> -- contains a <<Annotation>> for every <<Annotation>> that is present in a <<RecordConstructor>>.</p>
+<p class="itemText"></p>
+<p class="itemText">For example, the interface for the `account` type above consists of:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">{</p>
+<p class="itemText">  balance:ref integer;</p>
+<p class="itemText">}</p>
+<p class="itemText"></p>
+<p class="itemText">This interface is used when determining the t...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Witness Definition</p>
+<p class="itemText"></p>
+<p class="itemText">[[countsAs]]</p>
+<p class="itemText"></p>
+<p class="itemText">A <<TypeWitness>> definition declares that a given type exists. It is used to assert that a given existential type exists.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">[[typeCountsAsFig]]</p>
+<p class="itemText">.Type Witness Statement</p>
+<p class="itemText">****</p>
+<p class="itemText">[[TypeWitness]]TypeWitness ::= `type` <<Identifier>> `=` <<Type>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">For example, in the expression:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">group{</p>
+<p class="itemText">  type elem = integer;</p>
+<p class="itemText">  inv(X) => -X;</p>
+<p class="itemText">  op(X,Y) => X+Y;</p>
+<p class="itemText">  zero = 0;</p>
+<p class="itemText">}</p>
+<p class="itemText"></p>
+<p class="itemText">the statement:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">type elem = integer;</p>
+<p class="itemText"></p>
+<p class="itemText">asserts that the type `integer` is a witness for the existentially quan...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Contracts</p>
+<p class="itemText"></p>
+<p class="itemText">[[contracts]]</p>
+<p class="itemText">(((type,contracts)))</p>
+<p class="itemText"></p>
+<p class="itemText">A contract is a specification of a set of functions and action procedures that form a coherent collection of functionality. Associated with a <<Contract>> are one or more <<Type>>s -- the contract is said to be `over' those types.</p>
+<p class="itemText"></p>
+<p class="itemText">===</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Contract Definition</p>
+<p class="itemText"></p>
+<p class="itemText">[[ContractDefinition]]</p>
+<p class="itemText">(((type,contracts!definition)))</p>
+<p class="itemText"></p>
+<p class="itemText">A contract definition is a statement that defines the functions and action procedures associated with a contract. As can be seen in <<ContractFig>>, a contract statement associates a contract name -- together with a set of type variables -- with a set of <<TypeAnnotation>>s that define the elements of the contract. Within the <<Contract>> statement, a <<TypeAnnotation>> may refer to the type(s) in the contract head.</p>
+<p class="itemText"></p>
+<p class="itemText">[[ContractFig]]</p>
+<p class="itemText">.Contr...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Functional Dependencies</p>
+<p class="itemText"></p>
+<p class="itemText">[[ContractFunctionalDependency]]</p>
+<p class="itemText">(((type,contracts!functional dependencies)))</p>
+<p class="itemText">(((functional dependencies in contracts)))</p>
+<p class="itemText">(((determines@`determines`)))</p>
+<p class="itemText"></p>
+<p class="itemText">For certain forms of contract, it may be that the type parameters may not all be independent of each other. For example, consider the standard `iterable` contract (defined in <<iterateContractProg>>) which reads:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">contract all coll, el ~~ iterable[coll ->> el] <~ {</p>
+<p class="itemText">  iterate: all r ~~</p>
+<p class="itemText">      (coll,(el,IterState[r])=>IterState[r],IterStat...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Contract Implementation</p>
+<p class="itemText"></p>
+<p class="itemText">[[ContractImplementation]]</p>
+<p class="itemText">(((type,contracts!implementation)))</p>
+<p class="itemText"></p>
+<p class="itemText">A contract implementation is a specification of how a contract may be implemented for a specific type combination.</p>
+<p class="itemText"></p>
+<p class="itemText">[[ContractImplementationFig]]</p>
+<p class="itemText">.Contract Implementation Statement</p>
+<p class="itemText">****</p>
+<p class="itemText">[[Implementation]]Implementation::=`implementation` <<ContractSpec>> [`default`] `=` <<Expression>></p>
+<p class="itemText">****</p>
+<p class="itemText"></p>
+<p class="itemText">The <<Type>>s mentioned in <<ContractSpec>> must be either <<TypeExpression>>s or, in the case of a `default` implementation, <<TypeVariable>>s...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Implementing Contracts with Functional Dependencies</p>
+<p class="itemText"></p>
+<p class="itemText">[[implContractFunctionalDependency]]</p>
+<p class="itemText">(((type,contracts!functional dependencies)))</p>
+<p class="itemText"></p>
+<p class="itemText">Implementing a contract which has a functional dependency is exactly analogous to implementing a regular contract. The dependent type(s) must be identified in the `implementation` statement. For example, the initial part of the implementation of the `sequence` contract over ``string``s and ``integer``s is:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">implementation sequence[string->>integer] = {</p>
+<p class="itemText">  ...</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">Note that this `implementation` implies that...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Default Contract Implementation</p>
+<p class="itemText"></p>
+<p class="itemText">[[defaultImplementation]]</p>
+<p class="itemText">(((default implementation of contracts)))</p>
+<p class="itemText">(((type,contracts!implementation!default)))</p>
+<p class="itemText">(((default@`default`)))</p>
+<p class="itemText"></p>
+<p class="itemText">A `default` implementation for a contract denotes an implementation to use for a contract when there is no known implementation. This can occur in two common situations: where a contract function is used that references a type that does not have an implementation for the contract, and where there is no type information.</p>
+<p class="itemText"></p>
+<p class="itemText">[TIP]</p>
+<p class="itemText">It is strongly recommended that t...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Recursive Contract Implementations</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">More complex contract implementations may require the use of auxiliary function definitions; and hence may involve the use of `let` or `using` expressions.</p>
+<p class="itemText"></p>
+<p class="itemText">For example, this is an implementation of the `comparable` contract for `cons` values.</p>
+<p class="itemText"></p>
+<p class="itemText">[[consCompare]]</p>
+<p class="itemText">.Implementation of `comparable` for `cons` values</p>
+<p class="itemText">----</p>
+<p class="itemText">implementation all t ~~ comparable[t], equality[t] |: comparable[cons[t]] =</p>
+<p class="itemText">  let{</p>
+<p class="itemText">    consLess : all t ~~ (cons[t],cons[t])=>boolean</p>
+<p class="itemText">    consLess([],[_ ,.. _]) => true</p>
+<p class="itemText">    consLess(...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Resolving Overloaded Definitions</p>
+<p class="itemText"></p>
+<p class="itemText">[[overloading]]</p>
+<p class="itemText">(((type,contracts!resolving)))</p>
+<p class="itemText">(((overloading)))</p>
+<p class="itemText">(((resolving overloaded definitions)))</p>
+<p class="itemText"></p>
+<p class="itemText">When a program refers to a contract-defined function -- i.e., a variable that is declared within a `contract` -- then that reference must be _resolved_ to an actual program before the program can be said to be executable.</p>
+<p class="itemText"></p>
+<p class="itemText">For example, consider the expression:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">A+3</p>
+<p class="itemText"></p>
+<p class="itemText">The `(+)` function is part of the `arithmetic` contract (see <<arithmeticContract>>) which means that we need to resol...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Standard Contracts</p>
+<p class="itemText"></p>
+<p class="itemText">[[standardContracts]]</p>
+<p class="itemText">(((type,contracts!standard)))</p>
+<p class="itemText">(((standard,contracts)))</p>
+<p class="itemText"></p>
+<p class="itemText">The language defines a few contracts as standard. These cover, for example, the concepts of `equality`, `comparable`, and `sizeable` entities and the `arithmetic` operations. These contracts are integral to the semantics of the language.</p>
+<p class="itemText"></p>
+<p class="itemText">[[standardContractTable]]</p>
+<p class="itemText">.Standard Contracts</p>
+<p class="itemText">[cols="1,5,2"]</p>
+<p class="itemText">|===</p>
+<p class="itemText">|Contract | Description | Reference</p>
+<p class="itemText"></p>
+<p class="itemText">|`equality[t]` |Definition of equality |  <<equalityPredicate>></p>
+<p class="itemText"></p>
+<p class="itemText">|`comparable[t...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Type Subsumption</p>
+<p class="itemText"></p>
+<p class="itemText">[[typeSubsumption]]</p>
+<p class="itemText"></p>
+<p class="itemText">The type system is based on the concept of type _subsumption_. One type subsumes another if either it is already equivalent under some substitution or it is `more general' than the other.</p>
+<p class="itemText"></p>
+<p class="itemText">The intuition is that if a function expects a certain kind of argument then either a value of exactly that type or one that is more general may be supplied.</p>
+<p class="itemText"></p>
+<p class="itemText">We express this formally in terms of a subsumption relation `subsume`:</p>
+<p class="itemText">\[</p>
+<p class="itemText">T\sub1\subsume{}T\sub2</p>
+<p class="itemText">\]</p>
+<p class="itemText">is read as</p>
+<p class="itemText">\begin{quote}</p>
+<p class="itemText">$T\sub...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Subsumption of Basic Types</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">\begin{itemize}</p>
+<p class="itemText">\item One <<TypeExpression>> subsumes another if they have the same arity, and if their type constructors and type arguments pairwise subsume:</p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\entail{E,\theta\sub0}{t\sub1\subsume u\sub1\leadsto\theta\sub1}\sequence{\ }\entail{E,\theta\sub{n-1}}{t\subn\subsume u\subn\leadsto\theta\subn}}</p>
+<p class="itemText">\AxiomC{\entail{E,\theta\subn}{C\sub1\subsume C\sub2\leadsto\theta}}</p>
+<p class="itemText">\BinaryInfC{\entail{E,\theta\sub0}{C\sub1\ `of`\ (t\sub1\sequence{,}t\subn)\ \subsume\ C\sub2\ `o...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Subsumption of Tuples and Records</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{itemize}</p>
+<p class="itemText"></p>
+<p class="itemText">\item One <<TupleType>> subsumes another if they are of the same length and each of their successive elements pairwise subsume.</p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\entail{E,\theta\sub0}{t\sub1\subsume u\sub1\leadsto\theta\sub1}\sequence{\quad}\entail{E,\theta\sub{n-1}}{t\subn\subsume u\subn\leadsto\theta\subn}}</p>
+<p class="itemText">\UnaryInfC{\entail{E,\theta\sub0}{(t\sub1\sequence{,}t\subn)\ \subsume\ (u\sub1\sequence{,}u\subn)\leadsto\theta\subn}}</p>
+<p class="itemText">\end{prooftree}</p>
+<p class="itemText">where $t\subi$ and $u\subi$ are types.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">\...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Subsumption of Function Types</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">The rules for subsumption for function types introduces the concept of _contravariance_.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{itemize}</p>
+<p class="itemText"></p>
+<p class="itemText">\item A function type $F\sub1$ subsumes $F\sub2$ if the result types subsume and the argument types contra-subsume:</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\entail{E,\theta\subi}{r\sub1\subsume{}r\sub2\leadsto\theta\sub0}}</p>
+<p class="itemText">\AxiomC{\entail{E,\theta\sub0}{a\sub2\subsume{}a\sub1\leadsto\theta\sub{o}}}</p>
+<p class="itemText">\BinaryInfC{\entail{E,\theta\subi}{a\sub1`=>`r\sub1\subsume{}a\sub2`=>`r\sub2\leadsto\theta\sub{o}}}</p>
+<p class="itemText">\en...</p>
+</li>
+<li>
+<p class="topLevelItemTitle">Subsumption of Quantified Types</p>
+<p class="itemText"></p>
+<p class="itemText">Subsumption of quantified types must take into account the implied semantics of the quantifiers: a <<UniversalType>> is less general than its bound type and so on.</p>
+<p class="itemText"></p>
+<p class="itemText">For simplicity of presentation we assume that all quantified types have been alpha-renamed so that no two quantified terms have the same bound variable.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{itemize}</p>
+<p class="itemText">\item Any type subsumes its universally quantified variant if its subsumes a `refreshed' variant of the latter:</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\entail{E,\theta\subi}{t\...</p>
 </li>
 <li>
 <p class="topLevelItemTitle">Programs</p>

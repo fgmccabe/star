@@ -1,0 +1,75 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+\
+More complex contract implementations may require the use of auxiliary function definitions; and hence may involve the use of `let` or `using` expressions.\
+\
+For example, this is an implementation of the `comparable` contract for `cons` values.\
+\
+[[consCompare]]\
+.Implementation of `comparable` for `cons` values\
+----\
+implementation all t ~~ comparable[t], equality[t] |: comparable[cons[t]] =\
+  let\{\
+    consLess : all t ~~ (cons[t],cons[t])=>boolean\
+    consLess([],[_ ,.. _]) => true\
+    consLess([X,..L1],[X,..L2]) => consLess(L1,L2)\
+    consLess([X,.._], [Y,.._]) :: X<Y => true\
+    consLess(_,_) default => false\
+\
+    consLessEq : all t ~~ (cons[t],cons[t])=>boolean\
+    consLessEq([],_) => true\
+    consLessEq([X,..L1],[Y,..L2]) :: X=<Y =>\
+          consLessEq(L1,L2)\
+    consLessEq(_,_) default => false\
+  \} in \{\
+    X < Y => consLess(X,Y)\
+    X =< Y => consLessEq(X,Y)\
+    X > Y => consLess(Y,X)\
+    X >= Y => consLessEq(Y,X)\
+  \}\
+----\
+[NOTE]\
+The implementation of `comparable` for `cons` types is based on a requirement that the individual elements of lists must also be compared. Hence the clause\
+\
+[listing]\
+comparable[t], equality[t] |: comparable[cons[t]]\
+\
+in the head of the contract `implementation` statement. The primary job of the definition of `<` within <<consCompare>> is to show how `cons` values may be compared. Our definition of inequality for `cons` values assumes that:\
+\
+\
+. empty lists are less than any non-empty list;\
+. one non-empty list is less than another if the first element is less than the first element of the second; and finally\
+. if the first elements of the two lists are identical then we consider the tails of each list.\
+\
+[TIP]\
+The curious reader may wonder why we introduce a new name `consLessEq` in order to define `=<` (and, by extension `consLess` for `<` etc.). The reason for this has to do with limitations on type inference in the context of recursive programs: within the equations that define a function, any _use_ of the function symbol must represent a recursive use.\
+\
+For example, in the equation:\
+\
+[listing]\
+consLessEq([X,..L1],[Y,..L2]) :: X=<Y =>\
+      consLessEq(L1,L2)\
+\
+the occurrence of `consLessEq` in the right hand side of the equation represents a recursive call to the function (`consLessEq`) being defined.\
+\
+\
+However, if we tried to define `=<` without the use of the auxiliary name we would get two occurrences of `=<` which really represent different functions:\
+[listing]\
+[X,..L1] =< [Y,..L2] where X=<Y => L1 =< L2\
+\
+However, the two occurrences of `=<` refer to _different_ kinds of use: one is as a `normal' overloaded occurrence of `=<` and once as a recursive call to the function being defined.\
+\
+Normally, outside of the definition of the function, it is permitted to allow a given function to be used in different uses -- always assuming that the types are consistent. However, within the definition of a function, all occurrences of the function symbol must refer to the same function.\
+\
+In the case of the `=<` equation above, the type inference system would not be able to distinguish a recursive call from a call to a different overloaded function of the same name; and would assume that both uses of `=<` are intended to be part of the definition. This, in turn, would result in a type error being generated.\
+\
+In summary, when defining an overloaded function like `=<`, we often have to introduce an auxiliary function to `carry' the recursion.\
+\
+In defining the implementation of a contract, each of the variables that are part of the contract must either be defined or have a default definition within the `contract` specification itself.\
+\
+===}

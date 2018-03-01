@@ -1,0 +1,53 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+[[standardContracts]]\
+(((type,contracts!standard)))\
+(((standard,contracts)))\
+\
+The language defines a few contracts as standard. These cover, for example, the concepts of `equality`, `comparable`, and `sizeable` entities and the `arithmetic` operations. These contracts are integral to the semantics of the language.\
+\
+[[standardContractTable]]\
+.Standard Contracts\
+[cols="1,5,2"]\
+|===\
+|Contract | Description | Reference\
+\
+|`equality[t]` |Definition of equality |  <<equalityPredicate>>\
+\
+|`comparable[t]` |Definition of comparability| <<comparisonPredicates>>\
+\
+|`arithmetic[t]`|Basic arithmetic| <<arithmeticContract>>\
+\
+|`math[t]` | Misc math functions | <<mathContract>>\
+\
+|`trig[t]` | Trigonometry functions| <<trigContract>>\
+\
+|`bitstring[t]` | Bitwise functions| <<bitString>>\
+\
+|`sizeable[t]` | Definition of `size` and `empty`| <<sizeableContract>>\
+|`sequence[t]` | Sequences of values| <<sequenceContract>>\
+|`indexable[t]` | Random access| <<indexableContract>>\
+|`iterable[t]` | Iteration over collections| <<iterableContract>>\
+|`coercion[s,t]` | Coerce between types| <<typeCoercionContract>>\
+|`speech[a]` | Actor speech actions| <<speechContract>>\
+|`pPrint[t]` | Pretty Print Display| <<pPrintContract>>\
+|`computation[c]` | Computation Expressions| <<computationContractProg>>\
+|`execution[c]` | Computation Expressions| <<executionContractProg>>\
+|===\
+\
+[[typeSystem]]\
+== Type System\
+(((type,system)))\
+\
+The type system consists of a language of type expressions and a set of rules for showing consistency between types and programs.\
+\
+The foundation of these rules are the rules that relate one type to another; and the primary relationship involved here is subsumption.\
+\
+In addition there are rules for determining when various constraints are satisfied and there are rules that relate specific expressions to types.\
+\
+===}

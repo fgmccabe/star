@@ -1,0 +1,92 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+[[overloading]]\
+(((type,contracts!resolving)))\
+(((overloading)))\
+(((resolving overloaded definitions)))\
+\
+When a program refers to a contract-defined function -- i.e., a variable that is declared within a `contract` -- then that reference must be _resolved_ to an actual program before the program can be said to be executable.\
+\
+For example, consider the expression:\
+[listing]\
+A+3\
+\
+The `(+)` function is part of the `arithmetic` contract (see <<arithmeticContract>>) which means that we need to resolve the call to `(+)` to an actual implemented function.\
+\
+The type signature for `(+)` is:\
+[listing]\
+all t ~~ arithmetic[t] |: (t,t)=>t\
+\
+where the constraint\
+[listing]\
+arithmetic[t]\
+\
+is satisfied for any `t` for which there is an `implementation` of `arithmetic`.\
+\
+In this case we know, because `3` is an `integer` that the type of `A` must also be `integer` -- as is the type of the whole expression. So, the actual constraint after taking type inference into account is:\
+[listing]\
+arithmetic[integer]\
+\
+which _is_ satisfied because there is a standard implementation of `arithmetic` for `integer`.\
+\
+Implementations can be viewed as functions whose value is a record of all the elements of the defined contract. For example, the implementation function of `arithmetic` over `integer` has a definition that is similar to:\
+[listing]\
+arithmetic#integer() is arithmetic\{\
+  X+Y => _integer_plus(X,Y)\
+  ...\
+  \}\
+\
+Resolving the expression `A+3` is achieved by replacing the abstract function `(+)` with an actual function:\
+[listing]\
+arithmetic#integer().+(A,3)\
+\
+In some cases, there is not sufficient information about the types of variables to fully resolve the appropriate definition to use. In this case, it must be true that the type(s) involved must be variable and that they `surface' to a point where the type variable(s) are generalized.\
+\
+Consider the lambda:\
+[listing]\
+(X,Y) => X+Y*Y\
+\
+The type of `X` and `Y` may not be completely known, and are denoted by the same type variable (`t`) say; `t` is, however, a constrained type that is bound by the scope of the function itself.\
+\
+Ultimately, in some larger scope, either the `t` type becomes grounded into some specific type, or it is bound by an explicit quantifier. The quantifier must reflect the contract constraint -- otherwise the compiler will report an error. For example, it might be that we defined a variable in a `let` <<ThetaEnvironment>>:\
+[listing]\
+addSq : all t arithmetic[t] |: (t,t)=>t\
+addSq = ((X,Y)=>X+X*Y)\
+\
+The `arithmetic` contract constraint is surfaced to the same level where the type variable `t` is bound.\
+\
+In general, where an overloaded name is used, there are two permitted possibilities: the type constraints implied by the overloaded name are subsumed by an explicit type equality or the type variable is bound in some <<thetaEnvironment>>.\
+\
+[NOTE]\
+The third possibility -- where the constrained type is a type variable but is not bound by a <<thetaEnvironment>> is an error -- an unresolved overloaded identifier error.\
+\
+In the case of the `addSq` definition, there is not enough information here to `fix' an actual implementation to use; and so we resolve this by rewriting the `addSq` function to take an additional argument -- the `arithmetic` dictionary represented by the variable `D`:\
+[listing]\
+addSq#(D) => let\{\
+  addSq'(X,Y) => D.+(X,D.*(Y,Y));\
+\} in addSq'\
+\
+In addition (sic), we will have to also resolve all _calls_ to `addSq` as well. A call to `addSq` such as:\
+[listing]\
+addSq(A,3)\
+\
+will be rewritten to:\
+[listing]\
+addSq#(arithmetic#integer())(A,3)\
+\
+because we know from the presence of the literal integer that `addSq` is being used with `integer` arguments.\
+\
+Resolving for contract implementations `pushes out' from expressions such as `A+3` outward until all references to contracts have been resolved by explicit implementations.\
+\
+[NOTE]\
+It is an error for the top-level of a program -- i.e., package-level -- to contain unresolved references to contracts.\
+\
+The formal rules for satisfying (and hence resolving) contract constraints are shown in <<overloading>>.\
+\
+\
+===}

@@ -2,9 +2,9 @@
 <CompileSettings>
     <ProjectSettings>
         <Content Scope="Included">
-            <Filter State="Off" Exclude="No" Type="Label">
+            <Filter State="Off" Exclude="No" Type="LblRecord">
                 <CollectionID>2655DDF6-4AB8-42CB-A433-1CD76FC351D2</CollectionID>
-                <Label>-1</Label>
+                <LblRecord>-1</LblRecord>
                 <Status>-1</Status>
             </Filter>
         </Content>

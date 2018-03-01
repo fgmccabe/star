@@ -1,0 +1,24 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+(((automatically synthesizing implementations)))\
+(((implementing contracts@`implementing` contracts)))\
+\
+In some cases, the `regular' implementation of a contract by be predicted by examining the algebraic type definition itself. The Star compiler automatically generates implementations of the `equality` and the `pPrint` contracts, for example, by inspecting the type definition itself.\
+\
+A programmer may extend this system of atomically implementing contracts by implementing a special macro whose name is of the form `implement\\_\\q\{name`\}. A type definition that is marked:\
+[listing]\
+person ::= some\{\
+  name:string;\
+\} | noOne\
+  implementing Spec\
+\
+will result in the macro `implement_Spec` being invoked on the type definition.\
+\
+This is used, for example, to allow coercion between types and the standard `quoted` type to be synthesized, instead of being constructed manually.\
+\
+===}

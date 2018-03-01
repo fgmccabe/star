@@ -1,0 +1,53 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+(((type variables in an algebraic type definition)))\
+(((constructor type variables)))\
+\
+For an <<AlgebraicType>> definition to be safe requires a constraint on type variables within the definition. In particular, it is not permitted to `introduce' a type variable in any of the constructors in the definition.\
+\
+[NOTE]\
+Specifically, any unbound type variables mentioned in a type definition must also occur within the <<TypeSpec>> or be bound by an enclosing type quantifier.\
+\
+\
+For example, the type definition:\
+[listing]\
+opaque ::= op(t)\
+\
+is not valid because the type variable `t` mentioned in the `op` constructor is not mentioned in the <<TypeSpec>> -- unless `t` is actually bound by a quantifier in an enclosing form.\
+\
+[NOTE]\
+The reason for this is that type safety cannot be guaranteed for such constructors. For example, consider the invalid function:\
+[listing]\
+badOp(op(23)) is false;\
+\
+The type signature for `badOp` is\
+[listing]\
+badOp:(opaque)=>boolean\
+\
+and, according to type inference rules, an expression such as:\
+[listing]\
+badOp(op("alpha"))\
+\
+would be type safe. However, this expression will lead to a run-time failure when the integer 23 is compared against the string `"alpha"`.\
+\
+[NOTE]\
+Note that the converse case, where a type variable is mentioned in the <<TypeSpec>> is not mentioned in a constructor defined within the type definition is perfectly valid.\
+\
+It _is_ possible to have type variables mentioned in a constructor that are not defined in the <<TypeSpec>>. The constraint is that such type variables must be closed by quantification.\
+\
+For example, the type definition:\
+[listing]\
+univ ::= univ(all t ~~ t)\
+\
+is a legally valid <<AlgebraicType>> definition; albeit one that is quite restricted. Locally quantified types are usually associated with function types:\
+[listing]\
+uniFun ::= uniFun(all t ~~ (t,t)=>t)\
+\
+which describes a term constructor `uniFun` that expects a generic function as an argument.\
+\
+===}

@@ -1,0 +1,32 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+[[typeVariable]]\
+(((type,variable)))\
+\
+A type variable is a variable which may be bound to a type. Depending on whether the scope of a type variable is explicitly determined or implicitly determined, type variables are written as regular identifiers -- they are distinguished from regular named types by virtue of the quantifier they are bound by.\
+\
+[[typeVariableFig]]\
+.Type Variables\
+****\
+[[TypeVariable]]TypeVariable ::= <<Identifier>>\
+****\
+\
+==== Type Variable Kind\
+Type variables are associated with a <<Kind>> -- which constrains the kinds (sic) of types that the type variables may be bound to. For example, a <<Kind>> of `type` implies that the type variable may be bound to any valid type -- but may not be bound to a <<TypeConstructor>>.\
+\
+[NOTE]\
+The different kinds of type variable may not be mixed: it is not permissible to bind a type variable to a <<TypeConstructor>>, and vice versa.\
+\
+For example, given:\
+[listing]\
+all t ~~ cons[t] ::= nil | cons(t, cons[t]);\
+\
+The type variable `t` may be bound to a type expression such as `cons[string]` but not to a higher-kinded type (such as `cons` itself).\
+\
+\
+====}

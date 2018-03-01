@@ -1,0 +1,57 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+\
+The rules for subsumption for function types introduces the concept of _contravariance_.\
+\
+\\begin\{itemize\}\
+\
+\\item A function type $F\\sub1$ subsumes $F\\sub2$ if the result types subsume and the argument types contra-subsume:\
+\
+\\begin\{prooftree\}\
+\\AxiomC\{\\entail\{E,\\theta\\subi\}\{r\\sub1\\subsume\{\}r\\sub2\\leadsto\\theta\\sub0\}\}\
+\\AxiomC\{\\entail\{E,\\theta\\sub0\}\{a\\sub2\\subsume\{\}a\\sub1\\leadsto\\theta\\sub\{o\}\}\}\
+\\BinaryInfC\{\\entail\{E,\\theta\\subi\}\{a\\sub1`=>`r\\sub1\\subsume\{\}a\\sub2`=>`r\\sub2\\leadsto\\theta\\sub\{o\}\}\}\
+\\end\{prooftree\}\
+\
+The subsumption relation is inverted for the argument types of the two function types. This reflects the intuition that for one function type to subsume another its result type must subsume the latter but the argument type of the latter should subsume (be more general than) the former.\
+\\begin\{aside\}\
+Without contravariance it becomes difficult and awkward to combine functions together.\
+\\end\{aside\}\
+\
+\\item The subsumption relation for pattern types is similar to that for function types:\
+\\begin\{prooftree\}\
+\\AxiomC\{\\entail\{E,\\theta\\subi\}\{r\\sub1\\subsume\{\}r\\sub2\\leadsto\\theta\\sub0\}\}\
+\\AxiomC\{\\entail\{E,\\theta\\sub0\}\{a\\sub2\\subsume\{\}a\\sub1\\leadsto\\theta\\sub\{o\}\}\}\
+\\BinaryInfC\{\\entail\{E,\\theta\\subi\}\{r\\sub1`<=`a\\sub1\\subsume\{\}r\\sub2`<=`a\\sub2\\leadsto\\theta\\sub\{o\}\}\}\
+\\end\{prooftree\}\
+\
+\\item Subsumption for constructor types requires equivalence rather than subsumption. This is because a constructor may be used both as a pattern and as a function. We use the \\equivt\{\} to denote this. We do not need to introduce a completely new definition for \\equivt\{\}, instead we can define it in terms of \\subsume:\
+\
+\\begin\{prooftree\}\
+\\AxiomC\{\\entail\{E,\\theta\\subi\}\{t\\sub1\\subsume\{\}t\\sub2\\leadsto\\theta\\sub0\}\}\
+\\AxiomC\{\\entail\{E,\\theta\\sub0\}\{t\\sub2\\subsume\{\}t\\sub1\\leadsto\\theta\\sub\{o\}\}\}\
+\\BinaryInfC\{\\entail\{E,\\theta\\subi\}\{t\\sub1\\equivt\{\}t\\sub2\\leadsto\\theta\\sub\{o\}\}\}\
+\\end\{prooftree\}\
+\
+Given this definition of \\equivt\{\}, we can define subsumption for constructor types:\
+\\begin\{prooftree\}\
+\\AxiomC\{\\entail\{E,\\theta\\subi\}\{r\\sub1\\equivt\{\}r\\sub2\\leadsto\\theta\\sub0\}\}\
+\\AxiomC\{\\entail\{E,\\theta\\sub0\}\{a\\sub2\\equivt\{\}a\\sub1\\leadsto\\theta\\sub\{o\}\}\}\
+\\BinaryInfC\{\\entail\{E,\\theta\\subi\}\{r\\sub1`<=>`a\\sub1\\subsume\{\}r\\sub2`<=>`a\\sub2\\leadsto\\theta\\sub\{o\}\}\}\
+\\end\{prooftree\}\
+\
+Clearly, this definition is symmetric wrt the two constructor types, and we can also establish:\
+\\begin\{prooftree\}\
+\\AxiomC\{\\entail\{E,\\theta\\subi\}\{r\\sub1\\equivt\{\}r\\sub2\\leadsto\\theta\\sub0\}\}\
+\\AxiomC\{\\entail\{E,\\theta\\sub0\}\{a\\sub2\\equivt\{\}a\\sub1\\leadsto\\theta\\sub\{o\}\}\}\
+\\BinaryInfC\{\\entail\{E,\\theta\\subi\}\{r\\sub2`<=>`a\\sub2\\subsume\{\}r\\sub1`<=>`a\\sub1\\leadsto\\theta\\sub\{o\}\}\}\
+\\end\{prooftree\}\
+\
+\\end\{itemize\}\
+\
+====}

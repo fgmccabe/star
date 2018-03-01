@@ -1,0 +1,45 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+[[ContractImplementation]]\
+(((type,contracts!implementation)))\
+\
+A contract implementation is a specification of how a contract may be implemented for a specific type combination.\
+\
+[[ContractImplementationFig]]\
+.Contract Implementation Statement\
+****\
+[[Implementation]]Implementation::=`implementation` <<ContractSpec>> [`default`] `=` <<Expression>>\
+****\
+\
+The <<Type>>s mentioned in <<ContractSpec>> must be either <<TypeExpression>>s or, in the case of a `default` implementation, <<TypeVariable>>s.\
+[NOTE]\
+====\
+In particular, it is not permitted to define an `implementation` of a contract for <<FunctionType>>s, <<PatternType>>s, nor for <<UniversalType>>s or <<ExistentialType>>s.\
+\
+It is permissible, however, to implement <<Contract>>s for <<TupleType>>s and <<RecordType>>s.\
+====\
+\
+The body of a contract `implementation` must be an expression that gives a definition for each of the elements of the `contract` specification.\
+\
+[NOTE]\
+A `contract` implementation may either take the form of a regular <<AnonymousRecord>> or an anonymous <<ThetaRecord>>.\
+\
+Usually, the implementation of a `contract` is fairly straightforward. Program~\\vref\{consSize\}, for example, gives the implementation of the standard `sizeable` contract for the `cons` type.\
+\
+[[consSize]]\
+.Implementation of `sizeable` for `cons` values\
+[listing]\
+implementation all e ~~ sizeable[cons[e]] <= \{\
+  size(nil) => 0\
+  size(cons(_,T)) => size(T)+1\
+  isEmpty(nil) => true\
+  isEmpty(_) default => false\
+\}\
+\
+\
+====}

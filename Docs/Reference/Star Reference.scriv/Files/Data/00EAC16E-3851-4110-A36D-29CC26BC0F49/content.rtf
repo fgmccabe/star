@@ -1,0 +1,97 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+[[encapsulatedType]]\
+(((encapsulated type)))\
+(((type,encapsulated in record)))\
+(((existential type)))\
+(((heterogenous types)))\
+\
+An <<EncapsulatedType>> is a reference to a type that is embedded within a record.\
+\
+\
+[[encapsulatedTypeFig]]\
+.Encapsulated Type\
+****\
+[[EncapsulatedType]]EncapsulatedType::=<<Expression>>``.``<<Identifier>>\
+****\
+\
+As noted above, record literals may have types embedded within them. Such a record type is existentially quantified.\
+\
+It is possible to access the type embedded within such a record -- albeit with some restrictions:\
+\
+The form of an <<EncapsulatedType>> reference is limited to terms of the form:\
+[listing]\
+R.t\
+\
+where `R` is a <<Variable>> whose type interface contains the type `t`.\
+\
+More generally, an <<EncapsulatedType>> reference may involve a sequence of field names where each intermediate field name refers to a sub-record:\
+[listing]\
+R.f1.f2.t\
+\
+The `value' of an encapsulated type is strictly opaque: it is assumed to be different to all other types. Which means that effectively _only_ the other fields of the record variable `R` contain functions and values that can be used in conjunction.\
+\
+For example, consider the `group` type defined in:\
+\
+[[groupExample]]\
+.The `group` Type\
+[listing]\
+----\
+group ::= group\{\
+  el :: quality[el] |: type\
+\
+  zero : el\
+  op : (el,el)=>el\
+  inv : (el)=>el\
+\}\
+----\
+\
+[TIP]\
+====\
+A `group` literal is analogous to a mathematical group: a set which is closed under a binary operation and whose elements have an inverse.\
+\
+The contents of a `group` literal contain the definitions of the elements, the binary operation, the zero element and the inverse function.\
+====\
+\
+The qualification of the `el` type that it supports `equality` allows convenient access to equality of group elements. Without such a qualification, equality would not be possible for programs using `group` values.\
+\
+An additional requirement for a group is that its operation is associative. Such a property cannot be expressed in terms of type constraints.\
+\
+A `group` literal that implements the group for `integer`s is shown in:\
+\
+[[integerGroup]]\
+.The `integer` `group` Record\
+[listing]\
+IG = group\{\
+  type el = integer\
+  zero = 0\
+  op = (+)\
+  inv(X) => -X\
+\}\
+\
+The `IG` value contains the elements of a group value. We can, for example, access the `zero` of `IG` using the statement:\
+[listing]\
+IZ : IG.el\
+IZ = IG.zero\
+\
+This asserts that `IZ`'s type is whatever the encapsulated type within `IG` is -- without being explicit about what that type is.\
+\
+It is possible to construct functions over `group`s that refer to encapsulated types. For example, the `invertGroup` function below constructs a new group by `inverting' the operation.\
+\
+[[invertGroupProgram]]\
+.A `group` Inverting Function\
+[listing]\
+invertGroup : (group)=>group\
+invertGroup(G) => group\{\
+  type el = G.el\
+  zero = G.zero\
+  op(X,Y) => G.op(G.inv(X),G.inv(Y))\
+  inv(X) => G.inv(X)\
+\}\
+\
+==}

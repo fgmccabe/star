@@ -1,0 +1,56 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+[[algebraicTypeDefinitions]]\
+An algebraic type definition is a statement that introduces a new type; it also defines the possible values associated with the type.\
+\
+As illustrated in <<algebraicDefinitionFig>>, an algebraic type definition introduces the new type and defines one or more <<Constructor>>s -- separated by the `|` operator.\
+\
+A <<Constructor>> is a specification of a value of a type; i.e., constructors `paint a picture' of the shape of potential values of the type.\
+\
+There are three kinds of <<Constructor>>: enumerated symbols, term constructor constructors and labeled record constructors.\
+\
+[[algebraicDefinitionFig]]\
+.Algebraic Type Definition Statement\
+****\
+[[AlgebraicType]]AlgebraicType::= <<TypeQuantifier>>   [`|:` <<TypeConstraint>>] <<TypeSpec>> `::=` <<Constructor>> | ... | <<Constructor>>\
+\
+[[TypeSpec]]TypeSpec ::= <<Identifier>>\
+   | <<Identifier>> `[`<<TypeVariable>> ,...,<<TypeVariable>>``]``\
+\
+[[Constructor]]Constructor::=<<EnumeratedSymbol>>\
+  | <<TermConstructor>>\
+  | <<RecordConstructor>>\
+****\
+\
+[NOTE]\
+Most standard built-in types have type-specific constructors. For example, lists have a list notation, ``dictionary``s have a dictionary notation and so on. Such constructors may not be defined using the algebraic type definition notation -- for example, the constructors for the `integer` type are denoted by the normal decimal notation for integers.\
+\
+As elaborated below, each `arm' of an algebraic type definition defines a value or set of values that belong to the type. There is a slightly more formal way of expressing this: an algebraic type definition induces a set of free functions.\
+\
+(((constructor,bijection)))\
+Free functions are technically bijections -- they are one-to-one -- i.e., they have inverses. In programming languages, free functions are used as data structuring tools; but mathematically they are functions.\
+\
+For example, the type definition:\
+[listing]\
+person ::= noone | someone(string,integer)\
+\
+induces the constructor function for `someone`:\
+[listing]\
+someone : (string,integer) <=> person;\
+\
+The enumerated symbol has a simpler type:\
+[listing]\
+noone : person;\
+\
+The complete set of constructor functions introduced within an algebraic type definition is complete: i.e., they define all the possible values of the type.\
+\
+\
+[NOTE]\
+A given label, whether it is used as an <<EnumeratedSymbol>>, the label of a <<LabeledType>> or a <<LabeledRecord>> can be defined only once. I.e., it is not permitted to `share' constructor labels across different types.\
+\
+====}

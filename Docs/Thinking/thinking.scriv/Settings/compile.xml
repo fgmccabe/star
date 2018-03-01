@@ -2,8 +2,8 @@
 <CompileSettings>
     <ProjectSettings>
         <Content Scope="Included">
-            <Filter State="Off" Exclude="No" Type="Label">
-                <Label>-1</Label>
+            <Filter State="Off" Exclude="No" Type="LblRecord">
+                <LblRecord>-1</LblRecord>
                 <Status>-1</Status>
             </Filter>
         </Content>

@@ -864,16 +864,15 @@
 <ul>
 <li>
 <p class="itemTitle">Use and Evidence</p>
-<p class="itemText">To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of a type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.</p>
+<p class="itemText">To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of any type variable can be classified into two forms — depending on whether the context is one of using a variable or whether one is defining it — or providing evidence for it.</p>
 <p class="itemText">Consider the simple function d with its type annotation:</p>
 <p class="itemText">d:all t ~~ arith[t] |: (t)=>t.</p>
 <p class="itemText">d(X) => X+X.</p>
-<p class="itemText">In the equa...</p>
+<p class="itemText">In the eq...</p>
 </li>
 <li>
 <p class="itemTitle">Using Existentially Quantified Types</p>
-<p class="itemText">So, what are the rules for existentially quantified types?</p>
-<p class="itemText">The first is one that we have already been looking at:</p>
+<p class="itemText">So, what are the rules for existentially quantified types? The first is one that we have already been looking at:</p>
 <p class="itemText">An existential variable may be bound to a type when providing evidence that a value has a certain type, but may not be constrained when using a value with an existential quantifier in its type.</p>
 <p class="itemText">The second is related to this:</p>
 <p class="itemText">Each occurrence of an existentially quantified type is potentially different.</p>
@@ -885,19 +884,14 @@
 <li>
 <p class="itemTitle">Wrapping Up Packages</p>
 <p class="itemText">Our original simple package record had the type</p>
-<p class="itemText">simple: exists f/1 ~~ {</p>
-<p class="itemText">  type foo/1.</p>
-<p class="itemText">  foo:all t ~~ (t) <=> f[t].</p>
-<p class="itemText">  bar:all t ~~ f[t].</p>
-<p class="itemText">  fooMe:all t ~~ (t)=>f[t].</p>
-<p class="itemText">}</p>
-<p class="itemText">The type signature has a type foo and a constructor foo in it. This is permitted because types and values have different name spaces in Star. This is not in fact quite accurate; the precise type of the simple package record should be:</p>
-<p class="itemText"></p>
 <p class="itemText">simple: exists foo/1 ~~ {</p>
 <p class="itemText">  type foo/1.</p>
 <p class="itemText">  foo:all t ~~ (t) <=> foo[t].</p>
 <p class="itemText">  bar:all t ~~ foo[t].</p>
-<p class="itemText">  fo...</p>
+<p class="itemText">  fooMe:all t ~~ (t)=>foo[t].</p>
+<p class="itemText">}</p>
+<p class="itemText">The type signature has a type foo and a constructor foo in it. This is permitted because types and values have different name spaces in Star. </p>
+<p class="itemText">Why, one might ask, is it so important for packages to have this kind of semantics? After all, few other programming languages make the effort to give a first class semantics for modu...</p>
 </li>
 </ul>
 <hr class="afterText"/>

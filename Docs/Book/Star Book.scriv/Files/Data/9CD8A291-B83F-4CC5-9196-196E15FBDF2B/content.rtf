@@ -211,12 +211,14 @@ m(X) => simple.fooMe(X).\
 \f2\fs22 simple
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26 ; i.e., the type of 
+\f0\fs26 ;  i.e., the type of 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 m
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  apparently depends on the value of 
+\f0\fs26  apparently depends on the 
+\i value
+\i0  of 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 simple
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -227,7 +229,7 @@ For example, consider the scenario where \'91
 \f2\fs22 simple
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
-\f0\fs26  is not simple\'92; i.e., suppose that its value were computed; for example suppose that the value of simple depended on a conditional computation. In that case the actual type 
+\f0\fs26  is not simple\'92; i.e., suppose that its value were computed; for example its value might depend on a conditional computation. In that case the actual type 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
 \f2\fs22 simple.foo
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -246,4 +248,14 @@ Normally such \'91dynamic types\'92 do cause substantial problems. However, the 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::1>
 \f0\fs26  are permitted then the program is provably compile-time type-safe. I.e., uses of an existentially quantified type may not further constrain the type \'97 the exact complement of the situation with universally quantified types. \
+Note that this also relies on single assignment semantics. It is not enough to constrain 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 simple.foo
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  to be effectively unconstrained in its usage, it must also be that the 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 simple
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  variable cannot itself be changed. Luckily for us, this is true for packages even if it may not be true for all variables. \cf2 \expnd0\expndtw0\kerning0
+\
 Of course, as with universally quantified types, we can constrain the existential type with a type constraint. This would mean that, when implementing it we have to give evidence for the constraint being satisfied and when using it we could rely on that implementation \'96 without knowledge of the actual implementation.}

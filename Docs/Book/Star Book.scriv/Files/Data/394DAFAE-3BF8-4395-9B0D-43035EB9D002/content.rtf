@@ -8,16 +8,15 @@
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
 So, what 
 \i are
-\i0  the rules for existentially quantified types?\
-The first is one that we have already been looking at:\
+\i0  the rules for existentially quantified types? The first is one that we have already been looking at:\
 \pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 <$Scr_Ps::0>
 \f0 An existential variable may be bound to a type when providing 
-\i evidence
-\i0  that a value has a certain type, but may not be constrained when 
-\i using
-\i0  a value with an existential quantifier in its type.\
+\i \cf2 evidence
+\i0 \cf2  that a value has a certain type, but may not be constrained when 
+\i \cf2 using
+\i0 \cf2  a value with an existential quantifier in its type.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1 \cf2 <!$Scr_Ps::0>
@@ -25,8 +24,8 @@ The first is one that we have already been looking at:\
 \pard\tx720\tx1080\tx1440\li720\sl264\slmult1\sb240\sa240\pardirnatural\partightenfactor0
 
 \f1\fs24 \cf2 <$Scr_Ps::0>
-\f0\i Each occurrence of an existentially quantified type is potentially different
-\i0 .\
+\f0\i \cf2 Each occurrence of an existentially quantified type is potentially different
+\i0 \cf2 .\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1 \cf2 <!$Scr_Ps::0>
@@ -71,7 +70,12 @@ X2 = exFn(\'93alpha\'94)\
 \f2\fs22 X2
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Cs::2>
-\f0\fs26 ?\'94. Unfortunately, the fundamental answer is \'91we cannot know in general\'92; which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of 
+\f0\fs26 ?\'94. Unfortunately, the fundamental answer is \'91we cannot know in general\'92 \'97 because we cannot assume that 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
+\f2\fs22 exFn
+\f1\fs24 <!$Scr_Cs::2>
+\f0\fs26  is without side-effects in its implementation \'97\cf2 \expnd0\expndtw0\kerning0
+ which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
 \f2\fs22 exFn
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -105,7 +109,9 @@ Y2 = Y1\
 
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
 <!$Scr_Ps::1>
-\f0\fs26 In this case we do know that the type of 
+\f0\fs26 In this case we 
+\i do
+\i0  know that the type of 
 \f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::2>
 \f2\fs22 Y1
 \f1\fs24 \cf2 \expnd0\expndtw0\kerning0
@@ -120,10 +126,10 @@ Y2 = Y1\
 
 \f1\fs24 \cf2 <$Scr_Ps::0>
 \f0 Each 
-\i use
-\i0  of an existential quantification introduces a new type \'97 called a 
-\i Skolem {\field{\*\fldinst{HYPERLINK "scrivcmt://1AB09B4A-681B-4C87-9212-AE4ECBF20BD7"}}{\fldrslt type}}
-\i0  \'97 that follows the normal inference rules for all types.\
+\i \cf2 use
+\i0 \cf2  of an existential quantification introduces a new type \'97 called a 
+\i \cf2 Skolem {\field{\*\fldinst{HYPERLINK "scrivcmt://1AB09B4A-681B-4C87-9212-AE4ECBF20BD7"}}{\fldrslt type}}
+\i0 \cf2  \'97 that follows the normal inference rules for all types.\
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f1 \cf2 <!$Scr_Ps::0>
