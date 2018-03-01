@@ -67,13 +67,13 @@ scanCat(Cat,Repo,Pkg,CWD,Pi,Px) :-
   reportError("cannot locate package %s",[Pkg]),Pi=Px).
 
 scanFile(Fl,Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
-  parseFile(Fl,Term),
+  parseFile(Pkg,Fl,Term),
   scanForImports(Term,_,Imps),!,
   scanImports(Imps,Repo,Cat,CWD,[(Pkg,Imps,Imps,Fl)|SoFar],Pkgs).
 
-parseFile(Fl,Term) :-
+parseFile(Pk,Fl,Term) :-
   locateResource(Fl,Txt),
-  allTokens(Txt,Toks),
+  allTokens(Pk,Txt,Toks),
   parse(Toks,Term,_), !.
 
 getSrcUri(Fl,WD,FUri) :-

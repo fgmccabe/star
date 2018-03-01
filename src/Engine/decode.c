@@ -6,6 +6,7 @@
 #include "strP.h"
 #include "heap.h"
 #include "signature.h"
+#include "labels.h"
 
 /*
  * Decode a structure from an input stream
@@ -59,7 +60,7 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
 
 
                     if (res == Ok)
-                      res = reserveSpace(H, (size_t) amnt);
+                      res = reserveSpace((size_t) amnt);
 
                     if (res == Ok) {
                       rewindBuffer(buffer); /* re-read from string buffer */
@@ -136,12 +137,7 @@ static retCode estimateString(char *nm, integer size, void *cl) {
   return Ok;
 }
 
-static retCode estimateEnum(char *nm, integer arity, void *cl) {
-  Estimation *info = (Estimation *) cl;
-
-  integer length = uniStrLen(nm);
-
-  info->amnt += CellCount(sizeof(EnumRecord) + (length + 1) * sizeof(char));
+static retCode estimateLbl(char *nm, integer arity, void *cl) {
   return Ok;
 }
 
@@ -163,7 +159,7 @@ retCode estimate(ioPo in, integer *amnt) {
     nullEstimate,           // endDecoding
     estimateInt,            // decInt
     estimateFlt,            // decFlt
-    estimateEnum,           // decEnum
+    estimateLbl,           // decLbl
     estimateString,         // decString
     estimateCns             // decCon
   };
@@ -333,7 +329,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return res;
     }
 
-    case enuTrm: {
+    case lblTrm: {
       integer arity;
       clearBuffer(buff);
 
@@ -345,7 +341,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       if (res == Ok) {
         long len;
         char *nm = getTextFromBuffer(&len, buff);
-        res = cb->decEnum(nm, arity, cl);
+        res = cb->decLbl(nm, arity, cl);
       }
       return res;
     }
@@ -404,7 +400,7 @@ retCode processTpl(ioPo in, heapPo heap, char *errorMsg, long msgSize, decodeFun
     if ((res = decInt(in, &arity)) != Ok) { /* How many arguments in the class */
       strMsg(errorMsg, msgSize, "Not a tuple");
       return res;
-    } else if ((res = inChar(in, &ch)) == Ok && ch == enuTrm) {
+    } else if ((res = inChar(in, &ch)) == Ok && ch == lblTrm) {
       integer ar;
 
       if ((res = decInt(in, &ar)) != Ok)
@@ -447,7 +443,7 @@ static DecodeCallBacks skipCB = {
   skipFlag,           // endDecoding
   skipInt,            // decInt
   skipFlt,            // decFlt
-  skipName,           // decEnum
+  skipName,           // decLbl
   skipString,         // decString
   skipInt             // decCons
 };
@@ -518,7 +514,7 @@ static retCode copyString(char *sx, integer len, void *cl) {
 
 static retCode copyEnum(char *nm, integer ar, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
-  return encodePrg(out, nm, ar);
+  return encodeStrct(out, nm, ar);
 }
 
 static retCode copyCons(integer ar, void *cl) {
@@ -532,7 +528,7 @@ static DecodeCallBacks copyCB = {
   copyFlag,           // endDecoding
   copyInt,            // decInt
   copyFlt,            // decFlt
-  copyEnum,           // decEnum
+  copyEnum,           // decLbl
   copyString,         // decString
   copyCons            // decCons
 };
@@ -581,8 +577,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       *tgt = allocateFloat(H, dx);
       return Ok;
     }
-
-    case enuTrm: {
+    case lblTrm: {
       integer arity;
 
       if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
@@ -590,7 +585,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
       if ((res = decodeName(in, tmpBuffer)) == Ok) {
         long len;
-        *tgt = (termPo) allocateEnum(H, getTextFromBuffer(&len, tmpBuffer), arity);
+        *tgt = (termPo) declareLbl(getTextFromBuffer(&len, tmpBuffer), arity);
       }
       return res;
     }
@@ -606,8 +601,8 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if (res == Ok) {
-        normalPo obj = allocateStruct(H, C_LBL(class));
-        *tgt = (termPo)(obj);
+        normalPo obj = allocateStruct(C_LBL(class));
+        *tgt = (termPo) (obj);
 
         termPo el = NULL;
         integer i;

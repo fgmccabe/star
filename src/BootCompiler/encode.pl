@@ -13,10 +13,9 @@ encodeTerm(intgr(Ix),['x'|O],Ox) :- encodeInt(Ix,O,Ox).
 encodeTerm(float(Dx),['d'|O],Ox) :- encodeFloat(Dx,O,Ox).
 encodeTerm(enum(Nm),['e'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeTerm(strg(St),['s'|O],Ox) :- encodeText(St,O,Ox).
-encodeTerm(strct(Nm,Arity),['o'|O],Ox) :-
+encodeTerm(lbl(Nm,Arity),['o'|O],Ox) :-
   encodeInt(Arity,O,O1),
   encodeText(Nm,O1,Ox).
-encodeTerm(prg(Nm,Arity),['p'|O],Ox) :- encodeInt(Arity,O,O1), encodeText(Nm,O1,Ox).
 encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   length(Els,Ln),
   encodeInt(Ln,O,O1),

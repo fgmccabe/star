@@ -131,11 +131,7 @@ showGoal(raise(T),O,Ox) :-
   appStr("raise ",O,O2),
   showTerm(T,O2,Ox).
 
-showTerm(prg(Nm,Ar),O,Ox) :-
-  appStr(Nm,O,O0),
-  appStr("/",O0,O1),
-  appInt(Ar,O1,Ox).
-showTerm(strct(Nm,Ar),O,Ox) :-
+showTerm(lbl(Nm,Ar),O,Ox) :-
   appStr("[",O,O0),
   appStr(Nm,O0,O1),
   appStr("/",O1,O2),

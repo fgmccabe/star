@@ -9,19 +9,22 @@ locOf(floatTok(_,Lc),Lc).
 locOf(stringTok(_,Lc),Lc).
 locOf(terminal,missing).
 
-mergeLoc(loc(Ln,LnOff,Co1,_),loc(_,_,Co2,Len),loc(Ln,LnOff,Co1,Len1)) :- Len1 is Co2-Co1+Len.
+mergeLoc(loc(Pk,Ln,LnOff,Co1,_),loc(_,_,_,Co2,Len),loc(Pk,Ln,LnOff,Co1,Len1)) :- Len1 is Co2-Co1+Len.
 
-showLocation(loc(Ln,Col,_,Sz),O,E) :-
-  appInt(Ln,O,O1),
-  appStr(":",O1,O2),
-  appInt(Col,O2,O3),
-  appStr("(",O3,O4),
-  appInt(Sz,O4,O5),
-  appStr(")",O5,E).
+showLocation(loc(Pk,Ln,Col,_,Sz),O,E) :-
+  appStr(Pk,O,O0),
+  appStr(":",O0,O1),
+  appInt(Ln,O1,O2),
+  appStr(":",O2,O3),
+  appInt(Col,O3,O4),
+  appStr("(",O4,O5),
+  appInt(Sz,O5,O6),
+  appStr(")",O6,E).
 
-lcLine(loc(Ln,_,_,_),Ln).
-lcColumn(loc(_,Col,_,_),Col).
-lcSize(loc(_,_,_,Sz),Sz).
-lcOff(loc(_,_,Off,_),Off).
+lcPk(loc(Pk,_,_,_,_),Pk).
+lcLine(loc(_,Ln,_,_,_),Ln).
+lcColumn(loc(_,_,Col,_,_),Col).
+lcSize(loc(_,_,_,_,Sz),Sz).
+lcOff(loc(_,_,_,Off,_),Off).
 
-isLocation(loc(_,_,_,_)).
+isLocation(loc(_,_,_,_,_)).

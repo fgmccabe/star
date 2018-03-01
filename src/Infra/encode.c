@@ -52,11 +52,7 @@ retCode encodeTxt(ioPo out, char *str, integer len) {
 }
 
 retCode encodeEnum(ioPo out, char *nm){
-  retCode ret = outChar(out,enuTrm);
-
-  if(ret==Ok)
-    ret = encodeTxt(out,nm,uniStrLen(nm));
-  return ret;
+  return encodeStrct(out,nm,0);
 }
 
 retCode encodeFlt(ioPo out, double dx) {
@@ -64,14 +60,8 @@ retCode encodeFlt(ioPo out, double dx) {
   return outFloat(out, dx);
 }
 
-retCode encodePrg(ioPo out, char *sx, integer ar) {
-  tryRet(outChar(out, prgTrm));
-  tryRet(outInt(out, ar));
-  return encodeTxt(out, sx, uniStrLen(sx));
-}
-
 retCode encodeStrct(ioPo out, char *sx, integer ar) {
-  tryRet(outChar(out, strctTrm));
+  tryRet(outChar(out, lblTrm));
   tryRet(outInt(out, ar));
   return encodeTxt(out, sx, uniStrLen(sx));
 }

@@ -29,7 +29,7 @@ set(HEADER_FILES
 
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c heap.c load.c main.c
-        ${HEADER_FILES} code.c term.c Headers/arithP.h Headers/strP.h)
+        ${HEADER_FILES} code.c term.c Headers/arithP.h Headers/strP.h labels.c Headers/labels.h Headers/labelsP.h)
 
 add_executable(cafe ${SOURCE_FILES} ${HEADER_FILES})
 

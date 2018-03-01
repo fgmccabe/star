@@ -11,7 +11,7 @@
         interleave/3,concatStrings/2,
         sort/3,sortedMerge/4,
         nextPrime/2,sieve/2,
-        forall/2]).
+        forall/2,verify/2]).
 
 same(X,X).
 
@@ -252,3 +252,9 @@ iota(C,Mx,_,[]) :-
 iota(C,Mx,St,[C|I]) :-
   C1 is C+St,
   iota(C1,Mx,St,I).
+
+verify(C,_) :-
+  call(C),!.
+verify(C,M) :-
+  writef("assertion %w failed: %w\n",[C,M]),
+  abort.

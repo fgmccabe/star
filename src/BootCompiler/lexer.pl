@@ -1,25 +1,25 @@
-:- module(lexer,[nextToken/3,allTokens/2,locOfToken/2,isToken/1,dispToken/2]).
+:- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,dispToken/2]).
 :- use_module(operators).
 :- use_module(errors).
 
-/* tokenState(text,currLine,currOff,currPos) */
+/* tokenState(text,currLine,currOff,currPos,PkNm) */
 
-hedChar(tokenState([Ch|_],_,_,_),Ch).
+hedChar(tokenState([Ch|_],_,_,_,_),Ch).
 
-hedHedChar(tokenState([_,Ch|_],_,_,_),Ch).
+hedHedChar(tokenState([_,Ch|_],_,_,_,_),Ch).
 
-hedHedHedChar(tokenState([_,_,Ch|_],_,_,_),Ch).
+hedHedHedChar(tokenState([_,_,Ch|_],_,_,_,_),Ch).
 
-initSt(Txt,tokenState(Txt,1,1,1)).
-initSt(Chars,LineNo,Column,Base,tokenState(Chars,LineNo,Column,Base)).
-isTerminal(tokenState([],_,_,_)).
+initSt(Pkg,Txt,tokenState(Txt,1,1,1,Pkg)).
+initSt(Pkg,Chars,LineNo,Column,Base,tokenState(Chars,LineNo,Column,Base,Pkg)).
+isTerminal(tokenState([],_,_,_,_)).
 
-nxtSt(tokenState(['\n'|T],L,_,CP),tokenState(T,LN,1,CP1)) :- succ(L,LN), succ(CP,CP1).
-nxtSt(tokenState([Ch|T],L,O,P),tokenState(T,L,O1,P1)) :- Ch\='\n',succ(O,O1),succ(P,P1).
-nxtSt(tokenState([],L,O,P),tokenState([],L,O,P)).
+nxtSt(tokenState(['\n'|T],L,_,CP,Pk),tokenState(T,LN,1,CP1,Pk)) :- succ(L,LN), succ(CP,CP1).
+nxtSt(tokenState([Ch|T],L,O,P,Pk),tokenState(T,L,O1,P1,Pk)) :- Ch\='\n',succ(O,O1),succ(P,P1).
+nxtSt(tokenState([],L,O,P,Pk),tokenState([],L,O,P,Pk)).
 
-nextSt(tokenState(['\n'|T],L,_,CP),tokenState(T,LN,1,CP1),'\n') :- succ(L,LN), succ(CP,CP1).
-nextSt(tokenState([Ch|T],L,O,P),tokenState(T,L,O1,P1),Ch) :- Ch\='\n',succ(O,O1),succ(P,P1).
+nextSt(tokenState(['\n'|T],L,_,CP,Pk),tokenState(T,LN,1,CP1,Pk),'\n') :- succ(L,LN), succ(CP,CP1).
+nextSt(tokenState([Ch|T],L,O,P,Pk),tokenState(T,L,O1,P1,Pk),Ch) :- Ch\='\n',succ(O,O1),succ(P,P1).
 
 nxtNxtSt(St,St2) :- nxtSt(St,St1), nxtSt(St1,St2).
 
@@ -28,7 +28,7 @@ lookingAt(St,Nxt,Test,Lc) :- lookingAt(St,Nxt,Test), makeLoc(St,Nxt,Lc).
 lookingAt(St,St,[]).
 lookingAt(St,NxSt,[Ch|M]) :- nextSt(St,St1,Ch), lookingAt(St1,NxSt,M).
 
-makeLoc(tokenState(_,Ln,O,Ps),tokenState(_,_,_,Pe), loc(Ln,O,Ps,P)) :- P is Pe-Ps.
+makeLoc(tokenState(_,Ln,O,Ps,Pk),tokenState(_,_,_,Pe,_), loc(Pk,Ln,O,Ps,P)) :- P is Pe-Ps.
 
 isToken(T) :- locOfToken(T,_).
 
@@ -245,7 +245,7 @@ followGraph(Ch,Id,St,St) :- final(Ch,Id).
 
 nextToken(St,NxSt,Tk) :- skipToNx(St,St1), nxTok(St1,NxSt,Tk).
 
-allTokens(Txt,Toks) :- initSt(Txt,St), tokenize(St,_,Toks), !.
+allTokens(pkg(Pkg,_),Txt,Toks) :- initSt(Pkg,Txt,St), tokenize(St,_,Toks), !.
 
 tokenize(St,NxSt,Toks) :- skipToNx(St,St1), nxTokenize(St1,NxSt,Toks).
 

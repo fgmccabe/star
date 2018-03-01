@@ -11,8 +11,6 @@
 
 typedef struct special_class *specialClassPo;
 
-typedef struct enum_struct *enumPo;
-
 typedef struct _program_label_ *labelPo;
 
 typedef struct normal_term *normalPo;
@@ -21,7 +19,7 @@ typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured val
 
 typedef struct class_record *clssPo;
 
-extern clssPo labelClass, normalClass, enumClass;
+extern clssPo labelClass, normalClass;
 
 typedef struct term_record {
   clssPo clss;
@@ -34,8 +32,6 @@ extern normalPo C_TERM(termPo t);
 extern logical isNormalPo(termPo t);
 
 extern termPo termLbl(normalPo t);
-
-extern enumPo C_ENUM(termPo t);
 
 extern integer termHash(termPo t);
 

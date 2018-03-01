@@ -28,8 +28,7 @@ decodeTerm(intgr(Ix)) --> ['x'], decInt(Ix).
 decodeTerm(float(Dx)) --> ['d'], decFloat(Dx).
 decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
-decodeTerm(strct(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
-decodeTerm(prg(Nm,Ar)) --> ['p'], decInt(Ar), decodeText(Nm).
+decodeTerm(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
 
 decTerms(0,[]) --> [].

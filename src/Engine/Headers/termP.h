@@ -15,20 +15,13 @@ typedef struct _program_label_ {
   clssPo clss;                // == labelClass
   integer arity;              // Arity of label
   methodPo mtd;               // Optimization - is a method defined for this label?
-  char *name;                 // Label name
-} Label;
+  char *name;                 // LblRecord name
+} LblRecord;
 
 typedef struct normal_term {
   clssPo clss;
   termPo args[ZEROARRAYSIZE];
 } Normal;
-
-typedef struct enum_term {
-  clssPo clss;                  // == enumClass
-  integer hash;
-  integer length;               // Size of name
-  char name[ZEROARRAYSIZE];
-} EnumRecord;
 
 // Some typedefs to help with working with classes
 
@@ -50,5 +43,7 @@ typedef struct special_class {
 extern clssPo specialClass;
 
 extern void initTerm();
+
+extern size_t allocAmnt(clssPo clss);
 
 #endif //CAFE_TERMP_H

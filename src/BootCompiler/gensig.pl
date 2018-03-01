@@ -25,7 +25,7 @@ constructPkgSig(Pkg,Imports,Face,Enums,Contracts,Impls,SigTpl) :-
   formatImpls(Impls,ImplSigs),
   mkTpl(ImplSigs,ImplTpl).
 
-encPkg(pkg(Nm,Vers),ctpl(strct("pkg",2),[strg(Nm),V])) :-
+encPkg(pkg(Nm,Vers),ctpl(lbl("pkg",2),[strg(Nm),V])) :-
   encVer(Vers,V).
 
 encVer(defltVersion,enum("*")).
@@ -36,7 +36,7 @@ encImports([I|M],[IP|L]) :-
   encImport(I,IP),
   encImports(M,L).
 
-encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(strct("import",2),[enum(Viz),Enc])) :-
+encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
 
 formatEnums([],[]).

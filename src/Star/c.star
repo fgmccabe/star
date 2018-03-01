@@ -1,4 +1,5 @@
 star.core {
+  /*
   public implementation all t ~~ equality[t] |: equality[option[t]] => {.
     none == none => true.
     some(X) == some(Y) => X==Y.
@@ -7,6 +8,12 @@ star.core {
     hash(X) => optHash(X).
   .}
 
+
+  optHash:all t ~~ equality[t] |: (option[t]) => integer.
+  optHash(none) => 0.
+  optHash(some(X)) => hash(X).
+  */
+
   public all t ~~ option[t] ::= none | some(t).
 
   public contract all x ~~ equality[x] ::= {
@@ -14,22 +21,18 @@ star.core {
     hash: (x)=>integer.
   }
 
+/*
   public (=!=):all x ~~ equality[x] |: (x,x)=>boolean.
   x =!= y => \+ x==y.
-
+*/
   public implementation equality[string] => {
     X == Y => _str_eq(X,Y).
     hash(X) => _str_hash(X).
   }
 
-  optHash:all t ~~ equality[t] |: (option[t]) => integer.
-  optHash(none) => 0.
-  optHash(some(X)) => hash(X).
-
   -- Not strictly necessary, but makes for better symmetry.
   public boolean ::= true | false.
 
-/*
   all t ~~ equality[t] |: person[t] ::=
     someOne{
       name : t.
@@ -42,9 +45,14 @@ star.core {
   foo = "".
 
   fp : person[string].
-  fp = someOne{ name = foo. spouse = none. /*assert name == foo* /}
+  fp = someOne{ name = foo. spouse = none. /*assert name == foo*/}
+
+  fper:(string)=>person[string].
+  fper(W) => someOne{name = W. spouse=none}.
 
   assert fp.name == "".
+
+  assert fper("fred").name == "fred".
 
   id: all x ~~ (x)=>x.
   id(X) => X.
@@ -59,5 +67,4 @@ star.core {
   fct(N) => _int_times(N,fct(_int_minus(N,1))).
 
   assert fct(3)==6.
-  */
 }

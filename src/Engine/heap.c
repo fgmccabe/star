@@ -43,11 +43,27 @@ void gcReleaseRoot(int mark) {
   rootTop = mark;
 }
 
-retCode reserveSpace(heapPo H, size_t amnt) {
-  if ((integer*)((byte*)currHeap->curr + amnt) < currHeap->limit)
+retCode reserveSpace(size_t amnt) {
+  if ((integer *) ((byte *) currHeap->curr + amnt) < currHeap->limit)
     return Ok;
   else
     return Error;
 }
 
+termPo alloc(clssPo cls) {
+  size_t amnt = allocAmnt(cls);
+
+  if ((integer *) ((byte *) currHeap->curr + amnt) < currHeap->limit) {
+    termPo t = (termPo) currHeap->curr;
+    currHeap->curr = (integer *) ((byte *) currHeap->curr + amnt);
+    t->clss = cls;
+    return t;
+  } else if (gc(amnt) == Ok) {
+    termPo t = (termPo) currHeap->curr;
+    currHeap->curr = (integer *) ((byte *) currHeap->curr + amnt);
+    t->clss = cls;
+    return t;
+  } else
+    return Null;
+}
 

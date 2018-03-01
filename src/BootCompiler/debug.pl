@@ -8,7 +8,7 @@ isDebug(Opts) :-
   isOption(debugging,Opts).
 
 % are we debugging?
-debugPreamble(Nm,Q,Qx,[call(prg("go.debug@current",1),[DgVr])|Gx],Gx,Opts,ClOpts) :-
+debugPreamble(Nm,Q,Qx,[cll(lbl("go.debug@current",1),[DgVr])|Gx],Gx,Opts,ClOpts) :-
   isDebug(Opts),!,
   genVar("__D",DgVr),
   genVar("__F",FrVr),
@@ -35,7 +35,7 @@ constructFrameList([idnt(V)|Vars],FQ) :-
   starts_with(V,"_"),!,
   constructFrameList(Vars,FQ).
 constructFrameList([idnt(V)|Vars],
-      ctpl(strct("lo.list#,..",2),[VF,Q])) :-
+      ctpl(lbl("lo.list#,..",2),[VF,Q])) :-
   mkTpl([strg(V),idnt(V)],VF),
   constructFrameList(Vars,Q).
 

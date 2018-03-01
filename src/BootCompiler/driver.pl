@@ -103,7 +103,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   packageVersion(Opts,Vers),
   startCount,
   locateResource(SrcUri,Src),
-  parseFile(Src,Term),!,
+  parseFile(Pkg,Src,Term),!,
   noErrors,
   checkProgram(Term,Vers,Repo,Prog),!,
   dispProg(Prog),
@@ -119,8 +119,8 @@ packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.
 packageVersion(_,defltVersion).
 
-parseFile(Txt,Term) :-
-  allTokens(Txt,Toks),
+parseFile(Pkg,Txt,Term) :-
+  allTokens(Pkg,Txt,Toks),
   parse(Toks,Term,_), !.
 
 test(Fl) :-

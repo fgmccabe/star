@@ -492,18 +492,20 @@ typeOfTerm(Term,Tp,Env,Env,record(Lc,Path,Defs,Others,Types,Tp)) :-
   isQBraceTuple(Term,Lc,Els),
   genstr("record",Path),
   checkRecordBody(Tp,Lc,Els,Env,Defs,Others,Types,Path).
-typeOfTerm(Term,Tp,Env,Env,theta(Lc,Lbl,Defs,Others,Types,Tp)) :-
+typeOfTerm(Term,Tp,Env,Env,theta(Lc,Path,Defs,Others,Types,Tp)) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
+  genstr(Lbl,Path),
   deRef(FnTp,BTp),
   checkThetaBody(BTp,Lc,Els,E0,Defs,Others,Types,Lbl).
-typeOfTerm(Term,Tp,Env,Env,record(Lc,Lbl,Defs,Others,Types,Tp)) :-
+typeOfTerm(Term,Tp,Env,Env,record(Lc,Path,Defs,Others,Types,Tp)) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
   funLbl(Fun,Lbl),
+  genstr(Lbl,Path),
   checkRecordBody(FnTp,Lc,Els,E0,Defs,Others,Types,Lbl).
 typeOfTerm(Term,Tp,Env,Env,letExp(Lc,Theta,Bound)) :-
   isLetDef(Term,Lc,Th,Ex),

@@ -36,9 +36,7 @@ genGoDef(fnDef(_,Nm,_,[eqn(_,Args,Value)]),O,[Txt|O]) :-
   processTemplateFile("internal://Go/func.go.plate",Dx,Chrs),
   string_chars(Txt,Chrs).
 
-genTerm(prg(Nm,_),O,Ox) :-
-  appQuoted(Nm,'''',O,Ox).
-genTerm(strct(Nm,_),O,Ox) :-
+genTerm(lbl(Nm,_),O,Ox) :-
   genQuoted(Nm,O,Ox).
 genTerm(intgr(Ix),O,Ox) :-
   appInt(Ix,O,Ox).

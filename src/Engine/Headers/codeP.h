@@ -25,7 +25,6 @@ typedef struct _method_ {
 
   int64 arity;        /* How many arguments in method */
   normalPo pool;      /* A pool tuple of constants */
-  normalPo frames;    /* A tuple of frames */
   normalPo locals;    /* A tuple of sorted locals */
 } MethodRec;
 
@@ -54,4 +53,5 @@ static inline normalPo codeLits(methodPo mtd) {
 
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
+extern void markMtd(heapPo h, methodPo mtd);
 #endif

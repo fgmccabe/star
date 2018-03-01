@@ -207,7 +207,7 @@ retCode run(processPo P, heapPo heap) {
         continue;
       }
 
-      case Lbl: {
+      case CLbl: {
         termPo t = pop();
         termPo l = pop();
         insPo exit = collectOff(PC);
@@ -261,7 +261,7 @@ retCode run(processPo P, heapPo heap) {
 
       case Alloc: {      /* heap allocate term */
         labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
-        normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
+        normalPo cl = allocateStruct(cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the closure back on the stack */

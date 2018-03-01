@@ -12,12 +12,10 @@ typedef uint16 insWord, *insPo;
 typedef struct _method_ *methodPo;
 typedef struct _pkg_record_ *pkgPo;
 
-labelPo declareLbl(char *name, integer arity);
 void initCode();
-void markLabels(heapPo heap);
 
 labelPo
-defineMtd(insPo ins, integer insCount, char *name, integer arity, normalPo pool, normalPo frames, normalPo locals);
+defineMtd(insPo ins, integer insCount, char *name, integer arity, normalPo pool, normalPo locals);
 
 extern methodPo C_MTD(termPo t);
 

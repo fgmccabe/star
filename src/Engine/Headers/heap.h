@@ -11,18 +11,17 @@ extern void initHeap(long heapSize);
 
 extern heapPo currHeap;
 
-extern termPo allocateObject(heapPo H, clssPo clss, size_t amnt);
+extern termPo allocateObject(clssPo clss, size_t amnt);
 
-extern normalPo allocateStruct(heapPo H, labelPo lbl);
+extern normalPo allocateStruct(labelPo lbl);
 
-extern enumPo allocateEnum(heapPo H, char *name, integer arity);
+extern retCode reserveSpace(size_t amnt);
 
-extern retCode reserveSpace(heapPo H, size_t amnt);
-
-extern void markRoot(heapPo heap,ptrPo addr);
+extern void markRoot(ptrPo addr);
 
 extern int gcAddRoot(ptrPo addr);
 extern void gcReleaseRoot(int mark);
+extern retCode gc(size_t amnt);
 
 extern logical compare_and_swap(normalPo cl, int64 expect, int64 repl);
 

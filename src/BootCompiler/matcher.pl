@@ -156,7 +156,7 @@ sameConstructor(A,B) :-
   constructorName(B,Nm).
 
 constructorName(enum(Nm),Nm).
-constructorName(strct(Nm,_),Nm).
+constructorName(lbl(Nm,_),Nm).
 constructorName(ctpl(C,_),Nm) :-
   constructorName(C,Nm).
 

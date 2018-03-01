@@ -73,13 +73,9 @@ showTerm(enum(Nm),O,Ox) :-
   appStr("'",O,O1),
   appStr(Nm,O1,O2),
   appStr("'",O2,Ox).
-showTerm(strct(Nm,Ar),O,Ox) :-
+showTerm(lbl(Nm,Ar),O,Ox) :-
   appStr(Nm,O,O1),
   appStr("%",O1,O2),
-  appInt(Ar,O2,Ox).
-showTerm(prg(Nm,Ar),O,Ox) :-
-  appStr(Nm,O,O1),
-  appStr("/",O1,O2),
   appInt(Ar,O2,Ox).
 showTerm(whr(_,Ptn,Cond),O,Ox) :-
   showTerm(Ptn,O,O1),
@@ -156,8 +152,7 @@ substTerm(_,idnt(Nm),idnt(Nm)).
 substTerm(_,float(Dx),float(Dx)).
 substTerm(_,strg(Sx),strg(Sx)).
 substTerm(_,enum(Nm),enum(Nm)).
-substTerm(_,strct(Nm,Ar),strct(Nm,Ar)).
-substTerm(_,prg(Nm,Ar),prg(Nm,Ar)).
+substTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
 substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
   substTerms(Q,Args,NArgs).
@@ -204,10 +199,10 @@ substCase(Q,(T,E),(NT,NE)) :-
   substTerm(Q,T,NT),
   substTerm(Q,E,NE).
 
-genTplStruct(Cnt,strct(Nm,Cnt)) :-
+genTplStruct(Cnt,lbl(Nm,Cnt)) :-
   swritef(Nm,"()%d",[Cnt]).
 
-isTplStruct(strct(Nm,Ar)) :- string_concat("()",A,Nm),number_string(Ar,A).
+isTplStruct(lbl(Nm,Ar)) :- string_concat("()",A,Nm),number_string(Ar,A).
 
 mkTpl(Els,ctpl(C,Els)) :-
   length(Els,Cnt),
@@ -217,18 +212,14 @@ isLiteral(intgr(_)).
 isLiteral(float(_)).
 isLiteral(strg(_)).
 isLiteral(enum(_)).
-isLiteral(strct(_,_)).
-isLiteral(prg(_,_)).
+isLiteral(lbl(_,_)).
 
 termHash(intgr(Ix),Ix).
 termHash(float(Dx),Ix) :- Ix is round(Dx).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
 termHash(enum(Sx),Ix) :- stringHash(0,Sx,Ix).
-termHash(strct(Nm,Ar),Ix) :-
-  stringHash(0,Nm,H0),
-  Ix is H0*47+Ar.
-termHash(prg(Nm,Ar),Ix) :-
+termHash(lbl(Nm,Ar),Ix) :-
   stringHash(0,Nm,H0),
   Ix is H0*47+Ar.
 
-locTerm(loc(Ln,Off,Str,Len),ctpl(strct("loc",4),[intgr(Ln),intgr(Off),intgr(Str),intgr(Len)])).
+locTerm(loc(Pk,Ln,Off,Str,Len),ctpl(lbl("loc",5),[strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)])).

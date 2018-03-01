@@ -85,7 +85,7 @@ makeMdlEntry(Pkg,cnsDef(_,Nm,enm(_,_),_),[(Nm,moduleCons(LclName,AccessName,0))|
 makeMdlEntry(Pkg,typeDef(_,Nm,Tp,_),[(Nm,moduleType(Pkg,LclName,Tp))|Mx],Mx,Clx,Clx) :-
   localName(Pkg,"*",Nm,LclName).
 makeMdlEntry(_,impl(_,_,ImplNm,0,_,_,_,_,_),[(ImplNm,moduleImpl(ImplNm,enum(ImplNm)))|Mx],Mx,Clx,Clx).
-makeMdlEntry(_,impl(_,_,ImplNm,Arity,_,_,_,_,_),[(ImplNm,moduleImpl(ImplNm,strct(ImplNm,Arity)))|Mx],Mx,Clx,Clx).
+makeMdlEntry(_,impl(_,_,ImplNm,Arity,_,_,_,_,_),[(ImplNm,moduleImpl(ImplNm,lbl(ImplNm,Arity)))|Mx],Mx,Clx,Clx).
 makeMdlEntry(_,_,Mx,Mx,Clx,Clx).
 
 makeImportsMap([Import|Rest],Map,Mx) :-
@@ -133,7 +133,7 @@ contractArity(constrained(Con,_),Ar) :- contractArity(Con,A), Ar is A+1.
 contractArity(_,0).
 
 contractStruct(0,Nm,enum(Nm)).
-contractStruct(Ar,Nm,strct(Nm,Ar)).
+contractStruct(Ar,Nm,lbl(Nm,Ar)).
 
 makeTypesMap(_,_,List,List).
 
@@ -145,7 +145,7 @@ transformModuleDefs([Def|Defs],Pkg,Map,Opts,Ex,Exx) :-
 transformMdlDef(funDef(Lc,Nm,Tp,[],Eqns),_,Map,Opts,Dx,Dxx) :-
   transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,Dx,Dxx).
 transformMdlDef(varDef(Lc,Nm,[],Tp,Value),_,Map,Opts,Dx,Dxx) :-
-  transformDefn(Map,Opts,Lc,Nm,Tp,Value,Dx,Dxx).
+  transformDefn(Lc,Nm,Tp,Value,Map,Opts,Dx,Dxx).
 transformMdlDef(cnsDef(_,_,_,_),_,_,_,Dx,Dx).
 transformMdlDef(typeDef(_,_,_,_),_,_,_,Dx,Dx).
 transformMdlDef(conDef(_,_,_),_,_,_,Dx,Dx).
@@ -161,7 +161,7 @@ transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   pushOpt(Opts,inProg(Nm),FOpts),
   extraVars(Map,Extra),
   extraArity(Arity,Extra,Ar),
-  LclPrg = prg(LclFun,Ar),
+  LclPrg = lbl(LclFun,Ar),
   transformEquations(Map,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Ex0,Exx),
   functionMatcher(Lc,Ar,LclPrg,Tp,Rules,Fun).
@@ -181,14 +181,15 @@ transformEqn(equation(Lc,_,tple(_,A),Cond,Value),Map,Opts,_LclPrg,
   mergeGoal(Test,LbLx,Lc,EqTest),
   mergeWhere(Rep,EqTest,Lc,Rhs).         % generate label access goals
 
-transformDefn(Map,Opts,Lc,Nm,Tp,Value,[fnDef(Lc,VrProg,Tp,[eqn(Lc,Extra,Body)])|Dx],Dxx) :-
+transformDefn(Lc,Nm,Tp,Value,Map,Opts,[fnDef(Lc,VrProg,funType(tupleType(ExTps),Tp),[eqn(Lc,Extra,Body)])|Dx],Dxx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,_,_,_),
   extraVars(Map,Extra),                                   % extra variables coming from labels
   liftExp(Value,Rep,[],Q0,Map,Opts,Dx,Dxx),
   labelAccess(Q0,_Q,Map,Lc,G0),                        % generate label access goals
   length(Extra,Arity),
-  VrProg = prg(LclName,Arity),
+  ExTps = [],
+  VrProg = lbl(LclName,Arity),
   mergeWhere(Rep,G0,Lc,Body).
 
 transformOthers(_,_,_,[],enum("star.core#true"),Rx,Rx).
@@ -201,7 +202,7 @@ transformOthers(Pkg,Map,Opts,[assertion(Lc,G)|Others],Inits,Rules,Rx) :-
 transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,[fnDef(Lc,LclPrg,funType(tupleType([]),BoolTp),[eqn(Lc,[],Goal)])|Ex],Exx) :-
   rfold(Asserts,transform:collectGoal,enm(Lc,"true"),G),
   localName(Pkg,"@","assert",LclName),
-  LclPrg = prg(LclName,0),
+  LclPrg = lbl(LclName,0),
   liftExp(G,Goal,[],_Q,Map,Opts,Ex,Exx),
   stdType("boolean",BoolTp).
 
@@ -210,7 +211,7 @@ collectGoal(assertion(Lc,G),O,conj(Lc,O,G)).
 
 packageInit(Pkg,Lc,_,_,Inits,[fnDef(Lc,InitPrg,funType(tupleType([]),tupleType([])),[eqn(Lc,[],Inits)])|R],R) :-
   localName(Pkg,"@","init",InitNm),
-  InitPrg = prg(InitNm,0).
+  InitPrg = lbl(InitNm,0).
 
 transformCnsDef(Map,Opts,Lc,Nm,enm(_,_),Tp,Ex,Exx) :-
   transformEnum(Map,Opts,Lc,Nm,Tp,Ex,Exx).
@@ -223,7 +224,7 @@ transformEnum(Map,Opts,Lc,Nm,Tp,Dfs,Dx) :-
 transformCns(Map,Opts,Lc,Nm,Tp,Dfs,Dx) :-
   labelDefn(Map,Opts,Lc,Nm,_LclName,Tp,Dfs,Dx).
 
-labelDefn(Map,_Opts,Lc,Nm,LclName,[fnDef(Lc,prg(Access,ArA),funType(tupleType([]),Tp),
+labelDefn(Map,_Opts,Lc,Nm,LclName,[fnDef(Lc,lbl(Access,ArA),funType(tupleType([]),Tp),
     Tp,[eqn(Lc,[ctpl(Con,[LblTerm])|Extra],Lblx)])|Rx],Rx) :-
   lookupVarName(Map,Nm,Spec),
   trCons(Nm,1,Con),
@@ -234,9 +235,9 @@ labelDefn(Map,_Opts,Lc,Nm,LclName,[fnDef(Lc,prg(Access,ArA),funType(tupleType([]
   labelAccess(Extra,_Q,Map,Lc,G),
   mergeWhere(Unit,G,Lc,Lblx).
 
-makeLabelTerm(localClass(LclName,Strct,LblPrg,ThVr),prg(LclName,2),ctpl(Strct,[ThVr]),LblPrg).
+makeLabelTerm(localClass(LclName,Strct,LblPrg,ThVr),lbl(LclName,2),ctpl(Strct,[ThVr]),LblPrg).
 makeLabelTerm(moduleCons(Access,Strct,0),Access,enum(Strct),Access).
-makeLabelTerm(moduleCons(Access,Strct,Ar),Access,ctpl(strct(Strct,Ar),[]),Access).
+makeLabelTerm(moduleCons(Access,Strct,Ar),Access,ctpl(lbl(Strct,Ar),[]),Access).
 makeLabelTerm(moduleImpl(Access,Strct),Access,Strct,Strct).
 
 transformThetaDefs(_,_,[],Dfs,Dfs).
@@ -247,15 +248,15 @@ transformThetaDefs(Map,Opts,[Def|Defs],Ex,Exx) :-
 transformThetaDef(Map,Opts,funDef(Lc,Nm,Tp,_,Eqns),Dx,Dxx) :-
   transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,Dx,Dxx).
 transformThetaDef(Map,Opts,varDef(Lc,Nm,_,Tp,Value),Dx,Dxx) :-
-  transformDefn(Map,Opts,Lc,Nm,Tp,Value,Dx,Dxx).
+  transformDefn(Lc,Nm,Tp,Value,Map,Opts,Dx,Dxx).
 transformThetaDef(Map,Opts,cnsDef(Lc,Nm,Con,Tp),Dx,Dxx) :-
   transformCnsDef(Map,Opts,Lc,Nm,Con,Tp,Dx,Dxx).
 transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).
 transformThetaDef(_,_,contract(_,_,_),Dx,Dx).
 transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).
 
-closureEntry(Map,Lc,Name,[fnDef(Lc,prg(Closure,2),funType(tupleType([]),voidType),[eqn(Lc,[CallStrct,ClosureCons],
-    cll(Lc,prg(Prog,ArX),Q))])|L],L) :-
+closureEntry(Map,Lc,Name,[fnDef(Lc,lbl(Closure,2),funType(tupleType([]),voidType),[eqn(Lc,[CallStrct,ClosureCons],
+    cll(Lc,lbl(Prog,ArX),Q))])|L],L) :-
   lookupVarName(Map,Name,Reslt),
   programAccess(Reslt,Prog,_,Closure,Arity),
   extraVars(Map,Extra),
@@ -264,7 +265,7 @@ closureEntry(Map,Lc,Name,[fnDef(Lc,prg(Closure,2),funType(tupleType([]),voidType
   trCons("_call",Arity,Con),
   CallStrct = ctpl(Con,Args),
   length(Extra,ExAr),
-  (Extra=[] -> ClosureCons = enum(Closure) ; ClosureCons = ctpl(strct(Closure,ExAr),Extra)),
+  (Extra=[] -> ClosureCons = enum(Closure) ; ClosureCons = ctpl(lbl(Closure,ExAr),Extra)),
   length(Q,ArX).
 
 liftPtns([],Args,Args,Q,Q,_,_,Ex,Ex) :-!.
@@ -308,9 +309,9 @@ trVarPtn(Lc,Nm,A,Q,Qx,Map,_) :-
   lookupVarName(Map,Nm,V),!,
   implementVarPtn(V,Nm,Lc,A,Q,Qx).
 
-implementVarPtn(localVar(Vn,_,TVr),_,Lc,cll(Lc,prg(Vn,1),[TVr]),Q,Qx) :- !, % instance var
+implementVarPtn(localVar(Vn,_,TVr),_,Lc,cll(Lc,lbl(Vn,1),[TVr]),Q,Qx) :- !, % instance var
   merge([TVr],Q,Qx).
-implementVarPtn(moduleVar(_,Vn,_),_,Lc,cll(Lc,prg(Vn,0),[]),Q,Q) :-
+implementVarPtn(moduleVar(_,Vn,_),_,Lc,cll(Lc,lbl(Vn,0),[]),Q,Q) :-
       !. % module variable
 implementVarPtn(labelArg(N,TVr),_,_,N,Q,Qx) :- !,    % argument from label
   merge([N,TVr],Q,Qx).
@@ -328,15 +329,15 @@ trPtnCallOp(Lc,Nm,Args,Ptn,Q,Qx,Map,_,Ex,Ex) :-
   lookupFunName(Map,Nm,Reslt),
   implementPtnCall(Reslt,Lc,Nm,Args,Ptn,Q,Qx).
 
-implementPtnCall(localFun(Fn,_,_,Ar,ThVr),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,prg(Fn,A2),XArgs))),Q,Qx) :-
+implementPtnCall(localFun(Fn,_,_,Ar,ThVr),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs))),Q,Qx) :-
   genVar("X",X),
   concat(Args,[ThVr],XArgs),
   merge([X,ThVr],Q,Qx),
   A2 is Ar+1.
-implementPtnCall(moduleFun(_,Fn,_,_,Ar),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,prg(Fn,Ar),Args))),Q,Qx) :-
+implementPtnCall(moduleFun(_,Fn,_,_,Ar),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,Ar),Args))),Q,Qx) :-
   genVar("X",X),
   merge([X],Q,Qx).
-implementPtnCall(moduleCons(Mdl,_,Ar),_,_,Args,ctpl(strct(Mdl,Ar),Args),Q,Q).
+implementPtnCall(moduleCons(Mdl,_,Ar),_,_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q).
 implementPtnCall(localClass(Mdl,_,_,ThVr),_,_,Args,ctpl(Mdl,XArgs),Q,Qx) :-
   concat(Args,[ThVr],XArgs),
   merge([ThVr],Q,Qx).
@@ -403,7 +404,7 @@ trDotExp(_,v(Lc,Nm),Fld,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
 trDotExp(Lc,R,Fld,ocall(Lc,Lbl,R),Qx,Qx,_,_,Ex,Ex) :-
   makeDotLbl(Fld,Lbl).
 
-implementDotExp(moduleCons(_,Lbl,_),Lc,Rc,_,cll(Lc,prg(Lbl,1),[Rc]),Qx,Qx,_,_,Ex,Ex).
+implementDotExp(moduleCons(_,Lbl,_),Lc,Rc,_,cll(Lc,lbl(Lbl,1),[Rc]),Qx,Qx,_,_,Ex,Ex).
 implementDotExp(_,Lc,Rc,Fld,ocall(Lc,F,Rc),Qx,Qx,_,_,Ex,Ex) :-
   makeDotLbl(Fld,F).
 
@@ -414,9 +415,9 @@ trVarExp(Lc,Nm,Exp,Q,Qx,Map,_) :-
 trVarExp(Lc,Nm,idnt("_"),Q,Q,_,_) :-
   reportError("'%s' not defined",[Nm],Lc).
 
-implementVarExp(localVar(Vn,_,ThVr),Lc,_,cll(Lc,prg(Vn,1),[ThVr]),Q,Qx) :-
+implementVarExp(localVar(Vn,_,ThVr),Lc,_,cll(Lc,lbl(Vn,1),[ThVr]),Q,Qx) :-
   merge([ThVr],Q,Qx).
-implementVarExp(moduleVar(_,V,_),Lc,_,cll(Lc,prg(V,0),[]),Qx,Qx).
+implementVarExp(moduleVar(_,V,_),Lc,_,cll(Lc,lbl(V,0),[]),Qx,Qx).
 implementVarExp(labelArg(N,ThVar),_,_,N,Q,Qx) :-
   merge([N,ThVar],Q,Qx).
 implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),Q,Q).
@@ -429,7 +430,7 @@ implementVarExp(notInMap,_,Nm,idnt(Nm),Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
 implementVarExp(moduleFun(_,_,_,Acc,_),_,_,enum(Acc),Q,Q).
 implementVarExp(moduleRel(_,_,_,Acc,_),_,_,enum(Acc),Q,Q).
-implementVarExp(localFun(_,_,Closure,_,ThVr),_,_,ctpl(strct(Closure,1),[ThVr]),Q,Q).
+implementVarExp(localFun(_,_,Closure,_,ThVr),_,_,ctpl(lbl(Closure,1),[ThVr]),Q,Q).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),Q,Q) :-
   reportError("cannot handle %s in expression",[Nm],Lc).
 
@@ -455,13 +456,13 @@ trExpCallDot(Lc,R,C,ocall(Lc,C,Rc),Q,Qx,Map,Opts,Ex,Exx) :-
 
 implementDotFunCall(Lc,_,Rc,C,ocall(Lc,C,Rc),Qx,Qx,_,_,Ex,Ex).
 
-implementFunCall(Lc,localFun(Fn,_,_,Ar,ThVr),_,Args,cll(Lc,prg(Fn,Ar2),XArgs),Q,Qx,_,_,Ex,Ex) :-
+implementFunCall(Lc,localFun(Fn,_,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,Qx,_,_,Ex,Ex) :-
   concat(Args,[ThVr],XArgs),
   merge([ThVr],Q,Qx),
   Ar2 is Ar+1.
-implementFunCall(Lc,moduleFun(_,Fn,_,_,Ar),_,Args,cll(Lc,prg(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
-implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(strct(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
-implementFunCall(_,localClass(Mdl,_,_,Ar,ThVr),_,Args,ctpl(strct(Mdl,Ar2),XArgs),Q,Qx,_,_,Ex,Ex) :-
+implementFunCall(Lc,moduleFun(_,Fn,_,_,Ar),_,Args,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
+implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
+implementFunCall(_,localClass(Mdl,_,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q,Qx,_,_,Ex,Ex) :-
   concat(Args,[ThVr],XArgs),
   merge([ThVr],Q,Qx),
   Ar2 is Ar+1.
@@ -496,7 +497,7 @@ mkClosure(Lam,FreeVars,Closure) :-
   length(FreeVars,Ar),
   (Ar = 0 ->
     Closure=enum(Lam) |
-    Closure=ctpl(strct(Lam,Ar),FreeVars)).
+    Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
 liftGoal(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
@@ -516,9 +517,6 @@ liftGoal(neg(Lc,R),ng(Lc,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(G,Gx,Q,Qx,Map,Opts,Ex,Exx).
 
-trLocation(loc(Ln,Col,_,Sz),LocTpl,G,G,Q,Q,_,_,Ex,Ex) :-
-  mkTpl([intgr(Ln),intgr(Col),intgr(Sz)],LocTpl).
-
 /* A theta or record is converted to a structure containing free variables */
 
 liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
@@ -527,7 +525,7 @@ liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
   thetaDefs(Theta,Defs),
   thetaSig(Theta,Sig),
   transformThetaDefs(ThMap,Opts,Defs,Ex0,Exx),
-  functionMatcher(Lc,2,prg(ThLbl,2),funType(tupleType([]),Sig),EnRls,ThetaFun).
+  functionMatcher(Lc,2,lbl(ThLbl,2),funType(tupleType([]),Sig),EnRls,ThetaFun).
 
 thetaMap(Theta,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Exx) :-
   genVar("ThV",ThVr),
@@ -558,7 +556,7 @@ thetaLbl(record(_,Path,_,_,_,_),Map,Lbl) :-
   localName(Outer,"•",Path,Lbl).
 
 makeLblTerm(Nm,[],enum(Nm)) :- !.
-makeLblTerm(Nm,Extra,ctpl(strct(Nm,Ar),Extra)) :- length(Extra,Ar).
+makeLblTerm(Nm,Extra,ctpl(lbl(Nm,Ar),Extra)) :- length(Extra,Ar).
 
 makeMtdMap(theta(_,_,Defs,_,_,_),OuterNm,ThVr,L,Lx,Ex,Exx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx,Ex,Exx).
@@ -576,14 +574,14 @@ collectMtd(funDef(Lc,Nm,Tp,_,_),OuterNm,ThV,List,
   localName(OuterNm,"%",Nm,AccessName),
   localName(OuterNm,"^",Nm,ClosureName),
   typeArity(Tp,Ar),
-  OuterPrg = prg(OuterNm,2),
+  OuterPrg = lbl(OuterNm,2),
   entryRule(OuterPrg,Lc,Nm,LclName,Ar,ThV,EnRl),
   closureRule(OuterPrg,Lc,Nm,ClosureName,ThV,ClRl).
 collectMtd(varDef(Lc,Nm,_,_,_),OuterNm,ThV,List,
       [(Nm,localVar(LclName,AccessName,ThV))|List],[EnRl,AcRl|Ex],Ex) :-
   localName(OuterNm,"@",Nm,LclName),
   localName(OuterNm,"%",Nm,AccessName),
-  OuterPrg = prg(OuterNm,2),
+  OuterPrg = lbl(OuterNm,2),
   entryRule(OuterPrg,Lc,Nm,LclName,0,ThV,EnRl),
   accessRule(OuterPrg,Lc,Nm,LclName,ThV,AcRl).
 collectMtd(typeDef(_,_,_,_),_,_,List,List,Ex,Ex).
@@ -597,7 +595,7 @@ collectLabelVars([v(_,Nm)|Args],ThVr,List,Lx) :-
   OuterNm(Nm(Args),ThVr) => LclName(Args,ThVr)
 */
 entryRule(_,Lc,Nm,LclName,Arity,ThV,
-    eqn(Lc,[ctpl(Acc,Args),ThV],cll(Lc,prg(LclName,Ar1),AllArgs))) :-
+    eqn(Lc,[ctpl(Acc,Args),ThV],cll(Lc,lbl(LclName,Ar1),AllArgs))) :-
   genVars(Arity,Args),
   trCons(Nm,Arity,Acc),
   concat(Args,[ThV],AllArgs),
@@ -608,10 +606,10 @@ entryRule(_,Lc,Nm,LclName,Arity,ThV,
  OuterNm(.Nm,ThVr) => ClosureNm(ThVr)
 */
 closureRule(_,Lc,Nm,ClosureName,ThVr,
-    eqn(Lc,[DotName,ThVr],ctpl(strct(ClosureName,1),[ThVr]))) :-
+    eqn(Lc,[DotName,ThVr],ctpl(lbl(ClosureName,1),[ThVr]))) :-
   makeDotLbl(Nm,DotName).
 
-accessRule(_,Lc,Nm,LclName,ThV,eqn(Lc,[DotName,ThV],cll(Lc,prg(LclName,1),[ThV]))) :-
+accessRule(_,Lc,Nm,LclName,ThV,eqn(Lc,[DotName,ThV],cll(Lc,lbl(LclName,1),[ThV]))) :-
   makeDotLbl(Nm,DotName).
 
 programAccess(moduleFun(_,Prog,Access,Closure,Arity),Prog,Access,Closure,Arity).

@@ -33,7 +33,7 @@ typedef struct {
   flagProc endDecoding;
   intProc decInt;
   fltProc decFlt;
-  nameProc decEnum;
+  nameProc decLbl;
   stringProc decString;
   consProc decCons;
 } DecodeCallBacks, *decodeCallBackPo;

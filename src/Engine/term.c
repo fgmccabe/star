@@ -6,11 +6,14 @@
 #include <assert.h>
 #include "formioP.h"
 
-labelPo C_LBL(termPo t) {
-  assert(hasClass(t, labelClass));
+SpecialClass SpecialClss = {
+  .clss = Null,
+  .sizeFun = Null,
+  .copyFun = Null,
+  .scanFun = Null
+};
 
-  return (labelPo) t;
-}
+clssPo specialClass = (clssPo) &SpecialClss;
 
 extern normalPo C_TERM(termPo t) {
   assert(hasClass(t, normalClass));

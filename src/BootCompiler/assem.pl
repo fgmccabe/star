@@ -50,54 +50,56 @@ mnem([iPull(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(11,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iRot(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(12,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(13,LtNo)|M]) :- Pc1 is Pc+1,
+mnem([iReset(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(13,V)|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
+mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(14,LtNo)|M]) :- Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(14,V)|M]) :- Pc1 is Pc+1,
+mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(15,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(15,V)|M]) :- Pc1 is Pc+1,
+mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(16,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(16,V)|M]) :- Pc1 is Pc+1,
+mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(17,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(17,V)|M]) :- Pc1 is Pc+1,
+mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(18,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(18,V)|M]) :- Pc1 is Pc+1,
+mnem([iStA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(19,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCLbl(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(19,Off)|M]) :- Pc1 is Pc+1,
+mnem([iCLbl(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(20,Off)|M]) :- Pc1 is Pc+1,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(20,V)|M]) :- Pc1 is Pc+1,
+mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(21,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(21,V)|M]) :- Pc1 is Pc+1,
+mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(22,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(22,V)|M]) :- Pc1 is Pc+1,
+mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(23,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(23,LtNo)|M]) :- Pc1 is Pc+1,
+mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(24,LtNo)|M]) :- Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(24,Off)|M]) :- Pc1 is Pc+1,
+mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(25,Off)|M]) :- Pc1 is Pc+1,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iBf(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(25,Off)|M]) :- Pc1 is Pc+1,
+mnem([iBf(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(26,Off)|M]) :- Pc1 is Pc+1,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iBt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(26,Off)|M]) :- Pc1 is Pc+1,
+mnem([iBt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(27,Off)|M]) :- Pc1 is Pc+1,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCas(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(27,Off)|M]) :- Pc1 is Pc+1,
+mnem([iCas(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(28,Off)|M]) :- Pc1 is Pc+1,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iRais(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(28,LtNo)|M]) :- Pc1 is Pc+1,
+mnem([iRais(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(29,LtNo)|M]) :- Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(29,V)|M]) :- Pc1 is Pc+1,
+mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(30,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(30,LtNo)|M]) :- Pc1 is Pc+1,
+mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(31,LtNo)|M]) :- Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
 

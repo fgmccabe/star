@@ -16,7 +16,6 @@ retCode encodeFlt(ioPo out, double dx);
 retCode encodeStr(ioPo out, char *dx, integer len);
 retCode encodeTxt(ioPo out, char *sx, integer len);
 retCode encodeEnum(ioPo out, char *nm);
-retCode encodePrg(ioPo out, char *sx, integer ar);
 retCode encodeStrct(ioPo out, char *sx, integer ar);
 retCode encodeCons(ioPo out, integer arity);
 #endif

@@ -384,7 +384,7 @@ retCode loadCodeSegment(ioPo in, heapPo heap, pkgPo owner, char *errorMsg, long 
                 ret = decodeTerm(in, heap, &locals, errorMsg, msgSize);
 
                 if (ret == Ok) {
-                  labelPo lbl = defineMtd(ins, insCount, prgName, arity, C_TERM(pool), C_TERM(frames), C_TERM(locals));
+                  labelPo lbl = defineMtd(ins, insCount, prgName, arity, C_TERM(pool), C_TERM(locals));
 
                   gcReleaseRoot(root);
                   return installMethod(owner, lbl);

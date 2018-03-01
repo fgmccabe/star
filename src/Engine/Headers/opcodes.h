@@ -13,7 +13,6 @@
 typedef enum {
 #include "instructions.h"
 #undef instruction
-  label,
   illegalOp
 }OpCode;
 
@@ -37,7 +36,6 @@ typedef enum {
  * PC current program counter
  * PRG current program base
  */
-
 typedef enum {
  nOp,                                   // No operand
  i32,					/* 32 bit literal operand */

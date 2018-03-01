@@ -54,10 +54,8 @@ typedef enum {
   intTrm = 'x',        // Integer value
   fltTrm = 'd',        // Floating point value
   strTrm = 's',        // String value
-  enuTrm = 'e',        // Symbol name
   dtaTrm = 'n',        // Constructor data value
-  strctTrm = 'o',      // A structure idientifier
-  prgTrm = 'p',        // A program identifier
+  lblTrm = 'o',        // A structure label identifier
 } cafeTermSig;
 
 

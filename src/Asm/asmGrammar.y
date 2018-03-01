@@ -135,7 +135,6 @@ trailer: END nls { endFunction(currMtd); }
    | STRING { $$=newStringConstant(currMtd,$1); }
    | DECIMAL { $$ = newIntegerConstant(currMtd,$1); }
    | ID COLON DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
-   | ID SLASH DECIMAL { $$=newPrgConstant(currMtd,$1,$3); }
    ;
 
  load: LD literal { ALdC(currMtd,$2); }

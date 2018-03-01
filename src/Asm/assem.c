@@ -149,7 +149,7 @@ mtdPo defineMethod(pkgPo pkg, char *name, integer arity, char *sig) {
     mtd->sig = -1;
     mtd->locals = NewHash(16, (hashFun) localHash, (compFun) localComp, NULL);
 
-    newPrgConstant(mtd, name, arity);
+    newStrctConstant(mtd, name, arity);
 
     hashPut(pkg->methods, &mtd->name, mtd);
 

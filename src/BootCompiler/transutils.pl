@@ -10,12 +10,12 @@
 :- use_module(types).
 :- use_module(freshen).
 
-trCons(Nm,Arity,strct(Name,Arity)) :-
+trCons(Nm,Arity,lbl(Name,Arity)) :-
   integer(Arity),!,
   number_string(Arity,Sz),
   string_concat(Nm,"%",N1),
   string_concat(N1,Sz,Name).
-trCons(Nm,Args,strct(Name,Arity)) :-
+trCons(Nm,Args,lbl(Name,Arity)) :-
   length(Args,Arity),
   number_string(Arity,Sz),
   string_concat(Nm,"%",N1),
@@ -23,11 +23,11 @@ trCons(Nm,Args,strct(Name,Arity)) :-
 
 /*
  * Each element in Layers defines a scope. It is a tuple of the form:
- * lyr(Prefix,Defs:list[(Name,Class),Label,Thvr)
+ * lyr(Prefix,Defs:list[(Name,Class),LblRecord,Thvr)
  * Where Prefix is the current prefix
  * Defs is the set of local programs and other names defined in this scope
  * Loc is the file location of the defining label
- * Label is the full form of the label term.
+ * LblRecord is the full form of the label term.
  * Clvr is the variable holding the label
  * Thvr is the variable holding this
  * StreamVr is valid in a grammar body, denotes the stream
@@ -107,14 +107,16 @@ definedInDefs([(Nm,Entry)|Defs],Pr,Prx) :-
 definedInDefs([_|Defs],Pr,Prx) :-
   definedInDefs(Defs,Pr,Prx).
 
-definedP(Nm,moduleFun(_,_,_,_,Arity),prg(Nm,Arity)).
-definedP(Nm,localFun(_,_,_,_,Arity),prg(Nm,Arity)).
+definedP(Nm,moduleFun(_,_,_,_,Arity),lbl(Nm,Arity)).
+definedP(Nm,localFun(_,_,_,_,Arity),lbl(Nm,Arity)).
+definedP(Nm,moduleVar(_,_,_),lbl(Nm,0)).
+definedP(Nm,localVar(_,_,_),lbl(Nm,0)).
 
-mergeGoal(enu("star.core#true"),G,_,G).
-mergeGoal(G,enu("star.core#true"),_,G).
+mergeGoal(enum("star.core#true"),G,_,G).
+mergeGoal(G,enum("star.core#true"),_,G).
 mergeGoal(G1,G2,Lc,cnj(Lc,G1,G2)).
 
-mergeWhere(Exp,enu("star.core#true"),_,Exp).
+mergeWhere(Exp,enum("star.core#true"),_,Exp).
 mergeWhere(Exp,G,Lc,whr(Lc,Exp,G)).
 
 pushOpt(Opts,Opt,[Opt|Opts]).

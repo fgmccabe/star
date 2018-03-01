@@ -97,14 +97,16 @@ showCanonTerm(enm(_,Nm),O,Ox) :-
 showCanonTerm(cns(_,Nm),O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
-showCanonTerm(theta(_,_,Defs,Others,Types,_),O,Ox) :-
-  appStr("{\n",O,O1),
+showCanonTerm(theta(_,Path,Defs,Others,Types,_),O,Ox) :-
+  appStr(Path,O,O0),
+  appStr("{\n",O0,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr("\n}",O4,Ox).
-showCanonTerm(record(_,_,Defs,Others,Types,_),O,Ox) :-
-  appStr("{.\n",O,O1),
+showCanonTerm(record(_,Path,Defs,Others,Types,_),O,Ox) :-
+  appStr(Path,O,O0),
+  appStr("{.\n",O0,O1),
   showTypeDefs(Types,O1,O2),
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
