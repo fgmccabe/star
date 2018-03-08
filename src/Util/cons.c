@@ -15,18 +15,18 @@
 
 #include "config.h"
 #include "utils.h"
-#include "listsP.h"
+#include "consP.h"
 #include <assert.h>
 
 static integer listHash(objectPo o);
 
 static logical listEquality(objectPo o1, objectPo o2);
 
-static void listInit(objectPo o, va_list *args);
+static void consInit(objectPo o, va_list *args);
 
 static void eraseList(objectPo o);
 
-ListClassRec ListClass = {
+ConsClassRec ConsClass = {
   {
     (classPo) &ObjectClass,
     "list",
@@ -35,8 +35,8 @@ ListClassRec ListClass = {
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     eraseList,
-    listInit,
-    sizeof(ListRecord),
+    consInit,
+    sizeof(ConsRecord),
     listHash,
     listEquality,
     NULL,
@@ -46,35 +46,35 @@ ListClassRec ListClass = {
   {}
 };
 
-classPo listClass = (classPo) &ListClass;
+classPo listClass = (classPo) &ConsClass;
 
-ListRecord EmptyList = {
-  {(classPo) &ListClass,
+ConsRecord EmptyList = {
+  {(classPo) &ConsClass,
          LARGE_INT32
   },
   {NULL, NULL}
 };
 
-listPo nilList = &EmptyList;
+consPo nilList = &EmptyList;
 
-void listInit(objectPo o, va_list *args) {
-  listPo l = O_LIST(o);
+void consInit(objectPo o, va_list *args) {
+  consPo l = O_LIST(o);
   l->list.head = va_arg(*args, objectPo);
-  l->list.tail = va_arg(*args, listPo);
+  l->list.tail = va_arg(*args, consPo);
 
   incReference(l->list.head);
   incReference(O_OBJECT(l->list.tail));
 }
 
 void eraseList(objectPo o) {
-  listPo l = O_LIST(o);
+  consPo l = O_LIST(o);
 
   decReference(l->list.head);
   decReference(O_OBJECT(l->list.tail));
 }
 
 static integer listHash(objectPo o) {
-  listPo l = O_LIST(o);
+  consPo l = O_LIST(o);
   if (l == nilList)
     return 0;
   else
@@ -82,8 +82,8 @@ static integer listHash(objectPo o) {
 }
 
 static logical listEquality(objectPo o1, objectPo o2) {
-  listPo l1 = O_LIST(o1);
-  listPo l2 = O_LIST(o2);
+  consPo l1 = O_LIST(o1);
+  consPo l2 = O_LIST(o2);
 
   while (l1 != nilList && l2 != nilList) {
     if (!equals(l1->list.head, l2->list.head))
@@ -95,23 +95,23 @@ static logical listEquality(objectPo o1, objectPo o2) {
   return (logical) (l1 == nilList && l2 == nilList);
 }
 
-void *head(listPo list) {
+void *head(consPo list) {
   return list->list.head;
 }
 
-listPo tail(listPo list) {
+consPo tail(consPo list) {
   return list->list.tail;
 }
 
-listPo cons(objectPo head, listPo tail) {
+consPo cons(objectPo head, consPo tail) {
   return O_LIST(newObject(listClass, head, tail));
 }
 
-listPo tack(objectPo head, listPo list) {
+consPo tack(objectPo head, consPo list) {
   if (list == nilList)
     return cons(head, list);
   else {
-    listPo l = list;
+    consPo l = list;
     while (l->list.tail != nilList)
       l = l->list.tail;
     l->list.tail = cons(head, nilList);
@@ -119,7 +119,7 @@ listPo tack(objectPo head, listPo list) {
   }
 }
 
-objectPo listNthElement(listPo list, int64 ix) {
+objectPo listNthElement(consPo list, int64 ix) {
   while (list != nilList && ix-- > 0)
     list = tail(list);
   if (list == nilList)
@@ -128,7 +128,7 @@ objectPo listNthElement(listPo list, int64 ix) {
     return head(list);
 }
 
-retCode processList(listPo list, listFun fun, void *cl) {
+retCode processCons(consPo list, listFun fun, void *cl) {
   retCode ret = Ok;
   while (ret == Ok && list != nilList) {
     ret = fun(head(list), cl);
@@ -137,7 +137,7 @@ retCode processList(listPo list, listFun fun, void *cl) {
   return ret;
 }
 
-void *findInList(listPo list, listTest test, void *cl) {
+void *findInList(consPo list, listTest test, void *cl) {
   while (list != nilList) {
     if (test(head(list), cl))
       return head(list);
@@ -146,7 +146,7 @@ void *findInList(listPo list, listTest test, void *cl) {
   return Null;
 }
 
-long listCount(listPo list) {
+long listCount(consPo list) {
   long count = 0;
   while (list != nilList) {
     count++;
@@ -155,9 +155,9 @@ long listCount(listPo list) {
   return count;
 }
 
-listPo removeElements(listPo l, listTest test, void *cl) {
-  listPo l1 = l;
-  listPo tl = nilList;
+consPo removeElements(consPo l, listTest test, void *cl) {
+  consPo l1 = l;
+  consPo tl = nilList;
   while (l1 != nilList) {
     if (test(head(l1), cl)) {
       if (tl == nilList) {    /* top of list */
@@ -175,7 +175,7 @@ listPo removeElements(listPo l, listTest test, void *cl) {
   return l;
 }
 
-listPo filter(listPo l, listTest test, void *cl) {
+consPo filter(consPo l, listTest test, void *cl) {
   if (l == nilList)
     return l;
   else if (test(head(l), cl)) {
@@ -184,7 +184,7 @@ listPo filter(listPo l, listTest test, void *cl) {
     return filter(tail(l), test, cl);
 }
 
-void *listFold(listPo l, folder f, void *state) {
+void *listFold(consPo l, folder f, void *state) {
   while (l != nilList) {
     state = f(head(l), state);
     l = tail(l);
@@ -192,6 +192,6 @@ void *listFold(listPo l, folder f, void *state) {
   return state;
 }
 
-void releaseList(listPo l){
+void releaseList(consPo l){
   eraseList(O_OBJECT(l));
 }

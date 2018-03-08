@@ -28,6 +28,9 @@ extern char entry[MAX_SYMB_LEN];
 extern char bootPkg[MAX_SYMB_LEN];  // boot package
 extern char bootVer[MAX_SYMB_LEN];
 
+extern char CWD[MAXFILELEN];
+extern char repoDir[MAXFILELEN];
+
 int getOptions(int argc, char **argv);
 void usage(char *name);
 void defltCWD();

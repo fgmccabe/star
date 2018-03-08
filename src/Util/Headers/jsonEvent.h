@@ -6,7 +6,7 @@
 #define LANDO_JSONEVENT_H
 
 #include "retcode.h"
-#include "unicode.h"
+#include "unistr.h"
 #include "io.h"
 
 typedef retCode (*collectionProc)(void *cl);

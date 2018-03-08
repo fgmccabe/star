@@ -6,7 +6,7 @@
 #include "pool.h"
 #include <stdlib.h>
 #include <string.h>
-#include <io.h>
+#include <iochnnl.h>
 #include <ooio.h>
 
 static poolPo triePool;

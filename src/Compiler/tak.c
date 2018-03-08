@@ -1,6 +1,6 @@
 #include "config.h"
 #include <ooio.h>
-#include <io.h>
+#include <iochnnl.h>
 
 long tarai(long x, long y, long z)
 {

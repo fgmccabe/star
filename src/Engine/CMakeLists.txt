@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(cafe)
+project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
@@ -11,7 +11,9 @@ set(HEADER_FILES
         ../Headers/instructions.h
         ../Util/Headers/ooio.h
         ../Util/Headers/options.h
-        ../Lib/Headers/escape.h
+        ../Lib/Headers/libEscapes.h
+        Headers/array.h Headers/arrayP.h
+        Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
         Headers/engine.h
         Headers/decode.h
@@ -20,17 +22,23 @@ set(HEADER_FILES
         Headers/cafe.h
         Headers/opcodes.h
         ../Headers/cafeOptions.h
+        Headers/globals.h
         Headers/heap.h Headers/heapP.h
+        Headers/lockvar.h Headers/lockvarP.h
         Headers/term.h Headers/termP.h Headers/str.h Headers/arith.h
         Headers/debug.h
-        Headers/esc.h
         Headers/tpl.h Headers/engineP.h
-        Headers/local.h Headers/engineOptions.h)
+        Headers/local.h Headers/engineOptions.h
+        Headers/labels.h Headers/labelsP.h
+        Headers/arithP.h Headers/strP.h
+        Headers/repoP.h
+        Headers/repo.h)
 
 set(SOURCE_FILES
-        boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c heap.c load.c main.c
-        ${HEADER_FILES} code.c term.c Headers/arithP.h Headers/strP.h labels.c Headers/labels.h Headers/labelsP.h)
+        boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
+        ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
+        str.c array.c lockvar.c cell.c iochnl.c)
 
-add_executable(cafe ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(cafe ooio escapes)
+target_link_libraries(star infra ooio escapes)

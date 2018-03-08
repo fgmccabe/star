@@ -6,6 +6,7 @@
 #define CAFE_STR_H
 
 #include "term.h"
+#include "heap.h"
 
 // String structure
 typedef struct string_term *stringPo;

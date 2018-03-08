@@ -4,7 +4,7 @@
  */
 
 %{
-#include "unicode.h"
+#include "unistr.h"
 #include "retcode.h"
 #include "logical.h"
 #include "io.h"

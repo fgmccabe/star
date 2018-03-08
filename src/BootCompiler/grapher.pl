@@ -50,7 +50,7 @@ parsePkgName(P,pkg(Pkg,Version)) :-
   sub_string(P,_,After,0,Version).
 parsePkgName(P,pkg(P,defltVersion)).
 
-checkPkg(spec(Pkg,_,_,_,_,_,Imports),Repo,Cat,CWD,SrcFn,SoFar,Pkgs) :-
+checkPkg(spec(Pkg,_,_,_,_,Imports),Repo,Cat,CWD,SrcFn,SoFar,Pkgs) :-
   reformatImports(Imports,Imps),
   scanImports(Imps,Repo,Cat,CWD,[(Pkg,Imps,Imps,SrcFn)|SoFar],Pkgs).
 

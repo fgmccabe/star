@@ -1,16 +1,6 @@
 /*
   Clock and interval timer management for the Star system
   Copyright (c) 2016, 2017, 2018. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
  */
 
 #include <signal.h>
@@ -46,8 +36,9 @@ void init_time(void) {
  * reset the interval timer for the new period
  */
 
-retCode g_delay(processPo P, ptrPo tos) {
-  double dx = floatVal(*tos);
+ReturnStatus g_delay(processPo P, ptrPo tos) {
+  double dx = floatVal(tos[0]);
+  ReturnStatus ret = {.rslt=Null, .ret=Ok};
 
   struct timespec tm;
   double seconds;
@@ -70,12 +61,13 @@ retCode g_delay(processPo P, ptrPo tos) {
     }
   } else {
     setProcessRunnable(P);
-    return Ok;
+    return ret;
   }
 }
 
-retCode g_sleep(processPo P, ptrPo tos) {
+ReturnStatus g_sleep(processPo P, ptrPo tos) {
   double f = floatVal(*tos);
+  ReturnStatus ret = {.rslt=Null, .ret=Ok};
 
   struct timeval now;
   double seconds;
@@ -84,9 +76,9 @@ retCode g_sleep(processPo P, ptrPo tos) {
   gettimeofday(&now, NULL);
 
   if (seconds < now.tv_sec ||
-      (seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec))
-    return Ok;
-  else {
+      (seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
+    return ret;
+  } else {
     struct timespec tm;
 
     tm.tv_sec = (long) seconds;
@@ -115,29 +107,25 @@ retCode g_sleep(processPo P, ptrPo tos) {
       }
     } else {
       setProcessRunnable(P);
-      return Ok;
+      return ret;
     }
   }
 }
 
 /* Return the current time */
-retCode g_now(processPo P, ptrPo tos) {
-  termPo now = allocateFloat(currHeap, get_time());
-  if (now != Null) {
-    *tos = now;
-    return Ok;
-  } else
-    return Error;
+ReturnStatus g_now(processPo P, ptrPo tos) {
+  termPo now = (termPo) allocateFloat(processHeap(P), get_time());
+
+  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
+  return ret;
 }
 
 /* Return the time at midnight */
-retCode g_today(processPo P, ptrPo tos) {
-  termPo now = allocateFloat(currHeap, get_date());
-  if (now != Null) {
-    *tos = now;
-    return Ok;
-  } else
-    return Error;
+ReturnStatus g_today(processPo P, ptrPo tos) {
+  termPo now = (termPo) allocateFloat(processHeap(P), get_date());
+
+  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
+  return ret;
 }
 
 /*
@@ -148,13 +136,11 @@ double get_ticks(void) {
   return ((double) clock()) / CLOCKS_PER_SEC;
 }
 
-retCode g_ticks(processPo P, ptrPo tos) {
-  termPo now = allocateFloat(currHeap, get_ticks());
-  if (now != Null) {
-    *tos = now;
-    return Ok;
-  } else
-    return Error;
+ReturnStatus g_ticks(processPo P, ptrPo tos) {
+  termPo now = (termPo) allocateFloat(currHeap, get_ticks());
+
+  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
+  return ret;
 }
 
 /*

@@ -31,7 +31,7 @@ typedef struct {
 
 } LockClassPart;
 
-typedef struct _list_class_ {
+typedef struct _cons_class_ {
   ObjectClassRec objectClassPart;
   LockClassPart lockClassPart;
 } LockClassRec;

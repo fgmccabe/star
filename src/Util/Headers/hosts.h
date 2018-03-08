@@ -17,7 +17,7 @@
 #define _LO_HOST_H_
 
 #include "object.h"
-#include "unicode.h"
+#include "unistr.h"
 
 /* Host name management and interface */
 char * getHostname(char * name);

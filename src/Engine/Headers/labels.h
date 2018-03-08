@@ -13,6 +13,7 @@
 labelPo findLbl(char *name, integer arity);
 
 labelPo declareLbl(char *name, integer arity);
+labelPo declareEnum(char *name);
 
 retCode showLbl(ioPo out, labelPo lbl);
 

@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #include "engine.h"			/* access engine definitions */
-#include "escape.h"			/* escape call handling */
+#include "libEscapes.h"      /* escape call handling */
 #include "codeP.h"      /* We need access to code structures */
 
 

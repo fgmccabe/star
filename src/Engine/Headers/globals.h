@@ -5,4 +5,15 @@
 #ifndef CAFE_GLOBALS_H
 #define CAFE_GLOBALS_H
 
+extern termPo falseEnum;
+extern termPo trueEnum;
+
+extern termPo voidEnum;
+extern termPo okEnum;
+extern termPo failEnum;
+extern termPo eofEnum;
+extern termPo errorLbl;
+
+extern void initGlobals();
+
 #endif //CAFE_GLOBALS_H

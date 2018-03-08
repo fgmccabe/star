@@ -2,16 +2,16 @@
  * top-level of the compiler
  */
 
+#include <escapes.h>
 #include "compiler.h"
 #include "catalogP.h"
 #include "metaP.h"
 #include "packageP.h"
 #include "dict.h"
+#include "compescapes.h"
 
 #include "compile.h"
 #include "codegen.h"
-#include "escapes.h"
-#include "multi.h"
 #include "type.h"
 
 static ioPo openStdURI(char *uri,ioEncoding encoding);

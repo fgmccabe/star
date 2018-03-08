@@ -20,6 +20,8 @@ typedef struct _processRec_ {
   ptrPo sp;           /* current top of stack */
   termPo stackBase;   /* base of execution stack */
   termPo stackLimit;  /* Limit of execution stack */
+  heapPo heap;        // Local heap for this process
+  char wd[MAXFILELEN]; // Each thread may have its own working directory.
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
 #endif

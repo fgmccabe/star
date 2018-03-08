@@ -67,6 +67,12 @@ pkgPo createPkg(char *name, char *version) {
   return pkg;
 }
 
+
+retCode delPkg(packagePo pkg, pkgPo p){
+  freePool(pkgPool,p);
+  return Ok;
+}
+
 char *loadedVersion(char *package) {
   pkgPo pkg = loadedPackage(package);
 

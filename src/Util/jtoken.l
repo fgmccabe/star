@@ -15,7 +15,7 @@
 #include <io.h>
 #include "file.h"
 #include <math.h>
-#include <unicode.h>
+#include <unistr.h>
 #include "jsonEvent.h"
 #include "jsonParser.h"
 #include "formio.h"

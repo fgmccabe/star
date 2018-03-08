@@ -7,12 +7,10 @@
 #include "cafe.h"
 #include "engineOptions.h"
 #include "code.h"
+#include "heap.h"
 
 typedef struct _processRec_ *processPo;
 typedef struct _stack_frame_ *framePo;
-
-#include "heap.h"
-#include "code.h"
 
 #define MAX_OPERANDS 1024
 
@@ -26,12 +24,22 @@ typedef enum {
   runnable,
 } ProcessState;
 
+typedef struct _return_code_ {
+  retCode ret;
+  termPo rslt;
+} ReturnStatus;
+
 extern processPo newProcess(methodPo cl);
 extern void switchProcessState(processPo p, ProcessState state);
 extern void setProcessRunnable(processPo p);
 
+extern heapPo processHeap(processPo p);
+
+extern char *processWd(processPo p);
+extern retCode setProcessWd(processPo p, char *wd, integer len);
+
 extern termPo localVar(framePo fp, int64 off);
 
-extern retCode liberror(processPo P, char *name, termPo code);
+extern ReturnStatus liberror(processPo P, char *name, termPo code);
 
 #endif

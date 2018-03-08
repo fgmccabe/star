@@ -154,6 +154,11 @@ combCont([Cnt|Cs],C,Cx,Stk,Stkx) :-
 allocCont(Str,[iAlloc(Str),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
   popStack(Str,Stk,Stkx).
 
+verifyCont(Lvl,Msg,C,C,Stk,Stk) :-
+  verify(Stk=Lvl,Msg).
+
+resetCont(Lvl,[iRst(Lvl)|Cx],Cx,_,Lvl).
+
 frameCont([iFrame(Stk)|Cx],Cx,Stk,Stk).
 
 escCont(Nm,Stk0,[iEscape(Nm),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
@@ -202,14 +207,15 @@ compPtn(idnt(Nm),Succ,_,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
 compPtn(ctpl(St,A),Succ,Fail,D,Dx,End,[iLdC(St),iPull(1),iCLbl(Fl)|C],Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   ptnTest(gencode:contCont(Nxt),Fail,Fl,D0,D1,C,[iLbl(Nxt)|C0],Stk,Stk1),
-  compPtnArgs(A,gencode:indexCont,0,Succ,Fail,D1,Dx,End,C0,Cx,Stk1,Stkx),
-  verify(Stkx=:=Stk,"cpt stack").
+  Stk0 is Stk-1,
+  compPtnArgs(A,gencode:indexCont,0,gencode:combCont([gencode:resetCont(Stk0),Succ]),Fail,D1,Dx,End,C0,Cx,Stk1,Stkx),
+  verify(Stkx=:=Stk0,"cpt stack").
 compPtn(whr(_,P,Cnd),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compPtn(P,gencode:contCont(Nxt),Fail,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
   verify(Stk1=:=Stk-1,"where stack"),
   compCond(Cnd,Succ,Fail,D1,Dx,C0,Cx,Stk1,Stkx),
-  verify(Stkx=Stk,"cond stack").
+  verify(Stkx=Stk1,"cond stack").
 compPtn(T,Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compTerm(T,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCmp(Fl)|C0],Stk,Stk1),
@@ -252,26 +258,27 @@ compCond(cnj(_,L,R),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCond(R,Succ,Fail,D1,Dx,End,C0,Cx,Stk1,Stkx).
 compCond(dsj(_,L,R),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Fl,D0),
-  compCond(L,Succ,gencode:jmpCont(Fl),D0,D1,End,C,[iLbl(Fl),iReset(Stk)|C0],Stk,Stk0),
+  compCond(L,Succ,gencode:jmpCont(Fl),D0,D1,End,C,[iLbl(Fl),iRst(Stk)|C0],Stk,Stk0),
   compCond(R,Succ,Fail,D1,Dx,End,C0,Cx,Stk0,Stkx).
 compCond(ng(_,Cn),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCond(Cn,Fail,Succ,D,Dx,End,C,Cx,Stk,Stkx).
 compCond(mtch(_,P,E),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compTerm(E,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
-  compPtn(P,Succ,Fail,D1,Dx,End,C0,Cx,Stk0,Stkx).
+  compPtn(P,gencode:combCont([resetCont(Stk),Succ]),gencode:combCont([resetCont(Stk),Fail]),D1,Dx,End,C0,Cx,Stk0,Stkx).
 compCond(E,Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compTerm(E,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iBf(Fl)|C0],Stk,Stk1),
-  ptnTest(Succ,Fail,Fl,D1,Dx,C0,Cx,Stk1,Stkx).
+  verify(Stk1=:=Stk+1,"general cond"),
+  ptnTest(Succ,Fail,Fl,D1,Dx,C0,Cx,Stk,Stkx).
 
 compCase(T,Cases,Deflt,Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compTerm(T,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCase(Mx),iJmp(Dflt)|T0],Stk,Stk0),
   genLbl(D1,Dflt,D2),
   genCaseTable(Cases,Mx,Table),
-  compCases(Table,0,Cont,gencode:jmpCont(Dflt),D2,D3,End,T0,Tx,Tx,[iLbl(Dflt),iReset(Stk)|C1],Stk0),
-  compTerm(Deflt,Cont,D3,Dx,End,C1,Cx,Stk0,Stkx).
+  compCases(Table,0,Cont,gencode:jmpCont(Dflt),D2,D3,End,T0,Tx,Tx,[iLbl(Dflt),iRst(Stk)|C1],Stk0),
+  compTerm(Deflt,Cont,D3,Dx,End,C1,Cx,Stk,Stkx).
 
 genCaseTable(Cases,P,Table) :-
   length(Cases,L),
@@ -328,9 +335,10 @@ compCaseBranch([(P,E)|SC],Lbl,Succ,Fail,D,Dx,End,[iLbl(Lbl),iTL(Off)|C],Cx,Stk,S
   genLbl(D1,Fl,D2),
   defineLclVar("__",Lbl,End,D2,D3,Off,C,C0),
   compPtn(P,gencode:contCont(Nxt),gencode:jmpCont(Fl),D3,D4,End,C0,[iLbl(Nxt)|C1],Stk,Stk1),
-  verify(Stk=Stk1,"case branch"),
-  compTerm(E,Succ,D4,D5,End,C1,[iLbl(Fl),iReset(Stk)|C2],Stk1,Stkx),
-  compMoreCase(SC,Off,Succ,Fail,D5,Dx,End,C2,Cx,Stk,_).
+  verify(Stk-1=:=Stk1,"case branch"),
+  compTerm(E,Succ,D4,D5,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk1,Stkx),
+  compMoreCase(SC,Off,Succ,Fail,D5,Dx,End,C2,Cx,Stk,Stky),
+  verify(Stky=Stky,"mismatch in case stack").
 
 compMoreCase([],_,_Succ,Fail,Dx,Dx,_End,C,Cx,Stk,Stkx) :-
   call(Fail,C,Cx,Stk,Stkx).
@@ -338,8 +346,8 @@ compMoreCase([(P,E)|SC],Off,Succ,Fail,D,Dx,End,[iLdL(Off)|C],Cx,Stk,Stkx) :-
   genLbl(D,Fl,D0),
   genLbl(D0,Nxt,D1),
   compPtn(P,gencode:contCont(Nxt),gencode:jmpCont(Fl),D1,D2,End,C,[iLbl(Nxt)|C1],Stk,Stk1),
-  verify(Stk=Stk1,"more case branch"),
-  compTerm(E,Succ,D2,D3,End,C1,[iLbl(Fl),iReset(Stk)|C2],Stk1,Stkx),
+  verify(Stk-1=:=Stk1,"more case branch"),
+  compTerm(E,Succ,D2,D3,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk1,Stkx),
   compMoreCase(SC,Off,Succ,Fail,D3,Dx,End,C2,Cx,Stk,_).
 
 dispIns(I) :-

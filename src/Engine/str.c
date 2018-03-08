@@ -2,3 +2,158 @@
 // Created by Francis McCabe on 3/4/18.
 //
 
+#include <assert.h>
+#include "strP.h"
+
+static long strSize(specialClassPo cl, termPo o);
+static termPo strCopy(specialClassPo cl, termPo dst, termPo src);
+static termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static retCode strDisp(ioPo out, termPo t, long depth, logical alt);
+
+SpecialClass StringClass = {
+  .clss = Null,
+  .sizeFun = strSize,
+  .copyFun = strCopy,
+  .scanFun = strScan,
+  .dispFun = strDisp
+};
+
+clssPo stringClass = (clssPo) &StringClass;
+
+void initStr() {
+  StringClass.clss = specialClass;
+}
+
+stringPo C_STR(termPo t) {
+  assert(hasClass(t, stringClass));
+  return (stringPo) t;
+}
+
+const char *stringVal(termPo t, integer *size) {
+  stringPo str = C_STR(t);
+  *size = str->length;
+  return str->txt;
+}
+
+termPo allocateString(heapPo H, char *txt, long length) {
+  stringPo str = (stringPo) allocateObject(H, stringClass, StringCellCount(length));
+
+  str->clss = stringClass;
+  str->hash = 0;
+  str->length = length;
+
+  uniCpy(str->txt, length, txt);
+
+  return (termPo) str;
+}
+
+long strSize(specialClassPo cl, termPo o) {
+  return StringCellCount(C_STR(o)->length);
+}
+
+termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
+  stringPo si = C_STR(src);
+  stringPo di = (stringPo) dst;
+  *di = *si;
+
+  uniCpy(di->txt, si->length, si->txt);
+  return (termPo) di + StringCellCount(si->length);
+}
+
+termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  stringPo str = C_STR(o);
+
+  return o + StringCellCount(str->length);
+}
+
+static retCode qtChar(ioPo f, codePoint ch) {
+  retCode ret;
+  switch (ch) {
+    case '\a':
+      ret = outStr(f, "\\a");
+      break;
+    case '\b':
+      ret = outStr(f, "\\b");
+      break;
+    case '\x7f':
+      ret = outStr(f, "\\d");
+      break;
+    case '\x1b':
+      ret = outStr(f, "\\e");
+      break;
+    case '\f':
+      ret = outStr(f, "\\f");
+      break;
+    case '\n':
+      ret = outStr(f, "\\n");
+      break;
+    case '\r':
+      ret = outStr(f, "\\r");
+      break;
+    case '\t':
+      ret = outStr(f, "\\t");
+      break;
+    case '\v':
+      ret = outStr(f, "\\v");
+      break;
+    case '\\':
+      ret = outStr(f, "\\\\");
+      break;
+    case '\"':
+      ret = outStr(f, "\\\"");
+      break;
+    default:
+      ret = outChar(f, ch);
+  }
+  return ret;
+}
+
+static retCode cpDisp(codePoint ch, integer ix, void *cl) {
+  return qtChar(O_IO(cl), ch);
+}
+
+retCode strDisp(ioPo out, termPo t, long depth, logical alt) {
+  stringPo str = C_STR(t);
+
+  retCode ret = outChar(out, '"');
+
+  if (ret == Ok)
+    ret = processString(str, cpDisp, out);
+
+  if (ret == Ok)
+    ret = outChar(out, '"');
+  return ret;
+}
+
+integer stringHash(stringPo str) {
+  if (str->hash == 0) {
+    str->hash = uniNHash(str->txt, str->length);
+  }
+  return str->hash;
+}
+
+retCode processString(stringPo str, charProc p, void *cl) {
+  retCode ret = Ok;
+  integer ix = 0;
+  integer limit = str->length;
+  char *txt = str->txt;
+
+  while (ret == Ok && ix < limit) {
+    codePoint cp;
+
+    integer i = ix;
+    ret = nxtPoint(txt, &ix, limit, &cp);
+
+    if (ret == Ok)
+      ret = p(cp, i, cl);
+  }
+  return ret;
+}
+
+retCode copyString2Buff(stringPo str, char *buffer, integer buffLen) {
+  if (str->length <= buffLen) {
+    uniNCpy(buffer, buffLen, str->txt, str->length);
+    return Ok;
+  } else
+    return Fail;
+}

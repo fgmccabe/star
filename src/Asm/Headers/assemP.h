@@ -4,7 +4,7 @@
 #include <ooio.h>
 #include "assem.h"
 #include "opcodes.h"
-#include "lists.h"
+#include "cons.h"
 #include "objectP.h"
 #include "pkgP.h"
 
@@ -81,7 +81,7 @@ typedef struct _assem_method_ {
   hashPo labels;      /* All the labels in this code */
   assemInsPo first;      /* Instructions */
   assemInsPo last;      /* Last instruction */
-  listPo constants;      /* list of constant records */
+  consPo constants;      /* list of constant records */
   int32 sig;        /* Signature of this method */
   hashPo locals;      /* Local variables */
   hashPo frames;      /* Active frames in the method */

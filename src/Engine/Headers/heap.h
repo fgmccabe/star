@@ -11,9 +11,9 @@ extern void initHeap(long heapSize);
 
 extern heapPo currHeap;
 
-extern termPo allocateObject(clssPo clss, size_t amnt);
+extern termPo allocateObject(heapPo H, clssPo clss, size_t amnt);
 
-extern normalPo allocateStruct(labelPo lbl);
+extern normalPo allocateStruct(heapPo H, labelPo lbl);
 
 extern retCode reserveSpace(size_t amnt);
 

@@ -9,7 +9,7 @@
 #include "utils.h"
 #include "logical.h"
 #include "retcode.h"
-#include "unicode.h"
+#include "unistr.h"
 #include "io.h"
 #include "formio.h"
 #include "hash.h"

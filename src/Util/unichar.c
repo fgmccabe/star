@@ -17,7 +17,7 @@
 #include "config.h"
 #include <assert.h>
 #include <stdlib.h>
-#include "unicodeP.h"
+#include "unistrP.h"
 
 logical isChar(codePoint ch)
 {

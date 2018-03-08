@@ -51,7 +51,7 @@ escape(_flt2int,False,False,"F(f)i","convert float to integer")
 
 escape(_flt_hash,False,False,"F(f)i","compute hash of float")
 
-escape(_pwr,False,False,"F(ff)f","raise X to the power Y")
+escape(_flt_pwr,False,False,"F(ff)f","raise X to the power Y")
 
 escape(sqrt,False,False,"F(f)f","square root")
 escape(exp,False,False,"F(f)f","exponential")
@@ -74,7 +74,7 @@ escape(srand,False,False,"F(f)v","set random seed")
 escape(rand,False,False,"F()f","random # generator")
 escape(irand,False,False,"F(i)i","generate random integer")
 
-escape(_ldexp,False,False,"F(ff)f","raise x to 2**y")
+escape(_ldexp,False,False,"F(fi)f","raise x to 2**y")
 escape(_frexp,False,False,"F(f)(fi)","split x into mant and exp")
 escape(_modf,False,False,"F(f)(fi)","split x into int and frac")
 
@@ -152,7 +152,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_fposition,True,False,"F("fileType")i","report current file position")
   escape(_fseek,True,False,"F("fileType"i)"sysRet,"seek to new file position")
   escape(_flush,True,False,"F("fileType")"sysRet,"flush the I/O buffer")
-  escape(_flushall,True,False,"F()"sysRet,"flush all files")
+  escape(_flushall,True,False,"F()v","flush all files")
   escape(_setfileencoding,True,False,"F("fileType"i)"sysRet, "set file encoding on file")
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")

@@ -56,6 +56,8 @@ processPo newProcess(methodPo cl) {
   P->stackBase = (termPo) malloc(sizeof(integer) * initStackSize);
   P->stackLimit = &P->stackBase[initStackSize];
 
+  uniNCpy(P->wd,NumberOf(P->wd),CWD,NumberOf(CWD));
+
   P->fp = (framePo) P->stackLimit;
 
   // cap the stack with a halting stop.

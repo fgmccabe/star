@@ -5,9 +5,8 @@
 #ifndef CAFE_TERM_H
 #define CAFE_TERM_H
 
-#include <integer.h>
-#include "logical.h"
 #include "config.h"
+#include "ooio.h"
 
 typedef struct special_class *specialClassPo;
 
@@ -25,9 +24,15 @@ typedef struct term_record {
   clssPo clss;
 } TermRecord;
 
+typedef struct class_record {
+  clssPo clss;
+} ClassRecord;
+
 extern labelPo C_LBL(termPo t);
 
 extern normalPo C_TERM(termPo t);
+
+extern clssPo C_CLSS(termPo t);
 
 extern logical isNormalPo(termPo t);
 
@@ -52,7 +57,7 @@ static inline logical hasClass(termPo obj, clssPo clss) {
   return (logical) ((clssPo) obj->clss == clss);
 }
 
-retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
+extern retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
 
 logical sameTerm(termPo t1,termPo t2);
 

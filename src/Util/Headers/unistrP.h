@@ -1,5 +1,5 @@
-#ifndef _UNICODE_P_H
-#define _UNICODE_P_H
+#ifndef _UNISTR_P_H_
+#define _UNISTR_P_H_
 
 /*
   Unicode interface
@@ -16,7 +16,7 @@
   permissions and limitations under the License.
 */
 
-#include "unicode.h"
+#include "unistr.h"
 
 /* The various ranges in the UTF-8 encoding are as follows:
   

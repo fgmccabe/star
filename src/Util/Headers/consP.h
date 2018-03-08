@@ -16,28 +16,28 @@
 */
 
 #include "config.h"
-#include "lists.h"
+#include "cons.h"
 #include "objectP.h"
 
 typedef struct {
   objectPo head;
-  listPo tail;
-} ListObjectRec;
+  consPo tail;
+} ConsObjectRec;
 
-typedef struct _list_record_ {
+typedef struct _cons_record_ {
   ObjectRec object;                     /* object level of the list structure */
-  ListObjectRec list;                   // List part of object
-} ListRecord;
+  ConsObjectRec list;                   // List part of object
+} ConsRecord;
 
 typedef struct {
 
-} ListClassPart;
+} ConsClassPart;
 
-typedef struct _list_class_ {
+typedef struct _cons_class_ {
   ObjectClassRec objectPart;
-  ListClassPart listPart;
-} ListClassRec;
+  ConsClassPart consPart;
+} ConsClassRec;
 
-extern ListClassRec ListClass;
+extern ConsClassRec ConsClass;
 
 #endif

@@ -2,7 +2,7 @@
 
 #include "engineP.h"
 #include "signature.h"
-#include "escape.h"
+#include "libEscapes.h"
 #include <stdlib.h>
 
 #include "debug.h"

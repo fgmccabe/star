@@ -1,7 +1,7 @@
 #ifndef _METHOD_P_H_
 #define _METHOD_P_H_
 
-#include <lists.h>
+#include <cons.h>
 #include "ooio.h"
 #include "method.h"
 
@@ -9,7 +9,7 @@ typedef struct _gc_scan_block_ *gcScanPo;
 typedef struct _gc_scan_block_ {
   lPo callSite;
   lPo scanCode;
-  listPo references;			/* List of referenced variables */
+  consPo references;			/* List of referenced variables */
   gcScanPo next;
 } GcScanBlock;
 
@@ -37,7 +37,7 @@ typedef struct _literal_ {
 
 typedef struct _method_context_ {
   char *defName;			/* Name of this definition */
-  listPo literals;
+  consPo literals;
   tryPo tryBlocks;
   gcScanPo scanBlocks;
   assemInsPo code;				/* What package are we in? */

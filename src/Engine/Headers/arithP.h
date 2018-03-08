@@ -6,8 +6,9 @@
 #define CAFE_ARITHP_H
 
 #include "heap.h"
-#include "termP.h"
 #include "arith.h"
+#include "code.h"
+#include "termP.h"
 
 typedef struct integer_term {
   clssPo clss;                  // == integerClass
@@ -25,6 +26,6 @@ typedef struct float_term {
 
 #define FloatCellCount CellCount(sizeof(FloatRecord))
 
-extern termPo allocateFloat(heapPo H, double dx);
+extern fltPo allocateFloat(heapPo H, double dx);
 
 #endif //CAFE_ARITHP_H

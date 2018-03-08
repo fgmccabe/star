@@ -18,7 +18,8 @@ set(HEADER_FILES Headers/sexp.h Headers/sexpP.h
         Headers/codegen.h
         Headers/compile.h Headers/compiler.h
         Headers/dict.h Headers/dictP.h
-        Headers/esc.h
+        Headers/compescapes.h
+        ../Headers/escapes.h
         Headers/heap.h Headers/heapP.h
         Headers/type.h Headers/typeP.h
         Headers/method.h Headers/methodP.h)

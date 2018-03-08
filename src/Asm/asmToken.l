@@ -15,9 +15,9 @@
 %{
 #include <config.h>
 #include <ooio.h>
-#include <io.h>
+#include <iochnl.h>
 #include <math.h>
-#include <unicode.h>
+#include <unistr.h>
 #include <assemP.h>
 
 #include <assem.h>

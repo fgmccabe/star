@@ -6,7 +6,7 @@
 #define CAFE_PPP_H
 
 #include "pp.h"
-#include "io.h"
+#include "iochnl.h"
 
 typedef struct _display_ {
   ioPo out;

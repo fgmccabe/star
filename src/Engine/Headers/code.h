@@ -10,7 +10,6 @@
 typedef uint16 insWord, *insPo;
 
 typedef struct _method_ *methodPo;
-typedef struct _pkg_record_ *pkgPo;
 
 void initCode();
 
@@ -28,6 +27,8 @@ static inline OpCode opCode(insWord w) {
 }
 
 extern normalPo codeConstants(methodPo mtd);
+
+typedef struct _pkg_record_ *pkgPo;
 
 extern pkgPo loadedPackage(char *package);
 extern char *loadedVersion(char *package);

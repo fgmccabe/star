@@ -32,12 +32,12 @@ resolveFile(Root,Fl,MF) :-
   getUriPath(F,MF).
 
 openPackageAsStream(repo(Root,Man),Pkg,Act,Sig,U,Stream) :-
-  locateVersion(Man,Pkg,Act,U,Sig,fl(Fn)),
+  locateVersion(Man,Pkg,Act,Sig,U,fl(Fn)),
   resolveFile(Root,Fn,Fl),
   open(Fl,read,Stream).
 
 openCodePackageAsStream(repo(Root,Man),Pkg,Act,Sig,U,Stream) :-
-  locateVersion(Man,Pkg,Act,U,Sig,fl(PrFn)),
+  locateVersion(Man,Pkg,Act,Sig,U,fl(PrFn)),
   resolveFile(Root,PrFn,Fl),
   open(Fl,read,Stream).
 
@@ -66,7 +66,7 @@ packageHash(Pkg,ver(V),Hash) :-
   hashSixtyFour(H2,Hash).
 
 codePackagePresent(repo(Root,Man),Pkg,Act,Sig,U,SrcWhen,When) :-
-  locateVersion(Man,Pkg,Act,U,Sig,fl(PrFn)),
+  locateVersion(Man,Pkg,Act,Sig,U,fl(PrFn)),
   resolveFile(Root,PrFn,FileNm),
   access_file(FileNm,read),
   time_file(FileNm,When),

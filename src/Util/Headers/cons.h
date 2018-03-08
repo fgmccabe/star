@@ -19,7 +19,7 @@
 #include "object.h"
 #include "iterate.h"
 
-typedef struct _list_record_ *consPo;
+typedef struct _cons_record_ *consPo;
 
 extern void *head(consPo list);
 extern consPo tail(consPo list);
@@ -35,7 +35,7 @@ extern consPo nilList;
 
 typedef retCode (*listFun)(objectPo data,void *cl);
 
-extern retCode processList(consPo list,listFun fun,void *cl);
+extern retCode processCons(consPo list, listFun fun, void *cl);
 
 typedef logical (*listTest)(objectPo data,void *cl);
 extern void* findInList(consPo list,listTest test,void *cl);

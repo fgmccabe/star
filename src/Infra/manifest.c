@@ -58,7 +58,7 @@ static poolPo rsrcPool = NULL;
 
 static hashPo manifest;
 
-char repoDir[MAXFILELEN];
+extern char repoDir[MAXFILELEN];
 
 void initManifest() {
   manifestPool = newPool(sizeof(ManifestEntryRecord), 128);

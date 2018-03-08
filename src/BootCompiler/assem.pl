@@ -50,7 +50,7 @@ mnem([iPull(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(11,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iRot(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(12,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iReset(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(13,V)|M]) :- Pc1 is Pc+1,
+mnem([iRst(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(13,V)|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[(14,LtNo)|M]) :- Pc1 is Pc+1,
       findLit(Lt,V,LtNo,Lt1),

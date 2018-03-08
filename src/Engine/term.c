@@ -10,7 +10,8 @@ SpecialClass SpecialClss = {
   .clss = Null,
   .sizeFun = Null,
   .copyFun = Null,
-  .scanFun = Null
+  .scanFun = Null,
+  .dispFun = Null
 };
 
 clssPo specialClass = (clssPo) &SpecialClss;
@@ -35,4 +36,33 @@ static retCode showTerm(ioPo f, void *data, long depth, long precision, logical 
 
 void initTerm() {
   installMsgProc('T', showTerm);
+}
+
+retCode dispTerm(ioPo out, termPo t, long depth, logical alt){
+  clssPo clss = t->clss;
+  if(isSpecialClass(clss)){
+    specialClassPo spec = (specialClassPo)clss;
+    return spec->dispFun(out,t,depth,alt);
+  } else{
+    normalPo nml = C_TERM(t);
+    labelPo lbl = nml->lbl;
+    retCode ret = outStr(out,lbl->name);
+    if(ret==Ok)
+      ret = outChar(out,'(');
+    if(depth>0){
+      char *sep = "";
+      integer ar = lbl->arity;
+      for(integer ix=0;ix<ar && ret==Ok;ix++){
+        ret = outStr(out,sep);
+        sep = ", ";
+        if(ret == Ok)
+          ret = dispTerm(out,nthArg(nml,ix),depth-1,alt);
+      }
+    }
+    else
+      ret = outStr(out,"...");
+    if(ret==Ok)
+      ret = outChar(out,')');
+    return ret;
+  }
 }

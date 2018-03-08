@@ -22,7 +22,7 @@
 #include "logical.h"
 #include "integer.h"
 #include "object.h"
-#include "unicode.h"
+#include "unistr.h"
 
 typedef struct _ix_tree_ *treePo;
 extern classPo treeClass;

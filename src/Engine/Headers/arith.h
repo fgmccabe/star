@@ -36,4 +36,6 @@ extern integer floatHash(fltPo ix);
 
 extern fltPo C_FLT(termPo t);
 
+extern void initArith();
+
 #endif //CAFE_ARITH_H

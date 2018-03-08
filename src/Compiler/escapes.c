@@ -228,7 +228,7 @@ void defineEscape(char *name, escapeFun escape)
 
   _uni((unsigned char*)name,nameU,NumberOf(nameU));
   Install(uniIntern(nameU),escape,escapes);
-} 
+}
 
 void genDeclare(assemPo code,varInfoPo info,dictPo dict)
 {

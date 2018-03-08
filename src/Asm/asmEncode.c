@@ -101,7 +101,7 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   }
 
   tryRet(encodeTplCount(out, poolCount(mtd)));
-  for (listPo con = mtd->constants; con != nilList; con = tail(con)) {
+  for (consPo con = mtd->constants; con != nilList; con = tail(con)) {
     tryRet(encodeConstant(out, (constPo) head(con)));
   }
 

@@ -4,7 +4,6 @@
 
 #include "labelsP.h"
 #include "codeP.h"
-#include "termP.h"
 
 static hashPo labels;
 static poolPo labelPool;
@@ -15,13 +14,15 @@ static retCode labelDel(labelPo lbl, labelPo l);
 
 static long lblSize(specialClassPo cl, termPo o);
 static termPo lblCopy(specialClassPo cl, termPo dst, termPo src);
-static retCode lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static retCode lblDisp(ioPo out, termPo t, long depth, logical alt);
 
 SpecialClass LabelClass = {
   .clss = Null,
   .sizeFun = lblSize,
   .copyFun = lblCopy,
-  .scanFun = lblScan
+  .scanFun = lblScan,
+  .dispFun = lblDisp
 };
 
 clssPo labelClass = (clssPo) &LabelClass;
@@ -45,6 +46,10 @@ labelPo declareLbl(char *name, integer arity) {
     hashPut(labels, lbl, lbl);
   }
   return lbl;
+}
+
+labelPo declareEnum(char *name) {
+  return declareLbl(name, 0);
 }
 
 labelPo findLbl(char *name, integer arity) {
@@ -98,14 +103,17 @@ long lblSize(specialClassPo cl, termPo o) {
 }
 
 termPo lblCopy(specialClassPo cl, termPo dst, termPo src) {
-  *src = *dst;
+  *dst = *src;
   return dst;
 }
 
-retCode lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  labelPo lbl = C_LBL(o);
+termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  return o+LabelCellCount;
+}
 
-  return Error;
+retCode lblDisp(ioPo out, termPo t, long depth, logical alt) {
+  labelPo lbl = C_LBL(t);
+  return showLbl(out, lbl);
 }
 
 retCode showLbl(ioPo out, labelPo lbl) {

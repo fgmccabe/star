@@ -32,7 +32,7 @@ instruction(Drop,nOp,"drop top of stack")
 instruction(Dup,nOp,"duplicate top of stack")
 instruction(Pull,i32,"copy nth stack entry to top of stack")
 instruction(Rot,i32,"rotate nth stack entry to top of stack")
-instruction(Reset,i32,"reset stack height to a fixed height")
+instruction(Rst,i32,"reset stack height to a fixed height")
 
 instruction(LdC,lit,"load literal from constant pool")
 instruction(LdA,arg,"load stack from args[xx]")

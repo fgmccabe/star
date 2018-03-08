@@ -5,7 +5,7 @@
 #include "compiler.h"
 #include "dict.h"
 #include "compile.h"
-#include "esc.h"
+#include "escapes.h"
 #include "meta.h"
 #include "codegen.h"
 

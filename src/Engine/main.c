@@ -4,12 +4,17 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <engineP.h>
+#include <libEscapes.h>
+#include <globals.h>
+#include <labelsP.h>
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
 #include "formioP.h"
 #include "codeP.h"
 #include "termP.h"
+#include "arithP.h"
+#include "strP.h"
 
 char copyRight[] = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
 
@@ -29,6 +34,10 @@ int main(int argc, char **argv) {
 
   strMsg(entry, NumberOf(entry), "star.boot@__boot");
 
+  initArith();
+  initStr();
+  initLbls();
+  initGlobals();
   defltRepoDir();
   defltCWD();
 
@@ -44,6 +53,7 @@ int main(int argc, char **argv) {
 
   // Set up repository directory
   initHeap(initHeapSize);
+  installEscapes();
 
   loadManifest();
 

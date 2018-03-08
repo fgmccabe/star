@@ -6,6 +6,7 @@
 #define CAFE_STRP_H
 
 #include "heap.h"
+#include "code.h"
 #include "termP.h"
 #include "str.h"
 
@@ -15,6 +16,8 @@ typedef struct string_term {
   integer hash;
   char txt[ZEROARRAYSIZE];
 } StringRecord;
+
+extern void initStr();
 
 
 #define StringCellCount(len) CellCount(sizeof(StringRecord)+(len)*sizeof(char))

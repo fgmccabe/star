@@ -4,9 +4,9 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <stdlib.h>
-
-#include "signature.h"
 #include "engine.h"
+#include "arith.h"
+
 
 // Number of nano seconds
 #define NANOS 1000000000
@@ -47,4 +47,8 @@ void memerr() {
   exit(99);
 }
 
+ReturnStatus g__exit(processPo p, ptrPo tos){
+  integer ix = integerVal(tos[0]);
 
+  exit((int)ix);
+}

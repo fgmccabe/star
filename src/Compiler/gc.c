@@ -162,7 +162,7 @@ retCode genClosScav(mtdCxtPo mtd,lPo scav,lxPo free,dictPo dict)
  * Generate scanners for the locals a function
  */
 
-static gcScanPo newScanRecord(mtdCxtPo mtd,lPo callSite,listPo references)
+static gcScanPo newScanRecord(mtdCxtPo mtd,lPo callSite,consPo references)
 {
   assemPo code = methodCode(mtd);
   gcScanPo blocks = mtd->scanBlocks;
@@ -190,7 +190,7 @@ static gcScanPo newScanRecord(mtdCxtPo mtd,lPo callSite,listPo references)
 
 typedef struct {
   mtdCxtPo mtd;
-  listPo references;
+  consPo references;
 } VrGcListRecord, *vrGcPo;
 
 static retCode vrGcCheck(char *name,varInfoPo var,void *cl)
@@ -217,7 +217,7 @@ void genLocalScanner(lPo scanTable,dictPo dict,mtdCxtPo mtd)
   gcScanPo block = mtd->scanBlocks;
 
   while(block!=Null){
-    listPo refs = block->references;
+    consPo refs = block->references;
     if(!labelDefined(block->scanCode)){
       defineLbl(code,block->scanCode);
       AEnterCFun(code,0);

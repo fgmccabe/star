@@ -11,9 +11,13 @@
 
 typedef struct _cell_record_ {
   clssPo clss;                  // == cellClass
-  termPo el;                    // Contents
+  termPo content;               // Contents
 } CellRecord;
 
 #define CellCellCount CellCount(sizeof(CellRecord))
+
+void initCell();
+
+cellPo newCell(heapPo H, termPo content);
 
 #endif //CAFE_CELLP_H

@@ -574,7 +574,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       double dx;
       if ((res = decFlt(in, &dx)) != Ok)
         return res;
-      *tgt = allocateFloat(H, dx);
+      *tgt = (termPo) allocateFloat(H, dx);
       return Ok;
     }
     case lblTrm: {
@@ -601,7 +601,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if (res == Ok) {
-        normalPo obj = allocateStruct(C_LBL(class));
+        normalPo obj = allocateStruct(H, C_LBL(class));
         *tgt = (termPo) (obj);
 
         termPo el = NULL;

@@ -171,7 +171,7 @@ static retCode dumpRef(void *data,void *cl)
 static retCode dumpGcBlock(gcScanPo block,ioPo io)
 {
   outMsg(io,"site: %B -> %B\n",block->callSite,block->scanCode);
-  return processList(block->references,dumpRef,io);
+  return processCons(block->references, dumpRef, io);
 }
 
 static retCode dumpCallSites(mtdCxtPo mtd,ioPo io)
@@ -193,7 +193,7 @@ static retCode dumpMethod(void *v,void *c)
   outMsg(io,"Definition: %U\n",mtd->defName);
   //  ProcessTable(dumpSegment,mtd->segments,c);
   outMsg(io,"Literals:\n");
-  processList(mtd->literals,dumpLiteral,c);
+  processCons(mtd->literals, dumpLiteral, c);
   outMsg(io,"Call sites:\n");
   dumpCallSites(mtd,io);
   return Ok;

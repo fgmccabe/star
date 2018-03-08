@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
-#include "unicodeP.h"
+#include "unistrP.h"
 
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) {
   integer pos = *start;

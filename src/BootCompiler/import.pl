@@ -1,7 +1,5 @@
 :- module(import, [importPkg/3,loadPkg/4,loadPrologPkg/4,consultPrologPkg/3]).
 
-% This is specific to the Prolog translation of L&O code
-
 :- use_module(resource).
 :- use_module(types).
 :- use_module(misc).
@@ -10,18 +8,15 @@
 :- use_module(decode).
 :- use_module(repository).
 
-importPkg(Pkg,Repo,spec(Act,Export,Types,Classes,Contracts,Implementations,Imports)) :-
-  openPrologPackageAsStream(Repo,Pkg,Act,_,Strm),
-  read(Strm,SigTerm),
-  close(Strm),
-  pickupPkgSpec(SigTerm,Pkg,Imports,Export,Types,Classes,Contracts,Implementations).
+importPkg(Pkg,Repo,spec(Act,Face,Classes,Contracts,Implementations,Imports)) :-
+  codePackagePresent(Repo,Pkg,Act,Sig,_U,_SrcWhen,_When),
+  pickupPkgSpec(Sig,Pkg,Imports,Face,Classes,Contracts,Implementations).
 
-pickupPkgSpec('#pkg'(Enc),Pkg,Imports,Export,Types,Classes,Contracts,Implementations) :-
-  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),FTps,TTps,ctpl(_,ClsSigs),ctpl(_,ConSigs),ctpl(_,ImplSigs)])),
+pickupPkgSpec(Enc,Pkg,Imports,Face,Classes,Contracts,Implementations) :-
+  decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),FTps,ctpl(_,ClsSigs),ctpl(_,ConSigs),ctpl(_,ImplSigs)])),
   pickupPkg(Pk,Pkg),
   pickupImports(Imps,Imports),
-  pickupFace(FTps,Export),
-  pickupFace(TTps,Types),
+  pickupFace(FTps,Face),
   pickupClasses(ClsSigs,Classes,[]),
   pickupContracts(ConSigs,Contracts),
   pickupImplementations(ImplSigs,Implementations,[]).
@@ -57,7 +52,7 @@ pickupContracts(C,Cons) :-
 
 findContracts([],C,C).
 findContracts([ctpl(_,[strg(Nm),strg(CnNm),strg(Sig)])|M],[contract(Nm,CnNm,Spec)|C],Cx) :-
-  decodeType(Sig,Spec),
+  decodeSignature(Sig,Spec),
   findContracts(M,C,Cx).
 
 processImplementations(Env,Impls,MoreImpls) :-

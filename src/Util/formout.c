@@ -213,7 +213,7 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
              integer outLen,
              integer *pos);
 
-retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, char *frmt, integer formatLen) {
+retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen) {
   logical isSigned = False;
 
   if (dx < 0) {
@@ -363,8 +363,7 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
   return uniReverse(out, *pos);
 }
 
-retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, char *prefix,
-                     logical sign) {
+retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, logical sign) {
   char dec[DBL_DIG * 2];    /* buffer for the decimal mantissae */
   char *d = dec;
   char buff[1024];    /* buffer to represent the number string */
@@ -372,6 +371,7 @@ retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displ
   char *eP = &buff[NumberOf(buff) - 1]; /* end marker */
 
   long exp, len, sig;
+  char *prefix = "";
 
   if (x < 0) {
     prefix = "-";
@@ -494,8 +494,7 @@ retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displ
   }
 }
 
-retCode outDouble(ioPo out, double x, char mode, int width, int precision,
-                  codePoint pad, logical left, char *prefix, logical sign) {
+retCode outDouble(ioPo out, double x, char mode, int width, int precision, codePoint pad, logical left, logical sign) {
   char buffer[256];
 
   FloatDisplayMode displayMode;
@@ -511,7 +510,7 @@ retCode outDouble(ioPo out, double x, char mode, int width, int precision,
       displayMode = general;
   }
 
-  retCode ret = formatDouble(buffer, NumberOf(buffer), x, displayMode, precision, prefix, sign);
+  retCode ret = formatDouble(buffer, NumberOf(buffer), x, displayMode, precision, sign);
 
   if (ret == Ok)
     return outString(out, buffer, (int) uniStrLen(buffer), width, (int) uniStrLen(buffer), pad, left);
@@ -519,7 +518,7 @@ retCode outDouble(ioPo out, double x, char mode, int width, int precision,
 }
 
 retCode outFloat(ioPo out, double x) {
-  return outDouble(out, x, 'g', 0, 0, ' ', True, "", False);
+  return outDouble(out, x, 'g', 0, 0, ' ', True, False);
 }
 
 retCode outUStr(ioPo f, char *str) {
@@ -821,7 +820,7 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
 
               if (!overridePrecision) /* default precision for floats */
                 precision = 6;
-              ret = outDouble(f, num, c, width, precision, pad, leftPad, prefix, sign);
+              ret = outDouble(f, num, c, width, precision, pad, leftPad, sign);
               break;
             }
             case 's': {    /* Display a string */

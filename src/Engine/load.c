@@ -20,7 +20,7 @@
 #include "signature.h"
 #include "decodeP.h"             /* pick up the term encoding definitions */
 #include "manifest.h"
-#include "esc.h"
+#include "libEscapes.h"
 #include "codeP.h"
 
 typedef retCode (*pickupPkg)(char *pkgNm, char *vers, char *errorMsg, long msgLen, void *cl);
@@ -253,6 +253,13 @@ retCode decodePrgName(ioPo in, char *nm, long nmLen, integer *arity) {
     }
   } else
     return Error;
+}
+
+retCode decodeTplCount(ioPo in, integer *cound) {
+  if (isLookingAt(in, "()") == Ok) {
+    return Error;
+  } else
+    return Fail;
 }
 
 static retCode loadCodeSegment(ioPo in, heapPo heap, pkgPo owner, char *errorMsg, long msgSize);

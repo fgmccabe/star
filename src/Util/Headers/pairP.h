@@ -31,7 +31,7 @@ typedef struct _pair_record_ {
 typedef struct {
 } PairClassPart;
 
-typedef struct _list_class_ {
+typedef struct _cons_class_ {
   ObjectClassRec objectPart;
   PairClassPart pairPart;
 } PairClassRec;

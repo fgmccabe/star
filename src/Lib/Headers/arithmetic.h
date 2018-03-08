@@ -9,10 +9,6 @@
 #include "ooio.h"
 
 #include "engine.h"
-#include "escape.h"
-
-extern retCode g_int_plus(processPo P,ptrPo *tos);
-
-
+#include "libEscapes.h"
 
 #endif //CAFE_ARITHMETIC_H

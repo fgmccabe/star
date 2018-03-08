@@ -4,7 +4,7 @@
 #include "config.h"
 #include "heap.h"
 
-typedef retCode (*libFun)(processPo p,ptrPo tos);
+typedef ReturnStatus (*libFun)(processPo p, ptrPo tos);
 
 typedef struct {
   char *name;         /* Name of the escape */
@@ -13,12 +13,12 @@ typedef struct {
   integer arity;      /* How many arguments */
 } EscapeRec, *escapePo;
 
-void initEscapes();
+void installEscapes();
 
-void installEscape(char *name, char *sig, libFun fun);
-
-escapePo findEscape(char *name);
+int32 lookupEscape(char *name);
 
 escapePo getEscape(int32 escNo);
+
+extern ReturnStatus rtnStatus(processPo p, retCode ret, char *msg);
 
 #endif

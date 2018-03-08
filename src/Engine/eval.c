@@ -9,7 +9,7 @@
 
 #include <debug.h>
 #include "engineP.h"
-#include "escape.h"      /* escape call handling */
+#include "libEscapes.h"      /* escape call handling */
 #include "arithP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
@@ -71,10 +71,18 @@ retCode run(processPo P, heapPo heap) {
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
         escapePo esc = getEscape(escNo);
-        termPo ret = (termPo) esc->fun(P, SP);  /* invoke the escape */
+        ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
         SP += esc->arity;     /* drop arguments */
-        *--SP = ret;
-        continue;
+        switch(ret.ret){
+          case Ok:
+            if (ret.rslt != Null)
+              *--SP = ret.rslt;
+            continue;
+          case Error:
+            goto raiseError;
+          default:
+            continue;
+        }
       }
 
       case Tail: {       /* Tail call of explicit program */
@@ -261,7 +269,7 @@ retCode run(processPo P, heapPo heap) {
 
       case Alloc: {      /* heap allocate term */
         labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
-        normalPo cl = allocateStruct(cd); /* allocate a closure on the heap */
+        normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the closure back on the stack */
@@ -304,6 +312,10 @@ retCode run(processPo P, heapPo heap) {
           PC = exit;
         continue;
       }
+
+      case Rais:
+      raiseError:
+        syserr("problem");
 
       default:
       case illegalOp:

@@ -5,7 +5,7 @@
 #define _TYPE_H_
 
 #include <logical.h>
-#include <unicode.h>
+#include <unistr.h>
 #include "meta.h"
 #include "pp.h"
 

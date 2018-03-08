@@ -12,12 +12,12 @@
 
 #include <config.h>
 #include <ooio.h>
-#include <io.h>
+#include <iochnl.h>
 #include <math.h>
 #include "meta.h"
 #include "compiler.h"
 #include "grammar.h"
-#include <unicode.h>
+#include <unistr.h>
 
 #define MAX_STR_CONST 1024
 

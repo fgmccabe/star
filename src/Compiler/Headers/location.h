@@ -5,7 +5,7 @@
 #define _LOCATION_H_
 
 #include "config.h"
-#include "unicode.h"
+#include "unistr.h"
 
 // The public part of the location class interface
 
