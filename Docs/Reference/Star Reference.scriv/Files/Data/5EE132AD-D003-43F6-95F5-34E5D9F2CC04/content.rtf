@@ -1,0 +1,42 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+=== Tuples\
+[[TupleTerms]]\
+(((expressions,tuple)))\
+(((tuples)))\
+(((informal combinations of elements)))\
+A tuple consists of a sequence of expressions separated by commas and enclosed in parentheses. In effect, a tuple is a <<ConstructorLiteral>> where the <<Identifier>> is omitted -- and is automatically generated.\
+\
+\\begin\{figure\}[htbp]\
+\\begin\{eqnarray*\}\
+[[TupleLiteral]]TupleLiteral::=`()`\\\\\
+  | `((`<<Expression>>`))`\\\\\
+  | `(`<<Expression>>\\sequence\{,\}<<Expression>>`)`\\plustwo\
+\\end\{eqnarray*\}\
+.Tuple Literal Expression\
+[[tupleLiteralFig]]\
+\\end\{figure\}\
+\
+Tuples allow a straightforward of the `casual' grouping of values together without requiring a specific type definition of a data structure.\
+\\begin\{aside\}\
+Unlike <<ConstructorLiteral>>s, tuples _cannot_ be defined using a <<TypeDefinition>>. Instead, the tuple types form a _type schema_.\
+\\begin\{aside\}\
+Not a single type, because each arity of anonymous tuple type denotes a different type. However, all tuples are related by their tuple-ness.\
+\\end\{aside\}\
+\\end\{aside\}\
+\
+In that tuples can be used to group elements together, they are somewhat similar to arrays. However, unlike arrays, each element of a tuple may be of a different type, and also unlike arrays, tuple elements may not be accessed via an indexing operation: tuples can only be `unwrapped' by some form of pattern matching.\
+\
+For example, if the `split` function splits a list into a front half and back half, it may be used in a statement of the form:\
+[listing]\
+def (F,B) is split(L)\
+\
+which has the effect of unpacking the result of the `split` function call and binding the variables `F` and `B` to the front half and back half of the list `L`.\
+\
+\
+The tuple notation is unremarkable except for two cases: the single element tuple and the zero element tuple.}

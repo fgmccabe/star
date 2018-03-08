@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-02-28 21:57:31 -0800" ModID="E4A77D9E-EA29-45B5-93D1-7E49EDBFEBD8">
+<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-03-06 23:11:45 -0800" ModID="9CDED79A-7349-44E2-A9AF-6698311BCD7D">
     <Binder>
         <BinderItem UUID="7A583553-3A84-40D6-B9B9-0430B8CD3E39" Type="DraftFolder" Created="2018-01-21 13:22:31 -0800" Modified="2018-02-11 16:00:39 -0800">
             <Title>Star Language Reference</Title>
@@ -578,396 +578,431 @@
                                         </BinderItem>
                                     </Children>
                                 </BinderItem>
+                                <BinderItem UUID="1E599970-3394-4F07-8A74-42E450183233" Type="Text" Created="2018-02-26 21:02:31 -0800" Modified="2018-03-01 18:50:14 -0800">
+                                    <Title>Record Type</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1129,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="A0FE53BF-8BE7-46C5-964F-A3600C3773A3" Type="Text" Created="2018-02-26 21:02:45 -0800" Modified="2018-03-01 18:52:24 -0800">
+                                    <Title>Function Type</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>449,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="DCA55054-A0C0-433E-A65D-295D3F8F47E4" Type="Text" Created="2018-02-26 21:02:57 -0800" Modified="2018-03-01 18:53:31 -0800">
+                                            <Title>Procedure Type</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>548,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                                <BinderItem UUID="EB17E018-D0BF-4966-84EB-62D88FFF2D36" Type="Text" Created="2018-02-26 21:03:08 -0800" Modified="2018-03-01 18:55:00 -0800">
+                                    <Title>Pattern Abstraction Type</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>0,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="7986CAA2-C501-49C0-B596-AAB52C3D488D" Type="Text" Created="2018-02-26 21:03:17 -0800" Modified="2018-03-01 18:56:55 -0800">
+                                    <Title>Constructor Type</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>657,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="0460A2A6-AC1C-4A3F-9672-4C966E32F663" Type="Text" Created="2018-02-26 21:03:27 -0800" Modified="2018-03-01 18:57:49 -0800">
+                                    <Title>Reference Type</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>418,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
                             </Children>
                         </BinderItem>
-                        <BinderItem UUID="1E599970-3394-4F07-8A74-42E450183233" Type="Text" Created="2018-02-26 21:02:31 -0800" Modified="2018-02-26 21:02:49 -0800">
-                            <Title>Record Type</Title>
+                        <BinderItem UUID="D0250BAA-FB14-430E-B947-FA237E0107AE" Type="Text" Created="2018-02-26 21:03:35 -0800" Modified="2018-03-01 22:19:20 -0800">
+                            <Title>Type Variables</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
                             </MetaData>
                             <TextSettings>
-                                <TextSelection>1295,0</TextSelection>
+                                <TextSelection>351,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="A55F9F4C-12C9-4526-A25A-A9B4B38B406E" Type="Text" Created="2018-03-01 22:14:08 -0800" Modified="2018-03-01 22:19:12 -0800">
+                                    <Title>Type Variable Kind</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>964,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="F5F7D09E-F3B0-47A8-B95D-4031666A062F" Type="Text" Created="2018-02-26 21:03:50 -0800" Modified="2018-03-01 22:20:04 -0800">
+                                    <Title>Scope of Type Variables</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>429,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="69156C21-96B9-448A-A8C3-204C8EDF80D6" Type="Text" Created="2018-02-26 21:04:02 -0800" Modified="2018-03-01 22:30:09 -0800">
+                            <Title>Universally Quantified Types</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1442,0</TextSelection>
                             </TextSettings>
                         </BinderItem>
+                        <BinderItem UUID="BED9295C-434C-4743-9754-C4FAC031DED1" Type="Text" Created="2018-02-26 21:04:15 -0800" Modified="2018-03-01 22:33:00 -0800">
+                            <Title>Existentially Quantified Types</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1040,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="00EAC16E-3851-4110-A36D-29CC26BC0F49" Type="Text" Created="2018-02-26 21:04:27 -0800" Modified="2018-03-02 16:47:40 -0800">
+                                    <Title>Encapsulated Types</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>2406,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="422DFBEE-0A35-4352-881D-1AB4A494CF5A" Type="Text" Created="2018-02-26 21:04:49 -0800" Modified="2018-03-02 17:01:10 -0800">
+                            <Title>Type Constraints</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1961,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="9BD61FD4-F6B6-483E-A8BE-64CB7B1ADF90" Type="Text" Created="2018-02-26 21:05:03 -0800" Modified="2018-03-02 17:10:43 -0800">
+                                    <Title>Contract Constraints</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1380,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="E1A79E16-1F2B-4F4D-9FC4-2D33E88858D1" Type="Text" Created="2018-02-26 21:05:19 -0800" Modified="2018-03-03 21:25:55 -0800">
+                                    <Title>Field Constraints</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>656,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="5DEAA84E-8D89-4C77-A785-5AB03312F943" Type="Text" Created="2018-02-26 21:05:47 -0800" Modified="2018-03-03 21:30:41 -0800">
+                            <Title>Type Annotations</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>275,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="4872430F-513C-4BA0-81F7-4E88CB75EFC0" Type="Text" Created="2018-02-26 21:05:59 -0800" Modified="2018-03-03 21:31:57 -0800">
+                            <Title>Type Definitions</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>335,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="B1E2FD7F-BC75-468F-BA20-669980379B3F" Type="Text" Created="2018-02-26 21:06:07 -0800" Modified="2018-03-03 21:34:44 -0800">
+                                    <Title>Type Alias</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>486,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="2F7A01BE-F1EF-46DF-9ECF-1327535CBFFC" Type="Text" Created="2018-02-26 21:06:20 -0800" Modified="2018-03-03 21:57:27 -0800">
+                            <Title>Algebraic Type Definitions</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>2189,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="BF84F849-6F09-462F-B0FC-5EB1F05FD05F" Type="Text" Created="2018-02-26 21:06:34 -0800" Modified="2018-03-03 21:59:41 -0800">
+                                    <Title>Enumerated Symbol</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>457,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="C2091E71-0C58-41EA-96D8-B04560EBB008" Type="Text" Created="2018-02-26 21:06:44 -0800" Modified="2018-03-03 22:00:12 -0800">
+                                            <Title>Type Safety</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>208,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                                <BinderItem UUID="71BD6E9F-56F0-4795-B08D-2045B6D3C05B" Type="Text" Created="2018-02-26 21:06:52 -0800" Modified="2018-03-03 22:02:37 -0800">
+                                    <Title>Term Constructor</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>801,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="9246A791-286D-4255-9A7C-ECC808D6E20E" Type="Text" Created="2018-02-26 21:07:03 -0800" Modified="2018-03-03 22:08:32 -0800">
+                                    <Title>Record Constructor</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1241,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="19A28ADE-01CF-493C-8D0E-257D7645E4F6" Type="Text" Created="2018-02-26 21:07:13 -0800" Modified="2018-03-03 22:11:23 -0800">
+                                            <Title>Default Values</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>1514,0</TextSelection>
+                                            </TextSettings>
+                                            <Children>
+                                                <BinderItem UUID="3DF77613-D05B-4CFA-8D39-05E51114DC6B" Type="Text" Created="2018-02-26 21:07:38 -0800" Modified="2018-03-03 22:12:18 -0800">
+                                                    <Title>Defaults of ref Fields</Title>
+                                                    <MetaData>
+                                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                                    </MetaData>
+                                                    <TextSettings>
+                                                        <TextSelection>259,0</TextSelection>
+                                                    </TextSettings>
+                                                </BinderItem>
+                                            </Children>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                                <BinderItem UUID="01CB622E-24E1-4CD3-8BD2-4BD76933B382" Type="Text" Created="2018-02-26 21:07:50 -0800" Modified="2018-03-03 22:15:32 -0800">
+                                    <Title>Type Variables and Safe Algebraic Type Definitions</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1672,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="A7ABB6C0-E87F-4DB8-9022-6F51BC37D516" Type="Text" Created="2018-02-26 21:08:16 -0800" Modified="2018-03-03 22:21:25 -0800">
+                                    <Title>Algebraic Interface Record</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>808,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="DB81A0AD-4799-4E06-954F-382BF3A984EB" Type="Text" Created="2018-02-26 21:08:24 -0800" Modified="2018-03-03 22:23:02 -0800">
+                            <Title>Type Witness Definition</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>578,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="1CCCEF2E-7262-48E1-A4D6-E51E4C4313AD" Type="Text" Created="2018-02-26 21:08:34 -0800" Modified="2018-03-03 22:23:42 -0800">
+                            <Title>Contracts</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>221,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="F64041CB-6F63-49E1-906B-4577DAA4ABA4" Type="Text" Created="2018-02-26 21:08:42 -0800" Modified="2018-03-03 22:27:33 -0800">
+                                    <Title>Contract Definition</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>647,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="F6653431-CE4A-4FD4-9C07-1D93E0E3422E" Type="Text" Created="2018-02-26 21:08:53 -0800" Modified="2018-03-03 22:29:22 -0800">
+                                            <Title>Functional Dependencies</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>1115,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                                <BinderItem UUID="2FFEE8C6-C9EE-43CB-96CE-27E3984C3177" Type="Text" Created="2018-02-26 21:09:03 -0800" Modified="2018-03-03 22:33:20 -0800">
+                                    <Title>Contract Implementation</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1211,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="E063A115-E6BE-4068-9989-F3B176CFB6BB" Type="Text" Created="2018-02-26 21:09:17 -0800" Modified="2018-03-03 22:34:41 -0800">
+                                            <Title>Implementing Contracts with Functional Dependencies</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>474,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                        <BinderItem UUID="8CC8804C-5B5C-45CC-86CC-CAA7BB4896A7" Type="Text" Created="2018-02-26 21:09:25 -0800" Modified="2018-03-04 17:10:10 -0800">
+                                            <Title>Default Contract Implementation</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>1955,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                        <BinderItem UUID="8F400754-B19B-4481-90C7-0D060E8FB380" Type="Text" Created="2018-02-26 21:09:39 -0800" Modified="2018-03-04 18:32:54 -0800">
+                                            <Title>Recursive Contract Implementations</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>3328,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                        <BinderItem UUID="EF2C9384-B200-452E-9F9A-7371CE934F8F" Type="Text" Created="2018-02-26 21:08:04 -0800" Modified="2018-03-04 18:34:12 -0800">
+                                            <Title>Automatic Synthesis of Contract Implementations</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>744,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                        <BinderItem UUID="AD309AB7-2FAB-47A2-846F-2E03D08CFF31" Type="Text" Created="2018-02-26 21:09:54 -0800" Modified="2018-03-04 18:43:48 -0800">
+                                            <Title>Resolving Overloaded Definitions</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>3531,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                        <BinderItem UUID="44F07D10-A101-4EDC-8D42-9C7528048BC2" Type="Text" Created="2018-02-26 21:10:10 -0800" Modified="2018-03-04 18:49:26 -0800">
+                                            <Title>Standard Contracts</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>779,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="41D6A52C-18A4-435D-B8A5-AC64607ECBA3" Type="Text" Created="2018-03-04 18:48:39 -0800" Modified="2018-03-04 18:49:42 -0800">
+                            <Title>Type System</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>411,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="ABE31060-DFF4-48AB-A7F2-3A9590F36D05" Type="Text" Created="2018-02-26 21:10:20 -0800" Modified="2018-03-04 18:52:18 -0800">
+                            <Title>Type Subsumption</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>0,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="5A7591EF-D8CF-43A2-ACCB-4F230F5C8C26" Type="Text" Created="2018-02-26 21:10:30 -0800" Modified="2018-02-26 21:11:53 -0800">
+                                    <Title>Subsumption of Basic Types</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1773,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="1FBB956D-9922-42CE-A1CE-CBE5287982FE" Type="Text" Created="2018-02-26 21:10:44 -0800" Modified="2018-02-26 21:11:53 -0800">
+                                    <Title>Subsumption of Tuples and Records</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>1326,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="780947E7-7046-43A3-A9BA-6ED3ACCD9809" Type="Text" Created="2018-02-26 21:10:52 -0800" Modified="2018-02-26 21:11:53 -0800">
+                                    <Title>Subsumption of Function Types</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>2655,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                                <BinderItem UUID="29CBBE76-EE59-4B74-A4A4-5C261E59772C" Type="Text" Created="2018-02-26 21:11:06 -0800" Modified="2018-02-26 21:11:53 -0800">
+                                    <Title>Subsumption of Quantified Types</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>2039,0</TextSelection>
+                                    </TextSettings>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
                     </Children>
-                </BinderItem>
-                <BinderItem UUID="A0FE53BF-8BE7-46C5-964F-A3600C3773A3" Type="Text" Created="2018-02-26 21:02:45 -0800" Modified="2018-02-26 21:03:12 -0800">
-                    <Title>Function Type</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>646,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="DCA55054-A0C0-433E-A65D-295D3F8F47E4" Type="Text" Created="2018-02-26 21:02:57 -0800" Modified="2018-02-26 21:03:12 -0800">
-                    <Title>Procedure Type</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>598,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="EB17E018-D0BF-4966-84EB-62D88FFF2D36" Type="Text" Created="2018-02-26 21:03:08 -0800" Modified="2018-02-26 21:03:21 -0800">
-                    <Title>Pattern Abstraction Type</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>805,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="7986CAA2-C501-49C0-B596-AAB52C3D488D" Type="Text" Created="2018-02-26 21:03:17 -0800" Modified="2018-02-26 21:04:32 -0800">
-                    <Title>Constructor Type</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>887,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="0460A2A6-AC1C-4A3F-9672-4C966E32F663" Type="Text" Created="2018-02-26 21:03:27 -0800" Modified="2018-02-26 21:04:32 -0800">
-                    <Title>Reference Type</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>551,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="D0250BAA-FB14-430E-B947-FA237E0107AE" Type="Text" Created="2018-02-26 21:03:35 -0800" Modified="2018-02-26 21:04:32 -0800">
-                    <Title>Type Variables</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1116,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="F5F7D09E-F3B0-47A8-B95D-4031666A062F" Type="Text" Created="2018-02-26 21:03:50 -0800" Modified="2018-02-26 21:04:32 -0800">
-                    <Title>Scope of Type Variables</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>492,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="69156C21-96B9-448A-A8C3-204C8EDF80D6" Type="Text" Created="2018-02-26 21:04:02 -0800" Modified="2018-02-26 21:04:32 -0800">
-                    <Title>Universally Quantified Types</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2186,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="BED9295C-434C-4743-9754-C4FAC031DED1" Type="Text" Created="2018-02-26 21:04:15 -0800" Modified="2018-02-26 21:04:32 -0800">
-                    <Title>Existentially Quantified Types</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1255,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="00EAC16E-3851-4110-A36D-29CC26BC0F49" Type="Text" Created="2018-02-26 21:04:27 -0800" Modified="2018-02-26 21:05:32 -0800">
-                    <Title>Encapsulated Types</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2892,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="422DFBEE-0A35-4352-881D-1AB4A494CF5A" Type="Text" Created="2018-02-26 21:04:49 -0800" Modified="2018-02-26 21:05:32 -0800">
-                    <Title>Type Constraints</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2298,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="9BD61FD4-F6B6-483E-A8BE-64CB7B1ADF90" Type="Text" Created="2018-02-26 21:05:03 -0800" Modified="2018-02-26 21:05:32 -0800">
-                    <Title>Contract Constraints</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1769,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="E1A79E16-1F2B-4F4D-9FC4-2D33E88858D1" Type="Text" Created="2018-02-26 21:05:19 -0800" Modified="2018-02-26 21:05:32 -0800">
-                    <Title>Field Constraints</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>880,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="801541C3-8A84-4468-AE3B-27F42D933881" Type="Text" Created="2018-02-26 21:05:30 -0800" Modified="2018-02-26 21:06:49 -0800">
-                    <Title>Instance Constraint</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1782,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="5DEAA84E-8D89-4C77-A785-5AB03312F943" Type="Text" Created="2018-02-26 21:05:47 -0800" Modified="2018-02-26 21:06:49 -0800">
-                    <Title>Type Annotations</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>662,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="4872430F-513C-4BA0-81F7-4E88CB75EFC0" Type="Text" Created="2018-02-26 21:05:59 -0800" Modified="2018-02-26 21:06:49 -0800">
-                    <Title>Type Definitions</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>461,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="B1E2FD7F-BC75-468F-BA20-669980379B3F" Type="Text" Created="2018-02-26 21:06:07 -0800" Modified="2018-02-26 21:06:49 -0800">
-                    <Title>Type Alias</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1344,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="2F7A01BE-F1EF-46DF-9ECF-1327535CBFFC" Type="Text" Created="2018-02-26 21:06:20 -0800" Modified="2018-02-26 21:06:49 -0800">
-                    <Title>Algebraic Type Definitions</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2521,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="BF84F849-6F09-462F-B0FC-5EB1F05FD05F" Type="Text" Created="2018-02-26 21:06:34 -0800" Modified="2018-02-26 21:06:49 -0800">
-                    <Title>Enumerated Symbol</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>635,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="C2091E71-0C58-41EA-96D8-B04560EBB008" Type="Text" Created="2018-02-26 21:06:44 -0800" Modified="2018-02-26 21:07:42 -0800">
-                    <Title>Type Safety</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>216,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="71BD6E9F-56F0-4795-B08D-2045B6D3C05B" Type="Text" Created="2018-02-26 21:06:52 -0800" Modified="2018-02-26 21:07:42 -0800">
-                    <Title>Term Constructor</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1094,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="9246A791-286D-4255-9A7C-ECC808D6E20E" Type="Text" Created="2018-02-26 21:07:03 -0800" Modified="2018-02-26 21:07:42 -0800">
-                    <Title>Record Constructor</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1588,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="19A28ADE-01CF-493C-8D0E-257D7645E4F6" Type="Text" Created="2018-02-26 21:07:13 -0800" Modified="2018-02-26 21:07:42 -0800">
-                    <Title>Default Values</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1782,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="3DF77613-D05B-4CFA-8D39-05E51114DC6B" Type="Text" Created="2018-02-26 21:07:38 -0800" Modified="2018-02-26 21:08:14 -0800">
-                    <Title>Defaults of ref Fields</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>392,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="01CB622E-24E1-4CD3-8BD2-4BD76933B382" Type="Text" Created="2018-02-26 21:07:50 -0800" Modified="2018-02-26 21:08:14 -0800">
-                    <Title>Type Variables and Safe Algebraic Type Definitions</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1934,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="EF2C9384-B200-452E-9F9A-7371CE934F8F" Type="Text" Created="2018-02-26 21:08:04 -0800" Modified="2018-02-26 21:08:57 -0800">
-                    <Title>Automatic Synthesis of Contract Implementations</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>884,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="A7ABB6C0-E87F-4DB8-9022-6F51BC37D516" Type="Text" Created="2018-02-26 21:08:16 -0800" Modified="2018-02-26 21:08:57 -0800">
-                    <Title>Algebraic Interface Record</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>883,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="DB81A0AD-4799-4E06-954F-382BF3A984EB" Type="Text" Created="2018-02-26 21:08:24 -0800" Modified="2018-02-26 21:08:57 -0800">
-                    <Title>Type Witness Definition</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>691,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="1CCCEF2E-7262-48E1-A4D6-E51E4C4313AD" Type="Text" Created="2018-02-26 21:08:34 -0800" Modified="2018-02-26 21:08:57 -0800">
-                    <Title>Contracts</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>272,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="F64041CB-6F63-49E1-906B-4577DAA4ABA4" Type="Text" Created="2018-02-26 21:08:42 -0800" Modified="2018-02-26 21:08:57 -0800">
-                    <Title>Contract Definition</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1799,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="F6653431-CE4A-4FD4-9C07-1D93E0E3422E" Type="Text" Created="2018-02-26 21:08:53 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Functional Dependencies</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1354,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="2FFEE8C6-C9EE-43CB-96CE-27E3984C3177" Type="Text" Created="2018-02-26 21:09:03 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Contract Implementation</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1479,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="E063A115-E6BE-4068-9989-F3B176CFB6BB" Type="Text" Created="2018-02-26 21:09:17 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Implementing Contracts with Functional Dependencies</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>603,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="8CC8804C-5B5C-45CC-86CC-CAA7BB4896A7" Type="Text" Created="2018-02-26 21:09:25 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Default Contract Implementation</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2214,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="8F400754-B19B-4481-90C7-0D060E8FB380" Type="Text" Created="2018-02-26 21:09:39 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Recursive Contract Implementations</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>3624,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="AD309AB7-2FAB-47A2-846F-2E03D08CFF31" Type="Text" Created="2018-02-26 21:09:54 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Resolving Overloaded Definitions</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>4065,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="44F07D10-A101-4EDC-8D42-9C7528048BC2" Type="Text" Created="2018-02-26 21:10:10 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Standard Contracts</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1823,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="ABE31060-DFF4-48AB-A7F2-3A9590F36D05" Type="Text" Created="2018-02-26 21:10:20 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Type Subsumption</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1315,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="5A7591EF-D8CF-43A2-ACCB-4F230F5C8C26" Type="Text" Created="2018-02-26 21:10:30 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Subsumption of Basic Types</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1773,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="1FBB956D-9922-42CE-A1CE-CBE5287982FE" Type="Text" Created="2018-02-26 21:10:44 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Subsumption of Tuples and Records</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>1326,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="780947E7-7046-43A3-A9BA-6ED3ACCD9809" Type="Text" Created="2018-02-26 21:10:52 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Subsumption of Function Types</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2655,0</TextSelection>
-                    </TextSettings>
-                </BinderItem>
-                <BinderItem UUID="29CBBE76-EE59-4B74-A4A4-5C261E59772C" Type="Text" Created="2018-02-26 21:11:06 -0800" Modified="2018-02-26 21:11:53 -0800">
-                    <Title>Subsumption of Quantified Types</Title>
-                    <MetaData>
-                        <IncludeInCompile>Yes</IncludeInCompile>
-                    </MetaData>
-                    <TextSettings>
-                        <TextSelection>2039,0</TextSelection>
-                    </TextSettings>
                 </BinderItem>
                 <BinderItem UUID="317EFAD0-37E8-479E-B4A2-AF7F9FC41628" Type="Folder" Created="2018-02-11 15:46:32 -0800" Modified="2018-02-11 19:54:16 -0800">
                     <Title>Programs</Title>
@@ -978,13 +1013,437 @@
                         <TextSelection>21323,0</TextSelection>
                     </TextSettings>
                     <Children>
-                        <BinderItem UUID="07A7EBF9-C810-4AF0-84C2-36CB35585FED" Type="Text" Created="2018-02-11 15:45:52 -0800" Modified="2018-02-11 19:54:16 -0800">
+                        <BinderItem UUID="07A7EBF9-C810-4AF0-84C2-36CB35585FED" Type="Text" Created="2018-02-11 15:45:52 -0800" Modified="2018-03-05 21:55:14 -0800">
                             <Title>Expressions</Title>
                             <MetaData>
                                 <IncludeInCompile>Yes</IncludeInCompile>
                             </MetaData>
                             <TextSettings>
-                                <TextSelection>63145,0</TextSelection>
+                                <TextSelection>598,0</TextSelection>
+                            </TextSettings>
+                            <Children>
+                                <BinderItem UUID="B2C42D9B-7456-419A-94B5-452AA5BB3277" Type="Text" Created="2018-03-05 21:47:06 -0800" Modified="2018-03-05 21:58:34 -0800">
+                                    <Title>Variables (In Expressions)</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>80,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="712C3200-2FBA-40D0-83FB-92BA60586F09" Type="Text" Created="2018-03-05 21:47:10 -0800" Modified="2018-03-05 21:58:53 -0800">
+                                            <Title>Type Safety</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>117,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                                <BinderItem UUID="9E4BCB58-AFB3-4A01-A5D6-79A5952E11BF" Type="Text" Created="2018-03-05 21:47:13 -0800" Modified="2018-03-06 22:59:14 -0800">
+                                    <Title>Scalar Literal Expressions</Title>
+                                    <MetaData>
+                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                    </MetaData>
+                                    <TextSettings>
+                                        <TextSelection>472,0</TextSelection>
+                                    </TextSettings>
+                                    <Children>
+                                        <BinderItem UUID="3F037397-C1EB-4A21-AB0D-D3621ECC6D53" Type="Text" Created="2018-03-05 21:47:21 -0800" Modified="2018-03-06 23:01:56 -0800">
+                                            <Title>Largest and Smallest Integers</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>254,0</TextSelection>
+                                            </TextSettings>
+                                        </BinderItem>
+                                        <BinderItem UUID="AFFD5F88-3D30-45D8-9946-D3F7D3AF15E4" Type="Text" Created="2018-03-05 21:47:31 -0800" Modified="2018-03-06 23:02:43 -0800">
+                                            <Title>Floating Point Literals</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>181,0</TextSelection>
+                                            </TextSettings>
+                                            <Children>
+                                                <BinderItem UUID="6091AFFA-086B-4002-AD94-4B2A948BB3A9" Type="Text" Created="2018-03-05 21:47:34 -0800" Modified="2018-03-06 23:04:09 -0800">
+                                                    <Title>Largest and Smallest floats</Title>
+                                                    <MetaData>
+                                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                                    </MetaData>
+                                                    <TextSettings>
+                                                        <TextSelection>347,2</TextSelection>
+                                                    </TextSettings>
+                                                </BinderItem>
+                                            </Children>
+                                        </BinderItem>
+                                        <BinderItem UUID="BDE0B138-855B-4E18-BEEE-56DB2EF25846" Type="Text" Created="2018-03-05 21:47:44 -0800" Modified="2018-03-06 23:05:21 -0800">
+                                            <Title>String Literals</Title>
+                                            <MetaData>
+                                                <IncludeInCompile>Yes</IncludeInCompile>
+                                            </MetaData>
+                                            <TextSettings>
+                                                <TextSelection>48,0</TextSelection>
+                                            </TextSettings>
+                                            <Children>
+                                                <BinderItem UUID="38B518E0-47FF-47EF-A5B6-38ACAB876DAD" Type="Text" Created="2018-03-05 21:47:47 -0800" Modified="2018-03-06 23:11:22 -0800">
+                                                    <Title>String Interpolation</Title>
+                                                    <MetaData>
+                                                        <IncludeInCompile>Yes</IncludeInCompile>
+                                                    </MetaData>
+                                                    <TextSettings>
+                                                        <TextSelection>1671,0</TextSelection>
+                                                    </TextSettings>
+                                                </BinderItem>
+                                            </Children>
+                                        </BinderItem>
+                                    </Children>
+                                </BinderItem>
+                            </Children>
+                        </BinderItem>
+                        <BinderItem UUID="C4910435-4214-4620-A953-71B0CB21C97E" Type="Text" Created="2018-03-05 21:47:52 -0800" Modified="2018-03-06 23:11:45 -0800">
+                            <Title>Semantics of String Interpolation</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1587,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="7F3B7BCC-530E-4EE8-8509-48FB3F4944B8" Type="Text" Created="2018-03-05 21:47:58 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-10</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>586,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="043CE6FF-0ED6-4F64-BB47-0522EBDF7DE9" Type="Text" Created="2018-03-05 21:48:03 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-11</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>821,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="279ACED4-D331-4910-8390-E71DCB3F9782" Type="Text" Created="2018-03-05 21:48:06 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-12</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>747,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="AB8A74F2-F4AE-405B-A802-4EA4292C55BB" Type="Text" Created="2018-03-05 21:48:10 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-13</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1260,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="5EE132AD-D003-43F6-95F5-34E5D9F2CC04" Type="Text" Created="2018-03-05 21:48:13 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-14</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1780,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="5A2FF431-B575-4358-AF63-FDDC7311C1D1" Type="Text" Created="2018-03-05 21:48:17 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-15</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>171,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="7F3FECE6-FC1D-4B7E-B329-2EAD41A75D08" Type="Text" Created="2018-03-05 21:48:20 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-16</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>670,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="2C07791C-BA4E-45BC-81E5-ACF6B13F17CB" Type="Text" Created="2018-03-05 21:48:23 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-17</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>2505,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="228C221B-38C3-43F5-A2A4-FB3FAE3CB76A" Type="Text" Created="2018-03-05 21:48:31 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-18</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1295,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="2EFAA26E-0948-411B-ABD8-C2E571F5DD45" Type="Text" Created="2018-03-05 21:48:36 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-19</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>823,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="88C5C62F-96B9-4885-8646-C47A483393C6" Type="Text" Created="2018-03-05 21:48:38 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-20</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1683,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="45770631-D6D6-4530-ACA4-9702DEFF46D1" Type="Text" Created="2018-03-05 21:48:44 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-21</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>314,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="8F8AD2D6-85AD-4DE1-8A23-AEB75174CFC6" Type="Text" Created="2018-03-05 21:48:47 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-22</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>2475,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="2A3AB132-4DB8-4497-999C-3C589803DD16" Type="Text" Created="2018-03-05 21:48:54 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-23</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>500,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="D558287A-DBD6-419F-AB4A-6E2F97ACE35B" Type="Text" Created="2018-03-05 21:48:57 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-24</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1814,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="C0742924-A3E8-4962-8E87-EE987C4B5C99" Type="Text" Created="2018-03-05 21:49:03 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-25</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>2471,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="E8942316-E1EE-47A4-9950-7F92623C5AAC" Type="Text" Created="2018-03-05 21:49:10 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-26</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>3188,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="C6BB4AEF-3F3B-436C-925D-4E08EC229AD7" Type="Text" Created="2018-03-05 21:49:17 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-27</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1349,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="25696C1E-718A-4E0B-973C-0D0FDA85270D" Type="Text" Created="2018-03-05 21:49:22 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-28</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1019,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="63471DC7-1037-483B-846D-E369D047C708" Type="Text" Created="2018-03-05 21:49:28 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-29</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1802,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="68588047-46A1-47CB-92B5-62B66057AE27" Type="Text" Created="2018-03-05 21:49:33 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-30</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>545,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="757E103E-39D8-4BFA-BADB-2ED898895935" Type="Text" Created="2018-03-05 21:49:36 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-31</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>144,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="B6CACC34-5FA6-4174-8F43-AA32312CDE8A" Type="Text" Created="2018-03-05 21:49:38 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-32</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1607,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="A222CE33-2038-4E34-B5B0-A172353DD2AE" Type="Text" Created="2018-03-05 21:49:45 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-33</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>3320,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="C417ECD0-DA84-4B07-A81C-3F618C682BF6" Type="Text" Created="2018-03-05 21:49:53 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-34</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1885,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="0BA10CC2-642B-4AE6-B143-500E667E0947" Type="Text" Created="2018-03-05 21:49:58 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-35</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>273,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="D93D97E1-574B-4CEF-BFA0-53B3270118FD" Type="Text" Created="2018-03-05 21:50:00 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-36</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>2209,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="F5E48B29-06C1-4691-AD91-C891E2B0553B" Type="Text" Created="2018-03-05 21:50:07 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-37</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>3518,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="43821251-F2DF-47A8-B2C2-5971EF942CEB" Type="Text" Created="2018-03-05 21:50:15 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-38</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>677,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="5F2D5633-F60F-4B4B-94B1-5E471E8644DF" Type="Text" Created="2018-03-05 21:50:18 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-39</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1887,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="69F0F2C7-9E08-48E2-8726-8C4B0691067A" Type="Text" Created="2018-03-05 21:50:24 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-40</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>437,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="832525CF-6ACE-43C4-9E33-F7F6B433B397" Type="Text" Created="2018-03-05 21:50:26 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-41</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>529,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="6E70660C-06CC-4ADD-9B7F-683F8D1EE998" Type="Text" Created="2018-03-05 21:50:29 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-42</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1192,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="F425A823-CCE9-4D00-93A4-51A45EB5CC57" Type="Text" Created="2018-03-05 21:50:34 -0800" Modified="2018-03-05 21:50:40 -0800">
+                            <Title>Expressions-43</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>1025,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="B3D4155C-1624-4108-BD76-FE377085CF5C" Type="Text" Created="2018-03-05 21:50:37 -0800" Modified="2018-03-05 21:50:55 -0800">
+                            <Title>Expressions-44</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>794,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="911A8FA6-39E7-4E24-BAE4-5799F8E6BEA8" Type="Text" Created="2018-03-05 21:50:48 -0800" Modified="2018-03-05 21:51:07 -0800">
+                            <Title>Expressions-45</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>2068,0</TextSelection>
+                            </TextSettings>
+                        </BinderItem>
+                        <BinderItem UUID="24F108CD-382E-4B9C-8839-B8FA64415FAA" Type="Text" Created="2018-03-05 21:50:57 -0800" Modified="2018-03-05 21:51:07 -0800">
+                            <Title>Expressions-46</Title>
+                            <MetaData>
+                                <IncludeInCompile>Yes</IncludeInCompile>
+                            </MetaData>
+                            <TextSettings>
+                                <TextSelection>0,0</TextSelection>
                             </TextSettings>
                         </BinderItem>
                         <BinderItem UUID="420F9CDB-0A67-4964-923F-07FDD0FC0E3F" Type="Text" Created="2018-02-11 15:45:04 -0800" Modified="2018-02-11 19:54:16 -0800">
@@ -1420,6 +1879,15 @@
                         <TextSelection>709,0</TextSelection>
                     </TextSettings>
                 </BinderItem>
+                <BinderItem UUID="801541C3-8A84-4468-AE3B-27F42D933881" Type="Text" Created="2018-02-26 21:05:30 -0800" Modified="2018-03-03 21:26:48 -0800">
+                    <Title>Instance Constraint</Title>
+                    <MetaData>
+                        <IncludeInCompile>Yes</IncludeInCompile>
+                    </MetaData>
+                    <TextSettings>
+                        <TextSelection>750,0</TextSelection>
+                    </TextSettings>
+                </BinderItem>
             </Children>
         </BinderItem>
     </Binder>
@@ -1490,11 +1958,11 @@
     <ProjectTargets Notify="No">
         <DraftTarget Type="Words" CountIncludedOnly="Yes" CurrentCompileGroupOnly="Yes" Deadline="2011-04-12 05:24:39 -0700" IgnoreDeadline="Yes">0</DraftTarget>
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="No" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
-        <PreviousSession Words="75" Characters="463" Date="2018-02-19 21:00:25 -0800"></PreviousSession>
+        <PreviousSession Words="0" Characters="0" Date="2018-02-19 21:00:25 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-02-28 00:00:00 -0800">
-        <DraftWordCount>58</DraftWordCount>
-        <DraftCharCount>230</DraftCharCount>
+    <RecentWritingHistory Date="2018-03-06 00:00:00 -0800">
+        <DraftWordCount>-567</DraftWordCount>
+        <DraftCharCount>-4377</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>
         <OtherCharCount>0</OtherCharCount>
     </RecentWritingHistory>

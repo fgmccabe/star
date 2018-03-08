@@ -31,32 +31,4 @@ Note that this would permit, for example, `r` to be bound to the `integer` funct
 \
 because this type is an instance of the <<UniversalType>>.\
 \
-\
-=== Has Kind Constraint\
-[[hasKindConstraint]]\
-(((type,constraints!has kind)))\
-\
-An <<HasKindConstraint>> is a requirement on a variable that any instantiation of the variable `has the right kind'.\
-\
-The kind of a type refers to whether the type is a regular type or a type constructor. It also encodes the expected number of type arguments -- in the case that the variable should be bound to a type constructor.\
-\
-[[hasKindConstraintFig]]\
-.Has Kind Type Constraint\
-****\
-[[HasKindConstraint]]HasKindConstraint::=<<TypeVar>>\\ `::` <<Kind>>\
-****\
-\
-For example, in\
-[listing]\
-c :: type\
-\
-we establish a constraint on `c` that any binding of `c` must be a <<Type>> (in particular, it may not be bound to a type constructor.\
-\
-The constraint:\
-[listing]\
-d :: type[type,type]\
-\
-establishes the constraint that `d` must be bound to a type constructor (_not_ a <<Type>>) of arity two. Given this constraint, it would not be legal to bind `d` to the standard type constructor `cons` (say) -- because `cons` is a type constructor of one argument.\
-\
-\
-==}
+}

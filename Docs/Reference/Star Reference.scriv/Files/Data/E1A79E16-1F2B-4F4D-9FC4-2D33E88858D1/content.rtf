@@ -1,36 +1,74 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f0\fs26 \cf0 \
-[[attributeConstraint]]\
-(((type,field)))\
-(((type,constraints!field)))\
-\
-A _FieldConstraint_ is a requirement on a variable that whatever type it is, it should have particular attributes of particular types defined for it.\
-\
-\
-[[attributeConstraintFig]]\
-.Field Constraint\
-****\
-[[FieldConstraint]]FieldConstraint ::= <<Type>> `<~` \{ <<TypeAnnotation>> ;..; <<Annotation>> \}\
-****\
-\
-For example, in\
-[listing]\
-r <~ \{ alpha : string; beta : long \}\
-\
-if `r` is unified against a concrete type then that type's <<RecordType>> interface (see <<algebraicInterface>>) must contain both of `alpha` and `beta`. In addition, the fields must be of the right types.\
-\
-[NOTE]\
-====\
-It is also possible to require that an <<EncapsulatedType>> exists. For example, the constraint:\
-[listing]\
-s <~ \{ type elem \}\
-====\
-requires that any actual binding for type `s` must include the embedded type `elem`.\
-\
-\
-===}
+\f0\fs26 \cf0 A 
+\i FieldConstraint
+\i0  is a requirement on a variable that whatever type it is, it should have particular attributes of particular types defined for it.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f0\i\fs26 FieldConstraint ::= Type 
+\f1\i0\fs24 <$Scr_Cs::3>
+\f2\fs22 <~ \{
+\f1\fs24 <!$Scr_Cs::3>
+\f0\i\fs26  <<TypeAnnotation>> ..  <<Annotation>> 
+\f1\i0\fs24 <$Scr_Cs::3>
+\f2\fs22 \}
+\f1\fs24 <!$Scr_Cs::3>
+\f0\i\fs26 \
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl264\slmult1\sa160\pardirnatural\qc\partightenfactor0
+
+\f1\i0\fs24 \cf0 <!$Scr_Ps::0><$Scr_Ps::1>
+\f0\fs26 Field Constraint\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::1>
+\f0\fs26 For example, in\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::2>
+\f2\fs22 r <~ \{ alpha : string. beta : long \}\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::2>
+\f0\fs26 \
+if 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 r
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26  is unified against a concrete type then that type's 
+\i RecordType
+\i0  interface must contain both of 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 alpha
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26  and 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 beta
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26 . In addition, the fields must be of the right types.\
+[NOTE] It is also possible to require that an 
+\i EncapsulatedType
+\i0  exists. For example, the constraint:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::2>
+\f2\fs22 s <~ \{ type elem \}
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::2>
+\f0\fs26 requires that any actual binding for type 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 s
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26  must include the embedded type 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 elem
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26 .\
+}

@@ -1,56 +1,99 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f0\fs26 \cf0 \
-[[algebraicTypeDefinitions]]\
-An algebraic type definition is a statement that introduces a new type; it also defines the possible values associated with the type.\
-\
-As illustrated in <<algebraicDefinitionFig>>, an algebraic type definition introduces the new type and defines one or more <<Constructor>>s -- separated by the `|` operator.\
-\
-A <<Constructor>> is a specification of a value of a type; i.e., constructors `paint a picture' of the shape of potential values of the type.\
-\
-There are three kinds of <<Constructor>>: enumerated symbols, term constructor constructors and labeled record constructors.\
-\
-[[algebraicDefinitionFig]]\
-.Algebraic Type Definition Statement\
-****\
-[[AlgebraicType]]AlgebraicType::= <<TypeQuantifier>>   [`|:` <<TypeConstraint>>] <<TypeSpec>> `::=` <<Constructor>> | ... | <<Constructor>>\
-\
-[[TypeSpec]]TypeSpec ::= <<Identifier>>\
-   | <<Identifier>> `[`<<TypeVariable>> ,...,<<TypeVariable>>``]``\
-\
-[[Constructor]]Constructor::=<<EnumeratedSymbol>>\
-  | <<TermConstructor>>\
-  | <<RecordConstructor>>\
-****\
-\
-[NOTE]\
-Most standard built-in types have type-specific constructors. For example, lists have a list notation, ``dictionary``s have a dictionary notation and so on. Such constructors may not be defined using the algebraic type definition notation -- for example, the constructors for the `integer` type are denoted by the normal decimal notation for integers.\
-\
-As elaborated below, each `arm' of an algebraic type definition defines a value or set of values that belong to the type. There is a slightly more formal way of expressing this: an algebraic type definition induces a set of free functions.\
-\
-(((constructor,bijection)))\
+\f0\fs26 \cf0 An algebraic type definition is a statement that introduces a new type; it also defines the possible values associated with the type.\
+An algebraic type definition introduces the new type and defines one or more 
+\i Constructor
+\i0 s -- separated by the 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 |
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26  operator.\
+A 
+\i Constructor
+\i0  is a specification of a value of a type; i.e., constructors paint a picture of the shape of potential values of the type.\
+There are three kinds of 
+\i Constructor
+\i0 : enumerated symbols, term constructor constructors and labeled record constructors.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f0\i\fs26 AlgebraicType::= TypeQuantifier   [
+\f1\i0\fs24 <$Scr_Cs::3>
+\f2\fs22 |:
+\f1\fs24 <!$Scr_Cs::3>
+\f0\i\fs26  TypeConstraint] TypeSpec 
+\f1\i0\fs24 <$Scr_Cs::3>
+\f2\fs22 ::=
+\f1\fs24 <!$Scr_Cs::3>
+\f0\i\fs26  Constructor | ... | Constructor\
+TypeSpec ::= Identifier | Identifier 
+\f1\i0\fs24 <$Scr_Cs::3>
+\f2\fs22 [
+\f1\fs24 <!$Scr_Cs::3>
+\f0\i\fs26  TypeVariable ,...,TypeVariable
+\f1\i0\fs24 <$Scr_Cs::3>
+\f2\fs22 ]
+\f1\fs24 <!$Scr_Cs::3>
+\f0\i\fs26 \
+Constructor::=EnumeratedSymbol\
+  | TermConstructor\
+  | RecordConstructor\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\sl264\slmult1\sa160\pardirnatural\qc\partightenfactor0
+
+\f1\i0\fs24 \cf0 <!$Scr_Ps::0><$Scr_Ps::1>
+\f0\fs26 Algebraic Type Definition Statement\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::1>
+\f0\fs26 [NOTE] Most standard built-in types have type-specific constructors. For example, lists have a list notation, 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 dictionary
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26 s have a dictionary notation and so on. Such constructors may not be defined using the algebraic type definition notation -- for example, the constructors for the 
+\f1\fs24 <$Scr_Cs::3>
+\f2\fs22 integer
+\f1\fs24 <!$Scr_Cs::3>
+\f0\fs26  type are denoted by the normal decimal notation for integers.\
+As elaborated below, each arm of an algebraic type definition defines a value or set of values that belong to the type. There is a slightly more formal way of expressing this: an algebraic type definition induces a set of free functions.\
 Free functions are technically bijections -- they are one-to-one -- i.e., they have inverses. In programming languages, free functions are used as data structuring tools; but mathematically they are functions.\
-\
 For example, the type definition:\
-[listing]\
-person ::= noone | someone(string,integer)\
-\
-induces the constructor function for `someone`:\
-[listing]\
-someone : (string,integer) <=> person;\
-\
-The enumerated symbol has a simpler type:\
-[listing]\
-noone : person;\
-\
-The complete set of constructor functions introduced within an algebraic type definition is complete: i.e., they define all the possible values of the type.\
-\
-\
-[NOTE]\
-A given label, whether it is used as an <<EnumeratedSymbol>>, the label of a <<LabeledType>> or a <<LabeledRecord>> can be defined only once. I.e., it is not permitted to `share' constructor labels across different types.\
-\
-====}
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::2>
+\f2\fs22 person ::= noone | someone(string,integer)
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::2>
+\f0\fs26 induces the constructor function for someone:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::2>
+\f2\fs22 someone : (string,integer) <=> person
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::2>
+\f0\fs26 The enumerated symbol has a simpler type:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::2>
+\f2\fs22 noone : person
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::2>
+\f0\fs26 The complete set of constructor functions introduced within an algebraic type definition is complete: i.e., they define all the possible values of the type.\
+[NOTE] A given label, whether it is used as an 
+\i EnumeratedSymbol
+\i0 , the label of a 
+\i TermConstructor
+\i0  or a 
+\i LabeledRecord
+\i0  can be defined only once. I.e., it is not permitted to `share' constructor labels across different types.\
+}

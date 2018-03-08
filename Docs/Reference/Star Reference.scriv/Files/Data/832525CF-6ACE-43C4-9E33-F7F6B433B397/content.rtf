@@ -1,0 +1,20 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+=== Automatic Quoting\
+It is possible to mark a type definition in such a way as to automatically construct coercion between the type and `quoted`. This is done by adding an `implementing` clause to the <<TypeDefinition>>. For example\
+[listing]\
+type person is some\{\
+  name has type string;\
+\} or noOne\
+  implementing quotable\
+\
+results in an implementation for coercion between `person` values and `quoted` representations of `person`. I.e.,\
+[listing]\
+some\{name = "who"\} as quoted\
+\
+is enabled by the `implementing quotable` clause.}

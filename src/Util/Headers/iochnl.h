@@ -30,7 +30,7 @@ typedef enum {
 typedef struct _io_object_ *ioPo;
 extern classPo ioClass;
 
-#include "unicode.h"
+#include "unistr.h"
 
 #ifndef MAXLINE
 #define MAXLINE 1024                  /* Size of a standard line buffer */

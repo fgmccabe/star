@@ -17,7 +17,7 @@
 
 #include "ioP.h"
 #include <stdlib.h>
-#include <unicodeP.h>
+#include <unistrP.h>
 #include <memory.h>
 
 static void initIoClass(classPo class, classPo request);

@@ -1,0 +1,71 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+=== Memo Function\
+[[memoFunction]]\
+(((memo function)))\
+(((expressions,memo)))\
+\
+A `memo` function encapsulates a single expression as a zero arity function that is guaranteed to be evaluated only once.\
+\
+A `memo` function is a function that `remembers' the value it first returned. Subsequent invocations of the function simply return that first value.\
+\
+\\begin\{figure\}[htbp]\
+\\begin\{eqnarray*\}\
+[[MemoFunction]]MemoFunction::=`memo`\\ <<Expression>>\
+\\end\{eqnarray*\}\
+.Memo Function\
+[[memoFunctionFig]]\
+\\end\{figure\}\
+\
+Memo functions have an important role in cases where a group of variables is mutually recursive; a situation that is not normally permitted. For example, consider the pair:\
+[listing]\
+def Jack is someone\{\
+    def name is "jack";\
+    spouse() is Jill\
+  \}\
+def Jill is someone\{\
+    def name is "jill";\
+    spouse() is Jack\
+  \}\
+\
+assuming this type definition:\
+[listing]\
+type Person is someone\{\
+  name has type string;\
+  spouse has type ()=>Person;\
+\}\
+\
+\
+This pair of definitions is not permitted because the value of `Jack` depends on the variable `Jill`, which in turn depends on `Jack`.\
+\\begin\{aside\}\
+The reason it is not permitted is that partially constructed values are not permitted. In fact, any attempt to actually compute this pair of values would simply result in an infinite loop.\
+\\end\{aside\}\
+\
+However, the very similar pair of definitions:\
+[listing]\
+JackF() is someone\{\
+    def name is "jack";\
+    spouse() is JillF()\
+  \}\
+JillF() is someone\{\
+    def name is "jill";\
+    spouse() is JackF()\
+  \}\
+\
+is permitted -- because mutually recursive functions are permitted. However, in some cases, especially those involving internal state, a call to normal zero-arity function is not equivalent to the result of the function. In this example, each invocation of `spouse` results in a new value; whose state is independent of other instances.\
+\
+To permit this, the `memo` function is semantically a function; but since each time it is called it is guaranteed to return the identical result it has the same semantics as a shared variable:\
+[listing]\
+def JackM is memo someone\{\
+    def name is "jack";\
+    spouse() is JillM()\
+  \}\
+def JillM is memo someone\{\
+    def name is "jill";\
+    spouse() is JackM()\
+  \}}

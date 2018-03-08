@@ -1,0 +1,21 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+==== Type Safety\
+A `valof` expression is type safe if each of the actions contained within it are type consistent, and its type is the type of the expression referenced in the `valis` actions within the body of the `valor`.\
+\
+The type of a `valof` expression is the type of the expression associated with the `valis` actions embedded within it.\
+\
+\\begin\{prooftree\}\
+\\AxiomC\{\\typesafe\{E\}\{A\}\}\
+\\AxiomC\{\\typeprd\{E\}\{V\}\{T\}\}\
+\\AxiomC\{$`valis`\\ E\\in A$\}\
+\\TrinaryInfC\{\\typeprd\{E\}\{`valof`\\ A\}\{T\}\}\
+\\end\{prooftree\}\
+\\begin\{aside\}\
+The \\safeinf\{\} meta-predicate is used of actions; and is true iff the action is consistent in its use of variables and types. See <<actionTypeSafety>>.\
+\\end\{aside\}}

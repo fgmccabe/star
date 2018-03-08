@@ -1,61 +1,108 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;}
 {\*\expandedcolortbl;;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}
+{\list\listtemplateid2\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid101\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid2}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}{\listoverride\listid2\listoverridecount0\ls2}}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
-\f0\fs26 \cf0 \
-[[defaultImplementation]]\
-(((default implementation of contracts)))\
-(((type,contracts!implementation!default)))\
-(((default@`default`)))\
-\
-A `default` implementation for a contract denotes an implementation to use for a contract when there is no known implementation. This can occur in two common situations: where a contract function is used that references a type that does not have an implementation for the contract, and where there is no type information.\
-\
-[TIP]\
-It is strongly recommended that the `default` implementation is generic; i.e., that the definition of the individual functions are generic. The contract type should be denoted by a variable and all the contract functions should be generic.\
-\
+\f0\fs26 \cf0 A default implementation for a contract denotes an implementation to use for a contract when there is no known implementation. This can occur in two common situations: where a contract function is used that references a type that does not have an implementation for the contract, and where there is no type information.\
+[TIP] It is strongly recommended that the default implementation is generic; i.e., that the definition of the individual functions are generic. The contract type should be denoted by a variable and all the contract functions should be generic.\
 For example, the implementation statement:\
-[listing]\
-implementation all r ~~ equality[r] default = \{\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 implementation all r ~~ equality[r] default => \{\
   L=R => __equal(L,R)\
-\}\
-\
-uses a generic internal definition of `__equal`.\
-\
-\
-As noted above, a `default` implementation is only used in restricted circumstances:\
-\
-No available implementation::\
-If a contract is referenced for a type that does not implement the contract then the `default` implementation will be used.\
-+\
-For example, given a contract:\
-[listing]\
-----\
-contract foo over t is \{\
-  bar has type (t)=>boolean;\
-\}\
-----\
-and the functional expression:\
-[listing]\
-----\
-bar("fred")\
-----\
-then, if `foo` is not implemented for `string`s then the `default` implementation will be used for this expression. Of course, if there is no `default` implementation then a compile error will be flagged.\
-\
-\
-Variable type::\
-In a few circumstances a reference may be made to a contract involving no known types. For example, in the condition:\
-[listing]\
-XX = nil\
-\
-there is a hidden type variable associated with the enumerated symbol `nil`.\
-\
-The symbol `nil` is from the standard definition of `cons`:\
-[listing]\
-all t ~~ cons[t] ::= nil | cons(t,cons[t])\
-\
-Since the type of `nil` is under-constrained -- i.e., the type of `nil` as an expression involves a type variable that is not constrained at all by the `nil` symbol -- even if `equality` is implemented for many types there is no way of knowing which implementation to use in this situation. In this case, a `default` implementation will be used if provided.\
-\
-\
-====}
+\}
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 uses a generic internal definition of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 __equal
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 .\
+As noted above, a default implementation is only used in restricted circumstances:\
+\pard\tx220\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\li720\fi-720\sl264\slmult1\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	\uc0\u8226 	}No available implementation. If a contract is referenced for a type that does not implement the contract then the `default` implementation will be used. For example, given a contract:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 contract all t ~~ foo[t] ::= \{\
+  bar:(t)=>boolean\
+\}
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 and the functional expression:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 bar("fred")
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 then, if 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 foo
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  is not implemented for 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 strings
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  then the default implementation will be used for this expression. Of course, if there is no default implementation then a compile error will be flagged.\
+\pard\tx220\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\li720\fi-720\sl264\slmult1\pardirnatural\partightenfactor0
+\ls2\ilvl0\cf0 {\listtext	\uc0\u8226 	}Variable type. In a few circumstances a reference may be made to a contract involving no known types. For example, in the condition:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 XX = nil
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 there is a hidden type variable associated with the enumerated symbol 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 nil
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 .\
+The symbol 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 nil
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  is from the standard definition of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 cons
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26 :\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <$Scr_Ps::0>
+\f2\fs22 all t ~~ cons[t] ::= nil | cons(t,cons[t])
+\f0\fs26 \
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 <!$Scr_Ps::0>
+\f0\fs26 Since the type of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 nil
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  is under-constrained -- i.e., the type of 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 nil
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  as an expression involves a type variable that is not constrained at all by the 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 nil
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  symbol -- even if 
+\f1\fs24 <$Scr_Cs::1>
+\f2\fs22 equality
+\f1\fs24 <!$Scr_Cs::1>
+\f0\fs26  is implemented for many types there is no way of knowing which implementation to use in this situation. In this case, a default implementation will be used if {\field{\*\fldinst{HYPERLINK "scrivcmt://7E950331-DD50-47D8-BC9D-B6B3C38D90EB"}}{\fldrslt provided.}}}

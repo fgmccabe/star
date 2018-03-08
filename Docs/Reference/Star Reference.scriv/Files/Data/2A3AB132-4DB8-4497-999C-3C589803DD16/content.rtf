@@ -1,0 +1,15 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 \
+==== Type Safety\
+The type safety of an attribute substitute expression is couched in terms of <<AttributeConstraint>>s.\
+\\begin\{prooftree\}\
+\\AxiomC\{\\typeprd\{E\}\{R\}\{T\\sub\{R\}\\ `where`\\ T\\sub\{R\}\\ `implements`\\ T\\sub\{S\}\}\}\
+\\AxiomC\{\\typeprd\{E\}\{S\}\{S\\sub\{S\}\\ `where`\\ S\\sub\{S\}\\ `implements`\\ T\\sub\{S\}\}\}\
+\\BinaryInfC\{\\typeprd\{E\}\{R\\ `substitute`\\ S\}\{T\\sub\{R\}\}\}\
+\\end\{prooftree\}\
+The implication is that the `substitution' record `S` only contains attributes that are also present in the `substitute' expression `R`.}
