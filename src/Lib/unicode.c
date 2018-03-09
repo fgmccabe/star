@@ -2,6 +2,8 @@
 // Created by Francis McCabe on 3/3/18.
 //
 
+#include <arithP.h>
+#include <globals.h>
 #include "unicode.h"
 #include "arith.h"
 
@@ -313,4 +315,17 @@ ReturnStatus g__isLetterChar(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
   return ret;
+}
+
+ReturnStatus g__digitCode(processPo p, ptrPo tos) {
+  codePoint ch = (codePoint) integerVal(tos[0]);
+
+  if (isNdChar(ch)) {
+    ReturnStatus ret = {.ret=Ok, .rslt=(termPo) allocateInteger(processHeap(p), digitValue(ch))};
+
+    return ret;
+  } else {
+    ReturnStatus ret = {.ret=Fail, .rslt=voidEnum};
+    return ret;
+  }
 }

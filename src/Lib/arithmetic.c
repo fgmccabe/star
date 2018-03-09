@@ -140,6 +140,17 @@ ReturnStatus g__bnot(processPo p, ptrPo tos) {
   return ret;
 }
 
+ReturnStatus g__nthb(processPo p, ptrPo tos) {
+  uinteger ix = (unsigned) integerVal(tos[1]);
+  byte b = (byte) integerVal(tos[0]);
+
+  termPo Rs = (ix & (1 << b) ? trueEnum : falseEnum);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=Rs};
+
+  return ret;
+}
+
 ReturnStatus g__int_eq(processPo p, ptrPo tos) {
   termPo Rhs = tos[0];
   termPo Lhs = tos[1];
@@ -191,6 +202,22 @@ ReturnStatus g__int2str(processPo p, ptrPo tos) {
 
   ReturnStatus rtn = {.rslt = str, .ret=Ok};
   return rtn;
+}
+
+ReturnStatus g__int_format(processPo p, ptrPo tos) {
+  integer ix = integerVal(tos[1]);
+  integer length;
+  const char *fmt = stringVal(tos[0], &length);
+  char buff[64];
+  integer pos = 0;
+
+  retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
+
+  if (ret == Ok) {
+    ReturnStatus rtn = {.rslt = allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
+    return rtn;
+  } else
+    return liberror(p, "_int_format", eINVAL);
 }
 
 ReturnStatus g__flt_eq(processPo p, ptrPo tos) {
@@ -375,7 +402,7 @@ ReturnStatus g__flt2str(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_format(processPo p, ptrPo tos) {
-  double Arg = floatVal(tos[0]);
+  double Arg = floatVal(tos[1]);
   integer length;
   const char *fmt = stringVal(tos[0], &length);
   char buff[64];
@@ -384,7 +411,7 @@ ReturnStatus g__flt_format(processPo p, ptrPo tos) {
   retCode ret = formattedFloat(Arg, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    ReturnStatus rtn = {.rslt = allocateString(processHeap(p), buff, uniStrLen(buff)),.ret=Ok};
+    ReturnStatus rtn = {.rslt = allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
     return rtn;
   } else
     return liberror(p, "_flt_format", eINVAL);

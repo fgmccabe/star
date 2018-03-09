@@ -19,6 +19,6 @@ typedef struct _io_record_ {
 
 extern ioChnnlPo allocateIOChnnl(heapPo H, ioPo io);
 
-extern ioPo ioChannel(ioChnnlPo chnnl);
+void scanChnnl();
 
 #endif //CAFE_IOP_H

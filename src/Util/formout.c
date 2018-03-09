@@ -263,7 +263,7 @@ retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, co
   }
 }
 
-retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, char *frmt, integer formatLen) {
+retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen) {
   char digits[256];
   uint16 base = (uint16) (uniIndexOf(frmt, formatLen, 0, 'X') >= 0 ? 16 : 10);
   logical isSigned = False;

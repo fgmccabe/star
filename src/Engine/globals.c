@@ -6,6 +6,12 @@
 
 termPo eINTRUPT;
 termPo eINVAL;
+termPo eNOFILE;
+termPo eNOTDIR;
+termPo eNOTFND;
+termPo eNOPERM;
+termPo eIOERROR;
+termPo eFAIL;
 
 termPo falseEnum;
 termPo trueEnum;
@@ -17,15 +23,21 @@ termPo errorLbl;
 
 void initGlobals() {
   eINTRUPT = (termPo) declareEnum("eINTRUPT");
+  eNOTDIR = (termPo) declareEnum("eNOTDIR");
+  eNOFILE = (termPo) declareEnum("eNOFILE");
+  eNOTFND = (termPo) declareEnum("eNOTFND");
   eINVAL = (termPo) declareEnum("eINVAL");
+  eNOPERM = (termPo) declareEnum("eNOPERM");
+  eFAIL = (termPo) declareEnum("eFAIL");
+  eIOERROR = (termPo) declareEnum("eIOERROR");
 
-  falseEnum = (termPo)declareEnum("core.star#false");
-  trueEnum = (termPo)declareEnum("core.star#true");
+  falseEnum = (termPo) declareEnum("core.star#false");
+  trueEnum = (termPo) declareEnum("core.star#true");
 
-  voidEnum = (termPo)declareEnum("code.star#void");
+  voidEnum = (termPo) declareEnum("code.star#void");
 
-  okEnum = (termPo)declareEnum("code.star#ok");
-  failEnum = (termPo)declareEnum("code.star#fail");
-  eofEnum = (termPo)declareEnum("code.star#eof");
-  errorLbl = (termPo)declareLbl("code.star#error",1);
+  okEnum = (termPo) declareEnum("code.star#ok");
+  failEnum = (termPo) declareEnum("code.star#fail");
+  eofEnum = (termPo) declareEnum("code.star#eof");
+  errorLbl = (termPo) declareLbl("code.star#error", 1);
 }

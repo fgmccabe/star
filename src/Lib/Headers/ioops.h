@@ -5,4 +5,6 @@
 #ifndef CAFE_IOOPS_H
 #define CAFE_IOOPS_H
 
+#include "iochnnl.h"
+
 #endif //CAFE_IOOPS_H

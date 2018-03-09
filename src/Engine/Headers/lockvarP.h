@@ -6,7 +6,6 @@
 #define CAFE_LOCKVARP_H
 
 #include "heap.h"
-#include "code.h"
 #include "termP.h"
 #include "lockvar.h"
 

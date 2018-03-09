@@ -110,7 +110,6 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
 */
 
   escape(_get_file,True,False,"F(S)S","Get the contents of a file as a string")
-  escape(_put_file,True,False,"F(SS)"sysRet,"write a file from a string")
   escape(_cwd,True,False,"F()S","return url of current working directory")
   escape(_cd,False,False,"F(S)"sysRet,"change current working directory")
   escape(_rm,True,False,"F(S)"sysRet,"remove file")
@@ -118,7 +117,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_mkdir,True,False,"F(Si)"sysRet,"create directory")
   escape(_rmdir,True,False,"F(S)"sysRet,"delete directory")
   escape(_isdir,True,False,"F(S)l","is directory present")
-  escape(_chmod,True,False,"F(Si)"sysRet,"change mode of a file or directory")
+  escape(_file_chmod,True,False,"F(Si)"sysRet,"change mode of a file or directory")
   escape(_ls,True,False,"F(S)LS","return a list of files in a directory")
 
   escape(_file_mode,True,False,"F(S)i","report modes of a file")
@@ -137,14 +136,15 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
 
   escape(_close,True,False,"F("fileType")"sysRet,"close file")
   escape(_end_of_file,True,False,"F("fileType")l","end of file test")
-  escape(_ready,True,False,"F("fileType")l","file ready test")
+  escape(_ready_to_read,True,False,"F("fileType")l","file ready test")
+  escape(_ready_to_write,True,False,"F("fileType")l","file ready test")
   escape(_inchars,True,False,"F("fileType"i)S","read block string")
   escape(_inbytes,True,False,"F("fileType"i)Li","read block of bytes")
   escape(_inchar,True,False,"F("fileType")i","read single character")
   escape(_inbyte,True,False,"F("fileType")i","read single byte")
   escape(_inline,True,False,"F("fileType")S","read a line")
   escape(_intext,True,False,"F("fileType"S)S","read until matching character")
-  escape(_outch,True,False,"F("fileType"i)"sysRet,"write a single character")
+  escape(_outchar,True,False,"F("fileType"i)"sysRet,"write a single character")
   escape(_outbyte,True,False,"F("fileType"i)"sysRet,"write a single byte")
   escape(_outbytes,True,False,"F("fileType"Li)"sysRet,"write a list of bytes")
   escape(_outtext,True,False,"F("fileType"S)"sysRet,"write a string as a block")

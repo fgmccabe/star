@@ -35,7 +35,6 @@ SpecialClass LockClass = {
 
 clssPo lckClass = (clssPo) &LockClass;
 
-
 void initLocks() {
   LockClass.clss = specialClass;
 }
@@ -52,20 +51,20 @@ long lockSize(specialClassPo cl, termPo o) {
 
 termPo lockCopy(specialClassPo cl, termPo dst, termPo src) {
   lockPo si = C_LOCK(src);
-  lockPo di = (lockPo)(dst);
+  lockPo di = (lockPo) (dst);
   *di = *si;
-  return (termPo)di+LockCellCount;
+  return (termPo) di + LockCellCount;
 }
 
 termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return (termPo)(o+LockCellCount);
+  return (termPo) (o + LockCellCount);
 }
 
 static retCode lockDisp(ioPo out, termPo t, long depth, logical alt) {
-  return outMsg(out,"<<lock@0x%x>>",t);
+  return outMsg(out, "<<lock@0x%x>>", t);
 }
 
-extern lockPo C_LOCK(termPo t) {
+lockPo C_LOCK(termPo t) {
   assert(hasClass(t, lckClass));
   return (lockPo) t;
 }
@@ -114,10 +113,13 @@ retCode acquireLock(lockPo l, double tmOut) {
     tm.tv_sec = (long) seconds;
     tm.tv_nsec = (long) (fraction * NANO);  // Convert microseconds to nanoseconds
     switch (pthread_cond_timedwait(&l->cond, &l->mutex, &tm)) {
-      case 0:goto again;
-      case ETIMEDOUT:pthread_mutex_unlock(&l->mutex);
+      case 0:
+        goto again;
+      case ETIMEDOUT:
+        pthread_mutex_unlock(&l->mutex);
         return Fail;
-      default:pthread_mutex_unlock(&l->mutex);
+      default:
+        pthread_mutex_unlock(&l->mutex);
         return Error;
     }
   }
@@ -201,9 +203,11 @@ retCode waitLock(lockPo l, double tmOut) {
 
       int unixRet = 0;
       switch (unixRet = pthread_cond_timedwait(&l->cond, &l->mutex, &tm)) {
-        case 0:ret = Ok;
+        case 0:
+          ret = Ok;
           break;            /* somewhere else we will try to relock */
-        case ETIMEDOUT:ret = Fail;
+        case ETIMEDOUT:
+          ret = Fail;
           break;
         default:
 #ifdef LOCKTRACE
@@ -243,20 +247,28 @@ void initLock(lockPo l) {
 
   mtxInit:
   switch (pthread_mutex_init(&l->mutex, &attr)) {
-    case 0:break;
-    case EINVAL:syserr("cannot init");
-    case ENOMEM:syserr("no memory");
-    case EAGAIN:goto mtxInit;
-    default:syserr("!!mutex init");
+    case 0:
+      break;
+    case EINVAL:
+      syserr("cannot init");
+    case ENOMEM:
+      syserr("no memory");
+    case EAGAIN:
+      goto mtxInit;
+    default:
+      syserr("!!mutex init");
   }
 
   pthread_mutexattr_destroy(&attr);
 
   again:
   switch (pthread_cond_init(&l->cond, NULL)) {
-    case 0:return;
-    case EAGAIN:goto again;
-    default:syserr("cannot init lock");
+    case 0:
+      return;
+    case EAGAIN:
+      goto again;
+    default:
+      syserr("cannot init lock");
       return;
   }
 }

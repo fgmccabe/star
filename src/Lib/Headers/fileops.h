@@ -11,4 +11,5 @@
 #include "engine.h"
 #include "libEscapes.h"
 
+extern char *resolveFileName(processPo p, const char *fn, integer fnLen, char *buff, integer buffLen);
 #endif //CAFE_FILEOPS_H

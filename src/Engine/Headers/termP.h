@@ -6,6 +6,7 @@
 #define CAFE_TERMP_H
 
 #include "term.h"
+#include "code.h"
 
 /*
  * A program label structure

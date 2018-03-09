@@ -108,6 +108,13 @@ termPo nthEl(listPo list, integer ix) {
   return base->els[list->start + ix];
 }
 
+void setNthEl(listPo list, integer ix, termPo el) {
+  basePo base = C_BASE(list->base);
+
+  assert(ix >= 0 && ix < list->length && ix + list->start <= (base->max - base->min));
+  base->els[list->start + ix] = el;
+}
+
 retCode processList(listPo list, listProc p, logical safeMode, void *cl) {
   retCode ret = Ok;
   basePo base = C_BASE(list->base);
@@ -118,7 +125,7 @@ retCode processList(listPo list, listProc p, logical safeMode, void *cl) {
   return ret;
 }
 
-termPo allocateList(heapPo H, integer length, logical safeMode) {
+listPo allocateList(heapPo H, integer length, logical safeMode) {
   listPo list = (listPo) allocateObject(H, listClass, ListCellCount);
   int root = gcAddRoot((ptrPo) &list);
   list->start = 0;
@@ -133,7 +140,7 @@ termPo allocateList(heapPo H, integer length, logical safeMode) {
   list->base = (termPo) base;
   list->start = base->min;
   gcReleaseRoot(root);
-  return (termPo) list;
+  return list;
 }
 
 static termPo newSlice(heapPo H, basePo base, integer start, integer length) {

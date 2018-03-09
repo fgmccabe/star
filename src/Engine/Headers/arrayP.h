@@ -34,13 +34,6 @@ extern basePo C_BASE(termPo o);
 
 #define BaseCellCount(len) CellCount(sizeof(BaseRecord)+(len)*sizeof(termPo))
 
-extern termPo allocateList(heapPo H, integer length, logical safeMode);
-
-extern termPo sliceList(heapPo H, listPo list, integer from, integer count);
-
-extern termPo appendToList(heapPo H, listPo list, termPo el);
-
-extern termPo prependToList(heapPo H, listPo list, termPo el);
 
 extern void initLists();
 

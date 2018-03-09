@@ -58,3 +58,32 @@ ioChnnlPo C_IO(termPo t) {
 ioPo ioChannel(ioChnnlPo chnnl) {
   return chnnl->io;
 }
+
+static ioChnnlPo inChnl = Null;
+static ioChnnlPo outChnl = Null;
+static ioChnnlPo errChnl = Null;
+
+ioChnnlPo stdInChnl(heapPo h) {
+  if (inChnl == Null) {
+    inChnl = allocateIOChnnl(h, stdIn);
+  }
+  return inChnl;
+}
+
+ioChnnlPo stdOutChnl(heapPo h) {
+  if (outChnl == Null) {
+    outChnl = allocateIOChnnl(h, stdOut);
+  }
+  return inChnl;
+}
+
+ioChnnlPo stdErrChnl(heapPo h) {
+  if (errChnl == Null) {
+    errChnl = allocateIOChnnl(h, stdErr);
+  }
+  return inChnl;
+}
+
+void scanChnnl() {
+
+}
