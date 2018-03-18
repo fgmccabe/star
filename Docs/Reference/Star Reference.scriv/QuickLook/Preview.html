@@ -1191,23 +1191,747 @@
 <ul>
 <li>
 <p class="itemTitle">Expressions</p>
-<p class="itemText">%!TEX root = reference.tex</p>
-<p class="itemText">= Expressions</p>
-<p class="itemText">[[expressions]]</p>
+<p class="itemText">An expression is a form that denotes a value. Evaluation is the computational process of realizing the denoted value.</p>
 <p class="itemText"></p>
-<p class="itemText">An expression is a form that denotes a _value_. Evaluation is the computational process of realizing the denoted value.</p>
+<p class="itemText">Expression::=Variable</p>
+<p class="itemText">  | ScalarLiteral</p>
+<p class="itemText">  | AlgebraicConstructor</p>
+<p class="itemText">  | ApplicativeExpression</p>
+<p class="itemText">  | ConditionalExpression</p>
+<p class="itemText">  | CaseExpression</p>
+<p class="itemText">  | Condition</p>
+<p class="itemText">  | LetExpression</p>
+<p class="itemText">  | ValueExpression</p>
+<p class="itemText">  | AnonymousFunction</p>
+<p class="itemText">  | MemoFunction</p>
+<p class="itemText">  | TypedExpression</p>
+<p class="itemText">  | QuotedExpression</p>
+<p class="itemText">Expression</p>
+<p class="itemText">[NOTE]: This chapter does not cover all forms of expression. Other chapters that address particular fo...</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Variables (In Expressions)</p>
+<p class="itemText">A variable as an expression is simply an occurrence of the variable's identifier.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Type Safety</p>
+<p class="itemText">The type associated with a variable expression is derived from the type recorded for the variable in the environment.</p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{`( v`,T\sub{v}\ `)`$\in\ $E}</p>
+<p class="itemText">\UnaryInfC{\typeprd{E}{`v`}{T\sub{v}'}}</p>
+<p class="itemText">\end{prooftree}</p>
+<p class="itemText">where `T\sub{v`'} is derived from `T\sub{v`} by means of _refreshing_. I.e., if `T\sub{v`} takes the form:</p>
+<p class="itemText">[listing][mathescape=true]</p>
+<p class="itemText">for all t$\subi{}$ such that T</p>
+<p class="itemText"></p>
+<p class="itemText">then `T\sub{v`'} is `T` with all occurrences of type variable `t\subi` replaced with new type variables.</p>
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Scalar Literal Expressions</p>
+<p class="itemText"></p>
+<p class="itemText">There are three forms of scalar literal expression: numeric literals, string literals and enumerated symbols.</p>
+<p class="itemText">ScalarLiteral::=Integer</p>
+<p class="itemText">  | Float</p>
+<p class="itemText">  | String</p>
+<p class="itemText">  | EnumeratedSymbol</p>
+<p class="itemText">Scalar Literals</p>
+<p class="itemText">The integer type is used to denote integral values in the range -9223372036854775808 to 9223372036854775807.</p>
+<p class="itemText">Integers may be written in a variety of styles; the most common form is the simple Decimal notation.</p>
+<p class="itemText">Integer::=Decimal</p>
+<p class="itemText">  | Hexadecimal</p>
+<p class="itemText">  | CharacterCode</p>
+<p class="itemText">Integer Literals</p>
+
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Largest and Smallest Integers</p>
+<p class="itemText">The largeSmall contract is implemented for integers. This contract defines the largest and the smallest integers; its implementation is equivalent to</p>
+<p class="itemText">implementation largeSmall[integer] => {</p>
+<p class="itemText">  largest = 0x7fffffffffffffff</p>
+<p class="itemText">  smallest = 0x8000000000000000</p>
+<p class="itemText">}</p>
+</li>
+<li>
+<p class="itemTitle">Floating Point Literals</p>
+<p class="itemText">The float type is used to represent fractional values. Floating point numbers are represented as IEEE double precision -- i.e., 64 bit.</p>
+<p class="itemText">Float::=FloatingPoint</p>
+<p class="itemText">Floating Point Literals</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">Largest and Smallest floats</p>
+<p class="itemText">The largeSmall contract is implemented for floating point numbers. Its implementation is equivalent to</p>
+<p class="itemText">implementation largeSmall [float] => {</p>
+<p class="itemText">  argest = __bits_float(0x7fefffffffffffffL)</p>
+<p class="itemText">  smallest = __bits_float(0x1L)</p>
+<p class="itemText">}</p>
+<p class="itemText">where __bits_float is a special function that allows a 64 bit bit string to represent a floating point number (the bit string is the bit representation of the floating point number).</p>
+<p class="itemText"></p>
+
+</li>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">String Literals</p>
+<p class="itemText">The string type is used to denote string values.</p>
+<p class="itemText">String::=StringLiteral</p>
+<p class="itemText">String Expression</p>
+<p class="itemText">The simplest form of string literal is a sequence of characters enclosed in double-quotes.</p>
+<p class="itemText">In addition, quoted strings may include interpolation expressions -- which are embedded expressions whose values are interpolated into the actual string value.</p>
+</li>
+<hr class="afterText"/>
+<ul>
+<li>
+<p class="itemTitle">String Interpolation</p>
+<p class="itemText">String interpolation refers to the embedding of variables and expressions in string literals. The actual string value of an interpolated `string` literal requires the evaluation of those variables and expressions.</p>
+<p class="itemText">For example, given a variable X with the value 24, then:</p>
+<p class="itemText">"this has the value of X: \(X)”</p>
+<p class="itemText">“\(X*X) people saw this"</p>
+<p class="itemText">would have values:</p>
+<p class="itemText">"this has the value of X: 24"</p>
+<p class="itemText">and</p>
+<p class="itemText">"576 people saw this"</p>
+<p class="itemText">respectively.</p>
+<p class="itemText">There are two modes of string interpolation: the dollar form corresponds to display...</p>
+</li>
+</ul>
+</ul>
+</ul>
+<hr class="afterText"/>
+
+<li>
+<p class="itemTitle">Semantics of String Interpolation</p>
+<p class="itemText">String variable interpolation expressions may refer to variables that are in scope at the location of the string literal itself.</p>
+<p class="itemText"></p>
+<p class="itemText">The meaning of a string interpolation is slightly different for the two forms of interpolation. An expression of the form:</p>
+<p class="itemText">[listing][escapechar=|]</p>
+<p class="itemText">"|_prefix_|$(|_Exp_|)|_suffix_|"</p>
+<p class="itemText"></p>
+<p class="itemText">is interpreted as:</p>
+<p class="itemText">[listing][mathescape=true]</p>
+<p class="itemText">"$_prefix_$"++display($_Exp_$)++"$_suffix_$"</p>
+<p class="itemText"></p>
+<p class="itemText">whereas the expression:</p>
+<p class="itemText">[listing][mathescape=true]</p>
+<p class="itemText">"$_prefix_$\#($_Exp_$)$_suffix_$"</p>
+<p class="itemText"></p>
+<p class="itemText">is interpre...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-10</p>
+<p class="itemText"></p>
+<p class="itemText">=== Enumerated Symbols</p>
+<p class="itemText">[[enumeratedSymbol]]</p>
+<p class="itemText">(((expression,enumerated symbol)))</p>
+<p class="itemText">(((enumerated symbol)))</p>
+<p class="itemText">Enumerated symbols are written using regular identifiers (see <<enumSymbolFig>>). Such a symbol must first have been declared within a type definition statement -- see <<enumSymbol>> -- which also determines the type of the symbol.</p>
+<p class="itemText"></p>
+<p class="itemText">For example, the `boolean` type definition has two <<EnumeratedSymbol>>s in its definition: `true` and `false`. Thus</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">true</p>
+<p class="itemText"></p>
+<p class="itemText">is an expression consisting of...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-11</p>
+<p class="itemText"></p>
+<p class="itemText">== Algebraic Constructor Expressions</p>
+<p class="itemText">[[algebraicConstructors]]</p>
+<p class="itemText"></p>
+<p class="itemText">The <<AlgebraicConstructor>> expressions are those that refer to constructors that are defined in <<AlgebraicType>> definitions -- _or those that arise from standard type schemas such as tuples and anonymous records_.</p>
+<p class="itemText"></p>
+<p class="itemText">There are two primary forms of <<AlgebraicConstructor>>s: positional <<ConstructorLiteral>> terms and <<RecordLiteral>> terms.</p>
+<p class="itemText"></p>
+<p class="itemText">Records allow their fields to be addressed individually.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eq...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-12</p>
+<p class="itemText"></p>
+<p class="itemText">=== Enumerated Symbol</p>
+<p class="itemText">[[enumeratedSymbol]]</p>
+<p class="itemText">(((expression,enumerated symbol)))</p>
+<p class="itemText">(((enumerated symbol literal)))</p>
+<p class="itemText"><<EnumeratedSymbol>>s denote symbolic values. In particular, it refers to symbols that are introduced in an algebraic <<TypeDefinition>>.</p>
 <p class="itemText">\begin{figure}[htbp]</p>
 <p class="itemText">\begin{eqnarray*}</p>
-<p class="itemText">[[Expression]]Expression::=<<Variable>>\\</p>
-<p class="itemText">  | <<ScalarLiteral>>\\</p>
-<p class="itemText">  | <<AlgebraicConstructor>>\\</p>
-<p class="itemText">  | <<ApplicativeExpression>>\\</p>
-<p class="itemText">  | <<ConditionalExpression>>\\</p>
-<p class="itemText">  | <<CaseExpression>>\\</p>
-<p class="itemText">  | <<Condition>>\\</p>
-<p class="itemText">  | <<LetExpression>>\\</p>
-<p class="itemText">  | <<ValueExpression>>\\</p>
-<p class="itemText">  | <<AnonymousFunction>>\\...</p>
+<p class="itemText">[[EnumeratedSymbol]]EnumeratedSymbol::=<<Identifier>></p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Enumerated Symbol Expression</p>
+<p class="itemText">[[enumeratedSymbolFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText">Enumerated symbols have no internal structure; they are often used to defin...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-13</p>
+<p class="itemText"></p>
+<p class="itemText">=== Constructor Literals</p>
+<p class="itemText">[[positionalConstructor]]</p>
+<p class="itemText">(((expression,positional constructor)))</p>
+<p class="itemText">(((positional constructor literal)))</p>
+<p class="itemText"><<ConstructorLiteral>> expressions denote data constructor values. In particular, it refers to constructors that are introduced in an algebraic <<TypeDefinition>>.</p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[ConstructorLiteral]]ConstructorLiteral::=<<Identifier>>`(`<<Expression>>`,`...`,`<<Expression>>`)`</p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Constructor Literal Expression</p>
+<p class="itemText">[[positionalConstru...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-14</p>
+<p class="itemText"></p>
+<p class="itemText">=== Tuples</p>
+<p class="itemText">[[TupleTerms]]</p>
+<p class="itemText">(((expressions,tuple)))</p>
+<p class="itemText">(((tuples)))</p>
+<p class="itemText">(((informal combinations of elements)))</p>
+<p class="itemText">A tuple consists of a sequence of expressions separated by commas and enclosed in parentheses. In effect, a tuple is a <<ConstructorLiteral>> where the <<Identifier>> is omitted -- and is automatically generated.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[TupleLiteral]]TupleLiteral::=`()`\\</p>
+<p class="itemText">  | `((`<<Expression>>`))`\\</p>
+<p class="itemText">  | `(`<<Expression>>\sequence{,}<<Expression>>`)`\plustwo</p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">....</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-15</p>
+<p class="itemText"></p>
+<p class="itemText">==== Zero-ary Tuples</p>
+<p class="itemText">[[zeroTuple]]</p>
+<p class="itemText">(((tuple,zero-ary)))</p>
+<p class="itemText">Zero-element tuples _are_ permitted. A zero-element tuple, which is written</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">()</p>
+<p class="itemText"></p>
+<p class="itemText">is essentially a symbol.</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-16</p>
+<p class="itemText"></p>
+<p class="itemText">==== Singleton Tuples</p>
+<p class="itemText">(((single element tuples)))</p>
+<p class="itemText">(((tuples,single element)))</p>
+<p class="itemText">Some special handling is required to represent tuples of one element.</p>
+<p class="itemText"></p>
+<p class="itemText">The principal issue is the potential ambiguity between a tuple with one element and a normal operator override expression.</p>
+<p class="itemText"></p>
+<p class="itemText">For example,</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">(a+b)*c</p>
+<p class="itemText"></p>
+<p class="itemText">is such a case: the inner term `(a+b)` is not intended to denote a tuple but simply the sum of `a` and `b`.</p>
+<p class="itemText"></p>
+<p class="itemText">A singleton tuple _may_ be written; by doubly parenthesizing it. An expression of the...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-17</p>
+<p class="itemText"></p>
+<p class="itemText">=== Record Literals</p>
+<p class="itemText">[[recordLiteral]]</p>
+<p class="itemText">(((expressions,record literal)))</p>
+<p class="itemText">(((record literal)))</p>
+<p class="itemText">A record literal is a collection of values identified by name.</p>
+<p class="itemText"></p>
+<p class="itemText">Like <<ConstructorLiteral>>s, the <<RecordLiteral>> must have been defined with a <<TypeDefinition>> statement. This also constrains the types of the expressions associated with the fields.</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[H]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[RecordLiteral]]RecordLiteral::=<<Record>>\ |<<ThetaRecord>>\\</p>
+<p class="itemText">[[Record]]Record::=<<Expression>>`\{`<<RecordElemen...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-18</p>
+<p class="itemText"></p>
+<p class="itemText">=== Accessing Fields of a Record</p>
+<p class="itemText">[[dotAccess]]</p>
+<p class="itemText">(((record literal,accessing)))</p>
+<p class="itemText">(((expressions,accessing record fields)))</p>
+<p class="itemText"></p>
+<p class="itemText">Record access expressions access the value associated with a field of a record value. The result may either be the field value, or a new record with a replaced field value.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[RecordAccess]]RecordAccess::=<<Expression>>\ `.`\ <<Identifier>></p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Record Access Expression[[recordAccessFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">An expression of the fo...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-19</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">The type safety of a record access expression is couched in terms of <<AttributeConstraint>>s: i.e., a record access expression implies that a value satisfies the appropriate <<AttributeConstraint>>.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{R}{T\ `where`\ T\ `implements`\ `\{F has type `T\sub{f}`\`}}}</p>
+<p class="itemText">\UnaryInfC{\typeprd{E}{R.F}{T\sub{f}}}</p>
+<p class="itemText">\end{prooftree}</p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">This formulation of the type safety of record access expressions allows for some quite powerful usages. For exam...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-20</p>
+<p class="itemText"></p>
+<p class="itemText">=== Theta Records</p>
+<p class="itemText">[[thetaRecords]]</p>
+<p class="itemText">(((record literal,theta)))</p>
+<p class="itemText">(((theta record)))</p>
+<p class="itemText"></p>
+<p class="itemText">A <<ThetaRecord>> is a record whose contents is specified by means of a <<thetaEnvironment>>. There are variants corresponding to labeled and anonymous records.</p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[ThetaRecord]ThetaRecord::=[<<Expression>>]]`\{`<<Definition>>\sequence{;}<<Definition>>`\`}</p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Theta Record Literal Expression[[thetaRecordLiteralFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">Externally, a <<ThetaRecord>> is th...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-21</p>
+<p class="itemText"></p>
+<p class="itemText">==== `private` fields</p>
+<p class="itemText">[[privateField]]</p>
+<p class="itemText">(((private fields@`private` fields)))</p>
+<p class="itemText">(((fields,private@`private`)))</p>
+<p class="itemText">A definition within a <<ThetaRecord>> that is marked `private` does _not_ `contribute' to the external type of the record; and neither can such an attribute be accessed via the <<RecordAccess>> expression.</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-22</p>
+<p class="itemText"></p>
+<p class="itemText">=== Record Substitution Expression</p>
+<p class="itemText">[[recordOverride]]</p>
+<p class="itemText">(((replacing values in a record)))</p>
+<p class="itemText">(((expressions,substitute@`substitute`)))</p>
+<p class="itemText">(((record values,replacing fields)))</p>
+<p class="itemText">An expression of the form:</p>
+<p class="itemText">[listing][mathescape=true]</p>
+<p class="itemText">A substitute {att$\sub1$=$<<Expression>>\sub1\sequence{;}$att$\subn$=$<<Expression>>\subn$}</p>
+<p class="itemText"></p>
+<p class="itemText">denotes the value obtained by replacing the attributes `att`\subi{} in `A` with the expressions <<Expression>>\subi.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">_Expression_&\arrowplus&<<E...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-23</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">The type safety of an attribute substitute expression is couched in terms of <<AttributeConstraint>>s.</p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{R}{T\sub{R}\ `where`\ T\sub{R}\ `implements`\ T\sub{S}}}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{S}{S\sub{S}\ `where`\ S\sub{S}\ `implements`\ T\sub{S}}}</p>
+<p class="itemText">\BinaryInfC{\typeprd{E}{R\ `substitute`\ S}{T\sub{R}}}</p>
+<p class="itemText">\end{prooftree}</p>
+<p class="itemText">The implication is that the `substitution' record `S` only contains attributes that are also present in the `substitute' expression `R`.</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-24</p>
+<p class="itemText"></p>
+<p class="itemText">== Optional Expressions</p>
+<p class="itemText">[[optionExpression]]</p>
+<p class="itemText">(((option expression@`option` expression)))</p>
+<p class="itemText"></p>
+<p class="itemText">An `option` expression is used to handle cases where a value is not always guaranteed. The `option` type is built-in but is defined as though by the algebraic type definition in Program~\vref{optionTypeProg}.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{program}</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">type option of t is none or some(t)</p>
+<p class="itemText"></p>
+<p class="itemText">.The `option` Type</p>
+<p class="itemText">[[optionTypeProg]]</p>
+<p class="itemText">\end{program}</p>
+<p class="itemText"></p>
+<p class="itemText">The `option` type is intended to convey one of two possibilities: a given value exi...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-25</p>
+<p class="itemText"></p>
+<p class="itemText">=== Option Field Access -- `?.`</p>
+<p class="itemText">[[optionChaining]]</p>
+<p class="itemText">(((?. operator@`?.` operator)))</p>
+<p class="itemText">(((accessing an optional value)))</p>
+<p class="itemText">(((option chaining)))</p>
+<p class="itemText"></p>
+<p class="itemText">The `?.` operator can be used similarly to a normal record field access (see \vref{dotAccess}) except that it takes an `option`al argument and returns an `option` value.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText"><<RecordAccess>>&\arrowplus&<<Expression>>\ `?.`\ <<Identifier>></p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Optional Record Access Expression[[optionAccessFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-26</p>
+<p class="itemText"></p>
+<p class="itemText">== Collection and Sequence Expressions</p>
+<p class="itemText">[[sequenceExpression]]</p>
+<p class="itemText">(((sequence,expressions)))</p>
+<p class="itemText">(((expressions,sequence)))</p>
+<p class="itemText">(((of@`of`,expression)))</p>
+<p class="itemText"></p>
+<p class="itemText">Collection expressions and sequence expressions are a syntactic feature that make it straightforward to represent collective values. The difference between a `collection` and a `sequence` is that the latter embodies a sequential ordering of the elements. A `collection` may have an ordering present; but that is not required by the contract and is not enfor...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-27</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">Since a sequence expression is essentially a macro for the use of the `sequence` contract, its type safety determined by the `sequence` contract in Program~\vref{sequenceContractDef}.</p>
+<p class="itemText"></p>
+<p class="itemText">== Index and Slice Notation</p>
+<p class="itemText">[[indexNotation]]</p>
+<p class="itemText">(((index notation)))</p>
+<p class="itemText">(((notation for indexed access)))</p>
+<p class="itemText"></p>
+<p class="itemText">In a similar vein to the <<Sequence>> notation, the <<IndexExp>> notation provides a high-level notation for accessing elements and subsets of collections.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-28</p>
+<p class="itemText"></p>
+<p class="itemText">=== Accessing Elements of a Collection</p>
+<p class="itemText">[[indexedAccess]]</p>
+<p class="itemText">(((indexed access to collection)))</p>
+<p class="itemText">(((access list with index)))</p>
+<p class="itemText">An expression of the form:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">C[ix]</p>
+<p class="itemText"></p>
+<p class="itemText">is equivalent to the expression</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">_index(C,ix)</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">The type of the resulting value from an indexed access is `option`al -- see <<optionExpression>>. I.e., since it cannot be guaranteed -- in general -- that the element exists, the resulting type expresses that uncertainty.</p>
+<p class="itemText"></p>
+<p class="itemText">You can extract the underlying value by ...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-29</p>
+<p class="itemText"></p>
+<p class="itemText">=== Substitutions in a Collection</p>
+<p class="itemText">It is possible to denote the collection obtained by _substituting_ an element -- or deleting an element -- with expressions such as:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">C[with Kx->Vx]</p>
+<p class="itemText"></p>
+<p class="itemText">and</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">C[without Kx]</p>
+<p class="itemText"></p>
+<p class="itemText">which represent</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">_set_indexed(Cx,Kx,Vx)</p>
+<p class="itemText"></p>
+<p class="itemText">and</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">_delete_indexed(Cx,Kx)</p>
+<p class="itemText"></p>
+<p class="itemText">respectively.</p>
+<p class="itemText"></p>
+<p class="itemText">=== Slicing Collections</p>
+<p class="itemText">A more powerful form of accessing single elements from a collection is the _slice_ notation. A slice expression takes the form:</p>
+<p class="itemText">[listing][escapechar=|...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-30</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">[[functionApplyType]]</p>
+<p class="itemText">(((type,function application)))</p>
+<p class="itemText">The primary type safety rule for function application is that the types of the arguments of the application match the argument types of the function. The type of the resulting expression is the return type associated with the function.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{`F`}{`(`t\sub1\sequence{,}t\subn`)=>`t}}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{`e\sub1`}{t\sub1}\sequence{\ }\typeprd{E}{`e\subn`}{t\subn}}</p>
+<p class="itemText">\BinaryInfC{\typeprd{E}{`F(e\su...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-31</p>
+<p class="itemText"></p>
+<p class="itemText">== Control Expressions</p>
+<p class="itemText">[[controlExpression]]</p>
+<p class="itemText">The so-called control expressions involve and modify the meaning of other expressions and actions.</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-32</p>
+<p class="itemText"></p>
+<p class="itemText">=== Conditional Expressions</p>
+<p class="itemText">[[conditionalExpression]]</p>
+<p class="itemText">(((expressions,conditional)))</p>
+<p class="itemText">(((conditional expression)))</p>
+<p class="itemText"></p>
+<p class="itemText">A conditional expression applies a predicate <<Condition>> to decide whether or not to `take' the `then' branch or the `else' branch.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[ConditionalExpression]]ConditionalExpression::=`(`<<Condition>>`?`<<Expression>>`:`<<Expression>>`)`</p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Conditional Expression</p>
+<p class="itemText">[[conditionalExpressionFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">The value of a conditiona...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-33</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">The type safety requirements of a conditional expression are that the types of the two arms of the conditional are the same, and that the condition itself is \safeinf{}:</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\typesat{E}{C}}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{Th}{t}}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{El}{t}}</p>
+<p class="itemText">\TrinaryInfC{\typeprd{E}{`(`C`?`Th`:`El`)`}{t}}</p>
+<p class="itemText">\end{prooftree}</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">=== Switch Expressions</p>
+<p class="itemText">[[caseExpression]]</p>
+<p class="itemText">(((expressions,case@`case`)))</p>
+<p class="itemText">(((case expression@`case` expression)))</p>
+<p class="itemText"></p>
+<p class="itemText">A `switch` expression uses a selec...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-34</p>
+<p class="itemText"></p>
+<p class="itemText">=== Let Expressions</p>
+<p class="itemText">[[letExpression]]</p>
+<p class="itemText">(((expressions,let expression@`let` expression)))</p>
+<p class="itemText">(((let expression@`let` expression)))</p>
+<p class="itemText"></p>
+<p class="itemText">A `let` expression allows an expression to be defined in terms of  auxiliary definitions. There are two forms of the <<LetExpression>> -- allowing the programmer to choose whether the auxiliary definitions should precede the bound expression or follow it.</p>
+<p class="itemText"></p>
+<p class="itemText">In addition, it is possible to use a record-valued expression in place of the set of definitions.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[h...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-35</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">The primary safety requirement for a `let` expression is that the statements that are defined within the body are type consistent. This is the same requirement for any theta environment.</p>
+<p class="itemText"></p>
+<p class="itemText">The type of a `let` expression is the type of the bound expression.</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-36</p>
+<p class="itemText"></p>
+<p class="itemText">=== Memo Function</p>
+<p class="itemText">[[memoFunction]]</p>
+<p class="itemText">(((memo function)))</p>
+<p class="itemText">(((expressions,memo)))</p>
+<p class="itemText"></p>
+<p class="itemText">A `memo` function encapsulates a single expression as a zero arity function that is guaranteed to be evaluated only once.</p>
+<p class="itemText"></p>
+<p class="itemText">A `memo` function is a function that `remembers' the value it first returned. Subsequent invocations of the function simply return that first value.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[MemoFunction]]MemoFunction::=`memo`\ <<Expression>></p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Memo Function</p>
+<p class="itemText">[[memoFunctionFig]]</p>
+<p class="itemText">\en...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-37</p>
+<p class="itemText"></p>
+<p class="itemText">==== Evaluation Semantics</p>
+<p class="itemText">As noted above, the primary guarantee that a `memo` function offers is that it's expression is only evaluated once.</p>
+<p class="itemText"></p>
+<p class="itemText">An expression of the form:</p>
+<p class="itemText">[listing][escapechar=|]</p>
+<p class="itemText">memo |<<Expression>>|</p>
+<p class="itemText"></p>
+<p class="itemText">denotes a function value. Each time the `memo` expression is evaluated a new function value is `created'. In this regard, a `memo` function is no different to an `ordinary' anonymous function.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">The only sense in which it makes a material difference how `memo` function...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-38</p>
+<p class="itemText"></p>
+<p class="itemText">==== Type Safety</p>
+<p class="itemText">A `valof` expression is type safe if each of the actions contained within it are type consistent, and its type is the type of the expression referenced in the `valis` actions within the body of the `valor`.</p>
+<p class="itemText"></p>
+<p class="itemText">The type of a `valof` expression is the type of the expression associated with the `valis` actions embedded within it.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{prooftree}</p>
+<p class="itemText">\AxiomC{\typesafe{E}{A}}</p>
+<p class="itemText">\AxiomC{\typeprd{E}{V}{T}}</p>
+<p class="itemText">\AxiomC{$`valis`\ E\in A$}</p>
+<p class="itemText">\TrinaryInfC{\typeprd{E}{`valof`\ A}{T}}</p>
+<p class="itemText">\end{prooftree}</p>
+<p class="itemText">...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-39</p>
+<p class="itemText"></p>
+<p class="itemText">== Quoted Expressions</p>
+<p class="itemText">[[quotedText]]</p>
+<p class="itemText"></p>
+<p class="itemText">The `quote` expression is used to `convert' a fragment of Star source text into a form that can be processed by Star programs.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[QuotedExpression]]QuotedExpression::=`quote(`<<QExpression>>`)`\\</p>
+<p class="itemText">  | `<|`<<QExpression>>`|>`\\</p>
+<p class="itemText">[[QExpression]]QExpression::=`unquote(`<<Expression>>`)`\\</p>
+<p class="itemText">  | `?`<<Expression>>\\</p>
+<p class="itemText">  | <<Expression>></p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Quoted Expressions</p>
+<p class="itemText">[[quotedExpressionFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText"></p>
+<p class="itemText">(((quoted expressio...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-40</p>
+<p class="itemText"></p>
+<p class="itemText">=== Unquoting</p>
+<p class="itemText">Within a `quote`d expression, the `unquote` term -- or, equivalently, the `?` term, can be used to escape the quoting mechanism and insert variable text.</p>
+<p class="itemText"></p>
+<p class="itemText">For example, in the expression:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText"><| ?A + 45 |></p>
+<p class="itemText"></p>
+<p class="itemText">the identifier `A` now does refer to a normal variable -- whose type must be `quoted`. If, say, `A` had the value:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText"><| "fred" |></p>
+<p class="itemText"></p>
+<p class="itemText">then the above expression is equivalent to:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText"><| "fred" + 45 |></p>
+</li>
+<li>
+<p class="itemTitle">Expressions-41</p>
+<p class="itemText"></p>
+<p class="itemText">=== Automatic Quoting</p>
+<p class="itemText">It is possible to mark a type definition in such a way as to automatically construct coercion between the type and `quoted`. This is done by adding an `implementing` clause to the <<TypeDefinition>>. For example</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">type person is some{</p>
+<p class="itemText">  name has type string;</p>
+<p class="itemText">} or noOne</p>
+<p class="itemText">  implementing quotable</p>
+<p class="itemText"></p>
+<p class="itemText">results in an implementation for coercion between `person` values and `quoted` representations of `person`. I.e.,</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">some{name = "who"} as quoted</p>
+<p class="itemText"></p>
+<p class="itemText">is enabled by the `i...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-42</p>
+<p class="itemText"></p>
+<p class="itemText">=== The Type of Abstract Syntax Terms</p>
+<p class="itemText">The foundation of this is the standard `quoted` type which defines the structure of quoted fragments. The `quoted` type is defined in Program~\vref{quotedProg} and the ancillary type `astLocation` is defined in Program~\vref{locationProg}.</p>
+<p class="itemText">\begin{program}</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">type quoted is nameAst(astLocation,string)</p>
+<p class="itemText">            or boolAst(astLocation,boolean)</p>
+<p class="itemText">            or stringAst(astLocation,string)</p>
+<p class="itemText">            or integerAst(astLocation,integer)</p>
+<p class="itemText">            or l...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-43</p>
+<p class="itemText"></p>
+<p class="itemText">==== The `current' location</p>
+<p class="itemText">[[locationVar]]</p>
+<p class="itemText">(((Accessing source locations)))</p>
+<p class="itemText"></p>
+<p class="itemText">The standard keyword `\_\_location\_\_` denotes the source location of each of its occurrences. It is a pseudo-variable: it has a type and value; but its value is based on the text of the program that it is embedded in:</p>
+<p class="itemText">[listing]</p>
+<p class="itemText">__location__ has type astLocation;</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">The related expression -- `\hash{`\_\_location\_\_} -- is used within macro rules to denote the location the term that is reduced by a given ...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-44</p>
+<p class="itemText"></p>
+<p class="itemText">=== Type Annotation Expression</p>
+<p class="itemText">[[typeAnnotationExpression]]</p>
+<p class="itemText">A <<TypeAnnotationExpression>> is an expression that is annotated with a <<Type>>. The annotation amounts to an assertion that the <<Type>> of the expression is as annotated.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[TypeAnnotationExpression]]TypeAnnotationExpression::=`(`<<Expression>>\ `has type`\ <<Type>>`)`</p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Type Annotation Expression</p>
+<p class="itemText">[[typeAnnotatedExpressionFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{aside}</p>
+<p class="itemText">The <<TypeAnnotationExp...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-45</p>
+<p class="itemText"></p>
+<p class="itemText">%=== Type Cast Expression</p>
+<p class="itemText">%[[typeCastExpression]]</p>
+<p class="itemText">%(((expressions,type cast)))</p>
+<p class="itemText">%(((type cast,expression)))</p>
+<p class="itemText">%(((as@`as`,expression)))</p>
+<p class="itemText">%A <<TypeCastExpression>> expression marks an explicit declaration of the type of an expression. It also delays actual type checking of the castee to runtime.</p>
+<p class="itemText">%</p>
+<p class="itemText">%\begin{figure}[htbp]</p>
+<p class="itemText">%\begin{eqnarray*}</p>
+<p class="itemText">%[[TypeCastExpression]]TypeCastExpression::=<<Expression>>\ `cast`\ <<Type>></p>
+<p class="itemText">%\end{eqnarray*}</p>
+<p class="itemText">%.Type Cast Expression</p>
+<p class="itemText">%[[typeCastExpressionFig]]</p>
+<p class="itemText">%\end{figure}</p>
+<p class="itemText">%</p>
+<p class="itemText">%===...</p>
+</li>
+<li>
+<p class="itemTitle">Expressions-46</p>
+<p class="itemText"></p>
+<p class="itemText">=== Type Coercion Expression</p>
+<p class="itemText">[[typeCoercionExpression]]</p>
+<p class="itemText">[[typeCoercionContract]]</p>
+<p class="itemText">(((expressions,type coercion)))</p>
+<p class="itemText">(((type coercion expression)))</p>
+<p class="itemText">A <<TypeCoercion>> expression denotes a conversion of a value from one type to another.</p>
+<p class="itemText"></p>
+<p class="itemText">\begin{figure}[htbp]</p>
+<p class="itemText">\begin{eqnarray*}</p>
+<p class="itemText">[[TypeCoercion]]TypeCoercion::=`(`<<Expression>>\ `as`\ <<Type>>`)`</p>
+<p class="itemText">\end{eqnarray*}</p>
+<p class="itemText">.Type Coercion Expression</p>
+<p class="itemText">[[typeCoercionExpressionFig]]</p>
+<p class="itemText">\end{figure}</p>
+<p class="itemText"></p>
+<p class="itemText">The primary difference between _type casting_ and _type coercion_ is that...</p>
 </li>
 <li>
 <p class="itemTitle">Variables</p>

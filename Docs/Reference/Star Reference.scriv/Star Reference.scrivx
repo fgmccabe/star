@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-03-06 23:11:45 -0800" ModID="9CDED79A-7349-44E2-A9AF-6698311BCD7D">
+<ScrivenerProject Identifier="2E858F57-D5A6-44EF-A7EF-BC065688914C" Version="2.0" Creator="SCRMAC-3.0.1-966" Device="Ariel" Author="Francis McCabe" Modified="2018-03-14 19:07:12 -0700" ModID="E6D5C4BB-A25D-4784-9B44-C1D48766C07A">
     <Binder>
         <BinderItem UUID="7A583553-3A84-40D6-B9B9-0430B8CD3E39" Type="DraftFolder" Created="2018-01-21 13:22:31 -0800" Modified="2018-02-11 16:00:39 -0800">
             <Title>Star Language Reference</Title>
@@ -1110,7 +1110,7 @@
                                 <IncludeInCompile>Yes</IncludeInCompile>
                             </MetaData>
                             <TextSettings>
-                                <TextSelection>1587,0</TextSelection>
+                                <TextSelection>0,0</TextSelection>
                             </TextSettings>
                         </BinderItem>
                         <BinderItem UUID="7F3B7BCC-530E-4EE8-8509-48FB3F4944B8" Type="Text" Created="2018-03-05 21:47:58 -0800" Modified="2018-03-05 21:50:40 -0800">
@@ -1960,9 +1960,9 @@
         <SessionTarget Type="Words" CountDraftOnly="Yes" AllowNegatives="No" ResetType="Time" ResetTime="00:00" DeterminedFromDeadline="No" WritingDays="" CanWriteOnDeadlineDate="No">0</SessionTarget>
         <PreviousSession Words="0" Characters="0" Date="2018-02-19 21:00:25 -0800"></PreviousSession>
     </ProjectTargets>
-    <RecentWritingHistory Date="2018-03-06 00:00:00 -0800">
-        <DraftWordCount>-567</DraftWordCount>
-        <DraftCharCount>-4377</DraftCharCount>
+    <RecentWritingHistory Date="2018-03-14 00:00:00 -0700">
+        <DraftWordCount>0</DraftWordCount>
+        <DraftCharCount>0</DraftCharCount>
         <OtherWordCount>0</OtherWordCount>
         <OtherCharCount>0</OtherCharCount>
     </RecentWritingHistory>

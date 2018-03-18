@@ -155,8 +155,8 @@
 	<false/>
 	<key>binderSplitFrames</key>
 	<array>
-		<string>{{0, 0}, {265, 627}}</string>
-		<string>{{266, 0}, {980, 627}}</string>
+		<string>{{0, 0}, {265, 628}}</string>
+		<string>{{266, 0}, {980, 628}}</string>
 	</array>
 	<key>collectionsRepresentedBinderDocumentsInfo</key>
 	<dict>
@@ -167,8 +167,7 @@
 	</dict>
 	<key>editorSplitFrames</key>
 	<array>
-		<string>{{0, 0}, {366, 597}}</string>
-		<string>{{367, 0}, {367, 597}}</string>
+		<string>{{419, 0}, {315, 597}}</string>
 	</array>
 	<key>fullScreenTextEditorSettings</key>
 	<dict>
@@ -177,8 +176,8 @@
 	</dict>
 	<key>inspectorSplitFrames</key>
 	<array>
-		<string>{{0, 0}, {734, 597}}</string>
-		<string>{{735, 0}, {245, 597}}</string>
+		<string>{{0, 0}, {734, 598}}</string>
+		<string>{{735, 0}, {245, 598}}</string>
 	</array>
 	<key>inspectorWidth</key>
 	<real>245</real>
@@ -1012,7 +1011,7 @@
 		</array>
 	</dict>
 	<key>mainDocumentEditor.scrollRect</key>
-	<string>{{0, 0}, {351, 541}}</string>
+	<string>{{0, 0}, {620, 542}}</string>
 	<key>mainDocumentEditor.selectedTextRanges</key>
 	<string>372,0</string>
 	<key>mainDocumentEditor.textEditorState</key>
@@ -1021,12 +1020,14 @@
 		<real>1</real>
 	</dict>
 	<key>mainWindowFrame</key>
-	<string>24 164 1246 672 0 0 1440 877 </string>
+	<string>1799 -6 1246 673 1440 -252 2048 1129 </string>
 	<key>supportingDocumentEditor.dockedQRTextSettings</key>
 	<dict>
 		<key>textScaleFactor</key>
 		<real>1</real>
 	</dict>
+	<key>supportingDocumentEditor.lockedInPlace</key>
+	<false/>
 	<key>supportingDocumentEditor.navigationHistory</key>
 	<dict>
 		<key>CurrentIndex</key>
@@ -1051,6 +1052,6 @@
 		<real>1</real>
 	</dict>
 	<key>supportingDocumentViewIsCurrent</key>
-	<true/>
+	<false/>
 </dict>
 </plist>
