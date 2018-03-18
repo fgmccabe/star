@@ -21,11 +21,6 @@ encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   encodeInt(Ln,O,O1),
   encodeTerm(Con,O1,O2),
   encodeTerms(Els,O2,Ox).
-encodeTerm(code(Tp,Bytes,Lits),['#'|O],Ox) :-
-  encodeType(Tp,O,O1),
-  encodeTerm(Lits,O1,O2),
-  encode64(Bytes,Chrs,[]),
-  encodeChars(Chrs,'''',O2,Ox).
 
 encodeTerms([],O,O).
 encodeTerms([T|R],O,Ox) :-

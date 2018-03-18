@@ -44,6 +44,7 @@ retCode run(processPo P, heapPo heap) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */
 
+    countIns(*PC);
     if (tracing)
       debug_stop(pcCount, P, PROG, PC, FP, SP);
 #endif
@@ -222,7 +223,7 @@ retCode run(processPo P, heapPo heap) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
-          if (!sameTerm(l, termLbl(cl)))
+          if (!sameTerm(l, (termPo)termLbl(cl)))
             PC = exit;
         } else
           PC = exit;

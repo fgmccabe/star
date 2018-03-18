@@ -2,7 +2,7 @@
  * Display an assembled fragment
  */
 #include "assemP.h"
-#include "cafeOptions.h"
+#include "starOptions.h"
 #include "utils.h"
 
 #include <ooio.h>

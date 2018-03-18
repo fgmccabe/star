@@ -6,10 +6,13 @@
 #include <math.h>
 #include <str.h>
 #include <tpl.h>
+#include <stdlib.h>
+#include <errno.h>
 #include "ooio.h"
 #include "engine.h"
 #include "arithP.h"
 #include "errorCodes.h"
+#include "arithmetic.h"
 
 ReturnStatus g__int_plus(processPo p, ptrPo tos) {
   termPo Rhs = tos[0];
@@ -198,7 +201,7 @@ ReturnStatus g__int2str(processPo p, ptrPo tos) {
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
-  termPo str = allocateString(processHeap(p), buff, len);
+  termPo str = (termPo) allocateString(processHeap(p), buff, len);
 
   ReturnStatus rtn = {.rslt = str, .ret=Ok};
   return rtn;
@@ -214,7 +217,7 @@ ReturnStatus g__int_format(processPo p, ptrPo tos) {
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    ReturnStatus rtn = {.rslt = allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
+    ReturnStatus rtn = {.rslt = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
     return rtn;
   } else
     return liberror(p, "_int_format", eINVAL);
@@ -328,6 +331,23 @@ ReturnStatus g__flt_abs(processPo p, ptrPo tos) {
   return ret;
 }
 
+ReturnStatus g__exp(processPo P, ptrPo tos) {
+  double x = floatVal(tos[0]);
+
+  errno = 0;    /* clear errno prior to computation */
+  double ans = exp(x);    /* allow for checks of the answer */
+
+  if (errno != 0) {
+    if (errno == EDOM || errno == ERANGE)
+      return liberror(P, "_exp", eRANGE);
+    else
+      return liberror(P, "_exp", eINVAL);
+  } else {
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateFloat(processHeap(P), ans)};
+    return rt;
+  }
+}
+
 ReturnStatus g__ldexp(processPo p, ptrPo tos) {
   double x = floatVal(tos[1]);
   integer e = integerVal(tos[0]);
@@ -341,13 +361,14 @@ ReturnStatus g__frexp(processPo p, ptrPo tos) {
   double Arg = floatVal(tos[0]);
   int exp;
   double frac = frexp(Arg, &exp);
+  heapPo H = processHeap(p);
 
-  termPo man = (termPo) allocateFloat(processHeap(p), frac);
-  int root = gcAddRoot(&man);
-  termPo ex = (termPo) allocateInteger(processHeap(p), (integer) exp);
-  gcAddRoot(&ex);
-  termPo Rs = allocatePair(processHeap(p), man, ex);
-  gcReleaseRoot(root);
+  termPo man = (termPo) allocateFloat(H, frac);
+  int root = gcAddRoot(H, &man);
+  termPo ex = (termPo) allocateInteger(H, (integer) exp);
+  gcAddRoot(H, &ex);
+  termPo Rs = (termPo) allocatePair(H, man, ex);
+  gcReleaseRoot(H, 0);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -358,13 +379,14 @@ ReturnStatus g__modf(processPo p, ptrPo tos) {
   double Arg = floatVal(tos[0]);
   double intgrl;
   double frac = modf(Arg, &intgrl);
+  heapPo H = processHeap(p);
 
-  termPo man = (termPo) allocateFloat(processHeap(p), frac);
-  int root = gcAddRoot(&man);
-  termPo ex = (termPo) allocateInteger(processHeap(p), (integer) intgrl);
-  gcAddRoot(&ex);
-  termPo Rs = allocatePair(processHeap(p), man, ex);
-  gcReleaseRoot(root);
+  termPo man = (termPo) allocateFloat(H, frac);
+  int root = gcAddRoot(H, &man);
+  termPo ex = (termPo) allocateInteger(H, (integer) intgrl);
+  gcAddRoot(H, &ex);
+  termPo Rs = (termPo) allocatePair(H, man, ex);
+  gcReleaseRoot(H, 0);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -395,7 +417,7 @@ ReturnStatus g__flt2str(processPo p, ptrPo tos) {
 
   retCode ret = formatDouble(buff, NumberOf(buff), Arg, general, 0, False);
   if (ret == Ok) {
-    ReturnStatus rtn = {.ret=Ok, .rslt = allocateString(processHeap(p), buff, uniStrLen(buff))};
+    ReturnStatus rtn = {.ret=Ok, .rslt = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff))};
     return rtn;
   } else
     return liberror(p, "_fltstr", eINVAL);
@@ -411,7 +433,7 @@ ReturnStatus g__flt_format(processPo p, ptrPo tos) {
   retCode ret = formattedFloat(Arg, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    ReturnStatus rtn = {.rslt = allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
+    ReturnStatus rtn = {.rslt = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
     return rtn;
   } else
     return liberror(p, "_flt_format", eINVAL);
@@ -549,4 +571,19 @@ ReturnStatus g_pi(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
   return ret;
+}
+
+ReturnStatus g__irand(processPo P, ptrPo tos) {
+  integer mx = integerVal(tos[0]);
+  integer rnd = randomInt();
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) allocateInteger(processHeap(P), rnd % mx)};
+  return ret;
+}
+
+integer randomInt() {
+  integer rnd;
+
+  arc4random_buf((void *) &rnd, sizeof(rnd));
+  return rnd;
 }

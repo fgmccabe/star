@@ -56,6 +56,7 @@ typedef enum {
   strTrm = 's',        // String value
   dtaTrm = 'n',        // Constructor data value
   lblTrm = 'o',        // A structure label identifier
+  enuTrm = 'e',        // An enumerated symbol
 } cafeTermSig;
 
 

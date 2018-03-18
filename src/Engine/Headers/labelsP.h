@@ -6,8 +6,9 @@
 #define CAFE_LABELSP_H
 
 #include "labels.h"
+#include "heapP.h"
 
 extern void initLbls();
-void markLabels(heapPo heap);
+void markLabels(gcSupportPo G);
 
 #endif //CAFE_LABELSP_H

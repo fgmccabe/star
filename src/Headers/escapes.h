@@ -16,7 +16,7 @@
 /* Define the standard escapes */
 escape(_exit,True,False,"F(i)v","terminate engine")
 escape(_command_line,False,False,"F()LS","command line arguments")
-escape(_command_opts,False,False,"F()L(SS)","command line options")
+//escape(_command_opts,False,False,"F()L(SS)","command line options")
 
 escape(_identical,False,False,":k't'F(k't'k't')l","test for identicality")
 
@@ -54,7 +54,7 @@ escape(_flt_hash,False,False,"F(f)i","compute hash of float")
 escape(_flt_pwr,False,False,"F(ff)f","raise X to the power Y")
 
 escape(sqrt,False,False,"F(f)f","square root")
-escape(exp,False,False,"F(f)f","exponential")
+escape(_exp,False,False,"F(f)f","exponential")
 escape(log,False,False,"F(f)f","logarithm")
 escape(log10,False,False,"F(f)f","10-based logarithm")
 escape(pi,False,False,"F()f","return PI")
@@ -70,9 +70,7 @@ escape(floor,False,False,"F(f)f","truncate to lower integer")
 escape(ceil,False,False,"F(f)f","truncate to next integer")
 escape(integral,False,False,"F(f)l","test if number is integral")
 
-escape(srand,False,False,"F(f)v","set random seed")
-escape(rand,False,False,"F()f","random # generator")
-escape(irand,False,False,"F(i)i","generate random integer")
+escape(_irand,False,False,"F(i)i","generate random integer")
 
 escape(_ldexp,False,False,"F(fi)f","raise x to 2**y")
 escape(_frexp,False,False,"F(f)(fi)","split x into mant and exp")
@@ -156,29 +154,31 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_setfileencoding,True,False,"F("fileType"i)"sysRet, "set file encoding on file")
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")
-  escape(_pkg_is_present,True,False,"F(SSSS)l","True if an identified resource is available")
+  escape(_pkg_is_present,True,False,"F(SS)l","True if an identified package is available")
 
-  escape(_logmsg,False,False,"F(S)v","log a message in logfile or console")
+  escape(_logmsg,False,False,"F(S)"sysRet,"log a message in logfile or console")
 
   // Socket handling functions
-  escape(_connect,True,False,"F(Sii"fileType fileType")"sysRet,"connect to remote host")
-  escape(_listen,True,False,"F(i"fileType")"sysRet,"listen on a port")
+  escape(_connect,True,False,"F(Sii)("fileType fileType")","connect to remote host")
+  escape(_listen,True,False,"F(i)"fileType,"listen on a port")
   escape(_accept,True,False,"F("fileType")("fileType fileType "SiS)","accept connection")
 
+/*
   escape(_udpPort,True,False,"F(i"udpType")"sysRet,"estabish a UDP port")
   escape(_udpGet,True,False,"F("udpType")(SSi)","read a UDP datagram")
   escape(_udpSend,True,False,"F("udpType"SSi)"sysRet,"send a UDP datagram")
   escape(_udpClose,True,False,"F("udpType")"sysRet,"close the UDP socket")
+*/
 
-  escape(hosttoip,False,False,"F(S)LS","IP address of host")
-  escape(iptohost,False,False,"F(S)S","host name from IP")
+  escape(_hosttoip,False,False,"F(S)LS","IP address of host")
+  escape(_iptohost,False,False,"F(S)S","host name from IP")
 
 // Timing and delaying
-  escape(delay,False,False,"F(f)"sysRet,"delay for period of time")
-  escape(sleep,False,False,"F(f)"sysRet,"sleep until a definite time")
-  escape(now,False,False,"F()f","current time")
-  escape(today,False,False,"F()f","time at midnight")
-  escape(ticks,False,False,"F()f","used CPU time")
+  escape(_delay,False,False,"F(f)"sysRet,"delay for period of time")
+  escape(_sleep,False,False,"F(f)"sysRet,"sleep until a definite time")
+  escape(_now,False,False,"F()f","current time")
+  escape(_today,False,False,"F()f","time at midnight")
+  escape(_ticks,False,False,"F()f","used CPU time")
   escape(_time2date,False,False,"F(f)(iiiiiifii)", "convert a time to a date")
   escape(_time2utc,False,False, "F(f)(iiiiiifii)", "convert a time to UTC date")
   escape(_date2time,False,False,"F(iiiiifi)f", "convert a date to a time")
@@ -238,11 +238,10 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
 
   escape(_str_gen,False,False,"F(S)S","Generate a unique string")
 
-  escape(_stringOf,False,False,":k't'F(k't'ii)S","Display a general term")
-  escape(_trim,False,False,"F(Si)S","trim a string to a width")
+  escape(_stringOf,False,False,":k't'F(k't'i)S","Display a general term")
 
-  escape(explode,False,False,"F(S)Li","convert string to list of code points")
-  escape(implode,False,False,"F(Li)S","convert list of code points to string")
+  escape(_explode,False,False,"F(S)Li","convert string to list of code points")
+  escape(_implode,False,False,"F(Li)S","convert list of code points to string")
 
   escape(_str_find,False,False,"F(SSi)i","find a substring in string")
   escape(_sub_str,False,False,"F(Sii)S","extract a substring")
@@ -251,17 +250,17 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_str_start,False,False,"F(SS)l","True if second string starts with first")
   escape(_str_multicat,False,False,"F(LS)S","Concatenate a list of strings into one")
 
-  escape(getenv,False,False,"F(SS)S","get an environment variable")
-  escape(setenv,True,False,"F(SS)"sysRet,"set an environment variable")
-  escape(envir,False,False,"F()L(SS)","return entire environment")
-  escape(getlogin,False,False,"F()S","return user's login")
+  escape(_getenv,False,False,"F(SS)S","get an environment variable")
+  escape(_setenv,True,False,"F(SS)"sysRet,"set an environment variable")
+  escape(_envir,False,False,"F()L(SS)","return entire environment")
+  escape(_getlogin,False,False,"F()S","return user's login")
 
 // Process manipulation
   escape(_fork,False,False,"F(F()"sysRet")"threadType,"fork new process")
   escape(_thread,False,False,"F()"threadType"","report thread of current process")
-  escape(kill,True,False,"F("threadType")"sysRet ,"kill off a process")
-  escape(thread_state,False,False,"F("threadType ")" processState,"state of process")
-  escape(waitfor,False,False,"F("threadType")"sysRet,"wait for other thread to terminate")
+  escape(_kill,True,False,"F("threadType")"sysRet ,"kill off a process")
+  escape(_thread_state,False,False,"F("threadType ")" processState,"state of process")
+  escape(_waitfor,False,False,"F("threadType")"sysRet,"wait for other thread to terminate")
 
   escape(_shell,True,False,"F(SLSL(SS))i","Run a shell cmd")
 

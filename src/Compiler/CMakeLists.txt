@@ -64,7 +64,7 @@ set(SOURCE_FILES
 
         ${BISON_BaseGrammar_OUTPUTS}
         ${FLEX_BaseTokeniser_OUTPUTS}
- )
+        Headers/compileOptions.h)
 
 add_executable(compiler ${SOURCE_FILES})
 target_link_libraries(compiler ooio infra)

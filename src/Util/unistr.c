@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <ooio.h>
 #include "unistrP.h"
 
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) {
@@ -30,7 +31,7 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
       return Ok;
     } else if (UC80(b)) {
       if (pos < end) {
-        unsigned char nb = (unsigned char)src[pos++];
+        unsigned char nb = (unsigned char) src[pos++];
         codePoint ch = (codePoint) (UX80(b) << 6 | UXR(nb));
 
         if (ch < 0x7ff) {
@@ -43,8 +44,8 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
         return Eof;
     } else if (UC800(b)) {
       if (pos + 1 < end) {
-        unsigned char md = (unsigned char)src[pos++];
-        unsigned char up = (unsigned char)src[pos++];
+        unsigned char md = (unsigned char) src[pos++];
+        unsigned char up = (unsigned char) src[pos++];
 
         codePoint ch = (codePoint) ((UX800(b) << 12) | (UXR(md) << 6) | (UXR(up)));
 
@@ -95,7 +96,7 @@ retCode prevPoint(const char *src, long *start, codePoint *code) {
     return Eof;
 }
 
-integer countCodePoints(char *src, integer start, integer end) {
+integer countCodePoints(const char *src, integer start, integer end) {
   integer count = 0;
 
   while (start < end) {
@@ -352,19 +353,20 @@ retCode uniInsert(char *dest, integer len, const char *src) {
   return Error;                  /* Bomb out */
 }
 
-comparison uniNCmp(const char *s1, const char *s2, long l) {
-  long pos = 0;
-  while (pos < l && s1[pos] == s2[pos]) {
-    if (s1[pos] == 0)
-      return same;
-    pos++;
-  }
-  if (pos < l) {
-    if (s2[pos] > s1[pos])
-      return bigger;
-    else
+comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
+  integer sz = minimum(l1, l2);
+
+  for (integer ix = 0; ix < sz; ix++) {
+    if (s1[ix] < s2[ix])
       return smaller;
-  } else
+    else if (s1[ix] > s2[ix])
+      return bigger;
+  }
+  if (l1 < l2)
+    return smaller;
+  else if (l1 > l2)
+    return bigger;
+  else
     return same;
 }
 
@@ -399,8 +401,8 @@ int64 uniIndexOf(const char *s, integer len, integer from, codePoint c) {
   return -1;
 }
 
-int64 uniLastIndexOf(char *s, integer len, codePoint c) {
-  int64 lx = -1;
+integer uniLastIndexOf(char *s, integer len, codePoint c) {
+  integer lx = -1;
   integer pos = 0;
 
   while (pos < len) {
@@ -474,11 +476,11 @@ codePoint uniSearchDelims(char *s, integer len, char *t) {
 }
 
 // This is a poor algorithm. Fix me with Boyer-Moore or better
-long uniSearch(char *src, long len, long start, char *tgt, long tlen) {
+long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen) {
   long pos = start;
 
   while (pos < len - tlen) {
-    if (uniNCmp(&src[pos], tgt, tlen) == same)
+    if (uniNCmp(&src[pos], len - pos, tgt, tlen) == same)
       return pos;
     else
       pos++;
@@ -511,6 +513,15 @@ logical uniIsLitPrefix(const char *s1, const char *s2) {
   return (logical) (s2[pos] == 0);
 }
 
+logical uniIsPrefix(const char *s1, integer len1, const char *s2, integer len2) {
+  long pos = 0;
+
+  while (pos < len1 && pos < len2 && s1[pos] == s2[pos])
+    pos++;
+
+  return (logical) (len1 <= len2 && pos == len1);
+}
+
 integer uniHash(const char *name) {
   register integer hash = 0;
   char *s = (char *) name;
@@ -538,7 +549,7 @@ char *uniEndStr(char *s) {
   return s;
 }
 
-retCode uniLower(char *s, integer sLen, char *d, integer dLen) {
+retCode uniLower(const char *s, integer sLen, char *d, integer dLen) {
   integer sPos = 0;
   integer dPos = 0;
 
@@ -556,14 +567,14 @@ retCode uniLower(char *s, integer sLen, char *d, integer dLen) {
     return Eof;
 }
 
-char *uniDuplicate(char *s) {
-  size_t len = uniStrLen(s);
+char *uniDuplicate(const char *s) {
+  integer len = uniStrLen(s);
   char *copy = (char *) malloc((len + 1) * sizeof(byte));
 
   memcpy(copy, s, len + 1);
   return copy;
 }
 
-void uniDestroy(char *s){
+void uniDestroy(char *s) {
   free(s);
 }

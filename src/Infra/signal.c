@@ -13,62 +13,62 @@
   permissions and limitations under the License.
 
 */
-#include <signal.h>
-#include "engine.h"			/* Main header file */
+#include <stdlib.h>
+#include "ooio.h"      /* Main header file */
+#include "starOptions.h"
+#include "engineOptions.h"
+#include "signals.h"
+#include "debug.h"
 
 /* 
  * Signal handling functions
  */
 
-static void sig_fatal(int sig)
-{
-  outMsg(logFile,"bus error or segmentation fault\n");
-  lo_exit(EXIT_FAIL);
+static void sig_fatal(int sig) {
+  outMsg(logFile, "bus error or segmentation fault\n");
+  star_exit(EXIT_FAIL);
 }
 
 /* Handle the suspension of Go reasonably ... */
-static void sig_suspend(int sig)
-{
-  if(!interactive){
-    reset_stdin();		/* Reset the standard input channel */
+static void sig_suspend(int sig) {
+  if (!interactive) {
+    reset_stdin();    /* Reset the standard input channel */
     raise(SIGSTOP);             /* Actually suspend */
     setup_stdin();              /* Put it back */
-  }
-  else
+  } else
     raise(SIGSTOP);             /* Actually suspend */
 }
 
 static void interruptMe(int ignored);
 
-void setupSignals(void)
-{
+void setupSignals(void) {
   signal(SIGBUS, sig_fatal);
-  signal(SIGTSTP, sig_suspend);	/* When the user suspends an Go program */
-  signal(SIGPIPE, SIG_IGN);	/* We not want to be interrupted by this */
+  signal(SIGTSTP, sig_suspend);  /* When the user suspends an Go program */
+  signal(SIGPIPE, SIG_IGN);  /* We not want to be interrupted by this */
   signal(SIGSEGV, sig_fatal);
   signal(SIGFPE, sig_fatal);
-  signal(SIGQUIT,interruptMe);
-  signal(SIGINT,interruptMe);
+  signal(SIGQUIT, interruptMe);
+  signal(SIGINT, interruptMe);
 }
 
-sigset_t stopInterrupts(void)	/* stop control-C from generating a signal */
+sigset_t stopInterrupts(void)  /* stop control-C from generating a signal */
 {
   sigset_t mask;
   sigset_t current;
 
   sigemptyset(&mask);
 
-  sigaddset(&mask,SIGQUIT);	/* The quit signal */
-  sigaddset(&mask,SIGVTALRM);	/* The virtual timer signal */
-  sigaddset(&mask,SIGALRM);	/* The real timer signal */
+  sigaddset(&mask, SIGQUIT);  /* The quit signal */
+  sigaddset(&mask, SIGVTALRM);  /* The virtual timer signal */
+  sigaddset(&mask, SIGALRM);  /* The real timer signal */
 
-  sigprocmask(SIG_BLOCK,&mask,&current);
+  sigprocmask(SIG_BLOCK, &mask, &current);
   return current;
 }
 
-void startInterrupts(sigset_t blocked)	/* enable interrupts again */
+void startInterrupts(sigset_t blocked)  /* enable interrupts again */
 {
-  sigprocmask(SIG_SETMASK,&blocked,NULL);
+  sigprocmask(SIG_SETMASK, &blocked, NULL);
 }
 
 /* 
@@ -79,15 +79,14 @@ void startInterrupts(sigset_t blocked)	/* enable interrupts again */
 
 static void interruptMe(int sig) /* This one is invoked when user presses ^C */
 {
-  lo_exit(EXIT_FAIL);		/* We just abort everything */
+  star_exit(EXIT_FAIL);    /* We just abort everything */
 }
 
-void star_exit(int code)
-{
-  if(code!=0)
-    outMsg(logFile,"Terminating with code %d\n",code);
+void star_exit(int code) {
+  if (code != 0)
+    outMsg(logFile, "Terminating with code %d\n", code);
 
-#ifdef EXECTRACE
+#ifdef TRACEEXEC
   if(traceCount)
     dumpInsCount();
 #endif

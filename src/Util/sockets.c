@@ -156,7 +156,7 @@ retCode acceptConnection(sockPo listen, ioEncoding encoding, ioPo *inC, ioPo *ou
    specified as a pair: hostname(or ip address)/port
 */
 
-retCode connectRemote(char * where, int port,
+retCode connectRemote(const char *where, int port,
                       ioEncoding encoding, logical waitForMe,
                       ioPo *inC, ioPo *outC) {
   int sock;

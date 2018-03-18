@@ -28,5 +28,5 @@ retCode flushManifest();
 void defltRepoDir();
 retCode loadManifest();
 
-void setManifestPath(char *path);
+retCode setManifestPath(char *path);
 #endif //CAFE_MANIFEST_H

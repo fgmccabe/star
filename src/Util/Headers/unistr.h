@@ -69,7 +69,7 @@ int digitValue(codePoint ch);
 codePoint lowerOf(codePoint ch);
 codePoint upperOf(codePoint ch);
 
-integer countCodePoints(char *src, integer start, integer end);
+integer countCodePoints(const char *src, integer start, integer end);
 integer uniCodeCount(char *src);
 
 int64 advanceCodePoint(char *src, integer start, integer end, int64 count);
@@ -85,7 +85,7 @@ integer uniStrLen(const char *s);
 retCode uniCpy(char *dest, integer len, const char *src);
 retCode uniNCpy(char *dest, integer len, const char *src, integer sLen);
 comparison uniCmp(const char *s1, const char *s2);
-comparison uniNCmp(const char *s1, const char *s2, long l);
+comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2);
 retCode uniInsert(char *dest, integer len, const char *src);
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch);
 retCode uniTack(char * dest, long len, const char *src);
@@ -94,21 +94,22 @@ retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLe
 retCode uniReverse(char *dest, integer len);
 
 int64 uniIndexOf(const char *s, integer len, integer from, codePoint c);
-int64 uniLastIndexOf(char *s, integer len, codePoint c);
+integer uniLastIndexOf(char *s, integer len, codePoint c);
 char * uniSubStr(char * s, long len, long from, long cnt, char * buff, long bLen);
 
-long uniSearch(char * src, long len, long start, char * tgt, long tlen);
+long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen);
 char * uniSearchAny(char *s, integer len, char *term);
 codePoint uniSearchDelims(char *s, integer len, char *t);
 char * uniLast(char *s, integer l, codePoint c);
-char * uniDuplicate(char * s);
+char * uniDuplicate(const char *s);
 void uniDestroy(char *s);
 logical uniIsLit(const char *s1, const char *s2);
 logical uniIsLitPrefix(const char *s1, const char *s2);
+logical uniIsPrefix(const char *s1, integer len1, const char *s2, integer len2);
 char * uniEndStr(char * s);
 integer uniHash(const char * name);
 integer uniNHash(const char * name, long len);
-retCode uniLower(char *s, integer sLen, char *d, integer dLen);
+retCode uniLower(const char *s, integer sLen, char *d, integer dLen);
 
 #ifndef uniEOF
 #define uniEOF (0xffff)

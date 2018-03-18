@@ -32,8 +32,6 @@ static inline logical isFloat(termPo p) {
 
 extern const double floatVal(termPo o);
 
-extern integer floatHash(fltPo ix);
-
 extern fltPo C_FLT(termPo t);
 
 extern void initArith();

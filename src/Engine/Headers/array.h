@@ -16,9 +16,14 @@ extern listPo C_LIST(termPo t);
 
 extern listPo allocateList(heapPo H, integer length, logical safeMode);
 
+extern listPo createList(heapPo H, integer capacity);
+
 extern termPo sliceList(heapPo H, listPo list, integer from, integer count);
 
-extern termPo appendToList(heapPo H, listPo list, termPo el);
+extern listPo appendToList(heapPo H, listPo list, termPo el);
+
+// Use with caution!
+extern listPo addToList(heapPo H, listPo list, termPo el);
 
 extern termPo prependToList(heapPo H, listPo list, termPo el);
 

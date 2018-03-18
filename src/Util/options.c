@@ -26,7 +26,7 @@ void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
   if (argc < 2)
     return;
 
-  if (uniNCmp(argv[1], "-%", 2) == same) {
+  if (uniNCmp(argv[1], uniStrLen(argv[1]), "-%", 2) == same) {
     char delimiter = argv[1][2];
     int extra = 0, arg = 1;
     char *p;
@@ -82,32 +82,34 @@ int processOptions(int argc, char **argv, Option options[], int optionCount) {
       for (int j = 0; j < optionCount; j++) {
         if (options[j].shortName == shortOpt) {
           if (options[j].hasArg) {
-            if(uniStrLen(opt)==2){
-              if(ix<argc-1){
-                if(options[j].setter(argv[++ix],True,options[j].cl)!=Ok)
+            if (uniStrLen(opt) == 2) {
+              if (ix < argc - 1) {
+                if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
                   goto failOptions;
                 else
-                  break;
+                  goto optionLoop;
               } else
                 goto failOptions;
-            } else{
-              if(options[j].setter(opt+2,True,options[j].cl)!=Ok)
+            } else {
+              if (options[j].setter(opt + 2, True, options[j].cl) != Ok)
                 goto failOptions;
               else
-                break;
+                goto optionLoop;
             }
           } else if (uniStrLen(opt) == 2) {
-            if(options[j].setter(NULL,True,options[j].cl)!=Ok)
+            if (options[j].setter(NULL, True, options[j].cl) != Ok)
               goto failOptions;
             else
-              break;
+              goto optionLoop;
           } else
             goto failOptions;
         }
       }
-    }
-    else
+      outMsg(stdErr, "unknown option: %s\n", opt);
+      goto failOptions;
+    } else
       return ix;
+    optionLoop:;
   }
   return ix;
 
@@ -116,12 +118,12 @@ int processOptions(int argc, char **argv, Option options[], int optionCount) {
   return -1;
 }
 
-void showUsage(char *name,Option options[], int optionCount){
+void showUsage(char *name, Option options[], int optionCount) {
   ioPo stdErr = OpenStderr();
 
-  outMsg(stdErr,"Usage: %s\n",name);
-  for(int ix=0;ix<optionCount;ix++){
-    outMsg(stdErr,"    %s\n",options[ix].usage);
+  outMsg(stdErr, "Usage: %s\n", name);
+  for (int ix = 0; ix < optionCount; ix++) {
+    outMsg(stdErr, "    %s\n", options[ix].usage);
   }
 }
 

@@ -692,6 +692,47 @@ retCode isDirectory(char *fname) {
     return Fail;
 }
 
+/* return True if a file is really an executable program or not.
+   Not checked out for windows at this time
+   */
+logical isExecutableFile(char *file) {
+  uid_t id = geteuid();
+  gid_t grp = getegid();
+
+  struct stat buf;
+
+  if (stat(file, &buf) == -1 || !S_ISREG(buf.st_mode))
+    return False;
+
+  if (buf.st_mode & S_IXOTH)  /* anyone can execute this file */
+    return True;
+  if (buf.st_mode & S_IXGRP) {
+    if (buf.st_gid == grp)
+      return True;
+    else {
+      int ngroups = getgroups(0, NULL); /* The number of supplementary groups */
+
+      if (ngroups > 0) {
+        gid_t *groups = (gid_t *) calloc((size_t) ngroups, sizeof(gid_t));
+        int i;
+
+        getgroups(ngroups, groups);
+
+        for (i = 0; i < ngroups; i++)
+          if (groups[i] == buf.st_gid) {
+            free(groups);
+            return True;
+          }
+
+        free(groups);
+      }
+    }
+  }
+  if (buf.st_mode & S_IXUSR)
+    return (logical) (id == buf.st_uid);
+  return False;
+}
+
 /* Special macro for Windows 95 */
 #define FILE_ACCESS_MODE F_OK|R_OK
 

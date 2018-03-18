@@ -15,6 +15,8 @@
 %{
 #include <config.h>
 #include <ooio.h>
+
+const char *
 #include <iochnl.h>
 #include <math.h>
 #include <unistr.h>

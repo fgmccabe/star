@@ -5,16 +5,11 @@
 #ifndef CAFE_TPL_H
 #define CAFE_TPL_H
 
-
 #include "engine.h"
 #include "term.h"
 
-extern labelPo pairLbl,consLbl;
+extern normalPo allocatePair(heapPo H, termPo lhs, termPo rhs);
 
-extern termPo allocatePair(heapPo H,termPo lhs,termPo rhs);
-
-extern termPo allocateTpl(heapPo H,integer count);
-
-extern termPo allocateCons(heapPo H,termPo lhs,termPo rhs);
+extern normalPo allocateTpl(heapPo H, integer count);
 
 #endif //CAFE_TPL_H

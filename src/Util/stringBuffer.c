@@ -263,7 +263,7 @@ bufferPo fixedStringBuffer(char *buffer, long len) {
   return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, len, ioWRITE, False));
 }
 
-char *getTextFromBuffer(long *actual, bufferPo s) {
+char *getTextFromBuffer(integer *actual, bufferPo s) {
   *actual = s->buffer.pos;
 
   ensureSpace(s, 1);

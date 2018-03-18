@@ -25,7 +25,9 @@ extern const char *stringVal(termPo o, integer *size);
 
 extern integer stringHash(stringPo str);
 
-extern termPo allocateString(heapPo H, char *txt, long length);
+extern stringPo allocateString(heapPo H, const char *txt, long length);
+
+extern stringPo allocateCString(heapPo H, const char *txt);
 
 extern retCode processString(stringPo str, charProc p, void *cl);
 

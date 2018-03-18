@@ -12,6 +12,8 @@ typedef struct _io_record_ *ioChnnlPo;
 
 extern clssPo ioChnnlClass;
 
+
+
 extern ioChnnlPo C_IO(termPo t);
 
 extern ioPo ioChannel(ioChnnlPo chnnl);

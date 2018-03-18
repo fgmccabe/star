@@ -6,11 +6,14 @@
  */
 
 #include "config.h"
-#include "cafeOptions.h"
+#include "starOptions.h"
 
 #ifdef ALLTRACE
-#define MEMTRACE
+#define TRACEMEM
 #define TRACEEXEC
+#define TRACEMANIFEST
+#define TRACESTATS
+#define TRACEVERIFY
 #endif
 
 extern char copyRight[];
@@ -18,8 +21,10 @@ extern char copyRight[];
 extern logical tracing;        /* tracing option */
 extern logical debugging;
 extern logical interactive;      /* interactive instruction tracing option */
+extern logical traceCount;
 
 extern logical traceMemory;      /* memory tracing */
+extern logical traceManifest;
 
 extern long initHeapSize;    /* How much memory to give the heap */
 extern long initStackSize;    /* How big is the stack */

@@ -10,6 +10,8 @@
 static long cellSize(specialClassPo cl, termPo o);
 static termPo cellCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static comparison cellCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer cellHash(specialClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, long depth, logical alt);
 
 SpecialClass CellClass = {
@@ -17,6 +19,8 @@ SpecialClass CellClass = {
   .sizeFun = cellSize,
   .copyFun = cellCopy,
   .scanFun = cellScan,
+  .compFun = cellCmp,
+  .hashFun = cellHash,
   .dispFun = cellDisp
 };
 
@@ -37,9 +41,19 @@ termPo cellCopy(specialClassPo cl, termPo dst, termPo src) {
 termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   cellPo list = C_CELL(o);
 
-  helper(list->content, c);
+  helper(&list->content, c);
 
   return o + CellCellCount;
+}
+
+comparison cellCmp(specialClassPo cl, termPo o1, termPo o2) {
+  cellPo c1 = C_CELL(o1);
+  cellPo c2 = C_CELL(o2);
+  return compareTerm(c1->content, c2->content);
+}
+
+integer cellHash(specialClassPo cl, termPo o) {
+  return uniHash("cell") * 37 + termHash(C_CELL(o)->content);
 }
 
 retCode cellDisp(ioPo out, termPo t, long depth, logical alt) {
@@ -67,10 +81,10 @@ cellPo C_CELL(termPo t) {
 }
 
 cellPo newCell(heapPo H, termPo content) {
-  int root = gcAddRoot((ptrPo) (&content));
+  int root = gcAddRoot(H, (ptrPo) (&content));
   cellPo cell = (cellPo) allocateObject(H, cellClass, CellCellCount);
   cell->content = content;
-  gcReleaseRoot(root);
+  gcReleaseRoot(H, 0);
   return cell;
 }
 

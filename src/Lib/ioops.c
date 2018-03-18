@@ -78,10 +78,10 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
   }
 
   if (ret == Ok) {
-    long length;
+    integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -123,20 +123,21 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
   }
 
   if (ret == Ok) {
-    long length;
+    integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    listPo lst = allocateList(processHeap(p), length, True);
-    int root = gcAddRoot((ptrPo) &lst);
+    heapPo H = processHeap(p);
+    listPo lst = allocateList(H, length, True);
+    int root = gcAddRoot(H, (ptrPo) &lst);
 
     for (long ix = 0; ix < length; ix++) {
       byte b = (byte) text[ix];
-      termPo bt = (termPo) allocateInteger(processHeap(p), (integer) b);
+      termPo bt = (termPo) allocateInteger(H, (integer) b);
       setNthEl(lst, ix, bt);
     }
 
     closeFile(O_IO(buffer));
-    gcReleaseRoot(root);
+    gcReleaseRoot(H, 0);
 
     ReturnStatus rt = {.ret=Ok, .rslt=(termPo) lst};
     return rt;
@@ -167,10 +168,10 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
   }
 
   if (ret == Ok) {
-    long length;
+    integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -200,10 +201,10 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
   }
 
   if (ret == Ok) {
-    long length;
+    integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -227,10 +228,10 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
   }
 
   if (ret == Eof) {
-    long length;
+    integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -282,6 +283,14 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
   }
 
   return rtnStatus(p, ret, "outtext");
+}
+
+ReturnStatus g__logmsg(processPo p, ptrPo tos) {
+  integer length;
+  const char *text = stringVal(tos[0], &length);
+  retCode ret = outText(logFile, text, length);
+
+  return rtnStatus(p, ret, "logmsg");
 }
 
 ReturnStatus g__stdfile(processPo p, ptrPo tos) {

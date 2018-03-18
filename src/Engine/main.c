@@ -4,19 +4,20 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <engineP.h>
-#include <libEscapes.h>
 #include <globals.h>
 #include <labelsP.h>
+#include <cellP.h>
+#include <iochnnlP.h>
+#include <arrayP.h>
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
 #include "formioP.h"
-#include "codeP.h"
-#include "termP.h"
 #include "arithP.h"
 #include "strP.h"
+#include "debug.h"
 
-char copyRight[] = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
+char copyRight[] = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0\n";
 
 int main(int argc, char **argv) {
   int narg;
@@ -32,22 +33,28 @@ int main(int argc, char **argv) {
 
   initLogfile("-");
 
-  strMsg(entry, NumberOf(entry), "star.boot@__boot");
+  if ((narg = getOptions(argc, argv)) < 0) {
+    usage(argv[0]);
+    exit(1);
+  }
 
   initArith();
   initStr();
   initLbls();
   initGlobals();
-  defltRepoDir();
+  initCell();
+  initCode();
+  initLocks();
+  initTerm();
+  initLists();
+  initIoChnnl();
+  initThr();
+  initTime();        /* Initialize time stuff */
+
   defltCWD();
+  defltRepoDir();
 
   installMsgProc('M', showMtdLbl);
-  initCode();
-
-  if ((narg = getOptions(argc, argv)) < 0) {
-    usage(argv[0]);
-    exit(1);
-  }
 
   /* IMPORTANT -- Keep the order of these set up calls */
 
@@ -57,22 +64,24 @@ int main(int argc, char **argv) {
 
   loadManifest();
 
-  init_args(argv, argc, narg);    /* Initialize the argument list */
-  init_time();        /* Initialize time stuff */
-  setupSignals();
-  initTerm();
-  initCode();
+  char errMsg[MAXLINE];
 
+  if (loadPackage(bootPkg, bootVer, errMsg, NumberOf(errMsg), Null) != Ok) {
+    logMsg(logFile, "Could not load boot pkg %s/%s: %sn", bootPkg, bootVer, errMsg);
+    exit(99);
+  }
+
+  init_args(argv, argc, narg);    /* Initialize the argument list */
+
+  setupSignals();
   initEngine();
 
-#ifdef EXECTRACE
+#ifdef TRACEEXEC
   if (traceCount)
     atexit(dumpInsCount);
 #endif
 
-  bootstrap(entry, bootPkg, bootVer);
+  bootstrap(entry);
 
-  return EXIT_SUCCEED;          /* exit the lo system cleanly */
+  return EXIT_SUCCEED;          /* exit the runtime system cleanly */
 }
-    
-    

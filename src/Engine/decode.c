@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <hash.h>
 #include "decodeP.h"
+#include <globals.h>
 #include "arithP.h"
 #include "strP.h"
 #include "heap.h"
@@ -16,14 +17,19 @@ static retCode estimate(ioPo in, integer *amnt);
 
 retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize) {
   EncodeSupport support = {errorMsg, msgSize, H};
+  logical isBlocked = False;
+  logical isAsynched = False;
 
-  logical isBlocking = (objectHasClass(O_OBJECT(in), fileClass) ? isFileBlocking(O_FILE(in)) : False);
-  logical isAsynch = (objectHasClass(O_OBJECT(in), fileClass) ? isFileAsynch(O_FILE(in)) : False);
-
-  if (!isBlocking)
-    configureIo(O_FILE(in), turnOnBlocking);
-  if (isAsynch)
-    configureIo(O_FILE(in), disableAsynch);
+  if (objectHasClass(O_OBJECT(in), fileClass)) {
+    if (!isFileBlocking(O_FILE(in))) {
+      isBlocked = True;
+      configureIo(O_FILE(in), turnOnBlocking);
+    }
+    if (isFileAsynch(O_FILE(in))) {
+      isAsynched = True;
+      configureIo(O_FILE(in), disableAsynch);
+    }
+  }
 
   codePoint ch;
 
@@ -72,10 +78,12 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
                       closeFile(O_IO(tmpBuffer));
                     }
 
-                    if (!isBlocking)
-                      configureIo(O_FILE(in), turnOffBlocking);
-                    if (isAsynch)
-                      configureIo(O_FILE(in), enableAsynch);
+                    if (objectHasClass(O_OBJECT(in), fileClass)) {
+                      if (isBlocked)
+                        configureIo(O_FILE(in), turnOffBlocking);
+                      if (isAsynched)
+                        configureIo(O_FILE(in), enableAsynch);
+                    }
                     return res;
                   } else {
                     outChar(O_IO(buffer), ch);
@@ -99,10 +107,12 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
     }
   }
   error_exit:
-  if (!isBlocking)
-    configureIo(O_FILE(in), turnOffBlocking);
-  if (isAsynch)
-    configureIo(O_FILE(in), enableAsynch);
+  if (objectHasClass(O_OBJECT(in), fileClass)) {
+    if (isBlocked)
+      configureIo(O_FILE(in), turnOffBlocking);
+    if (isAsynched)
+      configureIo(O_FILE(in), enableAsynch);
+  }
   return Error;
 }
 
@@ -222,6 +232,13 @@ retCode decInt(ioPo in, integer *ii) {
   }
 }
 
+retCode decodeInteger(ioPo in, integer *ix) {
+  if (isLookingAt(in, "x") == Ok)
+    return decInt(in, ix);
+  else
+    return Fail;
+}
+
 retCode decodeName(ioPo in, bufferPo buffer) {
   codePoint delim;
   clearBuffer(buffer);
@@ -256,9 +273,8 @@ retCode decodeNm(ioPo in, char *buffer, integer buffLen) {
       appendCodePoint(buffer, &ix, buffLen, 0);
       return ret;
     } else
-      return Error;
+      return Space;
   }
-
 }
 
 retCode decodeText(ioPo in, bufferPo buffer) {
@@ -280,12 +296,19 @@ retCode decodeText(ioPo in, bufferPo buffer) {
   }
 }
 
+retCode decodeString(ioPo in, char *buffer, integer buffLen) {
+  if (isLookingAt(in, "s") == Ok) {
+    return decodeNm(in, buffer, buffLen);
+  } else
+    return Fail;
+}
+
 retCode decFlt(ioPo in, double *dx) {
   bufferPo tmpBuffer = newStringBuffer();
   retCode ret = decodeName(in, tmpBuffer);
 
   if (ret == Ok) {
-    long len;
+    integer len;
     *dx = parseNumber(getTextFromBuffer(&len, tmpBuffer), len);
   }
   return ret;
@@ -329,6 +352,19 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return res;
     }
 
+    case enuTrm: {
+      clearBuffer(buff);
+
+      res = decodeName(in, buff);
+
+      if (res == Ok) {
+        integer len;
+        char *nm = getTextFromBuffer(&len, buff);
+        res = cb->decLbl(nm, 0, cl);
+      }
+      return res;
+    }
+
     case lblTrm: {
       integer arity;
       clearBuffer(buff);
@@ -339,7 +375,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       res = decodeName(in, buff);
 
       if (res == Ok) {
-        long len;
+        integer len;
         char *nm = getTextFromBuffer(&len, buff);
         res = cb->decLbl(nm, arity, cl);
       }
@@ -351,7 +387,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       res = decodeText(in, buff);
 
       if (res == Ok) {
-        long len;
+        integer len;
         char *nm = getTextFromBuffer(&len, buff);
         res = cb->decString(nm, len, cl);
       }
@@ -584,7 +620,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if ((res = decodeName(in, tmpBuffer)) == Ok) {
-        long len;
+        integer len;
         *tgt = (termPo) declareLbl(getTextFromBuffer(&len, tmpBuffer), arity);
       }
       return res;
@@ -601,10 +637,12 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if (res == Ok) {
+        int root = gcAddRoot(H,&class);
         normalPo obj = allocateStruct(H, C_LBL(class));
         *tgt = (termPo) (obj);
 
-        termPo el = NULL;
+        termPo el = voidEnum;
+        gcAddRoot(H,&el);
         integer i;
 
         for (i = 0; i < arity; i++) {
@@ -614,6 +652,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
             setArg(obj, i, el); /* stuff in the new element */
           }
         }
+        gcReleaseRoot(H,root);
       }
 
       return res;

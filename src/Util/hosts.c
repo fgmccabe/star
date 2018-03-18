@@ -52,7 +52,7 @@ classPo hostClass = (classPo) &HostClass;
 
 /* Hash table of hosts */
 
-static hostPo locateHost(char *name);
+static hostPo locateHost(const char *name);
 
 static void initHostClass(classPo class, classPo request) {
   ((hostClassPo) request)->hostPart.hostTable = NewHash(MAXHOST, (hashFun) uniHash, (compFun) uniCmp, NULL);
@@ -102,7 +102,7 @@ static logical ipAddr(const char *addr, struct in_addr *ip) {
   return True;
 }
 
-static hostPo locateHost(char *nme) {
+static hostPo locateHost(const char *nme) {
   char nameBuff[MAXLINE], *name = nameBuff;
 
   uniLower(nme, uniStrLen(nme), nameBuff, NumberOf(nameBuff));
@@ -246,7 +246,7 @@ void markHostUnavail(char *name) {
   }
 }
 
-char *getHostname(char *name) {
+char *getHostname(const char *name) {
   hostPo h;
 
   if ((h = locateHost(name)) == NULL)

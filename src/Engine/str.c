@@ -8,6 +8,8 @@
 static long strSize(specialClassPo cl, termPo o);
 static termPo strCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static comparison strCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer strHash(specialClassPo cl, termPo o);
 static retCode strDisp(ioPo out, termPo t, long depth, logical alt);
 
 SpecialClass StringClass = {
@@ -15,6 +17,8 @@ SpecialClass StringClass = {
   .sizeFun = strSize,
   .copyFun = strCopy,
   .scanFun = strScan,
+  .compFun = strCmp,
+  .hashFun = strHash,
   .dispFun = strDisp
 };
 
@@ -35,7 +39,7 @@ const char *stringVal(termPo t, integer *size) {
   return str->txt;
 }
 
-termPo allocateString(heapPo H, char *txt, long length) {
+stringPo allocateString(heapPo H, const char *txt, long length) {
   stringPo str = (stringPo) allocateObject(H, stringClass, StringCellCount(length));
 
   str->clss = stringClass;
@@ -44,7 +48,11 @@ termPo allocateString(heapPo H, char *txt, long length) {
 
   uniCpy(str->txt, length, txt);
 
-  return (termPo) str;
+  return str;
+}
+
+stringPo allocateCString(heapPo H, const char *txt) {
+  return allocateString(H, txt, uniStrLen(txt));
 }
 
 long strSize(specialClassPo cl, termPo o) {
@@ -64,6 +72,14 @@ termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   stringPo str = C_STR(o);
 
   return o + StringCellCount(str->length);
+}
+
+comparison strCmp(specialClassPo cl, termPo o1, termPo o2) {
+  integer l1, l2;
+  const char *tx1 = stringVal(o1, &l1);
+  const char *tx2 = stringVal(o2, &l2);
+
+  return uniNCmp(tx1, l1, tx2, l2);
 }
 
 static retCode qtChar(ioPo f, codePoint ch) {
@@ -123,6 +139,10 @@ retCode strDisp(ioPo out, termPo t, long depth, logical alt) {
   if (ret == Ok)
     ret = outChar(out, '"');
   return ret;
+}
+
+integer strHash(specialClassPo cl, termPo o) {
+  return stringHash(C_STR(o));
 }
 
 integer stringHash(stringPo str) {

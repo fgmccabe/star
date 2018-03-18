@@ -15,6 +15,8 @@ static retCode labelDel(labelPo lbl, labelPo l);
 static long lblSize(specialClassPo cl, termPo o);
 static termPo lblCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static comparison lblCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer lblHash(specialClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, long depth, logical alt);
 
 SpecialClass LabelClass = {
@@ -22,6 +24,8 @@ SpecialClass LabelClass = {
   .sizeFun = lblSize,
   .copyFun = lblCopy,
   .scanFun = lblScan,
+  .compFun = lblCmp,
+  .hashFun = lblHash,
   .dispFun = lblDisp
 };
 
@@ -33,8 +37,8 @@ void initLbls() {
   labelPool = newPool(sizeof(LblRecord), 1024);
 }
 
-labelPo declareLbl(char *name, integer arity) {
-  LblRecord tst = {.name=name, .arity=arity};
+labelPo declareLbl(const char *name, integer arity) {
+  LblRecord tst = {.name=(char *) name, .arity=arity};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {
@@ -48,12 +52,12 @@ labelPo declareLbl(char *name, integer arity) {
   return lbl;
 }
 
-labelPo declareEnum(char *name) {
+labelPo declareEnum(const char *name) {
   return declareLbl(name, 0);
 }
 
-labelPo findLbl(char *name, integer arity) {
-  LblRecord tst = {.name=name, .arity=arity};
+labelPo findLbl(const char *name, integer arity) {
+  LblRecord tst = {.name=(char *) name, .arity=arity};
   return hashGet(labels, &tst);
 }
 
@@ -73,6 +77,22 @@ comparison labelCmp(labelPo lb1, labelPo lb2) {
   return comp;
 }
 
+comparison lblCmp(specialClassPo cl, termPo o1, termPo o2) {
+  labelPo i1 = C_LBL(o1);
+  labelPo i2 = C_LBL(o2);
+
+  return labelCmp(i1, i2);
+}
+
+static integer lblHash(specialClassPo cl, termPo o) {
+  labelPo lbl = C_LBL(o);
+  return labelHash(lbl);
+}
+
+methodPo getMethod(labelPo lbl) {
+  return lbl->mtd;
+}
+
 retCode labelDel(labelPo lbl, labelPo l) {
   uniDestroy(lbl->name);
   freePool(labelPool, lbl);
@@ -87,28 +107,28 @@ labelPo C_LBL(termPo t) {
 
 static retCode markLabel(void *n, void *r, void *c) {
   labelPo lbl = (labelPo) r;
-  heapPo h = (heapPo) c;
+  gcSupportPo G = (gcSupportPo) c;
 
   if (lbl->mtd != Null)
-    markMtd(h, lbl->mtd);
+    markPtr(G,(ptrPo)&lbl->mtd);
   return Ok;
 }
 
-void markLabels(heapPo heap) {
-  ProcessTable(markLabel, labels, heap);
+void markLabels(gcSupportPo G) {
+  ProcessTable(markLabel, labels, G);
 }
 
 long lblSize(specialClassPo cl, termPo o) {
-  return 0;
+  return LabelCellCount;
 }
 
 termPo lblCopy(specialClassPo cl, termPo dst, termPo src) {
   *dst = *src;
-  return dst;
+  return dst + LabelCellCount;
 }
 
 termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return o+LabelCellCount;
+  return o + LabelCellCount;
 }
 
 retCode lblDisp(ioPo out, termPo t, long depth, logical alt) {
@@ -118,4 +138,19 @@ retCode lblDisp(ioPo out, termPo t, long depth, logical alt) {
 
 retCode showLbl(ioPo out, labelPo lbl) {
   return outMsg(out, "%s/%d", lbl->name, lbl->arity);
+}
+
+methodPo labelCode(labelPo lbl) {
+  return lbl->mtd;
+}
+
+integer labelArity(labelPo lbl) {
+  return lbl->arity;
+}
+
+labelPo tplLabel(integer arity) {
+  char txt[MAX_SYMB_LEN];
+
+  strMsg(txt, NumberOf(txt), "()%d", arity);
+  return declareLbl(txt, arity);
 }

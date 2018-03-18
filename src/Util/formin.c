@@ -21,7 +21,7 @@
 /* 
  * Scan a unicode string, looking for a number of a given base
  */
-integer parseInteger(char *s, integer l) {
+integer parseInteger(const char *s, integer l) {
   logical positive = True;
   integer x = 0;
   int digit;
@@ -35,7 +35,7 @@ integer parseInteger(char *s, integer l) {
     s++;
     l--;
   }
-  while (l > 0 && (digit = digitValue((codePoint)(*s++))) >= 0) {
+  while (l > 0 && (digit = digitValue((codePoint) (*s++))) >= 0) {
     l--;
     x = x * 10 + digit;
   }
@@ -45,56 +45,55 @@ integer parseInteger(char *s, integer l) {
     return -x;
 }
 
-double parseNumber(char *s, long l) {
+double parseNumber(char *s, integer l) {
+  double x;
+
+  parseDouble(s,l,&x);
+  return x;
+}
+
+retCode parseDouble(const char *s, integer l, double *rslt) {
   logical positive = True;
   double x = 0;
   int exp = 0;
   int digit;
+  integer pos = 0;
 
-  if (*s == '-') {
+  if (s[pos] == '-') {
     positive = False;
-    s++;
-    l--;
-  } else if (*s == '+') {
+    pos++;
+  } else if (s[pos] == '+') {
     positive = True;
-    s++;
-    l--;
+    pos++;
   }
-  while (l > 0 && (digit = digitValue((codePoint)(*s))) >= 0) {
-    l--;
+  while (pos<l && (digit = digitValue((codePoint) s[pos])) >= 0) {
     x = x * 10 + digit;
-    s++;
+    pos++;
   }
 
-  if (l > 0 && *s == '.') {
+  if (pos<l && s[pos] == '.') {
     double power = 0.1;
-    s++;
-    l--;
+    pos++;
 
-    while (l > 0 && (digit = digitValue((codePoint)(*s))) >= 0) {
-      l--;
-      s++;
+    while (pos<l && (digit = digitValue((codePoint) s[pos])) >= 0) {
+      pos++;
       x = x + digit * power;
       power /= 10;
     }
 
-    if (l > 0 && (*s == 'e' || *s == 'E')) {
+    if (pos<l && (s[pos] == 'e' || s[pos] == 'E')) {
       logical eSign = True;
-      l--;
-      s++;
+      pos++;
 
-      if (l > 0 && (*s == '-')) {
+      if (pos<l && (s[pos] == '-')) {
         eSign = False;
-        l--;
-        s++;
-      } else if (l > 0 && *s == '+') {
-        l--;
-        s++;
+        pos++;
+      } else if (pos<l && s[pos] == '+') {
+        pos++;
       }
 
-      while (l > 0 && (digit = digitValue((codePoint)(*s))) >= 0) {
-        l--;
-        s++;
+      while (pos<l && (digit = digitValue((codePoint) s[pos])) >= 0) {
+        pos++;
         exp = exp * 10 + digit;
       }
 
@@ -104,9 +103,16 @@ double parseNumber(char *s, long l) {
   }
 
   if (positive)
-    return x * pow(10, exp);
+    *rslt = x * pow(10, exp);
   else
-    return -x * pow(10, exp);
+    *rslt = -x * pow(10, exp);
+
+  while (pos<l && isSpaceChar((codePoint)s[pos]))
+    pos++;
+  if(pos==l)
+    return Ok;
+  else
+    return Error;
 }
 
 retCode lookingAt(ioPo in, char *test) {

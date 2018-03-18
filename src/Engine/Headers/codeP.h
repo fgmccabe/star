@@ -8,6 +8,7 @@
 #include "code.h"
 #include "termP.h"
 #include "pkgP.h"
+#include "heapP.h"
 
 #include <assert.h>
 
@@ -17,18 +18,20 @@ typedef struct _pkg_record_ {
 } PkgRec;
 
 typedef struct _method_ {
-  clssPo clss;         // == methodClass
-  insPo code;         /* Pointer to the code */
-  int64 codeSize;     /* How big is the code block */
+  clssPo clss;         // == specialClass
+  integer codeSize;     /* How big is the code block */
   jitCode jit;        /* Pointer to jit'ed code */
   long jitSize;       /* How big is the Jit code? */
 
-  int64 arity;        /* How many arguments in method */
+  integer arity;        /* How many arguments in method */
   normalPo pool;      /* A pool tuple of constants */
   normalPo locals;    /* A tuple of sorted locals */
+  insWord code[ZEROARRAYSIZE];
 } MethodRec;
 
 extern clssPo methodClass;
+
+#define MtdCellCount(count) CellCount(sizeof(MethodRec)+(count)*sizeof(insWord))
 
 static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);
@@ -40,18 +43,19 @@ static inline methodPo clMethod(termPo cl) {
 }
 
 static inline insPo entryPoint(methodPo mtd) {
-  return mtd->code;
+  return &mtd->code[0];
 }
 
 static inline int64 argCount(methodPo cl) {
   return cl->arity;
 }
 
-static inline normalPo codeLits(methodPo mtd) {
-  return mtd->pool;
-}
-
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
 
-extern void markMtd(heapPo h, methodPo mtd);
+extern void markMtd(gcSupportPo G, methodPo mtd);
+
+retCode loadPackage(char *pkg, char *vers, char *errorMsg, long msgSize, void *cl);
+
+typedef retCode (*pickupPkg)(char *pkgNm, char *vers, char *errorMsg, long msgLen, void *cl);
+extern retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
 #endif

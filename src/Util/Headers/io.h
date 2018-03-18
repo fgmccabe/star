@@ -69,7 +69,7 @@ retCode outChar(ioPo f, codePoint ch);
 retCode outBlock(ioPo f, byte *data, integer len);
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual);
 
-retCode outText(ioPo f, char *text, integer len);
+retCode outText(ioPo f, const char *text, integer len);
 retCode outStr(ioPo f, char *str);
 long outColumn(ioPo f);                 /* return number of chars since lf */
 

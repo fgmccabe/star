@@ -4,9 +4,12 @@
 #include "cafe.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <str.h>
+#include <lblops.h>
 
 #include "engineP.h"
 #include "decode.h"
+#include "globals.h"
 
 static poolPo prPool;     /* pool of processes */
 static char *UMAIN = "_main";
@@ -15,35 +18,15 @@ void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
 }
 
-int loadAndGo(char *boot, int argc, char *args[]) {
-  ioPo in = openInFile(boot, rawEncoding);
+retCode bootstrap(char *entry) {
+  labelPo umain = declareLbl(entry, 0);
+  methodPo mainMtd = getMethod(umain);
 
-  if (in != Null) {
-    retCode ret = skipShellPreamble(in);
-
-    hashPo pkg = decodePkg(in,currHeap);
-    if (pkg != Null) {
-      methodPo umain = (methodPo) hashGet(pkg, UMAIN);
-      if (umain != Null) {
-        processPo p = newProcess(umain);
-        integer reslt = run(p, currHeap);
-#ifdef TRACEEXEC
-        if (tracing)
-          outMsg(logFile, "tos = %ld\n", reslt);
-#endif
-        return 0;
-      } else {
-        syserr("no _main");
-        return 1;
-      }
-    } else {
-      syserr("cannot load boot file");
-      return 99;
-    }
-  } else {
-    syserr("cannot open boot file");
-    return 100;
-  }
+  if (mainMtd != Null) {
+    processPo p = newProcess(mainMtd);
+    return run(p, currHeap);
+  } else
+    return Error;
 }
 
 static uint16 haltCode[] = {Halt};
@@ -56,7 +39,7 @@ processPo newProcess(methodPo cl) {
   P->stackBase = (termPo) malloc(sizeof(integer) * initStackSize);
   P->stackLimit = &P->stackBase[initStackSize];
 
-  uniNCpy(P->wd,NumberOf(P->wd),CWD,NumberOf(CWD));
+  uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
 
   P->fp = (framePo) P->stackLimit;
 
@@ -69,4 +52,67 @@ processPo newProcess(methodPo cl) {
   P->sp = sp;
 
   return P;
+}
+
+void ps_kill(processPo p) {
+  if (p != NULL) {
+    pthread_t thread = p->threadID;
+
+    pthread_cancel(thread);    /* cancel the thread */
+  }
+}
+
+void stackTrace(processPo p) {
+
+}
+
+retCode extendStack(processPo p, int sfactor, int hfactor, long hmin) {
+  syserr("stack grow not implemented");
+  return Ok;
+}
+
+ReturnStatus liberror(processPo P, char *name, termPo code) {
+  heapPo H = processHeap(P);
+  int root = gcAddRoot(H, &code);
+  stringPo msg = allocateCString(H, name);
+  gcAddRoot(H, (ptrPo) &msg);
+
+  normalPo err = allocateStruct(H, errorLbl);
+  setArg(err, 0, (termPo) msg);
+  setArg(err, 1, code);
+
+  ReturnStatus rt = {.ret=Error, .rslt=(termPo) err};
+  return rt;
+}
+
+heapPo processHeap(processPo P) {
+  return P->heap;
+}
+
+void switchProcessState(processPo p, ProcessState state) {
+  p->state = state;
+}
+
+void setProcessRunnable(processPo p) {
+  switchProcessState(p, runnable);
+}
+
+ProcessState processState(processPo p) {
+  return p->state;
+}
+
+retCode processProcesses(procProc p, void *cl) {
+  return Ok;
+}
+
+processPo getProcessOfThread(void) {
+  exit(-1);
+}
+
+char *processWd(processPo p) {
+  return p->wd;
+}
+
+retCode setProcessWd(processPo p, char *wd, integer len) {
+  return uniNCpy(p->wd, NumberOf(p->wd), wd, len);
 }

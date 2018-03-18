@@ -9,10 +9,6 @@
 #include "arith.h"
 #include "term.h"
 
-logical tracing = True;  /* do we show each step */
-logical debugging = False;
-logical interactive = False;
-
 logical altDebug = False;
 long maxDepth = MAX_INT;
 
@@ -341,4 +337,17 @@ void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo f
       outMsg(logFile, "\n");
     }
   }
+}
+
+static integer insCounts[illegalOp];
+
+void countIns(insWord ins){
+  insCounts[ins]++;
+}
+
+#undef instruction
+#define instruction(Op,Arg,Cmt) if(insCounts[Op]!=0) outMsg(logFile,"#Op: %d - #Cmt\n",insCounts[Op]);
+
+void dumpInsCount(){
+#include "instructions.h"
 }

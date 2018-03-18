@@ -41,8 +41,10 @@ typedef enum {
 
 retCode formatDouble(char *out, integer outLen, double x, FloatDisplayMode displayMode, int precision, logical sign);
 
-integer parseInteger(char *s, integer len);
-double parseNumber(char *s, long len);
+integer parseInteger(const char *s, integer len);
+double parseNumber(char *s, integer len);
+
+retCode parseDouble(const char *s, integer len, double *rslt);
 
 char * strMsg(char *buffer, long len, char *fmt, ...);
 char * strAppend(byte *buffer, long len, char *fmt, ...);

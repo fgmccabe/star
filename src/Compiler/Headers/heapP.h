@@ -27,14 +27,6 @@ typedef envPo (*scavengePo)(envPo clos); /* A scavenger function */
 
 // This is pretty machine specific to the x86-64
 
-typedef struct _stack_frame_ {
-  framePo fp;
-  void *rtn;				/* The return address entry */
-  envPo env;				/* stacked closure */
-} StackFrame;
-
-#define ENV_OFFSET sizeof(framePo)
-
 typedef struct _scan_table_ *scanTablePo;
 typedef struct _scan_table_ {
   void *rtn;				/* code address */

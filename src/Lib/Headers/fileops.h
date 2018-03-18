@@ -12,4 +12,6 @@
 #include "libEscapes.h"
 
 extern char *resolveFileName(processPo p, const char *fn, integer fnLen, char *buff, integer buffLen);
+
+ioEncoding pickEncoding(integer k);
 #endif //CAFE_FILEOPS_H

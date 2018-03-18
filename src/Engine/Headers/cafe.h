@@ -7,7 +7,7 @@
 
 #include "config.h"
 #include "ooio.h"
-#include "cafeOptions.h"
+#include "starOptions.h"
 #include "local.h"
 
 #endif //CAFE_CAFE_H

@@ -30,17 +30,21 @@ typedef struct class_record {
 
 extern labelPo C_LBL(termPo t);
 
+extern integer labelArity(labelPo lbl);
+
 extern normalPo C_TERM(termPo t);
 
 extern clssPo C_CLSS(termPo t);
 
 extern logical isNormalPo(termPo t);
 
-extern termPo termLbl(normalPo t);
+extern labelPo termLbl(normalPo t);
 
 extern integer termHash(termPo t);
 
-extern int64 termArity(normalPo term);
+extern size_t termSize(normalPo t);
+
+extern integer termArity(normalPo term);
 
 extern termPo nthArg(normalPo term, int64 nth);
 
@@ -60,5 +64,7 @@ static inline logical hasClass(termPo obj, clssPo clss) {
 extern retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
 
 logical sameTerm(termPo t1,termPo t2);
+
+extern comparison compareTerm(termPo t1,termPo t2);
 
 #endif //CAFE_TERM_H

@@ -6,7 +6,7 @@
 #define CAFE_PKGP_H
 
 #include "pkg.h"
-#include "cafeOptions.h"
+#include "starOptions.h"
 
 typedef struct _package_record_ {
   char packageName[MAX_SYMB_LEN];

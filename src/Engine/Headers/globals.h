@@ -12,7 +12,7 @@ extern termPo voidEnum;
 extern termPo okEnum;
 extern termPo failEnum;
 extern termPo eofEnum;
-extern termPo errorLbl;
+extern labelPo errorLbl;
 
 extern void initGlobals();
 

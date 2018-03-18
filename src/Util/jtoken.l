@@ -13,6 +13,9 @@
 
 #include <config.h>
 #include <io.h>
+#include <retcode.h>
+#include <integer.h>
+
 #include "file.h"
 #include <math.h>
 #include <unistr.h>

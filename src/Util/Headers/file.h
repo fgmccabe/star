@@ -43,6 +43,7 @@ ioPo newOutFile(char * file,ioEncoding encoding);
 retCode filePresent(char * name);
 retCode isRegularFile(char * fname);
 retCode isDirectory(char * fname);
+logical isExecutableFile(char *file);
 
 ioPo OpenStdin(void);
 ioPo OpenStdout(void);

@@ -5,4 +5,17 @@
 #ifndef CAFE_COMPILEOPTIONS_H
 #define CAFE_COMPILEOPTIONS_H
 
+#include "ooio.h"
+
+#ifdef ALLTRACE
+#define TRACECODEGEN
+#endif
+
+#ifdef TRACECODEGEN
+extern logical debugCodeGen;
+#endif
+
+extern logical compileOnly;
+extern logical parseOnly;
+
 #endif //CAFE_COMPILEOPTIONS_H

@@ -522,7 +522,7 @@ retCode outChar(ioPo io, codePoint ch) {
     return ret;
 }
 
-retCode outText(ioPo f, char *text, integer len) {
+retCode outText(ioPo f, const char *text, integer len) {
   integer remaining = len;
   integer pos = 0;
   retCode ret = Ok;

@@ -9,12 +9,16 @@ static long intSize(specialClassPo cl, termPo o);
 static termPo intCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static retCode intDisp(ioPo out, termPo t, long depth, logical alt);
+static integer intHash(specialClassPo cl, termPo o);
+static comparison intCmp(specialClassPo cl, termPo t1, termPo t2);
 
 SpecialClass IntegerClass = {
   .clss = Null,
   .sizeFun = intSize,
   .copyFun = intCopy,
   .scanFun = intScan,
+  .compFun = intCmp,
+  .hashFun = intHash,
   .dispFun = intDisp
 };
 
@@ -24,12 +28,16 @@ static long fltSize(specialClassPo cl, termPo o);
 static termPo fltCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static retCode fltDisp(ioPo out, termPo t, long depth, logical alt);
+static integer fltHash(specialClassPo cl, termPo o);
+static comparison fltCmp(specialClassPo cl, termPo t1, termPo t2);
 
 SpecialClass FloatClass = {
   .clss = Null,
   .sizeFun = fltSize,
   .copyFun = fltCopy,
   .scanFun = fltScan,
+  .compFun = fltCmp,
+  .hashFun = fltHash,
   .dispFun = fltDisp
 };
 
@@ -52,13 +60,29 @@ long intSize(specialClassPo cl, termPo o) {
 
 termPo intCopy(specialClassPo cl, termPo dst, termPo src) {
   intPo si = C_INT(src);
-  intPo di = (intPo)(dst);
+  intPo di = (intPo) (dst);
   *di = *si;
-  return (termPo)di+IntegerCellCount;
+  return (termPo) di + IntegerCellCount;
 }
 
 termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return (termPo)(o+IntegerCellCount);
+  return (termPo) (o + IntegerCellCount);
+}
+
+comparison intCmp(specialClassPo cl, termPo t1, termPo t2) {
+  integer ix1 = integerVal(t1);
+  integer ix2 = integerVal(t2);
+
+  if (ix1 == ix2)
+    return same;
+  else if (ix1 < ix2)
+    return smaller;
+  else
+    return bigger;
+}
+
+integer intHash(specialClassPo cl, termPo o) {
+  return integerVal(o);
 }
 
 static retCode intDisp(ioPo out, termPo t, long depth, logical alt) {
@@ -92,18 +116,39 @@ long fltSize(specialClassPo cl, termPo o) {
 
 termPo fltCopy(specialClassPo cl, termPo dst, termPo src) {
   fltPo si = C_FLT(src);
-  fltPo di = (fltPo)(dst);
+  fltPo di = (fltPo) (dst);
   *di = *si;
-  return (termPo)di+FloatCellCount;
+  return (termPo) di + FloatCellCount;
 }
 
 termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  return (termPo)(o+FloatCellCount);
+  return (termPo) (o + FloatCellCount);
 }
 
 static retCode fltDisp(ioPo out, termPo t, long depth, logical alt) {
   fltPo dx = C_FLT(t);
   return outFloat(out, dx->dx);
+}
+
+comparison fltCmp(specialClassPo cl, termPo t1, termPo t2) {
+  double ix1 = floatVal(t1);
+  double ix2 = floatVal(t2);
+
+  if (ix1 == ix2)
+    return same;
+  else if (ix1 < ix2)
+    return smaller;
+  else
+    return bigger;
+}
+
+integer fltHash(specialClassPo cl, termPo o) {
+  union {
+    double n;
+    integer i;
+  } c;
+  c.n = floatVal(o);
+  return c.i;
 }
 
 extern fltPo C_FLT(termPo t) {
@@ -115,8 +160,4 @@ const double floatVal(termPo o) {
   assert(isInteger(o));
   intPo ix = (intPo) o;
   return ix->ix;
-}
-
-integer floatHash(fltPo ix) {
-  return (integer) ix->dx;
 }

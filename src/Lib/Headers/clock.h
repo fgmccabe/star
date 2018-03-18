@@ -3,7 +3,7 @@
 
 #include <sys/time.h>
 
-void init_time(void);
+void initTime(void);
 
 void flushTimeQ();
 void reset_timer(void);

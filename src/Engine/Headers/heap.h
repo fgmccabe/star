@@ -19,9 +19,9 @@ extern retCode reserveSpace(size_t amnt);
 
 extern void markRoot(ptrPo addr);
 
-extern int gcAddRoot(ptrPo addr);
-extern void gcReleaseRoot(int mark);
-extern retCode gc(size_t amnt);
+extern int gcAddRoot(heapPo H, ptrPo addr);
+extern void gcReleaseRoot(heapPo H, int mark);
+extern retCode gCollect(heapPo heap, size_t amnt);
 
 extern logical compare_and_swap(normalPo cl, int64 expect, int64 repl);
 

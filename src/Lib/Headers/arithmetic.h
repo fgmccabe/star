@@ -11,4 +11,6 @@
 #include "engine.h"
 #include "libEscapes.h"
 
+extern integer randomInt();
+
 #endif //CAFE_ARITHMETIC_H

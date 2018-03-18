@@ -19,10 +19,18 @@ typedef enum {
 } DebugWaitFor;
 
 typedef enum {
-  wait_io,
-  wait_timer,
+  quiescent,        /* process has yet to execute */
   runnable,
+  wait_io,        /* process is waiting for I/O */
+  wait_timer,        /* waiting for an interval times */
+  wait_term,    /* process is waiting for another thread to terminate */
+  wait_lock,        // Waiting for a lock to be released
+  wait_child,                           // Wait for a child process
+  wait_rendezvous,           /* Waiting for a rendezvous to release */
+  in_exclusion,
+  dead
 } ProcessState;
+
 
 typedef struct _return_code_ {
   retCode ret;
@@ -32,6 +40,11 @@ typedef struct _return_code_ {
 extern processPo newProcess(methodPo cl);
 extern void switchProcessState(processPo p, ProcessState state);
 extern void setProcessRunnable(processPo p);
+extern ProcessState processState(processPo p);
+
+typedef retCode (*procProc)(processPo p, void *cl);
+retCode processProcesses(procProc p, void *cl);
+processPo getProcessOfThread(void);
 
 extern heapPo processHeap(processPo p);
 

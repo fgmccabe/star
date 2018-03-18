@@ -20,7 +20,7 @@
 #include "unistr.h"
 
 /* Host name management and interface */
-char * getHostname(char * name);
+char * getHostname(const char *name);
 struct in_addr *getHostIP(char * name,int i);
 char * getNthHostIP(char * name,unsigned long i,char * buffer,unsigned long len);
 char * machineName(void);

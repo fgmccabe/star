@@ -8,6 +8,8 @@
 static long ioSize(specialClassPo cl, termPo o);
 static termPo ioCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static comparison ioCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer ioHash(specialClassPo cl, termPo o);
 static retCode ioDisp(ioPo out, termPo t, long depth, logical alt);
 
 SpecialClass IOChnnlClass = {
@@ -15,6 +17,8 @@ SpecialClass IOChnnlClass = {
   .sizeFun = ioSize,
   .copyFun = ioCopy,
   .scanFun = ioScan,
+  .compFun = ioCmp,
+  .hashFun = ioHash,
   .dispFun = ioDisp
 };
 
@@ -43,6 +47,21 @@ termPo ioCopy(specialClassPo cl, termPo dst, termPo src) {
 
 termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return (termPo) (o + IOChnnlCellCount);
+}
+
+comparison ioCmp(specialClassPo cl, termPo o1, termPo o2) {
+  ioChnnlPo i1 = C_IO(o1);
+  ioChnnlPo i2 = C_IO(o2);
+
+  if (i1->io == i2->io)
+    return same;
+  else
+    return incomparible;
+}
+
+integer ioHash(specialClassPo cl, termPo o) {
+  ioChnnlPo io = C_IO(o);
+  return (integer) io->io;
 }
 
 static retCode ioDisp(ioPo out, termPo t, long depth, logical alt) {

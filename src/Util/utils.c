@@ -22,3 +22,4 @@ void syserr(const char* msg){
   outMsg(logFile,"Fatal error: %s\n", msg);
   exit(99);
 }
+

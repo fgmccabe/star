@@ -32,7 +32,7 @@ bufferPo newStringBuffer();
 bufferPo openStringBuffer(char * buffer, long len);
 bufferPo fixedStringBuffer(char * buffer, long len);
 
-char * getTextFromBuffer(long *len, bufferPo s);
+char * getTextFromBuffer(integer *len, bufferPo s);
 long bufferSize(bufferPo b);
 retCode clearBuffer(bufferPo b);
 retCode rewindBuffer(bufferPo b);

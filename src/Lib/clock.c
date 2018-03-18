@@ -17,7 +17,7 @@ long timezone_offset;    // offset in seconds from GMT
 
 struct timeval initial_time;    // Time when the engine started
 
-void init_time(void) {
+void initTime(void) {
   time_t tloc;
   struct tm *tmptr;
 
@@ -36,7 +36,7 @@ void init_time(void) {
  * reset the interval timer for the new period
  */
 
-ReturnStatus g_delay(processPo P, ptrPo tos) {
+ReturnStatus g__delay(processPo P, ptrPo tos) {
   double dx = floatVal(tos[0]);
   ReturnStatus ret = {.rslt=Null, .ret=Ok};
 
@@ -65,7 +65,7 @@ ReturnStatus g_delay(processPo P, ptrPo tos) {
   }
 }
 
-ReturnStatus g_sleep(processPo P, ptrPo tos) {
+ReturnStatus g__sleep(processPo P, ptrPo tos) {
   double f = floatVal(*tos);
   ReturnStatus ret = {.rslt=Null, .ret=Ok};
 
@@ -113,7 +113,7 @@ ReturnStatus g_sleep(processPo P, ptrPo tos) {
 }
 
 /* Return the current time */
-ReturnStatus g_now(processPo P, ptrPo tos) {
+ReturnStatus g__now(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(processHeap(P), get_time());
 
   ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
@@ -121,7 +121,7 @@ ReturnStatus g_now(processPo P, ptrPo tos) {
 }
 
 /* Return the time at midnight */
-ReturnStatus g_today(processPo P, ptrPo tos) {
+ReturnStatus g__today(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(processHeap(P), get_date());
 
   ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
@@ -136,7 +136,7 @@ double get_ticks(void) {
   return ((double) clock()) / CLOCKS_PER_SEC;
 }
 
-ReturnStatus g_ticks(processPo P, ptrPo tos) {
+ReturnStatus g__ticks(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(currHeap, get_ticks());
 
   ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};

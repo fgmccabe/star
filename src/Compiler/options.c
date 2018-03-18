@@ -58,7 +58,7 @@ static retCode debugOption(char *option,logical enable,void *cl)
 #endif
 
     case 'm':		/* trace memory allocations  */
-#ifdef MEMTRACE
+#ifdef TRACEMEM
       traceMemory = True;
       continue;
 #else

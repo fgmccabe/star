@@ -1,19 +1,6 @@
 #ifndef _CAFE_OPTIONS_H_
 #define _CAFE_OPTIONS_H_
 
-#include "ooio.h"
-
-#ifdef ALLTRACE
-#define TRACECODEGEN
-#endif
-
-#ifdef TRACECODEGEN
-extern logical debugCodeGen;
-#endif
-
-extern logical compileOnly;
-extern logical parseOnly;
-
 #ifndef MAX_SYMB_LEN
 #define MAX_SYMB_LEN 1024
 #endif

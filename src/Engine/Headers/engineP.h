@@ -12,6 +12,7 @@
 #include "opcodes.h"
 #include "signals.h"
 #include "heapP.h"
+#include "thr.h"
 
 typedef struct _processRec_ {
   insPo pc;           /* current program counter */
@@ -21,7 +22,12 @@ typedef struct _processRec_ {
   termPo stackBase;   /* base of execution stack */
   termPo stackLimit;  /* Limit of execution stack */
   heapPo heap;        // Local heap for this process
+  pthread_t threadID;      /* What is the posix thread ID? */
   char wd[MAXFILELEN]; // Each thread may have its own working directory.
+  ProcessState state;                 /* What is the status of this process? */
+  logical pauseRequest;         /* Has a pause of this process been requested? */
+  ProcessState savedState;    /* Saved state of this process? */
+  threadPo thread;    // What is the thread associated with this process
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
 #endif
@@ -33,14 +39,33 @@ typedef struct _stack_frame_ {
   methodPo prog;      /* stacked program */
 } StackFrame;
 
-#define ENV_OFFSET sizeof(framePo)
-
 extern void initEngine();
-extern int loadAndGo(char *prog, int argc, char **argv);
 extern retCode run(processPo P, heapPo heap);
 
 void initPackages();
 
-void bootstrap(char *entry, char *bootPkg, char *version);
+retCode bootstrap(char *entry);
+
+extern pthread_key_t processKey;
+pthread_t ps_threadID(processPo p);
+processPo ps_suspend(processPo p, ProcessState reason);
+processPo ps_resume(register processPo p, register logical fr); /* resume process */
+void ps_kill(processPo p);      /* kill process */
+
+void pauseAllThreads(pthread_t except);
+void resumeAllThreads(pthread_t except);
+logical checkForPause(processPo P);
+
+void *ps_client(processPo p);  /* Get the process's client information */
+void *ps_set_client(processPo p, void *cl);
+
+processPo runerr(processPo); /* non-fatal error */
+
+void displayProcesses(void);
+void displayProcess(processPo p);
+void stackTrace(processPo p);
+void verifyProc(processPo p);
+
+retCode extendStack(processPo p, int sfactor, int hfactor, long hmin);
 
 #endif //CAFE_ENGINEP_H

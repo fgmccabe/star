@@ -95,7 +95,7 @@ Option options[] = {
   {'P', "parseOnly",  False, setParseOnly,   Null, "-P|--parseOnly"},
   {'H', "cafeHome",   True,  setHome,        Null, "-H|--cafeHome <path>"},
   {'L', "logFile",    True,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'R', "repository", True,  setManifest,    Null, "-R|--repository <path>"},
+  {'R', "repository", True,  setRepoDir,    Null, "-R|--repository <path>"},
   {'V', "pkg-version", True, setVersion,     Null, "-V|--set-version <version>"}};
 
 int getOptions(int argc, char **argv) {

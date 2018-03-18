@@ -23,6 +23,8 @@
 static long lockSize(specialClassPo cl, termPo o);
 static termPo lockCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
+static comparison lockCmp(specialClassPo cl, termPo o1, termPo o2);
+static integer lckHash(specialClassPo cl, termPo o);
 static retCode lockDisp(ioPo out, termPo t, long depth, logical alt);
 
 SpecialClass LockClass = {
@@ -30,6 +32,8 @@ SpecialClass LockClass = {
   .sizeFun = lockSize,
   .copyFun = lockCopy,
   .scanFun = lockScan,
+  .compFun = lockCmp,
+  .hashFun = lckHash,
   .dispFun = lockDisp
 };
 
@@ -58,6 +62,21 @@ termPo lockCopy(specialClassPo cl, termPo dst, termPo src) {
 
 termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return (termPo) (o + LockCellCount);
+}
+
+comparison lockCmp(specialClassPo cl, termPo o1, termPo o2) {
+  lockPo l1 = C_LOCK(o1);
+  lockPo l2 = C_LOCK(o2);
+
+  if (l1 == l2)
+    return same;
+  else
+    return incomparible;
+}
+
+integer lckHash(specialClassPo cl, termPo o){
+  lockPo l = C_LOCK(o);
+  return (integer)(&l->mutex);
 }
 
 static retCode lockDisp(ioPo out, termPo t, long depth, logical alt) {

@@ -185,7 +185,7 @@ int main(int argc, char **argv) {
     bufferPo operBuff = newStringBuffer();
     ProcessTable(procEntries, operators, operBuff);
 
-    long len;
+    integer len;
     char *allOps = getTextFromBuffer(&len, operBuff);
 
     hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);

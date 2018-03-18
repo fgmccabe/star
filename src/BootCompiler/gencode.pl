@@ -15,8 +15,10 @@ genCode(mdule(Pkg,Imports,Face,_Enums,Defs,_Contracts,_Impls),Text) :-
   encType(Face,Sig),
   genImports(Imports,ImpTpl),
   genDefs(Defs,C,[]),
-  mkTpl([PT,strg(Sig),ImpTpl|C],Tp),
-  encode(Tp,Text).
+  mkTpl(C,Cdes),
+  mkTpl([PT,strg(Sig),ImpTpl,Cdes],Tp),
+  encode(Tp,Txt),
+  encode(strg(Txt),Text).
 
 genImports(Imps,ImpTpl) :-
   map(Imps,gencode:genImport,Els),
@@ -28,7 +30,7 @@ genImport(Pkg,PkgTrm) :-
 genDefs(Defs,O,Ox) :-
   rfold(Defs,gencode:genDef,Ox,O).
 
-genDef(fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[strg(Txt)|O]) :-
+genDef(fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
   encType(Tp,Sig),
   initDict(D),
   genLbl(D,Ex,D0),
@@ -37,8 +39,7 @@ genDef(fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[strg(Txt)|O]) :-
   compTerm(Value,gencode:retCont(Lc),D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   genEnter(Dx,C0,C1),
   dispIns(C0),
-  assem([method(Nm,Sig)|C0],CdTrm),
-  encode(CdTrm,Txt).
+  assem([method(Nm,Sig)|C0],CdTrm).
 
 retCont(_,[iRet|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.

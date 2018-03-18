@@ -27,9 +27,9 @@ retCode acceptConnection(sockPo listen,ioEncoding encoding,
 
 char * peerName(sockPo stream,int *port);
 char * peerIP(sockPo stream,int *port,char * buff,long len);
-retCode connectRemote(char * where,int port,
-		      ioEncoding encoding,logical waitForMe,
-		      ioPo *inC,ioPo *outC);
+retCode connectRemote(const char *where, int port,
+                      ioEncoding encoding, logical waitForMe,
+                      ioPo *inC, ioPo *outC);
 
 extern classPo sockClass;
 

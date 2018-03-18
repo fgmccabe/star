@@ -13,9 +13,6 @@ typedef struct _method_ *methodPo;
 
 void initCode();
 
-labelPo
-defineMtd(insPo ins, integer insCount, char *name, integer arity, normalPo pool, normalPo locals);
-
 extern methodPo C_MTD(termPo t);
 
 typedef void (*jitCode)();
@@ -26,7 +23,7 @@ static inline OpCode opCode(insWord w) {
   return (OpCode) w;
 }
 
-extern normalPo codeConstants(methodPo mtd);
+extern normalPo codeLits(methodPo mtd);
 
 typedef struct _pkg_record_ *pkgPo;
 
@@ -36,6 +33,7 @@ extern char *loadedVersion(char *package);
 extern pkgPo markLoaded(char *package, char *version);
 extern pkgPo createPkg(char *name, char *version);
 
-extern retCode installMethod(pkgPo pkg, labelPo lbl);
+extern methodPo getMethod(labelPo lbl);
+extern methodPo defineMtd(heapPo H, insPo ins, integer insCount, labelPo lbl, normalPo pool, normalPo locals);
 
 #endif

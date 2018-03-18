@@ -4,6 +4,7 @@
 #include "term.h"
 #include <globals.h>
 #include <str.h>
+#include <stdlib.h>
 #include "engine.h"
 #include "libEscapes.h"
 #include "signature.h"
@@ -41,6 +42,15 @@ int installEscape(char *name, char *sig, libFun fun) {
   return escIx;
 }
 
+int32 lookupEscape(char *name) {
+  for (int ix = 0; ix < topEsc; ix++) {
+    if (uniCmp(name, escapes[ix].name) == same)
+      return ix;
+  }
+  syserr("could not find escape");
+  return -1;
+}
+
 escapePo getEscape(int32 escNo) {
   assert(escNo < topEsc);
   return &escapes[escNo];
@@ -59,10 +69,11 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       rtn.rslt = eofEnum;
       return rtn;
     case Error: {
-      normalPo err = allocateStruct(processHeap(p), (labelPo) errorLbl);
-      int root = gcAddRoot((ptrPo) (&err));
-      setArg(err, 0, allocateString(processHeap(p), msg, uniStrLen(msg)));
-      gcReleaseRoot(root);
+      heapPo H = processHeap(p);
+      normalPo err = allocateStruct(H, (labelPo) errorLbl);
+      int root = gcAddRoot(H, (ptrPo) (&err));
+      setArg(err, 0, (termPo) allocateString(H, msg, uniStrLen(msg)));
+      gcReleaseRoot(H, 0);
       rtn.rslt = (termPo) err;
       return rtn;
     }

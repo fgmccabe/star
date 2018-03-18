@@ -17,6 +17,7 @@ typedef struct _io_record_ {
 
 #define IOChnnlCellCount CellCount(sizeof(ChnnlRecord))
 
+extern void initIoChnnl();
 extern ioChnnlPo allocateIOChnnl(heapPo H, ioPo io);
 
 void scanChnnl();

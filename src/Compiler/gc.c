@@ -35,7 +35,7 @@ void initHeap(long heapSize)
 
     scanBlockPool = newPool(sizeof(GcScanBlock),256);
 
-#ifdef MEMTRACE
+#ifdef TRACEMEM
     if(traceMemory){
       outMsg(logFile,"establish heap of %d bytes total\n",heapSize);
       outMsg(logFile,"lower half at 0x%x, %d bytes\n",heap.start,heap.limit-heap.base);
@@ -290,7 +290,7 @@ void scanHeap()
 
 void collect(framePo stack,void *site,int amnt)
 {
-#ifdef MEMTRACE
+#ifdef TRACEMEM
   if(traceMemory)
     outMsg(logFile,"starting gc\n");
 #endif
@@ -298,7 +298,7 @@ void collect(framePo stack,void *site,int amnt)
   oldHeap = heap;			/* copy current settings */
   switch(heap.allocMode){
   case lowerHalf:
-#ifdef MEMTRACE
+#ifdef TRACEMEM
   if(traceMemory)
     outMsg(logFile,"switching to upper half\n");
 #endif
@@ -307,7 +307,7 @@ void collect(framePo stack,void *site,int amnt)
     heap.allocMode = upperHalf;		/* It is guaranteed to have enough room */
     break;
   case upperHalf:			/* Shift to the lower half */
-#ifdef MEMTRACE
+#ifdef TRACEMEM
   if(traceMemory)
     outMsg(logFile,"switching to lower half\n");
 #endif
@@ -319,7 +319,7 @@ void collect(framePo stack,void *site,int amnt)
     ;
   }
 
-#ifdef MEMTRACE
+#ifdef TRACEMEM
   if(traceMemory)
     outMsg(logFile,"%d bytes in available heap\n",heap.limit-heap.curr);
 #endif
@@ -331,7 +331,7 @@ void collect(framePo stack,void *site,int amnt)
     logMsg(logFile,"heap exhausted");
     exit(99);
   }
-#ifdef MEMTRACE
+#ifdef TRACEMEM
   if(traceMemory){
     outMsg(logFile,"%d bytes used\n",heap.curr-heap.start);
     outMsg(logFile,"%d bytes available\n",heap.limit-heap.curr);

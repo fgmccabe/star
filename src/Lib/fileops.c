@@ -11,12 +11,15 @@
 #include <iochnnlP.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <array.h>
 #include "fileops.h"
 #include "tpl.h"
 
 ReturnStatus g__cwd(processPo p, ptrPo tos) {
   char *wd = processWd(p);
-  termPo cwd = allocateString(processHeap(p), wd, uniStrLen(wd));
+  termPo cwd = (termPo) allocateString(processHeap(p), wd, uniStrLen(wd));
 
   ReturnStatus rtn = {.rslt = cwd, .ret=Ok};
   return rtn;
@@ -159,6 +162,56 @@ ReturnStatus g__mv(processPo P, ptrPo tos) {
       default:
         return liberror(P, MV, eIOERROR);
     }
+  }
+}
+
+ReturnStatus g__ls(processPo P, ptrPo tos) {
+  integer sLen;
+  const char *fn = stringVal(tos[1], &sLen);
+  char srcBuff[MAXFILELEN];
+
+  char *dir = resolveFileName(P, fn, sLen, srcBuff, NumberOf(srcBuff));
+
+  DIR *directory;
+
+  switchProcessState(P, wait_io);
+
+  if ((directory = opendir(dir)) == NULL) {
+    setProcessRunnable(P);
+    switch (errno) {
+      case EACCES:
+      case EMFILE:
+      case ENFILE:
+        return liberror(P, "__ls", eNOPERM);
+      case ENOENT:
+        return liberror(P, "__ls", eNOTFND);
+      case ENAMETOOLONG:
+      case ENOTDIR:
+        return liberror(P, "__ls", eINVAL);
+      default:
+        return liberror(P, "__ls", eNOTFND);
+    }
+  } else {
+    heapPo H = processHeap(P);
+    listPo list = allocateList(H, 8, True);
+    int root = gcAddRoot(H, (ptrPo) &list);
+
+    struct dirent *ent;
+
+    while ((ent = readdir(directory)) != NULL) {
+      /* skip special entries "." and ".." */
+      if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+        termPo name = (termPo) allocateString(H, ent->d_name, uniStrLen(ent->d_name));
+        list = appendToList(H, list, name);
+      }
+    }
+    closedir(directory);              /* Close the directory stream */
+
+    gcReleaseRoot(H, 0);
+    setProcessRunnable(P);
+
+    ReturnStatus ret = {.ret=Ok, .rslt = (termPo) list};
+    return ret;
   }
 }
 
@@ -431,18 +484,19 @@ ReturnStatus g__file_date(processPo P, ptrPo tos) {
         return liberror(P, FILE_DATE, eNOTFND);
     }
   } else {
-    termPo atime = (termPo) allocateInteger(processHeap(P), buf.st_atime);
-    int root = gcAddRoot(&atime);
-    termPo ctime = (termPo) allocateInteger(processHeap(P), buf.st_ctime);
-    gcAddRoot(&ctime);
-    termPo mtime = (termPo) allocateInteger(processHeap(P), buf.st_mtime);
-    gcAddRoot(&mtime);
-    normalPo triple = C_TERM(allocateTpl(processHeap(P), 3));
+    heapPo H = processHeap(P);
+    termPo atime = (termPo) allocateInteger(H, buf.st_atime);
+    int root = gcAddRoot(H, &atime);
+    termPo ctime = (termPo) allocateInteger(H, buf.st_ctime);
+    gcAddRoot(H, &ctime);
+    termPo mtime = (termPo) allocateInteger(H, buf.st_mtime);
+    gcAddRoot(H, &mtime);
+    normalPo triple = allocateTpl(H, 3);
 
     setArg(triple, 0, atime);
     setArg(triple, 1, ctime);
     setArg(triple, 2, mtime);
-    gcReleaseRoot(root);
+    gcReleaseRoot(H, 0);
 
     setProcessRunnable(P);
 
@@ -499,7 +553,7 @@ ReturnStatus g__file_modified(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__openInFile(processPo P, ptrPo tos) {
-  ioEncoding enc = (ioEncoding) integerVal(tos[0]);
+  ioEncoding enc = pickEncoding(integerVal(tos[0]));
 
   integer fnLen;
   const char *fn = stringVal(tos[1], &fnLen);
@@ -517,7 +571,7 @@ ReturnStatus g__openInFile(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
-  ioEncoding enc = (ioEncoding) integerVal(tos[0]);
+  ioEncoding enc = pickEncoding(integerVal(tos[0]));
 
   integer fnLen;
   const char *fn = stringVal(tos[1], &fnLen);
@@ -535,7 +589,7 @@ ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
-  ioEncoding enc = (ioEncoding) integerVal(tos[0]);
+  ioEncoding enc = pickEncoding(integerVal(tos[0]));
 
   integer fnLen;
   const char *fn = stringVal(tos[1], &fnLen);
@@ -553,7 +607,7 @@ ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
-  ioEncoding enc = (ioEncoding) integerVal(tos[0]);
+  ioEncoding enc = pickEncoding(integerVal(tos[0]));
 
   integer fnLen;
   const char *fn = stringVal(tos[1], &fnLen);
@@ -568,4 +622,48 @@ ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
     return ret;
   } else
     return liberror(P, "_openAppendIOFile", eNOTFND);
+}
+
+ioEncoding pickEncoding(integer k) {
+  switch (k) {
+    case 0:
+      return rawEncoding;
+    case 3:
+      return utf8Encoding;
+    default:
+      return unknownEncoding;
+  }
+}
+
+char *resolveFileName(processPo p, const char *fn, integer fnLen, char *buff, integer buffLen) {
+  char wd[MAXFILELEN];
+
+  uniNCpy(wd, NumberOf(wd), processWd(p), uniStrLen(processWd(p)));
+  integer wdLen = uniStrLen(wd);
+
+  if (fn[0] == '/') {
+    uniNCpy(buff, buffLen, fn, fnLen);
+    return buff;
+  } else {
+    char fname[MAXFILELEN];
+    uniNCpy(fname, NumberOf(fname), fn, fnLen);
+
+    integer pos = 0;
+    while (pos < fnLen && fname[pos] == '.') {
+      if (fname[pos + 1] == '.' && fname[pos + 2] == '/') {
+        integer last = uniLastIndexOf(wd, wdLen, '/');
+        if (last >= 0) {
+          wdLen = last;
+          wd[last] = '\0';
+          pos += 3;
+        } else
+          break;
+      } else if (fname[pos + 1] == '/') {
+        pos += 2;
+      } else
+        break;
+    }
+    strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
+    return buff;
+  }
 }

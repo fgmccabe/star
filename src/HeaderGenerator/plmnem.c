@@ -126,29 +126,28 @@ static char *genArg(FILE *out, char *sep, opAndSpec A) {
   }
 }
 
-char *headTail = "|M]) :- Pc1 is Pc+1,\n";
 char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).\n";
 
 static void genCode(FILE *out, int op, opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
-      fprintf(out, "%d%s", op, headTail);
+      fprintf(out, "%d|M]) :- Pc1 is Pc+1,\n", op);
       break;
     case lit:
-      fprintf(out, "(%d,LtNo)%s", op, headTail);
+      fprintf(out, "%d,LtNo|M]) :- Pc1 is Pc+3,\n", op);
       fprintf(out, "      findLit(Lt,V,LtNo,Lt1),\n");
       fprintf(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).\n");
       return;
     case i32:
     case arg:
     case lcl:
-      fprintf(out, "(%d,V)%s", op, headTail);
+      fprintf(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
       break;
     case Es:                              // escape code (0..65535)
-      fprintf(out, "(%d,V)%s", op, headTail);
+      fprintf(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
       break;
     case off:                            // program counter relative offset
-      fprintf(out, "(%d,Off)%s", op, headTail);
+      fprintf(out, "%d,Off|M]) :- Pc1 is Pc+3,\n", op);
       fprintf(out, "      findLbl(V,Lbls,Tgt),\n");
       fprintf(out, "      pcGap(Pc,Tgt,Off),\n");
       break;

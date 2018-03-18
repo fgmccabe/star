@@ -16,9 +16,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pkgP.h>
-#include "cafeOptions.h"
 #include "jsonEvent.h"
 #include "manifestP.h"
+#include "engineOptions.h"
+
 
 // Use the JSON event parser to parse a manifest file and build up a manifest structure
 
@@ -58,7 +59,7 @@ static poolPo rsrcPool = NULL;
 
 static hashPo manifest;
 
-extern char repoDir[MAXFILELEN];
+char repoDir[MAXFILELEN];
 
 void initManifest() {
   manifestPool = newPool(sizeof(ManifestEntryRecord), 128);
@@ -198,7 +199,7 @@ retCode loadManifest() {
   ioPo inFile = openInFile(manifestName, utf8Encoding);
 
   if (inFile != NULL) {
-    ParsingState info;
+    ParsingState info = {.state=initial};
     yyparse(inFile, &manEvents, &info);
     return Ok;
   } else {
@@ -210,19 +211,22 @@ retCode startManifest(void *cl) {
   statePo info = (statePo) cl;
   info->state = initial;
 
-  //logMsg(logFile, "Starting parse of manifest");
+  if (traceManifest)
+    logMsg(logFile, "Starting parse of manifest");
   return Ok;
 }
 
 retCode endManifest(void *cl) {
-  //logMsg(logFile, "Ending parse of manifest");
+  if (traceManifest)
+    logMsg(logFile, "Ending parse of manifest");
   return Ok;
 }
 
 retCode startCollection(void *cl) {
   statePo info = (statePo) cl;
 
-  //logMsg(logFile, "Starting collection, state = %s", stNames[info->state]);
+  if (traceManifest)
+    logMsg(logFile, "Starting collection, state = %s", stNames[info->state]);
 
   switch (info->state) {
     case initial:
@@ -249,7 +253,8 @@ retCode startCollection(void *cl) {
 retCode endCollection(void *cl) {
   statePo info = (statePo) cl;
 
-  //logMsg(logFile, "Ending collection, state = %s", stNames[info->state]);
+  if (traceManifest)
+    logMsg(logFile, "Ending collection, state = %s", stNames[info->state]);
 
   switch (info->state) {
     case initial:
@@ -284,7 +289,8 @@ retCode endArray(void *cl) {
 retCode startEntry(const char *name, void *cl) {
   statePo info = (statePo) cl;
 
-  //logMsg(logFile, "Starting entry, state = %s, name=%s", stNames[info->state], name);
+  if (traceManifest)
+    logMsg(logFile, "Starting entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {
     case initial:
@@ -312,7 +318,8 @@ retCode startEntry(const char *name, void *cl) {
 retCode endEntry(const char *name, void *cl) {
   statePo info = (statePo) cl;
 
-  //logMsg(logFile, "Ending entry, state = %s, name=%s", stNames[info->state], name);
+  if (traceManifest)
+    logMsg(logFile, "Ending entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {
     case inDetail:
@@ -339,7 +346,8 @@ retCode boolEntry(logical trueVal, void *cl) {
 retCode txtEntry(const char *name, void *cl) {
   statePo info = (statePo) cl;
 
-  //logMsg(logFile, "Text entry, state = %s, name=%s", stNames[info->state], name);
+  if (traceManifest)
+    logMsg(logFile, "Text entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {
     default:
@@ -457,11 +465,12 @@ char *repoRsrcPath(char *name, char *buffer, int bufLen) {
   return strMsg(buffer, bufLen, "%s/%s", repoDir, name);
 }
 
-void setManifestPath(char *path) {
+retCode setManifestPath(char *path) {
   if (path[0] != '/') {
     char wd[MAXFILELEN];
     getcwd(wd, sizeof(wd));
     strMsg(repoDir, NumberOf(repoDir), "%s/%s", wd, path);
   } else
     strMsg(repoDir, NumberOf(repoDir), "%s", path);
+  return Ok;
 }

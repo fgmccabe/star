@@ -9,12 +9,16 @@
 #include "ooio.h"
 #include "term.h"
 #include "heap.h"
+#include "code.h"
 
-labelPo findLbl(char *name, integer arity);
+labelPo findLbl(const char *name, integer arity);
 
-labelPo declareLbl(char *name, integer arity);
-labelPo declareEnum(char *name);
+labelPo declareLbl(const char *name, integer arity);
+labelPo declareEnum(const char *name);
+labelPo tplLabel(integer arity);
 
 retCode showLbl(ioPo out, labelPo lbl);
+
+methodPo labelCode(labelPo lbl);
 
 #endif //CAFE_LBL_H

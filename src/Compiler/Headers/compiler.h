@@ -9,7 +9,8 @@
 #include "location.h"
 #include <assert.h>
 
-#include "cafeOptions.h"
+#include "starOptions.h"
+#include "compileOptions.h"
 #include "utils.h"
 
 extern char copyRight[];
