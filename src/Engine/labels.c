@@ -9,7 +9,7 @@ static hashPo labels;
 static poolPo labelPool;
 
 static integer labelHash(labelPo lbl);
-static comparison labelCmp(labelPo lb1, labelPo lb2);
+comparison labelCmp(labelPo lb1, labelPo lb2);
 static retCode labelDel(labelPo lbl, labelPo l);
 
 static long lblSize(specialClassPo cl, termPo o);
@@ -61,6 +61,13 @@ labelPo findLbl(const char *name, integer arity) {
   return hashGet(labels, &tst);
 }
 
+labelPo objLabel(labelPo lbl){
+  if(lbl->oLbl==Null){
+    lbl->oLbl = declareLbl(lbl->name,2);
+  }
+  return lbl->oLbl;
+}
+
 integer labelHash(labelPo lbl) {
   return uniHash(lbl->name) * 37 + lbl->arity;
 }
@@ -89,10 +96,6 @@ static integer lblHash(specialClassPo cl, termPo o) {
   return labelHash(lbl);
 }
 
-methodPo getMethod(labelPo lbl) {
-  return lbl->mtd;
-}
-
 retCode labelDel(labelPo lbl, labelPo l) {
   uniDestroy(lbl->name);
   freePool(labelPool, lbl);
@@ -110,7 +113,7 @@ static retCode markLabel(void *n, void *r, void *c) {
   gcSupportPo G = (gcSupportPo) c;
 
   if (lbl->mtd != Null)
-    markPtr(G,(ptrPo)&lbl->mtd);
+    markPtr(G, (ptrPo) &lbl->mtd);
   return Ok;
 }
 
@@ -146,6 +149,10 @@ methodPo labelCode(labelPo lbl) {
 
 integer labelArity(labelPo lbl) {
   return lbl->arity;
+}
+
+char *labelName(labelPo lbl) {
+  return lbl->name;
 }
 
 labelPo tplLabel(integer arity) {

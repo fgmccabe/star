@@ -10,8 +10,6 @@ retCode decodeNm(ioPo in, char *buffer, integer buffLen);
 
 typedef retCode (*decodeFun) (ioPo in,heapPo heap, char *errorMsg, long msgSize, integer ix, void *cl);
 
-retCode processTpl(ioPo in,heapPo heap, char *errorMsg, long msgSize, decodeFun dec,void *cl);
-
 hashPo decodePkg(ioPo in,heapPo heap);
 
 #endif

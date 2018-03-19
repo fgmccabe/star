@@ -51,6 +51,7 @@ star.core {
   fper(W) => someOne{name = W. spouse=none}.
 
   assert fp.name == "".
+  -- assert fp.spouse == none.
 
   assert fper("fred").name == "fred".
 

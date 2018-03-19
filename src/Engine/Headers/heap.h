@@ -14,14 +14,11 @@ extern heapPo currHeap;
 extern termPo allocateObject(heapPo H, clssPo clss, size_t amnt);
 
 extern normalPo allocateStruct(heapPo H, labelPo lbl);
-
-extern retCode reserveSpace(size_t amnt);
-
-extern void markRoot(ptrPo addr);
+extern retCode enoughRoom(heapPo H,labelPo lbl);
+extern retCode reserveSpace(heapPo H, integer amnt);
 
 extern int gcAddRoot(heapPo H, ptrPo addr);
 extern void gcReleaseRoot(heapPo H, int mark);
-extern retCode gCollect(heapPo heap, size_t amnt);
 
 extern logical compare_and_swap(normalPo cl, int64 expect, int64 repl);
 

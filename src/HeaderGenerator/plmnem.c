@@ -9,9 +9,8 @@
 #undef instruction
 #define instruction(M, A1, cmt) genIns(out,#M,M,A1,cmt);
 
-#define lastInstruction
-
 static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt);
 
 char *prefix = "star.comp.assem";
 
@@ -59,7 +58,8 @@ int main(int argc, char **argv) {
 
   fprintf(out, "assem([method(Nm,Sig)|Ins],MTpl) :-\n");
   fprintf(out, "    genLblTbl(Ins,0,[],Lbs),\n");
-  fprintf(out, "    mnem(Ins,Lbs,[],Lts,[],Lcs,0,Cde),\n");
+  fprintf(out, "    findLit([],Nm,_,Ls0),\n");
+  fprintf(out, "    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),\n");
   fprintf(out, "    mkInsTpl(Cde,Code),\n");
   fprintf(out, "    mkLitTpl(Lts,LtTpl),\n");
   fprintf(out, "    mkTpl(Lcs,LcsTpl),\n");
@@ -80,7 +80,12 @@ int main(int argc, char **argv) {
 
   fprintf(out, "genLblTbl([],_,Lbls,Lbls).\n");
   fprintf(out, "genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).\n");
-  fprintf(out, "genLblTbl([_|Ins],Pc,Lb,Lbx) :- Pc1 is Pc+1, genLblTbl(Ins,Pc1,Lb,Lbx).\n\n");
+  fprintf(out, "genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).\n");
+
+#undef instruction
+#define instruction(M, A1, cmt) bmpPc(out,#M,M,A1,cmt);
+
+#include "instructions.h"
 
   fprintf(out, "findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.\n\n");
   fprintf(out, "pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc-1.\n\n");
@@ -100,9 +105,8 @@ int main(int argc, char **argv) {
   fprintf(out, "mkIns((O,A),Tpl) :-\n");
   fprintf(out, "    wrap(A,WA),\n");
   fprintf(out, "    mkTpl([intgr(O),WA],Tpl).\n");
-  fprintf(out, "mkIns(O,intgr(O)) :- number(O).\n\n");
-  fprintf(out, "wrap(O,intgr(O)) :- number(O).\n");
-  fprintf(out, "wrap(S,strg(S)) :- string(S).\n\n");
+  fprintf(out, "mkIns(O,intgr(O)) :- number(O).\n");
+  fprintf(out, "mkIns(S,strg(S)) :- string(S).\n\n");
 
   fclose(out);
   exit(0);
@@ -149,7 +153,7 @@ static void genCode(FILE *out, int op, opAndSpec A) {
     case off:                            // program counter relative offset
       fprintf(out, "%d,Off|M]) :- Pc1 is Pc+3,\n", op);
       fprintf(out, "      findLbl(V,Lbls,Tgt),\n");
-      fprintf(out, "      pcGap(Pc,Tgt,Off),\n");
+      fprintf(out, "      pcGap(Pc1,Tgt,Off),\n");
       break;
     default:
       fprintf(stderr, "Unknown instruction type code\n");
@@ -183,3 +187,47 @@ static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
 
   genCode(out, op, A1);
 }
+
+void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
+  fprintf(out, "genLblTbl([i%s", capitalize(mnem));
+
+  switch (A1) {
+    case nOp:                             // No operand
+      break;
+    case lit:
+    case i32:
+    case arg:
+    case lcl:
+    case Es:
+    case off:
+      fprintf(out, "(_)");
+      break;
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+  }
+
+  fprintf(out, "|Ins],Pc,Lbls,Lbx) :- !, ");
+
+  switch (A1) {
+    case nOp:                             // No operand
+      fprintf(out, "Pc1 is Pc+1, ");
+      break;
+    case lit:
+    case i32:
+    case arg:
+    case lcl:
+    case Es:
+    case off:
+      fprintf(out, "Pc1 is Pc+3, ");
+      break;
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+  }
+
+  fprintf(out, " genLblTbl(Ins,Pc1,Lbls,Lbx).\n");
+}
+

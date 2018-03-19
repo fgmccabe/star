@@ -20,7 +20,6 @@ extern retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo strBu
 extern retCode decInt(ioPo in, integer *ii);
 extern retCode decodeInteger(ioPo in,integer *ix);
 extern retCode decodeText(ioPo in, bufferPo buffer);
-extern retCode decodeName(ioPo in, bufferPo buffer);
 extern retCode decodeString(ioPo in,char *buffer, integer buffLen);
 
 typedef retCode (*intProc)(integer ix, void *cl);

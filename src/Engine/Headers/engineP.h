@@ -12,6 +12,7 @@
 #include "opcodes.h"
 #include "signals.h"
 #include "heapP.h"
+#include "labelsP.h"
 #include "thr.h"
 
 typedef struct _processRec_ {
@@ -40,7 +41,7 @@ typedef struct _stack_frame_ {
 } StackFrame;
 
 extern void initEngine();
-extern retCode run(processPo P, heapPo heap);
+extern retCode run(processPo P);
 
 void initPackages();
 

@@ -23,6 +23,7 @@ logical traceMessage = False;  // true if tracing message passing
 logical tracePut = False;  // true if tracing term freeze
 logical traceLock = False;  /* true if tracing locks */
 logical traceManifest = False;
+logical tracePkg = False;
 logical traceMemory = False;      /* memory tracing */
 logical stressMemory = False;      /* stress GC */
 logical tracing = False;      /* tracing option */
@@ -93,28 +94,28 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'e':    /* Escape call tracing */
 #ifdef TRACEEXEC
         traceCalls = True;
-              continue;
+        continue;
 #else
-        logMsg(logFile, "Escape tracing not enabled\n");
-        return Error;
+      logMsg(logFile, "Escape tracing not enabled\n");
+      return Error;
 #endif
 
       case 'd':    /* single step instruction tracing */
 #ifdef TRACEEXEC
         debugging = True;
-              continue;
+        continue;
 #else
-        logMsg(logFile, "Instruction-level debugging not enabled\n");
-        return Error;
+      logMsg(logFile, "Instruction-level debugging not enabled\n");
+      return Error;
 #endif
 
       case 'v':    /* turn on verify tracing */
 #ifdef TRACEVERIFY
         traceVerify = True;
-              continue;
+        continue;
 #else
-        logMsg(logFile, "code verification not enabled\n");
-        return Error;
+      logMsg(logFile, "code verification not enabled\n");
+      return Error;
 #endif
 
       case 'm':    /* trace memory allocations  */
@@ -141,20 +142,20 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'p':    /* trace put-style operations */
 #ifdef TRACEEXEC
         tracePut = True;
-              continue;
+        continue;
 #else
-        logMsg(logFile, "put tracing not enabled");
-        return Error;
+      logMsg(logFile, "put tracing not enabled");
+      return Error;
 #endif
 
       case 'G':    /* Internal symbolic tracing */
 #ifdef TRACEEXEC
         SymbolDebug = True;
-              interactive = False;
-              continue;
+        interactive = False;
+        continue;
 #else
-        logMsg(logFile, "tracing not enabled");
-        return Error;
+      logMsg(logFile, "tracing not enabled");
+      return Error;
 #endif
 
       case 'g':    /* Internal symbolic debugging */
@@ -170,17 +171,27 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         break;
 #endif
 #else
-        logMsg(logFile, "instruction counting not enabled");
-        return Error;
+      logMsg(logFile, "instruction counting not enabled");
+      return Error;
 #endif
 
       case 'M':     /* Trace manifest mgt */
 #ifdef TRACEMANIFEST
         traceManifest = True;
 #else
-        logMsg(logFile, "Resource tracing not enabled\n");
-        return Error;
+      logMsg(logFile, "Resource tracing not enabled\n");
+      return Error;
 #endif
+
+      case 'P':    /* trace package operations  */
+#ifdef TRACEPKG
+        tracePkg = True;
+        continue;
+#else
+      logMsg(logFile,"package tracing not enabled");
+            return -1;
+#endif
+
       case '*':    /* trace everything */
 #ifdef ALLTRACE
         traceCalls = True;
@@ -194,7 +205,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         else
           traceMemory = True;
         tracePut = True;              /* term freeze */
-        traceManifest = True;
+        tracePkg = True;
         continue;
 #else
       logMsg(logFile,"debugging not enabled\n");
@@ -265,7 +276,7 @@ Option options[] = {
   {'b', "boot-pkg",     True,  setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
   {'m', "main",         True,  setMainEntry,   Null, "-m|--main"},
   {'L', "logFile",      True,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'R', "repository",   True,  setRepoDir,    Null, "-R|--repository <path>"},
+  {'R', "repository",   True,  setRepoDir,     Null, "-R|--repository <path>"},
   {'W', "set-wd",       True,  setWD,          Null, "-W|--set-wd <dir>"},
   {'V', "verify",       False, setVerify,      Null, "-V|--verify"},
   {'h', "heap",         True,  setHeapSize,    Null, "-h|--heap <size>"},

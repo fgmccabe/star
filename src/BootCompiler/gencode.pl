@@ -38,7 +38,7 @@ genDef(fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
   compPtnArgs(Args,gencode:argCont,1,gencode:contCont(Ex),gencode:errorCont(Lc,"failed"),D1,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
   compTerm(Value,gencode:retCont(Lc),D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   genEnter(Dx,C0,C1),
-  dispIns(C0),
+  dispIns(Nm,Sig,C0),
   assem([method(Nm,Sig)|C0],CdTrm).
 
 retCont(_,[iRet|Cx],Cx,Stk,Stk1) :-
@@ -351,9 +351,11 @@ compMoreCase([(P,E)|SC],Off,Succ,Fail,D,Dx,End,[iLdL(Off)|C],Cx,Stk,Stkx) :-
   compTerm(E,Succ,D2,D3,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk1,Stkx),
   compMoreCase(SC,Off,Succ,Fail,D3,Dx,End,C2,Cx,Stk,_).
 
-dispIns(I) :-
-  rfold(I,gencode:showIns,Chrs,[]),
-  string_chars(Txt,Chrs),
+dispIns(Nm,_Sig,I) :-
+  showTerm(Nm,C,C0),
+  appStr("\n",C0,C1),
+  rfold(I,gencode:showIns,C1,[]),
+  string_chars(Txt,C),
   writeln(Txt).
 
 showIns(iLbl(L),C,Cx) :-

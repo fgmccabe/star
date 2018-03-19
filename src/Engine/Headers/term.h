@@ -28,10 +28,6 @@ typedef struct class_record {
   clssPo clss;
 } ClassRecord;
 
-extern labelPo C_LBL(termPo t);
-
-extern integer labelArity(labelPo lbl);
-
 extern normalPo C_TERM(termPo t);
 
 extern clssPo C_CLSS(termPo t);
@@ -42,13 +38,12 @@ extern labelPo termLbl(normalPo t);
 
 extern integer termHash(termPo t);
 
-extern size_t termSize(normalPo t);
+extern integer termSize(normalPo t);
 
 extern integer termArity(normalPo term);
 
-extern termPo nthArg(normalPo term, int64 nth);
-
-extern void setArg(normalPo term, int64 ix, termPo arg);
+extern termPo nthArg(normalPo term, integer ix);
+extern void setArg(normalPo term, integer ix, termPo arg);
 
 extern termPo falseEnum;
 extern termPo trueEnum;

@@ -17,8 +17,16 @@ labelPo declareLbl(const char *name, integer arity);
 labelPo declareEnum(const char *name);
 labelPo tplLabel(integer arity);
 
+integer labelArity(labelPo lbl);
+char *labelName(labelPo lbl);
+comparison labelCmp(labelPo lb1, labelPo lb2);
+
+labelPo objLabel(labelPo lbl);
+
 retCode showLbl(ioPo out, labelPo lbl);
 
 methodPo labelCode(labelPo lbl);
+
+extern labelPo C_LBL(termPo t);
 
 #endif //CAFE_LBL_H

@@ -1,6 +1,6 @@
 :- module(terms,[displayRules/1,showRules/3,substTerm/3,
         genTplStruct/2,isTplStruct/1,isLiteral/1,mkTpl/2,
-        termHash/2,dispTerm/2,locTerm/2]).
+        termHash/2,dispTerm/2,showTerm/3,locTerm/2]).
 
 :- use_module(misc).
 :- use_module(canon).

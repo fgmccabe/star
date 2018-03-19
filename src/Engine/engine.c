@@ -12,7 +12,6 @@
 #include "globals.h"
 
 static poolPo prPool;     /* pool of processes */
-static char *UMAIN = "_main";
 
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
@@ -20,24 +19,28 @@ void initEngine() {
 
 retCode bootstrap(char *entry) {
   labelPo umain = declareLbl(entry, 0);
-  methodPo mainMtd = getMethod(umain);
+  methodPo mainMtd = labelCode(umain);
 
   if (mainMtd != Null) {
     processPo p = newProcess(mainMtd);
-    return run(p, currHeap);
+    return run(p);
   } else
     return Error;
 }
 
 static uint16 haltCode[] = {Halt};
 
-processPo newProcess(methodPo cl) {
+processPo newProcess(methodPo mtd) {
   processPo P = (processPo) allocPool(prPool);
 
-  P->prog = cl;
-  P->pc = entryPoint(cl);
+  P->prog = mtd;
+  P->pc = entryPoint(mtd);
   P->stackBase = (termPo) malloc(sizeof(integer) * initStackSize);
   P->stackLimit = &P->stackBase[initStackSize];
+  P->heap = currHeap;
+  P->state = P->savedState = quiescent;
+  P->pauseRequest = False;
+  P->waitFor = debugging ? nextIns : never;
 
   uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
 
@@ -46,7 +49,7 @@ processPo newProcess(methodPo cl) {
   // cap the stack with a halting stop.
 
   ptrPo sp = (ptrPo) P->fp;
-  *--sp = (termPo) cl;
+  *--sp = (termPo) mtd;
   *--sp = (termPo) &haltCode[0];
 
   P->sp = sp;

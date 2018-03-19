@@ -4,7 +4,8 @@
 #include <errno.h>
 
 #include "heapP.h"
-#include "Headers/codeP.h"
+#include "codeP.h"
+#include "labels.h"
 
 HeapRecord heap, oldHeap;
 heapPo currHeap = NULL;
@@ -38,12 +39,12 @@ int gcAddRoot(heapPo H, ptrPo addr) {
 }
 
 void gcReleaseRoot(heapPo H, int mark) {
-  assert(mark >= 0 && mark < NumberOf(H->roots));
+  assert(mark >= 0 && mark < NumberOf(H->roots) && mark<=H->topRoot);
   H->topRoot = mark;
 }
 
-retCode reserveSpace(size_t amnt) {
-  if ((((ptrPo) currHeap->curr) + amnt) < ((ptrPo) (currHeap->limit)))
+retCode reserveSpace(heapPo H, integer amnt) {
+  if ((((ptrPo) H->curr) + amnt) < ((ptrPo) (H->limit)))
     return Ok;
   else
     return Error;
@@ -65,7 +66,11 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
 }
 
 normalPo allocateStruct(heapPo H, labelPo lbl) {
-  return (normalPo) allocateObject(H, (clssPo) lbl, CellCount(sizeof(Normal) + sizeof(ptrPo) * lbl->arity));
+  return (normalPo) allocateObject(H, (clssPo) lbl, NormalCellCount(labelArity(lbl)));
+}
+
+retCode enoughRoom(heapPo H,labelPo lbl){
+  return reserveSpace(H, NormalCellCount(labelArity(lbl)));
 }
 
 void initHeapLck(heapPo heap) {
@@ -99,7 +104,7 @@ void verifyHeap(heapPo H) {
     } else {
       normalPo trm = C_TERM(t);
       labelPo lbl = C_LBL((termPo) clss);
-      for (integer ix = 0; ix < lbl->arity; ix++) {
+      for (integer ix = 0; ix < labelArity(lbl); ix++) {
         validPtr(H, trm->args[ix]);
       }
       t = t + termSize(trm);

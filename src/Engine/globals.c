@@ -23,6 +23,7 @@ termPo okEnum;
 termPo failEnum;
 termPo eofEnum;
 labelPo errorLbl;
+labelPo locLbl;
 
 void initGlobals() {
   eINTRUPT = (termPo) declareEnum("eINTRUPT");
@@ -46,4 +47,5 @@ void initGlobals() {
   failEnum = (termPo) declareEnum("code.star#fail");
   eofEnum = (termPo) declareEnum("code.star#eof");
   errorLbl = declareLbl("code.star#error", 2);
+  locLbl = declareLbl("loc",5);
 }

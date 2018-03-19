@@ -48,8 +48,8 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 
   ioPo file = openInFile(fn, utf8Encoding);
 
-#ifdef TRACEMANIFEST
-  if (traceManifest)
+#ifdef TRACEPKG
+  if (tracePkg)
     logMsg(logFile, "loading package %s:%s from file %s\n", pkgName, vers, fn);
 #endif
 
@@ -87,8 +87,8 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 
     closeFile(file);
 
-#ifdef TRACEMANIFEST
-    if (traceManifest) {
+#ifdef TRACEPKG
+    if (tracePkg){
       if (ret != Error)
         logMsg(logFile, "package %s loaded\n", pkgName);
       else
@@ -96,10 +96,7 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
     }
 #endif
 
-    if (ret == Eof)
-      return Ok;
-    else
-      return ret;
+    return ret;
   } else {
     strMsg(errorMsg, msgSize, "package %s not found", pkgName);
     return Eof;
@@ -148,8 +145,8 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
 
   closeFile(O_IO(inBuff));
 
-#ifdef TRACEMANIFEST
-  if (traceManifest)
+#ifdef TRACEPKG
+  if (tracePkg)
     logMsg(logFile, "package %s installed\n", pkgNm);
 #endif
 
@@ -224,7 +221,7 @@ retCode decodePkgName(ioPo in, char *nm, long nmLen, char *v, long vLen) {
     bufferPo pkgB = fixedStringBuffer(nm, nmLen);
     bufferPo vrB = fixedStringBuffer(v, vLen);
 
-    retCode ret = decodeName(O_IO(in), pkgB);
+    retCode ret = decodeText(O_IO(in), pkgB);
 
     if (ret == Ok) {
       if (isLookingAt(in, "e'*'") == Ok)
@@ -252,7 +249,7 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity) {
       return ret;
     else {
       bufferPo pkgB = fixedStringBuffer(nm, nmLen);
-      ret = decodeName(O_IO(in), pkgB);
+      ret = decodeText(O_IO(in), pkgB);
       outByte(O_IO(pkgB), 0);
       closeFile(O_IO(pkgB));
       return ret;
@@ -369,8 +366,8 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
 
   ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
-#ifdef TRACEMANIFEST
-  if (traceManifest)
+#ifdef TRACEPKG
+  if (tracePkg)
     outMsg(logFile, "loading code %s/%d\n%_", prgName, arity);
 #endif
 

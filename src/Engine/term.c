@@ -41,8 +41,9 @@ integer termArity(normalPo term) {
   return labelArity(lbl);
 }
 
-termPo nthArg(normalPo term, int64 nth) {
-  return term->args[nth];
+termPo nthArg(normalPo term, int64 ix) {
+  assert(ix >= 0 && ix < termArity(term));
+  return term->args[ix];
 }
 
 void setArg(normalPo term, int64 ix, termPo arg) {
@@ -66,12 +67,12 @@ retCode dispTerm(ioPo out, termPo t, long depth, logical alt) {
   } else {
     normalPo nml = C_TERM(t);
     labelPo lbl = nml->lbl;
-    retCode ret = outStr(out, lbl->name);
+    retCode ret = outStr(out, labelName(lbl));
     if (ret == Ok)
       ret = outChar(out, '(');
     if (depth > 0) {
       char *sep = "";
-      integer ar = lbl->arity;
+      integer ar = labelArity(lbl);
       for (integer ix = 0; ix < ar && ret == Ok; ix++) {
         ret = outStr(out, sep);
         sep = ", ";
@@ -106,7 +107,7 @@ comparison compareTerm(termPo t1, termPo t2) {
     normalPo n1 = C_TERM(t1);
     normalPo n2 = C_TERM(t2);
     labelPo lbl = n1->lbl;
-    for (integer ix = 0; ix < lbl->arity; ix++) {
+    for (integer ix = 0; ix < labelArity(lbl); ix++) {
       comparison c = compareTerm(nthArg(n1, ix), nthArg(n2, ix));
       if (c != same)
         return c;
@@ -124,15 +125,15 @@ integer termHash(termPo t) {
     normalPo n1 = C_TERM(t);
     labelPo lbl = n1->lbl;
     integer hash = termHash((termPo) lbl);
-    for (integer ix = 0; ix < lbl->arity; ix++)
+    for (integer ix = 0; ix < labelArity(lbl); ix++)
       hash = hash * 37 + termHash(nthArg(n1, ix));
 
     return hash;
   }
 }
 
-size_t termSize(normalPo t) {
-  return sizeof(Normal) + (t->lbl->arity) * sizeof(termPo);
+integer termSize(normalPo t) {
+  return NormalCellCount(labelArity(t->lbl));
 }
 
 normalPo allocateTpl(heapPo H, integer arity) {

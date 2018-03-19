@@ -66,7 +66,7 @@ retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize)
 
 
                     if (res == Ok)
-                      res = reserveSpace((size_t) amnt);
+                      res = reserveSpace(H, amnt);
 
                     if (res == Ok) {
                       rewindBuffer(buffer); /* re-read from string buffer */
@@ -239,23 +239,6 @@ retCode decodeInteger(ioPo in, integer *ix) {
     return Fail;
 }
 
-retCode decodeName(ioPo in, bufferPo buffer) {
-  codePoint delim;
-  clearBuffer(buffer);
-
-  retCode ret = inChar(in, &delim);
-
-  if (ret != Ok)
-    return ret;
-  else {
-    codePoint ch;
-    while ((ret = inChar(in, &ch)) == Ok && ch != delim) {
-      outChar(O_IO(buffer), ch);
-    }
-    return ret;
-  }
-}
-
 retCode decodeNm(ioPo in, char *buffer, integer buffLen) {
   codePoint delim;
 
@@ -298,14 +281,18 @@ retCode decodeText(ioPo in, bufferPo buffer) {
 
 retCode decodeString(ioPo in, char *buffer, integer buffLen) {
   if (isLookingAt(in, "s") == Ok) {
-    return decodeNm(in, buffer, buffLen);
+    bufferPo b = fixedStringBuffer(buffer, buffLen);
+    retCode ret = decodeText(in, b);
+    outChar(O_IO(b), 0);
+    closeFile(O_IO(b));
+    return ret;
   } else
     return Fail;
 }
 
 retCode decFlt(ioPo in, double *dx) {
   bufferPo tmpBuffer = newStringBuffer();
-  retCode ret = decodeName(in, tmpBuffer);
+  retCode ret = decodeText(in, tmpBuffer);
 
   if (ret == Ok) {
     integer len;
@@ -351,11 +338,10 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
         res = cb->decFlt(dx, cl);
       return res;
     }
-
     case enuTrm: {
       clearBuffer(buff);
 
-      res = decodeName(in, buff);
+      res = decodeText(in, buff);
 
       if (res == Ok) {
         integer len;
@@ -364,7 +350,6 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       }
       return res;
     }
-
     case lblTrm: {
       integer arity;
       clearBuffer(buff);
@@ -372,7 +357,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
         return res;
 
-      res = decodeName(in, buff);
+      res = decodeText(in, buff);
 
       if (res == Ok) {
         integer len;
@@ -381,7 +366,6 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       }
       return res;
     }
-
     case strTrm: {
       clearBuffer(buff);
       res = decodeText(in, buff);
@@ -418,39 +402,6 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
 
     default:
       return Error;
-  }
-}
-
-retCode processTpl(ioPo in, heapPo heap, char *errorMsg, long msgSize, decodeFun dec, void *cl) {
-  codePoint ch;
-  retCode res = inChar(in, &ch);
-
-  if (res == Eof)
-    return Eof;
-  else if (ch != dtaTrm) {
-    strMsg(errorMsg, msgSize, "Not a tuple");
-    return Error;
-  } else {
-    integer arity;
-
-    if ((res = decInt(in, &arity)) != Ok) { /* How many arguments in the class */
-      strMsg(errorMsg, msgSize, "Not a tuple");
-      return res;
-    } else if ((res = inChar(in, &ch)) == Ok && ch == lblTrm) {
-      integer ar;
-
-      if ((res = decInt(in, &ar)) != Ok)
-        return res;
-      bufferPo tmpBuffer = newStringBuffer();
-
-      res = decodeName(in, tmpBuffer);
-
-      closeFile(O_IO(tmpBuffer));
-      for (integer ix = 0; res == Ok && ix < arity; ix++) {
-        res = dec(in, heap, errorMsg, msgSize, ix, cl);
-      }
-    }
-    return res;
   }
 }
 
@@ -613,19 +564,33 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       *tgt = (termPo) allocateFloat(H, dx);
       return Ok;
     }
+    case enuTrm: {
+      if ((res = decodeText(in, tmpBuffer)) == Ok) {
+        integer len;
+        *tgt = (termPo) declareLbl(getTextFromBuffer(&len, tmpBuffer), 0);
+      }
+      return res;
+    }
     case lblTrm: {
       integer arity;
 
       if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
         return res;
 
-      if ((res = decodeName(in, tmpBuffer)) == Ok) {
+      if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
         *tgt = (termPo) declareLbl(getTextFromBuffer(&len, tmpBuffer), arity);
       }
       return res;
     }
-
+    case strTrm: {
+      if ((res = decodeText(in, tmpBuffer)) == Ok) {
+        integer len;
+        const char *txt = getTextFromBuffer(&len, tmpBuffer);
+        *tgt = (termPo) allocateString(H, txt, len);
+      }
+      return res;
+    }
     case dtaTrm: {
       termPo class;
       integer arity;
@@ -637,22 +602,25 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         return res;
 
       if (res == Ok) {
-        int root = gcAddRoot(H,&class);
+        if (labelArity(C_LBL(class)) != arity)
+          res = Error;
+      }
+
+      if (res == Ok) {
+        int root = gcAddRoot(H, &class);
         normalPo obj = allocateStruct(H, C_LBL(class));
         *tgt = (termPo) (obj);
 
         termPo el = voidEnum;
-        gcAddRoot(H,&el);
-        integer i;
+        gcAddRoot(H, &el);
 
-        for (i = 0; i < arity; i++) {
-          if ((res = decode(in, S, H, &el, tmpBuffer)) != Ok) /* read each element of term */
-            break; /* we might need to skip out early */
-          else {
-            setArg(obj, i, el); /* stuff in the new element */
-          }
+        for (integer i = 0; res == Ok && i < arity; i++) {
+          res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
+          if (res == Ok)
+            setArg(obj, i, el);
         }
-        gcReleaseRoot(H,root);
+
+        gcReleaseRoot(H, root);
       }
 
       return res;

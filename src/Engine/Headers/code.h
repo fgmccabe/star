@@ -19,9 +19,6 @@ typedef void (*jitCode)();
 typedef integer (*cafeFun)();
 typedef cafeFun (*pkgFun)();
 
-static inline OpCode opCode(insWord w) {
-  return (OpCode) w;
-}
 
 extern normalPo codeLits(methodPo mtd);
 
@@ -33,7 +30,6 @@ extern char *loadedVersion(char *package);
 extern pkgPo markLoaded(char *package, char *version);
 extern pkgPo createPkg(char *name, char *version);
 
-extern methodPo getMethod(labelPo lbl);
 extern methodPo defineMtd(heapPo H, insPo ins, integer insCount, labelPo lbl, normalPo pool, normalPo locals);
 
 #endif

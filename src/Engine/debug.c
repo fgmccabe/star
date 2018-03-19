@@ -4,6 +4,7 @@
 #include "signature.h"
 #include "libEscapes.h"
 #include <stdlib.h>
+#include <globals.h>
 
 #include "debug.h"
 #include "arith.h"
@@ -130,9 +131,7 @@ void dC(termPo w) {
 }
 
 static retCode showConstant(ioPo out, methodPo mtd, int off) {
-  termPo t = nthArg(mtd->pool, off);
-
-  return dispTerm(out, t, maxDepth, altDebug);
+  return outMsg(out, " %T", nthArg(mtd->pool, off));
 }
 
 static void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
@@ -145,17 +144,6 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
 
   if (focus == NULL || focus == p) {
     insWord PCX = *pc;
-
-    switch (opCode(PCX)) {
-      case Call:
-      case Tail: {
-        methodPo prg = C_MTD(*sp);
-
-      }
-
-      default:;
-
-    }
 
     disass(pcCount, p, mtd, pc, fp, sp);
     if (!interactive || traceCount > 0) {
@@ -274,19 +262,31 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
   }
 }
 
+static void showLine(ioPo out, termPo ln) {
+  if (isNormalPo(ln)) {
+    normalPo line = C_TERM(ln);
+    if (labelCmp(line->lbl, locLbl) == same) {
+      outMsg(out, "%T:%T(%T)\n", nthArg(line, 0), nthArg(line, 1), nthArg(line, 4));
+      flushFile(out);
+      return;
+    }
+  }
+  outMsg(out, "line: %T\n", ln);
+}
+
+void debug_line(integer pcCount, processPo p, termPo line) {
+  showLine(logFile, line);
+}
+
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
-
-static void showEscape(methodPo cl, int32 escNo) {
-  escapePo esc = getEscape(escNo);
-
-  outMsg(logFile, " (%U)", esc->name);
-}
 
 insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   int32 hi32, lo32;
 
-  outMsg(logFile, "0x%x [%d]", pc, pcCount);
+  integer offset = (integer) (pc - entryPoint(mtd));
+
+  outMsg(logFile, "0x%x[%d]: %T(%d) ", pc, pcCount, nthArg(codeLits(mtd), 0), offset);
 
   switch (*pc++) {
 #undef instruction
@@ -296,8 +296,8 @@ insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, p
 #define show_arg outMsg(logFile," a[%d]",collectI32(pc))
 #define show_lcl outMsg(logFile," l[%d]",collectI32(pc))
 #define show_off outMsg(logFile," 0x%x",(collI32(pc)+pc))
-#define show_Es showEscape(mtd,collectI32(pc))
-#define show_lit showConstant(logFile,mtd,collectI32(pc))
+#define show_Es outMsg(logFile, " (%U)", getEscape(collectI32(pc))->name)
+#define show_lit outMsg(logFile," %T",nthArg(mtd->pool, collectI32(pc)))
 
 #define instruction(Op, A1, Cmt)    \
     case Op:          \
@@ -341,13 +341,13 @@ void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo f
 
 static integer insCounts[illegalOp];
 
-void countIns(insWord ins){
+void countIns(insWord ins) {
   insCounts[ins]++;
 }
 
 #undef instruction
-#define instruction(Op,Arg,Cmt) if(insCounts[Op]!=0) outMsg(logFile,"#Op: %d - #Cmt\n",insCounts[Op]);
+#define instruction(Op, Arg, Cmt) if(insCounts[Op]!=0) outMsg(logFile,"#Op: %d - #Cmt\n",insCounts[Op]);
 
-void dumpInsCount(){
+void dumpInsCount() {
 #include "instructions.h"
 }

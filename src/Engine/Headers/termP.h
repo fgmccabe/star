@@ -8,20 +8,6 @@
 #include "term.h"
 #include "code.h"
 
-/*
- * A program label structure
- */
-
-typedef struct _program_label_ {
-  clssPo clss;                // == labelClass
-  integer arity;              // Arity of label
-  integer hash;               // Hash code for the label
-  methodPo mtd;               // Optimization - is a method defined for this label?
-  char *name;                 // LblRecord name
-} LblRecord;
-
-#define LabelCellCount CellCount(sizeof(LblRecord))
-
 typedef struct normal_term {
   labelPo lbl;                // Overlays clss - because it is the term's class
   termPo args[ZEROARRAYSIZE];

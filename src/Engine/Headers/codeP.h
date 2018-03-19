@@ -21,7 +21,7 @@ typedef struct _method_ {
   clssPo clss;         // == specialClass
   integer codeSize;     /* How big is the code block */
   jitCode jit;        /* Pointer to jit'ed code */
-  long jitSize;       /* How big is the Jit code? */
+  integer jitSize;       /* How big is the Jit code? */
 
   integer arity;        /* How many arguments in method */
   normalPo pool;      /* A pool tuple of constants */
@@ -31,7 +31,7 @@ typedef struct _method_ {
 
 extern clssPo methodClass;
 
-#define MtdCellCount(count) CellCount(sizeof(MethodRec)+(count)*sizeof(insWord))
+#define MtdCellCount(count) (CellCount(sizeof(MethodRec))+CellCount((count)*sizeof(insWord)))
 
 static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);

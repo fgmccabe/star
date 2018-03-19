@@ -3,6 +3,7 @@
 //
 
 #include <assert.h>
+#include <string.h>
 #include "strP.h"
 
 static long strSize(specialClassPo cl, termPo o);
@@ -46,7 +47,7 @@ stringPo allocateString(heapPo H, const char *txt, long length) {
   str->hash = 0;
   str->length = length;
 
-  uniCpy(str->txt, length, txt);
+  memmove(str->txt,txt,length*sizeof(char));
 
   return str;
 }

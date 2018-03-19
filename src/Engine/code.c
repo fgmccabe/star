@@ -4,6 +4,7 @@
 
 #include <heapP.h>
 #include "codeP.h"
+#include "labelsP.h"
 
 static poolPo pkgPool;
 static hashPo packages;
@@ -84,6 +85,10 @@ retCode mtdDisp(ioPo out, termPo t, long depth, logical alt) {
 }
 
 methodPo defineMtd(heapPo H, insPo ins, integer insCount, labelPo lbl, normalPo pool, normalPo locals) {
+  int root = gcAddRoot(H, (ptrPo) &lbl);
+  gcAddRoot(H, (ptrPo) &pool);
+  gcAddRoot(H, (ptrPo) &locals);
+
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
 
   for (integer ix = 0; ix < insCount; ix++)
@@ -96,6 +101,8 @@ methodPo defineMtd(heapPo H, insPo ins, integer insCount, labelPo lbl, normalPo 
   mtd->locals = locals;
 
   lbl->mtd = mtd;
+
+  gcReleaseRoot(H, root);
 
   return mtd;
 }

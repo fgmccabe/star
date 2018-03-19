@@ -12,6 +12,7 @@
 #define TRACEMEM
 #define TRACEEXEC
 #define TRACEMANIFEST
+#define TRACEPKG
 #define TRACESTATS
 #define TRACEVERIFY
 #endif
@@ -24,6 +25,7 @@ extern logical interactive;      /* interactive instruction tracing option */
 extern logical traceCount;
 
 extern logical traceMemory;      /* memory tracing */
+extern logical tracePkg;
 extern logical traceManifest;
 
 extern long initHeapSize;    /* How much memory to give the heap */

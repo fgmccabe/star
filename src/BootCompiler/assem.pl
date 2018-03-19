@@ -7,7 +7,8 @@
 
 assem([method(Nm,Sig)|Ins],MTpl) :-
     genLblTbl(Ins,0,[],Lbs),
-    mnem(Ins,Lbs,[],Lts,[],Lcs,0,Cde),
+    findLit([],Nm,_,Ls0),
+    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
@@ -40,7 +41,7 @@ mnem([iRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[7|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iJmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[8,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
-      pcGap(Pc,Tgt,Off),
+      pcGap(Pc1,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iDrop|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[9|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
@@ -67,7 +68,7 @@ mnem([iStA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[19,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iCLbl(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[20,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
-      pcGap(Pc,Tgt,Off),
+      pcGap(Pc1,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[21,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
@@ -80,19 +81,19 @@ mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[24,LtNo|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
 mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[25,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
-      pcGap(Pc,Tgt,Off),
+      pcGap(Pc1,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iBf(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[26,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
-      pcGap(Pc,Tgt,Off),
+      pcGap(Pc1,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iBt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[27,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
-      pcGap(Pc,Tgt,Off),
+      pcGap(Pc1,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iCas(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[28,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
-      pcGap(Pc,Tgt,Off),
+      pcGap(Pc1,Tgt,Off),
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iRais(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[29,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
@@ -105,11 +106,42 @@ mnem([iLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[31,LtNo|M]) :- Pc1 is Pc+3,
 
 genLblTbl([],_,Lbls,Lbls).
 genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).
-genLblTbl([_|Ins],Pc,Lb,Lbx) :- Pc1 is Pc+1, genLblTbl(Ins,Pc1,Lb,Lbx).
-
+genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
+genLblTbl([iHalt|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iOCall|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iEscape(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iTail(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iOTail|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iEnter(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iRet|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iJmp(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iDrop|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iDup|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iPull(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iRot(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iRst(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iLdC(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iLdA(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iLdL(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iStL(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iTL(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iStA(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iCLbl(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iNth(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iStNth(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iCase(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iAlloc(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iCmp(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iBf(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iBt(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iCas(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iRais(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iFrame(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iLine(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.
 
-pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc-1.
+pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
 findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
@@ -127,7 +159,4 @@ mkIns((O,A),Tpl) :-
     wrap(A,WA),
     mkTpl([intgr(O),WA],Tpl).
 mkIns(O,intgr(O)) :- number(O).
-
-wrap(O,intgr(O)) :- number(O).
-wrap(S,strg(S)) :- string(S).
-
+mkIns(S,strg(S)) :- string(S).

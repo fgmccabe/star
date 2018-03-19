@@ -14,7 +14,7 @@
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
 
-#define collectOff(pc) (hi32 = collectI32(pc)/sizeof(uint16), (pc)+(int32)hi32)
+#define collectOff(pc) (hi32 = collectI32(pc), (pc)+hi32)
 
 #define push(X) *--SP = ((termPo)(X))
 #define pop() (*SP++)
@@ -23,10 +23,14 @@
 #define local(off) &(((ptrPo)FP)[-(off)-1])
 #define arg(off) (((ptrPo)(FP+1))+(off))
 
+#define saveRegisters(P) { (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = SP;}
+#define restoreRegisters(P) { PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);}
+
 /*
  * Execute program on a given process/thread structure
  */
-retCode run(processPo P, heapPo heap) {
+retCode run(processPo P) {
+  heapPo heap = P->heap;
   register insPo PC = P->pc;    /* Program counter */
   register framePo FP = P->fp;    /* Current locals + = arguments, - = locals */
   register methodPo PROG = P->prog; /* Current executing closure */
@@ -45,16 +49,17 @@ retCode run(processPo P, heapPo heap) {
     pcCount++;        /* increment total number of executed */
 
     countIns(*PC);
-    if (tracing)
+    if (debugging)
       debug_stop(pcCount, P, PROG, PC, FP, SP);
 #endif
 
-    switch (*PC++) {
+    switch ((OpCode) (*PC++)) {
       case Halt:
         return Ok;
 
       case Call: {
-        PROG = C_MTD(nthArg(LITS, collectI32(PC)));   // Which program do we want?
+        push(PROG);
+        PROG = labelCode(C_LBL(nthArg(LITS, collectI32(PC))));   // Which program do we want?
         push(PC);       // Set up for a return
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -62,8 +67,10 @@ retCode run(processPo P, heapPo heap) {
       }
 
       case OCall: {        /* Call tos a1 .. an -->   */
-        PROG = C_MTD(*SP++);       /* set up for callee */
+        termPo NP = *SP;
+        push(PROG);
         push(PC);       /* build up the frame. */
+        PROG = labelCode(objLabel(termLbl(C_TERM(NP))));       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
         continue;
@@ -74,7 +81,7 @@ retCode run(processPo P, heapPo heap) {
         escapePo esc = getEscape(escNo);
         ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
         SP += esc->arity;     /* drop arguments */
-        switch(ret.ret){
+        switch (ret.ret) {
           case Ok:
             if (ret.rslt != Null)
               *--SP = ret.rslt;
@@ -92,7 +99,7 @@ retCode run(processPo P, heapPo heap) {
         insPo oldPc = FP->rtn;
         int64 argCnt = argCount(PROG); /* How many arguments in caller? */
 
-        PROG = C_MTD(nthArg(LITS, collectI32(PC)));   // Which program do we want?
+        PROG = labelCode(C_LBL(nthArg(LITS, collectI32(PC))));   // Which program do we want?
 
         // slide new arguments over old frame
         int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
@@ -121,7 +128,7 @@ retCode run(processPo P, heapPo heap) {
         insPo oldPc = FP->rtn;
         int64 argCnt = argCount(PROG); /* How many arguments in caller? */
 
-        PROG = C_MTD(*SP++);       /* set up for callee */
+        PROG = labelCode(C_LBL(*SP++));       /* set up for callee */
 
         // slide new arguments over old frame
         int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
@@ -156,13 +163,15 @@ retCode run(processPo P, heapPo heap) {
         int64 argCnt = argCount(PROG);
         termPo ret = *SP;     /* and return value */
 
-        SP = arg(argCnt);     /* reset stack */
+        SP = (ptrPo)FP;     /* reset stack */
 
-        PC = FP->rtn;     /* and return address */
-        FP = FP->fp;      /* and old frame pointer */
+        FP = (framePo)(*SP++);
+        PC = (insPo)(*SP++);
+        PROG = (methodPo )(*SP++);
 
-        PROG = FP->prog;      /* pick up parent code */
         LITS = codeLits(PROG);   /* reset pointer to code literals */
+
+        SP+=argCnt;
 
         push(ret);      /* push return value */
         continue;       /* and carry on regardless */
@@ -198,6 +207,13 @@ retCode run(processPo P, heapPo heap) {
         continue;
       }
 
+      case Rst: {
+        int32 offset = collectI32(PC);
+        assert(offset > 0);
+        SP = (ptrPo) FP - offset;
+        continue;
+      }
+
       case LdC:     /* load literal value from pool */
         push(nthArg(LITS, collectI32(PC)));
         continue;
@@ -223,7 +239,7 @@ retCode run(processPo P, heapPo heap) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
-          if (!sameTerm(l, (termPo)termLbl(cl)))
+          if (!sameTerm(l, (termPo) termLbl(cl)))
             PC = exit;
         } else
           PC = exit;
@@ -270,6 +286,13 @@ retCode run(processPo P, heapPo heap) {
 
       case Alloc: {      /* heap allocate term */
         labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
+        if (enoughRoom(heap, cd) != Ok) {
+          saveRegisters(P);
+          retCode ret = gcCollect(heap, NormalCellCount(cd->arity));
+          if (ret != Ok)
+            return ret;
+          restoreRegisters(P);
+        }
         normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
@@ -317,6 +340,22 @@ retCode run(processPo P, heapPo heap) {
       case Rais:
       raiseError:
         syserr("problem");
+
+      case Frame:
+        PC += 2;
+        continue;
+
+      case Line: {
+#ifdef TRACEEXEC
+        termPo ln = nthArg(LITS, collectI32(PC));
+
+        if (SymbolDebug)
+          debug_line(pcCount, P, ln);
+#else
+        PC+=2;
+#endif
+        continue;
+      }
 
       default:
       case illegalOp:

@@ -15,7 +15,7 @@ typedef struct _stack_frame_ *framePo;
 #define MAX_OPERANDS 1024
 
 typedef enum {
-  nextIns, nextSucc, nextBreak
+  nextIns, nextSucc, nextBreak, never
 } DebugWaitFor;
 
 typedef enum {
@@ -37,7 +37,7 @@ typedef struct _return_code_ {
   termPo rslt;
 } ReturnStatus;
 
-extern processPo newProcess(methodPo cl);
+extern processPo newProcess(methodPo mtd);
 extern void switchProcessState(processPo p, ProcessState state);
 extern void setProcessRunnable(processPo p);
 extern ProcessState processState(processPo p);
