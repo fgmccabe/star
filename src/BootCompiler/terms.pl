@@ -217,9 +217,9 @@ isLiteral(lbl(_,_)).
 termHash(intgr(Ix),Ix).
 termHash(float(Dx),Ix) :- Ix is round(Dx).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
-termHash(enum(Sx),Ix) :- stringHash(0,Sx,Ix).
+termHash(enum(Sx),Ix) :- termHash(lbl(Sx,0),Ix).
 termHash(lbl(Nm,Ar),Ix) :-
   stringHash(0,Nm,H0),
-  Ix is H0*47+Ar.
+  Ix is H0*37+Ar.
 
 locTerm(loc(Pk,Ln,Off,Str,Len),ctpl(lbl("loc",5),[strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)])).

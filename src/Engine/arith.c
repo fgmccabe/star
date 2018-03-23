@@ -143,11 +143,15 @@ comparison fltCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer fltHash(specialClassPo cl, termPo o) {
+  return floatHash(floatVal(o));
+}
+
+integer floatHash(double dx){
   union {
     double n;
     integer i;
   } c;
-  c.n = floatVal(o);
+  c.n = dx;
   return c.i;
 }
 

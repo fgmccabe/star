@@ -20,7 +20,8 @@ mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-
     findLbl(Frm,Lbs,F),
     findLbl(End,Lbs,T),
     mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
-    mnem(Ins,Lbs,Lt,Lts,[Entry|Lc],Lcx,Pc,Code).
+    (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
+    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).
 mnem([iHalt|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[0|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[1,LtNo|M]) :- Pc1 is Pc+3,

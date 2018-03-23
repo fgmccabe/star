@@ -49,4 +49,6 @@ static inline logical inHeap(heapPo P, const termPo x) {
 extern void lockHeap(heapPo H);
 extern void releaseHeapLock(heapPo H);
 
+extern retCode heapSummary(ioPo out,heapPo H);
+
 #endif

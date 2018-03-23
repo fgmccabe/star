@@ -124,9 +124,11 @@ ReturnStatus g__envir(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__getenv(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   char key[MAX_SYMB_LEN];
 
-  copyString2Buff(C_STR(tos[1]), key, NumberOf(key));
+  copyString2Buff(C_STR(Arg1), key, NumberOf(key));
 
   char *val = getenv((char *) key);
 
@@ -135,17 +137,19 @@ ReturnStatus g__getenv(processPo P, ptrPo tos) {
     ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateCString(processHeap(P), val)};
     return rt;
   } else {
-    ReturnStatus rt = {.ret=Ok, .rslt=tos[0]};
+    ReturnStatus rt = {.ret=Ok, .rslt=Arg2};
     return rt;
   }
 }
 
 ReturnStatus g__setenv(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   char key[MAX_SYMB_LEN];
   char val[MAX_SYMB_LEN];
 
-  copyString2Buff(C_STR(tos[1]), key, NumberOf(key));
-  copyString2Buff(C_STR(tos[0]), val, NumberOf(val));
+  copyString2Buff(C_STR(Arg1), key, NumberOf(key));
+  copyString2Buff(C_STR(Arg2), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
     ReturnStatus rt = {.ret=Ok, .rslt=voidEnum};
@@ -160,14 +164,17 @@ ReturnStatus g__getlogin(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__shell(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyString2Buff(C_STR(tos[2]), cmd, NumberOf(cmd));
+  copyString2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
 
-  listPo args = C_LIST(tos[1]);
-  listPo env = C_LIST(tos[0]);
+  listPo args = C_LIST(Arg2);
+  listPo env = C_LIST(Arg3);
 
   integer argCnt = listSize(args);
   integer envCnt = listSize(env);
@@ -253,15 +260,18 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__popen(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
   switchProcessState(P, wait_io);
   switchProcessState(P, wait_io);
 
   char cmd[MAXFILELEN];
 
-  copyString2Buff(C_STR(tos[2]), cmd, NumberOf(cmd));
+  copyString2Buff(C_STR(Arg1), cmd, NumberOf(cmd));
 
-  listPo args = C_LIST(tos[1]);
-  listPo env = C_LIST(tos[0]);
+  listPo args = C_LIST(Arg2);
+  listPo env = C_LIST(Arg3);
 
   integer argCnt = listSize(args);
   integer envCnt = listSize(env);

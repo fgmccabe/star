@@ -714,7 +714,7 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
 
         fmt++;
 
-        while (strchr("0 -#+l", *fmt) != NULL) {
+        while (*fmt != '\0' && strchr("0 -#+l", *fmt) != NULL) {
           switch (*fmt++) {
             case '0':
               pad = '0';
@@ -864,9 +864,9 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
             case 'p': {    /* Display some spaces */
               integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
 
-              ret = outStr(f,prefix);
-              while(ret==Ok && i-->0){
-                ret = outChar(f,' ');
+              ret = outStr(f, prefix);
+              while (ret == Ok && i-- > 0) {
+                ret = outChar(f, ' ');
               }
 
               break;

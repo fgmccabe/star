@@ -5,7 +5,7 @@
 
 freeVars(v(Lc,Lb),Q,F,Fv) :-
   \+ isEscape(Lb),
-  \+(is_member(v(_,Lb),Q);is_member(strct(Lb,_),Q)),!,
+  \+(is_member(v(_,Lb),Q);is_member(lbl(Lb,_),Q)),!,
   (is_member(v(_,Lb),F) -> F=Fv ; Fv=[v(Lc,Lb)|F]).
 freeVars(v(_,_),_,F,F).
 freeVars(enm(_,_),_,F,F).

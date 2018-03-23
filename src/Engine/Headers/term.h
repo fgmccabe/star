@@ -37,6 +37,7 @@ extern logical isNormalPo(termPo t);
 extern labelPo termLbl(normalPo t);
 
 extern integer termHash(termPo t);
+extern integer hashTermLbl(termPo t);
 
 extern integer termSize(normalPo t);
 

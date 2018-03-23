@@ -42,7 +42,6 @@ extern int32 newIntegerConstant(mtdPo mtd,int64 ix);
 extern int32 newFloatConstant(mtdPo mtd,double dx);
 extern int32 newStringConstant(mtdPo mtd,char *str);
 extern int32 newStrctConstant(mtdPo mtd,char *str,integer ar);
-extern int32 newPrgConstant(mtdPo mtd,char *str,integer ar);
 extern int32 newEscapeConstant(mtdPo mtd,char *str);
 
 extern retCode getStringConstant(mtdPo mtd,char **name);
@@ -57,6 +56,7 @@ extern int32 findLocal(mtdPo mtd, const char *name);
 #define opnOp(X)
 #define opi32(X) ,int32 i##X
 #define oplcl(X) ,int32 i##X
+#define oplcs(X) ,int32 i##X
 #define oparg(X) ,int32 i##X
 #define oplit(X) ,int32 i##X
 #define opoff(X) ,lPo l##X
@@ -71,6 +71,7 @@ extern retCode A##Op(mtdPo mtd op##A1(1));
 #undef opnOp
 #undef opi32
 #undef oplcl
+#undef oplcs
 #undef oparg
 #undef oplit
 #undef opoff

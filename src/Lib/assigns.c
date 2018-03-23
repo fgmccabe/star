@@ -21,8 +21,8 @@ ReturnStatus g__get(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__assign(processPo p, ptrPo tos) {
-  termPo Content = tos[0];
-  cellPo Cell = C_CELL(tos[1]);
+  termPo Content = tos[1];
+  cellPo Cell = C_CELL(tos[0]);
 
   setCell(Cell, Content);
 

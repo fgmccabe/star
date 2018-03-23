@@ -8,8 +8,8 @@
 #include "config.h"
 
 #include <debug.h>
+#include <globals.h>
 #include "engineP.h"
-#include "libEscapes.h"      /* escape call handling */
 #include "arithP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
@@ -20,8 +20,8 @@
 #define pop() (*SP++)
 #define top() (*SP)
 
-#define local(off) &(((ptrPo)FP)[-(off)-1])
-#define arg(off) (((ptrPo)(FP+1))+(off))
+#define local(off) (((ptrPo)FP)-(off))
+#define arg(off) (((ptrPo)(FP+1))+(off)-1)
 
 #define saveRegisters(P) { (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = SP;}
 #define restoreRegisters(P) { PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);}
@@ -63,16 +63,23 @@ retCode run(processPo P) {
         push(PC);       // Set up for a return
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+#ifdef TRACEEXEC
+        P->hasEnter = False;
+#endif
         continue;
       }
 
       case OCall: {        /* Call tos a1 .. an -->   */
-        termPo NP = *SP;
+        termPo NP = SP[1];
         push(PROG);
         push(PC);       /* build up the frame. */
-        PROG = labelCode(objLabel(termLbl(C_TERM(NP))));       /* set up for object call */
+        labelPo oLbl = isNormalPo(NP) ? termLbl(C_TERM(NP)) : C_LBL(NP);
+        PROG = labelCode(objLabel(oLbl));       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+#ifdef TRACEEXEC
+        P->hasEnter = False;
+#endif
         continue;
       }
 
@@ -119,6 +126,9 @@ retCode run(processPo P) {
 
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+#ifdef TRACEEXEC
+        P->hasEnter = False;
+#endif
         continue;       /* Were done */
       }
 
@@ -148,6 +158,9 @@ retCode run(processPo P) {
 
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+#ifdef TRACEEXEC
+        P->hasEnter = False;
+#endif
         continue;       /* Were done */
       }
 
@@ -156,6 +169,11 @@ retCode run(processPo P) {
         FP = (framePo) SP;     /* set the new frame pointer */
         int32 lclCnt = collectI32(PC);  /* How many locals do we have */
         SP -= lclCnt;
+#ifdef TRACEEXEC
+        P->hasEnter = True;
+        for(integer ix=0;ix<lclCnt;ix++)
+          SP[0] = voidEnum;
+#endif
         continue;
       }
 
@@ -163,15 +181,15 @@ retCode run(processPo P) {
         int64 argCnt = argCount(PROG);
         termPo ret = *SP;     /* and return value */
 
-        SP = (ptrPo)FP;     /* reset stack */
+        SP = (ptrPo) FP;     /* reset stack */
 
-        FP = (framePo)(*SP++);
-        PC = (insPo)(*SP++);
-        PROG = (methodPo )(*SP++);
+        FP = (framePo) (*SP++);
+        PC = (insPo) (*SP++);
+        PROG = (methodPo) (*SP++);
 
         LITS = codeLits(PROG);   /* reset pointer to code literals */
 
-        SP+=argCnt;
+        SP += argCnt;
 
         push(ret);      /* push return value */
         continue;       /* and carry on regardless */
@@ -209,8 +227,8 @@ retCode run(processPo P) {
 
       case Rst: {
         int32 offset = collectI32(PC);
-        assert(offset > 0);
-        SP = (ptrPo) FP - offset;
+        assert(offset >= 0);
+        SP = (ptrPo) FP - lclCount(PROG) - offset;
         continue;
       }
 
@@ -233,15 +251,15 @@ retCode run(processPo P) {
       }
 
       case CLbl: {
-        termPo t = pop();
         termPo l = pop();
+        termPo t = pop();
         insPo exit = collectOff(PC);
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
           if (!sameTerm(l, (termPo) termLbl(cl)))
             PC = exit;
-        } else
+        } else if(!sameTerm(t,l))
           PC = exit;
         continue;
       }
@@ -256,7 +274,14 @@ retCode run(processPo P) {
       case StL: {
         int32 offset = collectI32(PC);
         ptrPo dest = local(offset);
-        *dest = (termPo) pop();
+        *dest = pop();
+        continue;
+      }
+
+      case TL: {
+        int32 offset = collectI32(PC);
+        ptrPo dest = local(offset);
+        *dest = top();
         continue;
       }
 
@@ -278,9 +303,9 @@ retCode run(processPo P) {
       case Case: {      /* case instruction */
         int32 mx = collectI32(PC);
         termPo tos = top();
-        integer hx = termHash(tos) % mx;
+        integer hx = hashTermLbl(tos) % mx + 1;
 
-        PC = (insPo) ((void *) PC + (sizeof(insPo *) + sizeof(int32)));
+        PC = (insPo) ((void *) PC + (sizeof(insWord)*3)*hx);
         continue;
       }
 
@@ -369,6 +394,6 @@ logical compare_and_swap(normalPo cl, int64 old, int64 nw) {
   return __sync_bool_compare_and_swap(check, old, nw);
 }
 
-termPo localVar(framePo fp, int64 off) {
-  return &(((termPo) fp)[-off - 1]);
+ptrPo localVar(framePo fp, int64 off) {
+  return &(((ptrPo) fp)[-off]);
 }

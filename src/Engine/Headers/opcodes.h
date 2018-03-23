@@ -8,14 +8,15 @@
 #define _OPCODES_H_
 
 #undef instruction
-#define instruction(Op,Nd,Cmt) Op,
+#define instruction(Op, Nd, Cmt) Op,
 
 typedef enum {
 #include "instructions.h"
-#undef instruction
-  illegalOp
-}OpCode;
 
+#undef instruction
+  label,
+  illegalOp
+} OpCode;
 
 /*
  * Assume a byte code architecture. This makes transitioning between 32bit and
@@ -31,19 +32,19 @@ typedef enum {
  *
  * TOS current top of expression stack
  * FP current frame pointer (access locals)
- * E current frame pointer (access free variables)
  * L current literals pointer
  * PC current program counter
  * PRG current program base
  */
 typedef enum {
- nOp,                                   // No operand
- i32,					/* 32 bit literal operand */
- arg,					/* argument variable offset */
- lcl,					/* local variable offset */
- off,					/* offset within current code */
- Es,					// escape code 0..65535
- lit					/* constant literal */
+  nOp,                                   // No operand
+  i32,          /* 32 bit literal operand */
+  arg,          /* argument variable offset */
+  lcl,          /* local variable offset */
+  lcs,        // Store to local variable
+  off,          /* offset within current code */
+  Es,          // escape code 0..65535
+  lit          /* constant literal */
 } opAndSpec;                    // Specification code for an operand
 
 

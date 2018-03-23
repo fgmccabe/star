@@ -31,6 +31,7 @@ typedef struct _processRec_ {
   threadPo thread;    // What is the thread associated with this process
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
+  logical hasEnter;   // False between call and enter
 #endif
 } ProcessRec;
 
@@ -38,6 +39,7 @@ typedef struct _stack_frame_ {
   framePo fp;
   insPo rtn;          /* The return address entry */
   methodPo prog;      /* stacked program */
+  termPo args[ZEROARRAYSIZE];
 } StackFrame;
 
 extern void initEngine();

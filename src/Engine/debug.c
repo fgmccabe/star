@@ -5,6 +5,7 @@
 #include "libEscapes.h"
 #include <stdlib.h>
 #include <globals.h>
+#include <str.h>
 
 #include "debug.h"
 #include "arith.h"
@@ -24,6 +25,8 @@ static retCode addBreakPoint(breakPointPo bp);
 static logical breakPointHit(char *name, short arity);
 static retCode clearBreakPoint(breakPointPo bp);
 static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
+
+static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 
 retCode g__ins_debug(processPo P, ptrPo a) {
   debugging = interactive = True;
@@ -126,7 +129,7 @@ retCode breakPoint(processPo P) {
 }
 
 void dC(termPo w) {
-  outMsg(logFile, "%w\n", w);
+  outMsg(logFile, "%T\n", w);
   flushOut();
 }
 
@@ -134,7 +137,7 @@ static retCode showConstant(ioPo out, methodPo mtd, int off) {
   return outMsg(out, " %T", nthArg(mtd->pool, off));
 }
 
-static void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+static void showRegisters(heapPo h, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
 void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   static char line[256] = {'n', 0};
@@ -202,13 +205,10 @@ void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp
           tracing = False;
           break;
         case 'r':      /* dump the registers */
-          showRegisters(pcCount, p, mtd, pc, fp, sp);
+          showRegisters(processHeap(p), p, mtd, pc, fp, sp);
+          clrCmdLine(line, NumberOf(line));
           continue;
         case 'l': {    /* dump a local variable */
-          logMsg(logFile, "not implemented\n");
-          continue;
-        }
-        case 'e': {    /* dump an environment variable */
           logMsg(logFile, "not implemented\n");
           continue;
         }
@@ -281,6 +281,20 @@ void debug_line(integer pcCount, processPo p, termPo line) {
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
+static retCode showArg(integer arg, methodPo mtd, framePo fp, ptrPo sp) {
+  if (fp != Null && sp != Null)
+    return outMsg(logFile, " a[%d] = %T", arg, fp->args[arg - 1]);
+  else
+    return outMsg(logFile, " a[%d]", arg);
+}
+
+static retCode showLcl(integer vr, methodPo mtd, framePo fp, ptrPo sp) {
+  if (fp != Null && sp != Null)
+    return outMsg(logFile, " l[%d] = %T", vr, *localVar(fp, vr));
+  else
+    return outMsg(logFile, " l[%d]", vr);
+}
+
 insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   int32 hi32, lo32;
 
@@ -293,10 +307,11 @@ insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, p
 
 #define show_nOp
 #define show_i32 outMsg(logFile," #%d",collectI32(pc))
-#define show_arg outMsg(logFile," a[%d]",collectI32(pc))
-#define show_lcl outMsg(logFile," l[%d]",collectI32(pc))
-#define show_off outMsg(logFile," 0x%x",(collI32(pc)+pc))
-#define show_Es outMsg(logFile, " (%U)", getEscape(collectI32(pc))->name)
+#define show_arg showArg(collectI32(pc),mtd,fp,sp)
+#define show_lcl showLcl(collectI32(pc),mtd,fp,sp)
+#define show_lcs outMsg(logFile," l[%d]",collectI32(pc))
+#define show_off outMsg(logFile," PC[%d]",collectI32(pc))
+#define show_Es outMsg(logFile, " %U", getEscape(collectI32(pc))->name)
 #define show_lit outMsg(logFile," %T",nthArg(mtd->pool, collectI32(pc)))
 
 #define instruction(Op, A1, Cmt)    \
@@ -312,31 +327,66 @@ insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, p
   }
 }
 
-void showRegisters(int64 pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
-  outMsg(logFile, "p: 0x%x, mtd: %M, pc: 0x%x, fp: 0x%x, sp: 0x%x\n",
-         p, mtd, pc, fp, sp);
-
+void showRegisters(heapPo h, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   integer pcOffset = (integer) (pc - mtd->code);
+
+  outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x, sp: 0x%x, ",
+         p, mtd, pcOffset, pc, fp, sp);
+  heapSummary(logFile, h);
+  outMsg(logFile, "\n");
 
   normalPo locals = mtd->locals;
   int64 numLocals = termArity(locals);
 
-  for (int32 ix = 0; ix < numLocals; ix++) {
-    normalPo lcl = C_TERM(nthArg(locals, ix));
+  ptrPo stackTop = ((ptrPo) fp) - mtd->lclcnt;
 
-    integer from = integerVal(nthArg(lcl, 0));
-    integer to = integerVal(nthArg(lcl, 1));
-
-    if (from <= pcOffset && to > pcOffset) {
-      integer off = integerVal(nthArg(lcl, 2));
-      termPo var = localVar(fp, off);
-      termPo vrName = nthArg(lcl, 4);
-      termPo sig = nthArg(lcl, 3);
-
-      outMsg(logFile, "%T [%d]:%T ", vrName, off, sig);
-      outMsg(logFile, "\n");
+  for (integer vx = 0; vx < mtd->lclcnt; vx++) {
+    char vName[MAX_SYMB_LEN];
+    if (localVName(mtd, pc, vx, vName, NumberOf(vName)) == Ok) {
+      ptrPo var = localVar(fp, vx);
+      outMsg(logFile, "%s[%d] = %T\n", vName, vx, *var);
     }
   }
+
+  if (p->hasEnter) {
+    integer count = argCount(mtd);
+    for (integer ix = 0; ix < count; ix++) {
+      outMsg(logFile, "A[%d] = %T\n", ix + 1, fp->args[ix]);
+    }
+  } else {
+    outMsg(logFile, "cant show args\n");
+    sp++;
+  }
+
+  for (integer ix = 0; sp < stackTop; ix++, sp++) {
+    termPo t = *sp;
+    outMsg(logFile, "SP[%d]=%T\n", ix, t);
+  }
+
+  flushFile(logFile);
+}
+
+static char *anonPrefix = "__";
+
+retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen) {
+  normalPo locals = mtd->locals;
+  int64 numLocals = termArity(locals);
+  integer pcOffset = (integer) (pc - mtd->code);
+
+  for (int32 ix = 0; ix < numLocals; ix++) {
+    normalPo vr = C_TERM(nthArg(locals, ix));
+    integer from = integerVal(nthArg(vr, 1));
+    integer to = integerVal(nthArg(vr, 2));
+
+    if (from <= pcOffset && to > pcOffset && integerVal(nthArg(vr, 3)) == vNo) {
+      copyString2Buff(C_STR(nthArg(vr, 0)), buffer, bufLen);
+
+      if (uniIsLitPrefix(buffer, anonPrefix))
+        uniCpy(buffer, bufLen, "l");
+      return Ok;
+    }
+  }
+  return Fail;
 }
 
 static integer insCounts[illegalOp];
@@ -346,7 +396,7 @@ void countIns(insWord ins) {
 }
 
 #undef instruction
-#define instruction(Op, Arg, Cmt) if(insCounts[Op]!=0) outMsg(logFile,"#Op: %d - #Cmt\n",insCounts[Op]);
+#define instruction(Op, Arg, Cmt) if(insCounts[Op]!=0) outMsg(logFile,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
 #include "instructions.h"

@@ -31,6 +31,10 @@ static retCode disp_lcl(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "%s l[%d]\n", op, ins->i);
 }
 
+static retCode disp_lcs(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
+  return outMsg(f, "%s l[%d]\n", op, ins->i);
+}
+
 static retCode disp_env(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "%s e[%d]\n", op, ins->i);
 }
@@ -86,17 +90,17 @@ typedef struct {
 
 static retCode showLocal(void *nm, void *r, void *cl) {
   MtdData *data = (MtdData *) cl;
-  localVarPo lcl = (localVarPo) r;
+  localVarPo vr = (localVarPo) r;
 
-  constPo c = poolConstant(data->mtd, lcl->sig);
+  constPo c = poolConstant(data->mtd, vr->sig);
 
   if (c != Null) {
     char *sig = c->con.value.txt;
 
-    outMsg(data->out, "%U:%U [%d]", lcl->name, sig, lcl->off);
+    outMsg(data->out, "%U:%U [%d]", vr->name, sig, vr->off);
 
-    if (lcl->from->pc != Null && lcl->to->pc != Null)
-      return outMsg(data->out, " (0x%x-0x%x)\n", lcl->from->pc->pc, lcl->to->pc->pc);
+    if (vr->from->pc != Null && vr->to->pc != Null)
+      return outMsg(data->out, " (0x%x-0x%x)\n", vr->from->pc->pc, vr->to->pc->pc);
     else
       return outMsg(data->out, "\n");
   }

@@ -242,18 +242,17 @@ makeLabelTerm(moduleImpl(Access,Strct),Access,Strct,Strct).
 
 transformThetaDefs(_,_,[],Dfs,Dfs).
 transformThetaDefs(Map,Opts,[Def|Defs],Ex,Exx) :-
-  transformThetaDef(Map,Opts,Def,Ex,Ex1),
+  transformThetaDef(Def,Map,Opts,Ex,Ex1),
   transformThetaDefs(Map,Opts,Defs,Ex1,Exx).
 
-transformThetaDef(Map,Opts,funDef(Lc,Nm,Tp,_,Eqns),Dx,Dxx) :-
+transformThetaDef(funDef(Lc,Nm,Tp,_,Eqns),Map,Opts,Dx,Dxx) :-
   transformFunction(Lc,Nm,Tp,Eqns,Map,Opts,Dx,Dxx).
-transformThetaDef(Map,Opts,varDef(Lc,Nm,_,Tp,Value),Dx,Dxx) :-
+transformThetaDef(varDef(Lc,Nm,_,Tp,Value),Map,Opts,Dx,Dxx) :-
   transformDefn(Lc,Nm,Tp,Value,Map,Opts,Dx,Dxx).
-transformThetaDef(Map,Opts,cnsDef(Lc,Nm,Con,Tp),Dx,Dxx) :-
+transformThetaDef(cnsDef(Lc,Nm,Con,Tp),Map,Opts,Dx,Dxx) :-
   transformCnsDef(Map,Opts,Lc,Nm,Con,Tp,Dx,Dxx).
-transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).
-transformThetaDef(_,_,contract(_,_,_),Dx,Dx).
-transformThetaDef(_,_,typeDef(_,_,_,_),Dx,Dx).
+transformThetaDef(typeDef(_,_,_,_),_,_,Dx,Dx).
+transformThetaDef(contract(_,_,_),_,_,Dx,Dx).
 
 closureEntry(Map,Lc,Name,[fnDef(Lc,lbl(Closure,2),funType(tupleType([]),voidType),[eqn(Lc,[CallStrct,ClosureCons],
     cll(Lc,lbl(Prog,ArX),Q))])|L],L) :-
@@ -284,7 +283,7 @@ liftPtn(intLit(Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(floatLit(Ix),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(stringLit(Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(dot(Lc,Rc,Fld),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  genVar("XV",X),
+  genVar("_XV",X),
   trCons(Fld,1,S),
   trDotExp(Lc,Rc,ctpl(S,[X]),X,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftPtn(tple(_,Ptns),PTpl,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -323,19 +322,19 @@ implementVarPtn(notInMap,Nm,_,idnt(Nm),Q,Qx) :-                 % variable local
 
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,ecll(Nm,Args))),Q,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!,
-  genVar("X",X),
+  genVar("_X",X),
   merge([X],Q,Qx).
 trPtnCallOp(Lc,Nm,Args,Ptn,Q,Qx,Map,_,Ex,Ex) :-
   lookupFunName(Map,Nm,Reslt),
   implementPtnCall(Reslt,Lc,Nm,Args,Ptn,Q,Qx).
 
 implementPtnCall(localFun(Fn,_,_,Ar,ThVr),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A2),XArgs))),Q,Qx) :-
-  genVar("X",X),
+  genVar("_X",X),
   concat(Args,[ThVr],XArgs),
   merge([X,ThVr],Q,Qx),
   A2 is Ar+1.
 implementPtnCall(moduleFun(_,Fn,_,_,Ar),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,Ar),Args))),Q,Qx) :-
-  genVar("X",X),
+  genVar("_X",X),
   merge([X],Q,Qx).
 implementPtnCall(moduleCons(Mdl,_,Ar),_,_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q).
 implementPtnCall(localClass(Mdl,_,_,ThVr),_,_,Args,ctpl(Mdl,XArgs),Q,Qx) :-
@@ -485,7 +484,7 @@ lambdaLbl(Map,Variant,Nm) :-
   localName(Prefix,"@",V,Nm).
 
 lambdaMap(Rule,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,Exx) :-
-  genVar("ThV",ThVr),
+  genVar("_ThV",ThVr),
   extraVars(Map,Extra),
   freeVars(Rule,Q,Extra,FV),
   lambdaLbl(Map,"_lambda",LclName),
@@ -528,7 +527,7 @@ liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
   functionMatcher(Lc,2,lbl(ThLbl,2),funType(tupleType([]),Sig),EnRls,ThetaFun).
 
 thetaMap(Theta,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Exx) :-
-  genVar("ThV",ThVr),
+  genVar("_ThV",ThVr),
   extraVars(Map,Extra),
   definedProgs(Map,Df),
   refineQ(Df,Q,Q0),

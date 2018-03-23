@@ -64,7 +64,7 @@ retCode dispTerm(ioPo out, termPo t, long depth, logical alt) {
   if (isSpecialClass(clss)) {
     specialClassPo spec = (specialClassPo) clss;
     return spec->dispFun(out, t, depth, alt);
-  } else {
+  } else if (isNormalPo(t)) {
     normalPo nml = C_TERM(t);
     labelPo lbl = nml->lbl;
     retCode ret = outStr(out, labelName(lbl));
@@ -84,7 +84,8 @@ retCode dispTerm(ioPo out, termPo t, long depth, logical alt) {
     if (ret == Ok)
       ret = outChar(out, ')');
     return ret;
-  }
+  } else
+    return outMsg(out, "<<? 0x%x ?>>", t);
 }
 
 comparison compareTerm(termPo t1, termPo t2) {
@@ -130,6 +131,17 @@ integer termHash(termPo t) {
 
     return hash;
   }
+}
+
+// Special hash function used in case instruction. Only looks at the label of the term
+
+integer hashTermLbl(termPo t) {
+  clssPo c = classOf(t);
+
+  if (isSpecialClass(c))
+    return ((specialClassPo) c)->hashFun((specialClassPo) c, t);
+  else
+    return hashTermLbl((termPo) (C_TERM(t)->lbl));
 }
 
 integer termSize(normalPo t) {

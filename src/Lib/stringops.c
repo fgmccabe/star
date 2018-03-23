@@ -12,9 +12,11 @@
 #include "arithmetic.h"
 
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   integer llen, rlen;
-  const char *lhs = stringVal(tos[1], &llen);
-  const char *rhs = stringVal(tos[0], &rlen);
+  const char *lhs = stringVal(Arg1, &llen);
+  const char *rhs = stringVal(Arg2, &rlen);
 
   if (llen == rlen) {
     for (integer ix = 0; ix < llen; ix++) {
@@ -33,9 +35,11 @@ ReturnStatus g__str_eq(processPo p, ptrPo tos) {
 
 // Lexicographic comparison
 ReturnStatus g__str_lt(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   integer llen, rlen;
-  const char *lhs = stringVal(tos[1], &llen);
-  const char *rhs = stringVal(tos[0], &rlen);
+  const char *lhs = stringVal(Arg1, &llen);
+  const char *rhs = stringVal(Arg2, &rlen);
 
   integer mlen = minimum(llen, rlen);
 
@@ -64,9 +68,11 @@ ReturnStatus g__str_lt(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_ge(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   integer llen, rlen;
-  const char *lhs = stringVal(tos[1], &llen);
-  const char *rhs = stringVal(tos[0], &rlen);
+  const char *lhs = stringVal(Arg1, &llen);
+  const char *rhs = stringVal(Arg2, &rlen);
 
   integer mlen = minimum(llen, rlen);
 
@@ -150,8 +156,10 @@ ReturnStatus g__str_gen(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__stringOf(processPo p, ptrPo tos) {
-  termPo t = tos[1];
-  integer depth = integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo t = Arg1;
+  integer depth = integerVal(Arg2);
 
   bufferPo strb = newStringBuffer();
   retCode ret = dispTerm(O_IO(strb), t, depth, False);
@@ -164,8 +172,9 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__explode(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
   integer len;
-  const char *str = stringVal(tos[0], &len);
+  const char *str = stringVal(Arg1, &len);
   integer chCount = countCodePoints(str, 0, len);
 
   heapPo H = processHeap(p);
@@ -202,11 +211,14 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_find(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
   integer len;
-  const char *str = stringVal(tos[2], &len);
+  const char *str = stringVal(Arg1, &len);
   integer tlen;
-  const char *tgt = stringVal(tos[1], &tlen);
-  integer start = integerVal(tos[0]);
+  const char *tgt = stringVal(Arg2, &tlen);
+  integer start = integerVal(Arg3);
 
   integer found = uniSearch(str, len, start, tgt, tlen);
 
@@ -215,10 +227,13 @@ ReturnStatus g__str_find(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__sub_str(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
   integer len;
-  const char *str = stringVal(tos[2], &len);
-  integer start = integerVal(tos[1]);
-  integer count = integerVal(tos[0]);
+  const char *str = stringVal(Arg1, &len);
+  integer start = integerVal(Arg2);
+  integer count = integerVal(Arg3);
 
   char buff[count + 1];
   uniNCpy(buff, count + 1, &str[start], count);
@@ -228,9 +243,11 @@ ReturnStatus g__sub_str(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_split(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   integer len;
-  const char *str = stringVal(tos[1], &len);
-  integer start = integerVal(tos[0]);
+  const char *str = stringVal(Arg1, &len);
+  integer start = integerVal(Arg2);
 
   char buff[len];
   uniNCpy(buff, len, str, len);
@@ -251,10 +268,12 @@ ReturnStatus g__str_split(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_concat(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   integer llen;
-  const char *lhs = stringVal(tos[1], &llen);
+  const char *lhs = stringVal(Arg1, &llen);
   integer rlen;
-  const char *rhs = stringVal(tos[0], &rlen);
+  const char *rhs = stringVal(Arg2, &rlen);
 
   integer len = llen + rlen;
   char buff[len];
@@ -266,10 +285,12 @@ ReturnStatus g__str_concat(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__str_start(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   integer llen;
-  const char *lhs = stringVal(tos[1], &llen);
+  const char *lhs = stringVal(Arg1, &llen);
   integer rlen;
-  const char *rhs = stringVal(tos[0], &rlen);
+  const char *rhs = stringVal(Arg2, &rlen);
 
   ReturnStatus rt = {.ret=Ok, .rslt=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
   return rt;

@@ -88,7 +88,7 @@ retCode gcCollect(heapPo H, long amount) {
 
 #ifdef TRACEMEM
   if (traceMemory) {
-    outMsg(logFile, "%d objects found in mark phase of %w\n",
+    outMsg(logFile, "%d objects found in mark phase of %T\n",
            G->oCnt, &H->owner->thread);
     flushFile(logFile);
   }

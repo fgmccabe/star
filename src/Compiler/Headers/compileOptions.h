@@ -17,5 +17,6 @@ extern logical debugCodeGen;
 
 extern logical compileOnly;
 extern logical parseOnly;
+extern logical traceManifest;
 
 #endif //CAFE_COMPILEOPTIONS_H

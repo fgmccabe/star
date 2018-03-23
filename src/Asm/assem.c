@@ -7,7 +7,6 @@
 #include "formioP.h"
 #include "stringBuffer.h"
 
-
 #include "encoding.h"
 
 static poolPo pkgPool;      /* pool of packages */
@@ -292,6 +291,7 @@ void endFunction(mtdPo mtd) {
 #define szi32 pc+=sizeof(int32);
 #define szarg pc+=sizeof(int32);
 #define szlcl pc+=sizeof(int32);
+#define szlcs pc+=sizeof(int32);
 #define szoff pc+=sizeof(int32);
 #define szEs pc+=sizeof(int32);
 #define szlit pc+=sizeof(int32);
@@ -310,6 +310,7 @@ void endFunction(mtdPo mtd) {
 #undef szi32
 #undef szarg
 #undef szlcl
+#undef szlcs
 #undef szoff
 #undef szEs
 #undef szlit
@@ -397,6 +398,9 @@ static void fixup_arg(assemInsPo ins) {
 }
 
 static void fixup_lcl(assemInsPo ins) {
+}
+
+static void fixup_lcs(assemInsPo ins) {
 }
 
 static void fixup_env(assemInsPo ins) {
@@ -579,10 +583,6 @@ retCode showPrgConstant(ioPo f, constPo cn) {
   return outMsg(f, "%s/%d", cn->con.value.strct.name, cn->con.value.strct.arity);
 }
 
-retCode encodePrgConstant(ioPo f, constPo c) {
-  return encodePrg(f, (char *) c->con.value.strct.name, c->con.value.strct.arity);
-}
-
 int32 newStrctConstant(mtdPo mtd, char *str, integer ar) {
   StrctLbl S = {str, ar};
 
@@ -592,22 +592,6 @@ int32 newStrctConstant(mtdPo mtd, char *str, integer ar) {
     ConValue value = {.strct={.name=uniDuplicate(str), .arity=ar}};
 
     constPo conn = newConstant(strctSig, sameStruct, showStructConstant, encodeStructConstant, &value);
-
-    mtd->constants = tack((objectPo) conn, mtd->constants);
-    return (int32) (listCount(mtd->constants) - 1);
-  } else
-    return cx;
-}
-
-int32 newPrgConstant(mtdPo mtd, char *str, integer ar) {
-  StrctLbl S = {str, ar};
-
-  int32 cx = findConstant(mtd, strctSig, &S);
-
-  if (cx < 0) {
-    ConValue value = {.strct={.name=uniDuplicate(str), .arity=ar}};
-
-    constPo conn = newConstant(strctSig, sameStruct, showPrgConstant, encodePrgConstant, &value);
 
     mtd->constants = tack((objectPo) conn, mtd->constants);
     return (int32) (listCount(mtd->constants) - 1);
@@ -649,6 +633,12 @@ static assemInsPo asm_arg(mtdPo mtd, OpCode op, int32 ix) {
 }
 
 static assemInsPo asm_lcl(mtdPo mtd, OpCode op, int32 ix) {
+  assemInsPo ins = newIns(mtd, op);
+  ins->i = ix;
+  return ins;
+}
+
+static assemInsPo asm_lcs(mtdPo mtd, OpCode op, int32 ix) {
   assemInsPo ins = newIns(mtd, op);
   ins->i = ix;
   return ins;
@@ -696,6 +686,9 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define oplcl(X) ,int32 i##X
 #define arglcl(X) , i##X
 
+#define oplcs(X) ,int32 i##X
+#define arglcs(X) , i##X
+
 #define opoff(X) ,lPo l##X
 #define argoff(X) ,l##X
 
@@ -725,6 +718,8 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef argarg
 #undef oplcl
 #undef arglcl
+#undef oplcs
+#undef arglcs
 #undef openv
 #undef argenv
 #undef opoff
@@ -746,6 +741,7 @@ int32 codeSize(mtdPo mtd) {
 #define szi32 pc+=(sizeof(int32)/sizeof(uint16));
 #define szarg pc+=(sizeof(int32)/sizeof(uint16));
 #define szlcl pc+=(sizeof(int32)/sizeof(uint16));
+#define szlcs pc+=(sizeof(int32)/sizeof(uint16));
 #define szoff pc+=(sizeof(int32)/sizeof(uint16));
 #define szEs pc+=(sizeof(int32)/sizeof(uint16));
 #define szlit pc+=(sizeof(int32)/sizeof(uint16));
@@ -763,6 +759,7 @@ int32 codeSize(mtdPo mtd) {
 #undef szi32
 #undef szarg
 #undef szlcl
+#undef szlcs
 #undef szoff
 #undef szEs
 #undef szlit
@@ -814,6 +811,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #define szi32 if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szarg if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szlcl if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szlcs if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szoff if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szEs if(ret==Ok)ret = encodeStr(O_IO(bfr),ins->txt,uniStrLen(ins->txt));
 #define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
@@ -831,6 +829,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #undef szi32
 #undef szarg
 #undef szlcl
+#undef szlcs
 #undef szoff
 #undef szEs
 #undef szlit

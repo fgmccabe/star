@@ -38,7 +38,7 @@ void initLbls() {
 }
 
 labelPo declareLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity};
+  LblRecord tst = {.name=(char *) name, .arity=arity,.hash=uniHash(name) * 37 + arity};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {
@@ -47,6 +47,7 @@ labelPo declareLbl(const char *name, integer arity) {
     lbl->name = uniDuplicate(name);
     lbl->mtd = Null;
     lbl->clss = labelClass;
+    lbl->hash = tst.hash;
     hashPut(labels, lbl, lbl);
   }
   return lbl;
@@ -68,8 +69,10 @@ labelPo objLabel(labelPo lbl){
   return lbl->oLbl;
 }
 
+
+
 integer labelHash(labelPo lbl) {
-  return uniHash(lbl->name) * 37 + lbl->arity;
+  return lbl->hash;
 }
 
 comparison labelCmp(labelPo lb1, labelPo lb2) {

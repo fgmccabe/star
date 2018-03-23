@@ -51,7 +51,7 @@ extern heapPo processHeap(processPo p);
 extern char *processWd(processPo p);
 extern retCode setProcessWd(processPo p, char *wd, integer len);
 
-extern termPo localVar(framePo fp, int64 off);
+extern ptrPo localVar(framePo fp, int64 off);
 
 extern ReturnStatus liberror(processPo P, char *name, termPo code);
 

@@ -413,8 +413,11 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_) :-
   implementationName(Spec,ImplName),
   Impl = implDef(Lc,INm,ImplName,Spec),
   contractTypes(AC,CTs),
-  rfold(IQ,checker:pickBoundType,funType(tupleType(CTs),IFace),ImplFunTp),
-  ImplDef = funDef(Lc,ImplName,ImplFunTp,AC,[equation(Lc,ImplName,tple(Lc,[]),enm(Lc,"true"),ImplTerm)]),
+  (CTs=[] ->
+     rfold(IQ,checker:pickBoundType,IFace,ImplTp),
+     ImplDef = varDef(Lc,ImplName,[],ImplTp,ImplTerm);
+     rfold(IQ,checker:pickBoundType,funType(tupleType(CTs),IFace),ImplFunTp),
+     ImplDef = funDef(Lc,ImplName,ImplFunTp,AC,[equation(Lc,ImplName,tple(Lc,[]),enm(Lc,"true"),ImplTerm)])),
   declareImplementation(Nm,Impl,Env,Ex),
   dischargeConstraints(Env,ThEv),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-

@@ -32,8 +32,10 @@ ReturnStatus g__listen(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__accept(processPo P, ptrPo tos) {
-  ioPo listen = ioChannel(C_IO(tos[1]));
-  ioEncoding enc = pickEncoding(integerVal(tos[0]));
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo listen = ioChannel(C_IO(Arg1));
+  ioEncoding enc = pickEncoding(integerVal(Arg2));
 
   switchProcessState(P, wait_io);
 
@@ -98,12 +100,15 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__connect(processPo P, ptrPo tos) {
-  integer port = integerVal(tos[1]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
+  integer port = integerVal(Arg2);
 
   integer fnLen;
-  const char *host = stringVal(tos[2], &fnLen);
+  const char *host = stringVal(Arg1, &fnLen);
 
-  ioEncoding enc = pickEncoding(integerVal(tos[0]));
+  ioEncoding enc = pickEncoding(integerVal(Arg3));
 
   switchProcessState(P, wait_io);
 
@@ -138,11 +143,12 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
 /* Access host name functions */
 /* return IP addresses of a host */
 ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
   char host[MAXFILELEN];
   char ip[MAX_SYMB_LEN];
   heapPo H = processHeap(P);
 
-  copyString2Buff(C_STR(tos[1]), host, NumberOf(host));
+  copyString2Buff(C_STR(Arg1), host, NumberOf(host));
 
   listPo ipList = createList(H, 8);
   int root = gcAddRoot(H, (ptrPo) &ipList);

@@ -163,7 +163,7 @@ stringHash(H,Str,Hx) :-
 
 hashCodes([],H,H).
 hashCodes([C|More],H0,Hx) :-
-  H1 is 47*H0+C,
+  H1 is 37*H0+C,
   hashCodes(More,H1,Hx).
 
 hashSixtyFour(H0,H) :-

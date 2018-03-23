@@ -15,8 +15,8 @@
 #include "arithmetic.h"
 
 ReturnStatus g__int_plus(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) + integerVal(Rhs));
 
@@ -26,8 +26,8 @@ ReturnStatus g__int_plus(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_minus(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) - integerVal(Rhs));
 
@@ -37,8 +37,8 @@ ReturnStatus g__int_minus(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_times(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) * integerVal(Rhs));
 
@@ -48,8 +48,8 @@ ReturnStatus g__int_times(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_div(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) / integerVal(Rhs));
 
@@ -59,8 +59,8 @@ ReturnStatus g__int_div(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_mod(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) % integerVal(Rhs));
 
@@ -70,8 +70,8 @@ ReturnStatus g__int_mod(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__band(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) & integerVal(Rhs));
 
@@ -81,8 +81,8 @@ ReturnStatus g__band(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__basr(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) >> integerVal(Rhs));
 
@@ -92,8 +92,8 @@ ReturnStatus g__basr(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__blsl(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) << integerVal(Rhs));
 
@@ -103,8 +103,8 @@ ReturnStatus g__blsl(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__blsr(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), ((unsigned) integerVal(Lhs)) >> integerVal(Rhs));
 
@@ -114,8 +114,8 @@ ReturnStatus g__blsr(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__bor(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) | integerVal(Rhs));
 
@@ -125,8 +125,8 @@ ReturnStatus g__bor(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__bxor(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) ^ integerVal(Rhs));
 
@@ -144,8 +144,10 @@ ReturnStatus g__bnot(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__nthb(processPo p, ptrPo tos) {
-  uinteger ix = (unsigned) integerVal(tos[1]);
-  byte b = (byte) integerVal(tos[0]);
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
+  uinteger ix = (unsigned) integerVal(Lhs);
+  byte b = (byte) integerVal(Rhs);
 
   termPo Rs = (ix & (1 << b) ? trueEnum : falseEnum);
 
@@ -155,8 +157,8 @@ ReturnStatus g__nthb(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_eq(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (integerVal(Lhs) == integerVal(Rhs) ? trueEnum : falseEnum);
 
@@ -166,8 +168,8 @@ ReturnStatus g__int_eq(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_ge(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (integerVal(Lhs) >= integerVal(Rhs) ? trueEnum : falseEnum);
 
@@ -177,8 +179,8 @@ ReturnStatus g__int_ge(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_lt(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (integerVal(Lhs) < integerVal(Rhs) ? trueEnum : falseEnum);
 
@@ -188,8 +190,9 @@ ReturnStatus g__int_lt(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_abs(processPo p, ptrPo tos) {
-  integer Arg = integerVal(tos[0]);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), -Arg) : tos[0]);
+  termPo Lhs = tos[0];
+  integer Arg = integerVal(Lhs);
+  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), -Arg) : Lhs);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -197,7 +200,8 @@ ReturnStatus g__int_abs(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int2str(processPo p, ptrPo tos) {
-  integer ix = integerVal(tos[0]);
+  termPo Lhs = tos[0];
+  integer ix = integerVal(Lhs);
   char buff[64];
 
   integer len = int2StrByBase(buff, ix, 0, 10);
@@ -208,9 +212,10 @@ ReturnStatus g__int2str(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_format(processPo p, ptrPo tos) {
-  integer ix = integerVal(tos[1]);
+  termPo Lhs = tos[0];
+  integer ix = integerVal(Lhs);
   integer length;
-  const char *fmt = stringVal(tos[0], &length);
+  const char *fmt = stringVal(tos[1], &length);
   char buff[64];
   integer pos = 0;
 
@@ -224,8 +229,8 @@ ReturnStatus g__int_format(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_eq(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (floatVal(Lhs) == floatVal(Rhs) ? trueEnum : falseEnum);
 
@@ -235,8 +240,8 @@ ReturnStatus g__flt_eq(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_ge(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (floatVal(Lhs) >= floatVal(Rhs) ? trueEnum : falseEnum);
 
@@ -246,8 +251,8 @@ ReturnStatus g__flt_ge(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_lt(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (floatVal(Lhs) < floatVal(Rhs) ? trueEnum : falseEnum);
 
@@ -257,8 +262,8 @@ ReturnStatus g__flt_lt(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_plus(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) + floatVal(Rhs));
 
@@ -268,8 +273,8 @@ ReturnStatus g__flt_plus(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_minus(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) - floatVal(Rhs));
 
@@ -279,8 +284,8 @@ ReturnStatus g__flt_minus(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_times(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) * floatVal(Rhs));
 
@@ -290,8 +295,8 @@ ReturnStatus g__flt_times(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_div(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateFloat(processHeap(p), floatVal(Lhs) / floatVal(Rhs));
 
@@ -301,8 +306,8 @@ ReturnStatus g__flt_div(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_mod(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateFloat(processHeap(p), fmod(floatVal(Lhs), floatVal(Rhs)));
 
@@ -312,8 +317,8 @@ ReturnStatus g__flt_mod(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_pwr(processPo p, ptrPo tos) {
-  termPo Rhs = tos[0];
-  termPo Lhs = tos[1];
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
 
   termPo Rs = (termPo) allocateFloat(processHeap(p), pow(floatVal(Lhs), floatVal(Rhs)));
 
@@ -349,8 +354,10 @@ ReturnStatus g__exp(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__ldexp(processPo p, ptrPo tos) {
-  double x = floatVal(tos[1]);
-  integer e = integerVal(tos[0]);
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
+  double x = floatVal(Lhs);
+  integer e = integerVal(Rhs);
 
   ReturnStatus ret = {.ret=Ok, .rslt=(termPo) allocateFloat(processHeap(p), ldexp(x, (int) e))};
 
@@ -376,7 +383,8 @@ ReturnStatus g__frexp(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__modf(processPo p, ptrPo tos) {
-  double Arg = floatVal(tos[0]);
+  termPo Lhs = tos[0];
+  double Arg = floatVal(Lhs);
   double intgrl;
   double frac = modf(Arg, &intgrl);
   heapPo H = processHeap(p);
@@ -395,7 +403,7 @@ ReturnStatus g__modf(processPo p, ptrPo tos) {
 
 ReturnStatus g__int2flt(processPo p, ptrPo tos) {
   integer Arg = integerVal(tos[0]);
-  termPo Rs = (Arg < 0 ? (termPo) allocateFloat(processHeap(p), (double) Arg) : tos[0]);
+  termPo Rs = (termPo) allocateFloat(processHeap(p), (double) Arg);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -404,7 +412,7 @@ ReturnStatus g__int2flt(processPo p, ptrPo tos) {
 
 ReturnStatus g__flt2int(processPo p, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), (integer) Arg) : tos[0]);
+  termPo Rs = (termPo) allocateInteger(processHeap(p), (integer) Arg);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -412,7 +420,8 @@ ReturnStatus g__flt2int(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt2str(processPo p, ptrPo tos) {
-  double Arg = floatVal(tos[0]);
+  termPo Lhs = tos[0];
+  double Arg = floatVal(Lhs);
   char buff[64];
 
   retCode ret = formatDouble(buff, NumberOf(buff), Arg, general, 0, False);
@@ -424,9 +433,11 @@ ReturnStatus g__flt2str(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__flt_format(processPo p, ptrPo tos) {
-  double Arg = floatVal(tos[1]);
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
+  double Arg = floatVal(Lhs);
   integer length;
-  const char *fmt = stringVal(tos[0], &length);
+  const char *fmt = stringVal(Rhs, &length);
   char buff[64];
   integer pos = 0;
 
@@ -441,7 +452,8 @@ ReturnStatus g__flt_format(processPo p, ptrPo tos) {
 
 ReturnStatus g__flt_hash(processPo p, ptrPo tos) {
   double Arg = floatVal(tos[0]);
-  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), (integer) (Arg)) : tos[0]);
+
+  termPo Rs = (termPo) allocateInteger(processHeap(p), floatHash(Arg));
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -532,9 +544,7 @@ ReturnStatus g_trunc(processPo p, ptrPo tos) {
 ReturnStatus g_integral(processPo p, ptrPo tos) {
   double Arg = floatVal(tos[0]);
 
-  termPo Rs = (floor(Arg) == Arg ? trueEnum : falseEnum);
-
-  ReturnStatus ret = {.ret=Ok, .rslt=Rs};
+  ReturnStatus ret = {.ret=Ok, .rslt=(floor(Arg) == Arg ? trueEnum : falseEnum)};
 
   return ret;
 }

@@ -72,7 +72,8 @@ int main(int argc, char **argv) {
   fprintf(out, "    findLbl(Frm,Lbs,F),\n");
   fprintf(out, "    findLbl(End,Lbs,T),\n");
   fprintf(out, "    mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),\n");
-  fprintf(out, "    mnem(Ins,Lbs,Lt,Lts,[Entry|Lc],Lcx,Pc,Code).\n");
+  fprintf(out, "    (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),\n");
+  fprintf(out, "    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).\n");
 
 #include "instructions.h"
 
@@ -88,7 +89,7 @@ int main(int argc, char **argv) {
 #include "instructions.h"
 
   fprintf(out, "findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.\n\n");
-  fprintf(out, "pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc-1.\n\n");
+  fprintf(out, "pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.\n\n");
 
   fprintf(out, "findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.\n");
   fprintf(out, "findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).\n\n");
@@ -121,6 +122,7 @@ static char *genArg(FILE *out, char *sep, opAndSpec A) {
     case i32:
     case arg:
     case lcl:
+    case lcs:
     case off:
       fprintf(out, "%sV", sep);
       return ",";
@@ -145,6 +147,7 @@ static void genCode(FILE *out, int op, opAndSpec A) {
     case i32:
     case arg:
     case lcl:
+    case lcs:
       fprintf(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
       break;
     case Es:                              // escape code (0..65535)
@@ -198,6 +201,7 @@ void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case i32:
     case arg:
     case lcl:
+    case lcs:
     case Es:
     case off:
       fprintf(out, "(_)");
@@ -218,6 +222,7 @@ void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case i32:
     case arg:
     case lcl:
+    case lcs:
     case Es:
     case off:
       fprintf(out, "Pc1 is Pc+3, ");

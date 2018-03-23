@@ -10,6 +10,7 @@
 
 logical debugAssem = False;    /* debug the assembling process */
 logical parseOnly = False;    /* set to true for parsing only */
+logical traceManifest = False;
 
 static retCode debugOption(char *option, logical enable, void *cl) {
   char *c = option;
@@ -79,7 +80,7 @@ static retCode setLogFile(char *option, logical enable, void *cl) {
   return initLogfile(option);
 }
 
-static retCode setManifest(char *option, logical enable, void *cl) {
+static retCode setRepoDir(char *option, logical enable, void *cl) {
   setManifestPath(option);
   return Ok;
 }

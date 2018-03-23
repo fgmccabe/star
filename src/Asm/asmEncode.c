@@ -68,7 +68,7 @@ retCode encodePkg(ioPo out, pkgPo pkg) {
   tryRet(encodeMtds(O_IO(str), pkg->methods));
 
   rewindBuffer(str);
-  long buffLen;
+  integer buffLen;
   char *buffer = getTextFromBuffer(&buffLen, str);
   tryRet(encodeStr(out, buffer, buffLen));
   closeFile(O_IO(str));
@@ -129,13 +129,13 @@ retCode encodeFrame(ioPo out, mtdPo mtd, assemInsPo ins) {
 retCode encodeLocal(void *n, void *r, void *cl) {
   MtdData *data = (MtdData *) cl;
   ioPo out = data->out;
-  localVarPo lcl = (localVarPo) r;
+  localVarPo vr = (localVarPo) r;
 
-  tryRet(encodeStr(out, lcl->name, uniStrLen(lcl->name)));
-  tryRet(encodeInt(out, lcl->sig));
-  tryRet(encodeInt(out, lcl->off));
-  tryRet(encodeInt(out, lcl->from->pc->pc / sizeof(uint16)));
-  return encodeInt(out, lcl->to->pc->pc / sizeof(uint16));
+  tryRet(encodeStr(out, vr->name, uniStrLen(vr->name)));
+  tryRet(encodeInt(out, vr->sig));
+  tryRet(encodeInt(out, vr->off));
+  tryRet(encodeInt(out, vr->from->pc->pc / sizeof(uint16)));
+  return encodeInt(out, vr->to->pc->pc / sizeof(uint16));
 }
 
 static retCode enc_nOp(ioPo out, assemInsPo ins) {
@@ -153,6 +153,11 @@ static retCode enc_arg(ioPo out, assemInsPo ins) {
 }
 
 static retCode enc_lcl(ioPo out, assemInsPo ins) {
+  tryRet(encodeInt(out, ins->op));
+  return encodeInt(out, ins->i);
+}
+
+static retCode enc_lcs(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }

@@ -138,5 +138,5 @@ genVars(0,[]).
 genVars(K,[V|Rest]) :-
   K>0,
   K1 is K-1,
-  genVar("V",V),
+  genVar("_V",V),
   genVars(K1,Rest).

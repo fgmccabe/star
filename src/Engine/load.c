@@ -70,7 +70,7 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
       }
 
       if (ret == Ok && uniCmp((char *) pkgNm, pkgName) != same) {
-        outMsg(logFile, "loaded package: %s not what was expected %w\n", (char *) pkgNm, pkgName);
+        outMsg(logFile, "loaded package: %s not what was expected %T\n", (char *) pkgNm, pkgName);
         return Error;
       }
 
@@ -88,7 +88,7 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
     closeFile(file);
 
 #ifdef TRACEPKG
-    if (tracePkg){
+    if (tracePkg) {
       if (ret != Error)
         logMsg(logFile, "package %s loaded\n", pkgName);
       else
@@ -297,16 +297,11 @@ retCode loadSegments(ioPo in, pkgPo owner, char *errorMsg, long msgLen) {
 // b. A tuple of the instructions
 // c. A tuple of literals associated with the code segment
 // d. A tuple of variable specifications
-// e. A tuple of frame entries
-// All wrapped up as a #code structure.
+// All wrapped up as a tuple structure.
 
-// Each frame entry consists of
-// a. The pool constant of the frame type signature
-// b. The program counter the frame applies to
 
 // Each variable specification consists of
 // a. The pool constant for the variable name
-// b. The pool constant for the variable type
 // c. The variable number
 // d. The pc offset of the start of the validity range
 // e. The pc offset of the end of the validity range
@@ -330,6 +325,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 #define szi32 if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
+#define szlcs if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,lookupEscape(escNm)); (*ix)++;}
 #define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++;}
@@ -345,6 +341,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 #undef szi32
 #undef szarg
 #undef szlcl
+#undef szlcs
 #undef szoff
 #undef szEs
 #undef szlit
@@ -366,11 +363,6 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
 
   ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
-#ifdef TRACEPKG
-  if (tracePkg)
-    outMsg(logFile, "loading code %s/%d\n%_", prgName, arity);
-#endif
-
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
 
@@ -383,6 +375,12 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
       insPo pc = ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
         ret = decodeIns(in, &pc, &ix, errorMsg, msgSize);
+      }
+
+      integer lclCnt = 0;
+
+      if (ins[0] == Enter) {
+        lclCnt = (ins[1] << 16) | ins[2];
       }
       if (ret == Ok) {
         termPo pool = voidEnum;
@@ -400,7 +398,7 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
           if (ret == Ok) {
             labelPo lbl = declareLbl(prgName, arity);
             gcAddRoot(H, (ptrPo) &lbl);
-            defineMtd(H, ins, (integer) (pc - ins), lbl, C_TERM(pool), C_TERM(locals));
+            defineMtd(H, ins, (integer) (pc - ins), lclCnt, lbl, C_TERM(pool), C_TERM(locals));
           }
         }
         closeFile(O_IO(tmpBuffer));

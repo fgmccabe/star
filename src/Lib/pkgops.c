@@ -15,12 +15,14 @@
 #include "pkgops.h"
 
 ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
   char pkgNm[MAX_SYMB_LEN];
   char vers[MAX_SYMB_LEN];
 
-  retCode ret = copyString2Buff(C_STR(tos[1]), pkgNm, NumberOf(pkgNm));
+  retCode ret = copyString2Buff(C_STR(Arg1), pkgNm, NumberOf(pkgNm));
   if (ret == Ok)
-    ret = copyString2Buff(C_STR(tos[0]), vers, NumberOf(vers));
+    ret = copyString2Buff(C_STR(Arg2), vers, NumberOf(vers));
 
   if (ret == Ok) {
     char *version = loadedVersion(pkgNm);
@@ -61,8 +63,9 @@ static retCode pickupImport(char *pkgNm, char *vers, char *errorMsg, long msgLen
 }
 
 ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
   integer len;
-  const char *text = stringVal(tos[0], &len);
+  const char *text = stringVal(Arg1, &len);
   char *buffer = (char *) malloc(sizeof(char) * len);
 
   memmove(buffer, text, len);

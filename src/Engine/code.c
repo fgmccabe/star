@@ -81,10 +81,11 @@ retCode mtdDisp(ioPo out, termPo t, long depth, logical alt) {
   normalPo pool = codeLits(mtd);
   termPo lbl = nthArg(pool, 0);
 
-  return outMsg(out, "%W", lbl);
+  return outMsg(out, "%T", lbl);
 }
 
-methodPo defineMtd(heapPo H, insPo ins, integer insCount, labelPo lbl, normalPo pool, normalPo locals) {
+methodPo
+defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, labelPo lbl, normalPo pool, normalPo locals) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
   gcAddRoot(H, (ptrPo) &locals);
@@ -97,6 +98,7 @@ methodPo defineMtd(heapPo H, insPo ins, integer insCount, labelPo lbl, normalPo 
   mtd->codeSize = insCount;
   mtd->jit = Null;
   mtd->arity = lbl->arity;
+  mtd->lclcnt = lclCount;
   mtd->pool = pool;
   mtd->locals = locals;
 
@@ -116,7 +118,7 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
   normalPo pool = codeLits(mtd);
   termPo lbl = nthArg(pool, 0);
 
-  return outMsg(f, "%W", lbl);
+  return outMsg(f, "%T", lbl);
 }
 
 normalPo codeLits(methodPo mtd) {
@@ -161,3 +163,6 @@ pkgPo markLoaded(char *package, char *version) {
     return createPkg(package, version);
 }
 
+integer lclCount(methodPo mtd){
+  return mtd->lclcnt;
+}

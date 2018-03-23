@@ -24,6 +24,7 @@ typedef struct _method_ {
   integer jitSize;       /* How big is the Jit code? */
 
   integer arity;        /* How many arguments in method */
+  integer lclcnt;       // How many locals in the environment
   normalPo pool;      /* A pool tuple of constants */
   normalPo locals;    /* A tuple of sorted locals */
   insWord code[ZEROARRAYSIZE];

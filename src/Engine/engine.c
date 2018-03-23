@@ -41,6 +41,7 @@ processPo newProcess(methodPo mtd) {
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
   P->waitFor = debugging ? nextIns : never;
+  P->hasEnter = False;
 
   uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
 

@@ -64,8 +64,10 @@ ReturnStatus g__inchar(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__inchars(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  integer limit = integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  integer limit = integerVal(Arg2);
 
   bufferPo buffer = newStringBuffer();
 
@@ -106,8 +108,10 @@ ReturnStatus g__inbyte(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__inbytes(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  integer limit = integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  integer limit = integerVal(Arg2);
 
   bufferPo buffer = newStringBuffer();
   byte bf[MAXLINE];
@@ -149,9 +153,11 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__intext(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
   integer mlen;
-  const char *match = stringVal(tos[0], &mlen);
+  const char *match = stringVal(Arg2, &mlen);
 
   bufferPo buffer = newStringBuffer();
 
@@ -242,22 +248,28 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__outchar(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  codePoint cp = (codePoint) integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  codePoint cp = (codePoint) integerVal(Arg2);
 
   return rtnStatus(p, outChar(io, cp), "outchar");
 }
 
 ReturnStatus g__outbyte(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  integer cp = integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  integer cp = integerVal(Arg2);
 
   return rtnStatus(p, outByte(io, (byte) cp), "outbyte");
 }
 
 ReturnStatus g__outbytes(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  listPo data = C_LIST(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  listPo data = C_LIST(Arg2);
   retCode ret = Ok;
 
   for (integer ix = 0; ret == Ok && ix < listSize(data); ix++) {
@@ -269,9 +281,11 @@ ReturnStatus g__outbytes(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__outtext(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
   integer length;
-  const char *text = stringVal(tos[0], &length);
+  const char *text = stringVal(Arg2, &length);
   retCode ret = Ok;
 
   integer pos = 0;
@@ -332,15 +346,19 @@ ReturnStatus g__fposition(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__fseek(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  integer pos = integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  integer pos = integerVal(Arg2);
 
   return rtnStatus(p, ioSeek(io, pos), "_fseek");
 }
 
 ReturnStatus g__setfileencoding(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[1]));
-  integer enc = integerVal(tos[0]);
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  ioPo io = ioChannel(C_IO(Arg1));
+  integer enc = integerVal(Arg2);
   setEncoding(io, (ioEncoding) enc);
 
   return rtnStatus(p, Ok, "_setfileencoding");
