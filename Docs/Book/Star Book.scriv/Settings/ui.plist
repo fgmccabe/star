@@ -1085,7 +1085,7 @@
 	<key>mainDocumentEditor.textMode</key>
 	<integer>0</integer>
 	<key>mainWindowFrame</key>
-	<string>6 185 1246 673 0 0 1440 877 </string>
+	<string>1465 156 1246 674 1440 -252 2048 1129 </string>
 	<key>projectStatsSheet</key>
 	<dict>
 		<key>excludeAnnots</key>

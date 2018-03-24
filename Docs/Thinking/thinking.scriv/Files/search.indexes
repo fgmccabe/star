@@ -514,9 +514,6 @@ The definition is the outcome of viewing hope as a monad. Monads are a powerful 
             <Text>Star is a full-featured language. It is an intentionally rich language. In addition to the features described here are concurrency features, data abstraction features that include the concept of existentially quantified types – that enables abstract data types – and computation expressions – that are important when designing systems that rely on being able to delay and control how expressions are evaluated; and many more.
 In the chapters that follow, we will focus on three major features of Star that define much of the essence of Star: actors, contracts and the features needed to extend the syntax and capabilities of Star.</Text>
         </Document>
-        <Document ID="AEA1EF44-11D5-4BDD-AB7A-AE87A9F72B71">
-            <Title>frontCover</Title>
-        </Document>
         <Document ID="33750B63-8C5E-4B61-8B14-942F39A45EEF">
             <Title>Speech Actions</Title>
             <Text>Speech actions were first investigated by John Austin5 in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by Searle6 and standardized in KQML7 and FIPA.8
