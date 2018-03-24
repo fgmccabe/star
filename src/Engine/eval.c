@@ -103,26 +103,29 @@ retCode run(processPo P) {
       case Tail: {       /* Tail call of explicit program */
         // Pick up existing frame
         framePo oldFp = FP->fp;
-        insPo oldPc = FP->rtn;
-        int64 argCnt = argCount(PROG); /* How many arguments in caller? */
+        insPo oldRtn = FP->rtn;
+        methodPo oldPROG = FP->prog;
+        integer oldArgCnt = argCount(PROG);
 
-        PROG = labelCode(C_LBL(nthArg(LITS, collectI32(PC))));   // Which program do we want?
+        labelPo prog = C_LBL(nthArg(LITS, collectI32(PC)));
+
+        PROG = labelCode(prog);   // Which program do we want?
 
         // slide new arguments over old frame
-        int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
+        integer argCnt = labelArity(prog);  /* prepare to slide arguments over caller */
 
-        ptrPo tgt = arg(argCnt);
-        ptrPo src = SP + nArgCnt + 1;   /* base of argument vector */
+        ptrPo tgt = &FP->args[oldArgCnt];
+        ptrPo src = SP + argCnt;                  /* base of argument vector */
+
+        for (int ix = 0; ix < argCnt; ix++)
+          *--tgt = *--src;    /* copy the argument vector */
 
         FP = oldFp;
-
-        for (int ix = 0; ix < nArgCnt; ix++)
-          *--tgt = *--src;    /* copy the argument vector */
         SP = tgt;
 
         // set up new frame
-        *--SP = (termPo) PROG;
-        *--SP = (termPo) oldPc;  /* make sure we return where the caller returns */
+        push(oldPROG);
+        push(oldRtn);            /* make sure we return where the caller returns */
 
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -135,26 +138,29 @@ retCode run(processPo P) {
       case OTail: {       /* Tail call */
         // Pick up existing frame
         framePo oldFp = FP->fp;
-        insPo oldPc = FP->rtn;
-        int64 argCnt = argCount(PROG); /* How many arguments in caller? */
+        insPo oldRtn = FP->rtn;
+        methodPo oldPROG = FP->prog;
+        integer oldArgCnt = argCount(PROG);
+        termPo NP = SP[1];
 
-        PROG = labelCode(C_LBL(*SP++));       /* set up for callee */
+        labelPo oLbl = isNormalPo(NP) ? termLbl(C_TERM(NP)) : C_LBL(NP);
+        PROG = labelCode(objLabel(oLbl));       /* set up for object call */
 
         // slide new arguments over old frame
-        int64 nArgCnt = argCount(PROG);  /* prepare to slide arguments over caller */
+        integer argCnt = argCount(PROG);  /* prepare to slide arguments over caller */
 
-        ptrPo tgt = arg(argCnt);
-        ptrPo src = SP + nArgCnt + 1;   /* base of argument vector */
+        ptrPo tgt = &FP->args[oldArgCnt];
+        ptrPo src = SP + argCnt;                  /* base of argument vector */
+
+        for (int ix = 0; ix < argCnt; ix++)
+          *--tgt = *--src;    /* copy the argument vector */
 
         FP = oldFp;
-
-        for (int ix = 0; ix < nArgCnt; ix++)
-          *--tgt = *--src;    /* copy the argument vector */
         SP = tgt;
 
         // set up new frame
-        *--SP = (termPo) PROG;
-        *--SP = (termPo) oldPc;  /* make sure we return where the caller returns */
+        push(oldPROG);
+        push(oldRtn);            /* make sure we return where the caller returns */
 
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -171,8 +177,9 @@ retCode run(processPo P) {
         SP -= lclCnt;
 #ifdef TRACEEXEC
         P->hasEnter = True;
-        for(integer ix=0;ix<lclCnt;ix++)
-          SP[0] = voidEnum;
+        if (debugging)
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[0] = voidEnum;
 #endif
         continue;
       }
@@ -259,7 +266,7 @@ retCode run(processPo P) {
           normalPo cl = C_TERM(t);
           if (!sameTerm(l, (termPo) termLbl(cl)))
             PC = exit;
-        } else if(!sameTerm(t,l))
+        } else if (!sameTerm(t, l))
           PC = exit;
         continue;
       }
@@ -305,7 +312,7 @@ retCode run(processPo P) {
         termPo tos = top();
         integer hx = hashTermLbl(tos) % mx + 1;
 
-        PC = (insPo) ((void *) PC + (sizeof(insWord)*3)*hx);
+        PC = (insPo) ((void *) PC + (sizeof(insWord) * 3) * hx);
         continue;
       }
 

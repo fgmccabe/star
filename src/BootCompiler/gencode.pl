@@ -112,12 +112,12 @@ compTerm(ecll(Lc,Nm,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   MegaCont = gencode:combCont([gencode:escCont(Nm,Stk),Cont]),
   compTerms(A,MegaCont,D,Dx,End,C0,Cx,Stk0,Stkx).
 compTerm(cll(Lc,Nm,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  MegaCont = gencode:combCont([gencode:lineCont(Lc),gencode:cllCont(Nm,Stk),Cont]),
+  MegaCont = gencode:combCont([gencode:lineCont(Lc),gencode:cllCont(Nm,Stk,Cont)]),
   compTerms(A,MegaCont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(ocall(Lc,Cl,Rc),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compTerm(Rc,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
-  compTerm(Cl,gencode:combCont([gencode:lineCont(Lc),oclCont(Stk),Cont]),D1,Dx,End,C0,Cx,Stk0,Stkx).
+  compTerm(Cl,gencode:combCont([gencode:lineCont(Lc),oclCont(Stk,Cont)]),D1,Dx,End,C0,Cx,Stk0,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   lineCont(Lc,C,C0,Stk,Stk0),
   compCase(T,Cases,Deflt,Cont,D,Dx,End,C0,Cx,Stk0,Stkx).
@@ -176,11 +176,17 @@ frameCont([iFrame(Stk)|Cx],Cx,Stk,Stk).
 escCont(Nm,Stk0,[iEscape(Nm),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
   Stkx is Stk0+1.
 
-cllCont(Nm,Stk0,[iCall(Nm),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
+cllCont(Nm,Stk0,gencode:retCont(_),[iTail(Nm),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-!,
   Stkx is Stk0+1.
+cllCont(Nm,Stk0,Cont,[iCall(Nm),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
+  Stk1 is Stk0+1,
+  call(Cont,C0,Cx,Stk1,Stkx).
 
-oclCont(Stk0,[iOCall,iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
+oclCont(Stk0,gencode:retCont(_),[iOTail,iFrame(Stk)|Cx],Cx,Stk,Stkx) :-!,
   Stkx is Stk0+1.
+oclCont(Stk0,Cont,[iOCall,iFrame(Stk)|C0],Cx,Stk,Stkx) :-
+  Stk1 is Stk0+1,
+  call(Cont,C0,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,[iJmp(Lbl)|Cx],Cx,Stk,Stk).
 
