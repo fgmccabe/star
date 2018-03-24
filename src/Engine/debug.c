@@ -396,7 +396,7 @@ void countIns(insWord ins) {
 }
 
 #undef instruction
-#define instruction(Op, Arg, Cmt) if(insCounts[Op]!=0) outMsg(logFile,#Op": %d\n",insCounts[Op]);
+#define instruction(Op, Arg, Cmt) outMsg(logFile,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
 #include "instructions.h"

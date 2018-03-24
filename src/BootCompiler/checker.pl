@@ -411,7 +411,7 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_) :-
   declareTypeVars(IQ,Lc,Env,ThEnv),
   typeOfTerm(IBody,IFace,ThEnv,ThEv,ImplTerm),
   implementationName(Spec,ImplName),
-  Impl = implDef(Lc,INm,ImplName,Spec),
+  Impl = implDef(Lc,INm,ImplName,ConSpec),
   contractTypes(AC,CTs),
   (CTs=[] ->
      rfold(IQ,checker:pickBoundType,IFace,ImplTp),

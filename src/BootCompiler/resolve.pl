@@ -144,8 +144,8 @@ resolveContract(Lc,C,_,v(Lc,ImpNm)) :-
 
 resolve(v(Lc,Nm),_,_,_,_,v(Lc,Nm)) :-!.
 resolve(I,C,ImpNm,Lc,Dict,Over) :-
-  freshenConstraint([],_,I,[],Con),
-  moveConstraints(Con,Cx,CT),
+  freshen(I,[],_,Con),
+  moveConstraints(Con,Cx,contractExists(CT,_)),
   sameContract(CT,C,[]),
   resolveDependents(Cx,Lc,Dict,Args,[]),
   formOver(v(Lc,ImpNm),Args,Lc,Over).
@@ -158,7 +158,7 @@ resolveDependents([C|L],Lc,Dict,[A|As],Args) :-
   resolveDependents(L,Lc,Dict,As,Args).
 
 formOver(V,[],_,V).
-formOver(V,Args,Lc,apply(Lc,V,Args)).
+formOver(V,Args,Lc,apply(Lc,V,tple(Lc,Args))).
 
 genVar(Nm,Lc,v(Lc,NV)) :-
   genstr(Nm,NV).

@@ -52,7 +52,7 @@ formatContracts([conDef(Nm,CnNm,Spec)|M],[ConTpl|R]) :-
 
 formatImpls([],[]).
 formatImpls([imp(Nm,Spec)|M],[ImplTpl|R]) :-
-  encodeConstraint(Spec,Chars,[]),
+  encodeType(Spec,Chars,[]),
   string_chars(Sig,Chars),
   mkTpl([strg(Nm),strg(Sig)],ImplTpl),
   formatImpls(M,R).

@@ -206,13 +206,13 @@ showImpl(imp(ImplName,Spec),O,Ox) :-
   appStr("implementation: ",O,O1),
   appStr(ImplName,O1,O2),
   appStr(" for ",O2,O3),
-  showConstraint(Spec,O3,O4),
+  showType(Spec,O3,O4),
   appStr("\n",O4,Ox).
 
 showImplementation(Lc,Nm,Spec,O,Ox) :-
   appStr("implementation: ",O,O1),
   appStr(Nm,O1,O2),
-  showConstraint(Spec,O2,O5),
+  showType(Spec,O2,O5),
   appStr("@",O5,O6),
   showLocation(Lc,O6,O7),
   appStr("\n",O7,Ox).

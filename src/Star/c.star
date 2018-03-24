@@ -1,5 +1,4 @@
 star.core {
-  /*
   public implementation all t ~~ equality[t] |: equality[option[t]] => {.
     none == none => true.
     some(X) == some(Y) => X==Y.
@@ -12,7 +11,6 @@ star.core {
   optHash:all t ~~ equality[t] |: (option[t]) => integer.
   optHash(none) => 0.
   optHash(some(X)) => hash(X).
-  */
 
   public all t ~~ option[t] ::= none | some(t).
 
@@ -41,6 +39,11 @@ star.core {
       assert spouse=!=none
     }
 
+  implementation all t ~~ equality[t] |: equality[person[t]] => {.
+    P1 == P2 => P1.name == P2.name.
+    hash(P) => hash(P.name).
+  .}
+
   foo : string.
   foo = "".
 
@@ -51,7 +54,7 @@ star.core {
   fper(W) => someOne{name = W. spouse=none}.
 
   assert fp.name == "".
-  -- assert fp.spouse == none.
+  assert fp.spouse == none.
 
   assert fper("fred").name == "fred".
 
@@ -67,5 +70,9 @@ star.core {
   fct(0)=>1.
   fct(N) => _int_times(N,fct(_int_minus(N,1))).
 
-  assert fct(3)==6.
+  tfct:(integer,integer)=>integer.
+  tfct(0,X) => X.
+  tfct(N,A) => tfct(_int_minus(N,1),_int_times(N,A)).
+
+  assert fct(3)==tfct(3,1).
 }
