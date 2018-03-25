@@ -20,7 +20,7 @@
 extern char copyRight[];
 
 extern logical tracing;        /* tracing option */
-extern logical debugging;
+extern logical insDebugging;
 extern logical interactive;      /* interactive instruction tracing option */
 extern logical traceCount;
 

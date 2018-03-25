@@ -1,7 +1,7 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Enable tracing debugging code to be compiled */
+/* Enable tracing insDebugging code to be compiled */
 #define ALLTRACE /**/
 
 /* Define "+" prefix to make getopt posixly compliant (non-permuting) */

@@ -436,7 +436,7 @@ static void fixup(assemInsPo ins) {
 
 retCode displayLabel(ioPo f, void *p, long width, long prec, logical alt) {
   lPo lbl = (lPo) p;
-  return outMsg(f, "%U", lbl->lbl);
+  return outMsg(f, "%s", lbl->lbl);
 }
 
 logical labelDefined(lPo lbl) {

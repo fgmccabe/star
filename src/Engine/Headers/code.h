@@ -21,6 +21,8 @@ typedef cafeFun (*pkgFun)();
 
 extern normalPo codeLits(methodPo mtd);
 
+extern termPo getMtdLit(methodPo mtd,integer litNo);
+
 extern integer lclCount(methodPo mtd);
 
 typedef struct _pkg_record_ *pkgPo;

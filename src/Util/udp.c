@@ -305,7 +305,7 @@ retCode udpReadyIn(udpPo f) {
     else
       return Fail;
   } else
-    return ioErrorMsg(logFile, "%U does not permit read access", f->udp.name);
+    return ioErrorMsg(logFile, "%s does not permit read access", f->udp.name);
 }
 
 retCode udpReadyOut(udpPo f) {
@@ -327,7 +327,7 @@ retCode udpReadyOut(udpPo f) {
     else
       return Fail;
   } else
-    return ioErrorMsg(logFile, "%U does not permit write access", f->udp.name);
+    return ioErrorMsg(logFile, "%s does not permit write access", f->udp.name);
 }
 
 logical isUDPport(objectPo o) {

@@ -32,6 +32,7 @@ typedef struct _processRec_ {
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
   logical hasEnter;   // False between call and enter
+  logical tracing;
 #endif
 } ProcessRec;
 

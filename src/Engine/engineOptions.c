@@ -15,9 +15,10 @@
 long initHeapSize = 200 * 1024;    /* How much memory to give the heap */
 long initStackSize = 1024;      /* How big is the stack */
 
-logical debugging = False;  // instruction tracing option
+logical insDebugging = False;  // instruction tracing option
+logical tracing = False;      /* tracing option */
 logical enableVerify = True;  // true if we wish to enable code verification
-logical SymbolDebug = False;  // symbolic debugging generation
+logical SymbolDebug = False;  // symbolic insDebugging generation
 logical traceVerify = False;  // true if tracing code verification
 logical traceMessage = False;  // true if tracing message passing
 logical tracePut = False;  // true if tracing term freeze
@@ -26,8 +27,6 @@ logical traceManifest = False;
 logical tracePkg = False;
 logical traceMemory = False;      /* memory tracing */
 logical stressMemory = False;      /* stress GC */
-logical tracing = False;      /* tracing option */
-logical traceCalls = False;      /* top-level function call tracing */
 logical interactive = False;      /* interaction instruction tracing */
 logical traceCount = False; // Count instructions etc.
 
@@ -91,21 +90,13 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
   while (*c) {
     switch (*c++) {
-      case 'e':    /* Escape call tracing */
-#ifdef TRACEEXEC
-        traceCalls = True;
-        continue;
-#else
-      logMsg(logFile, "Escape tracing not enabled\n");
-      return Error;
-#endif
-
       case 'd':    /* single step instruction tracing */
 #ifdef TRACEEXEC
-        debugging = True;
+        insDebugging = True;
+        tracing = True;
         continue;
 #else
-      logMsg(logFile, "Instruction-level debugging not enabled\n");
+      logMsg(logFile, "Instruction-level insDebugging not enabled\n");
       return Error;
 #endif
 
@@ -158,7 +149,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       return Error;
 #endif
 
-      case 'g':    /* Internal symbolic debugging */
+      case 'g':    /* Internal symbolic insDebugging */
         SymbolDebug = True;
         interactive = True;
         continue;
@@ -194,8 +185,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case '*':    /* trace everything */
 #ifdef ALLTRACE
-        traceCalls = True;
-        debugging = True;
+        insDebugging = True;
+        tracing = True;
         interactive = True;
         traceVerify = True;
         traceCount = True;
@@ -208,7 +199,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         tracePkg = True;
         continue;
 #else
-      logMsg(logFile,"debugging not enabled\n");
+      logMsg(logFile,"insDebugging not enabled\n");
             return Error;
 #endif
       default:;
@@ -228,7 +219,7 @@ static retCode setRepoDir(char *option, logical enable, void *cl) {
 }
 
 static retCode symbolDebug(char *option, logical enable, void *cl) {
-  SymbolDebug = True;  /* turn on symbolic debugging */
+  SymbolDebug = True;  /* turn on symbolic insDebugging */
   interactive = True;       // Initially its also interactive
   return Ok;
 }

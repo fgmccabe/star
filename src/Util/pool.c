@@ -22,7 +22,7 @@
 #include <assert.h>
 
 #if DMALLOC
-#include <dmalloc.h>		/* debugging malloc library */
+#include <dmalloc.h>		/* insDebugging malloc library */
 #endif
 
 typedef struct _pool_item_ *plPo;

@@ -49,8 +49,8 @@ retCode run(processPo P) {
     pcCount++;        /* increment total number of executed */
 
     countIns(*PC);
-    if (debugging)
-      debug_stop(pcCount, P, PROG, PC, FP, SP);
+    if (insDebugging)
+      insDebug(pcCount, P, heap, PROG, PC, FP, SP);
 #endif
 
     switch ((OpCode) (*PC++)) {
@@ -177,7 +177,7 @@ retCode run(processPo P) {
         SP -= lclCnt;
 #ifdef TRACEEXEC
         P->hasEnter = True;
-        if (debugging)
+        if (insDebugging)
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[0] = voidEnum;
 #endif
@@ -379,13 +379,14 @@ retCode run(processPo P) {
 
       case Line: {
 #ifdef TRACEEXEC
-        termPo ln = nthArg(LITS, collectI32(PC));
 
-        if (SymbolDebug)
-          debug_line(pcCount, P, ln);
-#else
-        PC+=2;
+        if (SymbolDebug) {
+          termPo ln = nthArg(LITS, collectI32(PC));
+          lineDebug(P, heap, PROG, ln, PC, FP, SP);
+        } else
 #endif
+          PC += 2;
+
         continue;
       }
 

@@ -219,7 +219,7 @@ byte inB(ioPo f) {
   if (ret == Ok)
     return b;
   else {
-    ioErrorMsg(f, "problem in reading a byte from %U", fileName(f));
+    ioErrorMsg(f, "problem in reading a byte from %s", fileName(f));
     return 0;
   }
 }
@@ -288,7 +288,7 @@ retCode resetToMark(ioPo f, integer mark) {      /* Rewind file to mark point, i
 }
 
 // Utility to skip shell preamble at start of file
-retCode skipShellPreamble(ioPo f){
+retCode skipShellPreamble(ioPo f) {
   codePoint ch;
   retCode ret = inChar(f, &ch);
 
@@ -327,7 +327,7 @@ retCode outBlock(ioPo f, byte *data, integer len) {
   retCode ret = outBytes(f, data, len, &actual);
 
   if (ret == Ok && len != actual)
-    return ioErrorMsg(f, "couldnt write block of %d bytes properly to %U", len, fileName(f));
+    return ioErrorMsg(f, "couldnt write block of %d bytes properly to %s", len, fileName(f));
   else
     return ret;
 }
@@ -338,7 +338,7 @@ retCode outByte(ioPo f, byte c) {
   retCode ret = outBytes(f, &buff[0], len, &len);
 
   if (ret == Ok && len != NumberOf(buff))
-    return ioErrorMsg(f, "couldnt write byte properly to %U", fileName(f));
+    return ioErrorMsg(f, "couldnt write byte properly to %s", fileName(f));
   else
     return ret;
 }
@@ -476,9 +476,9 @@ retCode inLine(ioPo f, char *buffer, integer len, integer *actual, char *term) {
       ret = inChar(f, &ch);
 
       if (ret == Ok) {
-        if (uniIndexOf(term, tlen, 0, ch) >= 0) { /* have we found a terminating byte? */
-          ret = appendCodePoint(buffer, &bPos, len, ch);
-        } else
+        ret = appendCodePoint(buffer, &bPos, len, ch);
+
+        if (uniIndexOf(term, tlen, 0, ch) >= 0)  /* have we found a terminating byte? */
           break;
       }
     }
@@ -517,8 +517,7 @@ retCode outChar(ioPo io, codePoint ch) {
     ret = ((IoClassRec *) io->object.class)->ioPart.write(io, (byte *) chbuff, len, &actual);
     io->io.outBpos += actual;
     return ret;
-  }
-  else
+  } else
     return ret;
 }
 

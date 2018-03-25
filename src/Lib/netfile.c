@@ -105,8 +105,8 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
   termPo Arg3 = tos[2];
   integer port = integerVal(Arg2);
 
-  integer fnLen;
-  const char *host = stringVal(Arg1, &fnLen);
+  integer hLen;
+  const char *host = stringVal(Arg1, &hLen);
 
   ioEncoding enc = pickEncoding(integerVal(Arg3));
 
@@ -135,7 +135,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
       return rt;
     }
     default:
-      logMsg(logFile, "Failed to establish connection: %U", host);
+      logMsg(logFile, "Failed to establish connection: %S", host,hLen);
       return liberror(P, "_connect", eCONNECT);
   }
 }

@@ -40,7 +40,8 @@ processPo newProcess(methodPo mtd) {
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
-  P->waitFor = debugging ? nextIns : never;
+  P->waitFor = insDebugging ? nextIns : never;
+  P->tracing = tracing;
   P->hasEnter = False;
 
   uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));

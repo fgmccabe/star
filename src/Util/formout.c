@@ -833,19 +833,13 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
               break;
             }
 
-            case 'S': {    /* Display a data block */
-              long len = (long) va_arg(args, long);
+            case 'S': {    /* Display a lengthed string */
               char *str = (char *) va_arg(args, char *);
+              long len = (long) va_arg(args, long);
 
-              if (str != NULL) {
-                int i;
-
-                for (i = 0; ret == Ok && i < len; i++)
-                  if (isprint((unsigned char) str[i]))
-                    ret = outChar(f, (codePoint) str[i]);
-                  else
-                    ret = outMsg(f, "\\%x\\", str[i] & 0xff);
-              } else
+              if (str != NULL)
+                ret = outUniString(f, str, len, width, precision, ' ', leftPad, alternate);
+              else
                 ret = outStr(f, "(NULL)");
               break;
             }
@@ -861,6 +855,7 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
                 ret = outStr(f, "(NULL)");
               break;
             }
+
             case 'p': {    /* Display some spaces */
               integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
 

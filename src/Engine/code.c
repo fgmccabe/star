@@ -125,6 +125,10 @@ normalPo codeLits(methodPo mtd) {
   return mtd->pool;
 }
 
+termPo getMtdLit(methodPo mtd,integer litNo){
+  return nthArg(codeLits(mtd),litNo);
+}
+
 pkgPo loadedPackage(char *package) {
   return (pkgPo) hashGet(packages, package);
 }

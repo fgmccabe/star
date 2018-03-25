@@ -10,9 +10,9 @@
 extern logical SymbolDebug;
 extern long cmdCounter;
 
-extern void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
-extern void debug_line(integer pcCount, processPo p, termPo line);
-extern insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+extern void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+extern void lineDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp);
+extern insPo disass(ioPo out, integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 extern void countIns(insWord ins);
 extern void dumpInsCount();
 

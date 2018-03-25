@@ -126,7 +126,7 @@ static hostPo locateHost(const char *nme) {
         return h;
       else {
 #ifdef TRACEHOST
-        logMsg(logFile,"%U marked as unavailable",nme);
+        logMsg(logFile,"%s marked as unavailable",nme);
 #endif
         return NULL;    /* It was a negative entry ....!!!! */
       }
@@ -318,7 +318,7 @@ static void dH(void *n,void *r,void *c)
 
   outMsg(f,"%s:\n",name);
   for(i=0;host->aliases[i]!=NULL;i++)
-    outMsg(f," -> %U\n",host->aliases[i]);
+    outMsg(f," -> %s\n",host->aliases[i]);
 
   for(i=0;i<host->ip_count;i++)
     outMsg(f," @ %s\n",inet_ntoa(host->ip[i]));

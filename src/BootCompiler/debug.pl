@@ -5,9 +5,9 @@
 :- use_module(transutils).
 
 isDebug(Opts) :-
-  isOption(debugging,Opts).
+  isOption(insDebugging,Opts).
 
-% are we debugging?
+% are we insDebugging?
 debugPreamble(Nm,Q,Qx,[cll(lbl("go.debug@current",1),[DgVr])|Gx],Gx,Opts,ClOpts) :-
   isDebug(Opts),!,
   genVar("__D",DgVr),

@@ -97,7 +97,7 @@ static retCode showLocal(void *nm, void *r, void *cl) {
   if (c != Null) {
     char *sig = c->con.value.txt;
 
-    outMsg(data->out, "%U:%U [%d]", vr->name, sig, vr->off);
+    outMsg(data->out, "%s:%s [%d]", vr->name, sig, vr->off);
 
     if (vr->from->pc != Null && vr->to->pc != Null)
       return outMsg(data->out, " (0x%x-0x%x)\n", vr->from->pc->pc, vr->to->pc->pc);
@@ -111,7 +111,7 @@ static retCode showLocal(void *nm, void *r, void *cl) {
 retCode dumpMethod(void *n, void *r, void *c) {
   mtdPo mtd = (mtdPo) r;
   ioPo io = (ioPo) c;
-  outMsg(io, "method %U/%d: %U\n", mtd->name.name, mtd->name.arity, methodSignature(mtd));
+  outMsg(io, "method %s/%d: %s\n", mtd->name.name, mtd->name.arity, methodSignature(mtd));
 
   assemInsPo ins = mtd->first;
   while (ins != Null) {

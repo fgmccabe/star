@@ -29,7 +29,7 @@ static void sig_fatal(int sig) {
   star_exit(EXIT_FAIL);
 }
 
-/* Handle the suspension of Go reasonably ... */
+/* Handle suspension reasonably ... */
 static void sig_suspend(int sig) {
   if (!interactive) {
     reset_stdin();    /* Reset the standard input channel */
@@ -77,7 +77,7 @@ void startInterrupts(sigset_t blocked)  /* enable interrupts again */
 
 /* Warning --- important that SIGINT is blocked during this handler */
 
-static void interruptMe(int sig) /* This one is invoked when user presses ^C */
+static void interruptMe(int ignored) /* This one is invoked when user presses ^C */
 {
   star_exit(EXIT_FAIL);    /* We just abort everything */
 }

@@ -22,7 +22,7 @@
 :- use_module(terms).
 
 parseFlags([],CWD,CWD,[],[]).
-parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-
+parseFlags(['-g'|More],CWD,Cx,[insDebugging|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-p'|More],CWD,Cx,[profiling|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
@@ -125,7 +125,7 @@ parseFile(Pkg,Txt,Term) :-
 
 test(Fl) :-
   getCWDUri(CWD),
-  processFile(Fl,CWD,[/*debugging*/]).
+  processFile(Fl,CWD,[/*insDebugging*/]).
 
 getSrcUri(Fl,WD,FU,FUri) :-
   parseURI(Fl,FU),

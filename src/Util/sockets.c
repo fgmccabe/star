@@ -184,22 +184,22 @@ retCode connectRemote(const char *where, int port,
         switch (errno) {    //  Unix version
           case EACCES:
           case EADDRNOTAVAIL:
-            outMsg(logFile, "Address %U not available", host);
+            outMsg(logFile, "Address %s not available", host);
             markHostUnavail(host);
             closeFile(O_IO(conn));
             return Error;
           case ECONNREFUSED:
-            outMsg(logFile, "Connection to %U refused", host);
+            outMsg(logFile, "Connection to %s refused", host);
             markHostUnavail(host);
             closeFile(O_IO(conn));
             return Error;
           case ETIMEDOUT:
-            outMsg(logFile, "Connection to %U timed out", host);
+            outMsg(logFile, "Connection to %s timed out", host);
             markHostUnavail(host);
             closeFile(O_IO(conn));
             return Error;
           case ENETUNREACH:
-            outMsg(logFile, "Network down or %U unreachable", host);
+            outMsg(logFile, "Network down or %s unreachable", host);
             markHostUnavail(host);
             closeFile(O_IO(conn));
             return Error;
@@ -210,7 +210,7 @@ retCode connectRemote(const char *where, int port,
             closeFile(O_IO(conn));
             return Fail;
           default:
-            outMsg(logFile, "Connection to %U refused", host);
+            outMsg(logFile, "Connection to %s refused", host);
             markHostUnavail(host);
             closeFile(O_IO(conn));
             return Error;
@@ -223,7 +223,7 @@ retCode connectRemote(const char *where, int port,
     }
   }
   else {
-    outMsg(logFile, "cant resolve host %U", where);
+    outMsg(logFile, "cant resolve host %s", where);
     return Error;
   }
 }

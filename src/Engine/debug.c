@@ -1,63 +1,56 @@
 // Incremental instruction debugger
 
 #include "engineP.h"
-#include "signature.h"
-#include "libEscapes.h"
 #include <stdlib.h>
 #include <globals.h>
 #include <str.h>
 
 #include "debug.h"
 #include "arith.h"
-#include "term.h"
-
-logical altDebug = False;
-long maxDepth = MAX_INT;
-
-typedef struct _break_point_ *breakPointPo;
 
 typedef struct _break_point_ {
-  short arity;
-  char name[MAX_SYMB_LEN];
-} BreakPoint;
+  char pkgNm[MAX_SYMB_LEN];
+  integer lineNo;
+  integer offset;
+} BreakPoint, *breakPointPo;
 
 static retCode addBreakPoint(breakPointPo bp);
-static logical breakPointHit(char *name, short arity);
+static logical breakPointHit(normalPo loc);
 static retCode clearBreakPoint(breakPointPo bp);
 static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
+static logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
+static logical breakPointInUse(breakPointPo b);
+static void markBpOutOfUse(breakPointPo b);
+
+static inline int32 collect32(insPo *pc) {
+  uint32 hi = (uint32) (*(*pc)++);
+  uint32 lo = (uint32) (*(*pc)++);
+  return (int32) (hi << 16 | lo);
+}
+
+#define collectI32(pc) (collI32(pc))
+#define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 
 retCode g__ins_debug(processPo P, ptrPo a) {
-  debugging = interactive = True;
+  insDebugging = tracing = True;
   return Ok;
 }
 
-/* waiting for next instruction */
-long cmdCounter = 0;
-
-static long cmdCount(char *cmdLine) {
-  int64 count = (long) parseInteger(cmdLine, uniStrLen((char *) cmdLine));
-  if (count == 0)
-    return 1; /* never return 0 */
-  else
-    return count;
+static integer cmdCount(char *cmdLine) {
+  return parseInteger(cmdLine, uniStrLen((char *) cmdLine));
 }
 
 static processPo focus = NULL;
-
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
-
-static void clrCmdLine(char *cmdLine, long len) {
-  strMsg(cmdLine, len, "n\n"); /* default to next instruction */
-}
 
 static BreakPoint breakPoints[10];
 static int breakPointCount = 0;
 
 retCode addBreakPoint(breakPointPo bp) {
   for (int ix = 0; ix < breakPointCount; ix++) {
-    if (breakPoints[ix].arity == -1) {
+    if (!breakPointInUse(&breakPoints[ix])) {
       breakPoints[ix] = *bp;
       return Ok;
     }
@@ -69,24 +62,52 @@ retCode addBreakPoint(breakPointPo bp) {
     return Fail;
 }
 
-logical breakPointHit(char *name, short arity) {
-  for (int ix = 0; ix < breakPointCount; ix++) {
-    if (breakPoints[ix].arity == arity && uniCmp(breakPoints[ix].name, name) == same)
+logical sameBreakPoint(breakPointPo b1, breakPointPo b2) {
+  return (logical) (uniCmp(b1->pkgNm, b2->pkgNm) == same && b1->lineNo == b2->lineNo && b1->offset == b2->offset);
+}
+
+logical isBreakPoint(breakPointPo b, const char *pk, integer lineNo, integer offset) {
+  if (uniCmp(b->pkgNm, pk) == same && b->lineNo == lineNo) {
+    if (offset != -1)
+      return (logical) (b->offset == -1 || b->offset == offset);
+    else
       return True;
   }
   return False;
 }
 
+logical breakPointHit(normalPo loc) {
+  char pkgNm[MAX_SYMB_LEN];
+
+  copyString2Buff(C_STR(nthArg(loc, 0)), pkgNm, NumberOf(pkgNm));
+  integer lineNo = integerVal(nthArg(loc, 1));
+  integer offset = integerVal(nthArg(loc, 2));
+
+  for (int ix = 0; ix < breakPointCount; ix++) {
+    if (isBreakPoint(&breakPoints[ix], pkgNm, lineNo, offset))
+      return True;
+  }
+  return False;
+}
+
+logical breakPointInUse(breakPointPo b) {
+  return (logical) (b->lineNo >= 0);
+}
+
+void markBpOutOfUse(breakPointPo b) {
+  b->lineNo = -1;
+}
+
 retCode clearBreakPoint(breakPointPo bp) {
   for (int ix = 0; ix < breakPointCount; ix++) {
-    if (breakPoints[ix].arity == bp->arity && uniCmp(breakPoints[ix].name, bp->name) == same) {
+    if (sameBreakPoint(bp, &breakPoints[ix])) {
       if (ix == breakPointCount - 1) {
         breakPointCount--;
-        while (breakPointCount >= 0 && breakPoints[breakPointCount].arity == -1)
+        while (!breakPointInUse(&breakPoints[ix]))
           breakPointCount--;
         return Ok;
       } else {
-        breakPoints[ix].arity = -1;
+        markBpOutOfUse(&breakPoints[ix]);
         return Ok;
       }
     }
@@ -95,9 +116,26 @@ retCode clearBreakPoint(breakPointPo bp) {
   return Fail;
 }
 
+/*
+ * A Break point is specified as:
+ * pkg/line
+ * or
+ * pkg/line:off
+ */
+
 static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
   integer b = 0;
   integer ix = 0;
+
+  integer line = -1;
+  integer offset = -1;
+
+  enum {
+    initSte,
+    inPkg,
+    inLine,
+    inOffset
+  } pState = initSte;
 
   while (ix < bLen && buffer[ix] == ' ')
     ix++;
@@ -107,25 +145,79 @@ static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
     switch (cp) {
       case '\n':
       case 0:
-        appendCodePoint(bp->name, &b, NumberOf(bp->name), 0);
-        bp->arity = 0;
-        return Eof;
-      case '/': {
-        appendCodePoint(bp->name, &b, NumberOf(bp->name), 0);
-        integer arity = parseInteger(&buffer[ix], (integer) (bLen - ix));
-        bp->arity = (short) arity;
+        appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), 0);
+        bp->lineNo = line;
+        bp->offset = offset;
         return Ok;
+      case '/': {
+        switch (pState) {
+          case inPkg:
+            appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), 0);
+            pState = inLine;
+            line = 0;
+            continue;
+          default:
+            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
+            return Error;
+        }
       }
+      case ':': {
+        switch (pState) {
+          case inLine:
+            pState = inOffset;
+            offset = 0;
+            continue;
+          default:
+            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
+            return Error;
+        }
+      }
+      case ' ':
+        switch (pState) {
+          case initSte:
+            continue;
+          case inPkg:
+            appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), 0);
+            pState = inLine;
+            line = offset = 0;
+            continue;
+          case inLine:
+            pState = inOffset;
+            continue;
+          case inOffset:
+            continue;
+        }
       default:
-        appendCodePoint(bp->name, &b, NumberOf(bp->name), cp);
-        continue;
+        switch (pState) {
+          case inPkg:
+            appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), cp);
+            continue;
+          case inLine:
+            if (isNdChar(cp)) {
+              line = line * 10 + digitValue(cp);
+              continue;
+            } else {
+              outMsg(logFile, "invalid break point line number: %S\n", buffer, bLen);
+              return Error;
+            }
+          case inOffset:
+            if (isNdChar(cp)) {
+              offset = offset * 10 + digitValue(cp);
+              continue;
+            } else {
+              outMsg(logFile, "invalid break point line offset: %S\n", buffer, bLen);
+              return Error;
+            }
+          case initSte:
+            if (!isSpaceChar(cp)) {
+              pState = inPkg;
+              appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), cp);
+            }
+            continue;
+        }
     }
   }
   return Error;
-}
-
-retCode breakPoint(processPo P) {
-  return Ok;
 }
 
 void dC(termPo w) {
@@ -133,190 +225,304 @@ void dC(termPo w) {
   flushOut();
 }
 
-static retCode showConstant(ioPo out, methodPo mtd, int off) {
+static retCode showConstant(ioPo out, methodPo mtd, integer off) {
   return outMsg(out, " %T", nthArg(mtd->pool, off));
 }
 
 static void showRegisters(heapPo h, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
-void debug_stop(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
-  static char line[256] = {'n', 0};
+static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
+  if (focus == NULL || focus == p) {
+    switch (p->waitFor) {
+      case nextIns:
+        return True;
+      case nextSucc:
+        return (logical) (*pc == Ret);
+      case nextBreak:
+        if (*pc == Line) {
+          int32 litNo = (uint32) (pc[1] << 16 | pc[2]);
+          normalPo ln = C_TERM(getMtdLit(mtd, litNo));
+          if (breakPointHit(ln)) {
+            p->waitFor = nextIns;
+            return True;
+          }
+        }
+        return False;
 
-  static processPo focus = NULL; /* non-null implies only interested in this */
+      case never:
+      default:
+        return False;
+    }
+  } else
+    return False;
+}
+
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp,
+                                 void *cl);
+
+typedef struct {
+  codePoint c;
+  char *usage;
+  void *cl;
+  debugCmd cmd;
+} DebugOption, *debugOptPo;
+
+typedef retCode (*dissCmd)(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl);
+
+static DebugWaitFor
+cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+  static char cmdLine[256];
+
+  while (interactive) {
+    outMsg(logFile, " => ");
+    flushFile(logFile);
+    integer cmdLen = 0;
+
+    retCode res = inLine(stdIn, cmdLine, NumberOf(cmdLine), &cmdLen, "\n");
+
+    if (res == Ok) {
+      for (int ix = 0; ix < optCount; ix++) {
+        if (opts[ix].c == cmdLine[0])
+          return opts[ix].cmd(&cmdLine[1], p, h, mtd, pc, fp, sp, opts[ix].cl);
+      }
+      outMsg(stdErr, "invalid debugger command: %s", cmdLine);
+      for (int ix = 0; ix < optCount; ix++)
+        outMsg(stdErr, "%s\n", opts[ix].usage);
+      flushFile(stdErr);
+      return moreDebug;
+    }
+  }
+  return moreDebug;
+}
+
+static DebugWaitFor
+dbgSingle(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  integer *traceCount = (integer *) cl;
+  *traceCount = cmdCount(line);
+  return nextIns;
+}
+
+static DebugWaitFor dbgQuit(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  return quitDbg;
+}
+
+static DebugWaitFor
+dbgTrace(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  p->tracing = True;
+  return nextBreak;
+}
+
+static DebugWaitFor
+dbgCont(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  p->tracing = False;
+  return nextBreak;
+}
+
+static DebugWaitFor
+dbgShowRegisters(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  showRegisters(h, p, mtd, pc, fp, sp);
+  return moreDebug;
+}
+
+static DebugWaitFor
+dbgShowLocal(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  showRegisters(processHeap(p), p, mtd, pc, fp, sp);
+  return moreDebug;
+}
+
+static DebugWaitFor
+dbgShowCode(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  showRegisters(processHeap(p), p, mtd, pc, fp, sp);
+  return moreDebug;
+}
+
+static DebugWaitFor
+dbgInsDebug(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  SymbolDebug = False;
+  insDebugging = True;
+  return nextIns;
+}
+
+static DebugWaitFor
+dbgSymbolDebug(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  SymbolDebug = True;
+  insDebugging = False;
+  return nextIns;
+}
+
+static DebugWaitFor
+dbgAddBreakPoint(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  BreakPoint bp;
+  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
+  if (ret == Ok)
+    ret = addBreakPoint(&bp);
+  if (ret != Ok)
+    outMsg(logFile, "Could not set spy point on %s\n%_", line);
+  else
+    outMsg(logFile, "spy point set on %s\n%_", line);
+  return moreDebug;
+}
+
+static DebugWaitFor
+dbgClearBreakPoint(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+  BreakPoint bp;
+  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
+  if (ret == Ok)
+    ret = clearBreakPoint(&bp);
+  if (ret != Ok)
+    outMsg(logFile, "Could not clear spy point on %s\n%_", line);
+  else
+    outMsg(logFile, "spy point cleared on %s\n%_", line);
+  return moreDebug;
+}
+
+void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   static integer traceCount = 0;
 
-  if (focus == NULL || focus == p) {
-    insWord PCX = *pc;
+  logical stopping = shouldWeStop(p, mtd, pc);
+  if (p->tracing || stopping) {
+    disass(stdErr, pcCount, p, mtd, pc, fp, sp);
+    if (stopping) {
+      DebugOption opts[] = {
+        {.c = 'n', .cmd=dbgSingle, .usage="n single step", .cl=&traceCount},
+        {.c = '\n', .cmd=dbgSingle, .usage="\\n single step", .cl=&traceCount},
+        {.c='q', .cmd=dbgQuit, .usage="q stop execution", .cl=Null},
+        {.c='t', .cmd=dbgTrace, .usage="t trace mode"},
+        {.c='c', .cmd=dbgCont, .usage="c continue"},
+        {.c='r', .cmd=dbgShowRegisters, .usage="r show registers"},
+        {.c='l', .cmd=dbgShowLocal, .usage="l show local variable"},
+        {.c='i', .cmd=dbgShowCode, .usage="i show instructions"},
+        {.c='+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
+        {.c='-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
+        {.c='S', .cmd=dbgSymbolDebug, .usage="S turn on symbolic mode"},
+      };
 
-    disass(pcCount, p, mtd, pc, fp, sp);
-    if (!interactive || traceCount > 0) {
-      if (traceCount == 0)
-        outMsg(logFile, "\n");
-      else {
-        traceCount--;
-        if (traceCount > 0)
-          outMsg(logFile, "\n");
+      while (interactive) {
+        if (traceCount == 0)
+          p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, fp, sp);
+        else {
+          traceCount--;
+          outStr(stdErr, "\n");
+          flushFile(stdErr);
+        }
+
+        switch (p->waitFor) {
+          case moreDebug:
+            continue;
+          case nextIns:
+          case nextBreak:
+          case never:
+          case nextSucc:
+            return;
+          case quitDbg:
+            exit(0);
+        }
       }
-      flushFile(logFile);
-    }
-
-    while (interactive && traceCount == 0) {
-      char *ln = line;
-      outMsg(logFile, " => ");
-      flushFile(logFile);
-
-      codePoint ch;
-      retCode res = inChar(stdIn, &ch);
-
-      if (res == Ok && ch != '\n') {
-        do {
-          *ln++ = (char) ch;
-          res = inChar(stdIn, &ch);
-        } while (ch != '\n' && res == Ok);
-        *ln++ = '\0';
-      }
-
-      switch (line[0]) {
-        case ' ':
-        case 'n':
-          cmdCounter = cmdCount(line + 1);
-          tracing = True;
-          clrCmdLine(line, NumberOf(line));
-          p->waitFor = nextIns;
-          break;
-        case '\n':
-          break;
-        case 'f':
-          focus = p;
-          clrCmdLine(line, NumberOf(line));
-          break;
-        case 'u':
-          focus = NULL;
-          clrCmdLine(line, NumberOf(line));
-          break;
-        case 'q':
-          outMsg(logFile, "terminating session");
-          exit(0);
-
-        case 't':
-          interactive = False;
-          break;
-        case 'c':
-          tracing = False;
-          break;
-        case 'r':      /* dump the registers */
-          showRegisters(processHeap(p), p, mtd, pc, fp, sp);
-          clrCmdLine(line, NumberOf(line));
-          continue;
-        case 'l': {    /* dump a local variable */
-          logMsg(logFile, "not implemented\n");
-          continue;
-        }
-        case 'P': {    /* Display all processes */
-          logMsg(logFile, "not implemented\n");
-          continue;
-        }
-
-        case 's':      /* Show a stack trace of this process */
-          logMsg(logFile, "not implemented\n");
-          continue;
-
-        case '0':
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9': {
-          traceCount = parseInteger(line, uniStrLen(line));
-          continue;
-        }
-
-        case 'i': {
-          integer off = parseInteger(line + 1, uniStrLen(line + 1));
-          integer i;
-          insPo pc0 = pc;
-
-          for (i = 0; i < off; i++) {
-            pc0 = disass(pcCount + i, p, mtd, pc0, fp, sp);
-            outChar(logFile, '\n');
-          }
-
-          clrCmdLine(line, NumberOf(line));
-          continue;
-        }
-
-        default:
-          outMsg(logFile, "'n' = step, 'c' = continue, 't' = trace mode, 'q' = stop\n");
-          outMsg(logFile, "'<n>' = step <n>\n");
-          outMsg(logFile, "'r' = registers, 'l <n>' = local\n");
-          outMsg(logFile, "'i'<n> = list n instructions, 's' = stack trace\n");
-          outMsg(logFile, "'f' = focus on this process, 'u' = unfocus \n");
-          continue;
-      }
-      return;
+    } else {
+      outStr(stdErr, "\n");
+      flushFile(stdErr);
     }
   }
 }
 
-static void showLine(ioPo out, termPo ln) {
+static void showLine(ioPo out, termPo ln, methodPo mtd) {
   if (isNormalPo(ln)) {
     normalPo line = C_TERM(ln);
-    if (labelCmp(line->lbl, locLbl) == same) {
-      outMsg(out, "%T:%T(%T)\n", nthArg(line, 0), nthArg(line, 1), nthArg(line, 4));
-      flushFile(out);
-      return;
+    integer pLen;
+    const char *pkgNm = stringVal(nthArg(line, 0), &pLen);
+    outMsg(out, "%S:%T(%T) %T", pkgNm, pLen, nthArg(line, 1), nthArg(line, 4), nthArg(codeLits(mtd), 0));
+    flushFile(out);
+    return;
+  } else
+    outMsg(out, "line: %T\n", ln);
+}
+
+void lineDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp) {
+  static integer traceCount = 0;
+
+  logical stopping = shouldWeStop(p, mtd, pc);
+  if (p->tracing || stopping) {
+    showLine(logFile, ln, mtd);
+    if (stopping) {
+      DebugOption opts[] = {
+        {.c = 'n', .cmd=dbgSingle, .usage="n single step", .cl=&traceCount},
+        {.c = '\n', .cmd=dbgSingle, .usage="\\n single step", .cl=&traceCount},
+        {.c='q', .cmd=dbgQuit, .usage="q stop execution", .cl=Null},
+        {.c='t', .cmd=dbgTrace, .usage="t trace mode"},
+        {.c='c', .cmd=dbgCont, .usage="c continue"},
+        {.c='r', .cmd=dbgShowRegisters, .usage="r show registers"},
+        {.c='l', .cmd=dbgShowLocal, .usage="l show local variable"},
+        {.c='i', .cmd=dbgShowCode, .usage="i show instructions"},
+        {.c='+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
+        {.c='-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
+        {.c='s', .cmd=dbgInsDebug, .usage="s turn on instruction mode"},
+      };
+
+      while (interactive) {
+        if (traceCount == 0)
+          p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, fp, sp);
+        else {
+          traceCount--;
+          outStr(stdErr, "\n");
+          flushFile(stdErr);
+        }
+
+        switch (p->waitFor) {
+          case moreDebug:
+            continue;
+          case nextIns:
+          case nextBreak:
+          case never:
+          case nextSucc:
+            return;
+          case quitDbg:
+            exit(0);
+        }
+      }
+    } else {
+      outStr(stdErr, "\n");
+      flushFile(stdErr);
     }
   }
-  outMsg(out, "line: %T\n", ln);
+
 }
 
-void debug_line(integer pcCount, processPo p, termPo line) {
-  showLine(logFile, line);
-}
-
-#define collectI32(pc) (collI32(pc))
-#define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
-
-static retCode showArg(integer arg, methodPo mtd, framePo fp, ptrPo sp) {
+static retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null)
-    return outMsg(logFile, " a[%d] = %T", arg, fp->args[arg - 1]);
+    return outMsg(out, " a[%d] = %T", arg, fp->args[arg - 1]);
   else
-    return outMsg(logFile, " a[%d]", arg);
+    return outMsg(out, " a[%d]", arg);
 }
 
-static retCode showLcl(integer vr, methodPo mtd, framePo fp, ptrPo sp) {
+static retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null)
-    return outMsg(logFile, " l[%d] = %T", vr, *localVar(fp, vr));
+    return outMsg(out, " l[%d] = %T", vr, *localVar(fp, vr));
   else
-    return outMsg(logFile, " l[%d]", vr);
+    return outMsg(out, " l[%d]", vr);
 }
 
-insPo disass(integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+insPo disass(ioPo out, integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   int32 hi32, lo32;
 
   integer offset = (integer) (pc - entryPoint(mtd));
 
-  outMsg(logFile, "0x%x[%d]: %T(%d) ", pc, pcCount, nthArg(codeLits(mtd), 0), offset);
+  outMsg(out, "0x%x[%d]: %T(%d) ", pc, pcCount, nthArg(codeLits(mtd), 0), offset);
 
   switch (*pc++) {
 #undef instruction
 
 #define show_nOp
-#define show_i32 outMsg(logFile," #%d",collectI32(pc))
-#define show_arg showArg(collectI32(pc),mtd,fp,sp)
-#define show_lcl showLcl(collectI32(pc),mtd,fp,sp)
-#define show_lcs outMsg(logFile," l[%d]",collectI32(pc))
-#define show_off outMsg(logFile," PC[%d]",collectI32(pc))
-#define show_Es outMsg(logFile, " %U", getEscape(collectI32(pc))->name)
-#define show_lit outMsg(logFile," %T",nthArg(mtd->pool, collectI32(pc)))
+#define show_i32 outMsg(out," #%d",collectI32(pc))
+#define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
+#define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
+#define show_lcs outMsg(out," l[%d]",collectI32(pc))
+#define show_off outMsg(out," PC[%d]",collectI32(pc))
+#define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
+#define show_lit showConstant(out,mtd,collectI32(pc))
 
 #define instruction(Op, A1, Cmt)    \
     case Op:          \
-      outMsg(logFile," %s",#Op);    \
+      outMsg(out," %s",#Op);    \
       show_##A1;        \
   return pc;
 

@@ -21,11 +21,11 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         debugAssem = True;
         continue;
 #else
-      logMsg(logFile,"Assembly debugging not enabled\n");
+      logMsg(logFile,"Assembly insDebugging not enabled\n");
       return Error;
 #endif
 
-      case 'p':    /* help with debugging the parser */
+      case 'p':    /* help with insDebugging the parser */
 #ifdef DEBUGPARSE
         ss_flex_debug = 1;
         ssdebug = 1;
@@ -36,7 +36,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 #endif
         break;
 
-      case 'l':    /* help with debugging the tokenizer */
+      case 'l':    /* help with insDebugging the tokenizer */
 #ifdef DEBUGPARSE
         ss_flex_debug = 1;
         continue;
@@ -52,7 +52,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         ssdebug = 1;
         debugAssem = True;
 #else
-      logMsg(logFile,"debugging not enabled\n");
+      logMsg(logFile,"insDebugging not enabled\n");
       return Error;
 #endif
       default:

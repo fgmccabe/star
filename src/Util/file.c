@@ -258,7 +258,7 @@ retCode fileInReady(ioPo io) {
       else
         return Fail;
     } else
-      return ioErrorMsg(io, "%U does not permit read access", fileName(io));
+      return ioErrorMsg(io, "%s does not permit read access", fileName(io));
   }
 }
 
@@ -286,7 +286,7 @@ retCode fileOutReady(ioPo io) {
       else
         return Fail;
     } else
-      return ioErrorMsg(io, "%U does not permit write access", fileName(io));
+      return ioErrorMsg(io, "%s does not permit write access", fileName(io));
   }
 }
 
@@ -302,7 +302,7 @@ retCode fileSeek(ioPo io, integer count) {
   flushFile(io);
 
   if (lseek(f->file.fno, count, SEEK_SET) == -1)
-    return ioErrorMsg(io, "problem %s (%d) in positioning %U", strerror(errno), errno,
+    return ioErrorMsg(io, "problem %s (%d) in positioning %s", strerror(errno), errno,
                       fileName(O_IO(f)));
   else {
     f->file.in_pos = f->file.out_pos = 0;
@@ -337,7 +337,7 @@ retCode fileClose(ioPo io) {
             ret = Interrupt;
             break;
           default:
-            ret = ioErrorMsg(io, "problem %s (%d) in closing %U", strerror(errno), errno, fileName(io));
+            ret = ioErrorMsg(io, "problem %s (%d) in closing %s", strerror(errno), errno, fileName(io));
             break;
         }
       } else {
@@ -459,7 +459,7 @@ retCode fileFlush(filePo f, long count) {
           return Fail;
         default:
           return ioErrorMsg(O_IO(f),
-                            "Problem %s (%d) in writing to %U", strerror(errno), errno,
+                            "Problem %s (%d) in writing to %s", strerror(errno), errno,
                             fileName(O_IO(f)));
       }
     } else {
@@ -540,7 +540,7 @@ retCode fileConfigure(filePo f, ioConfigOpt mode) {
       else if(errno==EINVAL)	// not an error, just a failure
         return Fail;
       else
-        return ioErrorMsg(O_IO(f),"problem %s (%d) in configuring %U",strerror(errno),errno,fileName(f));
+        return ioErrorMsg(O_IO(f),"problem %s (%d) in configuring %s",strerror(errno),errno,fileName(f));
 #else
       if (fno > 2 && fcntl(fno, F_SETOWN, getpid()) < 0)
         logMsg(logFile, "Warning: couldnt set ownership of fd %d", fno);
@@ -554,7 +554,7 @@ retCode fileConfigure(filePo f, ioConfigOpt mode) {
         return Ok;
       else
         return ioErrorMsg(O_IO(f),
-        "problem %s (%d) in configuring %U",strerror(errno),errno,
+        "problem %s (%d) in configuring %s",strerror(errno),errno,
                           fileName(O_IO(f)));
 #else
       flag &= ~O_ASYNC;  // We no longer want to receive interrupts
@@ -565,7 +565,7 @@ retCode fileConfigure(filePo f, ioConfigOpt mode) {
   }
 
   if (fcntl(fno, F_SETFL, flag) == -1)
-    return ioErrorMsg(O_IO(f), "problem %s (%d) in configuring %U",
+    return ioErrorMsg(O_IO(f), "problem %s (%d) in configuring %s",
                       strerror(errno), errno, fileName(O_IO(f)));
   else
     return Ok;
@@ -864,12 +864,12 @@ void reset_stdin(void) {
 
 retCode rewindFile(filePo f) {
   if (!isSubClass(classOfObject(O_OBJECT(f)), fileClass))
-    return ioErrorMsg(O_IO(f), "%U is not a regular file", fileName(O_IO(f)));
+    return ioErrorMsg(O_IO(f), "%s is not a regular file", fileName(O_IO(f)));
 
   flushFile(O_IO(f));
 
   if (lseek(f->file.fno, 0, 0) == -1)
-    return ioErrorMsg(O_IO(f), "problem %s (%d) in rewinding %U", strerror(errno), errno,
+    return ioErrorMsg(O_IO(f), "problem %s (%d) in rewinding %s", strerror(errno), errno,
                       fileName(O_IO(f)));
   else {
     f->file.in_pos = f->file.out_pos = 0;

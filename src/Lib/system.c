@@ -205,7 +205,11 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 
       bufferPo lineBf = newStringBuffer();
 
-      outMsg(O_IO(lineBf), "%S = %S", nthArg(pair, 0), nthArg(pair, 1));
+      integer klen,vlen;
+      const char *key = stringVal(nthArg(pair,0),&klen);
+      const char *val = stringVal(nthArg(pair,1),&vlen);
+
+      outMsg(O_IO(lineBf), "%S = %S", key,klen, val,vlen);
 
       integer lineLen;
       const char *line = getTextFromBuffer(&lineLen, lineBf);
@@ -302,7 +306,11 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
 
       bufferPo lineBf = newStringBuffer();
 
-      outMsg(O_IO(lineBf), "%S = %S", nthArg(pair, 0), nthArg(pair, 1));
+      integer klen,vlen;
+      const char *key = stringVal(nthArg(pair,0),&klen);
+      const char *val = stringVal(nthArg(pair,1),&vlen);
+
+      outMsg(O_IO(lineBf), "%S = %S", key,klen, val,vlen);
 
       integer lineLen;
       const char *line = getTextFromBuffer(&lineLen, lineBf);
