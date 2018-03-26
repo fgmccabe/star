@@ -1,7 +1,7 @@
 {
 	"content": {
+	  "star.d" : "d.star",
 		"star": "star.star",
-		"star.arith" : "arith.star",
 		"lo.action" : "action.lo",
 		"lo.array": "arrays.lo",
 		"lo.boot": "boot.lo",
@@ -14,7 +14,7 @@
 		"lo.index": "index.lo",
 		"lo.io": "io.lo",
 		"lo.json": "json.lo",
-		"star.lists": "lists.star",
+		"lo.list": "lists.lo",
 		"lo.monad": "monad.lo",
 		"lo.option": "optionmonad.lo",
 		"lo.options": "options.lo",
@@ -26,8 +26,6 @@
 		"lo.repo.file": "filerepo.lo",
 		"lo.repo.manifest": "manifest.lo",
 		"lo.resources": "resources.lo",
-		"star.sequence" : "sequence.star",
-		"star.string" : "strings.star",
 		"lo.sets": "sets.lo",
 		"lo.sort": "sort.lo",
 		"lo.topsort": "topsort.lo",

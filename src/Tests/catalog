@@ -1,0 +1,7 @@
+{
+	"content": {
+	  "star.d" : "d.star",
+	},
+	"version": "1.0.0",
+	"default": "../Star/catalog"
+}

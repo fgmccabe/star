@@ -58,6 +58,12 @@ escapeType("_nthb",funType(tupleType([type("star.core*integer"),type("star.core*
 escapeType("_cell",univType(kVar("t"),funType(tupleType([kVar("t")]),ref(kVar("t"))))).
 escapeType("_get",univType(kVar("t"),funType(tupleType([ref(kVar("t"))]),kVar("t")))).
 escapeType("_assign",univType(kVar("t"),funType(tupleType([ref(kVar("t")),kVar("t")]),ref(kVar("t"))))).
+escapeType("_list_empty",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),type("star.core*boolean")))).
+escapeType("_list_size",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),type("star.core*integer")))).
+escapeType("_list_nth",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),kVar("t")))).
+escapeType("_list_append",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_prepend",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_slice",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer"),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
 escapeType("_cd",funType(tupleType([type("star.core*string")]),tpFun("star.core*resultType",0))).
@@ -241,6 +247,12 @@ isEscape("_nthb").
 isEscape("_cell").
 isEscape("_get").
 isEscape("_assign").
+isEscape("_list_empty").
+isEscape("_list_size").
+isEscape("_list_nth").
+isEscape("_list_append").
+isEscape("_list_prepend").
+isEscape("_list_slice").
 isEscape("_get_file").
 isEscape("_cwd").
 isEscape("_cd").

@@ -40,7 +40,7 @@ processPo newProcess(methodPo mtd) {
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
-  P->waitFor = insDebugging ? nextIns : never;
+  P->waitFor = (insDebugging||lineDebugging) ? nextIns : never;
   P->tracing = tracing;
   P->hasEnter = False;
 

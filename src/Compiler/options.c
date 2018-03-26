@@ -154,7 +154,7 @@ static logical isDigit(char ch)
   return ch>='0' && ch<='9';
 }
 
-long parseSize(char *text)
+integer parseSize(char *text)
 {
   char *p = text;
   long scale = 1;

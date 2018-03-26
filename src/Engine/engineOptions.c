@@ -11,6 +11,7 @@
 #include "debug.h"
 
 #include "manifest.h"
+#include "engineOptions.h"
 
 long initHeapSize = 200 * 1024;    /* How much memory to give the heap */
 long initStackSize = 1024;      /* How big is the stack */
@@ -18,7 +19,7 @@ long initStackSize = 1024;      /* How big is the stack */
 logical insDebugging = False;  // instruction tracing option
 logical tracing = False;      /* tracing option */
 logical enableVerify = True;  // true if we wish to enable code verification
-logical SymbolDebug = False;  // symbolic insDebugging generation
+// symbolic insDebugging generation
 logical traceVerify = False;  // true if tracing code verification
 logical traceMessage = False;  // true if tracing message passing
 logical tracePut = False;  // true if tracing term freeze
@@ -37,7 +38,7 @@ char entry[MAX_SYMB_LEN] = "star.boot@__boot";  // entry point class
 char debugPkg[MAX_SYMB_LEN] = "";  // Standard debug package
 
 static int optCount = 0;                /* How many do we have? */
-static long parseSize(char *text);
+static integer parseSize(char *text);
 
 static retCode displayVersion(char *option, logical enable, void *cl) {
   return outMsg(logFile, "%s", version);
@@ -47,9 +48,9 @@ static logical isDigit(char ch) {
   return (logical) (ch >= '0' && ch <= '9');
 }
 
-long parseSize(char *text) {
+integer parseSize(char *text) {
   char *p = text;
-  int scale = 1;
+  integer scale = 1;
   while (*p != '\0' && isDigit(*p))
     p++;
   if (*p != '\0') {
@@ -70,7 +71,7 @@ long parseSize(char *text) {
     }
     *p = '\0';
   }
-  return atoi(text) * scale;
+  return parseInteger(text,uniStrLen(text))*scale;
 }
 
 void defltCWD() {
@@ -141,7 +142,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 'G':    /* Internal symbolic tracing */
 #ifdef TRACEEXEC
-        SymbolDebug = True;
+        lineDebugging = True;
         interactive = False;
         continue;
 #else
@@ -150,7 +151,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 #endif
 
       case 'g':    /* Internal symbolic insDebugging */
-        SymbolDebug = True;
+        lineDebugging = True;
         interactive = True;
         continue;
 
@@ -185,9 +186,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case '*':    /* trace everything */
 #ifdef ALLTRACE
-        insDebugging = True;
-        tracing = True;
-        interactive = True;
         traceVerify = True;
         traceCount = True;
         traceMessage = True;
@@ -219,7 +217,7 @@ static retCode setRepoDir(char *option, logical enable, void *cl) {
 }
 
 static retCode symbolDebug(char *option, logical enable, void *cl) {
-  SymbolDebug = True;  /* turn on symbolic insDebugging */
+  lineDebugging = True;  /* turn on symbolic insDebugging */
   interactive = True;       // Initially its also interactive
   return Ok;
 }
@@ -272,6 +270,8 @@ Option options[] = {
   {'V', "verify",       False, setVerify,      Null, "-V|--verify"},
   {'h', "heap",         True,  setHeapSize,    Null, "-h|--heap <size>"},
   {'s', "stack",        True,  setStackSize,   Null, "-s|--stack <size>"},};
+
+logical lineDebugging = False;
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

@@ -38,13 +38,12 @@ static inline logical isMethod(termPo m) {
   return hasClass(m, methodClass);
 }
 
-static inline methodPo clMethod(termPo cl) {
-  assert(isMethod(cl));
-  return (methodPo) cl;
-}
-
 static inline insPo entryPoint(methodPo mtd) {
   return &mtd->code[0];
+}
+
+static inline integer insCount(methodPo mtd){
+  return mtd->codeSize;
 }
 
 static inline int64 argCount(methodPo cl) {

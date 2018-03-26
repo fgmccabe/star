@@ -89,6 +89,13 @@ escape(_cell,False,False,":k't'F(k't')rk't'","create a reference cell")
 escape(_get,False,False,":k't'F(rk't')k't'","access contents of reference cell")
 escape(_assign,False,False,":k't'F(rk't'k't')rk't'","update contents of reference cell")
 
+escape(_list_empty,False,False,":k't'F(Lk't')l","is the list empty")
+escape(_list_size,False,False,":k't'F(Lk't')i","compute the size of a list")
+escape(_list_nth,False,False,":k't'F(Lk't'i)k't'","access element of a list")
+escape(_list_append,False,False,":k't'F(Lk't'k't')Lk't'","append element to a list")
+escape(_list_prepend,False,False,":k't'F(Lk't'k't')Lk't'","prepend element to a list")
+escape(_list_slice,False,False,":k't'F(Lk't'ii)Lk't'","slice a list")
+
 /*
 
 escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bound")

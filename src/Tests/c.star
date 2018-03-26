@@ -7,7 +7,6 @@ star.core {
     hash(X) => optHash(X).
   .}
 
-
   optHash:all t ~~ equality[t] |: (option[t]) => integer.
   optHash(none) => 0.
   optHash(some(X)) => hash(X).
@@ -19,10 +18,9 @@ star.core {
     hash: (x)=>integer.
   }
 
-/*
   public (=!=):all x ~~ equality[x] |: (x,x)=>boolean.
   x =!= y => \+ x==y.
-*/
+
   public implementation equality[string] => {
     X == Y => _str_eq(X,Y).
     hash(X) => _str_hash(X).

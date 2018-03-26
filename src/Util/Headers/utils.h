@@ -35,8 +35,15 @@ static long inline maxl(long a, long b) {
     return b;
 }
 
-static integer inline minimum(integer a,integer b){
-  if(a<b)
+static integer inline minimum(integer a, integer b) {
+  if (a < b)
+    return a;
+  else
+    return b;
+}
+
+static integer inline maximum(integer a, integer b) {
+  if (a > b)
     return a;
   else
     return b;

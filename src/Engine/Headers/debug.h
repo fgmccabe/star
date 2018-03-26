@@ -7,12 +7,12 @@
 
 #include "engine.h"
 
-extern logical SymbolDebug;
-extern long cmdCounter;
-
 extern void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 extern void lineDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp);
-extern insPo disass(ioPo out, integer pcCount, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+extern void callDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp);
+extern void tailDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp);
+extern void retDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp);
+
 extern void countIns(insWord ins);
 extern void dumpInsCount();
 

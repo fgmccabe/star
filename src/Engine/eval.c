@@ -13,7 +13,6 @@
 #include "arithP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
-
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+hi32)
 
 #define push(X) *--SP = ((termPo)(X))
@@ -58,8 +57,16 @@ retCode run(processPo P) {
         return Ok;
 
       case Call: {
+        termPo nProg = nthArg(LITS, collectI32(PC));
+
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          callDebug(P, heap, PROG, nProg, PC, FP, SP);
+        }
+#endif
+
         push(PROG);
-        PROG = labelCode(C_LBL(nthArg(LITS, collectI32(PC))));   // Which program do we want?
+        PROG = labelCode(C_LBL(nProg));   // Which program do we want?
         push(PC);       // Set up for a return
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -70,10 +77,17 @@ retCode run(processPo P) {
       }
 
       case OCall: {        /* Call tos a1 .. an -->   */
-        termPo NP = SP[1];
+        termPo nProg = SP[1];
+
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          callDebug(P, heap, PROG, nProg, PC, FP, SP);
+        }
+#endif
+
         push(PROG);
         push(PC);       /* build up the frame. */
-        labelPo oLbl = isNormalPo(NP) ? termLbl(C_TERM(NP)) : C_LBL(NP);
+        labelPo oLbl = isNormalPo(nProg) ? termLbl(C_TERM(nProg)) : C_LBL(nProg);
         PROG = labelCode(objLabel(oLbl));       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -101,13 +115,21 @@ retCode run(processPo P) {
       }
 
       case Tail: {       /* Tail call of explicit program */
+        termPo nProg = nthArg(LITS, collectI32(PC));
+
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          tailDebug(P, heap, PROG, nProg, PC, FP, SP);
+        }
+#endif
+
         // Pick up existing frame
         framePo oldFp = FP->fp;
         insPo oldRtn = FP->rtn;
         methodPo oldPROG = FP->prog;
         integer oldArgCnt = argCount(PROG);
 
-        labelPo prog = C_LBL(nthArg(LITS, collectI32(PC)));
+        labelPo prog = C_LBL(nProg);
 
         PROG = labelCode(prog);   // Which program do we want?
 
@@ -136,14 +158,21 @@ retCode run(processPo P) {
       }
 
       case OTail: {       /* Tail call */
+        termPo nProg = SP[1];
+
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          tailDebug(P, heap, PROG, nProg, PC, FP, SP);
+        }
+#endif
+
         // Pick up existing frame
         framePo oldFp = FP->fp;
         insPo oldRtn = FP->rtn;
         methodPo oldPROG = FP->prog;
         integer oldArgCnt = argCount(PROG);
-        termPo NP = SP[1];
 
-        labelPo oLbl = isNormalPo(NP) ? termLbl(C_TERM(NP)) : C_LBL(NP);
+        labelPo oLbl = isNormalPo(nProg) ? termLbl(C_TERM(nProg)) : C_LBL(nProg);
         PROG = labelCode(objLabel(oLbl));       /* set up for object call */
 
         // slide new arguments over old frame
@@ -185,8 +214,15 @@ retCode run(processPo P) {
       }
 
       case Ret: {        /* return from function */
+        termPo ret = *SP;     /* return value */
+
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          retDebug(P, heap, PROG, ret, PC, FP, SP);
+        }
+#endif
+
         int64 argCnt = argCount(PROG);
-        termPo ret = *SP;     /* and return value */
 
         SP = (ptrPo) FP;     /* reset stack */
 
@@ -379,8 +415,7 @@ retCode run(processPo P) {
 
       case Line: {
 #ifdef TRACEEXEC
-
-        if (SymbolDebug) {
+        if (lineDebugging) {
           termPo ln = nthArg(LITS, collectI32(PC));
           lineDebug(P, heap, PROG, ln, PC, FP, SP);
         } else

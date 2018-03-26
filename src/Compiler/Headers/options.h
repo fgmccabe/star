@@ -13,7 +13,7 @@ extern long heapSize;   /* How much memory to give the heap */
 extern long stackSize;      /* How big is the stack */
 
 
-extern long parseSize(char *text);
+extern integer parseSize(char *text);
 
 
 extern int getOptions(int argc, char **argv);

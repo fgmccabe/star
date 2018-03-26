@@ -23,7 +23,7 @@ set(SOURCE_FILES
         libEscapes.c
         clock.c
         show.c
-        system.c arithmetic.c unicode.c assigns.c Headers/assigns.h ioops.c Headers/ioops.h locks.c Headers/locks.h fileops.c Headers/fileops.h netfile.c Headers/netfile.h stringops.c Headers/stringops.h datentime.c Headers/datentime.h threds.c Headers/threds.h lblops.c Headers/lblops.h turm.c Headers/turm.h pkgops.c Headers/pkgops.h)
+        system.c arithmetic.c unicode.c assigns.c Headers/assigns.h ioops.c Headers/ioops.h locks.c Headers/locks.h fileops.c Headers/fileops.h netfile.c Headers/netfile.h stringops.c Headers/stringops.h datentime.c Headers/datentime.h threds.c Headers/threds.h lblops.c Headers/lblops.h turm.c Headers/turm.h pkgops.c Headers/pkgops.h listops.c Headers/listops.h)
 
 add_library(escapes STATIC ${SOURCE_FILES})
 

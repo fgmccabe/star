@@ -1,3 +1,0 @@
-func #(Name)(#(Args)) Term {
-  #(Body)
-}

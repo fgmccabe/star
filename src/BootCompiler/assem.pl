@@ -161,3 +161,4 @@ mkIns((O,A),Tpl) :-
     mkTpl([intgr(O),WA],Tpl).
 mkIns(O,intgr(O)) :- number(O).
 mkIns(S,strg(S)) :- string(S).
+

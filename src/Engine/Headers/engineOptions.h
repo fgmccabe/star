@@ -21,6 +21,7 @@ extern char copyRight[];
 
 extern logical tracing;        /* tracing option */
 extern logical insDebugging;
+extern logical lineDebugging;
 extern logical interactive;      /* interactive instruction tracing option */
 extern logical traceCount;
 
@@ -37,6 +38,7 @@ extern char bootVer[MAX_SYMB_LEN];
 
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];
+
 
 int getOptions(int argc, char **argv);
 void usage(char *name);
