@@ -1,6 +1,8 @@
 {
 	"content": {
-	  "star.d" : "d.star",
+	  "test.d" : "d.star",
+		"test.e" : "e.star",
+		"test.fact" : "fact.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"

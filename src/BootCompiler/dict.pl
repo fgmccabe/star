@@ -154,9 +154,11 @@ makeKey(Id,Key) :-
 
 stdDict(Base) :-
   pushScope([],B),
-  stdType("int",IntTp),
-  stdType("string",StrTp),
-  stdType("float",FltTp),
-  declareType("string",tpDef(std,StrTp,typeExists(StrTp,faceType([],[]))),B,B0),
-  declareType("integer",tpDef(std,IntTp,typeExists(IntTp,faceType([],[]))),B0,B1),
-  declareType("float",tpDef(std,FltTp,typeExists(FltTp,faceType([],[]))),B1,Base).
+  stdType("int",IntTp,ITpEx),
+  stdType("string",StrTp,StpEx),
+  stdType("float",FltTp,FtEx),
+  declareType("string",tpDef(std,StrTp,StpEx),B,B0),
+  declareType("integer",tpDef(std,IntTp,ITpEx),B0,B1),
+  declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
+  stdType("list",LstTp,LTp),
+  declareType("list",tpDef(std,LstTp,LTp),B2,Base).

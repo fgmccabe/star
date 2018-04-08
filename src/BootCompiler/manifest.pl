@@ -27,12 +27,12 @@ jsonVersions(P,[V|L],[Vers|More]) :-
   jsonVersion(P,V,Vers),
   jsonVersions(P,L,More).
 
-jsonVersion(P,("*",jColl(Dtl)),(pkg(P,defltVersion),Sig,SrcUri,fl(Code))) :-!,
+jsonVersion(_,("*",jColl(Dtl)),(defltVersion,Sig,SrcUri,fl(Code))) :-!,
   is_member(("source",jTxt(Src)),Dtl),
   is_member(("code",jTxt(Code)),Dtl),
   is_member(("signature",jTxt(Sig)),Dtl),
   parseURI(Src,SrcUri).
-jsonVersion(P,(V,jColl(Dtl)),(pkg(P,ver(V)),Sig,SrcUri,fl(Code))) :-
+jsonVersion(_,(V,jColl(Dtl)),(ver(V),Sig,SrcUri,fl(Code))) :-
   is_member(("source",jTxt(Src)),Dtl),
   is_member(("code",jTxt(Code)),Dtl),
   is_member(("signature",jTxt(Sig)),Dtl),
@@ -61,7 +61,7 @@ showVersions([V|M],O,Ox) :-
   showVersion(V,O,O1),
   showVersions(M,O1,Ox).
 
-showVersion((pkg(_,V),Sig,U,F),O,Ox) :-
+showVersion((V,Sig,U,F),O,Ox) :-
   appStr("    ",O,O1),
   showV(V,O1,O2),
   appStr(":",O2,O3),
@@ -93,12 +93,12 @@ manifestVersions([V|L],[J|M]) :-
   manifestVersion(V,J),
   manifestVersions(L,M).
 
-manifestVersion((pkg(_,defltVersion),Uri,Sig,fl(CodeFn)), ("*",VV)) :-
-  manifestDetails(CodeFn,Uri,Sig,VV).
-manifestVersion((pkg(_,ver(Ver)),Uri,Sig,fl(CodeFn)), (Ver,VV)) :-
-  manifestDetails(CodeFn,Uri,Sig,VV).
+manifestVersion((defltVersion,Sig,Uri,fl(CodeFn)), ("*",VV)) :-
+  manifestDetails(CodeFn,Sig,Uri,VV).
+manifestVersion((ver(Ver),Sig,Uri,fl(CodeFn)), (Ver,VV)) :-
+  manifestDetails(CodeFn,Sig,Uri,VV).
 
-manifestDetails(Fn,Uri,Sig,jColl([("source",jTxt(U)),("code",jTxt(Fn)),("signature",jTxt(Sig))])) :-
+manifestDetails(Fn,Sig,Uri,jColl([("source",jTxt(U)),("code",jTxt(Fn)),("signature",jTxt(Sig))])) :-
   showUri(Uri,C,[]),
   string_chars(U,C).
 

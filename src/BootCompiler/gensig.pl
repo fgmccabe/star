@@ -36,7 +36,7 @@ encImports([I|M],[IP|L]) :-
   encImport(I,IP),
   encImports(M,L).
 
-encImport(import(Viz,Pkg,_,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
+encImport(import(Viz,Pkg,_,_,_,_),ctpl(lbl("import",2),[enum(Viz),Enc])) :-
   encPkg(Pkg,Enc).
 
 formatEnums([],[]).

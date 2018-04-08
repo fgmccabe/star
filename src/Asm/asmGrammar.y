@@ -145,13 +145,13 @@ trailer: END nls { endFunction(currMtd); }
    | PULL DECIMAL { APull(currMtd,$2); }
    | ROT DECIMAL { ARot(currMtd,$2); }
    | LD LBRA DECIMAL RBRA { ANth(currMtd,$3); }
+   | LD ID { ALdG(currMtd,$2); }
    ;
 
  store: ST L LBRA local RBRA { AStL(currMtd,$4); }
    | ST LBRA local RBRA { AStNth(currMtd,$3); }
+   | ST ID { AStG(currMtd,$2); }
    | T L LBRA local RBRA { ATL(currMtd,$4); }
-   | CAS label { ACas(currMtd,$2); }
-
    ;
 
  local: ID {

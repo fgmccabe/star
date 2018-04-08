@@ -61,6 +61,7 @@ extern int32 findLocal(mtdPo mtd, const char *name);
 #define oplit(X) ,int32 i##X
 #define opoff(X) ,lPo l##X
 #define opEs(X) ,char * f##X
+#define opglb(X) ,char * f##X
 
 #define instruction(Op,A1,Cmt) \
 extern retCode A##Op(mtdPo mtd op##A1(1));
@@ -76,5 +77,6 @@ extern retCode A##Op(mtdPo mtd op##A1(1));
 #undef oplit
 #undef opoff
 #undef opEs
+#undef opglb
 
 #endif

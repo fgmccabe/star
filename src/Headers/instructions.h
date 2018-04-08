@@ -34,18 +34,21 @@ instruction(Pull,i32,"copy nth stack entry to top of stack")
 instruction(Rot,i32,"rotate nth stack entry to top of stack")
 instruction(Rst,i32,"reset stack height to a fixed height")
 
+instruction(LdG,glb,"load a global variable")
 instruction(LdC,lit,"load literal from constant pool")
 instruction(LdA,arg,"load stack from args[xx]")
 instruction(LdL,lcl,"load stack from local[xx]")
 instruction(StL,lcs,"store tos to local[xx]")
 instruction(TL,lcs,"copy tos to local[xx]")
 instruction(StA,arg,"store tos to args[xx]")
+instruction(StG,glb,"store into a global variable")
 
-instruction(CLbl,off,"T --> Lbl, test for a data term, branch if not")
+
+instruction(CLbl,off,"T,Lbl --> test for a data term, branch if not")
 instruction(Nth,i32,"T --> el, pick up the nth element")
 instruction(StNth,i32,"T el --> store in nth element")
 
-instruction(Case,i32,"T --> , case <Max> ")
+instruction(Case,i32,"T --> T, case <Max> ")
 
 instruction(Alloc,lit,"new closure, code from constant pool")
 
@@ -53,8 +56,6 @@ instruction(Cmp,off,"t1 t2 --> , branch to offset if not same literal")
 
 instruction(Bf,off,"bool --> branch if false")
 instruction(Bt,off,"bool --> branch if true")
-
-instruction(Cas,off,"... x y z --> ... ( x := z if [x]=y, else branch)")
 
 instruction(Rais,lit," --> raise an exception")
 instruction(Frame,i32,"frame instruction")

@@ -29,12 +29,14 @@ SpecialClass MethodClass = {
 clssPo methodClass = (clssPo) &MethodClass;
 
 static retCode delPkg(packagePo pkg, pkgPo p);
+static integer pkHash(packagePo pkg);
+static comparison compPk(packagePo p1, packagePo p2);
 
 void initCode() {
   MethodClass.clss = specialClass;
 
   pkgPool = newPool(sizeof(PkgRec), 16);
-  packages = NewHash(16, (hashFun) pkgHash, (compFun) compPkg, (destFun) delPkg);
+  packages = NewHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
 }
 
 extern methodPo C_MTD(termPo t) {
@@ -125,8 +127,8 @@ normalPo codeLits(methodPo mtd) {
   return mtd->pool;
 }
 
-termPo getMtdLit(methodPo mtd,integer litNo){
-  return nthArg(codeLits(mtd),litNo);
+termPo getMtdLit(methodPo mtd, integer litNo) {
+  return nthArg(codeLits(mtd), litNo);
 }
 
 pkgPo loadedPackage(char *package) {
@@ -155,6 +157,14 @@ char *loadedVersion(char *package) {
   return NULL;
 }
 
+integer pkHash(packagePo pkg) {
+  return uniHash(pkg->packageName);
+}
+
+comparison compPk(packagePo p1, packagePo p2){
+  return uniCmp(p1->packageName,p2->packageName);
+}
+
 pkgPo markLoaded(char *package, char *version) {
   pkgPo pkg = loadedPackage(package);
 
@@ -167,6 +177,6 @@ pkgPo markLoaded(char *package, char *version) {
     return createPkg(package, version);
 }
 
-integer lclCount(methodPo mtd){
+integer lclCount(methodPo mtd) {
   return mtd->lclcnt;
 }

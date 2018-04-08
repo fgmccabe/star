@@ -1,4 +1,4 @@
-star.d{
+test.d{
   xx : index[boolean].
   xx = xc{
     get(false) => 0.

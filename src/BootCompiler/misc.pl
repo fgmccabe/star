@@ -6,7 +6,7 @@
         localName/4,
         listShow/5,
         stringHash/3,hashSixtyFour/2,stringEndsWith/2,
-        marker/2,
+        marker/2,packageVarName/3,thetaName/3,packageTypeName/3,
         same/2,
         interleave/3,concatStrings/2,
         sort/3,sortedMerge/4,
@@ -179,6 +179,20 @@ marker(type,"*").
 marker(value,"@").
 marker(class,"#").
 marker(conTract,"$").
+marker(over,"!").
+marker(package,"#").
+
+packageVarName(Pkg,Nm,LclName) :-
+  marker(package,Mrk),
+  localName(Pkg,Mrk,Nm,LclName).
+
+thetaName(Path,Nm,LclName) :-
+  marker(value,Mrk),
+  localName(Path,Mrk,Nm,LclName).
+
+packageTypeName(Pkg,Nm,LclName) :-
+  marker(type,Mrk),
+  localName(Pkg,Mrk,Nm,LclName).
 
 listShow([],_,_,O,O) :-!.
 listShow([E|L],C,Sep,O,Ox) :-

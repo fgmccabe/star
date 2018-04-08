@@ -172,7 +172,7 @@ showEntries([(Ky,Vl)|M],O,Ox) :-
 showImports(L,O,Ox) :-
   listShow(L,canon:showImport,"\n",O,Ox).
 
-showImport(import(Viz,Pkg,_,_,_,_,_),O,Ox) :-
+showImport(import(Viz,Pkg,_,_,_,_),O,Ox) :-
   showVisibility(Viz,O,O0),
   appStr("import ",O0,O1),
   showPkg(Pkg,O1,O2),
@@ -190,7 +190,7 @@ showTypeDef((_,Type),O,Ox) :-
   showType(Type,O,Ox).
 
 showContracts(L,O,Ox) :-
-  listShow(L,canon:showContract,"\n",O,Ox).
+  listShow(L,canon:showContract,"",O,Ox).
 
 showContract(conDef(_,Nm,ConRule),O,Ox) :-
   appStr("contract: ",O,O1),
@@ -225,21 +225,38 @@ showConstraints(Cons,O,Ox) :-
 showDefs(L,O,Ox) :-
   listShow(L,canon:showDef,"\n",O,Ox).
 
-showDef(funDef(Lc,Nm,Type,Cx,Eqns),O,Ox) :-
+showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("function: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr(" @ ",O2,O3),
+  appStr("[",O2,O2a),
+  appStr(ExtNm,O2a,O2b),
+  appStr("] @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showEq,"\n",O10,O11),
+  listShow(Eqns,canon:showEq(Nm),"\n",O10,O11),
   appStr("\n",O11,Ox),!.
-showDef(varDef(Lc,Nm,Cx,Tp,Value),O,Ox) :-
+showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
+  appStr("pattern: ",O,O1),
+  appStr(Nm,O1,O2),
+  appStr("[",O2,O2a),
+  appStr(ExtNm,O2a,O2b),
+  appStr("] @ ",O2b,O3),
+  showLocation(Lc,O3,O6),
+  appStr("\n",O6,O7),
+  showType(Type,O7,O8),
+  showConstraints(Cx,O8,O9),
+  appStr("\n",O9,O10),
+  listShow(Eqns,canon:showPtnRule(Nm),"\n",O10,O11),
+  appStr("\n",O11,Ox),!.
+showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr(":",O2,O3),
+  appStr("[",O2,O2a),
+  appStr(ExtNm,O2a,O2b),
+  appStr("] : ",O2b,O3),
   showType(Tp,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
@@ -249,10 +266,12 @@ showDef(varDef(Lc,Nm,Cx,Tp,Value),O,Ox) :-
   appStr(" = ",O9,O11),
   showCanonTerm(Value,O11,O12),
   appStr(".\n",O12,Ox).
-showDef(vdefn(Lc,Nm,Cx,Tp,Value),O,Ox) :-
+showDef(vdefn(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr(":",O2,O3),
+  appStr("[",O2,O2a),
+  appStr(ExtNm,O2a,O2b),
+  appStr("] : ",O2b,O3),
   showType(Tp,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
@@ -294,11 +313,19 @@ showClassRule(labelRule(_,_,Hd,Ots),O,Ox) :-
   showOthers(Ots,O2,O3),
   appStr("}.\n",O3,Ox).
 
-showEq(equation(_,Nm,Args,Cond,Value),O,Ox) :-
+showEq(Nm,equation(_,Args,Cond,Value),O,Ox) :-
   appStr(Nm,O,O1),
   showCanonTerm(Args,O1,O2),
   showGuard(Cond,O2,O5),
   appStr(" => ",O5,O6),
+  showCanonTerm(Value,O6,O7),
+  appStr(".",O7,Ox).
+
+showPtnRule(Nm,ptnRule(_,Args,Cond,Value),O,Ox) :-
+  appStr(Nm,O,O1),
+  showCanonTerm(Args,O1,O2),
+  showGuard(Cond,O2,O5),
+  appStr(" <= ",O5,O6),
   showCanonTerm(Value,O6,O7),
   appStr(".",O7,Ox).
 
@@ -321,5 +348,7 @@ showStmt(ignore(_,Exp),O,Ox) :-
   appStr("  ignore ",O,O1),
   showCanonTerm(Exp,O1,Ox).
 
-ruleArity(equation(_,_,tple(_,A),_),Ar) :-
+ruleArity(equation(_,tple(_,A),_),Ar) :-
+  length(A,Ar).
+ruleArity(ptnRule(_,tple(_,A),_),Ar) :-
   length(A,Ar).

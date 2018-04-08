@@ -18,7 +18,8 @@ freeVars(apply(_,Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVars(A,Q,F0,FV).
 freeVars(dot(_,Rc,_),Q,F,FV) :- freeVars(Rc,Q,F,FV).
 freeVars(where(_,T,C),Q,F,FV) :- freeVars(T,Q,F,F0),freeCondVars(C,Q,F0,FV).
 freeVars(cond(_,C,T,E),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,F1),freeVars(E,Q,F1,FV).
-freeVars(lambda(_,Rl,_),Q,F,FV) :- freeVarsInRule(Rl,Q,F,FV).
+freeVars(lambda(_,Rls,_),Q,F,FV) :- freeVarsInRules(Rls,Q,F,FV).
+freeVars(cond(_,T,L,R),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(L,Q,F0,F1),freeVars(R,Q,F1,FV).
 freeVars(conj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(disj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
 freeVars(neg(_,L),Q,F,FV) :- freeVars(L,Q,F,FV).
@@ -35,8 +36,9 @@ freeVars(record(_,_,Defs,Others,_,_),Q,F,Fv) :-
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,[],Q,Qx).
 
-defVar(funDef(Lc,Nm,_,_,_),_,Q,[v(Lc,Nm)|Q]).
-defVar(varDef(Lc,Nm,_,_,_),_,Q,[v(Lc,Nm)|Q]).
+defVar(funDef(Lc,Nm,_,_,_,_),_,Q,[v(Lc,Nm)|Q]).
+defVar(ptnDef(Lc,Nm,_,_,_,_),_,Q,[v(Lc,Nm)|Q]).
+defVar(varDef(Lc,Nm,_,_,_,_),_,Q,[v(Lc,Nm)|Q]).
 defVar(_,_,Q,Q).
 
 freeVarsInDefs(L,Q,F,Fv) :-
@@ -45,19 +47,26 @@ freeVarsInDefs(L,Q,F,Fv) :-
 freeVarsInOthers(L,Q,F,Fv) :-
   varsInList(L,freevars:freeVarsInOther,Q,F,Fv).
 
-freeVarsInDef(funDef(_,_,_,_,Eqns),Q,F,Fv) :-
-  freeVarsInEqns(Eqns,Q,F,Fv).
-freeVarsInDef(varDef(_,_,_,_,Value),Q,F,Fv) :-
+freeVarsInDef(funDef(_,_,_,_,_,Eqns),Q,F,Fv) :-
+  freeVarsInRules(Eqns,Q,F,Fv).
+freeVarsInDef(ptnDef(_,_,_,_,_,Rls),Q,F,Fv) :-
+  freeVarsInRules(Rls,Q,F,Fv).
+freeVarsInDef(varDef(_,_,_,_,_,Value),Q,F,Fv) :-
   freeVars(Value,Q,F,Fv).
 freeVarsInDef(_,_,F,F).
 
-freeVarsInEqns(Eqns,Q,F,Fv) :-
-  varsInList(Eqns,freevars:eqnVars,Q,F,Fv).
+freeVarsInRules(Eqns,Q,F,Fv) :-
+  varsInList(Eqns,freevars:freeVarsInRule,Q,F,Fv).
 
-eqnVars(equation(_,_,A,Cond,Exp),Q,F,FV) :-
+freeVarsInRule(equation(_,A,Cond,Exp),Q,F,FV) :-
   ptnVars(A,Q,Q,Q0),
   freeVars(A,Q0,F,F0),
   freeVars(Exp,Q0,F0,F1),
+  freeVars(Cond,Q0,F1,FV).
+freeVarsInRule(ptnRule(_,A,Cond,Ptn),Q,F,FV) :-
+  ptnVars(Ptn,Q,Q,Q0),
+  freeVars(A,Q0,F,F0),
+  freeVars(Ptn,Q0,F0,F1),
   freeVars(Cond,Q0,F1,FV).
 
 freeVarsList(L,Q,F,Fv) :- varsInList(L,freevars:freeVars,Q,F,Fv).
@@ -90,7 +99,7 @@ ptnVarsInDefs([P|L],F,Q,Qx) :-
   ptnVarsInDef(P,F,Q,Q0),
   ptnVarsInDefs(L,F,Q0,Qx).
 
-ptnVarsInDef(varDef(_,_,_,_,Value),F,Q,Qx) :-
+ptnVarsInDef(varDef(_,_,_,_,_,Value),F,Q,Qx) :-
   ptnVars(Value,F,Q,Qx).
 ptnVarsInDef(_,_,Q,Q).
 

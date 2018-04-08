@@ -47,14 +47,16 @@ processPackage(Pkg,Repo,Loaded,Ldx,PrIn,PrOut) :-
   initPkg(Pkg).
 
 initPkg(pkg(Pkg,_)) :-
-  localName(Pkg,"@","init",Init),
+  marker(value,Mrk),
+  localName(Pkg,Mrk,"init",Init),
   atom_string(ICall,Init),
   current_predicate(ICall/0),!,
   call(ICall).
 initPkg(_).
 
 lookForMain(pkg(Top,_),Args) :-
-  localName(Top,"@","_main",M),
+  marker(value,Mrk),
+  localName(Top,Mrk,"_main",M),
   % writef("Trying %w",[M]),
   atom_string(Main,M),
   current_predicate(Main/1),!,

@@ -63,6 +63,12 @@ static retCode disp_Es(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "\n");
 }
 
+static retCode disp_glb(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
+  tryRet(outMsg(f, "%s ", op));
+  tryRet(showConstant(f, mtd, ins->i));
+  return outMsg(f, "\n");
+}
+
 retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins) {
   outMsg(f, "0x%x: ", ins->pc);
 

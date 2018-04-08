@@ -51,7 +51,7 @@ pickupContracts(C,Cons) :-
   findContracts(C,Cons,[]).
 
 findContracts([],C,C).
-findContracts([ctpl(_,[strg(Nm),strg(CnNm),strg(Sig)])|M],[contract(Nm,CnNm,Spec)|C],Cx) :-
+findContracts([ctpl(_,[strg(Nm),strg(CnNm),strg(Sig)])|M],[conDef(Nm,CnNm,Spec)|C],Cx) :-
   decodeSignature(Sig,Spec),
   findContracts(M,C,Cx).
 
@@ -61,7 +61,7 @@ processImplementations(Env,Impls,MoreImpls) :-
 
 pickupImplementations([],I,I).
 pickupImplementations([ctpl(_,[strg(Nm),strg(Sig)])|M],[imp(Nm,Spec)|I],RI) :-
-  decodeConstraint(Sig,Spec),
+  decodeSignature(Sig,Spec),
   pickupImplementations(M,I,RI).
 
 loadPrologPkg(Pkg,Repo,Code,Imports) :-

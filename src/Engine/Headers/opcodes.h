@@ -44,7 +44,8 @@ typedef enum {
   lcs,        // Store to local variable
   off,          /* offset within current code */
   Es,          // escape code 0..65535
-  lit          /* constant literal */
+  lit,          /* constant literal */
+  glb           // Global variable name
 } opAndSpec;                    // Specification code for an operand
 
 

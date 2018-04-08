@@ -20,8 +20,6 @@ extern retCode reserveSpace(heapPo H, integer amnt);
 extern int gcAddRoot(heapPo H, ptrPo addr);
 extern void gcReleaseRoot(heapPo H, int mark);
 
-extern logical compare_and_swap(normalPo cl, int64 expect, int64 repl);
-
 #define PTRSZE (sizeof(void*))
 
 #define ALIGNPTR(count, size) ((((count)+(size)-1)/(size))*(size))

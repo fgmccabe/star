@@ -1,9 +1,0 @@
-
-  scanStack(stk:list(stack)){
-    LL::loop{
-      case stk in {
-        nil() do leave(LL);
-        cons(H:fp,T:list(stack)) do {
-          env:#env is envOf(fp);
-          
-     

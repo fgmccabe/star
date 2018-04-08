@@ -177,6 +177,11 @@ static retCode enc_Es(ioPo out, assemInsPo ins) {
   return encodeInt(out, ins->i);
 }
 
+static retCode enc_glb(ioPo out, assemInsPo ins) {
+  tryRet(encodeInt(out, ins->op));
+  return encodeInt(out, ins->i);
+}
+
 retCode encodeIns(ioPo out, assemInsPo ins) {
   switch (ins->op) {
 #undef instruction

@@ -5,8 +5,25 @@
 #ifndef CAFE_GLOBALS_H
 #define CAFE_GLOBALS_H
 
-extern termPo falseEnum;
-extern termPo trueEnum;
+#include "term.h"
+#include "heap.h"
+#include "str.h"
+
+typedef struct _global_rec_ *globalPo;
+
+extern clssPo globalClass;
+
+extern globalPo C_GLOB(termPo t);
+
+extern globalPo globalVar(const char *nm);
+
+extern int32 globalVarNo(const char *nm);
+extern globalPo getGlobalVar(int32 varNo);
+
+extern termPo getGlobal(globalPo v);
+extern char *globalVarName(globalPo v);
+extern termPo setGlobalVar(globalPo v, termPo e);
+extern logical glbIsSet(globalPo glb);
 
 extern termPo voidEnum;
 extern termPo okEnum;

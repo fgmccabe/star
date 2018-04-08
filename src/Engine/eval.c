@@ -60,7 +60,7 @@ retCode run(processPo P) {
         termPo nProg = nthArg(LITS, collectI32(PC));
 
 #ifdef TRACEEXEC
-        if (lineDebugging) {
+        if (lineDebugging && !insDebugging) {
           callDebug(P, heap, PROG, nProg, PC, FP, SP);
         }
 #endif
@@ -80,7 +80,7 @@ retCode run(processPo P) {
         termPo nProg = SP[1];
 
 #ifdef TRACEEXEC
-        if (lineDebugging) {
+        if (lineDebugging && !insDebugging) {
           callDebug(P, heap, PROG, nProg, PC, FP, SP);
         }
 #endif
@@ -118,7 +118,7 @@ retCode run(processPo P) {
         termPo nProg = nthArg(LITS, collectI32(PC));
 
 #ifdef TRACEEXEC
-        if (lineDebugging) {
+        if (lineDebugging && !insDebugging) {
           tailDebug(P, heap, PROG, nProg, PC, FP, SP);
         }
 #endif
@@ -132,6 +132,8 @@ retCode run(processPo P) {
         labelPo prog = C_LBL(nProg);
 
         PROG = labelCode(prog);   // Which program do we want?
+
+        assert(PROG!=Null);
 
         // slide new arguments over old frame
         integer argCnt = labelArity(prog);  /* prepare to slide arguments over caller */
@@ -161,7 +163,7 @@ retCode run(processPo P) {
         termPo nProg = SP[1];
 
 #ifdef TRACEEXEC
-        if (lineDebugging) {
+        if (lineDebugging && !insDebugging) {
           tailDebug(P, heap, PROG, nProg, PC, FP, SP);
         }
 #endif
@@ -217,7 +219,7 @@ retCode run(processPo P) {
         termPo ret = *SP;     /* return value */
 
 #ifdef TRACEEXEC
-        if (lineDebugging) {
+        if (lineDebugging && !insDebugging) {
           retDebug(P, heap, PROG, ret, PC, FP, SP);
         }
 #endif
@@ -293,6 +295,13 @@ retCode run(processPo P) {
         continue;
       }
 
+      case LdG: {
+        int32 glbNo = collectI32(PC);
+        globalPo glb = getGlobalVar(glbNo);
+        push(getGlobal(glb));     /* load a global variable */
+        continue;
+      }
+
       case CLbl: {
         termPo l = pop();
         termPo t = pop();
@@ -340,6 +349,14 @@ retCode run(processPo P) {
         termPo tos = pop();
         normalPo cl = C_TERM(pop());
         cl->args[ix] = tos;
+        continue;
+      }
+
+      case StG: {
+        int32 glbNo = collectI32(PC);
+        termPo val = pop();
+        globalPo glb = getGlobalVar(glbNo);
+        setGlobalVar(glb, val);      // Update the global variable
         continue;
       }
 
@@ -394,17 +411,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Cas: {        /* compare and swap, branch if not zero */
-        integer nw = integerVal(pop());     /* new value */
-        integer old = integerVal(pop());    /* compare value */
-        normalPo p = C_TERM(pop()); /* lock */
-        insPo exit = collectOff(PC);
-
-        if (!compare_and_swap(p, old, nw))
-          PC = exit;
-        continue;
-      }
-
       case Rais:
       raiseError:
         syserr("problem");
@@ -415,7 +421,7 @@ retCode run(processPo P) {
 
       case Line: {
 #ifdef TRACEEXEC
-        if (lineDebugging) {
+        if (lineDebugging && !insDebugging) {
           termPo ln = nthArg(LITS, collectI32(PC));
           lineDebug(P, heap, PROG, ln, PC, FP, SP);
         } else
@@ -430,11 +436,6 @@ retCode run(processPo P) {
         syserr("Illegal instruction");
     }
   }
-}
-
-logical compare_and_swap(normalPo cl, int64 old, int64 nw) {
-  integer *check = &(C_INT(cl->args[0]))->ix;
-  return __sync_bool_compare_and_swap(check, old, nw);
 }
 
 ptrPo localVar(framePo fp, int64 off) {

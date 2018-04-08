@@ -1,10 +1,10 @@
 :- module(types,[isType/1,isConType/1,isConstraint/1,newTypeVar/2,skolemVar/2,skolemFun/3,deRef/2,
-      typeArity/2,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,
+      typeArity/2,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
       occursIn/2,isUnbound/1,isBound/1, constraints/2, isIdenticalVar/2,
       bind/2, moveQuants/3,reQuantTps/3,
       moveConstraints/3,moveConstraints/4, implementationName/2,
-      stdType/2]).
+      stdType/3]).
 :- use_module(misc).
 
 isType(anonType).
@@ -199,9 +199,12 @@ isPtnType(ptnType(A),Ar) :- typeArity(A,Ar).
 isCnsType(allType(_,Tp),Ar) :- isCnsType(Tp,Ar).
 isCnsType(consType(A,_),Ar) :- typeArity(A,Ar).
 
+isProgramType(Tp) :- isFunctionType(Tp,_),!.
+isProgramType(Tp) :- isPtnType(Tp),!.
+
 implementationName(conTract(Nm,Args,_),INm) :-
   appStr(Nm,S0,S1),
-  marker(conTract,M),
+  marker(over,M),
   surfaceNames(Args,M,S1,[]),
   string_chars(INm,S0).
 
@@ -229,7 +232,9 @@ contractType(conTract(Nm,A,D),typeExp(tpFun(Nm,Ar),Args)) :-
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
 
-stdType("int",type("star.core*integer")).
-stdType("float",type("star.core*float")).
-stdType("boolean",type("star.core*boolean")).
-stdType("string",type("star.core*string")).
+stdType("int",type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))).
+stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
+stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
+stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
+stdType("list",allType(kVar("e"),typeExp(tpFun("star.core*list",1),[kVar("e")])),
+    allType(kVar("e"),typeExists(typeExp(tpFun("star.core*list",1),[kVar("e")]),faceType([],[])))).

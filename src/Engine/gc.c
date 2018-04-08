@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include <labelsP.h>
+#include <globalsP.h>
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */
@@ -83,6 +84,7 @@ retCode gcCollect(heapPo H, long amount) {
     *H->roots[i] = markPtr(G, H->roots[i]);
 
   markLabels(G);
+  markGlobals(G);
 
   markProcess(H->owner, G);
 

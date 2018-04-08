@@ -9,7 +9,6 @@
 :- use_module(canon).
 :- use_module(checker).
 :- use_module(transform).
-:- use_module(plog).
 :- use_module(errors).
 :- use_module(gensig).
 :- use_module(gencode).
@@ -44,6 +43,8 @@ parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-
   atom_string(V,Vers),
+  parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['--'|More], CWD,CWD, [], Files) :- stringify(More,Files).
 parseFlags(More, CWD,CWD, [], Files) :- stringify(More,Files).
@@ -86,7 +87,8 @@ processGroup([(P,Imps,Fl)|L],CP,CPx,Repo,Rx,CWD,Opts) :-
   processPkg(P,Imps,Fl,CP,CP0,Repo,R0,Opts),!,
   processGroup(L,CP0,CPx,R0,Rx,CWD,Opts).
 
-processPkg(P,Imps,_,CP,CP,Repo,Repo,_) :-
+processPkg(P,Imps,_,CP,CP,Repo,Repo,Opts) :-
+  \+ is_member(forceCompile,Opts),
   importsOk(Imps,CP),
   pkgOk(P,Repo),!,
   reportMsg("skipping package %s",[P]).
@@ -100,12 +102,11 @@ importsOk([P|I],CP) :-
   importsOk(I,CP).
 
 processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
-  packageVersion(Opts,Vers),
   startCount,
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  checkProgram(Term,Vers,Repo,Prog),!,
+  checkProgram(Term,Pkg,Repo,Prog),!,
   dispProg(Prog),
   noErrors,
   transformProg(Prog,Opts,Rules),!,

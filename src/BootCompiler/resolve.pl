@@ -14,10 +14,12 @@ overload(Defs,Dict,RDict,RDefs) :-
 overloadDefs(D,Dict,RD) :-
   overloadList(D,overloadDef,Dict,RD).
 
-overloadDef(funDef(Lc,Nm,Tp,Cx,Eqns),Dict,RF) :-
-  overloadFunction(Lc,Nm,Tp,Cx,Eqns,Dict,RF).
-overloadDef(varDef(Lc,Nm,Cx,Tp,Value),Dict,RD) :-
-  overloadDefn(Lc,Nm,Cx,Tp,Value,Dict,RD).
+overloadDef(funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
+  overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
+overloadDef(ptnDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
+  overloadPattern(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
+overloadDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),Dict,RD) :-
+  overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
 overloadDef(T,_,T) :-
   T = typeDef(_,_,_,_).
 overloadDef(C,_,C) :-
@@ -27,33 +29,53 @@ overloadDef(C,_,C) :-
 overloadDef(C,_,C) :-
   C = implDef(_,_,_,_).
 
-overloadFunction(Lc,Nm,Tp,[],Eqns,Dict,funDef(Lc,Nm,Tp,[],REqns)) :-
+overloadFunction(Lc,Nm,ExtNm,Tp,[],Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
   overloadEquations(Eqns,Dict,[],REqns).
-overloadFunction(Lc,Nm,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,Tp,[],REqns)) :-
+overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,funDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadEquations(Eqns,FDict,CVars,REqns).
 
 overloadEquations(Eqns,Dict,Extra,REqns) :-
   overloadList(Eqns,overloadEquation(Extra),Dict,REqns).
 
-overloadEquation(Extra,equation(Lc,Nm,Args,Cond,Exp),Dict,equation(Lc,Nm,RArgs,RCond,RExp)) :-
+overloadEquation(Extra,equation(Lc,Args,Cond,Exp),Dict,equation(Lc,RArgs,RCond,RExp)) :-
   resolveTerm(Args,Dict,RA),
   addExtra(Extra,RA,RArgs),
   resolveTerm(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
 
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
-overloadRule(equation(Lc,Nm,Args,Cond,Exp),Dict,equation(Lc,Nm,RArgs,RCond,RExp)) :-
+overloadRule(equation(Lc,Args,Cond,Exp),Dict,equation(Lc,RArgs,RCond,RExp)) :-
+  resolveTerm(Args,Dict,RArgs),
+  resolveTerm(Cond,Dict,RCond),
+  resolveTerm(Exp,Dict,RExp).
+overloadRule(ptnRule(Lc,Args,Cond,Exp),Dict,ptnRule(Lc,RArgs,RCond,RExp)) :-
   resolveTerm(Args,Dict,RArgs),
   resolveTerm(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
 
-overloadDefn(Lc,Nm,[],Tp,Exp,Dict,varDef(Lc,Nm,[],Tp,RExp)) :-
+overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
-overloadDefn(Lc,Nm,Cx,Tp,Exp,Dict,
-    funDef(Lc,Nm,Tp,[],[equation(Lc,Nm,CVars,enm(Lc,"true"),RExp)])) :-
+overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,
+    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,CVars,enm(Lc,"true"),RExp)])) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   resolveTerm(Exp,FDict,RExp).
+
+overloadPattern(Lc,Nm,ExtNm,Tp,[],Rls,Dict,ptnDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
+  overloadPtnRules(Rls,Dict,[],REqns).
+overloadPattern(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,
+    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,CVars,enm(Lc,"true"),lambda(Lc,Nm,RRls))])) :-
+  defineCVars(Lc,Cx,Dict,CVars,FDict),
+  overloadPtnRules(Rls,FDict,CVars,RRls).
+
+overloadPtnRules(Eqns,Dict,Extra,REqns) :-
+  overloadList(Eqns,overloadPtnRule(Extra),Dict,REqns).
+
+overloadPtnRule(Extra,ptnRule(Lc,Args,Cond,Exp),Dict,ptnRule(Lc,RArgs,RCond,RExp)) :-
+  resolveTerm(Args,Dict,RA),
+  addExtra(Extra,RA,RArgs),
+  resolveTerm(Cond,Dict,RCond),
+  resolveTerm(Exp,Dict,RExp).
 
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[Con|Cx],Dict,[NV|CVars],FDict) :-
@@ -115,8 +137,8 @@ resolveTerm(over(Lc,T,Cx),Dict,Over) :-
       Over = T).
 resolveTerm(mtd(Lc,Nm),_,v(Lc,Nm)) :-
   reportError("cannot find implementation for %s",[Nm],Lc).
-resolveTerm(lambda(Lc,Rl,Tp),Dict,lambda(Lc,ORl,Tp)) :-
-  overloadRule(Rl,Dict,ORl).
+resolveTerm(lambda(Lc,Rls,Tp),Dict,lambda(Lc,ORls,Tp)) :-
+  overloadList(Rls,resolve:overloadRule,Dict,ORls).
 
 overloadList([],_,_,[]):-!.
 overloadList([T|L],C,D,[RT|RL]) :-
@@ -215,4 +237,4 @@ addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
 
 addExtraDefs([],Els,Els).
 addExtraDefs([v(Lc,Nm)|Ex],Els,REls) :-
-  addExtraDefs(Ex,[varDef(Lc,Nm,[],voidType,v(Lc,Nm))|Els],REls).
+  addExtraDefs(Ex,[varDef(Lc,Nm,Nm,[],voidType,v(Lc,Nm))|Els],REls).

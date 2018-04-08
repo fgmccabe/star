@@ -9,7 +9,7 @@ static hashPo labels;
 static poolPo labelPool;
 
 static integer labelHash(labelPo lbl);
-comparison labelCmp(labelPo lb1, labelPo lb2);
+static comparison labelCmp(labelPo lb1, labelPo lb2);
 static retCode labelDel(labelPo lbl, labelPo l);
 
 static long lblSize(specialClassPo cl, termPo o);
@@ -38,7 +38,7 @@ void initLbls() {
 }
 
 labelPo declareLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity,.hash=uniHash(name) * 37 + arity};
+  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=uniHash(name) * 37 + arity};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {
@@ -62,14 +62,12 @@ labelPo findLbl(const char *name, integer arity) {
   return hashGet(labels, &tst);
 }
 
-labelPo objLabel(labelPo lbl){
-  if(lbl->oLbl==Null){
-    lbl->oLbl = declareLbl(lbl->name,2);
+labelPo objLabel(labelPo lbl) {
+  if (lbl->oLbl == Null) {
+    lbl->oLbl = declareLbl(lbl->name, 2);
   }
   return lbl->oLbl;
 }
-
-
 
 integer labelHash(labelPo lbl) {
   return lbl->hash;
@@ -129,11 +127,20 @@ long lblSize(specialClassPo cl, termPo o) {
 }
 
 termPo lblCopy(specialClassPo cl, termPo dst, termPo src) {
-  *dst = *src;
+  *((labelPo)dst) = *((labelPo)src);
   return dst + LabelCellCount;
 }
 
 termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
+  labelPo lbl = C_LBL(o);
+
+  if (lbl->mtd != Null)
+    helper((ptrPo) (&lbl->mtd), c);
+
+  if (lbl->oLbl != Null) {
+    helper((ptrPo) (&lbl->oLbl), c);
+  }
+
   return o + LabelCellCount;
 }
 

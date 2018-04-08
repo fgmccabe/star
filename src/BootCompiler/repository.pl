@@ -41,11 +41,11 @@ openCodePackageAsStream(repo(Root,Man),Pkg,Act,Sig,U,Stream) :-
   resolveFile(Root,PrFn,Fl),
   open(Fl,read,Stream).
 
-locateVersion(man(Entries),pkg(Pkg,Vers),Act,Sig,U,Fn) :-
+locateVersion(man(Entries),pkg(Pkg,Vers),pkg(Pkg,Act),Sig,U,Fn) :-
   is_member(entry(Pkg,Versions),Entries),
   getVersion(Vers,Versions,Act,Sig,U,Fn).
 
-getVersion(Vers,V,pkg(Pkg,Vers),Sig,U,Fn) :- is_member((pkg(Pkg,Vers),Sig,U,Fn),V),!.
+getVersion(Vers,V,Vers,Sig,U,Fn) :- is_member((Vers,Sig,U,Fn),V),!.
 getVersion(defltVersion,V,Act,Sig,U,Fn) :- is_member((Act,Sig,U,Fn),V),!.
 
 addCodePackage(repo(Root,Man),U,pkg(Pkg,Vers),Sig,Text,repo(Root,NM)) :-
@@ -83,12 +83,12 @@ flushManifest(Root,M) :-
 addToManifest(man(M),U,Pkg,Version,Sig,FileName,man(NM)) :-
   addEntry(M,U,Pkg,Version,Sig,FileName,NM).
 
-addEntry([],U,Pkg,Version,Sig,FileName,[(entry(Pkg,[(pkg(Pkg,Version),Sig,U,FileName)]))]).
+addEntry([],U,Pkg,Version,Sig,FileName,[(entry(Pkg,[(Version,Sig,U,FileName)]))]).
 addEntry([entry(Pkg,Vers)|E],U,Pkg,Version,Sig,FileName,[entry(Pkg,NV)|E]) :- !,
-  addVersion(Vers,U,pkg(Pkg,Version),Sig,FileName,NV).
+  addVersion(Vers,U,Version,Sig,FileName,NV).
 addEntry([E|M],U,Pkg,Version,Sig,FileName,[E|R]) :-
   addEntry(M,U,Pkg,Version,Sig,FileName,R).
 
-addVersion([],U,Vers,Sig,FileNm,[(Vers,U,Sig,FileNm)]).
-addVersion([(Vers,_,_,_)|V],U,Vers,Sig,FileNm,[(Vers,U,Sig,FileNm)|V]) :- !. % replace version
+addVersion([],U,Vers,Sig,FileNm,[(Vers,Sig,U,FileNm)]).
+addVersion([(Vers,_,_,_)|V],U,Vers,Sig,FileNm,[(Vers,Sig,U,FileNm)|V]) :- !. % replace version
 addVersion([V|M],U,Vers,Sig,FileNm,[V|R]) :- addVersion(M,U,Vers,Sig,FileNm,R).

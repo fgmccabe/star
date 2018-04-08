@@ -295,6 +295,7 @@ void endFunction(mtdPo mtd) {
 #define szoff pc+=sizeof(int32);
 #define szEs pc+=sizeof(int32);
 #define szlit pc+=sizeof(int32);
+#define szglb pc+=sizeof(int32);
 
 #define instruction(Op, A1, Cmt)    \
       case Op:          \
@@ -314,6 +315,7 @@ void endFunction(mtdPo mtd) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szglb
       default:;
     }
 
@@ -412,6 +414,9 @@ static void fixup_off(assemInsPo ins) {
 }
 
 static void fixup_lit(assemInsPo ins) {
+}
+
+static void fixup_glb(assemInsPo ins) {
 }
 
 static void fixup_Es(assemInsPo ins) {
@@ -656,7 +661,13 @@ static assemInsPo asm_lit(mtdPo mtd, OpCode op, int32 ix) {
   return ins;
 }
 
-static assemInsPo asm_Es(mtdPo mtd, OpCode op, char * es) {
+static assemInsPo asm_glb(mtdPo mtd, OpCode op, char *nm) {
+  assemInsPo ins = newIns(mtd, op);
+  ins->txt = nm;
+  return ins;
+}
+
+static assemInsPo asm_Es(mtdPo mtd, OpCode op, char *es) {
   assemInsPo ins = newIns(mtd, op);
   ins->txt = es;
   return ins;
@@ -698,6 +709,9 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define opEs(X) ,char * f##X
 #define argEs(X) , f##X
 
+#define opglb(X) ,char *g##X
+#define argglb(X) ,g##X
+
 #define instruction(Op, A1, Cmt)    \
   retCode A##Op(mtdPo mtd op##A1(1))    \
   {\
@@ -726,6 +740,8 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef argoff
 #undef opEs
 #undef argEs
+#undef opglb
+#undef argglb
 
 int32 codeSize(mtdPo mtd) {
   int32 pc = 0;
@@ -745,6 +761,7 @@ int32 codeSize(mtdPo mtd) {
 #define szoff pc+=(sizeof(int32)/sizeof(uint16));
 #define szEs pc+=(sizeof(int32)/sizeof(uint16));
 #define szlit pc+=(sizeof(int32)/sizeof(uint16));
+#define szglb pc+=(sizeof(int32)/sizeof(uint16));
 
 #define instruction(Op, A1, Cmt)    \
       case Op:          \
@@ -763,6 +780,7 @@ int32 codeSize(mtdPo mtd) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szglb
 #undef sznOp
       default:;
     }
@@ -815,6 +833,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #define szoff if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szEs if(ret==Ok)ret = encodeStr(O_IO(bfr),ins->txt,uniStrLen(ins->txt));
 #define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szglb if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 
 #define instruction(Op, A1, Cmt)    \
       case Op:          \
@@ -833,6 +852,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szglb
 #undef sznOp
       default:;
     }

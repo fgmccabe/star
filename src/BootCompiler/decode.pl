@@ -23,7 +23,6 @@ decodeValue(Txt,Val) :-
   string_chars(Txt,Chrs),
   phrase(decodeTerm(Val),Chrs).
 
-decodeTerm(anon) --> ['a'].
 decodeTerm(intgr(Ix)) --> ['x'], decInt(Ix).
 decodeTerm(float(Dx)) --> ['d'], decFloat(Dx).
 decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).

@@ -1,6 +1,7 @@
 star.lists{
   import star.core.
   import star.sequence.
+  import star.arith.
 
   implementation all x ~~ equality[x] |: equality[list[x]] => {.
     L1 == L2 where _list_size(L1)==_list_size(L2) =>

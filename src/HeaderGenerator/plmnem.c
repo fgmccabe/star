@@ -118,6 +118,7 @@ static char *genArg(FILE *out, char *sep, opAndSpec A) {
     case nOp:                             // No operand
       return sep;
     case lit:
+    case glb:
     case Es:
     case i32:
     case arg:
@@ -150,6 +151,7 @@ static void genCode(FILE *out, int op, opAndSpec A) {
     case lcs:
       fprintf(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
       break;
+    case glb:
     case Es:                              // escape code (0..65535)
       fprintf(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
       break;
@@ -203,6 +205,7 @@ void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case lcl:
     case lcs:
     case Es:
+    case glb:
     case off:
       fprintf(out, "(_)");
       break;
@@ -224,6 +227,7 @@ void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case lcl:
     case lcs:
     case Es:
+    case glb:
     case off:
       fprintf(out, "Pc1 is Pc+3, ");
       break;

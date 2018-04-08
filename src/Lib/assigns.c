@@ -2,6 +2,10 @@
 // Created by Francis McCabe on 3/5/18.
 //
 
+#include <arith.h>
+#include <str.h>
+#include <lblops.h>
+#include <globals.h>
 #include "assigns.h"
 #include "cellP.h"
 
@@ -27,6 +31,40 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
   setCell(Cell, Content);
 
   ReturnStatus ret = {.ret=Ok, .rslt=(termPo) Cell};
+
+  return ret;
+}
+
+static globalPo globalLabel(termPo t) {
+  char lblNm[MAX_SYMB_LEN];
+
+  copyString2Buff(C_STR(t), lblNm, NumberOf(lblNm));
+
+  return globalVar(lblNm);
+}
+
+ReturnStatus g__isDefinedVr(processPo p, ptrPo tos) {
+  globalPo gv = globalLabel(tos[0]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=glbIsSet(gv) ? trueEnum : falseEnum};
+
+  return ret;
+}
+
+ReturnStatus g__definedVr(processPo p, ptrPo tos) {
+  globalPo gv = globalLabel(tos[0]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=getGlobal(gv)};
+
+  return ret;
+}
+
+ReturnStatus g__defineVr(processPo p, ptrPo tos) {
+  globalPo gv = globalLabel(tos[0]);
+  termPo vl = tos[1];
+  setGlobalVar(gv, vl);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=trueEnum};
 
   return ret;
 }

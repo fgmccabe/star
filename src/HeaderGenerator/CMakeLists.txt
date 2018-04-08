@@ -18,10 +18,6 @@ add_executable(genins ${INS_SOURCE_FILES})
 
 target_link_libraries(genins ooio)
 
-set(ASM_SOURCE_FILES mnem.c)
-add_executable(mnem ${ASM_SOURCE_FILES})
-target_link_libraries(mnem ooio)
-
 set(ASM_SOURCE_FILES plmnem.c)
 add_executable(plmnem ${ASM_SOURCE_FILES})
 target_link_libraries(plmnem ooio)
@@ -35,14 +31,12 @@ target_link_libraries(opcodes ooio)
 #set(INSTRUCTIONS_LO ${CMAKE_CURRENT_SOURCE_DIR}/../LOCompiler/instructions.lo)
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)
 set(ESCAPES_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/escapes.star)
-set(OPERATORS_PY ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/operators.py)
 set(OPERATORS_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/operators.pl)
 set(ESCAPES_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/escapes.pl)
 set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
 set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 
 add_custom_target(generate ALL
-#        COMMAND mnem ${ASM_LO}
 #        COMMAND genins ${INSTRUCTIONS_LO}
 #        COMMAND ops -c lo.comp.operators ${OPERATORS_ST}
 #        COMMAND ops -y -t starops.py.plate ${OPERATORS_PY}

@@ -134,7 +134,7 @@ isKvar(V) :- deRef(V,kVar(_)).
 
 collectImplements(V,Env,faceType(Fields,Types)) :-
   allConstraints(Env,Cons),
-  pickupImplements(V,Cons,[],Fields,[],Types).
+  pickupImplements(V,Cons,Env,[],Fields,[],Types).
 
 pickupImplements(_,[],_,F,F,T,T).
 pickupImplements(V,[implementsFace(TV,faceType(Fv,Tv))|Cons],Env,F,Fx,T,Tx) :-

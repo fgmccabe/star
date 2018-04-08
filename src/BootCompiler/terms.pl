@@ -1,5 +1,5 @@
 :- module(terms,[displayRules/1,showRules/3,substTerm/3,
-        genTplStruct/2,isTplStruct/1,isLiteral/1,mkTpl/2,
+        genTplStruct/2,isTplStruct/1,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
         termHash/2,dispTerm/2,showTerm/3,locTerm/2]).
 
 :- use_module(misc).
@@ -9,14 +9,19 @@
 :- use_module(types).
 
 showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
-  showPkg(Pkg,O,O1),
-  appStr("{\n",O1,O2),
+  appStr("Package :",O,O0),
+  showPkg(Pkg,O0,O1),
+  appStr("\n",O1,O2),
   showImports(Imports,O2,O3),!,
-  showType(Types,O3,O4),!,
+  appStr("Package export: ",O3,O3a),
+  showType(Types,O3a,O3b),
+  appStr("\nPackage contracts:\n",O3b,O4),!,
   showContracts(Contracts,O4,O5),!,
-  showImpls(Impls,O5,O6),!,
-  showRuleSets(Defs,O6,O7),!,
-  appStr("\n}.\n",O7,Ox),!.
+  appStr("\nPackage implementations:\n",O5,O5a),!,
+  showImpls(Impls,O5a,O6),!,
+  appStr("\nPackage definitions:\n",O6,O6a),!,
+  showRuleSets(Defs,O6a,O7),!,
+  appStr("\n",O7,Ox),!.
 
 displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
@@ -30,6 +35,13 @@ showRuleSet(fnDef(_,Nm,Tp,Eqns),O,Ox) :-
   showType(Tp,O2,O3),
   appStr("\n",O3,O4),
   showEqns(Eqns,Nm,O4,Ox).
+showRuleSet(vrDef(_,Nm,Tp,Value),O,Ox) :-
+  appStr("Global: ",O,O0),
+  appStr(Nm,O0,O1),
+  appStr(":",O1,O2),
+  showType(Tp,O2,O3),
+  appStr("\n",O3,O4),
+  showTerm(Value,O4,Ox).
 
 showEqns(L,Nm,O,Ox) :-
   listShow(L,terms:showEqn(Nm),"\n",O,Ox).
@@ -90,12 +102,24 @@ showTerm(case(_,T,Cases,Deflt),O,Ox) :-
   showTerm(T,O1,O2),
   appStr(" in {\n",O2,O3),
   showCases(Cases,O3,O4),
-  appStr("}\nelse ",O4,O5),
+  appStr("\n} else ",O4,O5),
   showTerm(Deflt,O5,Ox).
+showTerm(seq(_,L,R),O,Ox) :-
+  showTerm(L,O,O1),
+  appStr(";",O1,O2),
+  showTerm(R,O2,Ox).
 showTerm(cnj(_,L,R),O,Ox) :-
   showTerm(L,O,O1),
   appStr(" && ",O1,O2),
   showTerm(R,O2,Ox).
+showTerm(cnd(_,T,L,R),O,Ox) :-
+  appStr("(",O,O0),
+  showTerm(T,O0,O1),
+  appStr(" ? ",O1,O2),
+  showTerm(L,O2,O3),
+  appStr(" | ",O3,O4),
+  showTerm(R,O4,O5),
+  appStr(")",O5,Ox).
 showTerm(dsj(_,Either,Or),O,Ox) :-
   appStr("(",O,O0),
   showTerm(Either,O0,O1),
@@ -173,6 +197,9 @@ substTerm(Q,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
 substTerm(Q,case(Lc,T,C),case(Lc,NT,NC)) :-
   substTerm(Q,T,NT),
   map(C,terms:substCase(Q),NC).
+substTerm(Q,seq(Lc,L,R),seq(Lc,NL,NR)) :-
+  substTerm(Q,L,NL),
+  substTerm(Q,R,NR).
 substTerm(Q,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
   substTerm(Q,L,NL),
   substTerm(Q,R,NR).
@@ -208,11 +235,18 @@ mkTpl(Els,ctpl(C,Els)) :-
   length(Els,Cnt),
   genTplStruct(Cnt,C).
 
+isUnit(ctpl(lbl("()0",0),[])).
+
 isLiteral(intgr(_)).
 isLiteral(float(_)).
 isLiteral(strg(_)).
 isLiteral(enum(_)).
 isLiteral(lbl(_,_)).
+
+isGround(T) :- isLiteral(T),!.
+isGround(ctpl(S,A)) :-
+  isGround(S),
+  forall(is_member(E,A), terms:isGround(E)).
 
 termHash(intgr(Ix),Ix).
 termHash(float(Dx),Ix) :- Ix is round(Dx).

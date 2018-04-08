@@ -185,7 +185,7 @@ contractName(St,con(Nm)) :-
 implementedContractName(Sq,imp(INm)) :-
   isSquare(Sq,Nm,A),
   appStr(Nm,S0,S1),
-  marker(conTract,M),
+  marker(over,M),
   surfaceNames(A,M,S1,[]),
   string_chars(INm,S0).
 

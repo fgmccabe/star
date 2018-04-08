@@ -24,7 +24,7 @@ star.arith{
   }
 
   public implementation equality[integer] => {
-    X == Y => __int_equal(X,Y).
+    X == Y => _int_eq(X,Y).
     hash(X) => X.
   }
 
@@ -41,7 +41,6 @@ star.arith{
     frmt(X,F) => ss(_int_format(X,F)).
   }
 
-
   -- implement standard contracts for floats
   public implementation arith[float] => {
     X+Y => _flt_plus(X,Y).
@@ -55,7 +54,7 @@ star.arith{
   }
 
   public implementation equality[float] => {
-    X == Y => __flt_eq(X,Y).
+    X == Y => _flt_eq(X,Y).
     hash(X) => _flt_hash(X).
   }
 

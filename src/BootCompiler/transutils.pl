@@ -1,14 +1,15 @@
-:- module(transUtils,[trCons/3,mergeGoal/4,mergeWhere/4,extraVars/2,thisVar/2,
-          lookupVarName/3,lookupFunName/3,lookupClassName/3,
+:- module(transUtils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
+          lookupVarName/3,lookupFunName/3,lookupPtnName/3,lookupClassName/3,
           definedProgs/2,
           genVar/2,
           pushOpt/3, isOption/2,layerName/2,
-          genAnons/2,genVars/2]).
+          genVars/2]).
 
 :- use_module(misc).
 :- use_module(dict).
 :- use_module(types).
 :- use_module(freshen).
+:- use_module(terms).
 
 trCons(Nm,Arity,lbl(Name,Arity)) :-
   integer(Arity),!,
@@ -67,13 +68,20 @@ lookupVarName(Map,Nm,V) :-
 anyDef(_).
 
 lookupFunName(Map,Nm,V) :-
-  lookup(Map,Nm,funDef,V).
+  lookup(Map,Nm,isFnDef,V).
 
-funDef(localFun(_,_,_,_,_)).
-funDef(moduleFun(_,_,_,_,_)).
-funDef(localClass(_,_,_,_,_)).
-funDef(moduleCons(_,_,_)).
-funDef(moduleImpl(_,_)).
+isFnDef(localFun(_,_,_,_,_)).
+isFnDef(moduleFun(_,_,_)).
+isFnDef(localClass(_,_,_,_,_)).
+isFnDef(moduleCons(_,_,_)).
+
+lookupPtnName(Map,Nm,V) :-
+  lookup(Map,Nm,isPtnDef,V).
+
+isPtnDef(localPtn(_,_,_,_,_)).
+isPtnDef(modulePtn(_,_,_)).
+isPtnDef(localClass(_,_,_,_,_)).
+isPtnDef(moduleCons(_,_,_)).
 
 lookupClassName(Map,Nm,V) :-
   lookup(Map,Nm,classDef,V).
@@ -107,9 +115,11 @@ definedInDefs([(Nm,Entry)|Defs],Pr,Prx) :-
 definedInDefs([_|Defs],Pr,Prx) :-
   definedInDefs(Defs,Pr,Prx).
 
-definedP(Nm,moduleFun(_,_,_,_,Arity),lbl(Nm,Arity)).
+definedP(Nm,moduleFun(_,_,Arity),lbl(Nm,Arity)).
 definedP(Nm,localFun(_,_,_,_,Arity),lbl(Nm,Arity)).
-definedP(Nm,moduleVar(_,_,_),lbl(Nm,0)).
+definedP(Nm,modulePtn(_,_,Arity),lbl(Nm,Arity)).
+definedP(Nm,localPtn(_,_,_,_,Arity),lbl(Nm,Arity)).
+definedP(Nm,moduleVar(_),lbl(Nm,0)).
 definedP(Nm,localVar(_,_,_),lbl(Nm,0)).
 
 mergeGoal(enum("star.core#true"),G,_,G).
@@ -119,6 +129,12 @@ mergeGoal(G1,G2,Lc,cnj(Lc,G1,G2)).
 mergeWhere(Exp,enum("star.core#true"),_,Exp).
 mergeWhere(Exp,G,Lc,whr(Lc,Exp,G)).
 
+mergeSeq(_,L,R,R) :- isUnit(L).
+mergeSeq(_,L,R,L) :- isUnit(R).
+mergeSeq(Lc,seq(Lc0,L0,R0),R,seq(Lc0,L0,RR)) :-
+  mergeSeq(Lc,R0,R,RR).
+mergeSeq(Lc,L,R,seq(Lc,L,R)).
+
 pushOpt(Opts,Opt,[Opt|Opts]).
 
 isOption(Opt,Opts) :- is_member(Opt,Opts),!.
@@ -127,12 +143,6 @@ layerName([lyr(Nm,_,_,_)|_],Nm).
 
 genVar(Prefix,idnt(V)) :-
   genstr(Prefix,V).
-
-genAnons(0,[]).
-genAnons(K,[anon|Rest]) :-
-  K>0,
-  K1 is K-1,
-  genAnons(K1,Rest).
 
 genVars(0,[]).
 genVars(K,[V|Rest]) :-

@@ -103,6 +103,7 @@ static char *genOpAnd(FILE *f,char *sep,opAndSpec A)
   case pcr:                             // program counter relative offset (-32768..32767)
   case pcl:                             // long pc relative offset (-0x80000000..0x7fffffff) (24bit)
   case ltl:                             // literal number (0..65535)
+  case glb:
     fprintf(f,"%sstring",sep);
     return ",";
   default:

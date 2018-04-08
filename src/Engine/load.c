@@ -50,7 +50,7 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 
 #ifdef TRACEPKG
   if (tracePkg)
-    logMsg(logFile, "loading package %s:%s from file %s\n", pkgName, vers, fn);
+    logMsg(logFile, "loading package %s:%s from file %s", pkgName, vers, fn);
 #endif
 
   if (file != NULL) {
@@ -90,7 +90,7 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 #ifdef TRACEPKG
     if (tracePkg) {
       if (ret != Error)
-        logMsg(logFile, "package %s loaded\n", pkgName);
+        logMsg(logFile, "package %s loaded", pkgName);
       else
         logMsg(logFile, "problem in loading %s: %s", pkgName, errorMsg);
     }
@@ -108,8 +108,8 @@ retCode loadPackage(char *pkg, char *vers, char *errorMsg, long msgSize, void *c
 
   if (version != NULL) {
     if (!compatiblVersion(vers, version)) {
-      outMsg(logFile, "invalid version of package already loaded: %s:%s,"
-        "version %s expected\n", pkg, version, vers);
+      logMsg(logFile, "invalid version of package already loaded: %s:%s,"
+        "version %s expected", pkg, version, vers);
       return Error;
     } else
       return Ok; // already loaded correct version
@@ -147,7 +147,7 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
 
 #ifdef TRACEPKG
   if (tracePkg)
-    logMsg(logFile, "package %s installed\n", pkgNm);
+    logMsg(logFile, "package %s installed", pkgNm);
 #endif
 
   if (ret == Eof)
@@ -192,12 +192,6 @@ static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen,
         ret = skipEncoded(in, errorMsg, msgLen); // Move over the tuple constructor
       integer ix = 0;
       while (ix++ < len) {
-        if (ret == Ok)
-          ret = isLookingAt(in, "n2o2'import'");
-
-        if (ret == Ok)
-          ret = skipEncoded(in, errorMsg, msgLen);  // skip the private/public flag
-
         char pkgNm[MAX_SYMB_LEN];
         char vrNm[MAX_SYMB_LEN];
 
@@ -329,6 +323,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 #define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,lookupEscape(escNm)); (*ix)++;}
 #define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++;}
+#define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,globalVarNo(escNm)); (*ix)++;}
 
 #define instruction(Op, A1, Cmt)    \
       case Op:          \
@@ -345,6 +340,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szglb
 #undef sznOp
     default:
       return Error;
@@ -405,9 +401,17 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
         gcReleaseRoot(H, root);
       }
       free(ins);
-      return Ok;
     }
   }
+
+#ifdef TRACEPKG
+  if (tracePkg) {
+    if (ret != Error)
+      logMsg(logFile, "function %s/%d loaded", prgName, arity);
+    else
+      logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
+  }
+#endif
   return ret;
 }
 
