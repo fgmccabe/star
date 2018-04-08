@@ -7,11 +7,13 @@
 
 #include "engine.h"
 
-extern void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
-extern void lineDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp);
-extern void callDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp);
-extern void tailDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp);
-extern void retDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp);
+extern termPo insLit(processPo p);
+
+extern DebugWaitFor insDebug(integer pcCount, processPo p);
+extern DebugWaitFor lineDebug(processPo p, termPo ln);
+extern DebugWaitFor callDebug(processPo p, termPo call);
+extern DebugWaitFor tailDebug(processPo p, termPo call);
+extern DebugWaitFor retDebug(processPo p, termPo call);
 
 extern void countIns(insWord ins);
 extern void dumpInsCount();

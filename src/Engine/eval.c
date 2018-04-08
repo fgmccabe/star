@@ -48,8 +48,39 @@ retCode run(processPo P) {
     pcCount++;        /* increment total number of executed */
 
     countIns(*PC);
-    if (insDebugging)
-      insDebug(pcCount, P, heap, PROG, PC, FP, SP);
+    if (insDebugging) {
+      saveRegisters(P);
+      insDebug(pcCount, P);
+      restoreRegisters(P);
+    } else if (lineDebugging) {
+      switch (*PC) {
+        case Call: saveRegisters(P);
+          callDebug(P, insLit(P));
+          restoreRegisters(P);
+          break;
+        case OCall: saveRegisters(P);
+          callDebug(P, SP[1]);
+          restoreRegisters(P);
+          break;
+        case Tail: saveRegisters(P);
+          tailDebug(P, insLit(P));
+          restoreRegisters(P);
+          break;
+        case OTail: saveRegisters(P);
+          tailDebug(P, SP[1]);
+          restoreRegisters(P);
+          break;
+        case Ret: saveRegisters(P);
+          retDebug(P, top());
+          restoreRegisters(P);
+          break;
+        case Line: saveRegisters(P);
+          lineDebug(P, insLit(P));
+          restoreRegisters(P);
+          break;
+        default:;
+      }
+    }
 #endif
 
     switch ((OpCode) (*PC++)) {
@@ -58,12 +89,6 @@ retCode run(processPo P) {
 
       case Call: {
         termPo nProg = nthArg(LITS, collectI32(PC));
-
-#ifdef TRACEEXEC
-        if (lineDebugging && !insDebugging) {
-          callDebug(P, heap, PROG, nProg, PC, FP, SP);
-        }
-#endif
 
         push(PROG);
         PROG = labelCode(C_LBL(nProg));   // Which program do we want?
@@ -78,12 +103,6 @@ retCode run(processPo P) {
 
       case OCall: {        /* Call tos a1 .. an -->   */
         termPo nProg = SP[1];
-
-#ifdef TRACEEXEC
-        if (lineDebugging && !insDebugging) {
-          callDebug(P, heap, PROG, nProg, PC, FP, SP);
-        }
-#endif
 
         push(PROG);
         push(PC);       /* build up the frame. */
@@ -117,12 +136,6 @@ retCode run(processPo P) {
       case Tail: {       /* Tail call of explicit program */
         termPo nProg = nthArg(LITS, collectI32(PC));
 
-#ifdef TRACEEXEC
-        if (lineDebugging && !insDebugging) {
-          tailDebug(P, heap, PROG, nProg, PC, FP, SP);
-        }
-#endif
-
         // Pick up existing frame
         framePo oldFp = FP->fp;
         insPo oldRtn = FP->rtn;
@@ -133,7 +146,7 @@ retCode run(processPo P) {
 
         PROG = labelCode(prog);   // Which program do we want?
 
-        assert(PROG!=Null);
+        assert(PROG != Null);
 
         // slide new arguments over old frame
         integer argCnt = labelArity(prog);  /* prepare to slide arguments over caller */
@@ -161,12 +174,6 @@ retCode run(processPo P) {
 
       case OTail: {       /* Tail call */
         termPo nProg = SP[1];
-
-#ifdef TRACEEXEC
-        if (lineDebugging && !insDebugging) {
-          tailDebug(P, heap, PROG, nProg, PC, FP, SP);
-        }
-#endif
 
         // Pick up existing frame
         framePo oldFp = FP->fp;
@@ -217,12 +224,6 @@ retCode run(processPo P) {
 
       case Ret: {        /* return from function */
         termPo ret = *SP;     /* return value */
-
-#ifdef TRACEEXEC
-        if (lineDebugging && !insDebugging) {
-          retDebug(P, heap, PROG, ret, PC, FP, SP);
-        }
-#endif
 
         int64 argCnt = argCount(PROG);
 
@@ -420,13 +421,7 @@ retCode run(processPo P) {
         continue;
 
       case Line: {
-#ifdef TRACEEXEC
-        if (lineDebugging && !insDebugging) {
-          termPo ln = nthArg(LITS, collectI32(PC));
-          lineDebug(P, heap, PROG, ln, PC, FP, SP);
-        } else
-#endif
-          PC += 2;
+        PC += 2;
 
         continue;
       }

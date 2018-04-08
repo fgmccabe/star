@@ -22,11 +22,11 @@ static logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
 static logical breakPointInUse(breakPointPo b);
 static void markBpOutOfUse(breakPointPo b);
 
-static void showCall(ioPo out, methodPo mtd, termPo lcall);
+static void showCall(ioPo out, methodPo mtd, termPo call);
 static void showLine(ioPo out, methodPo mtd, termPo ln);
 static void showRet(ioPo out, methodPo mtd, termPo call);
 
-static void showRegisters(heapPo h, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+static void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 static void showAllLocals(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp);
 static retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp);
 static retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp);
@@ -270,8 +270,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
     return False;
 }
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp,
-                                 void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, void *cl);
 
 typedef struct {
   codePoint c;
@@ -294,7 +293,7 @@ cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo 
     if (res == Ok) {
       for (int ix = 0; ix < optCount; ix++) {
         if (opts[ix].c == cmdLine[0])
-          return opts[ix].cmd(&cmdLine[1], p, h, mtd, pc, fp, sp, opts[ix].cl);
+          return opts[ix].cmd(&cmdLine[1], p, opts[ix].cl);
       }
       outMsg(stdErr, "invalid debugger command: %s", cmdLine);
       for (int ix = 0; ix < optCount; ix++)
@@ -306,38 +305,45 @@ cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo 
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgSingle(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgSingle(char *line, processPo p, void *cl) {
   integer *traceCount = (integer *) cl;
   *traceCount = cmdCount(line);
   return nextIns;
 }
 
-static DebugWaitFor dbgQuit(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgQuit(char *line, processPo p, void *cl) {
   return quitDbg;
 }
 
-static DebugWaitFor
-dbgTrace(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgTrace(char *line, processPo p, void *cl) {
   p->tracing = True;
   return nextBreak;
 }
 
-static DebugWaitFor
-dbgCont(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgCont(char *line, processPo p, void *cl) {
   p->tracing = False;
   return nextBreak;
 }
 
-static DebugWaitFor
-dbgShowRegisters(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
-  showRegisters(h, p, mtd, pc, fp, sp);
+static DebugWaitFor dbgRestart(char *line,processPo p,void *cl){
+  p->pc = entryPoint(p->prog);
+  p->sp = (ptrPo)p->fp;
+  p->fp = (framePo)(*p->sp++);
+  p->hasEnter = False;
+
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgShowArg(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgShowRegisters(char *line, processPo p, void *cl) {
+  showRegisters(p, p->heap, p->prog, p->pc, p->fp, p->sp);
+  return moreDebug;
+}
+
+static DebugWaitFor dbgShowArg(char *line, processPo p, void *cl) {
   integer argNo = cmdCount(line);
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
 
   if (argNo == 0)
     showAllArgs(stdErr, p, mtd, fp, sp);
@@ -348,12 +354,14 @@ dbgShowArg(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgShowLocal(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgShowLocal(char *line, processPo p, void *cl) {
   integer lclNo = cmdCount(line);
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
 
   if (lclNo == 0)
-    showAllLocals(stdErr, p, mtd, pc, fp);
+    showAllLocals(stdErr, p, mtd, p->pc, fp);
   else if (lclNo > 0 && lclNo <= lclCount(mtd))
     showLcl(stdErr, cmdCount(line), mtd, fp, sp);
   else
@@ -361,19 +369,26 @@ dbgShowLocal(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo 
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgShowStack(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
-  if (line[0] == '\n')
+static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
+  insPo pc = p->pc;
+
+  if (line[0] == '\n') {
     showAllStack(stdErr, p, mtd, pc, fp, sp);
-  else
+  } else
     showStack(stdErr, p, mtd, cmdCount(line), fp, sp);
 
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgShowCode(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
   integer count = maximum(1, cmdCount(line));
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
+  insPo pc = p->pc;
 
   insPo last = entryPoint(mtd) + insCount(mtd);
 
@@ -387,22 +402,19 @@ dbgShowCode(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo f
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgInsDebug(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgInsDebug(char *line, processPo p, void *cl) {
   lineDebugging = False;
   insDebugging = True;
   return nextIns;
 }
 
-static DebugWaitFor
-dbgSymbolDebug(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgSymbolDebug(char *line, processPo p, void *cl) {
   lineDebugging = True;
   insDebugging = False;
   return nextIns;
 }
 
-static DebugWaitFor
-dbgAddBreakPoint(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
@@ -414,8 +426,7 @@ dbgAddBreakPoint(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, fram
   return moreDebug;
 }
 
-static DebugWaitFor
-dbgClearBreakPoint(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp, void *cl) {
+static DebugWaitFor dbgClearBreakPoint(char *line, processPo p, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
@@ -427,7 +438,7 @@ dbgClearBreakPoint(char *line, processPo p, heapPo h, methodPo mtd, insPo pc, fr
   return moreDebug;
 }
 
-void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+DebugWaitFor insDebug(integer pcCount, processPo p) {
   static integer traceCount = 0;
   static DebugOption opts[] = {
     {.c = 'n', .cmd=dbgSingle, .usage="n single step", .cl=&traceCount},
@@ -435,6 +446,7 @@ void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, fr
     {.c = 'q', .cmd=dbgQuit, .usage="q stop execution", .cl=Null},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
     {.c = 'c', .cmd=dbgCont, .usage="c continue"},
+    {.c = 'R', .cmd=dbgRestart, .usage="R restart current function"},
     {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
@@ -444,6 +456,11 @@ void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, fr
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"},
   };
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
+  insPo pc = p->pc;
+  heapPo h = p->heap;
 
   logical stopping = shouldWeStop(p, mtd, pc);
   if (p->tracing || stopping) {
@@ -467,7 +484,7 @@ void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, fr
           case nextBreak:
           case never:
           case nextSucc:
-            return;
+            return p->waitFor;
           case quitDbg:
             exit(0);
         }
@@ -477,6 +494,7 @@ void insDebug(integer pcCount, processPo p, heapPo h, methodPo mtd, insPo pc, fr
       flushFile(stdErr);
     }
   }
+  return p->waitFor;
 }
 
 void showLine(ioPo out, methodPo mtd, termPo ln) {
@@ -506,26 +524,31 @@ void showRet(ioPo out, methodPo mtd, termPo call) {
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm);
 
-static void
-lnDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp, showCmd show);
-
-void callDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp) {
-  lnDebug(p, h, mtd, call, pc, fp, sp, showCall);
+termPo insLit(processPo p) {
+  insPo pc = p->pc + 1;
+  int32 ix = collect32(&pc);
+  return getMtdLit(p->prog, ix);
 }
 
-void tailDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp) {
-  lnDebug(p, h, mtd, call, pc, fp, sp, showTail);
+static DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show);
+
+DebugWaitFor callDebug(processPo p, termPo call) {
+  return lnDebug(p, call, showCall);
 }
 
-void retDebug(processPo p, heapPo h, methodPo mtd, termPo call, insPo pc, framePo fp, ptrPo sp) {
-  lnDebug(p, h, mtd, call, pc, fp, sp, showRet);
+DebugWaitFor tailDebug(processPo p, termPo call) {
+  return lnDebug(p, call, showTail);
 }
 
-void lineDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp) {
-  lnDebug(p, h, mtd, ln, pc, fp, sp, showLine);
+DebugWaitFor retDebug(processPo p, termPo call) {
+  return lnDebug(p, call, showRet);
 }
 
-void lnDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo fp, ptrPo sp, showCmd show) {
+DebugWaitFor lineDebug(processPo p, termPo ln) {
+  return lnDebug(p, ln, showLine);
+}
+
+DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
   static integer traceCount = 0;
   static DebugOption opts[] = {
     {.c = 'n', .cmd=dbgSingle, .usage="n single step", .cl=&traceCount},
@@ -533,6 +556,7 @@ void lnDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo f
     {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
     {.c = 'c', .cmd=dbgCont, .usage="c continue"},
+    {.c = 'R', .cmd=dbgRestart, .usage="R restart current function"},
     {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
     {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
@@ -542,6 +566,11 @@ void lnDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo f
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"},
   };
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
+  insPo pc = p->pc;
+  heapPo h = p->heap;
 
   logical stopping = shouldWeStop(p, mtd, pc);
   if (p->tracing || stopping) {
@@ -564,7 +593,7 @@ void lnDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo f
           case nextBreak:
           case never:
           case nextSucc:
-            return;
+            return p->waitFor;
           case quitDbg:
             exit(0);
         }
@@ -574,6 +603,7 @@ void lnDebug(processPo p, heapPo h, methodPo mtd, termPo ln, insPo pc, framePo f
       flushFile(stdErr);
     }
   }
+  return p->waitFor;
 }
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
@@ -668,7 +698,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
   }
 }
 
-void showRegisters(heapPo h, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   integer pcOffset = (integer) (pc - mtd->code);
 
   outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x, sp: 0x%x, ",

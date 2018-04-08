@@ -474,7 +474,7 @@ trVarExp(Lc,Nm,idnt("_"),Q,Q,_,_) :-
 
 implementVarExp(localVar(Vn,_,ThVr),Lc,_,cll(Lc,lbl(Vn,1),[ThVr]),Q,Qx) :-
   merge([ThVr],Q,Qx).
-implementVarExp(moduleVar(V),Lc,_,idnt(V),Qx,Qx).
+implementVarExp(moduleVar(V),_Lc,_,idnt(V),Qx,Qx).
 implementVarExp(labelArg(N,ThVar),_,_,N,Q,Qx) :-
   merge([N,ThVar],Q,Qx).
 implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),Q,Q).
@@ -604,12 +604,8 @@ notVar(V) :- V\=idnt(_).
 
 mkV(idnt(Nm),v(_,Nm)).
 
-thetaLbl(theta(_,Path,_,_,_,_),Map,Lbl) :-
-  layerName(Map,Outer),
-  localName(Outer,"•",Path,Lbl).
-thetaLbl(record(_,Path,_,_,_,_),Map,Lbl) :-
-  layerName(Map,Outer),
-  localName(Outer,"•",Path,Lbl).
+thetaLbl(theta(_,Path,_,_,_,_),_Map,Path).
+thetaLbl(record(_,Path,_,_,_,_),_Map,Path).
 
 makeLblTerm(Nm,[],enum(Nm)) :- !.
 makeLblTerm(Nm,Extra,ctpl(lbl(Nm,Ar),Extra)) :- length(Extra,Ar).
