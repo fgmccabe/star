@@ -56,7 +56,7 @@ stockActor is package {
             /**
             * stock history and current state
             */
-           mySymbol is S;                      -- keep symbol around for debugging
+           mySymbol is S;                      -- keep symbol around for insDebugging
            var lastPrice := 0.0;
            var maxTime := 0L;
            var lastChange := 0.0;

@@ -622,7 +622,7 @@ perform R.release() -- let go of right fork
 
 The `sleep` calls in this sequence stand for some arbitrary activity — such as chatting or eating — that does not involve forks and/or the central table.
 
-The complete `phil` function returns a `task` that performs this cycle a fixed number of times. The program below shows the `phil` function that takes the semaphores for the left and right forks as argument, together with an identifying philosopher number for debugging purposes.
+The complete `phil` function returns a `task` that performs this cycle a fixed number of times. The program below shows the `phil` function that takes the semaphores for the left and right forks as argument, together with an identifying philosopher number for insDebugging purposes.
 
 ```
 fun phil(n,L,R) is task{

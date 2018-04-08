@@ -1,58 +1,115 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
-{\fonttbl\f0\froman\fcharset0 Palatino-Roman;}
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf400
+{\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
+}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
 {\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
 \pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
 
 \f0\fs26 \cf2 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 There are two basic ways of importing a package\{\\SCRV_FN=You cannot import a worksheet.\\END_SCRV_FN\} into your code: the 
-\i open import
-\i0  and the 
-\i named import
-\i0 . The open import is the simplest; to import a package you just import it (sic):\
-worksheet\{\
+There are two basic ways of importing a package
+\f1\fs24 \{\\Scrv_fn=
+\f0\fs26 You cannot import a worksheet.
+\f1\fs24 \\end_Scrv_fn\}
+\f0\fs26  into your code: the 
+\i \cf2 open import
+\i0 \cf2  and the 
+\i \cf2 named import
+\i0 \cf2 . The open import is the simplest; to import a package you just import it (sic):\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 worksheet\{\
   import myPackage.\
 \
   -- Use definitions from myPackage\
 \}\
-You can also import packages outside the worksheet structure:\
-import myPackage.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 You can also import packages outside the worksheet structure:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 import myPackage.\
 worksheet\{\
   -- Use definitions from myPackage\
 \}\
-Any definition that is contained in myPackage is available throughout the worksheet (or other package if you are building a package).\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 Any definition that is contained in myPackage is available throughout the worksheet (or other package if you are building a package).\
 Like other forms of definition, the import statement may appear anywhere at the top-level of the importing worksheet or package. However, it is normally at the beginning of the package.\
 The second way of importing a package is to use the 
-\i named import
-\i0 . As suggested, a named import associates a local identifier with the import:\
-worksheet\{\
+\i \cf2 named import
+\i0 \cf2 . As suggested, a named import associates a local identifier with the import:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 worksheet\{\
   import myPackage as mP.\
 \
   -- Use definitions from myPackage via mP\
 \}\
-For example, suppose that myPackage looked like:\
-myPackage\{\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 For example, suppose that 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 myPackage
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  looked like:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 myPackage\{\
   public all t ~~ foo[t] ::= foo(t) | bar.\
 \
   public unFoo:all t ~~ (foo[t]) => t.\
   unFoo(foo(X)) => X.\
 \}\
-To use the unFoo function in our second worksheet, we simply reference it as a field in the mP variable:\
-worksheet\{\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 To use the 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 unFoo
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  function in our second worksheet, we simply reference it as a field in the mP variable:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 worksheet\{\
   import myPackage as mP.\
 \
   getTheStuff:all t ~~ (mP.foo[t])=>t.\
   getTheStuff(F) is mP.unFoo(F).\
 \}\
-What may be a little surprising is that this applies to the foo type also, and also to the foo and bar constructors:\
-worksheet\{\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 What may be a little surprising is that this applies to the foo type also, and also to the foo and bar constructors:\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 worksheet\{\
   import myPackage as mP.\
 \
   wrapF:all t ~~ (option[t])=>foo[t].\
   wrapF(none) => mP.bar.\
   wrapF(some(X)) => mP.foo(X).\
 \}\
-One of the benefits of the named import is that it makes it possible to import packages even when there are potential clashes amongst the packages being imported and/or definitions in the importing package itself.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 One of the benefits of the named import is that it makes it possible to import packages even when there are potential clashes amongst the packages being imported and/or definitions in the importing package itself.\
 By using named imports the effect is to establish a local 
-\i namespace
-\i0  for the imported package. Different definitions imported from different places can be reliably distinguished using the normal record field access syntax (i.e., a period).}
+\i \cf2 namespace
+\i0 \cf2  for the imported package. Different definitions imported from different places can be reliably distinguished using the normal record field access syntax (i.e., a period).}

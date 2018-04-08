@@ -1,4 +1,4 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf200
+{\rtf1\ansi\ansicpg1252\cocoartf1561\cocoasubrtf400
 {\fonttbl\f0\froman\fcharset0 Palatino-Roman;\f1\fswiss\fcharset0 Helvetica;\f2\fnil\fcharset0 Menlo-Regular;
 }
 {\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
@@ -10,8 +10,20 @@ By default, when a package is imported, it is privately imported \'96 the conten
 However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.[It also exposes the structure of the library to clients; something that is typically not desirable.]\
 In order to facilitate the construction of libraries, and larger scale packages, we allow for so-called public imports.\
 A public import is written:\
-public import fooPkg.\
-This will have the effect of re-exporting elements of fooPkg as though they were directly exported (made public) by the current package.\
+\pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Ps::0>
+\f2\fs22 public import fooPkg.\
+\pard\tx360\tx720\tx1080\tx1440\tx1800\tx2160\tx2880\tx3600\tx4320\fi360\sl264\slmult1\pardirnatural\partightenfactor0
+
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Ps::0>
+\f0\fs26 This will have the effect of re-exporting elements of 
+\f1\fs24 \cf0 \kerning1\expnd0\expndtw0 <$Scr_Cs::1>
+\f2\fs22 fooPkg
+\f1\fs24 \cf2 \expnd0\expndtw0\kerning0
+<!$Scr_Cs::1>
+\f0\fs26  as though they were directly exported (made public) by the current package.\
 One common pattern for specifying libraries \'96 that are made of multiple packages \'96 is though a stub package that just consists of a sequence of public imports:\
 \pard\tx720\tx1080\tx1440\tx1800\tx2160\li720\pardirnatural\partightenfactor0
 

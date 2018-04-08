@@ -20,7 +20,7 @@ sleep(random(15L))  -- eat some\
 perform L.release() -- let go of left fork\
 perform R.release() -- let go of right fork\
 The sleep calls in this sequence stand for some arbitrary activity \'97 such as chatting or eating \'97 that does not involve forks and/or the central table.\
-The complete phil function returns a task that performs this cycle a fixed number of times. The program below shows the phil function that takes the semaphores for the left and right forks as argument, together with an identifying philosopher number for debugging purposes.\
+The complete phil function returns a task that performs this cycle a fixed number of times. The program below shows the phil function that takes the semaphores for the left and right forks as argument, together with an identifying philosopher number for insDebugging purposes.\
 fun phil(n,L,R) is task\{\
   for Ix in range(0,Count,1) do\{\
     sleep(random(10L))  -- chat some\

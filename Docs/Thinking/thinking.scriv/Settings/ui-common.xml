@@ -13,7 +13,7 @@
             <ItemID>0A7F9529-5F7D-473A-9AF3-3D55AD6848E0</ItemID>
         </ExpandedItems>
         <Selection>
-            <ItemID>C6BF1E28-CFB0-4C7E-AD6D-896763B72F0B</ItemID>
+            <ItemID>65DD6CFA-150C-41F2-9D20-DE8283BA1FBB</ItemID>
         </Selection>
     </Binder>
     <Inspector Show="Yes" View="Comments">
@@ -61,11 +61,11 @@
             <View>
                 <ShowHeader>Yes</ShowHeader>
                 <ShowFooter>Yes</ShowFooter>
-                <GroupsViewMode>Scrivenings</GroupsViewMode>
+                <GroupsViewMode>Single</GroupsViewMode>
                 <CurrentViewMode>Single</CurrentViewMode>
                 <SelectionAffects>None</SelectionAffects>
                 <Content>
-                    <ItemID>C6BF1E28-CFB0-4C7E-AD6D-896763B72F0B</ItemID>
+                    <ItemID>65DD6CFA-150C-41F2-9D20-DE8283BA1FBB</ItemID>
                 </Content>
             </View>
             <Text>

@@ -50,7 +50,7 @@ type level is finest
 
 The different logging levels have an intended interpretation designed to facilitate users of applications manage the type and quantity of logging flow:
 \begin{description}
-finest:: is used for very fine grained logging, typically debugging.
+finest:: is used for very fine grained logging, typically insDebugging.
 finer:: is used for fine grained logging.
 fine:: is used for reporting of internally significant events within an application.
 config:: is used to report application configuration events.

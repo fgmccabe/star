@@ -93,8 +93,8 @@
 	</array>
 	<key>binderSplitFrames</key>
 	<array>
-		<string>{{0, 0}, {223, 628}}</string>
-		<string>{{224, 0}, {1022, 628}}</string>
+		<string>{{0, 0}, {223, 696}}</string>
+		<string>{{224, 0}, {891, 696}}</string>
 	</array>
 	<key>binderState</key>
 	<array>
@@ -162,8 +162,8 @@
 	<integer>0</integer>
 	<key>inspectorSplitFrames</key>
 	<array>
-		<string>{{0, 0}, {763, 598}}</string>
-		<string>{{764, 0}, {258, 598}}</string>
+		<string>{{0, 0}, {632, 666}}</string>
+		<string>{{633, 0}, {258, 666}}</string>
 	</array>
 	<key>inspectorWidth</key>
 	<real>258</real>
@@ -1022,7 +1022,7 @@
 	<key>mainDocumentEditor.rulerIsVisible</key>
 	<false/>
 	<key>mainDocumentEditor.scrollRect</key>
-	<string>{{0, 4.7999999999999998}, {598.39999999999998, 433.59999999999997}}</string>
+	<string>{{0, 3.2000000000000002}, {493.60000000000002, 488}}</string>
 	<key>mainDocumentEditor.selectedRanges</key>
 	<string>{0, 0}</string>
 	<key>mainDocumentEditor.selectedTextRanges</key>
@@ -1035,7 +1035,7 @@
 	<key>mainDocumentEditor.textMode</key>
 	<integer>0</integer>
 	<key>mainWindowFrame</key>
-	<string>1924 63 1246 674 1440 -252 2048 1129 </string>
+	<string>68 96 1115 742 0 0 1440 877 </string>
 	<key>projectStatsSheet</key>
 	<dict>
 		<key>excludeAnnots</key>

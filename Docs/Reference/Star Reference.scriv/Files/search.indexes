@@ -43,22 +43,6 @@ declares a new type that is an alias for time -- i.e., that it is actually equiv
 Type aliases have no run-time presence. In fact, they may be viewed as a simple form of type macro -- type expressions that match the left hand side are replaced by the type expression on the right hand side. However, type aliases have some definite constraints: a type alias may not be, directly or indirectly, recursive.
 </Text>
         </Document>
-        <Document ID="3B425F17-6AEB-4983-8C67-5167CFE5B4E9">
-            <Title>Dedication</Title>
-            <Text>
-
-
-
-
-
-
-
-
-
-
-Insert dedication here.</Text>
-            <Notes>Feel free to delete this document if you don’t need it.</Notes>
-        </Document>
         <Document ID="24E459F1-0706-476B-BFF6-708939094B0A">
             <Title>Grammar Rules</Title>
             <Text>%!TEX root = reference.tex
@@ -215,6 +199,22 @@ infixOps is \{ (";",1999,2000,2000); ...; (".",249,250,249); \};
 \end{program}
 </Text>
         </Document>
+        <Document ID="3B425F17-6AEB-4983-8C67-5167CFE5B4E9">
+            <Title>Dedication</Title>
+            <Text>
+
+
+
+
+
+
+
+
+
+
+Insert dedication here.</Text>
+            <Notes>Feel free to delete this document if you don’t need it.</Notes>
+        </Document>
         <Document ID="82BBE02E-A6D5-44B4-AD6E-0FCA32529815">
             <Title>Simple Types</Title>
             <Text>A simple type is TypeExpression with no type arguments. Some simple types are pre-defined, this gives a table of such types:
@@ -301,6 +301,12 @@ This notation accommodates the Unicode's varying width of character codes -- fro
         <Document ID="A097A466-32FF-491F-8E6B-6DCD12185DE1">
             <Title>Foreword</Title>
         </Document>
+        <Document ID="3473F9DE-8DAE-4FBC-8AC5-90E91204D208">
+            <Title>Postifx Operator</Title>
+            <Text>A statement of the form:
+#postfix(‘psOp’,730).
+defines the operator psOp to be a postfix operator, with priority 730.</Text>
+        </Document>
         <Document ID="96776348-B035-46DA-A5A5-210E99B93774">
             <Title>Front Matter</Title>
             <Notes>Note that in the “Metadata” pane of the Inspector, under “Section Type”, the “Default Subdocument Type” is set to “Front Matter”. This setting causes all subdocuments of this folder to use the “Front Matter” section type by default (that is, when “Structure-Based” is selected as the section type).
@@ -308,12 +314,6 @@ This notation accommodates the Unicode's varying width of character codes -- fro
 This saves us from having to manually assign the “Front Matter” section type for each document we place into this folder.
 
 During Compile, documents assigned the “Front Matter” section type will be laid out differently from documents in the main body of the manuscript.</Notes>
-        </Document>
-        <Document ID="3473F9DE-8DAE-4FBC-8AC5-90E91204D208">
-            <Title>Postifx Operator</Title>
-            <Text>A statement of the form:
-#postfix(‘psOp’,730).
-defines the operator psOp to be a postfix operator, with priority 730.</Text>
         </Document>
         <Document ID="60D37027-5A0F-4CA1-BA8F-0F527FC7BB6D">
             <Title>Contents</Title>
@@ -2851,30 +2851,6 @@ In addition, quoted strings may include interpolation expressions -- which are e
 [TIP] This choice gives us two key benefits: it is simple to understand and it is simple to extend.
 However, it also makes certain other aspects more challenging. In particular, an operator precedence grammar knows less about the program as it is parsed. This means that syntax errors are liable to less informative.</Text>
         </Document>
-        <Document ID="422DFBEE-0A35-4352-881D-1AB4A494CF5A">
-            <Title>Type Constraints</Title>
-            <Text>A TypeConstraint is a constraint on a Type; usually implying a constraint on the possible binding of a TypeVariable. For example, a Contract refers to a named collection of functions and a TypeVariable constrained by a ContractConstraint means that any concrete instantiation of the TypeVariable must be to a Type that implements the Contract — or more accurately, there must be an implementation of the contract that satsifies the Type.
-Similarly, a FieldConstraint constrains the TypeVariable so that any binding must be to a Type that has the named field in its definition.
-For example, using arith as a constraint allows us to say `the type can be anything that implements a form of arithmetic'. The type expression:
-arith[t] |: t
-denotes this kind of constrained type.
-[NOTE] It is possible to view a type variable binding itself as a form of constraint: if we bind the type variable t to the type integer then we are constraining the type t to be equal to integer.
-TypeConstraint ::= ContractConstraint
-  | FieldConstraint
-  | InstanceConstraint
-  | TupleConstraint
-  | TypeConstraint ,.., TypeConstraint
-Type Constraints
-A type expression of the form:
-comparable[t], arith[t] |: (t)=&gt;t
-denotes a unary function type for any type that implements both the comparable and the arith contracts.
-[NOTE] In many cases type inference will automatically result in constraints being added to type expressions.
-It is possible mix different forms of TypeConstraint; for example, if a TypeVariable must be bound to a type that implements the comparable contract as well as having the integer-typed ident attribute, the type expression:
-comparable[t], t &lt;~ { ident:integer }
-captures this.
-[NOTE] If a constrained type variable is unified with another type variable, then the constraints of the two variables are merged. It may be that such a merging of constraints is not possible; in such a case, the unification will fail and the type variables are not compatible.
-</Text>
-        </Document>
         <Document ID="9D2B5BA6-E77C-42D4-86FD-CBFF0B23F986">
             <Title>Singleton Tuple Type</Title>
             <Text>A singleton tuple must be written with two parentheses. This is to disambiguate such terms from simple expression parentheses. A type expression of the form:
@@ -2925,6 +2901,30 @@ In order to properly understand the interpretation of a type variable one must u
 A universally quantified type (see universalType) denotes a type that allows all possible instantiations for the type variable. For example, function types often involve universal types. A universally typed function is expected to work `for all values' of the type variable -- which, in turn, means that the function definition can make no assumptions about the actual type.
 Existentially quantified types (see existentialType) are  used to denote abstract types; i.e., the existential quantifier signals that there is a type that should be treated as an opaque black box.</Text>
             <Comments>The term "iff" means "if and only if".</Comments>
+        </Document>
+        <Document ID="422DFBEE-0A35-4352-881D-1AB4A494CF5A">
+            <Title>Type Constraints</Title>
+            <Text>A TypeConstraint is a constraint on a Type; usually implying a constraint on the possible binding of a TypeVariable. For example, a Contract refers to a named collection of functions and a TypeVariable constrained by a ContractConstraint means that any concrete instantiation of the TypeVariable must be to a Type that implements the Contract — or more accurately, there must be an implementation of the contract that satsifies the Type.
+Similarly, a FieldConstraint constrains the TypeVariable so that any binding must be to a Type that has the named field in its definition.
+For example, using arith as a constraint allows us to say `the type can be anything that implements a form of arithmetic'. The type expression:
+arith[t] |: t
+denotes this kind of constrained type.
+[NOTE] It is possible to view a type variable binding itself as a form of constraint: if we bind the type variable t to the type integer then we are constraining the type t to be equal to integer.
+TypeConstraint ::= ContractConstraint
+  | FieldConstraint
+  | InstanceConstraint
+  | TupleConstraint
+  | TypeConstraint ,.., TypeConstraint
+Type Constraints
+A type expression of the form:
+comparable[t], arith[t] |: (t)=&gt;t
+denotes a unary function type for any type that implements both the comparable and the arith contracts.
+[NOTE] In many cases type inference will automatically result in constraints being added to type expressions.
+It is possible mix different forms of TypeConstraint; for example, if a TypeVariable must be bound to a type that implements the comparable contract as well as having the integer-typed ident attribute, the type expression:
+comparable[t], t &lt;~ { ident:integer }
+captures this.
+[NOTE] If a constrained type variable is unified with another type variable, then the constraints of the two variables are merged. It may be that such a merging of constraints is not possible; in such a case, the unification will fail and the type variables are not compatible.
+</Text>
         </Document>
         <Document ID="AB8A74F2-F4AE-405B-A802-4EA4292C55BB">
             <Title>Expressions-13</Title>
@@ -6657,6 +6657,266 @@ will be parsed as though written:
 implementation sequence[string-&gt;&gt;integer] =&gt; {
 Note that this implementation implies that a sequence over a string fixes the element type to integer -- i.e., a unicode CodePoint.</Text>
         </Document>
+        <Document ID="5BCBF610-8596-4733-B899-360B27360753">
+            <Title>Associative Postfix Operator</Title>
+            <Text>A statement of the form:
+#postfixAssoc(‘psOp’,730).
+defines the operator psOp to be an associative postfix operator, with priority 730. That means that expressions such as:
+A psOp psOp psOp
+are permitted, and have interpretation:
+(((A psOp) psOp) psOp)
+</Text>
+        </Document>
+        <Document ID="D8DA8352-5B30-4406-B068-20FB907C5011">
+            <Title>Associative Dictionaries</Title>
+            <Text>%!TEX root = reference.tex
+= Associative Dictionaries
+[[associativeMap]]
+
+(((expressions,associative dictionary)))
+(((associative dictionary expression)))
+Dictionaries allow the programmer to establish an associative mapping between pairs of elements. They are convenient when it is not known what the actual elements of the association will be at design time.
+
+\begin{aside}
+An important property of dictionaries is that there can be at most _one_ value associated with a given key. This is one of the primary differences between dictionaries and lists.
+\end{aside}
+
+== Dictionary Type
+[[mapTypes]]
+(((type,dictionary`dictionary` type)))
+
+The `dictionary` type takes the form of a type expression with two type arguments: the type of the key and the type of the value.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Type_&amp;\arrowplus&amp;`dictionary of (`_Type_`,`_Type_`)`
+\end{eqnarray*}
+.Dictionary Type
+[[mapTypeFig]]
+\end{figure}
+In a `dictionary`, every key must have the same type; as must each value in the `dictionary` -- although the keys' type may be different to the values' type.
+
+For example, the type expression:
+[listing]
+dictionary of (string,integer)
+
+denotes the type of a dictionary whose keys are `string`s and whose values are `integer`s.
+
+The `dictionary` type's structure is not public. It is defined as though by a &lt;&lt;KindAnnotation&gt;&gt;:
+[listing]
+dictionary has kind type of (type,type)
+
+\begin{aside}
+In addition, there is a constraint on the types of keys: they must implement the `equality` contract. This means that it is not possible to use as keys any value that contains a program value. There is no such restriction on the values -- it is quite possible to have a map from `string`s to functions (say).
+\end{aside}
+
+
+== Dictionary Literals
+[[mapLiteral]]
+(((dictionary,literal)))
+(((dictionary literal@`dictionary` literal)))
+(((dictionarys)))
+A `dictionary` literal consists of a `dictionary` brace term with each element in the dictionary represented as a pair
+[listing]
+_Key_ -&gt; _Value_
+
+&lt;&lt;mapLiteralFig&gt;&gt; defines the syntax of dictionary literals.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Expression_&amp;\arrowplus&amp;`dictionary of ``[`_MapElement_\sequence{,}_MapElement_`]`\\
+_MapElement_::=_Expression_\ `-&gt;`\ _Expression_
+\end{eqnarray*}
+.Dictionary Literal
+[[mapLiteralFig]]
+\end{figure}
+For example,
+[listing]
+dictionary of ["alpha" -&gt; 1, "beta"-&gt;2]
+
+is a dictionary consisting of `string` keys to `integer` literals.
+An associative `dictionary` literal may not have more than one value associated with any given key.
+
+An empty `dictionary` literal is written:
+[listing]
+dictionary of []
+
+
+\begin{aside}
+There is no _pattern_ form of a `dictionary` literal: it is not possible to pattern match against a dictionary. However, it is possible to constrain an equation based on a dictionary argument -- using semantic guard:
+[listing]
+keyPresent(Ky,D) where present D[Ky] is D[Ky];
+
+\end{aside}
+
+
+== Accessing Elements of a Dictionary
+[[associativeMapAccess]]
+(((dictionary,accessing elements)))
+(((expressions,access elements of dictionary)))
+
+There are implementations of the `indexable` (see Program~\vref{indexableContractDef}), `sizeable` (see Program~\vref{sizeableContract}), `iterable` (see Program~\vref{iterateContractProg}) and `pPrint` contracts (see Program~\vref{ppContractProg}). Thus, the standard notations for accessing indexed elements, and iterating over collects, apply to `dictionary` values also.
+
+Note that the related contracts `sequence` (see Program~\vref{sequenceContractDef}), `sliceable` (see Program~\vref{sliceableContractProg}) are _not_ implemented for `dictionary` values. In the former case the reason is that `dictionary`s are not naturally accessed in a sequential manner, and in the latter case the _key_s used to access `dictionary`s are not limited to `integer`s.
+
+=== `\_index` -- Index Element
+[[indexMapFunction]]
+(((indexable contract@`indexable` contract,_index@`\_index`)))
+The `\_index` function, which is part of the `indexable` contract (see Program~\vref{indexableContractDef}), is used to access elements of a dictionary -- by providing a key.
+[listing]
+_index has type for all k,v such that (dictionary of (k,v),k)=&gt;option of v
+                where equality over k
+
+\begin{aside}
+The type of the index is obtained from the `dictionary` type itself: it is the first type argument.
+\end{aside}
+
+\begin{aside}
+The `\_index` function requires that `equality` is implemented for the key type.
+\end{aside}
+
+\noindent
+The `\_index` function has special syntax which is reminiscent of array index expressions:
+[listing]
+C[Ky]
+
+is equivalent to the expression
+[listing]
+\_index(C,Ky)
+
+For example, given a dictionary:
+[listing]
+M is dictionary of [ "alpha"-&gt;1, "beta"-&gt;2 ]
+
+we can access the value associated with the key `"alpha"` using:
+[listing]
+M["alpha"]
+
+Since the values accessed from a `dictionary` are always `option`al, we can unwrap them conditionally using a `has value` condition (see &lt;&lt;hasValueCond&gt;&gt;):
+[listing]
+get(Key) where M[Key] has value V is V
+
+
+=== `\_set\_indexed` -- Replace Element of Map
+[[mapReplaceFunction]]
+(((indexable contract@`indexable` contract,_set_indexed@`\_set\_indexed`)))
+(((replace element in collection)))
+The `\_set\_indexed` function, which is part of the `indexable` contract, is used to set an element in a `dictionary`.
+[listing]
+\_set\_indexed has type for all k,v such that
+                        (dictionary of (k,v),k,v)=&gt;dictionary of (k,v)
+                        where equality over k
+
+The `\_set\_indexed` function returns a `dictionary` in which an element is replaced. If the element as _not_ there beforehand, the `dictionary` is augmented with the new key/value pair. If there was an element with the same key, then the value associated with key is replaced.
+
+The `\_set\_indexed` function has special action syntax which is reminiscent of array update actions:
+[listing]
+C[Ky] := E
+
+is equivalent to the action
+[listing]
+C := \_set\_indexed(C,Ky,E)
+
+For example, given the variable declaration:
+[listing]
+var M := dictionary of [ "alpha"-&gt;1, "beta"-&gt;2 ]
+
+we can add a new key associated with `"gamma"` using the action:
+[listing]
+M["gamma"] := 3
+
+which is equivalent to:
+[listing]
+M := _set_indexed(M,"gamma",3)
+
+The `\_set\_indexed` function also has an expression form. The assignment above may also be written:
+[listing]
+M := M["gamma"-&gt;3]
+
+
+\begin{aside}
+As with other forms of update action, the `\_set\_indexed` function does not side-effect the previous value that was bound to the dictionary variable.
+\end{aside}
+
+=== `\_delete\_indexed` -- Remove Element from Map
+[[mapDeleteFunction]]
+(((indexable contractt@`indexable` contract,_delete_indexed@`\_delete\_indexed`)))
+(((remove element from collection)))
+`\_delete\_indexed` is part of the `indexable` contract -- see Program~\vref{indexableContractDef}.
+[listing]
+\_delete\_indexed has type for all k,v such that
+                           (dictionary of (k,v),k)=&gt;dictionary of (k,v)
+                           where equality over k
+
+The `\_delete\_indexed` function is used to remove an element from a dictionary. The `\_delete\_indexed` function returns a new `dictionary` with the identified element removed. The element to delete is identified by its key, not by the kay/value pair.
+
+The `\_delete\_indexed` function has special action syntax which is reminiscent of array update actions:
+[listing]
+remove C[Ky]
+
+is equivalent to the action
+[listing]
+C := C[without Ky]
+
+which, in turn, is equivalent to:
+[listing]
+C := \_delete\_indexed(C,Ky)
+
+For example, given the `var`-declared variable `M` above, we can remove the entry associated with `"alpha"` using:
+[listing]
+remove M["alpha"]
+
+
+The `expression variant' of the `remove` notation -- `C[without ky]` -- is more pleasant for functional programs where the dictionary is not held in an updateable variable.
+
+=== Searching a Dictionary
+[[searchMap]]
+(((dictionary expression,membership predicate)))
+
+A `dictionary` may be searched within a condition using the &lt;&lt;IndexedSearch&gt;&gt; condition.
+
+There are two primary situations for searching an associative `dictionary`: if the _Key_ part of a &lt;&lt;IndexedSearch&gt;&gt; operator is either a literal or is a previously bound variable then there is at most one way of satisfying a &lt;&lt;IndexedSearch&gt;&gt; condition. On the other hand, if the _Key_ is a pattern containing unbound variables then a &lt;&lt;IndexedSearch&gt;&gt; involves iterating over the entire dictionary looking for entries that match the condition.
+
+
+== Standard `dictionary` Functions
+[[standardMap]]
+
+The `dictionary` type implements the standard `sizeable` contract -- see Program~\vref{sizeableContract}. As such, the functions `size` and `empty` are defined for `dictionary` values.
+
+=== `size` -- length of a dictionary
+[[sizeMapFunction]]
+(((size function@`size` function)))
+`size` is part of the `sizeable` contract.
+[listing]
+size has type for all k,v such that (dictionary of (k,v))=&gt;integer
+
+
+The `size` function returns the length of its `dictionary` argument; i.e., the number of elements in the `dictionary`.
+
+
+=== `isEmpty` -- test for empty dictionary
+[[emptyMapFunction]]
+(((isEmpty function@`isEmpty` function)))
+`empty` is part of the `sizeable` contract.
+[listing]
+isEmpty has type for all k,v such that (dictionary of (k,v))=&gt;boolean
+
+
+The `isEmpty` function returns `true` if its argument has no elements.
+</Text>
+        </Document>
+        <Document ID="DAF1D39A-EE62-4A68-9A51-F347A1E9B506">
+            <Title>Multi-word Identifiers</Title>
+            <Text>A MultiWordIdentifier is an Identifier that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a MultiWordIdentifier is logically a single identifier. For example, the combination of words:
+group by
+is logically a single multi-word identifier whose name is ‘group by’.
+There are a few standard MultiWordIdentifiers, as outlined below. In addition, MultiWordIdentifiers can be defined as operators.
+
+`any of` | `group by` | `has value` |
+`such that` | `counts as` | `for all` | `order by` |
+`order descending by` | `has kind` | `instance of` | `descending by` |
+`has type` | `bound to` | `or else` | `on abort` |
+Parts of a MultiWordIdentifier may be separated by spaces and/or comments.
+If a part of a MultiWordIdentifier occurs out of sequence, i.e., not as part of the sequence that defines the identifier, then it is interpreted as a normal identifier.</Text>
+        </Document>
         <Document ID="D09392E3-0448-4229-9F66-DF8BE7250409">
             <Title>Threads</Title>
             <Text>%!TEX root = reference.tex
@@ -6933,279 +7193,31 @@ semaphore(Count) is \{
 %\end{prooftree}
 </Text>
         </Document>
-        <Document ID="D8DA8352-5B30-4406-B068-20FB907C5011">
-            <Title>Associative Dictionaries</Title>
-            <Text>%!TEX root = reference.tex
-= Associative Dictionaries
-[[associativeMap]]
-
-(((expressions,associative dictionary)))
-(((associative dictionary expression)))
-Dictionaries allow the programmer to establish an associative mapping between pairs of elements. They are convenient when it is not known what the actual elements of the association will be at design time.
-
-\begin{aside}
-An important property of dictionaries is that there can be at most _one_ value associated with a given key. This is one of the primary differences between dictionaries and lists.
-\end{aside}
-
-== Dictionary Type
-[[mapTypes]]
-(((type,dictionary`dictionary` type)))
-
-The `dictionary` type takes the form of a type expression with two type arguments: the type of the key and the type of the value.
-\begin{figure}[htbp]
-\begin{eqnarray*}
-_Type_&amp;\arrowplus&amp;`dictionary of (`_Type_`,`_Type_`)`
-\end{eqnarray*}
-.Dictionary Type
-[[mapTypeFig]]
-\end{figure}
-In a `dictionary`, every key must have the same type; as must each value in the `dictionary` -- although the keys' type may be different to the values' type.
-
-For example, the type expression:
-[listing]
-dictionary of (string,integer)
-
-denotes the type of a dictionary whose keys are `string`s and whose values are `integer`s.
-
-The `dictionary` type's structure is not public. It is defined as though by a &lt;&lt;KindAnnotation&gt;&gt;:
-[listing]
-dictionary has kind type of (type,type)
-
-\begin{aside}
-In addition, there is a constraint on the types of keys: they must implement the `equality` contract. This means that it is not possible to use as keys any value that contains a program value. There is no such restriction on the values -- it is quite possible to have a map from `string`s to functions (say).
-\end{aside}
-
-
-== Dictionary Literals
-[[mapLiteral]]
-(((dictionary,literal)))
-(((dictionary literal@`dictionary` literal)))
-(((dictionarys)))
-A `dictionary` literal consists of a `dictionary` brace term with each element in the dictionary represented as a pair
-[listing]
-_Key_ -&gt; _Value_
-
-&lt;&lt;mapLiteralFig&gt;&gt; defines the syntax of dictionary literals.
-\begin{figure}[htbp]
-\begin{eqnarray*}
-_Expression_&amp;\arrowplus&amp;`dictionary of ``[`_MapElement_\sequence{,}_MapElement_`]`\\
-_MapElement_::=_Expression_\ `-&gt;`\ _Expression_
-\end{eqnarray*}
-.Dictionary Literal
-[[mapLiteralFig]]
-\end{figure}
-For example,
-[listing]
-dictionary of ["alpha" -&gt; 1, "beta"-&gt;2]
-
-is a dictionary consisting of `string` keys to `integer` literals.
-An associative `dictionary` literal may not have more than one value associated with any given key.
-
-An empty `dictionary` literal is written:
-[listing]
-dictionary of []
-
-
-\begin{aside}
-There is no _pattern_ form of a `dictionary` literal: it is not possible to pattern match against a dictionary. However, it is possible to constrain an equation based on a dictionary argument -- using semantic guard:
-[listing]
-keyPresent(Ky,D) where present D[Ky] is D[Ky];
-
-\end{aside}
-
-
-== Accessing Elements of a Dictionary
-[[associativeMapAccess]]
-(((dictionary,accessing elements)))
-(((expressions,access elements of dictionary)))
-
-There are implementations of the `indexable` (see Program~\vref{indexableContractDef}), `sizeable` (see Program~\vref{sizeableContract}), `iterable` (see Program~\vref{iterateContractProg}) and `pPrint` contracts (see Program~\vref{ppContractProg}). Thus, the standard notations for accessing indexed elements, and iterating over collects, apply to `dictionary` values also.
-
-Note that the related contracts `sequence` (see Program~\vref{sequenceContractDef}), `sliceable` (see Program~\vref{sliceableContractProg}) are _not_ implemented for `dictionary` values. In the former case the reason is that `dictionary`s are not naturally accessed in a sequential manner, and in the latter case the _key_s used to access `dictionary`s are not limited to `integer`s.
-
-=== `\_index` -- Index Element
-[[indexMapFunction]]
-(((indexable contract@`indexable` contract,_index@`\_index`)))
-The `\_index` function, which is part of the `indexable` contract (see Program~\vref{indexableContractDef}), is used to access elements of a dictionary -- by providing a key.
-[listing]
-_index has type for all k,v such that (dictionary of (k,v),k)=&gt;option of v
-                where equality over k
-
-\begin{aside}
-The type of the index is obtained from the `dictionary` type itself: it is the first type argument.
-\end{aside}
-
-\begin{aside}
-The `\_index` function requires that `equality` is implemented for the key type.
-\end{aside}
-
-\noindent
-The `\_index` function has special syntax which is reminiscent of array index expressions:
-[listing]
-C[Ky]
-
-is equivalent to the expression
-[listing]
-\_index(C,Ky)
-
-For example, given a dictionary:
-[listing]
-M is dictionary of [ "alpha"-&gt;1, "beta"-&gt;2 ]
-
-we can access the value associated with the key `"alpha"` using:
-[listing]
-M["alpha"]
-
-Since the values accessed from a `dictionary` are always `option`al, we can unwrap them conditionally using a `has value` condition (see &lt;&lt;hasValueCond&gt;&gt;):
-[listing]
-get(Key) where M[Key] has value V is V
-
-
-=== `\_set\_indexed` -- Replace Element of Map
-[[mapReplaceFunction]]
-(((indexable contract@`indexable` contract,_set_indexed@`\_set\_indexed`)))
-(((replace element in collection)))
-The `\_set\_indexed` function, which is part of the `indexable` contract, is used to set an element in a `dictionary`.
-[listing]
-\_set\_indexed has type for all k,v such that
-                        (dictionary of (k,v),k,v)=&gt;dictionary of (k,v)
-                        where equality over k
-
-The `\_set\_indexed` function returns a `dictionary` in which an element is replaced. If the element as _not_ there beforehand, the `dictionary` is augmented with the new key/value pair. If there was an element with the same key, then the value associated with key is replaced.
-
-The `\_set\_indexed` function has special action syntax which is reminiscent of array update actions:
-[listing]
-C[Ky] := E
-
-is equivalent to the action
-[listing]
-C := \_set\_indexed(C,Ky,E)
-
-For example, given the variable declaration:
-[listing]
-var M := dictionary of [ "alpha"-&gt;1, "beta"-&gt;2 ]
-
-we can add a new key associated with `"gamma"` using the action:
-[listing]
-M["gamma"] := 3
-
-which is equivalent to:
-[listing]
-M := _set_indexed(M,"gamma",3)
-
-The `\_set\_indexed` function also has an expression form. The assignment above may also be written:
-[listing]
-M := M["gamma"-&gt;3]
-
-
-\begin{aside}
-As with other forms of update action, the `\_set\_indexed` function does not side-effect the previous value that was bound to the dictionary variable.
-\end{aside}
-
-=== `\_delete\_indexed` -- Remove Element from Map
-[[mapDeleteFunction]]
-(((indexable contractt@`indexable` contract,_delete_indexed@`\_delete\_indexed`)))
-(((remove element from collection)))
-`\_delete\_indexed` is part of the `indexable` contract -- see Program~\vref{indexableContractDef}.
-[listing]
-\_delete\_indexed has type for all k,v such that
-                           (dictionary of (k,v),k)=&gt;dictionary of (k,v)
-                           where equality over k
-
-The `\_delete\_indexed` function is used to remove an element from a dictionary. The `\_delete\_indexed` function returns a new `dictionary` with the identified element removed. The element to delete is identified by its key, not by the kay/value pair.
-
-The `\_delete\_indexed` function has special action syntax which is reminiscent of array update actions:
-[listing]
-remove C[Ky]
-
-is equivalent to the action
-[listing]
-C := C[without Ky]
-
-which, in turn, is equivalent to:
-[listing]
-C := \_delete\_indexed(C,Ky)
-
-For example, given the `var`-declared variable `M` above, we can remove the entry associated with `"alpha"` using:
-[listing]
-remove M["alpha"]
-
-
-The `expression variant' of the `remove` notation -- `C[without ky]` -- is more pleasant for functional programs where the dictionary is not held in an updateable variable.
-
-=== Searching a Dictionary
-[[searchMap]]
-(((dictionary expression,membership predicate)))
-
-A `dictionary` may be searched within a condition using the &lt;&lt;IndexedSearch&gt;&gt; condition.
-
-There are two primary situations for searching an associative `dictionary`: if the _Key_ part of a &lt;&lt;IndexedSearch&gt;&gt; operator is either a literal or is a previously bound variable then there is at most one way of satisfying a &lt;&lt;IndexedSearch&gt;&gt; condition. On the other hand, if the _Key_ is a pattern containing unbound variables then a &lt;&lt;IndexedSearch&gt;&gt; involves iterating over the entire dictionary looking for entries that match the condition.
-
-
-== Standard `dictionary` Functions
-[[standardMap]]
-
-The `dictionary` type implements the standard `sizeable` contract -- see Program~\vref{sizeableContract}. As such, the functions `size` and `empty` are defined for `dictionary` values.
-
-=== `size` -- length of a dictionary
-[[sizeMapFunction]]
-(((size function@`size` function)))
-`size` is part of the `sizeable` contract.
-[listing]
-size has type for all k,v such that (dictionary of (k,v))=&gt;integer
-
-
-The `size` function returns the length of its `dictionary` argument; i.e., the number of elements in the `dictionary`.
-
-
-=== `isEmpty` -- test for empty dictionary
-[[emptyMapFunction]]
-(((isEmpty function@`isEmpty` function)))
-`empty` is part of the `sizeable` contract.
-[listing]
-isEmpty has type for all k,v such that (dictionary of (k,v))=&gt;boolean
-
-
-The `isEmpty` function returns `true` if its argument has no elements.
-</Text>
-        </Document>
-        <Document ID="DAF1D39A-EE62-4A68-9A51-F347A1E9B506">
-            <Title>Multi-word Identifiers</Title>
-            <Text>A MultiWordIdentifier is an Identifier that is written as a contiguous sequence of alphanumeric words. Although written as multiple words, a MultiWordIdentifier is logically a single identifier. For example, the combination of words:
-group by
-is logically a single multi-word identifier whose name is ‘group by’.
-There are a few standard MultiWordIdentifiers, as outlined below. In addition, MultiWordIdentifiers can be defined as operators.
-
-`any of` | `group by` | `has value` |
-`such that` | `counts as` | `for all` | `order by` |
-`order descending by` | `has kind` | `instance of` | `descending by` |
-`has type` | `bound to` | `or else` | `on abort` |
-Parts of a MultiWordIdentifier may be separated by spaces and/or comments.
-If a part of a MultiWordIdentifier occurs out of sequence, i.e., not as part of the sequence that defines the identifier, then it is interpreted as a normal identifier.</Text>
-        </Document>
         <Document ID="9C47FE92-A3E7-4D4A-A856-E4CA8C558327">
             <Title>Manuscript Format</Title>
         </Document>
-        <Document ID="F41A5BAD-2880-4AC7-92C8-7A16C9873894">
-            <Title>Regular Expressions</Title>
-            <Text>A regular expression may be used to match against string values. Regular expressions are written using a regexp notation that is close to the common formats; with some simplifications and extensions.
+        <Document ID="279ACED4-D331-4910-8390-E71DCB3F9782">
+            <Title>Expressions-12</Title>
+            <Text>
+=== Enumerated Symbol
+[[enumeratedSymbol]]
+(((expression,enumerated symbol)))
+(((enumerated symbol literal)))
+&lt;&lt;EnumeratedSymbol&gt;&gt;s denote symbolic values. In particular, it refers to symbols that are introduced in an algebraic &lt;&lt;TypeDefinition&gt;&gt;.
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[EnumeratedSymbol]]EnumeratedSymbol::=&lt;&lt;Identifier&gt;&gt;
+\end{eqnarray*}
+.Enumerated Symbol Expression
+[[enumeratedSymbolFig]]
+\end{figure}
+Enumerated symbols have no internal structure; they are often used to define enumerations or for sentinels. For example, the &lt;&lt;Boolean&gt;&gt; standard type can be defined
+[listing]
+type boolean is false or true
 
-RegularExpression::= &lt;&lt;Regex&gt;&gt;```
-
-[[Regex]]Regex ::= `.` | `^` | `$`
-  | &lt;&lt;CharRef&gt;&gt;
-  | &lt;&lt;DisjunctiveGroup&gt;&gt;
-  | &lt;&lt;CharacterClass&gt;&gt;
-  | &lt;&lt;Binding&gt;&gt;
-  | &lt;&lt;Regex&gt;&gt; &lt;&lt;Cardinality&gt;&gt;
-  | &lt;&lt;Regex&gt;&gt; &lt;&lt;Regex&gt;&gt;
-****
-Regular Expressions
-
-&lt;&lt;regFig&gt;&gt; shows the lexical syntax of regular expressions; however, see &lt;&lt;regularExpressions&gt;&gt; for a more detailed explanations of regular expression syntax and semantics.
-
-[[identifiers]]
-==</Text>
+and the standard cons-list type uses `nil` to mark the empty list:
+[listing]
+type cons[t] is cons(t,cons[t]) or nil</Text>
         </Document>
         <Document ID="BB360289-7F77-4AF1-A155-43057C51131A">
             <Title>Title Page</Title>
@@ -7238,16 +7250,6 @@ The &lt;$PROJECTTITLE&gt; and &lt;$fullname&gt; tags get replaced with metadata 
 The &lt;$wc100&gt; words tag will be replaced with the word count rounded to the nearest 100 during Compile (this and other tags can be inserted from the Insert menu).
 
 Feel free to edit the text of the title page as required.</Notes>
-        </Document>
-        <Document ID="5BCBF610-8596-4733-B899-360B27360753">
-            <Title>Associative Postfix Operator</Title>
-            <Text>A statement of the form:
-#postfixAssoc(‘psOp’,730).
-defines the operator psOp to be an associative postfix operator, with priority 730. That means that expressions such as:
-A psOp psOp psOp
-are permitted, and have interpretation:
-(((A psOp) psOp) psOp)
-</Text>
         </Document>
         <Document ID="9246A791-286D-4255-9A7C-ECC808D6E20E">
             <Title>Record Constructor</Title>
@@ -7303,28 +7305,26 @@ For processing input, the dominant metaphor is one of _parsing_: the input occur
 For generating output, being able to emit `person` records is important. It is also important to be able to intersperse such records with fragments of canned text. Thus the natural data type for elements of output is the _structured string_ -- see &lt;&lt;ppType&gt;&gt;.
 </Text>
         </Document>
-        <Document ID="279ACED4-D331-4910-8390-E71DCB3F9782">
-            <Title>Expressions-12</Title>
-            <Text>
-=== Enumerated Symbol
-[[enumeratedSymbol]]
-(((expression,enumerated symbol)))
-(((enumerated symbol literal)))
-&lt;&lt;EnumeratedSymbol&gt;&gt;s denote symbolic values. In particular, it refers to symbols that are introduced in an algebraic &lt;&lt;TypeDefinition&gt;&gt;.
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[EnumeratedSymbol]]EnumeratedSymbol::=&lt;&lt;Identifier&gt;&gt;
-\end{eqnarray*}
-.Enumerated Symbol Expression
-[[enumeratedSymbolFig]]
-\end{figure}
-Enumerated symbols have no internal structure; they are often used to define enumerations or for sentinels. For example, the &lt;&lt;Boolean&gt;&gt; standard type can be defined
-[listing]
-type boolean is false or true
+        <Document ID="F41A5BAD-2880-4AC7-92C8-7A16C9873894">
+            <Title>Regular Expressions</Title>
+            <Text>A regular expression may be used to match against string values. Regular expressions are written using a regexp notation that is close to the common formats; with some simplifications and extensions.
 
-and the standard cons-list type uses `nil` to mark the empty list:
-[listing]
-type cons[t] is cons(t,cons[t]) or nil</Text>
+RegularExpression::= &lt;&lt;Regex&gt;&gt;```
+
+[[Regex]]Regex ::= `.` | `^` | `$`
+  | &lt;&lt;CharRef&gt;&gt;
+  | &lt;&lt;DisjunctiveGroup&gt;&gt;
+  | &lt;&lt;CharacterClass&gt;&gt;
+  | &lt;&lt;Binding&gt;&gt;
+  | &lt;&lt;Regex&gt;&gt; &lt;&lt;Cardinality&gt;&gt;
+  | &lt;&lt;Regex&gt;&gt; &lt;&lt;Regex&gt;&gt;
+****
+Regular Expressions
+
+&lt;&lt;regFig&gt;&gt; shows the lexical syntax of regular expressions; however, see &lt;&lt;regularExpressions&gt;&gt; for a more detailed explanations of regular expression syntax and semantics.
+
+[[identifiers]]
+==</Text>
         </Document>
         <Document ID="A46C342F-E12E-4CD0-B27D-753026C284C6">
             <Title>Punctuation Symbols and Graphic Identifiers</Title>
@@ -7424,6 +7424,15 @@ where the $f\subi$ are distinct labels of fields and the trailing `;..` is inten
 
 ====</Text>
         </Document>
+        <Document ID="45770631-D6D6-4530-ACA4-9702DEFF46D1">
+            <Title>Expressions-21</Title>
+            <Text>
+==== `private` fields
+[[privateField]]
+(((private fields@`private` fields)))
+(((fields,private@`private`)))
+A definition within a &lt;&lt;ThetaRecord&gt;&gt; that is marked `private` does _not_ `contribute' to the external type of the record; and neither can such an attribute be accessed via the &lt;&lt;RecordAccess&gt;&gt; expression.</Text>
+        </Document>
         <Document ID="3ECF6511-EC5A-4B9A-B12F-039C0CDD2CB7">
             <Title>Copyright</Title>
             <Text>
@@ -7449,15 +7458,6 @@ ISBN:
 ISBN-13:
 </Text>
             <Notes>Feel free to delete this document if you don’t need it, or edit it for your needs.</Notes>
-        </Document>
-        <Document ID="45770631-D6D6-4530-ACA4-9702DEFF46D1">
-            <Title>Expressions-21</Title>
-            <Text>
-==== `private` fields
-[[privateField]]
-(((private fields@`private` fields)))
-(((fields,private@`private`)))
-A definition within a &lt;&lt;ThetaRecord&gt;&gt; that is marked `private` does _not_ `contribute' to the external type of the record; and neither can such an attribute be accessed via the &lt;&lt;RecordAccess&gt;&gt; expression.</Text>
         </Document>
         <Document ID="5EE132AD-D003-43F6-95F5-34E5D9F2CC04">
             <Title>Expressions-14</Title>
@@ -9292,9 +9292,6 @@ and
 these types unify -- assuming that t is a bound type variable, provided that t is unifiable with string.
 [NOTE] All user-defined types -- i.e., types defined by an AlgebraicType definition -- have a RecordType interface associated with them. This, as is detailed in &lt;&lt;algebraicInterface&gt;&gt;, defines a type for all of the fields in any of the constructors for the type. In turn, this permits a RecordAccess expression to apply to a user-defined type as well as a RecordType.</Text>
         </Document>
-        <Document ID="833DF1C1-C636-4034-9053-01C6641E9578">
-            <Title>Contents</Title>
-        </Document>
         <Document ID="0133ABB9-B885-4F8D-8A9B-59E5B0B2159D">
             <Title>Standard Operators</Title>
             <Text>A key input to the grammar is the table of operators. Star starts with a number of standard operators, but this can be extended via the use of extensions to the language.
@@ -9452,6 +9449,9 @@ Priorities are numbers in the range 1..2000; by convention, priorities in the ra
 `\#prefix("#~",50)` |
 Standard Operators</Text>
         </Document>
+        <Document ID="833DF1C1-C636-4034-9053-01C6641E9578">
+            <Title>Contents</Title>
+        </Document>
         <Document ID="B2C42D9B-7456-419A-94B5-452AA5BB3277">
             <Title>Variables (In Expressions)</Title>
             <Text>A variable as an expression is simply an occurrence of the variable's identifier.</Text>
@@ -9510,7 +9510,7 @@ type level is finest
 
 The different logging levels have an intended interpretation designed to facilitate users of applications manage the type and quantity of logging flow:
 \begin{description}
-finest:: is used for very fine grained logging, typically debugging.
+finest:: is used for very fine grained logging, typically insDebugging.
 finer:: is used for fine grained logging.
 fine:: is used for reporting of internally significant events within an application.
 config:: is used to report application configuration events.
@@ -10816,36 +10816,39 @@ WARNING: Occasionally, there are areas where the programmer may accidentally tri
 </Text>
             <Comments>Notes which are not really part of the main exposition, but still represent nuggets of wisdom are relegated to footnotes.</Comments>
         </Document>
-        <Document ID="801541C3-8A84-4468-AE3B-27F42D933881">
-            <Title>Instance Constraint</Title>
+        <Document ID="3F037397-C1EB-4A21-AB0D-D3621ECC6D53">
+            <Title>Largest and Smallest Integers</Title>
+            <Text>The largeSmall contract is implemented for integers. This contract defines the largest and the smallest integers; its implementation is equivalent to
+implementation largeSmall[integer] =&gt; {
+  largest = 0x7fffffffffffffff
+  smallest = 0x8000000000000000
+}</Text>
+        </Document>
+        <Document ID="9E4BCB58-AFB3-4A01-A5D6-79A5952E11BF">
+            <Title>Scalar Literal Expressions</Title>
             <Text>
-[[instanceConstraint]]
-(((type,constraints!instance)))
-
-An &lt;&lt;InstanceConstraint&gt;&gt; is a requirement on a variable that any instantiation of the variable is an `instance of' a type -- typically that is a universally quantified type.
-
-
-[[instanceConstraintFig]]
-.Instance Type Constraint
-****
-[[InstanceConstraint]]InstanceConstraint ::= &lt;&lt;TypeVar&gt;&gt; `instance of` &lt;&lt;Type&gt;&gt;
-****
-
-For example, in
-[listing]
-r instance of (all t ~~ (t)=&gt;t)
-
-we establish a constraint on `r` that any binding of `r` must be some specialization of the function type:
-[listing]
-all t ~~ (t)=&gt;t
-
-Note that this would permit, for example, `r` to be bound to the `integer` function type:
-[listing]
-(integer)=&gt;integer
-
-because this type is an instance of the &lt;&lt;UniversalType&gt;&gt;.
-
+There are three forms of scalar literal expression: numeric literals, string literals and enumerated symbols.
+ScalarLiteral::=Integer
+  | Float
+  | String
+  | EnumeratedSymbol
+Scalar Literals
+The integer type is used to denote integral values in the range -9223372036854775808 to 9223372036854775807.
+Integers may be written in a variety of styles; the most common form is the simple Decimal notation.
+Integer::=Decimal
+  | Hexadecimal
+  | CharacterCode
+Integer Literals
 </Text>
+        </Document>
+        <Document ID="BF84F849-6F09-462F-B0FC-5EB1F05FD05F">
+            <Title>Enumerated Symbol</Title>
+            <Text>An enumerated symbol is written as an identifier. The fact that an identifier has been mentioned in a type definition is sufficient to `mark' it as a value -- and not as a variable for example.
+EnumeratedSymbol::=Identifier
+Enumerated Symbols
+The standard type boolean is defined in terms of two enumerated symbols: true and false:
+boolean ::= true | false
+[NOTE] An enumerated symbol must be unique across all types within the scope of the type definition.</Text>
         </Document>
         <Document ID="9FFBA333-8432-41C1-91F5-1302DFE283CA">
             <Title>Non-Fiction Format</Title>
@@ -10969,39 +10972,36 @@ Like all templates in Scrivener, this project was originally created from the �
 
 You can create your own templates by setting up a skeletal project with the files, folders and settings you would like to use for new projects and using File &gt; Save As Template.</Text>
         </Document>
-        <Document ID="9E4BCB58-AFB3-4A01-A5D6-79A5952E11BF">
-            <Title>Scalar Literal Expressions</Title>
+        <Document ID="801541C3-8A84-4468-AE3B-27F42D933881">
+            <Title>Instance Constraint</Title>
             <Text>
-There are three forms of scalar literal expression: numeric literals, string literals and enumerated symbols.
-ScalarLiteral::=Integer
-  | Float
-  | String
-  | EnumeratedSymbol
-Scalar Literals
-The integer type is used to denote integral values in the range -9223372036854775808 to 9223372036854775807.
-Integers may be written in a variety of styles; the most common form is the simple Decimal notation.
-Integer::=Decimal
-  | Hexadecimal
-  | CharacterCode
-Integer Literals
+[[instanceConstraint]]
+(((type,constraints!instance)))
+
+An &lt;&lt;InstanceConstraint&gt;&gt; is a requirement on a variable that any instantiation of the variable is an `instance of' a type -- typically that is a universally quantified type.
+
+
+[[instanceConstraintFig]]
+.Instance Type Constraint
+****
+[[InstanceConstraint]]InstanceConstraint ::= &lt;&lt;TypeVar&gt;&gt; `instance of` &lt;&lt;Type&gt;&gt;
+****
+
+For example, in
+[listing]
+r instance of (all t ~~ (t)=&gt;t)
+
+we establish a constraint on `r` that any binding of `r` must be some specialization of the function type:
+[listing]
+all t ~~ (t)=&gt;t
+
+Note that this would permit, for example, `r` to be bound to the `integer` function type:
+[listing]
+(integer)=&gt;integer
+
+because this type is an instance of the &lt;&lt;UniversalType&gt;&gt;.
+
 </Text>
-        </Document>
-        <Document ID="BF84F849-6F09-462F-B0FC-5EB1F05FD05F">
-            <Title>Enumerated Symbol</Title>
-            <Text>An enumerated symbol is written as an identifier. The fact that an identifier has been mentioned in a type definition is sufficient to `mark' it as a value -- and not as a variable for example.
-EnumeratedSymbol::=Identifier
-Enumerated Symbols
-The standard type boolean is defined in terms of two enumerated symbols: true and false:
-boolean ::= true | false
-[NOTE] An enumerated symbol must be unique across all types within the scope of the type definition.</Text>
-        </Document>
-        <Document ID="3F037397-C1EB-4A21-AB0D-D3621ECC6D53">
-            <Title>Largest and Smallest Integers</Title>
-            <Text>The largeSmall contract is implemented for integers. This contract defines the largest and the smallest integers; its implementation is equivalent to
-implementation largeSmall[integer] =&gt; {
-  largest = 0x7fffffffffffffff
-  smallest = 0x8000000000000000
-}</Text>
         </Document>
         <Document ID="E1A79E16-1F2B-4F4D-9FC4-2D33E88858D1">
             <Title>Field Constraints</Title>
@@ -11603,6 +11603,88 @@ We do not take account of constraints at this time.
 
 ====</Text>
         </Document>
+        <Document ID="A222CE33-2038-4E34-B5B0-A172353DD2AE">
+            <Title>Expressions-33</Title>
+            <Text>
+==== Type Safety
+The type safety requirements of a conditional expression are that the types of the two arms of the conditional are the same, and that the condition itself is \safeinf{}:
+
+\begin{prooftree}
+\AxiomC{\typesat{E}{C}}
+\AxiomC{\typeprd{E}{Th}{t}}
+\AxiomC{\typeprd{E}{El}{t}}
+\TrinaryInfC{\typeprd{E}{`(`C`?`Th`:`El`)`}{t}}
+\end{prooftree}
+
+
+=== Switch Expressions
+[[caseExpression]]
+(((expressions,case@`case`)))
+(((case expression@`case` expression)))
+
+A `switch` expression uses a selector expression and a set of equations to determine which value to return.
+\begin{aside}
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+[[CaseExpression]]CaseExpression::=`switch`\ &lt;&lt;Expression&gt;&gt;\ `in`\ &lt;&lt;CaseBody&gt;&gt;\\
+[[CaseBody]]CaseBody::=`\{`&lt;&lt;CaseArm&gt;&gt;\sequence{`;`}&lt;&lt;CaseArm&gt;&gt;`\`}\\
+[[CaseArm]]CaseArm::=`case`\ &lt;&lt;Pattern&gt;&gt;\ `is`\ &lt;&lt;Expression&gt;&gt;\\
+  | `case`\ &lt;&lt;Pattern&gt;&gt;\ `default`\ `is`\ &lt;&lt;Expression&gt;&gt;
+\end{eqnarray*}
+.Case Expression
+[[caseExpressionFig]]
+\end{figure}
+
+The `selector' expression is evaluated, and then, at most one of the &lt;&lt;CaseArm&gt;&gt;s is selected based on whether the &lt;&lt;Pattern&gt;&gt; matches or not. If one of these does match, then the corresponding &lt;&lt;Expression&gt;&gt; on the right hand side is evaluated as the value of the `switch`.
+
+Program~\vref{dogCaseProg} shows a simple example of a `switch` expression, in this mapping `string`s to `integer`s.
+\begin{program}
+[listing]
+switch Alpha in {
+  case "dog" is 1;
+  case "pup" is 2;
+  case _ default is -1
+}
+
+.A `case` of Dogs Program[[dogCaseProg]]
+\end{program}
+
+
+Each &lt;&lt;CaseArm&gt;&gt;'s pattern may introduce variables; these variables are `in scope' only for the corresponding right hand side expression.
+
+Optionally, a `switch` expression may have a `default` clause. This clause determines the value of the expression if none of the other &lt;&lt;CaseArm&gt;&gt;s match.
+
+\begin{aside}
+The &lt;&lt;Pattern&gt;&gt; associated with a `default` should always apply. If the `default` clause does not match then an exception will be raised.
+\end{aside}
+
+\paragraph{Evaluation Order}
+Other than handling of the `default` case, the different &lt;&lt;CaseArm&gt;&gt;s are attempted in the order of appearance in the text.
+
+I.e., the `default` &lt;&lt;CaseArm&gt;&gt; is tried only if all other &lt;&lt;CaseArm&gt;&gt;s do not apply.
+
+==== Type Safety
+The type safety requirements of a `case` expression are that the types of the patterns of each &lt;&lt;CaseArm&gt;&gt; are the same, and are the same as the selector expression. In addition, the right hand sides of the &lt;&lt;CaseArm&gt;&gt;s should also be consistently typed.
+
+\begin{prooftree}
+\AxiomC{\typeprd{E}{S}{T}}
+\AxiomC{\typeprd{E}{P\subi}{T}}
+\AxiomC{\typeprd{E$\cup{}$varsIn(P\subi)}{E\subi}{T\sub{e}}}
+\TrinaryInfC{\typeprd{E}{`switch`\ S\ `in\{`\sequence{}`;``case`\ P\subi\ `is`\ E\subi`;`\sequence{}`\`}}{T\sub{e}}}
+\end{prooftree}
+
+In the case that there is a `default` clause, then that too must agree:
+\begin{prooftree}
+\AxiomC{\typeprd{E}{S}{T}}
+\AxiomC{\typeprd{E}{P\subi}{T}}
+\AxiomC{\typeprd{E$\cup{}$varsIn(P\subi)}{E\subi}{T\sub{e}}}
+\TrinaryInfC{\typeprd{E}{`switch`\ S\ `in\{`\sequence{}`;``case`\ P\subi\ `is`\ E\subi`;`\sequence{}`case`\ P\subn\ `default`\ `is`\ E\subn`\`}}{T\sub{e}}}
+\end{prooftree}
+
+`switch` expressions may not be used that often explicitly. However, the compiler will often construct them during the process of compiling functions.
+\end{aside}</Text>
+        </Document>
         <Document ID="A4648FB0-2C68-4B37-A4BB-C8908A25BAA9">
             <Title>Strings</Title>
             <Text>%!TEX root = reference.tex
@@ -12046,88 +12128,6 @@ is the `string`
 "   "
 
 </Text>
-        </Document>
-        <Document ID="A222CE33-2038-4E34-B5B0-A172353DD2AE">
-            <Title>Expressions-33</Title>
-            <Text>
-==== Type Safety
-The type safety requirements of a conditional expression are that the types of the two arms of the conditional are the same, and that the condition itself is \safeinf{}:
-
-\begin{prooftree}
-\AxiomC{\typesat{E}{C}}
-\AxiomC{\typeprd{E}{Th}{t}}
-\AxiomC{\typeprd{E}{El}{t}}
-\TrinaryInfC{\typeprd{E}{`(`C`?`Th`:`El`)`}{t}}
-\end{prooftree}
-
-
-=== Switch Expressions
-[[caseExpression]]
-(((expressions,case@`case`)))
-(((case expression@`case` expression)))
-
-A `switch` expression uses a selector expression and a set of equations to determine which value to return.
-\begin{aside}
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[CaseExpression]]CaseExpression::=`switch`\ &lt;&lt;Expression&gt;&gt;\ `in`\ &lt;&lt;CaseBody&gt;&gt;\\
-[[CaseBody]]CaseBody::=`\{`&lt;&lt;CaseArm&gt;&gt;\sequence{`;`}&lt;&lt;CaseArm&gt;&gt;`\`}\\
-[[CaseArm]]CaseArm::=`case`\ &lt;&lt;Pattern&gt;&gt;\ `is`\ &lt;&lt;Expression&gt;&gt;\\
-  | `case`\ &lt;&lt;Pattern&gt;&gt;\ `default`\ `is`\ &lt;&lt;Expression&gt;&gt;
-\end{eqnarray*}
-.Case Expression
-[[caseExpressionFig]]
-\end{figure}
-
-The `selector' expression is evaluated, and then, at most one of the &lt;&lt;CaseArm&gt;&gt;s is selected based on whether the &lt;&lt;Pattern&gt;&gt; matches or not. If one of these does match, then the corresponding &lt;&lt;Expression&gt;&gt; on the right hand side is evaluated as the value of the `switch`.
-
-Program~\vref{dogCaseProg} shows a simple example of a `switch` expression, in this mapping `string`s to `integer`s.
-\begin{program}
-[listing]
-switch Alpha in {
-  case "dog" is 1;
-  case "pup" is 2;
-  case _ default is -1
-}
-
-.A `case` of Dogs Program[[dogCaseProg]]
-\end{program}
-
-
-Each &lt;&lt;CaseArm&gt;&gt;'s pattern may introduce variables; these variables are `in scope' only for the corresponding right hand side expression.
-
-Optionally, a `switch` expression may have a `default` clause. This clause determines the value of the expression if none of the other &lt;&lt;CaseArm&gt;&gt;s match.
-
-\begin{aside}
-The &lt;&lt;Pattern&gt;&gt; associated with a `default` should always apply. If the `default` clause does not match then an exception will be raised.
-\end{aside}
-
-\paragraph{Evaluation Order}
-Other than handling of the `default` case, the different &lt;&lt;CaseArm&gt;&gt;s are attempted in the order of appearance in the text.
-
-I.e., the `default` &lt;&lt;CaseArm&gt;&gt; is tried only if all other &lt;&lt;CaseArm&gt;&gt;s do not apply.
-
-==== Type Safety
-The type safety requirements of a `case` expression are that the types of the patterns of each &lt;&lt;CaseArm&gt;&gt; are the same, and are the same as the selector expression. In addition, the right hand sides of the &lt;&lt;CaseArm&gt;&gt;s should also be consistently typed.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{S}{T}}
-\AxiomC{\typeprd{E}{P\subi}{T}}
-\AxiomC{\typeprd{E$\cup{}$varsIn(P\subi)}{E\subi}{T\sub{e}}}
-\TrinaryInfC{\typeprd{E}{`switch`\ S\ `in\{`\sequence{}`;``case`\ P\subi\ `is`\ E\subi`;`\sequence{}`\`}}{T\sub{e}}}
-\end{prooftree}
-
-In the case that there is a `default` clause, then that too must agree:
-\begin{prooftree}
-\AxiomC{\typeprd{E}{S}{T}}
-\AxiomC{\typeprd{E}{P\subi}{T}}
-\AxiomC{\typeprd{E$\cup{}$varsIn(P\subi)}{E\subi}{T\sub{e}}}
-\TrinaryInfC{\typeprd{E}{`switch`\ S\ `in\{`\sequence{}`;``case`\ P\subi\ `is`\ E\subi`;`\sequence{}`case`\ P\subn\ `default`\ `is`\ E\subn`\`}}{T\sub{e}}}
-\end{prooftree}
-
-`switch` expressions may not be used that often explicitly. However, the compiler will often construct them during the process of compiling functions.
-\end{aside}</Text>
         </Document>
         <Document ID="4DAE20E1-E8B4-402B-BA96-7067A8A89451">
             <Title>Ebook</Title>

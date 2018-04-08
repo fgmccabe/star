@@ -7,12 +7,12 @@
         <ExpandedItems>
             <ItemID>7A583553-3A84-40D6-B9B9-0430B8CD3E39</ItemID>
             <ItemID>09207F79-BF79-406C-B420-C68496956E8E</ItemID>
-            <ItemID>96776348-B035-46DA-A5A5-210E99B93774</ItemID>
-            <ItemID>B0417A1B-D617-4CBD-900A-14A6AB12C289</ItemID>
-            <ItemID>6B6E864E-D14F-4EF7-8C5F-1D489706989A</ItemID>
+            <ItemID>6B2294B0-E706-47B3-A1C9-8599AB5C74BE</ItemID>
+            <ItemID>B3B24A43-1771-40B9-BE0C-5CFCA7474528</ItemID>
+            <ItemID>DDFC701A-4AE4-4B57-84E4-C31E10EBA7C1</ItemID>
         </ExpandedItems>
         <Selection>
-            <ItemID>16476111-0FDE-42C5-8641-519DBB129794</ItemID>
+            <ItemID>65021070-164A-464B-943A-3D18D18C241F</ItemID>
         </Selection>
     </Binder>
     <Inspector Show="Yes" View="Comments">
@@ -110,7 +110,7 @@
                 <CurrentViewMode>Scrivenings</CurrentViewMode>
                 <SelectionAffects>None</SelectionAffects>
                 <Content>
-                    <ItemID>16476111-0FDE-42C5-8641-519DBB129794</ItemID>
+                    <ItemID>65021070-164A-464B-943A-3D18D18C241F</ItemID>
                 </Content>
             </View>
             <Text>
