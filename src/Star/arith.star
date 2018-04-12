@@ -25,6 +25,9 @@ star.arith{
 
   public implementation equality[integer] => {
     X == Y => _int_eq(X,Y).
+  }
+
+  public implementation hash[integer] => {
     hash(X) => X.
   }
 
@@ -55,6 +58,9 @@ star.arith{
 
   public implementation equality[float] => {
     X == Y => _flt_eq(X,Y).
+  }
+
+  public implementation hash[float] => {
     hash(X) => _flt_hash(X).
   }
 

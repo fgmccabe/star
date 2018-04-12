@@ -156,11 +156,11 @@ checkOthers([St|Stmts],Ass,Env,Path) :-
 checkOther(St,[assertion(Lc,Cond)|More],More,Env,Path) :-
   isIntegrity(St,Lc,C),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfTerm(C,LogicalTp,Env,_,Cond,Path).
+  typeOfExp(C,LogicalTp,Env,_,Cond,Path).
 checkOther(St,[ignore(Lc,Exp)|More],More,Env,Path) :-
   isIgnore(St,Lc,Trm),!,
   newTypeVar("_",V),
-  typeOfTerm(Trm,V,Env,_,Exp,Path).
+  typeOfExp(Trm,V,Env,_,Exp,Path).
 
 checkGroups([],_,_,[],E,E,_).
 checkGroups([Gp|More],Fields,Annots,Defs,E,Ev,Path) :-
@@ -295,6 +295,9 @@ processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
 processStmt(St,Tp,Defs,Defx,E,Path) :-
   isPtnRule(St,Lc,L,C,R),
   checkPtnRule(Lc,L,C,R,Tp,Defs,Defx,E,Path).
+processStmt(St,Tp,Defs,Defx,E,Path) :-
+  isGrammarRule(St,Lc,L,C,R),
+  checkGrammarRule(Lc,L,C,R,Tp,Defs,Defx,E,Path).
 processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
@@ -320,21 +323,21 @@ findType(Nm,Lc,_,anonType) :-
 checkEquation(Lc,H,C,R,funType(AT,RT),[equation(Lc,Args,Cond,Exp)|Defs],Defs,E,Path) :-
   splitHead(H,_,A),
   pushScope(E,Env),
-  typeOfArgTerm(A,AT,Env,E0,Args,Path),
+  typeOfArgPtn(A,AT,Env,E0,Args,Path),
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfTerm(C,LogicalTp,E0,E1,Cond,Path),
-  typeOfTerm(R,RT,E1,E2,Exp,Path),
+  typeOfExp(C,LogicalTp,E0,E1,Cond,Path),
+  typeOfExp(R,RT,E1,E2,Exp,Path),
   dischargeConstraints(E,E2).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
 
-checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Args,Cond,Exp)|Defs],Defs,E,Path) :-
+checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Args,Cond,Ptn)|Defs],Defs,E,Path) :-
   splitHead(H,_,A),
   pushScope(E,Env),
   typeOfArgTerm(A,AT,Env,E0,Args,Path),
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfTerm(G,LogicalTp,E0,E1,Cond,Path),
-  typeOfTerm(R,RT,E1,E2,Exp,Path),
+  typeOfExp(G,LogicalTp,E0,E1,Cond,Path),
+  typeOfPtn(R,RT,E1,E2,Ptn,Path),
   dischargeConstraints(E,E2).
 checkPtnRule(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
   reportError("pattern rule not consistent with expected type: %s",[ProgramType],Lc).
@@ -342,14 +345,14 @@ checkPtnRule(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
 checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none),
   pushScope(Env,E),
-  typeOfTerm(R,Tp,E,E2,Value,Path),
+  typeOfExp(R,Tp,E,E2,Value,Path),
   dischargeConstraints(E,E2),
   packageVarName(Path,Nm,ExtNm).
 
 checkVarDefn(Lc,L,R,ref(Tp),vdefn(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none),
   pushScope(Env,E1),
-  typeOfTerm(R,Tp,E1,E2,Value,Path),
+  typeOfExp(R,Tp,E1,E2,Value,Path),
   dischargeConstraints(Env,E2),
   packageVarName(Path,Nm,ExtNm).
 
@@ -413,7 +416,7 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   moveConstraints(CnSpec,AC,contractExists(Spec,IFace)),
   declareTypeVars(IQ,Lc,Env,ThEnv),
   implementationName(Spec,ImplName),
-  typeOfTerm(IBody,IFace,ThEnv,ThEv,ImplTerm,ImplName),
+  typeOfExp(IBody,IFace,ThEnv,ThEv,ImplTerm,ImplName),
   Impl = implDef(Lc,INm,ImplName,ConSpec),
   contractTypes(AC,CTs),
   (CTs=[] ->
@@ -436,71 +439,139 @@ sameLength(L1,_,Lc) :-
 
 declImpl(imp(ImplNm,Spec),SoFar,[(ImplNm,Spec)|SoFar]).
 
+% Patterns are very similarly checked to expressions, except that fewer forms
+typeOfArgPtn(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
+  isTuple(T,Lc,A),
+  genTpVars(A,ArgTps),
+  checkType(Lc,tupleType(ArgTps),Tp,Env),
+  typeOfPtns(A,ArgTps,Env,Ev,Lc,Els,Path).
+typeOfArgPtn(T,Tp,Env,Ev,Exp,Path) :-
+  typeOfPtn(T,Tp,Env,Ev,Exp,Path).
+
+typeOfPtn(V,_,Env,Env,v(Lc,N),_Path) :-
+  isIden(V,Lc,"_"),!,
+  genstr("_",N).
+typeOfPtn(V,Tp,Env,Ev,Term,_Path) :-
+  isIden(V,Lc,N),
+  isVar(N,Env,Spec),!,
+  typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term).
+typeOfPtn(V,Tp,Ev,Env,v(Lc,N),_Path) :-
+  isIden(V,Lc,N),
+  declareVr(Lc,N,Tp,Ev,Env).
+typeOfPtn(integer(Lc,Ix),Tp,Env,Env,intLit(Ix),_Path) :- !,
+  findType("integer",Lc,Env,IntTp),
+  checkType(Lc,IntTp,Tp,Env).
+typeOfPtn(float(Lc,Ix),Tp,Env,Env,floatLit(Ix),_Path) :- !,
+  findType("float",Lc,Env,FltTp),
+  checkType(Lc,FltTp,Tp,Env).
+typeOfPtn(string(Lc,Ix),Tp,Env,Env,stringLit(Ix),_Path) :- !,
+  findType("string",Lc,Env,StrTp),
+  checkType(Lc,StrTp,Tp,Env).
+typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
+  isTypeAnnotation(Term,Lc,L,R),!,
+  parseType(R,Env,RT),
+  checkType(Lc,RT,Tp,Env),
+  typeOfPtn(L,RT,Env,Ev,Exp,Path).
+typeOfPtn(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
+  isWhere(P,Lc,L,C),
+  typeOfPtn(L,Tp,Env,E0,Ptn,Path),
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
+typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
+  isSquareTuple(Term,Lc,Els), !,
+  checkSquarePtn(Lc,Els,Tp,Env,Ev,Exp,Path).
+typeOfPtn(Trm,Tp,Env,Ev,Exp,Path) :-
+  isTuple(Trm,_,[Inner]),
+  \+ isTuple(Inner,_), !,
+  typeOfPtn(Inner,Tp,Env,Ev,Exp,Path).
+typeOfPtn(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
+  isTuple(Trm,Lc,A),
+  genTpVars(A,ArgTps),
+  checkType(Lc,tupleType(ArgTps),Tp,Env),
+  typeOfPtns(A,ArgTps,Env,Ev,Lc,Els,Path).
+typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
+  isRoundTerm(Term,Lc,F,A),
+  newTypeVar("F",FnTp),
+  newTypeVar("A",At),
+  typeOfKnown(F,FnTp,Env,E0,Fun),
+  (sameType(ptnType(At,Tp),FnTp,E0) ->
+    evidence(At,E0,_,AT),
+    typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+    Exp = apply(Lc,Fun,Args) ;
+   sameType(consType(At,Tp),FnTp,E0) ->
+    evidence(At,E0,_,AT),
+    typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+    Exp = apply(Lc,Fun,Args);
+   reportError("invalid term %s in pattern",[Fun],Lc)).
+typeOfPtn(Term,Tp,Env,Env,void,_) :-
+  locOfAst(Term,Lc),
+  reportError("illegal pattern: %s, expecting a %s",[Term,Tp],Lc).
+
 typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(T,Lc,A),
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els,Path).
 typeOfArgTerm(T,Tp,Env,Ev,Exp,Path) :-
-  typeOfTerm(T,Tp,Env,Ev,Exp,Path).
+  typeOfExp(T,Tp,Env,Ev,Exp,Path).
 
-typeOfTerm(V,_,Env,Env,v(Lc,N),_Path) :-
+typeOfExp(V,_,Env,Env,v(Lc,N),_Path) :-
   isIden(V,Lc,"_"),!,
   genstr("_",N).
-typeOfTerm(V,Tp,Env,Ev,Term,_Path) :-
+typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),
   isVar(N,Env,Spec),!,
   typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term).
-typeOfTerm(V,Tp,Ev,Env,v(Lc,N),_Path) :-
+typeOfExp(V,Tp,Ev,Env,v(Lc,N),_Path) :-
   isIden(V,Lc,N),
   declareVr(Lc,N,Tp,Ev,Env).
-typeOfTerm(integer(Lc,Ix),Tp,Env,Env,intLit(Ix),_Path) :- !,
+typeOfExp(integer(Lc,Ix),Tp,Env,Env,intLit(Ix),_Path) :- !,
   findType("integer",Lc,Env,IntTp),
   checkType(Lc,IntTp,Tp,Env).
-typeOfTerm(float(Lc,Ix),Tp,Env,Env,floatLit(Ix),_Path) :- !,
+typeOfExp(float(Lc,Ix),Tp,Env,Env,floatLit(Ix),_Path) :- !,
   findType("float",Lc,Env,FltTp),
   checkType(Lc,FltTp,Tp,Env).
-typeOfTerm(string(Lc,Ix),Tp,Env,Env,stringLit(Ix),_Path) :- !,
+typeOfExp(string(Lc,Ix),Tp,Env,Env,stringLit(Ix),_Path) :- !,
   findType("string",Lc,Env,StrTp),
   checkType(Lc,StrTp,Tp,Env).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,RT),
   checkType(Lc,RT,Tp,Env),
-  typeOfTerm(L,RT,Env,Ev,Exp,Path).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+  typeOfExp(L,RT,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
   binary(Lc,":",LT,R,NT),
-  typeOfTerm(NT,Tp,Env,Ev,Exp,Path).
-typeOfTerm(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
+  typeOfExp(NT,Tp,Env,Ev,Exp,Path).
+typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),
-  typeOfTerm(L,Tp,Env,E0,Ptn,Path),
+  typeOfExp(L,Tp,Env,E0,Ptn,Path),
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfTerm(C,LogicalTp,E0,Ex,Cond,Path).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+  typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
-typeOfTerm(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else),Path) :-
+typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfTerm(Tst,LogicalTp,Env,E0,Test,Path),
-  typeOfTerm(Th,Tp,E0,E1,Then,Path),
-  typeOfTerm(El,Tp,E1,Ev,Else,Path).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+  typeOfExp(Tst,LogicalTp,Env,E0,Test,Path),
+  typeOfExp(Th,Tp,E0,E1,Then,Path),
+  typeOfExp(El,Tp,E1,Ev,Else,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els), !,
-  checkSquareTuple(Lc,Els,Tp,Env,Ev,Exp,Path).
-typeOfTerm(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+  squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
   genstr("theta",ThNm),
   thetaName(Path,ThNm,ThPath),
   checkThetaBody(Tp,Lc,Els,Env,Defs,Others,Types,ThPath).
-typeOfTerm(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isQBraceTuple(Term,Lc,Els),
   genstr("record",RcNm),
   thetaName(Path,RcNm,ThPath),
   checkRecordBody(Tp,Lc,Els,Env,Defs,Others,Types,ThPath).
-typeOfTerm(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
@@ -509,7 +580,7 @@ typeOfTerm(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   thetaName(Path,ThNm,ThPath),
   deRef(FnTp,BTp),
   checkThetaBody(BTp,Lc,Els,E0,Defs,Others,Types,Lbl).
-typeOfTerm(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun),
@@ -517,23 +588,23 @@ typeOfTerm(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   genstr(Lbl,RcNm),
   thetaName(Path,RcNm,ThPath),
   checkRecordBody(FnTp,Lc,Els,E0,Defs,Others,Types,Lbl,ThPath).
-typeOfTerm(Term,Tp,Env,Env,letExp(Lc,Theta,Bound),Path) :-
+typeOfExp(Term,Tp,Env,Env,letExp(Lc,Theta,Bound),Path) :-
   isLetDef(Term,Lc,Th,Ex),
   newTypeVar("ThLet",LtVr),
-  typeOfTerm(Th,LtVr,Env,_,Theta,Path),
+  typeOfExp(Th,LtVr,Env,_,Theta,Path),
   faceOfType(LtVr,Fce),
   pushFace(Fce,Lc,Env,E0),
-  typeOfTerm(Ex,Tp,E0,_,Bound,Path).
-typeOfTerm(Trm,Tp,Env,Ev,Exp,Path) :-
+  typeOfExp(Ex,Tp,E0,_,Bound,Path).
+typeOfExp(Trm,Tp,Env,Ev,Exp,Path) :-
   isTuple(Trm,_,[Inner]),
   \+ isTuple(Inner,_), !,
-  typeOfTerm(Inner,Tp,Env,Ev,Exp,Path).
-typeOfTerm(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
+  typeOfExp(Inner,Tp,Env,Ev,Exp,Path).
+typeOfExp(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
   isTuple(Trm,Lc,A),
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els,Path).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isUnary(Term,Lc,"-",Arg), % handle unary minus
   (Arg=integer(_,Ix) ->
     findType("integer",Lc,Env,IntTp),
@@ -547,9 +618,9 @@ typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
     Env=Ev,
     Ng is -Dx,
     Exp = floatLit(Ng) ;
-  binary(Lc,"-",name(Lc,"zero"),Arg,Sub),
-  typeOfTerm(Sub,Tp,Env,Ev,Exp,Path)).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+  unary(Lc,"__minus",Arg,Sub),
+  typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("F",FnTp),
   newTypeVar("A",At),
@@ -563,43 +634,43 @@ typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
     Exp = apply(Lc,Fun,Args);
    reportError("invalid function %s in call",[Fun],Lc)).
-typeOfTerm(Term,Tp,Env,Ev,Exp,Path) :-
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
-typeOfTerm(Term,Tp,Env,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
-  typeOfArgTerm(H,AT,Env,E1,Args,Path),
+  typeOfArgPtn(H,AT,Env,E1,Args,Path),
   newTypeVar("_E",RT),
   checkType(Lc,funType(AT,RT),Tp,Env),
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfTerm(C,LogicalTp,E1,E2,Cond,Path),
-  typeOfTerm(R,RT,E2,_,Exp,Path).
-typeOfTerm(Term,Tp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
+  typeOfExp(C,LogicalTp,E1,E2,Cond,Path),
+  typeOfExp(R,RT,E2,_,Exp,Path).
+typeOfExp(Term,Tp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
-  typeOfTerm(L,LogicalTp,Env,E1,Lhs,Path),
-  typeOfTerm(R,LogicalTp,E1,Ex,Rhs,Path).
-typeOfTerm(Term,Tp,Env,Ex,disj(Lc,Lhs,Rhs),Path) :-
+  typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
+  typeOfExp(R,LogicalTp,E1,Ex,Rhs,Path).
+typeOfExp(Term,Tp,Env,Ex,disj(Lc,Lhs,Rhs),Path) :-
   isDisjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
-  typeOfTerm(L,LogicalTp,Env,E1,Lhs,Path),
-  typeOfTerm(R,LogicalTp,E1,Ex,Rhs,Path).
-typeOfTerm(Term,Tp,Env,Ex,neg(Lc,Rhs),Path) :-
+  typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
+  typeOfExp(R,LogicalTp,E1,Ex,Rhs,Path).
+typeOfExp(Term,Tp,Env,Ex,neg(Lc,Rhs),Path) :-
   isNegation(Term,Lc,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
-  typeOfTerm(R,LogicalTp,Env,Ex,Rhs,Path).
-typeOfTerm(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
+  typeOfExp(R,LogicalTp,Env,Ex,Rhs,Path).
+typeOfExp(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   isMatch(Term,Lc,P,E),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   newTypeVar("_#",TV),
-  typeOfTerm(P,TV,Env,E0,Lhs,Path),
-  typeOfTerm(E,TV,E0,Ev,Rhs,Path).
-typeOfTerm(Term,Tp,Env,Env,void,_) :-
+  typeOfExp(P,TV,Env,E0,Lhs,Path),
+  typeOfExp(E,TV,E0,Ev,Rhs,Path).
+typeOfExp(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
 
@@ -612,14 +683,14 @@ funLbl(mtd(_,Nm),Nm).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,"->",Ky,Vl),!,
   ternary(Lc,"_put",Mp,Ky,Vl,Term),
-  typeOfTerm(Term,Tp,Env,Ev,Exp,Path).
+  typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isUnary(Arg,"\\+",Ky),!,
   binary(Lc,"_remove",Mp,Ky,Term),
-  typeOfTerm(Term,Tp,Env,Ev,Exp,Path).
+  typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   binary(Lc,"find",Mp,Arg,Term),
-  typeOfTerm(Term,Tp,Env,Ev,Exp,Path).
+  typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
@@ -665,7 +736,7 @@ typeOfKnown(T,Tp,Env,Env,v(Lc,Nm)) :-
   isIden(T,Lc,Nm),
   reportError("variable %s not declared, expecting a %s",[Nm,Tp],Lc).
 typeOfKnown(T,Tp,Env,Ev,Exp) :-
-  typeOfTerm(T,Tp,Env,Ev,Exp).
+  typeOfExp(T,Tp,Env,Ev,Exp).
 
 typeOfTerms([],[],Env,Env,_,[],_).
 typeOfTerms([],[T|_],Env,Env,Lc,[],_) :-
@@ -675,13 +746,25 @@ typeOfTerms([A|_],[],Env,Env,_,[],_) :-
   reportError("too many arguments: %s",[A],Lc).
 typeOfTerms([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
   deRef(ETp,ElTp),
-  typeOfTerm(A,ElTp,Env,E0,Term,Path),
+  typeOfExp(A,ElTp,Env,E0,Term,Path),
   locOfAst(A,Lc),
   typeOfTerms(As,ElTypes,E0,Ev,Lc,Els,Path).
 
+typeOfPtns([],[],Env,Env,_,[],_).
+typeOfPtns([],[T|_],Env,Env,Lc,[],_) :-
+  reportError("insufficient arguments, expecting a %s",[T],Lc).
+typeOfPtns([A|_],[],Env,Env,_,[],_) :-
+  locOfAst(A,Lc),
+  reportError("too many arguments: %s",[A],Lc).
+typeOfPtns([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
+  deRef(ETp,ElTp),
+  typeOfPtn(A,ElTp,Env,E0,Term,Path),
+  locOfAst(A,Lc),
+  typeOfPtns(As,ElTypes,E0,Ev,Lc,Els,Path).
+
 % Analyse a list term to try to disambiguate maps from lists.
 
-checkSquareTuple(Lc,Els,Tp,Env,Ev,Exp,Path) :-
+squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path) :-
   (isMapSequence(Els) ; isMapType(Tp,Env)) ->
     macroMapEntries(Lc,Els,Trm),
     newTypeVar("k",KT),
@@ -689,14 +772,17 @@ checkSquareTuple(Lc,Els,Tp,Env,Ev,Exp,Path) :-
     findType("map",Lc,Env,MapOp),
     MapTp = typeExp(MapOp,[KT,VT]),
     checkType(Lc,MapTp,Tp,Env),
-    typeOfTerm(Trm,Tp,Env,Ev,Exp,Path);
-  (isListSequence(Els) ; isListType(Tp,Env)) ->
-    macroListEntries(Lc,Els,Trm),
-    findType("list",Lc,Env,ListOp),
-    freshen(ListOp,Env,_,ListTp),
-    checkType(Lc,ListTp,Tp,Env),
-    typeOfTerm(Trm,Tp,Env,Ev,Exp,Path);
-  checkSequenceTerm(Lc,Els,Tp,Env,Ev,Exp).
+    typeOfExp(Trm,Tp,Env,Ev,Exp,Path);
+  macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
+  typeOfExp(Trm,Tp,Env,Ev,Exp,Path).
+
+nilGen(Lc,name(Lc,"_nil")).
+
+consGen(Lc,L,R,Trm) :-
+  binary(Lc,"_cons",L,R,Trm).
+
+appndGen(Lc,L,R,Trm) :-
+  binary(Lc,"_apnd",L,R,Trm).
 
 isMapSequence([E|_]) :-
   isBinary(E,_,"->",_,_).
@@ -704,7 +790,8 @@ isMapSequence([E|_]) :-
 isMapType(Tp,Env) :-
   isType("map",Env,tpDef(_,MpTp,_)),!,
   deRef(Tp,typeExp(MpOp,_)),
-  deRef(MpOp,MpTp).
+  moveQuants(MpTp,_,typeExp(MapOp,_)),
+  deRef(MpOp,MapOp).
 
 isListSequence([E|_]) :-
   \+isBinary(E,_,"->",_,_).
@@ -712,27 +799,30 @@ isListSequence([E|_]) :-
 isListType(Tp,Env) :-
   isType("list",Env,tpDef(_,LstTp,_)),!,
   deRef(Tp,typeExp(LsOp,_)),
-  deRef(LsOp,LstTp).
+  moveQuants(LstTp,_,typeExp(LstOp,_)),
+  deRef(LsOp,LstOp).
 
-macroListEntries(Lc,[],name(Lc,"_nil")).
-macroListEntries(Lc,[E|L],T) :-
-  macroListEntries(Lc,L,Tr),
-  roundTerm(Lc,"_cons",[E,Tr],T).
+checkSquarePtn(Lc,Els,Tp,Env,Ev,Ptn,Path) :-
+  macroListEntries(Lc,Els,Trm,genEofTest,genHedTest,genTailTest),
+  typeOfPtn(Trm,Tp,Env,Ev,Ptn,Path).
 
-checkSequenceTerm(Lc,Els,Tp,Env,Ev,Exp,Path) :-
-  genIden(Lc,Seq),
-  macroSequenceTerm(Els,Lc,Seq,Tsts),
-  isTuple(Cond,Lc,Tsts),
-  binary(Lc,"::",Seq,Cond,Term),
-  typeOfTerm(Term,Tp,Env,Ev,Exp,Path).
+genEofTest(Lc,Trm) :-
+  zeroary(Lc,"_eof",Trm).
 
-macroSequenceTerm([],Lc,V,[Last]) :-
-  unary(Lc,"_eof",V,Last).
-macroSequenceTerm([E|L],_,V,[F|M]) :-
-  locOfAst(E,Lc),
-  genIden(Lc,NX),
-  ternary(Lc,"_hdtl",V,E,NX,F),
-  macroSequenceTerm(L,Lc,NX,M).
+genHedTest(Lc,L,R,Trm) :-
+  binary(Lc,"_hdtl",L,R,Trm).
+
+genTailTest(Lc,L,R,Trm) :-
+  binary(Lc,"_back",L,R,Trm).
+
+macroListEntries(Lc,[],Trm,End,_,_) :-
+  call(End,Lc,Trm).
+macroListEntries(_,[Cns],Trm,_,Hed,_) :-
+  isConsTerm(Cns,Lc,H,T),
+  call(Hed,Lc,H,T,Trm).
+macroListEntries(Lc,[E|L],Trm,End,Hed,Tail) :-
+  macroListEntries(Lc,L,Tr,End,Hed,Tail),
+  call(Hed,Lc,E,Tr,Trm).
 
 checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).

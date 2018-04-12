@@ -60,10 +60,14 @@ rewriteType(T,E,Q,WTp) :-
 frshn(anonType,_,_,anonType).
 frshn(voidType,_,_,voidType) :- !.
 frshn(thisType,E,_,Tp) :- isType("this",E,Tp),!.
-frshn(kVar(TV),E,_,Tp) :- isTypeVar(TV,E,Tp),!.
-frshn(kVar(TV),_,B,Tp) :- (is_member((TV,Tp),B),! ; Tp=kVar(TV)).
-frshn(kFun(TV,Ar),E,_,Tp) :- isTypeVar(TV,E,Tp), Tp=kFun(_,Ar).
-frshn(kFun(TV,Ar),_,B,Tp) :- (is_member((TV,Tp),B),! ; Tp=kFun(TV,Ar)).
+frshn(kVar(TV),E,B,Tp) :- (
+  is_member((TV,Tp),B),! ;
+  isTypeVar(TV,E,Tp),!;
+  Tp=kVar(TV)).
+frshn(kFun(TV,Ar),E,B,Tp) :- (
+  is_member((TV,Tp),B),! ;
+  isTypeVar(TV,E,Tp), Tp=kFun(_,Ar),!;
+  Tp=kFun(TV,Ar)).
 frshn(refType(T),E,B,refType(FTp)) :- frshn(T,E,B,FTp).
 frshn(V,_,_,V) :- isUnbound(V),!.
 frshn(type(Nm),_,_,type(Nm)).
@@ -72,7 +76,7 @@ frshn(funType(A,R),E,B,funType(FA,FR)) :-
   rewriteType(A,E,B,FA),
   rewriteType(R,E,B,FR).
 frshn(ptnType(A,R),E,B,ptnType(FA,FR)) :-
-  rewriteTypes(A,E,B,FA),
+  rewriteType(A,E,B,FA),
   rewriteType(R,E,B,FR).
 frshn(consType(A,R),E,B,consType(FA,FR)) :-
   rewriteType(A,E,B,FA),

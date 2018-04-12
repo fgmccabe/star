@@ -16,7 +16,7 @@ freeVars(stringLit(_),_,F,F).
 freeVars(tple(_,Els),Q,F,FV) :- freeVarsList(Els,Q,F,FV).
 freeVars(apply(_,Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVars(A,Q,F0,FV).
 freeVars(dot(_,Rc,_),Q,F,FV) :- freeVars(Rc,Q,F,FV).
-freeVars(where(_,T,C),Q,F,FV) :- freeVars(T,Q,F,F0),freeCondVars(C,Q,F0,FV).
+freeVars(where(_,T,C),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,FV).
 freeVars(cond(_,C,T,E),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,F1),freeVars(E,Q,F1,FV).
 freeVars(lambda(_,Rls,_),Q,F,FV) :- freeVarsInRules(Rls,Q,F,FV).
 freeVars(cond(_,T,L,R),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(L,Q,F0,F1),freeVars(R,Q,F1,FV).

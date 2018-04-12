@@ -1,23 +1,24 @@
 star.lists{
   import star.core.
-  import star.sequence.
   import star.arith.
 
   implementation all x ~~ equality[x] |: equality[list[x]] => {.
     L1 == L2 where _list_size(L1)==_list_size(L2) =>
       sameList(L1,L2,0,_list_size(L1)).
     _ == _ => false.
-
-    hash(L) => listHash(L,0,0,_list_size(L)).
   .}
 
-  sameList:all e ~~ equality[e] |: (list[e],list[e],integer,integer)=>logical.
+  implementation all x ~~ hash[x] |: hash[list[x]] => {
+    hash(L) => listHash(L,0,0,_list_size(L)).
+  }
+
+  sameList:all e ~~ equality[e] |: (list[e],list[e],integer,integer)=>boolean.
   sameList(_,_,X,X) => true.
   sameList(L1,L2,Ix,X) where
     _list_nth(L1,Ix) == _list_nth(L2,Ix) => sameList(L1,L2,_int_plus(Ix,1),X).
   sameList(_,_,_,_) => false.
 
-  listHash:all e ~~ equality[e] |: (list[e],integer,integer,integer)=>integer.
+  listHash:all e ~~ hash[e] |: (list[e],integer,integer,integer)=>integer.
   listHash(_,Hx,M,M)=>Hx.
   listHash(L,Hs,Ix,Mx) =>
     listHash(L,_int_plus(_int_times(Hs,37),
@@ -25,10 +26,14 @@ star.lists{
 
   -- stream contract
   public implementation all x ~~ stream[list[x] ->> x] => {
-    _eof([]) => some(()).
-    _eof(_) => none.
-    _hdtl([E,..L]) => some((E,L)).
-    _hdtl(_) => none.
+    _eof() <= (X) where _list_empty(X).
+    _hdtl(_list_nth(X,0),_list_slice(X,1,_list_size(X))) <= (X) where \+_list_empty(X).
+
+    _cons(E,S) => _list_prepend(S,E).
+    _apnd(S,E) => _list_append(S,E).
+
+    _back(_list_slice(X,0,Last),_list_nth(X,Last)) <= (X) where \+_list_empty(X) && Last .= _list_size(X)-1.
+    _nil = _list_nil(2).
   }
 
   -- display contract for lists

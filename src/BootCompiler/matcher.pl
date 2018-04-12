@@ -182,3 +182,8 @@ applyVar(_,[],[]).
 applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Vl),Ix)|Tpls],[(Args,(Lc,[(XV,V)|Bnd],NVl),Ix)|NTpls]) :-
   substTerm([(XV,V)],Vl,NVl),
   applyVar(V,Tpls,NTpls).
+applyVar(V,[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Vl),Ix)|Tpls],
+      [(Args,(Lc,[(XV,V)|Bnd],whr(Lcw,NVl,NCond)),Ix)|NTpls]) :-
+  substTerm([(XV,V)],Vl,NVl),
+  substTerm([(XV,V)],Cond,NCond),
+  applyVar(V,Tpls,NTpls).

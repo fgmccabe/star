@@ -5,6 +5,13 @@
 #include <arithP.h>
 #include "listops.h"
 
+ReturnStatus g__list_nil(processPo p, ptrPo tos) {
+  integer cap = integerVal(tos[0]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) createList(processHeap(p), cap)};
+  return ret;
+}
+
 ReturnStatus g__list_empty(processPo p, ptrPo tos) {
   listPo l = C_LIST(tos[0]);
 

@@ -156,9 +156,8 @@ ReturnStatus g__str_gen(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__stringOf(processPo p, ptrPo tos) {
-  termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
-  termPo t = Arg1;
+  termPo t = tos[0];
   integer depth = integerVal(Arg2);
 
   bufferPo strb = newStringBuffer();
@@ -167,7 +166,7 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
   integer oLen;
   const char *buff = getTextFromBuffer(&oLen, strb);
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), buff, oLen)};
+  ReturnStatus rt = {.ret=ret, .rslt=(termPo) allocateString(processHeap(p), buff, oLen)};
   return rt;
 }
 

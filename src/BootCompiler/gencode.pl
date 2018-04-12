@@ -15,7 +15,8 @@ genCode(mdule(Pkg,Imports,Face,_Enums,Defs,_Contracts,_Impls),Text) :-
   encType(Face,Sig),
   initDict(D),
   genImports(Imports,ImpTpl,D,D0),
-  genDefs(Defs,D0,C,[]),
+  defineGlobals(Defs,D0,D1),
+  genDefs(Defs,D1,C,[]),
   mkTpl(C,Cdes),
   mkTpl([PT,strg(Sig),ImpTpl,Cdes],Tp),
   encode(Tp,Txt),
@@ -41,6 +42,13 @@ importPkgField(Pkg,(N,_),D,Dx) :-
 
 importImpl(imp(ImpNm,_),D,Dx) :-
   defineGlbVar(ImpNm,D,Dx).
+
+defineGlobals(Defs,D,Dx) :-
+  rfold(Defs,gencode:defGlbl,D,Dx).
+
+defGlbl(vrDef(_,Nm,_,_),D,Dx) :-!,
+  defineGlbVar(Nm,D,Dx).
+defGlbl(_,D,D).
 
 genDefs(Defs,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D),Ox,O).

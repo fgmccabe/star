@@ -1,10 +1,12 @@
 star.strings{
   import star.core.
-  import star.sequence.
 
   -- and strings ...
   public implementation equality[string] => {
-    X == Y => _str_eq(X,Y).
+    X==Y => _str_eq(X,Y).
+  }
+
+  public implementation hash[string] => {
     hash(X) => _str_hash(X).
   }
 
@@ -18,20 +20,11 @@ star.strings{
   }
 
   public displayString:(string) => ss.
-  displayString(S) => ssSeq([sc(0c\"),ssSeq(quoteStr(explode(S))),sc(0c\")]).
-
-  private quoteStr:(list[integer]) => list[ss].
-  quoteStr([])=>[].
-  quoteStr([c,..l]) => qtChr(c,quoteStr(l)).
-
-  private qtChr:(integer,list[ss]) => list[ss].
-  qtChr(0c",l) => [sc(0c\\),sc(0c"),..l].
-  qtChr(0c\\,l) => [sc(0c\\),sc(0c\\),..l].
-  qtChr(c,l) => [sc(c),..l].
+  displayString(S) => ss(_stringOf(S,1)).
 
   public implementation sizeable[string] => {
     size(S) => _str_len(S).
-    isEmpty("").
+    isEmpty("") => true.
+    isEmpty(_) => false.
   }
-
 }

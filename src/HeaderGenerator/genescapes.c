@@ -201,7 +201,7 @@ static char *dumpSig(char *sig, bufferPo out) {
       outStr(O_IO(out), "])");
       break;
     case allSig:
-      outStr(O_IO(out), "univType(");
+      outStr(O_IO(out), "allType(");
       sig = dumpSig(sig, out);
       outStr(O_IO(out), ",");
       sig = dumpSig(sig, out);

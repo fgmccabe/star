@@ -23,7 +23,6 @@ escape(_identical,False,False,":k't'F(k't'k't')l","test for identicality")
 escape(_defined,True,False,"F(Si)l","test for defined name")
 
 escape(_int_plus,False,False,"F(ii)i","add two integers")
-
 escape(_int_minus,False,False,"F(ii)i","subtract two integers")
 escape(_int_times,False,False,"F(ii)i","multiply two integers")
 escape(_int_div,False,False,"F(ii)i","divide two integers")
@@ -98,6 +97,7 @@ escape(_list_nth,False,False,":k't'F(Lk't'i)k't'","access element of a list")
 escape(_list_append,False,False,":k't'F(Lk't'k't')Lk't'","append element to a list")
 escape(_list_prepend,False,False,":k't'F(Lk't'k't')Lk't'","prepend element to a list")
 escape(_list_slice,False,False,":k't'F(Lk't'ii)Lk't'","slice a list")
+escape(_list_nil,False,False,":k't'F(i)Lk't'","create an empty list of min capacity")
 
 /*
 

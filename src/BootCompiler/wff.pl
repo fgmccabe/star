@@ -6,10 +6,11 @@
     isImport/3, isMacro/2,isPrivate/3,isPublic/3,isDefault/4,
     isIntegrity/3,isIgnore/3,isOpen/3,
     isConditional/5,
-    isEquation/5,isPtnRule/5,isDefn/4,isAssignment/4,
+    isEquation/5,isPtnRule/5,isGrammarRule/4,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,
-    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,
+    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,
     isLetDef/4,
+    whereTerm/4,
     packageName/2,pkgName/2,
     deComma/2,reComma/2,
     rewrite/3,rewriteList/3]).
@@ -179,6 +180,9 @@ isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"<=",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
+isGrammarRule(Trm,Lc,Lhs,Cond) :-
+  isBinary(Trm,Lc,"-->",Lhs,Cond).
+
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
 
@@ -192,11 +196,14 @@ isAssignment(Trm,Lc,Lhs,Rhs) :-
 isWhere(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"where",Lhs,Rhs).
 
+whereTerm(Lc,Lhs,Rhs,Trm) :-
+  binary(Lc,"where",Lhs,Rhs,Trm).
+
 isCoerce(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"::",Lhs,Rhs).
 
 isConjunct(Trm,Lc,L,R) :-
-  isBinary(Trm,"&&",Lc,L,R).
+  isBinary(Trm,Lc,"&&",L,R).
 
 isDisjunct(Trm,Lc,L,R) :-
   isBinary(Trm,"||",Lc,L,R).
@@ -208,6 +215,9 @@ isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,".=",P,E),!.
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"=.",E,P).
+
+isParse(Trm,Lc,N,E) :-
+  isBinary(Trm,Lc,"%%",N,E).
 
 isFieldAcc(Trm,Lc,R,Fld) :-
   isBinary(Trm,Lc,".",R,F),

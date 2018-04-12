@@ -1,5 +1,6 @@
 :- module(types,[isType/1,isConType/1,isConstraint/1,newTypeVar/2,skolemVar/2,skolemFun/3,deRef/2,
-      typeArity/2,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,isProgramType/1,
+      typeArity/2,
+      isFunctionType/1,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
       occursIn/2,isUnbound/1,isBound/1, constraints/2, isIdenticalVar/2,
       bind/2, moveQuants/3,reQuantTps/3,
@@ -188,18 +189,20 @@ tpArity(refType(A),Ar) :- typeArity(A,Ar).
 tpArity(tupleType(A),Ar) :- length(A,Ar).
 tpArity(_,0).
 
-isFunctionType(allType(_,Tp),Ar) :- isFunctionType(Tp,Ar).
+isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
+
+isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
 isFunctionType(funType(A,_),Ar) :- typeArity(A,Ar).
 
-isPtnType(Tp) :- isPtnType(Tp,_).
+isPtnType(T) :- deRef(T,Tp),isPtnType(Tp,_).
 
-isPtnType(allType(_,Tp),Ar) :- isPtnType(Tp,Ar).
+isPtnType(allType(_,T),Ar) :- deRef(T,Tp), isPtnType(Tp,Ar).
 isPtnType(ptnType(A),Ar) :- typeArity(A,Ar).
 
 isCnsType(allType(_,Tp),Ar) :- isCnsType(Tp,Ar).
 isCnsType(consType(A,_),Ar) :- typeArity(A,Ar).
 
-isProgramType(Tp) :- isFunctionType(Tp,_),!.
+isProgramType(Tp) :- isFunctionType(Tp),!.
 isProgramType(Tp) :- isPtnType(Tp),!.
 
 implementationName(conTract(Nm,Args,_),INm) :-

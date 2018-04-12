@@ -1,6 +1,8 @@
 star.option{
   import star.core.
   import star.arith.
+  import star.lists.
+  import star.strings.
 
   option@"the option type is useful when a value is not always available".
   public all t ~~ option[t] ::= none | some(t).
@@ -16,7 +18,6 @@ star.option{
 
   public implementation all x ~~ equality[x] |: equality[option[x]] => {
     X == Y => optionEqual(X,Y).
-    hash(X) => optionHash(X).
   }
 
   private optionEqual:all x ~~ equality[x] |: (option[x],option[x]) => boolean.
@@ -24,9 +25,10 @@ star.option{
   optionEqual(none,none) => true.
   optionEqual(_,_) => false.
 
-  private optionHash:all x ~~ equality[x] |: (option[x]) => integer.
-  optionHash(some(X)) => hash("some")*37+hash(X).
-  optionHash(none) => hash("none").
+  public implementation all x ~~ hash[x] |: hash[option[x]] => {.
+    hash(some(X)) => hash("some")*37+hash(X).
+    hash(none) => hash("none").
+  .}
 
   public maybe:all x ~~ ((x)=>boolean) => option[x].
   maybe(P) where P(x) => some(x).

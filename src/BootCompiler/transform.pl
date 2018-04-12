@@ -195,11 +195,9 @@ transformEqn(equation(Lc,tple(_,A),Cond,Value),Map,Opts,_LclPrg,
   mergeWhere(Rep,EqTest,Lc,Rhs).         % generate label access goals
 
 transformPattern(Lc,Nm,LclName,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
-  lookupPtnName(Map,Nm,Reslt),
-  programAccess(Reslt,_,_,Arity),
   pushOpt(Opts,inProg(Nm),FOpts),
   extraVars(Map,Extra),
-  extraArity(Arity,Extra,Ar),
+  extraArity(1,Extra,Ar),
   LclPrg = lbl(LclName,Ar),
   transformPtnRules(Map,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Ex0,Exx),
@@ -212,7 +210,7 @@ transformPtnRules(Map,Opts,LclPrg,[Rl|Defs],Rules,Rx,Ex,Exx) :-
   transformPtnRules(Map,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
 
 transformPtnRule(ptnRule(Lc,A,Cond,Ptn),Map,Opts,_LclPrg,
-    [eqn(Lc,Args,ctpl(strct("star.core#some",1),[Rhs]))|Rx],Rx,Ex,Exx) :-
+    [eqn(Lc,Args,ctpl(lbl("star.core#some",1),[Rhs]))|Rx],Rx,Ex,Exx) :-
   extraVars(Map,Extra),
   liftPtns([Ptn],Args,Extra,Extra,Q1,Map,Opts,Ex,Ex0), % head args
   liftGoal(Cond,Test,Q1,Q2,Map,Opts,Ex0,Ex1),   % condition goals
@@ -355,6 +353,13 @@ liftPtn(apply(Lc,v(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
 liftPtn(apply(Lc,cns(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,[],Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
+liftPtn(apply(Lc,Op,tple(_,A)),whr(Lc,idnt(N),mtch(Lc,XArg,XTrm)),Q,Qx,Map,Opts,Ex,Exx) :-
+  genstr("_X",N),
+  liftExp(apply(Lc,Op,tple(Lc,[v(Lc,N)])),XTrm,Q,Q0,Map,Opts,Ex,Ex0),
+  liftPtns(A,Args,[],Q0,Q1,Map,Opts,Ex0,Exx),
+  merge([idnt(N)],Q1,Qx),
+  mkTpl(Args,TA),
+  XArg=ctpl(lbl("star.core#some",1),[TA]).
 liftPtn(where(_,P,enm(_,"true")),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,Ptn,Q,Qx,Map,Opts,Ex,Exx).
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
@@ -514,7 +519,7 @@ implementFunCall(_,localClass(Mdl,_,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q
   merge([ThVr],Q,Qx),
   Ar2 is Ar+1.
 implementFunCall(Lc,notInMap,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  trExpCallOp(Lc,dot(v(Lc,Nm),"_call"),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  trExpCallOp(Lc,dot(Lc,v(Lc,Nm),"_call"),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
 % We build $$(_call(Args<>Rep),$$(Free),_) :- Cond, !, replacement
 trLambdaRules(Lc,Rules,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
@@ -671,7 +676,9 @@ accessRule(_,Lc,Nm,LclName,ThV,eqn(Lc,[DotName,ThV],cll(Lc,lbl(LclName,1),[ThV])
   makeDotLbl(Nm,DotName).
 
 programAccess(moduleFun(Prog,Closure,Arity),Prog,Closure,Arity).
+programAccess(modulePtn(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(localFun(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
+programAccess(localPtn(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
 
 labelAccess(Q,Q,[lyr(_,_,_,void)|_],_,enum("star.core#true")) :- !.

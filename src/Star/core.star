@@ -1,14 +1,11 @@
 star.core {
   @"Core definitions of types and interfaces that are really part of the language".
 
-  equality@"defines functions associated with semantic equality".
+  equality@"defines semantic equality".
   public contract all x ~~ equality[x] ::= {
     (==)@"semantic equality is defined explicitly".
 
     (==): (x,x)=>boolean.
-
-    hash@"hash is an essential part of semantic equality".
-    hash:(x)=>integer.
   }
 
   (=!=)@"semantic inequality defined in terms of equality".
@@ -18,6 +15,11 @@ star.core {
   public contract all x ~~ comp[x] ::= {
     (<): (x,x)=>boolean.
     (>=): (x,x)=>boolean.
+  }
+
+  hash@"defines functions associated with hash encoding".
+  public contract all x ~~ hash[x] ::= {
+    hash:(x)=>integer.
   }
 
   public contract all c ~~ sizeable[c] ::= {

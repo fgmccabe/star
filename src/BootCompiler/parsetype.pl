@@ -114,6 +114,10 @@ applyTypeExp(_,typeExp(Op,ATps),ArgTps,Env,typeExp(DOp,ArgTps)) :-
   length(ArgTps,Ar),
   validTypeOp(DOp,Ar),
   smList(ATps,ArgTps,Env).
+applyTypeExp(_,kFun(T,Ar),Args,_,typeExp(kFun(T,Ar),Args)) :-
+  length(Args,Ar).
+applyTypeExp(_,tpFun(T,Ar),Args,_,typeExp(tpFun(T,Ar),Args)) :-
+  length(Args,Ar).
 applyTypeExp(Lc,Op,ArgTps,_,voidType) :-
   reportError("type %s not applicable to args %s",[Op,ArgTps],Lc).
 
@@ -205,7 +209,7 @@ addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
 
 parseContractName(_,Id,Env,_,FCon) :-
-  getContract(Id,Env,conDef(_,_,Con)),
+  getContract(Id,Env,conDef(_,_,Con)),!,
   freshen(Con,Env,_,FCon).
 
 parseContractArgs([A],Env,B,C0,Cx,Args,Deps) :-

@@ -4,7 +4,7 @@
 
 escapeType("_exit",funType(tupleType([type("star.core*integer")]),voidType)).
 escapeType("_command_line",funType(tupleType([]),typeExp(tpFun("star.core*list",1),[type("star.core*string")]))).
-escapeType("_identical",univType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*boolean")))).
+escapeType("_identical",allType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*boolean")))).
 escapeType("_defined",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_plus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_minus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
@@ -55,18 +55,19 @@ escapeType("_blsr",funType(tupleType([type("star.core*integer"),type("star.core*
 escapeType("_basr",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_bnot",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_nthb",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
-escapeType("_cell",univType(kVar("t"),funType(tupleType([kVar("t")]),ref(kVar("t"))))).
-escapeType("_get",univType(kVar("t"),funType(tupleType([ref(kVar("t"))]),kVar("t")))).
-escapeType("_assign",univType(kVar("t"),funType(tupleType([ref(kVar("t")),kVar("t")]),ref(kVar("t"))))).
-escapeType("_isDefinedVr",univType(kVar("t"),funType(tupleType([type("star.core*string")]),type("star.core*boolean")))).
-escapeType("_definedVr",univType(kVar("t"),funType(tupleType([type("star.core*string")]),kVar("t")))).
-escapeType("_defineVr",univType(kVar("t"),funType(tupleType([type("star.core*string"),kVar("t")]),type("star.core*boolean")))).
-escapeType("_list_empty",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),type("star.core*boolean")))).
-escapeType("_list_size",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),type("star.core*integer")))).
-escapeType("_list_nth",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),kVar("t")))).
-escapeType("_list_append",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
-escapeType("_list_prepend",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
-escapeType("_list_slice",univType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer"),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_cell",allType(kVar("t"),funType(tupleType([kVar("t")]),ref(kVar("t"))))).
+escapeType("_get",allType(kVar("t"),funType(tupleType([ref(kVar("t"))]),kVar("t")))).
+escapeType("_assign",allType(kVar("t"),funType(tupleType([ref(kVar("t")),kVar("t")]),ref(kVar("t"))))).
+escapeType("_isDefinedVr",allType(kVar("t"),funType(tupleType([type("star.core*string")]),type("star.core*boolean")))).
+escapeType("_definedVr",allType(kVar("t"),funType(tupleType([type("star.core*string")]),kVar("t")))).
+escapeType("_defineVr",allType(kVar("t"),funType(tupleType([type("star.core*string"),kVar("t")]),type("star.core*boolean")))).
+escapeType("_list_empty",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),type("star.core*boolean")))).
+escapeType("_list_size",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),type("star.core*integer")))).
+escapeType("_list_nth",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),kVar("t")))).
+escapeType("_list_append",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_prepend",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_slice",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer"),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_nil",allType(kVar("t"),funType(tupleType([type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
 escapeType("_cd",funType(tupleType([type("star.core*string")]),tpFun("star.core*resultType",0))).
@@ -169,7 +170,7 @@ escapeType("_str_ge",funType(tupleType([type("star.core*string"),type("star.core
 escapeType("_str_hash",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
 escapeType("_str_len",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
 escapeType("_str_gen",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
-escapeType("_stringOf",univType(kVar("t"),funType(tupleType([kVar("t"),type("star.core*integer")]),type("star.core*string")))).
+escapeType("_stringOf",allType(kVar("t"),funType(tupleType([kVar("t"),type("star.core*integer")]),type("star.core*string")))).
 escapeType("_explode",funType(tupleType([type("star.core*string")]),typeExp(tpFun("star.core*list",1),[type("star.core*integer")]))).
 escapeType("_implode",funType(tupleType([typeExp(tpFun("star.core*list",1),[type("star.core*integer")])]),type("star.core*string"))).
 escapeType("_str_find",funType(tupleType([type("star.core*string"),type("star.core*string"),type("star.core*integer")]),type("star.core*integer"))).
@@ -259,6 +260,7 @@ isEscape("_list_nth").
 isEscape("_list_append").
 isEscape("_list_prepend").
 isEscape("_list_slice").
+isEscape("_list_nil").
 isEscape("_get_file").
 isEscape("_cwd").
 isEscape("_cd").

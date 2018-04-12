@@ -2,7 +2,8 @@
 	"content": {
 	  "test.d" : "d.star",
 		"test.e" : "e.star",
-		"test.fact" : "fact.star"
+		"test.fact" : "fact.star",
+		"test.gr" : "grtest.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"

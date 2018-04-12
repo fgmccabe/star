@@ -10,8 +10,8 @@
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],AllRefs),
   collectThetaRefs(Dfs,AllRefs,Annots,Defs),
-  topsort(Defs,Groups,misc:same).
-  % showGroups(Groups).
+  topsort(Defs,Groups,misc:same),
+  showGroups(Groups).
 
 collectDefinitions([St|Stmts],Defs,P,A,I,Other) :-
   collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,I,I0,Other,O0,dependencies:nop),
@@ -240,8 +240,7 @@ headOfRule(St,Hd) :-
 headOfRule(St,Hd) :-
   isBraceTerm(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
-  isBinary(St,"-->",H,_),
-  (isBinary(H,",",Hd,_) ; H=Hd),!.
+  isBinary(St,"-->",Hd,_),!.
 
 headName(Head,Nm) :-
   isRoundTerm(Head,Op,_),
@@ -261,6 +260,7 @@ typeName(Tp,Nm) :- isSquare(Tp,Nm,_), \+ isKeyword(Nm).
 typeName(Tp,Nm) :- isName(Tp,Nm), \+ isKeyword(Nm).
 typeName(Tp,"=>") :- isBinary(Tp,"=>",_,_).
 typeName(Tp,"<=") :- isBinary(Tp,"<=",_,_).
+typeName(Tp,"-->") :- isBinary(Tp,"-->",_,_).
 typeName(Tp,Nm) :- isTuple(Tp,_,A),
   length(A,Ar),
   swritef(Nm,"()%d",[Ar]).
@@ -304,6 +304,11 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectHeadRefs(H,All,R0,R1),
   collectCondRefs(Cond,All,R1,R2),
   collectTermRefs(Ptn,All,R2,Refs).
+collStmtRefs(St,All,Annots,SoFar,Refs) :-
+  isGrammarRule(St,_,H,Cond),
+  collectAnnotRefs(H,All,Annots,SoFar,R0),
+  collectHeadRefs(H,All,R0,R1),
+  collectNTRefs(Cond,All,R1,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isAlgebraicTypeStmt(C,_,_,Cx,_,_),
   collConstraints(Cx,All,R,Refs).
@@ -362,7 +367,7 @@ isConstructorStmt(C) :-
 collConRefs(C,_,Refs,Refs) :-
   isIden(C,_,_).
 collConRefs(C,All,R,Refs) :-
-  isRound(C,_,_,Els),
+  isRoundTerm(C,_,Els),
   collectTypeList(Els,All,R,Refs).
 collConRefs(C,All,R,Refs) :-
   isBrace(C,_,_,A),
@@ -422,12 +427,41 @@ collectCondRefs(C,A,R0,Refs) :-
   isTuple(C,[Inner]),
   collectCondRefs(Inner,A,R0,Refs).
 collectCondRefs(C,A,R0,Refs) :-
+  isParse(C,_,L,R),
+  collectNTRefs(L,A,R0,R1),
+  collectTermRefs(R,A,R1,Refs).
+collectCondRefs(C,A,R0,Refs) :-
   collectTermRefs(C,A,R0,Refs).
 
-collectCondListRefs([],_,R,R).
-collectCondListRefs([C|L],All,R,Refs) :-
-  collectCondRefs(C,All,R,R0),
-  collectCondListRefs(L,All,R0,Refs).
+collectNTRefs(C,A,R0,Refs) :-
+  isConjunct(C,_,L,R),
+  collectNTRefs(L,A,R0,R1),
+  collectNTRefs(R,A,R1,Refs).
+collectNTRefs(C,A,R0,Refs) :-
+  isConditional(C,_,T,L,R),
+  collectNTRefs(T,A,R0,R1),
+  collectNTRefs(L,A,R1,R2),
+  collectNTRefs(R,A,R2,Refs).
+collectNTRefs(C,A,R0,Refs) :-
+  isDisjunct(C,_,L,R),
+  collectNTRefs(L,A,R0,R1),
+  collectNTRefs(R,A,R1,Refs).
+collectNTRefs(C,A,R0,Refs) :-
+  isNegation(C,_,R),
+  collectNTRefs(R,A,R0,Refs).
+collectNTRefs(C,A,R0,Refs) :-
+  isTuple(C,Inner),
+  collectNTTermRefs(Inner,A,R0,Refs).
+collectNTRefs(C,A,R,Refs) :-
+  isBraceTuple(C,_,[El]),
+  collectCondRefs(El,A,R,Refs).
+collectNTRefs(C,A,R,Refs) :-
+  collectTermRefs(C,A,R,Refs).
+
+collectNTTermRefs([],_,R,R).
+collectNTTermRefs([C|L],All,R,Refs) :-
+  collectTermRefs(C,All,R,R0),
+  collectNTTermRefs(L,All,R0,Refs).
 
 collectTermRefs(E,A,R0,Refs) :-
   isTypeAnnotation(E,_,L,R),
