@@ -416,7 +416,7 @@ retCode run(processPo P) {
 
       case Rais:
       raiseError:
-        syserr("problem");
+        return Error;
 
       case Frame:
         PC += 2;

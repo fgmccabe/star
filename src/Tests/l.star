@@ -1,5 +1,5 @@
-star.core{
-  public boolean ::= true | false.
+test.l{
+  import star.core.
 
   fact:(integer)=>integer.
   fact(N) => let{

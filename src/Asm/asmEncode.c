@@ -142,6 +142,10 @@ static retCode enc_nOp(ioPo out, assemInsPo ins) {
   return encodeInt(out, ins->op);
 }
 
+static retCode enc_tOs(ioPo out, assemInsPo ins) {
+  return encodeInt(out, ins->op);
+}
+
 static retCode enc_i32(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);

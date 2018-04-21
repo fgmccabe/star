@@ -54,6 +54,7 @@ extern int32 findLocal(mtdPo mtd, const char *name);
 #undef instruction
 
 #define opnOp(X)
+#define optOs(X)
 #define opi32(X) ,int32 i##X
 #define oplcl(X) ,int32 i##X
 #define oplcs(X) ,int32 i##X
@@ -70,6 +71,7 @@ extern retCode A##Op(mtdPo mtd op##A1(1));
 
 #undef instruction
 #undef opnOp
+#undef optOs
 #undef opi32
 #undef oplcl
 #undef oplcs

@@ -34,41 +34,41 @@ errorCount(C) :-
 noErrors :-
   errorCount(0).
 
-reportMsg(Msg,A,Lc) :- 
+reportMsg(Msg,A,Lc) :-
   showLocation(Lc,OLc,[]),
   writef("Info: at %s ",[OLc]),
   genDisplay(A,AA),
   writef(Msg,AA),nl().
 
-reportMsg(Msg,A) :- 
+reportMsg(Msg,A) :-
   writef("Info: "),
   genDisplay(A,AA),
   writef(Msg,AA),nl().
 
 genDisplay([],[]).
-genDisplay([A|L],[D|LL]) :- showTerm(A,D), !, genDisplay(L,LL).
+genDisplay([A|L],[D|LL]) :- showTrm(A,D), !, genDisplay(L,LL).
 
-showTerm(T,O) :- 
+showTrm(T,O) :-
   string(T),!,
   string_chars(T,O).
-showTerm(T,O) :- 
+showTrm(T,O) :-
   isAst(T), !, dispAst(T,0,O,[]).
-showTerm(L,O) :-
+showTrm(L,O) :-
   isToken(L), !,
   dispToken(L,O).
-showTerm(T,O) :-
+showTrm(T,O) :-
   isType(T),!,
   showType(T,O,[]).
-showTerm(C,O) :-
+showTrm(C,O) :-
   isConstraint(C),!,
   showConstraint(C,O,[]).
-showTerm(T,O) :-
+showTrm(T,O) :-
   isCanon(T),!,
   showCanonTerm(T,O,[]).
-showTerm(T,O) :-
+showTrm(T,O) :-
   isLocation(T),
   showLocation(T,O,[]).
-showTerm([],[]).
-showTerm([E|_],O) :-
-  showTerm(E,O).
-showTerm(T,O) :- term_string(T,S), !,string_chars(S,O).
+showTrm([],[]).
+showTrm([E|_],O) :-
+  showTrm(E,O).
+showTrm(T,O) :- term_string(T,S), !,string_chars(S,O).

@@ -179,7 +179,7 @@ showEntries([(Ky,Vl)|M],O,Ox) :-
   showEntries(M,O4,Ox).
 
 showImports(L,O,Ox) :-
-  listShow(L,canon:showImport,"\n",O,Ox).
+  listShow(L,canon:showImport,misc:appNl,O,Ox).
 
 showImport(import(Viz,Pkg,_,_,_,_),O,Ox) :-
   showVisibility(Viz,O,O0),
@@ -193,13 +193,13 @@ showVisibility(public,O,Ox) :-
   appStr("public ",O,Ox).
 
 showTypeDefs(L,O,Ox) :-
-  listShow(L,canon:showTypeDef,"\n",O,Ox).
+  listShow(L,canon:showTypeDef,misc:appNl,O,Ox).
 
 showTypeDef((_,Type),O,Ox) :-
   showType(Type,O,Ox).
 
 showContracts(L,O,Ox) :-
-  listShow(L,canon:showContract,"",O,Ox).
+  listShow(L,canon:showContract,misc:appStr(""),O,Ox).
 
 showContract(conDef(_,Nm,ConRule),O,Ox) :-
   appStr("contract: ",O,O1),
@@ -209,7 +209,7 @@ showContract(conDef(_,Nm,ConRule),O,Ox) :-
   appStr(".\n",O5,Ox).
 
 showImpls(L,O,Ox) :-
-  listShow(L,canon:showImpl,"",O,Ox).
+  listShow(L,canon:showImpl,misc:appStr(""),O,Ox).
 
 showImpl(imp(ImplName,Spec),O,Ox) :-
   appStr("implementation: ",O,O1),
@@ -228,57 +228,57 @@ showImplementation(Lc,Nm,Spec,O,Ox) :-
 
 showConstraints([],Ox,Ox).
 showConstraints(Cons,O,Ox) :-
-  listShow(Cons,types:showConstraint,",",O,O1),
+  listShow(Cons,types:showConstraint,misc:appStr(","),O,O1),
   appStr("|:",O1,Ox).
 
 showDefs(L,O,Ox) :-
-  listShow(L,canon:showDef,"\n",O,Ox).
+  listShow(L,canon:showDef,misc:appNl,O,Ox).
 
 showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("function: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("[",O2,O2a),
+  appStr(" … ",O2,O2a),
   appStr(ExtNm,O2a,O2b),
-  appStr("] @ ",O2b,O3),
+  appStr(" @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showEq(Nm),"\n",O10,O11),
+  listShow(Eqns,canon:showEq(Nm),misc:appNl,O10,O11),
   appStr("\n",O11,Ox),!.
 showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("pattern: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("[",O2,O2a),
+  appStr(" … ",O2,O2a),
   appStr(ExtNm,O2a,O2b),
-  appStr("] @ ",O2b,O3),
+  appStr(" @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showPtnRule(Nm),"\n",O10,O11),
+  listShow(Eqns,canon:showPtnRule(Nm),misc:appNl,O10,O11),
   appStr("\n",O11,Ox),!.
 showDef(grDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("grammar: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("[",O2,O2a),
+  appStr(" … ",O2,O2a),
   appStr(ExtNm,O2a,O2b),
-  appStr("] @ ",O2b,O3),
+  appStr(" @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showGrRule(Nm),"\n",O10,O11),
+  listShow(Eqns,canon:showGrRule(Nm),misc:appNl,O10,O11),
   appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
-  appStr("[",O2,O2a),
+  appStr(" … ",O2,O2a),
   appStr(ExtNm,O2a,O2b),
-  appStr("] : ",O2b,O3),
+  appStr(" : ",O2b,O3),
   showType(Tp,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),

@@ -111,6 +111,8 @@ integer uniHash(const char * name);
 integer uniNHash(const char * name, long len);
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen);
 
+integer hash64(integer ix);
+
 #ifndef uniEOF
 #define uniEOF (0xffff)
 #endif

@@ -58,8 +58,8 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
   genLbl(D,Ex,D0),
   genLbl(D0,End,D1),
   buildArgs(Args,1,D1,D1a),
-  compPtnArgs(Args,gencode:argCont,1,gencode:contCont(Ex),gencode:errorCont(Lc,"failed"),D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
-  compTerm(Value,gencode:retCont(Lc),D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
+  compPtnArgs(Args,argCont,1,contCont(Ex),raiseCont(Lc,"failed"),D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
+  compTerm(Value,retCont(Lc),D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   genEnter(Dx,C0,C1),
   (is_member(showGenCode,Opts) -> dispIns(Nm,Sig,C0);true ),
   assem([method(Nm,Sig)|C0],CdTrm).
@@ -73,8 +73,7 @@ genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 
-retCont(_,D,D,_,[iRet|Cx],Cx,Stk,Stk1) :-
-  Stk1 is Stk-1.
+retCont(_,D,D,_,[iRet|Cx],Cx,_Stk,none).
 
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.
@@ -138,16 +137,15 @@ compTerm(idnt(Nm),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   isVar(Nm,V,D),!,
   compVar(V,Cont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(ctpl(St,A),Cont,D,Dx,End,C,Cx,Stk,Stk2) :-
-  compTerms(A,gencode:combCont([gencode:allocCont(St),Cont]),D,Dx,End,C,Cx,Stk,Stk2).
+  compTerms(A,combCont([allocCont(St),Cont]),D,Dx,End,C,Cx,Stk,Stk2).
 compTerm(ecll(Lc,Nm,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  lineCont(Lc,D,D0,End,C,C0,Stk,Stk0),
-  MegaCont = gencode:combCont([gencode:escCont(Nm,Stk),Cont]),
-  compTerms(A,MegaCont,D0,Dx,End,C0,Cx,Stk0,Stkx).
+  MegaCont = combCont([lineCont(Lc),escCont(Nm,Stk),Cont]),
+  compTerms(A,MegaCont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(cll(Lc,Nm,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  MegaCont = gencode:combCont([gencode:lineCont(Lc),gencode:cllCont(Nm,Stk,Cont)]),
+  MegaCont = combCont([lineCont(Lc),cllCont(Nm,Stk,Cont)]),
   compTerms(A,MegaCont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(ocall(Lc,Fn,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  MegaCont = compTerm(Fn,gencode:combCont([gencode:lineCont(Lc),gencode:oclCont(Stk,Cont)])),
+  MegaCont = compTerm(Fn,combCont([lineCont(Lc),oclCont(Stk,Cont)])),
   compTerms(A,MegaCont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   lineCont(Lc,D,D0,End,C,C0,Stk,Stk0),
@@ -158,24 +156,23 @@ compTerm(varNames(Lc,Vrs,T),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(T,Cont,D0,Dx,End,C1,Cx,Stk0,Stkx).
 compTerm(whr(Lc,T,Cnd),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  lineCont(Lc,D0,D1,End,C,C0,Stk,Stk0),
-  compCond(Cnd,contCont(Nxt),errorCont(Lc,"where fail"),D1,D2,End,C0,[iLbl(Nxt)|C1],Stk0,Stk1),
+  compCond(Cnd,contCont(Nxt),raiseCont(Lc,"where fail"),D0,D2,End,C,[iLbl(Nxt)|C1],Stk,Stk1),
   compTerm(T,Cont,D2,Dx,End,C1,Cx,Stk1,Stkx).
-compTerm(error(Lc,Msg),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  errorCont(Lc,Msg,D,D0,End,C,C0,Stk,Stk1),
-  call(Cont,D0,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(seq(_,L,R),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(L,combCont([dropCont,compTerm(R,Cont)]),D,Dx,End,C,Cx,Stk,Stkx).
+compTerm(error(Lc,Msg),_Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
+  raiseCont(Lc,Msg,D,Dx,End,C,Cx,Stk,Stkx). % no continuation after an error
 compTerm(cnd(_,T,L,R),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCond(T,compTerm(L,Cont),compTerm(R,Cont),D,Dx,End,C,Cx,Stk,Stkx).
+compTerm(seq(_,L,R),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(L,combCont([dropCont,compTerm(R,Cont)]),D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(Cond,Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   isCond(Cond),!,
-  compCond(Cond,gencode:combCont([gencode:succCont(),Cont]),
-      gencode:combCont([gencode:failCont(),Cont]),
+  compCond(Cond,combCont([succCont(),Cont]),
+      combCont([failCont(),Cont]),
       D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(T,_,Dx,Dx,_,C,C,Stk,Stk) :-
   dispTerm(T,Tx),
-  reportError("cannot compile %s",[Tx]).
+  abort.
+  %reportError("cannot compile %s",[Tx]).
 
 compVar(a(A),Cont,D,Dx,End,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
   Stk1 is Stk+1,
@@ -192,7 +189,7 @@ compTerms([],Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerms([T|Ts],Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  compTerms(Ts,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
+  compTerms(Ts,contCont(Nxt),D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
   compTerm(T,Cont,D1,Dx,End,C0,Cx,Stk0,Stkx).
 
 contCont(Lbl,D,D,_,C,Cx,Stk,Stk) :-
@@ -208,23 +205,18 @@ combCont([Cnt|Cs],D,Dx,End,C,Cx,Stk,Stkx) :-
 allocCont(Str,D,D,_,[iAlloc(Str),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
   popStack(Str,Stk,Stkx).
 
-verifyCont(Lvl,Msg,D,D,_,C,C,Stk,Stk) :-
-  verify(Stk=Lvl,Msg).
-
 resetCont(Lvl,D,D,_,[iRst(Lvl)|Cx],Cx,_,Lvl).
 
-frameCont(D,D,_,[iFrame(Stk)|Cx],Cx,Stk,Stk).
-
-escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
+escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1.
 
-cllCont(Nm,Stk0,gencode:retCont(_),Dx,Dx,_,[iTail(Nm),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-!,
+cllCont(Nm,Stk0,retCont(_),Dx,Dx,_,[iTail(Nm),iFrame(Stkx)|Cx],Cx,_Stk,none) :-!,
   Stkx is Stk0+1.
-cllCont(Nm,Stk0,Cont,D,Dx,End,[iCall(Nm),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
+cllCont(Nm,Stk0,Cont,D,Dx,End,[iCall(Nm),iFrame(Stk1)|C0],Cx,_Stk,Stkx) :-
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
-oclCont(Stk0,gencode:retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-!,
+oclCont(Stk0,retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stkx)|Cx],Cx,Stk,Stkx) :-!,
   Stkx is Stk0+1,
   Arity is Stk-Stk0.
 oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
@@ -234,7 +226,7 @@ oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
 
 jmpCont(Lbl,D,D,_End,[iJmp(Lbl)|Cx],Cx,Stk,Stk).
 
-isJmpCont(gencode:jmpCont(Lbl),Lbl).
+isJmpCont(jmpCont(Lbl),Lbl).
 
 succCont(D,D,_,[iLdC(enum("star.core#true"))|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk+1.
@@ -242,7 +234,7 @@ succCont(D,D,_,[iLdC(enum("star.core#true"))|Cx],Cx,Stk,Stk1) :-
 failCont(D,D,_,[iLdC(enum("star.core#false"))|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk+1.
 
-errorCont(Lc,Msg,D,D,_,[iRais(ctpl(lbl("error",2),[LT,strg(Msg)]))|Cx],Cx,Stk,Stk) :-
+raiseCont(Lc,Msg,D,D,_,[iRais(ctpl(lbl("error",2),[LT,strg(Msg)]))|Cx],Cx,_Stk,none) :-
   locTerm(Lc,LT).
 
 lineCont(Lc,D,D,_,[iLine(Lt)|Cx],Cx,Stk,Stk) :-
@@ -263,23 +255,21 @@ compPtn(idnt(Nm),Succ,_,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
   genLbl(D,Lb,D0),
   defineLclVar(Nm,Lb,End,D0,D1,Off,C,C0),
   Stk1 is Stk-1,
-  call(Succ,D1,Dx,End,C0,Cx,Stk1,Stkx),
-  verify(Stk-1=:=Stkx,"ident stack").
+  call(Succ,D1,Dx,End,C0,Cx,Stk1,Stkx).
 compPtn(ctpl(St,A),Succ,Fail,D,Dx,End,[iDup,iLdC(St),iCLbl(Fl)|C],Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  ptnTest(gencode:contCont(Nxt),Fail,Fl,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
+  ptnTest(contCont(Nxt),Fail,Fl,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,_Stk1),
   Stk0 is Stk-1,
-  compPtnArgs(A,gencode:indexCont,0,gencode:combCont([gencode:resetCont(Stk0),Succ]),Fail,D1,Dx,End,C0,Cx,Stk1,Stkx),
-  verify(Stkx=:=Stk0,"cpt stack").
+  compPtnArgs(A,indexCont,0,combCont([resetCont(Stk0),Succ]),Fail,D1,Dx,End,C0,Cx,Stk,Stkx).
 compPtn(whr(_,P,Cnd),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  compPtn(P,gencode:contCont(Nxt),Fail,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
+  compPtn(P,contCont(Nxt),Fail,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
   verify(Stk1=:=Stk-1,"where stack"),
   compCond(Cnd,Succ,Fail,D1,Dx,C0,Cx,Stk1,Stkx),
   verify(Stkx=Stk1,"cond stack").
 compPtn(T,Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  compTerm(T,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCmp(Fl)|C0],Stk,Stk1),
+  compTerm(T,contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCmp(Fl)|C0],Stk,Stk1),
   Stk2 is Stk1-2,
   verify(Stk2=:=Stk-1,"Stk2 off"),
   ptnTest(Succ,Fail,Fl,D1,Dx,End,C0,Cx,Stk2,Stkx).
@@ -289,22 +279,29 @@ ptnTest(Succ,Fail,Fl,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Succ,D,Dx,End,C,Cx,Stk,Stkx).
 ptnTest(Succ,Fail,Fl,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Fl,D0),
-  call(Succ,D0,D1,End,C,[iLbl(Fl)|C1],Stk,Stkx),
-  call(Fail,D1,Dx,End,C1,Cx,Stk,_).
+  call(Succ,D0,D1,End,C,[iLbl(Fl)|C1],Stk,Stk1),
+  call(Fail,D1,Dx,End,C1,Cx,Stk,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"ptn test").
 
 testCont(Succ,Fail,D,Dx,End,[iBf(Fl)|C],Cx,Stk,Stkx) :-
   genLbl(D,Fl,D0),
   Stk0 is Stk-1,
   call(Succ,D0,D1,End,C,[iLbl(Fl)|C0],Stk0,Stk1),
-  call(Fail,D1,Dx,End,C0,Cx,Stk0,Stkx),
-  verify(Stk1=:=Stkx,"stack mismatch after test").
+  call(Fail,D1,Dx,End,C0,Cx,Stk0,Stk2),
+  mergeStkLvl(Stk1,Stk2,Stkx,"test exp"),!.
+
+mergeStkLvl(none,Stk,Stk,_).
+mergeStkLvl(Stk,none,Stk,_).
+mergeStkLvl(Stk1,Stk2,Stk1,Msg) :-
+  verify(Stk1=:=Stk2,Msg).
 
 compPtnArgs([],_,_,Succ,_,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Succ,D,Dx,End,C,Cx,Stk,Stkx).
 compPtnArgs([A|R],ArgCont,Ix,Succ,Fail,D,Dx,End,C,Cx,Stk,Stk1) :-
   genLbl(D,Nxt,D0),
-  compPtnArg(A,Ix,ArgCont,gencode:contCont(Nxt),Fail,D0,D1,End,C,[iLbl(Nxt)|C1],Stk,Stk0),
+  compPtnArg(A,Ix,ArgCont,contCont(Nxt),Fail,D0,D1,End,C,[iLbl(Nxt)|C1],Stk,Stk0),
   Ix1 is Ix+1,
+  verify(Stk=:=Stk0,"argument pattern"),
   compPtnArgs(R,ArgCont,Ix1,Succ,Fail,D1,Dx,End,C1,Cx,Stk0,Stk1).
 
 compPtnArg(idnt(V),Ix,_,Succ,_Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -334,17 +331,16 @@ compCond(ng(_,Cn),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
 compCond(cnd(_,T,L,R),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCond(T,compCond(L,Succ,Fail),compCond(R,Succ,Fail),D,Dx,End,C,Cx,Stk,Stkx).
 compCond(mtch(_,P,E),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(E,compPtn(P,combCont([resetCont(Stk),Succ]),combCont([resetCont(Stk),Fail])),
-    D,Dx,End,C,Cx,Stk,Stkx).
+  compTerm(E,compPtn(P,Succ,Fail),D,Dx,End,C,Cx,Stk,Stkx).
 compCond(E,Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(E,testCont(Succ,Fail),D,Dx,End,C,Cx,Stk,Stkx).
 
 compCase(T,Cases,Deflt,Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  compTerm(T,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCase(Mx),iJmp(Dflt)|T0],Stk,Stk0),
+  compTerm(T,contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCase(Mx),iJmp(Dflt)|T0],Stk,Stk0),
   genLbl(D1,Dflt,D2),
   genCaseTable(Cases,Mx,Table),
-  compCases(Table,0,Mx,Cont,gencode:jmpCont(Dflt),Dflt,D2,D3,End,T0,Tx,Tx,[iLbl(Dflt),iRst(Stk)|C1],Stk0),
+  compCases(Table,0,Mx,Cont,jmpCont(Dflt),Dflt,D2,D3,End,T0,Tx,Tx,[iLbl(Dflt),iRst(Stk)|C1],Stk0),
   compTerm(Deflt,Cont,D3,Dx,End,C1,Cx,Stk,Stkx).
 
 genCaseTable(Cases,P,Table) :-
@@ -398,31 +394,33 @@ compCases(Cs,Ix,Mx,Succ,Fail,Dflt,D,Dx,End,[iJmp(Dflt)|Tc],Tx,C,Cx,Stk) :-
 % two cases to consider: hash collision or no hash collision
 compCaseBranch([(P,E)],Lbl,Succ,Fail,D,Dx,End,[iLbl(Lbl)|C],Cx,Stk,Stkx) :-!,
   genLbl(D,Nxt,D1),
-  compPtn(P,gencode:contCont(Nxt),Fail,D1,D2,End,C,[iLbl(Nxt)|C1],Stk,Stk1),
+  compPtn(P,contCont(Nxt),Fail,D1,D2,End,C,[iLbl(Nxt)|C1],Stk,Stk1),
   compTerm(E,Succ,D2,Dx,End,C1,Cx,Stk1,Stkx).
 compCaseBranch([(P,E)|SC],Lbl,Succ,Fail,D,Dx,End,[iLbl(Lbl),iTL(Off),iLbl(VLb)|C],Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D1),
   genLbl(D1,Fl,D2),
   genLbl(D2,VLb,D3),
   defineLclVar("__",VLb,End,D3,D4,Off,C,C0),
-  compPtn(P,gencode:contCont(Nxt),gencode:contCont(Fl),D4,D5,End,C0,[iLbl(Nxt)|C1],Stk,Stk1),
+  compPtn(P,contCont(Nxt),contCont(Fl),D4,D5,End,C0,[iLbl(Nxt)|C1],Stk,Stk1),
   verify(Stk-1=:=Stk1,"case branch"),
-  compTerm(E,Succ,D5,D6,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk1,Stkx),
-  compMoreCase(SC,Off,Succ,Fail,D6,Dx,End,C2,Cx,Stk,Stky),
-  verify(Stky=Stky,"mismatch in case stack").
+  compTerm(E,Succ,D5,D6,End,C1,[iLbl(Fl),iRst(Stk1)|C2],Stk1,Stk2),
+  compMoreCase(SC,Off,Succ,Fail,D6,Dx,End,C2,Cx,Stk1,Stk3),
+  mergeStkLvl(Stk2,Stk3,Stkx,"case branch stack").
 
 compMoreCase([],_,_Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Fail,D,Dx,End,C,Cx,Stk,Stkx).
-compMoreCase([(P,E)|SC],Off,Succ,Fail,D,Dx,End,[iLdL(Off)|C],Cx,Stk,Stkx) :-
+compMoreCase([(P,E)|SC],VLb,Succ,Fail,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx) :-
   genLbl(D,Fl,D0),
   genLbl(D0,Nxt,D1),
-  compPtn(P,gencode:contCont(Nxt),gencode:contCont(Fl),D1,D2,End,C,[iLbl(Nxt)|C1],Stk,Stk1),
-  verify(Stk-1=:=Stk1,"more case branch"),
-  compTerm(E,Succ,D2,D3,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk1,Stkx),
-  compMoreCase(SC,Off,Succ,Fail,D3,Dx,End,C2,Cx,Stk,_).
+  Stk0 is Stk+1,
+  compPtn(P,contCont(Nxt),contCont(Fl),D1,D2,End,C,[iLbl(Nxt)|C1],Stk0,Stk1),
+  verify(Stk=:=Stk1,"more case branch"),
+  compTerm(E,Succ,D2,D3,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk,Stk2),
+  compMoreCase(SC,VLb,Succ,Fail,D3,Dx,End,C2,Cx,Stk,Stk3),
+  mergeStkLvl(Stk2,Stk3,Stkx,"more case branch stack").
 
 dispIns(Nm,_Sig,I) :-
-  showTerm(Nm,C,C0),
+  showTerm(Nm,0,C,C0),
   appStr(":\n",C0,C1),
   rfold(I,gencode:showIns,C1,[]),
   string_chars(Txt,C),

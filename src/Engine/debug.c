@@ -28,6 +28,7 @@ static void showRet(ioPo out, methodPo mtd, termPo call);
 
 static void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 static void showAllLocals(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp);
+static retCode showTos(ioPo out, framePo fp, ptrPo sp);
 static retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp);
 static retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp);
 static void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
@@ -685,6 +686,13 @@ retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
     return outMsg(out, " l[%d]", vr);
 }
 
+retCode showTos(ioPo out, framePo fp, ptrPo sp) {
+  if (sp != Null)
+    return outMsg(out, " <tos> = %T", sp[0]);
+  else
+    return outMsg(out, " <tos>");
+}
+
 void showAllStack(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
 
@@ -719,6 +727,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #undef instruction
 
 #define show_nOp
+#define show_tOs showTos(out,fp,sp)
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)

@@ -11,7 +11,7 @@
 #include <assert.h>
 #include "formioP.h"
 
-static retCode disp_tos(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
+static retCode disp_tOs(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "%s\n", op);
 }
 

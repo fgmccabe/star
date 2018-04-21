@@ -76,10 +76,10 @@ findImport(St,Lc,Viz,import(Viz,Pkg)) :-
 importAll(Imports,Repo,AllImports) :-
   closure(Imports,[],checker:notAlreadyImported,checker:importMore(Repo),AllImports).
 
-importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,_,_),Lc,Env,Ex) :-
-  declareImportedFields(Exported,Pkg,Enums,Lc,Env,E0),
-  importTypes(Types,Lc,E0,E1),
-  importContracts(Cons,Lc,E1,Ex).
+importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,_,_),Lc,E,Ex) :-
+  importTypes(Types,Lc,E,E1),
+  declareImportedFields(Exported,Pkg,Enums,Lc,E1,E2),
+  importContracts(Cons,Lc,E2,Ex).
 
 declareImportedFields([],_,_,_,Env,Env).
 declareImportedFields([(Nm,Tp)|More],Pkg,Enums,Lc,Env,Ex) :-
@@ -90,7 +90,7 @@ declareImportedVar(Lc,Nm,pkg(Pkg,_),Enums,Tp,Env,E0) :-
   marker(class,Mrk),
   localName(Pkg,Mrk,Nm,LclNm),
   (is_member(LclNm,Enums) ->
-     faceOfType(Tp,FcTp),
+     faceOfType(Tp,Env,FcTp),
      declareEnum(Lc,Nm,Tp,FcTp,Env,E0) ;
      declareVr(Lc,Nm,Tp,Env,E0)).
 
@@ -450,12 +450,8 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   implementationName(Spec,ImplName),
   typeOfExp(IBody,IFace,ThEnv,ThEv,ImplTerm,ImplName),
   Impl = implDef(Lc,INm,ImplName,ConSpec),
-  contractTypes(AC,CTs),
-  (CTs=[] ->
-     rfold(IQ,checker:pickBoundType,IFace,ImplTp),
-     ImplDef = varDef(Lc,INm,ImplName,[],ImplTp,ImplTerm);
-     rfold(IQ,checker:pickBoundType,funType(tupleType(CTs),IFace),ImplFunTp),
-     ImplDef = funDef(Lc,INm,ImplName,ImplFunTp,AC,[equation(Lc,tple(Lc,[]),enm(Lc,"true"),ImplTerm)])),
+  rfold(IQ,checker:pickBoundType,IFace,ImplTp),
+  ImplDef = varDef(Lc,INm,ImplName,AC,ImplTp,ImplTerm),
   declareImplementation(Nm,Impl,Env,Ex),
   dischargeConstraints(Env,ThEv),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
@@ -611,7 +607,7 @@ typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   genstr(Lbl,ThNm),
   thetaName(Path,ThNm,ThPath),
   deRef(FnTp,BTp),
-  checkThetaBody(BTp,Lc,Els,E0,_,Defs,Others,Types,Lbl).
+  checkThetaBody(BTp,Lc,Els,E0,_,Defs,Others,Types,ThPath).
 typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),

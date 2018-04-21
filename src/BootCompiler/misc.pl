@@ -1,7 +1,8 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
         collect/4,map/3,rfold/4,project0/2,project1/2,zip/3,
-        appStr/3,appStrs/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,genstr/2,
+        appStr/3,appStrs/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,appIndx/3,appNl/2,appNwln/3,
+        genstr/2,
         subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
         localName/4,
         listShow/5,
@@ -133,6 +134,17 @@ appInt(Ix,O,E) :- number_string(Ix,Str), string_chars(Str,Chrs), concat(Chrs,E,O
 
 appFlt(Dx,O,Ox) :- number_string(Dx,Str), string_chars(Str,Chrs), concat(Chrs,Ox,O).
 
+appIndx(0,O,O) :- !.
+appIndx(N,[' '|O],Ox) :-
+  N1 is N-1,
+  appIndx(N1,O,Ox).
+
+appNl(['\n'|Ox],Ox).
+
+appNwln(Dp,O,Ox) :-
+  appNl(O,O1),
+  appIndx(Dp,O1,Ox).
+
 subPath(Path,Marker,Suffix,Name) :-
   sub_string(Path,_,_,After,Marker),
   (After=0, string_concat(Path,Suffix,Name) ; string_concat(Path,".",P0),string_concat(P0,Suffix,Name)).
@@ -201,7 +213,7 @@ listShow([E|L],C,Sep,O,Ox) :-
 
 listShowMore([],_,_,O,O).
 listShowMore([E|L],C,S,O,Ox) :-
-  appStr(S,O,O1),
+  call(S,O,O1),
   call(C,E,O1,O2),
   listShowMore(L,C,S,O2,Ox).
 

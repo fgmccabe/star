@@ -95,7 +95,7 @@ retCode delImport(packagePo p, importPo q) {
 }
 
 integer strctHash(strctPo st) {
-  return uniHash(st->name) * 37 + st->arity;
+  return hash64(uniHash(st->name) * 37 + st->arity);
 }
 
 comparison strctComp(strctPo st1, strctPo st2) {
@@ -288,6 +288,7 @@ void endFunction(mtdPo mtd) {
 
 #define sztos
 #define sznOp
+#define sztOs
 #define szi32 pc+=sizeof(int32);
 #define szarg pc+=sizeof(int32);
 #define szlcl pc+=sizeof(int32);
@@ -307,6 +308,7 @@ void endFunction(mtdPo mtd) {
 
 #undef instruction
 #undef sznOp
+#undef sztOs
 #undef sztos
 #undef szi32
 #undef szarg
@@ -391,6 +393,9 @@ static void fixup_tos(assemInsPo ins) {
 }
 
 static void fixup_nOp(assemInsPo ins) {
+}
+
+static void fixup_tOs(assemInsPo ins) {
 }
 
 static void fixup_i32(assemInsPo ins) {
@@ -625,6 +630,11 @@ static assemInsPo asm_nOp(mtdPo mtd, OpCode op) {
   return ins;
 }
 
+static assemInsPo asm_tOs(mtdPo mtd, OpCode op) {
+  assemInsPo ins = newIns(mtd, op);
+  return ins;
+}
+
 static assemInsPo asm_i32(mtdPo mtd, OpCode op, int32 ix) {
   assemInsPo ins = newIns(mtd, op);
   ins->i = ix;
@@ -685,7 +695,7 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 
 #define optos(X)
 #define opnOp(X)
-#define argtos(X)
+#define argtOs(X)
 #define argnOp(X)
 
 #define opi32(X) ,int32 i##X
@@ -724,7 +734,7 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef instruction
 #undef optos
 #undef opnOp
-#undef argtos
+#undef argtOs
 #undef argnOp
 #undef opi32
 #undef argi32
@@ -753,7 +763,7 @@ int32 codeSize(mtdPo mtd) {
 #undef instruction
 
 #define sznOp
-#define sztos
+#define sztOs
 #define szi32 pc+=(sizeof(int32)/sizeof(uint16));
 #define szarg pc+=(sizeof(int32)/sizeof(uint16));
 #define szlcl pc+=(sizeof(int32)/sizeof(uint16));
@@ -782,6 +792,7 @@ int32 codeSize(mtdPo mtd) {
 #undef szlit
 #undef szglb
 #undef sznOp
+#undef sztOs
       default:;
     }
 
@@ -826,6 +837,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #undef instruction
 
 #define sznOp
+#define sztOs
 #define szi32 if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szarg if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szlcl if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
@@ -854,6 +866,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #undef szlit
 #undef szglb
 #undef sznOp
+#undef sztOs
       default:;
     }
 

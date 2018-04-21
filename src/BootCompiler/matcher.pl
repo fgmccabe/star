@@ -95,13 +95,18 @@ newVars([_|L],V,[idnt(NN)|VV]) :-
   genstr("_",NN),
   newVars(L,V,VV).
 
-matchScalars(Tpls,[V|Vrs],Lc,Deflt,case(Lc,V,Cases,Deflt)) :-
+matchScalars(Tpls,[V|Vrs],Lc,Deflt,CaseExp) :-
   sort(Tpls,matcher:compareScalarTriple,ST),
-  formCases(ST,matcher:sameScalarTriple,Lc,Vrs,Deflt,Cases).
+  formCases(ST,matcher:sameScalarTriple,Lc,Vrs,Deflt,Cases),
+  mkCase(Lc,V,Cases,Deflt,CaseExp).
 
-matchConstructors(Lc,Tpls,[V|Vrs],Deflt,case(Lc,V,Cases,Deflt)) :-
+mkCase(Lc,V,[(Lbl,Exp)],Deflt,cnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt)) :-!.
+mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
+
+matchConstructors(Lc,Tpls,[V|Vrs],Deflt,CaseExp) :-
   sort(Tpls,matcher:compareConstructorTriple,ST),
-  formCases(ST,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Cases).
+  formCases(ST,matcher:sameConstructorTriple,Lc,Vrs,Deflt,Cases),
+  mkCase(Lc,V,Cases,Deflt,CaseExp).
 
 formCases([],_,_,[],_,[]) :- !.
 formCases([],_,_,_,_,[]).

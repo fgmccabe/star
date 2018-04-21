@@ -48,8 +48,8 @@
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
-  operator("exists", [prefixOp(1010, 1009)]).
   operator("•", [infixOp(450, 450, 449)]).
+  operator("exists", [prefixOp(1010, 1009)]).
   operator("<<", [infixOp(499, 500, 499)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
@@ -76,7 +76,7 @@
   operator("where", [infixOp(929, 930, 929)]).
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
-  operator("=>", [infixOp(949, 950, 949)]).
+  operator("=>", [infixOp(949, 950, 950)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("?|", [infixOp(1248, 1249, 1249)]).
   operator("private", [prefixOp(1700, 1699)]).

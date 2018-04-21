@@ -24,12 +24,12 @@ instruction(OTail,i32,"OTail")
 
 instruction(Enter,i32,"enter <envsize>")
 
-instruction(Ret,nOp,"return")
+instruction(Ret,tOs,"return")
 
 instruction(Jmp,off,"jump lbl")
 
-instruction(Drop,nOp,"drop top of stack")
-instruction(Dup,nOp,"duplicate top of stack")
+instruction(Drop,tOs,"drop top of stack")
+instruction(Dup,tOs,"duplicate top of stack")
 instruction(Pull,i32,"copy nth stack entry to top of stack")
 instruction(Rot,i32,"rotate nth stack entry to top of stack")
 instruction(Rst,i32,"reset stack height to a fixed height")

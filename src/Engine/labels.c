@@ -38,7 +38,7 @@ void initLbls() {
 }
 
 labelPo declareLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=uniHash(name) * 37 + arity};
+  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(uniHash(name) * 37 + arity)};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {
@@ -163,4 +163,20 @@ labelPo tplLabel(integer arity) {
 
   strMsg(txt, NumberOf(txt), "()%d", arity);
   return declareLbl(txt, arity);
+}
+
+logical isTplLabel(labelPo lb){
+  char *nm = lb->name;
+  if(uniIsLitPrefix(nm,"()")){
+    integer ln = uniStrLen(nm);
+    integer pos = uniStrLen("()");
+    while(pos<ln){
+      codePoint cp = nextCodePoint(nm,&pos,ln);
+      if(!isNdChar(cp))
+        return False;
+    }
+    return True;
+  }
+  else
+    return False;
 }

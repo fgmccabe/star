@@ -1,4 +1,6 @@
 test.d{
+  import star.core.
+
   xx : index[boolean].
   xx = xc{
     get(false) => 0.
@@ -10,8 +12,6 @@ test.d{
   }
 
   all t ~~ index[t] ::= exists e ~~ xc{ get:(t)=>e. test:t. type ee : e. } | none.
-
-  boolean ::= false | true.
 
   yy : xx.ee.
   yy = xx.get(false).

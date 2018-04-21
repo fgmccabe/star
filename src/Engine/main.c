@@ -81,7 +81,12 @@ int main(int argc, char **argv) {
     atexit(dumpInsCount);
 #endif
 
-  bootstrap(entry);
-
-  return EXIT_SUCCEED;          /* exit the runtime system cleanly */
+  switch(bootstrap(entry)){
+    case Ok:
+      return EXIT_SUCCEED;          /* exit the runtime system cleanly */
+    case Error:
+      return EXIT_ERROR;
+    default:
+      return EXIT_FAIL;
+  }
 }

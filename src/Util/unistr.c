@@ -530,7 +530,7 @@ integer uniHash(const char *name) {
     hash = hash * 37 + *s++;
   }
 
-  return hash;
+  return hash64(hash);
 }
 
 integer uniNHash(const char *name, long len) {
@@ -540,7 +540,11 @@ integer uniNHash(const char *name, long len) {
   for (long ix = 0; ix < len; ix++)
     hash = hash * 37 + *s++;
 
-  return hash;
+  return hash64(hash);
+}
+
+integer hash64(integer ix){
+  return ix&LARGE_INT64;
 }
 
 char *uniEndStr(char *s) {

@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
 static char *genArg(FILE *out, char *sep, opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
+    case tOs:
       return sep;
     case lit:
     case glb:
@@ -138,6 +139,7 @@ char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).\n";
 static void genCode(FILE *out, int op, opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
+    case tOs:
       fprintf(out, "%d|M]) :- Pc1 is Pc+1,\n", op);
       break;
     case lit:
@@ -198,6 +200,7 @@ void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
 
   switch (A1) {
     case nOp:                             // No operand
+    case tOs:
       break;
     case lit:
     case i32:
@@ -219,6 +222,7 @@ void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt) {
 
   switch (A1) {
     case nOp:                             // No operand
+    case tOs:
       fprintf(out, "Pc1 is Pc+1, ");
       break;
     case lit:

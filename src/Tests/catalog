@@ -1,10 +1,13 @@
 {
 	"content": {
 	  "test.cons" : "constest.star",
+		"star.core" : "core0.star",
+		"test.c" : "c.star",
 	  "test.d" : "d.star",
 		"test.e" : "e.star",
 		"test.f" : "f.star",
-		"star.core" : "l.star",
+		"test.l" : "l.star",
+		"test.ll" : "ll.star",
 		"test.fact" : "fact.star",
 		"test.gr" : "grtest.star",
 		"test.let" : "letish.star",

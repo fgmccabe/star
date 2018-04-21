@@ -1,6 +1,6 @@
 :- module(terms,[displayRules/1,showRules/3,substTerm/3,
         genTplStruct/2,isTplStruct/1,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
-        termHash/2,dispTerm/2,showTerm/3,locTerm/2]).
+        termHash/2,dispTerm/2,showTerm/4,locTerm/2]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -26,148 +26,161 @@ showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
 displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
 showRuleSets(L,O,Ox) :-
-  listShow(L,terms:showRuleSet,"\n\n",O,Ox).
+  listShow(L,terms:showRuleSet,misc:appNl,O,Ox).
 
 showRuleSet(fnDef(_,Nm,Tp,Eqns),O,Ox) :-
   appStr("Function: ",O,O0),
-  showTerm(Nm,O0,O1),
+  showTerm(Nm,0,O0,O1),
   appStr(":",O1,O2),
   showType(Tp,O2,O3),
   appStr("\n",O3,O4),
-  showEqns(Eqns,Nm,O4,Ox).
+  showEqns(Eqns,Nm,O4,O5),
+  appNl(O5,Ox).
 showRuleSet(vrDef(_,Nm,Tp,Value),O,Ox) :-
   appStr("Global: ",O,O0),
   appStr(Nm,O0,O1),
   appStr(":",O1,O2),
   showType(Tp,O2,O3),
-  appStr("\n",O3,O4),
-  showTerm(Value,O4,Ox).
+  appStr(" = ",O3,O4),
+  showTerm(Value,0,O4,Ox).
 
 showEqns(L,Nm,O,Ox) :-
-  listShow(L,terms:showEqn(Nm),"\n",O,Ox).
+  listShow(L,terms:showEqn(Nm),misc:appNl,O,Ox).
 
 showEqn(Nm,eqn(_,Args,Value),O,Ox) :-
-  showTerm(Nm,O,O1),
-  showArgs(Args,O1,O2),
+  showTerm(Nm,0,O,O1),
+  showArgs(Args,0,O1,O2),
   appStr(" => ",O2,O3),
-  showTerm(Value,O3,O4),
+  showTerm(Value,0,O3,O4),
   appStr(".",O4,Ox).
 
-showArgs(Args,O,Ox) :-
-  showTerms(Args,"(",",",")",O,Ox).
+showArgs(Args,Dp,O,Ox) :-
+  showTerms(Args,"(",misc:appStr(","),")",Dp,O,Ox).
 
-showTerms(Terms,Lft,Mid,Rgt,O,Ox) :-
+showTerms(Terms,Lft,Mid,Rgt,Dp,O,Ox) :-
   appStr(Lft,O,O1),
-  listShow(Terms,terms:showTerm,Mid,O1,O2),
+  listShow(Terms,terms:shwTerm(Dp),Mid,O1,O2),
   appStr(Rgt,O2,Ox).
 
-showTerm(idnt(Nm),O,Ox) :- appStr(Nm,O,Ox).
-showTerm(intgr(Ix),O,Ox) :- appInt(Ix,O,Ox).
-showTerm(float(Ix),O,Ox) :- appInt(Ix,O,Ox).
-showTerm(strg(Str),O,Ox) :-
+shwTerm(Dp,T,O,Ox) :- showTerm(T,Dp,O,Ox).
+
+showTerm(idnt(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
+showTerm(intgr(Ix),_,O,Ox) :- appInt(Ix,O,Ox).
+showTerm(float(Ix),_,O,Ox) :- appInt(Ix,O,Ox).
+showTerm(strg(Str),_,O,Ox) :-
   appStr("""",O,O1),
   appStr(Str,O1,O2),
   appStr("""",O2,Ox).
-showTerm(cll(_,Op,Args),O,Ox) :-
-  showTerm(Op,O,O1),
-  showArgs(Args,O1,Ox).
-showTerm(ocall(_,Op,Args),O,Ox) :-
-  showTerm(Op,O,O1),
+showTerm(cll(_,Op,Args),Dp,O,Ox) :-
+  showTerm(Op,Dp,O,O1),
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,O1,Ox).
+showTerm(ocall(_,Op,Args),Dp,O,Ox) :-
+  showTerm(Op,Dp,O,O1),
   appStr(".",O1,O2),
-  showArgs(Args,O2,Ox).
-showTerm(ecll(_,Es,Args),O,Ox) :-
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,O2,Ox).
+showTerm(ecll(_,Es,Args),Dp,O,Ox) :-
   appStr(Es,O,O1),
-  showArgs(Args,O1,Ox).
-showTerm(ctpl(Op,A),O,Ox) :-
-  showTerm(Op,O,O1),
-  showArgs(A,O1,Ox).
-showTerm(enum(Nm),O,Ox) :-
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,O1,Ox).
+showTerm(ctpl(Op,A),Dp,O,Ox) :-
+  showTerm(Op,Dp,O,O1),
+  Dp1 is Dp+2,
+  showArgs(A,Dp1,O1,Ox).
+showTerm(enum(Nm),_,O,Ox) :-
   appStr("'",O,O1),
   appStr(Nm,O1,O2),
   appStr("'",O2,Ox).
-showTerm(lbl(Nm,Ar),O,Ox) :-
+showTerm(lbl(Nm,Ar),_,O,Ox) :-
   appStr(Nm,O,O1),
   appStr("%",O1,O2),
   appInt(Ar,O2,Ox).
-showTerm(whr(_,Ptn,Cond),O,Ox) :-
-  showTerm(Ptn,O,O1),
-  showTermGuard(Cond,O1,Ox).
-showTerm(varNames(_,Vars,Value),O,Ox) :-
+showTerm(whr(_,Ptn,Cond),Dp,O,Ox) :-
+  showTerm(Ptn,Dp,O,O1),
+  Dp1 is Dp+2,
+  showTermGuard(Cond,Dp1,O1,Ox).
+showTerm(varNames(_,Vars,Value),Dp,O,Ox) :-
   appStr("varDebug: [",O,O0),
-  showVarNames(Vars,O0,O1),
+  showVarNames(Vars,Dp,O0,O1),
   appStr("] -> ",O1,O2),
-  showTerm(Value,O2,Ox).
-showTerm(case(_,T,Cases,Deflt),O,Ox) :-
+  showTerm(Value,Dp,O2,Ox).
+showTerm(case(_,T,Cases,Deflt),Dp,O,Ox) :-
   appStr("case ",O,O1),
-  showTerm(T,O1,O2),
+  showTerm(T,Dp,O1,O2),
   appStr(" in {\n",O2,O3),
-  showCases(Cases,O3,O4),
-  appStr("\n} else ",O4,O5),
-  showTerm(Deflt,O5,Ox).
-showTerm(seq(_,L,R),O,Ox) :-
-  showTerm(L,O,O1),
+  Dp1 is Dp+2,
+  appIndx(Dp1,O3,O4),
+  showCases(Cases,Dp,Dp1,O4,O5),
+  appNwln(Dp,O5,O6),
+  appStr("} else",O6,O7),
+  appNwln(Dp1,O7,O8),
+  showTerm(Deflt,Dp1,O8,Ox).
+showTerm(seq(_,L,R),Dp,O,Ox) :-
+  showTerm(L,Dp,O,O1),
   appStr(";",O1,O2),
-  showTerm(R,O2,Ox).
-showTerm(cnj(_,L,R),O,Ox) :-
-  showTerm(L,O,O1),
+  showTerm(R,Dp,O2,Ox).
+showTerm(cnj(_,L,R),Dp,O,Ox) :-
+  showTerm(L,Dp,O,O1),
   appStr(" && ",O1,O2),
-  showTerm(R,O2,Ox).
-showTerm(cnd(_,T,L,R),O,Ox) :-
+  showTerm(R,Dp,O2,Ox).
+showTerm(cnd(_,T,L,R),Dp,O,Ox) :-
+  Dp1 is Dp+2,
   appStr("(",O,O0),
-  showTerm(T,O0,O1),
-  appStr(" ? ",O1,O2),
-  showTerm(L,O2,O3),
-  appStr(" | ",O3,O4),
-  showTerm(R,O4,O5),
-  appStr(")",O5,Ox).
-showTerm(dsj(_,Either,Or),O,Ox) :-
+  showTerm(T,Dp,O0,O1),
+  appStr(" ?",O1,O2),
+  appNwln(Dp1,O2,O3),
+  showTerm(L,Dp1,O3,O4),
+  appNwln(Dp,O4,O5),
+  appStr("| ",O5,O7),
+  showTerm(R,Dp1,O7,O8),
+  appNwln(Dp,O8,O9),
+  appStr(")",O9,Ox).
+showTerm(dsj(_,Either,Or),Dp,O,Ox) :-
   appStr("(",O,O0),
-  showTerm(Either,O0,O1),
+  showTerm(Either,Dp,O0,O1),
   appStr(" || ",O1,O2),
-  showTerm(Or,O2,O3),
+  showTerm(Or,Dp,O2,O3),
   appStr(")",O3,Ox).
-showTerm(cnd(_,Test,Either,Or),O,Ox) :-
-  appStr("(",O,O1),
-  showTerm(Test,O1,O2),
-  appStr("?",O2,O3),
-  showTerm(Either,O3,O4),
-  appStr(" | ",O4,O5),
-  showTerm(Or,O5,O6),
-  appStr(")",O6,Ox).
-showTerm(mtch(_,L,R),O,Ox) :-
-  showTerm(L,O,O1),
+showTerm(mtch(_,L,R),Dp,O,Ox) :-
+  showTerm(L,Dp,O,O1),
   appStr(" .= ",O1,O2),
-  showTerm(R,O2,Ox).
-showTerm(ng(_,R),O,Ox) :-
+  showTerm(R,Dp,O2,Ox).
+showTerm(ng(_,R),Dp,O,Ox) :-
   appStr("\\+",O,O1),
-  showTerm(R,O1,Ox).
-showTerm(error(_,Msg),O,Ox) :-
+  showTerm(R,Dp,O1,Ox).
+showTerm(error(_,Msg),_,O,Ox) :-
   appStr("error: ",O,O1),
   appQuoted(Msg,"\"",O1,Ox).
 
-showTermGuard(enum("star.core#true"),Ox,Ox) :- !.
-showTermGuard(T,O,Ox) :-
+showTermGuard(enum("star.core#true"),_,Ox,Ox) :- !.
+showTermGuard(T,Dp,O,Ox) :-
   appStr(" where ",O,O1),
-  showTerm(T,O1,Ox).
+  showTerm(T,Dp,O1,Ox).
 
-showVarNames(Vrs,O,Ox) :-
-  listShow(Vrs,terms:showVarBinding,", ",O,Ox).
+showVarNames(Vrs,Dp,O,Ox) :-
+  listShow(Vrs,terms:showVarBinding(Dp),misc:appStr(", "),O,Ox).
 
-showVarBinding((V,Vx),O,Ox) :-
+showVarBinding(Dp,(V,Vx),O,Ox) :-
   appStr(V,O,O1),
   appStr("/",O1,O2),
-  showTerm(Vx,O2,Ox).
+  showTerm(Vx,Dp,O2,Ox).
 
-showCases(Cases,O,Ox) :-
-  listShow(Cases,terms:showCase,"\n| ",O,Ox).
+showCases(Cases,Dp,Dp1,O,Ox) :-
+  listShow(Cases,terms:showCase(Dp1),terms:nxtCase(Dp),O,Ox).
 
-showCase((Lbl,Val),O,Ox) :-
-  showTerm(Lbl,O,O1),
+nxtCase(Dp,O,Ox) :-
+  appNl(O,O1),
+  appIndx(Dp,O1,O2),
+  appStr("| ",O2,Ox).
+
+showCase(Dp,(Lbl,Val),O,Ox) :-
+  showTerm(Lbl,Dp,O,O1),
   appStr(": ",O1,O2),
-  showTerm(Val,O2,Ox).
+  showTerm(Val,Dp,O2,Ox).
 
 dispTerm(T,Txt) :-
-  showTerm(T,Chrs,[]),
+  showTerm(T,0,Chrs,[]),
   string_chars(Txt,Chrs).
 
 substTerm(_,intgr(Ix),intgr(Ix)).
@@ -182,7 +195,7 @@ substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   substTerms(Q,Args,NArgs).
 substTerm(Q,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
-  substTerms(Q,Args,NArgs)
+  substTerms(Q,Args,NArgs).
 substTerm(Q,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
   substTerms(Q,Args,NArgs).

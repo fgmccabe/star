@@ -316,6 +316,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
   (*ix)++;
   switch (op) {
 #define sznOp
+#define sztOs
 #define szi32 if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
@@ -342,6 +343,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 #undef szlit
 #undef szglb
 #undef sznOp
+#undef sztOs
     default:
       return Error;
   }

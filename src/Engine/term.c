@@ -68,7 +68,7 @@ retCode dispTerm(ioPo out, termPo t, long depth, logical alt) {
   } else if (isNormalPo(t)) {
     normalPo nml = C_TERM(t);
     labelPo lbl = nml->lbl;
-    retCode ret = outStr(out, labelName(lbl));
+    retCode ret = (isTplLabel(lbl)?Ok:outStr(out, labelName(lbl)));
     if (ret == Ok)
       ret = outChar(out, '(');
     if (depth > 0) {

@@ -1,4 +1,6 @@
-star.core {
+test.c {
+  import star.core.
+
   public implementation all t ~~ equality[t] |: equality[option[t]] => {.
     none == none => true.
     some(X) == some(Y) => X==Y.
@@ -25,9 +27,6 @@ star.core {
     X == Y => _str_eq(X,Y).
     hash(X) => _str_hash(X).
   }
-
-  -- Not strictly necessary, but makes for better symmetry.
-  public boolean ::= true | false.
 
   all t ~~ equality[t] |: person[t] ::=
     someOne{
