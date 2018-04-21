@@ -325,10 +325,10 @@ static DebugWaitFor dbgCont(char *line, processPo p, void *cl) {
   return nextBreak;
 }
 
-static DebugWaitFor dbgRestart(char *line,processPo p,void *cl){
+static DebugWaitFor dbgRestart(char *line, processPo p, void *cl) {
   p->pc = entryPoint(p->prog);
-  p->sp = (ptrPo)p->fp;
-  p->fp = (framePo)(*p->sp++);
+  p->sp = (ptrPo) p->fp;
+  p->fp = (framePo) (*p->sp++);
   p->hasEnter = False;
 
   return moreDebug;
@@ -366,6 +366,47 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, void *cl) {
     showLcl(stdErr, cmdCount(line), mtd, fp, sp);
   else
     outMsg(stdErr, "invalid local number: %d", lclNo);
+  return moreDebug;
+}
+
+static DebugWaitFor dbgShowGlobal(char *line, processPo p, void *cl) {
+  char buff[MAX_SYMB_LEN];
+  integer pos = 0;
+  integer ix = 0;
+  integer llen = uniStrLen(line);
+
+  enum {
+    initSte, inVar
+  } st = initSte;
+
+  while (ix < llen) {
+    codePoint cp = nextCodePoint(line, &ix, llen);
+    switch (st) {
+      case initSte:
+        if (!isSpaceChar(cp)) {
+          st = inVar;
+          appendCodePoint(buff, &pos, NumberOf(buff), cp);
+        }
+        continue;
+      case inVar:
+        if (!isSpaceChar(cp)) {
+          appendCodePoint(buff, &pos, NumberOf(buff), cp);
+          continue;
+        } else
+          break;
+    }
+  }
+  if (uniStrLen(buff) > 0) {
+    appendCodePoint(buff, &pos, NumberOf(buff), 0);
+    globalPo glb = globalVar(buff);
+    if (glb != Null) {
+      termPo val = getGlobal(glb);
+      if (val != Null)
+        outMsg(stdErr, "%s = %T\n", buff, val);
+      else
+        outMsg(stdErr, "%s not set\n", buff);
+    }
+  }
   return moreDebug;
 }
 
@@ -451,6 +492,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
     {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
+    {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
@@ -560,6 +602,7 @@ DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
     {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
     {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
+    {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},

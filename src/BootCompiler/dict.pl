@@ -1,9 +1,10 @@
 :- module(dict,[declareType/4,isType/3,
     declareTypeVars/4,isTypeVar/3,
-    declareVar/4,mkVr/3,isVar/3,hasType/3,currentVar/3,restoreVar/4,
+    declareVar/4,declareEnum/6,
+    mkVr/3,isVar/3,hasType/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
     declareImplementation/4,getImplementations/3,allImplements/3,
-    declareConstraint/3,allConstraints/2,
+    declareConstraint/3,allConstraints/2,getConstraints/3,
     processNames/3,processTypes/3,
     pushScope/2,pushFace/4,makeKey/2,stdDict/1]).
 
@@ -41,6 +42,11 @@ declareVar(Nm,Vr,[scope(Types,Names,Cns,Impls,Contracts)|Outer],[scope(Types,Nam
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp,dict:noFace)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
 
+declareEnum(Lc,Nm,Tp,FcTp,Env,Ev) :-
+  declareVar(Nm,vrEntry(Lc,dict:mkEnum(Nm),Tp,FcTp),Env,Ev).
+
+mkEnum(Nm,Lc,enm(Lc,Nm)).
+
 mkVr(Nm,Lc,v(Lc,Nm)).
 noFace(_,faceType([],[])).
 
@@ -73,6 +79,19 @@ contractInD(Key,[_|Env],Con) :- contractInD(Key,Env,Con).
 
 declareConstraint(Con,[scope(Types,Nms,Cns,Impl,Cons)|Outer],[scope(Types,Nms,[Con|Cns],Impl,Cons)|Outer]).
 
+getConstraints(E,B,C) :-
+  length(E,L1),
+  length(B,L2),
+  Count is L1-L2,
+  collectConstraints(E,Count,[],C).
+
+collectConstraints(_,0,C,C).
+collectConstraints([],_,C,C).
+collectConstraints([scope(_,_,Cns,_,_)|E],Cnt,C,Cx) :-
+  concat(Cns,C,C0),
+  Cnt1 is Cnt-1,
+  collectConstraints(E,Cnt1,C0,Cx).
+
 allConstraints([],[]).
 allConstraints([scope(_,_,Cns,_,_)|Env],All) :-
   allConstraints(Env,Outer),
@@ -82,15 +101,15 @@ allImplements(T,Env,Face) :-
   allImplements(T,Env,Env,[],Face).
 
 allImplements(T,[scope(_,_,Cns,_,_)|Outer],Env,SoFar,Face) :-
-  filteImplements(Cns,T,Env,SoFar,I0),
+  filterImplements(Cns,T,Env,SoFar,I0),
   allImplements(T,Outer,Env,I0,Face).
 allImplements(_,[],_,Face,Face).
 
-filteImplements([],_,_,F,F).
-filteImplements([implementsFace(V,Fields)|Cns],VV,Env,F,Face) :-
+filterImplements([],_,_,F,F).
+filterImplements([implementsFace(V,Fields)|Cns],VV,Env,F,Face) :-
   deRef(V,VV),
   concat(Fields,F,F0),
-  filteImplements(Cns,VV,Env,F0,Face).
+  filterImplements(Cns,VV,Env,F0,Face).
 
 declareImplementation(Con,Impl,[scope(Types,Nms,Cns,I,Cons)|Outer],[scope(Types,Nms,Cns,I1,Cons)|Outer]) :-
   makeKey(Con,Key),

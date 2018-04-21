@@ -45,4 +45,8 @@ star.collection{
     intersect : (k,k)=>k.
     difference : (k,k)=>k.
   }
+
+  public contract all k ~~ concat[k] ::= {
+    (++) : (k,k)=>k.
+  }
 }

@@ -42,8 +42,15 @@ compileMatch(inConstructors,Tpls,Vrs,Lc,Deflt,Reslt) :-
 compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchVars(Lc,Vrs,Tpls,Deflt,Reslt).
 
-conditionalize([(_,(_,[],Value),_)|_],_,Value).
-conditionalize([(_,(Lc,Bnds,Value),_)|_],_,varNames(Lc,Bnds,Value)).
+conditionalize([],Deflt,Deflt).
+conditionalize([(_,(_,Bnds,whr(Lc,Val,Cond)),_)|M],Deflt,cnd(Lc,Cond,Value,Other)) :-
+  conditionalize(M,Deflt,Other),
+  applyBindings(Bnds,Lc,Val,Value).
+conditionalize([(_,(Lc,Bnds,Val),_)|_],_,Value) :-
+  applyBindings(Bnds,Lc,Val,Value).
+
+applyBindings([],_,Val,Val).
+applyBindings(Bnds,Lc,Val,varNames(Lc,Bnds,Val)).
 
 argMode(idnt(_),inVars).
 argMode(intgr(_),inScalars).

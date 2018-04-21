@@ -17,10 +17,10 @@
 instruction(Halt,nOp,"Stop execution")
 
 instruction(Call,lit,"Call <prog>")
-instruction(OCall,nOp,"OCall")
+instruction(OCall,i32,"OCall")
 instruction(Escape,Es,"call C escape")
 instruction(Tail,lit,"Tail <prog>")
-instruction(OTail,nOp,"OTail")
+instruction(OTail,i32,"OTail")
 
 instruction(Enter,i32,"enter <envsize>")
 

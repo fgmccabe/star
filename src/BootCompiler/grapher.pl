@@ -87,7 +87,7 @@ scanForImports(Term,Pkg,Imports) :-
 
 scanPackageName(Term,Nm) :- isIden(Term,Nm).
 scanPackageName(Term,Nm) :- isString(Term,Nm).
-scanPackageName(Term,Pk) :- isBinary(Term,".",L,R),
+scanPackageName(Term,Pk) :- isBinary(Term,_,".",L,R),
   scanPackageName(L,F),
   scanPackageName(R,B),
   string_concat(F,".",FF),
@@ -102,13 +102,13 @@ scanThetaEnv([St|Stmts],Imports) :-
     scanThetaEnv(Stmts,MoreImp).
 
 scanStmt(St,Imp,More) :-
-  isUnary(St,"public",El),!,
+  isUnary(St,_,"public",El),!,
   scanStmt(El,Imp,More).
 scanStmt(St,Imp,More) :-
-  isUnary(St,"private",El),!,
+  isUnary(St,_,"private",El),!,
   scanStmt(El,Imp,More).
 scanStmt(St,[pkg(Pk,defltVersion)|More],More) :-
-  isUnary(St,"import",P),
+  isUnary(St,_,"import",P),
   scanPackageName(P,Pk).
 scanStmt(_,Imp,Imp).
 

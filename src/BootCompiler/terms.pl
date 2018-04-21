@@ -9,7 +9,7 @@
 :- use_module(types).
 
 showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
-  appStr("Package :",O,O0),
+  appStr("Package: ",O,O0),
   showPkg(Pkg,O0,O1),
   appStr("\n",O1,O2),
   showImports(Imports,O2,O3),!,
@@ -71,10 +71,10 @@ showTerm(strg(Str),O,Ox) :-
 showTerm(cll(_,Op,Args),O,Ox) :-
   showTerm(Op,O,O1),
   showArgs(Args,O1,Ox).
-showTerm(ocall(_,Call,Rec),O,Ox) :-
-  showTerm(Rec,O,O1),
+showTerm(ocall(_,Op,Args),O,Ox) :-
+  showTerm(Op,O,O1),
   appStr(".",O1,O2),
-  showTerm(Call,O2,Ox).
+  showArgs(Args,O2,Ox).
 showTerm(ecll(_,Es,Args),O,Ox) :-
   appStr(Es,O,O1),
   showArgs(Args,O1,Ox).
@@ -180,9 +180,9 @@ substTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
 substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
   substTerms(Q,Args,NArgs).
-substTerm(Q,ocall(Lc,Call,Rec),ocall(Lc,NCall,NRec)) :-
-  substTerm(Q,Call,NCall),
-  substTerm(Q,Rec,NRec).
+substTerm(Q,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
+  substTerm(Q,Op,NOp),
+  substTerms(Q,Args,NArgs)
 substTerm(Q,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
   substTerms(Q,Args,NArgs).

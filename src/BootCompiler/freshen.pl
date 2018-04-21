@@ -1,7 +1,7 @@
 :- module(freshen,[freshen/4,freshenConstraint/5,frshnConstraint/4,
   rewriteConstraints/4,
   rewriteType/4,rewriteTypes/4,
-  evidence/4,contractEvidence/4]).
+  evidence/4]).
 
 :- use_module(misc).
 :- use_module(types).
@@ -81,8 +81,11 @@ frshn(ptnType(A,R),E,B,ptnType(FA,FR)) :-
 frshn(consType(A,R),E,B,consType(FA,FR)) :-
   rewriteType(A,E,B,FA),
   rewriteType(R,E,B,FR).
+frshn(grType(A,R),E,B,grType(FA,FR)) :-
+  rewriteType(A,E,B,FA),
+  rewriteType(R,E,B,FR).
 frshn(tupleType(L),E,B,tupleType(FL)) :- rewriteTypes(L,E,B,FL).
-frshn(typeExp(O,A),E,B,typeExp(FO,FA)) :- frshn(O,E,B,FO),rewriteTypes(A,E,B,FA).
+frshn(typeExp(O,A),E,B,typeExp(FO,FA)) :- rewriteType(O,E,B,FO),rewriteTypes(A,E,B,FA).
 frshn(allType(kVar(V),Tp),E,B,allType(kVar(V),FTp)) :-
   subtract((V,_),B,B0),
   rewriteType(Tp,E,B0,FTp).
@@ -104,6 +107,9 @@ frshn(faceType(L,T),E,B,faceType(FL,FT)) :-
 frshn(typeExists(A,R),E,B,typeExists(FA,FR)) :-
   rewriteType(A,E,B,FA),
   rewriteType(R,E,B,FR).
+frshn(typeLambda(A,R),E,B,typeLambda(FA,FR)) :-
+  rewriteType(A,E,B,FA),
+  rewriteType(R,E,B,FR).
 frshn(contractExists(Con,Tp),E,B,contractExists(FCon,FTp)) :-
   rewriteType(Tp,E,B,FTp),
   frshnConstraint(Con,E,B,FCon).
@@ -113,25 +119,14 @@ frshnConstraint(conTract(Nm,Args,Deps),E,B,conTract(Nm,FArgs,FDeps)) :-
   rewriteTypes(Args,E,B,FArgs),
   rewriteTypes(Deps,E,B,FDeps).
 frshnConstraint(implementsFace(Tp,Face),E,B,implementsFace(FTp,FFace)) :-
-  frshn(Tp,E,B,FTp),
-  frshn(Face,E,B,FFace).
+  rewriteType(Tp,E,B,FTp),
+  rewriteType(Face,E,B,FFace).
 frshnConstraint(constrained(C1,C2),E,B,constrained(FC1,FC2)) :-
   frshnConstraint(C1,E,B,FC1),
   frshnConstraint(C2,E,B,FC2).
 
-frshnContract(conTract(Nm,Args,Deps),E,B,conTract(Nm,FArgs,FDeps)) :-
-  rewriteTypes(Args,E,B,FArgs),
-  rewriteTypes(Deps,E,B,FDeps).
-frshnContract(constrained(Con,Other),E,B,constrained(FCon,FOther)) :-
-  frshnConstraint(Other,E,B,FOther),
-  frshnContract(Con,E,B,FCon).
-
-contractEvidence(Tp,E,Q,Con) :-
-  skolemize(Tp,[],Q,SkTp),
-  frshnContract(SkTp,E,Q,Con).
-
 frshnFields([],_,_,[]).
-frshnFields([(Nm,A)|L],E,B,[(Nm,FA)|FL]) :- !, deRef(A,DA),frshn(DA,E,B,FA), frshnFields(L,E,B,FL).
+frshnFields([(Nm,A)|L],E,B,[(Nm,FA)|FL]) :- !, rewriteType(A,E,B,FA), frshnFields(L,E,B,FL).
 
 rewriteTypes([],_,_,[]).
-rewriteTypes([A|L],E,B,[FA|FL]) :- deRef(A,DA),frshn(DA,E,B,FA), rewriteTypes(L,E,B,FL).
+rewriteTypes([A|L],E,B,[FA|FL]) :- rewriteType(A,E,B,FA), rewriteTypes(L,E,B,FL).

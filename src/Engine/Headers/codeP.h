@@ -39,15 +39,18 @@ static inline logical isMethod(termPo m) {
 }
 
 static inline insPo entryPoint(methodPo mtd) {
+  assert(mtd!=Null);
   return &mtd->code[0];
 }
 
 static inline integer insCount(methodPo mtd){
+  assert(mtd!=Null);
   return mtd->codeSize;
 }
 
-static inline int64 argCount(methodPo cl) {
-  return cl->arity;
+static inline int64 argCount(methodPo mtd) {
+  assert(mtd!=Null);
+  return mtd->arity;
 }
 
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);

@@ -56,4 +56,7 @@ star.core {
 
   -- Not strictly necessary, but makes for better symmetry.
   public boolean ::= true | false.
+
+  option@"the option type is useful when a value is not always available".
+  public all t ~~ option[t] ::= none | some(t).
 }

@@ -124,6 +124,7 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
 }
 
 normalPo codeLits(methodPo mtd) {
+  assert(mtd!=Null);
   return mtd->pool;
 }
 

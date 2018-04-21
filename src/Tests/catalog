@@ -1,9 +1,14 @@
 {
 	"content": {
+	  "test.cons" : "constest.star",
 	  "test.d" : "d.star",
 		"test.e" : "e.star",
+		"test.f" : "f.star",
+		"star.core" : "l.star",
 		"test.fact" : "fact.star",
-		"test.gr" : "grtest.star"
+		"test.gr" : "grtest.star",
+		"test.let" : "letish.star",
+		"test.compose" : "compose.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"

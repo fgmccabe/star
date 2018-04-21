@@ -17,7 +17,6 @@ typedef struct _program_label_ {
   integer arity;              // Arity of label
   integer hash;               // Hash code for the label
   methodPo mtd;               // Optimization - is a method defined for this label?
-  labelPo oLbl;               // Is an object label defined for this?
   char *name;                 // LblRecord name
 } LblRecord;
 

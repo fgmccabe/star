@@ -3,19 +3,19 @@
     isConstrained/3,reConstrain/3,
     isContractStmt/6,isImplementationStmt/6,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
-    isImport/3, isMacro/2,isPrivate/3,isPublic/3,isDefault/4,
+    isImport/3, isMacro/3,isPrivate/3,isPublic/3,isDefault/4,
     isIntegrity/3,isIgnore/3,isOpen/3,
     isConditional/5,
-    isEquation/5,isPtnRule/5,isGrammarRule/4,isDefn/4,isAssignment/4,
+    isEquation/5,isPtnRule/5,isGrammarRule/5,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,
-    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,
-    isLetDef/4,
+    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
+    isLetDef/4,isMacroRule/4,
     whereTerm/4,
     packageName/2,pkgName/2,
-    deComma/2,reComma/2,
+    isComma/4,deComma/2,reComma/2,
     rewrite/3,rewriteList/3]).
-:-use_module(abstract).
-:-use_module(misc).
+:- use_module(abstract).
+:- use_module(misc).
 
 isImport(St,Lc,M) :-
   isUnary(St,Lc,"public",I),!,
@@ -32,8 +32,8 @@ isPrivate(St,Lc,I) :-
 isPublic(St,Lc,I) :-
   isUnary(St,Lc,"public",I).
 
-isMacro(St,M) :-
-  isUnary(St,"#",M).
+isMacro(St,Lc,M) :-
+  isUnary(St,Lc,"#",M).
 
 isTypeAnnotation(St,Lc,V,T) :-
   isBinary(St,Lc,":",V,T).
@@ -57,13 +57,13 @@ isConstructor(C,Lc,Nm) :-
   isBrace(C,Lc,Nm,_).
 
 isQuantified(T,Q,B) :-
-  isBinary(T,"~~",L,B),
-  isUnary(L,"all",V),
+  isBinary(T,_,"~~",L,B),
+  isUnary(L,_,"all",V),
   deComma(V,Q).
 
 isXQuantified(T,Q,B) :-
-  isBinary(T,"~~",L,B),
-  isUnary(L,"exists",V),
+  isBinary(T,_,"~~",L,B),
+  isUnary(L,_,"exists",V),
   deComma(V,Q).
 
 reUQuant([],T,T).
@@ -85,7 +85,7 @@ getQuantifiers(T,[],T).
 
 isContractStmt(St,Lc,Quants,Constraints,Con,Body) :-
   isUnary(St,Lc,"contract",I),
-  isBinary(I,"::=",Lhs,B),
+  isBinary(I,_,"::=",Lhs,B),
   isBraceTuple(B,_,Body),
   contractSpec(Lhs,Quants,Constraints,Con).
 
@@ -93,7 +93,7 @@ contractSpec(S,Quants,Constraints,Con) :-
   isQuantified(S,Quants,B),
   contractSpec(B,_,Constraints,Con).
 contractSpec(S,[],Constraints,Con) :-
-  isBinary(S,"|:",L,R),
+  isBinary(S,_,"|:",L,R),
   deComma(L,Constraints),
   contractSpec(R,_,_,Con).
 contractSpec(S,[],[],S) :-
@@ -107,19 +107,22 @@ implSpec(S,Quants,Constraints,Con,Body) :-
   isQuantified(S,Quants,B),
   implSpec(B,_,Constraints,Con,Body).
 implSpec(S,[],Constraints,Con,Body) :-
-  isBinary(S,"|:",L,R),
+  isBinary(S,_,"|:",L,R),
   deComma(L,Constraints),
   implSpec(R,_,_,Con,Body).
 implSpec(S,[],[],Con,Body) :-
-  isBinary(S,"=>",Con,Body),
+  isBinary(S,_,"=>",Con,Body),
   (isBraceTuple(Body,_,_) ; isQBraceTuple(Body,_,_)).
 
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
 isConstrainedTp(T,[],T).
 
+isComma(T,Lc,L,R) :-
+  isBinary(T,Lc,",",L,R).
+
 deComma(T,LL) :-
-  isBinary(T,",",L,R),
+  isBinary(T,_,",",L,R),
   deComma(L,Lf),
   deComma(R,Rf),
   concat(Lf,Rf,LL).
@@ -132,7 +135,7 @@ reComma([F|M],T) :-
   binary(Lc,",",F,T1,T).
 
 isConstrained(Tp,T,Cx) :-
-  isBinary(Tp,"|:",L,T),
+  isBinary(Tp,_,"|:",L,T),
   deComma(L,Cx).
 
 reConstrain([],Tp,Tp).
@@ -160,7 +163,7 @@ isIntegrity(St,Lc,C) :-
 
 isDefault(St,Lc,Ptn,Val) :-
   isDefn(St,Lc,Lhs,Val),
-  isUnary(Lhs,"default",Ptn).
+  isUnary(Lhs,_,"default",Ptn).
 
 isIgnore(St,Lc,Ex) :-
   isUnary(St,Lc,"ignore",Ex).
@@ -180,8 +183,12 @@ isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"<=",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
-isGrammarRule(Trm,Lc,Lhs,Cond) :-
-  isBinary(Trm,Lc,"-->",Lhs,Cond).
+isGrammarRule(Trm,Lc,Lhs,Cond,Rhs) :-
+  isBinary(Trm,Lc,"-->",L,Rhs),
+  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
+
+isMacroRule(Trm,Lc,Lhs,Cond) :-
+  isBinary(Trm,Lc,"==>",Lhs,Cond).
 
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
@@ -217,25 +224,28 @@ isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"=.",E,P).
 
 isParse(Trm,Lc,N,E) :-
-  isBinary(Trm,Lc,"%%",N,E).
+  isBinary(Trm,Lc,".~",N,E).
 
 isFieldAcc(Trm,Lc,R,Fld) :-
   isBinary(Trm,Lc,".",R,F),
   isIden(F,Fld).
+
+isNTLookAhead(Trm,Lc,N) :-
+  isUnary(Trm,Lc,"+",N).
 
 isVarRef(Trm,Lc,In) :-
   isUnary(Trm,Lc,"!",In).
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).
-packageName(T,Pkg) :- isBinary(T,".",L,R),
+packageName(T,Pkg) :- isBinary(T,_,".",L,R),
   packageName(L,LP),
   packageName(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
 pkgName(T,pkg(Pkg,ver(Version))) :-
-  isBinary(T,"#",L,R),
+  isBinary(T,_,"#",L,R),
   packageName(L,Pkg),
   packageVersion(R,Version).
 pkgName(T,pkg(Pkg,defltVersion)) :-
@@ -244,7 +254,7 @@ pkgName(T,pkg(Pkg,defltVersion)) :-
 packageVersion(T,Pkg) :- isIden(T,Pkg).
 packageVersion(T,Pkg) :- isString(T,Pkg).
 packageVersion(integer(_,Ix),Pkg) :- atom_string(Ix,Pkg).
-packageVersion(T,Pkg) :- isBinary(T,".",L,R),
+packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(L,LP),
   packageVersion(R,RP),
   string_concat(LP,".",I),

@@ -17,6 +17,7 @@
   keyword("=").
   keyword(".=").
   keyword("=.").
+  keyword(".~").
   keyword("=>").
   keyword("<=>").
   keyword("->").
@@ -30,7 +31,6 @@
   keyword(",..").
   keyword(".").
   keyword("|:").
-  keyword("%%").
   keyword("@").
   keyword("let").
   keyword("this").
@@ -48,5 +48,6 @@
   keyword("exists").
   keyword("assert").
   keyword("ignore").
+  keyword("let").
   keyword("#").
   keyword("$").

@@ -27,14 +27,14 @@ mnem([iHalt|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[0|M]) :- Pc1 is Pc+1,
 mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[1,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iOCall|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[2|M]) :- Pc1 is Pc+1,
+mnem([iOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[2,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[3,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[4,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iOTail|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[5|M]) :- Pc1 is Pc+1,
+mnem([iOTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[5,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
 mnem([iEnter(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[6,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
@@ -110,10 +110,10 @@ genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).
 genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
 genLblTbl([iHalt|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iOCall|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iOCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iEscape(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iTail(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iOTail|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iOTail(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iEnter(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iRet|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iJmp(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).

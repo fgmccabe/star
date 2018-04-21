@@ -46,6 +46,8 @@ parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['--'|More], CWD,CWD, [], Files) :- stringify(More,Files).
 parseFlags(More, CWD,CWD, [], Files) :- stringify(More,Files).
 
@@ -113,7 +115,8 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   displayRules(Rules),
   noErrors,
   genPkgSig(Rules,Sig),
-  genCode(Rules,Text),
+  genCode(Rules,Opts,Text),
+  noErrors,
   addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx).
 
 packageVersion(Opts,ver(Vers)) :-

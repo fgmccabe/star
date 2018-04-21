@@ -23,7 +23,7 @@ termPo lblUpdate(labelPo lbl, termPo val);
 integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
 
-labelPo objLabel(labelPo lbl);
+labelPo objLabel(labelPo lbl, integer arity);
 
 retCode showLbl(ioPo out, labelPo lbl);
 

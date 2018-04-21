@@ -1,4 +1,4 @@
-:- module(gencode,[genCode/2]).
+:- module(gencode,[genCode/3]).
 
 :- use_module(misc).
 :- use_module(types).
@@ -10,13 +10,13 @@
 :- use_module(errors).
 :- use_module(gensig).
 
-genCode(mdule(Pkg,Imports,Face,_Enums,Defs,_Contracts,_Impls),Text) :-
+genCode(mdule(Pkg,Imports,Face,_Enums,Defs,_Contracts,_Impls),Opts,Text) :-
   encPkg(Pkg,PT),
   encType(Face,Sig),
   initDict(D),
   genImports(Imports,ImpTpl,D,D0),
   defineGlobals(Defs,D0,D1),
-  genDefs(Defs,D1,C,[]),
+  genDefs(Defs,Opts,D1,C,[]),
   mkTpl(C,Cdes),
   mkTpl([PT,strg(Sig),ImpTpl,Cdes],Tp),
   encode(Tp,Txt),
@@ -50,10 +50,10 @@ defGlbl(vrDef(_,Nm,_,_),D,Dx) :-!,
   defineGlbVar(Nm,D,Dx).
 defGlbl(_,D,D).
 
-genDefs(Defs,D,O,Ox) :-
-  rfold(Defs,gencode:genDef(D),Ox,O).
+genDefs(Defs,Opts,D,O,Ox) :-
+  rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
-genDef(D,fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
+genDef(D,Opts,fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
   encType(Tp,Sig),
   genLbl(D,Ex,D0),
   genLbl(D0,End,D1),
@@ -61,14 +61,14 @@ genDef(D,fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
   compPtnArgs(Args,gencode:argCont,1,gencode:contCont(Ex),gencode:errorCont(Lc,"failed"),D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
   compTerm(Value,gencode:retCont(Lc),D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   genEnter(Dx,C0,C1),
-  dispIns(Nm,Sig,C0),
+  (is_member(showGenCode,Opts) -> dispIns(Nm,Sig,C0);true ),
   assem([method(Nm,Sig)|C0],CdTrm).
-genDef(D,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
+genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tupleType([]),Tp),Sig),
   genLbl(D,End,D1),
   compTerm(Value,combCont([glbCont(Nm),retCont(Lc)]),D1,Dx,End,C1,[iLbl(End)],0,_Stk),
   genEnter(Dx,C0,C1),
-  dispIns(lbl(Nm,0),Sig,C0),
+  (is_member(showGenCode,Opts) -> dispIns(lbl(Nm,0),Sig,C0);true ),
   assem([method(lbl(Nm,0),Sig)|C0],Cd).
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
@@ -146,10 +146,9 @@ compTerm(ecll(Lc,Nm,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
 compTerm(cll(Lc,Nm,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   MegaCont = gencode:combCont([gencode:lineCont(Lc),gencode:cllCont(Nm,Stk,Cont)]),
   compTerms(A,MegaCont,D,Dx,End,C,Cx,Stk,Stkx).
-compTerm(ocall(Lc,Cl,Rc),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
-  genLbl(D,Nxt,D0),
-  compTerm(Rc,gencode:contCont(Nxt),D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
-  compTerm(Cl,gencode:combCont([gencode:lineCont(Lc),oclCont(Stk,Cont)]),D1,Dx,End,C0,Cx,Stk0,Stkx).
+compTerm(ocall(Lc,Fn,A),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
+  MegaCont = compTerm(Fn,gencode:combCont([gencode:lineCont(Lc),gencode:oclCont(Stk,Cont)])),
+  compTerms(A,MegaCont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
   lineCont(Lc,D,D0,End,C,C0,Stk,Stk0),
   compCase(T,Cases,Deflt,Cont,D0,Dx,End,C0,Cx,Stk0,Stkx).
@@ -225,10 +224,12 @@ cllCont(Nm,Stk0,Cont,D,Dx,End,[iCall(Nm),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
-oclCont(Stk0,gencode:retCont(_),Dx,Dx,_End,[iOTail,iFrame(Stk)|Cx],Cx,Stk,Stkx) :-!,
-  Stkx is Stk0+1.
-oclCont(Stk0,Cont,D,Dx,End,[iOCall,iFrame(Stk)|C0],Cx,Stk,Stkx) :-
+oclCont(Stk0,gencode:retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-!,
+  Stkx is Stk0+1,
+  Arity is Stk-Stk0.
+oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
   Stk1 is Stk0+1,
+  Arity is Stk-Stk0,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,D,D,_End,[iJmp(Lbl)|Cx],Cx,Stk,Stk).

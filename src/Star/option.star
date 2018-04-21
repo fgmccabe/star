@@ -3,9 +3,7 @@ star.option{
   import star.arith.
   import star.lists.
   import star.strings.
-
-  option@"the option type is useful when a value is not always available".
-  public all t ~~ option[t] ::= none | some(t).
+  import star.monad.
 
   -- display optional values
   public implementation all x ~~ display[x] |: display[option[x]] => {
@@ -30,7 +28,16 @@ star.option{
     hash(none) => hash("none").
   .}
 
-  public maybe:all x ~~ ((x)=>boolean) => option[x].
-  maybe(P) where P(x) => some(x).
-  maybe(_) => none.
+  public implementation all e ~~ monad[option] => {
+    return x => some(x).
+    some(x) >>= f => f(x).
+    none >>= _ => none.
+  }
+
+  public implementation execution[option->>()] => {
+    _raise(_) => none.
+    _perform(some(X)) => X.
+    _handle(some(X),_) => some(X).
+    _handle(none,E) => E(()).
+  }
 }

@@ -24,11 +24,13 @@ retCode bootstrap(char *entry) {
   if (mainMtd != Null) {
     processPo p = newProcess(mainMtd);
     return run(p);
-  } else
+  } else {
+    logMsg(logFile,"cannot find entry point %s\n",entry);
     return Error;
+  }
 }
 
-static uint16 haltCode[] = {Halt};
+static insWord haltCode[] = {Halt};
 
 processPo newProcess(methodPo mtd) {
   processPo P = (processPo) allocPool(prPool);

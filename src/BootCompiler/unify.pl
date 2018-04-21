@@ -27,6 +27,7 @@ sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
 sm(tupleType(A1),tupleType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(ptnType(A1,R1),ptnType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
+sm(grType(A1,R1),grType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(consType(A1,R1),consType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A1,A2,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Env) :- sameLength(E1,E2),
     sameLength(T1,T2),
@@ -125,6 +126,8 @@ getFace(T,Env,Face) :- deRef(T,TT),isUnbound(TT), !, % fix me - implement types
 getFace(T,Env,Face) :- isKvar(T),!,
   collectImplements(T,Env,Face).
 getFace(faceType(Face,Tps),_,faceType(Face,Tps)) :- !.
+getFace(Tp,_,faceType([],[])) :-
+  isProgramType(Tp),!.
 getFace(existType(V,T),Env,existType(V,F)) :-
   faceOfType(T,Env,F).
 getFace(allType(V,T),Env,allType(V,F)) :-

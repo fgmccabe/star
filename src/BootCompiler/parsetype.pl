@@ -43,19 +43,23 @@ parseType(Sq,Env,B,C0,Cx,Type) :-
   isSquare(Sq,Lc,N,Args),!,
   parseTypeSquare(Lc,N,Args,Env,B,C0,Cx,Type).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
-  isBinary(F,"=>",L,R),
+  isBinary(F,_,"=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,ptnType(AT,RT)) :-
-  isBinary(F,"<=",L,R),
+  isBinary(F,_,"<=",L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
-  isBinary(F,"<=>",L,R),
+  isBinary(F,_,"<=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),!,
   parseType(R,Env,B,C1,Cx,RT).
+parseType(F,Env,B,C0,Cx,grType(AT,ST)) :-
+  isBinary(F,_,"-->",L,R),
+  parseArgType(L,Env,B,C0,C1,AT),
+  parseType(R,Env,B,C1,Cx,ST),!.
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
-  isUnary(F,"ref",L),
+  isUnary(F,_,"ref",L),
   parseType(L,Env,B,C0,Cx,Tp).
 parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
   isTuple(T,[A]),
@@ -79,6 +83,10 @@ parseType(Term,Env,_,C,Cx,Tp) :-
   moveConstraints(FFace,C0,faceType(_,Types)),
   fieldInFace(Types,Fld,RcTp,Lc,Tp),
   concat(C0,C,Cx).
+parseType(Trm,Env,B,C,Cx,Tp) :-
+  isRoundTerm(Trm,Lc,Op,[L,R]),  %% Special case for binary to allow type aliases
+  squareTerm(Lc,Op,[L,R],TT),
+  parseType(TT,Env,B,C,Cx,Tp),!.
 parseType(T,_,_,Cx,Cx,anonType) :-
   locOfAst(T,Lc),
   reportError("cannot understand type %s",[T],Lc).
@@ -99,8 +107,10 @@ parseTypeName(_,"void",_,_,C,C,voidType).
 parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,C,C,Tp) :-
-  isType(Id,Env,tpDef(_,TpSpec,_)),
-  freshen(TpSpec,Env,_,Tp).
+  isType(Id,Env,tpDef(_,TpSpec,TpRule)),
+  (isTypeFun(TpRule) ->
+    freshen(TpRule,Env,_,Tp) ;
+    freshen(TpSpec,Env,_,Tp)).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
@@ -118,6 +128,10 @@ applyTypeExp(_,kFun(T,Ar),Args,_,typeExp(kFun(T,Ar),Args)) :-
   length(Args,Ar).
 applyTypeExp(_,tpFun(T,Ar),Args,_,typeExp(tpFun(T,Ar),Args)) :-
   length(Args,Ar).
+applyTypeExp(Lc,constrained(Tp,Cx),ArgTps,Env,constrained(ATp,Cx)) :-
+  applyTypeExp(Lc,Tp,ArgTps,Env,ATp).
+applyTypeExp(_,typeLambda(typeExp(_,L),Tp),ArgTps,Env,Tp) :-
+  smList(L,ArgTps,Env).
 applyTypeExp(Lc,Op,ArgTps,_,voidType) :-
   reportError("type %s not applicable to args %s",[Op,ArgTps],Lc).
 
@@ -141,7 +155,7 @@ parseBoundTpVars([V|L],Q,Qx) :-
 parseBoundVar(N,Q,[(Nm,kVar(Nm))|Q]) :-
   isIden(N,Nm).
 parseBoundVar(N,Q,[(Nm,kFun(Nm,Ar))|Q]) :-
-  isBinary(N,"/",L,R),
+  isBinary(N,_,"/",L,R),
   isInteger(R,Ar),
   isIden(L,Nm).
 parseBoundVar(N,Q,Q) :-
@@ -169,11 +183,11 @@ parseTypeFace(T,_,_,[],[]) :-
   reportError("%s is not a type interface",[T],Lc).
 
 parseConstraint(T,Env,B,C0,Cx) :-
-  isBinary(T,",",L,R),
+  isBinary(T,_,",",L,R),
   parseConstraint(L,Env,B,C0,C1),
   parseConstraint(R,Env,B,C1,Cx).
 parseConstraint(T,Env,B,C0,Cx) :-
-  isBinary(T,"<~",L,R),
+  isBinary(T,_,"<~",L,R),
   parseType(L,Env,B,C0,C1,TV),
   parseType(R,Env,B,C1,C2,AT),
   addConstraint(implementsFace(TV,AT),C2,Cx).
@@ -199,11 +213,13 @@ parseContractConstraint(Quants,Cons,Sq,Env,Op,ConSpec) :-
   parseConstraints(Cons,Env,Q,[],C0),
   parseContractArgs(Args,Env,Q,C0,Cx,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,Q,contractExists(conTract(Op,ATs,Dps),IFace)) ->
-      sameType(tupleType(ATs),tupleType(ArgTps),Env),
-      sameType(tupleType(Dps),tupleType(Deps),Env),
+      (sameType(tupleType(ATs),tupleType(ArgTps),Env),
+        (sameType(tupleType(Dps),tupleType(Deps),Env) -> true;
+          reportError("dependent types %s dont match contract",[tupleType(Deps)],Lc), Dps=[]);
+        reportError("implementation does not match contract %s",[Op],Lc)),
       moveConstraints(CC,Cx,contractExists(conTract(Op,ATs,Dps),IFace)),
       reQuant(Q,CC,ConSpec)
-    | reportError("contract %s not declared",[N],Lc), Op = N).
+    ; reportError("contract %s not declared",[N],Lc), Op = N).
 
 addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
@@ -213,7 +229,7 @@ parseContractName(_,Id,Env,_,FCon) :-
   freshen(Con,Env,_,FCon).
 
 parseContractArgs([A],Env,B,C0,Cx,Args,Deps) :-
-  isBinary(A,"->>",L,R),!,
+  isBinary(A,_,"->>",L,R),!,
   deComma(L,LA),
   deComma(R,RA),
   parseTypes(LA,Env,B,C0,C1,Args),
@@ -243,9 +259,9 @@ parseTypeField(S,Env,Bound,Flds,Flds,Types,[(Fld,FldTp)|Types]) :-
   parseType(FT,Env,Bound,[],Cx,FldTp),
   (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[Nm],Lc)).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
-  isBinary(F,"@",_,_).
+  isBinary(F,_,"@",_,_).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
-  isBinary(F,"@",_,_,_).
+  isBinary(F,_,"@",_,_,_).
 parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
   reportError("invalid field type %s",[FS],Lc).
@@ -279,7 +295,7 @@ parseTypeRule(St,B,C0,Cx,Env,Rule,Path) :-
   parseConstraints(C,Env,B,C0,C1),
   parseTypeRule(T,B,C1,Cx,Env,Rule,Path).
 parseTypeRule(St,B,C0,Cx,Env,typeExists(Lhs,Rhs),Path) :-
-  isBinary(St,"<~",L,R),
+  isBinary(St,_,"<~",L,R),
   parseTypeHead(L,B,Lhs,_,Path),!,
   parseType(R,Env,B,C0,Cx,Rhs).
 
@@ -309,6 +325,10 @@ parseTypeHead(N,B,typeExp(tpFun(TpNm,Ar),Args),Nm,Path) :-
   length(Args,Ar),
   marker(type,Marker),
   subPath(Path,Marker,Nm,TpNm).
+parseTypeHead(N,B,Tp,Nm,Path) :-
+  isRoundTerm(N,Lc,Op,Els),
+  squareTerm(Lc,Op,Els,TT),
+  parseTypeHead(TT,B,Tp,Nm,Path).
 
 parseHeadArgs([],_,[]).
 parseHeadArgs([H|L],B,[V|Args]) :-

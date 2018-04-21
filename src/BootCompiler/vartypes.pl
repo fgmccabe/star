@@ -1,4 +1,4 @@
-:- module(vartypes,[typeOfVar/7,declareVr/5,declareVr/6,declareEnum/5,declareCns/5,declareMtd/5]).
+:- module(vartypes,[typeOfVar/7,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
 
 :- use_module(freshen).
 :- use_module(unify).

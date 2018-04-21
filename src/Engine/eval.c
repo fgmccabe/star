@@ -102,12 +102,13 @@ retCode run(processPo P) {
       }
 
       case OCall: {        /* Call tos a1 .. an -->   */
-        termPo nProg = SP[1];
+        int arity = collectI32(PC);
+        termPo nProg = SP[0];
 
         push(PROG);
         push(PC);       /* build up the frame. */
         labelPo oLbl = isNormalPo(nProg) ? termLbl(C_TERM(nProg)) : C_LBL(nProg);
-        PROG = labelCode(objLabel(oLbl));       /* set up for object call */
+        PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
 #ifdef TRACEEXEC
@@ -173,7 +174,8 @@ retCode run(processPo P) {
       }
 
       case OTail: {       /* Tail call */
-        termPo nProg = SP[1];
+        int arity = collectI32(PC);
+        termPo nProg = SP[0];
 
         // Pick up existing frame
         framePo oldFp = FP->fp;
@@ -182,7 +184,7 @@ retCode run(processPo P) {
         integer oldArgCnt = argCount(PROG);
 
         labelPo oLbl = isNormalPo(nProg) ? termLbl(C_TERM(nProg)) : C_LBL(nProg);
-        PROG = labelCode(objLabel(oLbl));       /* set up for object call */
+        PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
 
         // slide new arguments over old frame
         integer argCnt = argCount(PROG);  /* prepare to slide arguments over caller */

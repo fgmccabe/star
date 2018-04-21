@@ -37,6 +37,7 @@ labelPo termLbl(normalPo t) {
 }
 
 integer termArity(normalPo term) {
+  assert(term!=Null);
   labelPo lbl = term->lbl;
   return labelArity(lbl);
 }

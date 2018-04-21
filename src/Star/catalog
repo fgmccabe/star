@@ -15,7 +15,7 @@
 		"lo.io": "io.lo",
 		"lo.json": "json.lo",
 		"star.lists": "lists.star",
-		"lo.monad": "monad.lo",
+		"star.monad": "monad.star",
 		"star.option": "option.star",
 		"lo.rdf" : "rdf.lo",
 		"lo.rdf.n3" : "n3.lo",

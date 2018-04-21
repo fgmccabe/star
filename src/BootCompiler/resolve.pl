@@ -20,6 +20,8 @@ overloadDef(ptnDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
   overloadPattern(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
 overloadDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),Dict,RD) :-
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
+overloadDef(grDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
+  overloadGrammar(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
 overloadDef(T,_,T) :-
   T = typeDef(_,_,_,_).
 overloadDef(C,_,C) :-
@@ -77,6 +79,22 @@ overloadPtnRule(Extra,ptnRule(Lc,Args,Cond,Exp),Dict,ptnRule(Lc,RArgs,RCond,RExp
   resolveTerm(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
 
+overloadGrammar(Lc,Nm,ExtNm,Tp,[],Rls,Dict,grDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
+  overloadGrRules(Rls,Dict,[],REqns).
+overloadGrammar(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,
+    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,CVars,enm(Lc,"true"),lambda(Lc,Nm,RRls))])) :-
+  defineCVars(Lc,Cx,Dict,CVars,FDict),
+  overloadGrRules(Rls,FDict,CVars,RRls).
+
+overloadGrRules(Eqns,Dict,Extra,REqns) :-
+  overloadList(Eqns,overloadGrRule(Extra),Dict,REqns).
+
+overloadGrRule(Extra,grRule(Lc,Args,Cond,Body),Dict,grRule(Lc,RArgs,RCond,RBody)) :-
+  resolveTerm(Args,Dict,RA),
+  addExtra(Extra,RA,RArgs),
+  resolveTerm(Cond,Dict,RCond),
+  resolveNT(Body,Dict,RBody).
+
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[Con|Cx],Dict,[NV|CVars],FDict) :-
   implementationName(Con,ImplNm),
@@ -122,6 +140,9 @@ resolveTerm(neg(Lc,T),Dict,neg(Lc,RT)) :-
 resolveTerm(match(Lc,L,R),Dict,match(Lc,RL,RR)) :-
   resolveTerm(L,Dict,RL),
   resolveTerm(R,Dict,RR).
+resolveTerm(parse(Lc,L,R),Dict,parse(Lc,RL,RR)) :-
+  resolveTerm(L,Dict,RL),
+  resolveTerm(R,Dict,RR).
 resolveTerm(apply(ALc,over(Lc,T,Cx),Args),Dict,apply(ALc,OverOp,tple(LcA,NArgs))) :-
   resolveContracts(Lc,Cx,Dict,DTerms),
   resolveTerm(Args,Dict,tple(LcA,RArgs)),
@@ -139,6 +160,31 @@ resolveTerm(mtd(Lc,Nm),_,v(Lc,Nm)) :-
   reportError("cannot find implementation for %s",[Nm],Lc).
 resolveTerm(lambda(Lc,Rls,Tp),Dict,lambda(Lc,ORls,Tp)) :-
   overloadList(Rls,resolve:overloadRule,Dict,ORls).
+
+resolveNT(terms(Lc,T),Dict,terms(Lc,RT)) :-
+  resolveTerms(T,Dict,RT).
+resolveNT(seq(Lc,L,R),Dict,seq(Lc,RL,RR)) :-
+  resolveNT(L,Dict,RL),
+  resolveNT(R,Dict,RR).
+resolveNT(where(Lc,N,C),Dict,where(Lc,RN,RC)) :-
+  resolveNT(N,Dict,RN),
+  resolveTerm(C,Dict,RC).
+resolveNT(cond(Lc,T,L,R),Dict,cond(Lc,RT,RL,RR)) :-
+  resolveNT(T,Dict,RT),
+  resolveNT(L,Dict,RL),
+  resolveNT(R,Dict,RR).
+resolveNT(disj(Lc,L,R),Dict,disj(Lc,RL,RR)) :-
+  resolveNT(L,Dict,RL),
+  resolveNT(R,Dict,RR).
+resolveNT(neg(Lc,R),Dict,neg(Lc,RR)) :-
+  resolveNT(R,Dict,RR).
+resolveNT(lookahead(Lc,R),Dict,lookahead(Lc,RR)) :-
+  resolveNT(R,Dict,RR).
+resolveNT(match(Lc,L,R),Dict,match(Lc,RL,RR)) :-
+  resolveTerm(L,Dict,RL),
+  resolveTerm(R,Dict,RR).
+resolveNT(apply(Lc,O,A),Dict,RT) :-
+  resolveTerm(apply(Lc,O,A),Dict,RT).
 
 overloadList([],_,_,[]):-!.
 overloadList([T|L],C,D,[RT|RL]) :-

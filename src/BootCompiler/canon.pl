@@ -111,6 +111,11 @@ showCanonTerm(record(_,Path,Defs,Others,Types,_),O,Ox) :-
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr("\n.}",O4,Ox).
+showCanonTerm(letExp(_,Env,Ex),O,Ox) :-
+  appStr("let ",O,O1),
+  showCanonTerm(Env,O1,O2),
+  appStr(" in ",O2,O3),
+  showCanonTerm(Ex,O3,Ox).
 showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
@@ -145,6 +150,10 @@ showCanonTerm(cond(_,Test,Either,Or),O,Ox) :-
 showCanonTerm(match(_,L,R),O,Ox) :-
   showCanonTerm(L,O,O1),
   appStr(" .= ",O1,O2),
+  showCanonTerm(R,O2,Ox).
+showCanonTerm(parse(_,L,R),O,Ox) :-
+  showCanonTerm(L,O,O1),
+  appStr(" .~ ",O1,O2),
   showCanonTerm(R,O2,Ox).
 showCanonTerm(neg(_,R),O,Ox) :-
   appStr("\\+",O,O1),
@@ -251,6 +260,19 @@ showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("\n",O9,O10),
   listShow(Eqns,canon:showPtnRule(Nm),"\n",O10,O11),
   appStr("\n",O11,Ox),!.
+showDef(grDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
+  appStr("grammar: ",O,O1),
+  appStr(Nm,O1,O2),
+  appStr("[",O2,O2a),
+  appStr(ExtNm,O2a,O2b),
+  appStr("] @ ",O2b,O3),
+  showLocation(Lc,O3,O6),
+  appStr("\n",O6,O7),
+  showType(Type,O7,O8),
+  showConstraints(Cx,O8,O9),
+  appStr("\n",O9,O10),
+  listShow(Eqns,canon:showGrRule(Nm),"\n",O10,O11),
+  appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
@@ -328,6 +350,53 @@ showPtnRule(Nm,ptnRule(_,Args,Cond,Value),O,Ox) :-
   appStr(" <= ",O5,O6),
   showCanonTerm(Value,O6,O7),
   appStr(".",O7,Ox).
+
+showGrRule(Nm,grRule(_,Args,Cond,Value),O,Ox) :-
+  appStr(Nm,O,O1),
+  showCanonTerm(Args,O1,O2),
+  showGuard(Cond,O2,O5),
+  appStr(" --> ",O5,O6),
+  showCanonNT(Value,O6,O7),
+  appStr(".",O7,Ox).
+
+showCanonNT(apply(_,Op,Args),O,Ox) :-
+  showCanonTerm(Op,O,O1),
+  showCanonTerm(Args,O1,Ox).
+showCanonNT(where(_,Ptn,Cond),O,Ox) :-
+  showCanonNT(Ptn,O,O1),
+  showGuard(Cond,O1,Ox).
+showCanonNT(seq(_,L,R),O,Ox) :-
+  showCanonNT(L,O,O1),
+  appStr(" , ",O1,O2),
+  showCanonNT(R,O2,Ox).
+showCanonNT(disj(_,Either,Or),O,Ox) :-
+  appStr("(",O,O0),
+  showCanonNT(Either,O0,O1),
+  appStr(" || ",O1,O2),
+  showCanonNT(Or,O2,O3),
+  appStr(")",O3,Ox).
+showCanonNT(cond(_,Test,Either,Or),O,Ox) :-
+  appStr("(",O,O1),
+  showCanonNT(Test,O1,O2),
+  appStr("?",O2,O3),
+  showCanonNT(Either,O3,O4),
+  appStr(" | ",O4,O5),
+  showCanonNT(Or,O5,O6),
+  appStr(")",O6,Ox).
+showCanonNT(match(_,L,R),O,Ox) :-
+  showCanonTerm(L,O,O1),
+  appStr(" .= ",O1,O2),
+  showCanonNT(R,O2,Ox).
+showCanonNT(neg(_,R),O,Ox) :-
+  appStr("\\+ ",O,O1),
+  showCanonNT(R,O1,Ox).
+showCanonNT(lookahead(_,R),O,Ox) :-
+  appStr("+ ",O,O1),
+  showCanonNT(R,O1,Ox).
+showCanonNT(terms(_,T),O,Ox) :-
+  appStr("[",O,O1),
+  showTerms(T,O1,O2),
+  appStr("]",O2,Ox).
 
 showGuard(enm(_,"true"),O,O) :- !.
 showGuard(C,O,Ox) :-

@@ -54,13 +54,13 @@ static inline clssPo classOf(termPo obj) {
 }
 
 static inline logical hasClass(termPo obj, clssPo clss) {
-  return (logical) ((clssPo) obj->clss == clss);
+  return (logical) (obj != Null && (clssPo) obj->clss == clss);
 }
 
 extern retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
 
-logical sameTerm(termPo t1,termPo t2);
+logical sameTerm(termPo t1, termPo t2);
 
-extern comparison compareTerm(termPo t1,termPo t2);
+extern comparison compareTerm(termPo t1, termPo t2);
 
 #endif //CAFE_TERM_H

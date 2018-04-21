@@ -41,7 +41,7 @@
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [prefixOp(905, 904)]).
   operator("*", [infixOp(700, 700, 699)]).
-  operator("+", [postfixOp(759, 760), infixOp(720, 720, 719)]).
+  operator("+", [prefixOp(760, 759), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
@@ -59,6 +59,7 @@
   operator("=", [infixOp(949, 950, 949)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1260, 1259)]).
+  operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(899, 890)]).
   operator("?", [infixOp(1199, 1200, 1199)]).
@@ -77,7 +78,6 @@
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 949)]).
   operator("<=>", [infixOp(949, 950, 949)]).
-  operator("%%", [infixOp(499, 500, 499)]).
   operator("?|", [infixOp(1248, 1249, 1249)]).
   operator("private", [prefixOp(1700, 1699)]).
   operator(".&.", [infixOp(700, 700, 699)]).
@@ -92,6 +92,7 @@
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
   operator("|", [infixOp(1248, 1249, 1249)]).
+  operator(".~", [infixOp(499, 500, 499)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).
   operator("^//", [infixOp(800, 800, 799)]).
@@ -122,9 +123,9 @@
   follows('','•','•').
   follows('','#','#').
   follows('','$','$').
-  follows('%','%','%%').
   follows('&','&','&&').
   follows('*','*','**').
+  follows('+','+','++').
   follows(',','.',',.').
   follows(',.','.',',..').
   follows('-','-','--').
@@ -182,11 +183,11 @@
 
 
   final('%',"%").	 /* modulo */
-  final('%%',"%%").	 /* grammar parse */
   final('&&',"&&").	 /* conjunction */
   final('*',"*").	 /* multiplication */
   final('**',"**").	 /* exponentiation */
   final('+',"+").	 /* lookahead in grammar rule */
+  final('++',"++").	 /* concatenate */
   final(',',",").	 /* tupling operator */
   final(',..',",..").	 /* list cons */
   final('-',"-").	 /* arithmetic negation */
@@ -197,6 +198,7 @@
   final('.#.',".#.").	 /* test nth bit */
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
+  final('.~',".~").	 /* grammar parse */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
   final('.^.',".^.").	 /* bitwise xor */

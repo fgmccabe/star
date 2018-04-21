@@ -62,11 +62,8 @@ labelPo findLbl(const char *name, integer arity) {
   return hashGet(labels, &tst);
 }
 
-labelPo objLabel(labelPo lbl) {
-  if (lbl->oLbl == Null) {
-    lbl->oLbl = declareLbl(lbl->name, 2);
-  }
-  return lbl->oLbl;
+labelPo objLabel(labelPo lbl, integer arity) {
+  return declareLbl(lbl->name,arity);
 }
 
 integer labelHash(labelPo lbl) {
@@ -136,10 +133,6 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   if (lbl->mtd != Null)
     helper((ptrPo) (&lbl->mtd), c);
-
-  if (lbl->oLbl != Null) {
-    helper((ptrPo) (&lbl->oLbl), c);
-  }
 
   return o + LabelCellCount;
 }

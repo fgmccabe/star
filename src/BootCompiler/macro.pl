@@ -8,7 +8,7 @@
 :- use_module(display).
 
 macroRewrite(Stmts,Reslt) :-
-  rewriteStmts(Stmts,Reslt).
+  rewriteStmts(Stmts,Reslt),!.
 %  displayAll(Reslt).
 
 rewriteStmts([],[]).

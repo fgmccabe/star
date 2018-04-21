@@ -3,4 +3,7 @@ star{
   public import star.arith.
   public import star.collection.
   public import star.option.
+  public import star.lists.
+  public import star.cons.
+  public import star.monad.
 }

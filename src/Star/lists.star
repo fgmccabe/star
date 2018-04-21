@@ -2,13 +2,13 @@ star.lists{
   import star.core.
   import star.arith.
 
-  implementation all x ~~ equality[x] |: equality[list[x]] => {.
+  public implementation all x ~~ equality[x] |: equality[list[x]] => {.
     L1 == L2 where _list_size(L1)==_list_size(L2) =>
       sameList(L1,L2,0,_list_size(L1)).
     _ == _ => false.
   .}
 
-  implementation all x ~~ hash[x] |: hash[list[x]] => {
+  public implementation all x ~~ hash[x] |: hash[list[x]] => {
     hash(L) => listHash(L,0,0,_list_size(L)).
   }
 
