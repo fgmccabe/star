@@ -194,9 +194,12 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
   functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Fun).
 
+extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tupleType(Els),Rt),Extra,funType(tupleType(NEls),Rt)) :-
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
+extendFunTp(ptnType(A,P),Extra,funType(tupleType(Anons),ptnType(A,P))) :-!,
+  extendTplTp(Extra,Anons).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-
   extendFunTp(T,Extra,NT).
 extendFunTp(constrained(T,C),Extra,constrained(NT,C)) :-
@@ -496,18 +499,18 @@ liftExp(cns(Lc,Nm),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
 liftExp(intLit(Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(floatLit(Ix),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(stringLit(Ix),strg(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,TA,[],Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(TA,TApl).
-liftExp(apply(Lc,Op,tple(_,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(apply(Lc,Op,tple(_,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(dot(Lc,Rec,Fld),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(dot(Lc,Rec,Fld),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
-liftExp(where(_,E,enm(_,"true")),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(where(_,E,enm(_,"true")),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
 liftExp(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -525,13 +528,13 @@ liftExp(cond(Lc,T,L,R),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftExp(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftPtn(L,Lx,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-
+liftExp(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftTheta(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
-liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-
+liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftTheta(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
-liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(lambda(Lc,Rls,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-
+liftExp(lambda(Lc,Rls,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   trLambdaRules(Lc,Rls,Tp,Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).

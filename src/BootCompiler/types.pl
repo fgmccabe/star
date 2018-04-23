@@ -217,6 +217,7 @@ isCnsType(consType(A,_),Ar) :- typeArity(A,Ar).
 isProgramType(Tp) :- isFunctionType(Tp),!.
 isProgramType(Tp) :- isPtnType(Tp),!.
 isProgramType(Tp) :- isGrType(Tp),!.
+isProgramType(Tp) :- isCnsType(Tp,_),!.
 
 isTypeFun(typeLambda(_,_)).
 isTypeFun(allType(_,T)) :- isTypeFun(T).

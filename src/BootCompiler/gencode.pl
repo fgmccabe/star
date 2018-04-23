@@ -171,8 +171,8 @@ compTerm(Cond,Cont,D,Dx,End,C,Cx,Stk,Stkx) :-
       D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(T,_,Dx,Dx,_,C,C,Stk,Stk) :-
   dispTerm(T,Tx),
+  reportMsg("cannot compile %s",[Tx]),
   abort.
-  %reportError("cannot compile %s",[Tx]).
 
 compVar(a(A),Cont,D,Dx,End,[iLdA(A)|C0],Cx,Stk,Stkx) :- !,
   Stk1 is Stk+1,
@@ -216,7 +216,7 @@ cllCont(Nm,Stk0,Cont,D,Dx,End,[iCall(Nm),iFrame(Stk1)|C0],Cx,_Stk,Stkx) :-
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
-oclCont(Stk0,retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stkx)|Cx],Cx,Stk,Stkx) :-!,
+oclCont(Stk0,retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stkx)|Cx],Cx,Stk,none) :-!,
   Stkx is Stk0+1,
   Arity is Stk-Stk0.
 oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
