@@ -337,10 +337,13 @@ packageInit(Pkg,Lc,_,_,Imports,Inits,[fnDef(Lc,InitPrg,funType(tupleType([]),tup
   Init = cnd(Lc,ecll(Lc,"_isDefinedVr",[IV]),enum("star.core#true"),ecll(Lc,"_defineVr",[IV,Body])).
 
 importInits(_,[],enum("star.core#true")).
-importInits(Lc,[import(_,pkg(Pkg,_),_,_,_,_)|II],IG) :-
+importInits(Lc,[import(Viz,pkg(Pkg,_),_,_,_,_)|II],IG) :-
+  (Viz=private ; Viz=public),
   localName(Pkg,"@","init",PkgInit),
   importInits(Lc,II,LR),
   mergeGoal(cll(Lc,lbl(PkgInit,0),[]),LR,Lc,IG).
+importInits(Lc,[import(transitive,_,_,_,_,_)|II],IG) :-
+  importInits(Lc,II,IG).
 
 transformCnsDef(Map,Opts,Lc,Nm,enm(_,_),Tp,Ex,Exx) :-
   transformEnum(Map,Opts,Lc,Nm,Tp,Ex,Exx).

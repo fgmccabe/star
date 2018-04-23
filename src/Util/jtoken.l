@@ -3,7 +3,7 @@
 %option yylineno
 %option bison-bridge bison-locations
 %option noyywrap nounput
-/* %option debug */
+%option debug
 
 %x comment
 %x string
@@ -115,7 +115,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 
 
 #define restart() { text = &buff[0]; pos=0; size=NumberOf(buff); }
-#define clear() { if(text!=buff){ free(text); restart(); } }
+#define clear() { if(text!=buff){ free(text); }  restart(); }
 %}
   
 
@@ -127,7 +127,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
     BEGIN(INITIAL);
     putChar('\0');
     yylval->str = text;
-    clear();
+   // clear();
     RTN(STRING)
   }
   \n                        { parseError("unterminated string",yylineno);

@@ -191,6 +191,8 @@ showVisibility(private,O,Ox) :-
   appStr("private ",O,Ox).
 showVisibility(public,O,Ox) :-
   appStr("public ",O,Ox).
+showVisibility(transitive,O,Ox) :-
+  appStr("transitive ",O,Ox).
 
 showTypeDefs(L,O,Ox) :-
   listShow(L,canon:showTypeDef,misc:appNl,O,Ox).

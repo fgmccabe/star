@@ -135,7 +135,7 @@ importMore(_,import(_,Pkg),SoFar,SoFar,Inp,Inp) :-
   reportError("could not import package %s",[Pkg]).
 
 addPublicImports([],Imp,Imp).
-addPublicImports([import(public,Pkg)|I],Rest,[import(public,Pkg)|Out]) :-
+addPublicImports([import(public,Pkg)|I],Rest,[import(transitive,Pkg)|Out]) :-
   addPublicImports(I,Rest,Out).
 addPublicImports([import(private,_)|I],Rest,Out) :-
   addPublicImports(I,Rest,Out).
