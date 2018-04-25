@@ -39,6 +39,7 @@ pickupImports([ctpl(lbl("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-
 
 pickupViz(enum("private"),private).
 pickupViz(enum("public"),public).
+pickupViz(enum("transitive"),transitive).
 
 pickupFace(strg(Sig),Type) :-
   decodeSignature(Sig,Type).

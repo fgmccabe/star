@@ -38,7 +38,7 @@ void initLbls() {
 }
 
 labelPo declareLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(uniHash(name) * 37 + arity)};
+  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity*37+uniHash(name))};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {

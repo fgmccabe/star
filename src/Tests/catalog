@@ -9,6 +9,7 @@
 		"test.l" : "l.star",
 		"test.ll" : "ll.star",
 		"test.fact" : "fact.star",
+		"test.g" : "g.star",
 		"test.gr" : "grtest.star",
 		"test.let" : "letish.star",
 		"test.compose" : "compose.star"

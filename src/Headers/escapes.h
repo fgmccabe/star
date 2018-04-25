@@ -27,6 +27,7 @@ escape(_int_minus,False,False,"F(ii)i","subtract two integers")
 escape(_int_times,False,False,"F(ii)i","multiply two integers")
 escape(_int_div,False,False,"F(ii)i","divide two integers")
 escape(_int_mod,False,False,"F(ii)i","modulo remainder")
+escape(_int_hash,False,False,"F(i)i","compute hash of integer")
 
 escape(_flt_plus,False,False,"F(ff)f","add two floats")
 escape(_flt_minus,False,False,"F(ff)f","subtract two floats")
@@ -97,7 +98,10 @@ escape(_list_nth,False,False,":k't'F(Lk't'i)k't'","access element of a list")
 escape(_list_append,False,False,":k't'F(Lk't'k't')Lk't'","append element to a list")
 escape(_list_prepend,False,False,":k't'F(Lk't'k't')Lk't'","prepend element to a list")
 escape(_list_slice,False,False,":k't'F(Lk't'ii)Lk't'","slice a list")
+escape(_list_front,False,False,":k't'F(Lk't'i)Lk't'","front portion of list")
+escape(_list_back,False,False,":k't'F(Lk't'i)Lk't'","back portion of list")
 escape(_list_nil,False,False,":k't'F(i)Lk't'","create an empty list of min capacity")
+escape(_list_concat,False,False,":k't'F(Lk't'Lk't')Lk't'","concatenate two lists")
 
 /*
 
@@ -282,6 +286,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
 
   escape(_ins_debug,False,False,"F()v","set instruction-level")
   escape(_stackTrace,False,False,"F()v","Print a stack trace")
+  escape(_assert,False,False,"F(lS)v","Check an assertion and bolt if false")
 
 #undef processState
 #undef threadType

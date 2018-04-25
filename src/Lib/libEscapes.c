@@ -73,7 +73,7 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       normalPo err = allocateStruct(H, (labelPo) errorLbl);
       int root = gcAddRoot(H, (ptrPo) (&err));
       setArg(err, 0, (termPo) allocateString(H, msg, uniStrLen(msg)));
-      gcReleaseRoot(H, 0);
+      gcReleaseRoot(H, root);
       rtn.rslt = (termPo) err;
       return rtn;
     }

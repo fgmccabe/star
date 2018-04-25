@@ -87,7 +87,7 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
         setArg(reslt, 3, prt);
         setArg(reslt, 4, peerIP);
 
-        gcReleaseRoot(H, 0);
+        gcReleaseRoot(H, root);
 
         ReturnStatus rt = {.ret=Ok, .rslt =(termPo) reslt};
 
@@ -128,7 +128,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
 
       normalPo reslt = allocateTpl(H, 2);
 
-      gcReleaseRoot(H, 0);
+      gcReleaseRoot(H, root);
 
       ReturnStatus rt = {.ret=Ok, .rslt =(termPo) reslt};
 

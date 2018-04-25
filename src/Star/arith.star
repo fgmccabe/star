@@ -28,7 +28,7 @@ star.arith{
   }
 
   public implementation hash[integer] => {
-    hash(X) => X.
+    hash(X) => _int_hash(X).
   }
 
   public implementation comp[integer] => {

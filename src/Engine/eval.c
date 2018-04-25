@@ -424,7 +424,6 @@ retCode run(processPo P) {
 
       case Line: {
         PC += 2;
-
         continue;
       }
 

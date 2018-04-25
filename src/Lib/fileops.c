@@ -213,7 +213,7 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
     }
     closedir(directory);              /* Close the directory stream */
 
-    gcReleaseRoot(H, 0);
+    gcReleaseRoot(H, root);
     setProcessRunnable(P);
 
     ReturnStatus ret = {.ret=Ok, .rslt = (termPo) list};
@@ -504,7 +504,7 @@ ReturnStatus g__file_date(processPo P, ptrPo tos) {
     setArg(triple, 0, atime);
     setArg(triple, 1, ctime);
     setArg(triple, 2, mtime);
-    gcReleaseRoot(H, 0);
+    gcReleaseRoot(H, root);
 
     setProcessRunnable(P);
 

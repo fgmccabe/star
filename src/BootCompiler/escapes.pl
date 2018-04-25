@@ -11,6 +11,7 @@ escapeType("_int_minus",funType(tupleType([type("star.core*integer"),type("star.
 escapeType("_int_times",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_div",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_int_mod",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
+escapeType("_int_hash",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_flt_plus",funType(tupleType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("_flt_minus",funType(tupleType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("_flt_times",funType(tupleType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
@@ -67,7 +68,10 @@ escapeType("_list_nth",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.
 escapeType("_list_append",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_prepend",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_slice",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer"),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_front",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_back",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_nil",allType(kVar("t"),funType(tupleType([type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_concat",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
 escapeType("_cd",funType(tupleType([type("star.core*string")]),tpFun("star.core*resultType",0))).
@@ -195,6 +199,7 @@ escapeType("_waitLock",funType(tupleType([type("star.thread*lock"),type("star.co
 escapeType("_releaseLock",funType(tupleType([type("star.thread*lock")]),tpFun("star.core*resultType",0))).
 escapeType("_ins_debug",funType(tupleType([]),voidType)).
 escapeType("_stackTrace",funType(tupleType([]),voidType)).
+escapeType("_assert",funType(tupleType([type("star.core*boolean"),type("star.core*string")]),voidType)).
 isEscape("_exit").
 isEscape("_command_line").
 isEscape("_identical").
@@ -204,6 +209,7 @@ isEscape("_int_minus").
 isEscape("_int_times").
 isEscape("_int_div").
 isEscape("_int_mod").
+isEscape("_int_hash").
 isEscape("_flt_plus").
 isEscape("_flt_minus").
 isEscape("_flt_times").
@@ -260,7 +266,10 @@ isEscape("_list_nth").
 isEscape("_list_append").
 isEscape("_list_prepend").
 isEscape("_list_slice").
+isEscape("_list_front").
+isEscape("_list_back").
 isEscape("_list_nil").
+isEscape("_list_concat").
 isEscape("_get_file").
 isEscape("_cwd").
 isEscape("_cd").
@@ -388,3 +397,4 @@ isEscape("_waitLock").
 isEscape("_releaseLock").
 isEscape("_ins_debug").
 isEscape("_stackTrace").
+isEscape("_assert").

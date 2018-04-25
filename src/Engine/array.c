@@ -210,7 +210,7 @@ static termPo newSlice(heapPo H, basePo base, integer start, integer length) {
   slice->base = (termPo) base;
   slice->start = start;
   slice->length = length;
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return (termPo) slice;
 }
 
@@ -220,7 +220,7 @@ termPo sliceList(heapPo H, listPo list, integer from, integer count) {
 
   listPo slice = (listPo) newSlice(H, C_BASE(list->base), list->start + from, count);
 
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return (termPo) slice;
 }
 
@@ -237,7 +237,7 @@ listPo appendToList(heapPo H, listPo list, termPo el) {
     if (base->max == list->start + list->length && base->max < base->length) { // check after locking heap
       base->els[base->max++] = el;
       listPo slice = (listPo) newSlice(H, base, list->start, list->length + 1);
-      gcReleaseRoot(H, 0);
+      gcReleaseRoot(H, root);
       releaseHeapLock(H);
       return slice;
     }
@@ -248,7 +248,7 @@ listPo appendToList(heapPo H, listPo list, termPo el) {
   nb->els[nb->max++] = el;
   gcAddRoot(H, (ptrPo) (&nb));
   listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max);
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return slice;
 }
 
@@ -264,7 +264,7 @@ listPo addToList(heapPo H, listPo list, termPo el) {
     if (base->max == list->start + list->length && base->max < base->length) { // check after locking heap
       base->els[base->max++] = el;
       list->length++;
-      gcReleaseRoot(H, 0);
+      gcReleaseRoot(H, root);
       releaseHeapLock(H);
       return list;
     }
@@ -275,7 +275,7 @@ listPo addToList(heapPo H, listPo list, termPo el) {
   nb->els[nb->max++] = el;
   gcAddRoot(H, (ptrPo) (&nb));
   listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max);
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return slice;
 }
 
@@ -290,7 +290,7 @@ termPo prependToList(heapPo H, listPo list, termPo el) {
     if (base->max == list->start && base->min > 0) { // check after locking heap
       base->els[--base->min] = el;
       listPo slice = (listPo) newSlice(H, base, list->start - 1, list->length + 1);
-      gcReleaseRoot(H, 0);
+      gcReleaseRoot(H, root);
       releaseHeapLock(H);
       return (termPo) slice;
     }
@@ -301,8 +301,28 @@ termPo prependToList(heapPo H, listPo list, termPo el) {
   nb->els[--nb->min] = el;
   gcAddRoot(H, (ptrPo) (&nb));
   listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max);
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return (termPo) slice;
+}
+
+listPo concatList(heapPo H, listPo l1, listPo l2) {
+  int root = gcAddRoot(H, (ptrPo) &l1);
+  gcAddRoot(H, (ptrPo) (&l2));
+  integer len1 = l1->length;
+  integer len2 = l2->length;
+  integer llen = len1 + len2;
+
+  listPo reslt = createList(H, llen + (llen >> 1));
+
+  for (integer ix = 0; ix < len1; ix++) {
+    setNthEl(reslt, ix, nthEl(l1, ix));
+  }
+  for (integer ix = 0; ix < len2; ix++) {
+    setNthEl(reslt, ix + len1, nthEl(l2, ix));
+  }
+
+  gcReleaseRoot(H, root);
+  return reslt;
 }
 
 basePo C_BASE(termPo t) {
@@ -411,6 +431,6 @@ termPo duplicateBase(heapPo H, basePo ob, integer length) {
     base->els[base->min + ix] = ob->els[ob->min + ix];
   }
 
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return (termPo) base;
 }

@@ -219,7 +219,7 @@ cllCont(Nm,Stk0,Cont,D,Dx,End,[iCall(Nm),iFrame(Stk1)|C0],Cx,_Stk,Stkx) :-
 oclCont(Stk0,retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stkx)|Cx],Cx,Stk,none) :-!,
   Stkx is Stk0+1,
   Arity is Stk-Stk0.
-oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk)|C0],Cx,Stk,Stkx) :-
+oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk1)|C0],Cx,Stk,Stkx) :-
   Stk1 is Stk0+1,
   Arity is Stk-Stk0,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
@@ -265,8 +265,7 @@ compPtn(whr(_,P,Cnd),Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compPtn(P,contCont(Nxt),Fail,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk1),
   verify(Stk1=:=Stk-1,"where stack"),
-  compCond(Cnd,Succ,Fail,D1,Dx,C0,Cx,Stk1,Stkx),
-  verify(Stkx=Stk1,"cond stack").
+  compCond(Cnd,Succ,Fail,D1,Dx,End,C0,Cx,Stk1,Stkx).
 compPtn(T,Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   compTerm(T,contCont(Nxt),D0,D1,End,C,[iLbl(Nxt),iCmp(Fl)|C0],Stk,Stk1),

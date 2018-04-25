@@ -89,7 +89,7 @@ declareImportedFields([(Nm,Tp)|More],Pkg,Enums,Lc,Env,Ex) :-
 declareImportedVar(Lc,Nm,pkg(Pkg,_),Enums,Tp,Env,E0) :-
   marker(class,Mrk),
   localName(Pkg,Mrk,Nm,LclNm),
-  (is_member(LclNm,Enums) ->
+  (is_member(LclNm,Enums),\+isProgramType(Tp) ->
      faceOfType(Tp,Env,FcTp),
      declareEnum(Lc,Nm,Tp,FcTp,Env,E0) ;
      declareVr(Lc,Nm,Tp,Env,E0)).

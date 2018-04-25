@@ -61,3 +61,29 @@ ReturnStatus g__list_slice(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=(termPo) sliceList(processHeap(p), l, from, count)};
   return ret;
 }
+
+ReturnStatus g__list_front(processPo p, ptrPo tos) {
+  listPo l = C_LIST(tos[0]);
+  integer count = integerVal(tos[1]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) sliceList(processHeap(p), l, 0, count)};
+  return ret;
+}
+
+ReturnStatus g__list_back(processPo p, ptrPo tos) {
+  listPo l = C_LIST(tos[0]);
+  integer from = integerVal(tos[1]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) sliceList(processHeap(p), l, from, listSize(l) - from)};
+  return ret;
+}
+
+ReturnStatus g__list_concat(processPo p, ptrPo tos) {
+  termPo Lhs = tos[0];
+  termPo Rhs = tos[1];
+  listPo l = C_LIST(Lhs);
+  listPo r = C_LIST(Rhs);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) concatList(processHeap(p), l, r)};
+  return ret;
+}

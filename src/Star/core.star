@@ -53,6 +53,10 @@ star.core {
   public implementation display[ss] => {
     disp(X) => X
   }
+  
+  public contract all k ~~ concat[k] ::= {
+    (++) : (k,k)=>k.
+  }
 
   -- Not strictly necessary, but makes for better symmetry.
   public boolean ::= true | false.

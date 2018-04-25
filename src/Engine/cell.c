@@ -84,7 +84,7 @@ cellPo newCell(heapPo H, termPo content) {
   int root = gcAddRoot(H, (ptrPo) (&content));
   cellPo cell = (cellPo) allocateObject(H, cellClass, CellCellCount);
   cell->content = content;
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return cell;
 }
 

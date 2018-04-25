@@ -107,7 +107,7 @@ ReturnStatus g__time2date(processPo p, ptrPo tos) {
   stringPo zone = allocateCString(H, now->tm_zone);
   setArg(dte, DATE_ZONE, (termPo) zone);
 
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) dte};
   return rt;
 }
@@ -151,7 +151,7 @@ ReturnStatus g__time2utc(processPo p, ptrPo tos) {
   stringPo zone = allocateCString(H, now->tm_zone);
   setArg(dte, DATE_ZONE, (termPo) zone);
 
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) dte};
   return rt;
 }

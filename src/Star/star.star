@@ -6,4 +6,5 @@ star{
   public import star.lists.
   public import star.cons.
   public import star.monad.
+  public import star.tuples.
 }

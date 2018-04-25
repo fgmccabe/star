@@ -27,4 +27,8 @@ star.strings{
     isEmpty("") => true.
     isEmpty(_) => false.
   }
+
+  public implementation concat[string] => {
+    S1++S2 => _str_concat(S1,S2).
+  }
 }

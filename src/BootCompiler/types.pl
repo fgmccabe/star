@@ -211,13 +211,22 @@ isGrType(T) :- deRef(T,Tp),isGrType(Tp,_).
 isGrType(allType(_,T),Ar) :- deRef(T,Tp), isGrType(Tp,Ar).
 isGrType(grType(A),Ar) :- typeArity(A,Ar).
 
-isCnsType(allType(_,Tp),Ar) :- isCnsType(Tp,Ar).
-isCnsType(consType(A,_),Ar) :- typeArity(A,Ar).
+isCnsType(Tp,Ar) :- deRef(Tp,T), isCnsTp(T,Ar).
 
-isProgramType(Tp) :- isFunctionType(Tp),!.
-isProgramType(Tp) :- isPtnType(Tp),!.
-isProgramType(Tp) :- isGrType(Tp),!.
-isProgramType(Tp) :- isCnsType(Tp,_),!.
+isCnsTp(allType(_,Tp),Ar) :- isCnsTp(Tp,Ar).
+isCnsTp(constrained(Tp,_),Ar) :- isCnsTp(Tp,Ar).
+
+isCnsTp(consType(A,_),Ar) :- typeArity(A,Ar).
+
+isProgramType(Tp) :- deRef(Tp,TT), isProgType(TT).
+
+isProgType(allType(_,Tp)) :- !, isProgType(Tp).
+isProgType(constrained(Tp,_)) :- isProgType(Tp).
+isProgType(Tp) :- isFunctionType(Tp),!.
+isProgType(Tp) :- isPtnType(Tp),!.
+isProgType(Tp) :- isGrType(Tp),!.
+isProgType(Tp) :- isCnsType(Tp,_),!.
+
 
 isTypeFun(typeLambda(_,_)).
 isTypeFun(allType(_,T)) :- isTypeFun(T).

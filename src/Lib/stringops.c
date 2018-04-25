@@ -189,7 +189,7 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   }
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) list};
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   return rt;
 }
 

@@ -461,9 +461,10 @@ static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl) {
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
     ret = addBreakPoint(&bp);
-  if (ret != Ok)
-    outMsg(logFile, "Could not set spy point on %s\n%_", line);
-  else
+  if (ret != Ok) {
+    outMsg(logFile, "Could not set spy point on %s\n", line);
+    outMsg(logFile, "usage: +pkg/Ln\n%_");
+  } else
     outMsg(logFile, "spy point set on %s\n%_", line);
   return moreDebug;
 }
@@ -686,6 +687,20 @@ retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
     return outMsg(out, " l[%d]", vr);
 }
 
+retCode showGlb(ioPo out, globalPo glb, framePo fp, ptrPo sp) {
+  if (fp != Null && sp != Null) {
+    if (glb != Null) {
+      termPo val = getGlobal(glb);
+      if (val != Null)
+        return outMsg(out, " %s = %T", globalVarName(glb), val);
+      else
+        return outMsg(out, " %s", globalVarName(glb));
+    } else
+      return outMsg(out, "unknown global");
+  } else
+    return outMsg(out, " %s", globalVarName(glb));
+}
+
 retCode showTos(ioPo out, framePo fp, ptrPo sp) {
   if (sp != Null)
     return outMsg(out, " <tos> = %T", sp[0]);
@@ -735,7 +750,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #define show_off outMsg(out," PC[%d]",collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
-#define show_glb outMsg(out, " %s", globalVarName(getGlobalVar(collectI32(pc))))
+#define show_glb showGlb(out, getGlobalVar(collectI32(pc)),fp,sp)
 
 #define instruction(Op, A1, Cmt)    \
     case Op:          \

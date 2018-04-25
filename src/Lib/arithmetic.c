@@ -199,6 +199,16 @@ ReturnStatus g__int_abs(processPo p, ptrPo tos) {
   return ret;
 }
 
+ReturnStatus g__int_hash(processPo p, ptrPo tos) {
+  termPo Lhs = tos[0];
+  integer Arg = integerVal(Lhs);
+  termPo Rs = (Arg < 0 ? (termPo) allocateInteger(processHeap(p), hash64(Arg)) : Lhs);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=Rs};
+
+  return ret;
+}
+
 ReturnStatus g__int2str(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   integer ix = integerVal(Lhs);
@@ -375,7 +385,7 @@ ReturnStatus g__frexp(processPo p, ptrPo tos) {
   termPo ex = (termPo) allocateInteger(H, (integer) exp);
   gcAddRoot(H, &ex);
   termPo Rs = (termPo) allocatePair(H, man, ex);
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -394,7 +404,7 @@ ReturnStatus g__modf(processPo p, ptrPo tos) {
   termPo ex = (termPo) allocateInteger(H, (integer) intgrl);
   gcAddRoot(H, &ex);
   termPo Rs = (termPo) allocatePair(H, man, ex);
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 

@@ -3,7 +3,7 @@
 %option yylineno
 %option bison-bridge bison-locations
 %option noyywrap nounput
-%option debug
+/* %option debug */
 
 %x comment
 %x string

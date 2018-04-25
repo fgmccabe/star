@@ -141,7 +141,7 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
     }
 
     closeFile(O_IO(buffer));
-    gcReleaseRoot(H, 0);
+    gcReleaseRoot(H, root);
 
     ReturnStatus rt = {.ret=Ok, .rslt=(termPo) lst};
     return rt;

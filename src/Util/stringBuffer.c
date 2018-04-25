@@ -16,6 +16,7 @@
 #include "stringBufferP.h"
 
 #include <stdlib.h>
+#include <assert.h>
 
 /* Set up the buffer file class */
 
@@ -138,6 +139,7 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
 }
 
 static retCode ensureSpace(bufferPo f, integer count) {
+  assert(isFileOpen(O_IO(f))==Ok);
   if (f->buffer.pos + count >= f->buffer.bufferSize) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1) + count; /* allow for some growth */

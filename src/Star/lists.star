@@ -27,12 +27,12 @@ star.lists{
   -- stream contract
   public implementation all x ~~ stream[list[x] ->> x] => {
     _eof() <= (X) where _list_empty(X).
-    _hdtl(_list_nth(X,0),_list_slice(X,1,_list_size(X))) <= (X) where \+_list_empty(X).
+    _hdtl(_list_nth(X,0),_list_back(X,1)) <= (X) where \+_list_empty(X).
 
     _cons(E,S) => _list_prepend(S,E).
     _apnd(S,E) => _list_append(S,E).
 
-    _back(_list_slice(X,0,Last),_list_nth(X,Last)) <= (X) where \+_list_empty(X) && Last .= _list_size(X)-1.
+    _back(_list_front(X,Last),_list_nth(X,Last)) <= (X) where \+_list_empty(X) && Last .= _list_size(X)-1.
     _nil = _list_nil(2).
   }
 
@@ -45,4 +45,8 @@ star.lists{
   listDisp:all x ~~ display[x] |: (list[x],string) => list[ss].
   listDisp([],_) => [ss("]")].
   listDisp([E,..L],Sep) => [ss(Sep),disp(E),..listDisp(L,",")].
+
+  public implementation all x ~~ concat[list[x]] => {
+    L1 ++ L2 => _list_concat(L1,L2).
+  }
 }

@@ -16,6 +16,7 @@
 #include <pipe.h>
 #include <ioops.h>
 #include <iochnnlP.h>
+#include <lblops.h>
 #include "engine.h"
 #include "arith.h"
 
@@ -46,8 +47,6 @@ void sleep_for(integer amnt) {
   }
 }
 
-
-
 void memerr() {
   outMsg(logFile, "out of heap space\n");
   flushOut();
@@ -58,6 +57,15 @@ ReturnStatus g__exit(processPo p, ptrPo tos) {
   integer ix = integerVal(tos[0]);
 
   exit((int) ix);
+}
+
+ReturnStatus g__assert(processPo P, ptrPo tos) {
+  if (tos[1] != trueEnum) {
+    logMsg(logFile, "assertion failed: %T\n", tos[0]);
+    exit(10);
+  }
+  ReturnStatus rt = {.ret=Ok, .rslt=voidEnum};
+  return rt;
 }
 
 static char **argsv = NULL;  /* Store the command line list */
@@ -78,7 +86,7 @@ ReturnStatus g__command_line(processPo p, ptrPo tos) {
     setNthEl(line, ix, (termPo) arg);
   }
 
-  gcReleaseRoot(H, 0);
+  gcReleaseRoot(H, root);
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) line};
   return rt;
 }
@@ -117,7 +125,7 @@ ReturnStatus g__envir(processPo P, ptrPo tos) {
     normalPo pair = allocatePair(H, ky, vl);
     setNthEl(list, ix, (termPo) pair);
   }
-  gcReleaseRoot(NULL, 0);
+  gcReleaseRoot(NULL, root);
   setProcessRunnable(P);
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) list};
   return rt;
@@ -205,11 +213,11 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
 
       bufferPo lineBf = newStringBuffer();
 
-      integer klen,vlen;
-      const char *key = stringVal(nthArg(pair,0),&klen);
-      const char *val = stringVal(nthArg(pair,1),&vlen);
+      integer klen, vlen;
+      const char *key = stringVal(nthArg(pair, 0), &klen);
+      const char *val = stringVal(nthArg(pair, 1), &vlen);
 
-      outMsg(O_IO(lineBf), "%S = %S", key,klen, val,vlen);
+      outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
       const char *line = getTextFromBuffer(&lineLen, lineBf);
@@ -306,11 +314,11 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
 
       bufferPo lineBf = newStringBuffer();
 
-      integer klen,vlen;
-      const char *key = stringVal(nthArg(pair,0),&klen);
-      const char *val = stringVal(nthArg(pair,1),&vlen);
+      integer klen, vlen;
+      const char *key = stringVal(nthArg(pair, 0), &klen);
+      const char *val = stringVal(nthArg(pair, 1), &vlen);
 
-      outMsg(O_IO(lineBf), "%S = %S", key,klen, val,vlen);
+      outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
       const char *line = getTextFromBuffer(&lineLen, lineBf);

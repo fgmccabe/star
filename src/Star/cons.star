@@ -1,7 +1,7 @@
 star.cons{
   import star.core.
   import star.arith.
-  import star.collection.
+  -- import star.collection.
 
   public all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 
@@ -39,7 +39,7 @@ star.cons{
 
   public implementation all x ~~ concat[cons[x]] => {
     X++Y => concat(X,Y).
-    
+
     concat: all e ~~ (cons[e],cons[e])=>cons[e].
     concat(nil,Y) => Y.
     concat(cons(E,X),Y) => cons(E,concat(X,Y)).
