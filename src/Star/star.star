@@ -1,4 +1,5 @@
 star{
+  public import star.action.
   public import star.core.
   public import star.arith.
   public import star.collection.

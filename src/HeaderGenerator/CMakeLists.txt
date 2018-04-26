@@ -13,10 +13,10 @@ add_executable(genesc ${ESC_SOURCE_FILES})
 
 target_link_libraries(genesc ooio)
 
-set(INS_SOURCE_FILES instr.c ../Headers/instructions.h)
-add_executable(genins ${INS_SOURCE_FILES})
+# set(INS_SOURCE_FILES instr.c ../Headers/instructions.h)
+# add_executable(genins ${INS_SOURCE_FILES})
 
-target_link_libraries(genins ooio)
+# target_link_libraries(genins ooio)
 
 set(ASM_SOURCE_FILES plmnem.c)
 add_executable(plmnem ${ASM_SOURCE_FILES})

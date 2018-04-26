@@ -74,7 +74,7 @@ makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
 overloadPattern(Lc,Nm,ExtNm,Tp,[],Rls,Dict,ptnDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
   overloadPtnRules(Rls,Dict,[],REqns).
 overloadPattern(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,
-    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),lambda(Lc,Nm,RRls))])) :-
+    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),lambda(Lc,RRls,Tp))])) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadPtnRules(Rls,FDict,CVars,RRls).
 
@@ -90,7 +90,7 @@ overloadPtnRule(Extra,ptnRule(Lc,Args,Cond,Exp),Dict,ptnRule(Lc,RArgs,RCond,RExp
 overloadGrammar(Lc,Nm,ExtNm,Tp,[],Rls,Dict,grDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
   overloadGrRules(Rls,Dict,[],REqns).
 overloadGrammar(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,
-    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),lambda(Lc,Nm,RRls))])) :-
+    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),lambda(Lc,RRls,Tp))])) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   overloadGrRules(Rls,FDict,CVars,RRls).
 

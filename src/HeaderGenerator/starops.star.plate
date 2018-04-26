@@ -1,0 +1,21 @@
+/* Automatically generated at #(date), do not edit */
+
+star.compiler.operators{
+  import star.
+
+  public isOperator:(string)=>boolean.
+
+  public isInfixOp:(string) => option[(integer,integer,integer)].
+
+  public isPrefixOp:(string) => option[(integer,integer)].
+
+  public isPostFixOp:(string) => option[(integer,integer)].
+
+  #(Operators)
+
+  public follows:(string,integer) => option[string].
+  #(Follows)
+
+  public final:(string) => boolean.
+  #(Final)
+}

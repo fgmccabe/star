@@ -55,7 +55,7 @@
 %token HALT
 %token CALL OCALL TAIL OTAIL ENTER ESCAPE
 %token RET JMP CASE
-%token DROP DUP PULL ROT CAS BF BT CMP
+%token DROP DUP PULL ROT RST BF BT CMP
 
 %token LD ST T
 
@@ -119,10 +119,10 @@ trailer: END nls { endFunction(currMtd); }
  halt: HALT { AHalt(currMtd); };
 
  call: CALL literal { ACall(currMtd,$2); }
-   | OCALL { AOCall(currMtd); }
+   | OCALL DECIMAL { AOCall(currMtd,$2); }
    | ESCAPE libName { AEscape(currMtd,$2); }
    | TAIL literal { ATail(currMtd,$2); }
-   | OTAIL { AOTail(currMtd); }
+   | OTAIL DECIMAL { AOTail(currMtd,42); }
    | ENTER DECIMAL { AEnter(currMtd,$2); }
    | RET { ARet(currMtd); }
    | JMP label { AJmp(currMtd,$2); }
@@ -142,6 +142,7 @@ trailer: END nls { endFunction(currMtd); }
    | LD L LBRA DECIMAL RBRA { ALdL(currMtd,$4); }
    | DROP { ADrop(currMtd); }
    | DUP { ADup(currMtd); }
+   | RST DECIMAL { ARst(currMtd,$2); }
    | PULL DECIMAL { APull(currMtd,$2); }
    | ROT DECIMAL { ARot(currMtd,$2); }
    | LD LBRA DECIMAL RBRA { ANth(currMtd,$3); }

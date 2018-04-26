@@ -265,8 +265,9 @@ termHash(intgr(Ix),Ix).
 termHash(float(Dx),Ix) :- Ix is round(Dx).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
 termHash(enum(Sx),Ix) :- termHash(lbl(Sx,0),Ix).
-termHash(lbl(Nm,Ar),Ix) :-
-  H0 is Ar*37,
-  stringHash(H0,Nm,Ix).
+termHash(lbl(Nm,Ar),Hx) :-
+  stringHash(0,Nm,Lx),
+  Ix is Ar*37+Lx,
+  hashSixtyFour(Ix,Hx).
 
 locTerm(loc(Pk,Ln,Off,Str,Len),ctpl(lbl("loc",5),[strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)])).

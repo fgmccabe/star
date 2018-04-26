@@ -116,6 +116,10 @@ showCanonTerm(letExp(_,Env,Ex),O,Ox) :-
   showCanonTerm(Env,O1,O2),
   appStr(" in ",O2,O3),
   showCanonTerm(Ex,O3,Ox).
+showCanonTerm(lambda(_,Rls,_),O,Ox) :-
+  appStr("lambda {",O,O1),
+  showRls("",Rls,O1,O2),
+  appStr("}",O2,Ox).
 showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
@@ -247,7 +251,7 @@ showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showEq(Nm),misc:appNl,O10,O11),
+  showRls(Nm,Eqns,O10,O11),
   appStr("\n",O11,Ox),!.
 showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("pattern: ",O,O1),
@@ -260,7 +264,7 @@ showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showPtnRule(Nm),misc:appNl,O10,O11),
+  showRls(Nm,Eqns,O10,O11),
   appStr("\n",O11,Ox),!.
 showDef(grDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("grammar: ",O,O1),
@@ -273,7 +277,7 @@ showDef(grDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   showType(Type,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
-  listShow(Eqns,canon:showGrRule(Nm),misc:appNl,O10,O11),
+  showRls(Nm,Eqns,O10,O11),
   appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
@@ -337,29 +341,27 @@ showClassRule(labelRule(_,_,Hd,Ots),O,Ox) :-
   showOthers(Ots,O2,O3),
   appStr("}.\n",O3,Ox).
 
-showEq(Nm,equation(_,Args,Cond,Value),O,Ox) :-
+showRls(Nm,Rls,O,Ox) :-
+  listShow(Rls,canon:showRule(Nm),misc:appMulti([misc:appStr("."),misc:appNl]),O,Ox).
+
+showRule(Nm,equation(_,Args,Cond,Value),O,Ox) :-!,
   appStr(Nm,O,O1),
   showCanonTerm(Args,O1,O2),
   showGuard(Cond,O2,O5),
   appStr(" => ",O5,O6),
-  showCanonTerm(Value,O6,O7),
-  appStr(".",O7,Ox).
-
-showPtnRule(Nm,ptnRule(_,Args,Cond,Value),O,Ox) :-
+  showCanonTerm(Value,O6,Ox).
+showRule(Nm,ptnRule(_,Args,Cond,Value),O,Ox) :-!,
   appStr(Nm,O,O1),
   showCanonTerm(Args,O1,O2),
   showGuard(Cond,O2,O5),
   appStr(" <= ",O5,O6),
-  showCanonTerm(Value,O6,O7),
-  appStr(".",O7,Ox).
-
-showGrRule(Nm,grRule(_,Args,Cond,Value),O,Ox) :-
+  showCanonTerm(Value,O6,Ox).
+showRule(Nm,grRule(_,Args,Cond,Value),O,Ox) :-
   appStr(Nm,O,O1),
   showCanonTerm(Args,O1,O2),
   showGuard(Cond,O2,O5),
   appStr(" --> ",O5,O6),
-  showCanonNT(Value,O6,O7),
-  appStr(".",O7,Ox).
+  showCanonNT(Value,O6,Ox).
 
 showCanonNT(apply(_,Op,Args),O,Ox) :-
   showCanonTerm(Op,O,O1),

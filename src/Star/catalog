@@ -2,7 +2,7 @@
 	"content": {
 		"star": "star.star",
 		"star.arith" : "arith.star",
-		"lo.action" : "action.lo",
+		"star.action" : "action.star",
 		"lo.boot": "boot.lo",
 		"star.collection": "collection.star",
 		"star.cons" : "cons.star",

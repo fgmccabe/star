@@ -1,7 +1,8 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
         collect/4,map/3,rfold/4,project0/2,project1/2,zip/3,
-        appStr/3,appStrs/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,appIndx/3,appNl/2,appNwln/3,
+        appStr/3,appStrs/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,
+        appIndx/3,appNl/2,appNwln/3,appMulti/3,
         genstr/2,
         subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
         localName/4,
@@ -145,6 +146,11 @@ appNwln(Dp,O,Ox) :-
   appNl(O,O1),
   appIndx(Dp,O1,Ox).
 
+appMulti([],Ox,Ox) :- !.
+appMulti([C|L],O,Ox) :-
+  call(C,O,O1),
+  appMulti(L,O1,Ox).
+
 subPath(Path,Marker,Suffix,Name) :-
   sub_string(Path,_,_,After,Marker),
   (After=0, string_concat(Path,Suffix,Name) ; string_concat(Path,".",P0),string_concat(P0,Suffix,Name)).
@@ -179,7 +185,7 @@ hashCodes([C|More],H0,Hx) :-
   hashCodes(More,H1,Hx).
 
 hashSixtyFour(H0,H) :-
-  H is H0 mod (1<<63).
+  H is H0 /\ 9223372036854775807.
 
 localName(_,Glue,Nm,Nm) :-
   sub_string(Nm,_,_,_,Glue),!.

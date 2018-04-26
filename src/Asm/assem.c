@@ -695,6 +695,8 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 
 #define optos(X)
 #define opnOp(X)
+#define optOs(X)
+
 #define argtOs(X)
 #define argnOp(X)
 

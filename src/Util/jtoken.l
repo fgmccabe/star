@@ -62,13 +62,15 @@ long pos = 0;
 
 static void putChar(char ch) {
   if(pos>=size){
-    char *nBuff = (char*)malloc((size+size/2)*sizeof(char));
+    long nSize = size+size/2;
+    char *nBuff = (char*)malloc(nSize*sizeof(char));
+    size = nSize;
     for(int ix=0;ix<pos;ix++)
       nBuff[ix]=text[ix];
-    if(text!=buff)
+    if(text!=&buff[0])
       free(text);
     text = nBuff;
-    }
+  }
   text[pos++] = ch;
 }
 

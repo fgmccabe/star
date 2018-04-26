@@ -109,8 +109,9 @@ parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,C,C,Tp) :-
   isType(Id,Env,tpDef(_,TpSpec,TpRule)),
   (isTypeFun(TpRule) ->
-    freshen(TpRule,Env,_,Tp) ;
-    freshen(TpSpec,Env,_,Tp)).
+    freshen(TpRule,Env,_,T) ;
+    freshen(TpSpec,Env,_,T)),
+  (T=typeExp(Tp,_) ; T=Tp).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 

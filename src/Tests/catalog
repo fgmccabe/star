@@ -1,5 +1,6 @@
 {
 	"content": {
+	  "test.a" : "a.star",
 	  "test.cons" : "constest.star",
 		"star.core0" : "core0.star",
 		"test.c" : "c.star",

@@ -117,13 +117,12 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "dup"         RT(DUP)
 "pull"        RT(PULL)
 "rot"         RT(ROT)
+"rst"         RT(RST)
 
 "ld"          RT(LD);
 "st"          RT(ST);
 
 "alloc"       RT(ALLOC);
-
-"cas"         RT(CAS);
 
 "frame"       RT(FRAME);
 "local"       RT(LOCAL);

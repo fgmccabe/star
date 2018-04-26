@@ -389,13 +389,17 @@ transformThetaDef(typeDef(_,_,_,_),_,_,Ix,Ix,Dx,Dx).
 transformThetaDef(conDef(_,_,_),_,_,Ix,Ix,Dx,Dx).
 
 closureEntry(Map,Lc,Name,Tp,[fnDef(Lc,lbl(Closure,ArX),TTp,
-  [eqn(Lc,[ctpl(lbl(Closure,1),[ClVr])|Args],cll(Lc,lbl(Prog,ArX),[ClVr|Args]))])|L],L) :-
+  [eqn(Lc,[ClLbl|Args],cll(Lc,lbl(Prog,ArXX),XArgs))])|L],L) :-
   lookupVarName(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure,Arity),
-  genVar("_ClVr",ClVr),
+  extraVars(Map,Extra),
   genVars(Arity,Args),
+  length(Extra,ExA),
   ArX is Arity+1,
-  extendFunTp(Tp,[ClVr],TTp).
+  (Extra=[] -> ClLbl=enum(Closure) ; ClLbl=ctpl(lbl(Closure,ExA),Extra)),
+  concat(Extra,Args,XArgs),
+  length(XArgs,ArXX),
+  extendFunTp(Tp,[_],TTp).
 
 liftPtns([],[],Q,Q,_,_,Ex,Ex) :-!.
 liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
@@ -518,7 +522,7 @@ liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(L,LL,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(disj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(disj(Lc,L,R),dsj(Lc,LL ,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(L,LL,Q,Q1,Map,Opts,Ex,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(neg(Lc,R),ng(Lc,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -572,6 +576,8 @@ trExpCallOp(Lc,v(_,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   implementFunCall(Lc,Reslt,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,enm(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   trExpCallOp(Lc,v(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
+trExpCallOp(Lc,cns(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  trExpCallOp(Lc,v(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,Op,A,ocall(Lc,Rc,A),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
@@ -590,14 +596,13 @@ implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,E
 
 liftNT().
 
-% We build $$(_call(Args<>Rep),$$(Free),_) :- Cond, !, replacement
 trLambdaRules(Lc,Rules,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
-  lambdaMap(lambda(Lc,Rules,Tp),Q,Map,LclName,Closure,LMap,Ex,Ex0),
-  transformRules(Rules,LMap,Opts,LclName,Rl,[],Ex0,Exx),
-  extraVars(LMap,Extra),
-  mkClosure(LclName,Extra,Closure),
-  ruleArity(Rl,Ar),
-  functionMatcher(Lc,Ar,LclName,Tp,[Rl],LamFun).
+  lambdaMap(lambda(Lc,Rules,Tp),Q,Map,Opts,LclName,Closure,LMap,Ex,Ex0),
+  transformRules(Rules,LMap,Opts,LclName,Rls,[],Ex0,Exx),
+  is_member(eqn(_,Args,_),Rls),!,
+  length(Args,Ar),
+  % extraVars(LMap,Extra),
+  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
 
 transformRules([],_,_,_,Rls,Rls,Ex,Ex).
 transformRules([Rl|Rules],Map,Opts,LclName,R,Rx,E,Ex) :-
@@ -615,12 +620,16 @@ lambdaLbl(Map,Variant,Nm) :-
   localName(Prefix,"@",V,Nm).
 
 lambdaMap(Lam,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,Exx) :-
-  genVar("_ThV",ThVr),
   extraVars(Map,Extra),
-  freeVars(Lam,Q,Extra,FV),
+  definedProgs(Map,Df),
+  refineQ(Q,Q0),
+  refineQ(Extra,E0),
+  merge(Df,Q0,Q1),
+  freeVars(Lam,Q1,E0,ThFr),
   lambdaLbl(Map,"_lambda",LclName),
-  collectLabelVars(FV,ThVr,[],Lx),
-  liftExps(ThVr,ThVars,Extra,FV,_,Map,Opts,Ex,Exx),
+  genVar("_ThV",ThVr),
+  collectLabelVars(ThFr,ThVr,[],Lx),
+  liftExps(ThFr,ThVars,Extra,ThFr,_,Map,Opts,Ex,Exx),
   makeLblTerm(LclName,ThVars,LblTerm).
 
 mkClosure(Lam,FreeVars,Closure) :-
@@ -669,18 +678,19 @@ liftLetExp(Lc,Theta,Bnd,Expr,Q,Qx,Map,Opts,[ThetaFun|Ex],Exx) :-
 thetaMap(Theta,ThVr,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Exx) :-
   extraVars(Map,Extra),
   definedProgs(Map,Df),
-  refineQ(Df,Q,Q0),
-  freeVars(Theta,Q0,Extra,ThFr),
+  refineQ(Q,Q0),
+  refineQ(Extra,E0),
+  merge(Df,Q0,Q1),
+  freeVars(Theta,Q1,E0,ThFr),
   thetaLbl(Theta,Map,LclName),
   collectLabelVars(ThFr,ThVr,[],L0),
   liftExps(ThFr,ThVars,Extra,ThFr,_,Map,Opts,Ex,Exx),
   makeLblTerm(LclName,ThVars,LblTerm),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx,EnRls,[]).
 
-refineQ(Df,Q,Qx) :-
+refineQ(Q,Qx) :-
   filter(Q,transform:notVar,Q0),
-  map(Q0,transform:mkV,Q1),
-  merge(Df,Q1,Qx).
+  map(Q0,transform:mkV,Qx).
 
 notVar(V) :- V\=idnt(_).
 
