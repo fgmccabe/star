@@ -7,7 +7,6 @@
 :- use_module(location).
 :- use_module(freevars).
 :- use_module(terms).
-:- use_module(polyfill).
 
 functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,[eqn(Lc,NVrs,Reslt)])) :-
   genVars(Ar,NVrs),
@@ -43,11 +42,16 @@ compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchVars(Lc,Vrs,Tpls,Deflt,Reslt).
 
 conditionalize([],Deflt,Deflt).
-conditionalize([(_,(_,Bnds,whr(Lc,Val,Cond)),_)|M],Deflt,cnd(Lc,Cond,Value,Other)) :-
+conditionalize([(_,(_,Bnds,whr(Lc,Val,Cond)),_)|M],Deflt,cnd(Lc,Cnd,Value,Other)) :-
+  pullWheres(Val,Lc,Cond,Cnd,Vl),
   conditionalize(M,Deflt,Other),
-  applyBindings(Bnds,Lc,Val,Value).
+  applyBindings(Bnds,Lc,Vl,Value).
 conditionalize([(_,(Lc,Bnds,Val),_)|_],_,Value) :-
   applyBindings(Bnds,Lc,Val,Value).
+
+pullWheres(whr(Lc,Val,Cond),Lc0,Cnd,Cndx,Value) :-
+  pullWheres(Val,Lc0,cnj(Lc,Cnd,Cond),Cndx,Value).
+pullWheres(Val,_Lc,Cnd,Cnd,Val).
 
 applyBindings([],_,Val,Val).
 applyBindings(Bnds,Lc,Val,varNames(Lc,Bnds,Val)).
@@ -100,7 +104,7 @@ matchScalars(Tpls,[V|Vrs],Lc,Deflt,CaseExp) :-
   formCases(ST,matcher:sameScalarTriple,Lc,Vrs,Deflt,Cases),
   mkCase(Lc,V,Cases,Deflt,CaseExp).
 
-mkCase(Lc,V,[(Lbl,Exp)],Deflt,cnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt)) :-!.
+mkCase(Lc,V,[(Lbl,Exp,Lc)],Deflt,cnd(Lc,mtch(Lc,Lbl,V),Exp,Deflt)) :-!.
 mkCase(Lc,V,Cases,Deflt,case(Lc,V,Cases,Deflt)).
 
 matchConstructors(Lc,Tpls,[V|Vrs],Deflt,CaseExp) :-
@@ -110,7 +114,7 @@ matchConstructors(Lc,Tpls,[V|Vrs],Deflt,CaseExp) :-
 
 formCases([],_,_,[],_,[]) :- !.
 formCases([],_,_,_,_,[]).
-formCases([Tr|Trpls],Cmp,Lc,Vrs,Deflt,[(Lbl,Case)|Cses]) :-
+formCases([Tr|Trpls],Cmp,Lc,Vrs,Deflt,[(Lbl,Case,Lc)|Cses]) :-
   pickMoreCases(Tr,Trpls,Tx,Cmp,More),
   formCase(Tr,Lbl,[Tr|Tx],Lc,Vrs,Deflt,Case),
   formCases(More,Cmp,Lc,Vrs,Deflt,Cses).
@@ -158,7 +162,7 @@ compareConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
 compareConstructor(A,B) :-
   constructorName(A,ANm),
   constructorName(B,BNm),
-  '_str_lt'(ANm,BNm).
+  str_lt(ANm,BNm).
 
 sameConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
   sameConstructor(A,B).
@@ -182,7 +186,7 @@ compareScalar(intgr(A),intgr(B)) :-
 compareScalar(float(A),float(B)) :-
   A<B.
 compareScalar(strg(A),strg(B)) :-
-  '_str_lt'(A,B).
+  str_lt(A,B).
 
 sameScalarTriple(([A|_],_,_),([A|_],_,_)).
 

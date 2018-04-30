@@ -4,7 +4,6 @@
 :- use_module(wff).
 :- use_module(misc).
 :- use_module(errors).
-:- use_module(polyfill).
 :- use_module(display).
 
 macroRewrite(Stmts,Reslt) :-

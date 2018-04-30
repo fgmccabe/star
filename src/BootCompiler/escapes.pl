@@ -4,6 +4,7 @@
 
 escapeType("_exit",funType(tupleType([type("star.core*integer")]),voidType)).
 escapeType("_command_line",funType(tupleType([]),typeExp(tpFun("star.core*list",1),[type("star.core*string")]))).
+escapeType("_abort",allType(kVar("s"),allType(kVar("t"),funType(tupleType([kVar("s"),kVar("t")]),voidType)))).
 escapeType("_identical",allType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*boolean")))).
 escapeType("_defined",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_plus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
@@ -202,6 +203,7 @@ escapeType("_stackTrace",funType(tupleType([]),voidType)).
 escapeType("_assert",funType(tupleType([type("star.core*boolean"),type("star.core*string")]),voidType)).
 isEscape("_exit").
 isEscape("_command_line").
+isEscape("_abort").
 isEscape("_identical").
 isEscape("_defined").
 isEscape("_int_plus").

@@ -56,14 +56,14 @@ int main(int argc, char **argv) {
   fprintf(out, ":- use_module(terms).\n");
   fprintf(out, ":- use_module(encode).\n\n");
 
-  fprintf(out, "assem([method(Nm,Sig)|Ins],MTpl) :-\n");
+  fprintf(out, "assem([method(Nm,Sig,Lx)|Ins],MTpl) :-\n");
   fprintf(out, "    genLblTbl(Ins,0,[],Lbs),\n");
   fprintf(out, "    findLit([],Nm,_,Ls0),\n");
   fprintf(out, "    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),\n");
   fprintf(out, "    mkInsTpl(Cde,Code),\n");
   fprintf(out, "    mkLitTpl(Lts,LtTpl),\n");
   fprintf(out, "    mkTpl(Lcs,LcsTpl),\n");
-  fprintf(out, "    mkTpl([Nm,strg(Sig),Code,LtTpl,LcsTpl],MTpl).\n\n");
+  fprintf(out, "    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).\n\n");
 
   fprintf(out, "mnem([],_,Lt,Lt,Lc,Lc,_,[]).\n");
   fprintf(out, "mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).\n");

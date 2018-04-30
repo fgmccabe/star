@@ -191,6 +191,7 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   extendFunTp(Tp,Extra,ATp),
   transformEquations(Map,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
+  % displayEqns(LclPrg,Rules),
   functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Fun).
 
 extendFunTp(Tp,[],Tp):-!.

@@ -189,7 +189,7 @@ showImport(import(Viz,Pkg,_,_,_,_),O,Ox) :-
   showVisibility(Viz,O,O0),
   appStr("import ",O0,O1),
   showPkg(Pkg,O1,O2),
-  appStr(".\n",O2,Ox).
+  appStr(".",O2,Ox).
 
 showVisibility(private,O,Ox) :-
   appStr("private ",O,Ox).

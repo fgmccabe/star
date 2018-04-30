@@ -13,7 +13,8 @@
 		"test.g" : "g.star",
 		"test.gr" : "grtest.star",
 		"test.let" : "letish.star",
-		"test.compose" : "compose.star"
+		"test.compose" : "compose.star",
+		"test.s" : "s.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"

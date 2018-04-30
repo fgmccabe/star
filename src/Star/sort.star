@@ -18,6 +18,6 @@ star.sort{
   merge:all e ~~ (list[e],list[e],(e,e)=>boolean) => list[e].
   merge([],L,_) => L.
   merge(L,[],_) => L.
-  merge([d,..L1],[e,..L2],P) where P(d,e) => [d,..merge(L1,[e,..L2],P)].
-  merge(L1,[e,..L2],P) => [e,..merge(L1,L2,P)].
+  merge([d,..L1],[e1,..L2],P) where P(d,e1) => [d,..merge(L1,[e1,..L2],P)].
+  merge(L12,[e2,..L22],P1) => [e2,..merge(L12,L22,P1)].
 }

@@ -1,4 +1,4 @@
-:- module(terms,[displayRules/1,showRules/3,substTerm/3,
+:- module(terms,[displayRules/1,displayEqns/2,substTerm/3,
         genTplStruct/2,isTplStruct/1,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
         termHash/2,dispTerm/2,showTerm/4,locTerm/2]).
 
@@ -24,6 +24,9 @@ showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
   appStr("\n",O7,Ox),!.
 
 displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
+
+displayEqns(Nm,Term) :- showEqns(Term,Nm,Chrs,[]), string_chars(Res,Chrs), write(Res).
+
 
 showRuleSets(L,O,Ox) :-
   listShow(L,terms:showRuleSet,misc:appNl,O,Ox).
@@ -174,7 +177,7 @@ nxtCase(Dp,O,Ox) :-
   appIndx(Dp,O1,O2),
   appStr("| ",O2,Ox).
 
-showCase(Dp,(Lbl,Val),O,Ox) :-
+showCase(Dp,(Lbl,Val,_),O,Ox) :-
   showTerm(Lbl,Dp,O,O1),
   appStr(": ",O1,O2),
   showTerm(Val,Dp,O2,Ox).
@@ -270,4 +273,5 @@ termHash(lbl(Nm,Ar),Hx) :-
   Ix is Ar*37+Lx,
   hashSixtyFour(Ix,Hx).
 
-locTerm(loc(Pk,Ln,Off,Str,Len),ctpl(lbl("loc",5),[strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)])).
+locTerm(loc(Pk,Ln,Off,Str,Len),Tpl) :-
+  mkTpl([strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)],Tpl).

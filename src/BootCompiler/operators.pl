@@ -86,7 +86,7 @@
   operator("?.=", [infixOp(899, 900, 899)]).
   operator(":=", [infixOp(949, 950, 949)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
-  operator(">>=", [infixOp(899, 900, 900)]).
+  operator(">>=", [infixOp(900, 900, 899)]).
   operator("^/", [infixOp(800, 800, 799)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).

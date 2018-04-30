@@ -3,7 +3,7 @@
         collect/4,map/3,rfold/4,project0/2,project1/2,zip/3,
         appStr/3,appStrs/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,
         appIndx/3,appNl/2,appNwln/3,appMulti/3,
-        genstr/2,
+        genstr/2,str_lt/2,
         subPath/4,pathSuffix/3,starts_with/2,ends_with/2,
         localName/4,
         listShow/5,
@@ -173,6 +173,17 @@ pathSuffix(String,_,String).
 genstr(Prefix,S) :-
   gensym(Prefix,A),
   atom_string(A,S).
+
+str_lt(S1,S2) :-
+     string_codes(S1,C1),
+     string_codes(S2,C2),
+     codeSmaller(C1,C2),!.
+
+codeSmaller([],[_|_]).
+codeSmaller([C|_],[D|_]) :-
+     C<D.
+codeSmaller([C|L],[C|M]) :-
+     codeSmaller(L,M).
 
 stringHash(H,Str,Hx) :-
   string_codes(Str,Codes),
