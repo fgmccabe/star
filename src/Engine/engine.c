@@ -25,7 +25,7 @@ retCode bootstrap(char *entry) {
     processPo p = newProcess(mainMtd);
     return run(p);
   } else {
-    logMsg(logFile,"cannot find entry point %s\n",entry);
+    logMsg(logFile, "cannot find entry point %s\n", entry);
     return Error;
   }
 }
@@ -42,9 +42,8 @@ processPo newProcess(methodPo mtd) {
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
-  P->waitFor = (insDebugging||lineDebugging) ? nextIns : never;
+  P->waitFor = (insDebugging || lineDebugging) ? nextIns : never;
   P->tracing = tracing;
-  P->hasEnter = False;
 
   uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
 
@@ -56,6 +55,9 @@ processPo newProcess(methodPo mtd) {
   *--sp = (termPo) mtd;
   *--sp = (termPo) &haltCode[0];
 
+  *--sp = (termPo) P->fp;    /* set the new frame pointer */
+
+  P->fp = (framePo) sp;
   P->sp = sp;
 
   return P;

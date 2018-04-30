@@ -16,6 +16,18 @@ set(HEADER_FILES
         Headers/arithmetic.h
         Headers/unicode.h
         ../Engine/Headers/iochnnl.h ../Engine/Headers/iochnnlP.h
+        Headers/assigns.h
+        Headers/ioops.h
+        Headers/locks.h
+        Headers/fileops.h
+        Headers/netfile.h
+        Headers/stringops.h
+        Headers/datentime.h
+        Headers/threds.h
+        Headers/lblops.h
+        Headers/pkgops.h
+        Headers/turm.h
+        Headers/listops.h
         )
 
 set(SOURCE_FILES
@@ -23,8 +35,7 @@ set(SOURCE_FILES
         libEscapes.c
         clock.c
         show.c
-        system.c arithmetic.c unicode.c assigns.c Headers/assigns.h ioops.c Headers/ioops.h locks.c Headers/locks.h fileops.c Headers/fileops.h netfile.c Headers/netfile.h stringops.c Headers/stringops.h datentime.c Headers/datentime.h threds.c Headers/threds.h lblops.c Headers/lblops.h turm.c Headers/turm.h pkgops.c Headers/pkgops.h listops.c Headers/listops.h)
+        system.c arithmetic.c unicode.c assigns.c
+        ioops.c locks.c fileops.c netfile.c stringops.c datentime.c threds.c lblops.c turm.c pkgops.c listops.c )
 
 add_library(escapes STATIC ${SOURCE_FILES})
-
-install(FILES ${HEADER_FILES} DESTINATION include)

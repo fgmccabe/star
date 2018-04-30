@@ -42,3 +42,5 @@ set(SOURCE_FILES
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
 target_link_libraries(star infra ooio escapes)
+
+install(TARGETS star DESTINATION bin)

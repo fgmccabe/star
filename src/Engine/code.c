@@ -3,6 +3,7 @@
 //
 
 #include <heapP.h>
+#include <memory.h>
 #include "codeP.h"
 #include "labelsP.h"
 
@@ -55,7 +56,9 @@ termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
   methodPo di = (methodPo) dst;
   *di = *si;
 
-  return (termPo) di + mtdSize(cl, src);
+  memcpy(&di->code,&si->code,si->codeSize*sizeof(insWord));
+
+  return ((termPo) di) + mtdSize(cl, src);
 }
 
 termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
@@ -64,7 +67,7 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   helper((ptrPo) &mtd->pool, c);
   helper((ptrPo) &mtd->locals, c);
 
-  return (termPo) o + mtdSize(cl, o);
+  return ((termPo) o) + mtdSize(cl, o);
 }
 
 comparison mtdCmp(specialClassPo cl, termPo o1, termPo o2) {
@@ -115,6 +118,10 @@ void markMtd(gcSupportPo G, methodPo mtd) {
 
 }
 
+logical validPC(methodPo mtd, insPo pc) {
+  return (logical)(pc >= mtd->code && pc < &mtd->code[mtd->codeSize]);
+}
+
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
   methodPo mtd = (methodPo) data;
   normalPo pool = codeLits(mtd);
@@ -124,7 +131,7 @@ retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) 
 }
 
 normalPo codeLits(methodPo mtd) {
-  assert(mtd!=Null);
+  assert(mtd != Null);
   return mtd->pool;
 }
 
@@ -162,8 +169,8 @@ integer pkHash(packagePo pkg) {
   return uniHash(pkg->packageName);
 }
 
-comparison compPk(packagePo p1, packagePo p2){
-  return uniCmp(p1->packageName,p2->packageName);
+comparison compPk(packagePo p1, packagePo p2) {
+  return uniCmp(p1->packageName, p2->packageName);
 }
 
 pkgPo markLoaded(char *package, char *version) {

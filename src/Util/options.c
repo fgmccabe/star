@@ -71,7 +71,7 @@ void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
   }
 }
 
-int processOptions(int argc, char **argv, Option options[], int optionCount) {
+int processOptions(char *copyRight, int argc, char **argv, Option *options, int optionCount) {
   int ix;
 
   for (ix = 1; ix < argc; ix++) {
@@ -114,14 +114,19 @@ int processOptions(int argc, char **argv, Option options[], int optionCount) {
   return ix;
 
   failOptions:
-  showUsage(argv[0], options, optionCount);
+
+  showUsage(argv[0], copyRight, options, optionCount);
   return -1;
 }
 
-void showUsage(char *name, Option options[], int optionCount) {
+void showUsage(char *name, char *copyRight, Option options[], int optionCount) {
   ioPo stdErr = OpenStderr();
 
+  if(copyRight!=Null)
+    outMsg(stdErr,"%s\n",copyRight);
+
   outMsg(stdErr, "Usage: %s\n", name);
+
   for (int ix = 0; ix < optionCount; ix++) {
     outMsg(stdErr, "    %s\n", options[ix].usage);
   }

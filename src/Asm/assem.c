@@ -80,8 +80,8 @@ static retCode delLabel(void *n, void *r);
 static retCode delMtd(strctPo nm, mtdPo mtd);
 static retCode delImport(packagePo p, importPo q);
 
-pkgPo newPkg(char *name, char *version, char *signature) {
-  pkgPo pkg = (pkgPo) allocPool(pkgPool);
+pkPo newPkg(char *name, char *version, char *signature) {
+  pkPo pkg = (pkPo) allocPool(pkgPool);
   pkg->pkg = makePkg(name, version);
   pkg->signature = uniDuplicate(signature);
   pkg->methods = NewHash(16, (hashFun) strctHash, (compFun) strctComp, (destFun) delMtd);
@@ -116,7 +116,7 @@ static logical isRightMethod(objectPo d, void *cl) {
   return (logical) (strctComp(mtd, &m->name) == same);
 }
 
-void addImport(pkgPo pkg, char *name, char *version, logical isPublic) {
+void addImport(pkPo pkg, char *name, char *version, logical isPublic) {
   PackageRec p = makePkg(name, version);
   importPo ex = hashGet(pkg->imports, &p);
 
@@ -128,20 +128,21 @@ void addImport(pkgPo pkg, char *name, char *version, logical isPublic) {
   hashPut(pkg->imports, ex, ex);
 }
 
-mtdPo getPkgMethod(pkgPo pkg, const char *name, integer arity) {
+mtdPo getPkgMethod(pkPo pkg, const char *name, integer arity) {
   StrctLbl mtd = {.name =name, .arity=arity};
   return (mtdPo) hashGet(pkg->methods, &mtd);
 }
 
 static void defineSig(mtdPo mtd, char *sig);
 
-mtdPo defineMethod(pkgPo pkg, char *name, integer arity, char *sig) {
+mtdPo defineMethod(pkPo pkg, char *name, integer arity, integer lclCount, char *sig) {
   mtdPo existing = getPkgMethod(pkg, name, 0);
 
   if (existing == Null) {
     mtdPo mtd = (mtdPo) allocPool(mtdPool);
     mtd->name.name = uniDuplicate(name);
     mtd->name.arity = arity;
+    mtd->lclCount = lclCount;
     mtd->labels = NewHash(16, (hashFun) uniHash, (compFun) uniCmp, delLabel);
     mtd->constants = nilList;
     mtd->first = mtd->last = Null;
@@ -245,7 +246,7 @@ static integer localHash(localVarPo l) {
   return uniHash(l->name);
 }
 
-retCode delFunction(pkgPo pkg, mtdPo mtd) {
+retCode delFunction(pkPo pkg, mtdPo mtd) {
   hashRemove(pkg->methods, &mtd->name);
 
   DelHash(mtd->labels);

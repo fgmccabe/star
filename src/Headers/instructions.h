@@ -22,8 +22,6 @@ instruction(Escape,Es,"call C escape")
 instruction(Tail,lit,"Tail <prog>")
 instruction(OTail,i32,"OTail")
 
-instruction(Enter,i32,"enter <envsize>")
-
 instruction(Ret,tOs,"return")
 
 instruction(Jmp,off,"jump lbl")
@@ -57,6 +55,5 @@ instruction(Cmp,off,"t1 t2 --> , branch to offset if not same literal")
 instruction(Bf,off,"bool --> branch if false")
 instruction(Bt,off,"bool --> branch if true")
 
-instruction(Rais,lit," --> raise an exception")
 instruction(Frame,i32,"frame instruction")
 instruction(Line,lit," --> Source line number notification")

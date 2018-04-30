@@ -4,7 +4,6 @@
 
 
 #include <errorCodes.h>
-#include <ldap.h>
 #include <labels.h>
 #include <errno.h>
 #include "threds.h"
@@ -123,7 +122,19 @@ ReturnStatus g__waitfor(processPo P, ptrPo tos) {
     return liberror(P, "_waitfor", eDEAD);
 }
 
-ReturnStatus g__stackTrace(processPo P,ptrPo tos){
+ReturnStatus g__abort(processPo P, ptrPo tos) {
+  termPo lc = tos[0];
+  termPo msg = tos[1];
+
+  char msgBuff[MAX_SYMB_LEN];
+
+  logMsg(logFile, "Abort %T at %L", msg, lc);
+
+  ReturnStatus rt = {.ret=Error, .rslt=(termPo) voidEnum};
+  return rt;
+}
+
+ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
   stackTrace(P);
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};

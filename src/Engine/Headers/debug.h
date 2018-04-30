@@ -15,6 +15,9 @@ extern DebugWaitFor callDebug(processPo p, termPo call);
 extern DebugWaitFor tailDebug(processPo p, termPo call);
 extern DebugWaitFor retDebug(processPo p, termPo call);
 
+extern retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
+
+extern integer pcCount;     /* How many instructions executed so far? */
 extern void countIns(insWord ins);
 extern void dumpInsCount();
 

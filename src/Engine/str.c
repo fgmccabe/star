@@ -65,8 +65,9 @@ termPo strCopy(specialClassPo cl, termPo dst, termPo src) {
   stringPo di = (stringPo) dst;
   *di = *si;
 
-  uniCpy(di->txt, si->length, si->txt);
-  return (termPo) di + StringCellCount(si->length);
+  memcpy(di->txt,si->txt,si->length);
+
+  return ((termPo) di) + StringCellCount(si->length);
 }
 
 termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {

@@ -10,10 +10,9 @@
 #include <debug.h>
 #include <globals.h>
 #include "engineP.h"
-#include "arithP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
-#define collectOff(pc) (hi32 = collectI32(pc), (pc)+hi32)
+#define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
 #define push(X) *--SP = ((termPo)(X))
 #define pop() (*SP++)
@@ -39,10 +38,6 @@ retCode run(processPo P) {
 
   register uint32 hi32, lo32;    /* Temporary registers */
 
-#ifdef TRACEEXEC
-  integer pcCount = 0;       /* How many instructions executed so far? */
-#endif
-
   for (;;) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */
@@ -59,7 +54,7 @@ retCode run(processPo P) {
           restoreRegisters(P);
           break;
         case OCall: saveRegisters(P);
-          callDebug(P, SP[1]);
+          callDebug(P, SP[0]);
           restoreRegisters(P);
           break;
         case Tail: saveRegisters(P);
@@ -67,7 +62,7 @@ retCode run(processPo P) {
           restoreRegisters(P);
           break;
         case OTail: saveRegisters(P);
-          tailDebug(P, SP[1]);
+          tailDebug(P, SP[0]);
           restoreRegisters(P);
           break;
         case Ret: saveRegisters(P);
@@ -95,8 +90,14 @@ retCode run(processPo P) {
         push(PC);       // Set up for a return
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+
+        push(FP);
+        FP = (framePo) SP;     /* set the new frame pointer */
+        integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+        SP -= lclCnt;
 #ifdef TRACEEXEC
-        P->hasEnter = False;
+        for (integer ix = 0; ix < lclCnt; ix++)
+          SP[ix] = voidEnum;
 #endif
         continue;
       }
@@ -111,8 +112,14 @@ retCode run(processPo P) {
         PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+
+        push(FP);
+        FP = (framePo) SP;     /* set the new frame pointer */
+        integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+        SP -= lclCnt;
 #ifdef TRACEEXEC
-        P->hasEnter = False;
+        for (integer ix = 0; ix < lclCnt; ix++)
+          SP[ix] = voidEnum;
 #endif
         continue;
       }
@@ -128,7 +135,7 @@ retCode run(processPo P) {
               *--SP = ret.rslt;
             continue;
           case Error:
-            goto raiseError;
+            return Error;
           default:
             continue;
         }
@@ -167,8 +174,14 @@ retCode run(processPo P) {
 
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
+
+        push(FP);
+        FP = (framePo) SP;     /* set the new frame pointer */
+        integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+        SP -= lclCnt;
 #ifdef TRACEEXEC
-        P->hasEnter = False;
+        for (integer ix = 0; ix < lclCnt; ix++)
+          SP[ix] = voidEnum;
 #endif
         continue;       /* Were done */
       }
@@ -204,24 +217,16 @@ retCode run(processPo P) {
 
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
-#ifdef TRACEEXEC
-        P->hasEnter = False;
-#endif
-        continue;       /* Were done */
-      }
 
-      case Enter: {      /* set up the local env of locals */
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
-        int32 lclCnt = collectI32(PC);  /* How many locals do we have */
+        integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
 #ifdef TRACEEXEC
-        P->hasEnter = True;
-        if (insDebugging)
-          for (integer ix = 0; ix < lclCnt; ix++)
-            SP[0] = voidEnum;
+        for (integer ix = 0; ix < lclCnt; ix++)
+          SP[ix] = voidEnum;
 #endif
-        continue;
+        continue;       /* Were done */
       }
 
       case Ret: {        /* return from function */
@@ -245,6 +250,7 @@ retCode run(processPo P) {
 
       case Jmp:       /* jump to local offset */
         PC = collectOff(PC);
+        assert(validPC(PROG,PC));
         continue;
 
       case Drop:
@@ -309,6 +315,7 @@ retCode run(processPo P) {
         termPo l = pop();
         termPo t = pop();
         insPo exit = collectOff(PC);
+        assert(validPC(PROG,exit));
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
@@ -392,6 +399,8 @@ retCode run(processPo P) {
         termPo i = pop();
         termPo j = pop();
         insPo exit = collectOff(PC);
+        assert(validPC(PROG,exit));
+
         if (!sameTerm(i, j))
           PC = exit;
         continue;
@@ -400,6 +409,8 @@ retCode run(processPo P) {
       case Bf: {       /* Branch on false */
         termPo i = pop();
         insPo exit = collectOff(PC);
+        assert(validPC(PROG,exit));
+
         if (i == falseEnum)
           PC = exit;
         continue;
@@ -408,15 +419,12 @@ retCode run(processPo P) {
       case Bt: {        /* Branch on true */
         termPo i = pop();
         insPo exit = collectOff(PC);
+        assert(validPC(PROG,exit));
 
         if (i == trueEnum)
           PC = exit;
         continue;
       }
-
-      case Rais:
-      raiseError:
-        return Error;
 
       case Frame:
         PC += 2;

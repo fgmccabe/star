@@ -82,7 +82,7 @@ comparison intCmp(specialClassPo cl, termPo t1, termPo t2) {
 }
 
 integer intHash(specialClassPo cl, termPo o) {
-  return integerVal(o);
+  return integerHash(C_INT(o));
 }
 
 static retCode intDisp(ioPo out, termPo t, long depth, logical alt) {

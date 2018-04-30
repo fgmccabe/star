@@ -42,7 +42,7 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
   retCode ret = Ok;
 
   if (fn == NULL) {
-    outMsg(logFile, "cannot determine code for %s:%s%_", pkgName, vers);
+    logMsg(logFile, "cannot determine code for %s:%s%_", pkgName, vers);
     return Error;
   }
 
@@ -350,7 +350,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 }
 
 retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msgSize) {
-  retCode ret = isLookingAt(in, "n5o5'()5'");
+  retCode ret = isLookingAt(in, "n6o6'()6'");
 
   if (ret != Ok) {
     strMsg(errorMsg, msgSize, "invalid code stream");
@@ -358,11 +358,15 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
   }
   char prgName[MAX_SYMB_LEN];
   integer arity;
+  integer lclCount;
 
   ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
+
+  if (ret == Ok)
+    ret = decodeInteger(in, &lclCount);
 
   if (ret == Ok) {
     integer insCount;
@@ -375,11 +379,6 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
         ret = decodeIns(in, &pc, &ix, errorMsg, msgSize);
       }
 
-      integer lclCnt = 0;
-
-      if (ins[0] == Enter) {
-        lclCnt = (ins[1] << 16) | ins[2];
-      }
       if (ret == Ok) {
         termPo pool = voidEnum;
         int root = gcAddRoot(H, &pool);
@@ -396,7 +395,7 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
           if (ret == Ok) {
             labelPo lbl = declareLbl(prgName, arity);
             gcAddRoot(H, (ptrPo) &lbl);
-            defineMtd(H, ins, (integer) (pc - ins), lclCnt, lbl, C_TERM(pool), C_TERM(locals));
+            defineMtd(H, ins, (integer) (pc - ins), lclCount, lbl, C_TERM(pool), C_TERM(locals));
           }
         }
         closeFile(O_IO(tmpBuffer));

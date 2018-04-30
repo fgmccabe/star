@@ -38,7 +38,7 @@ void initLbls() {
 }
 
 labelPo declareLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity*37+uniHash(name))};
+  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
   labelPo lbl = hashGet(labels, &tst);
 
   if (lbl == Null) {
@@ -63,7 +63,7 @@ labelPo findLbl(const char *name, integer arity) {
 }
 
 labelPo objLabel(labelPo lbl, integer arity) {
-  return declareLbl(lbl->name,arity);
+  return declareLbl(lbl->name, arity);
 }
 
 integer labelHash(labelPo lbl) {
@@ -110,8 +110,10 @@ static retCode markLabel(void *n, void *r, void *c) {
   labelPo lbl = (labelPo) r;
   gcSupportPo G = (gcSupportPo) c;
 
+  // outMsg(logFile,"Marking label %T\n%_",lbl);
+
   if (lbl->mtd != Null)
-    markPtr(G, (ptrPo) &lbl->mtd);
+    lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
   return Ok;
 }
 
@@ -124,7 +126,7 @@ long lblSize(specialClassPo cl, termPo o) {
 }
 
 termPo lblCopy(specialClassPo cl, termPo dst, termPo src) {
-  *((labelPo)dst) = *((labelPo)src);
+  *((labelPo) dst) = *((labelPo) src);
   return dst + LabelCellCount;
 }
 
@@ -165,18 +167,17 @@ labelPo tplLabel(integer arity) {
   return declareLbl(txt, arity);
 }
 
-logical isTplLabel(labelPo lb){
+logical isTplLabel(labelPo lb) {
   char *nm = lb->name;
-  if(uniIsLitPrefix(nm,"()")){
+  if (uniIsLitPrefix(nm, "()")) {
     integer ln = uniStrLen(nm);
     integer pos = uniStrLen("()");
-    while(pos<ln){
-      codePoint cp = nextCodePoint(nm,&pos,ln);
-      if(!isNdChar(cp))
+    while (pos < ln) {
+      codePoint cp = nextCodePoint(nm, &pos, ln);
+      if (!isNdChar(cp))
         return False;
     }
     return True;
-  }
-  else
+  } else
     return False;
 }

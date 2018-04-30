@@ -10,19 +10,19 @@
 
 #include "signature.h"
 
-typedef struct _assem_package_ *pkgPo;
+typedef struct _assem_package_ *pkPo;
 typedef struct _assem_method_ *mtdPo;
 typedef struct _label_ *lPo;
 typedef struct _assem_instruction_ *assemInsPo;
 typedef struct _local_data_ *localVarPo;
 
 extern void initAssem();
-extern pkgPo newPkg(char *name, char *version, char *signature);
-extern void dumpPkgCode(pkgPo pkg);
+extern pkPo newPkg(char *name, char *version, char *signature);
+extern void dumpPkgCode(pkPo pkg);
 
-extern void addImport(pkgPo pkg, char *name, char *version, logical isPublic);
+extern void addImport(pkPo pkg, char *name, char *version, logical isPublic);
 
-extern mtdPo defineMethod(pkgPo pkg, char *name, integer arity, char *sig);
+extern mtdPo defineMethod(pkPo pkg, char *name, integer arity, integer lclCount, char *sig);
 extern char *methodSignature(mtdPo mtd);
 extern int32 findMethod(mtdPo mtd, char *name, int arity);
 

@@ -21,8 +21,8 @@ typedef struct {
   char *usage;
 } Option;
 
-int processOptions(int argc, char **argv,Option options[],int optionCount);
+int processOptions(char *copyRight, int argc, char **argv, Option *options, int optionCount);
 
-void showUsage(char *name,Option options[],int optionCount);
+void showUsage(char *name, char *copyRight, Option options[], int optionCount);
 
 #endif //CAFE_OPTIONS_H

@@ -78,6 +78,7 @@ extern constPo newConstant(char *sig, constCmp same, constDump show, constDump e
 
 typedef struct _assem_method_ {
   StrctLbl name;      /* The name of this method */
+  integer lclCount;
   hashPo labels;      /* All the labels in this code */
   assemInsPo first;      /* Instructions */
   assemInsPo last;      /* Last instruction */
@@ -111,9 +112,9 @@ typedef struct _assem_package_ {
   hashPo methods;     /* All the functions defined in this package */
 } AssemPackage;
 
-extern retCode encodePkg(ioPo out, pkgPo pkg);
-extern mtdPo getPkgMethod(pkgPo pkg, const char *name, integer arity);
-extern mtdPo createMethod(pkgPo pkg, char *name, char *sig);
+extern retCode encodePkg(ioPo out, pkPo pkg);
+extern mtdPo getPkgMethod(pkPo pkg, const char *name, integer arity);
+extern mtdPo createMethod(pkPo pkg, char *name, char *sig);
 
 extern retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins);
 extern int32 codeSize(mtdPo mtd);

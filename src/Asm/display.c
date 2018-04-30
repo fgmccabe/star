@@ -139,7 +139,7 @@ retCode showImport(void *n, void *r, void *c) {
   return outMsg(out, "%simport %P\n",imp->isPublic?"public ":"",&imp->pkg);
 }
 
-void dumpPkgCode(pkgPo pkg) {
+void dumpPkgCode(pkPo pkg) {
   outMsg(logFile, "Package %P:\n", &pkg->pkg);
   ProcessTable(showImport, pkg->imports, logFile);
   ProcessTable(dumpMethod, pkg->methods, logFile);

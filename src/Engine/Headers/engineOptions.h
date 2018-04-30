@@ -15,6 +15,7 @@
 #define TRACEPKG
 #define TRACESTATS
 #define TRACEVERIFY
+#define LOCKTRACE
 #endif
 
 extern char copyRight[];
@@ -41,7 +42,6 @@ extern char repoDir[MAXFILELEN];
 
 
 int getOptions(int argc, char **argv);
-void usage(char *name);
 void defltCWD();
 
 #endif

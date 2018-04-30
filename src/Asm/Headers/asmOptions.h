@@ -18,7 +18,6 @@ extern logical debugAssem;
 #endif
 
 extern int getOptions(int argc, char **argv);
-extern void usage(char *name);
 
 #endif
 

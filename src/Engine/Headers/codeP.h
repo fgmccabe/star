@@ -54,6 +54,7 @@ static inline int64 argCount(methodPo mtd) {
 }
 
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
+extern logical  validPC(methodPo mtd, insPo pc);
 
 extern void markMtd(gcSupportPo G, methodPo mtd);
 

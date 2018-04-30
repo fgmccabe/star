@@ -17,6 +17,7 @@
 escape(_exit,True,False,"F(i)v","terminate engine")
 escape(_command_line,False,False,"F()LS","command line arguments")
 //escape(_command_opts,False,False,"F()L(SS)","command line options")
+escape(_abort,False,False,":k's':k't'F(k's'k't')v","abort process")
 
 escape(_identical,False,False,":k't'F(k't'k't')l","test for identicality")
 

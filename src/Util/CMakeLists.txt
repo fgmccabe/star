@@ -12,19 +12,31 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 
 include_directories("../Headers" "Headers")
 
-set(HEADER_FILES
-        Headers/base64.h Headers/io.h Headers/ioP.h Headers/file.h Headers/fileP.h Headers/formio.h Headers/formioP.h
-        Headers/hash.h Headers/hosts.h Headers/hostsP.h Headers/integer.h
-        Headers/iosockP.h Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/ixTreeP.h Headers/jsonEvent.h
-        Headers/cons.h Headers/consP.h Headers/lockable.h Headers/lockableP.h Headers/logical.h
-        Headers/managed.h Headers/managedP.h Headers/object.h Headers/objectP.h
-        Headers/pair.h Headers/pairP.h
-        Headers/pool.h Headers/retcode.h Headers/pipe.h Headers/pipeP.h
-        Headers/stringBuffer.h Headers/stringBufferP.h
+set(PUBLIC_HEADERS
+        Headers/base64.h Headers/io.h Headers/file.h Headers/formio.h
+        Headers/hash.h Headers/hosts.h Headers/integer.h
+        Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/jsonEvent.h
+        Headers/cons.h Headers/lockable.h Headers/logical.h
+        Headers/managed.h Headers/object.h
+        Headers/pair.h
+        Headers/pool.h Headers/retcode.h Headers/pipe.h
+        Headers/stringBuffer.h
         Headers/timer.h
-        Headers/unistr.h Headers/unistrP.h Headers/utils.h
-        Headers/jsonEvent.h Headers/udp.h Headers/udpP.h Headers/ooio.h options.c
-        Headers/options.h Headers/template.h Headers/pp.h Headers/ppP.h
+        Headers/unistr.h Headers/utils.h
+        Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
+        Headers/options.h Headers/template.h Headers/pp.h Headers/ppP.h)
+
+set(HEADER_FILES
+        Headers/ioP.h Headers/fileP.h Headers/formioP.h
+        Headers/hostsP.h
+        Headers/iosockP.h Headers/ixTreeP.h
+        Headers/consP.h Headers/lockableP.h
+        Headers/managedP.h Headers/objectP.h
+        Headers/pairP.h
+        Headers/pipeP.h
+        Headers/stringBufferP.h
+        Headers/unistrP.h
+        Headers/pp.h
         )
 
 set(SOURCE_FILES
@@ -40,6 +52,7 @@ set(SOURCE_FILES
         locked.c
         managed.c
         object.c
+        options.c
         pair.c
         pipe.c
         pool.c
@@ -60,9 +73,10 @@ set(SOURCE_FILES
         ${FLEX_JsonTokeniser_OUTPUTS}
 
         base64.c
+        ${PUBLIC_HEADERS}
         ${HEADER_FILES})
 
 add_library(ooio STATIC ${SOURCE_FILES})
 
 install(TARGETS ooio DESTINATION lib)
-install(FILES integer.h logical.h retcode.h unicode.h DESTINATION include)
+install(FILES ${PUBLIC_HEADERS} DESTINATION include/star)

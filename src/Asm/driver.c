@@ -9,7 +9,7 @@
 
 #include <stdlib.h>
 
-extern int ssparse(ioPo file, pkgPo *pkg);
+extern int ssparse(ioPo file, pkPo *pkg);
 
 static void initStdUri();
 
@@ -18,7 +18,7 @@ retCode parseContent(char *path) {
   ioPo file = openInFile(path, utf8Encoding);
 
   if (file != Null) {
-    pkgPo pkg = Null;
+    pkPo pkg = Null;
     ssparse(file, &pkg);
 
     if (debugAssem)

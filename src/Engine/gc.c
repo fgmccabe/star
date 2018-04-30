@@ -62,6 +62,15 @@ static void swapHeap(heapPo H) {
   }
 }
 
+static logical inSwappedHeap(heapPo H,termPo x){
+  switch(H->allocMode){
+    case lowerHalf:
+      return (logical)(x>=H->limit&&x<H->outerLimit);
+    case upperHalf:
+      return (logical)(x>=H->base && x<H->start);
+  }
+}
+
 retCode gcCollect(heapPo H, long amount) {
   GCSupport GCSRec = {.H=H, .oCnt=0};
   gcSupportPo G = &GCSRec;
@@ -74,7 +83,7 @@ retCode gcCollect(heapPo H, long amount) {
   swapHeap(H);
 
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory && H->owner != Null)
     verifyProc(H->owner);
 
   gcCount++;
@@ -86,12 +95,12 @@ retCode gcCollect(heapPo H, long amount) {
   markLabels(G);
   markGlobals(G);
 
-  markProcess(H->owner, G);
+  if (H->owner != Null)
+    markProcess(H->owner, G);
 
 #ifdef TRACEMEM
   if (traceMemory) {
-    outMsg(logFile, "%d objects found in mark phase of %T\n",
-           G->oCnt, &H->owner->thread);
+    outMsg(logFile, "%d objects found in mark phase\n",G->oCnt);
     flushFile(logFile);
   }
 #endif
@@ -101,7 +110,7 @@ retCode gcCollect(heapPo H, long amount) {
     t = scanTerm(G, t);
 
 #ifdef TRACEMEM
-  if (traceMemory)
+  if (traceMemory && H->owner!=Null)
     verifyProc(H->owner);
 #endif
 
@@ -123,23 +132,31 @@ retCode gcCollect(heapPo H, long amount) {
 termPo markPtr(gcSupportPo G, ptrPo p) {
   termPo t = *p;
 
-  if (hasMoved(t))
-    return movedTo(t);
-  else if (inHeap(G->H, t)) {
-    if (isSpecialClass(t->clss)) {
-      specialClassPo special = (specialClassPo) t->clss;
-      termPo nn = G->H->curr;
-      G->H->curr = special->copyFun(special, nn, t);
-      markMoved(t, nn);
-      return nn;
+  if(t!=Null) {
+    if (hasMoved(t))
+      return movedTo(t);
+    else if (inSwappedHeap(G->H, t)) {
+      if (isSpecialClass(t->clss)) {
+        specialClassPo special = (specialClassPo) t->clss;
+        termPo nn = G->H->curr;
+        G->H->curr = special->copyFun(special, nn, t);
+        markMoved(t, nn);
+        return nn;
+      } else {
+
+        G->oCnt++;
+
+        labelPo lbl = C_LBL((termPo) t->clss);
+        integer size = NormalCellCount(lbl->arity);
+        termPo nn = G->H->curr;
+        memcpy(nn, t, termSize(C_TERM(t)) * sizeof(termPo));
+        G->H->curr += size;
+        markMoved(t, nn);
+        return nn;
+      }
     } else {
-      labelPo lbl = C_LBL((termPo) t->clss);
-      integer size = NormalCellCount(lbl->arity);
-      termPo nn = G->H->curr;
-      memcpy(nn, t, termSize(C_TERM(t)) * sizeof(termPo));
-      G->H->curr += size;
-      markMoved(t, nn);
-      return nn;
+      // scanTerm(G,t);
+      return t;
     }
   } else
     return t;
@@ -147,7 +164,7 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
 
 static logical hasMoved(termPo t) {
   uint64 ix = (uint64) t->clss;
-  return (logical) ((ix & 1) == 1);
+  return (logical) ((ix & (uint64) 1) == (uint64) 1);
 }
 
 static termPo movedTo(termPo t) {
@@ -168,6 +185,7 @@ static retCode markScanHelper(ptrPo arg, void *c) {
 }
 
 static termPo scanTerm(gcSupportPo G, termPo x) {
+  G->oCnt++;
   if (isSpecialClass(x->clss)) {
     specialClassPo sClass = (specialClassPo) classOf(x);
     return sClass->scanFun(sClass, markScanHelper, G, x);
@@ -197,8 +215,8 @@ static void markProcess(processPo P, gcSupportPo G) {
   ptrPo t = P->sp;
   framePo f = P->fp;
 
-  while (t > (ptrPo) P->stackBase) {
-    while (t > (ptrPo) f) {
+  while (t < (ptrPo) P->stackLimit) {
+    while (t < (ptrPo) f) {
       *t = markPtr(G, t);
       t++;
     }
@@ -221,13 +239,12 @@ void verifyProc(processPo P) {
   ptrPo t = P->sp;
   framePo f = P->fp;
 
-  while (t > (ptrPo) P->stackBase) {
-    while (t > (ptrPo) f) {
+  while (t < (ptrPo) P->stackLimit) {
+    while (t < (ptrPo) f) {
       validPtr(H, *t);
       t++;
     }
 
-    integer off = insOffset(f->prog, f->rtn);
     validPtr(H, (termPo) f->prog);
 
     t = (ptrPo) f + 1;

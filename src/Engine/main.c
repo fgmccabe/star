@@ -17,7 +17,7 @@
 #include "strP.h"
 #include "debug.h"
 
-char copyRight[] = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0\n";
+char copyRight[] = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0";
 
 int main(int argc, char **argv) {
   int narg;
@@ -34,7 +34,6 @@ int main(int argc, char **argv) {
   initLogfile("-");
 
   if ((narg = getOptions(argc, argv)) < 0) {
-    usage(argv[0]);
     exit(1);
   }
 
@@ -55,6 +54,7 @@ int main(int argc, char **argv) {
   defltRepoDir();
 
   installMsgProc('M', showMtdLbl);
+  installMsgProc('L', showLoc);
 
   /* IMPORTANT -- Keep the order of these set up calls */
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   char errMsg[MAXLINE];
 
   if (loadPackage(bootPkg, bootVer, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load boot pkg %s/%s: %sn", bootPkg, bootVer, errMsg);
+    logMsg(logFile, "Could not load boot pkg %s/%s: %s", bootPkg, bootVer, errMsg);
     exit(99);
   }
 

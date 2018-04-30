@@ -22,7 +22,6 @@ logical enableVerify = True;  // true if we wish to enable code verification
 // symbolic insDebugging generation
 logical traceVerify = False;  // true if tracing code verification
 logical traceMessage = False;  // true if tracing message passing
-logical tracePut = False;  // true if tracing term freeze
 logical traceLock = False;  /* true if tracing locks */
 logical traceManifest = False;
 logical tracePkg = False;
@@ -37,9 +36,6 @@ char bootVer[MAX_SYMB_LEN] = "*";
 char entry[MAX_SYMB_LEN] = "star.boot@__boot";  // entry point class
 char debugPkg[MAX_SYMB_LEN] = "";  // Standard debug package
 
-static int optCount = 0;                /* How many do we have? */
-static integer parseSize(char *text);
-
 static retCode displayVersion(char *option, logical enable, void *cl) {
   return outMsg(logFile, "%s", version);
 }
@@ -48,7 +44,7 @@ static logical isDigit(char ch) {
   return (logical) (ch >= '0' && ch <= '9');
 }
 
-integer parseSize(char *text) {
+static integer parseSize(char *text) {
   char *p = text;
   integer scale = 1;
   while (*p != '\0' && isDigit(*p))
@@ -69,9 +65,8 @@ integer parseSize(char *text) {
         break;
       default:;
     }
-    *p = '\0';
   }
-  return parseInteger(text,uniStrLen(text))*scale;
+  return parseInteger(text, (integer) (p - text)) * scale;
 }
 
 void defltCWD() {
@@ -125,18 +120,9 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'l':    /* trace synch locks */
 #ifdef LOCKTRACE
         traceLock = True;
-              continue;
-#else
-        logMsg(logFile, "sync tracing not enabled");
-        return Error;
-#endif
-
-      case 'p':    /* trace put-style operations */
-#ifdef TRACEEXEC
-        tracePut = True;
         continue;
 #else
-      logMsg(logFile, "put tracing not enabled");
+      logMsg(logFile, "sync tracing not enabled");
       return Error;
 #endif
 
@@ -150,7 +136,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       return Error;
 #endif
 
-      case 'g':    /* Internal symbolic insDebugging */
+      case 'g':    /* Internal symbolic debugging */
         lineDebugging = True;
         interactive = True;
         continue;
@@ -193,7 +179,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
           stressMemory = True;
         else
           traceMemory = True;
-        tracePut = True;              /* term freeze */
         tracePkg = True;
         continue;
 #else
@@ -248,7 +233,9 @@ static retCode setVerify(char *option, logical enable, void *cl) {
 }
 
 static retCode setHeapSize(char *option, logical enable, void *cl) {
-  initHeapSize = parseSize(optarg);
+  initHeapSize = parseSize(option);
+  if (initHeapSize == 0)
+    return Error;
   return Ok;
 }
 
@@ -273,12 +260,11 @@ Option options[] = {
 
 logical lineDebugging = False;
 
+static void showStar(ioPo out) {
+  outMsg(out, "star - %s", copyRight);
+}
+
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
-  return processOptions(argc, argv, options, NumberOf(options));
+  return processOptions(copyRight, argc, argv, options, NumberOf(options));
 }
-
-void usage(char *name) {
-  showUsage(name, options, NumberOf(options));
-}
-

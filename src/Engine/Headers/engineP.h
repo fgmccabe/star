@@ -31,7 +31,6 @@ typedef struct _processRec_ {
   threadPo thread;    // What is the thread associated with this process
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
-  logical hasEnter;   // False between call and enter
   logical tracing;
 #endif
 } ProcessRec;

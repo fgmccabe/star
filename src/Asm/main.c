@@ -31,7 +31,6 @@ int main(int argc, char **argv) {
   }
 
   if ((narg = getOptions(argc, argv)) < 0) {
-    usage(argv[0]);
     exit(1);
   }
 
@@ -51,7 +50,6 @@ int main(int argc, char **argv) {
     parseContent(path);
 
     reportErrorCount();
-  } else
-    usage(argv[0]);
+  }
 }
 

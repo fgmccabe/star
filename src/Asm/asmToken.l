@@ -19,6 +19,8 @@
 #include <math.h>
 #include <unistr.h>
 #include <assemP.h>
+#include <assem.h>
+#include <code.h>
 
 #include <assem.h>
 
@@ -100,7 +102,6 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 
 "call"        RT(CALL);
 "ocall"       RT(OCALL);
-"enter"       RT(ENTER);
 "escape"      RT(ESCAPE);
 "tail"        RT(TAIL);
 "otail"       RT(OTAIL);

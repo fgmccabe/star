@@ -224,7 +224,7 @@ termPo sliceList(heapPo H, listPo list, integer from, integer count) {
   return (termPo) slice;
 }
 
-static termPo duplicateBase(heapPo H, basePo ob, integer length);
+static termPo duplicateBase(heapPo H, basePo ob, integer delta);
 
 listPo appendToList(heapPo H, listPo list, termPo el) {
   basePo base = C_BASE(list->base);
@@ -243,11 +243,10 @@ listPo appendToList(heapPo H, listPo list, termPo el) {
     }
     releaseHeapLock(H);
   }
-  integer newLen = list->length + (list->length >> 3);
-  basePo nb = (basePo) duplicateBase(H, base, newLen);
+  basePo nb = (basePo) duplicateBase(H, base, (list->length>>3)+1);
   nb->els[nb->max++] = el;
   gcAddRoot(H, (ptrPo) (&nb));
-  listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max);
+  listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max-nb->min);
   gcReleaseRoot(H, root);
   return slice;
 }
@@ -270,11 +269,10 @@ listPo addToList(heapPo H, listPo list, termPo el) {
     }
     releaseHeapLock(H);
   }
-  integer newLen = list->length + (list->length >> 3);
-  basePo nb = (basePo) duplicateBase(H, base, newLen);
+  basePo nb = (basePo) duplicateBase(H, base, (list->length >> 3)+1);
   nb->els[nb->max++] = el;
   gcAddRoot(H, (ptrPo) (&nb));
-  listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max);
+  listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max-nb->min);
   gcReleaseRoot(H, root);
   return slice;
 }
@@ -296,11 +294,10 @@ termPo prependToList(heapPo H, listPo list, termPo el) {
     }
     releaseHeapLock(H);
   }
-  integer newLen = list->length + (list->length >> 3);
-  basePo nb = (basePo) duplicateBase(H, base, newLen);
+  basePo nb = (basePo) duplicateBase(H, base, (list->length>>3)+1);
   nb->els[--nb->min] = el;
   gcAddRoot(H, (ptrPo) (&nb));
-  listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max);
+  listPo slice = (listPo) newSlice(H, nb, nb->min, list->length+1);
   gcReleaseRoot(H, root);
   return (termPo) slice;
 }
@@ -413,19 +410,20 @@ termPo allocateBase(heapPo H, integer length, logical safeMode) {
   return (termPo) base;
 }
 
-termPo duplicateBase(heapPo H, basePo ob, integer length) {
+termPo duplicateBase(heapPo H, basePo ob, integer delta) {
   int root = gcAddRoot(H, (ptrPo) (&ob));
-  basePo base = (basePo) allocateObject(H, baseClass, BaseCellCount(length));
+  integer newLen = ob->length+delta;
+  basePo base = (basePo) allocateObject(H, baseClass, BaseCellCount(newLen));
 
   integer ocount = ob->max - ob->min;
 
   assert(ocount >= 0);
 
-  integer extra = length - ocount;
+  integer extra = newLen - ocount;
 
   base->min = extra / 2;
   base->max = base->min + ocount;
-  base->length = length;
+  base->length = newLen;
 
   for (integer ix = 0; ix < ocount; ix++) {
     base->els[base->min + ix] = ob->els[ob->min + ix];

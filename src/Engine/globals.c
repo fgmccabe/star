@@ -169,7 +169,7 @@ termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
 static void markGlobal(globalPo glb, gcSupportPo G) {
   if (glb->content != Null)
-    markPtr(G, (ptrPo) &glb->content);
+    glb->content = markPtr(G, (ptrPo) &glb->content);
 }
 
 void markGlobals(gcSupportPo G) {

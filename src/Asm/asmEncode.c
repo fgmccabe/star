@@ -59,7 +59,7 @@ static retCode encodeImports(ioPo out, hashPo imports) {
   return ProcessTable(encImport, imports, out);
 }
 
-retCode encodePkg(ioPo out, pkgPo pkg) {
+retCode encodePkg(ioPo out, pkPo pkg) {
   bufferPo str = newStringBuffer();
   tryRet(encodeTplCount(O_IO(str), 4));
   tryRet(encodePkgName(O_IO(str), &pkg->pkg));
@@ -87,13 +87,13 @@ static retCode encodeTplCount(ioPo out, integer cnt) {
 }
 
 retCode encodeMethod(ioPo out, mtdPo mtd) {
-  assert(mtd->sig == 1);
-
   tryRet(encodeCons(out, 6));
-  tryRet(encodeStrct(out, "#code", 6));
+  tryRet(encodeTplCount(out, 6));
   tryRet(encodeStrct(out, (char *) mtd->name.name, mtd->name.arity)); /* signal tag w/name */
 
   tryRet(encodeInt(out, mtd->sig));        /* Constant id for the type signature */
+
+  tryRet(encodeInt(out, mtd->lclCount));   // how many locals
 
   tryRet(encodeTplCount(out, codeSize(mtd)));
   for (assemInsPo pc = mtd->first; pc != Null; pc = pc->next) {
@@ -103,11 +103,6 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   tryRet(encodeTplCount(out, poolCount(mtd)));
   for (consPo con = mtd->constants; con != nilList; con = tail(con)) {
     tryRet(encodeConstant(out, (constPo) head(con)));
-  }
-
-  tryRet(encodeTplCount(out, frameCount(mtd)));
-  for (assemInsPo pc = mtd->first; pc != Null; pc = pc->next) {
-    tryRet(encodeFrame(out, mtd, pc));
   }
 
   tryRet(encodeTplCount(out, localCount(mtd))); /* Number of local var records */

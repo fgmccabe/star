@@ -19,7 +19,7 @@
 %debug
 
 %parse-param { ioPo asmFile }
-%parse-param { pkgPo *pkg }
+%parse-param { pkPo *pkg }
 %lex-param { ioPo asmFile }
 
 %define api.prefix {ss}
@@ -37,7 +37,7 @@
  }
 
 %{
-  static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo *p, char const *errmsg);
+  static void yyerror(YYLTYPE *loc,ioPo asmFile,pkPo *p, char const *errmsg);
   extern int sslex (YYSTYPE * asmlval_param,YYLTYPE * asmlloc_param, ioPo asmFile);
 
   #define locOf(asmloc)							\
@@ -53,7 +53,7 @@
 %token PUBLIC PKG IMPORT
 
 %token HALT
-%token CALL OCALL TAIL OTAIL ENTER ESCAPE
+%token CALL OCALL TAIL OTAIL ESCAPE
 %token RET JMP CASE
 %token DROP DUP PULL ROT RST BF BT CMP
 
@@ -97,7 +97,7 @@
 
  function: header instructions trailer ;
 
- header: ID SLASH DECIMAL DCOLON signature nls { currMtd = defineMethod(*pkg,$1,$3,$5); }
+ header: ID SLASH DECIMAL DCOLON signature COLON DECIMAL nls { currMtd = defineMethod(*pkg,$1,$3,$7,$5); }
 
  instructions: instructions instruction nls
      | instructions error nls
@@ -123,7 +123,6 @@ trailer: END nls { endFunction(currMtd); }
    | ESCAPE libName { AEscape(currMtd,$2); }
    | TAIL literal { ATail(currMtd,$2); }
    | OTAIL DECIMAL { AOTail(currMtd,42); }
-   | ENTER DECIMAL { AEnter(currMtd,$2); }
    | RET { ARet(currMtd); }
    | JMP label { AJmp(currMtd,$2); }
    | BF label { ABf(currMtd,$2); }
@@ -184,7 +183,7 @@ trailer: END nls { endFunction(currMtd); }
 
 %%
 
-static void yyerror(YYLTYPE *loc,ioPo asmFile,pkgPo *p, char const *errmsg)
+static void yyerror(YYLTYPE *loc,ioPo asmFile,pkPo *p, char const *errmsg)
 {
   reportError(loc->first_line,"%s\n",errmsg);
 }

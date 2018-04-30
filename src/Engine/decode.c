@@ -592,27 +592,31 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       return res;
     }
     case dtaTrm: {
-      termPo class;
+      termPo lbl;
       integer arity;
 
       if ((res = decInt(in, &arity)) != Ok) /* How many arguments in the class */
         return res;
 
-      if ((res = decode(in, S, H, &class, tmpBuffer)) != Ok)
+      if ((res = decode(in, S, H, &lbl, tmpBuffer)) != Ok)
         return res;
 
       if (res == Ok) {
-        if (labelArity(C_LBL(class)) != arity)
+        if (labelArity(C_LBL(lbl)) != arity)
           res = Error;
       }
 
       if (res == Ok) {
-        int root = gcAddRoot(H, &class);
-        normalPo obj = allocateStruct(H, C_LBL(class));
+        int root = gcAddRoot(H, &lbl);
+        normalPo obj = allocateStruct(H, C_LBL(lbl));
         *tgt = (termPo) (obj);
 
         termPo el = voidEnum;
         gcAddRoot(H, &el);
+
+        // In case of GC, we mark all the elements as void before doing any decoding
+        for(integer ix=0;ix<arity;ix++)
+          setArg(obj,ix,voidEnum);
 
         for (integer i = 0; res == Ok && i < arity; i++) {
           res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */

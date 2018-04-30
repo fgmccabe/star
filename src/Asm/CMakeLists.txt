@@ -42,4 +42,4 @@ set(SOURCE_FILES
 add_executable(asm ${SOURCE_FILES})
 target_link_libraries(asm ooio infra)
 
-install(TARGETS asm DESTINATION lib)
+install(TARGETS asm DESTINATION lib/star)
