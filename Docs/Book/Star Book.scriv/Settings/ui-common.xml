@@ -2,7 +2,7 @@
 <UIStates>
     <Binder Show="Yes">
         <ShowCollections>No</ShowCollections>
-        <SelectedCollection>0</SelectedCollection>
+        <SelectedCollection>1</SelectedCollection>
         <SubdocumentCounts>No</SubdocumentCounts>
         <ExpandedItems>
             <ItemID>7A583553-3A84-40D6-B9B9-0430B8CD3E39</ItemID>
@@ -106,11 +106,11 @@
             <View>
                 <ShowHeader>Yes</ShowHeader>
                 <ShowFooter>Yes</ShowFooter>
-                <GroupsViewMode>Scrivenings</GroupsViewMode>
-                <CurrentViewMode>Scrivenings</CurrentViewMode>
+                <GroupsViewMode>Single</GroupsViewMode>
+                <CurrentViewMode>Single</CurrentViewMode>
                 <SelectionAffects>None</SelectionAffects>
                 <Content>
-                    <ItemID>65021070-164A-464B-943A-3D18D18C241F</ItemID>
+                    <ItemID>74D57ED7-FB6B-40BF-BD6F-41EF3422DD09</ItemID>
                 </Content>
             </View>
             <Text>
