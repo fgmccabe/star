@@ -2,6 +2,7 @@
 
 :- use_module(abstract).
 :- use_module(wff).
+:- use_module(macro).
 :- use_module(dependencies).
 :- use_module(freshen).
 :- use_module(unify).
@@ -517,6 +518,10 @@ typeOfPtn(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
   genTpVars(A,ArgTps),
   checkType(Lc,tupleType(ArgTps),Tp,Env),
   typeOfPtns(A,ArgTps,Env,Ev,Lc,Els,Path).
+typeOfPtn(Term,Tp,Env,Ev,Ptn,Path) :-
+  isOptionPtn(Term,Lc,Pt,Ex),
+  mkWherePtn(Lc,Pt,Ex,Trm),
+  typeOfPtn(Trm,Tp,Env,Ev,Ptn,Path).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   newTypeVar("F",FnTp),
@@ -530,7 +535,8 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
     evidence(At,E0,_,AT),
     typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
     Exp = apply(Lc,Fun,Args);
-   reportError("invalid term %s in pattern",[Fun],Lc)).
+   reportError("invalid term %s in pattern",[Fun],Lc),
+   Exp=v(Lc,"_")).
 typeOfPtn(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal pattern: %s, expecting a %s",[Term,Tp],Lc).
@@ -692,7 +698,7 @@ typeOfExp(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   newTypeVar("_#",TV),
-  typeOfExp(P,TV,Env,E0,Lhs,Path),
+  typeOfPtn(P,TV,Env,E0,Lhs,Path),
   typeOfExp(E,TV,E0,Ev,Rhs,Path).
 typeOfExp(Term,Tp,E0,Ev,parse(Lc,Lhs,Rhs),Path) :-
   isParse(Term,Lc,P,E),!,

@@ -6,7 +6,7 @@
       braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,isEmptyBrace/1,
       qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
       squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,
-      isName/2,isIden/1,isIden/2,isIden/3,genIden/2,isString/2,isInteger/2,
+      isName/2,isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,isInteger/2,
       isConsTerm/4,
       sameTerm/2,
       explodeString/2]).
@@ -54,7 +54,7 @@ isTernary(app(_,name(_,Op),tuple(_,"()",[L,M,R])),Op,L,M,R).
 
 ternary(Lc,Op,L,M,R,app(Lc,name(Lc,Op),tuple(Lc,"()",[L,M,R]))).
 
-nary(Lc,Op,Args,app(Lc,name(Lc,Op),tuple(Lc,"()",Args))).
+nary(Lc,Op,Args,app(Lc,Op,tuple(Lc,"()",Args))).
 
 braceTerm(Lc,Op,Els,app(Lc,Op,tuple(Lc,"{}",Els))).
 
@@ -104,7 +104,10 @@ isIden(name(Lc,Nm),Lc,Nm).
 isIden(tuple(Lc,"()",[name(_,Nm)]),Lc,Nm).
 
 genIden(Lc,name(Lc,Id)) :-
-  genstr("N",Id).
+  genstr("_N",Id).
+
+genIden(Lc,Pre,name(Lc,Id)) :-
+  genstr(Pre,Id).
 
 isString(string(_,St),St).
 

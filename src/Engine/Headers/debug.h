@@ -8,6 +8,8 @@
 #include "engine.h"
 
 extern termPo insLit(processPo p);
+extern int32 insOperand(processPo p);
+extern termPo getLbl(termPo lbl,int32 arity);
 
 extern DebugWaitFor insDebug(integer pcCount, processPo p);
 extern DebugWaitFor lineDebug(processPo p, termPo ln);

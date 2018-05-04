@@ -20,6 +20,10 @@ encodeTerm(ctpl(Con,Els),['n'|O],Ox) :-
   encodeInt(Ln,O,O1),
   encodeTerm(Con,O1,O2),
   encodeTerms(Els,O2,Ox).
+encodeTerm(lst(Els),['l'|O],Ox) :-
+  length(Els,Ln),
+  encodeInt(Ln,O,O1),
+  encodeTerms(Els,O1,Ox).
 
 encodeTerms([],O,O).
 encodeTerms([T|R],O,Ox) :-

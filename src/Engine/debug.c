@@ -26,7 +26,7 @@ static void markBpOutOfUse(breakPointPo b);
 
 static void showCall(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp);
 static void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp);
-static void showRet(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp);
+static void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp);
 
 static void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 static void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp);
@@ -624,22 +624,22 @@ static retCode shCall(ioPo out, char *msg, methodPo mtd, framePo fp, ptrPo sp) {
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
-    tryRet(outMsg(out, "%s%T", sep, fp->args[ix]));
+    tryRet(outMsg(out, "%s%T", sep, sp[ix]));
     sep = ", ";
   }
   return outMsg(out, ")");
 }
 
 void showCall(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  shCall(out, "call: ", mtd, fp, sp);
+  shCall(out, "call: ", labelCode(C_LBL(call)), fp, sp);
 }
 
 void showTail(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  shCall(out, "tail: ", mtd, fp, sp);
+  shCall(out, "tail: ", labelCode(C_LBL(call)), fp, sp);
 }
 
-void showRet(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  outMsg(out, "return: %T->%T", mtd, call);
+void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp) {
+  outMsg(out, "return: %T->%T", mtd, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm, framePo fp, ptrPo sp);
@@ -648,6 +648,16 @@ termPo insLit(processPo p) {
   insPo pc = p->pc + 1;
   int32 ix = collect32(&pc);
   return getMtdLit(p->prog, ix);
+}
+
+int32 insOperand(processPo p) {
+  insPo pc = p->pc + 1;
+  return collect32(&pc);
+}
+
+termPo getLbl(termPo lbl, int32 arity) {
+  labelPo oLbl = isNormalPo(lbl) ? termLbl(C_TERM(lbl)) : C_LBL(lbl);
+  return (termPo) declareLbl(oLbl->name, arity);
 }
 
 static DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show);

@@ -8,15 +8,13 @@
 
 /*
  Decided by a leading 'flag' byte which encodes a type indicator:
- 'a': Unbound variable
  'x': Integer
  'd': Floating point
- 'e': Identifier
+ 'e': Enum symbol
  's': String
- 'o': Constructor specifier
- 'p': Program specifier
+ 'o': Constructor label
  'n': Term
- '#': Code
+ 'l': List
 */
 
 decodeValue(Txt,Val) :-
@@ -29,6 +27,7 @@ decodeTerm(enum(Nm)) --> ['e'], decodeText(Nm).
 decodeTerm(strg(Txt)) --> ['s'], decodeText(Txt).
 decodeTerm(lbl(Nm,Ar)) --> ['o'], decInt(Ar), decodeText(Nm).
 decodeTerm(ctpl(Con,Els)) --> ['n'], decInt(Len), decodeTerm(Con), decTerms(Len,Els).
+decodeTerm(lst(Els)) --> ['l'], decInt(Len), decTerms(Len,Els).
 
 decTerms(0,[]) --> [].
 decTerms(Count,[D|M]) --> { Count>0}, decodeTerm(D), { C is Count-1}, decTerms(C,M).

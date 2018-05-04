@@ -1,124 +1,128 @@
-:-module(freevars,[freeVars/4,definedVars/3]).
+:-module(freevars,[freeVars/5]).
 
 :- use_module(misc).
 :- use_module(escapes).
 
-freeVars(v(Lc,Lb),Q,F,Fv) :-
+%! freeVars(++,++,++,--) is det.
+freeVars(v(_Lc,Lb),Ex,Q,F,Fv) :-
   \+ isEscape(Lb),
-  \+(is_member(v(_,Lb),Q);is_member(lbl(Lb,_),Q)),!,
-  (is_member(v(_,Lb),F) -> F=Fv ; Fv=[v(Lc,Lb)|F]).
-freeVars(v(_,_),_,F,F).
-freeVars(enm(_,_),_,F,F).
-freeVars(cns(_,_),_,F,F).
-freeVars(intLit(_),_,F,F).
-freeVars(floatLit(_),_,F,F).
-freeVars(stringLit(_),_,F,F).
-freeVars(tple(_,Els),Q,F,FV) :- freeVarsList(Els,Q,F,FV).
-freeVars(apply(_,Op,A),Q,F,FV) :- freeVars(Op,Q,F,F0), freeVars(A,Q,F0,FV).
-freeVars(dot(_,Rc,_),Q,F,FV) :- freeVars(Rc,Q,F,FV).
-freeVars(where(_,T,C),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,FV).
-freeVars(cond(_,C,T,E),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(C,Q,F0,F1),freeVars(E,Q,F1,FV).
-freeVars(lambda(_,Rls,_),Q,F,FV) :- freeVarsInRules(Rls,Q,F,FV).
-freeVars(cond(_,T,L,R),Q,F,FV) :- freeVars(T,Q,F,F0),freeVars(L,Q,F0,F1),freeVars(R,Q,F1,FV).
-freeVars(conj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
-freeVars(disj(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
-freeVars(neg(_,L),Q,F,FV) :- freeVars(L,Q,F,FV).
-freeVars(match(_,L,R),Q,F,FV) :- freeVars(L,Q,F,F0),freeVars(R,Q,F0,FV).
-freeVars(theta(_,_,Defs,Others,_,_),Q,F,Fv) :-
-  definedVars(Defs,Q,Q1),
-  freeVarsInDefs(Defs,Q1,F,F0),
-  freeVarsInOthers(Others,Q1,F0,Fv).
-freeVars(record(_,_,Defs,Others,_,_),Q,F,Fv) :-
-  definedVars(Defs,Q,Q1),
-  freeVarsInDefs(Defs,Q1,F,F0),
-  freeVarsInOthers(Others,Q1,F0,Fv).
+  is_member(idnt(Lb),Q),!,
+  \+is_member(idnt(Lb),Ex),
+  (is_member(v(_,Lb),F) -> F=Fv ; Fv=[idnt(Lb)|F]).
+freeVars(v(_,_),_,_,F,F).
+freeVars(enm(_,_),_,_,F,F).
+freeVars(cns(_,_),_,_,F,F).
+freeVars(intLit(_),_,_,F,F).
+freeVars(floatLit(_),_,_,F,F).
+freeVars(stringLit(_),_,_,F,F).
+freeVars(tple(_,Els),Ex,Q,F,FV) :- freeVarsList(Els,Ex,Q,F,FV).
+freeVars(apply(_,Op,A),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,FV).
+freeVars(dot(_,Rc,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
+freeVars(where(_,T,C),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),freeVars(T,E1,Q,F,F0),freeVars(C,E1,Q,F0,FV).
+freeVars(cond(_,C,T,E),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),freeVars(T,E1,Q,F,F0),freeVars(C,E1,Q,F0,F1),freeVars(E,Ex,Q,F1,FV).
+freeVars(lambda(_,Rls,_),Ex,Q,F,FV) :- freeVarsInRules(Rls,Ex,Q,F,FV).
+freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),Ex,E1),freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
+freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
+freeVars(neg(_,L),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,FV).
+freeVars(match(_,L,R),Ex,Q,F,FV) :- ptnVars(L,Ex,Ex1), freeVars(L,Ex1,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
+freeVars(theta(_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeVarsInOthers(Others,Ex1,Q,F0,Fv).
+freeVars(record(_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
+  definedVars(Defs,Ex,Ex1),
+  freeVarsInDefs(Defs,Ex1,Q,F,F0),
+  freeVarsInOthers(Others,Ex1,Q,F0,Fv).
 
 definedVars(Defs,Q,Qx) :-
-  varsInList(Defs,freevars:defVar,[],Q,Qx).
+  varsInList(Defs,freevars:defVar,Q,Qx).
 
-defVar(funDef(Lc,Nm,_,_,_,_),_,Q,[v(Lc,Nm)|Q]).
-defVar(ptnDef(Lc,Nm,_,_,_,_),_,Q,[v(Lc,Nm)|Q]).
-defVar(varDef(Lc,Nm,_,_,_,_),_,Q,[v(Lc,Nm)|Q]).
-defVar(_,_,Q,Q).
+defVar(funDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
+defVar(ptnDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
+defVar(varDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
+defVar(_,Q,Q).
 
-freeVarsInDefs(L,Q,F,Fv) :-
-  varsInList(L,freevars:freeVarsInDef,Q,F,Fv).
+freeVarsInDefs(L,Ex,Q,F,Fv) :-
+  varsInList(L,freevars:freeVarsInDef(Ex,Q),F,Fv).
 
-freeVarsInOthers(L,Q,F,Fv) :-
-  varsInList(L,freevars:freeVarsInOther,Q,F,Fv).
+freeVarsInOthers(L,Ex,Q,F,Fv) :-
+  varsInList(L,freevars:freeVarsInOther(Ex,Q),F,Fv).
 
-freeVarsInDef(funDef(_,_,_,_,_,Eqns),Q,F,Fv) :-
-  freeVarsInRules(Eqns,Q,F,Fv).
-freeVarsInDef(ptnDef(_,_,_,_,_,Rls),Q,F,Fv) :-
-  freeVarsInRules(Rls,Q,F,Fv).
-freeVarsInDef(varDef(_,_,_,_,_,Value),Q,F,Fv) :-
-  freeVars(Value,Q,F,Fv).
-freeVarsInDef(_,_,F,F).
+freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,Eqns),F,Fv) :-
+  freeVarsInRules(Eqns,Ex,Q,F,Fv).
+freeVarsInDef(Ex,Q,ptnDef(_,_,_,_,_,Rls),F,Fv) :-
+  freeVarsInRules(Rls,Ex,Q,F,Fv).
+freeVarsInDef(Ex,Q,varDef(_,_,_,_,_,Value),F,Fv) :-
+  freeVars(Value,Ex,Q,F,Fv).
+freeVarsInDef(_,_,_,F,F).
 
-freeVarsInRules(Eqns,Q,F,Fv) :-
-  varsInList(Eqns,freevars:freeVarsInRule,Q,F,Fv).
+freeVarsInRules(Eqns,Ex,Q,F,Fv) :-
+  varsInList(Eqns,freevars:freeVarsInRule(Ex,Q),F,Fv).
 
-freeVarsInRule(equation(_,A,Cond,Exp),Q,F,FV) :-
-  ptnVars(A,Q,Q,Q0),
-  freeVars(A,Q0,F,F0),
-  freeVars(Exp,Q0,F0,F1),
-  freeVars(Cond,Q0,F1,FV).
-freeVarsInRule(ptnRule(_,A,Cond,Ptn),Q,F,FV) :-
-  ptnVars(Ptn,Q,Q,Q0),
-  freeVars(A,Q0,F,F0),
-  freeVars(Ptn,Q0,F0,F1),
-  freeVars(Cond,Q0,F1,FV).
+freeVarsInRule(Ex,Q,equation(_,A,Cond,Exp),F,FV) :-
+  ptnVars(A,Ex,Ex1),
+  freeVars(A,Ex1,Q,F,F0),
+  freeVars(Exp,Ex1,Q,F0,F1),
+  freeVars(Cond,Ex1,Q,F1,FV).
+freeVarsInRule(Ex,Q,ptnRule(_,A,Cond,Ptn),F,FV) :-
+  ptnVars(Ptn,Ex,Ex1),
+  freeVars(A,Ex1,Q,F,F0),
+  freeVars(Ptn,Ex1,Q,F0,F1),
+  freeVars(Cond,Ex1,Q,F1,FV).
 
-freeVarsList(L,Q,F,Fv) :- varsInList(L,freevars:freeVars,Q,F,Fv).
+freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 
-freeVarsInOther(assertion(_,C),Q,F,Fv) :-
-  freeVars(C,Q,F,Fv).
-freeVarsInOther(ignore(_,C),Q,F,Fv) :-
-  freeVars(C,Q,F,Fv).
+frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 
-ptnVars(v(Lc,Lb),F,Q,Qx) :- \+is_member(v(_,Lb),F), add_mem(v(Lc,Lb),Q,Qx).
-ptnVars(v(_,_),_,Q,Q).
-ptnVars(intLit(_),_,Q,Q).
-ptnVars(floatLit(_),_,Q,Q).
-ptnVars(stringLit(_),_,Q,Q).
-ptnVars(enm(_,_),_,Q,Q).
-ptnVars(cns(_,_),_,Q,Q).
-ptnVars(where(_,Ptn,C),F,Q,Qx) :- ptnVars(Ptn,F,Q,Q0), ptnGoalVars(C,F,Q0,Qx).
-ptnVars(tple(_,Els),F,Q,Qx) :- ptnVarsInList(Els,F,Q,Qx).
-ptnVars(apply(_,_,A),F,Q,Qx) :- ptnVars(A,F,Q,Qx).
-ptnVars(theta(_,_,Els,_,_,_),F,Q,Qx) :- ptnVarsInDefs(Els,F,Q,Qx).
-ptnVars(record(_,_,Els,_,_,_),F,Q,Qx) :- ptnVarsInDefs(Els,F,Q,Qx).
+freeVarsInOther(Ex,Q,assertion(_,C),F,Fv) :-
+  freeVars(C,Ex,Q,F,Fv).
+freeVarsInOther(Ex,Q,ignore(_,C),F,Fv) :-
+  freeVars(C,Ex,Q,F,Fv).
+freeVarsInOther(Ex,Q,show(_,C),F,Fv) :-
+  freeVars(C,Ex,Q,F,Fv).
 
-ptnVarsInList([],_,Q,Q).
-ptnVarsInList([P|L],F,Q,Qx) :-
-  ptnVars(P,F,Q,Q0),
-  ptnVarsInList(L,F,Q0,Qx).
+ptnVars(v(_,Lb),Q,Qx) :- add_mem(idnt(Lb),Q,Qx).
+ptnVars(intLit(_),Q,Q).
+ptnVars(floatLit(_),Q,Q).
+ptnVars(stringLit(_),Q,Q).
+ptnVars(enm(_,_),Q,Q).
+ptnVars(cns(_,_),Q,Q).
+ptnVars(where(_,Ptn,C),Q,Qx) :- ptnVars(Ptn,Q,Q0), ptnGoalVars(C,Q0,Qx).
+ptnVars(tple(_,Els),Q,Qx) :- ptnVarsInList(Els,Q,Qx).
+ptnVars(apply(_,_,A),Q,Qx) :- ptnVars(A,Q,Qx).
+ptnVars(theta(_,_,Els,_,_,_),Q,Qx) :- ptnVarsInDefs(Els,Q,Qx).
+ptnVars(record(_,_,Els,_,_,_),Q,Qx) :- ptnVarsInDefs(Els,Q,Qx).
 
-ptnVarsInDefs([],_,Q,Q).
-ptnVarsInDefs([P|L],F,Q,Qx) :-
-  ptnVarsInDef(P,F,Q,Q0),
-  ptnVarsInDefs(L,F,Q0,Qx).
+ptnVarsInList([],Q,Q).
+ptnVarsInList([P|L],Q,Qx) :-
+  ptnVars(P,Q,Q0),
+  ptnVarsInList(L,Q0,Qx).
 
-ptnVarsInDef(varDef(_,_,_,_,_,Value),F,Q,Qx) :-
-  ptnVars(Value,F,Q,Qx).
-ptnVarsInDef(_,_,Q,Q).
+ptnVarsInDefs([],Q,Q).
+ptnVarsInDefs([P|L],Q,Qx) :-
+  ptnVarsInDef(P,Q,Q0),
+  ptnVarsInDefs(L,Q0,Qx).
 
-ptnGoalVars(conj(_,L,R),F,Q,Qx) :-
-  ptnGoalVars(L,F,Q,Q0),
-  ptnGoalVars(R,F,Q0,Qx).
-ptnGoalVars(disj(_,L,R),F,Q,Qx) :-
-  ptnGoalVars(L,F,Q,Q0),
-  ptnGoalVars(R,F,Q0,Qx).
-ptnGoalVars(match(_,L,G),F,Q,Qx) :-
-  ptnVars(L,F,Q,Q0),
-  ptnGoalVars(G,F,Q0,Qx).
-ptnGoalVars(cond(_,T,L,R),F,Q,Qx) :-
-  ptnGoalVars(T,F,Q,Q0),
-  ptnGoalVars(L,F,Q0,Q1),
-  ptnGoalVars(R,F,Q1,Qx).
-ptnGoalVars(_,_,Q,Q).
+ptnVarsInDef(varDef(_,_,_,_,_,Value),Q,Qx) :-
+  ptnVars(Value,Q,Qx).
+ptnVarsInDef(_,Q,Q).
 
-varsInList([],_,_,F,F).
-varsInList([T|L],C,Q,F,Fv) :-
-  call(C,T,Q,F,F0),
-  varsInList(L,C,Q,F0,Fv).
+ptnGoalVars(conj(_,L,R),Q,Qx) :-
+  ptnGoalVars(L,Q,Q0),
+  ptnGoalVars(R,Q0,Qx).
+ptnGoalVars(disj(_,L,R),Q,Qx) :-
+  ptnGoalVars(L,Q,Q0),
+  ptnGoalVars(R,Q0,Qx).
+ptnGoalVars(match(_,L,G),Q,Qx) :-
+  ptnVars(L,Q,Q0),
+  ptnGoalVars(G,Q0,Qx).
+ptnGoalVars(cond(_,T,L,R),Q,Qx) :-
+  ptnGoalVars(T,Q,Q0),
+  ptnGoalVars(L,Q0,Q1),
+  ptnGoalVars(R,Q1,Qx).
+ptnGoalVars(_,Q,Q).
+
+varsInList([],_,F,F).
+varsInList([T|L],C,F,Fv) :-
+  call(C,T,F,F0),
+  varsInList(L,C,F0,Fv).

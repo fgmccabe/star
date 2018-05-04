@@ -81,6 +81,11 @@ int main(int argc, char **argv) {
     atexit(dumpInsCount);
 #endif
 
+#ifdef TRACEMEM
+  if (traceMemory)
+    atexit(dumpGcStats);
+#endif
+
   switch(bootstrap(entry)){
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */

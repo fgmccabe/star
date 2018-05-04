@@ -3,11 +3,12 @@
     isConstrained/3,reConstrain/3,
     isContractStmt/6,isImplementationStmt/6,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
-    isImport/3, isMacro/3,isPrivate/3,isPublic/3,isDefault/4,
+    isImport/3, isMacro/3,isPrivate/3,isPublic/3,
+    isDefault/3,isDefault/4,
     isIntegrity/3,isIgnore/3,isOpen/3,
     isConditional/5,
     isEquation/5,isPtnRule/5,isGrammarRule/5,isDefn/4,isAssignment/4,
-    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,
+    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
     isLetDef/4,isMacroRule/4,
     whereTerm/4,
@@ -161,6 +162,9 @@ isTypeFunStmt(St,Lc,[],[],L,R) :-
 isIntegrity(St,Lc,C) :-
   isUnary(St,Lc,"assert",C).
 
+isDefault(St,Lc,Lhs) :-
+  isUnary(St,Lc,"default",Lhs).
+
 isDefault(St,Lc,Ptn,Val) :-
   isDefn(St,Lc,Lhs,Val),
   isUnary(Lhs,_,"default",Ptn).
@@ -205,6 +209,9 @@ isWhere(Trm,Lc,Lhs,Rhs) :-
 
 whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
+
+isOptionPtn(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,"?.=",Lhs,Rhs),!.
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"::",Lhs,Rhs).

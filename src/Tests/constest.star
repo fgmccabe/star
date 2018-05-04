@@ -7,5 +7,5 @@ test.cons{
 
   -- Test concat
 
-  -- assert cons(1,cons(2,nil)) ++ cons(3,nil) == cons(1,cons(2,cons(3,nil))).
+  assert cons(1,cons(2,nil)) ++ cons(3,nil) == cons(1,cons(2,cons(3,nil))).
 }

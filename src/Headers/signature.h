@@ -55,10 +55,10 @@ typedef enum {
   fltTrm = 'd',        // Floating point value
   strTrm = 's',        // String value
   dtaTrm = 'n',        // Constructor data value
+  lstTrm = 'l',
   lblTrm = 'o',        // A structure label identifier
   enuTrm = 'e',        // An enumerated symbol
 } cafeTermSig;
-
 
 extern logical validSignature(char *s);
 extern retCode

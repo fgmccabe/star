@@ -37,6 +37,7 @@ typedef struct {
   nameProc decLbl;
   stringProc decString;
   consProc decCons;
+  consProc decLst;
 } DecodeCallBacks, *decodeCallBackPo;
 
 retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl);

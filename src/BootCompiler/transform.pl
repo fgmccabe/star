@@ -620,18 +620,17 @@ lambdaLbl(Map,Variant,Nm) :-
   genstr(Variant,V),
   localName(Prefix,"@",V,Nm).
 
-lambdaMap(Lam,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,Exx) :-
+lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,Ex) :-
   extraVars(Map,Extra),
   definedProgs(Map,Df),
-  refineQ(Q,Q0),
-  refineQ(Extra,E0),
-  merge(Df,Q0,Q1),
-  freeVars(Lam,Q1,E0,ThFr),
+  filterVars(Extra,E0),
+  labelVars(Map,Lv),
+  merge(Lv,Q,Q1),
+  freeVars(Lam,Df,Q1,E0,ThFr),
   lambdaLbl(Map,"_lambda",LclName),
   genVar("_ThV",ThVr),
   collectLabelVars(ThFr,ThVr,[],Lx),
-  liftExps(ThFr,ThVars,Extra,ThFr,_,Map,Opts,Ex,Exx),
-  makeLblTerm(LclName,ThVars,LblTerm).
+  makeLblTerm(LclName,ThFr,LblTerm).
 
 mkClosure(Lam,FreeVars,Closure) :-
   length(FreeVars,Ar),
@@ -676,30 +675,27 @@ liftLetExp(Lc,Theta,Bnd,Expr,Q,Qx,Map,Opts,[ThetaFun|Ex],Exx) :-
   functionMatcher(Lc,2,lbl(ThLbl,2),funType(tupleType([anonType,anonType]),Sig),EnRls,ThetaFun),
   liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
 
-thetaMap(Theta,ThVr,Q,Map,Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Exx) :-
+thetaMap(Theta,ThVr,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Ex) :-
   extraVars(Map,Extra),
   definedProgs(Map,Df),
-  refineQ(Q,Q0),
-  refineQ(Extra,E0),
-  merge(Df,Q0,Q1),
-  freeVars(Theta,Q1,E0,ThFr),
+  filterVars(Extra,E0),
+  labelVars(Map,Lv),
+  merge(Lv,Q,Q1),
+  freeVars(Theta,Df,Q1,E0,ThFr),
   thetaLbl(Theta,Map,LclName),
   collectLabelVars(ThFr,ThVr,[],L0),
-  liftExps(ThFr,ThVars,Extra,ThFr,_,Map,Opts,Ex,Exx),
-  makeLblTerm(LclName,ThVars,LblTerm),
+  makeLblTerm(LclName,ThFr,LblTerm),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx,EnRls,[]).
 
 refineQ(Q,Qx) :-
-  filter(Q,transform:notVar,Q0),
-  map(Q0,transform:mkV,Qx).
+  filter(Q,transform:notVar,Qx).
+
+filterVars(Q,Qx) :-
+  filter(Q,transform:isVar,Qx).
 
 notVar(V) :- V\=idnt(_).
 
-mkV(idnt(Nm),v(_,Nm)).
-
-filterVars([],[]) :-!.
-filterVars([V|Vs],[V|Xs]) :- V=idnt(_),!, filterVars(Vs,Xs).
-filterVars([_|Vs],Xs) :- filterVars(Vs,Xs).
+isVar(idnt(_)).
 
 thetaLbl(theta(_,Path,_,_,_,_),_Map,Path).
 thetaLbl(record(_,Path,_,_,_,_),_Map,Path).
@@ -750,7 +746,7 @@ collectMtd(varDef(Lc,Nm,LclName,_,_,_),OuterNm,ThV,List,
 collectMtd(typeDef(_,_,_,_),_,_,List,List,Ex,Ex).
 
 collectLabelVars([],_,List,List).
-collectLabelVars([v(_,Nm)|Args],ThVr,List,Lx) :-
+collectLabelVars([idnt(Nm)|Args],ThVr,List,Lx) :-
   collectLabelVars(Args,ThVr,[(Nm,labelArg(idnt(Nm),ThVr))|List],Lx).
 
 /*

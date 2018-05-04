@@ -1,6 +1,6 @@
 :- module(transUtils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
           lookupVarName/3,lookupFunName/3,lookupPtnName/3,lookupClassName/3,
-          definedProgs/2,
+          definedProgs/2,labelVars/2,
           genVar/2,
           pushOpt/3, isOption/2,layerName/2,
           genVars/2]).
@@ -109,18 +109,33 @@ definedProgs([lyr(_,Defs,_,_)|Map],Pr,Prx) :-
 
 definedInDefs([],Pr,Pr).
 definedInDefs([(Nm,Entry)|Defs],Pr,Prx) :-
-  definedP(Nm,Entry,P),!,
-  (is_member(P,Pr) -> Pr0=Pr ; Pr0=[P|Pr]),
+  definedP(Nm,Entry),!,
+  (is_member(idnt(Nm),Pr) -> Pr0=Pr ; Pr0=[idnt(Nm)|Pr]),
   definedInDefs(Defs,Pr0,Prx).
 definedInDefs([_|Defs],Pr,Prx) :-
   definedInDefs(Defs,Pr,Prx).
 
-definedP(Nm,moduleFun(_,_,Arity),lbl(Nm,Arity)).
-definedP(Nm,localFun(_,_,_,_,Arity),lbl(Nm,Arity)).
-definedP(Nm,modulePtn(_,_,Arity),lbl(Nm,Arity)).
-definedP(Nm,localPtn(_,_,_,_,Arity),lbl(Nm,Arity)).
-definedP(Nm,moduleVar(_),lbl(Nm,0)).
-definedP(Nm,localVar(_,_,_),lbl(Nm,0)).
+definedP(_Nm,moduleFun(_,_,_)).
+definedP(_Nm,localFun(_,_,_,_,_)).
+definedP(_Nm,modulePtn(_,_,_)).
+definedP(_Nm,localPtn(_,_,_,_,_)).
+definedP(_Nm,moduleVar(_)).
+definedP(_Nm,localVar(_,_,_)).
+
+labelVars(Map,Prgs) :-
+  labelVars(Map,[],Prgs).
+
+labelVars([],Pr,Pr).
+labelVars([lyr(_,Defs,_,_)|Map],Pr,Prx) :-
+  labelVarsInDefs(Defs,Pr,Pr0),
+  labelVars(Map,Pr0,Prx).
+
+labelVarsInDefs([],Pr,Pr).
+labelVarsInDefs([(_,labelArg(V,_ThVr))|Defs],Pr,Prx) :-
+  (is_member((V,_),Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
+  labelVarsInDefs(Defs,Pr0,Prx).
+labelVarsInDefs([_|Defs],Pr,Prx) :-
+  labelVarsInDefs(Defs,Pr,Prx).
 
 mergeGoal(enum("star.core#true"),G,_,G).
 mergeGoal(G,enum("star.core#true"),_,G).

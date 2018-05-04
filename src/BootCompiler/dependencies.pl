@@ -10,8 +10,8 @@
 dependencies(Dfs,Groups,Annots) :-
   allRefs(Dfs,[],AllRefs),
   collectThetaRefs(Dfs,AllRefs,Annots,Defs),
-  topsort(Defs,Groups,misc:same).
-  % showGroups(Groups).
+  topsort(Defs,Groups,misc:same),
+  showGroups(Groups).
 
 collectDefinitions([St|Stmts],Defs,P,A,I,Other) :-
   collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,I,I0,Other,O0,dependencies:nop),
@@ -253,6 +253,9 @@ headName(Name,Nm) :-
   \+isKeyword(Nm).
 headName(tuple(_,"()",[Name]),Nm) :-
   headName(Name,Nm).
+headName(Head,Nm) :-
+  isDefault(Head,_,Lhs),
+  headName(Lhs,Nm).
 
 typeName(Tp,Nm) :-
   isBinary(Tp,_,"|:",_,R),

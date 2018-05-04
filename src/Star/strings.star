@@ -1,5 +1,6 @@
 star.strings{
   import star.core.
+  import star.coerce.
 
   -- and strings ...
   public implementation equality[string] => {
@@ -30,5 +31,9 @@ star.strings{
 
   public implementation concat[string] => {
     S1++S2 => _str_concat(S1,S2).
+  }
+
+  public implementation coercion[string,list[integer]] => {
+    _coerce(S) => _explode(S).
   }
 }

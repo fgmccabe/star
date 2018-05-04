@@ -49,5 +49,6 @@
   keyword("assert").
   keyword("ignore").
   keyword("let").
+  keyword("default").
   keyword("#").
   keyword("$").

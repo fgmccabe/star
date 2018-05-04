@@ -51,4 +51,6 @@ extern void releaseHeapLock(heapPo H);
 
 extern retCode heapSummary(ioPo out,heapPo H);
 
+extern void dumpGcStats();
+
 #endif

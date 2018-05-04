@@ -252,4 +252,6 @@ void verifyProc(processPo P) {
   }
 }
 
-
+void dumpGcStats(){
+  logMsg(logFile,"%d gc collections",gcCount);
+}

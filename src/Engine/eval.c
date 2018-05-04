@@ -54,7 +54,7 @@ retCode run(processPo P) {
           restoreRegisters(P);
           break;
         case OCall: saveRegisters(P);
-          callDebug(P, SP[0]);
+          callDebug(P, getLbl(SP[0], insOperand(P)));
           restoreRegisters(P);
           break;
         case Tail: saveRegisters(P);
@@ -62,7 +62,7 @@ retCode run(processPo P) {
           restoreRegisters(P);
           break;
         case OTail: saveRegisters(P);
-          tailDebug(P, SP[0]);
+          tailDebug(P, getLbl(SP[0],insOperand(P)));
           restoreRegisters(P);
           break;
         case Ret: saveRegisters(P);

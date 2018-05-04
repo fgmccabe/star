@@ -1,18 +1,44 @@
 test.compose{
   import star.
 
-  contract all s,c ~~ parse[s->>c] ::= {
-    _terminal:(s)=>option[(s,c)].
-  }
-
-  implementation all e ~~ parse[list[e]->>e] => {
-    _terminal([E,..R]) => some((R,E)).
-    _terminal([]) => none.
-  }
-
   seq:all s,c,x ~~ (option[(s,c)],((s,c))=>option[(s,x)]) => option[(s,x)].
   -- seq(O,F) => O>>=F.
   seq = (>>=).
+
+  alt:all A,B ~~ ((A)=>option[B],(A)=>option[B]) => (A)=>option[B].
+  alt(F1,F2) => let{
+    aa:(A) => option[B].
+    aa(X) where some(Y).=F1(X) => some(Y).
+    aa(X) => F2(X).
+  } in aa.
+
+  digit:(list[integer]) => option[(list[integer],integer)].
+  digit([D?.=digitVal,..L]) => some((L,D)).
+  digit(_) => none.
+
+  digitVal:(integer)=>option[integer].
+  digitVal(0c0) => some(0).
+  digitVal(0c1) => some(1).
+  digitVal(0c2) => some(2).
+  digitVal(0c3) => some(3).
+  digitVal(0c4) => some(4).
+  digitVal(0c5) => some(5).
+  digitVal(0c6) => some(6).
+  digitVal(0c7) => some(7).
+  digitVal(0c8) => some(8).
+  digitVal(0c9) => some(9).
+  digitVal(_) => none.
+
+  decimal:(list[integer]) => option[(list[integer],integer)].
+  decimal(S) where some((S1,D)).=digit(S) => moreDecimal(S1,D).
+  decimal(_) => none.
+
+  moreDecimal:(list[integer],integer) => option[(list[integer],integer)].
+  moreDecimal(S,D) where some((S1,D1)).=digit(S) =>
+    moreDecimal(S1,D*10+D1).
+  moreDecimal(S,D) => some((S,D)).
+
+  assert decimal("123"::list[integer])==some(([],123)).
 
   /*
    disj:all s,c,x ~~ parse
@@ -52,19 +78,20 @@ terminal(X) => let{
   t(_) => none.
 } in t.
 
-    seq:((integer)-->list[integer],(integer)-->list[integer],(integer,integer)=>integer)=>(integer)-->list[integer].
-    seq(F,G,C) => let{
-      t:(integer)-->list[integer].
-      t(R) => check(F(R)).
+seq:((integer)-->list[integer],(integer)-->list[integer],
+  (integer,integer)=>integer)=>(integer)-->list[integer].
+seq(F,G,C) => let{
+  t:(integer)-->list[integer].
+  t(R) => check(F(R)).
 
-      check:(option[(list[integer],integer)]) => option[(list[integer],integer)].
-      check(some((R,X))) => check2(G(R),X).
-      check(none) => none.
+  check:(option[(list[integer],integer)]) => option[(list[integer],integer)].
+  check(some((R,X))) => check2(G(R),X).
+  check(none) => none.
 
-      check2:(option[(list[integer],integer)],integer) => option[(list[integer],integer)].
-      check2(some((R,Y)),X) => some((R,C(X,Y))).
-      check2(none) => none.
-    } in t.
+  check2:(option[(list[integer],integer)],integer) => option[(list[integer],integer)].
+  check2(some((R,Y)),X) => some((R,C(X,Y))).
+  check2(none) => none.
+} in t.
 
     assert exp(X) .~ _explode("1+2*1") && X==3.
   /*

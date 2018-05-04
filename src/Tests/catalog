@@ -13,6 +13,7 @@
 		"test.g" : "g.star",
 		"test.gr" : "grtest.star",
 		"test.let" : "letish.star",
+		"test.p" : "p.star",
 		"test.compose" : "compose.star",
 		"test.s" : "s.star"
 	},

@@ -60,6 +60,7 @@ argMode(idnt(_),inVars).
 argMode(intgr(_),inScalars).
 argMode(float(_),inScalars).
 argMode(strg(_),inScalars).
+argMode(lbl(_,_),inScalars).
 argMode(whr(_,T,_),M) :- argMode(T,M).
 argMode(enum(_),inConstructors).
 argMode(ctpl(_,_),inConstructors).
@@ -123,6 +124,9 @@ formCase(([Lbl|_],_,_),Lbl,Tpls,Lc,Vrs,Deflt,Case) :-
   isScalar(Lbl),!,
   subTriples(Tpls,STpls),
   matchTriples(Lc,Vrs,STpls,Deflt,Case).
+formCase(([enum(Lb)|_],_,_),enum(Lb),Tpls,Lc,Vrs,Deflt,Case) :-
+  subTriples(Tpls,STpls),
+  matchTriples(Lc,Vrs,STpls,Deflt,Case).
 formCase(([ctpl(Op,Args)|_],_,_),ctpl(Op,NVrs),Tpls,Lc,Vrs,Deflt,Case) :-
   length(Args,Ar),
   genVars(Ar,NVrs),
@@ -136,10 +140,7 @@ pickMoreCases(Tr,[A|Trpls],[A|Tx],Cmp,More) :-
   pickMoreCases(Tr,Trpls,Tx,Cmp,More).
 pickMoreCases(_,Trpls,[],_,Trpls).
 
-isScalar(intgr(_)).
-isScalar(float(_)).
-isScalar(strg(_)).
-isScalar(enum(_)).
+isScalar(S) :- argMode(S,inScalars),!.
 
 mergeTriples(L1,L2,L3) :-
   sortedMerge(L1,L2,matcher:earlierIndex,L3).
@@ -177,16 +178,18 @@ constructorName(ctpl(C,_),Nm) :-
   constructorName(C,Nm).
 
 compareScalarTriple(([A|_],_,_),([B|_],_,_)) :-
-  scalarTerm(A,As),
-  scalarTerm(B,Bs),
-  compareScalar(As,Bs).
+  compareScalar(A,B).
 
-compareScalar(intgr(A),intgr(B)) :-
+compareScalar(intgr(A),intgr(B)) :-!,
   A<B.
-compareScalar(float(A),float(B)) :-
+compareScalar(float(A),float(B)) :-!,
   A<B.
-compareScalar(strg(A),strg(B)) :-
+compareScalar(strg(A),strg(B)) :-!,
   str_lt(A,B).
+compareScalar(lbl(L1,_A1),lbl(L2,_A2)) :-
+  str_lt(L1,L2),!.
+compareScalar(lbl(L,A1),lbl(L,A2)) :-
+  A1<A2.
 
 sameScalarTriple(([A|_],_,_),([A|_],_,_)).
 

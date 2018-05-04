@@ -3,6 +3,9 @@
 #include <hash.h>
 #include "decodeP.h"
 #include <globals.h>
+#include <array.h>
+#include <arrayP.h>
+#include <decodeP.h>
 #include "arithP.h"
 #include "strP.h"
 #include "heap.h"
@@ -158,6 +161,13 @@ static retCode estimateCns(integer arity, void *cl) {
   return Ok;
 }
 
+static retCode estimateLst(integer count, void *cl) {
+  Estimation *info = (Estimation *) cl;
+
+  info->amnt += ListCellCount + BaseCellCount(count);
+  return Ok;
+}
+
 /*
  Estimate amount of heap space needed
  */
@@ -171,7 +181,8 @@ retCode estimate(ioPo in, integer *amnt) {
     estimateFlt,            // decFlt
     estimateLbl,           // decLbl
     estimateString,         // decString
-    estimateCns             // decCon
+    estimateCns,            // decCon
+    estimateLst
   };
 
   retCode ret = streamDecode(in, &estimateCB, &info);
@@ -400,6 +411,25 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return res;
     }
 
+    case lstTrm: {
+      integer count;
+
+      if ((res = decInt(in, &count)) != Ok) /* How many elements in the list */
+        return res;
+
+      if (res == Ok)
+        res = cb->decLst(count, cl);
+
+      if (res == Ok) {
+        integer i;
+
+        for (i = 0; res == Ok && i < count; i++)
+          res = decodeStream(in, cb, cl, buff);
+      }
+
+      return res;
+    }
+
     default:
       return Error;
   }
@@ -425,6 +455,10 @@ static retCode skipName(char *sx, integer ar, void *cl) {
   return Ok;
 }
 
+static retCode skipLst(integer ix, void *cl) {
+  return Ok;
+}
+
 static DecodeCallBacks skipCB = {
   skipFlag,           // startDecoding
   skipFlag,           // endDecoding
@@ -432,7 +466,8 @@ static DecodeCallBacks skipCB = {
   skipFlt,            // decFlt
   skipName,           // decLbl
   skipString,         // decString
-  skipInt             // decCons
+  skipInt,            // decCons
+  skipLst
 };
 
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen) {
@@ -615,13 +650,40 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
         gcAddRoot(H, &el);
 
         // In case of GC, we mark all the elements as void before doing any decoding
-        for(integer ix=0;ix<arity;ix++)
-          setArg(obj,ix,voidEnum);
+        for (integer ix = 0; ix < arity; ix++)
+          setArg(obj, ix, voidEnum);
 
         for (integer i = 0; res == Ok && i < arity; i++) {
           res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
           if (res == Ok)
             setArg(obj, i, el);
+        }
+
+        gcReleaseRoot(H, root);
+      }
+
+      return res;
+    }
+
+    case lstTrm: {
+      termPo lbl;
+      integer count;
+
+      if ((res = decInt(in, &count)) != Ok) /* How many elements in the list */
+        return res;
+
+      if (res == Ok) {
+        int root = gcAddRoot(H, &lbl);
+        listPo lst = allocateList(H, count, True);
+        *tgt = (termPo) (lst);
+
+        termPo el = voidEnum;
+        gcAddRoot(H, &el);
+
+        for (integer i = 0; res == Ok && i < count; i++) {
+          res = decode(in, S, H, &el, tmpBuffer); /* read each element of term */
+          if (res == Ok)
+            lst = appendToList(H, lst, el);
         }
 
         gcReleaseRoot(H, root);
