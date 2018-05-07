@@ -41,8 +41,7 @@ instruction(TL,lcs,"copy tos to local[xx]")
 instruction(StA,arg,"store tos to args[xx]")
 instruction(StG,glb,"store into a global variable")
 
-
-instruction(CLbl,off,"T,Lbl --> test for a data term, branch if not")
+instruction(CLbl,off,"T,Lbl --> test for a data term, branch if lbl")
 instruction(Nth,i32,"T --> el, pick up the nth element")
 instruction(StNth,i32,"T el --> store in nth element")
 

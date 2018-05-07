@@ -103,6 +103,7 @@ escape(_list_front,False,False,":k't'F(Lk't'i)Lk't'","front portion of list")
 escape(_list_back,False,False,":k't'F(Lk't'i)Lk't'","back portion of list")
 escape(_list_nil,False,False,":k't'F(i)Lk't'","create an empty list of min capacity")
 escape(_list_concat,False,False,":k't'F(Lk't'Lk't')Lk't'","concatenate two lists")
+escape(_list_reverse,False,False,":k't'F(Lk't')Lk't'","reverse the elements of a list")
 
 /*
 

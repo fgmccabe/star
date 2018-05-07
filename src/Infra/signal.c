@@ -86,11 +86,6 @@ void star_exit(int code) {
   if (code != 0)
     outMsg(logFile, "Terminating with code %d\n", code);
 
-#ifdef TRACEEXEC
-  if(traceCount)
-    dumpInsCount();
-#endif
-
   exit(code);
 }
 

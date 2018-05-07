@@ -32,7 +32,7 @@ star.lists{
     _cons(E,S) => _list_prepend(S,E).
     _apnd(S,E) => _list_append(S,E).
 
-    _back(_list_front(X,Last),_list_nth(X,Last)) <= (X) where \+_list_empty(X) && Last .= _list_size(X)-1.
+    _back(_list_front(X,Last),_list_nth(X,Last)) <= (X) where \+_list_empty(X) && _list_size(X)-1 =. Last.
     _nil = _list_nil(2).
   }
 

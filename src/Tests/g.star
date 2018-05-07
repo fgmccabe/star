@@ -12,7 +12,7 @@ test.g{
   isTerm(_,_) => none.
 
   txt:list[integer].
-  txt = _explode("fred").
+  txt = "fred"::list[integer].
 
-  assert some(_) .= isTerm(txt,0cf).
+  assert isTerm(txt,0cf)=.some(_).
 }

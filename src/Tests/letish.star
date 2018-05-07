@@ -13,5 +13,5 @@ test.let{
     pl(X) => X+A.
   } in pl.
 
-  assert inc(2)(3) == 5 && k .= kk(3) && k() == 3.
+  assert inc(2)(3) == 5 && kk(3)=.k && k() == 3.
 }

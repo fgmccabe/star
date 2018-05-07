@@ -1,0 +1,57 @@
+-- Automatically Generated Assembler at #(date) -- Do NOT Edit
+
+star.compiler.assem{
+  import star.
+  import star.compiler.instructions.
+  import star.compiler.encode.
+  import star.compiler.term.
+
+
+  public assem:(assembler) => string.
+  assem(method(Nm,Sig,Lc,Ins)) =>
+
+
+    mnem(Ins,genLblTbl(Ins,0,[]),findLit([],Nm),[],0) =. (Cde,Lts,Lcls)
+    mkInsTpl(Cde),
+    mkLitTpl(Lts),
+
+
+  fprintf(out, "assem([method(Nm,Sig,Lx)|Ins],MTpl) :-\n");
+  fprintf(out, "    genLblTbl(Ins,0,[],Lbs),\n");
+  fprintf(out, "    findLit([],Nm,_,Ls0),\n");
+  fprintf(out, "    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),\n");
+  fprintf(out, "    mkInsTpl(Cde,Code),\n");
+  fprintf(out, "    mkLitTpl(Lts,LtTpl),\n");
+  fprintf(out, "    mkTpl(Lcs,LcsTpl),\n");
+  fprintf(out, "    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).\n\n");
+
+  fprintf(out, "mnem([],_,Lt,Lt,Lc,Lc,_,[]).\n");
+  fprintf(out, "mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).\n");
+
+  fprintf(out, "mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-\n");
+  fprintf(out, "    findLbl(Frm,Lbs,F),\n");
+  fprintf(out, "    findLbl(End,Lbs,T),\n");
+  fprintf(out, "    mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),\n");
+  fprintf(out, "    (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),\n");
+  fprintf(out, "    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).\n");
+
+#include "instructions.h"
+
+  genLblTbl:(list[instruction],integer,list[(string,integer)]) => list[(string,integer)].
+  genLblTbl([],_,Tbl) => Tbl.
+  genLblTbl([iLbl(Lbl),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc,[(Lbl,Pc),..Lbls]).
+  genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc,Lbls).
+  #(LabelCode)
+
+
+
+
+
+  #(Operators)
+
+  public follows:(string,integer) => option[string].
+  #(Follows)
+
+  public final:(string) => boolean.
+  #(Final)
+}

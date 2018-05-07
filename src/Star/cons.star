@@ -29,13 +29,13 @@ star.cons{
     _cons(E,S) => cons(E,S).
     _apnd(S,E) => S++[E].
 
-    _back(T,E) <= (X) where (T,E) .= last(X).
+    _back(T,E) <= (X) where last(X) =. (T,E).
     _nil = nil.
   }
 
   last:all e ~~ (cons[e]) => (cons[e],e).
   last(cons(X,nil)) => (nil,X).
-  last(cons(X,Y)) where (L,E) .= last(Y) => (cons(X,L),E).
+  last(cons(X,Y)) where last(Y) =. (L,E)  => (cons(X,L),E).
 
   public implementation all x ~~ concat[cons[x]] => {
     X++Y => concat(X,Y).

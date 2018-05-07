@@ -1,5 +1,5 @@
 test.p{
-  -- Test ?.= style Patterns
+  -- Test ?= style Patterns
   import star.
 
   isOk:(string)=>option[integer].
@@ -10,7 +10,7 @@ test.p{
 
   onlyOk:(cons[string]) => cons[integer].
   onlyOk(nil) => nil.
-  onlyOk(cons(X?.=isOk,L)) => cons(X,onlyOk(L)).
+  onlyOk(cons(isOk?=(X),L)) => cons(X,onlyOk(L)).
   onlyOk(cons(_,L)) => onlyOk(L).
 
   assert onlyOk(cons("0",cons("1",cons("10",nil)))) == cons(0,cons(10,nil)).

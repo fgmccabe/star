@@ -22,9 +22,9 @@ test.gr{
 
   assert expr(X) .~ _explode("1+2*1") && X==3.
 /*
-  assert foo(X) .= 3+3.
+  assert 3+3=.foo(X).
 
-  assert some(([],X)) .= expr(_explode("1+2")) && X==3
+  assert  expr(_explode("1+2"))=.some(([],X)) && X==3
 
   foo:(xxx)<=integer.
 

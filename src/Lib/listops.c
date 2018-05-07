@@ -87,3 +87,11 @@ ReturnStatus g__list_concat(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=(termPo) concatList(processHeap(p), l, r)};
   return ret;
 }
+
+ReturnStatus g__list_reverse(processPo p, ptrPo tos) {
+  termPo Lhs = tos[0];
+  listPo l = C_LIST(Lhs);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) reverseList(processHeap(p), l)};
+  return ret;
+}
