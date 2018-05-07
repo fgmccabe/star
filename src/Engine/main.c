@@ -76,10 +76,6 @@ int main(int argc, char **argv) {
   setupSignals();
   initEngine();
 
-#ifdef TRACEEXEC
-  if (traceCount)
-    atexit(dumpInsCount);
-#endif
 
 #ifdef TRACEMEM
   if (traceMemory)

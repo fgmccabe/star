@@ -40,10 +40,10 @@ static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, int
 
 static insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
-static inline int32 collect32(insPo *pc) {
-  uint32 hi = (uint32) (*(*pc)++);
-  uint32 lo = (uint32) (*(*pc)++);
-  return (int32) (hi << 16 | lo);
+static inline int32 collect32(insPo pc) {
+  uint32 hi = (uint32) pc[0];
+  uint32 lo = (uint32) pc[1];
+  return (int32) (hi << (uint32)16 | lo);
 }
 
 #define collectI32(pc) (collI32(pc))
@@ -54,10 +54,13 @@ retCode g__ins_debug(processPo P, ptrPo a) {
   return Ok;
 }
 
-static integer cmdCount(char *cmdLine) {
+static integer cmdCount(char *cmdLine, integer deflt) {
   while (isSpaceChar((codePoint) *cmdLine))
     cmdLine++;
-  return parseInteger(cmdLine, uniStrLen((char *) cmdLine));
+  if (uniStrLen(cmdLine) == 0)
+    return deflt;
+  else
+    return parseInteger(cmdLine, uniStrLen((char *) cmdLine));
 }
 
 static processPo focus = NULL;
@@ -251,13 +254,32 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
   if (focus == NULL || focus == p) {
     switch (p->waitFor) {
       case nextIns:
-        return True;
-      case nextSucc:
-        return (logical) (*pc == Ret);
+        if (p->traceCount > 0)
+          p->traceCount--;
+        return (logical) (p->traceCount == 0);
+      case nextSucc: {
+        switch (*pc) {
+          case Ret: {
+            if (--p->traceCount <= 0) {
+              p->traceCount = 0;
+              return True;
+            }
+
+            return False;
+          }
+          case Call:
+          case OCall:
+            if (p->traceCount > 0) {
+              p->traceCount++;
+            }
+            return False;
+          default:
+            return False;
+        }
+      }
       case nextBreak:
         if (*pc == Line) {
-          int32 litNo = (uint32) (pc[1] << 16 | pc[2]);
-          normalPo ln = C_TERM(getMtdLit(mtd, litNo));
+          normalPo ln = C_TERM(getMtdLit(mtd, collect32(pc + 1)));
           if (breakPointHit(ln)) {
             p->waitFor = nextIns;
             return True;
@@ -309,8 +331,7 @@ cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo 
 }
 
 static DebugWaitFor dbgSingle(char *line, processPo p, void *cl) {
-  integer *traceCount = (integer *) cl;
-  *traceCount = cmdCount(line);
+  p->traceCount = cmdCount(line, 1);
   return nextIns;
 }
 
@@ -328,12 +349,9 @@ static DebugWaitFor dbgCont(char *line, processPo p, void *cl) {
   return nextBreak;
 }
 
-static DebugWaitFor dbgRestart(char *line, processPo p, void *cl) {
-  p->pc = entryPoint(p->prog);
-  p->sp = (ptrPo) p->fp;
-  p->fp = (framePo) (*p->sp++);
-
-  return moreDebug;
+static DebugWaitFor dbgUntilRet(char *line, processPo p, void *cl) {
+  p->traceCount = cmdCount(line, 1);
+  return nextSucc;
 }
 
 static DebugWaitFor dbgShowRegisters(char *line, processPo p, void *cl) {
@@ -342,7 +360,7 @@ static DebugWaitFor dbgShowRegisters(char *line, processPo p, void *cl) {
 }
 
 static DebugWaitFor dbgShowArg(char *line, processPo p, void *cl) {
-  integer argNo = cmdCount(line);
+  integer argNo = cmdCount(line, 0);
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
@@ -357,7 +375,7 @@ static DebugWaitFor dbgShowArg(char *line, processPo p, void *cl) {
 }
 
 static DebugWaitFor dbgShowLocal(char *line, processPo p, void *cl) {
-  integer lclNo = cmdCount(line);
+  integer lclNo = cmdCount(line, 0);
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
@@ -365,7 +383,7 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, void *cl) {
   if (lclNo == 0)
     showAllLocals(stdErr, mtd, p->pc, fp);
   else if (lclNo > 0 && lclNo <= lclCount(mtd))
-    showLcl(stdErr, cmdCount(line), mtd, fp, sp);
+    showLcl(stdErr, cmdCount(line, 0), mtd, fp, sp);
   else
     outMsg(stdErr, "invalid local number: %d", lclNo);
   return moreDebug;
@@ -421,7 +439,7 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
   if (line[0] == '\n') {
     showAllStack(stdErr, p, mtd, pc, fp, sp);
   } else
-    showStack(stdErr, p, mtd, cmdCount(line), fp, sp);
+    showStack(stdErr, p, mtd, cmdCount(line, 1), fp, sp);
 
   return moreDebug;
 }
@@ -479,10 +497,8 @@ static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
 }
 
 static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
-  integer count = maximum(1, cmdCount(line));
+  integer count = maximum(1, cmdCount(line, 1));
   methodPo mtd = p->prog;
-  framePo fp = p->fp;
-  ptrPo sp = p->sp;
   insPo pc = p->pc;
 
   insPo last = entryPoint(mtd) + insCount(mtd);
@@ -534,20 +550,54 @@ static DebugWaitFor dbgClearBreakPoint(char *line, processPo p, void *cl) {
   return moreDebug;
 }
 
+static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
+  integer count = cmdCount(line, 0);
+
+  // First we check that there are enough frames
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  ptrPo sp = p->sp;
+
+  integer frameNo = 0;
+
+  while (frameNo < count && sp < (ptrPo) p->stackLimit) {
+    mtd = fp->prog;
+    sp = (ptrPo) (fp + 1);
+    fp = fp->fp;
+    frameNo++;
+  }
+
+  if (sp < (ptrPo) p->stackLimit) {
+    p->prog = mtd;
+    p->pc = entryPoint(mtd);
+
+    integer lclCnt = lclCount(mtd);  /* How many locals do we have */
+    p->sp = sp = ((ptrPo) fp) - lclCnt;
+
+#ifdef TRACEEXEC
+    for (integer ix = 0; ix < lclCnt; ix++)
+      sp[ix] = voidEnum;
+#endif
+  } else
+    outMsg(logFile, "Could not drop %d stack frame\n%_", count);
+
+  return moreDebug;
+}
+
 DebugWaitFor insDebug(integer pcCount, processPo p) {
-  static integer traceCount = 0;
   static DebugOption opts[] = {
-    {.c = 'n', .cmd=dbgSingle, .usage="n single step", .cl=&traceCount},
-    {.c = '\n', .cmd=dbgSingle, .usage="\\n single step", .cl=&traceCount},
+    {.c = 'n', .cmd=dbgSingle, .usage="n single step"},
+    {.c = '\n', .cmd=dbgSingle, .usage="\\n single step"},
     {.c = 'q', .cmd=dbgQuit, .usage="q stop execution", .cl=Null},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
     {.c = 'c', .cmd=dbgCont, .usage="c continue"},
-    {.c = 'R', .cmd=dbgRestart, .usage="R restart current function"},
+    {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
     {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
     {.c = 's', .cmd=dbgShowStack, .usage="s show stack", .cl=(void *) True},
     {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
+    {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
     {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
@@ -562,15 +612,14 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
 
   logical stopping = shouldWeStop(p, mtd, pc);
   if (p->tracing || stopping) {
-    outMsg(stdErr, "[%d]: ", pcCount);
+    outMsg(stdErr, "[%d]: {%d} ", pcCount,p->traceCount);
     disass(stdErr, p, mtd, pc, fp, sp);
     if (stopping) {
 
       while (interactive) {
-        if (traceCount == 0)
+        if (p->traceCount == 0)
           p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, fp, sp);
         else {
-          traceCount--;
           outStr(stdErr, "\n");
           flushFile(stdErr);
         }
@@ -646,13 +695,13 @@ typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm, framePo fp, ptrPo sp
 
 termPo insLit(processPo p) {
   insPo pc = p->pc + 1;
-  int32 ix = collect32(&pc);
+  int32 ix = collect32(pc);
   return getMtdLit(p->prog, ix);
 }
 
 int32 insOperand(processPo p) {
   insPo pc = p->pc + 1;
-  return collect32(&pc);
+  return collect32(pc);
 }
 
 termPo getLbl(termPo lbl, int32 arity) {
@@ -686,11 +735,12 @@ DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
     {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
     {.c = 'c', .cmd=dbgCont, .usage="c continue"},
-    {.c = 'R', .cmd=dbgRestart, .usage="R restart current function"},
+    {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
     {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
     {.c = 's', .cmd=dbgShowStack, .usage="s show stack", .cl=(void *) False},
     {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
+    {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
     {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},

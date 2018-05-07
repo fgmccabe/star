@@ -12,6 +12,7 @@
 
 #include "manifest.h"
 #include "engineOptions.h"
+#include "heapP.h"
 
 long initHeapSize = 200 * 1024;    /* How much memory to give the heap */
 long initStackSize = 1024;      /* How big is the stack */
@@ -28,7 +29,7 @@ logical tracePkg = False;
 logical traceMemory = False;      /* memory tracing */
 logical stressMemory = False;      /* stress GC */
 logical interactive = False;      /* interaction instruction tracing */
-logical traceCount = False; // Count instructions etc.
+logical runStats = False; // Count instructions etc.
 
 char CWD[MAXFILELEN] = "";
 char bootPkg[MAX_SYMB_LEN] = "star.boot";  // boot package
@@ -111,6 +112,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
           stressMemory = True;
         else
           traceMemory = True;
+
+        atexit(dumpGcStats);
         continue;
 #else
       logMsg(logFile,"memory tracing not enabled");
@@ -144,7 +147,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'I':
 #ifdef TRACESTATS
 #ifdef TRACEEXEC
-        traceCount = True;
+        runStats = True;
         atexit(dumpInsCount);
         break;
 #endif
@@ -173,12 +176,14 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case '*':    /* trace everything */
 #ifdef ALLTRACE
         traceVerify = True;
-        traceCount = True;
+        runStats = True;
+        atexit(dumpInsCount);
         traceMessage = True;
         if (traceMemory)
           stressMemory = True;
         else
           traceMemory = True;
+        atexit(dumpGcStats);
         tracePkg = True;
         continue;
 #else

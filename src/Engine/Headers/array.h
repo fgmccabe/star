@@ -24,6 +24,8 @@ extern listPo appendToList(heapPo H, listPo list, termPo el);
 
 extern listPo concatList(heapPo H, listPo l1,listPo l2);
 
+extern listPo reverseList(heapPo H, listPo l1);
+
 // Use with caution!
 extern listPo addToList(heapPo H, listPo list, termPo el);
 

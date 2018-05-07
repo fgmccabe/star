@@ -24,7 +24,7 @@ extern logical tracing;        /* tracing option */
 extern logical insDebugging;
 extern logical lineDebugging;
 extern logical interactive;      /* interactive instruction tracing option */
-extern logical traceCount;
+extern logical runStats;
 
 extern logical traceMemory;      /* memory tracing */
 extern logical tracePkg;

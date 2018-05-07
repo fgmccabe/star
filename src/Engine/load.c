@@ -87,13 +87,11 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 
     closeFile(file);
 
+    if (ret == Error)
+      logMsg(logFile, "problem in loading %s: %s", pkgName, errorMsg);
 #ifdef TRACEPKG
-    if (tracePkg) {
-      if (ret != Error)
+    else if (tracePkg)
         logMsg(logFile, "package %s loaded", pkgName);
-      else
-        logMsg(logFile, "problem in loading %s: %s", pkgName, errorMsg);
-    }
 #endif
 
     return ret;
@@ -109,7 +107,7 @@ retCode loadPackage(char *pkg, char *vers, char *errorMsg, long msgSize, void *c
   if (version != NULL) {
     if (!compatiblVersion(vers, version)) {
       logMsg(logFile, "invalid version of package already loaded: %s:%s,"
-        "version %s expected", pkg, version, vers);
+                      "version %s expected", pkg, version, vers);
       return Error;
     } else
       return Ok; // already loaded correct version
@@ -405,14 +403,9 @@ retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msg
     }
   }
 
-#ifdef TRACEPKG
-  if (tracePkg) {
-    if (ret != Error)
-      logMsg(logFile, "function %s/%d loaded", prgName, arity);
-    else
-      logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
-  }
-#endif
+  if (ret == Error)
+    logMsg(logFile, "problem in loading %s/%d: %s", prgName, arity, errorMsg);
+
   return ret;
 }
 

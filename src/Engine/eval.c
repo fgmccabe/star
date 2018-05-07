@@ -319,9 +319,9 @@ retCode run(processPo P) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
-          if (!sameTerm(l, (termPo) termLbl(cl)))
+          if (sameTerm(l, (termPo) termLbl(cl)))
             PC = exit;
-        } else if (!sameTerm(t, l))
+        } else if (sameTerm(t, l))
           PC = exit;
         continue;
       }

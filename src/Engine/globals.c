@@ -27,7 +27,6 @@ termPo okEnum;
 termPo failEnum;
 termPo eofEnum;
 labelPo errorLbl;
-labelPo locLbl;
 
 static hashPo globals;
 
@@ -66,28 +65,27 @@ void initGlobals() {
   glbVarTblSize = 1024;
   numGlbVars = 0;
 
-  eINTRUPT = (termPo) declareEnum("eINTRUPT");
-  eNOTDIR = (termPo) declareEnum("eNOTDIR");
-  eNOFILE = (termPo) declareEnum("eNOFILE");
-  eNOTFND = (termPo) declareEnum("eNOTFND");
-  eINVAL = (termPo) declareEnum("eINVAL");
-  eRANGE = (termPo) declareEnum("eRANGE");
-  eNOPERM = (termPo) declareEnum("eNOPERM");
-  eFAIL = (termPo) declareEnum("eFAIL");
-  eIOERROR = (termPo) declareEnum("eIOERROR");
-  eCONNECT = (termPo) declareEnum("eCONNECT");
-  eDEAD = (termPo) declareEnum("eDEAD");
+  eINTRUPT = (termPo) declareEnum("star.core#eINTRUPT");
+  eNOTDIR = (termPo) declareEnum("star.core#eNOTDIR");
+  eNOFILE = (termPo) declareEnum("star.core#eNOFILE");
+  eNOTFND = (termPo) declareEnum("star.core#eNOTFND");
+  eINVAL = (termPo) declareEnum("star.core#eINVAL");
+  eRANGE = (termPo) declareEnum("star.core#eRANGE");
+  eNOPERM = (termPo) declareEnum("star.core#eNOPERM");
+  eFAIL = (termPo) declareEnum("star.core#eFAIL");
+  eIOERROR = (termPo) declareEnum("star.core#eIOERROR");
+  eCONNECT = (termPo) declareEnum("star.core#eCONNECT");
+  eDEAD = (termPo) declareEnum("star.core#eDEAD");
 
-  falseEnum = (termPo) declareEnum("core.star#false");
-  trueEnum = (termPo) declareEnum("core.star#true");
+  falseEnum = (termPo) declareEnum("star.core#false");
+  trueEnum = (termPo) declareEnum("star.core#true");
 
-  voidEnum = (termPo) declareEnum("code.star#void");
+  voidEnum = (termPo) declareEnum("star.core#void");
 
-  okEnum = (termPo) declareEnum("code.star#ok");
-  failEnum = (termPo) declareEnum("code.star#fail");
-  eofEnum = (termPo) declareEnum("code.star#eof");
-  errorLbl = declareLbl("code.star#error", 2);
-  locLbl = declareLbl("loc", 5);
+  okEnum = (termPo) declareEnum("star.core#ok");
+  failEnum = (termPo) declareEnum("star.core#fail");
+  eofEnum = (termPo) declareEnum("star.core#eof");
+  errorLbl = declareLbl("star.core#error", 2);
 }
 
 globalPo C_GLOB(termPo t) {
