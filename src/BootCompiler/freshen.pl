@@ -81,9 +81,6 @@ frshn(ptnType(A,R),E,B,ptnType(FA,FR)) :-
 frshn(consType(A,R),E,B,consType(FA,FR)) :-
   rewriteType(A,E,B,FA),
   rewriteType(R,E,B,FR).
-frshn(grType(A,R),E,B,grType(FA,FR)) :-
-  rewriteType(A,E,B,FA),
-  rewriteType(R,E,B,FR).
 frshn(tupleType(L),E,B,tupleType(FL)) :- rewriteTypes(L,E,B,FL).
 frshn(typeExp(O,A),E,B,typeExp(FO,FA)) :- rewriteType(O,E,B,FO),rewriteTypes(A,E,B,FA).
 frshn(allType(kVar(V),Tp),E,B,allType(kVar(V),FTp)) :-

@@ -198,11 +198,13 @@ matchVars(Lc,[V|Vrs],Triples,Deflt,Reslt) :-
   matchTriples(Lc,Vrs,NTriples,Deflt,Reslt).
 
 applyVar(_,[],[]).
-applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Vl),Ix)|Tpls],[(Args,(Lc,[(XV,V)|Bnd],NVl),Ix)|NTpls]) :-
+applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Vl),Ix)|Tpls],[(NArgs,(Lc,[(XV,V)|Bnd],NVl),Ix)|NTpls]) :-
   substTerm([(XV,V)],Vl,NVl),
+  substTerms([(XV,V)],Args,NArgs),
   applyVar(V,Tpls,NTpls).
 applyVar(V,[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Vl),Ix)|Tpls],
-      [(Args,(Lc,[(XV,V)|Bnd],whr(Lcw,NVl,NCond)),Ix)|NTpls]) :-
+      [(NArgs,(Lc,[(XV,V)|Bnd],whr(Lcw,NVl,NCond)),Ix)|NTpls]) :-
   substTerm([(XV,V)],Vl,NVl),
   substTerm([(XV,V)],Cond,NCond),
+  substTerms([(XV,V)],Args,NArgs),
   applyVar(V,Tpls,NTpls).

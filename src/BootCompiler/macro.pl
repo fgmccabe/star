@@ -24,5 +24,5 @@ mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   genIden(Lc,V), % create a new variable
   nary(Lc,Ex,[V],Cl), % call pattern generator
   unary(Lc,"some",Ptn,Lhs),
-  binary(Lc,".=",Lhs,Cl,Test), % some(Ptn).=Ex(V)
+  binary(Lc,"=.",Cl,Lhs,Test), % Ex(V)=.some(Ptn)
   binary(Lc,"where",V,Test,Ptrn).

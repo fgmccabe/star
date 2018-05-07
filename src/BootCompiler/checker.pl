@@ -159,10 +159,10 @@ checkOther(St,[assertion(Lc,Cond)|More],More,Env,Path) :-
   isIntegrity(St,Lc,C),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(C,LogicalTp,Env,_,Cond,Path).
-checkOther(St,[ignore(Lc,Exp)|More],More,Env,Path) :-
-  isIgnore(St,Lc,Trm),!,
-  newTypeVar("_",V),
-  typeOfExp(Trm,V,Env,_,Exp,Path).
+checkOther(St,[show(Lc,Vl)|More],More,Env,Path) :-
+  isShow(St,Lc,C),!,
+  findType("string",Lc,Env,StrTp),
+  typeOfExp(C,StrTp,Env,_,Vl,Path).
 
 checkGroups([],_,_,[],E,E,_).
 checkGroups([Gp|More],Fields,Annots,Defs,E,Ev,Path) :-
@@ -299,9 +299,6 @@ processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
 processStmt(St,Tp,Defs,Defx,E,Path) :-
   isPtnRule(St,Lc,L,C,R),
   checkPtnRule(Lc,L,C,R,Tp,Defs,Defx,E,Path).
-processStmt(St,Tp,Defs,Defx,E,Path) :-
-  isGrammarRule(St,Lc,L,C,R),
-  checkGrammarRule(Lc,L,C,R,Tp,Defs,Defx,E,Path).
 processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
@@ -345,17 +342,6 @@ checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Args,Cond,Ptn)|Defs],Defs,E,Pat
   dischargeConstraints(E,E2).
 checkPtnRule(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
   reportError("pattern rule not consistent with expected type: %s",[ProgramType],Lc).
-
-checkGrammarRule(Lc,H,G,B,grType(AT,ST),[grRule(Lc,Args,Cond,Body)|Defs],Defs,E,Path) :-
-  splitHead(H,_,A),
-  pushScope(E,Env),
-  typeOfArgTerm(A,AT,Env,E0,Args,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(G,LogicalTp,E0,E1,Cond,Path),
-  checkNT(B,ST,E1,E2,Body,Path),
-  dischargeConstraints(E,E2).
-checkGrammarRule(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
-  reportError("grammar rule not consistent with expected type: %s",[ProgramType],Lc).
 
 checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none),
@@ -429,9 +415,6 @@ collectPrograms([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|
   declareVr(Lc,Nm,Tp,Env,Ev).
 collectPrograms([Rl|Rls],Nm,LclNm,Env,Ev,Tp,Cx,[ptnDef(Lc,Nm,LclNm,Tp,Cx,[Rl|Rls])|Dx],Dx) :-
   Rl = ptnRule(Lc,_,_,_),
-  declareVr(Lc,Nm,Tp,Env,Ev).
-collectPrograms([Rl|Rls],Nm,LclNm,Env,Ev,Tp,Cx,[grDef(Lc,Nm,LclNm,Tp,Cx,[Rl|Rls])|Dx],Dx) :-
-  Rl = grRule(Lc,_,_,_),
   declareVr(Lc,Nm,Tp,Env,Ev).
 collectPrograms([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
     [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
@@ -700,78 +683,9 @@ typeOfExp(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   newTypeVar("_#",TV),
   typeOfPtn(P,TV,Env,E0,Lhs,Path),
   typeOfExp(E,TV,E0,Ev,Rhs,Path).
-typeOfExp(Term,Tp,E0,Ev,parse(Lc,Lhs,Rhs),Path) :-
-  isParse(Term,Lc,P,E),!,
-  findType("boolean",Lc,E0,LogicalTp),
-  checkType(Lc,LogicalTp,Tp,E0),
-  newTypeVar("_#",TV),
-  typeOfExp(E,TV,E0,E1,Rhs,Path),
-  checkNT(P,TV,E1,Ev,Lhs,Path).
 typeOfExp(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
-
-checkNT(string(Lc,Sx),Tp,E,Env,NT,Path) :- !,
-  explodeString(string(Lc,Sx),TT),
-  checkNT(TT,Tp,E,Env,NT,Path).
-checkNT(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
-  isWhere(P,Lc,L,C),
-  checkNT(L,Tp,Env,E0,Ptn,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
-checkNT(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else),Path) :-
-  isConditional(Term,Lc,Tst,Th,El),!,
-  checkNT(Tst,Tp,Env,E0,Test,Path),
-  checkNT(Th,Tp,E0,E1,Then,Path),
-  checkNT(El,Tp,E1,Ev,Else,Path).
-checkNT(Term,Tp,Env,Ev,terms(Lc,Terms),Path) :-
-  isSquareTuple(Term,Lc,Els), !,
-  checkTerminals(Els,Tp,Env,Ev,Terms,Path).
-checkNT(Trm,Tp,Env,Ev,Exp,Path) :-
-  isTuple(Trm,_,[Inner]),
-  checkNT(Inner,Tp,Env,Ev,Exp,Path).
-checkNT(Term,Tp,Env,Ev,Exp,Path) :-
-  isRoundTerm(Term,Lc,F,A),
-  newTypeVar("F",FnTp),
-  newTypeVar("A",At),
-  typeOfKnown(F,FnTp,Env,E0,Fun,Path),
-  (sameType(grType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,AT),
-    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args) ;
-   reportError("invalid function %s in call",[Fun],Lc)).
-checkNT(Term,Tp,Env,Ex,seq(Lc,Lhs,Rhs),Path) :-
-  isComma(Term,Lc,L,R),!,
-  checkNT(L,Tp,Env,E1,Lhs,Path),
-  checkNT(R,Tp,E1,Ex,Rhs,Path).
-checkNT(Term,Tp,Env,Ex,disj(Lc,Lhs,Rhs),Path) :-
-  isDisjunct(Term,Lc,L,R),!,
-  checkNT(L,Tp,Env,E1,Lhs,Path),
-  checkNT(R,lTp,E1,Ex,Rhs,Path).
-checkNT(Term,Tp,Env,Ex,neg(Lc,Rhs),Path) :-
-  isNegation(Term,Lc,R),!,
-  checkNT(R,Tp,Env,Ex,Rhs,Path).
-checkNT(Term,Tp,Env,Ex,lookahead(Lc,Rhs),Path) :-
-  isNTLookAhead(Term,Lc,R),!,
-  checkNT(R,Tp,Env,Ex,Rhs,Path).
-checkNT(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
-  isMatch(Term,Lc,P,E),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  checkType(Lc,LogicalTp,Tp,Env),
-  newTypeVar("_#",TV),
-  typeOfPtn(P,TV,Env,E0,Lhs,Path),
-  typeOfExp(E,TV,E0,Ev,Rhs,Path).
-checkNT(Term,_,Env,Env,void,_) :-
-  locOfAst(Term,Lc),
-  reportError("illegal grammar term: %s",[Term],Lc).
-
-checkTerminals([],_Tp,Env,Env,[],_Path).
-checkTerminals([T|Rms],Tp,E,Ev,[TT|Rest],Path) :-
-  locOfAst(T,Lc),
-  genEndTest(Lc,V),
-  genHedTest(Lc,T,V,Trm),
-  typeOfPtn(Trm,Tp,E,E0,TT,Path),
-  checkTerminals(Rms,Tp,E0,Ev,Rest,Path).
 
 funLbl(over(_,T,_),L) :- funLbl(T,L).
 funLbl(v(_,L),L).
@@ -938,8 +852,6 @@ computeExport([Def|Defs],Fields,Public,Exports,Types,Cons,Impls) :-
 exportDef(funDef(_,Nm,_,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
 exportDef(ptnDef(_,Nm,_,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public).
-exportDef(grDef(_,Nm,_,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
 exportDef(typeDef(_,Nm,_,FRule),_,Public,Ex,Ex,[(Nm,FRule)|Tx],Tx,Cx,Cx,Impl,Impl) :-
   isPublicType(Nm,Public).

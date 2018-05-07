@@ -34,6 +34,7 @@
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
+  operator("?=", [infixOp(899, 900, 899)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
@@ -68,6 +69,7 @@
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1260, 1259)]).
+  operator("=.", [infixOp(899, 900, 899)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(800, 800, 799)]).
   operator("public", [prefixOp(1700, 1699)]).
@@ -83,7 +85,6 @@
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
   operator("::", [infixOp(399, 400, 399)]).
-  operator("?.=", [infixOp(899, 900, 899)]).
   operator(":=", [infixOp(949, 950, 949)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator(">>=", [infixOp(900, 900, 899)]).
@@ -169,6 +170,7 @@
   follows('<','=','<=').
   follows('<=','>','<=>').
   follows('=','<','=<').
+  follows('=','.','=.').
   follows('=','!','=!').
   follows('=','=','==').
   follows('=','>','=>').
@@ -178,8 +180,8 @@
   follows('>','>','>>').
   follows('>>','=','>>=').
   follows('?','.','?.').
+  follows('?','=','?=').
   follows('?','|','?|').
-  follows('?.','=','?.=').
 
 
   final('%',"%").	 /* modulo */
@@ -229,6 +231,7 @@
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
   final('=<',"=<").	 /* less than or equal */
+  final('=.',"=.").	 /* pattern match */
   final('=!=',"=!=").	 /* not equals */
   final('==',"==").	 /* equality predicate */
   final('==>',"==>").	 /* macro arrow */
@@ -238,7 +241,7 @@
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('?.',"?.").	 /* optional object access */
-  final('?.=',"?.=").	 /* optional decomposition match */
+  final('?=',"?=").	 /* optional decomposition match */
   final('?|',"?|").	 /* option or-else operator */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up a value from a ref cell */

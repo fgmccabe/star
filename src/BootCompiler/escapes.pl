@@ -73,6 +73,7 @@ escapeType("_list_front",allType(kVar("t"),funType(tupleType([typeExp(tpFun("sta
 escapeType("_list_back",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_nil",allType(kVar("t"),funType(tupleType([type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_concat",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_reverse",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
 escapeType("_cd",funType(tupleType([type("star.core*string")]),tpFun("star.core*resultType",0))).
@@ -272,6 +273,7 @@ isEscape("_list_front").
 isEscape("_list_back").
 isEscape("_list_nil").
 isEscape("_list_concat").
+isEscape("_list_reverse").
 isEscape("_get_file").
 isEscape("_cwd").
 isEscape("_cd").

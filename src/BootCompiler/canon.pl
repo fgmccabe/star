@@ -1,7 +1,7 @@
 :- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
-    isCanon/1,isAssertion/1,ruleArity/2,
+    isCanon/1,isAssertion/1,isShow/1,ruleArity/2,
     thetaLoc/2,thetaDefs/2,thetaSig/2]).
 
 :- use_module(misc).
@@ -31,6 +31,7 @@ isCanon(match(_,_,_)).
 isCanon(neg(_,_)).
 
 isAssertion(assertion(_,_)).
+isShow(show(_,_)).
 
 thetaLoc(theta(Lc,_,_,_,_,_),Lc).
 thetaLoc(record(Lc,_,_,_,_,_),Lc).
@@ -151,10 +152,10 @@ showCanonTerm(cond(_,Test,Either,Or),O,Ox) :-
   appStr(" | ",O4,O5),
   showCanonTerm(Or,O5,O6),
   appStr(")",O6,Ox).
-showCanonTerm(match(_,L,R),O,Ox) :-
-  showCanonTerm(L,O,O1),
-  appStr(" .= ",O1,O2),
-  showCanonTerm(R,O2,Ox).
+showCanonTerm(match(_,P,E),O,Ox) :-
+  showCanonTerm(E,O,O1),
+  appStr(" =. ",O1,O2),
+  showCanonTerm(P,O2,Ox).
 showCanonTerm(parse(_,L,R),O,Ox) :-
   showCanonTerm(L,O,O1),
   appStr(" .~ ",O1,O2),
@@ -266,19 +267,6 @@ showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("\n",O9,O10),
   showRls(Nm,Eqns,O10,O11),
   appStr("\n",O11,Ox),!.
-showDef(grDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
-  appStr("grammar: ",O,O1),
-  appStr(Nm,O1,O2),
-  appStr(" … ",O2,O2a),
-  appStr(ExtNm,O2a,O2b),
-  appStr(" @ ",O2b,O3),
-  showLocation(Lc,O3,O6),
-  appStr("\n",O6,O7),
-  showType(Type,O7,O8),
-  showConstraints(Cx,O8,O9),
-  appStr("\n",O9,O10),
-  showRls(Nm,Eqns,O10,O11),
-  appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appStr(Nm,O1,O2),
@@ -356,12 +344,6 @@ showRule(Nm,ptnRule(_,Args,Cond,Value),O,Ox) :-!,
   showGuard(Cond,O2,O5),
   appStr(" <= ",O5,O6),
   showCanonTerm(Value,O6,Ox).
-showRule(Nm,grRule(_,Args,Cond,Value),O,Ox) :-
-  appStr(Nm,O,O1),
-  showCanonTerm(Args,O1,O2),
-  showGuard(Cond,O2,O5),
-  appStr(" --> ",O5,O6),
-  showCanonNT(Value,O6,Ox).
 
 showCanonNT(apply(_,Op,Args),O,Ox) :-
   showCanonTerm(Op,O,O1),
@@ -416,10 +398,9 @@ showOthers([Stmt|Stmts],O,Ox) :-
 showStmt(assertion(_,Cond),O,Ox) :-
   appStr("  assert ",O,O1),
   showCanonTerm(Cond,O1,Ox).
-
-showStmt(ignore(_,Exp),O,Ox) :-
-  appStr("  ignore ",O,O1),
-  showCanonTerm(Exp,O1,Ox).
+showStmt(show(_,Vl),O,Ox) :-
+  appStr("  show ",O,O1),
+  showCanonTerm(Vl,O1,Ox).
 
 ruleArity(equation(_,tple(_,A),_),Ar) :-
   length(A,Ar).

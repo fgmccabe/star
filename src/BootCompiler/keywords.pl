@@ -17,6 +17,7 @@
   keyword("=").
   keyword(".=").
   keyword("=.").
+  keyword("?=").
   keyword(".~").
   keyword("=>").
   keyword("<=>").
@@ -47,7 +48,6 @@
   keyword("all").
   keyword("exists").
   keyword("assert").
-  keyword("ignore").
   keyword("let").
   keyword("default").
   keyword("#").

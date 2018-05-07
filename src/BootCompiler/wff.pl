@@ -5,9 +5,9 @@
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
-    isIntegrity/3,isIgnore/3,isOpen/3,
+    isIntegrity/3,isShow/3,isOpen/3,
     isConditional/5,
-    isEquation/5,isPtnRule/5,isGrammarRule/5,isDefn/4,isAssignment/4,
+    isEquation/5,isPtnRule/5,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
     isLetDef/4,isMacroRule/4,
@@ -169,8 +169,8 @@ isDefault(St,Lc,Ptn,Val) :-
   isDefn(St,Lc,Lhs,Val),
   isUnary(Lhs,_,"default",Ptn).
 
-isIgnore(St,Lc,Ex) :-
-  isUnary(St,Lc,"ignore",Ex).
+isShow(St,Lc,Ex) :-
+  isUnary(St,Lc,"show",Ex).
 
 isOpen(St,Lc,Ex) :-
   isUnary(St,Lc,"open",Ex).
@@ -185,10 +185,6 @@ isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
 
 isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"<=",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
-
-isGrammarRule(Trm,Lc,Lhs,Cond,Rhs) :-
-  isBinary(Trm,Lc,"-->",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
 isMacroRule(Trm,Lc,Lhs,Cond) :-
@@ -210,8 +206,8 @@ isWhere(Trm,Lc,Lhs,Rhs) :-
 whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
 
-isOptionPtn(Trm,Lc,Lhs,Rhs) :-
-  isBinary(Trm,Lc,"?.=",Lhs,Rhs),!.
+isOptionPtn(Trm,Lc,Ptn,Opt) :-
+  isBinary(Trm,Lc,"?=",Opt,Ptn),!.
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"::",Lhs,Rhs).

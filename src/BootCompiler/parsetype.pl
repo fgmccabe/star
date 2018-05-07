@@ -54,10 +54,6 @@ parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
   isBinary(F,_,"<=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),!,
   parseType(R,Env,B,C1,Cx,RT).
-parseType(F,Env,B,C0,Cx,grType(AT,ST)) :-
-  isBinary(F,_,"-->",L,R),
-  parseArgType(L,Env,B,C0,C1,AT),
-  parseType(R,Env,B,C1,Cx,ST),!.
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
   isUnary(F,_,"ref",L),
   parseType(L,Env,B,C0,Cx,Tp).

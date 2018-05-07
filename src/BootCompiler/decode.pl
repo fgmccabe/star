@@ -67,7 +67,6 @@ decodeType(faceType(Fields,Tps)) --> ['I'], decodeFields(Fields), decodeFields(T
 decodeType(funType(A,T)) --> ['F'], decodeType(A), decodeType(T).
 decodeType(ptnType(A,T)) --> ['p'], decodeType(A), decodeType(T).
 decodeType(consType(A,T)) --> ['C'], decodeType(A), decodeType(T).
-decodeType(grType(A,T)) --> ['g'], decodeType(A), decodeType(T).
 decodeType(tupleType(Tps)) --> decodeTypes(Tps).
 decodeType(typeExists(L,R)) --> ['Y'], decodeType(L), decodeType(R).
 decodeType(contractExists(L,R)) --> ['Z'], decodeConstraint(L), decodeType(R).

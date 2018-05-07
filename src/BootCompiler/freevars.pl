@@ -76,8 +76,6 @@ frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 
 freeVarsInOther(Ex,Q,assertion(_,C),F,Fv) :-
   freeVars(C,Ex,Q,F,Fv).
-freeVarsInOther(Ex,Q,ignore(_,C),F,Fv) :-
-  freeVars(C,Ex,Q,F,Fv).
 freeVarsInOther(Ex,Q,show(_,C),F,Fv) :-
   freeVars(C,Ex,Q,F,Fv).
 

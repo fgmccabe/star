@@ -218,6 +218,7 @@ bothCont(L,R,D,Dx,End,C,Cx,Stk,Stkx) :-
 allocCont(Str,D,D,_,[iAlloc(Str),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
   popStack(Str,Stk,Stkx).
 
+resetCont(Lvl,D,D,_,Cx,Cx,Lvl,Lvl) :-!.
 resetCont(Lvl,D,D,_,[iRst(Lvl)|Cx],Cx,_,Lvl).
 
 escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
@@ -311,11 +312,12 @@ compPtn(idnt(Nm),_,Succ,_,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
   defineLclVar(Nm,Lb,End,D0,D1,Off,C,C0),
   Stk1 is Stk-1,
   call(Succ,D1,Dx,End,C0,Cx,Stk1,Stkx).
-compPtn(ctpl(St,A),Lc,Succ,Fail,D,Dx,End,[iDup,iLdC(St),iCLbl(Fl)|C],Cx,Stk,Stkx) :-
+compPtn(ctpl(St,A),Lc,Succ,Fail,D,Dx,End,[iDup,iLdC(St),iCLbl(Nxt),iLbl(FLb),iRst(Stk0)|C],Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
-  ptnTest(contCont(Nxt),Fail,Fl,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,_Stkx),
   Stk0 is Stk-1,
-  compPtnArgs(A,Lc,indexCont,0,bothCont(resetCont(Stk0),Succ),Fail,D1,Dx,End,C0,Cx,Stk,Stkx).
+  genLbl(D0,FLb,D1),
+  call(Fail,D1,D2,End,C,[iLbl(Nxt)|C1],Stk0,_Stkx),
+  compPtnArgs(A,Lc,indexCont,0,bothCont(resetCont(Stk0),Succ),jmpCont(FLb),D2,Dx,End,C1,Cx,Stk,Stkx).
 compPtn(whr(Lc,P,Cnd),OLc,Succ,Fail,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Nxt,D0),
   chLine(OLc,Lc,C,C0),

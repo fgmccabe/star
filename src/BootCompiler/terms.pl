@@ -1,4 +1,4 @@
-:- module(terms,[displayRules/1,displayEqns/2,substTerm/3,
+:- module(terms,[displayRules/1,displayEqns/2,substTerm/3,substTerms/3,
         genTplStruct/2,isTplStruct/1,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
         termHash/2,dispTerm/2,showTerm/4,locTerm/2]).
 

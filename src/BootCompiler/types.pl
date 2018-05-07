@@ -1,6 +1,6 @@
 :- module(types,[isType/1,isConType/1,isConstraint/1,newTypeVar/2,skolemVar/2,skolemFun/3,deRef/2,
       typeArity/2,isTypeFun/1,
-      isFunctionType/1,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,isGrType/1,isGrType/2,
+      isFunctionType/1,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,
       isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
       occursIn/2,isUnbound/1,isBound/1, constraints/2, isIdenticalVar/2,
@@ -20,7 +20,6 @@ isType(refType(_)).
 isType(tupleType(_)).
 isType(funType(_,_)).
 isType(ptnType(_,_)).
-isType(grType(_,_)).
 isType(consType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
@@ -68,8 +67,6 @@ occIn(Id,funType(A,_)) :- occIn(Id,A).
 occIn(Id,funType(_,R)) :- occIn(Id,R).
 occIn(Id,ptnType(A,_)) :- occIn(Id,A).
 occIn(Id,ptnType(_,R)) :- occIn(Id,R).
-occIn(Id,grType(A,_)) :- occIn(Id,A).
-occIn(Id,grType(_,R)) :- occIn(Id,R).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
@@ -115,7 +112,6 @@ showType(typeExp(Nm,A),O,Ox) :- showType(Nm,O,O1), appStr("[",O1,O2),showTypeEls
 showType(tupleType(A),O,Ox) :- appStr("(",O,O1), showTypeEls(A,O1,O2), appStr(")",O2,Ox).
 showType(funType(A,R),O,Ox) :- showType(A,O,O1), appStr("=>",O1,O2), showType(R,O2,Ox).
 showType(ptnType(A,R),O,Ox) :- showType(A,O,O1), appStr("<=",O1,O4), showType(R,O4,Ox).
-showType(grType(A,R),O,Ox) :- showType(A,O,O1), appStr(" --> ",O1,O4), showType(R,O4,Ox).
 showType(consType(A,R),O,Ox) :- showType(A,O,O1), appStr("<=>",O1,O2), showType(R,O2,Ox).
 showType(refType(R),O,Ox) :- appStr("ref",O,O4), showType(R,O4,Ox).
 showType(allType(V,Tp),O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,showType,O2,Ox).
@@ -189,7 +185,6 @@ tpArity(existType(_,Tp),Ar) :- typeArity(Tp,Ar).
 tpArity(constrained(Tp,_),Ar) :- typeArity(Tp,A), Ar is A+1.
 tpArity(funType(A,_),Ar) :- typeArity(A,Ar).
 tpArity(ptnType(A,_),Ar) :- typeArity(A,Ar).
-tpArity(grType(A,_),Ar) :- typeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- tpArity(A,Ar).
 tpArity(refType(A),Ar) :- typeArity(A,Ar).
 tpArity(tupleType(A),Ar) :- length(A,Ar).
@@ -205,12 +200,6 @@ isPtnType(T) :- deRef(T,Tp),isPtnType(Tp,_).
 isPtnType(allType(_,T),Ar) :- deRef(T,Tp), isPtnType(Tp,Ar).
 isPtnType(ptnType(A),Ar) :- typeArity(A,Ar).
 
-
-isGrType(T) :- deRef(T,Tp),isGrType(Tp,_).
-
-isGrType(allType(_,T),Ar) :- deRef(T,Tp), isGrType(Tp,Ar).
-isGrType(grType(A),Ar) :- typeArity(A,Ar).
-
 isCnsType(Tp,Ar) :- deRef(Tp,T), isCnsTp(T,Ar).
 
 isCnsTp(allType(_,Tp),Ar) :- isCnsTp(Tp,Ar).
@@ -224,7 +213,6 @@ isProgType(allType(_,Tp)) :- !, isProgType(Tp).
 isProgType(constrained(Tp,_)) :- isProgType(Tp).
 isProgType(Tp) :- isFunctionType(Tp),!.
 isProgType(Tp) :- isPtnType(Tp),!.
-isProgType(Tp) :- isGrType(Tp),!.
 isProgType(Tp) :- isCnsType(Tp,_),!.
 
 

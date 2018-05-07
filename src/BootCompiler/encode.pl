@@ -61,7 +61,6 @@ encodeType(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(typeExp(T,Args),['U'|O],Ox) :- deRef(T,Tp),encodeTp(Tp,O,O1), encodeTypes(Args,O1,Ox).
 encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(ptnType(AT,Tp),['p'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
-encodeType(grType(AT,Tp),['g'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeTp(Args,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(tupleType(Args),O,Ox) :- encodeTypes(Args,O,Ox).
 encodeType(faceType(Fields,Types),['I'|O],Ox) :- encodeFieldTypes(Fields,O,O1),encodeFieldTypes(Types,O1,Ox).

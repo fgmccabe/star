@@ -27,7 +27,7 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isIntegrity(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
-  isIgnore(St,_,_).
+  isShow(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
   isTypeAnnotation(St,_,L,T),
   isIden(L,V),
@@ -316,12 +316,6 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectHeadRefs(H,All,R0,R1),
   collectCondRefs(Cond,All,R1,R2),
   collectTermRefs(Ptn,All,R2,Refs).
-collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isGrammarRule(St,_,H,Cond,Body),
-  collectAnnotRefs(H,All,Annots,SoFar,R0),
-  collectHeadRefs(H,All,R0,R1),
-  collectCondRefs(Cond,All,R1,R2),
-  collectNTRefs(Body,All,R2,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isAlgebraicTypeStmt(C,_,_,Cx,_,_),
   collConstraints(Cx,All,R,Refs).
@@ -346,6 +340,9 @@ collStmtRefs(St,All,_,R0,Refs) :-
 collStmtRefs(St,All,_,R,Rx) :-
   isIntegrity(St,_,Inner),
   collectCondRefs(Inner,All,R,Rx).
+collStmtRefs(St,All,_,R,Rx) :-
+  isShow(St,_,Inner),
+  collectTermRefs(Inner,All,R,Rx).
 collStmtRefs(St,_,_,R,R) :-
   locOfAst(St,Lc),
   reportError("Cannot fathom %s",[St],Lc).
@@ -440,44 +437,7 @@ collectCondRefs(C,A,R0,Refs) :-
   isTuple(C,[Inner]),
   collectCondRefs(Inner,A,R0,Refs).
 collectCondRefs(C,A,R0,Refs) :-
-  isParse(C,_,L,R),
-  collectNTRefs(L,A,R0,R1),
-  collectTermRefs(R,A,R1,Refs).
-collectCondRefs(C,A,R0,Refs) :-
   collectTermRefs(C,A,R0,Refs).
-
-collectNTRefs(C,A,R0,Refs) :-
-  isConjunct(C,_,L,R),
-  collectNTRefs(L,A,R0,R1),
-  collectNTRefs(R,A,R1,Refs).
-collectNTRefs(C,A,R0,Refs) :-
-  isConditional(C,_,T,L,R),
-  collectNTRefs(T,A,R0,R1),
-  collectNTRefs(L,A,R1,R2),
-  collectNTRefs(R,A,R2,Refs).
-collectNTRefs(C,A,R0,Refs) :-
-  isDisjunct(C,_,L,R),
-  collectNTRefs(L,A,R0,R1),
-  collectNTRefs(R,A,R1,Refs).
-collectNTRefs(C,A,R0,Refs) :-
-  isNegation(C,_,R),
-  collectNTRefs(R,A,R0,Refs).
-collectNTRefs(C,A,R0,Refs) :-
-  isNTLookAhead(C,_,R),
-  collectNTRefs(R,A,R0,Refs).
-collectNTRefs(C,A,R0,Refs) :-
-  isTuple(C,Inner),
-  collectNTTermRefs(Inner,A,R0,Refs).
-collectNTRefs(C,A,R,Refs) :-
-  isBraceTuple(C,_,[El]),
-  collectCondRefs(El,A,R,Refs).
-collectNTRefs(C,A,R,Refs) :-
-  collectTermRefs(C,A,R,Refs).
-
-collectNTTermRefs([],_,R,R).
-collectNTTermRefs([C|L],All,R,Refs) :-
-  collectTermRefs(C,All,R,R0),
-  collectNTTermRefs(L,All,R0,Refs).
 
 collectTermRefs(E,A,R0,Refs) :-
   isTypeAnnotation(E,_,L,R),
