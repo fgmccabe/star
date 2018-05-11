@@ -12,6 +12,7 @@
 #define lockType "t'star.thread*lock'"
 #define fileType "t'star.io*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
+#define locType "(Siiii)"
 
 /* Define the standard escapes */
 escape(_exit,True,False,"F(i)v","terminate engine")
@@ -103,6 +104,7 @@ escape(_list_front,False,False,":k't'F(Lk't'i)Lk't'","front portion of list")
 escape(_list_back,False,False,":k't'F(Lk't'i)Lk't'","back portion of list")
 escape(_list_nil,False,False,":k't'F(i)Lk't'","create an empty list of min capacity")
 escape(_list_concat,False,False,":k't'F(Lk't'Lk't')Lk't'","concatenate two lists")
+escape(_list_flatten,False,False,":k't'F(LLk't')Lk't'","flatten a list of lists into a list")
 escape(_list_reverse,False,False,":k't'F(Lk't')Lk't'","reverse the elements of a list")
 
 /*
@@ -288,7 +290,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
 
   escape(_ins_debug,False,False,"F()v","set instruction-level")
   escape(_stackTrace,False,False,"F()v","Print a stack trace")
-  escape(_assert,False,False,"F(lS)v","Check an assertion and bolt if false")
+  escape(_assert,False,False,"F(l"locType")v","Check an assertion and bolt if false")
 
 #undef processState
 #undef threadType

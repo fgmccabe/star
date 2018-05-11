@@ -15,7 +15,7 @@ static termPo mtdCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison mtdCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer mtdHash(specialClassPo cl, termPo o);
-static retCode mtdDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass MethodClass = {
   .clss = Null,
@@ -29,14 +29,14 @@ SpecialClass MethodClass = {
 
 clssPo methodClass = (clssPo) &MethodClass;
 
-static retCode delPkg(packagePo pkg, pkgPo p);
+static retCode delPkg(packagePo pkg, packagePo p);
 static integer pkHash(packagePo pkg);
 static comparison compPk(packagePo p1, packagePo p2);
 
 void initCode() {
   MethodClass.clss = specialClass;
 
-  pkgPool = newPool(sizeof(PkgRec), 16);
+  pkgPool = newPool(sizeof(PackageRec), 16);
   packages = NewHash(16, (hashFun) pkHash, (compFun) compPk, (destFun) delPkg);
 }
 
@@ -56,7 +56,7 @@ termPo mtdCopy(specialClassPo cl, termPo dst, termPo src) {
   methodPo di = (methodPo) dst;
   *di = *si;
 
-  memcpy(&di->code,&si->code,si->codeSize*sizeof(insWord));
+  memcpy(&di->code, &si->code, si->codeSize * sizeof(insWord));
 
   return ((termPo) di) + mtdSize(cl, src);
 }
@@ -81,12 +81,12 @@ integer mtdHash(specialClassPo cl, termPo o) {
   return (integer) o;
 }
 
-retCode mtdDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
   normalPo pool = codeLits(mtd);
-  termPo lbl = nthArg(pool, 0);
+  labelPo lbl = C_LBL(nthArg(pool, 0));
 
-  return outMsg(out, "%T", lbl);
+  return showLbl(out, precision, alt, lbl);
 }
 
 methodPo
@@ -119,7 +119,7 @@ void markMtd(gcSupportPo G, methodPo mtd) {
 }
 
 logical validPC(methodPo mtd, insPo pc) {
-  return (logical)(pc >= mtd->code && pc < &mtd->code[mtd->codeSize]);
+  return (logical) (pc >= mtd->code && pc < &mtd->code[mtd->codeSize]);
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -139,28 +139,28 @@ termPo getMtdLit(methodPo mtd, integer litNo) {
   return nthArg(codeLits(mtd), litNo);
 }
 
-pkgPo loadedPackage(char *package) {
-  return (pkgPo) hashGet(packages, package);
+packagePo loadedPackage(char *package) {
+  return (packagePo) hashGet(packages, package);
 }
 
-pkgPo createPkg(char *name, char *version) {
-  pkgPo pkg = (pkgPo) allocPool(pkgPool);
-  uniCpy((char *) &pkg->pkg.packageName, NumberOf(pkg->pkg.packageName), name);
-  uniCpy((char *) &pkg->pkg.version, NumberOf(pkg->pkg.version), version);
-  hashPut(packages, &pkg->pkg, pkg);
+packagePo createPkg(char *name, char *version) {
+  packagePo pkg = (packagePo) allocPool(pkgPool);
+  uniCpy((char *) &pkg->packageName, NumberOf(pkg->packageName), name);
+  uniCpy((char *) &pkg->version, NumberOf(pkg->version), version);
+  hashPut(packages, pkg, pkg);
   return pkg;
 }
 
-retCode delPkg(packagePo pkg, pkgPo p) {
+retCode delPkg(packagePo pkg, packagePo p) {
   freePool(pkgPool, p);
   return Ok;
 }
 
 char *loadedVersion(char *package) {
-  pkgPo pkg = loadedPackage(package);
+  packagePo pkg = loadedPackage(package);
 
   if (pkg != NULL)
-    return (char *) &pkg->pkg.version;
+    return (char *) &pkg->version;
 
   return NULL;
 }
@@ -173,11 +173,11 @@ comparison compPk(packagePo p1, packagePo p2) {
   return uniCmp(p1->packageName, p2->packageName);
 }
 
-pkgPo markLoaded(char *package, char *version) {
-  pkgPo pkg = loadedPackage(package);
+packagePo markLoaded(char *package, char *version) {
+  packagePo pkg = loadedPackage(package);
 
   if (pkg != NULL) {
-    if (!compatiblVersion((char *) &pkg->pkg.version, version))
+    if (!compatiblVersion((char *) &pkg->version, version))
       return Null;
     else
       return pkg;

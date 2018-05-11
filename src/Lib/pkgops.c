@@ -47,13 +47,13 @@ typedef struct {
   listPo *list;
 } pickupStruct;
 
-static retCode pickupImport(char *pkgNm, char *vers, char *errorMsg, long msgLen, void *cl) {
+static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) {
   pickupStruct *pk = (pickupStruct *) cl;
 
-  stringPo pkg = allocateCString(pk->H, pkgNm);
+  stringPo pkg = allocateCString(pk->H, p->packageName);
   int root = gcAddRoot(pk->H, (ptrPo) &pkg);
 
-  stringPo vr = allocateCString(pk->H, vers);
+  stringPo vr = allocateCString(pk->H, p->version);
   gcAddRoot(pk->H, (ptrPo) &vr);
 
   normalPo pr = allocatePair(pk->H, (termPo) pkg, (termPo) vr);
@@ -77,7 +77,7 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
 
   pickupStruct Cl = {.list=&imports, .H=H};
 
-  retCode ret = installPackage(buffer, len, errMsg, NumberOf(errMsg), pickupImport, &Cl);
+  retCode ret = installPackage(buffer, len, errMsg, NumberOf(errMsg), pickupImport, Null);
 
   free(buffer);
 

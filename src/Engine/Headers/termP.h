@@ -25,7 +25,7 @@ typedef termPo (*classScanFun)(specialClassPo class, specialHelperFun helper, vo
 
 typedef termPo (*classCpyFun)(specialClassPo class, termPo dst, termPo src);
 
-typedef retCode (*classDispFun)(ioPo out, termPo t, long depth, logical alt);
+typedef retCode (*classDispFun)(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 typedef comparison (*classCmpFun)(specialClassPo class, termPo t1, termPo t2);
 

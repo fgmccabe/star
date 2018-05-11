@@ -55,6 +55,8 @@ int main(int argc, char **argv) {
 
   installMsgProc('M', showMtdLbl);
   installMsgProc('L', showLoc);
+  installMsgProc('T', showTerm);
+  installMsgProc('P', dispPkgNm);
 
   /* IMPORTANT -- Keep the order of these set up calls */
 
@@ -66,7 +68,7 @@ int main(int argc, char **argv) {
 
   char errMsg[MAXLINE];
 
-  if (loadPackage(bootPkg, bootVer, errMsg, NumberOf(errMsg), Null) != Ok) {
+  if (loadPackage(&bootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
     logMsg(logFile, "Could not load boot pkg %s/%s: %s", bootPkg, bootVer, errMsg);
     exit(99);
   }
@@ -75,12 +77,6 @@ int main(int argc, char **argv) {
 
   setupSignals();
   initEngine();
-
-
-#ifdef TRACEMEM
-  if (traceMemory)
-    atexit(dumpGcStats);
-#endif
 
   switch(bootstrap(entry)){
     case Ok:

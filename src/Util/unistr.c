@@ -63,11 +63,11 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
     return Eof;
 }
 
-retCode prevPoint(const char *src, long *start, codePoint *code) {
+retCode prevPoint(const char *src, integer *start, codePoint *code) {
   long pos = *start;
 
   if (pos > 0) {
-    char b = src[--pos];
+    unsigned char b = (unsigned char)src[--pos];
 
     if (b <= 0x7f) {
       *code = (codePoint) b;
@@ -95,6 +95,18 @@ retCode prevPoint(const char *src, long *start, codePoint *code) {
   } else
     return Eof;
 }
+
+integer backCodePoint(char *src, integer from, integer count) {
+  while (count-- > 0 && from>0) {
+    codePoint ch;
+    if (prevPoint(src, &from, &ch) == Ok)
+      continue;
+    else
+      return -1;
+  }
+  return from;
+}
+
 
 integer countCodePoints(const char *src, integer start, integer end) {
   integer count = 0;

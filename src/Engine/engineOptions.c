@@ -34,6 +34,8 @@ logical runStats = False; // Count instructions etc.
 char CWD[MAXFILELEN] = "";
 char bootPkg[MAX_SYMB_LEN] = "star.boot";  // boot package
 char bootVer[MAX_SYMB_LEN] = "*";
+PackageRec bootPkge = {.packageName="star.boot",.version="*"};
+
 char entry[MAX_SYMB_LEN] = "star.boot@__boot";  // entry point class
 char debugPkg[MAX_SYMB_LEN] = "";  // Standard debug package
 
@@ -229,6 +231,7 @@ static retCode setWD(char *option, logical enable, void *cl) {
 
 static retCode setBootPkg(char *option, logical enable, void *cl) {
   uniCpy(bootPkg, NumberOf(bootPkg), option);
+  uniCpy(&bootPkge.packageName[0],NumberOf(bootPkge.packageName),option);
   return Ok;
 }
 

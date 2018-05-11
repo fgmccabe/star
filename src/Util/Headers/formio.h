@@ -26,8 +26,6 @@ retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, co
 retCode outMsg(ioPo f, char *fmt, ...);
 retCode logMsg(ioPo out, char *fmt, ...);
 
-retCode outUniString(ioPo f, char * str, long len, long width, int precision,
-                     codePoint pad, logical leftPad, logical alt);
 retCode outInt(ioPo f, integer i);
 retCode outFloat(ioPo out, double x);
 retCode outUStr(ioPo f, char * str);

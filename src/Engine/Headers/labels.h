@@ -26,7 +26,7 @@ char *labelName(labelPo lbl);
 
 labelPo objLabel(labelPo lbl, integer arity);
 
-retCode showLbl(ioPo out, labelPo lbl);
+retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl);
 
 methodPo labelCode(labelPo lbl);
 

@@ -16,11 +16,16 @@
 #include <config.h>
 #include <ooio.h>
 
+long long int *
+
 #include <math.h>
 #include <unistr.h>
 #include <assemP.h>
 #include <assem.h>
 #include <code.h>
+#include <term.h>
+
+retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt)
 
 #include <assem.h>
 

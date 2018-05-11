@@ -22,7 +22,7 @@
 typedef retCode (*fileMsgProc)(ioPo f,void *data,long depth,long precision,logical alt);
 
 void installMsgProc(char key,fileMsgProc proc);
-retCode __voutMsg(ioPo f,unsigned char *fmt,va_list args);
+retCode __voutMsg(ioPo f, char *fmt, va_list args);
 
 #endif
 

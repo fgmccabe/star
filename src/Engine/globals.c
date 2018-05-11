@@ -43,7 +43,7 @@ static termPo glbCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison glbCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer glbHash(specialClassPo cl, termPo o);
-static retCode glbDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass GlobalClass = {
   .clss = Null,
@@ -175,7 +175,7 @@ void markGlobals(gcSupportPo G) {
     markGlobal(&glbVars[ix], G);
 }
 
-retCode glbDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   globalPo glb = C_GLOB(t);
 
   if (getGlobal(glb) != Null)

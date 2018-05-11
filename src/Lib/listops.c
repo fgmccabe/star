@@ -95,3 +95,10 @@ ReturnStatus g__list_reverse(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=(termPo) reverseList(processHeap(p), l)};
   return ret;
 }
+
+ReturnStatus g__list_flatten(processPo p, ptrPo tos) {
+  listPo ll = C_LIST(tos[0]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) flattenList(processHeap(p), ll)};
+  return ret;
+}

@@ -12,11 +12,6 @@
 
 #include <assert.h>
 
-typedef struct _pkg_record_ {
-  PackageRec pkg;
-  hashPo methods;
-} PkgRec;
-
 typedef struct _method_ {
   clssPo clss;         // == specialClass
   integer codeSize;     /* How big is the code block */
@@ -39,27 +34,27 @@ static inline logical isMethod(termPo m) {
 }
 
 static inline insPo entryPoint(methodPo mtd) {
-  assert(mtd!=Null);
+  assert(mtd != Null);
   return &mtd->code[0];
 }
 
-static inline integer insCount(methodPo mtd){
-  assert(mtd!=Null);
+static inline integer insCount(methodPo mtd) {
+  assert(mtd != Null);
   return mtd->codeSize;
 }
 
 static inline int64 argCount(methodPo mtd) {
-  assert(mtd!=Null);
+  assert(mtd != Null);
   return mtd->arity;
 }
 
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
-extern logical  validPC(methodPo mtd, insPo pc);
+extern logical validPC(methodPo mtd, insPo pc);
 
 extern void markMtd(gcSupportPo G, methodPo mtd);
 
-retCode loadPackage(char *pkg, char *vers, char *errorMsg, long msgSize, void *cl);
+retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl);
 
-typedef retCode (*pickupPkg)(char *pkgNm, char *vers, char *errorMsg, long msgLen, void *cl);
+typedef retCode (*pickupPkg)(packagePo pkg, char *errorMsg, long msgLen, void *cl);
 extern retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
 #endif

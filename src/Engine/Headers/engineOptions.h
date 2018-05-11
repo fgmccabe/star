@@ -5,6 +5,7 @@
  * Command line option flags
  */
 
+#include <pkgP.h>
 #include "config.h"
 #include "starOptions.h"
 
@@ -36,6 +37,7 @@ extern long initStackSize;    /* How big is the stack */
 extern char entry[MAX_SYMB_LEN];
 extern char bootPkg[MAX_SYMB_LEN];  // boot package
 extern char bootVer[MAX_SYMB_LEN];
+extern PackageRec bootPkge;
 
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];

@@ -11,7 +11,7 @@ static termPo thrCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison thrCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer thrHash(specialClassPo cl, termPo o);
-static retCode thrDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass ThredClass = {
   .clss = Null,
@@ -71,7 +71,7 @@ integer thrHash(specialClassPo cl, termPo o) {
   return (integer) t->process;
 }
 
-static retCode thrDisp(ioPo out, termPo t, long depth, logical alt) {
+static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   return outMsg(out, "<<thread@0x%x>>", t);
 }
 

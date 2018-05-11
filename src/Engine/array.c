@@ -12,7 +12,7 @@ static termPo sliceCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo sliceScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison sliceCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer sliceHash(specialClassPo cl, termPo o);
-static retCode sliceDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode sliceDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass SliceClass = {
   .clss = Null,
@@ -31,7 +31,7 @@ static termPo baseCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo baseScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison baseCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer baseHash(specialClassPo cl, termPo o);
-static retCode baseDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode baseDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 static termPo allocateBase(heapPo H, integer length, logical safeMode);
 
@@ -112,7 +112,7 @@ integer sliceHash(specialClassPo cl, termPo o) {
   return hash;
 }
 
-retCode sliceDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode sliceDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   listPo list = C_LIST(t);
   basePo base = C_BASE(list->base);
 
@@ -128,7 +128,7 @@ retCode sliceDisp(ioPo out, termPo t, long depth, logical alt) {
       ret = outStr(out, sep);
       sep = ", ";
       if (ret == Ok)
-        ret = dispTerm(out, base->els[ix], depth - 1, alt);
+        ret = dispTerm(out, base->els[ix], precision, depth - 1, alt);
       ix++;
     }
   } else if (ret == Ok)
@@ -158,7 +158,7 @@ void setNthEl(listPo list, integer ix, termPo el) {
   base->els[list->start + ix] = el;
 }
 
-retCode processList(listPo list, listProc p, logical safeMode, void *cl) {
+retCode processList(listPo list, listProc p, void *cl) {
   retCode ret = Ok;
   basePo base = C_BASE(list->base);
 
@@ -312,11 +312,41 @@ listPo concatList(heapPo H, listPo l1, listPo l2) {
   listPo reslt = createList(H, llen + llen / 2);
 
   for (integer ix = 0; ix < len1; ix++) {
-    setNthEl(reslt, ix, nthEl(l1, ix));
+    reslt = appendToList(H, reslt, nthEl(l1, ix));
   }
   for (integer ix = 0; ix < len2; ix++) {
-    setNthEl(reslt, ix + len1, nthEl(l2, ix));
+    reslt = appendToList(H, reslt, nthEl(l2, ix));
   }
+
+  gcReleaseRoot(H, root);
+  return reslt;
+}
+
+retCode processList(listPo list, listProc p, void *cl);
+
+static retCode countEls(termPo el, integer ix, void *cl) {
+  integer *count = (integer *) cl;
+  listPo ll = C_LIST(el);
+  (*count) += listSize(ll);
+  return Ok;
+}
+
+listPo flattenList(heapPo H, listPo l) {
+  int root = gcAddRoot(H, (ptrPo) &l);
+  integer llen = 0;
+
+  processList(l, countEls, &llen);
+
+  listPo reslt = createList(H, llen);
+
+  for (integer ix = 0; ix < listSize(l); ix++) {
+    listPo ll = C_LIST(nthEl(l, ix));
+    for (integer jx = 0; jx < listSize(ll); jx++) {
+      reslt = appendToList(H, reslt, nthEl(ll, jx));
+    }
+  }
+
+  assert(listSize(reslt) == llen);
 
   gcReleaseRoot(H, root);
   return reslt;
@@ -328,8 +358,8 @@ listPo reverseList(heapPo H, listPo l1) {
 
   listPo reslt = createList(H, len);
 
-  for (integer ix = 0; ix < len; ix++) {
-    setNthEl(reslt, len - ix, nthEl(l1, ix));
+  for (integer ix = 1; ix <= len; ix++) {
+    reslt = appendToList(H, reslt, nthEl(l1, len - ix));
   }
 
   gcReleaseRoot(H, root);
@@ -384,7 +414,7 @@ integer baseHash(specialClassPo cl, termPo o) {
   return uniHash("array_base");
 }
 
-retCode baseDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode baseDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   basePo base = C_BASE(t);
 
   retCode ret = outStr(out, "<");
@@ -399,7 +429,7 @@ retCode baseDisp(ioPo out, termPo t, long depth, logical alt) {
       ret = outStr(out, sep);
       sep = ", ";
       if (ret == Ok)
-        ret = dispTerm(out, base->els[ix], depth - 1, alt);
+        ret = dispTerm(out, base->els[ix], precision, depth - 1, alt);
       ix++;
     }
   } else if (ret == Ok)

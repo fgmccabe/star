@@ -161,7 +161,7 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
   integer depth = integerVal(Arg2);
 
   bufferPo strb = newStringBuffer();
-  retCode ret = dispTerm(O_IO(strb), t, depth, False);
+  retCode ret = dispTerm(O_IO(strb), t, 0, depth, False);
 
   integer oLen;
   const char *buff = getTextFromBuffer(&oLen, strb);

@@ -12,7 +12,7 @@ static termPo cellCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison cellCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer cellHash(specialClassPo cl, termPo o);
-static retCode cellDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass CellClass = {
   .clss = Null,
@@ -56,13 +56,13 @@ integer cellHash(specialClassPo cl, termPo o) {
   return hash64(uniHash("cell") * 37 + termHash(C_CELL(o)->content));
 }
 
-retCode cellDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   cellPo cell = C_CELL(t);
 
   retCode ret = outStr(out, "{");
   if (ret == Ok) {
     if (depth > 0)
-      ret = dispTerm(out, cell->content, depth - 1, alt);
+      ret = dispTerm(out, cell->content, precision, depth - 1, alt);
     else
       ret = outStr(out, "..");
   }

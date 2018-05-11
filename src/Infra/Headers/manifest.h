@@ -14,9 +14,9 @@ typedef struct _manifest_resource_ *manifestRsrcPo;
 
 manifestEntryPo manifestEntry(char *package);
 
-char *manifestResource(char *package, char *version, char *kind);
+char *manifestResource(packagePo pkg, char *kind);
 
-char *manifestRsrcFlNm(char *package, char *version, char *kind, char *buffer, integer buffLen);
+char *manifestRsrcFlNm(packagePo pkg, char *kind, char *buffer, integer buffLen);
 
 retCode addToManifest(packagePo package, char *kind, char *resrc);
 char *manifestOutPath(packagePo pkg, char *suff, char *buffer, int bufLen);

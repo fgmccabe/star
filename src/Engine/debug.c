@@ -10,8 +10,15 @@
 
 integer pcCount = 0;
 
+typedef enum {
+  lineBreak,
+  callBreak,
+  rtnBreak
+} BreakPtType;
+
 typedef struct _break_point_ {
-  char pkgNm[MAX_SYMB_LEN];
+  BreakPtType bkType;
+  char nm[MAX_SYMB_LEN];
   integer lineNo;
   integer offset;
 } BreakPoint, *breakPointPo;
@@ -43,7 +50,7 @@ static insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, p
 static inline int32 collect32(insPo pc) {
   uint32 hi = (uint32) pc[0];
   uint32 lo = (uint32) pc[1];
-  return (int32) (hi << (uint32)16 | lo);
+  return (int32) (hi << (uint32) 16 | lo);
 }
 
 #define collectI32(pc) (collI32(pc))
@@ -84,11 +91,11 @@ retCode addBreakPoint(breakPointPo bp) {
 }
 
 logical sameBreakPoint(breakPointPo b1, breakPointPo b2) {
-  return (logical) (uniCmp(b1->pkgNm, b2->pkgNm) == same && b1->lineNo == b2->lineNo && b1->offset == b2->offset);
+  return (logical) (uniCmp(b1->nm, b2->nm) == same && b1->lineNo == b2->lineNo && b1->offset == b2->offset);
 }
 
 logical isBreakPoint(breakPointPo b, const char *pk, integer lineNo, integer offset) {
-  if (uniCmp(b->pkgNm, pk) == same && b->lineNo == lineNo) {
+  if (uniCmp(b->nm, pk) == same && b->lineNo == lineNo) {
     if (offset != -1)
       return (logical) (b->offset == -1 || b->offset == offset);
     else
@@ -139,9 +146,9 @@ retCode clearBreakPoint(breakPointPo bp) {
 
 /*
  * A Break point is specified as:
- * pkg/line
- * or
- * pkg/line:off
+ * pkg@line,
+ * pkg@line:off, or
+ * prg/arity
  */
 
 static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
@@ -150,12 +157,14 @@ static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
 
   integer line = -1;
   integer offset = -1;
+  BreakPtType bkType = lineBreak;
 
   enum {
     initSte,
-    inPkg,
+    inNme,
     inLine,
-    inOffset
+    inOffset,
+    inArity
   } pState = initSte;
 
   while (ix < bLen && buffer[ix] == ' ')
@@ -166,16 +175,30 @@ static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
     switch (cp) {
       case '\n':
       case 0:
-        appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), 0);
+        appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
         bp->lineNo = line;
         bp->offset = offset;
+        bp->bkType = bkType;
         return Ok;
-      case '/': {
+      case '@': {
         switch (pState) {
-          case inPkg:
-            appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), 0);
+          case inNme:
+            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
             pState = inLine;
             line = 0;
+            continue;
+          default:
+            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
+            return Error;
+        }
+      }
+      case '/': {
+        switch (pState) {
+          case inNme:
+            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
+            pState = inArity;
+            bkType = callBreak;
+            line = offset = 0;
             continue;
           default:
             outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
@@ -197,8 +220,8 @@ static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
         switch (pState) {
           case initSte:
             continue;
-          case inPkg:
-            appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), 0);
+          case inNme:
+            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
             pState = inLine;
             line = offset = 0;
             continue;
@@ -206,14 +229,16 @@ static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
             pState = inOffset;
             continue;
           case inOffset:
+          case inArity:
             continue;
         }
       default:
         switch (pState) {
-          case inPkg:
-            appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), cp);
+          case inNme:
+            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), cp);
             continue;
           case inLine:
+          case inArity:
             if (isNdChar(cp)) {
               line = line * 10 + digitValue(cp);
               continue;
@@ -231,8 +256,8 @@ static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
             }
           case initSte:
             if (!isSpaceChar(cp)) {
-              pState = inPkg;
-              appendCodePoint(bp->pkgNm, &b, NumberOf(bp->pkgNm), cp);
+              pState = inNme;
+              appendCodePoint(bp->nm, &b, NumberOf(bp->nm), cp);
             }
             continue;
         }
@@ -262,6 +287,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
           case Ret: {
             if (--p->traceCount <= 0) {
               p->traceCount = 0;
+              p->tracing=True;
               return True;
             }
 
@@ -282,6 +308,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
           normalPo ln = C_TERM(getMtdLit(mtd, collect32(pc + 1)));
           if (breakPointHit(ln)) {
             p->waitFor = nextIns;
+            p->tracing = True;
             return True;
           }
         }
@@ -351,6 +378,7 @@ static DebugWaitFor dbgCont(char *line, processPo p, void *cl) {
 
 static DebugWaitFor dbgUntilRet(char *line, processPo p, void *cl) {
   p->traceCount = cmdCount(line, 1);
+  p->tracing = False;
   return nextSucc;
 }
 
@@ -612,7 +640,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
 
   logical stopping = shouldWeStop(p, mtd, pc);
   if (p->tracing || stopping) {
-    outMsg(stdErr, "[%d]: {%d} ", pcCount,p->traceCount);
+    outMsg(stdErr, "[%d]: {%d} ", pcCount, p->traceCount);
     disass(stdErr, p, mtd, pc, fp, sp);
     if (stopping) {
 
@@ -645,15 +673,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
 }
 
 void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp) {
-  if (isNormalPo(ln)) {
-    normalPo line = C_TERM(ln);
-    integer pLen;
-    const char *pkgNm = stringVal(nthArg(line, 0), &pLen);
-    outMsg(out, "line: %S/%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
-    flushFile(out);
-    return;
-  } else
-    outMsg(out, "line: %T", ln);
+  outMsg(out,"%L%_",ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -669,11 +689,11 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
 }
 
 static retCode shCall(ioPo out, char *msg, methodPo mtd, framePo fp, ptrPo sp) {
-  tryRet(outMsg(out, "%s%T(", msg, mtd));
+  tryRet(outMsg(out, "%s%#.16T(", msg, mtd));
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
-    tryRet(outMsg(out, "%s%T", sep, sp[ix]));
+    tryRet(outMsg(out, "%s%#T", sep, sp[ix]));
     sep = ", ";
   }
   return outMsg(out, ")");

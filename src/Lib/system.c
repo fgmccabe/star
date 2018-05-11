@@ -60,8 +60,8 @@ ReturnStatus g__exit(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__assert(processPo P, ptrPo tos) {
-  if (tos[1] != trueEnum) {
-    logMsg(logFile, "assertion failed: %T\n", tos[0]);
+  if (tos[0] != trueEnum) {
+    logMsg(logFile, "assertion failed at %L\n", tos[1]);
     exit(10);
   }
   ReturnStatus rt = {.ret=Ok, .rslt=voidEnum};

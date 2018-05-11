@@ -134,11 +134,11 @@ retCode addResource(manifestVersionPo version, const char *kind, const char *rsc
   return hashPut(version->resources, &f->kind, f);
 }
 
-char *manifestResource(char *package, char *version, char *kind) {
-  manifestEntryPo entry = manifestEntry(package);
+char *manifestResource(packagePo pkg, char *kind) {
+  manifestEntryPo entry = manifestEntry(pkg->packageName);
 
   if (entry != NULL) {
-    manifestVersionPo v = manifestVersion(entry, version);
+    manifestVersionPo v = manifestVersion(entry, pkg->version);
 
     if (v != NULL) {
       manifestRsrcPo f = hashGet(v->resources, kind);
@@ -150,8 +150,8 @@ char *manifestResource(char *package, char *version, char *kind) {
   return NULL;
 }
 
-char *manifestRsrcFlNm(char *package, char *version, char *kind, char *buffer, integer buffLen) {
-  char *rsrc = manifestResource(package, version, kind);
+char *manifestRsrcFlNm(packagePo pkg, char *kind, char *buffer, integer buffLen) {
+  char *rsrc = manifestResource(pkg, kind);
 
   if (rsrc != Null) {
     return strMsg(buffer, buffLen, "%s/%s", repoDir, rsrc);

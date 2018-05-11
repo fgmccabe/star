@@ -24,6 +24,8 @@ extern listPo appendToList(heapPo H, listPo list, termPo el);
 
 extern listPo concatList(heapPo H, listPo l1,listPo l2);
 
+extern listPo flattenList(heapPo H, listPo l);
+
 extern listPo reverseList(heapPo H, listPo l1);
 
 // Use with caution!
@@ -33,7 +35,7 @@ extern termPo prependToList(heapPo H, listPo list, termPo el);
 
 typedef retCode (*listProc)(termPo el, integer ix, void *cl);
 
-extern retCode processList(listPo list, listProc p, logical safeMode, void *cl);
+extern retCode processList(listPo list, listProc p, void *cl);
 
 extern integer listSize(listPo list);
 extern termPo nthEl(listPo list, integer ix);

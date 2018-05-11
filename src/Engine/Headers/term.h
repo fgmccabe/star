@@ -57,7 +57,8 @@ static inline logical hasClass(termPo obj, clssPo clss) {
   return (logical) (obj != Null && (clssPo) obj->clss == clss);
 }
 
-extern retCode dispTerm(ioPo out, termPo t, long depth, logical alt);
+retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt);
+retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt);
 
 logical sameTerm(termPo t1, termPo t2);
 

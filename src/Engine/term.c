@@ -37,7 +37,7 @@ labelPo termLbl(normalPo t) {
 }
 
 integer termArity(normalPo term) {
-  assert(term!=Null);
+  assert(term != Null);
   labelPo lbl = term->lbl;
   return labelArity(lbl);
 }
@@ -52,23 +52,24 @@ void setArg(normalPo term, int64 ix, termPo arg) {
   term->args[ix] = arg;
 }
 
-static retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
-  return dispTerm(f, (termPo) data, depth, alt);
+retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
+  return dispTerm(f, (termPo) data, precision, depth, alt);
 }
 
 void initTerm() {
-  installMsgProc('T', showTerm);
 }
 
-retCode dispTerm(ioPo out, termPo t, long depth, logical alt) {
+retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   clssPo clss = t->clss;
   if (isSpecialClass(clss)) {
     specialClassPo spec = (specialClassPo) clss;
-    return spec->dispFun(out, t, depth, alt);
+    return spec->dispFun(out, t, precision, depth, alt);
   } else if (isNormalPo(t)) {
     normalPo nml = C_TERM(t);
     labelPo lbl = nml->lbl;
-    retCode ret = (isTplLabel(lbl)?Ok:outStr(out, labelName(lbl)));
+    retCode ret = (isTplLabel(lbl) ? Ok :
+                   alt ? showLbl(out, 24, alt, lbl) :
+                   outStr(out, labelName(lbl)));
     if (ret == Ok)
       ret = outChar(out, '(');
     if (depth > 0) {
@@ -78,7 +79,7 @@ retCode dispTerm(ioPo out, termPo t, long depth, logical alt) {
         ret = outStr(out, sep);
         sep = ", ";
         if (ret == Ok)
-          ret = dispTerm(out, nthArg(nml, ix), depth - 1, alt);
+          ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
       }
     } else
       ret = outStr(out, "...");

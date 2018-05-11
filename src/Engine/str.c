@@ -11,7 +11,7 @@ static termPo strCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison strCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer strHash(specialClassPo cl, termPo o);
-static retCode strDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode strDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass StringClass = {
   .clss = Null,
@@ -130,7 +130,7 @@ static retCode cpDisp(codePoint ch, integer ix, void *cl) {
   return qtChar(O_IO(cl), ch);
 }
 
-retCode strDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode strDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   stringPo str = C_STR(t);
 
   retCode ret = outChar(out, '"');

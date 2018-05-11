@@ -25,7 +25,7 @@ static termPo lockCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison lockCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lckHash(specialClassPo cl, termPo o);
-static retCode lockDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode lockDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass LockClass = {
   .clss = Null,
@@ -79,7 +79,7 @@ integer lckHash(specialClassPo cl, termPo o){
   return (integer)(&l->mutex);
 }
 
-static retCode lockDisp(ioPo out, termPo t, long depth, logical alt) {
+static retCode lockDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   return outMsg(out, "<<lock@0x%x>>", t);
 }
 

@@ -10,7 +10,7 @@ static termPo ioCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo ioScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison ioCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer ioHash(specialClassPo cl, termPo o);
-static retCode ioDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass IOChnnlClass = {
   .clss = Null,
@@ -64,7 +64,7 @@ integer ioHash(specialClassPo cl, termPo o) {
   return (integer) io->io;
 }
 
-static retCode ioDisp(ioPo out, termPo t, long depth, logical alt) {
+static retCode ioDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   ioChnnlPo io = C_IO(t);
   return outMsg(out, "<<io:0x%x>>", io->io);
 }

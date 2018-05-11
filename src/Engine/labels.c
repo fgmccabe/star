@@ -17,7 +17,7 @@ static termPo lblCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static comparison lblCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lblHash(specialClassPo cl, termPo o);
-static retCode lblDisp(ioPo out, termPo t, long depth, logical alt);
+static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
 SpecialClass LabelClass = {
   .clss = Null,
@@ -139,13 +139,22 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + LabelCellCount;
 }
 
-retCode lblDisp(ioPo out, termPo t, long depth, logical alt) {
+retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   labelPo lbl = C_LBL(t);
-  return showLbl(out, lbl);
+  return showLbl(out, depth, alt, lbl);
 }
 
-retCode showLbl(ioPo out, labelPo lbl) {
-  return outMsg(out, "%s/%d", lbl->name, lbl->arity);
+retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl) {
+  integer lblLen = uniStrLen(lbl->name);
+  if (alt) {
+    if (lblLen > prec) {
+      integer half = prec / 2;
+      integer hwp = backCodePoint(lbl->name,lblLen,half);
+      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen-hwp);
+    } else
+      return outMsg(out, "%S", lbl->name, lblLen);
+  } else
+    return outMsg(out, "%s/%d", lbl->name, lbl->arity);
 }
 
 methodPo labelCode(labelPo lbl) {

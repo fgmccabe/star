@@ -25,24 +25,24 @@
 #include "codeP.h"
 #include "labels.h"
 
-static retCode decodePkgName(ioPo in, char *nm, long nmLen, char *v, long vLen);
+static retCode decodePkgName(ioPo in, packagePo pkg);
 static retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity);
-static retCode decodeLoadedPkg(char *pkgNm, long nmLen, char *vrNm, long vrLen, ioPo in);
+static retCode decodeLoadedPkg(packagePo pkg, ioPo in);
 static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
 static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
 
-static retCode loadSegments(ioPo in, pkgPo owner, char *errorMsg, long msgLen);
+static retCode loadSegments(ioPo in, packagePo owner, char *errorMsg, long msgLen);
 
 static char stringSig[] = {strTrm, 0};
 static char *pkgSig = "n4o4'()4'";
 
-static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
+static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   char flNm[MAXFILELEN];
-  char *fn = manifestRsrcFlNm(pkgName, vers, "code", flNm, NumberOf(flNm));
+  char *fn = manifestRsrcFlNm(pkg, "code", flNm, NumberOf(flNm));
   retCode ret = Ok;
 
   if (fn == NULL) {
-    logMsg(logFile, "cannot determine code for %s:%s%_", pkgName, vers);
+    logMsg(logFile, "cannot determine code for %P%_", pkg);
     return Error;
   }
 
@@ -50,15 +50,14 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 
 #ifdef TRACEPKG
   if (tracePkg)
-    logMsg(logFile, "loading package %s:%s from file %s", pkgName, vers, fn);
+    logMsg(logFile, "loading package %P from file %s", pkg, fn);
 #endif
 
   if (file != NULL) {
     if (fileStatus(file) == Ok) {
       skipShellPreamble(file);
 
-      char pkgNm[MAX_SYMB_LEN];
-      char vrNm[MAX_SYMB_LEN];
+      PackageRec lddPkg;
       bufferPo sigBuffer = newStringBuffer();
 
       if ((ret = isLookingAt(file, stringSig)) == Ok)
@@ -66,61 +65,54 @@ static retCode ldPackage(char *pkgName, char *vers, char *errorMsg, long msgSize
 
       if (ret == Ok) {
         rewindBuffer(sigBuffer);
-        ret = decodeLoadedPkg(pkgNm, NumberOf(pkgNm), vrNm, NumberOf(vrNm), O_IO(sigBuffer));
+        ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer));
       }
 
-      if (ret == Ok && uniCmp((char *) pkgNm, pkgName) != same) {
-        outMsg(logFile, "loaded package: %s not what was expected %T\n", (char *) pkgNm, pkgName);
+      if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
+        outMsg(logFile, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
         return Error;
       }
 
       if (ret == Ok) {
-        pkgPo pkg = markLoaded(pkgNm, vrNm);
-
         if (pickup != Null)
           ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
         if (ret == Ok)
-          ret = loadSegments(O_IO(sigBuffer), pkg, errorMsg, msgSize);
+          ret = loadSegments(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
       }
     }
 
     closeFile(file);
 
     if (ret == Error)
-      logMsg(logFile, "problem in loading %s: %s", pkgName, errorMsg);
-#ifdef TRACEPKG
-    else if (tracePkg)
-        logMsg(logFile, "package %s loaded", pkgName);
-#endif
+      logMsg(logFile, "problem in loading %P: %s", pkg, errorMsg);
 
     return ret;
   } else {
-    strMsg(errorMsg, msgSize, "package %s not found", pkgName);
+    strMsg(errorMsg, msgSize, "package %P not found", pkg);
     return Eof;
   }
 }
 
-retCode loadPackage(char *pkg, char *vers, char *errorMsg, long msgSize, void *cl) {
-  char *version = loadedVersion(pkg);
+retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl) {
+  char *version = loadedVersion(p->packageName);
 
   if (version != NULL) {
-    if (!compatiblVersion(vers, version)) {
-      logMsg(logFile, "invalid version of package already loaded: %s:%s,"
-                      "version %s expected", pkg, version, vers);
+    if (!compatiblVersion(p->version, version)) {
+      logMsg(logFile, "invalid version of package already loaded: %P,"
+                      "version %s expected", p->version);
       return Error;
     } else
       return Ok; // already loaded correct version
   } else
-    return ldPackage(pkg, vers, errorMsg, msgSize, loadPackage, cl);
+    return ldPackage(p, errorMsg, msgSize, loadPackage, cl);
 }
 
 retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
   bufferPo inBuff = fixedStringBuffer(pkgText, pkgTxtLen);
 
   retCode ret;
-  char pkgNm[MAX_SYMB_LEN];
-  char vrNm[MAX_SYMB_LEN];
+  PackageRec lddPkg;
   bufferPo sigBuffer = newStringBuffer();
 
   if ((ret = isLookingAt(O_IO(inBuff), "s")) == Ok)
@@ -128,16 +120,13 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
 
   if (ret == Ok) {
     rewindBuffer(sigBuffer);
-    ret = decodeLoadedPkg(pkgNm, NumberOf(pkgNm), vrNm, NumberOf(vrNm), O_IO(sigBuffer));
+    ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer));
 
     if (ret == Ok) {
-
-      pkgPo pkg = markLoaded(pkgNm, vrNm);
-
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
       if (ret == Ok)
-        ret = loadSegments(O_IO(inBuff), pkg, errorMsg, msgSize);
+        ret = loadSegments(O_IO(inBuff), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
   }
 
@@ -145,7 +134,7 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
 
 #ifdef TRACEPKG
   if (tracePkg)
-    logMsg(logFile, "package %s installed", pkgNm);
+    logMsg(logFile, "package %P installed", &lddPkg);
 #endif
 
   if (ret == Eof)
@@ -161,9 +150,9 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
  * We are only interested in the first two the pkg and the imports.
  */
 
-retCode decodeLoadedPkg(char *pkgNm, long nmLen, char *vrNm, long vrLen, ioPo in) {
+retCode decodeLoadedPkg(packagePo pkg, ioPo in) {
   if (isLookingAt(in, pkgSig) == Ok)
-    return decodePkgName(in, pkgNm, nmLen, vrNm, vrLen);
+    return decodePkgName(in, pkg);
   else
     return Error;
 }
@@ -190,14 +179,13 @@ static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen,
         ret = skipEncoded(in, errorMsg, msgLen); // Move over the tuple constructor
       integer ix = 0;
       while (ix++ < len) {
-        char pkgNm[MAX_SYMB_LEN];
-        char vrNm[MAX_SYMB_LEN];
+        PackageRec lddPkg;
 
         if (ret == Ok)
-          ret = decodePkgName(in, &pkgNm[0], NumberOf(pkgNm), &vrNm[0], NumberOf(vrNm));
+          ret = decodePkgName(in, &lddPkg);
 
         if (ret == Ok)
-          ret = pickup(pkgNm, vrNm, errorMsg, msgLen, cl);
+          ret = pickup(&lddPkg, errorMsg, msgLen, cl);
         if (ret != Ok)
           return ret;
       }
@@ -208,10 +196,10 @@ static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen,
     return Error;
 }
 
-retCode decodePkgName(ioPo in, char *nm, long nmLen, char *v, long vLen) {
+retCode decodePkgName(ioPo in, packagePo pkg) {
   if (isLookingAt(in, "n2o2'pkg's") == Ok) {
-    bufferPo pkgB = fixedStringBuffer(nm, nmLen);
-    bufferPo vrB = fixedStringBuffer(v, vLen);
+    bufferPo pkgB = fixedStringBuffer(pkg->packageName, NumberOf(pkg->packageName));
+    bufferPo vrB = fixedStringBuffer(pkg->version, NumberOf(pkg->version));
 
     retCode ret = decodeText(O_IO(in), pkgB);
 
@@ -267,9 +255,9 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
     return Fail;
 }
 
-static retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msgSize);
+static retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 
-retCode loadSegments(ioPo in, pkgPo owner, char *errorMsg, long msgLen) {
+retCode loadSegments(ioPo in, packagePo owner, char *errorMsg, long msgLen) {
   integer count;
   if (decodeTplCount(in, &count, errorMsg, msgLen) == Ok) {
     retCode ret = Ok;
@@ -347,7 +335,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
   }
 }
 
-retCode loadCodeSegment(ioPo in, heapPo H, pkgPo owner, char *errorMsg, long msgSize) {
+retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   retCode ret = isLookingAt(in, "n6o6'()6'");
 
   if (ret != Ok) {

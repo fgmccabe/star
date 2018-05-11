@@ -6,6 +6,7 @@
 #include "term.h"
 #include "heap.h"
 #include "opcodes.h"
+#include "pkg.h"
 
 typedef uint16 insWord, *insPo;
 
@@ -25,13 +26,11 @@ extern termPo getMtdLit(methodPo mtd,integer litNo);
 
 extern integer lclCount(methodPo mtd);
 
-typedef struct _pkg_record_ *pkgPo;
-
-extern pkgPo loadedPackage(char *package);
+extern packagePo loadedPackage(char *package);
 extern char *loadedVersion(char *package);
 
-extern pkgPo markLoaded(char *package, char *version);
-extern pkgPo createPkg(char *name, char *version);
+extern packagePo markLoaded(char *package, char *version);
+extern packagePo createPkg(char *name, char *version);
 
 extern methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, labelPo lbl, normalPo pool, normalPo locals);

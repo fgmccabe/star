@@ -26,6 +26,9 @@
 static retCode outString(ioPo f, char *str, integer len, long width, integer precision,
                          codePoint pad, logical leftPad);
 
+static retCode outUniString(ioPo f, char * str, long len, long width, int precision,
+                            codePoint pad, logical leftPad, logical alt);
+
 retCode outInt(ioPo f, integer i) {
   char buff[64];
   integer len = int2StrByBase(buff, i, 0, 10);
@@ -628,8 +631,6 @@ retCode outUniString(ioPo f, char *str, long len, long width, int precision,
   long gaps;
   retCode ret = Ok;
 
-  lock(O_LOCKED(f));
-
   if (precision > 0 && precision < len)
     len = precision;    /* we only show part of the string */
 
@@ -641,9 +642,11 @@ retCode outUniString(ioPo f, char *str, long len, long width, int precision,
       gaps = width - len;
 
       if (alt) {
-        while (ret == Ok && len-- > 0) {
-          char ch = *str++;
-          ret = quoteChar(f, (codePoint) ch, &gaps);
+        integer px = 0;
+
+        while (ret == Ok && px<len) {
+          codePoint cp = nextCodePoint(str,&px,len);
+          ret = quoteChar(f,  cp, &gaps);
         }
       } else
         ret = outText(f, str, len);
@@ -662,7 +665,6 @@ retCode outUniString(ioPo f, char *str, long len, long width, int precision,
     ret = dumpText(f, str, len);
   else
     ret = outText(f, str, len);  /* variable width */
-  unlock(O_LOCKED(f));
 
   return ret;
 }
@@ -691,19 +693,32 @@ void installMsgProc(char key, fileMsgProc proc) {
   procs[(unsigned int) key] = proc;
 }
 
+static codePoint nextDecimal(char *str, integer *pos, integer len, integer *ix) {
+  codePoint fcp = nextCodePoint(str, pos, len);
+  integer val = 0;
+  while (isNdChar(fcp) && *pos < len) { /* extract the width field */
+    val = val * 10 + digitValue(fcp);
+    fcp = nextCodePoint(str, pos, len);
+  }
+  *ix = val;
+  return fcp;
+}
+
 /* We have our own version of fprintf too */
 
-/* This one is used in april-log_msg */
-retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
+retCode __voutMsg(ioPo f, char *format, va_list args) {
   retCode ret = Ok;
+  integer fx = 0;
+  integer flen = uniStrLen(format);
 
-  while (ret == Ok && *fmt != '\0') {
-    switch (*fmt) {
+  while (ret == Ok && fx < flen) {
+    codePoint fcp = nextCodePoint(format, &fx, flen);
+
+    switch (fcp) {
       case '%': {
-        unsigned char c;
-        int width = 0;    /* Maximum width of field */
-        int precision = 0;    /* Minimum width or precision of field */
-        long depth = LONG_MAX;      /* Maximum depth of structure */
+        integer width = 0;    /* Maximum width of field */
+        integer precision = 0;    /* Minimum width or precision of field */
+        integer depth = LONG_MAX;      /* Maximum depth of structure */
         codePoint pad = ' ';
         char *prefix = "";
         logical sign = False;
@@ -712,10 +727,9 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
         logical overridePrecision = False;
         logical longValue = False;
 
-        fmt++;
-
-        while (*fmt != '\0' && strchr("0 -#+l", *fmt) != NULL) {
-          switch (*fmt++) {
+        while (fx < flen) {
+          fcp = nextCodePoint(format, &fx, flen);
+          switch (fcp) {
             case '0':
               pad = '0';
               continue;
@@ -734,31 +748,35 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
             case '-':
               leftPad = False;
               continue;
-            default:;
+            default:
+              goto getWidth;
           }
+          break;
+        }
+        getWidth:
+        while (isNdChar(fcp) && fx < flen) { /* extract the width field */
+          width = width * 10 + digitValue(fcp);
+          fcp = nextCodePoint(format, &fx, flen);
         }
 
-        while (isNdChar(c = *fmt++))  /* extract the width field */
-          width = width * 10 + (c & 0xf);
-
-        while (strchr(".,", (char) c) != NULL) {
-          if (c == '.') {    /* We have a precision ... */
+        while (strchr(".,", (char) fcp) != NULL) {
+          if (fcp == '.') {    /* We have a precision ... */
             overridePrecision = True;
-            while (isNdChar(c = *fmt++))
-              precision = precision * 10 + (c & 0xf);
-          } else if (c == ',') {
+
+            fcp = nextDecimal(format, &fx, flen, &precision); /* extract the precision field */
+          } else if (fcp == ',') {
             depth = 0;
-            while (isNdChar(c = *fmt++))
-              depth = depth * 10 + (c & 0xf);
+
+            fcp = nextDecimal(format, &fx, flen, &width); /* extract the width field */
           } else
             break;
         }
 
-        if (procs[c] != NULL) {
+        if (procs[fcp] != NULL) {
           void *data = (void *) va_arg(args, void*); /* pick up a special value */
-          ret = procs[(unsigned int) c](f, data, depth, precision, alternate);
+          ret = procs[(unsigned int) fcp](f, data, depth, precision, alternate);
         } else
-          switch (c) {
+          switch (fcp) {
             case '_':
               ret = flushFile(f);
               break;
@@ -820,7 +838,7 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
 
               if (!overridePrecision) /* default precision for floats */
                 precision = 6;
-              ret = outDouble(f, num, c, width, precision, pad, leftPad, sign);
+              ret = outDouble(f, num, (char) fcp, width, precision, pad, leftPad, sign);
               break;
             }
             case 's': {    /* Display a string */
@@ -868,13 +886,13 @@ retCode __voutMsg(ioPo f, unsigned char *fmt, va_list args) {
             }
 
             default:
-              ret = outChar(f, c);
+              ret = outChar(f, fcp);
           }
         break;
       }
 
       default:
-        ret = outChar(f, *fmt++);
+        ret = outChar(f, fcp);
     }
   }
   return ret;
@@ -889,7 +907,7 @@ retCode outMsg(ioPo f, char *fmt, ...) {
     va_list args;    /* access the generic arguments */
     va_start(args, fmt);    /* start the variable argument sequence */
 
-    ret = __voutMsg(f, (unsigned char *) fmt, args);
+    ret = __voutMsg(f, fmt, args);
 
     va_end(args);
 
@@ -918,11 +936,11 @@ retCode logMsg(ioPo out, char *fmt, ...) {
 
       ret = outMsg(out, "%s - ", stamp);
       if (ret == Ok)
-        ret = __voutMsg(out, (unsigned char *) fmt, ap);
+        ret = __voutMsg(out, fmt, ap);
       if (ret == Ok)
         ret = outMsg(out, "\n");
     } else {
-      ret = __voutMsg(out, (unsigned char *) fmt, ap);
+      ret = __voutMsg(out, fmt, ap);
       if (ret == Ok)
         ret = outMsg(out, "\n");
     }
@@ -941,7 +959,7 @@ char *strMsg(char *buffer, long len, char *fmt, ...) {
   va_list args;      /* access the generic arguments */
   va_start(args, fmt);    /* start the variable argument sequence */
 
-  __voutMsg(O_IO(f), (unsigned char *) fmt, args);  /* Display into the string buffer */
+  __voutMsg(O_IO(f), fmt, args);  /* Display into the string buffer */
 
   va_end(args);
   outByte(O_IO(f), 0);                /* Terminate the string */
@@ -954,7 +972,7 @@ retCode ioErrorMsg(ioPo io, char *fmt, ...) {
   va_list args;    /* access the generic arguments */
   va_start(args, fmt);    /* start the variable argument sequence */
 
-  __voutMsg(io, (unsigned char *) fmt, args);
+  __voutMsg(io, fmt, args);
 
   va_end(args);
   return Error;
