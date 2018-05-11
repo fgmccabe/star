@@ -9,6 +9,7 @@
 		"star.core": "core.star",
 		"star.bits": "bits.star",
 		"star.coerce": "coerce.star",
+		"star.combo" : "combo.star",
 		"lo.either": "either.lo",
 		"lo.finger" : "finger.lo",
 		"lo.index": "index.lo",
@@ -17,6 +18,7 @@
 		"star.lists": "lists.star",
 		"star.monad": "monad.star",
 		"star.option": "option.star",
+		"star.parse" : "parse.star",
 		"lo.rdf" : "rdf.lo",
 		"lo.rdf.n3" : "n3.lo",
 		"lo.redblack" : "redblack.lo",
@@ -32,7 +34,7 @@
 		"lo.trie": "trie.lo",
 		"star.tuples" : "tuples.star",
 		"lo.unit": "unit.lo",
-		"lo.uri": "uri.lo"
+		"star.uri": "uri.star"
 	},
 	"version": "1.0.0"
 }

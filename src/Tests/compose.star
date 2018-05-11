@@ -1,20 +1,6 @@
 test.compose{
   import star.
-
-  seq:all s,c,x ~~ (option[(s,c)],((s,c))=>option[(s,x)]) => option[(s,x)].
-  -- seq(O,F) => O>>=F.
-  seq = (>>=).
-
-  alt:all A,B ~~ ((A)=>option[B],(A)=>option[B]) => (A)=>option[B].
-  alt(F1,F2) => let{
-    aa:(A) => option[B].
-    aa(F1?=(Y)) => some(Y).
-    aa(X) => F2(X).
-  } in aa.
-
-  iter:all A,B,C ~~ (A,(A)=>option[(A,B)],(B,C)=>C,C) => option[(A,C)].
-  iter(S,St,F,Ix) where St(S)=.some((S1,D)) => iter(S1,St,F,F(D,Ix)).
-  iter(S,_,_,Ix) => some((S,Ix)).
+  import star.combo.
 
   digit:(list[integer]) => option[(list[integer],integer)].
   digit([digitVal?=(D),..L]) => some((L,D)).

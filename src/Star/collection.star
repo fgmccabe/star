@@ -1,6 +1,8 @@
 star.collection{
   import star.core.
   import star.option.
+  import star.lists.
+  import star.arith.
 
   public contract all c,e ~~ folding[c->>e] ::= {
     foldRight:all x ~~ (((e,x)=>x),x,c) => x.
@@ -11,8 +13,8 @@ star.collection{
     (^/):(c,(e)=>boolean) => c.
   }
 
-  public contract all m/1,e,f ~~ mapping[m->>e,f] ::= {
-    (//):(m[e],(e)=>f) => m[f].
+  public contract all m/1 ~~ mapping[m] ::= {
+    (//):all e,f ~~ (m[e],(e)=>f) => m[f].
   }
 
   public contract all m/2 ~~ ixmap[m] ::= {
@@ -44,5 +46,13 @@ star.collection{
     union : (k,k)=>k.
     intersect : (k,k)=>k.
     difference : (k,k)=>k.
+  }
+
+  public implementation mapping[list] => {
+    L//F => mapOverList(L,F,0,_list_size(L)).
+
+    mapOverList:all e,f ~~ (list[e],(e)=>f,integer,integer)=>list[f].
+    mapOverList(_,_,Lx,Lx)=>_list_nil(Lx).
+    mapOverList(L,F,Ix,Lx) => _list_prepend(mapOverList(L,F,Ix+1,Lx),F(_list_nth(L,Ix))).
   }
 }

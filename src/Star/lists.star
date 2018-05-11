@@ -49,4 +49,7 @@ star.lists{
   public implementation all x ~~ concat[list[x]] => {
     L1 ++ L2 => _list_concat(L1,L2).
   }
+
+  public flatten: all x ~~ (list[list[x]])=>list[x].
+  flatten(L) => _list_flatten(L).
 }
