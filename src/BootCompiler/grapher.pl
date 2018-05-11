@@ -19,7 +19,7 @@ makeGraph(Repo,Cat,CWD,Fls,Groups) :-
 
 graphPkgs(Pkgs,Groups) :-
   topsort(Pkgs,Groups,grapher:consistentPkg).
-  % showGroups(Groups).
+  %showGroups(Groups).
 
 scanPkgs([],_,_,_,Pkgs,Pkgs).
 scanPkgs([P|L],Repo,Cat,CWD,SoFar,Pkgs) :-
@@ -42,6 +42,7 @@ scanPkg(Pkg,Repo,Cat,CWD,Pi,Px) :-
 consistentPkg(pkg(P,V1),pkg(P,V2)) :- consistentVersion(V1,V2).
 
 consistentVersion(defltVersion,_).
+consistentVersion(_,defltVersion).
 consistentVersion(ver(V),ver(V)).
 
 parsePkgName(P,pkg(Pkg,Version)) :-

@@ -1,4 +1,4 @@
-:- module(vartypes,[typeOfVar/7,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
+:- module(vartypes,[typeOfVar/7,isEnumVr/2,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
 
 :- use_module(freshen).
 :- use_module(unify).
@@ -10,6 +10,9 @@ typeOfVar(Lc,_,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   call(MkTerm,Lc,Exp),
   manageConstraints(VrTp,[],Lc,Exp,MTp,Env,Ev,Term),
   checkType(Lc,MTp,Tp,Env).
+
+isEnumVr(Lc,vrEntry(_,MkTerm,_,_)) :-
+  \+call(MkTerm,Lc,v(_,_)),!.
 
 manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Env,Ev,Exp) :- !,
   declareConstraint(implementsFace(TV,Fc),Env,E0),

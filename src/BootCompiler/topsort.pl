@@ -20,7 +20,7 @@ analyseRefs([Ref|Refs],Defs,ODefs,Stk,OStk,G,OG,Low,Pt,IsDef) :-
   analyse(Ref,Defs,ID,Stk,S1,G,G1,Low,Low1,IsDef),
   analyseRefs(Refs,ID,ODefs,S1,OStk,G1,OG,Low1,Pt,IsDef).
 
-analyse(Ref,Defs,Defs,Stack,Stack,G,G,Low,Pt,_) :- inStack(Ref,Stack,X), minPoint(X,Low,Pt).
+analyse(Ref,Defs,Defs,Stack,Stack,G,G,Low,Pt,IsDef) :- inStack(Ref,Stack,X,IsDef), minPoint(X,Low,Pt).
 analyse(Ref,Defs,ODefs,Stack,OStack,G,OG,Low,Pt,IsDef) :-
   pickDef(Ref,Defs,RDefs,Df,IsDef),
   analyseDef(Df,RDefs,ODefs,Stack,OStack,G,OG,DfPt,IsDef),
@@ -29,8 +29,8 @@ analyse(_,Defs,Defs,Stack,Stack,Groups,Groups,Low,Low,_).
 
 pushDef((Defines,Refs,Lc,Def),Stack,[(Defines,Refs,Lc,Def,Sz)|Stack],Sz) :- length(Stack,Sz).
 
-inStack(Ref,[(Ref,_,_,_,X)|_],X).
-inStack(Ref,[_|Stack],X) :- inStack(Ref,Stack,X).
+inStack(Ref,[(Rf,_,_,_,X)|_],X,IsDef) :- call(IsDef,Rf,Ref),!.
+inStack(Ref,[_|Stack],X,IsDef) :- inStack(Ref,Stack,X,IsDef).
 
 pickDef(N,[(Nm,Refs,Lc,Df)|Defs],Defs,(Nm,Refs,Lc,Df),IsDef) :- call(IsDef,N,Nm).
 pickDef(Nm,[D|Defs],[D|ODefs],Df,IsDef) :- pickDef(Nm,Defs,ODefs,Df,IsDef).

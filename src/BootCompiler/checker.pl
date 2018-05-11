@@ -140,6 +140,8 @@ addPublicImports([import(public,Pkg)|I],Rest,[import(transitive,Pkg)|Out]) :-
   addPublicImports(I,Rest,Out).
 addPublicImports([import(private,_)|I],Rest,Out) :-
   addPublicImports(I,Rest,Out).
+addPublicImports([import(transitive,_)|I],Rest,Out) :-
+  addPublicImports(I,Rest,Out).
 
 findImportedImplementations([import(_,_,_,_,_,Impls)|Specs],D,OverDict) :-
   rfold(Impls,checker:declImpl,D,D1),
@@ -334,12 +336,12 @@ checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
 
 checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Args,Cond,Ptn)|Defs],Defs,E,Path) :-
   splitHead(H,_,A),
-  pushScope(E,Env),
-  typeOfArgTerm(A,AT,Env,E0,Args,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(G,LogicalTp,E0,E1,Cond,Path),
-  typeOfPtn(R,RT,E1,E2,Ptn,Path),
-  dischargeConstraints(E,E2).
+  pushScope(E,E0),
+  typeOfPtn(R,RT,E0,E1,Ptn,Path),
+  findType("boolean",Lc,E1,LogicalTp),
+  typeOfExp(G,LogicalTp,E1,E2,Cond,Path),
+  typeOfArgTerm(A,AT,E2,E3,Args,Path),
+  dischargeConstraints(E,E3).
 checkPtnRule(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
   reportError("pattern rule not consistent with expected type: %s",[ProgramType],Lc).
 
@@ -383,14 +385,14 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
 
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,Defs,Others,Types,Tp),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
-  genstr("let",ThNm),
+  genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
   newTypeVar("_",ThTp),
   checkThetaBody(ThTp,Lc,Els,Env,ThEnv,Defs,Others,Types,ThPath),
   typeOfExp(Ex,Tp,ThEnv,_,Bound,Path).
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,Defs,Others,Types,Tp),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
-  genstr("let",ThNm),
+  genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
   newTypeVar("_",ThTp),
   checkThetaBody(ThTp,Lc,Els,Env,ThEnv,Defs,Others,Types,ThPath),
@@ -463,10 +465,13 @@ typeOfArgPtn(T,Tp,Env,Ev,Exp,Path) :-
 typeOfPtn(V,_,Env,Env,v(Lc,N),_Path) :-
   isIden(V,Lc,"_"),!,
   genstr("_",N).
-typeOfPtn(V,Tp,Env,Ev,Term,_Path) :-
+typeOfPtn(V,Tp,Env,Ev,Term,Path) :-
   isIden(V,Lc,N),
   isVar(N,Env,Spec),!,
-  typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term).
+  (isEnumVr(Lc,Spec) ->
+    typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term);
+    mkWhereEquality(V,TT),
+    typeOfPtn(TT,Tp,Env,Ev,Term,Path)).
 typeOfPtn(V,Tp,Ev,Env,v(Lc,N),_Path) :-
   isIden(V,Lc,N),
   declareVr(Lc,N,Tp,Ev,Env).
@@ -580,12 +585,12 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
-  genstr("theta",ThNm),
+  genstr("θ",ThNm),
   thetaName(Path,ThNm,ThPath),
   checkThetaBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath).
 typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isQBraceTuple(Term,Lc,Els),
-  genstr("record",RcNm),
+  genstr("ρ",RcNm),
   thetaName(Path,RcNm,ThPath),
   checkRecordBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath).
 typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-

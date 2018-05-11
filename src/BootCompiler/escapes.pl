@@ -73,6 +73,7 @@ escapeType("_list_front",allType(kVar("t"),funType(tupleType([typeExp(tpFun("sta
 escapeType("_list_back",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_nil",allType(kVar("t"),funType(tupleType([type("star.core*integer")]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_concat",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")]),typeExp(tpFun("star.core*list",1),[kVar("t")])]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
+escapeType("_list_flatten",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[typeExp(tpFun("star.core*list",1),[kVar("t")])])]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_list_reverse",allType(kVar("t"),funType(tupleType([typeExp(tpFun("star.core*list",1),[kVar("t")])]),typeExp(tpFun("star.core*list",1),[kVar("t")])))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
@@ -201,7 +202,7 @@ escapeType("_waitLock",funType(tupleType([type("star.thread*lock"),type("star.co
 escapeType("_releaseLock",funType(tupleType([type("star.thread*lock")]),tpFun("star.core*resultType",0))).
 escapeType("_ins_debug",funType(tupleType([]),voidType)).
 escapeType("_stackTrace",funType(tupleType([]),voidType)).
-escapeType("_assert",funType(tupleType([type("star.core*boolean"),type("star.core*string")]),voidType)).
+escapeType("_assert",funType(tupleType([type("star.core*boolean"),tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")])]),voidType)).
 isEscape("_exit").
 isEscape("_command_line").
 isEscape("_abort").
@@ -273,6 +274,7 @@ isEscape("_list_front").
 isEscape("_list_back").
 isEscape("_list_nil").
 isEscape("_list_concat").
+isEscape("_list_flatten").
 isEscape("_list_reverse").
 isEscape("_get_file").
 isEscape("_cwd").

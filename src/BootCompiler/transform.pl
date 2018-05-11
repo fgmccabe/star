@@ -282,8 +282,8 @@ transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,
   liftExp(G,Goal,[],_Q,Map,Opts,Ex,Exx),
   stdType("boolean",BoolTp,_).
 
-collectAssertion(assertion(_,G),enm(_,"true"),G) :-!.
-collectAssertion(assertion(Lc,G),O,conj(Lc,O,G)).
+collectAssertion(assertion(Lc,G),enm(_,"true"),assertion(Lc,G)) :-!.
+collectAssertion(assertion(Lc,G),O,conj(Lc,O,assertion(Lc,G))).
 
 packageInit(Pkg,Lc,_,_,Imports,Inits,[fnDef(Lc,InitPrg,funType(tupleType([]),tupleType([])),[eqn(Lc,[],Init)])|R],R) :-
   localName(Pkg,"@","init",InitNm),
@@ -490,6 +490,8 @@ liftExp(cond(Lc,T,L,R),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftExp(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftPtn(L,Lx,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
+liftExp(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftGoal(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftTheta(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
 liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
@@ -580,7 +582,7 @@ lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
   freeVars(Lam,Df,Q1,E0,ThFr),
-  lambdaLbl(Map,"_lambda",LclName),
+  lambdaLbl(Map,"_λ",LclName),
   genVar("_ThV",ThVr),
   collectLabelVars(ThFr,ThVr,[],Lx),
   makeLblTerm(LclName,ThFr,LblTerm).
@@ -606,6 +608,9 @@ liftGoal(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
 liftGoal(neg(Lc,R),ng(Lc,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(R,Rx,Q,Qx,Map,Opts,Ex,Exx).
+liftGoal(assertion(Lc,G),ecll(Lc,"_assert",[Gx,Lx]),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx),
+  locTerm(Lc,Lx).
 liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(G,Gx,Q,Qx,Map,Opts,Ex,Exx).
 

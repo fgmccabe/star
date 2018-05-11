@@ -1,4 +1,4 @@
-:- module(macro,[macroRewrite/2,mkWherePtn/4]).
+:- module(macro,[macroRewrite/2,mkWherePtn/4,mkWhereEquality/2]).
 
 :- use_module(abstract).
 :- use_module(wff).
@@ -26,3 +26,8 @@ mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   unary(Lc,"some",Ptn,Lhs),
   binary(Lc,"=.",Cl,Lhs,Test), % Ex(V)=.some(Ptn)
   binary(Lc,"where",V,Test,Ptrn).
+
+mkWhereEquality(name(Lc,V),Ptrn) :-
+  genIden(Lc,V,VV),
+  binary(Lc,"==",VV,name(Lc,V),Test),
+  binary(Lc,"where",VV,Test,Ptrn).
