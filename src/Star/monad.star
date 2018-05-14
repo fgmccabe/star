@@ -4,6 +4,10 @@ star.monad{
     (return): all a ~~ (a) => m[a].
   }
 
+  public contract all m/1 ~~ monadZero[m] ::= {
+    zed : all x ~~ m[x].
+  }
+
   public contract all m/1,e ~~ execution[m->>e] ::= {
     _perform:all a ~~ (m[a])=>a.
     _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].

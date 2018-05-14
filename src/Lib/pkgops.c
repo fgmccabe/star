@@ -57,7 +57,7 @@ static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) 
   gcAddRoot(pk->H, (ptrPo) &vr);
 
   normalPo pr = allocatePair(pk->H, (termPo) pkg, (termPo) vr);
-  *(pk->list) = addToList(pk->H, *pk->list, (termPo) pr);
+  *(pk->list) = appendToList(pk->H, *pk->list, (termPo) pr);
   gcReleaseRoot(pk->H, root);
   return Ok;
 }

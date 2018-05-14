@@ -156,7 +156,7 @@ ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
   for (int i = 0; getNthHostIP(host, (unsigned) i, ip, NumberOf(ip)) != NULL; i++) {
     stringPo el = allocateCString(H, ip);
 
-    ipList = addToList(H, ipList, (termPo) el);
+    ipList = appendToList(H, ipList, (termPo) el);
   }
 
   gcReleaseRoot(H, root);
