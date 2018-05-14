@@ -85,6 +85,7 @@
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
   operator("::", [infixOp(399, 400, 399)]).
+  operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(949, 950, 949)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator(">>=", [infixOp(900, 900, 899)]).
@@ -127,6 +128,7 @@
   follows('&','&','&&').
   follows('*','*','**').
   follows('+','+','++').
+  follows('++','+','+++').
   follows(',','.',',.').
   follows(',.','.',',..').
   follows('-','-','--').
@@ -190,6 +192,7 @@
   final('**',"**").	 /* exponentiation */
   final('+',"+").	 /* lookahead in grammar rule */
   final('++',"++").	 /* concatenate */
+  final('+++',"+++").	 /* choice */
   final(',',",").	 /* tupling operator */
   final(',..',",..").	 /* list cons */
   final('-',"-").	 /* arithmetic negation */

@@ -39,7 +39,7 @@ encodeFloat(F,C,Cx) :-
   appStr(S,C,Cx).
 
 encType(Tp,Sig) :-
-  encodeType(Tp,O,[]),
+  encodeTp(Tp,O,[]),
   string_chars(Sig,O).
 
 encodeTp(T,C,Cx) :-

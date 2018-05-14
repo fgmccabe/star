@@ -68,6 +68,9 @@ showTrm(T,O) :-
 showTrm(T,O) :-
   isLocation(T),
   showLocation(T,O,[]).
+showTrm(P,O) :-
+  isPkg(P),!,
+  showPkg(P,O,[]).
 showTrm([],[]).
 showTrm([E|_],O) :-
   showTrm(E,O).

@@ -13,7 +13,7 @@ showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
   showPkg(Pkg,O0,O1),
   appStr("\n",O1,O2),
   showImports(Imports,O2,O3),!,
-  appStr("Package export: ",O3,O3a),
+  appStr("\nPackage export: ",O3,O3a),
   showType(Types,O3a,O3b),
   appStr("\nPackage contracts:\n",O3b,O4),!,
   showContracts(Contracts,O4,O5),!,

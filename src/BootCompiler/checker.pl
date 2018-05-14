@@ -643,15 +643,13 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   newTypeVar("F",FnTp),
   newTypeVar("A",At),
   typeOfKnown(F,FnTp,Env,E0,Fun,Path),
+  evidence(At,E0,_,AT),
+  typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
   (sameType(funType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,AT),
-    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args) ;
-   sameType(consType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,AT),
-    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args);
-   reportError("invalid function %s in call",[Fun],Lc)).
+   Exp = apply(Lc,Fun,Args) ;
+  sameType(consType(At,Tp),FnTp,E0) ->
+   Exp = apply(Lc,Fun,Args);
+  reportError("type of %s:%s not consistent with : %s=>%s ",[Fun,FnTp,At,Tp],Lc)).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).

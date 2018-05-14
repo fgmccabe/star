@@ -1,7 +1,7 @@
 :- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
-    isCanon/1,isAssertion/1,isShow/1,ruleArity/2,
+    isCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,
     thetaLoc/2,thetaDefs/2,thetaSig/2]).
 
 :- use_module(misc).
@@ -32,6 +32,8 @@ isCanon(neg(_,_)).
 
 isAssertion(assertion(_,_)).
 isShow(show(_,_)).
+
+isPkg(pkg(_,_)).
 
 thetaLoc(theta(Lc,_,_,_,_,_),Lc).
 thetaLoc(record(Lc,_,_,_,_,_),Lc).
@@ -78,6 +80,7 @@ showVersion(ver(V),O,Ox) :-
   appStr(V,O1,Ox).
 
 showCanonTerm(v(_,Nm),O,Ox) :- appStr(Nm,O,Ox).
+showCanonTerm(void,O,Ox) :- appStr("void",O,Ox).
 showCanonTerm(intLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
 showCanonTerm(floatLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
 showCanonTerm(stringLit(Str),O,Ox) :-
@@ -125,7 +128,7 @@ showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
-showCanonTerm(mtd(_,Nm),O,Ox) :-
+showCanonTerm(mtd(_,Nm,_),O,Ox) :-
   appStr("&",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(over(_,V,Cons),O,Ox) :-
