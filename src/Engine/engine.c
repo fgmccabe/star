@@ -42,7 +42,14 @@ processPo newProcess(methodPo mtd) {
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
-  P->waitFor = (insDebugging || lineDebugging) ? nextIns : never;
+  if(insDebugging||lineDebugging){
+    if(interactive)
+      P->waitFor = nextIns;
+    else
+      P->waitFor = nextBreak;
+  } else
+    P->waitFor = never;
+
   P->tracing = tracing;
 
   uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));

@@ -290,7 +290,6 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
               p->tracing=True;
               return True;
             }
-
             return False;
           }
           case Call:
@@ -975,5 +974,5 @@ void dumpInsCount() {
 
 #include "instructions.h"
 
-  outMsg(logFile, "%d instructions executed\n", pcCount);
+  logMsg(logFile, "%d instructions executed\n", pcCount);
 }

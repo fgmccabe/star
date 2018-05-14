@@ -10,6 +10,7 @@ typedef struct _heap_ *heapPo;
 extern void initHeap(long heapSize);
 
 extern heapPo currHeap;
+extern integer numAllocated;
 
 extern termPo allocateObject(heapPo H, clssPo clss, size_t amnt);
 

@@ -62,12 +62,12 @@ static void swapHeap(heapPo H) {
   }
 }
 
-static logical inSwappedHeap(heapPo H,termPo x){
-  switch(H->allocMode){
+static logical inSwappedHeap(heapPo H, termPo x) {
+  switch (H->allocMode) {
     case lowerHalf:
-      return (logical)(x>=H->limit&&x<H->outerLimit);
+      return (logical) (x >= H->limit && x < H->outerLimit);
     case upperHalf:
-      return (logical)(x>=H->base && x<H->start);
+      return (logical) (x >= H->base && x < H->start);
   }
 }
 
@@ -100,7 +100,7 @@ retCode gcCollect(heapPo H, long amount) {
 
 #ifdef TRACEMEM
   if (traceMemory) {
-    outMsg(logFile, "%d objects found in mark phase\n",G->oCnt);
+    outMsg(logFile, "%d objects found in mark phase\n", G->oCnt);
     flushFile(logFile);
   }
 #endif
@@ -110,7 +110,7 @@ retCode gcCollect(heapPo H, long amount) {
     t = scanTerm(G, t);
 
 #ifdef TRACEMEM
-  if (traceMemory && H->owner!=Null)
+  if (traceMemory && H->owner != Null)
     verifyProc(H->owner);
 #endif
 
@@ -132,7 +132,7 @@ retCode gcCollect(heapPo H, long amount) {
 termPo markPtr(gcSupportPo G, ptrPo p) {
   termPo t = *p;
 
-  if(t!=Null) {
+  if (t != Null) {
     if (hasMoved(t))
       return movedTo(t);
     else if (inSwappedHeap(G->H, t)) {
@@ -252,6 +252,6 @@ void verifyProc(processPo P) {
   }
 }
 
-void dumpGcStats(){
-  logMsg(logFile,"%d gc collections",gcCount);
+void dumpGcStats() {
+  logMsg(logFile, "%d allocations, %d gc collections", numAllocated, gcCount);
 }

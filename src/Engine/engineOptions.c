@@ -135,6 +135,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 #ifdef TRACEEXEC
         lineDebugging = True;
         interactive = False;
+        tracing = True;
         continue;
 #else
       logMsg(logFile, "tracing not enabled");
@@ -144,6 +145,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'g':    /* Internal symbolic debugging */
         lineDebugging = True;
         interactive = True;
+        tracing = True;
         continue;
 
       case 'I':
@@ -175,23 +177,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
             return -1;
 #endif
 
-      case '*':    /* trace everything */
-#ifdef ALLTRACE
-        traceVerify = True;
-        runStats = True;
-        atexit(dumpInsCount);
-        traceMessage = True;
-        if (traceMemory)
-          stressMemory = True;
-        else
-          traceMemory = True;
-        atexit(dumpGcStats);
-        tracePkg = True;
-        continue;
-#else
-      logMsg(logFile,"insDebugging not enabled\n");
-            return Error;
-#endif
       default:;
     }
   }

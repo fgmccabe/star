@@ -29,7 +29,6 @@ extern listPo flattenList(heapPo H, listPo l);
 extern listPo reverseList(heapPo H, listPo l1);
 
 // Use with caution!
-extern listPo addToList(heapPo H, listPo list, termPo el);
 
 extern termPo prependToList(heapPo H, listPo list, termPo el);
 

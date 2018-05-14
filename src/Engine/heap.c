@@ -10,6 +10,8 @@
 HeapRecord heap, oldHeap;
 heapPo currHeap = NULL;
 
+integer numAllocated = 0;
+
 static void initHeapLck(heapPo heap);
 
 void initHeap(long heapSize) {
@@ -31,8 +33,9 @@ void initHeap(long heapSize) {
   }
 }
 
-retCode heapSummary(ioPo out,heapPo H){
-  return outMsg(out,"H:0x%x(%s)%5.2g%%",H->curr,H->allocMode==lowerHalf?"lower":"upper",(H->curr-H->start)*100.0/(H->limit-H->start));
+retCode heapSummary(ioPo out, heapPo H) {
+  return outMsg(out, "H:0x%x(%s)%5.2g%%", H->curr, H->allocMode == lowerHalf ? "lower" : "upper",
+                (H->curr - H->start) * 100.0 / (H->limit - H->start));
 }
 
 int gcAddRoot(heapPo H, ptrPo addr) {
@@ -43,7 +46,7 @@ int gcAddRoot(heapPo H, ptrPo addr) {
 }
 
 void gcReleaseRoot(heapPo H, int mark) {
-  assert(mark >= 0 && mark < NumberOf(H->roots) && mark<=H->topRoot);
+  assert(mark >= 0 && mark < NumberOf(H->roots) && mark <= H->topRoot);
   H->topRoot = mark;
 }
 
@@ -59,13 +62,15 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
     termPo t = currHeap->curr;
     H->curr = H->curr + amnt;
     t->clss = clss;
+#ifdef TRACEMEM
+    if (traceMemory) {
+      numAllocated++;
+    }
+#endif
     return t;
-  } else if (gcCollect(H, amnt) == Ok) {
-    termPo t = currHeap->curr;
-    currHeap->curr = currHeap->curr + amnt;
-    t->clss = clss;
-    return t;
-  } else
+  } else if (gcCollect(H, amnt) == Ok)
+    return allocateObject(H, clss, amnt);
+  else
     return Null;
 }
 
@@ -73,7 +78,7 @@ normalPo allocateStruct(heapPo H, labelPo lbl) {
   return (normalPo) allocateObject(H, (clssPo) lbl, NormalCellCount(labelArity(lbl)));
 }
 
-retCode enoughRoom(heapPo H,labelPo lbl){
+retCode enoughRoom(heapPo H, labelPo lbl) {
   return reserveSpace(H, NormalCellCount(labelArity(lbl)));
 }
 
