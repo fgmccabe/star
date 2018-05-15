@@ -11,6 +11,7 @@ HeapRecord heap, oldHeap;
 heapPo currHeap = NULL;
 
 integer numAllocated = 0;
+integer totalAllocated = 0;
 
 static void initHeapLck(heapPo heap);
 
@@ -65,6 +66,7 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
 #ifdef TRACEMEM
     if (traceMemory) {
       numAllocated++;
+      totalAllocated += amnt;
     }
 #endif
     return t;

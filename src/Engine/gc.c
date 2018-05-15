@@ -253,5 +253,5 @@ void verifyProc(processPo P) {
 }
 
 void dumpGcStats() {
-  logMsg(logFile, "%d allocations, %d gc collections", numAllocated, gcCount);
+  logMsg(logFile, "%d allocations, %d words, %d gc collections", numAllocated, totalAllocated, gcCount);
 }
