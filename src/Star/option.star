@@ -30,8 +30,8 @@ star.option{
 
   public implementation all e ~~ monad[option] => {
     return x => some(x).
-    some(x) >>= f => f(x).
-    none >>= _ => none.
+    (some(x) >>= f) => f(x).
+    (none >>= _) => none.
   }
 
   public implementation execution[option->>()] => {

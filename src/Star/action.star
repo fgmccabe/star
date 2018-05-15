@@ -5,9 +5,9 @@ star.action{
   public all a ~~ action[a] ::= done(a) | delay(()=>action[a]) | err(string).
 
   public implementation monad[action] => {
-    err(E) >>= _ => err(E).
-    done(A) >>= F => delay(()=>F(A)).
-    delay(G) >>= F => delay(()=>G()>>=F).
+    (err(E) >>= _) => err(E).
+    (done(A) >>= F) => delay(()=>F(A)).
+    (delay(G) >>= F) => delay(()=>G()>>=F).
 
     return X => delay(()=>done(X)).
   }
@@ -21,5 +21,5 @@ star.action{
     _handle(err(X),E) => E(X).
 
     _raise(S) => err(S).
-  }  
+  }
 }

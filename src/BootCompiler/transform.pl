@@ -499,7 +499,7 @@ liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
 liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Rls,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
-  trLambdaRules(Lc,Rls,Tp,Rslt,Q,Map,Opts,Ex,Exx).
+  liftLambda(Lc,Rls,Tp,Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).
 
@@ -552,7 +552,7 @@ implementFunCall(_,localClass(Mdl,_,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
-trLambdaRules(Lc,Rules,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+liftLambda(Lc,Rules,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Rules,Tp),Q,Map,Opts,LclName,Closure,LMap,Ex,Ex0),
   transformRules(Rules,LMap,Opts,LclName,Rls,[],Ex0,Exx),
   is_member(eqn(_,Args,_),Rls),!,
@@ -576,12 +576,10 @@ lambdaLbl(Map,Variant,Nm) :-
   localName(Prefix,"@",V,Nm).
 
 lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,Ex) :-
-  extraVars(Map,Extra),
   definedProgs(Map,Df),
-  filterVars(Extra,E0),
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
-  freeVars(Lam,Df,Q1,E0,ThFr),
+  freeVars(Lam,Df,Q1,Lv,ThFr),
   lambdaLbl(Map,"_λ",LclName),
   genVar("_ThV",ThVr),
   collectLabelVars(ThFr,ThVr,[],Lx),
@@ -649,7 +647,16 @@ refineQ(Q,Qx) :-
   filter(Q,transform:notVar,Qx).
 
 filterVars(Q,Qx) :-
-  filter(Q,transform:isVar,Qx).
+  filterVars(Q,[],Qx).
+filterVars(V,Q,Qx) :-
+  rfold(V,transform:filterVar,Q,Qx).
+
+filterVar(T,Q,Qx) :-
+  isVar(T),
+  add_mem(T,Q,Qx).
+filterVar(ctpl(_,A),Q,Qx) :-
+  filterVars(A,Q,Qx).
+filterVar(enum(_),Q,Q).
 
 notVar(V) :- V\=idnt(_).
 

@@ -79,7 +79,7 @@ showVersion(ver(V),O,Ox) :-
   appStr("#",O,O1),
   appStr(V,O1,Ox).
 
-showCanonTerm(v(_,Nm),O,Ox) :- appStr(Nm,O,Ox).
+showCanonTerm(v(_,Nm),O,Ox) :- appIden(Nm,O,Ox).
 showCanonTerm(void,O,Ox) :- appStr("void",O,Ox).
 showCanonTerm(intLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
 showCanonTerm(floatLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
@@ -129,7 +129,7 @@ showCanonTerm(tple(_,Els),O,Ox) :-
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
 showCanonTerm(mtd(_,Nm,_),O,Ox) :-
-  appStr("&",O,O1),
+  appStr("°",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(over(_,V,Cons),O,Ox) :-
   showConstraints(Cons,O,O1),
@@ -246,9 +246,9 @@ showDefs(L,O,Ox) :-
 
 showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("function: ",O,O1),
-  appStr(Nm,O1,O2),
+  appIden(Nm,O1,O2),
   appStr(" … ",O2,O2a),
-  appStr(ExtNm,O2a,O2b),
+  appIden(ExtNm,O2a,O2b),
   appStr(" @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
@@ -259,9 +259,9 @@ showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("\n",O11,Ox),!.
 showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("pattern: ",O,O1),
-  appStr(Nm,O1,O2),
+  appIden(Nm,O1,O2),
   appStr(" … ",O2,O2a),
-  appStr(ExtNm,O2a,O2b),
+  appIden(ExtNm,O2a,O2b),
   appStr(" @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
@@ -272,31 +272,31 @@ showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
-  appStr(Nm,O1,O2),
+  appIden(Nm,O1,O2),
   appStr(" … ",O2,O2a),
-  appStr(ExtNm,O2a,O2b),
+  appIden(ExtNm,O2a,O2b),
   appStr(" : ",O2b,O3),
   showType(Tp,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
   showConstraints(Cx,O6,O7),
   appStr("\n",O7,O8),
-  appStr(Nm,O8,O9),
+  appIden(Nm,O8,O9),
   appStr(" = ",O9,O11),
   showCanonTerm(Value,O11,O12),
   appStr(".\n",O12,Ox).
 showDef(vdefn(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
-  appStr(Nm,O1,O2),
+  appIden(Nm,O1,O2),
   appStr("[",O2,O2a),
-  appStr(ExtNm,O2a,O2b),
+  appIden(ExtNm,O2a,O2b),
   appStr("] : ",O2b,O3),
   showType(Tp,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
   showConstraints(Cx,O6,O7),
   appStr("\n",O7,O8),
-  appStr(Nm,O8,O9),
+  appIden(Nm,O8,O9),
   appStr(" := ",O9,O11),
   showCanonTerm(Value,O11,O12),
   appStr(".\n",O12,Ox).

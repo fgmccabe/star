@@ -48,6 +48,10 @@ parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-
+  parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['--'|More], CWD,CWD, [], Files) :- stringify(More,Files).
 parseFlags(More, CWD,CWD, [], Files) :- stringify(More,Files).
 
@@ -111,10 +115,10 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   parseFile(Pkg,Src,Term),!,
   noErrors,
   checkProgram(Term,Pkg,Repo,Prog),!,
-  dispProg(Prog),
+  (is_member(showTCCode,Opts) -> dispProg(Prog);true),
   noErrors,
   transformProg(Prog,Opts,Rules),!,
-  displayRules(Rules),
+  (is_member(showTrCode,Opts) -> displayRules(Rules);true),
   noErrors,
   genPkgSig(Rules,Sig),
   genCode(Rules,Opts,Text),

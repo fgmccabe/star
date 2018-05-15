@@ -132,7 +132,7 @@ labelVars([lyr(_,Defs,_,_)|Map],Pr,Prx) :-
 
 labelVarsInDefs([],Pr,Pr).
 labelVarsInDefs([(_,labelArg(V,_ThVr))|Defs],Pr,Prx) :-
-  (is_member((V,_),Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
+  (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
   labelVarsInDefs(Defs,Pr0,Prx).
 labelVarsInDefs([_|Defs],Pr,Prx) :-
   labelVarsInDefs(Defs,Pr,Prx).

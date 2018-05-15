@@ -30,7 +30,7 @@
   operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
-  operator("raise", [prefixOp(899, 890)]).
+  operator("raise", [prefixOp(299, 300)]).
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
@@ -57,12 +57,12 @@
   operator("-->", [infixOp(1199, 1200, 1199)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
-  operator("=", [infixOp(949, 950, 949)]).
+  operator("=", [infixOp(974, 975, 974)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
   operator("show", [prefixOp(1260, 1259)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
-  operator("return", [prefixOp(899, 890)]).
+  operator("return", [prefixOp(299, 300)]).
   operator("?", [infixOp(1199, 1200, 1199)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
@@ -86,9 +86,9 @@
   operator("///", [infixOp(800, 800, 799)]).
   operator("::", [infixOp(399, 400, 399)]).
   operator("+++", [infixOp(719, 720, 720)]).
-  operator(":=", [infixOp(949, 950, 949)]).
+  operator(":=", [infixOp(974, 975, 974)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
-  operator(">>=", [infixOp(900, 900, 899)]).
+  operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(800, 800, 799)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).

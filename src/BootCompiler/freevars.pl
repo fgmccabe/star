@@ -8,7 +8,7 @@ freeVars(v(_Lc,Lb),Ex,Q,F,Fv) :-
   \+ isEscape(Lb),
   is_member(idnt(Lb),Q),!,
   \+is_member(idnt(Lb),Ex),
-  (is_member(v(_,Lb),F) -> F=Fv ; Fv=[idnt(Lb)|F]).
+  (is_member(v(_,Lb),F) -> F=Fv ; add_mem(idnt(Lb),F,Fv)).
 freeVars(v(_,_),_,_,F,F).
 freeVars(enm(_,_),_,_,F,F).
 freeVars(cns(_,_),_,_,F,F).
@@ -33,6 +33,9 @@ freeVars(record(_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVarsInOthers(Others,Ex1,Q,F0,Fv).
+freeVars(letExp(_,Rc,Bnd),Ex,Q,F,Fv) :-
+  freeVars(Rc,Ex,Q,F,F0),
+  freeVars(Bnd,Ex,Q,F0,Fv).
 
 definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).

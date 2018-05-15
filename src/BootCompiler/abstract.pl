@@ -121,6 +121,7 @@ locOfAst(float(Lc,_),Lc).
 locOfAst(string(Lc,_),Lc).
 locOfAst(tuple(Lc,_,_),Lc).
 locOfAst(app(Lc,_,_),Lc).
+locOfAst(void(Lc),Lc).
 
 sameTerm(name(_,Nm),name(_,Nm)).
 sameTerm(integer(_,Ix),integer(_,Ix)).

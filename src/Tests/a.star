@@ -8,7 +8,7 @@ test.a{
   p = o >>= double >>= double.
 
   double:(integer) => action[integer].
-  double(I) => return I+I.
+  double(I) => return (I+I).
 
   assert _perform(o)==1.
 
