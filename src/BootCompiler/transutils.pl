@@ -123,12 +123,13 @@ definedP(_Nm,moduleVar(_)).
 definedP(_Nm,localVar(_,_,_)).
 
 labelVars(Map,Prgs) :-
-  labelVars(Map,[],Prgs).
+  lblVars(Map,[],Prgs).
 
-labelVars([],Pr,Pr).
-labelVars([lyr(_,Defs,_,_)|Map],Pr,Prx) :-
-  labelVarsInDefs(Defs,Pr,Pr0),
-  labelVars(Map,Pr0,Prx).
+lblVars([],Pr,Pr).
+lblVars([lyr(_,Defs,_,ThVr)|Map],Pr,Prx) :-
+  (ThVr=void -> Pr=Pr0 ;add_mem(ThVr,Pr,Pr0)),
+  labelVarsInDefs(Defs,Pr0,Pr1),
+  lblVars(Map,Pr1,Prx).
 
 labelVarsInDefs([],Pr,Pr).
 labelVarsInDefs([(_,labelArg(V,_ThVr))|Defs],Pr,Prx) :-

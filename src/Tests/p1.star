@@ -27,5 +27,33 @@ star.p1{
 
   assert (([(),()]:list[()]),[]) in parse(many(str("a")),"aa"::list[integer]).
 
-  assert parse(many(str("a")),"aab"::list[integer]) == [(([(),()]),[0cb])]
+  assert parse(many(str("a")),"aab"::list[integer]) == [(([(),()]),[0cb])].
+
+  symb:(string)=>parser[()].
+  symb(S) => str(S).
+
+  -- Simple expression parser
+  expr : parser[integer].
+  expr = chainl1(term,addop).
+
+  term: parser[integer].
+  term = chainl1(factor,mulop).
+
+  factor:parser[integer].
+  factor = decimal +++ (symb("(") >>= (_) => expr >>= (F) => symb(")") >>= (_) => return F).
+
+  addop: parser[(integer,integer)=>integer].
+  addop = (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
+
+  mulop:parser[(integer,integer)=>integer].
+  mulop = (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
+
+  decimal:parser[integer].
+  decimal = skip(digit) >>= (D) => return (D-0c0).
+
+  digit:parser[integer].
+  digit = sat(isDigit).
+
+  assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])].
+
 }

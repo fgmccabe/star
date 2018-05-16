@@ -580,7 +580,7 @@ lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
   freeVars(Lam,Df,Q1,Lv,ThFr),
-  lambdaLbl(Map,"_λ",LclName),
+  lambdaLbl(Map,"λ",LclName),
   genVar("_ThV",ThVr),
   collectLabelVars(ThFr,ThVr,[],Lx),
   makeLblTerm(LclName,ThFr,LblTerm).
@@ -632,12 +632,10 @@ liftLetExp(Lc,Theta,Bnd,Expr,Q,Qx,Map,Opts,[ThetaFun|Ex],Exx) :-
   liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
 
 thetaMap(Theta,ThVr,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Ex) :-
-  extraVars(Map,Extra),
   definedProgs(Map,Df),
-  filterVars(Extra,E0),
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
-  freeVars(Theta,Df,Q1,E0,ThFr),
+  freeVars(Theta,Df,Q1,Lv,ThFr),
   thetaLbl(Theta,Map,LclName),
   collectLabelVars(ThFr,ThVr,[],L0),
   makeLblTerm(LclName,ThFr,LblTerm),
@@ -705,6 +703,8 @@ collectMtd(typeDef(_,_,_,_),_,_,List,List,Ex,Ex).
 collectLabelVars([],_,List,List).
 collectLabelVars([idnt(Nm)|Args],ThVr,List,Lx) :-
   collectLabelVars(Args,ThVr,[(Nm,labelArg(idnt(Nm),ThVr))|List],Lx).
+collectLabelVars([_|Args],ThVr,List,Lx) :-
+  collectLabelVars(Args,ThVr,List,Lx).
 
 /*
 * Generate the equation:

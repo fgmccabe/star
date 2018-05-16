@@ -38,7 +38,6 @@ star.parse{
 
   public (+++): all e ~~ (parser[e],parser[e])=>parser[e].
   p+++q => let{
-    first:all e ~~ (list[e])=>list[e].
     first([])=>[].
     first([E,.._])=>[E].
   } in parser((S)=>first(parse(p++q,S))).
@@ -49,7 +48,7 @@ star.parse{
   }
 
   public many:all a ~~ (parser[a]) => parser[list[a]].
-  many(P) => many1(P) +++ (return []).
+  many(P) => many1(P) +++ return [].
 
   public many1:all a ~~ (parser[a]) => parser[list[a]].
   many1(P) =>
@@ -58,9 +57,15 @@ star.parse{
   public chainl:all a ~~ (parser[a],parser[(a,a)=>a],a)=>parser[a].
   chainl(P,Op,A) => chainl1(P,Op)+++return A.
 
-  private chainl1:all a ~~ (parser[a],parser[(a,a)=>a])=>parser[a].
+  public chainl1:all a ~~ (parser[a],parser[(a,a)=>a])=>parser[a].
   chainl1(P,Op) => let{
     rest:(a) => parser[a].
     rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) +++ return A
-  } in (P >>= (A) => rest(A)).
+  } in (P >>= rest).
+
+  public spaces:parser[()].
+  spaces = many(sat(isSpace)) >>= (_) => return ().
+
+  public skip:all a ~~ (parser[a])=>parser[a].
+  skip(P) => spaces >>= (_) => P
 }

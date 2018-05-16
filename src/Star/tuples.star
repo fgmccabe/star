@@ -4,6 +4,7 @@ star.tuples{
   import star.lists.
 
   -- Some basic stuff for tuples
+  -- Zero-tuples
   public implementation display[()] => {
     disp(_) => ss("()").
   }
@@ -27,5 +28,19 @@ star.tuples{
 
   public implementation all x,y ~~ hash[x], hash[y] |: hash[(x,y)] => {.
     hash((A,B)) => hash(A)*37+hash(B).
+  .}
+
+
+  -- 3-tuples
+  public implementation all x,y,z ~~ display[x], display[y], display[z] |: display[(x,y,z)] => {.
+    disp((a,b,c)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(" , "),disp(c),ss(")")]).
+  .}
+
+  public implementation all x,y,z ~~ equality[x], equality[y],equality[z] |: equality[(x,y,z)] => {.
+    (A1,A2,A3)==(B1,B2,B3) => A1==B1 && A2==B2 && A3==B3.
+  .}
+
+  public implementation all x,y,z ~~ hash[x], hash[y],hash[z] |: hash[(x,y,z)] => {.
+    hash((A,B,C)) => (hash(A)*37+hash(B))*37+hash(C).
   .}
 }

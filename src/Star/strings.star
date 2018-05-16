@@ -36,4 +36,14 @@ star.strings{
   public implementation coercion[string,list[integer]] => {
     _coerce(S) => _explode(S).
   }
+
+  public isDigit:(integer)=>boolean.
+  isDigit(D) => _isNdChar(D).
+
+  public isSpace:(integer) => boolean.
+  isSpace(Ch) => _isZsChar(Ch).
+
+  public isLetter:(integer) => boolean.
+  isLetter(Ch) => _isLetterChar(Ch).
+
 }

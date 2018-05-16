@@ -259,8 +259,7 @@ parseAnnotation(Nm,_,_,Annots,Env,F,[(Nm,Tp)|F]) :-
   parseType(T,Env,Tp).
 parseAnnotation(N,_,faceType(Fields,_),_,_,F,[(N,Tp)|F]) :-
   is_member((N,Tp),Fields),!.
-parseAnnotation(N,Lc,_,_,_,Face,Face) :-
-  reportError("no type annotation for variable %s",[N],Lc).
+parseAnnotation(_,_,_,_,_,Face,Face).
 
 defineType(N,_,_,Env,T,[(N,Tp)|T],_) :-
   isType(N,Env,tpDef(_,Tp,_)),!.
@@ -275,7 +274,7 @@ parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
   reportError("no type annotation for variable %s",[N],Lc).
 
 checkVarRules(N,Lc,Stmts,Env,Ev,Defs,Dx,Face,Path) :-
-  pickupVarType(N,Lc,Face,Tp),
+  pickupVarType(N,Lc,Face,Stmts,Tp),
   evidence(Tp,Env,Q,PT),
   declareTypeVars(Q,Lc,Env,SEnv),
   moveConstraints(PT,Cx,ProgramType),
@@ -305,9 +304,31 @@ processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
 
-pickupVarType(N,_,faceType(F,_),Tp) :-
+pickupVarType(N,_,faceType(F,_),_,Tp) :-
   is_member((N,Tp),F),!.
-pickupVarType(N,Lc,_,anonType) :- reportError("%s not declared",[N],Lc).
+pickupVarType(N,Lc,_,Stmts,Tp) :-
+  guessStmtType(Stmts,N,Lc,Tp).
+
+guessStmtType([],N,Lc,VTp) :- !,
+  reportError("%s not declared",[N],Lc),
+  newTypeVar("_",VTp).
+guessStmtType([St|_],N,Lc,Guess) :-
+  guessType(St,N,Lc,Guess).
+
+guessType(St,_,_,funType(tupleType(AT),RTp)) :-
+  isEquation(St,_,H,_,_),!,
+  splitHead(H,_,tuple(_,_,Args)),
+  genTpVars(Args,AT),
+  newTypeVar("_",RTp).
+guessType(St,_,_,GTp) :-
+  isDefn(St,_,_,_),!,
+  newTypeVar("_",GTp).
+guessType(St,_,_,GTp) :-
+  isAssignment(St,_,_,_),!,
+  newTypeVar("_",GTp).
+guessType(_,N,Lc,GTp) :- !,
+  reportError("%s not declared",[N],Lc),
+  newTypeVar("_",GTp).
 
 pickupThisType(Env,Tp) :-
   isVar("this",Env,vrEntry(_,_,Tp,_)),!.
