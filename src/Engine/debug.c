@@ -287,7 +287,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
           case Ret: {
             if (--p->traceCount <= 0) {
               p->traceCount = 0;
-              p->tracing=True;
+              p->tracing = True;
               return True;
             }
             return False;
@@ -639,7 +639,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
 
   logical stopping = shouldWeStop(p, mtd, pc);
   if (p->tracing || stopping) {
-    outMsg(stdErr, "[%d]: {%d} ", pcCount, p->traceCount);
+    outMsg(stdErr, "[%d]: ", pcCount);
     disass(stdErr, p, mtd, pc, fp, sp);
     if (stopping) {
 
@@ -672,7 +672,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
 }
 
 void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp) {
-  outMsg(out,"%L%_",ln);
+  outMsg(out, "%L%_", ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -707,7 +707,7 @@ void showTail(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
 }
 
 void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp) {
-  outMsg(out, "return: %T->%T", mtd, val);
+  outMsg(out, "return: %T->%,10T", mtd, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm, framePo fp, ptrPo sp);
@@ -878,7 +878,7 @@ void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrP
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
 
   if (vr >= 0 && vr < stackTop - sp)
-    outMsg(out, "SP[%d]=%T\n", vr, sp[vr]);
+    outMsg(out, "SP[%d]=%,10T\n", vr, sp[vr]);
   else
     outMsg(out, "invalid stack offset: %d", vr);
 }
@@ -888,7 +888,11 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 
   integer offset = (integer) (pc - entryPoint(mtd));
 
-  outMsg(out, "0x%x: %T(%d) ", pc, nthArg(codeLits(mtd), 0), offset);
+  normalPo lits = codeLits(mtd);
+  if (lits != Null)
+    outMsg(out, "0x%x: %T(%d) ", pc, nthArg(codeLits(mtd), 0), offset);
+  else
+    outMsg(out, "0x%x: \?\?(%d) ", pc, offset);
 
   switch (*pc++) {
 #undef instruction

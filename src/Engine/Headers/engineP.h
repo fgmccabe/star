@@ -29,6 +29,7 @@ typedef struct _processRec_ {
   logical pauseRequest;         /* Has a pause of this process been requested? */
   ProcessState savedState;    /* Saved state of this process? */
   threadPo thread;    // What is the thread associated with this process
+  integer processNo;  // What number process is this
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
   logical tracing;
@@ -68,7 +69,7 @@ processPo runerr(processPo); /* non-fatal error */
 void displayProcesses(void);
 void displayProcess(processPo p);
 void stackTrace(processPo p);
-void verifyProc(processPo p);
+void verifyProc(processPo p, struct _gc_support_ *G);
 
 retCode extendStack(processPo p, int sfactor, int hfactor, long hmin);
 

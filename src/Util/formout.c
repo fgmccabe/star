@@ -767,7 +767,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
           } else if (fcp == ',') {
             depth = 0;
 
-            fcp = nextDecimal(format, &fx, flen, &width); /* extract the width field */
+            fcp = nextDecimal(format, &fx, flen, &depth); /* extract the depth field */
           } else
             break;
         }

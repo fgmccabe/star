@@ -13,8 +13,30 @@
 
 static poolPo prPool;     /* pool of processes */
 
+hashPo prTble;
+
+static integer processHash(void *);
+static comparison sameProcess(void *, void *);
+
+static integer newProcessNumber();
+
+static LockRecord processLock;
+
+static MethodRec halt = {
+  .clss = Null,
+  .codeSize = 1,
+  .arity = 0,
+  .lclcnt = 0,
+  .pool = Null,
+  .locals = Null,
+  .code = {Halt}
+};
+
 void initEngine() {
   prPool = newPool(sizeof(ProcessRec), 32);
+  prTble = NewHash(16, processHash, sameProcess, Null);
+  initLock(&processLock);
+  halt.clss = methodClass;
 }
 
 retCode bootstrap(char *entry) {
@@ -30,8 +52,6 @@ retCode bootstrap(char *entry) {
   }
 }
 
-static insWord haltCode[] = {Halt};
-
 processPo newProcess(methodPo mtd) {
   processPo P = (processPo) allocPool(prPool);
 
@@ -42,8 +62,8 @@ processPo newProcess(methodPo mtd) {
   P->heap = currHeap;
   P->state = P->savedState = quiescent;
   P->pauseRequest = False;
-  if(insDebugging||lineDebugging){
-    if(interactive)
+  if (insDebugging || lineDebugging) {
+    if (interactive)
       P->waitFor = nextIns;
     else
       P->waitFor = nextBreak;
@@ -59,13 +79,16 @@ processPo newProcess(methodPo mtd) {
   // cap the stack with a halting stop.
 
   ptrPo sp = (ptrPo) P->fp;
-  *--sp = (termPo) mtd;
-  *--sp = (termPo) &haltCode[0];
-
+  *--sp = (termPo) &halt;
+  *--sp = (termPo) entryPoint(&halt);
   *--sp = (termPo) P->fp;    /* set the new frame pointer */
 
   P->fp = (framePo) sp;
   P->sp = sp;
+
+  P->processNo = newProcessNumber();
+
+  hashPut(prTble, (void *) P->processNo, P);
 
   return P;
 }
@@ -75,6 +98,9 @@ void ps_kill(processPo p) {
     pthread_t thread = p->threadID;
 
     pthread_cancel(thread);    /* cancel the thread */
+
+    hashRemove(prTble, (void *) p->processNo);
+    freePool(prPool, p);
   }
 }
 
@@ -97,6 +123,8 @@ ReturnStatus liberror(processPo P, char *name, termPo code) {
   setArg(err, 0, (termPo) msg);
   setArg(err, 1, code);
 
+  gcReleaseRoot(H, root);
+
   ReturnStatus rt = {.ret=Error, .rslt=(termPo) err};
   return rt;
 }
@@ -117,8 +145,20 @@ ProcessState processState(processPo p) {
   return p->state;
 }
 
+typedef struct {
+  procProc pr;
+  void *cl;
+} Helper;
+
+static retCode prEntry(void *n, void *r, void *c) {
+  Helper *h = (Helper *) c;
+
+  return h->pr((processPo) r, h->cl);
+}
+
 retCode processProcesses(procProc p, void *cl) {
-  return Ok;
+  Helper h = {.pr = p, .cl = cl};
+  return ProcessTable(prEntry, prTble, &h);
 }
 
 processPo getProcessOfThread(void) {
@@ -131,4 +171,26 @@ char *processWd(processPo p) {
 
 retCode setProcessWd(processPo p, char *wd, integer len) {
   return uniNCpy(p->wd, NumberOf(p->wd), wd, len);
+}
+
+static integer prCount = 0;
+
+integer newProcessNumber() {
+  acquireLock(&processLock, 0);
+  integer nextPrNo = prCount++;
+  releaseLock(&processLock);
+  return nextPrNo;
+}
+
+integer processHash(void *x) {
+  return (integer) (x);
+}
+
+comparison sameProcess(void *a, void *b) {
+  processPo p1 = (processPo) a;
+  processPo p2 = (processPo) b;
+  if (a == b)
+    return same;
+  else
+    return incomparible;
 }

@@ -16,7 +16,7 @@
 #define TRACEPKG
 #define TRACESTATS
 #define TRACEVERIFY
-#define LOCKTRACE
+#define TRACELOCK
 #endif
 
 extern char copyRight[];
@@ -28,6 +28,7 @@ extern logical interactive;      /* interactive instruction tracing option */
 extern logical runStats;
 
 extern logical traceMemory;      /* memory tracing */
+extern logical stressMemory;
 extern logical tracePkg;
 extern logical traceManifest;
 

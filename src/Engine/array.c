@@ -175,7 +175,7 @@ listPo allocateList(heapPo H, integer length, logical safeMode) {
   list->length = length;
   list->base = voidEnum;
 
-  integer extra = maxl(length >> 3, 1);
+  integer extra = maxl(length / 8, 1);
   basePo base = (basePo) allocateBase(H, length + extra, safeMode);
 
   base->min = extra / 2;
@@ -288,23 +288,31 @@ termPo prependToList(heapPo H, listPo list, termPo el) {
 }
 
 listPo concatList(heapPo H, listPo l1, listPo l2) {
-  int root = gcAddRoot(H, (ptrPo) &l1);
-  gcAddRoot(H, (ptrPo) (&l2));
   integer len1 = l1->length;
   integer len2 = l2->length;
-  integer llen = len1 + len2;
 
-  listPo reslt = createList(H, llen + llen / 2);
+  if (len1 == 0)
+    return l2;
+  else if (len2 == 0)
+    return l1;
+  else {
+    int root = gcAddRoot(H, (ptrPo) &l1);
+    gcAddRoot(H, (ptrPo) (&l2));
 
-  for (integer ix = 0; ix < len1; ix++) {
-    reslt = addToList(H, reslt, nthEl(l1, ix));
+    integer llen = len1 + len2;
+
+    listPo reslt = createList(H, llen + llen / 2);
+
+    for (integer ix = 0; ix < len1; ix++) {
+      reslt = addToList(H, reslt, nthEl(l1, ix));
+    }
+    for (integer ix = 0; ix < len2; ix++) {
+      reslt = addToList(H, reslt, nthEl(l2, ix));
+    }
+
+    gcReleaseRoot(H, root);
+    return reslt;
   }
-  for (integer ix = 0; ix < len2; ix++) {
-    reslt = addToList(H, reslt, nthEl(l2, ix));
-  }
-
-  gcReleaseRoot(H, root);
-  return reslt;
 }
 
 static retCode countEls(termPo el, integer ix, void *cl) {

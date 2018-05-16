@@ -27,7 +27,7 @@ typedef struct _gc_support_ {
   long oCnt;
 } GCSupport;
 
-static void markProcess(processPo P, gcSupportPo G);
+static retCode markProcess(processPo P, gcSupportPo G);
 static termPo scanTerm(gcSupportPo G, termPo x);
 static logical hasMoved(termPo t);
 static termPo movedTo(termPo t);
@@ -77,17 +77,20 @@ retCode gcCollect(heapPo H, long amount) {
 
 #ifdef TRACEMEM
   if (traceMemory)
-    outMsg(logFile, "starting gc\n");
+    outMsg(logFile, "starting gc\n%_");
+  gcCount++;
+#endif
+
+#ifdef TRACEMEM
+  if (traceMemory) {
+    if (H->owner != Null)
+      verifyProc(H->owner, G);
+    else
+      processProcesses((procProc) verifyProc, G);
+  }
 #endif
 
   swapHeap(H);
-
-#ifdef TRACEMEM
-  if (traceMemory && H->owner != Null)
-    verifyProc(H->owner);
-
-  gcCount++;
-#endif
 
   for (int i = 0; i < H->topRoot; i++)    /* mark the external roots */
     *H->roots[i] = markPtr(G, H->roots[i]);
@@ -97,11 +100,12 @@ retCode gcCollect(heapPo H, long amount) {
 
   if (H->owner != Null)
     markProcess(H->owner, G);
+  else
+    processProcesses((procProc) markProcess, G);
 
 #ifdef TRACEMEM
   if (traceMemory) {
-    outMsg(logFile, "%d objects found in mark phase\n", G->oCnt);
-    flushFile(logFile);
+    outMsg(logFile, "%d objects found in mark phase\n%_", G->oCnt);
   }
 #endif
 
@@ -110,8 +114,12 @@ retCode gcCollect(heapPo H, long amount) {
     t = scanTerm(G, t);
 
 #ifdef TRACEMEM
-  if (traceMemory && H->owner != Null)
-    verifyProc(H->owner);
+  if (traceMemory) {
+    if (H->owner != Null)
+      verifyProc(H->owner, G);
+    else
+      processProcesses((procProc) verifyProc, G);
+  }
 #endif
 
   if (H->limit - H->curr <= amount) {
@@ -123,7 +131,7 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   if (traceMemory) {
     outMsg(logFile, "%d bytes used\n", heap.curr - heap.start);
-    outMsg(logFile, "%d bytes available\n", heap.limit - heap.curr);
+    outMsg(logFile, "%d bytes available\n%_", heap.limit - heap.curr);
   }
 #endif
   return Ok;
@@ -140,10 +148,10 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
         specialClassPo special = (specialClassPo) t->clss;
         termPo nn = G->H->curr;
         G->H->curr = special->copyFun(special, nn, t);
+        G->oCnt++;
         markMoved(t, nn);
         return nn;
       } else {
-
         G->oCnt++;
 
         labelPo lbl = C_LBL((termPo) t->clss);
@@ -185,7 +193,6 @@ static retCode markScanHelper(ptrPo arg, void *c) {
 }
 
 static termPo scanTerm(gcSupportPo G, termPo x) {
-  G->oCnt++;
   if (isSpecialClass(x->clss)) {
     specialClassPo sClass = (specialClassPo) classOf(x);
     return sClass->scanFun(sClass, markScanHelper, G, x);
@@ -206,10 +213,10 @@ static insPo pcAddr(methodPo mtd, integer off) {
   return &mtd->code[off];
 }
 
-static void markProcess(processPo P, gcSupportPo G) {
+static retCode markProcess(processPo P, gcSupportPo G) {
 #ifdef TRACEMEM
   if (traceMemory)
-    outMsg(logFile, "Mark process %.3w\n", &P->thread);
+    outMsg(logFile, "Mark process %d\n%_", P->processNo);
 #endif
 
   ptrPo t = P->sp;
@@ -221,23 +228,30 @@ static void markProcess(processPo P, gcSupportPo G) {
       t++;
     }
     integer off = insOffset(f->prog, f->rtn);
-    f->prog = (methodPo) scanTerm(G, (termPo) f->prog);
+    f->prog = (methodPo) markPtr(G, (ptrPo) &f->prog);
     f->rtn = pcAddr(f->prog, off);
-    t = (ptrPo) f + 1;
+    t = (ptrPo) (f + 1);
     f = f->fp;
   }
+
+  integer off = insOffset(P->prog, P->pc);
+  P->prog = (methodPo) markPtr(G, (ptrPo) &P->prog);
+  P->pc = pcAddr(P->prog, off);
+  return Ok;
 }
 
-void verifyProc(processPo P) {
+void verifyProc(processPo P, GCSupport *G) {
 #ifdef TRACEMEM
   if (traceMemory)
-    outMsg(logFile, "Verify process %.3w\n", &P->thread);
+    outMsg(logFile, "Verify process %d\n%_", P->processNo);
 #endif
-  heapPo H = P->heap;
-  verifyHeap(H);
+  heapPo H = G->H;
 
   ptrPo t = P->sp;
   framePo f = P->fp;
+
+  assert(t <= (ptrPo) f);
+  assert((ptrPo) f < (ptrPo) P->stackLimit);
 
   while (t < (ptrPo) P->stackLimit) {
     while (t < (ptrPo) f) {

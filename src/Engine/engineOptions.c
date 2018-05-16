@@ -34,7 +34,7 @@ logical runStats = False; // Count instructions etc.
 char CWD[MAXFILELEN] = "";
 char bootPkg[MAX_SYMB_LEN] = "star.boot";  // boot package
 char bootVer[MAX_SYMB_LEN] = "*";
-PackageRec bootPkge = {.packageName="star.boot",.version="*"};
+PackageRec bootPkge = {.packageName="star.boot", .version="*"};
 
 char entry[MAX_SYMB_LEN] = "star.boot@__boot";  // entry point class
 char debugPkg[MAX_SYMB_LEN] = "";  // Standard debug package
@@ -93,9 +93,21 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 #ifdef TRACEEXEC
         insDebugging = True;
         tracing = True;
+        interactive = True;
         continue;
 #else
-      logMsg(logFile, "Instruction-level insDebugging not enabled\n");
+      logMsg(logFile, "Instruction-level debugging not enabled\n");
+      return Error;
+#endif
+
+      case 'D':    /*  instruction tracing */
+#ifdef TRACEEXEC
+        insDebugging = True;
+        tracing = True;
+        interactive = False;
+        continue;
+#else
+      logMsg(logFile, "Instruction-level tracing not enabled\n");
       return Error;
 #endif
 
@@ -127,8 +139,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         traceLock = True;
         continue;
 #else
-      logMsg(logFile, "sync tracing not enabled");
-      return Error;
+        logMsg(logFile, "sync tracing not enabled");
+        return Error;
 #endif
 
       case 'G':    /* Internal symbolic tracing */
@@ -214,7 +226,7 @@ static retCode setWD(char *option, logical enable, void *cl) {
 
 static retCode setBootPkg(char *option, logical enable, void *cl) {
   uniCpy(bootPkg, NumberOf(bootPkg), option);
-  uniCpy(&bootPkge.packageName[0],NumberOf(bootPkge.packageName),option);
+  uniCpy(&bootPkge.packageName[0], NumberOf(bootPkge.packageName), option);
   return Ok;
 }
 

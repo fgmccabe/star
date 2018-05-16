@@ -62,7 +62,7 @@ retCode run(processPo P) {
           restoreRegisters(P);
           break;
         case OTail: saveRegisters(P);
-          tailDebug(P, getLbl(SP[0],insOperand(P)));
+          tailDebug(P, getLbl(SP[0], insOperand(P)));
           restoreRegisters(P);
           break;
         case Ret: saveRegisters(P);
@@ -127,7 +127,9 @@ retCode run(processPo P) {
       case Escape: {     /* call escape */
         int32 escNo = collectI32(PC); /* escape number */
         escapePo esc = getEscape(escNo);
+        saveRegisters(P);
         ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
+        restoreRegisters(P);
         SP += esc->arity;     /* drop arguments */
         switch (ret.ret) {
           case Ok:
@@ -250,7 +252,7 @@ retCode run(processPo P) {
 
       case Jmp:       /* jump to local offset */
         PC = collectOff(PC);
-        assert(validPC(PROG,PC));
+        assert(validPC(PROG, PC));
         continue;
 
       case Drop:
@@ -315,7 +317,7 @@ retCode run(processPo P) {
         termPo l = pop();
         termPo t = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(PROG,exit));
+        assert(validPC(PROG, exit));
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
@@ -399,7 +401,7 @@ retCode run(processPo P) {
         termPo i = pop();
         termPo j = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(PROG,exit));
+        assert(validPC(PROG, exit));
 
         if (!sameTerm(i, j))
           PC = exit;
@@ -409,7 +411,7 @@ retCode run(processPo P) {
       case Bf: {       /* Branch on false */
         termPo i = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(PROG,exit));
+        assert(validPC(PROG, exit));
 
         if (i == falseEnum)
           PC = exit;
@@ -419,7 +421,7 @@ retCode run(processPo P) {
       case Bt: {        /* Branch on true */
         termPo i = pop();
         insPo exit = collectOff(PC);
-        assert(validPC(PROG,exit));
+        assert(validPC(PROG, exit));
 
         if (i == trueEnum)
           PC = exit;
