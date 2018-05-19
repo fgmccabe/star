@@ -26,7 +26,7 @@
 static retCode outString(ioPo f, char *str, integer len, long width, integer precision,
                          codePoint pad, logical leftPad);
 
-static retCode outUniString(ioPo f, char * str, long len, long width, int precision,
+static retCode outUniString(ioPo f, char *str, long len, long width, int precision,
                             codePoint pad, logical leftPad, logical alt);
 
 retCode outInt(ioPo f, integer i) {
@@ -565,7 +565,7 @@ retCode outString(ioPo f, char *str, integer len, long width, integer precision,
   return ret;
 }
 
-static retCode quoteChar(ioPo f, codePoint ch, long *gaps) {
+static retCode quoteChar(ioPo f, codePoint ch, integer *gaps) {
   retCode ret;
   switch (ch) {
     case '\a':
@@ -617,18 +617,9 @@ static retCode quoteChar(ioPo f, codePoint ch, long *gaps) {
   return ret;
 }
 
-static retCode dumpText(ioPo f, char *str, long len) {
-  long gaps = 0;
-  retCode ret = Ok;
-  int ix;
-  for (ix = 0; ret == Ok && ix < len; ix++)
-    ret = quoteChar(f, (codePoint) str[ix], &gaps);
-  return ret;
-}
-
 retCode outUniString(ioPo f, char *str, long len, long width, int precision,
                      codePoint pad, logical leftPad, logical alt) {
-  long gaps;
+  integer gaps;
   retCode ret = Ok;
 
   if (precision > 0 && precision < len)
@@ -644,9 +635,9 @@ retCode outUniString(ioPo f, char *str, long len, long width, int precision,
       if (alt) {
         integer px = 0;
 
-        while (ret == Ok && px<len) {
-          codePoint cp = nextCodePoint(str,&px,len);
-          ret = quoteChar(f,  cp, &gaps);
+        while (ret == Ok && px < len) {
+          codePoint cp = nextCodePoint(str, &px, len);
+          ret = quoteChar(f, cp, &gaps);
         }
       } else
         ret = outText(f, str, len);
@@ -661,9 +652,11 @@ retCode outUniString(ioPo f, char *str, long len, long width, int precision,
       if (ret == Ok)
         ret = outText(f, str, len);
     }
-  } else if (alt)
-    ret = dumpText(f, str, len);
-  else
+  } else if (alt) {
+    int ix;
+    for (ix = 0; ret == Ok && ix < len; ix++)
+      ret = quoteChar(f, (codePoint) str[ix], &gaps);
+  } else
     ret = outText(f, str, len);  /* variable width */
 
   return ret;
@@ -784,7 +777,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
               codePoint i = (codePoint) (longValue ? va_arg(args, integer) : va_arg(args, int));
 
               if (alternate) {
-                long gaps = 0;
+                integer gaps = 0;
                 ret = quoteChar(f, i, &gaps);
               } else
                 ret = outChar(f, i);
@@ -793,7 +786,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             case 'd': {    /* Display an integer value */
               integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
 
-              ret = outInteger(f, i, 10, width, precision, pad, leftPad, prefix, sign);
+              ret = outInteger(f, i, 10, (int)width, (int)precision, pad, leftPad, prefix, sign);
               break;
             }
             case 'u': {    /* Display a number as unsigned */
