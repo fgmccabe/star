@@ -108,28 +108,26 @@ importFields(_,_,[],Map,Map).
 importFields(Pkg,Enums,[(Nm,Tp)|Fields],Map,Mx) :-
   moveQuants(Tp,_,QTp),
   moveConstraints(QTp,_,Template),
-  makeImportEntry(Template,Enums,Pkg,Nm,Map,M0),
+  typeArity(Tp,Ar),
+  makeImportEntry(Template,Ar,Enums,Pkg,Nm,Map,M0),
   importFields(Pkg,Enums,Fields,M0,Mx).
 
-makeImportEntry(funType(A,_),_,Pkg,Nm,[(Nm,moduleFun(LclName,ClosureName,Ar))|Mx],Mx) :-
+makeImportEntry(funType(_,_),Ar,_,Pkg,Nm,[(Nm,moduleFun(LclName,ClosureName,Ar))|Mx],Mx) :-
   packageVarName(Pkg,Nm,LclName),
-  localName(Pkg,"^",Nm,ClosureName),
-  typeArity(A,Ar).
-makeImportEntry(ptnType(A,_),_,Pkg,Nm,[(Nm,modulePtn(LclName,ClosureName,Ar))|Mx],Mx) :-
+  localName(Pkg,"^",Nm,ClosureName).
+makeImportEntry(ptnType(_,_),Ar,_,Pkg,Nm,[(Nm,modulePtn(LclName,ClosureName,Ar))|Mx],Mx) :-
   packageVarName(Pkg,Nm,LclName),
-  localName(Pkg,"^",Nm,ClosureName),
-  typeArity(A,Ar).
-makeImportEntry(consType(A,_),_,Pkg,Nm,[(Nm,moduleCons(LclName,AccessName,Ar))|Mx],Mx) :-
+  localName(Pkg,"^",Nm,ClosureName).
+makeImportEntry(consType(_,_),Ar,_,Pkg,Nm,[(Nm,moduleCons(LclName,AccessName,Ar))|Mx],Mx) :-
   localName(Pkg,"#",Nm,LclName),
-  localName(Pkg,"@",Nm,AccessName),
-  typeArity(A,Ar).
-makeImportEntry(_,Enums,Pkg,Nm,[(Nm,moduleCons(LclName,AccessName,0))|Mx],Mx) :-
+  localName(Pkg,"@",Nm,AccessName).
+makeImportEntry(_,_,Enums,Pkg,Nm,[(Nm,moduleCons(LclName,AccessName,0))|Mx],Mx) :-
   marker(class,Mrk),
   localName(Pkg,Mrk,Nm,Enu),
   is_member(Enu,Enums),!,
   localName(Pkg,"@",Nm,AccessName),
   localName(Pkg,"#",Nm,LclName).
-makeImportEntry(_,_,Pkg,Nm,[(Nm,moduleVar(LclName))|Mx],Mx) :-
+makeImportEntry(_,_,_,Pkg,Nm,[(Nm,moduleVar(LclName))|Mx],Mx) :-
   packageVarName(Pkg,Nm,LclName).
 
 importImplementations([],Map,Map).
