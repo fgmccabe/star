@@ -25,18 +25,20 @@
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("import", [prefixOp(900, 899)]).
+  operator(";;", [infixOp(949, 950, 950)]).
   operator("?.", [infixOp(450, 450, 449)]).
   operator(",..", [infixOp(999, 1000, 1000)]).
   operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
-  operator("raise", [prefixOp(299, 300)]).
+  operator("raise", [prefixOp(300, 299)]).
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("?=", [infixOp(899, 900, 899)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
+  operator("^^", [prefixOp(300, 299)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
@@ -55,6 +57,7 @@
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
+  operator(";", [infixOp(1899, 1900, 1900)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=", [infixOp(974, 975, 974)]).
@@ -62,7 +65,7 @@
   operator("show", [prefixOp(1260, 1259)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
-  operator("return", [prefixOp(299, 300)]).
+  operator("return", [prefixOp(300, 299)]).
   operator("?", [infixOp(1199, 1200, 1199)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
@@ -116,6 +119,7 @@
   follows('','\\','\\').
   follows('','^','^').
   follows('',':',':').
+  follows('',';',';').
   follows('','<','<').
   follows('','=','=').
   follows('','>','>').
@@ -162,11 +166,13 @@
   follows('~','~','~~').
   follows('~','>','~>').
   follows('\\','+','\\+').
+  follows('^','^','^^').
   follows('^','/','^/').
   follows('^/','/','^//').
   follows(':',':','::').
   follows(':','=',':=').
   follows('::','=','::=').
+  follows(';',';',';;').
   follows('<','~','<~').
   follows('<','<','<<').
   follows('<','=','<=').
@@ -219,16 +225,19 @@
   final('||',"||").	 /* disjunction */
   final('~',"~").	 /* grammar remainder */
   final('~~',"~~").	 /* quantifier */
-  final('~>',"~>").	 /* type alias definition */
+  final('~>',"~>").	 /* type function */
   final('\\+',"\\+").	 /* logical negation */
+  final('^^',"^^").	 /* wrap value as special parser */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
   final(':',":").	 /* type annotation */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
   final(':=',":=").	 /* reassignable variable definition */
+  final(';',";").	 /* sequencing operator */
+  final(';;',";;").	 /* grammar sequencing operator */
   final('<',"<").	 /* less than */
-  final('<~',"<~").	 /* type rule */
+  final('<~',"<~").	 /* type interface rule */
   final('<<',"<<").	 /* string formatting */
   final('<=',"<=").	 /* pattern arrow */
   final('<=>',"<=>").	 /* constructor arrow */

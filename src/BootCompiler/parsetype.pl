@@ -1,8 +1,8 @@
 :- module(parsetype,[parseType/3,parseType/6,
   parseBoundTpVars/3,reQuant/3,reQuantX/3,wrapConstraints/3,
   parseTypeHead/5,
-  parseTypeRule/4,parseTypeCore/3,parseContract/4,
-  parseConstraints/5,parseContractConstraint/6,rewriteConstraints/4,bindAT/4]).
+  parseTypeCore/3,parseContract/4,parseTypeDef/6,pickTypeTemplate/2,
+  parseConstraints/5,parseContractConstraint/6,bindAT/4]).
 
 :- use_module(abstract).
 :- use_module(dict).
@@ -39,9 +39,12 @@ parseType(F,Env,B,C0,Cx,Tp) :-
 parseType(Nm,Env,B,C0,Cx,Tp) :-
   isIden(Nm,Lc,Id), !,
   parseTypeName(Lc,Id,Env,B,C0,Cx,Tp).
-parseType(Sq,Env,B,C0,Cx,Type) :-
-  isSquare(Sq,Lc,N,Args),!,
-  parseTypeSquare(Lc,N,Args,Env,B,C0,Cx,Type).
+parseType(Sq,Env,Q,C0,Cx,Tp) :-
+  isSquareTerm(Sq,Lc,N,Args),!,
+  parseType(N,Env,Q,C0,C1,Op),
+  parseTypes(Args,Env,Q,C1,C2,ArgTps),
+  freshen(Op,Env,_,OOp),
+  applyTypeExp(Lc,OOp,ArgTps,Env,C2,Cx,Tp).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isBinary(F,_,"=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),
@@ -70,6 +73,10 @@ parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
 parseType(T,Env,B,Cx,Cx,faceType(AT,FT)) :-
   isBraceTuple(T,_,L),!,
   parseTypeFields(L,Env,B,[],AT,[],FT).
+parseType(T,Env,B,C,Cx,typeLambda(AT,RT)) :-
+  isTypeLambda(T,_,L,R),
+  parseArgType(L,Env,B,C,C0,AT),
+  parseType(R,Env,B,C0,Cx,RT).
 parseType(Term,Env,_,C,Cx,Tp) :-
   isFieldAcc(Term,Lc,L,Fld),
   isIden(L,Nm),
@@ -103,33 +110,19 @@ parseTypeName(_,"void",_,_,C,C,voidType).
 parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,C,C,Tp) :-
-  isType(Id,Env,tpDef(_,TpSpec,TpRule)),
-  (isTypeFun(TpRule) ->
-    freshen(TpRule,Env,_,T) ;
-    freshen(TpSpec,Env,_,T)),
-  (T=typeExp(Tp,_) ; T=Tp).
+  isType(Id,Env,tpDef(_,Tp,_)).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
-parseTypeSquare(Lc,Id,Args,Env,Q,C0,Cx,Tp) :-
-  parseTypeName(Lc,Id,Env,Q,C0,C1,Op),
-  parseTypes(Args,Env,Q,C1,Cx,ArgTps),
-  applyTypeExp(Lc,Op,ArgTps,Env,Tp).
-
-applyTypeExp(_,typeExp(Op,ATps),ArgTps,Env,typeExp(DOp,ArgTps)) :-
-  deRef(Op,DOp),
-  length(ArgTps,Ar),
-  validTypeOp(DOp,Ar),
-  smList(ATps,ArgTps,Env).
-applyTypeExp(_,kFun(T,Ar),Args,_,typeExp(kFun(T,Ar),Args)) :-
-  length(Args,Ar).
-applyTypeExp(_,tpFun(T,Ar),Args,_,typeExp(tpFun(T,Ar),Args)) :-
-  length(Args,Ar).
-applyTypeExp(Lc,constrained(Tp,Cx),ArgTps,Env,constrained(ATp,Cx)) :-
-  applyTypeExp(Lc,Tp,ArgTps,Env,ATp).
-applyTypeExp(_,typeLambda(typeExp(_,L),Tp),ArgTps,Env,Tp) :-
-  smList(L,ArgTps,Env).
-applyTypeExp(Lc,Op,ArgTps,_,voidType) :-
+applyTypeExp(_,kFun(T,Ar),Args,_,Cx,Cx,typeExp(kFun(T,Ar),Args)) :-
+  length(Args,Ar),!.
+applyTypeExp(_,tpFun(T,Ar),Args,_,Cx,Cx,typeExp(tpFun(T,Ar),Args)) :-
+  length(Args,Ar),!.
+applyTypeExp(Lc,constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
+  applyTypeExp(Lc,Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
+applyTypeExp(_,typeLambda(tupleType(L),Tp),ArgTps,Env,Cx,Cx,Tp) :-
+  smList(L,ArgTps,Env),!.
+applyTypeExp(Lc,Op,ArgTps,_,Cx,Cx,voidType) :-
   reportError("type %s not applicable to args %s",[Op,ArgTps],Lc).
 
 validTypeOp(kFun(_,Ar),Ar).
@@ -161,12 +154,12 @@ parseBoundVar(N,Q,Q) :-
 
 % reapply quantifiers to a type to get full form
 reQuant([],Tp,Tp).
-  reQuant([(Nm,_)|M],Tp,QTp) :-
-  reQuant(M,allType(kVar(Nm),Tp),QTp).
+reQuant([(_,KV)|M],Tp,QTp) :-
+  reQuant(M,allType(KV,Tp),QTp).
 
 reQuantX([],Tp,Tp).
-reQuantX([(Nm,_)|M],Tp,QTp) :-
-  reQuantX(M,existType(kVar(Nm),Tp),QTp).
+reQuantX([(_,KV)|M],Tp,QTp) :-
+  reQuantX(M,existType(KV,Tp),QTp).
 
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,WTp) :-
@@ -208,15 +201,17 @@ parseContractConstraint(Quants,Cons,Sq,Env,Op,ConSpec) :-
   isSquare(Sq,Lc,N,Args),
   parseBoundTpVars(Quants,[],Q),
   parseConstraints(Cons,Env,Q,[],C0),
-  parseContractArgs(Args,Env,Q,C0,Cx,ArgTps,Deps),
+  parseContractArgs(Args,Env,Q,C0,C1,ArgTps,Deps),
   ( parseContractName(Lc,N,Env,Q,contractExists(conTract(Op,ATs,Dps),IFace)) ->
-      (sameType(tupleType(ATs),tupleType(ArgTps),Env),
-        (sameType(tupleType(Dps),tupleType(Deps),Env) -> true;
-          reportError("dependent types %s dont match contract",[tupleType(Deps)],Lc), Dps=[]);
-        reportError("implementation does not match contract %s",[Op],Lc)),
-      moveConstraints(CC,Cx,contractExists(conTract(Op,ATs,Dps),IFace)),
-      reQuant(Q,CC,ConSpec)
-    ; reportError("contract %s not declared",[N],Lc), Op = N).
+      ( sameType(tupleType(ATs),tupleType(ArgTps),Env),
+        simplifyType(tupleType(ATs),Env,C1,C2,tupleType(As)),
+        sameType(tupleType(Dps),tupleType(Deps),Env) ->
+          simplifyType(tupleType(Dps),Env,C2,Cx,tupleType(Ds)),
+          moveConstraints(CC,Cx,contractExists(conTract(Op,As,Ds),IFace)),
+          reQuant(Q,CC,ConSpec);
+          reportError("implementation does not match contract %s",[Op],Lc),
+          fail);
+    reportError("contract %s not declared",[N],Lc), fail).
 
 addConstraint(Con,C0,C0) :- is_member(Con,C0),!.
 addConstraint(Con,C0,[Con|C0]).
@@ -277,24 +272,47 @@ parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
   marker(conTract,Marker),
   subPath(Path,Marker,Nm,ConNm).
 
-parseTypeRule(St,Env,Rule,Path) :-
-  parseTypeRule(St,[],[],_,Env,Rule,Path).
+parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
+  isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),!,
+  parseTypeExists(Lc,Quants,Ct,Hd,Body,Defn,E,Ev,Path).
+parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
+  isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
+  parseTypeFun(Lc,Quants,Ct,Hd,Bd,Defn,E,Ev,Path).
 
-parseTypeRule(St,B,C,C,Env,Rule,Path) :-
-  isQuantified(St,V,Body),
-  parseBoundTpVars(V,[],AQ),
-  concat(B,AQ,Q),
-  parseTypeRule(Body,Q,[],Cx,Env,Inner,Path),
-  wrapConstraints(Cx,Inner,Rl),
-  reQuant(Rl,AQ,Rule).
-parseTypeRule(St,B,C0,Cx,Env,Rule,Path) :-
-  isConstrained(St,T,C),
-  parseConstraints(C,Env,B,C0,C1),
-  parseTypeRule(T,B,C1,Cx,Env,Rule,Path).
-parseTypeRule(St,B,C0,Cx,Env,typeExists(Lhs,Rhs),Path) :-
-  isBinary(St,_,"<~",L,R),
-  parseTypeHead(L,B,Lhs,_,Path),!,
-  parseType(R,Env,B,C0,Cx,Rhs).
+parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FaceRule),E,Ev,Path) :-
+  parseBoundTpVars(Quants,[],Q),
+  parseTypeHead(Hd,Q,Tp,Nm,Path),
+  parseConstraints(Ct,E,Q,[],C0),
+  parseType(Body,E,Q,C0,Cx,RTp),
+  wrapConstraints(Cx,typeExists(Tp,RTp),Rl),
+  reQuant(Q,Rl,FaceRule),
+  reQuant(Q,Tp,Type),
+  pickTypeTemplate(Type,Tmp),
+  declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev).
+
+parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
+  parseBoundTpVars(Quants,[],Q),
+  parseConstraints(Ct,E,Q,[],C0),
+  parseTypeHead(Hd,Q,Tp,Nm,Path),
+  (isTypeExp(Tp,_,Args) -> LHd=tupleType(Args) ; LHd = tupleType([]) ),
+  parseType(Bd,E,Q,C0,Cx,RpTp),
+  wrapConstraints(Cx,typeLambda(LHd,RpTp),Rl),
+  reQuant(Q,Rl,Rule),
+  wrapConstraints(Cx,Tp,CxTp),
+  reQuant(Q,CxTp,Type),
+  pickTypeTemplate(Type,Tmp),
+  declareType(Nm,tpDef(Lc,Tmp,Rule),E,Ev).
+
+pickTypeTemplate(allType(V,Tp),allType(V,XTp)) :-
+  pickTypeTemplate(Tp,XTp).
+pickTypeTemplate(typeExists(Lhs,_),Tmp) :-
+  pickTypeTemplate(Lhs,Tmp).
+pickTypeTemplate(typeLambda(Lhs,_),Tmp) :-
+  pickTypeTemplate(Lhs,Tmp).
+pickTypeTemplate(constrained(Tp,Cx),constrained(Tmp,Cx)) :-
+  pickTypeTemplate(Tp,Tmp).
+pickTypeTemplate(type(Nm),type(Nm)).
+pickTypeTemplate(typeExp(Op,Args),typeLambda(tupleType(Args),typeExp(Op,Args))).
 
 parseTypeCore(St,Type,Path) :-
   isTypeExistsStmt(St,_,Quants,_,Head,_),

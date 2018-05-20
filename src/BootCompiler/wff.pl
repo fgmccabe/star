@@ -2,7 +2,7 @@
     isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
     isConstrained/3,reConstrain/3,
     isContractStmt/6,isImplementationStmt/6,
-    isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
+    isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,isTypeLambda/4,
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
     isIntegrity/3,isShow/3,isOpen/3,
@@ -158,6 +158,10 @@ isTypeFunStmt(St,Lc,Q,C,L,R) :-
   isTypeFunStmt(Inn,Lc,_,_,L,R).
 isTypeFunStmt(St,Lc,[],[],L,R) :-
   isBinary(St,Lc,"~>",L,R).
+
+isTypeLambda(St,Lc,L,R) :-
+  isBinary(St,Lc,"~>",L,R),
+  isTuple(L,_,_).
 
 isIntegrity(St,Lc,C) :-
   isUnary(St,Lc,"assert",C).

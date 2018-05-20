@@ -101,17 +101,6 @@ importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
   declareType(Nm,tpDef(Lc,Type,Rule),Env,E0),
   importTypes(More,Lc,E0,Ex).
 
-pickTypeTemplate(allType(_,Tp),XTp) :-
-  pickTypeTemplate(Tp,XTp).
-pickTypeTemplate(typeExists(Lhs,_),Tmp) :-
-  pickTypeTemplate(Lhs,Tmp).
-pickTypeTemplate(typeLambda(Lhs,_),Tmp) :-
-  pickTypeTemplate(Lhs,Tmp).
-pickTypeTemplate(constrained(Tp,_),Tmp) :-
-  pickTypeTemplate(Tp,Tmp).
-pickTypeTemplate(type(Nm),type(Nm)).
-pickTypeTemplate(typeExp(Op,_),Op).
-
 importAllDefs([],_,[],_,Env,Env).
 importAllDefs([import(Viz,Pkg)|More],Lc,
       [import(Viz,Pkg,Exported,Classes,Cons,Impls)|Specs],Repo,Env,Ex) :-
@@ -212,28 +201,6 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   declareMtd(Lc,Nm,MTp,Env,E0),
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
-parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
-  isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),
-  parseBoundTpVars(Quants,[],Q),
-  parseTypeHead(Hd,Q,Tp,Nm,Path),
-  parseConstraints(Ct,E,Q,[],C0),
-  parseType(Body,E,Q,C0,Cx,RTp),
-  wrapConstraints(Cx,typeExists(Tp,RTp),Rl),
-  reQuant(Q,Rl,FaceRule),
-  reQuant(Q,Tp,Type),
-  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev).
-parseTypeDef(St,[typeDef(Lc,Nm,Type,FaceRule)|Dx],Dx,E,Ev,Path) :-
-  isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
-  parseBoundTpVars(Quants,[],Q),
-  parseConstraints(Ct,E,Q,[],C0),
-  parseTypeHead(Hd,Q,Tp,Nm,Path),
-  parseType(Bd,E,Q,C0,Cx,RpTp),
-  wrapConstraints(Cx,typeLambda(Tp,RpTp),Rl),
-  reQuant(Q,Rl,FaceRule),
-  wrapConstraints(Cx,Tp,CxTp),
-  reQuant(Q,CxTp,Type),
-  declareType(Nm,tpDef(Lc,Type,FaceRule),E,Ev).
-
 parseConstructor(Nm,Lc,T,Env,Ev,[cnsDef(Lc,Nm,ConVr,Tp)|Defs],Defs,_) :-
   parseType(T,Env,Tp),
   (isConType(Tp) ->
@@ -273,15 +240,15 @@ parseTypeAnnotation(N,_,faceType(_,Types),_,_,F,[(N,Tp)|F]) :-
 parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
   reportError("no type annotation for variable %s",[N],Lc).
 
-checkVarRules(N,Lc,Stmts,Env,Ev,Defs,Dx,Face,Path) :-
-  pickupVarType(N,Lc,Face,Stmts,Tp),
-  evidence(Tp,Env,Q,PT),
-  declareTypeVars(Q,Lc,Env,SEnv),
+checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
+  pickupVarType(N,Lc,Face,Stmts,E,E0,Tp),
+  evidence(Tp,E0,Q,PT),
+  declareTypeVars(Q,Lc,E0,E1),
   moveConstraints(PT,Cx,ProgramType),
-  declareConstraints(Cx,SEnv,StmtEnv),
-  processStmts(Stmts,ProgramType,Rules,[],StmtEnv,Path),
+  declareConstraints(Cx,E1,E2),
+  processStmts(Stmts,ProgramType,Rules,[],E2,Path),
   packageVarName(Path,N,LclName),
-  collectPrograms(Rules,N,LclName,Env,Ev,Tp,Cx,Defs,Dx).
+  collectPrograms(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
 
 processStmts([],_,Defs,Defs,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Env,Path) :-
@@ -304,10 +271,13 @@ processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
 
-pickupVarType(N,_,faceType(F,_),_,Tp) :-
-  is_member((N,Tp),F),!.
-pickupVarType(N,Lc,_,Stmts,Tp) :-
-  guessStmtType(Stmts,N,Lc,Tp).
+pickupVarType(N,_,faceType(F,_),_,E,Ev,Tp) :-
+  is_member((N,T),F),!,
+  simplifyType(T,E,[],Cx,Tp),
+  declareConstraints(Cx,E,Ev).
+pickupVarType(Nm,Lc,_,Stmts,E,Ev,Tp) :-
+  guessStmtType(Stmts,Nm,Lc,Tp),
+  declareVr(Lc,Nm,Tp,E,Ev).
 
 guessStmtType([],N,Lc,VTp) :- !,
   reportError("%s not declared",[N],Lc),
@@ -545,6 +515,7 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
     typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
     Exp = apply(Lc,Fun,Args);
    reportError("invalid term %s in pattern",[Fun],Lc),
+   Env=Ev,
    Exp=v(Lc,"_")).
 typeOfPtn(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
@@ -558,16 +529,13 @@ typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
 typeOfArgTerm(T,Tp,Env,Ev,Exp,Path) :-
   typeOfExp(T,Tp,Env,Ev,Exp,Path).
 
-typeOfExp(V,_,Env,Env,v(Lc,N),_Path) :-
-  isIden(V,Lc,"_"),!,
-  genstr("_",N).
 typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),
   isVar(N,Env,Spec),!,
   typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term).
-typeOfExp(V,Tp,Ev,Env,v(Lc,N),_Path) :-
-  isIden(V,Lc,N),
-  declareVr(Lc,N,Tp,Ev,Env).
+% typeOfExp(V,Tp,Ev,Env,v(Lc,N),_Path) :-
+%   isIden(V,Lc,N),
+%   declareVr(Lc,N,Tp,Ev,Env).
 typeOfExp(integer(Lc,Ix),Tp,Env,Env,intLit(Ix),_Path) :- !,
   findType("integer",Lc,Env,IntTp),
   checkType(Lc,IntTp,Tp,Env).
@@ -661,28 +629,13 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
-  newTypeVar("F",FnTp),
-  newTypeVar("A",At),
-  typeOfKnown(F,FnTp,Env,E0,Fun,Path),
-  evidence(At,E0,_,AT),
-  typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-  (sameType(funType(At,Tp),FnTp,E0) ->
-   Exp = apply(Lc,Fun,Args) ;
-  sameType(consType(At,Tp),FnTp,E0) ->
-   Exp = apply(Lc,Fun,Args);
-  reportError("type of %s:%s not consistent with : %s=>%s ",[Fun,FnTp,At,Tp],Lc)).
+  typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,Lam,Path) :-
   isEquation(Term,Lc,H,C,R),
-  newTypeVar("_A",AT),
-  typeOfArgPtn(H,AT,Env,E1,Args,Path),
-  newTypeVar("_E",RT),
-  checkType(Lc,funType(AT,RT),Tp,Env),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E1,E2,Cond,Path),
-  typeOfExp(R,RT,E2,_,Exp,Path).
+  typeOfLambda(Lc,H,C,R,Tp,Env,Lam,Path).
 typeOfExp(Term,Tp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   isConjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -716,6 +669,28 @@ funLbl(v(_,L),L).
 funLbl(cns(_,Nm),Nm).
 funLbl(enm(_,Nm),Nm).
 funLbl(mtd(_,Nm),Nm).
+
+typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
+  newTypeVar("F",FnTp),
+  newTypeVar("A",At),
+  typeOfKnown(F,FnTp,Env,E0,Fun,Path),
+  simplifyType(FnTp,Env,[],_,FTp),
+  evidence(At,E0,_,AT),
+  typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+  (sameType(funType(At,Tp),FTp,E0) ->
+   Exp = apply(Lc,Fun,Args) ;
+  sameType(consType(At,Tp),FTp,E0) ->
+   Exp = apply(Lc,Fun,Args);
+  reportError("type of %s:%s not consistent with : %s=>%s ",[Fun,FTp,At,Tp],Lc)).
+
+typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
+  newTypeVar("_A",AT),
+  typeOfArgPtn(H,AT,Env,E1,Args,Path),
+  newTypeVar("_E",RT),
+  checkType(Lc,funType(AT,RT),Tp,Env),
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(C,LogicalTp,E1,E2,Cond,Path),
+  typeOfExp(R,RT,E2,_,Exp,Path).
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,

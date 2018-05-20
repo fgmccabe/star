@@ -53,7 +53,7 @@ star.core {
   public implementation display[ss] => {
     disp(X) => X
   }
-  
+
   public contract all k ~~ concat[k] ::= {
     (++) : (k,k)=>k.
   }
@@ -63,4 +63,7 @@ star.core {
 
   option@"the option type is useful when a value is not always available".
   public all t ~~ option[t] ::= none | some(t).
+
+  public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
+  F • G => (x)=>F(G(x)).
 }

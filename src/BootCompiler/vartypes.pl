@@ -4,6 +4,7 @@
 :- use_module(unify).
 :- use_module(dict).
 :- use_module(errors).
+:- use_module(types).
 
 typeOfVar(Lc,_,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   freshen(VTp,Env,_,VrTp),
@@ -20,7 +21,8 @@ manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Env,Ev,Exp
 manageConstraints(constrained(Tp,Con),Cons,Lc,V,MTp,Env,Ev,Exp) :- !,
   manageConstraints(Tp,[Con|Cons],Lc,V,MTp,Env,Ev,Exp).
 manageConstraints(Tp,[],_,V,Tp,Env,Env,V) :- !.
-manageConstraints(Tp,RCons,Lc,V,Tp,Env,Env,over(Lc,V,Cons)) :- reverse(RCons,Cons).
+manageConstraints(T,RCons,Lc,V,Tp,Env,Env,over(Lc,V,Cons)) :- reverse(RCons,Cons),
+  simplifyType(T,Env,[],_,Tp). % no constraints possible here
 
 checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).

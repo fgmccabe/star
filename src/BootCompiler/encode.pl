@@ -68,6 +68,7 @@ encodeType(allType(B,Tp),[':'|O],Ox) :- encodeTp(B,O,O1),encodeTp(Tp,O1,Ox).
 encodeType(existType(B,Tp),['e'|O],Ox) :- encodeTp(B,O,O1),encodeTp(Tp,O1,Ox).
 encodeType(constrained(Tp,Con),['|'|O],Ox) :- encodeTp(Tp,O,O1),encodeConstraint(Con,O1,Ox).
 encodeType(typeExists(L,R),['Y'|O],Ox) :- encodeTp(L,O,O1), encodeTp(R,O1,Ox).
+encodeType(typeLambda(L,R),['y'|O],Ox) :- encodeTp(L,O,O1), encodeTp(R,O1,Ox).
 encodeType(contractExists(L,R),['Z'|O],Ox) :- encodeConstraint(L,O,O1), encodeTp(R,O1,Ox).
 
 findDelim(Chrs,Delim) :-

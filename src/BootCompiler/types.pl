@@ -1,9 +1,10 @@
-:- module(types,[isType/1,isConType/1,isConstraint/1,newTypeVar/2,skolemVar/2,skolemFun/3,deRef/2,
-      typeArity/2,isTypeFun/1,
+:- module(types,[isType/1,isConType/1,isConstraint/1,
+      newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,
+      typeArity/2,isTypeFun/1,isTypeFun/2,isTypeExp/3,
       isFunctionType/1,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,
       isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
-      occursIn/2,isUnbound/1,isBound/1, constraints/2, isIdenticalVar/2,
+      occursIn/2,isUnbound/1,isBound/1, isIdenticalVar/2,
       bind/2, moveQuants/3,reQuantTps/3,
       moveConstraints/3,moveConstraints/4, implementationName/2,
       stdType/3]).
@@ -13,7 +14,8 @@ isType(anonType).
 isType(voidType).
 isType(thisType).
 isType(kVar(_)).
-isType(tVar(_,_,_,_)).
+isType(tVar(_,_,_)).
+isType(tFun(_,_,_,_)).
 isType(type(_)).
 isType(typeExp(_,_)).
 isType(refType(_)).
@@ -24,6 +26,7 @@ isType(consType(_,_)).
 isType(allType(_,_)).
 isType(existType(_,_)).
 isType(faceType(_,_)).
+isType(typeLambda(_,_)).
 isType(constrained(_,_)).
 
 isConstraint(conTract(_,_,_)).
@@ -35,30 +38,36 @@ isConType(existType(_,T)) :- isConType(T).
 isConType(constrained(T,_)) :- isConType(T).
 
 % the _ in unb(_) is to work around issues with SWI-Prolog's assignment.
-newTypeVar(Nm,tVar(_,_,Nm,Id)) :- gensym("_#",Id).
+newTypeVar(Nm,tVar(_,Nm,Id)) :- gensym("_#",Id).
+newTypeFun(Nm,Ar,tFun(_,Nm,Ar,Id)) :- gensym(Nm,Id).
 
 skolemVar(Nm,kVar(Id)) :- genstr(Nm,Id).
 skolemFun(Nm,Ar,kFun(Id,Ar)) :- genstr(Nm,Id).
 
-deRef(tVar(Curr,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
+deRef(tVar(Curr,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
+deRef(tFun(Curr,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
 deRef(T,T).
 
-isIdenticalVar(tVar(_,_,_,Id),tVar(_,_,_,Id)).
+isIdenticalVar(tVar(_,_,Id),tVar(_,_,Id)).
+isIdenticalVar(tFun(_,_,Ar,Id),tFun(_,_,Ar,Id)).
 isIdenticalVar(kVar(Id),kVar(Id)).
 isIdenticalVar(kFun(Id,Ar),kFun(Id,Ar)).
 
-isUnbound(T) :- deRef(T,tVar(Curr,_,_,_)), var(Curr).
+isUnbound(T) :- deRef(T,Tp), (Tp=tVar(Curr,_,_),var(Curr) ; Tp=tFun(Curr,_,_,_),var(Curr)).
 
-isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_,_).
+isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_),TV\=tFun(_,_,_,_).
 
-constraints(Tp,Cons) :- deRef(Tp,tVar(_,Cons,_,_)).
+bind(tVar(Curr,Nm,Id),Tp) :- !, \+occursIn(tVar(Curr,Nm,Id),Tp), Curr=Tp.
+bind(tFun(Curr,Nm,Ar,Id),Tp) :- \+occursIn(tFun(Curr,Nm,Ar,Id),Tp), Curr=Tp.
 
-bind(T,Tp) :- \+occursIn(T,Tp), T=tVar(Tp,_,_,_).
+occursIn(TV,Tp) :- deRef(Tp,DTp),
+  \+ isIdenticalVar(TV,DTp),
+  (TV = tVar(_,_,Id) -> occIn(Id,DTp); TV=tFun(_,_,_,Id), occIn(Id,DTp)),!.
 
-occursIn(TV,Tp) :- deRef(Tp,DTp), \+ isIdenticalVar(TV,DTp), TV = tVar(_,_,_,Id), occIn(Id,DTp),!.
-
-occIn(Id,tVar(_,_,_,Id)) :-!.
-occIn(Id,tVar(Curr,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
+occIn(Id,tVar(_,_,Id)) :-!.
+occIn(Id,tVar(Curr,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
+occIn(Id,tFun(_,_,_,Id)) :-!.
+occIn(Id,tFun(Curr,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
 occIn(Id,typeExp(O,_)) :- occIn(Id,O),!.
 occIn(Id,typeExp(_,L)) :- is_member(A,L), occIn(Id,A).
 occIn(Id,refType(I)) :- occIn(Id,I).
@@ -70,7 +79,10 @@ occIn(Id,ptnType(_,R)) :- occIn(Id,R).
 occIn(Id,consType(L,_)) :- occIn(Id,L).
 occIn(Id,consType(_,R)) :- occIn(Id,R).
 occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
-occIn(Id,allType(_,Tp)) :- occIn(Id,Tp).
+occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
+occIn(Id,typeLambda(_,R)) :- occIn(Id,R).
+occIn(Id,existType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
+occIn(Id,allType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
 occIn(Id,faceType(L,_)) :- is_member((_,A),L), occIn(Id,A),!.
 occIn(Id,faceType(_,T)) :- is_member((_,A),T), occIn(Id,A),!.
 
@@ -103,8 +115,10 @@ showType(voidType,O,Ox) :- appStr("void",O,Ox).
 showType(thisType,O,Ox) :- appStr("this",O,Ox).
 showType(kVar(Nm),O,Ox) :- appStr(Nm,O,Ox).
 showType(kFun(Nm,Ar),O,Ox) :- appStr(Nm,O,O1),appStr("/",O1,O2),appInt(Ar,O2,Ox).
-showType(tVar(Curr,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
-showType(tVar(_,_,Nm,Id),O,Ox) :- appStr("%",O,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
+showType(tVar(Curr,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
+showType(tVar(_,Nm,Id),O,Ox) :- appStr("%",O,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
+showType(tFun(Curr,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
+showType(tFun(_,_Nm,Ar,Id),O,Ox) :- appStr("%",O,O1),appStr(Id,O1,O2),appStr("/",O2,O3),appInt(Ar,O3,Ox).
 showType(type(Nm),O,Ox) :- appStr(Nm,O,Ox).
 showType(tpFun(Nm,Ar),O,Ox) :- appStr(Nm,O,O1),appStr("%",O1,O2),appInt(Ar,O2,Ox).
 showType(typeExp(tpFun(Nm,_),A),O,Ox) :- appStr(Nm,O,O1), appStr("[",O1,O2),showTypeEls(A,O2,O3),appStr("]",O3,Ox).
@@ -215,11 +229,16 @@ isProgType(Tp) :- isFunctionType(Tp),!.
 isProgType(Tp) :- isPtnType(Tp),!.
 isProgType(Tp) :- isCnsType(Tp,_),!.
 
+isTypeFun(Tp) :- isTypeFun(Tp,_).
 
-isTypeFun(typeLambda(_,_)).
-isTypeFun(allType(_,T)) :- isTypeFun(T).
-isTypeFun(existType(_,T)) :- isTypeFun(T).
-isTypeFun(constrained(T,_)) :- isTypeFun(T).
+isTypeFun(Tp,Ar) :- deRef(Tp,TT), isTpFun(TT,Ar).
+
+isTpFun(typeLambda(At,_),Ar) :- typeArity(At,Ar).
+isTpFun(allType(_,T),Ar) :- isTpFun(T,Ar).
+isTpFun(existType(_,T),Ar) :- isTpFun(T,Ar).
+isTpFun(constrained(T,_),Ar) :- isTpFun(T,Ar).
+
+isTypeExp(typeExp(Op,Args),Op,Args).
 
 implementationName(conTract(Nm,Args,_),INm) :-
   appStr(Nm,S0,S1),
@@ -240,6 +259,12 @@ surfaceName(typeExp(Op,_),Nm) :- deRef(Op,OO), surfaceName(OO,Nm).
 surfaceName(kVar(Nm),Nm).
 surfaceName(kFun(Nm,_),Nm).
 surfaceName(tpFun(Nm,_),Nm).
+surfaceName(allType(_,Tp),Nm) :-
+  surfaceName(Tp,Nm).
+surfaceName(constrained(T,_),Nm) :-
+  surfaceName(T,Nm).
+surfaceName(typeLambda(_,R),Nm) :-
+  surfaceName(R,Nm).
 surfaceName(tupleType(Els),Nm) :-
   length(Els,Ar),
   swritef(Nm,"()%d",[Ar]).
@@ -255,5 +280,4 @@ stdType("int",type("star.core*integer"),typeExists(type("star.core*integer"),fac
 stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
-stdType("list",allType(kVar("e"),typeExp(tpFun("star.core*list",1),[kVar("e")])),
-    allType(kVar("e"),typeExists(typeExp(tpFun("star.core*list",1),[kVar("e")]),faceType([],[])))).
+stdType("list",tpFun("star.core*list",1),allType(kVar("e"),typeExists(typeExp(tpFun("star.core*list",1),[kVar("e")]),faceType([],[])))).

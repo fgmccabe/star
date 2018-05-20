@@ -206,6 +206,12 @@ surfaceName(N,Nm) :-
 surfaceName(N,Nm) :-
   isSquare(N,Nm,_).
 surfaceName(T,Nm) :-
+  isQuantified(T,_,B),
+  surfaceName(B,Nm).
+surfaceName(T,Nm) :-
+  isTypeLambda(T,_,_,Rhs),
+  surfaceName(Rhs,Nm).
+surfaceName(T,Nm) :-
   isTuple(T,_,A),
   length(A,Ar),
   swritef(Nm,"()%d",[Ar]).
@@ -517,8 +523,8 @@ collectTypeRefs(V,All,SoFar,Refs) :-
   isIden(V,Nm),
   collectTypeName(Nm,All,SoFar,Refs).
 collectTypeRefs(T,All,SoFar,Refs) :-
-  isSquare(T,Nm,A),
-  collectTypeName(Nm,All,SoFar,R0),
+  isSquareTerm(T,Op,A),
+  collectTypeRefs(Op,All,SoFar,R0),
   collectTypeList(A,All,R0,Refs).
 collectTypeRefs(St,_,SoFar,SoFar) :-
   isBinary(St,_,"@",_,_).
@@ -544,6 +550,10 @@ collectTypeRefs(T,All,SoFar,Rest) :-
   isBinary(T,_,"->>",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Rest).
+collectTypeRefs(T,All,SoFar,Refs) :-
+  isTypeLambda(T,_,L,R),
+  collectTypeRefs(L,All,SoFar,R0),
+  collectTypeRefs(R,All,R0,Refs).
 collectTypeRefs(C,All,SoFar,Refs) :-
   isBinary(C,_,",",L,R),
   collectTypeRefs(L,All,SoFar,R0),
@@ -586,7 +596,6 @@ filterOutQ([I|Q],All,Ax) :-
   isIden(V,_,Nm),
   filterOut(tpe(Nm),All,A0),
   filterOutQ(Q,A0,Ax).
-
 
 filterOut(Q,A,Ax) :-
   filter(A,dependencies:notEq(Q),Ax).
