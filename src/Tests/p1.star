@@ -2,7 +2,7 @@ star.p1{
   import star.
   import star.parse.
 
-  p:parser[(integer,integer)].
+  p:parser[(integer,integer),integer].
   p = item >>= (C) =>
       item >>= (_) =>
       item >>= (D) =>
@@ -10,7 +10,7 @@ star.p1{
 
   assert parse(p,[1,2,3]) == [((1,3),[])].
 
-  q:parser[()].
+  q:parser[(),integer].
   q = chr(0c() >>= (_) => chr(0c)) >>= (_) => return ().
 
   (in):all e ~~ equality[e] |: (e,list[e])=>boolean.
@@ -29,29 +29,29 @@ star.p1{
 
   assert parse(many(str("a")),"aab"::list[integer]) == [(([(),()]),[0cb])].
 
-  symb:(string)=>parser[()].
+  symb:(string)=>parser[(),integer].
   symb(S) => str(S).
 
   -- Simple expression parser
-  expr : parser[integer].
+  expr : parser[integer,integer].
   expr = chainl1(term,addop).
 
-  term: parser[integer].
+  term: parser[integer,integer].
   term = chainl1(factor,mulop).
 
-  factor:parser[integer].
+  factor:parser[integer,integer].
   factor = decimal +++ (symb("(") >>= (_) => expr >>= (F) => symb(")") >>= (_) => return F).
 
-  addop: parser[(integer,integer)=>integer].
+  addop: parser[(integer,integer)=>integer,integer].
   addop = (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
-  mulop:parser[(integer,integer)=>integer].
+  mulop:parser[(integer,integer)=>integer,integer].
   mulop = (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
 
-  decimal:parser[integer].
+  decimal:parser[integer,integer].
   decimal = skip(digit) >>= (D) => return (D-0c0).
 
-  digit:parser[integer].
+  digit:parser[integer,integer].
   digit = sat(isDigit).
 
   assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])].
