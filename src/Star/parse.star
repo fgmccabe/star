@@ -32,7 +32,7 @@ star.parse{
 
   all t ~~ eparser[t] ~> (all e ~~ (e)~>parser[t,e]).
 
-  public implementation monad[eparser] => {
+  public implementation all t ~~ monad[parser[t]] => {
     return a => parser((S)=>[(a,S)]).
 
     (P >>= F) => parser((S)=>flatten(parse(P,S)//(((a,S1))=>parse(F(a),S1)))).
@@ -49,7 +49,7 @@ star.parse{
   } in parser((S)=>first(parse(p++q,S))).
 
 
-  public implementation all e ~~ monadZero[all t~~(t)~>parser[t,e]] => {
+  public implementation all t ~~ monadZero[parser[t]] => {
     zed = parser((_)=>[]).
   }
 

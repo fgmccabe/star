@@ -6,7 +6,7 @@
 
 /* Declare standard types used in escapes */
 
-#define sysRet "z'star.core*resultType'(S)"
+#define sysRet "Uz1'star.core*resultType'S"
 #define processState "t'star.thread*processState'"
 #define threadType "t'star.thread*thread'"
 #define lockType "t'star.thread*lock'"
@@ -111,18 +111,6 @@ escape(_list_reverse,False,False,":k't'F(Lk't')Lk't'","reverse the elements of a
 
 escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bound")
 
-  escape(_assert,False,False,":k'u'Ap2sk'u'","assert a term")
-  escape(_retract,False,False,"p1s","remove assertion")
-
-  escape(_term,False,False,":k'u'AF1k'u's","define an assertion")
-  escape(_is,False,False,":k'u'AP2sk'u'","invoke an assertion")
-  escape(_remove,False,False,"p1s","retract a definition")
-
-  // Create a new object -- clone a term to make an object
-  escape(_newObject,False,False,":k'u'AF1k'u'k'u'","create a new object")
-
-  // Term construction
-  escape(_univ,False,False,":k'u'A:k'v'AF2sLk'u'k'v'","weird function to construct terms")
 */
 
   escape(_get_file,True,False,"F(S)S","Get the contents of a file as a string")

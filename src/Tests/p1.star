@@ -2,7 +2,7 @@ star.p1{
   import star.
   import star.parse.
 
-  p:parser[(integer,integer),integer].
+  p:parser[integer,(integer,integer)].
   p = item >>= (C) =>
       item >>= (_) =>
       item >>= (D) =>
@@ -10,8 +10,8 @@ star.p1{
 
   assert parse(p,[1,2,3]) == [((1,3),[])].
 
-  q:parser[(),integer].
-  q = chr(0c() >>= (_) => chr(0c)) >>= (_) => return ().
+  q:parser[integer,()].
+  q = tk(0c() >>= (_) => tk(0c)) >>= (_) => return ().
 
   (in):all e ~~ equality[e] |: (e,list[e])=>boolean.
   E in L => _is_member(E,L,0,_list_size(L)).
@@ -29,7 +29,7 @@ star.p1{
 
   assert parse(many(str("a")),"aab"::list[integer]) == [(([(),()]),[0cb])].
 
-  symb:(string)=>parser[(),integer].
+  symb:(string)=>parser[integer,()].
   symb(S) => str(S).
 
   -- Simple expression parser
@@ -42,10 +42,10 @@ star.p1{
   factor:parser[integer,integer].
   factor = decimal +++ (symb("(") >>= (_) => expr >>= (F) => symb(")") >>= (_) => return F).
 
-  addop: parser[(integer,integer)=>integer,integer].
+  addop: parser[integer,(integer,integer)=>integer].
   addop = (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
-  mulop:parser[(integer,integer)=>integer,integer].
+  mulop:parser[integer,(integer,integer)=>integer].
   mulop = (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
 
   decimal:parser[integer,integer].

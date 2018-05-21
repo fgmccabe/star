@@ -1,5 +1,5 @@
 :- module(unify,[sameType/3,smList/3,faceOfType/3,sameContract/3,subFace/3,
-    applyTypeFun/4,simplifyType/5]).
+    simplifyType/5]).
 
 :- use_module(misc).
 :- use_module(dict).
@@ -23,17 +23,17 @@ sm(V1,T2,Env) :- isUnbound(V1), varBinding(V1,T2,Env).
 sm(T1,V2,Env) :- isUnbound(V2), varBinding(V2,T1,Env).
 sm(type(Nm),type(Nm),_).
 sm(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
-sm(typeExp(O1,A1),T2,Env) :-
+sm(tpExp(O1,A1),T2,Env) :-
   isTypeFun(O1),!,
   freshen(O1,Env,_,OO),
   applyTypeFun(OO,A1,Env,T1),
   sameType(T1,T2,Env).
-sm(T1,typeExp(O2,A2),Env) :-
+sm(T1,tpExp(O2,A2),Env) :-
   isTypeFun(O2),!,
   freshen(O2,Env,_,OO),
   applyTypeFun(OO,A2,Env,T2),
   sameType(T1,T2,Env).
-sm(typeExp(O1,A1),typeExp(O2,A2),Env) :- sameType(O1,O2,Env),smList(A1,A2,Env).
+sm(tpExp(O1,A1),tpExp(O2,A2),Env) :- sameType(O1,O2,Env),sameType(A1,A2,Env).
 sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
 sm(tupleType(A1),tupleType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
@@ -76,8 +76,12 @@ copyConstraints(_,[C|_],_) :- var(C),!.
 copyConstraints([C|M],[C|R],Env) :- copyConstraints(M,R,Env).
 
 sameContract(conTract(Nm,A1,D1),conTract(Nm,A2,D2),Env) :-
-  smList(A1,A2,Env),
-  smList(D1,D2,Env).
+  smpTps(A1,Env,[],_,AA1),
+  smpTps(A2,Env,[],_,AA2),
+  smList(AA1,AA2,Env),
+  smpTps(D1,Env,[],_,DD1),
+  smpTps(D2,Env,[],_,DD2),
+  smList(DD1,DD2,Env).
 
 smList([],[],_).
 smList([E1|L1],[E2|L2],Env) :- sameType(E1,E2,Env), smList(L1,L2,Env).
@@ -98,11 +102,12 @@ getFace(type(Nm),Env,Face) :- !,
   freshen(FaceRule,Env,_,typeExists(Lhs,FTp)),
   sameType(type(Nm),Lhs,Env),!,
   getFace(FTp,Env,Face).
-getFace(typeExp(Op,Args),Env,Face) :- deRef(Op,tpFun(Nm,Ar)), length(Args,Ar),!,
+getFace(tpExp(Op,Arg),Env,Face) :-
+  isTypeExp(tpExp(Op,Arg),tpFun(Nm,_),_),!,
   isType(Nm,Env,tpDef(_,_,FaceRule)),
   freshen(FaceRule,Env,_,Rl),
   moveConstraints(Rl,_,typeExists(Lhs,FTp)),
-  sameType(Lhs,typeExp(Op,Args),Env),!,
+  sameType(Lhs,tpExp(Op,Arg),Env),!,
   getFace(FTp,Env,Face).
 getFace(T,Env,Face) :- deRef(T,TT),isUnbound(TT), !, % fix me - implement types
   collectImplements(TT,Env,Face).
@@ -137,9 +142,6 @@ mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- is_member((Nm,STp),SoFar),!,
   mergeFields(R,Env,SoFar,Face).
 mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- mergeFields(R,Env,[(Nm,Tp)|SoFar],Face).
 
-applyTypeFun(typeLambda(LA,Tp),Args,Env,Tp) :-
-  sameType(tupleType(Args),LA,Env),!.
-
 simplifyType(T,Env,C,Cx,Tp) :-
   deRef(T,TT),!,
   smpTp(TT,Env,C,Cx,Tp).
@@ -148,15 +150,15 @@ smpTp(anonType,_,C,C,anonType).
 smpTp(voidType,_,C,C,voidType).
 smpTp(thisType,_,C,C,thisType).
 smpTp(type(Nm),_,C,C,type(Nm)).
-smpTp(typeExp(O,A),Env,C,Cx,Tp) :-
+smpTp(tpExp(O,A),Env,C,Cx,Tp) :-
   isTypeFun(O),!,
-  smpTps(A,Env,C,C0,As),
-  freshen(O,Env,_,OO),
-  applyTypeFun(OO,As,Env,T1),
-  simplifyType(T1,Env,C0,Cx,Tp).
-smpTp(typeExp(O,A),Env,C,Cx,typeExp(OO,As)) :-
+  freshen(O,Env,_,T),
+  moveConstraints(T,C,C0,typeLambda(AA,TT)),
+  sameType(AA,A,Env),
+  simplifyType(TT,Env,C0,Cx,Tp).
+smpTp(tpExp(O,A),Env,C,Cx,tpExp(OO,As)) :-
   simplifyType(O,Env,C,C0,OO),
-  smpTps(A,Env,C0,Cx,As).
+  simplifyType(A,Env,C0,Cx,As).
 smpTp(kVar(V),_,C,C,kVar(V)).
 smpTp(tVar(Vx,Nm,Id),_,Cx,Cx,tVar(Vx,Nm,Id)).
 smpTp(tFun(Vx,Nm,Ar,Id),_,Cx,Cx,tFun(Vx,Nm,Ar,Id)).
@@ -174,6 +176,7 @@ smpTp(ptnType(L,R),Env,C,Cx,ptnType(Ls,Rs)) :-
 smpTp(consType(L,R),Env,C,Cx,consType(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   simplifyType(R,Env,C0,Cx,Rs).
+smpTp(allType(V,typeLambda(V,tpExp(Op,V))),_,C,C,Op).
 smpTp(allType(V,T),Env,C,C,allType(V,Tp)) :-
   simplifyType(T,Env,[],Cx,In),
   wrapConstraints(Cx,In,Tp).

@@ -58,8 +58,8 @@ decodeType(kVar(Nm)) --> ['k'], decodeText(Nm).
 decodeType(kFun(Nm,Ar)) --> ['K'], typeLen(Ar), decodeText(Nm).
 decodeType(type(Nm)) --> ['t'], decodeText(Nm).
 decodeType(tpFun(Nm,Ar)) --> ['z'], typeLen(Ar), decodeText(Nm).
-decodeType(typeExp(tpFun("star.core*list",1),[ElTp])) --> ['L'], decodeType(ElTp).
-decodeType(typeExp(Op,ArgTypes)) --> ['U'], decodeType(Op), decodeTypes(ArgTypes).
+decodeType(tpExp(tpFun("star.core*list",1),ElTp)) --> ['L'], decodeType(ElTp).
+decodeType(tpExp(Op,ArgType)) --> ['U'], decodeType(Op), decodeType(ArgType).
 decodeType(allType(TV,Tp)) --> [':'], decodeType(TV), decodeType(Tp).
 decodeType(existType(TV,Tp)) --> ['e'], decodeType(TV), decodeType(Tp).
 decodeType(constrained(Tp,Con)) --> ['|'], decodeType(Tp), decodeConstraint(Con).

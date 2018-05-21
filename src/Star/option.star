@@ -28,10 +28,26 @@ star.option{
     hash(none) => hash("none").
   .}
 
-  public implementation all e ~~ monad[option] => {
+  public implementation functor[option] => {
+    fmap(_,none) => none.
+    fmap(F,some(A)) => some(F(A)).
+  }
+
+  public implementation applicative[option] => {
+    pure X => some(X).
+    (none <*> _) => none.
+    (_ <*> none) => none.
+    (some(F) <*> some(A)) => some(F(A)).
+  }
+
+  public implementation monad[option] => {
     return x => some(x).
     (some(x) >>= f) => f(x).
     (none >>= _) => none.
+  }
+
+  public implementation monadZero[option] => {
+    zed = none.
   }
 
   public implementation execution[option->>()] => {

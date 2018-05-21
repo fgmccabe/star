@@ -33,10 +33,10 @@ freshQuants(Tp,B,B,Tp).
 
 genSkolemFun(Nm,[],V) :-
   skolemVar(Nm,V).
-genSkolemFun(Nm,Q,typeExp(NN,Args)) :-
+genSkolemFun(Nm,Q,Tp) :-
   length(Q,Ar),
   skolemFun(Nm,Ar,NN),
-  project1(Q,Args).
+  rfold(Q,types:mkTpExp,NN,Tp).
 
 evidence(Tp,Env,Q,ProgramType) :-
   deRef(Tp,T),
@@ -84,7 +84,7 @@ frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
 frshn(tupleType(L),E,B,Ex,tupleType(FL)) :- rewriteTypes(L,E,B,Ex,FL).
-frshn(typeExp(O,A),E,B,Ex,typeExp(FO,FA)) :- rewriteType(O,E,B,Ex,FO),rewriteTypes(A,E,B,Ex,FA).
+frshn(tpExp(O,A),E,B,Ex,tpExp(FO,FA)) :- rewriteType(O,E,B,Ex,FO),rewriteType(A,E,B,Ex,FA).
 frshn(allType(V,Tp),E,B,Ex,allType(V,FTp)) :-
   rewriteType(Tp,E,B,[V|Ex],FTp).
 frshn(existType(V,Tp),E,B,Ex,existType(V,FTp)) :-

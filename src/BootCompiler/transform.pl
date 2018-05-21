@@ -70,14 +70,14 @@ makeModuleMap(_,[],Map,Map,[]).
 
 makeMdlEntry(Pkg,funDef(_,Nm,LclName,Tp,_,_),[(Nm,moduleFun(LclName,ClosureName,Ar))|Mx],Mx,Clx,Clx) :-
   localName(Pkg,"^",Nm,ClosureName),
-  typeArity(Tp,Ar).
+  progTypeArity(Tp,Ar).
 makeMdlEntry(Pkg,ptnDef(_,Nm,LclName,_Tp,_,_),[(Nm,modulePtn(LclName,ClosureName,1))|Mx],Mx,Clx,Clx) :-
   localName(Pkg,"^",Nm,ClosureName).
 makeMdlEntry(_Pkg,varDef(_,Nm,LclName,_,_,_),[(Nm,moduleVar(LclName))|Mx],Mx,Clx,Clx).
 makeMdlEntry(Pkg,cnsDef(_,Nm,cns(_,_),Tp),[(Nm,moduleCons(LclName,AccessName,Ar))|Mx],Mx,[LclName|Clx],Clx) :-
   localName(Pkg,"#",Nm,LclName),
   localName(Pkg,"@",Nm,AccessName),
-  typeArity(Tp,Ar).
+  progTypeArity(Tp,Ar).
 makeMdlEntry(Pkg,cnsDef(_,Nm,enm(_,_),_),[(Nm,moduleCons(LclName,AccessName,0))|Mx],Mx,[LclName|Clx],Clx) :-
   localName(Pkg,"#",Nm,LclName),
   localName(Pkg,"@",Nm,AccessName).
@@ -108,7 +108,7 @@ importFields(_,_,[],Map,Map).
 importFields(Pkg,Enums,[(Nm,Tp)|Fields],Map,Mx) :-
   moveQuants(Tp,_,QTp),
   moveConstraints(QTp,_,Template),
-  typeArity(Tp,Ar),
+  progTypeArity(Tp,Ar),
   makeImportEntry(Template,Ar,Enums,Pkg,Nm,Map,M0),
   importFields(Pkg,Enums,Fields,M0,Mx).
 
@@ -678,7 +678,7 @@ collectMtd(funDef(Lc,Nm,LclName,Tp,_,_),OuterNm,ThV,List,
       [(Nm,localFun(LclName,AccessName,ClosureName,Ar,ThV))|List],[/*EnRl,*/ClRl|Ex],Ex) :-
   localName(OuterNm,"%",Nm,AccessName),
   localName(OuterNm,"^",Nm,ClosureName),
-  typeArity(Tp,Ar),
+  progTypeArity(Tp,Ar),
   OuterPrg = lbl(OuterNm,2),
   %entryRule(OuterPrg,Lc,Nm,LclName,Ar,ThV,EnRl),
   closureRule(OuterPrg,Lc,Nm,ClosureName,ThV,ClRl).
@@ -686,7 +686,7 @@ collectMtd(ptnDef(Lc,Nm,LclName,_Tp,_,_),OuterNm,ThV,List,
       [(Nm,localPtn(LclName,AccessName,ClosureName,1,ThV))|List],[/*EnRl,*/ClRl|Ex],Ex) :-
   localName(OuterNm,"%",Nm,AccessName),
   localName(OuterNm,"^",Nm,ClosureName),
-  % typeArity(Tp,Ar),
+  % progTypeArity(Tp,Ar),
   OuterPrg = lbl(OuterNm,2),
   %entryRule(OuterPrg,Lc,Nm,LclName,Ar,ThV,EnRl),
   closureRule(OuterPrg,Lc,Nm,ClosureName,ThV,ClRl).

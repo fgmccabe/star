@@ -782,7 +782,7 @@ squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path) :-
     newTypeVar("k",KT),
     newTypeVar("v",VT),
     findType("map",Lc,Env,MapOp),
-    MapTp = typeExp(MapOp,[KT,VT]),
+    MapTp = tpExp(tpExp(MapOp,KT),VT),
     checkType(Lc,MapTp,Tp,Env),
     typeOfExp(Trm,Tp,Env,Ev,Exp,Path);
   macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
@@ -801,8 +801,8 @@ isMapSequence([E|_]) :-
 
 isMapType(Tp,Env) :-
   isType("map",Env,tpDef(_,MpTp,_)),!,
-  deRef(Tp,typeExp(MpOp,_)),
-  moveQuants(MpTp,_,typeExp(MapOp,_)),
+  deRef(Tp,tpExp(MpOp,_)),
+  moveQuants(MpTp,_,tpExp(MapOp,_)),
   deRef(MpOp,MapOp).
 
 isListSequence([E|_]) :-
@@ -810,8 +810,8 @@ isListSequence([E|_]) :-
 
 isListType(Tp,Env) :-
   isType("list",Env,tpDef(_,LstTp,_)),!,
-  deRef(Tp,typeExp(LsOp,_)),
-  moveQuants(LstTp,_,typeExp(LstOp,_)),
+  deRef(Tp,tpExp(LsOp,_)),
+  moveQuants(LstTp,_,tpExp(LstOp,_)),
   deRef(LsOp,LstOp).
 
 checkSquarePtn(Lc,Els,Tp,Env,Ev,Ptn,Path) :-

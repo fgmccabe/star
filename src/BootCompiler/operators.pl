@@ -22,6 +22,7 @@
 
   operator("all", [prefixOp(1010, 1009)]).
   operator("&&", [infixOp(910, 910, 909)]).
+  operator("pure", [prefixOp(300, 299)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("import", [prefixOp(900, 899)]).
@@ -51,6 +52,7 @@
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
+  operator("<*>", [infixOp(949, 950, 950)]).
   operator("•", [infixOp(450, 450, 449)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("<<", [infixOp(499, 500, 499)]).
@@ -104,6 +106,7 @@
   operator("||", [infixOp(920, 920, 919)]).
   operator("::=", [infixOp(1249, 1250, 1249)]).
   operator(">=", [infixOp(899, 900, 899)]).
+  operator(">>", [infixOp(949, 950, 950)]).
 
 
   follows('','%','%').
@@ -173,9 +176,11 @@
   follows(':','=',':=').
   follows('::','=','::=').
   follows(';',';',';;').
+  follows('<','*','<*').
   follows('<','~','<~').
   follows('<','<','<<').
   follows('<','=','<=').
+  follows('<*','>','<*>').
   follows('<=','>','<=>').
   follows('=','<','=<').
   follows('=','.','=.').
@@ -237,6 +242,7 @@
   final(';',";").	 /* sequencing operator */
   final(';;',";;").	 /* grammar sequencing operator */
   final('<',"<").	 /* less than */
+  final('<*>',"<*>").	 /* applicative splat */
   final('<~',"<~").	 /* type interface rule */
   final('<<',"<<").	 /* string formatting */
   final('<=',"<=").	 /* pattern arrow */
@@ -250,6 +256,7 @@
   final('=>',"=>").	 /* function arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */
+  final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
   final('?.',"?.").	 /* optional object access */

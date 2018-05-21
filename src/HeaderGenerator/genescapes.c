@@ -131,14 +131,13 @@ static char *dumpSig(char *sig, bufferPo out) {
           outMsg(O_IO(out), ")");
       }
       break;
-      
-    case refSig:{
-      outMsg(O_IO(out),"ref(");
+
+    case refSig: {
+      outMsg(O_IO(out), "ref(");
       sig = dumpSig(sig, out);
       outStr(O_IO(out), ")");
       break;
     }
-
     case tpfnSig: {
       outStr(O_IO(out), "tpFun(");
       int ar;
@@ -149,13 +148,11 @@ static char *dumpSig(char *sig, bufferPo out) {
       outStr(O_IO(out), ")");
       break;
     }
-
     case tpeExpSig:
-      outStr(O_IO(out), "typeExp(");
+      outStr(O_IO(out), "tpExp(");
       sig = dumpSig(sig, out);
       outStr(O_IO(out), ",");
-
-      sig = dTple(sig, out);
+      sig = dumpSig(sig, out);
       outStr(O_IO(out), ")");
       break;
     case tplSig:
@@ -193,12 +190,12 @@ static char *dumpSig(char *sig, bufferPo out) {
       outStr(O_IO(out), ")");
       break;
     case lstSig:
-      outStr(O_IO(out), "typeExp(");
+      outStr(O_IO(out), "tpExp(");
       outStr(O_IO(out), "tpFun(");
       dumpStr("star.core*list", out);
-      outStr(O_IO(out), ",1),[");
+      outStr(O_IO(out), ",1),");
       sig = dumpSig(sig, out);
-      outStr(O_IO(out), "])");
+      outStr(O_IO(out), ")");
       break;
     case allSig:
       outStr(O_IO(out), "allType(");

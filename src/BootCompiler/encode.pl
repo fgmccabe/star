@@ -49,7 +49,7 @@ encodeTp(T,C,Cx) :-
 encodeType(anonType,['_'|O],O).
 encodeType(voidType,['v'|O],O).
 encodeType(thisType,['h'|O],O).
-encodeType(typeExp(Tp,[T]),['L'|O],Ox) :- deRef(Tp,tpFun("star.core*list",1)),!,encodeTp(T,O,Ox).
+encodeType(tpExp(Tp,T),['L'|O],Ox) :- deRef(Tp,tpFun("star.core*list",1)),!,encodeTp(T,O,Ox).
 encodeType(type("star.core*boolean"),['l'|O],O).
 encodeType(type("star.core*integer"),['i'|O],O).
 encodeType(type("star.core*float"),['f'|O],O).
@@ -58,7 +58,7 @@ encodeType(kVar(Nm),['k'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeType(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeType(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
-encodeType(typeExp(T,Args),['U'|O],Ox) :- deRef(T,Tp),encodeTp(Tp,O,O1), encodeTypes(Args,O1,Ox).
+encodeType(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeTp(Tp,O,O1), encodeTp(Arg,O1,Ox).
 encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(ptnType(AT,Tp),['p'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeTp(Args,O,O1), encodeTp(Tp,O1,Ox).

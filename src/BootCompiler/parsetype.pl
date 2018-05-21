@@ -43,8 +43,9 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   isSquareTerm(Sq,Lc,N,Args),!,
   parseType(N,Env,Q,C0,C1,Op),
   parseTypes(Args,Env,Q,C1,C2,ArgTps),
-  freshen(Op,Env,_,OOp),
-  applyTypeExp(Lc,OOp,ArgTps,Env,C2,Cx,Tp).
+  freshen(Op,Env,Qx,OOp),
+  applyTypeExp(Lc,OOp,ArgTps,Env,C2,Cx,T),
+  reBind(Qx,Env,T,Tp).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isBinary(F,_,"=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),
@@ -114,14 +115,21 @@ parseTypeName(_,Id,Env,_,C,C,Tp) :-
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
-applyTypeExp(_,kFun(T,Ar),Args,_,Cx,Cx,typeExp(kFun(T,Ar),Args)) :-
-  length(Args,Ar),!.
-applyTypeExp(_,tpFun(T,Ar),Args,_,Cx,Cx,typeExp(tpFun(T,Ar),Args)) :-
-  length(Args,Ar),!.
+applyTypeExp(_,kFun(T,Ar),Args,_,Cx,Cx,Tp) :-
+  length(Args,Ar),!,
+  mkTypeExp(kFun(T,Ar),Args,Tp).
+applyTypeExp(_,tFun(T,B,Ar,Id),Args,_,Cx,Cx,Tp) :-
+  length(Args,Ar),!,
+  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
+applyTypeExp(_,tpFun(T,Ar),Args,_,Cx,Cx,Tp) :-
+  length(Args,Ar),!,
+  mkTypeExp(tpFun(T,Ar),Args,Tp).
 applyTypeExp(Lc,constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
   applyTypeExp(Lc,Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
-applyTypeExp(_,typeLambda(tupleType(L),Tp),ArgTps,Env,Cx,Cx,Tp) :-
-  smList(L,ArgTps,Env),!.
+applyTypeExp(Lc,typeLambda(L,Tp),[A|ArgTps],Env,C,Cx,RTp) :-
+  sameType(L,A,Env),!,
+  applyTypeExp(Lc,Tp,ArgTps,Env,C,Cx,RTp).
+applyTypeExp(_,Tp,[],_,C,C,Tp).
 applyTypeExp(Lc,Op,ArgTps,_,Cx,Cx,voidType) :-
   reportError("type %s not applicable to args %s",[Op,ArgTps],Lc).
 
@@ -160,6 +168,18 @@ reQuant([(_,KV)|M],Tp,QTp) :-
 reQuantX([],Tp,Tp).
 reQuantX([(_,KV)|M],Tp,QTp) :-
   reQuantX(M,existType(KV,Tp),QTp).
+
+reBind([],_,Tp,Tp).
+reBind([(Nm,TV)|Q],Env,T,Tp) :-
+  isUnboundFVar(TV,Ar),!,
+  sameType(TV,kFun(Nm,Ar),Env),
+  reBind(Q,Env,allType(kFun(Nm,Ar),T),Tp).
+reBind([(Nm,TV)|Q],Env,T,Tp) :-
+  isUnbound(TV),!,
+  sameType(TV,kVar(Nm),Env),
+  reBind(Q,Env,allType(kVar(Nm),T),Tp).
+reBind([_|Q],Env,T,Tp) :-
+  reBind(Q,Env,T,Tp).
 
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,WTp) :-
@@ -294,14 +314,13 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   parseBoundTpVars(Quants,[],Q),
   parseConstraints(Ct,E,Q,[],C0),
   parseTypeHead(Hd,Q,Tp,Nm,Path),
-  (isTypeExp(Tp,_,Args) -> LHd=tupleType(Args) ; LHd = tupleType([]) ),
   parseType(Bd,E,Q,C0,Cx,RpTp),
-  wrapConstraints(Cx,typeLambda(LHd,RpTp),Rl),
-  reQuant(Q,Rl,Rule),
   wrapConstraints(Cx,Tp,CxTp),
-  reQuant(Q,CxTp,Type),
-  pickTypeTemplate(Type,Tmp),
-  declareType(Nm,tpDef(Lc,Tmp,Rule),E,Ev).
+  pickTypeTemplate(CxTp,TmpTp),
+  wrapConstraints(Cx,typeLambda(Tp,RpTp),Rl),
+  reQuant(Q,Rl,Rule),
+  reQuant(Q,TmpTp,Type),
+  declareType(Nm,tpDef(Lc,Type,Rule),E,Ev).
 
 pickTypeTemplate(allType(V,Tp),allType(V,XTp)) :-
   pickTypeTemplate(Tp,XTp).
@@ -312,7 +331,14 @@ pickTypeTemplate(typeLambda(Lhs,_),Tmp) :-
 pickTypeTemplate(constrained(Tp,Cx),constrained(Tmp,Cx)) :-
   pickTypeTemplate(Tp,Tmp).
 pickTypeTemplate(type(Nm),type(Nm)).
-pickTypeTemplate(typeExp(Op,Args),typeLambda(tupleType(Args),typeExp(Op,Args))).
+pickTypeTemplate(tpExp(Op,A),Lam) :-
+  lambdaTypeTemplate(tpExp(Op,A),tpExp(Op,A),Lam).
+pickTypeTemplate(tpFun(Nm,Ar),tpFun(Nm,Ar)).
+pickTypeTemplate(kFun(Nm,Ar),kFun(Nm,Ar)).
+
+lambdaTypeTemplate(tpExp(Op,A),Tp,Lam) :-
+  lambdaTypeTemplate(Op,typeLambda(A,Tp),Lam).
+lambdaTypeTemplate(_,Tp,Tp).
 
 parseTypeCore(St,Type,Path) :-
   isTypeExistsStmt(St,_,Quants,_,Head,_),
@@ -334,12 +360,13 @@ parseTypeHead(N,_,type(TpNm),Nm,Path) :-
   isIden(N,_,Nm),
   marker(type,Marker),
   subPath(Path,Marker,Nm,TpNm).
-parseTypeHead(N,B,typeExp(tpFun(TpNm,Ar),Args),Nm,Path) :-
+parseTypeHead(N,B,Tp,Nm,Path) :-
   isSquare(N,_,Nm,A),
   parseHeadArgs(A,B,Args),
   length(Args,Ar),
   marker(type,Marker),
-  subPath(Path,Marker,Nm,TpNm).
+  subPath(Path,Marker,Nm,TpNm),
+  mkTypeExp(tpFun(TpNm,Ar),Args,Tp).
 parseTypeHead(N,B,Tp,Nm,Path) :-
   isRoundTerm(N,Lc,Op,Els),
   squareTerm(Lc,Op,Els,TT),
