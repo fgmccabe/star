@@ -182,7 +182,7 @@ resolve(I,C,ImpNm,Lc,Dict,Over) :-
   sameContract(CT,C,[]),
   resolveDependents(Cx,Lc,Dict,Args,[]),
   formOver(v(Lc,ImpNm),Args,Lc,Over).
-resolve(I,C,_,Lc,_,I) :-
+resolve(_,C,_,Lc,_,void) :-
   reportError("cannot resolve contract %s",[C],Lc).
 
 resolveDependents([],_,_,Args,Args).

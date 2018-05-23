@@ -243,9 +243,9 @@ parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
 checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   pickupVarType(N,Lc,Face,Stmts,E,E0,Tp),
   evidence(Tp,E0,Q,PT),
-  declareTypeVars(Q,Lc,E0,E1),
-  moveConstraints(PT,Cx,ProgramType),
-  declareConstraints(Cx,E1,E2),
+  simplifyType(PT,E,[],Cx,ProgramType),
+  declareConstraints(Cx,E0,E1),
+  declareTypeVars(Q,Lc,E1,E2),
   processStmts(Stmts,ProgramType,Rules,[],E2,Path),
   packageVarName(Path,N,LclName),
   collectPrograms(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
@@ -271,10 +271,8 @@ processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
 
-pickupVarType(N,_,faceType(F,_),_,E,Ev,Tp) :-
-  is_member((N,T),F),!,
-  simplifyType(T,E,[],Cx,Tp),
-  declareConstraints(Cx,E,Ev).
+pickupVarType(N,_,faceType(F,_),_,Ev,Ev,Tp) :-
+  is_member((N,Tp),F),!.
 pickupVarType(Nm,Lc,_,Stmts,E,Ev,Tp) :-
   guessStmtType(Stmts,Nm,Lc,Tp),
   declareVr(Lc,Nm,Tp,E,Ev).

@@ -1,6 +1,6 @@
 :- module(types,[isType/1,isConType/1,isConstraint/1,
       newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
-      progTypeArity/2,isTypeFun/1,isTypeFun/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
+      progTypeArity/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
       isFunctionType/1,isFunctionType/2,isPtnType/1,isPtnType/2,isCnsType/2,
       isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
@@ -253,14 +253,14 @@ isProgType(Tp) :- isFunctionType(Tp),!.
 isProgType(Tp) :- isPtnType(Tp),!.
 isProgType(Tp) :- isCnsType(Tp,_),!.
 
-isTypeFun(Tp) :- isTypeFun(Tp,_).
+isTypeLam(Tp) :- isTypeLam(Tp,_).
 
-isTypeFun(Tp,Ar) :- deRef(Tp,TT), isTpFun(TT,Ar).
+isTypeLam(Tp,Ar) :- deRef(Tp,TT), isTpLam(TT,Ar).
 
-isTpFun(typeLambda(At,_),Ar) :- progTypeArity(At,Ar).
-isTpFun(allType(_,T),Ar) :- isTpFun(T,Ar).
-isTpFun(existType(_,T),Ar) :- isTpFun(T,Ar).
-isTpFun(constrained(T,_),Ar) :- isTpFun(T,Ar).
+isTpLam(typeLambda(At,_),Ar) :- progTypeArity(At,Ar).
+isTpLam(allType(_,T),Ar) :- isTpLam(T,Ar).
+isTpLam(existType(_,T),Ar) :- isTpLam(T,Ar).
+isTpLam(constrained(T,_),Ar) :- isTpLam(T,Ar).
 
 isTypeExp(Tp,Op,Args) :-
   isTpExp(Tp,Op,Args,[]).

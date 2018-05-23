@@ -24,14 +24,12 @@ sm(T1,V2,Env) :- isUnbound(V2), varBinding(V2,T1,Env).
 sm(type(Nm),type(Nm),_).
 sm(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
 sm(tpExp(O1,A1),T2,Env) :-
-  isTypeFun(O1),!,
-  freshen(O1,Env,_,OO),
-  applyTypeFun(OO,A1,Env,T1),
+  isTypeFun(O1,Args,Env,OO),!,
+  applyTypeFn(OO,[A1|Args],Env,[],_,T1),
   sameType(T1,T2,Env).
 sm(T1,tpExp(O2,A2),Env) :-
-  isTypeFun(O2),!,
-  freshen(O2,Env,_,OO),
-  applyTypeFun(OO,A2,Env,T2),
+  isTypeFun(O2,Args,Env,OO),!,
+  applyTypeFn(OO,[A2|Args],Env,[],_,T2),
   sameType(T1,T2,Env).
 sm(tpExp(O1,A1),tpExp(O2,A2),Env) :- sameType(O1,O2,Env),sameType(A1,A2,Env).
 sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
@@ -93,8 +91,20 @@ subFace(faceType(F1,T1),Env,faceType(F2,T2)) :-
   forall(is_member((Nm,Tp1),F1),(is_member((Nm,Tp2),F2),sameType(Tp1,Tp2,Env))),
   forall(is_member((Nm,Tp1),T1),(is_member((Nm,Tp2),T2),sameType(Tp1,Tp2,Env))).
 
+
+isTypeFun(type(Nm),[],Env,Tp) :-
+  isType(Nm,Env,tpDef(_,_,Rule)),
+  isTypeLam(Rule),!,
+  freshen(Rule,Env,_,Tp).
+isTypeFun(tpExp(Nm,A),[A|Args],Env,Tp) :-!,
+  isTypeFun(Nm,Args,Env,Tp).
+isTypeFun(tpFun(Nm,_),[],Env,Tp) :-
+  isType(Nm,Env,tpDef(_,_,Rule)),!,
+  isTypeLam(Rule),!,
+  freshen(Rule,Env,_,Tp).
+
 faceOfType(T,Env,Face) :-
-  deRef(T,Tp),
+  simplifyType(T,Env,[],_,Tp),
   getFace(Tp,Env,Face).
 
 getFace(type(Nm),Env,Face) :- !,
@@ -151,10 +161,8 @@ smpTp(voidType,_,C,C,voidType).
 smpTp(thisType,_,C,C,thisType).
 smpTp(type(Nm),_,C,C,type(Nm)).
 smpTp(tpExp(O,A),Env,C,Cx,Tp) :-
-  isTypeFun(O),!,
-  freshen(O,Env,_,T),
-  moveConstraints(T,C,C0,typeLambda(AA,TT)),
-  sameType(AA,A,Env),
+  isTypeFun(O,Args,Env,OO),!,
+  applyTypeFn(OO,[A|Args],Env,C,C0,TT),
   simplifyType(TT,Env,C0,Cx,Tp).
 smpTp(tpExp(O,A),Env,C,Cx,tpExp(OO,As)) :-
   simplifyType(O,Env,C,C0,OO),
@@ -177,6 +185,7 @@ smpTp(consType(L,R),Env,C,Cx,consType(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   simplifyType(R,Env,C0,Cx,Rs).
 smpTp(allType(V,typeLambda(V,tpExp(Op,V))),_,C,C,Op).
+smpTp(typeLambda(V,tpExp(Op,V)),_,C,C,Op).
 smpTp(allType(V,T),Env,C,C,allType(V,Tp)) :-
   simplifyType(T,Env,[],Cx,In),
   wrapConstraints(Cx,In,Tp).
@@ -201,6 +210,22 @@ smpFldTps([],_,C,C,[]).
 smpFldTps([(F,T)|Flds],Env,C,Cx,[(F,Tp)|Fs]) :-
   simplifyType(T,Env,C,C0,Tp),
   smpFldTps(Flds,Env,C0,Cx,Fs).
+
+applyTypeFn(kFun(T,Ar),Args,_,Cx,Cx,Tp) :-
+  length(Args,Ar),!,
+  mkTypeExp(kFun(T,Ar),Args,Tp).
+applyTypeFn(tFun(T,B,Ar,Id),Args,_,Cx,Cx,Tp) :-
+  length(Args,AAr),AAr=<Ar,!,
+  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
+applyTypeFn(tpFun(T,Ar),Args,_,Cx,Cx,Tp) :-
+  length(Args,AAr),AAr=<Ar,!,
+  mkTypeExp(tpFun(T,Ar),Args,Tp).
+applyTypeFn(constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
+  applyTypeFn(Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
+applyTypeFn(typeLambda(L,Tp),[A|ArgTps],Env,C,Cx,RTp) :-
+  sameType(L,A,Env),!,
+  applyTypeFn(Tp,ArgTps,Env,C,Cx,RTp).
+applyTypeFn(Tp,[],_,C,C,Tp).
 
 wrapConstraints([],Tp,Tp).
 wrapConstraints([Con|C],Tp,WTp) :-

@@ -4,7 +4,7 @@ star.uri{
   -- This code is an attempt to directly implement the specification in RFC 2396
 
   import star.
-  import star.combo.
+  import star.parse.
 
   public uri ::= absUri(string,rsrcName,query) | relUri(rsrcName,query).
   public rsrcName ::= netRsrc(authority,resourcePath) | localRsrc(resourcePath).
@@ -19,27 +19,36 @@ star.uri{
   public query ::= qry(string) | noQ.
 
   public parseUri:(string) => option[uri].
-  parseUri(S) => uriParse(S::list[integer]).
+  parseUri(S) => first(parse(uriParse,S::list[integer])).
 
-  public uriParse:(list[integer]) => option[uri].
-  uriParse(S) => alt(absoluteUri,relativeUri)(S).
+  public uriParse:parser[integer,uri].
+  uriParse = absoluteUri +++ relativeUri.
 
-  absoluteUri:(list[integer])=>option[uri].
-  absoluteUri(S) =>
-    scheme(S) >>= ((S0,Scheme))=>hierPart(S0)
-              >>= (([],(Hier,Query)))=>some(absUri(Scheme,Hier,Query)).
+  absoluteUri:parser[integer,uri].
+  absoluteUri = scheme >>= (Scheme) =>
+    hierPart >>= (Hier) =>
+    query >>= (Query) => return absUri(Scheme,Hier,Query).
 
-  scheme:(list[integer]) => option[(list[integer],string)].
-  scheme(S) => alpha(S)
-                >>= ((S0,A)) => iter(S0,alphaStar,((Ch,Nm))=>[Nm..,Ch],[A]:list[integer])
-                >>= ((S1, Schm)) => term(isK(0c:))(S1)
-                >>= ((Sx,_)) => some((Sx,Schm::string)).
+  scheme:parser[integer,string].
+  scheme = alpha >>= (A) => many(alphaStar) >>= (Rest) => tk(0c:) >>= (_) => return ([A,..Rest]::string).
 
-  hierPart:(list[integer]) => option[(list[integer],rsrcName)].
-  hierPart(S) =>
-    alt(netPath,absoluteRsrc)(S)
-            >>= ((S0,N)) => query(S0)
-            >>= ((Sx,Q)) => some((Sx,(N,Q))).
+  hierPart:parser[integer,rsrcName].
+  hierPart = (netPath +++ absoluteRsrc).
+
+  netPath:parser[integer,rsrcName].
+  netPath = str("//") >>= (_) =>
+            authority >>= (A) =>
+            (absolutePath +++ return "") >>= (P) => return netRsrc(A,P).
+
+  authority:parser[integer,authority].
+  authority = userInfo >>= (U) =>
+    (tk(0c@) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
+    (hostNamePort >>= (H) => return server(none,H)).
+
+  userInfo:parser[integer,string].
+  userInfo = many(userStar) >>= (U) => return (U::string).
+
+
 
   relativeUri:(list[integer])=>option[uri].
   relativeUri(S) => alt(netPath,alt(absoluteRsrc,relativeRsrc))(S)
@@ -97,29 +106,21 @@ star.uri{
       >>= ((Sx,QQ)) => some((Sx,qry(QQ::string))).
   query(S) => some((S,noQ)).
 
-  netPath:(list[integer]) => option[(list[integer],rsrcName)].
-  netPath([0c/,0c/,..S]) => authority(S)
-        >>= ((S0,A)) => optAbsolutePath(S0)
-        >>= ((S1,P)) => some((S1,netRsrc(A,P))).
-  netPath(_) => none.
+  userStar:parser[integer,integer].
+  userStar = sat(userCh).
 
-  authority:(list[integer]) => option[(list[integer],authority)].
-  authority(server(some(user(implode(U))),H)) --> userInfo(U), "@", hostNamePort(H).
-  authority(server(none,H)) --> hostNamePort(H).
+  userCh:(integer) => boolean.
+  userCh(Ch) where unreserved(Ch) => true.
+  userCh(0c$) => true.
+  userCh(0c,) => true.
+  userCh(0c;) => true.
+  userCh(0c:) => true.
+  userCh(0c&) => true.
+  userCh(0c=) => true.
+  userCh(0c+) => true.
+  userCh(_) => false.
 
-  userInfo:all s ~~ stream[s->>integer] |: (list[integer]) --> s.
-  userInfo(U) --> userStar(U).
 
-  userStar:all s ~~ stream[s->>integer] |: (list[integer]) --> s.
-  userStar([C,..S]) --> unreserved(C), userStar(S).
-  userStar([0c$,..S]) --> "$", userStar(S).
-  userStar([0c,,..S]) --> ",", userStar(S).
-  userStar([0c;,..S]) --> ";", userStar(S).
-  userStar([0c:,..S]) --> ":", userStar(S).
-  userStar([0c&,..S]) --> "&", userStar(S).
-  userStar([0c=,..S]) --> "=", userStar(S).
-  userStar([0c+,..S]) --> "+", userStar(S).
-  userStar([]) --> "@"+.
 
   hostNamePort:all s ~~ stream[s->>integer] |: (host) --> s.
   hostNamePort(hostPort(H,P)) --> hostName(H), ":", port(P).

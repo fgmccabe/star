@@ -1,7 +1,6 @@
 star.cons{
   import star.core.
   import star.arith.
-  -- import star.collection.
 
   public all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 
@@ -44,4 +43,12 @@ star.cons{
     concat(nil,Y) => Y.
     concat(cons(E,X),Y) => cons(E,concat(X,Y)).
   }
+
+  public head:all e ~~ (cons[e]) => option[e].
+  head(cons(E,_)) => some(E).
+  head(nil) => none.
+
+  public tail:all e ~~ (cons[e]) => option[cons[e]].
+  tail(cons(_,L)) => some(L).
+  tail(nil) => none.
 }
