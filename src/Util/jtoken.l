@@ -92,7 +92,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 
 \n
 [ \t]+					/* ignore */
-"--"[ \t].*\n				/* line comment */
+"//".*\n				/* line comment */
 "/*"                            BEGIN(comment);
 <comment>\n                     
 <comment>[^*\n]*                

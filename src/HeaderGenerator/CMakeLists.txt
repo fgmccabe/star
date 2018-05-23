@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99")
 
 include_directories("Headers" "../Headers" "../Engine/Headers" "../Util/Headers" "../Infra/Headers")
 
-add_executable(ops genoperators.c trie.c ../Headers/operators.h trie.h trieP.h)
+add_executable(ops genoperators.c trie.c trie.h trieP.h parseOperators.c parseOperators.h genoperators.h)
 target_link_libraries(ops ooio infra)
 
 set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/signature.h)
@@ -40,7 +40,7 @@ add_custom_target(generate ALL
 #        COMMAND genins ${INSTRUCTIONS_LO}
 #        COMMAND ops -c lo.comp.operators ${OPERATORS_ST}
 #        COMMAND ops -y -t starops.py.plate ${OPERATORS_PY}
-         COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate ${OPERATORS_PL}
+         COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
 #        COMMAND genesc -c lo.comp.escapes ${ESCAPES_ST}
         COMMAND genesc -p ${ESCAPES_PL}
         COMMAND plmnem -p ${ASM_PL}

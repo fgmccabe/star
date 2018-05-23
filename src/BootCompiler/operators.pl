@@ -26,7 +26,6 @@
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("import", [prefixOp(900, 899)]).
-  operator(";;", [infixOp(949, 950, 950)]).
   operator("?.", [infixOp(450, 450, 449)]).
   operator(",..", [infixOp(999, 1000, 1000)]).
   operator("==>", [infixOp(949, 950, 949)]).
@@ -131,7 +130,6 @@
   follows('','!','!').
   follows('','•','•').
   follows('','#','#').
-  follows('','$','$').
   follows('&','&','&&').
   follows('*','*','**').
   follows('+','+','++').
@@ -175,7 +173,6 @@
   follows(':',':','::').
   follows(':','=',':=').
   follows('::','=','::=').
-  follows(';',';',';;').
   follows('<','*','<*').
   follows('<','~','<~').
   follows('<','<','<<').
@@ -240,7 +237,6 @@
   final('::=',"::=").	 /* algebraic type definition */
   final(':=',":=").	 /* reassignable variable definition */
   final(';',";").	 /* sequencing operator */
-  final(';;',";;").	 /* grammar sequencing operator */
   final('<',"<").	 /* less than */
   final('<*>',"<*>").	 /* applicative splat */
   final('<~',"<~").	 /* type interface rule */
@@ -266,5 +262,4 @@
   final('!',"!").	 /* pick up a value from a ref cell */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
-  final('$',"$").	 /* Used for curried functions and types */
 

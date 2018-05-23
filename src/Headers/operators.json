@@ -1,0 +1,806 @@
+/*
+  This is where you define a new operator so that the compiler and
+  the run-time system can see it
+  Copyright (c) 2016, 2017. Francis G. McCabe
+ */
+
+[
+  {
+    "infixOp": ". ",
+    "priorities": [
+      1899,
+      1900,
+      1900
+    ],
+    "desc": "statement separator"
+  },
+  {
+    "infixOp": ";",
+    "priorities": [
+      1899,
+      1900,
+      1900
+    ],
+    "desc": "sequencing operator"
+  },
+  {
+    "infixOp": "::=",
+    "priorities": [
+      1249,
+      1250,
+      1249
+    ],
+    "desc": "algebraic type definition"
+  },
+  {
+    "infixOp": "|",
+    "priorities": [
+      1248,
+      1249,
+      1249
+    ],
+    "desc": "type union and conditional"
+  },
+  {
+    "infixOp": "?|",
+    "priorities": [
+      1248,
+      1249,
+      1249
+    ],
+    "desc": "option or-else operator"
+  },
+  {
+    "infixOp": ":",
+    "priorities": [
+      1249,
+      1250,
+      1249
+    ],
+    "desc": "type annotation"
+  },
+  {
+    "infixOp": "~~",
+    "priorities": [
+      1239,
+      1240,
+      1240
+    ],
+    "desc": "quantifier"
+  },
+  {
+    "infixOp": "|:",
+    "priorities": [
+      1234,
+      1235,
+      1234
+    ],
+    "desc": "constrained type"
+  },
+  {
+    "infixOp": "<~",
+    "priorities": [
+      1230,
+      1231,
+      1230
+    ],
+    "desc": "type interface rule"
+  },
+  {
+    "infixOp": "~>",
+    "priorities": [
+      1230,
+      1231,
+      1230
+    ],
+    "desc": "type function"
+  },
+  {
+    "infixOp": "?",
+    "priorities": [
+      1199,
+      1200,
+      1199
+    ],
+    "desc": "conditional operator"
+  },
+  {
+    "infixOp": "-->",
+    "priorities": [
+      1199,
+      1200,
+      1199
+    ],
+    "desc": "grammar rule"
+  },
+  {
+    "infixOp": "->>",
+    "priorities": [
+      1199,
+      1200,
+      1199
+    ],
+    "desc": "dependent type marker"
+  },
+  {
+    "infixOp": ",",
+    "priorities": [
+      999,
+      1000,
+      1000
+    ],
+    "desc": "tupling operator"
+  },
+  {
+    "infixOp": ",..",
+    "priorities": [
+      999,
+      1000,
+      1000
+    ],
+    "desc": "list cons"
+  },
+  {
+    "infixOp": "=",
+    "priorities": [
+      974,
+      975,
+      974
+    ],
+    "desc": "definition"
+  },
+  {
+    "infixOp": ":=",
+    "priorities": [
+      974,
+      975,
+      974
+    ],
+    "desc": "reassignable variable definition"
+  },
+  {
+    "infixOp": "=>",
+    "priorities": [
+      949,
+      950,
+      950
+    ],
+    "desc": "function arrow"
+  },
+  {
+    "infixOp": ">>=",
+    "priorities": [
+      949,
+      950,
+      950
+    ],
+    "desc": "monadic bind"
+  },
+  {
+    "infixOp": ">>",
+    "priorities": [
+      949,
+      950,
+      950
+    ],
+    "desc": "monadic bind"
+  },
+  {
+    "infixOp": "<*>",
+    "priorities": [
+      949,
+      950,
+      950
+    ],
+    "desc": "applicative splat"
+  },
+  {
+    "infixOp": "==>",
+    "priorities": [
+      949,
+      950,
+      949
+    ],
+    "desc": "macro arrow"
+  },
+  {
+    "infixOp": "<=",
+    "priorities": [
+      949,
+      950,
+      949
+    ],
+    "desc": "pattern arrow"
+  },
+  {
+    "infixOp": "<=>",
+    "priorities": [
+      949,
+      950,
+      949
+    ],
+    "desc": "constructor arrow"
+  },
+  {
+    "infixOp": "where",
+    "priorities": [
+      929,
+      930,
+      929
+    ],
+    "desc": "semantic guard"
+  },
+  {
+    "infixOp": "||",
+    "priorities": [
+      920,
+      920,
+      919
+    ],
+    "desc": "disjunction"
+  },
+  {
+    "infixOp": "&&",
+    "priorities": [
+      910,
+      910,
+      909
+    ],
+    "desc": "conjunction"
+  },
+  {
+    "infixOp": "->",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "map entry"
+  },
+  {
+    "infixOp": "==",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "equality predicate"
+  },
+  {
+    "infixOp": "=!=",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "not equals"
+  },
+  {
+    "infixOp": ".=",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "pattern match"
+  },
+  {
+    "infixOp": "=.",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "pattern match"
+  },
+  {
+    "infixOp": "?=",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "optional decomposition match"
+  },
+  {
+    "infixOp": "<",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "less than"
+  },
+  {
+    "infixOp": "=<",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "less than or equal"
+  },
+  {
+    "infixOp": ">",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "greater than"
+  },
+  {
+    "infixOp": ">=",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "greater than or equal"
+  },
+  {
+    "infixOp": "in",
+    "priorities": [
+      899,
+      900,
+      899
+    ],
+    "desc": "list membership"
+  },
+  {
+    "infixOp": "//",
+    "priorities": [
+      800,
+      800,
+      799
+    ],
+    "desc": "map over"
+  },
+  {
+    "infixOp": "///",
+    "priorities": [
+      800,
+      800,
+      799
+    ],
+    "desc": "indexed map over"
+  },
+  {
+    "infixOp": "^/",
+    "priorities": [
+      800,
+      800,
+      799
+    ],
+    "desc": "filter"
+  },
+  {
+    "infixOp": "^//",
+    "priorities": [
+      800,
+      800,
+      799
+    ],
+    "desc": "filter map"
+  },
+  {
+    "infixOp": "#",
+    "priorities": [
+      759,
+      760,
+      759
+    ],
+    "desc": "package separator"
+  },
+  {
+    "infixOp": "++",
+    "priorities": [
+      719,
+      720,
+      720
+    ],
+    "desc": "concatenate"
+  },
+  {
+    "infixOp": "+++",
+    "priorities": [
+      719,
+      720,
+      720
+    ],
+    "desc": "choice"
+  },
+  {
+    "infixOp": "+",
+    "priorities": [
+      720,
+      720,
+      719
+    ],
+    "desc": "addition"
+  },
+  {
+    "infixOp": "-",
+    "priorities": [
+      720,
+      720,
+      719
+    ],
+    "desc": "subtraction"
+  },
+  {
+    "infixOp": ".|.",
+    "priorities": [
+      720,
+      720,
+      719
+    ],
+    "desc": "bitwise or"
+  },
+  {
+    "infixOp": ".^.",
+    "priorities": [
+      720,
+      720,
+      719
+    ],
+    "desc": "bitwise xor"
+  },
+  {
+    "infixOp": "*",
+    "priorities": [
+      700,
+      700,
+      699
+    ],
+    "desc": "multiplication"
+  },
+  {
+    "infixOp": "/",
+    "priorities": [
+      700,
+      700,
+      699
+    ],
+    "desc": "division"
+  },
+  {
+    "infixOp": ".&.",
+    "priorities": [
+      700,
+      700,
+      699
+    ],
+    "desc": "bitwise and"
+  },
+  {
+    "infixOp": "%",
+    "priorities": [
+      700,
+      700,
+      699
+    ],
+    "desc": "modulo"
+  },
+  {
+    "infixOp": "**",
+    "priorities": [
+      600,
+      600,
+      599
+    ],
+    "desc": "exponentiation"
+  },
+  {
+    "infixOp": ".<<.",
+    "priorities": [
+      600,
+      600,
+      599
+    ],
+    "desc": "shift left"
+  },
+  {
+    "infixOp": ".>>.",
+    "priorities": [
+      600,
+      600,
+      599
+    ],
+    "desc": "logical shift right"
+  },
+  {
+    "infixOp": ".>>>.",
+    "priorities": [
+      600,
+      600,
+      599
+    ],
+    "desc": "arithmetic shift right"
+  },
+  {
+    "infixOp": ".#.",
+    "priorities": [
+      600,
+      600,
+      599
+    ],
+    "desc": "test nth bit"
+  },
+  {
+    "infixOp": "<<",
+    "priorities": [
+      499,
+      500,
+      499
+    ],
+    "desc": "string formatting"
+  },
+  {
+    "infixOp": ".~",
+    "priorities": [
+      499,
+      500,
+      499
+    ],
+    "desc": "grammar parse"
+  },
+  {
+    "infixOp": "~",
+    "priorities": [
+      489,
+      499,
+      489
+    ],
+    "desc": "grammar remainder"
+  },
+  {
+    "infixOp": "•",
+    "priorities": [
+      450,
+      450,
+      449
+    ],
+    "desc": "function composition"
+  },
+  {
+    "infixOp": "?.",
+    "priorities": [
+      450,
+      450,
+      449
+    ],
+    "desc": "optional object access"
+  },
+  {
+    "infixOp": "@",
+    "priorities": [
+      399,
+      400,
+      400
+    ],
+    "desc": "meta annotation"
+  },
+  {
+    "infixOp": "::",
+    "priorities": [
+      399,
+      400,
+      399
+    ],
+    "desc": "type coercion"
+  },
+  {
+    "infixOp": ".",
+    "priorities": [
+      100,
+      100,
+      99
+    ],
+    "desc": "object access"
+  },
+  {
+    "prefixOp": "#",
+    "priorities": [
+      1750,
+      1749
+    ],
+    "desc": "Macro statement marker"
+  },
+  {
+    "prefixOp": "private",
+    "priorities": [
+      1700,
+      1699
+    ],
+    "desc": "private program"
+  },
+  {
+    "prefixOp": "public",
+    "priorities": [
+      1700,
+      1699
+    ],
+    "desc": "public program"
+  },
+  {
+    "prefixOp": "assert",
+    "priorities": [
+      1260,
+      1259
+    ],
+    "desc": "assert condition"
+  },
+  {
+    "prefixOp": "show",
+    "priorities": [
+      1260,
+      1259
+    ],
+    "desc": "display debug message"
+  },
+  {
+    "prefixOp": "contract",
+    "priorities": [
+      1260,
+      1259
+    ],
+    "desc": "contract definition"
+  },
+  {
+    "prefixOp": "implementation",
+    "priorities": [
+      1260,
+      1259
+    ],
+    "desc": "contract implementation"
+  },
+  {
+    "prefixOp": "type",
+    "priorities": [
+      1251,
+      1250
+    ],
+    "desc": "type marker"
+  },
+  {
+    "prefixOp": "all",
+    "priorities": [
+      1010,
+      1009
+    ],
+    "desc": "universal quantifier"
+  },
+  {
+    "prefixOp": "exists",
+    "priorities": [
+      1010,
+      1009
+    ],
+    "desc": "existential quantifier"
+  },
+  {
+    "prefixOp": "\\+",
+    "priorities": [
+      905,
+      904
+    ],
+    "desc": "logical negation"
+  },
+  {
+    "prefixOp": "ref",
+    "priorities": [
+      900,
+      899
+    ],
+    "desc": "reference type"
+  },
+  {
+    "prefixOp": "open",
+    "priorities": [
+      900,
+      899
+    ],
+    "desc": "import object"
+  },
+  {
+    "prefixOp": "import",
+    "priorities": [
+      900,
+      899
+    ],
+    "desc": "import module"
+  },
+  {
+    "prefixOp": "+",
+    "priorities": [
+      760,
+      759
+    ],
+    "desc": "lookahead in grammar rule"
+  },
+  {
+    "prefixOp": ".~.",
+    "priorities": [
+      650,
+      649
+    ],
+    "desc": "bitwise 1's complement"
+  },
+  {
+    "prefixOp": "@",
+    "priorities": [
+      400,
+      399
+    ],
+    "desc": "meta annotation"
+  },
+  {
+    "prefixOp": "^^",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "wrap value as special parser"
+  },
+  {
+    "prefixOp": "pure",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "wrap value in applicative"
+  },
+  {
+    "prefixOp": "return",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "wrap value in monad"
+  },
+  {
+    "prefixOp": "raise",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "error return in monad"
+  },
+  {
+    "prefixOp": "-",
+    "priorities": [
+      300,
+      299
+    ],
+    "desc": "arithmetic negation"
+  },
+  {
+    "postfixOp": ". ",
+    "priorities": [
+      1899,
+      1900
+    ],
+    "desc": "statement terminator"
+  },
+  {
+    "postfixOp": "default",
+    "priorities": [
+      939,
+      940
+    ],
+    "desc": "default value marker"
+  },
+  {
+    "postfixOp": "!",
+    "priorities": [
+      99,
+      100
+    ],
+    "desc": "pick up a value from a ref cell"
+  },
+  {
+    "token": "$",
+    "desc": "Used for curried functions and types"
+  }
+]

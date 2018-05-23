@@ -10,16 +10,10 @@
 #include "template.h"
 #include "formexts.h"
 
-/* Generate a Python module or Star package, that knows about the standard operators */
+#include "genoperators.h"
+#include "parseOperators.h"
 
-static void genInfix(hashPo operators, char *op, int left, int prior, int right, char *cmt);
-static void genPrefix(hashPo operators, char *op, int prior, int right, char *cmt);
-static void genPostfix(hashPo operators, char *op, int left, int prior, char *cmt);
-static void genToken(char *op, char *cmt);
 static retCode procEntries(void *n, void *r, void *c);
-
-#undef lastOp
-#define lastOp sep = "\t";
 
 static char *pC(char *buff, long *ix, char c);
 
@@ -52,27 +46,30 @@ enum {
 } genMode = genProlog;
 
 typedef struct {
-  char *name;
-  char *cmt;
+  char name[1024];
+  char cmt[1024];
 } TokenRecord, *tokenPo;
 
 char *prefix = NULL;
-char *template = "starops.py.plate";
+char *templateFn = "starops.py.plate";
+char *opers = "operators.json";
+
 static triePo tokenTrie;
 static poolPo opPool;
+static hashPo operators;
 
 static void initTries() {
   tokenTrie = emptyTrie();
 
   opPool = newPool(sizeof(TokenRecord), 128);
+  operators = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+
 }
 
 int getOptions(int argc, char **argv) {
   int opt;
-  extern char *optarg;
-  extern int optind;
 
-  while ((opt = getopt(argc, argv, "pc:t:y")) >= 0) {
+  while ((opt = getopt(argc, argv, "pc:t:o:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
@@ -81,8 +78,11 @@ int getOptions(int argc, char **argv) {
         genMode = genStar;
         prefix = optarg;
         break;
+      case 'o':
+        opers = optarg;
+        break;
       case 't':
-        template = optarg;
+        templateFn = optarg;
         break;
       default:;
     }
@@ -121,7 +121,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
   if (op != NULL) {
     switch (genMode) {
       case genProlog:
-        outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix,last, op->name, op->cmt);
+        outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix, last, op->name, op->cmt);
         break;
       case genStar:
         break;
@@ -143,15 +143,15 @@ logical isAlphaNumeric(char *p) {
 
 int main(int argc, char **argv) {
   initTries();
+  initLogfile("-");
   installMsgProc('P', genQuotedStr);
   int narg = getOptions(argc, argv);
 
   if (narg < 0) {
     fprintf(stdout, "bad args");
     exit(1);
-  } else {
-    ioPo plate = openInFile(template, utf8Encoding);
-    hashPo operators = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
+  } else if (parseOperators(opers) == Ok) {
+    ioPo plate = openInFile(templateFn, utf8Encoding);
 
     ioPo out;
 
@@ -159,27 +159,6 @@ int main(int argc, char **argv) {
       out = openOutFile(argv[narg], utf8Encoding);
     else
       out = OpenStdout();
-
-#undef lastInfOp
-#define lastInfOp
-#undef lastPreOp
-#define lastPreOp
-#undef lastPostOp
-#define lastPostOp
-
-#undef infixOp
-#define infixOp(op, left, prior, right, cmt) genInfix(operators,op,left,prior,right,cmt);
-
-#undef prefixOp
-#define prefixOp(op, prior, right, cmt) genPrefix(operators,op,prior,right,cmt);
-
-#undef postfixOp
-#define postfixOp(op, left, prior, cmt) genPostfix(operators,op,left,prior,cmt);
-
-#undef token
-#define token(op, cmt) genToken(op,cmt);
-
-#include "operators.h"
 
     // Load up the variable table
     bufferPo operBuff = newStringBuffer();
@@ -208,15 +187,9 @@ int main(int argc, char **argv) {
   }
 }
 
-typedef enum {
-  prefixOp,
-  infixOp,
-  postfixOp
-} operatorStyle;
-
 typedef struct _operator_ {
   char name[MAXLINE];
-  operatorStyle style;
+  OperatorStyle style;
   int left, prior, right;
 } Operator, *opPo;
 
@@ -227,15 +200,16 @@ typedef struct _pair_ {
   pairPo next;
 } Pair;
 
-static void genToken(char *op, char *cmt) {
-  tokenPo opRecord = (tokenPo) allocPool(opPool);
-  opRecord->name = op;
-  opRecord->cmt = cmt;
+void genToken(char *op, char *cmt) {
+  tokenPo tk = (tokenPo) allocPool(opPool);
+  uniCpy(tk->name,NumberOf(tk->name),op);
+  uniCpy(tk->cmt,NumberOf(tk->cmt),cmt);
+
   if (!isAlphaNumeric(op))
-    addToTrie(op, opRecord, tokenTrie);
+    addToTrie(op, tk, tokenTrie);
 }
 
-static void genOper(hashPo operators, char *op, operatorStyle style, int left, int prior, int right) {
+static opPo genOper(char *op, OperatorStyle style, int left, int prior, int right) {
   opPo oper = (opPo) malloc(sizeof(Operator));
   strcpy(oper->name, op);
   oper->style = style;
@@ -248,21 +222,22 @@ static void genOper(hashPo operators, char *op, operatorStyle style, int left, i
   p->next = (pairPo) hashGet(operators, oper->name);
 
   hashPut(operators, oper->name, p);
+  return oper;
 }
 
-static void genInfix(hashPo operators, char *op, int left, int prior, int right, char *cmt) {
-  genOper(operators, op, infixOp, left, prior, right);
-  genToken(op, cmt);
+void genInfix(char *op, int left, int prior, int right, char *cmt) {
+  opPo oper = genOper(op, infixOp, left, prior, right);
+  genToken(oper->name, cmt);
 }
 
-static void genPrefix(hashPo operators, char *op, int prior, int right, char *cmt) {
-  genOper(operators, op, prefixOp, 0, prior, right);
-  genToken(op, cmt);
+void genPrefix(char *op, int prior, int right, char *cmt) {
+  opPo oper = genOper(op, prefixOp, 0, prior, right);
+  genToken(oper->name, cmt);
 }
 
-static void genPostfix(hashPo operators, char *op, int left, int prior, char *cmt) {
-  genOper(operators, op, postfixOp, left, prior, 0);
-  genToken(op, cmt);
+void genPostfix(char *op, int left, int prior, char *cmt) {
+  opPo oper = genOper(op, postfixOp, left, prior, 0);
+  genToken(oper->name, cmt);
 }
 
 static retCode procOper(ioPo out, char *sep, opPo op) {
@@ -275,6 +250,8 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
           return outMsg(out, "%sinfixOp(%d, %d, %d)", sep, op->left, op->prior, op->right);
         case postfixOp:
           return outMsg(out, "%spostfixOp(%d, %d)", sep, op->left, op->prior);
+        default:
+          return Error;
       }
     case genStar:
       return Error;
