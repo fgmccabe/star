@@ -10,6 +10,7 @@
 #include <ldap.h>
 #include <array.h>
 #include <arithP.h>
+#include <errorCodes.h>
 #include "ioops.h"
 #include "globals.h"
 
@@ -83,7 +84,7 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -177,7 +178,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -210,7 +211,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
@@ -221,28 +222,36 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__get_file(processPo p, ptrPo tos) {
-  ioPo io = ioChannel(C_IO(tos[0]));
+  char fn[MAXFILELEN];
 
-  bufferPo buffer = newStringBuffer();
+  copyString2Buff(C_STR(tos[0]), fn, NumberOf(fn));
 
-  retCode ret = Ok;
-  while (ret == Ok) {
-    codePoint cp;
-    ret = inChar(io, &cp);
-    if (ret == Ok)
-      ret = outChar(O_IO(buffer), cp);
-  }
+  ioPo io = openInFile(fn, utf8Encoding);
+  if (io != Null) {
+    bufferPo buffer = newStringBuffer();
 
-  if (ret == Eof) {
-    integer length;
-    char *text = getTextFromBuffer(&length, buffer);
+    retCode ret = Ok;
+    while (ret == Ok) {
+      codePoint cp;
+      ret = inChar(io, &cp);
+      if (ret == Ok)
+        ret = outChar(O_IO(buffer), cp);
+    }
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo)allocateString(processHeap(p), text, length)};
-    closeFile(O_IO(buffer));
-    return rt;
+    if (ret == Eof) {
+      integer length;
+      char *text = getTextFromBuffer(&length, buffer);
+
+      ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
+      closeFile(O_IO(buffer));
+      return rt;
+    } else {
+      closeFile(O_IO(buffer));
+      ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+      return rt;
+    }
   } else {
-    closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=Error, .rslt=eNOTFND};
     return rt;
   }
 }
@@ -297,6 +306,27 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
   }
 
   return rtnStatus(p, ret, "outtext");
+}
+
+ReturnStatus g__put_file(processPo p, ptrPo tos) {
+  char fn[MAXFILELEN];
+
+  copyString2Buff(C_STR(tos[0]), fn, NumberOf(fn));
+
+  ioPo io = openOutFile(fn, utf8Encoding);
+  if (io != Null) {
+    integer tLen;
+    const char *txt = stringVal(tos[1], &tLen);
+
+    retCode ret = outText(io, txt, tLen);
+    closeFile(O_IO(io));
+
+    ReturnStatus rt = {.ret=ret, .rslt=unitEnum};
+    return rt;
+  } else {
+    ReturnStatus rt = {.ret=Error, .rslt=eNOTFND};
+    return rt;
+  }
 }
 
 ReturnStatus g__logmsg(processPo p, ptrPo tos) {

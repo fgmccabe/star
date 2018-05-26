@@ -16,8 +16,6 @@ overloadDefs(D,Dict,RD) :-
 
 overloadDef(funDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
   overloadFunction(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
-overloadDef(ptnDef(Lc,Nm,ExtNm,Tp,Cx,Eqns),Dict,RF) :-
-  overloadPattern(Lc,Nm,ExtNm,Tp,Cx,Eqns,Dict,RF).
 overloadDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),Dict,RD) :-
   overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Value,Dict,RD).
 overloadDef(T,_,T) :-
@@ -49,10 +47,6 @@ overloadRule(equation(Lc,Args,Cond,Exp),Dict,equation(Lc,RArgs,RCond,RExp)) :-
   resolveTerm(Args,Dict,RArgs),
   resolveTerm(Cond,Dict,RCond),
   resolveTerm(Exp,Dict,RExp).
-overloadRule(ptnRule(Lc,Args,Cond,Exp),Dict,ptnRule(Lc,RArgs,RCond,RExp)) :-
-  resolveTerm(Args,Dict,RArgs),
-  resolveTerm(Cond,Dict,RCond),
-  resolveTerm(Exp,Dict,RExp).
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
@@ -68,22 +62,6 @@ makeContractFunType(allType(V,T),Cx,allType(V,CT)) :-
 makeContractFunType(constrained(T,C),Cx,constrained(CT,C)) :-
   makeContractFunType(T,Cx,CT).
 makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
-
-overloadPattern(Lc,Nm,ExtNm,Tp,[],Rls,Dict,ptnDef(Lc,Nm,ExtNm,Tp,[],REqns)) :-
-  overloadPtnRules(Rls,Dict,[],REqns).
-overloadPattern(Lc,Nm,ExtNm,Tp,Cx,Rls,Dict,
-    funDef(Lc,Nm,ExtNm,Tp,[],[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),lambda(Lc,RRls,Tp))])) :-
-  defineCVars(Lc,Cx,Dict,CVars,FDict),
-  overloadPtnRules(Rls,FDict,CVars,RRls).
-
-overloadPtnRules(Eqns,Dict,Extra,REqns) :-
-  overloadList(Eqns,overloadPtnRule(Extra),Dict,REqns).
-
-overloadPtnRule(Extra,ptnRule(Lc,Args,Cond,Exp),Dict,ptnRule(Lc,RArgs,RCond,RExp)) :-
-  resolveTerm(Args,Dict,RA),
-  addExtra(Extra,RA,RArgs),
-  resolveTerm(Cond,Dict,RCond),
-  resolveTerm(Exp,Dict,RExp).
 
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[Con|Cx],Dict,[NV|CVars],FDict) :-

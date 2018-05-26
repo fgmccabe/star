@@ -77,9 +77,6 @@ frshn(tpFun(Nm,Ar),_,_,_,tpFun(Nm,Ar)).
 frshn(funType(A,R),E,B,Ex,funType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).
-frshn(ptnType(A,R),E,B,Ex,ptnType(FA,FR)) :-
-  rewriteType(A,E,B,Ex,FA),
-  rewriteType(R,E,B,Ex,FR).
 frshn(consType(A,R),E,B,Ex,consType(FA,FR)) :-
   rewriteType(A,E,B,Ex,FA),
   rewriteType(R,E,B,Ex,FR).

@@ -22,19 +22,24 @@ star.cons{
 
   -- stream contract
   public implementation all x ~~ stream[cons[x] ->> x] => {
-    _eof() <= (nil).
-    _hdtl(H,T) <= (cons(H,T)).
+    _eof(nil) => true.
+    _eof(cons(_,_)) => false.
+
+    _hdtl(cons(H,T)) => some((H,T)).
+    _hdtl(nil) => none.
 
     _cons(E,S) => cons(E,S).
     _apnd(S,E) => S++[E].
 
-    _back(T,E) <= (X) where last(X) =. (T,E).
+    _back(nil) => none.
+    _back(X) => some(last(X)).
+
     _nil = nil.
   }
 
-  last:all e ~~ (cons[e]) => (cons[e],e).
-  last(cons(X,nil)) => (nil,X).
-  last(cons(X,Y)) where last(Y) =. (L,E)  => (cons(X,L),E).
+  last:all e ~~ (cons[e]) => (e,cons[e]).
+  last(cons(X,nil)) => (X,nil).
+  last(cons(X,Y)) where last(Y) =. (E,L)  => (E,cons(X,L)).
 
   public implementation all x ~~ concat[cons[x]] => {
     X++Y => concat(X,Y).

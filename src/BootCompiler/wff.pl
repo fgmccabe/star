@@ -7,7 +7,7 @@
     isDefault/3,isDefault/4,
     isIntegrity/3,isShow/3,isOpen/3,
     isConditional/5,
-    isEquation/5,isPtnRule/5,isDefn/4,isAssignment/4,
+    isEquation/5,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
     isLetDef/4,isMacroRule/4,
@@ -185,10 +185,6 @@ isConditional(Term,Lc,Cond,Th,El) :-
 
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
-
-isPtnRule(Trm,Lc,Lhs,Cond,Rhs) :-
-  isBinary(Trm,Lc,"<=",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
 
 isMacroRule(Trm,Lc,Lhs,Cond) :-

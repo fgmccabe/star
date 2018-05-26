@@ -30,6 +30,7 @@ extern termPo okEnum;
 extern termPo failEnum;
 extern termPo eofEnum;
 extern labelPo errorLbl;
+extern termPo unitEnum;
 
 extern void initGlobals();
 

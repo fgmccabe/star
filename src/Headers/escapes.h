@@ -15,10 +15,10 @@
 #define locType "(Siiii)"
 
 /* Define the standard escapes */
-escape(_exit,True,False,"F(i)v","terminate engine")
+escape(_exit,True,False,"F(i)()","terminate engine")
 escape(_command_line,False,False,"F()LS","command line arguments")
 //escape(_command_opts,False,False,"F()L(SS)","command line options")
-escape(_abort,False,False,":k's':k't'F(k's'k't')v","abort process")
+escape(_abort,False,False,":k's':k't'F(k's'k't')()","abort process")
 
 escape(_identical,False,False,":k't'F(k't'k't')l","test for identicality")
 
@@ -113,7 +113,6 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
 
 */
 
-  escape(_get_file,True,False,"F(S)S","Get the contents of a file as a string")
   escape(_cwd,True,False,"F()S","return url of current working directory")
   escape(_cd,False,False,"F(S)"sysRet,"change current working directory")
   escape(_rm,True,False,"F(S)"sysRet,"remove file")
@@ -156,8 +155,10 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_fposition,True,False,"F("fileType")i","report current file position")
   escape(_fseek,True,False,"F("fileType"i)"sysRet,"seek to new file position")
   escape(_flush,True,False,"F("fileType")"sysRet,"flush the I/O buffer")
-  escape(_flushall,True,False,"F()v","flush all files")
+  escape(_flushall,True,False,"F()()","flush all files")
   escape(_setfileencoding,True,False,"F("fileType"i)"sysRet, "set file encoding on file")
+  escape(_get_file,True,False,"F(S)S","file into a string")
+  escape(_put_file,True,False,"F(S)()","write string into file")
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")
   escape(_pkg_is_present,True,False,"F(SS)l","True if an identified package is available")
@@ -277,9 +278,9 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_waitLock,False,False,"F("lockType"f)"sysRet,"release and wait on a lock")
   escape(_releaseLock,False,False,"F("lockType")"sysRet,"release a lock")
 
-  escape(_ins_debug,False,False,"F()v","set instruction-level")
-  escape(_stackTrace,False,False,"F()v","Print a stack trace")
-  escape(_assert,False,False,"F(l"locType")v","Check an assertion and bolt if false")
+  escape(_ins_debug,False,False,"F()()","set instruction-level")
+  escape(_stackTrace,False,False,"F()()","Print a stack trace")
+  escape(_assert,False,False,"F(l"locType")()","Check an assertion and bolt if false")
 
 #undef processState
 #undef threadType

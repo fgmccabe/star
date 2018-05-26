@@ -341,12 +341,6 @@ showRule(Nm,equation(_,Args,Cond,Value),O,Ox) :-!,
   showGuard(Cond,O2,O5),
   appStr(" => ",O5,O6),
   showCanonTerm(Value,O6,Ox).
-showRule(Nm,ptnRule(_,Args,Cond,Value),O,Ox) :-!,
-  appStr(Nm,O,O1),
-  showCanonTerm(Args,O1,O2),
-  showGuard(Cond,O2,O5),
-  appStr(" <= ",O5,O6),
-  showCanonTerm(Value,O6,Ox).
 
 showCanonNT(apply(_,Op,Args),O,Ox) :-
   showCanonTerm(Op,O,O1),
@@ -406,6 +400,4 @@ showStmt(show(_,Vl),O,Ox) :-
   showCanonTerm(Vl,O1,Ox).
 
 ruleArity(equation(_,tple(_,A),_),Ar) :-
-  length(A,Ar).
-ruleArity(ptnRule(_,tple(_,A),_),Ar) :-
   length(A,Ar).

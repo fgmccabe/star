@@ -50,10 +50,6 @@ parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isBinary(F,_,"=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
-parseType(F,Env,B,C0,Cx,ptnType(AT,RT)) :-
-  isBinary(F,_,"<=",L,R),
-  parseArgType(L,Env,B,C0,C1,AT),
-  parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
   isBinary(F,_,"<=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),!,

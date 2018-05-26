@@ -36,7 +36,6 @@ sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
 sm(tupleType(A1),tupleType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
-sm(ptnType(A1,R1),ptnType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(consType(A1,R1),consType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A1,A2,Env).
 sm(faceType(E1,T1),faceType(E2,T2),Env) :- sameLength(E1,E2),
     sameLength(T1,T2),
@@ -176,9 +175,6 @@ smpTp(refType(T),Env,C,Cx,refType(Tp)) :-
 smpTp(tupleType(A),Env,C,Cx,tupleType(As)) :-
   smpTps(A,Env,C,Cx,As).
 smpTp(funType(L,R),Env,C,Cx,funType(Ls,Rs)) :-
-  simplifyType(L,Env,C,C0,Ls),
-  simplifyType(R,Env,C0,Cx,Rs).
-smpTp(ptnType(L,R),Env,C,Cx,ptnType(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   simplifyType(R,Env,C0,Cx,Rs).
 smpTp(consType(L,R),Env,C,Cx,consType(Ls,Rs)) :-

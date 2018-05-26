@@ -64,7 +64,7 @@ ReturnStatus g__assert(processPo P, ptrPo tos) {
     logMsg(logFile, "assertion failed at %L\n", tos[1]);
     exit(10);
   }
-  ReturnStatus rt = {.ret=Ok, .rslt=voidEnum};
+  ReturnStatus rt = {.ret=Ok, .rslt=unitEnum};
   return rt;
 }
 

@@ -242,9 +242,6 @@ headOfRule(St,Hd) :-
   isBinary(St,_,"=>",H,_),
   (isWhere(H,_,Hd,_) ; H=Hd).
 headOfRule(St,Hd) :-
-  isBinary(St,_,"<=",H,_),
-  (isWhere(H,_,Hd,_) ; H=Hd).
-headOfRule(St,Hd) :-
   isBraceTerm(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
   isBinary(St,_,"-->",Hd,_),!.
@@ -269,7 +266,6 @@ typeName(Tp,Nm) :-
 typeName(Tp,Nm) :- isSquare(Tp,Nm,_), \+ isKeyword(Nm).
 typeName(Tp,Nm) :- isName(Tp,Nm), \+ isKeyword(Nm).
 typeName(Tp,"=>") :- isBinary(Tp,_,"=>",_,_).
-typeName(Tp,"<=") :- isBinary(Tp,_,"<=",_,_).
 typeName(Tp,"-->") :- isBinary(Tp,_,"-->",_,_).
 typeName(Tp,Nm) :- isTuple(Tp,_,A),
   length(A,Ar),
@@ -316,12 +312,6 @@ collStmtRefs(St,All,Annots,SoFar,Refs) :-
   collectHeadRefs(H,All,R0,R1),
   collectCondRefs(Cond,All,R1,R2),
   collectTermRefs(Exp,All,R2,Refs).
-collStmtRefs(St,All,Annots,SoFar,Refs) :-
-  isPtnRule(St,_,H,Cond,Ptn),
-  collectAnnotRefs(H,All,Annots,SoFar,R0),
-  collectHeadRefs(H,All,R0,R1),
-  collectCondRefs(Cond,All,R1,R2),
-  collectTermRefs(Ptn,All,R2,Refs).
 collStmtRefs(C,All,_,R,Refs) :-
   isAlgebraicTypeStmt(C,_,_,Cx,_,_),
   collConstraints(Cx,All,R,Refs).
@@ -532,10 +522,6 @@ collectTypeRefs(St,_,SoFar,SoFar) :-
   isUnary(St,_,"@",_).
 collectTypeRefs(T,All,SoFar,Refs) :-
   isBinary(T,_,"=>",L,R),
-  collectTypeRefs(L,All,SoFar,R0),
-  collectTypeRefs(R,All,R0,Refs).
-collectTypeRefs(T,All,SoFar,Refs) :-
-  isBinary(T,_,"<=",L,R),
   collectTypeRefs(L,All,SoFar,R0),
   collectTypeRefs(R,All,R0,Refs).
 collectTypeRefs(T,All,SoFar,Refs) :-

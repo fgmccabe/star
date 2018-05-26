@@ -264,9 +264,6 @@ processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
 processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
   isAssignment(St,Lc,L,R),!,
   checkVarDefn(Lc,L,R,Tp,Def,Env,Path).
-processStmt(St,Tp,Defs,Defx,E,Path) :-
-  isPtnRule(St,Lc,L,C,R),
-  checkPtnRule(Lc,L,C,R,Tp,Defs,Defx,E,Path).
 processStmt(St,Tp,Defs,Defs,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
@@ -322,17 +319,6 @@ checkEquation(Lc,H,C,R,funType(AT,RT),[equation(Lc,Args,Cond,Exp)|Defs],Defs,E,P
   dischargeConstraints(E,E2).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
-
-checkPtnRule(Lc,H,G,R,ptnType(AT,RT),[ptnRule(Lc,Args,Cond,Ptn)|Defs],Defs,E,Path) :-
-  splitHead(H,_,A),
-  pushScope(E,E0),
-  typeOfPtn(R,RT,E0,E1,Ptn,Path),
-  findType("boolean",Lc,E1,LogicalTp),
-  typeOfExp(G,LogicalTp,E1,E2,Cond,Path),
-  typeOfArgTerm(A,AT,E2,E3,Args,Path),
-  dischargeConstraints(E,E3).
-checkPtnRule(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
-  reportError("pattern rule not consistent with expected type: %s",[ProgramType],Lc).
 
 checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none),
@@ -485,7 +471,8 @@ typeOfPtn(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els), !,
-  checkSquarePtn(Lc,Els,Tp,Env,Ev,Exp,Path).
+  macroSquarePtn(Lc,Els,Ptn),
+  typeOfPtn(Ptn,Tp,Env,Ev,Exp,Path).
 typeOfPtn(Trm,Tp,Env,Ev,Exp,Path) :-
   isTuple(Trm,_,[Inner]),
   \+ isTuple(Inner,_), !,
@@ -504,17 +491,10 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   newTypeVar("F",FnTp),
   newTypeVar("A",At),
   typeOfKnown(F,FnTp,Env,E0,Fun,Path),
-  (sameType(ptnType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,AT),
-    typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args) ;
-   sameType(consType(At,Tp),FnTp,E0) ->
-    evidence(At,E0,_,AT),
-    typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args);
-   reportError("invalid term %s in pattern",[Fun],Lc),
-   Env=Ev,
-   Exp=v(Lc,"_")).
+  sameType(consType(At,Tp),FnTp,E0),
+  evidence(At,E0,_,AT),
+  typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+  Exp = apply(Lc,Fun,Args).
 typeOfPtn(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal pattern: %s, expecting a %s",[Term,Tp],Lc).
@@ -812,20 +792,19 @@ isListType(Tp,Env) :-
   moveQuants(LstTp,_,tpExp(LstOp,_)),
   deRef(LsOp,LstOp).
 
-checkSquarePtn(Lc,Els,Tp,Env,Ev,Ptn,Path) :-
-  macroListEntries(Lc,Els,Trm,genEofTest,genHedTest,genTailTest),
-  typeOfPtn(Trm,Tp,Env,Ev,Ptn,Path).
+macroSquarePtn(Lc,Els,Ptn) :-
+  macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest,genTailTest).
 
 genEofTest(Lc,Trm) :-
-  zeroary(Lc,"_eof",Trm).
+  mkWhere(Lc,"_eof",Trm).
 
 genEndTest(Lc,name(Lc,"_")).
 
 genHedTest(Lc,L,R,Trm) :-
-  binary(Lc,"_hdtl",L,R,Trm).
+  mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_hdtl"),Trm).
 
 genTailTest(Lc,L,R,Trm) :-
-  binary(Lc,"_back",L,R,Trm).
+  mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_back"),Trm).
 
 macroListEntries(Lc,[],Trm,End,_,_) :-
   call(End,Lc,Trm).

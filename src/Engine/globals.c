@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <tpl.h>
 #include "labels.h"
 #include "globalsP.h"
 #include "errorCodes.h"
@@ -26,6 +27,7 @@ termPo voidEnum;
 termPo okEnum;
 termPo failEnum;
 termPo eofEnum;
+termPo unitEnum;
 labelPo errorLbl;
 
 static hashPo globals;
@@ -86,6 +88,8 @@ void initGlobals() {
   failEnum = (termPo) declareEnum("star.core#fail");
   eofEnum = (termPo) declareEnum("star.core#eof");
   errorLbl = declareLbl("star.core#error", 2);
+
+  unitEnum = (termPo) allocateTpl(currHeap, 0);
 }
 
 globalPo C_GLOB(termPo t) {

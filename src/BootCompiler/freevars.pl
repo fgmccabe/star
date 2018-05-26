@@ -67,11 +67,6 @@ freeVarsInRule(Ex,Q,equation(_,A,Cond,Exp),F,FV) :-
   freeVars(A,Ex1,Q,F,F0),
   freeVars(Exp,Ex1,Q,F0,F1),
   freeVars(Cond,Ex1,Q,F1,FV).
-freeVarsInRule(Ex,Q,ptnRule(_,A,Cond,Ptn),F,FV) :-
-  ptnVars(Ptn,Ex,Ex1),
-  freeVars(A,Ex1,Q,F,F0),
-  freeVars(Ptn,Ex1,Q,F0,F1),
-  freeVars(Cond,Ex1,Q,F1,FV).
 
 freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 

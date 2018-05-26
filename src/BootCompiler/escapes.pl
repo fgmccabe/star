@@ -4,7 +4,7 @@
 
 escapeType("_exit",funType(tupleType([type("star.core*integer")]),voidType)).
 escapeType("_command_line",funType(tupleType([]),tpExp(tpFun("star.core*list",1),type("star.core*string")))).
-escapeType("_abort",allType(kVar("s"),allType(kVar("t"),funType(tupleType([kVar("s"),kVar("t")]),voidType)))).
+escapeType("_abort",allType(kVar("s"),allType(kVar("t"),funType(tupleType([kVar("s"),kVar("t")]),tupleType([]))))).
 escapeType("_identical",allType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*boolean")))).
 escapeType("_defined",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int_plus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
@@ -75,7 +75,6 @@ escapeType("_list_nil",allType(kVar("t"),funType(tupleType([type("star.core*inte
 escapeType("_list_concat",allType(kVar("t"),funType(tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tpExp(tpFun("star.core*list",1),kVar("t"))]),tpExp(tpFun("star.core*list",1),kVar("t"))))).
 escapeType("_list_flatten",allType(kVar("t"),funType(tupleType([tpExp(tpFun("star.core*list",1),tpExp(tpFun("star.core*list",1),kVar("t")))]),tpExp(tpFun("star.core*list",1),kVar("t"))))).
 escapeType("_list_reverse",allType(kVar("t"),funType(tupleType([tpExp(tpFun("star.core*list",1),kVar("t"))]),tpExp(tpFun("star.core*list",1),kVar("t"))))).
-escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_cwd",funType(tupleType([]),type("star.core*string"))).
 escapeType("_cd",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_rm",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
@@ -116,6 +115,8 @@ escapeType("_fseek",funType(tupleType([type("star.io*fileHandle"),type("star.cor
 escapeType("_flush",funType(tupleType([type("star.io*fileHandle")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_flushall",funType(tupleType([]),voidType)).
 escapeType("_setfileencoding",funType(tupleType([type("star.io*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
+escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
+escapeType("_put_file",funType(tupleType([type("star.core*string")]),tupleType([]))).
 escapeType("_install_pkg",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*list",1),tupleType([type("star.core*string"),type("star.core*string")])))).
 escapeType("_pkg_is_present",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_logmsg",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
@@ -277,7 +278,6 @@ isEscape("_list_nil").
 isEscape("_list_concat").
 isEscape("_list_flatten").
 isEscape("_list_reverse").
-isEscape("_get_file").
 isEscape("_cwd").
 isEscape("_cd").
 isEscape("_rm").
@@ -318,6 +318,8 @@ isEscape("_fseek").
 isEscape("_flush").
 isEscape("_flushall").
 isEscape("_setfileencoding").
+isEscape("_get_file").
+isEscape("_put_file").
 isEscape("_install_pkg").
 isEscape("_pkg_is_present").
 isEscape("_logmsg").

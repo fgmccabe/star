@@ -115,9 +115,6 @@ importFields(Pkg,Enums,[(Nm,Tp)|Fields],Map,Mx) :-
 makeImportEntry(funType(_,_),Ar,_,Pkg,Nm,[(Nm,moduleFun(LclName,ClosureName,Ar))|Mx],Mx) :-
   packageVarName(Pkg,Nm,LclName),
   localName(Pkg,"^",Nm,ClosureName).
-makeImportEntry(ptnType(_,_),Ar,_,Pkg,Nm,[(Nm,modulePtn(LclName,ClosureName,Ar))|Mx],Mx) :-
-  packageVarName(Pkg,Nm,LclName),
-  localName(Pkg,"^",Nm,ClosureName).
 makeImportEntry(consType(_,_),Ar,_,Pkg,Nm,[(Nm,moduleCons(LclName,AccessName,Ar))|Mx],Mx) :-
   localName(Pkg,"#",Nm,LclName),
   localName(Pkg,"@",Nm,AccessName).
@@ -187,8 +184,6 @@ extendFunTp(Tp,[],Tp):-!.
 extendFunTp(funType(tupleType(Els),Rt),Extra,funType(tupleType(NEls),Rt)) :-
   extendTplTp(Extra,Anons),!,
   concat(Anons,Els,NEls).
-extendFunTp(ptnType(A,P),Extra,funType(tupleType(Anons),ptnType(A,P))) :-!,
-  extendTplTp(Extra,Anons).
 extendFunTp(allType(V,T),Extra,allType(V,NT)) :-
   extendFunTp(T,Extra,NT).
 extendFunTp(constrained(T,C),Extra,constrained(NT,C)) :-
@@ -214,38 +209,6 @@ transformEqn(equation(Lc,tple(_,A),Cond,Value),Map,Opts,_LclPrg,
   labelAccess(Q3,_Q,Map,Lc,LbLx),
   mergeGoal(LbLx,Test,Lc,EqTest),
   mergeWhere(Rep,EqTest,Lc,Rhs).         % generate label access goals
-
-transformPattern(Lc,Nm,LclName,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
-  pushOpt(Opts,inProg(Nm),FOpts),
-  extraVars(Map,Extra),
-  extraArity(1,Extra,Ar),
-  LclPrg = lbl(LclName,Ar),
-  transformPtnRules(Map,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
-  closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
-  functionMatcher(Lc,Ar,LclPrg,Tp,Rules,Fun).
-
-transformPtnRules(Map,Opts,LclPrg,[],[R|Rls],Rls,E,Ex) :-
-  defltPtnRule(Map,Opts,LclPrg,R,E,Ex).
-transformPtnRules(Map,Opts,LclPrg,[Rl|Defs],Rules,Rx,Ex,Exx) :-
-  transformPtnRule(Rl,Map,Opts,LclPrg,Rules,R0,Ex,Ex0),
-  transformPtnRules(Map,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
-
-transformPtnRule(ptnRule(Lc,A,Cond,Ptn),Map,Opts,_LclPrg,
-    [eqn(Lc,Args,ctpl(lbl("star.core#some",1),[Rhs]))|Rx],Rx,Ex,Exx) :-
-  extraVars(Map,Extra),
-  filterVars(Extra,Q0),
-  liftPtns([Ptn],AA,Q0,Q1,Map,Opts,Ex,Ex0), % head args
-  concat(Extra,AA,Args),
-  liftGoal(Cond,Test,Q1,Q2,Map,Opts,Ex0,Ex1),   % condition goals
-  liftExp(A,Rep,Q2,Q3,Map,Opts,Ex1,Exx),  % replacement expression
-  labelAccess(Q3,_Q,Map,Lc,LbLx),
-  mergeGoal(LbLx,Test,Lc,EqTest),
-  mergeWhere(Rep,EqTest,Lc,Rhs).         % generate label access goals
-
-defltPtnRule(Map,_,_,eqn(_,Args,enum("star.core#none")),Ex,Ex) :-
-  extraVars(Map,Extra),
-  genVar("_",An),
-  concat(Extra,[An],Args).
 
 transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
     [vrDef(Lc,LclName,Tp,Exp)|Dx],Dxx) :-
@@ -565,8 +528,6 @@ transformRules([Rl|Rules],Map,Opts,LclName,R,Rx,E,Ex) :-
 
 transformRule(equation(Lc,A,Cond,Value),Map,Opts,LclPrg,R,Rx,E,Ex) :-
   transformEqn(equation(Lc,A,Cond,Value),Map,Opts,LclPrg,R,Rx,E,Ex).
-transformRule(ptnRule(Lc,A,Cond,Ptn),Map,Opts,LclPrg,R,Rx,E,Ex) :-
-  transformPtnRule(ptnRule(Lc,A,Cond,Ptn),Map,Opts,LclPrg,R,Rx,E,Ex).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),

@@ -42,10 +42,10 @@ star.collection{
     _contains:(k,e)=>boolean.
   }
 
-  public contract all k,e ~~ setops[k->>e] ::= {
-    union : (k,k)=>k.
-    intersect : (k,k)=>k.
-    difference : (k,k)=>k.
+  public contract all k ~~ setops[k] ::= {
+    _union : (k,k)=>k.
+    _intersect : (k,k)=>k.
+    _difference : (k,k)=>k.
   }
 
   public implementation mapping[list] => {

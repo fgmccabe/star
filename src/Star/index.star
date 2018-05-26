@@ -48,14 +48,15 @@ star.index{
   countEls(trLeaf(_,L),C) => C+length(L).
   countEls(trNode(_,_,L,R),C) => countEls(R,countEls(L,C)).
 
-  public
-  implementation all k,v ~~ equality[k] |: additive[map[k,v]] => {
-    M1+M2 => addTree(M1,M2).
-    M1-M2 => subtractTree(M1,M2).
-  }
+  -- public
+  -- implementation all k,v ~~ equality[k] |: setops[map[k,v]] => {
+  --   _union(M1,M2) => addTree(M1,M2).
+  --   _intersect(M1,M2) => intersectTree(M1,M2).
+  --   _difference(M1,M2) => subtractTree(M1,M2).
+  -- }
 
   public find:all m,k,v ~~ equality[k], map[m->>k,v] |: (m,k) => v.
-  find(M,K) => V :- present(M,K,V).
+  find(M,K) where some(V).=present(M,K) => V.
 
   public foldMap:all k,v,u ~~ ((k,v,u)=>u,u,map[k,v]) => u.
   foldMap(_,u,trEmpty) => u.

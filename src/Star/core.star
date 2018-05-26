@@ -29,11 +29,11 @@ star.core {
 
   -- stream contract
   public contract all S,E ~~ stream[S ->> E] ::= {
-    _eof:() <= (S).
-    _hdtl:(E,S) <= S.
+    _eof:(S) => boolean.
+    _hdtl:(S) => option[(E,S)].
     _cons:(E,S) => S.
     _apnd:(S,E) => S.
-    _back:(S,E) <= S.
+    _back:(S) => option[(E,S)].
     _nil:S.
   }
 
