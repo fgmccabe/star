@@ -52,4 +52,8 @@ star.lists{
 
   public flatten: all x ~~ (list[list[x]])=>list[x].
   flatten(L) => _list_flatten(L).
+
+  public implementation all t ~~ reversible[list[t]] => {
+    reverse(L) => _list_reverse(L).
+  }
 }

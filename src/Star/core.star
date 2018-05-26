@@ -58,11 +58,18 @@ star.core {
     (++) : (k,k)=>k.
   }
 
+  public contract all t ~~ reversible[t] ::= {
+    reverse:(t)=>t.
+  }
+
   -- Not strictly necessary, but makes for better symmetry.
   public boolean ::= true | false.
 
   option@"the option type is useful when a value is not always available".
   public all t ~~ option[t] ::= none | some(t).
+
+  public id:all a ~~ (a)=>a.
+  id(X)=>X.
 
   public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
   F • G => (x)=>F(G(x)).

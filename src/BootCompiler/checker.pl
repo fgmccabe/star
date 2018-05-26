@@ -57,7 +57,7 @@ recordEnv(Path,Repo,_Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
 processImportGroup(Stmts,ImportSpecs,Repo,Env,Ex) :-
   findAllImports(Stmts,Lc,Imports),
   importAll(Imports,Repo,AllImports),
-  importAllDefs(AllImports,Lc,ImportSpecs,Repo,Env,Ex).
+  importAllDefs(AllImports,Lc,ImportSpecs,Repo,Env,Ex),!.
 
 findAllImports([],_,[]).
 findAllImports([St|More],Lc,[Spec|Imports]) :-
@@ -259,8 +259,8 @@ processStmt(St,ProgramType,Defs,Defx,E,Path) :-
   isEquation(St,Lc,L,Cond,R),!,
   checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,E,Path).
 processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
-  isDefn(St,Lc,L,R),!,
-  checkDefn(Lc,L,R,Tp,Def,Env,Path).
+  isDefn(St,Lc,L,R),
+  checkDefn(Lc,L,R,Tp,Def,Env,Path),!.
 processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
   isAssignment(St,Lc,L,R),!,
   checkVarDefn(Lc,L,R,Tp,Def,Env,Path).

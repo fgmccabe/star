@@ -44,6 +44,13 @@ star.cons{
     concat(cons(E,X),Y) => cons(E,concat(X,Y)).
   }
 
+  public implementation all x ~~ reversible[cons[x]] => {
+    reverse(L) => rev(L,nil).
+
+    rev(nil,R) => R.
+    rev(cons(E,L),R) => rev(L,cons(E,R)).
+  }
+
   public head:all e ~~ (cons[e]) => option[e].
   head(cons(E,_)) => some(E).
   head(nil) => none.

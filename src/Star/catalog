@@ -10,6 +10,7 @@
 		"star.bits": "bits.star",
 		"star.coerce": "coerce.star",
 		"star.combo" : "combo.star",
+		"star.display" : "display.star",
 		"lo.either": "either.lo",
 		"lo.finger" : "finger.lo",
 		"lo.index": "index.lo",

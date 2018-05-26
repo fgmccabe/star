@@ -25,7 +25,7 @@ star.collection{
     (^//):(m[k,v],(k,v)=>boolean) => m[k,v].
   }
 
-  public contract all m,k,v ~~ map[m ->> k,v] ::= {
+  public contract all m,k,v ~~ indexed[m ->> k,v] ::= {
     present:(m,k) => option[v].
     _remove:(m,k) => m.
     _put:(m,k,v) => m.

@@ -30,8 +30,6 @@ star.parse{
     prs([Cx,..L]) => tk(Cx) >>= (_) => prs(L).
   } in prs(S::list[integer]).
 
-  all t ~~ eparser[t] ~> (all e ~~ (e)~>parser[t,e]).
-
   public implementation all t ~~ monad[parser[t]] => {
     return a => parser((S)=>[(a,S)]).
 
@@ -60,6 +58,12 @@ star.parse{
   many1(P) =>
     P >>= (A)=> many(P) >>= (As) => return [A,..As].
 
+  public sepby:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,list[a]].
+  sepby(P,Sep) => sepby1(P,Sep) +++ return [].
+
+  public sepby1:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,list[a]].
+  sepby1(P,Sep) => P >>= (A) => many(Sep>>=(_)=>P) >>= (AS) => return [A,..AS].
+
   public chainl:all e,t ~~ (parser[t,e],parser[t,(e,e)=>e],e)=>parser[t,e].
   chainl(P,Op,A) => chainl1(P,Op)+++return A.
 
@@ -72,5 +76,8 @@ star.parse{
   spaces = many(sat(isSpace)) >>= (_) => return ().
 
   public skip:all e ~~ (parser[integer,e])=>parser[integer,e].
-  skip(P) => spaces >>= (_) => P
+  skip(P) => spaces >>= (_) => P.
+
+  public digit:parser[integer,integer].
+  digit = sat(isDigit).
 }

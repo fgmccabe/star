@@ -26,4 +26,9 @@ star.monad{
   public contract all m/1,n/1 ~~ injection[m,n] ::= {
     _inject:all t ~~ (m[t])=>n[t].
   }
+
+  -- public contract all cat/2 ~~ category[cat] ::= {
+  --   id : all a ~~ cat[a,a].
+  --   (•) : all a,b,c ~~ (cat[b,c],cat[a,b])=>cat[a,c].
+  -- }
 }

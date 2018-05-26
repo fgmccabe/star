@@ -21,7 +21,8 @@
 		"test.p1" : "p1.star",
 		"test.compose" : "compose.star",
 		"test.s" : "s.star",
-		"test.t" : "t.star"
+		"test.t" : "t.star",
+		"test.u" : "u.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"
