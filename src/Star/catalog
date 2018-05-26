@@ -11,7 +11,7 @@
 		"star.coerce": "coerce.star",
 		"star.combo" : "combo.star",
 		"star.display" : "display.star",
-		"lo.either": "either.lo",
+		"star.either": "either.star",
 		"lo.finger" : "finger.lo",
 		"lo.index": "index.lo",
 		"lo.io": "io.lo",
