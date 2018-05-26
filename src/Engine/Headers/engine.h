@@ -15,7 +15,7 @@ typedef struct _stack_frame_ *framePo;
 #define MAX_OPERANDS 1024
 
 typedef enum {
-  nextIns, nextSucc, nextBreak, never, quitDbg, moreDebug
+  stepInto, stepOver, nextSucc, nextBreak, never, quitDbg, moreDebug
 } DebugWaitFor;
 
 typedef enum {

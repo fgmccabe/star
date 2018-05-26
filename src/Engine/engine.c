@@ -64,7 +64,7 @@ processPo newProcess(methodPo mtd) {
   P->pauseRequest = False;
   if (insDebugging || lineDebugging) {
     if (interactive)
-      P->waitFor = nextIns;
+      P->waitFor = stepInto;
     else
       P->waitFor = nextBreak;
   } else

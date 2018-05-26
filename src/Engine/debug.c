@@ -6,30 +6,10 @@
 #include <str.h>
 
 #include "debug.h"
+#include "bkpoint.h"
 #include "arith.h"
 
 integer pcCount = 0;
-
-typedef enum {
-  lineBreak,
-  callBreak,
-  rtnBreak
-} BreakPtType;
-
-typedef struct _break_point_ {
-  BreakPtType bkType;
-  char nm[MAX_SYMB_LEN];
-  integer lineNo;
-  integer offset;
-} BreakPoint, *breakPointPo;
-
-static retCode addBreakPoint(breakPointPo bp);
-static logical breakPointHit(normalPo loc);
-static retCode clearBreakPoint(breakPointPo bp);
-static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
-static logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
-static logical breakPointInUse(breakPointPo b);
-static void markBpOutOfUse(breakPointPo b);
 
 static void showCall(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp);
 static void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp);
@@ -73,199 +53,6 @@ static integer cmdCount(char *cmdLine, integer deflt) {
 static processPo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
-static BreakPoint breakPoints[10];
-static int breakPointCount = 0;
-
-retCode addBreakPoint(breakPointPo bp) {
-  for (int ix = 0; ix < breakPointCount; ix++) {
-    if (!breakPointInUse(&breakPoints[ix])) {
-      breakPoints[ix] = *bp;
-      return Ok;
-    }
-  }
-  if (breakPointCount < NumberOf(breakPoints)) {
-    breakPoints[breakPointCount++] = *bp;
-    return Ok;
-  } else
-    return Fail;
-}
-
-logical sameBreakPoint(breakPointPo b1, breakPointPo b2) {
-  return (logical) (uniCmp(b1->nm, b2->nm) == same && b1->lineNo == b2->lineNo && b1->offset == b2->offset);
-}
-
-logical isBreakPoint(breakPointPo b, const char *pk, integer lineNo, integer offset) {
-  if (uniCmp(b->nm, pk) == same && b->lineNo == lineNo) {
-    if (offset != -1)
-      return (logical) (b->offset == -1 || b->offset == offset);
-    else
-      return True;
-  }
-  return False;
-}
-
-logical breakPointHit(normalPo loc) {
-  char pkgNm[MAX_SYMB_LEN];
-
-  copyString2Buff(C_STR(nthArg(loc, 0)), pkgNm, NumberOf(pkgNm));
-  integer lineNo = integerVal(nthArg(loc, 1));
-  integer offset = integerVal(nthArg(loc, 2));
-
-  for (int ix = 0; ix < breakPointCount; ix++) {
-    if (isBreakPoint(&breakPoints[ix], pkgNm, lineNo, offset))
-      return True;
-  }
-  return False;
-}
-
-logical breakPointInUse(breakPointPo b) {
-  return (logical) (b->lineNo >= 0);
-}
-
-void markBpOutOfUse(breakPointPo b) {
-  b->lineNo = -1;
-}
-
-retCode clearBreakPoint(breakPointPo bp) {
-  for (int ix = 0; ix < breakPointCount; ix++) {
-    if (sameBreakPoint(bp, &breakPoints[ix])) {
-      if (ix == breakPointCount - 1) {
-        breakPointCount--;
-        while (!breakPointInUse(&breakPoints[ix]))
-          breakPointCount--;
-        return Ok;
-      } else {
-        markBpOutOfUse(&breakPoints[ix]);
-        return Ok;
-      }
-    }
-  }
-
-  return Fail;
-}
-
-/*
- * A Break point is specified as:
- * pkg@line,
- * pkg@line:off, or
- * prg/arity
- */
-
-static retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
-  integer b = 0;
-  integer ix = 0;
-
-  integer line = -1;
-  integer offset = -1;
-  BreakPtType bkType = lineBreak;
-
-  enum {
-    initSte,
-    inNme,
-    inLine,
-    inOffset,
-    inArity
-  } pState = initSte;
-
-  while (ix < bLen && buffer[ix] == ' ')
-    ix++;
-
-  while (ix < bLen) {
-    codePoint cp = nextCodePoint(buffer, &ix, bLen);
-    switch (cp) {
-      case '\n':
-      case 0:
-        appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
-        bp->lineNo = line;
-        bp->offset = offset;
-        bp->bkType = bkType;
-        return Ok;
-      case '@': {
-        switch (pState) {
-          case inNme:
-            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
-            pState = inLine;
-            line = 0;
-            continue;
-          default:
-            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
-            return Error;
-        }
-      }
-      case '/': {
-        switch (pState) {
-          case inNme:
-            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
-            pState = inArity;
-            bkType = callBreak;
-            line = offset = 0;
-            continue;
-          default:
-            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
-            return Error;
-        }
-      }
-      case ':': {
-        switch (pState) {
-          case inLine:
-            pState = inOffset;
-            offset = 0;
-            continue;
-          default:
-            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
-            return Error;
-        }
-      }
-      case ' ':
-        switch (pState) {
-          case initSte:
-            continue;
-          case inNme:
-            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
-            pState = inLine;
-            line = offset = 0;
-            continue;
-          case inLine:
-            pState = inOffset;
-            continue;
-          case inOffset:
-          case inArity:
-            continue;
-        }
-      default:
-        switch (pState) {
-          case inNme:
-            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), cp);
-            continue;
-          case inLine:
-          case inArity:
-            if (isNdChar(cp)) {
-              line = line * 10 + digitValue(cp);
-              continue;
-            } else {
-              outMsg(logFile, "invalid break point line number: %S\n", buffer, bLen);
-              return Error;
-            }
-          case inOffset:
-            if (isNdChar(cp)) {
-              offset = offset * 10 + digitValue(cp);
-              continue;
-            } else {
-              outMsg(logFile, "invalid break point line offset: %S\n", buffer, bLen);
-              return Error;
-            }
-          case initSte:
-            if (!isSpaceChar(cp)) {
-              pState = inNme;
-              appendCodePoint(bp->nm, &b, NumberOf(bp->nm), cp);
-            }
-            continue;
-        }
-    }
-  }
-  return Error;
-}
-
 void dC(termPo w) {
   outMsg(logFile, "%T\n", w);
   flushOut();
@@ -278,10 +65,33 @@ static retCode showConstant(ioPo out, methodPo mtd, integer off) {
 static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
   if (focus == NULL || focus == p) {
     switch (p->waitFor) {
-      case nextIns:
+      case stepInto:
         if (p->traceCount > 0)
           p->traceCount--;
         return (logical) (p->traceCount == 0);
+      case stepOver: {
+        switch (*pc) {
+          case Ret: {
+            if (--p->traceCount <= 0) {
+              p->traceCount = 0;
+              p->tracing = True;
+              return True;
+            }
+            return False;
+          }
+          case Call:
+          case OCall:
+            if (p->traceCount > 0) {
+              p->traceCount++;
+            }
+            return False;
+          case Tail:
+          case OTail:
+            return False;
+          default:
+            return True;
+        }
+      }
       case nextSucc: {
         switch (*pc) {
           case Ret: {
@@ -302,15 +112,31 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             return False;
         }
       }
-      case nextBreak:
-        if (*pc == Line) {
-          normalPo ln = C_TERM(getMtdLit(mtd, collect32(pc + 1)));
-          if (breakPointHit(ln)) {
-            p->waitFor = nextIns;
-            p->tracing = True;
-            return True;
+      case nextBreak: {
+        switch (*pc) {
+          case Call:
+          case Tail: {
+            labelPo callee = C_LBL(getMtdLit(mtd, collect32(pc + 1)));
+            if (callBreakPointHit(callee)) {
+              p->waitFor = stepInto;
+              p->tracing = True;
+              return True;
+            } else
+              return False;
           }
+          case Line: {
+            normalPo ln = C_TERM(getMtdLit(mtd, collect32(pc + 1)));
+            if (lineBreakPointHit(ln)) {
+              p->waitFor = stepInto;
+              p->tracing = True;
+              return True;
+            }
+            return False;
+          }
+          default:
+            return False;
         }
+      }
         return False;
 
       case never:
@@ -358,7 +184,12 @@ cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo 
 
 static DebugWaitFor dbgSingle(char *line, processPo p, void *cl) {
   p->traceCount = cmdCount(line, 1);
-  return nextIns;
+  return stepInto;
+}
+
+static DebugWaitFor dbgOver(char *line, processPo p, void *cl) {
+  p->traceCount = cmdCount(line, 1);
+  return stepOver;
 }
 
 static DebugWaitFor dbgQuit(char *line, processPo p, void *cl) {
@@ -543,38 +374,13 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
 static DebugWaitFor dbgInsDebug(char *line, processPo p, void *cl) {
   lineDebugging = False;
   insDebugging = True;
-  return nextIns;
+  return stepInto;
 }
 
 static DebugWaitFor dbgSymbolDebug(char *line, processPo p, void *cl) {
   lineDebugging = True;
   insDebugging = False;
-  return nextIns;
-}
-
-static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl) {
-  BreakPoint bp;
-  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
-  if (ret == Ok)
-    ret = addBreakPoint(&bp);
-  if (ret != Ok) {
-    outMsg(logFile, "Could not set spy point on %s\n", line);
-    outMsg(logFile, "usage: +pkg/Ln\n%_");
-  } else
-    outMsg(logFile, "spy point set on %s\n%_", line);
-  return moreDebug;
-}
-
-static DebugWaitFor dbgClearBreakPoint(char *line, processPo p, void *cl) {
-  BreakPoint bp;
-  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
-  if (ret == Ok)
-    ret = clearBreakPoint(&bp);
-  if (ret != Ok)
-    outMsg(logFile, "Could not clear spy point on %s\n%_", line);
-  else
-    outMsg(logFile, "spy point cleared on %s\n%_", line);
-  return moreDebug;
+  return stepInto;
 }
 
 static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
@@ -613,16 +419,17 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
 
 DebugWaitFor insDebug(integer pcCount, processPo p) {
   static DebugOption opts[] = {
-    {.c = 'n', .cmd=dbgSingle, .usage="n single step"},
-    {.c = '\n', .cmd=dbgSingle, .usage="\\n single step"},
-    {.c = 'q', .cmd=dbgQuit, .usage="q stop execution", .cl=Null},
+    {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
+    {.c = '\n', .cmd=dbgSingle, .usage="\\n step into"},
+    {.c = 'N', .cmd=dbgOver, .usage="N step over"},
+    {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
     {.c = 'c', .cmd=dbgCont, .usage="c continue"},
     {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
     {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
-    {.c = 's', .cmd=dbgShowStack, .usage="s show stack", .cl=(void *) True},
+    {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
     {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
     {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
     {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
@@ -654,7 +461,8 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
         switch (p->waitFor) {
           case moreDebug:
             continue;
-          case nextIns:
+          case stepInto:
+          case stepOver:
           case nextBreak:
           case never:
           case nextSucc:
@@ -747,10 +555,10 @@ DebugWaitFor lineDebug(processPo p, termPo ln) {
 }
 
 DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
-  static integer traceCount = 0;
   static DebugOption opts[] = {
-    {.c = 'n', .cmd=dbgSingle, .usage="n single step", .cl=&traceCount},
-    {.c = '\n', .cmd=dbgSingle, .usage="\\n single step", .cl=&traceCount},
+    {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
+    {.c = '\n', .cmd=dbgSingle, .usage="\\n step into"},
+    {.c = 'N', .cmd=dbgOver, .usage="N step over"},
     {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
     {.c = 'c', .cmd=dbgCont, .usage="c continue"},
@@ -779,10 +587,10 @@ DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
       show(logFile, mtd, ln, fp, sp);
     if (stopping) {
       while (interactive) {
-        if (traceCount == 0)
+        if (p->traceCount == 0)
           p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, fp, sp);
         else {
-          traceCount--;
+          p->traceCount--;
           outStr(stdErr, "\n");
           flushFile(stdErr);
         }
@@ -790,7 +598,8 @@ DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
         switch (p->waitFor) {
           case moreDebug:
             continue;
-          case nextIns:
+          case stepInto:
+          case stepOver:
           case nextBreak:
           case never:
           case nextSucc:

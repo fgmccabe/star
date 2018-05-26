@@ -199,7 +199,7 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
   bufferPo strb = newStringBuffer();
 
   for (integer ix = 0; ix < listSize(list); ix++) {
-    outChar(O_IO(strb), (codePoint) nthEl(list, ix));
+    outChar(O_IO(strb), (codePoint) integerVal(nthEl(list, ix)));
   }
 
   integer oLen;
@@ -255,14 +255,14 @@ ReturnStatus g__str_split(processPo p, ptrPo tos) {
   normalPo pair = allocateTpl(H, 2);
   int root = gcAddRoot(H, (ptrPo) &pair);
 
-  termPo lhs = (termPo)allocateString(H, buff, start);
+  termPo lhs = (termPo) allocateString(H, buff, start);
   setArg(pair, 0, lhs);
 
-  termPo rhs = (termPo)allocateString(H, &buff[start], len - start);
+  termPo rhs = (termPo) allocateString(H, &buff[start], len - start);
   setArg(pair, 1, rhs);
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) pair};
-  gcReleaseRoot(H,root);
+  gcReleaseRoot(H, root);
   return rt;
 }
 
@@ -310,5 +310,19 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   const char *buff = getTextFromBuffer(&oLen, strb);
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), buff, oLen)};
+  return rt;
+}
+
+ReturnStatus g__str_reverse(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  integer len;
+  const char *lhs = stringVal(Arg1, &len);
+
+  char buff[len];
+  uniNCpy(buff, len, lhs, len);
+
+  uniReverse(buff, len);
+
+  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), buff, len)};
   return rt;
 }

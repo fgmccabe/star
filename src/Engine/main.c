@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
   // Set up repository directory
   initHeap(initHeapSize);
   installEscapes();
+  initEngine();
 
   loadManifest();
 
@@ -76,7 +77,6 @@ int main(int argc, char **argv) {
   init_args(argv, argc, narg);    /* Initialize the argument list */
 
   setupSignals();
-  initEngine();
 
   switch(bootstrap(entry)){
     case Ok:

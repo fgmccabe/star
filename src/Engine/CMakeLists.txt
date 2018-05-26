@@ -37,7 +37,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
-        str.c array.c lockvar.c cell.c iochnl.c Headers/thr.h Headers/thrP.h thr.c Headers/globalsP.h)
+        str.c array.c lockvar.c cell.c iochnl.c Headers/thr.h Headers/thrP.h thr.c Headers/globalsP.h bkpoint.c Headers/bkpoint.h)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 

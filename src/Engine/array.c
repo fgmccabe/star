@@ -146,7 +146,7 @@ integer listSize(listPo list) {
 termPo nthEl(listPo list, integer ix) {
   basePo base = C_BASE(list->base);
 
-  assert(ix >= 0 && ix < list->length && ix + list->start <= (base->max - base->min));
+  assert(ix >= 0 && ix < list->length && ix + list->start <= base->max);
 
   return base->els[list->start + ix];
 }
@@ -154,7 +154,7 @@ termPo nthEl(listPo list, integer ix) {
 void setNthEl(listPo list, integer ix, termPo el) {
   basePo base = C_BASE(list->base);
 
-  assert(ix >= 0 && ix < list->length && ix + list->start <= (base->max - base->min));
+  assert(ix >= 0 && ix < list->length && ix + list->start <= base->max);
   base->els[list->start + ix] = el;
 }
 

@@ -184,6 +184,7 @@ escapeType("_str_find",funType(tupleType([type("star.core*string"),type("star.co
 escapeType("_sub_str",funType(tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("_str_split",funType(tupleType([type("star.core*string"),type("star.core*integer")]),tupleType([type("star.core*string"),type("star.core*string")]))).
 escapeType("_str_concat",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
+escapeType("_str_reverse",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_start",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_multicat",funType(tupleType([tpExp(tpFun("star.core*list",1),type("star.core*string"))]),type("star.core*string"))).
 escapeType("_getenv",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
@@ -385,6 +386,7 @@ isEscape("_str_find").
 isEscape("_sub_str").
 isEscape("_str_split").
 isEscape("_str_concat").
+isEscape("_str_reverse").
 isEscape("_str_start").
 isEscape("_str_multicat").
 isEscape("_getenv").

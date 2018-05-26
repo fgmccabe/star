@@ -253,6 +253,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_sub_str,False,False,"F(Sii)S","extract a substring")
   escape(_str_split,False,False,"F(Si)(SS)","split a string at a point")
   escape(_str_concat,False,False,"F(SS)S","Concatenate two strings")
+  escape(_str_reverse,False,False,"F(S)S","Unicode reverse of string")
   escape(_str_start,False,False,"F(SS)l","True if second string starts with first")
   escape(_str_multicat,False,False,"F(LS)S","Concatenate a list of strings into one")
 
