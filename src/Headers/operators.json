@@ -136,6 +136,15 @@
     "priorities": [
       999,
       1000,
+      999
+    ],
+    "desc": "list cons"
+  },
+  {
+    "infixOp": "..,",
+    "priorities": [
+      999,
+      1000,
       1000
     ],
     "desc": "list cons"

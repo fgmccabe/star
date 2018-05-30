@@ -23,11 +23,12 @@
   operator("all", [prefixOp(1010, 1009)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("pure", [prefixOp(300, 299)]).
+  operator("..,", [infixOp(999, 1000, 1000)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("import", [prefixOp(900, 899)]).
   operator("?.", [infixOp(450, 450, 449)]).
-  operator(",..", [infixOp(999, 1000, 1000)]).
+  operator(",..", [infixOp(999, 1000, 999)]).
   operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
@@ -148,6 +149,7 @@
   follows('.','^','.^').
   follows('.','=','.=').
   follows('.','>','.>').
+  follows('.','.','..').
   follows('.',' ','. ').
   follows('.#','.','.#.').
   follows('.&','.','.&.').
@@ -160,6 +162,7 @@
   follows('.>>','.','.>>.').
   follows('.>>','>','.>>>').
   follows('.>>>','.','.>>>.').
+  follows('..',',','..,').
   follows('/','/','//').
   follows('//','/','///').
   follows('|',':','|:').
@@ -218,6 +221,7 @@
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */
+  final('..,',"..,").	 /* list cons */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
   final('//',"//").	 /* map over */
