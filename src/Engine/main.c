@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
   if ((narg = getOptions(argc, argv)) < 0) {
     exit(1);
   }
-
+  initHeap(initHeapSize);
   initArith();
   initStr();
   initLbls();
@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
   /* IMPORTANT -- Keep the order of these set up calls */
 
   // Set up repository directory
-  initHeap(initHeapSize);
   installEscapes();
   initEngine();
 
