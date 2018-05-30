@@ -149,8 +149,7 @@ resolveContract(Lc,C,Dict,Over) :-
   implementationName(C,ImpNm),
   findImplementation(ImpNm,Dict,Impl),!,
   resolve(Impl,C,ImpNm,Lc,Dict,Over),!.
-resolveContract(Lc,C,_,v(Lc,ImpNm)) :-
-  implementationName(C,ImpNm),
+resolveContract(Lc,C,_,void) :-
   reportError("no implementation known for %s",[C],Lc).
 
 resolve(v(Lc,Nm),_,_,_,_,v(Lc,Nm)) :-!.

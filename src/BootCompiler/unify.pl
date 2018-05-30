@@ -103,7 +103,7 @@ isTypeFun(tpFun(Nm,_),[],Env,Tp) :-
   freshen(Rule,Env,_,Tp).
 
 faceOfType(T,Env,Face) :-
-  simplifyType(T,Env,[],_,Tp),
+  simplifyType(T,Env,_,[],Tp),
   getFace(Tp,Env,Face).
 
 getFace(type(Nm),Env,Face) :- !,
@@ -183,19 +183,19 @@ smpTp(consType(L,R),Env,C,Cx,consType(Ls,Rs)) :-
 smpTp(allType(V,typeLambda(V,tpExp(Op,V))),_,C,C,Op).
 smpTp(typeLambda(V,tpExp(Op,V)),_,C,C,Op).
 smpTp(allType(V,T),Env,C,C,allType(V,Tp)) :-
-  simplifyType(T,Env,[],Cx,In),
+  simplifyType(T,Env,Cx,[],In),
   wrapConstraints(Cx,In,Tp).
 smpTp(existType(V,T),Env,Cx,Cx,existType(V,Tp)) :-
-  simplifyType(T,Env,[],C,ITp),
+  simplifyType(T,Env,C,[],ITp),
   wrapConstraints(C,ITp,Tp).
 smpTp(faceType(F,T),Env,C,Cx,faceType(Fs,Ts)) :-
   smpFldTps(F,Env,C,C0,Fs),
   smpFldTps(T,Env,C0,Cx,Ts).
 smpTp(typeLambda(L,R),Env,C,Cx,typeLambda(L,Rs)) :-
   simplifyType(R,Env,C,Cx,Rs).
-smpTp(constrained(T,Cn),Env,C,Cx,Tp) :-
+smpTp(constrained(T,Cn),Env,[Cs|C],Cx,Tp) :-
   smpCon(Cn,Env,C,C0,Cs),
-  simplifyType(T,Env,[Cs|C0],Cx,Tp).
+  simplifyType(T,Env,C0,Cx,Tp).
 
 smpTps([],_,Cx,Cx,[]).
 smpTps([T|Tps],Env,C,Cx,[TT|TTps]) :-

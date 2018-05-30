@@ -243,7 +243,7 @@ parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
 checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   pickupVarType(N,Lc,Face,Stmts,E,E0,Tp),
   evidence(Tp,E0,Q,PT),
-  simplifyType(PT,E,[],Cx,ProgramType),
+  simplifyType(PT,E,Cx,[],ProgramType),
   declareConstraints(Cx,E0,E1),
   declareTypeVars(Q,Lc,E1,E2),
   processStmts(Stmts,ProgramType,Rules,[],E2,Path),
@@ -389,9 +389,6 @@ splitHd(Term,"()",Term) :-
 
 collectPrograms([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
   Eqn = equation(Lc,_,_,_),
-  declareVr(Lc,Nm,Tp,Env,Ev).
-collectPrograms([Rl|Rls],Nm,LclNm,Env,Ev,Tp,Cx,[ptnDef(Lc,Nm,LclNm,Tp,Cx,[Rl|Rls])|Dx],Dx) :-
-  Rl = ptnRule(Lc,_,_,_),
   declareVr(Lc,Nm,Tp,Env,Ev).
 collectPrograms([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
     [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
@@ -652,7 +649,7 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
   newTypeVar("F",FnTp),
   newTypeVar("A",At),
   typeOfKnown(F,FnTp,Env,E0,Fun,Path),
-  simplifyType(FnTp,Env,[],_,FTp),
+  simplifyType(FnTp,Env,_,[],FTp),
   evidence(At,E0,_,AT),
   typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
   (sameType(funType(At,Tp),FTp,E0) ->
@@ -808,12 +805,23 @@ genTailTest(Lc,L,R,Trm) :-
 
 macroListEntries(Lc,[],Trm,End,_,_) :-
   call(End,Lc,Trm).
+macroListEntries(_,[Cns],Trm,_,_,Tail) :-
+  isLConsTerm(Cns,_,H,T),
+  macroLListEntries(T,H,Trm,Tail).
 macroListEntries(_,[Cns],Trm,_,Hed,_) :-
   isConsTerm(Cns,Lc,H,T),
   call(Hed,Lc,H,T,Trm).
 macroListEntries(Lc,[E|L],Trm,End,Hed,Tail) :-
   macroListEntries(Lc,L,Tr,End,Hed,Tail),
   call(Hed,Lc,E,Tr,Trm).
+
+macroLListEntries(T,S,Trm,Tail) :-
+  isBinary(T,Lc,",",H,Tl),!,
+  call(Tail,Lc,S,H,TT),
+  macroLListEntries(Tl,TT,Trm,Tail).
+macroLListEntries(T,S,Trm,Tail) :-
+  locOfAst(T,Lc),
+  call(Tail,Lc,S,T,Trm).
 
 checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).
@@ -826,8 +834,6 @@ computeExport([Def|Defs],Fields,Public,Exports,Types,Cons,Impls) :-
   computeExport(Defs,Fields,Public,Ex,Tx,Cx,Ix).
 
 exportDef(funDef(_,Nm,_,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public).
-exportDef(ptnDef(_,Nm,_,Tp,_,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
 exportDef(typeDef(_,Nm,_,FRule),_,Public,Ex,Ex,[(Nm,FRule)|Tx],Tx,Cx,Cx,Impl,Impl) :-
   isPublicType(Nm,Public).
