@@ -53,7 +53,7 @@ defGlbl(_,D,D).
 genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
-genDef(D,Opts,fnDef(Lc,Nm,Tp,[eqn(_,Args,Value)]),O,[CdTrm|O]) :-
+genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   encType(Tp,Sig),
   genLbl(D,Ex,D0),
   genLbl(D0,End,D1),

@@ -7,8 +7,9 @@
 :- use_module(location).
 :- use_module(freevars).
 :- use_module(terms).
+:- use_module(transutils).
 
-functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,[eqn(Lc,NVrs,Reslt)])) :-
+functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,NVrs,Reslt)) :-
   genVars(Ar,NVrs),
   makeTriples(Eqns,0,Tpls),
   genRaise(Lc,Error),
@@ -42,16 +43,14 @@ compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
   matchVars(Lc,Vrs,Tpls,Deflt,Reslt).
 
 conditionalize([],Deflt,Deflt).
-conditionalize([(_,(_,Bnds,whr(Lc,Val,Cond)),_)|M],Deflt,cnd(Lc,Cnd,Value,Other)) :-
-  pullWheres(Val,Lc,Cond,Cnd,Vl),
-  conditionalize(M,Deflt,Other),
-  applyBindings(Bnds,Lc,Vl,Value).
-conditionalize([(_,(Lc,Bnds,Val),_)|_],_,Value) :-
-  applyBindings(Bnds,Lc,Val,Value).
-
-pullWheres(whr(Lc,Val,Cond),Lc0,Cnd,Cndx,Value) :-
-  pullWheres(Val,Lc0,cnj(Lc,Cnd,Cond),Cndx,Value).
-pullWheres(Val,_Lc,Cnd,Cnd,Val).
+conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
+  pullWheres(Val,C0,Vl),
+  mergeGoal(Test,C0,Lc,TT),
+  (TT=enum("star.core#true") ->
+    applyBindings(Bnds,Lc,Vl,Repl);
+    conditionalize(M,Deflt,Other),
+    applyBindings(Bnds,Lc,cnd(Lc,TT,Vl,Other),Repl)
+  ).
 
 applyBindings([],_,Val,Val).
 applyBindings(Bnds,Lc,Val,varNames(Lc,Bnds,Val)).
@@ -65,13 +64,18 @@ argMode(whr(_,T,_),M) :- argMode(T,M).
 argMode(enum(_),inConstructors).
 argMode(ctpl(_,_),inConstructors).
 
-makeEqnTriple(eqn(Lc,Args,Value),Ix,(Args,(Lc,[],Value),Ix)).
-
 makeTriples([],_,[]).
 makeTriples([Rl|L],Ix,[Tr|LL]) :-
   makeEqnTriple(Rl,Ix,Tr),
   Ix1 is Ix+1,
   makeTriples(L,Ix1,LL).
+
+makeEqnTriple((Lc,Args,Cnd,Val),Ix,(Args,(Lc,[],enum("star.core#true"),whr(Lc,Val,Cnd)),Ix)).
+
+pullWheres(whr(Lc,Val,Cond),Cndx,Value) :-
+  pullWheres(Val,Cnd,Value),
+  mergeGoal(Cnd,Cond,Lc,Cndx).
+pullWheres(Val,enum("star.core#true"),Val).
 
 partitionTriples([Tr|L],[[Tr|LL]|Tx]) :-
   tripleArgMode(Tr,M),
@@ -88,12 +92,12 @@ partTriples(L,L,_,[]).
 tripleArgMode(([A|_],_,_),Mode) :-
   argMode(A,Mode),!.
 
-genVars(0,[]).
-genVars(Ar,[idnt(NN)|LL]) :-
-  Ar>0,
-  genstr("_",NN),
-  Ar1 is Ar-1,
-  genVars(Ar1,LL).
+% genVars(0,[]).
+% genVars(Ar,[idnt(NN)|LL]) :-
+%   Ar>0,
+%   genstr("_",NN),
+%   Ar1 is Ar-1,
+%   genVars(Ar1,LL).
 
 newVars([],V,V).
 newVars([_|L],V,[idnt(NN)|VV]) :-
@@ -157,7 +161,7 @@ subTriple(([_|Args],V,X),(Args,V,X)).
 earlierIndex((_,_,Ix1),(_,_,Ix2)) :-
   Ix1<Ix2.
 
-compareConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
+compareConstructorTriple(([A|_],_,_,_),([B|_],_,_,_)) :-
   compareConstructor(A,B).
 
 compareConstructor(A,B) :-
@@ -165,7 +169,7 @@ compareConstructor(A,B) :-
   constructorName(B,BNm),
   str_lt(ANm,BNm).
 
-sameConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
+sameConstructorTriple(([A|_],_,_,_),([B|_],_,_,_)) :-
   sameConstructor(A,B).
 
 sameConstructor(A,B) :-
@@ -177,7 +181,7 @@ constructorName(lbl(Nm,_),Nm).
 constructorName(ctpl(C,_),Nm) :-
   constructorName(C,Nm).
 
-compareScalarTriple(([A|_],_,_),([B|_],_,_)) :-
+compareScalarTriple(([A|_],_,_,_),([B|_],_,_,_)) :-
   compareScalar(A,B).
 
 compareScalar(intgr(A),intgr(B)) :-!,
@@ -191,20 +195,25 @@ compareScalar(lbl(L1,_A1),lbl(L2,_A2)) :-
 compareScalar(lbl(L,A1),lbl(L,A2)) :-
   A1<A2.
 
-sameScalarTriple(([A|_],_,_),([A|_],_,_)).
+sameScalarTriple(([A|_],_,_,_),([A|_],_,_,_)).
 
 matchVars(Lc,[V|Vrs],Triples,Deflt,Reslt) :-
   applyVar(V,Triples,NTriples),
   matchTriples(Lc,Vrs,NTriples,Deflt,Reslt).
 
 applyVar(_,[],[]).
-applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Vl),Ix)|Tpls],[(NArgs,(Lc,[(XV,V)|Bnd],NVl),Ix)|NTpls]) :-
-  substTerm([(XV,V)],Vl,NVl),
-  substTerms([(XV,V)],Args,NArgs),
+applyVar(V,[([idnt(XV)|Args],(Lc,Bnd,Cond,Vl),Ix)|Tpls],[(NArgs,(Lc,[(XV,V)|Bnd],NCond,NVl),Ix)|NTpls]) :-
+  Vrs = [(XV,V)],
+  substTerm(Vrs,Vl,NVl),
+  substTerms(Vrs,Args,NArgs),
+  substTerm(Vrs,Cond,NCond),
   applyVar(V,Tpls,NTpls).
-applyVar(V,[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Vl),Ix)|Tpls],
-      [(NArgs,(Lc,[(XV,V)|Bnd],whr(Lcw,NVl,NCond)),Ix)|NTpls]) :-
-  substTerm([(XV,V)],Vl,NVl),
-  substTerm([(XV,V)],Cond,NCond),
-  substTerms([(XV,V)],Args,NArgs),
+applyVar(V,[([whr(Lcw,idnt(XV),Cond)|Args],(Lc,Bnd,Test,Vl),Ix)|Tpls],
+      [(NArgs,(Lc,[(XV,V)|Bnd],NCnd,NVl),Ix)|NTpls]) :-
+  Vrs = [(XV,V)],
+  substTerm(Vrs,Vl,NVl),
+  substTerm(Vrs,Cond,NCond),
+  substTerm(Vrs,Test,NTest),
+  mergeGoal(NTest,NCond,Lcw,NCnd),
+  substTerms(Vrs,Args,NArgs),
   applyVar(V,Tpls,NTpls).

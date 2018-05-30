@@ -2,7 +2,7 @@
 
 :-module(escapes,[isEscape/1,escapeType/2]).
 
-escapeType("_exit",funType(tupleType([type("star.core*integer")]),voidType)).
+escapeType("_exit",funType(tupleType([type("star.core*integer")]),tupleType([]))).
 escapeType("_command_line",funType(tupleType([]),tpExp(tpFun("star.core*list",1),type("star.core*string")))).
 escapeType("_abort",allType(kVar("s"),allType(kVar("t"),funType(tupleType([kVar("s"),kVar("t")]),tupleType([]))))).
 escapeType("_identical",allType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*boolean")))).
@@ -113,7 +113,7 @@ escapeType("_stdfile",funType(tupleType([type("star.core*integer")]),type("star.
 escapeType("_fposition",funType(tupleType([type("star.io*fileHandle")]),type("star.core*integer"))).
 escapeType("_fseek",funType(tupleType([type("star.io*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_flush",funType(tupleType([type("star.io*fileHandle")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
-escapeType("_flushall",funType(tupleType([]),voidType)).
+escapeType("_flushall",funType(tupleType([]),tupleType([]))).
 escapeType("_setfileencoding",funType(tupleType([type("star.io*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_put_file",funType(tupleType([type("star.core*string")]),tupleType([]))).
@@ -202,9 +202,9 @@ escapeType("_newLock",funType(tupleType([]),type("star.thread*lock"))).
 escapeType("_acquireLock",funType(tupleType([type("star.thread*lock"),type("star.core*float")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_waitLock",funType(tupleType([type("star.thread*lock"),type("star.core*float")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_releaseLock",funType(tupleType([type("star.thread*lock")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
-escapeType("_ins_debug",funType(tupleType([]),voidType)).
-escapeType("_stackTrace",funType(tupleType([]),voidType)).
-escapeType("_assert",funType(tupleType([type("star.core*boolean"),tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")])]),voidType)).
+escapeType("_ins_debug",funType(tupleType([]),tupleType([]))).
+escapeType("_stackTrace",funType(tupleType([]),tupleType([]))).
+escapeType("_assert",funType(tupleType([type("star.core*boolean"),tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")])]),tupleType([]))).
 isEscape("_exit").
 isEscape("_command_line").
 isEscape("_abort").
