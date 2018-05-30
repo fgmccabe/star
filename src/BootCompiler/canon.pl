@@ -257,19 +257,6 @@ showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr("\n",O9,O10),
   showRls(Nm,Eqns,O10,O11),
   appStr("\n",O11,Ox),!.
-showDef(ptnDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
-  appStr("pattern: ",O,O1),
-  appIden(Nm,O1,O2),
-  appStr(" … ",O2,O2a),
-  appIden(ExtNm,O2a,O2b),
-  appStr(" @ ",O2b,O3),
-  showLocation(Lc,O3,O6),
-  appStr("\n",O6,O7),
-  showType(Type,O7,O8),
-  showConstraints(Cx,O8,O9),
-  appStr("\n",O9,O10),
-  showRls(Nm,Eqns,O10,O11),
-  appStr("\n",O11,Ox),!.
 showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("var: ",O,O1),
   appIden(Nm,O1,O2),

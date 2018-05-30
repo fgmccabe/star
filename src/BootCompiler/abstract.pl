@@ -7,7 +7,7 @@
       qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
       squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,
       isName/2,isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,isInteger/2,
-      isConsTerm/4,
+      isConsTerm/4,isLConsTerm/4,
       sameTerm/2,
       explodeString/2]).
 :- use_module(operators).
@@ -92,6 +92,9 @@ isSquareTuple(tuple(Lc,"[]",L),Lc,L).
 
 isConsTerm(Trm,Lc,H,T) :-
   isBinary(Trm,Lc,",..",H,T).
+
+isLConsTerm(Trm,Lc,H,T) :-
+  isBinary(Trm,Lc,"..,",H,T).
 
 isName(name(_,Nm),Nm).
 

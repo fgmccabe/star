@@ -33,7 +33,7 @@ star.core {
     _hdtl:(S) => option[(E,S)].
     _cons:(E,S) => S.
     _apnd:(S,E) => S.
-    _back:(S) => option[(E,S)].
+    _back:(S) => option[(S,E)].
     _nil:S.
   }
 

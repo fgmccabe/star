@@ -33,10 +33,15 @@ star.lists{
     _cons(E,S) => _list_prepend(S,E).
     _apnd(S,E) => _list_append(S,E).
 
-    _back(X) where \+_list_empty(X) && Last .=_list_size(X)-1 => some((_list_nth(X,Last),_list_front(X,Last))).
+    _back(X) where \+_list_empty(X) && Last .=_list_size(X)-1 => some((_list_front(X,Last),_list_nth(X,Last))).
     _back(_) => none.
 
     _nil = _list_nil(2).
+  }
+
+  public implementation all e ~~ sizeable[list[e]] => {
+    size(L) => _list_size(L).
+    isEmpty(L) => _list_empty(L).
   }
 
   -- display contract for lists

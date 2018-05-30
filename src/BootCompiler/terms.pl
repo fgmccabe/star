@@ -1,5 +1,5 @@
-:- module(terms,[displayRules/1,displayEqns/2,substTerm/3,substTerms/3,
-        genTplStruct/2,isTplStruct/1,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
+:- module(terms,[displayRules/1,substTerm/3,substTerms/3,
+        genTplStruct/2,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
         termHash/2,dispTerm/2,showTerm/4,locTerm/2]).
 
 :- use_module(misc).
@@ -25,20 +25,21 @@ showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
 
 displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
-displayEqns(Nm,Term) :- showEqns(Term,Nm,Chrs,[]), string_chars(Res,Chrs), write(Res).
-
-
 showRuleSets(L,O,Ox) :-
   listShow(L,terms:showRuleSet,misc:appNl,O,Ox).
 
-showRuleSet(fnDef(_,Nm,Tp,Eqns),O,Ox) :-
+showRuleSet(fnDef(_,Nm,Tp,Args,Value),O,Ox) :-
   appStr("Function: ",O,O0),
   showTerm(Nm,0,O0,O1),
   appStr(":",O1,O2),
   showType(Tp,O2,O3),
   appStr("\n",O3,O4),
-  showEqns(Eqns,Nm,O4,O5),
-  appNl(O5,Ox).
+  showTerm(Nm,0,O4,O5),
+  showArgs(Args,0,O5,O6),
+  appStr(" => ",O6,O7),
+  showTerm(Value,0,O7,O8),
+  appStr(".",O8,O9),
+  appNl(O9,Ox).
 showRuleSet(vrDef(_,Nm,Tp,Value),O,Ox) :-
   appStr("Global: ",O,O0),
   appStr(Nm,O0,O1),
@@ -46,16 +47,6 @@ showRuleSet(vrDef(_,Nm,Tp,Value),O,Ox) :-
   showType(Tp,O2,O3),
   appStr(" = ",O3,O4),
   showTerm(Value,0,O4,Ox).
-
-showEqns(L,Nm,O,Ox) :-
-  listShow(L,terms:showEqn(Nm),misc:appNl,O,Ox).
-
-showEqn(Nm,eqn(_,Args,Value),O,Ox) :-
-  showTerm(Nm,0,O,O1),
-  showArgs(Args,0,O1,O2),
-  appStr(" => ",O2,O3),
-  showTerm(Value,0,O3,O4),
-  appStr(".",O4,Ox).
 
 showArgs(Args,Dp,O,Ox) :-
   showTerms(Args,"(",misc:appStr(","),")",Dp,O,Ox).
@@ -88,7 +79,7 @@ showTerm(ecll(_,Es,Args),Dp,O,Ox) :-
   Dp1 is Dp+2,
   showArgs(Args,Dp1,O1,Ox).
 showTerm(ctpl(Op,A),Dp,O,Ox) :-
-  showTerm(Op,Dp,O,O1),
+  showConOp(Op,Dp,O,O1),
   Dp1 is Dp+2,
   showArgs(A,Dp1,O1,Ox).
 showTerm(enum(Nm),_,O,Ox) :-
@@ -155,6 +146,11 @@ showTerm(ng(_,R),Dp,O,Ox) :-
 showTerm(error(_,Msg),_,O,Ox) :-
   appStr("error: ",O,O1),
   appQuoted(Msg,"\"",O1,Ox).
+
+showConOp(L,_,O,O) :-
+  isTplStruct(L).
+showConOp(L,Dp,O,Ox) :-
+  showTerm(L,Dp,O,Ox).
 
 showTermGuard(enum("star.core#true"),_,Ox,Ox) :- !.
 showTermGuard(T,Dp,O,Ox) :-

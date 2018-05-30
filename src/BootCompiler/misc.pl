@@ -129,7 +129,7 @@ appIden(Nm,O,Ox) :-
 
 isIdentifier(Nm) :- string_chars(Nm,Chrs), forall(is_member(Ch,Chrs),isAlphaNum(Ch)).
 
-isAlphaNum(Ch) :- char_type(Ch,alpha) ; char_type(Ch,alnum).
+isAlphaNum(Ch) :- char_type(Ch,alpha) ; char_type(Ch,alnum) ; Ch='_'.
 
 appQuoted(Str,Qt,O,E) :- appStr(Qt,O,O1), string_chars(Qt,[Q]),string_chars(Str,Chars), quoteConcat(Q,Chars,O1,O2), appStr(Qt,O2,E).
 

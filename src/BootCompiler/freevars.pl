@@ -41,7 +41,6 @@ definedVars(Defs,Q,Qx) :-
   varsInList(Defs,freevars:defVar,Q,Qx).
 
 defVar(funDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
-defVar(ptnDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
 defVar(varDef(_,Nm,_,_,_,_),Q,[idnt(Nm)|Q]).
 defVar(_,Q,Q).
 
@@ -53,8 +52,6 @@ freeVarsInOthers(L,Ex,Q,F,Fv) :-
 
 freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,Eqns),F,Fv) :-
   freeVarsInRules(Eqns,Ex,Q,F,Fv).
-freeVarsInDef(Ex,Q,ptnDef(_,_,_,_,_,Rls),F,Fv) :-
-  freeVarsInRules(Rls,Ex,Q,F,Fv).
 freeVarsInDef(Ex,Q,varDef(_,_,_,_,_,Value),F,Fv) :-
   freeVars(Value,Ex,Q,F,Fv).
 freeVarsInDef(_,_,_,F,F).

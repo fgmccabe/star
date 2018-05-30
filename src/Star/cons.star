@@ -37,9 +37,9 @@ star.cons{
     _nil = nil.
   }
 
-  last:all e ~~ (cons[e]) => (e,cons[e]).
-  last(cons(X,nil)) => (X,nil).
-  last(cons(X,Y)) where last(Y) =. (E,L)  => (E,cons(X,L)).
+  last:all e ~~ (cons[e]) => (cons[e],e).
+  last(cons(X,nil)) => (nil,X).
+  last(cons(X,Y)) where last(Y) =. (L,E)  => (cons(X,L),E).
 
   public implementation all x ~~ concat[cons[x]] => {
     X++Y => concat(X,Y).

@@ -1,4 +1,4 @@
-:- module(transUtils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
+:- module(transutils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
           lookupVarName/3,lookupFunName/3,lookupPtnName/3,lookupClassName/3,
           definedProgs/2,labelVars/2,
           genVar/2,
