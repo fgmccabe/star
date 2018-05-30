@@ -214,7 +214,7 @@ checkTerminator(_,[Tk|Tks],RTks) :-
   reportError("missing terminator, got %s",[Tk],Lc),
   scanForTerminator(Tks,RTks).
 
-scanForTerminator([term(_)|Tks],Tks).
+scanForTerminator([termTok(_)|Tks],Tks).
 scanForTerminator([],[]).
 scanForTerminator([_|Tk],Tks) :-
   scanForTerminator(Tk,Tks).
