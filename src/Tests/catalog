@@ -1,13 +1,16 @@
 {
 	"content": {
 	  "test.a" : "a.star",
+		"test.aa" : "aa.star",
 		"test.ast" : "ast.star",
 	  "test.cons" : "constest.star",
 		"star.core0" : "core0.star",
 		"test.c" : "c.star",
+		"test.cc" : "cc.star",
 	  "test.d" : "d.star",
 		"test.e" : "e.star",
 		"test.f" : "f.star",
+		"test.i" : "i.star",
 		"test.l" : "l.star",
 		"test.ll" : "ll.star",
 		"test.fact" : "fact.star",

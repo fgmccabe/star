@@ -2,18 +2,19 @@ star.index{
   -- Implement an index tree structure
 
   import star.core.
+  import star.arith.
   import star.lists.
   import star.coerce.
   import star.collection.
+  import star.tuples.
 
   /**
    * The map type describes the core dictionary mapping.
    * Implemented as an index hash tree.
-   * @typeParam k The type of a key. map is generic in both key type and value type.
-   * @typeParam v The type of a value.
    */
 
-  -- map @ has_param ! k, "The type of a key. map is generic in both key type and value type".
+  map@has_param(k, "The type of a key. map is generic in both key type and value type").
+  map@has_param(v, "The type of a value.").
 
   public
   all k,v ~~ /* equality[k] |: */map[k,v] ::=
@@ -21,8 +22,8 @@ star.index{
     | trLeaf(integer,list[(k,v)])                   -- @con leaf entries
     | trNode(integer,integer,map[k,v],map[k,v]).    -- @con non-leaf dictionary
 
-  public implementation all k,v ~~ equality[k] |: indexed[map[k,v] ->> k,v] => {
-    present(M,K,V) => lookIn(hash(K),M,K,V).
+  public implementation all k,v ~~ equality[k], hash[k] |: indexed[map[k,v] ->> k,v] => {
+    present(M,K) => lookIn(hash(K),M,K).
     _remove(M,K) => rmve(hash(K),K,M).
     _put(M,K,V) => insrt(K,V,M).
     keys(M) => keyMap(M,[]).
@@ -31,21 +32,19 @@ star.index{
     _empty = trEmpty.
   }
 
-  public implementation all k,v ~~ equality[k], equality[v] |: equality[map[k,v]] => {
-    M1 == M2 => sameMaps(M1,M2).
-  }
-
-  sameMaps:all k,v ~~ equality[k], equality[v] |: (map[k,v],map[k,v])=>boolean.
-  sameMaps(M1,M2) => pairs(M1) == pairs(M2).
+  public implementation all k,v ~~ equality[k], equality[v] |: equality[map[k,v]] => {.
+    M1 == M2 => (mapPairs(M1,[]):list[(k,v)])==mapPairs(M2,[]).
+  .}
 
   public implementation all k,v ~~ sizeable[map[k,v]] => {
     size(M) => countEls(M,0).
-    isEmpty(trEmpty).
+    isEmpty(trEmpty) => true.
+    isEmpty(M) => countEls(M,0)==0.
   }
 
   countEls:all k,v ~~ (map[k,v],integer) => integer.
   countEls(trEmpty,C) => C.
-  countEls(trLeaf(_,L),C) => C+length(L).
+  countEls(trLeaf(_,L),C) => C+size(L).
   countEls(trNode(_,_,L,R),C) => countEls(R,countEls(L,C)).
 
   -- public
@@ -55,8 +54,8 @@ star.index{
   --   _difference(M1,M2) => subtractTree(M1,M2).
   -- }
 
-  public find:all m,k,v ~~ equality[k], map[m->>k,v] |: (m,k) => v.
-  find(M,K) where some(V).=present(M,K) => V.
+  public find:all m,k,v ~~ equality[k], hash[k], indexed[m->>k,v] |: (m,k) => v.
+  find(M,K) where some(V).= present(M,K) => V.
 
   public foldMap:all k,v,u ~~ ((k,v,u)=>u,u,map[k,v]) => u.
   foldMap(_,u,trEmpty) => u.
@@ -101,15 +100,15 @@ star.index{
   applyF([],_) => [].
   applyF([(K,V),..L],f) => [(K,f(K,V)),..applyF(L,f)].
 
-  public implementation all k,v ~~ equality[k] |: ixfilter[map->>k,v] => {
+  public implementation all k,v ~~ equality[k],hash[k] |: ixfilter[map->>k,v] => {
     M^//p => ixFilter(M,p).
   }
 
-  ixFilter:all k,v ~~ equality[k] |: (map[k,v],(k,v){}) => map[k,v].
-  ixFilter(M,P) => foldMap((k,v,N)=>checkEntry(k,v,N,P),[],M).
+  ixFilter:all k,v ~~ equality[k],hash[k] |: (map[k,v],(k,v)=>boolean) => map[k,v].
+  ixFilter(M,P) => foldMap((k,v,N)=>checkEntry(k,v,N,P),trEmpty,M).
 
-  checkEntry:all k,v ~~ equality[k] |: (k,v,map[k,v],(k,v){}) => map[k,v].
-  checkEntry(K,V,So,P) => So[K->V] :- P(K,V).
+  checkEntry:all k,v ~~ equality[k],hash[k] |: (k,v,map[k,v],(k,v)=>boolean) => map[k,v].
+  checkEntry(K,V,So,P) where P(K,V) => insrt(K,V,So).
   checkEntry(_,_,So,_) => So.
 
   lookIn: all k,v ~~ equality[k] |: (integer,map[k,v],k)=>option[v].
@@ -123,7 +122,7 @@ star.index{
   findMember(K,[_,..L]) => findMember(K,L).
   findMember(_,[]) => none.
 
-  insrt:all k,v ~~ equality[k] |: (k,v,map[k,v])=>map[k,v].
+  insrt:all k,v ~~ equality[k],hash[k] |: (k,v,map[k,v])=>map[k,v].
   insrt(K,V,T) => mergeTree(T,trLeaf(hash(K),[(K,V)])).
 
   mergeTree:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
@@ -131,43 +130,47 @@ star.index{
   mergeTree(T,trEmpty) => T.
   mergeTree(T1,T2) => mergeNodes(T1,T2).
 
-  mergeLeafs:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
-  mergeLeafs(trLeaf(H,L1),trLeaf(H,L2)) => trLeaf(H,mergePairs(L1,L2)).
-  mergeLeafs(T1,T2) where
-        T1 .= trLeaf(H1,L1) &&
-        T2 .= trLeaf(H2,L2) &&
+  mergeLeafs:all k,v ~~ equality[k] |: (integer,list[(k,v)],integer,list[(k,v)])=>map[k,v].
+  mergeLeafs(H,L1,H,L2) => trLeaf(H,mergePairs(L1,L2)).
+  mergeLeafs(H1,L1,H2,L2) where
         CML .= commonMaskLen(H1,H2,HashLen) &&
         CM .= commonMask(H1,CML) =>
-      (nthBit(H1,CML) ? trNode(CM,CML,T2,T1) | trNode(CM,CML,T1,T2)).
+      (nthBit(H1,CML) ?
+        trNode(CM,CML,trLeaf(H2,L2),trLeaf(H1,L1)) |
+        trNode(CM,CML,trLeaf(H1,L1),trLeaf(H2,L2))).
 
   private mergePairs: all k,v ~~ equality[k] |: (list[(k,v)],list[(k,v)])=>list[(k,v)].
   mergePairs([],L) => L.
-  mergePairs([(K,V),..L1],L) where keyPresent(K,L) => mergePairs(L1,L).
+  mergePairs([(K,V),..L1],L) where keyPresent(L,K) => mergePairs(L1,L).
   mergePairs([E,..L],L1) => [E,..mergePairs(L,L1)].
 
   private keyPresent:all k,v ~~ equality[k] |: (list[(k,v)],k)=>boolean.
   keyPresent(L,K) => let{
     kyPrsnt:(integer,integer)=>boolean.
     kyPrsnt(Ix,Mx) where Ix>=Mx => false.
-    kyPrsnt(Ix,Mx) where _list_nth(L,Ix)==K => true.
+    kyPrsnt(Ix,Mx) where (K,_) .= _list_nth(L,Ix) => true.
     kyPrsnt(Ix,Mx) => kyPrsnt(Ix+1,Mx).
   } in kyPrsnt(0,size(L)).
 
   mergeNodes:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
-  mergeNodes(T1,T2) => mergeLeafs(T1,T2) :- T1=trLeaf(_,_), T2=trLeaf(_,_).
-  mergeNodes(T1,T2) =>
+  mergeNodes(trLeaf(H1,L1),trLeaf(H2,L2)) => mergeLeafs(H1,L1,H2,L2).
+  mergeNodes(T1,T2) where
+      trNode(Msk1,Ln1,L1,R1).=T1 &&
+      trLeaf(Msk2,_) .= T2 &&
+      CML .= min(commonMaskLen(Msk1,Msk2,HashLen),Ln1) &&
+      CM .= commonMask(Msk1,CML) =>
       (CML<Ln1 ?
         ( nthBit(Msk2,CML) ?
           trNode(CM,CML,T1,T2) |
           trNode(CM,CML,T2,T1))  |
         ( nthBit(Msk2,CML) ?
           trNode(CM,CML,L1,mergeNodes(R1,T2)) |
-          trNode(CM,CML,mergeNodes(L1,T2),R1))) :-
-      T1=trNode(Msk1,Ln1,L1,R1),
-      T2=trLeaf(Msk2,_),
-      CML = min(commonMaskLen(Msk1,Msk2,HashLen),Ln1),
-      CM = commonMask(Msk1,CML).
-  mergeNodes(T1, T2) =>
+          trNode(CM,CML,mergeNodes(L1,T2),R1))).
+  mergeNodes(T1, T2) where
+      T1 =. trLeaf(Msk1,_) &&
+      T2 =. trNode(Msk2,Ln2,L2,R2) &&
+      CML .= min(commonMaskLen(Msk1,Msk2,HashLen),Ln2) &&
+      CM .= commonMask(Msk2,CML) =>
       (CML < Ln2 ?
         ( nthBit(Msk1,CML) ?
           trNode(CM,CML,T1,T2) |
@@ -175,12 +178,12 @@ star.index{
         ( nthBit(Msk1,CML) ?
           trNode(CM,CML,L2,mergeNodes(R2,T1)) |
           trNode(CM,CML,mergeNodes(L2,T1),R2)
-          )) :-
-      T1=trLeaf(Msk1,_),
-      T2=trNode(Msk2,Ln2,L2,R2),
-      CML = min(commonMaskLen(Msk1,Msk2,HashLen),Ln2),
-      CM = commonMask(Msk2,CML).
-  mergeNodes(T1,T2) =>
+          )).
+  mergeNodes(T1,T2) where
+      T1 =. trNode(Msk1,Ln1,L1,R1) &&
+      T2 =. trNode(Msk2,Ln2,L2,R2) &&
+      CML .= min(min(commonMaskLen(Msk1,Msk2,HashLen),Ln1),Ln2) &&
+      CM .= commonMask(Msk1,CML) =>
       (CML < Ln1 ?
         (nthBit(Msk2,CML) ?
           trNode(CM,CML,L1,mergeNodes(R1,T2)) |
@@ -190,24 +193,23 @@ star.index{
           trNode(CM,CML,L2,mergeNodes(T1,R2)) |
           trNode(CM,CML,mergeNodes(L2,T1),R2))  |
         trNode(CM,CML,mergeNodes(L1,L2),mergeNodes(R1,R2))
-      ) :-
-      T1=trNode(Msk1,Ln1,L1,R1),
-      T2=trNode(Msk2,Ln2,L2,R2),
-      CML = min(min(commonMaskLen(Msk1,Msk2,HashLen),Ln1),Ln2),
-      CM = commonMask(Msk1,CML).
+      ).
 
   rmve:all k,v ~~ equality[k] |: (integer,k,map[k,v]) => map[k,v].
   rmve(_,_,trEmpty) => trEmpty.
-  rmve(H,K,trLeaf(H1,L)) => (H=H1 ? reformLeaf(H,subtract((K,_),L)) | trLeaf(H1,L)).
-  rmve(H,K,T) =>
-    ( CM = M ?
+  rmve(H,K,trLeaf(H1,L)) => (H==H1 ? reformLeaf(H,dropEntry(L,K)) | trLeaf(H1,L)).
+  rmve(H,K,T) where trNode(M,Ln,L,R) .= T && CM.= commonMask(H,Ln) =>
+    ( CM == M ?
       ( nthBit(H,Ln) ?
         reformNode(trNode(M,Ln,L,rmve(H,K,R))) |
         reformNode(trNode(M,Ln,rmve(H,K,L),R))
       ) |  -- not present
-      T) :-
-    T=trNode(M,Ln,L,R),
-    CM = commonMask(H,Ln).
+      T).
+
+  private dropEntry:all k,v~~ equality[k] |: (list[(k,v)],k)=>list[(k,v)].
+  dropEntry([(k,_),..l],k) => l.
+  dropEntry([f,..l],k) =>[f,..dropEntry(l,k)].
+  dropEntry([],_) => [].
 
   reformLeaf:all  k,v ~~ equality[k] |: (integer,list[(k,v)]) => map[k,v].
   reformLeaf(H,[]) => trEmpty.
@@ -218,32 +220,32 @@ star.index{
   reformNode(trNode(_,_,L,trEmpty)) => L.
   reformNode(N) => N.
 
-  addTree:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
+  addTree:all k,v ~~ equality[k],hash[k] |: (map[k,v],map[k,v])=>map[k,v].
   addTree(trEmpty,T) => T.
   addTree(T,trEmpty) => T.
   addTree(T1,T2) => addNodes(T1,T2).
 
-  addNodes:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
+  addNodes:all k,v ~~ equality[k],hash[k] |: (map[k,v],map[k,v])=>map[k,v].
   addNodes(T1,trLeaf(H,Leaves)) => addLeafs(T1,Leaves).
   addNodes(T1,trNode(Msk2,Ln2,L2,R2)) =>
     addNodes(addNodes(T1,L2),R2).
 
-  addLeafs:all k,v ~~ equality[k] |: (map[k,v],list[(k,v)])=>map[k,v].
+  addLeafs:all k,v ~~ equality[k],hash[k] |: (map[k,v],list[(k,v)])=>map[k,v].
   addLeafs(T,[]) => T.
   addLeafs(T,[(K,V),..Lvs]) =>
     addLeafs(insrt(K,V,T),Lvs).
 
-  subtractTree:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
+  subtractTree:all k,v ~~ equality[k],hash[k] |: (map[k,v],map[k,v])=>map[k,v].
   subtractTree(trEmpty,T) => T.
   subtractTree(T,trEmpty) => T.
   subtractTree(T1,T2) => subtractNodes(T1,T2).
 
-  subtractNodes:all k,v ~~ equality[k] |: (map[k,v],map[k,v])=>map[k,v].
+  subtractNodes:all k,v ~~ equality[k],hash[k] |: (map[k,v],map[k,v])=>map[k,v].
   subtractNodes(T1,trLeaf(_,Leaves)) => subtractLeafs(T1,Leaves).
   subtractNodes(T1,trNode(Msk2,Ln2,L2,R2)) =>
     subtractNodes(subtractNodes(T1,L2),R2).
 
-  subtractLeafs:all k,v ~~ equality[k] |: (map[k,v],list[(k,v)])=>map[k,v].
+  subtractLeafs:all k,v ~~ equality[k],hash[k] |: (map[k,v],list[(k,v)])=>map[k,v].
   subtractLeafs(T,[]) => T.
   subtractLeafs(T,[(K,_),..Lvs]) =>
     subtractLeafs(rmve(hash(K),K,T),Lvs).
@@ -259,7 +261,7 @@ star.index{
 
   private mapPairs:all k,v ~~ (map[k,v],list[(k,v)]) => list[(k,v)].
   mapPairs(trEmpty,L) => L.
-  mapPairs(trLeaf(_,Lf),L) => Lf<>L.
+  mapPairs(trLeaf(_,Lf),L) => Lf++L.
   mapPairs(trNode(_,_,Lf,Rg),L) => mapPairs(Rg,mapPairs(Lf,L)).
 
   public mapMap:all k,v,w ~~ (map[k,v],(v)=>w) => map[k,w].
@@ -282,48 +284,55 @@ star.index{
 
   public
   implementation all k,v ~~ display[k], display[v] |: display[map[k,v]] => {
-    disp(Tree) => ssSeq([ss("["),displayElements(Tree,"",_),ss("]")]).
+    disp(Tree) => ssSeq([ss("["),ssSeq(dispEls(Tree)),ss("]")]).
   }
 
-  displayElements:all k,v ~~ display[k], display[v] |: (map[k,v],string,string) => ss.
-  displayElements(trEmpty,Sep,Sep) => ssSeq([]).
-  displayElements(trLeaf(_,Lvs),Sep,Spx) => ssSeq(displayLeaves(Lvs,Sep,Spx)).
-  displayElements(trNode(_,_,Lft,Rgt),Sep,Spx) => ssSeq([displayElements(Lft,Sep,Sp0),displayElements(Rgt,Sp0,Spx)]).
-
-  displayLeaves:all k,v ~~ display[k], display[v] |: (list[(k,v)],string,string) => list[ss].
-  displayLeaves([],Sep,Sep) => [].
-  displayLeaves([(K,V),..More],Sep,Spx) => [ss(Sep),disp(K),ss("->"),disp(V),..displayLeaves(More,", ",Spx)].
+  dispEls:all k,v ~~ display[k], display[v] |: (map[k,v])=>list[ss].
+  dispEls(Tree) => let{
+    dspPair(K,V,(0,L)) => (1,[L..,disp(K),ss("->"),disp(V)]).
+    dspPair(K,V,(_,L)) => (1,[L..,ss(", "),disp(K),ss("->"),disp(V)]).
+  } in snd(foldMap(dspPair,(0,[]),Tree)).
 
   HashLen:integer.
   HashLen = 64.
 
   commonMaskLen:(integer,integer,integer) => integer.
-  commonMaskLen(H1,H2,C) => commonMaskLen(_blsr(H1,1),_blsr(H2,1),C-1) :-
-    C>0, \+H1==H2.
+  commonMaskLen(H1,H2,C) where C>0 && H1=!=H2 => commonMaskLen(_blsr(H1,1),_blsr(H2,1),C-1).
   commonMaskLen(_,_,C) => C.
 
   commonMask:(integer,integer)=>integer.
   commonMask(_,0) => 0.
-  commonMask(M1,ML) => _band(_blsl(_blsr(-1,CML),CML),M1) :-
-     CML=HashLen-ML.
+  commonMask(M1,ML) where CML.=HashLen-ML=> _band(_blsl(_blsr(-1,CML),CML),M1).
 
-  nthBit:(integer,integer){}.
-  nthBit(X,N) :- _nthb(X,63-N).
+  nthBit:(integer,integer)=>boolean.
+  nthBit(X,N) => _nthb(X,63-N).
 
-  public implementation all k,v ~~ equality[k] |: stream[map[k,v] ->> (k,v)] => {
-    _eof(trEmpty).
-    _hdtl(M,(K,V),R) :- (var(R) ? pckEl(M,K,V,R)! | M = insrt(K,V,R)).
+  public implementation all k,v ~~ equality[k],hash[k] |: stream[map[k,v] ->> (k,v)] => {
+    _eof(trEmpty) => true.
+    _eof(_) => false.
+
+    _hdtl(M) => fstEl(M).
+    _back(M) => lstEl(M).
+
+    _cons((K,V),M) => insrt(K,V,M).
+    _apnd(M,(K,V)) => insrt(K,V,M).
+
+    _nil = trEmpty.
   }
 
-  pckEl:all k,v ~~ equality[k] |: (map[k,v],k,v,map[k,v]){}.
-  pckEl(trLeaf(_,[(k,v)]),k,v,trEmpty).
-  pckEl(trLeaf(Msk,Lvs),k,v,trLeaf(Msk,RLvs)) :- length(Lvs)>1, dropEntry(Lvs,(k,v),RLvs).
-  pckEl(trNode(Msk,Len,L,R),k,v,trNode(Msk,Len,L1,R)) :- pckEl(L,k,v,L1).
-  pckEl(trNode(Msk,Len,L,R),k,v,trNode(Msk,Len,L,R1)) :- pckEl(R,k,v,R1).
+  fstEl:all k,v ~~ equality[k] |: (map[k,v]) => option[((k,v),map[k,v])].
+  fstEl(trLeaf(_,[(k,v)])) => some(((k,v),trEmpty)).
+  fstEl(trLeaf(Msk,[(k,v),..Lvs])) => some(((k,v),trLeaf(Msk,Lvs))).
+  fstEl(trNode(Msk,Len,trEmpty,R)) => fstEl(R).
+  fstEl(trNode(Msk,Len,L,R)) where some((P,LL)).=fstEl(L) =>
+    some((P,(trEmpty.=LL ? R | trNode(Msk,Len,LL,R)))).
 
-  private dropEntry:all e~~(list[e],e,list[e]){}.
-  dropEntry([e,..l],e,l).
-  dropEntry([f,..l],e,[f,..m]) :- dropEntry(l,e,m).
+  lstEl:all k,v ~~ equality[k] |: (map[k,v]) => option[(map[k,v],(k,v))].
+  lstEl(trLeaf(_,[(k,v)])) => some((trEmpty,(k,v))).
+  lstEl(trLeaf(Msk,[(k,v),..Lvs])) => some((trLeaf(Msk,Lvs),(k,v))).
+  lstEl(trNode(Msk,Len,L,trEmpty)) => lstEl(L).
+  lstEl(trNode(Msk,Len,L,R)) where some((RR,P)).=lstEl(R) =>
+    some(((trEmpty.=RR ? L | trNode(Msk,Len,L,RR)),P)).
 
   public dumpTree:all k,v ~~ display[k] |: (map[k,v],integer) => ss.
   dumpTree(trLeaf(Msk,Entries),Lvl) => ssSeq([ssSeq(spaces(Lvl)),ss(Msk::string),ss(":"),ssSeq(showKeys(Entries)),ss("\n")]).

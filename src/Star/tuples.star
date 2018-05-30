@@ -30,6 +30,12 @@ star.tuples{
     hash((A,B)) => hash(A)*37+hash(B).
   .}
 
+  public fst:all x,y ~~ ((x,y)) => x.
+  fst((X,_)) => X.
+
+  public snd:all x,y ~~ ((x,y)) => y.
+  snd((_,Y)) => Y.
+
 
   -- 3-tuples
   public implementation all x,y,z ~~ display[x], display[y], display[z] |: display[(x,y,z)] => {.

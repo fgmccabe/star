@@ -8,9 +8,8 @@ star.resources{
 
   public
   putResource:(uri,string)=>().
-  putResource(U,Content) :- _put_file(getUriPath(U),Content).
-
+  putResource(U,Content) => _put_file(getUriPath(U),Content).
 
   public resourcePresent:(uri)=>boolean.
-  resourcePresent(U) :- _file_present(getUriPath(U)).
+  resourcePresent(U) => _file_present(getUriPath(U)).
 }
