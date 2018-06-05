@@ -2,6 +2,7 @@ star.finger{
   import star.core.
   import star.collection.
   import star.cons.
+  import star.arith.
 
   -- 2-3 finger trees. A Simplification of general finger trees.
 
@@ -82,7 +83,10 @@ star.finger{
   append(deep(l,mid,four(a,b,c,d)),x) => deep(l,append(mid,node3(a,b,c)),two(d,x)).
   append(deep(l,mid,r),x) => deep(l,mid,r++one(x)).
 
-  liftPrepend:all e,f/1 ~~ reduce[f] |: (f[e]=>fingerTree[e]) => fingerTree[e].
+  dbl: all a ~~ arith[a] |: (a)=>a.
+  dbl(X) => X+X.
+
+  liftPrepend:all e,f/1 ~~ reduce[f] |: (f[e],fingerTree[e]) => fingerTree[e].
   liftPrepend = reducer(prepend).
 
   liftAppend:all e,f/1 ~~ reduce[f] |: (fingerTree[e],f[e])=>fingerTree[e].

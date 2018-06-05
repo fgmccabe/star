@@ -59,7 +59,7 @@ overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,
 
 makeContractFunType(allType(V,T),Cx,allType(V,CT)) :-
   makeContractFunType(T,Cx,CT).
-makeContractFunType(constrained(T,C),Cx,constrained(CT,C)) :-
+makeContractFunType(constrained(T,_C),Cx,CT) :-
   makeContractFunType(T,Cx,CT).
 makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
 
