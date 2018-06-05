@@ -14,7 +14,6 @@
 */
 
 #include <assert.h>
-#include <ixTreeP.h>
 #include "ixTreeP.h"
 #include "utils.h"
 

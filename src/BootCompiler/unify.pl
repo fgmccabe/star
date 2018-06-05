@@ -167,6 +167,7 @@ smpTp(tpExp(O,A),Env,C,Cx,tpExp(OO,As)) :-
   simplifyType(O,Env,C,C0,OO),
   simplifyType(A,Env,C0,Cx,As).
 smpTp(kVar(V),_,C,C,kVar(V)).
+smpTp(kFun(V,Ar),_,C,C,kFun(V,Ar)).
 smpTp(tVar(Vx,Nm,Id),_,Cx,Cx,tVar(Vx,Nm,Id)).
 smpTp(tFun(Vx,Nm,Ar,Id),_,Cx,Cx,tFun(Vx,Nm,Ar,Id)).
 smpTp(tpFun(Id,Ar),_,Cx,Cx,tpFun(Id,Ar)).

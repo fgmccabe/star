@@ -4,9 +4,14 @@ star.collection{
   import star.lists.
   import star.arith.
 
-  public contract all c,e ~~ folding[c->>e] ::= {
-    foldRight:all x ~~ (((e,x)=>x),x,c) => x.
-    foldLeft:all x ~~ (((e,x)=>x),x,c) => x.
+  public contract all c/1 ~~ folding[c] ::= {
+    foldRight:all x,e ~~ (((e,x)=>x),x,c[e]) => x.
+    foldLeft:all x,e ~~ (((x,e)=>x),x,c[e]) => x.
+  }
+
+  public contract all t/1 ~~ reduce[t] ::= {
+    reducer:all a,b ~~ ((a,b)=>b) => (t[a],b) => b.
+    reducel:all a,b ~~ ((b,a)=>b) => (b,t[a]) => b.
   }
 
   public contract all c,e ~~ filter[c->>e] ::= {

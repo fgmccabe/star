@@ -9,6 +9,7 @@
 #include <cellP.h>
 #include <iochnnlP.h>
 #include <arrayP.h>
+#include <rrbP.h>
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
@@ -45,6 +46,7 @@ int main(int argc, char **argv) {
   initCode();
   initLocks();
   initTerm();
+  initVectors();
   initLists();
   initIoChnnl();
   initThr();

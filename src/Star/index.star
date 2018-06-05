@@ -79,13 +79,13 @@ star.index{
   rightLeafs([],_,u)=>u.
   rightLeafs([(_,v),..l],f,u) => rightLeafs(l,f,f(v,u)).
 
-  private fldLeft:all k,v,u ~~ (map[k,v],(v,u)=>u,u) => u.
+  private fldLeft:all k,v,u ~~ (map[k,v],(u,v)=>u,u) => u.
   fldLeft(trLeaf(_,Els),f,u) => leftLeafs(Els,f,u).
   fldLeft(trNode(_,_,Left,Right),f,u) => fldLeft(Left,f,fldLeft(Right,f,u)).
 
-  leftLeafs:all k,v,u ~~ (list[(k,v)],(v,u)=>u,u) => u.
+  leftLeafs:all k,v,u ~~ (list[(k,v)],(u,v)=>u,u) => u.
   leftLeafs([],_,u)=>u.
-  leftLeafs([(_,v),..l],f,u) => f(v,leftLeafs(l,f,u)).
+  leftLeafs([(_,v),..l],f,u) => f(leftLeafs(l,f,u),v).
 
   public implementation ixmap[map] => {
     M///f => ixMap(M,f).

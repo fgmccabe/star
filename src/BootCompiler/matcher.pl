@@ -49,7 +49,8 @@ conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
   (TT=enum("star.core#true") ->
     applyBindings(Bnds,Lc,Vl,Repl);
     conditionalize(M,Deflt,Other),
-    applyBindings(Bnds,Lc,cnd(Lc,TT,Vl,Other),Repl)
+    applyBindings(Bnds,Lc,Vl,TVl),
+    Repl = cnd(Lc,TT,TVl,Other)
   ).
 
 applyBindings([],_,Val,Val).
@@ -169,7 +170,7 @@ compareConstructor(A,B) :-
   constructorName(B,BNm),
   str_lt(ANm,BNm).
 
-sameConstructorTriple(([A|_],_,_,_),([B|_],_,_,_)) :-
+sameConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
   sameConstructor(A,B).
 
 sameConstructor(A,B) :-
@@ -181,7 +182,7 @@ constructorName(lbl(Nm,_),Nm).
 constructorName(ctpl(C,_),Nm) :-
   constructorName(C,Nm).
 
-compareScalarTriple(([A|_],_,_,_),([B|_],_,_,_)) :-
+compareScalarTriple(([A|_],_,_),([B|_],_,_)) :-
   compareScalar(A,B).
 
 compareScalar(intgr(A),intgr(B)) :-!,
@@ -195,7 +196,7 @@ compareScalar(lbl(L1,_A1),lbl(L2,_A2)) :-
 compareScalar(lbl(L,A1),lbl(L,A2)) :-
   A1<A2.
 
-sameScalarTriple(([A|_],_,_,_),([A|_],_,_,_)).
+sameScalarTriple(([A|_],_,_),([A|_],_,_)).
 
 matchVars(Lc,[V|Vrs],Triples,Deflt,Reslt) :-
   applyVar(V,Triples,NTriples),

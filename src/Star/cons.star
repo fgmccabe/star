@@ -1,6 +1,7 @@
 star.cons{
   import star.core.
   import star.arith.
+  import star.collection.
 
   public all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 
@@ -63,4 +64,17 @@ star.cons{
   public tail:all e ~~ (cons[e]) => option[cons[e]].
   tail(cons(_,L)) => some(L).
   tail(nil) => none.
+
+  public implementation folding[cons] => {
+    foldRight(F,U,nil) => U.
+    foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
+
+    foldLeft(F,U,nil) => U.
+    foldLeft(F,U,cons(H,T)) => foldLeft(F,F(U,H),T).
+  }
+
+  implementation reduce[cons] => {
+    reducer(F) => (L,U) => foldRight(F,U,L).
+    reducel(F) => (U,L) => foldLeft(F,U,L).
+  }
 }
