@@ -66,27 +66,6 @@ star.index{
   foldLeafs([],_,u)=>u.
   foldLeafs([(k,v),..l],f,u) => foldLeafs(l,f,f(k,v,u)).
 
-  public implementation all k,v ~~ folding[map[k,v]->>v] => {
-    foldRight(F,U,M) => fldRight(M,F,U).
-    foldLeft(F,U,M) => fldLeft(M,F,U).
-  }
-
-  private fldRight:all k,v,u ~~ (map[k,v],(v,u)=>u,u) => u.
-  fldRight(trLeaf(_,Els),f,u) => rightLeafs(Els,f,u).
-  fldRight(trNode(_,_,Left,Right),f,u) => fldRight(Right,f,fldRight(Left,f,u)).
-
-  rightLeafs:all k,v,u ~~ (list[(k,v)],(v,u)=>u,u) => u.
-  rightLeafs([],_,u)=>u.
-  rightLeafs([(_,v),..l],f,u) => rightLeafs(l,f,f(v,u)).
-
-  private fldLeft:all k,v,u ~~ (map[k,v],(u,v)=>u,u) => u.
-  fldLeft(trLeaf(_,Els),f,u) => leftLeafs(Els,f,u).
-  fldLeft(trNode(_,_,Left,Right),f,u) => fldLeft(Left,f,fldLeft(Right,f,u)).
-
-  leftLeafs:all k,v,u ~~ (list[(k,v)],(u,v)=>u,u) => u.
-  leftLeafs([],_,u)=>u.
-  leftLeafs([(_,v),..l],f,u) => f(leftLeafs(l,f,u),v).
-
   public implementation ixmap[map] => {
     M///f => ixMap(M,f).
   }

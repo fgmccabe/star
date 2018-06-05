@@ -1823,6 +1823,25 @@ Star has various kinds of rules, including function definitions, pattern definit
 Package names and references to packages do not refer to file names; package names are symbolic – in general a package name consists of a sequence of identifiers separated by periods.
 The catalog and repository system explored in Chapter 7 that supports the language ensures a proper connection between files and packages.</Text>
         </Document>
+        <Document ID="C4B1ABF9-8DE9-4E82-BAF9-325BC6957FBC">
+            <Title>Injection</Title>
+            <Text>Injection is a technique where we specialize a program with additional information; especially where that additional information is not part of the normal argument flow. Of course, it can be hard to be crisp about ‘not part of the normal argument flow’; but injection is an architectural technique to apply if and when it makes a difference in the readability of your code.
+Injection is often used to manage configuration of code: the configuration is injected into the main program; for example, we might configure an application server with the path name of a particular application, or with the port on which the app server should be listening. Neither of these would normally be considered part of the normal information flow in an application server.
+There is a standard functional programming style that can be used to represent injection — namely functions that return functions. To take an extremely simple example, suppose that we wanted to have a function that counted the percentage of a class that passes an exam. The function itself is pretty simple:
+passes(L) =&gt; fraction(
+   size(list of { all X where X in L and X.score&gt;Pass}),
+   size(L))
+The configuration parameter here is obviously the Pass value; this is an important parameter to the function but is not part of the normal argument flow (think about computing the pass count for an entire school).
+We can use the function returning approach to inject an appropriate value of Pass:
+passes(Pass) =&gt;
+  (L)=&gt;fraction(
+     size(list of { all X where X in L and X.score&gt;Pass}),
+     size(L))
+Using this passes is a two-step process; we first use a specific passing grade to construct the test function and then use this to measure performance on groups of students:
+HS = passes(60)
+allPass = list of { all C where C in Courses and HS(C)&gt;0.80 }
+The two-step process is a key part of the injection technique.</Text>
+        </Document>
         <Document ID="1DB553CD-C2B4-4AFD-93DE-B09715BE22A2">
             <Title>The Set Type</Title>
             <Text>There are many instances where a programmer needs a collection but does not wish specify any ordering or mapping relationship. The standard set type allows you to construct such entities.
@@ -1845,32 +1864,6 @@ In the world of programming languages, there is a lot of confusion about closure
 L[ix]
 where L is some array or other collection and ix is an integer offset into the array. Star uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and slices (contiguous sub-regions of collections).
 Before we explore Star’s indexing notation it is worth looking at the contract that underlies it — the indexable contract.</Text>
-        </Document>
-        <Document ID="3ECF6511-EC5A-4B9A-B12F-039C0CDD2CB7">
-            <Title>Copyright</Title>
-            <Text>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Copyright © &lt;$year&gt; &lt;$author&gt;
-All rights reserved.
-ISBN:
-ISBN-13:
-</Text>
-            <Notes>Feel free to delete this document if you don’t need it, or edit it for your needs.</Notes>
         </Document>
         <Document ID="C21C5773-343E-4F28-8182-743C5A58A76E">
             <Title>Texture</Title>
@@ -1928,18 +1921,6 @@ Normally such ‘dynamic types’ do cause substantial problems. However, the ty
 Note that this also relies on single assignment semantics. It is not enough to constrain simple.foo to be effectively unconstrained in its usage, it must also be that the simple variable cannot itself be changed. Luckily for us, this is true for packages even if it may not be true for all variables. 
 Of course, as with universally quantified types, we can constrain the existential type with a type constraint. This would mean that, when implementing it we have to give evidence for the constraint being satisfied and when using it we could rely on that implementation – without knowledge of the actual implementation.</Text>
         </Document>
-        <Document ID="5C36B898-91CD-4AB4-8B99-FB158146929A">
-            <Title>Order of Evaluation</Title>
-            <Text>Star is a so-called strict language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
-	1.	It is significantly easier for programmers to predict the evaluation characteristics of a strict language.
-	2.	It is also easier to implement a strict language efficiently on modern hardware. Suffice it to say that modern hardware was designed for evaluating strict languages, so this argument is somewhat circular.
-There many possible styles of evaluation order; one of the great merits of programming declaratively is that the order of evaluation does not affect the actual results of the computation.
-It may, however, affect whether you get a result. Different strategies for evaluating expressions can easily lead to differences in which programs terminate and which do not.
-One other kind of evaluation that is often considered is lazy evaluation. Lazy evaluation means simply that expressions are only evaluated when needed. Lazy evaluation has many potential benefits: it certainly enables some very elegant programming techniques.
-Essentially for the reasons noted above, Star does not use lazy evaluation; however, as we shall see, there are features of Star that allow us to recover some of the power of lazy evaluation.
-The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, Star uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written — with the one exception being any default equation which is always tried last.</Text>
-            <Comments>Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the default evaluation style.</Comments>
-        </Document>
         <Document ID="3EACB397-C9FC-446E-A918-EF014078DB0D">
             <Title>How to Design a Domain Specific Language</Title>
             <Text>One of the primary reasons for wanting to have domain specific languages is to be able to succinctly express policy. Pretty much every significant application and module tends to be more general than the individual problem it was designed for; which means that actually applying the application (sic) amounts to using a subset of the capabilities of a general mechanism to solve the specific problem.
@@ -1956,24 +1937,43 @@ The pressure to factor the problem into mechanism and policy is so strong that i
 DSLs and policy languages often involve quite different semantics from the host language; they are often declarative in nature — specifying what needs to be done and leaving the how to the mechanism. One of the simplest purely declarative language systems is the triple logic as seen in RDF. RDF makes a great basis for representing graph structures generally and configurations specifically.</Text>
             <Comments>A regression function is a line fitting function.</Comments>
         </Document>
-        <Document ID="C4B1ABF9-8DE9-4E82-BAF9-325BC6957FBC">
-            <Title>Injection</Title>
-            <Text>Injection is a technique where we specialize a program with additional information; especially where that additional information is not part of the normal argument flow. Of course, it can be hard to be crisp about ‘not part of the normal argument flow’; but injection is an architectural technique to apply if and when it makes a difference in the readability of your code.
-Injection is often used to manage configuration of code: the configuration is injected into the main program; for example, we might configure an application server with the path name of a particular application, or with the port on which the app server should be listening. Neither of these would normally be considered part of the normal information flow in an application server.
-There is a standard functional programming style that can be used to represent injection — namely functions that return functions. To take an extremely simple example, suppose that we wanted to have a function that counted the percentage of a class that passes an exam. The function itself is pretty simple:
-passes(L) =&gt; fraction(
-   size(list of { all X where X in L and X.score&gt;Pass}),
-   size(L))
-The configuration parameter here is obviously the Pass value; this is an important parameter to the function but is not part of the normal argument flow (think about computing the pass count for an entire school).
-We can use the function returning approach to inject an appropriate value of Pass:
-passes(Pass) =&gt;
-  (L)=&gt;fraction(
-     size(list of { all X where X in L and X.score&gt;Pass}),
-     size(L))
-Using this passes is a two-step process; we first use a specific passing grade to construct the test function and then use this to measure performance on groups of students:
-HS = passes(60)
-allPass = list of { all C where C in Courses and HS(C)&gt;0.80 }
-The two-step process is a key part of the injection technique.</Text>
+        <Document ID="3ECF6511-EC5A-4B9A-B12F-039C0CDD2CB7">
+            <Title>Copyright</Title>
+            <Text>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Copyright © &lt;$year&gt; &lt;$author&gt;
+All rights reserved.
+ISBN:
+ISBN-13:
+</Text>
+            <Notes>Feel free to delete this document if you don’t need it, or edit it for your needs.</Notes>
+        </Document>
+        <Document ID="5C36B898-91CD-4AB4-8B99-FB158146929A">
+            <Title>Order of Evaluation</Title>
+            <Text>Star is a so-called strict language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
+	1.	It is significantly easier for programmers to predict the evaluation characteristics of a strict language.
+	2.	It is also easier to implement a strict language efficiently on modern hardware. Suffice it to say that modern hardware was designed for evaluating strict languages, so this argument is somewhat circular.
+There many possible styles of evaluation order; one of the great merits of programming declaratively is that the order of evaluation does not affect the actual results of the computation.
+It may, however, affect whether you get a result. Different strategies for evaluating expressions can easily lead to differences in which programs terminate and which do not.
+One other kind of evaluation that is often considered is lazy evaluation. Lazy evaluation means simply that expressions are only evaluated when needed. Lazy evaluation has many potential benefits: it certainly enables some very elegant programming techniques.
+Essentially for the reasons noted above, Star does not use lazy evaluation; however, as we shall see, there are features of Star that allow us to recover some of the power of lazy evaluation.
+The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, Star uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written — with the one exception being any default equation which is always tried last.</Text>
+            <Comments>Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the default evaluation style.</Comments>
         </Document>
         <Document ID="E311189B-D01A-476D-9DC2-6AACB13E99C2">
             <Title>Acknowledgements</Title>
