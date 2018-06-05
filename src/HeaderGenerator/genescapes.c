@@ -239,11 +239,16 @@ static void dumpStdType(char *name, bufferPo out) {
   }
 }
 
+static int digitVal(char D){
+  assert(D>='0' && D<='9');
+  return (int)(D-'0');
+}
+
 static char *dInt(char *sig, int *len) {
   char K = *sig;
   int Ln = 0;
   while (isdigit(K)) {
-    Ln = Ln * 10 + digittoint(K);
+    Ln = Ln * 10 + digitVal(K);
     K = *++sig;
   }
   *len = Ln;

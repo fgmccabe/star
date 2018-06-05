@@ -9,7 +9,6 @@
 #include <str.h>
 #include <arithP.h>
 #include <tpl.h>
-#include <ldap.h>
 #include "datentime.h"
 
 #define DATE_DOW 0

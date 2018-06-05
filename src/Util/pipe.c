@@ -16,7 +16,7 @@
   License along with this library; if not, write to the
   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
   Boston, MA  02111-1307, USA.
-  
+
   Contact: fgm@fla.fujitsu.com
 */
 
@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <formio.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "pipeP.h"
 
 #ifdef HAVE_RLIMIT
@@ -190,4 +192,3 @@ retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpi
     return Ok;    // We wont get here
   }
 }
-

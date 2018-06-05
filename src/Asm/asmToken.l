@@ -16,8 +16,6 @@
 #include <config.h>
 #include <ooio.h>
 
-long long int *
-
 #include <math.h>
 #include <unistr.h>
 #include <assemP.h>

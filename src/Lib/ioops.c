@@ -7,7 +7,6 @@
 #include <assigns.h>
 #include <arith.h>
 #include <stringBuffer.h>
-#include <ldap.h>
 #include <array.h>
 #include <arithP.h>
 #include <errorCodes.h>
@@ -405,6 +404,3 @@ ReturnStatus g__flushall(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=voidEnum};
   return ret;
 }
-
-
-

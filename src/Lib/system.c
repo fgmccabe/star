@@ -17,6 +17,8 @@
 #include <ioops.h>
 #include <iochnnlP.h>
 #include <lblops.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "engine.h"
 #include "arith.h"
 
@@ -366,4 +368,3 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
     }
   }
 }
-

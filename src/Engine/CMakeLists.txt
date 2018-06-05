@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.7)
 project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm -lbsd")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Lib/Headers" "../Infra/Headers")
 
@@ -12,6 +13,7 @@ set(HEADER_FILES
         ../Util/Headers/ooio.h
         ../Util/Headers/options.h
         ../Lib/Headers/libEscapes.h
+        Headers/bkpoint.h
         Headers/array.h Headers/arrayP.h
         Headers/cell.h Headers/cellP.h
         Headers/code.h Headers/codeP.h
@@ -20,6 +22,7 @@ set(HEADER_FILES
         ../Infra/Headers/encoding.h Headers/decodeP.h
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
         Headers/cafe.h
+        Headers/globalsP.h
         Headers/opcodes.h
         ../Headers/starOptions.h
         Headers/globals.h
@@ -31,16 +34,16 @@ set(HEADER_FILES
         Headers/local.h Headers/engineOptions.h
         Headers/labels.h Headers/labelsP.h
         Headers/arithP.h Headers/strP.h
-        Headers/repoP.h
-        Headers/repo.h)
+        Headers/thr.h Headers/thrP.h
+        Headers/repoP.h Headers/repo.h)
 
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
-        str.c array.c lockvar.c cell.c iochnl.c Headers/thr.h Headers/thrP.h thr.c Headers/globalsP.h bkpoint.c Headers/bkpoint.h)
+        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(star infra ooio escapes)
+target_link_libraries(star escapes infra ooio)
 
 install(TARGETS star DESTINATION bin)

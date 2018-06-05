@@ -33,13 +33,13 @@ triePo emptyTrie() {
 }
 
 static integer charHash(void *data) {
-  char ch = (char) data;
+  char ch = (char) ((long) data);
   return (integer) ch;
 }
 
 static comparison charComp(void *l, void *r) {
-  char left = (char) l;
-  char right = (char) r;
+  char left = (char) ((long) l);
+  char right = (char)((long) r);
 
   if (left < right)
     return smaller;
@@ -108,7 +108,7 @@ static retCode trieEntryProc(void *n, void *v, void *cl) {
   triePo T = (triePo) v;
   clPo P = (clPo) cl;
 
-  P->proc(T->prefix, (codePoint) n, T->value, P->cl);
+  P->proc(T->prefix, (codePoint)((long)n), T->value, P->cl);
   if (T->follows != NULL) {
     return ProcessTable(trieEntryProc, T->follows, cl);
   }
@@ -116,7 +116,7 @@ static retCode trieEntryProc(void *n, void *v, void *cl) {
 }
 
 static retCode procEntries(void *n, void *v, void *cl) {
-  codePoint cp = (codePoint) n;
+  codePoint cp = (codePoint) ((long)n);
   triePo T = (triePo) v;
   clPo P = (clPo) cl;
 
