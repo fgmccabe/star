@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm -lbsd")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Lib/Headers" "../Infra/Headers")
 
@@ -35,12 +35,15 @@ set(HEADER_FILES
         Headers/labels.h Headers/labelsP.h
         Headers/arithP.h Headers/strP.h
         Headers/thr.h Headers/thrP.h
-        Headers/repoP.h Headers/repo.h)
+        Headers/repoP.h Headers/repo.h
+        Headers/rrb.h Headers/rrbP.h)
 
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
-        ${HEADER_FILES} code.c term.c labels.c arith.c repo.c
+        ${HEADER_FILES} code.c term.c labels.c arith.c repo.c rrb.c
         str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c)
+
+find_library(RANDOM NAMES bsd)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 

@@ -352,26 +352,26 @@ retCode stepBack(vFocusPo f, vectorPo vect) {
 }
 
 termPo currentFocusElement(vFocusPo f, vectorPo vect) {
-  int dx = VECT_DEPTH-1;
-  while(vect->depth>0){
+  int dx = VECT_DEPTH - 1;
+  while (vect->depth > 0) {
     int pos = f->ixStack[dx--];
     vect = C_VECT(vect->els[pos]);
   }
   return vect->els[f->ixStack[dx]];
 }
 
-vectorPo appendToVector(heapPo H, vectorPo vect, termPo el){
-  if(vect->depth>0){
+vectorPo appendToVector(heapPo H, vectorPo vect, termPo el) {
+  if (vect->depth > 0) {
 
-  }else if(lastIndex(vect)<VECT_ENTRIES){
-    int mark = gcAddRoot(H,(ptrPo)&vect);
-    gcAddRoot(H,&el);
-    vectorPo vv = copyVector(H,vect);
+  } else if (lastIndex(vect) < VECT_ENTRIES) {
+    int mark = gcAddRoot(H, (ptrPo) &vect);
+    gcAddRoot(H, &el);
+    vectorPo vv = copyVector(H, vect);
     int last = lastIndex(vect);
     vv->els[last] = el;
     vv->indices[last] = last;
-    gcReleaseRoot(H,mark);
+    gcReleaseRoot(H, mark);
     return vv;
   }
-
+  return vect;
 }
