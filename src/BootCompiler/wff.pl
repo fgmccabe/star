@@ -81,7 +81,8 @@ reXQuant(Q,T,QT) :-
   unary(Lc,"exists",V,QV),
   binary(Lc,"~~",QV,T,QT).
 
-getQuantifiers(T,Q,B) :- isQuantified(T,Q,B).
+getQuantifiers(T,Q,B) :- isQuantified(T,Q,B),!.
+getQuantifiers(T,Q,T) :- isSquareTerm(T,_,Q), !.
 getQuantifiers(T,[],T).
 
 isContractStmt(St,Lc,Quants,Constraints,Con,Body) :-
