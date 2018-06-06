@@ -8,6 +8,7 @@
 #include "heap.h"
 #include "termP.h"
 #include "lockvar.h"
+#include <pthread.h>
 
 typedef struct lock_term {
   clssPo clss;                  // == integerClass

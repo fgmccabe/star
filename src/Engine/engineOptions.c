@@ -5,6 +5,7 @@
 #include "engine.h"
 #include <stdlib.h>
 #include <getopt.h>
+#include <unistd.h>
 
 #include "options.h"
 #include "version.h"      /* Version ID for the Cafe system */

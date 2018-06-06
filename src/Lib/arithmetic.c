@@ -7,6 +7,7 @@
 #include <str.h>
 #include <tpl.h>
 #include <stdlib.h>
+#include <bsd/stdlib.h>
 #include <errno.h>
 #include "ooio.h"
 #include "engine.h"
