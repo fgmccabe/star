@@ -150,8 +150,9 @@ isTypeExistsStmt(St,Lc,Q,Cx,L,R) :-
   isQuantified(St,Q,B),
   isConstrainedTp(B,Cx,Inn),
   isTypeExistsStmt(Inn,Lc,_,_,L,R).
-isTypeExistsStmt(St,Lc,[],[],L,R) :-
-  isBinary(St,Lc,"<~",L,R).
+isTypeExistsStmt(St,Lc,Q,[],T,R) :-
+  isBinary(St,Lc,"<~",L,R),
+  getQuantifiers(L,Q,T).
 
 isTypeFunStmt(St,Lc,Q,C,L,R) :-
   isQuantified(St,Q,B),

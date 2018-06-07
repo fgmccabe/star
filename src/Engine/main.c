@@ -14,6 +14,7 @@
 #include "clock.h"
 #include "args.h"
 #include "formioP.h"
+#include "futureP.h"
 #include "arithP.h"
 #include "strP.h"
 #include "debug.h"
@@ -43,6 +44,7 @@ int main(int argc, char **argv) {
   initLbls();
   initGlobals();
   initCell();
+  initFuture();
   initCode();
   initLocks();
   initTerm();

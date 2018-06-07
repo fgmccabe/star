@@ -32,6 +32,7 @@ set(HEADER_FILES
         ../Infra/Headers/encoding.h Headers/decodeP.h
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
         Headers/cafe.h
+        Headers/future.h Headers/futureP.h
         Headers/globalsP.h
         Headers/opcodes.h
         ../Headers/starOptions.h
@@ -49,7 +50,7 @@ set(HEADER_FILES
         Headers/rrb.h Headers/rrbP.h)
 
 set(SOURCE_FILES
-        boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
+        boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c future.c globals.c future.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c rrb.c
         str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c)
 
