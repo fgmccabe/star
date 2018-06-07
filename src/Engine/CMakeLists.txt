@@ -3,12 +3,16 @@ project(star)
 
 
 set(BSDLIB "")
-if(UNIX)
-  set(BSDLIB "-lbsd")
+if (APPLE)
+    set(BSDLIB "")
+    set(BUILD_OS "apple")
+elseif (UNIX)
+    set(BSDLIB "-lbsd")
+    set(BUILD_OS "unix")
 endif (UNIX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm ${BSDLIB}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm ${BSDLIB}")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Lib/Headers" "../Infra/Headers")
 
@@ -48,8 +52,6 @@ set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c rrb.c
         str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c)
-
-find_library(RANDOM NAMES bsd)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 

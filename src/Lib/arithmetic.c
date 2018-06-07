@@ -7,7 +7,9 @@
 #include <str.h>
 #include <tpl.h>
 #include <stdlib.h>
+#if ! __APPLE__
 #include <bsd/stdlib.h>
+#endif
 #include <errno.h>
 #include "ooio.h"
 #include "engine.h"
