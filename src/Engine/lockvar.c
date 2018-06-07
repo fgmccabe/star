@@ -160,7 +160,7 @@ retCode releaseLock(lockPo l) {
 
       if (l->count <= 0) {
         l->count = 0;
-        l->owner = Null;
+        l->owner = (pthread_t)Null;
         pthread_cond_broadcast(&l->cond);
       }
     }
@@ -193,7 +193,7 @@ retCode waitLock(lockPo l, double tmOut) {
   if ((pthread_equal(l->owner, pthread_self()) && l->count == 1) ||
       l->count == 0) {
     l->count = 0;
-    l->owner = Null;    /* the equivalent of unlocking */
+    l->owner = (pthread_t)Null;    /* the equivalent of unlocking */
 
     if (tmOut == 0.0) {      /* treat as a no-timeout wait */
 #ifdef LOCKTRACE
@@ -252,7 +252,7 @@ retCode waitLock(lockPo l, double tmOut) {
 }
 
 void initLock(lockPo l) {
-  l->owner = Null;
+  l->owner =(pthread_t) Null;
   l->count = 0;
 
   pthread_mutexattr_t attr;
