@@ -92,11 +92,13 @@ futurePo newFuture(heapPo H, termPo generator) {
   futurePo future = (futurePo) allocateObject(H, futureClass, FutureCellCount);
   future->generator = generator;
   future->content = voidEnum;
+  future->isSet = False;
   gcReleaseRoot(H, root);
   return future;
 }
 
 termPo getFutureValue(futurePo cell) {
+  assert(futureHasValue(cell));
   return cell->content;
 }
 
@@ -106,9 +108,10 @@ termPo getFutureGenerator(futurePo cell) {
 
 termPo setFutureValue(futurePo cell, termPo e) {
   cell->content = e;
+  cell->isSet = True;
   return (termPo) cell;
 }
 
 logical futureHasValue(futurePo ft){
-  return (logical)(ft->content!=voidEnum);
+  return ft->isSet;
 }
