@@ -50,22 +50,22 @@
 %}
 
 // Assembler mnemonics
-%token PUBLIC PKG IMPORT
+%token PUBLIC PKG IMPORT GLOBAL
 
 %token HALT
 %token CALL OCALL TAIL OTAIL ESCAPE
 %token RET JMP CASE
-%token DROP DUP PULL ROT RST BF BT CMP
+%token DROP DUP PULL ROT RST BF BT CLBL CMP
 
 %token LD ST T
 
 %token A L
 %token ALLOC
 
-%token FRAME LOCAL
+%token FRAME LINE LOCAL
 %token END
 
-%token COLON SLASH DCOLON LBRA RBRA HASH
+%token COLON SLASH AT DCOLON LBRA RBRA HASH
 %token NL
 
 // Number and value tokens
@@ -128,6 +128,7 @@ trailer: END nls { endFunction(currMtd); }
    | BF label { ABf(currMtd,$2); }
    | BT label {ABt(currMtd,$2); }
    | CMP label {ACmp(currMtd,$2);}
+   | CLBL label { ACLbl(currMtd,$2); }
    ;
 
  literal: FLOAT { $$=newFloatConstant(currMtd,$1); }
@@ -139,13 +140,13 @@ trailer: END nls { endFunction(currMtd); }
  load: LD literal { ALdC(currMtd,$2); }
    | LD A LBRA DECIMAL RBRA { ALdA(currMtd,$4); }
    | LD L LBRA DECIMAL RBRA { ALdL(currMtd,$4); }
+   | LD ID { ALdG(currMtd,$2); }
    | DROP { ADrop(currMtd); }
    | DUP { ADup(currMtd); }
    | RST DECIMAL { ARst(currMtd,$2); }
    | PULL DECIMAL { APull(currMtd,$2); }
    | ROT DECIMAL { ARot(currMtd,$2); }
    | LD LBRA DECIMAL RBRA { ANth(currMtd,$3); }
-   | LD ID { ALdG(currMtd,$2); }
    ;
 
  store: ST L LBRA local RBRA { AStL(currMtd,$4); }
@@ -168,6 +169,8 @@ trailer: END nls { endFunction(currMtd); }
 
  directive: label COLON { defineLbl(currMtd,$1); }
    | FRAME signature { AFrame(currMtd,newStringConstant(currMtd,$2)); }
+   | LINE ID AT DECIMAL SLASH DECIMAL COLON DECIMAL
+          { ALine(currMtd,defineLocation(currMtd,$2,$4,$6,$8)); }
    | LOCAL ID signature label label { defineLocal(currMtd,$2,$3,$4,$5); }
    ;
 

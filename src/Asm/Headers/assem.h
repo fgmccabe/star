@@ -43,12 +43,13 @@ extern int32 newFloatConstant(mtdPo mtd,double dx);
 extern int32 newStringConstant(mtdPo mtd,char *str);
 extern int32 newStrctConstant(mtdPo mtd,char *str,integer ar);
 extern int32 newEscapeConstant(mtdPo mtd,char *str);
-
 extern retCode getStringConstant(mtdPo mtd,char **name);
 
 extern void defineFrame(mtdPo mtd,char *str);
 extern void defineLocal(mtdPo mtd, char *name, char *sig, lPo from, lPo to);
 extern int32 findLocal(mtdPo mtd, const char *name);
+
+extern int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len);
 
 // Define the instruction functions themselves
 #undef instruction

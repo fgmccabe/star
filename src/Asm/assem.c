@@ -16,6 +16,7 @@ static poolPo varPool;      /* pool of local variable records */
 static poolPo lblPool;      /* pool of labels */
 static poolPo impPool;      /* pool of imported package labels */
 
+
 static retCode displayLabel(ioPo f, void *p, long width, long prec, logical alt);
 
 static comparison localComp(localVarPo l1, localVarPo l2);
@@ -25,6 +26,7 @@ static char stringSig[] = {strSig, 0};
 static char integerSig[] = {intSig, 0};
 static char floatSig[] = {fltSig, 0};
 static char strctSig[] = {conSig, 0};
+static char *locationSig = "(Siii)";
 
 static void constInit(objectPo o, va_list *args);
 
@@ -206,6 +208,25 @@ void defineLocal(mtdPo mtd, char *name, char *sig, lPo from, lPo to) {
   var->from = from;
   var->to = to;
   hashPut(mtd->locals, &var->name, var);
+}
+
+retCode encodeLocation(char *buffer,integer buffLen,char *pkg,integer line,integer off,integer len){
+  bufferPo str = fixedStringBuffer(buffer,buffLen);
+
+  retCode ret = encodeCons(O_IO(str),4);
+  if(ret==Ok)
+    ret = encodeStrct(O_IO(str),"()4",4);
+  if(ret==Ok)
+    ret = encodeStr(O_IO(str),pkg,uniStrLen(pkg));
+  if(ret==Ok)
+    ret = encodeInt(O_IO(str),line);
+  if(ret==Ok)
+    ret = encodeInt(O_IO(str),off);
+  if(ret==Ok)
+    ret = encodeInt(O_IO(str),len);
+  outByte(O_IO(str),0);
+  closeFile(O_IO(str));
+  return ret;
 }
 
 typedef struct {
@@ -485,6 +506,21 @@ static logical sameMtd(constPo a1, char *sig, void *con) {
   return (logical) (a1->con.value.mtd == other);
 }
 
+static logical sameLocation(constPo a, char *sig, void *con){
+  if(uniCmp(sig,locationSig) == same)
+    return (logical) (uniCmp(a->con.value.txt, (char *) con) == same);
+  else
+    return False;
+}
+
+retCode showLocationConstant(ioPo f, constPo cn) {
+  return outMsg(f, "#%Q", cn->con.value.txt);
+}
+
+retCode encodeLocationConstant(ioPo f, constPo c) {
+  return outText(f, c->con.value.txt, uniStrLen(c->con.value.txt));
+}
+
 static logical isStruct(strctPo str1, strctPo str2) {
   return (logical) (uniCmp(str1->name, str2->name) == same && str1->arity == str2->arity);
 }
@@ -608,6 +644,24 @@ int32 newStrctConstant(mtdPo mtd, char *str, integer ar) {
     return (int32) (listCount(mtd->constants) - 1);
   } else
     return cx;
+}
+
+int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len){
+  char buffer[MAX_SYMB_LEN];
+  retCode ret = encodeLocation(buffer,NumberOf(buffer),pkg,line,off,len);
+  if(ret==Ok){
+    int32 cx = findConstant(mtd, locationSig, buffer);
+
+    if (cx < 0) {
+      ConValue value = {.txt=uniDuplicate(buffer)};
+
+      constPo conn = newConstant(locationSig, sameString, showLocationConstant, encodeLocationConstant, &value);
+
+      mtd->constants = tack((objectPo) conn, mtd->constants);
+      return (int32) (listCount(mtd->constants) - 1);
+    } else
+      return cx;
+  }
 }
 
 char *methodSignature(mtdPo mtd) {
