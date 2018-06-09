@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 project(star)
 
-
 set(BSDLIB "")
 if (APPLE)
     set(BSDLIB "")

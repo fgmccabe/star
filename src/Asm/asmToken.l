@@ -23,8 +23,6 @@
 #include <code.h>
 #include <term.h>
 
-retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt)
-
 #include <assem.h>
 
 #include "assem.h"

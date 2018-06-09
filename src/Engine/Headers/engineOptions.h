@@ -19,7 +19,7 @@
 #define TRACELOCK
 #endif
 
-extern char copyRight[];
+extern char *copyright;
 
 extern logical tracing;        /* tracing option */
 extern logical insDebugging;

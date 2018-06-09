@@ -18,6 +18,7 @@ extern void setPkgVersion(char *vers);
 
 extern char *defltPkgVersion();
 
-extern char copyright[], version[];
+extern char *copyright;
+extern char *version;
 
 #endif

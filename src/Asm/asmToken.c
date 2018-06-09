@@ -726,14 +726,14 @@ int ss_flex_debug = 1;
 
 static yyconst flex_int16_t yy_rule_linenum[75] =
     {   0,
-       88,   90,   92,   94,   95,   96,   97,   98,  100,  101,
-      102,  104,  106,  107,  108,  109,  110,  112,  113,  114,
-      116,  117,  118,  120,  121,  122,  123,  124,  126,  127,
-      129,  131,  132,  133,  135,  136,  137,  139,  140,  141,
-      142,  143,  144,  146,  151,  153,  155,  159,  184,  187,
-      194,  195,  199,  203,  204,  205,  206,  207,  208,  209,
-      210,  217,  220,  227,  229,  233,  237,  238,  239,  240,
-      241,  242,  243,  244
+       86,   88,   90,   92,   93,   94,   95,   96,   98,   99,
+      100,  102,  104,  105,  106,  107,  108,  110,  111,  112,
+      114,  115,  116,  118,  119,  120,  121,  122,  124,  125,
+      127,  129,  130,  131,  133,  134,  135,  137,  138,  139,
+      140,  141,  142,  144,  149,  151,  153,  157,  182,  185,
+      192,  193,  197,  201,  202,  203,  204,  205,  206,  207,
+      208,  215,  218,  225,  227,  231,  235,  236,  237,  238,
+      239,  240,  241,  242
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -759,8 +759,6 @@ char *sstext;
 #include <assem.h>
 #include <code.h>
 #include <term.h>
-
-retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt)
 
 #include <assem.h>
 
@@ -807,7 +805,7 @@ static double parseFloat(char *text)
   return parseNumber(text,strlen(text));
 }
 
-#line 811 "/home/fgm/cafe/src/Asm/asmToken.c"
+#line 809 "/home/fgm/cafe/src/Asm/asmToken.c"
 
 #define INITIAL 0
 #define comment 1
@@ -1112,10 +1110,10 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 86 "asmToken.l"
+#line 84 "asmToken.l"
 
 
-#line 1119 "/home/fgm/cafe/src/Asm/asmToken.c"
+#line 1117 "/home/fgm/cafe/src/Asm/asmToken.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1208,224 +1206,224 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 88 "asmToken.l"
+#line 86 "asmToken.l"
 RT(NL);
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 90 "asmToken.l"
+#line 88 "asmToken.l"
 /* ignore */
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 92 "asmToken.l"
+#line 90 "asmToken.l"
 RT(NL);			/* line comment */
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 94 "asmToken.l"
+#line 92 "asmToken.l"
 BEGIN(comment);
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 95 "asmToken.l"
+#line 93 "asmToken.l"
 
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 96 "asmToken.l"
+#line 94 "asmToken.l"
 
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 97 "asmToken.l"
+#line 95 "asmToken.l"
 
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 98 "asmToken.l"
+#line 96 "asmToken.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 100 "asmToken.l"
+#line 98 "asmToken.l"
 RT(A);
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 101 "asmToken.l"
+#line 99 "asmToken.l"
 RT(L);
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 102 "asmToken.l"
+#line 100 "asmToken.l"
 RT(T);
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 104 "asmToken.l"
+#line 102 "asmToken.l"
 RT(HALT);
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 106 "asmToken.l"
+#line 104 "asmToken.l"
 RT(CALL);
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 107 "asmToken.l"
+#line 105 "asmToken.l"
 RT(OCALL);
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 108 "asmToken.l"
+#line 106 "asmToken.l"
 RT(ESCAPE);
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 109 "asmToken.l"
+#line 107 "asmToken.l"
 RT(TAIL);
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 110 "asmToken.l"
+#line 108 "asmToken.l"
 RT(OTAIL);
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 112 "asmToken.l"
+#line 110 "asmToken.l"
 RT(RET);
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 113 "asmToken.l"
+#line 111 "asmToken.l"
 RT(JMP);
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 114 "asmToken.l"
+#line 112 "asmToken.l"
 RT(CASE);
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 116 "asmToken.l"
+#line 114 "asmToken.l"
 RT(CMP);
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 117 "asmToken.l"
+#line 115 "asmToken.l"
 RT(BT);
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 118 "asmToken.l"
+#line 116 "asmToken.l"
 RT(BF);
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 120 "asmToken.l"
+#line 118 "asmToken.l"
 RT(DROP)
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 121 "asmToken.l"
+#line 119 "asmToken.l"
 RT(DUP)
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 122 "asmToken.l"
+#line 120 "asmToken.l"
 RT(PULL)
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 123 "asmToken.l"
+#line 121 "asmToken.l"
 RT(ROT)
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 124 "asmToken.l"
+#line 122 "asmToken.l"
 RT(RST)
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 126 "asmToken.l"
+#line 124 "asmToken.l"
 RT(LD);
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 127 "asmToken.l"
+#line 125 "asmToken.l"
 RT(ST);
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 129 "asmToken.l"
+#line 127 "asmToken.l"
 RT(ALLOC);
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 131 "asmToken.l"
+#line 129 "asmToken.l"
 RT(FRAME);
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 132 "asmToken.l"
+#line 130 "asmToken.l"
 RT(LOCAL);
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 133 "asmToken.l"
+#line 131 "asmToken.l"
 RT(END);
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 135 "asmToken.l"
+#line 133 "asmToken.l"
 RT(PKG);
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 136 "asmToken.l"
+#line 134 "asmToken.l"
 RT(PUBLIC);
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 137 "asmToken.l"
+#line 135 "asmToken.l"
 RT(IMPORT);
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 139 "asmToken.l"
+#line 137 "asmToken.l"
 RT(LBRA);
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 140 "asmToken.l"
+#line 138 "asmToken.l"
 RT(RBRA);
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 141 "asmToken.l"
+#line 139 "asmToken.l"
 RT(DCOLON);
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 142 "asmToken.l"
+#line 140 "asmToken.l"
 RT(COLON);
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 143 "asmToken.l"
+#line 141 "asmToken.l"
 RT(HASH);
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 144 "asmToken.l"
+#line 142 "asmToken.l"
 RT(SLASH);
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 146 "asmToken.l"
+#line 144 "asmToken.l"
 {
   yylval->i = parseLong(sstext);
   RT(DECIMAL);
@@ -1433,17 +1431,17 @@ YY_RULE_SETUP
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 151 "asmToken.l"
+#line 149 "asmToken.l"
 { yylval->i = hextoi(sstext); RT(DECIMAL); }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 153 "asmToken.l"
+#line 151 "asmToken.l"
 { yylval->i = octtoi(sstext); RT(DECIMAL); }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 155 "asmToken.l"
+#line 153 "asmToken.l"
 {
   yylval->f = parseFloat(sstext); RT(FLOAT);
 	       }
@@ -1451,7 +1449,7 @@ YY_RULE_SETUP
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 159 "asmToken.l"
+#line 157 "asmToken.l"
 { yylval->str = uniDuplicate(sstext); RT(ID); }
 	YY_BREAK
 
@@ -1477,13 +1475,13 @@ YY_RULE_SETUP
 
 case 49:
 YY_RULE_SETUP
-#line 184 "asmToken.l"
+#line 182 "asmToken.l"
 { restart(); BEGIN(quoted); }
 	YY_BREAK
 
 case 50:
 YY_RULE_SETUP
-#line 187 "asmToken.l"
+#line 185 "asmToken.l"
 {
     BEGIN(INITIAL);
     putChar('\0');
@@ -1495,12 +1493,12 @@ YY_RULE_SETUP
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 194 "asmToken.l"
+#line 192 "asmToken.l"
 { parseError("unterminated quoted name",sslineno); }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 195 "asmToken.l"
+#line 193 "asmToken.l"
 {
     int octCode = octtoi(sstext);
     putChar(octCode);
@@ -1508,7 +1506,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 199 "asmToken.l"
+#line 197 "asmToken.l"
 {
     long hexCode = hextoi(sstext);
     putChar(hexCode);
@@ -1516,42 +1514,42 @@ YY_RULE_SETUP
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 203 "asmToken.l"
+#line 201 "asmToken.l"
 putChar('\a');
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 204 "asmToken.l"
+#line 202 "asmToken.l"
 putChar('\b');
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 205 "asmToken.l"
+#line 203 "asmToken.l"
 putChar('\f');
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 206 "asmToken.l"
+#line 204 "asmToken.l"
 putChar('\n');
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 207 "asmToken.l"
+#line 205 "asmToken.l"
 putChar('\r');
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 208 "asmToken.l"
+#line 206 "asmToken.l"
 putChar('\t');
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 209 "asmToken.l"
+#line 207 "asmToken.l"
 putChar(sstext[1]);
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 210 "asmToken.l"
+#line 208 "asmToken.l"
 {
     char *yptr = sstext;
     while(*yptr)
@@ -1561,13 +1559,13 @@ YY_RULE_SETUP
 
 case 62:
 YY_RULE_SETUP
-#line 217 "asmToken.l"
+#line 215 "asmToken.l"
 { restart(); BEGIN(string); }
 	YY_BREAK
 
 case 63:
 YY_RULE_SETUP
-#line 220 "asmToken.l"
+#line 218 "asmToken.l"
 {
     BEGIN(INITIAL);
     putChar('\0');
@@ -1579,13 +1577,13 @@ YY_RULE_SETUP
 case 64:
 /* rule 64 can match eol */
 YY_RULE_SETUP
-#line 227 "asmToken.l"
+#line 225 "asmToken.l"
 { parseError("unterminated string",sslineno);
   }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 229 "asmToken.l"
+#line 227 "asmToken.l"
 {
     int octCode = octtoi(sstext);
     putChar(octCode);
@@ -1593,7 +1591,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 233 "asmToken.l"
+#line 231 "asmToken.l"
 {
     long hexCode = hextoi(sstext);
     putChar(hexCode);
@@ -1601,42 +1599,42 @@ YY_RULE_SETUP
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 237 "asmToken.l"
+#line 235 "asmToken.l"
 putChar('\a');
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 238 "asmToken.l"
+#line 236 "asmToken.l"
 putChar('\b');
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 239 "asmToken.l"
+#line 237 "asmToken.l"
 putChar('\f');
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 240 "asmToken.l"
+#line 238 "asmToken.l"
 putChar('\n');
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 241 "asmToken.l"
+#line 239 "asmToken.l"
 putChar('\r');
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 242 "asmToken.l"
+#line 240 "asmToken.l"
 putChar('\t');
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 243 "asmToken.l"
+#line 241 "asmToken.l"
 putChar(sstext[1]);
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 244 "asmToken.l"
+#line 242 "asmToken.l"
 {
     char *yptr = sstext;
     while(*yptr)
@@ -1646,10 +1644,10 @@ YY_RULE_SETUP
 
 case 75:
 YY_RULE_SETUP
-#line 251 "asmToken.l"
+#line 249 "asmToken.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1653 "/home/fgm/cafe/src/Asm/asmToken.c"
+#line 1651 "/home/fgm/cafe/src/Asm/asmToken.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(comment):
 case YY_STATE_EOF(string):
@@ -2763,7 +2761,7 @@ void ssfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 251 "asmToken.l"
+#line 249 "asmToken.l"
 
 
 

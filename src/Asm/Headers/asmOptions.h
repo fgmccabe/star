@@ -2,6 +2,7 @@
 #define _OPTIONS_H_
 
 #include "config.h"
+#include "asm.h"
 
 #ifdef ALLTRACE
 #define DEBUGPARSE
@@ -20,5 +21,3 @@ extern logical debugAssem;
 extern int getOptions(int argc, char **argv);
 
 #endif
-
-

@@ -10,8 +10,8 @@
 #include "errors.h"
 #include <stdlib.h>
 
-char copyRight[] = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
-char version[] = PACKAGE " assembler - " VERSION " - " __DATE__;
+char *copyright = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
+char *version = PACKAGE " assembler - " VERSION " - " __DATE__;
 
 int main(int argc, char **argv) {
   int narg;
@@ -52,4 +52,3 @@ int main(int argc, char **argv) {
     reportErrorCount();
   }
 }
-

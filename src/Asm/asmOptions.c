@@ -8,8 +8,6 @@
 #include "asmOptions.h"
 #include "manifest.h"
 
-char copyRight[] = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0\n";
-
 logical debugAssem = False;    /* debug the assembling process */
 logical parseOnly = False;    /* set to true for parsing only */
 logical traceManifest = False;
@@ -103,5 +101,5 @@ Option options[] = {
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
-  return processOptions(copyRight, argc, argv, options, NumberOf(options));
+  return processOptions(copyright, argc, argv, options, NumberOf(options));
 }

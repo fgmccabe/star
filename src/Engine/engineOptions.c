@@ -265,10 +265,10 @@ Option options[] = {
 logical lineDebugging = False;
 
 static void showStar(ioPo out) {
-  outMsg(out, "star - %s", copyRight);
+  outMsg(out, "star - %s", copyright);
 }
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
-  return processOptions(copyRight, argc, argv, options, NumberOf(options));
+  return processOptions(copyright, argc, argv, options, NumberOf(options));
 }
