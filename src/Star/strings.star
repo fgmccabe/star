@@ -48,6 +48,9 @@ star.strings{
   public isDigit:(integer)=>boolean.
   isDigit(D) => _isNdChar(D).
 
+  public digitVal:(integer)=>integer.
+  digitVal(D) => _digitCode(D).
+
   public isHexDigit:(integer)=>boolean.
   isHexDigit(0ca) => true.
   isHexDigit(0cb) => true.

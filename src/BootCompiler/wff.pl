@@ -13,8 +13,7 @@
     isLetDef/4,isMacroRule/4,
     whereTerm/4,
     packageName/2,pkgName/2,
-    isComma/4,deComma/2,reComma/2,
-    rewrite/3,rewriteList/3]).
+    isComma/4,deComma/2,reComma/2]).
 :- use_module(abstract).
 :- use_module(misc).
 
@@ -265,19 +264,7 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
 
-rewriteList([],_,[]).
-rewriteList([T|L],Q,[WT|WL]) :-
-  rewrite(T,Q,WT),
-  rewriteList(L,Q,WL).
-
-rewrite(name(Lc,Nm),Q,name(Lc,WNm)) :-
-  is_member((Nm,WNm),Q).
-rewrite(name(Lc,Nm),_,name(Lc,Nm)).
-rewrite(integer(Lc,N),_,integer(Lc,N)).
-rewrite(float(Lc,N),_,float(Lc,N)).
-rewrite(string(Lc,Nm),_,string(Lc,Nm)).
-rewrite(tuple(Lc,Nm,Els),Q,tuple(Lc,Nm,WEls)) :-
-  rewriteList(Els,Q,WEls).
-rewrite(app(Lc,Op,Arg),Q,app(Lc,WOp,WArg)) :-
-  rewrite(Op,Q,WOp),
-  rewrite(Arg,Q,WArg).
+% Parser Display
+isParsingRule(T,Lc,Hd,Bd,Rt) :-
+  isBinary(T,Lc,"-->",Hd,Rhs),
+  (isBinary(Rhs,_,"::",Bd,Rt) ; Bd=Rhs, isBraceTuple(Rt,Lc,[])).

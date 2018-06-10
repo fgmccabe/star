@@ -30,6 +30,12 @@ star.parse{
     prs([Cx,..L]) => tk(Cx) >>= (_) => prs(L).
   } in prs(S::list[integer]).
 
+  public _pKy:all k ~~ (string,k)=>parser[integer,k].
+  _pKy(K,V) => let{
+    prs([]) => return V.
+    prs([Cx,..L]) => tk(Cx) >>= (_) => prs(L).
+  } in prs(K::list[integer]).
+
   public implementation all t ~~ monad[parser[t]] => {
     return a => parser((S)=>[(a,S)]).
 
@@ -72,6 +78,18 @@ star.parse{
     rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) +++ return A
   } in (P >>= rest).
 
+  public _pstar:all e,t,u ~~ (parser[t,e],(e,u)=>u,u)=>parser[t,u].
+  _pstar(P,Op,Z) => let{
+    prs:(u) => parser[t,u].
+    prs(A) => (P >>= (O) => prs(Op(O,A))) +++ return A
+  } in prs(Z).
+
+  public _pplus:all t,u ~~ (parser[t,u],(u,u)=>u)=>parser[t,u].
+  _pplus(P,Op) => let{
+    prs:(u) => parser[t,u].
+    prs(A) => (P >>= (O) => prs(Op(O,A))) +++ return A
+  } in (P>>=(Z) => prs(Z)).
+
   public spaces:parser[integer,()].
   spaces = many(sat(isSpace)) >>= (_) => return ().
 
@@ -80,4 +98,7 @@ star.parse{
 
   public digit:parser[integer,integer].
   digit = sat(isDigit).
+
+  public natural:parser[integer,integer].
+  natural = _pplus(digit,(d,s)=>s*10+digitVal(d)).
 }

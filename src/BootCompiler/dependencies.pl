@@ -341,7 +341,7 @@ collStmtRefs(St,All,_,R,Rx) :-
   collectTermRefs(Inner,All,R,Rx).
 collStmtRefs(St,_,_,R,R) :-
   locOfAst(St,Lc),
-  reportError("Cannot fathom %s",[St],Lc).
+  reportError("Cannot fathom definition %s",[St],Lc).
 
 collectHeadRefs(Hd,All,R0,Refs) :-
   isWhere(Hd,_,L,C),

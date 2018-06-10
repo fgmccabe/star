@@ -17,8 +17,21 @@ rewriteStmts([St|More],[StX|Stmts]) :-
 rewriteStmts([St|More],[St|Stmts]) :-
   rewriteStmts(More,Stmts).
 
-% a stub for now
+% handle parser notation
+rewriteStmt(St,PSt) :-
+  isParsingRule(St,Lc,Hd,Bd,Rt),!,
+  genParserRule(Hd,Lc,Bd,Rt).
 rewriteStmt(X,X).
+
+genParserRule(Hd,Lc,Bd,Rt) :-
+  isRoundTerm(Hd,_,_),!,
+  genBody(Bd,Body),
+  genReturn(Rt,Body,Rtn),
+  binary(Lc,"=>",Hd,Rtn).
+genParserRule(Hd,Lc,Bd,Rt) :-
+  genBody(Bd,Body),
+  genReturn(Rt,Body,Rtn),
+  binary(Lc,"=",Hd,Rtn).
 
 mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   genIden(Lc,V), % create a new variable

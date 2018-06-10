@@ -17,6 +17,7 @@
 		"test.fact" : "fact.star",
 		"test.g" : "g.star",
 		"test.gr" : "grtest.star",
+		"test.j" : "j.star",
 		"test.let" : "letish.star",
 		"test.m" : "m.star",
 		"test.mm" : "mm.star",

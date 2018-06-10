@@ -2,17 +2,17 @@ star.action{
   import star.core.
   import star.monad.
 
-  public all a ~~ action[a] ::= done(a) | delay(()=>action[a]) | err(string).
+  public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
 
-  public implementation monad[action] => {
+  public implementation all e ~~ monad[action[e]] => {.
     (err(E) >>= _) => err(E).
     (done(A) >>= F) => delay(()=>F(A)).
     (delay(G) >>= F) => delay(()=>G()>>=F).
 
     return X => delay(()=>done(X)).
-  }
+  .}
 
-  public implementation execution[action->>string] => {
+  public implementation execution[action[string]->>string] => {
     _perform(done(X)) => X.
     _perform(delay(F)) => _perform(F()).
 
