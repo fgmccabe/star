@@ -1,7 +1,7 @@
 :-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,
     isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
     isConstrained/3,reConstrain/3,
-    isContractStmt/6,isImplementationStmt/6,
+    isContractStmt/6,isImplementationStmt/6,isParsingRule/4,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,isTypeLambda/4,
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
@@ -265,6 +265,5 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(I,RP,Pkg).
 
 % Parser Display
-isParsingRule(T,Lc,Hd,Bd,Rt) :-
-  isBinary(T,Lc,"-->",Hd,Rhs),
-  (isBinary(Rhs,_,"::",Bd,Rt) ; Bd=Rhs, isBraceTuple(Rt,Lc,[])).
+isParsingRule(T,Lc,Hd,Rhs) :-
+  isBinary(T,Lc,"-->",Hd,Rhs).

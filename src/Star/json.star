@@ -64,13 +64,13 @@ star.json{
   parseNum = (natural >>= (M)=>(tk(0c.) >>= (_) => fraction(M::float,0.1) >>= (F) => exponent(F)) +++ return M::float)) +++
              (tk(0c-) >>= (_) => parseNum >>= (N) => return -N).
 
-  parseNum --> natural, [0c.], fraction(0.1), [0ce], decimal :: { ($1::float+$3)*(10**$5)}.
-  
+  -- parseNum^(M::float+F*10**E) --> natural^M, [0c.], fraction(0.1)^F, [0ce], decimal^E.
+
 
   fraction:(float,float) => parser[integer,float].
   fraction(SoFar,Scale) => (digit >>= (D) => fraction(SoFar+Scale*digitVal(D),Scale*0.1)) +++ return SoFar.
 
   exponent:parser[integer,float].
-  exponent = tk(0ce) >>= (_) => decimal
+  exponent = tk(0ce) >>= (_) => decimal >>= (E) => return E::float.
 
 }

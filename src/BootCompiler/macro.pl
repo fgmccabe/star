@@ -19,19 +19,35 @@ rewriteStmts([St|More],[St|Stmts]) :-
 
 % handle parser notation
 rewriteStmt(St,PSt) :-
-  isParsingRule(St,Lc,Hd,Bd,Rt),!,
-  genParserRule(Hd,Lc,Bd,Rt).
+  isParsingRule(St,Lc,Hd,Rhs),!,
+  genParserRule(Hd,Lc,Rhs,PSt).
 rewriteStmt(X,X).
 
-genParserRule(Hd,Lc,Bd,Rt) :-
+genParserRule(Lhs,Lc,Rhs,St) :-
+  pickupRtn(Lhs,Hd,Rtn),
   isRoundTerm(Hd,_,_),!,
-  genBody(Bd,Body),
-  genReturn(Rt,Body,Rtn),
-  binary(Lc,"=>",Hd,Rtn).
-genParserRule(Hd,Lc,Bd,Rt) :-
+  genBody(Rhs,Rtn,Body),
+  binary(Lc,"=>",Hd,Body).
+genParserRule(Lhs,Lc,Rhs,Rt) :-
+  pickupRtn(Lhs,Hd,Rtn),
   genBody(Bd,Body),
   genReturn(Rt,Body,Rtn),
   binary(Lc,"=",Hd,Rtn).
+
+genBody(B,Rs,Rx,Rtn) :-
+  isRtn(B,Lc,Hd,Rx),!,
+  binary(Lc,"=>",Rs,)
+
+isRtn(T,Lc,H,R) :-
+  isBinary(T,Lc,H,Rh),
+  isTuple(R,Lc,[Rh]).
+
+pickupRtn(T,H,R) :-
+  isBinary(T,Lc,"^",H,A),!,
+  isTuple(R,Lc,[A]).
+pickupRtn(T,T,A) :-
+  locOfAst(T,Lc),
+  isTuple(A,Lc,[name(Lc,"_")]).
 
 mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   genIden(Lc,V), % create a new variable
