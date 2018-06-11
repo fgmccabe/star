@@ -84,6 +84,7 @@
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 950)]).
+  operator("^", [infixOp(998, 999, 998)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("?|", [infixOp(1248, 1249, 1249)]).
   operator("private", [prefixOp(1700, 1699)]).
@@ -233,6 +234,7 @@
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('\\+',"\\+").	 /* logical negation */
+  final('^',"^").	 /* output marker from grammar */
   final('^^',"^^").	 /* wrap value as special parser */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */

@@ -114,6 +114,15 @@
     "desc": "grammar rule"
   },
   {
+    "infixOp": "^",
+    "priorities": [
+      998,
+      999,
+      998
+    ],
+    "desc": "output marker from grammar"
+  },
+  {
     "infixOp": "->>",
     "priorities": [
       1199,
