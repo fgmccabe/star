@@ -6,7 +6,7 @@
       braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,isEmptyBrace/1,
       qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
       squareTerm/4,isSquare/3,isSquare/4,isSquareTuple/3,isSquareTuple/2,isSquareTerm/3,isSquareTerm/4,
-      isName/2,isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,isInteger/2,
+      isName/2,isIden/1,isIden/2,isIden/3,genIden/2,genIden/3,isString/2,isString/3,isInteger/2,
       isConsTerm/4,isLConsTerm/4,
       sameTerm/2,
       explodeString/2]).
@@ -113,6 +113,8 @@ genIden(Lc,Pre,name(Lc,Id)) :-
   genstr(Pre,Id).
 
 isString(string(_,St),St).
+
+isString(string(Lc,Txt),Lc,Txt).
 
 isInteger(integer(_,Ix),Ix).
 

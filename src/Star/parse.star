@@ -24,11 +24,18 @@ star.parse{
   public tk:all t ~~ equality[t]|:(t)=>parser[t,t].
   tk(Chr) => sat((Ch)=>Ch==Chr).
 
+  public _literal:all t ~~ equality[t] |: (list[t]) => parser[t,()].
+  _literal([]) => return ().
+  _literal([Cx,..L]) => tk(Cx) >>= (_) => _literal(L).
+
+  public _ahead:all t,v ~~ (parser[t,v]) => parser[t,v].
+  _ahead(P) => let{
+    hd([],_) => [].
+    hd([(F,_),.._],S) => [(F,S)].
+    } in parser((S)=>hd(parse(P,S),S)).
+
   public str:(string) => parser[integer,()].
-  str(S) => let{
-    prs([]) => return ().
-    prs([Cx,..L]) => tk(Cx) >>= (_) => prs(L).
-  } in prs(S::list[integer]).
+  str(S) => _literal(S::list[integer]).
 
   public _pKy:all k ~~ (string,k)=>parser[integer,k].
   _pKy(K,V) => let{

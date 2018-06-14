@@ -50,7 +50,7 @@ star.json{
   equalJson(jColl(C1),jColl(C2)) => C1==C2.
   equalJson(jSeq(L1),jSeq(L2)) => L1==L2.
   equalJson(_,_) => false.
-
+/*
   jP:parser[integer,json].
   jP = _pKy("true",jTrue) +++
        _pKy("false",jFalse) +++
@@ -61,8 +61,8 @@ star.json{
        jPColl.
 
   parseNum:parser[integer,float].
-  parseNum = (natural >>= (M)=>(tk(0c.) >>= (_) => fraction(M::float,0.1) >>= (F) => exponent(F)) +++ return M::float)) +++
-             (tk(0c-) >>= (_) => parseNum >>= (N) => return -N).
+  parseNum = (natural >>= (M)=>(tk(0c.) >>= (_) => fraction(M::float,0.1) >>= (F) => exponent(F)) +++ return M::float) +++
+             (tk(0c-) >>= (_) => parseNum >>= (N) => return (-N)).
 
   -- parseNum^(M::float+F*10**E) --> natural^M, [0c.], fraction(0.1)^F, [0ce], decimal^E.
 
@@ -72,5 +72,5 @@ star.json{
 
   exponent:parser[integer,float].
   exponent = tk(0ce) >>= (_) => decimal >>= (E) => return E::float.
-
+*/
 }
