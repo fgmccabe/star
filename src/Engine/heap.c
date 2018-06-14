@@ -63,8 +63,8 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
     termPo t = currHeap->curr;
     H->curr = H->curr + amnt;
     t->clss = clss;
-#ifdef TRACEMEM
-    if (traceMemory) {
+#ifdef TRACESTATS
+    if (runStats) {
       numAllocated++;
       totalAllocated += amnt;
     }
