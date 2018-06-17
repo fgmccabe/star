@@ -60,4 +60,15 @@ star.collection{
     mapOverList(_,_,Lx,Lx)=>_list_nil(Lx).
     mapOverList(L,F,Ix,Lx) => _list_prepend(mapOverList(L,F,Ix+1,Lx),F(_list_nth(L,Ix))).
   }
+
+  public implementation reduce[list] => {
+    reducer(F) => let{
+      rdr([],z) => z.
+      rdr([x,..l],z) => F(x,rdr(l,z)).
+    } in rdr.
+    reducel(F) => let{
+      rdl(z,[]) => z.
+      rdl(z,[x,..l]) => F(rdl(z,l),x).
+    } in rdl.
+  }
 }

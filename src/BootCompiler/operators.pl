@@ -39,13 +39,14 @@
   operator("?=", [infixOp(899, 900, 899)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
-  operator("^^", [prefixOp(300, 299)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
+  operator("^^", [infixOp(999, 1000, 999)]).
   operator("%", [infixOp(700, 700, 699)]).
+  operator("<-", [infixOp(974, 975, 974)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [prefixOp(905, 904)]).
-  operator("*", [infixOp(700, 700, 699)]).
-  operator("+", [prefixOp(760, 759), infixOp(720, 720, 719)]).
+  operator("*", [postfixOp(939, 940), infixOp(700, 700, 699)]).
+  operator("+", [postfixOp(939, 940), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
@@ -55,7 +56,6 @@
   operator("<*>", [infixOp(949, 950, 950)]).
   operator("•", [infixOp(450, 450, 449)]).
   operator("exists", [prefixOp(1010, 1009)]).
-  operator("<<", [infixOp(499, 500, 499)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
@@ -84,7 +84,6 @@
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 950)]).
-  operator("^", [infixOp(998, 999, 998)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("?|", [infixOp(1248, 1249, 1249)]).
   operator("private", [prefixOp(1700, 1699)]).
@@ -99,12 +98,12 @@
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("|", [infixOp(1248, 1249, 1249)]).
+  operator("|", [infixOp(1148, 1149, 1149)]).
   operator(".~", [infixOp(499, 500, 499)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).
   operator("^//", [infixOp(800, 800, 799)]).
-  operator("||", [infixOp(920, 920, 919)]).
+  operator("||", [infixOp(1148, 1149, 1149)]).
   operator("::=", [infixOp(1249, 1250, 1249)]).
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
@@ -179,7 +178,7 @@
   follows('::','=','::=').
   follows('<','*','<*').
   follows('<','~','<~').
-  follows('<','<','<<').
+  follows('<','-','<-').
   follows('<','=','<=').
   follows('<*','>','<*>').
   follows('<=','>','<=>').
@@ -200,9 +199,9 @@
 
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
-  final('*',"*").	 /* multiplication */
+  final('*',"*").	 /* zero or more repetitions */
   final('**',"**").	 /* exponentiation */
-  final('+',"+").	 /* lookahead in grammar rule */
+  final('+',"+").	 /* one or more repetitions */
   final('++',"++").	 /* concatenate */
   final('+++',"+++").	 /* choice */
   final(',',",").	 /* tupling operator */
@@ -234,8 +233,7 @@
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('\\+',"\\+").	 /* logical negation */
-  final('^',"^").	 /* output marker from grammar */
-  final('^^',"^^").	 /* wrap value as special parser */
+  final('^^',"^^").	 /* Overall output from a parser rule */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
   final(':',":").	 /* type annotation */
@@ -246,7 +244,7 @@
   final('<',"<").	 /* less than */
   final('<*>',"<*>").	 /* applicative splat */
   final('<~',"<~").	 /* type interface rule */
-  final('<<',"<<").	 /* string formatting */
+  final('<-',"<-").	 /* variable bind */
   final('<=',"<=").	 /* pattern arrow */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */

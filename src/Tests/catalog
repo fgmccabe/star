@@ -25,6 +25,7 @@
 		"test.ops" : "ops.star",
 		"test.p" : "p.star",
 		"test.p1" : "p1.star",
+		"test.pp" : "pp.star",
 		"test.compose" : "compose.star",
 		"test.r" : "r.star",
 		"test.s" : "s.star",

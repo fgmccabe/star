@@ -4,7 +4,7 @@ star.finger{
   import star.cons.
   import star.arith.
 
-  -- 2-3 finger trees. 
+  -- 2-3 finger trees.
 
   public all a ~~ fingerTree[a] ::=
       eTree |
@@ -40,6 +40,13 @@ star.finger{
       rdl(z,three(u,v,w)) => F(F(F(z,u),v),w).
       rdl(z,four(u,v,w,x)) => F(F(F(F(z,x),u),v),w).
     } in rdl.
+  }
+
+  implementation all e ~~coercion[digit[e],list[e]] => {
+    _coerce(one(x)) => [x].
+    _coerce(two(x,y)) => [x,y].
+    _coerce(three(x,y,z)) => [x,y,z].
+    _coerce(four(x,y,z,u)) => [x,y,z,u].
   }
 
   implementation reduce[fingerTree] => {.
@@ -89,4 +96,21 @@ star.finger{
   liftAppend:all e,f/1 ~~ reduce[f] |: (fingerTree[e],f[e])=>fingerTree[e].
   liftAppend = reducel(append).
 
+  app3:all a ~~ (fingerTree[a],list[a],fingerTree[a]) => fingerTree[a].
+  app3(eTree,ts,xs) => liftPrepend(ts,xs).
+  app3(xs,ts,eTree) => liftAppend(xs,ts).
+  app3(single(x),ts,xs) => prepend(x,liftPrepend(ts,xs)).
+  app3(xs,ts,single(x)) => append(liftAppend(xs,ts),x).
+  app3(deep(pr1,m1,sf1),ts,deep(pr2,m2,sf2)) =>
+    deep(pr1,app3(m1,nodes(sf1::list[a]++ts++pr2::list[a]),m2),sf2).
+
+  nodes:all e ~~ (list[e]) => list[node[e]].
+  nodes([a,b]) => [node2(a,b)].
+  nodes([a,b,c]) => [node3(a,b,c)].
+  nodes([a,b,c,d]) => [node2(a,b),node2(c,d)].
+  nodes([a,b,c,..l]) => [node3(a,b,c),..nodes(l)].
+
+  implementation all e ~~ concat[fingerTree[e]] => {
+    T1++T2 => app3(T1,[],T2).
+  }
 }

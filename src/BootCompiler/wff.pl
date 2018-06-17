@@ -1,7 +1,7 @@
 :-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,
     isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
     isConstrained/3,reConstrain/3,
-    isContractStmt/6,isImplementationStmt/6,isParsingRule/4,
+    isContractStmt/6,isImplementationStmt/6,isParsingRule/4,parserName/3,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,isTypeLambda/4,
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
@@ -181,8 +181,8 @@ isOpen(St,Lc,Ex) :-
   isUnary(St,Lc,"open",Ex).
 
 isConditional(Term,Lc,Cond,Th,El) :-
-  isBinary(Term,Lc,"|",L,El),
-  isBinary(L,_,"?",Cond,Th).
+  isBinary(Term,Lc,"?",Cond,R),
+  isBinary(R,_,"|",Th,El).
 
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
@@ -267,3 +267,16 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
 % Parser Display
 isParsingRule(T,Lc,Hd,Rhs) :-
   isBinary(T,Lc,"-->",Hd,Rhs).
+
+parserName(T,Lc,Nm) :-
+  isParsingRule(T,Lc,Hd,_),
+  headName(Hd,Nm).
+
+headName(H,Nm) :-
+  isBinary(H,_,"^",L,_),
+  headName(L,Nm).
+headName(H,Nm) :-
+  isIden(H,_,Nm).
+headName(H,Nm) :-
+  isRoundTerm(H,N,_),
+  isIden(N,_,Nm).

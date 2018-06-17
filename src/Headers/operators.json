@@ -35,9 +35,9 @@
   {
     "infixOp": "|",
     "priorities": [
-      1248,
-      1249,
-      1249
+      1148,
+      1149,
+      1149
     ],
     "desc": "type union and conditional"
   },
@@ -114,13 +114,22 @@
     "desc": "grammar rule"
   },
   {
-    "infixOp": "^",
+    "infixOp": "<-",
     "priorities": [
-      998,
-      999,
-      998
+      974,
+      975,
+      974
     ],
-    "desc": "output marker from grammar"
+    "desc": "variable bind"
+  },
+  {
+    "infixOp": "^^",
+    "priorities": [
+      999,
+      1000,
+      999
+    ],
+    "desc": "Overall output from a parser rule"
   },
   {
     "infixOp": "->>",
@@ -251,9 +260,9 @@
   {
     "infixOp": "||",
     "priorities": [
-      920,
-      920,
-      919
+      1148,
+      1149,
+      1149
     ],
     "desc": "disjunction"
   },
@@ -546,15 +555,6 @@
     "desc": "test nth bit"
   },
   {
-    "infixOp": "<<",
-    "priorities": [
-      499,
-      500,
-      499
-    ],
-    "desc": "string formatting"
-  },
-  {
     "infixOp": ".~",
     "priorities": [
       499,
@@ -730,14 +730,6 @@
     "desc": "import module"
   },
   {
-    "prefixOp": "+",
-    "priorities": [
-      760,
-      759
-    ],
-    "desc": "lookahead in grammar rule"
-  },
-  {
     "prefixOp": ".~.",
     "priorities": [
       650,
@@ -752,14 +744,6 @@
       399
     ],
     "desc": "meta annotation"
-  },
-  {
-    "prefixOp": "^^",
-    "priorities": [
-      300,
-      299
-    ],
-    "desc": "wrap value as special parser"
   },
   {
     "prefixOp": "pure",
@@ -800,6 +784,22 @@
       1900
     ],
     "desc": "statement terminator"
+  },
+  {
+    "postfixOp": "*",
+    "priorities": [
+      939,
+      940
+    ],
+    "desc": "zero or more repetitions"
+  },
+  {
+    "postfixOp": "+",
+    "priorities": [
+      939,
+      940
+    ],
+    "desc": "one or more repetitions"
   },
   {
     "postfixOp": "default",

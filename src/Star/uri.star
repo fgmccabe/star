@@ -118,7 +118,7 @@ star.uri{
   isAlphaDash(Ch) => isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch).
 
   port:parser[integer,string].
-  port = many1(sat(isDigit)) >>= (P)=>return (P::string).
+  port = _plus(sat(isDigit)) >>= (P)=>return (P::string).
 
   isMinus:(integer)=>boolean.
   isMinus(Ch) => Ch==0c-.

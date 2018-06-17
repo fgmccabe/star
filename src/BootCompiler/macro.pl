@@ -14,91 +14,70 @@ rewriteStmts([],[]).
 rewriteStmts([St|More],[StX|Stmts]) :-
   rewriteStmt(St,StX),
   rewriteStmts(More,Stmts).
-rewriteStmts([St|More],[St|Stmts]) :-
-  rewriteStmts(More,Stmts).
 
-% handle parser notation
-rewriteStmt(St,PSt) :-
-  isParsingRule(St,Lc,Hd,Rhs),!,
-  genParserRule(Hd,Lc,Rhs,PSt),
-  display(PSt).
+rewriteStmt(St,StX) :-
+  isParsingRule(St,_,_,_),!,
+  genParserRule(St,StX).
 rewriteStmt(X,X).
 
-genParserRule(Lhs,Lc,Rhs,St) :-
-  pickupRtn(Lhs,Hd,Rtn),
-  isRoundTerm(Hd,_,_),!,
-  genBody(Rhs,Rtn,Body),
-  binary(Lc,"=>",Hd,Body,St).
-genParserRule(Lhs,Lc,Rhs,St) :-
-  pickupRtn(Lhs,Hd,Rtn),
-  genBody(Rhs,Rtn,Body),
-  binary(Lc,"=",Hd,Body,St).
+% handle grammar notation
+genParserRule(Rl,St) :-
+  isParsingRule(Rl,Lc,Hd,Rhs),
+  genBody(Rhs,Body),
+  (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)).
 
-genBody(B,Rs,Rtn) :-
+genBody(B,Bd) :-
   isBinary(B,Lc,",",L,R),
-  (isRtn(L,LLc,H,A) ->
-    genBody(R,Rs,BB),
-    binary(LLc,"=>",A,BB,BBC),
-    genCall(H,Cl),
-    binary(Lc,">>=",Cl,BBC,Rtn);
-   anonArg(Lc,A),
-   genBody(R,Rs,BB),
-   binary(Lc,"=>",A,BB,BBC),
-   genCall(L,Cl),
-   binary(Lc,">>=",Cl,BBC,Rtn)).
-genBody(T,Rs,Cl) :-
-  isBinary(T,Lc,"|",L,R),
-  genBody(L,Rs,LL),
-  genBody(R,Rs,RR),
-  binary(Lc,"++",LL,RR,Cl).
-genBody(T,Rs,Cl) :-
-  isBinary(T,Lc,"||",L,R),
-  genBody(L,Rs,LL),
-  genBody(R,Rs,RR),
-  binary(Lc,"+++",LL,RR,Cl).
-genBody(T,Rs,Cl) :-
-  isUnary(T,Lc,"\\+",L),
-  genBody(L,void,LL),
-  unary(Lc,"_noparse",LL,Cl).
-genBody(T,Rs,Cl) :-
-  isUnary(T,Lc,"+",L),
-  genBody(L,Rs,LL),
-  unary(Lc,"_plus",LL,Cl).
-genBody(T,Rs,Cl) :-
-  isUnary(T,Lc,"*",L),
-  genBody(L,Rs,LL),
-  unary(Lc,"_star",LL,Cl).
-genBody(B,void,B) :-
- (isRtn(B,Lc,_H,_A) ->
-   reportError("parser nt may not have output %s",[B],Lc);
-   true).
-genBody(B,Rs,Rtn) :-
-  locOfAst(B,RLc),
-  unary(RLc,"return",Rs,RR),
-  (isRtn(B,Lc,Hd,A) ->
-    genCall(Hd,Cl),
-    binary(Lc,"=>",A,RR,BB),
-    binary(RLc,">>=",Cl,BB,Rtn);
-   anonArg(RLc,A),
-   genCall(B,Cl),
-   binary(RLc,"=>",A,RR,BB),
-   binary(RLc,">>=",Cl,BB,Rtn)).
+  genCall(L,Bnd,LL),
+  genBody(R,RR),
+  genBind(Bnd,Lc,LL,RR,Bd).
+genBody(B,Bd) :-
+  isBinary(B,Lc,"^^",L,R),
+  unary(Lc,"return",R,RR),
+  genCall(L,Bnd,LL),
+  genBind(Bnd,Lc,LL,RR,Bd).
+genBody(B,Bd) :-
+  genCall(B,_,Bd).
 
-genCall(T,Cl) :-
+genCall(C,V,Cl) :-
+  isRtn(C,_,V,CC),
+  genCall(CC,_,Cl).
+genCall(T,void,Cl) :-
+  isBinary(T,Lc,"|",L,R),
+  genBody(L,LL),
+  genBody(R,RR),
+  binary(Lc,"++",LL,RR,Cl).
+genCall(T,void,Cl) :-
+  isBinary(T,Lc,"||",L,R),
+  genBody(L,LL),
+  genBody(R,RR),
+  binary(Lc,"+++",LL,RR,Cl).
+genCall(T,void,Cl) :-
+  isUnary(T,Lc,"+",L),
+  genBody(L,LL),
+  unary(Lc,"_plus",LL,Cl).
+genCall(T,void,Cl) :-
+  isUnary(T,Lc,"*",L),
+  genBody(L,LL),
+  unary(Lc,"_star",LL,Cl).
+genCall(T,void,Cl) :-
   isSquareTuple(T,Lc,_Els),
   unary(Lc,"_literal",T,Cl).
-genCall(T,Cl) :-
-  isString(T,Lc,Txt),
-  unary(Lc,"_str",Txt,Cl).
-genCall(T,T).
+genCall(T,void,Cl) :-
+  isString(T,Lc,_),
+  unary(Lc,"_str",T,Cl).
+genCall(T,void,T).
 
-isRtn(T,Lc,H,R) :-
-  isBinary(T,Lc,"^",H,Rh),
+genBind(void,Lc,LL,RR,Bd) :-
+  anonArg(Lc,A),
+  genBind(A,Lc,LL,RR,Bd).
+genBind(A,Lc,LL,RR,Bd) :-
+  binary(Lc,"=>",A,RR,Fn),
+  binary(Lc,">>=",LL,Fn,Bd).
+
+isRtn(T,Lc,R,E) :-
+  isBinary(T,Lc,"<-",Rh,E),
   isTuple(R,Lc,[Rh]).
-
-pickupRtn(T,H,R) :-
-  isRtn(T,_,H,R),!.
-pickupRtn(T,T,void).
 
 anonArg(Lc,tuple(Lc,"()",[name(Lc,"_")])).
 
