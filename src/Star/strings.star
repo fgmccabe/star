@@ -73,6 +73,6 @@ star.strings{
   isLetter(Ch) => _isLetterChar(Ch).
 
   public isAlphaNum:(integer) => boolean.
-  isAlphaNum(Ch) => _isLetterChar(Ch) || _isNdChar(Ch).
+  isAlphaNum(Ch) => (_isLetterChar(Ch) || _isNdChar(Ch)).
 
 }

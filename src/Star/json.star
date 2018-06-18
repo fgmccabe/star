@@ -50,27 +50,32 @@ star.json{
   equalJson(jColl(C1),jColl(C2)) => C1==C2.
   equalJson(jSeq(L1),jSeq(L2)) => L1==L2.
   equalJson(_,_) => false.
-/*
+
+  public pJson:parser[integer,json].
+  pJson --> spaces, jP.
+
   jP:parser[integer,json].
-  jP = _pKy("true",jTrue) +++
-       _pKy("false",jFalse) +++
-       _pKy("null",jNull) +++
-       jPNum+++
-       jPTxt+++
-       jPSeq+++
-       jPColl.
+  jP --> "true" ^^ jTrue ||
+         "false" ^^ jFalse ||
+         "null" ^^ jNull ||
+         (F<-real ^^ jNum(F)) ||
+         (S<-string ^^ jTxt(S)) ||
+         pSeq ||
+         pColl.
 
-  parseNum:parser[integer,float].
-  parseNum = (natural >>= (M)=>(tk(0c.) >>= (_) => fraction(M::float,0.1) >>= (F) => exponent(F)) +++ return M::float) +++
-             (tk(0c-) >>= (_) => parseNum >>= (N) => return (-N)).
+  string:parser[integer,string].
+  string --> [0c"], T<-strchr*, [0c"] ^^ T::string.
 
-  -- parseNum^(M::float+F*10**E) --> natural^M, [0c.], fraction(0.1)^F, [0ce], decimal^E.
+  strchr:parser[integer,integer].
+  strchr --> [0c\\], _item || _item.
 
+  pSeq:parser[integer,json].
+  pSeq --> [0c[], S<- sepby(pJson,skip(_str(","))), [0c]] ^^ jSeq(S).
 
-  fraction:(float,float) => parser[integer,float].
-  fraction(SoFar,Scale) => (digit >>= (D) => fraction(SoFar+Scale*digitVal(D),Scale*0.1)) +++ return SoFar.
+  pEntry:parser[integer,(string,json)].
+  pEntry --> spaces, K<-string, spaces, ":", spaces, V<-jP ^^ (K,V).
 
-  exponent:parser[integer,float].
-  exponent = tk(0ce) >>= (_) => decimal >>= (E) => return E::float.
-*/
+  pColl:parser[integer,json].
+  pColl --> "{", C<-sepby(pEntry,skip(_str(","))), "}" ^^jColl(C::map[string,json]).
+
 }

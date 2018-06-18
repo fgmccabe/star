@@ -6,8 +6,8 @@ star.parse{
   public parse:all e,t ~~ (parser[t,e],list[t]) => list[(e,list[t])].
   parse(parser(P),S) => P(S).
 
-  public item:all t ~~ parser[t,t].
-  item=let{
+  public _item:all t ~~ parser[t,t].
+  _item=let{
     t([C,..L]) => [(C,L)].
     t([]) => [].
   } in parser(t).
@@ -19,7 +19,7 @@ star.parse{
   } in parser((S)=>hd(parse(P,S),S)).
 
   public sat:all t ~~ ((t)=>boolean) => parser[t,t].
-  sat(T) => item >>= (Ch) => (T(Ch) ? return Ch | zed).
+  sat(T) => _item >>= (Ch) => (T(Ch) ? return Ch | zed).
 
   public tk:all t ~~ equality[t]|:(t)=>parser[t,t].
   tk(Chr) => sat((Ch)=>Ch==Chr).
@@ -110,4 +110,18 @@ star.parse{
 
   public natural:parser[integer,integer].
   natural = _pplus(digit,(d,s)=>s*10+digitVal(d)).
+
+  public decimal:parser[integer,integer].
+  decimal --> natural || [0c-], N<-natural ^^ -N.
+
+  public real:parser[integer,float].
+  real --> (M<-natural, ([0c.], F<-fraction(M::float,0.1), E<-exponent^^(F*E)
+             || []^^(M::float)))
+         || [0c-], N<-real ^^(-N) .
+
+  fraction:(float,float) => parser[integer,float].
+  fraction(SoFar,Scale) --> (D<-digit, fraction(SoFar+Scale*(digitVal(D)::float),Scale*0.1)) || []^^SoFar.
+
+  exponent:parser[integer,float].
+  exponent --> [0ce], E<-decimal ^^ 10.0**(E::float).
 }
