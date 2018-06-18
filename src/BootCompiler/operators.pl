@@ -68,7 +68,7 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(300, 299)]).
-  operator("?", [infixOp(1199, 1200, 1199)]).
+  operator("?", [infixOp(1148, 1149, 1149)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
   operator("open", [prefixOp(900, 899)]).

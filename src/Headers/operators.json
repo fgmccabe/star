@@ -98,9 +98,9 @@
   {
     "infixOp": "?",
     "priorities": [
-      1199,
-      1200,
-      1199
+      1148,
+      1149,
+      1149
     ],
     "desc": "conditional operator"
   },
