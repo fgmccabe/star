@@ -196,6 +196,35 @@ static retCode debugOption(char *option, logical enable, void *cl) {
   return Ok;
 }
 
+static retCode debugOptHelp(ioPo out,char opt,char *usage,void *cl){
+  return outMsg(out,"    -d|--debug <"
+#ifdef TRACEEXEC
+  "d|D|"
+#endif
+#ifdef TRACEVERIFY
+  "v|"
+#endif
+#ifdef TRACEMEM
+  "m|"
+#endif
+#ifdef LOCKTRACE
+  "l|"
+#endif
+#ifdef TRACEEXEC
+  "G|g|"
+#endif
+#ifdef TRACESTATS
+  "s|"
+#endif
+#ifdef TRACEMANIFEST
+  "M|"
+#endif
+#ifdef TRACEPKG
+  "P"
+#endif
+  ">\n%_");
+}
+
 static retCode setLogFile(char *option, logical enable, void *cl) {
   return initLogfile(option);
 }
@@ -250,12 +279,12 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",        True,  debugOption,    Null, "-d|--debug <flags>"},
+  {'d', "debug",        True,  debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
   {'g', "symbol-debug", False, symbolDebug,    Null, "-g|--symbol-debug"},
-  {'G', "debugger",     True,  setDebugger,    Null, "-G|--debugger"},
+  {'G', "debugger",     True,  setDebugger,    Null, "-G|--debugger <pkg>"},
   {'v', "version",      False, displayVersion, Null, "-v|--version"},
   {'b', "boot-pkg",     True,  setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",         True,  setMainEntry,   Null, "-m|--main"},
+  {'m', "main",         True,  setMainEntry,   Null, "-m|--main <entry>"},
   {'L', "logFile",      True,  setLogFile,     Null, "-L|--logFile <path>"},
   {'R', "repository",   True,  setRepoDir,     Null, "-R|--repository <path>"},
   {'W', "set-wd",       True,  setWD,          Null, "-W|--set-wd <dir>"},

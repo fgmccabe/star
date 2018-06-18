@@ -128,7 +128,10 @@ void showUsage(char *name, char *copyRight, Option options[], int optionCount) {
   outMsg(stdErr, "Usage: %s\n", name);
 
   for (int ix = 0; ix < optionCount; ix++) {
-    outMsg(stdErr, "    %s\n", options[ix].usage);
+    Option *opt = &options[ix];
+    if(opt->helper!=Null)
+      opt->helper(stdErr,opt->shortName,opt->usage,opt->cl);
+    else
+      outMsg(stdErr, "    %s\n", options[ix].usage);
   }
 }
-

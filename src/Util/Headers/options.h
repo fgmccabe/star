@@ -7,10 +7,13 @@
 
 #include "retcode.h"
 #include "logical.h"
+#include "io.h"
 
 void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv);
 
 typedef retCode (*setOption)(char *option,logical enable,void *cl);
+
+typedef retCode (*helpOption)(ioPo out,char shortName,char *usage,void *cl);
 
 typedef struct {
   char shortName;
@@ -19,6 +22,7 @@ typedef struct {
   setOption setter;
   void *cl;
   char *usage;
+  helpOption helper;
 } Option;
 
 int processOptions(char *copyRight, int argc, char **argv, Option *options, int optionCount);

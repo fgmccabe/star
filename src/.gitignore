@@ -4,3 +4,4 @@ Makefile
 *.a
 Build/
 Engine/star
+Asm/asm
