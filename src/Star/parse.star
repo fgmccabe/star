@@ -118,7 +118,7 @@ star.parse{
   decimal --> natural || [0c-], N<-natural ^^ -N.
 
   public real:parser[integer,float].
-  real --> (M<-natural, (([0c.], F<-fraction(M::float,0.1), E<-exponent^^(F*E))
+  real --> (M<-natural, ([0c.], F<-fraction(M::float,0.1), (E<-exponent^^(F*E) || []^^F)
              || []^^(M::float)))
          || [0c-], N<-real ^^(-N) .
 
