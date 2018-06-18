@@ -105,7 +105,7 @@ integer integerHash(intPo ix) {
 }
 
 fltPo allocateFloat(heapPo H, double dx) {
-  fltPo t = (fltPo) allocateObject(H, integerClass, CellCount(sizeof(FloatRecord)));
+  fltPo t = (fltPo) allocateObject(H, floatClass, CellCount(sizeof(FloatRecord)));
   t->dx = dx;
   return t;
 }
@@ -161,7 +161,7 @@ extern fltPo C_FLT(termPo t) {
 }
 
 const double floatVal(termPo o) {
-  assert(isInteger(o));
-  intPo ix = (intPo) o;
-  return ix->ix;
+  assert(isFloat(o));
+  fltPo dx = (fltPo) o;
+  return dx->dx;
 }
