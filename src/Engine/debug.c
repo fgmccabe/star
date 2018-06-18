@@ -406,6 +406,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
 
     integer lclCnt = lclCount(mtd);  /* How many locals do we have */
     p->sp = sp = ((ptrPo) fp) - lclCnt;
+    p->fp = fp;
 
 #ifdef TRACEEXEC
     for (integer ix = 0; ix < lclCnt; ix++)
