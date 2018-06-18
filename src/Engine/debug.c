@@ -480,7 +480,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
 }
 
 void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp) {
-  outMsg(out, "%L%_", ln);
+  outMsg(out, "line: %L%_", ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
