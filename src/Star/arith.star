@@ -90,4 +90,7 @@ star.arith{
   public implementation format[float] => {
     frmt(X,F) => ss(_flt_format(X,F)).
   }
+
+  public (**):(float,float)=>float.
+  X**Y => _flt_pwr(X,Y).
 }
