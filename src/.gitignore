@@ -5,3 +5,7 @@ Makefile
 Build/
 Engine/star
 Asm/asm
+Asm/asmGrammar.c
+Asm/asmGrammar.h
+HeaderGenerator/ops
+HeaderGenerator/plmnem

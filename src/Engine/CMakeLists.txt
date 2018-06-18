@@ -3,10 +3,9 @@ project(star)
 
 set(BSDLIB "")
 if (APPLE)
-    set(BSDLIB "")
     set(BUILD_OS "apple")
 elseif (UNIX)
-    set(BSDLIB "-lbsd")
+#    set(BSDLIB "-lbsd")
     set(BUILD_OS "unix")
 endif (APPLE)
 

@@ -7,9 +7,6 @@
 #include <str.h>
 #include <tpl.h>
 #include <stdlib.h>
-#if ! __APPLE__
-#include <bsd/stdlib.h>
-#endif
 #include <errno.h>
 #include "ooio.h"
 #include "engine.h"
@@ -605,8 +602,7 @@ ReturnStatus g__irand(processPo P, ptrPo tos) {
 }
 
 integer randomInt() {
-  integer rnd;
+  integer rnd = random();
 
-  arc4random_buf((void *) &rnd, sizeof(rnd));
   return rnd;
 }
