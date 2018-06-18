@@ -108,19 +108,22 @@ star.parse{
   public digit:parser[integer,integer].
   digit = sat(isDigit).
 
+  numeral:parser[integer,integer].
+  numeral --> D<-digit ^^ digitVal(D).
+
   public natural:parser[integer,integer].
-  natural = _pplus(digit,(d,s)=>s*10+digitVal(d)).
+  natural =_pplus(numeral,(d,s)=>s*10+d).
 
   public decimal:parser[integer,integer].
   decimal --> natural || [0c-], N<-natural ^^ -N.
 
   public real:parser[integer,float].
-  real --> (M<-natural, ([0c.], F<-fraction(M::float,0.1), E<-exponent^^(F*E)
+  real --> (M<-natural, (([0c.], F<-fraction(M::float,0.1), E<-exponent^^(F*E))
              || []^^(M::float)))
          || [0c-], N<-real ^^(-N) .
 
   fraction:(float,float) => parser[integer,float].
-  fraction(SoFar,Scale) --> (D<-digit, fraction(SoFar+Scale*(digitVal(D)::float),Scale*0.1)) || []^^SoFar.
+  fraction(SoFar,Scale) --> (D<-numeral, fraction(SoFar+Scale*(D::float),Scale*0.1)) || []^^SoFar.
 
   exponent:parser[integer,float].
   exponent --> [0ce], E<-decimal ^^ 10.0**(E::float).
