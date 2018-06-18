@@ -71,4 +71,17 @@ star.collection{
       rdl(z,[x,..l]) => F(rdl(z,l),x).
     } in rdl.
   }
+
+  public implementation folding[list] => {
+    foldRight(F,Z,L) => let{
+      Mx = size(L).
+      fdr(Ix) where Ix>=Mx => Z.
+      fdr(Ix) => F(_list_nth(L,Ix),fdr(Ix+1)).
+    } in fdr(0).
+    foldLeft(F,Z,L) => let{
+      Mx = size(L).
+      fdl(Ix,I) where Ix>=Mx => I.
+      fdl(Ix,I) => fdl(Ix+1,F(I,_list_nth(L,Ix))).
+    } in fdl(0,Z).
+  }
 }

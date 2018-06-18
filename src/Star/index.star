@@ -328,4 +328,8 @@ star.index{
   spaces:(integer) => list[ss].
   spaces(0) => [].
   spaces(X) => [ss(" "),..spaces(X-1)].
+
+  public implementation all k,v ~~ equality[k],hash[k] |: coercion[list[(k,v)],map[k,v]] => {
+    _coerce(L) => foldRight(((K,V),M)=>insrt(K,V,M),trEmpty,L).
+  }
 }
