@@ -18,6 +18,7 @@ rewriteStmts([St|More],[StX|Stmts]) :-
 rewriteStmt(St,StX) :-
   isParsingRule(St,_,_,_),!,
   genParserRule(St,StX).
+  % display(StX).
 rewriteStmt(X,X).
 
 % handle grammar notation
@@ -26,6 +27,10 @@ genParserRule(Rl,St) :-
   genBody(Rhs,Body),
   (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)).
 
+genBody(B,Bd) :-
+  isRoundTuple(B,_,Els),
+  reComma(Els,BB),
+  genBody(BB,Bd).
 genBody(B,Bd) :-
   isBinary(B,Lc,",",L,R),
   genCall(L,Bnd,LL),
@@ -40,8 +45,15 @@ genBody(B,Bd) :-
   genCall(B,_,Bd).
 
 genCall(C,V,Cl) :-
+  isRoundTuple(C,_Lc,Els),
+  reComma(Els,CC),!,
+  genCall(CC,V,Cl).
+genCall(C,V,Cl) :-
   isRtn(C,_,V,CC),
   genCall(CC,_,Cl).
+genCall(C,void,Cl) :-
+  isBinary(C,_,",",_,_),
+  genBody(C,Cl).
 genCall(T,void,Cl) :-
   isBinary(T,Lc,"|",L,R),
   genBody(L,LL),

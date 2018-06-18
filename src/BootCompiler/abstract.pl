@@ -1,7 +1,7 @@
 :- module(abstract,[locOfAst/2,isAst/1,
       nary/4,binary/5,unary/4,zeroary/3,apply/4,isApply/4,
       isUnary/3,isUnary/4,isBinary/5,isBinaryTerm/4,
-      isTernary/5,ternary/6,
+      isTernary/5,ternary/6,isParen/2,deParen/2,
       roundTerm/4,isRound/4,isRoundTerm/3,isRoundTerm/4,isTuple/2,isTuple/3,isRoundTuple/3,roundTuple/3,
       braceTerm/4,isBrace/4,isBraceTerm/4,isBraceTuple/3,braceTuple/3,isEmptyBrace/1,
       qbraceTerm/4,isQBrace/3,isQBraceTerm/4,isQBraceTuple/3,
@@ -148,3 +148,10 @@ explodeString(string(Lc,S),tuple(Lc,"[]",Els)) :-
   map(C,abstract:makeInt(Lc),Els).
 
 makeInt(Lc,Ix,integer(Lc,Ix)).
+
+deParen(T,I) :-
+  isRoundTuple(T,_,[I]),!.
+deParen(T,T).
+
+isParen(T,I) :-
+  isRoundTuple(T,_,[I]).
