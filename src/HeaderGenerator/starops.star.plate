@@ -3,6 +3,10 @@
 star.compiler.operators{
   import star.
 
+  public operator ::= prefixOp(string,integer,integer)
+                    | infixOp(string,integer,integer,integer)
+                    | postfixOp(string,integer,integer)
+
   public isOperator:(string)=>boolean.
 
   public isInfixOp:(string) => option[(integer,integer,integer)].
