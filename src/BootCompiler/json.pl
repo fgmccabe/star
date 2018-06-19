@@ -52,7 +52,7 @@ readHex(So,H,_) --> [], { char_code(H,So) }.
 parseSeq([J|L]) --> jP(J), skipBlanks(), parseMoreSeq(L).
 parseSeq([]) --> [].
 
-parseMoreSeq([J|L]) --> [','], jP(J), skipBlanks(), parseMoreSeq(L).
+parseMoreSeq([J|L]) --> [','], skipBlanks(), jP(J), skipBlanks(), parseMoreSeq(L).
 parseMoreSeq([]) --> [].
 
 parseColl([(K,V)|L]) --> jString(K), skipBlanks(), [':'], skipBlanks(), jP(V), skipBlanks(),parseMoreColl(L).
