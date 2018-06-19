@@ -29,18 +29,13 @@ fldTrie(Prefix,trie(Value,true,Fls),Proc,Z,Zx) :-
   reverse(Prefix,Chrs),
   string_chars(Ky,Chrs),
   call(Proc,Ky,Value,Z,Z1),
-  procTbl(Prefix,Fls,Proc,Z1,Zx).
+  dict_pairs(Fls,_,Pairs),
+  rfold(Pairs,trie:procPair(Prefix,Proc),Z1,Zx).
 fldTrie(Prefix,trie(_,false,Fls),Proc,Z,Zx) :-
   procTbl(Prefix,Fls,Proc,Z,Zx).
 
-procTbl(Prefix,Tbl,Proc,Z,Zx) :-
-  dict_pairs(Tbl,_,Pairs),
-  procPairs(Pairs,Prefix,Proc,Z,Zx).
-
-procPairs([],_,_,Z,Z).
-procPairs([Ch-Tb|More],Prefix,Proc,Z,Zx) :-
-  fldTrie([Ch|Prefix],Tb,Proc,Z,Z1),
-  procPairs(More,Prefix,Proc,Z1,Zx).
+procPair(Prefix,Proc,Ch-Tb,Z,Zx) :-
+  fldTrie([Ch|Prefix],Tb,Proc,Z,Zx).
 
 outTrie(Tr,Vp,O,Ox) :-
   appStr("{",O,O1),
@@ -57,3 +52,13 @@ dispTrie(Tr,Vp) :-
   outTrie(Tr,Vp,Chrs,[]),
   string_chars(Txt,Chrs),
   writeln(Txt).
+
+walkTrie(Tr,Pr,Z,Zx) :- walkTr([],Tr,Pr,Z,Zx).
+
+walkTr(Prefix,trie(Value,Final,Fls),Proc,Z,Zx) :-
+  call(Proc,Prefix,Value,Final,Z,Z1),
+  dict_pairs(Fls,_,Pairs),
+  rfold(Pairs,trie:walkPair(Prefix,Proc),Z1,Zx).
+
+walkPair(Prefix,Proc,Ch-Inner,Z,Zx) :-
+  walkTr([Ch|Prefix],Inner,Proc,Z,Zx).
