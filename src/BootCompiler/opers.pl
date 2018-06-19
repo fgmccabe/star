@@ -1,4 +1,4 @@
-:- module(opers,[infixOp/5,prefixOp/4,postfixOp/4,isOperator/2,follows/4,final/3]).
+:- module(opers,[parse_operators/2,infixOp/5,prefixOp/4,postfixOp/4,isOperator/2,follows/4,final/3]).
 
 :- use_module(json).
 :- use_module(trie).
@@ -59,8 +59,9 @@ computeTrie([_-oper(Nm,_)|M],Tr,Trx) :-
   computeTrie(M,Tr1,Trx).
 
 computeFollows(Tr,Follows) :-
-  foldTrie(Tr,opers:followProc,follows{},Follows).
+  walkTrie(Tr,opers:followProc,follows{},Follows).
 
+followProc([],_,_,F,F).
 followProc([Ch|Rest],_,Final,F,Fx) :-
   reverse(Rest,Rst),
   atom_chars(Str,Rst),
@@ -69,14 +70,21 @@ followProc([Ch|Rest],_,Final,F,Fx) :-
   addEntry(Str,Ch,Nm,Final,F,Fx).
 
 addEntry(Prefix,Ch,Nm,Final,F,Fx) :-
-  get_dict(Prefix,F,final(Fnl,NNm,Sub)),!,
-  put_dict(Ch,Nm,Sub,S1),
-  mergeFinal(Fnl,NNm,Final,S1,SS),
-  put_dict(Prefix,SS,F,Fx).
+  get_dict(Prefix,F,next(Fnl,Sub)),!,
+  put_dict(Ch,Sub,Nm,S1),
+  put_dict(Prefix,F,next(Fnl,S1),F1),
+  markFinal(Nm,Final,F1,Fx).
 addEntry(Prefix,Ch,Nm,Final,F,Fx) :-
-  put_dict(Ch,Nm,next{},S1),
-  atom_string(Nm,NNm),
-  put_dict(Prefix,final(Final,NNm,S1),F,Fx).
+  put_dict(Ch,nxt{},Nm,S0),
+  put_dict(Prefix,F,next(none,S0),F1),
+  markFinal(Nm,Final,F1,Fx).
+
+markFinal(Nm,true,F,Fx) :-
+  atom_string(Nm,SNm),
+  (get_dict(Nm,F,next(_,Sub))->
+    put_dict(Nm,F,next(final(SNm),Sub),Fx);
+    put_dict(Nm,F,next(final(SNm),nxt{}),Fx)).
+markFinal(_,false,F,F).
 
 operator(opTbl(Ops,_),Nm,Styles) :-
   atom_string(Nm,Ky),
@@ -98,8 +106,8 @@ postfixOp(Ops,Op,L,P) :-
   is_member((postfixOp,[P,L]),Styles),!.
 
 follows(opTbl(_,Fls),Pr,Ch,Nx) :-
-  get_dict(Pr,Fls,final(_,_,FF)),
+  get_dict(Pr,Fls,next(_,FF)),
   get_dict(Ch,FF,Nx).
 
 final(opTbl(_,Fls),Ky,Nm) :-
-  get_dict(Ky,Fls,final(true,Nm,_)),!.
+  get_dict(Ky,Fls,next(final(Nm),_)),!.

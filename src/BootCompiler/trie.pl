@@ -1,8 +1,8 @@
-:- module(trie, [emptyTrie/1, addToTrie/4, findInTrie/3, foldTrie/4, outTrie/4, dispTrie/2]).
+:- module(trie, [emptyTrie/1, addToTrie/4, findInTrie/3, foldTrie/4, walkTrie/4, outTrie/4, dispTrie/2]).
 
 :- use_module(misc).
 
-emptyTrie(trie(void,false,follows{})).
+emptyTrie(trie("",false,follows{})).
 
 addToTrie(Ky,Value,Tr,Trx) :-
   string_chars(Ky,Chrs),
@@ -29,10 +29,13 @@ fldTrie(Prefix,trie(Value,true,Fls),Proc,Z,Zx) :-
   reverse(Prefix,Chrs),
   string_chars(Ky,Chrs),
   call(Proc,Ky,Value,Z,Z1),
-  dict_pairs(Fls,_,Pairs),
-  rfold(Pairs,trie:procPair(Prefix,Proc),Z1,Zx).
+  procTbl(Prefix,Fls,Proc,Z1,Zx).
 fldTrie(Prefix,trie(_,false,Fls),Proc,Z,Zx) :-
   procTbl(Prefix,Fls,Proc,Z,Zx).
+
+procTbl(Prefix,Fls,Proc,Z,Zx) :-
+  dict_pairs(Fls,_,Pairs),
+  rfold(Pairs,trie:procPair(Prefix,Proc),Z,Zx).
 
 procPair(Prefix,Proc,Ch-Tb,Z,Zx) :-
   fldTrie([Ch|Prefix],Tb,Proc,Z,Zx).
