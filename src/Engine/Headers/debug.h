@@ -7,7 +7,6 @@
 
 #include "engine.h"
 
-extern termPo insLit(processPo p);
 extern int32 insOperand(processPo p);
 extern termPo getLbl(termPo lbl,int32 arity);
 
