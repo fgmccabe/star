@@ -35,7 +35,7 @@ void initHeap(long heapSize) {
 }
 
 retCode heapSummary(ioPo out, heapPo H) {
-  return outMsg(out, "H:0x%x(%s)%5.2g%%", H->curr, H->allocMode == lowerHalf ? "lower" : "upper",
+  return outMsg(out, ", H:0x%x(%s)%5.2g%%", H->curr, H->allocMode == lowerHalf ? "lower" : "upper",
                 (H->curr - H->start) * 100.0 / (H->limit - H->start));
 }
 

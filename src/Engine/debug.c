@@ -24,6 +24,7 @@ static void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo s
 static void showAllStack(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 static void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
+static void stackSummary(ioPo out,processPo P,ptrPo sp);
 
 static insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
@@ -71,7 +72,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
         return (logical) (p->traceCount == 0);
       case stepOver: {
         switch (*pc) {
-          case Ret: {
+          case dRet: {
             if (--p->traceCount <= 0) {
               p->traceCount = 0;
               p->tracing = True;
@@ -79,14 +80,14 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             }
             return False;
           }
-          case Call:
-          case OCall:
+          case dCall:
+          case dOCall:
             if (p->traceCount > 0) {
               p->traceCount++;
             }
             return False;
-          case Tail:
-          case OTail:
+          case dTail:
+          case dOTail:
             return False;
           default:
             return True;
@@ -94,7 +95,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
       }
       case nextSucc: {
         switch (*pc) {
-          case Ret: {
+          case dRet: {
             if (--p->traceCount <= 0) {
               p->traceCount = 0;
               p->tracing = True;
@@ -102,8 +103,8 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             }
             return False;
           }
-          case Call:
-          case OCall:
+          case dCall:
+          case dOCall:
             if (p->traceCount > 0) {
               p->traceCount++;
             }
@@ -115,8 +116,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
       case nextBreak: {
         switch (*pc) {
           case dCall:
-          case Call:
-          case Tail: {
+          case dTail: {
             labelPo callee = C_LBL(getMtdLit(mtd, collect32(pc + 1)));
             if (callBreakPointHit(callee)) {
               p->waitFor = stepInto;
@@ -337,7 +337,8 @@ static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
 
   integer frameNo = 0;
 
-  outMsg(out, "stack trace for p: 0x%x, ", p);
+  outMsg(out, "stack trace for p: 0x%x", p);
+  stackSummary(out,p,sp);
   heapSummary(out, h);
   outMsg(out, "\n");
 
@@ -607,6 +608,10 @@ DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
   return p->waitFor;
 }
 
+void stackSummary(ioPo out,processPo P,ptrPo sp){
+  outMsg(out,", sp: 0x%x, stack:%5.2g%%",sp,(sp-(ptrPo)P->stackBase)*100.0/(P->stackLimit-P->stackBase));
+}
+
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   integer count = argCount(mtd);
   for (integer ix = 0; ix < count; ix++) {
@@ -627,9 +632,9 @@ void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp) {
     if (localVName(mtd, pc, vx, vName, NumberOf(vName)) == Ok) {
       ptrPo var = localVar(fp, vx);
       if (*var != Null)
-        outMsg(out, "%s[%d] = %T\n", vName, vx, *var);
+        outMsg(out, "  %s(%d) = %T\n", vName, vx, *var);
       else
-        outMsg(out, " %s[%d] (unset)", vName, vx);
+        outMsg(out, "  %s(%d) (unset)", vName, vx);
     }
   }
 }
@@ -724,8 +729,8 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   integer pcOffset = (integer) (pc - mtd->code);
 
-  outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x, sp: 0x%x, sb: 0x%x(%d), ",
-         p, mtd, pcOffset, pc, fp, sp, p->stackBase, sp-(ptrPo)p->stackBase);
+  outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x", p, mtd, pcOffset, pc, fp);
+  stackSummary(logFile,p,sp);
   heapSummary(logFile, h);
   outMsg(logFile, "\n");
 

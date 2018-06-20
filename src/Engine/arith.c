@@ -127,7 +127,7 @@ termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   fltPo dx = C_FLT(t);
-  return outDouble(out, dx->dx, 'g', 0, precision, ' ', True, False);
+  return outDouble(out, dx->dx, 'g', 0, (int)precision, ' ', True, False);
 }
 
 comparison fltCmp(specialClassPo cl, termPo t1, termPo t2) {
