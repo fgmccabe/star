@@ -47,34 +47,6 @@ retCode run(processPo P) {
       saveRegisters(P);
       insDebug(pcCount, P);
       restoreRegisters(P);
-    } else if (lineDebugging) {
-      switch (*PC) {
-        case Call: saveRegisters(P);
-          callDebug(P, insLit(P));
-          restoreRegisters(P);
-          break;
-        case OCall: saveRegisters(P);
-          callDebug(P, getLbl(SP[0], insOperand(P)));
-          restoreRegisters(P);
-          break;
-        case Tail: saveRegisters(P);
-          tailDebug(P, insLit(P));
-          restoreRegisters(P);
-          break;
-        case OTail: saveRegisters(P);
-          tailDebug(P, getLbl(SP[0], insOperand(P)));
-          restoreRegisters(P);
-          break;
-        case Ret: saveRegisters(P);
-          retDebug(P, top());
-          restoreRegisters(P);
-          break;
-        case Line: saveRegisters(P);
-          lineDebug(P, insLit(P));
-          restoreRegisters(P);
-          break;
-        default:;
-      }
     }
 #endif
 
@@ -99,7 +71,7 @@ retCode run(processPo P) {
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
-        assert(SP>(ptrPo)P->stackBase);
+        assert(SP > (ptrPo) P->stackBase);
         continue;
       }
 
@@ -122,7 +94,7 @@ retCode run(processPo P) {
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
-        assert(SP>(ptrPo)P->stackBase);
+        assert(SP > (ptrPo) P->stackBase);
         continue;
       }
 
@@ -434,10 +406,81 @@ retCode run(processPo P) {
         PC += 2;
         continue;
 
-      case Line: {
-        PC += 2;
+      case dLine: {
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          termPo line = nthArg(LITS, collectI32(PC));
+          saveRegisters(P);
+          lineDebug(P, line);
+          restoreRegisters(P);
+        } else
+#endif
+          PC += 2;
         continue;
       }
+
+      case dCall: {
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          termPo callee = nthArg(LITS, collectI32(PC));
+          saveRegisters(P);
+          callDebug(P, callee);
+          restoreRegisters(P);
+        } else
+#endif
+          PC += 2;
+        continue;
+      }
+
+      case dOCall:
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          termPo callee = getLbl(SP[0], collectI32(PC));
+
+          saveRegisters(P);
+          callDebug(P, callee);
+          restoreRegisters(P);
+        } else
+#endif
+          PC += 2;
+        continue;
+
+      case dTail: {
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          termPo callee = nthArg(LITS, collectI32(PC));
+          saveRegisters(P);
+          tailDebug(P, callee);
+          restoreRegisters(P);
+        } else
+#endif
+          PC += 2;
+        continue;
+      }
+
+      case dOTail:
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          termPo callee = getLbl(SP[0], collectI32(PC));
+          saveRegisters(P);
+          tailDebug(P, callee);
+          restoreRegisters(P);
+        } else
+#endif
+          PC += 2;
+        continue;
+
+      case dRet:
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          saveRegisters(P);
+          retDebug(P, SP[0]);
+          restoreRegisters(P);
+        } else
+#endif
+          PC += 2;
+        continue;
+
 
       default:
       case illegalOp:

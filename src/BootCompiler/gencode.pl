@@ -60,7 +60,7 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   buildArgs(Args,1,D1,D1a),
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,1,contCont(Ex),raiseCont(Lc,"failed",Opts),Opts,D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
-  compTerm(Value,Lc,retCont(Lc),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
+  compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns(Nm,Sig,C1);true ),
   findMaxLocal(Dx,Lx),
   assem([method(Nm,Sig,Lx)|C0],CdTrm).
@@ -68,14 +68,15 @@ genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tupleType([]),Tp),Sig),
   genLbl(D,End,D1),
   genLine(Opts,Lc,C0,C1),
-  compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Lc)),Opts,D1,Dx,End,C1,[iLbl(End)],0,_Stk),
+  compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),Opts,D1,Dx,End,C1,[iLbl(End)],0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns(lbl(Nm,0),Sig,C1);true ),
   findMaxLocal(Dx,Lx),
   assem([method(lbl(Nm,0),Sig,Lx)|C0],Cd).
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 
-retCont(_,D,D,_,[iRet|Cx],Cx,_Stk,none).
+retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
+  genDRtn(Opts,C,[iRet|Cx]).
 
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.
@@ -148,10 +149,10 @@ compTerm(ecll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerms(A,Lc,bothCont(escCont(Nm,Stk),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(cll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerms(A,Lc,cllCont(Nm,Stk,Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+  compTerms(A,Lc,cllCont(Nm,Stk,Cont,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Stk,Cont),Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Stk,Cont,Opts),Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compCase(T,Lc,Cases,Deflt,Cont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -224,16 +225,20 @@ resetCont(Lvl,D,D,_,[iRst(Lvl)|Cx],Cx,_,Lvl).
 escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1.
 
-cllCont(Nm,Stk0,retCont(_),Dx,Dx,_,[iTail(Nm),iFrame(Stkx)|Cx],Cx,_Stk,none) :-!,
+cllCont(Nm,Stk0,retCont(_),Opts,Dx,Dx,_,C,Cx,_Stk,none) :-!,
+  genDTail(Opts,Nm,C,[iTail(Nm),iFrame(Stkx)|Cx]),
   Stkx is Stk0+1.
-cllCont(Nm,Stk0,Cont,D,Dx,End,[iCall(Nm),iFrame(Stk1)|C0],Cx,_Stk,Stkx) :-
+cllCont(Nm,Stk0,Cont,Opts,D,Dx,End,C,Cx,_Stk,Stkx) :-
+  genDCall(Opts,Nm,C,[iCall(Nm),iFrame(Stk1)|C0]),
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
-oclCont(Stk0,retCont(_),Dx,Dx,_End,[iOTail(Arity),iFrame(Stkx)|Cx],Cx,Stk,none) :-!,
+oclCont(Stk0,retCont(_),Opts,Dx,Dx,_End,C,Cx,Stk,none) :-!,
+  genDOTail(Opts,Arity,C,[iOTail(Arity),iFrame(Stkx)|Cx]),
   Stkx is Stk0+1,
   Arity is Stk-Stk0.
-oclCont(Stk0,Cont,D,Dx,End,[iOCall(Arity),iFrame(Stk1)|C0],Cx,Stk,Stkx) :-
+oclCont(Stk0,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  genDOCall(Opts,Arity,C,[iOCall(Arity),iFrame(Stk1)|C0]),
   Stk1 is Stk0+1,
   Arity is Stk-Stk0,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
@@ -297,10 +302,30 @@ chLine(_,Lc,Lc,C,C) :- !.
 chLine(Opts,_,Lc,C,Cx) :-
   genLine(Opts,Lc,C,Cx).
 
-genLine(_Opts,Lc,[iLine(Lt)|Cx],Cx) :-
-  %is_member(debugging,Opts),!,
+genLine(Opts,Lc,[iDLine(Lt)|Cx],Cx) :-
+  is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
+
+genDCall(Opts,Lt,[iDCall(Lt)|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genDCall(_,_,Cx,Cx).
+
+genDOCall(Opts,Arity,[iDOCall(Arity)|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genDOCall(_,_,Cx,Cx).
+
+genDTail(Opts,Lt,[iDTail(Lt)|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genDTail(_,_,Cx,Cx).
+
+genDOTail(Opts,Arity,[iDOTail(Arity)|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genDOTail(_,_,Cx,Cx).
+
+genDRtn(Opts,[iDRet|Cx],Cx) :-
+  is_member(debugging,Opts),!.
+genDRtn(_,_,Cx,Cx).
 
 popStack(lbl(_,Ar),St,Stx) :-
   Stx is St-Ar+1.

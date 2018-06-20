@@ -62,7 +62,7 @@
 %token A L
 %token ALLOC
 
-%token FRAME LINE LOCAL
+%token FRAME LINE DCALL DOCALL DTAIL DOTAIL DRET LOCAL
 %token END
 
 %token COLON SLASH AT DCOLON LBRA RBRA HASH
@@ -170,7 +170,12 @@ trailer: END nls { endFunction(currMtd); }
  directive: label COLON { defineLbl(currMtd,$1); }
    | FRAME signature { AFrame(currMtd,newStringConstant(currMtd,$2)); }
    | LINE ID AT DECIMAL SLASH DECIMAL COLON DECIMAL
-          { ALine(currMtd,defineLocation(currMtd,$2,$4,$6,$8)); }
+          { AdLine(currMtd,defineLocation(currMtd,$2,$4,$6,$8)); }
+   | DCALL literal { AdCall(currMtd,$2); }
+   | DOCALL DECIMAL { AdOCall(currMtd,$2); }
+   | DTAIL literal { AdTail(currMtd,$2); }
+   | DOTAIL DECIMAL { AdOTail(currMtd,$2); }
+   | DRET { AdRet(currMtd); }
    | LOCAL ID signature label label { defineLocal(currMtd,$2,$3,$4,$5); }
    ;
 

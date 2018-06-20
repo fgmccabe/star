@@ -114,6 +114,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
       }
       case nextBreak: {
         switch (*pc) {
+          case dCall:
           case Call:
           case Tail: {
             labelPo callee = C_LBL(getMtdLit(mtd, collect32(pc + 1)));
@@ -124,7 +125,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             } else
               return False;
           }
-          case Line: {
+          case dLine: {
             normalPo ln = C_TERM(getMtdLit(mtd, collect32(pc + 1)));
             if (lineBreakPointHit(ln)) {
               p->waitFor = stepInto;
@@ -520,17 +521,6 @@ void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp) {
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm, framePo fp, ptrPo sp);
-
-termPo insLit(processPo p) {
-  insPo pc = p->pc + 1;
-  int32 ix = collect32(pc);
-  return getMtdLit(p->prog, ix);
-}
-
-int32 insOperand(processPo p) {
-  insPo pc = p->pc + 1;
-  return collect32(pc);
-}
 
 termPo getLbl(termPo lbl, int32 arity) {
   labelPo oLbl = isNormalPo(lbl) ? termLbl(C_TERM(lbl)) : C_LBL(lbl);
