@@ -5,7 +5,7 @@ star.compiler.operators{
 
   public operator ::= prefixOp(string,integer,integer)
                     | infixOp(string,integer,integer,integer)
-                    | postfixOp(string,integer,integer)
+                    | postfixOp(string,integer,integer).
 
   public isOperator:(string)=>boolean.
 

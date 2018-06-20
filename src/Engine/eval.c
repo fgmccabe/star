@@ -14,7 +14,12 @@
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
-#define push(X) *--SP = ((termPo)(X))
+static inline ptrPo checkStack(processPo P, ptrPo SP) {
+  assert(SP > (ptrPo) P->stackBase);
+  return SP;
+}
+
+#define push(X) *checkStack(P,--SP) = ((termPo)(X))
 #define pop() (*SP++)
 #define top() (*SP)
 
@@ -23,6 +28,7 @@
 
 #define saveRegisters(P) { (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = SP;}
 #define restoreRegisters(P) { PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);}
+
 
 /*
  * Execute program on a given process/thread structure
