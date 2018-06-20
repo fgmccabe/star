@@ -11,7 +11,7 @@
 #include <globals.h>
 #include "engineP.h"
 
-#define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32))
+#define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
 
 #define push(X) *--SP = ((termPo)(X))
@@ -99,6 +99,7 @@ retCode run(processPo P) {
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
+        assert(SP>(ptrPo)P->stackBase);
         continue;
       }
 
@@ -121,6 +122,7 @@ retCode run(processPo P) {
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
+        assert(SP>(ptrPo)P->stackBase);
         continue;
       }
 
