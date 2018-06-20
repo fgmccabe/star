@@ -309,6 +309,8 @@ retCode decFlt(ioPo in, double *dx) {
     integer len;
     *dx = parseNumber(getTextFromBuffer(&len, tmpBuffer), len);
   }
+
+  closeFile(O_IO(tmpBuffer));
   return ret;
 }
 

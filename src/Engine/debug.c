@@ -734,8 +734,8 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   integer pcOffset = (integer) (pc - mtd->code);
 
-  outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x, sp: 0x%x, ",
-         p, mtd, pcOffset, pc, fp, sp);
+  outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x, sp: 0x%x, sb: 0x%x(%d), ",
+         p, mtd, pcOffset, pc, fp, sp, p->stackBase, sp-(ptrPo)p->stackBase);
   heapSummary(logFile, h);
   outMsg(logFile, "\n");
 
