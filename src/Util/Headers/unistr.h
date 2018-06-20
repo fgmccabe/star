@@ -73,6 +73,7 @@ integer countCodePoints(const char *src, integer start, integer end);
 integer uniCodeCount(char *src);
 
 int64 advanceCodePoint(char *src, integer start, integer end, int64 count);
+codePoint codePointAt(const char *src, integer pt, integer end);
 codePoint nextCodePoint(const char *src, integer *start, integer end);
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code);
 retCode prevPoint(const char *src, integer *pos, codePoint *code);

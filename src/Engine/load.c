@@ -69,6 +69,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
       }
 
       if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
+        closeFile(O_IO(sigBuffer));
         outMsg(logFile, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
         return Error;
       }
@@ -80,6 +81,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         if (ret == Ok)
           ret = loadSegments(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
       }
+      closeFile(O_IO(sigBuffer));
     }
 
     closeFile(file);
@@ -131,6 +133,7 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
   }
 
   closeFile(O_IO(inBuff));
+  closeFile(O_IO(sigBuffer));
 
 #ifdef TRACEPKG
   if (tracePkg)

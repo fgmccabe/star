@@ -17,6 +17,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <starOptions.h>
+#include <ooio.h>
 
 /* Set up the buffer file class */
 
@@ -28,25 +30,25 @@ static void BufferInit(objectPo o, va_list *args);
 
 static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual);
 
-static retCode bufferOutBytes(ioPo f, byte *b, integer count, integer *actual);
+static retCode bufferOutBytes(ioPo io, byte *b, integer count, integer *actual);
 
-static retCode bufferBackByte(ioPo f, byte b);
+static retCode bufferBackByte(ioPo io, byte b);
 
 static retCode bufferAtEof(ioPo io);
 
-static retCode bufferInReady(ioPo f);
+static retCode bufferInReady(ioPo io);
 
-static retCode bufferOutReady(ioPo f);
+static retCode bufferOutReady(ioPo io);
 
-static retCode bufferFlusher(ioPo f, long count);
+static retCode bufferFlusher(ioPo io, long count);
 
-static retCode bufferSeek(ioPo f, integer count);
+static retCode bufferSeek(ioPo io, integer count);
 
-static retCode bufferClose(ioPo f);
+static retCode bufferClose(ioPo io);
 
-static retCode bufferMark(ioPo f, integer *mark);
+static retCode bufferMark(ioPo io, integer *mark);
 
-static retCode bufferReset(ioPo f, integer mark);
+static retCode bufferReset(ioPo io, integer mark);
 
 BufferClassRec BufferClass = {
   {(classPo) &IoClass, /* parent class is io object */
@@ -253,8 +255,13 @@ retCode bufferStepForward(bufferPo in, long cnt) {
     return Error;
 }
 
+static integer bufferNo = 0;
+
 bufferPo newStringBuffer() {
-  byte name[] = {'<', 'b', 'u', 'f', 'f', 'e', 'r', '>', 0};
+  char name[MAX_SYMB_LEN];
+
+  strMsg(name,NumberOf(name),"<buffer%d>",bufferNo++);
+
   byte *buffer = (byte *) malloc(sizeof(byte) * 128);
 
   return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, 128, ioWRITE, True));

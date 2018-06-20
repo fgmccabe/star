@@ -158,6 +158,14 @@ codePoint nextCodePoint(const char *src, integer *start, integer end) {
     return (codePoint) 0;
 }
 
+codePoint codePointAt(const char *src, integer pt, integer end) {
+  codePoint ch;
+  if(nxtPoint(src,&pt,end,&ch) == Ok)
+    return ch;
+  else
+    return (codePoint)0;
+}
+
 integer uniStrLen(const char *s) {
   char *str = (char *) s;
   integer count = 0;
@@ -556,7 +564,7 @@ integer uniNHash(const char *name, long len) {
 }
 
 integer hash64(integer ix){
-  return ix&LARGE_INT64;
+  return (uint64)ix&((uint64)LARGE_INT64);
 }
 
 char *uniEndStr(char *s) {
@@ -584,10 +592,10 @@ retCode uniLower(const char *s, integer sLen, char *d, integer dLen) {
 }
 
 char *uniDuplicate(const char *s) {
-  integer len = uniStrLen(s);
-  char *copy = (char *) malloc((len + 1) * sizeof(byte));
+  size_t len = (size_t)uniStrLen(s)+1;
+  char *copy = (char *) malloc(len * sizeof(byte));
 
-  memcpy(copy, s, len + 1);
+  memcpy(copy, s, len);
   return copy;
 }
 

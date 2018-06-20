@@ -134,6 +134,22 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
   while (ix < bLen && buffer[ix] == ' ')
     ix++;
 
+  if(codePointAt(buffer,ix,bLen) == (codePoint)'\''){
+    codePoint delim = nextCodePoint(buffer,&ix,bLen);
+    pState = inNme;
+
+    while(ix<bLen){
+      codePoint cp = nextCodePoint(buffer,&ix,bLen);
+
+      if(cp!=delim){
+        appendCodePoint(bp->nm, &b, NumberOf(bp->nm), cp);
+      } else{
+        appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
+        break;
+      }
+    }
+  }
+
   while (ix < bLen) {
     codePoint cp = nextCodePoint(buffer, &ix, bLen);
     switch (cp) {

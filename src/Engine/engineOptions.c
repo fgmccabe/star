@@ -274,7 +274,7 @@ static retCode setHeapSize(char *option, logical enable, void *cl) {
 }
 
 static retCode setStackSize(char *option, logical enable, void *cl) {
-  initStackSize = parseSize(optarg);
+  initStackSize = parseSize(option);
   return Ok;
 }
 
