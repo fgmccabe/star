@@ -1,16 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 project(star)
 
-set(BSDLIB "")
-if (APPLE)
-    set(BUILD_OS "apple")
-elseif (UNIX)
-#    set(BSDLIB "-lbsd")
-    set(BUILD_OS "unix")
-endif (APPLE)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm ${BSDLIB}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Lib/Headers" "../Infra/Headers")
 

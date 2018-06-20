@@ -73,7 +73,7 @@ ReturnStatus g__band(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) & integerVal(Rhs));
+  termPo Rs = (termPo) allocateInteger(processHeap(p), (uint64)integerVal(Lhs) & (uint64)integerVal(Rhs));
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -95,7 +95,7 @@ ReturnStatus g__blsl(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) << integerVal(Rhs));
+  termPo Rs = (termPo) allocateInteger(processHeap(p), (uint64)integerVal(Lhs) << (uint64)integerVal(Rhs));
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
@@ -106,7 +106,7 @@ ReturnStatus g__blsr(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), ((unsigned) integerVal(Lhs)) >> integerVal(Rhs));
+  termPo Rs = (termPo) allocateInteger(processHeap(p), ((uint64) integerVal(Lhs)) >> (uint64)integerVal(Rhs));
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
