@@ -67,7 +67,7 @@ star.json{
   string --> [0c"], T<-strchr*, [0c"] ^^ T::string.
 
   strchr:parser[integer,integer].
-  strchr --> [0c\\], _item || _item.
+  strchr --> /*[0c\\], _item || */ _item. 
 
   pSeq:parser[integer,json].
   pSeq --> [0c[], S<- sepby(pJson,skip(_str(","))), [0c]] ^^ jSeq(S).

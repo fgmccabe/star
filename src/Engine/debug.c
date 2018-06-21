@@ -62,7 +62,7 @@ static retCode showConstant(ioPo out, methodPo mtd, integer off) {
   return outMsg(out, " %T", nthArg(mtd->pool, off));
 }
 
-static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
+static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
   if (focus == NULL || focus == p) {
     switch (p->waitFor) {
       case stepInto:
@@ -70,8 +70,8 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
           p->traceCount--;
         return (logical) (p->traceCount == 0);
       case stepOver: {
-        switch (*pc) {
-          case Ret: {
+        switch (ins) {
+          case dRet: {
             if (--p->traceCount <= 0) {
               p->traceCount = 0;
               p->tracing = True;
@@ -79,22 +79,22 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             }
             return False;
           }
-          case Call:
-          case OCall:
+          case dCall:
+          case dOCall:
             if (p->traceCount > 0) {
               p->traceCount++;
             }
             return False;
-          case Tail:
-          case OTail:
+          case dTail:
+          case dOTail:
             return False;
           default:
             return True;
         }
       }
       case nextSucc: {
-        switch (*pc) {
-          case Ret: {
+        switch (ins) {
+          case dRet: {
             if (--p->traceCount <= 0) {
               p->traceCount = 0;
               p->tracing = True;
@@ -102,8 +102,8 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             }
             return False;
           }
-          case Call:
-          case OCall:
+          case dCall:
+          case dOCall:
             if (p->traceCount > 0) {
               p->traceCount++;
             }
@@ -113,11 +113,10 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
         }
       }
       case nextBreak: {
-        switch (*pc) {
+        switch (ins) {
           case dCall:
-          case Call:
-          case Tail: {
-            labelPo callee = C_LBL(getMtdLit(mtd, collect32(pc + 1)));
+          case dTail: {
+            labelPo callee = C_LBL(arg);
             if (callBreakPointHit(callee)) {
               p->waitFor = stepInto;
               p->tracing = True;
@@ -126,7 +125,7 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
               return False;
           }
           case dLine: {
-            normalPo ln = C_TERM(getMtdLit(mtd, collect32(pc + 1)));
+            normalPo ln = C_TERM(arg);
             if (lineBreakPointHit(ln)) {
               p->waitFor = stepInto;
               p->tracing = True;
@@ -138,7 +137,6 @@ static logical shouldWeStop(processPo p, methodPo mtd, insPo pc) {
             return False;
         }
       }
-        return False;
 
       case never:
       default:
@@ -446,7 +444,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
   insPo pc = p->pc;
   heapPo h = p->heap;
 
-  logical stopping = shouldWeStop(p, mtd, pc);
+  logical stopping = shouldWeStop(p, 0, NULL);
   if (p->tracing || stopping) {
     outMsg(stdErr, "[%d]: ", pcCount);
     disass(stdErr, p, mtd, pc, fp, sp);
@@ -492,7 +490,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     normalPo line = C_TERM(ln);
     integer pLen;
     const char *pkgNm = stringVal(nthArg(line, 0), &pLen);
-    return outMsg(f, "%S/%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+    return outMsg(f, "%S@%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
   } else
     return outMsg(f, "%T", ln);
 }
@@ -527,25 +525,25 @@ termPo getLbl(termPo lbl, int32 arity) {
   return (termPo) declareLbl(oLbl->name, arity);
 }
 
-static DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show);
+static DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show);
 
 DebugWaitFor callDebug(processPo p, termPo call) {
-  return lnDebug(p, call, showCall);
+  return lnDebug(p, dCall, call, showCall);
 }
 
 DebugWaitFor tailDebug(processPo p, termPo call) {
-  return lnDebug(p, call, showTail);
+  return lnDebug(p, dTail, call, showTail);
 }
 
 DebugWaitFor retDebug(processPo p, termPo call) {
-  return lnDebug(p, call, showRet);
+  return lnDebug(p, dRet, call, showRet);
 }
 
 DebugWaitFor lineDebug(processPo p, termPo ln) {
-  return lnDebug(p, ln, showLn);
+  return lnDebug(p, dLine, ln, showLn);
 }
 
-DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
+DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   static DebugOption opts[] = {
     {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
     {.c = '\n', .cmd=dbgSingle, .usage="\\n step into"},
@@ -572,7 +570,7 @@ DebugWaitFor lnDebug(processPo p, termPo ln, showCmd show) {
   insPo pc = p->pc;
   heapPo h = p->heap;
 
-  logical stopping = shouldWeStop(p, mtd, pc);
+  logical stopping = shouldWeStop(p, ins, ln);
   if (p->tracing || stopping) {
     if (ln != Null)
       show(logFile, mtd, ln, fp, sp);
