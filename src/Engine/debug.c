@@ -537,8 +537,8 @@ DebugWaitFor tailDebug(processPo p, termPo call) {
   return lnDebug(p, dTail, call, showTail);
 }
 
-DebugWaitFor retDebug(processPo p, termPo call) {
-  return lnDebug(p, dRet, call, showRet);
+DebugWaitFor retDebug(processPo p, termPo val) {
+  return lnDebug(p, dRet, val, showRet);
 }
 
 DebugWaitFor lineDebug(processPo p, termPo ln) {

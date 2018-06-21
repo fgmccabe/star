@@ -49,7 +49,5 @@ typedef enum {
   glb           // Global variable name
 } opAndSpec;                    // Specification code for an operand
 
-
-
 #endif
 
