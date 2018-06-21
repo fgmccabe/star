@@ -415,7 +415,7 @@ retCode run(processPo P) {
           restoreRegisters(P);
         } else
 #endif
-          PC += 2;
+          PC +=2;
         continue;
       }
 
@@ -476,9 +476,8 @@ retCode run(processPo P) {
           saveRegisters(P);
           retDebug(P, SP[0]);
           restoreRegisters(P);
-        } else
+        }
 #endif
-          PC += 2;
         continue;
 
 
