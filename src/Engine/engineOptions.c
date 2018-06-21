@@ -286,9 +286,9 @@ Option options[] = {
   {'b', "boot-pkg",     True,  setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
   {'m', "main",         True,  setMainEntry,   Null, "-m|--main <entry>"},
   {'L', "logFile",      True,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'R', "repository",   True,  setRepoDir,     Null, "-R|--repository <path>"},
-  {'W', "set-wd",       True,  setWD,          Null, "-W|--set-wd <dir>"},
-  {'V', "verify",       False, setVerify,      Null, "-V|--verify"},
+  {'r', "repository",   True,  setRepoDir,     Null, "-r|--repository <path>"},
+  {'w', "set-wd",       True,  setWD,          Null, "-w|--set-wd <dir>"},
+//  {'V', "verify",       False, setVerify,      Null, "-V|--verify code"},
   {'h', "heap",         True,  setHeapSize,    Null, "-h|--heap <size>"},
   {'s', "stack",        True,  setStackSize,   Null, "-s|--stack <size>"},};
 
