@@ -12,6 +12,6 @@ test.j{
 
   assert parse(pJson,"\"alpha\""::list[integer]) == [(jTxt("alpha"),[])].
 
---  assert parse(pJson,"[\"alpha\"]"::list[integer]) == [(jSeq([jTxt("alpha")]),[])].
+  assert parse(pJson,"[\"alpha\"]"::list[integer]) == [(jSeq([jTxt("alpha")]),[])].
 
 }

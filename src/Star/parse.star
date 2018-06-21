@@ -64,7 +64,7 @@ star.parse{
   }
 
   public _star:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
-  _star(P) => _plus(P) +++ return [].
+  _star(P) => _plus(P) ++ return [].
 
   public _plus:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
   _plus(P) =>
