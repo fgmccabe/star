@@ -210,21 +210,21 @@ void defineLocal(mtdPo mtd, char *name, char *sig, lPo from, lPo to) {
   hashPut(mtd->locals, &var->name, var);
 }
 
-retCode encodeLocation(char *buffer,integer buffLen,char *pkg,integer line,integer off,integer len){
-  bufferPo str = fixedStringBuffer(buffer,buffLen);
+retCode encodeLocation(char *buffer, integer buffLen, char *pkg, integer line, integer off, integer len) {
+  bufferPo str = fixedStringBuffer(buffer, buffLen);
 
-  retCode ret = encodeCons(O_IO(str),4);
-  if(ret==Ok)
-    ret = encodeStrct(O_IO(str),"()4",4);
-  if(ret==Ok)
-    ret = encodeStr(O_IO(str),pkg,uniStrLen(pkg));
-  if(ret==Ok)
-    ret = encodeInt(O_IO(str),line);
-  if(ret==Ok)
-    ret = encodeInt(O_IO(str),off);
-  if(ret==Ok)
-    ret = encodeInt(O_IO(str),len);
-  outByte(O_IO(str),0);
+  retCode ret = encodeCons(O_IO(str), 4);
+  if (ret == Ok)
+    ret = encodeStrct(O_IO(str), "()4", 4);
+  if (ret == Ok)
+    ret = encodeStr(O_IO(str), pkg, uniStrLen(pkg));
+  if (ret == Ok)
+    ret = encodeInt(O_IO(str), line);
+  if (ret == Ok)
+    ret = encodeInt(O_IO(str), off);
+  if (ret == Ok)
+    ret = encodeInt(O_IO(str), len);
+  outByte(O_IO(str), 0);
   closeFile(O_IO(str));
   return ret;
 }
@@ -506,8 +506,8 @@ static logical sameMtd(constPo a1, char *sig, void *con) {
   return (logical) (a1->con.value.mtd == other);
 }
 
-static logical sameLocation(constPo a, char *sig, void *con){
-  if(uniCmp(sig,locationSig) == same)
+static logical sameLocation(constPo a, char *sig, void *con) {
+  if (uniCmp(sig, locationSig) == same)
     return (logical) (uniCmp(a->con.value.txt, (char *) con) == same);
   else
     return False;
@@ -646,22 +646,21 @@ int32 newStrctConstant(mtdPo mtd, char *str, integer ar) {
     return cx;
 }
 
-int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len){
+int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len) {
   char buffer[MAX_SYMB_LEN];
-  retCode ret = encodeLocation(buffer,NumberOf(buffer),pkg,line,off,len);
-  if(ret==Ok){
-    int32 cx = findConstant(mtd, locationSig, buffer);
+  encodeLocation(buffer, NumberOf(buffer), pkg, line, off, len);
 
-    if (cx < 0) {
-      ConValue value = {.txt=uniDuplicate(buffer)};
+  int32 cx = findConstant(mtd, locationSig, buffer);
 
-      constPo conn = newConstant(locationSig, sameString, showLocationConstant, encodeLocationConstant, &value);
+  if (cx < 0) {
+    ConValue value = {.txt=uniDuplicate(buffer)};
 
-      mtd->constants = tack((objectPo) conn, mtd->constants);
-      return (int32) (listCount(mtd->constants) - 1);
-    } else
-      return cx;
-  }
+    constPo conn = newConstant(locationSig, sameString, showLocationConstant, encodeLocationConstant, &value);
+
+    mtd->constants = tack((objectPo) conn, mtd->constants);
+    return (int32) (listCount(mtd->constants) - 1);
+  } else
+    return cx;
 }
 
 char *methodSignature(mtdPo mtd) {

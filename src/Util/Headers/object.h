@@ -21,6 +21,7 @@
 #include "retcode.h"
 #include "integer.h"
 #include "utils.h"
+#include <unistd.h>
 #include <pthread.h>
 
 typedef struct _object_ *objectPo;
