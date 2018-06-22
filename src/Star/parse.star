@@ -81,7 +81,7 @@ star.parse{
 
   public chainl1:all e,t ~~ (parser[t,e],parser[t,(e,e)=>e])=>parser[t,e].
   chainl1(P,Op) => let{
-    rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) +++ return A
+    rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) ++ return A
   } in (P >>= rest).
 
   public _pstar:all e,t,u ~~ (parser[t,e],(e,u)=>u,u)=>parser[t,u].

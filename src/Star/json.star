@@ -29,6 +29,10 @@ star.json{
   dispSeq([],_,_) => [].
   dispSeq([e,..l],Sp,s) => [ss(s),dispJson(e,Sp),..dispSeq(l,Sp,",")].
 
+  public implementation coercion[json,string] => {.
+    _coerce(J) => disp(J)::string.
+  .}
+
   break:(integer) => ss.
   break(0) => ssSeq([]).
   break(X) => let{
@@ -67,7 +71,7 @@ star.json{
   string --> [0c"], T<-strchr*, [0c"] ^^ T::string.
 
   strchr:parser[integer,integer].
-  strchr --> [0c\\], _item | _item. 
+  strchr --> [0c\\], _item | _item.
 
   pSeq:parser[integer,json].
   pSeq --> [0c[], S<- sepby(pJson,skip(_str(","))), [0c]] ^^ jSeq(S).
@@ -76,6 +80,8 @@ star.json{
   pEntry --> spaces, K<-string, spaces, ":", spaces, V<-jP ^^ (K,V).
 
   pColl:parser[integer,json].
-  pColl --> "{", C<-sepby(pEntry,skip(_str(","))), "}" ^^jColl(C::map[string,json]).
+  pColl --> "{", C<-sepby(pEntry,pComma), spaces, "}" ^^jColl(C::map[string,json]).
 
+  pComma:parser[integer,()].
+  pComma --> spaces, "," ^^ ().
 }
