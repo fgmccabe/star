@@ -492,7 +492,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     normalPo line = C_TERM(ln);
     integer pLen;
     const char *pkgNm = stringVal(nthArg(line, 0), &pLen);
-    return outMsg(f, "%S@%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+    return outMsg(f, "%S:%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
   } else
     return outMsg(f, "%T", ln);
 }
