@@ -228,6 +228,11 @@ transformOthers(Pkg,Map,Opts,[assertion(Lc,G)|Others],I,Ix,Rules,Rx) :-
   transformAssertions(Pkg,Map,Opts,Lc,[assertion(Lc,G)|Asserts],AssertName,Rules,R0),
   mergeGoal(I,cll(Lc,AssertName,[]),Lc,I1),
   transformOthers(Pkg,Map,Opts,Rest,I1,Ix,R0,Rx).
+transformOthers(Pkg,Map,Opts,[show(Lc,G)|Others],I,Ix,Rules,Rx) :-
+  collect(Others,canon:isShow,Shows,Rest),
+  transformShows(Pkg,Map,Opts,Lc,[show(Lc,G)|Shows],ShowName,Rules,R0),
+  mergeGoal(I,cll(Lc,ShowName,[]),Lc,I1),
+  transformOthers(Pkg,Map,Opts,Rest,I1,Ix,R0,Rx).
 
 transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,
     [fnDef(Lc,LclPrg,funType(tupleType([]),BoolTp),[],Goal)|Ex],Exx) :-
@@ -239,6 +244,18 @@ transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,
 
 collectAssertion(assertion(Lc,G),enm(_,"true"),assertion(Lc,G)) :-!.
 collectAssertion(assertion(Lc,G),O,conj(Lc,O,assertion(Lc,G))).
+
+transformShows(Pkg,Map,Opts,Lc,Shows,LclPrg,
+    [fnDef(Lc,LclPrg,funType(tupleType([]),tupleType([])),[],Disp)|Ex],Exx) :-
+  isUnit(Z),
+  rfold(Shows,transform:collectShow(Map,Opts),([],Z,Ex),(_Q,Disp,Exx)),
+  localName(Pkg,"@","show",LclName),
+  LclPrg = lbl(LclName,0).
+
+collectShow(Map,Opts,show(Lc,E),(Q0,Z,Ex),(Q1,Zx,Exx)) :-
+  locTerm(Lc,Lx),
+  liftExp(E,ETrm,Q0,Q1,Map,Opts,Ex,Exx),
+  mergeSeq(Lc,ecll(Lc,"_display",[Lx,ETrm]),Z,Zx).
 
 packageInit(Pkg,Lc,_,_,Imports,Inits,[fnDef(Lc,InitPrg,funType(tupleType([]),tupleType([])),[],Init)|R],R) :-
   localName(Pkg,"@","init",InitNm),

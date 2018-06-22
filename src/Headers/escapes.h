@@ -159,6 +159,7 @@ escape(_suspend,False,False,":k'u'P2k'u'P0","suspend handler if variable not bou
   escape(_setfileencoding,True,False,"F("fileType"i)"sysRet, "set file encoding on file")
   escape(_get_file,True,False,"F(S)S","file into a string")
   escape(_put_file,True,False,"F(S)()","write string into file")
+  escape(_display,False,False,"F("locType"S)()","show something on console")
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")
   escape(_pkg_is_present,True,False,"F(SS)l","True if an identified package is available")
