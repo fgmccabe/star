@@ -1,7 +1,5 @@
 /* Lexical scanner for the Cafe assembler */
 
-%option nodefault
-
 %option yylineno
 %option bison-bridge bison-locations
 %option noyywrap nounput

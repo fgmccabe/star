@@ -14,7 +14,7 @@ retCode reportError(int line, char *msg,...)
   va_list args;
   va_start(args,msg);
   outMsg(logFile,"error: %d\n",line);
-  __voutMsg(logFile,(unsigned char*)msg,args);
+  __voutMsg(logFile,msg,args);
   outStr(logFile,"\n");
   va_end(args);
   errorCount++;
@@ -26,7 +26,7 @@ retCode reportWarning(int line, char *msg,...)
   va_list args;
   va_start(args,msg);
   outMsg(logFile,"warning: %d\n",line);
-  __voutMsg(logFile,(unsigned char*)msg,args);
+  __voutMsg(logFile,msg,args);
   outStr(logFile,"\n");
   va_end(args);
   warningCount++;
@@ -35,7 +35,7 @@ retCode reportWarning(int line, char *msg,...)
 
 logical isErrorFree()
 {
-  return errorCount==0;
+  return (logical)(errorCount==0);
 }
 
 void reportErrorCount()
