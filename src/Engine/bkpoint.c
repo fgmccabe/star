@@ -110,8 +110,8 @@ retCode clearBreakPoint(breakPointPo bp) {
 
 /*
  * A Break point is specified as:
- * pkg@line,
- * pkg@line:off, or
+ * pkg:line,
+ * pkg:line:off, or
  * prg/arity
  */
 
@@ -160,12 +160,16 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
         bp->offset = offset;
         bp->bkType = bkType;
         return Ok;
-      case '@': {
+      case ':': {
         switch (pState) {
           case inNme:
             appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
             pState = inLine;
             line = 0;
+            continue;
+          case inLine:
+            pState = inOffset;
+            offset = 0;
             continue;
           default:
             outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
@@ -179,17 +183,6 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
             pState = inArity;
             bkType = callBreak;
             line = offset = 0;
-            continue;
-          default:
-            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
-            return Error;
-        }
-      }
-      case ':': {
-        switch (pState) {
-          case inLine:
-            pState = inOffset;
-            offset = 0;
             continue;
           default:
             outMsg(logFile, "invalid break point: %S\n", buffer, bLen);

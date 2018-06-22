@@ -6,4 +6,7 @@ test.i{
 
   ll:map[string,integer].
   ll = _put(kk,"delta",4).
+
+  assert some(1).=present(kk,"alpha").
+  assert some(1).=present(ll,"alpha").
 }
