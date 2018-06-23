@@ -36,10 +36,10 @@ star.json{
   break:(integer) => ss.
   break(0) => ssSeq([]).
   break(X) => let{
-    spaces:(integer) => list[ss].
-    spaces(0) => [].
-    spaces(X) => [ss(" "),..spaces(X-1)].
-  } in ssSeq([ss("\n"),..spaces(X)]).
+    spces:(integer) => list[ss].
+    spces(0) => [].
+    spces(C) => [ss(" "),..spces(C-1)].
+  } in ssSeq([ss("\n"),..spces(X)]).
 
   public implementation equality[json] => {
     T1 == T2 => equalJson(T1,T2).
@@ -71,7 +71,7 @@ star.json{
   string --> [0c"], T<-strchr*, [0c"] ^^ T::string.
 
   strchr:parser[integer,integer].
-  strchr --> [0c\\], _item | _item.
+  strchr --> [0c\\], _item | sat((Ch)=>Ch=!=0c").
 
   pSeq:parser[integer,json].
   pSeq --> [0c[], S<- sepby(pJson,skip(_str(","))), [0c]] ^^ jSeq(S).

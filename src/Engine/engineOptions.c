@@ -165,7 +165,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 #ifdef TRACESTATS
         runStats = True;
         atexit(dumpInsCount);
-        atexit(dumpGcStats);
         break;
 #else
       logMsg(logFile, "instruction counting not enabled");

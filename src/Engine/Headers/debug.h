@@ -7,7 +7,6 @@
 
 #include "engine.h"
 
-extern int32 insOperand(processPo p);
 extern termPo getLbl(termPo lbl,int32 arity);
 
 extern DebugWaitFor insDebug(integer pcCount, processPo p);
