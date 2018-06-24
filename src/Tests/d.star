@@ -4,7 +4,7 @@ test.d{
   xx : index[boolean].
   xx = xc{
     get(false) => 0.
-    get(true) => 1.
+    get(_) default => 1.
 
     test = true.
 

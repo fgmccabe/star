@@ -98,7 +98,7 @@
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("|", [infixOp(1148, 1149, 1149)]).
+  operator("|", [infixOp(1248, 1249, 1249)]).
   operator(".~", [infixOp(499, 500, 499)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).

@@ -246,25 +246,25 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   simplifyType(PT,E,Cx,[],ProgramType),
   declareConstraints(Cx,E0,E1),
   declareTypeVars(Q,Lc,E1,E2),
-  processStmts(Stmts,ProgramType,Rules,[],E2,Path),
+  processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
   packageVarName(Path,N,LclName),
   collectPrograms(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
 
-processStmts([],_,Defs,Defs,_,_).
-processStmts([St|More],ProgramType,Defs,Dx,Env,Path) :-
-  processStmt(St,ProgramType,Defs,D0,Env,Path),!,
-  processStmts(More,ProgramType,D0,Dx,Env,Path).
+processStmts([],_,Defs,Defs,Dflts,Dflts,_,_).
+processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,Env,Path) :-
+  processStmt(St,ProgramType,Defs,D0,Df,Df0,Env,Path),!,
+  processStmts(More,ProgramType,D0,Dx,Df0,Dfx,Env,Path).
 
-processStmt(St,ProgramType,Defs,Defx,E,Path) :-
+processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Path) :-
   isEquation(St,Lc,L,Cond,R),!,
-  checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,E,Path).
-processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
+  checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,Df,Dfx,E,Path).
+processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
   isDefn(St,Lc,L,R),
   checkDefn(Lc,L,R,Tp,Def,Env,Path),!.
-processStmt(St,Tp,[Def|Defs],Defs,Env,Path) :-
+processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
   isAssignment(St,Lc,L,R),!,
   checkVarDefn(Lc,L,R,Tp,Def,Env,Path).
-processStmt(St,Tp,Defs,Defs,_,_) :-
+processStmt(St,Tp,Defs,Defs,Df,Df,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
 
@@ -282,7 +282,7 @@ guessStmtType([St|_],N,Lc,Guess) :-
 
 guessType(St,_,_,funType(tupleType(AT),RTp)) :-
   isEquation(St,_,H,_,_),!,
-  splitHead(H,_,tuple(_,_,Args)),
+  splitHead(H,_,tuple(_,_,Args),_),
   genTpVars(Args,AT),
   newTypeVar("_",RTp).
 guessType(St,_,_,GTp) :-
@@ -309,26 +309,27 @@ findType(Nm,_,Env,Tp) :-
 findType(Nm,Lc,_,anonType) :-
   reportError("type %s not known",[Nm],Lc).
 
-checkEquation(Lc,H,C,R,funType(AT,RT),[equation(Lc,Args,Cond,Exp)|Defs],Defs,E,Path) :-
-  splitHead(H,_,A),
+checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
+  splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
   typeOfArgPtn(A,AT,Env,E0,Args,Path),
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(C,LogicalTp,E0,E1,Cond,Path),
   typeOfExp(R,RT,E1,E2,Exp,Path),
-  dischargeConstraints(E,E2).
-checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,_,_) :-
+  dischargeConstraints(E,E2),
+  (IsDeflt=isDeflt -> Defs=Defsx, Df=[equation(Lc,Args,Cond,Exp)|Dfx]; Defs=[equation(Lc,Args,Cond,Exp)|Defsx],Df=Dfx).
+checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
 
 checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
-  splitHead(L,Nm,none),
+  splitHead(L,Nm,none,_),
   pushScope(Env,E),
   typeOfExp(R,Tp,E,E2,Value,Path),
   dischargeConstraints(E,E2),
   packageVarName(Path,Nm,ExtNm).
 
 checkVarDefn(Lc,L,R,ref(Tp),vdefn(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
-  splitHead(L,Nm,none),
+  splitHead(L,Nm,none,_),
   pushScope(Env,E1),
   typeOfExp(R,Tp,E1,E2,Value,Path),
   dischargeConstraints(Env,E2),
@@ -373,18 +374,21 @@ checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,Defs,Others,Types,Tp),Bou
   checkThetaBody(ThTp,Lc,Els,Env,ThEnv,Defs,Others,Types,ThPath),
   typeOfExp(Ex,Tp,ThEnv,_,Bound,Path).
 
-splitHead(tuple(_,"()",[A]),Nm,Args) :-!,
-  splitHd(A,Nm,Args).
-splitHead(Term,Nm,Args) :-
-  splitHd(Term,Nm,Args).
+splitHead(tuple(_,"()",[A]),Nm,Args,IsDeflt) :-!,
+  splitHd(A,Nm,Args,IsDeflt).
+splitHead(Term,Nm,Args,IsDeflt) :-
+  splitHd(Term,Nm,Args,IsDeflt).
 
-splitHd(Term,Nm,A) :-
+splitHd(Term,Nm,A,isDeflt) :-
+  isDefault(Term,_,Lhs),!,
+  splitHd(Lhs,Nm,A,_).
+splitHd(Term,Nm,A,notDeflt) :-
   isRoundTerm(Term,Lc,O,Args),
   isIden(O,_,Nm),
   roundTuple(Lc,Args,A).
-splitHd(Id,Nm,none) :-
+splitHd(Id,Nm,none,isDeflt) :-
   isIden(Id,_,Nm),!.
-splitHd(Term,"()",Term) :-
+splitHd(Term,"()",Term,isDeflt) :-
   isTuple(Term,_).
 
 collectPrograms([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-

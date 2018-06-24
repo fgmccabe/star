@@ -86,7 +86,7 @@ reformAlgebraic(St,[(tpe(Nm),Lc,[TpRule])|Lst],Lx,A,Ax,Export,P,Px) :-
   buildConstructors(Body,Quants,Constraints,Nm,Head,Lst,Lx,A,Ax,Export,P0,Px).
 
 algebraicFace(C,F) :-
-  isBinary(C,_,"|",L,R),
+  isBinary(C,_,"|",L,R),!,
   algebraicFace(L,F0),
   algebraicFace(R,F1),
   combineFaces(F0,F1,F).
