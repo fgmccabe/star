@@ -26,4 +26,10 @@ test.j{
 
   assert parse(pJson,"{\"alpha\":1,\"beta\":2}"::list[integer]) ==
     [(jColl(["alpha"->jNum(1.0),"beta"->jNum(2.0)]),[])].
+
+  show disp(parse(pJson,"{\"alpha\":1,\"beta\":[2,null]}"::list[integer]))::string.
+
+  assert parse(pJson,"{\"alpha\":1,\"beta\":[2,null]}"::list[integer]) ==
+    [(jColl(["alpha"->jNum(1.0),"beta"->jSeq([jNum(2.0),jNull])]),[])]
+
 }
