@@ -29,9 +29,9 @@
   {
     "infixOp": "|",
     "priorities": [
-      1148,
-      1149,
-      1149
+      1248,
+      1249,
+      1249
     ],
     "desc": "type union and conditional"
   },

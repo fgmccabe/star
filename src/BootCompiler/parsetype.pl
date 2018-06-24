@@ -312,12 +312,12 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   mkTypeLambda(Tp,RpTp,Lam),
   wrapConstraints(Cx,Lam,Rl),
   reQuant(Q,Rl,Rule),
-  declareType(Nm,tpDef(Lc,Type,Rule),E,Ev),
-  dispType(Rule).
+  declareType(Nm,tpDef(Lc,Type,Rule),E,Ev).
 
 mkTypeLambda(tpExp(Op,A),Tp,typeLambda(A,RRTp)) :-
   mkTypeLambda(Op,Tp,RRTp).
 mkTypeLambda(tpFun(_,_),Tp,Tp).
+mkTypeLambda(type(_),Tp,Tp).
 
 % pickTypeTemplate(allType(V,Tp),allType(V,XTp)) :-
 %   pickTypeTemplate(Tp,XTp).
