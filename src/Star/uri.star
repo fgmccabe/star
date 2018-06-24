@@ -32,13 +32,13 @@ star.uri{
     query >>= (Query) => return absUri(Scheme,Hier,Query).
 
   scheme:parser[integer,string].
-  scheme = sat(isAlphaNum) >>= (A) => many(alphaStar) >>= (Rest) => tk(0c:) >>= (_) => return ([A,..Rest]::string).
+  scheme = sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => tk(0c:) >>= (_) => return ([A,..Rest]::string).
 
   hierPart:parser[integer,rsrcName].
   hierPart = netPath +++ absoluteRsrc.
 
   netPath:parser[integer,rsrcName].
-  netPath = str("//") >>= (_) =>
+  netPath = _str("//") >>= (_) =>
             authority >>= (A) =>
             (absolutePath +++ relativePath) >>= (P) => return netRsrc(A,P).
 
@@ -47,7 +47,7 @@ star.uri{
     (hostNamePort >>= (H) => return server(none,H)).
 
   userInfo:parser[integer,userInfo].
-  userInfo = many(userStar) >>= (U) => return user(U::string).
+  userInfo = _star(userStar) >>= (U) => return user(U::string).
 
   relativeUri:parser[integer,uri].
   relativeUri = (netPath+++absoluteRsrc+++relativeRsrc) >>= (P) => query >>= (Q)=>return relUri(P,Q).
@@ -65,7 +65,7 @@ star.uri{
   relativePath = sepby(segment,tk(0c/)) >>= (S) => return relPath(S).
 
   segment:parser[integer,string].
-  segment=many(segChr) >>= (Chrs) => return (Chrs::string).
+  segment=_star(segChr) >>= (Chrs) => return (Chrs::string).
 
   segChr:parser[integer,integer].
   segChr = sat(isSegChr).
@@ -83,7 +83,7 @@ star.uri{
   isSegChr(Ch) => isUnreserved(Ch).
 
   query:parser[integer,query].
-  query = (tk(0c?) >>= (_) => many(sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ return noQ.
+  query = (tk(0c?) >>= (_) => _star(sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ return noQ.
 
   userStar:parser[integer,integer].
   userStar = sat(userCh).
@@ -103,19 +103,19 @@ star.uri{
     ((tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ return host(H)).
 
   hostName:parser[integer,string].
-  hostName = many(alphaDash) >>= (H)=> return (H::string).
+  hostName = _star(alphaDash) >>= (H)=> return (H::string).
 
   alphaStar:parser[integer,integer].
   alphaStar = sat(isAlphaStar).
 
   isAlphaStar:(integer)=>boolean.
-  isAlphaStar(Ch) => isAlphaNum(Ch) || isPlus(Ch) || isMinus(Ch) || isDot(Ch).
+  isAlphaStar(Ch) => (isAlphaNum(Ch) || isPlus(Ch) || isMinus(Ch) || isDot(Ch)).
 
   alphaDash:parser[integer,integer].
   alphaDash = sat(isAlphaDash).
 
   isAlphaDash:(integer)=>boolean.
-  isAlphaDash(Ch) => isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch).
+  isAlphaDash(Ch) => (isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch)).
 
   port:parser[integer,string].
   port = _plus(sat(isDigit)) >>= (P)=>return (P::string).
@@ -130,7 +130,7 @@ star.uri{
   isDot(Ch)=>Ch==0c..
 
   isUric:(integer)=>boolean.
-  isUric(Ch) => isReserved(Ch) || isAlphaNum(Ch) || isMark(Ch).
+  isUric(Ch) => (isReserved(Ch) || isAlphaNum(Ch) || isMark(Ch)).
 
   isReserved:(integer)=>boolean.
   isReserved(0c;) => true.
@@ -158,7 +158,7 @@ star.uri{
   isMark(_) => false.
 
   isUnreserved:(integer) => boolean.
-  isUnreserved(Ch) => isAlphaNum(Ch) || isMark(Ch).
+  isUnreserved(Ch) => (isAlphaNum(Ch) || isMark(Ch)).
 
   isDelim:(integer)=>boolean.
   isDelim(0c<) => true.
@@ -259,5 +259,9 @@ star.uri{
 
   public implementation coercion[uri,string] => {.
     _coerce(U) => disp(U)::string.
+  .}
+
+  public implementation coercion[string,uri] => {.
+    _coerce(S) where parseUri(S)=.some(U) => U.
   .}
 }

@@ -20,6 +20,7 @@
 		"test.j" : "j.star",
 		"test.let" : "letish.star",
 		"test.m" : "m.star",
+		"test.ma" : "ma.star",
 		"test.mm" : "mm.star",
 		"test.opg" : "opg.star",
 		"test.ops" : "ops.star",
