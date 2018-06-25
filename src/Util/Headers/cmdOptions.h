@@ -16,10 +16,10 @@ typedef retCode (*setOption)(char *option,logical enable,void *cl);
 typedef retCode (*helpOption)(ioPo out,char shortName,char *usage,void *cl);
 
 typedef struct {
-  char shortName;
-  char *longName;
+  const char shortName;
+  const char *longName;
   logical hasArg;
-  char *envVar;
+  const char *envVar;
   setOption setter;
   void *cl;
   char *usage;

@@ -325,7 +325,7 @@ genDOTail(_,_,Cx,Cx).
 
 genDRtn(Opts,[iDRet|Cx],Cx) :-
   is_member(debugging,Opts),!.
-genDRtn(_,_,Cx,Cx).
+genDRtn(_,Cx,Cx).
 
 popStack(lbl(_,Ar),St,Stx) :-
   Stx is St-Ar+1.
