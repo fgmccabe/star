@@ -7,7 +7,7 @@
 #include <getopt.h>
 #include <unistd.h>
 
-#include "options.h"
+#include "cmdOptions.h"
 #include "version.h"      /* Version ID for the Cafe system */
 #include "debug.h"
 
@@ -195,33 +195,33 @@ static retCode debugOption(char *option, logical enable, void *cl) {
   return Ok;
 }
 
-static retCode debugOptHelp(ioPo out,char opt,char *usage,void *cl){
-  return outMsg(out,"    -d|--debug <"
-#ifdef TRACEEXEC
-  "d|D|"
-#endif
-#ifdef TRACEVERIFY
-  "v|"
-#endif
-#ifdef TRACEMEM
-  "m|"
-#endif
-#ifdef LOCKTRACE
-  "l|"
-#endif
-#ifdef TRACEEXEC
-  "G|g|"
-#endif
-#ifdef TRACESTATS
-  "s|"
-#endif
-#ifdef TRACEMANIFEST
-  "M|"
-#endif
-#ifdef TRACEPKG
-  "P"
-#endif
-  ">\n%_");
+static retCode debugOptHelp(ioPo out, char opt, char *usage, void *cl) {
+  return outMsg(out, "    -d|--debug <"
+                     #ifdef TRACEEXEC
+                     "d|D|"
+                     #endif
+                     #ifdef TRACEVERIFY
+                     "v|"
+                     #endif
+                     #ifdef TRACEMEM
+                     "m|"
+                     #endif
+                     #ifdef LOCKTRACE
+                     "l|"
+                     #endif
+                     #ifdef TRACEEXEC
+                     "G|g|"
+                     #endif
+                     #ifdef TRACESTATS
+                     "s|"
+                     #endif
+                     #ifdef TRACEMANIFEST
+                     "M|"
+                     #endif
+                     #ifdef TRACEPKG
+                     "P"
+                     #endif
+                     ">\n%_");
 }
 
 static retCode setLogFile(char *option, logical enable, void *cl) {
@@ -278,18 +278,18 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",        True,  debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
-  {'g', "symbol-debug", False, symbolDebug,    Null, "-g|--symbol-debug"},
-  {'G', "debugger",     True,  setDebugger,    Null, "-G|--debugger <pkg>"},
-  {'v', "version",      False, displayVersion, Null, "-v|--version"},
-  {'b', "boot-pkg",     True,  setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",         True,  setMainEntry,   Null, "-m|--main <entry>"},
-  {'L', "logFile",      True,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'r', "repository",   True,  setRepoDir,     Null, "-r|--repository <path>"},
-  {'w', "set-wd",       True,  setWD,          Null, "-w|--set-wd <dir>"},
-//  {'V', "verify",       False, setVerify,      Null, "-V|--verify code"},
-  {'h', "heap",         True,  setHeapSize,    Null, "-h|--heap <size>"},
-  {'s', "stack",        True,  setStackSize,   Null, "-s|--stack <size>"},};
+  {'d', "debug",        True,  Null,         debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
+  {'g', "symbol-debug", False, Null,         symbolDebug,    Null, "-g|--symbol-debug"},
+  {'G', "debugger",     True, STAR_DEBUGGER, setDebugger,    Null, "-G|--debugger <pkg>"},
+  {'v', "version",      False, Null,         displayVersion, Null, "-v|--version"},
+  {'b', "boot-pkg",     True, STAR_BOOT,     setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",         True, STAR_MAIN,     setMainEntry,   Null, "-m|--main <entry>"},
+  {'L', "logFile",      True, STAR_LOGFILE,  setLogFile,     Null, "-L|--logFile <path>"},
+  {'r', "repository",   True, STAR_REPO,     setRepoDir,     Null, "-r|--repository <path>"},
+  {'w', "set-wd",       True,  Null,         setWD,          Null, "-w|--set-wd <dir>"},
+//  {'V', "verify",       False, Null, setVerify,      Null, "-V|--verify code"},
+  {'h', "heap",         True,  Null,         setHeapSize,    Null, "-h|--heap <size>"},
+  {'s', "stack",        True,  Null,         setStackSize,   Null, "-s|--stack <size>"},};
 
 logical lineDebugging = False;
 

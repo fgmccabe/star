@@ -1,18 +1,18 @@
-star.manifest{
+star.repo.manifest{
   import star.
   import star.parse.
   import star.json.
   import star.repo.
   import star.uri.
 
-  public manifest ::= man(uri,map[string,pEntry]).
+  public manifest ::= man(map[string,pEntry]).
 
   pEntry ::= pEntry(string,list[(version,mInfo)]).
 
   mInfo ::= mInfo(version,map[string,string]).
 
-  fromJson:(uri,json) => manifest.
-  fromJson(base,jColl(M)) => man(base,M///jsonEntry).
+  fromJson:(json) => manifest.
+  fromJson(jColl(M)) => man(M///jsonEntry).
 
   jsonEntry:(string,json) => pEntry.
   jsonEntry(P,jColl(Vs)) => pEntry(P,foldMap(pickEntry,[],Vs)).
@@ -27,7 +27,7 @@ star.manifest{
   pickInfo(K,jTxt(V),M) => M[K->V].
 
   public implementation repo[manifest] => {
-    hasResource(man(_,M),pkg(P,V),K) where
+    hasResource(man(M),pkg(P,V),K) where
       present(M,P) =. some(pEntry(_,Vs)) =>
         hasCompatibleVersion(Vs,V,K).
     hasResource(_,_,_) => none.
@@ -36,8 +36,6 @@ star.manifest{
     hasCompatibleVersion([(Vr,mInfo(_,I)),.._],Vq,K) where
       compatibleVersion(Vr,Vq) => present(I,K).
     hasCompatibleVersion([_,..Vs],Vq,K) => hasCompatibleVersion(Vs,Vq,K).
-
-    baseUri(man(U,_)) => U.
   }
 
 

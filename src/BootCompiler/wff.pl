@@ -181,8 +181,8 @@ isOpen(St,Lc,Ex) :-
   isUnary(St,Lc,"open",Ex).
 
 isConditional(Term,Lc,Cond,Th,El) :-
-  isBinary(Term,Lc,"?",Cond,R),
-  isBinary(R,_,"|",Th,El).
+  isBinary(Term,Lc,"|",Lhs,El),
+  isBinary(Lhs,_,"?",Cond,Th).
 
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),

@@ -11,7 +11,7 @@ set(HEADER_FILES
         ../Headers/config.h
         ../Headers/instructions.h
         ../Util/Headers/ooio.h
-        ../Util/Headers/options.h
+        ../Util/Headers/cmdOptions.h
         ../Lib/Headers/libEscapes.h
         Headers/bkpoint.h
         Headers/array.h Headers/arrayP.h
