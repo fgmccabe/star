@@ -3,6 +3,7 @@
 
 #include "config.h"
 #include "asm.h"
+#include "starOptions.h"
 
 #ifdef ALLTRACE
 #define DEBUGPARSE

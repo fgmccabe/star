@@ -26,7 +26,7 @@ set(PUBLIC_HEADERS
         Headers/timer.h
         Headers/unistr.h Headers/utils.h
         Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
-        Headers/options.h Headers/template.h Headers/pp.h Headers/ppP.h)
+        Headers/cmdOptions.h Headers/template.h Headers/pp.h Headers/ppP.h)
 
 set(HEADER_FILES
         Headers/ioP.h Headers/fileP.h Headers/formioP.h
@@ -54,7 +54,7 @@ set(SOURCE_FILES
         locked.c
         managed.c
         object.c
-        options.c
+        cmdOptions.c
         pair.c
         pipe.c
         pool.c

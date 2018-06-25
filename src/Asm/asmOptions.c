@@ -4,7 +4,7 @@
 #include "config.h"
 #include "asm.h"
 
-#include <options.h>
+#include <cmdOptions.h>
 #include "asmOptions.h"
 #include "manifest.h"
 
@@ -55,8 +55,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       logMsg(logFile,"insDebugging not enabled\n");
       return Error;
 #endif
-      default:
-        ;
+      default:;
     }
   }
   return Ok;
@@ -91,13 +90,13 @@ static retCode setVersion(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",      True,  debugOption,    Null, "-d|--debug <flags>"},
-  {'v', "version",    False, displayVersion, Null, "-v|--version"},
-  {'P', "parseOnly",  False, setParseOnly,   Null, "-P|--parseOnly"},
-  {'H', "cafeHome",   True,  setHome,        Null, "-H|--cafeHome <path>"},
-  {'L', "logFile",    True,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'R', "repository", True,  setRepoDir,    Null, "-R|--repository <path>"},
-  {'V', "pkg-version", True, setVersion,     Null, "-V|--set-version <version>"}};
+  {'d', "debug",       True,  Null,        debugOption,    Null, "-d|--debug <flags>"},
+  {'v', "version",     False, Null,        displayVersion, Null, "-v|--version"},
+  {'P', "parseOnly",   False, Null,        setParseOnly,   Null, "-P|--parseOnly"},
+  {'H', "starHome",    True, STAR_HOME,    setHome,        Null, "-H|--starHome <path>"},
+  {'L', "logFile",     True, STAR_LOGFILE, setLogFile,     Null, "-L|--logFile <path>"},
+  {'R', "repository",  True, STAR_REPO,    setRepoDir,     Null, "-R|--repository <path>"},
+  {'V', "pkg-version", True,  Null,        setVersion,     Null, "-V|--set-version <version>"}};
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

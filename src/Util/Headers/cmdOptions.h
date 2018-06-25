@@ -19,6 +19,7 @@ typedef struct {
   char shortName;
   char *longName;
   logical hasArg;
+  char *envVar;
   setOption setter;
   void *cl;
   char *usage;

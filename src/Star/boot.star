@@ -32,45 +32,37 @@ star.boot{
 
   handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>().
   handleCmdLineOpts(either((Opts,[Top,..Args]))) where
-    RD .= resolveUri(parseUri(cwd()),parseUri(Opts.repo)),
-    Repo .= (coreRepo,openRepository(RD)),
-    importPkgs([parsePkgName(Top)],[],_,Repo),
+    RD .= resolveUri(parseUri(cwd()),parseUri(Opts.repo)) &&
+    Repo .= (coreRepo,openRepository(RD)) &&
+    _ .= importPkgs([parsePkgName(Top)],[],_,Repo) =>
     invokeMain(Top,Args).
 
-  importPkgs:all r ~~ repository[r] |: (list[pkg],list[pkg],list[pkg],r){}.
-  importPkgs([],Ld,Ld,_).
-  importPkgs([P,..L],Ld,Ldx,R) :-
-    _logmsg("importing \(P)"),
-    importPkg(P,R,Ld,Imps),
-    importPkgs(Imps,[P,..Ld],Ldx,R),
-    initialize(P).
+  importPkgs:all r ~~ repo[r] |: (list[pkg],list[pkg],list[pkg],r)=>().
+  importPkgs([],Ld,Ld,_)=>().
+  importPkgs([P,..L],Ld,Ldx,R) where
+    _ .= _logmsg("importing \(P)") &&
+    Imps .= importPkg(P,R,Ld) &&
+    _ .= importPkgs(Imps,[P,..Ld],Ldx,R) => initialize(P).
 
-  importPkg:all r ~~ repository[r] |: (pkg,r,list[pkg],list[pkg]){}.
-  importPkg(P,_,Ld,[]) :- P in Ld.
-  importPkg(P,R,Ld,Imps//(((Pk,V))=>pkgUp(Pk,V))) :-
-    loadFromRepo(R,P,"code",Code),
-    Imps = _install_pkg(Code).
+  importPkg:all r ~~ repo[r] |: (pkg,r,list[pkg])=>list[pkg]).
+  importPkg(P,_,Ld) where P in Ld => [].
+  importPkg(P,R,Ld) => where
+    Code .= loadFromRepo(R,P,"code") &&
+    Imps .= _install_pkg(Code) => Imps//(((Pk,V))=>pkg(Pk,V::version)).
 
-  pkgUp:(string,string) => pkg.
-  pkgUp(P,"*") => pkg(P,defltVersion).
-  pkgUp(P,V) => pkg(P,vers(V)).
-
-  initialize:(pkg){}.
-  initialize(pkg(P,_)) :-
-    Pred = P+"@init",
-    ( _defined(Pred,0) ?
-      _call(Pred,0,[]) |
+  initialize:(pkg) => ().
+  initialize(pkg(P,_)) where
+    Pred .= P+"@init" =>
+    ( _definedLbl(Pred,0) ?
+      _callLbl(Pred,0,[]) |
       logMsg("No init for \(P)")).
 
-  invokeMain:(string,list[string]){}.
-  invokeMain(Top,Args) :-
-    Pred = Top+"@_main",
-    ( _defined(Pred,1) ?
+  invokeMain:(string,list[string]) => ().
+  invokeMain(Top,Args) where
+    Pred .= Top+"@_main" =>
+    ( _definedLbl(Pred,1) ?
       logMsg("Starting ..."),
-      _call(Pred,1,[Args]) |
+      _callLbl(Pred,1,[Args]) |
       logMsg("No main program: \(Top)") ).
 
-  private delayHandler:(list[(){}]){}. -- private, but known to the run-time
-  delayHandler([]).
-  delayHandler([H,..L]) :- H()!, delayHandler(L).
 }

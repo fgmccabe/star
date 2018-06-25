@@ -4,7 +4,7 @@
 
 #include <memory.h>
 #include <stdlib.h>
-#include <options.h>
+#include <cmdOptions.h>
 #include <ooio.h>
 
 void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
@@ -74,10 +74,17 @@ void splitFirstArg(int argc, char **argv, int *newArgc, char ***newArgv) {
 int processOptions(char *copyRight, int argc, char **argv, Option *options, int optionCount) {
   int ix;
 
+  logical processedOptions[optionCount];
+
+  for (ix = 0; ix < optionCount; ix++)
+    processedOptions[ix] = False;
+
   for (ix = 1; ix < argc; ix++) {
     char *opt = argv[ix];
 
-    if (uniIsLitPrefix(opt, "-") && uniStrLen(opt) > 1) {
+    if (uniIsLit(opt, "--"))
+      break;
+    else if (uniIsLitPrefix(opt, "-") && uniStrLen(opt) > 1) {
       char shortOpt = opt[1];
       for (int j = 0; j < optionCount; j++) {
         if (options[j].shortName == shortOpt) {
@@ -86,21 +93,27 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
               if (ix < argc - 1) {
                 if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
                   goto failOptions;
-                else
+                else {
+                  processedOptions[j] = True;
                   goto optionLoop;
+                }
               } else
                 goto failOptions;
             } else {
               if (options[j].setter(opt + 2, True, options[j].cl) != Ok)
                 goto failOptions;
-              else
+              else {
+                processedOptions[j] = True;
                 goto optionLoop;
+              }
             }
           } else if (uniStrLen(opt) == 2) {
             if (options[j].setter(NULL, True, options[j].cl) != Ok)
               goto failOptions;
-            else
+            else {
+              processedOptions[j] = True;
               goto optionLoop;
+            }
           } else
             goto failOptions;
         }
@@ -108,8 +121,23 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
       outMsg(stdErr, "unknown option: %s\n", opt);
       goto failOptions;
     } else
-      return ix;
+      break;
     optionLoop:;
+  }
+
+  // Process environment variable alternatives
+  for (int jx = 0; jx < optionCount; jx++) {
+    if (!processedOptions[jx] && options[jx].envVar != Null) {
+      char *var = getenv(options[jx].envVar);
+      if (var != Null) {
+        if (options[jx].setter(var, True, options[jx].cl) == Ok)
+          processedOptions[jx] = True;
+        else {
+          outMsg(OpenStderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
+          goto failOptions;
+        }
+      }
+    }
   }
   return ix;
 
@@ -122,15 +150,15 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 void showUsage(char *name, char *copyRight, Option options[], int optionCount) {
   ioPo stdErr = OpenStderr();
 
-  if(copyRight!=Null)
-    outMsg(stdErr,"%s\n",copyRight);
+  if (copyRight != Null)
+    outMsg(stdErr, "%s\n", copyRight);
 
   outMsg(stdErr, "Usage: %s\n", name);
 
   for (int ix = 0; ix < optionCount; ix++) {
     Option *opt = &options[ix];
-    if(opt->helper!=Null)
-      opt->helper(stdErr,opt->shortName,opt->usage,opt->cl);
+    if (opt->helper != Null)
+      opt->helper(stdErr, opt->shortName, opt->usage, opt->cl);
     else
       outMsg(stdErr, "    %s\n", options[ix].usage);
   }

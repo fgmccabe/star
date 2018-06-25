@@ -22,7 +22,8 @@ escape(_abort,False,False,":k's':k't'F(k's'k't')()","abort process")
 
 escape(_identical,False,False,":k't'F(k't'k't')l","test for identicality")
 
-escape(_defined,True,False,"F(Si)l","test for defined name")
+escape(_definedLbl,True,False,"F(Si)l","test for defined name")
+escape(_callLbl,True,False,"F(SiLS)()","invoke defined name")
 
 escape(_int_plus,False,False,"F(ii)i","add two integers")
 escape(_int_minus,False,False,"F(ii)i","subtract two integers")

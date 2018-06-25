@@ -18,7 +18,7 @@
 		"star.io": "io.star",
 		"star.json": "json.star",
 		"star.lists": "lists.star",
-		"star.manifest": "manifest.star",
+		"star.repo.manifest": "manifest.star",
 		"star.monad": "monad.star",
 		"star.option": "option.star",
 		"star.option": "option.star",

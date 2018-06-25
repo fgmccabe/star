@@ -7,6 +7,7 @@
 		"star.core0" : "core0.star",
 		"test.c" : "c.star",
 		"test.cc" : "cc.star",
+		"test.cmd" : "cmd.star",
 	  "test.d" : "d.star",
 		"test.e" : "e.star",
 		"test.f" : "f.star",

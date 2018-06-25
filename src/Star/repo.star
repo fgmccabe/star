@@ -1,14 +1,12 @@
 star.repo{
   -- Main interface for accessing repositories
   import star.
-  import star.uri.
 
   public pkg ::= pkg(string,version).
 
   public version ::= defltVersion | vers(string).
 
   public contract all r ~~ repo[r] ::= {
-    baseUri:(r)=>uri.
     hasResource:(r,pkg,string) => option[string].
   }
 
@@ -21,6 +19,10 @@ star.repo{
   public implementation hash[version] => {.
     hash(defltVersion) => 0.
     hash(vers(V)) => hash(V).
+  .}
+
+  public implementation hash[pkg] => {.
+    hash(pkg(P,V)) => hash(P)*37+hash(V).
   .}
 
   public implementation coercion[string,version] => {

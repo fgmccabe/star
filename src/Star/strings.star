@@ -45,6 +45,10 @@ star.strings{
     _coerce(L) => _implode(L).
   }
 
+  public implementation coercion[string,string] => {
+    _coerce(S) => S.
+  }
+
   public isDigit:(integer)=>boolean.
   isDigit(D) => _isNdChar(D).
 

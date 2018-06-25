@@ -19,6 +19,10 @@
 #define TRACELOCK
 #endif
 
+static char *const STAR_DEBUGGER = "STAR_DEBUGGER";
+static char *const STAR_MAIN = "STAR_MAIN";
+static char *const STAR_BOOT = "STAR_BOOT";
+
 extern char *copyright;
 
 extern logical tracing;        /* tracing option */
