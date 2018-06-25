@@ -255,7 +255,7 @@ transformShows(Pkg,Map,Opts,Lc,Shows,LclPrg,
 collectShow(Map,Opts,show(Lc,E),(Q0,Z,Ex),(Q1,Zx,Exx)) :-
   locTerm(Lc,Lx),
   liftExp(E,ETrm,Q0,Q1,Map,Opts,Ex,Exx),
-  mergeSeq(Lc,Z,ecll(Lc,"_display",[Lx,ETrm]),Zx).
+  mergeSeq(Lc,Z,ecll(Lc,"_show",[Lx,ETrm]),Zx).
 
 packageInit(Pkg,Lc,_,_,Imports,Inits,[fnDef(Lc,InitPrg,funType(tupleType([]),tupleType([])),[],Init)|R],R) :-
   localName(Pkg,"@","init",InitNm),
