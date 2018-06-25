@@ -19,9 +19,9 @@
 #define TRACELOCK
 #endif
 
-static char *const STAR_DEBUGGER = "STAR_DEBUGGER";
-static char *const STAR_MAIN = "STAR_MAIN";
-static char *const STAR_BOOT = "STAR_BOOT";
+#define STAR_DEBUGGER "STAR_DEBUGGER"
+#define STAR_MAIN "STAR_MAIN"
+#define STAR_BOOT "STAR_BOOT"
 
 extern char *copyright;
 
