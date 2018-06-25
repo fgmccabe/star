@@ -307,14 +307,14 @@ ReturnStatus g__outtext(processPo p, ptrPo tos) {
   return rtnStatus(p, ret, "outtext");
 }
 
-ReturnStatus g__display(processPo p, ptrPo tos) {
+ReturnStatus g__show(processPo p, ptrPo tos) {
   termPo Lc = tos[0];
   termPo Arg2 = tos[1];
   integer length;
   const char *text = stringVal(Arg2, &length);
   retCode ret = outMsg(logFile,"%L: %S\n%_",Lc,text,length);
 
-  return rtnStatus(p, ret, "_diplay");
+  return rtnStatus(p, ret, "_show");
 }
 
 ReturnStatus g__put_file(processPo p, ptrPo tos) {
