@@ -801,7 +801,7 @@ static int getStdinPipe()
 #endif
 #endif
 
-ioPo OpenStdin(void) {
+ioPo Stdin(void) {
   if (stdIn == NULL) {
 #if 0
     //#ifndef ALLTRACE_
@@ -817,7 +817,7 @@ ioPo OpenStdin(void) {
   return stdIn;
 }
 
-ioPo OpenStdout(void) {
+ioPo Stdout(void) {
   if (stdOut == NULL) {
     byte stdoutName[] = {'s', 't', 'd', 'o', 'u', 't', 0};
 
@@ -826,7 +826,7 @@ ioPo OpenStdout(void) {
   return stdOut;
 }
 
-ioPo OpenStderr(void) {
+ioPo Stderr(void) {
   if (stdErr == NULL) {
     byte stderrName[] = {'s', 't', 'd', 'e', 'r', 'r', 0};
 
@@ -837,12 +837,12 @@ ioPo OpenStderr(void) {
 
 retCode initLogfile(char *name) {
   if (uniIsLit(name, "-"))
-    logFile = OpenStderr();
+    logFile = Stderr();
   else
     logFile = openAppendFile(name, utf8Encoding);
   if (logFile != NULL) {
-    OpenStdin();    // open standard files
-    OpenStdout();
+    Stdin();    // open standard files
+    Stdout();
     return Ok;
   } else
     return Error;
