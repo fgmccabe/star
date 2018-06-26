@@ -256,10 +256,10 @@ The fmap function is defined via the functor contract — thus allowing differen
 contract all c/1 ~~ functor[c] is {
   fmap:all e,f ~~ ((e)=&gt;f,c[e])=&gt;c[f]
 }
-Notice how the contract specifies the collection type — c — without specifying the type of the collection’s element type. We are using a different technique here than we used for the sequence and filterable contracts. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a type constructor variable as in c[e] and c[f].
+Notice how the contract specifies the collection type — c — without specifying the type of the collection’s element type. We are using a different technique here than we used for the stream and filterable contracts. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a type constructor variable as in c[e] and c[f].
 We are also using a variant of the quantifier. A quantified type variable of the form c/1 denotes a type constructor variable rather than a regular type variable. In this case, c/1 means that the variable c must be a type constructor that takes one argument.
 The reason for this form of contract is that functor implies creating a new collection from an old collection; with a possibly different element type. This is only possible if the collection is generic and hence the type expressions c[e] for the second argument type of fmap and c[f] for its return type.
-One might ask whether we could not have used functional dependencies in a similar way to sequence and filterable; for example, a contract of the form:
+One might ask whether we could not have used functional dependencies in a similar way to stream and filterable; for example, a contract of the form:
   contract all c,e,f ~~ mappable[c-&gt;&gt;e,f] ::=  {
     mmap:((e)=&gt;f,c)=&gt;c.
   }
@@ -559,7 +559,7 @@ The slice notation is an interesting edge case in domain specific languages. It 
         </Document>
         <Document ID="74D57ED7-FB6B-40BF-BD6F-41EF3422DD09">
             <Title>Sequence Patterns</Title>
-            <Text>The complete sequence contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence patterns rather than sequence expressions. They also introduce a new form of type expression — the pattern type. For example, the signature for _pair — which is used to decompose sequences into a head and tail — is:
+            <Text>The complete stream contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence patterns rather than sequence expressions. They also introduce a new form of type expression — the pattern type. For example, the signature for _pair — which is used to decompose sequences into a head and tail — is:
 _pair:(e,t)&lt;=t.
 Notice the direction of the arrow: we have not seen this form of type so far, and relates to a capability that we have not encountered yet in this book — pattern abstractions.
 Pattern Abstraction
@@ -567,7 +567,7 @@ A pattern abstraction is an expression that denotes a pattern.
 Pattern abstractions are exactly analogous to functions — another name for which is expression abstraction. Pattern abstractions allow patterns to be encapsulated and reused in the same way that functions allow expressions to be encapsulated and reused.
 In this case, the pattern abstraction is critical because general sequence notation is independent of the types of the collections involved — and so we have no way of knowing what concrete patterns to apply.
 Pattern abstractions are applied using the same application notation as for function application; for example, the _pair pattern in
-first:all c,e ~~ sequence[c-&gt;&gt;e] |: (c)=&gt;e.
+first:all c,e ~~ stream[c-&gt;&gt;e] |: (c)=&gt;e.
 first(_pair(H,T)) =&gt; H.
 is a pattern abstraction that is applied to the argument of first. What may be a little surprising initially is that the arguments to a pattern application are also patterns! So, here, the variables H and T in the call to _pair will be bound to the first element of the collection and the remainder respectively.
 For example, applying _pair(H,T) to [1,2] binds H to the value 1 and binds T to the sequence [2]. The value returned by first will be 1. We can combine pattern applications in an exactly analogous manner to the way we combine function calls.
@@ -581,7 +581,7 @@ where the various Ei are expressions that represent the values ‘read off’ th
 Like functions, pattern abstractions may be defined with multiple pattern rules; and the pattern abstraction is satisfiable exactly when one of its pattern rules is.
 Pattern abstractions are not as ubiquitous as functions; however, they certainly play a vital role in the overall design of Star; and are indispensable in the right circumstances.
 One special use for pattern abstractions is to give higher-level names to particular patterns. This mimics the use of functions naming expressions, and has a similar importance for program design.
-Given that we have seen how sequence expressions are transformed into function calls from the sequence contract, we can now straightforwardly give the equivalent translation for sequence patterns. Syntactically, there is no distinction between sequence expressions and sequence patterns — what distinguishes them is context: sequence patterns show up as patterns in functions and sequence expressions show up in the expression context.
+Given that we have seen how sequence expressions are transformed into function calls from the stream contract, we can now straightforwardly give the equivalent translation for sequence patterns. Syntactically, there is no distinction between sequence expressions and sequence patterns — what distinguishes them is context: sequence patterns show up as patterns in functions and sequence expressions show up in the expression context.
 A sequence pattern, as in the pattern [E,..X] for the non-empty case in concat:
 concat([E,..X],Y) =&gt; [E,..concat(X,Y)]
 is transformed into the pattern:
@@ -596,27 +596,27 @@ single(_pair(H,_empty())) =&gt; H
 The sequence contract is one of the most important and commonly used contracts in the Star library. As we shall see further, many of the standard collections functions are built on top of it.</Text>
         </Document>
         <Document ID="8C6974CC-7B21-4DE5-B49A-13C8896CB47F">
-            <Title>The Sequence Contract</Title>
-            <Text>Underlying the sequence notation is the sequence contract. This contract contains type signatures that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.
-The actual sequence contract is
-contract sequence[t-&gt;&gt;e] ::= {
-  _nil:()=&gt;t.     -- empty sequence
+            <Title>The Stream Contract</Title>
+            <Text>Underlying the sequence notation is the stream contract. This contract contains type signatures that can be used to construct and to match against stream values. The stream notation is realized by the compiler translating stream terms to a series of calls to those functions.
+The actual stream contract is
+contract stream[t-&gt;&gt;e] ::= {
+  _nil:t.     -- empty stream
   _cons:(e,t)=&gt;t. -- add to front
   _apnd:(t,e)=&gt;e. -- add to back
-  _empty:()&lt;=t.   -- match empty sequence
-  _pair:(e,t)&lt;=t. -- match front
-  _back:(t,e)&lt;=t. -- match back
+  _eof:()=&gt;boolean.   -- is stream empty
+  _hdtl:(t)=&gt;option[(e,t)]. -- match front of stream
+  _back:(t)=&gt;option[(t,e)]. -- match back of stream
 }
 The first three entries in this contract should be fairly self-evident:
-	•	_nil is a function that returns an empty sequence;
+	•	_nil is a function that returns an empty stream;
 	•	_cons is a function that ‘glues’ a new element to the front of the collection; and
 	•	_apnd appends elements to the back of the collection.
-The compiler uses these three functions to transform sequence expressions into function calls. 
-For example, the sequence expression:
+The compiler uses these three functions to transform stream expressions into function calls. 
+For example, the stream expression:
 [1,2,3]
 is transformed into
 _cons(1,_cons(2,_cons(3,_nil())))
-If a sequence expression has an explicit type marker on it, then its translation is slightly different — to allow the type checker to make use of the type information. For example, 
+If a stream expression has an explicit type marker on it, then its translation is slightly different — to allow the type checker to make use of the type information. For example, 
 cons of [1,2]
 is translated as:
 _cons(1,_cons(2,_nil())):cons[_]
@@ -1011,7 +1011,7 @@ The syntax and style of Star’s query notation is similar to SQL’s syntax —
 Specifically, we take SQL’s relational calculus subset — the language of wheres and of boolean combinations. Star’s query expressions do not have the equivalent of explicit relational join operators.
 There are several variations of query expression, but the most common form is:
 SequenceType of { QuantifierTerm where Condition Modifier }
-where SequenceType is any type name that implements the sequence contract, QuantifierTerm is a form that indicates the form of the result of the query, Condition is a condition and the optional Modifier is used to signal properties of the result — such as whether the result is grouped or sorted.</Text>
+where SequenceType is any type name that implements the stream contract, QuantifierTerm is a form that indicates the form of the result of the query, Condition is a condition and the optional Modifier is used to signal properties of the result — such as whether the result is grouped or sorted.</Text>
             <Comments>There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!</Comments>
         </Document>
         <Document ID="5372808E-9B3B-40C7-8058-28764840DF39">
@@ -1493,7 +1493,7 @@ If it happened to be the case that a backgrounded task already completed, then t
 Abstract Data Type
 An abstract data type is a mathematical model of a set of related values that share a common set of semantics.
 In programming, it is the common semantics that defines the structure; but, of course, programming languages are not able to capture the full semantics of a program or type and hence the stand-in for this is usually a type specification.
-Perhaps an example is overdue. In our chapter on Collections we looked at many operators over collections and not a few example collection types. Although programs using the sequence contract are fairly abstract, the type of the collection itself is still visible. Suppose we wanted to build a set structure where only the fact that there is a set, and the set-like operators over the set were visible. The representation type for the set should otherwise be completely opaque.
+Perhaps an example is overdue. In our chapter on Collections we looked at many operators over collections and not a few example collection types. Although programs using the stream contract are fairly abstract, the type of the collection itself is still visible. Suppose we wanted to build a set structure where only the fact that there is a set, and the set-like operators over the set were visible. The representation type for the set should otherwise be completely opaque.
 One might start with a type definition that defines some operators over sets:
 type exists coll/1 ~~ genSet ::= genSet{
   type coll/1.
@@ -2676,8 +2676,8 @@ contract all s,k,v ~~ indexable[s-&gt;&gt;k,v] ::= {
 There are several noteworthy points here:
 	•	the form of the contract itself; the signature for _index which accesses elements; and
 	•	the signatures for _set_indexed and _delete_indexed which return new collections rather than modifying in-place.
-Recall that the sequence contract had the form:
-contract all s, e ~~ sequence[s-&gt;&gt;e] ::= ...
+Recall that the stream contract had the form:
+contract all s, e ~~ stream[s-&gt;&gt;e] ::= ...
 the s-&gt;&gt;e clause allows the implementation of the contract to functionally determine (sic) the type of the elements of the collection.
 In the case of indexable, the contract form determines two types denoted by k and v. The type k denotes the type of the key used to access the collection and v denotes the type of the elements of the collection. Each individual implementation of indexable is free to specify these types; usually in a way that best reflects the natural structure of the collection.
 For example, the implementation of indexable for strings starts:
@@ -2997,7 +2997,7 @@ Equality in Star is always between values of the same type and it is always sema
 3==3.0
 is not considered type safe — because 3 is an integer literal and 3.0 is a float literal. If you need to compare an integer and a floating point number for equality you will need to first of all decide in which type the comparison will be made (integer or floating point equality) and then coerce the other value into that type:
 3 :: float == 3.0
-is valid.
+is valid excepting, of course, that exact comparison between floating point numbers is not stable.
 This is an important issue because not all integer values can be represented in a float value and vice-versa. So, comparing an integer and a floating point value raises the possibility of spurious accuracy as a result of losing information.
 The second principle is that equality is semantic. What that means is that the == symbol is the name of a boolean-valued function. The precise type of == is quite interesting, we shall, however, leave it to later when we have covered some of the core type features around contracts.
 In effect, equality is not considered to be privileged; and it is definable by the programmer — albeit with some important useful default implementations.</Text>
@@ -3128,8 +3128,8 @@ worksheet{
 }
 The group by operator takes a collection, and a categorization function, are produces a dictionary of collections.
 We want to produce average load times and standard deviations of the load times — to smooth out the vagaries of the Internet. For now, we will assume that we have average and stddev functions that have type signatures:
-average:all c,e ~~ sequence[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
-stddev:all c,e ~~ sequence[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
+average:all c,e ~~ stream[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
+stddev:all c,e ~~ stream[c-&gt;&gt;e] |:(c,(e=&gt;float))=&gt;float.
 I.e., we are assuming functions that take collections, and an ‘accessor’ function, and return the average and standard deviation respectively.
 Given these functions, we can compute our statistics using:
 import metaCSV.
@@ -3435,16 +3435,16 @@ Notice that each ‘label’ in the tree is a 2-tuple — consisting of the key 
 The equality constraint comes from a slightly less obvious source: the repeated occurrence of the K variable in the second equation. This equation is actually equivalent to:
 findInTree(tNode(_,(K,V),_),K1) where K==K1 =&gt; some(V)
 We leave the implementations of setKinTree and removeKfromTree as an exercise for the reader.
-Along with the implementation of indexable, we should also implement sequence for our trees:
+Along with the implementation of indexable, we should also implement stream for our trees:
 implementation all k,v ~~ comparable[k], equality[k] |:
-    sequence[tree[(k,v)]-&gt;(k,v)] =&gt; {
+    stream[tree[(k,v)]-&gt;(k,v)] =&gt; {
   _nil() =&gt; tEmpty.
   _cons((K,V),T) =&gt; setKinTree(T,K,V).
   ...
 }
-where, again, we leave the implementation of the remaining part of the contract to the reader. The reason for implementing sequence is that that will allow users of the tree to use the dictionary variant of the sequence notation for writing tree literals; as in:
+where, again, we leave the implementation of the remaining part of the contract to the reader. The reason for implementing stream is that that will allow users of the tree to use the dictionary variant of the sequence notation for writing tree literals; as in:
 tree of [1-&gt;”alpha”, 2-&gt;”beta”]
-The sequence contract includes a pattern that can be used to match sequences. It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree value.</Text>
+The stream contract includes a pattern that can be used to match sequences. It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree value.</Text>
             <Comments>It is also true that most programmers will not be constructing new implementations of the indexable contract very frequently.
 With the possible exception of tree balance.</Comments>
         </Document>
@@ -3735,7 +3735,7 @@ fun msgQ() is let{
 }
 This code is quite complex in places. However, if we break it down and examine it piece by piece its secrets will be exposed. Let us start with the qLoop/postM/pollM triumvirate. These three functions form the heart of the message queue’s mechanism.
 The qLoop function has a similar structure to the semLoop function we saw in the semaphore. This time, instead of deciding what branch to take based on a resource counter, we decide based on the size of the actual queue of data.
-The queue data type is a builtin type to Star. It implements a queue functionality allowing elements to be posted at one end and removed from the other. Like other collection types, the sequence contract is implemented for it; which means that we can use sequence notation when writing queue expressions and patterns.
+The queue data type is a builtin type to Star. It implements a queue functionality allowing elements to be posted at one end and removed from the other. Like other collection types, the stream contract is implemented for it; which means that we can use sequence notation when writing queue expressions and patterns.
 The postM function — like its cousin the releaseM function in the semaphore — is a rendezvous-valued function that the qLoop function will wait for. It’s inner core is a recursive call to qLoop with a queue that is enhanced with the new work item.
 The pollM function has a similar structure; but it is more complex because — in addition to setting up the next qLoop recursion — we also want to export the entry from the queue itself.
 Polling from the message queue is accomplished by sending a special one-time channel to the message Q task. Somewhat paradoxically, the poll function asks for the next element of the message queue by sending the one-time channel to the message queue’s grabMsgChnl:

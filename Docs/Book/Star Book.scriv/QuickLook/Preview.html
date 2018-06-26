@@ -600,21 +600,21 @@
 <p class="itemText">There is a strong relationship between th...</p>
 </li>
 <li>
-<p class="itemTitle">The Sequence Contract</p>
-<p class="itemText">Underlying the sequence notation is the sequence contract. This contract contains type signatures that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.</p>
-<p class="itemText">The actual sequence contract is</p>
-<p class="itemText">contract sequence[t->>e] ::= {</p>
-<p class="itemText">  _nil:()=>t.     -- empty sequence</p>
+<p class="itemTitle">The Stream Contract</p>
+<p class="itemText">Underlying the sequence notation is the stream contract. This contract contains type signatures that can be used to construct and to match against stream values. The stream notation is realized by the compiler translating stream terms to a series of calls to those functions.</p>
+<p class="itemText">The actual stream contract is</p>
+<p class="itemText">contract stream[t->>e] ::= {</p>
+<p class="itemText">  _nil:t.     -- empty stream</p>
 <p class="itemText">  _cons:(e,t)=>t. -- add to front</p>
 <p class="itemText">  _apnd:(t,e)=>e. -- add to back</p>
-<p class="itemText">  _empty:()<=t.   -- match empty sequence</p>
-<p class="itemText">  _pair:...</p>
+<p class="itemText">  _eof:()=>boolean.   -- is stream empty</p>
+<p class="itemText">  _hdtl:(t)=>option[(e,t)]....</p>
 </li>
 <li>
 <p class="itemTitle">Sequence Patterns</p>
-<p class="itemText">The complete sequence contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence patterns rather than sequence expressions. They also introduce a new form of type expression — the pattern type. For example, the signature for _pair — which is used to decompose sequences into a head and tail — is:</p>
+<p class="itemText">The complete stream contract has six signatures in it — the latter three signatures play an analogous role to the first three but for sequence patterns rather than sequence expressions. They also introduce a new form of type expression — the pattern type. For example, the signature for _pair — which is used to decompose sequences into a head and tail — is:</p>
 <p class="itemText">_pair:(e,t)<=t.</p>
-<p class="itemText">Notice the direction of the arrow: we have not seen this form of type so far, and relates to a capability that we have not ...</p>
+<p class="itemText">Notice the direction of the arrow: we have not seen this form of type so far, and relates to a capability that we have not en...</p>
 </li>
 <li>
 <p class="itemTitle">Notation and Contract-Based Semantics</p>
@@ -1076,9 +1076,9 @@
 <p class="itemTitle">Sieving for Primes</p>
 <p class="itemText">The final piece of The Sieve is the sieve function which constructs a network of filters to sieve out the primes.</p>
 <p class="itemText">At any one time there is an existing network of filters removing multiples of prime numbers found so far. For example, after processing 13, the next number to look at will be 15 and the network of filters will look like:</p>
-<p class="itemText">#</p>
+<p class="itemText"></p>
 <p class="itemText">The Sieve of Eratosthenes at 13</p>
-<p class="itemText">The 3 filter removes 15 because 15 is a multiple of 3. However, the following number — 17 — survives all the filters and the sieve ...</p>
+<p class="itemText">The 3 filter removes 15 because 15 is a multiple of 3. However, the following number — 17 — survives all the filters and the sieve r...</p>
 </li>
 </ul>
 <hr class="afterText"/>
