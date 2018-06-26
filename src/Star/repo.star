@@ -30,6 +30,11 @@ star.repo{
     _coerce(V) => vers(V).
   }
 
+  public implementation coercion[version,string] => {
+    _coerce(defltVersion) => "*".
+    _coerce(vers(V)) => V.
+  }
+
   public compatibleVersion:(version,version)=>boolean.
   compatibleVersion(defltVersion,_)=>true.
   compatibleVersion(_,defltVersion)=>true.
