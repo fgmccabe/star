@@ -8,10 +8,10 @@ star.repo.file{
   public fileRepo ::= repo(uri,manifest).
 
   public openRepository:(uri) => fileRepo.
-  openRepository(Root) => repo(Root,readManifest(RepoUri)) :-
-    RepoUri = resolveUri(Root,parseUri("manifest")),
-    resourcePresent(RepoUri).
-  openRepository(Root) => repo(Root,manifest([])).
+  openRepository(Root) where
+    RepoUri .= resolveUri(Root,parseUri("manifest")) &&
+    resourcePresent(RepoUri) => repo(Root,readManifest(RepoUri)).
+  openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[fileRepo] => {
     packagePresent(repo(Root,Man),Pkg,Kind) :-
