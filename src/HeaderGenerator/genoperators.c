@@ -158,7 +158,7 @@ int main(int argc, char **argv) {
     if (narg < argc)
       out = openOutFile(argv[narg], utf8Encoding);
     else
-      out = OpenStdout();
+      out = Stdout();
 
     // Load up the variable table
     bufferPo operBuff = newStringBuffer();
@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
     hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
 
-    // dumpTrie(tokenTrie,OpenStdout());
+    // dumpTrie(tokenTrie,Stdout());
 
     bufferPo followBuff = newStringBuffer();
     genFollows(O_IO(followBuff));

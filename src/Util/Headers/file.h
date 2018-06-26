@@ -45,9 +45,9 @@ retCode isRegularFile(char * fname);
 retCode isDirectory(char * fname);
 logical isExecutableFile(char *file);
 
-ioPo OpenStdin(void);
-ioPo OpenStdout(void);
-ioPo OpenStderr(void);
+ioPo Stdin(void);
+ioPo Stdout(void);
+ioPo Stderr(void);
 
 int fileNumber(filePo f);
 ioEncoding fileEncoding(filePo f);
