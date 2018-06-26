@@ -133,7 +133,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
         if (options[jx].setter(var, True, options[jx].cl) == Ok)
           processedOptions[jx] = True;
         else {
-          outMsg(OpenStderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
+          outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
           goto failOptions;
         }
       }
@@ -148,7 +148,7 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 }
 
 void showUsage(char *name, char *copyRight, Option options[], int optionCount) {
-  ioPo stdErr = OpenStderr();
+  ioPo stdErr = Stderr();
 
   if (copyRight != Null)
     outMsg(stdErr, "%s\n", copyRight);
