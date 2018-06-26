@@ -26,10 +26,14 @@ star.coerce{
     _coerce(Ix) => _int2flt(Ix).
   }
 
-  private coerceTuple:all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: ((a,e)) => (b,f).
-  coerceTuple((A,E)) => (_coerce(A),_coerce(E)).
+  public implementation coercion[float,integer] => {
+    _coerce(Dx) => _flt2int(Dx).
+  }
 
   public implementation all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: coercion[(a,e),(b,f)] => {
     _coerce(T) => coerceTuple(T).
   }
+
+  private coerceTuple:all a,b,e,f ~~ coercion[a,b], coercion[e,f] |: ((a,e)) => (b,f).
+  coerceTuple((A,E)) => (_coerce(A),_coerce(E)).
 }
