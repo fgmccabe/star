@@ -1,4 +1,4 @@
-/* Generate a module, in either prolog or L&O, that knows about escape codes */
+/* Generate a module, in either prolog or Star, that knows about escape codes */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,19 +11,19 @@
 #include <ctype.h>
 
 enum {
-  genProlog, genStar
+    genProlog, genStar
 } genMode = genProlog;
 char *prefix = NULL;
 
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "pc:")) >= 0) {
+  while ((opt = getopt(argc, argv, "ps:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
         break;
-      case 'c':
+      case 's':
         genMode = genStar;
         prefix = optarg;
         break;
@@ -34,9 +34,13 @@ int getOptions(int argc, char **argv) {
 }
 
 static void prologEscapeTypes(FILE *);
+
 static void prologIsEscape(FILE *);
+
 static void loEscapeTypes(FILE *);
+
 static void loIsEscape(FILE *);
+
 static void genEscCodes(FILE *out);
 
 int main(int argc, char **argv) {
@@ -73,12 +77,19 @@ int main(int argc, char **argv) {
 }
 
 static void dumpStdType(char *name, bufferPo out);
+
 static void dumpStr(char *str, bufferPo out);
+
 static char *dInt(char *sig, int *len);
+
 static char *dName(char *sig, bufferPo out);
+
 static char *dSequence(char *sig, bufferPo out);
+
 static char *dTple(char *sig, bufferPo out);
+
 static char *dFields(char *sig, bufferPo out);
+
 static char *dumpSig(char *sig, bufferPo out);
 
 static char *dumpSig(char *sig, bufferPo out) {
@@ -161,11 +172,20 @@ static char *dumpSig(char *sig, bufferPo out) {
       outStr(O_IO(out), ")");
       break;
     case funSig:
-      outStr(O_IO(out), "funType(");
-      sig = dumpSig(sig, out);
-      outStr(O_IO(out), ",");
-      sig = dumpSig(sig, out);
-      outStr(O_IO(out), ")");
+      switch (genMode) {
+        case genStar:
+          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"->\",2),");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), "),");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), ")");
+        case genProlog:
+          outStr(O_IO(out), "funType(");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), ",");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), ")");
+      }
       return sig;
     case conSig:
       switch (genMode) {
@@ -239,9 +259,9 @@ static void dumpStdType(char *name, bufferPo out) {
   }
 }
 
-static int digitVal(char D){
-  assert(D>='0' && D<='9');
-  return (int)(D-'0');
+static int digitVal(char D) {
+  assert(D >= '0' && D <= '9');
+  return (int) (D - '0');
 }
 
 static char *dInt(char *sig, int *len) {
@@ -346,7 +366,7 @@ static void loEscapeTypes(FILE *out) {
 }
 
 #undef escape
-#define escape(name, priv, secr, type, cmt) genPrIsEsc(out,buffer,#name);
+#define escape(name, vis, secr, type, cmt) if(vis)genPrIsEsc(out,buffer,#name);
 
 static void genPrIsEsc(FILE *out, bufferPo buffer, char *name) {
   outStr(O_IO(buffer), "isEscape(");
