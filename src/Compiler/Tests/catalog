@@ -1,0 +1,7 @@
+{
+	"content": {
+		"test.comp.op" : "optest.star"
+	},
+	"version": "1.0.0",
+	"default": "../catalog"
+}
