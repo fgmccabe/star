@@ -37,11 +37,9 @@ static void prologEscapeTypes(FILE *);
 
 static void prologIsEscape(FILE *);
 
-static void loEscapeTypes(FILE *);
+static void starEscapeTypes(FILE *);
 
-static void loIsEscape(FILE *);
-
-static void genEscCodes(FILE *out);
+static void starIsEscape(FILE *);
 
 int main(int argc, char **argv) {
   int narg = getOptions(argc, argv);
@@ -65,12 +63,11 @@ int main(int argc, char **argv) {
         break;
       case genStar:
         fprintf(out, "%s{\n", prefix);
-        fprintf(out, "\n  import star.\n");
+        fprintf(out, "  import star.\n");
         fprintf(out, "  import star.comp.types.\n\n");
-        loEscapeTypes(out);
-        loIsEscape(out);
-        genEscCodes(out);
-        fprintf(out, "\n}.\n");
+        starEscapeTypes(out);
+        starIsEscape(out);
+        fprintf(out, "}.\n");
         break;
     }
   }
@@ -174,11 +171,12 @@ static char *dumpSig(char *sig, bufferPo out) {
     case funSig:
       switch (genMode) {
         case genStar:
-          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"->\",2),");
+          outStr(O_IO(out), "funType(");
           sig = dumpSig(sig, out);
-          outStr(O_IO(out), "),");
+          outStr(O_IO(out), ",");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
+          break;
         case genProlog:
           outStr(O_IO(out), "funType(");
           sig = dumpSig(sig, out);
@@ -355,7 +353,7 @@ static void genLoEsc(FILE *out, bufferPo buffer, char *name, char *sig, char *cm
   clearBuffer(buffer);
 }
 
-static void loEscapeTypes(FILE *out) {
+static void starEscapeTypes(FILE *out) {
   bufferPo buffer = newStringBuffer();
 
   fprintf(out, "  public escapeType:(string)=>tipe.\n");
@@ -388,12 +386,12 @@ static void prologIsEscape(FILE *out) {
 }
 
 #undef escape
-#define escape(name, priv, secr, type, cmt) genLoIsEsc(out,buffer,#name);
+#define escape(name, priv, secr, type, cmt) genStarIsEsc(out,buffer,#name);
 
-static void genLoIsEsc(FILE *out, bufferPo buffer, char *name) {
+static void genStarIsEsc(FILE *out, bufferPo buffer, char *name) {
   outStr(O_IO(buffer), "  isEscape(");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), ").\n");
+  outStr(O_IO(buffer), ") => true.\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(&len, buffer);
@@ -401,12 +399,14 @@ static void genLoIsEsc(FILE *out, bufferPo buffer, char *name) {
   clearBuffer(buffer);
 }
 
-static void loIsEscape(FILE *out) {
+static void starIsEscape(FILE *out) {
   bufferPo buffer = newStringBuffer();
 
-  fprintf(out, "\n  public isEscape:(string){}.\n");
+  fprintf(out, "\n  public isEscape:(string)=>boolean.\n");
 
 #include "escapes.h"
+
+  fprintf(out,"  isEscape(_) default => false.\n");
 
   closeFile(O_IO(buffer));
 }
@@ -429,32 +429,6 @@ static void genPrologEsc(FILE *out, bufferPo buffer, char *name, char *sig, char
 
 static void prologEscapeTypes(FILE *out) {
   bufferPo buffer = newStringBuffer();
-
-#include "escapes.h"
-
-  closeFile(O_IO(buffer));
-}
-
-// Generate the encoding for escapes. Only generated for L&O compiler
-
-#undef escape
-#define escape(name, priv, secr, type, cmt) genEscCode(out,buffer,#name,escapeOpCode(name));
-
-static void genEscCode(FILE *out, bufferPo buffer, char *name, int opCode) {
-  outStr(O_IO(buffer), "  escCode(");
-  dumpStr(name, buffer);
-  outMsg(O_IO(buffer), ") => %d.\n", opCode);
-
-  integer len;
-  char *text = (char *) getTextFromBuffer(&len, buffer);
-  fprintf(out, "%s", text);
-  clearBuffer(buffer);
-}
-
-static void genEscCodes(FILE *out) {
-  bufferPo buffer = newStringBuffer();
-
-  fprintf(out, "\n  public escCode:(string)=>integer.\n");
 
 #include "escapes.h"
 
