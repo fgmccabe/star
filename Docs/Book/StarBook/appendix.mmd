@@ -1,0 +1,364 @@
+# Appendix
+
+## Packages and worksheets
+
+We have already seen the two basic forms of compilation unit in **Star**: the package and the worksheet.
+
+Since **Star** is an extensible language, it is quite possible to create other forms of compilation unit.
+
+### Package
+Packages are the foundational unit of compilation; there is also an intended semantics:
+
+**Package**
+
+*A package is a collection of definitions that are intended to represent some coherent functionality or purpose.*
+
+This is, of course, a vague and non-actionable definition. There *are* higher-level notions of what ‘functionality’ might mean: for example, in the context of Service Oriented Architecture, a **service** is the ‘manifestation of a business functionality’. If that is clearer, then a package is a manifestation of an application functionality. Purpose is a topic we will return to in our chapter on agents.
+
+For all of its vagueness, the basic idea of a package is that it is a container for a collection of definitions. **Star**’s modularity makes it quite straightforward to refactor your package hierarchy should you need to.
+
+The form of a package is
+
+PackageIdentifier \{ Definitions \}
+
+The *PackageIdentifier* at the beginning of the package definition is the name of the package. It typically consists of a sequence of identifiers separated by periods. Normally a package identifier has little role within the package itself -- it is used when referring to the package externally.
+
+Most of the *Definitions* are those that we have already seen: function definitions, variable definitions and type definitions. There are some additional forms however, including the import statement --- that allows one to import elements from other packages.
+
+### The main program
+
+If a package defines a main procedure[^fn1] then that package may act as a command-line program as well as a package. There are two styles of main program possible; one where command line arguments are automatically converted into regular values and one where you get the arguments as a list\[string\]s.
+
+If the main procedure is defined then automatic coercion from command line arguments to internal types is performed. For example,
+
+myProgram\{
+
+main:(integer,string)=\>().
+
+main(Count,Name) do \{
+
+...
+
+\}
+
+\}
+
+With this style of main, a command-line invocation of the program is possible:
+
+$ Star myProgram 34 fred
+
+where the run-time verifies verifies that exactly two arguments are passed, the first being an integer. In principle, the arguments of main may be of *any* type --- so long as the type is known to implement the coercion contract:
+
+coercion\[string,*T*\]
+
+where *T* is the type being passed to the main function. I.e., so long as there is a way of parsing a string value we can pass such arguments from the command line to our main program. However, there is another constraint: the ability of the operating system to pass in arbitrary strings to a command line program.
+
+For example, list structures are difficult to get past the typical shell:
+
+$ Star myProgram "list of \[1,2,3\]"
+
+In practice, this means that most simple types can easily be passed to a main procedure; and, with some difficulty, collection types such as list\[integer\] may also be used.
+
+This capability is not often provided in programming languages. Normally, you are limited to passing in an array of strings to the top-level main function. Why this is the case is a question best asked of the respective programming language designers.
+
+However, for program safety reasons, it is not permitted to coerce strings into *functions* or other forms of code (the ability to coerce a string into a function amounts to dynamic compilation).
+
+If you want to manage all the command-line arguments, then define the procedure \_main instead:
+
+myProgram\{
+
+\_main:(list\[string\])=\>().
+
+\_main(args) do \{ ... \}
+
+\}
+
+The \_main procedure is given all the command line arguments as a list\[string\]. This variant of \_main (you cannot have both in the same package) is useful if you want to process command line arguments with dash-options.
+
+[^fn1]: A procedure, in **Star**, is a function that returns the void tuple ().
+
+### Worksheet
+
+We have already seen a number of examples of using worksheets. They represent a modern replacement for the traditional REPL --- or Read-Eval-Print-Loop. The main advantages of worksheets over the traditional REPL are that they simultaneously act as their own transcript and they integrate well with editor-centric IDEs.
+
+We prefer worksheets to normal packages for the same situations as one might prefer a REPL over a traditional file: worksheets make it easy to set up simple experiments and ‘see what happens’ when you try something.
+
+The contents of a worksheet may be anything that counts as a definition --- including import statements. In addition, there are some special ‘actions’ that may be specified; some of which we have already seen:
+
+**perform**
+
+perform an action. For example:
+
+worksheet\{
+
+perform task \{
+
+logMsg(info,"This is an action")
+
+\}
+
+\}
+
+perform is used to perform a task expression.
+
+**ignore**
+
+Evaluate an expression for side-effect purposes; ignoring its value.
+
+This is used in those cases where a computation has a value that we wish to ignore -- i.e., is evaluated for its effect only.
+
+In many programming languages expressions are automatically ‘promoted’ to statements. For example, if you have the expression 3+X in Java (say) then it is also a statement:
+
+while(true)\{
+
+3+X;
+
+\}
+
+Of course, in this case, the expression 3+X doesn’t do anything; but the feature is commonly used to allow a function call in a situation where the returned value is thrown away or ‘ignored’.
+
+**Star** does not have an *automatic* way of promoting expressions to actions; but you can use the ignore keyword for the same effect. The action
+
+ignore 3+X
+
+is the way that you would write 3+X as an action.
+
+**show**
+
+Evaluate an expression and show its value.
+
+For example:
+
+worksheet\{ show 1+2 \}
+
+show is probably the most used special action in a worksheet. After all, the purpose of a worksheet is to help figure out what is going on...
+
+**\*\*assert**
+
+assert a condition.
+
+For example:
+
+worksheet\{ assert 3\>2 \}
+
+\{ **... \}**
+
+Perform a block of actions, enclosed in parentheses.
+
+For example:
+
+worksheet\{
+
+\{
+
+for Ix in range(0,10,1) do\{
+
+logMsg(info,"hello $Ix")
+
+\}
+
+\}
+
+In many cases, the actions that are used most often are the show and the assert actions; in conjunction with a set of regular definitions. This reflects one of the main purposes of the worksheet: to give some insight into the behavior of a program.
+
+Unlike a traditional REPL, because the worksheet is in a file, there is much more freedom within a worksheet to order things. In particular the definitions can be in any order: a later definition may be referenced explicitly or implicitly in a show action.
+
+It *is* possible to include actions in a regular package. However, especially in cases where the package is to be imported into another program this practice is not recommended.
+
+### Importing packages
+
+There are two basic ways of importing a package[^cf1] into your code: the *open import* and the *named import*. The open import is the simplest; to import a package you just import it (sic):
+
+worksheet\{
+
+import myPackage.
+
+-- Use definitions from myPackage
+
+\}
+
+You can also import packages outside the worksheet structure:
+
+import myPackage.
+
+worksheet\{
+
+-- Use definitions from myPackage
+
+\}
+
+Any definition that is contained in myPackage is available throughout the worksheet (or other package if you are building a package).
+
+Like other forms of definition, the import statement may appear anywhere at the top-level of the importing worksheet or package. However, it is normally at the beginning of the package.
+
+The second way of importing a package is to use the *named import*. As suggested, a named import associates a local identifier with the import:
+
+worksheet\{
+
+import myPackage as mP.
+
+-- Use definitions from myPackage via mP
+
+\}
+
+For example, suppose that myPackage looked like:
+
+myPackage\{
+
+public all t \~\~ foo\[t\] ::= foo(t) \| bar.
+
+public unFoo:all t \~\~ (foo\[t\]) =\> t.
+
+unFoo(foo(X)) =\> X.
+
+\}
+
+To use the unFoo function in our second worksheet, we simply reference it as a field in the mP variable:
+
+worksheet\{
+
+import myPackage as mP.
+
+getTheStuff:all t \~\~ (mP.foo\[t\])=\>t.
+
+getTheStuff(F) is mP.unFoo(F).
+
+\}
+
+What may be a little surprising is that this applies to the foo type also, and also to the foo and bar constructors:
+
+worksheet\{
+
+import myPackage as mP.
+
+wrapF:all t \~\~ (option\[t\])=\>foo\[t\].
+
+wrapF(none) =\> mP.bar.
+
+wrapF(some(X)) =\> mP.foo(X).
+
+\}
+
+One of the benefits of the named import is that it makes it possible to import packages even when there are potential clashes amongst the packages being imported and/or definitions in the importing package itself.
+
+By using named imports the effect is to establish a local *namespace* for the imported package. Different definitions imported from different places can be reliably distinguished using the normal record field access syntax (i.e., a period).
+
+[^cf1]: You cannot import a worksheet.
+
+### Private and public imports
+
+By default, when a package is imported, it is privately imported -- the contents of the package are not automatically re-exported. This means that if a package implicitly re-exports something from a package (such as a type) then when you import the package you must also import the dependent packages.
+
+However, when constructing a library, which itself may be built from more than one package, it can become tedious to require clients to import all the constituent packages of the library.\[It also exposes the structure of the library to clients; something that is typically not desirable.\]
+
+In order to facilitate the construction of libraries, and larger scale packages, we allow for so-called public imports.
+
+A public import is written:
+
+public import fooPkg.
+
+This will have the effect of re-exporting elements of fooPkg as though they were directly exported (made public) by the current package.
+
+One common pattern for specifying libraries -- that are made of multiple packages -- is though a stub package that just consists of a sequence of public imports:
+
+libraryPkg\{
+
+public import part1.
+
+public import part2.
+
+...
+
+\}
+
+## Code products
+
+One important question that must be answered in any scheme that permits importing is “where is the code coming from?”. **Star** has three architectural elements that are the basis of code management: the *code repository*, a system of *universal resource identifiers* (URI) to identify packages uniquely, and \_catalog\_s to reduce the bureaucratic burden.
+
+The issues that show up when managing resources tend to fall in the ‘annoyingly complex’ rather than ‘rocket science’ category. However, that does not make them less important, and addressing them certainly helps with that oceanic problem.
+
+### Code repository
+
+Apart from simply being a place compiled code can be kept, a *code repository* has several other responsibilities: it must be possible to access the compiled code from multiple packages --- including packages that were imported. In fact, a **Star** code repository is able to contain the compiled code of any number of packages --- since code repositories are also used to hold compiled libraries as well as applications.
+
+In addition, we have to be able to manage multiple *versions* of a given compiled package; in some cases an application may be using multiple versions of a package (different libraries may have dependencies on specific versions of a package).
+
+The scale of the repository is also flexible: ranging from a and we must be able to manage different kinds of code repository: from individual packages, libraries of packages and even large-scale collections of libraries.
+
+We will not go into the details of **Star**’s code repositories here. However, note that code repositories may store their code in different ways --- file systems, memory, in a *Star Archive*. Furthermore, repositories can be combined into composite repositories.
+
+### Universal resource identifier (URI)
+
+Each package is identified by a URI. The intention of a URI is that a given URI identifies exactly one package.
+
+The URI has an IETF standard specification (RFC 2396) \[#rfc2396\].
+
+One important source of confusion with the IETF URI is the distinction between URIs and URLs. Although they share a common syntax a URI is *not* intended to convey the *location* of the resource.
+
+For example, the URI
+
+file://foo/bar/x/y.star
+
+looks like a file-based name: one might be tempted to believe that the file x.Star resides in the directory /foo/bar/x. While it is possible that it might, there is actually no such commitment. Furthermore, the same resource may be someplace else (and *will be* if the identified file is in a code repository).
+
+#### Transducer
+
+The connection between a URI and the actual resource must be established by a *transducer*. A transducer is any system that can take a URI and produce a copy of identified resource. If you will, the transducer establishes the link between a URI and a URL.
+
+The **Star** compiler has a range of transducers built-in to it; and also has a extensibility mechanism so that you can define your own URI scheme and have it mapped to some physical storage mechanism.
+
+#### Standard URI schemes
+
+Although the **Star** compiler can, in principle, utilize any URI scheme, some schemes are ‘built-in’ --- in the sense that there is a standard transducer for them. It is obviously an implementation dependent aspect of the language: different compilers may support different schemes; but all should support at least the following:
+
+**star**
+
+E.g. Star://foo/bar/gar.star. This is intended to be used as a system dependent but universal way of identifying **Star** files. I.e., each system is free to choose how to find resources using the **Star** scheme in its own way. It is also expected that methods would be provided for importing and exporting resources between the system and other systems (e.g., mobile vs desktop computers).
+
+**http**
+
+E.g., http://www.example.com/foo/bar.star. This is intended to denote resources that are accessible in some way from the web.
+
+**std**
+
+E.g., std:arithmetic.star. This is intended to represent internally important resources --- typically **Star** packages that are part of the standard language definition
+
+In addition, the compiler may support the **file** scheme and other schemes as appropriate.
+
+### Catalogs
+
+A *catalog* is a mapping from identifiers to package URIs; i.e., it is the missing link between package identifiers and package URIs. Catalogs are sometimes written explicitly --- in the form of a file that you can place in the same directory as your source files --- but usually the compiler makes an automatic catalog depending on where the source code of a package is actually located.
+
+Like other features, the catalog system is under-pinned by a contract -- in this case, the contract is used by the compiler to access the source URIs.
+
+The catalog contract looks like:
+
+contract catalog ::= \{
+
+defltVersion: version.
+
+catalogEntry:(string)=\>uri.
+
+\}
+
+Having the catalog be driven by a contract allows for multiple potential implementations. One standard implementation is via JSON files.
+
+A sample JSON catalog file looks like:
+
+\{
+
+"content": \{
+
+"sample.factorial": "factorial.star"
+
+\},
+
+"fallback" : "../Star/catalog",
+
+"version": "2.3.1"
+
+\}
+
+Other implementations of catalogs are possible; one of the other standard catalog structures automatically populates a catalog based on the contents of a directory.
+
+For most projects you will not need to be very aware of code repositories, catalogs and so on. However, the code product architecture is an important part of **Star**’s strategy for helping you building all scales of system.
