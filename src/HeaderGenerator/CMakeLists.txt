@@ -42,7 +42,7 @@ add_custom_target(generate ALL
 #        COMMAND ops -c lo.comp.operators ${OPERATORS_ST}
 #        COMMAND ops -y -t starops.py.plate ${OPERATORS_PY}
          COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
-#        COMMAND genesc -c lo.comp.escapes ${ESCAPES_ST}
+        COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
         COMMAND genesc -p ${ESCAPES_PL}
         COMMAND plmnem -p ${ASM_PL}
 #        COMMAND opcodes ${OPCODES_H}
