@@ -1,5 +1,7 @@
 {
 	"content": {
+		"star.compiler.escapes" : "escapes.star",
+		"star.compiler.operators" : "operators.star",
     "star.compiler.plugin" : "plugin.star"
 	},
 	"version": "1.0.0",

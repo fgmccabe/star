@@ -53,6 +53,7 @@ typedef struct {
 char *prefix = NULL;
 char *templateFn = "starops.py.plate";
 char *opers = "operators.json";
+char date[MAXLINE] = "";
 
 static triePo tokenTrie;
 static poolPo opPool;
@@ -69,20 +70,22 @@ static void initTries() {
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "pc:t:o:")) >= 0) {
+  while ((opt = getopt(argc, argv, "pst:o:d:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
         break;
-      case 'c':
+      case 's':
         genMode = genStar;
-        prefix = optarg;
         break;
       case 'o':
         opers = optarg;
         break;
       case 't':
         templateFn = optarg;
+        break;
+      case 'd':
+        uniCpy(date, NumberOf(date), optarg);
         break;
       default:;
     }
@@ -104,6 +107,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       outMsg(c->out, "  follows('%P','%#c','%P%#c').\n", prefix, last, prefix, last);
       break;
     case genStar:
+      outMsg(c->out,"  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n",prefix,last,prefix,last);
       break;
   }
 }
@@ -124,6 +128,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
         outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix, last, op->name, op->cmt);
         break;
       case genStar:
+        outMsg(out,"  final(\"%P\") => true.  /* %s */\n", op->name,op->cmt);
         break;
     }
   }
@@ -151,6 +156,13 @@ int main(int argc, char **argv) {
     fprintf(stdout, "bad args");
     exit(1);
   } else if (parseOperators(opers) == Ok) {
+    if (uniStrLen(date) == 0) {
+      time_t rawtime;
+      time(&rawtime);
+      struct tm *timeinfo = localtime(&rawtime);
+
+      strftime(date, NumberOf(date), "%c", timeinfo);
+    }
     ioPo plate = openInFile(templateFn, utf8Encoding);
 
     ioPo out;
@@ -169,6 +181,7 @@ int main(int argc, char **argv) {
 
     hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
+    hashPut(vars, "Date", date);
 
     // dumpTrie(tokenTrie,Stdout());
 
@@ -202,8 +215,8 @@ typedef struct _pair_ {
 
 void genToken(char *op, char *cmt) {
   tokenPo tk = (tokenPo) allocPool(opPool);
-  uniCpy(tk->name,NumberOf(tk->name),op);
-  uniCpy(tk->cmt,NumberOf(tk->cmt),cmt);
+  uniCpy(tk->name, NumberOf(tk->name), op);
+  uniCpy(tk->cmt, NumberOf(tk->cmt), cmt);
 
   if (!isAlphaNumeric(op))
     addToTrie(op, tk, tokenTrie);
@@ -254,7 +267,16 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
           return Error;
       }
     case genStar:
-      return Error;
+      switch (op->style) {
+        case prefixOp:
+          return outMsg(out, "%sprefixOp(%d,%d)", sep, op->prior, op->right);
+        case infixOp:
+          return outMsg(out, "%sinfixOp(%d,%d,%d)", sep, op->left, op->prior, op->right);
+        case postfixOp:
+          return outMsg(out, "%spostfixOp(%d,%d)", sep, op->left, op->prior);
+        default:
+          return Error;
+      }
   }
 }
 
@@ -269,6 +291,9 @@ static retCode procEntries(void *n, void *r, void *c) {
   switch (genMode) {
     case genProlog:
       ret = outMsg(out, "  operator(\"%P\", [", nm);
+      break;
+    case genStar:
+      ret = outMsg(out, "  oper(\"%P\") => [", nm);
       break;
     default:
       break;
@@ -285,6 +310,8 @@ static retCode procEntries(void *n, void *r, void *c) {
       case genProlog:
         ret = outStr(out, "]).\n");
         break;
+      case genStar:
+        ret = outStr(out, "].\n");
       default:
         break;
     }

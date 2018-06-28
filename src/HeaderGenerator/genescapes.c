@@ -171,9 +171,9 @@ static char *dumpSig(char *sig, bufferPo out) {
     case funSig:
       switch (genMode) {
         case genStar:
-          outStr(O_IO(out), "funType(");
+          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"->\",2),");
           sig = dumpSig(sig, out);
-          outStr(O_IO(out), ",");
+          outStr(O_IO(out), "),");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
           break;

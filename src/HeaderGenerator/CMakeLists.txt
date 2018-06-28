@@ -40,8 +40,8 @@ set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 add_custom_target(generate ALL
 #        COMMAND genins ${INSTRUCTIONS_LO}
 #        COMMAND ops -c lo.comp.operators ${OPERATORS_ST}
-#        COMMAND ops -y -t starops.py.plate ${OPERATORS_PY}
          COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
+        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST}
         COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
         COMMAND genesc -p ${ESCAPES_PL}
         COMMAND plmnem -p ${ASM_PL}
