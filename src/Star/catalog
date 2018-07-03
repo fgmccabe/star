@@ -23,6 +23,7 @@
 		"star.option": "option.star",
 		"star.option": "option.star",
 		"star.parse" : "parse.star",
+		"star.pkg": "pkg.star",
 		"star.rdf" : "rdf.star",
 		"star.rdf.n3" : "n3.star",
 		"star.redblack" : "redblack.star",

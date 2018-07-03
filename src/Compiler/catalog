@@ -1,8 +1,12 @@
 {
 	"content": {
+		"star.compiler.errors" : "errors.star",
 		"star.compiler.escapes" : "escapes.star",
+		"star.compiler.lexer" : "lexer.star",
+		"star.compiler.location" : "location.star",
 		"star.compiler.operators" : "operators.star",
-    "star.compiler.plugin" : "plugin.star"
+    "star.compiler.plugin" : "plugin.star",
+		"star.compiler.token" : "token.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"

@@ -23,13 +23,10 @@ star.index{
     | trNode(integer,integer,map[k,v],map[k,v]).    -- @con non-leaf dictionary
 
   public implementation all k,v ~~ equality[k], hash[k] |: indexed[map[k,v] ->> k,v] => {
-    present(M,K) => lookIn(hash(K),M,K).
+    _index(M,K) => lookIn(hash(K),M,K).
     _remove(M,K) => rmve(hash(K),K,M).
-    _put(M,K,V) => insrt(K,V,M).
-    keys(M) => keyMap(M,[]).
-    pairs(M) => mapPairs(M,[]).
-    values(M) => mapValues(M,[]).
-    _empty = trEmpty.
+    _replace(M,K,V) => insrt(K,V,M).
+    _insert(M,K,V) => insrt(K,V,M).
   }
 
   public implementation all k,v ~~ equality[k], equality[v] |: equality[map[k,v]] => {.
@@ -55,7 +52,7 @@ star.index{
   -- }
 
   public find:all m,k,v ~~ equality[k], hash[k], indexed[m->>k,v] |: (m,k) => v.
-  find(M,K) where some(V).= present(M,K) => V.
+  find(M,K) where some(V).= _index(M,K) => V.
 
   public foldMap:all k,v,u ~~ ((k,v,u)=>u,u,map[k,v]) => u.
   foldMap(_,u,trEmpty) => u.
@@ -229,6 +226,9 @@ star.index{
   subtractLeafs(T,[(K,_),..Lvs]) =>
     subtractLeafs(rmve(hash(K),K,T),Lvs).
 
+  public keys:all k,v ~~ (map[k,v]) => list[k].
+  keys(M) => keyMap(M,[]).
+
   private keyMap:all k,v ~~ (map[k,v],list[k]) => list[k].
   keyMap(trEmpty,L) => L.
   keyMap(trLeaf(_,Leaves),L) => leafKeys(Leaves,L).
@@ -237,6 +237,9 @@ star.index{
   private leafKeys:all k,v ~~ (list[(k,v)],list[k]) => list[k].
   leafKeys([],L) => L.
   leafKeys([(K1,V1),..M],L) => leafKeys(M,[K1,..L]).
+
+  public pairs:all k,v ~~ (map[k,v]) => list[(k,v)].
+  pairs(M) => mapPairs(M,[]).
 
   private mapPairs:all k,v ~~ (map[k,v],list[(k,v)]) => list[(k,v)].
   mapPairs(trEmpty,L) => L.
@@ -251,6 +254,9 @@ star.index{
   private mapLeaves:all k,v,w ~~ (list[(k,v)],(v)=>w) => list[(k,w)].
   mapLeaves([],_) => [].
   mapLeaves([(k,v),..l],f) => [(k,f(v)),..mapLeaves(l,f)].
+
+  public values:all k,v ~~ (map[k,v]) => list[v].
+  values(M) => mapValues(M,[]).
 
   private mapValues:all k,v ~~ (map[k,v],list[v]) => list[v].
   mapValues(trEmpty,L) => L.
