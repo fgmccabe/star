@@ -21,13 +21,14 @@
   is_in(X,[_|Y]) :- is_in(X,Y).
 
   operator("all", [prefixOp(1010, 1009)]).
+  operator("^=", [infixOp(899, 900, 899)]).
   operator("&&", [infixOp(910, 910, 909)]).
   operator("pure", [prefixOp(300, 299)]).
   operator("..,", [infixOp(999, 1000, 1000)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("import", [prefixOp(900, 899)]).
-  operator("?.", [infixOp(450, 450, 449)]).
+  operator("of", [infixOp(399, 400, 399)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
@@ -36,7 +37,6 @@
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
-  operator("?=", [infixOp(899, 900, 899)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
@@ -71,6 +71,7 @@
   operator("?", [infixOp(1148, 1149, 1149)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
+  operator("^|", [infixOp(1248, 1249, 1249)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1260, 1259)]).
@@ -84,8 +85,8 @@
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 950)]).
+  operator("^", [infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
-  operator("?|", [infixOp(1248, 1249, 1249)]).
   operator("private", [prefixOp(1700, 1699)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
@@ -93,6 +94,7 @@
   operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(974, 975, 974)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
+  operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(800, 800, 799)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
@@ -171,7 +173,10 @@
   follows('~','>','~>').
   follows('\\','+','\\+').
   follows('^','^','^^').
+  follows('^','.','^.').
   follows('^','/','^/').
+  follows('^','=','^=').
+  follows('^','|','^|').
   follows('^/','/','^//').
   follows(':',':','::').
   follows(':','=',':=').
@@ -192,9 +197,6 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
-  follows('?','.','?.').
-  follows('?','=','?=').
-  follows('?','|','?|').
 
 
   final('%',"%").	 /* modulo */
@@ -233,9 +235,13 @@
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('\\+',"\\+").	 /* logical negation */
+  final('^',"^").	 /* Apply optional function and match result */
   final('^^',"^^").	 /* Overall output from a parser rule */
+  final('^.',"^.").	 /* optional object access */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
+  final('^=',"^=").	 /* optional decomposition match */
+  final('^|',"^|").	 /* option or-else operator */
   final(':',":").	 /* type annotation */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
@@ -259,9 +265,6 @@
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
   final('?',"?").	 /* conditional operator */
-  final('?.',"?.").	 /* optional object access */
-  final('?=',"?=").	 /* optional decomposition match */
-  final('?|',"?|").	 /* option or-else operator */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up a value from a ref cell */
   final('•',"•").	 /* function composition */
