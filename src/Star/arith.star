@@ -21,6 +21,7 @@ star.arith{
     X/Y => _int_div(X,Y).
     X%Y => _int_mod(X,Y).
     one = 1.
+    __minus(Ix) => _int_minus(0,Ix).
   }
 
   public implementation equality[integer] => {
@@ -54,10 +55,11 @@ star.arith{
     X/Y => _flt_div(X,Y).
     X%Y => _flt_mod(X,Y).
     one = 1.0.
+    __minus(Ix) => _flt_minus(0.0,Ix).
   }
 
   public implementation equality[float] => {
-    X == Y => _flt_eq(X,Y).
+    X == Y => _flt_eq(X,Y,1.0e-20).
   }
 
   public implementation hash[float] => {
@@ -82,6 +84,10 @@ star.arith{
   public max: all t ~~ comp[t] |: (t,t)=>t.
   max(X,Y) where X>Y => X.
   max(_,Y) => Y.
+
+  public abs: all t ~~ comp[t],arith[t] |: (t)=>t.
+  abs(X) where X<zero => __minus(X).
+  abs(X) default => X.
 
   public implementation display[float] => {
     disp(X) => ss(_flt2str(X,0,8,0cg,false)).

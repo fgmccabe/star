@@ -22,15 +22,21 @@ extern termPo sliceList(heapPo H, listPo list, integer from, integer count);
 
 extern listPo appendToList(heapPo H, listPo list, termPo el);
 
-extern listPo concatList(heapPo H, listPo l1,listPo l2);
+extern listPo concatList(heapPo H, listPo l1, listPo l2);
 
 extern listPo flattenList(heapPo H, listPo l);
 
 extern listPo reverseList(heapPo H, listPo l1);
 
+extern listPo insertListEl(heapPo H, listPo list, integer px, termPo vl);
+
+extern listPo replaceListEl(heapPo H, listPo list, integer px, termPo vl);
+
+extern listPo removeListEl(heapPo H, listPo list, integer px);
+
 // Use with caution!
 
-extern termPo prependToList(heapPo H, listPo list, termPo el);
+extern listPo prependToList(heapPo H, listPo list, termPo el);
 
 typedef retCode (*listProc)(termPo el, integer ix, void *cl);
 
@@ -38,8 +44,6 @@ extern retCode processList(listPo list, listProc p, void *cl);
 
 extern integer listSize(listPo list);
 extern termPo nthEl(listPo list, integer ix);
-extern void setNthEl(listPo list,integer ix,termPo el);
-
-
+extern void setNthEl(listPo list, integer ix, termPo el);
 
 #endif //CAFE_ARRAY_H
