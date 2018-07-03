@@ -3,7 +3,7 @@ test.compose{
   import star.combo.
 
   digit:(list[integer]) => option[(list[integer],integer)].
-  digit([digitVal?=(D),..L]) => some((L,D)).
+  digit([digitVal^(D),..L]) => some((L,D)).
   digit(_) => none.
 
   digitVal:(integer)=>option[integer].
