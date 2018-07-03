@@ -8,7 +8,7 @@ star.combo{
   public alt:all A,B ~~ ((A)=>option[B],(A)=>option[B]) => (A)=>option[B].
   alt(F1,F2) => let{
     aa:(A) => option[B].
-    aa(F1?=(Y)) => some(Y).
+    aa(F1^(Y)) => some(Y).
     aa(X) => F2(X).
   } in aa.
 
