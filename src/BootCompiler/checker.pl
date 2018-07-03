@@ -528,7 +528,7 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,RT),
   checkType(Lc,RT,Tp,Env),
-  typeOfExp(L,RT,Env,Ev,Exp,Path).
+  typeOfExp(L,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isCoerce(Term,Lc,L,R),!,
   unary(Lc,"_coerce",L,LT),
@@ -612,6 +612,10 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isOfTerm(Term,Lc,Lbl,Tpl),!,
+  macroOfTerm(Lbl,Lc,Tpl,Trm),
+  typeOfExp(Trm,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Lam,Path) :-
   isEquation(Term,Lc,H,C,R),
   typeOfLambda(Lc,H,C,R,Tp,Env,Lam,Path).
@@ -639,6 +643,15 @@ typeOfExp(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   newTypeVar("_#",TV),
   typeOfPtn(P,TV,Env,E0,Lhs,Path),
   typeOfExp(E,TV,E0,Ev,Rhs,Path).
+typeOfExp(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
+  isOptionMatch(Term,Lc,P,E),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  checkType(Lc,LogicalTp,Tp,Env),
+  newTypeVar("_#",TV),
+  unary(Lc,"some",P,SP),
+  typeOfPtn(SP,TV,Env,E0,Lhs,Path),
+  typeOfExp(E,TV,E0,Ev,Rhs,Path).
+
 typeOfExp(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
@@ -673,14 +686,14 @@ typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,
-  ternary(Lc,"_put",Mp,Ky,Vl,Term),
+  ternary(Lc,"_replace",Mp,Ky,Vl,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isUnary(Arg,_,"\\+",Ky),!,
   binary(Lc,"_remove",Mp,Ky,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
-  binary(Lc,"find",Mp,Arg,Term),
+  binary(Lc,"_index",Mp,Arg,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 
 genTpVars([],[]).
@@ -709,7 +722,7 @@ macroMapEntries(Lc,[],name(Lc,"_empty")).
 macroMapEntries(_,[E|L],T) :-
   isBinary(E,Lc,"->",Ky,Vl),!,
   macroMapEntries(Lc,L,Tr),
-  roundTerm(Lc,"_put",[Tr,Ky,Vl],T).
+  roundTerm(Lc,"_replace",[Tr,Ky,Vl],T).
 macroMapEntries(Lc,[E|L],T) :-
   reportError("invalid entry in map %s",[E],Lc),
   macroMapEntries(Lc,L,T).
@@ -792,6 +805,10 @@ isListType(Tp,Env) :-
   deRef(Tp,tpExp(LsOp,_)),
   moveQuants(LstTp,_,tpExp(LstOp,_)),
   deRef(LsOp,LstOp).
+
+macroOfTerm(Lbl,Lc,Tpl,Trm) :-
+  squareTerm(Lc,Lbl,[name(Lc,"_")],Tp),
+  binary(Lc,":",Tpl,Tp,Trm).
 
 macroSquarePtn(Lc,Els,Ptn) :-
   macroListEntries(Lc,Els,Ptn,genEofTest,genHedTest,genTailTest).
