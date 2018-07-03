@@ -6,9 +6,9 @@
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
     isIntegrity/3,isShow/3,isOpen/3,
-    isConditional/5,
+    isConditional/5,isOfTerm/4,
     isEquation/5,isDefn/4,isAssignment/4,
-    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,
+    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
     isLetDef/4,isMacroRule/4,
     whereTerm/4,
@@ -184,6 +184,11 @@ isConditional(Term,Lc,Cond,Th,El) :-
   isBinary(Term,Lc,"|",Lhs,El),
   isBinary(Lhs,_,"?",Cond,Th).
 
+isOfTerm(Term,Lc,Lbl,R) :-
+  isBinary(Term,Lc,"of",Lbl,R),
+  isSquareTuple(R,_,_),
+  isIden(Lbl,_,_).
+
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
@@ -208,7 +213,10 @@ whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
 
 isOptionPtn(Trm,Lc,Ptn,Opt) :-
-  isBinary(Trm,Lc,"?=",Opt,Ptn),!.
+  isBinary(Trm,Lc,"^",Opt,Ptn),!.
+
+isOptionMatch(Trm,Lc,Ptn,Vl) :-
+  isBinary(Trm,Lc,"^=",Ptn,Vl).
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"::",Lhs,Rhs).

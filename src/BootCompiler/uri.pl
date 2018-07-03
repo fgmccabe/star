@@ -152,7 +152,7 @@ delim('"').
 resolveURI(_,Resolve,Resolve) :-
   isAbsoluteURI(Resolve),!.
 resolveURI(absUri(Scheme,Base,_),relUri(Path,Query),absUri(Scheme,NP,Query)) :-
-  resolvePath(Base,Path,NP).
+  resolvePath(Base,Path,NP),!.
 
 resolvePath(_,net(A,P),net(A,P)).
 resolvePath(net(A,_),abs(P),net(A,P)).
