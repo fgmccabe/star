@@ -6,7 +6,9 @@ star.collection{
 
   public contract all c/1 ~~ folding[c] ::= {
     foldRight:all x,e ~~ (((e,x)=>x),x,c[e]) => x.
+    foldRight1:all e ~~ (((e,e)=>e),c[e]) => e.
     foldLeft:all x,e ~~ (((x,e)=>x),x,c[e]) => x.
+    foldLeft1:all e ~~ (((e,e)=>e),c[e]) => e.
   }
 
   public contract all t/1 ~~ reduce[t] ::= {
@@ -31,13 +33,10 @@ star.collection{
   }
 
   public contract all m,k,v ~~ indexed[m ->> k,v] ::= {
-    present:(m,k) => option[v].
+    _index:(m,k) => option[v].
+    _insert:(m,k,v) => m.
     _remove:(m,k) => m.
-    _put:(m,k,v) => m.
-    keys:(m) => list[k].
-    pairs:(m) => list[(k,v)].
-    values:(m) => list[v].
-    _empty:m.
+    _replace:(m,k,v) => m.
   }.
 
   public contract all k,e ~~ membership[k->>e] ::= {
@@ -78,10 +77,31 @@ star.collection{
       fdr(Ix) where Ix>=Mx => Z.
       fdr(Ix) => F(_list_nth(L,Ix),fdr(Ix+1)).
     } in fdr(0).
+    foldRight1(F,[L..,E]) => foldRight(F,E,L).
     foldLeft(F,Z,L) => let{
       Mx = size(L).
       fdl(Ix,I) where Ix>=Mx => I.
       fdl(Ix,I) => fdl(Ix+1,F(I,_list_nth(L,Ix))).
     } in fdl(0,Z).
+    foldLeft1(F,[E,..L]) => foldLeft(F,E,L).
+  }
+
+  iota:(integer,integer)=>list[integer].
+  iota(Mx,Mx) => [].
+  iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
+
+  listPairs:all e ~~ (list[e],integer,integer)=>list[(integer,e)].
+  listPairs(_,Mx,Mx) => [].
+  listPairs(M,Ix,Mx) where Ix<Mx => [(Ix,_list_nth(M,Ix)),..listPairs(M,Ix+1,Mx)].
+
+  public implementation all e ~~ indexed[list[e] ->> integer,e] => {
+    _index(L,ix) where ix>=0 && ix<_list_size(L) => some(_list_nth(L,ix)).
+    _index(_,_) default => none.
+
+    _insert(L,ix,v) => _list_insert(L,ix,v).
+
+    _remove(L,ix) => _list_remove(L,ix).
+
+    _replace(L,ix,v) => _list_replace(L,ix,v).
   }
 }

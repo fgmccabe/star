@@ -1,6 +1,8 @@
 {
 	"content": {
-		"test.comp.op" : "optest.star"
+		"test.comp.op" : "optest.star",
+		"test.comp.err" : "errtest.star",
+		"test.comp.lx" : "lextest.star"
 	},
 	"version": "1.0.0",
 	"default": "../catalog"

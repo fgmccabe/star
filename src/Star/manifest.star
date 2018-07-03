@@ -44,12 +44,12 @@ star.repo.manifest{
 
   public locateInManifest:(manifest,pkg,string) => option[string].
   locateInManifest(man(M),pkg(P,V),K) where
-      present(M,P) =. some(pEntry(_,Vs)) =>
+      _index(M,P) =. some(pEntry(_,Vs)) =>
         hasCompatibleVersion(Vs,V,K).
   locateInManifest(_,_,_) => none.
 
   hasCompatibleVersion([],_,_) => none.
   hasCompatibleVersion([(Vr,mInfo(_,I)),.._],Vq,K) where
-    compatibleVersion(Vr,Vq) => present(I,K).
+    compatibleVersion(Vr,Vq) => I[K].
   hasCompatibleVersion([_,..Vs],Vq,K) => hasCompatibleVersion(Vs,Vq,K).
 }
