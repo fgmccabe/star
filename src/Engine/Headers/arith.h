@@ -34,7 +34,11 @@ extern const double floatVal(termPo o);
 
 extern integer floatHash(double dx);
 
+extern logical nearlyEqual(double dx1, double dx2, double eps);
+
 extern fltPo C_FLT(termPo t);
+
+#define MIN_NORMAL ((double)0x0010000000000000L)
 
 extern void initArith();
 

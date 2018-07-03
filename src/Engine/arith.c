@@ -2,6 +2,8 @@
 // Created by Francis McCabe on 3/1/18.
 //
 
+#include <stdlib.h>
+#include <math.h>
 #include "arithP.h"
 #include "assert.h"
 
@@ -127,14 +129,14 @@ termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   fltPo dx = C_FLT(t);
-  return outDouble(out, dx->dx, 'g', 0, (int)precision, ' ', True, False);
+  return outDouble(out, dx->dx, 'g', 0, (int) precision, ' ', True, False);
 }
 
 comparison fltCmp(specialClassPo cl, termPo t1, termPo t2) {
   double ix1 = floatVal(t1);
   double ix2 = floatVal(t2);
 
-  if (ix1 == ix2)
+  if (nearlyEqual(ix1,ix2,EPSILON))
     return same;
   else if (ix1 < ix2)
     return smaller;
@@ -142,11 +144,27 @@ comparison fltCmp(specialClassPo cl, termPo t1, termPo t2) {
     return bigger;
 }
 
+logical nearlyEqual(double dx1, double dx2, double eps) {
+  if (dx1 == dx2)
+    return True;
+  else {
+    double abs1 = fabs(dx1);
+    double abs2 = fabs(dx2);
+    double diff = fabs(abs1 - abs2);
+    if (dx1 == 0 || dx2 == 0 || diff < MIN_NORMAL) {
+      if (diff < (eps * MIN_NORMAL))
+        return True;
+    } else if (diff / (abs1 + abs2) < eps)
+      return True;
+  }
+  return False;
+}
+
 integer fltHash(specialClassPo cl, termPo o) {
   return floatHash(floatVal(o));
 }
 
-integer floatHash(double dx){
+integer floatHash(double dx) {
   union {
     double n;
     integer i;

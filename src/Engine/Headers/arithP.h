@@ -28,4 +28,6 @@ typedef struct float_term {
 
 extern fltPo allocateFloat(heapPo H, double dx);
 
+#define EPSILON ((double)1.0e-20)
+
 #endif //CAFE_ARITHP_H

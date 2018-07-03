@@ -241,8 +241,9 @@ ReturnStatus g__int_format(processPo p, ptrPo tos) {
 ReturnStatus g__flt_eq(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   termPo Rhs = tos[1];
+  termPo Eps = tos[2];
 
-  termPo Rs = (floatVal(Lhs) == floatVal(Rhs) ? trueEnum : falseEnum);
+  termPo Rs = (nearlyEqual(floatVal(Lhs),floatVal(Rhs),floatVal(Eps)) ? trueEnum : falseEnum);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 

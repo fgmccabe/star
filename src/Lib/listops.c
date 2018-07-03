@@ -102,3 +102,29 @@ ReturnStatus g__list_flatten(processPo p, ptrPo tos) {
   ReturnStatus ret = {.ret=Ok, .rslt=(termPo) flattenList(processHeap(p), ll)};
   return ret;
 }
+
+ReturnStatus g__list_insert(processPo p, ptrPo tos) {
+  listPo l = C_LIST(tos[0]);
+  integer ix = integerVal(tos[1]);
+  termPo vl = tos[2];
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) insertListEl(processHeap(p), l, ix, vl)};
+  return ret;
+}
+
+ReturnStatus g__list_replace(processPo p, ptrPo tos) {
+  listPo l = C_LIST(tos[0]);
+  integer ix = integerVal(tos[1]);
+  termPo vl = tos[2];
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) replaceListEl(processHeap(p), l, ix, vl)};
+  return ret;
+}
+
+ReturnStatus g__list_remove(processPo p, ptrPo tos) {
+  listPo l = C_LIST(tos[0]);
+  integer ix = integerVal(tos[1]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) removeListEl(processHeap(p), l, ix)};
+  return ret;
+}
