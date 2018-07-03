@@ -1,4 +1,4 @@
-/* Automatically generated at Thu Jun 28 12:56:10 2018, do not edit */
+/* Automatically generated at Mon Jul  2 10:17:42 2018, do not edit */
 
 star.compiler.operators{
   import star.
@@ -36,13 +36,14 @@ star.compiler.operators{
 
   oper:(string)=>list[operator].
   oper("all") => [prefixOp(1010,1009)].
+  oper("^=") => [infixOp(899,900,899)].
   oper("&&") => [infixOp(910,910,909)].
   oper("pure") => [prefixOp(300,299)].
   oper("..,") => [infixOp(999,1000,1000)].
   oper("~>") => [infixOp(1230,1231,1230)].
   oper(".|.") => [infixOp(720,720,719)].
   oper("import") => [prefixOp(900,899)].
-  oper("?.") => [infixOp(450,450,449)].
+  oper("of") => [infixOp(399,400,399)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("==>") => [infixOp(949,950,949)].
   oper("**") => [infixOp(600,600,599)].
@@ -51,7 +52,6 @@ star.compiler.operators{
   oper(". ") => [postfixOp(1899,1900), infixOp(1899,1900,1900)].
   oper("!") => [postfixOp(99,100)].
   oper("->>") => [infixOp(1199,1200,1199)].
-  oper("?=") => [infixOp(899,900,899)].
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
@@ -86,6 +86,7 @@ star.compiler.operators{
   oper("?") => [infixOp(1148,1149,1149)].
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,899)].
+  oper("^|") => [infixOp(1248,1249,1249)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1260,1259)].
@@ -99,8 +100,8 @@ star.compiler.operators{
   oper("=<") => [infixOp(899,900,899)].
   oper("==") => [infixOp(899,900,899)].
   oper("=>") => [infixOp(949,950,950)].
+  oper("^") => [infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
-  oper("?|") => [infixOp(1248,1249,1249)].
   oper("private") => [prefixOp(1700,1699)].
   oper(".&.") => [infixOp(700,700,699)].
   oper("///") => [infixOp(800,800,799)].
@@ -108,6 +109,7 @@ star.compiler.operators{
   oper("+++") => [infixOp(719,720,720)].
   oper(":=") => [infixOp(974,975,974)].
   oper(".<<.") => [infixOp(600,600,599)].
+  oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
   oper("^/") => [infixOp(800,800,799)].
   oper("<~") => [infixOp(1230,1231,1230)].
@@ -187,7 +189,10 @@ star.compiler.operators{
   follows("~",0c>) => some("~>").
   follows("\\",0c+) => some("\\+").
   follows("^",0c^) => some("^^").
+  follows("^",0c.) => some("^.").
   follows("^",0c/) => some("^/").
+  follows("^",0c=) => some("^=").
+  follows("^",0c|) => some("^|").
   follows("^/",0c/) => some("^//").
   follows(":",0c:) => some("::").
   follows(":",0c=) => some(":=").
@@ -208,9 +213,6 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
-  follows("?",0c.) => some("?.").
-  follows("?",0c=) => some("?=").
-  follows("?",0c|) => some("?|").
   follows(_,_) default => none.
 
   public final:(string) => boolean.
@@ -250,9 +252,13 @@ star.compiler.operators{
   final("~~") => true.  /* quantifier */
   final("~>") => true.  /* type function */
   final("\\+") => true.  /* logical negation */
+  final("^") => true.  /* Apply optional function and match result */
   final("^^") => true.  /* Overall output from a parser rule */
+  final("^.") => true.  /* optional object access */
   final("^/") => true.  /* filter */
   final("^//") => true.  /* filter map */
+  final("^=") => true.  /* optional decomposition match */
+  final("^|") => true.  /* option or-else operator */
   final(":") => true.  /* type annotation */
   final("::") => true.  /* type coercion */
   final("::=") => true.  /* algebraic type definition */
@@ -276,9 +282,6 @@ star.compiler.operators{
   final(">>") => true.  /* monadic bind */
   final(">>=") => true.  /* monadic bind */
   final("?") => true.  /* conditional operator */
-  final("?.") => true.  /* optional object access */
-  final("?=") => true.  /* optional decomposition match */
-  final("?|") => true.  /* option or-else operator */
   final("@") => true.  /* meta annotation */
   final("!") => true.  /* pick up a value from a ref cell */
   final("•") => true.  /* function composition */

@@ -36,7 +36,7 @@
     "desc": "type union and conditional"
   },
   {
-    "infixOp": "?|",
+    "infixOp": "^|",
     "priorities": [
       1248,
       1249,
@@ -315,13 +315,22 @@
     "desc": "pattern match"
   },
   {
-    "infixOp": "?=",
+    "infixOp": "^=",
     "priorities": [
       899,
       900,
       899
     ],
     "desc": "optional decomposition match"
+  },
+  {
+    "infixOp": "^",
+    "priorities": [
+      99,
+      100,
+      99
+    ],
+    "desc": "Apply optional function and match result"
   },
   {
     "infixOp": "<",
@@ -576,7 +585,7 @@
     "desc": "function composition"
   },
   {
-    "infixOp": "?.",
+    "infixOp": "^.",
     "priorities": [
       450,
       450,
@@ -601,6 +610,15 @@
       399
     ],
     "desc": "type coercion"
+  },
+  {
+    "infixOp": "of",
+    "priorities": [
+      399,
+      400,
+      399
+    ],
+    "desc": "'of' term'"
   },
   {
     "infixOp": ".",
