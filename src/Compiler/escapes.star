@@ -27,7 +27,7 @@ star.comp.escapes{
   escapeType("_int_eq") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*boolean")).
   escapeType("_int_lt") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*boolean")).
   escapeType("_int_ge") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*boolean")).
-  escapeType("_flt_eq") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*boolean")).
+  escapeType("_flt_eq") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*float"),tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*boolean")).
   escapeType("_flt_lt") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*boolean")).
   escapeType("_flt_ge") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*boolean")).
   escapeType("_int2flt") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer")])),tipe("star.core*float")).
@@ -72,6 +72,9 @@ star.comp.escapes{
   escapeType("_list_nth") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer")])),kVar("t"))).
   escapeType("_list_append") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),kVar("t")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
   escapeType("_list_prepend") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),kVar("t")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
+  escapeType("_list_insert") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer"),kVar("t")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
+  escapeType("_list_replace") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer"),kVar("t")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
+  escapeType("_list_remove") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
   escapeType("_list_slice") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer"),tipe("star.core*integer")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
   escapeType("_list_front") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
   escapeType("_list_back") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),tipe("star.core*integer")])),tpExp(tpFun("star.core*list",1),kVar("t")))).
@@ -279,6 +282,9 @@ star.comp.escapes{
   isEscape("_list_nth") => true.
   isEscape("_list_append") => true.
   isEscape("_list_prepend") => true.
+  isEscape("_list_insert") => true.
+  isEscape("_list_replace") => true.
+  isEscape("_list_remove") => true.
   isEscape("_list_slice") => true.
   isEscape("_list_front") => true.
   isEscape("_list_back") => true.
