@@ -442,9 +442,7 @@ The identifier `t` in the type definition for tree denotes a *type variable*. Ag
 The tree type is a universally quantified type. What that means is that instead of defining a single type it defines a family of related types: for example:
 ```
 tree[string]
-
 tree[integer]
-
 ...
 ```
 
@@ -718,21 +716,30 @@ The important detail here is that all access to a `option` wrapped value is gate
 #### Special syntax for `option`al values
 Of course, the code above _is_ kind of clumsy! There is a range of operators in **Star** to make using `option` values more pleasant.
 
-The most important of these is the `?=` operator which combines the `.=` with the `some` match. Using this, the `isMarriedTo` function becomes:
+The most important of these is the `^=` operator which combines the `.=` with the `some` match. Using this, the `isMarriedTo` function becomes:
 ```
-isMarriedTo(P,J) where JJ?=P.spouse => J==JJ.
+isMarriedTo(P,J) where JJ^=P.spouse => J==JJ.
 isMarriedTo(_,_) default => false.
 ```
-The meaning of `?=` is similar to the pattern match condition `.=`; except that the pattern is assumed to be for a `some` value.
+The meaning of `^=` is similar to the pattern match condition `.=`; except that the pattern is assumed to be for a `some` value.
 
-While the `?=` operator[^Read as ‘has a value’.] is very useful in unpacking an optional value, the `?|` operator allows us to handle cases where we always need to be able to give some kind of value. For example, normally a `map` returns none if an entry is not present. However, a *cache* is structured differently: if a value is not present in a cache then we must go fetch it:
+While the `^=` operator[^Read as ‘has a value’.] is very useful in unpacking an optional value, the `^|` operator allows us to handle cases where we always need to be able to give some kind of value. For example, normally a `map` returns none if an entry is not present. However, a *cache* is structured differently: if a value is not present in a cache then we must go fetch it:
 
 ```
-cacheValue(K) => cache[K] ?| fetch(K)
+cacheValue(K) => cache[K] ^| fetch(K)
 ```
-There is, clearly, a strong relationship between `?=` and `?|` -- each can be expressed in terms of the other.
 
-Overall, the option type is part of an elegant approach to nullability that is easily incorporated into **Star**’s (and similar) type system.
+We can also apply a match _in line_ to an `option`al value. The `^` operator allows a pattern to be formed by applying a `option` valued function directly in place. For example, the equation:
+```
+head(first^(1)) => "alpha"
+```
+is equivalent to:
+```
+head(X) where some(1).=first(X) => "alpha"
+```
+We will see more examples of this when we look more closely at sequences and collections processing.
+
+Overall, the `option` type is part of an elegant approach to nullability that is easily incorporated into **Star**’s (and similar) type system.
 
 ## A word about type inference
 We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that **Star** only requires programmers to explicitly declare the types of quantified variables and functions. It is worth pausing a little to see how this might be done.
