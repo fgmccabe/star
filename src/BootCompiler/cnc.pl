@@ -1,4 +1,4 @@
-:- module(cnc,[transRule/3]).
+:- module(cnc,[transRule/3,cncPredType/2]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -8,7 +8,10 @@
 :- use_module(terms).
 
 
-checkRule(Lc,H,C,tpExp(tpFun("{}",1),At),Defs,Defsx,Df,Dfx,E,Path) :-
+cncPredType(At,Tp) :- deRef(Tp,tpExp(tpFun("{}",1),At)).
+
+checkRule(Lc,H,C,Tp,Defs,Defsx,Df,Dfx,E,Path) :-
+  cncPredType(At,Tp),
   splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
   typeOfArgPtn(A,AT,Env,E0,Args,Path),
