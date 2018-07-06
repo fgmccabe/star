@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /* Automatically generated at Fri Jul  6 10:45:09 2018, do not edit */
+=======
+/* Automatically generated at Fri Jul  6 07:04:38 2018, do not edit */
+>>>>>>> redone
 
 star.compiler.operators{
   import star.
