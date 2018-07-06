@@ -135,7 +135,7 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
-  stackTrace(P);
+  stackTrace(P, NULL, False);
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};
   return rt;

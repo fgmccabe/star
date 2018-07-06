@@ -78,7 +78,12 @@ retCode run(processPo P) {
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
-        assert(SP > (ptrPo) P->stackBase);
+        if(SP-stackDelta(PROG)<=(ptrPo)P->stackBase){
+          saveRegisters(P,SP);
+          extendStack(P, 2);
+          restoreRegisters(P);
+        }
+        assert(SP-stackDelta(PROG) > (ptrPo) P->stackBase);
         continue;
       }
 
@@ -101,7 +106,12 @@ retCode run(processPo P) {
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
-        assert(SP > (ptrPo) P->stackBase);
+        if(SP-stackDelta(PROG)<=(ptrPo)P->stackBase){
+          saveRegisters(P,SP);
+          extendStack(P, 2);
+          restoreRegisters(P);
+        }
+        assert(SP-stackDelta(PROG) > (ptrPo) P->stackBase);
         continue;
       }
 
@@ -492,8 +502,4 @@ retCode run(processPo P) {
         syserr("Illegal instruction");
     }
   }
-}
-
-ptrPo localVar(framePo fp, int64 off) {
-  return &(((ptrPo) fp)[-off]);
 }
