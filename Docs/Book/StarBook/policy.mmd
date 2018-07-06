@@ -34,8 +34,7 @@ One of the primary reasons for wanting to have domain specific languages is to b
 Policy has a number of definitions, one of which is
 
 **Policy**
-
-An expression of a constraint that governs the behavior of a system.
+:	An expression of a constraint that governs the behavior of a system.
 
 The term *system* here is intended to be used broadly, in particular to include users and humans agents participating in the system.
 
@@ -60,37 +59,30 @@ DSLs and policy languages often involve quite different *semantics* from the hos
 RDF semantics is extremely simple: a RDF graph is a set of triples consisting of a subject, predicate and object; each of which is a concept. A graph is constructed by having triples linking to each other: the object of one triple being the subject of another. RDF is particularly flexible here as even predicates may be the subjects and objects of other triples.
 
 RDF is good for representing the simple ‘facts’ that one often sees in applications that have to model aspects of the real world. A classic example of this is in modeling things like giraffes: if we have a Giraffe called Joe, then we typically want to be able to say things like:
-
+```
 Joe isa giraffe
-
+```
 which means
 
-Joe is a Giraffe
+>Joe is a Giraffe
 
 RDF is not especially powerful --- which is actually one of the key design points in the language. Its simplicity means that it is easily manipulated and processed.
 
 Another nice feature of RDF is its extensibility by means of special vocabularies. One of the basic standard vocabularies is RDFS which introduces a languages of classes, sub-classes and instances to basic RDF. In our giraffe example, the RDFS vocabulary allows us to talk about categories as well as individuals:
-
+```
 Joe isa giraffe
-
 giraffe isa class
-
 giraffe subclass mammal
-
 giraffe has long-neck
-
 mammal isa class
-
 mammal subclass animal
-
 mammal has four-legs
-
+```
 RDF stores that understand this vocabulary can automate many simple inferences. Another standard vocabulary is OWL which is the standard for representing Ontologies in the Semantic Web. For example, from these facts, we can also infer:
-
+```
 Joe has long-neck
-
 Joe has four-legs
-
+```
 These inferences are part of the semantics of RDFS; they are added to the graph as a consequence of the other facts. A graph simply consists of a set of such ‘triples’; often there are many millions of triples when modeling complex domains.
 
 Just having a graph is much like having a flat data structure; its utility for describing policies comes from being able to process it effectively, specifically to be able to *query* it. There are many possible ways of querying triple graphs; will look at a simple one which can be easily integrated with **Star**’s standard query notation.
@@ -104,8 +96,7 @@ The most important initial task in designing a DSL or policy framework has nothi
 Ontology, as a discipline, dates back to Aristotle. He was one of the first people to attempt to systematically classify the known world. Nowadays, Ontology refers to the study of the relationship between concepts and the real world.
 
 **Ontology**
-
-*A description of a set of concepts and how they relate to each other and to the intended domain.*[^fn1]
+:	A description of a set of concepts and how they relate to each other and to the intended domain.[^fn1]
 
 A systematic, or formal, ontology is often written in a language that allows automated verification of desirable aspects of the ontology --- such as its consistency.
 
@@ -113,17 +104,13 @@ Developing an ontology often starts by brainstorming a set of words that seem to
 
 Our RDF triple language also has an ontology --- about the concepts involved in knowledge graphs. The figure below shows such a collection, which, while it is not the complete set needed for conceptualizing triple graphs, makes a good start:
 
-![][rdfConcepts]
-
-A Collection of Concepts Important to Triple Graphs
+![A Collection of Concepts Important to Triple Graphs][rdfConcepts]
 
 Once you have a set of concepts it helps to organize them. Common meta-concepts in ontologies include the notions of *class*, *instance*, and the *sub-class* relationship --- not to be confused with similar concepts in Object Oriented Programming. For example, your giraffe Joe denotes an instance of the Giraffe class, and Giraffes are a sub-class of the more general concept of Pet.
 
 One simple (sometimes simplistic) tool for figuring out an ontology is UML. UML has the great advantage of being very visual and therefore can often be useful in bringing out the salient parts of an ontology. For example, a UML diagram of our triple graph conceptualization highlighting some of the important classes and their relationships can be seen in:
 
-![][rdfUML]
-
-UML Diagram of Triple Graph Ontology
+![UML Diagram of Triple Graph Ontology][rdfUML]
 
 The role of the UML diagram is to make it clear what the key features and components of your language are --- so you don’t miss anything important.
 
@@ -143,13 +130,10 @@ The kind of UML-based analysis that we have used so far often leads naturally to
 
 One way of defining action, as illustrated in the UML diagram is:
 
-![][action]
-
-Ontology of Action
+![Ontology of Action][action]
 
 **Action**
-
-*An action is the intentional application of force to achieve an objective.*
+:	An action is the intentional application of force to achieve an objective.
 
 Here, ‘force’ is intended to be broadly interpreted --- it can include, for example, calling a function as well as lifting a rock.
 
@@ -162,32 +146,27 @@ This analysis of action is important because it gives us all kinds of hooks for 
 More generally, we have:
 
 **Target**
-
-*The target of an action is the thing that is being operated on.*
+:	The target of an action is the thing that is being operated on.
 
 Not all actions have an obvious target; for example, the true target in an e-mail marketing campaign is not the e-mail system but the human readers of e-mail.
 
 **Instrument**
-
-*The instrument is the means by which the action is performed.*
+:	The instrument is the means by which the action is performed.
 
 In the case of the squirrel above, the instrument is the squirrel itself; in the case of calling an API it is the API method.
 
 **Force**
-
-*The diversion of potential energy into actual work.*
+:	The diversion of potential energy into actual work.
 
 This can be difficult to get one’s head around. Without force though, there is no action. In the case of a computer program, force amounts to execution: the action is performed when the corresponding program fragment is executed.
 
 **Agent**
-
-*Agency is what distinguishes action from random events.*
+:	Agency is what distinguishes action from random events.
 
 There are many possible interpretations of agent; we shall see some of them in our chapter on communicating agents. The simplest form of agent in a programming language is simply the thread of control. However, if your DSL is about multiple threads or parallelism in some way, then you will likely need to focus on agent as a specific concept.
 
 **Intention**
-
-*An internal state which is potentially causal for action.*
+:	An internal state which is potentially causal for action.
 
 A key aspect of action is that it is intentional --- or to put it counterfactually: an action is not an accident.
 
@@ -196,8 +175,7 @@ When designing a DSL, the verbs in the DSL that correspond to actions are normal
 What difference does this make? There may be other kinds of verbs that you will need in your DSL. For example, declaratives state something about what is (or should be) true. Declaratives are not actions; if for no other reason than declaratives are not associated with intention.
 
 **Objective**
-
-*A measurable state --- characterized by a predicate --- that an agent seeks to achieve with an action.*
+:	A measurable state --- characterized by a predicate --- that an agent seeks to achieve with an action.
 
 It is the *objective* that often gives the most concrete guidance in designing DSLs. There may be many objectives and any given objective may have many actions associated with it. However, if you list your actions’ objectives, then you may have the beginnings of a list of verbs.
 
@@ -230,90 +208,79 @@ The focal structure in a triple graph is the *triple*. This is described as bein
 *Subject* ! *Predicate* $ *Object*.
 
 The idea is to make it easy to represent facts like:
-
+```
 john ! likes $ mary.
-
-peter ! in\_department $ accounting.
-
+peter ! in_department $ accounting.
+```
 We also allow raw strings in our triples, to enable us to represent information that is *external* to the graph:
-
+```
 john ! address $ "2 smart place".
-
 john ! name $ "John Smith".
-
+```
 #### Design is iteration
 As we noted, having a triple graph is only as useful as our ability to use it; especially to examine its contents. To simplify that task we *could* create a query language specifically for triple graphs. However, a more subtle and integrated approach is to *extend* the standard built-in query language with conditions that are tailored to work with triple graphs. This has the advantage that we can leverage standard query processing to help process triple graphs.
 
 So, we need an extension to standard query conditions that allow us to:
-
-set of \{ all X where OrgTree says X ! department $ accounting \}
-
+```
+set of { all X where OrgTree says X ! department $ accounting }
+```
 However, we immediately hit a road-block: what about variables? How can we distinguish the occurrence of X above to denote a variable whilst allowing accounting to be the fixed name of a concept: they are both identifiers.
 
 We are pretty much guaranteed to encounter variables in query expressions; but we may also encounter them in graph expressions --- especially if we construct graphs dynamically. To ensure that we can reliably distinguish variables from named concepts we have to modify the design of our triple graph language.
 
 So, to resolve this, we modify the syntax for named concepts to have a leading colon operator; our simple graph above becomes:
-
+```
 :john ! :likes $ :mary.
 
-:peter ! :in\_department $ :accounting.
-
+:peter ! :in_department $ :accounting.
+```
 and the query becomes:
-
-set of \{all X where OrgTree says X ! :department $ :accounting \}
-
-Now the occurrence of X above is clearly a variable and not the name of a concept.
+```
+set of {all X where OrgTree says X ! :department $ :accounting }
+```
+Now the occurrence of `X` above is clearly a variable and not the name of a concept.
 
 There is an additional reason for choosing to lead a concept with a colon: when dealing with multiple graphs it may be useful for one graph to refer to a concept in another graph. However, we will leave this extension for another day.
 
 With this change, we can represent our original giraffe example in our RDF DSL:
-
+```
 :Joe ! isa $ :giraffe.
-
 :giraffe ! isa $ class.
-
 :giraffe ! subclass $ :mammal.
-
 :giraffe ! has $ :long-neck.
-
 :mammal ! isa $ class.
-
 :mammal ! subclass $ :animal.
-
 :mammal ! has $ :four-legs.
-
+```
 With the inferred triples:
-
+```
 :Joe ! has $ :long-neck.
-
 :Joe ! has $ :four-legs.
-
+```
 Designing DSLs, like designing anything, is often an iterative process. It is important to remain flexible when designing language features. For example, one rather glaring limitation to our triple graph notation is that it is limited to symbolic concepts and literal strings. We leave as an exercise to the reader how to modify the notation to allow arbitrary **Star** values to be referenced in triple graphs.
 
 #### Triple notation
-The focal structure in a triple graph is the *triple*. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the \[N3\]\[#N3-W3C\] notation --- which is a more human readable version of the standard XML RDF syntax adopted by W3C:
+The focal structure in a triple graph is the *triple*. This is described as being a triple of a subject/predicate/object. Our triple graph notation is based on the [N3][#N3-W3C] notation --- which is a more human readable version of the standard XML RDF syntax adopted by W3C:
 
 *Subject* ! *Predicate* $ *Object*.
 
 The idea is to make it easy to represent facts like:
-
+```
 john ! likes $ mary.
-
-peter ! in\_department $ accounting.
-
+peter ! in_department $ accounting.
+```
 We also allow raw strings in our triples, to enable us to represent information that is *external* to the graph:
-
+```
 john ! address $ "2 smart place".
-
 john ! name $ "John Smith".
-
+```
 ### Operator precedence grammar
 
 Star has a very flexible syntactic foundation based on *Operator Precedence Grammars*. You are already quite familiar with operator precedence grammars --- they are used in nearly every programming language to represent arithmetic expressions. For example
-
-X+Y\*3
-
-is a very common way of representing the addition of X to the result of multiplying Y by 3. It also represents the application of two operators: + and * which happen to be *binary* operators.
+```
+X+Y*3
+```
+is a very common way of representing the addition of `X` to the result of multiplying `Y` by `3`. It also represents the application of two operators: `+` and `*` which happen to be *binary* operators.
 
 The operator structure of an expression is completely independent of any type information or its run-time performance.
 
@@ -323,30 +290,27 @@ We should be careful to note that the term *operator* here has at least two over
 
 There are many different kinds of operator: we can have *prefix* operators like unary -; *infix* operators like * and *postfix* operators like ;. Prefix and infix forms tend to be much more commonly used than the postfix form. It is quite possible for the same operator to have multiple forms: for example the - is both infix and prefix --- which allows us to use the same symbol for subtraction and to represent negative numbers.
 
-To support parsing and operator combination, an operator is associated with a *priority* number --- which encodes the relationship between operators. In the case of **Star**’s operators, this is an integer in the range 0 to 2000; where the higher the priority the more dominant the operator is in the syntax. For example, the priorities for + and * are 720 and 700 respectively. It is this relative difference that determines that X+Y\*3 means the same as X+(Y\*3) and not (X+Y)\*3.
+To support parsing and operator combination, an operator is associated with a *priority* number --- which encodes the relationship between operators. In the case of **Star**’s operators, this is an integer in the range `0` to `2000`; where the higher the priority the more dominant the operator is in the syntax. For example, the priorities for `+` and `*` are `720` and `700` respectively. It is this relative difference that determines that `X+Y*3` means the same as `X+(Y*3)` and not `(X+Y)*3`.
 
 The final attribute of an operator is its *associativity*. Associativity determines what happens when you have multiple operators of the same priority in sequence. For example, arithmetic operators are traditionally *left associative*. This means that
-
+```
 X-Y-Z
-
+```
 is the same as
-
+```
 (X-Y)-Z
-
+```
 rather than
-
+```
 X-(Y-Z)
-
+```
 All this can be put together in a single **Star** statement: the operator declaration. In the case of our triple we are using two operators ! and $ to ‘glue’ together the parts of a triple. We also use the : operator to mark named concepts. The operator declarations we need to represent them are:
-
-\# right("!",500).
-
-\# right("$",450).
-
-\# prefix(":",100).
-
-\# infix("says",908).
-
+```
+# right("!",500).
+# right("$",450).
+# prefix(":",100).
+# infix("says",908).
+```
 One may ask where these priority numbers come from? Operators in **Star** are stratified into different levels depending on their syntactic role: 0--899 represent expressions, 900--999 represent predicates and conditions, 1000--1199 are used for forms that can be either expressions or actions, 1200--1499 represent actions and 1500--200 represent statements. The choice of 908 for says is to make it the same as the built-in predicate operator: in. The main effect of choosing the ‘wrong’ value for the priority of an operator is that expressions don’t parse the way you would like.
 
 Notice that the word says is also an operator! **Star** allows us to use words as operators as well as using ‘graphical’ symbols like +.
