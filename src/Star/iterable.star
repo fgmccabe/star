@@ -65,6 +65,8 @@ star.iterable{
     _handle(V,_) default => V.
 
     _raise(x) => abortIter(x).
+
+    _delay(F) => return () >>= (_)=>F().
   }
 
   public implementation functor[iterState] => {

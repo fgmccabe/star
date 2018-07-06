@@ -21,6 +21,7 @@ star.monad{
     _perform:all a ~~ (m[a])=>a.
     _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
     _raise: all a ~~ (e) => m[a].
+    _delay: all a ~~ (()=>m[a]) => m[a].
   }
 
   public contract all m/1,n/1 ~~ injection[m,n] ::= {
