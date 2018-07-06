@@ -19,6 +19,9 @@
 #include <assemP.h>
 #include <assem.h>
 #include <code.h>
+#include <heap.h>
+#include <term.h>
+
 #include <term.h>
 
 #include <assem.h>

@@ -33,6 +33,7 @@ extern packagePo markLoaded(char *package, char *version);
 extern packagePo createPkg(char *name, char *version);
 
 extern methodPo
-defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, labelPo lbl, normalPo pool, normalPo locals);
+defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
+          normalPo locals);
 
 #endif

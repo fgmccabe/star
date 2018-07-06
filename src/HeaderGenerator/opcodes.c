@@ -4,7 +4,7 @@
 // Utility program to generate the opcodes.h header file
 
 #undef instruction
-#define instruction(mnem,A1,cmnt) fprintf(out,"  "#mnem",\n");
+#define instruction(mnem,A1,DL,cmnt) fprintf(out,"  "#mnem",\n");
 
 #define lastInstruction
 

@@ -184,7 +184,7 @@ static retCode enc_glb(ioPo out, assemInsPo ins) {
 retCode encodeIns(ioPo out, assemInsPo ins) {
   switch (ins->op) {
 #undef instruction
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
     case Op:          \
       return enc_##A1(out,ins);
 

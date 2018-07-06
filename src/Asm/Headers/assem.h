@@ -65,7 +65,7 @@ extern int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 l
 #define opEs(X) ,char * f##X
 #define opglb(X) ,char * f##X
 
-#define instruction(Op,A1,Cmt) \
+#define instruction(Op,A1,Dl,Cmt) \
 extern retCode A##Op(mtdPo mtd op##A1(1));
 
 #include "instructions.h"

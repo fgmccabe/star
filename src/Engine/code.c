@@ -90,7 +90,8 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
 }
 
 methodPo
-defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, labelPo lbl, normalPo pool, normalPo locals) {
+defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
+          normalPo locals) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
   gcAddRoot(H, (ptrPo) &locals);
@@ -106,6 +107,7 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, labelPo lbl, 
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
   mtd->locals = locals;
+  mtd->stackDelta = stackDelta;
 
   lbl->mtd = mtd;
 

@@ -20,6 +20,7 @@ typedef struct _method_ {
 
   integer arity;        /* How many arguments in method */
   integer lclcnt;       // How many locals in the environment
+  integer stackDelta;   // How much space to allocate for the stack
   normalPo pool;      /* A pool tuple of constants */
   normalPo locals;    /* A tuple of sorted locals */
   insWord code[ZEROARRAYSIZE];
@@ -46,6 +47,11 @@ static inline integer insCount(methodPo mtd) {
 static inline int64 argCount(methodPo mtd) {
   assert(mtd != Null);
   return mtd->arity;
+}
+
+static inline integer stackDelta(methodPo mtd) {
+  assert(mtd != Null);
+  return mtd->stackDelta;
 }
 
 extern retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt);
