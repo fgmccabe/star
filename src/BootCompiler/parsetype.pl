@@ -46,6 +46,9 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   freshen(Op,Env,Qx,OOp),
   applyTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,T),
   reBind(Qx,Env,T,Tp).
+parseType(T,Env,Q,C,Cx,tpExp(tpFun("{}",1),ArgType)) :-
+  isTupleBrace(T,_,Tpl),
+  parseArgType(Tpl,Env,Q,C,Cx,ArgType).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isBinary(F,_,"=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),

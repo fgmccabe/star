@@ -138,6 +138,9 @@ showType(typeLambda(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("~>",O1,O2),showTy
 showType(contractExists(Spc,Fc),O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,O2,Ox).
 showType(constrained(Tp,Con),O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
 
+showTypeExp(tpExp(tpFun("{}",1),Arg),O,Ox) :-!,
+  showType(Arg,O,O1),
+  appStr("{}",O1,Ox).
 showTypeExp(Tp,O,Ox) :-
   showTpExp(Tp,_,O,O1),
   appStr("]",O1,Ox).
