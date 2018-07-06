@@ -50,6 +50,13 @@ star.collection{
     _difference : (k,k)=>k.
   }
 
+  public contract all r,t ~~ updateable[r->>t] ::= {
+    _extend:(r,t)=>r.
+    _merge:(r,r) => r.
+    _delete:(r,(t)=>boolean) => r.
+    _update:(r,(t)=>option[t]) => r.
+  }
+
   public implementation mapping[list] => {
     L//F => mapOverList(L,F,0,_list_size(L)).
 
