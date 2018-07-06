@@ -1,6 +1,6 @@
 star.monad{
-  public contract all f/1 ~~ functor[f] ::= {
-    fmap:all a,b ~~ ((a)=>b,f[a])=>f[b].
+  public contract all c/1 ~~ functor[c] ::= {
+    fmap:all a,b ~~ ((a)=>b,c[a])=>c[b].
   }
 
   public contract all a/1 ~~ applicative[a] ::= {

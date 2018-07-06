@@ -4,16 +4,14 @@ star.collection{
   import star.lists.
   import star.arith.
 
-  public contract all c/1 ~~ folding[c] ::= {
-    foldRight:all x,e ~~ (((e,x)=>x),x,c[e]) => x.
-    foldRight1:all e ~~ (((e,e)=>e),c[e]) => e.
-    foldLeft:all x,e ~~ (((x,e)=>x),x,c[e]) => x.
-    foldLeft1:all e ~~ (((e,e)=>e),c[e]) => e.
+  public contract all c,e ~~ folding[c->>e] ::= {
+    foldRight:all x ~~ (((e,x)=>x),x,c) => x.
+    foldLeft:all x ~~ (((x,e)=>x),x,c) => x.
   }
 
-  public contract all t/1 ~~ reduce[t] ::= {
-    reducer:all a,b ~~ ((a,b)=>b) => (t[a],b) => b.
-    reducel:all a,b ~~ ((b,a)=>b) => (b,t[a]) => b.
+  public contract all t,e ~~ reduce[t->>e] ::= {
+    reducer:all a ~~ ((e,a)=>a) => (t,a) => a.
+    reducel:all a ~~ ((a,e)=>a) => (a,t) => a.
   }
 
   public contract all c,e ~~ filter[c->>e] ::= {
@@ -71,19 +69,17 @@ star.collection{
     } in rdl.
   }
 
-  public implementation folding[list] => {
+  public implementation all e ~~ folding[list[e]->>e] => {
     foldRight(F,Z,L) => let{
       Mx = size(L).
       fdr(Ix) where Ix>=Mx => Z.
       fdr(Ix) => F(_list_nth(L,Ix),fdr(Ix+1)).
     } in fdr(0).
-    foldRight1(F,[L..,E]) => foldRight(F,E,L).
     foldLeft(F,Z,L) => let{
       Mx = size(L).
       fdl(Ix,I) where Ix>=Mx => I.
       fdl(Ix,I) => fdl(Ix+1,F(I,_list_nth(L,Ix))).
     } in fdl(0,Z).
-    foldLeft1(F,[E,..L]) => foldLeft(F,E,L).
   }
 
   iota:(integer,integer)=>list[integer].

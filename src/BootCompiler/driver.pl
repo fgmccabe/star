@@ -21,38 +21,38 @@
 :- use_module(terms).
 
 parseFlags([],CWD,CWD,[],[]).
-parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-
+parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-p'|More],CWD,Cx,[profiling|Opts],Files) :-
+parseFlags(['-p'|More],CWD,Cx,[profiling|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-i',W|M],CW,Cx,[installDir(CWD)|Opts],Files) :-
+parseFlags(['-i',W|M],CW,Cx,[installDir(CWD)|Opts],Files) :-!,
   atom_string(W,WN),
   parseURI(WN,WU),
   resolveURI(CW,WU,CWD),
   parseFlags(M,CW,Cx,Opts,Files).
-parseFlags(['-w',W|M],CW,Cx,Opts,Files) :-
+parseFlags(['-w',W|M],CW,Cx,Opts,Files) :-!,
   atom_string(W,WN),
   parseURI(WN,WU),
   resolveURI(CW,WU,CWD),
   parseFlags(M,CWD,Cx,Opts,Files).
-parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-
+parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-!,
   atom_string(R,RN),
   parseURI(RN,RU),
   resolveURI(CWD,RU,Ruri),
   openRepository(Ruri,Repo),
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-
+parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   atom_string(V,Vers),
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-
+parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-
+parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-
+parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-
+parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
-parseFlags(['--'|More], CWD,CWD, [], Files) :- stringify(More,Files).
+parseFlags(['--'|More], CWD,CWD, [], Files) :- !, stringify(More,Files).
 parseFlags(More, CWD,CWD, [], Files) :- stringify(More,Files).
 
 stringify([],[]).
@@ -63,7 +63,7 @@ stringify([Name|More],[Fn|Files]) :-
 main(Args) :-
   startCount,
   getCWDUri(CW),
-  parseFlags(Args,CW,CWD,Opts,Pkgs),
+  parseFlags(Args,CW,CWD,Opts,Pkgs),!,
   openRepo(Opts,Repo),
   locateCatalog(CWD,Cat),!,
   makeGraph(Repo,Cat,CWD,Pkgs,Groups),!,

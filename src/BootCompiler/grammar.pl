@@ -204,6 +204,7 @@ stringSegment(interpolate(Text,Fmt,Lc),Disp) :-
 
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
 checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
+checkToken([],[],Tk,Lc,Msg,Extra) :- reportError(Msg,[Tk|Extra],Lc).
 
 checkTerminator(_,[],[]).
 checkTerminator(_,Toks,Toks) :- Toks = [rbrce(_)|_].

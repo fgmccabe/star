@@ -11,6 +11,7 @@
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
     isLetDef/4,isMacroRule/4,
+    isCnCRule/4,isGiven/4,
     whereTerm/4,
     packageName/2,pkgName/2,
     isComma/4,deComma/2,reComma/2]).
@@ -288,3 +289,9 @@ headName(H,Nm) :-
 headName(H,Nm) :-
   isRoundTerm(H,N,_),
   isIden(N,_,Nm).
+
+isCnCRule(Rl,Lc,Hd,Body) :-
+  isBinary(Rl,Lc,"<-",Hd,Body).
+
+isGiven(Prd,Lc,Hd,Args) :-
+  isBinary(Prd,Lc,"given",Hd,Args).
