@@ -1,0 +1,252 @@
+# Ruling the Queries
+
+
+## Queries
+
+Consider, if you will, the problem of finding a set of grandparent-grandchild pairs -- given information about parent-child relationships. For example, suppose that we had a list of pairs - each pair indicating a parent and child:
+```
+parent:list[(string,string)].
+parent = [("john","peter), ("peter","jane"), ... ].
+```
+and that we wanted to construct a result list -- also pairs -- along the lines of:
+```
+GC:list[(string,string)].
+GC = [("john","jane"),...].
+```
+Computing the list grandparent/grandchildren pairs involves searching the parents for pairs  that satisfy the grandparent relationship. This involves a double iteration: each pair in the parents list might represent the upper or lower half of a grandparent/grandchild relationship. Based on the collection operators we have seen so far, we can build such a search using two foldLeft operations:
+```
+foldLeft(
+ (SoFar,(X,Z)) => foldLeft(
+   let {
+     acc(gp1,(ZZ,Y)) where Z==ZZ => [gp1..,(X,Y)].
+     acc(gp1,_) => gp1.
+   } in acc,
+   SoFar,parent),
+   list of [],
+  parent)
+```
+This, rather intimidating,[^fn1] expression uses one `foldLeft` to look for the grandparent, for each candidate grandparent a second `foldLeft` finds all the grand-children. All without any explicit recursion.
+
+The `acc` function defined above in the `let` expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
+
+The various filter, fmap and foldLeft functions *are* powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+
+It turns out that **Star** has a special notation that makes this kind of complex computation significantly easier to write and comprehend. **Star**’s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
+```
+GC = list of { all (X,Y) where
+                 (X,Z) in parent && (Z,Y) in parent }
+```
+It may not be obvious, but these expressions compute the same values. What should be obvious is that the query is much easier to read and easier to verify that it is correct.
+
+The syntax and style of **Star**’s query notation is similar to SQL’s syntax -- deliberately so.
+
+Specifically, we take SQL’s *relational calculus* subset -- the language of wheres and of boolean combinations. **Star**’s query expressions do not have the equivalent of explicit relational join operators.
+
+There are several variations of query expression, but the most common form is:
+
+*SequenceType* of { *QuantifierTerm* where *Condition* *Modifier* }
+
+where *SequenceType* is any type name that implements the stream contract, *QuantifierTerm* is a form that indicates the form of the result of the query, *Condition* is a condition and the optional *Modifier* is used to signal properties of the result -- such as whether the result is grouped or sorted.
+
+[^fn1]: There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!
+
+### Satisfaction semantics
+The foundation for the query notation is the notation for conditions. Conditions are boolean valued -- but they are not always expressions. For example, the first condition for grandparent is that there is a parent; this was expressed using the condition:
+```
+(X,Z) in parent
+```
+This condition is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of X and Z are in the parent collection. Instead, the condition is evaluated by trying to find X and Z that are in the collection. In effect, the condition becomes a search for suitable candidate pairs.
+
+Technically this is called *satisfying* the condition -- to distinguish what is going on from *evaluating* the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
+
+In addition to individual *search conditions* like this, it is also possible to use logical operators -- called *connectives* -- to combine conditions. In the case of our grand-parent query, there is a conjunction; which involves a variable Z that acts as a kind of glue to the two search conditions.
+
+In database parlance the conjunction amounts to an inner join operation; however, it is also simply logical conjunction.
+
+The available connectives include the usual favorites: &&, ||, and +. They also include some less familiar connectives: *> (read as *implies*) and otherwise.
+
+The implies connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
+```
+managerOk:(string)=>boolean.
+managerOk(M) => (X,M) in worksFor *> X.salary=<M.salary.
+```
+Notice that we can use conditions’ satisfaction-oriented semantics outside of query expressions.
+
+### Query quantifiers
+
+The *QuantifierTerm* in a query specifies ‘how many’ answers we want. There are essentially three forms of *QuantifierTerm* -- if we want all the answers then we use a term of the form:
+
+{ all (X,Y) where ... }
+
+On the other hand, if we want a fixed number, then we use:
+
+{ 5 of (X,Y) where ... }
+
+Of course, there might not be five answers, and so this is called a bounded *QuantifierTerm*.
+
+We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of **Star**’s most powerful high-level features.
+
+### Querying for statistical purposes
+
+We wrap up our exposition on collections with an example that highlights how we can combine many of the collection manipulation features; with a specific goal of statistical processing of data.
+
+Statistics is, of course, one of the key application areas of computers in general. However, there is often a substantial gap between the theoretical aspects of statistical processing and the pragmatics of collecting and processing data. We aim to demonstrate **Star**’s power in both areas.
+
+One fecund source of statistics is the web; we can even get statistics about the web. The on-line tool [Web Page Test](http://www.webpagetest.org/) can be used to generate a lot of data about how a browser responds to a website. Furthermore, we can down this data as a file of comma separated values (CSV). The first few lines of this file shows the detail of the data collected:
+
+Date,...,URL,Response Code,Time to Load (ms),...,Bytes In,...
+
+9/12/14,...,/,302,397,...1272,...
+
+There are over 70 columns there. Suppose that we wanted to process this to find out how much time is spent loading Javascript data. Our first step is to introduce the CSV file to **Star** which we can do with a special macro:
+
+import metaCSV.
+
+worksheet{
+
+generateCSV Wpt from "file:WPT_Sample.csv".
+
+...
+
+}
+
+The generateCSV line is a macro that parses the sample CSV file, constructs a type (Wpt) that reflects the entries in the file and a parser that can parse similar CSV files into Wpt entries. The generated Wpt type looks like:
+
+Wpt ::= Wpt{
+
+Date:string.
+
+...
+
+URL:string.
+
+'Response Code':integer.
+
+'Time to Load (ms)':integer.
+
+...
+
+'Bytes In':integer.
+
+...
+
+};
+
+One immediate feature to notice is that some of the field names are quoted. **Star** allows a variable (and by extension a field) identifier to have any characters in them -- so long as the identifier is quoted. This allows us to access ‘foreign’ data structures like this CSV file in a straightforward way.
+
+Given the implicit generation of the type, and of a parser, we can use this to process real data files. For example, we can extract out from the CSV file records containing just the URLs, the file sizes and the load times using a query:
+
+import metaCSV.
+
+worksheet{
+
+generateCSV Wpt from "file:WPT_Sample.csv".
+
+wptData = WptParser("http:www.webpagetool.org/...csv").
+
+extracted = list of { all
+
+{ URL=D.URL
+
+size=D.'Bytes In'
+
+loadTime=D.'Time to Load (ms)'} where
+
+D in wptData}
+
+...
+
+}
+
+We used the generated parser to reach out to the website for the data and to parse the resulting content -- in a single high-powered statement.
+
+A single run of the web page test may involve many separate browser actions -- the purpose of the tool is to test the performance of a website, which needs many trials to achieve statistical significance. So a better organization of the data is to categorize the raw data by URL. We can do this using a group by query:
+
+import metaCSV.
+
+worksheet{
+
+generateCSV Wpt from "file:WPT_Sample.csv".
+
+wptData = WptParser("http:www.webpagetool.org/...csv").
+
+extracted = list of { all
+
+{ URL=D.URL.
+
+size=D.'Bytes In'.
+
+loadTime=D.'Time to Load (ms)'} where
+
+D in wptData} group by ((X)=>X.URL)
+
+...
+
+}
+
+The group by operator takes a collection, and a categorization function, are produces a `map` of collections.
+
+We want to produce average load times and standard deviations of the load times -- to smooth out the vagaries of the Internet. For now, we will assume that we have average and stddev functions that have type signatures:
+
+average:all c,e ~~ stream[c->>e] |:(c,(e=>float))=>float.
+
+stddev:all c,e ~~ stream[c->>e] |:(c,(e=>float))=>float.
+
+I.e., we are assuming functions that take collections, and an ‘accessor’ function, and return the average and standard deviation respectively.
+
+Given these functions, we can compute our statistics using:
+
+import metaCSV.
+
+import stats.
+
+worksheet{
+
+generateCSV Wpt from "file:WPT_Sample.csv".
+
+wptData = WptParser("http:www.webpagetool.org/...csv").
+
+extracted = list of { all
+
+{ URL=D.URL.
+
+size=D.'Bytes In'.
+
+loadTime=D.'Time to Load (ms)'} where
+
+D in wptData} group by ((X)=>X.URL)
+
+ldTime:(Wpt)=>float.
+
+ldTime(D) => D.loadTime::float.
+
+show list of { all (K,average(V,ldTime),stddev(V,ldTime)) where
+
+K->V in extracted }
+
+}
+
+The query condition:
+
+K->V in extracted
+
+is analogous to the regular search condition:
+
+```
+D in wptData
+```
+except that it is used to search within a `map`-based collection. The pattern K->V matches the successive key/value pairs in the `map`.
+
+That is it! The final query should get output along the lines of:
+
+```
+...
+("/o/oauth2/auth?...", 337.0, 0.0),
+("/main-thumb-58380181-100-yqpttun...", 101.18518518519, 24.41468441456),
+("/main-thumb-49759239-100-pcgldxn...",93.48148148148, 19.03285636867),
+...
+```
+
+Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.[^fn1]
+
+[^fn1]: A standard deviation of 0.0 is likely a signal that the indicated URL only occurred once in the sample data.

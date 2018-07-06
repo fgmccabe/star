@@ -15,7 +15,13 @@ func.mmd
 collections.mmd
 
 # Modular programming in Star
-modular.mmd
+ocean.mmd
+
+# Queries and rules
+rules.mmd
+
+# Parsing and other Monads
+monads.com
 
 # Concurrent programming
 concurrency.mmd

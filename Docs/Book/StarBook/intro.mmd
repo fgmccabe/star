@@ -16,7 +16,7 @@ If there is one theme that is common in large code bases is that tooling is crit
 ### Planning for change
 Furthermore, *change* is the dominant fact of life for large systems. Software systems evolve, grow, are repurposed to meet new objectives, and are re-implemented to take advantage of new technologies.
 
-Managing change in code is often left to Source Code Control Systems; but these systems only address part of the problem. For example, *code re-use* is also a requirement and a challenge for large systems. In fact, one could image the “three R’s” for large systems: reusing, repurposing, and refactoring.
+Managing change in code is often left to Source Code Control Systems; but these systems only address part of the problem. For example, *code re-use* is also a requirement and a challenge for large systems. In fact, one could imagine a “three R’s” for large systems: reusing, repurposing, and refactoring.
 
 When the code base is over 500 Kloc, the theoretical probability of being able to re-use existing code is high, the actual probability of re-use may be very low -- software engineers may simply not be able to find the needle in the code haystack, or, typically, the cost of re-using code may outweigh the cost of developing from scratch.
 
@@ -70,23 +70,23 @@ In addition, **Star**’s extensibility directly addresses a real world requirem
 
 ### If you are already a functional programmers
 
-You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of **Star**: Haskell and Standard ML -- both of which are excellent; but not perfect.
+You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of **Star**: Haskell and Standard ML (SML) -- both of which are excellent; but not perfect.
 
 For the functional programmer, the principal benefits of **Star** are *readability*, *modernity* and *predictability*.
 
-One of the major drivers of the design of Haskell and (to a lesser extent) ML is conciseness. However, conciseness is not the same as readability. In modern software development environments there are many stakeholders beyond the developer. Having a language that is easy to follow by non-technical readers is a major benefit in mixed skill teams.
+One of the major drivers of the design of Haskell and (to a lesser extent) SML is conciseness. However, conciseness is not the same as readability. In modern software development environments there are many stakeholders beyond the developer. Having a language that is easy to follow by non-technical readers is a major benefit in mixed skill teams.
 
 Like Haskell, **Star** has a powerful type system. **Star**’s type system has many features in common with Haskell’s type system -- features that typically go beyond the capabilities of many OO languages. In particular, **Star**’s contract system is reminiscent of Haskell’s type classes; and **Star**’s existential and higher-kinded types give considerable expressive power to the programmer.
 
 **Star** does not follow all of Haskell’s type features; and some type concepts are rephrased into terminology that is more familiar to main-stream (sic) programmers.
 
-Like ML, **Star** has a powerful module system. However, unlike ML’s functors, **Star** modules are first class values. This means that there is no artificial separation between ‘ordinary’ programs and ‘functor’ programs.
+Like SML, **Star** has a powerful module system. However, unlike SML’s functors, **Star** modules are first class values. This means that there is no artificial separation between ‘ordinary’ programs and ‘functor’ programs.
 
 The result is a balanced set of type features that provides capabilities that scale well from small programs to large systems.
 
-**Star**’s evaluation is, like that of ML but unlike Haskell, strict. We believe that that makes it significantly easier to reason about the actual behavior and performance of programs. However, **Star** has a rich set of features that support productive concurrent and parallel programming -- based on a combination of system threads and the features of Concurrent ML.
+**Star**’s evaluation is, like that of SML but unlike Haskell, strict. We believe that that makes it significantly easier to reason about the actual behavior and performance of programs. However, **Star** has a rich set of features that support productive concurrent and parallel programming -- based on a combination of system threads and the features of Concurrent ML.
 
-Like ML, **Star** is not a strictly ‘pure’ language. This was neither an accident nor an afterthought. Computer systems are built to fulfill purposeful activity (although there may be many times when the actual purpose is hard to discern). For example, if I deposit a check into my bank account, I require that the bank’s state is updated to reflect my new balance: the world has changed as a result of my action.
+Like SML, **Star** is not a strictly ‘pure’ language. This was neither an accident nor an afterthought. Computer systems are built to fulfill purposeful activity (although there may be many times when the actual purpose is hard to discern). For example, if I deposit a check into my bank account, I require that the bank’s state is updated to reflect my new balance: the world has changed as a result of my action.
 
 However, the converse does not follow: just because the world is stateful does not mean that all our programs should be needlessly stateful. Much, if not most, of a given application program can and should be crafted in a mathematical style -- the merits of functional programming are very great.
 
@@ -170,7 +170,6 @@ Any text on a programming language often has a significant number of examples of
 
 ```
 P:integer;
-
 ...
 ```
 
@@ -184,6 +183,6 @@ No-one is an island, and no project of this scale is one person’s work. I have
 
 Of particular significance, I would like to thank Michael Sperber for our many discussions on the finer topics of language design; and for his not insignificant contributions to the implementation itself.
 
-I would also like to thank my colleagues at Starview inc., in particular Steve Baunach and Bob Riemenschneider who were the world’s first **Star** programmers! In addition, I would like to thank David Frese and Andreas Bernauer who helped with crucial parts of the implementation of the concurrency features. I would also like to thank Keith Clark, Kevin Cory, Prasenjit Dey, Chris Gray, Mack Mackenzie, and Kevin Twidle for their help and advice. I would like to acknowledge the support of Thomas Sulzbacher who originated the project and Jerry Meerkatz for keeping the faith.
+I would also like to thank my colleagues at Starview inc., in particular Steve Baunach and Bob Riemenschneider who were the world’s first **Star** programmers! In addition, I would like to thank Michael Sperber, David Frese and Andreas Bernauer who helped with crucial parts of the implementation of the concurrency features. I would also like to thank Keith Clark, Kevin Cory, Prasenjit Dey, Chris Gray, Mack Mackenzie, and Kevin Twidle for their help and advice. I would like to acknowledge the support of Thomas Sulzbacher who originated the project and Jerry Meerkatz for keeping the faith.
 
 Last, but definitely not least, I would like to acknowledge the love and support of my family; without whom none of this makes sense.

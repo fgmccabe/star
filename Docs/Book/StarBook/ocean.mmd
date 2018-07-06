@@ -17,73 +17,57 @@ One’s attitude to basic language features like types is also different: having
 If we take a slightly deeper look at **Star**’s package we will see some surprising features; features that are sadly not very common in programming languages.
 
 Let’s start with a super simple source package:
-
-ss\{
-
-public double:(integer)=\>integer.
-
-double(X) is X\*2.
-
-\}
-
+```
+ss{
+  public double:(integer)=>integer.
+  double(X) is X*2.
+}
+```
 This package structure is semantically equivalent to a function:
+```
+ss:{double:(integer)=>integer}.
+ss = let{
+  double:(integer)=>integer.
+  double(X) is X*2
+} in {. double=double .}
+```
+In effect, a package reduces to a variable declaration whose type is a record type and whose value is an anonymous record of all the public functions defined in the package.
 
-ss:\{double:(integer)=\>integer\}.
-
-ss = let\{
-
-public double:(integer)=\>integer.
-
-double(X) is X\*2
-
-\} in \{. double=double .\}
-
-In effect, a package reduces to a variable declaration whose type is a record type and whose value is an anonymous record of all the functions defined in the package.
-
-The special form:
-
-\{. double=double .\}
-
-is a record structure; the periods in the braces signify that the record is not *recursive*: the definitions within the record cannot reference each other.[^fn1] We use this slightly complicated way of defining the package record because not all members of the package are public --- and this formulation allows us to be precise in what elements of the package record can be seen by others.
+We have seen this before, but it may be worth taking another look at the special form:
+```
+{. double=double .}
+```
+This is a record structure; the periods in the braces signify that the record is not *recursive*: the definitions within the record cannot reference each other.[^fn1] We use this slightly complicated way of defining the package record because not all members of the package are public --- and this formulation allows us to be precise in what elements of the package record can be seen by others.
 
 What about types though? Like other programming languages **Star** allows us to export types from packages too:
+```
+simple{
+  public all t ~~ foo[t] ::= foo(t) | bar.
 
-simple\{
-
-public all t \~\~ foo\[t\] ::= foo(t) \| bar.
-
-public fooMe:all t \~\~ (t)=\>foo\[t\].
-
-fooMe(X) =\> foo(X)
-
-\}
-
+  public fooMe:all t ~~ (t)=>foo[t].
+  fooMe(X) => foo(X)
+}
+```
 The ability to export types --- and their constructors --- is an extremely important part of the package functionality. However, having types in records is not a common feature in programming languages --- this may be one reason why the correspondence between packages and records is not more widely understood.
 
-It turns out that we can account for types too in our semantics of packages. Similarly to our previous unfolding, the simple package is equivalent to:
+It turns out that we _can_ account for types like `too` in our semantics of packages. Similarly to our previous unfolding, the simple package is equivalent to:
+```
+simple: exists foo/1 ~~ {
+  type foo/1.
 
-simple: exists foo/1 \~\~ \{
+  foo:all t ~~ (t) <=> foo[t].
+  bar:all t ~~ foo[t].
 
-type foo/1.
+  fooMe:all t ~~ (t)=>foo[t].
+}
 
-foo:all t \~\~ (t) \<=\> foo\[t\].
+simple = {
+  all t ~~ foo[t] ::= foo(t) | bar.
 
-bar:all t \~\~ foo\[t\].
-
-fooMe:all t \~\~ (t)=\>foo\[t\].
-
-\}
-
-simple = \{
-
-all t \~\~ foo\[t\] ::= foo(t) \| bar.
-
-fooMe:all t \~\~ (t)=\>foo\[t\].
-
-fooMe(X) =\> foo(X).
-
-\}
-
+  fooMe:all t ~~ (t)=>foo[t].
+  fooMe(X) => foo(X).
+}
+```
 This is clearly quite a bit more complex than our super-simple example; but the basic story is still there: a package consists of a variable definition whose value is an anonymous record. In this case, the anonymous record contains a type, two constructors as well as a regular function. It also includes a *type* statement that, in this case, informs the type system that the existentially quantified type foo type should also be viewed as being part of the record.
 
 Having constructors in a type is only a small extension to the conventional notion of a record --- while many languages restrict records to containing just data values, most functional programming languages do allow functions in records. A constructor is just a special kind of function.
@@ -96,45 +80,42 @@ On the other hand, having a type in a record is quite different.
 
 What does it mean to have a type in a record? From a programmer’s point of view it is actually quite a natural extension of the concept of a record; there does not seem to be any intrinsic reason why a record shouldn’t have types in it. However, the logic of this bears a deeper look.
 
-The declaration of the foo type involves the use of an *existential* quantifier:
-
-simple:exists foo/1 \~\~ \{
-
-...
-
-\}
-
-The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that foo exists and is a type constructor of 1 argument.
+The declaration of the `foo` type involves the use of an *existential* quantifier:
+```
+simple:exists foo/1 ~~ {
+  ...
+}
+```
+The meaning of an existentially quantified type is complementary to the universally quantified type. An existential type quantification is an assertion that the type exists, in this case that `foo` exists and is a type constructor of 1 argument.
 
 The statement:
-
+```
 type foo/1.
-
+```
 is a *type* statement. Its role is to ‘bridge the gap’ between the quantifier and external views of the record: in effect, it is a reminder that a *type annotation* such as
-
+```
 X:simple.foo
-
+```
 means to use the type that is embedded in the simple record (actually package) and assign X’s type to that embedded type.
 
 ### Use and evidence
 
 To get a better grip on type quantification in general and existentially quantified types in particular it can be helpful to see what the rules and expectations are for a universally quantified type. Occurrences of any type variable can be classified into two forms --- depending on whether the context is one of *using* a variable or whether one is *defining* it --- or providing evidence for it.
 
-Consider the simple function d with its type annotation:
+Consider the simple function `d` with its type annotation:
+```
+d:all t ~~ arith[t] |: (t)=>t.
+d(X) => X+X.
+```
+In the equation that defines `d` the rules of type inference lead us to determine that --- within the equation --- type of `X` is `t`. The *only* assumption we can make about `t` is that it implements the `arith` contract; no other constraints on `t` are permitted.
 
-d:all t \~\~ arith\[t\] \|: (t)=\>t.
-
-d(X) =\> X+X.
-
-In the equation that defines d the rules of type inference lead us to determine that --- within the equation --- type of X is t. The *only* assumption we can make about t is that it implements the arith contract; no other constraints on t are permitted.
-
-For example, if we had forgotten the arith constraint, the compiler would have complained because we try to add X to itself, which implies that X had an arithmetic type.
+For example, if we had forgotten the `arith` constraint, the compiler would have complained because we try to add `X` to itself, which implies that `X` had an arithmetic type.
 
 In general, whenever we define a universally quantified type we cannot make any assumptions about what it can and cannot do -- apart from any explicitly introduced constraints.
 
-On the other hand, when we *call* d, the rules for type variables are more generous: calls of the forms d(2) and d(2.4) are both permitted because we are allowed to *use* any type --- that implements the arith contract.
+On the other hand, when we *call* `d`, the rules for type variables are more generous: calls of the forms `d(2)` and `d(2.4)` are both permitted because we are allowed to *use* any type --- that implements the `arith` contract.
 
-The reason we can substitute any type for t is because t is bound by a universal quantifier: an all quantifier means we can use any type for t.
+The reason we can substitute any type for `t` is because `t` is bound by a universal quantifier: an all quantifier means we can use any type for `t`.
 
 We can summarize this by stating that, for a universally quantified type,
 
@@ -148,28 +129,24 @@ For various reasons, which we will explore further, existentially quantified typ
 As with universally quantified types, there are two kinds of contexts in which we use existentially quantified type variables: *use* and *evidence* contexts. In the former we are using the type and in the latter we are providing evidence that an expression has the right type.
 
 The existential quantifier means that within an instance of this record we can instantiate foo to any type that meets the constraints. The simplest way is to provide a type definition for it:
+```
+simple = {
+  all t ~~ foo[t] ::= foo(t) | bar.
+  fooMe(X) => foo(X).
+}
+```
+We can do this because, within the implementing expression, we can do whatever we like for the type `foo` -- so long as it exists.
 
-simple = \{
+Notice that we actually needed to achieve two separate but related goals when describing the package as a record: we needed to define a type within the record and we need to be able to have external references to the `foo` type field.
 
-all t \~\~ foo\[t\] ::= foo(t) \| bar.
+When we use a type from a record, we can make use of it's existence; but we cannot further constrain it. For example, we can use simple’s `foo` type, as well as the `fooMe` function that relies on it; for example, in:
+```
+m:for all t ~~ (t)=>simple.foo[t].
+m(X) => simple.fooMe(X).
+```
+There is something a little different going on here: the type of `m` appears to be dependent on a field of the variable `simple`;  i.e., the type of `m` apparently depends on the *value* of `simple`. This is not something that we would normally sanction in a type system because of the potential for disaster.
 
-fooMe(X) =\> foo(X).
-
-\}
-
-We can do this because, within the implementing expression, we can do whatever we like for the type foo -- so long as it exists.
-
-Notice that we are actually need to achieve two separate but related goals when describing the package as a record: we need to define a type within the record and we need to be able to have external references to the foo type field.
-
-Externally, when we use the record, the opposite happens: we can make use of the existence of foo but we cannot further constrain it. We can use simple’s foo type, as well as the fooMe function that relies on it; for example, in:
-
-m:for all t \~\~ (t)=\>simple.foo\[t\].
-
-m(X) =\> simple.fooMe(X).
-
-There is something a little different going on here: the type of m appears to be dependent on a field of the variable simple;  i.e., the type of m apparently depends on the *value* of simple. This is not something that we would normally sanction in a type system because of the potential for disaster.
-
-For example, consider the scenario where ‘simple is not simple’; i.e., suppose that its value were computed; for example its value might depend on a conditional computation. In that case the actual type simple.foo might also depend on the conditional computation; why does this not cause problems?
+For example, consider the scenario where ‘`simple` is not simple’; i.e., suppose that its value were computed; for example its value might depend on a conditional computation. In that case the actual type `simple.foo` might also depend on the conditional computation; furthermore, different invokations could easily result in having a different actual type being exported by `simple`. Why does this not cause problems?
 
 Normally such ‘dynamic types’ do cause substantial problems. However, the type rules for existentially quantified variables are crafted so that *it must not matter* what the actual type simple.foo is. So long as no additional constraints on the simple.foo are permitted then the program is provably compile-time type-safe. I.e., uses of an existentially quantified type may not further constrain the type --- the exact complement of the situation with universally quantified types.
 
@@ -185,65 +162,51 @@ An existential variable may be bound to a type when providing *evidence* that a 
 
 The second is related to this:
 
-*Each occurrence of an existentially quantified type is potentially different*.
+>Each occurrence of an existentially quantified type is potentially different.
 
 Think about a function with the type:
-
-exFn:for all t \~\~
-
-(t)=\>exists e \~\~ R\[e,t\]
-
-For the moment, we don’t much care about R. Now, consider how we might use exFn:
-
+```
+exFn:for all t ~~ (t)=>exists e ~~ R[e,t]
+```
+For the moment, we don’t much care about `R`. Now, consider how we might use `exFn`:
+```
 X1 = exFn("alpha")
-
 ...
-
 X2 = exFn(“alpha”)
-
-An important question is “what is the relationship between the type of X1 and the type of X2?”. Unfortunately, the fundamental answer is ‘we cannot know in general’ --- because we cannot assume that exFn is without side-effects in its implementation --- which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of exFn may result in *different* instantiations for e for each invocation. The result is we cannot assume any link between the types of X1 and X2: they are different. This has some serious consequences for how we use existentially quantified types.
+```
+An important question is “what is the relationship between the type of `X1` and the type of `X2`?”. Unfortunately, the fundamental answer is ‘we cannot know in general’ --- because we cannot assume that `exFn` is without side-effects in its implementation --- which in type terms means effectively there is no relationship: they are different. The reason is that the internal type used within the implementation of `exFn` may result in *different* instantiations for `e` for each invocation. The result is we cannot assume _any_ link between the types of `X1` and `X2`: they are different. This has some serious consequences for how we use existentially quantified types.
 
 On the other hand, consider the similar sequence of definitions:
-
+```
 Y1 = exFn("alpha")
-
 ...
-
 Y2 = Y1
-
-In this case we *do* know that the type of Y1 is identical to the type of Y2. This leads us to the third rule:
+```
+In this case we *do* know that the type of `Y1` is identical to the type of `Y2`. This leads us to the third rule:
 
 Each *use* of an existential quantification introduces a new type --- called a *Skolem type*[^fn1] --- that follows the normal inference rules for all types.
 
-I.e., once a type has been introduced as a Skolem type, it behaves just like any regular type and the normal rules of inference apply. This applies equally to the two fragments of code above; but the additional constraint on the immutable values of Y1 and Y2 make it easier to propagate type information.
+I.e., once a type has been introduced as a Skolem type, it behaves just like any regular type and the normal rules of inference apply. This applies equally to the two fragments of code above; but the additional constraint on the immutable values of `Y1` and `Y2` make it easier to propagate type information.
 
-We can see this a little clearly by looking at the effective type annotations of Y1 and Y2:
-
-Y1:R\[e345,string\]
-
+We can see this a little clearly by looking at the effective type annotations of `Y1` and `Y2`:
+```
+Y1:R[e345,string]
 Y1 = exFn("alpha")
-
 ...
-
-Y2:R\[e345,string\]
-
+Y2:R[e345,string]
 Y2 = Y1
+```
+where `e345` is the skolemized variant of the existential type `e`.
 
-where e345 is the skolemized variant of the existential type e.
-
-The effective annotations for X1 and X2 will have different skolem constants:
-
-X1:R\[e235,string\]
-
+The effective annotations for `X1` and `X2` will have different skolem constants:
+```
+X1:R[e235,string]
 X1 = exFn("alpha")
-
 ...
-
-X2:R\[e678,string\]
-
+X2:R[e678,string]
 X2 = exFn("alpha")
-
-If Y1 or Y2 were declared to be re-assignable variables then, once again, we would not be able to connect the types of Y1 and Y2 together.
+```
+If `Y1` or `Y2` were declared to be re-assignable variables then, once again, we would not be able to connect the types of `Y1` and `Y2` together.
 
 [^fn1]: Technically, the type is denoted by a Skolem Constant or a Skolem Function.
 
@@ -251,17 +214,17 @@ If Y1 or Y2 were declared to be re-assignable variables then, once again, we wou
 
 Our original simple package record had the type
 
-simple: exists foo/1 \~\~ \{
+simple: exists foo/1 ~~ {
 
 type foo/1.
 
-foo:all t \~\~ (t) \<=\> foo\[t\].
+foo:all t ~~ (t) <=> foo[t].
 
-bar:all t \~\~ foo\[t\].
+bar:all t ~~ foo[t].
 
-fooMe:all t \~\~ (t)=\>foo\[t\].
+fooMe:all t ~~ (t)=>foo[t].
 
-\}
+}
 
 The type signature has a type foo and a constructor foo in it. This is permitted because types and values have different name spaces in **Star**.[^fn1]
 
@@ -287,39 +250,39 @@ Perhaps an example is overdue. In our chapter on Collections we looked at many o
 
 One might start with a type definition that defines some operators over sets:
 
-type exists coll/1 \~\~ genSet ::= genSet\{
+type exists coll/1 ~~ genSet ::= genSet{
 
 type coll/1.
 
-z:all t \~\~ coll\[t\].
+z:all t ~~ coll[t].
 
-addElement:all t \~\~ (t,coll\[t\])=\>coll\[t\].
+addElement:all t ~~ (t,coll[t])=>coll[t].
 
-present:all t \~\~ (t,coll\[t\])=\>boolean.
+present:all t ~~ (t,coll[t])=>boolean.
 
-\}
+}
 
 The essence of this type declaration is a collection of operators that define set-style operators. By protecting the coll type with an existential quantifier, we ensure that the representation of genSet values is not accessible externally; whilst at the same time we do allow other programs to *use* the set operators.
 
 One example implementation of genSet might use lists to represent the set structure itself:
 
-LS = genSet\{
+LS = genSet{
 
-all t \~\~ coll\[t\] \<\~ list\[t\].
+all t ~~ coll[t] <~ list[t].
 
-z = list of \[\].
+z = list of [].
 
-addElement(X,L) where X in L =\> L.
+addElement(X,L) where X in L => L.
 
-addElement(X,L) =\> list of \[X,..L\].
+addElement(X,L) => list of [X,..L].
 
-present(X,L) =\> X in L
+present(X,L) => X in L
 
-\}
+}
 
 The statement:
 
-all t \~\~ coll\[t\] \<\~ list\[t\].
+all t ~~ coll[t] <~ list[t].
 
 which is a type alias statement, represents one of the ways that we can give evidence for the existence (sic) of the coll type. We could also have simply declared that:
 
@@ -339,7 +302,7 @@ LS:genSet
 
 But Z, One and Two have more interesting types:
 
-Z:collK341\[integer\]
+Z:collK341[integer]
 
 where collK341 is a Skolem type --- a unique type generated when we assign a type to LS. In effect, LS is a module that exports the set type and associated operators; this module is referenced by name and is used to construct particular sets.
 
@@ -361,19 +324,19 @@ However, while we want to expose the type, and a set of operator functions, we d
 
 Let us start with an interface; which in this case will take the form of a record type:
 
-fractionals ::= exists fraction \~\~ fracts\{
+fractionals ::= exists fraction ~~ fracts{
 
 type fraction.
 
-frPlus:(fraction,fraction)=\>fraction.
+frPlus:(fraction,fraction)=>fraction.
 
-frToString:(fraction)=\>string.
+frToString:(fraction)=>string.
 
-frParse:(string)=\>fraction.
+frParse:(string)=>fraction.
 
-fraction:(integer,integer)=\>fraction
+fraction:(integer,integer)=>fraction
 
-\}
+}
 
 One of the first things to note here is that fraction is existentially quantified; secondly we need to ensure that the set of operators we expose is complete. Our interface is not really complete, but includes two critical operators: a means of constructing fractions -- via the fractions and frParse functions -- and a means of escaping from the world of fractions to other types (in this case string via frToString).
 
@@ -393,7 +356,7 @@ show FR.frToString(F2)   -- results in 5/4
 
 However, we can do rather better than this in **Star**. We have already encountered the import statement; there is an analogous statement that allows us to unwrap a record like FR in a binding environment --- such as:
 
-let\{
+let{
 
 open FR
 
@@ -403,7 +366,7 @@ F1 = fraction(1,2)
 
 F2 = frPlus(F0,F1)
 
-\} do
+} do
 
 show frToString(F2)   -- results in 5/4
 
@@ -411,19 +374,19 @@ The open statement has a similar effect to the package import: it enables the fu
 
 Of course, this code is still fairly clumsy; since we would like to use normal arithmetic notation over fractions; which we can do by implementing the arith contract:
 
-let\{
+let{
 
 open FR
 
-implementation arith\[fraction\] =\> \{
+implementation arith[fraction] => {
 
-X+Y =\> frPlus(X,Y)
+X+Y => frPlus(X,Y)
 
 ... -- more operators needed
 
-\}
+}
 
-\} do \{
+} do {
 
 F0 = frParse("3/4")
 
@@ -433,45 +396,45 @@ F2 = F0+F1
 
 show frString(F2)
 
-\}
+}
 
 We can improve this further by also implementing the coercion contract between strings and fractions:
 
-let\{
+let{
 
 open FR
 
-implementation arith\[fraction\] =\> \{
+implementation arith[fraction] => {
 
-X+Y =\> frPlus(X,Y)
+X+Y => frPlus(X,Y)
 
 ... -- more operators needed
 
-\}
+}
 
-implementation coercion\[string,fraction\] =\> \{
+implementation coercion[string,fraction] => {
 
-coerce(S) =\> frParse(S)
+coerce(S) => frParse(S)
 
-\}
+}
 
-implementation coercion\[fraction,string\] =\> \{
+implementation coercion[fraction,string] => {
 
-coerce(F) =\> frToString(F)
+coerce(F) => frToString(F)
 
-\}
+}
 
-\}
+}
 
 This allows us to use a more natural notation for expressions involving our fractions:
 
-let\{
+let{
 
 open FR
 
 ...
 
-\} do \{
+} do {
 
 F0 = "3/4" :: fraction
 
@@ -479,63 +442,63 @@ F1 = fraction(1,2)
 
 show F0+F1
 
-\}
+}
 
 While much better than our original, we still have too much code to write to use the fraction type: we have to get the type and then demonstrate the appropriate implementations. We want to be able to combine everything that is important about fractions into a single structure.
 
 There is a straightforward way we can do this. Our original signature for fractionals simply required the presence of the fraction type. What we can do is further require that the arith and appropriate coercion contracts are also implemented; we do this by constraining the type definition for fractionals:
 
-fractionals ::= exists fraction \~\~ arith\[fraction\], coercion\[string,fraction\], coercion\[fraction,string\] \|: fracts\{
+fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts{
 
 type fraction.
 
-frPlus:(fraction,fraction)=\>fraction.
+frPlus:(fraction,fraction)=>fraction.
 
-fraction:(integer,integer)=\>fraction.
+fraction:(integer,integer)=>fraction.
 
-\}
+}
 
 Since we are using contracts we do not need the explicit frParse and frToString functions in the signature any more.
 
 When we instantiate a fracts record we must provide --- within the record itself --- appropriate implementations of arith and coercion:
 
-FX = fracts\{
+FX = fracts{
 
-fraction \<\~ myFraction.
+fraction <~ myFraction.
 
-implementation arith\[myFraction\] =\> \{
+implementation arith[myFraction] => {
 
-X+Y =\> frPlus(X,Y).
+X+Y => frPlus(X,Y).
 
 ... --- more operators needed
 
-\}
+}
 
-implementation coercion\[string,myFraction\] =\> \{
+implementation coercion[string,myFraction] => {
 
-coerce(S) =\> frParse(S)
+coerce(S) => frParse(S)
 
-\}
+}
 
-implementation coercion\[myFraction,string\] =\> \{
+implementation coercion[myFraction,string] => {
 
-coerce(F) =\> frToString(F)
+coerce(F) => frToString(F)
 
-\}
+}
 
 ...
 
-\}
+}
 
 Notice that we implemented arithmetic for the internal myFraction type. We could have equally implemented the contract for fraction type too; the key requirement is to provide evidence that arithmetic is implemented for the type.
 
 The FX record now has everything we want to expose about fractional numbers.[^fn1] If we open the structure then indeed we can write programs like:
 
-let\{
+let{
 
 open FX
 
-\} do \{
+} do {
 
 F0 = "3/4" :: fraction
 
@@ -543,7 +506,7 @@ F1 = fraction(1,2)
 
 show F0+F1
 
-\}
+}
 
 This is virtually equivalent to the code we might have written if we were importing a package with the definition of the fraction type in it. The difference is that we have access to the full expressive power of the language in computing FX.
 
@@ -557,9 +520,9 @@ Injection is often used to manage *configuration* of code: the configuration is 
 
 There is a standard functional programming style that can be used to represent injection --- namely functions that return functions. To take an extremely simple example, suppose that we wanted to have a function that counted the percentage of a class that passes an exam. The function itself is pretty simple:
 
-passes(L) =\> fraction(
+passes(L) => fraction(
 
-size(list of \{ all X where X in L and X.score\>Pass\}),
+size(list of { all X where X in L and X.score>Pass}),
 
 size(L))
 
@@ -567,11 +530,11 @@ The configuration parameter here is obviously the Pass value; this is an importa
 
 We can use the function returning approach to inject an appropriate value of Pass:
 
-passes(Pass) =\>
+passes(Pass) =>
 
-(L)=\>fraction(
+(L)=>fraction(
 
-size(list of \{ all X where X in L and X.score\>Pass\}),
+size(list of { all X where X in L and X.score>Pass}),
 
 size(L))
 
@@ -579,7 +542,7 @@ Using this passes is a two-step process; we first use a specific passing grade t
 
 HS = passes(60)
 
-allPass = list of \{ all C where C in Courses and HS(C)\>0.80 \}
+allPass = list of { all C where C in Courses and HS(C)>0.80 }
 
 The two-step process is a key part of the injection technique.
 
@@ -589,17 +552,17 @@ Sometimes, rather than configuring a program with a numeric value (or any other 
 
 For example, you might need to build a system that attempts to predict the behavior of equipment based on historical performance and current demand. This kind of software could be very useful in determining a proper maintenance schedule. Suppose that you determine that what is important in predicting potential breakdowns is the number of units processed and the number of days since the last scheduled maintenance. You might keep track of this in a record:
 
-maint ::= maint\{
+maint ::= maint{
 
 date:date.
 
 units:integer.
 
-\}
+}
 
 And you will also probably have a description of each piece of equipment:
 
-equip ::= equip\{
+equip ::= equip{
 
 id:string.
 
@@ -607,11 +570,11 @@ eqpType:string.
 
 nextMaint:date.
 
-\}
+}
 
 Using this, and similar records, together with some clever algorithms, you design a function that determines the next most likely piece of equipment to fail --- perhaps together with an expected failure date:
 
-nextToFail:(list\[maint\],list\[equip\])=\>(equip,date).
+nextToFail:(list[maint],list[equip])=>(equip,date).
 
 The details of this algorithm, while critical to an actual application, are of no concern to us here.
 
@@ -621,7 +584,7 @@ Your challenge is to permit this kind of extension without requiring your code t
 
 The standard OO approach to addressing would be to permit the customer to *sub-class* some of the critical types (such as maint and equip). However, there are problems with using sub-types: in particular, if your algorithm requires computing *new* instances of data structures then sub-classing cannot work: when your algorithm creates a new equip record, it will not know how to create a customer variant of that record:
 
-updateEquip(E,W) =\> equip\{
+updateEquip(E,W) => equip{
 
 id = E.id.
 
@@ -629,11 +592,11 @@ eqpType = E.eqpType.
 
 nextMaint = W.
 
-\}
+}
 
 with the result that the customer data is lost. An alternative approach is to allow some extensibility in the record by having a special extra field:
 
-equip\[t\] ::= equip\{
+equip[t] ::= equip{
 
 id:string.
 
@@ -643,11 +606,11 @@ nextMaint:date.
 
 extra:t.
 
-\}
+}
 
 Since we do not want to constrain the kind of information our customizer can store we make its type quantified. The extra field is there to support extensions; and, because we know about its existence, we can carry the data with us:
 
-updateEquip(E,W) =\> equip\{
+updateEquip(E,W) => equip{
 
 id = E.id.
 
@@ -657,13 +620,13 @@ nextMaint = W.
 
 extra = E.extra.
 
-\}
+}
 
 The problem with adding such an extra field is its type: this version changes the unquantified equip type into a quantified one. This will have potentially devastating impact on your code --- especially if you want to allow multiple extensions for multiple data structures. The reason is that potentially a large number of functions will be required to carry the type parameters in their type signatures. This is doubly galling as these extra type parameters do not have any significance in the main code: they are there only to support potential customizations.
 
 Instead of universal quantification, we can use an existential type for the extra field:
 
-equip ::= exists t \~\~ equip\{
+equip ::= exists t ~~ equip{
 
 id:string.
 
@@ -675,7 +638,7 @@ type t.
 
 extra:t.
 
-\}
+}
 
 This has the effect of permitting a local extension to a record type while also effectively hiding the type from the main code.
 
@@ -683,7 +646,7 @@ Of course, in order for extra to have any effect on our code, we have to be able
 
 A simple way is to add to the equip record a set of extensibility functions that the customer must supply, in addition to the data itself:
 
-equip ::= exists t \~\~ equip\{
+equip ::= exists t ~~ equip{
 
 id:string.
 
@@ -695,13 +658,13 @@ type t.
 
 extra:t.
 
-extraDate:(t,date)=\>date.
+extraDate:(t,date)=>date.
 
-\}
+}
 
 Then, our updateEquip function calls this extraDate function when computing the new maintenance schedule:
 
-updateEquip(E,W) =\> equip\{
+updateEquip(E,W) => equip{
 
 id = E.id.
 
@@ -715,19 +678,19 @@ extra = E.extra.
 
 extraDate = E.extraDate.
 
-\}
+}
 
 A more succinct way of expressing this would be to use **Star**’s substitute operator:
 
-updateEquip(E,W) =\> E substitute \{
+updateEquip(E,W) => E substitute {
 
 nextMaint = E.extraDate(E.extra,W)
 
-\}
+}
 
 Of course, the customer has to provide functions that create the initial data structures, and the initial values of extra and the updating function extraDate. You, as the provider of the software, will offer a default implementation:
 
-equip(Id,Tp,Maint) =\> equip\{
+equip(Id,Tp,Maint) => equip{
 
 id = Id.
 
@@ -739,9 +702,9 @@ type t = ().  -- () is Star's void type
 
 extra = ().
 
-extraDate = (\_,W) =\> W.
+extraDate = (_,W) => W.
 
-\}
+}
 
 This approach meets our goals: we can allow customers of our software access to key data structures in a safe way that does not require use to modify our code for each customer or even to recompile it.
 
