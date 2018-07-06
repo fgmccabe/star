@@ -123,7 +123,7 @@ retCode gcCollect(heapPo H, long amount) {
 #endif
 
   if (H->limit - H->curr <= amount) {
-    if (H->owner == Null || extendStack(H->owner, 2, 3, amount) != Ok)
+    if (extendHeap(H, 2, amount) != Ok)
       syserr("Unable to grow process heap");
     return Space;
   }
@@ -246,6 +246,7 @@ void verifyProc(processPo P, GCSupport *G) {
     outMsg(logFile, "Verify process %d\n%_", P->processNo);
 #endif
   heapPo H = G->H;
+  integer lvl = 0;
 
   ptrPo t = P->sp;
   framePo f = P->fp;
@@ -261,9 +262,15 @@ void verifyProc(processPo P, GCSupport *G) {
 
     validPtr(H, (termPo) f->prog);
 
-    t = (ptrPo) f + 1;
+    t = (ptrPo) (f + 1);
     f = f->fp;
+    lvl++;
   }
+
+#ifdef TRACEMEM
+  if (traceMemory)
+    outMsg(logFile, "process %d ok\n%_", P->processNo);
+#endif
 }
 
 void dumpGcStats() {

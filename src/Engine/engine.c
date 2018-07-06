@@ -104,13 +104,70 @@ void ps_kill(processPo p) {
   }
 }
 
-void stackTrace(processPo p) {
+static inline ptrPo realign(ptrPo ptr, ptrPo oldStack, ptrPo oldLimit, ptrPo newLimit) {
+  assert(ptr >= oldStack && ptr < oldLimit);
 
+  return newLimit - (oldLimit - ptr);
 }
 
-retCode extendStack(processPo p, int sfactor, int hfactor, long hmin) {
-  syserr("stack grow not implemented");
-  return Ok;
+static ptrPo localVar(framePo fp, int64 off) {
+  return &(((ptrPo) fp)[-off]);
+}
+
+retCode extendStack(processPo p, integer sfactor) {
+  integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor);
+
+  termPo nStack = (termPo) malloc(stackSize * sizeof(termPo));
+
+  if (nStack == NULL) {
+    syserr("not enough memory to grow stack");
+    return Error;
+  } else {
+    termPo nLimit = nStack + stackSize;
+    framePo fp = p->fp;
+    ptrPo sp = p->sp;
+    methodPo mtd = p->prog;
+
+    while (sp < (ptrPo) p->stackLimit) {
+      ptrPo nsp = realign(sp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
+      framePo nfp = (framePo) realign((ptrPo) fp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
+      nfp->prog = fp->prog;
+      nfp->rtn = fp->rtn;
+      nfp->fp = (framePo) realign((ptrPo) (fp->fp), (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
+
+      integer count = argCount(mtd);
+
+      for (integer ix = 0; ix < count; ix++) {
+        nfp->args[ix] = fp->args[ix];
+      }
+
+      for (integer vx = 1; vx <= lclCount(mtd); vx++) {
+        *localVar(nfp, vx) = *localVar(fp, vx);
+      }
+
+      ptrPo stackTop = ((ptrPo) fp) - mtd->lclcnt;
+      for (integer ix = 0; sp < stackTop; ix++, sp++) {
+        *realign(sp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit) = *sp;
+      }
+
+      mtd = fp->prog;
+
+      sp = (ptrPo) (fp + 1);
+      fp = fp->fp;
+    }
+    p->fp = (framePo) realign((ptrPo) (p->fp), (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
+    p->sp = realign((ptrPo) (p->sp), (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
+
+    free(p->stackBase);
+    p->stackBase = nStack;
+    p->stackLimit = nLimit;
+    return Ok;
+  }
+}
+
+retCode extendHeap(heapPo p, int hfactor, long hmin) {
+  syserr("stack heap not implemented");
+  return Error;
 }
 
 ReturnStatus liberror(processPo P, char *name, termPo code) {

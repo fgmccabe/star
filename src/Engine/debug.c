@@ -21,10 +21,10 @@ static retCode showTos(ioPo out, framePo fp, ptrPo sp);
 static retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp);
 static retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp);
 static void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
-static void showAllStack(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+static void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
 static void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
-static void stackSummary(ioPo out,processPo P,ptrPo sp);
+static void stackSummary(ioPo out, processPo P, ptrPo sp);
 
 static insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
@@ -295,7 +295,7 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, void *cl) {
   insPo pc = p->pc;
 
   if (line[0] == '\n') {
-    showAllStack(stdErr, p, mtd, pc, fp, sp);
+    showAllStack(stdErr, p, mtd, fp, sp);
   } else
     showStack(stdErr, p, mtd, cmdCount(line, 1), fp, sp);
 
@@ -326,18 +326,21 @@ void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo f
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
-  logical showStack = (logical) (cl);
+  stackTrace(p, stdErr, (logical) (cl));
+  return moreDebug;
+}
+
+void stackTrace(processPo p, ioPo out, logical showStack) {
   heapPo h = processHeap(p);
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
   insPo pc = p->pc;
-  ioPo out = stdErr;
 
   integer frameNo = 0;
 
   outMsg(out, "stack trace for p: 0x%x", p);
-  stackSummary(out,p,sp);
+  stackSummary(out, p, sp);
   heapSummary(out, h);
   outMsg(out, "\n");
 
@@ -351,8 +354,6 @@ static DebugWaitFor dbgStackTrace(char *line, processPo p, void *cl) {
     frameNo++;
   }
   flushFile(out);
-
-  return moreDebug;
 }
 
 static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
@@ -607,8 +608,8 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   return p->waitFor;
 }
 
-void stackSummary(ioPo out,processPo P,ptrPo sp){
-  outMsg(out,", sp: 0x%x, stack:%5.2g%%",sp,(sp-(ptrPo)P->stackBase)*100.0/(P->stackLimit-P->stackBase));
+void stackSummary(ioPo out, processPo P, ptrPo sp) {
+  outMsg(out, ", sp: 0x%x, stack:%5.2g%%", sp, (sp - (ptrPo) P->stackBase) * 100.0 / (P->stackLimit - P->stackBase));
 }
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
@@ -623,6 +624,10 @@ retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp) {
     return outMsg(out, " a[%d] = %T", arg, fp->args[arg - 1]);
   else
     return outMsg(out, " a[%d]", arg);
+}
+
+static ptrPo localVar(framePo fp, int64 off) {
+  return &(((ptrPo) fp)[-off]);
 }
 
 void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp) {
@@ -670,7 +675,7 @@ retCode showTos(ioPo out, framePo fp, ptrPo sp) {
     return outMsg(out, " <tos>");
 }
 
-void showAllStack(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
 
   for (integer ix = 0; sp < stackTop; ix++, sp++) {
@@ -712,7 +717,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #define show_lit showConstant(out,mtd,collectI32(pc))
 #define show_glb showGlb(out, getGlobalVar(collectI32(pc)),fp,sp)
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
     case Op:          \
       outMsg(out," %s",#Op);    \
       show_##A1;        \
@@ -729,7 +734,7 @@ void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, pt
   integer pcOffset = (integer) (pc - mtd->code);
 
   outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x", p, mtd, pcOffset, pc, fp);
-  stackSummary(logFile,p,sp);
+  stackSummary(logFile, p, sp);
   heapSummary(logFile, h);
   outMsg(logFile, "\n");
 
@@ -776,7 +781,7 @@ void countIns(insWord ins) {
 }
 
 #undef instruction
-#define instruction(Op, Arg, Cmt) outMsg(logFile,#Op": %d\n",insCounts[Op]);
+#define instruction(Op, Arg, Dl, Cmt) outMsg(logFile,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
 
