@@ -16,6 +16,7 @@
 		"star.finger" : "finger.star",
 		"star.index": "index.star",
 		"star.io": "io.star",
+		"star.iterable": "iterable.star",
 		"star.json": "json.star",
 		"star.lists": "lists.star",
 		"star.repo.manifest": "manifest.star",
