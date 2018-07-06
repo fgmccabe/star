@@ -289,15 +289,15 @@ retCode loadSegments(ioPo in, packagePo owner, char *errorMsg, long msgLen) {
 // d. The pc offset of the start of the validity range
 // e. The pc offset of the end of the validity range
 
-static void writeOperand(insPo *pc, int32 val) {
-  int32 upper = (val >> 16) & 0xffff;
-  int32 lower = (val & 0xffff);
+static void writeOperand(insPo *pc, uint32 val) {
+  int32 upper = (val >> (unsigned)16) & (unsigned) 0xffff;
+  int32 lower = (val & (unsigned)0xffff);
 
   *(*pc)++ = (uint16) upper;
   *(*pc)++ = (uint16) lower;
 }
 
-static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long msgSize) {
+static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *errorMsg, long msgSize) {
   integer op, and;
   char escNm[MAX_SYMB_LEN];
   retCode ret = decodeInteger(in, &op);
@@ -307,17 +307,18 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
 #define sznOp
 #define sztOs
 #define szi32 if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
-#define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
-#define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
+#define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
+#define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szlcs if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
-#define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
+#define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,lookupEscape(escNm)); (*ix)++;}
-#define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++;}
+#define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
 #define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,globalVarNo(escNm)); (*ix)++;}
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
-  sz##A1          \
+        (*si)+=Dl;      \
+  sz##A1                \
     return ret;
 
 #include "instructions.h"
@@ -338,6 +339,8 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, char *errorMsg, long m
   }
 }
 
+static integer stackInc(insWord);
+
 retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
   retCode ret = isLookingAt(in, "n6o6'()6'");
 
@@ -347,7 +350,8 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
   }
   char prgName[MAX_SYMB_LEN];
   integer arity;
-  integer lclCount;
+  integer lclCount = 0;
+  integer maxStack = 0;
 
   ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
@@ -365,7 +369,10 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
       insPo ins = (insPo) malloc(sizeof(insWord) * insCount * 2);
       insPo pc = ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
-        ret = decodeIns(in, &pc, &ix, errorMsg, msgSize);
+        insPo ppc = pc;
+        integer stackInc=0;
+        ret = decodeIns(in, &pc, &ix, &stackInc,errorMsg, msgSize);
+        maxStack += stackInc;
       }
 
       if (ret == Ok) {
@@ -384,7 +391,7 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
           if (ret == Ok) {
             labelPo lbl = declareLbl(prgName, arity);
             gcAddRoot(H, (ptrPo) &lbl);
-            defineMtd(H, ins, (integer) (pc - ins), lclCount, lbl, C_TERM(pool), C_TERM(locals));
+            defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool), C_TERM(locals));
           }
         }
         closeFile(O_IO(tmpBuffer));

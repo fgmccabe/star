@@ -320,7 +320,7 @@ void endFunction(mtdPo mtd) {
 #define szlit pc+=sizeof(int32);
 #define szglb pc+=sizeof(int32);
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
   pc +=sizeof(uint16);      \
   sz##A1          \
@@ -453,7 +453,7 @@ static void fixup(assemInsPo ins) {
   switch (ins->op) {
 #undef instruction
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
     case Op:          \
       fixup_##A1(ins);      \
       break;
@@ -778,7 +778,7 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define opglb(X) ,char *g##X
 #define argglb(X) ,g##X
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
   retCode A##Op(mtdPo mtd op##A1(1))    \
   {\
     asm_##A1(mtd,Op arg##A1(1));\
@@ -829,7 +829,7 @@ int32 codeSize(mtdPo mtd) {
 #define szlit pc+=(sizeof(int32)/sizeof(uint16));
 #define szglb pc+=(sizeof(int32)/sizeof(uint16));
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
   pc ++;          \
   sz##A1          \
@@ -903,7 +903,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szglb if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 
-#define instruction(Op, A1, Cmt)    \
+#define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
         ret = outByte(O_IO(bfr),Op);\
   sz##A1          \

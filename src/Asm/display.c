@@ -75,7 +75,7 @@ retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins) {
   switch (ins->op) {
 #undef instruction
 
-#define instruction(Op, A1, Cmt) \
+#define instruction(Op, A1, Dl, Cmt) \
     case Op:\
       return disp_##A1(f,mtd,ins,#Op);
 

@@ -7,7 +7,7 @@
 /* Generate a Prolog module, that knows how to assemble a program*/
 
 #undef instruction
-#define instruction(M, A1, cmt) genIns(out,#M,M,A1,cmt);
+#define instruction(M, A1, Dl, cmt) genIns(out,#M,M,A1,cmt);
 
 static void genIns(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt);
 static void bmpPc(FILE *out, char *mnem, int op, opAndSpec A1, char *cmt);
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
   fprintf(out, "genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).\n");
 
 #undef instruction
-#define instruction(M, A1, cmt) bmpPc(out,#M,M,A1,cmt);
+#define instruction(M, A1, Dl, cmt) bmpPc(out,#M,M,A1,cmt);
 
 #include "instructions.h"
 

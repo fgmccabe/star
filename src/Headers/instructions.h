@@ -6,7 +6,7 @@
   preceded and followed by undefs. A typical sequence looks like:
 
 #undef instruction
-#define instruction(Op,A1,Cmnt) ...<expansion>...
+#define instruction(Op,A1,Dl,Cmnt) ...<expansion>...
 
 #include "instruction.h"
 #undef instruction
@@ -14,50 +14,50 @@
   Contact: Francis McCabe <frankmccabe@mac.com>
 */
 
-instruction(Halt,nOp,"Stop execution")
+instruction(Halt,nOp,0,"Stop execution")
 
-instruction(Call,lit,"Call <prog>")
-instruction(OCall,i32,"OCall")
-instruction(Escape,Es,"call C escape")
-instruction(Tail,lit,"Tail <prog>")
-instruction(OTail,i32,"OTail")
+instruction(Call,lit,0,"Call <prog>")
+instruction(OCall,i32,0,"OCall")
+instruction(Escape,Es,0,"call C escape")
+instruction(Tail,lit,0,"Tail <prog>")
+instruction(OTail,i32,0,"OTail")
 
-instruction(Ret,tOs,"return")
+instruction(Ret,tOs,-1,"return")
 
-instruction(Jmp,off,"jump lbl")
+instruction(Jmp,off,0,"jump lbl")
 
-instruction(Drop,tOs,"drop top of stack")
-instruction(Dup,tOs,"duplicate top of stack")
-instruction(Pull,i32,"copy nth stack entry to top of stack")
-instruction(Rot,i32,"rotate nth stack entry to top of stack")
-instruction(Rst,i32,"reset stack height to a fixed height")
+instruction(Drop,tOs,-1,"drop top of stack")
+instruction(Dup,tOs,1,"duplicate top of stack")
+instruction(Pull,i32,1,"copy nth stack entry to top of stack")
+instruction(Rot,i32,0,"rotate nth stack entry to top of stack")
+instruction(Rst,i32,0,"reset stack height to a fixed height")
 
-instruction(LdG,glb,"load a global variable")
-instruction(LdC,lit,"load literal from constant pool")
-instruction(LdA,arg,"load stack from args[xx]")
-instruction(LdL,lcl,"load stack from local[xx]")
-instruction(StL,lcs,"store tos to local[xx]")
-instruction(TL,lcs,"copy tos to local[xx]")
-instruction(StA,arg,"store tos to args[xx]")
-instruction(StG,glb,"store into a global variable")
+instruction(LdG,glb,1,"load a global variable")
+instruction(LdC,lit,1,"load literal from constant pool")
+instruction(LdA,arg,1,"load stack from args[xx]")
+instruction(LdL,lcl,1,"load stack from local[xx]")
+instruction(StL,lcs,-1,"store tos to local[xx]")
+instruction(TL,lcs,0,"copy tos to local[xx]")
+instruction(StA,arg,-1,"store tos to args[xx]")
+instruction(StG,glb,-1,"store into a global variable")
 
-instruction(CLbl,off,"T,Lbl --> test for a data term, branch if lbl")
-instruction(Nth,i32,"T --> el, pick up the nth element")
-instruction(StNth,i32,"T el --> store in nth element")
+instruction(CLbl,off,-1,"T,Lbl --> test for a data term, branch if lbl")
+instruction(Nth,i32,0,"T --> el, pick up the nth element")
+instruction(StNth,i32,-1,"T el --> store in nth element")
 
-instruction(Case,i32,"T --> T, case <Max> ")
+instruction(Case,i32,0,"T --> T, case <Max> ")
 
-instruction(Alloc,lit,"new closure, code from constant pool")
+instruction(Alloc,lit,1,"new closure, code from constant pool")
 
-instruction(Cmp,off,"t1 t2 --> , branch to offset if not same literal")
+instruction(Cmp,off,-1,"t1 t2 --> , branch to offset if not same literal")
 
-instruction(Bf,off,"bool --> branch if false")
-instruction(Bt,off,"bool --> branch if true")
+instruction(Bf,off,-1,"bool --> branch if false")
+instruction(Bt,off,-1,"bool --> branch if true")
 
-instruction(Frame,i32,"frame instruction")
-instruction(dLine,lit," --> Source line number notification")
-instruction(dCall,lit,"--> debug call program")
-instruction(dOCall,i32,"--> debug call program")
-instruction(dTail,lit,"--> debug tail call program")
-instruction(dOTail,i32,"--> debug call program")
-instruction(dRet,tOs,"--> debug return from function")
+instruction(Frame,i32,0,"frame instruction")
+instruction(dLine,lit,0," --> Source line number notification")
+instruction(dCall,lit,0,"--> debug call program")
+instruction(dOCall,i32,0,"--> debug call program")
+instruction(dTail,lit,0,"--> debug tail call program")
+instruction(dOTail,i32,0,"--> debug call program")
+instruction(dRet,tOs,0,"--> debug return from function")
