@@ -20,7 +20,7 @@ star.compiler.lexer{
     some((Nxt,tok(makeLoc(St,Nxt),idQTok(Id)))).
   nxtTok(St) where Nx ^= lookingAt(St,[0c",0c",0c"]) =>
     stringBlob(Nx,St,[]).
-  nxtTok(St) where 0c\" ^= hedChar(St) where (St1,Segs) ^= readString(St,[]) =>
+  nxtTok(St) where (Nx,0c\") ^= nextChar(St) where (St1,Segs) ^= readString(St,Nx,[]) =>
     some((makeLoc(St,St1),stringTok(Segs))).
 
 
@@ -36,13 +36,38 @@ star.compiler.lexer{
     some((St1,tok(makeLoc(St0,St1),strTok([segment(Sf::string)])))).
   stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) => stringBlob(St1,St0,[Sf..,Nx]).
 
-  readString:(tokenState,list[stringSeg]) => option[(tokenState,list[stringSeg])].
-  readString(St,Segs) where Nx^=lookingAt(St,[0c\"]) && (St1,Seg) ^= readStrSeg(Nx) =>
-    readString(St1,[Segs..,Seg]).
+  readSegs(St0,Segs) => let{
+    readS(St,SoF) where (Nx,Ch)^=nextChr(St) => let {
+      case(0c") => some((St,[Segs..,segment(SoF::string)])).
+      case(0c\\) where (St1,Ch1)^=nextChr(Nx) => spcl(Ch1,St1,Nx).
+      case(_) => readS(Nx,[SoF..,Ch]).
+    } in case(Ch).
+    readS(_,_) default => none.
 
-  readMoreString(St,So,Segs) where St1 ^= lookingAt(St,[0c\"]) => some((St1,[Segs..,segment(So::string)])).
-  readStringSeg(St,So,Segs) where St1 ^= lookingAt(St,[0c\\,0c(]) =>
-    interpolation()
+    spcl(0c(,_,St1) => bktCnt(St1,[Segs..,segment(SoF::string)],[],[0c)]).
+
+
+    bktCnt(nextChr^(St,Ch),SoF,Stck) => let{
+      case(_,[Ch]) => checkForFormat(St,[SoF..,Ch]::string).
+      case(_,[Ch,..Stk]) where Stk=!=[] => bktCnt(St,[SoF..,Ch],Stk)
+      case(0c\(,_) => bktCnt(St,[SoF..,0c\(],[0c\),..Stck]).
+      case(0c\[,_) => bktCnt(St,[SoF..,0c\[],[0c\],..Stck]).
+      case(0c\{,_) => bktCnt(St,[SoF..,0c\{],[0c\},..Stck]).
+      case(Chr,_) => bktCnt(St,[SoF..,Chr],Stck).
+    } in case(Ch,Stck).
+    bktCnt(_,_,_) default => none.
+
+    checkForFormat(nextChr^(St,0c:),Inter) where (Stx,Fmt)^=readUpTo(St,0c;,[]) =>
+      readSegs(Stx,[Segs..,interpolate(Inter,Fmt,makeLoc(St0,Stx))]).
+    checkForFormat(Stx,Inter) =>
+      readSegs(Stx,[Segs..,interpolate(Inter,"",makeLoc(St0,Stx))]).
+
+    readUpTo(nextChr^(St,Ch),Ch,SoF) => some((St,SoF::string)).
+    readUpTo(nextChr^(St,Ch),Dl,SoF) => readUpTo(St,Dl,[SoF..,Ch]).
+    readUpTo(_,_,_) => none.
+  } in readS(St0,[]).
+
+  readString(St) where (Nxt,Segs) ^= readSegs(St,[]) => some((Nxt,tok(makeLoc(St,Nxt),strTok(Segs)))).
 
   charRef(St) where Nx ^= lookingAt(St,[0c\\]) && (Nxt,Ch) ^= nextChr(Nx) => backslashRef(Nxt,Ch).
   charRef(St) => nextChr(St).

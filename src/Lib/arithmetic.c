@@ -59,10 +59,12 @@ ReturnStatus g__int_div(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__int_mod(processPo p, ptrPo tos) {
-  termPo Lhs = tos[0];
-  termPo Rhs = tos[1];
+  integer denom = integerVal(tos[0]);
+  integer numerator = integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), integerVal(Lhs) % integerVal(Rhs));
+  integer reslt = denom%numerator;
+
+  termPo Rs = (termPo) allocateInteger(processHeap(p), reslt);
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 

@@ -65,17 +65,12 @@ star.cons{
   tail(cons(_,L)) => some(L).
   tail(nil) => none.
 
-  public implementation folding[cons] => {
+  public implementation all e ~~ folding[cons[e]->>e] => {
     foldRight(F,U,nil) => U.
     foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
 
-    foldRight1(F,cons(H,nil)) => H.
-    foldRight1(F,cons(H,T)) => F(H,foldRight1(F,T)).
-
     foldLeft(F,U,nil) => U.
     foldLeft(F,U,cons(H,T)) => foldLeft(F,F(U,H),T).
-
-    foldLeft1(F,cons(H,T)) => foldLeft(F,H,T).
   }
 
   implementation reduce[cons] => {
