@@ -1,0 +1,32 @@
+readSegs(St0,Segs) => let{
+  readS(St,SoF) where (Nx,Ch)^=nextChr(St) => let {
+    case(0c") => some((St,[Segs..,segment(SoF::string)])).
+    case(0c\\) where (St1,Ch1)^=nextChr(Nx) => spcl(Ch1,St1,Nx).
+    case(_) => readS(Nx,[SoF..,Ch]).
+  } in case(Ch).
+  readS(_,_) default => none.
+
+  spcl(0c(,_,St1) => bktCnt(St1,[Segs..,segment(SoF::string)],[],[0c)]).
+
+
+  bktCnt(nextChr^(St,Ch),SoF,Stck) => let{
+    case(_,[Ch]) => checkForFormat(St,[SoF..,Ch]::string).
+    case(_,[Ch,..Stk]) where Stk=!=[] => bktCnt(St,[SoF..,Ch],Stk)
+    case(0c\(,_) => bktCnt(St,[SoF..,0c\(],[0c\),..Stck]).
+    case(0c\[,_) => bktCnt(St,[SoF..,0c\[],[0c\],..Stck]).
+    case(0c\{,_) => bktCnt(St,[SoF..,0c\{],[0c\},..Stck]).
+    case(Chr,_) => bktCnt(St,[SoF..,Chr],Stck).
+  } in case(Ch,Stck).
+  bktCnt(_,_,_) default => none.
+
+  checkForFormat(nextChr^(St,0c:),Inter) where (Stx,Fmt)^=readUpTo(St,0c;,[]) =>
+    readSegs(Stx,[Segs..,interpolate(Inter,Fmt,makeLoc(St0,Stx))]).
+  checkForFormat(Stx,Inter) =>
+    readSegs(Stx,[Segs..,interpolate(Inter,"",makeLoc(St0,Stx))]).
+
+  readUpTo(nextChr^(St,Ch),Ch,SoF) => some((St,SoF::string)).
+  readUpTo(nextChr^(St,Ch),Dl,SoF) => readUpTo(St,Dl,[SoF..,Ch]).
+  readUpTo(_,_,_) => none.
+} in readS(St0,[]).
+
+readString(St) where (Nxt,Segs) ^= readSegs(St,[]) => some((Nxt,tok(makeLoc(St,Nxt),strTok(Segs)))).
