@@ -52,5 +52,6 @@
   keyword("assert").
   keyword("let").
   keyword("default").
+  keyword("in").
   keyword("#").
   keyword("$").
