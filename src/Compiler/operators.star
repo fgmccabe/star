@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-/* Automatically generated at Fri Jul  6 10:45:09 2018, do not edit */
-=======
-/* Automatically generated at Fri Jul  6 07:04:38 2018, do not edit */
->>>>>>> redone
+/* Automatically generated at Mon Jul  9 22:14:43 2018, do not edit */
 
 star.compiler.operators{
   import star.
@@ -10,6 +6,8 @@ star.compiler.operators{
   operator ::= prefixOp(integer,integer)
              | infixOp(integer,integer,integer)
              | postfixOp(integer,integer).
+
+  bracket ::= bkt(string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.
@@ -135,18 +133,35 @@ star.compiler.operators{
   oper(">>") => [infixOp(949,950,950)].
   oper(_) default => [].
 
+  public isBracket:(string) => option[bracket].
+  isBracket("{.") => some(bkt("{.","{..}",".}",2000)).
+  isBracket(".}") => some(bkt("{.","{..}",".}",2000)).
+  isBracket("[") => some(bkt("[","[]","]",2000)).
+  isBracket("]") => some(bkt("[","[]","]",2000)).
+  isBracket("(") => some(bkt("(","()",")",2000)).
+  isBracket(")") => some(bkt("(","()",")",2000)).
+  isBracket("{") => some(bkt("{","{}","}",2000)).
+  isBracket("}") => some(bkt("{","{}","}",2000)).
+  isBracket(_) default => none.
+
   public follows:(string,integer) => option[string].
     follows("",0c%) => some("%").
   follows("",0c&) => some("&").
+  follows("",0c() => some("(").
+  follows("",0c)) => some(")").
   follows("",0c*) => some("*").
   follows("",0c+) => some("+").
   follows("",0c,) => some(",").
   follows("",0c-) => some("-").
   follows("",0c.) => some(".").
   follows("",0c/) => some("/").
+  follows("",0c{) => some("{").
   follows("",0c|) => some("|").
+  follows("",0c}) => some("}").
   follows("",0c~) => some("~").
+  follows("",0c[) => some("[").
   follows("",0c\\) => some("\\").
+  follows("",0c]) => some("]").
   follows("",0c^) => some("^").
   follows("",0c:) => some(":").
   follows("",0c;) => some(";").
@@ -158,6 +173,7 @@ star.compiler.operators{
   follows("",0c!) => some("!").
   follows("",0c•) => some("•").
   follows("",0c#) => some("#").
+  follows("",0c$) => some("$").
   follows("&",0c&) => some("&&").
   follows("*",0c*) => some("**").
   follows("+",0c+) => some("++").
@@ -171,6 +187,7 @@ star.compiler.operators{
   follows(".",0c#) => some(".#").
   follows(".",0c&) => some(".&").
   follows(".",0c|) => some(".|").
+  follows(".",0c}) => some(".}").
   follows(".",0c~) => some(".~").
   follows(".",0c<) => some(".<").
   follows(".",0c^) => some(".^").
@@ -192,6 +209,7 @@ star.compiler.operators{
   follows("..",0c,) => some("..,").
   follows("/",0c/) => some("//").
   follows("//",0c/) => some("///").
+  follows("{",0c.) => some("{.").
   follows("|",0c:) => some("|:").
   follows("|",0c|) => some("||").
   follows("~",0c~) => some("~~").
@@ -228,6 +246,8 @@ star.compiler.operators{
   public final:(string) => boolean.
   final("%") => true.  /* modulo */
   final("&&") => true.  /* conjunction */
+  final("(") => true.  /* parentheses */
+  final(")") => true.  /* parentheses */
   final("*") => true.  /* zero or more repetitions */
   final("**") => true.  /* exponentiation */
   final("+") => true.  /* one or more repetitions */
@@ -243,6 +263,7 @@ star.compiler.operators{
   final(".#.") => true.  /* test nth bit */
   final(".&.") => true.  /* bitwise and */
   final(".|.") => true.  /* bitwise or */
+  final(".}") => true.  /* non-recursive braces */
   final(".~") => true.  /* grammar parse */
   final(".~.") => true.  /* bitwise 1's complement */
   final(".<<.") => true.  /* shift left */
@@ -255,13 +276,18 @@ star.compiler.operators{
   final("/") => true.  /* division */
   final("//") => true.  /* map over */
   final("///") => true.  /* indexed map over */
+  final("{") => true.  /* braces */
+  final("{.") => true.  /* non-recursive braces */
   final("|") => true.  /* type union and conditional */
   final("|:") => true.  /* constrained type */
   final("||") => true.  /* disjunction */
+  final("}") => true.  /* braces */
   final("~") => true.  /* grammar remainder */
   final("~~") => true.  /* quantifier */
   final("~>") => true.  /* type function */
+  final("[") => true.  /* square brackets */
   final("\\+") => true.  /* logical negation */
+  final("]") => true.  /* square brackets */
   final("^") => true.  /* Apply optional function and match result */
   final("^^") => true.  /* Overall output from a parser rule */
   final("^.") => true.  /* optional object access */
@@ -297,5 +323,6 @@ star.compiler.operators{
   final("!") => true.  /* pick up a value from a ref cell */
   final("•") => true.  /* function composition */
   final("#") => true.  /* Macro statement marker */
+  final("$") => true.  /* Used for curried functions and types */
   final(_) default => false.
 }

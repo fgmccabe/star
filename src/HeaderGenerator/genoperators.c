@@ -13,7 +13,8 @@
 #include "genoperators.h"
 #include "parseOperators.h"
 
-static retCode procEntries(void *n, void *r, void *c);
+static retCode procOperator(void *n, void *r, void *c);
+static retCode procBrackets(void *n, void *r, void *c);
 
 static char *pC(char *buff, long *ix, char c);
 
@@ -55,22 +56,30 @@ char *templateFn = "starops.py.plate";
 char *opers = "operators.json";
 char date[MAXLINE] = "";
 
+typedef struct {
+  char name[16];
+  char left[16];
+  char right[16];
+  integer priority;
+} BrktRecord, *bracketPo;
+
 static triePo tokenTrie;
 static poolPo opPool;
 static hashPo operators;
+static hashPo bracketTbl;
 
 static void initTries() {
   tokenTrie = emptyTrie();
 
   opPool = newPool(sizeof(TokenRecord), 128);
   operators = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
-
+  bracketTbl = NewHash(128, (hashFun) uniHash, (compFun) uniCmp, NULL);
 }
 
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "pst:o:d:")) >= 0) {
+  while ((opt = getopt(argc, argv, "pst:o:d:D")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
@@ -86,6 +95,9 @@ int getOptions(int argc, char **argv) {
         break;
       case 'd':
         uniCpy(date, NumberOf(date), optarg);
+        break;
+      case 'D':
+        traceParse = True;
         break;
       default:;
     }
@@ -107,7 +119,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       outMsg(c->out, "  follows('%P','%#c','%P%#c').\n", prefix, last, prefix, last);
       break;
     case genStar:
-      outMsg(c->out,"  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n",prefix,last,prefix,last);
+      outMsg(c->out, "  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
   }
 }
@@ -128,7 +140,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
         outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix, last, op->name, op->cmt);
         break;
       case genStar:
-        outMsg(out,"  final(\"%P\") => true.  /* %s */\n", op->name,op->cmt);
+        outMsg(out, "  final(\"%P\") => true.  /* %s */\n", op->name, op->cmt);
         break;
     }
   }
@@ -174,13 +186,20 @@ int main(int argc, char **argv) {
 
     // Load up the variable table
     bufferPo operBuff = newStringBuffer();
-    ProcessTable(procEntries, operators, operBuff);
+    ProcessTable(procOperator, operators, operBuff);
 
     integer len;
     char *allOps = getTextFromBuffer(&len, operBuff);
 
     hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
+
+    bufferPo bracketBuff = newStringBuffer();
+    ProcessTable(procBrackets, bracketTbl, bracketBuff);
+
+    char *allBkts = getTextFromBuffer(&len, bracketBuff);
+    hashPut(vars, "Brackets", allBkts);
+
     hashPut(vars, "Date", date);
 
     // dumpTrie(tokenTrie,Stdout());
@@ -253,6 +272,20 @@ void genPostfix(char *op, int left, int prior, char *cmt) {
   genToken(oper->name, cmt);
 }
 
+void genBracket(char *op, integer prior, char *left, char *right, char *cmt) {
+  bracketPo bkt = (bracketPo) malloc(sizeof(BrktRecord));
+
+  strcpy(bkt->name, op);
+  strcpy(bkt->left, left);
+  strcpy(bkt->right, right);
+  bkt->priority = prior;
+
+  hashPut(bracketTbl, bkt->name, bkt);
+
+  genToken(bkt->left, cmt);
+  genToken(bkt->right, cmt);
+}
+
 static retCode procOper(ioPo out, char *sep, opPo op) {
   switch (genMode) {
     case genProlog:
@@ -280,7 +313,7 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
   }
 }
 
-static retCode procEntries(void *n, void *r, void *c) {
+static retCode procOperator(void *n, void *r, void *c) {
   ioPo out = (ioPo) c;
   pairPo p = (pairPo) r;
   char *nm = (char *) n;
@@ -318,9 +351,35 @@ static retCode procEntries(void *n, void *r, void *c) {
   return ret;
 }
 
+retCode procBrackets(void *n, void *r, void *c) {
+  ioPo out = (ioPo) c;
+  bracketPo b = (bracketPo) r;
+  char *nm = (char *) n;
+
+  retCode ret = Ok;
+  char *sep = "";
+
+  switch (genMode) {
+    case genProlog:
+      ret = outMsg(out, "  bracket(\"%P\", \"%P\", \"%P\", %d).\n", nm, b->left, b->right, b->priority);
+      break;
+    case genStar:
+      ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->left, b->left, b->name,
+                   b->right, b->priority);
+      if (ret == Ok)
+        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left, b->name,
+                     b->right, b->priority);
+      break;
+    default:
+      break;
+  }
+
+  return ret;
+}
+
 static inline byte hxDgit(integer h) {
   if (h < 10)
-    return (byte) (h | '0');
+    return (byte) (((byte)h) | (byte)'0');
   else
     return (byte) (h + 'a' - 10);
 }

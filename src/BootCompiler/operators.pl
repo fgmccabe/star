@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2]).
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4]).
 
   isOperator(O) :-
     operator(O,_).
@@ -115,18 +115,28 @@
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
+  bracket("{..}", "{.", ".}", 2000).
+  bracket("[]", "[", "]", 2000).
+  bracket("()", "(", ")", 2000).
+  bracket("{}", "{", "}", 2000).
 
   follows('','%','%').
   follows('','&','&').
+  follows('','(','(').
+  follows('',')',')').
   follows('','*','*').
   follows('','+','+').
   follows('',',',',').
   follows('','-','-').
   follows('','.','.').
   follows('','/','/').
+  follows('','{','{').
   follows('','|','|').
+  follows('','}','}').
   follows('','~','~').
+  follows('','[','[').
   follows('','\\','\\').
+  follows('',']',']').
   follows('','^','^').
   follows('',':',':').
   follows('',';',';').
@@ -138,6 +148,7 @@
   follows('','!','!').
   follows('','•','•').
   follows('','#','#').
+  follows('','$','$').
   follows('&','&','&&').
   follows('*','*','**').
   follows('+','+','++').
@@ -151,6 +162,7 @@
   follows('.','#','.#').
   follows('.','&','.&').
   follows('.','|','.|').
+  follows('.','}','.}').
   follows('.','~','.~').
   follows('.','<','.<').
   follows('.','^','.^').
@@ -172,6 +184,7 @@
   follows('..',',','..,').
   follows('/','/','//').
   follows('//','/','///').
+  follows('{','.','{.').
   follows('|',':','|:').
   follows('|','|','||').
   follows('~','~','~~').
@@ -207,6 +220,8 @@
 
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
+  final('(',"(").	 /* parentheses */
+  final(')',")").	 /* parentheses */
   final('*',"*").	 /* zero or more repetitions */
   final('**',"**").	 /* exponentiation */
   final('+',"+").	 /* one or more repetitions */
@@ -222,6 +237,7 @@
   final('.#.',".#.").	 /* test nth bit */
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
+  final('.}',".}").	 /* non-recursive braces */
   final('.~',".~").	 /* grammar parse */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
@@ -234,13 +250,18 @@
   final('/',"/").	 /* division */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
+  final('{',"{").	 /* braces */
+  final('{.',"{.").	 /* non-recursive braces */
   final('|',"|").	 /* type union and conditional */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
+  final('}',"}").	 /* braces */
   final('~',"~").	 /* grammar remainder */
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
+  final('[',"[").	 /* square brackets */
   final('\\+',"\\+").	 /* logical negation */
+  final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Apply optional function and match result */
   final('^^',"^^").	 /* Overall output from a parser rule */
   final('^.',"^.").	 /* optional object access */
@@ -276,4 +297,5 @@
   final('!',"!").	 /* pick up a value from a ref cell */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
+  final('$',"$").	 /* Used for curried functions and types */
 
