@@ -9,7 +9,7 @@
     isConditional/5,isOfTerm/4,
     isEquation/5,isDefn/4,isAssignment/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
-    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isParse/4,isNTLookAhead/3,
+    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isParse/4,isNTLookAhead/3,
     isLetDef/4,isMacroRule/4,
     isCnCRule/4,isGiven/4,
     whereTerm/4,
@@ -235,6 +235,9 @@ isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,".=",P,E),!.
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"=.",E,P).
+
+isSearch(Trm,Lc,P,E) :-
+  isBinary(Trm,Lc,"in",P,E),!.
 
 isParse(Trm,Lc,N,E) :-
   isBinary(Trm,Lc,".~",N,E).
