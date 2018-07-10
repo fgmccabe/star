@@ -10,21 +10,44 @@ star.compiler.lexer{
   public nextToken:(tokenState) => option[(tokenState,token)].
   nextToken(St) => nxTok(skipToNx(St)).
 
+
   nxTok:(tokenState) => option[(tokenState,token)].
-  nxTok(St) where Nx ^= lookingAt(St,[0c0,0cc]) && (Nxt,Ch) ^= charRef(Nx) =>
-    some((Nxt,tok(makeLoc(St,Nxt),intTok(Ch)))).
-  nxTok(St) where Nx ^= lookingAt(St,[0c0,0cx]) && (Nxt,Hx) ^= hexChar(Nx,0) =>
-    some((Nxt,tok(makeLoc(St,Nxt),intTok(Hx)))).
-  nxTok(St) where Nx ^= hedChar(St) && isDigit(Nx) => readNumber(St).
-  nxTok(St) where Nx ^= lookingAt(St,[0c']) && (Nxt,Id) ^= readQuoted(Nx,0c',[]) =>
-    some((Nxt,tok(makeLoc(St,Nxt),idQTok(Id)))).
-  nxtTok(St) where Nx ^= lookingAt(St,[0c",0c",0c"]) =>
-    stringBlob(Nx,St,[]).
-  nxtTok(St) where (Nx,0c\") ^= nextChar(St) where (St1,Segs) ^= readString(St,Nx,[]) =>
-    some((makeLoc(St,St1),stringTok(Segs))).
+  nxTok(St) where (Nx,Chr) ^= nextChr(St) =>
+    nxxTok(Chr,Nx,St).
 
+  nxxTok:(integer,tokenState,tokenState) => option[(tokenState,token)].
+  nxxTok(0c0,St,St0) where (Nx,Ch)^=nextChr(St) => let{
+    numericTok(0cc,St1) where (Nxt,Ch) ^= charRef(St1) =>
+      some((Nxt,tok(makeLoc(St0,Nxt),intTok(Ch)))).
+    numericTok(0cx,St1) where (Nxt,Hx) ^= hexChar(Nx,0) =>
+      some((Nxt,tok(makeLoc(St0,Nxt),intTok(Hx)))).
+    numericTok(_,_) => readNumber(St0).
+  } in numericTok(Ch,Nx).
+  nxxTok(NCh,_,St0) where isDigit(NCh) => readNumber(St0).
+  nxxTok(0c',St,St0) where (Nxt,Id) ^= readQuoted(St,0c',[]) =>
+    some((Nxt,tok(makeLoc(St0,Nxt),idQTok(Id)))).
+  nxxTok(0c",St,St0) where Nx ^= lookingAt(St,[0c",0c"]) =>
+    stringBlob(Nx,St0,[]).
+  -- Temporary to get things started
+  nxxTok(0c",St,St0) where (Nxt,Str) ^= readQuoted(St,0c",[]) =>
+    some((Nxt,tok(makeLoc(St0,Nxt),strTok([segment(Str)])))).
+  nxxTok(Chr,St,St0) where Ld ^= follows("",Chr) => let{
+    graphFollow(Strm,SoF,Deflt) where (Nx,Ch) ^= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
+      graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).
+    graphFollow(Strm,Id,Deflt) default => Deflt.
 
-  nxTok(_) default => none.
+    finalist(SoFr,Str,Deflt) where final(SoFr) => some((Str,tok(makeLoc(St0,Str),idTok(SoFr)))).
+    finalist(_,_,Deflt) => Deflt.
+  } in graphFollow(St,Ld,finalist(Ld,St,none)).
+  nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
+  nxxTok(_,_,_) default => none.
+
+  isIdentifierStart(Ch) => (Ch==0c_ || isLetter(Ch)).
+
+  readIden:(tokenState,tokenState,list[integer]) => option[(tokenState,token)].
+  readIden(St,St0,SoF) where (Nx,Chr) ^= nextChr(St) && (isIdentifierStart(Chr) || _isNdChar(Chr)) =>
+    readIden(Nx,St0,[SoF..,Chr]).
+  readIden(St,St0,SoF) default => some((St,tok(makeLoc(St0,St),idTok(SoF::string)))).
 
   readQuoted:(tokenState,integer,list[integer]) => option[(tokenState,string)].
   readQuoted(St,Qt,Chrs) where (Nx,Qt) ^= nextChr(St) => some((Nx,Chrs::string)).
@@ -35,39 +58,6 @@ star.compiler.lexer{
   stringBlob(St,St0,Sf) where St1 ^= lookingAt(St,[0c\",0c\",0c\"]) =>
     some((St1,tok(makeLoc(St0,St1),strTok([segment(Sf::string)])))).
   stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) => stringBlob(St1,St0,[Sf..,Nx]).
-
-  readSegs(St0,Segs) => let{
-    readS(St,SoF) where (Nx,Ch)^=nextChr(St) => let {
-      case(0c") => some((St,[Segs..,segment(SoF::string)])).
-      case(0c\\) where (St1,Ch1)^=nextChr(Nx) => spcl(Ch1,St1,Nx).
-      case(_) => readS(Nx,[SoF..,Ch]).
-    } in case(Ch).
-    readS(_,_) default => none.
-
-    spcl(0c(,_,St1) => bktCnt(St1,[Segs..,segment(SoF::string)],[],[0c)]).
-
-
-    bktCnt(nextChr^(St,Ch),SoF,Stck) => let{
-      case(_,[Ch]) => checkForFormat(St,[SoF..,Ch]::string).
-      case(_,[Ch,..Stk]) where Stk=!=[] => bktCnt(St,[SoF..,Ch],Stk)
-      case(0c\(,_) => bktCnt(St,[SoF..,0c\(],[0c\),..Stck]).
-      case(0c\[,_) => bktCnt(St,[SoF..,0c\[],[0c\],..Stck]).
-      case(0c\{,_) => bktCnt(St,[SoF..,0c\{],[0c\},..Stck]).
-      case(Chr,_) => bktCnt(St,[SoF..,Chr],Stck).
-    } in case(Ch,Stck).
-    bktCnt(_,_,_) default => none.
-
-    checkForFormat(nextChr^(St,0c:),Inter) where (Stx,Fmt)^=readUpTo(St,0c;,[]) =>
-      readSegs(Stx,[Segs..,interpolate(Inter,Fmt,makeLoc(St0,Stx))]).
-    checkForFormat(Stx,Inter) =>
-      readSegs(Stx,[Segs..,interpolate(Inter,"",makeLoc(St0,Stx))]).
-
-    readUpTo(nextChr^(St,Ch),Ch,SoF) => some((St,SoF::string)).
-    readUpTo(nextChr^(St,Ch),Dl,SoF) => readUpTo(St,Dl,[SoF..,Ch]).
-    readUpTo(_,_,_) => none.
-  } in readS(St0,[]).
-
-  readString(St) where (Nxt,Segs) ^= readSegs(St,[]) => some((Nxt,tok(makeLoc(St,Nxt),strTok(Segs)))).
 
   charRef(St) where Nx ^= lookingAt(St,[0c\\]) && (Nxt,Ch) ^= nextChr(Nx) => backslashRef(Nxt,Ch).
   charRef(St) => nextChr(St).
@@ -130,7 +120,6 @@ star.compiler.lexer{
   readExponent(St,St0,Mn) where (St1,Ix)^=readInt(St) =>
     some((St1,tok(makeLoc(St0,St1),fltTok(Mn*(10.0**(Ix::float)))))).
   readExponent(St,St0,Mn) => some((St,tok(makeLoc(St0,St),fltTok(Mn)))).
-
 
   -- We define a tracking state to allow us to collect locations
   public tokenState ::= tokenState(pkg,integer,integer,integer,list[integer]).
