@@ -73,7 +73,7 @@ star.cons{
     foldLeft(F,U,cons(H,T)) => foldLeft(F,F(U,H),T).
   }
 
-  implementation reduce[cons] => {
+  implementation all e ~~ reduce[cons[e]->>e] => {
     reducer(F) => (L,U) => foldRight(F,U,L).
     reducel(F) => (U,L) => foldLeft(F,U,L).
   }
