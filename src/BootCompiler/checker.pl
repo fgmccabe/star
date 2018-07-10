@@ -512,9 +512,6 @@ typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),
   isVar(N,Env,Spec),!,
   typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term).
-% typeOfExp(V,Tp,Ev,Env,v(Lc,N),_Path) :-
-%   isIden(V,Lc,N),
-%   declareVr(Lc,N,Tp,Ev,Env).
 typeOfExp(integer(Lc,Ix),Tp,Env,Env,intLit(Ix),_Path) :- !,
   findType("integer",Lc,Env,IntTp),
   checkType(Lc,IntTp,Tp,Env).
@@ -606,6 +603,15 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
     Exp = floatLit(Ng) ;
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
+typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src),Path) :-
+  isSearch(Term,Lc,L,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  checkType(Lc,LogicalTp,Tp,Env),
+  newTypeVar("_#",TV),
+  newTypeFun("_#",1,FT),
+  typeOfPtn(L,TV,Env,E0,Ptn,Path),
+  typeOfExp(R,tpExp(FT,TV),E0,Ev,Src,Path).
+
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path).
@@ -673,7 +679,7 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
    Exp = apply(Lc,Fun,Args) ;
   sameType(consType(At,Tp),FTp,E0) ->
    Exp = apply(Lc,Fun,Args);
-  reportError("type of %s:%s not consistent with : %s=>%s ",[Fun,FTp,At,Tp],Lc)).
+  reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc)).
 
 typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
   newTypeVar("_A",AT),
