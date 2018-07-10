@@ -876,5 +876,33 @@
   {
     "token": "$",
     "desc": "Used for curried functions and types"
+  },
+  {
+    "bracket": "()",
+    "left":"(",
+    "right":")",
+    "priority" : 2000,
+    "desc":"parentheses"
+  },
+  {
+    "bracket": "[]",
+    "left":"[",
+    "right":"]",
+    "priority" : 2000,
+    "desc":"square brackets"
+  },
+  {
+    "bracket": "{}",
+    "left":"{",
+    "right":"}",
+    "priority" : 2000,
+    "desc":"braces"
+  },
+  {
+    "bracket": "{..}",
+    "left":"{.",
+    "right":".}",
+    "priority" : 2000,
+    "desc":"non-recursive braces"
   }
 ]

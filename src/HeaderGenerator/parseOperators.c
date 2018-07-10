@@ -43,12 +43,18 @@ typedef enum {
   initial,
   inDecl,
   inOper,
+  inToken,
   inPriorities,
   inDescription,
+  inBkt,
+  inLeft,
+  inRight,
+  inPriority,
   unknownState
 } ParseState;
 
-static char *stNames[] = {"initial", "inDecl", "inOper", "priorities", "desc"};
+static char *stNames[] = {"initial", "inDecl", "inOper", "token", "priorities", "desc", "bracket", "left", "right",
+                          "priority", "unknown"};
 
 static OperatorStyle operatorMode(const char *name);
 static ParseState fromStName(const char *name);
@@ -58,6 +64,9 @@ typedef struct {
   OperatorStyle mode;
   int priorities[4];
   int numPriorities;
+  integer priority;
+  char left[16];
+  char right[16];
   char desc[1024];
   ParseState state;
 } ParsingState, *statePo;
@@ -116,9 +125,13 @@ retCode endCollection(void *cl) {
           return Ok;
         case postfixOp:
           genPostfix(info->oper, info->priorities[0], info->priorities[1], info->desc);
-
+          return Ok;
+        case brackets:
+          genBracket(info->oper, info->priority, info->left, info->right, info->desc);
+          return Ok;
         case tokenOnly:
           genToken(info->oper, info->desc);
+          return Ok;
         default:
           return Error;
       }
@@ -167,6 +180,12 @@ retCode startEntry(const char *name, void *cl) {
           return Ok;
         case inDescription:
           return Ok;
+        case inToken:
+          info->mode = tokenOnly;
+          return Ok;
+        case inBkt:
+          info->mode = brackets;
+          return Ok;
         default:
           return Error;
       }
@@ -188,6 +207,13 @@ retCode endEntry(const char *name, void *cl) {
     case inOper:
     case inPriorities:
     case inDescription:
+    case inToken:
+      info->state = inDecl;
+      return Ok;
+    case inLeft:
+    case inRight:
+    case inPriority:
+    case inBkt:
       info->state = inDecl;
       return Ok;
 
@@ -209,9 +235,13 @@ retCode numEntry(double dx, void *cl) {
         info->priorities[info->numPriorities++] = (int) dx;
         return Ok;
       }
-      default:
-        return Error;
     }
+    case inPriority:
+      info->priority = (integer) dx;
+      return Ok;
+    default:
+      return Error;
+
   }
 }
 
@@ -229,8 +259,20 @@ retCode txtEntry(const char *name, void *cl) {
     case inOper:
       uniCpy(info->oper, NumberOf(info->oper), name);
       return Ok;
+    case inLeft:
+      uniCpy(info->left, NumberOf(info->left), name);
+      return Ok;
+    case inRight:
+      uniCpy(info->right, NumberOf(info->right), name);
+      return Ok;
     case inDescription:
       uniCpy(info->desc, NumberOf(info->desc), name);
+      return Ok;
+    case inToken:
+      uniCpy(info->oper, NumberOf(info->oper), name);
+      return Ok;
+    case inBkt:
+      uniCpy(info->oper, NumberOf(info->oper), name);
       return Ok;
     default:
       return Error;
@@ -247,10 +289,11 @@ retCode errorEntry(const char *name, void *cl) {
 }
 
 static char *opModeNames[] = {
-  "tokenOnly",
+  "token",
   "infixOp",
   "prefixOp",
-  "postfixOp"};
+  "postfixOp",
+  "bracket"};
 
 OperatorStyle operatorMode(const char *name) {
   for (int ix = 0; ix < NumberOf(opModeNames); ix++) {

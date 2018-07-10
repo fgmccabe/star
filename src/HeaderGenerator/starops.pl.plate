@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2]).
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4]).
 
   isOperator(O) :-
     operator(O,_).
@@ -21,7 +21,7 @@
   is_in(X,[_|Y]) :- is_in(X,Y).
 
 #(Operators)
-
+#(Brackets)
 #(Follows)
 
 #(Final)
