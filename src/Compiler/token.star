@@ -19,9 +19,23 @@ star.compiler.token{
     disp(strTok(S)) => ssSeq([ss("\""),ssSeq(S//disp),ss("\"")]).
   .}
 
-  implementation display[stringSeg] => {.
+  public implementation equality[tk] => {.
+    idQTok(Id1) == idQTok(Id2) => Id1==Id2.
+    idTok(Id1) == idTok(Id2) => Id1==Id2.
+    intTok(Ix1) == intTok(Ix2) => Ix1==Ix2.
+    fltTok(Dx1) == fltTok(Dx2) => Dx1==Dx2.
+    strTok(S1) == strTok(S2) => S1==S2.
+    _ == _ default => false.
+  .}
+
+  public implementation display[stringSeg] => {.
     disp(segment(S)) => ss(S).
     disp(interpolate(S,F,_)) => ssSeq([ss("\\("),ss(S),ss("):"),ss(F),ss(";")]).
+  .}
+
+  public implementation equality[stringSeg] => {.
+    segment(S1) == segment(S2) => S1==S2.
+    interpolate(S1,F1,_) == interpolate(S2,F2,_) => S1==S2 && F1==F2.
   .}
 
   public implementation display[token] => {.
