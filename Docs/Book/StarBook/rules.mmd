@@ -1,19 +1,29 @@
 # Ruling the Queries
+One of the common themes of systems that 'face the world' is that they often have to make decisions. There are many approaches to providing for such _classifications_ but one of the most robust is _rules_. There are also many forms of rule, here we will focus on a particular form of rule: _the inference rule_.
 
+In general, a response to an external event goes through a series of phases:
+
+1. Taking _measurements_ of the event;
+2. applying some form of inference to the measurements to derive _facts_; and
+3. based on certain criteria, deciding what to _do_ in response to the event.
+
+A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. Our language, which is called **CnC**[^Code Named CnC], is an embedded language within **Star**.
+
+But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star**.
 
 ## Queries
 
 Consider, if you will, the problem of finding a set of grandparent-grandchild pairs -- given information about parent-child relationships. For example, suppose that we had a list of pairs - each pair indicating a parent and child:
 ```
-parent:list[(string,string)].
-parent = [("john","peter), ("peter","jane"), ... ].
+parents:list[(string,string)].
+parents = [("john","peter), ("peter","jane"), ... ].
 ```
-and that we wanted to construct a result list -- also pairs -- along the lines of:
+and that we wanted to construct a result list -- also of pairs -- along the lines of:
 ```
 GC:list[(string,string)].
 GC = [("john","jane"),...].
 ```
-Computing the list grandparent/grandchildren pairs involves searching the parents for pairs  that satisfy the grandparent relationship. This involves a double iteration: each pair in the parents list might represent the upper or lower half of a grandparent/grandchild relationship. Based on the collection operators we have seen so far, we can build such a search using two foldLeft operations:
+Computing the list grandparent/grandchildren pairs involves searching the parents for pairs  that satisfy the grandparent relationship. This involves a double iteration: each pair in the `parent`s list might represent the upper or lower half of a grandparent/grandchild relationship. Based on the collection operators we have seen so far, we can build such a search using two `foldLeft` operations:
 ```
 foldLeft(
  (SoFar,(X,Z)) => foldLeft(
@@ -21,15 +31,91 @@ foldLeft(
      acc(gp1,(ZZ,Y)) where Z==ZZ => [gp1..,(X,Y)].
      acc(gp1,_) => gp1.
    } in acc,
-   SoFar,parent),
+   SoFar,parents),
    list of [],
-  parent)
+  parents)
 ```
-This, rather intimidating,[^fn1] expression uses one `foldLeft` to look for the grandparent, for each candidate grandparent a second `foldLeft` finds all the grand-children. All without any explicit recursion.
+This, rather intimidating,[^There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!] expression uses one `foldLeft` to look for the grandparent, for each candidate grandparent a second `foldLeft` finds all the grand-children. All without any explicit recursion.
 
 The `acc` function defined above in the `let` expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
 
 The various filter, fmap and foldLeft functions *are* powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+
+What is needed is a way of expressing such complex query conditions in a way that can be represented using `foldLeft` expressions but which is easier to read.
+
+Consider the conjunction:
+```
+(X,Z) in parents and (Z,Y) in parents.
+```
+This should be read simply as:
+
+>For which `X`, `Y` and `Z` can be assert that `X` is the parent of `Z`, and `Z` is the parent of `Y`?.
+
+This should be significantly easier to follow than the complex expression above; and it is easier to be sure whether it is a correct representation of what it means to be a grand parent.
+
+### Satisfaction semantics
+Conditions like the ones above are boolean valued -- but they are not always expressions. For example, the first condition there being a parent:
+```
+(X,Z) in parents
+```
+is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of `X` and `Z` are in some `parents` collection. Instead, the condition is evaluated by trying to find `X` and `Z` that are in the collection. In effect, the condition becomes a _search_ for suitable candidate pairs.
+
+Technically this is called *satisfying* the condition -- to distinguish what is going on from *evaluating* the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
+
+In addition to individual *search conditions* like this, it is also possible to use logical operators -- called *connectives* -- to combine conditions. In the case of our grand-parent query, there is a conjunction; which involves the variable `Z` that acts as a kind of glue to the two search conditions.
+
+>In database query terminology, conjunctions like this one amount to _inner joins_. Languages like SQL have many operators and features to make expressing queries easier; the fundamental semantics of **Star**'s queries are similar to those of SQL.
+
+The available connectives include the usual favorites: `and`, `or`, and `not`. They also include some less familiar connectives: `implies` and `otherwise`.
+
+The `implies` connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
+```
+(X,M) in worksFor implies X.salary=<M.salary.
+```
+
+## Code Named CnC
+
+The essence of **CnC** is to take the form of query we see here and lift it into a full rules language; in fact, **CnC** is a so-called _logic_ language -- a term that has a precise if somewhat obscure meaning.
+
+Like programming languages, it turns out that there are many kinds of logic. Again, like programming languages, there is a trade-off between expressivity and complexity. The primary source of complexity in a rule language is the machinery needed to realize it -- together with understanding it sufficiently to be able to predict the meaning of a written rule.
+
+A, somewhat simplified, enumeration of the different kinds of logic might be:
+
+* Propositional calculus. This is characterized by single-letter conditions (sometimes confusingly called _predicate variables_) and a guaranteed finite evaluation mechanism.
+* Datalog. This is characterized by relations with simple unstructured values (i.e., strings and numbers). Execution in datalog has similar performance characteristics as querying databases.
+* First Order Predicate Calculus. This is probably the most well known and well understood logic. From a expressiveness point of view it's focus is on the logical relationships amoungst individual entities -- which includes things like trees, lists and so on. Inference in First Order has many of the same characteristics as program evaluation: not decidable in general but many effective sub-cases.
+* Higher Order Predicate Calculus. There are actually many higher-order logics. The main expressive enhancement over First Order is that one can directly talk about relationships between entities as well as entities themselves. The cost of this is that inference becomes problematic -- even equality is undecideable.
+
+Each of these levels represents a step both in expressiveness and in complexity. In general, the right logic for your application is something only you can decide; however, in designing a language, we have to choose for you. We take our inspiration from the success of languages like SQL and the relative obscurity of languages like Oz and Lambda Prolog.
+
+In our view, there is a sweet spot between Datalog and First Order Logic. Datalog allows one to right rules (unlike pure SQL) but is not capable of handling arbitrary data structures. On the other hand, it may be that _recursion_ is something that we can do without -- as we have seen earlier, many well structured functional programs have no explicit recursion! 
+
+The elements of **CnC** are simple:
+
+* Relations[^A deliberately underspecified term at this point] are identified as sets of tuples.
+* A **CnC** rule consists of a _predication_ -- identifying the relation that the rule is defining -- and a body.
+* The body of a **CnC** rule is a logical combination of _conditions_, some of which are _predications_;
+* The semantics of **CnC** are based on _satisfaction_ rather than expression _evaluation_.
+* Although **CnC** rules sets are not permitted to be recursive, there are several fold-style operators that can be used to specify aggregate computations.
+
+We can codify our grandparent query into a rule as:
+```
+grandparent(X,Y) <- (X,Z) in parents and (Z,Y) in parents
+```
+or, probably more realistically:
+```
+grandparent(X,Y) <- parent(X,Z) and parent(Z,Y).
+parent(A,B) <- (A,B) in parents.
+```
+
+### Assertions and facts
+An assertion is a statement that something is true -- i.e., it is a fact.
+
+>There is a subtle distinction between something being true, and stating that something is true.
+
+**CnC** rules are rules about facts: each rule states that some class of fact is true. It is not actually that important to the design of **CnC** whether the stated fact is actually true!
+
+There are two forms of assertion: the simple assertion and the given assertion.
 
 It turns out that **Star** has a special notation that makes this kind of complex computation significantly easier to write and comprehend. **Star**’s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
 ```
@@ -47,30 +133,6 @@ There are several variations of query expression, but the most common form is:
 *SequenceType* of { *QuantifierTerm* where *Condition* *Modifier* }
 
 where *SequenceType* is any type name that implements the stream contract, *QuantifierTerm* is a form that indicates the form of the result of the query, *Condition* is a condition and the optional *Modifier* is used to signal properties of the result -- such as whether the result is grouped or sorted.
-
-[^fn1]: There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!
-
-### Satisfaction semantics
-The foundation for the query notation is the notation for conditions. Conditions are boolean valued -- but they are not always expressions. For example, the first condition for grandparent is that there is a parent; this was expressed using the condition:
-```
-(X,Z) in parent
-```
-This condition is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of X and Z are in the parent collection. Instead, the condition is evaluated by trying to find X and Z that are in the collection. In effect, the condition becomes a search for suitable candidate pairs.
-
-Technically this is called *satisfying* the condition -- to distinguish what is going on from *evaluating* the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
-
-In addition to individual *search conditions* like this, it is also possible to use logical operators -- called *connectives* -- to combine conditions. In the case of our grand-parent query, there is a conjunction; which involves a variable Z that acts as a kind of glue to the two search conditions.
-
-In database parlance the conjunction amounts to an inner join operation; however, it is also simply logical conjunction.
-
-The available connectives include the usual favorites: &&, ||, and +. They also include some less familiar connectives: *> (read as *implies*) and otherwise.
-
-The implies connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
-```
-managerOk:(string)=>boolean.
-managerOk(M) => (X,M) in worksFor *> X.salary=<M.salary.
-```
-Notice that we can use conditions’ satisfaction-oriented semantics outside of query expressions.
 
 ### Query quantifiers
 
