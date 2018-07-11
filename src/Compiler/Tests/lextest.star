@@ -33,4 +33,13 @@ test.comp.lx{
   show(disp(nextToken(initSt(p,"/*flt*/64.32e-1"::list[integer])))::string).
   assert (_,tok(_,fltTok(6.432))) ^= nextToken(initSt(p,"/*flt*/64.32e-1"::list[integer])).
 
+  show disp(allTokens(initSt(p,"foo bar()*45.3. "::list[integer])))::string.
+
+  isTokens:(list[token],list[tk])=>boolean.
+  isTokens([],[]) => true.
+  isTokens([tok(_,Tk),..Toks],[Tk,..Tks]) => isTokens(Toks,Tks).
+
+  assert isTokens(allTokens(initSt(p,"foo bar()*45.3. "::list[integer])),
+            [idTok("foo"),idTok("bar"),idTok("("), idTok(")"), idTok("*"), fltTok(45.3), idTok(". ")]).
+
 }

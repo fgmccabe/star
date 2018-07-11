@@ -55,20 +55,21 @@ star.strings{
   public digitVal:(integer)=>integer.
   digitVal(D) => _digitCode(D).
 
-  public isHexDigit:(integer)=>boolean.
-  isHexDigit(0ca) => true.
-  isHexDigit(0cb) => true.
-  isHexDigit(0cc) => true.
-  isHexDigit(0cd) => true.
-  isHexDigit(0ce) => true.
-  isHexDigit(0cf) => true.
-  isHexDigit(0cA) => true.
-  isHexDigit(0cB) => true.
-  isHexDigit(0cC) => true.
-  isHexDigit(0cD) => true.
-  isHexDigit(0cE) => true.
-  isHexDigit(0cF) => true.
-  isHexDigit(Ch) => isDigit(Ch).
+  public isHexDigit:(integer) => option[integer].
+  isHexDigit(Ch) where isDigit(Ch) => some(digitVal(Ch)).
+  isHexDigit(0ca) => some(10).
+  isHexDigit(0cb) => some(11).
+  isHexDigit(0cc) => some(12).
+  isHexDigit(0cd) => some(13).
+  isHexDigit(0ce) => some(14).
+  isHexDigit(0cf) => some(15).
+  isHexDigit(0cA) => some(10).
+  isHexDigit(0cB) => some(11).
+  isHexDigit(0cC) => some(12).
+  isHexDigit(0cD) => some(13).
+  isHexDigit(0cE) => some(14).
+  isHexDigit(0cF) => some(15).
+  isHexDigit(_) default => none.
 
   public isSpace:(integer) => boolean.
   isSpace(Ch) => _isZsChar(Ch).

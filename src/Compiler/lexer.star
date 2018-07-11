@@ -7,21 +7,27 @@ star.compiler.lexer{
   import star.pkg.
 
   -- The Star compiler lexer
+  public allTokens:(tokenState) => list[token].
+  allTokens(St) => let{
+    allToks(Strm,SoFr) where (Nx,Tk)^=nextToken(Strm) => allToks(Nx,[SoFr..,Tk]).
+    allToks(_,SoFr) default => SoFr.
+  } in allToks(St,[]).
+
   public nextToken:(tokenState) => option[(tokenState,token)].
   nextToken(St) => nxTok(skipToNx(St)).
-
 
   nxTok:(tokenState) => option[(tokenState,token)].
   nxTok(St) where (Nx,Chr) ^= nextChr(St) =>
     nxxTok(Chr,Nx,St).
+  nxTok(_) default => none.
 
   nxxTok:(integer,tokenState,tokenState) => option[(tokenState,token)].
   nxxTok(0c0,St,St0) where (Nx,Ch)^=nextChr(St) => let{
-    numericTok(0cc,St1) where (Nxt,Ch) ^= charRef(St1) =>
-      some((Nxt,tok(makeLoc(St0,Nxt),intTok(Ch)))).
+    numericTok(0cc,St1) where (Nxt,ChC) ^= charRef(St1) =>
+      some((Nxt,tok(makeLoc(St0,Nxt),intTok(ChC)))).
     numericTok(0cx,St1) where (Nxt,Hx) ^= hexChar(Nx,0) =>
       some((Nxt,tok(makeLoc(St0,Nxt),intTok(Hx)))).
-    numericTok(_,_) => readNumber(St0).
+    numericTok(_,_) default => readNumber(St0).
   } in numericTok(Ch,Nx).
   nxxTok(NCh,_,St0) where isDigit(NCh) => readNumber(St0).
   nxxTok(0c',St,St0) where (Nxt,Id) ^= readQuoted(St,0c',[]) =>
@@ -77,22 +83,6 @@ star.compiler.lexer{
   hexChar(St,Hx) where Hd^=hedChar(St) && Dg^=isHexDigit(Hd) =>
     hexChar(nxtSt(St),Hx*16+Dg).
   hexChar(St,Hx) => some((St,Hx)).
-
-  isHexDigit:(integer) => option[integer].
-  isHexDigit(Ch) where isDigit(Ch) => some(digitVal(Ch)).
-  isHexDigit(0ca) => some(10).
-  isHexDigit(0cb) => some(11).
-  isHexDigit(0cc) => some(12).
-  isHexDigit(0cd) => some(13).
-  isHexDigit(0ce) => some(14).
-  isHexDigit(0cf) => some(15).
-  isHexDigit(0cA) => some(10).
-  isHexDigit(0cB) => some(11).
-  isHexDigit(0cC) => some(12).
-  isHexDigit(0cD) => some(13).
-  isHexDigit(0cE) => some(14).
-  isHexDigit(0cF) => some(15).
-  isHexDigit(_) default => none.
 
   readNumber:(tokenState) => option[(tokenState,token)].
   readNumber(St) where (Nx,Mn) ^= readNatural(St,0) => readMore(Nx,St,Mn).
