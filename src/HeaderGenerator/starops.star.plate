@@ -28,7 +28,7 @@ star.compiler.operators{
   pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
-  public isPostFixOp:(string) => option[(integer,integer)].
+  public isPostfixOp:(string) => option[(integer,integer)].
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
   pickPostfix:(list[operator]) => option[(integer,integer)].

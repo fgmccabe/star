@@ -28,7 +28,7 @@ star.compiler.operators{
   pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
-  public isPostFixOp:(string) => option[(integer,integer)].
+  public isPostfixOp:(string) => option[(integer,integer)].
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
   pickPostfix:(list[operator]) => option[(integer,integer)].
@@ -136,14 +136,19 @@ star.compiler.operators{
   public isBracket:(string) => option[bracket].
   isBracket("{.") => some(bkt("{.","{..}",".}",2000)).
   isBracket(".}") => some(bkt("{.","{..}",".}",2000)).
+  isBracket("{..}") => some(bkt("{.","{..}",".}",2000)).
   isBracket("[") => some(bkt("[","[]","]",2000)).
   isBracket("]") => some(bkt("[","[]","]",2000)).
+  isBracket("[]") => some(bkt("[","[]","]",2000)).
   isBracket("(") => some(bkt("(","()",")",2000)).
   isBracket(")") => some(bkt("(","()",")",2000)).
+  isBracket("()") => some(bkt("(","()",")",2000)).
   isBracket("{") => some(bkt("{","{}","}",2000)).
   isBracket("}") => some(bkt("{","{}","}",2000)).
+  isBracket("{}") => some(bkt("{","{}","}",2000)).
   isBracket("$(") => some(bkt("$(","$()$",")$",2000)).
   isBracket(")$") => some(bkt("$(","$()$",")$",2000)).
+  isBracket("$()$") => some(bkt("$(","$()$",")$",2000)).
   isBracket(_) default => none.
 
   public follows:(string,integer) => option[string].
