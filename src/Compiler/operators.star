@@ -7,7 +7,7 @@ star.compiler.operators{
              | infixOp(integer,integer,integer)
              | postfixOp(integer,integer).
 
-  bracket ::= bkt(string,string,string,integer).
+  public bracket ::= bkt(string,string,string,integer).
 
   public isOperator:(string)=>boolean.
   isOperator(Nm) => size(oper(Nm))>0.

@@ -5,11 +5,15 @@
 :- use_module(uri).
 :- use_module(parseUtils).
 :- use_module(json).
+:- use_module(errors).
 
 locateCatalog(Uri,Cat) :-
   resolveURI(Uri,relUri(rel(["catalog"]),noQuery),CatURI),
-  locateResource(CatURI,Chars),
-  parseJsonCat(Chars,CatURI,Cat),!.
+  locateResource(CatURI,Chars),!,
+  (parseJsonCat(Chars,CatURI,Cat) ->
+     true ;
+     reportError("cannot parse catalog at %s",[Uri]),
+     abort).
 
 resolveCatalog(cat(Cat),Nm,Uri,V) :-
   is_member(entries(Map),Cat),

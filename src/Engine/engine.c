@@ -166,7 +166,7 @@ retCode extendStack(processPo p, integer sfactor) {
 }
 
 retCode extendHeap(heapPo p, int hfactor, long hmin) {
-  syserr("stack heap not implemented");
+  syserr("heap extend not implemented");
   return Error;
 }
 

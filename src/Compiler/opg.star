@@ -1,4 +1,4 @@
-star.compiler.grammar{
+star.compiler.opg{
   import star.
   import star.compiler.operators.
   import star.compiler.errors.
