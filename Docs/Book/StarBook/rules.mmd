@@ -88,7 +88,7 @@ A, somewhat simplified, enumeration of the different kinds of logic might be:
 
 Each of these levels represents a step both in expressiveness and in complexity. In general, the right logic for your application is something only you can decide; however, in designing a language, we have to choose for you. We take our inspiration from the success of languages like SQL and the relative obscurity of languages like Oz and Lambda Prolog.
 
-In our view, there is a sweet spot between Datalog and First Order Logic. Datalog allows one to right rules (unlike pure SQL) but is not capable of handling arbitrary data structures. On the other hand, it may be that _recursion_ is something that we can do without -- as we have seen earlier, many well structured functional programs have no explicit recursion! 
+In our view, there is a sweet spot between Datalog and First Order Logic. Datalog allows one to right rules (unlike pure SQL) but is not capable of handling arbitrary data structures. On the other hand, it may be that _recursion_ is something that we can do without -- as we have seen earlier, many well structured functional programs have no explicit recursion!
 
 The elements of **CnC** are simple:
 
@@ -117,7 +117,7 @@ An assertion is a statement that something is true -- i.e., it is a fact.
 
 There are two forms of assertion: the simple assertion and the given assertion.
 
-It turns out that **Star** has a special notation that makes this kind of complex computation significantly easier to write and comprehend. **Star**’s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
+**Star** has a special notation that makes this kind of complex computation significantly easier to write and comprehend. **Star**’s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
 ```
 GC = list of { all (X,Y) where
                  (X,Z) in parent && (Z,Y) in parent }
