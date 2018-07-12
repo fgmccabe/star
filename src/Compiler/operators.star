@@ -1,4 +1,4 @@
-/* Automatically generated at Mon Jul  9 22:14:43 2018, do not edit */
+/* Automatically generated, do not edit */
 
 star.compiler.operators{
   import star.
@@ -142,6 +142,8 @@ star.compiler.operators{
   isBracket(")") => some(bkt("(","()",")",2000)).
   isBracket("{") => some(bkt("{","{}","}",2000)).
   isBracket("}") => some(bkt("{","{}","}",2000)).
+  isBracket("$(") => some(bkt("$(","$()$",")$",2000)).
+  isBracket(")$") => some(bkt("$(","$()$",")$",2000)).
   isBracket(_) default => none.
 
   public follows:(string,integer) => option[string].
@@ -175,6 +177,7 @@ star.compiler.operators{
   follows("",0c#) => some("#").
   follows("",0c$) => some("$").
   follows("&",0c&) => some("&&").
+  follows(")",0c$) => some(")$").
   follows("*",0c*) => some("**").
   follows("+",0c+) => some("++").
   follows("++",0c+) => some("+++").
@@ -241,6 +244,7 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
+  follows("$",0c() => some("$(").
   follows(_,_) default => none.
 
   public final:(string) => boolean.
@@ -248,6 +252,7 @@ star.compiler.operators{
   final("&&") => true.  /* conjunction */
   final("(") => true.  /* parentheses */
   final(")") => true.  /* parentheses */
+  final(")$") => true.  /* display parentheses */
   final("*") => true.  /* zero or more repetitions */
   final("**") => true.  /* exponentiation */
   final("+") => true.  /* one or more repetitions */
@@ -324,5 +329,6 @@ star.compiler.operators{
   final("•") => true.  /* function composition */
   final("#") => true.  /* Macro statement marker */
   final("$") => true.  /* Used for curried functions and types */
+  final("$(") => true.  /* display parentheses */
   final(_) default => false.
 }

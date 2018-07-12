@@ -885,6 +885,13 @@
     "desc":"parentheses"
   },
   {
+    "bracket": "$()$",
+    "left":"$(",
+    "right":")$",
+    "priority" : 2000,
+    "desc":"display parentheses"
+  },
+  {
     "bracket": "[]",
     "left":"[",
     "right":"]",
