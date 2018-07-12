@@ -1,10 +1,13 @@
 :- module(uri,[parseURI/2,uri//1,
               resolveURI/3,showUri/3,getUriPath/2,makePath/2,uriPath/2,uriHash/2,
-              getCWDUri/1]).
+              getCWDUri/1,isUri/1]).
 
 :- use_module(misc).
 :- use_module(encode).
 :- use_module(parseUtils).
+
+isUri(absUri(_,_,_)).
+isUri(relUri(_,_)).
 
 parseURI(S,U) :-
   string_chars(S,Chrs),

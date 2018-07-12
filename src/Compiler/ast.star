@@ -6,7 +6,7 @@ star.compiler.ast{
   public ast ::=
       nme(locn,string)
     | lit(locn,literal)
-    | tpl(locn,string,list[])
+    | tpl(locn,string,list[ast])
     | app(locn,ast,ast).
 
   public literal ::=
@@ -43,7 +43,25 @@ star.compiler.ast{
   dispAst(lit(_,Lt),_) => disp(Lt).
   dispAst(nme(_,Id),_) => dispId(Id).
   dispAst(tpl(_,Bk,Els),_) where bkt(Lft,_,Rgt,Inn)^=isBracket(Bk) =>
-    ssSeq([ss(Lft),ssSeq(Els//(E)=>dispAst(E,Inn)),ss(Rgt)]).
+    ssSeq([ss(Lft),ssSeq(Els//((E)=>dispAst(E,Inn))),ss(Rgt)]).
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr) where (Lf,P,Rg)^=isInfixOp(Op) =>
+    ssSeq([leftPar(P,Pr),dispAst(L,Lf),ss(Op),dispAst(R,Rg),rightPar(P,Pr)]).
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPrefixOp(Op) =>
+    ssSeq([leftPar(P,Pr),ss(Op),dispAst(R,Rg),rightPar(P,Pr)]).
+  dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPostfixOp(Op) =>
+    ssSeq([leftPar(P,Pr),dispAst(R,Rg),ss(Op),rightPar(P,Pr)]).
+  dispAst(app(_,Op,A),_) => ssSeq([dispAst(Op,0),dispAst(A,0)]).
 
+  dispId:(string) => ss.
+  dispId(S) where isOperator(S) => ssSeq([ss("("),ss(S),ss(")")]).
+  dispId(S) => ss(S). -- temporary until we can fix better
+
+  leftPar:(integer,integer) => ss.
+  leftPar(P,Pr) where P<Pr => ss("(").
+  leftPar(_,_) default => ss("").
+
+  rightPar:(integer,integer) => ss.
+  rightPar(P,Pr) where P<Pr => ss(")").
+  rightPar(_,_) default => ss("").
 
 }

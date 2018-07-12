@@ -5,6 +5,7 @@
 :- use_module(types).
 :- use_module(canon).
 :- use_module(location).
+:- use_module(uri).
 
 :- initialization(startCount).
 
@@ -71,6 +72,9 @@ showTrm(T,O) :-
 showTrm(P,O) :-
   isPkg(P),!,
   showPkg(P,O,[]).
+showTrm(U,O) :-
+  isUri(U),!,
+  showUri(U,O,[]).
 showTrm([],[]).
 showTrm([E|_],O) :-
   showTrm(E,O).
