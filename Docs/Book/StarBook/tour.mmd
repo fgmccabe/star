@@ -136,7 +136,7 @@ We can also use a worksheet to display the results of using and testing our fact
 worksheet{
   import sample.factorial.
 
-  show "fact(10) is \(fact(10))".
+  show "fact(10) is $(fact(10))$".
 
   assert fact(5) == 120.
 }
@@ -151,10 +151,10 @@ The key features of a worksheet that we will use are the ability to import packa
 The expression
 
 ```
-"fact(10) is \(fact(10))"
+"fact(10) is $(fact(10))$"
 ```
 
-is an *interpolated string* expression. It means the string `"fact(10) is \(fact(10))"` with the substring `\(fact(10)` replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.
+is an *interpolated string* expression. It means the string `"fact(10) is $(fact(10))$"` with the substring `(fact(10)` replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.
 
 ## Types, more types and even more types
 
