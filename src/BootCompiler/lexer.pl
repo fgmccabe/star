@@ -115,6 +115,7 @@ nxTok(St,NxSt,Tk) :- hedChar(St,Ch), isDigit(Ch,_), readNumber(St,NxSt,Tk).
 nxTok(St,NxSt,idQTok(Id,Lc)) :- nextSt(St,St1,''''), readQuoted(St1,NxSt,'''',Id), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,stringTok([segment(Seg)],Lc)) :- lookingAt(St,St1,['"','"','"']), stringBlob(St1,St2,Txt),lookingAt(St2,NxSt,['"','"','"']),string_chars(Seg,Txt),makeLoc(St1,St2,Lc).
 nxTok(St,NxSt,Str) :- nextSt(St,St1,'"'), readString(St1,NxSt,Str).
+nxTok(St,NxSt,rqpar(Lc)) :- lookingAt(St,St1,[')','$']), preSt(St1,'"',NxSt), makeLoc(St,St1,Lc).
 nxTok(St,NxSt,idTok(Id,Lc)) :- hedChar(St,Ch), idStart(Ch), readIden(St,NxSt,Id), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,ldpar(Lc)) :- lookingAt(St,NxSt,['(','.'],Lc).
 nxTok(St,NxSt,rdpar(Lc)) :- lookingAt(St,NxSt,['.',')'],Lc).
