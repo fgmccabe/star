@@ -369,6 +369,9 @@ retCode procBrackets(void *n, void *r, void *c) {
       if (ret == Ok)
         ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->right, b->left, b->name,
                      b->right, b->priority);
+      if (ret == Ok)
+        ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->name, b->left, b->name,
+                     b->right, b->priority);
       break;
     default:
       break;

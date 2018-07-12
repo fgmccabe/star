@@ -6,6 +6,7 @@ star.compiler.grammar{
   import star.compiler.location.
   import star.compiler.token.
   import star.pkg.
-  
+
+  parse:(list[token],reports) => option[(ast,reports,list[token])].
 
 }

@@ -1,6 +1,7 @@
 {
 	"content": {
-		"star.compiler.errors" : "errors.star",
+	  "star.compiler.ast" : "ast.star",
+	  "star.compiler.errors" : "errors.star",
 		"star.compiler.escapes" : "escapes.star",
 		"star.compiler.grammar" : "grammar.star",
 		"star.compiler.keywords" : "keywords.star",
