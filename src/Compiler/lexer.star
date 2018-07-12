@@ -34,9 +34,10 @@ star.compiler.lexer{
     some((Nxt,tok(makeLoc(St0,Nxt),idQTok(Id)))).
   nxxTok(0c",St,St0) where Nx ^= lookingAt(St,[0c",0c"]) =>
     stringBlob(Nx,St0,[]).
-  -- Temporary to get things started
-  nxxTok(0c",St,St0) where (Nxt,Str) ^= readQuoted(St,0c",[]) =>
-    some((Nxt,tok(makeLoc(St0,Nxt),strTok([segment(Str)])))).
+  nxxTok(0c",St,St0) where (Nxt,Str) ^= readString(St,[]) =>
+    some((Nxt,tok(makeLoc(St0,Nxt),strTok(Str)))).
+  nxxTok(0c),St,St0) where (Nxt,0c$) ^= nextChr(St) =>
+    some((preChar(Nxt,0c"),tok(makeLoc(St0,Nxt),idTok(")$")))).
   nxxTok(Chr,St,St0) where Ld ^= follows("",Chr) => let{
     graphFollow(Strm,SoF,Deflt) where (Nx,Ch) ^= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
       graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).
@@ -60,9 +61,15 @@ star.compiler.lexer{
   readQuoted(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readQuoted(Nx,Qt,[Chrs..,Ch]).
   readQuoted(_,_,_) => none.
 
+  readString:(tokenState,list[integer]) => option[(tokenState,string)].
+  readString(nextChr^(Nx,0c"),Chrs) => some((Nx,Chrs::string)).
+  readString(St,Chrs) where Nx ^= lookingAt(St,[0c$,0c(]) => some((St,Chrs::string)).
+  readString(St,Chrs) where (Nx,Ch) ^= charRef(St) => readString(Nx,[Chrs..,Ch]).
+  readString(_,_) => none.
+
   stringBlob:(tokenState,tokenState,list[integer]) => option[(tokenState,token)].
   stringBlob(St,St0,Sf) where St1 ^= lookingAt(St,[0c\",0c\",0c\"]) =>
-    some((St1,tok(makeLoc(St0,St1),strTok([segment(Sf::string)])))).
+    some((St1,tok(makeLoc(St0,St1),strTok(Sf::string)))).
   stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) => stringBlob(St1,St0,[Sf..,Nx]).
 
   charRef(St) where Nx ^= lookingAt(St,[0c\\]) && (Nxt,Ch) ^= nextChr(Nx) => backslashRef(Nxt,Ch).
@@ -125,13 +132,10 @@ star.compiler.lexer{
   hedChar(tokenState(_,_,_,_,Txt)) where size(Txt)>0 => Txt[0].
   hedChar(_) default => none.
 
-  hedHedChar:(tokenState) => option[integer].
-  hedHedChar(tokenState(_,_,_,_,Txt)) where size(Txt)>1 => Txt[1].
-  hedHedChar(_) default => none.
+  preChar:(tokenState,integer) => tokenState.
+  preChar(tokenState(Pkg,Line,Col,Off,Txt),Chr) =>
+    tokenState(Pkg,Line,Col-1,Off-1,[Chr,..Txt]).
 
-  hedHedHedChar:(tokenState) => option[integer].
-  hedHedHedChar(tokenState(_,_,_,_,Txt)) where size(Txt)>2 => Txt[2].
-  hedHedHedChar(_) default => none.
 
   public initSt:(pkg,list[integer])=>tokenState.
   initSt(P,Txt) => tokenState(P,1,0,0,Txt).

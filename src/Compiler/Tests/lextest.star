@@ -38,8 +38,13 @@ test.comp.lx{
   isTokens:(list[token],list[tk])=>boolean.
   isTokens([],[]) => true.
   isTokens([tok(_,Tk),..Toks],[Tk,..Tks]) => isTokens(Toks,Tks).
+  isTokens(_,_) => false.
 
   assert isTokens(allTokens(initSt(p,"foo bar()*45.3. "::list[integer])),
             [idTok("foo"),idTok("bar"),idTok("("), idTok(")"), idTok("*"), fltTok(45.3), idTok(". ")]).
 
+  show disp(allTokens(initSt(p,"\"alpha$(4+f(\"beta\"))$gamma\""::list[integer])))::string.
+  assert isTokens(allTokens(initSt(p,"\"alpha$(4+f(\"beta\"))$gamma\""::list[integer])),
+            [strTok("alpha"), idTok("$("), intTok(4), idTok("+"), idTok("f"),
+             idTok("("), strTok("beta"),idTok(")"),idTok(")$"),strTok("gamma")]).
 }

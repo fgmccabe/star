@@ -23,6 +23,8 @@ nextSt(tokenState([Ch|T],L,O,P,Pk),tokenState(T,L,O1,P1,Pk),Ch) :- Ch\='\n',succ
 
 nxtNxtSt(St,St2) :- nxtSt(St,St1), nxtSt(St1,St2).
 
+preSt(tokenState(T,L,O,P,Pk),Ch,tokenState([Ch|T],L,O1,P1,Pk),Ch) :- succ(O1,O),succ(P1,P).
+
 lookingAt(St,Nxt,Test,Lc) :- lookingAt(St,Nxt,Test), makeLoc(St,Nxt,Lc).
 
 lookingAt(St,St,[]).
