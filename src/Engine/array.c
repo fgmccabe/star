@@ -225,6 +225,7 @@ termPo sliceList(heapPo H, listPo list, integer from, integer count) {
 }
 
 static basePo duplicateBase(heapPo H, basePo ob, integer delta);
+static basePo copyBase(heapPo H, basePo ob, integer from, integer count, integer delta);
 
 listPo appendToList(heapPo H, listPo list, termPo el) {
   basePo base = C_BASE(list->base);
@@ -243,7 +244,8 @@ listPo appendToList(heapPo H, listPo list, termPo el) {
     }
     releaseHeapLock(H);
   }
-  basePo nb = (basePo) duplicateBase(H, base, (list->length / 8) + 1);
+
+  basePo nb = copyBase(H, base, list->start, list->length, (list->length / 8) + 2);
   nb->els[nb->max++] = el;
   gcAddRoot(H, (ptrPo) (&nb));
   listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max - nb->min);
@@ -268,6 +270,8 @@ listPo prependToList(heapPo H, listPo list, termPo el) {
   gcAddRoot(H, (ptrPo) (&list));
   gcAddRoot(H, (ptrPo) (&el));
 
+//  logMsg(logFile, "list before prepend: %T", list);
+
   if (base->min == list->start && base->min > 0) {
     lockHeap(H);
     if (base->max == list->start && base->min > 0) { // check after locking heap
@@ -275,14 +279,18 @@ listPo prependToList(heapPo H, listPo list, termPo el) {
       listPo slice = (listPo) newSlice(H, base, list->start - 1, list->length + 1);
       gcReleaseRoot(H, root);
       releaseHeapLock(H);
+
+      //logMsg(logFile, "slice after prepend: %T", slice);
       return slice;
     }
     releaseHeapLock(H);
   }
-  basePo nb = (basePo) duplicateBase(H, base, (list->length / 8) + 1);
+  basePo nb = copyBase(H, base, list->start, list->length, (list->length / 8) + 2);
   nb->els[--nb->min] = el;
   gcAddRoot(H, (ptrPo) (&nb));
   listPo slice = (listPo) newSlice(H, nb, nb->min, list->length + 1);
+
+//  logMsg(logFile, "slice post prepend: %T", slice);
   gcReleaseRoot(H, root);
   return slice;
 }
@@ -370,7 +378,7 @@ listPo removeListEl(heapPo H, listPo list, integer px) {
     nb->els[nb->min + ix] = base->els[base->min + ix];
   }
 
-  for (integer ix = px+1; ix < ocount; ix++) {
+  for (integer ix = px + 1; ix < ocount; ix++) {
     nb->els[nb->min + ix] = base->els[base->min + ix];
   }
 
@@ -557,6 +565,24 @@ basePo duplicateBase(heapPo H, basePo ob, integer delta) {
   for (integer ix = 0; ix < ocount; ix++) {
     base->els[base->min + ix] = ob->els[ob->min + ix];
   }
+
+  gcReleaseRoot(H, root);
+  return base;
+}
+
+basePo copyBase(heapPo H, basePo ob, integer from, integer count, integer delta) {
+  int root = gcAddRoot(H, (ptrPo) (&ob));
+  integer newLen = count + delta;
+  basePo base = (basePo) allocateObject(H, baseClass, BaseCellCount(newLen));
+
+  base->min = delta / 2;
+  base->max = base->min + count;
+
+  for (integer ix = 0; ix < count; ix++) {
+    base->els[base->min + ix] = ob->els[from + ix];
+  }
+
+  base->length = newLen;
 
   gcReleaseRoot(H, root);
   return base;
