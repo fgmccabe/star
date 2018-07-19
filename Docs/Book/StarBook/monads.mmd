@@ -1,8 +1,75 @@
 
 # The 'M' word
 
+One of the most common themes in programming is that of _combining_ things. Many things are combined; and large programs are often seen as compositions of smaller programs -- all the way down to individual atomic entities.
+
+However, most programming languages also make many _distinctions_: modules vs functions, data vs code, input vs output, statement vs expressions, and so on. In many cases these distinctions work to obscure the fundamentals of the combinatorial nature of computing.
+
+There is a mathematical discipline that focuses on the same theme: _category theory_. A mathematical category is a deceptively simple concept:
+
+>A _category_ is a directed graph, whose nodes are called _objects_ and whose edges are called _arrows_ or _morphisms_. There are two critical properties that a category must have:
+* An identity arrow for each object, and
+* arrows are associative (i.e., composable)
+
+What, one may ask, has this to do with programming? Well,
+
+
+
 ## Monads for collections processing
 
 ## Parser expression grammars
+
+One of the more surprising applications of monads is for parsing.[^At least, it was surprising to the aurhor.] There are many formalisms for expressing grammars and parsers; but the monadic way is perhas one of the more elegant.
+
+Mathematically, a grammar is a statement of the legal forms of expression of some language. From the perspective of programming, grammars are often viewed as _programs_ that can be used to _parse_ an instance of the language. This is the convention we will focus on here; but it behooves us to remember the declarative definition.
+
+To illustrate some fundamentals, we explore a simple language consisting of strings of the form:
+
+```
+aba
+b
+aabaa
+aaabaaa
+```
+Note that we do not intend:
+```
+abaa
+```
+to be a legal instance of this language.
+
+If our language is called `L`, then one grammar for this can be written:
+```
+L -> b | a L a.
+```
+Before we show how to write a parser for `L`, let us think about an even simpler language:
+```
+A -> a
+```
+What might the type signature for a function to parse the `A` language look like? The most obvious is probably:
+```
+A0:(string) => ()
+```
+The biggest issue with this is that the return gives no hint as to whether the parse was successful or not. In addition we need to consider whether there may be multiple ways of parsing the source; whether the parser should be able to return some _representation_ of the parse tree and how to express combinations of parsers.
+
+The final consideration mentioned -- combining parsers -- is where monads come in to focus.
+
+So, instead of simply defining a function whose job it is to parse a string, we define a `parser` structure that can be combined with other parsers -- using monadic bind -- and can be used to parse input.
+
+Our final relaxation is to move away from parsing strings to parsing sequences. The resulting type signature for the `A` grammar parser looks like:
+```
+A:parser[integer,()].
+```
+which is intended to be read as:
+>A is a parser from sequences of integer (aka characters) and which returns the empty tuple.
+We can use the parser by calling the standard `parse` function with `A`:
+```
+parse(A,"a"::list[integer])
+```
+The `parse` function applies the parser defined by `A` to the stream constructed by converting the string to a list of integers.
+
+The type signature for `parse` explains more-or-less what will happen:
+```
+public parse:all e,s,t ~~ stream[s->>t] |: (parser[t,e],s) => list[(e,s)]
+```
 
 ## A different kind of sequence

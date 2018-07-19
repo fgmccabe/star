@@ -24,7 +24,7 @@ test.pp{
   decimal --> space*,D<-digit ^^ (D-0c0).
 
   digit:parser[integer,integer].
-  digit = sat(isDigit).
+  digit = _sat(isDigit).
 
   assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])].
 }

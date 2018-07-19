@@ -27,6 +27,7 @@ star.index{
     _remove(M,K) => rmve(hash(K),K,M).
     _replace(M,K,V) => insrt(K,V,M).
     _insert(M,K,V) => insrt(K,V,M).
+    _empty = trEmpty.
   }
 
   public implementation all k,v ~~ equality[k], equality[v] |: equality[map[k,v]] => {.

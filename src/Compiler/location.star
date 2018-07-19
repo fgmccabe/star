@@ -15,4 +15,12 @@ star.compiler.location{
   public implementation hash[locn] => {.
     hash(locn(P,_,Off,Len)) => (((hash(P)*37)+hash(Off))*37)+hash(Len).
   .}
+
+  public contract all t ~~ hasLoc[t] ::= {
+    locOf:(t)=>locn.
+  }
+
+  public mergeLoc:(locn,locn) => locn.
+  mergeLoc(locn(P,L1,S1,Ln1),locn(P,L2,S2,Ln2)) =>
+    (S1>S2 ? locn(P,L2,S2,S1-S2+Ln1) | locn(P,L1,S1,S2-S1+Ln2)).
 }

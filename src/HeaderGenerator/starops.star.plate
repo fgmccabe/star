@@ -42,6 +42,12 @@ star.compiler.operators{
   public isBracket:(string) => option[bracket].
 #(Brackets)  isBracket(_) default => none.
 
+  public isLeftBracket:(string) => boolean.
+  isLeftBracket(S) => bkt(S,_,_,_) ^= isBracket(S).
+
+  public isRightBracket:(string) => boolean.
+  isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
+
   public follows:(string,integer) => option[string].
   #(Follows)  follows(_,_) default => none.
 

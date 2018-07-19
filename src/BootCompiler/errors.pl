@@ -1,4 +1,5 @@
-:-module(errors,[reportError/3,reportError/2,reportMsg/2,reportMsg/3,errorCount/1,noErrors/0,startCount/0]).
+:-module(errors,[reportError/3,reportError/2,reportMsg/2,reportMsg/3,genMsg/3,
+          errorCount/1,noErrors/0,startCount/0]).
 :- use_module(display).
 :- use_module(abstract).
 :- use_module(lexer).
@@ -48,6 +49,10 @@ reportMsg(Msg,A) :-
 
 genDisplay([],[]).
 genDisplay([A|L],[D|LL]) :- showTrm(A,D), !, genDisplay(L,LL).
+
+genMsg(Msg,Args,Str) :-
+  genDisplay(Args,AA),
+  swritef(Str,Msg,AA).
 
 showTrm(T,O) :-
   string(T),!,

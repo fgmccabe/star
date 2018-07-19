@@ -35,6 +35,7 @@ star.collection{
     _insert:(m,k,v) => m.
     _remove:(m,k) => m.
     _replace:(m,k,v) => m.
+    _empty:m.
   }.
 
   public contract all k,e ~~ membership[k->>e] ::= {
@@ -107,4 +108,10 @@ star.collection{
 
     _replace(L,ix,v) => _list_replace(L,ix,v).
   }
+
+  public interleave: all t ~~ (list[t],t) => list[t].
+  interleave(L,I) where Frst^=L[0] => let{
+    leave(Ix,Mx,SoF) where Ix>=Mx => SoF.
+    leave(Ix,Mx,SoF) where El^=L[Ix] => leave(Ix+1,Mx,[SoF..,I,El]).
+  } in leave(1,size(L),[Frst]).
 }

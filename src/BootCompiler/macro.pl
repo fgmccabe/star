@@ -8,7 +8,7 @@
 
 macroRewrite(Stmts,Reslt) :-
   rewriteStmts(Stmts,Reslt),!.
-%  displayAll(Reslt).
+  % displayAll(Reslt).
 
 rewriteStmts([],[]).
 rewriteStmts([St|More],[StX|Stmts]) :-
@@ -17,8 +17,8 @@ rewriteStmts([St|More],[StX|Stmts]) :-
 
 rewriteStmt(St,StX) :-
   isParsingRule(St,_,_,_),!,
-  genParserRule(St,StX).
-  % display(StX).
+  genParserRule(St,StX),
+  display(StX).
 rewriteStmt(X,X).
 
 % handle grammar notation
@@ -73,12 +73,37 @@ genCall(T,void,Cl) :-
   genBody(L,LL),
   unary(Lc,"_star",LL,Cl).
 genCall(T,void,Cl) :-
-  isSquareTuple(T,Lc,_Els),
-  unary(Lc,"_literal",T,Cl).
+  isUnary(T,Lc,"\\+",A),!,
+  genBody(A,LL),
+  unary(Lc,"_neg",LL,Cl).
+genCall(T,void,Cl) :-
+  isUnary(T,Lc,"^+",A),!,
+  genBody(A,LL),
+  unary(Lc,"_ahead",LL,Cl).
+genCall(T,Bnd,Cl) :-
+  isSquareTuple(T,_Lc,Els),
+  genSquare(Els,Bnd,Cl).
 genCall(T,void,Cl) :-
   isString(T,Lc,_),
   unary(Lc,"_str",T,Cl).
+genCall(T,void,Cl) :-
+  isWhere(T,Lc,P,Cnd),!,
+  genCall(P,_,Pr),
+  conditional(Lc,Cnd,Pr,name(Lc,"zed"),Cl).
 genCall(T,void,T).
+
+genSquare([E],tuple(Lc,"()",[tuple(Lc,"()",Vrs)]),Bd) :-
+  locOfAst(E,Lc),
+  (isWhere(E,_,Arg,Cond) ; E=Arg,Cond=name(Lc,"true")),
+  ptnVars(E,[],Vrs),
+  (Vrs=[Vr] -> unary(Lc,"some",Vr,Rhs) ; unary(Lc,"some",tuple(Lc,"()",Vrs),Rhs)),
+  genstr("Q",Nm),
+  unary(Lc,Nm,Arg,Lhs),
+  eqn(Lc,Lhs,Cond,Rhs,Eqn),
+  unary(Lc,Nm,name(Lc,"_"),Anon),
+  eqn(Lc,Anon,name(Lc,"true"),name(Lc,"none"),Deflt),
+  mkLetDef(Lc,[Eqn,Deflt],name(Lc,Nm),Fun),
+  unary(Lc,"_test",Fun,Bd).
 
 genBind(void,Lc,LL,RR,Bd) :-
   anonArg(Lc,A),
@@ -92,6 +117,39 @@ isRtn(T,Lc,R,E) :-
   isTuple(R,Lc,[Rh]).
 
 anonArg(Lc,tuple(Lc,"()",[name(Lc,"_")])).
+
+ptnVars(T,SoFar,Vrs) :-
+  isWhere(T,_,Lhs,Rhs),!,
+  ptnVars(Lhs,SoFar,V1),
+  condVars(Rhs,V1,Vrs).
+ptnVars(name(Lc,V),SoFar,Vrs) :-
+  is_member(name(_,V),SoFar) -> Vrs=SoFar ; Vrs = [name(Lc,V)|SoFar].
+ptnVars(app(_,_,Args),SoFar,Vrs) :-
+  ptnVars(Args,SoFar,Vrs).
+ptnVars(tuple(_,_,Els),SoFar,Vrs) :-
+  rfold(Els,macro:ptnVars,SoFar,Vrs).
+ptnVars(integer(_,_),Vrs,Vrs).
+ptnVars(float(_,_),Vrs,Vrs).
+ptnVars(string(_,_),Vrs,Vrs).
+
+condVars(C,V,Vx) :-
+  isBinary(C,_,"&&",L,R),!,
+  condVars(L,V,V0),
+  condVars(R,V0,Vx).
+condVars(C,V,Vx) :-
+  isBinary(C,_,"||",L,R),!,
+  condVars(L,V,V0),
+  condVars(R,V0,Vx).
+condVars(C,V,Vx) :-
+  isBinary(C,_,".=",L,_),!,
+  condVars(L,V,Vx).
+condVars(C,V,Vx) :-
+  isBinary(C,_,"^=",L,_),!,
+  condVars(L,V,Vx).
+condVars(C,V,Vx) :-
+  isBinary(C,_,"in",L,_),!,
+  condVars(L,V,Vx).
+condVars(_,V,V).
 
 mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   genIden(Lc,V), % create a new variable

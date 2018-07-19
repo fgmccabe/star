@@ -6,15 +6,16 @@
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
     isIntegrity/3,isShow/3,isOpen/3,
-    isConditional/5,isOfTerm/4,
-    isEquation/5,isDefn/4,isAssignment/4,
+    isConditional/5,conditional/5,isOfTerm/4,
+    isEquation/5,isDefn/4,isAssignment/4,eqn/5,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isParse/4,isNTLookAhead/3,
-    isLetDef/4,isMacroRule/4,
+    isLetDef/4,mkLetDef/4,isMacroRule/4,
     isCnCRule/4,isGiven/4,
     whereTerm/4,
     packageName/2,pkgName/2,
-    isComma/4,deComma/2,reComma/2]).
+    isComma/4,deComma/2,reComma/2,
+    findVars/3]).
 :- use_module(abstract).
 :- use_module(misc).
 
@@ -185,6 +186,10 @@ isConditional(Term,Lc,Cond,Th,El) :-
   isBinary(Term,Lc,"|",Lhs,El),
   isBinary(Lhs,_,"?",Cond,Th).
 
+conditional(Lc,Tst,Th,El,Cond) :-
+  binary(Lc,"?",Tst,Th,Lhs),
+  binary(Lc,"|",Lhs,El,Cond).
+
 isOfTerm(Term,Lc,Lbl,R) :-
   isBinary(Term,Lc,"of",Lbl,R),
   isSquareTuple(R,_,_),
@@ -193,6 +198,12 @@ isOfTerm(Term,Lc,Lbl,R) :-
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
+
+eqn(Lc,Lhs,name(_,"true"),Rhs,Eqn) :-!,
+  binary(Lc,"=>",Lhs,Rhs,Eqn).
+eqn(Lc,Args,Cond,Rhs,Eqn) :-
+  whereTerm(Lc,Args,Cond,Lhs),
+  binary(Lc,"=>",Lhs,Rhs,Eqn).
 
 isMacroRule(Trm,Lc,Lhs,Cond) :-
   isBinary(Trm,Lc,"==>",Lhs,Cond).
@@ -204,6 +215,10 @@ isLetDef(Trm,Lc,Body,Exp) :-
   isBinary(Trm,Lc,"in",app(_,name(_,"let"),Body),Exp),
   (isBraceTuple(Body,_,_);isQBraceTuple(Body,_,_)),!.
 
+mkLetDef(Lc,Els,Bnd,Let) :-
+  braceTerm(Lc,name(Lc,"let"),Els,Body),
+  binary(Lc,"in",Body,Bnd,Let).
+  
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).
 
@@ -298,3 +313,13 @@ isCnCRule(Rl,Lc,Hd,Body) :-
 
 isGiven(Prd,Lc,Hd,Args) :-
   isBinary(Prd,Lc,"given",Hd,Args).
+
+findVars(name(Lc,V),SoFar,Vrs) :-
+  is_member(name(_,V),SoFar) -> Vrs=SoFar ; Vrs = [name(Lc,V)|SoFar].
+findVars(app(_,_,Args),SoFar,Vrs) :-
+  findVars(Args,SoFar,Vrs).
+findVars(tuple(_,_,Els),SoFar,Vrs) :-
+  rfold(Els,wff:findVars,SoFar,Vrs).
+findVars(integer(_,_),Vrs,Vrs).
+findVars(float(_,_),Vrs,Vrs).
+findVars(string(_,_),Vrs,Vrs).

@@ -154,9 +154,9 @@
   {
     "infixOp": "<-",
     "priorities": [
-      974,
-      975,
-      974
+      924,
+      925,
+      924
     ],
     "desc": "variable bind"
   },
@@ -168,6 +168,14 @@
       999
     ],
     "desc": "Overall output from a parser rule"
+  },
+  {
+    "prefixOp": "^+",
+    "priorities": [
+      905,
+      904
+    ],
+    "desc": "look ahead parser operator"
   },
   {
     "infixOp": "->>",
@@ -844,16 +852,16 @@
   {
     "postfixOp": "*",
     "priorities": [
-      939,
-      940
+      699,
+      700
     ],
     "desc": "zero or more repetitions"
   },
   {
     "postfixOp": "+",
     "priorities": [
-      939,
-      940
+      699,
+      700
     ],
     "desc": "one or more repetitions"
   },

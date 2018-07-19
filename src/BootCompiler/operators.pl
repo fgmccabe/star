@@ -44,11 +44,11 @@
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
   operator("^^", [infixOp(999, 1000, 999)]).
   operator("%", [infixOp(700, 700, 699)]).
-  operator("<-", [infixOp(974, 975, 974)]).
+  operator("<-", [infixOp(924, 925, 924)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [prefixOp(905, 904)]).
-  operator("*", [postfixOp(939, 940), infixOp(700, 700, 699)]).
-  operator("+", [postfixOp(939, 940), infixOp(720, 720, 719)]).
+  operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
+  operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
@@ -99,6 +99,7 @@
   operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(974, 975, 974)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
+  operator("^+", [prefixOp(905, 904)]).
   operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(800, 800, 799)]).
@@ -192,6 +193,7 @@
   follows('~','~','~~').
   follows('~','>','~>').
   follows('\\','+','\\+').
+  follows('^','+','^+').
   follows('^','^','^^').
   follows('^','.','^.').
   follows('^','/','^/').
@@ -267,6 +269,7 @@
   final('\\+',"\\+").	 /* logical negation */
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Apply optional function and match result */
+  final('^+',"^+").	 /* look ahead parser operator */
   final('^^',"^^").	 /* Overall output from a parser rule */
   final('^.',"^.").	 /* optional object access */
   final('^/',"^/").	 /* filter */
