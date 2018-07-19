@@ -1,32 +1,36 @@
 star.parse{
   import star.
 
-  public all e,t ~~ parser[t,e] ::= parser((list[t])=>list[(e,list[t])]).
+  public all e,s ~~ parser[s,e] ::= parser((s)=>list[(e,s)]).
 
-  public parse:all e,t ~~ (parser[t,e],list[t]) => list[(e,list[t])].
+  public parse:all e,s,t ~~ stream[s->>t] |: (parser[s,e],s) => list[(e,s)].
   parse(parser(P),S) => P(S).
 
-  public _item:all t ~~ parser[t,t].
-  _item=let{
-    t([C,..L]) => [(C,L)].
-    t([]) => [].
-  } in parser(t).
+  pick:all s,t ~~ stream[s->>t] |: (s) => list[(t,s)].
+  pick([C,..L]) => [(C,L)].
+  pick([]) => [].
 
-  public hed:all e,t ~~ (parser[t,e])=>parser[t,e].
-  hed(P) => let{
+  public _item:all s,t ~~ stream[s->>t] |: parser[s,t].
+  _item=parser(pick).
+
+  public _hed:all e,t ~~ (parser[t,e])=>parser[t,e].
+  _hed(P) => let{
     hd([],_) => [].
     hd([(F,_),.._],S) => [(F,S)].
   } in parser((S)=>hd(parse(P,S),S)).
 
-  public sat:all t ~~ ((t)=>boolean) => parser[t,t].
-  sat(T) => _item >>= (Ch) => (T(Ch) ? return Ch | zed).
+  public _sat:all t ~~ ((t)=>boolean) => parser[t,t].
+  _sat(T) => _item >>= (Ch) => (T(Ch) ? return Ch | zed).
 
-  public tk:all t ~~ equality[t]|:(t)=>parser[t,t].
-  tk(Chr) => sat((Ch)=>Ch==Chr).
+  public _test:all p,t ~~ ((t)=>option[p]) => parser[t,p].
+  _test(P) => _item >>= (Ch) => (X^=P(Ch) ? return X | zed).
+
+  public _tk:all t ~~ equality[t]|:(t)=>parser[t,t].
+  _tk(Chr) => _sat((Ch)=>Ch==Chr).
 
   public _literal:all t ~~ equality[t] |: (list[t]) => parser[t,()].
   _literal([]) => return ().
-  _literal([Cx,..L]) => tk(Cx) >>= (_) => _literal(L).
+  _literal([Cx,..L]) => _tk(Cx) >>= (_) => _literal(L).
 
   public _ahead:all t,v ~~ (parser[t,v]) => parser[t,v].
   _ahead(P) => let{
@@ -34,13 +38,19 @@ star.parse{
     hd([(F,_),.._],S) => [(F,S)].
     } in parser((S)=>hd(parse(P,S),S)).
 
+  public _neg:all t,v ~~ (parser[t,v]) => parser[t,()].
+  _neg(P) => let{
+    ng([],S) => [((),S)].
+    ng([_,.._],S) => [].
+    } in parser((S)=>ng(parse(P,S),S)).
+
   public _str:(string) => parser[integer,()].
   _str(S) => _literal(S::list[integer]).
 
   public _pKy:all k ~~ (string,k)=>parser[integer,k].
   _pKy(K,V) => let{
     prs([]) => return V.
-    prs([Cx,..L]) => tk(Cx) >>= (_) => prs(L).
+    prs([Cx,..L]) => _tk(Cx) >>= (_) => prs(L).
   } in prs(K::list[integer]).
 
   public implementation all t ~~ monad[parser[t]] => {
@@ -62,6 +72,9 @@ star.parse{
   public implementation all t ~~ monadZero[parser[t]] => {
     zed = parser((_)=>[]).
   }
+
+  public _opt:all e,t ~~ (parser[t,e]) => parser[t,e].
+  _opt(P) => P +++ zed.
 
   public _star:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
   _star(P) => _plus(P) ++ return [].
@@ -97,16 +110,16 @@ star.parse{
   } in (P>>=(Z) => prs(Z)).
 
   public spaces:parser[integer,()].
-  spaces = _star(sat(isSpace)) >>= (_) => return ().
+  spaces = _star(_sat(isSpace)) >>= (_) => return ().
 
   public space:parser[integer,()].
-  space = sat(isSpace) >>= (_) => return ().
+  space = _sat(isSpace) >>= (_) => return ().
 
   public skip:all e ~~ (parser[integer,e])=>parser[integer,e].
   skip(P) => spaces >>= (_) => P.
 
   public digit:parser[integer,integer].
-  digit = sat(isDigit).
+  digit = _sat(isDigit).
 
   numeral:parser[integer,integer].
   numeral --> D<-digit ^^ digitVal(D).
@@ -118,14 +131,14 @@ star.parse{
   decimal --> natural || "-", N<-natural ^^ -N.
 
   public real:parser[integer,float].
-  real --> (M<-natural, (([0c.], F<-fraction(M::float,0.1), E<-exponent^^(F*E))
-             || []^^(M::float)))
-         || [0c-], N<-real ^^(-N).
+  real --> (M<-natural, ((".", F<-fraction(M::float,0.1), E<-exponent^^(F*E))
+             || ""^^(M::float)))
+         || "-", N<-real ^^(-N).
 
   fraction:(float,float) => parser[integer,float].
   fraction(SoFar,Scale) --> (D<-numeral, fraction(SoFar+Scale*(D::float),Scale*0.1))
-                        || []^^SoFar.
+                        || ""^^SoFar.
 
   exponent:parser[integer,float].
-  exponent --> [0ce], E<-decimal ^^ 10.0**(E::float).
+  exponent --> "e", E<-decimal ^^ 10.0**(E::float).
 }

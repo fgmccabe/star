@@ -329,45 +329,6 @@ showRule(Nm,equation(_,Args,Cond,Value),O,Ox) :-!,
   appStr(" => ",O5,O6),
   showCanonTerm(Value,O6,Ox).
 
-showCanonNT(apply(_,Op,Args),O,Ox) :-
-  showCanonTerm(Op,O,O1),
-  showCanonTerm(Args,O1,Ox).
-showCanonNT(where(_,Ptn,Cond),O,Ox) :-
-  showCanonNT(Ptn,O,O1),
-  showGuard(Cond,O1,Ox).
-showCanonNT(seq(_,L,R),O,Ox) :-
-  showCanonNT(L,O,O1),
-  appStr(" , ",O1,O2),
-  showCanonNT(R,O2,Ox).
-showCanonNT(disj(_,Either,Or),O,Ox) :-
-  appStr("(",O,O0),
-  showCanonNT(Either,O0,O1),
-  appStr(" || ",O1,O2),
-  showCanonNT(Or,O2,O3),
-  appStr(")",O3,Ox).
-showCanonNT(cond(_,Test,Either,Or),O,Ox) :-
-  appStr("(",O,O1),
-  showCanonNT(Test,O1,O2),
-  appStr("?",O2,O3),
-  showCanonNT(Either,O3,O4),
-  appStr(" | ",O4,O5),
-  showCanonNT(Or,O5,O6),
-  appStr(")",O6,Ox).
-showCanonNT(match(_,L,R),O,Ox) :-
-  showCanonTerm(L,O,O1),
-  appStr(" .= ",O1,O2),
-  showCanonNT(R,O2,Ox).
-showCanonNT(neg(_,R),O,Ox) :-
-  appStr("\\+ ",O,O1),
-  showCanonNT(R,O1,Ox).
-showCanonNT(lookahead(_,R),O,Ox) :-
-  appStr("+ ",O,O1),
-  showCanonNT(R,O1,Ox).
-showCanonNT(terms(_,T),O,Ox) :-
-  appStr("[",O,O1),
-  showTerms(T,O1,O2),
-  appStr("]",O2,Ox).
-
 showGuard(enm(_,"true"),O,O) :- !.
 showGuard(C,O,Ox) :-
   appStr(" where ",O,O1),

@@ -100,13 +100,17 @@ The elements of **CnC** are simple:
 
 We can codify our grandparent query into a rule as:
 ```
-grandparent(X,Y) <- (X,Z) in parents and (Z,Y) in parents
+grandparent(X,Y) :- (X,Z) in parents and (Z,Y) in parents
 ```
 or, probably more realistically:
 ```
-grandparent(X,Y) <- parent(X,Z) and parent(Z,Y).
-parent(A,B) <- (A,B) in parents.
+grandparent(X,Y) :- parent(X,Z) and parent(Z,Y).
+parent(A,B) :- (A,B) in parents.
 ```
+The `grandparent` rule states that:
+> for every `X`, `Y` and `Z` such that there is a fact of the form `parent(X,Z)` and there is a fact of the form `parent(Z,Y)`, then there must also be a fact of the form `grandparent(X,Y)`.
+
+The variables `X`, `Y` and `Z` are _placeholders_: they are not variables in the normal programming language sense. They stand for some unspecified individual; and, in this case, there is a `grandparent` fact for all possible ways of replacing the variables `X`, `Y` and `Z` with actual individuals in a way that satisfies the rule.[^One of the interesting restrictions in predicate logic is that there must be at least one individual: nothing can be said of an uninhabited world.]
 
 ### Assertions and facts
 An assertion is a statement that something is true -- i.e., it is a fact.

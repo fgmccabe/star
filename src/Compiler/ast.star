@@ -43,7 +43,7 @@ star.compiler.ast{
   dispAst(lit(_,Lt),_) => disp(Lt).
   dispAst(nme(_,Id),_) => dispId(Id).
   dispAst(tpl(_,Bk,Els),_) where bkt(Lft,_,Rgt,Inn)^=isBracket(Bk) =>
-    ssSeq([ss(Lft),ssSeq(Els//((E)=>dispAst(E,Inn))),ss(Rgt)]).
+    ssSeq([ss(Lft),ssSeq(interleave(Els//((E)=>dispAst(E,Inn)),ss(","))),ss(Rgt)]).
   dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr) where (Lf,P,Rg)^=isInfixOp(Op) =>
     ssSeq([leftPar(P,Pr),dispAst(L,Lf),ss(Op),dispAst(R,Rg),rightPar(P,Pr)]).
   dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPrefixOp(Op) =>
@@ -63,5 +63,18 @@ star.compiler.ast{
   rightPar:(integer,integer) => ss.
   rightPar(P,Pr) where P<Pr => ss(")").
   rightPar(_,_) default => ss("").
+
+  public implementation hasLoc[ast] => {.
+    locOf(nme(Lc,_)) => Lc.
+    locOf(lit(Lc,_)) => Lc.
+    locOf(tpl(Lc,_,_)) => Lc.
+    locOf(app(Lc,_,_)) => Lc.
+  .}
+
+  public unary:(locn,ast,ast) => ast.
+  unary(Lc,Op,Arg) => app(Lc,Op,tpl(locOf(Arg),"()",[Arg])).
+
+  public binary:(locn,ast,ast,ast) => ast.
+  binary(Lc,Op,L,R) => app(Lc,Op,tpl(mergeLoc(locOf(L),locOf(R)),"()",[L,R])).
 
 }

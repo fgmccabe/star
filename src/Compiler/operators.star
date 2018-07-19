@@ -61,11 +61,11 @@ star.compiler.operators{
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
   oper("^^") => [infixOp(999,1000,999)].
   oper("%") => [infixOp(700,700,699)].
-  oper("<-") => [infixOp(974,975,974)].
+  oper("<-") => [infixOp(924,925,924)].
   oper(".>>>.") => [infixOp(600,600,599)].
   oper("\\+") => [prefixOp(905,904)].
-  oper("*") => [postfixOp(939,940), infixOp(700,700,699)].
-  oper("+") => [postfixOp(939,940), infixOp(720,720,719)].
+  oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
+  oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
   oper(".>>.") => [infixOp(600,600,599)].
   oper(",") => [infixOp(999,1000,1000)].
   oper("contract") => [prefixOp(1260,1259)].
@@ -116,6 +116,7 @@ star.compiler.operators{
   oper("+++") => [infixOp(719,720,720)].
   oper(":=") => [infixOp(974,975,974)].
   oper(".<<.") => [infixOp(600,600,599)].
+  oper("^+") => [prefixOp(905,904)].
   oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
   oper("^/") => [infixOp(800,800,799)].
@@ -150,6 +151,12 @@ star.compiler.operators{
   isBracket(")$") => some(bkt("$(","$()$",")$",2000)).
   isBracket("$()$") => some(bkt("$(","$()$",")$",2000)).
   isBracket(_) default => none.
+
+  public isLeftBracket:(string) => boolean.
+  isLeftBracket(S) => bkt(S,_,_,_) ^= isBracket(S).
+
+  public isRightBracket:(string) => boolean.
+  isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
 
   public follows:(string,integer) => option[string].
     follows("",0c%) => some("%").
@@ -223,6 +230,7 @@ star.compiler.operators{
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
   follows("\\",0c+) => some("\\+").
+  follows("^",0c+) => some("^+").
   follows("^",0c^) => some("^^").
   follows("^",0c.) => some("^.").
   follows("^",0c/) => some("^/").
@@ -299,6 +307,7 @@ star.compiler.operators{
   final("\\+") => true.  /* logical negation */
   final("]") => true.  /* square brackets */
   final("^") => true.  /* Apply optional function and match result */
+  final("^+") => true.  /* look ahead parser operator */
   final("^^") => true.  /* Overall output from a parser rule */
   final("^.") => true.  /* optional object access */
   final("^/") => true.  /* filter */
