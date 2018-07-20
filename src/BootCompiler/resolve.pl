@@ -43,10 +43,10 @@ overloadEquation(Extra,equation(Lc,Args,Cond,Exp),Dict,equation(Lc,RArgs,RCond,R
   resolveTerm(Exp,Dict,RExp).
 
 % These are used when resolving lambdas only. A lambda cannot introduce any dictionary variables
-overloadRule(equation(Lc,Args,Cond,Exp),Dict,equation(Lc,RArgs,RCond,RExp)) :-
-  resolveTerm(Args,Dict,RArgs),
-  resolveTerm(Cond,Dict,RCond),
-  resolveTerm(Exp,Dict,RExp).
+overloadRule(equation(Lc,Args,Cond,Exp),Dict,St,Stx,equation(Lc,RArgs,RCond,RExp)) :-
+  overloadTerm(Args,Dict,St,St0,RArgs),
+  overloadTerm(Cond,Dict,St0,St1,RCond),
+  overloadTerm(Exp,Dict,St1,Stx,RExp).
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
@@ -226,6 +226,7 @@ overloadOthers(Other,Dict,OOthers) :-
 overloadOther(assertion(Lc,Cond),Dict,assertion(Lc,RCond)) :-
   resolveTerm(Cond,Dict,RCond).
 overloadOther(show(Lc,Exp),Dict,show(Lc,RExp)) :-
+  dispCanonTerm(Exp),
   resolveTerm(Exp,Dict,RExp).
 
 overloadEnum(Lc,Nm,Tp,[],Rules,Dict,enum(Lc,Nm,Tp,[],ORules)) :-

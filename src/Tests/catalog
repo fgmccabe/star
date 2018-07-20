@@ -8,6 +8,7 @@
 		"test.c" : "c.star",
 		"test.cc" : "cc.star",
 		"test.cmd" : "cmd.star",
+		"test.cstream" : "cstr.star",
 	  "test.d" : "d.star",
 		"test.e" : "e.star",
 		"test.f" : "f.star",
