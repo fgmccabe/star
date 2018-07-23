@@ -49,6 +49,12 @@ star.strings{
     _coerce(S) => S.
   }
 
+  public implementation stream[string->>integer] => {.
+    _eof(S) => S=="".
+    _hdtl(S) where _str_len(S)>0 => some(())
+
+  .}
+
   public isDigit:(integer)=>boolean.
   isDigit(D) => _isNdChar(D).
 

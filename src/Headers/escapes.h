@@ -261,6 +261,10 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_str_reverse,True,False,"F(S)S","Unicode reverse of string")
   escape(_str_start,True,False,"F(SS)l","True if second string starts with first")
   escape(_str_multicat,True,False,"F(LS)S","Concatenate a list of strings into one")
+  escape(_str_hdtl,True,False,"F(S)(iS)","pick up the first character and return remainder")
+  escape(_str_back,True,False,"F(S)(Si)","pick up the last character and return remainder")
+  escape(_str_cons,True,False,"F(iS)S","put a char in the front")
+  escape(_str_apnd,True,False,"F(Si)S","put a char in the back")
 
   escape(_getenv,True,False,"F(SS)S","get an environment variable")
   escape(_setenv,True,False,"F(SS)"sysRet,"set an environment variable")
