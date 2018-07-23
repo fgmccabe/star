@@ -1,5 +1,13 @@
 test.cstream{
   import star.
 
-  show disp([0]:list[_])::string.
+  aa = ([0]:list[_]).
+
+  bb = disp(aa).
+
+  cc = bb::string.
+
+  -- show cc.
+
+  -- show disp([0]:list[_])::string.
 }

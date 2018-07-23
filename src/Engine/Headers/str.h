@@ -23,6 +23,8 @@ static inline logical isString(termPo p) {
 
 extern const char *stringVal(termPo o, integer *size);
 
+extern integer stringLength(stringPo str);
+
 extern integer stringHash(stringPo str);
 
 extern stringPo allocateString(heapPo H, const char *txt, long length);

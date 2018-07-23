@@ -154,6 +154,10 @@ integer stringHash(stringPo str) {
   return str->hash;
 }
 
+integer stringLength(stringPo str){
+  return str->length;
+}
+
 retCode processString(stringPo str, charProc p, void *cl) {
   retCode ret = Ok;
   integer ix = 0;
