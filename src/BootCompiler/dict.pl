@@ -3,8 +3,8 @@
     declareVar/4,declareEnum/6,
     mkVr/3,isVar/3,hasType/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
-    declareImplementation/4,getImplementations/3,allImplements/3,
-    declareConstraint/3,allConstraints/2,getConstraints/3,
+    declareImplementation/5,getImplementations/3,
+    declareConstraint/3,allConstraints/2,getEnvConstraints/4,
     processNames/3,processTypes/3,
     pushScope/2,pushFace/4,makeKey/2,stdDict/1]).
 
@@ -77,52 +77,42 @@ getContract(Nm,Env,Con) :-
 contractInD(Ky,[scope(_,_,_,_,Cons)|_],Con) :- get_dict(Ky,Cons,Con),!.
 contractInD(Key,[_|Env],Con) :- contractInD(Key,Env,Con).
 
+declareConstraint(C,E,Ev) :- C=conTract(Nm,_Args,_Deps),!,
+  implementationName(C,ImpNm),
+  declareImplementation(Nm,ImpNm,contractExists(C,voidType),E,Ev).
 declareConstraint(Con,[scope(Types,Nms,Cns,Impl,Cons)|Outer],[scope(Types,Nms,[Con|Cns],Impl,Cons)|Outer]).
 
-getConstraints(E,B,C) :-
-  length(E,L1),
-  length(B,L2),
-  Count is L1-L2,
-  collectConstraints(E,Count,[],C).
+getEnvConstraints([],_,Cx,Cx).
+getEnvConstraints([scope(_,_,Cns,_,_)|Ev],T,C,Cx) :-
+  collectConstraints(Cns,T,C,C0),
+  getEnvConstraints(Ev,T,C0,Cx).
 
-collectConstraints(_,0,C,C).
-collectConstraints([],_,C,C).
-collectConstraints([scope(_,_,Cns,_,_)|E],Cnt,C,Cx) :-
-  concat(Cns,C,C0),
-  Cnt1 is Cnt-1,
-  collectConstraints(E,Cnt1,C0,Cx).
+collectConstraints([],_,Cx,Cx).
+collectConstraints([C|Cs],T,[C|C0],Cx) :-
+  call(T,C),!,
+  collectConstraints(Cs,T,C0,Cx).
+collectConstraints([_|Cs],T,C,Cx) :-
+  collectConstraints(Cs,T,C,Cx).
 
 allConstraints([],[]).
 allConstraints([scope(_,_,Cns,_,_)|Env],All) :-
   allConstraints(Env,Outer),
   concat(Cns,Outer,All).
 
-allImplements(T,Env,Face) :-
-  allImplements(T,Env,Env,[],Face).
-
-allImplements(T,[scope(_,_,Cns,_,_)|Outer],Env,SoFar,Face) :-
-  filterImplements(Cns,T,Env,SoFar,I0),
-  allImplements(T,Outer,Env,I0,Face).
-allImplements(_,[],_,Face,Face).
-
-filterImplements([],_,_,F,F).
-filterImplements([implementsFace(V,Fields)|Cns],VV,Env,F,Face) :-
-  deRef(V,VV),
-  concat(Fields,F,F0),
-  filterImplements(Cns,VV,Env,F0,Face).
-
-declareImplementation(Con,Impl,[scope(Types,Nms,Cns,I,Cons)|Outer],[scope(Types,Nms,Cns,I1,Cons)|Outer]) :-
+declareImplementation(Con,ImplNm,Impl,[scope(Types,Nms,Cns,I,Cons)|Outer],[scope(Types,Nms,Cns,I1,Cons)|Outer]) :-
   makeKey(Con,Key),
-  (get_dict(Key,I,Impls) -> put_dict(Key,I,[Impl|Impls],I1); put_dict(Key,I,[Impl],I1)).
+  (get_dict(Key,I,Impls) -> put_dict(Key,I,[(ImplNm,Impl)|Impls],I1); put_dict(Key,I,[(ImplNm,Impl)],I1)).
 
 getImplementations(Nm,Env,Impls) :-
-  marker(conTract,M),
-  pathSuffix(Nm,M,Id),
-  makeKey(Id,Key),
-  implInD(Key,Env,Impls).
+  makeKey(Nm,Key),
+  implInD(Key,Env,Impls,[]).
 
-implInD(Ky,[scope(_,_,_,Impls,_)|_],I) :- get_dict(Ky,Impls,I),!.
-implInD(Key,[_|Env],Con) :- implInD(Key,Env,Con).
+implInD(Ky,[scope(_,_,_,Impls,_)|Env],Im,Ix) :-
+  get_dict(Ky,Impls,I),!,
+  concat(I,I1,Im),
+  implInD(Ky,Env,I1,Ix).
+implInD(Key,[_|Env],Im,Ix) :- implInD(Key,Env,Im,Ix).
+implInD(_,[],Ix,Ix).
 
 pushScope(Env,[scope(types{},vars{},[],impls{},contracts{})|Env]).
 

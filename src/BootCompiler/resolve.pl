@@ -142,12 +142,15 @@ overloadTerm(apply(Lc,Op,Args),Dict,St,Stx,apply(Lc,ROp,RArgs)) :-
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,Cx),Dict,St,Stx,Over) :-
   ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
-      overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
-      (NArgs=[] -> Over = OverOp ; Over = apply(Lc,OverOp,tple(Lc,NArgs))),
-      markResolved(St0,Stx) ;
+      (St0\=active(_,_) ->
+        overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
+        (NArgs=[] -> Over = OverOp ; Over = apply(Lc,OverOp,tple(Lc,NArgs))),
+        markResolved(St0,Stx) ;
+      Stx=St0,
+      Over=over(Lc,T,Cx));
       genMsg("cannot find implementation for contracts %s",[Cx],Msg),
       markActive(St,Lc,Msg,Stx),
-      Over = T).
+      Over = over(Lc,T,Cx)).
 overloadTerm(mtd(Lc,Nm),_,St,Stx,mtd(Lc,Nm)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
