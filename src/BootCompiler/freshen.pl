@@ -105,13 +105,22 @@ frshn(contractExists(Con,Tp),E,B,Ex,contractExists(FCon,FTp)) :-
 frshnConstraint(Con,_,[],_,Con) :- !.
 frshnConstraint(conTract(Nm,Args,Deps),E,B,Ex,conTract(Nm,FArgs,FDeps)) :-
   rewriteTypes(Args,E,B,Ex,FArgs),
-  rewriteTypes(Deps,E,B,Ex,FDeps).
+  rewriteTypes(Deps,E,B,Ex,FDeps),
+  bindConstraints(FArgs,conTract(Nm,FArgs,FDeps)).
 frshnConstraint(implementsFace(Tp,Face),E,B,Ex,implementsFace(FTp,FFace)) :-
   rewriteType(Tp,E,B,Ex,FTp),
-  rewriteType(Face,E,B,Ex,FFace).
+  rewriteType(Face,E,B,Ex,FFace),
+  bindConstraints([FTp],implementsFace(FTp,FFace)).
 frshnConstraint(constrained(C1,C2),E,B,Ex,constrained(FC1,FC2)) :-
   frshnConstraint(C1,E,B,Ex,FC1),
   frshnConstraint(C2,E,B,Ex,FC2).
+
+bindConstraints([],_) :-!.
+bindConstraints([V|A],C) :- isUnbound(V),!,
+  addConstraint(V,C),
+  bindConstraints(A,C).
+bindConstraints([_|A],C) :-
+  bindConstraints(A,C).
 
 frshnFields([],_,_,_,[]).
 frshnFields([(Nm,A)|L],E,B,Ex,[(Nm,FA)|FL]) :-

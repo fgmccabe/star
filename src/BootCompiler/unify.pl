@@ -1,5 +1,5 @@
-:- module(unify,[sameType/3,smList/3,faceOfType/3,sameContract/3,subFace/3,
-    simplifyType/5]).
+:- module(unify,[sameType/3,idenType/3,faceOfType/3,sameContract/3,subFace/3,
+    simplifyType/5,checkConstraint/2]).
 
 :- use_module(misc).
 :- use_module(dict).
@@ -59,18 +59,10 @@ sm(allType(kFun(K1,Ar),T1),allType(kFun(K2,Ar),T2),Env) :-
   sameType(T1,TT2,Env).
 
 varBinding(T1,T2,_) :- isIdenticalVar(T1,T2),!.
-varBinding(T1,T2,_) :-
-  bind(T1,T2).
+varBinding(T1,T2,Env) :-
+  bind(T1,T2,Env).
 
 sameLength(L1,L2) :- length(L1,L), length(L2,L).
-
-mergeConstraints(C2,C1,Env) :- var(C2),!, copyConstraints(C2,C1,Env).
-mergeConstraints([C|R],C1,Env) :- var(C),!, copyConstraints([C|R],C1,Env).
-mergeConstraints([_,R],C1,Env) :- mergeConstraints(R,C1,Env).
-
-copyConstraints(_,C,_) :- var(C),!.
-copyConstraints(_,[C|_],_) :- var(C),!.
-copyConstraints([C|M],[C|R],Env) :- copyConstraints(M,R,Env).
 
 sameContract(conTract(Nm,A1,D1),conTract(Nm,A2,D2),Env) :-
   smpTps(A1,Env,[],_,AA1),
@@ -151,6 +143,57 @@ mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- is_member((Nm,STp),SoFar),!,
   mergeFields(R,Env,SoFar,Face).
 mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- mergeFields(R,Env,[(Nm,Tp)|SoFar],Face).
 
+
+idenType(T1,T2,Env) :- deRef(T1,Tp1), deRef(T2,Tp2), id(Tp1,Tp2,Env), !.
+
+id(_,anonType,_).
+id(anonType,_,_).
+id(voidType,voidType,_).
+id(thisType,thisType,_) :-!.
+id(thisType,T2,Env) :- isVar("this",Env,vrEntry(_,_,T1,_)),!,
+  idenType(T1,T2,Env).
+id(T1,thisType,Env) :- isVar("this",Env,vrEntry(_,_,T2,_)),!,
+  idenType(T1,T2,Env).
+id(kVar(Nm),kVar(Nm),_).
+id(kFun(Nm,Ar),kFun(Nm,Ar),_).
+id(V1,V2,_) :- isUnbound(V1), isUnbound(V2), isIdenticalVar(V1,V2).
+id(type(Nm),type(Nm),_).
+id(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
+id(tpExp(O1,A1),T2,Env) :-
+  isTypeFun(O1,Args,Env,OO),!,
+  applyTypeFn(OO,[A1|Args],Env,[],_,T1),
+  idenType(T1,T2,Env).
+id(T1,tpExp(O2,A2),Env) :-
+  isTypeFun(O2,Args,Env,OO),!,
+  applyTypeFn(OO,[A2|Args],Env,[],_,T2),
+  idenType(T1,T2,Env).
+id(tpExp(O1,A1),tpExp(O2,A2),Env) :- idenType(O1,O2,Env),idenType(A1,A2,Env).
+id(refType(A1),refType(A2),Env) :- idenType(A1,A2,Env).
+id(tupleType(A1),tupleType(A2),Env) :- idList(A1,A2,Env).
+id(funType(A1,R1),funType(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
+id(typeLambda(A1,R1),typeLambda(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
+id(consType(A1,R1),consType(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A1,A2,Env).
+id(faceType(E1,T1),faceType(E2,T2),Env) :- sameLength(E1,E2),
+    sameLength(T1,T2),
+    idFields(E1,E2,Env),
+    idFields(T1,T2,Env).
+id(existType(K,T1),existType(K,T2),Env) :-
+  idenType(T1,T2,Env).
+id(existType(kFun(K1,Ar),T1),existType(kFun(K2,Ar),T2),Env) :-
+  rewriteType(T2,Env,[(K2,kFun(K1,Ar))],[],TT2),
+  idenType(T1,TT2,Env).
+id(allType(K,T1),allType(K,T2),Env) :-!,
+  idenType(T1,T2,Env).
+id(allType(kVar(K1),T1),allType(kVar(K2),T2),Env) :-
+  rewriteType(T2,Env,[(K2,kVar(K1))],[],TT2),
+  idenType(T1,TT2,Env).
+
+idList([],[],_).
+idList([E1|L1],[E2|L2],Env) :- idenType(E1,E2,Env), idList(L1,L2,Env).
+
+idFields(_,[],_).
+idFields(L1,[(F2,E2)|L2],Env) :- is_member((F2,E1),L1), idenType(E1,E2,Env), idFields(L1,L2,Env).
+
 simplifyType(T,Env,C,Cx,Tp) :-
   deRef(T,TT),!,
   smpTp(TT,Env,C,Cx,Tp).
@@ -168,8 +211,7 @@ smpTp(tpExp(O,A),Env,C,Cx,tpExp(OO,As)) :-
   simplifyType(A,Env,C0,Cx,As).
 smpTp(kVar(V),_,C,C,kVar(V)).
 smpTp(kFun(V,Ar),_,C,C,kFun(V,Ar)).
-smpTp(tVar(Vx,Nm,Id),_,Cx,Cx,tVar(Vx,Nm,Id)).
-smpTp(tFun(Vx,Nm,Ar,Id),_,Cx,Cx,tFun(Vx,Nm,Ar,Id)).
+smpTp(V,_,Cx,Cx,V) :- isUnbound(V),!.
 smpTp(tpFun(Id,Ar),_,Cx,Cx,tpFun(Id,Ar)).
 smpTp(refType(T),Env,C,Cx,refType(Tp)) :-
   simplifyType(T,Env,C,Cx,Tp).
@@ -234,3 +276,57 @@ smpCon(conTract(Nm,L,R),Env,C,Cx,conTract(Nm,Ls,Rs)) :-
 smpCon(implementsFace(L,R),Env,C,Cx,implementsFace(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
   smpFldTps(R,Env,C0,Cx,Rs).
+
+bind(tVar(Curr,Con,Nm,Id),Tp,Env) :- !,
+  \+occursIn(tVar(Curr,Con,Nm,Id),Tp),
+  Curr=Tp,
+  (varConstraints(Tp,Env,Cx) ->
+    mergeConstraints(Con,Cx,Env) ;
+    checkConstraints(Con,Env)).
+bind(tFun(Curr,Con,Nm,Ar,Id),Tp,Env) :-
+  \+occursIn(tFun(Curr,Con,Nm,Ar,Id),Tp),
+  Curr=Tp,
+  (varConstraints(Tp,Env,Cx) ->
+    mergeConstraints(Con,Cx,Env) ;
+    checkConstraints(Con,Env)).
+
+mergeConstraints(Cx,Cy,_Env) :- var(Cx),!, Cx=Cy.
+mergeConstraints([Cx|Xs],Y,Env) :- mergeConstraint(Cx,Y,Env), mergeConstraints(Xs,Y,Env).
+
+mergeConstraint(C,Y,_Env) :- var(Y),!,Y=[C|_].
+mergeConstraint(conTract(Nm,X,XDps),[conTract(Nm,Y,YDps)|_],Env) :-!,
+  sameContract(conTract(Nm,X,XDps),conTract(Nm,Y,YDps),Env).
+mergeConstraint(Cx,[_|Y],Env) :- !, % TODO: handle merging implementsFace more gracefully
+  mergeConstraint(Cx,Y,Env).
+
+checkConstraints(Cx,_Env) :- var(Cx),!.
+checkConstraints([C|Cx],Env) :- checkConstraint(C,Env), checkConstraints(Cx,Env).
+
+checkConstraint(conTract(Nm,Args,Deps),Env) :-
+  (implementationName(conTract(Nm,Args,Deps),ImplNm) ->
+    getImplementations(Nm,Env,_Impls) ; 
+    true).
+
+occursIn(TV,Tp) :- deRef(Tp,DTp),
+  \+ isIdenticalVar(TV,DTp),
+  (TV = tVar(_,_,_,Id) -> occIn(Id,DTp); TV=tFun(_,_,_,_,Id), occIn(Id,DTp)),!.
+
+occIn(Id,tVar(_,_,_,Id)) :-!.
+occIn(Id,tVar(Curr,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
+occIn(Id,tFun(_,_,_,_,Id)) :-!.
+occIn(Id,tFun(Curr,_,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
+occIn(Id,tpExp(O,_)) :- occIn(Id,O),!.
+occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
+occIn(Id,refType(I)) :- occIn(Id,I).
+occIn(Id,tupleType(L)) :- is_member(A,L), occIn(Id,A).
+occIn(Id,funType(A,_)) :- occIn(Id,A).
+occIn(Id,funType(_,R)) :- occIn(Id,R).
+occIn(Id,consType(L,_)) :- occIn(Id,L).
+occIn(Id,consType(_,R)) :- occIn(Id,R).
+occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
+occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
+occIn(Id,typeLambda(_,R)) :- occIn(Id,R).
+occIn(Id,existType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
+occIn(Id,allType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
+occIn(Id,faceType(L,_)) :- is_member((_,A),L), occIn(Id,A),!.
+occIn(Id,faceType(_,T)) :- is_member((_,A),T), occIn(Id,A),!.

@@ -26,12 +26,11 @@ checkProgram(Prog,Pkg,Repo,
   isBraceTerm(Prog,Lc,_,Els),
   pushScope(Base,Env),
   Pkg = pkg(Pk,_),
-  thetaEnv(Pk,Repo,Lc,Els,faceType([],[]),Env,OEnv,Defs,Public,Imports,Others),
+  thetaEnv(Pk,Repo,Lc,Els,faceType([],[]),Env,_OEnv,Defs,Public,Imports,Others),
   findImportedImplementations(Imports,[],OverDict),
   overload(Defs,OverDict,ODict,ODefs),
   overloadOthers(Others,ODict,OOthers),
-  computeExport(ODefs,faceType([],[]),Public,Exports,Types,Cons,Impls),
-  dischargeConstraints(Base,OEnv),!.
+  computeExport(ODefs,faceType([],[]),Public,Exports,Types,Cons,Impls),!.
 
 thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   macroRewrite(Els,Stmts),
@@ -77,10 +76,11 @@ findImport(St,Lc,Viz,import(Viz,Pkg)) :-
 importAll(Imports,Repo,AllImports) :-
   closure(Imports,[],checker:notAlreadyImported,checker:importMore(Repo),AllImports).
 
-importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,_,_),Lc,E,Ex) :-
+importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,Impls,_),Lc,E,Evx) :-
   importTypes(Types,Lc,E,E1),
   declareImportedFields(Exported,Pkg,Enums,Lc,E1,E2),
-  importContracts(Cons,Lc,E2,Ex).
+  importContracts(Cons,Lc,E2,E3),
+  importImplementations(Impls,E3,Evx).
 
 declareImportedFields([],_,_,_,Env,Env).
 declareImportedFields([(Nm,Tp)|More],Pkg,Enums,Lc,Env,Ex) :-
@@ -136,6 +136,16 @@ findImportedImplementations([import(_,_,_,_,_,Impls)|Specs],D,OverDict) :-
   rfold(Impls,checker:declImpl,D,D1),
   findImportedImplementations(Specs,D1,OverDict).
 findImportedImplementations([],D,D).
+
+declImpl(imp(ImplNm,Spec),SoFar,[(ImplNm,Spec)|SoFar]).
+
+importImplementations(Impls,Ev,Evx) :-
+  rfold(Impls,checker:declImplementation,Ev,Evx).
+
+declImplementation(imp(ImplNm,Spec),Ev,Evx) :-
+  marker(over,Mrk),
+  splitLocalName(ImplNm,Mrk,Nm,_),
+  declareImplementation(Nm,ImplNm,Spec,Ev,Evx).
 
 checkOthers([],[],_,_).
 checkOthers([St|Stmts],Ass,Env,Path) :-
@@ -315,8 +325,7 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   typeOfArgPtn(A,AT,Env,E0,Args,Path),
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(C,LogicalTp,E0,E1,Cond,Path),
-  typeOfExp(R,RT,E1,E2,Exp,Path),
-  dischargeConstraints(E,E2),
+  typeOfExp(R,RT,E1,_E2,Exp,Path),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[equation(Lc,Args,Cond,Exp)|Dfx]; Defs=[equation(Lc,Args,Cond,Exp)|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
@@ -324,15 +333,13 @@ checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
 checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E),
-  typeOfExp(R,Tp,E,E2,Value,Path),
-  dischargeConstraints(E,E2),
+  typeOfExp(R,Tp,E,_E2,Value,Path),
   packageVarName(Path,Nm,ExtNm).
 
 checkVarDefn(Lc,L,R,ref(Tp),vdefn(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E1),
-  typeOfExp(R,Tp,E1,E2,Value,Path),
-  dischargeConstraints(Env,E2),
+  typeOfExp(R,Tp,E1,_E2,Value,Path),
   packageVarName(Path,Nm,ExtNm).
 
 checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
@@ -344,8 +351,7 @@ checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   declareConstraints(Cx,E0,BaseEnv),
   declareVr(Lc,"this",ETp,Face,BaseEnv,ThEnv),
   thetaEnv(Path,nullRepo,Lc,Els,Face,ThEnv,OEnv,Defs,Public,_Imports,Others),
-  computeExport(Defs,Face,Public,_,Types,[],[]),
-  dischargeConstraints(Env,OEnv).
+  computeExport(Defs,Face,Public,_,Types,[],[]),!.
 
 checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   evidence(Tp,Env,Q,ETp),
@@ -356,8 +362,7 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   declareConstraints(Cx,E0,BaseEnv),
   declareVr(Lc,"this",Tp,Face,BaseEnv,ThEnv),
   recordEnv(Path,nullRepo,Lc,Els,CFace,ThEnv,OEnv,Defs,Public,_Imports,Others),
-  computeExport(Defs,CFace,Public,_,Types,[],[]),
-  dischargeConstraints(Env,OEnv).
+  computeExport(Defs,CFace,Public,_,Types,[],[]),!.
 
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,Defs,Others,Types,Tp),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
@@ -410,12 +415,11 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   moveConstraints(CnSpec,AC,contractExists(Spec,IFace)),
   declareTypeVars(IQ,Lc,Env,ThEnv),
   implementationName(Spec,ImplName),
-  typeOfExp(IBody,IFace,ThEnv,ThEv,ImplTerm,ImplName),
+  typeOfExp(IBody,IFace,ThEnv,_ThEv,ImplTerm,ImplName),
   Impl = implDef(Lc,INm,ImplName,ConSpec),
   rfold(IQ,checker:pickBoundType,IFace,ImplTp),
   ImplDef = varDef(Lc,INm,ImplName,AC,ImplTp,ImplTerm),
-  declareImplementation(Nm,Impl,Env,Ex),
-  dischargeConstraints(Env,ThEv),!.
+  declareImplementation(Nm,ImplName,Impl,Env,Ex),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement",[Lc]).
@@ -426,8 +430,6 @@ sameLength(L1,L2,_) :- length(L1,L), length(L2,L),!.
 sameLength(L1,_,Lc) :-
   length(L1,L),
   reportError("expecting %s elements",[L],Lc).
-
-declImpl(imp(ImplNm,Spec),SoFar,[(ImplNm,Spec)|SoFar]).
 
 % Patterns are very similarly checked to expressions, except that fewer forms
 typeOfArgPtn(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
@@ -464,7 +466,7 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   isTypeAnnotation(Term,Lc,L,R),!,
   parseType(R,Env,RT),
   checkType(Lc,RT,Tp,Env),
-  typeOfPtn(L,RT,Env,Ev,Exp,Path).
+  typeOfPtn(L,Tp,Env,Ev,Exp,Path).
 typeOfPtn(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),
   typeOfPtn(L,Tp,Env,E0,Ptn,Path),
@@ -489,10 +491,8 @@ typeOfPtn(Term,Tp,Env,Ev,Ptn,Path) :-
   typeOfPtn(Trm,Tp,Env,Ev,Ptn,Path).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
-  newTypeVar("F",FnTp),
   newTypeVar("A",At),
-  typeOfKnown(F,FnTp,Env,E0,Fun,Path),
-  sameType(consType(At,Tp),FnTp,E0),
+  typeOfKnown(F,consType(At,Tp),Env,E0,Fun,Path),
   evidence(At,E0,_,AT),
   typeOfArgPtn(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
   Exp = apply(Lc,Fun,Args).
@@ -674,12 +674,24 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
   typeOfKnown(F,FnTp,Env,E0,Fun,Path),
   simplifyType(FnTp,Env,_,[],FTp),
   evidence(At,E0,_,AT),
-  typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
   (sameType(funType(At,Tp),FTp,E0) ->
-   Exp = apply(Lc,Fun,Args) ;
+    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+    Exp = apply(Lc,Fun,Args) ;
   sameType(consType(At,Tp),FTp,E0) ->
-   Exp = apply(Lc,Fun,Args);
+    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+    Exp = apply(Lc,Fun,Args);
   reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc)).
+
+
+  % typeOfKnown(F,FnTp,Env,E0,Fun,Path),
+  % simplifyType(FnTp,Env,_,[],FTp),
+  % evidence(At,E0,_,AT),
+  % typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
+  % (sameType(funType(At,Tp),FTp,E0) ->
+  %  Exp = apply(Lc,Fun,Args) ;
+  % sameType(consType(At,Tp),FTp,E0) ->
+  %  Exp = apply(Lc,Fun,Args);
+  % reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc)).
 
 typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
   newTypeVar("_A",AT),
@@ -887,12 +899,3 @@ isPublicType(Nm,Public) :-
 
 isPublicContract(conDef(Nm,_,_),Public) :-
   is_member(con(Nm),Public),!.
-
-dischargeConstraints(Base,Env) :-
-  getConstraints(Env,Base,Cons),
-  discharge(Cons,Env).
-
-discharge([],_).
-discharge([C|Cx],Env) :-
-  checkConstraint(C,Env),
-  discharge(Cx,Env).

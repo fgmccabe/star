@@ -3,7 +3,7 @@ star.parse{
 
   public all e,s ~~ parser[s,e] ::= parser((s)=>list[(e,s)]).
 
-  public parse:all e,s,t ~~ stream[s->>t] |: (parser[s,e],s) => list[(e,s)].
+  public parse:all e,s ~~ (parser[s,e],s) => list[(e,s)].
   parse(parser(P),S) => P(S).
 
   pick:all s,t ~~ stream[s->>t] |: (s) => list[(t,s)].

@@ -8,6 +8,7 @@
 #include <array.h>
 #include <assert.h>
 #include <tpl.h>
+#include <globals.h>
 #include "stringops.h"
 #include "arithmetic.h"
 
@@ -239,6 +240,91 @@ ReturnStatus g__sub_str(processPo p, ptrPo tos) {
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), buff, count)};
   return rt;
+}
+
+ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
+  stringPo src = C_STR(tos[0]);
+  integer len = stringLength(src);
+  char str[len + 1];
+  copyString2Buff(src, str, len + 1);
+  heapPo H = processHeap(p);
+
+  integer offset = 0;
+  codePoint ch;
+  retCode ret = nxtPoint(str, &offset, len, &ch);
+
+  if (ret == Ok) {
+    intPo chCode = allocateInteger(H, ch);
+    int mark = gcAddRoot(H, (ptrPo) &chCode);
+    stringPo rest = allocateString(H, &str[offset], len - offset);
+    gcAddRoot(H, (ptrPo) &rest);
+    normalPo pair = allocateTpl(H, 2);
+    setArg(pair, 0, (termPo) chCode);
+    setArg(pair, 1, (termPo) rest);
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) pair};
+    gcReleaseRoot(H, mark);
+    return rt;
+  } else {
+    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    return rt;
+  }
+}
+
+ReturnStatus g__str_cons(processPo p, ptrPo tos) {
+  integer ch = integerVal(tos[0]);
+  stringPo src = C_STR(tos[1]);
+  integer len = stringLength(src);
+  integer offset = 0;
+  char str[len + 16];
+  appendCodePoint(str, &offset, len + 16, (codePoint) ch);
+  retCode ret = copyString2Buff(src, &str[offset], len + 16);
+  heapPo H = processHeap(p);
+
+  ReturnStatus rt = {.ret=ret, .rslt=(termPo) allocateString(processHeap(p), str, offset + len)};
+  return rt;
+}
+
+ReturnStatus g__str_apnd(processPo p, ptrPo tos) {
+  integer ch = integerVal(tos[1]);
+  stringPo src = C_STR(tos[0]);
+  integer len = stringLength(src);
+  integer offset = len;
+  char str[len + 16];
+  copyString2Buff(src, str, len + 16);
+  heapPo H = processHeap(p);
+
+  retCode ret = appendCodePoint(str, &offset, len + 16, (codePoint) integerVal(tos[0]));
+
+  ReturnStatus rt = {.ret=ret, .rslt=(termPo) allocateString(processHeap(p), str, offset)};
+  return rt;
+}
+
+ReturnStatus g__str_back(processPo p, ptrPo tos) {
+  stringPo src = C_STR(tos[0]);
+  integer len = stringLength(src);
+  char str[len + 1];
+  copyString2Buff(src, str, len + 1);
+  heapPo H = processHeap(p);
+
+  integer offset = len;
+  codePoint ch;
+  retCode ret = prevPoint(str, &offset, &ch);
+
+  if (ret == Ok) {
+    intPo chCode = allocateInteger(H, ch);
+    int mark = gcAddRoot(H, (ptrPo) &chCode);
+    stringPo rest = allocateString(H, str, offset);
+    gcAddRoot(H, (ptrPo) &rest);
+    normalPo pair = allocateTpl(H, 2);
+    setArg(pair, 0, (termPo) rest);
+    setArg(pair, 1, (termPo) chCode);
+    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) pair};
+    gcReleaseRoot(H, mark);
+    return rt;
+  } else {
+    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    return rt;
+  }
 }
 
 ReturnStatus g__str_split(processPo p, ptrPo tos) {

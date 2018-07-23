@@ -1,11 +1,11 @@
-:- module(types,[isType/1,isConType/1,isConstraint/1,
+:- module(types,[isType/1,isConType/1,isConstraint/1,varConstraints/3,addConstraint/2,
       newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
       progTypeArity/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
       isFunctionType/1,isFunctionType/2,isCnsType/2,
       isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
-      occursIn/2,isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
-      bind/2, moveQuants/3,reQuantTps/3,
+      isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
+      moveQuants/3,reQuantTps/3,
       moveConstraints/3,moveConstraints/4, implementationName/2,
       stdType/3]).
 :- use_module(misc).
@@ -14,8 +14,8 @@ isType(anonType).
 isType(voidType).
 isType(thisType).
 isType(kVar(_)).
-isType(tVar(_,_,_)).
-isType(tFun(_,_,_,_)).
+isType(tVar(_,_,_,_)).
+isType(tFun(_,_,_,_,_)).
 isType(type(_)).
 isType(tpExp(_,_)).
 isType(refType(_)).
@@ -36,56 +36,43 @@ isConType(allType(_,T)) :- isConType(T).
 isConType(existType(_,T)) :- isConType(T).
 isConType(constrained(T,_)) :- isConType(T).
 
-% the _ in unb(_) is to work around issues with SWI-Prolog's assignment.
-newTypeVar(Nm,tVar(_,Nm,Id)) :- gensym("_#",Id).
-newTypeFun(Nm,Ar,tFun(_,Nm,Ar,Id)) :- gensym(Nm,Id).
+newTypeVar(Nm,tVar(_,_,Nm,Id)) :- gensym("_#",Id).
+newTypeFun(Nm,Ar,tFun(_,_,Nm,Ar,Id)) :- gensym(Nm,Id).
+
+varConstraints(tVar(_,Con,_,_),_,Con) :-!.
+varConstraints(tFun(_,Con,_,_,_),_,Con) :- !.
+varConstraints(kVar(Id),Env,Con) :- !,
+  getEnvConstraints(Env,types:isKCon(kVar(Id)),Con,_).
+varConstraints(kFun(Id,Ar),Env,Con) :- !,
+  getEnvConstraints(Env,types:isKCon(kFun(Id,Ar)),Con,_).
+
+isKCon(K,_) :- fail.
+
+addConstraint(tVar(_,Cx,_,_),Con) :- !, safeAdd(Cx,Con).
+addConstraint(tFun(_,Cx,_,_,_),Con) :- safeAdd(Cx,Con).
+
+safeAdd(Cx,Con) :- var(Cx),!,Cx=[Con|_].
+safeAdd([_|Cx],Con) :- safeAdd(Cx,Con).
 
 skolemVar(Nm,kVar(Id)) :- genstr(Nm,Id).
 
 skolemFun(Nm,0,kVar(Id)) :- !,genstr(Nm,Id).
 skolemFun(Nm,Ar,kFun(Id,Ar)) :- genstr(Nm,Id).
 
-deRef(tVar(Curr,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
-deRef(tFun(Curr,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
+deRef(tVar(Curr,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
+deRef(tFun(Curr,_,_,_,_),Tp) :- nonvar(Curr), !, deRef(Curr,Tp),!.
 deRef(T,T).
 
-isIdenticalVar(tVar(_,_,Id),tVar(_,_,Id)).
-isIdenticalVar(tFun(_,_,Ar,Id),tFun(_,_,Ar,Id)).
+isIdenticalVar(tVar(_,_,_,Id),tVar(_,_,_,Id)).
+isIdenticalVar(tFun(_,_,_,Ar,Id),tFun(_,_,_,Ar,Id)).
 isIdenticalVar(kVar(Id),kVar(Id)).
 isIdenticalVar(kFun(Id,Ar),kFun(Id,Ar)).
 
-isUnbound(T) :- deRef(T,Tp), (Tp=tVar(Curr,_,_),var(Curr) ; Tp=tFun(Curr,_,_,_),var(Curr)).
+isUnbound(T) :- deRef(T,Tp), (Tp=tVar(Curr,_,_,_),var(Curr) ; Tp=tFun(Curr,_,_,_,_),var(Curr)).
 
-isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,Ar,_)).
+isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,_,Ar,_)).
 
-isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_),TV\=tFun(_,_,_,_).
-
-bind(tVar(Curr,Nm,Id),Tp) :- !, \+occursIn(tVar(Curr,Nm,Id),Tp), Curr=Tp.
-bind(tFun(Curr,Nm,Ar,Id),Tp) :- \+occursIn(tFun(Curr,Nm,Ar,Id),Tp), Curr=Tp.
-
-occursIn(TV,Tp) :- deRef(Tp,DTp),
-  \+ isIdenticalVar(TV,DTp),
-  (TV = tVar(_,_,Id) -> occIn(Id,DTp); TV=tFun(_,_,_,Id), occIn(Id,DTp)),!.
-
-occIn(Id,tVar(_,_,Id)) :-!.
-occIn(Id,tVar(Curr,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
-occIn(Id,tFun(_,_,_,Id)) :-!.
-occIn(Id,tFun(Curr,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
-occIn(Id,tpExp(O,_)) :- occIn(Id,O),!.
-occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
-occIn(Id,refType(I)) :- occIn(Id,I).
-occIn(Id,tupleType(L)) :- is_member(A,L), occIn(Id,A).
-occIn(Id,funType(A,_)) :- occIn(Id,A).
-occIn(Id,funType(_,R)) :- occIn(Id,R).
-occIn(Id,consType(L,_)) :- occIn(Id,L).
-occIn(Id,consType(_,R)) :- occIn(Id,R).
-occIn(Id,constrained(Tp,Con)) :- occIn(Id,Con) ; occIn(Id,Tp).
-occIn(Id,typeLambda(A,_)) :- occIn(Id,A).
-occIn(Id,typeLambda(_,R)) :- occIn(Id,R).
-occIn(Id,existType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
-occIn(Id,allType(V,Tp)) :- V\=kVar(Id),occIn(Id,Tp).
-occIn(Id,faceType(L,_)) :- is_member((_,A),L), occIn(Id,A),!.
-occIn(Id,faceType(_,T)) :- is_member((_,A),T), occIn(Id,A),!.
+isBound(T) :- deRef(T,TV), TV\=tVar(_,_,_,_),TV\=tFun(_,_,_,_,_).
 
 moveQuants(allType(B,Tp),[B|Q],Tmpl) :- !,
   moveQuants(Tp,Q,Tmpl).
@@ -116,10 +103,10 @@ showType(voidType,O,Ox) :- appStr("void",O,Ox).
 showType(thisType,O,Ox) :- appStr("this",O,Ox).
 showType(kVar(Nm),O,Ox) :- appStr(Nm,O,Ox).
 showType(kFun(Nm,Ar),O,Ox) :- appStr(Nm,O,O1),appStr("/",O1,O2),appInt(Ar,O2,Ox).
-showType(tVar(Curr,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
-showType(tVar(_,Nm,Id),O,Ox) :- appStr("%",O,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
-showType(tFun(Curr,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
-showType(tFun(_,_Nm,Ar,Id),O,Ox) :- appStr("%",O,O1),appStr(Id,O1,O2),appStr("/",O2,O3),appInt(Ar,O3,Ox).
+showType(tVar(Curr,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
+showType(tVar(_,_Cons,Nm,Id),O,Ox) :- /*showVarConstraints(Cons,O,O0),*/appStr("%",O,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
+showType(tFun(Curr,_,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
+showType(tFun(_,_,_Nm,Ar,Id),O,Ox) :- appStr("%",O,O1),appStr(Id,O1,O2),appStr("/",O2,O3),appInt(Ar,O3,Ox).
 showType(type(Nm),O,Ox) :- appStr(Nm,O,Ox).
 showType(tpFun(Nm,Ar),O,Ox) :- appStr(Nm,O,O1),appStr("%",O1,O2),appInt(Ar,O2,Ox).
 showType(tpExp(Nm,A),O,Ox) :- showTypeExp(tpExp(Nm,A),O,Ox).
@@ -178,6 +165,12 @@ showConstraint(constrained(Con,Extra),O,Ox) :-
   appStr("|:",O1,O2),
   showConstraint(Con,O2,Ox).
 
+showVarConstraints(C,O,O) :- var(C),!.
+showVarConstraints([C|Cx],O,Ox) :-
+  showConstraint(C,O,O1),
+  appStr(",:",O1,O2),
+  showVarConstraints(Cx,O2,Ox).
+
 showBound(Nm,O,Ox) :- showType(Nm,O,Ox).
 
 showTypeEls([],O,O).
@@ -210,7 +203,7 @@ typeArity(Tp,Ar) :- deRef(Tp,T), tArity(T,Ar).
 tArity(type(_),0).
 tArity(kFun(_,Ar),Ar).
 tArity(kVar(_),0).
-tArity(tFun(_,_,Ar,_),Ar).
+tArity(tFun(_,_,_,Ar,_),Ar).
 tArity(tpExp(Op,_),Ar) :-
   typeArity(Op,A1),
   Ar is A1-1.

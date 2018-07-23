@@ -1,7 +1,7 @@
 test.p0{
   import star.
 
-  public all e,s ~~ parser[s,e] ::= parser((s)=>list[(e,s)]).
+  public all el,st ~~ parser[st,el] ::= parser((st)=>list[(el,st)]).
 
   public parse:all e,s ~~ (parser[s,e],s) => list[(e,s)].
   parse(parser(P),S) => P(S).

@@ -105,7 +105,7 @@ fieldInFace(Fields,Nm,_,_,Tp) :-
 fieldInFace(_,Nm,RcTp,Lc,anonType) :-
   reportError("type %s not declared in %s",[Nm,RcTp],Lc).
 
-parseTypeName(_,"_",_,_,C,C,anonType).
+parseTypeName(_,"_",_,_,C,C,Tp) :- newTypeVar("_",Tp).
 parseTypeName(_,"void",_,_,C,C,voidType).
 parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
