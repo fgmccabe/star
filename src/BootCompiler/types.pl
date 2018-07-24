@@ -46,7 +46,7 @@ varConstraints(kVar(Id),Env,Con) :- !,
 varConstraints(kFun(Id,Ar),Env,Con) :- !,
   getEnvConstraints(Env,types:isKCon(kFun(Id,Ar)),Con,_).
 
-isKCon(K,_) :- fail.
+isKCon(K,conTract(_,A,_)) :- is_member(K,A).
 
 addConstraint(tVar(_,Cx,_,_),Con) :- !, safeAdd(Cx,Con).
 addConstraint(tFun(_,Cx,_,_,_),Con) :- safeAdd(Cx,Con).

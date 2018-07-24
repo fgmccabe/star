@@ -196,6 +196,10 @@ star.comp.escapes{
   escapeType("_str_reverse") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_str_start") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
   escapeType("_str_multicat") => tpExp(tpExp(tpFun("->",2),tupleType([tpExp(tpFun("star.core*list",1),tipe("star.core*string"))])),tipe("star.core*string")).
+  escapeType("_str_hdtl") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tupleType([tipe("star.core*integer"),tipe("star.core*string")])).
+  escapeType("_str_back") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tupleType([tipe("star.core*string"),tipe("star.core*integer")])).
+  escapeType("_str_cons") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*string")])),tipe("star.core*string")).
+  escapeType("_str_apnd") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.core*string")).
   escapeType("_getenv") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_setenv") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
   escapeType("_envir") => tpExp(tpExp(tpFun("->",2),tupleType([])),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))).
@@ -406,6 +410,10 @@ star.comp.escapes{
   isEscape("_str_reverse") => true.
   isEscape("_str_start") => true.
   isEscape("_str_multicat") => true.
+  isEscape("_str_hdtl") => true.
+  isEscape("_str_back") => true.
+  isEscape("_str_cons") => true.
+  isEscape("_str_apnd") => true.
   isEscape("_getenv") => true.
   isEscape("_setenv") => true.
   isEscape("_envir") => true.

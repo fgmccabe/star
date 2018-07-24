@@ -51,8 +51,16 @@ star.strings{
 
   public implementation stream[string->>integer] => {.
     _eof(S) => S=="".
-    _hdtl(S) where _str_len(S)>0 => some(())
+    _hdtl(S) where _str_len(S)>0 => some(_str_hdtl(S)).
+    _hdtl("") => none.
 
+    _back("") => none.
+    _back(S) => some(_str_back(S)).
+
+    _cons(C,S) => _str_cons(C,S).
+
+    _apnd(S,C) => _str_apnd(S,C).
+    _nil = "".
   .}
 
   public isDigit:(integer)=>boolean.
