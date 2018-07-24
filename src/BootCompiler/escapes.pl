@@ -193,6 +193,10 @@ escapeType("_str_concat",funType(tupleType([type("star.core*string"),type("star.
 escapeType("_str_reverse",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_start",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_multicat",funType(tupleType([tpExp(tpFun("star.core*list",1),type("star.core*string"))]),type("star.core*string"))).
+escapeType("_str_hdtl",funType(tupleType([type("star.core*string")]),tupleType([type("star.core*integer"),type("star.core*string")]))).
+escapeType("_str_back",funType(tupleType([type("star.core*string")]),tupleType([type("star.core*string"),type("star.core*integer")]))).
+escapeType("_str_cons",funType(tupleType([type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
+escapeType("_str_apnd",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("_getenv",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_setenv",funType(tupleType([type("star.core*string"),type("star.core*string")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_envir",funType(tupleType([]),tpExp(tpFun("star.core*list",1),tupleType([type("star.core*string"),type("star.core*string")])))).
@@ -401,6 +405,10 @@ isEscape("_str_concat").
 isEscape("_str_reverse").
 isEscape("_str_start").
 isEscape("_str_multicat").
+isEscape("_str_hdtl").
+isEscape("_str_back").
+isEscape("_str_cons").
+isEscape("_str_apnd").
 isEscape("_getenv").
 isEscape("_setenv").
 isEscape("_envir").
