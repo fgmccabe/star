@@ -187,7 +187,8 @@ showEntries([(Ky,Vl)|M],O,Ox) :-
   showEntries(M,O4,Ox).
 
 showImports(L,O,Ox) :-
-  listShow(L,canon:showImport,misc:appNl,O,Ox).
+  listShow(L,canon:showImport,misc:appNl,O,O1),
+  appNl(O1,Ox).
 
 showImport(import(Viz,Pkg,_,_,_,_),O,Ox) :-
   showVisibility(Viz,O,O0),

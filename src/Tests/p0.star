@@ -13,5 +13,11 @@ test.p0{
   public _item:all s,u ~~ stream[s->>u] |: parser[s,u].
   _item=parser(pick).
 
-  show disp(parse(_item,([0]:list[integer])))::string.
+  aa = parse(_item,([0]:list[integer])).
+
+  bb = disp(aa).
+
+  show bb::string.
+
+  -- show disp(parse(_item,([0]:list[integer])))::string.
 }

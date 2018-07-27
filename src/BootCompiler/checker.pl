@@ -419,7 +419,7 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   Impl = implDef(Lc,INm,ImplName,ConSpec),
   rfold(IQ,checker:pickBoundType,IFace,ImplTp),
   ImplDef = varDef(Lc,INm,ImplName,AC,ImplTp,ImplTerm),
-  declareImplementation(Nm,ImplName,Impl,Env,Ex),!.
+  declareImplementation(Nm,ImplName,ConSpec,Env,Ex),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement",[Lc]).

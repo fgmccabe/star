@@ -51,7 +51,7 @@ star.strings{
 
   public implementation stream[string->>integer] => {.
     _eof(S) => S=="".
-    _hdtl(S) where _str_len(S)>0 => some(_str_hdtl(S)).
+    _hdtl(S) default => some(_str_hdtl(S)).
     _hdtl("") => none.
 
     _back("") => none.

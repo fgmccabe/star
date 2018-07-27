@@ -3,8 +3,8 @@
     declareVar/4,declareEnum/6,
     mkVr/3,isVar/3,hasType/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
-    declareImplementation/5,getImplementations/3,
-    declareConstraint/3,allConstraints/2,getEnvConstraints/4,
+    declareImplementation/5,getImplementations/3,getImplementation/4,
+    declareConstraint/3,allConstraints/2,
     processNames/3,processTypes/3,
     pushScope/2,pushFace/4,makeKey/2,stdDict/1]).
 
@@ -82,18 +82,6 @@ declareConstraint(C,E,Ev) :- C=conTract(Nm,_Args,_Deps),!,
   declareImplementation(Nm,ImpNm,contractExists(C,voidType),E,Ev).
 declareConstraint(Con,[scope(Types,Nms,Cns,Impl,Cons)|Outer],[scope(Types,Nms,[Con|Cns],Impl,Cons)|Outer]).
 
-getEnvConstraints([],_,Cx,Cx).
-getEnvConstraints([scope(_,_,Cns,_,_)|Ev],T,C,Cx) :-
-  collectConstraints(Cns,T,C,C0),
-  getEnvConstraints(Ev,T,C0,Cx).
-
-collectConstraints([],_,Cx,Cx).
-collectConstraints([C|Cs],T,[C|C0],Cx) :-
-  call(T,C),!,
-  collectConstraints(Cs,T,C0,Cx).
-collectConstraints([_|Cs],T,C,Cx) :-
-  collectConstraints(Cs,T,C,Cx).
-
 allConstraints([],[]).
 allConstraints([scope(_,_,Cns,_,_)|Env],All) :-
   allConstraints(Env,Outer),
@@ -113,6 +101,16 @@ implInD(Ky,[scope(_,_,_,Impls,_)|Env],Im,Ix) :-
   implInD(Ky,Env,I1,Ix).
 implInD(Key,[_|Env],Im,Ix) :- implInD(Key,Env,Im,Ix).
 implInD(_,[],Ix,Ix).
+
+getImplementation(Nm,ImplNm,Env,Impl) :-
+  makeKey(Nm,Key),
+  implInDct(Key,ImplNm,Env,Impl).
+
+implInDct(Ky,ImplNm,[scope(_,_,_,Impls,_)|_],Im) :-
+  get_dict(Ky,Impls,I),
+  is_member((ImplNm,Im),I),!.
+implInDct(Key,ImplNm,[_|Env],Im) :-
+  implInDct(Key,ImplNm,Env,Im).
 
 pushScope(Env,[scope(types{},vars{},[],impls{},contracts{})|Env]).
 

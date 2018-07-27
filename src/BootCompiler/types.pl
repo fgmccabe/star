@@ -48,6 +48,19 @@ varConstraints(kFun(Id,Ar),Env,Con) :- !,
 
 isKCon(K,conTract(_,A,_)) :- is_member(K,A).
 
+
+getEnvConstraints([],_,Cx,Cx).
+getEnvConstraints([scope(_,_,Cns,_,_)|Ev],T,C,Cx) :-
+  collectConstraints(Cns,T,C,C0),
+  getEnvConstraints(Ev,T,C0,Cx).
+
+collectConstraints([],_,Cx,Cx).
+collectConstraints([C|Cs],T,[C|C0],Cx) :-
+  call(T,C),!,
+  collectConstraints(Cs,T,C0,Cx).
+collectConstraints([_|Cs],T,C,Cx) :-
+  collectConstraints(Cs,T,C,Cx).
+
 addConstraint(tVar(_,Cx,_,_),Con) :- !, safeAdd(Cx,Con).
 addConstraint(tFun(_,Cx,_,_,_),Con) :- safeAdd(Cx,Con).
 
