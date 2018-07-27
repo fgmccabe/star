@@ -128,34 +128,51 @@ overloadTerm(neg(Lc,T),Dict,St,Stx,neg(Lc,RT)) :-
 overloadTerm(match(Lc,L,R),Dict,St,Stx,match(Lc,RL,RR)) :-
   overloadTerm(L,Dict,St,St0,RL),
   overloadTerm(R,Dict,St0,Stx,RR).
-overloadTerm(apply(ALc,over(Lc,T,Cx),Args),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs))) :-
+overloadTerm(apply(ALc,over(Lc,T,IsFn,Cx),Args),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs))) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
   (St0\=active(_,_) ->
     markResolved(St0,St1),
     overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
     overloadRef(Lc,T,DTerms,RArgs,OverOp,NArgs) ;
     Stx=St0,
-    OverOp = over(Lc,T,Cx),
+    OverOp = over(Lc,T,IsFn,Cx),
     NArgs = Args).
 overloadTerm(apply(Lc,Op,Args),Dict,St,Stx,apply(Lc,ROp,RArgs)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
-overloadTerm(over(Lc,T,Cx),Dict,St,Stx,Over) :-
+overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
   ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
       (St0\=active(_,_) ->
         overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
-        (NArgs=[] -> Over = OverOp ; Over = apply(Lc,OverOp,tple(Lc,NArgs))),
+        overApply(Lc,OverOp,NArgs,IsFn,Over),
         markResolved(St0,Stx) ;
       Stx=St0,
-      Over=over(Lc,T,Cx));
+      Over=over(Lc,T,IsFn,Cx));
       genMsg("cannot find implementation for contracts %s",[Cx],Msg),
       markActive(St,Lc,Msg,Stx),
-      Over = over(Lc,T,Cx)).
+      Over = over(Lc,T,IsFn,Cx)).
 overloadTerm(mtd(Lc,Nm),_,St,Stx,mtd(Lc,Nm)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Rls,Tp),Dict,St,Stx,lambda(Lc,ORls,Tp)) :-
   overloadLst(Rls,resolve:overloadRule,Dict,St,Stx,ORls).
+
+overApply(_,OverOp,[],_,OverOp) :-!.
+overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args))) :- \+isProgramType(Tp),!.
+overApply(Lc,OverOp,Args,Tp,Lam) :-
+  curryOver(Lc,OverOp,Args,Tp,Lam).
+
+curryOver(Lc,OverOp,Cx,Tp,lambda(Lc,[equation(Lc,tple(Lc,Args),enm(Lc,"true"),apply(Lc,OverOp,tple(Lc,NArgs)))],Tp)) :-
+  progTypeArity(Tp,Ar),
+  genVrs(Ar,Lc,Args),
+  concat(Cx,Args,NArgs).
+
+genVrs(0,_,[]).
+genVrs(Ix,Lc,[v(Lc,Id)|Vrs]) :-
+  genstr("_",Id),
+  Ix1 is Ix-1,
+  genVrs(Ix1,Lc,Vrs).
+
 
 overloadLst([],_,_,St,St,[]):-!.
 overloadLst([T|L],C,D,St,Stx,[RT|RL]) :-
