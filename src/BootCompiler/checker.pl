@@ -662,7 +662,7 @@ typeOfExp(Term,Tp,Env,Env,void,_) :-
   locOfAst(Term,Lc),
   reportError("illegal expression: %s, expecting a %s",[Term,Tp],Lc).
 
-funLbl(over(_,T,_),L) :- funLbl(T,L).
+funLbl(over(_,T,_,_),L) :- funLbl(T,L).
 funLbl(v(_,L),L).
 funLbl(cns(_,Nm),Nm).
 funLbl(enm(_,Nm),Nm).

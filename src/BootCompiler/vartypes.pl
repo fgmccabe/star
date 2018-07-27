@@ -21,7 +21,8 @@ manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Env,Ev,Exp
 manageConstraints(constrained(Tp,Con),Cons,Lc,V,MTp,Env,Ev,Exp) :- !,
   manageConstraints(Tp,[Con|Cons],Lc,V,MTp,Env,Ev,Exp).
 manageConstraints(Tp,[],_,V,Tp,Env,Env,V) :- !.
-manageConstraints(T,RCons,Lc,V,Tp,Env,Env,over(Lc,V,Cons)) :- reverse(RCons,Cons),
+manageConstraints(T,RCons,Lc,V,Tp,Env,Env,over(Lc,V,Tp,Cons)) :-
+  reverse(RCons,Cons),
   simplifyType(T,Env,_,[],Tp). % no constraints possible here
 
 checkType(_,Actual,Expected,Env) :-

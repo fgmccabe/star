@@ -12,7 +12,7 @@
 
 isCanon(prog(_,_,_,_,_)).
 isCanon(v(_,_)).
-isCanon(over(_,_,_)).
+isCanon(over(_,_,_,_)).
 isCanon(mtd(_,_)).
 isCanon(intLit(_)).
 isCanon(floatLit(_)).
@@ -131,7 +131,7 @@ showCanonTerm(tple(_,Els),O,Ox) :-
 showCanonTerm(mtd(_,Nm,_),O,Ox) :-
   appStr("°",O,O1),
   appStr(Nm,O1,Ox).
-showCanonTerm(over(_,V,Cons),O,Ox) :-
+showCanonTerm(over(_,V,_,Cons),O,Ox) :-
   showConstraints(Cons,O,O1),
   showCanonTerm(V,O1,Ox).
 showCanonTerm(where(_,Ptn,Cond),O,Ox) :-
