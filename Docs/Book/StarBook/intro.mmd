@@ -22,6 +22,12 @@ When the code base is over 500 Kloc, the theoretical probability of being able t
 
 The need to repurpose reflects the fact that requirements change and that software written for one purpose may be used for something different. Finally, even if the requirements dont change, the context almost certainly will: increasing workload can lead to a need to refactor existing code to enable it to meet changing needs.
 
+There is another kind of change that we need to consider: the evolution of our programming languages and other tools. A successful programming language is part of an ecosystem. That ecosystem consists of the language itself, together with compilers and related tools. It also contains libraries, frameworks and packages. In many cases the libraries that are associated with a language are far more important than the language compiler (e.g., Java's package ecosystem is enormous).
+
+A well designed language is capable of supporting a large variety of libraries without running into limitations. Furthermore, a well designed language is structured in a way that supports its own evolution -- new requirements can lead to new features being added to the language.
+
+>Managing this evolution may be the hardest aspect of designing programming languages!
+
 ### Programming safely and effectively
 
 At the same time, safety and security are also critical: no-one likes to have their private information exposed to the bad guys. Most main-stream programming languages were designed in an era when safety was not uppermost in programmers’ minds -- usually it was performance. Some seemingly trivial design choices -- such as C’s conventions for laying out strings in memory -- turn out to have potentially devastating security implications.
@@ -92,7 +98,7 @@ However, the converse does not follow: just because the world is stateful does n
 
 Overall, the primary rationale in the design of **Star** is to empower the programmer in making obviously correct programs.
 
-### technology
+### Technology
 
 The technology platform that programs are written for is also changing. Just a few decades ago most computers were single-core; nowadays most computers are multi-core and are capable of significant parallelism.
 

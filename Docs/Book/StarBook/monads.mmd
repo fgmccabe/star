@@ -57,19 +57,34 @@ So, instead of simply defining a function whose job it is to parse a string, we 
 
 Our final relaxation is to move away from parsing strings to parsing sequences. The resulting type signature for the `A` grammar parser looks like:
 ```
-A:parser[integer,()].
+A:parser[string,()].
 ```
 which is intended to be read as:
->A is a parser from sequences of integer (aka characters) and which returns the empty tuple.
+>A is a parser from strings and which returns the empty tuple.
 We can use the parser by calling the standard `parse` function with `A`:
 ```
-parse(A,"a"::list[integer])
+parse(A,"a")
 ```
 The `parse` function applies the parser defined by `A` to the stream constructed by converting the string to a list of integers.
 
 The type signature for `parse` explains more-or-less what will happen:
 ```
-public parse:all e,s,t ~~ stream[s->>t] |: (parser[t,e],s) => list[(e,s)]
+public parse:all e,s ~~ (parser[s,e],s) => list[(e,s)]
+```
+The return value from invoking `parse` is a list of alternative parses: each alternative is a combination of the result of the parse itself (often a parse tree) and the so-called remainder stream (what is remaining of the input after a parse). If the returned value from `parse` is empty; then that means that it was not possible to parse the input stream.
+
+The `parser` type itself is a little reminiscent of the standard `option` type; except that it wraps a function rather than an arbitrary value:
+```
+public parser[s,e] ::= parser((s)=>list[(e,s)]).
+```
+
+Given this set up, we can now go ahead and define the parser for our super-small language `A`:
+```
+A = _item >>= (Ch) => (Ch==0ca ? (0ca)
+```
+This states that the only way of parsing an element of the `A` language is to encounter the literal character `a`. The `_tk` function is a part of the standard grammar package for **Star**. It is implemented:
+```
+
 ```
 
 ## A different kind of sequence
