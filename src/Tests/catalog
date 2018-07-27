@@ -34,6 +34,7 @@
 		"test.compose" : "compose.star",
 		"test.r" : "r.star",
 		"test.s" : "s.star",
+		"test.st" : "st.star",
 		"test.t" : "t.star",
 		"test.u" : "u.star"
 	},

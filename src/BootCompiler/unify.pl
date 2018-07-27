@@ -304,8 +304,15 @@ checkConstraints([C|Cx],Env) :- checkConstraint(C,Env), checkConstraints(Cx,Env)
 
 checkConstraint(conTract(Nm,Args,Deps),Env) :-
   (implementationName(conTract(Nm,Args,Deps),ImplNm) ->
-    getImplementations(Nm,Env,_Impls) ; 
+    (getImplementation(Nm,ImplNm,Env,Impl) ->
+      freshen(Impl,Env,_,ImplCon),
+      getConstrainedContract(ImplCon,Con),
+      sameContract(Con,conTract(Nm,Args,Deps),Env);
+      true);
     true).
+
+getConstrainedContract(constrained(C,_),Con) :- getConstrainedContract(C,Con).
+getConstrainedContract(contractExists(Con,_),Con).
 
 occursIn(TV,Tp) :- deRef(Tp,DTp),
   \+ isIdenticalVar(TV,DTp),
