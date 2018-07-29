@@ -1,8 +1,12 @@
-_tk_tktkstar.p1{
+test.p1{
   import star.
   import star.parse.
 
-  p:parser[integer,(integer,integer)].
+  a:parser[list[integer],integer].
+  a = _item.
+  -- a = _item >>= (C) => return C.
+
+  p:parser[list[integer],(integer,integer)].
   p = _item >>= (C) =>
       _item >>= (_) =>
       _item >>= (D) =>
@@ -10,7 +14,7 @@ _tk_tktkstar.p1{
 
   assert parse(p,[1,2,3]) == [((1,3),[])].
 
-  q:parser[integer,()].
+  q:parser[list[integer],()].
   q = _tk(0c() >>= (_) => _tk(0c)) >>= (_) => return ().
 
   listMem:all e ~~ equality[e] |: (e,list[e])=>boolean.
@@ -31,29 +35,29 @@ _tk_tktkstar.p1{
 
   assert listMem((([(),()]),[0cb]),parse(_star(_str("a")),"aab"::list[integer])).
 
-  symb:(string)=>parser[integer,()].
+  symb:(string)=>parser[list[integer],()].
   symb(S) => _str(S).
 
   -- Simple expression parser
-  expr : parser[integer,integer].
+  expr : parser[list[integer],integer].
   expr = chainl1(term,addop).
 
-  term: parser[integer,integer].
+  term: parser[list[integer],integer].
   term = chainl1(factor,mulop).
 
-  factor:parser[integer,integer].
+  factor:parser[list[integer],integer].
   factor = decimal +++ (symb("(") >>= (_) => expr >>= (F) => symb(")") >>= (_) => return F).
 
-  addop: parser[integer,(integer,integer)=>integer].
+  addop: parser[list[integer],(integer,integer)=>integer].
   addop = (symb("+") >>= (_) => return (+)) +++ (symb("-") >>= (_) => return (-)).
 
-  mulop:parser[integer,(integer,integer)=>integer].
+  mulop:parser[list[integer],(integer,integer)=>integer].
   mulop = (symb("*") >>= (_) => return (*)) +++ (symb("/") >>= (_) => return (/)).
 
-  decimal:parser[integer,integer].
+  decimal:parser[list[integer],integer].
   decimal = skip(digit) >>= (D) => return (D-0c0).
 
-  digit:parser[integer,integer].
+  digit:parser[list[integer],integer].
   digit = _sat(isDigit).
 
   assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])].

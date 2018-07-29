@@ -81,7 +81,7 @@ isIdenticalVar(tFun(_,_,_,Ar,Id),tFun(_,_,_,Ar,Id)).
 isIdenticalVar(kVar(Id),kVar(Id)).
 isIdenticalVar(kFun(Id,Ar),kFun(Id,Ar)).
 
-isUnbound(T) :- deRef(T,Tp), (Tp=tVar(Curr,_,_,_),var(Curr) ; Tp=tFun(Curr,_,_,_,_),var(Curr)).
+isUnbound(T) :- deRef(T,Tp), (Tp=tVar(Curr,_,_,_),!,var(Curr) ; Tp=tFun(Curr,_,_,_,_),!,var(Curr)).
 
 isUnboundFVar(T,Ar) :- deRef(T,tFun(_,_,_,Ar,_)).
 
@@ -141,11 +141,13 @@ showType(constrained(Tp,Con),O,Ox) :- showConstraint(Con,O,O1), showMoreConstrai
 showTypeExp(tpExp(tpFun("{}",1),Arg),O,Ox) :-!,
   showType(Arg,O,O1),
   appStr("{}",O1,Ox).
-showTypeExp(Tp,O,Ox) :-
+showTypeExp(T,O,Ox) :-
+  deRef(T,Tp),
   showTpExp(Tp,_,O,O1),
   appStr("]",O1,Ox).
 
-showTpExp(tpExp(Op,A),",",O,Ox) :-
+showTpExp(tpExp(T,A),",",O,Ox) :-
+  deRef(T,Op),
   showTpExp(Op,Sep,O,O1),
   appStr(Sep,O1,O2),
   showType(A,O2,Ox).

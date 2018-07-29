@@ -30,7 +30,7 @@ checkProgram(Prog,Pkg,Repo,
   findImportedImplementations(Imports,[],OverDict),
   overload(Defs,OverDict,ODict,ODefs),
   overloadOthers(Others,ODict,OOthers),
-  computeExport(ODefs,faceType([],[]),Public,Exports,Types,Cons,Impls),!.
+  computeExport(Defs,faceType([],[]),Public,Exports,Types,Cons,Impls),!.
 
 thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   macroRewrite(Els,Stmts),
@@ -680,7 +680,8 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
   sameType(consType(At,Tp),FTp,E0) ->
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
     Exp = apply(Lc,Fun,Args);
-  reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc)).
+  reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
+  Env=Ev).
 
 
   % typeOfKnown(F,FnTp,Env,E0,Fun,Path),

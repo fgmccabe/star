@@ -19,35 +19,35 @@ star.parse{
     hd([(F,_),.._],S) => [(F,S)].
   } in parser((S)=>hd(parse(P,S),S)).
 
-  public _sat:all t ~~ ((t)=>boolean) => parser[t,t].
+  public _sat:all s,t ~~ stream[s->>t] |: ((t)=>boolean) => parser[s,t].
   _sat(T) => _item >>= (Ch) => (T(Ch) ? return Ch | zed).
 
-  public _test:all p,t ~~ ((t)=>option[p]) => parser[t,p].
+  public _test:all p,s,t ~~ stream[s->>t] |: ((t)=>option[p]) => parser[s,p].
   _test(P) => _item >>= (Ch) => (X^=P(Ch) ? return X | zed).
 
-  public _tk:all t ~~ equality[t]|:(t)=>parser[t,t].
+  public _tk:all s,t ~~ stream[s->>t], equality[t]|:(t)=>parser[s,t].
   _tk(Chr) => _sat((Ch)=>Ch==Chr).
 
-  public _literal:all t ~~ equality[t] |: (list[t]) => parser[t,()].
+  public _literal:all s,t ~~ stream[s->>t], equality[t] |: (list[t]) => parser[s,()].
   _literal([]) => return ().
   _literal([Cx,..L]) => _tk(Cx) >>= (_) => _literal(L).
 
-  public _ahead:all t,v ~~ (parser[t,v]) => parser[t,v].
+  public _ahead:all s,t,v ~~ stream[s->>t] |: (parser[s,v]) => parser[s,v].
   _ahead(P) => let{
     hd([],_) => [].
     hd([(F,_),.._],S) => [(F,S)].
     } in parser((S)=>hd(parse(P,S),S)).
 
-  public _neg:all t,v ~~ (parser[t,v]) => parser[t,()].
+  public _neg:all s,t,v ~~ stream[s->>t] |: (parser[s,v]) => parser[s,()].
   _neg(P) => let{
     ng([],S) => [((),S)].
     ng([_,.._],S) => [].
     } in parser((S)=>ng(parse(P,S),S)).
 
-  public _str:(string) => parser[integer,()].
+  public _str:(string) => parser[list[integer],()].
   _str(S) => _literal(S::list[integer]).
 
-  public _pKy:all k ~~ (string,k)=>parser[integer,k].
+  public _pKy:all k ~~ (string,k)=>parser[list[integer],k].
   _pKy(K,V) => let{
     prs([]) => return V.
     prs([Cx,..L]) => _tk(Cx) >>= (_) => prs(L).
@@ -109,36 +109,36 @@ star.parse{
     prs(A) => (P >>= (O) => prs(Op(O,A))) ++ return A
   } in (P>>=(Z) => prs(Z)).
 
-  public spaces:parser[integer,()].
+  public spaces:parser[list[integer],()].
   spaces = _star(_sat(isSpace)) >>= (_) => return ().
 
-  public space:parser[integer,()].
+  public space:parser[list[integer],()].
   space = _sat(isSpace) >>= (_) => return ().
 
-  public skip:all e ~~ (parser[integer,e])=>parser[integer,e].
+  public skip:all e ~~ (parser[list[integer],e])=>parser[list[integer],e].
   skip(P) => spaces >>= (_) => P.
 
-  public digit:parser[integer,integer].
+  public digit:parser[list[integer],integer].
   digit = _sat(isDigit).
 
-  numeral:parser[integer,integer].
+  numeral:parser[list[integer],integer].
   numeral --> D<-digit ^^ digitVal(D).
 
-  public natural:parser[integer,integer].
+  public natural:parser[list[integer],integer].
   natural =_pplus(numeral,(d,s)=>s*10+d).
 
-  public decimal:parser[integer,integer].
+  public decimal:parser[list[integer],integer].
   decimal --> natural || "-", N<-natural ^^ -N.
 
-  public real:parser[integer,float].
+  public real:parser[list[integer],float].
   real --> (M<-natural, ((".", F<-fraction(M::float,0.1), E<-exponent^^(F*E))
              || ""^^(M::float)))
          || "-", N<-real ^^(-N).
 
-  fraction:(float,float) => parser[integer,float].
+  fraction:(float,float) => parser[list[integer],float].
   fraction(SoFar,Scale) --> (D<-numeral, fraction(SoFar+Scale*(D::float),Scale*0.1))
                         || ""^^SoFar.
 
-  exponent:parser[integer,float].
+  exponent:parser[list[integer],float].
   exponent --> "e", E<-decimal ^^ 10.0**(E::float).
 }
