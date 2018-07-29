@@ -3,8 +3,10 @@ test.p1{
   import star.parse.
 
   a:parser[list[integer],integer].
-  a = _item.
-  -- a = _item >>= (C) => return C.
+  -- a = _item.
+  a = _item >>= (C) => return C.
+
+  show disp(parse(a,"1"::list[integer]))::string.
 
   p:parser[list[integer],(integer,integer)].
   p = _item >>= (C) =>
