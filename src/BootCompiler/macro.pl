@@ -9,7 +9,7 @@
 macroRewrite(Stmts,Reslt) :-
   rewriteStmts(Stmts,Reslt),!.
   % displayAll(Reslt).
-
+ 
 rewriteStmts([],[]).
 rewriteStmts([St|More],[StX|Stmts]) :-
   rewriteStmt(St,StX),
@@ -17,8 +17,8 @@ rewriteStmts([St|More],[StX|Stmts]) :-
 
 rewriteStmt(St,StX) :-
   isParsingRule(St,_,_,_),!,
-  genParserRule(St,StX),
-  display(StX).
+  genParserRule(St,StX).
+  %display(StX).
 rewriteStmt(X,X).
 
 % handle grammar notation

@@ -50,8 +50,8 @@ overloadRule(equation(Lc,Args,Cond,Exp),Dict,St,Stx,equation(Lc,RArgs,RCond,RExp
 
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
-overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,
-    funDef(Lc,Nm,ExtNm,OTp,[],[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),RExp)])) :-
+overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
+    lambda(Lc,[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),RExp)],OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -246,7 +246,6 @@ overloadOthers(Other,Dict,OOthers) :-
 overloadOther(assertion(Lc,Cond),Dict,assertion(Lc,RCond)) :-
   resolveTerm(Cond,Dict,RCond).
 overloadOther(show(Lc,Exp),Dict,show(Lc,RExp)) :-
-  dispCanonTerm(Exp),
   resolveTerm(Exp,Dict,RExp).
 
 overloadEnum(Lc,Nm,Tp,[],Rules,Dict,enum(Lc,Nm,Tp,[],ORules)) :-

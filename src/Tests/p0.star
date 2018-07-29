@@ -19,5 +19,5 @@ test.p0{
 
   show bb::string.
 
-  -- show disp(parse(_item,([0]:list[integer])))::string.
+  show disp(parse(_item,([0]:list[integer])))::string.
 }
