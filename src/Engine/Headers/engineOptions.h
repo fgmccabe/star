@@ -25,6 +25,7 @@
 
 extern char *copyright;
 
+extern logical enableVerify;      // Do we verify code that is loaded into engine
 extern logical tracing;        /* tracing option */
 extern logical insDebugging;
 extern logical lineDebugging;
@@ -35,6 +36,7 @@ extern logical traceMemory;      /* memory tracing */
 extern logical stressMemory;
 extern logical tracePkg;
 extern logical traceManifest;
+extern logical traceVerify;
 
 extern long initHeapSize;    /* How much memory to give the heap */
 extern long initStackSize;    /* How big is the stack */

@@ -24,6 +24,7 @@
 #include "libEscapes.h"
 #include "codeP.h"
 #include "labels.h"
+#include "verify.h"
 
 static retCode decodePkgName(ioPo in, packagePo pkg);
 static retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity);
@@ -290,8 +291,8 @@ retCode loadSegments(ioPo in, packagePo owner, char *errorMsg, long msgLen) {
 // e. The pc offset of the end of the validity range
 
 static void writeOperand(insPo *pc, uint32 val) {
-  int32 upper = (val >> (unsigned)16) & (unsigned) 0xffff;
-  int32 lower = (val & (unsigned)0xffff);
+  int32 upper = (val >> (unsigned) 16) & (unsigned) 0xffff;
+  int32 lower = (val & (unsigned) 0xffff);
 
   *(*pc)++ = (uint16) upper;
   *(*pc)++ = (uint16) lower;
@@ -352,6 +353,7 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
   integer arity;
   integer lclCount = 0;
   integer maxStack = 0;
+  methodPo mtd = Null;
 
   ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
@@ -370,8 +372,8 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
       insPo pc = ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
         insPo ppc = pc;
-        integer stackInc=0;
-        ret = decodeIns(in, &pc, &ix, &stackInc,errorMsg, msgSize);
+        integer stackInc = 0;
+        ret = decodeIns(in, &pc, &ix, &stackInc, errorMsg, msgSize);
         maxStack += stackInc;
       }
 
@@ -391,7 +393,7 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
           if (ret == Ok) {
             labelPo lbl = declareLbl(prgName, arity);
             gcAddRoot(H, (ptrPo) &lbl);
-            defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool), C_TERM(locals));
+            mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool), C_TERM(locals));
           }
         }
         closeFile(O_IO(tmpBuffer));
@@ -399,6 +401,11 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
       }
       free(ins);
     }
+  }
+
+  if (ret == Ok) {
+    if (enableVerify && mtd != Null)
+      ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
   }
 
   if (ret == Error)

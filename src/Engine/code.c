@@ -137,6 +137,12 @@ normalPo codeLits(methodPo mtd) {
   return mtd->pool;
 }
 
+integer codeLitCount(methodPo mtd) {
+  assert(mtd != Null && mtd->pool != Null);
+  normalPo lits = mtd->pool;
+  return termSize(lits);
+}
+
 termPo getMtdLit(methodPo mtd, integer litNo) {
   return nthArg(codeLits(mtd), litNo);
 }
