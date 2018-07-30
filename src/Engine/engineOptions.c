@@ -15,22 +15,22 @@
 #include "engineOptions.h"
 #include "heapP.h"
 
-long initHeapSize = 200 * 1024;    /* How much memory to give the heap */
-long initStackSize = 1024;      /* How big is the stack */
+long initHeapSize = 200 * 1024;   /* How much memory to give the heap */
+long initStackSize = 1024;        /* How big is the stack */
 
-logical insDebugging = False;  // instruction tracing option
-logical tracing = False;      /* tracing option */
-logical enableVerify = True;  // true if we wish to enable code verification
-// symbolic insDebugging generation
-logical traceVerify = False;  // true if tracing code verification
-logical traceMessage = False;  // true if tracing message passing
-logical traceLock = False;  /* true if tracing locks */
+logical insDebugging = False;     // instruction tracing option
+logical lineDebugging = False;
+logical tracing = False;          /* tracing option */
+
+logical traceVerify = False;      // true if tracing code verification
+logical traceMessage = False;     // true if tracing message passing
+logical traceLock = False;        /* true if tracing locks */
 logical traceManifest = False;
 logical tracePkg = False;
 logical traceMemory = False;      /* memory tracing */
-logical stressMemory = False;      /* stress GC */
+logical stressMemory = False;     /* stress GC */
 logical interactive = False;      /* interaction instruction tracing */
-logical runStats = False; // Count instructions etc.
+logical runStats = False;         // Count instructions etc.
 
 char CWD[MAXFILELEN] = "";
 char bootPkg[MAX_SYMB_LEN] = "star.boot";  // boot package
@@ -278,20 +278,18 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",        True,  Null,         debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
-  {'g', "symbol-debug", False, Null,         symbolDebug,    Null, "-g|--symbol-debug"},
-  {'G', "debugger",     True, STAR_DEBUGGER, setDebugger,    Null, "-G|--debugger <pkg>"},
-  {'v', "version",      False, Null,         displayVersion, Null, "-v|--version"},
-  {'b', "boot-pkg",     True, STAR_BOOT,     setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",         True, STAR_MAIN,     setMainEntry,   Null, "-m|--main <entry>"},
-  {'L', "logFile",      True, STAR_LOGFILE,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'r', "repository",   True, STAR_REPO,     setRepoDir,     Null, "-r|--repository <path>"},
-  {'w', "set-wd",       True,  Null,         setWD,          Null, "-w|--set-wd <dir>"},
-//  {'V', "verify",       False, Null, setVerify,      Null, "-V|--verify code"},
-  {'h', "heap",         True,  Null,         setHeapSize,    Null, "-h|--heap <size>"},
-  {'s', "stack",        True,  Null,         setStackSize,   Null, "-s|--stack <size>"},};
-
-logical lineDebugging = False;
+  {'d', "debug",        True,  Null,          debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
+  {'g', "symbol-debug", False, Null,          symbolDebug,    Null, "-g|--symbol-debug"},
+  {'G', "debugger",     True,  STAR_DEBUGGER, setDebugger,    Null, "-G|--debugger <pkg>"},
+  {'v', "version",      False, Null,          displayVersion, Null, "-v|--version"},
+  {'b', "boot-pkg",     True,  STAR_BOOT,     setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",         True,  STAR_MAIN,     setMainEntry,   Null, "-m|--main <entry>"},
+  {'L', "logFile",      True,  STAR_LOGFILE,  setLogFile,     Null, "-L|--logFile <path>"},
+  {'r', "repository",   True,  STAR_REPO,     setRepoDir,     Null, "-r|--repository <path>"},
+  {'w', "set-wd",       True,  Null,          setWD,          Null, "-w|--set-wd <dir>"},
+  {'V', "verify",       False, Null,          setVerify,      Null, "-V|--verify code"},
+  {'h', "heap",         True,  Null,          setHeapSize,    Null, "-h|--heap <size>"},
+  {'s', "stack",        True,  Null,          setStackSize,   Null, "-s|--stack <size>"},};
 
 static void showStar(ioPo out) {
   outMsg(out, "star - %s", copyright);

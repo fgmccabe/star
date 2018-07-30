@@ -52,7 +52,7 @@ int32 lookupEscape(char *name) {
 }
 
 escapePo getEscape(int32 escNo) {
-  assert(escNo < topEsc);
+  assert(escNo>=0 && escNo < topEsc);
   return &escapes[escNo];
 }
 
@@ -81,7 +81,3 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       return rtnStatus(p, Error, "cannot handle return");
   }
 }
-
-
-
-

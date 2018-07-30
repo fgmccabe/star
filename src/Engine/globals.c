@@ -204,6 +204,14 @@ int32 globalVarNo(const char *nm) {
   return (int32) (globalVar(nm)->varNo);
 }
 
+logical isValidGlobalVarNo(int32 varNo){
+  if(varNo>=0 && varNo<numGlbVars){
+    return True;
+  }
+  else
+    return False;
+}
+
 logical glbIsSet(globalPo glb) {
   return (logical) (glb->content != Null);
 }

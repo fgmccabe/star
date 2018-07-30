@@ -61,7 +61,7 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,1,contCont(Ex),raiseCont(Lc,"failed",Opts),Opts,D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
   compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
-  (is_member(showGenCode,Opts) -> dispIns(Nm,Sig,C1);true ),
+  (is_member(showGenCode,Opts) -> dispIns(Nm,Sig,C0);true ),
   findMaxLocal(Dx,Lx),
   assem([method(Nm,Sig,Lx)|C0],CdTrm).
 genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
@@ -225,17 +225,15 @@ resetCont(Lvl,D,D,_,[iRst(Lvl)|Cx],Cx,_,Lvl).
 escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1.
 
-cllCont(Nm,Stk0,retCont(_),Opts,Dx,Dx,_,C,Cx,_Stk,none) :-!,
-  genDTail(Opts,Nm,C,[iTail(Nm),iFrame(Stkx)|Cx]),
-  Stkx is Stk0+1.
+cllCont(Nm,_Stk0,retCont(_),Opts,Dx,Dx,_,C,Cx,_Stk,none) :-!,
+  genDTail(Opts,Nm,C,[iTail(Nm)|Cx]).
 cllCont(Nm,Stk0,Cont,Opts,D,Dx,End,C,Cx,_Stk,Stkx) :-
   genDCall(Opts,Nm,C,[iCall(Nm),iFrame(Stk1)|C0]),
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
 oclCont(Stk0,retCont(_),Opts,Dx,Dx,_End,C,Cx,Stk,none) :-!,
-  genDOTail(Opts,Arity,C,[iOTail(Arity),iFrame(Stkx)|Cx]),
-  Stkx is Stk0+1,
+  genDOTail(Opts,Arity,C,[iOTail(Arity)|Cx]),
   Arity is Stk-Stk0.
 oclCont(Stk0,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   genDOCall(Opts,Arity,C,[iOCall(Arity),iFrame(Stk1)|C0]),
