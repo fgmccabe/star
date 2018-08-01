@@ -19,9 +19,9 @@ target_link_libraries(genesc ooio)
 
 # target_link_libraries(genins ooio)
 
-set(ASM_SOURCE_FILES plmnem.c)
+set(ASM_SOURCE_FILES platemnem.c)
 add_executable(plmnem ${ASM_SOURCE_FILES})
-target_link_libraries(plmnem ooio)
+target_link_libraries(plmnem ooio infra)
 
 set(OPCODES_FILES opcodes.c)
 add_executable(opcodes ${OPCODES_FILES})
@@ -44,6 +44,6 @@ add_custom_target(generate ALL
         COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST}
         COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
         COMMAND genesc -p ${ESCAPES_PL}
-        COMMAND plmnem -p ${ASM_PL}
+        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate -p ${ASM_PL}
 #        COMMAND opcodes ${OPCODES_H}
         )

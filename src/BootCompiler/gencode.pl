@@ -61,7 +61,7 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   genLine(Opts,Lc,C0,C1),
   compPtnArgs(Args,Lc,argCont,1,contCont(Ex),raiseCont(Lc,"failed",Opts),Opts,D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
   compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
-  (is_member(showGenCode,Opts) -> dispIns(Nm,Sig,C0);true ),
+  (is_member(showGenCode,Opts) -> dispIns([method(Nm,Sig,_Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
   assem([method(Nm,Sig,Lx)|C0],CdTrm).
 genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
@@ -69,7 +69,7 @@ genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   genLbl(D,End,D1),
   genLine(Opts,Lc,C0,C1),
   compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),Opts,D1,Dx,End,C1,[iLbl(End)],0,_Stk),
-  (is_member(showGenCode,Opts) -> dispIns(lbl(Nm,0),Sig,C1);true ),
+  (is_member(showGenCode,Opts) -> dispIns([method(lbl(Nm,0),Sig,Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
   assem([method(lbl(Nm,0),Sig,Lx)|C0],Cd).
 
@@ -514,6 +514,7 @@ compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,Opts,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx
   compMoreCase(SC,VLb,Succ,Fail,Opts,D3,Dx,End,C2,Cx,Stk,Stk3),
   mergeStkLvl(Stk2,Stk3,Stkx,"more case branch stack").
 
+/*
 dispIns(Nm,_Sig,I) :-
   showTerm(Nm,0,C,C0),
   appStr(":\n",C0,C1),
@@ -527,3 +528,4 @@ showIns(iLbl(L),C,Cx) :-
 showIns(A,C,C0) :-
   swritef(I,"%w\n",[A]),
   appStr(I,C,C0).
+*/
