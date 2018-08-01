@@ -1,0 +1,79 @@
+/* Automatically generated, do not edit */
+
+:- module(assemble,[assem/2, showIns/3, dispIns/1]).
+:- use_module(misc).
+:- use_module(terms).
+:- use_module(encode).
+
+assem([method(Nm,Sig,Lx)|Ins],MTpl) :-
+    genLblTbl(Ins,0,[],Lbs),
+    findLit([],Nm,_,Ls0),
+    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),
+    mkInsTpl(Cde,Code),
+    mkLitTpl(Lts,LtTpl),
+    mkTpl(Lcs,LcsTpl),
+    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
+
+mnem([],_,Lt,Lt,Lc,Lc,_,[]).
+mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).
+mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-
+    findLbl(Frm,Lbs,F),
+    findLbl(End,Lbs,T),
+    mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
+    (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
+    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).
+#(Mnem)
+
+genLblTbl([],_,Lbls,Lbls).
+genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).
+genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
+#(Lbls)
+
+findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.
+pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.
+
+findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
+findLit(Lits,V,LtNo,[(V,LtNo)|Lits]) :- length(Lits,LtNo).
+
+mkLitTpl(Lits,Tpl) :-
+    reverse(Lits,RLit),
+    project0(RLit,Els),
+    mkTpl(Els,Tpl).
+
+mkInsTpl(Is,Tpl) :-
+    map(Is,assemble:mkIns,Ins),
+    mkTpl(Ins,Tpl).
+
+mkIns((O,A),Tpl) :-
+    wrap(A,WA),
+    mkTpl([intgr(O),WA],Tpl).
+mkIns(O,intgr(O)) :- number(O).
+mkIns(S,strg(S)) :- string(S).
+
+dispIns(Prog) :-
+  showIns(Prog,O,[]),
+  string_chars(Txt,O),
+  writeln(Txt).
+
+showIns([method(Nm,Sig,_Lx)|Ins],O,Ox) :-
+  showTerm(Nm,0,O,O1),
+  appStr(":",O1,O2),
+  appStr(Sig,O2,O3),
+  appNl(O3,O4),
+  showMnem(Ins,0,[],O4,Ox).
+
+showMnem([],_,_,Ox,Ox).
+showMnem([iLbl(Lb)|Ins],Pc,Lbs,O,Ox) :-
+  appStr(Lb,O,O1),
+  appStr(":",O1,O2),
+  appNl(O2,O3),
+  showMnem(Ins,Pc,[(Lb,Pc)|Lbs],O3,Ox).
+showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,O,Ox) :-
+  appStr(Nm,O,O1),
+  appStr("::",O1,O2),
+  appStr(Frm,O2,O3),
+  appStr("-",O3,O4),
+  appStr(End,O4,O5),
+  appNl(O5,O6),
+  showMnem(Ins,Pc,Lbs,O6,Ox).
+#(Show)
