@@ -3,7 +3,7 @@ project(Cafe)
 
 add_subdirectory("src/Util")
 add_subdirectory("src/HeaderGenerator")
-add_subdirectory("src/Lib")
+add_subdirectory("src/Escapes")
 add_subdirectory("src/Asm")
 add_subdirectory("src/Infra")
 add_subdirectory("src/Engine")

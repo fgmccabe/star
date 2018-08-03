@@ -101,6 +101,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "t"           RT(T);
 
 "halt"        RT(HALT);
+"abort"       RT(ABORT);
 
 "call"        RT(CALL);
 "ocall"       RT(OCALL);
