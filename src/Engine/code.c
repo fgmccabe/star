@@ -196,3 +196,7 @@ packagePo markLoaded(char *package, char *version) {
 integer lclCount(methodPo mtd) {
   return mtd->lclcnt;
 }
+
+integer codeArity(methodPo mtd) {
+  return mtd->arity;
+}
