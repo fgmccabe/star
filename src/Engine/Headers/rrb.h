@@ -8,44 +8,44 @@
 #include "term.h"
 #include "heap.h"
 
-typedef struct _vector_ *vectorPo;
+typedef struct _vector_ *vectPo;
 
-extern clssPo vectorClass;
+extern clssPo vectClass;
 
-extern vectorPo C_VECT(termPo t);
+extern vectPo C_VECT(termPo t);
 
-extern vectorPo allocateVector(heapPo H, integer length, logical safeMode);
+extern vectPo allocateVector(heapPo H, integer length, logical safeMode);
 
-extern vectorPo appendToVector(heapPo H, vectorPo vect, termPo el);
+extern vectPo appendToVector(heapPo H, vectPo vect, termPo el);
 
-extern vectorPo prependToVector(heapPo H, vectorPo vect, termPo el);
+extern vectPo prependToVector(heapPo H, vectPo vect, termPo el);
 
-extern vectorPo deleteEntry(heapPo H, vectorPo vect, integer index);
+extern vectPo deleteEntry(heapPo H, vectPo vect, integer index);
 
-extern termPo nthEntry(vectorPo vect, integer index);
+extern termPo nthEntry(vectPo vect, integer index);
 
-extern vectorPo setNthEntry(heapPo H, vectorPo vect, integer index, termPo el, logical safeMode);
+extern vectPo setNthEntry(heapPo H, vectPo vect, integer index, termPo el, logical safeMode);
 
-extern vectorPo concatVector(heapPo H, vectorPo l1, vectorPo l2);
+extern vectPo concatVector(heapPo H, vectPo l1, vectPo l2);
 
-extern vectorPo flattenVector(heapPo H, vectorPo l);
+extern vectPo flattenVector(heapPo H, vectPo l);
 
-extern vectorPo reverseVector(heapPo H, vectorPo l1);
+extern vectPo reverseVector(heapPo H, vectPo l1);
 
 // Use with caution!
 typedef retCode (*vectorProc)(termPo el, integer ix, void *cl);
-extern retCode processVector(vectorPo vect, vectorProc p, void *cl);
+extern retCode processVector(vectPo vect, vectorProc p, void *cl);
 
-extern integer vectorCount(vectorPo list);
+extern integer vectorCount(vectPo list);
 
 typedef struct _vector_focus *vFocusPo;
 
-retCode stepForward(vFocusPo f, vectorPo vect);
-retCode stepBack(vFocusPo f, vectorPo vect);
-termPo currentFocusElement(vFocusPo f, vectorPo vect);
+retCode stepForward(vFocusPo f, vectPo vect);
+retCode stepBack(vFocusPo f, vectPo vect);
+termPo currentFocusElement(vFocusPo f, vectPo vect);
 
-void startVectFocus(vectorPo v, vFocusPo f);
-void endVectFocus(vectorPo v, vFocusPo f);
-void indexedVectFocus(vectorPo v, integer index, vFocusPo f);
+void startVectFocus(vectPo v, vFocusPo f);
+void endVectFocus(vectPo v, vFocusPo f);
+void indexedVectFocus(vectPo v, integer index, vFocusPo f);
 
 #endif //CAFE_RRB_H

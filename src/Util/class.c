@@ -78,9 +78,27 @@ objectPo newObject(classPo class,...)
   }
 }
 
+objectPo makeObject(classPo class,va_list *args)
+{
+  classToInit = class;
+  pthread_once(&class->inited,initClass);
+
+  lockClass(class);			/* We sync access to the class */
+
+  {
+    objectPo o = class->create(class);
+
+    unlockClass(class);			/* and release it after created */
+
+    initObject(class,o,args);
+
+    return o;
+  }
+}
+
 void destroyObject(objectPo o)
 {
-  assert(o->refCount==0);
+  assert(o->refCount<=0);
 
   classPo class = o->class;
 

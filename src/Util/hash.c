@@ -431,3 +431,19 @@ comparison strcomp(void *n1, void *n2) {
   return uniCmp((char *) n1, (char *) n2);
 }
 
+integer ixHash(void *r) {
+  return (integer) r;
+}
+
+comparison integerCmp(void *i1, void *i2){
+  integer ix1 = (integer)i1;
+  integer ix2 = (integer)i2;
+
+  if(ix1<ix2)
+    return smaller;
+  else if(ix1>ix2)
+    return bigger;
+  else
+    return same;
+}
+

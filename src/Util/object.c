@@ -58,6 +58,8 @@ static void objectClassInit(classPo class, classPo request) {
   request->pool = newPool(request->size, 8);
   if (request->create == O_INHERIT_DEF)
     request->create = class->create;
+  if (request->destroy == O_INHERIT_DEF)
+    request->destroy = class->destroy;
   if (request->erase == O_INHERIT_DEF)
     request->erase = class->erase;
   if (request->hashCode == O_INHERIT_DEF)
@@ -85,8 +87,7 @@ void incReference(objectPo o) {
 }
 
 void decReference(objectPo o) {
-  long count = o->refCount--;
-  if (count == 0) {
+  if (--o->refCount <= 0) {
     destroyObject(o);
   }
 }

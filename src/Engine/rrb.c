@@ -15,7 +15,7 @@ static comparison vectorCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer vectorHash(specialClassPo cl, termPo o);
 static retCode vectorDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
-SpecialClass VectorClass = {
+SpecialClass VectClass = {
   .clss = Null,
   .sizeFun = vectorSize,
   .copyFun = vectorCopy,
@@ -25,15 +25,15 @@ SpecialClass VectorClass = {
   .dispFun = vectorDisp
 };
 
-clssPo vectorClass = (clssPo) &VectorClass;
+clssPo vectClass = (clssPo) &VectClass;
 
 void initVectors() {
-  VectorClass.clss = specialClass;
+  VectClass.clss = specialClass;
 }
 
-vectorPo C_VECT(termPo t) {
-  assert(hasClass(t, vectorClass));
-  return (vectorPo) t;
+vectPo C_VECT(termPo t) {
+  assert(hasClass(t, vectClass));
+  return (vectPo) t;
 }
 
 long vectorSize(specialClassPo cl, termPo o) {
@@ -41,15 +41,15 @@ long vectorSize(specialClassPo cl, termPo o) {
 }
 
 termPo vectorCopy(specialClassPo cl, termPo dst, termPo src) {
-  vectorPo si = C_VECT(src);
-  vectorPo di = (vectorPo) dst;
+  vectPo si = C_VECT(src);
+  vectPo di = (vectPo) dst;
   *di = *si;
 
   return (termPo) di + VectorCellCount;
 }
 
 termPo vectorScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
-  vectorPo vector = C_VECT(o);
+  vectPo vector = C_VECT(o);
 
   for (int ix = 0; ix < VECT_ENTRIES; ix++) {
     helper(&vector->els[ix], c);
@@ -59,8 +59,8 @@ termPo vectorScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o)
 }
 
 comparison vectorCmp(specialClassPo cl, termPo o1, termPo o2) {
-  vectorPo l1 = C_VECT(o1);
-  vectorPo l2 = C_VECT(o2);
+  vectPo l1 = C_VECT(o1);
+  vectPo l2 = C_VECT(o2);
   integer s1 = vectorCount(l1);
   integer s2 = vectorCount(l2);
 
@@ -82,18 +82,18 @@ comparison vectorCmp(specialClassPo cl, termPo o1, termPo o2) {
     return same;
 }
 
-static integer vectorDepth(vectorPo vect) {
+static integer vectorDepth(vectPo vect) {
   return vect->depth;
 }
 
-static integer localMax(vectorPo vect, int ix) {
+static integer localMax(vectPo vect, int ix) {
   if (ix == 0)
     return vect->indices[0];
   else
     return (vect->indices[ix] - vect->indices[ix - 1]);
 }
 
-static int lastIndex(vectorPo vect) {
+static int lastIndex(vectPo vect) {
   for (int mx = VECT_ENTRIES - 1; mx >= 0; mx--) {
     if (vect->indices[mx] > -1)
       return mx;
@@ -101,7 +101,7 @@ static int lastIndex(vectorPo vect) {
   return 0;
 }
 
-static int localIndex(vectorPo vect, integer index) {
+static int localIndex(vectPo vect, integer index) {
   unsigned int lx = (unsigned int) ((((uinteger) index) >> ((uinteger) (vect->depth * VECT_SIZE))) & VECT_MASK);
 
   assert(lx >= 0 && lx < VECT_ENTRIES);
@@ -111,11 +111,11 @@ static int localIndex(vectorPo vect, integer index) {
   return (int) lx;
 }
 
-integer vectorCount(vectorPo vect) {
+integer vectorCount(vectPo vect) {
   return vect->indices[lastIndex(vect)];
 }
 
-static retCode procVec(vectorPo vect, integer *ex, int mx, vectorProc p, void *cl) {
+static retCode procVec(vectPo vect, integer *ex, int mx, vectorProc p, void *cl) {
   retCode ret = Ok;
   if (vectorDepth(vect) == 0) {
     for (int ix = 0; ret == Ok && ix < mx; ix++) {
@@ -129,7 +129,7 @@ static retCode procVec(vectorPo vect, integer *ex, int mx, vectorProc p, void *c
   return ret;
 }
 
-retCode processVector(vectorPo vect, vectorProc p, void *cl) {
+retCode processVector(vectPo vect, vectorProc p, void *cl) {
   integer ix = 0;
   return procVec(vect, &ix, lastIndex(vect), p, cl);
 }
@@ -141,7 +141,7 @@ retCode elHash(termPo el, integer ix, void *cl) {
 }
 
 integer vectorHash(specialClassPo cl, termPo o) {
-  vectorPo v = C_VECT(o);
+  vectPo v = C_VECT(o);
 
   integer hash = uniHash("array");
 
@@ -150,15 +150,15 @@ integer vectorHash(specialClassPo cl, termPo o) {
   return hash;
 }
 
-vectorPo allocVector(heapPo H, integer depth) {
-  vectorPo v = (vectorPo) allocateObject(H, vectorClass, VectorCellCount);
+vectPo allocVector(heapPo H, integer depth) {
+  vectPo v = (vectPo) allocateObject(H, vectClass, VectorCellCount);
   v->depth = depth;
   return v;
 }
 
-vectorPo copyVector(heapPo H, vectorPo v) {
+vectPo copyVector(heapPo H, vectPo v) {
   int root = gcAddRoot(H, (ptrPo) &v);
-  vectorPo new = allocVector(H, v->depth);
+  vectPo new = allocVector(H, v->depth);
   for (int ix = 0; ix < VECT_ENTRIES; ix++) {
     new->indices[ix] = v->indices[ix];
     new->els[ix] = v->els[ix];
@@ -166,7 +166,7 @@ vectorPo copyVector(heapPo H, vectorPo v) {
   return new;
 }
 
-termPo nthEntry(vectorPo vect, integer index) {
+termPo nthEntry(vectPo vect, integer index) {
   assert(index >= 0 && index < vectorCount(vect));
   while (vect->depth > 0) {
     int ix = localIndex(vect, index);
@@ -179,7 +179,7 @@ termPo nthEntry(vectorPo vect, integer index) {
   return vect->els[index];
 }
 
-static void unsafeSetNth(vectorPo vect, integer index, termPo el) {
+static void unsafeSetNth(vectPo vect, integer index, termPo el) {
   while (vect->depth > 0) {
     int ix = localIndex(vect, index);
     if (ix > 0) {
@@ -191,7 +191,7 @@ static void unsafeSetNth(vectorPo vect, integer index, termPo el) {
   vect->els[index] = el;
 }
 
-static vectorPo safeSetNth(heapPo H, vectorPo vect, integer index, termPo el) {
+static vectPo safeSetNth(heapPo H, vectPo vect, integer index, termPo el) {
   int mark = gcAddRoot(H, (ptrPo) &vect);
 
   if (vect->depth > 0) {
@@ -199,9 +199,9 @@ static vectorPo safeSetNth(heapPo H, vectorPo vect, integer index, termPo el) {
     if (ix > 0) {
       index -= vect->indices[ix - 1];
     }
-    vectorPo nEl = safeSetNth(H, C_VECT(vect->els[ix]), index, el);
+    vectPo nEl = safeSetNth(H, C_VECT(vect->els[ix]), index, el);
     gcAddRoot(H, (ptrPo) &nEl);
-    vectorPo nV = copyVector(H, vect);
+    vectPo nV = copyVector(H, vect);
     nV->els[ix] = (termPo) nEl;
     gcReleaseRoot(H, mark);
     return nV;
@@ -209,7 +209,7 @@ static vectorPo safeSetNth(heapPo H, vectorPo vect, integer index, termPo el) {
     assert(index >= 0 && index < VECT_ENTRIES);
 
     gcAddRoot(H, (ptrPo) &el);
-    vectorPo nV = allocVector(H, 0);
+    vectPo nV = allocVector(H, 0);
     for (int jx = 0; jx < VECT_ENTRIES; jx++) {
       nV->indices[jx] = vect->indices[jx];
       nV->els[jx] = vect->els[jx];
@@ -220,7 +220,7 @@ static vectorPo safeSetNth(heapPo H, vectorPo vect, integer index, termPo el) {
   }
 }
 
-vectorPo setNthEntry(heapPo H, vectorPo vect, integer index, termPo el, logical safeMode) {
+vectPo setNthEntry(heapPo H, vectPo vect, integer index, termPo el, logical safeMode) {
   if (safeMode) {
     return safeSetNth(H, vect, index, el);
   } else {
@@ -248,7 +248,7 @@ static retCode dispVecEl(termPo el, integer ix, void *cl) {
 }
 
 retCode vectorDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
-  vectorPo vector = C_VECT(t);
+  vectPo vector = C_VECT(t);
   retCode ret = outChar(out, '[');
 
   if (ret == Ok) {
@@ -264,11 +264,11 @@ retCode vectorDisp(ioPo out, termPo t, integer precision, integer depth, logical
   return ret;
 }
 
-void startVectFocus(vectorPo v, vFocusPo f) {
+void startVectFocus(vectPo v, vFocusPo f) {
   indexedVectFocus(v, 0, f);
 }
 
-void endVectFocus(vectorPo v, vFocusPo f) {
+void endVectFocus(vectPo v, vFocusPo f) {
   integer index = 0;
   for (int ix = 0; ix < VECT_ENTRIES; ix++) {
     if (v->indices[ix] > index)
@@ -277,7 +277,7 @@ void endVectFocus(vectorPo v, vFocusPo f) {
   indexedVectFocus(v, index, f);
 }
 
-void indexedVectFocus(vectorPo v, integer index, vFocusPo f) {
+void indexedVectFocus(vectPo v, integer index, vFocusPo f) {
   f->tos = VECT_DEPTH;
   f->index = index;
 
@@ -287,7 +287,7 @@ void indexedVectFocus(vectorPo v, integer index, vFocusPo f) {
   }
 }
 
-retCode stepFor(vFocusPo f, int dx, vectorPo vect) {
+retCode stepFor(vFocusPo f, int dx, vectPo vect) {
   if (vect->depth > 0) {
     const int pos = f->ixStack[dx];
     switch (stepFor(f, dx - 1, C_VECT(vect->els[pos]))) {
@@ -313,11 +313,11 @@ retCode stepFor(vFocusPo f, int dx, vectorPo vect) {
   }
 }
 
-retCode stepForward(vFocusPo f, vectorPo vect) {
+retCode stepForward(vFocusPo f, vectPo vect) {
   return stepFor(f, VECT_DEPTH - 1, vect);
 }
 
-retCode stepBk(vFocusPo f, int dx, vectorPo vect) {
+retCode stepBk(vFocusPo f, int dx, vectPo vect) {
   if (vect->depth > 0) {
     const int pos = f->ixStack[dx];
     const int depth = (int) (vect->depth);
@@ -347,11 +347,11 @@ retCode stepBk(vFocusPo f, int dx, vectorPo vect) {
   }
 }
 
-retCode stepBack(vFocusPo f, vectorPo vect) {
+retCode stepBack(vFocusPo f, vectPo vect) {
   return stepBk(f, VECT_DEPTH - 1, vect);
 }
 
-termPo currentFocusElement(vFocusPo f, vectorPo vect) {
+termPo currentFocusElement(vFocusPo f, vectPo vect) {
   int dx = VECT_DEPTH - 1;
   while (vect->depth > 0) {
     int pos = f->ixStack[dx--];
@@ -360,13 +360,13 @@ termPo currentFocusElement(vFocusPo f, vectorPo vect) {
   return vect->els[f->ixStack[dx]];
 }
 
-vectorPo appendToVector(heapPo H, vectorPo vect, termPo el) {
+vectPo appendToVector(heapPo H, vectPo vect, termPo el) {
   if (vect->depth > 0) {
 
   } else if (lastIndex(vect) < VECT_ENTRIES) {
     int mark = gcAddRoot(H, (ptrPo) &vect);
     gcAddRoot(H, &el);
-    vectorPo vv = copyVector(H, vect);
+    vectPo vv = copyVector(H, vect);
     int last = lastIndex(vect);
     vv->els[last] = el;
     vv->indices[last] = last;
