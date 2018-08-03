@@ -16,7 +16,6 @@
 #include "pairP.h"
 #include "utils.h"
 #include <assert.h>
-#include <pairP.h>
 
 static integer pairHash(objectPo o);
 

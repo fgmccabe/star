@@ -126,8 +126,6 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
   termPo lc = tos[0];
   termPo msg = tos[1];
 
-  char msgBuff[MAX_SYMB_LEN];
-
   logMsg(logFile, "Abort %T at %L", msg, lc);
 
   ReturnStatus rt = {.ret=Error, .rslt=(termPo) voidEnum};

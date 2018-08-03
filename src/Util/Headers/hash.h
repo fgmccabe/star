@@ -43,4 +43,7 @@ void unlockHash(hashPo tbl);
 integer strhash(void *name);
 comparison strcomp(void *n1,void *n2);
 
+integer ixHash(void *r);
+comparison integerCmp(void *i1,void *i2);
+
 #endif

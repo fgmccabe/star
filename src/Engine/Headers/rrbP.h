@@ -9,7 +9,7 @@
 #include "code.h"
 #include "termP.h"
 
-#define VectorCellCount CellCount(sizeof(VectorRecord))
+#define VectorCellCount CellCount(sizeof(VectRecord))
 
 #define VECT_ENTRIES ((unsigned)4)
 #define VECT_DEPTH ((unsigned)31) // VECT_ENTRIES**VECT_DEPTH==2**(64-PtrSize)
@@ -21,7 +21,7 @@ typedef struct _vector_ {
   integer depth;                // == 0 for leaf node
   integer indices[VECT_ENTRIES];
   termPo els[VECT_ENTRIES];
-} VectorRecord;
+} VectRecord;
 
 typedef struct _vector_focus {
   integer index;
@@ -31,7 +31,7 @@ typedef struct _vector_focus {
 
 extern void initVectors();
 
-extern vectorPo allocVector(heapPo H, integer depth);
-extern vectorPo copyVector(heapPo H,vectorPo v);
+extern vectPo allocVector(heapPo H, integer depth);
+extern vectPo copyVector(heapPo H,vectPo v);
 
 #endif //CAFE_RRBP_H

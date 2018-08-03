@@ -23,6 +23,7 @@
 #include "utils.h"
 #include <unistd.h>
 #include <pthread.h>
+#include <stdarg.h>
 
 typedef struct _object_ *objectPo;
 typedef struct _class_ *classPo;
@@ -30,6 +31,7 @@ typedef struct _class_ *classPo;
 extern classPo objClass;
 
 objectPo newObject(classPo c,...);
+objectPo makeObject(classPo c,va_list *args);
 void destroyObject(objectPo o);
 
 char *nameOfClass(classPo class);
