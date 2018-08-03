@@ -4,81 +4,175 @@
 
 #include <stdlib.h>
 #include <globals.h>
-#include "verify.h"
+#include "verifyP.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
 
 typedef struct {
-  logical inited;    //  True if cell has real value
-  logical read;      //  Has this cell been read?
-} Var, *varPo;
+  segPo *stack;
+  int max;
+  int top;
+} BlockStack, *blockStackPo;
 
-typedef struct _segment_ *segPo;
+static segPo initVerify(methodPo mtd, vectorPo blocks);
+static retCode phaseI(methodPo mtd, vectorPo blocks, char *name, char *errorMsg, long msgLen);
+static retCode phaseII(vectorPo blocks, char *name, char *errorMsg, long msgLen);
 
-typedef struct _segment_ {
-  integer segNo;                    // Segment number
-  varPo args;
-  integer lclCount;                 //  number of locals in use
-  varPo locals;                     //  entry state for this segment
-  integer arity;                    //  Arity of the code segment
-  integer hpCnt;                    //  how much local heap can we allocate?
-  logical checked;                  //  Has this segment been checked?
-  methodPo mtd;                     //  Pointer to the code structure itself
-  integer pc;                       //  base intruction of this segment
-  integer maxPc;                    //  Maximum instruction in this segment
-  segPo next;                       //  next segment in list
-  segPo alt;                        // Alternate continuation
-  segPo exit;                       // Normal continuation
-  integer entryPoints;              //  how many entry points are there here?
-} segRecord;
-
-static poolPo segPool = Null;
-
-static segPo initVerify(methodPo mtd);
-static varPo copyVars(varPo vars, integer count);
-static void clearSegs(segPo seg);;
-static segPo findSeg(segPo root, integer pc);
-static segPo splitSeg(segPo root, integer pc, integer tgt, logical isAlt, logical isNormal);
-static int noOfSegments(segPo root);
+static segPo findSeg(vectorPo blocks, integer pc);
+static segPo splitSeg(vectorPo blocks, integer tgt);
 static retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen);
-static retCode checkSegment(segPo root, segPo seg, char *errorMsg, long msgLen);
-static retCode checkSegments(segPo root, char *errorMsg, long msgLen);
-static void showSegs(segPo root, char *name);
-static void showSeg(segPo seg);
+static retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *errorMsg, long msgLen);
+static void showSegs(vectorPo blocks, char *name);
+static retCode showSeg(ioPo out, segPo seg);
 static retCode
 testBreak(segPo root, insPo base, integer oPc, integer *pc, OpCode op, opAndSpec A, char *errorMsg, long msgLen);
 static int32 collect32(insPo base, integer *pc);
-static retCode verifyCode(methodPo mtd, segPo root, char *name, char *errorMsg, long msgLen);
+static void pushBlock(blockStackPo stack, segPo seg);
+static segPo popBlock(blockStackPo stack);
+static logical stackEmpty(blockStackPo stack);
 
-#undef instruction
-#define instruction(Op, A1, Delta, Cmt)\
-    case Op:\
-      ret=testBreak(root,base,oPc,&pc,Op,A1,errorMsg,msgLen);\
-      continue;
+static integer segmentHash(objectPo o);
+
+static logical segmentEquality(objectPo o1, objectPo o2);
+
+static void segmentInit(objectPo o, va_list *args);
+
+static void segmentDestroy(objectPo o);
+
+SegmentClassRec SegmentClass = {
+  {
+    (classPo) &ObjectClass,
+    "segment",
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    segmentDestroy,
+    O_INHERIT_DEF,
+    segmentInit,
+    sizeof(SegmentRecord),
+    segmentHash,
+    segmentEquality,
+    NULL,
+    PTHREAD_ONCE_INIT,                      /* not yet initialized */
+    PTHREAD_MUTEX_INITIALIZER
+  },
+  {}
+};
+
+classPo segmentClass = (classPo) &SegmentClass;
+
+void segmentInit(objectPo o, va_list *args) {
+  segPo s = O_SEG(o);
+
+  s->seg.segNo = va_arg(*args, int);
+  s->seg.mtd = va_arg(*args, methodPo);
+  s->seg.arity = codeArity(s->seg.mtd);
+  s->seg.pc = va_arg(*args, integer);
+  s->seg.maxPc = va_arg(*args, integer);
+  s->seg.entryPoints = 0;
+  s->seg.checked = False;
+  s->seg.hpCnt = 0;
+  s->seg.lclCount = lclCount(s->seg.mtd);
+
+  s->seg.args = (varPo) malloc(sizeof(Var) * s->seg.arity);
+  s->seg.locals = (varPo) malloc(sizeof(Var) * s->seg.lclCount);
+  s->seg.numExits = 0;
+
+  for (integer ix = 0; ix < s->seg.arity; ix++) {
+    varPo a = &s->seg.args[ix];
+    a->inited = True;
+    a->read = False;
+  }
+
+  for (integer ix = 0; ix < s->seg.lclCount; ix++) {
+    varPo l = &s->seg.locals[ix];
+    l->inited = False;
+    l->read = False;
+  }
+}
+
+segPo newSegment(int segNo, methodPo mtd, integer pc, integer maxPc) {
+  return (segPo) newObject(segmentClass, segNo, mtd, pc, maxPc);
+}
+
+void segmentDestroy(objectPo o) {
+  segPo v = O_SEG(o);
+
+  if (v->seg.args != Null)
+    free(v->seg.args);
+  v->seg.args = Null;
+
+  if (v->seg.locals != Null)
+    free(v->seg.locals);
+  v->seg.locals = Null;
+}
+
+static integer segmentHash(objectPo o) {
+  segPo s = O_SEG(o);
+  return s->seg.segNo;
+}
+
+static logical segmentEquality(objectPo o1, objectPo o2) {
+  segPo s1 = O_SEG(o1);
+  segPo s2 = O_SEG(o2);
+  return s1->seg.segNo == s2->seg.segNo;
+}
 
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   static pthread_mutex_t verifyMutex = PTHREAD_MUTEX_INITIALIZER;
 
   pthread_mutex_lock(&verifyMutex);  //  We synchronize all verification
-  segPo root = initVerify(mtd);
 
-  retCode ret = verifyCode(mtd, root, name, errorMsg, msgLen);
-  clearSegs(root);
+  vectorPo blocks = vector(0);
+  initVerify(mtd, blocks);
+
+  retCode ret = phaseI(mtd, blocks, name, errorMsg, msgLen);
+
+  if (ret == Ok)
+    ret = phaseII(blocks, name, errorMsg, msgLen);
+
+  decReference(O_OBJECT(blocks));
+
   pthread_mutex_unlock(&verifyMutex);  //  We can now allow others to verify
 
   return ret;
 }
 
-retCode verifyCode(methodPo mtd, segPo root, char *name, char *errorMsg, long msgLen) {
-  integer codeLength = insCount(mtd);
-  insPo base = entryPoint(mtd);
-  integer pc = 0;
+segPo initVerify(methodPo mtd, vectorPo blocks) {
+  segPo first = newSegment(0, mtd, 0, insCount(mtd));
 
+  appendVectEl(blocks, O_OBJECT(first));
+  first->seg.entryPoints = 1;
+  return first;
+}
+
+segPo findSeg(vectorPo blocks, integer pc) {
+  for (integer ix = 0; ix < vectLength(blocks); ix++) {
+    segPo seg = O_SEG(getVectEl(blocks, ix));
+    assert(seg != Null);
+    if (seg->seg.pc <= pc && pc < seg->seg.maxPc)
+      return seg;
+  }
+  return Null;
+}
+
+
+// Phase 1: split code into basic blocks
+
+#undef instruction
+#define instruction(Op, A1, Delta, Cmt)\
+    case Op:\
+      ret=checkSplit(blocks,code,oPc,pc,Op,A1,errorMsg,msgLen);\
+      continue;
+
+static retCode
+checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, char *errorMsg, long msgLen);
+
+static retCode splitIns(vectorPo blocks, insPo code, integer *pc, integer to, char *errorMsg, long msgLen) {
   retCode ret = Ok;
-
-  while (ret == Ok && pc < codeLength) {
-    integer oPc = pc;
-    switch (base[pc++]) {
+  while (ret == Ok && *pc < to) {
+    integer oPc = *pc;
+    switch (code[(*pc)++]) {
 #include "instructions.h"
 
       default:
@@ -86,20 +180,23 @@ retCode verifyCode(methodPo mtd, segPo root, char *name, char *errorMsg, long ms
         return Error;
     }
   }
+  return ret;
+}
+
+retCode phaseI(methodPo mtd, vectorPo blocks, char *name, char *errorMsg, long msgLen) {
+  integer pc = 0;
+  retCode ret = splitIns(blocks, entryPoint(mtd), &pc, insCount(mtd), errorMsg, msgLen);
 
 #ifdef TRACEVERIFY
   if (traceVerify)
-    showSegs(root, name);
+    showSegs(blocks, name);
 #endif
-
-  if (ret == Ok)
-    ret = checkSegments(root, errorMsg, msgLen);
 
   return ret;
 }
 
 retCode
-testBreak(segPo root, insPo base, integer oPc, integer *pc, OpCode op, opAndSpec A, char *errorMsg, long msgLen) {
+checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, char *errorMsg, long msgLen) {
   retCode ret = Ok;
 
   switch (A) {
@@ -110,23 +207,25 @@ testBreak(segPo root, insPo base, integer oPc, integer *pc, OpCode op, opAndSpec
     case arg:          /* argument variable offset */
     case lcl:          /* local variable offset */
     case lcs: {        // Store to local variable
-      collect32(base, pc);
+      collect32(code, pc);
       break;
     }
     case off: {         /* offset within current code */
-      integer delta = collect32(base, pc);
+      integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
-      segPo alt = splitSeg(root, oPc, nPc, True, True);
-      if (alt == Null || splitSeg(root, oPc, *pc, False, (logical)(op!=Jmp)) == Null) {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid destination address %d @ %d" RED_ESC_OFF, delta, oPc);
-        return Error;
-      }
+      segPo tgt = splitSeg(blocks, nPc);
+      tgt->seg.entryPoints++;
+
+      segPo src = findSeg(blocks, oPc);
+      assert(src->seg.numExits < NumberOf(src->seg.exits));
+      src->seg.exits[src->seg.numExits++] = tgt->seg.segNo;
+
       break;
     }
     case Es:
     case lit:          /* constant literal */
     case glb:           // Global variable name
-      collect32(base, pc);
+      collect32(code, pc);
       return Ok;
     default:
       strMsg(errorMsg, msgLen, RED_ESC_ON "invalid operand specifier %d @ %d" RED_ESC_OFF, A, pc);
@@ -134,13 +233,28 @@ testBreak(segPo root, insPo base, integer oPc, integer *pc, OpCode op, opAndSpec
   }
 
   switch (op) {
-    case Halt:
     case Tail:
     case OTail:
-    case Ret:
-    case Jmp: {
-      splitSeg(root, oPc, *pc, False, False);
-      break;
+    case Jmp:
+    case Halt:
+    case Ret: {
+      splitSeg(blocks, *pc);
+      return Ok;
+    }
+
+    case Case: {
+      integer iPc = oPc + 1;
+      int32 caseCnt = collect32(code, &iPc) + 1;
+
+      ret = splitIns(blocks, code, pc, *pc + caseCnt * 3, errorMsg, msgLen);
+      segPo src = findSeg(blocks, oPc);
+      for (integer px = iPc + 3; px < *pc; px += 3) {
+        segPo cseTgt = findSeg(blocks, px);
+        assert(src->seg.numExits < NumberOf(src->seg.exits));
+        src->seg.exits[src->seg.numExits++] = cseTgt->seg.segNo;
+        cseTgt->seg.entryPoints++;
+      }
+      return ret;
     }
 
     default:;
@@ -149,154 +263,32 @@ testBreak(segPo root, insPo base, integer oPc, integer *pc, OpCode op, opAndSpec
   return ret;
 }
 
-segPo initVerify(methodPo mtd) {
-  if (segPool == Null) {
-    segPool = newPool(sizeof(segRecord), 16);
-  }
+segPo splitSeg(vectorPo blocks, integer tgt) {
+  segPo seg = findSeg(blocks, tgt);
 
-  segPo first = (segPo) allocPool(segPool);
+  if (seg != Null && tgt != seg->seg.pc) {
+    segPo new = newSegment((int) vectLength(blocks), seg->seg.mtd, tgt, seg->seg.maxPc);
 
-  first->segNo = 0;
-  first->mtd = mtd;
-  first->arity = mtd->arity;
-  first->pc = 0;
-  first->maxPc = insCount(mtd);
-  first->next = first->alt = first->exit = Null;
-  first->entryPoints = 1;
-  first->checked = False;
-  first->hpCnt = 0;
-  first->lclCount = mtd->lclcnt;
+    seg->seg.maxPc = tgt;
 
-  first->args = (varPo) malloc(sizeof(Var) * mtd->arity);
-  first->locals = (varPo) malloc(sizeof(Var) * mtd->lclcnt);
+    appendVectEl(blocks, O_OBJECT(new));
 
-  for (integer ix = 0; ix < mtd->arity; ix++) {
-    varPo a = &first->args[ix];
-    a->inited = True;
-    a->read = False;
-  }
-
-  for (integer ix = 0; ix < mtd->lclcnt; ix++) {
-    varPo l = &first->locals[ix];
-    l->inited = False;
-    l->read = False;
-  }
-  return first;
-}
-
-varPo copyVars(varPo vars, integer count) {
-  varPo nv = (varPo) malloc(sizeof(Var) * count);
-
-  for (integer ix = 0; ix < count; ix++)
-    nv[ix] = vars[ix];
-
-  return nv;
-}
-
-void clearSegs(segPo seg) {
-  while (seg != Null) {
-    segPo next = seg->next;
-
-    if (seg->locals != Null) {
-      free(seg->locals);
-      seg->locals = Null;
-    }
-    if (seg->args != Null) {
-      free(seg->args);
-      seg->args = Null;
-    }
-
-    freePool(segPool, seg);
-    seg = next;
-  }
-}
-
-segPo findSeg(segPo root, integer pc) {
-  while (root != NULL && pc >= root->maxPc)
-    root = root->next;
-
-  if (root == NULL || pc < root->pc || pc >= root->maxPc)
-    return NULL;
-  return root;
-}
-
-segPo splitSeg(segPo root, integer pc, integer tgt, logical isAlt, logical isNormal) {
-  segPo base = findSeg(root, pc);
-  segPo seg = findSeg(root, tgt);
-
-  if (seg != Null) {
-    if (tgt == seg->pc) {
-      if (isNormal) {
-        seg->entryPoints++;
-      } else
-        base->exit = Null;
-
-      if (isAlt) {
-        assert(base->alt == NULL);
-        base->alt = seg;
-      }
-
-      return seg;                  // Nothing to do here
-    } else {
-      segPo new = (segPo) allocPool(segPool);
-
-      assert(base->pc <= pc && base->maxPc > pc);
-
-      if (isAlt) {
-        assert(base->alt == NULL);
-        base->alt = new;
-      }
-      new->exit = seg->exit;
-
-      if (isNormal) {
-        seg->exit = new;
-      } else {
-//        if (seg->exit != Null)
-//          seg->exit->entryPoints--;
-        seg->exit = Null;
-      }
-
-      new->args = copyVars(seg->args, seg->arity);
-
-      for (integer i = 0; i < seg->arity; i++) {
-        new->args[i].read = False;
-      }
-
-      new->mtd = seg->mtd;
-      new->maxPc = seg->maxPc;
-      seg->maxPc = tgt;
-      new->segNo = noOfSegments(root);
-      new->entryPoints = isNormal ? 1 : 0;
-      new->arity = seg->arity;
-      new->lclCount = seg->lclCount;
-      new->checked = False;
-      new->locals = copyVars(seg->locals, seg->lclCount);
-      new->alt = NULL;
-      new->pc = tgt;
-      new->next = seg->next;
-      seg->next = new;
-
-      return new;
-    }
+    return new;
   } else
-    return Null;
+    return seg;
 }
 
 retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen) {
-  if (next->locals == NULL && seg->locals != NULL) {
-    next->locals = copyVars(seg->locals, seg->lclCount);
-  } else if (next->lclCount > seg->lclCount) {
-    strMsg(errorMsg, msgLen, RED_ESC_ON "improper reallocation of locals" RED_ESC_OFF);
-    return Error;
-  } else if (seg->locals != NULL) {
-    for (integer i = 0; i < next->lclCount; i++) {
-      next->locals[i].inited &= seg->locals[i].inited;
-      next->locals[i].read |= seg->locals[i].read;
-    }
+  assert(next->seg.locals != Null && seg->seg.locals != Null && next->seg.lclCount == seg->seg.lclCount);
+  for (integer i = 0; i < next->seg.lclCount; i++) {
+    next->seg.locals[i].inited &= seg->seg.locals[i].inited;
+    next->seg.locals[i].read |= seg->seg.locals[i].read;
   }
-  for (integer i = 0; i < seg->arity; i++) {
-    next->args[i].inited &= seg->args[i].inited;
-    next->args[i].read |= seg->args[i].read;
+
+  assert(next->seg.args != Null && seg->seg.args != Null && next->seg.arity == seg->seg.arity);
+  for (integer i = 0; i < seg->seg.arity; i++) {
+    next->seg.args[i].inited &= seg->seg.args[i].inited;
+    next->seg.args[i].read |= seg->seg.args[i].read;
   }
 
   return Ok;
@@ -309,10 +301,12 @@ int32 collect32(insPo base, integer *pc) {
 }
 
 static retCode
-checkInstruction(segPo root, segPo seg, OpCode op, integer *pc, opAndSpec A1, char *errorMsg, long msgLen);
+checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer *pc, opAndSpec A1, char *errorMsg,
+                 long msgLen);
 
-static retCode checkOperand(segPo root, segPo seg, integer *pc, opAndSpec A, char *errorMsg, long msgLen) {
-  insPo base = entryPoint(seg->mtd);
+static retCode
+checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndSpec A, char *errorMsg, long msgLen) {
+  insPo base = entryPoint(seg->seg.mtd);
 
   switch (A) {
     case nOp:                                   // No operand
@@ -325,54 +319,55 @@ static retCode checkOperand(segPo root, segPo seg, integer *pc, opAndSpec A, cha
     }
     case arg: {                     /* argument variable access */
       int32 argNo = collect32(base, pc) - 1;
-      if (argNo >= 0 && argNo < seg->arity) {
-        if (seg->args[argNo].inited) {
-          seg->args[argNo].read = True;
+      if (argNo >= 0 && argNo < seg->seg.arity) {
+        if (seg->seg.args[argNo].inited) {
+          seg->seg.args[argNo].read = True;
           return Ok;
         } else {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "access to uninitialized argument %d @ %d" RED_ESC_OFF, argNo + 1, pc);
+          strMsg(errorMsg, msgLen, RED_ESC_ON "access to uninitialized argument %d @ %d" RED_ESC_OFF, argNo + 1, *pc);
           return Error;
         }
       } else {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid argument number %d @ %d" RED_ESC_OFF, argNo, pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid argument number %d @ %d" RED_ESC_OFF, argNo, *pc);
         return Error;
       }
     }
     case lcl: {                       /* local variable access */
       int32 lclVr = collect32(base, pc) - 1;
-      if (lclVr >= 0 && lclVr < seg->lclCount) {
-        if (seg->locals[lclVr].inited) {
-          seg->locals[lclVr].read = True;
+      if (lclVr >= 0 && lclVr < seg->seg.lclCount) {
+        if (seg->seg.locals[lclVr].inited) {
+          seg->seg.locals[lclVr].read = True;
           return Ok;
         } else {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "access to uninitialized local var %d @ %d" RED_ESC_OFF, lclVr + 1, pc);
+          strMsg(errorMsg, msgLen, RED_ESC_ON " access to uninitialized local var %d @ %d" RED_ESC_OFF, lclVr + 1,
+                 *pc);
           return Error;
         }
       } else {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, *pc);
         return Error;
       }
     }
     case lcs: {                        // Store to local variable
       int32 lclVr = collect32(base, pc) - 1;
-      if (lclVr >= 0 && lclVr < seg->lclCount) {
-        seg->locals[lclVr].inited = True;
-        seg->locals[lclVr].read = False;
+      if (lclVr >= 0 && lclVr < seg->seg.lclCount) {
+        seg->seg.locals[lclVr].inited = True;
+        seg->seg.locals[lclVr].read = False;
         return Ok;
       } else {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, pc);
         return Error;
       }
     }
     case off: {                         /* offset within current code */
       int32 delta = collect32(base, pc);
       integer npc = *pc + delta;
-      segPo alt = findSeg(root, npc);
+      segPo alt = findSeg(blocks, npc);
 
-      if (alt == Null || alt->pc != npc) {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, npc, pc);
+      if (alt == Null || alt->seg.pc != npc) {
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, npc, *pc);
         return Error;
       } else {
+        pushBlock(stack, alt);
         return mergeSegVars(seg, alt, errorMsg, msgLen);
       }
     }
@@ -380,15 +375,15 @@ static retCode checkOperand(segPo root, segPo seg, integer *pc, opAndSpec A, cha
       int32 escNo = collect32(base, pc);
 
       if (getEscape(escNo) == Null) {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid escape number: %d @ %d" RED_ESC_OFF, escNo, pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid escape number: %d @ %d" RED_ESC_OFF, escNo, *pc);
         return Error;
       }
       return Ok;
     }
     case lit: {                          /* constant literal */
       int32 litNo = collect32(base, pc);
-      if (litNo < 0 || litNo >= codeLitCount(seg->mtd)) {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, pc);
+      if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, *pc);
         return Error;
       }
 
@@ -398,23 +393,37 @@ static retCode checkOperand(segPo root, segPo seg, integer *pc, opAndSpec A, cha
       int32 glbNo = collect32(base, pc);
 
       if (!isValidGlobalVarNo(glbNo)) {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid global variable number: %d @ %d" RED_ESC_OFF, glbNo, pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid global variable number: %d @ %d" RED_ESC_OFF, glbNo, *pc);
         return Error;
       }
       return Ok;
     }
     default:
-      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid instruction @ %d" RED_ESC_OFF, pc);
+      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid instruction @ %d" RED_ESC_OFF, *pc);
       return Error;
   }
 }
 
-retCode checkInstruction(segPo root, segPo seg, OpCode op, integer *pc, opAndSpec A1, char *errorMsg, long msgLen) {
-  retCode ret = checkOperand(root, seg, pc, A1, errorMsg, msgLen);
+retCode
+checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer *pc, opAndSpec A1, char *errorMsg,
+                 long msgLen) {
+  integer iPc = *pc;
+  retCode ret = checkOperand(blocks, stack, seg, pc, A1, errorMsg, msgLen);
 
   if (ret == Ok) {
     // Special handling for specific instructions
     switch (op) {
+      case Case: {
+        int32 caseCnt = collect32(entryPoint(seg->seg.mtd), &iPc);
+        for (integer ix = 0; ret == Ok && ix < caseCnt; ix++) {
+          iPc += 3;
+          segPo caseJmp = findSeg(blocks, iPc);
+          ret = mergeSegVars(seg, caseJmp, errorMsg, msgLen);
+          if (ret == Ok && caseJmp->seg.entryPoints-- <= 0)
+            pushBlock(stack, caseJmp);
+        }
+        return ret;
+      }
       default:;
     }
   }
@@ -422,25 +431,39 @@ retCode checkInstruction(segPo root, segPo seg, OpCode op, integer *pc, opAndSpe
   return ret;
 }
 
+void pushBlock(blockStackPo stack, segPo seg) {
+  assert(stack->top < stack->max);
+  stack->stack[stack->top++] = seg;
+}
+
+segPo popBlock(blockStackPo stack) {
+  assert(stack->top > 0);
+  return stack->stack[--stack->top];
+}
+
+logical stackEmpty(blockStackPo stack) {
+  return (logical) (stack->top == 0);
+}
+
 #undef instruction
 #define instruction(Mn, A1, Dlta, Cmt)\
   case Mn:\
-    ret = checkInstruction(root,seg,Mn,&pc,A1,errorMsg,msgLen);\
+    ret = checkInstruction(blocks,stack,seg,Mn,&pc,A1,errorMsg,msgLen);\
     continue;
 
-retCode checkSegment(segPo root, segPo seg, char *errorMsg, long msgLen) {
-  if (!seg->checked) {
-    integer pc = seg->pc;
-    integer limit = seg->maxPc;
+retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *errorMsg, long msgLen) {
+  if (!seg->seg.checked) {
+    integer pc = seg->seg.pc;
+    integer limit = seg->seg.maxPc;
     retCode ret = Ok;
 
     if (traceVerify) {
       outMsg(logFile, "On entry: ");
-      showSeg(seg);
+      showSeg(NULL, seg);
     }
 
-    seg->checked = True;
-    insPo base = entryPoint(seg->mtd);
+    seg->seg.checked = True;
+    insPo base = entryPoint(seg->seg.mtd);
 
     while (ret == Ok && pc < limit) {
       switch (base[pc++]) {
@@ -452,106 +475,80 @@ retCode checkSegment(segPo root, segPo seg, char *errorMsg, long msgLen) {
       }
     }
     if (traceVerify) {
+      if (ret != Ok)
+        outMsg(logFile, "Error: block: %d, %s\n", seg->seg.segNo, errorMsg);
       outMsg(logFile, "On exit:  ");
-      showSeg(seg);
+      showSeg(NULL, seg);
     }
+    return ret;
   }
   return Ok;
 }
 
-static retCode checkSegments(segPo root, char *errorMsg, long msgLen) {
-  int count = noOfSegments(root);
-  segPo stack[count];
-  int top = 0;
+retCode phaseII(vectorPo blocks, char *name, char *errorMsg, long msgLen) {
+  integer count = vectLength(blocks);
+  segPo stk[count];
+  BlockStack stack = {.top=0, .max=count, .stack=stk};
 
-  stack[top++] = root;
+  pushBlock(&stack, O_SEG(getVectEl(blocks, 0)));
+
   retCode ret = Ok;
 
-  while (ret == Ok && top > 0) {
-    segPo seg = stack[--top];
-    ret = checkSegment(root, seg, errorMsg, msgLen);
-
-    if (ret != Ok)
-      return ret;
-
-    if (seg->next != NULL) {
-      segPo next = seg->next;
-
-      if (!next->checked) {
-        if ((ret = mergeSegVars(seg, next, errorMsg, msgLen)) != Ok)
-          return ret;
-
-        if (--next->entryPoints == 0)
-          stack[top++] = next;
-      }
-    }
-    if (seg->alt != NULL) {
-      segPo alt = seg->alt;
-
-      if (!alt->checked) {
-        if ((ret = mergeSegVars(seg, alt, errorMsg, msgLen)) != Ok)
-          return ret;
-
-        if (--alt->entryPoints == 0)
-          stack[top++] = alt;
-      }
-    }
+  while (ret == Ok && !stackEmpty(&stack)) {
+    segPo seg = popBlock(&stack);
+    ret = checkSegment(NULL, &stack, seg, errorMsg, msgLen);
   }
 
-  for (segPo seg = root; seg != NULL; seg = seg->next)
-    if (!seg->checked) {
-      strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ %x" RED_ESC_OFF, seg->segNo, seg->pc);
+#ifdef TRACEVERIFY
+  if (traceVerify)
+    showSegs(blocks, name);
+#endif
+
+  if (ret == Ok) {
+    for (integer ix = 0; ix < vectLength(blocks); ix++) {
+      segPo seg = O_SEG(getVectEl(blocks, ix));
+      if (!seg->seg.checked)
+        strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ %x" RED_ESC_OFF, seg->seg.segNo, seg->seg.pc);
       return Error;
     }
+  }
 
   return Ok;
 }
 
-int noOfSegments(segPo root) {
-  int i;
-
-  for (i = 0; root != NULL; i++, root = root->next);
-  return i;
-}
-
-void showSegs(segPo root, char *name) {
-  segPo seg = root;
-
-  outMsg(logFile, "%d segments for %s\n", noOfSegments(root), name);
-
-  while (seg != NULL) {
-    showSeg(seg);
-
-    seg = seg->next;
-  }
+void showSegs(vectorPo blocks, char *name) {
+  outMsg(logFile, "segment map for %s\n", name);
+  for (integer ix = 0; ix < vectLength(blocks); ix++)
+    showSeg(logFile, O_SEG(getVectEl(blocks, ix)));
 }
 
 static void showVar(char *nm, integer ix, varPo v);
 
-void showSeg(segPo seg) {
+retCode showSeg(ioPo out, segPo seg) {
   integer i;
 
-  outMsg(logFile, "segment: %d (%d) [%d-%d](%d)",
-         seg->segNo, seg->entryPoints, seg->pc, seg->maxPc, seg->maxPc - seg->pc);
+  outMsg(out, "segment:%s %d (%d) [%d-%d](%d)",
+         seg->seg.checked ? "¶" : "",
+         seg->seg.segNo, seg->seg.entryPoints, seg->seg.pc, seg->seg.maxPc, seg->seg.maxPc - seg->seg.pc);
 
-  if (seg->alt != NULL)
-    outMsg(logFile, ", alt=%d", seg->alt->segNo);
-  if (seg->exit != Null)
-    outMsg(logFile, ", exit=%d", seg->exit->segNo);
-
-  if (seg->arity > 0 || seg->lclCount > 0) {
-    outMsg(logFile, "\n");
-
-    if (seg->args != Null)
-      for (i = 0; i < seg->arity; i++)
-        showVar("A", i, &seg->args[i]);
-    if (seg->locals != NULL)
-      for (i = 0; i < seg->lclCount; i++)
-        showVar("L", i, &seg->locals[i]);
+  for (int ix = 0; ix < seg->seg.numExits; ix++) {
+    outMsg(out, ", exit=%d", seg->seg.exits[ix]);
   }
 
-  outMsg(logFile, "\n");
-  flushFile(logFile);
+  if (seg->seg.arity > 0 || seg->seg.lclCount > 0) {
+    outMsg(out, "\n");
+
+    if (seg->seg.args != Null)
+      for (i = 0; i < seg->seg.arity; i++)
+        showVar("A", i, &seg->seg.args[i]);
+    if (seg->seg.locals != NULL)
+      for (i = 0; i < seg->seg.lclCount; i++)
+        showVar("L", i, &seg->seg.locals[i]);
+  }
+
+  outMsg(out, "\n");
+  flushFile(out);
+  return Ok;
 }
 
 void showVar(char *nm, integer ix, varPo v) {

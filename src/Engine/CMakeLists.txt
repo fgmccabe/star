@@ -4,7 +4,7 @@ project(star)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
-include_directories("Headers" "../Headers" "../Util/Headers" "../Lib/Headers" "../Infra/Headers")
+include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers")
 
 set(HEADER_FILES
         ../Headers/version.h
@@ -12,7 +12,7 @@ set(HEADER_FILES
         ../Headers/instructions.h
         ../Util/Headers/ooio.h
         ../Util/Headers/cmdOptions.h
-        ../Lib/Headers/libEscapes.h
+        ../Escapes/Headers/libEscapes.h
         Headers/bkpoint.h
         Headers/array.h Headers/arrayP.h
         Headers/cell.h Headers/cellP.h
@@ -37,12 +37,13 @@ set(HEADER_FILES
         Headers/arithP.h Headers/strP.h
         Headers/thr.h Headers/thrP.h
         Headers/repoP.h Headers/repo.h
-        Headers/rrb.h Headers/rrbP.h)
+        Headers/rrb.h Headers/rrbP.h
+        Headers/verify.h Headers/verifyP.h)
 
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c future.c globals.c future.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c rrb.c
-        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c Headers/verify.h)
+        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c )
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
