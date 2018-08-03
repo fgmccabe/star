@@ -288,9 +288,12 @@ failCont(D,D,_,[iLdC(enum("star.core#false"))|Cx],Cx,Stk,Stk1) :-
 
 nullCont(D,D,_,C,C,Stk,Stk).
 
+insCont(Ins,D,D,_,[Ins|C],C,Stk,Stk).
+
 raiseCont(Lc,Msg,Opts,D,Dx,End,C,Cx,Stk,none) :-
   locTerm(Lc,LT),
-  compTerm(ecll(Lc,"_abort",[LT,strg(Msg)]),Lc,nullCont,Opts,D,Dx,End,C,Cx,Stk,_).
+  mkTpl([LT,strg(Msg)],ATrm),
+  compTerm(ATrm,Lc,insCont(iAbort),Opts,D,Dx,End,C,Cx,Stk,_).
 
 indexCont(Ix,D,D,_,[iDup,iNth(Ix)|Cx],Cx).
 

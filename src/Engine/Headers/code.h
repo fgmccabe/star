@@ -26,6 +26,7 @@ extern integer codeLitCount(methodPo mtd);
 extern termPo getMtdLit(methodPo mtd, integer litNo);
 
 extern integer lclCount(methodPo mtd);
+extern integer codeArity(methodPo mtd);
 
 extern packagePo loadedPackage(char *package);
 extern char *loadedVersion(char *package);

@@ -52,7 +52,7 @@
 // Assembler mnemonics
 %token PUBLIC PKG IMPORT GLOBAL
 
-%token HALT
+%token HALT ABORT
 %token CALL OCALL TAIL OTAIL ESCAPE
 %token RET JMP CASE
 %token DROP DUP PULL ROT RST BF BT CLBL CMP
@@ -109,6 +109,7 @@ trailer: END nls { endFunction(currMtd); }
  nls: nls NL | NL;
 
  instruction: halt
+     | abort
      | call
      | load
      | store
@@ -116,7 +117,10 @@ trailer: END nls { endFunction(currMtd); }
      | heap
      | directive
      ;
+
  halt: HALT { AHalt(currMtd); };
+
+ abort: ABORT { AAbort(currMtd); };
 
  call: CALL literal { ACall(currMtd,$2); }
    | OCALL DECIMAL { AOCall(currMtd,$2); }

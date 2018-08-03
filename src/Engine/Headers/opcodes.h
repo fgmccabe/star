@@ -36,6 +36,7 @@ typedef enum {
  * PC current program counter
  * PRG current program base
  */
+
 typedef enum {
   nOp,                                   // No operand
   tOs,
