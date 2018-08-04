@@ -459,7 +459,7 @@ retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *error
 
     if (traceVerify) {
       outMsg(logFile, "On entry: ");
-      showSeg(NULL, seg);
+      showSeg(logFile, seg);
     }
 
     seg->seg.checked = True;
@@ -478,7 +478,7 @@ retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *error
       if (ret != Ok)
         outMsg(logFile, "Error: block: %d, %s\n", seg->seg.segNo, errorMsg);
       outMsg(logFile, "On exit:  ");
-      showSeg(NULL, seg);
+      showSeg(logFile, seg);
     }
     return ret;
   }
@@ -496,7 +496,7 @@ retCode phaseII(vectorPo blocks, char *name, char *errorMsg, long msgLen) {
 
   while (ret == Ok && !stackEmpty(&stack)) {
     segPo seg = popBlock(&stack);
-    ret = checkSegment(NULL, &stack, seg, errorMsg, msgLen);
+    ret = checkSegment(blocks, &stack, seg, errorMsg, msgLen);
   }
 
 #ifdef TRACEVERIFY
