@@ -57,9 +57,9 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   encType(Tp,Sig),
   genLbl(D,Ex,D0),
   genLbl(D0,End,D1),
-  buildArgs(Args,1,D1,D1a),
+  buildArgs(Args,0,D1,D1a),
   genLine(Opts,Lc,C0,C1),
-  compPtnArgs(Args,Lc,argCont,1,contCont(Ex),raiseCont(Lc,"failed",Opts),Opts,D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
+  compPtnArgs(Args,Lc,argCont,0,contCont(Ex),raiseCont(Lc,"failed",Opts),Opts,D1a,D2,End,C1,[iLbl(Ex)|C2],0,Stk0),
   compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns([method(Nm,Sig,_Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
@@ -97,8 +97,6 @@ isVar(Nm,Wh,scope(Vrs,_,_)) :-
 
 varLabels(scope(Vrs,_,_),Vrs).
 
-%defineLclVar(Nm,Lbl,End,scope(Vrs,Lbs,InUse),scope(Vrs,Lbs,InUse),Off,Cx,Cx) :-
-%  is_member((Nm,l(Off),_,_),Vrs),!.
 defineLclVar(Nm,Lbl,End,scope(Vrs,Lbs,InUse),
       scope([(Nm,l(Off),Lbl,End)|Vrs],Lbs,NInUse),Off,[iLocal(Nm,Lbl,End,Off)|Cx],Cx) :-
   nextFreeOff(InUse,Off,NInUse).
@@ -516,19 +514,3 @@ compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,Opts,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx
   compTerm(E,Lc,Succ,Opts,D2,D3,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk,Stk2),
   compMoreCase(SC,VLb,Succ,Fail,Opts,D3,Dx,End,C2,Cx,Stk,Stk3),
   mergeStkLvl(Stk2,Stk3,Stkx,"more case branch stack").
-
-/*
-dispIns(Nm,_Sig,I) :-
-  showTerm(Nm,0,C,C0),
-  appStr(":\n",C0,C1),
-  rfold(I,gencode:showIns,C1,[]),
-  string_chars(Txt,C),
-  writeln(Txt).
-
-showIns(iLbl(L),C,Cx) :-
-  appStr(L,C,C0),
-  appStr(":\n",C0,Cx).
-showIns(A,C,C0) :-
-  swritef(I,"%w\n",[A]),
-  appStr(I,C,C0).
-*/
