@@ -25,7 +25,7 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
 #define top() (*SP)
 
 #define local(off) (((ptrPo)FP)-(off))
-#define arg(off) (((ptrPo)(FP+1))+(off)-1)
+#define arg(off) (((ptrPo)(FP+1))+(off))
 
 #define saveRegisters(P, SP) { (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = (SP);}
 #define restoreRegisters(P) { PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);}
