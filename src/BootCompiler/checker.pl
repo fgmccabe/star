@@ -417,8 +417,12 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   implementationName(Spec,ImplName),
   typeOfExp(IBody,IFace,ThEnv,_ThEv,ImplTerm,ImplName),
   Impl = implDef(Lc,INm,ImplName,ConSpec),
-  rfold(IQ,checker:pickBoundType,IFace,ImplTp),
-  ImplDef = varDef(Lc,INm,ImplName,AC,ImplTp,ImplTerm),
+  (AC=[] ->
+    rfold(IQ,checker:pickBoundType,IFace,ImplTp),
+    ImplDef = varDef(Lc,INm,ImplName,AC,ImplTp,ImplTerm);
+    moveConstraints(ITp,AC,funType(tupleType([]),IFace)),
+    rfold(IQ,checker:pickBoundType,ITp,ImplTp),
+    ImplDef = funDef(Lc,INm,ImplName,ImplTp,AC,[equation(Lc,tple(Lc,[]),enm(Lc,"true"),ImplTerm)])),
   declareImplementation(Nm,ImplName,ConSpec,Env,Ex),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
