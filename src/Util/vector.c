@@ -154,7 +154,9 @@ objectPo removeVectEl(vectorPo v, integer off) {
     v->vect.count--;
     return el;
   }
+  return Null;
+}
 
-  integer vectLength(vectorPo v) {
-    return v->vect.count;
-  }
+integer vectLength(vectorPo v) {
+  return v->vect.count;
+}
