@@ -524,7 +524,7 @@ retCode showSeg(ioPo out, segPo seg) {
     outMsg(out, ", exit=%d", seg->seg.exits[ix]);
   }
 
-  if (seg->seg.arity > 0 || seg->seg.lclCount > 0) {
+  if (seg->seg.args != Null || seg->seg.locals != Null) {
     outMsg(out, "\n");
 
     if (seg->seg.args != Null)
@@ -532,7 +532,7 @@ retCode showSeg(ioPo out, segPo seg) {
         showVar("A", i, &seg->seg.args[i]);
     if (seg->seg.locals != NULL)
       for (i = 0; i < seg->seg.lclCount; i++)
-        showVar("L", i+1, &seg->seg.locals[i]);
+        showVar("L", i + 1, &seg->seg.locals[i]);
   }
 
   outMsg(out, "\n");
