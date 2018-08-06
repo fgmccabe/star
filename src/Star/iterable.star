@@ -1,14 +1,25 @@
 star.iterable{
-  -- iterstate is similar to option except that is has more options (sic)
-  -- Used in query processing
   import star.core.
   import star.monad.
   import star.option.
+  import star.coerce.
+  import star.collection.
+  import star.arith.
+  import star.lists.
 
+  -- iterstate is similar to option except that is has more options (sic)
+  -- Used in query processing
   public iterState[t] ::= noneFound
                         | noMore(t)
                         | continueWith(t)
                         | abortIter(string).
+
+  public implementation all e ~~ display[e] |: display[iterState[e]] => {.
+    disp(noneFound) => ss("none found").
+    disp(noMore(X)) => ssSeq([ss("only "),disp(X)]).
+    disp(continueWith(X)) => ssSeq([ss("at least "),disp(X)]).
+    disp(abortIter(E)) => ssSeq([ss("aborted: "),ss(E)]).
+  .}
 
 -- The iterable contract is used in planning queries
 -- The iterate function takes a filter function and iterates over the collection using it while it returns a IterState state
@@ -17,7 +28,7 @@ star.iterable{
     _iterate : all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
   }
 
-  public contract indexed_iterable[s ->> k,v] ::= {
+  public contract all s,k,v ~~ indexed_iterable[s ->> k,v] ::= {
     _ixiterate : all r ~~ (s,(k,v,iterState[r])=>iterState[r],iterState[r]) => iterState[r]
   }
 
@@ -31,9 +42,9 @@ star.iterable{
   }
 
   public _checkIterState: all e ~~ (iterState[e],()=>e) => e.
-  _checkIterState(NoMore(X),_) => X.
-  _checkIterState(ContinueWith(X),_) => X.
-  _checkIterState(NoneFound,D) => D().
+  _checkIterState(noMore(X),_) => X.
+  _checkIterState(continueWith(X),_) => X.
+  _checkIterState(noneFound,D) => D().
 
   public _negate:all x ~~ (iterState[boolean],()=>x,()=>x) => x.
   _negate(noMore(true),A,_) => A().
@@ -51,13 +62,13 @@ star.iterable{
   public implementation monad[iterState] => {
     return X => continueWith(X).
 
-    noneFound >>= _ => noneFound.
-    continueWith(X) >>= F => F(X).
-    noMore(X) >>= F => F(X).
-    abortIter(E) >>= _ => abortIter(E).
+    (noneFound >>= _) => noneFound.
+    (continueWith(X) >>= F) => F(X).
+    (noMore(X) >>= F) => F(X).
+    (abortIter(E) >>= _) => abortIter(E).
   }
 
-  public implementation all e ~~ execution[iterState[e]->>string] => {
+  public implementation execution[iterState->>string] => {
     _perform(noMore(X)) => X.
     _perform(continueWith(X)) => X.
 
@@ -76,5 +87,12 @@ star.iterable{
     fmap(_,noneFound) => noneFound.
   }
 
+  public implementation all e ~~ iterable[list[e]->>e] => {
+    _iterate(Lst,Fn,Init) => iterateOverList(Lst,0,size(Lst),Fn,Init).
+
+    iterateOverList(_,Ix,Mx,_,St) where Ix>=Mx => St.
+    iterateOverList(_,_,_,_,noMore(X)) => noMore(X).
+    iterateOverList(Lst,Ix,Mx,Fn,St) where El^=Lst[Ix] => iterateOverList(Lst,Ix+1,Mx,Fn,Fn(El,St)).
+  }
 
 }

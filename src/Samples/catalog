@@ -2,7 +2,8 @@
   "content" : {
     "sample.tree" : "tree.star",
     "sample.fact" : "fact.star",
-    "sample.sieve" : "sieve.star"
+    "sample.sieve" : "sieve.star",
+    "sample.gp" : "gp.star"
   },
 	"default": "../Star/catalog"
 }
