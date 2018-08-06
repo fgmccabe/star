@@ -19,7 +19,7 @@ static segPo initVerify(methodPo mtd, vectorPo blocks);
 static segPo findSeg(vectorPo blocks, integer pc);
 static segPo splitSeg(vectorPo blocks, integer tgt);
 static varPo copyVars(varPo src, integer count);
-static retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen);
+static retCode mergeSegVars(segPo seg, segPo next);
 static retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *errorMsg, long msgLen);
 static void showSegs(vectorPo blocks, char *name);
 static retCode showSeg(ioPo out, segPo seg);
@@ -68,15 +68,15 @@ void segmentInit(objectPo o, va_list *args) {
   s->seg.maxPc = va_arg(*args, integer);
   s->seg.entryPoints = 0;
   s->seg.checked = False;
-  s->seg.hpCnt = 0;
   s->seg.lclCount = lclCount(s->seg.mtd);
+  s->seg.exits = vector(0);
+  s->seg.stackDepth = va_arg(*args, integer);
 
   logical initVars = va_arg(*args, logical);
 
   if (initVars) {
     s->seg.args = (varPo) malloc(sizeof(Var) * s->seg.arity);
     s->seg.locals = (varPo) malloc(sizeof(Var) * s->seg.lclCount);
-    s->seg.numExits = 0;
 
     for (integer ix = 0; ix < s->seg.arity; ix++) {
       varPo a = &s->seg.args[ix];
@@ -102,8 +102,8 @@ varPo copyVars(varPo src, integer count) {
   return vars;
 }
 
-segPo newSegment(int segNo, methodPo mtd, integer pc, integer maxPc, logical initVars) {
-  return (segPo) newObject(segmentClass, segNo, mtd, pc, maxPc, initVars);
+segPo newSegment(int segNo, methodPo mtd, integer pc, integer maxPc, integer stackDepth, logical initVars) {
+  return (segPo) newObject(segmentClass, segNo, mtd, pc, maxPc, stackDepth, initVars);
 }
 
 void segmentDestroy(objectPo o) {
@@ -116,6 +116,8 @@ void segmentDestroy(objectPo o) {
   if (v->seg.locals != Null)
     free(v->seg.locals);
   v->seg.locals = Null;
+
+  decReference(O_OBJECT(v->seg.exits));
 }
 
 static integer segmentHash(objectPo o) {
@@ -179,7 +181,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 }
 
 segPo initVerify(methodPo mtd, vectorPo blocks) {
-  segPo first = newSegment(0, mtd, 0, insCount(mtd), True);
+  segPo first = newSegment(0, mtd, 0, insCount(mtd), 0, True);
 
   appendVectEl(blocks, O_OBJECT(first));
   return first;
@@ -245,8 +247,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       tgt->seg.entryPoints++;
 
       segPo src = findSeg(blocks, oPc);
-      assert(src->seg.numExits < NumberOf(src->seg.exits));
-      src->seg.exits[src->seg.numExits++] = tgt->seg.segNo;
+      appendVectEl(src->seg.exits, O_OBJECT(newInteger(tgt->seg.segNo)));
 
       break;
     }
@@ -290,7 +291,7 @@ segPo splitSeg(vectorPo blocks, integer tgt) {
   segPo seg = findSeg(blocks, tgt);
 
   if (seg != Null && tgt != seg->seg.pc) {
-    segPo new = newSegment((int) vectLength(blocks), seg->seg.mtd, tgt, seg->seg.maxPc, False);
+    segPo new = newSegment((int) vectLength(blocks), seg->seg.mtd, tgt, seg->seg.maxPc, seg->seg.stackDepth, False);
 
     seg->seg.maxPc = tgt;
 
@@ -303,10 +304,11 @@ segPo splitSeg(vectorPo blocks, integer tgt) {
 
 // Phase 2: verify instructions are behaving
 
-retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen) {
+retCode mergeSegVars(segPo seg, segPo next) {
   if (next->seg.locals == Null) {
     next->seg.locals = copyVars(seg->seg.locals, seg->seg.lclCount);
     next->seg.args = copyVars(seg->seg.args, seg->seg.arity);
+    next->seg.stackDepth = seg->seg.stackDepth;
   } else {
     assert(next->seg.locals != Null && seg->seg.locals != Null && next->seg.lclCount == seg->seg.lclCount);
     for (integer i = 0; i < next->seg.lclCount; i++) {
@@ -319,6 +321,8 @@ retCode mergeSegVars(segPo seg, segPo next, char *errorMsg, long msgLen) {
       next->seg.args[i].inited &= seg->seg.args[i].inited;
       next->seg.args[i].read |= seg->seg.args[i].read;
     }
+
+    next->seg.stackDepth = minimum(next->seg.stackDepth, seg->seg.stackDepth);
   }
 
   return Ok;
@@ -331,8 +335,8 @@ int32 collect32(insPo base, integer *pc) {
 }
 
 static retCode
-checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer *pc, opAndSpec A1, char *errorMsg,
-                 long msgLen);
+checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A1,
+                 integer delta, char *errorMsg, long msgLen);
 
 static retCode
 checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndSpec A, char *errorMsg, long msgLen) {
@@ -399,7 +403,7 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
       } else {
         if (--alt->seg.entryPoints <= 0)
           pushBlock(stack, alt);
-        return mergeSegVars(seg, alt, errorMsg, msgLen);
+        return mergeSegVars(seg, alt);
       }
     }
     case Es: {                          // escape code
@@ -436,14 +440,44 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
 }
 
 retCode
-checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer *pc, opAndSpec A1, char *errorMsg,
-                 long msgLen) {
-  integer iPc = *pc;
+checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A1,
+                 integer delta, char *errorMsg, long msgLen) {
   retCode ret = checkOperand(blocks, stack, seg, pc, A1, errorMsg, msgLen);
 
   if (ret == Ok) {
+    seg->seg.stackDepth += delta;
+    integer iPc = oPc + 1;
     // Special handling for specific instructions
     switch (op) {
+      case Call: {
+        int32 litNo = collect32(entryPoint(seg->seg.mtd), &iPc);
+        if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid literal number: %d @ %d" RED_ESC_OFF, litNo, *pc);
+          return Error;
+        }
+        termPo lit = getMtdLit(seg->seg.mtd, litNo);
+        if (isLabel(lit)) {
+          integer arity = labelArity(C_LBL(lit));
+          seg->seg.stackDepth -= arity - 1;
+//          if(seg->seg.stackDepth<arity){
+//            strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, *pc);
+//            return Error;
+//          }
+        } else {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid call label: %t @ %d" RED_ESC_OFF, lit, *pc);
+          return Error;
+        }
+        break;
+      }
+      case Tail:
+        seg->seg.stackDepth = 0;
+        break;
+      case Rst: {
+        int32 depth = collect32(entryPoint(seg->seg.mtd), &iPc);
+        seg->seg.stackDepth = depth;
+        break;
+      }
+
       default:;
     }
   }
@@ -468,7 +502,7 @@ logical stackEmpty(blockStackPo stack) {
 #undef instruction
 #define instruction(Mn, A1, Dlta, Cmt)\
   case Mn:\
-    ret = checkInstruction(blocks,stack,seg,Mn,&pc,A1,errorMsg,msgLen);\
+    ret = checkInstruction(blocks,stack,seg,Mn,oPc,&pc,A1,Dlta,errorMsg,msgLen);\
     continue;
 
 retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *errorMsg, long msgLen) {
@@ -486,6 +520,7 @@ retCode checkSegment(vectorPo blocks, blockStackPo stack, segPo seg, char *error
     insPo base = entryPoint(seg->seg.mtd);
 
     while (ret == Ok && pc < limit) {
+      integer oPc = pc;
       switch (base[pc++]) {
 #include "instructions.h"
 
@@ -516,12 +551,13 @@ static void showVar(char *nm, integer ix, varPo v);
 retCode showSeg(ioPo out, segPo seg) {
   integer i;
 
-  outMsg(out, "segment:%s %d (%d) [%d-%d](%d)",
+  outMsg(out, "segment:%s %d (%d) [%d-%d](%d) depth=%d",
          seg->seg.checked ? "¶" : "",
-         seg->seg.segNo, seg->seg.entryPoints, seg->seg.pc, seg->seg.maxPc, seg->seg.maxPc - seg->seg.pc);
+         seg->seg.segNo, seg->seg.entryPoints, seg->seg.pc, seg->seg.maxPc, seg->seg.maxPc - seg->seg.pc,
+         seg->seg.stackDepth);
 
-  for (int ix = 0; ix < seg->seg.numExits; ix++) {
-    outMsg(out, ", exit=%d", seg->seg.exits[ix]);
+  for (integer ix = 0; ix < vectLength(seg->seg.exits); ix++) {
+    outMsg(out, ", exit=%d", ixVal(O_IX(getVectEl(seg->seg.exits, ix))));
   }
 
   if (seg->seg.args != Null || seg->seg.locals != Null) {

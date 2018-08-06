@@ -149,8 +149,8 @@ retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl) {
   if (alt) {
     if (lblLen > prec) {
       integer half = prec / 2;
-      integer hwp = backCodePoint(lbl->name,lblLen,half);
-      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen-hwp);
+      integer hwp = backCodePoint(lbl->name, lblLen, half);
+      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp);
     } else
       return outMsg(out, "%S", lbl->name, lblLen);
   } else
@@ -189,4 +189,8 @@ logical isTplLabel(labelPo lb) {
     return True;
   } else
     return False;
+}
+
+logical isLabel(termPo t) {
+  return hasClass(t, labelClass);
 }
