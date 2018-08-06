@@ -39,7 +39,7 @@ set(HEADER_FILES
         Headers/stringBufferP.h
         Headers/unistrP.h
         Headers/pp.h
-        Headers/vector.h Headers/vectorP.h)
+        Headers/vector.h Headers/vectorP.h Headers/integerP.h)
 
 set(SOURCE_FILES
         class.c
@@ -76,7 +76,7 @@ set(SOURCE_FILES
 
         base64.c
         ${PUBLIC_HEADERS}
-        ${HEADER_FILES} vector.c)
+        ${HEADER_FILES} vector.c integer.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 

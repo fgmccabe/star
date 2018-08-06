@@ -1,6 +1,6 @@
 /*
   Definition of integer
-  Copyright (c) 2016, 2017. Francis G. McCabe
+  Copyright (c) 2016, 2017, 2018. Francis G. McCabe
 
   Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
   except in compliance with the License. You may obtain a copy of the License at
@@ -17,13 +17,27 @@
 #define _INTEGER_H_
 
 #include "config.h"
+
 typedef int64 integer;
 typedef unsigned char byte;
 typedef uint64 uinteger;
 
+#include "object.h"
+
 #define LARGE_INT64 ((integer)(((uinteger)-1)>>1))
 #define LARGE_INT32 ((int32)(((uint32)-1)>>1))
 
-typedef integer PTRINT;
+typedef struct _ix_object_ *ixPo;
+
+extern integer ixVal(ixPo i);
+extern ixPo newInteger(integer ix);
+
+extern classPo ixClass;
+
+#ifdef VERIFY_OBJECT
+#define O_IX(c) ((ixPo)(checkCast((c),ixClass)))
+#else
+#define O_IX(c) ((ixPo)(c))
+#endif
 
 #endif
