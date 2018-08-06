@@ -20,5 +20,6 @@ extern retCode showLoc(ioPo f, void *data, long depth, long precision, logical a
 extern integer pcCount;     /* How many instructions executed so far? */
 extern void countIns(insWord ins);
 extern void dumpInsCount();
+extern void dumpInsStats();
 
 #endif //CAFE_DEBUG_H
