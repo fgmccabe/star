@@ -163,7 +163,9 @@ checkOther(St,[assertion(Lc,Cond)|More],More,Env,Path) :-
 checkOther(St,[show(Lc,Vl)|More],More,Env,Path) :-
   isShow(St,Lc,C),!,
   findType("string",Lc,Env,StrTp),
-  typeOfExp(C,StrTp,Env,_,Vl,Path).
+  unary(Lc,"_coerce",C,LT),
+  binary(Lc,":",LT,name(Lc,"string"),NT),
+  typeOfExp(NT,StrTp,Env,_,Vl,Path).
 
 checkGroups([],_,_,[],E,E,_).
 checkGroups([Gp|More],Fields,Annots,Defs,E,Ev,Path) :-
