@@ -784,8 +784,9 @@ void countIns(insWord ins) {
 #define instruction(Op, Arg, Dl, Cmt) outMsg(logFile,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
-
-#include "instructions.h"
-
   logMsg(logFile, "%d instructions executed\n", pcCount);
+}
+
+void dumpInsStats() {
+#include "instructions.h"
 }

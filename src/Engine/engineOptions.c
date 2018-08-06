@@ -163,8 +163,12 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 's':
 #ifdef TRACESTATS
+        if(runStats){
+          atexit(dumpInsStats);
+        }else{
+          atexit(dumpInsCount);
+        }
         runStats = True;
-        atexit(dumpInsCount);
         break;
 #else
       logMsg(logFile, "instruction counting not enabled");
