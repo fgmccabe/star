@@ -62,4 +62,49 @@ sample.gp{
   gpI(GC) => iGp(iPs(parent,GC,noneFound),noneFound).
 
   show disp(gpI("abc")).
+
+  -- As though translated from the query rule:
+  -- gp(X,Y) :- parent(X,Z), parent(Z,Y).
+
+  qP1() =>
+    _iterate(parent,let{
+      f1((X,Z),St0) => _iterate(parent,let{
+        f2((Z,Y),St1) => mergeState((X,Y),St1).
+        f2(_,St1) => St1.
+      } in f2,St0).
+    }in f1,noneFound).
+
+  mergeState:all e ~~ (e,iterState[list[e]]) => iterState[list[e]].
+  mergeState(P1,noneFound) => continueWith([P1]).
+  mergeState(P1,continueWith(S)) => continueWith([P1,..S]).
+
+  show disp(qP1()).
+
+  -- As though translated from the query rule:
+  -- gc(X) given (Y) :- parent(X,Z), parent(Z,Y).
+
+  qC2(Y) =>
+    _iterate(parent,let{
+      f1((X,Z),St0) => _iterate(parent,let{
+        f2((Z,Y),St1) => mergeState(X,St1).
+        f2(_,St1) => St1.
+      } in f2,St0).
+      f1(_,St0) default => St0.
+    }in f1,noneFound).
+
+  show disp(qC2("abc")).
+
+  -- By changing hte order of the calls, it is more efficient
+    -- gc(X) given (Y) :- parent(Z,Y), parent(X,Z).
+
+  qC3(Y) =>
+    _iterate(parent,let{
+      f1((Z,Y),St0) => _iterate(parent,let{
+        f2((X,Z),St1) => mergeState(X,St1).
+        f2(_,St1) => St1.
+      } in f2,St0).
+      f1(_,St0) default => St0.
+    }in f1,noneFound).
+
+  show disp(qC3("abc")).
 }
