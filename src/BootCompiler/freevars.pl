@@ -1,4 +1,4 @@
-:-module(freevars,[freeVars/5]).
+:-module(freevars,[freeVars/5,freeVarsInRule/5]).
 
 :- use_module(misc).
 :- use_module(escapes).
@@ -64,6 +64,10 @@ freeVarsInRule(Ex,Q,equation(_,A,Cond,Exp),F,FV) :-
   freeVars(A,Ex1,Q,F,F0),
   freeVars(Exp,Ex1,Q,F0,F1),
   freeVars(Cond,Ex1,Q,F1,FV).
+freeVarsInRule(Ex,Q,rule(_,A,Cond),F,FV) :-
+  ptnVars(A,Ex,Ex1),
+  freeVars(A,Ex1,Q,F,F1),
+  freeVars(Cond,Ex1,Q,F1,FV).
 
 freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 
@@ -113,6 +117,8 @@ ptnGoalVars(cond(_,T,L,R),Q,Qx) :-
   ptnGoalVars(T,Q,Q0),
   ptnGoalVars(L,Q0,Q1),
   ptnGoalVars(R,Q1,Qx).
+ptnGoalVars(given(_,P,_),Q,Qx) :-
+  ptnVars(P,Q,Qx).
 ptnGoalVars(_,Q,Q).
 
 varsInList([],_,F,F).

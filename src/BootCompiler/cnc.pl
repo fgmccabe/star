@@ -1,4 +1,4 @@
-:- module(cnc,[transRule/3,cncPredType/2]).
+:- module(cnc,[checkRule/10,transRule/3,cncPredType/2]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -6,6 +6,7 @@
 :- use_module(unify).
 :- use_module(abstract).
 :- use_module(terms).
+:- use_module(freevars).
 
 
 cncPredType(At,Tp) :- deRef(Tp,tpExp(tpFun("{}",1),At)).
@@ -22,10 +23,37 @@ checkRule(Lc,H,C,Tp,Defs,Defsx,Df,Dfx,E,Path) :-
 checkRule(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
 
-cncCondition(search(_,Ptn,Src),Df,Dfx,Rq,Rqx,Cand) :-
+analyseCondition(search(_,Ptn,Src),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtn(Ptn,Df,Df1,Rq,Rq1,Cand),
-  analyseExp(Src,Df1,Dfx,Rq1,Rqx,Cand),
-  .
+  analyseExp(Src,Df1,Dfx,Rq1,Rqx,Cand).
+
+/*
+ * Ptn in Src
+ * becomes
+ * let{
+ *  sF(Ptn,St) => AddEl(X,St).
+ *  sF(_,St) default => St.
+ * } in _iterate(Src,sF,InitState)
+ *
+ * where AddEl, InitState are parameters to the conversion
+ */
+
+genCondition(search(Lc,Ptn,PtnTp,Src,SrcTp),Env,Cand,Path,Initial,Succ,_Fail,Exp) :-
+  genNme(Lc,Nm),
+  genAnon(Lc,Anon),
+  findGenerators(Lc,Ptn,Cand,X),
+  genNme(Lc,St),
+  genstr("Γ",ThNm),
+  thetaName(Path,ThNm,ThPath),
+  packageVarName(ThPath,Nm,LclName),
+  call(Succ,Lc,X,St,AddToFront),
+  FF=funDef(Lc,Nm,LclName,Tp,Cx,[
+    equation(Lc,tple(Lc,[Ptn,St]),Cond,AddToFront),
+    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true"),St)
+  ]),
+  Let = letExp(Lc,theta(Lc,ThPath,[FF],[],[],faceType([],[])),v(Lc,LclName)),
+  Iterator = over(Lc,v(Lc,"_iterate"),IterTp,[conTract("iterable",[SrcTp],[PtnTp])]),
+  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial])).
 
 
 analyseExp(v(Lc,Nm),Dfx,Dfx,Rq,Rqx,Cand) :-
@@ -109,5 +137,8 @@ analyseRules(Rls,Df,Dfx,Rq,Rqx,Cand) :-
 
 addVar(v(_,Nm),D,D) :- is_member(v(_,Nm),D),!.
 addVar(V,D,[V|D]).
+
+
+
 
 transCond(given(Lc1,apply(Lc,Op,Args),)
