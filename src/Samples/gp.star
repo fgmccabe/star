@@ -9,7 +9,7 @@ sample.gp{
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  show disp(parent)::string.
+  show disp(parent).
 
   -- First a hacky way (i.e. direct recursive) way of finding grandparents
   findPs:(list[(string,string)],string,list[string]) => list[string].
@@ -29,7 +29,7 @@ sample.gp{
   gp0:(string) => list[string].
   gp0(GC) => findGs(findPs(parent,GC,[]),[]).
 
-  show disp(gp0("abc"))::string.
+  show disp(gp0("abc")).
 
   -- Using fold over lists
   fPs:(list[(string,string)],string,list[string]) => list[string].
@@ -44,7 +44,7 @@ sample.gp{
   gpF:(string) => list[string].
   gpF(GC) => fGps(fPs(parent,GC,[]),[]).
 
-  show disp(gpF("abc"))::string.
+  show disp(gpF("abc")).
 
   -- Using iterable contract
   iPs:(list[(string,string)],string,iterState[list[string]]) => iterState[list[string]].
@@ -61,5 +61,5 @@ sample.gp{
   gpI:(string) => iterState[list[string]].
   gpI(GC) => iGp(iPs(parent,GC,noneFound),noneFound).
 
-  show disp(gpI("abc"))::string.
+  show disp(gpI("abc")).
 }
