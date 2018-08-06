@@ -95,7 +95,7 @@ sample.gp{
   show disp(qC2("abc")).
 
   -- By changing hte order of the calls, it is more efficient
-    -- gc(X) given (Y) :- parent(Z,Y), parent(X,Z).
+  -- gc(X) given (Y) :- parent(Z,Y), parent(X,Z).
 
   qC3(Y) =>
     _iterate(parent,let{
