@@ -20,14 +20,13 @@ typedef struct _segment_ {
   varPo args;
   integer lclCount;                 //  number of locals in use
   varPo locals;                     //  entry state for this segment
-  integer hpCnt;                    //  how much local heap can we allocate?
   logical checked;                  //  Has this segment been checked?
   methodPo mtd;                     //  Pointer to the code structure itself
   integer pc;                       //  base intruction of this segment
   integer maxPc;                    //  Maximum instruction in this segment
-  integer entryPoints;              //  how many entry points are there here?
-  integer exits[128];               //  What other segments are referenced by this segment
-  int numExits;
+  integer stackDepth;               //  What is the current stack depth?
+  integer entryPoints;              //  how many unchecked entry points are there here?
+  vectorPo exits;                   //  What other segments does this segment reference?
 } SegObjRecord;
 
 typedef struct _code_segment_ {
