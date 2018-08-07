@@ -36,8 +36,6 @@ star.compiler.lexer{
     stringBlob(Nx,St0,[]).
   nxxTok(0c",St,St0) where (Nxt,Str) ^= readString(St,[]) =>
     some((Nxt,tok(makeLoc(St0,Nxt),strTok(Str)))).
-  nxxTok(0c),St,St0) where (Nxt,0c$) ^= nextChr(St) =>
-    some((preChar(Nxt,0c"),tok(makeLoc(St0,Nxt),idTok(")$")))).
   nxxTok(Chr,St,St0) where Ld ^= follows("",Chr) => let{
     graphFollow(Strm,SoF,Deflt) where (Nx,Ch) ^= nextChr(Strm) && SoF1 ^= follows(SoF,Ch) =>
       graphFollow(Nx,SoF1,finalist(SoF1,Nx,Deflt)).

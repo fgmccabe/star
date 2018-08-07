@@ -34,14 +34,10 @@ makeLoc(tokenState(_,Ln,O,Ps,Pk),tokenState(_,_,_,Pe,_), loc(Pk,Ln,O,Ps,P)) :- P
 
 isToken(T) :- locOfToken(T,_).
 
-locOfToken(lpar(Lc),Lc).
-locOfToken(rpar(Lc),Lc).
-locOfToken(ldpar(Lc),Lc).
-locOfToken(rdpar(Lc),Lc).
-locOfToken(lbra(Lc),Lc).
-locOfToken(rbra(Lc),Lc).
 locOfToken(lbrce(Lc),Lc).
 locOfToken(rbrce(Lc),Lc).
+locOfToken(lftTok(_,Lc),Lc).
+locOfToken(rgtTok(_,Lc),Lc).
 locOfToken(idTok(_,Lc),Lc).
 locOfToken(idQTok(_,Lc),Lc).
 locOfToken(lqpar(Lc),Lc).
@@ -54,16 +50,12 @@ locOfToken(stringTok(_,Lc),Lc).
 locOfToken(termTok(Lc),Lc).
 locOfToken(terminal,missing).
 
-dispToken(lpar(_),['(']).
-dispToken(rpar(_),[')']).
-dispToken(ldpar(_),['(','.']).
-dispToken(rdpar(_),['.',')']).
-dispToken(lbra(_),['[']).
-dispToken(rbra(_),[']']).
-dispToken(lbrce(_),['{']).
-dispToken(rbrce(_),['}']).
-dispToken(lqbrce(_),['{','.']).
-dispToken(rqbrce(_),['.','}']).
+dispToken(lftTok(Bkt,_),Chrs) :-
+  bracket(Bkt,Lft,_,_),!,
+  string_chars(Lft,Chrs).
+dispToken(rgtTok(Bkt,_),Chrs) :-
+  bracket(Bkt,_,Rgt,_),!,
+  string_chars(Rgt,Chrs).
 dispToken(idQTok(Id,_),St) :- string_chars(Id,St).
 dispToken(idTok(Id,_),St) :- string_chars(Id,St).
 dispToken(lqpar(_),['<','|']).
@@ -117,22 +109,14 @@ nxTok(St,NxSt,stringTok([segment(Seg)],Lc)) :- lookingAt(St,St1,['"','"','"']), 
 nxTok(St,NxSt,Str) :- nextSt(St,St1,'"'), readString(St1,NxSt,Str).
 nxTok(St,NxSt,rqpar(Lc)) :- lookingAt(St,St1,[')','$']), preSt(St1,'"',NxSt), makeLoc(St,St1,Lc).
 nxTok(St,NxSt,idTok(Id,Lc)) :- hedChar(St,Ch), idStart(Ch), readIden(St,NxSt,Id), makeLoc(St,NxSt,Lc).
-nxTok(St,NxSt,ldpar(Lc)) :- lookingAt(St,NxSt,['(','.'],Lc).
-nxTok(St,NxSt,rdpar(Lc)) :- lookingAt(St,NxSt,['.',')'],Lc).
-nxTok(St,NxSt,lpar(Lc)) :- lookingAt(St,NxSt,['('],Lc).
-nxTok(St,NxSt,rpar(Lc)) :- lookingAt(St,NxSt,[')'],Lc).
-nxTok(St,NxSt,lbra(Lc)) :- lookingAt(St,NxSt,['['],Lc).
-nxTok(St,NxSt,rbra(Lc)) :- lookingAt(St,NxSt,[']'],Lc).
-nxTok(St,NxSt,lqbrce(Lc)) :- lookingAt(St,NxSt,['{','.'],Lc).
-nxTok(St,NxSt,rqbrce(Lc)) :- lookingAt(St,NxSt,['.','}'],Lc).
-nxTok(St,NxSt,lbrce(Lc)) :- lookingAt(St,NxSt,['{'],Lc).
-nxTok(St,NxSt,rbrce(Lc)) :- lookingAt(St,NxSt,['}'],Lc).
-nxTok(St,NxSt,lqpar(Lc)) :- lookingAt(St,NxSt,['<','|'],Lc).
-nxTok(St,NxSt,rqpar(Lc)) :- lookingAt(St,NxSt,['|','>'],Lc).
 nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.',' '],Lc).
 nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\t'],Lc).
 nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\n'],Lc).
-nxTok(St,NxSt,idTok(Id,Lc)) :- nextSt(St,St1,Ch), follows('',Ch,_), followGraph(Ch,Id,St1,NxSt), !, makeLoc(St,NxSt,Lc).
+nxTok(St,NxSt,Tok) :- nextSt(St,St1,Ch),
+  follows('',Ch,_),
+  followGraph(Ch,Id,St1,NxSt), !,
+  makeLoc(St,NxSt,Lc),
+  finalizeToken(Lc,Id,Tok).
 nxTok(St,NxSt,Tk) :-
   nextSt(St,St1,Ch),
   makeLoc(St,St1,Lc),
@@ -190,7 +174,7 @@ readString(St,NxSt,stringTok(Str,Lc)) :- readMoreString(St,St2,Str), makeLoc(St,
 
 readMoreString(St,St,[]) :- hedChar(St,'"').
 readMoreString(St,NxSt,[Seg|Segments]) :-
-      nextSt(St,St1,'\\'),
+      nextSt(St,St1,'$'),
       hedChar(St1,'('),!,
       interpolation(St1,St2,Seg),
       readMoreString(St2,NxSt,Segments).
@@ -254,3 +238,9 @@ tokenize(St,NxSt,Toks) :- skipToNx(St,St1), nxTokenize(St1,NxSt,Toks).
 
 nxTokenize(St,St,[]) :- isTerminal(St).
 nxTokenize(St,NxSt,[Tok|More]) :- nxTok(St,St1,Tok), !, tokenize(St1,NxSt,More).
+
+finalizeToken(Lc,Id,lftTok(Bkt,Lc)) :-
+  bracket(Bkt,Id,_,_),!.
+finalizeToken(Lc,Id,rgtTok(Bkt,Lc)) :-
+  bracket(Bkt,_,Id,_),!.
+finalizeToken(Lc,Id,idTok(Id,Lc)).

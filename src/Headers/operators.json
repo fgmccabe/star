@@ -893,6 +893,13 @@
     "desc":"parentheses"
   },
   {
+    "bracket": "(..)",
+    "left":"(.",
+    "right":".)",
+    "priority" : 2000,
+    "desc":"hidden parentheses"
+  },
+  {
     "bracket": "$()$",
     "left":"$(",
     "right":")$",

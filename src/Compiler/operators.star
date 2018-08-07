@@ -141,6 +141,9 @@ star.compiler.operators{
   isBracket("[") => some(bkt("[","[]","]",2000)).
   isBracket("]") => some(bkt("[","[]","]",2000)).
   isBracket("[]") => some(bkt("[","[]","]",2000)).
+  isBracket("(.") => some(bkt("(.","(..)",".)",2000)).
+  isBracket(".)") => some(bkt("(.","(..)",".)",2000)).
+  isBracket("(..)") => some(bkt("(.","(..)",".)",2000)).
   isBracket("(") => some(bkt("(","()",")",2000)).
   isBracket(")") => some(bkt("(","()",")",2000)).
   isBracket("()") => some(bkt("(","()",")",2000)).
@@ -189,6 +192,7 @@ star.compiler.operators{
   follows("",0c#) => some("#").
   follows("",0c$) => some("$").
   follows("&",0c&) => some("&&").
+  follows("(",0c.) => some("(.").
   follows(")",0c$) => some(")$").
   follows("*",0c*) => some("**").
   follows("+",0c+) => some("++").
@@ -203,6 +207,7 @@ star.compiler.operators{
   follows(".",0c&) => some(".&").
   follows(".",0c|) => some(".|").
   follows(".",0c}) => some(".}").
+  follows(".",0c)) => some(".)").
   follows(".",0c~) => some(".~").
   follows(".",0c<) => some(".<").
   follows(".",0c^) => some(".^").
@@ -264,6 +269,7 @@ star.compiler.operators{
   final("%") => true.  /* modulo */
   final("&&") => true.  /* conjunction */
   final("(") => true.  /* parentheses */
+  final("(.") => true.  /* hidden parentheses */
   final(")") => true.  /* parentheses */
   final(")$") => true.  /* display parentheses */
   final("*") => true.  /* zero or more repetitions */
@@ -282,6 +288,7 @@ star.compiler.operators{
   final(".&.") => true.  /* bitwise and */
   final(".|.") => true.  /* bitwise or */
   final(".}") => true.  /* non-recursive braces */
+  final(".)") => true.  /* hidden parentheses */
   final(".~") => true.  /* grammar parse */
   final(".~.") => true.  /* bitwise 1's complement */
   final(".<<.") => true.  /* shift left */
