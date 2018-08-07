@@ -118,6 +118,7 @@
 
   bracket("{..}", "{.", ".}", 2000).
   bracket("[]", "[", "]", 2000).
+  bracket("(..)", "(.", ".)", 2000).
   bracket("()", "(", ")", 2000).
   bracket("{}", "{", "}", 2000).
   bracket("$()$", "$(", ")$", 2000).
@@ -152,6 +153,7 @@
   follows('','#','#').
   follows('','$','$').
   follows('&','&','&&').
+  follows('(','.','(.').
   follows(')','$',')$').
   follows('*','*','**').
   follows('+','+','++').
@@ -166,6 +168,7 @@
   follows('.','&','.&').
   follows('.','|','.|').
   follows('.','}','.}').
+  follows('.',')','.)').
   follows('.','~','.~').
   follows('.','<','.<').
   follows('.','^','.^').
@@ -226,6 +229,7 @@
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
   final('(',"(").	 /* parentheses */
+  final('(.',"(.").	 /* hidden parentheses */
   final(')',")").	 /* parentheses */
   final(')$',")$").	 /* display parentheses */
   final('*',"*").	 /* zero or more repetitions */
@@ -244,6 +248,7 @@
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
   final('.}',".}").	 /* non-recursive braces */
+  final('.)',".)").	 /* hidden parentheses */
   final('.~',".~").	 /* grammar parse */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */

@@ -40,7 +40,7 @@ star.boot{
   importPkgs:all r ~~ repo[r] |: (list[pkg],list[pkg],list[pkg],r)=>().
   importPkgs([],Ld,Ld,_)=>().
   importPkgs([P,..L],Ld,Ldx,R) where
-    _ .= _logmsg("importing \(P)") &&
+    _ .= _logmsg("importing $(P)$") &&
     Imps .= importPkg(P,R,Ld) &&
     _ .= importPkgs(Imps,[P,..Ld],Ldx,R) => initialize(P).
 
