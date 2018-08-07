@@ -268,7 +268,10 @@ A structural type is, informally, a type that looks like a value. For example, t
 ```
 (integer,string,employee)
 ```
-is a *tuple type* -- it denotes the type of a triple of values, consisting of an `integer`, a `string` and an `employee` in this case.
+is a *tuple type* -- it denotes the type of a triple of values, consisting of an `integer`, a `string` and an `employee` in this case. Values of this tuple type are also tuples; for example:
+```
+(3,"fred",employee{name="peter". dept:="sales"})
+```
 
 **Star** has several forms of structural type, the tuple type is one of them; others include *record types* and *function types*.
 
@@ -347,7 +350,7 @@ is not considered type safe --- because `3` is an `integer` literal and `3.0` is
 ```
 is valid[^The expression `3::float` is a coercion expression that converts the integer `3` into a float value.] excepting, of course, that exact comparison between floating point numbers is not *stable*.
 
-This is an important issue because not all integer values can be represented in a float value and vice-versa. So, comparing an integer and a floating point value raises the possibility of spurious accuracy as a result of losing information.
+This is an important issue because not all integer values can be represented in a float value and vice-versa. So, comparing an integer and a floating point value raises the possibility of spurious accuracy as a result of losing information. The intended effect of the coercion is to make explicit the nature of equality being relied on.
 
 The second principle is that equality is semantic. What that means is that the `==` symbol is the name of a boolean-valued function. The precise type of `==` is quite interesting, we shall, however, leave it to later when we have covered some of the core type features around contracts.
 
@@ -401,9 +404,9 @@ while short, this code too has some of the same drawbacks as the for iteration.
 
 The type expression `cons[integer]` refers to the standard type of ‘cons lists’. Similarly, `nil` refers to the empty list and `cons(E,L)` refers to the list obtained by prepending `E` to the list `L`. We will explore this in more detail in Chapter 2.
 
-Even if it is more declarative, there is still a lot of extra detail and architectural commitments here --- like the commitment to cons lists and the commitment to integers. These result in a function that is needlessly restricted.
+Even if it is more declarative, there is still a lot of extra detail and architectural commitments here --- like the commitment to `cons` lists and the commitment to integers. These result in a function that is needlessly restricted.
 
-Like other functional languages, **Star** has a range of higher-order operators that may come to the rescue. For example, we can avoid the explicit recursion altogether by using leftFold:
+Like other functional languages, **Star** has a range of higher-order operators that may come to the rescue. For example, we can avoid the explicit recursion altogether by using `leftFold`:
 
 ```
 leftFold((+),0,L)
@@ -433,9 +436,9 @@ The query expression is also very close to the natural specification:
 
 >Add up the numbers in L
 
-**Star**’s query expressions --- which are similar to but also more expressive than LINQ --- can be used to encapsulate a wide range of such computations. We shall look deeper into them when we look at Collections in **Star**.
+**Star**’s query expressions --- which are similar to but also more expressive than LINQ --- can be used to encapsulate a wide range of such computations. We shall look deeper into them when we look at query rules in **Star**.
 
-Of course, SQL programmers have long had access to this kind of conciseness and declarative expressiveness. However, SQL is constrained by the fact that it is intended to represent queries and actions over a very particular form of data --- the relational table.
+>Of course, SQL programmers have long had access to this kind of conciseness and declarative expressiveness. However, SQL is constrained by the fact that it is intended to represent queries and actions over a very particular form of data --- the relational table.
 
 ### The homunculus in the machines
 
@@ -443,7 +446,7 @@ Programming is often taught in terms of constructing sequences of steps that mus
 
 It is like imagining a little person --- a homunculus --- in the machine that is listening to your instructions and following them literally. You, the programmer, have to imagine yourself in the position of the homunculus if you want to write effective programs in most languages today.
 
-Not everyone finds such feats of imagination easy. It is certainly often tedious to do so. Using query expressions and other higher-order abstractions significantly reduces the programmer’s burden --- precisely by being able to take a declarative approach to programming.
+Not everyone finds such feats of imagination easy. It is certainly often tedious to do so. Using query expressions and other higher-order abstractions significantly reduces the programmer’s burden --- precisely by being able to take a more declarative approach to programming.
 
 ## Contracts and constrained types
 The concepts of interface and contract are foundational in modern software engineering. This is because explicit interfaces make it substantially easier to develop and evolve systems. A **Star** contract goes beyond the traditional concept of interface in important ways: we do not mark the definition of a type with its implemented contracts and we allow contracts to involve multiple types.
@@ -461,7 +464,7 @@ contract all t ~~ four[t] ::= {
 }
 ```
 
-This contract defines --- but does not implement --- the four functions `plus`, `sub`, `mul` and `div`. All these functions have a similar type:
+This contract defines --- but does not implement --- the four calculator functions `plus`, `sub`, `mul` and `div`. All these functions have a similar type, the type for `plus` is:
 
 ```
 plus :  all t ~~ four[t] |: (t,t)=>t.
@@ -478,7 +481,7 @@ The type of `double` is also interesting:
 ```
 double : all t ~~ four[t] |: (t)=>t.
 ```
-I.e., it inherits the same constraint as the function plus has. There are several kinds of type constraint in **Star**’s type system; but the *contract constraint* is the most significant of them.
+I.e., it inherits the same constraint as the function `plus` has. There are several kinds of type constraint in **Star**’s type system; but the *contract constraint* is the most significant of them.
 
 >Notice that we have to give an explicit type annotation for `double`. The reason is that we want to have it have a quantified type.
 
