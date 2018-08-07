@@ -28,7 +28,6 @@ logical traceLock = False;        /* true if tracing locks */
 logical traceManifest = False;
 logical tracePkg = False;
 logical traceMemory = False;      /* memory tracing */
-logical stressMemory = False;     /* stress GC */
 logical interactive = False;      /* interaction instruction tracing */
 logical runStats = False;         // Count instructions etc.
 
@@ -123,10 +122,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 'm':    /* trace memory allocations  */
 #ifdef TRACEMEM
-        if (traceMemory)
-          stressMemory = True;
-        else
-          traceMemory = True;
+        traceMemory = True;
 
         atexit(dumpGcStats);
         continue;
@@ -163,9 +159,9 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 's':
 #ifdef TRACESTATS
-        if(runStats){
+        if (runStats) {
           atexit(dumpInsStats);
-        }else{
+        } else {
           atexit(dumpInsCount);
         }
         runStats = True;
