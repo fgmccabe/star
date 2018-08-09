@@ -62,15 +62,51 @@ star.compiler.lexer{
   readQuoted(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readQuoted(Nx,Qt,[Chrs..,Ch]).
   readQuoted(_,_,_) => none.
 
-  readString:(tokenState,list[integer]) => option[(tokenState,string)].
-  readString(nextChr^(Nx,0c"),Chrs) => some((Nx,Chrs::string)).
-  readString(St,Chrs) where Nx ^= lookingAt(St,[0c$,0c(]) => some((St,Chrs::string)).
-  readString(St,Chrs) where (Nx,Ch) ^= charRef(St) => readString(Nx,[Chrs..,Ch]).
-  readString(_,_) => none.
+  readString:(tokenState,list[stringSegment]) => option[(tokenState,list[stringSegment])].
+  readString(St,SoFar) where 0c"^=hedChar(St) => some((St,SoFar)).
+  readString(St,SoFar) where
+    (Nx,0c\\) ^= nextChr(St) &&
+    0c( ^= hedChr(Nx) &&
+    (St1,Inter) ^= interpolation(Nx) => readString(St1,[SoFar..,Inter]).
+  readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) => readString(St1,[SoFar..,segment(Seg)]).
+
+  readStr:(tokenState,list[integer]) => option[(tokenState,string)].
+  readStr(nextChr^(Nx,0c"),Chrs) => some((Nx,Chrs::string)).
+  readStr(St,Chrs) where Nx ^= lookingAt(St,[0c\\,0c(]) => some((St,Chrs::string)).
+  readStr(St,Chrs) where (Nx,Ch) ^= charRef(St) => readStr(Nx,[Chrs..,Ch]).
+  readStr(_,_) => none.
+
+  interpolation:(tokenState) => option[(tokenState,stringSegment)].
+  interpolation(St) where
+      (St1,Chr) ^= nextChr(St) &&
+      (St2,Inter) ^= bracketCount(St,St1,Chr,[],[]) &&
+      (St3,Format) ^= readFormat(St2) => some((St3,interpolate(makeLoc(St,St3),Inter,Format))).
+
+  bracketCount:(tokenState,tokenState,integer,list[integer],list[integer]) => option[(tokenState,string)].
+  bracketCount(_,St1,Cl,[Cl,..Stk],Chrs) where (St2,Ch)^=nextChr(St1) =>
+    bracketCount(St1,St2,Ch,Stk,[Chrs..,Cl]).
+  bracketCount(_,St1,0c(,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
+    bracketCount(St1,St2,Ch,[0c),..Stk],[Chrs..,0c(]).
+  bracketCount(_,St1,0c{,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
+    bracketCount(St1,St2,Ch,[0c},..Stk],[Chrs..,0c{]).
+  bracketCount(_,St1,0c[,Stk,Chrs) where (St2,Ch)^=nextChr(St1) =>
+    bracketCount(St1,St2,Ch,[0c],..Stk],[Chrs..,0c[]).
+  bracketCount(St,_,_,[],Chrs) => some((St,Chrs::string)).
+  bracketCount(_,St1,C,Stk,Chrs) where (St2,Ch) ^= nextChr(St1) =>
+    bracketCount(St1,St2,Stk,[Chrs..,C]).
+
+  readFormat(St) where (St1,0c:) ^= nextChr(St) => readUntil(St1,0c;,[]).
+  readFormat(St) => some((St,"")).
+
+  readUntil:(tokenState,integer,list[integer]) => option[(tokenState,string)].
+  readUntil(St,Qt,Chrs) where (Nx,Qt) ^= nextChr(St) => some((Nx,Chrs::string)).
+  readUntil(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readUntil(Nx,Qt,[Chrs..,Ch]).
+  readUntil(_,_,_) => none.
+
 
   stringBlob:(tokenState,tokenState,list[integer]) => option[(tokenState,token)].
   stringBlob(St,St0,Sf) where St1 ^= lookingAt(St,[0c\",0c\",0c\"]) =>
-    some((St1,tok(makeLoc(St0,St1),strTok(Sf::string)))).
+    some((St1,tok(makeLoc(St0,St1),strTok([segment(Sf::string)])))).
   stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) => stringBlob(St1,St0,[Sf..,Nx]).
 
   charRef(St) where Nx ^= lookingAt(St,[0c\\]) && (Nxt,Ch) ^= nextChr(Nx) => backslashRef(Nxt,Ch).

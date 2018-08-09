@@ -11,7 +11,9 @@ star.compiler.token{
               | rgtTok(string)
               | intTok(integer)
               | fltTok(float)
-              | strTok(string).
+              | strTok(list[stringSegment]).
+
+  stringSegment ::= segment(string) | interpolate(locn,string,string).
 
   public implementation display[tk] => {.
     disp(idQTok(Id)) => ssSeq([ss("''"),ss(Id),ss("''")]).
