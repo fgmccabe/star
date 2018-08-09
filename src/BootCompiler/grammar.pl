@@ -176,8 +176,8 @@ handleInterpolation([segment(Str,Lc)],_,string(Lc,Str)).
 handleInterpolation([],Lc,string(Lc,"")).
 handleInterpolation(Segments,Lc,Term) :-
   stringSegments(Segments,Inters),
-  tupleize(Inters,Lc,"[]",Arg),
-  unary(Lc,"interpolate",Arg,Term).
+  unary(Lc,"ssSeq",tuple(Lc,"[]",Inters),Seq),
+  binary(Lc,"::",Seq,name(Lc,"string"),Term).
 
 stringSegments([],[]).
 stringSegments([Seg|More],[H|T]) :- stringSegment(Seg,H),!, stringSegments(More,T).

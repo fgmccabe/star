@@ -150,9 +150,6 @@ star.compiler.operators{
   isBracket("{") => some(bkt("{","{}","}",2000)).
   isBracket("}") => some(bkt("{","{}","}",2000)).
   isBracket("{}") => some(bkt("{","{}","}",2000)).
-  isBracket("$(") => some(bkt("$(","$()$",")$",2000)).
-  isBracket(")$") => some(bkt("$(","$()$",")$",2000)).
-  isBracket("$()$") => some(bkt("$(","$()$",")$",2000)).
   isBracket(_) default => none.
 
   public isLeftBracket:(string) => boolean.
@@ -193,7 +190,6 @@ star.compiler.operators{
   follows("",0c$) => some("$").
   follows("&",0c&) => some("&&").
   follows("(",0c.) => some("(.").
-  follows(")",0c$) => some(")$").
   follows("*",0c*) => some("**").
   follows("+",0c+) => some("++").
   follows("++",0c+) => some("+++").
@@ -262,7 +258,6 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
-  follows("$",0c() => some("$(").
   follows(_,_) default => none.
 
   public final:(string) => boolean.
@@ -271,7 +266,6 @@ star.compiler.operators{
   final("(") => true.  /* parentheses */
   final("(.") => true.  /* hidden parentheses */
   final(")") => true.  /* parentheses */
-  final(")$") => true.  /* display parentheses */
   final("*") => true.  /* zero or more repetitions */
   final("**") => true.  /* exponentiation */
   final("+") => true.  /* one or more repetitions */
@@ -350,6 +344,5 @@ star.compiler.operators{
   final("•") => true.  /* function composition */
   final("#") => true.  /* Macro statement marker */
   final("$") => true.  /* Used for curried functions and types */
-  final("$(") => true.  /* display parentheses */
   final(_) default => false.
 }

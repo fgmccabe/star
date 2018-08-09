@@ -121,7 +121,6 @@
   bracket("(..)", "(.", ".)", 2000).
   bracket("()", "(", ")", 2000).
   bracket("{}", "{", "}", 2000).
-  bracket("$()$", "$(", ")$", 2000).
 
   follows('','%','%').
   follows('','&','&').
@@ -154,7 +153,6 @@
   follows('','$','$').
   follows('&','&','&&').
   follows('(','.','(.').
-  follows(')','$',')$').
   follows('*','*','**').
   follows('+','+','++').
   follows('++','+','+++').
@@ -223,7 +221,6 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
-  follows('$','(','$(').
 
 
   final('%',"%").	 /* modulo */
@@ -231,7 +228,6 @@
   final('(',"(").	 /* parentheses */
   final('(.',"(.").	 /* hidden parentheses */
   final(')',")").	 /* parentheses */
-  final(')$',")$").	 /* display parentheses */
   final('*',"*").	 /* zero or more repetitions */
   final('**',"**").	 /* exponentiation */
   final('+',"+").	 /* one or more repetitions */
@@ -310,5 +306,4 @@
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
   final('$',"$").	 /* Used for curried functions and types */
-  final('$(',"$(").	 /* display parentheses */
 

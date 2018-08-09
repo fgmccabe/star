@@ -1,4 +1,4 @@
-:- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,dispToken/2]).
+:- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,dispToken/2,subTokenize/3]).
 :- use_module(operators).
 :- use_module(errors).
 
@@ -12,6 +12,7 @@ hedHedHedChar(tokenState([_,_,Ch|_],_,_,_,_),Ch).
 
 initSt(Pkg,Txt,tokenState(Txt,1,1,1,Pkg)).
 initSt(Pkg,Chars,LineNo,Column,Base,tokenState(Chars,LineNo,Column,Base,Pkg)).
+
 isTerminal(tokenState([],_,_,_,_)).
 
 nxtSt(tokenState(['\n'|T],L,_,CP,Pk),tokenState(T,LN,1,CP1,Pk)) :- succ(L,LN), succ(CP,CP1).
@@ -107,7 +108,6 @@ nxTok(St,NxSt,Tk) :- hedChar(St,Ch), isDigit(Ch,_), readNumber(St,NxSt,Tk).
 nxTok(St,NxSt,idQTok(Id,Lc)) :- nextSt(St,St1,''''), readQuoted(St1,NxSt,'''',Id), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,stringTok([segment(Seg)],Lc)) :- lookingAt(St,St1,['"','"','"']), stringBlob(St1,St2,Txt),lookingAt(St2,NxSt,['"','"','"']),string_chars(Seg,Txt),makeLoc(St1,St2,Lc).
 nxTok(St,NxSt,Str) :- nextSt(St,St1,'"'), readString(St1,NxSt,Str).
-nxTok(St,NxSt,rqpar(Lc)) :- lookingAt(St,St1,[')','$']), preSt(St1,'"',NxSt), makeLoc(St,St1,Lc).
 nxTok(St,NxSt,idTok(Id,Lc)) :- hedChar(St,Ch), idStart(Ch), readIden(St,NxSt,Id), makeLoc(St,NxSt,Lc).
 nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.',' '],Lc).
 nxTok(St,NxSt,termTok(Lc)) :- lookingAt(St,NxSt,['.','\t'],Lc).
@@ -174,7 +174,7 @@ readString(St,NxSt,stringTok(Str,Lc)) :- readMoreString(St,St2,Str), makeLoc(St,
 
 readMoreString(St,St,[]) :- hedChar(St,'"').
 readMoreString(St,NxSt,[Seg|Segments]) :-
-      nextSt(St,St1,'$'),
+      nextSt(St,St1,'\\'),
       hedChar(St1,'('),!,
       interpolation(St1,St2,Seg),
       readMoreString(St2,NxSt,Segments).
@@ -244,3 +244,6 @@ finalizeToken(Lc,Id,lftTok(Bkt,Lc)) :-
 finalizeToken(Lc,Id,rgtTok(Bkt,Lc)) :-
   bracket(Bkt,_,Id,_),!.
 finalizeToken(Lc,Id,idTok(Id,Lc)).
+
+subTokenize(loc(Pkg,LineNo,Col,Off,_),Chars,Toks) :-
+  tokenize(tokenState(Chars,LineNo,Col,Off,Pkg),_,Toks).
