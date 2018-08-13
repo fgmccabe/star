@@ -33,8 +33,6 @@
   operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
-  operator("given", [infixOp(874, 875, 874)]).
-  operator("or", [infixOp(929, 930, 930)]).
   operator("raise", [prefixOp(300, 299)]).
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
@@ -74,7 +72,6 @@
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
   operator("^|", [infixOp(1248, 1249, 1249)]).
-  operator("and", [infixOp(910, 910, 909)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1260, 1259)]).
@@ -90,8 +87,6 @@
   operator("=>", [infixOp(949, 950, 950)]).
   operator("^", [infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
-  operator(":-", [infixOp(1199, 1200, 1199)]).
-  operator("not", [prefixOp(905, 904)]).
   operator("private", [prefixOp(1700, 1699)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
@@ -202,7 +197,6 @@
   follows('^','|','^|').
   follows('^/','/','^//').
   follows(':',':','::').
-  follows(':','-',':-').
   follows(':','=',':=').
   follows('::','=','::=').
   follows('<','*','<*').
@@ -259,7 +253,7 @@
   final('///',"///").	 /* indexed map over */
   final('{',"{").	 /* braces */
   final('{.',"{.").	 /* non-recursive braces */
-  final('|',"|").	 /* type union and conditional */
+  final('|',"|").	 /* type union, conditional, and abstraction */
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
   final('}',"}").	 /* braces */
@@ -280,7 +274,6 @@
   final(':',":").	 /* type annotation */
   final('::',"::").	 /* type coercion */
   final('::=',"::=").	 /* algebraic type definition */
-  final(':-',":-").	 /* CnC rule */
   final(':=',":=").	 /* reassignable variable definition */
   final(';',";").	 /* sequencing operator */
   final('<',"<").	 /* less than */
