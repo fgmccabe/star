@@ -33,17 +33,17 @@ All programming languages can be said to have a particular *style* or *texture*.
 ```
 public fact : (integer)=>integer.
 ```
-which is a *type annotation statement* declaring the type of the function fact.
+which is a *type annotation statement* declaring the type of the function `fact`.
 
-The public annotation means that the function is exported by this module and will be available in other modules if the sample.factorial module is imported.
+The `public` annotation means that the function is exported by this module and will be available in other modules where the `sample.factorial` module is imported.
 
 ### Lexical style
 
-**Star**’s lexical syntax is a combination of special operators and keywords.
+**Star**’s lexical syntax uses a combination of special operators and keywords.
 
-It can be difficult for language designers to decide when to use a keyword and when to use a special operator. In the case of **Star** we use special operators for common elements and keywords when either a graphical operator would be obscure and/or are not common.
+It can be difficult for language designers to decide when to use a keyword and when to use a special operator. In the case of **Star** we use special operators for common elements and keywords when either a graphical operator would be obscure and/or is not common.
 
-For example, in the factorial module, we use braces for grouping; but we also use the import and the where keywords. The rationale here is that programmers have become used to seeing braces for grouping statements;[^Those who remember Algol 60 will understand that braces are not the only way of grouping statements.] whereas the import and where elements are somewhat rarer.
+For example, in the factorial module, we use braces for grouping; but we also use the `import` and the `where` keywords. The rationale here is that programmers have become used to seeing braces for grouping statements;[^Those who remember Algol 60 will understand that braces are not the only way of grouping statements.] whereas the import and where elements are somewhat rarer.
 
 Notice that every statement is terminated with a period. This is one of those places where a little redundancy can help when building large programs: the statement terminator is not technically necessary; but it helps to reduce the scope of error messages.[^We use the period rather than the commonly used semi-colon because **Star** statements are statements, not instructions to perform in sequence.]
 
@@ -597,4 +597,4 @@ Having coercion as a contract makes it straightforward to add new forms of coerc
 
 ## There is more
 
-As we have noted, **Star** is a rich language and it would be impossible to try to cover it in a short introduction. Later chapters will look at some of the other features such as a deeper look at contracts, queries, actors, concurrency, existential types, and extending **Star** with domain specific languages. Chapter [2][functional-programming] starts this process by looking at functional programming in **Star**.
+As we have noted, **Star** is a rich language and it would be impossible to try to cover it in a short introduction. Later chapters will look at some of the other features such as a deeper look at contracts, queries & query rules, actors, concurrency, existential types, and extending **Star** with domain specific languages. Chapter [2][functional-programming] starts this process by looking at functional programming in **Star**.
