@@ -120,15 +120,15 @@ showCanonTerm(letExp(_,Env,Ex),O,Ox) :-
   showCanonTerm(Env,O1,O2),
   appStr(" in ",O2,O3),
   showCanonTerm(Ex,O3,Ox).
-showCanonTerm(lambda(_,Rls,_),O,Ox) :-
+showCanonTerm(lambda(_,Rle,_),O,Ox) :-
   appStr("lambda {",O,O1),
-  showRls("",Rls,O1,O2),
+  showRule("",Rle,O1,O2),
   appStr("}",O2,Ox).
 showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
-showCanonTerm(mtd(_,Nm,_),O,Ox) :-
+showCanonTerm(mtd(_,Nm),O,Ox) :-
   appStr("°",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(over(_,V,_,Cons),O,Ox) :-
@@ -159,6 +159,25 @@ showCanonTerm(match(_,P,E),O,Ox) :-
   showCanonTerm(E,O,O1),
   appStr(" =. ",O1,O2),
   showCanonTerm(P,O2,Ox).
+showCanonTerm(search(_,P,S,M),O,Ox) :-
+  showCanonTerm(P,O,O1),
+  appStr(" in ",O1,O2),
+  showCanonTerm(S,O2,O3),
+  appStr(" using ",O3,O4),
+  showCanonTerm(M,O4,Ox).
+showCanonTerm(abstraction(_,Bound,Guard,G),O,Ox) :-
+  appStr("{",O,O1),
+  showCanonTerm(Bound,O1,O2),
+  appStr("|",O2,O3),
+  showCanonTerm(Guard,O3,O4),
+  appStr("} using ",O4,O5),
+  showCanonTerm(G,O5,Ox).
+showCanonTerm(relation(_,Bound,Guard),O,Ox) :-
+  appStr("{",O,O1),
+  showCanonTerm(Bound,O1,O2),
+  appStr("|",O2,O3),
+  showCanonTerm(Guard,O3,O4),
+  appStr("}",O4,Ox).
 showCanonTerm(parse(_,L,R),O,Ox) :-
   showCanonTerm(L,O,O1),
   appStr(" .~ ",O1,O2),
