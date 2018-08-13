@@ -7,11 +7,11 @@
     isDefault/3,isDefault/4,
     isIntegrity/3,isShow/3,isOpen/3,
     isConditional/5,conditional/5,isOfTerm/4,
-    isEquation/5,isDefn/4,isAssignment/4,eqn/5,
+    isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
-    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isParse/4,isNTLookAhead/3,
+    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isAbstraction/4,
+    isParse/4,isNTLookAhead/3,
     isLetDef/4,mkLetDef/4,isMacroRule/4,
-    isCnCRule/4,isGiven/4,
     whereTerm/4,
     packageName/2,pkgName/2,
     isComma/4,deComma/2,reComma/2,
@@ -195,6 +195,22 @@ isOfTerm(Term,Lc,Lbl,R) :-
   isSquareTuple(R,_,_),
   isIden(Lbl,_,_).
 
+ruleHead(Trm,Hd,Cond,IsDeflt) :-
+  isTuple(Trm,_,[A]),!,
+  ruleHead(A,Hd,Cond,IsDeflt).
+ruleHead(Trm,Hd,Cond,IsDeflt) :-
+  isWhere(Trm,_,Lhs,Cond),!,
+  ruleHead(Lhs,Hd,_,IsDeflt).
+ruleHead(Trm,Hd,Cond,true) :-
+  isDefault(Trm,_,H),!,
+  ruleHead(H,Hd,Cond,_).
+ruleHead(Trm,Trm,name(Lc,"true"),false) :-
+  isRound(Trm,Lc,_,_).
+
+mWhere(_,Hd,name(_,"true"),Hd) :- !.
+mWhere(Lc,H,Cond,Hd) :-
+  binary(Lc,"where",H,Cond,Hd).
+
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
   (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
@@ -204,6 +220,14 @@ eqn(Lc,Lhs,name(_,"true"),Rhs,Eqn) :-!,
 eqn(Lc,Args,Cond,Rhs,Eqn) :-
   whereTerm(Lc,Args,Cond,Lhs),
   binary(Lc,"=>",Lhs,Rhs,Eqn).
+
+% refactor f(A)(B) where C => D to f(A) where C => (B)=>D
+isCurriedRule(St,Lc,Op,Cond,Body) :-
+  isBinary(St,Lc,"=>",L,R),!,
+  ruleHead(L,H,Cond,_),
+  isRound(H,_,Op,Args),
+  isRound(Op,_,_,_),
+  eqn(Lc,tuple(Lc,"()",Args),name(Lc,"true"),R,Body).
 
 isMacroRule(Trm,Lc,Lhs,Cond) :-
   isBinary(Trm,Lc,"==>",Lhs,Cond).
@@ -218,7 +242,7 @@ isLetDef(Trm,Lc,Body,Exp) :-
 mkLetDef(Lc,Els,Bnd,Let) :-
   braceTerm(Lc,name(Lc,"let"),Els,Body),
   binary(Lc,"in",Body,Bnd,Let).
-  
+
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).
 
@@ -253,6 +277,10 @@ isMatch(Trm,Lc,P,E) :-
 
 isSearch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"in",P,E),!.
+
+isAbstraction(Trm,Lc,Bnd,Body) :-
+  isBraceTuple(Trm,Lc,[T]),
+  isBinary(T,_,"|",Bnd,Body).
 
 isParse(Trm,Lc,N,E) :-
   isBinary(Trm,Lc,".~",N,E).
@@ -307,12 +335,6 @@ headName(H,Nm) :-
 headName(H,Nm) :-
   isRoundTerm(H,N,_),
   isIden(N,_,Nm).
-
-isCnCRule(Rl,Lc,Hd,Body) :-
-  isBinary(Rl,Lc,"<-",Hd,Body).
-
-isGiven(Prd,Lc,Hd,Args) :-
-  isBinary(Prd,Lc,"given",Hd,Args).
 
 findVars(name(Lc,V),SoFar,Vrs) :-
   is_member(name(_,V),SoFar) -> Vrs=SoFar ; Vrs = [name(Lc,V)|SoFar].

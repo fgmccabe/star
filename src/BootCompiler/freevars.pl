@@ -20,11 +20,21 @@ freeVars(apply(_,Op,A),Ex,Q,F,FV) :- freeVars(Op,Ex,Q,F,F0), freeVars(A,Ex,Q,F0,
 freeVars(dot(_,Rc,_),Ex,Q,F,FV) :- freeVars(Rc,Ex,Q,F,FV).
 freeVars(where(_,T,C),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),freeVars(T,E1,Q,F,F0),freeVars(C,E1,Q,F0,FV).
 freeVars(cond(_,C,T,E),Ex,Q,F,FV) :- ptnGoalVars(C,Ex,E1),freeVars(T,E1,Q,F,F0),freeVars(C,E1,Q,F0,F1),freeVars(E,Ex,Q,F1,FV).
-freeVars(lambda(_,Rls,_),Ex,Q,F,FV) :- freeVarsInRules(Rls,Ex,Q,F,FV).
+freeVars(lambda(_,Rle,_),Ex,Q,F,FV) :- freeVarsInRule(Ex,Q,Rle,F,FV).
 freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),Ex,E1),freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
 freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
 freeVars(neg(_,L),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,FV).
 freeVars(match(_,L,R),Ex,Q,F,FV) :- ptnVars(L,Ex,Ex1), freeVars(L,Ex1,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
+freeVars(search(_,L,R,I),Ex,Q,F,FV) :-
+  ptnVars(L,Ex,Ex1),
+  freeVars(L,Ex1,Q,F,F0),
+  freeVars(R,Ex1,Q,F0,F1),
+  freeVars(I,Ex1,Q,F1,FV).
+freeVars(abstraction(_,B,C,G),Ex,Q,F,FV) :-
+  ptnGoalVars(C,Ex,Ex1),
+  freeVars(B,Ex1,Q,F,F0),
+  freeVars(C,Ex1,Q,F0,F1),
+  freeVars(G,Ex1,Q,F1,FV).
 freeVars(theta(_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
@@ -63,10 +73,6 @@ freeVarsInRule(Ex,Q,equation(_,A,Cond,Exp),F,FV) :-
   ptnVars(A,Ex,Ex1),
   freeVars(A,Ex1,Q,F,F0),
   freeVars(Exp,Ex1,Q,F0,F1),
-  freeVars(Cond,Ex1,Q,F1,FV).
-freeVarsInRule(Ex,Q,rule(_,A,Cond),F,FV) :-
-  ptnVars(A,Ex,Ex1),
-  freeVars(A,Ex1,Q,F,F1),
   freeVars(Cond,Ex1,Q,F1,FV).
 
 freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).

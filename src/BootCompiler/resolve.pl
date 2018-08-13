@@ -51,7 +51,7 @@ overloadRule(equation(Lc,Args,Cond,Exp),Dict,St,Stx,equation(Lc,RArgs,RCond,RExp
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-    lambda(Lc,[equation(Lc,tple(Lc,CVars),enm(Lc,"true"),RExp)],OTp))) :-
+    lambda(Lc,equation(Lc,tple(Lc,CVars),enm(Lc,"true"),RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -128,6 +128,14 @@ overloadTerm(neg(Lc,T),Dict,St,Stx,neg(Lc,RT)) :-
 overloadTerm(match(Lc,L,R),Dict,St,Stx,match(Lc,RL,RR)) :-
   overloadTerm(L,Dict,St,St0,RL),
   overloadTerm(R,Dict,St0,Stx,RR).
+overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
+  overloadTerm(P,Dict,St,St0,RP),
+  overloadTerm(S,Dict,St0,St1,RS),
+  overloadTerm(I,Dict,St1,Stx,RI).
+overloadTerm(abstraction(Lc,B,C,G),Dict,St,Stx,abstraction(Lc,RB,RC,RG)) :-
+  overloadTerm(B,Dict,St,St0,RB),
+  overloadTerm(C,Dict,St0,St1,RC),
+  overloadTerm(G,Dict,St1,Stx,RG).
 overloadTerm(apply(ALc,over(Lc,T,IsFn,Cx),Args),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs))) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
   (St0\=active(_,_) ->
@@ -154,15 +162,15 @@ overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
 overloadTerm(mtd(Lc,Nm),_,St,Stx,mtd(Lc,Nm)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
-overloadTerm(lambda(Lc,Rls,Tp),Dict,St,Stx,lambda(Lc,ORls,Tp)) :-
-  overloadLst(Rls,resolve:overloadRule,Dict,St,Stx,ORls).
+overloadTerm(lambda(Lc,Rle,Tp),Dict,St,Stx,lambda(Lc,ORle,Tp)) :-
+  overloadRule(Rle,Dict,St,Stx,ORle).
 
 overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args))) :- \+isProgramType(Tp),!.
 overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
-curryOver(Lc,OverOp,Cx,Tp,lambda(Lc,[equation(Lc,tple(Lc,Args),enm(Lc,"true"),apply(Lc,OverOp,tple(Lc,NArgs)))],Tp)) :-
+curryOver(Lc,OverOp,Cx,Tp,lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true"),apply(Lc,OverOp,tple(Lc,NArgs))),Tp)) :-
   progTypeArity(Tp,Ar),
   genVrs(Ar,Lc,Args),
   concat(Cx,Args,NArgs).
@@ -184,7 +192,7 @@ overloadList([T|L],C,D,[RT|RL]) :-
   call(C,T,D,RT),
   overloadList(L,C,D,RL).
 
-overloadRef(_,mtd(Lc,Nm,_),[DT],RArgs,dot(Lc,DT,Nm),RArgs) :- !.
+overloadRef(_,mtd(Lc,Nm),[DT],RArgs,dot(Lc,DT,Nm),RArgs) :- !.
 overloadRef(_,v(Lc,Nm),DT,RArgs,v(Lc,Nm),Args) :- !, concat(DT,RArgs,Args).
 overloadRef(_,C,DT,RArgs,C,Args) :- concat(DT,RArgs,Args).
 
