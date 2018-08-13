@@ -18,6 +18,7 @@
 :- use_module(transitive).
 :- use_module(resolve).
 :- use_module(display).
+:- use_module(cnc).
 :- use_module(vartypes).
 
 checkProgram(Prog,Pkg,Repo,
@@ -267,6 +268,9 @@ processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,Env,Path) :-
   processStmt(St,ProgramType,Defs,D0,Df,Df0,Env,Path),!,
   processStmts(More,ProgramType,D0,Dx,Df0,Dfx,Env,Path).
 
+processStmt(St,Tp,Defs,Defx,Df,Dfx,Env,Path) :-
+  isCurriedRule(St,Lc,Hd,Cond,Body),!,
+  checkEquation(Lc,Hd,Cond,Body,Tp,Defs,Defx,Df,Dfx,Env,Path).
 processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Path) :-
   isEquation(St,Lc,L,Cond,R),!,
   checkEquation(Lc,L,Cond,R,ProgramType,Defs,Defx,Df,Dfx,E,Path).
@@ -556,6 +560,7 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
+  \+isAbstraction(Term,_,_,_),
   genstr("θ",ThNm),
   thetaName(Path,ThNm,ThPath),
   checkThetaBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath).
@@ -609,15 +614,30 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
     Exp = floatLit(Ng) ;
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
-typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src),Path) :-
+typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   isSearch(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
-  newTypeVar("_#",TV),
-  newTypeFun("_#",1,FT),
-  typeOfPtn(L,TV,Env,E0,Ptn,Path),
-  typeOfExp(R,tpExp(FT,TV),E0,Ev,Src,Path).
-
+  (getContract("iterable",Env,conDef(_,_,Con)) ->
+    freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
+    reportError("iterable contract not defined",[],Lc),
+    newTypeVar("_St",StTp),
+    newTypeVar("_El",ElTp)),
+  typeOfPtn(L,ElTp,Env,E0,Ptn,Path),
+  typeOfExp(R,StTp,E0,Ev,Src,Path),
+  Iterator = over(Lc,mtd(Lc,"_iterate"),true,[conTract(Op,[StTp],[ElTp])]).
+typeOfExp(Term,Tp,Env,Ev,abstraction(Lc,Bnd,Cond,Gen),Path) :-
+  isAbstraction(Term,Lc,B,G),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(G,LogicalTp,Env,_E1,Cond,Path),
+  (getContract("iterable",Env,conDef(_,_,Con)) ->
+    freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
+    reportError("iterable contract not defined",[],Lc),
+    newTypeVar("_St",StTp),
+    newTypeVar("_El",ElTp)),
+  checkType(Lc,Tp,StTp,Env),
+  typeOfExp(B,ElTp,Env,_,Bnd,Path),
+  Gen = over(Lc,mtd(Lc,"_generate"),true,[conTract(Op,[StTp],[ElTp])]).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path).
@@ -683,24 +703,13 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
   (sameType(funType(At,Tp),FTp,E0) ->
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
     Exp = apply(Lc,Fun,Args) ;
-  sameType(consType(At,Tp),FTp,E0) ->
+   sameType(consType(At,Tp),FTp,E0) ->
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
     Exp = apply(Lc,Fun,Args);
-  reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
-  Env=Ev).
+   reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
+   Env=Ev).
 
-
-  % typeOfKnown(F,FnTp,Env,E0,Fun,Path),
-  % simplifyType(FnTp,Env,_,[],FTp),
-  % evidence(At,E0,_,AT),
-  % typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-  % (sameType(funType(At,Tp),FTp,E0) ->
-  %  Exp = apply(Lc,Fun,Args) ;
-  % sameType(consType(At,Tp),FTp,E0) ->
-  %  Exp = apply(Lc,Fun,Args);
-  % reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc)).
-
-typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
+typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
   newTypeVar("_A",AT),
   typeOfArgPtn(H,AT,Env,E1,Args,Path),
   newTypeVar("_E",RT),
@@ -747,7 +756,7 @@ macroMapEntries(Lc,[],name(Lc,"_empty")).
 macroMapEntries(_,[E|L],T) :-
   isBinary(E,Lc,"->",Ky,Vl),!,
   macroMapEntries(Lc,L,Tr),
-  roundTerm(Lc,"_replace",[Tr,Ky,Vl],T).
+  roundTerm(Lc,name(Lc,"_replace"),[Tr,Ky,Vl],T).
 macroMapEntries(Lc,[E|L],T) :-
   reportError("invalid entry in map %s",[E],Lc),
   macroMapEntries(Lc,L,T).

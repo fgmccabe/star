@@ -235,16 +235,15 @@ collectDefines([St|Stmts],Kind,[St|OSt],Nm,Defn) :-
 collectDefines(Stmts,_,Stmts,_,[]).
 
 headOfRule(St,Hd) :-
-  isBinary(St,_,"=",Hd,_).
+  isDefn(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
-  isBinary(St,_,":=",Hd,_).
+  isAssignment(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
-  isBinary(St,_,"=>",H,_),
-  (isWhere(H,_,Hd,_) ; H=Hd).
+  isEquation(St,_,Hd,_,_),!.
 headOfRule(St,Hd) :-
   isBraceTerm(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
-  isBinary(St,_,"-->",Hd,_),!.
+  isParsingRule(St,_,Hd,_),!.
 
 headName(Head,Nm) :-
   isRoundTerm(Head,Op,_),
@@ -461,6 +460,10 @@ collectTermRefs(T,A,R0,Refs) :-
 collectTermRefs(T,A,R0,Refs) :-
   isSquareTuple(T,_,Els),
   collectTermListRefs(Els,A,R0,Refs).
+collectTermRefs(T,A,R0,Refs) :-
+  isAbstraction(T,_,B,G),!,
+  collectTermRefs(B,A,R0,R1),
+  collectCondRefs(G,A,R1,Refs).
 collectTermRefs(app(_,Op,Args),All,R,Refs) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Refs).
