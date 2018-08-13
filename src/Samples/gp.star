@@ -64,7 +64,7 @@ sample.gp{
   show disp(gpI("abc")).
 
   -- As though translated from the query rule:
-  -- gp(X,Y) :- parent(X,Z), parent(Z,Y).
+  -- gp(X,Y) <- parent(X,Z) && parent(Z,Y).
 
   qP1() =>
     _iterate(parent,let{
@@ -81,7 +81,7 @@ sample.gp{
   show disp(qP1()).
 
   -- As though translated from the query rule:
-  -- gc(X) given (Y) :- parent(X,Z), parent(Z,Y).
+  -- gc(X) given (Y) <- parent(X,Z) && parent(Z,Y).
 
   qC2(Y) =>
     _iterate(parent,let{
@@ -95,7 +95,7 @@ sample.gp{
   show disp(qC2("abc")).
 
   -- By changing the order of the calls, it is more efficient
-  -- gc(X) given (Y) :- parent(Z,Y), parent(X,Z).
+  -- gc(X) given (Y) <- parent(Z,Y) && parent(X,Z).
 
   qC3(Y) =>
     _iterate(parent,let{
