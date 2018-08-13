@@ -26,7 +26,7 @@ isRoundTuple(tuple(Lc,"()",Args),Lc,Args).
 
 roundTuple(Lc,Args,tuple(Lc,"()",Args)).
 
-roundTerm(Lc,Op,Args,app(Lc,name(Lc,Op),tuple(Lc,"()",Args))).
+roundTerm(Lc,Op,Args,app(Lc,Op,tuple(Lc,"()",Args))).
 
 isRound(app(Lc,Op,A),Lc,Op,Els) :- isRoundTuple(A,_,Els), \+ isKeyOp(Op).
 
