@@ -35,13 +35,13 @@ declareVr(Lc,Nm,Tp,Env,Ev) :-
 declareVr(Lc,Nm,Tp,Face,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp,vartypes:gtType(Face)),Env,Ev).
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkMtd(Nm,Tp),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  declareVar(Nm,vrEntry(Lc,vartypes:mkMtd(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 declareEnum(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 declareCns(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 
-mkMtd(Nm,Tp,Lc,mtd(Lc,Nm,Tp)).
+mkMtd(Nm,Lc,mtd(Lc,Nm)).
 mkCns(Nm,Lc,cns(Lc,Nm)).
 mkEnum(Nm,Lc,enm(Lc,Nm)).
 
