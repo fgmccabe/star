@@ -33,7 +33,7 @@
       1249,
       1249
     ],
-    "desc": "type union and conditional"
+    "desc": "type union, conditional, and abstraction"
   },
   {
     "infixOp": "^|",
@@ -106,50 +106,6 @@
       1199
     ],
     "desc": "grammar rule"
-  },
-  {
-    "infixOp": ":-",
-    "priorities": [
-      1199,
-      1200,
-      1199
-    ],
-    "desc": "CnC rule"
-  },
-  {
-    "infixOp": "given",
-    "priorities": [
-      874,
-      875,
-      874
-    ],
-    "desc": "functional predicate"
-  },
-  {
-    "infixOp": "and",
-    "priorities": [
-      910,
-      910,
-      909
-    ],
-    "desc": "CnC conjunction"
-  },
-  {
-    "infixOp": "or",
-    "priorities": [
-      929,
-      930,
-      930
-    ],
-    "desc": "CnC disjunction"
-  },
-  {
-    "prefixOp": "not",
-    "priorities": [
-      905,
-      904
-    ],
-    "desc": "CnC negation"
   },
   {
     "infixOp": "<-",

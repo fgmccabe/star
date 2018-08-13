@@ -50,8 +50,6 @@ star.compiler.operators{
   oper("==>") => [infixOp(949,950,949)].
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
-  oper("given") => [infixOp(874,875,874)].
-  oper("or") => [infixOp(929,930,930)].
   oper("raise") => [prefixOp(300,299)].
   oper(". ") => [postfixOp(1899,1900), infixOp(1899,1900,1900)].
   oper("!") => [postfixOp(99,100)].
@@ -91,7 +89,6 @@ star.compiler.operators{
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,899)].
   oper("^|") => [infixOp(1248,1249,1249)].
-  oper("and") => [infixOp(910,910,909)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1260,1259)].
@@ -107,8 +104,6 @@ star.compiler.operators{
   oper("=>") => [infixOp(949,950,950)].
   oper("^") => [infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
-  oper(":-") => [infixOp(1199,1200,1199)].
-  oper("not") => [prefixOp(905,904)].
   oper("private") => [prefixOp(1700,1699)].
   oper(".&.") => [infixOp(700,700,699)].
   oper("///") => [infixOp(800,800,799)].
@@ -239,7 +234,6 @@ star.compiler.operators{
   follows("^",0c|) => some("^|").
   follows("^/",0c/) => some("^//").
   follows(":",0c:) => some("::").
-  follows(":",0c-) => some(":-").
   follows(":",0c=) => some(":=").
   follows("::",0c=) => some("::=").
   follows("<",0c*) => some("<*").
@@ -297,7 +291,7 @@ star.compiler.operators{
   final("///") => true.  /* indexed map over */
   final("{") => true.  /* braces */
   final("{.") => true.  /* non-recursive braces */
-  final("|") => true.  /* type union and conditional */
+  final("|") => true.  /* type union, conditional, and abstraction */
   final("|:") => true.  /* constrained type */
   final("||") => true.  /* disjunction */
   final("}") => true.  /* braces */
@@ -318,7 +312,6 @@ star.compiler.operators{
   final(":") => true.  /* type annotation */
   final("::") => true.  /* type coercion */
   final("::=") => true.  /* algebraic type definition */
-  final(":-") => true.  /* CnC rule */
   final(":=") => true.  /* reassignable variable definition */
   final(";") => true.  /* sequencing operator */
   final("<") => true.  /* less than */
