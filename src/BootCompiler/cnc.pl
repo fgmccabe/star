@@ -1,4 +1,4 @@
-:- module(cnc,[checkRule/10,transRule/3,cncPredType/2]).
+:- module(cnc,[]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -8,22 +8,7 @@
 :- use_module(terms).
 :- use_module(freevars).
 
-
-cncPredType(At,Tp) :- deRef(Tp,tpExp(tpFun("{}",1),At)).
-
-checkRule(Lc,H,C,Tp,Defs,Defsx,Df,Dfx,E,Path) :-
-  cncPredType(At,Tp),
-  splitHead(H,_,A,IsDeflt),
-  pushScope(E,Env),
-  typeOfArgPtn(A,AT,Env,E0,Args,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E0,E1,Cond,Path),
-  dischargeConstraints(E,E1),
-  (IsDeflt=isDeflt -> Defs=Defsx, Df=[rule(Lc,Args,Cond)|Dfx]; Defs=[rule(Lc,Args,Cond)|Defsx],Df=Dfx).
-checkRule(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
-  reportError("rule not consistent with expected type: %s",[ProgramType],Lc).
-
-analyseCondition(search(_,Ptn,Src),Df,Dfx,Rq,Rqx,Cand) :-
+analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtn(Ptn,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Src,Df1,Dfx,Rq1,Rqx,Cand).
 
@@ -83,19 +68,20 @@ analyseExp(cond(_,Tst,Lhs,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
 analyseExp(match(_,Lhs,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtn(Lhs,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Rhs,Df1,Dfx,Rq1,Rqx,Cand).
-analyseExp(search(_,Lhs,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
+analyseExp(search(_,Lhs,Rhs,_),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtn(Lhs,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Rhs,Df1,Dfx,Rq1,Rqx,Cand).
 analyseExp(assertion(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(show(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
-analyseExp(lambda(_,Rls,_),Df,Dfx,Rq,Rqx,Cond) :-
-  analyseRules(Rls,Df,Dfx,Rq,Rqx,Cond).
+analyseExp(lambda(_,Rle,_),Df,Dfx,Rq,Rqx,Cond) :-
+  analyseRl(Rle,Df,Dfx,Rq,Rqx,Cond).
 analyseExp(theta(_Lc,_Path,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(record(_Lc,_Path,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(letExp(_,Th,Exp),Df,Dfx,Rq,Rqx,Cand) :-
-  analyseExp(Exp,Df,Dfx,Rq,Rqx,Cand).
+  analyseExp(Th,Df,Df0,Rq,Rq0,Cand),
+  analyseExp(Exp,Df0,Dfx,Rq0,Rqx,Cand).
 analyseExp(enm(_,_),Dfx,Dfx,Rqx,Rqx,_).
 analyseExp(cns(_,_),Dfx,Dfx,Rqx,Rqx,_).
 analyseExp(intLit(_),Dfx,Dfx,Rqx,Rqx,_).
@@ -130,7 +116,7 @@ analysePtns(Ptns,Df,Dfx,Rq,Rqx,Cand) :-
   analyseMany(Ptns,cnc:analysePtn,Df,Dfx,Rq,Rqx,Cand).
 
 analyseExps(Exps,Df,Dfx,Rq,Rqx,Cand) :-
-  analyseMany(Ptns,cnc:analyseExp,Df,Dfx,Rq,Rqx,Cand).
+  analyseMany(Exps,cnc:analyseExp,Df,Dfx,Rq,Rqx,Cand).
 
 analyseRules(Rls,Df,Dfx,Rq,Rqx,Cand) :-
   analyseMany(Rls,cnc:analyseRl,Df,Dfx,Rq,Rqx,Cand).
@@ -141,4 +127,4 @@ addVar(V,D,[V|D]).
 
 
 
-transCond(given(Lc1,apply(Lc,Op,Args),)
+% transCond(given(Lc1,apply(Lc,Op,Args),)
