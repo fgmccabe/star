@@ -468,8 +468,8 @@ liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftTheta(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
 liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(lambda(Lc,Rls,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftLambda(Lc,Rls,Tp,Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
+  liftLambda(Lc,Rle,Tp,Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).
 
@@ -522,9 +522,9 @@ implementFunCall(_,localClass(Mdl,_,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
-liftLambda(Lc,Rules,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
-  lambdaMap(lambda(Lc,Rules,Tp),Q,Map,Opts,LclName,Closure,LMap,Ex,Ex0),
-  transformRules(Rules,LMap,Opts,LclName,Rls,[],Ex0,Exx),
+liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+  lambdaMap(lambda(Lc,Rule,Tp),Q,Map,Opts,LclName,Closure,LMap,Ex,Ex0),
+  transformRules([Rule],LMap,Opts,LclName,Rls,[],Ex0,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
