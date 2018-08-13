@@ -26,6 +26,7 @@ star.iterable{
 
   public contract all s,e ~~ iterable[s->>e] ::= {
     _iterate : all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
+    _generate : (iterState[s],(e,iterState[s])=>iterState[s]) => iterState[s].
   }
 
   public contract all s,k,v ~~ indexed_iterable[s ->> k,v] ::= {
@@ -93,6 +94,11 @@ star.iterable{
     iterateOverList(_,Ix,Mx,_,St) where Ix>=Mx => St.
     iterateOverList(_,_,_,_,noMore(X)) => noMore(X).
     iterateOverList(Lst,Ix,Mx,Fn,St) where El^=Lst[Ix] => iterateOverList(Lst,Ix+1,Mx,Fn,Fn(El,St)).
+
+    _generate : (iterState[s],e,(e,iterState[s])=>iterState[s]) => iterState[s].
+
+    _generate(noMore(S),_,_) => noMore(S).
+    _generate(continueWith(L),E,)
   }
 
 }
