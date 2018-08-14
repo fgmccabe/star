@@ -483,7 +483,7 @@ typeOfPtn(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
-  isSquareTuple(Term,Lc,Els), !,
+  isSquareTuple(Term,Lc,Els), \+isListAbstraction(Term), !,
   macroSquarePtn(Lc,Els,Ptn),
   typeOfPtn(Ptn,Tp,Env,Ev,Exp,Path).
 typeOfPtn(Trm,Tp,Env,Ev,Exp,Path) :-
@@ -626,17 +626,17 @@ typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   typeOfPtn(L,ElTp,Env,E0,Ptn,Path),
   typeOfExp(R,StTp,E0,Ev,Src,Path),
   Iterator = over(Lc,mtd(Lc,"_iterate"),true,[conTract(Op,[StTp],[ElTp])]).
-typeOfExp(Term,Tp,Env,Ev,abstraction(Lc,Bnd,Cond,Gen),Path) :-
+typeOfExp(Term,Tp,Env,Env,abstraction(Lc,Bnd,Cond,Gen),Path) :-
   isAbstraction(Term,Lc,B,G),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(G,LogicalTp,Env,_E1,Cond,Path),
+  typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
   (getContract("iterable",Env,conDef(_,_,Con)) ->
     freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
     reportError("iterable contract not defined",[],Lc),
     newTypeVar("_St",StTp),
     newTypeVar("_El",ElTp)),
   checkType(Lc,Tp,StTp,Env),
-  typeOfExp(B,ElTp,Env,_,Bnd,Path),
+  typeOfExp(B,ElTp,E1,_,Bnd,Path),
   Gen = over(Lc,mtd(Lc,"_generate"),true,[conTract(Op,[StTp],[ElTp])]).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),

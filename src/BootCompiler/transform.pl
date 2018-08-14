@@ -470,6 +470,8 @@ liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(Lc,Rle,Tp,Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(abstraction(Lc,Bnd,Cond,Gen),Rslt,Q,Q,Map,Opts,Ex,Exx) :- !,
+  liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).
 
@@ -524,15 +526,10 @@ implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,E
 
 liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Rule,Tp),Q,Map,Opts,LclName,Closure,LMap,Ex,Ex0),
-  transformRules([Rule],LMap,Opts,LclName,Rls,[],Ex0,Exx),
+  transformRule(Rule,LMap,Opts,LclName,Rls,[],Ex0,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
-
-transformRules([],_,_,_,Rls,Rls,Ex,Ex).
-transformRules([Rl|Rules],Map,Opts,LclName,R,Rx,E,Ex) :-
-  transformRule(Rl,Map,Opts,LclName,R,R0,E,E0),
-  transformRules(Rules,Map,Opts,LclName,R0,Rx,E0,Ex).
 
 transformRule(equation(Lc,A,Cond,Value),Map,Opts,LclPrg,R,Rx,E,Ex) :-
   transformEqn(equation(Lc,A,Cond,Value),Map,Opts,LclPrg,R,Rx,E,Ex).
@@ -551,6 +548,12 @@ lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,
   genVar("_ThV",ThVr),
   collectLabelVars(ThFr,ThVr,[],Lx),
   makeLblTerm(LclName,ThFr,LblTerm).
+
+liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Map,Opts,Ex,Exx) :-
+  liftQuery(Lc,Cond,Gen,Reslt,enum("star.iterable@noneFound"),Q,Map,Opts,Ex,Exx).
+
+liftQuery(_,search(Lc,Ptn,Src,Iter),Gen,Reslt,State,Q,Map,Opts,Ex,Exx) :-
+  
 
 mkClosure(Lam,FreeVars,Closure) :-
   length(FreeVars,Ar),
