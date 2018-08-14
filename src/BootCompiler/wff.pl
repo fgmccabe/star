@@ -9,7 +9,7 @@
     isConditional/5,conditional/5,isOfTerm/4,
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
-    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isAbstraction/4,
+    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isAbstraction/4,isListAbstraction/4,
     isParse/4,isNTLookAhead/3,
     isLetDef/4,mkLetDef/4,isMacroRule/4,
     whereTerm/4,
@@ -280,6 +280,10 @@ isSearch(Trm,Lc,P,E) :-
 
 isAbstraction(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),
+  isBinary(T,_,"|",Bnd,Body).
+
+isListAbstraction(Trm,Lc,Bnd,Body) :-
+  isSquareTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
 isParse(Trm,Lc,N,E) :-

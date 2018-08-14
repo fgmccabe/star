@@ -13,6 +13,7 @@ test.q0{
 
   assert size(parent)==10.
 
+  gp : list[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
 }
