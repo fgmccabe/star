@@ -1,4 +1,4 @@
-:-module(freevars,[freeVars/5,freeVarsInRule/5]).
+:-module(freevars,[freeVars/5,freeVarsInRule/5,goalVars/2]).
 
 :- use_module(misc).
 :- use_module(escapes).
@@ -109,6 +109,9 @@ ptnVarsInDefs([P|L],Q,Qx) :-
 ptnVarsInDef(varDef(_,_,_,_,_,Value),Q,Qx) :-
   ptnVars(Value,Q,Qx).
 ptnVarsInDef(_,Q,Q).
+
+goalVars(G,Q) :-
+  ptnGoalVars(G,[],Q).
 
 ptnGoalVars(conj(_,L,R),Q,Qx) :-
   ptnGoalVars(L,Q,Q0),

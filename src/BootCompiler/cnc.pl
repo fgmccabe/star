@@ -1,4 +1,4 @@
-:- module(cnc,[]).
+:- module(cnc,[genAbstraction/3]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -7,10 +7,23 @@
 :- use_module(abstract).
 :- use_module(terms).
 :- use_module(freevars).
+:- use_module(misc).
 
 analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtn(Ptn,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Src,Df1,Dfx,Rq1,Rqx,Cand).
+
+/*
+ * { Exp | Cond }
+ *
+ * becomes
+ * generator((X)=>Exp,nil)
+ * where generator is a function that implements the Cond
+ */
+genAbstraction(abstraction(Lc,El,Cond,Gen),Path,Exp) :-
+  InitState = enm(Lc,"noneFound"),
+  genCondition(Cond,Path,InitState,cnc:genEl(El,Gen),abort(Lc),Seq),
+  Exp = apply(Lc,v(Lc,"unwrapIter"),tple(Lc,[Seq])).
 
 /*
  * Ptn in Src
@@ -18,27 +31,36 @@ analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
  * let{
  *  sF(Ptn,St) => AddEl(X,St).
  *  sF(_,St) default => St.
- * } in _iterate(Src,sF,InitState)
+ * } in _iterate(Src,sF,Initial)
  *
  * where AddEl, InitState are parameters to the conversion
  */
-
-genCondition(search(Lc,Ptn,PtnTp,Src,SrcTp),Env,Cand,Path,Initial,Succ,_Fail,Exp) :-
-  genNme(Lc,Nm),
-  genAnon(Lc,Anon),
-  findGenerators(Lc,Ptn,Cand,X),
-  genNme(Lc,St),
+genCondition(search(Lc,Ptn,Src,Iterator),Path,Initial,Succ,_Fail,Exp) :-
+  genstr("f",Fn),
+  genNme(Lc,"_",Anon),
+  genNme(Lc,"_st",St),
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
-  packageVarName(ThPath,Nm,LclName),
-  call(Succ,Lc,X,St,AddToFront),
-  FF=funDef(Lc,Nm,LclName,Tp,Cx,[
-    equation(Lc,tple(Lc,[Ptn,St]),Cond,AddToFront),
+  packageVarName(ThPath,Fn,LclName),
+  call(Succ,Lc,St,AddToFront),
+  FF=funDef(Lc,Fn,LclName,Tp,[],[
+    equation(Lc,tple(Lc,[Ptn,St]),enm(Lc,"true"),AddToFront),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true"),St)
   ]),
-  Let = letExp(Lc,theta(Lc,ThPath,[FF],[],[],faceType([],[])),v(Lc,LclName)),
-  Iterator = over(Lc,v(Lc,"_iterate"),IterTp,[conTract("iterable",[SrcTp],[PtnTp])]),
-  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial])).
+  Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn)),
+  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial])),
+  StTp = tpExp(tpFun("star.iterable*iterState",1),anonType),
+  Tp = funType(tupleType([anonType,StTp]),StTp).
+genCondition(conj(_Lc,A,B),Path,Initial,Succ,Fail,Exp) :-
+  genCondition(A,Path,Initial,cnc:genConj(B,Path,Succ,Fail),Fail,Exp).
+
+genNme(Lc,Pr,v(Lc,Nm)) :-
+  genstr(Pr,Nm).
+
+genEl(El,Gen,Lc,St,apply(Lc,Gen,tple(Lc,[El,St]))).
+
+genConj(B,Path,Succ,Fail,_Lc,St,AddToFront) :-
+  genCondition(B,Path,St,Succ,Fail,AddToFront).
 
 
 analyseExp(v(Lc,Nm),Dfx,Dfx,Rq,Rqx,Cand) :-

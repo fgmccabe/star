@@ -21,12 +21,16 @@ star.iterable{
     disp(abortIter(E)) => ssSeq([ss("aborted: "),ss(E)]).
   .}
 
+  public unwrapIter:all t ~~ (iterState[t]) => t.
+  unwrapIter(noMore(X)) => X.
+  unwrapIter(continueWith(X)) => X.
+
 -- The iterable contract is used in planning queries
 -- The iterate function takes a filter function and iterates over the collection using it while it returns a IterState state
 
   public contract all s,e ~~ iterable[s->>e] ::= {
     _iterate : all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
-    _generate : (e,iterState[s],(e,iterState[s])=>iterState[s]) => iterState[s].
+    _generate : (e,iterState[s]) => iterState[s].
   }
 
   public contract all s,k,v ~~ indexed_iterable[s ->> k,v] ::= {
@@ -95,9 +99,8 @@ star.iterable{
     iterateOverList(_,_,_,_,noMore(X)) => noMore(X).
     iterateOverList(Lst,Ix,Mx,Fn,St) where El^=Lst[Ix] => iterateOverList(Lst,Ix+1,Mx,Fn,Fn(El,St)).
 
-    _generate(_,noMore(S),_) => noMore(S).
-    _generate(E,continueWith(L),F) => F(E,continueWith(L)).
-    _generate(E,noneFound,F) => F(E,noneFound).
-    _generate(_,abortIter(S),_) => abortIter(S).
+    _generate(E,continueWith(L)) => continueWith([E,..L]).
+    _generate(E,noneFound) => continueWith([E]).
+    _generate(_,St) default => St.
   }
 }
