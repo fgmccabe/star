@@ -15,6 +15,7 @@
 :- use_module(location).
 :- use_module(freevars).
 :- use_module(terms).
+:- use_module(cnc).
 
 /*
   Functions are converted to top-level functions with explicit parameters containing
@@ -470,8 +471,8 @@ liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(Lc,Rle,Tp,Rslt,Q,Map,Opts,Ex,Exx).
-liftExp(abstraction(Lc,Bnd,Cond,Gen),Rslt,Q,Q,Map,Opts,Ex,Exx) :- !,
-  liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(abstraction(Lc,Bnd,Cond,Gen),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).
 
@@ -549,11 +550,11 @@ lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,
   collectLabelVars(ThFr,ThVr,[],Lx),
   makeLblTerm(LclName,ThFr,LblTerm).
 
-liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Map,Opts,Ex,Exx) :-
-  liftQuery(Lc,Cond,Gen,Reslt,enum("star.iterable@noneFound"),Q,Map,Opts,Ex,Exx).
-
-liftQuery(_,search(Lc,Ptn,Src,Iter),Gen,Reslt,State,Q,Map,Opts,Ex,Exx) :-
-  
+liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
+  layerName(Map,Path),
+  genAbstraction(abstraction(Lc,Bnd,Cond,Gen),Path,AbExp),
+  dispCanonTerm(AbExp),
+  liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
 mkClosure(Lam,FreeVars,Closure) :-
   length(FreeVars,Ar),
