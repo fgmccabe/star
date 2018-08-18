@@ -1,6 +1,6 @@
 :- module(types,[isType/1,isConType/1,isConstraint/1,varConstraints/3,addConstraint/2,
       newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
-      progTypeArity/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
+      progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
       isFunctionType/1,isFunctionType/2,isCnsType/2,
       isProgramType/1,
       dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
@@ -233,6 +233,15 @@ tpArity(consType(A,_),Ar) :- tpArity(A,Ar).
 tpArity(refType(A),Ar) :- progTypeArity(A,Ar).
 tpArity(tupleType(A),Ar) :- length(A,Ar).
 tpArity(_,0).
+
+progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).
+
+tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
+tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
+tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
+tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
+tpArgTypes(typeType(ArTps),ArTps).
+
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 

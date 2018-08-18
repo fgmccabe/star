@@ -20,10 +20,12 @@ analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
  * generator((X)=>Exp,nil)
  * where generator is a function that implements the Cond
  */
-genAbstraction(abstraction(Lc,El,Cond,Gen),Path,Exp) :-
-  InitState = enm(Lc,"noneFound"),
+genAbstraction(abstraction(Lc,El,Cond,Gen,Tp),Path,Exp) :-
+  IterTp = tpExp(tpFun("star.iterable*iterState",1),Tp),
+  InitState = enm(Lc,"noneFound",IterTp),
   genCondition(Cond,Path,InitState,cnc:genEl(El,Gen),abort(Lc),Seq),
-  Exp = apply(Lc,v(Lc,"unwrapIter"),tple(Lc,[Seq])).
+  typeOfCanon(El,ElTp),
+  Exp = apply(Lc,v(Lc,"unwrapIter",funType(tupleType([ElTp,IterTp]),IterTp)),tple(Lc,[Seq]),Tp).
 
 /*
  * Ptn in Src
@@ -37,40 +39,42 @@ genAbstraction(abstraction(Lc,El,Cond,Gen),Path,Exp) :-
  */
 genCondition(search(Lc,Ptn,Src,Iterator),Path,Initial,Succ,_Fail,Exp) :-
   genstr("f",Fn),
-  genNme(Lc,"_",Anon),
-  genNme(Lc,"_st",St),
+  genNme(Lc,PtnTp,"_",Anon),
+  genNme(Lc,StTp,"_st",St),
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
   packageVarName(ThPath,Fn,LclName),
-  call(Succ,Lc,St,AddToFront),
-  FF=funDef(Lc,Fn,LclName,Tp,[],[
-    equation(Lc,tple(Lc,[Ptn,St]),enm(Lc,"true"),AddToFront),
-    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true"),St)
+  call(Succ,Lc,St,StTp,AddToFront),
+  FF=funDef(Lc,Fn,LclName,FnTp,[],[
+    equation(Lc,tple(Lc,[Ptn,St]),enm(Lc,"true",type("star.core*boolean")),AddToFront),
+    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
   ]),
-  Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn)),
-  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial])),
-  StTp = tpExp(tpFun("star.iterable*iterState",1),anonType),
-  Tp = funType(tupleType([anonType,StTp]),StTp).
+  Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
+  typeOfCanon(Src,SrcTp),
+  StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
+  typeOfCanon(Ptn,PtnTp),
+  FnTp = funType(tupleType([PtnTp,StTp]),StTp).
 genCondition(conj(_Lc,A,B),Path,Initial,Succ,Fail,Exp) :-
   genCondition(A,Path,Initial,cnc:genConj(B,Path,Succ,Fail),Fail,Exp).
 
-genNme(Lc,Pr,v(Lc,Nm)) :-
+genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
   genstr(Pr,Nm).
 
-genEl(El,Gen,Lc,St,apply(Lc,Gen,tple(Lc,[El,St]))).
+genEl(El,Gen,Lc,St,StTp,apply(Lc,Gen,tple(Lc,[El,St]),StTp)).
 
-genConj(B,Path,Succ,Fail,_Lc,St,AddToFront) :-
+genConj(B,Path,Succ,Fail,_Lc,St,_,AddToFront) :-
   genCondition(B,Path,St,Succ,Fail,AddToFront).
 
 
-analyseExp(v(Lc,Nm),Dfx,Dfx,Rq,Rqx,Cand) :-
-  is_member(v(_,Nm),Cand) -> addVar(v(Lc,Nm),Rq,Rqx);Rq=Rqx.
+analyseExp(v(Lc,Nm,Tp),Dfx,Dfx,Rq,Rqx,Cand) :-
+  is_member(v(_,Nm,_),Cand) -> addVar(v(Lc,Nm,Tp),Rq,Rqx);Rq=Rqx.
 analyseExp(tple(_,Els),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExps(Els,Df,Dfx,Rq,Rqx,Cand).
-analyseExp(apply(_,Op,Arg),Df,Dfx,Rq,Rqx,Cand) :-
+analyseExp(apply(_,Op,Arg,_),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Op,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Arg,Df1,Dfx,Rq1,Rqx,Cand).
-analyseExp(dot(_,Op,_),Df,Dfx,Rq,Rqx,Cand) :-
+analyseExp(dot(_,_,Op,_),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Op,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(where(_,Exp,Cond),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Exp,Df,Df1,Rq,Rq1,Cand),
@@ -83,7 +87,7 @@ analyseExp(disj(_,Lhs,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df1,Dfx,Rq1,Rqx,Cand).
 analyseExp(neg(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
-analyseExp(cond(_,Tst,Lhs,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
+analyseExp(cond(_,Tst,Lhs,Rhs,_),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Tst,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Lhs,Df1,Df2,Rq1,Rq2,Cand),
   analyseExp(Rhs,Df2,Dfx,Rq2,Rqx,Cand).
@@ -104,18 +108,18 @@ analyseExp(record(_Lc,_Path,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(letExp(_,Th,Exp),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Th,Df,Df0,Rq,Rq0,Cand),
   analyseExp(Exp,Df0,Dfx,Rq0,Rqx,Cand).
-analyseExp(enm(_,_),Dfx,Dfx,Rqx,Rqx,_).
-analyseExp(cns(_,_),Dfx,Dfx,Rqx,Rqx,_).
-analyseExp(intLit(_),Dfx,Dfx,Rqx,Rqx,_).
-analyseExp(fltLit(_),Dfx,Dfx,Rqx,Rqx,_).
-analyseExp(stringLit(_),Dfx,Dfx,Rqx,Rqx,_).
+analyseExp(enm(_,_,_),Dfx,Dfx,Rqx,Rqx,_).
+analyseExp(cons(_,_,_),Dfx,Dfx,Rqx,Rqx,_).
+analyseExp(intLit(_,_),Dfx,Dfx,Rqx,Rqx,_).
+analyseExp(floatLit(_,_),Dfx,Dfx,Rqx,Rqx,_).
+analyseExp(stringLit(_,_),Dfx,Dfx,Rqx,Rqx,_).
 
-analysePtn(v(Lc,Nm),Df,Dfx,Rq,Rq,Cand) :-
-  is_member(v(_,Nm),Cand) ->
-    addVar(v(Lc,Nm),Df,Dfx) ; Df=Dfx.
+analysePtn(v(Lc,Nm,Tp),Df,Dfx,Rq,Rq,Cand) :-
+  is_member(v(_,Nm,_),Cand) ->
+    addVar(v(Lc,Nm,Tp),Df,Dfx) ; Df=Dfx.
 analysePtn(tple(_,Els),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtns(Els,Df,Dfx,Rq,Rqx,Cand).
-analysePtn(apply(_,Op,Arg),Df,Dfx,Rq,Rqx,Cand) :-
+analysePtn(apply(_,Op,Arg,_),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Op,Df,Df1,Rq,Rq1,Cand),
   analysePtn(Arg,Df1,Dfx,Rq1,Rqx,Cand).
 analysePtn(where(_,P,C),Df,Dfx,Rq,Rqx,Cand) :-
@@ -143,7 +147,7 @@ analyseExps(Exps,Df,Dfx,Rq,Rqx,Cand) :-
 analyseRules(Rls,Df,Dfx,Rq,Rqx,Cand) :-
   analyseMany(Rls,cnc:analyseRl,Df,Dfx,Rq,Rqx,Cand).
 
-addVar(v(_,Nm),D,D) :- is_member(v(_,Nm),D),!.
+addVar(v(_,Nm,_),D,D) :- is_member(v(_,Nm,_),D),!.
 addVar(V,D,[V|D]).
 
 
