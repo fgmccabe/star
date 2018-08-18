@@ -1,6 +1,7 @@
 :- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
+    typeOfCanon/2,
     isCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,
     thetaLoc/2,thetaDefs/2,thetaSig/2]).
 
@@ -11,22 +12,22 @@
 :- use_module(uri).
 
 isCanon(prog(_,_,_,_,_)).
-isCanon(v(_,_)).
+isCanon(v(_,_,_)).
 isCanon(over(_,_,_,_)).
-isCanon(mtd(_,_)).
-isCanon(intLit(_)).
-isCanon(floatLit(_)).
-isCanon(stringLit(_)).
-isCanon(apply(_,_,_)).
-isCanon(dot(_,_,_)).
-isCanon(enm(_,_)).
-isCanon(cns(_,_)).
+isCanon(mtd(_,_,_)).
+isCanon(intLit(_,_)).
+isCanon(floatLit(_,_)).
+isCanon(stringLit(_,_)).
+isCanon(apply(_,_,_,_)).
+isCanon(dot(_,_,_,_)).
+isCanon(enm(_,_,_)).
+isCanon(cons(_,_,_)).
 isCanon(theta(_,_,_,_,_,_)).
 isCanon(record(_,_,_,_,_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
-isCanon(cond(_,_,_,_)).
+isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
 isCanon(neg(_,_)).
 
@@ -34,6 +35,26 @@ isAssertion(assertion(_,_)).
 isShow(show(_,_)).
 
 isPkg(pkg(_,_)).
+
+typeOfCanon(v(_,_,Tp),Tp) :- !.
+typeOfCanon(intLit(_,Tp),Tp) :- !.
+typeOfCanon(floatLit(_,Tp),Tp) :- !.
+typeOfCanon(stringLit(_,Tp),Tp) :- !.
+typeOfCanon(enm(_,_,Tp),Tp) :- !.
+typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
+typeOfCanon(abstraction(_,_,_,_,Tp),Tp) :- !.
+typeOfCanon(search(_,_,_,_),tipe("star.core*boolean")) :-!.
+typeOfCanon(match(_,_,_),tipe("star.core*boolean")) :-!.
+typeOfCanon(conj(_,_,_),tipe("star.core*boolean")) :-!.
+typeOfCanon(disj(_,_,_),tipe("star.core*boolean")) :-!.
+typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
+typeOfCanon(theta(_,_,_,_,_,Tp),Tp) :-!.
+typeOfCanon(record(_,_,_,_,_,Tp),Tp) :-!.
+typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
+typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
+typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
+  map(Els,canon:typeOfCanon,Tps).
+
 
 thetaLoc(theta(Lc,_,_,_,_,_),Lc).
 thetaLoc(record(Lc,_,_,_,_,_),Lc).
@@ -79,26 +100,26 @@ showVersion(ver(V),O,Ox) :-
   appStr("#",O,O1),
   appStr(V,O1,Ox).
 
-showCanonTerm(v(_,Nm),O,Ox) :- appIden(Nm,O,Ox).
+showCanonTerm(v(_,Nm,_),O,Ox) :- appIden(Nm,O,Ox).
 showCanonTerm(void,O,Ox) :- appStr("void",O,Ox).
-showCanonTerm(intLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(floatLit(Ix),O,Ox) :- appInt(Ix,O,Ox).
-showCanonTerm(stringLit(Str),O,Ox) :-
+showCanonTerm(intLit(Ix,_),O,Ox) :- appInt(Ix,O,Ox).
+showCanonTerm(floatLit(Ix,_),O,Ox) :- appInt(Ix,O,Ox).
+showCanonTerm(stringLit(Str,_),O,Ox) :-
   appStr("""",O,O1),
   appStr(Str,O1,O2),
   appStr("""",O2,Ox).
-showCanonTerm(apply(_,Op,Args),O,Ox) :-
+showCanonTerm(apply(_,Op,Args,_),O,Ox) :-
   showCanonTerm(Op,O,O1),
   showCanonTerm(Args,O1,Ox).
-showCanonTerm(dot(_,Rc,Fld),O,Ox) :-
+showCanonTerm(dot(_,Rc,Fld,_),O,Ox) :-
   showCanonTerm(Rc,O,O1),
   appStr(".",O1,O2),
   appStr(Fld,O2,Ox).
-showCanonTerm(enm(_,Nm),O,Ox) :-
+showCanonTerm(enm(_,Nm,_),O,Ox) :-
   appStr("'",O,O1),
   appStr(Nm,O1,O2),
   appStr("'",O2,Ox).
-showCanonTerm(cns(_,Nm),O,Ox) :-
+showCanonTerm(cons(_,Nm,_),O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(theta(_,Path,Defs,Others,Types,_),O,Ox) :-
@@ -147,7 +168,7 @@ showCanonTerm(disj(_,Either,Or),O,Ox) :-
   appStr(" || ",O1,O2),
   showCanonTerm(Or,O2,O3),
   appStr(")",O3,Ox).
-showCanonTerm(cond(_,Test,Either,Or),O,Ox) :-
+showCanonTerm(cond(_,Test,Either,Or,_),O,Ox) :-
   appStr("(",O,O1),
   showCanonTerm(Test,O1,O2),
   appStr("?",O2,O3),
@@ -165,7 +186,7 @@ showCanonTerm(search(_,P,S,M),O,Ox) :-
   showCanonTerm(S,O2,O3),
   appStr(" using ",O3,O4),
   showCanonTerm(M,O4,Ox).
-showCanonTerm(abstraction(_,Bound,Guard,G),O,Ox) :-
+showCanonTerm(abstraction(_,Bound,Guard,G,_),O,Ox) :-
   appStr("{",O,O1),
   showCanonTerm(Bound,O1,O2),
   appStr("|",O2,O3),
@@ -349,7 +370,7 @@ showRule(Nm,equation(_,Args,Cond,Value),O,Ox) :-!,
   appStr(" => ",O5,O6),
   showCanonTerm(Value,O6,Ox).
 
-showGuard(enm(_,"true"),O,O) :- !.
+showGuard(enm(_,"true",_),O,O) :- !.
 showGuard(C,O,Ox) :-
   appStr(" where ",O,O1),
   showCanonTerm(C,O1,Ox).

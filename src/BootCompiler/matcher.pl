@@ -13,7 +13,7 @@ functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,NVrs,Reslt)) :-
   genVars(Ar,NVrs),
   makeTriples(Eqns,0,Tpls),
   genRaise(Lc,Error),
-  matchTriples(Lc,NVrs,Tpls,Error,Reslt).
+  matchTriples(Lc,NVrs,Tpls,Error,Reslt),!.
 
 genRaise(Lc,error(Lc,"no matches")).
 

@@ -1,4 +1,4 @@
-:- module(vartypes,[typeOfVar/7,isEnumVr/2,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
+:- module(vartypes,[typeOfVar/7,isEnumVr/3,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
 
 :- use_module(freshen).
 :- use_module(unify).
@@ -8,12 +8,12 @@
 
 typeOfVar(Lc,_,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   freshen(VTp,Env,_,VrTp),
-  call(MkTerm,Lc,Exp),
+  call(MkTerm,Lc,Tp,Exp),
   manageConstraints(VrTp,[],Lc,Exp,MTp,Env,Ev,Term),
   checkType(Lc,MTp,Tp,Env).
 
-isEnumVr(Lc,vrEntry(_,MkTerm,_,_)) :-
-  \+call(MkTerm,Lc,v(_,_)),!.
+isEnumVr(Lc,Tp,vrEntry(_,MkTerm,_,_)) :-
+  \+call(MkTerm,Lc,Tp,v(_,_,_)),!.
 
 manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Env,Ev,Exp) :- !,
   declareConstraint(implementsFace(TV,Fc),Env,E0),
@@ -41,9 +41,9 @@ declareEnum(Lc,Nm,Tp,Env,Ev) :-
 declareCns(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 
-mkMtd(Nm,Lc,mtd(Lc,Nm)).
-mkCns(Nm,Lc,cns(Lc,Nm)).
-mkEnum(Nm,Lc,enm(Lc,Nm)).
+mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
+mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
+mkEnum(Nm,Lc,Tp,enm(Lc,Nm,Tp)).
 
 gtType(Tp,Env,Type) :-
   freshen(Tp,Env,_,Type).

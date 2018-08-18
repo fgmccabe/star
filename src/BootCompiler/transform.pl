@@ -73,11 +73,11 @@ makeMdlEntry(Pkg,funDef(_,Nm,LclName,Tp,_,_),[(Nm,moduleFun(LclName,ClosureName,
   localName(Pkg,"^",Nm,ClosureName),
   progTypeArity(Tp,Ar).
 makeMdlEntry(_Pkg,varDef(_,Nm,LclName,_,_,_),[(Nm,moduleVar(LclName))|Mx],Mx,Clx,Clx).
-makeMdlEntry(Pkg,cnsDef(_,Nm,cns(_,_),Tp),[(Nm,moduleCons(LclName,AccessName,Ar))|Mx],Mx,[LclName|Clx],Clx) :-
+makeMdlEntry(Pkg,cnsDef(_,Nm,cons(_,_,_),Tp),[(Nm,moduleCons(LclName,AccessName,Ar))|Mx],Mx,[LclName|Clx],Clx) :-
   localName(Pkg,"#",Nm,LclName),
   localName(Pkg,"@",Nm,AccessName),
   progTypeArity(Tp,Ar).
-makeMdlEntry(Pkg,cnsDef(_,Nm,enm(_,_),_),[(Nm,moduleCons(LclName,AccessName,0))|Mx],Mx,[LclName|Clx],Clx) :-
+makeMdlEntry(Pkg,cnsDef(_,Nm,enm(_,_,_),_),[(Nm,moduleCons(LclName,AccessName,0))|Mx],Mx,[LclName|Clx],Clx) :-
   localName(Pkg,"#",Nm,LclName),
   localName(Pkg,"@",Nm,AccessName).
 makeMdlEntry(Pkg,typeDef(_,Nm,Tp,_),[(Nm,moduleType(Pkg,LclName,Tp))|Mx],Mx,Clx,Clx) :-
@@ -237,13 +237,13 @@ transformOthers(Pkg,Map,Opts,[show(Lc,G)|Others],I,Ix,Rules,Rx) :-
 
 transformAssertions(Pkg,Map,Opts,Lc,Asserts,LclPrg,
     [fnDef(Lc,LclPrg,funType(tupleType([]),BoolTp),[],Goal)|Ex],Exx) :-
-  rfold(Asserts,transform:collectAssertion,enm(Lc,"true"),G),
+  rfold(Asserts,transform:collectAssertion,enm(Lc,"true",type("star.core*boolean")),G),
   localName(Pkg,"@","assert",LclName),
   LclPrg = lbl(LclName,0),
   liftExp(G,Goal,[],_Q,Map,Opts,Ex,Exx),
   stdType("boolean",BoolTp,_).
 
-collectAssertion(assertion(Lc,G),enm(_,"true"),assertion(Lc,G)) :-!.
+collectAssertion(assertion(Lc,G),enm(_,"true",type("star.core*boolean")),assertion(Lc,G)) :-!.
 collectAssertion(assertion(Lc,G),O,conj(Lc,O,assertion(Lc,G))).
 
 transformShows(Pkg,Map,Opts,Lc,Shows,LclPrg,
@@ -275,9 +275,9 @@ importInits(Lc,[import(Viz,pkg(Pkg,_),_,_,_,_)|II],IG) :-
 importInits(Lc,[import(transitive,_,_,_,_,_)|II],IG) :-
   importInits(Lc,II,IG).
 
-transformCnsDef(Map,Opts,Lc,Nm,enm(_,_),Tp,Ex,Exx) :-
+transformCnsDef(Map,Opts,Lc,Nm,enm(_,_,_),Tp,Ex,Exx) :-
   transformEnum(Map,Opts,Lc,Nm,Tp,Ex,Exx).
-transformCnsDef(Map,Opts,Lc,Nm,cns(_,_),Tp,Ex,Exx) :-
+transformCnsDef(Map,Opts,Lc,Nm,cons(_,_,_),Tp,Ex,Exx) :-
   transformCns(Map,Opts,Lc,Nm,Tp,Ex,Exx).
 
 transformEnum(Map,Opts,Lc,Nm,Tp,Dfs,Dx) :-
@@ -333,33 +333,34 @@ liftPtns([P|More],[A|Args],Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,A,Q,Q0,Map,Opts,Ex,Ex0),
   liftPtns(More,Args,Q0,Qx,Map,Opts,Ex0,Exx).
 
-liftPtn(v(_,"this"),ThVr,Q,Qx,Map,_,Ex,Ex) :-
+liftPtn(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
   thisVar(Map,ThVr),!,
   merge([ThVr],Q,Qx).
-liftPtn(v(Lc,Nm),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
+liftPtn(v(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
-liftPtn(enm(Lc,Nm),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
+liftPtn(enm(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
-liftPtn(intLit(Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftPtn(floatLit(Ix),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftPtn(stringLit(Sx),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
+liftPtn(intLit(Ix,_),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftPtn(floatLit(Ix,_),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftPtn(stringLit(Sx,_),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(tple(_,Ptns),PTpl,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(Ptns,Ps,Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(Ps,PTpl).
 liftPtn(apply(Lc,v(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(apply(Lc,cns(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,cons(_,Nm,_),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(apply(Lc,Op,tple(_,A)),whr(Lc,idnt(N),mtch(Lc,XArg,XTrm)),Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,Op,tple(_,A),Tp),whr(Lc,idnt(N),mtch(Lc,XArg,XTrm)),Q,Qx,Map,Opts,Ex,Exx) :-
   genstr("_X",N),
-  liftExp(apply(Lc,Op,tple(Lc,[v(Lc,N)])),XTrm,Q,Q0,Map,Opts,Ex,Ex0),
+  typeOfCanon(A,ATp),
+  liftExp(apply(Lc,Op,tple(Lc,[v(Lc,N,ATp)]),Tp),XTrm,Q,Q0,Map,Opts,Ex,Ex0),
   liftPtns(A,Args,Q0,Q1,Map,Opts,Ex0,Exx),
   merge([idnt(N)],Q1,Qx),
   mkTpl(Args,TA),
   XArg=ctpl(lbl("star.core#some",1),[TA]).
-liftPtn(where(_,P,enm(_,"true")),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(where(_,P,enm(_,"true",type("star.core*boolean"))),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,Ptn,Q,Qx,Map,Opts,Ex,Exx).
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
@@ -420,28 +421,28 @@ liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(P,A,Q,Q0,Map,Opts,Ex,Ex0),
   liftExps(More,Args,Extra,Q0,Qx,Map,Opts,Ex0,Exx).
 
-liftExp(v(_,"this"),ThVr,Q,Qx,Map,_,Ex,Ex) :-
+liftExp(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
   thisVar(Map,ThVr),!,
   merge([ThVr],Q,Qx).
-liftExp(v(Lc,Nm),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
+liftExp(v(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :-
   trVarExp(Lc,Nm,Vr,Q,Qx,Map,Opts).
-liftExp(enm(Lc,Nm),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
+liftExp(enm(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Vr,Q,Qx,Map,Opts).
-liftExp(cns(Lc,Nm),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
+liftExp(cons(Lc,Nm,_),Vr,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Vr,Q,Qx,Map,Opts).
-liftExp(intLit(Ix),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(floatLit(Ix),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
-liftExp(stringLit(Ix),strg(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(intLit(Ix,_),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(floatLit(Ix,_),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
+liftExp(stringLit(Ix,_),strg(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,TA,[],Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(TA,TApl).
-liftExp(apply(Lc,Op,tple(_,A)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(dot(Lc,Rec,Fld),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(dot(Lc,Rec,Fld,_),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
-liftExp(where(_,E,enm(_,"true")),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
+liftExp(where(_,E,enm(_,"true",_)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
@@ -454,7 +455,7 @@ liftExp(disj(Lc,L,R),dsj(Lc,LL ,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
 liftExp(neg(Lc,R),ng(Lc,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(R,LR,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(cond(Lc,T,L,R),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
@@ -471,8 +472,8 @@ liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(Lc,Rle,Tp,Rslt,Q,Map,Opts,Ex,Exx).
-liftExp(abstraction(Lc,Bnd,Cond,Gen),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftAbstraction(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
   reportMsg("internal: cannot transform %s as expression",[XX]).
 
@@ -499,16 +500,16 @@ implementVarExp(localFun(_Fn,_,Closure,_,ThVr),_,_,ctpl(lbl(Closure,1),[ThVr]),Q
 implementVarExp(_Other,Lc,Nm,idnt(Nm),Q,Q) :-
   reportError("cannot handle %s in expression",[Nm],Lc).
 
-trExpCallOp(Lc,v(_,Nm),Args,ecll(Lc,Nm,Args),Qx,Qx,_,_,Ex,Ex) :-
+trExpCallOp(Lc,v(_,Nm,_),Args,ecll(Lc,Nm,Args),Qx,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!.
-trExpCallOp(Lc,v(_,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+trExpCallOp(Lc,v(_,Nm,_),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   lookupFunName(Map,Nm,Reslt),
   Reslt\=notInMap,!,
   implementFunCall(Lc,Reslt,Nm,Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,enm(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  trExpCallOp(Lc,v(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
-trExpCallOp(Lc,cns(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  trExpCallOp(Lc,v(Lc0,Nm),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
+trExpCallOp(Lc,enm(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
+trExpCallOp(Lc,cons(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  trExpCallOp(Lc,v(Lc0,Nm,Tp),Args,Exp,Q,Qx,Map,Opts,Ex,Exx).
 trExpCallOp(Lc,Op,A,ocall(Lc,Rc,A),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Op,Rc,Q,Qx,Map,Opts,Ex,Exx).
 
@@ -550,9 +551,9 @@ lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,
   collectLabelVars(ThFr,ThVr,[],Lx),
   makeLblTerm(LclName,ThFr,LblTerm).
 
-liftAbstraction(Lc,Bnd,Cond,Gen,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
+liftAbstraction(Ab,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
-  genAbstraction(abstraction(Lc,Bnd,Cond,Gen),Path,AbExp),
+  genAbstraction(Ab,Path,AbExp),
   dispCanonTerm(AbExp),
   liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
@@ -568,7 +569,7 @@ liftGoal(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftGoal(disj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(R,LR,Q0,Qx,Map,Opts,Ex0,Exx).
-liftGoal(cond(Lc,T,L,R),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftGoal(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftGoal(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).

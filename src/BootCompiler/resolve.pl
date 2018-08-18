@@ -51,7 +51,7 @@ overloadRule(equation(Lc,Args,Cond,Exp),Dict,St,Stx,equation(Lc,RArgs,RCond,RExp
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-    lambda(Lc,equation(Lc,tple(Lc,CVars),enm(Lc,"true"),RExp),OTp))) :-
+    lambda(Lc,equation(Lc,tple(Lc,CVars),enm(Lc,"true",type("star.core*boolean")),RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -66,7 +66,8 @@ makeContractFunType(T,Cx,funType(tupleType(Cx),T)).
 defineCVars(_,[],Dict,[],Dict).
 defineCVars(Lc,[Con|Cx],Dict,[NV|CVars],FDict) :-
   implementationName(Con,ImplNm),
-  genVar(ImplNm,Lc,NV),
+  contractType(Con,Tp),
+  genVar(ImplNm,Lc,Tp,NV),
   defineCVars(Lc,Cx,[(ImplNm,NV)|Dict],CVars,FDict).
 defineCVars(Lc,[implementsFace(_,_)|Cx],Dict,CVars,FDict) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict).
@@ -92,13 +93,13 @@ markResolved(inactive,resolved).
 markResolved(St,St).
 
 overloadTerm(void,_,St,St,void).
-overloadTerm(v(Lc,Nm),_,St,St,v(Lc,Nm)).
-overloadTerm(intLit(Ix),_,St,St,intLit(Ix)).
-overloadTerm(floatLit(Ix),_,St,St,floatLit(Ix)).
-overloadTerm(stringLit(Sx),_,St,St,stringLit(Sx)).
-overloadTerm(dot(Lc,Rc,Fld),Dict,St,Stx,dot(Lc,RRc,Fld)) :- overloadTerm(Rc,Dict,St,Stx,RRc).
-overloadTerm(enm(Lc,Rf),_,St,St,enm(Lc,Rf)).
-overloadTerm(cns(Lc,Rf),_,St,St,cns(Lc,Rf)).
+overloadTerm(v(Lc,Nm,Tp),_,St,St,v(Lc,Nm,Tp)).
+overloadTerm(intLit(Ix,Tp),_,St,St,intLit(Ix,Tp)).
+overloadTerm(floatLit(Ix,Tp),_,St,St,floatLit(Ix,Tp)).
+overloadTerm(stringLit(Sx,Tp),_,St,St,stringLit(Sx,Tp)).
+overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Stx,dot(Lc,RRc,Fld,Tp)) :- overloadTerm(Rc,Dict,St,Stx,RRc).
+overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
+overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
 overloadTerm(theta(Lc,Path,Defs,Others,Types,Sig),Dict,St,St,theta(Lc,Path,RDefs,ROthers,Types,Sig)) :-
@@ -119,7 +120,7 @@ overloadTerm(conj(Lc,L,R),Dict,St,Stx,conj(Lc,RL,RR)) :-
 overloadTerm(disj(Lc,L,R),Dict,St,Stx,disj(Lc,RL,RR)) :-
   overloadTerm(L,Dict,St,St0,RL),
   overloadTerm(R,Dict,St0,Stx,RR).
-overloadTerm(cond(Lc,T,L,R),Dict,St,Stx,cond(Lc,RT,RL,RR)) :-
+overloadTerm(cond(Lc,T,L,R,Tp),Dict,St,Stx,cond(Lc,RT,RL,RR,Tp)) :-
   overloadTerm(T,Dict,St,St0,RT),
   overloadTerm(L,Dict,St0,St1,RL),
   overloadTerm(R,Dict,St1,Stx,RR).
@@ -132,11 +133,11 @@ overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
   overloadTerm(P,Dict,St,St0,RP),
   overloadTerm(S,Dict,St0,St1,RS),
   overloadTerm(I,Dict,St1,Stx,RI).
-overloadTerm(abstraction(Lc,B,C,G),Dict,St,Stx,abstraction(Lc,RB,RC,RG)) :-
+overloadTerm(abstraction(Lc,B,C,G,Tp),Dict,St,Stx,abstraction(Lc,RB,RC,RG,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
   overloadTerm(C,Dict,St0,St1,RC),
   overloadTerm(G,Dict,St1,Stx,RG).
-overloadTerm(apply(ALc,over(Lc,T,IsFn,Cx),Args),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs))) :-
+overloadTerm(apply(ALc,over(Lc,T,IsFn,Cx),Args,Tp),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
   (St0\=active(_,_) ->
     markResolved(St0,St1),
@@ -145,7 +146,7 @@ overloadTerm(apply(ALc,over(Lc,T,IsFn,Cx),Args),Dict,St,Stx,apply(ALc,OverOp,tpl
     Stx=St0,
     OverOp = over(Lc,T,IsFn,Cx),
     NArgs = Args).
-overloadTerm(apply(Lc,Op,Args),Dict,St,Stx,apply(Lc,ROp,RArgs)) :-
+overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
@@ -159,28 +160,26 @@ overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
       genMsg("cannot find implementation for contracts %s",[Cx],Msg),
       markActive(St,Lc,Msg,Stx),
       Over = over(Lc,T,IsFn,Cx)).
-overloadTerm(mtd(Lc,Nm),_,St,Stx,mtd(Lc,Nm)) :-
+overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Rle,Tp),Dict,St,Stx,lambda(Lc,ORle,Tp)) :-
   overloadRule(Rle,Dict,St,Stx,ORle).
 
 overApply(_,OverOp,[],_,OverOp) :-!.
-overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args))) :- \+isProgramType(Tp),!.
+overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
 overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
-curryOver(Lc,OverOp,Cx,Tp,lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true"),apply(Lc,OverOp,tple(Lc,NArgs))),Tp)) :-
-  progTypeArity(Tp,Ar),
-  genVrs(Ar,Lc,Args),
+curryOver(Lc,OverOp,Cx,Tp,lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true",type("star.core*boolean")),apply(Lc,OverOp,tple(Lc,NArgs))),Tp)) :-
+  progArgTypes(Tp,ArTps),
+  genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs).
 
-genVrs(0,_,[]).
-genVrs(Ix,Lc,[v(Lc,Id)|Vrs]) :-
+genVrs([],_,[]).
+genVrs([Tp|ArTps],Lc,[v(Lc,Id,Tp)|Vrs]) :-
   genstr("_",Id),
-  Ix1 is Ix-1,
-  genVrs(Ix1,Lc,Vrs).
-
+  genVrs(ArTps,Lc,Vrs).
 
 overloadLst([],_,_,St,St,[]):-!.
 overloadLst([T|L],C,D,St,Stx,[RT|RL]) :-
@@ -192,8 +191,8 @@ overloadList([T|L],C,D,[RT|RL]) :-
   call(C,T,D,RT),
   overloadList(L,C,D,RL).
 
-overloadRef(_,mtd(Lc,Nm),[DT],RArgs,dot(Lc,DT,Nm),RArgs) :- !.
-overloadRef(_,v(Lc,Nm),DT,RArgs,v(Lc,Nm),Args) :- !, concat(DT,RArgs,Args).
+overloadRef(_,mtd(Lc,Nm,Tp),[DT],RArgs,dot(Lc,DT,Nm,Tp),RArgs) :- !.
+overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),Args) :- !, concat(DT,RArgs,Args).
 overloadRef(_,C,DT,RArgs,C,Args) :- concat(DT,RArgs,Args).
 
 resolveContracts(_,[],_,St,St,[]).
@@ -210,14 +209,15 @@ resolveContract(Lc,C,_,St,Stx,C) :-
   genMsg("no implementation known for %s",[C],Msg),
   markActive(St,Lc,Msg,Stx).
 
-resolve(v(Lc,Nm),_,_,_,_,St,St,v(Lc,Nm)) :-!.
+resolve(v(Lc,Nm,Tp),_,_,_,_,St,St,v(Lc,Nm,Tp)) :-!.
 resolve(I,C,ImpNm,Lc,Dict,St,Stx,Over) :-
   freshen(I,[],_,Con),
   moveConstraints(Con,Cx,contractExists(CT,_)),
   sameContract(CT,C,[]),
   resolveDependents(Cx,Lc,Dict,St,St0,Args,[]),
+  contractType(C,Tp),
   (St0\=active(_,_) ->
-    formOver(v(Lc,ImpNm),Args,Lc,Over),
+    formOver(v(Lc,ImpNm,Tp),Args,Lc,Tp,Over),
     markResolved(St0,Stx) ;
     Stx=St0, Over = I).
 resolve(T,C,_,Lc,_,St,Stx,T) :-
@@ -229,10 +229,10 @@ resolveDependents([C|L],Lc,Dict,St,Stx,[A|As],Args) :-
   resolveContract(Lc,C,Dict,St,St0,A),
   resolveDependents(L,Lc,Dict,St0,Stx,As,Args).
 
-formOver(V,[],_,V).
-formOver(V,Args,Lc,apply(Lc,V,tple(Lc,Args))).
+formOver(V,[],_,_,V).
+formOver(V,Args,Lc,Tp,apply(Lc,V,tple(Lc,Args),Tp)).
 
-genVar(Nm,Lc,v(Lc,NV)) :-
+genVar(Nm,Lc,Tp,v(Lc,NV,Tp)) :-
   genstr(Nm,NV).
 
 declareImplementations([],Dict,Dict).
@@ -274,8 +274,8 @@ overloadClassRule(CVars,labelRule(Lc,Nm,Hd,St),Dict,labelRule(Lc,Nm,OHd,OSt)) :-
   overloadOthers(St,Dict,OSt).
 
 resolveHead(Hd,[],Hd).
-resolveHead(enm(Lc,Nm),CVars,apply(Lc,v(Lc,Nm),CVars)).
-resolveHead(apply(Lc,v(ALc,Nm),Args),CVars,apply(Lc,v(ALc,Nm),OArgs)) :-
+resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
+resolveHead(apply(Lc,v(ALc,Nm,Tp),Args),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs)) :-
   addExtra(CVars,Args,OArgs).
 resolveHead(record(Lc,Lbl,Defs,[],[],Sig),CVars,record(Lc,Lbl,RDefs,[],[],Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
@@ -286,5 +286,5 @@ addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
   concat(Extra,Els,EEls).
 
 addExtraDefs([],Els,Els).
-addExtraDefs([v(Lc,Nm)|Ex],Els,REls) :-
-  addExtraDefs(Ex,[varDef(Lc,Nm,Nm,[],voidType,v(Lc,Nm))|Els],REls).
+addExtraDefs([v(Lc,Nm,Tp)|Ex],Els,REls) :-
+  addExtraDefs(Ex,[varDef(Lc,Nm,Nm,[],Tp,v(Lc,Nm,Tp))|Els],REls).
