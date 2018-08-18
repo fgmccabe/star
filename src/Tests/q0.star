@@ -16,4 +16,5 @@ test.q0{
   gp : list[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
+  show "\(gp)".
 }
