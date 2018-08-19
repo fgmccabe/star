@@ -77,10 +77,12 @@ Rule-based programs support a *case driven* approach to programming: a program i
 
 In addition, as we shall see later on, the partitioning of programs into cases like this is very helpful in supporting large-scale issues such as code annotations, versioning and life-cycle management.
 
-**Star** has various kinds of rules, including function definitions, predicate definitions, variable definitions and macro definitions. Furthermore, it is possible for new kinds of rules to be introduced -- via the extensibility mechanisms of **Star** (more on that in Chapter 7).
+**Star** has various kinds of rules, including function definitions, grammar definitions, variable definitions and macro definitions.
+
+>Furthermore, it is possible for new kinds of rules to be introduced -- via the extensibility mechanisms of **Star** (more on that in Chapter 7).
 
 ### Patterns
-Patterns are ubiquitous in **Star**: they form the basis of many rules: they are used to define equations, they are used to control action programs, they are used to implement macros.
+Patterns are ubiquitous in **Star**: they form the basis of many rules: including, most importantly, to define equations. In fact, *all* variables are introduced by means of patterns.
 
 A pattern can be viewed as a combination of a test --- does a value match a particular pattern --- and as a way ( *the* way in **Star**) of binding a variable to a value.
 
@@ -193,7 +195,7 @@ Person ::= noOne
 
 This statement tells us that there are two kinds of `Person`: a `someOne` who has a `name` and date of birth (`dob`) associated with them; and a distinguished individual we identify as `noOne`. The no-one individual *does not* have a name or date of birth.
 
-Notice how the type annotation statement we saw for declaring the type of fact is also used for defining the types of fields in the someOne record.
+>Notice how the type annotation statement we saw for declaring the type of `fact` is also used for defining the types of fields in the `someOne` record.
 
 We can *make* a Person value with a labeled record expression:
 
@@ -207,6 +209,9 @@ S = someOne{
 The equality symbol is used to introduce a new single-assignment variable. In this case the variable `S` is defined to be a `someOne` record.
 
 Recall that names do not always require an explicit type annotation. In this case we can infer that `S` is a `Person` (because `someOne` marks it). Furthermore, we do not need to explicitly give types to the `name` and `dob` fields because their type is constrained by the type declaration for `Person`.
+
+
+### Reference Type
 
 An important detail about the `someOne` record defined above is that the fields within it are not re-assignable. If we want to make a variable reassignable, or if we want to make a field of a record reassignable, we use a special `ref` type to denote that. For example, the type definition
 
@@ -424,11 +429,7 @@ Using `leftFold` means that we can often abstract away the machinery of loops an
 While concise, expressions involving much use of `leftFold` (and the analogous `rightFold`) can be difficult to follow. An even clearer way of adding up numbers is to use a *query expression*:
 
 ```
-fold X with (+) where X in L
-```
-or the even more succinct
-```
-total X where X in L
+{fold X with (+) | X in L}
 ```
 This query expression frees us from most of the commitments we endured before: it can add up the elements of any kind of collection --- not just `cons` lists --- and it can add up floating point numbers just as easily as integers. Finally, we have not had to say exactly how the numbers should be added up: the language system is free to use a parallel algorithm for the computation should it be more optimal.
 
