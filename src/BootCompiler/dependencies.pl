@@ -464,6 +464,10 @@ collectTermRefs(T,A,R0,Refs) :-
   isAbstraction(T,_,B,G),!,
   collectTermRefs(B,A,R0,R1),
   collectCondRefs(G,A,R1,Refs).
+collectTermRefs(T,A,R0,Refs) :-
+  isListAbstraction(T,_,B,G),!,
+  collectTermRefs(B,A,R0,R1),
+  collectCondRefs(G,A,R1,Refs).
 collectTermRefs(app(_,Op,Args),All,R,Refs) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Refs).

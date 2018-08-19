@@ -23,7 +23,7 @@ analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
 genAbstraction(abstraction(Lc,El,Cond,Gen,Tp),Path,Exp) :-
   IterTp = tpExp(tpFun("star.iterable*iterState",1),Tp),
   InitState = enm(Lc,"noneFound",IterTp),
-  genCondition(Cond,Path,InitState,cnc:genEl(El,Gen),abort(Lc),Seq),
+  genCondition(Cond,Path,cnc:genEl(Lc,El,Gen,IterTp),abort(Lc),InitState,Seq),
   typeOfCanon(El,ElTp),
   Exp = apply(Lc,v(Lc,"unwrapIter",funType(tupleType([ElTp,IterTp]),IterTp)),tple(Lc,[Seq]),Tp).
 
@@ -37,14 +37,14 @@ genAbstraction(abstraction(Lc,El,Cond,Gen,Tp),Path,Exp) :-
  *
  * where AddEl, InitState are parameters to the conversion
  */
-genCondition(search(Lc,Ptn,Src,Iterator),Path,Initial,Succ,_Fail,Exp) :-
+genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
   genstr("f",Fn),
   genNme(Lc,PtnTp,"_",Anon),
   genNme(Lc,StTp,"_st",St),
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
   packageVarName(ThPath,Fn,LclName),
-  call(Succ,Lc,St,StTp,AddToFront),
+  call(Succ,St,AddToFront),
   FF=funDef(Lc,Fn,LclName,FnTp,[],[
     equation(Lc,tple(Lc,[Ptn,St]),enm(Lc,"true",type("star.core*boolean")),AddToFront),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
@@ -55,16 +55,16 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Initial,Succ,_Fail,Exp) :-
   StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
   typeOfCanon(Ptn,PtnTp),
   FnTp = funType(tupleType([PtnTp,StTp]),StTp).
-genCondition(conj(_Lc,A,B),Path,Initial,Succ,Fail,Exp) :-
-  genCondition(A,Path,Initial,cnc:genConj(B,Path,Succ,Fail),Fail,Exp).
+genCondition(conj(_Lc,A,B),Path,Succ,Fail,Initial,Exp) :-
+  genCondition(A,Path,cnc:genCondition(B,Path,Succ,Fail),Fail,Initial,Exp).
+genCondition(disj(_,A,B),Path,Succ,Fail,Initial,Exp) :-
+  genCondition(A,Path,Succ,Fail,Initial,E1),
+  genCondition(B,Path,Succ,Fail,E1,Exp).
 
 genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
   genstr(Pr,Nm).
 
-genEl(El,Gen,Lc,St,StTp,apply(Lc,Gen,tple(Lc,[El,St]),StTp)).
-
-genConj(B,Path,Succ,Fail,_Lc,St,_,AddToFront) :-
-  genCondition(B,Path,St,Succ,Fail,AddToFront).
+genEl(Lc,El,Gen,StTp,St,apply(Lc,Gen,tple(Lc,[El,St]),StTp)).
 
 
 analyseExp(v(Lc,Nm,Tp),Dfx,Dfx,Rq,Rqx,Cand) :-

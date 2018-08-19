@@ -484,7 +484,8 @@ typeOfPtn(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
-  isSquareTuple(Term,Lc,Els), \+isListAbstraction(Term,_,_,_), !,
+  isSquareTuple(Term,Lc,Els),
+  \+isListAbstraction(Term,_,_,_), !,
   macroSquarePtn(Lc,Els,Ptn),
   typeOfPtn(Ptn,Tp,Env,Ev,Exp,Path).
 typeOfPtn(Trm,Tp,Env,Ev,Exp,Path) :-
@@ -557,7 +558,8 @@ typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   typeOfExp(Th,Tp,E0,E1,Then,Path),
   typeOfExp(El,Tp,E1,Ev,Else,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isSquareTuple(Term,Lc,Els), !,
+  isSquareTuple(Term,Lc,Els),
+  \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
@@ -630,6 +632,12 @@ typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isAbstraction(Term,Lc,B,G),!,
   checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
+typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
+  isListAbstraction(Term,Lc,B,G),!,
+  findType("list",Lc,Env,LTp),
+  newTypeVar("_El",ElTp),
+  checkType(Lc,tpExp(LTp,ElTp),Tp,Env),
+  checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path).
@@ -649,12 +657,13 @@ typeOfExp(Term,Tp,Env,Ex,conj(Lc,Lhs,Rhs),Path) :-
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
   typeOfExp(R,LogicalTp,E1,Ex,Rhs,Path).
-typeOfExp(Term,Tp,Env,Ex,disj(Lc,Lhs,Rhs),Path) :-
+typeOfExp(Term,Tp,Env,Ev,disj(Lc,Lhs,Rhs),Path) :-
   isDisjunct(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
   typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
-  typeOfExp(R,LogicalTp,E1,Ex,Rhs,Path).
+  typeOfExp(R,LogicalTp,Env,E2,Rhs,Path),
+  mergeDict(E1,E2,Env,Ev).
 typeOfExp(Term,Tp,Env,Ex,neg(Lc,Rhs),Path) :-
   isNegation(Term,Lc,R),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -921,3 +930,28 @@ isPublicType(Nm,Public) :-
 
 isPublicContract(conDef(Nm,_,_),Public) :-
   is_member(con(Nm),Public),!.
+
+mergeDict(D1,D2,Env,D3) :-
+  length(D1,L1),
+  length(D2,L1),!,
+  mergeScopes(D1,D2,Env,D3).
+
+mergeScopes([scope(Ts,Ns1,Cns,Impls,Cons)|O],
+    [scope(Ts,Ns2,Cns,Impls,Cons)|O],Env,
+    [scope(Ts,N3,Cns,Impls,Cons)|O]) :-
+  dict_pairs(Ns1,_,N1),
+  dict_pairs(Ns2,T,N2),
+  mergeVDefs(N1,N2,Env,Ns),
+  dict_pairs(N3,T,Ns).
+
+mergeVDefs([],_,_,[]).
+mergeVDefs(_,[],_,[]).
+mergeVDefs([Vr-T1|D1],D2,Env,[Vr-T1|D3]) :-
+  is_member(Vr-T2,D2),
+  sameDesc(T1,T2,Env),
+  mergeVDefs(D1,D2,Env,D3).
+mergeVDefs([_|D1],D2,Env,D3) :-
+  mergeVDefs(D1,D2,Env,D3).
+
+sameDesc(vrEntry(_,C1,Tp1,_),vrEntry(_,C1,Tp2,_),Env) :-
+  sameType(Tp1,Tp2,Env).
