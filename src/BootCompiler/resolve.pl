@@ -137,26 +137,19 @@ overloadTerm(abstraction(Lc,B,C,G,Tp),Dict,St,Stx,abstraction(Lc,RB,RC,RG,Tp)) :
   overloadTerm(B,Dict,St,St0,RB),
   overloadTerm(C,Dict,St0,St1,RC),
   overloadTerm(G,Dict,St1,Stx,RG).
-overloadTerm(apply(ALc,over(Lc,T,IsFn,Cx),Args,Tp),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
+overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
-  (St0\=active(_,_) ->
-    markResolved(St0,St1),
-    overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
-    overloadRef(Lc,T,DTerms,RArgs,OverOp,NArgs) ;
-    Stx=St0,
-    OverOp = over(Lc,T,IsFn,Cx),
-    NArgs = Args).
+  markResolved(St0,St1),
+  overloadTerm(Args,Dict,St1,Stx,tple(LcA,RArgs)),
+  overloadRef(Lc,T,DTerms,RArgs,OverOp,NArgs).
 overloadTerm(apply(Lc,Op,Args,Tp),Dict,St,Stx,apply(Lc,ROp,RArgs,Tp)) :-
   overloadTerm(Op,Dict,St,St0,ROp),
   overloadTerm(Args,Dict,St0,Stx,RArgs).
 overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
   ( resolveContracts(Lc,Cx,Dict,St,St0,DTerms) ->
-      (St0\=active(_,_) ->
-        overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
-        overApply(Lc,OverOp,NArgs,IsFn,Over),
-        markResolved(St0,Stx) ;
-      Stx=St0,
-      Over=over(Lc,T,IsFn,Cx));
+      overloadRef(Lc,T,DTerms,[],OverOp,NArgs),
+      overApply(Lc,OverOp,NArgs,IsFn,Over),
+      markResolved(St0,Stx);
       genMsg("cannot find implementation for contracts %s",[Cx],Msg),
       markActive(St,Lc,Msg,Stx),
       Over = over(Lc,T,IsFn,Cx)).

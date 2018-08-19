@@ -17,4 +17,8 @@ test.q0{
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
   show "\(gp)".
+
+  pp = [X|(X,"ab") in parent || (X,"de") in parent].
+
+  show "\(pp)".
 }
