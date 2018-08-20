@@ -1,9 +1,9 @@
 :- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
-    typeOfCanon/2,
+    typeOfCanon/2,splitPtn/4,locOfCanon/2,
     isCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,
-    thetaLoc/2,thetaDefs/2,thetaSig/2]).
+    thetaDefs/2,thetaSig/2]).
 
 :- use_module(misc).
 :- use_module(operators).
@@ -55,9 +55,23 @@ typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
 
-
-thetaLoc(theta(Lc,_,_,_,_,_),Lc).
-thetaLoc(record(Lc,_,_,_,_,_),Lc).
+locOfCanon(v(Lc,_,_),Lc) :- !.
+locOfCanon(intLit(Lc,_,_),Lc) :- !.
+locOfCanon(floatLit(Lc,_,_),Lc) :- !.
+locOfCanon(stringLit(Lc,_,_),Lc) :- !.
+locOfCanon(enm(Lc,_,_),Lc) :- !.
+locOfCanon(where(Lc,_,_),Lc) :- !.
+locOfCanon(abstraction(Lc,_,_,_,_),Lc) :- !.
+locOfCanon(search(Lc,_,_,_),Lc) :-!.
+locOfCanon(match(Lc,_,_),Lc) :-!.
+locOfCanon(conj(Lc,_,_),Lc) :-!.
+locOfCanon(disj(Lc,_,_),Lc) :-!.
+locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(theta(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(record(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(letExp(Lc,_,_),Lc) :- !.
+locOfCanon(apply(Lc,_,_,_),Lc) :-!.
+locOfCanon(tple(Lc,_),Lc) :-!.
 
 thetaDefs(theta(_,_,Defs,_,_,_),Defs).
 thetaDefs(record(_,_,Defs,_,_,_),Defs).
@@ -390,3 +404,6 @@ showStmt(show(_,Vl),O,Ox) :-
 
 ruleArity(equation(_,tple(_,A),_),Ar) :-
   length(A,Ar).
+
+splitPtn(where(_,Ptn,Cond),_,Ptn,Cond) :-!.
+splitPtn(Ptn,Lc,Ptn,enm(Lc,"true",tipe("core.star*boolean"))).

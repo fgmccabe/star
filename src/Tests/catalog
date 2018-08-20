@@ -20,6 +20,7 @@
 		"test.ll" : "ll.star",
 		"test.fact" : "fact.star",
 		"test.g" : "g.star",
+    "test.gp" : "gp.star",
 		"test.gr" : "grtest.star",
 		"test.j" : "j.star",
 		"test.let" : "letish.star",

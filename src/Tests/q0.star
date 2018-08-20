@@ -21,4 +21,14 @@ test.q0{
   pp = [X|(X,"ab") in parent || (X,"de") in parent].
 
   show "\(pp)".
+
+  -- A different example, filtering positive numbers
+  someInts : list[integer].
+  someInts = [0,2,-1,-10,4,6,7,-3].
+
+  pos : list[integer].
+  pos = { X | X in someInts && X>0 }.
+
+  show "\(pos)".
+
 }
