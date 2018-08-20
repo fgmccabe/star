@@ -1,4 +1,4 @@
-sample.gp{
+test.gp{
   import star.
   import star.iterable.
 
@@ -107,4 +107,18 @@ sample.gp{
     }in f1,noneFound).
 
   show disp(qC3("abc")).
+
+  -- A different example, filtering positive numbers
+  someInts : list[integer].
+  someInts = [0,2,-1,-10,4,6,7,-3].
+
+  pos = _iterate(someInts,let{
+    f1(I,St0) => let{
+      f2(St1) where I>=0 => mergeState(I,St1).
+      f2(St1) default => St1.
+    } in f2(St0).
+    f1(_,St0) default => St0.
+  } in f1,noneFound).
+
+  show disp(pos).
 }

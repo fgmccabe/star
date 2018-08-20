@@ -23,7 +23,7 @@ analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
 genAbstraction(abstraction(Lc,El,Cond,Gen,Tp),Path,Exp) :-
   IterTp = tpExp(tpFun("star.iterable*iterState",1),Tp),
   InitState = enm(Lc,"noneFound",IterTp),
-  genCondition(Cond,Path,cnc:genEl(Lc,El,Gen,IterTp),abort(Lc),InitState,Seq),
+  genCondition(Cond,Path,cnc:genEl(Lc,El,Gen,IterTp),cnc:passSt(Lc),InitState,Seq),
   typeOfCanon(El,ElTp),
   Exp = apply(Lc,v(Lc,"unwrapIter",funType(tupleType([ElTp,IterTp]),IterTp)),tple(Lc,[Seq]),Tp).
 
@@ -45,8 +45,9 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
   thetaName(Path,ThNm,ThPath),
   packageVarName(ThPath,Fn,LclName),
   call(Succ,St,AddToFront),
+  splitPtn(Ptn,Lc,Pttrn,PtnCond),
   FF=funDef(Lc,Fn,LclName,FnTp,[],[
-    equation(Lc,tple(Lc,[Ptn,St]),enm(Lc,"true",type("star.core*boolean")),AddToFront),
+    equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
   ]),
   Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
@@ -55,17 +56,63 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
   StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
   typeOfCanon(Ptn,PtnTp),
   FnTp = funType(tupleType([PtnTp,StTp]),StTp).
+/*
+ * Ptn .= Expr
+ * becomes
+ * let{
+ *  sF(Ptn,St) => Succ(St).
+ *  sF(_,St) default => Fail(St).
+ * } in sF(Expr,Initial)
+ */
+genCondition(match(Lc,Ptn,Exp),Path,Succ,Fail,Initial,Exp) :-
+  splitPtn(Ptn,Lc,Pttrn,PtnCond),
+  genstr("sf",Fn),
+  genNme(Lc,PtnTp,"_",Anon),
+  genNme(Lc,StTp,"_st",St),
+  genstr("Γ",ThNm),
+  thetaName(Path,ThNm,ThPath),
+  packageVarName(ThPath,Fn,LclName),
+  call(Succ,St,AddToSucc),
+  call(Fail,St,AddToFail),
+  splitPtn(Ptn,Lc,Pttrn,PtnCond),
+  FF=funDef(Lc,Fn,LclName,FnTp,[],[
+    equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToSucc),
+    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),AddToFail)
+  ]),
+  Exp = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Exp,Initial]),StTp)),
+  typeOfCanon(Ptn,PtnTp),
+  FnTp = funType(tupleType([PtnTp,StTp]),StTp).
+
 genCondition(conj(_Lc,A,B),Path,Succ,Fail,Initial,Exp) :-
   genCondition(A,Path,cnc:genCondition(B,Path,Succ,Fail),Fail,Initial,Exp).
 genCondition(disj(_,A,B),Path,Succ,Fail,Initial,Exp) :-
   genCondition(A,Path,Succ,Fail,Initial,E1),
   genCondition(B,Path,Succ,Fail,E1,Exp).
+genCondition(neg(_,A),Path,Succ,Fail,Initial,Exp) :-
+  genCondition(A,Path,Fail,Succ,Initial,Exp).
+% Other form of condition is treated similarly to a match
+genCondition(Other,Path,Succ,Fail,Initial,Exp) :-
+  genstr("sf",Fn),
+  locOfCanon(Other,Lc),
+  genNme(Lc,StTp,"_st",St),
+  genstr("Γ",ThNm),
+  thetaName(Path,ThNm,ThPath),
+  packageVarName(ThPath,Fn,LclName),
+  call(Succ,St,AddToSucc),
+  call(Fail,St,AddToFail),
+  FF=funDef(Lc,Fn,LclName,FnTp,[],[
+    equation(Lc,tple(Lc,[enm(Lc,"true",type("star.core*boolean")),St]),enm(Lc,"true",type("star.core*boolean")),AddToSucc),
+    equation(Lc,tple(Lc,[enm(Lc,"false",type("star.core*boolean")),St]),enm(Lc,"true",type("star.core*boolean")),AddToFail)
+  ]),
+  Exp = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Other,Initial]),StTp)),
+  FnTp = funType(tupleType([type("star.core*boolean"),StTp]),StTp).
 
 genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
   genstr(Pr,Nm).
 
 genEl(Lc,El,Gen,StTp,St,apply(Lc,Gen,tple(Lc,[El,St]),StTp)).
 
+passSt(_,St,St).
 
 analyseExp(v(Lc,Nm,Tp),Dfx,Dfx,Rq,Rqx,Cand) :-
   is_member(v(_,Nm,_),Cand) -> addVar(v(Lc,Nm,Tp),Rq,Rqx);Rq=Rqx.
@@ -149,8 +196,3 @@ analyseRules(Rls,Df,Dfx,Rq,Rqx,Cand) :-
 
 addVar(v(_,Nm,_),D,D) :- is_member(v(_,Nm,_),D),!.
 addVar(V,D,[V|D]).
-
-
-
-
-% transCond(given(Lc1,apply(Lc,Op,Args),)

@@ -589,7 +589,7 @@ liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
 liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThLbl,LblTerm,ThMap,EnRls,Ex,Ex0),
-  thetaLoc(Theta,Lc),
+  locOfCanon(Theta,Lc),
   thetaDefs(Theta,Defs),
   thetaSig(Theta,Sig),
   transformThetaDefs(ThMap,Opts,Defs,enum("star.core#true"),_I,Ex0,Exx),
