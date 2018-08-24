@@ -123,7 +123,7 @@ star.comp.escapes{
   escapeType("_flushall") => tpExp(tpExp(tpFun("->",2),tupleType([])),tupleType([])).
   escapeType("_setfileencoding") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
   escapeType("_get_file") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*string")).
-  escapeType("_put_file") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tupleType([])).
+  escapeType("_put_file") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tupleType([])).
   escapeType("_show") => tpExp(tpExp(tpFun("->",2),tupleType([tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer")]),tipe("star.core*string")])),tupleType([])).
   escapeType("_install_pkg") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))).
   escapeType("_pkg_is_present") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).

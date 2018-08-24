@@ -120,7 +120,7 @@ escapeType("_flush",funType(tupleType([type("star.io*fileHandle")]),tpExp(tpFun(
 escapeType("_flushall",funType(tupleType([]),tupleType([]))).
 escapeType("_setfileencoding",funType(tupleType([type("star.io*fileHandle"),type("star.core*integer")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_get_file",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
-escapeType("_put_file",funType(tupleType([type("star.core*string")]),tupleType([]))).
+escapeType("_put_file",funType(tupleType([type("star.core*string"),type("star.core*string")]),tupleType([]))).
 escapeType("_show",funType(tupleType([tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string")]),tupleType([]))).
 escapeType("_install_pkg",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*list",1),tupleType([type("star.core*string"),type("star.core*string")])))).
 escapeType("_pkg_is_present",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).

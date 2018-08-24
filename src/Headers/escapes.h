@@ -161,7 +161,7 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_flushall,True,False,"F()()","flush all files")
   escape(_setfileencoding,True,False,"F("fileType"i)"sysRet, "set file encoding on file")
   escape(_get_file,True,False,"F(S)S","file into a string")
-  escape(_put_file,True,False,"F(S)()","write string into file")
+  escape(_put_file,True,False,"F(SS)()","write string into file")
   escape(_show,True,False,"F("locType"S)()","show something on console")
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")
