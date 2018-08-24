@@ -1,5 +1,8 @@
 star.repo.file{
   import star.
+  import star.json.
+  import star.parse.
+  import star.pkg.
   import star.repo.
   import star.repo.manifest.
   import star.uri.
@@ -9,56 +12,50 @@ star.repo.file{
 
   public openRepository:(uri) => fileRepo.
   openRepository(Root) where
-    RepoUri .= resolveUri(Root,parseUri("manifest")) &&
-    resourcePresent(RepoUri) => repo(Root,readManifest(RepoUri)).
+    ManUri ^= parseUri("manifest") &&
+    Man ^= readManifest(resolveUri(Root,ManUri)) => repo(Root,Man).
   openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[fileRepo] => {
-    packagePresent(repo(Root,Man),Pkg,Kind) :-
-      locateInManifest(Man,Pkg,"source",S),
-      locateInManifest(Man,Pkg,"code",U),
-      CodeFile = resolveUri(Root,parseUri(U)),
-      SrcFile = resolveUri(Root,parseUri(S)),
-      resourcePresent(CodeFile),
-      (resourcePresent(SrcFile) ?
-          newerFile(getUriPath(CodeFile),getUriPath(SrcFile)) | true).
-
-    loadFromRepo(repo(Root,Man),Pkg,Kind,getResource(resolveUri(Root,parseUri(U)))) :-
-      locateInManifest(Man,Pkg,Kind,U).
+    hasResource(repo(Root,Man),Pkg,Kind) => locateInManifest(Man,Pkg,Kind).
   }
 
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
-  addToRepo(repo(Root,Man),Pkg,Kind,Text) => repo(Root,NM) :-
-    extensionMapping(Kind,Ext),
-    Fn = Pkg+(hash(Pkg)::string)+Ext,
-    putResource(resolveUri(Root,parseUri(Fn)),Text),
-    NM = addToManifest(Man,Pkg,Kind,Fn),
-    RepoUri = resolveUri(Root,parseUri("manifest")),
-    flushManifest(RepoUri,NM).
+  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) where
+      Ext .= extensionMapping(Kind) &&
+      Fn .= Pk++(hash(Pk)::string)++Ext &&
+      FUri ^= parseUri(Fn) &&
+      () .= putResource(resolveUri(Root,FUri),Text) &&
+      NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn)&&
+      MU ^= parseUri("manifest") &&
+      RepoUri .= resolveUri(Root,MU) &&
+      () .= flushManifest(RepoUri,NM) => repo(Root,NM).
 
-  public locateCode:(fileRepo,pkg,string,string){}.
-  locateCode(repo(Root,Man),Pkg,U,getResource(resolveUri(Root,parseUri(U)))) :-
-    locateInManifest(Man,Pkg,"code",U).
+  public loadFromRepo:(fileRepo,pkg,string) => option[string].
+  loadFromRepo(repo(Root,Man),Pkg,Kind) where
+    U ^= locateInManifest(Man,Pkg,Kind) &&
+    Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
 
-  public locateProlog:(fileRepo,pkg,string,string){}.
-  locateProlog(repo(Root,Man),Pkg,U,getResource(resolveUri(Root,parseUri(U)))) :-
-    locateInManifest(Man,Pkg,"prolog",U).
+  public locateCode:(fileRepo,pkg,string) => option[string].
+  locateCode(repo(Root,Man),Pkg,U) where
+    U ^= locateInManifest(Man,Pkg,"code") &&
+    Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
 
-  public packageCodeOk:(fileRepo,pkg){}.
-  packageCodeOk(Repo,Pkg) :- packageOk(Repo,Pkg,"code").
+  public packageCodeOk:(fileRepo,pkg) => boolean.
+  packageCodeOk(Repo,Pkg) => packageOk(Repo,Pkg,"code").
 
-  public packagePrologOk:(fileRepo,pkg){}.
-  packagePrologOk(Repo,Pkg) :- packageOk(Repo,Pkg,"prolog").
-
-  packageOk:(fileRepo,pkg,string){}.
-  packageOk(repo(Root,Man),Pkg,Kind) :-
-    locateInManifest(Man,Pkg,Kind,U),
-    locateInManifest(Man,Pkg,"source",S),
-    CodeFile = resolveUri(Root,parseUri(U)),
-    SrcFile = resolveUri(Root,parseUri(S)),
-    resourcePresent(CodeFile),
-    (resourcePresent(SrcFile) ?
-        newerFile(getUriPath(CodeFile),getUriPath(SrcFile)) | true).
+  packageOk:(fileRepo,pkg,string) => boolean.
+  packageOk(repo(Root,Man),Pkg,Kind) where
+    U ^= locateInManifest(Man,Pkg,Kind) &&
+    S ^= locateInManifest(Man,Pkg,"source") &&
+    CU ^= parseUri(U) &&
+    CodeFile .= resolveUri(Root,CU) &&
+    SU ^= parseUri(S) &&
+    SrcFile .= resolveUri(Root,SU) &&
+    resourcePresent(CodeFile) &&
+    resourcePresent(SrcFile) =>
+        newerFile(CodeFile,SrcFile).
+  packageOk(_,_,_) default => false.
 
   public addPackage:(fileRepo,pkg,string) => fileRepo.
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
@@ -66,20 +63,19 @@ star.repo.file{
   public addSource:(fileRepo,pkg,string) => fileRepo.
   addSource(repo(Root,Man),Pkg,Nm) => repo(Root,addToManifest(Man,Pkg,"source",Nm)).
 
-  packageHash:(string,version) => integer.
-  packageHash(Pkg,defltVersion) => hash(Pkg).
-  packageHash(Pkg,vers(V)) => ((37*hash(Pkg))+hash(V)).
+  extensionMapping:(string) => string.
+  extensionMapping("source") => ".star".
+  extensionMapping("term") => ".term".
+  extensionMapping("code") => ".cafe".
 
-  extensionMapping:(string,string){}.
-  extensionMapping("source",".lo").
-  extensionMapping("prolog",".pl").
-  extensionMapping("term",".term").
-  extensionMapping("code","").
+  public implementation display[fileRepo] => {.
+    disp(repo(Root,Man)) => ssSeq([ss("file repo rooted at "),disp(Root),ss("\nmanifest:"),disp(Man)]).
+  .}
 
-  public implementation display[fileRepo] => {
-    disp(F) => dispRepo(F).
-  }
+  flushManifest(Url,Man) => putResource(Url,(Man::json)::string).
 
-  dispRepo:(fileRepo) => ss.
-  dispRepo(repo(Root,Man)) => ssSeq([ss("file repo rooted at "),disp(Root),ss("\nmanifest:"),disp(Man)]).
+  readManifest(Url) where
+      Txt ^= getResource(Url) &&
+      [(J,[])].=parse(pJson,Txt::list[integer]) => some(J::manifest).
+  readManifest(_) default => none.
 }
