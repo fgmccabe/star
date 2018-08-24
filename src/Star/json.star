@@ -55,10 +55,10 @@ star.json{
   equalJson(jSeq(L1),jSeq(L2)) => L1==L2.
   equalJson(_,_) => false.
 
-  public pJson:parser[integer,json].
+  public pJson:parser[list[integer],json].
   pJson --> spaces, jP.
 
-  jP:parser[integer,json].
+  jP:parser[list[integer],json].
   jP --> "true" ^^ jTrue ||
          "false" ^^ jFalse ||
          "null" ^^ jNull ||
@@ -67,21 +67,21 @@ star.json{
          pSeq ||
          pColl.
 
-  string:parser[integer,string].
+  string:parser[list[integer],string].
   string --> [0c"], T<-strchr* , [0c"] ^^ T::string.
 
-  strchr:parser[integer,integer].
+  strchr:parser[list[integer],integer].
   strchr --> ([0c\\], _item | [Ch where Ch=!=0c"]).
 
-  pSeq:parser[integer,json].
+  pSeq:parser[list[integer],json].
   pSeq --> [0c[], S<- sepby(pJson,skip(_str(","))), [0c]] ^^ jSeq(S).
 
-  pEntry:parser[integer,(string,json)].
+  pEntry:parser[list[integer],(string,json)].
   pEntry --> spaces, K<-string, spaces, ":", spaces, V<-jP ^^ (K,V).
 
-  pColl:parser[integer,json].
+  pColl:parser[list[integer],json].
   pColl --> "{", C<-sepby(pEntry,pComma), spaces, "}" ^^jColl(C::map[string,json]).
 
-  pComma:parser[integer,()].
+  pComma:parser[list[integer],()].
   pComma --> spaces, "," ^^ ().
 }

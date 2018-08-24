@@ -23,51 +23,51 @@ star.uri{
   first([])=>none.
   first([(E,_),.._])=>some(E).
 
-  public uriParse:parser[integer,uri].
+  public uriParse:parser[list[integer],uri].
   uriParse = absoluteUri +++ relativeUri.
 
-  absoluteUri:parser[integer,uri].
+  absoluteUri:parser[list[integer],uri].
   absoluteUri = scheme >>= (Scheme) =>
     hierPart >>= (Hier) =>
     query >>= (Query) => return absUri(Scheme,Hier,Query).
 
-  scheme:parser[integer,string].
+  scheme:parser[list[integer],string].
   scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(0c:) >>= (_) => return ([A,..Rest]::string).
 
-  hierPart:parser[integer,rsrcName].
+  hierPart:parser[list[integer],rsrcName].
   hierPart = netPath +++ absoluteRsrc.
 
-  netPath:parser[integer,rsrcName].
+  netPath:parser[list[integer],rsrcName].
   netPath = _str("//") >>= (_) =>
             authority >>= (A) =>
             (absolutePath +++ relativePath) >>= (P) => return netRsrc(A,P).
 
-  authority:parser[integer,authority].
+  authority:parser[list[integer],authority].
   authority = (userInfo >>= (U) => _tk(0c@) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
     (hostNamePort >>= (H) => return server(none,H)).
 
-  userInfo:parser[integer,userInfo].
+  userInfo:parser[list[integer],userInfo].
   userInfo = _star(userStar) >>= (U) => return user(U::string).
 
-  relativeUri:parser[integer,uri].
+  relativeUri:parser[list[integer],uri].
   relativeUri = (netPath+++absoluteRsrc+++relativeRsrc) >>= (P) => query >>= (Q)=>return relUri(P,Q).
 
-  absoluteRsrc:parser[integer,rsrcName].
+  absoluteRsrc:parser[list[integer],rsrcName].
   absoluteRsrc = absolutePath >>= (P)=> return localRsrc(P).
 
-  absolutePath:parser[integer,resourcePath].
+  absolutePath:parser[list[integer],resourcePath].
   absolutePath = _tk(0c/) >>= (_) => sepby(segment,_tk(0c/)) >>= (S) => return absPath(S).
 
-  relativeRsrc:parser[integer,rsrcName].
+  relativeRsrc:parser[list[integer],rsrcName].
   relativeRsrc = relativePath >>= (P) => return localRsrc(P).
 
-  relativePath:parser[integer,resourcePath].
+  relativePath:parser[list[integer],resourcePath].
   relativePath = sepby(segment,_tk(0c/)) >>= (S) => return relPath(S).
 
-  segment:parser[integer,string].
+  segment:parser[list[integer],string].
   segment=_star(segChr) >>= (Chrs) => return (Chrs::string).
 
-  segChr:parser[integer,integer].
+  segChr:parser[list[integer],integer].
   segChr = _sat(isSegChr).
 
   isSegChr:(integer)=>boolean.
@@ -82,10 +82,10 @@ star.uri{
   isSegChr(0c;) => true. -- This is a hack to merge parameters with the segment
   isSegChr(Ch) => isUnreserved(Ch).
 
-  query:parser[integer,query].
+  query:parser[list[integer],query].
   query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ return noQ.
 
-  userStar:parser[integer,integer].
+  userStar:parser[list[integer],integer].
   userStar = _sat(userCh).
 
   userCh:(integer) => boolean.
@@ -98,26 +98,26 @@ star.uri{
   userCh(0c+) => true.
   userCh(Ch) => isUnreserved(Ch).
 
-  hostNamePort:parser[integer,host].
+  hostNamePort:parser[list[integer],host].
   hostNamePort = hostName >>= (H) =>
-    ((tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ return host(H)).
+    ((_tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ return host(H)).
 
-  hostName:parser[integer,string].
+  hostName:parser[list[integer],string].
   hostName = _star(alphaDash) >>= (H)=> return (H::string).
 
-  alphaStar:parser[integer,integer].
+  alphaStar:parser[list[integer],integer].
   alphaStar = _sat(isAlphaStar).
 
   isAlphaStar:(integer)=>boolean.
   isAlphaStar(Ch) => (isAlphaNum(Ch) || isPlus(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  alphaDash:parser[integer,integer].
+  alphaDash:parser[list[integer],integer].
   alphaDash = _sat(isAlphaDash).
 
   isAlphaDash:(integer)=>boolean.
   isAlphaDash(Ch) => (isAlphaNum(Ch) || isMinus(Ch) || isDot(Ch)).
 
-  port:parser[integer,string].
+  port:parser[list[integer],string].
   port = _plus(_sat(isDigit)) >>= (P)=>return (P::string).
 
   isMinus:(integer)=>boolean.
