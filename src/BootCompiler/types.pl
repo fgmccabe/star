@@ -3,7 +3,7 @@
       progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
       isFunctionType/1,isFunctionType/2,isCnsType/2,
       isProgramType/1,
-      dispType/1,showType/3,showConstraint/3,contractType/2,contractTypes/2,
+      dispType/1,showType/4,showConstraint/3,contractType/2,contractTypes/2,
       isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
       moveQuants/3,reQuantTps/3,
       moveConstraints/3,moveConstraints/4, implementationName/2,
@@ -111,105 +111,101 @@ moveConstraints(constrained(Tp,Con),C,Cx,Inner) :-
   moveConstraints(Tp,[Con|C],Cx,Inner).
 moveConstraints(Tp,C,C,Tp).
 
-showType(anonType,O,Ox) :- appStr("_",O,Ox).
-showType(voidType,O,Ox) :- appStr("void",O,Ox).
-showType(thisType,O,Ox) :- appStr("this",O,Ox).
-showType(kVar(Nm),O,Ox) :- appStr(Nm,O,Ox).
-showType(kFun(Nm,Ar),O,Ox) :- appStr(Nm,O,O1),appStr("/",O1,O2),appInt(Ar,O2,Ox).
-showType(tVar(Curr,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
-showType(tVar(_,_Cons,Nm,Id),O,Ox) :- /*showVarConstraints(Cons,O,O0),*/appStr("%",O,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
-showType(tFun(Curr,_,_,_,_),O,Ox) :- nonvar(Curr),!,showType(Curr,O,Ox).
-showType(tFun(_,_,_Nm,Ar,Id),O,Ox) :- appStr("%",O,O1),appStr(Id,O1,O2),appStr("/",O2,O3),appInt(Ar,O3,Ox).
-showType(type(Nm),O,Ox) :- appStr(Nm,O,Ox).
-showType(tpFun(Nm,Ar),O,Ox) :- appStr(Nm,O,O1),appStr("%",O1,O2),appInt(Ar,O2,Ox).
-showType(tpExp(Nm,A),O,Ox) :- showTypeExp(tpExp(Nm,A),O,Ox).
-showType(tupleType(A),O,Ox) :- appStr("(",O,O1), showTypeEls(A,O1,O2), appStr(")",O2,Ox).
-showType(funType(A,R),O,Ox) :- showType(A,O,O1), appStr("=>",O1,O2), showType(R,O2,Ox).
-showType(consType(A,R),O,Ox) :- showType(A,O,O1), appStr("<=>",O1,O2), showType(R,O2,Ox).
-showType(refType(R),O,Ox) :- appStr("ref",O,O4), showType(R,O4,Ox).
-showType(allType(V,Tp),O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,showType,O2,Ox).
-showType(existType(V,Tp),O,Ox) :- appStr("exist ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,showType,O2,Ox).
-showType(faceType(Els,Tps),O,Ox) :- appStr("{ ",O,O1),
-    showFieldTypes(Els,"",Sp,O1,O2),
-    showTypeFields(Tps,Sp,_,O2,O3),
+showType(anonType,_,O,Ox) :- appStr("_",O,Ox).
+showType(voidType,_,O,Ox) :- appStr("void",O,Ox).
+showType(thisType,_,O,Ox) :- appStr("this",O,Ox).
+showType(kVar(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
+showType(kFun(Nm,Ar),_,O,Ox) :- appStr(Nm,O,O1),appStr("/",O1,O2),appInt(Ar,O2,Ox).
+showType(tVar(Curr,_,_,_),ShCon,O,Ox) :- nonvar(Curr),!,showType(Curr,ShCon,O,Ox).
+showType(tVar(_,Cons,Nm,Id),ShCon,O,Ox) :- (ShCon=true -> showVarConstraints(Cons,"",O,O0); O=O0), appStr("%",O0,O1),appStr(Nm,O1,O2),appSym(Id,O2,Ox).
+showType(tFun(Curr,_,_,_,_),ShCon,O,Ox) :- nonvar(Curr),!,showType(Curr,ShCon,O,Ox).
+showType(tFun(_,_,_Nm,Ar,Id),_,O,Ox) :- appStr("%",O,O1),appStr(Id,O1,O2),appStr("/",O2,O3),appInt(Ar,O3,Ox).
+showType(type(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
+showType(tpFun(Nm,Ar),_,O,Ox) :- appStr(Nm,O,O1),appStr("%",O1,O2),appInt(Ar,O2,Ox).
+showType(tpExp(Nm,A),ShCon,O,Ox) :- showTypeExp(tpExp(Nm,A),ShCon,O,Ox).
+showType(tupleType(A),ShCon,O,Ox) :- appStr("(",O,O1), showTypeEls(A,ShCon,O1,O2), appStr(")",O2,Ox).
+showType(funType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("=>",O1,O2), showType(R,ShCon,O2,Ox).
+showType(consType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("<=>",O1,O2), showType(R,ShCon,O2,Ox).
+showType(refType(R),ShCon,O,Ox) :- appStr("ref",O,O4), showType(R,ShCon,O4,Ox).
+showType(allType(V,Tp),ShCon,O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
+showType(existType(V,Tp),ShCon,O,Ox) :- appStr("exist ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
+showType(faceType(Els,Tps),ShCon,O,Ox) :- appStr("{ ",O,O1),
+    showFieldTypes(Els,"",Sp,ShCon,O1,O2),
+    showTypeFields(Tps,Sp,_,ShCon,O2,O3),
     appStr("}",O3,Ox).
-showType(typeExists(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("<~",O1,O2),showType(Bd,O2,Ox).
-showType(typeLambda(Hd,Bd),O,Ox) :- showType(Hd,O,O1), appStr("~>",O1,O2),showType(Bd,O2,Ox).
-showType(contractExists(Spc,Fc),O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,O2,Ox).
-showType(constrained(Tp,Con),O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
+showType(typeExists(Hd,Bd),ShCon,O,Ox) :- showType(Hd,ShCon,O,O1), appStr("<~",O1,O2),showType(Bd,ShCon,O2,Ox).
+showType(typeLambda(Hd,Bd),ShCon,O,Ox) :- showType(Hd,ShCon,O,O1), appStr("~>",O1,O2),showType(Bd,ShCon,O2,Ox).
+showType(contractExists(Spc,Fc),ShCon,O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,ShCon,O2,Ox).
+showType(constrained(Tp,Con),_,O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
 
-showTypeExp(tpExp(tpFun("{}",1),Arg),O,Ox) :-!,
-  showType(Arg,O,O1),
+showTypeExp(tpExp(tpFun("{}",1),Arg),ShCon,O,Ox) :-!,
+  showType(Arg,ShCon,O,O1),
   appStr("{}",O1,Ox).
-showTypeExp(T,O,Ox) :-
+showTypeExp(T,ShCon,O,Ox) :-
   deRef(T,Tp),
-  showTpExp(Tp,_,O,O1),
+  showTpExp(Tp,_,ShCon,O,O1),
   appStr("]",O1,Ox).
 
-showTpExp(tpExp(T,A),",",O,Ox) :-
+showTpExp(tpExp(T,A),",",ShCon,O,Ox) :-
   deRef(T,Op),
-  showTpExp(Op,Sep,O,O1),
+  showTpExp(Op,Sep,ShCon,O,O1),
   appStr(Sep,O1,O2),
-  showType(A,O2,Ox).
-showTpExp(Tp,"[",O,Ox) :-
-  showType(Tp,O,Ox).
+  showType(A,ShCon,O2,Ox).
+showTpExp(Tp,"[",ShCon,O,Ox) :-
+  showType(Tp,ShCon,O,Ox).
 
 showMoreConstraints(constrained(Tp,Con),O,Ox) :-
   appStr(",",O,O1), showConstraint(Con,O1,O2), showMoreConstraints(Tp,O2,Ox).
-showMoreConstraints(Tp,O,Ox) :- appStr("|:",O,O1),showType(Tp,O1,Ox).
+showMoreConstraints(Tp,O,Ox) :- appStr("|:",O,O1),showType(Tp,false,O1,Ox).
 
-showConstraint(allType(V,B),O,Ox) :-
-  appStr("all ",O,O1),
-  showBound(V,O1,O2),
-  showMoreQuantified(B,showConstraint,O2,Ox).
 showConstraint(conTract(Nm,Els,[]),O,Ox) :-!,
-  appStr(Nm,O,O1), appStr("[",O1,O2),showTypeEls(Els,O2,O3),appStr("]",O3,Ox).
+  appStr(Nm,O,O1), appStr("[",O1,O2),showTypeEls(Els,false,O2,O3),appStr("]",O3,Ox).
 showConstraint(conTract(Nm,Els,Deps),O,Ox) :-
   appStr(Nm,O,O1),
   appStr("[",O1,O2),
-  showTypeEls(Els,O2,O3),
+  showTypeEls(Els,false,O2,O3),
   appStr("->>",O3,O4),
-  showTypeEls(Deps,O4,O5),
+  showTypeEls(Deps,false,O4,O5),
   appStr("]",O5,Ox).
 showConstraint(implementsFace(Tp,Face),O,Ox) :-
-  showType(Tp,O,O1),
+  showType(Tp,false,O,O1),
   appStr("<~",O1,O2),
-  showType(Face,O2,Ox).
+  showType(Face,false,O2,Ox).
 showConstraint(constrained(Con,Extra),O,Ox) :-
   showConstraint(Extra,O,O1),
   appStr("|:",O1,O2),
   showConstraint(Con,O2,Ox).
 
-showVarConstraints(C,O,O) :- var(C),!.
-showVarConstraints([C|Cx],O,Ox) :-
-  showConstraint(C,O,O1),
-  appStr(",:",O1,O2),
-  showVarConstraints(Cx,O2,Ox).
+showVarConstraints(C,Tl,O,Ox) :- var(C),!,(Tl=","->appStr("|:",O,Ox);O=Ox).
+showVarConstraints([C|Cx],Ld,O,Ox) :-
+  appStr(Ld,O,O1),
+  showConstraint(C,O1,O2),
+  showVarConstraints(Cx,",",O2,Ox).
 
-showBound(Nm,O,Ox) :- showType(Nm,O,Ox).
+showBound(Nm,O,Ox) :- showType(Nm,false,O,Ox).
 
-showTypeEls([],O,O).
-showTypeEls([Tp|More],O,E) :- showType(Tp,O,O1), showMoreTypeEls(More,O1,E).
+showTypeEls([],_,O,O).
+showTypeEls([Tp|More],ShCon,O,E) :- showType(Tp,ShCon,O,O1), showMoreTypeEls(More,ShCon,O1,E).
 
-showMoreTypeEls([],O,O).
-showMoreTypeEls([Tp|More],O,E) :- appStr(", ",O,O1),showType(Tp,O1,O2), showMoreTypeEls(More,O2,E).
+showMoreTypeEls([],_,O,O).
+showMoreTypeEls([Tp|More],ShCon,O,E) :- appStr(", ",O,O1),showType(Tp,ShCon,O1,O2), showMoreTypeEls(More,ShCon,O2,E).
 
-showMoreQuantified(allType(Nm,Tp),P,O,E) :- appStr(", ",O,O1), showType(Nm,O1,O2), showMoreQuantified(Tp,P,O2,E).
-showMoreQuantified(Tp,P,O,E) :- appStr(" ~~ ",O,O1), call(P,Tp,O1,E).
+showMoreQuantified(allType(Nm,Tp),ShCon,O,E) :- appStr(", ",O,O1), showType(Nm,ShCon,O1,O2), showMoreQuantified(Tp,ShCon,O2,E).
+showMoreQuantified(Tp,ShCon,O,E) :- appStr(" ~~ ",O,O1), showType(Tp,ShCon,O1,E).
 
-showFieldTypes([],Sep,Sep,O,O).
-showFieldTypes([F|More],Sep,Spx,O,E) :- appStr(Sep,O,O0),showField(F,O0,O1), showFieldTypes(More,". ",Spx,O1,E).
+showFieldTypes([],Sep,Sep,_,O,O).
+showFieldTypes([F|More],Sep,Spx,ShCon,O,E) :- appStr(Sep,O,O0),showField(F,ShCon,O0,O1), showFieldTypes(More,". ",Spx,ShCon,O1,E).
 
-showField((Nm,Tp),O,E) :- appStr(Nm,O,O1), appStr(" : ",O1,O2), showType(Tp,O2,E).
+showField((Nm,Tp),ShCon,O,E) :- appStr(Nm,O,O1), appStr(" : ",O1,O2), showType(Tp,ShCon,O2,E).
 
-showTypeFields([],Sp,Sp,O,O).
-showTypeFields([F|More],Sep,Spx,O,E) :-
-  appStr(Sep,O,O0),showTypeField(F,O0,O1), showTypeFields(More,". ",Spx,O1,E).
+showTypeFields([],Sp,Sp,_,O,O).
+showTypeFields([F|More],Sep,Spx,ShCon,O,E) :-
+  appStr(Sep,O,O0),showTypeField(F,ShCon,O0,O1), showTypeFields(More,". ",Spx,ShCon,O1,E).
 
-showTypeField((Nm,Tp),O,E) :- appStr(Nm,O,O1), appStr(" ~> ",O1,O2), showType(Tp,O2,E).
+showTypeField((Nm,Tp),ShCon,O,E) :- appStr(Nm,O,O1), appStr(" ~> ",O1,O2), showType(Tp,ShCon,O2,E).
 
 dispType(Tp) :-
-  showType(Tp,Chrs,[]),
+  showType(Tp,true,Chrs,[]),
   string_chars(Text,Chrs),
   writeln(Text).
 
@@ -240,7 +236,7 @@ tpArgTypes(allType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(existType(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
-tpArgTypes(typeType(ArTps),ArTps).
+tpArgTypes(tupleType(ArTps),ArTps).
 
 
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).

@@ -14,7 +14,7 @@ showRules(mdule(Pkg,Imports,Types,_,Defs,Contracts,Impls),O,Ox) :-
   appStr("\n",O1,O2),
   showImports(Imports,O2,O3),!,
   appStr("\nPackage export: ",O3,O3a),
-  showType(Types,O3a,O3b),
+  showType(Types,true,O3a,O3b),
   appStr("\nPackage contracts:\n",O3b,O4),!,
   showContracts(Contracts,O4,O5),!,
   appStr("\nPackage implementations:\n",O5,O5a),!,
@@ -32,7 +32,7 @@ showRuleSet(fnDef(_,Nm,Tp,Args,Value),O,Ox) :-
   appStr("Function: ",O,O0),
   showTerm(Nm,0,O0,O1),
   appStr(":",O1,O2),
-  showType(Tp,O2,O3),
+  showType(Tp,true,O2,O3),
   appStr("\n",O3,O4),
   showTerm(Nm,0,O4,O5),
   showArgs(Args,0,O5,O6),
@@ -44,7 +44,7 @@ showRuleSet(vrDef(_,Nm,Tp,Value),O,Ox) :-
   appStr("Global: ",O,O0),
   appStr(Nm,O0,O1),
   appStr(":",O1,O2),
-  showType(Tp,O2,O3),
+  showType(Tp,true,O2,O3),
   appStr(" = ",O3,O4),
   showTerm(Value,0,O4,Ox).
 

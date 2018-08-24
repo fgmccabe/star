@@ -1,4 +1,4 @@
-:- module(canon,[displayType/1,displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
+:- module(canon,[displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
     typeOfCanon/2,splitPtn/4,locOfCanon/2,
@@ -81,8 +81,6 @@ thetaSig(record(_,_,_,_,_,Sig),Sig).
 
 displayCanon(Term) :- showCanon(Term,Chrs,[]), string_chars(Res,Chrs), write(Res).
 
-displayType(Tp) :- showType(Tp,Chrs,[]), string_chars(Res,Chrs), write(Res).
-
 dispCanonTerm(Term) :- showCanonTerm(Term,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
 
 dispDefs(Defs) :- showDefs(Defs,Chrs,[]),string_chars(Res,Chrs),writeln(Res).
@@ -163,7 +161,7 @@ showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,O1,O2),
   appStr(")",O2,Ox).
-showCanonTerm(mtd(_,Nm),O,Ox) :-
+showCanonTerm(mtd(_,Nm,_),O,Ox) :-
   appStr("°",O,O1),
   appStr(Nm,O1,Ox).
 showCanonTerm(over(_,V,_,Cons),O,Ox) :-
@@ -261,7 +259,7 @@ showTypeDefs(L,O,Ox) :-
   listShow(L,canon:showTypeDef,misc:appNl,O,Ox).
 
 showTypeDef((_,Type),O,Ox) :-
-  showType(Type,O,Ox).
+  showType(Type,true,O,Ox).
 
 showContracts(L,O,Ox) :-
   listShow(L,canon:showContract,misc:appStr(""),O,Ox).
@@ -270,7 +268,7 @@ showContract(conDef(_,Nm,ConRule),O,Ox) :-
   appStr("contract: ",O,O1),
   appStr(Nm,O1,O3),
   appStr(" : ",O3,O4),
-  showType(ConRule,O4,O5),
+  showType(ConRule,true,O4,O5),
   appStr(".\n",O5,Ox).
 
 showImpls(L,O,Ox) :-
@@ -280,13 +278,13 @@ showImpl(imp(ImplName,Spec),O,Ox) :-
   appStr("implementation: ",O,O1),
   appStr(ImplName,O1,O2),
   appStr(" for ",O2,O3),
-  showType(Spec,O3,O4),
+  showType(Spec,true,O3,O4),
   appStr("\n",O4,Ox).
 
 showImplementation(Lc,Nm,Spec,O,Ox) :-
   appStr("implementation: ",O,O1),
   appStr(Nm,O1,O2),
-  showType(Spec,O2,O5),
+  showType(Spec,true,O2,O5),
   appStr("@",O5,O6),
   showLocation(Lc,O6,O7),
   appStr("\n",O7,Ox).
@@ -307,7 +305,7 @@ showDef(funDef(Lc,Nm,ExtNm,Type,Cx,Eqns),O,Ox) :-
   appStr(" @ ",O2b,O3),
   showLocation(Lc,O3,O6),
   appStr("\n",O6,O7),
-  showType(Type,O7,O8),
+  showType(Type,true,O7,O8),
   showConstraints(Cx,O8,O9),
   appStr("\n",O9,O10),
   showRls(Nm,Eqns,O10,O11),
@@ -318,7 +316,7 @@ showDef(varDef(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr(" … ",O2,O2a),
   appIden(ExtNm,O2a,O2b),
   appStr(" : ",O2b,O3),
-  showType(Tp,O3,O4),
+  showType(Tp,true,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
   showConstraints(Cx,O6,O7),
@@ -333,7 +331,7 @@ showDef(vdefn(Lc,Nm,ExtNm,Cx,Tp,Value),O,Ox) :-
   appStr("[",O2,O2a),
   appIden(ExtNm,O2a,O2b),
   appStr("] : ",O2b,O3),
-  showType(Tp,O3,O4),
+  showType(Tp,true,O3,O4),
   appStr(" @ ",O4,O5),
   showLocation(Lc,O5,O6),
   showConstraints(Cx,O6,O7),
@@ -350,7 +348,7 @@ showDef(cnsDef(Lc,Nm,V,Type),O,Ox) :-
   appStr("\n",O4,O5),
   showCanonTerm(V,O5,O6),
   appStr(":",O6,O7),
-  showType(Type,O7,O8),
+  showType(Type,true,O7,O8),
   appStr("\n",O8,Ox).
 showDef(typeDef(Lc,Nm,_Tp,Rl),O,Ox) :-
   appStr("type: ",O,O1),
@@ -358,7 +356,7 @@ showDef(typeDef(Lc,Nm,_Tp,Rl),O,Ox) :-
   appStr(" @ ",O2,O5),
   showLocation(Lc,O5,O6),
   appStr("\n",O6,O7),
-  showType(Rl,O7,O8),
+  showType(Rl,true,O7,O8),
   appStr("\n",O8,Ox).
 showDef(conDef(_,_,_),O,O).
 showDef(implDef(_,_,_,_),O,O).
