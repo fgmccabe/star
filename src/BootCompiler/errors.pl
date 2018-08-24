@@ -64,7 +64,7 @@ showTrm(L,O) :-
   dispToken(L,O).
 showTrm(T,O) :-
   isType(T),!,
-  showType(T,O,[]).
+  showType(T,true,O,[]).
 showTrm(C,O) :-
   isConstraint(C),!,
   showConstraint(C,O,[]).
