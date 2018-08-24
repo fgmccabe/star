@@ -1,12 +1,13 @@
 star.boot{
   import star.
   import star.cmdOpts.
-  import star.either.
+  import star.pkg.
   import star.repo.
   import star.repo.file.
+  import star.resources.
   import star.uri.
 
-  bootOptions ::= bootOptions{ repo:string. wd:string. }.
+  bootOptions ::= bootOptions(string,string).
 
   repoOption:optionsProcessor[bootOptions].
   repoOption = {
@@ -27,42 +28,44 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() where WD.=cwd() =>
+  __boot() where WD.=_cwd() =>
     handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions(WD,WD))).
 
   handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>().
-  handleCmdLineOpts(either((Opts,[Top,..Args]))) where
-    RD .= resolveUri(parseUri(cwd()),parseUri(Opts.repo)) &&
-    Repo .= (coreRepo,openRepository(RD)) &&
-    _ .= importPkgs([parsePkgName(Top)],[],_,Repo) =>
+  handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
+    CW ^= parseUri(Cwd) &&
+    RU ^= parseUri(RepoDir) &&
+    RD .= resolveUri(CW,RU) &&
+    Repo .= openRepository(RD) &&
+    Pkg ^= parsePkgName(Top) &&
+    _ .= importPkgs([Pkg],[],Repo) =>
     invokeMain(Top,Args).
 
-  importPkgs:all r ~~ repo[r] |: (list[pkg],list[pkg],list[pkg],r)=>().
-  importPkgs([],Ld,Ld,_)=>().
-  importPkgs([P,..L],Ld,Ldx,R) where
-    _ .= _logmsg("importing $(P)$") &&
+  importPkgs:(list[pkg],list[pkg],fileRepo)=>().
+  importPkgs([],Ld,_)=>().
+  importPkgs([P,..L],Ld,R) where
+    _ .= _logmsg("importing \(P)") &&
     Imps .= importPkg(P,R,Ld) &&
-    _ .= importPkgs(Imps,[P,..Ld],Ldx,R) => initialize(P).
+    _ .= importPkgs(Imps,[P,..Ld],R) => initialize(P).
 
-  importPkg:all r ~~ repo[r] |: (pkg,r,list[pkg])=>list[pkg]).
-  importPkg(P,_,Ld) where P in Ld => [].
-  importPkg(P,R,Ld) => where
-    Code .= loadFromRepo(R,P,"code") &&
+  importPkg:(pkg,fileRepo,list[pkg])=>list[pkg].
+  importPkg(P,_,Ld) where contains(P,Ld) => [].
+  importPkg(P,R,Ld) where
+    Code ^= loadFromRepo(R,P,"code") &&
     Imps .= _install_pkg(Code) => Imps//(((Pk,V))=>pkg(Pk,V::version)).
 
   initialize:(pkg) => ().
   initialize(pkg(P,_)) where
-    Pred .= P+"@init" =>
+    Pred .= P++"@init" =>
     ( _definedLbl(Pred,0) ?
       _callLbl(Pred,0,[]) |
       logMsg("No init for \(P)")).
 
   invokeMain:(string,list[string]) => ().
   invokeMain(Top,Args) where
-    Pred .= Top+"@_main" =>
+    Pred .= Top++"@_main" =>
     ( _definedLbl(Pred,1) ?
-      logMsg("Starting ..."),
-      _callLbl(Pred,1,[Args]) |
+      _callLbl(Pred,1,Args) |
       logMsg("No main program: \(Top)") ).
 
 }
