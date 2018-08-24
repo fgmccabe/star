@@ -18,6 +18,10 @@ star.collection{
     (^/):(c,(e)=>boolean) => c.
   }
 
+  public contract all c,e ~~ search[c->>e] ::= {
+    search:(c,(e)=>boolean) => option[e].
+  }
+
   public contract all m/1 ~~ mapping[m] ::= {
     (//):all e,f ~~ (m[e],(e)=>f) => m[f].
   }
@@ -90,6 +94,14 @@ star.collection{
     } in fdl(0,Z).
   }
 
+  public implementation all e ~~ search[list[e]->>e] => {
+    search(L,F) => searchList(L,F).
+
+    searchList([],_) => none.
+    searchList([E,..L],F) where F(E) => some(E).
+    searchList([_,..L],F) => searchList(L,F).
+  }
+
   iota:(integer,integer)=>list[integer].
   iota(Mx,Mx) => [].
   iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
@@ -110,8 +122,9 @@ star.collection{
   }
 
   public interleave: all t ~~ (list[t],t) => list[t].
-  interleave(L,I) where Frst^=L[0] => let{
-    leave(Ix,Mx,SoF) where Ix>=Mx => SoF.
-    leave(Ix,Mx,SoF) where El^=L[Ix] => leave(Ix+1,Mx,[SoF..,I,El]).
-  } in leave(1,size(L),[Frst]).
+  interleave([],_) => [].
+  interleave([F,..R],I) => let{
+    inter([]) => [].
+    inter([E,..L]) => [I,E,..inter(L)].
+  } in [F,..inter(R)].
 }

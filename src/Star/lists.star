@@ -64,4 +64,9 @@ star.lists{
   public implementation all t ~~ reversible[list[t]] => {
     reverse(L) => _list_reverse(L).
   }
+
+  public contains:all e~~equality[e] |: (e,list[e]) => boolean.
+  contains(X,[X,.._]) => true.
+  contains(X,[_,..L]) => contains(X,L).
+  contains(_,_) default => false.
 }
