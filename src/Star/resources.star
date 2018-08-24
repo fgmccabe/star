@@ -3,8 +3,9 @@ star.resources{
   import star.
 
   public
-  getResource:(uri) => string.
-  getResource(U) => _get_file(getUriPath(U)).
+  getResource:(uri) => option[string].
+  getResource(U) where Fn .= getUriPath(U) && _file_present(Fn) => some(_get_file(Fn)).
+  getResource(_) default => none.
 
   public
   putResource:(uri,string)=>().
@@ -12,4 +13,19 @@ star.resources{
 
   public resourcePresent:(uri)=>boolean.
   resourcePresent(U) => _file_present(getUriPath(U)).
+
+  public newerFile:(uri,uri) => boolean.
+  newerFile(F1,F2) where
+    P1 .= getUriPath(F1) &&
+    P2 .= getUriPath(F2) &&
+    _file_present(P1) &&
+    _file_present(P2) =>
+    _file_modified(P1) > _file_modified(P2).
+  newerFile(_,_) default => false.
+
+  public isDir:(string) => boolean.
+  isDir(D) => _isdir(D).
+
+  public logMsg:(string) => ().
+  logMsg(Txt) where _ .= _logmsg(Txt) => ().
 }
