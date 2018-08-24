@@ -88,10 +88,30 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
       char shortOpt = opt[1];
       for (int j = 0; j < optionCount; j++) {
         if (options[j].shortName == shortOpt) {
-          if (options[j].hasArg) {
-            if (uniStrLen(opt) == 2) {
-              if (ix < argc - 1) {
-                if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
+          switch (options[j].hasArg) {
+            case hasArgument: {
+              if (uniStrLen(opt) == 2) {
+                if (ix < argc - 1) {
+                  if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
+                    goto failOptions;
+                  else {
+                    processedOptions[j] = True;
+                    goto optionLoop;
+                  }
+                } else
+                  goto failOptions;
+              } else {
+                if (options[j].setter(opt + 2, True, options[j].cl) != Ok)
+                  goto failOptions;
+                else {
+                  processedOptions[j] = True;
+                  goto optionLoop;
+                }
+              }
+            }
+            case noArgument: {
+              if (uniStrLen(opt) == 2) {
+                if (options[j].setter(NULL, True, options[j].cl) != Ok)
                   goto failOptions;
                 else {
                   processedOptions[j] = True;
@@ -99,23 +119,8 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 }
               } else
                 goto failOptions;
-            } else {
-              if (options[j].setter(opt + 2, True, options[j].cl) != Ok)
-                goto failOptions;
-              else {
-                processedOptions[j] = True;
-                goto optionLoop;
-              }
             }
-          } else if (uniStrLen(opt) == 2) {
-            if (options[j].setter(NULL, True, options[j].cl) != Ok)
-              goto failOptions;
-            else {
-              processedOptions[j] = True;
-              goto optionLoop;
-            }
-          } else
-            goto failOptions;
+          }
         }
       }
       outMsg(stdErr, "unknown option: %s\n", opt);
@@ -130,12 +135,28 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
     if (!processedOptions[jx] && options[jx].envVar != Null) {
       char *var = getenv(options[jx].envVar);
       if (var != Null) {
-        if (options[jx].setter(var, True, options[jx].cl) == Ok)
-          processedOptions[jx] = True;
-        else {
-          outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
-          goto failOptions;
+        switch (options[jx].hasArg) {
+          case noArgument: {
+            logical
+              setOpt = (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same || uniCmp(var, "yes") == same ||
+                        uniCmp(var, "YES") == same);
+            if (options[jx].setter(var, setOpt, options[jx].cl) == Ok)
+              processedOptions[jx] = True;
+            else {
+              outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
+              goto failOptions;
+            }
+          }
+          case hasArgument: {
+            if (options[jx].setter(var, True, options[jx].cl) == Ok)
+              processedOptions[jx] = True;
+            else {
+              outMsg(Stderr(), "bad environment variable: %s=%s\n", options[jx].envVar, var);
+              goto failOptions;
+            }
+          }
         }
+
       }
     }
   }
