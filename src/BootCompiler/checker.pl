@@ -640,7 +640,10 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
-  typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path).
+  (hasPromotion(Term) ->
+    promoteOption(Term,NT),
+    typeOfExp(NT,Tp,Env,Ev,Exp,Path);
+    typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path)).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTerm(Term,Lc,F,[A]),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
@@ -842,9 +845,8 @@ isMapSequence([E|_]) :-
 
 isMapType(Tp,Env) :-
   isType("map",Env,tpDef(_,MpTp,_)),!,
-  deRef(Tp,tpExp(MpOp,_)),
-  moveQuants(MpTp,_,tpExp(MapOp,_)),
-  deRef(MpOp,MapOp).
+  deRef(Tp,tpExp(TF1,_)),
+  deRef(TF1,tpExp(MpTp,_)).
 
 isListSequence([E|_]) :-
   \+isBinary(E,_,"->",_,_).

@@ -8,7 +8,7 @@
     isIntegrity/3,isShow/3,isOpen/3,
     isConditional/5,conditional/5,isOfTerm/4,
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
-    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,
+    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isAbstraction/4,isListAbstraction/4,
     isParse/4,isNTLookAhead/3,
     isLetDef/4,mkLetDef/4,isMacroRule/4,
@@ -257,6 +257,9 @@ isOptionPtn(Trm,Lc,Ptn,Opt) :-
 
 isOptionMatch(Trm,Lc,Ptn,Vl) :-
   isBinary(Trm,Lc,"^=",Ptn,Vl).
+
+optionMatch(Lc,Ptn,Exp,Term) :-
+  binary(Lc,"^=",Ptn,Exp,Term).
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"::",Lhs,Rhs).
