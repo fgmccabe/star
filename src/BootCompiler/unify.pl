@@ -18,9 +18,9 @@ sm(T1,thisType,Env) :- isVar("this",Env,vrEntry(_,_,T2,_)),!,
   sameType(T1,T2,Env).
 sm(kVar(Nm),kVar(Nm),_).
 sm(kFun(Nm,Ar),kFun(Nm,Ar),_).
-sm(V1,V2,Env) :- isUnbound(V1), isUnbound(V2), varBinding(V1,V2,Env).
-sm(V1,T2,Env) :- isUnbound(V1), varBinding(V1,T2,Env).
-sm(T1,V2,Env) :- isUnbound(V2), varBinding(V2,T1,Env).
+sm(V1,V2,Env) :- isUnbound(V1), isUnbound(V2),!, varBinding(V1,V2,Env).
+sm(V1,T2,Env) :- isUnbound(V1), !, varBinding(V1,T2,Env).
+sm(T1,V2,Env) :- isUnbound(V2), !, varBinding(V2,T1,Env).
 sm(type(Nm),type(Nm),_).
 sm(tpFun(Nm,Ar),tpFun(Nm,Ar),_).
 sm(tpExp(O1,A1),T2,Env) :-

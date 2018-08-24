@@ -164,7 +164,9 @@ overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramTyp
 overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
-curryOver(Lc,OverOp,Cx,Tp,lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true",type("star.core*boolean")),apply(Lc,OverOp,tple(Lc,NArgs))),Tp)) :-
+curryOver(Lc,OverOp,Cx,Tp,
+    lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true",type("star.core*boolean")),
+          apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tupleType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs).
@@ -268,7 +270,7 @@ overloadClassRule(CVars,labelRule(Lc,Nm,Hd,St),Dict,labelRule(Lc,Nm,OHd,OSt)) :-
 
 resolveHead(Hd,[],Hd).
 resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
-resolveHead(apply(Lc,v(ALc,Nm,Tp),Args),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs)) :-
+resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs,Tpx)) :-
   addExtra(CVars,Args,OArgs).
 resolveHead(record(Lc,Lbl,Defs,[],[],Sig),CVars,record(Lc,Lbl,RDefs,[],[],Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
