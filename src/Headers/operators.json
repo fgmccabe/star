@@ -341,6 +341,14 @@
     "desc": "Apply optional function and match result"
   },
   {
+    "prefixOp": "^",
+    "priorities": [
+      100,
+      99
+    ],
+    "desc": "Optional propagation"
+  },
+  {
     "infixOp": "<",
     "priorities": [
       899,

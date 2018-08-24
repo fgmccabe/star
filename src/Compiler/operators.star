@@ -102,7 +102,7 @@ star.compiler.operators{
   oper("=<") => [infixOp(899,900,899)].
   oper("==") => [infixOp(899,900,899)].
   oper("=>") => [infixOp(949,950,950)].
-  oper("^") => [infixOp(99,100,99)].
+  oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
   oper("private") => [prefixOp(1700,1699)].
   oper(".&.") => [infixOp(700,700,699)].
@@ -301,7 +301,7 @@ star.compiler.operators{
   final("[") => true.  /* square brackets */
   final("\\+") => true.  /* logical negation */
   final("]") => true.  /* square brackets */
-  final("^") => true.  /* Apply optional function and match result */
+  final("^") => true.  /* Optional propagation */
   final("^+") => true.  /* look ahead parser operator */
   final("^^") => true.  /* Overall output from a parser rule */
   final("^.") => true.  /* optional object access */

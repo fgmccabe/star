@@ -85,7 +85,7 @@
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 950)]).
-  operator("^", [infixOp(99, 100, 99)]).
+  operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("private", [prefixOp(1700, 1699)]).
   operator(".&.", [infixOp(700, 700, 699)]).
@@ -263,7 +263,7 @@
   final('[',"[").	 /* square brackets */
   final('\\+',"\\+").	 /* logical negation */
   final(']',"]").	 /* square brackets */
-  final('^',"^").	 /* Apply optional function and match result */
+  final('^',"^").	 /* Optional propagation */
   final('^+',"^+").	 /* look ahead parser operator */
   final('^^',"^^").	 /* Overall output from a parser rule */
   final('^.',"^.").	 /* optional object access */
