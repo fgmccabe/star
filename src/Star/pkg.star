@@ -1,5 +1,6 @@
 star.pkg{
   import star.
+  import star.parse.
 
   public pkg ::= pkg(string,version).
 
@@ -48,4 +49,29 @@ star.pkg{
   compatibleVersion(_,defltVersion)=>true.
   compatibleVersion(vers(V1),vers(V2))=>V1==V2.
   compatibleVersion(_,_) => false.
+  
+  public parsePkgName:(string) => option[pkg].
+  parsePkgName(S) => first(parse(pkgParse,S::list[integer])).
+
+  first([])=>none.
+  first([(E,_),.._])=>some(E).
+
+  public pkgParse:parser[list[integer],pkg].
+  pkgParse = parseName >>= (Pkg) => parseVersion >>= (V) => return pkg(Pkg,V).
+
+  parseName:parser[list[integer],string].
+  parseName = segment.
+
+  segment:parser[list[integer],string].
+  segment=_star(segChr) >>= (Chrs) => return (Chrs::string).
+
+  segChr:parser[list[integer],integer].
+  segChr = _sat(isSegChr).
+
+  isSegChr:(integer)=>boolean.
+  isSegChr(0c.) => true.
+  isSegChr(Ch) => isAlphaNum(Ch).
+
+  parseVersion:parser[list[integer],version].
+  parseVersion = (segment >>= (Seg) => return vers(Seg) +++ return defltVersion).
 }
