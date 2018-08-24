@@ -22,6 +22,7 @@
 #define STAR_DEBUGGER "STAR_DEBUGGER"
 #define STAR_MAIN "STAR_MAIN"
 #define STAR_BOOT "STAR_BOOT"
+#define STAR_DBG_OPTS "STAR_DEBUG_OPTS"
 
 extern char *copyright;
 

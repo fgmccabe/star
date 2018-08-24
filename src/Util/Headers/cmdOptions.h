@@ -15,10 +15,15 @@ typedef retCode (*setOption)(char *option,logical enable,void *cl);
 
 typedef retCode (*helpOption)(ioPo out,char shortName,char *usage,void *cl);
 
+typedef enum {
+  hasArgument,
+  noArgument
+} HasArgument;
+
 typedef struct {
   const char shortName;
   const char *longName;
-  logical hasArg;
+  HasArgument hasArg;
   const char *envVar;
   setOption setter;
   void *cl;

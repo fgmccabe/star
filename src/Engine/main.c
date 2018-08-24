@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
   char errMsg[MAXLINE];
 
   if (loadPackage(&bootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load boot pkg %s/%s: %s", bootPkg, bootVer, errMsg);
+    logMsg(logFile, "Could not load boot pkg %s/%s: %s", bootPkge.packageName, bootVer, errMsg);
     exit(99);
   }
 

@@ -90,13 +90,13 @@ static retCode setVersion(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",       True,  Null,        debugOption,    Null, "-d|--debug <flags>"},
-  {'v', "version",     False, Null,        displayVersion, Null, "-v|--version"},
-  {'P', "parseOnly",   False, Null,        setParseOnly,   Null, "-P|--parseOnly"},
-  {'H', "starHome",    True, STAR_HOME,    setHome,        Null, "-H|--starHome <path>"},
-  {'L', "logFile",     True, STAR_LOGFILE, setLogFile,     Null, "-L|--logFile <path>"},
-  {'R', "repository",  True, STAR_REPO,    setRepoDir,     Null, "-R|--repository <path>"},
-  {'V', "pkg-version", True,  Null,        setVersion,     Null, "-V|--set-version <version>"}};
+  {'d', "debug",       hasArgument, Null,        debugOption,    Null, "-d|--debug <flags>"},
+  {'v', "version",     noArgument,  Null,        displayVersion, Null, "-v|--version"},
+  {'P', "parseOnly",   noArgument,  Null,        setParseOnly,   Null, "-P|--parseOnly"},
+  {'H', "starHome",    hasArgument, STAR_HOME,    setHome,        Null, "-H|--starHome <path>"},
+  {'L', "logFile",     hasArgument, STAR_LOGFILE, setLogFile,     Null, "-L|--logFile <path>"},
+  {'R', "repository",  hasArgument, STAR_REPO,    setRepoDir,     Null, "-R|--repository <path>"},
+  {'V', "pkg-version", hasArgument, Null,        setVersion,     Null, "-V|--set-version <version>"}};
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
