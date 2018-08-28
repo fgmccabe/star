@@ -42,6 +42,7 @@ classPo parentClass(classPo class);
 classPo classOfObject(objectPo o);
 logical objectHasClass(objectPo o, classPo parent);
 logical isObject(objectPo o);
+objectPo checkCast(void *c,classPo class);
 
 integer hashCode(objectPo o);
 logical equals(objectPo o1,objectPo o2);

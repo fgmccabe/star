@@ -79,7 +79,7 @@ retCode prevPoint(const char *src, integer *start, codePoint *code) {
       while (UCR(b)) {
         pt = pt | (UXR(b) << factor);
         factor += 6;
-        b = src[--pos];
+        b = (unsigned char)src[--pos];
       }
       if (UC80(b)) {
         *code = pt | (UX80(b) << factor);
@@ -596,6 +596,12 @@ char *uniDuplicate(const char *s) {
   char *copy = (char *) malloc(len * sizeof(byte));
 
   memcpy(copy, s, len);
+  return copy;
+}
+
+char * uniDupl(char *str,integer len){
+  char *copy = (char *)malloc(len*sizeof(char));
+  memcpy(copy,str,len);
   return copy;
 }
 
