@@ -9,3 +9,4 @@ Asm/asmGrammar.c
 Asm/asmGrammar.h
 HeaderGenerator/ops
 HeaderGenerator/plmnem
+.star
