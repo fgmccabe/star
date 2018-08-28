@@ -26,8 +26,9 @@ extern BufferClassRec BufferClass;  /* the standard pointer to an buffer class r
 typedef struct _buffer_part_{
   char *buffer;                         /* The data buffer */
   integer bufferSize;
-  integer pos;
-  integer size;
+  integer in_pos;                       // Position of next read
+  integer out_pos;                      // position of next write
+  integer size;                         // in_pos <= size <= out_pos
   logical resizeable;                   /* Is this string object resizeable? */
 } BufferPart;
 

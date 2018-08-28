@@ -23,24 +23,23 @@
   permissions and limitations under the License.
 */
 
-#include "io.h"
+#include "object.h"
+#include "unistr.h"
 
 typedef struct _buffer_ *bufferPo;
 extern classPo bufferClass;
 
 bufferPo newStringBuffer();
-bufferPo openStringBuffer(char * buffer, long len);
+bufferPo newIoStringBuffer();
 bufferPo fixedStringBuffer(char * buffer, long len);
 
 char * getTextFromBuffer(integer *len, bufferPo s);
-long bufferSize(bufferPo b);
+integer textFromBuffer(bufferPo b,char *buffer,integer len);
+retCode insertIntoBuffer(bufferPo b,codePoint ch,integer *offset);
 retCode clearBuffer(bufferPo b);
 retCode rewindBuffer(bufferPo b);
-retCode bufferStepForward(bufferPo in, long cnt);
 
 #ifdef VERIFY_OBJECT
-objectPo checkCast(void *c, classPo class);
-
 #define O_BUFFER(c) ((bufferPo)(checkCast((c),bufferClass)))
 #else
 #define O_BUFFER(c) ((bufferPo)(c))
