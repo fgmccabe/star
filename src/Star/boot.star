@@ -38,15 +38,15 @@ star.boot{
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
     Pkg ^= parsePkgName(Top) &&
-    _ .= importPkgs([Pkg],[],Repo) =>
+    _ .= importPkgs([Pkg],[],Repo) &&
+    _ .= initialize(Pkg) =>
     invokeMain(Top,Args).
 
   importPkgs:(list[pkg],list[pkg],fileRepo)=>().
   importPkgs([],Ld,_)=>().
   importPkgs([P,..L],Ld,R) where
     _ .= _logmsg("importing \(P)") &&
-    Imps .= importPkg(P,R,Ld) &&
-    _ .= importPkgs(Imps,[P,..Ld],R) => initialize(P).
+    Imps .= importPkg(P,R,Ld) => importPkgs(Imps,[P,..Ld],R).
 
   importPkg:(pkg,fileRepo,list[pkg])=>list[pkg].
   importPkg(P,_,Ld) where contains(P,Ld) => [].
