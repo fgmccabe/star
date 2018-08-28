@@ -457,14 +457,14 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
     outMsg(stdErr, "[%d]: ", pcCount);
     disass(stdErr, p, mtd, pc, fp, sp);
     if (stopping) {
-
       while (interactive) {
         if (p->traceCount == 0)
           p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, fp, sp);
         else {
           outStr(stdErr, "\n");
-          flushFile(stdErr);
         }
+
+        flushFile(stdErr);
 
         switch (p->waitFor) {
           case moreDebug:
