@@ -88,6 +88,7 @@ escapeType("_rmdir",funType(tupleType([type("star.core*string")]),tpExp(tpFun("s
 escapeType("_isdir",funType(tupleType([type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_file_chmod",funType(tupleType([type("star.core*string"),type("star.core*integer")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_ls",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*list",1),type("star.core*string")))).
+escapeType("_repo",funType(tupleType([]),type("star.core*string"))).
 escapeType("_file_mode",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
 escapeType("_file_present",funType(tupleType([type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_file_type",funType(tupleType([type("star.core*string")]),type("star.core*integer"))).
@@ -300,6 +301,7 @@ isEscape("_rmdir").
 isEscape("_isdir").
 isEscape("_file_chmod").
 isEscape("_ls").
+isEscape("_repo").
 isEscape("_file_mode").
 isEscape("_file_present").
 isEscape("_file_type").

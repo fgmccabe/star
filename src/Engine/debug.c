@@ -55,7 +55,7 @@ static processPo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void dC(termPo w) {
-  outMsg(logFile, "%T\n", w);
+  outMsg(stdErr, "%T\n", w);
   flushOut();
 }
 
@@ -158,14 +158,19 @@ typedef struct {
 
 static DebugWaitFor
 cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
-  static char cmdLine[256];
+  static bufferPo cmdBuffer = Null;
+
+  if(cmdBuffer==Null)
+    cmdBuffer = newStringBuffer();
 
   while (interactive) {
-    outMsg(logFile, " => ");
-    flushFile(logFile);
-    integer cmdLen = 0;
+    outMsg(stdErr, " => ");
+    flushFile(stdErr);
 
-    retCode res = inLine(stdIn, cmdLine, NumberOf(cmdLine), &cmdLen, "\n");
+    retCode res = inLine(stdIn, cmdBuffer, "\n");
+
+    integer cmdLen = 0;
+    char *cmdLine = getTextFromBuffer(&cmdLen,cmdBuffer);
 
     if (res == Ok) {
       for (int ix = 0; ix < optCount; ix++) {
@@ -415,7 +420,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
       sp[ix] = voidEnum;
 #endif
   } else
-    outMsg(logFile, "Could not drop %d stack frame\n%_", count);
+    outMsg(stdErr, "Could not drop %d stack frame\n%_", count);
 
   return moreDebug;
 }
@@ -576,7 +581,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   logical stopping = shouldWeStop(p, ins, ln);
   if (p->tracing || stopping) {
     if (ln != Null)
-      show(logFile, mtd, ln, fp, sp);
+      show(stdErr, mtd, ln, fp, sp);
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
@@ -733,22 +738,22 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   integer pcOffset = (integer) (pc - mtd->code);
 
-  outMsg(logFile, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x", p, mtd, pcOffset, pc, fp);
-  stackSummary(logFile, p, sp);
-  heapSummary(logFile, h);
-  outMsg(logFile, "\n");
+  outMsg(stdErr, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x", p, mtd, pcOffset, pc, fp);
+  stackSummary(stdErr, p, sp);
+  heapSummary(stdErr, h);
+  outMsg(stdErr, "\n");
 
   ptrPo stackTop = ((ptrPo) fp) - mtd->lclcnt;
 
-  showAllLocals(logFile, mtd, pc, fp);
-  showAllArgs(logFile, p, mtd, fp, sp);
+  showAllLocals(stdErr, mtd, pc, fp);
+  showAllArgs(stdErr, p, mtd, fp, sp);
 
   for (integer ix = 0; sp < stackTop; ix++, sp++) {
     termPo t = *sp;
-    outMsg(logFile, "SP[%d]=%T\n", ix, t);
+    outMsg(stdErr, "SP[%d]=%T\n", ix, t);
   }
 
-  flushFile(logFile);
+  flushFile(stdErr);
 }
 
 static char *anonPrefix = "__";
@@ -781,10 +786,10 @@ void countIns(insWord ins) {
 }
 
 #undef instruction
-#define instruction(Op, Arg, Dl, Cmt) outMsg(logFile,#Op": %d\n",insCounts[Op]);
+#define instruction(Op, Arg, Dl, Cmt) outMsg(stdErr,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
-  logMsg(logFile, "%d instructions executed\n", pcCount);
+  logMsg(stdErr, "%d instructions executed\n", pcCount);
 }
 
 void dumpInsStats() {

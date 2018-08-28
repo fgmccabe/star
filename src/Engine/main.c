@@ -10,6 +10,7 @@
 #include <iochnnlP.h>
 #include <arrayP.h>
 #include <rrbP.h>
+#include <history.h>
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
@@ -38,6 +39,7 @@ int main(int argc, char **argv) {
   if ((narg = getOptions(argc, argv)) < 0) {
     exit(1);
   }
+  initHistory(".star");
   initHeap(initHeapSize);
   initArith();
   initStr();
@@ -81,7 +83,7 @@ int main(int argc, char **argv) {
 
   setupSignals();
 
-  switch(bootstrap(entry)){
+  switch(bootstrap(entry, bootInit)){
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

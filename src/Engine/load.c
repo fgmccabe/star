@@ -357,6 +357,11 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
 
   ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
+#ifdef TRACEPKG
+  if (tracePkg)
+    logMsg(logFile, "loading function %s/%d", &prgName,arity);
+#endif
+
   if (ret == Ok)
     ret = skipEncoded(in, errorMsg, msgSize); // Skip the code signature
 

@@ -42,7 +42,7 @@ extern long initHeapSize;    /* How much memory to give the heap */
 extern long initStackSize;    /* How big is the stack */
 
 extern char entry[MAX_SYMB_LEN];
-extern char bootPkg[MAX_SYMB_LEN];  // boot package
+extern char bootInit[MAX_SYMB_LEN];
 extern char bootVer[MAX_SYMB_LEN];
 extern PackageRec bootPkge;
 

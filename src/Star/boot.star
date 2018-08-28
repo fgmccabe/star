@@ -28,8 +28,8 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() where WD.=_cwd() =>
-    handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions(WD,WD))).
+  __boot() =>
+    handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions(_cwd(),_repo()))).
 
   handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>().
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where

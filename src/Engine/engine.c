@@ -39,13 +39,22 @@ void initEngine() {
   halt.clss = methodClass;
 }
 
-retCode bootstrap(char *entry) {
+retCode bootstrap(char *entry, char *init) {
   labelPo umain = declareLbl(entry, 0);
   methodPo mainMtd = labelCode(umain);
 
-  if (mainMtd != Null) {
-    processPo p = newProcess(mainMtd);
-    return run(p);
+  labelPo uinit = declareLbl(init, 0);
+  methodPo initMtd = labelCode(uinit);
+
+  if (mainMtd != Null && initMtd != Null) {
+    processPo p = newProcess(initMtd);
+    retCode ret = run(p);
+    if(ret==Ok && uniCmp(entry,init)!=same){
+      setupProcess(p,mainMtd);
+      ret = run(p);
+    }
+    ps_kill(p);
+    return ret;
   } else {
     logMsg(logFile, "cannot find entry point %s\n", entry);
     return Error;
@@ -91,6 +100,38 @@ processPo newProcess(methodPo mtd) {
   hashPut(prTble, (void *) P->processNo, P);
 
   return P;
+}
+
+
+void setupProcess(processPo P,methodPo mtd) {
+  P->prog = mtd;
+  P->pc = entryPoint(mtd);
+  P->heap = currHeap;
+  P->state = P->savedState = quiescent;
+  P->pauseRequest = False;
+  if (insDebugging || lineDebugging) {
+    if (interactive)
+      P->waitFor = stepInto;
+    else
+      P->waitFor = nextBreak;
+  } else
+    P->waitFor = never;
+
+  P->tracing = tracing;
+
+  uniNCpy(P->wd, NumberOf(P->wd), CWD, NumberOf(CWD));
+
+  P->fp = (framePo) P->stackLimit;
+
+  // cap the stack with a halting stop.
+
+  ptrPo sp = (ptrPo) P->fp;
+  *--sp = (termPo) &halt;
+  *--sp = (termPo) entryPoint(&halt);
+  *--sp = (termPo) P->fp;    /* set the new frame pointer */
+
+  P->fp = (framePo) sp;
+  P->sp = sp;
 }
 
 void ps_kill(processPo p) {
