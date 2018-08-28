@@ -49,7 +49,7 @@ extern retCode run(processPo P);
 
 void initPackages();
 
-retCode bootstrap(char *entry);
+retCode bootstrap(char *entry, char *init);
 
 extern pthread_key_t processKey;
 pthread_t ps_threadID(processPo p);

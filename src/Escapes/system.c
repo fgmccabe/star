@@ -168,6 +168,13 @@ ReturnStatus g__setenv(processPo P, ptrPo tos) {
     return liberror(P, "_setenv", eFAIL);
 }
 
+ReturnStatus g__repo(processPo p, ptrPo tos) {
+  termPo repo = (termPo) allocateString(processHeap(p), repoDir, uniStrLen(repoDir));
+
+  ReturnStatus rtn = {.rslt = repo, .ret=Ok};
+  return rtn;
+}
+
 ReturnStatus g__getlogin(processPo P, ptrPo tos) {
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateCString(processHeap(P), getlogin())};
   return rt;

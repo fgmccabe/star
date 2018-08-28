@@ -91,6 +91,7 @@ star.comp.escapes{
   escapeType("_isdir") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*boolean")).
   escapeType("_file_chmod") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
   escapeType("_ls") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*list",1),tipe("star.core*string"))).
+  escapeType("_repo") => tpExp(tpExp(tpFun("->",2),tupleType([])),tipe("star.core*string")).
   escapeType("_file_mode") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*integer")).
   escapeType("_file_present") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*boolean")).
   escapeType("_file_type") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*integer")).
@@ -305,6 +306,7 @@ star.comp.escapes{
   isEscape("_isdir") => true.
   isEscape("_file_chmod") => true.
   isEscape("_ls") => true.
+  isEscape("_repo") => true.
   isEscape("_file_mode") => true.
   isEscape("_file_present") => true.
   isEscape("_file_type") => true.

@@ -23,7 +23,7 @@ static logical pairEquality(objectPo o1, objectPo o2);
 
 static void pairInit(objectPo o, va_list *args);
 
-static void erasePair(objectPo o);
+static void destroyPair(objectPo o);
 
 PairClassRec PairClass = {
   {
@@ -32,8 +32,8 @@ PairClassRec PairClass = {
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     O_INHERIT_DEF,
+    destroyPair,
     O_INHERIT_DEF,
-    erasePair,
     pairInit,
     sizeof(PairRecord),
     pairHash,
@@ -53,7 +53,7 @@ void pairInit(objectPo o, va_list *args) {
   l->pair.rhs = va_arg(*args, objectPo);
 }
 
-void erasePair(objectPo o) {
+void destroyPair(objectPo o) {
   pairPo l = O_PAIR(o);
 
   decReference(l->pair.lhs);

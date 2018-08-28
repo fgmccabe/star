@@ -36,6 +36,7 @@ typedef struct _return_code_ {
 } ReturnStatus;
 
 extern processPo newProcess(methodPo mtd);
+extern void setupProcess(processPo P,methodPo mtd);
 extern void switchProcessState(processPo p, ProcessState state);
 extern void setProcessRunnable(processPo p);
 extern ProcessState processState(processPo p);

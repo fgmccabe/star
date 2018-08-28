@@ -125,6 +125,7 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_isdir,True,False,"F(S)l","is directory present")
   escape(_file_chmod,True,False,"F(Si)"sysRet,"change mode of a file or directory")
   escape(_ls,True,False,"F(S)LS","return a list of files in a directory")
+  escape(_repo,True,False,"F()S","return the standard repo directory name")
 
   escape(_file_mode,True,False,"F(S)i","report modes of a file")
   escape(_file_present,True,False,"F(S)l","check presence of a file")

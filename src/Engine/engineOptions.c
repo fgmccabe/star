@@ -32,11 +32,12 @@ logical interactive = False;      /* interaction instruction tracing */
 logical runStats = False;         // Count instructions etc.
 
 char CWD[MAXFILELEN] = "";
-char bootPkg[MAX_SYMB_LEN] = "star.boot";  // boot package
 char bootVer[MAX_SYMB_LEN] = "*";
+char bootInit[MAX_SYMB_LEN] = "star.boot@init";
+
 PackageRec bootPkge = {.packageName="star.boot", .version="*"};
 
-char entry[MAX_SYMB_LEN] = "star.boot@__boot";  // entry point class
+char entry[MAX_SYMB_LEN] = "star.boot#__boot";  // entry point
 char debugPkg[MAX_SYMB_LEN] = "";  // Standard debug package
 
 static retCode displayVersion(char *option, logical enable, void *cl) {
@@ -255,8 +256,8 @@ static retCode setWD(char *option, logical enable, void *cl) {
 }
 
 static retCode setBootPkg(char *option, logical enable, void *cl) {
-  uniCpy(bootPkg, NumberOf(bootPkg), option);
   uniCpy(&bootPkge.packageName[0], NumberOf(bootPkge.packageName), option);
+  strMsg(bootInit,NumberOf(bootInit),"%s@init",option);
   return Ok;
 }
 
