@@ -40,7 +40,7 @@
 #define INVALID_SOCKET -1
 #endif
 
-static retCode sockSeek(ioPo io, integer count);
+static retCode sockSeek(filePo io, integer count);
 static retCode sockFill(filePo f);
 static retCode sockFlush(ioPo io, long count);
 static retCode sockConfigure(filePo, ioConfigOpt mode);
@@ -67,17 +67,15 @@ FileClassRec SocketClass = {
     fileInBytes,                        /* inByte  */
     fileOutBytes,                       /* outBytes  */
     fileBackByte,                       //  put a byte back in the buffer
-    fileMark,
-    fileReset,
     fileAtEof,        //  Are we at end of file?
     fileInReady,                        //  readyIn
     fileOutReady,                       //  readyOut
     sockFlush,                          //  flush
-    sockSeek,                           //  seek
     fileClose                           //  close
   },
   {
     sockConfigure,                       //  configure a file
+    sockSeek,                           //  seek
     sockFill                             //  refill the buffer if needed
   }
 };
@@ -324,7 +322,7 @@ static retCode sockFlush(ioPo io, long count) {
   return Ok;
 }
 
-static retCode sockSeek(ioPo io, integer count) {
+static retCode sockSeek(filePo io, integer count) {
   outMsg(logFile, "seek not implemented on sockets");
   return Error;
 }

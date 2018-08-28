@@ -94,6 +94,7 @@ retCode uniTack(char * dest, long len, const char *src);
 retCode uniAppend(char *dest, integer *pos, integer len, char *src);
 retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLen);
 retCode uniReverse(char *dest, integer len);
+char * uniDupl(char *str,integer len);
 
 int64 uniIndexOf(const char *s, integer len, integer from, codePoint c);
 integer uniLastIndexOf(char *s, integer len, codePoint c);

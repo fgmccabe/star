@@ -44,10 +44,6 @@ static retCode nullSeek(ioPo f, integer count);
 
 static retCode nullClose(ioPo f);
 
-static retCode nullMark(ioPo f, integer *mark);
-
-static retCode nullReset(ioPo f, integer mark);
-
 IoClassRec IoClass = {
   {
     (classPo) &LockedClass,               /* parent class is object */
@@ -70,13 +66,10 @@ IoClassRec IoClass = {
     nullInBytes,          /* inByte, abstract for the io class  */
     nullOutBytes,         /* outByte, abstract for the io class  */
     nullOutByte,          /* putbackByte, abstract for the io class  */
-    nullMark,             /* empty mark - return Fail */
-    nullReset,            /* empty reset, returl Fail */
     nullEof,              /* are we at end of file? */
     nullReady,            /* readyIn, abstract for the io class  */
     nullReady,            /* readyOut, abstract for the io class  */
     nullFlusher,          /* flush, abstract for the io class  */
-    nullSeek,             /* seek, abstract for the io class */
     nullClose             /* close, abstract for the io class  */
   }
 };
@@ -136,13 +129,6 @@ static void inheritIo(classPo class, classPo request) {
     if (req->ioPart.flush == O_INHERIT_DEF) {
       if (template->ioPart.flush != O_INHERIT_DEF)
         req->ioPart.flush = template->ioPart.flush;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.seek == O_INHERIT_DEF) {
-      if (template->ioPart.seek != O_INHERIT_DEF)
-        req->ioPart.seek = template->ioPart.seek;
       else
         done = False;
     }
@@ -212,18 +198,6 @@ void closeIo(void) {
 }
 
 /* Byte level input on Io buffers */
-
-byte inB(ioPo f) {
-  byte b;
-  retCode ret = inByte(f, &b);
-  if (ret == Ok)
-    return b;
-  else {
-    ioErrorMsg(f, "problem in reading a byte from %s", fileName(f));
-    return 0;
-  }
-}
-
 retCode inByte(ioPo f, byte *b) {
   byte buff[1];
   integer act;
@@ -260,28 +234,6 @@ retCode putBackByte(ioPo f, byte b) {
 
   if (ret == Ok)
     f->io.inBpos--;
-
-  unlock(O_LOCKED(o));
-  return ret;
-}
-
-retCode markIo(ioPo f, integer *mark) {          /* record a mark in the file, return Ok if allowed */
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((IoClassRec *) f->object.class)->ioPart.mark(f, mark);
-
-  unlock(O_LOCKED(o));
-  return ret;
-}
-
-retCode resetToMark(ioPo f, integer mark) {      /* Rewind file to mark point, if possible */
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((IoClassRec *) f->object.class)->ioPart.reset(f, mark);
 
   unlock(O_LOCKED(o));
   return ret;
@@ -462,32 +414,27 @@ retCode pushBack(ioPo f, char *str, integer from, integer len) {
  * read a line ... up to a terminating character 
  * len should be at least 2 ... one for the final NULL byte
  */
-retCode inLine(ioPo f, char *buffer, integer len, integer *actual, char *term) {
+retCode inLine(ioPo f, bufferPo buffer, char *term) {
   retCode ret = Ok;
   integer tlen = uniStrLen(term);
   objectPo o = O_OBJECT(f);
   integer bPos = 0;
+  rewindBuffer(buffer);
 
   lock(O_LOCKED(o));
 
   if ((f->io.mode & ioREAD) != 0) {
-    while (ret == Ok && --len > 0) { /* we need at least one char for the NULL */
+    while (ret == Ok) { /* we need at least one char for the NULL */
       codePoint ch;
       ret = inChar(f, &ch);
 
       if (ret == Ok) {
-        ret = appendCodePoint(buffer, &bPos, len, ch);
+        ret = outChar(O_IO(buffer),ch);
 
         if (uniIndexOf(term, tlen, 0, ch) >= 0)  /* have we found a terminating byte? */
           break;
       }
     }
-
-    if (ret == Ok && len > 0) {
-      buffer[bPos++] = 0;
-    }
-
-    *actual = bPos;
   } else
     ret = Error;
 
@@ -593,16 +540,6 @@ void flushOut(void)                     /* flush all files */
   unlockClass(ioClass);
 }
 
-retCode ioSeek(ioPo f, integer count) {
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((IoClassRec *) f->object.class)->ioPart.seek(f, count);
-  unlock(O_LOCKED(o));
-  return ret;
-}
-
 /* File opening is specific to the type of file being opened, 
  * but all files can be closed using the same function
  */
@@ -639,39 +576,6 @@ retCode closeFile(ioPo f) {
   return Ok;
 }
 
-retCode skipBlanks(ioPo f) {
-  retCode stat = Error;
-  objectPo o = O_OBJECT(f);
-
-  lock(O_LOCKED(o));
-
-  if ((f->io.mode & ioREAD) != 0) {
-    if (f->io.status != Ok)
-      stat = f->io.status;              /* End of file is a `char' */
-    else {
-      codePoint ch;
-
-      while ((stat = inChar(f, &ch)) == Ok && isZsChar(ch));
-      if (stat == Ok)
-        stat = unGetChar(f, ch);
-    }
-  }
-
-  unlock(O_LOCKED(o));
-  return stat;
-}
-
-retCode outB(ioPo f, byte c) {
-  byte buff[1] = {c};
-  integer act;
-  retCode ret = outBytes(f, &buff[0], NumberOf(buff), &act);
-
-  if (ret == Ok)
-    if (act != 1)
-      return Fail;
-  return ret;
-}
-
 void triggerIo(filterProc filter, void *cl) {
   lockClass(ioClass);
 
@@ -704,10 +608,6 @@ static retCode nullFlusher(ioPo f, long count) {
   return Ok;
 }
 
-static retCode nullSeek(ioPo f, integer count) {
-  return Ok;
-}
-
 static retCode nullClose(ioPo f) {
   return Ok;
 }
@@ -718,35 +618,6 @@ static retCode nullEof(ioPo f) {
 
 static retCode nullReady(ioPo f) {
   return Error;
-}
-
-static retCode nullMark(ioPo f, integer *mark) {
-  return Fail;
-}
-
-static retCode nullReset(ioPo f, integer mark) {
-  return Fail;
-}
-
-/* Access macros & functions */
-retCode wasFileAtEof(ioPo f)    /* Ok if at end of file */
-{
-  retCode ret = f->io.status;
-  objectPo o = O_OBJECT(f);
-
-  lock(O_LOCKED(o));
-
-  if (f->io.status == Ok) {
-    codePoint ch;                         /* we will attempt to read a char */
-    ret = inChar(f, &ch);
-
-    if (ret == Ok)
-      unGetChar(f, ch);
-  } else
-    ret = f->io.status;
-
-  unlock(O_LOCKED(o));
-  return ret;
 }
 
 retCode isFileAtEof(ioPo f)    /* Eof if at end of file */
@@ -795,16 +666,6 @@ char *fileName(ioPo f) {
   return f->io.filename;
 }
 
-integer inBPos(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  integer bPos;
-
-  lock(O_LOCKED(o));
-  bPos = f->io.inBpos;
-  unlock(O_LOCKED(o));
-  return bPos;
-}
-
 integer inCPos(ioPo f) {
   objectPo o = O_OBJECT(f);
   integer cPos;
@@ -823,16 +684,6 @@ integer outBPos(ioPo f) {
   bPos = f->io.outBpos;
   unlock(O_LOCKED(o));
   return bPos;
-}
-
-long outColumn(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  long col;
-
-  lock(O_LOCKED(o));
-  col = f->io.currColumn;
-  unlock(O_LOCKED(o));
-  return col;
 }
 
 retCode isFileOpen(ioPo f) {

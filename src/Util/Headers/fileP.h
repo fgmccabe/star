@@ -22,9 +22,11 @@
 
 typedef retCode (*fileConfProc)(filePo f, ioConfigOpt mode);
 typedef retCode (*fileProc)(filePo f);
+typedef retCode (*seekProc)(filePo f,integer count);
 
 typedef struct {
   fileConfProc configure;               // We use this to configure files */
+  seekProc seek;                        /* called when seeking */
   fileProc filler;                      // We use this to refill the buffer
 } FileClassPartRec;
 
@@ -58,9 +60,6 @@ typedef struct _file_object_ {
   FilePart file;                        // File level of file object
 } FileObject;
 
-void stopAlarm(void);                   // stop the cpu timer from delivering any signals
-void startAlarm(void);                  // enable the virtual timer again
-
 void inheritFile(classPo class, classPo request);
 void initFileClass(classPo class, classPo request);
 void FileInit(objectPo o, va_list *args);
@@ -68,14 +67,12 @@ void FileInit(objectPo o, va_list *args);
 retCode fileInBytes(ioPo f, byte *ch, integer count, integer *actual);
 retCode fileOutBytes(ioPo f, byte *b, integer count, integer *actual);
 retCode fileBackByte(ioPo f, byte b);
-retCode fileMark(ioPo f, integer *mark);
-retCode fileReset(ioPo f, integer mark);
 retCode fileAtEof(ioPo f);
 retCode fileInReady(ioPo f);
 retCode fileOutReady(ioPo f);
 
 retCode fileFlusher(ioPo f, long count);
-retCode fileSeek(ioPo f, integer count);
+retCode flSeek(filePo f, integer count);
 retCode fileClose(ioPo f);
 retCode refillBuffer(filePo f);
 retCode fileFill(filePo f);

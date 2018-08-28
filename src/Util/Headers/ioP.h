@@ -26,19 +26,13 @@ typedef struct _property_ *propertyPo;
 typedef retCode (*ioProc)(ioPo f);
 typedef retCode (*filterProc)(ioPo f,void *cl);
 typedef retCode (*flushProc)(ioPo f,long count);
-typedef retCode (*seekProc)(ioPo f,integer count);
 typedef retCode (*byteOutProc)(ioPo f,byte *cl,integer count,integer *actual);
 typedef retCode (*byteInProc)(ioPo f,byte *ch,integer count,integer *actual);
-typedef retCode (*markProc)(ioPo f,integer *mark);
-typedef retCode (*resetProc)(ioPo f,integer mark);
 
 typedef struct {
   byteInProc read;                      /* procedure to read a byte */
   byteOutProc write;                    /* procedure to write a byte */
   retCode (*backByte)(ioPo io,byte b);  /* procedure to put a byte back in the file */
-
-  markProc mark;                        /* Attempt to place a backtrackable mark */
-  resetProc reset;                      /* Reset to previous mark */
 
   ioProc isAtEof;			                  /* Are we at the end of file? */
 
@@ -46,7 +40,6 @@ typedef struct {
   ioProc outReady;                      /* Called to determine if file can output */
 
   flushProc flush;                      /* Called when file is to be flushed */
-  seekProc seek;                        /* called when seeking */
   ioProc close;                         /* Called when file is to be closed */
 } IoClassPartRec;
   

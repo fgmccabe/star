@@ -69,19 +69,17 @@ PipeClassRec PipeClass = {
   {
     O_INHERIT_DEF,                        // inBytes
     O_INHERIT_DEF,                        // outBytes
-    O_INHERIT_DEF,                        // mark
-    O_INHERIT_DEF,                        // reset
     O_INHERIT_DEF,                        // backByte
     O_INHERIT_DEF,                        // atEof
     O_INHERIT_DEF,                        // readyIn
     O_INHERIT_DEF,                        // readyOut
     O_INHERIT_DEF,                        // flush
-    O_INHERIT_DEF,                        // seek
     O_INHERIT_DEF                         // close
   },
   {
-    O_INHERIT_DEF,                       // configure a pipe
-    O_INHERIT_DEF                        // refill a pipe
+    O_INHERIT_DEF,                        // configure a pipe
+    O_INHERIT_DEF,                        // seek
+    O_INHERIT_DEF                         // refill a pipe
   },
   {
   }
