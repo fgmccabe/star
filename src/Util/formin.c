@@ -115,28 +115,3 @@ retCode parseDouble(const char *s, integer l, double *rslt) {
     return Error;
 }
 
-retCode lookingAt(ioPo in, char *test) {
-  integer mark;
-  retCode ret = markIo(in, &mark);
-
-  if (ret == Ok) { // Can we mark this stream?
-    while (*test != 0) {
-      codePoint ch;
-      ret = inChar(in, &ch);
-      if (ret == Ok && ch == *test++)
-        continue;
-      else if (ret == Ok) {
-        resetToMark(in, mark);
-        return Fail;
-      } else {
-        resetToMark(in, mark);
-        return ret;
-      }
-    }
-    if (*test != 0)
-      resetToMark(in, mark);
-    return ret;
-  }
-
-  return ret;
-}

@@ -47,6 +47,4 @@ retCode parseDouble(const char *s, integer len, double *rslt);
 char * strMsg(char *buffer, long len, char *fmt, ...);
 char * strAppend(byte *buffer, long len, char *fmt, ...);
 
-retCode lookingAt(ioPo in, char *test);
-
 #endif

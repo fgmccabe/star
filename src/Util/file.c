@@ -15,6 +15,7 @@
 
 #include "config.h"    // Invoke configuration header
 #include "fileP.h"
+#include "lineEdit.h"
 
 #include <string.h>
 #include <assert.h>
@@ -62,21 +63,19 @@ FileClassRec FileClass = {
   },
   {},
   {
-    fileInBytes,                        // inByte
-    fileOutBytes,                       // outBytes
-    fileBackByte,                       // put a byte back in the buffer
-    fileMark,                           // Mark the file
-    fileReset,                          // Reset to mark
-    fileAtEof,                          // Are we at end of file?
-    fileInReady,                        // readyIn
-    fileOutReady,                       // readyOut
-    fileFlusher,                        // flush
-    fileSeek,                           // seek
-    fileClose                           // close
+    fileInBytes,                          // inByte
+    fileOutBytes,                         // outBytes
+    fileBackByte,                         // put a byte back in the buffer
+    fileAtEof,                            // Are we at end of file?
+    fileInReady,                          // readyIn
+    fileOutReady,                         // readyOut
+    fileFlusher,                          // flush
+    fileClose                             // close
   },
   {
-    fileConfigure,                       // configure a file
-    fileFill                             // refill the buffer if needed
+    fileConfigure,                        // configure a file
+    flSeek,                               /* seek to a point in the file */
+    fileFill,                             // fill the file buffer
   }
 };
 
@@ -100,12 +99,20 @@ void inheritFile(classPo class, classPo request) {
         done = False;
     }
 
+    if (req->filePart.seek == O_INHERIT_DEF) {
+      if (template->filePart.seek != O_INHERIT_DEF)
+        req->filePart.seek = template->filePart.seek;
+      else
+        done = False;
+    }
+
     if (req->filePart.filler == O_INHERIT_DEF) {
       if (template->filePart.filler != O_INHERIT_DEF)
         req->filePart.filler = template->filePart.filler;
       else
         done = False;
     }
+
     template = (FileClassRec *) (template->objectPart.parent);
   }
 }
@@ -116,7 +123,7 @@ void initFileClass(classPo class, classPo request) {
 
 // IO initialization should already be done at this point
 void FileInit(objectPo o, va_list *args) {
-  filePo f = O_FILE(o);
+  filePo f = (filePo) o;
 
   // Set up the buffer pointers
   f->file.in_pos = 0;
@@ -296,9 +303,8 @@ retCode fileFlusher(ioPo io, long count) {
   return fileFlush(f, count);
 }
 
-retCode fileSeek(ioPo io, integer count) {
-  filePo f = O_FILE(io);
-
+retCode flSeek(filePo f, integer count) {
+  ioPo io = O_IO(f);
   flushFile(io);
 
   if (lseek(f->file.fno, count, SEEK_SET) == -1)
@@ -355,15 +361,15 @@ retCode fileClose(ioPo io) {
 
 /* Regular file functions */
 
-ioPo logFile = NULL;
-/* File to write the log to */
-ioPo stdIn = NULL;
-ioPo stdOut = NULL;
-ioPo stdErr = NULL;
+ioPo logFile = Null;    /* File to write the log to */
+ioPo stdIn = Null;
+ioPo rawStdIn = Null;
+ioPo stdOut = Null;
+ioPo stdErr = Null;
 
 static sigset_t blocked;
 
-void stopAlarm(void)    // stop the cpu timer from delivering alarm signals
+static void stopAlarm(void)    // stop the cpu timer from delivering alarm signals
 {
   sigset_t set;
 
@@ -373,7 +379,7 @@ void stopAlarm(void)    // stop the cpu timer from delivering alarm signals
   sigprocmask(SIG_BLOCK, &set, &blocked);
 }
 
-void startAlarm(void)                   // enable the virtual timer again
+static void startAlarm(void)                   // enable the virtual timer again
 {
   sigprocmask(SIG_SETMASK, &blocked, NULL);
 }
@@ -383,6 +389,20 @@ void startAlarm(void)                   // enable the virtual timer again
 
 retCode refillBuffer(filePo f) {
   return ((FileClassRec *) (f->object.class))->filePart.filler(f);
+}
+
+/*
+ * Read some text - without doing any refilling
+ */
+integer inText(filePo f, char *buffer, integer len) {
+  if (f->file.in_pos < f->file.in_len) {
+    integer cnt = minimum(len, f->file.in_len - f->file.in_pos);
+    for (integer ix = 0; ix < cnt; ix++) {
+      buffer[ix] = f->file.in_line[f->file.in_pos++];
+    }
+    return cnt;
+  } else
+    return 0;
 }
 
 retCode fileFill(filePo f) {
@@ -400,16 +420,11 @@ retCode fileFill(filePo f) {
       switch (lerrno) {
         case EINTR:      // call was interrupted
           f->io.status = Interrupt;
-          // logMsg(logFile,"IO (%d) was interrupted",f->file.fno);
           return Interrupt;
         case EAGAIN:      // Not ready
           f->io.status = Fail;
-          // logMsg(logFile,"IO (%d) was not ready",f->file.fno);
           return Fail;
         default:        // Pretend its uniEOF
-          // logMsg(logFile,"IO issue at fd %d: (%s) %d",f->file.fno,
-          //strerror(lerrno),lerrno);
-
           f->file.in_pos = f->file.in_len = 0;
           return f->io.status = Eof;  // we have reach end of file
       }
@@ -419,10 +434,37 @@ retCode fileFill(filePo f) {
       f->file.bufferPos = f->io.inBpos;
 
       if (len == 0) {
-        //	logMsg(logFile,"IO (%d) ended",f->file.fno);
         return f->io.status = Eof;
       } else {
-        // logMsg(logFile,"read %d bytes from %d",len,f->file.fno);
+        return f->io.status = Ok;
+      }
+    }
+  } else
+    return Ok;        // Already got stuff in there
+}
+
+retCode refillStdIn(filePo f) {
+  if (f->file.in_pos >= f->file.in_len) {  // nead to read more input?
+    integer len;
+    int lerrno;                         // local copy of errno
+
+    stopAlarm();      // Stop the time interrupt
+
+    retCode ret = consoleInput((char *) (f->file.in_line), NumberOf(f->file.in_line), &len);
+
+    startAlarm();      // Restart the timer interrupt
+
+    if (ret != Ok) {        // something wrong?
+      f->file.in_pos = f->file.in_len = 0;
+      return f->io.status = Eof;  // we have reach end of file
+    } else {
+      f->file.in_pos = 0;
+      f->file.in_len = (int16) len;
+      f->file.bufferPos = f->io.inBpos;
+
+      if (len == 0) {
+        return f->io.status = Eof;
+      } else {
         return f->io.status = Ok;
       }
     }
@@ -471,30 +513,6 @@ retCode fileFlush(filePo f, long count) {
   f->file.out_pos = 0;
   f->io.status = Ok;
   return Ok;
-}
-
-retCode fileMark(ioPo f, integer *mark) {
-  if ((fileMode(f) & ioREAD) != ioREAD)
-    return Error;
-  else {
-    *mark = f->io.inBpos;
-    return Ok;
-  }
-}
-
-retCode fileReset(ioPo f, integer mark) {
-  if ((fileMode(f) & ioREAD) != ioREAD)
-    return Error;
-  else {
-    filePo ff = O_FILE(f);
-    if (mark < ff->file.bufferPos || mark > ff->file.in_len)
-      return Fail;
-    else {
-      ff->io.inBpos = mark;
-      ff->file.in_pos = (int16) (mark - ff->file.bufferPos);
-      return Ok;
-    }
-  }
 }
 
 ioEncoding fileEncoding(filePo f) {
@@ -746,6 +764,43 @@ retCode filePresent(char *name) {
 
 /* These only apply to Unix */
 
+// Special class structure for stdin
+
+FileClassRec StdInClass = {
+  {
+    (classPo) &FileClass,                 // parent class is io object
+    "file",                               // this is the file class
+    inheritFile,                          // file inheritance
+    initFileClass,                        // File class initializer, phase I
+    O_INHERIT_DEF,                        // File object element creation
+    NULL,                                 // File objectdestruction
+    O_INHERIT_DEF,                        // erasure
+    FileInit,                             // initialization of a file object
+    sizeof(FileObject),                   // size of a file object
+    O_INHERIT_DEF,                        // Hashcode for files
+    O_INHERIT_DEF,                        // Equality for files
+    NULL,                                 // pool of file values
+    PTHREAD_ONCE_INIT,                    // not yet initialized
+    PTHREAD_MUTEX_INITIALIZER
+  },
+  {},
+  {
+    fileInBytes,                          // inByte
+    fileOutBytes,                         // outBytes
+    fileBackByte,                         // put a byte back in the buffer
+    fileAtEof,                            // Are we at end of file?
+    fileInReady,                          // readyIn
+    fileOutReady,                         // readyOut
+    fileFlusher,                          // flush
+    fileClose                             // close
+  },
+  {
+    fileConfigure,                        // configure a file
+    flSeek,                               // seek
+    refillStdIn                           // fill the file buffer
+  }
+};
+
 /* We pipe our standard through the forked process, so that we may set
    our standard input non-blocking without affecting any other
    processes that may expect the original descriptor to be blocking
@@ -809,9 +864,11 @@ ioPo Stdin(void) {
 #else
     int fd = 0;
 #endif
-    byte stdinName[] = {'s', 't', 'd', 'i', 'n', 0};
 
-    stdIn = O_IO(newObject(fileClass, stdinName, fd, utf8Encoding, ioREAD));
+    rawStdIn = O_IO(newObject(fileClass, "rawstdin", fd, utf8Encoding, ioREAD));
+    configureIo(O_FILE(rawStdIn), turnOnBlocking);
+
+    stdIn = O_IO(newObject((classPo) &StdInClass, "stdin", fd, utf8Encoding, ioREAD));
     configureIo(O_FILE(stdIn), turnOnBlocking);
   }
   return stdIn;
@@ -819,7 +876,7 @@ ioPo Stdin(void) {
 
 ioPo Stdout(void) {
   if (stdOut == NULL) {
-    byte stdoutName[] = {'s', 't', 'd', 'o', 'u', 't', 0};
+    char *stdoutName = "stdout";
 
     stdOut = O_IO(newObject(fileClass, stdoutName, 1, utf8Encoding, ioWRITE));
   }
@@ -828,7 +885,7 @@ ioPo Stdout(void) {
 
 ioPo Stderr(void) {
   if (stdErr == NULL) {
-    byte stderrName[] = {'s', 't', 'd', 'e', 'r', 'r', 0};
+    char *stderrName = "stderr";
 
     stdErr = O_IO(newObject(fileClass, stderrName, 2, utf8Encoding, ioWRITE));
   }
@@ -877,6 +934,16 @@ retCode rewindFile(filePo f) {
     f->io.status = Ok;
     return Ok;
   }
+}
+
+retCode fileSeek(filePo f, integer count) {
+  objectPo o = O_OBJECT(f);
+  retCode ret;
+
+  lock(O_LOCKED(o));
+  ret = ((FileClassRec *) f->object.class)->filePart.seek(f, count);
+  unlock(O_LOCKED(o));
+  return ret;
 }
 
 void pU(char *p) {

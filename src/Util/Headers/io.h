@@ -31,6 +31,7 @@ typedef struct _io_object_ *ioPo;
 extern classPo ioClass;
 
 #include "unistr.h"
+#include "stringBuffer.h"
 
 #ifndef MAXLINE
 #define MAXLINE 1024                  /* Size of a standard line buffer */
@@ -43,26 +44,19 @@ extern classPo ioClass;
 void initIo(void);                      /* Initialize I/O system */
 void closeIo(void);                     /* Close down the I/O system */
 
-byte inB(ioPo f);                     /* read a single byte */
 retCode inByte(ioPo f, byte *ch);      /* read a single byte -- with status */
 retCode inBytes(ioPo f, byte *buffer, integer len, integer *actual); /* read a block of bytes */
 retCode putBackByte(ioPo f, byte b);
-
-retCode markIo(ioPo f, integer *mark);          /* record a mark in the file, return Ok if allowed */
-retCode resetToMark(ioPo f, integer mark);      /* Rewind file to mark point, if possible */
 
 retCode isLookingAt(ioPo f, char *prefix);    /* Is prefix the first thing in the file? */
 
 retCode inChar(ioPo f, codePoint *ch);     /* read a character */
 retCode unGetChar(ioPo f, codePoint ch);   /* put a single character back */
-retCode inLine(ioPo f, char *buffer, integer len, integer *actual, char *term);
-
-retCode inBlock(ioPo f, byte *buffer, long len);
+retCode inLine(ioPo f, bufferPo buffer, char *term);
 
 retCode skipShellPreamble(ioPo f);
 
 retCode pushBack(ioPo f, char *str, integer from, integer len);
-retCode skipBlanks(ioPo f);
 
 retCode outByte(ioPo f, byte c);
 retCode outChar(ioPo f, codePoint ch);
@@ -71,7 +65,7 @@ retCode outBytes(ioPo f, byte *data, integer len, integer *actual);
 
 retCode outText(ioPo f, const char *text, integer len);
 retCode outStr(ioPo f, char *str);
-long outColumn(ioPo f);                 /* return number of chars since lf */
+/* return number of chars since lf */
 
 retCode closeFile(ioPo f);            /* generic file closer */
 retCode flushFile(ioPo f);            /* generic file flush */
@@ -89,24 +83,14 @@ retCode fileStatus(ioPo f);
 
 char * fileName(ioPo f);
 ioDirection fileMode(ioPo f);
-integer inBPos(ioPo f);
 integer inCPos(ioPo f);
 integer outBPos(ioPo f);
-retCode ioSeek(ioPo f, integer pos);
 
 typedef retCode (*ioPropertyFun)(ioPo f, void *k, void *v, void *c); /* Processing func */
-
-retCode setFileProperty(ioPo f, void *key, void *val);
-void removeFileProperty(ioPo f, void *key);
-retCode fileProperty(ioPo f, void *key, void **val);
-retCode processFileProperties(ioPo f, ioPropertyFun fn, void *c);
-retCode processAllFileProperties(ioPropertyFun f, void *c);
 
 retCode ioErrorMsg(ioPo io, char *fmt, ...);
 
 #ifdef VERIFY_OBJECT
-objectPo checkCast(void *c, classPo class);
-
 #define O_IO(c) ((ioPo)(checkCast((c),ioClass)))
 #else
 #define O_IO(c) ((ioPo)(c))

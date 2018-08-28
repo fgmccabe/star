@@ -19,7 +19,7 @@
 #include "config.h"
 #include "io.h"
 
-extern ioPo stdIn;		/* Standard input  */
+extern ioPo rawStdIn,stdIn;		/* Standard input  */
 extern ioPo stdOut;		/* Standard output */
 extern ioPo stdErr;		/* Standard error */
 
@@ -45,6 +45,8 @@ retCode isRegularFile(char * fname);
 retCode isDirectory(char * fname);
 logical isExecutableFile(char *file);
 
+integer inText(filePo f,char *buffer,integer len);
+
 ioPo Stdin(void);
 ioPo Stdout(void);
 ioPo Stderr(void);
@@ -56,15 +58,15 @@ retCode configureIo(filePo f,ioConfigOpt mode);
 logical isFileBlocking(filePo f);
 logical isFileAsynch(filePo f);
 
+retCode fileSeek(filePo f, integer pos);
+
 void setup_stdin(void);
 void reset_stdin(void);
 retCode initLogfile(char * name);
 extern ioPo logFile;		/* The standard place to write logging msgs */
 
 #ifdef VERIFY_OBJECT
-objectPo checkCast(void *c,classPo class);
-
-#define O_FILE(c) ((filePo)(checkCast((c),fileClass)))
+#define O_FILE(c) ((filePo)(checkCast((c),ioClass)))
 #else
 #define O_FILE(c) ((filePo)(c))
 #endif

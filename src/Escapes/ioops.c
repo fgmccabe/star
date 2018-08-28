@@ -387,10 +387,10 @@ ReturnStatus g__fposition(processPo p, ptrPo tos) {
 ReturnStatus g__fseek(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
-  ioPo io = ioChannel(C_IO(Arg1));
+  filePo io = O_FILE(ioChannel(C_IO(Arg1)));
   integer pos = integerVal(Arg2);
 
-  return rtnStatus(p, ioSeek(io, pos), "_fseek");
+  return rtnStatus(p, fileSeek(io, pos), "_fseek");
 }
 
 ReturnStatus g__setfileencoding(processPo p, ptrPo tos) {

@@ -34,8 +34,6 @@ typedef struct _host_object_ *hostPo;
 extern classPo hostClass;
 
 #ifdef VERIFY_OBJECT
-objectPo checkCast(void *c,classPo class);
-
 #define O_HOST(c) ((hostPo)(checkCast((c),hostClass)))
 #else
 #define O_HOST(c) ((hostPo)(c))
