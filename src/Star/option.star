@@ -1,5 +1,6 @@
 star.option{
   import star.core.
+  import star.coerce.
   import star.arith.
   import star.lists.
   import star.strings.
@@ -56,4 +57,9 @@ star.option{
     _handle(some(X),_) => some(X).
     _handle(none,E) => E(()).
   }
+
+  public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {.
+    _coerce(some(X)) => some(_coerce(X)).
+    _coerce(none) => none.
+  .}
 }
