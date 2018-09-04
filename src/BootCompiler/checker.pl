@@ -700,7 +700,8 @@ funLbl(mtd(_,Nm,_),Nm).
 
 typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
   newTypeVar("F",FnTp),
-  newTypeVar("A",At),
+  genTpVars(A,Vrs),
+  At = tupleType(Vrs),
   typeOfKnown(F,FnTp,Env,E0,Fun,Path),
   simplifyType(FnTp,Env,_,[],FTp),
   evidence(At,E0,_,AT),
