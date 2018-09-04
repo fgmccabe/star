@@ -184,6 +184,8 @@ static void defineSig(mtdPo mtd, char *sig) {
 
 static assemInsPo asm_i32(mtdPo mtd, OpCode op, int32 ix);
 
+static assemInsPo asm_art(mtdPo mtd, OpCode op, int32 ix);
+
 void defineFrame(mtdPo mtd, char *sig) {
   asm_i32(mtd, Frame, newStringConstant(mtd, sig));
 }
@@ -312,6 +314,7 @@ void endFunction(mtdPo mtd) {
 #define sznOp
 #define sztOs
 #define szi32 pc+=sizeof(int32);
+#define szart pc+=sizeof(int32);
 #define szarg pc+=sizeof(int32);
 #define szlcl pc+=sizeof(int32);
 #define szlcs pc+=sizeof(int32);
@@ -332,6 +335,7 @@ void endFunction(mtdPo mtd) {
 #undef sznOp
 #undef sztOs
 #undef sztos
+#undef szart
 #undef szi32
 #undef szarg
 #undef szlcl
@@ -421,6 +425,9 @@ static void fixup_tOs(assemInsPo ins) {
 }
 
 static void fixup_i32(assemInsPo ins) {
+}
+
+static void fixup_art(assemInsPo ins) {
 }
 
 static void fixup_arg(assemInsPo ins) {
@@ -695,6 +702,12 @@ static assemInsPo asm_i32(mtdPo mtd, OpCode op, int32 ix) {
   return ins;
 }
 
+static assemInsPo asm_art(mtdPo mtd, OpCode op, int32 ix) {
+  assemInsPo ins = newIns(mtd, op);
+  ins->i = ix;
+  return ins;
+}
+
 static assemInsPo asm_arg(mtdPo mtd, OpCode op, int32 ix) {
   assemInsPo ins = newIns(mtd, op);
   ins->i = ix;
@@ -757,6 +770,9 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define opi32(X) ,int32 i##X
 #define argi32(X) , i##X
 
+#define opart(X) ,int32 i##X
+#define argart(X) , i##X
+
 #define oparg(X) ,int32 i##X
 #define argarg(X) , i##X
 
@@ -792,6 +808,8 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef opnOp
 #undef argtOs
 #undef argnOp
+#undef argart
+#undef opart
 #undef opi32
 #undef argi32
 #undef oparg
@@ -820,6 +838,7 @@ int32 codeSize(mtdPo mtd) {
 
 #define sznOp
 #define sztOs
+#define szart pc+=(sizeof(int32)/sizeof(uint16));
 #define szi32 pc+=(sizeof(int32)/sizeof(uint16));
 #define szarg pc+=(sizeof(int32)/sizeof(uint16));
 #define szlcl pc+=(sizeof(int32)/sizeof(uint16));
@@ -839,6 +858,7 @@ int32 codeSize(mtdPo mtd) {
 
 #undef instruction
 #undef sztos
+#undef szart
 #undef szi32
 #undef szarg
 #undef szlcl
@@ -894,6 +914,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 
 #define sznOp
 #define sztOs
+#define szart if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szi32 if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szarg if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szlcl if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
@@ -913,7 +934,8 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 
 #undef instruction
 #undef sztos
-#undef szi32
+#undef szart
+#undef szarg
 #undef szarg
 #undef szlcl
 #undef szlcs

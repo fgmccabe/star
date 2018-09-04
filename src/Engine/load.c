@@ -307,7 +307,9 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *err
   switch (op) {
 #define sznOp
 #define sztOs
+#define szart if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szi32 if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
+#define szart if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szlcs if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
@@ -326,6 +328,7 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *err
 
 #undef instruction
 #undef szi32
+#undef szart
 #undef szarg
 #undef szlcl
 #undef szlcs

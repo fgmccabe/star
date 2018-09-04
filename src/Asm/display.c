@@ -23,6 +23,10 @@ static retCode disp_i32(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "%s %d\n", op, ins->i);
 }
 
+static retCode disp_art(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
+  return outMsg(f, "%s %d\n", op, ins->i);
+}
+
 static retCode disp_arg(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "%s a[%d]\n", op, ins->i);
 }
@@ -134,9 +138,9 @@ retCode dumpMethod(void *n, void *r, void *c) {
 
 retCode showImport(void *n, void *r, void *c) {
   ioPo out = (ioPo) c;
-  importPo imp = (importPo)r;
+  importPo imp = (importPo) r;
 
-  return outMsg(out, "%simport %P\n",imp->isPublic?"public ":"",&imp->pkg);
+  return outMsg(out, "%simport %P\n", imp->isPublic ? "public " : "", &imp->pkg);
 }
 
 void dumpPkgCode(pkPo pkg) {
