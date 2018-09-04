@@ -40,7 +40,7 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
 retCode parseTemplateVar(bufferPo str, ioPo plate, char **reslt, hashPo vars, strProc defltPrc, void *cl) {
   codePoint ch;
   retCode ret = Ok;
-  rewindBuffer(str);
+  clearBuffer(str);
   while (ret == Ok) {
     ret = inChar(plate, &ch);
     if (ret == Ok) {

@@ -360,12 +360,12 @@ ReturnStatus g__str_concat(processPo p, ptrPo tos) {
   integer rlen;
   const char *rhs = stringVal(Arg2, &rlen);
 
-  integer len = llen + rlen;
+  integer len = llen + rlen + 1;
   char buff[len];
   uniNCpy(buff, len, lhs, llen);
   uniNCpy(&buff[llen], len - llen, rhs, rlen);
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), buff, len)};
+  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), buff, llen + rlen)};
   return rt;
 }
 

@@ -18,8 +18,9 @@
 #include "tpl.h"
 
 ReturnStatus g__cwd(processPo p, ptrPo tos) {
-  char *wd = processWd(p);
-  termPo cwd = (termPo) allocateString(processHeap(p), wd, uniStrLen(wd));
+  char cwBuffer[MAXFILELEN];
+  strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(p));
+  termPo cwd = (termPo) allocateString(processHeap(p), cwBuffer, uniStrLen(cwBuffer));
 
   ReturnStatus rtn = {.rslt = cwd, .ret=Ok};
   return rtn;
@@ -306,10 +307,10 @@ ReturnStatus g__file_present(processPo p, ptrPo tos) {
   char *acFn = resolveFileName(p, fn, fnLen, buff, NumberOf(buff));
 
   switchProcessState(p, wait_io);
-  retCode present = filePresent(acFn);
+  termPo present = filePresent(acFn)==Ok ? trueEnum : falseEnum;
   setProcessRunnable(p);
 
-  ReturnStatus ret = {.ret=Ok, .rslt = present ? trueEnum : falseEnum};
+  ReturnStatus ret = {.ret=Ok, .rslt = present};
 
   return ret;
 }
