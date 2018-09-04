@@ -25,7 +25,7 @@ star.compiler.lexer{
   nxxTok(0c0,St,St0) where (Nx,Ch)^=nextChr(St) => let{
     numericTok(0cc,St1) where (Nxt,ChC) ^= charRef(St1) =>
       some((Nxt,tok(makeLoc(St0,Nxt),intTok(ChC)))).
-    numericTok(0cx,St1) where (Nxt,Hx) ^= hexChar(Nx,0) =>
+    numericTok(0cx,St1) where (Nxt,Hx) ^= hexChars(Nx,0) =>
       some((Nxt,tok(makeLoc(St0,Nxt),intTok(Hx)))).
     numericTok(_,_) default => readNumber(St0).
   } in numericTok(Ch,Nx).
@@ -119,14 +119,14 @@ star.compiler.lexer{
   backslashRef(St,0ct) => some((St,0c\t)).
   backslashRef(St,0cn) => some((St,0c\n)).
   backslashRef(St,0cr) => some((St,0c\r)).
-  backslashRef(St,0cu) => hexChar(St,0).
+  backslashRef(St,0cu) => hexChars(St,0).
   backslashRef(St,Ch) => some((St,Ch)).
 
-  hexChar:(tokenState,integer) => option[(tokenState,integer)].
-  hexChar(St,Hx) where Nx^=lookingAt(St,[0c;]) => some((Nx,Hx)).
-  hexChar(St,Hx) where Hd^=hedChar(St) && Dg^=isHexDigit(Hd) =>
-    hexChar(nxtSt(St),Hx*16+Dg).
-  hexChar(St,Hx) => some((St,Hx)).
+  hexChars:(tokenState,integer) => option[(tokenState,integer)].
+  hexChars(St,Hx) where Nx^=lookingAt(St,[0c;]) => some((Nx,Hx)).
+  hexChars(St,Hx) where Hd^=hedChar(St) && Dg^=isHexDigit(Hd) =>
+    hexChars(nxtSt(St),Hx*16+Dg).
+  hexChars(St,Hx) => some((St,Hx)).
 
   readNumber:(tokenState) => option[(tokenState,token)].
   readNumber(St) where (Nx,Mn) ^= readNatural(St,0) => readMore(Nx,St,Mn).
