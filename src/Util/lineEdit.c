@@ -31,7 +31,7 @@ retCode consoleInput(char *buffer, integer buffLen, integer *read) {
   retCode ret = Ok;
 
   if (isFileAtEof(O_IO(currLine)) == Eof) {
-    rewindBuffer(currLine);
+    clearBuffer(currLine);
     integer currPos = 0;
 
     while (ret == Ok) {
@@ -44,10 +44,8 @@ retCode consoleInput(char *buffer, integer buffLen, integer *read) {
           if (editCmd->c == ch) {
             ret = editCmd->cmd(ch, editCmd->cl);
             if (ret == Eof) {
-              *read = textFromBuffer(currLine, buffer, buffLen);
-              return Ok;
-            }
-            else
+              return inBytes(O_IO(currLine), (byte *) buffer, buffLen, read);
+            } else
               goto contLoop;
           }
         }
@@ -57,8 +55,7 @@ retCode consoleInput(char *buffer, integer buffLen, integer *read) {
     }
   }
 
-  *read = textFromBuffer(currLine, buffer, buffLen);
-  return ret;
+  return inBytes(O_IO(currLine), (byte *) buffer, buffLen, read);
 }
 
 retCode endLine(codePoint ch, void *cl) {

@@ -82,7 +82,7 @@ static void BufferInit(objectPo o, va_list *args) {
   f->buffer.bufferSize = va_arg(*args, integer); /* set up the buffer */
   f->io.mode = va_arg(*args, ioDirection); /* set up the access mode */
   f->buffer.resizeable = va_arg(*args, logical); /* is this buffer resizeable? */
-  if (isReadingFile(O_IO(f)))
+  if (isReadingFile(O_IO(f)) == Ok && isWritingFile(O_IO(f)) != Ok)
     f->buffer.size = f->buffer.bufferSize;
   else
     f->buffer.size = 0;
@@ -234,6 +234,14 @@ bufferPo newStringBuffer() {
   byte *buffer = (byte *) malloc(sizeof(byte) * 128);
 
   return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, 128, ioWRITE, True));
+}
+
+bufferPo newReadStringBuffer(char *text) {
+  char name[MAX_SYMB_LEN];
+
+  strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
+
+  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, text, uniStrLen(text), ioREAD, False));
 }
 
 bufferPo newIoStringBuffer() {

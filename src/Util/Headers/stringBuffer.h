@@ -31,6 +31,7 @@ extern classPo bufferClass;
 
 bufferPo newStringBuffer();
 bufferPo newIoStringBuffer();
+bufferPo newReadStringBuffer(char *text);
 bufferPo fixedStringBuffer(char * buffer, long len);
 
 char * getTextFromBuffer(integer *len, bufferPo s);
