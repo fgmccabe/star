@@ -43,16 +43,9 @@ retCode bootstrap(char *entry, char *init) {
   labelPo umain = declareLbl(entry, 0);
   methodPo mainMtd = labelCode(umain);
 
-  labelPo uinit = declareLbl(init, 0);
-  methodPo initMtd = labelCode(uinit);
-
-  if (mainMtd != Null && initMtd != Null) {
-    processPo p = newProcess(initMtd);
+  if (mainMtd != Null) {
+    processPo p = newProcess(mainMtd);
     retCode ret = run(p);
-    if(ret==Ok && uniCmp(entry,init)!=same){
-      setupProcess(p,mainMtd);
-      ret = run(p);
-    }
     ps_kill(p);
     return ret;
   } else {
@@ -102,8 +95,7 @@ processPo newProcess(methodPo mtd) {
   return P;
 }
 
-
-void setupProcess(processPo P,methodPo mtd) {
+void setupProcess(processPo P, methodPo mtd) {
   P->prog = mtd;
   P->pc = entryPoint(mtd);
   P->heap = currHeap;
@@ -169,7 +161,7 @@ retCode extendStack(processPo p, integer sfactor) {
     ptrPo sp = p->sp;
     methodPo mtd = p->prog;
 
-    while (sp < (ptrPo) p->stackLimit) {
+    while (fp < (framePo) p->stackLimit) {
       ptrPo nsp = realign(sp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
       framePo nfp = (framePo) realign((ptrPo) fp, (ptrPo) p->stackBase, (ptrPo) p->stackLimit, (ptrPo) nLimit);
       nfp->prog = fp->prog;

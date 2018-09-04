@@ -42,6 +42,9 @@ retCode run(processPo P) {
 
   register ptrPo SP = P->sp;         /* Current 'top' of stack (grows down) */
 
+  // Set up a call to the entry point
+
+
   register uint32 hi32, lo32;    /* Temporary registers */
 
   for (;;) {
@@ -64,7 +67,8 @@ retCode run(processPo P) {
         termPo msg = pop();
 
         logMsg(logFile, "Abort %T", msg);
-
+        saveRegisters(P,SP);
+        dumpStackTrace(P, logFile);
         return Error;
       }
 
