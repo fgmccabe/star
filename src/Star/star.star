@@ -7,6 +7,7 @@ star{
   public import star.coerce.
   public import star.collection.
   public import star.cons.
+  public import star.q.
   public import star.display.
   public import star.index.
   public import star.either.
