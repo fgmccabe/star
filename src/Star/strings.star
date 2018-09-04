@@ -1,5 +1,6 @@
 star.strings{
   import star.core.
+  import star.arith.
   import star.coerce.
 
   -- and strings ...
@@ -86,7 +87,7 @@ star.strings{
   isHexDigit(_) default => none.
 
   public isSpace:(integer) => boolean.
-  isSpace(Ch) => _isZsChar(Ch).
+  isSpace(Ch) => (_isZsChar(Ch) || _isZlChar(Ch) || Ch==0c\n || Ch==0c\t).
 
   public isLetter:(integer) => boolean.
   isLetter(Ch) => _isLetterChar(Ch).
