@@ -46,8 +46,6 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
     if (prog == Null) {
       return ret;
     } else {
-      P->sp += 3;                   // Remove existing arguments
-
       for (int ax = 0; ax < arity; ax++)
         push(P, nthEl(args, arity-ax));
 
@@ -63,6 +61,8 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
         P->sp[ix] = voidEnum;
 #endif
       assert(P->sp > (ptrPo) P->stackBase);
+      P->prog = prog;
+
       ret.ret = Fail;               // Special flag for dynamic call
       return ret;
     }

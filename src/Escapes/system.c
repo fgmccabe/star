@@ -169,7 +169,9 @@ ReturnStatus g__setenv(processPo P, ptrPo tos) {
 }
 
 ReturnStatus g__repo(processPo p, ptrPo tos) {
-  termPo repo = (termPo) allocateString(processHeap(p), repoDir, uniStrLen(repoDir));
+  char repoBuffer[MAXFILELEN];
+  strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
+  termPo repo = (termPo) allocateString(processHeap(p), repoBuffer, uniStrLen(repoBuffer));
 
   ReturnStatus rtn = {.rslt = repo, .ret=Ok};
   return rtn;

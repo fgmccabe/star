@@ -312,7 +312,7 @@ ReturnStatus g__show(processPo p, ptrPo tos) {
   termPo Arg2 = tos[1];
   integer length;
   const char *text = stringVal(Arg2, &length);
-  retCode ret = outMsg(logFile,"%L: %S\n%_",Lc,text,length);
+  retCode ret = outMsg(logFile, "%L: %S\n%_", Lc, text, length);
 
   return rtnStatus(p, ret, "_show");
 }
@@ -341,7 +341,7 @@ ReturnStatus g__put_file(processPo p, ptrPo tos) {
 ReturnStatus g__logmsg(processPo p, ptrPo tos) {
   integer length;
   const char *text = stringVal(tos[0], &length);
-  retCode ret = outText(logFile, text, length);
+  retCode ret = logMsg(logFile, "%S", (char *) text, length);
 
   return rtnStatus(p, ret, "logmsg");
 }
