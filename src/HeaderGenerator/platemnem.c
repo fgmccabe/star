@@ -134,6 +134,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
     case glb:
     case Es:
     case i32:
+    case art:
     case arg:
     case lcl:
     case lcs:
@@ -160,6 +161,7 @@ static void genCode(ioPo out, int op, opAndSpec A) {
       outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).\n");
       return;
     case i32:
+    case art:
     case arg:
     case lcl:
     case lcs:
@@ -216,6 +218,7 @@ void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
     case lit:
     case i32:
+    case art:
     case arg:
     case lcl:
     case lcs:
@@ -239,6 +242,7 @@ void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
     case lit:
     case i32:
+    case art:
     case arg:
     case lcl:
     case lcs:
@@ -261,6 +265,7 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
     case lit:
     case i32:
+    case art:
     case arg:
     case lcl:
     case lcs:
@@ -300,6 +305,7 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
 
     case i32:
+    case art:
     case arg:
       outMsg(out, "  appInt(XX,O1,O2),\n");
       outMsg(out, "  appNl(O2,O3),\n");
@@ -322,6 +328,7 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
     case lit:
     case i32:
+    case art:
     case arg:
     case lcl:
     case lcs:

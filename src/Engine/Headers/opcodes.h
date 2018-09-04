@@ -41,6 +41,7 @@ typedef enum {
   nOp,                                   // No operand
   tOs,
   i32,          /* 32 bit literal operand */
+  art,          /* Arity */
   arg,          /* argument variable offset */
   lcl,          /* local variable offset */
   lcs,        // Store to local variable

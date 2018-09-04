@@ -234,6 +234,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
     case tOs:
       break;
     case i32:          /* 32 bit literal operand */
+    case art:          // Arity
     case arg:          /* argument variable offset */
     case lcl:          /* local variable offset */
     case lcs: {        // Store to local variable
@@ -347,6 +348,7 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
       return Ok;
     case tOs:
       return Ok;
+    case art:
     case i32: {                     /* 32 bit literal operand */
       collect32(base, pc);
       return Ok;
