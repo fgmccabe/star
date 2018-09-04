@@ -12,6 +12,7 @@ extern termPo getLbl(termPo lbl,int32 arity);
 extern DebugWaitFor insDebug(integer pcCount, processPo p);
 extern DebugWaitFor lineDebug(processPo p, termPo ln);
 extern DebugWaitFor callDebug(processPo p, termPo call);
+extern DebugWaitFor oCallDebug(processPo p, termPo call,termPo lbl);
 extern DebugWaitFor tailDebug(processPo p, termPo call);
 extern DebugWaitFor retDebug(processPo p, termPo val);
 
@@ -21,5 +22,8 @@ extern integer pcCount;     /* How many instructions executed so far? */
 extern void countIns(insWord ins);
 extern void dumpInsCount();
 extern void dumpInsStats();
+
+extern void stackTrace(processPo p, ioPo out, logical showStack);
+extern void dumpStackTrace(processPo p, ioPo out);
 
 #endif //CAFE_DEBUG_H

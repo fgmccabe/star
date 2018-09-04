@@ -38,6 +38,7 @@ typedef struct _gc_support_ *gcSupportPo;
 typedef struct _global_gc_support_ *globalGcPo;
 
 extern void validPtr(heapPo H, termPo t);
+extern void inStackPtr(processPo P,ptrPo o);
 extern void verifyHeap(heapPo H);
 
 extern termPo markPtr(gcSupportPo G, ptrPo p);

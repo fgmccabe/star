@@ -37,9 +37,13 @@ static inline int32 collect32(insPo pc) {
 #define collectI32(pc) (collI32(pc))
 #define collI32(pc) hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<16)|lo32)
 
-retCode g__ins_debug(processPo P, ptrPo a) {
+ReturnStatus g__ins_debug(processPo P, ptrPo a) {
   insDebugging = tracing = True;
-  return Ok;
+  P->waitFor = stepInto;
+  P->tracing = True;
+  P->traceCount = 0;
+
+  return rtnStatus(P, Ok, "_ins_debug");
 }
 
 static integer cmdCount(char *cmdLine, integer deflt) {
@@ -160,17 +164,17 @@ static DebugWaitFor
 cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   static bufferPo cmdBuffer = Null;
 
-  if(cmdBuffer==Null)
+  if (cmdBuffer == Null)
     cmdBuffer = newStringBuffer();
 
   while (interactive) {
     outMsg(stdErr, " => ");
     flushFile(stdErr);
-
+    clearBuffer(cmdBuffer);
     retCode res = inLine(stdIn, cmdBuffer, "\n");
 
     integer cmdLen = 0;
-    char *cmdLine = getTextFromBuffer(&cmdLen,cmdBuffer);
+    char *cmdLine = getTextFromBuffer(&cmdLen, cmdBuffer);
 
     if (res == Ok) {
       for (int ix = 0; ix < optCount; ix++) {
@@ -361,6 +365,27 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
   flushFile(out);
 }
 
+void dumpStackTrace(processPo p, ioPo out) {
+  heapPo h = processHeap(p);
+  methodPo mtd = p->prog;
+  framePo fp = p->fp;
+  insPo pc = p->pc;
+
+  integer frameNo = 0;
+
+  outMsg(out, "stack trace for p: 0x%x\n", p);
+
+  while (fp->fp < (framePo) p->stackLimit) {
+    outMsg(out, "[%d] %T[%d]\n%_", frameNo, mtd, (integer) (pc - mtd->code));
+
+    mtd = fp->prog;
+    pc = fp->rtn;
+    fp = fp->fp;
+    frameNo++;
+  }
+  flushFile(out);
+}
+
 static DebugWaitFor dbgShowCode(char *line, processPo p, void *cl) {
   integer count = maximum(1, cmdCount(line, 1));
   methodPo mtd = p->prog;
@@ -400,14 +425,14 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, void *cl) {
 
   integer frameNo = 0;
 
-  while (frameNo < count && sp < (ptrPo) p->stackLimit) {
+  while (frameNo < count && fp < (framePo) p->stackLimit) {
     mtd = fp->prog;
     sp = (ptrPo) (fp + 1);
     fp = fp->fp;
     frameNo++;
   }
 
-  if (sp < (ptrPo) p->stackLimit) {
+  if (fp < (framePo) p->stackLimit) {
     p->prog = mtd;
     p->pc = entryPoint(mtd);
 
@@ -456,6 +481,7 @@ DebugWaitFor insDebug(integer pcCount, processPo p) {
   if (p->tracing || stopping) {
     outMsg(stdErr, "[%d]: ", pcCount);
     disass(stdErr, p, mtd, pc, fp, sp);
+
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
@@ -620,13 +646,13 @@ void stackSummary(ioPo out, processPo P, ptrPo sp) {
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   integer count = argCount(mtd);
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(out, "A[%d] = %T\n", ix + 1, fp->args[ix]);
+    outMsg(out, "A[%d] = %T\n", ix, fp->args[ix]);
   }
 }
 
 retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null)
-    return outMsg(out, " a[%d] = %T", arg, fp->args[arg - 1]);
+    return outMsg(out, " a[%d] = %T", arg, fp->args[arg]);
   else
     return outMsg(out, " a[%d]", arg);
 }
@@ -688,6 +714,16 @@ void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   }
 }
 
+void showTopOfStack(ioPo out, processPo p, methodPo mtd, integer cnt, framePo fp, ptrPo sp) {
+  ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
+  char *sep = " ";
+
+  for (integer ix = 0; ix < cnt && sp < stackTop; ix++, sp++) {
+    outMsg(out, "%s%T\n", sep, *sp);
+    sep = ", ";
+  }
+}
+
 void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp) {
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
 
@@ -713,6 +749,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 
 #define show_nOp
 #define show_tOs showTos(out,fp,sp)
+#define show_art showTopOfStack(out,p,mtd,collectI32(pc),fp,sp)
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)

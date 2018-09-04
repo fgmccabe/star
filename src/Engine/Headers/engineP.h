@@ -68,7 +68,7 @@ processPo runerr(processPo); /* non-fatal error */
 
 void displayProcesses(void);
 void displayProcess(processPo p);
-void stackTrace(processPo p, ioPo out, logical showStack);
+
 void verifyProc(processPo p, struct _gc_support_ *G);
 
 retCode extendStack(processPo p, integer sfactor);

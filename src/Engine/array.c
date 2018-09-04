@@ -121,15 +121,19 @@ retCode sliceDisp(ioPo out, termPo t, integer precision, integer depth, logical 
   if (depth > 0) {
     integer ix = list->start;
     integer lx = ix + list->length;
+    integer maxIx = (precision==0?list->length+1:precision);
 
     char *sep = "";
 
-    while (ret == Ok && ix < lx) {
+    while (ret == Ok && ix < lx && maxIx-->0) {
       ret = outStr(out, sep);
       sep = ", ";
       if (ret == Ok)
         ret = dispTerm(out, base->els[ix], precision, depth - 1, alt);
       ix++;
+    }
+    if(ret==Ok && maxIx<=0){
+      ret = outStr(out,"..");
     }
   } else if (ret == Ok)
     ret = outStr(out, "..");
