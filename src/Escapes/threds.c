@@ -8,6 +8,7 @@
 #include <errno.h>
 #include "threds.h"
 #include <globals.h>
+#include "debug.h"
 
 static const char *state_names[] = {"star.thread#quiescent",
                                     "star.thread#runnable",
@@ -127,13 +128,14 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
   termPo msg = tos[1];
 
   logMsg(logFile, "Abort %T at %L", msg, lc);
+  stackTrace(P,logFile,True);
 
   ReturnStatus rt = {.ret=Error, .rslt=(termPo) voidEnum};
   return rt;
 }
 
 ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
-  stackTrace(P, NULL, False);
+  stackTrace(P, logFile, False);
 
   ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};
   return rt;

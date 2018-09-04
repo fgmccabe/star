@@ -58,7 +58,7 @@ labelPo declareEnum(const char *name) {
 }
 
 labelPo findLbl(const char *name, integer arity) {
-  LblRecord tst = {.name=(char *) name, .arity=arity};
+  LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
   return hashGet(labels, &tst);
 }
 

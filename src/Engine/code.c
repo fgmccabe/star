@@ -84,9 +84,11 @@ integer mtdHash(specialClassPo cl, termPo o) {
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
   normalPo pool = codeLits(mtd);
-  labelPo lbl = C_LBL(nthArg(pool, 0));
-
-  return showLbl(out, precision, alt, lbl);
+  if(pool!=Null){
+    labelPo lbl = C_LBL(nthArg(pool, 0));
+    return showLbl(out, precision, alt, lbl);
+  } else
+    return outMsg(out,"<unknown mtd>");
 }
 
 methodPo

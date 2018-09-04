@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <threds.h>
 
 #include "heapP.h"
 #include "codeP.h"
@@ -98,6 +99,10 @@ extern void releaseHeapLock(heapPo H) {
 
 void validPtr(heapPo H, termPo t) {
   assert((t >= H->start && t < H->limit) || !(t >= H->base && t < H->outerLimit));
+}
+
+void inStackPtr(processPo P,ptrPo o){
+  assert(o>=(ptrPo)P->stackBase && o<(ptrPo)P->stackLimit);
 }
 
 static retCode verifyScanHelper(ptrPo arg, void *c) {
