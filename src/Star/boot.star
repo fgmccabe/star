@@ -28,8 +28,8 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() =>
-    handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions(_cwd(),_repo()))).
+  __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) =>
+    handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()))).
 
   handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>().
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
@@ -37,6 +37,7 @@ star.boot{
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
+    -- _ .= logMsg("Manifest = \(Repo)") &&
     Pkg ^= parsePkgName(Top) &&
     _ .= importPkgs([Pkg],[],Repo) &&
     _ .= initialize(Pkg) =>
