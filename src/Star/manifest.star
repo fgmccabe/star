@@ -4,6 +4,7 @@ star.repo.manifest{
   import star.parse.
   import star.pkg.
   import star.repo.
+  import star.resources.
 
   public manifest ::= man(map[string,pEntry]).
 
@@ -49,7 +50,9 @@ star.repo.manifest{
 
   public locateInManifest:(manifest,pkg,string) => option[string].
   locateInManifest(man(M),pkg(P,V),K) where
-    _index(M,P) =. some(pEntry(_,Vs)) =>
+    _ .= _ins_debug() &&
+    _index(M,P) =. some(pEntry(_,Vs)) &&
+    _ .= logMsg("\(pkg(P,V)) has manifest entry") =>
         hasCompatibleVersion(Vs,V,K).
   locateInManifest(_,_,_) => none.
 
