@@ -3,6 +3,7 @@
 //
 
 #include <arithP.h>
+#include <assert.h>
 #include "listops.h"
 
 ReturnStatus g__list_nil(processPo p, ptrPo tos) {
@@ -28,10 +29,12 @@ ReturnStatus g__list_size(processPo p, ptrPo tos) {
 
 ReturnStatus g__list_nth(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
-  termPo Rhs = tos[1];
+  integer ix = integerVal(tos[1]);
   listPo l = C_LIST(Lhs);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=nthEl(l, integerVal(Rhs))};
+  assert(ix >= 0 && ix < listSize(l));
+
+  ReturnStatus ret = {.ret=Ok, .rslt=nthEl(l, ix)};
   return ret;
 }
 
