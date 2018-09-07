@@ -94,10 +94,10 @@ ReturnStatus g__basr(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__blsl(processPo p, ptrPo tos) {
-  termPo Lhs = tos[0];
-  termPo Rhs = tos[1];
+  integer Lhs = integerVal(tos[0]);
+  integer Rhs = integerVal(tos[1]);
 
-  termPo Rs = (termPo) allocateInteger(processHeap(p), (uint64)integerVal(Lhs) << (uint64)integerVal(Rhs));
+  termPo Rs = (termPo) allocateInteger(processHeap(p), ((uint64)Lhs) << ((uint64)Rhs));
 
   ReturnStatus ret = {.ret=Ok, .rslt=Rs};
 
