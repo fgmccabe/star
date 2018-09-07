@@ -16,6 +16,7 @@
 		"test.fg" : "fg.star",
 		"test.fi" : "fi.star",
 		"test.i" : "i.star",
+		"test.idx0" : "idx0.star",
 		"test.l" : "l.star",
 		"test.ll" : "ll.star",
 		"test.fact" : "fact.star",
