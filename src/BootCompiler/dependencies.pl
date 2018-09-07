@@ -58,7 +58,7 @@ collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,
 collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
   isTypeFunStmt(St,Lc,_,_,L,_),
   typeName(L,Nm),
-  call(Export,var(Nm),P,Px).
+  call(Export,tpe(Nm),P,Px).
 collectDefinition(St,Stmts,Stmts,Defs,Dfx,P,Px,A,Ax,I,I,O,O,Export) :-
   isAlgebraicTypeStmt(St,_,_,_,_,_),
   reformAlgebraic(St,Defs,Dfx,A,Ax,Export,P,Px).
@@ -110,7 +110,7 @@ combineFaces(F,F0,F) :-
 combineFaces(F0,F1,F0) :-
   isBraceTuple(F0,Lc,_),
   isBraceTuple(F1,_,_),
-  reportError("only one constructor may be a record ",[Lc]).
+  reportError("only one constructor may be a record ",[],Lc).
 
 buildConstructors(Body,Quants,Constraints,Nm,Tp,Lst,Lx,A,Ax,Export,P,Px) :-
   isBinary(Body,_,"|",L,R),
