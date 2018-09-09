@@ -2,6 +2,7 @@ star.cons{
   import star.core.
   import star.arith.
   import star.collection.
+  import star.lists.
 
   public all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 
@@ -73,8 +74,16 @@ star.cons{
     foldLeft(F,U,cons(H,T)) => foldLeft(F,F(U,H),T).
   }
 
-  implementation all e ~~ reduce[cons[e]->>e] => {
+  public implementation all e ~~ reduce[cons[e]->>e] => {
     reducer(F) => (L,U) => foldRight(F,U,L).
     reducel(F) => (U,L) => foldLeft(F,U,L).
   }
+
+  public implementation all e ~~ display[e] |: display[cons[e]] => {.
+    disp(L) => consDisp(L).
+  .}
+
+  consDisp:all e ~~ display[e] |: (cons[e]) => ss.
+  consDisp(nil) => ss(".").
+  consDisp(cons(E,T)) => ssSeq([disp(E),ss(":"),consDisp(T)]).
 }
