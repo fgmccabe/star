@@ -77,7 +77,7 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
       case stepOver: {
         switch (ins) {
           case dRet: {
-            if (--p->traceCount <= 0) {
+            if (--p->traceCount < 0) {
               p->traceCount = 0;
               p->tracing = True;
               return True;
@@ -86,7 +86,7 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
           }
           case dCall:
           case dOCall:
-            if (p->traceCount > 0) {
+            if (p->traceCount >= 0) {
               p->traceCount++;
             }
             return False;
@@ -94,7 +94,9 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
           case dOTail:
             return False;
           default:
-            return True;
+            if (p->traceCount > 0)
+              p->traceCount--;
+            return (logical) (p->traceCount == 0);
         }
       }
       case nextSucc: {
