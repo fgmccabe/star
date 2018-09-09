@@ -37,7 +37,6 @@ star.tuples{
   public snd:all x,y ~~ ((x,y)) => y.
   snd((_,Y)) => Y.
 
-
   -- 3-tuples
   public implementation all x,y,z ~~ display[x], display[y], display[z] |: display[(x,y,z)] => {.
     disp((a,b,c)) => ssSeq([ss("("),disp(a),ss(" , "),disp(b),ss(" , "),disp(c),ss(")")]).
