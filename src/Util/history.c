@@ -43,14 +43,18 @@ strgPo fetchHistory(integer ix) {
 }
 
 retCode appendHistoryLine(char *txt, integer len) {
-  strgPo line = newStrng(len, txt);
-  appendVectEl(history, O_OBJECT(line));
+  if(len>0) {
+    strgPo line = newStrng(len, txt);
+    appendVectEl(history, O_OBJECT(line));
 
-  assert(fileOutReady(historyFile)==Ok);
-  retCode ret = outText(historyFile, txt, len);
-  if (ret == Ok )
-    flushFile(historyFile);
-  return ret;
+    assert(fileOutReady(historyFile) == Ok);
+    retCode ret = outText(historyFile, txt, len);
+    if (ret == Ok)
+      flushFile(historyFile);
+    return ret;
+  }
+  else
+    return Ok;
 }
 
 
