@@ -150,11 +150,11 @@ retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl) {
     if (lblLen > prec) {
       integer half = prec / 2;
       integer hwp = backCodePoint(lbl->name, lblLen, half);
-      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp);
+      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
     } else
-      return outMsg(out, "%S", lbl->name, lblLen);
+      return outMsg(out, "%S/%d", lbl->name, lblLen,lbl->arity);
   } else
-    return outMsg(out, "%s/%d", lbl->name, lbl->arity);
+    return outMsg(out, "%s", lbl->name);
 }
 
 methodPo labelCode(labelPo lbl) {
