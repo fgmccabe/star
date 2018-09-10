@@ -140,27 +140,29 @@ star.ideal{
   subKey:(integer,integer) => integer.
   subKey(Hash,Depth) => _band(_blsr(Hash,Depth),0x3).
 
-  public implementation all k,v ~~ display[k],display[v] |: display[ideal[k,v]] => {.
+  public implementation all k,v ~~ display[k],display[v] |: display[ideal[k,v]] => let{
+    dispTree:all k,v ~~ display[k],display[v] |: (ideal[k,v],integer) => ss.
+    dispTree(ihEmpty,Dp) => ssSeq([spaces(Dp)..,ss("ε"),ss("\n")]).
+    dispTree(ihLeaf(H,Els),Dp) => ssSeq([spaces(Dp)..,disp(H),ss(":"),dispEls(Els),ss("\n")]).
+    dispTree(ihNode(H,D,V),Dp) => ssSeq([spaces(Dp)..,disp(H),ss("@"),disp(D),ss("\n"),dispVec(V,Dp+2)]).
+
+    dispVec:all k,v ~~ display[k],display[v] |: (subVect[k,v],integer) => ss.
+    dispVec((A1,A2,A3,A4),Dp) => ssSeq([dispTree(A1,Dp),dispTree(A2,Dp),dispTree(A3,Dp),dispTree(A4,Dp)]).
+
+    dispEls:all k,v ~~ display[k],display[v] |: (cons[(k,v)]) => ss.
+    dispEls(nil) => ss(".").
+    dispEls(cons((K,V),T)) => ssSeq([disp(K),ss("->"),disp(V),dispMoreEls(T)]).
+
+    dispMoreEls:all k,v ~~ display[k],display[v] |: (cons[(k,v)]) => ss.
+    dispMoreEls(nil) => ss(".").
+    dispMoreEls(cons((K,V),T)) => ssSeq([ss(","),disp(K),ss("->"),disp(V),dispMoreEls(T)]).
+
+    spaces:(integer) => list[ss].
+    spaces(0) => [].
+    spaces(X) => [ss(" "),..spaces(X-1)].
+  } in {.
     disp(T) => dispTree(T,0).
   .}
 
-  dispTree:all k,v ~~ display[k],display[v] |: (ideal[k,v],integer) => ss.
-  dispTree(ihEmpty,Dp) => ssSeq([spaces(Dp)..,ss("ε"),ss("\n")]).
-  dispTree(ihLeaf(H,Els),Dp) => ssSeq([spaces(Dp)..,disp(H),ss(":"),dispEls(Els),ss("\n")]).
-  dispTree(ihNode(H,D,V),Dp) => ssSeq([spaces(Dp)..,disp(H),ss("@"),disp(D),ss("\n"),dispVec(V,Dp+2)]).
 
-  dispVec:all k,v ~~ display[k],display[v] |: (subVect[k,v],integer) => ss.
-  dispVec((A1,A2,A3,A4),Dp) => ssSeq([dispTree(A1,Dp),dispTree(A2,Dp),dispTree(A3,Dp),dispTree(A4,Dp)]).
-
-  dispEls:all k,v ~~ display[k],display[v] |: (cons[(k,v)]) => ss.
-  dispEls(nil) => ss(".").
-  dispEls(cons((K,V),T)) => ssSeq([disp(K),ss("->"),disp(V),dispMoreEls(T)]).
-
-  dispMoreEls:all k,v ~~ display[k],display[v] |: (cons[(k,v)]) => ss.
-  dispMoreEls(nil) => ss(".").
-  dispMoreEls(cons((K,V),T)) => ssSeq([ss(","),disp(K),ss("->"),disp(V),dispMoreEls(T)]).
-
-  spaces:(integer) => list[ss].
-  spaces(0) => [].
-  spaces(X) => [ss(" "),..spaces(X-1)].
 }

@@ -114,8 +114,7 @@ implSpec(S,[],Constraints,Con,Body) :-
   deComma(L,Constraints),
   implSpec(R,_,_,Con,Body).
 implSpec(S,[],[],Con,Body) :-
-  isBinary(S,_,"=>",Con,Body),
-  (isBraceTuple(Body,_,_) ; isQBraceTuple(Body,_,_)).
+  isBinary(S,_,"=>",Con,Body).
 
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
