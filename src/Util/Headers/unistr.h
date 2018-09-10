@@ -84,6 +84,7 @@ int codePointSize(codePoint pt);
 logical isUniIdentifier(char * id);
 
 integer uniStrLen(const char *s);
+integer uniNStrLen(const char *s,integer max);
 retCode uniCpy(char *dest, integer len, const char *src);
 retCode uniNCpy(char *dest, integer len, const char *src, integer sLen);
 comparison uniCmp(const char *s1, const char *s2);
@@ -113,6 +114,8 @@ char * uniEndStr(char * s);
 integer uniHash(const char * name);
 integer uniNHash(const char * name, long len);
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen);
+integer uniTrim(char *s,integer sLen,char *spaces);
+logical uniIsTrivial(char *s,integer len);
 
 integer hash64(integer ix);
 

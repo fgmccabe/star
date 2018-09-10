@@ -33,7 +33,8 @@ typedef struct _processRec_ {
 #ifdef TRACEEXEC
   DebugWaitFor waitFor;
   logical tracing;
-  integer traceCount; // How many are we waiting for?
+  integer traceCount;     // How many are we waiting for?
+  integer traceDepth;     // How deep are we into debugging?
 #endif
 } ProcessRec;
 

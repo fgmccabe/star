@@ -239,7 +239,7 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
   return Error;
 }
 
-DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl) {
+DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
@@ -252,7 +252,7 @@ DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl) {
   return moreDebug;
 }
 
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, void *cl) {
+DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)

@@ -54,7 +54,7 @@ retCode run(processPo P) {
     countIns(*PC);
     if (insDebugging) {
       saveRegisters(P, SP);
-      insDebug(pcCount, P);
+      insDebug(P, pcCount, *PC);
       restoreRegisters(P);
     }
 #endif
