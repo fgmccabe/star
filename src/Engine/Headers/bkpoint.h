@@ -23,7 +23,7 @@ logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
 logical breakPointInUse(breakPointPo b);
 void markBpOutOfUse(breakPointPo b);
 
-DebugWaitFor dbgAddBreakPoint(char *line, processPo p, void *cl);
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, void *cl);
+DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl);
+DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl);
 
 #endif //CAFE_BKPOINT_H

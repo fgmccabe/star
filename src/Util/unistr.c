@@ -167,10 +167,20 @@ codePoint codePointAt(const char *src, integer pt, integer end) {
 }
 
 integer uniStrLen(const char *s) {
-  char *str = (char *) s;
   integer count = 0;
-  while (*str++ != 0)
+  while (*s++ != 0)
     count++;
+  return count;
+}
+
+integer uniNStrLen(const char *s,integer max){
+  integer count=0;
+  for(integer ix=0;ix<max;ix++){
+    if(*s++==0)
+      return count;
+    else
+      count++;
+  }
   return count;
 }
 
@@ -515,6 +525,32 @@ char *uniLast(char *s, integer l, codePoint c) {
     return &s[last];
   else
     return NULL;
+}
+
+logical uniIsTrivial(char *s,integer len){
+  integer pos = 0;
+  while(pos<len){
+    codePoint ch = nextCodePoint(s,&pos,len);
+    if(!isSpaceChar(ch))
+      return False;
+  }
+  return True;
+}
+
+integer uniTrim(char *s,integer sLen,char *spaces){
+  integer ix = 0;
+  integer spSize = uniStrLen(spaces);
+
+  while(ix<sLen){
+    integer pos = ix;
+    codePoint ch = nextCodePoint(s,&ix,sLen);
+    integer index = uniIndexOf(spaces, spSize, 0, ch);
+    if(index>=0){
+      s[pos] = '\0';
+      return pos;
+    }
+  }
+  return sLen;
 }
 
 logical uniIsLit(const char *s1, const char *s2) {

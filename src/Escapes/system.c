@@ -143,7 +143,6 @@ ReturnStatus g__getenv(processPo P, ptrPo tos) {
   char *val = getenv((char *) key);
 
   if (val != NULL) {
-
     ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateCString(processHeap(P), val)};
     return rt;
   } else {

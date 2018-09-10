@@ -3,7 +3,7 @@ test.idx0{
   import star.ideal.
 
   -- Basic test of ideal hash trees.
-/*
+
   t0 : ideal[integer,string].
   t0 = ihEmpty.
 
@@ -26,10 +26,9 @@ test.idx0{
   t9 = insertIdeal(t8,53,"i").
 
   show disp(t9).
-*/
+
   zip:all e ~~ (list[e],integer,integer,ideal[integer,e])=>ideal[integer,e].
-  zip([],_,_,T) => T.
-  zip([V,..L],Ix,Inc,T) => zip(L,Ix+Inc,Inc,insertIdeal(T,Ix,V)).
+  zip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,insertIdeal(T,I,E)),(Ix,T0),L)).
 
   a1 = zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,ihEmpty).
 
@@ -47,14 +46,31 @@ test.idx0{
 
   show disp(u1).
 
-
   show disp(zip(["a","b","c","d","e","f","g","h","i"],0,1,ihEmpty)).
 
   show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,ihEmpty)).
 
   show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l","m"],0,1,ihEmpty)).
 
-  show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l","m",
-                 "n","o","p","q","r","s","t","u","v","w","x","y","z"],0,1,ihEmpty)).
+  letters:list[string].
+  letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m",
+                 "n","o","p","q","r","s","t","u","v","w","x","y","z"].
+
+  aa0 = zip(letters,0,1,ihEmpty).
+
+  show disp(aa0).
+
+  chek:all e ~~ (list[e],integer,integer,(integer,e)=>boolean)=>boolean.
+  chek(L,Ix,Inc,F) => snd(foldLeft(((I,S),E)=>(I+Inc,S&&F(I,E)),(Ix,true),L)).
+
+  show disp(chek(["a","b","c","d"],0,4,(Ix,V)=>V^=treeFind(u1,Ix))).
+
+  assert treeFind(u1,5)==none.
+  assert treeFind(u0,12) == none.
+  assert treeFind(u1,12) == some("d").
+
+  assert chek(letters,0,1,(Ix,V)=>V^=treeFind(aa0,Ix)).
+
+
 
 }

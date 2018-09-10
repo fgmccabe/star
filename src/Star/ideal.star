@@ -10,7 +10,7 @@ star.ideal{
   all k,v ~~ subVect[k,v] ~> (ideal[k,v],ideal[k,v],ideal[k,v],ideal[k,v]).
 
   public
-  all k,v ~~ /* equality[k] |: */ideal[k,v] ::=
+  all k,v ~~ ideal[k,v] ::=
       ihEmpty                               -- empty dictionary
     | ihLeaf(integer,cons[(k,v)])           -- leaf entries
     | ihNode(integer,integer,subVect[k,v]). -- non-leaf case
@@ -21,14 +21,19 @@ star.ideal{
   findInTree:all k,v ~~ equality[k] |: (integer,k,ideal[k,v]) => option[v].
   findInTree(Hash,Ky,ihLeaf(Hash,Els)) => findMember(Ky,Els).
   findInTree(Hash,Ky,ihNode(_,Depth,Sub)) =>
-    findInTree(Hash,Ky,pickSub(Sub,subKey(Hash,Depth))).
+    findInTree(Hash,Ky,pickSub(subKey(Hash,Depth),Sub)).
   findInTree(_,_,_) default => none.
 
-  pickSub:all k,v ~~ (subVect[k,v],integer)=>ideal[k,v].
-  pickSub((El,_,_,_),0) => El.
-  pickSub((_,El,_,_),1) => El.
-  pickSub((_,_,El,_),2) => El.
-  pickSub((_,_,_,El),3) => El.
+  findMember:all k,v ~~ equality[k] |: (k,cons[(k,v)])=>option[v].
+  findMember(K,cons((Ky,V),_)) where K==Ky => some(V).
+  findMember(K,cons(_,L)) => findMember(K,L).
+  findMember(_,nil) => none.
+
+  pickSub:all k,v ~~ (integer,subVect[k,v])=>ideal[k,v].
+  pickSub(0,(El,_,_,_)) => El.
+  pickSub(1,(_,El,_,_)) => El.
+  pickSub(2,(_,_,El,_)) => El.
+  pickSub(3,(_,_,_,El)) => El.
 
   patchVec:all k,v ~~ (subVect[k,v],integer,ideal[k,v])=>subVect[k,v].
   patchVec((_,E1,E2,E3),0,E) => (E,E1,E2,E3).
@@ -36,16 +41,8 @@ star.ideal{
   patchVec((E0,E1,_,E3),2,E) => (E0,E1,E,E3).
   patchVec((E0,E1,E2,_),3,E) => (E0,E1,E2,E).
 
-  singleVec:all k,v ~~ (integer,ideal[k,v]) => subVect[k,v].
-  singleVec(Ix,Tr) => patchVec(emptyVec,Ix,Tr).
-
   emptyVec:all k,v ~~ subVect[k,v].
   emptyVec = (ihEmpty,ihEmpty,ihEmpty,ihEmpty).
-
-  findMember:all k,v ~~ equality[k] |: (k,cons[(k,v)])=>option[v].
-  findMember(K,cons((Ky,V),_)) where K==Ky => some(V).
-  findMember(K,cons(_,L)) => findMember(K,L).
-  findMember(_,nil) => none.
 
   public insertIdeal:all k,v ~~ equality[k],hash[k] |: (ideal[k,v],k,v)=>ideal[k,v].
   insertIdeal(I,Ky,Vl) => mergeTree(I,ihLeaf(hash(Ky),cons((Ky,Vl),nil))).
@@ -58,12 +55,12 @@ star.ideal{
   mergeTree(ihNode(M1,D1,Sub1),ihLeaf(H2,El2)) where
       Sx.=suffix(H2,D1) =>
     (Sx==M1 && Ix.=subKey(H2,D1) ?
-      ihNode(M1,D1,patchVec(Sub1,Ix,mergeTree(pickSub(Sub1,Ix),ihLeaf(H2,El2)))) |
+      ihNode(M1,D1,patchVec(Sub1,Ix,mergeTree(pickSub(Ix,Sub1),ihLeaf(H2,El2)))) |
       mergeTree(pseudoParent(M1,D1,ihNode(M1,D1,Sub1)),ihLeaf(H2,El2))).
   mergeTree(ihLeaf(H1,El1),ihNode(M2,D2,Sub2)) where
       Sx.=suffix(H1,D2) =>
     (Sx==M2 && Ix.=subKey(H1,D2) ?
-      ihNode(M2,D2,patchVec(Sub2,Ix,mergeTree(ihLeaf(H1,El1),pickSub(Sub2,Ix)))) |
+      ihNode(M2,D2,patchVec(Sub2,Ix,mergeTree(ihLeaf(H1,El1),pickSub(Ix,Sub2)))) |
       mergeTree(ihLeaf(H1,El1),pseudoParent(M2,D2,ihNode(M2,D2,Sub2)))).
   mergeTree(ihNode(M1,D1,Sub1),ihNode(M2,D2,Sub2)) =>
     (D1==D2 ?
@@ -80,6 +77,9 @@ star.ideal{
 
   pseudoParent:all k,v ~~ (integer,integer,ideal[k,v]) => ideal[k,v].
   pseudoParent(Msk,Dpth,Tr) where D2.=Dpth-2 => ihNode(suffix(Msk,D2),D2,singleVec(subKey(Msk,D2),Tr)).
+
+  singleVec:all k,v ~~ (integer,ideal[k,v]) => subVect[k,v].
+  singleVec(Ix,Tr) => patchVec(emptyVec,Ix,Tr).
 
   mergeVects:all k,v ~~ equality[k] |: (subVect[k,v],subVect[k,v])=>subVect[k,v].
   mergeVects((A1,A2,A3,A4),(B1,B2,B3,B4)) =>
@@ -102,6 +102,29 @@ star.ideal{
   keyPresent(_,nil) default => false.
   keyPresent(K,cons((K,_),_)) => true.
   keyPresent(K,cons(_,T)) => keyPresent(K,T).
+
+  public idealRemove: all k,v ~~ equality[k],hash[k] |: (ideal[k,v],k) => ideal[k,v].
+  idealRemove(Tr,Ky) => removeFromTree(hash(Ky),Ky,Tr).
+
+  removeFromTree:all k,v ~~ equality[k] |: (integer,k,ideal[k,v]) => ideal[k,v].
+  removeFromTree(Hash,Ky,ihLeaf(Hash,Els)) => reformTree(ihLeaf(Hash,removeMember(Ky,Els))).
+  removeFromTree(Hash,Ky,ihNode(Hash,Depth,Sub)) =>
+    reformTree(removeFromTree(Hash,Ky,pickSub(subKey(Hash,Depth),Sub))).
+  removeFromTree(_,_,Tr) default => Tr.
+
+  removeMember:all k,v ~~ equality[k] |: (k,cons[(k,v)])=>cons[(k,v)].
+  removeMember(K,cons((Ky,_),T)) where K==Ky => T.
+  removeMember(K,cons(Ky,L)) => cons(Ky,removeMember(K,L)).
+  removeMember(_,nil) => nil.
+
+  reformTree:all k,v ~~ (ideal[k,v]) => ideal[k,v].
+  reformTree(ihEmpty) => ihEmpty.
+  reformTree(ihLeaf(_,nil)) => ihEmpty.
+  reformTree(ihNode(_,_,(Tr,ihEmpty,ihEmpty,ihEmpty))) => Tr.
+  reformTree(ihNode(_,_,(ihEmpty,Tr,ihEmpty,ihEmpty))) => Tr.
+  reformTree(ihNode(_,_,(ihEmpty,ihEmpty,Tr,ihEmpty))) => Tr.
+  reformTree(ihNode(_,_,(ihEmpty,ihEmpty,ihEmpty,Tr))) => Tr.
+  reformTree(Tr) default => Tr.
 
   -- how common are two hashes (counting from the least significant bit)
   commonDepth:(integer,integer)=>integer.
