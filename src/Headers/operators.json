@@ -520,6 +520,14 @@
     "desc": "bitwise and"
   },
   {
+    "prefixOp": ".+.",
+    "priorities": [
+      700,
+      699
+    ],
+    "desc": "count of number of bits"
+  },
+  {
     "infixOp": "%",
     "priorities": [
       700,

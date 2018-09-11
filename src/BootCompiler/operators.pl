@@ -33,6 +33,7 @@
   operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
+  operator(".+.", [prefixOp(700, 699)]).
   operator("raise", [prefixOp(300, 299)]).
   operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
@@ -165,6 +166,7 @@
   follows('.','~','.~').
   follows('.','<','.<').
   follows('.','^','.^').
+  follows('.','+','.+').
   follows('.','=','.=').
   follows('.','>','.>').
   follows('.','.','..').
@@ -176,6 +178,7 @@
   follows('.<','<','.<<').
   follows('.<<','.','.<<.').
   follows('.^','.','.^.').
+  follows('.+','.','.+.').
   follows('.>','>','.>>').
   follows('.>>','.','.>>.').
   follows('.>>','>','.>>>').
@@ -243,6 +246,7 @@
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
   final('.^.',".^.").	 /* bitwise xor */
+  final('.+.',".+.").	 /* count of number of bits */
   final('.=',".=").	 /* pattern match */
   final('.>>.',".>>.").	 /* logical shift right */
   final('.>>>.',".>>>.").	 /* arithmetic shift right */

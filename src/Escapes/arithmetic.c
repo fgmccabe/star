@@ -209,6 +209,33 @@ ReturnStatus g__int_hash(processPo p, ptrPo tos) {
   return ret;
 }
 
+static integer countBits(integer ix) {
+  uinteger ux = (unsigned) ix;
+
+  static uinteger SK5 = 0x5555555555555555;
+  static uinteger SK3 = 0x3333333333333333;
+  static uinteger SKF0 = 0x0F0F0F0F0F0F0F0F;
+  static uinteger SKFF = 0x00FF00FF00FF00FF;
+  static uinteger SKFF16 = 0x0000FFFF0000FFFF;
+  static uinteger SKFF32 = 0x00000000FFFFFFFF;
+
+  ux = (ux & SK5) + ((ux >> 1) & SK5);
+  ux = (ux & SK3) + ((ux >> 2) & SK3);
+  ux = (ux & SKF0) + ((ux >> 4) & SKF0);
+  ux = (ux & SKFF) + ((ux >> 8) & SKFF);
+  ux = (ux & SKFF16) + ((ux >> 16) & SKFF16);
+  ux = (ux & SKFF32) + ((ux >> 32) & SKFF32);
+  return ux;
+}
+
+ReturnStatus g__bcount(processPo p, ptrPo tos) {
+  integer Arg = integerVal(tos[0]);
+
+  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) allocateInteger(processHeap(p), countBits(Arg))};
+
+  return ret;
+}
+
 ReturnStatus g__int2str(processPo p, ptrPo tos) {
   termPo Lhs = tos[0];
   integer ix = integerVal(Lhs);
