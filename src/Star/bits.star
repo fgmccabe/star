@@ -24,4 +24,7 @@ star.bits{
 
   public ( .#. ) : (integer,integer)=>boolean.
   X .#. Y => _nthb(X,Y).
+
+  public ( .+. ) : (integer) => integer.
+  .+. X => _bcount(X).
 }

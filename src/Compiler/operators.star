@@ -50,6 +50,7 @@ star.compiler.operators{
   oper("==>") => [infixOp(949,950,949)].
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
+  oper(".+.") => [prefixOp(700,699)].
   oper("raise") => [prefixOp(300,299)].
   oper(". ") => [postfixOp(1899,1900), infixOp(1899,1900,1900)].
   oper("!") => [postfixOp(99,100)].
@@ -202,6 +203,7 @@ star.compiler.operators{
   follows(".",0c~) => some(".~").
   follows(".",0c<) => some(".<").
   follows(".",0c^) => some(".^").
+  follows(".",0c+) => some(".+").
   follows(".",0c=) => some(".=").
   follows(".",0c>) => some(".>").
   follows(".",0c.) => some("..").
@@ -213,6 +215,7 @@ star.compiler.operators{
   follows(".<",0c<) => some(".<<").
   follows(".<<",0c.) => some(".<<.").
   follows(".^",0c.) => some(".^.").
+  follows(".+",0c.) => some(".+.").
   follows(".>",0c>) => some(".>>").
   follows(".>>",0c.) => some(".>>.").
   follows(".>>",0c>) => some(".>>>").
@@ -281,6 +284,7 @@ star.compiler.operators{
   final(".~.") => true.  /* bitwise 1's complement */
   final(".<<.") => true.  /* shift left */
   final(".^.") => true.  /* bitwise xor */
+  final(".+.") => true.  /* count of number of bits */
   final(".=") => true.  /* pattern match */
   final(".>>.") => true.  /* logical shift right */
   final(".>>>.") => true.  /* arithmetic shift right */
