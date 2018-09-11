@@ -4,6 +4,9 @@ test.idx0{
 
   -- Basic test of ideal hash trees.
 
+  zip:all e ~~ (list[e],integer,integer,ideal[integer,e])=>ideal[integer,e].
+  zip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,insertIdeal(T,I,E)),(Ix,T0),L)).
+
   t0 : ideal[integer,string].
   t0 = ihEmpty.
 
@@ -27,9 +30,6 @@ test.idx0{
 
   show disp(t9).
 
-  zip:all e ~~ (list[e],integer,integer,ideal[integer,e])=>ideal[integer,e].
-  zip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,insertIdeal(T,I,E)),(Ix,T0),L)).
-
   a1 = zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,ihEmpty).
 
   show disp(a1).
@@ -40,11 +40,21 @@ test.idx0{
 
   u0 = zip(["a","b","c"],0,4,ihEmpty).
 
---  show disp(u0).
+  -- show disp(u0).
 
   u1 = insertIdeal(u0,12,"d").
 
   show disp(u1).
+
+  show disp(findIdeal(u1,0)).
+  show disp(findIdeal(u1,4)).
+  show disp(findIdeal(u1,8)).
+  show disp(findIdeal(u1,12)).
+
+  assert findIdeal(u1,5)==none.
+  assert findIdeal(u0,12) == none.
+
+  assert findIdeal(u1,12) == some("d").
 
   show disp(zip(["a","b","c","d","e","f","g","h","i"],0,1,ihEmpty)).
 
@@ -63,14 +73,20 @@ test.idx0{
   chek:all e ~~ (list[e],integer,integer,(integer,e)=>boolean)=>boolean.
   chek(L,Ix,Inc,F) => snd(foldLeft(((I,S),E)=>(I+Inc,S&&F(I,E)),(Ix,true),L)).
 
-  show disp(chek(["a","b","c","d"],0,4,(Ix,V)=>V^=treeFind(u1,Ix))).
+  show disp(chek(["a","b","c","d"],0,4,(Ix,V)=>V^=findIdeal(u1,Ix))).
 
-  assert treeFind(u1,5)==none.
-  assert treeFind(u0,12) == none.
-  assert treeFind(u1,12) == some("d").
+  assert chek(letters,0,1,(Ix,V)=>V^=findIdeal(aa0,Ix)).
 
-  assert chek(letters,0,1,(Ix,V)=>V^=treeFind(aa0,Ix)).
+  show disp(removeIdeal(u1,12)).
 
+  show disp(findIdeal(removeIdeal(u1,12),8)).
 
+  unzip:all e ~~ (list[e],integer,integer,ideal[integer,e])=>ideal[integer,e].
+  unzip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,removeIdeal(T,I)),(Ix,T0),L)).
 
+  show disp(unzip(["a","b","c"],0,4,ihEmpty)).
+
+  show disp(unzip(["a","b","c"],0,4,u1)).
+
+  show disp(insertIdeal(ihEmpty,12,"d")).
 }
