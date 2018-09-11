@@ -7,6 +7,8 @@ star.ideal{
   import star.collection.
   import star.tuples.
 
+  -- See "Ideal Hash Trees" by Phil Bagwell
+
   all k,v ~~ subVect[k,v] ~> (ideal[k,v],ideal[k,v],ideal[k,v],ideal[k,v]).
 
   public
