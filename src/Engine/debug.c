@@ -86,6 +86,7 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
             case stepOver:
               if (p->traceCount > 0 && p->traceDepth == 0)
                 p->traceCount--;
+              p->tracing = (logical) (p->traceDepth == 0 && p->traceCount == 0);
               return (logical) (p->traceDepth == 0 && p->traceCount == 0);
             default:
               return False;
@@ -97,12 +98,15 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
           case stepInto:
             return True;
           case stepOver:
+            p->traceDepth--;
+            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
           case nextSucc:
             if (p->traceDepth-- <= 0) {
               p->traceDepth = 0;    // in case we go over
               p->tracing = True;
-            } else if (p->traceCount > 0)
-              p->traceCount--;
+              p->traceCount = 0;
+              p->waitFor = stepInto;
+            }
             return (logical) (p->traceDepth == 0 && p->traceCount == 0);
           default:
             return False;
@@ -120,14 +124,10 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
             case stepInto:
               return True;
             case stepOver:
-              if (p->traceDepth == 0) {
-                if (p->traceCount > 0)
-                  p->traceCount--;
-              } else if (p->traceDepth > 0) {
-                p->tracing = False;
-              }
+            case nextSucc:
               p->traceDepth++;
               return (logical) (p->traceCount == 0 && p->traceDepth == 1);
+            case nextBreak:
             default:
               return False;
           }
@@ -145,6 +145,8 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
             case stepOver:
             case stepInto:
               return (logical) (p->traceDepth == 0 && p->traceCount == 0);
+            case nextSucc:
+            case nextBreak:
             default:
               return False;
           }
@@ -167,7 +169,7 @@ typedef struct {
 } DebugOption, *debugOptPo;
 
 static char *defltLine(char *deflt, integer defltLen, char *src, integer srcLen, integer *actLen) {
-  if(!uniIsTrivial(src,srcLen)){
+  if (!uniIsTrivial(src, srcLen)) {
     uniNCpy(deflt, defltLen, src, srcLen);
     *actLen = srcLen;
     return src;
@@ -194,7 +196,7 @@ cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo 
     integer cmdLen = 0;
     char *cmdLine = getTextFromBuffer(&cmdLen, cmdBuffer);
 
-     cmdLine = defltLine(lastLine, NumberOf(lastLine), cmdLine, cmdLen, &cmdLen);
+    cmdLine = defltLine(lastLine, NumberOf(lastLine), cmdLine, cmdLen, &cmdLen);
 
     if (res == Ok) {
       for (int ix = 0; ix < optCount; ix++) {
