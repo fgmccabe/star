@@ -30,8 +30,13 @@ star.collection{
     (///):all k,e,f ~~ (m[k,e],(k,e)=>f)=>m[k,f].
   }
 
-  public contract all k,v,m/2 ~~ ixfilter[m->>k,v] ::= {
-    (^//):(m[k,v],(k,v)=>boolean) => m[k,v].
+  public contract all k,v,m ~~ ixfilter[m->>k,v] ::= {
+    (^//):(m,(k,v)=>boolean) => m.
+  }
+
+  public contract all c,k,v ~~ ixfold[c->>k,v] ::= {
+    ixRight:all x ~~ (((k,v,x)=>x),x,c) => x.
+    ixLeft:all x ~~ (((x,k,v)=>x),x,c) => x.
   }
 
   public contract all m,k,v ~~ indexed[m ->> k,v] ::= {

@@ -20,13 +20,13 @@ star.repo.manifest{
   fromJson(jColl(M)) => man(M///jsonEntry).
 
   jsonEntry:(string,json) => pEntry.
-  jsonEntry(P,jColl(Vs)) => pEntry(P,foldMap(pickEntry,[],Vs)).
+  jsonEntry(P,jColl(Vs)) => pEntry(P,ixRight(pickEntry,[],Vs)).
 
   pickEntry:(string,json,list[(version,mInfo)]) => list[(version,mInfo)].
   pickEntry(V,E,M) => [(V::version,jsonInfo(V,E)),..M].
 
   jsonInfo:(string,json) => mInfo.
-  jsonInfo(V,jColl(I)) => mInfo(V::version,foldMap(pickInfo,[],I)).
+  jsonInfo(V,jColl(I)) => mInfo(V::version,ixRight(pickInfo,[],I)).
 
   pickInfo:(string,json,map[string,string]) => map[string,string].
   pickInfo(K,jTxt(V),M) => M[K->V].
@@ -36,13 +36,13 @@ star.repo.manifest{
   }
 
   toJson:(manifest)=>json.
-  toJson(man(Ps)) => jColl(foldMap((K,pEntry(P,Vs),M) => M[K->jColl(mkVersions(Vs))],[],Ps)).
+  toJson(man(Ps)) => jColl(ixRight((K,pEntry(P,Vs),M) => M[K->jColl(mkVersions(Vs))],[],Ps)).
 
   mkVersions:(list[(version,mInfo)]) => map[string,json].
   mkVersions(Vs) => foldLeft((M,(V,mInfo(_,I)))=>M[V::string->mkEntry(I)],[],Vs).
 
   mkEntry:(map[string,string]) => json.
-  mkEntry(M) => jColl(foldMap((K,T,MM)=>MM[K->jTxt(T)],[],M)).
+  mkEntry(M) => jColl(ixRight((K,T,MM)=>MM[K->jTxt(T)],[],M)).
 
   public implementation display[manifest] => {.
     disp(M) => disp(M::json).
