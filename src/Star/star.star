@@ -9,7 +9,7 @@ star{
   public import star.cons.
   public import star.q.
   public import star.display.
-  public import star.index.
+  public import star.ideal.
   public import star.either.
   public import star.lists.
   public import star.monad.

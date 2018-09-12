@@ -50,6 +50,10 @@ star.core {
     frmt:(t,string) => ss.
   }
 
+  public contract all t ~~ dump[t] ::= {
+    dump:(t)=>ss.
+  }
+
   public implementation display[ss] => {
     disp(X) => X
   }
