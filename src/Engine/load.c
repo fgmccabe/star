@@ -112,7 +112,7 @@ retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl) {
 }
 
 retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
-  bufferPo inBuff = fixedStringBuffer(pkgText, pkgTxtLen);
+  bufferPo inBuff = newReadStringBuffer(pkgText, pkgTxtLen);
 
   retCode ret;
   PackageRec lddPkg;
@@ -125,12 +125,16 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
     rewindBuffer(sigBuffer);
     ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer));
 
-    if (ret == Ok) {
+    if(ret==Ok && !isLoadedPackage(&lddPkg)){
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
       if (ret == Ok)
-        ret = loadSegments(O_IO(inBuff), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+        ret = loadSegments(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
+#ifdef TRACEPKG
+    else if (tracePkg)
+      logMsg(logFile, "package %P already installed", &lddPkg);
+#endif
   }
 
   closeFile(O_IO(inBuff));

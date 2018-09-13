@@ -236,12 +236,12 @@ bufferPo newStringBuffer() {
   return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, 128, ioWRITE, True));
 }
 
-bufferPo newReadStringBuffer(char *text) {
+bufferPo newReadStringBuffer(char *text, integer textLen) {
   char name[MAX_SYMB_LEN];
 
   strMsg(name, NumberOf(name), "<buffer%d>", bufferNo++);
 
-  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, text, uniStrLen(text), ioREAD, False));
+  return O_BUFFER(newObject(bufferClass, name, utf8Encoding, text, textLen, ioREAD, False));
 }
 
 bufferPo newIoStringBuffer() {
