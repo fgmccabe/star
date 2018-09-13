@@ -10,7 +10,7 @@ star.comp.escapes{
   escapeType("_abort") => allType(kVar("s"),allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([kVar("s"),kVar("t")])),tupleType([])))).
   escapeType("_identical") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([kVar("t"),kVar("t")])),tipe("star.core*boolean"))).
   escapeType("_definedLbl") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.core*boolean")).
-  escapeType("_callLbl") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tpExp(tpFun("star.core*list",1),tipe("star.core*string"))])),tupleType([])).
+  escapeType("_callLbl") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tpExp(tpFun("star.core*list",1),tpExp(tpFun("star.core*list",1),tipe("star.core*string")))])),tupleType([])).
   escapeType("_int_plus") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*integer")).
   escapeType("_int_minus") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*integer")).
   escapeType("_int_times") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*integer")).
