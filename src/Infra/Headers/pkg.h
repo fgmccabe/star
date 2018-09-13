@@ -17,4 +17,6 @@ comparison compPkg(packagePo p1,packagePo p2);
 
 logical compatiblVersion(char *rqVer, char *ver);
 
+logical compatiblePkg(packagePo p1,packagePo p2);
+
 #endif

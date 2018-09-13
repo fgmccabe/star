@@ -32,7 +32,7 @@ extern packagePo loadedPackage(char *package);
 extern char *loadedVersion(char *package);
 
 extern packagePo markLoaded(char *package, char *version);
-extern packagePo createPkg(char *name, char *version);
+extern logical isLoadedPackage(packagePo pkg);
 
 extern methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,

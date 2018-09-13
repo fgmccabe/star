@@ -28,6 +28,13 @@ comparison compPkg(packagePo p1,packagePo p2){
   return cmp;
 }
 
+logical compatiblePkg(packagePo p1,packagePo p2){
+  if(uniCmp(p1->packageName,p2->packageName)==same)
+    return compatiblVersion(p1->version,p2->version);
+  else
+    return False;
+}
+
 retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt){
   packagePo pkg = (packagePo)data;
 
