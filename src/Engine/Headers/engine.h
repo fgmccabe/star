@@ -13,7 +13,7 @@ typedef struct _processRec_ *processPo;
 typedef struct _stack_frame_ *framePo;
 
 typedef enum {
-  stepInto, stepOver, nextSucc, nextBreak, never, quitDbg, moreDebug
+  stepInto, stepOver, nextBreak, never, quitDbg, moreDebug
 } DebugWaitFor;
 
 typedef enum {

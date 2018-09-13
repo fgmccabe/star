@@ -30,6 +30,7 @@ extern logical enableVerify;      // Do we verify code that is loaded into engin
 extern logical tracing;        /* tracing option */
 extern logical insDebugging;
 extern logical lineDebugging;
+extern logical debugDebugging;
 extern logical interactive;      /* interactive instruction tracing option */
 extern logical runStats;
 

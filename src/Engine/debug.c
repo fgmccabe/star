@@ -98,15 +98,8 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
           case stepInto:
             return True;
           case stepOver:
-            p->traceDepth--;
-            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
-          case nextSucc:
-            if (p->traceDepth-- <= 0) {
-              p->traceDepth = 0;    // in case we go over
-              p->tracing = True;
-              p->traceCount = 0;
-              p->waitFor = stepInto;
-            }
+            if (p->traceDepth > 0)
+              p->traceDepth--;
             return (logical) (p->traceDepth == 0 && p->traceCount == 0);
           default:
             return False;
@@ -124,7 +117,6 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
             case stepInto:
               return True;
             case stepOver:
-            case nextSucc:
               p->traceDepth++;
               return (logical) (p->traceCount == 0 && p->traceDepth == 1);
             case nextBreak:
@@ -145,7 +137,6 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
             case stepOver:
             case stepInto:
               return (logical) (p->traceDepth == 0 && p->traceCount == 0);
-            case nextSucc:
             case nextBreak:
             default:
               return False;
@@ -263,10 +254,29 @@ static DebugWaitFor dbgCont(char *line, processPo p, insWord ins, void *cl) {
 }
 
 static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) {
-  p->traceDepth = cmdCount(line, 1);
-  p->traceCount = 1;
+  p->traceCount = cmdCount(line, 0);
   p->tracing = False;
-  return nextSucc;
+
+  switch (ins) {
+    case dLine:
+    case dRet: {
+      p->traceDepth = 1;
+      return stepOver;
+    }
+    case dCall:
+    case dOCall: {
+      p->traceDepth = 2;
+      return stepOver;
+    }
+    case dTail:
+    case dOTail: {
+      p->traceDepth = 1;
+      return stepOver;
+    }
+
+    default:
+      return stepOver;
+  }
 }
 
 static DebugWaitFor dbgShowRegisters(char *line, processPo p, insWord ins, void *cl) {
@@ -498,6 +508,80 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl)
   return moreDebug;
 }
 
+static logical shouldWeStopIns(processPo p, insWord ins) {
+  if (focus == NULL || focus == p) {
+    switch (ins) {
+      case dLine: {
+        switch (p->waitFor) {
+          case stepInto:
+            if (p->traceCount > 0)
+              p->traceCount--;
+            return (logical) (p->traceCount == 0);
+          case stepOver:
+            if (p->traceCount > 0 && p->traceDepth == 0)
+              p->traceCount--;
+            p->tracing = (logical) (p->traceDepth == 0 && p->traceCount == 0);
+            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
+          default:
+            return False;
+        }
+      }
+      case dRet: {
+        switch (p->waitFor) {
+          case stepInto:
+            return True;
+          case stepOver:
+            if (p->traceDepth > 0)
+              p->traceDepth--;
+            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
+          default:
+            return False;
+        }
+      }
+      case dCall:
+      case dOCall: {
+        switch (p->waitFor) {
+          case stepInto:
+            return True;
+          case stepOver:
+            p->traceDepth++;
+            return (logical) (p->traceCount == 0 && p->traceDepth == 1);
+          case nextBreak:
+          default:
+            return False;
+        }
+      }
+      case dTail:
+      case dOTail:
+        switch (p->waitFor) {
+          case stepOver:
+          case stepInto:
+            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
+          case nextBreak:
+          default:
+            return False;
+        }
+
+      default: {
+        switch (p->waitFor) {
+          case stepInto:
+            if (p->traceCount > 0)
+              p->traceCount--;
+            return (logical) (p->traceCount == 0);
+          case stepOver:
+            if (p->traceCount > 0 && p->traceDepth == 0)
+              p->traceCount--;
+            p->tracing = (logical) (p->traceDepth == 0 && p->traceCount == 0);
+            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
+          default:
+            return False;
+        }
+      }
+    }
+  } else
+    return False;
+}
+
 DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
   static DebugOption opts[] = {
     {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
@@ -525,7 +609,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
   insPo pc = p->pc;
   heapPo h = p->heap;
 
-  logical stopping = shouldWeStop(p, ins, NULL);
+  logical stopping = shouldWeStopIns(p, ins);
   if (p->tracing || stopping) {
     outMsg(stdErr, "[%d]: ", pcCount);
     disass(stdErr, p, mtd, pc, fp, sp);
@@ -547,7 +631,6 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
           case stepOver:
           case nextBreak:
           case never:
-          case nextSucc:
             return p->waitFor;
           case quitDbg:
             exit(0);
@@ -654,8 +737,10 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 
   logical stopping = shouldWeStop(p, ins, ln);
 
-//  logMsg(logFile, "traceCount=%d, traceDepth=%d, stopping=%s, tracing=%s", p->traceCount, p->traceDepth,
-//         (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
+  if (debugDebugging) {
+    logMsg(logFile, "traceCount=%d, traceDepth=%d, stopping=%s, tracing=%s", p->traceCount, p->traceDepth,
+           (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
+  }
   if (p->tracing || stopping) {
     if (ln != Null)
       show(stdErr, mtd, ln, fp, sp);
@@ -675,7 +760,6 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
           case stepOver:
           case nextBreak:
           case never:
-          case nextSucc:
             return p->waitFor;
           case quitDbg:
             exit(0);

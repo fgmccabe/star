@@ -20,6 +20,7 @@ long initStackSize = 1024;        /* How big is the stack */
 
 logical insDebugging = False;     // instruction tracing option
 logical lineDebugging = False;
+logical debugDebugging = False;
 logical tracing = False;          /* tracing option */
 
 logical traceVerify = False;      // true if tracing code verification
@@ -109,6 +110,15 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         continue;
 #else
       logMsg(logFile, "Instruction-level tracing not enabled\n");
+      return Error;
+#endif
+
+      case 'u':    /*  debug the debugger */
+#ifdef TRACEEXEC
+        debugDebugging = True;
+        continue;
+#else
+      logMsg(logFile, "Debugging tracing not enabled\n");
       return Error;
 #endif
 
