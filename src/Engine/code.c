@@ -153,6 +153,15 @@ packagePo loadedPackage(char *package) {
   return (packagePo) hashGet(packages, package);
 }
 
+logical isLoadedPackage(packagePo pkg){
+  packagePo lcl = loadedPackage(pkg->packageName);
+  if(lcl!=Null){
+    return compatiblePkg(pkg,lcl);
+  }
+  else
+    return False;
+}
+
 packagePo createPkg(char *name, char *version) {
   packagePo pkg = (packagePo) allocPool(pkgPool);
   uniCpy((char *) &pkg->packageName, NumberOf(pkg->packageName), name);
