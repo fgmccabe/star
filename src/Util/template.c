@@ -21,7 +21,7 @@ retCode processTemplate(ioPo out, ioPo plate, hashPo vars, strProc defltPrc, voi
       char *repl;
       ret = parseTemplateVar(str, plate, &repl, vars, defltPrc, cl);
       if (ret == Ok) {
-        bufferPo replBuffer = fixedStringBuffer(repl, (long) uniStrLen(repl));
+        bufferPo replBuffer = newReadStringBuffer(repl, (long) uniStrLen(repl));
         ret = processTemplate(out, O_IO(replBuffer), vars, defltPrc, cl);
         closeFile(O_IO(replBuffer));
       }

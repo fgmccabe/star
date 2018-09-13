@@ -50,15 +50,17 @@ typedef struct {
 static retCode pickupImport(packagePo p, char *errorMsg, long msgLen, void *cl) {
   pickupStruct *pk = (pickupStruct *) cl;
 
-  stringPo pkg = allocateCString(pk->H, p->packageName);
-  int root = gcAddRoot(pk->H, (ptrPo) &pkg);
+  if (!isLoadedPackage(p)) {
+    stringPo pkg = allocateCString(pk->H, p->packageName);
+    int root = gcAddRoot(pk->H, (ptrPo) &pkg);
 
-  stringPo vr = allocateCString(pk->H, p->version);
-  gcAddRoot(pk->H, (ptrPo) &vr);
+    stringPo vr = allocateCString(pk->H, p->version);
+    gcAddRoot(pk->H, (ptrPo) &vr);
 
-  normalPo pr = allocatePair(pk->H, (termPo) pkg, (termPo) vr);
-  *(pk->list) = appendToList(pk->H, *pk->list, (termPo) pr);
-  gcReleaseRoot(pk->H, root);
+    normalPo pr = allocatePair(pk->H, (termPo) pkg, (termPo) vr);
+    *(pk->list) = appendToList(pk->H, *pk->list, (termPo) pr);
+    gcReleaseRoot(pk->H, root);
+  }
   return Ok;
 }
 
@@ -77,13 +79,13 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
 
   pickupStruct Cl = {.list=&imports, .H=H};
 
-  retCode ret = installPackage(buffer, len, errMsg, NumberOf(errMsg), pickupImport, Null);
+  retCode ret = installPackage(buffer, len, errMsg, NumberOf(errMsg), pickupImport, &Cl);
 
   free(buffer);
+  gcReleaseRoot(H, root);
 
   if (ret == Ok) {
     ReturnStatus rt = {.ret=ret, .rslt= (termPo) imports};
-    gcReleaseRoot(H, root);
     return rt;
   } else
     return liberror(P, "_install_pkg", eFAIL);
