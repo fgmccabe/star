@@ -13,7 +13,6 @@ star.repo.file{
   public openRepository:(uri) => fileRepo.
   openRepository(Root) where
     ManUri ^= parseUri("manifest") &&
-    _ .= logMsg("Manifest url = \(ManUri)") &&
     Man ^= readManifest(resolveUri(Root,ManUri)) => repo(Root,Man).
   openRepository(Root) => repo(Root,man([])).
 
@@ -34,7 +33,6 @@ star.repo.file{
 
   public loadFromRepo:(fileRepo,pkg,string) => option[string].
   loadFromRepo(repo(Root,Man),Pkg,Kind) where
-    _ .= logMsg("look for \(Kind) of \(Pkg) in repo: \(repo(Root,Man))") &&
     U ^= locateInManifest(Man,Pkg,Kind) &&
     Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
 
@@ -77,7 +75,6 @@ star.repo.file{
   flushManifest(Url,Man) => putResource(Url,(Man::json)::string).
 
   readManifest(Url) where
-      _ .= logMsg("read manifest from \(Url)") &&
       Txt ^= getResource(Url) &&
       J.=Txt::json => some(J::manifest).
   readManifest(_) default => none.

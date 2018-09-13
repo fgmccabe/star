@@ -50,9 +50,7 @@ star.repo.manifest{
 
   public locateInManifest:(manifest,pkg,string) => option[string].
   locateInManifest(man(M),pkg(P,V),K) where
-    _ .= _ins_debug() &&
-    _index(M,P) =. some(pEntry(_,Vs)) &&
-    _ .= logMsg("\(pkg(P,V)) has manifest entry") =>
+    pEntry(_,Vs) ^= M[P] =>
         hasCompatibleVersion(Vs,V,K).
   locateInManifest(_,_,_) => none.
 
