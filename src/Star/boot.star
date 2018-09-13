@@ -37,7 +37,6 @@ star.boot{
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
-    -- _ .= logMsg("Manifest = \(Repo)") &&
     Pkg ^= parsePkgName(Top) &&
     _ .= importPkgs([Pkg],[],Repo) &&
     _ .= initialize(Pkg) =>
@@ -45,9 +44,7 @@ star.boot{
 
   importPkgs:(list[pkg],list[pkg],fileRepo)=>().
   importPkgs([],Ld,_)=>().
-  importPkgs([P,..L],Ld,R) where
-    _ .= _logmsg("importing \(P)") &&
-    Imps .= importPkg(P,R,Ld) => importPkgs(Imps,[P,..Ld],R).
+  importPkgs([P,..L],Ld,R) => importPkgs(importPkg(P,R,Ld)++L,[P,..Ld],R).
 
   importPkg:(pkg,fileRepo,list[pkg])=>list[pkg].
   importPkg(P,_,Ld) where contains(P,Ld) => [].
@@ -64,9 +61,9 @@ star.boot{
 
   invokeMain:(string,list[string]) => ().
   invokeMain(Top,Args) where
-    Pred .= Top++"@_main" =>
+    Pred .= Top++"#_main" =>
     ( _definedLbl(Pred,1) ?
-      _callLbl(Pred,1,Args) |
+      _callLbl(Pred,1,[Args]) |
       logMsg("No main program: \(Top)") ).
 
 }
