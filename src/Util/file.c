@@ -769,13 +769,13 @@ retCode filePresent(char *name) {
 FileClassRec StdInClass = {
   {
     (classPo) &FileClass,                 // parent class is io object
-    "file",                               // this is the file class
+    "stdin",                              // this is the file class
     inheritFile,                          // file inheritance
     initFileClass,                        // File class initializer, phase I
     O_INHERIT_DEF,                        // File object element creation
     NULL,                                 // File objectdestruction
     O_INHERIT_DEF,                        // erasure
-    FileInit,                             // initialization of a file object
+    NULL,                                 // initialization of a file object
     sizeof(FileObject),                   // size of a file object
     O_INHERIT_DEF,                        // Hashcode for files
     O_INHERIT_DEF,                        // Equality for files

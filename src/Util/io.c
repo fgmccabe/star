@@ -312,15 +312,15 @@ retCode inChar(ioPo io, codePoint *ch) {
       retCode ret = inByte(io, &b);
 
       if (ret == Ok) {
-        if (b <= 0x7f) {
-          *ch = ((codePoint) b) & 0xff;
+        if (b <= 0x7fu) {
+          *ch = ((codePoint) (b & 0xffu));
           return adjustCharInCount(io, *ch);
         } else if (UC80(b)) {
           byte nb;
           ret = inByte(io, &nb);
 
           if (ret == Ok) {
-            codePoint c = (codePoint) (UX80(b) << 6 | UXR(nb));
+            codePoint c = (codePoint) (UX80(b) << 6u | UXR(nb));
             *ch = c;
             return adjustCharInCount(io, c);
           } else {
@@ -418,7 +418,6 @@ retCode inLine(ioPo f, bufferPo buffer, char *term) {
   retCode ret = Ok;
   integer tlen = uniStrLen(term);
   objectPo o = O_OBJECT(f);
-  integer bPos = 0;
   rewindBuffer(buffer);
 
   lock(O_LOCKED(o));
@@ -484,12 +483,8 @@ retCode outText(ioPo f, const char *text, integer len) {
   return ret;
 }
 
-retCode outCText(ioPo f, char *text, unsigned long len) {
-  return outText(f, text, len);
-}
-
 retCode outStr(ioPo f, char *str) {
-  return outCText(f, str, strlen(str));
+  return outText(f, str, uniStrLen(str));
 }
 
 retCode flushFile(ioPo f)               /* generic file flush */
@@ -546,7 +541,6 @@ void flushOut(void)                     /* flush all files */
 
 retCode closeFile(ioPo f) {
   objectPo o = O_OBJECT(f);
-  retCode ret = Ok;
 
   lock(O_LOCKED(o));
 

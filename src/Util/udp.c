@@ -34,19 +34,19 @@
 #include <errno.h>
 
 #ifndef SOCKET_ERROR
-#define SOCKET_ERROR -1
+#define SOCKET_ERROR (-1)
 #endif
 
 #ifndef INVALID_SOCKET
-#define INVALID_SOCKET -1
+#define INVALID_SOCKET (-1)
 #endif
 
 static void inheritUDP(classPo class, classPo request);
 static void initUDPClass(classPo class, classPo request);
-static void UdpInit(objectPo list, va_list *args);
+static void UdpInit(objectPo o, va_list *args);
 static retCode udpReadyIn(udpPo f);
 static retCode udpReadyOut(udpPo f);
-static retCode closePort(udpPo f);
+static retCode closePort(udpPo u);
 static retCode setUdpStatus(udpPo f, retCode status);
 static retCode udpStatus(udpPo u);
 
@@ -183,7 +183,6 @@ retCode closePort(udpPo u) {
 
 retCode closeUDP(udpPo f) {
   objectPo o = O_OBJECT(f);
-  retCode ret = Ok;
 
   lock(O_LOCKED(o));
 
@@ -219,7 +218,7 @@ retCode udpRead(udpPo u, byte *buff, long *blen, char * peer, long peerLen, int 
 
       if (port != NULL)
         *port = ntohs(from.sin_port);
-      uniCpy(peer, peerLen, (char *) inet_ntoa(from.sin_addr));
+      uniCpy(peer, peerLen, inet_ntoa(from.sin_addr));
       return setUdpStatus(u, Ok);
     } else {
       switch (locErr) {

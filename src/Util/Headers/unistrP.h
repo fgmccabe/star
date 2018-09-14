@@ -26,13 +26,13 @@
   0x00000080 - 0x000007FF:
   110xxxxx 10xxxxxx
 */
-#define U80 ((0x6)<<5)
-#define M80 ((0x7)<<5)
+#define U80 ((0x6u)<<5u)
+#define M80 ((0x7u)<<5u)
 #define UC80(x) (((x)&M80)==U80)
 #define UX80(x) ((x)&(~M80))
 
-#define UR ((0x2)<<6)
-#define MR ((0x3)<<6)
+#define UR ((0x2u)<<6u)
+#define MR ((0x3u)<<6u)
 #define UCR(x) (((x)&MR)==UR)
 #define UXR(x) ((x)&(~MR))
 
@@ -42,16 +42,16 @@
   1110xxxx 10xxxxxx 10xxxxxx
 
 */
-#define U800 ((0xe)<<4)
-#define M800 ((0xf)<<4)
+#define U800 ((0xeu)<<4)
+#define M800 ((0xfu)<<4)
 #define UC800(x) (((x)&M800)==U800)
 #define UX800(x) ((x)&(~M800))
 
 /*
  0x10000 - 0x1fffff
 */
-#define U1000 ((0xf0)<<3)
-#define M1000 (0x7)
+#define U1000 ((0xf0u)<<3)
+#define M1000 (0x7u)
 #define UC1000(x) (((x)&M1000)==U1000)
 #define UX1000(x) ((x)&(~M1000))
 /*

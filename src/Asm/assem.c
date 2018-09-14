@@ -239,7 +239,6 @@ typedef struct {
 
 static logical lookforName(objectPo data, void *cl) {
   Counter *cnt = (Counter *) cl;
-  localVarPo var = (localVarPo) data;
   char *varName;
 
   if (getStringConstant(cnt->mtd, &varName) == Ok) {
@@ -252,8 +251,6 @@ static logical lookforName(objectPo data, void *cl) {
 }
 
 int32 findLocal(mtdPo mtd, const char *name) {
-  Counter cnt = {.mtd=mtd, .name=name, .count=0};
-
   localVarPo lclVar = (localVarPo) hashGet(mtd->locals, (void *) name);
   if (lclVar != Null)
     return lclVar->off;
