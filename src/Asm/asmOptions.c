@@ -34,7 +34,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       logMsg(logFile,"debug parse not enabled");
       return Error;
 #endif
-        break;
 
       case 'l':    /* help with insDebugging the tokenizer */
 #ifdef DEBUGPARSE
@@ -44,7 +43,6 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       logMsg(logFile,"debug token not enabled");
       return Error;
 #endif
-        break;
 
       case '*':    /* trace everything */
 #ifdef ALLTRACE

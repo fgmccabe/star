@@ -15,10 +15,4 @@ extern int ssdebug;
 extern int ss_flex_debug;
 #endif
 
-#ifdef TRACEASSM
-extern logical debugAssem;
-#endif
-
-extern int getOptions(int argc, char **argv);
-
 #endif

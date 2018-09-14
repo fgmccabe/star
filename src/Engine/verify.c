@@ -173,6 +173,8 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 #ifdef TRACEVERIFY
   if (traceVerify)
     showSegs(blocks, name);
+
+  assert(referenceCount(O_OBJECT(blocks))==1);
 #endif
 
   decReference(O_OBJECT(blocks));
