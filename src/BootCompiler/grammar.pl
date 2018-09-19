@@ -144,14 +144,14 @@ termArgs([lftTok("{}",_)|Tks],Op,T,Toks,_,rbrce) :-
     checkToken(Tks2,Toks,rgtTok("{}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
     mergeLoc(Lcx,Lcy,Lc),
     apply(Lc,Op,tuple(Lc,"{}",Seq),T).
-termArgs([lqbrce(_),rqbrce(Lcy)|Tks],Op,T,Tks,_,rbrce) :-
+termArgs([lftTok("{..}",_),rgtTok("{..}",Lcy)|Tks],Op,T,Tks,_,rbrce) :-
     locOfAst(Op,Lcx),
     mergeLoc(Lcx,Lcy,Lc),
     apply(Lc,Op,tuple(Lc,"{..}",[]),T).
-termArgs([lqbrce(_)|Tks],Op,T,Toks,_,rbrce) :-
+termArgs([lftTok("{..}",_)|Tks],Op,T,Toks,_,rbrce) :-
     locOfAst(Op,Lcx),
-    terms(Tks,rqbrce(_),Tks2,Seq),
-    checkToken(Tks2,Toks,rqbrce(Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
+    terms(Tks,rgtTok("{..}",_),Tks2,Seq),
+    checkToken(Tks2,Toks,rgtTok("{..}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
     mergeLoc(Lcx,Lcy,Lc),
     apply(Lc,Op,tuple(Lc,"{..}",Seq),T).
 termArgs([idTok(".",_),idTok(Fld,LcF)|Tks],Op,T,Toks,_,Lst) :-

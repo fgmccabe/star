@@ -11,7 +11,6 @@ ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
-
 include_directories("../Headers" "Headers")
 
 set(PUBLIC_HEADERS
@@ -87,5 +86,3 @@ set(SOURCE_FILES
 
 add_library(ooio STATIC ${SOURCE_FILES})
 
-install(TARGETS ooio DESTINATION lib)
-install(FILES ${PUBLIC_HEADERS} DESTINATION include/star)
