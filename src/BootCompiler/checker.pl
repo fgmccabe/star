@@ -42,7 +42,7 @@ thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
     pushFace(Fields,Lc,IBase,Env),
     checkGroups(Groups,Fields,Annots,Defs,Env,TheEnv,Pkg),
     checkOthers(Otrs,Others,TheEnv,Pkg);
-    Defs=[],Others=[],Imports=[]).
+    Defs=[],Others=[],Imports=[],TheEnv=Base).
 %  dispDefs(Defs).
 
 recordEnv(Path,Repo,_Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
@@ -588,7 +588,7 @@ typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
   funLbl(Fun,Lbl),
   genstr(Lbl,RcNm),
   thetaName(Path,RcNm,ThPath),
-  checkRecordBody(FnTp,Lc,Els,E0,_,Defs,Others,Types,Lbl,ThPath).
+  checkRecordBody(FnTp,Lc,Els,E0,_,Defs,Others,Types,ThPath).
 typeOfExp(Term,Tp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Th,Ex),
   checkLetExp(Tp,Lc,Th,Ex,Ev,LetExp,Path).

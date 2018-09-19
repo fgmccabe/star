@@ -41,10 +41,6 @@ locOfToken(lftTok(_,Lc),Lc).
 locOfToken(rgtTok(_,Lc),Lc).
 locOfToken(idTok(_,Lc),Lc).
 locOfToken(idQTok(_,Lc),Lc).
-locOfToken(lqpar(Lc),Lc).
-locOfToken(rqpar(Lc),Lc).
-locOfToken(rqbrce(Lc),Lc).
-locOfToken(lqbrce(Lc),Lc).
 locOfToken(integerTok(_,Lc),Lc).
 locOfToken(floatTok(_,Lc),Lc).
 locOfToken(stringTok(_,Lc),Lc).
@@ -59,8 +55,6 @@ dispToken(rgtTok(Bkt,_),Chrs) :-
   string_chars(Rgt,Chrs).
 dispToken(idQTok(Id,_),St) :- string_chars(Id,St).
 dispToken(idTok(Id,_),St) :- string_chars(Id,St).
-dispToken(lqpar(_),['<','|']).
-dispToken(rqpar(_),['|','>']).
 dispToken(integerTok(Ix,_),Str) :- number_string(Ix,St),string_chars(St,Str).
 dispToken(floatTok(Dx,_),Str) :- number_string(Dx,St),string_chars(St,Str).
 dispToken(stringTok(St,_),Str) :- string_chars(St,Str).
