@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/4/18.
 //
 
-#ifndef CAFE_IO_CHNNL_H
-#define CAFE_IO_CHNNL_H
+#ifndef STAR_IO_CHNNL_H
+#define STAR_IO_CHNNL_H
 
 #include "term.h"
 #include "heap.h"
@@ -22,4 +22,4 @@ extern ioChnnlPo stdInChnl(heapPo h);
 extern ioChnnlPo stdOutChnl(heapPo h);
 extern ioChnnlPo stdErrChnl(heapPo h);
 
-#endif //CAFE_IO_CHNNL_H
+#endif //STAR_IO_CHNNL_H

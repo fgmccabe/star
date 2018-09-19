@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/1/18.
 //
 
-#ifndef CAFE_RRB_H
-#define CAFE_RRB_H
+#ifndef STAR_RRB_H
+#define STAR_RRB_H
 
 #include "term.h"
 #include "heap.h"
@@ -48,4 +48,4 @@ void startVectFocus(vectPo v, vFocusPo f);
 void endVectFocus(vectPo v, vFocusPo f);
 void indexedVectFocus(vectPo v, integer index, vFocusPo f);
 
-#endif //CAFE_RRB_H
+#endif //STAR_RRB_H

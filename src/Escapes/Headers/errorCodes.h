@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 1/15/18.
 //
 
-#ifndef CAFE_ERRORCODES_H
-#define CAFE_ERRORCODES_H
+#ifndef STAR_ERRORCODES_H
+#define STAR_ERRORCODES_H
 
 #include "term.h"
 
@@ -19,4 +19,4 @@ extern termPo eIOERROR;
 extern termPo eCONNECT;
 extern termPo eDEAD;
 
-#endif //CAFE_ERRORCODES_H
+#endif //STAR_ERRORCODES_H

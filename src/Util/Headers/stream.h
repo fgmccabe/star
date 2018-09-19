@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/27/18.
 //
 
-#ifndef CAFE_STREAM_H
-#define CAFE_STREAM_H
+#ifndef STAR_STREAM_H
+#define STAR_STREAM_H
 
 #include "io.h"
 
@@ -17,4 +17,4 @@ extern classPo streamClass;
 #define O_STREAM(c) ((streamPo)(c))
 #endif
 
-#endif //CAFE_STREAM_H
+#endif //STAR_STREAM_H

@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/5/18.
 //
 
-#ifndef CAFE_INTEGERP_H
-#define CAFE_INTEGERP_H
+#ifndef STAR_INTEGERP_H
+#define STAR_INTEGERP_H
 
 #include "integer.h"
 #include "objectP.h"
@@ -27,4 +27,4 @@ typedef struct _ix_class_ {
 
 extern IxClassRec IxClass;
 
-#endif //CAFE_INTEGERP_H
+#endif //STAR_INTEGERP_H

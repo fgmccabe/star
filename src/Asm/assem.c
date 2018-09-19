@@ -1,5 +1,5 @@
 /*
- * Assembler for the Cafe machine code
+ * Assembler for the Star machine code
  */
 
 #include <assert.h>

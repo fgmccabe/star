@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 2/1/17.
 //
 
-#ifndef CAFE_MANIFEST_H
-#define CAFE_MANIFEST_H
+#ifndef STAR_MANIFEST_H
+#define STAR_MANIFEST_H
 
 #include "ooio.h"
 #include "pkg.h"
@@ -29,4 +29,4 @@ void defltRepoDir();
 retCode loadManifest();
 
 retCode setManifestPath(char *path);
-#endif //CAFE_MANIFEST_H
+#endif //STAR_MANIFEST_H

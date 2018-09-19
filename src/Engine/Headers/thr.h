@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/11/18.
 //
 
-#ifndef CAFE_THR_H
-#define CAFE_THR_H
+#ifndef STAR_THR_H
+#define STAR_THR_H
 
 #include "term.h"
 #include "heap.h"
@@ -25,4 +25,4 @@ void clearProcess(threadPo t);
 
 threadPo newThread(processPo p);
 
-#endif //CAFE_THR_H
+#endif //STAR_THR_H

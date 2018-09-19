@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 2/27/18.
 //
 
-#ifndef CAFE_LABELSP_H
-#define CAFE_LABELSP_H
+#ifndef STAR_LABELSP_H
+#define STAR_LABELSP_H
 
 #include "labels.h"
 #include "heapP.h"
@@ -25,4 +25,4 @@ typedef struct _program_label_ {
 extern void initLbls();
 void markLabels(gcSupportPo G);
 
-#endif //CAFE_LABELSP_H
+#endif //STAR_LABELSP_H

@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 5/22/18.
 //
 
-#ifndef CAFE_GENOPERATORS_H
-#define CAFE_GENOPERATORS_H
+#ifndef STAR_GENOPERATORS_H
+#define STAR_GENOPERATORS_H
 
 typedef enum {
   tokenOnly,
@@ -20,4 +20,4 @@ void genPostfix(char *op, int left, int prior, char *cmt);
 void genBracket(char *op, integer prior, char *left, char *right, char *cmt);
 void genToken(char *op, char *cmt);
 
-#endif //CAFE_GENOPERATORS_H
+#endif //STAR_GENOPERATORS_H

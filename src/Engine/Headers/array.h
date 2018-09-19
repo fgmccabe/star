@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/4/18.
 //
 
-#ifndef CAFE_ARRAY_H
-#define CAFE_ARRAY_H
+#ifndef STAR_ARRAY_H
+#define STAR_ARRAY_H
 
 #include "term.h"
 #include "heap.h"
@@ -46,4 +46,4 @@ extern integer listSize(listPo list);
 extern termPo nthEl(listPo list, integer ix);
 extern void setNthEl(listPo list, integer ix, termPo el);
 
-#endif //CAFE_ARRAY_H
+#endif //STAR_ARRAY_H

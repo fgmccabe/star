@@ -1,5 +1,5 @@
 /*
- * An encoding representation for Cafe byte code
+ * An encoding representation for Star byte code
  */
 
 #ifndef _ENCODING_H_

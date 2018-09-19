@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/5/18.
 //
 
-#ifndef CAFE_LOCKVAR_H
-#define CAFE_LOCKVAR_H
+#ifndef STAR_LOCKVAR_H
+#define STAR_LOCKVAR_H
 
 #include "term.h"
 
@@ -21,4 +21,4 @@ extern retCode acquireLock(lockPo l, double tmOut);
 extern retCode releaseLock(lockPo l);
 extern retCode waitLock(lockPo l, double tmOut);
 
-#endif //CAFE_LOCKVAR_H
+#endif //STAR_LOCKVAR_H

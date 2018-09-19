@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/4/18.
 //
 
-#ifndef CAFE_ARRAYP_H
-#define CAFE_ARRAYP_H
+#ifndef STAR_ARRAYP_H
+#define STAR_ARRAYP_H
 
 #include "array.h"
 #include "code.h"
@@ -37,4 +37,4 @@ extern basePo C_BASE(termPo o);
 
 extern void initLists();
 
-#endif //CAFE_ARRAYP_H
+#endif //STAR_ARRAYP_H

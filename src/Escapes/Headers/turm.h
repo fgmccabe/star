@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/11/18.
 //
 
-#ifndef CAFE_TURM_H
-#define CAFE_TURM_H
+#ifndef STAR_TURM_H
+#define STAR_TURM_H
 
 #include "config.h"
 #include "ooio.h"
@@ -12,4 +12,4 @@
 #include "libEscapes.h"
 #include "termP.h"
 
-#endif //CAFE_TURM_H
+#endif //STAR_TURM_H

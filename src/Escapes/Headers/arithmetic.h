@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 1/6/18.
 //
 
-#ifndef CAFE_ARITHMETIC_H
-#define CAFE_ARITHMETIC_H
+#ifndef STAR_ARITHMETIC_H
+#define STAR_ARITHMETIC_H
 
 #include "config.h"
 #include "ooio.h"
@@ -13,4 +13,4 @@
 
 extern integer randomInt();
 
-#endif //CAFE_ARITHMETIC_H
+#endif //STAR_ARITHMETIC_H

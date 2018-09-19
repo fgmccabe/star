@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/27/18.
 //
 
-#ifndef CAFE_STREAMP_H
-#define CAFE_STREAMP_H
+#ifndef STAR_STREAMP_H
+#define STAR_STREAMP_H
 
 #include "stream.h"
 #include "ioP.h"
@@ -44,4 +44,4 @@ typedef struct _stream_object_ {
 } StreamObject;
 
 
-#endif //CAFE_STREAMP_H
+#endif //STAR_STREAMP_H

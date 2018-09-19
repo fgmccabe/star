@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 5/25/18.
 //
 
-#ifndef CAFE_BKPOINT_H
-#define CAFE_BKPOINT_H
+#ifndef STAR_BKPOINT_H
+#define STAR_BKPOINT_H
 
 #include "debug.h"
 
@@ -26,4 +26,4 @@ void markBpOutOfUse(breakPointPo b);
 DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl);
 DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl);
 
-#endif //CAFE_BKPOINT_H
+#endif //STAR_BKPOINT_H

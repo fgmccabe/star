@@ -21,7 +21,7 @@ set(HEADER_FILES
         Headers/decode.h
         ../Infra/Headers/encoding.h Headers/decodeP.h
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
-        Headers/cafe.h
+        Headers/star.h
         Headers/future.h Headers/futureP.h
         Headers/globalsP.h
         Headers/opcodes.h

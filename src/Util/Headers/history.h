@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/25/18.
 // Support console history
 
-#ifndef CAFE_HISTORY_H
-#define CAFE_HISTORY_H
+#ifndef STAR_HISTORY_H
+#define STAR_HISTORY_H
 
 #include "file.h"
 #include "strng.h"
@@ -14,4 +14,4 @@ strgPo fetchHistory(integer ix);
 retCode appendHistoryLine(char *txt, integer len);
 
 
-#endif //CAFE_HISTORY_H
+#endif //STAR_HISTORY_H

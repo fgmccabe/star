@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/5/18.
 //
 
-#ifndef CAFE_CELLP_H
-#define CAFE_CELLP_H
+#ifndef STAR_CELLP_H
+#define STAR_CELLP_H
 
 #include "cell.h"
 #include "code.h"
@@ -20,4 +20,4 @@ void initCell();
 
 cellPo newCell(heapPo H, termPo content);
 
-#endif //CAFE_CELLP_H
+#endif //STAR_CELLP_H

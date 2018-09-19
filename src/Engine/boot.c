@@ -2,7 +2,7 @@
  * Simple bootstrap of engine
  * Used for testing right now
  */
-#include "cafe.h"
+#include "star.h"
 
 #include <stdlib.h>
 #include <assert.h>

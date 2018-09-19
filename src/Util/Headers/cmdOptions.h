@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/29/17.
 //
 
-#ifndef CAFE_OPTIONS_H
-#define CAFE_OPTIONS_H
+#ifndef STAR_OPTIONS_H
+#define STAR_OPTIONS_H
 
 #include "retcode.h"
 #include "logical.h"
@@ -35,4 +35,4 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
 
 void showUsage(char *name, char *copyRight, Option options[], int optionCount);
 
-#endif //CAFE_OPTIONS_H
+#endif //STAR_OPTIONS_H

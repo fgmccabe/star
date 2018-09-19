@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 2/26/18.
 //
 
-#ifndef CAFE_LBL_H
-#define CAFE_LBL_H
+#ifndef STAR_LBL_H
+#define STAR_LBL_H
 
 #include "config.h"
 #include "ooio.h"
@@ -35,4 +35,4 @@ extern labelPo C_LBL(termPo t);
 
 
 
-#endif //CAFE_LBL_H
+#endif //STAR_LBL_H

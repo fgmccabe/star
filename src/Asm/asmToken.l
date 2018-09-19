@@ -1,4 +1,4 @@
-/* Lexical scanner for the Cafe assembler */
+/* Lexical scanner for the Star assembler */
 
 %option yylineno
 %option bison-bridge bison-locations

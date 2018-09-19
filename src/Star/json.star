@@ -59,6 +59,10 @@ star.json{
     _coerce(T) where (J,_)^=pJ(skpBlnks(T::list[integer])) => J.
   .}
 
+  public parseJson:(string)=>option[json].
+  parseJson(T) where (J,_)^=pJ(skpBlnks(T::list[integer])) => some(J).
+  parseJson(_) default => none.
+
   pJ:(list[integer]) => option[(json,list[integer])].
   pJ([Ch,..L]) => ppJ(Ch,L).
 

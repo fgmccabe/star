@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 4/5/18.
 //
 
-#ifndef CAFE_GLOBALSP_H
-#define CAFE_GLOBALSP_H
+#ifndef STAR_GLOBALSP_H
+#define STAR_GLOBALSP_H
 
 #include "globals.h"
 #include "termP.h"
@@ -24,4 +24,4 @@ void initCell();
 
 void markGlobals(gcSupportPo G);
 
-#endif //CAFE_GLOBALSP_H
+#endif //STAR_GLOBALSP_H

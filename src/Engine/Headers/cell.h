@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/5/18.
 //
 
-#ifndef CAFE_CELL_H
-#define CAFE_CELL_H
+#ifndef STAR_CELL_H
+#define STAR_CELL_H
 
 #include "term.h"
 
@@ -17,4 +17,4 @@ extern termPo getCell(cellPo cell);
 
 extern termPo setCell(cellPo cell,termPo e);
 
-#endif //CAFE_CELL_H
+#endif //STAR_CELL_H

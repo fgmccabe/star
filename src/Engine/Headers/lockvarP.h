@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/5/18.
 //
 
-#ifndef CAFE_LOCKVARP_H
-#define CAFE_LOCKVARP_H
+#ifndef STAR_LOCKVARP_H
+#define STAR_LOCKVARP_H
 
 #include "heap.h"
 #include "termP.h"
@@ -24,4 +24,4 @@ void initLock(lockPo kck);
 
 #define LockCellCount CellCount(sizeof(LockRecord))
 
-#endif //CAFE_LOCKVARP_H
+#endif //STAR_LOCKVARP_H

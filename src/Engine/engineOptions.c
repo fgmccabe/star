@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "cmdOptions.h"
-#include "version.h"      /* Version ID for the Cafe system */
+#include "version.h"      /* Version ID for the Star system */
 #include "debug.h"
 
 #include "manifest.h"

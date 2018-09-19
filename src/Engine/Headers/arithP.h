@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 1/23/18.
 //
 
-#ifndef CAFE_ARITHP_H
-#define CAFE_ARITHP_H
+#ifndef STAR_ARITHP_H
+#define STAR_ARITHP_H
 
 #include "heap.h"
 #include "arith.h"
@@ -30,4 +30,4 @@ extern fltPo allocateFloat(heapPo H, double dx);
 
 #define EPSILON ((double)1.0e-20)
 
-#endif //CAFE_ARITHP_H
+#endif //STAR_ARITHP_H

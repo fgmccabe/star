@@ -20,7 +20,7 @@
 /* #undef NDEBUG */
 
 /* Name of package */
-#define PACKAGE "cafe"
+#define PACKAGE "star"
 
 /* Version number of package */
 #define VERSION "0.0"
@@ -54,4 +54,4 @@ typedef unsigned long long uint64;
 
 #define VERIFY_OBJECT
 
-#define CAFEDIR "/opt/star/star"
+#define STARDIR "/opt/star/star"

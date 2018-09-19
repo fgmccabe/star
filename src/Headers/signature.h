@@ -40,7 +40,7 @@ typedef enum {
 
   tpruleSig = 'Y',  /* Type rule -- aka type alias or existential type assignment */
   tplambdaSig = 'Z', /* Type function */
-} cafeTypeSig;
+} starTypeSig;
 
 typedef enum {
   univCon = ':',

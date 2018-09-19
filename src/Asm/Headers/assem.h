@@ -5,7 +5,7 @@
 #include <ooio.h>
 
 /*
- * Header for the Cafe assembler
+ * Header for the Star assembler
  */
 
 #include "signature.h"
