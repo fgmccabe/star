@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 7/31/18.
 //
 
-#ifndef CAFE_VECTORP_H
-#define CAFE_VECTORP_H
+#ifndef STAR_VECTORP_H
+#define STAR_VECTORP_H
 
 #include "vector.h"
 #include "objectP.h"
@@ -29,4 +29,4 @@ typedef struct _vector_class_ {
 
 extern VectorClassRec VectorClass;
 
-#endif //CAFE_VECTORP_H
+#endif //STAR_VECTORP_H

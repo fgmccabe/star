@@ -12,7 +12,7 @@ extern int getOptions(int argc, char **argv);
 
 extern retCode parseContent(char *path);
 
-extern void setCafeHome(char *home);
+extern void setStarHome(char *home);
 
 extern void setPkgVersion(char *vers);
 

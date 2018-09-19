@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/7/18.
 //
 
-#ifndef CAFE_FUTUREP_H
-#define CAFE_FUTUREP_H
+#ifndef STAR_FUTUREP_H
+#define STAR_FUTUREP_H
 
 #include "future.h"
 #include "code.h"
@@ -24,4 +24,4 @@ void initFuture();
 
 futurePo newFuture(heapPo H, termPo content);
 
-#endif //CAFE_FUTUREP_H
+#endif //STAR_FUTUREP_H

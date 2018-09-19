@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/25/18.
 //
 
-#ifndef CAFE_STRNG_H
-#define CAFE_STRNG_H
+#ifndef STAR_STRNG_H
+#define STAR_STRNG_H
 
 #include "object.h"
 
@@ -22,4 +22,4 @@ extern classPo strgClass;
 #define O_STRG(c) ((strgPo)(c))
 #endif
 
-#endif //CAFE_STRNG_H
+#endif //STAR_STRNG_H

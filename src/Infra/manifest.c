@@ -369,9 +369,9 @@ retCode errorEntry(const char *name, void *cl) {
 
 void defltRepoDir() {
   if (uniIsLit(repoDir, "")) { // overridden?
-    char *dir = getenv("CAFE_DIR"); /* pick up the installation directory */
+    char *dir = getenv("STAR_DIR"); /* pick up the installation directory */
     if (dir == NULL)
-      dir = CAFEDIR;                  /* Default installation path */
+      dir = STARDIR;                  /* Default installation path */
     uniCpy(repoDir, NumberOf(repoDir), dir);
   }
 }

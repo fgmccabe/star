@@ -62,4 +62,8 @@ star.option{
     _coerce(some(X)) => some(_coerce(X)).
     _coerce(none) => none.
   .}
+
+  public deflt:all a~~(option[a],()=>a)=>a.
+  deflt(some(X),_) => X.
+  deflt(none,F) => F().
 }

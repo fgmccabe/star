@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/25/18.
 //
 
-#ifndef CAFE_STRNGP_H
-#define CAFE_STRNGP_H
+#ifndef STAR_STRNGP_H
+#define STAR_STRNGP_H
 
 #include "strng.h"
 #include "objectP.h"
@@ -28,4 +28,4 @@ typedef struct _strg_class_ {
 
 extern StrgClassRec StrgClass;
 
-#endif //CAFE_STRNGP_H
+#endif //STAR_STRNGP_H

@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 8/1/18.
 //
 
-#ifndef CAFE_VERIFYP_H
-#define CAFE_VERIFYP_H
+#ifndef STAR_VERIFYP_H
+#define STAR_VERIFYP_H
 
 #include "verify.h"
 #include "objectP.h"
@@ -44,4 +44,4 @@ typedef struct _segment_class_ {
 
 extern SegmentClassRec SegmentClass;
 
-#endif //CAFE_VERIFYP_H
+#endif //STAR_VERIFYP_H

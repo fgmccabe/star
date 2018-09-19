@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 1/14/18.
 //
 
-#ifndef CAFE_ENGINEP_H
-#define CAFE_ENGINEP_H
+#ifndef STAR_ENGINEP_H
+#define STAR_ENGINEP_H
 
 #include "engine.h"
 #include "termP.h"
@@ -75,4 +75,4 @@ void verifyProc(processPo p, struct _gc_support_ *G);
 retCode extendStack(processPo p, integer sfactor);
 retCode extendHeap(heapPo p, int hfactor, long hmin);
 
-#endif //CAFE_ENGINEP_H
+#endif //STAR_ENGINEP_H

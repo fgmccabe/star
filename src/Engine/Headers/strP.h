@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 1/23/18.
 //
 
-#ifndef CAFE_STRP_H
-#define CAFE_STRP_H
+#ifndef STAR_STRP_H
+#define STAR_STRP_H
 
 #include "heap.h"
 #include "code.h"
@@ -22,4 +22,4 @@ extern void initStr();
 
 #define StringCellCount(len) CellCount(sizeof(StringRecord)+(len)*sizeof(char))
 
-#endif //CAFE_STRP_H
+#endif //STAR_STRP_H

@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/18/17.
 //
 
-#ifndef CAFE_TERMP_H
-#define CAFE_TERMP_H
+#ifndef STAR_TERMP_H
+#define STAR_TERMP_H
 
 #include "term.h"
 #include "code.h"
@@ -47,4 +47,4 @@ extern void initTerm();
 
 extern logical isSpecialClass(clssPo p);
 
-#endif //CAFE_TERMP_H
+#endif //STAR_TERMP_H

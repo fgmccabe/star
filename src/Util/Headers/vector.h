@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 7/31/18.
 //
 
-#ifndef CAFE_VECTOR_H
-#define CAFE_VECTOR_H
+#ifndef STAR_VECTOR_H
+#define STAR_VECTOR_H
 
 /*
  * Vector: index addressable list with ability to replace elements
@@ -33,4 +33,4 @@ extern classPo vectorClass;
 #define O_VECT(c) ((vectorPo)(c))
 #endif
 
-#endif //CAFE_VECTOR_H
+#endif //STAR_VECTOR_H

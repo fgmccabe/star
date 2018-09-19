@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 2/23/17.
 //
 
-#ifndef CAFE_PKG_H
-#define CAFE_PKG_H
+#ifndef STAR_PKG_H
+#define STAR_PKG_H
 
 #include "ooio.h"
 

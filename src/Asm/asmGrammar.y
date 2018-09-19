@@ -1,5 +1,5 @@
 /*
- * Grammar for Cafe assembler
+ * Grammar for Star assembler
  */
 
 %{

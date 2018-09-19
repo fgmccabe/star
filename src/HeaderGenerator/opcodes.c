@@ -15,14 +15,14 @@ int main(int argc, char **argv) {
     out = fopen(argv[1], "w");
 
   fprintf(out, "/* Automatically generated, do not edit */\n");
-  fprintf(out,"#ifndef _CAFE_OPCODE_H_\n");
-  fprintf(out,"#define _CAFE_OPCODE_H_\n");
+  fprintf(out,"#ifndef _STAR_OPCODE_H_\n");
+  fprintf(out,"#define _STAR_OPCODE_H_\n");
   fprintf(out, "typedef enum {\n");
 #include "instructions.h" /* Pick up the instructions specification */
   fprintf(out, "  label,\n");
   fprintf(out, "  illegalOp\n");
   fprintf(out, "} OpCode;\n\n");
-  fprintf(out,"#endif //_CAFE_OPCODE_H_\n");
+  fprintf(out,"#endif //_STAR_OPCODE_H_\n");
 #undef instruction
 
   fclose(out);

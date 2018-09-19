@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/16/17.
 //
 
-#ifndef CAFE_OOIO_H
-#define CAFE_OOIO_H
+#ifndef STAR_OOIO_H
+#define STAR_OOIO_H
 
 #include "config.h"
 #include "utils.h"
@@ -17,4 +17,4 @@
 #include "pool.h"
 
 
-#endif //CAFE_OOIO_H
+#endif //STAR_OOIO_H

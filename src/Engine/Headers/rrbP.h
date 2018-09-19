@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/1/18.
 //
 
-#ifndef CAFE_RRBP_H
-#define CAFE_RRBP_H
+#ifndef STAR_RRBP_H
+#define STAR_RRBP_H
 
 #include "rrb.h"
 #include "code.h"
@@ -34,4 +34,4 @@ extern void initVectors();
 extern vectPo allocVector(heapPo H, integer depth);
 extern vectPo copyVector(heapPo H,vectPo v);
 
-#endif //CAFE_RRBP_H
+#endif //STAR_RRBP_H

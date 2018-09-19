@@ -4,7 +4,7 @@
 #ifndef _ENGINE_H_
 #define _ENGINE_H_
 
-#include "cafe.h"
+#include "star.h"
 #include "engineOptions.h"
 #include "code.h"
 #include "heap.h"

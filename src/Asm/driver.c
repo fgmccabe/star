@@ -50,10 +50,10 @@ retCode parseContent(char *path) {
     return Fail;
 }
 
-static char *CAFE_HOME = NULL;
+static char *starHome = NULL;
 
-void setCafeHome(char *home) {
-  CAFE_HOME = home;
+void setStarHome(char *home) {
+  starHome = home;
 }
 
 static char *PKG_VERSION = "*";
@@ -67,15 +67,15 @@ char *defltPkgVersion() {
 }
 
 static void initStdUri() {
-  if (CAFE_HOME == NULL) {
-    char *home = getenv("CAFE_HOME");
+  if (starHome == NULL) {
+    char *home = getenv(STAR_HOME);
 
     if (home != NULL)
-      CAFE_HOME = uniDuplicate(home);
+      starHome = uniDuplicate(home);
     else {
       char buff[MAXFILELEN];
-      strMsg(buff, NumberOf(buff), "/opt/cafe/share/stdlib/");
-      CAFE_HOME = uniDuplicate(buff);
+      strMsg(buff, NumberOf(buff), "/opt/star/share/stdlib/");
+      starHome = uniDuplicate(buff);
     }
   }
 }

@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/18/17.
 //
 
-#ifndef CAFE_TERM_H
-#define CAFE_TERM_H
+#ifndef STAR_TERM_H
+#define STAR_TERM_H
 
 #include "config.h"
 #include "ooio.h"
@@ -64,4 +64,4 @@ logical sameTerm(termPo t1, termPo t2);
 
 extern comparison compareTerm(termPo t1, termPo t2);
 
-#endif //CAFE_TERM_H
+#endif //STAR_TERM_H

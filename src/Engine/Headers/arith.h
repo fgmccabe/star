@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/18/17.
 //
 
-#ifndef CAFE_ARITH_H
-#define CAFE_ARITH_H
+#ifndef STAR_ARITH_H
+#define STAR_ARITH_H
 
 #include "term.h"
 
@@ -42,4 +42,4 @@ extern fltPo C_FLT(termPo t);
 
 extern void initArith();
 
-#endif //CAFE_ARITH_H
+#endif //STAR_ARITH_H

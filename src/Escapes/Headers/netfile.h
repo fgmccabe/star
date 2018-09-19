@@ -2,9 +2,9 @@
 // Created by Francis McCabe on 3/8/18.
 //
 
-#ifndef CAFE_NETFILE_H
-#define CAFE_NETFILE_H
+#ifndef STAR_NETFILE_H
+#define STAR_NETFILE_H
 
 #include "fileops.h"
 
-#endif //CAFE_NETFILE_H
+#endif //STAR_NETFILE_H

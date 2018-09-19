@@ -69,7 +69,7 @@ static retCode setParseOnly(char *option, logical enable, void *cl) {
 }
 
 static retCode setHome(char *option, logical enable, void *cl) {
-  setCafeHome(uniDuplicate(option));
+  setStarHome(uniDuplicate(option));
   return Ok;
 }
 

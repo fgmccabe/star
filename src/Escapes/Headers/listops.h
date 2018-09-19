@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/25/18.
 //
 
-#ifndef CAFE_LISTOPS_H
-#define CAFE_LISTOPS_H
+#ifndef STAR_LISTOPS_H
+#define STAR_LISTOPS_H
 
 #include "config.h"
 #include "ooio.h"
@@ -12,4 +12,4 @@
 #include "libEscapes.h"
 #include "array.h"
 
-#endif //CAFE_LISTOPS_H
+#endif //STAR_LISTOPS_H

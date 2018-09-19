@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/11/18.
 //
 
-#ifndef CAFE_LBLOPS_H
-#define CAFE_LBLOPS_H
+#ifndef STAR_LBLOPS_H
+#define STAR_LBLOPS_H
 
 #include "config.h"
 #include "ooio.h"
@@ -14,4 +14,4 @@
 #include "arith.h"
 #include "labels.h"
 
-#endif //CAFE_LBLOPS_H
+#endif //STAR_LBLOPS_H

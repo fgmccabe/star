@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 3/2/18.
 //
 
-#ifndef CAFE_GLOBALS_H
-#define CAFE_GLOBALS_H
+#ifndef STAR_GLOBALS_H
+#define STAR_GLOBALS_H
 
 #include "term.h"
 #include "heap.h"
@@ -36,4 +36,4 @@ extern termPo unitEnum;
 
 extern void initGlobals();
 
-#endif //CAFE_GLOBALS_H
+#endif //STAR_GLOBALS_H

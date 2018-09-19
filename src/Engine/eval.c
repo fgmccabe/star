@@ -1,8 +1,8 @@
 /*
- * Run-time evaluation for CAFE programs.
+ * Run-time evaluation for STAR programs.
  *
  * It is expected that this is for fall-back purposes only. Normally, a JIT
- * process will generate native instructions from CAFE instructions.
+ * process will generate native instructions from STAR instructions.
  */
 
 #include "config.h"

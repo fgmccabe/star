@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 7/26/18.
 //
 
-#ifndef CAFE_VERIFY_H
-#define CAFE_VERIFY_H
+#ifndef STAR_VERIFY_H
+#define STAR_VERIFY_H
 
 #include "codeP.h"
 #include <assert.h>
@@ -23,4 +23,4 @@ extern classPo segmentClass;
 #define O_SEG(c) ((segPo)(c))
 #endif
 
-#endif //CAFE_VERIFY_H
+#endif //STAR_VERIFY_H

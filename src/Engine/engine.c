@@ -1,7 +1,7 @@
 /*
  * top-level run-time functions
  */
-#include "cafe.h"
+#include "star.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <str.h>

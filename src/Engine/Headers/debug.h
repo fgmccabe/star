@@ -2,8 +2,8 @@
 // Created by Francis McCabe on 6/20/17.
 //
 
-#ifndef CAFE_DEBUG_H
-#define CAFE_DEBUG_H
+#ifndef STAR_DEBUG_H
+#define STAR_DEBUG_H
 
 #include "engine.h"
 
@@ -26,4 +26,4 @@ extern void dumpInsStats();
 extern void stackTrace(processPo p, ioPo out, logical showStack);
 extern void dumpStackTrace(processPo p, ioPo out);
 
-#endif //CAFE_DEBUG_H
+#endif //STAR_DEBUG_H
