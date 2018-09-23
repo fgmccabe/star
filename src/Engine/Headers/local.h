@@ -1,25 +1,8 @@
 #ifndef _ALOCAL_H_
 #define _ALOCAL_H_
 
-/* Localization for specific operating systems */
-
-#ifdef _WIN32				/* Windows95 version */
-#define ACCESS_MODE _A_NORMAL
-#define DIR_SEP "\\"			/* directory separator in file names */
-#define DIR_CHR DIR_SEP[0]
-#define PTH_SEP ","			/* Path separator string */
-#define PTH_CHR ','			/* Path separator character */
-#endif
-
 /* define escape sequences for bold highlighting */
-#ifdef __QNX__
-#define BOLD_ESC_ON "\033<"
-#define BOLD_ESC_OFF "\033>"
-#define ULINE_ESC_ON "\033<"
-#define ULINE_ESC_OFF "\033>"
-#endif
 
-/* Defaults */
 #ifndef BOLD_ESC_ON
 #define BOLD_ESC_ON "\033[5m"
 #define BOLD_ESC_OFF "\033[0m"
@@ -33,6 +16,16 @@
 #ifndef GREEN_ESC_ON
 #define GREEN_ESC_ON "\033[32m"
 #define GREEN_ESC_OFF "\033[0m"
+#endif
+
+#ifndef YELLOW_ESC_ON
+#define YELLOW_ESC_ON "\033[33m"
+#define YELLOW_ESC_OFF "\033[0m"
+#endif
+
+#ifndef BLUE_ESC_ON
+#define BLUE_ESC_ON "\033[34m"
+#define BLUE_ESC_OFF "\033[0m"
 #endif
 
 #ifndef ULINE_ESC_ON
@@ -62,10 +55,20 @@
 #undef ULINE_ESC_OFF
 #define ULINE_ESC_OFF ""
 
+#undef YELLOW_ESC_ON
+#define YELLOW_ESC_ON ""
+#undef YELLOW_ESC_OFF
+#define YELLOW_ESC_OFF ""
+
 #undef GREEN_ESC_ON
 #define GREEN_ESC_ON ""
 #undef GREEN_ESC_OFF
 #define GREEN_ESC_OFF ""
+
+#undef BLUE_ESC_ON
+#define BLUE_ESC_ON ""
+#undef BLUE_ESC_OFF
+#define BLUE_ESC_OFF ""
 #endif /* NOCOLOURS */
 
 #ifndef DIR_SEP
