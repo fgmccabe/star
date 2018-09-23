@@ -29,6 +29,7 @@ logical traceLock = False;        /* true if tracing locks */
 logical traceManifest = False;
 logical tracePkg = False;
 logical traceMemory = False;      /* memory tracing */
+logical validateMemory = False;   // Validate heap after every allocation
 logical interactive = False;      /* interaction instruction tracing */
 logical runStats = False;         // Count instructions etc.
 
@@ -142,6 +143,15 @@ static retCode debugOption(char *option, logical enable, void *cl) {
             return -1;
 #endif
 
+      case 'H':    /* validate heap after allocations  */
+#ifdef TRACEMEM
+        validateMemory = True;
+        continue;
+#else
+      logMsg(logFile,"memory validation not enabled");
+      return -1;
+#endif
+
       case 'l':    /* trace synch locks */
 #ifdef LOCKTRACE
         traceLock = True;
@@ -215,7 +225,7 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage, void *cl) {
                      "v|"
                      #endif
                      #ifdef TRACEMEM
-                     "m|"
+                     "m|H|"
                      #endif
                      #ifdef LOCKTRACE
                      "l|"

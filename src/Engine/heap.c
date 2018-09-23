@@ -69,6 +69,9 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
       numAllocated++;
       totalAllocated += amnt;
     }
+    if(validateMemory){
+      verifyHeap(H);
+    }
 #endif
     return t;
   } else if (gcCollect(H, amnt) == Ok)
@@ -112,7 +115,7 @@ static retCode verifyScanHelper(ptrPo arg, void *c) {
 }
 
 void verifyHeap(heapPo H) {
-  for (termPo t = H->start; t < H->limit;) {
+  for (termPo t = H->start; t < H->curr;) {
     clssPo clss = classOf(t);
     if (isSpecialClass(clss)) {
       specialClassPo sClass = (specialClassPo) clss;
