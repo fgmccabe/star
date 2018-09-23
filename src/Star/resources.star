@@ -28,4 +28,7 @@ star.resources{
 
   public logMsg:(string) => ().
   logMsg(Txt) where _ .= _logmsg(Txt) => ().
+
+  public cwd:()=>uri.
+  cwd() where U^=parseUri(_cwd()) => U.
 }
