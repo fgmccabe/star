@@ -20,7 +20,7 @@ If there is one theme that is common in large code bases is that tooling is crit
 ### Planning for change
 Furthermore, *change* is the dominant fact of life for large systems. Software systems evolve, grow, are repurposed to meet new objectives, and are re-implemented to take advantage of new technologies.
 
-Managing change in code is often left to Source Code Control Systems; but these systems only address part of the problem. For example, *code re-use* is also a requirement and a challenge for large systems. In fact, one could imagine a “three R’s” for large systems: Reusing, Repurposing, and Refactoring.
+Managing change in code is often left to Source Code Control Systems; but these systems only address part of the problem. For example, *code re-use* is also a requirement and a challenge for large systems. In fact, one could imagine a “three R’s” for software engineering: Reuse, Repurpose, and Refactor.
 
 When the code base is over 500 Kloc, the theoretical probability of being able to re-use existing code is high, the actual probability of re-use may be very low -- software engineers may simply not be able to find the needle in the code haystack, or, typically, the cost of re-using code may outweigh the cost of developing from scratch.
 
@@ -40,7 +40,7 @@ In addition, systems that are built assuming a shielded execution environment, b
 
 ### Real-time is normal time.
 
-Many kinds of business are becoming more and more ‘real-time’: a 100 millisecond slowdown in loading a web page can mean the loss of 5% of revenue for an e-commerce site; an unrented car, like an unrented hotel room, represents a permanent loss of business and a competitive disadvantage.
+Many kinds of business are becoming more and more ‘real-time’: a small -- over the order of milliseconds -- slowdown in loading a web page can mean the loss of 5% or more of revenue for an e-commerce site; an unrented car, like an unrented hotel room, represents a permanent loss of business and a competitive disadvantage.
 
 For the modern programmer, this means that applications must be engineered from the start to be responsive and multitasking -- aspects that challenge even the most professional of programmers.
 
@@ -157,6 +157,11 @@ Our strategy is to take a layered approach -- we start with simple examples, occ
 For the most part, examples in the text of the book are executable. You are encouraged to try to get them running on your own system.
 
 ### Getting hold of Star
+The **Star** compiler and run-time is being developed as an open source project on GitHub. You can access the source by cloning or downloading the repository at
+
+```
+github.com/frankmccabe/star
+```
 
 
 ### Typographical conventions

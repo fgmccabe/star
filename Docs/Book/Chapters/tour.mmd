@@ -138,7 +138,7 @@ We can also use a worksheet to display the results of using and testing our fact
 worksheet{
   import sample.factorial.
 
-  show "fact(10) is $(fact(10))$".
+  show "fact(10) is \(fact(10))".
 
   assert fact(5) == 120.
 }
@@ -153,10 +153,10 @@ The key features of a worksheet that we will use are the ability to import packa
 The expression
 
 ```
-"fact(10) is $(fact(10))$"
+"fact(10) is \(fact(10))"
 ```
 
-is an *interpolated string* expression. It means the string `"fact(10) is $(fact(10))$"` with the substring `(fact(10)` replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.
+is an *interpolated string* expression. It means the string `"fact(10) is \(fact(10))"` with the substring `(fact(10)` replaced by the value of the expression embedded within. Interpolated string expressions are a convenient way of constructing string values; and, via the use of contracts, are also type safe.
 
 ## Types, more types and even more types
 
@@ -169,7 +169,7 @@ The most basic question to ask about types is
 There is some surprising variability to the answer to this question; for example, in many OO languages, types are conflated with classes. **Star** types are terms -- i.e., names -- that denote different kinds of values.
 
 **Type**
-: A type is a term that denotes zero or more values. I.e., a type is the name of a collection of values.[^Not a set of values because not all collections of values are mathematical sets.]
+: A type is a term that denotes a collection of values.[^Not a set of values because not all collections of values are mathematical sets.]
 
 **Star**’s type system can be broken down into a number of dimensions:
 
@@ -288,7 +288,7 @@ For example, the `employee` type clearly points to what an employee value is int
 f : (integer)=>string
 ```
 
-clearly indicates what one can use `f` to do, but it does not indicate anything about why you would want to (except, perhaps, to convert an `integer` to a `string`).
+clearly indicates what one can use `f` for, but it does not indicate anything about why you would want to (except, perhaps, to convert an `integer` to a `string`).
 
 In summary, use nominative types when you are modeling ‘real world’ entities and structural types when the focus is on operations and structure more than on what the intention is. In practice, of course, you will use both in some combination.
 
@@ -297,7 +297,7 @@ Notice that we identified a special case of `noOne` in our `Person` type. One re
 
 Explicit null values, as found in Java and similar languages, cause a great number of problems: for example, null must have a special universal type; there are many scenarios where it is not possible for a variable to be null but the compiler must discover those for itself; and there is often a consequent tendency in defensive programming to test for null.
 
-**Star** has no direct equivalent of a global null value. However, the standard `option` type allows the equivalent of selective nullability. Any variable that might not have a proper value can be marked with the option type rather than the underlying type. And you can use none in those cases to indicate the equivalent of no value.
+**Star** has no direct equivalent of a global null value. However, the standard `option` type allows the equivalent of selective nullability. Any variable that might not have a proper value can be marked with the option type rather than the underlying type. And you can use `none` in those cases to indicate the equivalent of no value.
 
 So, for example, suppose that a `Person` might have a `spouse` --- who is also a `Person` --- but is not guaranteed to have one. Such a type can be described using:
 
@@ -471,14 +471,14 @@ This contract defines --- but does not implement --- the four calculator functio
 plus :  all t ~~ four[t] |: (t,t)=>t.
 ```
 
-The clause `four[t] |:` is a *type constraint*, specifically a *contract constraint*. So, these functions are generic (universally quantified) but the bound type (`t`) has the additional constraint that there is an implementation for `four` for it.
+The clause `four[t] |:` is a *type constraint*, specifically a *contract constraint*. So, these functions are generic (universally quantified) but the bound type (`t`) has the additional constraint that there must be an implementation for `four` for `t`.
 
-The `four` contract defines a set of functions that can be used without necessarily knowing the type(s) that are involved. For example, we can define the double function in terms of plus:
+The `four` contract defines a set of functions that can be used without necessarily knowing the type(s) that are involved. For example, we can define the `double` function in terms of `plus`:
 
 ```
 double(X) => plus(X,X).
 ```
-The type of `double` is also interesting:
+The type of `double` reflects the fact that we are using elements from the `four` contract:
 ```
 double : all t ~~ four[t] |: (t)=>t.
 ```
