@@ -137,18 +137,18 @@ mtdPo getPkgMethod(pkPo pkg, const char *name, integer arity) {
 
 static void defineSig(mtdPo mtd, char *sig);
 
-mtdPo defineMethod(pkPo pkg, char *name, integer arity, integer lclCount, char *sig) {
-  mtdPo existing = getPkgMethod(pkg, name, 0);
+mtdPo defineMethod(pkPo pkg, char *name, integer arity, char *sig, char *lclSig) {
+  mtdPo existing = getPkgMethod(pkg, name, arity);
 
   if (existing == Null) {
     mtdPo mtd = (mtdPo) allocPool(mtdPool);
     mtd->name.name = uniDuplicate(name);
     mtd->name.arity = arity;
-    mtd->lclCount = lclCount;
     mtd->labels = NewHash(16, (hashFun) uniHash, (compFun) uniCmp, delLabel);
     mtd->constants = nilList;
     mtd->first = mtd->last = Null;
     mtd->sig = -1;
+    mtd->lclSig = -1;
     mtd->locals = NewHash(16, (hashFun) localHash, (compFun) localComp, NULL);
 
     newStrctConstant(mtd, name, arity);
@@ -159,11 +159,14 @@ mtdPo defineMethod(pkPo pkg, char *name, integer arity, integer lclCount, char *
       defineSig(mtd, sig);    /* should be the first constant */
     }
 
+    mtd->lclSig = newStringConstant(mtd, lclSig);
+
     return mtd;
   } else if (existing->sig < 0 && sig != Null) {
     defineSig(existing, sig);
   }
-
+  if (existing->lclSig < 0 && lclSig != Null)
+    existing->lclSig = newStringConstant(existing, lclSig);
   return existing;
 }
 

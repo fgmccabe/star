@@ -97,7 +97,7 @@
 
  function: header instructions trailer ;
 
- header: ID SLASH DECIMAL DCOLON signature COLON DECIMAL nls { currMtd = defineMethod(*pkg,$1,$3,$7,$5); }
+ header: ID SLASH DECIMAL DCOLON signature COLON signature nls { currMtd = defineMethod(*pkg,$1,$3,$5,$7); }
 
  instructions: instructions instruction nls
      | instructions error nls

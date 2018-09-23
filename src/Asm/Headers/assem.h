@@ -22,7 +22,7 @@ extern void dumpPkgCode(pkPo pkg);
 
 extern void addImport(pkPo pkg, char *name, char *version, logical isPublic);
 
-extern mtdPo defineMethod(pkPo pkg, char *name, integer arity, integer lclCount, char *sig);
+extern mtdPo defineMethod(pkPo pkg, char *name, integer arity, char *sig, char *lclSig);
 extern char *methodSignature(mtdPo mtd);
 extern int32 findMethod(mtdPo mtd, char *name, int arity);
 
