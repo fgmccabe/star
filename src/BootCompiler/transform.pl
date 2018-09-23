@@ -152,7 +152,7 @@ transformModuleDefs([Def|Defs],Pkg,Map,Opts,I,Ix,Ex,Exx) :-
   transformModuleDefs(Defs,Pkg,Map,Opts,I1,Ix,Ex1,Exx).
 
 transformMdlDef(funDef(Lc,Nm,ExtNm,Tp,[],Eqns),_,Map,Opts,Ix,Ix,Dx,Dxx) :-
-  transformFunction(Lc,Nm,ExtNm,Tp,Eqns,Map,Opts,Dx,Dxx).
+  transformFunction(Lc,Nm,ExtNm,Tp,Eqns,Map,Map,Opts,Dx,Dxx).
 transformMdlDef(varDef(Lc,Nm,ExtNm,[],Tp,Value),_,Map,Opts,I,Ix,Dx,Dxx) :-
   transformGblDefn(Lc,Nm,ExtNm,Tp,Value,Map,Opts,I,Ix,Dx,Dxx).
 transformMdlDef(cnsDef(_,_,_,_),_,_,_,Ix,Ix,Dx,Dx).
@@ -164,7 +164,7 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
+transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,OMap,Opts,[Fun|Ex],Exx) :-
   lookupFunName(Map,Nm,Reslt),
   programAccess(Reslt,_,_,Arity),
   pushOpt(Opts,inProg(Nm),FOpts),
@@ -172,7 +172,7 @@ transformFunction(Lc,Nm,LclName,Tp,Eqns,Map,Opts,[Fun|Ex],Exx) :-
   extraArity(Arity,Extra,Ar),
   LclPrg = lbl(LclName,Ar),
   extendFunTp(Tp,Extra,ATp),
-  transformEquations(Map,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
+  transformEquations(Map,OMap,FOpts,LclPrg,Eqns,Rules,[],Ex,Ex0),
   closureEntry(Map,Lc,Nm,Tp,Ex0,Exx),
   functionMatcher(Lc,Ar,LclPrg,ATp,Rules,Fun).
 
@@ -189,19 +189,19 @@ extendTplTp([],[]).
 extendTplTp([_|M],[anonType|NEls]) :-
   extendTplTp(M,NEls).
 
-transformEquations(_,_,_,[],Rules,Rules,Ex,Ex).
-transformEquations(Map,Opts,LclPrg,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
-  transformEqn(Eqn,Map,Opts,LclPrg,Rules,R0,Ex,Ex0),
-  transformEquations(Map,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
+transformEquations(_,_,_,_,[],Rules,Rules,Ex,Ex).
+transformEquations(Map,OMap,Opts,LclPrg,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
+  transformEqn(Eqn,Map,OMap,Opts,LclPrg,Rules,R0,Ex,Ex0),
+  transformEquations(Map,OMap,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
 
-transformEqn(equation(Lc,tple(_,A),Cond,Value),Map,Opts,_LclPrg,
+transformEqn(equation(Lc,tple(_,A),Cond,Value),Map,OMap,Opts,_LclPrg,
     [(Lc,Args,EqTest,Rep)|Rx],Rx,Ex,Exx) :-
   extraVars(Map,Extra),
   filterVars(Extra,Q0),
   liftPtns(A,AA,Q0,Q1,Map,Opts,Ex,Ex0), % head args
   concat(Extra,AA,Args),
-  liftGoal(Cond,Test,Q1,Q2,Map,Opts,Ex0,Ex1),   % condition goals
-  liftExp(Value,Rep,Q2,Q3,Map,Opts,Ex1,Exx),  % replacement expression
+  liftGoal(Cond,Test,Q1,Q2,OMap,Opts,Ex0,Ex1),   % condition goals
+  liftExp(Value,Rep,Q2,Q3,OMap,Opts,Ex1,Exx),  % replacement expression
   labelAccess(Q3,_Q,Map,Lc,LbLx),         % generate label access goals
   mergeGoal(LbLx,Test,Lc,EqTest).
 
@@ -213,10 +213,10 @@ transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
   mergeWhere(Rep,G0,Lc,Exp),
   mergeSeq(Lc,I,cll(Lc,lbl(LclName,0),[]),Ix).
 
-transformThetaDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,I,
+transformThetaDefn(Lc,_Nm,LclName,Tp,Value,Map,OMap,Opts,I,I,
     [fnDef(Lc,VrProg,funType(tupleType(ExTps),Tp),Extra,Body)|Dx],Dxx) :-
   extraVars(Map,Extra),                                   % extra variables coming from labels
-  liftExp(Value,Rep,[],Q0,Map,Opts,Dx,Dxx),
+  liftExp(Value,Rep,[],Q0,OMap,Opts,Dx,Dxx),
   labelAccess(Q0,_Q,Map,Lc,G0),                        % generate label access goals
   length(Extra,Arity),
   ExTps = [],
@@ -301,19 +301,19 @@ makeLabelTerm(localClass(LclName,Strct,_LblPrg,ThVr),lbl(LclName,2),ctpl(Strct,[
 makeLabelTerm(moduleCons(Lbl,Strct,0),Lbl,enum(Strct)).
 makeLabelTerm(moduleCons(Lbl,Strct,Ar),Lbl,ctpl(lbl(Strct,Ar),[])).
 
-transformThetaDefs(_,_,[],Ix,Ix,Dfs,Dfs).
-transformThetaDefs(Map,Opts,[Def|Defs],I,Ix,Ex,Exx) :-
-  transformThetaDef(Def,Map,Opts,I,I1,Ex,Ex1),
-  transformThetaDefs(Map,Opts,Defs,I1,Ix,Ex1,Exx).
+transformThetaDefs(_,_,_,[],Ix,Ix,Dfs,Dfs).
+transformThetaDefs(Map,OMap,Opts,[Def|Defs],I,Ix,Ex,Exx) :-
+  transformThetaDef(Def,Map,OMap,Opts,I,I1,Ex,Ex1),
+  transformThetaDefs(Map,OMap,Opts,Defs,I1,Ix,Ex1,Exx).
 
-transformThetaDef(funDef(Lc,Nm,ExtNm,Tp,_,Eqns),Map,Opts,Ix,Ix,Dx,Dxx) :-
-  transformFunction(Lc,Nm,ExtNm,Tp,Eqns,Map,Opts,Dx,Dxx).
-transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),Map,Opts,I,Ix,Dx,Dxx) :-
-  transformThetaDefn(Lc,Nm,ExtNm,Tp,Value,Map,Opts,I,Ix,Dx,Dxx).
-transformThetaDef(cnsDef(Lc,Nm,Con,Tp),Map,Opts,Ix,Ix,Dx,Dxx) :-
+transformThetaDef(funDef(Lc,Nm,ExtNm,Tp,_,Eqns),Map,OMap,Opts,Ix,Ix,Dx,Dxx) :-
+  transformFunction(Lc,Nm,ExtNm,Tp,Eqns,Map,OMap,Opts,Dx,Dxx).
+transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),Map,OMap,Opts,I,Ix,Dx,Dxx) :-
+  transformThetaDefn(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,I,Ix,Dx,Dxx).
+transformThetaDef(cnsDef(Lc,Nm,Con,Tp),Map,_,Opts,Ix,Ix,Dx,Dxx) :-
   transformCnsDef(Map,Opts,Lc,Nm,Con,Tp,Dx,Dxx).
-transformThetaDef(typeDef(_,_,_,_),_,_,Ix,Ix,Dx,Dx).
-transformThetaDef(conDef(_,_,_),_,_,Ix,Ix,Dx,Dx).
+transformThetaDef(typeDef(_,_,_,_),_,_,_,Ix,Ix,Dx,Dx).
+transformThetaDef(conDef(_,_,_),_,_,_,Ix,Ix,Dx,Dx).
 
 closureEntry(Map,Lc,Name,Tp,[fnDef(Lc,lbl(Closure,ArX),TTp,
   [ClLbl|Args],cll(Lc,lbl(Prog,ArXX),XArgs))|L],L) :-
@@ -376,7 +376,7 @@ trVarPtn(Lc,Nm,A,Q,Qx,Map,_) :-
 implementVarPtn(localVar(Vn,_,TVr),_,Lc,cll(Lc,lbl(Vn,1),[TVr]),Q,Qx) :- !, % instance var
   merge([TVr],Q,Qx).
 implementVarPtn(moduleVar(Vn),_,Lc,cll(Lc,lbl(Vn,0),[]),Q,Q) :-
-  reportError("not allowed to have globals in patterns: %w",Lc,[Vn]). % module variable
+  reportError("not allowed to have globals in patterns: %w",[Vn],Lc). % module variable
 implementVarPtn(labelArg(N,TVr),_,_,N,Q,Qx) :- !,    % argument from label
   merge([N,TVr],Q,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),Q,Q).
@@ -465,9 +465,11 @@ liftExp(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftExp(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftTheta(theta(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
+  genVar("_ThV",ThVr),
+  liftTheta(theta(Lc,Path,Defs,Others,Types,Sig),ThVr,Theta,Q,Map,_,Opts,Ex,Exx).
 liftExp(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftTheta(record(Lc,Path,Defs,Others,Types,Sig),Theta,Q,Map,Opts,Ex,Exx).
+  genVar("_ThV",ThVr),
+  liftTheta(record(Lc,Path,Defs,Others,Types,Sig),ThVr,Theta,Q,Map,_,Opts,Ex,Exx).
 liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
@@ -534,7 +536,7 @@ liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
 
 transformRule(equation(Lc,A,Cond,Value),Map,Opts,LclPrg,R,Rx,E,Ex) :-
-  transformEqn(equation(Lc,A,Cond,Value),Map,Opts,LclPrg,R,Rx,E,Ex).
+  transformEqn(equation(Lc,A,Cond,Value),Map,Map,Opts,LclPrg,R,Rx,E,Ex).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -586,21 +588,19 @@ liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
 
 /* A theta or record is converted to a structure containing free variables */
 
-liftTheta(Theta,LblTerm,Q,Map,Opts,[ThetaFun|Ex],Exx) :-
-  genVar("_ThV",ThVr),
+liftTheta(Theta,ThVr,LblTerm,Q,Map,ThMap,Opts,[ThetaFun|Ex],Exx) :-
+  Theta=theta(Lc,_Path,Defs,_Others,_Types,Sig),!,
   thetaMap(Theta,ThVr,Q,Map,Opts,ThLbl,LblTerm,ThMap,EnRls,Ex,Ex0),
-  locOfCanon(Theta,Lc),
-  thetaDefs(Theta,Defs),
-  thetaSig(Theta,Sig),
-  transformThetaDefs(ThMap,Opts,Defs,enum("star.core#true"),_I,Ex0,Exx),
+  transformThetaDefs(ThMap,ThMap,Opts,Defs,enum("star.core#true"),_I,Ex0,Exx),
+  functionMatcher(Lc,2,lbl(ThLbl,2),funType(tupleType([tupleType([]),tupleType([])]),Sig),EnRls,ThetaFun).
+liftTheta(Theta,ThVr,LblTerm,Q,Map,ThMap,Opts,[ThetaFun|Ex],Exx) :-
+  Theta=record(Lc,_Path,Defs,_Others,_Types,Sig),
+  thetaMap(Theta,ThVr,Q,Map,Opts,ThLbl,LblTerm,ThMap,EnRls,Ex,Ex0),
+  transformThetaDefs(ThMap,Map,Opts,Defs,enum("star.core#true"),_I,Ex0,Exx),
   functionMatcher(Lc,2,lbl(ThLbl,2),funType(tupleType([tupleType([]),tupleType([])]),Sig),EnRls,ThetaFun).
 
-liftLetExp(Lc,Theta,Bnd,Expr,Q,Qx,Map,Opts,[ThetaFun|Ex],Exx) :-
-  thetaMap(Theta,LblTerm,Q,Map,Opts,ThLbl,LblTerm,ThMap,EnRls,Ex,Ex0),
-  thetaDefs(Theta,Defs),
-  thetaSig(Theta,Sig),
-  transformThetaDefs(ThMap,Opts,Defs,enum("star.core#true"),_I,Ex0,Ex1),
-  functionMatcher(Lc,2,lbl(ThLbl,2),funType(tupleType([anonType,anonType]),Sig),EnRls,ThetaFun),
+liftLetExp(_Lc,Theta,Bnd,Expr,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftTheta(Theta,LblTerm,LblTerm,Q,Map,ThMap,Opts,Ex,Ex1),
   liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
 
 thetaMap(Theta,ThVr,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],EnRls,Ex,Ex) :-
