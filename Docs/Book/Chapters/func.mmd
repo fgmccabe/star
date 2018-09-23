@@ -12,14 +12,14 @@ In this chapter we will show how we can utilize **Star** as a vehicle for functi
 
 The foundations of functional programming rest on two principles:
 
-1. Programs are expressed in terms of functions, where a somewhat mathematical view of functions is taken -- functions always produce the same output for the same input.
+1. Programs are expressed in terms of functions, where a somewhat mathematical view of functions is taken; i.e., functions always produce the same output for the same input.
 
 	This is what people mean when they say that functional programs are *declarative*.[^The term declarative has a technical definition. But this captures much of the essence of declarativeness (sic).]
 2. Functions are values: they can be passed as arguments to functions, returned from functions, and they can be put into and retrieved from data structures.
 
 This last principle is what people mean when they refer to functions as being *first class* values. It is also what is meant when we say that functional programming languages are *higher order*.
 
-It is worth asking why these two principles are so important. Although most early programmers were mathematicians; one would not have seen much evidence of mathematical thinking in the way that people program. However, almost by accident, programming and mathematics share some attributes: the importance of *composition* and the power of *abstraction*. Functional programming is almost ideally placed to exploit both of these to the full.
+It is worth asking why these two principles are so important. Although most early programmers were mathematicians; the extreme constraints imposed by early machines meant that one might not have seen much evidence of mathematical thinking in those early programs. However, almost by accident, programming and mathematics share some attributes: the importance of *composition* and the power of *abstraction*. Functional programming is almost ideally placed to exploit both of these to the full.
 
 **Star** is not actually a *pure* functional programming language; i.e., it is possible to write programs that violate the declarative principle. However, it is a *functional-first* programming language: a declarative style is strongly encouraged. In this book we shall mostly focus on writing pure functional programs in **Star**.
 
@@ -36,7 +36,7 @@ Each of these equations applies to different situations: the first equation appl
 
 A **Star** function may be built from any number of rewrite equations; however, they must all be contiguous within the same group of statements.
 
-Although it is good practice to ensure that equations in a function definition do not overlap, **Star** will try the equations in a function definition in the order they are written in.[^There is a theorem -- called the *Church Rosser Theorem* -- that guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to *require* programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.] We could have relied on this and written `sign` using:
+Although it is good practice to ensure that equations in a function definition do not overlap, **Star** will try the equations in a function definition in the order they are written in.[^The *Church Rosser Theorem* guarantees some independence on the order of the rewrite equations provided that the different rewrite equations that make up function definitions do not overlap. Usually, however, it is too fussy to *require* programmers to ensure that their equations do not overlap; hence the reliance on ordering of equations.] We could have relied on this and written `sign` using:
 
 ```
 sign(X) where X<0 => -1.
@@ -56,20 +56,20 @@ An explicitly marked `default` equation does not need to be the last equation; b
 ### Patterns
 A function is defined as a sequence of *rewrite equations* each of which consist of a *pattern* and an *expression*. There are three general forms of rewrite equations:
 
-*Pattern* => *Expression*
+*Pattern* `=>` *Expression*
 
 or
 
-*Pattern* where *Condition* => *Expression*
+*Pattern* `where` *Condition* `=>` *Expression*
 
 or
 
-*Pattern* default => *Expression*
+*Pattern* `default =>` *Expression*
 
-The left hand side of a rewrite equation consists of the pattern which determines the applicability of the equation; and the right hand side represents the value of the function if the pattern matches.
+The left hand side of a rewrite equation consists of a pattern which determines the applicability of the equation; and the right hand side represents the value of the function if the pattern matches.
 
 **Pattern**
-: A pattern represents a test or guard on a value. Patterns can be said to succeed or fail depending on whether the value being tested matches the pattern.
+: A pattern represents a test or guard on an (implicit) value. Patterns can be said to succeed or fail depending on whether the value being tested matches the pattern.
 
 We also refer to a pattern being *satisfied* when matching a value.[^This terminology originates from Logic -- where a formula can be satisfied (made true) by observations from the world.]
 
@@ -81,7 +81,7 @@ the patterns in the different equations of the `sign` function will be applied t
 
 When the pattern on the left hand side of a rewrite equation succeeds then the equation *fires* and the value of the expression on the right hand side of the equation becomes the value of the function.
 
-As we noted earlier, patterns are ubiquitous in **Star**. They are used in equations, in variable declarations, in queries and in many other places. Here, we shall look at three main kinds of pattern, and in later sections, we look at additional forms of patterns.
+There are many kinds of pattern in **Star**; here, we look at three of the most common kinds of pattern, and in later sections, we look at additional forms of patterns.
 
 **Variable Pattern**
 : A variable pattern is denoted by an identifier; specifically by the first occurrence of an identifier.
@@ -98,11 +98,19 @@ The part of the program that a variable has value is called its *scope*.
 
 * Variables in rewrite equations always have scope ranging from the initial occurrence of the variable through to the whole of the right hand side of the equation.
 * Variable patterns are the *only* way that a variable can get a value in **Star**.
-* Variables are never redeclared within a given scope. It is not permitted to hide a variable with a new variable that is defined within the natural scope of the variable.
 
-This is somewhat different to the scope rule for most other functional (and non-functional) languages -- which allow outer scoped variables to be effectively eclipsed or hidden by inner variables.
+Subsequent occurrences of variables in a pattern are semantically equivalent to an equality test; specifically a call to the `==` predicate. For example, in the equation:
 
-The rationale for this choice is based on the observation that errors that arise from mistakenly hiding outer variables are often particularly difficult to track down.
+```
+same(X,X) => true.
+```
+the second occurrence of `X` is regarded as an equality test; i.e., this equation is equivalent to:
+
+```
+same(X,X1 where X==X1) => true.
+```
+
+Sometimes, the earlier occurrence of a variable is not in the pattern itself but in an outer scope.
 
 **Literal Pattern**
 : A literal pattern -- such as a numeric literal or a string literal -- only matches the identical number or string.*
@@ -116,9 +124,9 @@ There is no automatic coercion of values to see if they *might* match. In partic
 This, too, is based on the desire to avoid hard-to-detect bugs from leaking into a program.
 
 **Guard Pattern**
-: Sometimes known as a semantic guard, a guard pattern consists of a pair of a pattern and a condition:
+: Sometimes known as a *semantic guard*, a guard pattern consists of a pair of a pattern and a condition:
 
-*Pattern* where *Condition*
+*Pattern* `where` *Condition*
 
 Conditions are boolean-valued and the guard succeeds if both the pattern matches and if the condition is *satisfied*. **Star** has a normal complement of special conditional expressions which we shall explore as we encounter the need. In the case of the equation:
 ```
@@ -134,18 +142,6 @@ Notice that any variables that are bound by the pattern part of a guarded patter
 
 In the pattern above, the variable X will be bound in the variable pattern X and will then be tested by evaluating the condition X>0.
 
-Subsequent occurrences of variables in a pattern ‘stand for’ equality guards. For example, the equation:
-```
-same(X,X) => true
-```
-is exactly equivalent to:
-```
-same(X,X1) where X==X1 => true
-```
-or just:
-```
-same(X,X1) => X==X1
-```
 ### Order of evaluation
 **Star** is a so-called *strict* language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
 
@@ -163,7 +159,7 @@ Essentially for the reasons noted above, **Star** does not use lazy evaluation; 
 The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, **Star** uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written -- with the one exception being any default equation which is always tried last.
 
 ## Another look at types
-Organizing data is fundamental to any programming language. Star’s data types are organized around the algebraic data type. In addition, Star’s supports quantified types of several varieties.
+Organizing data is fundamental to any programming language. **Star**’s data types are organized around the algebraic data type. In addition, **Star**’s supports quantified types of several varieties.
 
 ### Quantifier types
 
@@ -183,11 +179,11 @@ Universally quantified types are often used to denote function types and collect
 ```
 all x ~~ (x,x)=>boolean
 ```
-is a universally quantified type that denotes the type of a generic binary function that returns a boolean value. The standard type for the equality predicate `==` is similar to this type.
+denotes the type of a generic binary function that returns a boolean value. The standard type for the equality predicate `==` is similar to this type.
 
-A universal type should be read as ‘for all possible values’ of the bound variable. For example, this function type should be read as denoting functions that:
+A universally quantified type should be read as ‘for all possible values’ of the bound variable. For example, this function type should be read as denoting functions that:
 
-for any possible type -- `x` -- the function takes two such `x`’s and returns a `boolean`.
+>for any possible type -- `x` -- the function takes two such `x`’s and returns a `boolean`.
 
 **Star** also supports *existentially* quantified types -- these are useful for denoting the types of modules and/or abstract data types. However, we will leave our exploration of existential types for later.
 
