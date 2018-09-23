@@ -84,6 +84,7 @@ typedef struct _assem_method_ {
   assemInsPo last;      /* Last instruction */
   consPo constants;      /* list of constant records */
   int32 sig;        /* Signature of this method */
+  int32 lclSig;         /* Signature of the local vars */
   hashPo locals;      /* Local variables */
   hashPo frames;      /* Active frames in the method */
 } AssemMethod;
