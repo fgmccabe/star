@@ -35,6 +35,7 @@ extern logical interactive;      /* interactive instruction tracing option */
 extern logical runStats;
 
 extern logical traceMemory;      /* memory tracing */
+extern logical validateMemory;   // Validate heap after every allocation
 extern logical tracePkg;
 extern logical traceManifest;
 extern logical traceVerify;
