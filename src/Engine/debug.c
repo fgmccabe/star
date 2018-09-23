@@ -645,7 +645,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
 }
 
 void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp) {
-  outMsg(out, "line: %L%_", ln);
+  outMsg(out, BLUE_ESC_ON"line"BLUE_ESC_OFF": %L%_", ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -672,15 +672,15 @@ static retCode shCall(ioPo out, char *msg, methodPo mtd, framePo fp, ptrPo sp) {
 }
 
 void showCall(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  shCall(out, "call: ", labelCode(C_LBL(call)), fp, sp);
+  shCall(out, GREEN_ESC_ON"call"GREEN_ESC_OFF": ", labelCode(C_LBL(call)), fp, sp);
 }
 
 void showTail(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  shCall(out, "tail: ", labelCode(C_LBL(call)), fp, sp);
+  shCall(out, GREEN_ESC_ON"tail"GREEN_ESC_OFF": ", labelCode(C_LBL(call)), fp, sp);
 }
 
 void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp) {
-  outMsg(out, "return: %T->%,10T", mtd, val);
+  outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%,10T", mtd, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm, framePo fp, ptrPo sp);

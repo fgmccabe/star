@@ -212,7 +212,7 @@ static int countSignificants(const char *frmt, integer from, integer limit, cons
 }
 
 static retCode
-formatDigits(logical isSigned, const char *digits, int64 precision, const char *format, integer fLen, char *out,
+formatDigits(logical isSigned, const char *digits, int64 precision, const char *format, integer formatLen, char *out,
              integer outLen,
              integer *pos);
 
