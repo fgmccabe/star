@@ -40,9 +40,8 @@ freeVars(theta(_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
   freeVarsInDefs(Defs,Ex1,Q,F,F0),
   freeVarsInOthers(Others,Ex1,Q,F0,Fv).
 freeVars(record(_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
-  definedVars(Defs,Ex,Ex1),
-  freeVarsInDefs(Defs,Ex1,Q,F,F0),
-  freeVarsInOthers(Others,Ex1,Q,F0,Fv).
+  freeVarsInDefs(Defs,Ex,Q,F,F0),
+  freeVarsInOthers(Others,Ex,Q,F0,Fv).
 freeVars(letExp(_,Rc,Bnd),Ex,Q,F,Fv) :-
   freeVars(Rc,Ex,Q,F,F0),
   freeVars(Bnd,Ex,Q,F0,Fv).
