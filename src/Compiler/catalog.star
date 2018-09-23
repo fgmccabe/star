@@ -12,7 +12,7 @@ star.compiler.catalog{
     entries:map[string,string].
   }
 
-  parseCat:(json,uri) => option[catalog].
+  public parseCat:(json,uri) => option[catalog].
   parseCat(jColl(M),U) => let{
     content = M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)).
     vers = M["version"]>>=(jTxt(V))=>some(V::version).
@@ -36,4 +36,20 @@ star.compiler.catalog{
     P ^= Cat.parent => resolveInCatalog(P,Pkg).
   resolveInCatalog(_,_) => none.
 
+  public implementation display[catalog] => let{
+    dispCat:(catalog)=>ss.
+    dispCat(Cat) => ssSeq([
+      ss("catalog:\n"),
+      ss("content: "),
+      disp(Cat.entries),
+      ss("\nversion: "),
+      disp(Cat.vers),
+      ss("\nparent: "),
+      disp(Cat.parent),
+      ss("\nbase: "),
+      disp(Cat.base)
+    ])
+   } in {
+    disp(Cat) => dispCat(Cat)
+  }
 }
