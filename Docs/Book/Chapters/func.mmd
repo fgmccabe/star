@@ -119,6 +119,8 @@ Clearly, a literal match amounts to a comparison of two values: the pattern matc
 
 Equality is based on *semantic equality* rather than *reference equality*. What this means, for example, is that two strings are equal if they have the same sequence of characters in them, not just if they are the same object in memory.
 
+>However, not all types admit equality: for example, functions are not comparable; similarly, implementing equality for circular structures is problematic.[^None of the standard **Star** data types are circular in nature.]
+
 There is no automatic coercion of values to see if they *might* match. In particular, an integer pattern will only match an integer value and will not match a float value -- even if the numerical values are the same. I.e., there will be no attempt made to coerce either the pattern or the value to fit.
 
 This, too, is based on the desire to avoid hard-to-detect bugs from leaking into a program.
@@ -128,7 +130,11 @@ This, too, is based on the desire to avoid hard-to-detect bugs from leaking into
 
 *Pattern* `where` *Condition*
 
-Conditions are boolean-valued and the guard succeeds if both the pattern matches and if the condition is *satisfied*. **Star** has a normal complement of special conditional expressions which we shall explore as we encounter the need. In the case of the equation:
+Conditions are boolean-valued and a guard succeeds if both its pattern matches and if its condition is *satisfied*.
+
+>Note that conditions _may_ bind variables. This is why we do not state that conditions are boolean-valued expressions.
+
+**Star** has a normal complement of special conditional forms which we shall explore as we encounter the need. In the case of the equation:
 ```
 sign(X) where X>0
 ```
@@ -138,12 +144,18 @@ X where X>0
 ```
 We can put guard pattern anywhere that a pattern is valid; and, for convenience, we can also put them immediately to the left of the rewrite equation’s is operator.
 
-Notice that any variables that are bound by the pattern part of a guarded pattern are *in scope* in the condition part of the guard.
+>Any variables that are bound by the pattern part of a guarded pattern are *in scope* in the condition part of the guard. Furthermore, any variables that are bound by the condition part of the guarded pattern have the same scope as variables introduced in the pattern.
 
-In the pattern above, the variable X will be bound in the variable pattern X and will then be tested by evaluating the condition X>0.
+In the pattern above, the variable `X` will be bound in the variable pattern `X` and will then be tested by evaluating the condition `X>0`.
 
 ### Order of evaluation
-**Star** is a so-called *strict* language. What that means is that arguments to functions are evaluated prior to calling the function. Most programming languages are strict; for two main reasons:
+**Star** is a so-called *strict* language. What that means is that arguments to functions are evaluated prior to calling the function.
+
+>We do not specify the order of evaluation of the arguments of the function; except that:
+1. Arguments are evaluated before entry to the function.
+2. The function is evaluated before entry to the function.
+
+Most programming languages are strict; for two main reasons:
 
 1. It is significantly easier for programmers to predict the evaluation characteristics of a strict language.
 1. It is also easier to implement a strict language efficiently on modern hardware. Suffice it to say that modern hardware was designed for evaluating strict languages, so this argument is somewhat circular.
@@ -154,7 +166,7 @@ It may, however, affect whether you get a result. Different strategies for evalu
 
 One other kind of evaluation that is often considered is *lazy* evaluation. Lazy evaluation means simply that expressions are only evaluated *when needed*. Lazy evaluation has many potential benefits: it certainly enables some very elegant programming techniques.
 
-Essentially for the reasons noted above, **Star** does not use lazy evaluation; however, as we shall see, there are features of **Star** that allow us to recover some of the power of lazy evaluation.[^Even predominantly lazy languages like Haskell have features which implement strict evaluation. It reduces to a question of which is the *default* evaluation style.]
+Essentially for the reasons noted above, **Star** does not use lazy evaluation; however, as we shall see, there are features of **Star** that allow us to recover some of the power of lazy evaluation.[^Even predominantly lazy languages like Haskell have features which enforce strict evaluation. It reduces to a question of which is the *default* evaluation style.]
 
 The other dimension in evaluation order relates to the rewrite equations used to define functions. Here, **Star** uses an in-order evaluation strategy: the equations that make up the definition of a function are tried in the order that they are written -- with the one exception being any default equation which is always tried last.
 
@@ -185,7 +197,18 @@ A universally quantified type should be read as ‘for all possible values’ of
 
 >for any possible type -- `x` -- the function takes two such `x`’s and returns a `boolean`.
 
-**Star** also supports *existentially* quantified types -- these are useful for denoting the types of modules and/or abstract data types. However, we will leave our exploration of existential types for later.
+**Star** also supports *existentially* quantified types -- these are useful for denoting the types of modules and/or abstract data types. For example, the type expression:
+
+```
+exists e ~~ { f1 : e }
+```
+denotes the type of a record with a field -- `f1` -- which has a type. The analogous reading for this type expression would be:
+
+>there is a type -- `x` -- such that the record has a field -- called `f1` -- of this type.
+
+As may be guessed, this is kind of obscure: `f1` has a type, but we don't know much else about it!
+
+However, existential types can be very useful, especially in combination with record types like this one. We will leave our more detailed exploration of existential types for later.
 
 ### Contract constrained types
 We noted above that the type of the standard equality predicate was ‘almost’ the same as:
@@ -200,7 +223,7 @@ We can do this by adding a *contract constraint* to the type -- the constraint s
 ```
 all x ~~ equality[x] |: (x,x)=>boolean
 ```
-The `equality[x] |:` clause states that the type variable x must satisfy the equality contract.
+The `equality[x] |:` clause states that the type variable `x` must satisfy the `equality` contract.
 
 What is implied when we state this? This is captured in the definition of the contract itself, in this case:
 ```
@@ -210,7 +233,7 @@ contract all t ~~ equality[t] ::= {
 ```
 In effect, the `equality` contract states that there must be a single function defined -- `==` .
 
-If this seems a little circular, it is not. The equality contract is effectively saying that the `==` function must be defined for the type; and we constrain function (and other) types with the equality contract constraint when we need to ensure that `==` is defined!
+If this seems a little circular, it is not. The `equality` contract is effectively saying that the `==` function must be defined for the type; and we constrain function (and other) types with the `equality` contract constraint when we need to ensure that `==` is defined!
 
 We provide evidence for contracts through the implementation statement. This declares that a given type satisfies a contract by providing implementations for the functions in the contract.
 
@@ -253,7 +276,7 @@ euclid:(point)=>float.
 euclid(cart(X,Y)) => sqrt(X*X+Y*Y).
 euclid(polar(R,T)) => R.
 ```
-cart and polar are called *constructor functions*. The term *constructor* refers to the common programming concept of constructing data structures. They are called functions because, logically, they *are* functions.
+`cart` and `polar` are called *constructor functions*. The term *constructor* refers to the common programming concept of constructing data structures. They are called functions because, logically, they *are* functions.
 
 For example, we might give a type to `polar`:
 ```
@@ -263,13 +286,13 @@ In fact, constructor functions are one-to-one functions. Variously known as *fre
 
 Of course, we are talking of a *logical* property of constructor functions. Internally, when implementing functional languages like **Star**, the values returned by constructor functions are represented using data laid out in memory -- just like in any other programming language.
 
-**Star** actually employs a special type for constructor functions; so the correct type of polar is given by:
+**Star** actually employs a special type for constructor functions; so the correct type of `polar` is given by:
 ```
 polar : (float,float)<=>point
 ```
 The double arrow representing the fact that constructor functions are bijections.
 
-In addition to constructor functions, an algebraic type definition can introduce two other forms of data: *enumerated symbols* and *record functions*. Enumerated symbols are quite useful in representing symbolic alternatives. The classic example of an enumerated type is daysOfWeek:
+In addition to constructor functions, an algebraic type definition can introduce two other forms of data: *enumerated symbols* and *record functions*. Enumerated symbols are quite useful in representing symbolic alternatives. The classic example of an enumerated type is `daysOfWeek`:
 ```
 daysOfWeek ::= monday
              | tuesday
@@ -302,12 +325,12 @@ denotes the tree in:
 ![A Binary string Tree][images/sTree.jpg]
 
 
-One of the hallmarks of languages like **Star** is that *every* value has a legal syntax: it is possible to construct an expression that denotes a literal value of any type.
+>One of the hallmarks of languages like **Star** is that *every* value has a legal syntax: it is possible to construct an expression that denotes a literal value of any type.
 
-Just as we can define sTree values, so we can also define functions over sTrees. For example, the check function returns true if a given tree contains a particular search term:
+Just as we can define `sTree` values, so we can also define functions over `sTree`s. For example, the `check` function returns `true` if a given tree contains a particular search term:
 ```
 check(sEmpty,_) => false.
-check(sNode(L,Lb,R),S) => Lb==S || check(L,S) || check(R,S)
+check(sNode(L,Lb,R),S) => Lb==S || check(L,S) || check(R,S).
 ```
 Here we see several new aspects of **Star** syntax:
 
@@ -328,7 +351,7 @@ show check(T,"delta").          -- results in false
 ## Functions as values
 The second principle of functional programming is that functions are first class. What that means is that we can have functions that are bound to variables, passed into functions and returned as the values of functions. In effect, a function is a legal *expression* in the language. It also means that we can have *function types* in addition to having types about data.
 
-We can see this best by looking at a few examples. One of the benefits of passing functions as arguments to other functions is that it makes certain kinds of parameterization easy. For example, suppose that you wanted to generalize check to apply an arbitrary test to each node -- rather than just looking for a particular string.
+We can see this best by looking at a few examples. One of the benefits of passing functions as arguments to other functions is that it makes certain kinds of parameterization easy. For example, suppose that you wanted to generalize `check` to apply an arbitrary test to each node -- rather than just looking for a particular string.
 
 We will first of all define our `fTest` function itself:
 ```
@@ -340,9 +363,9 @@ The substantial change here is that, rather than passing a string to look for, w
 
 Notice that the type annotation for `fTest` shows that the type of the second argument is a function type -- from `string` to `boolean`.
 
-Given `fTest`, we can redefine our earlier check function with:
+Given `fTest`, we can redefine our earlier `check` function with:
 ```
-check(T,S) => fTest(T,(X)=>X==S)
+check(T,S) => fTest(T,(X)=>X==S).
 ```
 We have a new form of expression here: the *anonymous function* or *lambda expression*. The expression
 ```
@@ -358,19 +381,19 @@ Free variables are a powerful feature of functional programming languages becaus
 If a function is an expression, what is the value of the function expression? The conventional name for this value is *closure*:
 
 **Closure**
-: A closure is a structure that is the value of a function expression and which may be applied to arguments.
+: A **closure** is a structure that is the value of a function expression and which may be applied to arguments.
 
 It is important to note that, as a programmer, you will never ‘see’ a closure in your program. It is an implementation artifact in the same way that the representation of floating point numbers is an implementation artifact that allow computers to represent fractional numbers but which programmers (almost) never see explicitly in programs.
 
 Pragmatically, one of the important roles of closures is to capture any free variables that occur in the function. Most functional programming languages implement functions using closure structures. Most functional programming languages (including **Star**) do not permit direct manipulation of the closure structure: the only thing that you can *do* with a closure structure is to use it as a function.
 
-In the world of programming languages, there is a lot of confusion about closures. Sometimes you will see a closure referring to a function that captures one or more free variables.
+>In the world of programming languages, there is a lot of confusion about closures. Sometimes you will see a closure referring to a function that captures one or more free variables.
 
 ### Let binding
 
-We noted that it is difficult to achieve the effect of the `(X)=>X==S` lambda expression with named functions. The reason is that the lambda is *not* defined in the same way that named functions are defined -- because it occurs as an expression not as a statement. If we wanted to define a named function which also captures S, we would have to be able to define functions inside expressions.
+We noted that it is difficult to achieve the effect of the `(X)=>X==S` lambda expression with named functions. The reason is that the lambda is *not* defined in the same way that named functions are defined -- because it occurs as an expression not as a statement. If we wanted to define a named function which also captures `S`, we would have to be able to define functions inside expressions.
 
-There is an expression that allows us to do this: the let expression. A let expression allows us to introduce local definitions anywhere within an expression. We can define our lambda as the named function isS using the let expression:
+There is an expression that allows us to do this: the `let` expression. A `let` expression allows us to introduce local definitions anywhere within an expression. We can define our lambda as the named function `isS` using the `let` expression:
 ```
 let{
   isS(X) => X==S
@@ -383,7 +406,7 @@ check(T,S) => fTest(T,
       isS(X) => X==S.
     } in isS)
 ```
-This is a somewhat long-winded way of achieving what we did with the anonymous lambda function -- we would not normally recommend this way of writing the check function as it is significantly more complicated than our earlier version. However, there is a strong inter-relationship between anonymous lambdas, let expressions and variable definitions. In particular, these are equivalent:
+This is a somewhat long-winded way of achieving what we did with the anonymous lambda function -- we would not normally recommend this way of writing the `check` function as it is significantly more complicated than our earlier version. However, there is a strong inter-relationship between anonymous lambdas, let expressions and variable definitions. In particular, these are equivalent:
 ```
 let{
   isS = (X) => X==S
@@ -393,35 +416,13 @@ and
 ```
 (X)=>X==S
 ```
-Apart from being long-winded, the `let` expression is significantly more flexible than a simple lambda. It is much easier within a let expression to define functions with more than one rewrite equation; or to define multiple functions. We can even define local types within the let binding environment.
+Apart from being long-winded, the `let` expression is significantly more flexible than a simple lambda. It is much easier within a `let` expression to define functions with more than one rewrite equation; or to define multiple functions. We can even define types within the let binding environment.
 
 Conversely, lambda functions are so compact because they have strong limitations: you cannot easily define a multi-rewrite equation function with a lambda and you cannot easily define a recursive function as a lambda.
 
 In short, we would use a `let` expression when the function being defined is at all complex; and we would use a lambda when the function being defined is simple and small.
 
-Assembling functions in this way, either by using anonymous lambdas or by using let expressions, is one of the hallmarks of functional programming.
-
-## Generic programs
-Given this definition of the tree type, we can construct a more general form of the tree test function; which is almost identical to fTest:[^This time, we **must** use an explicit type annotation.]
-```
-test:all t ~~ (tree[t],(t)=>boolean)=>boolean.
-test(tEmpty,_) => false.
-test(tNode(L,Lb,R),F) => F(Lb) || test(L,F) || test(R,F).
-```
-and our original string check function becomes:
-```
-check(T,S) => test(T,(X) => X==S)
-```
-The type of `check` is also more generic:
-```
-check:all t ~~ (tree[t],t)=>boolean
-```
-I.e., check can be used to find any type of element in a tree -- providing that the types align of course.
-
-Actually, this is not the correct the type for check. This is because we do not, in general, know that the type can support equality. The precise type for check should take this into account:
-
-check:all t ~~ equality[t] |: (tree[t],t) => boolean
-
+Assembling functions in this way, either by using anonymous lambdas or by using `let` expressions, is one of the hallmarks of functional programming.
 
 ### Generic types
 
@@ -433,9 +434,11 @@ Like the original `sTree` type definition, this statement introduces a new type:
 
 In an analogous fashion to constructor functions, a type constructor constructs types from other types. Type constructors are even bijections -- one-to-one functions from types to types.
 
-The identifier `t` in the type definition for tree denotes a *type variable*. Again, similarly to regular variables and parameters, a type variable denotes a single unspecified type. The role of the type variable t is like a parameter in a function: it identifies the unknown type and its role.
+>Unlike constructor functions though, type functions play no part in the run-time evaluation of programs.
 
-The tree type is a universally quantified type. What that means is that instead of defining a single type it defines a family of related types: for example:
+The identifier `t` in the type definition for `tree` denotes a *type variable*. Again, similarly to regular variables and parameters, a type variable denotes a single unspecified type. The role of the type variable `t` is like a parameter in a function: it identifies the unknown type and its role.
+
+The `tree` type is a universally quantified type. What that means is that instead of defining a single type it defines a family of related types: for example:
 ```
 tree[string]
 tree[integer]
@@ -450,11 +453,11 @@ We capture this genericity of the tree type by using a *universal quantifier*:
 ```
 all t ~~ tree[t]
 ```
-What this type expression denotes is a set of possible types: for any type t, tree[t] is also a type. There are infinitely many such types of course.
+What this type expression denotes is a set of possible types: for any type `t`, `tree[t]` is also a type. There are infinitely many such types of course.
 
-The all quantifier is important: as in logic, there are two kinds of quantifiers in **Star**’s type system: the *universal* quantifier all and the *existential* quantifier exists. We will take a deeper look at the latter in a later chapter when we look deeper at modular programming.
+The `all` quantifier is important: as in logic, there are two kinds of quantifiers in **Star**’s type system: the *universal* quantifier all and the *existential* quantifier exists.
 
-**Star** uses context to determine whether an identifier is a type variable or a type name. Specifically, if an identifier is bound by a quantifier then it must refer to a type variable.
+>**Star** uses context to determine whether any given identifier is a type variable or a type name. Specifically, if an identifier is bound by a quantifier then it must refer to a type variable.
 
 The types of the two constructors introduced in the `tree` type definition are similarly quantified:
 ```
@@ -482,7 +485,7 @@ The type of check is also more generic:
 ```
 check:all t ~~ (tree[t],t)=>boolean
 ```
-I.e., check can be used to find any type of element in a tree -- providing that the types align of course.
+I.e., `check` can be used to find any type of element in a tree -- providing that the types align of course.
 
 Actually, this is not the correct the type for check. This is because we do not, in general, know that the type can support equality. The precise type for check should take this into account:
 ```
@@ -490,7 +493,7 @@ check:all t ~~ equality[t] |: (tree[t],t) => boolean
 ```
 
 ## Going further
-Although better than the original sTest program there is still one major sense in which the test program is not general enough. We can see this by looking at another example: a function that counts elements in the tree:
+Although better than the original `sTest` program there is still one major sense in which the test program is not general enough. We can see this by looking at another example: a function that counts elements in the tree:
 ```
 count:all t ~~ (tree[t]) => integer.
 count(tEmpty) => 0.
@@ -498,7 +501,7 @@ count(tNode(L,_,R)) => count(L)+count(R)+1
 ```
 This code is very similar, but not identical, to the `test` function.
 
-The issue is that test is trying to do two things simultaneously: in order to apply its test predicate to a binary tree it has to implement a walk over the tree, and it also encodes the fact that the function we are computing over the tree is a boolean-value function.
+The issue is that `test` is trying to do two things simultaneously: in order to apply its test predicate to a binary tree it has to implement a walk over the tree, and it also encodes the fact that the function we are computing over the tree is a boolean-value function.
 
 We often need to do all kinds of things to our data structures and writing this kind of recursion over and over again is tedious and error prone. What we would like to do is to write a single *visitor* function and specialize it appropriately when we want to perform a specific function.
 
@@ -508,7 +511,7 @@ Since this visitor may be asked to perform any kind of computation on the labels
 ```
 F : (a,t)=>a
 ```
-where the a input represents accumulated state, `t` represents an element of the tree and the result is another accumulation.
+where the `a` input represents accumulated state, `t` represents an element of the tree and the result is another accumulation.
 
 Using this, we can write a `tVisit` function that implements tree walking as:
 ```
@@ -518,7 +521,7 @@ tVisit(tNode(L,Lb,R),F,A) => tVisit(R,F,F(tVisit(L,F,A),Lb)).
 ```
 Just as the accumulating function acquires a new ‘state’ parameter, so the `tVisit` function also does. The `A` parameter in the two equations represents this accumulated state.
 
-The second rewrite equation for `tVisit` is a bit dense so let us open it out and look more closely. A more expanded way of writing the tVisit function would be:
+The second rewrite equation for `tVisit` is a bit dense so let us open it out and look more closely. A more expanded way of writing the `tVisit` function would be:
 ```
 tVisit(tEmpty,_,A) => A.
 tVisit(tNode(L,Lb,R),F,A) => let{
@@ -530,7 +533,7 @@ where `A1` and `A2` are two local variables that represent the result of visitin
 
 The `tVisit` function knows almost nothing about the computation being performed, all it knows about is how to walk the tree and it knows to apply functions to labels in the tree.
 
-Given tVisit, we can implement our original check and count functions as one-liners:
+Given `tVisit`, we can implement our original `check` and `count` functions as one-liners:
 ```
 check(T,S) => tVisit(T,(A,X)=>(A || X==S),false).
 count(T) => tVisit(T,(A,X)=>A+1,0).
@@ -539,30 +542,32 @@ The lambda that is embedded in the definition of check bears a little closer scr
 ```
 (A,X)=>(A || X==S)
 ```
-In this lambda, we return `A` -- if it is true -- or we return the result of the test `X==S`. This is a common pattern in such programs: the accumulator `A` acts as a kind of state parameter that keeps track of whether we have already found the value.
+In this lambda, we return `A` -- if it is `true` -- or we return the result of the test `X==S`. This is a common pattern in such programs: the accumulator `A` acts as a kind of state parameter that keeps track of whether we have already found the value.
 
-Functional programs are not actually *state-free*; often quite the opposite. However, the state in a functional program is never *hidden*. This is the true distinction between functional and regular procedural programs.
+>Functional programs are not actually *state-free*; often quite the opposite. However, the state in a functional program is never *hidden*. This is the true distinction between functional and regular procedural programs.
 
-Notice that we have effectively hidden the recursion in the function definitions of check and count -- all the recursion is encapsulated within the `tVisit` function. One of the unofficial mantras of functional programming is *hide the recursion*.
+Notice that we have effectively hidden the recursion in the function definitions of `check` and `count` -- all the recursion is encapsulated within the `tVisit` function.
+
+>One of the unofficial mantras of functional programming is *hide the recursion*.
 
 The reason we want to hide recursions that this allows the designer of functions to focus on *what* is being computed rather than focusing on the structure of the data and, furthermore, this allows the implementation of the visitor to be *shared* by all users of the tree type.
 
-Notice that, while a and t are type variables, we did not put an explicit quantifier on the type of F. This is because the quantifier is actually put on the type of tVisit instead:
+Notice that, while `a` and `t` are type variables, we did not put an explicit quantifier on the type of `F`. This is because the quantifier is actually put on the type of `tVisit` instead:
 ```
 tVisit:all a,t ~~ (tree[t],(a,t)=>a,a)=>a
 ```
 Just like regular variables, type variables have scope and points of introduction. Also like regular variables, a type variable may be *free* in a given type expression; although it must ultimately be *bound* by a quantifier.
 
 ### Going even further
-We have focused so far on generalizing the visitor from the perspective of the tree type. But there is another sense in which we are still *architecturally entangled*: from the perspective of the check and count functions themselves.
+We have focused so far on generalizing the visitor from the perspective of the tree type. But there is another sense in which we are still *architecturally entangled*: from the perspective of the `check` and `count` functions themselves.
 
-In short, they are both tied to our tree type. However, there are many possible collection data types; **Star** for instance has some 5 or 6 different standard collection types. We would prefer not to have to re-implement the check and count functions for each type.
+In short, they are both tied to our `tree` type. However, there are many possible collection data types; **Star** for instance has some 5 or 6 different standard collection types. We would prefer not to have to re-implement the `check` and `count` functions for each type.
 
-The good news is that, using contracts, we can write a single definition of check and count that will work for a range of collection types.
+The good news is that, using contracts, we can write a single definition of `check` and `count` that will work for a range of collection types.
 
 Let us start by defining a contract that encapsulates what it means to visit a collection:
 ```
-contract visitor[c->>t] ::= {
+contract all c,t ~~ visitor[c->>t] ::= {
   visit:all a ~~ (c,(a,t)=>a,a)=>a
 }
 ```
@@ -578,7 +583,7 @@ c ->> t
 ```
 refers to two types: `c` and `t`. The presence of the `->>` term identifies the fact that `t` _depends_ on `c`.
 
-The `visitor` contract itself is about the collection type `c`. But, within the contract, we need to refer to both the collection type and to the type of elements in the collection: the visit function is over the collection, it applies a function to elements of the collection.
+The `visitor` contract itself is about the collection type `c`. But, within the contract, we need to refer to both the collection type and to the type of elements in the collection: the `visit` function is over the collection, it applies a function to elements of the collection.
 
 Furthermore, as we design the contract, we *do not know* the exact relationship between the collection type and the element type. For example, the collection type may be generic in one argument type -- in which case the element type is likely that argument type; conversely, if the type is *not* generic (like `string` say), then we have no direct handle on the element type.
 
@@ -592,22 +597,22 @@ visit:all a ~~(c,(a,t)=>a,a)=>a
 ```
 This type annotation has three type variables: the types `c` and `t` come from the contract header and `a` is local to the signature. What the signature means is
 
->Given the visitor contract, the visit function is from the collection type c, a function argument and an initial state and returns a new accumulation state.
+>Given the visitor contract, the `visit` function is from the collection type `c`, a function argument and an initial state and returns a new accumulation state.
 
 It is worth comparing the type of `visit` with the type of `tVisit`:
 ```
 tVisit:all t,a ~~(tree[t],(a,t)=>a,a)=>a
 ```
-The most significant difference here is that in tVisit the type of the first argument is fixed to `tree[t]` whereas in visit it is left simply as `c` (our collection type).
+The most significant difference here is that in `tVisit` the type of the first argument is fixed to `tree[t]` whereas in `visit` it is left simply as `c` (our collection type).
 
-Given this contract, we can re-implement our two check and count functions even more succinctly:
+Given this contract, we can re-implement our two `check` and `count` functions even more succinctly:
 ```
 check(T,S) => visit(T, (A,X)=>A || X==S,false)
 count(T) => visit(T, (A,X)=>A+1,0)
 ```
-These functions will apply to *any* type that satisfies -- or implements -- the `visitor` contract. This is made visible in the revised type signatures for count:
+These functions will apply to *any* type that satisfies -- or implements -- the `visitor` contract. This is made visible in the revised type signature for `count`:
 ```
-count:all c,t ~~ visitor[c->>t] |: (c)=>integer
+count:all c,t ~~ visitor[c->>t] |: (c)=>integer.
 ```
 This type is an example of a *constrained type*. It is generic in `c` and `t` but that generality is constrained by the requirement that the `visitor` contract is appropriately implemented. The eagled-eyed reader will notice that `count` does not actually depend on the type of the elements in the collection: this is what we should expect since `count` does not actually care about the elements themselves.
 
@@ -616,9 +621,9 @@ The type signature for `check`, however, does care about the types of the elemen
 check:all c,t ~~
   visitor[c->>t], equality[c] |: (c,t)=>boolean
 ```
-This type annotation now has two contract constraints associated with it: the collection must be something that is visitable and the elements of the collection must support equality.
+This type annotation now has two contract constraints associated with it: the collection must be something that is visitable and the elements of the collection must support `equality`.
 
-Given the work we have done, we can implement the visitor contract for our `tree[t]` type quite straightforwardly:
+Given the work we have done, we can implement the `visitor` contract for our `tree[t]` type quite straightforwardly:
 ```
 implementation all t ~~ visitor[tree[t]->>t] => {
   visit = tVisit
@@ -632,38 +637,38 @@ is effectively a declaration of that connection.
 
 Now that we have disconnected `visit` from `tree` types, we can extend our program by implementing it for other types. In particular, we could also implement the visitor for the `sTree` type:
 ```
-implementation visitor[Tree ->> string] => {
+implementation visitor[sTree ->> string] => {
   visit = sVisit
 }
 ```
 however, we leave the definition of `sVisit` as a simple exercise for the reader.
 
-Our final versions of count and check are now quite general: they rely on a generic implementation of the visit function to hide the recursion and are effectively independent of the actual collection types involved.
+Our final versions of `count` and `check` are now quite general: they rely on a generic implementation of the `visit` function to hide the recursion and are effectively independent of the actual collection types involved.
 
-If we take a second look at our visitor contract we can see something quite remarkable: it counts as a definition of the famous *visitor pattern*. This is remarkable because although visitor patterns are a common design pattern in OO languages, it is often hard in those languages to be crisp about them; in fact, they are called patterns because they represent patterns of use which may be encoded in Java (say) whilst not necessarily being definable in them.
+If we take a second look at our visitor contract we can see something quite remarkable: it counts as a definition of the famous *visitor pattern*. This is remarkable because, although visitor patterns are a common design pattern in OO languages, it is often hard in those languages to be crisp about the semantics of visiting; in fact, they are called patterns because they represent patterns of use which may be encoded in Java (say) whilst not necessarily being definable in them.
 
 The combination of contract and implementation represents a quite formal way of defining patterns like the visitor pattern.
 
-There is something else here that is quite important too: we are able to define and implement the visitor contract *without* having to modify in any way the type definition of tree or sTree. From a software engineering point of view this is quite important: we are able to gain all the benefits of interfaces without needing to entangle them with our types. This becomes critical in situations where we are not able to modify types -- because they don’t belong to us and/or we don’t have access to the source.
+There is something else here that is quite important too: we are able to define and implement the visitor contract *without* having to modify in any way the type definition of `tree` or `sTree`. From a software engineering point of view this is quite important: we are able to gain all the benefits of interfaces without needing to entangle them with our types. This becomes critical in situations where we are not able to modify types -- because they don’t belong to us and/or we don’t have access to the source.
 
-### Polymorphic arithmetic
+## Polymorphic arithmetic
 There are other ways in which programs can be polymorphic. In particular, let us focus for a while on arithmetic. One of the issues in arithmetic functions is that there are many different kinds of numbers. Pretty much every programming language distinguishes several kinds of numbers; for example, Java distinguishes byte, short, int, long, float, double, BigInteger and BigDecimal -- and this does not count the wrapped versions. Other languages have even more choice.
 
 One question that might seem relevant is why? The basic answer is that different applications call for different properties of numbers and no one numeric type seems to fit all needs. However, that variety comes at a cost: when we use numbers we tend to have to make too early a choice for the numeric type.
 
-For example, consider the double function we saw earlier:
+For example, consider the `double` function we saw earlier:
 ```
 double(X) => X+X
 ```
-What type should double have? In particular, what should the type of `+` be? Most people would be reluctant to use different arithmetic operators for different types of numbers.[^Although some languages -- such as ML -- do require this.] This is resolved in **Star** by relying on contracts for the arithmetic operations.
+What type should `double` have? In particular, what should the type of `+` be? Most people would be reluctant to use different arithmetic operators for different types of numbers.[^Although some languages -- such as SML -- do require this.] This is resolved in **Star** by relying on contracts for the arithmetic operations.
 
-The result is that the most appropriate type signature for double is exquisitely tuned:
+The result is that the most appropriate type signature for `double` is exquisitely tuned:
 ```
 double:all t ~~ arith[t] |: (t)=>t
 ```
-This type is precisely the minimal type that double could have. Any further constraints result in making a potentially premature choice for the numeric type.
+This type is precisely the most general type that `double` could have. Any further constraints result in making a potentially premature choice for the numeric type.
 
-If we take another look at our original fact function:
+If we take another look at our original `fact` function:
 ```
 fact(0) => 1
 fact(N) => N*fact(N-1)
@@ -709,6 +714,10 @@ isMarriedTo(_,_) default => false.
 ```
 The important detail here is that all access to a `option` wrapped value is gated by some form of pattern matching and that, normally, this takes place in a condition.
 
+>The condition
+	`some(JJ).=P.spouse`
+	represets a pattern matching condition: it is satisfied if `P.spouse` matches `some(JJ)` and has the additional effect of defining and binding the variable `JJ` to the matched spouse.
+
 #### Special syntax for `option`al values
 Of course, the code above _is_ kind of clumsy! There is a range of operators in **Star** to make using `option` values more pleasant.
 
@@ -735,12 +744,23 @@ head(X) where some(1).=first(X) => "alpha"
 ```
 We will see more examples of this when we look more closely at sequences and collections processing.
 
+Finally, we can promote an optional expression into an enclosing expression (which is therefore also optional). For example, in the expression:
+
+```
+nameOf(^P.spouse)
+```
+if `P.spouse` is `none`, then the value returned by the `nameOf` expression is also `none`, otherwise it takes the form:
+```
+some("P_spouse_name")
+```
+(assuming that `nameOf` is defined for `Person`s.)
+
 Overall, the `option` type is part of an elegant approach to nullability that is easily incorporated into **Star**’s (and similar) type system.
 
 ## A word about type inference
 We have seen some powerful forms of types in this chapter: recursive types defined using algebraic type definitions, generic types and even function types. Recall also that **Star** only requires programmers to explicitly declare the types of quantified variables and functions. It is worth pausing a little to see how this might be done.
 
-Recall our original fact function:
+Recall our original `fact` function:
 ```
 fact(0) => 1.
 fact(N) => N*fact(N-1).
@@ -749,7 +769,7 @@ The compiler is able to compute the types of the various variables automatically
 ```
 N-1
 ```
-which is buried within the recursive call in fact. Although it looks like a special operator, **Star** does not treat arithmetic expressions in a special way; the - function is just a function from numbers to numbers; its type is given by:[^We put the (-) in parentheses to highlight the use of an operator as a normal symbol.]
+which is buried within the recursive call in `fact`. Although it looks like a special operator, **Star** does not treat arithmetic expressions in a special way; the `-` function is just a function from numbers to numbers; its type is given by:[^We put the (-) in parentheses to highlight the use of an operator as a normal symbol.]
 ```
 (-) : all t ~~ arith[t] |: (t,t)=>t
 ```
@@ -759,7 +779,10 @@ However, we should simplify this type a little in order to make the explanation 
 ```
 Type inference proceeds by using special *type inference rules* which relate expressions to types, in this case the applicable rule is that a function application is consistent if the function’s parameter types are consistent with the types of the actual arguments. If they are consistent, then the type of the function application is the return type of the function.
 
-The type inference process initially gives every variable an unknown type -- represented by a new type variable not appearing anywhere else. For our tiny `N-1` example, we will give N the type t~N~.
+This is often given in more formal notation: (TODO: fix me)
+
+
+The type inference process initially gives every variable an unknown type -- represented by a new type variable not appearing anywhere else. For our tiny `N-1` example, we will give `N` the type t~N~.
 
 The (`-`) function has two arguments whose types can be expressed as a tuple of types:
 ```
@@ -776,22 +799,22 @@ In order for the expression to be type correct, the actual types of the argument
 **Unification**
 : An algorithm that replaces variables with values in such a way as to make two terms identical.
 
-Unification matches equals with equals and handles (type) variables by substitutions -- for example, we can make these two type expressions equal by *binding* the type variable tN to integer.
+Unification matches equals with equals and handles (type) variables by substitutions -- for example, we can make these two type expressions equal by *binding* the type variable t~N~ to `integer`.
 
-We initially picked the type of N to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of N in a context where an integer is expected is enough to allow the compiler to infer that the type of N is indeed integer and not t~N~.
+We initially picked the type of `N` to be an arbitrary type variable, but the process of checking consistency leads us to refine this and make the type concrete. I.e., the use of `N` in a context where an integer is expected is enough to allow the compiler to infer that the type of `N` is indeed `integer` and not t~N~.
 
-Of course, if there are multiple occurrences of N then each of those occurrences must also be consistent with integer; and if an occurrence is not consistent then the compiler will report an error -- a given expression may only have one type!
+Of course, if there are multiple occurrences of `N` then each of those occurrences must also be consistent with integer; and if an occurrence is not consistent then the compiler will report an error -- a given expression may only have one type!
 
-The bottom line is that **Star**’s types are based on a combination of unification for comparing types and a series of type rules that have the effect of introducing *constraints* on types based on which language features the programmer uses. The type checker is really a constraint solver: if the constraints are not satisfiable (for example by trying to ‘call’ a variable and add a number to it) then there is a type error in the program.
+The bottom line is that **Star**’s types are based on a combination of unification for comparing types and a series of type rules that have the effect of introducing *constraints* on types based on which language features are present in the text. The type checker is really a constraint solver: if the constraints are not satisfiable (for example by trying to ‘call’ a variable and add a number to it) then there is a type error in the program.
 
 The magic of type inference arises because it turns out that solving these constraints is sufficient for robustly type checking programs.
 
-A sharp-eyed reader will notice that **Star**’s type system is different in nature to that found (say) in OO languages. In **Star**’s type system, types are considered to be consistent in **Star** if they are *equal*.[^This is a slight over-simplification.] This is quite different to the notion of consistency in OO languages where an argument to a function is consistent if its type is a *sub-type* of the expected type.
+A sharp-eyed reader will notice that **Star**’s type system is different in nature to that found (say) in OO languages. In **Star**’s type system, types are considered to be consistent in **Star** if they are *equal*. This is quite different to the notion of consistency in OO languages where an argument to a function is consistent if its type is a *sub-type* of the expected type.
 
-However, we would note that the apparent restriction to the type system imposed by type equality is much less severe in practice than in theory -- and that OO languages’ type systems also incorporate some of the same restrictions.
+However, we would note that the apparent restriction to the type system imposed by type equality is much less severe in practice than in theory -- and that OO languages’ type systems also often incorporate some of the same restrictions.
 
 ### Why is type inference restricted?
-We have stated a few times that **Star**'s type system only infers types of variables that are _not_ quantified. In fact, it is fairly simple to build a type inference system that can infer such types. For example, such a complete type inference system would infer from these equations:
+We have stated a few times that **Star**'s type system only infers types of variables that are _not_ quantified. In fact, it is fairly simple to build a type inference system that can infer quantified types. For example, such a complete type inference system would infer from these equations:
 
 ```
 conc(nil,x)=>x.
@@ -813,13 +836,13 @@ conc:all t ~~ (cons[t],cons[t])=>cons[t].
 conc(nil,x:list[t])=>x.
 conc(cons(h:t,tl:list[t]),x:list[t]) => cons(h,conc(t,x))
 ```
-The designer of **Star** strikes a balance between useability and rigor: most variables do not require explicit type annotations. We require them only when something 'special' is being indicated; one of those special circumstances is when defining a generic function.
+The design of **Star** strikes a balance between useability and rigor: most variables do not require explicit type annotations. We require them only when something 'special' is being indicated; one of those special circumstances is when defining a generic function.
 
 Even there, there are many situations where explicit type annotations are not needed: for example when defining a field in a record, or a function in the implementation of a contract, there already is a type that the type system can use to verify the program.
 
 So, the precise rule for type inference is:
 
->If the type of a variable can be inferred from context, then use that type to verify the type of any value the variable may be bound to. Otherwise, use type inference on the value to infer a type for teh variable but do not attempt to generalize it by adding quantifiers to the inferred type.
+>If the type of a variable is known from context, then use that type to verify the type of any value the variable may be bound to. Otherwise, use type inference on the value to infer a type for the variable but do not attempt to generalize it by adding quantifiers to the inferred type.
 
 We are only able to scratch the surface of the type system here. It is certainly true that -- like many modern functional languages -- **Star**’s type system is complex and subtle. The primary motivation for this complexity is to reduce the burden for the programmer: by being able to infer types automatically, and by being able to address many programming subtleties, the type system comes to be seen as the programmer’s friend rather than as an obstacle to be ‘gotten around’.
 
