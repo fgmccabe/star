@@ -4,15 +4,16 @@ Modern programming -- whether it is OO programming, functional programming or ju
 
 The collections architecture in **Star** has four main components:
 
-1. a range of standard collection types -- including array-like lists, cons lists, red-black trees, first-in first-out queues, and dictionaries;
-2. a range of standard functions -- mostly defined in contracts -- that define the core capabilities of functions over collection;
+1. a range of standard collection types -- including array-like lists, cons lists, first-in first-out queues, and ideal hash trees;
+2. a range of standard functions -- mostly defined in contracts -- that define the core capabilities of functions over collections;
 3. special notations that make programming with collections in a type independent way more straightforward; and
 4. the final major component of the collections architecture is *queries*. **Star** has a simple yet powerful set of features aimed at simplifying querying collections.
 
+The query component is sufficiently involved to merit a chapter of its own.
 
 ## Sequence notation
 
-A sequence is simply an ordered collection; a sequence expression is an expression involving a complete or partial enumeration of the values in the collection. Star has a simple notation for expressing sequences of any underlying type; for example, a cons sequence of integers from 1 through 5 can be written:
+A sequence is an ordered collection; a sequence expression is an expression involving a complete or partial enumeration of the values in the collection. Star has a straightforward notation for expressing sequences of any underlying type; for example, a `cons` sequence of integers from 1 through 5 can be written:
 ```
 cons of [1, 2, 3, 4, 5]
 ```
@@ -28,7 +29,7 @@ and
 ```
 stream[c->>integer] |: c
 ```
-respectively -- where `c` is a type variable. The first is a concrete type expression, the second is a constrained type --  in this case `c` must implement the `stream` contract.
+respectively -- where `c` is a type variable. The first is a concrete type expression, the second is a constrained type -- in this case `c` must implement the `stream` contract.
 
 Although the second type expression is longer, and a bit more complex to read, it is also actually less constraining. The type expression `cons[integer]` does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.
 
@@ -37,7 +38,7 @@ The sequence notation also allows for the specification of partial sequences; th
 ```
 [1,2,..X]
 ```
-denotes the sequence whose first two elements are `1` and `2` and whose remainder is denoted by the variable `X` -- which must also be a sequence of the correct type. Similarly, the term:
+denotes the sequence whose first two elements are `1` and `2` and whose remainder is denoted by the variable `X` -- which must also be a sequence of the appropriate type. Similarly, the term:
 ```
 [F..,23]
 ```
@@ -55,22 +56,22 @@ However, we are not permitted to use both of `,..` and `..,` in the same express
 ```
 [F..,2,3,..B]
 ```
-is not permitted (since it amounts to a concatenation of two sequences which implies a non-deterministic decomposition when used as a pattern).
+is not permitted (since it amounts to a concatenation of two sequences which, in turn, implies a non-deterministic decomposition when used as a pattern).
 
-The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type *and* to do so in a syntax which is concise: the only constraint is the sequence contract.
+The major benefit of general sequence notation is that it allows us to construct programs involving collections that are independent of type *and* to do so in a syntax which is concise: the only constraint is the `stream` contract.
 
-For example, we can use sequence notation to write functions over sequences; such as the concat function that concatenates two sequences:
+For example, we can use sequence notation to write functions over sequences; such as the `concat` function that concatenates two sequences:
 ```
 concat:all c,e ~~ stream[c->>e] |: (c,c)=>c.
 concat([],X) => X.
 concat([E,..X],Y) => [E,..concat(X,Y)].
 ```
-This function will work equally well with `cons` lists, lists, strings, even your own collection types. All that is required is that there is an implementation of the sequence contract for the actual type being concatenated.
+This function will work equally well with `cons` lists, lists, strings, even your own collection types. All that is required is that there is an implementation of the `stream` contract for the actual type being concatenated.
 
 ### The stream contract
-Underlying the sequence notation is the `stream` contract. This contract contains type signatures that can be used to construct and to match against stream values. The stream notation is realized by the compiler translating stream terms to a series of calls to those functions.
+Underlying the sequence notation is the `stream` contract. This contract contains type signatures that can be used to construct and to match against stream values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.
 
-The actual `stream` contract is
+The standard `stream` contract is
 ```
 contract stream[t->>e] ::= {
   _nil:t.     -- empty stream
@@ -88,7 +89,7 @@ The first three entries in this contract should be fairly self-evident:
 * `_cons` is a function that ‘glues’ a new element to the front of the collection; and
 * `_apnd` appends elements to the *back* of the collection.
 
-The compiler uses these three functions to transform stream expressions into function calls.
+The compiler uses these three functions to transform sequence expressions into function calls.
 
 For example, the sequence expression:
 ```
@@ -98,7 +99,7 @@ is transformed into
 ```
 _cons(1,_cons(2,_cons(3,_nil())))
 ```
-If a stream expression has an explicit type marker on it, then its translation is slightly different -- to allow the type checker to make use of the type information. For example,
+If a sequence expression has an explicit type marker on it, then its translation is slightly different -- to allow the type checker to make use of the type information. For example,
 ```
 cons of [1,2]
 ```
@@ -111,7 +112,7 @@ This annotation is all that is needed to force the compiler to treat the result 
 [^fn2]: The type expression `_` is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.
 
 ### Sequence patterns
-The complete stream contract has six signatures in it -- the latter three signatures play an analogous role to the first three but for sequence *patterns* rather than sequence *expressions*. For example, the signature for `_pair` -- which is used to decompose sequences into a head and tail -- is:
+The complete stream contract has six signatures in it -- the latter three signatures play an analogous role to the first three but for sequence *patterns* rather than sequence *expressions*. For example, the signature for `hdtl` -- which is used to decompose sequences into a head and tail -- is:
 ```
 _hdtl:(t)=>option[(e,t)].
 ```
@@ -156,9 +157,7 @@ The `stream` contract is one of the most important and commonly used contracts i
 ### Notation and contracts
 One of the distinctive features of the sequence notation is that it is an example of *syntax* that is underwritten by a semantics expressed as a *contract*. This is part of a widespread pattern in **Star**.
 
-This has a parallel in modern OO languages like Java and C# where important contracts are expressed as interfaces rather than concrete types. However, **Star** extends the concept by permitting special notation as well as abstract interfaces -- as many mathematicians understand, a good notation can make a hard problem easy. In **Star** we further separate interfaces from types by separating the type definition from any contracts that may be implemented by it.
-
-This is part of a general pattern in **Star**: there are many *sub-languages* that are actually underwritten by contracts for their realization. For example, the *indexing* notation has the same pattern: of a special notation backed by contract.
+This has a parallel in modern OO languages like Java and C# where important contracts are expressed as interfaces rather than concrete types. However, **Star** extends the concept by permitting special notation as well as abstract interfaces -- as many mathematicians understand, a good notation can sometimes make a hard problem easy. In **Star** we further separate interfaces from types by separating the type definition from any contracts that may be implemented by it.
 
 The merit of this combination of special syntax and contracts is that we can have the special notation expressing a salient concept -- in this case the sequence -- and we can realize the notation without undue commitment in its lower-level details. In the case of sequence notation, we can have a notation of sequences without having to commit to the type of the sequence itself.
 
@@ -167,9 +166,9 @@ Accessing collections conveniently is arguably more important than a good notati
 ```
 L[ix]
 ```
-where L is some array or other collection and ix is an integer offset into the array. **Star** uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and *slices* (contiguous sub-regions of collections).
+where `L` is some array or other collection and `ix` is an integer offset into the array. **Star** uses a notation based on this for accessing collections with random indices; suitably generalized to include dictionaries (collections accessed with non-numeric indices) and *slices* (contiguous sub-regions of collections).
 
-Before we explore **Star**’s indexing notation it is worth looking at the contract that underlies it -- the indexed contract.
+Before we explore **Star**’s indexing notation it is worth looking at the contract that underlies it -- the `indexed` contract.
 
 ### The indexed contract
 The indexed contract captures the essence of accessing a collection in a random-access fashion. There are functions in the contract to access a directly accessed element, to replace and to delete elements from the collection:
@@ -184,22 +183,22 @@ contract all s,k,v ~~ indexed[s->>k,v] ::= {
 ```
 There are several noteworthy points here:
 
-* the form of the contract itself; the signature for _index which accesses elements; and
-* the signatures for `_insert`, `_replace` and `_remove` which return new collections rather than modifying in-place.
+* the form of the contract itself; the signature for `_index` which accesses elements; and
+* the signatures for `_insert`, `_replace` and `_remove` which return new collections rather than modifying them in-place.
 
-Recall that the stream contract had the form:
+Recall that the `stream` contract had the form:
 ```
 contract all s, e ~~ stream[s->>e] ::= ...
 ```
 the `s->>e` clause allows the implementation of the contract to functionally determine (sic) the type of the elements of the collection.
 
-In the case of indexed, the contract form determines *two* types denoted by k and v. The type k denotes the type of the key used to access the collection and v denotes the type of the elements of the collection. Each individual implementation of indexed is free to specify these types; usually in a way that best reflects the natural structure of the collection.
+In the case of `indexed`, the contract form determines *two* types denoted by `k` and `v`. The type `k` denotes the type of the key used to access the collection and `v` denotes the type of the elements of the collection. Each individual implementation of indexed is free to specify these types; usually in a way that best reflects the natural structure of the collection.
 
 For example, the implementation of `indexed` for strings starts:
 ```
 implementation indexed[string ->> integer,integer] => ...
 ```
-reflecting the fact that the natural index for strings is integer and the natural element type is integer (neither being explicitly part of the string type name).  [^Note that we use `integer` to denote the type of string characters because of the complexities of Unicode representation which makes a consistent character encoding very difficult.]
+reflecting the fact that the natural index for strings is integer and the natural element type is integer (neither being explicitly part of the string type name).  [^Note that we use `integer` to denote the type of string characters because the complexities of Unicode representation make a consistent character encoding very difficult.]
 
 On the other hand, the implementation of `indexed` for the concrete type `map` starts:
 ```
@@ -212,37 +211,35 @@ If we look at the signature for `_index` we can see that this function does not 
 
 The great unknown of accessing elements of a collection is ‘is it there?’. Its not guaranteed of course, and we need to be able to handle failure. In the case of the `_index` function, its responsibility is to either return a value wrapped as a `some` value -- if the index lookup is successful -- or the signal `none` if the index lookup fails. Just to be clear: `_index` can act both as a lookup *and* as a test for membership in the collection.
 
-### Adding and removing elements
+#### Adding and removing elements
 The function `_insert` is used to add an element to a collection associating it with a particular index position; and the function `_remove` removes an identified element from the collection. The function `_replace` is similar to `_insert` except that it is expected that an existing element is replaced rather than a new value being inserted.
 
-These functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on *persistent data structures*[^fn1] and on *declarative programming*.
+These functions have a property often seen in functional programming languages and not often seen elsewhere: they are defined to return a complete new collection rather than simply side-effecting the collection. This is inline with an emphasis on *persistent data structures*[^A persistent structure is one which is never modified -- changes are represented by new structures rather than modifiying existing ones.] and on *declarative programming*.
 
 One might believe that this is a bit wasteful and expensive -- returning new collections instead of side-effecting the collection. However, that is something of a misconception: modern functional data structures have excellent computational properties and approach the best side-effecting structures in efficiency. At the same time, persistent data structures have many advantages -- including substantially better correctness properties and behavior in parallel execution contexts.
 
-It should also be stressed that the `indexed` contract allows and encourages persistence but does not *enforce* it. It is quite possible to implement indexing for data structures that are not persistent.
-
-[^fn1]: A persistent structure is one which is never modified -- changes are represented by new structures rather than modifiying existing ones.
+>It should also be stressed that the `indexed` contract allows and encourages persistence but does not *enforce* it. It is quite possible to implement indexing for data structures that are not persistent.
 
 ### The index notation
 Given the indexed contract we can now show the specific notation that **Star** has for accessing elements of a collection. Accessing a collection by index follows conventional notation:
 ```
 C[ix]
 ```
-will access the collection `C` with element identified by ix. For example, given a `map` D of strings to strings, we can access the entry associated with “alpha” using:
-
+will access the collection `C` with element identified by `ix`. For example, given a `map` `D` of strings to strings, we can access the entry associated with “alpha” using:
+```
 D["alpha"]
-
-Similarly, we can access the third character in a string S using:
-
+```
+Similarly, we can access the third character in a string `S` using:
+```
 S[2]
-
+```
 As might be expected, given the discussion above, the type of an index expression is optional.
 
 The most natural way of making use of an index expression is to use it in combination with a `^=` condition or an `^|` expression -- which allows for smooth handling of the case where the index fails. For example, we might have:
 
 ```
 nameOf(F) where N ^= names[F] => N.
-nameOf(F) => ...
+nameOf(F) default => ...
 ```
 
 We will take a deeper look at exceptions and more elaborate management of tentative computation in the section on [Computation Expressions](computation-expression).
@@ -261,7 +258,7 @@ is entirely equivalent to:
 ```
 D := D["beta"->"three"]
 ```
-always assuming that the type of D permits assignment.
+always assuming that the type of `D` permits assignment.
 
 Similarly, the expression:
 ```
@@ -271,7 +268,7 @@ which denotes the map `D` where the value associated with the key `"gamma"` has 
 
 Although, in these examples, we have assumed that `D` is a map value (which is a standard type in **Star**); in fact the index notation does not specify the type. As with the sequence notation, the only requirement is that the `indexed` contract is implemented for the collection being indexed.
 
-In particular, index notation is supported for the built-in `list` types, and is even supported for the `string` type.
+In particular, as well as the `map` type, index notation is supported for the built-in `list` type, and is even supported for the `string` type.
 
 In addition to the indexed access notation described so far, **Star** also allows a variant of the sequence notation for constructing indexed literals (aka dictionaries). In particular, an expression of the form:
 ```
@@ -283,7 +280,7 @@ _cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil))
 ```
 which is understood by indexed types as denoting the contruction of a literal.
 
-Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexed types: they should implement a specific form of sequence contract. Both are actually part of the semantics of representing indexed literals.
+Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexed types: they should implement a specific form of `stream` contract. Both are actually part of the semantics of representing indexed literals.
 
 ### Implementing indexing
 Of course, this includes our own types. For example, before, when looking at generic types we saw the tree type:
@@ -300,24 +297,23 @@ implementation all k,v ~~
   _remove(T,K) => removeKfromTree(T,K).
 }
 ```
-The form of the type expression `tree[(k,v)]` is required to avoid confusion -- `tree` takes a single type argument that, in this case, is a tuple type. The extra set of parentheses ensures that tree is not interpreted (incorrectly) as a type that takes two type arguments.
+The form of the type expression `tree[(k,v)]` is required to avoid confusion -- `tree` takes a single type argument that, in this case, is a tuple type. The extra set of parentheses ensures that `tree` is not interpreted (incorrectly) as a type that takes two type arguments.
 
-With this statement in scope, we can treat appropriate tree expressions as though they were regular arrays or dictionaries:
+With this statement in scope, we can treat appropriate `tree` expressions as though they were regular arrays or dictionaries:
 ```
 T = tNode(tEmpty,("alpha","one"),tEmpty)
 assert "one" ^= T["alpha"].
 U = T["beta"->"two"]. -- Add in "beta"
 assert "one" ^= U["alpha"].
-assert present U["beta"].
 ```
-The implementation statement relies on another feature of **Star**’s type system -- we need to constrain the implementation of indexed to a certain subset of possible instances of tree types -- namely, where the element type of the tree is a *pair* -- a two-tuple -- and secondly we require that the first element of the pair is comparable -- i.e., it has the comparable contract defined for it.
+The implementation statement relies on another feature of **Star**’s type system -- we need to constrain the implementation of indexed to a certain subset of possible instances of tree types -- namely, where the element type of the tree is a *pair* -- a two-tuple -- and secondly we require that the first element of the pair is comparable -- i.e., it has the `order` contract defined for it.
 
 This is captured in the contract clause of the implementation statement:
 ```
 implementation all k,v ~~ order[k], equality[k] |:
       indexed[tree[(k,v)]->>k,v] => ...
 ```
-This implementation contract qualifier is fairly long, and the type constraints are fairly complex; but it is exquisitely targeted at precisely the right kind of tree without us having to make any unnecessary assumptions.[^fn1]
+This implementation contract qualifier is fairly long, and the type constraints are fairly complex; but it is exquisitely targeted at precisely the right kind of tree without us having to make any unnecessary assumptions.[^It is also true that most programmers will not be constructing new implementations of the indexed contract very frequently.]
 
 Implementing the indexed contract requires us to implement three functions: `findInTree`, `setKinTree` and `removeKfromTree`. The `findInTree` function is quite straightforward:
 ```
@@ -329,7 +325,7 @@ findInTree(tNode(_,(K1,_),R),K) where K1<K => findInTree(R,K).
 ```
 Notice that each ‘label’ in the tree is a 2-tuple -- consisting of the key and the value. This function is also where we need the key type to be both comparable and supporting equality. The comparable constraint has an obvious source: we perform inequality tests on the key.
 
-The `equality` constraint comes from a slightly less obvious source: the repeated occurrence of the `K` variable in the second equation. This equation is actually equivalent to:
+The `equality` constraint comes from a slightly less obvious source: the repeated occurrence of the `K` variable in the second equation. This repeated occurrence means that the equation is equivalent to:
 ```
 findInTree(tNode(_,(K,V),_),K1) where K==K1 => some(V)
 ```
@@ -344,15 +340,11 @@ implementation all k,v ~~ order[k], equality[k] |:
   ...
 }
 ```
-where, again, we leave the implementation of the remaining part of the contract to the reader. The reason for implementing `stream` is that that will allow users of the tree to use the `map` variant of the sequence notation for writing tree literals; as in:
+where, again, we leave the implementation of the remaining part of the contract to the reader. The reason for implementing `stream` is that that will allow users of the tree to use the indexed variant of the sequence notation for writing tree literals; as in:
 ```
 tree of [1->”alpha”, 2->”beta”]
 ```
-The `stream` contract includes functions that can be used to match sequences. It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree value.[^fn2]
-
-[^fn1]: It is also true that most programmers will not be constructing new implementations of the indexed contract very frequently.
-
-[^fn2]: With the possible exception of tree balance.
+The `stream` contract includes functions that can be used to match sequences. It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree value.[^With the possible exception of tree balance.]
 
 ### Index slices
 Related to accessing and manipulating individual elements of collections are the *indexed slice* operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:
