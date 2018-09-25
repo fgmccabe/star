@@ -327,7 +327,7 @@ Notice that each ‘label’ in the tree is a 2-tuple -- consisting of the key a
 
 The `equality` constraint comes from a slightly less obvious source: the repeated occurrence of the `K` variable in the second equation. This repeated occurrence means that the equation is equivalent to:
 ```
-findInTree(tNode(_,(K,V),_),K1) where K==K1 => some(V)
+findInTree(tNode(_,(K,V),_),K1) where K==K1 => some(V).
 ```
 We leave the implementations of `setKinTree` and `removeKfromTree` as an exercise for the reader.
 
@@ -381,8 +381,6 @@ C := _splice(C,fx,tx,D)
 ```
 which, of course, assumes that `C` is defined as a read/write variable.
 
-**Star** encourages declarative programming but we fully recognize that side-effecting behavioral code is often the most effective solution to the problem.
-
 The slice notation is an interesting edge case in domain specific languages. It is arguably a little obscure, and, furthermore, the use case it represents is not all that common. On the other hand, without specific support, the functionality of slicing is hard to duplicate with the standard indexing functions.
 
 ## Doing stuff with collections
@@ -397,8 +395,8 @@ The number of things that people want to do with collections is only limited by 
 
 Each of these patterns has some support from **Star**’s standard repertoire of functions.
 
-### Filtering with filter
-The simplest operation on a collection is to subset it. The standard filter function allows us to do this with some elegance. Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:
+### Filtering
+The simplest operation on a collection is to subset it. The standard filter function -- `^/` -- allows us to do this with some elegance. Using filter is fairly straightforward; for example, to remove all odd numbers from a collection we can use the expression:
 ```
 Nums^/((X)=>X%2==0)
 ```
@@ -410,17 +408,15 @@ then the value of the filter expression would be
 ```
 list of [2,4,6,8]
 ```
-The right hand argument to `^/` is a *predicate*: a function that returns a `boolean` value. The `^/` function (which is part of the standard `filter` contract) is required to apply the predicate to every element of its left hand argument and return a *new* collection of every element that satisfies the predicate.[^fn1]
+The right hand argument to `^/` is a *predicate*: a function that returns a `boolean` value. The `^/` function (which is part of the standard `filter` contract) is required to apply the predicate to every element of its left hand argument and return a *new* collection of every element that satisfies the predicate.[^The original collection is unaffected by the filter.]
 
 Note that the `%` function is arithmetic remainder, and the expression `X%2==0` amounts to a test that `X` is even (its remainder modulo 2 is 0).
 
-By using a function argument to represent the predicate it is possible to construct many filtering algorithms whilst not making any recursion explicit. However, not all filters are easily handled in this way; for example, a prime number filter *can* be written
+The `^/` operator allows us to represent many filtering algorithms whilst not making any recursion explicit. However, not all filters are easily handled in this way; for example, a prime number filter *can* be written
 ```
 N^/isPrime
 ```
-but such an expression is likely to be very expensive (the isPrime test is difficult to do well).
-
-[^fn1]: The original collection is unaffected by the filter.
+but such an expression is likely to be very expensive (the `isPrime` test is difficult to do well).
 
 #### The filter contract
 As noted above, the `^/` function is governed by a contract, the `filter` contract:
@@ -430,7 +426,7 @@ contract all c,e ~~ filter[c->>e] ::= {
 }
 ```
 ### The sieve of Erastosthneses
-One of the classic algorithms for finding primes can be expressed using filters -- the so-called sieve of Eratosthenes. This algorithm works by repeatedly removing multiples of primes from the list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of filter operations.
+One of the classic algorithms for finding primes that can be expressed using filters is the so-called _sieve of Eratosthenes_. This algorithm works by repeatedly removing multiples of primes from a list of natural numbers. We cannot (yet) show how to deal with infinite lists of numbers but we can capture the essence of this algorithm using a cascading sequence of filter operations.
 
 The core of the sieve algorithm involves taking a list of numbers and removing multiples of a given number from the list. This is very similar to our even-number finding task, and we can easily define a function that achieves this:
 ```
@@ -458,12 +454,14 @@ primes(Max) => let{
 ```
 The `iota` function is used to construct a list of numbers, in this case the integer range from `3` through to Max with an increment of `2`. We start the `sieve` with `2` and the list of integers with `3` since we are making use of our prior knowledge that `2` is prime.
 
-It should be emphasized that the sieve of Eratosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each ‘sweep’ of the list of numbers results in a new list of numbers; many of which too will eventually be discarded. Furthermore, the filterMultiples function examines every integer in the list; it does not make effective use of the fact that successive multiples occupy predictable slots in the list of integers. In fact, building a highly optimized version of the sieve of Eratosthenes is not actually the main point here -- it is to illustrate the power of **Star**’s collections processing functions.
+It should be emphasized that the sieve of Eratosthenes hardly counts as an efficient algorithm for finding primes. For one thing, it requires that we start with a list of integers; most of which will be discarded. In fact, each ‘sweep’ of the list of numbers results in a new list of numbers; many of which too will eventually be discarded. Furthermore, the `filterMultiples` function examines every integer in the list; it does not make effective use of the fact that successive multiples occupy predictable slots in the list of integers.
 
-We might ask whether the sieve function can also be expressed as a filter. The straightforward answer is that it cannot: the sieve *is* a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard filter function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.
+>In fact, building a highly optimized version of the sieve of Eratosthenes is not actually the main point here -- our purpose is to illustrate the power of **Star**’s collections processing functions.
+
+We might ask whether the `sieve` function can also be expressed as a filter. The straightforward answer is that it cannot: the sieve *is* a kind of filter, but the predicate being applied depends on the entire collection; not on each element. The standard filter function does not expose the entire collection to the predicate. However, we will see at least one way of achieving the sieve without any explicit recursion below when we look at folding operations.
 
 ### Mapping to make new collections
-One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The fmap function -- part of the functor contract -- can be used to perform many transformations of collections.
+One of the limitations of the filter function is that it does not create new elements: we can use it to subset collections but we cannot transform them into new ones. The `fmap` function -- part of the `functor` contract -- can be used to perform many transformations of collections.
 
 For example, to compute the lengths of strings in a list we can use the expression:
 ```
@@ -479,7 +477,7 @@ contract all c/1 ~~ functor[c] ::= {
   fmap:all a,b ~~ ((a)=>b,c[a])=>c[b].
 }
 ```
-Notice how the contract specifies the collection type -- `c` -- without specifying the type of the collection’s element type. We are using a different technique here than we used for the `stream` and `filter` contracts. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a *type constructor* variable as in `c[a]` and `c[b]`.[^fn1]
+Notice how the contract specifies the collection type -- `c` -- without specifying the type of the collection’s element type. We are using a different technique here than we used for the `stream` and `filter` contracts. Instead of using a functional dependency to connect the type of the collection to the type of the element, we denote the type of the input and output collections using a *type constructor* variable as in `c[a]` and `c[b]`.[^This also means that the collection type in `fmap` must be generic: it is not possible to implement `functor` for strings.]
 
 We are also using a variant of the quantifier. A quantified type variable of the form `c/1` denotes a type constructor variable rather than a regular type variable. In this case, `c/1` means that the variable `c` must be a type constructor that takes one argument.
 
@@ -500,19 +498,20 @@ person ::= someOne{
   age:()=>float.
 }
 ```
-Suppose that we already had a function average that could average a collection of numbers; but which (of course) does not understand people. We can use our average by first of all projecting out the ages and then applying the average function:
+Suppose that we already had a function `average` that could average a collection of numbers; but which (of course) does not understand people. We can use our average by first of all projecting out the ages and then applying the average function:
 ```
 average(fmap((X)=>X.age(),People))
 ```
 In this expression we project out from the `People` collection the ages of the people and then use that as input to the average function.
 
-There is something a little magic about the lambda function in this expression: how does the type checker ‘know’ that X can have a field age in it? How much does the type checker know about types anyway?
+#### More Type Inference Magic
+There is something a little magic about the lambda function in this expression: how does the type checker ‘know’ that `X` can have a field `age` in it? How much does the type checker know about types anyway?
 
 In this particular situation the type checker could infer the type of the lambda via the linking between the type of the `fmap` function and the type of the `People` variable. However, the type checker is actually capable of giving a type to the lambda even without this context. Consider the function:
 ```
 nameOf(R) => R.name
 ```
-This function takes an arbitrary record as input and returns the value of the name field. The `nameOf` function *is* well typed, its type annotation just needs a slightly different form than that we have seen so far:[^Note that the **Star** type system will not _infer_ this generalized type.]
+This function takes an arbitrary record as input and returns the value of the `name` field. The `nameOf` function *is* well typed, its type annotation just needs a slightly different form than that we have seen so far:[^Note that the **Star** type system will not _infer_ this generalized type.]
 ```
 nameOf:all r,n ~~ r <~ {name:n} |: (r)=>n
 ```
@@ -526,20 +525,20 @@ means that any type bound to `r` must have a `name` field whose type is denoted 
 
 With this type signature, we can use `nameOf` with any type that that a `name` field. This can be a record type; it can also be a type defined with an algebraic type definition that includes a record constructor.
 
-[^fn1]: This also means that the collection type in `fmap` must be generic: it is not possible to implement `functor` for strings.
-
 ### Compressing collections
-Another way of using collections is to summarize or aggregate over them. For example, the average function computes a single number from an entire collection of numbers -- as do many of the other statistical functions. We can define average using the standard `foldLeft` function, which is part of the standard `folding` contract:
+Another way of using collections is to summarize or aggregate over them. For example, the `average` function computes a single number from an entire collection of numbers -- as do many of the other statistical functions. We can define average using the standard `foldLeft` function, which is part of the standard `folding` contract:
 ```
 average(C) is foldLeft((+),0,C)::float/size(C)::float
 ```
-This definition of the `average` function is about as close to a specification of average as is possible in a programming language!
+>This definition of the `average` function is about as close to a specification of average as is possible in a programming language!
 
-Notice the use of coercion here -- coercing both the result of the `foldLeft` and `size` to float. The reason for doing this is that functions like `average` are ‘naturally’ real functions.[^fn1] Without the explicit coercion, averaging a list of integers will also result in an integer value -- which is likely to be inaccurate.
+Notice the use of coercion here -- coercing both the result of the `foldLeft` and `size` to float. The reason for doing this is that functions like `average` are ‘naturally’ real functions.[^Real as in the ℝeal numbers.] Without the explicit coercion, averaging a list of integers will also result in an integer value -- which is likely to be inaccurate.
 
 Of course, in our definition of average we need to coerce *both* the numerator and denominator of the division because **Star** does not have implicit coercion.
 
-The `foldLeft` function applies a left-associative binary operator to a collection: starting from the first element and successively ‘adding up’ each of the elements in the collection using the supplied operator.
+The `foldLeft` function applies a binary function to a collection: starting from the first element and successively ‘adding up’ each of the elements in the collection using the supplied operator.
+
+![Left Folding a Collection][leftfold]
 
 As we noted above, `foldLeft` is part of the `folding` contract. Like the `functor` contract, this uses some more subtle type constraints:
 ```
@@ -552,18 +551,18 @@ The `folding` contract uses quantifiers in two places: once in the contract spec
 
 The `foldLeft` (and `foldRight`) functions have an ‘accumulator’ (of type `x`) which need not be the same as the type of the elements of the collection.[^We saw something similar with the visitor pattern.] This argument acts as a kind of linking thread during the entire computation -- and represents the returned value when the fold is complete.
 
-![Left Folding a Collection][leftfold]
+But we can do much more than computing averages with a fold. Recall that when we realized the sieve of Eratosthenes, we still had a recursive structure to the program. Furthermore, the way our original program was written each filter results in a new list of numbers being produced. Instead of doing this, we can construct a cascade of filter functions - each level in the cascade is responsible for eliminating multiples of a specific prime.
 
-But we can do much more than computing averages with a fold. Recall that when we realized the sieve of Eratosthenes, we still had a recursive structure to the program. Furthermore, the way our original program was written each filter results in a new list of numbers being produced. Instead of doing this, we can construct a cascade of filter functions.
+The complete cascade filters by checking each level of the cascade: for example, after encountering 3, 5 and 7, there will be a cascade of three functions that check each incoming number: one to look for multiples of 3, one for multiples of 5 and one for multiples of 7. When we encounter the next prime (11) then we glue on to the cascade a function to eliminate multiples of 11.
 
-Consider the task of adding a filter to an existing filter. What is needed is a new function that combines the effect of the new filter with the old one. The cascade function takes a filter function and a prime as arguments and constructs a new function that checks both the prime *and* the existing filter:
+Consider the task of adding a filter to an existing cascade of filters. What is needed is a new function that combines the effect of the new filter with the old one. The `cascade` function takes a filter function and a prime as arguments and constructs a new function that checks both the prime *and* the existing filter:
 ```
 cascade:((integer)=>boolean,integer)=>((integer)=>boolean).
 cascade(F,K) => (X)=>F(X) && X%K=!=0.
 ```
-This is a truly higher-order function: it takes a function as argument and returns a another function.
+>This is a truly higher-order function: it takes a function as argument and returns another function.
 
-Given `cascade`, we can reformulate the sieve function itself as a `foldRight` -- at each new prime step we ‘accumulate’ a new cascaded filter function:
+Given `cascade`, we can reformulate the `sieve` function itself as a `foldRight` -- at each new prime step we ‘accumulate’ a new cascaded filter function:
 ```
 stp:(integer,(integer)=>boolean)=>((integer)=>boolean).
 stp(X,F) where F(X) => cascade(F,X).
@@ -571,22 +570,21 @@ stp(X,F) => F.
 ```
 At each step in the fold we want to know whether to continue to propagate the existing filter or whether to construct a new filter.
 
-The `sieve` function itself is now very short: we simply invoke `foldRight` using step and an initial ‘state’ consisting of a function that checks for odd numbers:
+The `sieve` function itself is now very short: we simply invoke `foldRight` using `stp` and an initial ‘state’ consisting of a function that checks for odd numbers:
 ```
 sieve(C) => foldRight(stp,(K)=>K%2=!=0,C).
 ```
-This version of sieve is not quite satisfactory as, while it does find prime numbers, it does not report them. A more complete version has to also accumulate a list of primes that are found. We can do this by expanding the accumulated state to include both the cascaded filter function and the list of found primes. The main alteration is to the `step` function:
+This version of `sieve` is not quite satisfactory as, while it does find prime numbers, it does not report them. A more complete version has to also accumulate a list of primes that are found. We can do this by expanding the accumulated state to include both the cascaded filter function and the list of found primes. The main alteration is to the `step` function:
 ```
-step:((list[integer],(integer)=>boolean),integer) =>
-(list[integer],(integer)=>boolean).
-step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X))
-step(_,(P,F)) => (P,F)
+step:((list[integer],(integer)=>boolean),integer) => (list[integer],(integer)=>boolean).
+step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X)).
+step(_,(P,F)) => (P,F).
 ```
 and the initial state has an empty list:
 ```
 sieve(C) is fst(foldRight(step,([],(K)=>K%2=!=0),C)).
 ```
-where fst and snd pick the left and right hand sides of a tuple pair:
+where `fst` and `snd` are standard functions that pick the left and right hand sides of a tuple pair:
 ```
 fst:all s,t ~~ ((s,t))=>s.
 fst((L,R)) => L
@@ -616,7 +614,7 @@ primes(Max) => let{
 
 show primes(1000)
 ```
-This final program has an important property: there are no explicit recursions in it -- in addition, apart from the `foldRight` function, there are no recursive programs at all in the definition of primes.
+This final program has an important property: there are no explicit recursions in it -- in addition, apart from the `foldRight` function, there are no recursive programs at all in the definition of `primes`.
 
 >Of course, it still would not count as the _most efficient_ primes finding program; but that was not the goal of this discussion.
 
@@ -624,25 +622,12 @@ This final program has an important property: there are no explicit recursions i
 
 [leftfold]: leftfold.png width=376px height=173px
 
-[^fn1]: Real as in the Real numbers.
-
 ## Different types of collection
-Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of adding to the collection, the cost of *accessing* elements of the collection and the cost of *modifying* elements in the collection.
+Just as there are many uses of collections, so there are different performance requirements for collections themselves. The most challenging aspects of implementing collections revolves around the cost of _adding_ to the collection, the cost of *accessing* elements of the collection and the cost of *modifying* elements in the collection.
 
 There is a strong emphasis on *persistent* semantics for the types and functions that make up **Star**’s collections architecture. This is manifest in the fact, for example, that functions that add and remove elements from collections *do not* modify the original collection.
 
 However, even without that constraint, different implementation techniques for collections tend to favor some operations at the cost of others. Hence, there are different types of collection that favor different patterns of use.
-
-### The list type
-The list type offers a different trade-off to the cons type: where the latter is optimal for ease of constructing and for traversing complete lists, the list type offers constant-time access to random elements within the array -- at the potential cost of more expensive construction of lists.
-
-Unlike the cons type, the list type does not have a straightforward definition as an algebraic type. Internally, an list structure consists of an array of locations with a ‘control pointer’ giving the portion of the array block that represents a given list value.
-
-The list type is optimized for random access and for shared storage -- recall that **Star** collection types are persistent: that means that different values can share some or all of their internal structure. The diagram below shows two list values that overlap in their elements and consequently share some of their structure.
-
-![Two lists Sharing Structure][twoarrays]
-
-[twoarrays]: twoarrays.pdf width=311px height=143px
 
 ### The cons type
 
@@ -650,28 +635,39 @@ This is the simplest collection type; and is perhaps the original collection typ
 ```
 all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 ```
-Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a cons list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to the end of a cons list is linear in the length of the list.
+Cons lists have the property that adding an element to the front of a list is a constant-time operation; similarly, splitting a `cons` list into its head and tail is also a constant time operation. However, almost every other operation is significantly more expensive: putting an element on to the end of a `cons` list is linear in the length of the list.
 
-The main merit of the cons list is the sheer simplicity of its definition. Also, for small collections, its simple implementation outweighs the advantages that more complex collections offer.
+The main merit of the `cons` list is the sheer simplicity of its definition. Also, for small collections, its simple implementation may outweigh the advantages that more complex collections offer.
+
+### The list type
+The list type offers a different trade-off to the `cons` type: where the latter is optimal for ease of constructing and for traversing complete lists, the list type offers constant-time access to random elements within the array -- at the potential cost of more expensive construction of lists.
+
+Unlike the `cons` type, the `list` type does not have a straightforward definition as an algebraic type. Internally, a list structure consists of an array of locations with a ‘control pointer’ giving the portion of the array block that represents a given list value. This is sometimes called a Copy on Write (COW) structure.
+
+The `list` type is optimized for random access and for shared storage -- recall that **Star** collection types are persistent: that means that different values can share some or all of their internal structure. The diagram below shows two list values that overlap in their elements and consequently share some of their structure.
+
+![Two lists Sharing Structure][twoarrays]
+
+[twoarrays]: twoarrays.pdf width=311px height=143px
 
 ### The map type
-Unlike the cons or list type, the `map` type is oriented for access by arbitrary keys. The `map` is also quite different to hash trees as found in Java (say), the `map` type is *persistent*: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of the map is quite comparable to Java’s HashMap.
+Unlike the `cons` or `list` type, the `map` type is oriented for access by arbitrary keys. The `map` is also quite different to hash maps as found in Java (say), the `map` type is *persistent*: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of `map` is quite comparable to Java’s HashMap.
 
 The template for the `map` type is:
 ```
-all k,v ~~ equality[k] |: map[k,v]
+all k,v ~~ equality[k], hash[k] |: map[k,v]
 ```
-Notice that there is an implied constraint here: the `map` assumes that the keys in the map can be compared for equality.
+Notice that there is an implied constraint here: the `map` assumes that the keys in the map can be compared for equality, and that they are hashable -- have a `hash` function.
 
 A `map` value can be written using the sequence notation, using tuple pairs for the key-value pairs:
 ```
 map of [(1,"alpha"),(2,"beta”)]
 ```
-Dictionaries also have a special variant of the sequence notation; instead of writing the pairs as tuples we can use an arrow notation for `map` terms:
+As we saw before, `map`s also have a special variant of the sequence notation; instead of writing the pairs as tuples we can use an arrow notation for `map` terms:
 ```
 map of [1->"alpha", 2->"beta"]
 ```
-Dictionaries also have their own special variant of a *query search condition*. A condition of the form
+Maps also have their own special variant of a *query search condition*. A condition of the form
 ```
 K->V in D
 ```
@@ -685,39 +681,14 @@ For the curious, dictionaries are implemented using techniques similar to Ideal 
 
 ### The set type
 
-There are many instances where a programmer needs a collection but does not wish specify any ordering or mapping relationship. The standard set type allows you to construct such entities.
+There are many instances where a programmer needs a collection but does not wish specify any ordering or mapping relationship. The standard `set` type allows you to construct such entities.
 
-Using a set type offers the programmer a signal that minimizes assumptions about the structures: the set type is not ordered, and offers no ordering guarantees. It does, however, offer a guarantee that operations such as element insertion, search and set operations like set union are implemented efficiently.
+Using a `set` type offers the programmer a signal that minimizes assumptions about the structures: the set type is not ordered, and offers no ordering guarantees. It does, however, offer a guarantee that operations such as element insertion, search and set operations like set union are implemented efficiently.
 
-Like `map`, the set type is not publicly defined using an algebraic type definition: its implementation is private. It’s type is given by the template:
+Like `map`, the `set` type is not publicly defined using an algebraic type definition: its implementation is private. It’s type is given by the template:
 ```
 all t ~~ equality[t] |: set[t]
 ```
-### The range type
-
-The `range` type is a very particular form of collection type: a range denotes a range of numbers. Its type description says it all:
-```
-all t ~~ arithmetic[t],comp[t] |: range[t] ::= range(t,t,t).
-```
-This type description has some special features; in particular it is a constrained type: a type expression of the form:
-```
-range[T]
-```
-is only valid if `T` is an `arithmetic` type; specifically a type that supports arithmetic and is `comp`arable. Thus a type expression such as range[integer] is fine, but range[list[integer]] will result in a syntax error!
-
-Range terms are used to compactly represent regular ranges of numbers; for example the term
-```
-range(0,100,1)
-```
-denotes the first 100 integers. But, of course, we have already seen the `range` collection in our exploration of the [sieve of Eratosthenes](original-sieve).
-
-There is a specific property of the `range` type that is difficult to capture with this type definition -- specifically, we rely in many places on ranges *half closed* property: that is, the range of numbers in the range include the first number but does not include the second. This property makes combining ranges much smoother than either a fully closed range (includes both ends) or an open range (includes neither end).
-
-For example the following assertion is expected to hold for range terms:
-```
-range(F,I,Ix)++range(I,T,Ix)=range(F,T,Ix)
-```
-where `++` is the standard function -- i.e., is part of the concatenate contract -- for expressing sequence concatenation.
 
 ## Collecting it together
 
