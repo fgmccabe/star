@@ -27,9 +27,9 @@ cons[integer]
 ```
 and
 ```
-stream[c->>integer] |: c
+sequence[c->>integer] |: c
 ```
-respectively -- where `c` is a type variable. The first is a concrete type expression, the second is a constrained type -- in this case `c` must implement the `stream` contract.
+respectively -- where `c` is a type variable. The first is a concrete type expression, the second is a constrained type -- in this case `c` must implement the `sequence` contract.
 
 Although the second type expression is longer, and a bit more complex to read, it is also actually less constraining. The type expression `cons[integer]` does not allow for variation of the underlying collection type; the second type expression allows the term to be used in contexts that require different concrete types.
 
@@ -62,32 +62,39 @@ The major benefit of general sequence notation is that it allows us to construct
 
 For example, we can use sequence notation to write functions over sequences; such as the `concat` function that concatenates two sequences:
 ```
-concat:all c,e ~~ stream[c->>e] |: (c,c)=>c.
+concat:all c,e ~~ stream[c->>e], sequence[c->>e] |: (c,c)=>c.
 concat([],X) => X.
 concat([E,..X],Y) => [E,..concat(X,Y)].
 ```
-This function will work equally well with `cons` lists, lists, strings, even your own collection types. All that is required is that there is an implementation of the `stream` contract for the actual type being concatenated.
+This function will work equally well with `cons` lists, lists, strings, even your own collection types. All that is required is that there is an implementation of the `stream` and the `sequence` contracts for the actual type being concatenated.
 
-### The stream contract
-Underlying the sequence notation is the `stream` contract. This contract contains type signatures that can be used to construct and to match against stream values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.
+>There are two contracts here: the `stream` contract is used when decomposing sequences and the `sequence` contract is used when building them.
+
+### The `stream` and `sequence` contracts
+Underlying the sequence notation are two contracts: the `stream` contrac and the `sequence` contract. These contracts contains type signatures that can be used to construct and to match against sequence values. The sequence notation is realized by the compiler translating sequence terms to a series of calls to those functions.
 
 The standard `stream` contract is
 ```
 contract stream[t->>e] ::= {
-  _nil:t.     -- empty stream
-  _cons:(e,t)=>t. -- add to front
-  _apnd:(t,e)=>e. -- add to back
   _eof:()=>boolean.   -- is stream empty
   _hdtl:(t)=>option[(e,t)]. -- match front of stream
   _back:(t)=>option[(t,e)]. -- match back of stream
 }
 ```
+and the standard `sequence` contract is:
+```
+contract stream[t->>e] ::= {
+  _nil:t.     -- empty stream
+  _cons:(e,t)=>t. -- add to front
+  _apnd:(t,e)=>e. -- add to back
+}
+```
 
-The first three entries in this contract should be fairly self-evident:
+The entries in the `sequence` contract should be fairly self-evident:
 
-* `_nil` is the empty stream;
-* `_cons` is a function that ‘glues’ a new element to the front of the collection; and
-* `_apnd` appends elements to the *back* of the collection.
+* `_nil` is the empty sequence;
+* `_cons` is a function that ‘glues’ a new element to the front of the sequence; and
+* `_apnd` appends elements to the *back* of the sequence.
 
 The compiler uses these three functions to transform sequence expressions into function calls.
 
@@ -107,12 +114,11 @@ is translated as:
 ```
 _cons(1,_cons(2,_nil())):cons[_]
 ```
-This annotation is all that is needed to force the compiler to treat the result as a concrete cons list. Type inference does the rest of the hard work.[^fn2]
+This annotation is all that is needed to force the compiler to treat the result as a concrete cons list. Type inference does the rest of the hard work.[^The type expression `_` is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.]
 
-[^fn2]: The type expression `_` is a special type that denotes an anonymous type: each occurrence of the type expression denotes a different unknown type. It is useful in situations, like this one, where only some of the type information is known.
 
 ### Sequence patterns
-The complete stream contract has six signatures in it -- the latter three signatures play an analogous role to the first three but for sequence *patterns* rather than sequence *expressions*. For example, the signature for `hdtl` -- which is used to decompose sequences into a head and tail -- is:
+The the `stream` contract is used in *patterns* to match and decompose sequences. For example, the signature for `hdtl` -- which is used to decompose sequences into a head and tail -- is:
 ```
 _hdtl:(t)=>option[(e,t)].
 ```
@@ -152,7 +158,9 @@ concat(S0,Y) where some((E,X)).=S0 =>
   _cons(E,concat(X,Y)).
 ```
 
-The `stream` contract is one of the most important and commonly used contracts in the **Star** library. As we shall see further, many of the standard collections functions are built on top of it.
+The `sequence` and `stream` contracts are some of the most important and commonly used contracts in the **Star** library. As we shall see further, many of the standard collections functions are built on top of it.
+
+> We have two contracts -- one for composing and another for decomposing sequences -- because not all collections are equally amenable to decomposing and/or composing. For example, the `map` type we describe below does not have a natural notion of decomposing (because ordering within a `map` is not preserved); even though it does have a natural form of describing actual `map` collections.
 
 ### Notation and contracts
 One of the distinctive features of the sequence notation is that it is an example of *syntax* that is underwritten by a semantics expressed as a *contract*. This is part of a widespread pattern in **Star**.
@@ -280,7 +288,7 @@ _cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil))
 ```
 which is understood by indexed types as denoting the contruction of a literal.
 
-Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexed types: they should implement a specific form of `stream` contract. Both are actually part of the semantics of representing indexed literals.
+Note that there are two levels of domain-specific notation here: the representation of indexed literals in terms of a sequence of two-tuples and the implicit rule governing indexed types: they should implement a specific form of `sequence` contract. Both are actually part of the semantics of representing indexed literals.
 
 ### Implementing indexing
 Of course, this includes our own types. For example, before, when looking at generic types we saw the tree type:
@@ -331,20 +339,22 @@ findInTree(tNode(_,(K,V),_),K1) where K==K1 => some(V).
 ```
 We leave the implementations of `setKinTree` and `removeKfromTree` as an exercise for the reader.
 
-Along with the implementation of `indexed`, we should also implement `stream` for our trees:
+Along with the implementation of `indexed`, we should also implement `sequence` for our trees:
 ```
 implementation all k,v ~~ order[k], equality[k] |:
-  stream[tree[(k,v)]->>(k,v)] => {
+  sequence[tree[(k,v)]->>(k,v)] => {
     _nil = tEmpty.
     _cons((K,V),T) => setKinTree(T,K,V).
-  ...
+    _apnd(T,(K,V)) => setKinTree(T,K,V).
 }
 ```
-where, again, we leave the implementation of the remaining part of the contract to the reader. The reason for implementing `stream` is that that will allow users of the tree to use the indexed variant of the sequence notation for writing tree literals; as in:
+>>Notice that adding a pair to the front of a `tree` is semantically the same as adding it to the back -- since the `tree` is ordered.
+
+The reason for implementing `sequence` is that that will allow users of the tree to use the indexed variant of the sequence notation for writing tree literals; as in:
 ```
 tree of [1->”alpha”, 2->”beta”]
 ```
-The `stream` contract includes functions that can be used to match sequences. It is not completely obvious what one should do when matching the head of a tree. The standard library chooses to match against the left-most leaf of the tree and return a new tree containing all the other elements for the tail of the match. Since the tree is ordered by key value, the order in which elements of a tree are written in a tree literal does not affect the finally constructed tree value.[^With the possible exception of tree balance.]
+We do not implement the companion `stream` contract for our `tree` because its semantics would be somewhat problematic. However, there is nothing preventing the reader from experimenting with an appropriate tree-ordering.
 
 ### Index slices
 Related to accessing and manipulating individual elements of collections are the *indexed slice* operators. An indexed slice of a collection refers to a bounded subset of the collection. The expression:
