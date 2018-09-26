@@ -1,5 +1,5 @@
-# Ruling the Queries
-One of the common themes of systems that 'face the world' is that they often have to make decisions. There are many approaches to providing for such _classifications_ but one of the most robust is _rules_. There are also many forms of rule, here we will focus on a particular form of rule: _the inference rule_.
+# Making choices and querying
+One of the common themes of systems that 'face the world' is that they often have to make decisions. There are many approaches to providing for such _classifications_ but one of the most robust is _rules_. There are also many forms of rule, here we will focus on a particular form of rule: _the inference rule_. **Star** has some rule capabilities that allow queries and inference to be embedded within a system.
 
 In general, a response to an external event goes through a series of phases:
 
@@ -7,7 +7,9 @@ In general, a response to an external event goes through a series of phases:
 2. applying some form of inference to the measurements to derive _facts_; and
 3. based on certain criteria, deciding what to _do_ in response to the event.
 
-A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. Our language, which is called **CnC**[^Code Named CnC], is an embedded language within **Star**.
+A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
+
+However, when _embedding_ a different semantics there are some useability issues to consider. In this chapter we look at a deliberately simple -- even simplistic -- approach to integrating a logic-like semantics into **Star**.
 
 But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star**.
 
@@ -23,7 +25,7 @@ and that we wanted to construct a result list -- also of pairs -- along the line
 GC:list[(string,string)].
 GC = [("john","jane"),...].
 ```
-Computing the list grandparent/grandchildren pairs involves searching the parents for pairs  that satisfy the grandparent relationship. This involves a double iteration: each pair in the `parent`s list might represent the upper or lower half of a grandparent/grandchild relationship. Based on the collection operators we have seen so far, we can build such a search using two `foldLeft` operations:
+Computing the list of grandparent/grandchildren pairs involves searching the `parents` for pairs  that satisfy the grandparent relationship. This, in turn, involves a double iteration: each pair in the `parent`s list might represent the upper or lower half of a grandparent/grandchild relationship (or both). Based on the collection operators we have seen so far, we can build such a search using two `foldLeft` operations:
 ```
 foldLeft(
  (SoFar,(X,Z)) => foldLeft(
@@ -39,17 +41,17 @@ This, rather intimidating,[^There are, unfortunately, some functional programmer
 
 The `acc` function defined above in the `let` expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
 
-The various filter, fmap and foldLeft functions *are* powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+The various filter, `fmap` and `foldLeft` functions *are* powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
 
 What is needed is a way of expressing such complex query conditions in a way that can be represented using `foldLeft` expressions but which is easier to read.
 
 Consider the conjunction:
 ```
-(X,Z) in parents and (Z,Y) in parents.
+(X,Z) in parents and (Z,Y) in parents
 ```
-This should be read simply as:
+This could be read as specifying what it means to be grandparents:
 
->For which `X`, `Y` and `Z` can be assert that `X` is the parent of `Z`, and `Z` is the parent of `Y`?.
+>For which `X`, `Y` and `Z` can we assert that `X` is the parent of `Z`, and `Z` is the parent of `Y`?.
 
 This should be significantly easier to follow than the complex expression above; and it is easier to be sure whether it is a correct representation of what it means to be a grand parent.
 
@@ -58,20 +60,28 @@ Conditions like the ones above are boolean valued -- but they are not always exp
 ```
 (X,Z) in parents
 ```
-is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of `X` and `Z` are in some `parents` collection. Instead, the condition is evaluated by trying to find `X` and `Z` that are in the collection. In effect, the condition becomes a _search_ for suitable candidate pairs.
+is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of `X` and `Z` are in some `parents` collection. Instead, the condition needs to be evaluated by trying to find `X` and `Z` that are in the `parents` collection. In effect, the condition becomes a _search_ for suitable candidate pairs.
 
 Technically this is called *satisfying* the condition -- to distinguish what is going on from *evaluating* the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
 
-In addition to individual *search conditions* like this, it is also possible to use logical operators -- called *connectives* -- to combine conditions. In the case of our grand-parent query, there is a conjunction; which involves the variable `Z` that acts as a kind of glue to the two search conditions.
+In addition to individual *search conditions* like this, it is also possible to use logical operators -- called *connectives* -- to combine conditions. In the case of our grand-parent query, there is a conjunction; which uses the variable `Z` to acts as a kind of glue to the two search conditions.
 
 >In database query terminology, conjunctions like this one amount to _inner joins_. Languages like SQL have many operators and features to make expressing queries easier; the fundamental semantics of **Star**'s queries are similar to those of SQL.
 
-The available connectives include the usual favorites: `and`, `or`, and `not`. They also include some less familiar connectives: `implies` and `otherwise`.
+The available connectives include the usual favorites: `and`, `or`, and `not`. We may also see the need for some less familiar connectives: `implies` and `otherwise`.
 
-The `implies` connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
+>An `implies` connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
 ```
 (X,M) in worksFor implies X.salary=<M.salary.
 ```
+
+### Abstracting queries
+The grandparent condition shows how to define what grandparent-hood means; but we also need ways of abstracting and naming such queries. The most straightforward way of this is to use a _query abstraction_. For example:
+
+```
+{ (X,Y) | (X,Z) in parents and (Z,Y) in parents}
+```
+
 
 ## Code Named CnC
 
