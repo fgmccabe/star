@@ -22,7 +22,7 @@ star.cons{
   cHash(nil,X) => X.
   cHash(cons(x,xr),H) => cHash(xr,(H+hash(x))*37).
 
-  -- stream contract
+  -- stream & sequence contracts
   public implementation all x ~~ stream[cons[x] ->> x] => {
     _eof(nil) => true.
     _eof(cons(_,_)) => false.
@@ -30,11 +30,13 @@ star.cons{
     _hdtl(cons(H,T)) => some((H,T)).
     _hdtl(nil) => none.
 
-    _cons(E,S) => cons(E,S).
-    _apnd(S,E) => S++[E].
-
     _back(nil) => none.
     _back(X) => some(last(X)).
+  }
+
+  public implementation all x ~~ sequence[cons[x] ->> x] => {
+    _cons(E,S) => cons(E,S).
+    _apnd(S,E) => S++[E].
 
     _nil = nil.
   }

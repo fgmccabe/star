@@ -6,6 +6,7 @@ star.ideal{
   import star.lists.
   import star.coerce.
   import star.collection.
+  import star.iterable.
   import star.tuples.
 
   -- See "Ideal Hash Trees" by Phil Bagwell
@@ -239,4 +240,22 @@ star.ideal{
     ixRight = idealRight.
     ixLeft = idealLeft.
   .}
+
+  public implementation all k,v ~~ indexed_iterable[map[k,v]->>k,v] => let{
+    iter:all s ~~ (map[k,v],(k,v,iterState[s])=>iterState[s],iterState[s])=>iterState[s].
+    iter(_,_,noMore(X)) => noMore(X).
+    iter(_,_,abortIter(S)) => abortIter(S).
+    iter(ihEmpty,_,S) => S.
+    iter(ihLeaf(_,Els),F,S) => consIter(Els,F,S).
+    iter(ihNode((A1,A2,A3,A4)),F,S) => iter(A4,F,iter(A3,F,iter(A2,F,iter(A1,F,S)))).
+
+    consIter:all s ~~ (cons[(k,v)],(k,v,iterState[s])=>iterState[s],iterState[s])=>iterState[s].
+
+    consIter(_,_,noMore(X)) => noMore(X).
+    consIter(_,_,abortIter(S)) => abortIter(S).
+    consIter(nil,_,S) => S.
+    consIter(cons((K,V),T),F,S) => consIter(T,F,F(K,V,S)).
+  } in {
+    _ixiterate = iter
+  }
 }

@@ -31,10 +31,14 @@ star.core {
   public contract all S,E ~~ stream[S ->> E] ::= {
     _eof:(S) => boolean.
     _hdtl:(S) => option[(E,S)].
-    _cons:(E,S) => S.
-    _apnd:(S,E) => S.
     _back:(S) => option[(S,E)].
-    _nil:S.
+  }
+
+  -- The sequence contract
+  public contract all S,E ~~ sequence[S->>E] ::= {
+  _cons:(E,S) => S.
+  _apnd:(S,E) => S.
+  _nil:S.
   }
 
   -- Structured string.
