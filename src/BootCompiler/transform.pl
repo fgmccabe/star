@@ -556,7 +556,7 @@ lambdaMap(Lam,Q,Map,_Opts,LclName,LblTerm,[lyr(LclName,Lx,LblTerm,ThVr)|Map],Ex,
 liftAbstraction(Ab,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
   genAbstraction(Ab,Path,AbExp),
-  dispCanonTerm(AbExp),
+  (is_member(showSetCode,Opts) -> dispCanonTerm(AbExp);true),
   liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
 mkClosure(Lam,FreeVars,Closure) :-
