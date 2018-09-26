@@ -50,6 +50,8 @@ star.strings{
     _coerce(S) => S.
   }
 
+  -- Stream and sequence contracts
+
   public implementation stream[string->>integer] => {.
     _eof(S) => S=="".
     _hdtl(S) default => some(_str_hdtl(S)).
@@ -57,7 +59,9 @@ star.strings{
 
     _back("") => none.
     _back(S) => some(_str_back(S)).
+  .}
 
+  public implementation sequence[string->>integer] => {.
     _cons(C,S) => _str_cons(C,S).
 
     _apnd(S,C) => _str_apnd(S,C).

@@ -20,7 +20,7 @@ star.q{
   smList(nil,nil) => true.
   smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
 
-  -- stream contract
+  -- stream & sequence contracts
   public implementation all x ~~ stream[qc[x] ->> x] => {
     _eof(qc(nil,nil)) => true.
     _eof(_) default => false.
@@ -29,13 +29,15 @@ star.q{
     _hdtl(qc(nil,nil)) => none.
     _hdtl(qc(nil,B)) => _hdtl(qc(reverse(B),nil)).
 
-    _cons(E,qc(F,B)) => qc(cons(E,F),B).
-
-    _apnd(qc(F,B),E) => qc(F,cons(E,B)).
-
     _back(qc(F,cons(H,T))) => some((qc(F,T),H)).
     _back(qc(nil,nil)) => none.
     _back(qc(F,nil)) => _back(qc(nil,reverse(F))).
+  }
+
+  public implementation all x ~~ sequence[qc[x] ->> x] => {
+    _cons(E,qc(F,B)) => qc(cons(E,F),B).
+
+    _apnd(qc(F,B),E) => qc(F,cons(E,B)).
 
     _nil = qc(nil,nil).
   }
