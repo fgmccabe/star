@@ -90,15 +90,6 @@
     "desc": "type function"
   },
   {
-    "infixOp": "?",
-    "priorities": [
-      1148,
-      1149,
-      1149
-    ],
-    "desc": "conditional operator"
-  },
-  {
     "infixOp": "-->",
     "priorities": [
       1199,
@@ -262,11 +253,20 @@
   {
     "infixOp": "||",
     "priorities": [
-      1148,
-      1149,
-      1149
+      919,
+      920,
+      920
     ],
     "desc": "disjunction"
+  },
+  {
+    "infixOp": "?",
+    "priorities": [
+      919,
+      920,
+      920
+    ],
+    "desc": "conditional operator"
   },
   {
     "infixOp": "&&",

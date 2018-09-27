@@ -40,6 +40,7 @@ star.lists{
 
     _nil = _list_nil(2).
   }
+  
   public implementation all e ~~ sizeable[list[e]] => {
     size(L) => _list_size(L).
     isEmpty(L) => _list_empty(L).

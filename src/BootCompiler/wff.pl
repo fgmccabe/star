@@ -181,13 +181,13 @@ isShow(St,Lc,Ex) :-
 isOpen(St,Lc,Ex) :-
   isUnary(St,Lc,"open",Ex).
 
-isConditional(Term,Lc,Cond,Th,El) :-
-  isBinary(Term,Lc,"|",Lhs,El),
-  isBinary(Lhs,_,"?",Cond,Th).
+isConditional(Term,Lc,Tst,Th,El) :-
+  isBinary(Term,Lc,"?",Tst,Rhs),
+  isBinary(Rhs,_,"||",Th,El).
 
 conditional(Lc,Tst,Th,El,Cond) :-
-  binary(Lc,"?",Tst,Th,Lhs),
-  binary(Lc,"|",Lhs,El,Cond).
+  binary(Lc,"||",Th,El,Rhs),
+  binary(Lc,"?",Tst,Rhs,Cond).
 
 isOfTerm(Term,Lc,Lbl,R) :-
   isBinary(Term,Lc,"of",Lbl,R),

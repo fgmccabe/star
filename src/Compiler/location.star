@@ -22,5 +22,5 @@ star.compiler.location{
 
   public mergeLoc:(locn,locn) => locn.
   mergeLoc(locn(P,L1,S1,Ln1),locn(P,L2,S2,Ln2)) =>
-    (S1>S2 ? locn(P,L2,S2,S1-S2+Ln1) | locn(P,L1,S1,S2-S1+Ln2)).
+    (S1>S2 ? locn(P,L2,S2,S1-S2+Ln1) || locn(P,L1,S1,S2-S1+Ln2)).
 }

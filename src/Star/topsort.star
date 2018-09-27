@@ -19,7 +19,7 @@ star.topsort{
     index = buildIndex(Defs).
 
     buildIndex(Defs) => foldLeft((Inx,D) =>
-      foldLeft((Index,d)=>(links^=Index[d] ? Index[d->[D,..links]] | Index[d->[D]]),Inx,D.df.definitions),
+      foldLeft((Index,d)=>(links^=Index[d] ? Index[d->[D,..links]] || Index[d->[D]]),Inx,D.df.definitions),
       [],Defs).
 
     minPoint:(integer,integer) => integer.
