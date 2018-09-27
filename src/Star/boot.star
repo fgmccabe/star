@@ -56,14 +56,14 @@ star.boot{
   initialize(pkg(P,_)) where
     Pred .= P++"@init" =>
     ( _definedLbl(Pred,0) ?
-      _callLbl(Pred,0,[]) |
+      _callLbl(Pred,0,[]) ||
       logMsg("No init for \(P)")).
 
   invokeMain:(string,list[string]) => ().
   invokeMain(Top,Args) where
     Pred .= Top++"#_main" =>
     ( _definedLbl(Pred,1) ?
-      _callLbl(Pred,1,[Args]) |
+      _callLbl(Pred,1,[Args]) ||
       logMsg("No main program: \(Top)") ).
 
 }

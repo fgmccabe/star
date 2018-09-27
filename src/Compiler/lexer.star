@@ -42,8 +42,8 @@ star.compiler.lexer{
     graphFollow(Strm,Id,Deflt) default => Deflt.
 
     finalist(SoFr,Str,Deflt) where final(SoFr) =>
-      ( isLeftBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),lftTok(SoFr)))) |
-        isRightBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),rgtTok(SoFr)))) |
+      ( isLeftBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),lftTok(SoFr)))) ||
+        isRightBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),rgtTok(SoFr)))) ||
         some((Str,tok(makeLoc(St0,Str),idTok(SoFr))))).
     finalist(_,_,Deflt) => Deflt.
   } in graphFollow(St,Ld,finalist(Ld,St,none)).
@@ -197,7 +197,7 @@ star.compiler.lexer{
   skipToNx(St) where Nx ^= lookingAt(St,[0c/,0c*]) => skipToNx(blockComment(Nx)).
   skipToNx(St) => St.
 
-  lineComment(St) where Ch^=hedChar(St) => ((Ch==0c\n||_isZlChar(Ch)) ? nxtSt(St) | lineComment(nxtSt(St))).
+  lineComment(St) where Ch^=hedChar(St) => ((Ch==0c\n||_isZlChar(Ch)) ? nxtSt(St) || lineComment(nxtSt(St))).
   lineComment(St) => St.
 
   blockComment(St) where Nx^=lookingAt(St,[0c*,0c/]) => Nx.

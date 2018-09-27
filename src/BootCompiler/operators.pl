@@ -69,7 +69,7 @@
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(300, 299)]).
-  operator("?", [infixOp(1148, 1149, 1149)]).
+  operator("?", [infixOp(919, 920, 920)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).
   operator("^|", [infixOp(1248, 1249, 1249)]).
@@ -107,7 +107,7 @@
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).
   operator("^//", [infixOp(800, 800, 799)]).
-  operator("||", [infixOp(1148, 1149, 1149)]).
+  operator("||", [infixOp(919, 920, 920)]).
   operator("::=", [infixOp(1249, 1250, 1249)]).
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).

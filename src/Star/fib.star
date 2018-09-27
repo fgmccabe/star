@@ -14,7 +14,7 @@ star.fib{
   link:all e ~~ comp[e] |: (q[e],q[e]) => q[e].
   link(q(x1,r,c1),q(x2,r,c2)) =>
     ( x2>=x1 ?
-        q(x1,r+1,[q(x2,r,c2),..c1]) |
+        q(x1,r+1,[q(x2,r,c2),..c1]) ||
         q(x2,r+1,[q(x1,r,c1),..c2])).
 
   ins:all e ~~ comp[e] |: (fib[e],list[fib[e]])=>list[fib[e]].
@@ -36,13 +36,13 @@ star.fib{
   findMin([t]) => root(t).
   findMin([t,..ts]) => let{
     x = findMin(ts).
-  } in (x>=root(t) ? root(t) | x).
+  } in (x>=root(t) ? root(t) || x).
 
   deleteMin:all e ~~ comp[e]|:(list[fib[e]]) => list[fib[e]].
   deleteMin(ts) => let{
     getMin([t])=>(t,[]).
     getMin([t,..tss]) where (t1,ts1) .= getMin(tss) => (
-      root(t1)>=root(t1) ? (t,tss) | (t1,[t,..ts1])).
+      root(t1)>=root(t1) ? (t,tss) || (t1,[t,..ts1])).
     (q(x,r,c),ts1) .= getMin(ts)
   } in meld(reverse(c),ts1).
 
