@@ -7,7 +7,7 @@ Derived from ghc's System.Random library:
 -- Module      :  System.Random
  -- Copyright   :  (c) The University of Glasgow 2001
 -- License     :  BSD-style (see the file libraries/base/LICENSE)
--- 
+--
 -- Maintainer  :  libraries@haskell.org
 -- Stability   :  stable
 -- Portability :  portable
@@ -18,7 +18,7 @@ Derived from ghc's System.Random library:
 -- or to get different results on each run by using the system-initialised
 -- generator or by supplying a seed from some other source.
 --
--- The library is split into two layers: 
+-- The library is split into two layers:
 --
 -- * A core /random number generator/ provides a supply of bits.
 --   The class 'RandomGen' provides a common interface to such generators.
@@ -178,7 +178,7 @@ randomIvalInteger(l, h, rng) default is
 
 iLogBase has type (integer, integer) => integer
 iLogBase(b, i) is
-	 (i < b) ? 1 | 1 + iLogBase(b, i / b)
+	 (i < b) ? 1 || 1 + iLogBase(b, i / b)
 
 min32Bound is -2**32;
 max32Bound is 2**32-1;
@@ -209,7 +209,7 @@ implementation Random over boolean is {
   		bool2Int(true) is 1;
   		int2Bool(0) is false;
   		int2Bool(_) default is true;
-  		(x, g1) is randomIvalInteger(bool2Int(a), bool2Int(b), g) 
+  		(x, g1) is randomIvalInteger(bool2Int(a), bool2Int(b), g)
   	} in (int2Bool(x), g1)
   random(g) is randomR(false, true, g)
 };
@@ -224,18 +224,18 @@ implementation RandomGen over StdGen is {
 
   /** eturns values in the range stdRange */
   stdNext has type (StdGen) => (integer, StdGen);
-  stdNext (StdGen(s1, s2))  is 
-	valof {	
+  stdNext (StdGen(s1, s2))  is
+	valof {
 	  k    is s1 / 53668;
 	  s1_1  is 40014 * (s1 - k * 53668) - k * 12211;
-	  s1_2 is (s1_1 < 0 ? s1_1 + 2147483563 | s1_1);
+	  s1_2 is (s1_1 < 0 ? s1_1 + 2147483563 || s1_1);
 
 	  k1   is s2 / 52774;
 	  s2_1  is 40692 * (s2 - k1 * 52774) - k1 * 3791;
-	  s2_2 is (s2_1 < 0 ? s2_1 + 2147483399 | s2_1);
+	  s2_2 is (s2_1 < 0 ? s2_1 + 2147483399 || s2_1);
 
 	  z  is s1_2 - s2_2;
-	  z1 is (z < 1 ? z + 2147483562 | z);
+	  z1 is (z < 1 ? z + 2147483562 || z);
 
 	  valis (z1, StdGen(s1_2, s2_2));
 	};
@@ -244,13 +244,13 @@ implementation RandomGen over StdGen is {
   stdSplit(std) where std matches StdGen(s1, s2) is
 	valof {
 	  /* no statistical foundation for this! */
-	  new_s1 is (s1 = 2147483562 ? 1 | s1 + 1);
-	  new_s2 is (s2 = 1 ? 2147483398 | s2 - 1);
+	  new_s1 is (s1 = 2147483562 ? 1 || s1 + 1);
+	  new_s2 is (s2 = 1 ? 2147483398 || s2 - 1);
 	  (_, StdGen(t1, t2)) is stdNext(std);
 	  left  is StdGen(new_s1, t2);
 	  right is StdGen(t1, new_s2);
 	  valis (left, right);
-	}; 
+	};
 };
 
 /**
