@@ -76,17 +76,38 @@ The available connectives include the usual favorites: `and`, `or`, and `not`. W
 ```
 
 ### Abstracting queries
-The grandparent condition shows how to define what grandparent-hood means; but we also need ways of abstracting and naming such queries. The most straightforward way of this is to use a _query abstraction_. For example:
+The grandparent condition shows how to define what grandparent-hood means; but we also need ways of abstracting and naming such queries. The most straightforward way of this is to use a _query abstraction_ expression. For example:
 
 ```
 { (X,Y) | (X,Z) in parents and (Z,Y) in parents}
 ```
+The value of a query abstraction expression is typically a `set` -- in this case a set of the pairs of strings in the grandparent-grandchild relation.
 
+Since it's an expression, we can assign it to a variable:
+```
+gp = { (X,Y) | (X,Z) in parents and (Z,Y) in parents}
+```
+and we can feed this set into another query:
+```
+(X,"f") in gp
+```
+and we can define functions whose values are the results of queries:
+```
+gpOf(GC) => {X | (X,GC) in gp}
+```
+We shall explore query expressions a little more, but first an editorial:
 
-## Code Named CnC
+### A Splash of Logic
 
-The essence of **CnC** is to take the form of query we see here and lift it into a full rules language; in fact, **CnC** is a so-called _logic_ language -- a term that has a precise if somewhat obscure meaning.
+Queries have an important role for two reasons: queries often have a much more obvious and transparent semantics than other programs -- even functional programs! Secondly, queries have a deep connection to logic; and logic is at the heart of many classification systems.
 
+There are many reasons why one might be interested in logic; from a theoretical modeling perspective (does the universe follow rational rules[^Surprisingly, yes! Of course, discovering the rationality may be hard; but the immense success of Western thought was only possible because the universe is very rationally constructed.]) to the deeply pragmatic reason that logical programs are often easier to understand and therefore easier to trust.
+
+We take inspiration from the many _classifications_ that modern software must routinely perform. More specifically, any outward facing system will receive requests that the system must decide whether they are legitimate or not. Before performing a request, we must decide whether or not to trust it. This is the essence of classification -- as we are defining it here.
+
+The reason we promote a logic-based system for classifying is that it is easier to trust the classifier if you can understand it.
+
+On the other hand, there are many forms of logic, and we must choose the right one for out purposes.
 Like programming languages, it turns out that there are many kinds of logic. Again, like programming languages, there is a trade-off between expressivity and complexity. The primary source of complexity in a rule language is the machinery needed to realize it -- together with understanding it sufficiently to be able to predict the meaning of a written rule.
 
 A, somewhat simplified, enumeration of the different kinds of logic might be:
@@ -99,6 +120,12 @@ A, somewhat simplified, enumeration of the different kinds of logic might be:
 Each of these levels represents a step both in expressiveness and in complexity. In general, the right logic for your application is something only you can decide; however, in designing a language, we have to choose for you. We take our inspiration from the success of languages like SQL and the relative obscurity of languages like Oz and Lambda Prolog.
 
 In our view, there is a sweet spot between Datalog and First Order Logic. Datalog allows one to right rules (unlike pure SQL) but is not capable of handling arbitrary data structures. On the other hand, it may be that _recursion_ is something that we can do without -- as we have seen earlier, many well structured functional programs have no explicit recursion!
+
+However, we must also be able to _embed_ our logic into our more regular programs. And so, in **Star**, we highlight the _query_ aspect of logical reasoning and bless queries as first class entities in the language. Critically, queries have a _declarative_ semantics as well as a _programmatic_ one; this dual reading is essential if one is to be able to understand the reasoning.
+
+
+
+
 
 The elements of **CnC** are simple:
 
