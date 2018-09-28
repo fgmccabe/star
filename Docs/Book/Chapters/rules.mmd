@@ -1,4 +1,4 @@
-# Making choices and querying
+# Making choices
 One of the common themes of systems that 'face the world' is that they often have to make decisions. There are many approaches to providing for such _classifications_ but one of the most robust is _rules_. There are also many forms of rule, here we will focus on a particular form of rule: _the inference rule_. **Star** has some rule capabilities that allow queries and inference to be embedded within a system.
 
 In general, a response to an external event goes through a series of phases:
@@ -9,7 +9,7 @@ In general, a response to an external event goes through a series of phases:
 
 A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
 
-However, when _embedding_ a different semantics there are some useability issues to consider. In this chapter we look at a deliberately simple -- even simplistic -- approach to integrating a logic-like semantics into **Star**.
+However, when _embedding_ a different semantics there are some usability issues to consider. In this chapter we look at a deliberately simple -- even simplistic -- approach to integrating a logic-like semantics into **Star**.
 
 But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star**.
 
@@ -68,18 +68,19 @@ In addition to individual *search conditions* like this, it is also possible to 
 
 >In database query terminology, conjunctions like this one amount to _inner joins_. Languages like SQL have many operators and features to make expressing queries easier; the fundamental semantics of **Star**'s queries are similar to those of SQL.
 
-The available connectives include the usual favorites: `and`, `or`, and `not`. We may also see the need for some less familiar connectives: `implies` and `otherwise`.
+The available connectives include the usual favorites: `&&`, `||`, and `\+`. We may also see the need for some less familiar connectives: `implies` and `otherwise`.
 
 >An `implies` connective is a way of testing complete compliance with a condition; for example, we can define a query capturing the situation that a manager earns more than his/her members by requiring that anyone who works for the manager earns less than they do:
 ```
 (X,M) in worksFor implies X.salary=<M.salary.
 ```
 
+
 ### Abstracting queries
 The grandparent condition shows how to define what grandparent-hood means; but we also need ways of abstracting and naming such queries. The most straightforward way of this is to use a _query abstraction_ expression. For example:
 
 ```
-{ (X,Y) | (X,Z) in parents and (Z,Y) in parents}
+{ (X,Y) | (X,Z) in parents && (Z,Y) in parents}
 ```
 The value of a query abstraction expression is typically a `set` -- in this case a set of the pairs of strings in the grandparent-grandchild relation.
 
@@ -121,19 +122,43 @@ Each of these levels represents a step both in expressiveness and in complexity.
 
 In our view, there is a sweet spot between Datalog and First Order Logic. Datalog allows one to right rules (unlike pure SQL) but is not capable of handling arbitrary data structures. On the other hand, it may be that _recursion_ is something that we can do without -- as we have seen earlier, many well structured functional programs have no explicit recursion!
 
-However, we must also be able to _embed_ our logic into our more regular programs. And so, in **Star**, we highlight the _query_ aspect of logical reasoning and bless queries as first class entities in the language. Critically, queries have a _declarative_ semantics as well as a _programmatic_ one; this dual reading is essential if one is to be able to understand the reasoning.
+However, we must also be able to _embed_ our logic into our more regular programs. The key goal here is to maximize the benefit of providing a logical formalism whilst minimizing the burden on both the programmer and on the language implementation. This also recognizes that, while important, logical reasoning is typically only a small part of an overall system. It also recognizes the fact that gaps in the reasoning capability of a system can be patched more easily if the logic is simpler.
+
+And so, in **Star**, we highlight the _query_ aspect of logical reasoning and bless queries as first class entities in the language.
+
+>Critically, queries have a _declarative_ semantics as well as a _programmatic_ one; this dual reading is essential if one is to be able to understand the reasoning.
+
+>Historical note: in earlier iterations of the design for embedding logic into Star, a more-or-less complete rule system was envisaged. Such inference rules would have a similar status to functions and equations do. However, a combination of complexities and edge cases (such as how to handle a combination of inputs and outputs in rules) lead the designers to radically simplify the proposal and simply focus on queries. This gave 90% of the potential benefit of inference rules at 10% of the cost.
+
+Sometimes, a splash of logic is all we need.
+
+### Anatomy of a Query
+
+A query can be seen as combining two elements: a _condition_ and an _answer template_. The core idea is that the condition may be _satisfied_ in one or more ways -- each time potentially binding variables in the condition to values -- and the answer template encodes how we want to use the result of a successful satisfaction.
+
+#### Query Conditions
+
+The condition takes the form of a boolean combination of _predications_; a predication is either a normal boolean-valued expression, a _match_ condition, or a _search_ condition. Various types of boolean combinations are supported; the most common being conjunction (`&&`), disjunction (`||`) and negation (`\+`).
+
+We have already seen match conditions; for example:
+```
+some(X) .= opValue
+```
+is a match condition that is satisfied if the value of `opValue` matches the pattern `some(X)`. A sucessful match has the additional effect of binding `X` to the value embedded in the `some` value.[^The form `X^=opValue` is actually a short form of the same condition.]
+
+Where a match condition has at most one way of being satisfied, a search condition can potentially have many solutions. Search conditions look like:
+
+_Pattern_ `in` _Expression_
+
+We saw an example of this earlier in our grandparent query:
+```
+(X,Z) in parents
+```
 
 
 
 
 
-The elements of **CnC** are simple:
-
-* Relations[^A deliberately underspecified term at this point] are identified as sets of tuples.
-* A **CnC** rule consists of a _predication_ -- identifying the relation that the rule is defining -- and a body.
-* The body of a **CnC** rule is a logical combination of _conditions_, some of which are _predications_;
-* The semantics of **CnC** are based on _satisfaction_ rather than expression _evaluation_.
-* Although **CnC** rules sets are not permitted to be recursive, there are several fold-style operators that can be used to specify aggregate computations.
 
 We can codify our grandparent query into a rule as:
 ```
