@@ -423,13 +423,7 @@ Using `leftFold` means that we can often abstract away the machinery of loops an
 While concise, expressions involving much use of `leftFold` (and the analogous `rightFold`) can be difficult to follow. An even clearer way of adding up numbers is to use a  _query expression_:
 
 ```
-fold X with (+) where X in L
-```
-
-or the even more succinct
-
-```
-total X where X in L
+{ fold X with (+) | X in L }
 ```
 
 This query expression frees us from most of the commitments we endured before: it can add up the elements of any kind of collection — not just `cons` lists — and it can add up floating point numbers just as easily as integers. Finally, we have not had to say exactly how the numbers should be added up: the language system is free to use a parallel algorithm for the computation should it be more optimal.

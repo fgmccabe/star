@@ -251,11 +251,10 @@ The `equality` contract is defined using a `contract` statement:
 ```
 contract all t ~~ equality[t] ::= {
   (==) : (t,t) => boolean.
-  hash:(t)=>integer
 }
 ```
 
-In effect, the `equality` contract states that there must be two functions defined – `==` and `hash`.
+In effect, the `equality` contract states that there must be a single function defined – `==`.
 
 If this seems a little circular, it is not. The `equality` contract is effectively saying that the `==` function must be defined for the type; and we constrain function (and other) types with the `equality` contract constraint when we need to ensure that `==` is defined!
 
@@ -266,7 +265,6 @@ For example, we can provide evidence that the `equality` contract applies to `st
 ```
 implementation equality[string] => {
   s1 == s2 => _string_eq(s1,s2).
-  hash(s) => _string_hash(s).
 }
 ```
 
@@ -452,7 +450,7 @@ It is important to note that, as a programmer, you will never 'see' a closure in
 
 Pragmatically, one of the important roles of closures is to capture any free variables that occur in the function. Most functional programming languages implement functions using closure structures. Most functional programming languages (including **Star**) do not permit direct manipulation of the closure structure: the only thing that you can _do_ with a closure structure is to use it as a function.
 
->In the world of programming languages, there is a lot of confusion  about closures. Sometimes you will see a closure referring to a function that captures one or more free variables.
+>In the world of programming languages, there is a lot of confusion  about closures. Sometimes you will see a closure referring to a function that captures one or more free variables.[^You will also occasionally see the term _block_ used -- for reasons that escape the author.]
 
 ### Let Binding Environments[let-binding-environments]
 
