@@ -39,23 +39,57 @@ genAbstraction(abstraction(Lc,El,Cond,Gen,Tp),Path,Exp) :-
  */
 genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
   genstr("f",Fn),
+  typeOfCanon(Ptn,PtnTp),
   genNme(Lc,PtnTp,"_",Anon),
+  typeOfCanon(Src,SrcTp),
+  StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
   genNme(Lc,StTp,"_st",St),
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
   packageVarName(ThPath,Fn,LclName),
   call(Succ,St,AddToFront),
   splitPtn(Ptn,Lc,Pttrn,PtnCond),
+  FnTp = funType(tupleType([PtnTp,StTp]),StTp),
   FF=funDef(Lc,Fn,LclName,FnTp,[],[
     equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
   ]),
   Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
-  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
-  typeOfCanon(Src,SrcTp),
-  StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
-  typeOfCanon(Ptn,PtnTp),
-  FnTp = funType(tupleType([PtnTp,StTp]),StTp).
+  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp).
+  /*
+   * Key->Ptn in Src
+   * becomes
+   * let{
+   *  sF(Key,Ptn,St) => AddEl(X,St).
+   *  sF(_,_,St) default => St.
+   * } in ixiterate(Src,sF,Initial)
+   *
+   * where AddEl, InitState are parameters to the conversion
+   */
+  genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
+    genstr("f",Fn),
+    typeOfCanon(Ptn,PtnTp),
+    genNme(Lc,PtnTp,"_",Anon),
+    genNme(Lc,StTp,"_st",St),
+    typeOfCanon(Key,KyTp),
+    genNme(Lc,KyTp,"_k",KAnon),
+    genstr("Γ",ThNm),
+    thetaName(Path,ThNm,ThPath),
+    packageVarName(ThPath,Fn,LclName),
+    call(Succ,St,AddToFront),
+    splitPtn(Ptn,Lc,Pttrn,PtnCond),
+    splitPtn(Key,Lc,KPtrn,KeyCond),
+    mergeGoal(KeyCond,PtnCond,Lc,IxCond),
+    FF=funDef(Lc,Fn,LclName,FnTp,[],[
+      equation(Lc,tple(Lc,[KPtrn,Pttrn,St]),IxCond,AddToFront),
+      equation(Lc,tple(Lc,[KAnon,Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
+    ]),
+    Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+    Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
+    typeOfCanon(Src,SrcTp),
+    StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
+    FnTp = funType(tupleType([KyTp,PtnTp,StTp]),StTp).
+
 /*
  * Ptn .= Expr
  * becomes
