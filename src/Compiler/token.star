@@ -13,16 +13,31 @@ star.compiler.token{
               | fltTok(float)
               | strTok(list[stringSegment]).
 
-  stringSegment ::= segment(string) | interpolate(locn,string,string).
+  public stringSegment ::= segment(string) | interpolate(locn,string,string).
 
   public implementation display[tk] => {.
     disp(idQTok(Id)) => ssSeq([ss("''"),ss(Id),ss("''")]).
     disp(idTok(Id)) => ssSeq([ss("'"),ss(Id),ss("'")]).
     disp(intTok(Ix)) => disp(Ix).
     disp(fltTok(Dx)) => disp(Dx).
-    disp(strTok(S)) => ssSeq([ss("\""),ss(S),ss("\"")]).
+    disp(strTok(S)) => ssSeq([ss("\""),ssSeq(dispSegments(S)),ss("\"")]).
     disp(lftTok(Id)) => ssSeq([ss("<"),ss(Id)]).
     disp(rgtTok(Id)) => ssSeq([ss(Id),ss(">")]).
+  .}
+
+  dispSegments:(list[stringSegment]) => list[ss].
+  dispSegments(Segs) => Segs//disp.
+
+  implementation display[stringSegment] => {.
+    disp(segment(S)) => ss(S).
+    disp(interpolate(_,S,"")) => ssSeq([ss("\\("),ss(S),ss(")")]).
+    disp(interpolate(_,S,F)) => ssSeq([ss("\\("),ss(S),ss("):"),ss(F),ss(";")]).
+  .}
+
+  implementation equality[stringSegment] => {.
+    segment(S1) == segment(S2) => S1==S2.
+    interpolate(_,S1,F1) == interpolate(_,S2,F2) => S1==S2 && F1==F2.
+    _ == _ default => false.
   .}
 
   public implementation equality[tk] => {.
