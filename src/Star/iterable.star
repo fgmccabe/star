@@ -30,6 +30,9 @@ star.iterable{
 
   public contract all s,e ~~ iterable[s->>e] ::= {
     _iterate : all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
+  }
+
+  public contract all s,e ~~ generator[s->>e] ::= {
     _generate : (e,iterState[s]) => iterState[s].
   }
 
@@ -98,8 +101,10 @@ star.iterable{
     iterateOverList(_,Ix,Mx,_,St) where Ix>=Mx => St.
     iterateOverList(_,_,_,_,noMore(X)) => noMore(X).
     iterateOverList(Lst,Ix,Mx,Fn,St) where El^=Lst[Ix] => iterateOverList(Lst,Ix+1,Mx,Fn,Fn(El,St)).
+  }
 
-    _generate(E,continueWith(L)) => continueWith([E,..L]).
+  public implementation all e ~~ generator[list[e]->>e] => {
+      _generate(E,continueWith(L)) => continueWith([E,..L]).
     _generate(E,noneFound) => continueWith([E]).
     _generate(_,St) default => St.
   }
