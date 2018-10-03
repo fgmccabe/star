@@ -41,6 +41,7 @@
 		"test.s" : "s.star",
 		"test.st" : "st.star",
 		"test.t" : "t.star",
+		"test.tsort" : "tsort.star",
 		"test.u" : "u.star"
 	},
 	"version": "1.0.0",
