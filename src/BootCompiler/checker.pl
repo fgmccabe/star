@@ -225,8 +225,8 @@ parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
 
 parseAnnots([],_,_,_,Face,Face,Tps,Tps,_) :-!.
-parseAnnots([(var(Nm),Lc,_)|More],Fields,Annots,Env,F0,Face,T,Tps,Path) :-
-  parseAnnotation(Nm,Lc,Fields,Annots,Env,F0,F1),
+parseAnnots([(var(Nm),Lc,Stmts)|More],Fields,Annots,Env,F0,Face,T,Tps,Path) :-
+  parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,F0,F1),
   parseAnnots(More,Fields,Annots,Env,F1,Face,T,Tps,Path).
 parseAnnots([(tpe(N),Lc,[Stmt])|More],Fields,Annots,Env,F,Face,T,Tps,Path) :-
   defineType(N,Lc,Stmt,Env,T,T1,Path),
@@ -234,12 +234,16 @@ parseAnnots([(tpe(N),Lc,[Stmt])|More],Fields,Annots,Env,F,Face,T,Tps,Path) :-
 parseAnnots([_|More],Fields,Annots,Env,F,Face,T,Tps,Path) :-
   parseAnnots(More,Fields,Annots,Env,F,Face,T,Tps,Path).
 
-parseAnnotation(Nm,_,_,Annots,Env,F,[(Nm,Tp)|F]) :-
+parseAnnotation(Nm,_,_,_,Annots,Env,F,[(Nm,Tp)|F]) :-
   is_member((Nm,T),Annots),!,
   parseType(T,Env,Tp).
-parseAnnotation(N,_,faceType(Fields,_),_,_,F,[(N,Tp)|F]) :-
+parseAnnotation(N,_,_,faceType(Fields,_),_,_,F,[(N,Tp)|F]) :-
   is_member((N,Tp),Fields),!.
-parseAnnotation(_,_,_,_,_,Face,Face).
+parseAnnotation(N,_,_,_,_,Env,F,[(N,Tp)|F]) :-
+  isVar(N,Env,vrEntry(_,_,Tp,_)),!.
+parseAnnotation(N,Lc,Stmts,_,_,_,F,[(N,Tp)|F]) :-
+  guessStmtType(Stmts,N,Lc,Tp).
+parseAnnotation(_,_,_,_,_,_,Face,Face).
 
 defineType(N,_,_,Env,T,[(N,Tp)|T],_) :-
   isType(N,Env,tpDef(_,Tp,_)),!.
@@ -617,18 +621,31 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
     Exp = floatLit(Ng,FltTp) ;
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
+
+typeOfExp(Term,Tp,Env,Ev,ixsearch(Lc,Key,Ptn,Src,Iterator),Path) :-
+  isIxSearch(Term,Lc,K,L,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  checkType(Lc,LogicalTp,Tp,Env),
+  newTypeVar("_St",StTp),
+  newTypeVar("_Sr",SrTp),
+  newTypeVar("_El",ElTp),
+  newTypeVar("_Ky",KyTp),
+  KyFnTp = funType(tupleType([SrTp,funType(tupleType([KyTp,ElTp,StTp]),StTp),StTp]),StTp),
+  typeOfKnown(name(Lc,"_ixiterate"),KyFnTp,Env,E0,Iterator,Path),
+  typeOfPtn(L,ElTp,E0,E1,Ptn,Path),
+  typeOfPtn(K,KyTp,E1,E2,Key,Path),
+  typeOfExp(R,SrTp,E2,Ev,Src,Path).
 typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   isSearch(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Lc,LogicalTp,Tp,Env),
-  (getContract("iterable",Env,conDef(_,_,Con)) ->
-    freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
-    reportError("iterable contract not defined",[],Lc),
-    newTypeVar("_St",StTp),
-    newTypeVar("_El",ElTp)),
-  typeOfPtn(L,ElTp,Env,E0,Ptn,Path),
-  typeOfExp(R,StTp,E0,Ev,Src,Path),
-  Iterator = over(Lc,mtd(Lc,"_iterate",funType(tupleType([StTp]),ElTp)),true,[conTract(Op,[StTp],[ElTp])]).
+  newTypeVar("_St",StTp),
+  newTypeVar("_Sr",SrTp),
+  newTypeVar("_El",ElTp),
+  ElFnTp = funType(tupleType([SrTp,funType(tupleType([ElTp,StTp]),StTp),StTp]),StTp),
+  typeOfKnown(name(Lc,"_iterate"),ElFnTp,Env,E0,Iterator,Path),
+  typeOfPtn(L,ElTp,E0,E1,Ptn,Path),
+  typeOfExp(R,SrTp,E1,Ev,Src,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isAbstraction(Term,Lc,B,G),!,
   checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
@@ -738,9 +755,9 @@ typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
 checkAbstraction(Lc,B,G,Tp,Env,abstraction(Lc,Bnd,Cond,Gen,Tp),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
-  (getContract("iterable",Env,conDef(_,_,Con)) ->
+  (getContract("generator",Env,conDef(_,_,Con)) ->
     freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
-    reportError("iterable contract not defined",[],Lc),
+    reportError("generator contract not defined",[],Lc),
     newTypeVar("_St",StTp),
     newTypeVar("_El",ElTp)),
   checkType(Lc,Tp,StTp,Env),
