@@ -1,6 +1,10 @@
 star.compiler{
   import star.
   import star.cmdOpts.
+  import star.resources.
+  import star.uri.
+
+  import star.repo.file.
 
   import star.compiler.catalog.
   import star.compiler.lexer.
@@ -29,15 +33,20 @@ star.compiler{
 
   public _main:(list[string])=>().
   _main(Args) =>
-    handleCmdLineOpts(processOptions(Args,[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()))).
+    handleCmdLineOpts(processOptions(Args,[repoOption,wdOption],compilerOptions("file:"++_repo(),"file:"++_cwd()))).
 
   handleCmdLineOpts:(either[(compilerOptions,list[string]),string])=>().
   handleCmdLineOpts(either((compilerOptions(RepoDir,Cwd),Args))) where
     CW ^= parseUri(Cwd) &&
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
-    Repo .= openRepository(RD) && =>
+    Repo .= openRepository(RD) &&
+    CatUri ^= parseUri("catalog") &&
+    Cat ^= loadCatalog(resolveUri(CW,CatUri)) =>
     processPkgs(Args,Cat,Repo,CW).
+
+  processPkgs:(list[string],catalog,fileRepo,uri) => ().
+  processPkgs(Names,Cat,Repo,U) => ().
 
 
 
