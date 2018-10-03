@@ -110,7 +110,8 @@ parseTypeName(_,"void",_,_,C,C,voidType).
 parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,C,C,Tp) :-
-  isType(Id,Env,tpDef(_,Tp,_)).
+  isType(Id,Env,tpDef(_,T,TpDf)),
+  (TpDf=typeLambda(tupleType([]),Tp);T=Tp).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
@@ -320,7 +321,7 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
 mkTypeLambda(tpExp(Op,A),Tp,typeLambda(A,RRTp)) :-
   mkTypeLambda(Op,Tp,RRTp).
 mkTypeLambda(tpFun(_,_),Tp,Tp).
-mkTypeLambda(type(_),Tp,Tp).
+mkTypeLambda(type(_),Tp,typeLambda(tupleType([]),Tp)).
 
 % pickTypeTemplate(allType(V,Tp),allType(V,XTp)) :-
 %   pickTypeTemplate(Tp,XTp).
