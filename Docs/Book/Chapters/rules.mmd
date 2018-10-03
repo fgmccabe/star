@@ -1,17 +1,17 @@
 # Making choices
-One of the common themes of systems that 'face the world' is that they often have to make decisions. There are many approaches to providing for such _classifications_ but one of the most robust is _rules_. There are also many forms of rule, here we will focus on a particular form of rule: _the inference rule_. **Star** has some rule capabilities that allow queries and inference to be embedded within a system.
+One of the common themes of systems that 'face the world' is that they often have to make decisions. More specifically, any outward facing system will receive requests that the system must decide whether they are legitimate or not. Before acting on a request, we must decide whether or not to trust it.
 
 In general, a response to an external event goes through a series of phases:
 
 1. Taking _measurements_ of the event;
-2. applying some form of inference to the measurements to derive _facts_; and
-3. based on certain criteria, deciding what to _do_ in response to the event.
+1. applying some form of _inference_ to the measurements to derive _facts_; and
+1. based on certain criteria, taking _action_ in response to the event.
 
-A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
+There are many approaches to providing for such inference but one of the most robust is _rules_. A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
 
-However, when _embedding_ a different semantics there are some usability issues to consider. In this chapter we look at a deliberately simple -- even simplistic -- approach to integrating a logic-like semantics into **Star**.
+However, when _embedding_ a different semantics there are some usability issues to consider. Classical approaches to logic are not well suited to _all_ of the above stages: it can be very effective for describing inference but is typically not as effective for expressing action.
 
-But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star**.
+But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star** to address classification (and other) problems.
 
 ## Queries
 
@@ -25,7 +25,9 @@ and that we wanted to construct a result list -- also of pairs -- along the line
 GC:list[(string,string)].
 GC = [("john","jane"),...].
 ```
-Computing the list of grandparent/grandchildren pairs involves searching the `parents` for pairs  that satisfy the grandparent relationship. This, in turn, involves a double iteration: each pair in the `parent`s list might represent the upper or lower half of a grandparent/grandchild relationship (or both). Based on the collection operators we have seen so far, we can build such a search using two `foldLeft` operations:
+Computing the list of grandparent/grandchildren pairs involves searching the `parents` for pairs  that satisfy the grandparent relationship. This, in turn, involves a double iteration: each pair in the `parent`s list might represent the upper or lower half of a grandparent/grandchild relationship (or both).
+
+Based on the collection operators we have seen so far, we can build such a search using two `foldLeft` operations:
 ```
 foldLeft(
  (SoFar,(X,Z)) => foldLeft(
@@ -37,17 +39,17 @@ foldLeft(
    list of [],
   parents)
 ```
-This, rather intimidating,[^There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!] expression uses one `foldLeft` to look for the grandparent, for each candidate grandparent a second `foldLeft` finds all the grand-children. All without any explicit recursion.
+This, rather intimidating,[^There are, unfortunately, some functional programmers that revel in complex code expressions like this one. We are not one of them!] expression uses one `foldLeft` to look for the grandparent, and the second `foldLeft` finds all the grand-children. All without any explicit recursion.
 
 The `acc` function defined above in the `let` expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
 
-The various filter, `fmap` and `foldLeft` functions *are* powerful ways of processing entire collections. However, as we can see, they can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+The various filter, `fmap` and `foldLeft` functions *are* powerful ways of processing entire collections. However, as we can see, domination iterations can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
 
-What is needed is a way of expressing such complex query conditions in a way that can be represented using `foldLeft` expressions but which is easier to read.
+What is needed is a way of expressing such complex query conditions in a way that can be _implemented_ using `foldLeft` expressions but which is easier to read.
 
 Consider the conjunction:
 ```
-(X,Z) in parents and (Z,Y) in parents
+(X,Z) in parents && (Z,Y) in parents
 ```
 This could be read as specifying what it means to be grandparents:
 
@@ -62,11 +64,11 @@ Conditions like the ones above are boolean valued -- but they are not always exp
 ```
 is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of `X` and `Z` are in some `parents` collection. Instead, the condition needs to be evaluated by trying to find `X` and `Z` that are in the `parents` collection. In effect, the condition becomes a _search_ for suitable candidate pairs.
 
-Technically this is called *satisfying* the condition -- to distinguish what is going on from *evaluating* the condition. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
+Technically this is called *satisfying* the condition -- to distinguish what is going on in normal expression *evaluation*. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
 
 In addition to individual *search conditions* like this, it is also possible to use logical operators -- called *connectives* -- to combine conditions. In the case of our grand-parent query, there is a conjunction; which uses the variable `Z` to acts as a kind of glue to the two search conditions.
 
->In database query terminology, conjunctions like this one amount to _inner joins_. Languages like SQL have many operators and features to make expressing queries easier; the fundamental semantics of **Star**'s queries are similar to those of SQL.
+>In database query terminology, conjunctions like this one amount to _inner joins_. Languages like SQL have many operators and features to make expressing queries easier; the fundamental semantics of **Star**'s queries are similar in power to those of SQL.
 
 The available connectives include the usual favorites: `&&`, `||`, and `\+`. We may also see the need for some less familiar connectives: `implies` and `otherwise`.
 
@@ -77,8 +79,7 @@ The available connectives include the usual favorites: `&&`, `||`, and `\+`. We 
 
 
 ### Abstracting queries
-The grandparent condition shows how to define what grandparent-hood means; but we also need ways of abstracting and naming such queries. The most straightforward way of this is to use a _query abstraction_ expression. For example:
-
+The grandparent condition shows how to define what grandparent-hood means; but we also need ways of abstracting and naming such queries. The most straightforward way of this is to use a _query abstraction_ expression. For example, we can embody the grandparent situation in:
 ```
 { (X,Y) | (X,Z) in parents && (Z,Y) in parents}
 ```
@@ -98,27 +99,24 @@ gpOf(GC) => {X | (X,GC) in gp}
 ```
 We shall explore query expressions a little more, but first an editorial:
 
-### A Splash of Logic
+### A Splash of Inference
 
-Queries have an important role for two reasons: queries often have a much more obvious and transparent semantics than other programs -- even functional programs! Secondly, queries have a deep connection to logic; and logic is at the heart of many classification systems.
+Queries have an important role in **Star** for two reasons: queries often have a much more obvious and transparent semantics than other programs -- even functional programs! Secondly, queries have a deep connection to logic; and logic is at the heart of many classification systems.
 
 There are many reasons why one might be interested in logic; from a theoretical modeling perspective (does the universe follow rational rules[^Surprisingly, yes! Of course, discovering the rationality may be hard; but the immense success of Western thought was only possible because the universe is very rationally constructed.]) to the deeply pragmatic reason that logical programs are often easier to understand and therefore easier to trust.
 
-We take inspiration from the many _classifications_ that modern software must routinely perform. More specifically, any outward facing system will receive requests that the system must decide whether they are legitimate or not. Before performing a request, we must decide whether or not to trust it. This is the essence of classification -- as we are defining it here.
+The reason we promote a logic-based system for classifying is that it is easier to trust a classifier if you can understand its reasoning.
 
-The reason we promote a logic-based system for classifying is that it is easier to trust the classifier if you can understand it.
-
-On the other hand, there are many forms of logic, and we must choose the right one for out purposes.
 Like programming languages, it turns out that there are many kinds of logic. Again, like programming languages, there is a trade-off between expressivity and complexity. The primary source of complexity in a rule language is the machinery needed to realize it -- together with understanding it sufficiently to be able to predict the meaning of a written rule.
 
 A, somewhat simplified, enumeration of the different kinds of logic might be:
 
 * Propositional calculus. This is characterized by single-letter conditions (sometimes confusingly called _predicate variables_) and a guaranteed finite evaluation mechanism.
-* Datalog. This is characterized by relations with simple unstructured values (i.e., strings and numbers). Execution in datalog has similar performance characteristics as querying databases.
-* First Order Predicate Calculus. This is probably the most well known and well understood logic. From a expressiveness point of view it's focus is on the logical relationships amoungst individual entities -- which includes things like trees, lists and so on. Inference in First Order has many of the same characteristics as program evaluation: not decidable in general but many effective sub-cases.
-* Higher Order Predicate Calculus. There are actually many higher-order logics. The main expressive enhancement over First Order is that one can directly talk about relationships between entities as well as entities themselves. The cost of this is that inference becomes problematic -- even equality is undecideable.
+* Datalog. This is characterized by relations with simple unstructured values (i.e., strings and numbers). Execution in Datalog has similar performance characteristics as querying databases.
+* First Order Predicate Calculus. This is probably the most well known and well understood logic. From an expressiveness point of view its focus is on the logical relationships amongst individual entities -- which includes things like trees, lists and so on. Inference in First Order has many of the same characteristics as program evaluation: not decidable in general but many effective sub-cases.
+* Higher Order Predicate Calculus. There are actually many higher-order logics. The main expressive enhancement over First Order is that one can directly talk about relationships between entities as well as entities themselves. The cost of this is that inference becomes problematic -- even equality is undecidable.
 
-Each of these levels represents a step both in expressiveness and in complexity. In general, the right logic for your application is something only you can decide; however, in designing a language, we have to choose for you. We take our inspiration from the success of languages like SQL and the relative obscurity of languages like Oz and Lambda Prolog.
+Each of these levels represents a step both in expressiveness and in complexity. In general, the right logic for your application is something only you can decide; however, in designing a language, we have to choose for you.
 
 In our view, there is a sweet spot between Datalog and First Order Logic. Datalog allows one to right rules (unlike pure SQL) but is not capable of handling arbitrary data structures. On the other hand, it may be that _recursion_ is something that we can do without -- as we have seen earlier, many well structured functional programs have no explicit recursion!
 
@@ -128,13 +126,13 @@ And so, in **Star**, we highlight the _query_ aspect of logical reasoning and bl
 
 >Critically, queries have a _declarative_ semantics as well as a _programmatic_ one; this dual reading is essential if one is to be able to understand the reasoning.
 
->Historical note: in earlier iterations of the design for embedding logic into Star, a more-or-less complete rule system was envisaged. Such inference rules would have a similar status to functions and equations do. However, a combination of complexities and edge cases (such as how to handle a combination of inputs and outputs in rules) lead the designers to radically simplify the proposal and simply focus on queries. This gave 90% of the potential benefit of inference rules at 10% of the cost.
+>Historical note: in earlier iterations of the design for embedding logic into Star, a more-or-less complete rule system was envisaged. Such inference rules would have a similar status to functions and equations do. However, a combination of complexities and edge cases (such as how to handle a combination of inputs and outputs in rules) lead the designers to radically simplify the proposal and simply focus on queries. This gave us 90% of the potential benefit of inference rules at 10% of the cost.
 
 Sometimes, a splash of logic is all we need.
 
 ### Anatomy of a Query
 
-A query can be seen as combining two elements: a _condition_ and an _answer template_. The core idea is that the condition may be _satisfied_ in one or more ways -- each time potentially binding variables in the condition to values -- and the answer template encodes how we want to use the result of a successful satisfaction.
+A query can be seen as combining two elements: a _condition_ and an _answer template_. A query condition may be _satisfied_ in one or more ways -- each time potentially binding variables in the condition to values -- and the answer template encodes how we want to use the result of a successful satisfaction. Notice that the variables that are bound by the condition _are in scope_ within the answer template.
 
 #### Query Conditions
 
@@ -144,7 +142,7 @@ We have already seen match conditions; for example:
 ```
 some(X) .= opValue
 ```
-is a match condition that is satisfied if the value of `opValue` matches the pattern `some(X)`. A sucessful match has the additional effect of binding `X` to the value embedded in the `some` value.[^The form `X^=opValue` is actually a short form of the same condition.]
+is a match condition that is satisfied if the value of `opValue` matches the pattern `some(X)`. A successful match has the additional effect of binding `X` to the value embedded in the `some` value.[^The form `X^=opValue` is actually a short form of the same condition.]
 
 Where a match condition has at most one way of being satisfied, a search condition can potentially have many solutions. Search conditions look like:
 
@@ -154,11 +152,56 @@ We saw an example of this earlier in our grandparent query:
 ```
 (X,Z) in parents
 ```
+As should be anticipated at this point, search is realized via a contract. This allows us to search any type — so long as the `iterable` contract is implemented for that type.
 
+#### The `iterable` contract
+The `iterable` contract is similar in intention to the `folding` contract we saw before. However, it is more tuned to supporting different kinds of combination of search.
 
+The `iterable` contract looks like:
+```
+contract all s,e ~~ iterable[s->>e] ::= {
+  _iterate:all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
+}
+```
+This contract states that to search a collection, you have to be able to iterate over it. This function (and this contract) uses the `iterState` type to help guide the search:
+```
+all t ~~ iterState[t] ::= noneFound
+                      | noMore(t)
+                      | continueWith(t)
+                      | abortIter(string).
+```
+The different cases in the `iterState` type codify different things that can happen during a search:
 
+noneFound
+: As the name suggests, `noneFound` means that (so far) the search has not found anything.
 
+noMore(R)
+: The `noMore` constructor signals that the search is over, and the final results of the search are in `R`.
 
+continueWith(R)
+: The `continueWith` constructor indicates that the search is still ongoing and that the result so far is `R`.
+
+>Note that we are not committing to the type and value of `R`. The actual type and value depends on the form of the query.
+
+abortIter(Msg)
+: Something has gone wrong with the search, and the error condition is identified in `Msg`.
+
+ There are two companion contracts to the `iterable` contract: the `indexed_iterable` contract supports search over key/value pairs and the `generator` contract is used to help construct answers.
+
+#### Answer Templates
+The result of a query is governed by the _answer template_ of the query abstraction. There are two main forms of answer template: the expression template and the fold template.
+
+ExpressionTemplate
+: A expression template is simply an expression. 
+
+The expression template is evaluated for each successful way that the query condition can be satisfied; typically, there are free variables in the template expression that refer to variables bound in the query condition. That way. values found during the search can be extracted and made part of the overall answer. 
+
+Fold Template
+: A fold template is used when it is desired to aggregate over the found solutions. The form of a fold template is:
+
+```
+fold Fn with Exp
+``` 
 
 We can codify our grandparent query into a rule as:
 ```
