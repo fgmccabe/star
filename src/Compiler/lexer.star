@@ -66,7 +66,7 @@ star.compiler.lexer{
   readString(St,SoFar) where 0c"^=hedChar(St) => some((St,SoFar)).
   readString(St,SoFar) where
     (Nx,0c\\) ^= nextChr(St) &&
-    0c( ^= hedChr(Nx) &&
+    (_,0c() ^= nextChr(Nx) &&
     (St1,Inter) ^= interpolation(Nx) => readString(St1,[SoFar..,Inter]).
   readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) => readString(St1,[SoFar..,segment(Seg)]).
 
@@ -93,7 +93,7 @@ star.compiler.lexer{
     bracketCount(St1,St2,Ch,[0c],..Stk],[Chrs..,0c[]).
   bracketCount(St,_,_,[],Chrs) => some((St,Chrs::string)).
   bracketCount(_,St1,C,Stk,Chrs) where (St2,Ch) ^= nextChr(St1) =>
-    bracketCount(St1,St2,Stk,[Chrs..,C]).
+    bracketCount(St1,St2,Ch,Stk,[Chrs..,C]).
 
   readFormat(St) where (St1,0c:) ^= nextChr(St) => readUntil(St1,0c;,[]).
   readFormat(St) => some((St,"")).
