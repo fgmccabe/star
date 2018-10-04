@@ -49,4 +49,6 @@ static integer inline maximum(integer a, integer b) {
     return b;
 }
 
+extern char *genSym(char * prefix);
+
 #endif

@@ -8,116 +8,120 @@
 assem([method(Nm,Sig,Lx)|Ins],MTpl) :-
     genLblTbl(Ins,0,[],Lbs),
     findLit([],Nm,_,Ls0),
-    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),
+    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,[],Lines,0,Cde),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
-    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
+    sortLines(Lines,SLines),
+    mkTpl(SLines,LnsTpl),
+    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
 
-mnem([],_,Lt,Lt,Lc,Lc,_,[]).
-mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).
-mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-
+mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,_,[]).
+mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code).
+mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :-
     findLbl(Frm,Lbs,F),
     findLbl(End,Lbs,T),
     mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
     (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
-    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).
-mnem([iHalt|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[0|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[1,LtNo|M]) :- Pc1 is Pc+3,
+    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Ln,Lnx,Pc,Code).
+mnem([iLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns,Lnx,Pc,Code) :-
+    mkTpl([Loc,intgr(Pc)],LneEntry),
+    (is_member(LneEntry,Lns) -> Lns1 = Lns; Lns1=[LneEntry|Lns]),
+    mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Code).
+mnem([iHalt|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[0|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[1,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[2,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[3,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[4,LtNo|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[2,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iEscape(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[3,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[4,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iOTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[5,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iAbort|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[6|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[7|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iJmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[8,Off|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iOTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[5,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iAbort|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[6|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[7|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iJmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[8,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc1,Tgt,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDrop|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[9|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDup|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[10|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iPull(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[11,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iRot(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[12,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iRst(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[13,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdG(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[14,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[15,LtNo|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDrop|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[9|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDup|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[10|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iPull(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[11,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iRot(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[12,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iRst(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[13,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iLdG(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[14,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iLdC(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[15,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[16,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[17,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[18,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[19,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[20,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStG(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[21,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCLbl(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[22,Off|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iLdA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[16,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iLdL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[17,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iStL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[18,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iTL(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[19,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iStA(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[20,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iStG(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[21,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iCLbl(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[22,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc1,Tgt,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[23,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[24,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[25,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[26,LtNo|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[23,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iStNth(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[24,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iCase(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[25,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iAlloc(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[26,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[27,Off|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iCmp(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[27,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc1,Tgt,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iBf(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[28,Off|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iBf(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[28,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc1,Tgt,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iBt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[29,Off|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iBt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[29,Off|M]) :- Pc1 is Pc+3,
       findLbl(V,Lbls,Tgt),
       pcGap(Pc1,Tgt,Off),
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[30,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[31,LtNo|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[30,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[31,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[32,LtNo|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[32,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[33,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[33,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[34,LtNo|M]) :- Pc1 is Pc+3,
-      findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDOTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[35,V|M]) :- Pc1 is Pc+3,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
-mnem([iDRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[36|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).
+      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDOTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[34,V|M]) :- Pc1 is Pc+3,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
+mnem([iDRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[35|M]) :- Pc1 is Pc+1,
+      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
 
 
 genLblTbl([],_,Lbls,Lbls).
 genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).
 genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
+genLblTbl([iLine(_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
 genLblTbl([iHalt|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iOCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
@@ -149,7 +153,6 @@ genLblTbl([iCmp(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,
 genLblTbl([iBf(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iBt(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iFrame(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iDLine(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iDCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iDOCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iDTail(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
@@ -178,6 +181,11 @@ mkIns((O,A),Tpl) :-
 mkIns(O,intgr(O)) :- number(O).
 mkIns(S,strg(S)) :- string(S).
 
+sortLines(Lns,Sorted) :-
+ sort(Lns,assemble:compLine,Sorted).
+
+compLine(ctpl(_,[_,intgr(Pc1)]),ctpl(_,[_,intgr(Pc2)])) :- Pc1<Pc2.
+
 dispIns(Prog) :-
   showIns(Prog,O,[]),
   string_chars(Txt,O),
@@ -204,6 +212,11 @@ showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,O,Ox) :-
   appStr(End,O4,O5),
   appNl(O5,O6),
   showMnem(Ins,Pc,Lbs,O6,Ox).
+showMnem([iLine(Loc)|Ins],Pc,Lbs,O,Ox) :-
+  appStr("Line: ",O,O1),
+  showTerm(Loc,0,O1,O2),
+  appNl(O2,O3),
+  showMnem(Ins,Pc,Lbs,O3,Ox).
 showMnem([iHalt|Ins],Pc,Lbls,O,Ox) :- !,
   appInt(Pc,O,O0),
   appStr(":",O0,O00),
@@ -444,14 +457,6 @@ showMnem([iFrame(XX)|Ins],Pc,Lbls,O,Ox) :- !,
   appStr(":",O0,O00),
   appStr("Frame ",O00,O1),
   appInt(XX,O1,O2),
-  appNl(O2,O3),
-  Pc1 is Pc+3,
-  showMnem(Ins,Pc1,Lbls,O3,Ox).
-showMnem([iDLine(XX)|Ins],Pc,Lbls,O,Ox) :- !,
-  appInt(Pc,O,O0),
-  appStr(":",O0,O00),
-  appStr("dLine ",O00,O1),
-  showTerm(XX,0,O1,O2),
   appNl(O2,O3),
   Pc1 is Pc+3,
   showMnem(Ins,Pc1,Lbls,O3,Ox).

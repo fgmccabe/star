@@ -56,7 +56,6 @@ instruction(Bf,off,-1,"bool --> branch if false")
 instruction(Bt,off,-1,"bool --> branch if true")
 
 instruction(Frame,i32,0,"frame instruction")
-instruction(dLine,lit,0," --> Source line number notification")
 instruction(dCall,lit,0,"--> debug call program")
 instruction(dOCall,i32,0,"--> debug call program")
 instruction(dTail,lit,0,"--> debug tail call program")

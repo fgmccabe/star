@@ -147,7 +147,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
   }
 }
 
-char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Pc1,M).\n";
+char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n";
 
 static void genCode(ioPo out, int op, opAndSpec A) {
   switch (A) {
@@ -158,7 +158,7 @@ static void genCode(ioPo out, int op, opAndSpec A) {
     case lit:
       outMsg(out, "%d,LtNo|M]) :- Pc1 is Pc+3,\n", op);
       outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Pc1,M).\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
       return;
     case i32:
     case art:
@@ -204,7 +204,7 @@ static void genIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
   else
     sep = "";
 
-  outMsg(out, "%s|Ins],Lbls,Lt,Ltx,Lc,Lcx,Pc,[", sep);
+  outMsg(out, "%s|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[", sep);
 
   genCode(out, op, A1);
 }

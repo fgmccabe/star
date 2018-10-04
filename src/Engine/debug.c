@@ -11,9 +11,10 @@
 
 integer pcCount = 0;
 
-static void showCall(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp);
-static void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp);
-static void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp);
+static void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp);
+static void showTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp);
+static void showLn(ioPo out, methodPo mtd, insPo pc, termPo ln, framePo fp, ptrPo sp);
+static void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp);
 
 static void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 static void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp);
@@ -71,28 +72,6 @@ static retCode showConstant(ioPo out, methodPo mtd, integer off) {
 static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
   if (focus == NULL || focus == p) {
     switch (ins) {
-      case dLine: {
-        if (lineBreakPointHit(C_TERM(arg))) {
-          p->waitFor = stepInto;
-          p->tracing = True;
-          p->traceDepth = p->traceCount = 0;
-          return True;
-        } else {
-          switch (p->waitFor) {
-            case stepInto:
-              if (p->traceCount > 0)
-                p->traceCount--;
-              return (logical) (p->traceCount == 0);
-            case stepOver:
-              if (p->traceCount > 0 && p->traceDepth == 0)
-                p->traceCount--;
-              p->tracing = (logical) (p->traceDepth == 0 && p->traceCount == 0);
-              return (logical) (p->traceDepth == 0 && p->traceCount == 0);
-            default:
-              return False;
-          }
-        }
-      }
       case dRet: {
         switch (p->waitFor) {
           case stepInto:
@@ -215,7 +194,6 @@ static DebugWaitFor dbgOver(char *line, processPo p, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
 
   switch (ins) {
-    case dLine:
     case dRet: {
       p->traceDepth = 0;
       p->tracing = True;
@@ -224,13 +202,13 @@ static DebugWaitFor dbgOver(char *line, processPo p, insWord ins, void *cl) {
     case dCall:
     case dOCall: {
       p->traceDepth = 1;
-      p->tracing = True;
+      p->tracing = False;
       return stepOver;
     }
     case dTail:
     case dOTail: {
       p->traceDepth = 0;
-      p->tracing = True;
+      p->tracing = False;
       return stepOver;
     }
 
@@ -258,7 +236,6 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) 
   p->tracing = False;
 
   switch (ins) {
-    case dLine:
     case dRet: {
       p->traceDepth = 1;
       return stepOver;
@@ -511,21 +488,6 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl)
 static logical shouldWeStopIns(processPo p, insWord ins) {
   if (focus == NULL || focus == p) {
     switch (ins) {
-      case dLine: {
-        switch (p->waitFor) {
-          case stepInto:
-            if (p->traceCount > 0)
-              p->traceCount--;
-            return (logical) (p->traceCount == 0);
-          case stepOver:
-            if (p->traceCount > 0 && p->traceDepth == 0)
-              p->traceCount--;
-            p->tracing = (logical) (p->traceDepth == 0 && p->traceCount == 0);
-            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
-          default:
-            return False;
-        }
-      }
       case dRet: {
         switch (p->waitFor) {
           case stepInto:
@@ -644,7 +606,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
   return p->waitFor;
 }
 
-void showLn(ioPo out, methodPo mtd, termPo ln, framePo fp, ptrPo sp) {
+void showLn(ioPo out, methodPo mtd, insPo pc, termPo ln, framePo fp, ptrPo sp) {
   outMsg(out, BLUE_ESC_ON"line"BLUE_ESC_OFF": %L%_", ln);
 }
 
@@ -660,8 +622,12 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     return outMsg(f, "%T", ln);
 }
 
-static retCode shCall(ioPo out, char *msg, methodPo mtd, framePo fp, ptrPo sp) {
-  tryRet(outMsg(out, "%s%#.16T(", msg, mtd));
+static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
+  if (locn != Null) {
+    tryRet(outMsg(out, "%L: %s %#.16T(", locn, msg, mtd));
+  } else
+    tryRet(outMsg(out, "%s: %#.16T(", msg, mtd));
+
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
@@ -671,19 +637,26 @@ static retCode shCall(ioPo out, char *msg, methodPo mtd, framePo fp, ptrPo sp) {
   return outMsg(out, ")");
 }
 
-void showCall(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  shCall(out, GREEN_ESC_ON"call"GREEN_ESC_OFF": ", labelCode(C_LBL(call)), fp, sp);
+void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
+  termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
+  shCall(out, GREEN_ESC_ON"call"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
-void showTail(ioPo out, methodPo mtd, termPo call, framePo fp, ptrPo sp) {
-  shCall(out, GREEN_ESC_ON"tail"GREEN_ESC_OFF": ", labelCode(C_LBL(call)), fp, sp);
+void showTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
+  termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
+  shCall(out, GREEN_ESC_ON"tail"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
-void showRet(ioPo out, methodPo mtd, termPo val, framePo fp, ptrPo sp) {
-  outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%,10T", mtd, val);
+void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp) {
+  termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
+
+  if (locn != Null)
+    outMsg(out, "%L: "RED_ESC_ON"return"RED_ESC_OFF" %T->%,10T", locn, mtd, val);
+  else
+    outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%,10T", mtd, val);
 }
 
-typedef void (*showCmd)(ioPo out, methodPo mtd, termPo trm, framePo fp, ptrPo sp);
+typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp, ptrPo sp);
 
 termPo getLbl(termPo lbl, int32 arity) {
   labelPo oLbl = isNormalPo(lbl) ? termLbl(C_TERM(lbl)) : C_LBL(lbl);
@@ -702,10 +675,6 @@ DebugWaitFor tailDebug(processPo p, termPo call) {
 
 DebugWaitFor retDebug(processPo p, termPo val) {
   return lnDebug(p, dRet, val, showRet);
-}
-
-DebugWaitFor lineDebug(processPo p, termPo ln) {
-  return lnDebug(p, dLine, ln, showLn);
 }
 
 DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
@@ -743,7 +712,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   }
   if (p->tracing || stopping) {
     if (ln != Null)
-      show(stdErr, mtd, ln, fp, sp);
+      show(stdErr, mtd, pc, ln, fp, sp);
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)

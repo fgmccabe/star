@@ -47,6 +47,8 @@ typedef void *(*folder)(objectPo value, void *state);
 
 extern void* listFold(consPo l,folder f,void *state);
 
+extern consPo sortCons(consPo l,objCompare compare,void *cl);
+
 extern void releaseList(consPo l);
 
 extern classPo listClass;

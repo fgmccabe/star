@@ -192,6 +192,33 @@ void *listFold(consPo l, folder f, void *state) {
   return state;
 }
 
-void releaseList(consPo l){
+void releaseList(consPo l) {
   eraseList(O_OBJECT(l));
+}
+
+static void split(consPo lst, consPo *lft, consPo *rgt) {
+  if (lst == nilList) {
+    *lft = nilList;
+    *rgt = nilList;
+  } else if (tail(lst) == nilList) {
+    *lft = lst;
+    *rgt = nilList;
+  } else {
+    consPo next = tail(lst);
+    split(tail(next), &lst->list.tail, &next->list.tail);
+  }
+}
+
+static consPo merge(consPo lft, consPo rgt, objCompare comp, void *cl) {
+  if (lft == nilList)
+    return rgt;
+  else if (rgt == nilList)
+    return lft;
+  else if (comp(head(lft), head(rgt), cl) != bigger) {
+    lft->list.tail = merge(lft->list.tail, rgt, comp, cl);
+    return lft;
+  } else {
+    rgt->list.tail = merge(lft, rgt->list.tail, comp, cl);
+    return rgt;
+  }
 }

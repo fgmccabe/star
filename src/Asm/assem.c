@@ -22,10 +22,10 @@ static retCode displayLabel(ioPo f, void *p, long width, long prec, logical alt)
 static comparison localComp(localVarPo l1, localVarPo l2);
 static integer localHash(localVarPo l);
 
-static char stringSig[] = {strSig, 0};
-static char integerSig[] = {intSig, 0};
-static char floatSig[] = {fltSig, 0};
-static char strctSig[] = {conSig, 0};
+static char stringSig[] = "S";
+static char integerSig[] = "i";
+static char floatSig[] = "f";
+static char strctSig[] = "C";
 static char *locationSig = "(Siii)";
 
 static void constInit(objectPo o, va_list *args);
@@ -64,6 +64,50 @@ void constInit(objectPo o, va_list *args) {
 
 constPo newConstant(char *sig, constCmp same, constDump show, constDump encode, ConValue *value) {
   return O_CONST(newObject(constClass, sig, same, show, encode, value));
+}
+
+static void lineInit(objectPo o, va_list *args);
+
+LineClassRec LineClass = {
+  {
+    (classPo) &ObjectClass,
+    "line",
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    O_INHERIT_DEF,
+    lineInit,
+    sizeof(LineRecord),
+    NULL,
+    NULL,
+    NULL,
+    PTHREAD_ONCE_INIT,                      /* not yet initialized */
+    PTHREAD_MUTEX_INITIALIZER
+  },
+  {}
+};
+
+classPo lineClass = (classPo) &LineClass;
+
+void lineInit(objectPo o, va_list *args) {
+  linePo l = O_LINE(o);
+
+  l->line.locRef = va_arg(*args, int32);
+  l->line.lbl = va_arg(*args, lPo);
+}
+
+linePo defineLine(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len, lPo lbl) {
+  int32 loc = defineLocation(mtd, pkg, line, off, len);
+
+  linePo lne = O_LINE(newObject(lineClass, loc, lbl));
+
+  mtd->lines = tack(O_OBJECT(lne), mtd->lines);
+  return lne;
+}
+
+int32 lineCount(mtdPo mtd) {
+  return (int32) listCount(mtd->lines);
 }
 
 void initAssem() {
@@ -675,10 +719,6 @@ char *methodSignature(mtdPo mtd) {
     return ((constPo) listNthElement(mtd->constants, mtd->sig))->con.value.txt;
   else
     return Null;
-}
-
-int32 newEscapeConstant(mtdPo mtd, char *str) {
-  return newStringConstant(mtd, str);
 }
 
 static assemInsPo asm_tos(mtdPo mtd, OpCode op) {

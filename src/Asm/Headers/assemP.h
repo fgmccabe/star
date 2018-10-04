@@ -76,6 +76,35 @@ extern constPo newConstant(char *sig, constCmp same, constDump show, constDump e
 #define O_CONST(c) ((constPo)(c))
 #endif
 
+/* Set up a class structure for line number references */
+
+typedef struct {
+  int32 locRef;
+  lPo lbl;           /* Where in the code */
+} LineObjectRec;
+
+typedef struct _line_record_ {
+  ObjectRec object;                     /* object level of the structure */
+  LineObjectRec line;                   // Line part of object
+} LineRecord;
+
+typedef struct {
+} LineClassPart;
+
+typedef struct _line_class_ {
+  ObjectClassRec objectPart;
+  LineClassPart linePart;
+} LineClassRec;
+
+extern LineClassRec LineClass;
+extern classPo lineClass;
+
+#ifdef VERIFY_OBJECT
+#define O_LINE(c) ((linePo)(checkCast((c),lineClass)))
+#else
+#define O_LINE(c) ((linePo)(c))
+#endif
+
 typedef struct _assem_method_ {
   StrctLbl name;      /* The name of this method */
   integer lclCount;
@@ -87,6 +116,7 @@ typedef struct _assem_method_ {
   int32 lclSig;         /* Signature of the local vars */
   hashPo locals;      /* Local variables */
   hashPo frames;      /* Active frames in the method */
+  consPo lines;       // Line number table
 } AssemMethod;
 
 typedef struct _local_data_ {

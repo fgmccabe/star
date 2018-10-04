@@ -174,7 +174,7 @@ trailer: END nls { endFunction(currMtd); }
  directive: label COLON { defineLbl(currMtd,$1); }
    | FRAME signature { AFrame(currMtd,newStringConstant(currMtd,$2)); }
    | LINE ID AT DECIMAL SLASH DECIMAL COLON DECIMAL
-          { AdLine(currMtd,defineLocation(currMtd,$2,$4,$6,$8)); }
+          { defineLine(currMtd,$2,$4,$6,$8,currLbl(currMtd,genSym("_"))); }
    | DCALL literal { AdCall(currMtd,$2); }
    | DOCALL DECIMAL { AdOCall(currMtd,$2); }
    | DTAIL literal { AdTail(currMtd,$2); }

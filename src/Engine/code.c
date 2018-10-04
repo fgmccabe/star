@@ -4,6 +4,7 @@
 
 #include <heapP.h>
 #include <memory.h>
+#include <arith.h>
 #include "codeP.h"
 #include "labelsP.h"
 
@@ -66,6 +67,7 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 
   helper((ptrPo) &mtd->pool, c);
   helper((ptrPo) &mtd->locals, c);
+  helper((ptrPo) &mtd->lines, c);
 
   return ((termPo) o) + mtdSize(cl, o);
 }
@@ -84,19 +86,20 @@ integer mtdHash(specialClassPo cl, termPo o) {
 retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   methodPo mtd = C_MTD(t);
   normalPo pool = codeLits(mtd);
-  if(pool!=Null){
+  if (pool != Null) {
     labelPo lbl = C_LBL(nthArg(pool, 0));
     return showLbl(out, precision, alt, lbl);
   } else
-    return outMsg(out,"<unknown mtd>");
+    return outMsg(out, "<unknown mtd>");
 }
 
 methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-          normalPo locals) {
+          normalPo locals, normalPo lines) {
   int root = gcAddRoot(H, (ptrPo) &lbl);
   gcAddRoot(H, (ptrPo) &pool);
   gcAddRoot(H, (ptrPo) &locals);
+  gcAddRoot(H, (ptrPo) &lines);
 
   methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
 
@@ -109,6 +112,7 @@ defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stack
   mtd->lclcnt = lclCount;
   mtd->pool = pool;
   mtd->locals = locals;
+  mtd->lines = lines;
   mtd->stackDelta = stackDelta;
 
   lbl->mtd = mtd;
@@ -122,8 +126,60 @@ void markMtd(gcSupportPo G, methodPo mtd) {
 
 }
 
+integer insOffset(methodPo m, insPo pc) {
+  return (integer) (pc - &m->code[0]);
+}
+
+insPo pcAddr(methodPo mtd, integer off) {
+  return &mtd->code[off];
+}
+
 logical validPC(methodPo mtd, insPo pc) {
   return (logical) (pc >= mtd->code && pc < &mtd->code[mtd->codeSize]);
+}
+
+integer mtdCodeSize(methodPo mtd){
+  return mtd->codeSize;
+}
+
+termPo findPcLocation(methodPo mtd, integer pc) {
+  normalPo lines = mtd->lines;
+  integer start = 0;
+  integer limit = termArity(lines)-1;
+
+  integer lowerPc = -1;
+  integer upperPc = mtdCodeSize(mtd);
+
+  termPo lowerLoc = Null;
+  termPo upperLoc = Null;
+
+  while (limit >= start) {
+    integer mid = start + (limit - start) / 2;
+    normalPo midEntry = C_TERM(nthArg(lines, mid));
+    integer testPc = integerVal(nthArg(midEntry, 1));
+    termPo testLoc = nthArg(midEntry, 0);
+
+    if (testPc == pc)
+      return testLoc;
+    else if (testPc < pc) {
+      start = mid+1;
+      if (testPc > lowerPc) {
+        lowerPc = testPc;
+        lowerLoc = testLoc;
+      }
+    } else {
+      limit = mid-1;
+
+      if (testPc < upperPc) {
+        upperPc = testPc;
+        upperLoc = testLoc;
+      }
+    }
+  }
+  if (lowerLoc != Null)
+    return lowerLoc;
+  else
+    return upperLoc;
 }
 
 retCode showMtdLbl(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -153,12 +209,11 @@ packagePo loadedPackage(char *package) {
   return (packagePo) hashGet(packages, package);
 }
 
-logical isLoadedPackage(packagePo pkg){
+logical isLoadedPackage(packagePo pkg) {
   packagePo lcl = loadedPackage(pkg->packageName);
-  if(lcl!=Null){
-    return compatiblePkg(pkg,lcl);
-  }
-  else
+  if (lcl != Null) {
+    return compatiblePkg(pkg, lcl);
+  } else
     return False;
 }
 

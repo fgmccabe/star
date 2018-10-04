@@ -15,6 +15,7 @@ typedef struct _assem_method_ *mtdPo;
 typedef struct _label_ *lPo;
 typedef struct _assem_instruction_ *assemInsPo;
 typedef struct _local_data_ *localVarPo;
+typedef struct _line_record_ *linePo;
 
 extern void initAssem();
 extern pkPo newPkg(char *name, char *version, char *signature);
@@ -28,28 +29,29 @@ extern int32 findMethod(mtdPo mtd, char *name, int arity);
 
 extern void endFunction(mtdPo mtd);
 
-extern lPo newLbl(mtdPo code,char *name);
-extern lPo currLbl(mtdPo code,char *name);
+extern lPo newLbl(mtdPo code, char *name);
+extern lPo currLbl(mtdPo code, char *name);
 extern void defineLbl(mtdPo code, lPo lbl);
 extern logical labelDefined(lPo lbl);
 extern char *lblName(lPo lbl);
 
-extern logical isJumpIns(assemInsPo ins,lPo tgt);
+extern logical isJumpIns(assemInsPo ins, lPo tgt);
 extern assemInsPo endIns(mtdPo code);
-extern void removeIns(mtdPo code,assemInsPo ins);
+extern void removeIns(mtdPo code, assemInsPo ins);
 
-extern int32 newIntegerConstant(mtdPo mtd,int64 ix);
-extern int32 newFloatConstant(mtdPo mtd,double dx);
-extern int32 newStringConstant(mtdPo mtd,char *str);
-extern int32 newStrctConstant(mtdPo mtd,char *str,integer ar);
-extern int32 newEscapeConstant(mtdPo mtd,char *str);
-extern retCode getStringConstant(mtdPo mtd,char **name);
+extern int32 newIntegerConstant(mtdPo mtd, int64 ix);
+extern int32 newFloatConstant(mtdPo mtd, double dx);
+extern int32 newStringConstant(mtdPo mtd, char *str);
+extern int32 newStrctConstant(mtdPo mtd, char *str, integer ar);
+extern retCode getStringConstant(mtdPo mtd, char **name);
 
-extern void defineFrame(mtdPo mtd,char *str);
+extern void defineFrame(mtdPo mtd, char *str);
 extern void defineLocal(mtdPo mtd, char *name, char *sig, lPo from, lPo to);
 extern int32 findLocal(mtdPo mtd, const char *name);
 
 extern int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len);
+extern linePo defineLine(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len, lPo lbl);
+extern int32 lineCount(mtdPo mtd);
 
 // Define the instruction functions themselves
 #undef instruction
@@ -66,7 +68,7 @@ extern int32 defineLocation(mtdPo mtd, char *pkg, int32 line, int32 off, int32 l
 #define opEs(X) ,char * f##X
 #define opglb(X) ,char * f##X
 
-#define instruction(Op,A1,Dl,Cmt) \
+#define instruction(Op, A1, Dl, Cmt) \
 extern retCode A##Op(mtdPo mtd op##A1(1));
 
 #include "instructions.h"
