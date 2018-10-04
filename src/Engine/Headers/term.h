@@ -42,6 +42,7 @@ extern integer hashTermLbl(termPo t);
 extern integer termSize(normalPo t);
 
 extern integer termArity(normalPo term);
+extern ptrPo termArgs(normalPo term);
 
 extern termPo nthArg(normalPo term, integer ix);
 extern void setArg(normalPo term, integer ix, termPo arg);

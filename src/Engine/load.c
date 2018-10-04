@@ -32,7 +32,7 @@ static retCode decodeLoadedPkg(packagePo pkg, ioPo in);
 static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
 static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
 
-static retCode loadSegments(ioPo in, packagePo owner, char *errorMsg, long msgLen);
+static retCode loadFunctions(ioPo in, packagePo owner, char *errorMsg, long msgLen);
 
 static char stringSig[] = {strTrm, 0};
 static char *pkgSig = "n4o4'()4'";
@@ -80,7 +80,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
           ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
         if (ret == Ok)
-          ret = loadSegments(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+          ret = loadFunctions(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
       }
       closeFile(O_IO(sigBuffer));
     }
@@ -125,11 +125,11 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
     rewindBuffer(sigBuffer);
     ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer));
 
-    if(ret==Ok && !isLoadedPackage(&lddPkg)){
+    if (ret == Ok && !isLoadedPackage(&lddPkg)) {
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
       if (ret == Ok)
-        ret = loadSegments(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+        ret = loadFunctions(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
     else if (tracePkg)
@@ -263,15 +263,15 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
     return Fail;
 }
 
-static retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
+static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 
-retCode loadSegments(ioPo in, packagePo owner, char *errorMsg, long msgLen) {
+retCode loadFunctions(ioPo in, packagePo owner, char *errorMsg, long msgLen) {
   integer count;
   if (decodeTplCount(in, &count, errorMsg, msgLen) == Ok) {
     retCode ret = Ok;
 
     for (integer ix = 0; ret == Ok && ix < count; ix++)
-      ret = loadCodeSegment(in, currHeap, owner, errorMsg, msgLen);
+      ret = loadFunc(in, currHeap, owner, errorMsg, msgLen);
     return ret;
   } else
     return Error;
@@ -349,8 +349,8 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *err
 
 static integer stackInc(insWord);
 
-retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
-  retCode ret = isLookingAt(in, "n6o6'()6'");
+retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
+  retCode ret = isLookingAt(in, "n7o7'()7'");
 
   if (ret != Ok) {
     strMsg(errorMsg, msgSize, "invalid code stream");
@@ -366,7 +366,7 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
 
 #ifdef TRACEPKG
   if (tracePkg)
-    logMsg(logFile, "loading function %s/%d", &prgName,arity);
+    logMsg(logFile, "loading function %s/%d", &prgName, arity);
 #endif
 
   if (ret == Ok)
@@ -403,9 +403,16 @@ retCode loadCodeSegment(ioPo in, heapPo H, packagePo owner, char *errorMsg, long
           ret = decode(in, &support, H, &locals, tmpBuffer);
 
           if (ret == Ok) {
-            labelPo lbl = declareLbl(prgName, arity);
-            gcAddRoot(H, (ptrPo) &lbl);
-            mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool), C_TERM(locals));
+            termPo lines = voidEnum;
+            gcAddRoot(H, &lines);
+            ret = decode(in, &support, H, &lines, tmpBuffer);
+
+            if (ret == Ok) {
+              labelPo lbl = declareLbl(prgName, arity);
+              gcAddRoot(H, (ptrPo) &lbl);
+              mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool), C_TERM(locals),
+                              C_TERM(lines));
+            }
           }
         }
         closeFile(O_IO(tmpBuffer));

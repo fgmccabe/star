@@ -23,3 +23,11 @@ void syserr(const char* msg){
   exit(99);
 }
 
+char *genSym(char * prefix){
+  static int count = 0;
+  static char buffer[MAXLINE];
+
+  strMsg(buffer,NumberOf(buffer),"%s%d",prefix,count++);
+  return buffer;
+}
+

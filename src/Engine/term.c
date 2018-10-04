@@ -52,6 +52,10 @@ void setArg(normalPo term, int64 ix, termPo arg) {
   term->args[ix] = arg;
 }
 
+ptrPo termArgs(normalPo term){
+  return &term->args[0];
+}
+
 retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
   return dispTerm(f, (termPo) data, precision, depth, alt);
 }

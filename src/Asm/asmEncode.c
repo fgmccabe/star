@@ -79,6 +79,8 @@ static retCode encodeConstant(ioPo out, constPo con) {
   return con->con.encode(out, con);
 }
 
+static retCode encodeLine(ioPo out,linePo lne);
+
 static retCode encodeTplCount(ioPo out, integer cnt) {
   char buff[MAXFILELEN];
   strMsg(buff, NumberOf(buff), "()%d", cnt);
@@ -87,8 +89,8 @@ static retCode encodeTplCount(ioPo out, integer cnt) {
 }
 
 retCode encodeMethod(ioPo out, mtdPo mtd) {
-  tryRet(encodeCons(out, 6));
-  tryRet(encodeTplCount(out, 6));
+  tryRet(encodeCons(out, 7));
+  tryRet(encodeTplCount(out, 7));
   tryRet(encodeStrct(out, (char *) mtd->name.name, mtd->name.arity)); /* signal tag w/name */
 
   tryRet(encodeInt(out, mtd->sig));        /* Constant id for the type signature */
@@ -109,6 +111,11 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
 
   MtdData data = {.mtd = mtd, .out = out};
   ProcessTable(encodeLocal, mtd->locals, &data);
+
+  tryRet(encodeTplCount(out, lineCount(mtd))); /* Number of line records */
+  for(consPo lne=mtd->lines;lne!=nilList;lne=tail(lne)){
+    tryRet(encodeLine(out,O_LINE(head(lne))));
+  }
 
   return Ok;
 }
@@ -131,6 +138,13 @@ retCode encodeLocal(void *n, void *r, void *cl) {
   tryRet(encodeInt(out, vr->off));
   tryRet(encodeInt(out, vr->from->pc->pc / sizeof(uint16)));
   return encodeInt(out, vr->to->pc->pc / sizeof(uint16));
+}
+
+retCode encodeLine(ioPo out,linePo lne) {
+  tryRet(encodeTplCount(out,2));
+
+  tryRet(encodeInt(out,lne->line.locRef));
+  return encodeInt(out,lne->line.lbl->pc->pc);
 }
 
 static retCode enc_nOp(ioPo out, assemInsPo ins) {

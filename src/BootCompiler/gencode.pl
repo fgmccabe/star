@@ -301,7 +301,7 @@ chLine(_,Lc,Lc,C,C) :- !.
 chLine(Opts,_,Lc,C,Cx) :-
   genLine(Opts,Lc,C,Cx).
 
-genLine(Opts,Lc,[iDLine(Lt)|Cx],Cx) :-
+genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
   is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).

@@ -17,8 +17,6 @@ void initCode();
 extern methodPo C_MTD(termPo t);
 
 typedef void (*jitCode)();
-typedef integer (*cafeFun)();
-typedef cafeFun (*pkgFun)();
 
 extern normalPo codeLits(methodPo mtd);
 extern integer codeLitCount(methodPo mtd);
@@ -34,8 +32,13 @@ extern char *loadedVersion(char *package);
 extern packagePo markLoaded(char *package, char *version);
 extern logical isLoadedPackage(packagePo pkg);
 
+extern termPo findPcLocation(methodPo mtd,integer pc);
+extern integer insOffset(methodPo m, insPo pc);
+extern insPo pcAddr(methodPo mtd, integer off);
+extern integer mtdCodeSize(methodPo mtd);
+
 extern methodPo
 defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-          normalPo locals);
+          normalPo locals, normalPo lines);
 
 #endif

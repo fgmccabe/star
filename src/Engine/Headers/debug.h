@@ -10,9 +10,7 @@
 extern termPo getLbl(termPo lbl,int32 arity);
 
 extern DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins);
-extern DebugWaitFor lineDebug(processPo p, termPo ln);
 extern DebugWaitFor callDebug(processPo p, termPo call);
-extern DebugWaitFor oCallDebug(processPo p, termPo call,termPo lbl);
 extern DebugWaitFor tailDebug(processPo p, termPo call);
 extern DebugWaitFor retDebug(processPo p, termPo val);
 
@@ -25,5 +23,6 @@ extern void dumpInsStats();
 
 extern void stackTrace(processPo p, ioPo out, logical showStack);
 extern void dumpStackTrace(processPo p, ioPo out);
+
 
 #endif //STAR_DEBUG_H

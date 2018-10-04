@@ -23,6 +23,7 @@ typedef struct _method_ {
   integer stackDelta;   // How much space to allocate for the stack
   normalPo pool;      /* A pool tuple of constants */
   normalPo locals;    /* A tuple of sorted locals */
+  normalPo  lines;      // A tuple of line information
   insWord code[ZEROARRAYSIZE];
 } MethodRec;
 

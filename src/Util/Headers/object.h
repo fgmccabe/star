@@ -58,6 +58,8 @@ void incReference(objectPo o);
 void decReference(objectPo o);
 long referenceCount(objectPo o);
 
+typedef comparison (*objCompare)(objectPo d1,objectPo d2,void *cl);
+
 #ifdef VERIFY_OBJECT
 #define O_OBJECT(c) ((objectPo)(checkCast((c),objClass)))
 #else

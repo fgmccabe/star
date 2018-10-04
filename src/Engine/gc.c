@@ -78,7 +78,7 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   gcCount++;
   if (traceMemory)
-    outMsg(logFile, "starting gc: %d\n%_",gcCount);
+    outMsg(logFile, "starting gc: %d\n%_", gcCount);
 #endif
 
 #ifdef TRACEMEM
@@ -205,14 +205,6 @@ static termPo scanTerm(gcSupportPo G, termPo x) {
   }
 }
 
-static integer insOffset(methodPo m, insPo pc) {
-  return (integer) (pc - &m->code[0]);
-}
-
-static insPo pcAddr(methodPo mtd, integer off) {
-  return &mtd->code[off];
-}
-
 static retCode markProcess(processPo P, gcSupportPo G) {
 #ifdef TRACEMEM
   if (traceMemory)
@@ -255,8 +247,8 @@ void verifyProc(processPo P, GCSupport *G) {
   assert((ptrPo) f < (ptrPo) P->stackLimit);
 
   while (f < (framePo) P->stackLimit) {
-    inStackPtr(P,t);
-    inStackPtr(P,(ptrPo)f);
+    inStackPtr(P, t);
+    inStackPtr(P, (ptrPo) f);
 
     while (t < (ptrPo) f) {
       validPtr(H, *t);

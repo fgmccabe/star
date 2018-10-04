@@ -432,20 +432,7 @@ retCode run(processPo P) {
       case Frame:
         PC += 2;
         continue;
-
-      case dLine: {
-#ifdef TRACEEXEC
-        if (lineDebugging) {
-          termPo line = nthArg(LITS, collectI32(PC));
-          saveRegisters(P, SP);
-          lineDebug(P, line);
-          restoreRegisters(P);
-        } else
-#endif
-          PC += 2;
-        continue;
-      }
-
+        
       case dCall: {
 #ifdef TRACEEXEC
         if (lineDebugging) {

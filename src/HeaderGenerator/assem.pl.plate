@@ -8,25 +8,32 @@
 assem([method(Nm,Sig,Lx)|Ins],MTpl) :-
     genLblTbl(Ins,0,[],Lbs),
     findLit([],Nm,_,Ls0),
-    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),
+    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,[],Lines,0,Cde),
     mkInsTpl(Cde,Code),
     mkLitTpl(Lts,LtTpl),
     mkTpl(Lcs,LcsTpl),
-    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).
+    sortLines(Lines,SLines),
+    mkTpl(SLines,LnsTpl),
+    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
 
-mnem([],_,Lt,Lt,Lc,Lc,_,[]).
-mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).
-mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-
+mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,_,[]).
+mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code).
+mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :-
     findLbl(Frm,Lbs,F),
     findLbl(End,Lbs,T),
     mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),
     (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),
-    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).
+    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Ln,Lnx,Pc,Code).
+mnem([iLine(Loc)|Ins],Lbs,Lt,Lts,Lc,Lcx,Lns,Lnx,Pc,Code) :-
+    mkTpl([Loc,intgr(Pc)],LneEntry),
+    (is_member(LneEntry,Lns) -> Lns1 = Lns; Lns1=[LneEntry|Lns]),
+    mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Lns1,Lnx,Pc,Code).
 #(Mnem)
 
 genLblTbl([],_,Lbls,Lbls).
 genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).
 genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
+genLblTbl([iLine(_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
 #(Lbls)
 
 findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.
@@ -49,6 +56,11 @@ mkIns((O,A),Tpl) :-
     mkTpl([intgr(O),WA],Tpl).
 mkIns(O,intgr(O)) :- number(O).
 mkIns(S,strg(S)) :- string(S).
+
+sortLines(Lns,Sorted) :-
+ sort(Lns,assemble:compLine,Sorted).
+
+compLine(ctpl(_,[_,intgr(Pc1)]),ctpl(_,[_,intgr(Pc2)])) :- Pc1<Pc2.
 
 dispIns(Prog) :-
   showIns(Prog,O,[]),
@@ -76,4 +88,9 @@ showMnem([iLocal(Nm,Frm,End,_Off)|Ins],Pc,Lbs,O,Ox) :-
   appStr(End,O4,O5),
   appNl(O5,O6),
   showMnem(Ins,Pc,Lbs,O6,Ox).
+showMnem([iLine(Loc)|Ins],Pc,Lbs,O,Ox) :-
+  appStr("Line: ",O,O1),
+  showTerm(Loc,0,O1,O2),
+  appNl(O2,O3),
+  showMnem(Ins,Pc,Lbs,O3,Ox).
 #(Show)
