@@ -134,6 +134,8 @@ Sometimes, a splash of logic is all we need.
 
 A query can be seen as combining two elements: a _condition_ and an _answer template_. A query condition may be _satisfied_ in one or more ways -- each time potentially binding variables in the condition to values -- and the answer template encodes how we want to use the result of a successful satisfaction. Notice that the variables that are bound by the condition _are in scope_ within the answer template.
 
+The syntax and style of **Star**’s query notation has strong echoes with SQL’s syntax -- deliberately so. Specifically, we take SQL’s *relational calculus* subset -- the language of wheres and of boolean combinations. **Star**’s query expressions do not have the equivalent of explicit relational join operators.
+
 #### Query Conditions
 
 The condition takes the form of a boolean combination of _predications_; a predication is either a normal boolean-valued expression, a _match_ condition, or a _search_ condition. Various types of boolean combinations are supported; the most common being conjunction (`&&`), disjunction (`||`) and negation (`\+`).
@@ -170,23 +172,9 @@ all t ~~ iterState[t] ::= noneFound
                       | continueWith(t)
                       | abortIter(string).
 ```
-The different cases in the `iterState` type codify different things that can happen during a search:
+The different cases in the `iterState` type codify different things that can happen during a search. The most commonly used case is the `continueWith` case — which is used to encapsulate the results found so far.
 
-noneFound
-: As the name suggests, `noneFound` means that (so far) the search has not found anything.
-
-noMore(R)
-: The `noMore` constructor signals that the search is over, and the final results of the search are in `R`.
-
-continueWith(R)
-: The `continueWith` constructor indicates that the search is still ongoing and that the result so far is `R`.
-
->Note that we are not committing to the type and value of `R`. The actual type and value depends on the form of the query.
-
-abortIter(Msg)
-: Something has gone wrong with the search, and the error condition is identified in `Msg`.
-
- There are two companion contracts to the `iterable` contract: the `indexed_iterable` contract supports search over key/value pairs and the `generator` contract is used to help construct answers.
+There are two companion contracts to the `iterable` contract: the `indexed_iterable` contract supports search over key/value pairs and the `generator` contract is used to help construct answers.
 
 #### Answer Templates
 The result of a query is governed by the _answer template_ of the query abstraction. There are two main forms of answer template: the expression template and the fold template.
@@ -203,59 +191,32 @@ Fold Template
 fold Fn with Exp
 ``` 
 
-We can codify our grandparent query into a rule as:
-```
-grandparent(X,Y) :- (X,Z) in parents and (Z,Y) in parents
-```
-or, probably more realistically:
-```
-grandparent(X,Y) :- parent(X,Z) and parent(Z,Y).
-parent(A,B) :- (A,B) in parents.
-```
-The `grandparent` rule states that:
-> for every `X`, `Y` and `Z` such that there is a fact of the form `parent(X,Z)` and there is a fact of the form `parent(Z,Y)`, then there must also be a fact of the form `grandparent(X,Y)`.
-
-The variables `X`, `Y` and `Z` are _placeholders_: they are not variables in the normal programming language sense. They stand for some unspecified individual; and, in this case, there is a `grandparent` fact for all possible ways of replacing the variables `X`, `Y` and `Z` with actual individuals in a way that satisfies the rule.[^One of the interesting restrictions in predicate logic is that there must be at least one individual: nothing can be said of an uninhabited world.]
-
-### Assertions and facts
+### Assertions, facts and sets
 An assertion is a statement that something is true -- i.e., it is a fact.
 
 >There is a subtle distinction between something being true, and stating that something is true.
 
-**CnC** rules are rules about facts: each rule states that some class of fact is true. It is not actually that important to the design of **CnC** whether the stated fact is actually true!
+For us, taking the same minimalist route we took for queries, we represent facts using `set`s; typically sets of tuples. We already saw this when we encoded the grandparent example as a set of pairs (aka binary tuples).
 
-There are two forms of assertion: the simple assertion and the given assertion.
+## Classifying
+Recall that we asserted that classification is a key part of any outward facing system: the system has to decide how to act on an incoming request. It may be instructive to see just how the query formalism can be used to help.
 
-**Star** has a special notation that makes this kind of complex computation significantly easier to write and comprehend. **Star**’s query notation is a very high level way of expressing combinatorial combinations of collections. We can write the equivalent of the previous grandparent expression in this query notation as:
-```
-GC = list of { all (X,Y) where
-                 (X,Z) in parent && (Z,Y) in parent }
-```
-It may not be obvious, but these expressions compute the same values. What should be obvious is that the query is much easier to read and easier to verify that it is correct.
+Let us imagine a system that has some external face, for example, a server that allows users to fetch and store documents. We have a business requirement to allow anyone to store and fetch documents; however, we also reserve the right to not process bad documents.[^However that is defined!]
 
-The syntax and style of **Star**’s query notation is similar to SQL’s syntax -- deliberately so.
+Since we anticipate enormous success for our service, and we also anticipate that some people will try to game our system in order to further their own nefarious goals. So, we have to put in place  a classification system that can decide how to process requests and which we anticipate will need continuous evolution.
 
-Specifically, we take SQL’s *relational calculus* subset -- the language of wheres and of boolean combinations. **Star**’s query expressions do not have the equivalent of explicit relational join operators.
 
-There are several variations of query expression, but the most common form is:
 
-*SequenceType* of { *QuantifierTerm* where *Condition* *Modifier* }
 
-where *SequenceType* is any type name that implements the stream contract, *QuantifierTerm* is a form that indicates the form of the result of the query, *Condition* is a condition and the optional *Modifier* is used to signal properties of the result -- such as whether the result is grouped or sorted.
+
+
+
+
+
 
 ### Query quantifiers
 
-The *QuantifierTerm* in a query specifies ‘how many’ answers we want. There are essentially three forms of *QuantifierTerm* -- if we want all the answers then we use a term of the form:
 
-{ all (X,Y) where ... }
-
-On the other hand, if we want a fixed number, then we use:
-
-{ 5 of (X,Y) where ... }
-
-Of course, there might not be five answers, and so this is called a bounded *QuantifierTerm*.
-
-We have only scratched the surface of possibilities of query expressions here. They are, in fact, one of **Star**’s most powerful high-level features.
 
 ### Querying for statistical purposes
 
