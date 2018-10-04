@@ -58,9 +58,9 @@ star.compiler.operators{
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
-  oper("^^") => [infixOp(999,1000,999)].
+  oper("^^") => [infixOp(909,910,909)].
   oper("%") => [infixOp(700,700,699)].
-  oper("<-") => [infixOp(924,925,924)].
+  oper("<-") => [infixOp(904,905,904)].
   oper(".>>>.") => [infixOp(600,600,599)].
   oper("\\+") => [prefixOp(905,904)].
   oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
@@ -76,8 +76,8 @@ star.compiler.operators{
   oper("exists") => [prefixOp(1010,1009)].
   oper("<=") => [infixOp(949,950,949)].
   oper(":") => [infixOp(1249,1250,1249)].
+  oper(";") => [infixOp(909,910,910)].
   oper("-->") => [infixOp(1199,1200,1199)].
-  oper(";") => [infixOp(1899,1900,1900)].
   oper("<") => [infixOp(899,900,899)].
   oper(".=") => [infixOp(899,900,899)].
   oper("=") => [infixOp(974,975,974)].
