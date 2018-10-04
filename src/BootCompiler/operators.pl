@@ -41,9 +41,9 @@
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
-  operator("^^", [infixOp(999, 1000, 999)]).
+  operator("^^", [infixOp(909, 910, 909)]).
   operator("%", [infixOp(700, 700, 699)]).
-  operator("<-", [infixOp(924, 925, 924)]).
+  operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [prefixOp(905, 904)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
@@ -59,8 +59,8 @@
   operator("exists", [prefixOp(1010, 1009)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
+  operator(";", [infixOp(909, 910, 910)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
-  operator(";", [infixOp(1899, 1900, 1900)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=", [infixOp(974, 975, 974)]).

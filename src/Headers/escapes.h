@@ -12,7 +12,6 @@
 #define lockType "t'star.thread*lock'"
 #define fileType "t'star.io*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
-#define locType "(Siiii)"
 
 /* Define the standard escapes */
 escape(_exit,True,False,"F(i)()","terminate engine")
@@ -164,7 +163,7 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_setfileencoding,True,False,"F("fileType"i)"sysRet, "set file encoding on file")
   escape(_get_file,True,False,"F(S)S","file into a string")
   escape(_put_file,True,False,"F(SS)()","write string into file")
-  escape(_show,True,False,"F("locType"S)()","show something on console")
+  escape(_show,True,False,"F((Siiii)S)()","show something on console")
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")
   escape(_pkg_is_present,True,False,"F(SS)l","True if an identified package is available")
@@ -290,7 +289,7 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
 
   escape(_ins_debug,True,False,"F()()","set instruction-level")
   escape(_stackTrace,True,False,"F()()","Print a stack trace")
-  escape(_assert,True,False,"F(l"locType")()","Check an assertion and bolt if false")
+  escape(_assert,True,False,"F(l(Siiii))()","Check an assertion and bolt if false")
 
 #undef processState
 #undef threadType

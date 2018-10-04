@@ -9,15 +9,6 @@
     "desc": "statement separator"
   },
   {
-    "infixOp": ";",
-    "priorities": [
-      1899,
-      1900,
-      1900
-    ],
-    "desc": "sequencing operator"
-  },
-  {
     "infixOp": "::=",
     "priorities": [
       1249,
@@ -101,18 +92,18 @@
   {
     "infixOp": "<-",
     "priorities": [
-      924,
-      925,
-      924
+      904,
+      905,
+      904
     ],
     "desc": "variable bind"
   },
   {
     "infixOp": "^^",
     "priorities": [
-      999,
-      1000,
-      999
+      909,
+      910,
+      909
     ],
     "desc": "Overall output from a parser rule"
   },
@@ -123,6 +114,15 @@
       904
     ],
     "desc": "look ahead parser operator"
+  },
+  {
+    "infixOp": ";",
+    "priorities": [
+      909,
+      910,
+      910
+    ],
+    "desc": "sequencing operator"
   },
   {
     "infixOp": "->>",

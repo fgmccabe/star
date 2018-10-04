@@ -128,17 +128,17 @@ star.parse{
   natural =_pplus(numeral,(d,s)=>s*10+d).
 
   public decimal:parser[list[integer],integer].
-  decimal --> natural || "-", N<-natural ^^ -N.
+  decimal --> natural || "-" ; N<-natural ^^ -N.
 
   public real:parser[list[integer],float].
-  real --> (M<-natural, ((".", F<-fraction(M::float,0.1), E<-exponent^^(F*E))
+  real --> (M<-natural; (("."; F<-fraction(M::float,0.1); E<-exponent^^(F*E))
              || ""^^(M::float)))
-         || "-", N<-real ^^(-N).
+         || "-"; N<-real ^^(-N).
 
   fraction:(float,float) => parser[list[integer],float].
-  fraction(SoFar,Scale) --> (D<-numeral, fraction(SoFar+Scale*(D::float),Scale*0.1))
+  fraction(SoFar,Scale) --> (D<-numeral; fraction(SoFar+Scale*(D::float),Scale*0.1))
                         || ""^^SoFar.
 
   exponent:parser[list[integer],float].
-  exponent --> "e", E<-decimal ^^ 10.0**(E::float).
+  exponent --> "e"; E<-decimal ^^ 10.0**(E::float).
 }

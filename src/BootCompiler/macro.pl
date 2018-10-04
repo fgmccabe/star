@@ -38,6 +38,11 @@ genBody(B,Bd) :-
   genBody(R,RR),
   genBind(Bnd,Lc,LL,RR,Bd).
 genBody(B,Bd) :-
+  isBinary(B,Lc,";",L,R),
+  genCall(L,Bnd,LL),
+  genBody(R,RR),
+  genBind(Bnd,Lc,LL,RR,Bd).
+genBody(B,Bd) :-
   isBinary(B,Lc,"^^",L,R),
   unary(Lc,"return",R,RR),
   genCall(L,Bnd,LL),
@@ -54,6 +59,9 @@ genCall(C,V,Cl) :-
   genCall(CC,_,Cl).
 genCall(C,void,Cl) :-
   isBinary(C,_,",",_,_),
+  genBody(C,Cl).
+genCall(C,void,Cl) :-
+  isBinary(C,_,";",_,_),
   genBody(C,Cl).
 genCall(T,void,Cl) :-
   isBinary(T,Lc,"|",L,R),
