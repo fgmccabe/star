@@ -6,19 +6,19 @@ star.q{
 
   public all e ~~ qc[e] ::= qc(cons[e],cons[e]).
 
-  public implementation all x ~~ equality[x] |: equality[qc[x]] => {.
+  public implementation all x ~~ equality[x] |: equality[qc[x]] => let{
+    smQ: all x ~~ equality[x] |: (cons[x],cons[x],cons[x],cons[x]) => boolean.
+    smQ(nil,B1,nil,B2) => smList(B1,B2).
+    smQ(nil,B1,F2,B2) => smQ(reverse(B1),nil,F2,B2).
+    smQ(F1,B1,nil,B2) => smQ(F1,B1,reverse(B2),nil).
+    smQ(cons(H1,T1),B1,cons(H2,T2),B2) => H1==H2 && smQ(T1,B1,T2,B2).
+
+    smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
+    smList(nil,nil) => true.
+    smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
+  } in {.
     qc(F1,B1) == qc(F2,B2) => smQ(F1,B1,F2,B2).
   .}
-
-  smQ: all x ~~ equality[x] |: (cons[x],cons[x],cons[x],cons[x]) => boolean.
-  smQ(nil,B1,nil,B2) => smList(B1,B2).
-  smQ(nil,B1,F2,B2) => smQ(reverse(B1),nil,F2,B2).
-  smQ(F1,B1,nil,B2) => smQ(F1,B1,reverse(B2),nil).
-  smQ(cons(H1,T1),B1,cons(H2,T2),B2) => H1==H2 && smQ(T1,B1,T2,B2).
-
-  smList:all x ~~ equality[x] |: (cons[x],cons[x]) => boolean.
-  smList(nil,nil) => true.
-  smList(cons(x,xr),cons(y,yr)) => x==y && smList(xr,yr).
 
   -- stream & sequence contracts
   public implementation all x ~~ stream[qc[x] ->> x] => {

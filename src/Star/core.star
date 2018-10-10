@@ -27,6 +27,12 @@ star.core {
     isEmpty:(c) => boolean.
   }
 
+  -- The head'n tail contract
+  public contract all c,e ~~ head[c->>e] ::= {
+    head:(c)=>option[e].
+    tail:(c)=>option[c].
+  }
+
   -- stream contract
   public contract all S,E ~~ stream[S ->> E] ::= {
     _eof:(S) => boolean.
