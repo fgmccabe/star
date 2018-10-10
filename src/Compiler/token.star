@@ -13,7 +13,7 @@ star.compiler.token{
               | fltTok(float)
               | strTok(list[stringSegment]).
 
-  public stringSegment ::= segment(string) | interpolate(locn,string,string).
+  public stringSegment ::= segment(locn,string) | interpolate(locn,list[token],string).
 
   public implementation display[tk] => {.
     disp(idQTok(Id)) => ssSeq([ss("''"),ss(Id),ss("''")]).
@@ -29,13 +29,13 @@ star.compiler.token{
   dispSegments(Segs) => Segs//disp.
 
   implementation display[stringSegment] => {.
-    disp(segment(S)) => ss(S).
-    disp(interpolate(_,S,"")) => ssSeq([ss("\\("),ss(S),ss(")")]).
-    disp(interpolate(_,S,F)) => ssSeq([ss("\\("),ss(S),ss("):"),ss(F),ss(";")]).
+    disp(segment(_,S)) => ss(S).
+    disp(interpolate(_,S,"")) => ssSeq([ss("\\("),disp(S),ss(")")]).
+    disp(interpolate(_,S,F)) => ssSeq([ss("\\("),disp(S),ss("):"),ss(F),ss(";")]).
   .}
 
   implementation equality[stringSegment] => {.
-    segment(S1) == segment(S2) => S1==S2.
+    segment(_,S1) == segment(_,S2) => S1==S2.
     interpolate(_,S1,F1) == interpolate(_,S2,F2) => S1==S2 && F1==F2.
     _ == _ default => false.
   .}
@@ -49,6 +49,10 @@ star.compiler.token{
     lftTok(S1) == lftTok(S2) => S1==S2.
     rgtTok(S1) == rgtTok(S2) => S1==S2.
     _ == _ default => false.
+  .}
+
+  public implementation equality[token] => {.
+    tok(_,T1)==tok(_,T2) => T1==T2.
   .}
 
   public implementation display[token] => {.

@@ -71,10 +71,11 @@ star.compiler.ast{
     locOf(app(Lc,_,_)) => Lc.
   .}
 
-  public unary:(locn,ast,ast) => ast.
-  unary(Lc,Op,Arg) => app(Lc,Op,tpl(locOf(Arg),"()",[Arg])).
+  public unary:(locn,string,ast) => ast.
+  unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 
-  public binary:(locn,ast,ast,ast) => ast.
-  binary(Lc,Op,L,R) => app(Lc,Op,tpl(mergeLoc(locOf(L),locOf(R)),"()",[L,R])).
+  public binary:(locn,string,ast,ast) => ast.
+  binary(Lc,Op,L,R) where Lc.=mergeLoc(locOf(L),locOf(R)) =>
+    app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,R])).
 
 }
