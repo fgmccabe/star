@@ -28,7 +28,6 @@ genParserRule(Rl,St) :-
   genBody(Rhs,Body),
   (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)).
 
-genBody(B,Bd) :-
   isRoundTuple(B,_,Els),
   reComma(Els,BB),
   genBody(BB,Bd).
