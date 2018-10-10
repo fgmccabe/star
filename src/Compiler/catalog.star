@@ -13,16 +13,12 @@ star.compiler.catalog{
   }
 
   public parseCat:(json,uri) => option[catalog].
-  parseCat(jColl(M),U) => let{
-    content = M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)).
-    vers = M["version"]>>=(jTxt(V))=>some(V::version).
-    parent = M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(resolveUri(U,PU)).
-  } in some(catalog{.
-    parent=parent.
-    vers=vers.
+  parseCat(jColl(M),U) => some(catalog{
+    parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(resolveUri(U,PU)).
+    vers=M["version"] >>= (jTxt(V)) => some(V::version).
     base=U.
-    entries=deflt(content,()=>[]).
-  .}).
+    entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
+  }).
   parseCat(_,_) => none.
 
   public loadCatalog:(uri)=>option[catalog].

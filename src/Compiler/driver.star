@@ -9,6 +9,8 @@ star.compiler{
   import star.compiler.catalog.
   import star.compiler.lexer.
   import star.compiler.location.
+  import star.compiler.opg.
+  import star.compiler.token.
 
 
   compilerOptions ::= compilerOptions(string,string).
@@ -48,6 +50,12 @@ star.compiler{
   processPkgs:(list[string],catalog,fileRepo,uri) => ().
   processPkgs(Names,Cat,Repo,U) => ().
 
-
+  processPkg:(string,catalog) => ().
+  processPkg(Nm,Cat) where
+    (U,P) ^= resolveInCatalog(Cat,Nm) &&
+    Txt ^= getResource(U) &&
+    Init .= initSt(P,Txt::list[integer]) &&
+    Toks .= allTokens(Init) &&
+    _ .= _logmsg("Toks = \(Toks)") => ().
 
 }

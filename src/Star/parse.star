@@ -25,6 +25,12 @@ star.parse{
   public _test:all p,s,t ~~ stream[s->>t] |: ((t)=>option[p]) => parser[s,p].
   _test(P) => _item >>= (Ch) => (X^=P(Ch) ? return X || zed).
 
+  public _pred:all p,s,t ~~ stream[s->>t] |: (()=>option[p]) => parser[s,p].
+  _pred(P) => let{
+    check(S) where X^=P() => [(X,S)].
+    check(_) => [].
+  } in parser(check).
+
   public _tk:all s,t ~~ stream[s->>t], equality[t]|:(t)=>parser[s,t].
   _tk(Chr) => _sat((Ch)=>Ch==Chr).
 

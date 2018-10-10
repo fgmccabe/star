@@ -68,7 +68,8 @@ star.compiler.lexer{
     (Nx,0c\\) ^= nextChr(St) &&
     (_,0c() ^= nextChr(Nx) &&
     (St1,Inter) ^= interpolation(Nx) => readString(St1,[SoFar..,Inter]).
-  readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) => readString(St1,[SoFar..,segment(Seg)]).
+  readString(St,SoFar) where (St1,Seg) ^= readStr(St,[]) =>
+    readString(St1,[SoFar..,segment(makeLoc(St,St1),Seg)]).
 
   readStr:(tokenState,list[integer]) => option[(tokenState,string)].
   readStr(nextChr^(Nx,0c"),Chrs) => some((Nx,Chrs::string)).
@@ -80,7 +81,8 @@ star.compiler.lexer{
   interpolation(St) where
       (St1,Chr) ^= nextChr(St) &&
       (St2,Inter) ^= bracketCount(St,St1,Chr,[],[]) &&
-      (St3,Format) ^= readFormat(St2) => some((St3,interpolate(makeLoc(St,St3),Inter,Format))).
+      (St3,Format) ^= readFormat(St2) =>
+        some((St3,interpolate(makeLoc(St,St3),allTokens(interSt(St1,Inter)),Format))).
 
   bracketCount:(tokenState,tokenState,integer,list[integer],list[integer]) => option[(tokenState,string)].
   bracketCount(_,St1,Cl,[Cl,..Stk],Chrs) where (St2,Ch)^=nextChr(St1) =>
@@ -103,10 +105,10 @@ star.compiler.lexer{
   readUntil(St,Qt,Chrs) where (Nx,Ch) ^= charRef(St) => readUntil(Nx,Qt,[Chrs..,Ch]).
   readUntil(_,_,_) => none.
 
-
   stringBlob:(tokenState,tokenState,list[integer]) => option[(tokenState,token)].
-  stringBlob(St,St0,Sf) where St1 ^= lookingAt(St,[0c\",0c\",0c\"]) =>
-    some((St1,tok(makeLoc(St0,St1),strTok([segment(Sf::string)])))).
+  stringBlob(St,St0,Sf) where St1 ^= lookingAt(St,[0c\",0c\",0c\"]) &&
+    Lc .= makeLoc(St0,St1) =>
+    some((St1,tok(Lc,strTok([segment(Lc,Sf::string)])))).
   stringBlob(St,St0,Sf) where (St1,Nx) ^= nextChr(St) => stringBlob(St1,St0,[Sf..,Nx]).
 
   charRef(St) where Nx ^= lookingAt(St,[0c\\]) && (Nxt,Ch) ^= nextChr(Nx) => backslashRef(Nxt,Ch).
@@ -156,7 +158,7 @@ star.compiler.lexer{
   readExponent(St,St0,Mn) => some((St,tok(makeLoc(St0,St),fltTok(Mn)))).
 
   -- We define a tracking state to allow us to collect locations
-  public tokenState ::= tokenState(pkg,integer,integer,integer,list[integer]).
+  tokenState ::= tokenState(pkg,integer,integer,integer,list[integer]).
 
   atEof:(tokenState) => boolean.
   atEof(tokenState(_,_,_,_,Str)) => _eof(Str).
@@ -173,9 +175,11 @@ star.compiler.lexer{
   preChar(tokenState(Pkg,Line,Col,Off,Txt),Chr) =>
     tokenState(Pkg,Line,Col-1,Off-1,[Chr,..Txt]).
 
-
-  public initSt:(pkg,list[integer])=>tokenState.
+  initSt:(pkg,list[integer])=>tokenState.
   initSt(P,Txt) => tokenState(P,1,0,0,Txt).
+
+  interSt:(tokenState,string) => tokenState.
+  interSt(tokenState(P,Ln,Cl,Off,_),Txt) => tokenState(P,Ln,Cl,Off,Txt::list[integer]).
 
   nxtSt:(tokenState) => tokenState.
   nxtSt(tokenState(Pk,Line,Col,Off,[0c\n,..Txt])) =>
