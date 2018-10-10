@@ -15,6 +15,7 @@
     whereTerm/4,
     packageName/2,pkgName/2,
     isComma/4,deComma/2,reComma/2,
+    mergeCond/4,
     findVars/3]).
 :- use_module(abstract).
 :- use_module(misc).
@@ -356,3 +357,8 @@ findVars(tuple(_,_,Els),SoFar,Vrs) :-
 findVars(integer(_,_),Vrs,Vrs).
 findVars(float(_,_),Vrs,Vrs).
 findVars(string(_,_),Vrs,Vrs).
+
+mergeCond(name(_,"true"),R,_,R) :-!.
+mergeCond(L,name(_,"true"),_,L) :-!.
+mergeCond(L,R,Lc,Cnd) :-
+  binary(Lc,"&&",L,R,Cnd).

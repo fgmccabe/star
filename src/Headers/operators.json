@@ -101,9 +101,9 @@
   {
     "infixOp": "^^",
     "priorities": [
-      909,
-      910,
-      909
+      911,
+      912,
+      911
     ],
     "desc": "Overall output from a parser rule"
   },
@@ -118,9 +118,9 @@
   {
     "infixOp": ";",
     "priorities": [
-      909,
-      910,
-      910
+      914,
+      915,
+      915
     ],
     "desc": "sequencing operator"
   },
@@ -244,9 +244,9 @@
   {
     "infixOp": "where",
     "priorities": [
-      929,
-      930,
-      929
+      910,
+      911,
+      910
     ],
     "desc": "semantic guard"
   },
