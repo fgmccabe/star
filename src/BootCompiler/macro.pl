@@ -19,23 +19,15 @@ rewriteStmts([St|More],[StX|Stmts]) :-
 rewriteStmt(St,StX) :-
   isParsingRule(St,_,_,_),!,
   genParserRule(St,StX).
-  %display(StX).
 rewriteStmt(X,X).
 
 % handle grammar notation
 genParserRule(Rl,St) :-
   isParsingRule(Rl,Lc,Hd,Rhs),
   genBody(Rhs,Body),
-  (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)).
+  (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)),
+  display(St).
 
-  isRoundTuple(B,_,Els),
-  reComma(Els,BB),
-  genBody(BB,Bd).
-genBody(B,Bd) :-
-  isBinary(B,Lc,",",L,R),
-  genCall(L,Bnd,LL),
-  genBody(R,RR),
-  genBind(Bnd,Lc,LL,RR,Bd).
 genBody(B,Bd) :-
   isBinary(B,Lc,";",L,R),
   genCall(L,Bnd,LL),
@@ -47,18 +39,14 @@ genBody(B,Bd) :-
   genCall(L,Bnd,LL),
   genBind(Bnd,Lc,LL,RR,Bd).
 genBody(B,Bd) :-
+  isParen(B,I),!,
+  genBody(I,Bd).
+genBody(B,Bd) :-
   genCall(B,_,Bd).
 
 genCall(C,V,Cl) :-
-  isRoundTuple(C,_Lc,Els),
-  reComma(Els,CC),!,
-  genCall(CC,V,Cl).
-genCall(C,V,Cl) :-
   isRtn(C,_,V,CC),
   genCall(CC,_,Cl).
-genCall(C,void,Cl) :-
-  isBinary(C,_,",",_,_),
-  genBody(C,Cl).
 genCall(C,void,Cl) :-
   isBinary(C,_,";",_,_),
   genBody(C,Cl).
@@ -94,17 +82,22 @@ genCall(T,Bnd,Cl) :-
 genCall(T,void,Cl) :-
   isString(T,Lc,_),
   unary(Lc,"_str",T,Cl).
-genCall(T,void,Cl) :-
-  isWhere(T,Lc,P,Cnd),!,
-  genCall(P,_,Pr),
-  conditional(Lc,Cnd,Pr,name(Lc,"zed"),Cl).
+genCall(T,V,Cl) :-
+  isBraceTuple(T,Lc,[C]),!,
+  genCond(Lc,C,V,Cl).
+genCall(T,V,Cl) :-
+  isParen(T,I),!,
+  genCall(I,V,Cl).
 genCall(T,void,T).
 
-genSquare([E],tuple(Lc,"()",[tuple(Lc,"()",Vrs)]),Bd) :-
+genSquare([E],V,Bd) :-
   locOfAst(E,Lc),
   (isWhere(E,_,Arg,Cond) ; E=Arg,Cond=name(Lc,"true")),
   ptnVars(E,[],Vrs),
-  (Vrs=[Vr] -> unary(Lc,"some",Vr,Rhs) ; unary(Lc,"some",tuple(Lc,"()",Vrs),Rhs)),
+  roundTuple(Lc,Vrs,VV),
+  (Vrs=[Vr] ->
+    unary(Lc,"some",Vr,Rhs), V=VV;
+    unary(Lc,"some",VV,Rhs), roundTuple(Lc,[VV],V)),
   genstr("Q",Nm),
   unary(Lc,Nm,Arg,Lhs),
   eqn(Lc,Lhs,Cond,Rhs,Eqn),
@@ -112,6 +105,19 @@ genSquare([E],tuple(Lc,"()",[tuple(Lc,"()",Vrs)]),Bd) :-
   eqn(Lc,Anon,name(Lc,"true"),name(Lc,"none"),Deflt),
   mkLetDef(Lc,[Eqn,Deflt],name(Lc,Nm),Fun),
   unary(Lc,"_test",Fun,Bd).
+
+genCond(Lc,C,V,Cl) :-
+  condVars(C,[],Vrs),
+  roundTuple(Lc,Vrs,Arg),
+  (Vrs=[Vr] ->
+    unary(Lc,"some",Vr,Rhs), V=Arg;
+    unary(Lc,"some",Arg,Rhs), roundTuple(Lc,[Arg],V)),
+  genstr("P",Nm),
+  zeroary(Lc,Nm,Empty),
+  eqn(Lc,Empty,C,Rhs,E1),
+  eqn(Lc,Empty,name(Lc,"true"),name(Lc,"none"),E2),
+  mkLetDef(Lc,[E1,E2],name(Lc,Nm),Fun),
+  unary(Lc,"_pred",Fun,Cl).
 
 genBind(void,Lc,LL,RR,Bd) :-
   anonArg(Lc,A),
@@ -130,6 +136,7 @@ ptnVars(T,SoFar,Vrs) :-
   isWhere(T,_,Lhs,Rhs),!,
   ptnVars(Lhs,SoFar,V1),
   condVars(Rhs,V1,Vrs).
+ptnVars(name(_,"_"),SoFar,SoFar) :-!.
 ptnVars(name(Lc,V),SoFar,Vrs) :-
   is_member(name(_,V),SoFar) -> Vrs=SoFar ; Vrs = [name(Lc,V)|SoFar].
 ptnVars(app(_,_,Args),SoFar,Vrs) :-
@@ -150,10 +157,10 @@ condVars(C,V,Vx) :-
   condVars(R,V0,Vx).
 condVars(C,V,Vx) :-
   isBinary(C,_,".=",L,_),!,
-  condVars(L,V,Vx).
+  ptnVars(L,V,Vx).
 condVars(C,V,Vx) :-
   isBinary(C,_,"^=",L,_),!,
-  condVars(L,V,Vx).
+  ptnVars(L,V,Vx).
 condVars(C,V,Vx) :-
   isBinary(C,_,"in",L,_),!,
   condVars(L,V,Vx).
@@ -192,11 +199,7 @@ promoteArgs([A|As],[V|NAs],C,Cx) :-
   isUnary(A,Lc,"^",AA),!,
   genIden(Lc,V),
   optionMatch(Lc,V,AA,C1),
-  extendCondition(Lc,C,C1,C2),
+  mergeCond(C,C1,Lc,C2),
   promoteArgs(As,NAs,C2,Cx).
 promoteArgs([A|As],[A|NAs],C,Cx) :-
   promoteArgs(As,NAs,C,Cx).
-
-extendCondition(_,C,name(_,"true"),C) :-!.
-extendCondition(Lc,C,C0,Cx) :-
-  binary(Lc,"&&",C0,C,Cx).
