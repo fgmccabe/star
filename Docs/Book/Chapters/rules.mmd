@@ -7,6 +7,11 @@ In general, a response to an external event goes through a series of phases:
 1. applying some form of _inference_ to the measurements to derive _facts_; and
 1. based on certain criteria, taking _action_ in response to the event.
 
+![A pipeline for making choices][Pipeline]
+
+[Pipeline]:../images/pipeline.png 
+
+
 There are many approaches to providing for such inference but one of the most robust is _rules_. A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
 
 However, when _embedding_ a different semantics there are some usability issues to consider. Classical approaches to logic are not well suited to _all_ of the above stages: it can be very effective for describing inference but is typically not as effective for expressing action.
