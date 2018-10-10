@@ -60,13 +60,13 @@ star.cons{
     rev(cons(E,L),R) => rev(L,cons(E,R)).
   }
 
-  public head:all e ~~ (cons[e]) => option[e].
-  head(cons(E,_)) => some(E).
-  head(nil) => none.
+  public implementation all x ~~ head[cons[x]->>x] => {
+    head(cons(E,_)) => some(E).
+    head(nil) => none.
 
-  public tail:all e ~~ (cons[e]) => option[cons[e]].
-  tail(cons(_,L)) => some(L).
-  tail(nil) => none.
+    tail(cons(_,T)) => some(T).
+    tail(nil) => none.
+  }
 
   public implementation all e ~~ folding[cons[e]->>e] => {
     foldRight(F,U,nil) => U.

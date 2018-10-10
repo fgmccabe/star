@@ -40,7 +40,7 @@ star.lists{
 
     _nil = _list_nil(2).
   }
-  
+
   public implementation all e ~~ sizeable[list[e]] => {
     size(L) => _list_size(L).
     isEmpty(L) => _list_empty(L).
@@ -71,4 +71,13 @@ star.lists{
   contains(X,[X,.._]) => true.
   contains(X,[_,..L]) => contains(X,L).
   contains(_,_) default => false.
+
+
+  public implementation all x ~~ head[list[x]->>x] => {
+    head(X) where \+_list_empty(X) => some(_list_nth(X,0)).
+    head(_) => none.
+
+    tail(X) where \+_list_empty(X) => some(_list_back(X,1)).
+    tail(_) => none.
+  }
 }
