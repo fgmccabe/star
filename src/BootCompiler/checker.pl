@@ -621,7 +621,6 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
     Exp = floatLit(Ng,FltTp) ;
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
-
 typeOfExp(Term,Tp,Env,Ev,ixsearch(Lc,Key,Ptn,Src,Iterator),Path) :-
   isIxSearch(Term,Lc,K,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
