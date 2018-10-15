@@ -134,8 +134,8 @@ retCode run(processPo P) {
         restoreRegisters(P);
         switch (ret.ret) {
           case Ok:
-            if (ret.rslt != Null)
-              *--SP = ret.rslt;
+            if (ret.result != Null)
+              *--SP = ret.result;
             continue;
           case Error:
             return Error;

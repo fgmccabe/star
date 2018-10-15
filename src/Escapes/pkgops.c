@@ -29,15 +29,15 @@ ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
 
     if (version != NULL) {
       if (compatiblVersion(vers, version)) {
-        ReturnStatus rt = {.ret=Ok, .rslt= trueEnum};
+        ReturnStatus rt = {.ret=Ok, .result= trueEnum};
         return rt;
       }
     }
 
-    ReturnStatus rt = {.ret=Ok, .rslt= falseEnum};
+    ReturnStatus rt = {.ret=Ok, .result= falseEnum};
     return rt;
   } else {
-    ReturnStatus rt = {.ret=ret, .rslt= voidEnum};
+    ReturnStatus rt = {.ret=ret, .result= voidEnum};
     return rt;
   }
 }
@@ -85,7 +85,7 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
   gcReleaseRoot(H, root);
 
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=ret, .rslt= (termPo) imports};
+    ReturnStatus rt = {.ret=ret, .result= (termPo) imports};
     return rt;
   } else
     return liberror(P, "_install_pkg", eFAIL);

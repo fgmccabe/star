@@ -10,6 +10,6 @@ logical sameTerm(termPo t1, termPo t2) {
 }
 
 ReturnStatus g__identical(processPo P, ptrPo tos) {
-  ReturnStatus rt = {.ret=Ok, .rslt=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
+  ReturnStatus rt = {.ret=Ok, .result=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
   return rt;
 }

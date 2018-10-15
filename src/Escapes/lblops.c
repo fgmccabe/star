@@ -17,7 +17,7 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
   integer arity = integerVal(Arg2);
 
   labelPo lbl = findLbl(label, arity);
-  ReturnStatus ret = {.ret=Ok, .rslt = findLbl(label, arity) != Null ? trueEnum : falseEnum};
+  ReturnStatus ret = {.ret=Ok, .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
 
   return ret;
 }
@@ -38,7 +38,7 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
   char label[MAX_SYMB_LEN];
   copyString2Buff(C_STR(tos[0]), label, NumberOf(label));
 
-  ReturnStatus ret = {.ret=Error, .rslt = voidEnum};
+  ReturnStatus ret = {.ret=Error, .result = voidEnum};
 
   labelPo lbl = findLbl(label, arity);
   if (lbl != Null || listSize(args) != arity) {

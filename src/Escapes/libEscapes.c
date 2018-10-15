@@ -61,12 +61,12 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
 
   switch (ret) {
     case Ok:
-      rtn.rslt = okEnum;
+      rtn.result = okEnum;
       return rtn;
     case Fail:
       return rtn;
     case Eof:
-      rtn.rslt = eofEnum;
+      rtn.result = eofEnum;
       return rtn;
     case Error: {
       heapPo H = processHeap(p);
@@ -74,7 +74,7 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       int root = gcAddRoot(H, (ptrPo) (&err));
       setArg(err, 0, (termPo) allocateString(H, msg, uniStrLen(msg)));
       gcReleaseRoot(H, root);
-      rtn.rslt = (termPo) err;
+      rtn.result = (termPo) err;
       return rtn;
     }
     default:

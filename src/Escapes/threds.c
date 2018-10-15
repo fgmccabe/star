@@ -49,7 +49,7 @@ ReturnStatus g__fork(processPo P, ptrPo tos) {
   if (pthread_create(&np->threadID, &detach, forkThread, np) != 0)
     syserr("cannot fork a thread");
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) thread};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) thread};
   return rt;
 }
 
@@ -60,14 +60,14 @@ ReturnStatus g__kill(processPo P, ptrPo tos) {
 
   if (tgt != NULL && tgt != P) {
     ps_kill(tgt);
-    ReturnStatus rt = {.ret=Ok, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=Ok, .result=voidEnum};
     return rt;
   } else
     return liberror(P, "kill", eINVAL);
 }
 
 ReturnStatus g__thread(processPo P, ptrPo tos) {
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) P->thread};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) P->thread};
   return rt;
 }
 
@@ -84,7 +84,7 @@ ReturnStatus g__thread_state(processPo P, ptrPo tos) {
   else
     st = declareEnum(state_names[tgt->state]);
   setProcessRunnable(P);
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) st};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) st};
   return rt;
 }
 
@@ -93,7 +93,7 @@ ReturnStatus g__waitfor(processPo P, ptrPo tos) {
   processPo tgt = getThreadProcess(th);
 
   if (tgt == NULL) {
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) voidEnum};
     return rt;
   } else if (tgt != P) {
     pthread_t thread = tgt->threadID;
@@ -102,7 +102,7 @@ ReturnStatus g__waitfor(processPo P, ptrPo tos) {
     switchProcessState(P, wait_term);
     if (pthread_join(thread, &result) == 0) {
       setProcessRunnable(P);
-      ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) voidEnum};
       return rt;
     } else {
       setProcessRunnable(P);
@@ -114,7 +114,7 @@ ReturnStatus g__waitfor(processPo P, ptrPo tos) {
         case EDEADLK:
           return liberror(P, "_waitfor", eDEAD);
         default: {
-          ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};
+          ReturnStatus rt = {.ret=Ok, .result=(termPo) voidEnum};
           return rt;
         }
       }
@@ -130,13 +130,13 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
   logMsg(logFile, "Abort %T at %L", msg, lc);
   stackTrace(P,logFile,True);
 
-  ReturnStatus rt = {.ret=Error, .rslt=(termPo) voidEnum};
+  ReturnStatus rt = {.ret=Error, .result=(termPo) voidEnum};
   return rt;
 }
 
 ReturnStatus g__stackTrace(processPo P, ptrPo tos) {
   stackTrace(P, logFile, False);
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) voidEnum};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) voidEnum};
   return rt;
 }

@@ -24,7 +24,7 @@ ReturnStatus g__end_of_file(processPo p, ptrPo tos) {
 
   termPo Rs = (isFileAtEof(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=Rs};
+  ReturnStatus ret = {.ret=Ok, .result=Rs};
 
   return ret;
 }
@@ -34,7 +34,7 @@ ReturnStatus g__ready_to_read(processPo p, ptrPo tos) {
 
   termPo Rs = (isInReady(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=Rs};
+  ReturnStatus ret = {.ret=Ok, .result=Rs};
 
   return ret;
 }
@@ -44,7 +44,7 @@ ReturnStatus g__ready_to_write(processPo p, ptrPo tos) {
 
   termPo Rs = (isOutReady(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=Rs};
+  ReturnStatus ret = {.ret=Ok, .result=Rs};
 
   return ret;
 }
@@ -55,10 +55,10 @@ ReturnStatus g__inchar(processPo p, ptrPo tos) {
   codePoint cp;
   retCode ret = inChar(io, &cp);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateInteger(processHeap(p), cp)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), cp)};
     return rt;
   } else {
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
     return rt;
   }
 }
@@ -83,12 +83,12 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
     return rt;
   }
 }
@@ -99,10 +99,10 @@ ReturnStatus g__inbyte(processPo p, ptrPo tos) {
   byte b;
   retCode ret = inByte(io, &b);
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateInteger(processHeap(p), b)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), b)};
     return rt;
   } else {
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
     return rt;
   }
 }
@@ -143,11 +143,11 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
     closeFile(O_IO(buffer));
     gcReleaseRoot(H, root);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) lst};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) lst};
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
     return rt;
   }
 }
@@ -177,12 +177,12 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
     return rt;
   }
 }
@@ -210,12 +210,12 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
     integer length;
     char *text = getTextFromBuffer(&length, buffer);
 
-    ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
     return rt;
   } else {
     closeFile(O_IO(buffer));
-    ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+    ReturnStatus rt = {.ret=ret, .result=voidEnum};
     return rt;
   }
 }
@@ -241,16 +241,16 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
       integer length;
       char *text = getTextFromBuffer(&length, buffer);
 
-      ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateString(processHeap(p), text, length)};
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
       closeFile(O_IO(buffer));
       return rt;
     } else {
       closeFile(O_IO(buffer));
-      ReturnStatus rt = {.ret=ret, .rslt=voidEnum};
+      ReturnStatus rt = {.ret=ret, .result=voidEnum};
       return rt;
     }
   } else {
-    ReturnStatus rt = {.ret=Error, .rslt=eNOTFND};
+    ReturnStatus rt = {.ret=Error, .result=eNOTFND};
     return rt;
   }
 }
@@ -330,10 +330,10 @@ ReturnStatus g__put_file(processPo p, ptrPo tos) {
     retCode ret = outText(io, txt, tLen);
     closeFile(O_IO(io));
 
-    ReturnStatus rt = {.ret=ret, .rslt=unitEnum};
+    ReturnStatus rt = {.ret=ret, .result=unitEnum};
     return rt;
   } else {
-    ReturnStatus rt = {.ret=Error, .rslt=eNOTFND};
+    ReturnStatus rt = {.ret=Error, .result=eNOTFND};
     return rt;
   }
 }
@@ -353,14 +353,14 @@ ReturnStatus g__stdfile(processPo p, ptrPo tos) {
 
   switch (fNo) {
     case 0:
-      rt.rslt = (termPo) stdInChnl(processHeap(p));
+      rt.result = (termPo) stdInChnl(processHeap(p));
       return rt;
     case 1:
-      rt.rslt = (termPo) stdOutChnl(processHeap(p));
+      rt.result = (termPo) stdOutChnl(processHeap(p));
       return rt;
     case 2:
     default:
-      rt.rslt = (termPo) stdErrChnl(processHeap(p));
+      rt.result = (termPo) stdErrChnl(processHeap(p));
       return rt;
   }
 }
@@ -380,7 +380,7 @@ ReturnStatus g__fposition(processPo p, ptrPo tos) {
       break;
   }
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateInteger(processHeap(p), pos)};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateInteger(processHeap(p), pos)};
   return rt;
 }
 
@@ -411,6 +411,6 @@ ReturnStatus g__flush(processPo p, ptrPo tos) {
 
 ReturnStatus g__flushall(processPo p, ptrPo tos) {
   flushOut();
-  ReturnStatus ret = {.ret=Ok, .rslt=voidEnum};
+  ReturnStatus ret = {.ret=Ok, .result=voidEnum};
   return ret;
 }
