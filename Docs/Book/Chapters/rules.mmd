@@ -127,13 +127,13 @@ In our view, there is a sweet spot between Datalog and First Order Logic. Datalo
 
 However, we must also be able to _embed_ our logic into our more regular programs. The key goal here is to maximize the benefit of providing a logical formalism whilst minimizing the burden on both the programmer and on the language implementation. This also recognizes that, while important, logical reasoning is typically only a small part of an overall system. It also recognizes the fact that gaps in the reasoning capability of a system can be patched more easily if the logic is simpler.
 
-And so, in **Star**, we highlight the _query_ aspect of logical reasoning and bless queries as first class entities in the language.
+And so, in **Star**, we highlight the _query_ aspect of logical reasoning and bless queries as first class entities in the language. 
 
 >Critically, queries have a _declarative_ semantics as well as a _programmatic_ one; this dual reading is essential if one is to be able to understand the reasoning.
 
 >Historical note: in earlier iterations of the design for embedding logic into Star, a more-or-less complete rule system was envisaged. Such inference rules would have a similar status to functions and equations do. However, a combination of complexities and edge cases (such as how to handle a combination of inputs and outputs in rules) lead the designers to radically simplify the proposal and simply focus on queries. This gave us 90% of the potential benefit of inference rules at 10% of the cost.
 
-Sometimes, a splash of logic is all we need.
+Sometimes, a splash of logic is all we need. In terms of styles of logic, our approach is most reminiscent of _answer set programming_.
 
 ### Anatomy of a Query
 
@@ -159,7 +159,9 @@ We saw an example of this earlier in our grandparent query:
 ```
 (X,Z) in parents
 ```
-As should be anticipated at this point, search is realized via a contract. This allows us to search any type — so long as the `iterable` contract is implemented for that type.
+As should be anticipated at this point, search is realized via a contract. This allows us to search any type — so long as the `iterable` contract is implemented for that type. 
+
+The final form of query condition is simply the boolean-valued expression. Note that, unlike the other forms of query condition, boolean expressions are test-only: they cannot result in bindings for query variables.
 
 #### The `iterable` contract
 The `iterable` contract is similar in intention to the `folding` contract we saw before. However, it is more tuned to supporting different kinds of combination of search.
