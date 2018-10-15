@@ -78,11 +78,6 @@ term0([lftTok("{..}",Lcx)|Tks],tuple(Lc,"{..}",Seq),Toks,rbrce) :-
   mergeLoc(Lcx,Lcy,Lc).
 term0([lftTok(Bkt,Lc0),rgtTok(Bkt,Lc2)|Toks],tuple(Lc,Bkt,[]),Toks,rbrce) :-
   mergeLoc(Lc0,Lc2,Lc).
-term0([lftTok(Bkt,Lcx)|Tks],T,Toks,rbrce) :-
-  term(Tks,2000,Seq,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok(Bkt,Lcy),Lcy,"missing close paren, got %s, left at %s",[Lcx]),
-  mergeLoc(Lcx,Lcy,Lc),
-  tupleize(Seq,Lc,Bkt,T).
 term0(Tks,T,Toks,Lst) :- term00(Tks,Op,RTks,LLst), termArgs(RTks,Op,T,Toks,LLst,Lst).
 
 term00([idTok(I,Lc)|Toks],T,Toks,id) :-
