@@ -15,6 +15,7 @@ typedef enum {
 typedef struct _break_point_ *breakPointPo;
 
 retCode addBreakPoint(breakPointPo bp);
+retCode isValidBreakPoint(breakPointPo b);
 logical lineBreakPointHit(normalPo loc);
 logical callBreakPointHit(labelPo lbl);
 retCode clearBreakPoint(breakPointPo bp);

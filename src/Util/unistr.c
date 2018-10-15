@@ -67,7 +67,7 @@ retCode prevPoint(const char *src, integer *start, codePoint *code) {
   long pos = *start;
 
   if (pos > 0) {
-    unsigned char b = (unsigned char)src[--pos];
+    unsigned char b = (unsigned char) src[--pos];
 
     if (b <= 0x7f) {
       *code = (codePoint) b;
@@ -79,7 +79,7 @@ retCode prevPoint(const char *src, integer *start, codePoint *code) {
       while (UCR(b)) {
         pt = pt | (UXR(b) << factor);
         factor += 6;
-        b = (unsigned char)src[--pos];
+        b = (unsigned char) src[--pos];
       }
       if (UC80(b)) {
         *code = pt | (UX80(b) << factor);
@@ -97,7 +97,7 @@ retCode prevPoint(const char *src, integer *start, codePoint *code) {
 }
 
 integer backCodePoint(char *src, integer from, integer count) {
-  while (count-- > 0 && from>0) {
+  while (count-- > 0 && from > 0) {
     codePoint ch;
     if (prevPoint(src, &from, &ch) == Ok)
       continue;
@@ -106,7 +106,6 @@ integer backCodePoint(char *src, integer from, integer count) {
   }
   return from;
 }
-
 
 integer countCodePoints(const char *src, integer start, integer end) {
   integer count = 0;
@@ -160,10 +159,10 @@ codePoint nextCodePoint(const char *src, integer *start, integer end) {
 
 codePoint codePointAt(const char *src, integer pt, integer end) {
   codePoint ch;
-  if(nxtPoint(src,&pt,end,&ch) == Ok)
+  if (nxtPoint(src, &pt, end, &ch) == Ok)
     return ch;
   else
-    return (codePoint)0;
+    return (codePoint) 0;
 }
 
 integer uniStrLen(const char *s) {
@@ -173,10 +172,10 @@ integer uniStrLen(const char *s) {
   return count;
 }
 
-integer uniNStrLen(const char *s,integer max){
-  integer count=0;
-  for(integer ix=0;ix<max;ix++){
-    if(*s++==0)
+integer uniNStrLen(const char *s, integer max) {
+  integer count = 0;
+  for (integer ix = 0; ix < max; ix++) {
+    if (*s++ == 0)
       return count;
     else
       count++;
@@ -527,30 +526,47 @@ char *uniLast(char *s, integer l, codePoint c) {
     return NULL;
 }
 
-logical uniIsTrivial(char *s,integer len){
+logical uniIsTrivial(char *s, integer len) {
   integer pos = 0;
-  while(pos<len){
-    codePoint ch = nextCodePoint(s,&pos,len);
-    if(!isSpaceChar(ch))
+  while (pos < len) {
+    codePoint ch = nextCodePoint(s, &pos, len);
+    if (!isSpaceChar(ch))
       return False;
   }
   return True;
 }
 
-integer uniTrim(char *s,integer sLen,char *spaces){
-  integer ix = 0;
-  integer spSize = uniStrLen(spaces);
+retCode uniTrim(const char *s, integer sLen, char *front, char *trail, char *out, integer outLen) {
+  const integer frSize = uniStrLen(front);
+  const integer trSize = uniStrLen(trail);
 
-  while(ix<sLen){
-    integer pos = ix;
-    codePoint ch = nextCodePoint(s,&ix,sLen);
-    integer index = uniIndexOf(spaces, spSize, 0, ch);
-    if(index>=0){
-      s[pos] = '\0';
-      return pos;
-    }
+  integer fx = 0;
+  integer tx = sLen;
+
+  while (fx < sLen) {
+    integer px = fx;
+    codePoint ch = nextCodePoint(s, &px, sLen);
+    if (uniIndexOf(front, frSize, 0, ch) >= 0) {
+      fx = px;
+      continue;
+    } else
+      break;
   }
-  return sLen;
+
+  while (tx >= fx) {
+    codePoint ch;
+    integer px = tx;
+    if (prevPoint(s, &px, &ch) == Ok) {
+      if (uniIndexOf(trail, trSize, 0, ch) >= 0) {
+        tx = px;
+        continue;
+      } else
+        break;
+    } else
+      break;
+  }
+
+  return uniNCpy(out, outLen, &s[fx], tx - fx);
 }
 
 logical uniIsLit(const char *s1, const char *s2) {
@@ -599,8 +615,8 @@ integer uniNHash(const char *name, long len) {
   return hash64(hash);
 }
 
-integer hash64(integer ix){
-  return (uint64)ix&((uint64)LARGE_INT64);
+integer hash64(integer ix) {
+  return (uint64) ix & ((uint64) LARGE_INT64);
 }
 
 char *uniEndStr(char *s) {
@@ -628,16 +644,16 @@ retCode uniLower(const char *s, integer sLen, char *d, integer dLen) {
 }
 
 char *uniDuplicate(const char *s) {
-  size_t len = (size_t)uniStrLen(s)+1;
+  size_t len = (size_t) uniStrLen(s) + 1;
   char *copy = (char *) malloc(len * sizeof(byte));
 
   memcpy(copy, s, len);
   return copy;
 }
 
-char * uniDupl(char *str,integer len){
-  char *copy = (char *)malloc(len*sizeof(char));
-  memcpy(copy,str,len);
+char *uniDupl(char *str, integer len) {
+  char *copy = (char *) malloc(len * sizeof(char));
+  memcpy(copy, str, len);
   return copy;
 }
 

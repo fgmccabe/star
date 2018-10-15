@@ -60,6 +60,19 @@ logical isCallBreakPoint(breakPointPo b, const char *nm, integer arity) {
   return False;
 }
 
+retCode isValidBreakPoint(breakPointPo b) {
+  switch (b->bkType) {
+    case callBreak: {
+      labelPo lbl = findLbl(b->nm, b->lineNo);
+      return lbl != Null ? Ok : Error;
+    }
+    case lineBreak:
+      return Fail;
+    default:
+      return Error;
+  }
+}
+
 logical lineBreakPointHit(normalPo loc) {
   char pkgNm[MAX_SYMB_LEN];
 
@@ -134,16 +147,16 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
   while (ix < bLen && buffer[ix] == ' ')
     ix++;
 
-  if(codePointAt(buffer,ix,bLen) == (codePoint)'\''){
-    codePoint delim = nextCodePoint(buffer,&ix,bLen);
+  if (codePointAt(buffer, ix, bLen) == (codePoint) '\'') {
+    codePoint delim = nextCodePoint(buffer, &ix, bLen);
     pState = inNme;
 
-    while(ix<bLen){
-      codePoint cp = nextCodePoint(buffer,&ix,bLen);
+    while (ix < bLen) {
+      codePoint cp = nextCodePoint(buffer, &ix, bLen);
 
-      if(cp!=delim){
+      if (cp != delim) {
         appendCodePoint(bp->nm, &b, NumberOf(bp->nm), cp);
-      } else{
+      } else {
         appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
         break;
       }
@@ -243,12 +256,14 @@ DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
+    ret = isValidBreakPoint(&bp);
+  if (ret == Ok)
     ret = addBreakPoint(&bp);
   if (ret != Ok) {
     outMsg(logFile, "Could not set spy point on %s\n", line);
     outMsg(logFile, "usage: +pkg/Ln\n%_");
   } else
-    outMsg(logFile, "spy point set on %s\n%_", line);
+    outMsg(logFile, "%sspy point set on %s\n%_", bp.bkType == callBreak ? "call " : "line ", line);
   return moreDebug;
 }
 
