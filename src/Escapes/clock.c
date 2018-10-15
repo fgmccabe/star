@@ -38,7 +38,7 @@ void initTime(void) {
 
 ReturnStatus g__delay(processPo P, ptrPo tos) {
   double dx = floatVal(tos[0]);
-  ReturnStatus ret = {.rslt=Null, .ret=Ok};
+  ReturnStatus ret = {.result=Null, .ret=Ok};
 
   struct timespec tm;
   double seconds;
@@ -67,7 +67,7 @@ ReturnStatus g__delay(processPo P, ptrPo tos) {
 
 ReturnStatus g__sleep(processPo P, ptrPo tos) {
   double f = floatVal(*tos);
-  ReturnStatus ret = {.rslt=Null, .ret=Ok};
+  ReturnStatus ret = {.result=Null, .ret=Ok};
 
   struct timeval now;
   double seconds;
@@ -116,7 +116,7 @@ ReturnStatus g__sleep(processPo P, ptrPo tos) {
 ReturnStatus g__now(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(processHeap(P), get_time());
 
-  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
+  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
   return ret;
 }
 
@@ -124,7 +124,7 @@ ReturnStatus g__now(processPo P, ptrPo tos) {
 ReturnStatus g__today(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(processHeap(P), get_date());
 
-  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
+  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
   return ret;
 }
 
@@ -139,7 +139,7 @@ double get_ticks(void) {
 ReturnStatus g__ticks(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(currHeap, get_ticks());
 
-  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .rslt=now};
+  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
   return ret;
 }
 

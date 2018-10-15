@@ -215,7 +215,7 @@ ReturnStatus liberror(processPo P, char *name, termPo code) {
 
   gcReleaseRoot(H, root);
 
-  ReturnStatus rt = {.ret=Error, .rslt=(termPo) err};
+  ReturnStatus rt = {.ret=Error, .result=(termPo) err};
   return rt;
 }
 

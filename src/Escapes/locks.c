@@ -8,7 +8,7 @@
 ReturnStatus g__newLock(processPo p, ptrPo tos) {
   lockPo lck = allocateLock(processHeap(p));
 
-  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) lck};
+  ReturnStatus ret = {.ret=Ok, .result=(termPo) lck};
   return ret;
 }
 

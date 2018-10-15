@@ -41,7 +41,7 @@ ReturnStatus g__date2time(processPo p, ptrPo tos) {
 
   time_t when = mktime(&now);
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateFloat(processHeap(p), when + fraction)};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateFloat(processHeap(p), when + fraction)};
   return rt;
 }
 
@@ -64,7 +64,7 @@ ReturnStatus g__utc2time(processPo p, ptrPo tos) {
 
   time_t when = timegm(&now);
 
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) allocateFloat(processHeap(p), when + fraction)};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateFloat(processHeap(p), when + fraction)};
   return rt;
 }
 
@@ -107,7 +107,7 @@ ReturnStatus g__time2date(processPo p, ptrPo tos) {
   setArg(dte, DATE_ZONE, (termPo) zone);
 
   gcReleaseRoot(H, root);
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) dte};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) dte};
   return rt;
 }
 
@@ -151,6 +151,6 @@ ReturnStatus g__time2utc(processPo p, ptrPo tos) {
   setArg(dte, DATE_ZONE, (termPo) zone);
 
   gcReleaseRoot(H, root);
-  ReturnStatus rt = {.ret=Ok, .rslt=(termPo) dte};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) dte};
   return rt;
 }

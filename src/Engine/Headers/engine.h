@@ -32,7 +32,7 @@ typedef enum {
 
 typedef struct _return_code_ {
   retCode ret;
-  termPo rslt;
+  termPo result;
 } ReturnStatus;
 
 extern processPo newProcess(methodPo mtd);

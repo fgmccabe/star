@@ -13,14 +13,14 @@ ReturnStatus g__cell(processPo p, ptrPo tos) {
   termPo content = tos[0];
   cellPo cell = newCell(processHeap(p), content);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) cell};
+  ReturnStatus ret = {.ret=Ok, .result=(termPo) cell};
 
   return ret;
 }
 
 ReturnStatus g__get(processPo p, ptrPo tos) {
   cellPo cell = C_CELL(tos[0]);
-  ReturnStatus ret = {.ret=Ok, .rslt=getCell(cell)};
+  ReturnStatus ret = {.ret=Ok, .result=getCell(cell)};
   return ret;
 }
 
@@ -30,7 +30,7 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
 
   setCell(Cell, Content);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=(termPo) Cell};
+  ReturnStatus ret = {.ret=Ok, .result=(termPo) Cell};
 
   return ret;
 }
@@ -46,7 +46,7 @@ static globalPo globalLabel(termPo t) {
 ReturnStatus g__isDefinedVr(processPo p, ptrPo tos) {
   globalPo gv = globalLabel(tos[0]);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=glbIsSet(gv) ? trueEnum : falseEnum};
+  ReturnStatus ret = {.ret=Ok, .result=glbIsSet(gv) ? trueEnum : falseEnum};
 
   return ret;
 }
@@ -54,7 +54,7 @@ ReturnStatus g__isDefinedVr(processPo p, ptrPo tos) {
 ReturnStatus g__definedVr(processPo p, ptrPo tos) {
   globalPo gv = globalLabel(tos[0]);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=getGlobal(gv)};
+  ReturnStatus ret = {.ret=Ok, .result=getGlobal(gv)};
 
   return ret;
 }
@@ -64,7 +64,7 @@ ReturnStatus g__defineVr(processPo p, ptrPo tos) {
   termPo vl = tos[1];
   setGlobalVar(gv, vl);
 
-  ReturnStatus ret = {.ret=Ok, .rslt=trueEnum};
+  ReturnStatus ret = {.ret=Ok, .result=trueEnum};
 
   return ret;
 }

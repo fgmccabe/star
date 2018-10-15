@@ -26,7 +26,7 @@ ReturnStatus g__listen(processPo P, ptrPo tos) {
   if (listen == NULL)
     return liberror(P, "_listen", eNOPERM);
   else {
-    ReturnStatus ret = {.ret=Ok, .rslt =(termPo) allocateIOChnnl(processHeap(P), listen)};
+    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), listen)};
     return ret;
   }
 }
@@ -89,7 +89,7 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
 
         gcReleaseRoot(H, root);
 
-        ReturnStatus rt = {.ret=Ok, .rslt =(termPo) reslt};
+        ReturnStatus rt = {.ret=Ok, .result =(termPo) reslt};
 
         return rt;
       }
@@ -130,7 +130,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
 
       gcReleaseRoot(H, root);
 
-      ReturnStatus rt = {.ret=Ok, .rslt =(termPo) reslt};
+      ReturnStatus rt = {.ret=Ok, .result =(termPo) reslt};
 
       return rt;
     }
@@ -160,7 +160,7 @@ ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
   }
 
   gcReleaseRoot(H, root);
-  ReturnStatus rt = {.ret=Ok, .rslt =(termPo) ipList};
+  ReturnStatus rt = {.ret=Ok, .result =(termPo) ipList};
 
   return rt;
 }
@@ -176,7 +176,7 @@ ReturnStatus g__iptohost(processPo P, ptrPo tos) {
 
   if (host != NULL) {
     stringPo Host = allocateCString(H, host);
-    ReturnStatus rt = {.ret=Ok, .rslt =(termPo) Host};
+    ReturnStatus rt = {.ret=Ok, .result =(termPo) Host};
     return rt;
   } else
     return liberror(P, "_iptohost", eNOTFND);

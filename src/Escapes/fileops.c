@@ -22,7 +22,7 @@ ReturnStatus g__cwd(processPo p, ptrPo tos) {
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(p));
   termPo cwd = (termPo) allocateString(processHeap(p), cwBuffer, uniStrLen(cwBuffer));
 
-  ReturnStatus rtn = {.rslt = cwd, .ret=Ok};
+  ReturnStatus rtn = {.result = cwd, .ret=Ok};
   return rtn;
 }
 
@@ -217,7 +217,7 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
     gcReleaseRoot(H, root);
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .rslt = (termPo) list};
+    ReturnStatus ret = {.ret=Ok, .result = (termPo) list};
     return ret;
   }
 }
@@ -260,7 +260,7 @@ ReturnStatus g__file_mode(processPo p, ptrPo tos) {
         return liberror(p, FILE_MODE, eNOTFND);
     }
   } else {
-    ReturnStatus ret = {.ret=Ok, .rslt = (termPo) allocateInteger(processHeap(p), buf.st_mode)};
+    ReturnStatus ret = {.ret=Ok, .result = (termPo) allocateInteger(processHeap(p), buf.st_mode)};
 
     setProcessRunnable(p);
     return ret;
@@ -307,10 +307,10 @@ ReturnStatus g__file_present(processPo p, ptrPo tos) {
   char *acFn = resolveFileName(p, fn, fnLen, buff, NumberOf(buff));
 
   switchProcessState(p, wait_io);
-  termPo present = filePresent(acFn)==Ok ? trueEnum : falseEnum;
+  termPo present = filePresent(acFn) == Ok ? trueEnum : falseEnum;
   setProcessRunnable(p);
 
-  ReturnStatus ret = {.ret=Ok, .rslt = present};
+  ReturnStatus ret = {.ret=Ok, .result = present};
 
   return ret;
 }
@@ -326,7 +326,7 @@ ReturnStatus g__isdir(processPo p, ptrPo tos) {
   retCode present = isDirectory(acFn);
   setProcessRunnable(p);
 
-  ReturnStatus ret = {.ret=Ok, .rslt = present ? trueEnum : falseEnum};
+  ReturnStatus ret = {.ret=Ok, .result = present == Ok ? trueEnum : falseEnum};
 
   return ret;
 }
@@ -406,7 +406,7 @@ ReturnStatus g__file_type(processPo P, ptrPo tos) {
   else
     return liberror(P, "__file_type", eINVAL);
 
-  ReturnStatus ret = {.ret=Ok, .rslt =type};
+  ReturnStatus ret = {.ret=Ok, .result =type};
 
   return ret;
 }
@@ -451,7 +451,7 @@ ReturnStatus g__file_size(processPo P, ptrPo tos) {
 
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .rslt =details};
+    ReturnStatus ret = {.ret=Ok, .result =details};
 
     return ret;
   }
@@ -509,7 +509,7 @@ ReturnStatus g__file_date(processPo P, ptrPo tos) {
 
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .rslt =(termPo) triple};
+    ReturnStatus ret = {.ret=Ok, .result =(termPo) triple};
 
     return ret;
   }
@@ -555,7 +555,7 @@ ReturnStatus g__file_modified(processPo P, ptrPo tos) {
 
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .rslt =mtime};
+    ReturnStatus ret = {.ret=Ok, .result =mtime};
 
     return ret;
   }
@@ -575,7 +575,7 @@ ReturnStatus g__openInFile(processPo P, ptrPo tos) {
   ioPo file = openInFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .rslt =(termPo) allocateIOChnnl(processHeap(P), file)};
+    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
     return ret;
   } else
     return liberror(P, "_openInFile", eNOTFND);
@@ -595,7 +595,7 @@ ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
   ioPo file = openOutFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .rslt =(termPo) allocateIOChnnl(processHeap(P), file)};
+    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
     return ret;
   } else
     return liberror(P, "_openOutFile", eNOTFND);
@@ -615,7 +615,7 @@ ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
   ioPo file = openAppendFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .rslt =(termPo) allocateIOChnnl(processHeap(P), file)};
+    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
     return ret;
   } else
     return liberror(P, "_openAppendFile", eNOTFND);
@@ -635,7 +635,7 @@ ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
   ioPo file = openInOutAppendFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .rslt =(termPo) allocateIOChnnl(processHeap(P), file)};
+    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
     return ret;
   } else
     return liberror(P, "_openAppendIOFile", eNOTFND);
@@ -653,21 +653,21 @@ ioEncoding pickEncoding(integer k) {
 }
 
 char *resolveFileName(processPo p, const char *fn, integer fnLen, char *buff, integer buffLen) {
-  char wd[MAXFILELEN];
-
-  uniNCpy(wd, NumberOf(wd), processWd(p), uniStrLen(processWd(p)));
-  integer wdLen = uniStrLen(wd);
-
   if (fn[0] == '/') {
     uniNCpy(buff, buffLen, fn, fnLen);
     return buff;
   } else {
     char fname[MAXFILELEN];
-    uniNCpy(fname, NumberOf(fname), fn, fnLen);
+    uniTrim(fn, fnLen, "", "/", fname, NumberOf(fname));
+    fnLen = uniStrLen(fname);
 
+    char wd[MAXFILELEN];
+    uniTrim(processWd(p), uniStrLen(processWd(p)), "", "/", wd, NumberOf(wd));
+    integer wdLen = uniStrLen(wd);
     integer pos = 0;
+
     while (pos < fnLen && fname[pos] == '.') {
-      if (fname[pos + 1] == '.' && fname[pos + 2] == '/') {
+      if (pos < fnLen - 2 && fname[pos + 1] == '.' && fname[pos + 2] == '/') {
         integer last = uniLastIndexOf(wd, wdLen, '/');
         if (last >= 0) {
           wdLen = last;
@@ -675,9 +675,11 @@ char *resolveFileName(processPo p, const char *fn, integer fnLen, char *buff, in
           pos += 3;
         } else
           break;
-      } else if (fname[pos + 1] == '/') {
+      } else if (pos < fnLen - 1 && fname[pos + 1] == '/') {
         pos += 2;
-      } else
+      } else if (pos == fnLen - 1)
+        pos++;
+      else
         break;
     }
     strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
