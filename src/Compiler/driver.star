@@ -1,19 +1,19 @@
 star.compiler{
   import star.
   import star.cmdOpts.
+  import star.pkg.
   import star.resources.
   import star.uri.
 
   import star.repo.file.
 
+  import star.compiler.ast.
   import star.compiler.catalog.
-  import star.compiler.lexer.
+  import star.compiler.errors.
+  import star.compiler.parser.
   import star.compiler.location.
-  import star.compiler.opg.
-  import star.compiler.token.
 
-
-  compilerOptions ::= compilerOptions(string,string).
+  compilerOptions ::= compilerOptions(uri,uri).
 
   repoOption:optionsProcessor[compilerOptions].
   repoOption = {
@@ -21,7 +21,7 @@ star.compiler{
     alternatives = [].
     usage = "-R dir -- directory of repository".
     validator = some(isDir).
-    setOption(R,compilerOptions(_,W)) => compilerOptions(R,W).
+    setOption(R,compilerOptions(_,W)) where NR^=resolveUri(W,^parseUri(R)) => compilerOptions(NR,W).
   }
 
   wdOption:optionsProcessor[compilerOptions].
@@ -30,32 +30,32 @@ star.compiler{
     alternatives = [].
     usage = "-W dir -- working directory".
     validator = some(isDir).
-    setOption(W,compilerOptions(R,_)) => compilerOptions(R,W).
+    setOption(W,compilerOptions(R,OW)) where NW^=resolveUri(OW,^parseUri(W))=> compilerOptions(R,NW).
   }
 
   public _main:(list[string])=>().
-  _main(Args) =>
-    handleCmdLineOpts(processOptions(Args,[repoOption,wdOption],compilerOptions("file:"++_repo(),"file:"++_cwd()))).
+  _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
+    handleCmdLineOpts(processOptions(Args,[repoOption,wdOption],compilerOptions(RI,WI))).
 
   handleCmdLineOpts:(either[(compilerOptions,list[string]),string])=>().
-  handleCmdLineOpts(either((compilerOptions(RepoDir,Cwd),Args))) where
-    CW ^= parseUri(Cwd) &&
-    RU ^= parseUri(RepoDir) &&
-    RD .= resolveUri(CW,RU) &&
-    Repo .= openRepository(RD) &&
+  handleCmdLineOpts(either((compilerOptions(RU,CU),Args))) where
+    _ .= _logmsg("CU=\(CU), RU=\(RU)") &&
+    Repo .= openRepository(resolveUri(CU,RU)) &&
     CatUri ^= parseUri("catalog") &&
-    Cat ^= loadCatalog(resolveUri(CW,CatUri)) =>
-    processPkgs(Args,Cat,Repo,CW).
+    Cat ^= loadCatalog(resolveUri(CU,CatUri)) =>
+    processPkgs(Args,Cat,Repo,CU).
 
   processPkgs:(list[string],catalog,fileRepo,uri) => ().
-  processPkgs(Names,Cat,Repo,U) => ().
+  processPkgs([],Cat,Repo,U) => ().
+  processPkgs([Nm,..Rest],Cat,Repo,CWD) where
+    _ .= processPkg(Nm,Cat) =>
+      processPkgs(Rest,Cat,Repo,CWD).
 
   processPkg:(string,catalog) => ().
   processPkg(Nm,Cat) where
     (U,P) ^= resolveInCatalog(Cat,Nm) &&
-    Txt ^= getResource(U) &&
-    Init .= initSt(P,Txt::list[integer]) &&
-    Toks .= allTokens(Init) &&
-    _ .= _logmsg("Toks = \(Toks)") => ().
+    _ .= _logmsg("Parse \(P) in \(U)") &&
+    (Ast,Rpt) .= parseSrc(U,P,reports([])) &&
+    _ .= _logmsg("Src = \(Ast)") => ().
 
 }

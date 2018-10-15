@@ -78,4 +78,8 @@ star.compiler.ast{
   binary(Lc,Op,L,R) where Lc.=mergeLoc(locOf(L),locOf(R)) =>
     app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,R])).
 
+  public isBinary:(ast) => option[(locn,string,ast,ast)].
+  isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R]))) => some((Lc,Op,L,R)).
+  isBinary(_) default => none.
+
 }
