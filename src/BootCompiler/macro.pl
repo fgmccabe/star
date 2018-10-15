@@ -191,7 +191,8 @@ hasPromotion(Term) :-
 promoteOption(Term,T1) :-
   isRound(Term,Lc,Op,Els),
   promoteArgs(Els,NEls,name(Lc,"true"),Cond),
-  roundTerm(Lc,Op,NEls,Reslt),
+  roundTerm(Lc,Op,NEls,Rs),
+  unary(Lc,"some",Rs,Reslt),
   conditional(Lc,Cond,Reslt,name(Lc,"none"),T1).
 
 promoteArgs([],[],Cond,Cond) :- !.
