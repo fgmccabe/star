@@ -411,7 +411,11 @@ void dumpStackTrace(processPo p, ioPo out) {
   outMsg(out, "stack trace for p: 0x%x\n", p);
 
   while (fp->fp < (framePo) p->stackLimit) {
-    outMsg(out, "[%d] %T[%d]\n%_", frameNo, mtd, (integer) (pc - mtd->code));
+    termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
+    if (locn != Null)
+      outMsg(out, "[%d] %T@%L\n%_", frameNo, mtd, locn);
+    else
+      outMsg(out, "[%d] %T[%d]\n%_", frameNo, mtd, (integer) (pc - mtd->code));
 
     mtd = fp->prog;
     pc = fp->rtn;

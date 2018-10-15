@@ -114,7 +114,7 @@ char * uniEndStr(char * s);
 integer uniHash(const char * name);
 integer uniNHash(const char * name, long len);
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen);
-integer uniTrim(char *s,integer sLen,char *spaces);
+retCode uniTrim(const char *s, integer sLen, char *front, char *trail, char *out, integer outLen);
 logical uniIsTrivial(char *s,integer len);
 
 integer hash64(integer ix);
