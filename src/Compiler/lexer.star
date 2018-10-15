@@ -7,11 +7,14 @@ star.compiler.lexer{
   import star.pkg.
 
   -- The Star compiler lexer
-  public allTokens:(tokenState) => list[token].
+  public allTokens:(tokenState) => cons[token].
   allTokens(St) => let{
     allToks(Strm,SoFr) where (Nx,Tk)^=nextToken(Strm) => allToks(Nx,[SoFr..,Tk]).
     allToks(_,SoFr) default => SoFr.
   } in allToks(St,[]).
+
+  public initSt:(pkg,list[integer])=>tokenState.
+  initSt(P,Txt) => tokenState(P,1,0,0,Txt).
 
   public nextToken:(tokenState) => option[(tokenState,token)].
   nextToken(St) => nxTok(skipToNx(St)).
@@ -174,9 +177,6 @@ star.compiler.lexer{
   preChar:(tokenState,integer) => tokenState.
   preChar(tokenState(Pkg,Line,Col,Off,Txt),Chr) =>
     tokenState(Pkg,Line,Col-1,Off-1,[Chr,..Txt]).
-
-  initSt:(pkg,list[integer])=>tokenState.
-  initSt(P,Txt) => tokenState(P,1,0,0,Txt).
 
   interSt:(tokenState,string) => tokenState.
   interSt(tokenState(P,Ln,Cl,Off,_),Txt) => tokenState(P,Ln,Cl,Off,Txt::list[integer]).
