@@ -1,14 +1,5 @@
 [
   {
-    "infixOp": ". ",
-    "priorities": [
-      1899,
-      1900,
-      1900
-    ],
-    "desc": "statement separator"
-  },
-  {
     "infixOp": "::=",
     "priorities": [
       1249,
@@ -814,14 +805,6 @@
     "desc": "arithmetic negation"
   },
   {
-    "postfixOp": ". ",
-    "priorities": [
-      1899,
-      1900
-    ],
-    "desc": "statement terminator"
-  },
-  {
     "postfixOp": "*",
     "priorities": [
       699,
@@ -856,6 +839,10 @@
   {
     "token": "$",
     "desc": "Used for curried functions and types"
+  },
+  {
+    "token": ". ",
+    "desc": "statement terminator"
   },
   {
     "bracket": "()",
