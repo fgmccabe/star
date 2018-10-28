@@ -63,6 +63,9 @@ retCode run(processPo P) {
       case Halt:
         return Ok;
 
+      case Nop:
+        continue;
+
       case Abort: {
         termPo msg = pop();
 

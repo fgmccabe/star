@@ -15,6 +15,7 @@
 */
 
 instruction(Halt,nOp,0,"Stop execution")
+instruction(Nop,nOp,0,"No operation")
 
 instruction(Call,lit,0,"Call <prog>")
 instruction(OCall,art,0,"OCall")
