@@ -7,7 +7,7 @@ star.pkg{
   public version ::= defltVersion | vers(string).
 
   public implementation display[pkg] => {.
-    disp(pkg(P,V)) => ssSeq([ss(P),ss("#"),disp(V)]).
+    disp(pkg(P,V)) => ssSeq([ss(P),ss(":"),disp(V)]).
   .}
 
   public implementation equality[pkg] => {.

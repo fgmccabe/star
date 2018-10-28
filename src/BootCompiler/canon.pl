@@ -109,7 +109,7 @@ showPkg(pkg(Nm,V),O,Ox) :-
 
 showVersion(defltVersion,O,O).
 showVersion(ver(V),O,Ox) :-
-  appStr("#",O,O1),
+  appStr(":",O,O1),
   appStr(V,O1,Ox).
 
 showCanonTerm(v(_,Nm,_),O,Ox) :- appIden(Nm,O,Ox).
