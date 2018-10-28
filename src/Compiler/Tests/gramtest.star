@@ -25,4 +25,9 @@ test.comp.gram{
   show disp(parseText(lc,"{f(X)(Y)=>X+Y*Z}",reports([])))::string.
 
   show disp(parseText(lc,"{f(X)=>g(Y). g(Y)=>(X+Y)*Z}",reports([])))::string.
+
+  show disp(parseText(lc,"{f(X)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([])))::string.
+
+  show disp(parseText(lc,"{f(X,Y)=>g(X.foo(Y)). g(Y)=>(X+Y)*Z}",reports([])))::string.
+
 }
