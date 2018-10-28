@@ -560,7 +560,8 @@ typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(Tst,LogicalTp,Env,E0,Test,Path),
   typeOfExp(Th,Tp,E0,E1,Then,Path),
-  typeOfExp(El,Tp,E1,Ev,Else,Path).
+  typeOfExp(El,Tp,Env,E2,Else,Path),
+  mergeDict(E1,E2,Env,Ev).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
