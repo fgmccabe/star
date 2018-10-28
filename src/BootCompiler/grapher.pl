@@ -46,7 +46,7 @@ consistentVersion(_,defltVersion).
 consistentVersion(ver(V),ver(V)).
 
 parsePkgName(P,pkg(Pkg,Version)) :-
-  sub_string(P,Before,_,After,"#"),!,
+  sub_string(P,Before,_,After,":"),!,
   sub_string(P,0,Before,_,Pkg),
   sub_string(P,_,After,0,Version).
 parsePkgName(P,pkg(P,defltVersion)).
@@ -144,4 +144,4 @@ showPkgs([P|L],S) :-
 showPkg(pkg(P,defltVersion)) :-
   writef("%w",[P]).
 showPkg(pkg(P,ver(V))) :-
-  writef("%w#%w",[P,V]).
+  writef("%w:%w",[P,V]).

@@ -41,5 +41,5 @@ retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt){
   if(uniIsLit(pkg->version,"*"))
     return outMsg(f,"%s",pkg->packageName);
   else
-    return outMsg(f,"%s#%s",pkg->packageName,pkg->version);
+    return outMsg(f,"%s:%s",pkg->packageName,pkg->version);
 }
