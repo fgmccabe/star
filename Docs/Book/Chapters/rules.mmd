@@ -212,13 +212,20 @@ Let us imagine a system that has some external face, for example, a server that 
 
 Since we anticipate enormous success for our service, and we also anticipate that some people will try to game our system in order to further their own nefarious goals. So, we have to put in place  a classification system that can decide how to process requests and which we anticipate will need continuous evolution.
 
+The simplest online processing system can be viewed as having four components: a source of events, a processor, a sink where the output of the system is targeted and a knowledge base that is used to inform the processor.
+
+![A Simple Event Processor][Events]
+
+[Events]:../images/events.pdf
+
+Classification always depends on a combination of information gleaned from the event itself and on global or contextual information. In our case, we can usefully breakdown the contextual knowledge into two kinds: _rules_ that embody our processing policy and _reputation_ data that the system has collected about external entities.
 
 
+![Rules and Reputation][RuleRepu]
 
+[RuleRepu]:../images/rules-repu.pdf
 
-
-
-
+We distinguish these two sources of knowledge, partly because the way that we collect and use them are different; but mainly because they are about different things. However, we can use our query formalisms — together with functions — for both.
 
 
 ### Query quantifiers
