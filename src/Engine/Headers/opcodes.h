@@ -23,9 +23,9 @@ typedef enum {
  * 64 bit easier.
  * The general form of an instruction is:
  *
- * | Mnem | Op1 ... Opn |
+ * | Mnem | Op |
  *
- * where each Opi is a big-ended sequence of bytes, depending on the precise
+ * where each Op is a big-ended sequence of bytes, depending on the precise
  * instruction.
  *
  * Special Registers include frame pointer
