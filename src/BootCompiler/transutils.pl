@@ -3,7 +3,8 @@
           definedProgs/2,labelVars/2,
           genVar/2,
           pushOpt/3, isOption/2,layerName/2,
-          genVars/2]).
+          genVars/2,
+          pullWhere/4,pullWheres/4]).
 
 :- use_module(misc).
 :- use_module(dict).
@@ -166,3 +167,15 @@ genVars(K,[V|Rest]) :-
   K1 is K-1,
   genVar("_V",V),
   genVars(K1,Rest).
+
+pullWhere(whr(Lc,Val,Cond),G,Value,Gx) :-
+  pullWhere(Val,G,Value,G1),
+  mergeGoal(G1,Cond,Lc,Gx).
+pullWhere(ctpl(Lbl,Args),G,ctpl(Lbl,NArgs),Gx) :-
+  pullWheres(Args,NArgs,G,Gx).
+pullWhere(Val,G,Val,G).
+
+pullWheres([],[],G,G) :- !.
+pullWheres([E|Rest],[Ex|Rx],G,Gx) :-
+  pullWhere(E,G,Ex,G1),
+  pullWheres(Rest,Rx,G1,Gx).

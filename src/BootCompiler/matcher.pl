@@ -46,7 +46,7 @@ compileMatch(inVars,Tpls,Vrs,Lc,Deflt,Reslt) :-
 
 conditionalize([],Deflt,Deflt).
 conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
-  pullWheres(Val,C0,Vl),
+  pullWhere(Val,enum("star.core#true"),Vl,C0),
   mergeGoal(Test,C0,Lc,TT),
   (TT=enum("star.core#true") ->
     applyBindings(Bnds,Lc,Vl,Repl);
@@ -74,11 +74,6 @@ makeTriples([Rl|L],Ix,[Tr|LL]) :-
   makeTriples(L,Ix1,LL).
 
 makeEqnTriple((Lc,Args,Cnd,Val),Ix,(Args,(Lc,[],enum("star.core#true"),whr(Lc,Val,Cnd)),Ix)).
-
-pullWheres(whr(Lc,Val,Cond),Cndx,Value) :-
-  pullWheres(Val,Cnd,Value),
-  mergeGoal(Cnd,Cond,Lc,Cndx).
-pullWheres(Val,enum("star.core#true"),Val).
 
 partitionTriples([Tr|L],[[Tr|LL]|Tx]) :-
   tripleArgMode(Tr,M),
