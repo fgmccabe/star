@@ -13,8 +13,8 @@ star.compiler.lexer{
     allToks(_,SoFr) default => SoFr.
   } in allToks(St,[]).
 
-  public initSt:(pkg,list[integer])=>tokenState.
-  initSt(P,Txt) => tokenState(P,1,0,0,Txt).
+  public initSt:(locn,list[integer])=>tokenState.
+  initSt(locn(P,Line,Col,Start,_),Txt) => tokenState(P,Line,Col,Start,Txt).
 
   public nextToken:(tokenState) => option[(tokenState,token)].
   nextToken(St) => nxTok(skipToNx(St)).
@@ -45,8 +45,8 @@ star.compiler.lexer{
     graphFollow(Strm,Id,Deflt) default => Deflt.
 
     finalist(SoFr,Str,Deflt) where final(SoFr) =>
-      ( isLeftBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),lftTok(SoFr)))) ||
-        isRightBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),rgtTok(SoFr)))) ||
+      ( bkt(SoFr,Lbl,_,_) ^= isBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),lftTok(Lbl)))) ||
+        bkt(_,Lbl,SoFr,_) ^= isBracket(SoFr) ? some((Str,tok(makeLoc(St0,Str),rgtTok(Lbl)))) ||
         some((Str,tok(makeLoc(St0,Str),idTok(SoFr))))).
     finalist(_,_,Deflt) => Deflt.
   } in graphFollow(St,Ld,finalist(Ld,St,none)).
@@ -161,7 +161,7 @@ star.compiler.lexer{
   readExponent(St,St0,Mn) => some((St,tok(makeLoc(St0,St),fltTok(Mn)))).
 
   -- We define a tracking state to allow us to collect locations
-  tokenState ::= tokenState(pkg,integer,integer,integer,list[integer]).
+  public tokenState ::= tokenState(pkg,integer,integer,integer,list[integer]).
 
   atEof:(tokenState) => boolean.
   atEof(tokenState(_,_,_,_,Str)) => _eof(Str).
@@ -193,7 +193,8 @@ star.compiler.lexer{
   lookingAt(_,_) default => none.
 
   makeLoc:(tokenState,tokenState)=>locn.
-  makeLoc(tokenState(Pk,Line,Col,Start,_),tokenState(_,_,_,End,_)) => locn(Pk,Line,Col,End-Start).
+  makeLoc(tokenState(Pk,Line,Col,Start,_),tokenState(_,_,_,End,_)) => locn(Pk,Line,Col,Start,End-Start).
+
 
   skipToNx:(tokenState) => tokenState.
   skipToNx(St) where Ch ^= hedChar(St) && isNonPrint(Ch) => skipToNx(nxtSt(St)).
@@ -212,6 +213,10 @@ star.compiler.lexer{
   isNonPrint(Ch) => (_isZlChar(Ch) || _isZsChar(Ch) || _isZpChar(Ch) || _isCcChar(Ch)).
 
   public implementation display[tokenState] => {.
-    disp(tokenState(Pk,Line,Col,Off,_)) => disp(locn(Pk,Line,Col,Off)).
+    disp(tokenState(Pk,Line,Col,Off,_)) => disp(locn(Pk,Line,Col,Off,0)).
+  .}
+
+  public implementation hasLoc[tokenState] => {.
+    locOf(tokenState(Pkg,Line,Col,Start,_)) => locn(Pkg,Line,Col,Start,0).
   .}
 }
