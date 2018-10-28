@@ -87,5 +87,5 @@ star.cons{
 
   consDisp:all e ~~ display[e] |: (cons[e]) => ss.
   consDisp(nil) => ss(".").
-  consDisp(cons(E,T)) => ssSeq([disp(E),ss(":"),consDisp(T)]).
+  consDisp(cons(E,T)) => ssSeq([disp(E),ss(": "),consDisp(T)]).
 }
