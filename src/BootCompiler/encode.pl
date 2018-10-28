@@ -49,6 +49,7 @@ encodeTp(T,C,Cx) :-
 encodeType(anonType,['_'|O],O).
 encodeType(voidType,['v'|O],O).
 encodeType(thisType,['h'|O],O).
+encodeType(T,['_'|O],O) :- isUnbound(T).
 encodeType(tpExp(Tp,T),['L'|O],Ox) :- deRef(Tp,tpFun("star.core*list",1)),!,encodeTp(T,O,Ox).
 encodeType(type("star.core*boolean"),['l'|O],O).
 encodeType(type("star.core*integer"),['i'|O],O).
