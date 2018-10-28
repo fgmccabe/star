@@ -199,11 +199,13 @@ transformEqn(equation(Lc,tple(_,A),Cond,Value),Map,OMap,Opts,_LclPrg,
   extraVars(Map,Extra),
   filterVars(Extra,Q0),
   liftPtns(A,AA,Q0,Q1,Map,Opts,Ex,Ex0), % head args
-  concat(Extra,AA,Args),
+  pullWheres(AA,AAA,enum("star.core#true"),WhrG),
+  concat(Extra,AAA,Args),
   liftGoal(Cond,Test,Q1,Q2,OMap,Opts,Ex0,Ex1),   % condition goals
   liftExp(Value,Rep,Q2,Q3,OMap,Opts,Ex1,Exx),  % replacement expression
   labelAccess(Q3,_Q,Map,Lc,LbLx),         % generate label access goals
-  mergeGoal(LbLx,Test,Lc,EqTest).
+  mergeGoal(LbLx,WhrG,Lc,PtnGl),
+  mergeGoal(PtnGl,Test,Lc,EqTest).
 
 transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
     [vrDef(Lc,LclName,Tp,Exp)|Dx],Dxx) :-
@@ -665,8 +667,13 @@ programAccess(localFun(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localPtn(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
 
-labelAccess(Q,Qx,[lyr(_,_,LblPtn,idnt(LbVr))|_],Lc,mtch(Lc,LblPtn,idnt(LbVr))) :- !, merge([idnt(LbVr)],Q,Qx).
-labelAccess(Q,Q,[lyr(_,_,_,_)|_],_,enum("star.core#true")) :- !.
+labelAccess(Q,Q,[],_,enum("star.core#true")).
+labelAccess(Q,Qx,[lyr(_,_,LblPtn,idnt(LbVr))|_Map],Lc,mtch(Lc,LblPtn,idnt(LbVr))) :- !,
+  %labelAccess(Q,Q1,Map,Lc,G0),
+  %mergeGoal(G0,mtch(Lc,LblPtn,idnt(LbVr)),Lc,Gx),
+  merge([idnt(LbVr)],Q,Qx).
+labelAccess(Q,Qx,[lyr(_,_,_,_)|Map],Lc,Gx) :-
+  labelAccess(Q,Qx,Map,Lc,Gx).
 
 makeDotLbl(Nm,enum(Dot)) :-
   localName("",".",Nm,Dot).
