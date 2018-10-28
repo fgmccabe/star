@@ -38,12 +38,12 @@ set(HEADER_FILES
         Headers/thr.h Headers/thrP.h
         Headers/repoP.h Headers/repo.h
         Headers/rrb.h Headers/rrbP.h
-        Headers/verify.h Headers/verifyP.h)
+        Headers/verify.h Headers/verifyP.h Headers/srcMap.h Headers/srcMapP.h)
 
 set(SOURCE_FILES
         boot.c decode.c debug.c eval.c engine.c engineOptions.c gc.c future.c globals.c future.c heap.c load.c main.c
         ${HEADER_FILES} code.c term.c labels.c arith.c repo.c rrb.c
-        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c )
+        str.c array.c lockvar.c cell.c iochnl.c thr.c bkpoint.c verify.c srcMap.c)
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 

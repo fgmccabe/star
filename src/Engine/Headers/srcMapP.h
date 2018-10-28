@@ -5,4 +5,14 @@
 #ifndef STAR_SRCMAPP_H
 #define STAR_SRCMAPP_H
 
+#include "srcMap.h"
+
+typedef struct _map_entry_ {
+  packagePo pkg;
+  labelPo fun;
+  integer line;
+  integer pcOffset;
+} SrcMapEntry;
+
+
 #endif //STAR_SRCMAPP_H
