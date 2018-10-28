@@ -25,8 +25,8 @@ rewriteStmt(X,X).
 genParserRule(Rl,St) :-
   isParsingRule(Rl,Lc,Hd,Rhs),
   genBody(Rhs,Body),
-  (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)),
-  display(St).
+  (isRoundTerm(Hd,_,_) -> binary(Lc,"=>",Hd,Body,St) ; binary(Lc,"=",Hd,Body,St)).
+  %display(St).
 
 genBody(B,Bd) :-
   isBinary(B,Lc,";",L,R),
@@ -77,8 +77,8 @@ genCall(T,void,Cl) :-
   genBody(A,LL),
   unary(Lc,"_ahead",LL,Cl).
 genCall(T,Bnd,Cl) :-
-  isSquareTuple(T,_Lc,Els),
-  genSquare(Els,Bnd,Cl).
+  isSquareTuple(T,Lc,Els),
+  genSquare(Lc,Els,Bnd,Cl).
 genCall(T,void,Cl) :-
   isString(T,Lc,_),
   unary(Lc,"_str",T,Cl).
@@ -90,7 +90,7 @@ genCall(T,V,Cl) :-
   genCall(I,V,Cl).
 genCall(T,void,T).
 
-genSquare([E],V,Bd) :-
+genSquare(_,[E],V,Bd) :-
   locOfAst(E,Lc),
   (isWhere(E,_,Arg,Cond) ; E=Arg,Cond=name(Lc,"true")),
   ptnVars(E,[],Vrs),
@@ -105,6 +105,8 @@ genSquare([E],V,Bd) :-
   eqn(Lc,Anon,name(Lc,"true"),name(Lc,"none"),Deflt),
   mkLetDef(Lc,[Eqn,Deflt],name(Lc,Nm),Fun),
   unary(Lc,"_test",Fun,Bd).
+genSquare(Lc,[],V,name(Lc,"zed")) :-
+  roundTuple(Lc,[],V).
 
 genCond(Lc,C,V,Cl) :-
   condVars(C,[],Vrs),
