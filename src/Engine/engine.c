@@ -138,7 +138,7 @@ void ps_kill(processPo p) {
 }
 
 static inline ptrPo realign(ptrPo ptr, ptrPo oldStack, ptrPo oldLimit, ptrPo newLimit) {
-  assert(ptr >= oldStack && ptr < oldLimit);
+  assert(ptr >= oldStack && ptr <= oldLimit);
 
   return newLimit - (oldLimit - ptr);
 }
