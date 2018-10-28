@@ -35,7 +35,6 @@
   operator("->", [infixOp(899, 900, 899)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("raise", [prefixOp(300, 299)]).
-  operator(". ", [postfixOp(1899, 1900), infixOp(1899, 1900, 1900)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("=!=", [infixOp(899, 900, 899)]).
