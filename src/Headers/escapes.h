@@ -89,7 +89,7 @@ escape(_bcount,True,False,"F(i)i","count the number of bits set")
 
 escape(_cell,True,False,":k't'F(k't')rk't'","create a reference cell")
 escape(_get,True,False,":k't'F(rk't')k't'","access contents of reference cell")
-escape(_assign,True,False,":k't'F(rk't'k't')rk't'","update contents of reference cell")
+escape(_assign,True,False,":k't'F(rk't'k't')k't'","update contents of reference cell")
 escape(_isDefinedVr,True,False,":k't'F(S)l","Check a global variable")
 escape(_definedVr,True,False,":k't'F(S)k't'","Access a global variable")
 escape(_defineVr,True,False,":k't'F(Sk't')l","Define a global variable")

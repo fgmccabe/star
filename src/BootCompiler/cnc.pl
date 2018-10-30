@@ -157,6 +157,13 @@ analyseExp(apply(_,Op,Arg,_),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Arg,Df1,Dfx,Rq1,Rqx,Cand).
 analyseExp(dot(_,_,Op,_),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Op,Df,Dfx,Rq,Rqx,Cand).
+analyseExp(varRef(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
+  analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
+analyseExp(assign(_,Lhs,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
+  analyseExp(Lhs,Df,Df0,Rq,Rq1,Cand),
+  analyseExp(Rhs,Df0,Dfx,Rq1,Rqx,Cand).
+analyseExp(cell(_,Lhs),Df,Dfx,Rq,Rqx,Cand) :-
+  analyseExp(Lhs,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(where(_,Exp,Cond),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Exp,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Cond,Df1,Dfx,Rq1,Rqx,Cand).

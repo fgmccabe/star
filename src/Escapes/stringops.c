@@ -15,23 +15,11 @@
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
   termPo Arg1 = tos[0];
   termPo Arg2 = tos[1];
-  integer llen, rlen;
-  const char *lhs = stringVal(Arg1, &llen);
-  const char *rhs = stringVal(Arg2, &rlen);
 
-  if (llen == rlen) {
-    for (integer ix = 0; ix < llen; ix++) {
-      if (lhs[ix] != rhs[ix]) {
-        ReturnStatus rt = {.ret=Ok, .result=falseEnum};
-        return rt;
-      }
-    }
-    ReturnStatus rt = {.ret=Ok, .result=trueEnum};
-    return rt;
-  } else {
-    ReturnStatus rt = {.ret=Ok, .result=falseEnum};
-    return rt;
-  }
+  logical eq = sameTerm(Arg1, Arg2);
+
+  ReturnStatus rt = {.ret=Ok, .result=(eq ? trueEnum : falseEnum)};
+  return rt;
 }
 
 // Lexicographic comparison

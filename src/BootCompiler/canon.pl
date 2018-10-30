@@ -30,6 +30,9 @@ isCanon(disj(_,_,_)).
 isCanon(cond(_,_,_,_,_)).
 isCanon(match(_,_,_)).
 isCanon(neg(_,_)).
+isCanon(varRef(_,_)).
+isCanon(assign(_,_,_)).
+isCanon(cell(_,_)).
 
 isAssertion(assertion(_,_)).
 isShow(show(_,_)).
@@ -54,6 +57,12 @@ typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
   map(Els,canon:typeOfCanon,Tps).
+typeOfCanon(varRef(_,Inn),Tp) :-
+  typeOfCanon(Inn,refType(Tp)).
+typeOfCanon(assign(_,_,Vl),Tp) :-
+  typeOfCanon(Vl,Tp).
+typeOfCanon(cell(_,Vl),refType(Tp)) :-
+  typeOfCanon(Vl,Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_,_),Lc) :- !.
@@ -72,6 +81,7 @@ locOfCanon(record(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(letExp(Lc,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
+locOfCanon(varRef(Lc,_),Lc) :-!.
 
 thetaDefs(theta(_,_,Defs,_,_,_),Defs).
 thetaDefs(record(_,_,Defs,_,_,_),Defs).
@@ -148,6 +158,16 @@ showCanonTerm(record(_,Path,Defs,Others,Types,_),O,Ox) :-
   showDefs(Defs,O2,O3),
   showOthers(Others,O3,O4),
   appStr("\n.}",O4,Ox).
+showCanonTerm(varRef(_,Inn),O,Ox) :-
+  showCanonTerm(Inn,O,O1),
+  appStr("!",O1,Ox).
+showCanonTerm(assign(_,Vr,Vl),O,Ox) :-
+  showCanonTerm(Vr,O,O1),
+  appStr(":=",O1,O2),
+  showCanonTerm(Vl,O2,Ox).
+showCanonTerm(cell(_,Vr),O,Ox) :-
+  appStr("!!",O,O1),
+  showCanonTerm(Vr,O1,Ox).
 showCanonTerm(letExp(_,Env,Ex),O,Ox) :-
   appStr("let ",O,O1),
   showCanonTerm(Env,O1,O2),
