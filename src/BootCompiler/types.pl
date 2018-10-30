@@ -126,7 +126,7 @@ showType(tpExp(Nm,A),ShCon,O,Ox) :- showTypeExp(tpExp(Nm,A),ShCon,O,Ox).
 showType(tupleType(A),ShCon,O,Ox) :- appStr("(",O,O1), showTypeEls(A,ShCon,O1,O2), appStr(")",O2,Ox).
 showType(funType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("=>",O1,O2), showType(R,ShCon,O2,Ox).
 showType(consType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("<=>",O1,O2), showType(R,ShCon,O2,Ox).
-showType(refType(R),ShCon,O,Ox) :- appStr("ref",O,O4), showType(R,ShCon,O4,Ox).
+showType(refType(R),ShCon,O,Ox) :- appStr("ref ",O,O4), showType(R,ShCon,O4,Ox).
 showType(allType(V,Tp),ShCon,O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
 showType(existType(V,Tp),ShCon,O,Ox) :- appStr("exist ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
 showType(faceType(Els,Tps),ShCon,O,Ox) :- appStr("{ ",O,O1),
@@ -138,9 +138,6 @@ showType(typeLambda(Hd,Bd),ShCon,O,Ox) :- showType(Hd,ShCon,O,O1), appStr("~>",O
 showType(contractExists(Spc,Fc),ShCon,O,Ox) :- showConstraint(Spc,O,O1), appStr("<~",O1,O2), showType(Fc,ShCon,O2,Ox).
 showType(constrained(Tp,Con),_,O,Ox) :- showConstraint(Con,O,O1), showMoreConstraints(Tp,O1,Ox).
 
-showTypeExp(tpExp(tpFun("{}",1),Arg),ShCon,O,Ox) :-!,
-  showType(Arg,ShCon,O,O1),
-  appStr("{}",O1,Ox).
 showTypeExp(T,ShCon,O,Ox) :-
   deRef(T,Tp),
   showTpExp(Tp,_,ShCon,O,O1),

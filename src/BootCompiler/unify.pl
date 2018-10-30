@@ -122,6 +122,7 @@ getFace(existType(V,T),Env,existType(V,F)) :-
 getFace(allType(V,T),Env,allType(V,F)) :-
   faceOfType(T,Env,F).
 getFace(tupleType(_),_,faceType([],[])).
+getFace(refType(_),_,faceType([],[])).
 
 isKvar(V) :- deRef(V,kVar(_)).
 

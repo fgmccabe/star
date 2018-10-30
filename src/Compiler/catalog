@@ -6,14 +6,17 @@
 	  "star.compiler.errors" : "errors.star",
 		"star.compiler.escapes" : "escapes.star",
 		"star.compiler.grapher" : "grapher.star",
+		"star.compiler.iden" : "iden.star",
 		"star.compiler.opg" : "opg.star",
 		"star.compiler.parser" : "parser.star",
 		"star.compiler.keywords" : "keywords.star",
 		"star.compiler.lexer" : "lexer.star",
 		"star.compiler.location" : "location.star",
+		"star.compiler.misc" : "misc.star",
 		"star.compiler.operators" : "operators.star",
     "star.compiler.plugin" : "plugin.star",
-		"star.compiler.token" : "token.star"
+		"star.compiler.token" : "token.star",
+		"star.compiler.types" : "types.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"

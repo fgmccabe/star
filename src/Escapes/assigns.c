@@ -30,7 +30,7 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
 
   setCell(Cell, Content);
 
-  ReturnStatus ret = {.ret=Ok, .result=(termPo) Cell};
+  ReturnStatus ret = {.ret=Ok, .result=(termPo) Content};
 
   return ret;
 }

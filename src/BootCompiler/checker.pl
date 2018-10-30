@@ -308,7 +308,7 @@ guessType(St,_,_,funType(tupleType(AT),RTp)) :-
 guessType(St,_,_,GTp) :-
   isDefn(St,_,_,_),!,
   newTypeVar("_",GTp).
-guessType(St,_,_,GTp) :-
+guessType(St,_,_,refType(GTp)) :-
   isAssignment(St,_,_,_),!,
   newTypeVar("_",GTp).
 guessType(_,N,Lc,GTp) :- !,
@@ -346,7 +346,7 @@ checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   typeOfExp(R,Tp,E,_E2,Value,Path),
   packageVarName(Path,Nm,ExtNm).
 
-checkVarDefn(Lc,L,R,ref(Tp),vdefn(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
+checkVarDefn(Lc,L,R,refType(Tp),varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Value)),Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E1),
   typeOfExp(R,Tp,E1,_E2,Value,Path),
@@ -414,9 +414,6 @@ collectPrograms([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
   faceOfType(Tp,Env,Face),
   freshen(Face,Env,_,VFace),
   declareVr(Lc,Nm,Tp,VFace,Env,Ev).
-collectPrograms([varDef(Lc,_,_,_,refType(Tp),Value)],Nm,LclNm,Env,Ev,Tp,Cx,
-    [vdefn(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
-  declareVr(Lc,Nm,refType(Tp),Env,Ev).
 
 checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
@@ -555,6 +552,13 @@ typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,varRef(Lc,TT),Path) :-
+  isVarRef(Term,Lc,In),!,
+  typeOfExp(In,refType(Tp),Env,Ev,TT,Path).
+typeOfExp(Term,Tp,Env,Ev,assign(Lc,V,Vl),Path) :-
+  isAssignment(Term,Lc,Lhs,Rhs),!,
+  typeOfExp(Lhs,refType(Tp),Env,E0,V,Path),
+  typeOfExp(Rhs,Tp,E0,Ev,Vl,Path).
 typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   findType("boolean",Lc,Env,LogicalTp),

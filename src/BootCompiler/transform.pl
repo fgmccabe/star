@@ -417,6 +417,13 @@ liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(dot(Lc,Rec,Fld,_),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
+liftExp(varRef(Lc,In),ecll(Lc,"_get",[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(cell(Lc,In),ecll(Lc,"_cell",[CellV]),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftExp(In,CellV,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(assign(Lc,Vr,Vl),ecll(Lc,"_assign",[VVr,Val]),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftExp(Vr,VVr,Q,Q0,Map,Opts,Ex,Ex1),
+  liftExp(Vl,Val,Q0,Qx,Map,Opts,Ex1,Exx).
 liftExp(where(_,E,enm(_,"true",_)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(E,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,

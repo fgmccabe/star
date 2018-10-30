@@ -61,7 +61,7 @@ escapeType("_nthb",funType(tupleType([type("star.core*integer"),type("star.core*
 escapeType("_bcount",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_cell",allType(kVar("t"),funType(tupleType([kVar("t")]),ref(kVar("t"))))).
 escapeType("_get",allType(kVar("t"),funType(tupleType([ref(kVar("t"))]),kVar("t")))).
-escapeType("_assign",allType(kVar("t"),funType(tupleType([ref(kVar("t")),kVar("t")]),ref(kVar("t"))))).
+escapeType("_assign",allType(kVar("t"),funType(tupleType([ref(kVar("t")),kVar("t")]),kVar("t")))).
 escapeType("_isDefinedVr",allType(kVar("t"),funType(tupleType([type("star.core*string")]),type("star.core*boolean")))).
 escapeType("_definedVr",allType(kVar("t"),funType(tupleType([type("star.core*string")]),kVar("t")))).
 escapeType("_defineVr",allType(kVar("t"),funType(tupleType([type("star.core*string"),kVar("t")]),type("star.core*boolean")))).

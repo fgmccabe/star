@@ -60,6 +60,7 @@ encodeType(kFun(Nm,Ar),['K'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(type(Nm),['t'|O],Ox) :- encodeText(Nm,O,Ox).
 encodeType(tpFun(Nm,Ar),['z'|O],Ox) :- encodeInt(Ar,O,O1),encodeText(Nm,O1,Ox).
 encodeType(tpExp(T,Arg),['U'|O],Ox) :- deRef(T,Tp),encodeTp(Tp,O,O1), encodeTp(Arg,O1,Ox).
+encodeType(refType(Tp),['r'|O],Ox) :- encodeTp(Tp,O,Ox).
 encodeType(funType(AT,Tp),['F'|O],Ox) :- encodeTp(AT,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(consType(Args,Tp),['C'|O],Ox) :- encodeTp(Args,O,O1), encodeTp(Tp,O1,Ox).
 encodeType(tupleType(Args),O,Ox) :- encodeTypes(Args,O,Ox).
