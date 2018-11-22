@@ -32,6 +32,7 @@ typedef retCode (*flagProc)(void *cl);
 typedef struct {
   flagProc startDecoding;
   flagProc endDecoding;
+  flagProc decVoid;
   intProc decInt;
   fltProc decFlt;
   nameProc decLbl;

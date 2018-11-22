@@ -70,7 +70,7 @@ retCode run(processPo P) {
         termPo msg = pop();
 
         logMsg(logFile, "Abort %T", msg);
-        saveRegisters(P,SP);
+        saveRegisters(P, SP);
         dumpStackTrace(P, logFile);
         return Error;
       }
@@ -292,6 +292,11 @@ retCode run(processPo P) {
         continue;
       }
 
+      case LdV: {
+        push(voidEnum);     /* load void */
+        continue;
+      }
+
       case LdC:     /* load literal value from pool */
         push(nthArg(LITS, collectI32(PC)));
         continue;
@@ -314,6 +319,16 @@ retCode run(processPo P) {
         int32 glbNo = collectI32(PC);
         globalPo glb = getGlobalVar(glbNo);
         push(getGlobal(glb));     /* load a global variable */
+        continue;
+      }
+
+      case CVd: {
+        termPo l = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (sameTerm(l, voidEnum))
+          PC = exit;
         continue;
       }
 
@@ -435,7 +450,18 @@ retCode run(processPo P) {
       case Frame:
         PC += 2;
         continue;
-        
+
+      case dLine: {
+#ifdef TRACEEXEC
+        if (lineDebugging) {
+          saveRegisters(P, SP);
+          lineDebug(P);
+          restoreRegisters(P);
+        }
+#endif
+        continue;
+      }
+
       case dCall: {
 #ifdef TRACEEXEC
         if (lineDebugging) {
@@ -452,10 +478,11 @@ retCode run(processPo P) {
       case dOCall:
 #ifdef TRACEEXEC
         if (lineDebugging) {
-          termPo callee = getLbl(SP[0], collectI32(PC));
+          int32 arity = collectI32(PC);
+          termPo callee = getLbl(SP[0], arity);
 
           saveRegisters(P, SP);
-          callDebug(P, callee);
+          ocallDebug(P, callee, arity);
           restoreRegisters(P);
         } else
 #endif
@@ -478,7 +505,8 @@ retCode run(processPo P) {
       case dOTail:
 #ifdef TRACEEXEC
         if (lineDebugging) {
-          termPo callee = getLbl(SP[0], collectI32(PC));
+          int32 arity = collectI32(PC);
+          termPo callee = getLbl(SP[0], arity);
           saveRegisters(P, SP);
           tailDebug(P, callee);
           restoreRegisters(P);
