@@ -3,7 +3,6 @@ test.assign{
 
   person ::= someone{name:ref string. age:integer} | student(string,integer).
 
-/*
   alpha := 23.
 
   assert alpha!==23.
@@ -14,8 +13,6 @@ test.assign{
   assert checkInc().
 
   show alpha!.
-*/
-
 
   rec : (integer)=>person.
   rec(A) => let{
