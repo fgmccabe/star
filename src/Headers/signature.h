@@ -51,13 +51,14 @@ typedef enum {
 
 // Data value signatures
 typedef enum {
-  intTrm = 'x',        // Integer value
-  fltTrm = 'd',        // Floating point value
-  strTrm = 's',        // String value
-  dtaTrm = 'n',        // Constructor data value
+  vodTrm = 'v',         // Void value
+  intTrm = 'x',         // Integer value
+  fltTrm = 'd',         // Floating point value
+  strTrm = 's',         // String value
+  dtaTrm = 'n',         // Constructor data value
   lstTrm = 'l',
-  lblTrm = 'o',        // A structure label identifier
-  enuTrm = 'e',        // An enumerated symbol
+  lblTrm = 'o',         // A structure label identifier
+  enuTrm = 'e',         // An enumerated symbol
 } cafeTermSig;
 
 extern logical validSignature(char *s);

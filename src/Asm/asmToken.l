@@ -132,6 +132,8 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "ld"          RT(LD);
 "st"          RT(ST);
 
+"void"        RT(VOID);
+
 "alloc"       RT(ALLOC);
 
 "frame"       RT(FRAME);
@@ -148,6 +150,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 ":"           RT(COLON);
 "#"           RT(HASH);
 "/"           RT(SLASH);
+"."           RT(DOT);
 
 -?[1-9]{DECDIGIT}* {
   yylval->i = parseLong(yytext);
