@@ -122,6 +122,18 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
           }
       }
 
+      case dLine: {
+        termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
+
+        if (lineBreakPointHit(C_TERM(loc))) {
+          p->waitFor = stepInto;
+          p->tracing = True;
+          p->traceDepth = p->traceCount = 0;
+          return True;
+        } else
+          return False;
+      }
+
       default:
         return False;
     }
@@ -673,12 +685,21 @@ DebugWaitFor callDebug(processPo p, termPo call) {
   return lnDebug(p, dCall, call, showCall);
 }
 
+DebugWaitFor ocallDebug(processPo p, termPo call, int32 arity) {
+  return lnDebug(p, dOCall, call, showCall);
+}
+
 DebugWaitFor tailDebug(processPo p, termPo call) {
   return lnDebug(p, dTail, call, showTail);
 }
 
 DebugWaitFor retDebug(processPo p, termPo val) {
   return lnDebug(p, dRet, val, showRet);
+}
+
+DebugWaitFor lineDebug(processPo p) {
+  termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
+  return lnDebug(p, dLine, loc, showLn);
 }
 
 DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
