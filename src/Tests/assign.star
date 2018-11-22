@@ -1,6 +1,9 @@
 test.assign{
   import star.
 
+  person ::= someone{name:ref string. age:integer} | student(string,integer).
+
+/*
   alpha := 23.
 
   assert alpha!==23.
@@ -11,13 +14,21 @@ test.assign{
   assert checkInc().
 
   show alpha!.
+*/
 
-  rec : {name: ref string. age:integer}.
-  rec = {
-    name := "".
-    age = alpha!.
-  }.
 
-  assert (rec.name:="fred")=="fred".
-  show rec.name!.
+  rec : (integer)=>person.
+  rec(A) => let{
+    nm := "".
+    foo(X) => X+A.
+  } in someone{. name=nm. age=foo(10). .}.
+
+  fred = rec(24).
+
+  assert (fred.name:="fred")=="fred".
+  show fred.name! .
+
+  peter = let{
+    name = fred.name! ++ "'s friend".
+  } in {.name=name. age=23 .}.
 }
