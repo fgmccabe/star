@@ -249,15 +249,13 @@ transformEquations(Map,OMap,Opts,LclPrg,[Eqn|Defs],Rules,Rx,Ex,Exx) :-
   transformEquations(Map,OMap,Opts,LclPrg,Defs,R0,Rx,Ex0,Exx).
 
 transformEqn(equation(Lc,tple(_,A),Cond,Value),Map,OMap,Opts,_LclPrg,
-    [(Lc,Args,EqTest,Rep)|Rx],Rx,Ex,Exx) :-
+    [(Lc,Args,Test,Rep)|Rx],Rx,Ex,Exx) :-
   extraVars(Map,Extra),
   filterVars(Extra,Q0),
   liftPtns(A,AA,Q0,Q1,Map,Opts,Ex,Ex0), % head args
-  pullWheres(AA,AAA,enum("star.core#true"),WhrG),
-  concat(Extra,AAA,Args),
+  concat(Extra,AA,Args),
   liftGoal(Cond,Test,Q1,Q2,OMap,Opts,Ex0,Ex1),   % condition goals
-  liftExp(Value,Rep,Q2,_Q3,OMap,Opts,Ex1,Exx),  % replacement expression
-  mergeGoal(WhrG,Test,Lc,EqTest).
+  liftExp(Value,Rep,Q2,_Q3,OMap,Opts,Ex1,Exx).  % replacement expression
 
 transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
     [vrDef(Lc,LclName,Tp,Rep)|Dx],Dxx) :-
@@ -559,7 +557,7 @@ implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,E
 
 liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Rule,Tp),Q,Map,LclName,Closure,LMap),
-  dispMap(LMap),
+  % dispMap(LMap),
   transformEqn(Rule,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
@@ -621,8 +619,8 @@ liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
 
 liftLetExp(Lc,Theta,Bnd,whr(Lc,Expr,ThCond),Q,Qx,Map,Opts,Ex,Exx) :-
   liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  dispTerm(whr(Lc,Expr,ThCond)).
+  liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
+  % dispTerm(whr(Lc,Expr,ThCond)).
 
 genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,ctpl(lbl(Path,Ar),Args),Ex,Exx) :-
   pickVarDefs(Defs,Map,Opts,VTerms,Q,Qx,Ex,Ex1),
