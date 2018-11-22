@@ -52,7 +52,7 @@ void setArg(normalPo term, int64 ix, termPo arg) {
   term->args[ix] = arg;
 }
 
-ptrPo termArgs(normalPo term){
+ptrPo termArgs(normalPo term) {
   return &term->args[0];
 }
 
@@ -96,19 +96,11 @@ comparison compareTerm(termPo t1, termPo t2) {
   clssPo c1 = classOf(t1);
   clssPo c2 = classOf(t2);
 
-  if (isSpecialClass(c1)) {
-    if (isSpecialClass(c2)) {
-      if (c1 == c2)
-        return ((specialClassPo) c1)->compFun((specialClassPo) c1, t1, t2);
-      else
-        return incomparible;
-    } else
-      return incomparible;
-  } else if (isSpecialClass(c2))
+  if (c1 != c2)
     return incomparible;
-  else if (c1 != c2)
-    return incomparible;
-  else {
+  else if (isSpecialClass(c1)) {
+    return ((specialClassPo) c1)->compFun((specialClassPo) c1, t1, t2);
+  } else {
     normalPo n1 = C_TERM(t1);
     normalPo n2 = C_TERM(t2);
     labelPo lbl = n1->lbl;
