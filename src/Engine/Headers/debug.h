@@ -7,12 +7,14 @@
 
 #include "engine.h"
 
-extern termPo getLbl(termPo lbl,int32 arity);
+extern termPo getLbl(termPo lbl, int32 arity);
 
 extern DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins);
 extern DebugWaitFor callDebug(processPo p, termPo call);
 extern DebugWaitFor tailDebug(processPo p, termPo call);
+extern DebugWaitFor ocallDebug(processPo p, termPo call, int32 arity);
 extern DebugWaitFor retDebug(processPo p, termPo val);
+extern DebugWaitFor lineDebug(processPo p);
 
 extern retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 
@@ -23,6 +25,5 @@ extern void dumpInsStats();
 
 extern void stackTrace(processPo p, ioPo out, logical showStack);
 extern void dumpStackTrace(processPo p, ioPo out);
-
 
 #endif //STAR_DEBUG_H

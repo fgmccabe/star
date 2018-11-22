@@ -19,9 +19,6 @@ labelPo tplLabel(integer arity);
 logical isTplLabel(labelPo lb);
 logical isLabel(termPo t);
 
-logical lblIsSet(labelPo lbl);
-termPo lblUpdate(labelPo lbl, termPo val);
-
 integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
 
