@@ -32,7 +32,7 @@ static retCode decodeLoadedPkg(packagePo pkg, ioPo in);
 static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
 static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
 
-static retCode loadFunctions(ioPo in, packagePo owner, char *errorMsg, long msgLen);
+static retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen);
 
 static char stringSig[] = {strTrm, 0};
 static char *pkgSig = "n4o4'()4'";
@@ -80,7 +80,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
           ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
         if (ret == Ok)
-          ret = loadFunctions(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+          ret = loadDefs(O_IO(sigBuffer), currHeap, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
       }
       closeFile(O_IO(sigBuffer));
     }
@@ -129,7 +129,7 @@ retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSi
       ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
 
       if (ret == Ok)
-        ret = loadFunctions(O_IO(sigBuffer), markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
+        ret = loadDefs(O_IO(sigBuffer), NULL, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
     else if (tracePkg)
@@ -263,19 +263,34 @@ retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
     return Fail;
 }
 
+static char *funcPreamble = "n7o7'()7'";
+
 static retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize);
 
-retCode loadFunctions(ioPo in, packagePo owner, char *errorMsg, long msgLen) {
+static char *structPreamble = "n3o3'()3'";
+
+static retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
+
+retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen) {
   integer count;
   if (decodeTplCount(in, &count, errorMsg, msgLen) == Ok) {
     retCode ret = Ok;
 
-    for (integer ix = 0; ret == Ok && ix < count; ix++)
-      ret = loadFunc(in, currHeap, owner, errorMsg, msgLen);
+    for (integer ix = 0; ret == Ok && ix < count; ix++) {
+      if (isLookingAt(in, funcPreamble) == Ok)
+        ret = loadFunc(in, h, owner, errorMsg, msgLen);
+      else if (isLookingAt(in, structPreamble) == Ok)
+        ret = loadStruct(in, h, owner, errorMsg, msgLen);
+      else {
+        strMsg(errorMsg, msgLen, "invalid code stream");
+        return Error;
+      }
+    }
     return ret;
   } else
     return Error;
 }
+
 
 
 // Decode a code segment.
@@ -350,19 +365,13 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *err
 static integer stackInc(insWord);
 
 retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSize) {
-  retCode ret = isLookingAt(in, "n7o7'()7'");
-
-  if (ret != Ok) {
-    strMsg(errorMsg, msgSize, "invalid code stream");
-    return Error;
-  }
   char prgName[MAX_SYMB_LEN];
   integer arity;
   integer lclCount = 0;
   integer maxStack = 0;
   methodPo mtd = Null;
 
-  ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
+  retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
 #ifdef TRACEPKG
   if (tracePkg)
@@ -433,4 +442,50 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   return ret;
 }
 
+static char *fieldPreamble = "n4o4'()4'";
 
+retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
+  char lblName[MAX_SYMB_LEN];
+  integer arity;
+
+  retCode ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
+
+#ifdef TRACEPKG
+  if (tracePkg)
+    logMsg(logFile, "loading structure definition %s/%d", &lblName, arity);
+#endif
+
+  if (ret == Ok)
+    ret = skipEncoded(in, errorMsg, msgSize); // Skip the structure signature
+
+  if (ret == Ok) {
+    labelPo lbl = declareLbl(lblName, arity);
+
+    integer count;
+    ret = decodeTplCount(in, &count, errorMsg, msgSize);
+
+    if (ret == Ok) {
+      for (integer ix = 0; ret == Ok && ix < count;) {
+        if (isLookingAt(in, fieldPreamble) == Ok) {
+          ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
+          if (ret == Ok) {
+            labelPo field = declareLbl(lblName, arity);
+            ret = skipEncoded(in, errorMsg, msgSize); // Field signature
+            if (ret == Ok) {
+              integer offset, size;
+              ret = decodeInteger(in, &offset);
+              if (ret == Ok)
+                ret = decodeInteger(in, &size);
+
+
+            }
+
+          }
+        }
+
+      }
+    }
+
+  }
+  return ret;
+}
