@@ -13,5 +13,16 @@ test.let{
     pl(X) => X+A.
   } in pl.
 
+  fg:()=>(integer)=>integer.
+  fg()=>let{
+    f(0)=>1.
+    f(N)=>g(N-1)*N.
+
+    g(0)=>1.
+    g(N)=>f(N-1)*N
+  } in g.
+
   assert inc(2)(3) == 5 && kk(3)=.k && k() == 3.
+
+  assert fg()(3) == 6.
 }

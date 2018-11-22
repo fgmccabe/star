@@ -39,6 +39,7 @@
 		"test.q0" : "q0.star",
 		"test.qs" : "qs.star",
 		"test.r" : "r.star",
+		"test.record" : "record.star",
 		"test.s" : "s.star",
 		"test.st" : "st.star",
 		"test.t" : "t.star",
