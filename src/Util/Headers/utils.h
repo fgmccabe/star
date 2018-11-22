@@ -51,4 +51,6 @@ static integer inline maximum(integer a, integer b) {
 
 extern char *genSym(char * prefix);
 
+extern integer nextPrime(integer min);
+
 #endif
