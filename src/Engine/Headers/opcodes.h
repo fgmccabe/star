@@ -1,6 +1,6 @@
 /* 
  * Access the opcodes of the Star machine
- * (c) 2013, 2018 F.G.McCabe
+ * (c) 2013, 2018 and beyond F.G.McCabe
  * all rights reserved
  **/
 
@@ -50,6 +50,5 @@ typedef enum {
   lit,          /* constant literal */
   glb           // Global variable name
 } opAndSpec;                    // Specification code for an operand
-
 #endif
 

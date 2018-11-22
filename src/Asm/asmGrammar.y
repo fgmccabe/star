@@ -60,12 +60,12 @@
 %token LD ST T
 
 %token A L
-%token ALLOC
+%token ALLOC VOID
 
-%token FRAME LINE DCALL DOCALL DTAIL DOTAIL DRET LOCAL
+%token FRAME LINE DLINE DCALL DOCALL DTAIL DOTAIL DRET LOCAL
 %token END
 
-%token COLON SLASH AT DCOLON LBRA RBRA HASH
+%token COLON SLASH AT DCOLON LBRA RBRA HASH DOT
 %token NL
 
 // Number and value tokens
@@ -77,7 +77,7 @@
 %type <lbl> label;
 %type <str> libName;
 %type <str> signature;
-%type <i> literal local;
+%type <i> literal local lbl;
 
 %%
 
@@ -141,13 +141,17 @@ trailer: END nls { endFunction(currMtd); }
  literal: FLOAT { $$=newFloatConstant(currMtd,$1); }
    | STRING { $$=newStringConstant(currMtd,$1); }
    | DECIMAL { $$ = newIntegerConstant(currMtd,$1); }
-   | ID COLON DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
+   | lbl
    ;
+
+  lbl: ID COLON DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
 
  load: LD literal { ALdC(currMtd,$2); }
    | LD A LBRA DECIMAL RBRA { ALdA(currMtd,$4); }
    | LD L LBRA DECIMAL RBRA { ALdL(currMtd,$4); }
+   | LD DOT lbl { AGet(currMtd,$3); }
    | LD ID { ALdG(currMtd,$2); }
+   | LD VOID { ALdV(currMtd); }
    | DROP { ADrop(currMtd); }
    | DUP { ADup(currMtd); }
    | RST DECIMAL { ARst(currMtd,$2); }
@@ -159,6 +163,7 @@ trailer: END nls { endFunction(currMtd); }
  store: ST L LBRA local RBRA { AStL(currMtd,$4); }
    | ST LBRA local RBRA { AStNth(currMtd,$3); }
    | ST ID { AStG(currMtd,$2); }
+   | ST DOT lbl { ASet(currMtd,$3); }
    | T L LBRA local RBRA { ATL(currMtd,$4); }
    ;
 

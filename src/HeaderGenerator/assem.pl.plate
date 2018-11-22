@@ -5,7 +5,7 @@
 :- use_module(terms).
 :- use_module(encode).
 
-assem([method(Nm,Sig,Lx)|Ins],MTpl) :-
+assem(method(Nm,Sig,Lx,Ins),MTpl) :-
     genLblTbl(Ins,0,[],Lbs),
     findLit([],Nm,_,Ls0),
     mnem(Ins,Lbs,Ls0,Lts,[],Lcs,[],Lines,0,Cde),
@@ -15,6 +15,9 @@ assem([method(Nm,Sig,Lx)|Ins],MTpl) :-
     sortLines(Lines,SLines),
     mkTpl(SLines,LnsTpl),
     mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
+assem(struct(Lbl,Sig,Fields),Tpl) :-
+    mkFields(Fields,Flds),
+    mkTpl([Lbl,strg(Sig),Flds],Tpl).
 
 mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,_,[]).
 mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code).
