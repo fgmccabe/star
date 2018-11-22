@@ -42,6 +42,7 @@ extern void inStackPtr(processPo P,ptrPo o);
 extern void verifyHeap(heapPo H);
 
 extern termPo markPtr(gcSupportPo G, ptrPo p);
+extern termPo scanTerm(gcSupportPo G, termPo x);
 
 static inline logical inHeap(heapPo P, const termPo x) {
   return (logical) (x >= P->base && x < P->curr);

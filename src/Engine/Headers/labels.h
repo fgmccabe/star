@@ -21,6 +21,7 @@ logical isLabel(termPo t);
 
 integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
+integer fieldOffset(labelPo lbl,labelPo field);
 
 labelPo objLabel(labelPo lbl, integer arity);
 

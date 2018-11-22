@@ -17,7 +17,7 @@ assem(method(Nm,Sig,Lx,Ins),MTpl) :-
     mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
 assem(struct(Lbl,Sig,Fields),Tpl) :-
     mkFields(Fields,Flds),
-    mkTpl([Lbl,strg(Sig),Flds],Tpl).
+    mkTpl([Lbl,Sig,Flds],Tpl).
 
 mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,_,[]).
 mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code).
@@ -567,3 +567,11 @@ showMnem([iDLine|Ins],Pc,Lbls,O,Ox) :- !,
   Pc1 is Pc+1,
   showMnem(Ins,Pc1,Lbls,O2,Ox).
 
+
+mkFields(Fields,Flds) :-
+  sort(Fields,assemble:compField,Flds).
+
+compField((lbl(Nm1,_),_,_),(lbl(Nm2,_),_,_)) :-
+  Nm1<Nm2,!.
+compField((lbl(Nm,Ar1),_,_),(lbl(Nm,Ar2),_,_)) :-
+  Ar1<Ar2.

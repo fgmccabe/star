@@ -161,3 +161,13 @@ normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
   gcReleaseRoot(H, root);
   return tpl;
 }
+
+termPo getField(normalPo term,labelPo field){
+  integer offset = fieldOffset(term->lbl,field);
+  return nthArg(term,offset);
+}
+
+void setField(normalPo term,labelPo field,termPo val){
+  integer offset = fieldOffset(term->lbl,field);
+  setArg(term,offset,val);
+}
