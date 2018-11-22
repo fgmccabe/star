@@ -131,6 +131,10 @@ static retCode nullEstimate(void *cl) {
   return Ok;
 }
 
+static retCode estimateVoid(void *cl) {
+  return Ok;
+}
+
 static retCode estimateInt(integer _, void *cl) {
   Estimation *info = (Estimation *) cl;
   info->amnt += IntegerCellCount;
@@ -177,6 +181,7 @@ retCode estimate(ioPo in, integer *amnt) {
   DecodeCallBacks estimateCB = {
     nullEstimate,           // startDecoding
     nullEstimate,           // endDecoding
+    estimateVoid,           // decVoid
     estimateInt,            // decInt
     estimateFlt,            // decFlt
     estimateLbl,           // decLbl
@@ -338,6 +343,9 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
   if (res == Eof)
     return Eof;
   switch (ch) {
+    case vodTrm: {
+      return cb->decVoid(cl);
+    }
     case intTrm: {
       integer i;
       res = decInt(in, &i);
@@ -442,6 +450,10 @@ static retCode skipFlag(void *cl) {
   return Ok;
 }
 
+static retCode skipVoid(void *cl) {
+  return Ok;
+}
+
 static retCode skipInt(integer ix, void *cl) {
   return Ok;
 }
@@ -465,6 +477,7 @@ static retCode skipLst(integer ix, void *cl) {
 static DecodeCallBacks skipCB = {
   skipFlag,           // startDecoding
   skipFlag,           // endDecoding
+  skipVoid,           // decVoid
   skipInt,            // decInt
   skipFlt,            // decFlt
   skipName,           // decLbl
@@ -495,6 +508,11 @@ typedef struct {
 
 static retCode copyFlag(void *cl) {
   return Ok;
+}
+
+static retCode copyVoid(void *cl) {
+  ioPo out = ((CopyRec *) cl)->out;
+  return outChar(out, vodTrm);
 }
 
 static retCode copyInt(integer ix, void *cl) {
@@ -551,6 +569,7 @@ static retCode copyCons(integer ar, void *cl) {
 static DecodeCallBacks copyCB = {
   copyFlag,           // startDecoding
   copyFlag,           // endDecoding
+  copyVoid,           // decVoid
   copyInt,            // decInt
   copyFlt,            // decFlt
   copyEnum,           // decLbl
@@ -588,6 +607,10 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
   if (res == Eof)
     return Eof;
   switch (ch) {
+    case vodTrm: {
+      *tgt = (termPo) voidEnum;
+      return Ok;
+    }
     case intTrm: {
       integer i;
       if ((res = decInt(in, &i)) != Ok)

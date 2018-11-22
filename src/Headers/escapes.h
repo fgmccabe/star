@@ -94,6 +94,9 @@ escape(_isDefinedVr,True,False,":k't'F(S)l","Check a global variable")
 escape(_definedVr,True,False,":k't'F(S)k't'","Access a global variable")
 escape(_defineVr,True,False,":k't'F(Sk't')l","Define a global variable")
 
+
+escape(_tuple_nth,True,False,":k't':k'e'F(k't'i)k'e'","Access tuple element")
+escape(_tuple_set_nth,True,False,":k't':k'e'F(k't'ik'e')l","Update tuple element")
 escape(_list_empty,True,False,":k't'F(Lk't')l","is the list empty")
 escape(_list_size,True,False,":k't'F(Lk't')i","compute the size of a list")
 escape(_list_nth,True,False,":k't'F(Lk't'i)k't'","access element of a list")
