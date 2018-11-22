@@ -322,6 +322,13 @@ retCode run(processPo P) {
         continue;
       }
 
+      case Get:{
+        labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
+        normalPo trm = C_TERM(pop());
+        push(getField(trm,lbl));
+        continue;
+      }
+
       case CVd: {
         termPo l = pop();
         insPo exit = collectOff(PC);
@@ -388,6 +395,14 @@ retCode run(processPo P) {
         termPo val = pop();
         globalPo glb = getGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
+        continue;
+      }
+
+      case Set:{
+        labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
+        termPo val = pop();
+        normalPo trm = C_TERM(pop());
+        setField(trm,lbl,val);
         continue;
       }
 

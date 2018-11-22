@@ -23,7 +23,7 @@
 #include "manifest.h"
 #include "libEscapes.h"
 #include "codeP.h"
-#include "labels.h"
+#include "labelsP.h"
 #include "verify.h"
 
 static retCode decodePkgName(ioPo in, packagePo pkg);
@@ -465,6 +465,8 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
     ret = decodeTplCount(in, &count, errorMsg, msgSize);
 
     if (ret == Ok) {
+      fieldTblPo fieldTbl = newFieldTable(count);
+
       for (integer ix = 0; ret == Ok && ix < count;) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
           ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
@@ -474,18 +476,19 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
             if (ret == Ok) {
               integer offset, size;
               ret = decodeInteger(in, &offset);
-              if (ret == Ok)
-                ret = decodeInteger(in, &size);
-
-
+              if (ret == Ok) {
+                setFieldTblEntry(fieldTbl, ix, field, offset);
+              }
             }
-
           }
         }
-
+      }
+      if(ret==Ok){
+        declareFields(lbl,fieldTbl);
+      } else{
+        destroyFieldTable(fieldTbl);
       }
     }
-
   }
   return ret;
 }

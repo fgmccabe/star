@@ -28,7 +28,6 @@ typedef struct _gc_support_ {
 } GCSupport;
 
 static retCode markProcess(processPo P, gcSupportPo G);
-static termPo scanTerm(gcSupportPo G, termPo x);
 static logical hasMoved(termPo t);
 static termPo movedTo(termPo t);
 static void markMoved(termPo t, termPo where);
@@ -192,7 +191,7 @@ static retCode markScanHelper(ptrPo arg, void *c) {
   return Ok;
 }
 
-static termPo scanTerm(gcSupportPo G, termPo x) {
+termPo scanTerm(gcSupportPo G, termPo x) {
   if (isSpecialClass(x->clss)) {
     specialClassPo sClass = (specialClassPo) classOf(x);
     return sClass->scanFun(sClass, markScanHelper, G, x);

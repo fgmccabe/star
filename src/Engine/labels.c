@@ -4,6 +4,7 @@
 
 #include "labelsP.h"
 #include "codeP.h"
+#include <stdlib.h>    /* access malloc etc. */
 
 static hashPo labels;
 static poolPo labelPool;
@@ -48,6 +49,7 @@ labelPo declareLbl(const char *name, integer arity) {
     lbl->mtd = Null;
     lbl->clss = labelClass;
     lbl->hash = tst.hash;
+    lbl->fields = Null;
     hashPut(labels, lbl, lbl);
   }
   return lbl;
@@ -60,6 +62,10 @@ labelPo declareEnum(const char *name) {
 labelPo findLbl(const char *name, integer arity) {
   LblRecord tst = {.name=(char *) name, .arity=arity, .hash=hash64(arity * 37 + uniHash(name))};
   return hashGet(labels, &tst);
+}
+
+void declareFields(labelPo lbl, fieldTblPo tbl) {
+  lbl->fields = tbl;
 }
 
 labelPo objLabel(labelPo lbl, integer arity) {
@@ -114,6 +120,15 @@ static retCode markLabel(void *n, void *r, void *c) {
 
   if (lbl->mtd != Null)
     lbl->mtd = (methodPo) markPtr(G, (ptrPo) &lbl->mtd);
+
+  if (lbl->fields != Null) {
+    fieldTblPo fields = lbl->fields;
+    for (integer ix = 0; ix < fields->size; ix++) {
+      fieldPo fld = &fields->entries[ix];
+      if (fld->lbl != Null)
+        markLabel(Null, &fld->lbl, c);
+    }
+  }
   return Ok;
 }
 
@@ -136,6 +151,15 @@ termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   if (lbl->mtd != Null)
     helper((ptrPo) (&lbl->mtd), c);
 
+  if (lbl->fields != Null) {
+    fieldTblPo fields = lbl->fields;
+    for (integer ix = 0; ix < fields->size; ix++) {
+      fieldPo fld = &fields->entries[ix];
+      if (fld->lbl != Null)
+        scanTerm(c, (termPo) fld->lbl);
+    }
+  }
+
   return o + LabelCellCount;
 }
 
@@ -152,7 +176,7 @@ retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl) {
       integer hwp = backCodePoint(lbl->name, lblLen, half);
       return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
     } else
-      return outMsg(out, "%S/%d", lbl->name, lblLen,lbl->arity);
+      return outMsg(out, "%S/%d", lbl->name, lblLen, lbl->arity);
   } else
     return outMsg(out, "%s", lbl->name);
 }
@@ -193,4 +217,48 @@ logical isTplLabel(labelPo lb) {
 
 logical isLabel(termPo t) {
   return hasClass(t, labelClass);
+}
+
+integer fieldOffset(labelPo lbl, labelPo field) {
+  fieldTblPo fields = lbl->fields;
+  if (fields == Null)
+    return -1;
+  else {
+    integer mx = fields->size - 1;
+    integer lx = 0;
+
+    while (mx >= lx) {
+      integer mid = (mx + lx) / 2;
+      switch (labelCmp(field, fields->entries[mid].lbl)) {
+        case same:
+          return fields->entries[mid].offset;
+        case smaller:
+          mx = mid - 1;
+          continue;
+        case bigger:
+          lx = mid + 1;
+          continue;
+        default:
+          return -1;
+      }
+    }
+
+    return -1;
+  }
+}
+
+fieldTblPo newFieldTable(integer count) {
+  fieldTblPo tbl = (fieldTblPo) malloc(sizeof(FieldTable) + count * sizeof(FieldBucket));
+  tbl->size = count;
+  return tbl;
+}
+
+void setFieldTblEntry(fieldTblPo tbl, integer ix, labelPo field, integer offset) {
+  assert(ix >= 0 && ix < tbl->size);
+  tbl->entries[ix].lbl = field;
+  tbl->entries[ix].offset = offset;
+}
+
+void destroyFieldTable(fieldTblPo tbl) {
+  free(tbl);
 }
