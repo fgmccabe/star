@@ -54,7 +54,7 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
     equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
   ]),
-  Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+  Let = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
   Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp).
   /*
    * Key->Ptn in Src
@@ -84,7 +84,7 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
       equation(Lc,tple(Lc,[KPtrn,Pttrn,St]),IxCond,AddToFront),
       equation(Lc,tple(Lc,[KAnon,Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
     ]),
-    Let = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+    Let = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
     Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
     typeOfCanon(Src,SrcTp),
     StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
@@ -113,7 +113,7 @@ genCondition(match(Lc,Ptn,Exp),Path,Succ,Fail,Initial,Exp) :-
     equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToSucc),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),AddToFail)
   ]),
-  Exp = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Exp,Initial]),StTp)),
+  Exp = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Exp,Initial]),StTp)),
   typeOfCanon(Ptn,PtnTp),
   FnTp = funType(tupleType([PtnTp,StTp]),StTp).
 
@@ -138,7 +138,7 @@ genCondition(Other,Path,Succ,Fail,Initial,Exp) :-
     equation(Lc,tple(Lc,[enm(Lc,"true",type("star.core*boolean")),St]),enm(Lc,"true",type("star.core*boolean")),AddToSucc),
     equation(Lc,tple(Lc,[enm(Lc,"false",type("star.core*boolean")),St]),enm(Lc,"true",type("star.core*boolean")),AddToFail)
   ]),
-  Exp = letExp(Lc,theta(Lc,ThNm,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Other,Initial]),StTp)),
+  Exp = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Other,Initial]),StTp)),
   FnTp = funType(tupleType([type("star.core*boolean"),StTp]),StTp).
 
 genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
@@ -191,8 +191,8 @@ analyseExp(show(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(lambda(_,Rle,_),Df,Dfx,Rq,Rqx,Cond) :-
   analyseRl(Rle,Df,Dfx,Rq,Rqx,Cond).
-analyseExp(theta(_Lc,_Path,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
-analyseExp(record(_Lc,_Path,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
+analyseExp(theta(_Lc,_Path,_,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
+analyseExp(record(_Lc,_Path,_,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(letExp(_,Th,Exp),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Th,Df,Df0,Rq,Rq0,Cand),
   analyseExp(Exp,Df0,Dfx,Rq0,Rqx,Cand).

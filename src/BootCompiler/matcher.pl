@@ -55,10 +55,16 @@ conditionalize([(_,(Lc,Bnds,Test,Val),_)|M],Deflt,Repl) :-!,
     Repl = cnd(Lc,TT,TVl,Other)
   ).
 
-applyBindings([],_,Val,Val).
-applyBindings(Bnds,Lc,Val,varNames(Lc,Bnds,Val)).
+applyBindings(Bnds,Lc,Val,DVal) :-
+  filter(Bnds,matcher:filterBndVar(Val),VBnds),!,
+  (VBnds=[] -> DVal=Val ; DVal = varNames(Lc,VBnds,Val)).
+
+filterBndVar(Val,(Nm,X)) :-
+  \+ string_concat("_",_,Nm),
+  idInTerm(idnt(X),Val).
 
 argMode(idnt(_),inVars).
+argMode(voyd,inScalars).
 argMode(intgr(_),inScalars).
 argMode(float(_),inScalars).
 argMode(strg(_),inScalars).

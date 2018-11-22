@@ -1,6 +1,6 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
-        collect/4,map/3,rfold/4,project0/2,project1/2,zip/3,
+        collect/4,map/3,rfold/4,project0/2,project1/2,project1_3/2,zip/3,
         isIdentifier/1,
         appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,
         appIndx/3,appNl/2,appNwln/3,appMulti/3,
@@ -77,6 +77,10 @@ project0([(E,_)|L],[E|K]) :-
 project1([],[]).
 project1([(_,E)|L],[E|K]) :-
   project1(L,K).
+
+project1_3([],[]).
+project1_3([(_,E,_)|L],[E|K]) :-
+  project1_3(L,K).
 
 zip([],[],[]).
 zip([E1|L1],[E2|L2],[(E1,E2)|L3]) :-
