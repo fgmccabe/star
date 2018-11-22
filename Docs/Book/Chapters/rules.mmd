@@ -14,7 +14,7 @@ In general, a response to an external event goes through a series of phases:
 
 There are many approaches to providing for such inference but one of the most robust is _rules_. A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
 
-However, when _embedding_ a different semantics there are some usability issues to consider. Classical approaches to logic are not well suited to _all_ of the above stages: it can be very effective for describing inference but is typically not as effective for expressing action.
+However, when _embedding_ a different semantics there are some usability issues to consider. Classical approaches to logic are not well suited to _all_ of the above stages: it can be very effective for describing inference but is typically not as effective for expressing action. More fundamentally, the inference required is typically not completely _general purpose_: specific encoded chains of reasoning are often needed; using a general rule language may not be the best vehicle for representing such special purpose logic.
 
 But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star** to address classification (and other) problems.
 
@@ -48,9 +48,9 @@ This, rather intimidating,[^There are, unfortunately, some functional programmer
 
 The `acc` function defined above in the `let` expression implements the logic of deciding what to accumulate depending on whether we had found a grandparent or not.
 
-The various filter, `fmap` and `foldLeft` functions *are* powerful ways of processing entire collections. However, as we can see, domination iterations can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
+The various filter, `fmap` and `foldLeft` functions *are* powerful ways of processing entire collections. However, as we can see, combination iterations can be difficult to construct and harder to follow; something that is not helped by the occasional need to construct complex functions in the middle, as in this case.
 
-What is needed is a way of expressing such complex query conditions in a way that can be _implemented_ using `foldLeft` expressions but which is easier to read.
+What is needed is a way of expressing such complex query conditions in a way that can be _implemented_ using `foldLeft` expressions but which are easier to read.
 
 Consider the conjunction:
 ```
@@ -67,7 +67,7 @@ Conditions like the ones above are boolean valued -- but they are not always exp
 ```
 (X,Z) in parents
 ```
-is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of `X` and `Z` are in some `parents` collection. Instead, the condition needs to be evaluated by trying to find `X` and `Z` that are in the `parents` collection. In effect, the condition becomes a _search_ for suitable candidate pairs.
+is not evaluated in the way that expressions are normally evaluated -- by *testing* to see if a given pair of `X` and `Z` are in some `parents` collection. Instead, the condition needs to be evaluated by trying to _find_ `X` and `Z` that are in the `parents` collection. In effect, the condition becomes a _search_ for suitable candidate pairs.
 
 Technically this is called *satisfying* the condition -- to distinguish what is going on in normal expression *evaluation*. Of course, satisfying and evaluating are close cousins of each other and amount to the same thing when there is no search involved.
 
