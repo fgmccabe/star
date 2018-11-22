@@ -281,9 +281,9 @@ processStmt(St,ProgramType,Defs,Defx,Df,Dfx,E,Path) :-
 processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
   isDefn(St,Lc,L,R),
   checkDefn(Lc,L,R,Tp,Def,Env,Path),!.
-processStmt(St,Tp,[Def|Defs],Defs,Df,Df,Env,Path) :-
+processStmt(St,Tp,Defs,Dfsx,Df,Df,Env,Path) :-
   isAssignment(St,Lc,L,R),!,
-  checkVarDefn(Lc,L,R,Tp,Def,Env,Path).
+  checkVarDefn(Lc,L,R,Tp,Defs,Dfsx,Env,Path).
 processStmt(St,Tp,Defs,Defs,Df,Df,_,_) :-
   locOfAst(St,Lc),
   reportError("Statement %s not consistent with expected type %s",[St,Tp],Lc).
@@ -346,11 +346,13 @@ checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   typeOfExp(R,Tp,E,_E2,Value,Path),
   packageVarName(Path,Nm,ExtNm).
 
-checkVarDefn(Lc,L,R,refType(Tp),varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Value)),Env,Path) :-
+checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Value))|Defs],Defs,Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E1),
   typeOfExp(R,Tp,E1,_E2,Value,Path),
   packageVarName(Path,Nm,ExtNm).
+checkVarDefn(Lc,L,_,Tp,Defs,Defs,_,_) :-
+  reportError("expecting an assignable type, not %s for %s",[Tp,L],Lc).
 
 checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   evidence(Tp,Env,Q,ETp),
@@ -374,14 +376,14 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   recordEnv(Path,nullRepo,Lc,Els,CFace,ThEnv,OEnv,Defs,Public,_Imports,Others),
   computeExport(Defs,CFace,Public,_,Types,[],[]),!.
 
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,Defs,Others,Types,Tp),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,Types,Tp),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
   newTypeVar("_",ThTp),
   checkThetaBody(ThTp,Lc,Els,Env,ThEnv,Defs,Others,Types,ThPath),
   typeOfExp(Ex,Tp,ThEnv,_,Bound,Path).
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,Defs,Others,Types,Tp),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,Others,Types,Tp),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
@@ -570,33 +572,31 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
   \+isAbstraction(Term,_,_,_),
   genstr("θ",ThNm),
   thetaName(Path,ThNm,ThPath),
   checkThetaBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath).
-typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
   isQBraceTuple(Term,Lc,Els),
   genstr("ρ",RcNm),
   thetaName(Path,RcNm,ThPath),
   checkRecordBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,false,Defs,Others,Types,Tp),Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
-  genstr(Lbl,ThNm),
-  thetaName(Path,ThNm,ThPath),
+  thetaName(Path,Lbl,ThPath),
   deRef(FnTp,BTp),
   checkThetaBody(BTp,Lc,Els,E0,_,Defs,Others,Types,ThPath).
-typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,false,Defs,Others,Types,Tp),Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
-  genstr(Lbl,RcNm),
-  thetaName(Path,RcNm,ThPath),
+  thetaName(Path,Lbl,ThPath),
   checkRecordBody(FnTp,Lc,Els,E0,_,Defs,Others,Types,ThPath).
 typeOfExp(Term,Tp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Th,Ex),
@@ -934,8 +934,6 @@ exportDef(typeDef(_,Nm,_,FRule),_,Public,Ex,Ex,[(Nm,FRule)|Tx],Tx,Cx,Cx,Impl,Imp
 exportDef(varDef(_,Nm,_,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
   isPublicVar(Nm,Fields,Public).
 exportDef(cnsDef(_,Nm,_,Tp),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl) :-
-  isPublicVar(Nm,Fields,Public).
-exportDef(vdefn(_,Nm,_,Tp,_),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl):-
   isPublicVar(Nm,Fields,Public).
 exportDef(Con,_,Public,Ex,Ex,Types,Types,[Con|Cx],Cx,Impl,Impl) :-
   isPublicContract(Con,Public).

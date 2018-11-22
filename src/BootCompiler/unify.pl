@@ -78,10 +78,11 @@ smList([E1|L1],[E2|L2],Env) :- sameType(E1,E2,Env), smList(L1,L2,Env).
 smFields(_,[],_).
 smFields(L1,[(F2,E2)|L2],Env) :- is_member((F2,E1),L1), sameType(E1,E2,Env), smFields(L1,L2,Env).
 
-subFace(faceType(F1,T1),Env,faceType(F2,T2)) :-
+subFace(Tp1,Tp2,Env) :-
+  deRef(Tp1,faceType(F1,T1)),
+  deRef(Tp2,faceType(F2,T2)),
   forall(is_member((Nm,Tp1),F1),(is_member((Nm,Tp2),F2),sameType(Tp1,Tp2,Env))),
   forall(is_member((Nm,Tp1),T1),(is_member((Nm,Tp2),T2),sameType(Tp1,Tp2,Env))).
-
 
 isTypeFun(type(Nm),[],Env,Tp) :-
   isType(Nm,Env,tpDef(_,_,Rule)),
@@ -277,7 +278,7 @@ smpCon(conTract(Nm,L,R),Env,C,Cx,conTract(Nm,Ls,Rs)) :-
   smpTps(R,Env,C0,Cx,Rs).
 smpCon(implementsFace(L,R),Env,C,Cx,implementsFace(Ls,Rs)) :-
   simplifyType(L,Env,C,C0,Ls),
-  smpFldTps(R,Env,C0,Cx,Rs).
+  simplifyType(R,Env,C0,Cx,Rs).
 
 bind(tVar(Curr,Con,Nm,Id),Tp,Env) :- !,
   \+occursIn(tVar(Curr,Con,Nm,Id),Tp),
@@ -312,6 +313,10 @@ checkConstraint(conTract(Nm,Args,Deps),Env) :-
       sameContract(Con,conTract(Nm,Args,Deps),Env);
       true);
     true).
+
+checkConstraint(implementsFace(Tp,NdFace),Env) :-
+  faceOfType(Tp,Env,Face),
+  subFace(NdFace,Face,Env).
 
 getConstrainedContract(constrained(C,_),Con) :- getConstrainedContract(C,Con).
 getConstrainedContract(contractExists(Con,_),Con).

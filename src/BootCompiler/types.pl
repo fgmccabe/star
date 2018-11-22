@@ -220,11 +220,13 @@ progTypeArity(Tp,Ar) :- deRef(Tp,TTp), tpArity(TTp,Ar).
 
 tpArity(allType(_,Tp),Ar) :- progTypeArity(Tp,Ar).
 tpArity(existType(_,Tp),Ar) :- progTypeArity(Tp,Ar).
-tpArity(constrained(Tp,_),Ar) :- progTypeArity(Tp,A), Ar is A+1.
+tpArity(constrained(Tp,conTract(_,_,_)),Ar) :- progTypeArity(Tp,A), Ar is A+1.
+tpArity(constrained(Tp,_),Ar) :- progTypeArity(Tp,Ar).
 tpArity(funType(A,_),Ar) :- progTypeArity(A,Ar).
 tpArity(consType(A,_),Ar) :- tpArity(A,Ar).
 tpArity(refType(A),Ar) :- progTypeArity(A,Ar).
 tpArity(tupleType(A),Ar) :- length(A,Ar).
+tpArity(faceType(A,_),Ar) :- length(A,Ar).
 tpArity(_,0).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).

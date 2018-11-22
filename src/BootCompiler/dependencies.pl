@@ -284,7 +284,7 @@ collectThetaRefs([(Defines,Lc,Def)|Defs],AllRefs,Annots,[(Defines,Refs,Lc,Def)|D
 
 collectStmtRefs([],_,_,Refs,Refs).
 collectStmtRefs([St|Stmts],All,Annots,R,Refs) :-
-  collStmtRefs(St,All,Annots,R,R0),
+  collStmtRefs(St,All,Annots,R,R0),!,
   collectStmtRefs(Stmts,All,Annots,R0,Refs).
 
 collStmtRefs(St,_,_,R,R) :-

@@ -196,6 +196,7 @@ checkToken([],[],Tk,Lc,Msg,Extra) :- reportError(Msg,[Tk|Extra],Lc).
 
 checkTerminator(_,[],[]).
 checkTerminator(_,Toks,Toks) :- Toks = [rgtTok("{}",_)|_].
+checkTerminator(_,Toks,Toks) :- Toks = [rgtTok("{..}",_)|_].
 checkTerminator(_,[termTok(_)|Toks],Toks) .
 checkTerminator(rbrce,Toks,Toks).
 checkTerminator(_,[Tk|Tks],RTks) :-

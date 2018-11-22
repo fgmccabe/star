@@ -1,6 +1,7 @@
-:- module(terms,[displayRules/1,substTerm/3,substTerms/3,
-        genTplStruct/2,isLiteral/1,isGround/1,mkTpl/2,isUnit/1,
-        termHash/2,dispTerm/2,showTerm/4,locTerm/2]).
+:- module(terms,[displayRules/1,
+        dispRuleSet/1,substTerm/3,substTerms/3,
+        genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,isUnit/1,
+        termHash/2,dispTerm/1,showTerm/4,locTerm/2,idInTerm/2]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -28,25 +29,36 @@ displayRules(Term) :- showRules(Term,Chrs,[]), string_chars(Res,Chrs), write(Res
 showRuleSets(L,O,Ox) :-
   listShow(L,terms:showRuleSet,misc:appNl,O,Ox).
 
-showRuleSet(fnDef(_,Nm,Tp,Args,Value),O,Ox) :-
-  appStr("Function: ",O,O0),
-  showTerm(Nm,0,O0,O1),
-  appStr(":",O1,O2),
-  showType(Tp,true,O2,O3),
-  appStr("\n",O3,O4),
-  showTerm(Nm,0,O4,O5),
-  showArgs(Args,0,O5,O6),
-  appStr(" => ",O6,O7),
-  showTerm(Value,0,O7,O8),
-  appStr(".",O8,O9),
-  appNl(O9,Ox).
-showRuleSet(vrDef(_,Nm,Tp,Value),O,Ox) :-
-  appStr("Global: ",O,O0),
-  appStr(Nm,O0,O1),
-  appStr(":",O1,O2),
-  showType(Tp,true,O2,O3),
-  appStr(" = ",O3,O4),
-  showTerm(Value,0,O4,Ox).
+dispRuleSet(RS) :-
+  showRuleSet(RS,Chrs,[]),
+  string_chars(Res,Chrs), write(Res).
+
+showRuleSet(fnDef(Lc,Nm,Tp,Args,Value),O,Ox) :-
+  appStr("Function @ ",O,O1),
+  showLocation(Lc,O1,O2),
+  appNl(O2,O3),
+  showTerm(Nm,0,O3,O4),
+  appStr(":",O4,O5),
+  showType(Tp,true,O5,O6),
+  appNl(O6,O7),
+  showTerm(Nm,0,O7,O8),
+  showArgs(Args,0,O8,O9),
+  appStr(" => ",O9,O10),
+  showTerm(Value,0,O10,O11),
+  appStr(".",O11,O12),
+  appNl(O12,Ox).
+showRuleSet(vrDef(Lc,Nm,Tp,Value),O,Ox) :-
+  appStr("Global @ ",O,O1),
+  showLocation(Lc,O1,O2),
+  appNl(O2,O3),
+  appStr(Nm,O3,O4),
+  appStr(":",O4,O5),
+  showType(Tp,true,O5,O6),
+  appNl(O6,O7),
+  appStr(Nm,O7,O8),
+  appStr(" = ",O8,O9),
+  showTerm(Value,0,O9,O10),
+  appNl(O10,Ox).
 
 showArgs(Args,Dp,O,Ox) :-
   showTerms(Args,"(",misc:appStr(","),")",Dp,O,Ox).
@@ -58,6 +70,7 @@ showTerms(Terms,Lft,Mid,Rgt,Dp,O,Ox) :-
 
 shwTerm(Dp,T,O,Ox) :- showTerm(T,Dp,O,Ox).
 
+showTerm(voyd,_,O,Ox) :- appStr("void",O,Ox).
 showTerm(idnt(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
 showTerm(intgr(Ix),_,O,Ox) :- appInt(Ix,O,Ox).
 showTerm(float(Ix),_,O,Ox) :- appInt(Ix,O,Ox).
@@ -71,13 +84,18 @@ showTerm(cll(_,Op,Args),Dp,O,Ox) :-
   showArgs(Args,Dp1,O1,Ox).
 showTerm(ocall(_,Op,Args),Dp,O,Ox) :-
   showTerm(Op,Dp,O,O1),
-  appStr(".",O1,O2),
+  appStr(":",O1,O2),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,O2,Ox).
 showTerm(ecll(_,Es,Args),Dp,O,Ox) :-
   appStr(Es,O,O1),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,O1,Ox).
+showTerm(dte(_,Exp,Off),Dp,O,Ox) :-
+  Dp1 is Dp+2,
+  showTerm(Exp,Dp1,O,O1),
+  appStr(".",O1,O2),
+  showTerm(Off,Dp1,O2,Ox).
 showTerm(ctpl(Op,A),Dp,O,Ox) :-
   showConOp(Op,Dp,O,O1),
   Dp1 is Dp+2,
@@ -95,7 +113,7 @@ showTerm(whr(_,Ptn,Cond),Dp,O,Ox) :-
   Dp1 is Dp+2,
   showTermGuard(Cond,Dp1,O1,Ox).
 showTerm(varNames(_,Vars,Value),Dp,O,Ox) :-
-  appStr("varDebug: [",O,O0),
+  appStr("vars: [",O,O0),
   showVarNames(Vars,Dp,O0,O1),
   appStr("] -> ",O1,O2),
   showTerm(Value,Dp,O2,Ox).
@@ -178,10 +196,11 @@ showCase(Dp,(Lbl,Val,_),O,Ox) :-
   appStr(": ",O1,O2),
   showTerm(Val,Dp,O2,Ox).
 
-dispTerm(T,Txt) :-
+dispTerm(T) :-
   showTerm(T,0,Chrs,[]),
-  string_chars(Txt,Chrs).
+  string_chars(Txt,Chrs), writeln(Txt).
 
+substTerm(_,voyd,voyd).
 substTerm(_,intgr(Ix),intgr(Ix)).
 substTerm(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
 substTerm(_,idnt(Nm),idnt(Nm)).
@@ -195,6 +214,9 @@ substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
 substTerm(Q,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
   substTerms(Q,Args,NArgs).
+substTerm(Q,dte(Lc,Op,Off),dte(Lc,NOp,NOff)) :-
+  substTerm(Q,Op,NOp),
+  substTerm(Q,Off,NOff).
 substTerm(Q,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   substTerm(Q,Op,NOp),
   substTerms(Q,Args,NArgs).
@@ -249,6 +271,7 @@ mkTpl(Els,ctpl(C,Els)) :-
 
 isUnit(ctpl(lbl("()0",0),[])).
 
+isLiteral(voyd).
 isLiteral(intgr(_)).
 isLiteral(float(_)).
 isLiteral(strg(_)).
@@ -260,6 +283,7 @@ isGround(ctpl(S,A)) :-
   isGround(S),
   forall(is_member(E,A), terms:isGround(E)).
 
+termHash(voyd,0).
 termHash(intgr(Ix),Ix).
 termHash(float(Dx),Ix) :- Ix is round(Dx).
 termHash(strg(Sx),Ix) :- stringHash(0,Sx,Ix).
@@ -271,3 +295,50 @@ termHash(lbl(Nm,Ar),Hx) :-
 
 locTerm(loc(Pk,Ln,Off,Str,Len),Tpl) :-
   mkTpl([strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)],Tpl).
+
+idInTerm(idnt(Nm),Term) :-
+  inTerm(Term,Nm),!.
+
+inTerm(idnt(Nm),Nm).
+inTerm(cll(_,_,Args),Nm) :-
+  is_member(Arg,Args),
+  inTerm(Arg,Nm).
+inTerm(ocall(_,Op,_),Nm) :-
+  inTerm(Op,Nm).
+inTerm(ocall(_,_Op,Args),Nm) :-
+  is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(dte(_,Op,Off),Nm) :-
+  inTerm(Op,Nm); inTerm(Off,Nm).
+inTerm(ctpl(_,Args),Nm) :-
+  is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(ecll(_,_,Args),Nm) :-
+  is_member(Arg,Args), inTerm(Arg,Nm),!.
+inTerm(whr(_,T,_),Nm) :-
+  inTerm(T,Nm),!.
+inTerm(whr(_,_,C),Nm) :-
+  inTerm(C,Nm),!.
+inTerm(varNames(_,V,_),Nm) :-
+  is_member((Nm,_),V),!.
+inTerm(varNames(_,_,T),Nm) :-
+  inTerm(T,Nm),!.
+inTerm(case(_,T,_C),Nm) :-
+  inTerm(T,Nm),!.
+inTerm(case(_,_T,C),Nm) :-
+  is_member((P,V),C), (inTerm(P,Nm);inTerm(V,Nm)),!.
+inTerm(seq(_,L,R),Nm) :-
+  inTerm(L,Nm) ; inTerm(R,Nm).
+inTerm(cnj(_,L,R),Nm) :-
+  inTerm(L,Nm) ; inTerm(R,Nm).
+inTerm(dsj(_,L,R),Nm) :-
+  inTerm(L,Nm) ; inTerm(R,Nm).
+inTerm(cnd(_,T,L,R),Nm) :-
+  inTerm(T,Nm) ; inTerm(L,Nm) ; inTerm(R,Nm).
+inTerm(mtch(_,L,R),Nm) :-
+  inTerm(L,Nm) ; inTerm(R,Nm).
+inTerm(ng(_,R),Nm) :-
+  inTerm(R,Nm).
+
+isCnd(cnj(_,_,_)).
+isCnd(dsj(_,_,_)).
+isCnd(mtch(_,_,_)).
+isCnd(ng(_,_)).

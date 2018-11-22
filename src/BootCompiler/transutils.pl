@@ -1,8 +1,8 @@
 :- module(transutils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
-          lookupVarName/3,lookupFunName/3,lookupPtnName/3,lookupClassName/3,
+          lookupVarName/3,lookupFunName/3,lookupClassName/3,
           definedProgs/2,labelVars/2,
           genVar/2,
-          pushOpt/3, isOption/2,layerName/2,
+          pushOpt/3, isOption/2,layerName/2,dispMap/1,showMap/3,
           genVars/2,
           pullWhere/4,pullWheres/4]).
 
@@ -76,14 +76,6 @@ isFnDef(moduleFun(_,_,_)).
 isFnDef(localClass(_,_,_,_,_)).
 isFnDef(moduleCons(_,_,_)).
 
-lookupPtnName(Map,Nm,V) :-
-  lookup(Map,Nm,isPtnDef,V).
-
-isPtnDef(localPtn(_,_,_,_,_)).
-isPtnDef(modulePtn(_,_,_)).
-isPtnDef(localClass(_,_,_,_,_)).
-isPtnDef(moduleCons(_,_,_)).
-
 lookupClassName(Map,Nm,V) :-
   lookup(Map,Nm,classDef,V).
 
@@ -118,8 +110,6 @@ definedInDefs([_|Defs],Pr,Prx) :-
 
 definedP(_Nm,moduleFun(_,_,_)).
 definedP(_Nm,localFun(_,_,_,_,_)).
-definedP(_Nm,modulePtn(_,_,_)).
-definedP(_Nm,localPtn(_,_,_,_,_)).
 definedP(_Nm,moduleVar(_)).
 definedP(_Nm,localVar(_,_,_)).
 
@@ -133,7 +123,7 @@ lblVars([lyr(_,Defs,_,ThVr)|Map],Pr,Prx) :-
   lblVars(Map,Pr1,Prx).
 
 labelVarsInDefs([],Pr,Pr).
-labelVarsInDefs([(_,labelArg(V,_ThVr))|Defs],Pr,Prx) :-
+labelVarsInDefs([(_,labelArg(V,_,_ThVr))|Defs],Pr,Prx) :-
   (is_member(V,Pr) -> Pr0=Pr ; Pr0=[V|Pr]),
   labelVarsInDefs(Defs,Pr0,Prx).
 labelVarsInDefs([_|Defs],Pr,Prx) :-
@@ -143,6 +133,9 @@ mergeGoal(enum("star.core#true"),G,_,G).
 mergeGoal(G,enum("star.core#true"),_,G).
 mergeGoal(G1,G2,Lc,cnj(Lc,G1,G2)).
 
+mergeWhere(Exp,Cnd,Lc,Rslt) :-
+  isCnd(Exp),!,
+  mergeGoal(Cnd,Exp,Lc,Rslt).
 mergeWhere(Exp,enum("star.core#true"),_,Exp).
 mergeWhere(Exp,G,Lc,whr(Lc,Exp,G)).
 
@@ -170,7 +163,7 @@ genVars(K,[V|Rest]) :-
 
 pullWhere(whr(Lc,Val,Cond),G,Value,Gx) :-
   pullWhere(Val,G,Value,G1),
-  mergeGoal(G1,Cond,Lc,Gx).
+  mergeGoal(Cond,G1,Lc,Gx).
 pullWhere(ctpl(Lbl,Args),G,ctpl(Lbl,NArgs),Gx) :-
   pullWheres(Args,NArgs,G,Gx).
 pullWhere(Val,G,Val,G).
@@ -179,3 +172,99 @@ pullWheres([],[],G,G) :- !.
 pullWheres([E|Rest],[Ex|Rx],G,Gx) :-
   pullWhere(E,G,Ex,G1),
   pullWheres(Rest,Rx,G1,Gx).
+
+dispMap(Map) :-
+  showMap(Map,Chrs,[]),
+  string_chars(Txt,Chrs),
+  writeln(Txt).
+
+showMap([],Ox,Ox).
+showMap([L|Rest],O,Ox) :-
+  showLayer(L,O,O1),
+  appNl(O1,O2),
+  showMap(Rest,O2,Ox).
+
+showLayer(lyr(Nm,Defs,void,void),O,Ox) :-
+  appStr("Top Layer: ",O,O1),
+  appStr(Nm,O1,O2),
+  appNl(O2,O3),
+  showLayerDefs(Defs,O3,Ox).
+showLayer(lyr(Nm,Defs,FreeTerm,ThVr),O,Ox) :-
+  appStr("Layer: ",O,O1),
+  appStr(Nm,O1,O2),
+  appNl(O2,O3),
+  appStr("Free term: ",O3,O4),
+  showTerm(FreeTerm,0,O4,O5),
+  appStr("«",O5,O6),
+  showTerm(ThVr,0,O6,O7),
+  appStr("»\n",O7,O8),
+  showLayerDefs(Defs,O8,Ox).
+
+showLayerDefs(Defs,O,Ox) :-
+  listShow(Defs,transutils:showLayerDef,misc:appNl,O,Ox).
+
+showLayerDef((Nm,moduleFun(LclName,AccessName,Ar)),O,Ox) :-
+  appStr("Global Fun ",O,O0),
+  appStr(Nm,O0,O0a),
+  appStr("=",O0a,O1),
+  appStr(LclName,O1,O2),
+  appStr("«",O2,O3),
+  appStr(AccessName,O3,O4),
+  appStr("/",O4,O7),
+  appInt(Ar,O7,Ox).
+showLayerDef((Nm,localFun(LclName,AccessName,ClosureName,Ar,ThV)),O,Ox) :-
+  appStr("Fun ",O,O0),
+  appStr(Nm,O0,O0a),
+  appStr("=",O0a,O1),
+  appStr(LclName,O1,O2),
+  appStr("«",O2,O3),
+  appStr(AccessName,O3,O4),
+  appStr("»:[",O4,O5),
+  appStr(ClosureName,O5,O6),
+  appStr("@",O6,O6a),
+  showTerm(ThV,0,O6a,O6b),
+  appStr("]/",O6b,O7),
+  appInt(Ar,O7,Ox).
+showLayerDef((Nm,localVar(LclName,AccessName,ThV)),O,Ox) :-
+  appStr("Var ",O,O0),
+  appStr(Nm,O0,O0a),
+  appStr("=",O0a,O1),
+  appStr(LclName,O1,O2),
+  appStr("«",O2,O3),
+  appStr(AccessName,O3,O4),
+  appStr("»:[",O4,O5),
+  showTerm(ThV,0,O5,O6),
+  appStr("]",O6,Ox).
+showLayerDef((Nm,moduleVar(LclName)),O,Ox) :-
+  appStr("Global Var ",O,O0),
+  appStr(Nm,O0,O0a),
+  appStr("=",O0a,O1),
+  appStr(LclName,O1,Ox).
+showLayerDef((Nm,labelArg(Field,Ix,ThV)),O,Ox) :-
+  appStr("Free Var ",O,O0),
+  appStr(Nm,O0,O0a),
+  appStr("=",O0a,O1),
+  showTerm(Field,0,O1,O2),
+  appStr(":",O2,O3),
+  showTerm(ThV,0,O3,O4),
+  appStr("[",O4,O5),
+  appInt(Ix,O5,O6),
+  appStr("]",O6,Ox).
+showLayerDef((Nm,moduleType(LclName,FullName,Tp)),O,Ox) :-
+  appStr("Module type ",O,O1),
+  appStr(Nm,O1,O2),
+  appStr("=",O2,O3),
+  appStr(LclName,O3,O4),
+  appStr("«",O4,O5),
+  appStr(FullName,O5,O6),
+  appStr("»",O6,O7),
+  showType(Tp,false,O7,Ox).
+showLayerDef((Nm,moduleCons(LclName,FullName,Ar)),O,Ox) :-
+  appStr("Module cons ",O,O1),
+  appStr(Nm,O1,O2),
+  appStr("=",O2,O3),
+  appStr(LclName,O3,O4),
+  appStr("«",O4,O5),
+  appStr(FullName,O5,O6),
+  appStr("»/",O6,O7),
+  appInt(Ar,O7,Ox).

@@ -63,7 +63,7 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns([method(Nm,Sig,_Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
-  assem([method(Nm,Sig,Lx)|C0],CdTrm).
+  assem(method(Nm,Sig,Lx,C0),CdTrm).
 genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tupleType([]),Tp),Sig),
   genLbl(D,End,D1),
@@ -71,7 +71,7 @@ genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),Opts,D1,Dx,End,C1,[iLbl(End)],0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns([method(lbl(Nm,0),Sig,Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
-  assem([method(lbl(Nm,0),Sig,Lx)|C0],Cd).
+  assem(method(lbl(Nm,0),Sig,Lx,C0),Cd).
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 
@@ -80,6 +80,9 @@ retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
 
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.
+
+idxCont(Cont,Off,D,Dx,End,[iNth(Off)|C],Cx,Stk,Stkx) :-
+  call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
 
 initDict(scope([],[],0)).
 
@@ -133,6 +136,9 @@ findMaxLocal(scope(Nms,_,_),Mx) :-
 localMx((_,l(Off),_),M,Mx) :- !, Mx is max(Off,M).
 localMx(_,M,M).
 
+compTerm(voyd,_,Cont,_Opts,D,Dx,End,[iLdV|C0],Cx,Stk,Stkx) :-
+  Stk1 is Stk+1,
+  call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 compTerm(Lit,_,Cont,_,D,Dx,End,[iLdC(Lit)|C0],Cx,Stk,Stkx) :-
   isGround(Lit),!,
   Stk1 is Stk+1,
@@ -151,6 +157,9 @@ compTerm(cll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Stk,Cont,Opts),Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+compTerm(dte(Lc,Exp,intgr(Off)),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(Exp,Lc,idxCont(Cont,Off),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compCase(T,Lc,Cases,Deflt,Cont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -301,7 +310,7 @@ chLine(_,Lc,Lc,C,C) :- !.
 chLine(Opts,_,Lc,C,Cx) :-
   genLine(Opts,Lc,C,Cx).
 
-genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
+genLine(Opts,Lc,[iLine(Lt),iDLine|Cx],Cx) :-
   is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
@@ -329,6 +338,9 @@ genDRtn(_,Cx,Cx).
 popStack(lbl(_,Ar),St,Stx) :-
   Stx is St-Ar+1.
 
+compPtn(voyd,_,Succ,Fail,_Opts,D,Dx,End,[iCvd(Fl)|C],Cx,Stk,Stkx) :-
+  Stk1 is Stk-1,!,
+  ptnTest(Succ,Fail,Fl,D,Dx,End,C,Cx,Stk1,Stkx).
 compPtn(Lit,_,Succ,Fail,_Opts,D,Dx,End,[iLdC(Lit),iCmp(Fl)|C],Cx,Stk,Stkx) :-
   isLiteral(Lit),!,
   Stk1 is Stk-1,
