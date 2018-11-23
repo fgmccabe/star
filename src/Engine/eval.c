@@ -467,10 +467,12 @@ retCode run(processPo P) {
         continue;
 
       case dLine: {
+        termPo line = nthArg(LITS, collectI32(PC));
+
 #ifdef TRACEEXEC
         if (lineDebugging) {
           saveRegisters(P, SP);
-          lineDebug(P);
+          lineDebug(P, line);
           restoreRegisters(P);
         }
 #endif
