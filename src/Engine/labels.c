@@ -262,3 +262,9 @@ void setFieldTblEntry(fieldTblPo tbl, integer ix, labelPo field, integer offset)
 void destroyFieldTable(fieldTblPo tbl) {
   free(tbl);
 }
+
+void clearFieldTable(labelPo lbl){
+  fieldTblPo fields = lbl->fields;
+  lbl->fields = Null;
+  destroyFieldTable(fields);
+}

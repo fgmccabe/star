@@ -38,6 +38,7 @@ void markLabels(gcSupportPo G);
 
 void declareFields(labelPo lbl,fieldTblPo tbl);
 extern fieldTblPo newFieldTable(integer count);
+extern void clearFieldTable(labelPo lbl);
 extern void destroyFieldTable(fieldTblPo tbl);
 extern void setFieldTblEntry(fieldTblPo tbl,integer ix,labelPo field,integer offset);
 
