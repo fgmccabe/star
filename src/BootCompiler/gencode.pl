@@ -63,7 +63,8 @@ genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   compTerm(Value,Lc,retCont(Opts),Opts,D2,Dx,End,C2,[iLbl(End)],Stk0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns([method(Nm,Sig,_Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
-  assem(method(Nm,Sig,Lx,C0),CdTrm).
+  removeExtraLines(C0,Cde),
+  assem(method(Nm,Sig,Lx,Cde),CdTrm).
 genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   encType(funType(tupleType([]),Tp),Sig),
   genLbl(D,End,D1),
@@ -71,7 +72,8 @@ genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   compTerm(Value,Lc,bothCont(glbCont(Nm),retCont(Opts)),Opts,D1,Dx,End,C1,[iLbl(End)],0,_Stk),
   (is_member(showGenCode,Opts) -> dispIns([method(lbl(Nm,0),Sig,Lx)|C0]);true ),
   findMaxLocal(Dx,Lx),
-  assem(method(lbl(Nm,0),Sig,Lx,C0),Cd).
+  removeExtraLines(C0,Cde),
+  assem(method(lbl(Nm,0),Sig,Lx,Cde),Cd).
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 
@@ -310,7 +312,7 @@ chLine(_,Lc,Lc,C,C) :- !.
 chLine(Opts,_,Lc,C,Cx) :-
   genLine(Opts,Lc,C,Cx).
 
-genLine(Opts,Lc,[iLine(Lt),iDLine|Cx],Cx) :-
+genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
   is_member(debugging,Opts),!,
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
@@ -526,3 +528,9 @@ compMoreCase([(P,E,Lc)|SC],VLb,Succ,Fail,Opts,D,Dx,End,[iLdL(VLb)|C],Cx,Stk,Stkx
   compTerm(E,Lc,Succ,Opts,D2,D3,End,C1,[iLbl(Fl),iRst(Stk)|C2],Stk,Stk2),
   compMoreCase(SC,VLb,Succ,Fail,Opts,D3,Dx,End,C2,Cx,Stk,Stk3),
   mergeStkLvl(Stk2,Stk3,Stkx,"more case branch stack").
+
+removeExtraLines([],[]).
+removeExtraLines([iLine(_),iLine(Lc)|Ins], Out) :-
+  removeExtraLines([iLine(Lc)|Ins],Out).
+removeExtraLines([I|Ins],[I|Out]) :-
+  removeExtraLines(Ins,Out).

@@ -14,7 +14,7 @@ extern DebugWaitFor callDebug(processPo p, termPo call);
 extern DebugWaitFor tailDebug(processPo p, termPo call);
 extern DebugWaitFor ocallDebug(processPo p, termPo call, int32 arity);
 extern DebugWaitFor retDebug(processPo p, termPo val);
-extern DebugWaitFor lineDebug(processPo p);
+extern DebugWaitFor lineDebug(processPo p, termPo line);
 
 extern retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 

@@ -54,7 +54,7 @@ static integer cmdCount(char *cmdLine, integer deflt) {
   if (uniStrLen(cmdLine) == 0)
     return deflt;
   else
-    return parseInteger(cmdLine, uniStrLen((char *) cmdLine));
+    return parseInteger(cmdLine, uniStrLen(cmdLine));
 }
 
 static processPo focus = NULL;
@@ -123,15 +123,25 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
       }
 
       case dLine: {
-        termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
-
-        if (lineBreakPointHit(C_TERM(loc))) {
+        if (lineBreakPointHit(C_TERM(arg))) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->traceDepth = p->traceCount = 0;
           return True;
         } else
-          return False;
+          switch (p->waitFor) {
+            case stepInto:
+              return True;
+            case stepOver:
+              if (p->traceDepth == 0) {
+                if (p->traceCount > 0)
+                  p->traceCount--;
+                return (logical) p->traceCount == 0;
+              } else
+                return False;
+            default:
+              return False;
+          }
       }
 
       default:
@@ -161,8 +171,7 @@ static char *defltLine(char *deflt, integer defltLen, char *src, integer srcLen,
   }
 }
 
-static DebugWaitFor
-cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo pc, insWord ins, framePo fp, ptrPo sp) {
+static DebugWaitFor cmder(debugOptPo opts, int optCount, processPo p, methodPo mtd, insWord ins) {
   static bufferPo cmdBuffer = Null;
   static char lastLine[MAXLINE] = {'n'};
 
@@ -181,9 +190,18 @@ cmder(debugOptPo opts, int optCount, processPo p, heapPo h, methodPo mtd, insPo 
     cmdLine = defltLine(lastLine, NumberOf(lastLine), cmdLine, cmdLen, &cmdLen);
 
     if (res == Ok) {
+      codePoint cmd;
+      integer nxt = 0;
+      cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
+
+      if (isNdChar((codePoint) cmd)) {
+        cmd = 'n';
+        nxt = 0;
+      }
+
       for (int ix = 0; ix < optCount; ix++) {
-        if (opts[ix].c == cmdLine[0])
-          return opts[ix].cmd(&cmdLine[1], p, ins, opts[ix].cl);
+        if (opts[ix].c == cmd)
+          return opts[ix].cmd(&cmdLine[nxt], p, ins, opts[ix].cl);
       }
       outMsg(stdErr, "invalid debugger command: %s", cmdLine);
       for (int ix = 0; ix < optCount; ix++)
@@ -348,7 +366,6 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, insWord ins, void *cl)
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
-  insPo pc = p->pc;
 
   if (line[0] == '\n') {
     showAllStack(stdErr, p, mtd, fp, sp);
@@ -395,7 +412,7 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
 
   integer frameNo = 0;
 
-  outMsg(out, "stack trace for p: 0x%x", p);
+  outMsg(out, "Stack trace for p: 0x%x", p);
   stackSummary(out, p, sp);
   heapSummary(out, h);
   outMsg(out, "\n");
@@ -420,14 +437,14 @@ void dumpStackTrace(processPo p, ioPo out) {
 
   integer frameNo = 0;
 
-  outMsg(out, "stack trace for p: 0x%x\n", p);
+  outMsg(out, "Stack dump for p: 0x%x\n", p);
 
   while (fp->fp < (framePo) p->stackLimit) {
     termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
     if (locn != Null)
-      outMsg(out, "[%d] %T@%L\n%_", frameNo, mtd, locn);
+      outMsg(out, "[%d] %L: %T\n%_", frameNo, locn, mtd);
     else
-      outMsg(out, "[%d] %T[%d]\n%_", frameNo, mtd, (integer) (pc - mtd->code));
+      outMsg(out, "[%d] (unknown loc): %T[%d]\n%_", frameNo, mtd, (integer) (pc - mtd->code));
 
     mtd = fp->prog;
     pc = fp->rtn;
@@ -503,11 +520,22 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl)
 
 static logical shouldWeStopIns(processPo p, insWord ins) {
   if (focus == NULL || focus == p) {
+    switch (p->waitFor) {
+      case stepInto:
+        if (p->traceCount > 0)
+          p->traceCount--;
+        return (logical) p->traceCount == 0;
+
+      case stepOver:
+      case nextBreak:
+        break;
+      default:
+        return False;
+    }
+
     switch (ins) {
       case dRet: {
         switch (p->waitFor) {
-          case stepInto:
-            return True;
           case stepOver:
             if (p->traceDepth > 0)
               p->traceDepth--;
@@ -519,12 +547,9 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
       case dCall:
       case dOCall: {
         switch (p->waitFor) {
-          case stepInto:
-            return True;
           case stepOver:
             p->traceDepth++;
             return (logical) (p->traceCount == 0 && p->traceDepth == 1);
-          case nextBreak:
           default:
             return False;
         }
@@ -533,28 +558,24 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
       case dOTail:
         switch (p->waitFor) {
           case stepOver:
-          case stepInto:
             return (logical) (p->traceDepth == 0 && p->traceCount == 0);
-          case nextBreak:
           default:
             return False;
         }
+      case dLine: {
+        termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
 
-      default: {
-        switch (p->waitFor) {
-          case stepInto:
-            if (p->traceCount > 0)
-              p->traceCount--;
-            return (logical) (p->traceCount == 0);
-          case stepOver:
-            if (p->traceCount > 0 && p->traceDepth == 0)
-              p->traceCount--;
-            p->tracing = (logical) (p->traceDepth == 0 && p->traceCount == 0);
-            return (logical) (p->traceDepth == 0 && p->traceCount == 0);
-          default:
-            return False;
-        }
+        if (lineBreakPointHit(C_TERM(loc))) {
+          p->waitFor = stepInto;
+          p->tracing = True;
+          p->traceDepth = p->traceCount = 0;
+          return True;
+        } else
+          return False;
       }
+
+      default:
+        return False;
     }
   } else
     return False;
@@ -585,7 +606,6 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
   framePo fp = p->fp;
   ptrPo sp = p->sp;
   insPo pc = p->pc;
-  heapPo h = p->heap;
 
   logical stopping = shouldWeStopIns(p, ins);
   if (p->tracing || stopping) {
@@ -595,7 +615,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, ins, fp, sp);
+          p->waitFor = cmder(opts, NumberOf(opts), p, mtd, ins);
         else {
           outStr(stdErr, "\n");
         }
@@ -697,9 +717,8 @@ DebugWaitFor retDebug(processPo p, termPo val) {
   return lnDebug(p, dRet, val, showRet);
 }
 
-DebugWaitFor lineDebug(processPo p) {
-  termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
-  return lnDebug(p, dLine, loc, showLn);
+DebugWaitFor lineDebug(processPo p, termPo line) {
+  return lnDebug(p, dLine, line, showLn);
 }
 
 DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
@@ -727,7 +746,6 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   framePo fp = p->fp;
   ptrPo sp = p->sp;
   insPo pc = p->pc;
-  heapPo h = p->heap;
 
   logical stopping = shouldWeStop(p, ins, ln);
 
@@ -741,7 +759,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(opts, NumberOf(opts), p, h, mtd, pc, ins, fp, sp);
+          p->waitFor = cmder(opts, NumberOf(opts), p, mtd, ins);
         else {
           outStr(stdErr, "\n");
           flushFile(stdErr);
@@ -806,7 +824,7 @@ retCode showLcl(ioPo out, integer vr, methodPo mtd, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null) {
     ptrPo var = localVar(fp, vr);
     if (*var != Null)
-      return outMsg(out, " l[%d] = %T", vr, *var);
+      return outMsg(out, " l[%d] = %,20T", vr, *var);
     else
       return outMsg(out, " l[%d] (unset)", vr);
   } else
