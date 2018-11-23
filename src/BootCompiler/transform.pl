@@ -562,7 +562,7 @@ liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
-  %dispRuleSet(LamFun).
+  % dispRuleSet(LamFun).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -687,7 +687,7 @@ recordMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],[lyr(LclNam
   locOfCanon(Theta,Lc),
   makeFreeTerm(CellVars,Lc,ThFr,Map,FreeTerm).
 
-lambdaMap(Lam,Q,Map,LclName,FreeTerm,[lyr(LclName,Lx,FreeTerm,ThVr)|Map]) :-
+lambdaMap(Lam,Q,Map,LclName,ctpl(lbl(LclName,1),[FreeTerm]),[lyr(LclName,Lx,FreeTerm,ThVr)|Map]) :-
   definedProgs(Map,Df),
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
