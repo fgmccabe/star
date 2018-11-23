@@ -466,6 +466,7 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
 
     if (ret == Ok) {
       fieldTblPo fieldTbl = newFieldTable(count);
+      declareFields(lbl,fieldTbl);
 
       for (integer ix = 0; ret == Ok && ix < count;) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
@@ -483,10 +484,8 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
           }
         }
       }
-      if(ret==Ok){
-        declareFields(lbl,fieldTbl);
-      } else{
-        destroyFieldTable(fieldTbl);
+      if(ret!=Ok){
+        clearFieldTable(lbl);
       }
     }
   }
