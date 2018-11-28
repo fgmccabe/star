@@ -686,14 +686,19 @@ void installMsgProc(char key, fileMsgProc proc) {
   procs[(unsigned int) key] = proc;
 }
 
-static codePoint nextDecimal(char *str, integer *pos, integer len, integer *ix) {
+static codePoint nextDecimal(char *str, integer *pos, integer len, va_list args, integer *ix) {
   codePoint fcp = nextCodePoint(str, pos, len);
-  integer val = 0;
-  while (isNdChar(fcp) && *pos < len) { /* extract the width field */
-    val = val * 10 + digitValue(fcp);
-    fcp = nextCodePoint(str, pos, len);
+  if (fcp == '*') {
+    *ix = (integer) va_arg(args, integer);
+    fcp = nextCodePoint(str,pos,len);
+  } else {
+    integer val = 0;
+    while (isNdChar(fcp) && *pos < len) { /* extract the width field */
+      val = val * 10 + digitValue(fcp);
+      fcp = nextCodePoint(str, pos, len);
+    }
+    *ix = val;
   }
-  *ix = val;
   return fcp;
 }
 
@@ -756,17 +761,17 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
           if (fcp == '.') {    /* We have a precision ... */
             overridePrecision = True;
 
-            fcp = nextDecimal(format, &fx, flen, &precision); /* extract the precision field */
+            fcp = nextDecimal(format, &fx, flen, args, &precision); /* extract the precision field */
           } else if (fcp == ',') {
             depth = 0;
 
-            fcp = nextDecimal(format, &fx, flen, &depth); /* extract the depth field */
+            fcp = nextDecimal(format, &fx, flen, args, &depth); /* extract the depth field */
           } else
             break;
         }
 
         if (procs[fcp] != NULL) {
-          void *data = (void *) va_arg(args, void*); /* pick up a special value */
+          void *data = va_arg(args, void*); /* pick up a special value */
           ret = procs[(unsigned int) fcp](f, data, depth, precision, alternate);
         } else
           switch (fcp) {
@@ -786,7 +791,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
             case 'd': {    /* Display an integer value */
               integer i = (integer) (longValue ? va_arg(args, integer) : va_arg(args, int));
 
-              ret = outInteger(f, i, 10, (int)width, (int)precision, pad, leftPad, prefix, sign);
+              ret = outInteger(f, i, 10, (int) width, (int) precision, pad, leftPad, prefix, sign);
               break;
             }
             case 'u': {    /* Display a number as unsigned */

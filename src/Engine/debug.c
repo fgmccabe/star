@@ -60,13 +60,15 @@ static integer cmdCount(char *cmdLine, integer deflt) {
 static processPo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
+static integer displayDepth = 10;
+
 void dC(termPo w) {
-  outMsg(stdErr, "%T\n", w);
+  outMsg(stdErr, "%,*T\n", displayDepth, w);
   flushOut();
 }
 
 static retCode showConstant(ioPo out, methodPo mtd, integer off) {
-  return outMsg(out, " %T", nthArg(mtd->pool, off));
+  return outMsg(out, " %,*T", displayDepth, nthArg(mtd->pool, off));
 }
 
 static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
@@ -286,6 +288,11 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) 
   }
 }
 
+static DebugWaitFor dbgSetDepth(char *line, processPo p, insWord ins, void *cl) {
+  displayDepth = cmdCount(line, 0);
+  return moreDebug;
+}
+
 static DebugWaitFor dbgShowRegisters(char *line, processPo p, insWord ins, void *cl) {
   showRegisters(p, p->heap, p->prog, p->pc, p->fp, p->sp);
   return moreDebug;
@@ -354,7 +361,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, insWord ins, void *cl
     if (glb != Null) {
       termPo val = getGlobal(glb);
       if (val != Null)
-        outMsg(stdErr, "%s = %T\n", buff, val);
+        outMsg(stdErr, "%s = %,*T\n", buff, displayDepth, val);
       else
         outMsg(stdErr, "%s not set\n", buff);
     }
@@ -377,12 +384,17 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, insWord ins, void *cl)
 
 void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, ptrPo sp, logical showStack) {
   integer pcOffset = (integer) (pc - mtd->code);
-  outMsg(out, "[%d] %T[%d](", frameNo, mtd, pcOffset);
+
+  termPo locn = findPcLocation(mtd, pcOffset);
+  if (locn != Null)
+    outMsg(out, "[%d] %L: %T(", frameNo, locn, mtd);
+  else
+    outMsg(out, "[%d] (unknown loc): %T[%d](", frameNo, mtd, pcOffset);
 
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(out, "%s%T", sep, fp->args[ix]);
+    outMsg(out, "%s%,*T", sep, displayDepth, fp->args[ix]);
     sep = ", ";
   }
   outMsg(out, ")\n");
@@ -393,7 +405,7 @@ void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo f
     ptrPo stackTop = ((ptrPo) fp) - mtd->lclcnt;
     for (integer ix = 0; sp < stackTop; ix++, sp++) {
       termPo t = *sp;
-      outMsg(out, "SP[%d]=%T\n", ix, t);
+      outMsg(out, "SP[%d]=%,*T\n", ix, displayDepth, t);
     }
   }
 }
@@ -417,7 +429,7 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
   heapSummary(out, h);
   outMsg(out, "\n");
 
-  while (sp < (ptrPo) p->stackLimit) {
+  while (fp->fp < (framePo) p->stackLimit) {
     showStackEntry(out, frameNo, mtd, pc, fp, sp, showStack);
 
     mtd = fp->prog;
@@ -598,6 +610,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
     {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
     {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
+    {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"},
@@ -655,7 +668,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     const char *pkgNm = stringVal(nthArg(line, 0), &pLen);
     return outMsg(f, "%S:%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
   } else
-    return outMsg(f, "%T", ln);
+    return outMsg(f, "%,*T", displayDepth, ln);
 }
 
 static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
@@ -687,9 +700,9 @@ void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp)
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
 
   if (locn != Null)
-    outMsg(out, "%L: "RED_ESC_ON"return"RED_ESC_OFF" %T->%,10T", locn, mtd, val);
+    outMsg(out, "%L: "RED_ESC_ON"return"RED_ESC_OFF" %T->%,*T", locn, mtd, displayDepth, val);
   else
-    outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%,10T", mtd, val);
+    outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%,*T", mtd, displayDepth, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp, ptrPo sp);
@@ -738,6 +751,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
     {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
     {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
+    {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"},
@@ -792,13 +806,13 @@ void stackSummary(ioPo out, processPo P, ptrPo sp) {
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   integer count = argCount(mtd);
   for (integer ix = 0; ix < count; ix++) {
-    outMsg(out, "A[%d] = %T\n", ix, fp->args[ix]);
+    outMsg(out, "A[%d] = %,*T\n", ix, displayDepth, fp->args[ix]);
   }
 }
 
 retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp) {
   if (fp != Null && sp != Null)
-    return outMsg(out, " a[%d] = %T", arg, fp->args[arg]);
+    return outMsg(out, " a[%d] = %,*T", arg, displayDepth, fp->args[arg]);
   else
     return outMsg(out, " a[%d]", arg);
 }
@@ -813,7 +827,7 @@ void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp) {
     if (localVName(mtd, pc, vx, vName, NumberOf(vName)) == Ok) {
       ptrPo var = localVar(fp, vx);
       if (*var != Null)
-        outMsg(out, "  %s(%d) = %T\n", vName, vx, *var);
+        outMsg(out, "  %s(%d) = %,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)", vName, vx);
     }
@@ -836,7 +850,7 @@ retCode showGlb(ioPo out, globalPo glb, framePo fp, ptrPo sp) {
     if (glb != Null) {
       termPo val = getGlobal(glb);
       if (val != Null)
-        return outMsg(out, " %s = %T", globalVarName(glb), val);
+        return outMsg(out, " %s = %,*T", globalVarName(glb), displayDepth, val);
       else
         return outMsg(out, " %s", globalVarName(glb));
     } else
@@ -856,18 +870,22 @@ void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
 
   for (integer ix = 0; sp < stackTop; ix++, sp++) {
-    outMsg(out, "SP[%d]=%T\n", ix, *sp);
+    outMsg(out, "SP[%d]=%,*T\n", ix, displayDepth, *sp);
   }
 }
 
 void showTopOfStack(ioPo out, processPo p, methodPo mtd, integer cnt, framePo fp, ptrPo sp) {
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
-  char *sep = " ";
+  char *sep = "";
 
-  for (integer ix = 0; ix < cnt && sp < stackTop; ix++, sp++) {
-    outMsg(out, "%s%T\n", sep, *sp);
+  outMsg(out, " %s%,*T(", sep, displayDepth, *sp++);
+
+  for (integer ix = 1; ix < cnt && sp < stackTop; ix++, sp++) {
+    outMsg(out, "%s%,*T", sep, displayDepth, *sp);
     sep = ", ";
   }
+
+  outMsg(out,")\n%_");
 }
 
 void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp) {
@@ -886,7 +904,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 
   normalPo lits = codeLits(mtd);
   if (lits != Null)
-    outMsg(out, "0x%x: %T(%d) ", pc, nthArg(codeLits(mtd), 0), offset);
+    outMsg(out, "0x%x: %,*T(%d) ", pc, displayDepth, nthArg(codeLits(mtd), 0), offset);
   else
     outMsg(out, "0x%x: \?\?(%d) ", pc, offset);
 
@@ -933,7 +951,7 @@ void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, pt
 
   for (integer ix = 0; sp < stackTop; ix++, sp++) {
     termPo t = *sp;
-    outMsg(stdErr, "SP[%d]=%T\n", ix, t);
+    outMsg(stdErr, "SP[%d]=%,*T\n", ix, displayDepth, t);
   }
 
   flushFile(stdErr);
