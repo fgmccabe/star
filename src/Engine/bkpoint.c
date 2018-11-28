@@ -67,7 +67,7 @@ retCode isValidBreakPoint(breakPointPo b) {
       return lbl != Null ? Ok : Error;
     }
     case lineBreak:
-      return Fail;
+      return Ok;
     default:
       return Error;
   }
