@@ -74,6 +74,11 @@ genDef(D,Opts,vrDef(Lc,Nm,Tp,Value),O,[Cd|O]) :-
   findMaxLocal(Dx,Lx),
   removeExtraLines(C0,Cde),
   assem(method(lbl(Nm,0),Sig,Lx,Cde),Cd).
+genDef(_D,_Opts,rcDef(_,Nm,faceType(Fields,Tps)),O,[CdTrm|O]) :-
+  mkFields(Fields,Flds),
+  encType(faceType(Fields,Tps),Sig),
+  length(Fields,Ar),
+  assem(struct(lbl(Nm,Ar),strg(Sig),Flds),CdTrm).
 
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 
@@ -534,3 +539,18 @@ removeExtraLines([iLine(_),iLine(Lc)|Ins], Out) :-
   removeExtraLines([iLine(Lc)|Ins],Out).
 removeExtraLines([I|Ins],[I|Out]) :-
   removeExtraLines(Ins,Out).
+
+mkFields(Fields,Out) :-
+  sort(Fields,gencode:compField,Flds),
+  genFields(Flds,0,Out).
+
+compField((Nm1,_),(Nm2,_)) :-
+  str_lt(Nm1,Nm2),!.
+
+genFields([],_,[]).
+genFields([(Nm,Tp)|Fields],Ix,[Fld|Out]) :-
+  encType(Tp,Sig),
+  string_concat(".",Nm,DotNm),
+  mkTpl([lbl(DotNm,0),strg(Sig),intgr(Ix),intgr(1)],Fld),
+  Ix1 is Ix+1,
+  genFields(Fields,Ix1,Out).

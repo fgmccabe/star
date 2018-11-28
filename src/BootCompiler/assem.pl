@@ -16,8 +16,8 @@ assem(method(Nm,Sig,Lx,Ins),MTpl) :-
     mkTpl(SLines,LnsTpl),
     mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl,LnsTpl],MTpl).
 assem(struct(Lbl,Sig,Fields),Tpl) :-
-    mkFields(Fields,Flds),
-    mkTpl([Lbl,Sig,Flds],Tpl).
+    mkTpl(Fields,FieldSigs),
+    mkTpl([Lbl,Sig,FieldSigs],Tpl).
 
 mnem([],_,Lt,Lt,Lc,Lc,Lns,Lns,_,[]).
 mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Ln,Lnx,Pc,Code).
@@ -570,10 +570,12 @@ showMnem([iDLine(XX)|Ins],Pc,Lbls,O,Ox) :- !,
   showMnem(Ins,Pc1,Lbls,O3,Ox).
 
 
-mkFields(Fields,Flds) :-
-  sort(Fields,assemble:compField,Flds).
+mkFields(Fields,Out) :-
+  sort(Fields,assemble:compField,Flds),
+  map(Flds,assemble:genField,Out).
 
-compField((lbl(Nm1,_),_,_),(lbl(Nm2,_),_,_)) :-
+compField((Nm1,_),(Nm2,_)) :-
   Nm1<Nm2,!.
-compField((lbl(Nm,Ar1),_,_),(lbl(Nm,Ar2),_,_)) :-
-  Ar1<Ar2.
+
+genField((Nm,Tp),(strg(Nm),strg(Sig))) :-
+  encType(Tp,Sig).

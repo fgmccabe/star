@@ -1,8 +1,8 @@
 :- module(encode,[encode/2,encodeTerm/3,encType/2,encodeType/3,encodeConstraint/3]).
 
-:- use_module(types).
 :- use_module(misc).
 :- use_module(base64).
+:- use_module(types).
 
 encode(T,Str) :-
   encodeTerm(T,Chrs,[]),
@@ -39,6 +39,33 @@ encodeFloat(F,C,Cx) :-
   swritef(S,"'%d'",[F]),
   appStr(S,C,Cx).
 
+findDelim(Chrs,Delim) :-
+  is_member(Delim,['''','"', '|', '/', '%']),
+  \+ is_member(Delim,Chrs),!.
+findDelim(_,'"').
+
+encodeText(Txt,[Delim|O],Ox) :- string_chars(Txt,Chrs), findDelim(Chrs,Delim), encodeQuoted(Chrs,Delim,O,Ox).
+
+encodeQuoted([],Delim,[Delim|Ox],Ox) :- !.
+encodeQuoted(['\\'|More],Delim,['\\','\\'|O],Ox) :-
+  encodeQuoted(More,Delim,O,Ox).
+encodeQuoted([Delim|More],Delim,['\\',Delim|O],Ox) :-
+  encodeQuoted(More,Delim,O,Ox).
+encodeQuoted([Ch|More],Delim,[Ch|O],Ox) :-
+  encodeQuoted(More,Delim,O,Ox).
+
+digit(0,'0').
+digit(1,'1').
+digit(2,'2').
+digit(3,'3').
+digit(4,'4').
+digit(5,'5').
+digit(6,'6').
+digit(7,'7').
+digit(8,'8').
+digit(9,'9').
+
+
 encType(Tp,Sig) :-
   encodeTp(Tp,O,[]),
   string_chars(Sig,O).
@@ -72,35 +99,6 @@ encodeType(constrained(Tp,Con),['|'|O],Ox) :- encodeTp(Tp,O,O1),encodeConstraint
 encodeType(typeExists(L,R),['Y'|O],Ox) :- encodeTp(L,O,O1), encodeTp(R,O1,Ox).
 encodeType(typeLambda(L,R),['y'|O],Ox) :- encodeTp(L,O,O1), encodeTp(R,O1,Ox).
 encodeType(contractExists(L,R),['Z'|O],Ox) :- encodeConstraint(L,O,O1), encodeTp(R,O1,Ox).
-
-findDelim(Chrs,Delim) :-
-  is_member(Delim,['''','"', '|', '/', '%']),
-  \+ is_member(Delim,Chrs),!.
-findDelim(_,'"').
-
-encodeChars(Chars,Delim,[Delim|O],Ox) :-
- encodeQuoted(Chars,Delim,O,Ox).
-
-encodeText(Txt,[Delim|O],Ox) :- string_chars(Txt,Chrs), findDelim(Chrs,Delim), encodeQuoted(Chrs,Delim,O,Ox).
-
-encodeQuoted([],Delim,[Delim|Ox],Ox) :- !.
-encodeQuoted(['\\'|More],Delim,['\\','\\'|O],Ox) :-
-  encodeQuoted(More,Delim,O,Ox).
-encodeQuoted([Delim|More],Delim,['\\',Delim|O],Ox) :-
-  encodeQuoted(More,Delim,O,Ox).
-encodeQuoted([Ch|More],Delim,[Ch|O],Ox) :-
-  encodeQuoted(More,Delim,O,Ox).
-
-digit(0,'0').
-digit(1,'1').
-digit(2,'2').
-digit(3,'3').
-digit(4,'4').
-digit(5,'5').
-digit(6,'6').
-digit(7,'7').
-digit(8,'8').
-digit(9,'9').
 
 encodeTypes(Tps,['('|O],Ox) :- encodeTps(Tps,O,[')'|Ox]).
 
