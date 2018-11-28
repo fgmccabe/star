@@ -1,5 +1,5 @@
 :- module(transutils,[trCons/3,mergeGoal/4,mergeSeq/4,mergeWhere/4,extraVars/2,thisVar/2,
-          lookupVarName/3,lookupFunName/3,lookupClassName/3,
+          lookupVarName/3,lookupFunName/3,lookupThetaVar/3,lookupClassName/3,
           definedProgs/2,labelVars/2,
           genVar/2,
           pushOpt/3, isOption/2,layerName/2,dispMap/1,showMap/3,
@@ -67,6 +67,13 @@ lookupVarName(Map,Nm,V) :-
   lookup(Map,Nm,nonType,V).
 
 anyDef(_).
+
+lookupThetaVar(Map,Nm,V) :-
+  lookup(Map,Nm,transutils:getThetaVar(V),R), R\=notInMap.
+
+getThetaVar(ThVr,localFun(_,_,_,_,ThVr)).
+getThetaVar(ThVr,localClass(_,_,_,_,ThVr)).
+getThetaVar(ThVr,labelArg(_,_,ThVr)).
 
 lookupFunName(Map,Nm,V) :-
   lookup(Map,Nm,isFnDef,V).
