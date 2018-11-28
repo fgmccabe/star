@@ -255,8 +255,8 @@ transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
     [vrDef(Lc,LclName,Tp,Rep)|Dx],Dxx) :-
   extraVars(Map,[]),!,                                 % no extra variables coming from labels
   liftExp(Value,Rep,[],_Q0,Map,Opts,Dx,Dxx),
-  mergeSeq(Lc,I,cll(Lc,lbl(LclName,0),[]),Ix),
-  dispRuleSet(vrDef(Lc,LclName,Tp,Rep)).
+  mergeSeq(Lc,I,cll(Lc,lbl(LclName,0),[]),Ix).
+  %dispRuleSet(vrDef(Lc,LclName,Tp,Rep)).
 
 transformThetaDefn(Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,G,Gx,Dx,Dxx) :-
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
@@ -555,8 +555,8 @@ liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   transformEqn(Rule,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
-  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun),
-  dispRuleSet(LamFun).
+  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
+  % dispRuleSet(LamFun).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
