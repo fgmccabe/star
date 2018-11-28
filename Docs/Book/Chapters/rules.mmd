@@ -1,22 +1,23 @@
 # Making choices
-One of the common themes of systems that 'face the world' is that they often have to make decisions. More specifically, any outward facing system will receive requests that the system must decide whether they are legitimate or not. Before acting on a request, we must decide whether or not to trust it.
-
-In general, a response to an external event goes through a series of phases:
-
-1. Taking _measurements_ of the event;
-1. applying some form of _inference_ to the measurements to derive _facts_; and
-1. based on certain criteria, taking _action_ in response to the event.
-
-![A pipeline for making choices][Pipeline]
-
-[Pipeline]:../images/pipeline.png 
+One of the common themes of systems that 'face the world' (aka online applications) is that they often have to make decisions. More specifically, any outward facing system will receive requests that the system must decide whether they are legitimate or not. Before acting on a request, we must decide whether or not to trust it.
 
 
-There are many approaches to providing for such inference but one of the most robust is _rules_. A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
 
-However, when _embedding_ a different semantics there are some usability issues to consider. Classical approaches to logic are not well suited to _all_ of the above stages: it can be very effective for describing inference but is typically not as effective for expressing action. More fundamentally, the inference required is typically not completely _general purpose_: specific encoded chains of reasoning are often needed; using a general rule language may not be the best vehicle for representing such special purpose logic.
+We can draw an extremely simplistic view of a large class of applications:
 
-But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star** to address classification (and other) problems.
+![Simplistic Online Application][Online]
+
+[Online]:../images/online.pdf
+
+This diagram illustrates the four main elements of an online application: a _source_ of events, a _processor_ which processes events, a _Sink_ which represents externally visible actions being taken by the system, and, finally, a _Store_.
+
+We are being deliberately simplistic here; because we wish to focus on a part of this picture: the _Store_. 
+
+A _Store_ is part of most online applications because applications need some form of context: there is typically not enough information in an event to determine how to react to it: we must also have some history as well. For example, if an event represents a log-in attempt, then in order to know how to respond, we need to know if the originator has an account, whether the offered password is consistent with our records and so on. 
+
+The _Store_ concept is simply an abstract way of representing this context. However, we can go a little further and claim that the dominant mode of accessing a store is through _queries_. 
+
+A query is simply an expression that is evaluated in the right context; however, the natural semantics for query processing is more like that of database searches than arithmetic evaluation. The reason for that is that a typical _Store_ may be quite large and serve multiple functions. As a result, **Star** queries have a lot in common with logic and database programming paradigms.
 
 ## Queries
 
@@ -396,3 +397,9 @@ That is it! The final query should get output along the lines of:
 Notice that most of the remaining complexity in this example related to selecting the right parts of the data to pick up and process.[^fn1]
 
 [^fn1]: A standard deviation of 0.0 is likely a signal that the indicated URL only occurred once in the sample data.
+
+There are many approaches to providing for such inference but one of the most robust is _rules_. A rule language, especially a logic rule language, is very well suited to expressing the logic (sic) of this kind of scenario. In particular, we can map measurements to _values_, facts to _assertions_, and we can realize decision-making in terms of _rules_.[^There are other approaches to classification; such as those based on Machine Learning.]
+
+However, when _embedding_ a different semantics there are some usability issues to consider. Classical approaches to logic are not well suited to _all_ of the above stages: it can be very effective for describing inference but is typically not as effective for expressing action. More fundamentally, the inference required is typically not completely _general purpose_: specific encoded chains of reasoning are often needed; using a general rule language may not be the best vehicle for representing such special purpose logic.
+
+But, before we go too far, it may be worth digressing a little to explore what it means to ask a question -- to have queries. This will help to understand why we can benefit from going beyond what we have already seen in **Star** to address classification (and other) problems.
