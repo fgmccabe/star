@@ -168,7 +168,7 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),_Pkg,Map,Opts,[CFun,rcDef(Lc,LclName,faceType(Els,Tps))|D],Dx) :-
+transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),_Pkg,Map,Opts,[CFun|D],Dx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,ConsNm,Arity),
   extraVars(Map,Extra),
@@ -189,7 +189,7 @@ transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),_Pkg,Map,_Opts,[CFun|D],D) :-
   extendFunTp(funType(tupleType([]),Tp),Args,ATp),
   CFun=fnDef(Lc,LclPrg,ATp,Args,ctpl(lbl(ConsNm,Ar),BndArgs)).
 
-genConsAccessDef(Lc,ConsNm,faceType(Els,_Tps),_Map,_Opts,[AFun|Dx],Dx) :-
+genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[AFun,rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx) :-
   length(Els,Ar),
   sort(Els,transform:cmpName,SrtEls),
   genConsArgs(Lc,SrtEls,Args,Extra,_BndArgs,Extra),
@@ -208,12 +208,6 @@ makeAccessEqns(Lc,[(Nm,_)|Tps],Vr,Ix,[(Lc,[Vr,enum(DotNm)],enum("star.core#true"
   string_concat(".",Nm,DotNm),
   makeAccessEqns(Lc,Tps,Vr,Ix1,Eqns).
 
-/*
-makeRecordAccessEqns(_,_,[],[],[]).
-makeRecordAccessEqns(Lc,Term,[(Nm,_)|Tps],[Vr|Args],[(Lc,[Term,enum(DotNm)],enum("star.core#true"),Vr)|AccEqns]) :-
-  string_concat(".",Nm,DotNm),
-  makeRecordAccessEqns(Lc,Term,Tps,Args,AccEqns).
-*/
 genConsArgs(_,[],Args,Args,BndArgs,BndArgs).
 genConsArgs(Lc,[_|Els],[V|Args],Ax,[V|Bnd],Bx) :-
   genVar("_",V),

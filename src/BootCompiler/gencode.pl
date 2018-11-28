@@ -88,7 +88,9 @@ retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.
 
-idxCont(Cont,Off,D,Dx,End,[iNth(Off)|C],Cx,Stk,Stkx) :-
+idxCont(Cont,intgr(Off),D,Dx,End,[iNth(Off)|C],Cx,Stk,Stkx) :-!,
+  call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
+idxCont(Cont,Field,D,Dx,End,[iGet(Field)|C],Cx,Stk,Stkx) :-
   call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
 
 initDict(scope([],[],0)).
@@ -164,7 +166,7 @@ compTerm(cll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Stk,Cont,Opts),Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(dte(Lc,Exp,intgr(Off)),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+compTerm(dte(Lc,Exp,Off),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   compTerm(Exp,Lc,idxCont(Cont,Off),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
