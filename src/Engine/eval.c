@@ -103,11 +103,11 @@ retCode run(processPo P) {
 
       case OCall: {        /* Call tos a1 .. an -->   */
         int arity = collectI32(PC);
-        termPo nProg = SP[0];
+        normalPo nProg = C_TERM(SP[0]);
 
         push(PROG);
         push(PC);       /* build up the frame. */
-        labelPo oLbl = isNormalPo(nProg) ? termLbl(C_TERM(nProg)) : C_LBL(nProg);
+        labelPo oLbl = termLbl(nProg);
         PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
         PC = entryPoint(PROG);
         LITS = codeLits(PROG);
@@ -194,7 +194,7 @@ retCode run(processPo P) {
 
       case OTail: {       /* Tail call */
         int arity = collectI32(PC);
-        termPo nProg = SP[0];
+        normalPo nProg = C_TERM(SP[0]);
 
         // Pick up existing frame
         framePo oldFp = FP->fp;
@@ -202,7 +202,7 @@ retCode run(processPo P) {
         methodPo oldPROG = FP->prog;
         integer oldArgCnt = argCount(PROG);
 
-        labelPo oLbl = isNormalPo(nProg) ? termLbl(C_TERM(nProg)) : C_LBL(nProg);
+        labelPo oLbl = termLbl(nProg);
         PROG = labelCode(objLabel(oLbl, arity));       /* set up for object call */
 
         // slide new arguments over old frame
@@ -357,7 +357,7 @@ retCode run(processPo P) {
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
         normalPo cl = C_TERM(pop());  /* which term? */
-        push(cl->args[ix]);
+        push(nthArg(cl,ix));
         continue;
       }
 
