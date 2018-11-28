@@ -261,7 +261,8 @@ transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
     [vrDef(Lc,LclName,Tp,Rep)|Dx],Dxx) :-
   extraVars(Map,[]),!,                                 % no extra variables coming from labels
   liftExp(Value,Rep,[],_Q0,Map,Opts,Dx,Dxx),
-  mergeSeq(Lc,I,cll(Lc,lbl(LclName,0),[]),Ix).
+  mergeSeq(Lc,I,cll(Lc,lbl(LclName,0),[]),Ix),
+  dispRuleSet(vrDef(Lc,LclName,Tp,Rep)).
 
 transformThetaDefn(Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,G,Gx,Dx,Dxx) :-
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
@@ -334,14 +335,13 @@ transformThetaDef(typeDef(_,_,_,_),_,_,_,Ix,Ix,Dx,Dx).
 transformThetaDef(conDef(_,_,_),_,_,_,Ix,Ix,Dx,Dx).
 
 closureEntry(Map,Lc,Name,Tp,[fnDef(Lc,lbl(Closure,ArX),TTp,
-  [ClLbl|Args],cll(Lc,lbl(Prog,ArXX),XArgs))|L],L) :-
+  [ctpl(lbl(Closure,ExA),Extra)|Args],cll(Lc,lbl(Prog,ArXX),XArgs))|L],L) :-
   lookupVarName(Map,Name,Reslt),
   programAccess(Reslt,Prog,Closure,Arity),
   extraVars(Map,Extra),
   genVars(Arity,Args),
   length(Extra,ExA),
   ArX is Arity+1,
-  (Extra=[] -> ClLbl=enum(Closure) ; ClLbl=ctpl(lbl(Closure,ExA),Extra)),
   concat(Extra,Args,XArgs),
   length(XArgs,ArXX),
   extendFunTp(Tp,[_],TTp).
@@ -523,7 +523,7 @@ implementVarExp(localCons(Enum,_,_,ThVr),Lc,_,ctpl(Enum,[Vr]),Map,Q,Qx) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx).
 implementVarExp(notInMap,_,Nm,idnt(Nm),_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
-implementVarExp(moduleFun(_,Closure,_),_,_,enum(Closure),_,Q,Q).
+implementVarExp(moduleFun(_,Closure,_),_,_,ctpl(lbl(Closure,0),[]),_,Q,Q).
 implementVarExp(localFun(_Fn,_,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Map,Q,Qx) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx).
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,Q,Q) :-
@@ -561,8 +561,8 @@ liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   transformEqn(Rule,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
-  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
-  % dispRuleSet(LamFun).
+  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun),
+  dispRuleSet(LamFun).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -662,41 +662,50 @@ liftEls([(_,P)|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
   liftEls(More,Args,Extra,Q0,Qx,Map,Opts,Ex0,Exx).
 
 thetaMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],FreeTerm) :-
-  definedProgs(Map,Df),
-  labelVars(Map,Lv),
-  merge(Lv,Q,Q1),
-  freeVars(Theta,Df,Q1,Lv,ThFr),
+  findFreeVars(Theta,Map,Q,ThFree),
   cellVars(Theta,CellVars),
   thetaLbl(Theta,Map,LclName),
-  concat(CellVars,ThFr,FreeVars),
+  concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,[],L0),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx),
   locOfCanon(Theta,Lc),
-  makeFreeTerm(CellVars,Lc,ThFr,Map,FreeTerm).
+  makeFreeTerm(CellVars,Lc,ThFree,Map,FreeTerm).
 
 recordMap(Theta,ThVr,Q,Map,_Opts,[lyr(LclName,Lx,FreeTerm,ThVr)|Map],[lyr(LclName,L0,FreeTerm,ThVr)|Map],FreeTerm) :-
-  definedProgs(Map,Df),
-  labelVars(Map,Lv),
-  merge(Lv,Q,Q1),
-  freeVars(Theta,Df,Q1,Lv,ThFr),
+  findFreeVars(Theta,Map,Q,ThFree),
   cellVars(Theta,CellVars),
   thetaLbl(Theta,Map,LclName),
-  concat(CellVars,ThFr,FreeVars),
+  concat(CellVars,ThFree,FreeVars),
   collectLabelVars(FreeVars,ThVr,0,[],L0),
   makeMtdMap(Theta,LclName,ThVr,L0,Lx),
   locOfCanon(Theta,Lc),
-  makeFreeTerm(CellVars,Lc,ThFr,Map,FreeTerm).
+  makeFreeTerm(CellVars,Lc,ThFree,Map,FreeTerm).
 
-lambdaMap(Lam,Q,Map,LclName,ctpl(lbl(LclName,1),[FreeTerm]),[lyr(LclName,Lx,FreeTerm,ThVr)|Map]) :-
+lambdaMap(Lam,Q,Map,LclName,ctpl(lbl(LclName,1),[FreeTerm]),
+    [lyr(LclName,Lx,FreeTerm,ctpl(lbl(LclName,1),[ThVr]))|Map]) :-
+  findFreeVars(Lam,Map,Q,LmFree),
+  lambdaLbl(Map,"λ",LclName),
+  genVar("_ThV",ThVr),
+  collectLabelVars(LmFree,ThVr,0,[],Lx),
+  locOfCanon(Lam,Lc),
+  makeFreeTerm([],Lc,LmFree,Map,FreeTerm).
+
+findFreeVars(Term,Map,Q,LmFree) :-
   definedProgs(Map,Df),
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
-  freeVars(Lam,Df,Q1,Lv,ThFr),
-  lambdaLbl(Map,"λ",LclName),
-  genVar("_ThV",ThVr),
-  collectLabelVars(ThFr,ThVr,0,[],Lx),
-  locOfCanon(Lam,Lc),
-  makeFreeTerm([],Lc,ThFr,Map,FreeTerm).
+  merge(Df,Q1,Q2),
+  freeVars(Term,[],Q2,[],ThFr),
+  freeLabelVars(ThFr,Map,[],LmFr0),
+  freeVars(Term,Lv,Q1,LmFr0,LmFree).
+
+freeLabelVars([],_,Fr,Fr).
+freeLabelVars([idnt(Nm)|Lv],Map,Fr,LmFr) :-
+  lookupThetaVar(Map,Nm,ThVr),!,
+  merge([ThVr],Fr,Fr1),
+  freeLabelVars([ThVr|Lv],Map,Fr1,LmFr).
+freeLabelVars([_|Lv],Map,Fr,LmFr) :-
+  freeLabelVars(Lv,Map,Fr,LmFr).
 
 cellVars(theta(_Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
