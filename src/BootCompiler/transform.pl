@@ -168,7 +168,7 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),_Pkg,Map,Opts,[CFun|D],Dx) :-
+transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),_Pkg,Map,Opts,[CFun,rcDef(Lc,LclName,faceType(Els,Tps))|D],Dx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,ConsNm,Arity),
   extraVars(Map,Extra),

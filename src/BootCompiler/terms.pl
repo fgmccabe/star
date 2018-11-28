@@ -59,6 +59,15 @@ showRuleSet(vrDef(Lc,Nm,Tp,Value),O,Ox) :-
   appStr(" = ",O8,O9),
   showTerm(Value,0,O9,O10),
   appNl(O10,Ox).
+showRuleSet(rcDef(Lc,Nm,Tp),O,Ox) :-
+  appStr("Structure @ ",O,O1),
+  showLocation(Lc,O1,O2),
+  appNl(O2,O3),
+  appIden(Nm,O3,O4),
+  appStr(" ::= ",O4,O5),
+  showType(Tp,true,O5,O6),
+  appStr(".",O6,O7),
+  appNl(O7,Ox).
 
 showArgs(Args,Dp,O,Ox) :-
   showTerms(Args,"(",misc:appStr(","),")",Dp,O,Ox).

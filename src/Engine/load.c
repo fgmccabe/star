@@ -468,7 +468,7 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
       fieldTblPo fieldTbl = newFieldTable(count);
       declareFields(lbl,fieldTbl);
 
-      for (integer ix = 0; ret == Ok && ix < count;) {
+      for (integer ix = 0; ret == Ok && ix < count;ix++) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
           ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
           if (ret == Ok) {
@@ -479,6 +479,7 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
               ret = decodeInteger(in, &offset);
               if (ret == Ok) {
                 setFieldTblEntry(fieldTbl, ix, field, offset);
+                ret = decodeInteger(in,&size);
               }
             }
           }
