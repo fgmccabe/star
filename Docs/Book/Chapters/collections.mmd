@@ -658,7 +658,7 @@ The `list` type is optimized for random access and for shared storage -- recall 
 
 ![Two lists Sharing Structure][twoarrays]
 
-[twoarrays]: twoarrays.pdf width=311px height=143px
+[twoarrays]: images/twoarrays.pdf width=311px height=143px
 
 ### The map type
 Unlike the `cons` or `list` type, the `map` type is oriented for access by arbitrary keys. The `map` is also quite different to hash maps as found in Java (say), the `map` type is *persistent*: the functions that access dictionaries such as by adding or removing elements return new dictionaries rather than modifying a single shared structure. However, the efficiency of `map` is quite comparable to Java’s HashMap.
