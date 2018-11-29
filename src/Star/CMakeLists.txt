@@ -3,7 +3,9 @@ project(bootlib)
 
 add_custom_target(boot ALL)
 
-set(BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/Build/")
+set(REPO_DIR "${CMAKE_CURRENT_BINARY_DIR}/Build/")
 
 add_custom_command(TARGET boot
-        COMMAND "echo" "Hello world ${BUILD_DIR}")
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${REPO_DIR}
+        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.boot"
+      )
