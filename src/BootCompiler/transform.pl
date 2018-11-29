@@ -189,14 +189,14 @@ transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),_Pkg,Map,_Opts,[CFun|D],D) :-
   extendFunTp(funType(tupleType([]),Tp),Args,ATp),
   CFun=fnDef(Lc,LclPrg,ATp,Args,ctpl(lbl(ConsNm,Ar),BndArgs)).
 
-genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[AFun,rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx) :-
+genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx).
+/*
+genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx) :-
   length(Els,Ar),
   sort(Els,transform:cmpName,SrtEls),
   genConsArgs(Lc,SrtEls,Args,Extra,_BndArgs,Extra),
   makeRecordAccessEqns(Lc,ctpl(lbl(ConsNm,Ar),Args),SrtEls,Args,AccEqns),
-  functionMatcher(Lc,2,lbl(ConsNm,2),funType(tupleType([anonType,anonType]),anonType),AccEqns,AFun).
-
-cmpName((N1,_),(N2,_)) :- str_lt(N1,N2).
+  functionMatcher(Lc,2,lbl(ConsNm,2),funType(tupleType([anonType,anonType]),anonType),AccEqns,_AFun).
 
 makeRecordAccessEqns(Lc,_,Els,_Args,Eqns) :-
   genVar("_",Vr),
@@ -207,6 +207,7 @@ makeAccessEqns(Lc,[(Nm,_)|Tps],Vr,Ix,[(Lc,[Vr,enum(DotNm)],enum("star.core#true"
   Ix1 is Ix+1,
   string_concat(".",Nm,DotNm),
   makeAccessEqns(Lc,Tps,Vr,Ix1,Eqns).
+*/
 
 genConsArgs(_,[],Args,Args,BndArgs,BndArgs).
 genConsArgs(Lc,[_|Els],[V|Args],Ax,[V|Bnd],Bx) :-
@@ -444,6 +445,9 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(dot(Lc,Rec,Fld,_),dte(Lc,Rc,Lbl),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
+  makeDotLbl(Fld,Lbl).
 liftExp(dot(Lc,Rec,Fld,_),ocall(Lc,Rc,[Lbl]),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
@@ -625,6 +629,7 @@ genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,ctpl(lbl(Path,Ar),Args),Ex,Exx) :-
     pickTypes(Defs,ElTps),
     genConsAccessDef(Lc,Path,faceType(ElTps,[]),Map,Opts,Ex1,Exx) ;
     Ex1=Exx).
+cmpName((N1,_),(N2,_)) :- str_lt(N1,N2).
 
 pickVarDefs([],_,_,[],Q,Q,Ex,Ex).
 pickVarDefs([varDef(_Lc,Nm,_ExtNm,_,_Tp,Val)|Defs],Map,Opts,[(Nm,Value)|Els],Q,Qx,Ex,Exx) :-

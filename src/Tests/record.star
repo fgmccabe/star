@@ -29,5 +29,5 @@ test.record{
 
   fooo = unwrap(outer(7)(3)).
 
-
+  peteName = nameOf({age=45. name="pete"}).
 }
