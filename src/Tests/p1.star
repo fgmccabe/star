@@ -63,5 +63,4 @@ test.p1{
   digit = _sat(isDigit).
 
   assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])].
-
 }

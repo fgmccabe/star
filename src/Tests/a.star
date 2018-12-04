@@ -1,13 +1,13 @@
 test.a{
   import star.
 
-  o : action[integer].
+  o : action[string,integer].
   o = return 1.
 
-  p : action[integer].
-  p = o >>= double >>= double.
+  p : action[string,integer].
+  p = (o >>= double) >>= double.
 
-  double:(integer) => action[integer].
+  double:(integer) => action[string,integer].
   double(I) => return (I+I).
 
   assert _perform(o)==1.
