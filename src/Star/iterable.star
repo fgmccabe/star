@@ -43,7 +43,8 @@ star.iterable{
   public iterState2option:all e ~~ (iterState[e]) => option[e].
   iterState2option(noMore(X)) => some(X).
   iterState2option(continueWith(X)) => some(X).
-  iterState2option(noneFoune) => none.
+  iterState2option(noneFound) => none.
+  iterState2option(abortIter(_)) => none.
 
   public implementation all e ~~ coercion[iterState[e],option[e]] => {
     _coerce(I) => iterState2option(I).
@@ -104,7 +105,7 @@ star.iterable{
   }
 
   public implementation all e ~~ generator[list[e]->>e] => {
-      _generate(E,continueWith(L)) => continueWith([E,..L]).
+    _generate(E,continueWith(L)) => continueWith([E,..L]).
     _generate(E,noneFound) => continueWith([E]).
     _generate(_,St) default => St.
   }
