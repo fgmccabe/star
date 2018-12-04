@@ -569,13 +569,3 @@ showMnem([iDLine(XX)|Ins],Pc,Lbls,O,Ox) :- !,
   Pc1 is Pc+3,
   showMnem(Ins,Pc1,Lbls,O3,Ox).
 
-
-mkFields(Fields,Out) :-
-  sort(Fields,assemble:compField,Flds),
-  map(Flds,assemble:genField,Out).
-
-compField((Nm1,_),(Nm2,_)) :-
-  Nm1<Nm2,!.
-
-genField((Nm,Tp),(strg(Nm),strg(Sig))) :-
-  encType(Tp,Sig).
