@@ -27,9 +27,13 @@
 #include "verify.h"
 
 static retCode decodePkgName(ioPo in, packagePo pkg);
+
 static retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity);
+
 static retCode decodeLoadedPkg(packagePo pkg, ioPo in);
+
 static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
+
 static retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen);
 
 static retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen);
@@ -370,7 +374,6 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
   integer arity;
   integer lclCount = 0;
   integer maxStack = 0;
-  methodPo mtd = Null;
 
   retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
 
@@ -420,8 +423,12 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
             if (ret == Ok) {
               labelPo lbl = declareLbl(prgName, arity);
               gcAddRoot(H, (ptrPo) &lbl);
-              mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool), C_TERM(locals),
-                              C_TERM(lines));
+
+              methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
+                                       C_TERM(locals),
+                                       C_TERM(lines));
+              if (enableVerify)
+                ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
             }
           }
         }
@@ -430,11 +437,6 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
       }
       free(ins);
     }
-  }
-
-  if (ret == Ok) {
-    if (enableVerify && mtd != Null)
-      ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
   }
 
   if (ret == Error)
@@ -467,9 +469,9 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
 
     if (ret == Ok) {
       fieldTblPo fieldTbl = newFieldTable(count);
-      declareFields(lbl,fieldTbl);
+      declareFields(lbl, fieldTbl);
 
-      for (integer ix = 0; ret == Ok && ix < count;ix++) {
+      for (integer ix = 0; ret == Ok && ix < count; ix++) {
         if (isLookingAt(in, fieldPreamble) == Ok) {
           ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
           if (ret == Ok) {
@@ -480,13 +482,13 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
               ret = decodeInteger(in, &offset);
               if (ret == Ok) {
                 setFieldTblEntry(fieldTbl, ix, field, offset);
-                ret = decodeInteger(in,&size);
+                ret = decodeInteger(in, &size);
               }
             }
           }
         }
       }
-      if(ret!=Ok){
+      if (ret != Ok) {
         clearFieldTable(lbl);
       }
     }
