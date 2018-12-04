@@ -31,7 +31,7 @@ sm(T1,tpExp(O2,A2),Env) :-
   isTypeFun(O2,Args,Env,OO),!,
   applyTypeFn(OO,[A2|Args],Env,[],_,T2),
   sameType(T1,T2,Env).
-sm(tpExp(O1,A1),tpExp(O2,A2),Env) :- sameType(O1,O2,Env),sameType(A1,A2,Env).
+sm(tpExp(O1,A1),tpExp(O2,A2),Env) :- sameType(O1,O2,Env), sameType(A1,A2,Env).
 sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
 sm(tupleType(A1),tupleType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).

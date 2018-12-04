@@ -97,13 +97,3 @@ showMnem([iLine(Loc)|Ins],Pc,Lbs,O,Ox) :-
   appNl(O2,O3),
   showMnem(Ins,Pc,Lbs,O3,Ox).
 #(Show)
-
-mkFields(Fields,Out) :-
-  sort(Fields,assemble:compField,Flds),
-  map(Flds,assemble:genField,Out).
-
-compField((Nm1,_),(Nm2,_)) :-
-  Nm1<Nm2,!.
-
-genField((Nm,Tp),(strg(Nm),strg(Sig))) :-
-  encType(Tp,Sig).
