@@ -63,5 +63,6 @@ extern void markMtd(gcSupportPo G, methodPo mtd);
 retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl);
 
 typedef retCode (*pickupPkg)(packagePo pkg, char *errorMsg, long msgLen, void *cl);
-extern retCode installPackage(char *pkgText, long pkgTxtLen, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
+extern retCode
+installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
 #endif
