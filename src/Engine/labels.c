@@ -126,7 +126,7 @@ static retCode markLabel(void *n, void *r, void *c) {
     for (integer ix = 0; ix < fields->size; ix++) {
       fieldPo fld = &fields->entries[ix];
       if (fld->lbl != Null)
-        markLabel(Null, &fld->lbl, c);
+        markLabel(Null, fld->lbl, c);
     }
   }
   return Ok;
