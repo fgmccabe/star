@@ -3,7 +3,7 @@ One of the common themes of systems that 'face the world' (aka online applicatio
 
 
 
-We can draw an extremely simplistic view of a large class of applications:
+We can draw an extremely simplistic view of a large class of _online_ applications:
 
 ![Simplistic Online Application][Online]
 
@@ -107,15 +107,13 @@ We shall explore query expressions a little more, but first an editorial:
 
 ### A Splash of Inference
 
-Queries have an important role in **Star** for two reasons: queries often have a much more obvious and transparent semantics than other programs -- even functional programs! Secondly, queries have a deep connection to logic; and logic is at the heart of many classification systems.
+Queries have an important role in **Star** for two reasons: queries often have a much more obvious and transparent semantics than other programs -- even functional programs! Secondly, queries have a deep connection to logic.
 
 There are many reasons why one might be interested in logic; from a theoretical modeling perspective (does the universe follow rational rules[^Surprisingly, yes! Of course, discovering the rationality may be hard; but the immense success of Western thought was only possible because the universe is very rationally constructed.]) to the deeply pragmatic reason that logical programs are often easier to understand and therefore easier to trust.
 
-The reason we promote a logic-based system for classifying is that it is easier to trust a classifier if you can understand its reasoning.
-
 Like programming languages, it turns out that there are many kinds of logic. Again, like programming languages, there is a trade-off between expressivity and complexity. The primary source of complexity in a rule language is the machinery needed to realize it -- together with understanding it sufficiently to be able to predict the meaning of a written rule.
 
-A, somewhat simplified, enumeration of the different kinds of logic might be:
+A somewhat simplified enumeration of the different kinds of logic might be:
 
 * Propositional calculus. This is characterized by single-letter conditions (sometimes confusingly called _predicate variables_) and a guaranteed finite evaluation mechanism.
 * Datalog. This is characterized by relations with simple unstructured values (i.e., strings and numbers). Execution in Datalog has similar performance characteristics as querying databases.
@@ -165,7 +163,7 @@ As should be anticipated at this point, search is realized via a contract. This 
 The final form of query condition is simply the boolean-valued expression. Note that, unlike the other forms of query condition, boolean expressions are test-only: they cannot result in bindings for query variables.
 
 #### The `iterable` contract
-The `iterable` contract is similar in intention to the `folding` contract we saw before. However, it is more tuned to supporting different kinds of combination of search.
+The `iterable` contract is similar in intention to the `folding` contract we saw before. However, it is more tuned to supporting different combination of queries.
 
 The `iterable` contract looks like:
 ```
@@ -173,11 +171,11 @@ contract all s,e ~~ iterable[s->>e] ::= {
   _iterate:all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
 }
 ```
-This contract states that to search a collection, you have to be able to iterate over it. This function (and this contract) uses the `iterState` type to help guide the search:
+This contract states that to search a collection, you have to be able to iterate over it using the `_iterate` function. The `_iterate` function uses the `iterState` type to help guide the search:
 ```
-all t ~~ iterState[t] ::= noneFound
-                      | noMore(t)
-                      | continueWith(t)
+all t ~~ iterState[t] ::= noneFound      -- no results yet
+                      | noMore(t)        -- all needed results found
+                      | continueWith(t)  -- keep going
                       | abortIter(string).
 ```
 The different cases in the `iterState` type codify different things that can happen during a search. The most commonly used case is the `continueWith` case — which is used to encapsulate the results found so far.
@@ -196,15 +194,27 @@ Fold Template
 : A fold template is used when it is desired to aggregate over the found solutions. The form of a fold template is:
 
 ```
-fold Fn with Exp
+fold Exp with Fn
 ``` 
 
-### Assertions, facts and sets
-An assertion is a statement that something is true -- i.e., it is a fact.
+We saw this form of query at the beginning of the book where we looked at nice ways of adding up elements of a list:
 
->There is a subtle distinction between something being true, and stating that something is true.
+```
+{ fold X with (+) | X in L }
+```
 
-For us, taking the same minimalist route we took for queries, we represent facts using `set`s; typically sets of tuples. We already saw this when we encoded the grandparent example as a set of pairs (aka binary tuples).
+Bounded Query
+: A bounded query is similar to the regular query except that we restrict the search to a fixed number of answers. The form of a bounded query template is:
+
+```
+N of Exp 
+```
+For example, since we know that a person can have at most 2 parents (special gene therapy excepted), we can ask for someone's parents using:
+
+```
+parentsOf(X) => { 2 of P | (P,X) in parents }
+```
+
 
 ## Classifying
 Recall that we asserted that classification is a key part of any outward facing system: the system has to decide how to act on an incoming request. It may be instructive to see just how the query formalism can be used to help.
@@ -213,23 +223,22 @@ Let us imagine a system that has some external face, for example, a server that 
 
 Since we anticipate enormous success for our service, and we also anticipate that some people will try to game our system in order to further their own nefarious goals. So, we have to put in place  a classification system that can decide how to process requests and which we anticipate will need continuous evolution.
 
-The simplest online processing system can be viewed as having four components: a source of events, a processor, a sink where the output of the system is targeted and a knowledge base that is used to inform the processor.
+We have already claimed that the simplest online processing system can be viewed as having four components: a source of events, a processor, a sink where the output of the system is targeted and a knowledge base that is used to inform the processor.
 
-![A Simple Event Processor][Events]
+![A Simple Event Processor][Online]
 
-[Events]:../images/events.pdf
+One of the tasks that the processor must perform is to decide how to react to incoming events; this is an example of a _classification problem_; in this case we are classifying events into those we choose to act on and those we will ignore (or complain about).
 
 Classification always depends on a combination of information gleaned from the event itself and on global or contextual information. In our case, we can usefully breakdown the contextual knowledge into two kinds: _rules_ that embody our processing policy and _reputation_ data that the system has collected about external entities.
 
 
-![Rules and Reputation][RuleRepu]
+![Rules and Reputations][classifier]
 
-[RuleRepu]:../images/rules-repu.pdf
+[classifier]:../images/classifier.pdf
 
 We distinguish these two sources of knowledge, partly because the way that we collect and use them are different; but mainly because they are about different things. However, we can use our query formalisms — together with functions — for both.
 
 
-### Query quantifiers
 
 
 
