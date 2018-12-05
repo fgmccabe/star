@@ -40,7 +40,7 @@
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
-  operator("^^", [infixOp(911, 912, 911)]).
+  operator("^^", [prefixOp(912, 911), infixOp(911, 912, 911)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
@@ -87,6 +87,7 @@
   operator("=>", [infixOp(949, 950, 950)]).
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
+  operator("valof", [prefixOp(300, 299)]).
   operator("private", [prefixOp(1700, 1699)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
@@ -268,7 +269,7 @@
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */
   final('^+',"^+").	 /* look ahead parser operator */
-  final('^^',"^^").	 /* Overall output from a parser rule */
+  final('^^',"^^").	 /* output from an action expression */
   final('^.',"^.").	 /* optional object access */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */

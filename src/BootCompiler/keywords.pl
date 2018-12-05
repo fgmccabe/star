@@ -53,5 +53,6 @@
   keyword("let").
   keyword("default").
   keyword("in").
+  keyword("do").
   keyword("#").
   keyword("$").

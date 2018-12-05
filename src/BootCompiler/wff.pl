@@ -10,8 +10,8 @@
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
-    isParse/4,isNTLookAhead/3,
-    isLetDef/4,mkLetDef/4,isMacroRule/4,
+    isParse/4,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,
+    isLetDef/4,mkLetDef/4,
     whereTerm/4,
     packageName/2,pkgName/2,
     isComma/4,deComma/2,reComma/2,
@@ -229,9 +229,6 @@ isCurriedRule(St,Lc,Op,Cond,Body) :-
   isRound(Op,_,_,_),
   eqn(Lc,tuple(Lc,"()",Args),name(Lc,"true"),R,Body).
 
-isMacroRule(Trm,Lc,Lhs,Cond) :-
-  isBinary(Trm,Lc,"==>",Lhs,Cond).
-
 isDefn(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"=",Lhs,Rhs).
 
@@ -362,3 +359,10 @@ mergeCond(name(_,"true"),R,_,R) :-!.
 mergeCond(L,name(_,"true"),_,L) :-!.
 mergeCond(L,R,Lc,Cnd) :-
   binary(Lc,"&&",L,R,Cnd).
+
+isDoTerm(A,Lc,Stmts) :-
+  isApply(A,Lc,name(_,"do"),Args),
+  isBraceTuple(Args,_,[Stmts]).
+isDoTerm(A,Lc) :-
+  isApply(A,Lc,name(_,"do"),Arg),
+  isBraceTuple(Arg,_,[]).

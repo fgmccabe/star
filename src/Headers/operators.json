@@ -96,7 +96,15 @@
       912,
       911
     ],
-    "desc": "Overall output from a parser rule"
+    "desc": "Overall output from a parser rule, or action expression"
+  },
+  {
+    "prefixOp": "^^",
+    "priorities": [
+      912,
+      911
+    ],
+    "desc": "output from an action expression"
   },
   {
     "prefixOp": "^+",
@@ -114,6 +122,11 @@
       915
     ],
     "desc": "sequencing operator"
+  },
+  {
+    "prefixOp": "valof",
+    "priorities" : [300, 299],
+    "desc" : "evaluate an action expression"
   },
   {
     "infixOp": "->>",

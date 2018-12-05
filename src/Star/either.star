@@ -2,9 +2,10 @@ star.either{
   import star.core.
   import star.arith.
   import star.lists.
+  import star.monad.
 
   -- Either or values
-  public all a,b ~~ either[a,b] ::= either(a) | other(b).
+  public all a,b ~~ either[b,a] ::= either(a) | other(b).
 
   -- Display either-or values
   public implementation all x,y ~~ display[x], display[y] |: display[either[x,y]] => {.
@@ -22,4 +23,11 @@ star.either{
     hash(either(A)) => hash(A)*37.
     hash(other(B)) => hash(B)*41.
   .}
+
+  public implementation all a,b ~~ execution[either[a]->>a] => {
+    _perform(either(X)) => X.
+    _handle(either(X),_) => either(X).
+    _handle(other(E),F) => F(E).
+    _raise(E) => other(E).
+  }
 }

@@ -37,7 +37,7 @@ star.compiler{
   _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
     handleCmdLineOpts(processOptions(Args,[repoOption,wdOption],compilerOptions(RI,WI))).
 
-  handleCmdLineOpts:(either[(compilerOptions,list[string]),string])=>().
+  handleCmdLineOpts:(either[string,(compilerOptions,list[string])])=>().
   handleCmdLineOpts(either((compilerOptions(RU,CU),Args))) where
     _ .= _logmsg("CU=\(CU), RU=\(RU)") &&
     Repo .= openRepository(resolveUri(CU,RU)) &&
