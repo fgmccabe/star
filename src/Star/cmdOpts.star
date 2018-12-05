@@ -11,22 +11,22 @@ star.cmdOpts{
   }
 
   public processOptions:all o ~~ (list[string],list[optionsProcessor[o]],o) =>
-    either[(o,list[string]),string].
+    either[string,(o,list[string])].
   processOptions(Raw,Specs,Opts) => processAll(Raw,Specs,Opts).
 
-  processAll:all o ~~ (list[string],list[optionsProcessor[o]],o) => either[(o,list[string]),string].
+  processAll:all o ~~ (list[string],list[optionsProcessor[o]],o) => either[string,(o,list[string])].
   processAll([],_,SoFar) => either((SoFar,[])).
   processAll(["--",..A],_,SoFar) => either((SoFar,A)).
   processAll([A,..L],Specs,SoFar) => processOption(A,L,Specs,SoFar).
 
-  processOption:all o ~~ (string,list[string],list[optionsProcessor[o]],o) => either[(o,list[string]),string].
+  processOption:all o ~~ (string,list[string],list[optionsProcessor[o]],o) => either[string,(o,list[string])].
   processOption(A,L,Specs,SoFar) where
       O ^= search(Specs,(e)=>(e.shortForm==A|| _ ^=search(e.alternatives,(o)=>o==A))) =>
     checkOption(L,O.shortForm,O.validator,O.setOption,Specs,SoFar).
   processOption(A,L,_,SoFar) => either((SoFar,[A,..L])).
 
   checkOption:all o ~~ (list[string],string,option[(string)=>boolean],(string,o) => o,list[optionsProcessor[o]],o) =>
-    either[(o,list[string]),string].
+    either[string,(o,list[string])].
   checkOption(Args,O,none,setter,Specs,SoFar) => processAll(Args,Specs,setter(O,SoFar)).
   checkOption([A,..Args],O,some(V),Setter,Specs,SoFar)
       where V(A) => processAll(Args,Specs,Setter(A,SoFar)).

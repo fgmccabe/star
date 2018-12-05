@@ -3,6 +3,7 @@
 :- use_module(abstract).
 :- use_module(wff).
 :- use_module(macro).
+:- use_module(do).
 :- use_module(dependencies).
 :- use_module(freshen).
 :- use_module(unify).
@@ -659,6 +660,10 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   newTypeVar("_El",ElTp),
   checkType(Lc,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isDoTerm(Term,_,_),!,
+  genAction(Term,Action),
+  typeOfExp(Action,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   (hasPromotion(Term) ->

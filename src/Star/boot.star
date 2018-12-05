@@ -33,21 +33,28 @@ star.boot{
     invokeMain(Top,Args).
   __boot() default => ().
 
-  handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>option[(string,list[string])].
+  handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>either[string,(string,list[string])].
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
     CW ^= parseUri(Cwd) &&
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
-    Pkg ^= parsePkgName(Top) &&
-    _ ^= importPkgs([Pkg],[],Repo) &&
-    _ .= initialize(Pkg) => some((Top,Args)).
-  handleCmdLineOpts(_) where _ .= _exit(9) => none.
+    Pkg ^= parsePkgName(Top) => valof do{
+      setupPkg(Repo,Pkg);
+      ^^ (Top,Args)
+    }
+  handleCmdLineOpts(other(E)) => other(E).
 
-  importPkgs:(list[pkg],list[pkg],fileRepo)=>option[()].
-  importPkgs([],Ld,_)=> some(()).
+  setupPkg:(fileRepo,pkg) => action[string,()].
+  setupPkg(Repo,Pkg) => do{
+    importPkgs([Pkg],[],Repo);
+    initialize(Pkg);
+  }
+
+  importPkgs:(list[pkg],list[pkg],fileRepo)=>either[string,()].
+  importPkgs([],Ld,_)=> either(()).
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
-  importPkgs(_,_,_) default => (_ .= logMsg("Could not load \(_command_line())") ? none || none).
+  importPkgs(_,_,_) default => other("Could not load \(_command_line())").
 
   importPkg:(pkg,fileRepo,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).

@@ -57,7 +57,7 @@ star.compiler.operators{
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
-  oper("^^") => [infixOp(911,912,911)].
+  oper("^^") => [prefixOp(912,911), infixOp(911,912,911)].
   oper("%") => [infixOp(700,700,699)].
   oper("<-") => [infixOp(904,905,904)].
   oper(".>>>.") => [infixOp(600,600,599)].
@@ -104,6 +104,7 @@ star.compiler.operators{
   oper("=>") => [infixOp(949,950,950)].
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
+  oper("valof") => [prefixOp(300,299)].
   oper("private") => [prefixOp(1700,1699)].
   oper(".&.") => [infixOp(700,700,699)].
   oper("///") => [infixOp(800,800,799)].
@@ -306,7 +307,7 @@ star.compiler.operators{
   final("]") => true.  /* square brackets */
   final("^") => true.  /* Optional propagation */
   final("^+") => true.  /* look ahead parser operator */
-  final("^^") => true.  /* Overall output from a parser rule */
+  final("^^") => true.  /* output from an action expression */
   final("^.") => true.  /* optional object access */
   final("^/") => true.  /* filter */
   final("^//") => true.  /* filter map */
