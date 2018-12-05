@@ -28,29 +28,33 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) =>
-    handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()))).
+  __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) &&
+    (Top,Args) ^= handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()))) =>
+    invokeMain(Top,Args).
+  __boot() default => ().
 
-  handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>().
+  handleCmdLineOpts:(either[(bootOptions,list[string]),string])=>option[(string,list[string])].
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
     CW ^= parseUri(Cwd) &&
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
     Pkg ^= parsePkgName(Top) &&
-    _ .= importPkgs([Pkg],[],Repo) &&
-    _ .= initialize(Pkg) =>
-    invokeMain(Top,Args).
+    _ ^= importPkgs([Pkg],[],Repo) &&
+    _ .= initialize(Pkg) => some((Top,Args)).
+  handleCmdLineOpts(_) where _ .= _exit(9) => none.
 
-  importPkgs:(list[pkg],list[pkg],fileRepo)=>().
-  importPkgs([],Ld,_)=>().
-  importPkgs([P,..L],Ld,R) => importPkgs(importPkg(P,R,Ld)++L,[P,..Ld],R).
+  importPkgs:(list[pkg],list[pkg],fileRepo)=>option[()].
+  importPkgs([],Ld,_)=> some(()).
+  importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
+  importPkgs(_,_,_) default => (_ .= logMsg("Could not load \(_command_line())") ? none || none).
 
-  importPkg:(pkg,fileRepo,list[pkg])=>list[pkg].
-  importPkg(P,_,Ld) where contains(P,Ld) => [].
+  importPkg:(pkg,fileRepo,list[pkg])=>option[list[pkg]].
+  importPkg(P,_,Ld) where contains(P,Ld) => some([]).
   importPkg(P,R,Ld) where
     Code ^= loadFromRepo(R,P,"code") &&
-    Imps .= _install_pkg(Code) => Imps//(((Pk,V))=>pkg(Pk,V::version)).
+    Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
+  importPkg(_,_,_) default => none.
 
   initialize:(pkg) => ().
   initialize(pkg(P,_)) where
