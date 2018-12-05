@@ -35,6 +35,7 @@ star.repo.file{
   loadFromRepo(repo(Root,Man),Pkg,Kind) where
     U ^= locateInManifest(Man,Pkg,Kind) &&
     Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
+  loadFromRepo(_,_,_) default => none.
 
   public locateCode:(fileRepo,pkg,string) => option[string].
   locateCode(repo(Root,Man),Pkg,U) where
