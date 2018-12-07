@@ -1,4 +1,4 @@
-:- module(do,[genAction/2,isDoTerm/3]).
+:- module(do,[genAction/2,genValof/2]).
 
 :- use_module(wff).
 :- use_module(abstract).
@@ -10,7 +10,7 @@ genAction(Trm,Exp) :-
   genBody(Stmt,Exp),
   display(Exp).
 genAction(Trm,Exp) :-
-  isDoTerm(Trm,_),
+  isDoTerm(Trm,Lc),
   unary(Lc,"return",tuple(Lc,"()",[]),Exp).
 
 genBody(B,Bd) :-
@@ -21,8 +21,8 @@ genBody(B,Bd) :-
 genBody(B,Bd) :-
   isParen(B,I),!,
   genBody(I,Bd).
-genBody(B,Bd) :-
-  genStmt(B,_,Bd).
+genBody(B,Exp) :-
+  genStmt(B,_,Exp).
 
 genStmt(C,V,Cl) :-
   isBind(C,_,V,CC),
@@ -55,3 +55,7 @@ anonArg(Lc,tuple(Lc,"()",[name(Lc,"_")])).
 isBind(T,Lc,R,E) :-
   isBinary(T,Lc,"<-",Rh,E),
   isTuple(R,Lc,[Rh]).
+
+genValof(T,E) :-
+  isUnary(T,Lc,"valof",A),
+  unary(Lc,"_perform",A,E).
