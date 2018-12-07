@@ -661,9 +661,13 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   checkType(Lc,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isDoTerm(Term,_,_),!,
+  isDoTerm(Term),!,
   genAction(Term,Action),
   typeOfExp(Action,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isValof(Term,_,_),!,
+  genValof(Term,VV),
+  typeOfExp(VV,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   (hasPromotion(Term) ->

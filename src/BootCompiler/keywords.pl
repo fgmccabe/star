@@ -54,5 +54,6 @@
   keyword("default").
   keyword("in").
   keyword("do").
+  keyword("valof").
   keyword("#").
   keyword("$").
