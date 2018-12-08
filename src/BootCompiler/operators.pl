@@ -99,6 +99,7 @@
   operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(800, 800, 799)]).
+  operator(">>>", [infixOp(919, 920, 919)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
@@ -218,6 +219,7 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
+  follows('>>','>','>>>').
 
 
   final('%',"%").	 /* modulo */
@@ -297,6 +299,7 @@
   final('>=',">=").	 /* greater than or equal */
   final('>>',">>").	 /* monadic bind */
   final('>>=',">>=").	 /* monadic bind */
+  final('>>>',">>>").	 /* handle error */
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up a value from a ref cell */
