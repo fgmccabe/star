@@ -28,33 +28,36 @@ star.boot{
   }
 
   public __boot:()=>().
-  __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) &&
-    (Top,Args) ^= handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()))) =>
-    invokeMain(Top,Args).
+  __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) =>
+    valof do{
+      (Top,Args) <- handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd())));
+      invokeMain(Top,Args)
+      >>> ((E) => do{ ^^ logMsg(E) })
+    }
   __boot() default => ().
 
-  handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>either[string,(string,list[string])].
+  handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>action[string,(string,list[string])].
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
     CW ^= parseUri(Cwd) &&
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
-    Pkg ^= parsePkgName(Top) => valof do{
+    Pkg ^= parsePkgName(Top) => do{
       setupPkg(Repo,Pkg);
       ^^ (Top,Args)
     }
-  handleCmdLineOpts(other(E)) => other(E).
+  handleCmdLineOpts(other(E)) => err(E).
 
   setupPkg:(fileRepo,pkg) => action[string,()].
   setupPkg(Repo,Pkg) => do{
     importPkgs([Pkg],[],Repo);
-    initialize(Pkg);
+    initialize(Pkg)
   }
 
-  importPkgs:(list[pkg],list[pkg],fileRepo)=>either[string,()].
-  importPkgs([],Ld,_)=> either(()).
+  importPkgs:(list[pkg],list[pkg],fileRepo)=>action[string,()].
+  importPkgs([],Ld,_)=> return ().
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
-  importPkgs(_,_,_) default => other("Could not load \(_command_line())").
+  importPkgs(_,_,_) default => err("Could not load \(_command_line())").
 
   importPkg:(pkg,fileRepo,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).
@@ -63,18 +66,18 @@ star.boot{
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => none.
 
-  initialize:(pkg) => ().
+  initialize:(pkg) => action[string,()].
   initialize(pkg(P,_)) where
     Pred .= P++"@init" =>
     ( _definedLbl(Pred,0) ?
-      _callLbl(Pred,0,[]) ||
-      logMsg("No init for \(P)")).
+      return _callLbl(Pred,0,[]) ||
+      err("No init for \(P)")).
 
-  invokeMain:(string,list[string]) => ().
+  invokeMain:(string,list[string]) => action[string,()].
   invokeMain(Top,Args) where
     Pred .= Top++"#_main" =>
     ( _definedLbl(Pred,1) ?
-      _callLbl(Pred,1,[Args]) ||
-      logMsg("No main program: \(Top)") ).
+      return _callLbl(Pred,1,[Args]) ||
+      err("No main program: \(Top)") ).
 
 }

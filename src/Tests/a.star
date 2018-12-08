@@ -13,4 +13,11 @@ test.a{
   assert _perform(o)==1.
 
   assert _perform(p) == 4.
+
+  a = do{
+    x <- p;
+    ^^ x
+  }.
+
+  assert valof a == 4.
 }
