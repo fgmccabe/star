@@ -124,6 +124,11 @@
     "desc": "sequencing operator"
   },
   {
+    "infixOp": ">>>",
+    "priorities": [919,920,919],
+    "desc": "handle error"
+  },
+  {
     "prefixOp": "valof",
     "priorities" : [300, 299],
     "desc" : "evaluate an action expression"

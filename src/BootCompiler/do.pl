@@ -7,8 +7,8 @@
 
 genAction(Trm,Exp) :-
   isDoTerm(Trm,_Lc,Stmt),!,
-  genBody(Stmt,Exp),
-  display(Exp).
+  genBody(Stmt,Exp).
+  %display(Exp).
 genAction(Trm,Exp) :-
   isDoTerm(Trm,Lc),
   unary(Lc,"return",tuple(Lc,"()",[]),Exp).
@@ -41,6 +41,10 @@ genStmt(B,void,Bd) :-
 genStmt(T,void,Cl) :-
   isUnary(T,Lc,"^^",Exp),
   unary(Lc,"return",Exp,Cl).
+genStmt(T,void,Exp) :-
+  isHandle(T,Lc,L,R),
+  genStmt(L,_,Lhs),
+  binary(Lc,"_handle",Lhs,R,Exp).
 genStmt(T,void,T).
 
 genBind(void,Lc,LL,RR,Bd) :-

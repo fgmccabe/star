@@ -116,6 +116,7 @@ star.compiler.operators{
   oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
   oper("^/") => [infixOp(800,800,799)].
+  oper(">>>") => [infixOp(919,920,919)].
   oper("<~") => [infixOp(1230,1231,1230)].
   oper("type") => [prefixOp(1251,1250)].
   oper("implementation") => [prefixOp(1260,1259)].
@@ -255,6 +256,7 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
+  follows(">>",0c>) => some(">>>").
   follows(_,_) default => none.
 
   public final:(string) => boolean.
@@ -335,6 +337,7 @@ star.compiler.operators{
   final(">=") => true.  /* greater than or equal */
   final(">>") => true.  /* monadic bind */
   final(">>=") => true.  /* monadic bind */
+  final(">>>") => true.  /* handle error */
   final("?") => true.  /* conditional operator */
   final("@") => true.  /* meta annotation */
   final("!") => true.  /* pick up a value from a ref cell */
