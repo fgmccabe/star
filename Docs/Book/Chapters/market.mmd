@@ -1,6 +1,10 @@
-# A market place
+# A Software Ecosystem
 
-We noted in the introduction that developing software is a team sport. This is true at multiple levels -- from building libraries to constructing platforms that support thousands of applications and users. In this chapter we turn our attention to the issues involved in the latter and see how Star’s features can support this goal.
+We noted in the introduction that developing software is a team sport. This is true at multiple levels -- from building libraries to constructing platforms that support thousands of applications and users. In this chapter we turn our attention to the issues involved in the _ecosystem_ perspective of software systems.
+
+We have several goals in this area: to support the development of applications and other large scale software artifacts; and to support the _exchange_ of these artifacts. In addition, we would like to utilize **Star**'s features to do this in a rigorous and type safe manner.
+
+
 
 One of the most robust form of relationships is that between vendor and customer. The reason for this is that it is easy to be clear about the different responsibilities of the parties: the vendor supplies the solution and the customer uses it; and pays for it. This relationship is key to understanding the reason why platforms are compelling and also why it can be hard to implement.
 
@@ -10,11 +14,9 @@ It is easy to see that an applications platform can be viewed as a marketplace w
 
 An *applications platform* is a system which allows clients and providers to share technologies and to gain efficiencies of scale.
 
-What distinguishes a good platform from a poor one is a combination of the ease with which clients and providers can interact[^fn1] -- and choose alternatives -- and the richness of the offerings: both in terms of the number of potential clients (the size of the market) and the variety of the technologies on offer (the size of the market).
+What distinguishes a good platform from a poor one is a combination of the ease with which clients and providers can interact[^Interact here means more than simple message passing. When clients use an offering in their application, they are interacting with the providers of the technology.] -- and choose alternatives -- and the richness of the offerings: both in terms of the number of potential clients (the size of the market) and the variety of the technologies on offer (the size of the market).
 
 We cannot mandate a large platform in this book; but we *can* explore the technical aspects of what makes a platform great.
-
-[^fn1]: Interact here means more than simple message passing. When clients use an offering in their application, they are interacting with the providers of the technology.
 
 ## Responding to change
 
@@ -70,11 +72,11 @@ Other aspects of platforms which would be necessary to complete the picture incl
 
 It turns out that, with some support from **Star**, we can turn diagrams like these into executable code that can be deployed over distributed systems. Let us see how we might go about this...
 
-[boxNarrows]: boxNarrows.png width=388px height=304px
+[boxNarrows]: ../images/boxNarrows.png width=388px height=304px
 
-[splitComponent]: splitComponent.png width=318px height=145px
+[splitComponent]: ../images/splitComponent.png width=318px height=145px
 
-[orderProcessing]: orderProcessing.png width=436px height=172px
+[orderProcessing]: ../images/orderProcessing.png width=436px height=172px
 
 [^fn1]: There are other systems of boxes and arrows that have utility. The most well-known example is probably the suite of diagrams that make up UML.
 
@@ -112,11 +114,11 @@ The net effect of this is that we have a diagramming notation that supports a hi
 
 This notation is not quite a complete ‘spanning set’ if the end goal is to construct a platform for building a variety of distributed applications. However, it is the kernel of such a set and can easily form the basis of a complete distributed applications platform.
 
-[orderPort]: orderPort.png width=298px height=43px
+[orderPort]: ../images/orderPort.png width=298px height=43px
 
-[dbPort]: dbPort.png width=387px height=75px
+[dbPort]: ../images/dbPort.png width=387px height=75px
 
-[supplierPort]: supplierPort.png width=478px height=122px
+[supplierPort]: ./images/supplierPort.png width=478px height=122px
 
 ## A component in **Star**
 
