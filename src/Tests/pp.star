@@ -12,16 +12,16 @@ test.pp{
   term = chainl1(factor,mulop).
 
   factor:parser[integer,integer].
-  factor --> decimal || "(", F<-expr, ")" ^^F.
+  factor = prse{ decimal || "("; F<-expr; ")" ^^F }.
 
   addop: parser[integer,(integer,integer)=>integer].
-  addop --> "+" ^^ (+) || "-" ^^ (-).
+  addop = prse{ "+" ^^ (+) || "-" ^^ (-) }.
 
   mulop:parser[integer,(integer,integer)=>integer].
-  mulop --> "*" ^^ (*) || "/" ^^ (/).
+  mulop = prse{"*" ^^ (*) || "/" ^^ (/) }.
 
   decimal:parser[integer,integer].
-  decimal --> space*,D<-digit ^^ (D-0c0).
+  decimal = prse{space*,D<-digit ^^ (D-0c0)}.
 
   digit:parser[integer,integer].
   digit = _sat(isDigit).

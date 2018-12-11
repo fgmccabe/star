@@ -56,5 +56,6 @@
   keyword("in").
   keyword("do").
   keyword("valof").
+  keyword("prse").
   keyword("#").
   keyword("$").

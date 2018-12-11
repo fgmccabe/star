@@ -1,7 +1,7 @@
 :-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,
     isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
     isConstrained/3,reConstrain/3,
-    isContractStmt/6,isImplementationStmt/6,isParsingRule/4,parserName/3,
+    isContractStmt/6,isImplementationStmt/6,
     isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,isTypeLambda/4,
     isImport/3, isMacro/3,isPrivate/3,isPublic/3,
     isDefault/3,isDefault/4,
@@ -10,7 +10,7 @@
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
-    isParse/4,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isValof/3,isHandle/4,
+    isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isValof/3,isHandle/4,
     isLetDef/4,mkLetDef/4,
     whereTerm/4,
     packageName/2,pkgName/2,
@@ -291,9 +291,6 @@ isListAbstraction(Trm,Lc,Bnd,Body) :-
   isSquareTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
-isParse(Trm,Lc,N,E) :-
-  isBinary(Trm,Lc,".~",N,E).
-
 isFieldAcc(Trm,Lc,R,Fld) :-
   isBinary(Trm,Lc,".",R,F),
   isIden(F,Fld).
@@ -327,14 +324,6 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   packageVersion(R,RP),
   string_concat(LP,".",I),
   string_concat(I,RP,Pkg).
-
-% Parser Display
-isParsingRule(T,Lc,Hd,Rhs) :-
-  isBinary(T,Lc,"-->",Hd,Rhs).
-
-parserName(T,Lc,Nm) :-
-  isParsingRule(T,Lc,Hd,_),
-  headName(Hd,Nm).
 
 headName(H,Nm) :-
   isBinary(H,_,"^",L,_),
@@ -374,3 +363,7 @@ isValof(A,Lc,E) :-
 
 isHandle(A,Lc,L,R) :-
   isBinary(A,Lc,">>>",L,R).
+
+isParseTerm(A,Lc,Stmt) :-
+  isApply(A,Lc,name(_,"prse"),Args),
+  isBraceTuple(Args,_,[Stmt]).

@@ -4,6 +4,7 @@
 :- use_module(wff).
 :- use_module(macro).
 :- use_module(do).
+:- use_module(parse).
 :- use_module(dependencies).
 :- use_module(freshen).
 :- use_module(unify).
@@ -34,8 +35,7 @@ checkProgram(Prog,Pkg,Repo,
   overloadOthers(Others,ODict,OOthers),
   computeExport(Defs,faceType([],[]),Public,Exports,Types,Cons,Impls),!.
 
-thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
-  macroRewrite(Els,Stmts),
+thetaEnv(Pkg,Repo,Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   collectDefinitions(Stmts,Dfs,Public,Annots,Imps,Otrs),
   (noErrors ->
     dependencies(Dfs,Groups,Annots),
@@ -46,8 +46,7 @@ thetaEnv(Pkg,Repo,Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
     Defs=[],Others=[],Imports=[],TheEnv=Base).
 %  dispDefs(Defs).
 
-recordEnv(Path,Repo,_Lc,Els,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
-  macroRewrite(Els,Stmts),
+recordEnv(Path,Repo,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
   collectDefinitions(Stmts,Dfs,Public,Annots,Imps,Otrs),
   processImportGroup(Imps,Imports,Repo,Base,TmpEnv),
   parseAnnotations(Dfs,Fields,Annots,TmpEnv,Path,Face),
@@ -662,12 +661,16 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   checkAbstraction(Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isDoTerm(Term),!,
-  genAction(Term,Action),
+  genDo(Term,Action),
   typeOfExp(Action,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isValof(Term,_,_),!,
   genValof(Term,VV),
   typeOfExp(VV,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isParseTerm(Term,_,PP),!,
+  genParser(PP,Action),
+  typeOfExp(Action,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   (hasPromotion(Term) ->

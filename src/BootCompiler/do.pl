@@ -1,15 +1,15 @@
-:- module(do,[genAction/2,genValof/2]).
+:- module(do,[genDo/2,genValof/2]).
 
 :- use_module(wff).
 :- use_module(abstract).
 :- use_module(misc).
 :- use_module(display).
 
-genAction(Trm,Exp) :-
+genDo(Trm,Exp) :-
   isDoTerm(Trm,_Lc,Stmt),!,
   genBody(Stmt,Exp).
   %display(Exp).
-genAction(Trm,Exp) :-
+genDo(Trm,Exp) :-
   isDoTerm(Trm,Lc),
   unary(Lc,"return",tuple(Lc,"()",[]),Exp).
 
