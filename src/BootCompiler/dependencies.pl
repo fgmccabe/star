@@ -242,8 +242,6 @@ headOfRule(St,Hd) :-
   isEquation(St,_,Hd,_,_),!.
 headOfRule(St,Hd) :-
   isBraceTerm(St,_,Hd,_),!.
-headOfRule(St,Hd) :-
-  isParsingRule(St,_,Hd,_),!.
 
 headName(Head,Nm) :-
   isRoundTerm(Head,Op,_),
@@ -265,7 +263,6 @@ typeName(Tp,Nm) :-
 typeName(Tp,Nm) :- isSquare(Tp,Nm,_), \+ isKeyword(Nm).
 typeName(Tp,Nm) :- isName(Tp,Nm), \+ isKeyword(Nm).
 typeName(Tp,"=>") :- isBinary(Tp,_,"=>",_,_).
-typeName(Tp,"-->") :- isBinary(Tp,_,"-->",_,_).
 typeName(Tp,Nm) :- isTuple(Tp,_,A),
   length(A,Ar),
   swritef(Nm,"()%d",[Ar]).
@@ -473,6 +470,9 @@ collectTermRefs(T,A,R0,Refs) :-
   collectTermRefs(Stmts,A,R0,Refs).
 collectTermRefs(T,_A,Refs,Refs) :-
   isDoTerm(T,_),!.
+collectTermRefs(T,A,R0,Refs) :-
+  isParseTerm(T,_,PP),!,
+  collectTermRefs(PP,A,R0,Refs).
 collectTermRefs(app(_,Op,Args),All,R,Refs) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Refs).

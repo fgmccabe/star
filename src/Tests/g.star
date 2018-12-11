@@ -7,7 +7,7 @@ test.g{
   term([])=>none.
   term([C,..L]) => some((C,L)).
 
-  isTerm:all c ~~ (list[c],c) => option[list[c]].
+  isTerm:all c ~~ equality[c] |:(list[c],c) => option[list[c]].
   isTerm([C,..L],C) => some(L).
   isTerm(_,_) => none.
 
