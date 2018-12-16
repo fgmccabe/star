@@ -1,7 +1,7 @@
 :- module(parsetype,[parseType/3,parseType/6,
   parseBoundTpVars/3,reQuant/3,reQuantX/3,wrapConstraints/3,
   parseTypeHead/5,
-  parseTypeCore/3,parseContract/4,parseTypeDef/6,pickTypeTemplate/2,
+  parseTypeCore/3,parseContract/4,parseTypeDef/6,pickTypeTemplate/2,typeTemplate/3,
   parseConstraints/5,parseContractConstraint/6,bindAT/4]).
 
 :- use_module(abstract).
@@ -323,10 +323,6 @@ mkTypeLambda(tpExp(Op,A),Tp,typeLambda(A,RRTp)) :-
 mkTypeLambda(tpFun(_,_),Tp,Tp).
 mkTypeLambda(type(_),Tp,typeLambda(tupleType([]),Tp)).
 
-% pickTypeTemplate(allType(V,Tp),allType(V,XTp)) :-
-%   pickTypeTemplate(Tp,XTp).
-% pickTypeTemplate(existType(V,Tp),existType(V,Tmp)) :-
-%   pickTypeTemplate(Tp,Tmp).
 pickTypeTemplate(existType(_,Tp),Tmp) :-
   pickTypeTemplate(Tp,Tmp).
 pickTypeTemplate(allType(_,Tp),XTp) :-
@@ -342,6 +338,21 @@ pickTypeTemplate(tpExp(Op,_),Tmp) :-
   pickTypeTemplate(Op,Tmp).
 pickTypeTemplate(tpFun(Nm,Ar),tpFun(Nm,Ar)).
 pickTypeTemplate(kFun(Nm,Ar),kFun(Nm,Ar)).
+
+typeFunTemplate(Nm,Ix,existType(_,Tp),Tmp) :-
+  typeFunTemplate(Nm,Ix,Tp,Tmp).
+typeFunTemplate(Nm,Ix,allType(_,Tp),XTp) :-
+  typeFunTemplate(Nm,Ix,Tp,XTp).
+typeFunTemplate(Nm,Ix,typeLambda(Lhs,_),Tmp) :-
+  Ix1 is Ix+1,
+  typeFunTemplate(Nm,Ix1,Lhs,Tmp).
+typeFunTemplate(Nm,0,_,type(Nm)).
+typeFunTemplate(Nm,Ix,_,tpFun(Nm,Ix)).
+
+typeTemplate(_Nm,Tp,Tmp) :-
+  pickTypeTemplate(Tp,Tmp),!.
+typeTemplate(Nm,Tp,Tmp) :-
+  typeFunTemplate(Nm,0,Tp,Tmp).
 
 parseTypeCore(St,Type,Path) :-
   isTypeExistsStmt(St,_,Quants,_,Head,_),

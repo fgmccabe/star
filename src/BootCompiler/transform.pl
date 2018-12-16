@@ -627,14 +627,14 @@ liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=record(Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),
   genVar("_ThR",ThVr),
   recordMap(Theta,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  dispMap(RMap),
-  transformThetaDefs(ThMap,RMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx),
-  dispTerm(Fx).
+  % dispMap(RMap),
+  transformThetaDefs(ThMap,RMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
+  % dispTerm(Fx).
 
 liftLetExp(Lc,Theta,Bnd,whr(Lc,Expr,ThCond),Q,Qx,Map,Opts,Ex,Exx) :-
   liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx),
-  dispTerm(whr(Lc,Expr,ThCond)).
+  liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
+  % dispTerm(whr(Lc,Expr,ThCond)).
 
 genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,ctpl(lbl(Path,Ar),Args),Ex,Exx) :-
   pickVarDefs(Defs,Map,Opts,VTerms,Q,Qx,Ex,Ex1),
