@@ -1,5 +1,5 @@
 :- module(terms,[displayRules/1,
-        dispRuleSet/1,substTerm/3,substTerms/3,
+        dispRuleSet/1,substTerm/3,substTerms/3,rewriteTerm/3,
         genTplStruct/2,isLiteral/1,isGround/1,isCnd/1,mkTpl/2,isUnit/1,
         termHash/2,dispTerm/1,showTerm/4,locTerm/2,idInTerm/2]).
 
@@ -268,6 +268,74 @@ substVN(Q,(T,E),(T,NE)) :-
 substCase(Q,(T,E),(NT,NE)) :-
   substTerm(Q,T,NT),
   substTerm(Q,E,NE).
+
+rewriteTerm(QTst,T,T1) :-
+  call(QTst,T,T1),!.
+rewriteTerm(_,voyd,voyd).
+rewriteTerm(_,intgr(Ix),intgr(Ix)).
+rewriteTerm(_,idnt(Nm),idnt(Nm)).
+rewriteTerm(_,float(Dx),float(Dx)).
+rewriteTerm(_,strg(Sx),strg(Sx)).
+rewriteTerm(_,enum(Nm),enum(Nm)).
+rewriteTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
+rewriteTerm(QTest,ltt(Lc,V,Val,Exp),ltt(Lc,V,Val1,Exp1)) :-
+  rewriteTerm(terms:checkV(V,QTest),Val,Val1),
+  rewriteTerm(terms:checkV(V,QTest),Exp,Exp1).
+rewriteTerm(QTest,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,dte(Lc,Op,Off),dte(Lc,NOp,NOff)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerm(QTest,Off,NOff).
+rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
+  rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
+  rewriteTerm(QTest,T,NT),
+  rewriteTerm(QTest,C,NC).
+rewriteTerm(QTest,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
+  map(V,terms:rewriteVN(QTest),NV),
+  rewriteTerm(QTest,T,NT).
+rewriteTerm(QTest,case(Lc,T,C),case(Lc,NT,NC)) :-
+  rewriteTerm(QTest,T,NT),
+  map(C,terms:rewriteCase(QTest),NC).
+rewriteTerm(QTest,seq(Lc,L,R),seq(Lc,NL,NR)) :-
+  rewriteTerm(QTest,L,NL),
+  rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
+  rewriteTerm(QTest,L,NL),
+  rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
+  rewriteTerm(QTest,L,NL),
+  rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
+  rewriteTerm(QTest,T,NT),
+  rewriteTerm(QTest,L,NL),
+  rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
+  rewriteTerm(QTest,L,NL),
+  rewriteTerm(QTest,R,NR).
+rewriteTerm(QTest,ng(Lc,R),ng(Lc,NR)) :-
+  rewriteTerm(QTest,R,NR).
+
+rewriteTerms(QTest,Els,NEls):-
+  map(Els,terms:rewriteTerm(QTest),NEls).
+
+rewriteVN(QTest,(T,E),(T,NE)) :-
+  rewriteTerm(QTest,E,NE).
+
+rewriteCase(QTest,(T,E),(NT,NE)) :-
+  rewriteTerm(QTest,T,NT),
+  rewriteTerm(QTest,E,NE).
+
+checkV(Vr,Other,T,T1) :-
+  T\=Vr,
+  call(Other,T,T1).
 
 genTplStruct(Cnt,lbl(Nm,Cnt)) :-
   swritef(Nm,"()%d",[Cnt]).

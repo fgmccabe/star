@@ -66,7 +66,7 @@ escapeType("_isDefinedVr",allType(kVar("t"),funType(tupleType([type("star.core*s
 escapeType("_definedVr",allType(kVar("t"),funType(tupleType([type("star.core*string")]),kVar("t")))).
 escapeType("_defineVr",allType(kVar("t"),funType(tupleType([type("star.core*string"),kVar("t")]),type("star.core*boolean")))).
 escapeType("_tuple_nth",allType(kVar("t"),allType(kVar("e"),funType(tupleType([kVar("t"),type("star.core*integer")]),kVar("e"))))).
-escapeType("_tuple_set_nth",allType(kVar("t"),allType(kVar("e"),funType(tupleType([kVar("t"),type("star.core*integer"),kVar("e")]),type("star.core*boolean"))))).
+escapeType("_tuple_set_nth",allType(kVar("t"),allType(kVar("e"),funType(tupleType([kVar("t"),type("star.core*integer"),kVar("e")]),kVar("t"))))).
 escapeType("_list_empty",allType(kVar("t"),funType(tupleType([tpExp(tpFun("star.core*list",1),kVar("t"))]),type("star.core*boolean")))).
 escapeType("_list_size",allType(kVar("t"),funType(tupleType([tpExp(tpFun("star.core*list",1),kVar("t"))]),type("star.core*integer")))).
 escapeType("_list_nth",allType(kVar("t"),funType(tupleType([tpExp(tpFun("star.core*list",1),kVar("t")),type("star.core*integer")]),kVar("t")))).

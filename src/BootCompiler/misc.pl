@@ -1,6 +1,6 @@
 :-module(misc,[concat/3,flatten/2,segment/3,last/2,reverse/2,revconcat/3,is_member/2,add_mem/3,
         merge/3,intersect/3,subtract/3,replace/4,filter/3,
-        collect/4,map/3,rfold/4,project0/2,project1/2,project1_3/2,zip/3,
+        collect/4,map/3,rfold/4,project0/2,project1/2,project1_3/2,zip/3,split_list/4,
         isIdentifier/1,
         appStr/3,appStrs/3,appIden/3,appInt/3,appFlt/3,appSym/3,appQuoted/4,
         appIndx/3,appNl/2,appNwln/3,appMulti/3,
@@ -14,7 +14,7 @@
         interleave/3,concatStrings/2,
         sort/3,sortedMerge/4,
         nextPrime/2,sieve/2,
-        forall/2,verify/2]).
+        forall/2,verify/2,bin_nop/2]).
 
 same(X,X).
 
@@ -38,6 +38,8 @@ last([_|Rest],El) :- last(Rest,El).
 
 is_member(X,[X|_]).
 is_member(X,[_|Y]) :- is_member(X,Y).
+
+bin_nop(_,_).
 
 add_mem(X,L,L) :- is_member(X,L),!.
 add_mem(X,L,[X|L]).
@@ -85,6 +87,12 @@ project1_3([(_,E,_)|L],[E|K]) :-
 zip([],[],[]).
 zip([E1|L1],[E2|L2],[(E1,E2)|L3]) :-
   zip(L1,L2,L3).
+
+split_list(0,L,[],L) :-!.
+split_list(Ix,[H|I],[H|R],O) :-
+  Ix>0,
+  Ix1 is Ix-1,
+  split_list(Ix1,I,R,O).
 
 filter([],_,[]) :- !.
 filter([E|L],F,[E|M]) :-

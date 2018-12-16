@@ -1,4 +1,4 @@
-:- module(types,[isType/1,isConType/1,isConstraint/1,varConstraints/3,addConstraint/2,
+:- module(types,[isType/1,isConType/1,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
       newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
       progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
       isFunctionType/1,isFunctionType/2,isCnsType/2,
@@ -31,10 +31,19 @@ isType(constrained(_,_)).
 isConstraint(conTract(_,_,_)).
 isConstraint(implementsFace(_,_)).
 
-isConType(consType(_,_)).
-isConType(allType(_,T)) :- isConType(T).
-isConType(existType(_,T)) :- isConType(T).
-isConType(constrained(T,_)) :- isConType(T).
+isConType(Tp) :- deRef(Tp,T),!,isCnType(T).
+
+isCnType(consType(_,_)).
+isCnType(allType(_,T)) :- isConType(T).
+isCnType(existType(_,T)) :- isConType(T).
+isCnType(constrained(T,_)) :- isConType(T).
+
+isFaceType(Tp) :- deRef(Tp,T),!,isFcType(T).
+
+isFcType(faceType(_,_)).
+isFcType(allType(_,T)) :- isFaceType(T).
+isFcType(existType(_,T)) :- isFaceType(T).
+isFcType(constrained(T,_)) :- isFaceType(T).
 
 newTypeVar(Nm,tVar(_,_,Nm,Id)) :- gensym("_#",Id).
 newTypeFun(Nm,Ar,tFun(_,_,Nm,Ar,Id)) :- gensym(Nm,Id).
