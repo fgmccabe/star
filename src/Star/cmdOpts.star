@@ -2,7 +2,7 @@ star.cmdOpts{
   import star.
 
   -- Process command line list of strings to produce a set of Options
-  public all o ~~ optionsProcessor[o] <~ {
+  public all o ~~ optionsProcessor[o] ~> {
     shortForm : string.
     alternatives : list[string].
     usage : string.

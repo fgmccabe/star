@@ -98,7 +98,7 @@ declareImportedVar(Lc,Nm,pkg(Pkg,_),Enums,Tp,Env,E0) :-
 
 importTypes([],_,Env,Env).
 importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
-  pickTypeTemplate(Rule,Type),
+  typeTemplate(Nm,Rule,Type),
   declareType(Nm,tpDef(Lc,Type,Rule),Env,E0),
   importTypes(More,Lc,E0,Ex).
 
