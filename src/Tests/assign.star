@@ -25,7 +25,12 @@ test.assign{
   assert (fred.name:="fred")=="fred".
   show fred.name! .
 
+  -- peter:{name:string. age:integer}.
   peter = let{
-    name = fred.name! ++ "'s friend".
+    name = "fred" ++ "'s friend".
   } in {.name=name. age=23 .}.
+
+  show peter.name.
+
+  -- assert peter.name=="fred's friend" && peter.age==23.
 }

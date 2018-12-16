@@ -34,6 +34,6 @@ ReturnStatus g__tuple_set_nth(processPo P, ptrPo tos) {
 
   setArg(tpl, ix, tos[2]);
 
-  ReturnStatus ret = {.ret=Ok, .result=trueEnum};
+  ReturnStatus ret = {.ret=Ok, .result=(termPo)tpl };
   return ret;
 }

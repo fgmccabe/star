@@ -259,10 +259,24 @@ transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
   mergeSeq(Lc,I,cll(Lc,lbl(LclName,0),[]),Ix).
   %dispRuleSet(vrDef(Lc,LclName,Tp,Rep)).
 
-transformThetaDefn(Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,G,Gx,Dx,Dxx) :-
+transformThetaDefn(Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,F,Reslt,Dx,Dxx) :-
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
   lookupVarName(Map,Nm,labelArg(_,Ix,ThVr)),
-  mergeGoal(G,ecll(Lc,"_tuple_set_nth",[ThVr,intgr(Ix),Rep]),Lc,Gx).
+  updateTerm(F,Ix,Lc,Rep,ThVr,Reslt).
+
+updateTerm(ctpl(Lbl,Args),Ix,_,Term,ThVr,ctpl(Lbl,NArgs)) :-
+  split_list(Ix,Args,F,[voyd|R]),
+  refactorTerm(ThVr,ctpl(Lbl,Args),Term,Trm1),
+  concat(F,[Trm1|R],NArgs).
+updateTerm(In,Ix,Lc,Term,ThVr,ecll(Lc,"_tuple_set_nth",[In,intgr(Ix),Term1])) :-
+  refactorTerm(ThVr,In,Term,Term1).
+
+% This works without blowing up because free terms are always relatively flat.
+refactorTerm(ThVr,Fx,Term,T1) :-
+  rewriteTerm(transform:rewriteFrV(ThVr,Fx),Term,T1).
+
+rewriteFrV(Vr,ctpl(_,Args),dte(_Lc,Vr,intgr(Ix)),Out) :-
+  split_list(Ix,Args,_,[Out|_]).
 
 transformOthers(_,_,_,[],I,I,Rx,Rx).
 transformOthers(Pkg,Map,Opts,[assertion(Lc,G)|Others],I,Ix,Rules,Rx) :-
@@ -316,18 +330,18 @@ importInits(Lc,[import(Viz,pkg(Pkg,_),_,_,_,_)|II],IG) :-
 importInits(Lc,[import(transitive,_,_,_,_,_)|II],IG) :-
   importInits(Lc,II,IG).
 
-transformThetaDefs(_,_,_,[],Ix,Ix,Dfs,Dfs).
-transformThetaDefs(Map,OMap,Opts,[Def|Defs],I,Ix,Ex,Exx) :-
-  transformThetaDef(Def,Map,OMap,Opts,I,I1,Ex,Ex1),
-  transformThetaDefs(Map,OMap,Opts,Defs,I1,Ix,Ex1,Exx).
+transformThetaDefs(_,_,_,[],Fx,Fx,Ix,Ix,Dfs,Dfs).
+transformThetaDefs(Map,OMap,Opts,[Def|Defs],F,Fx,I,Ix,Ex,Exx) :-
+  transformThetaDef(Def,Map,OMap,Opts,F,F1,I,I1,Ex,Ex1),
+  transformThetaDefs(Map,OMap,Opts,Defs,F1,Fx,I1,Ix,Ex1,Exx).
 
-transformThetaDef(funDef(Lc,Nm,ExtNm,Tp,_,Eqns),Map,OMap,Opts,Ix,Ix,Dx,Dxx) :-
+transformThetaDef(funDef(Lc,Nm,ExtNm,Tp,_,Eqns),Map,OMap,Opts,Fx,Fx,Ix,Ix,Dx,Dxx) :-
   transformFunction(Lc,Nm,ExtNm,Tp,Eqns,Map,OMap,Opts,Dx,Dxx).
-transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),Map,OMap,Opts,I,Ix,Dx,Dxx) :-
-  transformThetaDefn(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,I,Ix,Dx,Dxx).
-transformThetaDef(cnsDef(_Lc,_Nm,_Con,_Tp),_Map,_,_Opts,Ix,Ix,Dx,Dx).
-transformThetaDef(typeDef(_,_,_,_),_,_,_,Ix,Ix,Dx,Dx).
-transformThetaDef(conDef(_,_,_),_,_,_,Ix,Ix,Dx,Dx).
+transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),Map,OMap,Opts,F,Fx,Ix,Ix,Dx,Dxx) :-
+  transformThetaDefn(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,F,Fx,Dx,Dxx).
+transformThetaDef(cnsDef(_Lc,_Nm,_Con,_Tp),_Map,_,_Opts,Fx,Fx,Ix,Ix,Dx,Dx).
+transformThetaDef(typeDef(_,_,_,_),_,_,_,Fx,Fx,Ix,Ix,Dx,Dx).
+transformThetaDef(conDef(_,_,_),_,_,_,Fx,Fx,Ix,Ix,Dx,Dx).
 
 closureEntry(Map,Lc,Name,Tp,[fnDef(Lc,lbl(Closure,ArX),TTp,
   [ctpl(lbl(Closure,ExA),Extra)|Args],cll(Lc,lbl(Prog,ArXX),XArgs))|L],L) :-
@@ -606,19 +620,21 @@ liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=theta(Lc,Path,_Anon,Defs,Others,_Types,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  %dispMap(ThMap),
-  transformThetaDefs(ThMap,ThMap,Opts,Defs,mtch(Lc,ThVr,FreeTerm),I,Ex,Ex1),
+  % dispMap(ThMap),
+  transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),I,Ex,Ex1),
   transformOthers(Path,ThMap,Opts,Others,I,ThCond,Ex1,Exx).
 liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=record(Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),
   genVar("_ThR",ThVr),
   recordMap(Theta,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  transformThetaDefs(ThMap,RMap,Opts,Defs,mtch(Lc,ThVr,FreeTerm),ThCond,Ex,Exx).
+  dispMap(RMap),
+  transformThetaDefs(ThMap,RMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx),
+  dispTerm(Fx).
 
 liftLetExp(Lc,Theta,Bnd,whr(Lc,Expr,ThCond),Q,Qx,Map,Opts,Ex,Exx) :-
   liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
-  % dispTerm(whr(Lc,Expr,ThCond)).
+  liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx),
+  dispTerm(whr(Lc,Expr,ThCond)).
 
 genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,ctpl(lbl(Path,Ar),Args),Ex,Exx) :-
   pickVarDefs(Defs,Map,Opts,VTerms,Q,Qx,Ex,Ex1),
