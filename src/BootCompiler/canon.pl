@@ -2,7 +2,7 @@
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
     typeOfCanon/2,splitPtn/4,locOfCanon/2,
-    isCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,
+    isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,
     thetaDefs/2,thetaSig/2]).
 
 :- use_module(misc).
@@ -33,6 +33,11 @@ isCanon(neg(_,_)).
 isCanon(varRef(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
+
+isSimpleCanon(v(_,_,_)).
+isSimpleCanon(intLit(_,_)).
+isSimpleCanon(floatLit(_,_)).
+isSimpleCanon(stringLit(_,_)).
 
 isAssertion(assertion(_,_)).
 isShow(show(_,_)).

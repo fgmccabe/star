@@ -260,9 +260,11 @@ transformGblDefn(Lc,_Nm,LclName,Tp,Value,Map,Opts,I,Ix,
   %dispRuleSet(vrDef(Lc,LclName,Tp,Rep)).
 
 transformThetaDefn(Lc,Nm,_LclName,_Tp,Exp,Map,OMap,Opts,F,Reslt,Dx,Dxx) :-
+  \+isSimpleCanon(Exp),!,
   liftExp(Exp,Rep,[],_Qx,OMap,Opts,Dx,Dxx),
   lookupVarName(Map,Nm,labelArg(_,Ix,ThVr)),
   updateTerm(F,Ix,Lc,Rep,ThVr,Reslt).
+transformThetaDefn(_Lc,_Nm,_LclName,_Tp,_Exp,_Map,_OMap,_Opts,F,F,Dx,Dx).
 
 updateTerm(ctpl(Lbl,Args),Ix,_,Term,ThVr,ctpl(Lbl,NArgs)) :-
   split_list(Ix,Args,F,[voyd|R]),
@@ -494,18 +496,18 @@ liftExp(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
 liftExp(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGoal(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx).
-liftExp(theta(Lc,Path,Anon,Defs,Others,Types,Sig),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftTheta(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx),
-  mergeWhere(Recrd,ThCond,Lc,Exp).
-liftExp(record(Lc,Path,Anon,Defs,Others,Types,Sig),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftTheta(record(Lc,Path,Anon,Defs,Others,Types,Sig),ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
-  genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx),
-  mergeWhere(Recrd,ThCond,Lc,Exp).
+liftExp(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftTheta(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+  genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
+liftExp(record(Lc,Path,Anon,Defs,Others,Types,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftTheta(record(Lc,Path,Anon,Defs,Others,Types,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+  genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
 liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
+  % dispTerm(Exp).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(Lc,Rle,Tp,Rslt,Q,Map,Opts,Ex,Exx).
+  % dispTerm(Rslt).
 liftExp(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftAbstraction(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
@@ -569,7 +571,7 @@ implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,E
 
 liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Rule,Tp),Q,Map,LclName,Closure,LMap),
-  % dispMap(LMap),
+  % dispMap("lambda map: ",LMap),
   transformEqn(Rule,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
@@ -616,25 +618,24 @@ liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
 
 /* A theta or record is converted to a structure containing free variables */
 
-liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
+liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=theta(Lc,Path,_Anon,Defs,Others,_Types,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  % dispMap(ThMap),
+  % dispMap("Theta map: ",ThMap),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),I,Ex,Ex1),
   transformOthers(Path,ThMap,Opts,Others,I,ThCond,Ex1,Exx).
-liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
+liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=record(Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),
   genVar("_ThR",ThVr),
   recordMap(Theta,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  % dispMap(RMap),
+  % dispMap("Record map: ",RMap),
   transformThetaDefs(ThMap,RMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
   % dispTerm(Fx).
 
-liftLetExp(Lc,Theta,Bnd,whr(Lc,Expr,ThCond),Q,Qx,Map,Opts,Ex,Exx) :-
-  liftTheta(Theta,ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+liftLetExp(Lc,Theta,Bnd,ltt(Lc,ThVr,FrTrm,Expr),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftTheta(Theta,ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
   liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
-  % dispTerm(whr(Lc,Expr,ThCond)).
 
 genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,ctpl(lbl(Path,Ar),Args),Ex,Exx) :-
   pickVarDefs(Defs,Map,Opts,VTerms,Q,Qx,Ex,Ex1),
@@ -700,19 +701,18 @@ lambdaMap(Lam,Q,Map,LclName,ctpl(lbl(LclName,1),[FreeTerm]),
     [lyr(LclName,Lx,FreeTerm,ctpl(lbl(LclName,1),[ThVr]))|Map]) :-
   findFreeVars(Lam,Map,Q,LmFree),
   lambdaLbl(Map,"λ",LclName),
-  genVar("_ThV",ThVr),
+  genVar("_ΛV",ThVr),
   collectLabelVars(LmFree,ThVr,0,[],Lx),
   locOfCanon(Lam,Lc),
   makeFreeTerm([],Lc,LmFree,Map,FreeTerm).
 
-findFreeVars(Term,Map,Q,LmFree) :-
+findFreeVars(Term,Map,Q,LmFr0) :-
   definedProgs(Map,Df),
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
   merge(Df,Q1,Q2),
   freeVars(Term,[],Q2,[],ThFr),
-  freeLabelVars(ThFr,Map,[],LmFr0),
-  freeVars(Term,Lv,Q1,LmFr0,LmFree).
+  freeLabelVars(ThFr,Map,ThFr,LmFr0).
 
 freeLabelVars([],_,Fr,Fr).
 freeLabelVars([idnt(Nm)|Lv],Map,Fr,LmFr) :-
@@ -727,7 +727,11 @@ cellVars(theta(_Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),CellVars) :-
 cellVars(record(_Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
 
-pickCellVar(varDef(_,Nm,_,_,_Tp,_),F,Fv) :-
+pickCellVar(varDef(_,Nm,_,_,Tp,_),F,Fv) :-
+  deRef(Tp,refType(_)),!,
+  add_mem(idnt(Nm),F,Fv).
+pickCellVar(varDef(_,Nm,_,_,_,Val),F,Fv) :-
+  \+isSimpleCanon(Val),!,
   add_mem(idnt(Nm),F,Fv).
 pickCellVar(_,F,F).
 
