@@ -179,9 +179,9 @@ showCanonTerm(letExp(_,Env,Ex),O,Ox) :-
   showCanonTerm(Env,O1,O2),
   appStr(" in ",O2,O3),
   showCanonTerm(Ex,O3,Ox).
-showCanonTerm(lambda(_,Rle,_),O,Ox) :-
+showCanonTerm(lambda(_,Rles,_),O,Ox) :-
   appStr("lambda {",O,O1),
-  showRule("",Rle,O1,O2),
+  showRls("",Rles,O1,O2),
   appStr("}",O2,Ox).
 showCanonTerm(tple(_,Els),O,Ox) :-
   appStr("(",O,O1),

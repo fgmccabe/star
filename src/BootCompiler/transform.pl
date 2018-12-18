@@ -506,7 +506,7 @@ liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
   % dispTerm(Exp).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftLambda(Lc,Rle,Tp,Rslt,Q,Map,Opts,Ex,Exx).
+  liftLambda(lambda(Lc,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
   % dispTerm(Rslt).
 liftExp(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftAbstraction(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
@@ -569,10 +569,10 @@ implementFunCall(Lc,localCons(Mdl,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q,Q
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
-liftLambda(Lc,Rule,Tp,Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
-  lambdaMap(lambda(Lc,Rule,Tp),Q,Map,LclName,Closure,LMap),
+liftLambda(lambda(Lc,Eqns,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+  lambdaMap(lambda(Lc,Eqns,Tp),Q,Map,LclName,Closure,LMap),
   % dispMap("lambda map: ",LMap),
-  transformEqn(Rule,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
+  transformEquations(LMap,LMap,Opts,LclName,Eqns,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
