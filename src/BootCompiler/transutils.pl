@@ -2,7 +2,7 @@
           lookupVarName/3,lookupFunName/3,lookupThetaVar/3,lookupClassName/3,
           definedProgs/2,labelVars/2,
           genVar/2,
-          pushOpt/3, isOption/2,layerName/2,dispMap/1,showMap/3,
+          pushOpt/3, isOption/2,layerName/2,dispMap/2,showMap/3,
           genVars/2,
           pullWhere/4,pullWheres/4]).
 
@@ -180,8 +180,9 @@ pullWheres([E|Rest],[Ex|Rx],G,Gx) :-
   pullWhere(E,G,Ex,G1),
   pullWheres(Rest,Rx,G1,Gx).
 
-dispMap(Map) :-
-  showMap(Map,Chrs,[]),
+dispMap(Msg,Map) :-
+  appStr(Msg,Chrs,C0),
+  showMap(Map,C0,[]),
   string_chars(Txt,Chrs),
   writeln(Txt).
 

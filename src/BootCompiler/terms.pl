@@ -121,6 +121,14 @@ showTerm(whr(_,Ptn,Cond),Dp,O,Ox) :-
   showTerm(Ptn,Dp,O,O1),
   Dp1 is Dp+2,
   showTermGuard(Cond,Dp1,O1,Ox).
+showTerm(ltt(_,Vr,Bnd,Exp),Dp,O,Ox) :-
+  appStr("let ",O,O1),
+  Dp1 is Dp+2,
+  showTerm(Vr,Dp1,O1,O2),
+  appStr(" = ",O2,O3),
+  showTerm(Bnd,Dp1,O3,O4),
+  appStr(" in ",O4,O5),
+  showTerm(Exp,Dp1,O5,Ox).
 showTerm(varNames(_,Vars,Value),Dp,O,Ox) :-
   appStr("vars: [",O,O0),
   showVarNames(Vars,Dp,O0,O1),
@@ -209,65 +217,13 @@ dispTerm(T) :-
   showTerm(T,0,Chrs,[]),
   string_chars(Txt,Chrs), writeln(Txt).
 
-substTerm(_,voyd,voyd).
-substTerm(_,intgr(Ix),intgr(Ix)).
-substTerm(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
-substTerm(_,idnt(Nm),idnt(Nm)).
-substTerm(_,float(Dx),float(Dx)).
-substTerm(_,strg(Sx),strg(Sx)).
-substTerm(_,enum(Nm),enum(Nm)).
-substTerm(_,lbl(Nm,Ar),lbl(Nm,Ar)).
-substTerm(Q,cll(Lc,Op,Args),cll(Lc,NOp,NArgs)) :-
-  substTerm(Q,Op,NOp),
-  substTerms(Q,Args,NArgs).
-substTerm(Q,ocall(Lc,Op,Args),ocall(Lc,NOp,NArgs)) :-
-  substTerm(Q,Op,NOp),
-  substTerms(Q,Args,NArgs).
-substTerm(Q,dte(Lc,Op,Off),dte(Lc,NOp,NOff)) :-
-  substTerm(Q,Op,NOp),
-  substTerm(Q,Off,NOff).
-substTerm(Q,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
-  substTerm(Q,Op,NOp),
-  substTerms(Q,Args,NArgs).
-substTerm(Q,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
-  substTerms(Q,Args,NArgs).
-substTerm(Q,whr(Lc,T,C),whr(Lc,NT,NC)) :-
-  substTerm(Q,T,NT),
-  substTerm(Q,C,NC).
-substTerm(Q,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
-  map(V,terms:substVN(Q),NV),
-  substTerm(Q,T,NT).
-substTerm(Q,case(Lc,T,C),case(Lc,NT,NC)) :-
-  substTerm(Q,T,NT),
-  map(C,terms:substCase(Q),NC).
-substTerm(Q,seq(Lc,L,R),seq(Lc,NL,NR)) :-
-  substTerm(Q,L,NL),
-  substTerm(Q,R,NR).
-substTerm(Q,cnj(Lc,L,R),cnj(Lc,NL,NR)) :-
-  substTerm(Q,L,NL),
-  substTerm(Q,R,NR).
-substTerm(Q,dsj(Lc,L,R),dsj(Lc,NL,NR)) :-
-  substTerm(Q,L,NL),
-  substTerm(Q,R,NR).
-substTerm(Q,cnd(Lc,T,L,R),cnd(Lc,NT,NL,NR)) :-
-  substTerm(Q,T,NT),
-  substTerm(Q,L,NL),
-  substTerm(Q,R,NR).
-substTerm(Q,mtch(Lc,L,R),mtch(Lc,NL,NR)) :-
-  substTerm(Q,L,NL),
-  substTerm(Q,R,NR).
-substTerm(Q,ng(Lc,R),ng(Lc,NR)) :-
-  substTerm(Q,R,NR).
+substTerm(Q,In,Out) :-
+  rewriteTerm(terms:applyQ(Q),In,Out),!.
+
+applyQ(Q,idnt(Nm),Trm) :- is_member((Nm,Trm),Q),!.
 
 substTerms(Q,Els,NEls):-
   map(Els,terms:substTerm(Q),NEls).
-
-substVN(Q,(T,E),(T,NE)) :-
-  substTerm(Q,E,NE).
-
-substCase(Q,(T,E),(NT,NE)) :-
-  substTerm(Q,T,NT),
-  substTerm(Q,E,NE).
 
 rewriteTerm(QTst,T,T1) :-
   call(QTst,T,T1),!.
