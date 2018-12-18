@@ -752,7 +752,7 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
    Env=Ev).
 
-typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
+typeOfLambda(Lc,H,C,R,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
   newTypeVar("_A",AT),
   typeOfArgPtn(H,AT,Env,E1,Args,Path),
   newTypeVar("_E",RT),

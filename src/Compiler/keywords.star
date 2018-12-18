@@ -24,6 +24,7 @@ star.comp.keywords {
   keyword("->") => true.
   keyword("-->") => true.
   keyword("->>") => true.
+  keyword(">>>") => true.
   keyword("::=") => true.
   keyword("<~") => true.
   keyword("~>") => true.
@@ -52,6 +53,10 @@ star.comp.keywords {
   keyword("assert") => true.
   keyword("let") => true.
   keyword("default") => true.
+  keyword("in") => true.
+  keyword("do") => true.
+  keyword("valof") => true.
+  keyword("prse") => true.
   keyword("#") => true.
   keyword("$") => true.
 

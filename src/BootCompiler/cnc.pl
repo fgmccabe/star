@@ -190,7 +190,7 @@ analyseExp(assertion(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
 analyseExp(show(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(lambda(_,Rle,_),Df,Dfx,Rq,Rqx,Cond) :-
-  analyseRl(Rle,Df,Dfx,Rq,Rqx,Cond).
+  analyseRules(Rle,Df,Dfx,Rq,Rqx,Cond).
 analyseExp(theta(_Lc,_Path,_,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(record(_Lc,_Path,_,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(letExp(_,Th,Exp),Df,Dfx,Rq,Rqx,Cand) :-
