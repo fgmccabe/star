@@ -20,7 +20,7 @@ extern globalPo globalVar(const char *nm);
 extern int32 globalVarNo(const char *nm);
 extern logical isValidGlobalVarNo(int32 varNo);
 
-extern globalPo getGlobalVar(int32 varNo);
+extern globalPo findGlobalVar(int32 varNo);
 
 extern termPo getGlobal(globalPo v);
 extern char *globalVarName(globalPo v);

@@ -196,7 +196,7 @@ char *globalVarName(globalPo v) {
   return v->name;
 }
 
-globalPo getGlobalVar(int32 varNo) {
+globalPo findGlobalVar(int32 varNo) {
   return &glbVars[varNo];
 }
 

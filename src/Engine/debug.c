@@ -921,7 +921,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #define show_off outMsg(out," PC[%d]",collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
-#define show_glb showGlb(out, getGlobalVar(collectI32(pc)),fp,sp)
+#define show_glb showGlb(out, findGlobalVar(collectI32(pc)),fp,sp)
 
 #define instruction(Op, A1, Dl, Cmt)    \
     case Op:          \
