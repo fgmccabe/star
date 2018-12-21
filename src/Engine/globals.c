@@ -217,6 +217,8 @@ logical glbIsSet(globalPo glb) {
 }
 
 termPo setGlobalVar(globalPo v, termPo e) {
+  assert(e!=Null);
+
   termPo prev = v->content;
   v->content = e;
   return prev;

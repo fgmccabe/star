@@ -154,8 +154,11 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
     pushBlock(&stack, O_SEG(getVectEl(blocks, 0)));
 
     while (ret == Ok && !stackEmpty(&stack)) {
+      char eMsg[MAXLINE];
       segPo seg = popBlock(&stack);
-      ret = checkSegment(blocks, &stack, seg, errorMsg, msgLen);
+      ret = checkSegment(blocks, &stack, seg, eMsg, NumberOf(eMsg));
+      if (ret != Ok)
+        strMsg(errorMsg, msgLen, " %s in %M", eMsg, mtd);
     }
 
     if (ret == Ok) {
@@ -174,7 +177,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   if (traceVerify)
     showSegs(blocks, name);
 
-  assert(referenceCount(O_OBJECT(blocks))==1);
+  assert(referenceCount(O_OBJECT(blocks)) == 1);
 #endif
 
   decReference(O_OBJECT(blocks));

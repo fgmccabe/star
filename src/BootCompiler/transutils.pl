@@ -73,7 +73,7 @@ lookupThetaVar(Map,Nm,V) :-
 
 getThetaVar(ThVr,localFun(_,_,_,_,ThVr)).
 getThetaVar(ThVr,localClass(_,_,_,_,ThVr)).
-getThetaVar(ThVr,labelArg(_,_,ThVr)).
+% getThetaVar(ThVr,labelArg(_,_,ThVr)).
 
 lookupFunName(Map,Nm,V) :-
   lookup(Map,Nm,isFnDef,V).
