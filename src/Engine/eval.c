@@ -317,7 +317,7 @@ retCode run(processPo P) {
 
       case LdG: {
         int32 glbNo = collectI32(PC);
-        globalPo glb = getGlobalVar(glbNo);
+        globalPo glb = findGlobalVar(glbNo);
         termPo vr = getGlobal(glb);
         assert(vr != Null);
         push(vr);     /* load a global variable */
@@ -395,7 +395,7 @@ retCode run(processPo P) {
       case StG: {
         int32 glbNo = collectI32(PC);
         termPo val = pop();
-        globalPo glb = getGlobalVar(glbNo);
+        globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
         continue;
       }
