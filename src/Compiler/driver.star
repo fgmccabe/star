@@ -41,7 +41,9 @@ star.compiler{
   handleCmdLineOpts(either((compilerOptions(RU,CU),Args))) where
     _ .= _logmsg("CU=\(CU), RU=\(RU)") &&
     Repo .= openRepository(resolveUri(CU,RU)) &&
+    _ .= _logmsg("opened repo") &&
     CatUri ^= parseUri("catalog") &&
+    _ .= _logmsg("catalog = \(loadCatalog(resolveUri(CU,CatUri)))") &&
     Cat ^= loadCatalog(resolveUri(CU,CatUri)) =>
     processPkgs(Args,Cat,Repo,CU).
 
