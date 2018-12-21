@@ -507,7 +507,7 @@ liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   % dispTerm(Exp).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
   liftLambda(lambda(Lc,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx),
-  dispTerm(Rslt).
+  (is_member(showTrCode,Opts) -> dispTerm(Rslt);true).
 liftExp(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftAbstraction(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
@@ -571,12 +571,12 @@ implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,E
 
 liftLambda(lambda(Lc,Eqns,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Eqns,Tp),Q,Map,LclName,Closure,LMap),
-  dispMap("lambda map: ",LMap),
+  (is_member(showTrCode,Opts) -> dispMap("Lambda map: ",LMap);true),
   transformEquations(LMap,LMap,Opts,LclName,Eqns,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun),
-  dispRuleSet(LamFun).
+  (is_member(showTrCode,Opts) -> dispRuleSet(LamFun);true).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -622,15 +622,15 @@ liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=theta(Lc,Path,_Anon,Defs,Others,_Types,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-  dispMap("Theta map: ",ThMap),
+  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),I,Ex,Ex1),
   transformOthers(Path,ThMap,Opts,Others,I,ThCond,Ex1,Exx),
-  dispTerm(Fx).
+  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=record(Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),
   genVar("_ThR",ThVr),
   recordMap(Theta,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
-  dispMap("Record map: ",RMap),
+  (is_member(showTrCode,Opts) -> dispMap("Record map: ",RMap);true),
   transformThetaDefs(ThMap,RMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
   % dispTerm(Fx).
 
@@ -712,8 +712,8 @@ findFreeVars(Term,Map,Q,LmFr0) :-
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
   merge(Df,Q1,Q2),
-  freeVars(Term,[],Q2,[],ThFr),
-  freeLabelVars(ThFr,Map,ThFr,LmFr0).
+  freeVars(Term,Df,Q1,[],ThFr),
+  freeLabelVars(Q2,Map,ThFr,LmFr0).
 
 freeLabelVars([],_,Fr,Fr).
 freeLabelVars([idnt(Nm)|Lv],Map,Fr,LmFr) :-
