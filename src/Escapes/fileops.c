@@ -38,7 +38,7 @@ ReturnStatus g__rm(processPo P, ptrPo tos) {
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   tryAgain:
   switchProcessState(P, wait_io);
@@ -70,7 +70,7 @@ ReturnStatus g__rmdir(processPo P, ptrPo tos) {
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   tryAgain:
   switchProcessState(P, wait_io);
@@ -105,7 +105,7 @@ ReturnStatus g__mkdir(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   mode_t mode = (mode_t) integerVal(Arg2);
 
@@ -141,12 +141,12 @@ ReturnStatus g__mv(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &sLen);
   char srcBuff[MAXFILELEN];
 
-  char *srcFn = resolveFileName(P, fn, sLen, srcBuff, NumberOf(srcBuff));
+  char *srcFn = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
   integer dLen;
   const char *df = stringVal(Arg2, &dLen);
   char dstBuff[MAXFILELEN];
 
-  char *dstFn = resolveFileName(P, fn, sLen, dstBuff, NumberOf(dstBuff));
+  char *dstFn = resolveFileName(processWd(P), fn, sLen, dstBuff, NumberOf(dstBuff));
 
   tryAgain:
   switchProcessState(P, wait_io);
@@ -177,7 +177,7 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &sLen);
   char srcBuff[MAXFILELEN];
 
-  char *dir = resolveFileName(P, fn, sLen, srcBuff, NumberOf(srcBuff));
+  char *dir = resolveFileName(processWd(P), fn, sLen, srcBuff, NumberOf(srcBuff));
 
   DIR *directory;
 
@@ -224,45 +224,45 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
 
 static char *const FILE_MODE = "_file_mode";
 
-ReturnStatus g__file_mode(processPo p, ptrPo tos) {
+ReturnStatus g__file_mode(processPo P, ptrPo tos) {
   integer fnLen;
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(p, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
   tryAgain:
-  switchProcessState(p, wait_io);
+  switchProcessState(P, wait_io);
 
   if (stat(acFn, &buf) == -1) {
-    setProcessRunnable(p);
+    setProcessRunnable(P);
 
     switch (errno) {
       case EINTR:
         goto tryAgain;
       case ENOTDIR:
-        return liberror(p, FILE_MODE, eNOFILE);
+        return liberror(P, FILE_MODE, eNOFILE);
       case ENAMETOOLONG:
-        return liberror(p, FILE_MODE, eINVAL);
+        return liberror(P, FILE_MODE, eINVAL);
       case ENOENT:
-        return liberror(p, FILE_MODE, eNOTFND);
+        return liberror(P, FILE_MODE, eNOTFND);
       case EACCES:
-        return liberror(p, FILE_MODE, eNOPERM);
+        return liberror(P, FILE_MODE, eNOPERM);
       case ELOOP:
-        return liberror(p, FILE_MODE, eINVAL);
+        return liberror(P, FILE_MODE, eINVAL);
       case EIO:
-        return liberror(p, FILE_MODE, eIOERROR);
+        return liberror(P, FILE_MODE, eIOERROR);
       case EFAULT:
-        return liberror(p, FILE_MODE, eINVAL);
+        return liberror(P, FILE_MODE, eINVAL);
       default:
-        return liberror(p, FILE_MODE, eNOTFND);
+        return liberror(P, FILE_MODE, eNOTFND);
     }
   } else {
-    ReturnStatus ret = {.ret=Ok, .result = (termPo) allocateInteger(processHeap(p), buf.st_mode)};
+    ReturnStatus ret = {.ret=Ok, .result = (termPo) allocateInteger(processHeap(P), buf.st_mode)};
 
-    setProcessRunnable(p);
+    setProcessRunnable(P);
     return ret;
   }
 }
@@ -274,7 +274,7 @@ ReturnStatus g__file_chmod(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   mode_t acmode = (mode_t) integerVal(Arg2);
 
@@ -299,32 +299,32 @@ ReturnStatus g__file_chmod(processPo P, ptrPo tos) {
   return rtnStatus(P, Ok, "");
 }
 
-ReturnStatus g__file_present(processPo p, ptrPo tos) {
+ReturnStatus g__file_present(processPo P, ptrPo tos) {
   integer fnLen;
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(p, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  switchProcessState(p, wait_io);
+  switchProcessState(P, wait_io);
   termPo present = filePresent(acFn) == Ok ? trueEnum : falseEnum;
-  setProcessRunnable(p);
+  setProcessRunnable(P);
 
   ReturnStatus ret = {.ret=Ok, .result = present};
 
   return ret;
 }
 
-ReturnStatus g__isdir(processPo p, ptrPo tos) {
+ReturnStatus g__isdir(processPo P, ptrPo tos) {
   integer fnLen;
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(p, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
-  switchProcessState(p, wait_io);
+  switchProcessState(P, wait_io);
   retCode present = isDirectory(acFn);
-  setProcessRunnable(p);
+  setProcessRunnable(P);
 
   ReturnStatus ret = {.ret=Ok, .result = present == Ok ? trueEnum : falseEnum};
 
@@ -353,7 +353,7 @@ ReturnStatus g__file_type(processPo P, ptrPo tos) {
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
@@ -416,7 +416,7 @@ ReturnStatus g__file_size(processPo P, ptrPo tos) {
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
@@ -462,7 +462,7 @@ ReturnStatus g__file_date(processPo P, ptrPo tos) {
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
@@ -520,7 +520,7 @@ ReturnStatus g__file_modified(processPo P, ptrPo tos) {
   const char *fn = stringVal(tos[0], &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   struct stat buf;
 
@@ -570,7 +570,7 @@ ReturnStatus g__openInFile(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInFile(acFn, enc);
 
@@ -590,7 +590,7 @@ ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openOutFile(acFn, enc);
 
@@ -610,7 +610,7 @@ ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openAppendFile(acFn, enc);
 
@@ -630,7 +630,7 @@ ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
   const char *fn = stringVal(Arg1, &fnLen);
   char buff[MAXFILELEN];
 
-  char *acFn = resolveFileName(P, fn, fnLen, buff, NumberOf(buff));
+  char *acFn = resolveFileName(processWd(P), fn, fnLen, buff, NumberOf(buff));
 
   ioPo file = openInOutAppendFile(acFn, enc);
 
@@ -652,17 +652,17 @@ ioEncoding pickEncoding(integer k) {
   }
 }
 
-char *resolveFileName(processPo p, const char *fn, integer fnLen, char *buff, integer buffLen) {
+char * resolveFileName(char *cwd, const char *fn, integer fnLen, char *buff, integer buffLen) {
   if (fn[0] == '/') {
     uniNCpy(buff, buffLen, fn, fnLen);
     return buff;
   } else {
     char fname[MAXFILELEN];
-    uniTrim(fn, fnLen, "", "/", fname, NumberOf(fname));
-    fnLen = uniStrLen(fname);
+    uniTrim(fn, uniStrLen(fn), "", "/", fname, NumberOf(fname));
+    integer fnLen = uniStrLen(fname);
 
     char wd[MAXFILELEN];
-    uniTrim(processWd(p), uniStrLen(processWd(p)), "", "/", wd, NumberOf(wd));
+    uniTrim(cwd, uniStrLen(cwd), "", "/", wd, NumberOf(wd));
     integer wdLen = uniStrLen(wd);
     integer pos = 0;
 

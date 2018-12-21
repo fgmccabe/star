@@ -275,7 +275,7 @@ char *processWd(processPo p) {
 }
 
 retCode setProcessWd(processPo p, char *wd, integer len) {
-  return uniNCpy(p->wd, NumberOf(p->wd), wd, len);
+  return uniTrim(wd, len, "", "/", p->wd, NumberOf(p->wd));
 }
 
 static integer prCount = 0;
