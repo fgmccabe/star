@@ -36,7 +36,7 @@ star.cons{
 
   public implementation all x ~~ sequence[cons[x] ->> x] => {
     _cons(E,S) => cons(E,S).
-    _apnd(S,E) => S++[E].
+    _apnd(S,E) => concat(S,cons(E,nil)).
 
     _nil = nil.
   }
@@ -47,11 +47,11 @@ star.cons{
 
   public implementation all x ~~ concat[cons[x]] => {
     X++Y => concat(X,Y).
-
-    concat: all e ~~ (cons[e],cons[e])=>cons[e].
-    concat(nil,Y) => Y.
-    concat(cons(E,X),Y) => cons(E,concat(X,Y)).
   }
+
+  concat: all e ~~ (cons[e],cons[e])=>cons[e].
+  concat(nil,Y) => Y.
+  concat(cons(E,X),Y) => cons(E,concat(X,Y)).
 
   public implementation all x ~~ reversible[cons[x]] => {
     reverse(L) => rev(L,nil).
