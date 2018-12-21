@@ -18,6 +18,7 @@
 #include "jsonEvent.h"
 #include "manifestP.h"
 #include "engineOptions.h"
+#include "fileops.h"
 
 
 // Use the JSON event parser to parse a manifest file and build up a manifest structure
@@ -468,7 +469,8 @@ retCode setManifestPath(char *path) {
   if (path[0] != '/') {
     char wd[MAXFILELEN];
     getcwd(wd, sizeof(wd));
-    strMsg(repoDir, NumberOf(repoDir), "%s/%s", wd, path);
+
+    resolveFileName(wd, path, uniStrLen(path), repoDir, NumberOf(repoDir));
   } else
     strMsg(repoDir, NumberOf(repoDir), "%s", path);
   return Ok;
