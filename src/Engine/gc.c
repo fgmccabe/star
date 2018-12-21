@@ -229,7 +229,7 @@ static retCode markProcess(processPo P, gcSupportPo G) {
 void verifyProc(processPo P, heapPo H) {
 #ifdef TRACEMEM
   if (traceMemory)
-    outMsg(logFile, "Verify process %d\n%_", P->processNo);
+    outMsg(logFile, "Verifying process %d%_", P->processNo);
 #endif
   integer lvl = 0;
 
@@ -257,7 +257,7 @@ void verifyProc(processPo P, heapPo H) {
 
 #ifdef TRACEMEM
   if (traceMemory)
-    outMsg(logFile, "process %d ok\n%_", P->processNo);
+    outMsg(logFile, " ok\n%_", P->processNo);
 #endif
 }
 
