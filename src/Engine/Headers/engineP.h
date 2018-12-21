@@ -70,7 +70,7 @@ processPo runerr(processPo); /* non-fatal error */
 void displayProcesses(void);
 void displayProcess(processPo p);
 
-void verifyProc(processPo p, struct _gc_support_ *G);
+void verifyProc(processPo P, heapPo H);
 
 retCode extendStack(processPo p, integer sfactor);
 retCode extendHeap(heapPo p, int hfactor, long hmin);

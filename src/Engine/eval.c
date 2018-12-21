@@ -318,14 +318,16 @@ retCode run(processPo P) {
       case LdG: {
         int32 glbNo = collectI32(PC);
         globalPo glb = getGlobalVar(glbNo);
-        push(getGlobal(glb));     /* load a global variable */
+        termPo vr = getGlobal(glb);
+        assert(vr != Null);
+        push(vr);     /* load a global variable */
         continue;
       }
 
-      case Get:{
+      case Get: {
         labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
         normalPo trm = C_TERM(pop());
-        push(getField(trm,lbl));
+        push(getField(trm, lbl));
         continue;
       }
 
@@ -357,7 +359,7 @@ retCode run(processPo P) {
       case Nth: {
         int32 ix = collectI32(PC);  /* which element */
         normalPo cl = C_TERM(pop());  /* which term? */
-        push(nthArg(cl,ix));
+        push(nthArg(cl, ix));
         continue;
       }
 
@@ -398,11 +400,11 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Set:{
+      case Set: {
         labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
         termPo val = pop();
         normalPo trm = C_TERM(pop());
-        setField(trm,lbl,val);
+        setField(trm, lbl, val);
         continue;
       }
 

@@ -150,6 +150,14 @@ static ptrPo localVar(framePo fp, int64 off) {
 retCode extendStack(processPo p, integer sfactor) {
   integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor);
 
+#ifdef TRACEMEM
+  if (traceMemory) {
+    outMsg(logFile, "extending stack of process %d to %d cells\n%_", p->processNo, stackSize);
+
+    verifyProc(p, processHeap(p));
+  }
+#endif
+
   termPo nStack = (termPo) malloc(stackSize * sizeof(termPo));
 
   if (nStack == NULL) {
@@ -194,6 +202,13 @@ retCode extendStack(processPo p, integer sfactor) {
     free(p->stackBase);
     p->stackBase = nStack;
     p->stackLimit = nLimit;
+
+#ifdef TRACEMEM
+    if (traceMemory) {
+      verifyProc(p, processHeap(p));
+    }
+#endif
+
     return Ok;
   }
 }

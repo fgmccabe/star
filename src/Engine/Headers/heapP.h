@@ -34,11 +34,13 @@ typedef struct _stack_frame_ *framePo;
 
 extern retCode gcCollect(heapPo H, long amount);
 
-typedef struct _gc_support_ *gcSupportPo;
-typedef struct _global_gc_support_ *globalGcPo;
+typedef struct _gc_support_ {
+  heapPo H;
+  long oCnt;
+} GCSupport, *gcSupportPo;
 
 extern void validPtr(heapPo H, termPo t);
-extern void inStackPtr(processPo P,ptrPo o);
+extern void inStackPtr(processPo P, ptrPo o);
 extern void verifyHeap(heapPo H);
 
 extern termPo markPtr(gcSupportPo G, ptrPo p);
@@ -51,7 +53,7 @@ static inline logical inHeap(heapPo P, const termPo x) {
 extern void lockHeap(heapPo H);
 extern void releaseHeapLock(heapPo H);
 
-extern retCode heapSummary(ioPo out,heapPo H);
+extern retCode heapSummary(ioPo out, heapPo H);
 
 extern void dumpGcStats();
 

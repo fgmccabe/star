@@ -22,11 +22,6 @@ long gcCount = 0;                       /* Number of times GC is invoked */
 #define MAX_TABLE 2048
 #endif
 
-typedef struct _gc_support_ {
-  heapPo H;
-  long oCnt;
-} GCSupport;
-
 static retCode markProcess(processPo P, gcSupportPo G);
 static logical hasMoved(termPo t);
 static termPo movedTo(termPo t);
@@ -83,9 +78,9 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   if (traceMemory) {
     if (H->owner != Null)
-      verifyProc(H->owner, G);
+      verifyProc(H->owner, H);
     else
-      processProcesses((procProc) verifyProc, G);
+      processProcesses((procProc) verifyProc, H);
   }
 #endif
 
@@ -115,9 +110,9 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   if (traceMemory) {
     if (H->owner != Null)
-      verifyProc(H->owner, G);
+      verifyProc(H->owner, H);
     else
-      processProcesses((procProc) verifyProc, G);
+      processProcesses((procProc) verifyProc, H);
   }
 #endif
 
@@ -231,12 +226,11 @@ static retCode markProcess(processPo P, gcSupportPo G) {
   return Ok;
 }
 
-void verifyProc(processPo P, GCSupport *G) {
+void verifyProc(processPo P, heapPo H) {
 #ifdef TRACEMEM
   if (traceMemory)
     outMsg(logFile, "Verify process %d\n%_", P->processNo);
 #endif
-  heapPo H = G->H;
   integer lvl = 0;
 
   ptrPo t = P->sp;
