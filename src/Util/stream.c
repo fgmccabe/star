@@ -5,7 +5,6 @@
 #include <string.h>
 #include <signal.h>
 #include "streamP.h"
-#include "lineEdit.h"
 
 static void inheritStream(classPo class, classPo request);
 static void initStreamClass(classPo class, classPo request);

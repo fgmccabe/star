@@ -276,26 +276,113 @@ integer textFromBuffer(bufferPo b, char *buffer, integer len) {
   return cnt;
 }
 
+logical isTrivialBuffer(bufferPo b) {
+  return uniIsTrivial(b->buffer.buffer, b->buffer.size);
+}
+
+integer bufferLength(bufferPo b) {
+  return b->buffer.size;
+}
+
+integer bufferOutPos(bufferPo b) {
+  return b->buffer.out_pos;
+}
+
+integer bufferBumpOutPos(bufferPo b, integer incr) {
+  b->buffer.out_pos = clamp(0, b->buffer.out_pos + incr, b->buffer.size);
+  return b->buffer.out_pos;
+}
+
 retCode rewindBuffer(bufferPo in) {
   in->buffer.in_pos = 0;
   in->io.inBpos = in->io.inCpos = 0;
+
+  in->buffer.out_pos = 0;
   return Ok;
 }
 
-retCode insertIntoBuffer(bufferPo b, codePoint ch, integer *offset) {
-  integer chSize = codePointSize(ch);
-  integer insertPos = *offset;
+retCode seekBuffer(bufferPo b, integer pos) {
+  pos = clamp(0, pos, b->buffer.size);
+  b->buffer.in_pos = b->buffer.out_pos = pos;
+  return Ok;
+}
 
-  if (insertPos < 0 || insertPos > b->buffer.out_pos)
+retCode insertIntoBuffer(bufferPo b, codePoint ch) {
+  integer chSize = codePointSize(ch);
+  integer insertPos = b->buffer.out_pos;
+
+  ensureSpace(b, chSize);
+
+  for (integer ix = b->buffer.size + chSize; ix > insertPos; ix--) {
+    b->buffer.buffer[ix] = b->buffer.buffer[ix - chSize];
+  }
+  appendCodePoint(b->buffer.buffer, &insertPos, b->buffer.bufferSize, ch);
+  b->buffer.out_pos += chSize;
+  b->buffer.size += chSize;
+  return Ok;
+}
+
+retCode appendIntoBuffer(bufferPo b, char *text, integer txtLen) {
+  ensureSpace(b, txtLen);
+  for (integer ix = 0; ix < txtLen; ix++)
+    b->buffer.buffer[b->buffer.out_pos++] = text[ix];
+  b->buffer.size += txtLen;
+
+  return Ok;
+}
+
+retCode appendToBuffer(bufferPo b, char *text, integer txtLen) {
+  ensureSpace(b, txtLen);
+  for (integer ix = 0; ix < txtLen; ix++)
+    b->buffer.buffer[b->buffer.size++] = text[ix];
+
+  return Ok;
+}
+
+retCode twizzleBuffer(bufferPo b, integer pos) {
+  if (pos < 0 || pos >= b->buffer.size - 1)
     return Error;
   else {
-    ensureSpace(b, chSize);
-    for (integer ix = b->buffer.out_pos; ix > insertPos; ix--) {
-      b->buffer.buffer[ix + 1] = b->buffer.buffer[ix];
-    }
-    appendCodePoint(b->buffer.buffer, offset, b->buffer.bufferSize, ch);
-    b->buffer.out_pos += chSize;
-    b->buffer.size += chSize;
+    char ch = b->buffer.buffer[pos];
+    b->buffer.buffer[pos] = b->buffer.buffer[pos + 1];
+    b->buffer.buffer[pos + 1] = ch;
+    b->buffer.out_pos++;
     return Ok;
   }
+}
+
+retCode stringIntoBuffer(bufferPo b, strgPo str) {
+  return appendIntoBuffer(b, strgVal(str), strgLen(str));
+}
+
+retCode deleteFromBuffer(bufferPo b, integer len) {
+  integer endPt = bufferOutPos(b);
+  integer from = bufferOutPos(b);
+
+  if (len > 0) {
+    endPt = advanceCodePoint(b->buffer.buffer, endPt, bufferLength(b), len);
+
+    integer remaining = bufferLength(b) - endPt;
+
+    for (integer px = 0; px < remaining; px++)
+      b->buffer.buffer[from + px] = b->buffer.buffer[endPt + px];
+
+    b->buffer.size -= (endPt - from);
+  } else {
+    integer tgtPt = backCodePoint(b->buffer.buffer, endPt, -len);
+    integer remaining = bufferLength(b) - from;
+
+    for (integer px = 0; px < remaining; px++)
+      b->buffer.buffer[tgtPt + px] = b->buffer.buffer[from + px];
+    const integer delta = from - tgtPt;
+    b->buffer.size -= delta;
+    b->buffer.out_pos -= delta;
+  }
+
+  b->buffer.out_pos = clamp(0, b->buffer.out_pos, b->buffer.size);
+  return Ok;
+}
+
+strgPo stringFromBuffer(bufferPo b) {
+  return newStrng(b->buffer.size, b->buffer.buffer);
 }

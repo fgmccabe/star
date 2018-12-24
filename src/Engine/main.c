@@ -10,7 +10,6 @@
 #include <iochnnlP.h>
 #include <arrayP.h>
 #include <rrbP.h>
-#include <history.h>
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
@@ -19,6 +18,7 @@
 #include "arithP.h"
 #include "strP.h"
 #include "debug.h"
+#include "editline.h"
 
 char *copyright = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0";
 

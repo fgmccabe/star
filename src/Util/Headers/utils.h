@@ -49,6 +49,15 @@ static integer inline maximum(integer a, integer b) {
     return b;
 }
 
+static integer inline clamp(integer min, integer ix, integer max) {
+  if(ix<min)
+    return min;
+  else if(ix>max)
+    return max;
+  else
+    return ix;
+}
+
 extern char *genSym(char * prefix);
 
 extern integer nextPrime(integer min);

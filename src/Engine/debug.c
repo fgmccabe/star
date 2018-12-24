@@ -8,6 +8,7 @@
 #include "debug.h"
 #include "bkpoint.h"
 #include "arith.h"
+#include "editline.h"
 
 integer pcCount = 0;
 
@@ -162,20 +163,26 @@ typedef struct {
   debugCmd cmd;
 } DebugOption, *debugOptPo;
 
-static char *defltLine(char *deflt, integer defltLen, char *src, integer srcLen, integer *actLen) {
+static char defltLn[MAXLINE] = {'n'};
+static integer defltLen = 1;
+
+static char *defltLine(char *src, integer srcLen, integer *actLen) {
   if (!uniIsTrivial(src, srcLen)) {
-    uniNCpy(deflt, defltLen, src, srcLen);
+    uniNCpy(defltLn, defltLen, src, srcLen);
     *actLen = srcLen;
     return src;
   } else {
-    *actLen = uniNStrLen(deflt, defltLen);
-    return deflt;
+    *actLen = uniNStrLen(defltLn, defltLen);
+    return defltLn;
   }
+}
+
+static void resetDeflt(char *cmd){
+  uniCpy(defltLn,NumberOf(defltLn),cmd);
 }
 
 static DebugWaitFor cmder(debugOptPo opts, int optCount, processPo p, methodPo mtd, insWord ins) {
   static bufferPo cmdBuffer = Null;
-  static char lastLine[MAXLINE] = {'n'};
 
   if (cmdBuffer == Null)
     cmdBuffer = newStringBuffer();
@@ -184,32 +191,37 @@ static DebugWaitFor cmder(debugOptPo opts, int optCount, processPo p, methodPo m
     outMsg(stdErr, " => ");
     flushFile(stdErr);
     clearBuffer(cmdBuffer);
-    retCode res = inLine(stdIn, cmdBuffer, "\n");
+    retCode res = consoleInput(cmdBuffer);
 
-    integer cmdLen = 0;
-    char *cmdLine = getTextFromBuffer(&cmdLen, cmdBuffer);
+    switch (res) {
+      case Eof:
+        return quitDbg;
+      case Ok: {
+        integer cmdLen = 0;
+        char *cmdLine = getTextFromBuffer(&cmdLen, cmdBuffer);
 
-    cmdLine = defltLine(lastLine, NumberOf(lastLine), cmdLine, cmdLen, &cmdLen);
+        cmdLine = defltLine(cmdLine, cmdLen, &cmdLen);
 
-    if (res == Ok) {
-      codePoint cmd;
-      integer nxt = 0;
-      cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
+        codePoint cmd;
+        integer nxt = 0;
+        cmd = nextCodePoint(cmdLine, &nxt, cmdLen);
 
-      if (isNdChar((codePoint) cmd)) {
-        cmd = 'n';
-        nxt = 0;
+        if (isNdChar((codePoint) cmd)) {
+          cmd = 'n';
+          nxt = 0;
+        }
+
+        for (int ix = 0; ix < optCount; ix++) {
+          if (opts[ix].c == cmd)
+            return opts[ix].cmd(&cmdLine[nxt], p, ins, opts[ix].cl);
+        }
+        outMsg(stdErr, "invalid debugger command: %s\n", cmdLine);
       }
-
-      for (int ix = 0; ix < optCount; ix++) {
-        if (opts[ix].c == cmd)
-          return opts[ix].cmd(&cmdLine[nxt], p, ins, opts[ix].cl);
-      }
-      outMsg(stdErr, "invalid debugger command: %s", cmdLine);
-      for (int ix = 0; ix < optCount; ix++)
-        outMsg(stdErr, "%s\n", opts[ix].usage);
-      flushFile(stdErr);
-      return moreDebug;
+      default:
+        for (int ix = 0; ix < optCount; ix++)
+          outMsg(stdErr, "%s\n", opts[ix].usage);
+        flushFile(stdErr);
+        return moreDebug;
     }
   }
   return moreDebug;
@@ -255,11 +267,15 @@ static DebugWaitFor dbgQuit(char *line, processPo p, insWord ins, void *cl) {
 
 static DebugWaitFor dbgTrace(char *line, processPo p, insWord ins, void *cl) {
   p->tracing = True;
+
+  resetDeflt("n");
   return nextBreak;
 }
 
 static DebugWaitFor dbgCont(char *line, processPo p, insWord ins, void *cl) {
   p->tracing = False;
+
+  resetDeflt("n");
   return nextBreak;
 }
 
@@ -290,11 +306,15 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) 
 
 static DebugWaitFor dbgSetDepth(char *line, processPo p, insWord ins, void *cl) {
   displayDepth = cmdCount(line, 0);
+
+  resetDeflt("n");
   return moreDebug;
 }
 
 static DebugWaitFor dbgShowRegisters(char *line, processPo p, insWord ins, void *cl) {
   showRegisters(p, p->heap, p->prog, p->pc, p->fp, p->sp);
+
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -310,6 +330,8 @@ static DebugWaitFor dbgShowArg(char *line, processPo p, insWord ins, void *cl) {
     showArg(stdErr, argNo, mtd, fp, sp);
   else
     outMsg(stdErr, "invalid argument number: %d", argNo);
+
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -325,6 +347,8 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, insWord ins, void *cl)
     showLcl(stdErr, cmdCount(line, 0), mtd, fp, sp);
   else
     outMsg(stdErr, "invalid local number: %d", lclNo);
+
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -366,6 +390,8 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, insWord ins, void *cl
         outMsg(stdErr, "%s not set\n", buff);
     }
   }
+
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -379,6 +405,7 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, insWord ins, void *cl)
   } else
     showStack(stdErr, p, mtd, cmdCount(line, 1), fp, sp);
 
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -412,6 +439,8 @@ void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo f
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, insWord ins, void *cl) {
   stackTrace(p, stdErr, (logical) (cl));
+
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -479,6 +508,7 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, insWord ins, void *cl) 
   }
 
   flushFile(stdErr);
+  resetDeflt("n");
 
   return moreDebug;
 }
@@ -486,12 +516,14 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, insWord ins, void *cl) 
 static DebugWaitFor dbgInsDebug(char *line, processPo p, insWord ins, void *cl) {
   lineDebugging = False;
   insDebugging = True;
+  resetDeflt("n");
   return stepInto;
 }
 
 static DebugWaitFor dbgSymbolDebug(char *line, processPo p, insWord ins, void *cl) {
   lineDebugging = True;
   insDebugging = False;
+  resetDeflt("n");
   return stepInto;
 }
 
@@ -527,6 +559,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl)
   } else
     outMsg(stdErr, "Could not drop %d stack frame\n%_", count);
 
+  resetDeflt("n");
   return moreDebug;
 }
 
@@ -805,9 +838,11 @@ void stackSummary(ioPo out, processPo P, ptrPo sp) {
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   integer count = argCount(mtd);
+  outMsg(out,"Arguments:\n");
   for (integer ix = 0; ix < count; ix++) {
     outMsg(out, "A[%d] = %,*T\n", ix, displayDepth, fp->args[ix]);
   }
+  flushFile(out);
 }
 
 retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp) {
@@ -885,7 +920,7 @@ void showTopOfStack(ioPo out, processPo p, methodPo mtd, integer cnt, framePo fp
     sep = ", ";
   }
 
-  outMsg(out,")\n%_");
+  outMsg(out, ")\n%_");
 }
 
 void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp) {

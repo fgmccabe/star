@@ -72,7 +72,7 @@ codePoint upperOf(codePoint ch);
 integer countCodePoints(const char *src, integer start, integer end);
 integer uniCodeCount(char *src);
 
-int64 advanceCodePoint(char *src, integer start, integer end, int64 count);
+integer advanceCodePoint(char *src, integer start, integer end, integer count);
 codePoint codePointAt(const char *src, integer pt, integer end);
 codePoint nextCodePoint(const char *src, integer *start, integer end);
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code);
@@ -115,7 +115,7 @@ integer uniHash(const char * name);
 integer uniNHash(const char * name, long len);
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen);
 retCode uniTrim(const char *s, integer sLen, char *front, char *trail, char *out, integer outLen);
-logical uniIsTrivial(char *s,integer len);
+logical uniIsTrivial(const char *s, integer len);
 
 integer hash64(integer ix);
 

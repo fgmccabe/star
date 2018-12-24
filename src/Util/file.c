@@ -15,7 +15,7 @@
 
 #include "config.h"    // Invoke configuration header
 #include "fileP.h"
-#include "lineEdit.h"
+#include "editline.h"
 
 #include <string.h>
 #include <assert.h>
@@ -136,42 +136,6 @@ void FileInit(objectPo o, va_list *args) {
 }
 
 // Implement class file functions
-
-
-// convenience function for reading characters
-codePoint inCh(ioPo f) {
-  codePoint ch;
-
-  switch (inChar(f, &ch)) {
-    case Ok:
-      return ch;
-    case Eof:
-      return uniEOF;
-    case Interrupt:
-    case Fail: {
-      filePo fl = O_FILE(f);
-      configureIo(fl, turnOnBlocking);
-
-      again:
-      switch (inChar(f, &ch)) {
-        case Ok:
-          break;
-        case Fail:
-        case Interrupt:
-          goto again;                       // pretty busy loop
-        default:
-          return ioErrorMsg(f, "issue in reading char");
-      }
-
-      configureIo(fl, turnOffBlocking);
-      return ch;
-    }
-    case Error:
-      return Error;
-    default:
-      return Error;
-  }
-}
 
 retCode fileBackByte(ioPo io, byte b) {
   filePo f = O_FILE(io);
@@ -363,7 +327,6 @@ retCode fileClose(ioPo io) {
 
 ioPo logFile = Null;    /* File to write the log to */
 ioPo stdIn = Null;
-ioPo rawStdIn = Null;
 ioPo stdOut = Null;
 ioPo stdErr = Null;
 
@@ -391,20 +354,6 @@ retCode refillBuffer(filePo f) {
   return ((FileClassRec *) (f->object.class))->filePart.filler(f);
 }
 
-/*
- * Read some text - without doing any refilling
- */
-integer inText(filePo f, char *buffer, integer len) {
-  if (f->file.in_pos < f->file.in_len) {
-    integer cnt = minimum(len, f->file.in_len - f->file.in_pos);
-    for (integer ix = 0; ix < cnt; ix++) {
-      buffer[ix] = f->file.in_line[f->file.in_pos++];
-    }
-    return cnt;
-  } else
-    return 0;
-}
-
 retCode fileFill(filePo f) {
   if (f->file.in_pos >= f->file.in_len) {  // nead to read more input?
     ssize_t len;
@@ -428,35 +377,6 @@ retCode fileFill(filePo f) {
           f->file.in_pos = f->file.in_len = 0;
           return f->io.status = Eof;  // we have reach end of file
       }
-    } else {
-      f->file.in_pos = 0;
-      f->file.in_len = (int16) len;
-      f->file.bufferPos = f->io.inBpos;
-
-      if (len == 0) {
-        return f->io.status = Eof;
-      } else {
-        return f->io.status = Ok;
-      }
-    }
-  } else
-    return Ok;        // Already got stuff in there
-}
-
-retCode refillStdIn(filePo f) {
-  if (f->file.in_pos >= f->file.in_len) {  // nead to read more input?
-    integer len;
-    int lerrno;                         // local copy of errno
-
-    stopAlarm();      // Stop the time interrupt
-
-    retCode ret = consoleInput((char *) (f->file.in_line), NumberOf(f->file.in_line), &len);
-
-    startAlarm();      // Restart the timer interrupt
-
-    if (ret != Ok) {        // something wrong?
-      f->file.in_pos = f->file.in_len = 0;
-      return f->io.status = Eof;  // we have reach end of file
     } else {
       f->file.in_pos = 0;
       f->file.in_len = (int16) len;
@@ -752,7 +672,7 @@ logical isExecutableFile(char *file) {
 }
 
 /* Special macro for Windows 95 */
-#define FILE_ACCESS_MODE F_OK|R_OK
+#define FILE_ACCESS_MODE (F_OK|R_OK)
 
 /* Check if a file is present or not */
 retCode filePresent(char *name) {
@@ -761,45 +681,6 @@ retCode filePresent(char *name) {
   else
     return Fail;
 }
-
-/* These only apply to Unix */
-
-// Special class structure for stdin
-
-FileClassRec StdInClass = {
-  {
-    (classPo) &FileClass,                 // parent class is io object
-    "stdin",                              // this is the file class
-    inheritFile,                          // file inheritance
-    initFileClass,                        // File class initializer, phase I
-    O_INHERIT_DEF,                        // File object element creation
-    NULL,                                 // File objectdestruction
-    O_INHERIT_DEF,                        // erasure
-    NULL,                                 // initialization of a file object
-    sizeof(FileObject),                   // size of a file object
-    O_INHERIT_DEF,                        // Hashcode for files
-    O_INHERIT_DEF,                        // Equality for files
-    NULL,                                 // pool of file values
-    PTHREAD_ONCE_INIT,                    // not yet initialized
-    PTHREAD_MUTEX_INITIALIZER
-  },
-  {},
-  {
-    fileInBytes,                          // inByte
-    fileOutBytes,                         // outBytes
-    fileBackByte,                         // put a byte back in the buffer
-    fileAtEof,                            // Are we at end of file?
-    fileInReady,                          // readyIn
-    fileOutReady,                         // readyOut
-    fileFlusher,                          // flush
-    fileClose                             // close
-  },
-  {
-    fileConfigure,                        // configure a file
-    flSeek,                               // seek
-    refillStdIn                           // fill the file buffer
-  }
-};
 
 /* We pipe our standard through the forked process, so that we may set
    our standard input non-blocking without affecting any other
@@ -865,10 +746,7 @@ ioPo Stdin(void) {
     int fd = 0;
 #endif
 
-    rawStdIn = O_IO(newObject(fileClass, "rawstdin", fd, utf8Encoding, ioREAD));
-    configureIo(O_FILE(rawStdIn), turnOnBlocking);
-
-    stdIn = O_IO(newObject((classPo) &StdInClass, "stdin", fd, utf8Encoding, ioREAD));
+    stdIn = O_IO(newObject(fileClass, "stdin", fd, utf8Encoding, ioREAD));
     configureIo(O_FILE(stdIn), turnOnBlocking);
   }
   return stdIn;

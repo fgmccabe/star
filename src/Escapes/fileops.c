@@ -652,14 +652,14 @@ ioEncoding pickEncoding(integer k) {
   }
 }
 
-char * resolveFileName(char *cwd, const char *fn, integer fnLen, char *buff, integer buffLen) {
+char *resolveFileName(char *cwd, const char *fn, integer fnLen, char *buff, integer buffLen) {
   if (fn[0] == '/') {
     uniNCpy(buff, buffLen, fn, fnLen);
     return buff;
   } else {
     char fname[MAXFILELEN];
-    uniTrim(fn, uniStrLen(fn), "", "/", fname, NumberOf(fname));
-    integer fnLen = uniStrLen(fname);
+    uniTrim(fn, fnLen, "", "/", fname, NumberOf(fname));
+    fnLen = uniStrLen(fname);
 
     char wd[MAXFILELEN];
     uniTrim(cwd, uniStrLen(cwd), "", "/", wd, NumberOf(wd));

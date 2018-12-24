@@ -19,7 +19,7 @@
 #include "config.h"
 #include "io.h"
 
-extern ioPo rawStdIn,stdIn;		/* Standard input  */
+extern ioPo stdIn;		/* Standard input  */
 extern ioPo stdOut;		/* Standard output */
 extern ioPo stdErr;		/* Standard error */
 

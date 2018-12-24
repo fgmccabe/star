@@ -11,8 +11,9 @@ typedef struct _strg_object_ *strgPo;
 
 extern char * strgVal(strgPo s);
 extern integer strgLen(strgPo s);
-extern strgPo newStrng(integer length,char *txt);
-extern strgPo newStr(char *txt);
+extern strgPo newStrng(integer length, const char *txt);
+extern strgPo newStr(const char *txt);
+extern retCode unpackStrg(strgPo s, char *buff, integer buffLen, integer *actual);
 
 extern classPo strgClass;
 
