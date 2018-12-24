@@ -43,7 +43,7 @@ star.compiler{
     Repo .= openRepository(resolveUri(CU,RU)) &&
     _ .= _logmsg("opened repo") &&
     CatUri ^= parseUri("catalog") &&
-    _ .= _logmsg("catalog = \(loadCatalog(resolveUri(CU,CatUri)))") &&
+    -- _ .= _logmsg("catalog = \(loadCatalog(resolveUri(CU,CatUri)))") &&
     Cat ^= loadCatalog(resolveUri(CU,CatUri)) =>
     processPkgs(Args,Cat,Repo,CU).
 

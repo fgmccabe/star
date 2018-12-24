@@ -66,7 +66,7 @@ star.compiler.lexer{
   readQuoted(_,_,_) => none.
 
   readString:(tokenState,list[stringSegment]) => option[(tokenState,list[stringSegment])].
-  readString(St,SoFar) where 0c"^=hedChar(St) => some((St,SoFar)).
+  readString(St,SoFar) where (Nx,0c") ^= nextChr(St) => some((Nx,SoFar)).
   readString(St,SoFar) where
     (Nx,0c\\) ^= nextChr(St) &&
     (_,0c() ^= nextChr(Nx) &&
@@ -75,7 +75,7 @@ star.compiler.lexer{
     readString(St1,[SoFar..,segment(makeLoc(St,St1),Seg)]).
 
   readStr:(tokenState,list[integer]) => option[(tokenState,string)].
-  readStr(nextChr^(Nx,0c"),Chrs) => some((Nx,Chrs::string)).
+  readStr(St,Chrs) where  0c" ^= hedChar(St) => some((St,Chrs::string)).
   readStr(St,Chrs) where Nx ^= lookingAt(St,[0c\\,0c(]) => some((St,Chrs::string)).
   readStr(St,Chrs) where (Nx,Ch) ^= charRef(St) => readStr(Nx,[Chrs..,Ch]).
   readStr(_,_) => none.
