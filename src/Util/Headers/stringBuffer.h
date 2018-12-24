@@ -25,6 +25,7 @@
 
 #include "object.h"
 #include "unistr.h"
+#include "strng.h"
 
 typedef struct _buffer_ *bufferPo;
 extern classPo bufferClass;
@@ -32,13 +33,26 @@ extern classPo bufferClass;
 bufferPo newStringBuffer();
 bufferPo newIoStringBuffer();
 bufferPo newReadStringBuffer(char *text, integer textLen);
-bufferPo fixedStringBuffer(char * buffer, long len);
+bufferPo fixedStringBuffer(char *buffer, long len);
 
-char * getTextFromBuffer(integer *len, bufferPo s);
-integer textFromBuffer(bufferPo b,char *buffer,integer len);
-retCode insertIntoBuffer(bufferPo b,codePoint ch,integer *offset);
+char *getTextFromBuffer(integer *len, bufferPo s);
+integer bufferLength(bufferPo b);
+integer bufferOutPos(bufferPo b);
+integer bufferBumpOutPos(bufferPo b,integer incr);
+integer textFromBuffer(bufferPo b, char *buffer, integer len);
+retCode insertIntoBuffer(bufferPo b, codePoint ch);
+retCode deleteFromBuffer(bufferPo b, integer len);
+retCode appendToBuffer(bufferPo b, char *text, integer txtLen);
+retCode appendIntoBuffer(bufferPo b, char *text, integer txtLen);
+retCode stringIntoBuffer(bufferPo b, strgPo str);
 retCode clearBuffer(bufferPo b);
 retCode rewindBuffer(bufferPo b);
+retCode seekBuffer(bufferPo b,integer pos);
+retCode twizzleBuffer(bufferPo b,integer pos);
+
+strgPo stringFromBuffer(bufferPo b);
+
+logical isTrivialBuffer(bufferPo b);
 
 #ifdef VERIFY_OBJECT
 #define O_BUFFER(c) ((bufferPo)(checkCast((c),bufferClass)))

@@ -18,6 +18,7 @@
 #include "integer.h"
 #include "object.h"
 #include "lockable.h"
+#include "strng.h"
 
 /* Status return type ... most API functions return one of these */
 typedef enum {
@@ -65,7 +66,7 @@ retCode outBytes(ioPo f, byte *data, integer len, integer *actual);
 
 retCode outText(ioPo f, const char *text, integer len);
 retCode outStr(ioPo f, char *str);
-/* return number of chars since lf */
+retCode outStrg(ioPo f,strgPo str);
 
 retCode closeFile(ioPo f);            /* generic file closer */
 retCode flushFile(ioPo f);            /* generic file flush */

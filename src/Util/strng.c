@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "strngP.h"
 #include "unistr.h"
+#include "formioP.h"
 
 static integer strgHash(objectPo o);
 static logical strgEquality(objectPo o1, objectPo o2);
@@ -33,6 +34,8 @@ StrgClassRec StrgClass = {
 
 classPo strgClass = (classPo) &StrgClass;
 
+static retCode showStrg(ioPo f, void *data, long depth, long precision, logical alt);
+
 void strgInit(objectPo o, va_list *args) {
   strgPo s = O_STRG(o);
   integer len = va_arg(*args, integer);
@@ -40,6 +43,8 @@ void strgInit(objectPo o, va_list *args) {
 
   s->s.len = len;
   s->s.txt = uniDupl(txt, len);
+
+  installMsgProc('Q', showStrg);
 }
 
 void strgDestroy(objectPo o) {
@@ -61,11 +66,11 @@ logical strgEquality(objectPo o1, objectPo o2) {
   return uniNCmp(s1->s.txt, s1->s.len, s2->s.txt, s2->s.len) == same;
 }
 
-strgPo newStrng(integer length, char *txt) {
+strgPo newStrng(integer length, const char *txt) {
   return O_STRG(newObject(strgClass, length, txt));
 }
 
-strgPo newStr(char *txt) {
+strgPo newStr(const char *txt) {
   return newStrng(uniStrLen(txt), txt);
 }
 
@@ -75,4 +80,18 @@ char *strgVal(strgPo s) {
 
 integer strgLen(strgPo s) {
   return s->s.len;
+}
+
+retCode unpackStrg(strgPo s, char *buff, integer buffLen, integer *actual) {
+  if (s->s.len <= buffLen) {
+    uniNCpy(buff, buffLen, s->s.txt, s->s.len);
+    *actual = s->s.len;
+    return Ok;
+  } else
+    return Space;
+}
+
+retCode showStrg(ioPo f, void *data, long depth, long precision, logical alt){
+  strgPo str = O_STRG(data);
+  return outText(f,strgVal(str),strgLen(str));
 }

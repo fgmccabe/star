@@ -127,6 +127,15 @@ retCode addVectEl(vectorPo v, integer off, objectPo el) {
   return Ok;
 }
 
+objectPo replaceVectEl(vectorPo v, integer off, objectPo el) {
+  assert(off >= 0 && off < v->vect.count && el != Null);
+
+  objectPo old = v->vect.data[off];
+  v->vect.data[off] = el;
+
+  return old;
+}
+
 retCode appendVectEl(vectorPo v, objectPo el) {
   if (v->vect.count == v->vect.size) {
     integer nSize = ((v->vect.size + 1) * 3) / 2;
@@ -149,14 +158,16 @@ objectPo removeVectEl(vectorPo v, integer off) {
   assert(v != Null && off >= 0 && off < v->vect.count);
   objectPo el = v->vect.data[off];
 
-  for (integer ix = off + 1; ix < v->vect.count; ix++) {
+  for (integer ix = off + 1; ix < v->vect.count; ix++)
     v->vect.data[ix - 1] = v->vect.data[ix];
-    v->vect.count--;
-    return el;
-  }
-  return Null;
+  v->vect.count--;
+  return el;
 }
 
 integer vectLength(vectorPo v) {
   return v->vect.count;
+}
+
+logical vectIsEmpty(vectorPo v){
+  return v->vect.count==0;
 }

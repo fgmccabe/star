@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <unistrP.h>
 #include <memory.h>
+#include <assert.h>
 
 static void initIoClass(classPo class, classPo request);
 
@@ -418,7 +419,7 @@ retCode inLine(ioPo f, bufferPo buffer, char *term) {
   retCode ret = Ok;
   integer tlen = uniStrLen(term);
   objectPo o = O_OBJECT(f);
-  rewindBuffer(buffer);
+  clearBuffer(buffer);
 
   lock(O_LOCKED(o));
 
@@ -428,7 +429,7 @@ retCode inLine(ioPo f, bufferPo buffer, char *term) {
       ret = inChar(f, &ch);
 
       if (ret == Ok) {
-        ret = outChar(O_IO(buffer),ch);
+        ret = outChar(O_IO(buffer), ch);
 
         if (uniIndexOf(term, tlen, 0, ch) >= 0)  /* have we found a terminating byte? */
           break;
@@ -485,6 +486,11 @@ retCode outText(ioPo f, const char *text, integer len) {
 
 retCode outStr(ioPo f, char *str) {
   return outText(f, str, uniStrLen(str));
+}
+
+retCode outStrg(ioPo f, strgPo str) {
+  assert(str != Null);
+  return outText(f, strgVal(str), strgLen(str));
 }
 
 retCode flushFile(ioPo f)               /* generic file flush */

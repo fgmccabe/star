@@ -138,7 +138,7 @@ integer uniCodeCount(char *src) {
   return countCodePoints(src, 0, end);
 }
 
-int64 advanceCodePoint(char *src, integer start, integer end, int64 count) {
+integer advanceCodePoint(char *src, integer start, integer end, integer count) {
   while (count-- > 0 && start < end) {
     codePoint ch;
     if (nxtPoint(src, &start, end, &ch) == Ok)
@@ -526,7 +526,7 @@ char *uniLast(char *s, integer l, codePoint c) {
     return NULL;
 }
 
-logical uniIsTrivial(char *s, integer len) {
+logical uniIsTrivial(const char *s, integer len) {
   integer pos = 0;
   while (pos < len) {
     codePoint ch = nextCodePoint(s, &pos, len);

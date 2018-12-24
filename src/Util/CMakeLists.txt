@@ -26,7 +26,7 @@ set(PUBLIC_HEADERS
         Headers/unistr.h Headers/utils.h
         Headers/jsonEvent.h Headers/udp.h Headers/ooio.h
         Headers/cmdOptions.h Headers/template.h Headers/pp.h Headers/ppP.h
-        Headers/strng.h Headers/stream.h)
+        Headers/strng.h Headers/stream.h Headers/editline.h)
 
 set(HEADER_FILES
         Headers/ioP.h Headers/fileP.h Headers/formioP.h
@@ -39,12 +39,11 @@ set(HEADER_FILES
         Headers/stringBufferP.h
         Headers/unistrP.h
         Headers/pp.h
-        Headers/history.h
         Headers/vector.h
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        Headers/lineEdit.h Headers/streamP.h)
+        Headers/streamP.h)
 
 set(SOURCE_FILES
         class.c
@@ -82,7 +81,7 @@ set(SOURCE_FILES
         base64.c
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
-        vector.c integer.c history.c strng.c lineEdit.c stream.c)
+        vector.c integer.c strng.c stream.c editline.c )
 
 add_library(ooio STATIC ${SOURCE_FILES})
 

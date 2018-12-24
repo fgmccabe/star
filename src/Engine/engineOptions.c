@@ -83,7 +83,7 @@ void defltCWD() {
     if (cwd == NULL)
       syserr("cant determine current directory");
     else
-      strMsg(CWD, NumberOf(CWD), "%s/", cwd);
+      uniTrim(cwd, uniStrLen(cwd), "", "/", CWD, NumberOf(CWD));
   }
 }
 
@@ -277,7 +277,7 @@ static retCode setWD(char *option, logical enable, void *cl) {
 
 static retCode setBootPkg(char *option, logical enable, void *cl) {
   uniCpy(&bootPkge.packageName[0], NumberOf(bootPkge.packageName), option);
-  strMsg(bootInit,NumberOf(bootInit),"%s@init",option);
+  strMsg(bootInit, NumberOf(bootInit), "%s@init", option);
   return Ok;
 }
 
@@ -299,18 +299,18 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",        hasArgument,  STAR_DBG_OPTS, debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
-  {'g', "symbol-debug", noArgument,   Null,          symbolDebug,    Null, "-g|--symbol-debug"},
-  {'G', "debugger",     hasArgument,  STAR_DEBUGGER, setDebugger,    Null, "-G|--debugger <pkg>"},
-  {'v', "version",      noArgument,   Null,          displayVersion, Null, "-v|--version"},
-  {'b', "boot-pkg",     hasArgument,  STAR_BOOT,     setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",         hasArgument,  STAR_MAIN,     setMainEntry,   Null, "-m|--main <entry>"},
-  {'L', "logFile",      hasArgument,  STAR_LOGFILE,  setLogFile,     Null, "-L|--logFile <path>"},
-  {'r', "repository",   hasArgument,  STAR_REPO,     setRepoDir,     Null, "-r|--repository <path>"},
-  {'w', "set-wd",       hasArgument,  STAR_WD,       setWD,          Null, "-w|--set-wd <dir>"},
-  {'V', "verify",       noArgument,   STAR_VERIFY,   setVerify,      Null, "-V|--verify code"},
-  {'h', "heap",         hasArgument,  STAR_INIT_HEAP,setHeapSize,    Null, "-h|--heap <size>"},
-  {'s', "stack",        hasArgument,  STAR_INIT_STACK, setStackSize,   Null, "-s|--stack <size>"},};
+  {'d', "debug",        hasArgument, STAR_DBG_OPTS,   debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
+  {'g', "symbol-debug", noArgument,  Null,            symbolDebug,    Null, "-g|--symbol-debug"},
+  {'G', "debugger",     hasArgument, STAR_DEBUGGER,   setDebugger,    Null, "-G|--debugger <pkg>"},
+  {'v', "version",      noArgument,  Null,            displayVersion, Null, "-v|--version"},
+  {'b', "boot-pkg",     hasArgument, STAR_BOOT,       setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",         hasArgument, STAR_MAIN,       setMainEntry,   Null, "-m|--main <entry>"},
+  {'L', "logFile",      hasArgument, STAR_LOGFILE,    setLogFile,     Null, "-L|--logFile <path>"},
+  {'r', "repository",   hasArgument, STAR_REPO,       setRepoDir,     Null, "-r|--repository <path>"},
+  {'w', "set-wd",       hasArgument, STAR_WD,         setWD,          Null, "-w|--set-wd <dir>"},
+  {'V', "verify",       noArgument,  STAR_VERIFY,     setVerify,      Null, "-V|--verify code"},
+  {'h', "heap",         hasArgument, STAR_INIT_HEAP,  setHeapSize,    Null, "-h|--heap <size>"},
+  {'s', "stack",        hasArgument, STAR_INIT_STACK, setStackSize,   Null, "-s|--stack <size>"},};
 
 static void showStar(ioPo out) {
   outMsg(out, "star - %s", copyright);
