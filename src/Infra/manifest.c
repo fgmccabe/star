@@ -20,7 +20,6 @@
 #include "engineOptions.h"
 #include "fileops.h"
 
-
 // Use the JSON event parser to parse a manifest file and build up a manifest structure
 
 static retCode startManifest(void *cl);

@@ -67,6 +67,8 @@ logical isOutReady(filePo f);
 retCode skipShellPreamble(filePo f);
 extern ioPo logFile;		/* The standard place to write logging msgs */
 
+extern char *resolveFileName(char *cwd, const char *fn, integer fnLen, char *buff, integer buffLen);
+
 #ifdef VERIFY_OBJECT
 #define O_FILE(c) ((filePo)(checkCast((c),ioClass)))
 #else

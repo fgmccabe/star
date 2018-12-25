@@ -651,38 +651,3 @@ ioEncoding pickEncoding(integer k) {
       return unknownEncoding;
   }
 }
-
-char *resolveFileName(char *cwd, const char *fn, integer fnLen, char *buff, integer buffLen) {
-  if (fn[0] == '/') {
-    uniNCpy(buff, buffLen, fn, fnLen);
-    return buff;
-  } else {
-    char fname[MAXFILELEN];
-    uniTrim(fn, fnLen, "", "/", fname, NumberOf(fname));
-    fnLen = uniStrLen(fname);
-
-    char wd[MAXFILELEN];
-    uniTrim(cwd, uniStrLen(cwd), "", "/", wd, NumberOf(wd));
-    integer wdLen = uniStrLen(wd);
-    integer pos = 0;
-
-    while (pos < fnLen && fname[pos] == '.') {
-      if (pos < fnLen - 2 && fname[pos + 1] == '.' && fname[pos + 2] == '/') {
-        integer last = uniLastIndexOf(wd, wdLen, '/');
-        if (last >= 0) {
-          wdLen = last;
-          wd[last] = '\0';
-          pos += 3;
-        } else
-          break;
-      } else if (pos < fnLen - 1 && fname[pos + 1] == '/') {
-        pos += 2;
-      } else if (pos == fnLen - 1)
-        pos++;
-      else
-        break;
-    }
-    strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
-    return buff;
-  }
-}

@@ -11,8 +11,5 @@
 #include "engine.h"
 #include "libEscapes.h"
 
-extern char *
-resolveFileName(char *cwd, const char *fn, integer fnLen, char *buff, integer buffLen);
-
 ioEncoding pickEncoding(integer k);
 #endif //STAR_FILEOPS_H

@@ -489,7 +489,7 @@ static treePo mergeNode(treePo t1, treePo t2) {
   int16 ml1 = t1->tree.masklen;
   int16 ml2 = t2->tree.masklen;
 
-  int16 cml = (int16) minl(ml1, common2WayMaskLen(m1, m2));
+  int16 cml = (int16) minimum(ml1, common2WayMaskLen(m1, m2));
   integer cm = maskPrefix(m1, cml);
 
   if (cml < ml1) {
