@@ -11,7 +11,7 @@
 
 typedef DebugWaitFor (*debugCmd)(char *line, processPo p, insWord ins, void *cl);
 
-typedef vectorPo (*completeCb)(bufferPo);
+typedef retCode (*completeCb)(bufferPo, integer cx);
 
 typedef struct {
   codePoint c;

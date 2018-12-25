@@ -24,6 +24,7 @@
 typedef struct _property_ *propertyPo;
 
 typedef retCode (*ioProc)(ioPo f);
+typedef logical (*ioStatusProc)(ioPo f);
 typedef retCode (*filterProc)(ioPo f,void *cl);
 typedef retCode (*flushProc)(ioPo f,long count);
 typedef retCode (*byteOutProc)(ioPo f,byte *cl,integer count,integer *actual);
@@ -35,9 +36,6 @@ typedef struct {
   retCode (*backByte)(ioPo io,byte b);  /* procedure to put a byte back in the file */
 
   ioProc isAtEof;			                  /* Are we at the end of file? */
-
-  ioProc inReady;                       /* Called to determine if file has input */
-  ioProc outReady;                      /* Called to determine if file can output */
 
   flushProc flush;                      /* Called when file is to be flushed */
   ioProc close;                         /* Called when file is to be closed */

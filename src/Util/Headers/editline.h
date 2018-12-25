@@ -11,7 +11,7 @@
 #include "stringBuffer.h"
 
 
-typedef vectorPo (*CompletionCallback)(bufferPo lineBuff,void *cl);
+typedef retCode (*CompletionCallback)(bufferPo lineBuff,void *cl,integer ix);
 
 void setCompletionCallback(CompletionCallback fn,void *cl);
 

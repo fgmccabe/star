@@ -67,14 +67,14 @@ FileClassRec FileClass = {
     fileOutBytes,                         // outBytes
     fileBackByte,                         // put a byte back in the buffer
     fileAtEof,                            // Are we at end of file?
-    fileInReady,                          // readyIn
-    fileOutReady,                         // readyOut
     fileFlusher,                          // flush
     fileClose                             // close
   },
   {
     fileConfigure,                        // configure a file
     flSeek,                               /* seek to a point in the file */
+    fileInReady,                          // readyIn
+    fileOutReady,                         // readyOut
     fileFill,                             // fill the file buffer
   }
 };
@@ -109,6 +109,21 @@ void inheritFile(classPo class, classPo request) {
     if (req->filePart.filler == O_INHERIT_DEF) {
       if (template->filePart.filler != O_INHERIT_DEF)
         req->filePart.filler = template->filePart.filler;
+      else
+        done = False;
+    }
+
+
+    if (req->filePart.inReady == O_INHERIT_DEF) {
+      if (template->filePart.inReady != O_INHERIT_DEF)
+        req->filePart.inReady = template->filePart.inReady;
+      else
+        done = False;
+    }
+
+    if (req->filePart.outReady == O_INHERIT_DEF) {
+      if (template->filePart.outReady != O_INHERIT_DEF)
+        req->filePart.outReady = template->filePart.outReady;
       else
         done = False;
     }
@@ -205,11 +220,11 @@ retCode fileAtEof(ioPo io) {
     return refillBuffer(f);
 }
 
-retCode fileInReady(ioPo io) {
+logical fileInReady(filePo io) {
   filePo f = O_FILE(io);
 
   if (f->file.in_pos < f->file.in_len)
-    return Ok;
+    return True;
   else {
     int fno = f->file.fno;
 
@@ -224,20 +239,17 @@ retCode fileInReady(ioPo io) {
       period.tv_sec = 0;
       period.tv_usec = 0;
 
-      if (select(fno + 1, &fdin, NULL, NULL, &period) > 0)
-        return Ok;
-      else
-        return Fail;
+      return (logical) (select(fno + 1, &fdin, NULL, NULL, &period) > 0);
     } else
-      return ioErrorMsg(io, "%s does not permit read access", fileName(io));
+      return False;
   }
 }
 
-retCode fileOutReady(ioPo io) {
+logical fileOutReady(filePo io) {
   filePo f = O_FILE(io);
 
   if (f->file.out_pos < NumberOf(f->file.out_line))
-    return Ok;
+    return True;
   else {
     int fno = f->file.fno;
 
@@ -252,12 +264,9 @@ retCode fileOutReady(ioPo io) {
       period.tv_sec = 0;
       period.tv_usec = 0;
 
-      if (select(fno + 1, NULL, &fdout, NULL, &period) > 0)
-        return Ok;
-      else
-        return Fail;
+      return (logical) (select(fno + 1, NULL, &fdout, NULL, &period) > 0);
     } else
-      return ioErrorMsg(io, "%s does not permit write access", fileName(io));
+      return False;
   }
 }
 
@@ -278,7 +287,7 @@ retCode flSeek(filePo f, integer count) {
     f->file.in_pos = f->file.out_pos = 0;
     f->file.in_len = 0;                 // ensure that we will be refilling
 
-    if (isReadingFile(io) == Ok) {
+    if (isReadingFile(io)) {
       f->io.inCpos = count;
       f->io.inBpos = count;
     }
@@ -824,10 +833,54 @@ retCode fileSeek(filePo f, integer count) {
   return ret;
 }
 
+/* test that a file is ready without actually reading anything */
+logical isInReady(filePo f) {
+  objectPo o = O_OBJECT(f);
+  logical ret;
+
+  lock(O_LOCKED(o));
+  ret = ((FileClassRec *) (f->object.class))->filePart.inReady(f);
+  unlock(O_LOCKED(o));
+
+  return ret;
+}
+
+logical isOutReady(filePo f) {
+  objectPo o = O_OBJECT(f);
+  logical ret;
+
+  lock(O_LOCKED(o));
+  ret = ((FileClassRec *) (f->object.class))->filePart.outReady(f);
+  unlock(O_LOCKED(o));
+  return ret;
+}
+
 void pU(char *p) {
   retCode ret = Ok;
   while (ret == Ok && *p != 0)
     ret = outChar(logFile, (codePoint) *p++);
   outChar(logFile, '\n');
   flushFile(logFile);
+}
+
+// Utility to skip shell preamble at start of file
+retCode skipShellPreamble(filePo f) {
+  codePoint ch;
+  ioPo io = O_IO(f);
+  retCode ret = inChar(io, &ch);
+
+  if (ret == Ok) {
+    if (ch == '#') {      /* look for standard #!/.... header */
+      ret = inChar(io, &ch);
+      if (ret == Ok && ch == '!') {
+        while ((inChar(io, &ch)) == Ok && ch != uniEOF &&
+               ch != '\n');              /* consume the interpreter statement */
+      } else {
+        unGetChar(io, ch);
+        unGetChar(io, '#');
+      }
+    } else
+      unGetChar(io, ch);
+  }
+  return ret;
 }

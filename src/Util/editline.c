@@ -18,7 +18,7 @@
 #define DEFAULT_HISTORY_MAX_LEN 100
 
 static CompletionCallback completionCallback = Null;
-static void* completionCl = Null;
+static void *completionCl = Null;
 
 static int getTerminalCol();
 
@@ -39,23 +39,23 @@ typedef struct {
 } LineState;
 
 enum KEY_ACTION {
-  CTRL_A = 1,         /* Ctrl+a */
-  CTRL_B = 2,         /* Ctrl-b */
-  CTRL_C = 3,         /* Ctrl-c */
-  CTRL_D = 4,         /* Ctrl-d */
-  CTRL_E = 5,         /* Ctrl-e */
-  CTRL_F = 6,         /* Ctrl-f */
-  CTRL_H = 8,         /* Ctrl-h */
-  TAB = 9,            /* Tab */
-  CTRL_K = 11,        /* Ctrl+k */
-  CTRL_L = 12,        /* Ctrl+l */
+  CTRL_A = CTRL('A'),
+  CTRL_B = CTRL('B'),
+  CTRL_C = CTRL('C'),
+  CTRL_D = CTRL('D'),
+  CTRL_E = CTRL('E'),
+  CTRL_F = CTRL('F'),
+  CTRL_H = CTRL('H'),
+  TAB = '\t',            /* Tab */
+  CTRL_K = CTRL('K'),
+  CTRL_L = CTRL('L'),
   ENTER = 13,         /* Enter */
-  CTRL_N = 14,        /* Ctrl-n */
-  CTRL_P = 16,        /* Ctrl-p */
-  CTRL_T = 20,        /* Ctrl-t */
-  CTRL_U = 21,        /* Ctrl+u */
-  CTRL_W = 23,        /* Ctrl+w */
+  CTRL_N = CTRL('N'),
+  CTRL_P = CTRL('P'),
+  CTRL_T = CTRL('T'),
+  CTRL_U = CTRL('U'),
   ESC = 27,           /* Escape */
+  SPACE = ' ',         // space
   BACKSPACE = 127    /* Backspace */
 };
 
@@ -79,36 +79,30 @@ static logical isUnsupportedTerm(void) {
 }
 
 /* set up raw mode */
-static struct termios orig_termios; /* In order to restore at exit.*/
-static logical rawMode = False; /* For atexit() function to check if restore is needed*/
+static struct termios saved_termios; /* In order to restore at exit.*/
+static logical rawMode = False;
 static logical atexitRegistered = False;
 
-static retCode enableRawMode(int fd) {
+static retCode enableRawMode() {
   struct termios raw;
 
   if (!isatty(STDIN_FILENO))
     return Error;
 
-  if (tcgetattr(fd, &orig_termios) == -1)
+  if (tcgetattr(STDIN_FILENO, &saved_termios) == -1)
     return Error;
 
-  raw = orig_termios;  /* modify the original mode */
-  /* input modes: no break, no CR to NL, no parity check, no strip char,
-   * no start/stop output control. */
-  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
-  /* output modes - disable post processing */
+  raw = saved_termios;
+
+  raw.c_iflag &= ~(BRKINT | INPCK | ISTRIP | IXON | ICRNL);
   raw.c_oflag &= ~(OPOST);
-  /* control modes - set 8 bit chars */
   raw.c_cflag |= (CS8);
-  /* local modes - choing off, canonical off, no extended functions,
-   * no signal chars (^Z,^C) */
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-  /* control chars - set return condition: min number of bytes and timer.
-   * We want read to return every single byte, without timeout. */
+
   raw.c_cc[VMIN] = 1;
   raw.c_cc[VTIME] = 0; /* 1 byte, no timer */
 
-  if (tcsetattr(fd, TCSAFLUSH, &raw) < 0)
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) < 0)
     return Error;
   rawMode = True;
 
@@ -120,9 +114,9 @@ static retCode enableRawMode(int fd) {
   return Ok;
 }
 
-static void disableRawMode(int fd) {
+static void disableRawMode() {
   if (rawMode) {
-    tcsetattr(fd, TCSAFLUSH, &orig_termios);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &saved_termios);
   }
   rawMode = False;
 }
@@ -137,57 +131,61 @@ static void beep(void) {
   outMsg(stdOut, "\07%_");
 }
 
-static char completeLine(LineState *ls) {
-  vectorPo completions = completionCallback(ls->lineBuff,completionCl);
-
-  char c = 0;
-
-  if (completions==Null || vectIsEmpty(completions) == 0) {
-    beep();
-  } else {
-    logical stop = False;
-    size_t i = 0;
-
-    while (!stop) {
-      /* Show completion or original buffer */
-      if (i < vectLength(completions)) {
-        strgPo comp = O_STRG(getVectEl(completions, i));
-        refreshFromText(ls->firstPos, 0, strgVal(comp), strgLen(comp));
-      } else {
-        refreshLine(ls->firstPos, ls->lineBuff);
-      }
-
-      if (rawInChar(&c) != Ok) {
-        return -1;
-      }
-
-      switch (c) {
-        case TAB:
-          i = (i + 1) % (vectLength(completions) + 1);
-          if (i == vectLength(completions))
-            beep();
-          break;
-        case ESC:
-          /* Re-show original buffer */
-          if (i < vectLength(completions))
-            refreshLine(ls->firstPos, ls->lineBuff);
-          stop = True;
-          break;
-        default:
-          /* Update buffer and return */
-          if (i < vectLength(completions)) {
-            stringIntoBuffer(ls->lineBuff, O_STRG(getVectEl(completions, i)));
-          }
-          stop = True;
-          break;
-      }
-    }
-  }
-
-  return c;
+static void resetBuffer(bufferPo b, strgPo old, integer pos) {
+  clearBuffer(b);
+  stringIntoBuffer(b, old);
+  seekBuffer(b, pos);
 }
 
-void setCompletionCallback(CompletionCallback fn,void *cl) {
+static retCode completeLine(LineState *ls) {
+  integer cx = 0;
+  strgPo snapShot = stringFromBuffer(ls->lineBuff);
+  integer snapPos = bufferOutPos(ls->lineBuff);
+
+  do {
+    retCode ret = completionCallback(ls->lineBuff, completionCl, cx++);
+
+    switch (ret) {
+      case Ok: {
+        char ch;
+        if (rawInChar(&ch) != Ok) {
+          resetBuffer(ls->lineBuff, snapShot, snapPos);
+          decReference(O_OBJECT(snapShot));
+          return Error;
+        } else {
+          switch (ch) {
+            case TAB:
+              resetBuffer(ls->lineBuff, snapShot, snapPos);
+              continue;
+            case ESC:
+              resetBuffer(ls->lineBuff, snapShot, snapPos);
+              decReference(O_OBJECT(snapShot));
+              refreshLine(ls->firstPos, ls->lineBuff);
+              return Ok;
+            case SPACE:
+            case ENTER:
+              decReference(O_OBJECT(snapShot));
+              return Ok;
+            default:
+              beep();
+              continue;
+          }
+        }
+      }
+
+      case Eof:
+        resetBuffer(ls->lineBuff, snapShot, snapPos);
+        decReference(O_OBJECT(snapShot));
+        refreshLine(ls->firstPos, ls->lineBuff);
+        return Ok;
+      default:
+      case Error:
+        return Error;
+    }
+  } while (True);
+}
+
+void setCompletionCallback(CompletionCallback fn, void *cl) {
   completionCallback = fn;
   completionCl = cl;
 }
@@ -298,10 +296,8 @@ static retCode editLine(bufferPo lineBuff) {
         return Ok;
       case TAB: {
         if (completionCallback != Null) {
-          c = completeLine(&l);
-          if (c < 0) {
+          if (completeLine(&l) != Ok)
             return Error;
-          }
         } else
           beep();
         continue;
@@ -425,12 +421,12 @@ static retCode editLine(bufferPo lineBuff) {
 retCode consoleInput(bufferPo lineBuff) {
   if (!isatty(STDIN_FILENO) || isUnsupportedTerm()) {
     return inLine(stdIn, lineBuff, "\n");
-  } else if (enableRawMode(STDIN_FILENO) != Ok) {
-    disableRawMode(STDIN_FILENO);
+  } else if (enableRawMode() != Ok) {
+    disableRawMode();
     return inLine(stdIn, lineBuff, "\n");
   } else {
     retCode ret = editLine(lineBuff);
-    disableRawMode(STDIN_FILENO);
+    disableRawMode();
     outMsg(stdOut, "\n%_");
 
     return ret;
@@ -439,7 +435,7 @@ retCode consoleInput(bufferPo lineBuff) {
 
 /* At exit we'll try to fix the terminal to the initial conditions. */
 static void resetAtExit(void) {
-  disableRawMode(STDIN_FILENO);
+  disableRawMode();
 }
 
 static int history_max_len = DEFAULT_HISTORY_MAX_LEN;

@@ -171,12 +171,12 @@ static void resetDeflt(char *cmd) {
   uniCpy(defltLn, NumberOf(defltLn), cmd);
 }
 
-static vectorPo cmdComplete(bufferPo b, void *cl) {
+static retCode cmdComplete(bufferPo b, void *cl, integer cx) {
   integer bLen;
   char *content = getTextFromBuffer(b, &bLen);
 
   if (bLen == 0)
-    return Null;
+    return Eof;
   else {
     integer pos = 0;
     codePoint first = nextCodePoint(content, &pos, bLen);
@@ -185,15 +185,15 @@ static vectorPo cmdComplete(bufferPo b, void *cl) {
     for (int ix = 0; ix < opts->count; ix++) {
       if (opts->opts[ix].c == first) {
         if (opts->opts[ix].complete != Null)
-          return opts->opts[ix].complete(b);
+          return opts->opts[ix].complete(b, cx);
         else
-          return Null;
+          return Eof;
       }
     }
     if (opts->deflt != Null)
-      return opts->deflt(b);
+      return opts->deflt(b, cx);
     else
-      return Null;
+      return Eof;
   }
 }
 
