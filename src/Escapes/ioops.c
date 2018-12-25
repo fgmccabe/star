@@ -81,7 +81,7 @@ ReturnStatus g__inchars(processPo p, ptrPo tos) {
 
   if (ret == Ok) {
     integer length;
-    char *text = getTextFromBuffer(&length, buffer);
+    char *text = getTextFromBuffer(buffer, &length);
 
     ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
@@ -128,7 +128,7 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
 
   if (ret == Ok) {
     integer length;
-    char *text = getTextFromBuffer(&length, buffer);
+    char *text = getTextFromBuffer(buffer, &length);
 
     heapPo H = processHeap(p);
     listPo lst = allocateList(H, length, True);
@@ -175,7 +175,7 @@ ReturnStatus g__intext(processPo p, ptrPo tos) {
 
   if (ret == Ok) {
     integer length;
-    char *text = getTextFromBuffer(&length, buffer);
+    char *text = getTextFromBuffer(buffer, &length);
 
     ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
@@ -208,7 +208,7 @@ ReturnStatus g__inline(processPo p, ptrPo tos) {
 
   if (ret == Ok) {
     integer length;
-    char *text = getTextFromBuffer(&length, buffer);
+    char *text = getTextFromBuffer(buffer, &length);
 
     ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
     closeFile(O_IO(buffer));
@@ -239,7 +239,7 @@ ReturnStatus g__get_file(processPo p, ptrPo tos) {
 
     if (ret == Eof) {
       integer length;
-      char *text = getTextFromBuffer(&length, buffer);
+      char *text = getTextFromBuffer(buffer, &length);
 
       ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), text, length)};
       closeFile(O_IO(buffer));

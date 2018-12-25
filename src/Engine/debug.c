@@ -5,8 +5,7 @@
 #include <globals.h>
 #include <str.h>
 
-#include "debug.h"
-#include "bkpoint.h"
+#include "debugP.h"
 #include "arith.h"
 #include "editline.h"
 
@@ -154,15 +153,6 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
     return False;
 }
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, insWord ins, void *cl);
-
-typedef struct {
-  codePoint c;
-  char *usage;
-  void *cl;
-  debugCmd cmd;
-} DebugOption, *debugOptPo;
-
 static char defltLn[MAXLINE] = {'n'};
 static integer defltLen = 1;
 
@@ -177,11 +167,37 @@ static char *defltLine(char *src, integer srcLen, integer *actLen) {
   }
 }
 
-static void resetDeflt(char *cmd){
-  uniCpy(defltLn,NumberOf(defltLn),cmd);
+static void resetDeflt(char *cmd) {
+  uniCpy(defltLn, NumberOf(defltLn), cmd);
 }
 
-static DebugWaitFor cmder(debugOptPo opts, int optCount, processPo p, methodPo mtd, insWord ins) {
+static vectorPo cmdComplete(bufferPo b, void *cl) {
+  integer bLen;
+  char *content = getTextFromBuffer(b, &bLen);
+
+  if (bLen == 0)
+    return Null;
+  else {
+    integer pos = 0;
+    codePoint first = nextCodePoint(content, &pos, bLen);
+
+    debugOptPo opts = (debugOptPo) cl;
+    for (int ix = 0; ix < opts->count; ix++) {
+      if (opts->opts[ix].c == first) {
+        if (opts->opts[ix].complete != Null)
+          return opts->opts[ix].complete(b);
+        else
+          return Null;
+      }
+    }
+    if (opts->deflt != Null)
+      return opts->deflt(b);
+    else
+      return Null;
+  }
+}
+
+static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord ins) {
   static bufferPo cmdBuffer = Null;
 
   if (cmdBuffer == Null)
@@ -191,14 +207,17 @@ static DebugWaitFor cmder(debugOptPo opts, int optCount, processPo p, methodPo m
     outMsg(stdErr, " => ");
     flushFile(stdErr);
     clearBuffer(cmdBuffer);
+
+    setCompletionCallback(cmdComplete, (void *) opts);
     retCode res = consoleInput(cmdBuffer);
+    setCompletionCallback(Null, Null);
 
     switch (res) {
       case Eof:
         return quitDbg;
       case Ok: {
         integer cmdLen = 0;
-        char *cmdLine = getTextFromBuffer(&cmdLen, cmdBuffer);
+        char *cmdLine = getTextFromBuffer(cmdBuffer, &cmdLen);
 
         cmdLine = defltLine(cmdLine, cmdLen, &cmdLen);
 
@@ -211,15 +230,15 @@ static DebugWaitFor cmder(debugOptPo opts, int optCount, processPo p, methodPo m
           nxt = 0;
         }
 
-        for (int ix = 0; ix < optCount; ix++) {
-          if (opts[ix].c == cmd)
-            return opts[ix].cmd(&cmdLine[nxt], p, ins, opts[ix].cl);
+        for (int ix = 0; ix < opts->count; ix++) {
+          if (opts->opts[ix].c == cmd)
+            return opts->opts[ix].cmd(&cmdLine[nxt], p, ins, opts->opts[ix].cl);
         }
         outMsg(stdErr, "invalid debugger command: %s\n", cmdLine);
       }
       default:
-        for (int ix = 0; ix < optCount; ix++)
-          outMsg(stdErr, "%s\n", opts[ix].usage);
+        for (int ix = 0; ix < opts->count; ix++)
+          outMsg(stdErr, "%s\n", opts->opts[ix].usage);
         flushFile(stdErr);
         return moreDebug;
     }
@@ -478,7 +497,7 @@ void dumpStackTrace(processPo p, ioPo out) {
 
   integer frameNo = 0;
 
-  outMsg(out, "Stack dump for p: 0x%x\n", p);
+  outMsg(out, "Stack dump for p: %d\n", p->processNo);
 
   while (fp->fp < (framePo) p->stackLimit) {
     termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
@@ -627,27 +646,30 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
 }
 
 DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
-  static DebugOption opts[] = {
-    {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
-    {.c = '\n', .cmd=dbgSingle, .usage="\\n step into"},
-    {.c = 'N', .cmd=dbgOver, .usage="N step over"},
-    {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
-    {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
-    {.c = 'c', .cmd=dbgCont, .usage="c continue"},
-    {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
-    {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
-    {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
-    {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
-    {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
-    {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
-    {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
-    {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
-    {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
-    {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
-    {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
-    {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
-    {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"},
+  static DebugOptions opts = {
+    .opts = {
+      {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
+      {.c = 'N', .cmd=dbgOver, .usage="N step over"},
+      {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
+      {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
+      {.c = 'c', .cmd=dbgCont, .usage="c continue"},
+      {.c = 'u', .cmd=dbgUntilRet, .usage="u <count> until next <count> returns"},
+      {.c = 'r', .cmd=dbgShowRegisters, .usage="r show registers"},
+      {.c = 'l', .cmd=dbgShowLocal, .usage="l show local variable"},
+      {.c = 'a', .cmd=dbgShowArg, .usage="a show argument"},
+      {.c = 's', .cmd=dbgShowStack, .usage="s show stack"},
+      {.c = 'S', .cmd=dbgStackTrace, .usage="S show entire stack"},
+      {.c = 'D', .cmd=dbgDropFrame, .usage="D <count> drop stack frame(s)"},
+      {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
+      {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
+      {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
+      {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
+      {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
+      {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"}},
+    .count = 18,
+    .deflt = Null
   };
+
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
@@ -661,7 +683,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(opts, NumberOf(opts), p, mtd, ins);
+          p->waitFor = cmder(&opts, p, mtd, ins);
         else {
           outStr(stdErr, "\n");
         }
@@ -768,9 +790,8 @@ DebugWaitFor lineDebug(processPo p, termPo line) {
 }
 
 DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
-  static DebugOption opts[] = {
+  static DebugOptions opts = {.opts = {
     {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
-    {.c = '\n', .cmd=dbgSingle, .usage="\\n step into"},
     {.c = 'N', .cmd=dbgOver, .usage="N step over"},
     {.c = 'q', .cmd=dbgQuit, .usage="q stop execution"},
     {.c = 't', .cmd=dbgTrace, .usage="t trace mode"},
@@ -787,7 +808,9 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
-    {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"},
+    {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"}},
+    .count = 18,
+    .deflt = Null
   };
   methodPo mtd = p->prog;
   framePo fp = p->fp;
@@ -806,7 +829,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(opts, NumberOf(opts), p, mtd, ins);
+          p->waitFor = cmder(&opts, p, mtd, ins);
         else {
           outStr(stdErr, "\n");
           flushFile(stdErr);
@@ -838,7 +861,7 @@ void stackSummary(ioPo out, processPo P, ptrPo sp) {
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   integer count = argCount(mtd);
-  outMsg(out,"Arguments:\n");
+  outMsg(out, "Arguments:\n");
   for (integer ix = 0; ix < count; ix++) {
     outMsg(out, "A[%d] = %,*T\n", ix, displayDepth, fp->args[ix]);
   }

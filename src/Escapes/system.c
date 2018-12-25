@@ -230,7 +230,7 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
-      const char *line = getTextFromBuffer(&lineLen, lineBf);
+      const char *line = getTextFromBuffer(lineBf, &lineLen);
       envp[ix] = strndup(line, (size_t) lineLen);
       closeFile(O_IO(lineBf));
     }
@@ -331,7 +331,7 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
       outMsg(O_IO(lineBf), "%S = %S", key, klen, val, vlen);
 
       integer lineLen;
-      const char *line = getTextFromBuffer(&lineLen, lineBf);
+      const char *line = getTextFromBuffer(lineBf, &lineLen);
       envp[ix] = strndup(line, (size_t) lineLen);
       closeFile(O_IO(lineBf));
     }

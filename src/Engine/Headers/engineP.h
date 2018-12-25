@@ -48,8 +48,6 @@ typedef struct _stack_frame_ {
 extern void initEngine();
 extern retCode run(processPo P);
 
-void initPackages();
-
 retCode bootstrap(char *entry, char *init);
 
 extern pthread_key_t processKey;
@@ -73,6 +71,5 @@ void displayProcess(processPo p);
 void verifyProc(processPo P, heapPo H);
 
 retCode extendStack(processPo p, integer sfactor);
-retCode extendHeap(heapPo p, int hfactor, long hmin);
 
 #endif //STAR_ENGINEP_H

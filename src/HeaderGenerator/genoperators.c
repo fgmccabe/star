@@ -189,7 +189,7 @@ int main(int argc, char **argv) {
     ProcessTable(procOperator, operators, operBuff);
 
     integer len;
-    char *allOps = getTextFromBuffer(&len, operBuff);
+    char *allOps = getTextFromBuffer(operBuff, &len);
 
     hashPo vars = NewHash(8, (hashFun) uniHash, (compFun) uniCmp, NULL);
     hashPut(vars, "Operators", allOps);
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     bufferPo bracketBuff = newStringBuffer();
     ProcessTable(procBrackets, bracketTbl, bracketBuff);
 
-    char *allBkts = getTextFromBuffer(&len, bracketBuff);
+    char *allBkts = getTextFromBuffer(bracketBuff, &len);
     hashPut(vars, "Brackets", allBkts);
 
     hashPut(vars, "Date", date);
@@ -206,11 +206,11 @@ int main(int argc, char **argv) {
 
     bufferPo followBuff = newStringBuffer();
     genFollows(O_IO(followBuff));
-    hashPut(vars, "Follows", getTextFromBuffer(&len, followBuff));
+    hashPut(vars, "Follows", getTextFromBuffer(followBuff, &len));
 
     bufferPo finalBuff = newStringBuffer();
     genFinal(O_IO(finalBuff));
-    hashPut(vars, "Final", getTextFromBuffer(&len, finalBuff));
+    hashPut(vars, "Final", getTextFromBuffer(finalBuff, &len));
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 

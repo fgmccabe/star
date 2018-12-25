@@ -259,21 +259,13 @@ bufferPo fixedStringBuffer(char *buffer, long len) {
   return O_BUFFER(newObject(bufferClass, name, utf8Encoding, buffer, len, ioWRITE, False));
 }
 
-char *getTextFromBuffer(integer *actual, bufferPo s) {
-  *actual = s->buffer.size;
+char *getTextFromBuffer(bufferPo s, integer *len) {
+  *len = s->buffer.size;
 
   ensureSpace(s, 1);
   s->buffer.buffer[s->buffer.size] = '\0';
 
   return s->buffer.buffer;
-}
-
-integer textFromBuffer(bufferPo b, char *buffer, integer len) {
-  integer cnt = minimum(len, b->buffer.size);
-  for (integer ix = 0; ix < cnt; ix++) {
-    buffer[ix] = b->buffer.buffer[ix];
-  }
-  return cnt;
 }
 
 logical isTrivialBuffer(bufferPo b) {
@@ -385,4 +377,12 @@ retCode deleteFromBuffer(bufferPo b, integer len) {
 
 strgPo stringFromBuffer(bufferPo b) {
   return newStrng(b->buffer.size, b->buffer.buffer);
+}
+
+retCode showStringBuffer(ioPo f, void *data, long depth, long precision, logical alt) {
+  bufferPo b = O_BUFFER(data);
+  integer bufLen;
+  char *content = getTextFromBuffer(b, &bufLen);
+
+  return outMsg(f, "«%S»", content,bufLen);
 }

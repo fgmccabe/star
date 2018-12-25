@@ -17,7 +17,8 @@
 
 #define DEFAULT_HISTORY_MAX_LEN 100
 
-static CompletionCallback *completionCallback = Null;
+static CompletionCallback completionCallback = Null;
+static void* completionCl = Null;
 
 static int getTerminalCol();
 
@@ -70,7 +71,7 @@ static logical isUnsupportedTerm(void) {
   char *term = getenv("TERM");
 
   if (term == Null)
-    return False;
+    return True;
   for (int ix = 0; ix < NumberOf(unsupported_term); ix++)
     if (uniCmp(term, unsupported_term[ix]) == same)
       return True;
@@ -137,11 +138,11 @@ static void beep(void) {
 }
 
 static char completeLine(LineState *ls) {
-  vectorPo completions = completionCallback(ls->lineBuff);
+  vectorPo completions = completionCallback(ls->lineBuff,completionCl);
 
   char c = 0;
 
-  if (vectIsEmpty(completions) == 0) {
+  if (completions==Null || vectIsEmpty(completions) == 0) {
     beep();
   } else {
     logical stop = False;
@@ -186,8 +187,9 @@ static char completeLine(LineState *ls) {
   return c;
 }
 
-void setCompletionCallback(CompletionCallback *fn) {
+void setCompletionCallback(CompletionCallback fn,void *cl) {
   completionCallback = fn;
+  completionCl = cl;
 }
 
 static void refreshFromText(integer firstPos, integer pos, char *content, integer size) {
@@ -197,7 +199,7 @@ static void refreshFromText(integer firstPos, integer pos, char *content, intege
 
 static void refreshLine(integer firstPos, bufferPo lineBuf) {
   integer buffLen;
-  char *content = getTextFromBuffer(&buffLen, lineBuf);
+  char *content = getTextFromBuffer(lineBuf, &buffLen);
   refreshFromText(firstPos, bufferOutPos(lineBuf), content, buffLen);
 }
 
@@ -403,7 +405,7 @@ static retCode editLine(bufferPo lineBuff) {
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_K: /* Ctrl+k, delete from current to end of line. */
-        deleteFromBuffer(l.lineBuff, bufferLength(lineBuff)-bufferOutPos(lineBuff));
+        deleteFromBuffer(l.lineBuff, bufferLength(lineBuff) - bufferOutPos(lineBuff));
         refreshLine(l.firstPos, lineBuff);
         break;
       case CTRL_A: /* Ctrl+a, go to the start of the line */
@@ -423,12 +425,10 @@ static retCode editLine(bufferPo lineBuff) {
 retCode consoleInput(bufferPo lineBuff) {
   if (!isatty(STDIN_FILENO) || isUnsupportedTerm()) {
     return inLine(stdIn, lineBuff, "\n");
+  } else if (enableRawMode(STDIN_FILENO) != Ok) {
+    disableRawMode(STDIN_FILENO);
+    return inLine(stdIn, lineBuff, "\n");
   } else {
-    if (enableRawMode(STDIN_FILENO) != Ok) {
-      disableRawMode(STDIN_FILENO);
-      return Error;
-    }
-
     retCode ret = editLine(lineBuff);
     disableRawMode(STDIN_FILENO);
     outMsg(stdOut, "\n%_");
@@ -448,7 +448,7 @@ void addLineToHistory(bufferPo lineBuff) {
   assert(history != Null);
 
   integer len;
-  char *line = getTextFromBuffer(&len, lineBuff);
+  char *line = getTextFromBuffer(lineBuff, &len);
 
   while (len > 0 && (line[len - 1] == '\r' || line[len - 1] == '\n'))
     len--;

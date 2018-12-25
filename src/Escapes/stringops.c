@@ -153,7 +153,7 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
   retCode ret = dispTerm(O_IO(strb), t, 0, depth, False);
 
   integer oLen;
-  const char *buff = getTextFromBuffer(&oLen, strb);
+  const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus rt = {.ret=ret, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
   return rt;
@@ -192,7 +192,7 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
   }
 
   integer oLen;
-  const char *buff = getTextFromBuffer(&oLen, strb);
+  const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
   return rt;
@@ -381,7 +381,7 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   }
 
   integer oLen;
-  const char *buff = getTextFromBuffer(&oLen, strb);
+  const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
   return rt;

@@ -20,6 +20,8 @@
 #include "debug.h"
 #include "editline.h"
 
+#include "stringBufferP.h"
+
 char *copyright = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0";
 
 int main(int argc, char **argv) {
@@ -63,6 +65,7 @@ int main(int argc, char **argv) {
   installMsgProc('L', showLoc);
   installMsgProc('T', showTerm);
   installMsgProc('P', dispPkgNm);
+  installMsgProc('B', showStringBuffer);
 
   /* IMPORTANT -- Keep the order of these set up calls */
 

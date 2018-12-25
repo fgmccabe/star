@@ -69,7 +69,7 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
       numAllocated++;
       totalAllocated += amnt;
     }
-    if(validateMemory){
+    if (validateMemory) {
       verifyHeap(H);
     }
 #endif
@@ -104,8 +104,8 @@ void validPtr(heapPo H, termPo t) {
   assert((t >= H->start && t < H->limit) || !(t >= H->base && t < H->outerLimit));
 }
 
-void inStackPtr(processPo P,ptrPo o){
-  assert(o>=(ptrPo)P->stackBase && o<(ptrPo)P->stackLimit);
+void inStackPtr(processPo P, ptrPo o) {
+  assert(o >= (ptrPo) P->stackBase && o < (ptrPo) P->stackLimit);
 }
 
 static retCode verifyScanHelper(ptrPo arg, void *c) {

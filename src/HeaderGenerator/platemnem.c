@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 #include "instructions.h"
 
     integer insLen;
-    char *allCode = getTextFromBuffer(&insLen, mnemBuff);
+    char *allCode = getTextFromBuffer(mnemBuff, &insLen);
     hashPut(vars, "Mnem", allCode);
 
     // Set up the label generator
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
 #include "instructions.h"
 
     integer lblLen;
-    char *lblCode = getTextFromBuffer(&lblLen, lblBuff);
+    char *lblCode = getTextFromBuffer(lblBuff, &lblLen);
     hashPut(vars, "Lbls", lblCode);
 
     // Set up the display code
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
 #include "instructions.h"
 
     integer showLen;
-    char *showCode = getTextFromBuffer(&showLen, showBuff);
+    char *showCode = getTextFromBuffer(showBuff, &showLen);
     hashPut(vars, "Show", showCode);
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
