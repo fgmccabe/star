@@ -13,7 +13,6 @@
  */
 
 #include <stdlib.h>
-#include "base64.h"
 #include "pkgP.h"
 
 #include "engine.h"

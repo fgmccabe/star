@@ -3,8 +3,6 @@
 
 #include "integer.h"
 
-extern void syserr(const char *msg);
-
 #ifndef Null
 #define Null ((void*)0)
 #endif
@@ -21,20 +19,6 @@ extern void syserr(const char *msg);
 #define AddressOf(tp, field) ((long)(void*)(&((tp*)0)->field))
 #endif
 
-static long inline minl(long a, long b) {
-  if (a < b)
-    return a;
-  else
-    return b;
-}
-
-static long inline maxl(long a, long b) {
-  if (a > b)
-    return a;
-  else
-    return b;
-}
-
 static integer inline minimum(integer a, integer b) {
   if (a < b)
     return a;
@@ -50,16 +34,17 @@ static integer inline maximum(integer a, integer b) {
 }
 
 static integer inline clamp(integer min, integer ix, integer max) {
-  if(ix<min)
+  if (ix < min)
     return min;
-  else if(ix>max)
+  else if (ix > max)
     return max;
   else
     return ix;
 }
 
-extern char *genSym(char * prefix);
+extern char *genSym(char *prefix);
 
 extern integer nextPrime(integer min);
 
+extern void syserr(const char *msg);
 #endif

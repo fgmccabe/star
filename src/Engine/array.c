@@ -179,7 +179,7 @@ listPo allocateList(heapPo H, integer length, logical safeMode) {
   list->length = length;
   list->base = voidEnum;
 
-  integer extra = maxl(length / 8, 1);
+  integer extra = maximum(length / 8, 1);
   basePo base = (basePo) allocateBase(H, length + extra, safeMode);
 
   base->min = extra / 2;

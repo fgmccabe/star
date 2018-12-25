@@ -14,7 +14,7 @@ SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 include_directories("../Headers" "Headers")
 
 set(PUBLIC_HEADERS
-        Headers/base64.h Headers/io.h Headers/file.h Headers/formio.h
+        Headers/io.h Headers/file.h Headers/formio.h
         Headers/hash.h Headers/hosts.h Headers/integer.h
         Headers/ioTcp.h Headers/iterate.h Headers/ixTree.h Headers/jsonEvent.h
         Headers/cons.h Headers/lockable.h Headers/logical.h
@@ -78,7 +78,6 @@ set(SOURCE_FILES
         ${BISON_JsonParser_OUTPUTS}
         ${FLEX_JsonTokeniser_OUTPUTS}
 
-        base64.c
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
         vector.c integer.c strng.c editline.c )
