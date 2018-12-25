@@ -20,10 +20,6 @@
 #include "lockable.h"
 #include "strng.h"
 
-/* Status return type ... most API functions return one of these */
-typedef enum {
-  ioFile, ioChar, ioBlock, ioDir, ioPipe, ioString, ioLog, ioUDP
-} ioType;
 typedef enum {
   ioNULL = 000, ioREAD = 001, ioWRITE = 002
 } ioDirection;
@@ -42,7 +38,6 @@ extern classPo ioClass;
 #define MAXFILELEN 512                /* Maximum length of a file name */
 #endif
 
-void initIo(void);                      /* Initialize I/O system */
 void closeIo(void);                     /* Close down the I/O system */
 
 retCode inByte(ioPo f, byte *ch);      /* read a single byte -- with status */
@@ -55,13 +50,10 @@ retCode inChar(ioPo f, codePoint *ch);     /* read a character */
 retCode unGetChar(ioPo f, codePoint ch);   /* put a single character back */
 retCode inLine(ioPo f, bufferPo buffer, char *term);
 
-retCode skipShellPreamble(ioPo f);
-
 retCode pushBack(ioPo f, char *str, integer from, integer len);
 
 retCode outByte(ioPo f, byte c);
 retCode outChar(ioPo f, codePoint ch);
-retCode outBlock(ioPo f, byte *data, integer len);
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual);
 
 retCode outText(ioPo f, const char *text, integer len);
@@ -70,15 +62,13 @@ retCode outStrg(ioPo f,strgPo str);
 
 retCode closeFile(ioPo f);            /* generic file closer */
 retCode flushFile(ioPo f);            /* generic file flush */
-retCode preFlushFile(ioPo f, int count); /* file flush */
+/* file flush */
 void flushOut(void);                    /* flush all files */
 
 void setEncoding(ioPo f, ioEncoding encoding);
 retCode isFileOpen(ioPo f);
-retCode isReadingFile(ioPo f);
-retCode isWritingFile(ioPo f);
-retCode isInReady(ioPo f);
-retCode isOutReady(ioPo f);
+logical isReadingFile(ioPo f);
+logical isWritingFile(ioPo f);
 retCode isFileAtEof(ioPo f);
 retCode fileStatus(ioPo f);
 
@@ -86,8 +76,6 @@ char * fileName(ioPo f);
 ioDirection fileMode(ioPo f);
 integer inCPos(ioPo f);
 integer outBPos(ioPo f);
-
-typedef retCode (*ioPropertyFun)(ioPo f, void *k, void *v, void *c); /* Processing func */
 
 retCode ioErrorMsg(ioPo io, char *fmt, ...);
 

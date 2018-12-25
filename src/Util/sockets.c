@@ -67,16 +67,16 @@ FileClassRec SocketClass = {
     fileInBytes,                        /* inByte  */
     fileOutBytes,                       /* outBytes  */
     fileBackByte,                       //  put a byte back in the buffer
-    fileAtEof,        //  Are we at end of file?
-    fileInReady,                        //  readyIn
-    fileOutReady,                       //  readyOut
+    fileAtEof,                          //  Are we at end of file?
     sockFlush,                          //  flush
     fileClose                           //  close
   },
   {
-    sockConfigure,                       //  configure a file
+    sockConfigure,                      //  configure a file
     sockSeek,                           //  seek
-    sockFill                             //  refill the buffer if needed
+    fileInReady,                        //  readyIn
+    fileOutReady,                       //  readyOut
+    sockFill                            //  refill the buffer if needed
   }
 };
 

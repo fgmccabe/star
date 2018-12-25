@@ -32,7 +32,7 @@ ReturnStatus g__end_of_file(processPo p, ptrPo tos) {
 ReturnStatus g__ready_to_read(processPo p, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
-  termPo Rs = (isInReady(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
+  termPo Rs = (isInReady(O_FILE(ioChannel(chnl))) ? trueEnum : falseEnum);
 
   ReturnStatus ret = {.ret=Ok, .result=Rs};
 
@@ -42,7 +42,7 @@ ReturnStatus g__ready_to_read(processPo p, ptrPo tos) {
 ReturnStatus g__ready_to_write(processPo p, ptrPo tos) {
   ioChnnlPo chnl = C_IO(tos[0]);
 
-  termPo Rs = (isOutReady(ioChannel(chnl)) == Eof ? trueEnum : falseEnum);
+  termPo Rs = (isOutReady(O_FILE(ioChannel(chnl))) ? trueEnum : falseEnum);
 
   ReturnStatus ret = {.ret=Ok, .result=Rs};
 

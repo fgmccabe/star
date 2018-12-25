@@ -26,10 +26,6 @@ static retCode bufferBackByte(ioPo io, byte b);
 
 static retCode bufferAtEof(ioPo io);
 
-static retCode bufferInReady(ioPo io);
-
-static retCode bufferOutReady(ioPo io);
-
 static retCode bufferFlusher(ioPo io, long count);
 
 static retCode bufferClose(ioPo io);
@@ -39,30 +35,28 @@ static retCode bufferMark(ioPo io, integer *mark);
 static retCode bufferReset(ioPo io, integer mark);
 
 BufferClassRec BufferClass = {
-  {(classPo) &IoClass, /* parent class is io object */
-    "buffer", /* this is the buffer class */
+  {(classPo) &IoClass,                    /* parent class is io object */
+    "buffer",                             /* this is the buffer class */
     NULL,
-    initBufferClass, /* Buffer class initializer */
-    O_INHERIT_DEF, /* Buffer object element creation */
-    BufferDestroy, /* Buffer objectdestruction */
-    O_INHERIT_DEF, /* erasure */
-    BufferInit, /* initialization of a buffer object */
-    sizeof(BufferObject), /* size of a buffer object */
-    NULL, /* pool of buffer values */
+    initBufferClass,                      /* Buffer class initializer */
+    O_INHERIT_DEF,                        /* Buffer object element creation */
+    BufferDestroy,                        /* Buffer objectdestruction */
+    O_INHERIT_DEF,                        /* erasure */
+    BufferInit,                           /* initialization of a buffer object */
+    sizeof(BufferObject),                 /* size of a buffer object */
+    NULL,                                 /* pool of buffer values */
     O_INHERIT_DEF,                        // No special hash function
     O_INHERIT_DEF,                        // No special equality
-    PTHREAD_ONCE_INIT, /* not yet initialized */
+    PTHREAD_ONCE_INIT,                    /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
   {},
-  {bufferInBytes, /* inByte  */
-    bufferOutBytes, /* outBytes  */
-    bufferBackByte, /* backByte */
-    bufferAtEof, /* at end of file? */
-    bufferInReady, /* readyIn  */
-    bufferOutReady, /* readyOut  */
-    bufferFlusher, /* flush  */
-    bufferClose /* close  */
+  {bufferInBytes,                         /* inByte  */
+    bufferOutBytes,                       /* outBytes  */
+    bufferBackByte,                       /* backByte */
+    bufferAtEof,                          /* at end of file? */
+    bufferFlusher,                        /* flush  */
+    bufferClose                           /* close  */
   }};
 
 classPo bufferClass = (classPo) &BufferClass;
@@ -82,7 +76,7 @@ static void BufferInit(objectPo o, va_list *args) {
   f->buffer.bufferSize = va_arg(*args, integer); /* set up the buffer */
   f->io.mode = va_arg(*args, ioDirection); /* set up the access mode */
   f->buffer.resizeable = va_arg(*args, logical); /* is this buffer resizeable? */
-  if (isReadingFile(O_IO(f)) == Ok && isWritingFile(O_IO(f)) != Ok)
+  if (isReadingFile(O_IO(f)) && !isWritingFile(O_IO(f)))
     f->buffer.size = f->buffer.bufferSize;
   else
     f->buffer.size = 0;
@@ -183,28 +177,6 @@ static retCode bufferAtEof(ioPo io) {
     return Ok;
   else
     return Eof;
-}
-
-static retCode bufferInReady(ioPo io) {
-  bufferPo f = O_BUFFER(io);
-
-  if (f->buffer.in_pos < f->buffer.size)
-    return Ok;
-  else
-    return Eof;
-}
-
-static retCode bufferOutReady(ioPo io) {
-  bufferPo f = O_BUFFER(io);
-
-  if (f->buffer.out_pos < f->buffer.bufferSize)
-    return Ok;
-  else {
-    if (f->buffer.resizeable)
-      return Ok;
-    else
-      return Fail;
-  }
 }
 
 static retCode bufferFlusher(ioPo io, long count) {

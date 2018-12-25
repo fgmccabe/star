@@ -60,7 +60,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
   if (file != NULL) {
     if (fileStatus(file) == Ok) {
-      skipShellPreamble(file);
+      skipShellPreamble(O_FILE(file));
 
       PackageRec lddPkg;
       bufferPo sigBuffer = newStringBuffer();

@@ -30,9 +30,6 @@ typedef struct _file_object_ *filePo;
 
 extern classPo fileClass;
 
-typedef enum { regularFileType, dirFileType, 
-	       linkFileType, socketFileType, unknownFileType } fileType;
-
 ioPo openInFile(char * file,ioEncoding encoding);
 ioPo openOutFile(char * file,ioEncoding encoding);
 ioPo openInOutFile(char * file,ioEncoding encoding);
@@ -63,6 +60,11 @@ retCode fileSeek(filePo f, integer pos);
 void setup_stdin(void);
 void reset_stdin(void);
 retCode initLogfile(char * name);
+
+logical isInReady(filePo f);
+logical isOutReady(filePo f);
+
+retCode skipShellPreamble(filePo f);
 extern ioPo logFile;		/* The standard place to write logging msgs */
 
 #ifdef VERIFY_OBJECT

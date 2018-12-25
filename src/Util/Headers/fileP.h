@@ -23,10 +23,15 @@
 typedef retCode (*fileConfProc)(filePo f, ioConfigOpt mode);
 typedef retCode (*fileProc)(filePo f);
 typedef retCode (*seekProc)(filePo f,integer count);
+typedef logical (*statusProc)(filePo f);
 
 typedef struct {
   fileConfProc configure;               // We use this to configure files */
   seekProc seek;                        /* called when seeking */
+
+  statusProc inReady;                   /* Called to determine if file has input */
+  statusProc outReady;                  /* Called to determine if file can output */
+
   fileProc filler;                      // We use this to refill the buffer
 } FileClassPartRec;
 
@@ -68,8 +73,9 @@ retCode fileInBytes(ioPo f, byte *ch, integer count, integer *actual);
 retCode fileOutBytes(ioPo f, byte *b, integer count, integer *actual);
 retCode fileBackByte(ioPo f, byte b);
 retCode fileAtEof(ioPo f);
-retCode fileInReady(ioPo f);
-retCode fileOutReady(ioPo f);
+
+logical fileInReady(filePo f);
+logical fileOutReady(filePo f);
 
 retCode fileFlusher(ioPo f, long count);
 retCode flSeek(filePo f, integer count);

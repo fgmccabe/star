@@ -16,9 +16,9 @@
 */
 
 #include "ioP.h"
+#include "file.h"
 #include <stdlib.h>
 #include <unistrP.h>
-#include <memory.h>
 #include <assert.h>
 
 static void initIoClass(classPo class, classPo request);
@@ -36,8 +36,6 @@ static retCode nullOutBytes(ioPo f, byte *b, integer count, integer *actual);
 static retCode nullOutByte(ioPo f, byte b);
 
 static retCode nullEof(ioPo f);
-
-static retCode nullReady(ioPo f);
 
 static retCode nullFlusher(ioPo f, long count);
 
@@ -68,8 +66,6 @@ IoClassRec IoClass = {
     nullOutBytes,         /* outByte, abstract for the io class  */
     nullOutByte,          /* putbackByte, abstract for the io class  */
     nullEof,              /* are we at end of file? */
-    nullReady,            /* readyIn, abstract for the io class  */
-    nullReady,            /* readyOut, abstract for the io class  */
     nullFlusher,          /* flush, abstract for the io class  */
     nullClose             /* close, abstract for the io class  */
   }
@@ -109,20 +105,6 @@ static void inheritIo(classPo class, classPo request) {
     if (req->ioPart.isAtEof == O_INHERIT_DEF) {
       if (template->ioPart.isAtEof != O_INHERIT_DEF)
         req->ioPart.isAtEof = template->ioPart.isAtEof;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.inReady == O_INHERIT_DEF) {
-      if (template->ioPart.inReady != O_INHERIT_DEF)
-        req->ioPart.inReady = template->ioPart.inReady;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.outReady == O_INHERIT_DEF) {
-      if (template->ioPart.outReady != O_INHERIT_DEF)
-        req->ioPart.outReady = template->ioPart.outReady;
       else
         done = False;
     }
@@ -240,27 +222,6 @@ retCode putBackByte(ioPo f, byte b) {
   return ret;
 }
 
-// Utility to skip shell preamble at start of file
-retCode skipShellPreamble(ioPo f) {
-  codePoint ch;
-  retCode ret = inChar(f, &ch);
-
-  if (ret == Ok) {
-    if (ch == '#') {      /* look for standard #!/.... header */
-      ret = inChar(f, &ch);
-      if (ret == Ok && ch == '!') {
-        while ((inChar(f, &ch)) == Ok && ch != uniEOF &&
-               ch != '\n');              /* consume the interpreter statement */
-      } else {
-        unGetChar(f, ch);
-        unGetChar(f, '#');
-      }
-    } else
-      unGetChar(f, ch);
-  }
-  return ret;
-}
-
 /* Byte level output */
 
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {
@@ -273,16 +234,6 @@ retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {
 
   unlock(O_LOCKED(o));
   return ret;
-}
-
-retCode outBlock(ioPo f, byte *data, integer len) {
-  integer actual;
-  retCode ret = outBytes(f, data, len, &actual);
-
-  if (ret == Ok && len != actual)
-    return ioErrorMsg(f, "couldnt write block of %d bytes properly to %s", len, fileName(f));
-  else
-    return ret;
 }
 
 retCode outByte(ioPo f, byte c) {
@@ -500,22 +451,10 @@ retCode flushFile(ioPo f)               /* generic file flush */
 
   lock(O_LOCKED(o));
 
-  if (isWritingFile(f) == Ok)
+  if (isWritingFile(f))
     ret = ((IoClassRec *) f->object.class)->ioPart.flush(f, 0);
 
   unlock(O_LOCKED(o));
-  return ret;
-}
-
-retCode preFlushFile(ioPo f, int count) /* file flush */
-{
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((IoClassRec *) f->object.class)->ioPart.flush(f, count);
-  unlock(O_LOCKED(o));
-
   return ret;
 }
 
@@ -616,10 +555,6 @@ static retCode nullEof(ioPo f) {
   return Error;
 }
 
-static retCode nullReady(ioPo f) {
-  return Error;
-}
-
 retCode isFileAtEof(ioPo f)    /* Eof if at end of file */
 {
   objectPo o = O_OBJECT(f);
@@ -699,50 +634,28 @@ void setEncoding(ioPo f, ioEncoding encoding) {
   f->io.encoding = encoding;
 }
 
-retCode isReadingFile(ioPo f) {
+logical isReadingFile(ioPo f) {
   objectPo o = O_OBJECT(f);
-  retCode ret;
+  logical ret;
 
   lock(O_LOCKED(o));
   if ((fileMode(f) & ioREAD) != 0)
-    ret = Ok;
+    ret = True;
   else
-    ret = Fail;
+    ret = False;
   unlock(O_LOCKED(o));
   return ret;
 }
 
-retCode isWritingFile(ioPo f) {
+logical isWritingFile(ioPo f) {
   objectPo o = O_OBJECT(f);
-  retCode ret;
+  logical ret;
 
   lock(O_LOCKED(o));
   if ((fileMode(f) & ioWRITE) != 0)
-    ret = Ok;
+    ret = True;
   else
-    ret = Fail;
-  unlock(O_LOCKED(o));
-  return ret;
-}
-
-/* test that a file is ready without actually reading anything */
-retCode isInReady(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((IoClassRec *) (f->object.class))->ioPart.inReady(f);
-  unlock(O_LOCKED(o));
-
-  return ret;
-}
-
-retCode isOutReady(ioPo f) {
-  objectPo o = O_OBJECT(f);
-  retCode ret;
-
-  lock(O_LOCKED(o));
-  ret = ((IoClassRec *) (f->object.class))->ioPart.outReady(f);
+    ret = False;
   unlock(O_LOCKED(o));
   return ret;
 }

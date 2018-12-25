@@ -48,8 +48,6 @@ typedef struct _pipe_object_ {
 } PipeObject;
 
 #ifdef VERIFY_OBJECT
-extern objectPo checkCast(void *c,classPo class);
-
 #define O_PIPE(c) ((pipePo)(checkCast((c),(classPo)&PipeClass)))
 #else
 #define O_PIPE(c) ((pipePo)(c))
