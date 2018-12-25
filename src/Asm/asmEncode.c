@@ -69,7 +69,7 @@ retCode encodePkg(ioPo out, pkPo pkg) {
 
   rewindBuffer(str);
   integer buffLen;
-  char *buffer = getTextFromBuffer(&buffLen, str);
+  char *buffer = getTextFromBuffer(str, &buffLen);
   tryRet(encodeStr(out, buffer, buffLen));
   closeFile(O_IO(str));
   return Ok;

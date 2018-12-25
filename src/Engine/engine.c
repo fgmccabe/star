@@ -213,11 +213,6 @@ retCode extendStack(processPo p, integer sfactor) {
   }
 }
 
-retCode extendHeap(heapPo p, int hfactor, long hmin) {
-  syserr("heap extend not implemented");
-  return Error;
-}
-
 ReturnStatus liberror(processPo P, char *name, termPo code) {
   heapPo H = processHeap(P);
   int root = gcAddRoot(H, &code);
@@ -292,8 +287,6 @@ integer processHash(void *x) {
 }
 
 comparison sameProcess(void *a, void *b) {
-  processPo p1 = (processPo) a;
-  processPo p2 = (processPo) b;
   if (a == b)
     return same;
   else

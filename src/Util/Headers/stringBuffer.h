@@ -35,11 +35,10 @@ bufferPo newIoStringBuffer();
 bufferPo newReadStringBuffer(char *text, integer textLen);
 bufferPo fixedStringBuffer(char *buffer, long len);
 
-char *getTextFromBuffer(integer *len, bufferPo s);
+char *getTextFromBuffer(bufferPo s, integer *len);
 integer bufferLength(bufferPo b);
 integer bufferOutPos(bufferPo b);
 integer bufferBumpOutPos(bufferPo b,integer incr);
-integer textFromBuffer(bufferPo b, char *buffer, integer len);
 retCode insertIntoBuffer(bufferPo b, codePoint ch);
 retCode deleteFromBuffer(bufferPo b, integer len);
 retCode appendToBuffer(bufferPo b, char *text, integer txtLen);

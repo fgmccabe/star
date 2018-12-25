@@ -152,8 +152,9 @@ star.compiler.opg{
 
   checkTerminator:(reports,cons[token],needsTerm) => (reports,cons[token]).
   checkTerminator(Rpt,[tok(_,idTok(". ")),..Toks],_) => (Rpt,Toks).
+  checkTerminator(Rpt,[],_) => (Rpt,[]).
   checkTerminator(Rpt,Toks,noNeed) => (Rpt,Toks).
   checkTerminator(Rpt,[tok(Lc,rgtTok("{}")),..Toks],needOne) => (Rpt,[tok(Lc,rgtTok("{}")),..Toks]).
   checkTerminator(Rpt,[tok(Lc,rgtTok("{..}")),..Toks],needOne) => (Rpt,[tok(Lc,rgtTok("{..}")),..Toks]).
-  checkTerminator(Rpt,[tok(Lc,T),..Toks],needOne)default => (reportError(Rpt,"missing terminator",Lc),[tok(Lc,T),..Toks]).
+  checkTerminator(Rpt,[tok(Lc,T),..Toks],needOne) default => (reportError(Rpt,"missing terminator",Lc),[tok(Lc,T),..Toks]).
 }

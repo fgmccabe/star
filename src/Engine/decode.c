@@ -312,7 +312,7 @@ retCode decFlt(ioPo in, double *dx) {
 
   if (ret == Ok) {
     integer len = 0;
-    char *const s = getTextFromBuffer(&len, tmpBuffer);
+    char *const s = getTextFromBuffer(tmpBuffer, &len);
     *dx = parseNumber(s, len);
   }
 
@@ -367,7 +367,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
 
       if (res == Ok) {
         integer len;
-        char *nm = getTextFromBuffer(&len, buff);
+        char *nm = getTextFromBuffer(buff, &len);
         res = cb->decLbl(nm, 0, cl);
       }
       return res;
@@ -383,7 +383,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
 
       if (res == Ok) {
         integer len;
-        char *nm = getTextFromBuffer(&len, buff);
+        char *nm = getTextFromBuffer(buff, &len);
         res = cb->decLbl(nm, arity, cl);
       }
       return res;
@@ -394,7 +394,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
 
       if (res == Ok) {
         integer len;
-        char *nm = getTextFromBuffer(&len, buff);
+        char *nm = getTextFromBuffer(buff, &len);
         res = cb->decString(nm, len, cl);
       }
       return res;
@@ -628,7 +628,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
     case enuTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
-        *tgt = (termPo) declareLbl(getTextFromBuffer(&len, tmpBuffer), 0);
+        *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), 0);
       }
       return res;
     }
@@ -640,14 +640,14 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
-        *tgt = (termPo) declareLbl(getTextFromBuffer(&len, tmpBuffer), arity);
+        *tgt = (termPo) declareLbl(getTextFromBuffer(tmpBuffer, &len), arity);
       }
       return res;
     }
     case strTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
-        const char *txt = getTextFromBuffer(&len, tmpBuffer);
+        const char *txt = getTextFromBuffer(tmpBuffer, &len);
         *tgt = (termPo) allocateString(H, txt, len);
       }
       return res;

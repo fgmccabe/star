@@ -46,7 +46,7 @@ retCode parseTemplateVar(bufferPo str, ioPo plate, char **reslt, hashPo vars, st
     if (ret == Ok) {
       if (ch == ')') {
         integer len;
-        char *var = getTextFromBuffer(&len, str);
+        char *var = getTextFromBuffer(str, &len);
          *reslt = (char *) hashGet(vars, var);
 
         if (*reslt == NULL && defltPrc!=NULL)

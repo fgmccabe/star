@@ -28,7 +28,7 @@ typedef struct _heap_ {
   processPo owner;
 } HeapRecord;
 
-extern HeapRecord heap, oldHeap;
+extern HeapRecord heap;
 
 typedef struct _stack_frame_ *framePo;
 
@@ -37,7 +37,11 @@ extern retCode gcCollect(heapPo H, long amount);
 typedef struct _gc_support_ {
   heapPo H;
   long oCnt;
+  termPo oldBase;
+  termPo oldLimit;
 } GCSupport, *gcSupportPo;
+
+extern void setupGCSupport(heapPo H, gcSupportPo G);
 
 extern void validPtr(heapPo H, termPo t);
 extern void inStackPtr(processPo P, ptrPo o);

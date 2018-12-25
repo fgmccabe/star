@@ -39,6 +39,6 @@ typedef struct _buffer_ {
   BufferPart buffer;
 } BufferObject;
 
-
+retCode showStringBuffer(ioPo f, void *data, long depth, long precision, logical alt);
 
 #endif /* OOLIB_HEADERS_STRINGBUFFERP_H_ */
