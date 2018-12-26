@@ -171,10 +171,14 @@ retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical al
 retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl) {
   integer lblLen = uniStrLen(lbl->name);
   if (alt) {
-    if (lblLen > prec) {
+    integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
+
+    if (hashOff > 0)
+      return outMsg(out, "…%S", &lbl->name[hashOff], lblLen - hashOff);
+    else if (lblLen > prec) {
       integer half = prec / 2;
       integer hwp = backCodePoint(lbl->name, lblLen, half);
-      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp, lbl->arity);
+      return outMsg(out, "%S…%S", lbl->name, half, &lbl->name[hwp], lblLen - hwp);
     } else
       return outMsg(out, "%S/%d", lbl->name, lblLen, lbl->arity);
   } else
@@ -263,7 +267,7 @@ void destroyFieldTable(fieldTblPo tbl) {
   free(tbl);
 }
 
-void clearFieldTable(labelPo lbl){
+void clearFieldTable(labelPo lbl) {
   fieldTblPo fields = lbl->fields;
   lbl->fields = Null;
   destroyFieldTable(fields);
