@@ -153,22 +153,22 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
     return False;
 }
 
-static char defltLn[MAXLINE] = {'n'};
-static integer defltLen = 1;
-
 static char *defltLine(char *src, integer srcLen, integer *actLen) {
+  static char defltLn[MAXLINE] = {'n'};
+
   if (!uniIsTrivial(src, srcLen)) {
-    uniNCpy(defltLn, defltLen, src, srcLen);
+    uniNCpy(defltLn, NumberOf(defltLn), src, srcLen);
     *actLen = srcLen;
     return src;
   } else {
-    *actLen = uniNStrLen(defltLn, defltLen);
+    *actLen = uniNStrLen(defltLn, NumberOf(defltLn));
     return defltLn;
   }
 }
 
 static void resetDeflt(char *cmd) {
-  uniCpy(defltLn, NumberOf(defltLn), cmd);
+  integer junk;
+  defltLine(cmd, uniStrLen(cmd), &junk);
 }
 
 static retCode cmdComplete(bufferPo b, void *cl, integer cx) {
@@ -472,7 +472,7 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
 
   integer frameNo = 0;
 
-  outMsg(out, "Stack trace for p: 0x%x", p);
+  outMsg(out, "Stack trace for p: 0x%x ", p);
   stackSummary(out, p, sp);
   heapSummary(out, h);
   outMsg(out, "\n");
@@ -735,7 +735,7 @@ static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp
   integer count = argCount(mtd);
   char *sep = "";
   for (integer ix = 0; ix < count; ix++) {
-    tryRet(outMsg(out, "%s%#T", sep, sp[ix]));
+    tryRet(outMsg(out, "%s%#,*T", sep, displayDepth, sp[ix]));
     sep = ", ";
   }
   return outMsg(out, ")");
@@ -755,9 +755,9 @@ void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp)
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
 
   if (locn != Null)
-    outMsg(out, "%L: "RED_ESC_ON"return"RED_ESC_OFF" %T->%,*T", locn, mtd, displayDepth, val);
+    outMsg(out, "%L: "RED_ESC_ON"return"RED_ESC_OFF" %T->%#,*T", locn, mtd, displayDepth, val);
   else
-    outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%,*T", mtd, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%#,*T", mtd, displayDepth, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp, ptrPo sp);
@@ -856,7 +856,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 }
 
 void stackSummary(ioPo out, processPo P, ptrPo sp) {
-  outMsg(out, ", sp: 0x%x, stack:%5.2g%%", sp, (sp - (ptrPo) P->stackBase) * 100.0 / (P->stackLimit - P->stackBase));
+  outMsg(out, "sp: 0x%x, stack:%5.2g%%", sp, (sp - (ptrPo) P->stackBase) * 100.0 / (P->stackLimit - P->stackBase));
 }
 
 void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
@@ -884,8 +884,8 @@ void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp) {
     char vName[MAX_SYMB_LEN];
     if (localVName(mtd, pc, vx, vName, NumberOf(vName)) == Ok) {
       ptrPo var = localVar(fp, vx);
-      if (*var != Null)
-        outMsg(out, "  %s(%d) = %,*T\n", vName, vx, displayDepth, *var);
+      if (*var != Null && *var != voidEnum)
+        outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)", vName, vx);
     }
@@ -995,24 +995,11 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 }
 
 void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
-  integer pcOffset = (integer) (pc - mtd->code);
+  showStackEntry(stdErr, 0, mtd, pc, fp, sp, True);
 
-  outMsg(stdErr, "p: 0x%x, mtd: %T[%d], pc: 0x%x, fp: 0x%x", p, mtd, pcOffset, pc, fp);
   stackSummary(stdErr, p, sp);
   heapSummary(stdErr, h);
-  outMsg(stdErr, "\n");
-
-  ptrPo stackTop = ((ptrPo) fp) - mtd->lclcnt;
-
-  showAllLocals(stdErr, mtd, pc, fp);
-  showAllArgs(stdErr, p, mtd, fp, sp);
-
-  for (integer ix = 0; sp < stackTop; ix++, sp++) {
-    termPo t = *sp;
-    outMsg(stdErr, "SP[%d]=%,*T\n", ix, displayDepth, t);
-  }
-
-  flushFile(stdErr);
+  outMsg(stdErr, "\n%_");
 }
 
 static char *anonPrefix = "__";
