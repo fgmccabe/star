@@ -3,10 +3,13 @@
 	  "star.compiler.ast" : "ast.star",
 		"star.compiler.catalog" : "catalog.star",
 		"star.compiler" : "driver.star",
+		"star.compiler.canon" : "canon.star",
+	  "star.compiler.checker" : "checker.star",
+		"star.compiler.dict" : "dict.star",
 	  "star.compiler.errors" : "errors.star",
+	  "star.compiler.freshen" : "freshen.star",
 		"star.compiler.escapes" : "escapes.star",
 		"star.compiler.grapher" : "grapher.star",
-		"star.compiler.iden" : "iden.star",
 		"star.compiler.opg" : "opg.star",
 		"star.compiler.parser" : "parser.star",
 		"star.compiler.keywords" : "keywords.star",
@@ -16,7 +19,9 @@
 		"star.compiler.operators" : "operators.star",
     "star.compiler.plugin" : "plugin.star",
 		"star.compiler.token" : "token.star",
-		"star.compiler.types" : "types.star"
+		"star.compiler.typeparse" : "parsetype.star",
+		"star.compiler.types" : "types.star",
+		"star.compiler.unify" : "unify.star"
 	},
 	"version": "1.0.0",
 	"default": "../Star/catalog"
