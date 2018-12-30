@@ -9,6 +9,7 @@ star.compiler{
 
   import star.compiler.ast.
   import star.compiler.catalog.
+  import star.compiler.checker.
   import star.compiler.errors.
   import star.compiler.parser.
   import star.compiler.location.

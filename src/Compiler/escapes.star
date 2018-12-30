@@ -2,7 +2,7 @@
 
 star.comp.escapes{
   import star.
-  import star.comp.types.
+  import star.compiler.types.
 
   public escapeType:(string)=>tipe.
   escapeType("_exit") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer")])),tupleType([])).
@@ -62,9 +62,9 @@ star.comp.escapes{
   escapeType("_bnot") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer")])),tipe("star.core*integer")).
   escapeType("_nthb") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer")])),tipe("star.core*boolean")).
   escapeType("_bcount") => tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*integer")])),tipe("star.core*integer")).
-  escapeType("_cell") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([kVar("t")])),ref(kVar("t")))).
-  escapeType("_get") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([ref(kVar("t"))])),kVar("t"))).
-  escapeType("_assign") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([ref(kVar("t")),kVar("t")])),kVar("t"))).
+  escapeType("_cell") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([kVar("t")])),refType(kVar("t")))).
+  escapeType("_get") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([refType(kVar("t"))])),kVar("t"))).
+  escapeType("_assign") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([refType(kVar("t")),kVar("t")])),kVar("t"))).
   escapeType("_isDefinedVr") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),tipe("star.core*boolean"))).
   escapeType("_definedVr") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string")])),kVar("t"))).
   escapeType("_defineVr") => allType(kVar("t"),tpExp(tpExp(tpFun("->",2),tupleType([tipe("star.core*string"),kVar("t")])),tipe("star.core*boolean"))).
