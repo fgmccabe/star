@@ -1,7 +1,7 @@
 :- module(dict,[declareType/4,isType/3,
     declareTypeVars/4,isTypeVar/3,
     declareVar/4,declareEnum/6,
-    mkVr/4,isVar/3,hasType/3,currentVar/3,restoreVar/4,
+    mkVr/4,isVar/3,currentVar/3,restoreVar/4,
     declareContract/4,getContract/3,
     declareImplementation/5,getImplementations/3,getImplementation/4,
     declareConstraint/3,allConstraints/2,
@@ -52,10 +52,6 @@ noFace(_,faceType([],[])).
 
 isVr(Key,[scope(_,Names,_,_,_)|_],Vr) :- get_dict(Key,Names,Vr),!.
 isVr(Key,[_|Outer],Vr) :- isVr(Key,Outer,Vr).
-
-hasType(Nm,Env,Tp) :-
-  makeKey(Nm,Ky),
-  isVr(Ky,Env,vrEntry(_,_,Tp)),!.
 
 currentVar(Nm,Env,some(Vr)) :- makeKey(Nm,Key), isVr(Key,Env,Vr),!.
 currentVar(_,_,none).

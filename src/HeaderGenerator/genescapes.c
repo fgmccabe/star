@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
       case genStar:
         fprintf(out, "%s{\n", prefix);
         fprintf(out, "  import star.\n");
-        fprintf(out, "  import star.comp.types.\n\n");
+        fprintf(out, "  import star.compiler.types.\n\n");
         starEscapeTypes(out);
         starIsEscape(out);
         fprintf(out, "}.\n");
@@ -141,7 +141,7 @@ static char *dumpSig(char *sig, bufferPo out) {
       break;
 
     case refSig: {
-      outMsg(O_IO(out), "ref(");
+      outMsg(O_IO(out), "refType(");
       sig = dumpSig(sig, out);
       outStr(O_IO(out), ")");
       break;

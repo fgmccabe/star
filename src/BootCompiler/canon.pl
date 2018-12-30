@@ -1,8 +1,8 @@
 :- module(canon,[displayCanon/1,dispCanonTerm/1,dispProg/1,dispDefs/1,
     showCanon/3,showCanonTerm/3,showPkg/3,showImports/3,showTypeDefs/3,showContracts/3,
     showImpls/3,
-    typeOfCanon/2,splitPtn/4,locOfCanon/2,
-    isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,
+    typeOfCanon/2,splitPtn/3,locOfCanon/2,mergeGl/4,
+    isCanon/1,isSimpleCanon/1,isAssertion/1,isShow/1,isPkg/1,ruleArity/2,isGoal/1,
     thetaDefs/2,thetaSig/2]).
 
 :- use_module(misc).
@@ -42,6 +42,12 @@ isSimpleCanon(stringLit(_,_)).
 isAssertion(assertion(_,_)).
 isShow(show(_,_)).
 
+isGoal(match(_,_,_)) :-!.
+isGoal(conj(_,_,_)) :- !.
+isGoal(disj(_,_,_)) :- !.
+isGoal(neg(_,_)) :- !.
+isGoal(search(_,_,_,_)) :- !.
+
 isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
@@ -51,10 +57,10 @@ typeOfCanon(stringLit(_,Tp),Tp) :- !.
 typeOfCanon(enm(_,_,Tp),Tp) :- !.
 typeOfCanon(where(_,T,_),Tp) :- !, typeOfCanon(T,Tp).
 typeOfCanon(abstraction(_,_,_,_,Tp),Tp) :- !.
-typeOfCanon(search(_,_,_,_),tipe("star.core*boolean")) :-!.
-typeOfCanon(match(_,_,_),tipe("star.core*boolean")) :-!.
-typeOfCanon(conj(_,_,_),tipe("star.core*boolean")) :-!.
-typeOfCanon(disj(_,_,_),tipe("star.core*boolean")) :-!.
+typeOfCanon(search(_,_,_,_),type("star.core*boolean")) :-!.
+typeOfCanon(match(_,_,_),type("star.core*boolean")) :-!.
+typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
+typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(theta(_,_,_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(record(_,_,_,_,_,_,Tp),Tp) :-!.
@@ -70,9 +76,9 @@ typeOfCanon(cell(_,Vl),refType(Tp)) :-
   typeOfCanon(Vl,Tp).
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
-locOfCanon(intLit(Lc,_,_),Lc) :- !.
-locOfCanon(floatLit(Lc,_,_),Lc) :- !.
-locOfCanon(stringLit(Lc,_,_),Lc) :- !.
+locOfCanon(intLit(Lc,_),Lc) :- !.
+locOfCanon(floatLit(Lc,_),Lc) :- !.
+locOfCanon(stringLit(Lc,_),Lc) :- !.
 locOfCanon(enm(Lc,_,_),Lc) :- !.
 locOfCanon(where(Lc,_,_),Lc) :- !.
 locOfCanon(abstraction(Lc,_,_,_,_),Lc) :- !.
@@ -215,9 +221,9 @@ showCanonTerm(cond(_,Test,Either,Or,_),O,Ox) :-
   showCanonTerm(Or,O5,O6),
   appStr(")",O6,Ox).
 showCanonTerm(match(_,P,E),O,Ox) :-
-  showCanonTerm(E,O,O1),
-  appStr(" =. ",O1,O2),
-  showCanonTerm(P,O2,Ox).
+  showCanonTerm(P,O,O1),
+  appStr(" .= ",O1,O2),
+  showCanonTerm(E,O2,Ox).
 showCanonTerm(search(_,P,S,M),O,Ox) :-
   showCanonTerm(P,O,O1),
   appStr(" in ",O1,O2),
@@ -414,5 +420,25 @@ showStmt(show(_,Vl),O,Ox) :-
 ruleArity(equation(_,tple(_,A),_),Ar) :-
   length(A,Ar).
 
-splitPtn(where(_,Ptn,Cond),_,Ptn,Cond) :-!.
-splitPtn(Ptn,Lc,Ptn,enm(Lc,"true",tipe("core.star*boolean"))).
+splitPtn(P,Px,Cond) :-
+  locOfCanon(P,Lc),
+  splitPttrn(P,Px,enm(Lc,"true",type("core.star*boolean")),Cond).
+
+splitPttrn(apply(Lc,Op,Arg),apply(Lc,NOp,NArg),Cond,Cx) :-
+  splitPttrn(Op,NOp,Cond,C0),
+  splitPttrn(Arg,NArg,C0,Cx).
+splitPttrn(tple(Lc,Els),tple(Lc,NEls),Cond,Cx) :-
+  splitPttrns(Els,NEls,Cond,Cx).
+splitPttrn(where(Lc,Ptn,Cond),P1,C,Cx) :-
+  splitPttrn(Ptn,P1,C,C0),
+  mergeGl(C0,Cond,Lc,Cx).
+splitPttrn(P,P,C,C).
+
+mergeGl(enm(_,"true",_),G,_,G) :-!.
+mergeGl(G,enm(_,"true",_),_,G) :-!.
+mergeGl(G1,G2,Lc,conj(Lc,G1,G2)).
+
+splitPttrns([],[],C,C).
+splitPttrns([P|Ps],[Px|Pxs],C,Cx) :-
+  splitPttrn(P,Px,C,C0),
+  splitPttrns(Ps,Pxs,C0,Cx).

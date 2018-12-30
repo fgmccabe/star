@@ -479,23 +479,16 @@ liftExp(where(_,E,enm(_,"true",_)),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(L,LL,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(disj(Lc,L,R),dsj(Lc,LL ,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(L,LL,Q,Q1,Map,Opts,Ex,Ex1),
-  liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(neg(Lc,R),ng(Lc,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftExp(R,LR,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(G,Gl,Q,Qx,Map,Opts,Ex,Exx) :-
+  isGoal(G),!,
+  liftGoal(G,Gl,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
   liftExp(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftExp(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftPtn(L,Lx,Q,Q0,Map,Opts,Ex,Ex0),
-  liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
-liftExp(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx) :-
-  liftGoal(assertion(Lc,G),Gx,Q,Qx,Map,Opts,Ex,Exx).
+liftExp(assertion(Lc,G),ecll(Lc,"_assert",[Gx,Lx]),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx),
+  locTerm(Lc,Lx).
 liftExp(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftTheta(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
   genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
@@ -589,6 +582,12 @@ liftAbstraction(Ab,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   (is_member(showSetCode,Opts) -> dispCanonTerm(AbExp);true),
   liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
+liftSearch(Serch,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
+  layerName(Map,Path),
+  genSearch(Serch,Path,AbGl),
+  (is_member(showSetCode,Opts) -> dispCanonTerm(AbGl);true),
+  liftExp(AbGl,Rslt,Q,Qx,Map,Opts,Ex,Exx).
+
 mkClosure(Lam,FreeVars,Closure) :-
   length(FreeVars,Ar),
   (Ar = 0 ->
@@ -610,9 +609,8 @@ liftGoal(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
 liftGoal(neg(Lc,R),ng(Lc,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(R,Rx,Q,Qx,Map,Opts,Ex,Exx).
-liftGoal(assertion(Lc,G),ecll(Lc,"_assert",[Gx,Lx]),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx),
-  locTerm(Lc,Lx).
+liftGoal(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftSearch(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(G,Gx,Q,Qx,Map,Opts,Ex,Exx).
 
