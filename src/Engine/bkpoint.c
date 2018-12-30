@@ -54,10 +54,10 @@ logical isBreakPoint(breakPointPo b, const char *pk, integer lineNo, integer off
 }
 
 logical isCallBreakPoint(breakPointPo b, const char *nm, integer arity) {
-  if (b->bkType == callBreak && uniCmp(b->nm, nm) == same && b->offset == arity) {
-    return True;
-  }
-  return False;
+  if (b->offset >= 0)
+    return (logical) (b->bkType == callBreak && uniCmp(b->nm, nm) == same && b->offset == arity);
+  else
+    return (logical) (b->bkType == callBreak && uniCmp(b->nm, nm) == same);
 }
 
 retCode isValidBreakPoint(breakPointPo b) {
@@ -235,6 +235,9 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
           case inOffset:
             if (isNdChar(cp)) {
               offset = offset * 10 + digitValue(cp);
+              continue;
+            } else if (cp == (codePoint) '*') {
+              offset = -1;
               continue;
             } else {
               outMsg(logFile, "invalid break point line offset: %S\n", buffer, bLen);
