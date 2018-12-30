@@ -64,6 +64,10 @@ labelPo findLbl(const char *name, integer arity) {
   return hashGet(labels, &tst);
 }
 
+labelPo findLbls(const char *name){
+  return Null;
+}
+
 void declareFields(labelPo lbl, fieldTblPo tbl) {
   lbl->fields = tbl;
 }
