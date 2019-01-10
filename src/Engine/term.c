@@ -1,6 +1,6 @@
 //
 // Created by Francis McCabe on 1/15/18.
-//
+// Copyright (c) 2018 and beyond. Francis G. McCabe
 
 #include "codeP.h"
 #include <assert.h>
