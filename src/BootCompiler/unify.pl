@@ -1,4 +1,4 @@
-:- module(unify,[sameType/3,idenType/3,faceOfType/3,sameContract/3,subFace/3,
+:- module(unify,[sameType/3,idenType/3,faceOfType/3,sameContract/3,
     simplifyType/5,checkConstraint/2]).
 
 :- use_module(misc).
