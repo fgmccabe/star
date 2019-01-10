@@ -19,6 +19,7 @@
 		"test.fi" : "fi.star",
 		"test.i" : "i.star",
 		"test.idx0" : "idx0.star",
+		"test.implies" : "implies.star",
 		"test.l" : "l.star",
 		"test.ll" : "ll.star",
 		"test.fact" : "fact.star",

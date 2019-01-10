@@ -134,6 +134,9 @@ overloadTerm(cond(Lc,T,L,R,Tp),Dict,St,Stx,cond(Lc,RT,RL,RR,Tp)) :-
   overloadTerm(T,Dict,St,St0,RT),
   overloadTerm(L,Dict,St0,St1,RL),
   overloadTerm(R,Dict,St1,Stx,RR).
+overloadTerm(implies(Lc,G,T),Dict,St,Stx,implies(Lc,RG,RT)) :-
+  overloadTerm(G,Dict,St,St0,RG),
+  overloadTerm(T,Dict,St0,Stx,RT).
 overloadTerm(neg(Lc,T),Dict,St,Stx,neg(Lc,RT)) :-
   overloadTerm(T,Dict,St,Stx,RT).
 overloadTerm(match(Lc,L,R),Dict,St,Stx,match(Lc,RL,RR)) :-

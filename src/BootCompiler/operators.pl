@@ -48,6 +48,7 @@
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
+  operator("*>", [infixOp(904, 905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
@@ -151,6 +152,7 @@
   follows('&','&','&&').
   follows('(','.','(.').
   follows('*','*','**').
+  follows('*','>','*>').
   follows('+','+','++').
   follows('++','+','+++').
   follows(',','.',',.').
@@ -229,6 +231,7 @@
   final(')',")").	 /* parentheses */
   final('*',"*").	 /* zero or more repetitions */
   final('**',"**").	 /* exponentiation */
+  final('*>',"*>").	 /* for all */
   final('+',"+").	 /* one or more repetitions */
   final('++',"++").	 /* concatenate */
   final('+++',"+++").	 /* choice */

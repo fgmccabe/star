@@ -594,24 +594,35 @@ mkClosure(Lam,FreeVars,Closure) :-
     Closure=enum(Lam) |
     Closure=ctpl(lbl(Lam,Ar),FreeVars)).
 
-liftGoal(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftGoal(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
-  liftGoal(R,LR,Q0,Qx,Map,Opts,Ex0,Exx).
-liftGoal(disj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftGoal(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
-  liftGoal(R,LR,Q0,Qx,Map,Opts,Ex0,Exx).
-liftGoal(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftGoal(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
-  liftGoal(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
-  liftGoal(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
-liftGoal(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
+liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  isIterableGoal(Cond),!,
+  layerName(Map,Path),
+  genIterableGl(Cond,Path,Gl),
+  (is_member(showSetCode,Opts) -> dispCanonTerm(Gl);true),
+  liftExp(Gl,Exp,Q,Qx,Map,Opts,Ex,Exx).
+liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+  liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).
+
+liftGl(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftGl(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
+  liftGl(R,LR,Q0,Qx,Map,Opts,Ex0,Exx).
+liftGl(disj(Lc,L,R),dsj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftGl(L,LL,Q,Q0,Map,Opts,Ex,Ex0),
+  liftGl(R,LR,Q0,Qx,Map,Opts,Ex0,Exx).
+liftGl(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftGl(T,LT,Q,Q0,Map,Opts,Ex,Ex0),
+  liftGl(L,LL,Q0,Q1,Map,Opts,Ex0,Ex1),
+  liftGl(R,LR,Q1,Qx,Map,Opts,Ex1,Exx).
+liftGl(implies(Lc,G,T),Gl,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftGl(neg(Lc,conj(Lc,G,neg(Lc,T))),Gl,Q,Qx,Map,Opts,Ex,Exx).
+liftGl(match(Lc,L,R),mtch(Lc,Lx,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftPtn(L,Lx,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(R,Rx,Q0,Qx,Map,Opts,Ex0,Exx).
-liftGoal(neg(Lc,R),ng(Lc,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftGoal(R,Rx,Q,Qx,Map,Opts,Ex,Exx).
-liftGoal(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
+liftGl(neg(Lc,R),ng(Lc,Rx),Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftGl(R,Rx,Q,Qx,Map,Opts,Ex,Exx).
+liftGl(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftSearch(search(Lc,Ptn,Src,Iterator),Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
+liftGl(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(G,Gx,Q,Qx,Map,Opts,Ex,Exx).
 
 /* A theta or record is converted to a structure containing free variables */
