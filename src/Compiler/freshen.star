@@ -2,40 +2,67 @@ star.compiler.freshen{
   import star.
   import star.iterable.
 
+  import star.compiler.dict.
   import star.compiler.misc.
   import star.compiler.types.
 
-  freshen:(tipe,(string)=>boolean,(string)=>option[tipe]) => (list[(string,tipe)],tipe).
-  freshen(Tp,Ex,Env) where (T,Q) .= freshQuants(deRef(Tp),[]) =>
-    (Q,frshn(T,Q,Ex,Env)).
+  public freshen:(tipe,set[tipe],dict) => (list[(string,tipe)],tipe).
+  freshen(Tp,Ex,Env) where (T,Q,Ev) .= freshQuants(deRef(Tp),[],Env) => (Q,frshn(deRef(T),Ex,Ev)).
   freshen(Tp,_,_) default => ([],Tp).
 
-  freshQuants(allType(kVar(V),T),B) =>
-    freshQuants(deRef(T),[(V,newTypeVar(V)),..B]).
-  freshQuants(allType(kFun(V,Ar),T),B) =>
-    freshQuants(deRef(T),[(V,newTypeFun(V,Ar)),..B]).
-  freshQuants(existType(kVar(V),T),B) =>
-    freshQuants(deRef(T),[(V,genSkolemFun(V,B)),..B]).
-  freshQuants(T,B) default => (T,B).
+  freshQuants(allType(kVar(V),T),B,Env) where NV.=newTypeVar(V) =>
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,Env)).
+  freshQuants(allType(kFun(V,Ar),T),B,Env) where NV.=newTypeFun(V,Ar) =>
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,Env)).
+  freshQuants(existType(kVar(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,Env)).
+  freshQuants(T,B,Env) default => (T,B,Env).
 
-  genSkolemFun(Nm,[]) => skolemVar(Nm).
-  genSkolemFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),kFun(genSym(Nm),size(Q)),Q).
+  genSkolemFun(Nm,[]) => skolemFun(Nm,0).
+  genSkolemFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
-  skolemVar(Nm) => kVar(genSym(Nm)).
+  public evidence:(tipe,set[tipe],dict) => (list[(string,tipe)],tipe).
+  evidence(Tp,Ex,Env) where (T,Q,Ev).=skolemQuants(deRef(Tp),[],Env) => (Q,frshn(deRef(T),Ex,Ev)).
+  evidence(Tp,_,_) default => ([],Tp).
 
-  frshn(voidType,_,_,_) => voidType.
-  frshn(kVar(Nm),Q,Ex,Env) where Ex(Nm) => kVar(Nm).
-  frshn(kVar(Nm),_,_,Env) where T^=Env(Nm) => T.
-  frshn(kVar(Nm),Q,_,_) where (Nm,T) in Q => T.
-  frshn(kVar(Nm),_,_,_) => kVar(Nm).
+  skolemQuants(allType(kVar(V),T),B,Env) where NV.=skolemFun(V,0) =>
+    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,Env)).
+  skolemQuants(allType(kFun(V,Ar),T),B,Env)  where NV.=skolemFun(V,Ar)=>
+    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,Env)).
+  skolemQuants(existType(kVar(V),T),B,Env) where NV.=genTypeFun(V,B) =>
+    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,Env)).
+  skolemQuants(T,B,Env) default => (T,B,Env).
 
-  frshn(kFun(Nm,Ar),Q,Ex,Env) where Ex(Nm) => kFun(Nm,Ar).
-  frshn(kFun(Nm,Ar),_,_,Env) where T^=Env(Nm) => T.
-  frshn(kFun(Nm,Ar),Q,_,_) where (Nm,T) in Q => T.
-  frshn(kFun(Nm,Ar),_,_,_) => kFun(Nm,Ar).
+  genTypeFun(Nm,[]) => newTypeVar(Nm).
+  genTypeFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
-  frshn(refType(T),Q,Ex,Env) => refType(frshn(deRef(T),Q,Ex,Env)).
+  frshn(voidType,_,_) => voidType.
+  frshn(Tp,Ex,_) where _contains(Ex,Tp) => Tp.
+  frshn(kVar(Nm),_,Env) where (_,Tp,_)^=findType(Env,Nm) => Tp.
+  frshn(kVar(Nm),_,_) => kVar(Nm).
 
+  frshn(kFun(Nm,Ar),_,Env) where  (_,Tp,_)^=findType(Env,Nm) => Tp.
+  frshn(kFun(Nm,Ar),_,_) => kFun(Nm,Ar).
 
+  frshn(tVar(T,N),_,_) => tVar(T,N).
+  frshn(tFun(T,A,N),_,_) => tFun(T,A,N).
+
+  frshn(refType(T),Ex,Env) => refType(rewrite(T,Ex,Env)).
+  frshn(tipe(N),_,_) => tipe(N).
+  frshn(tpFun(N,A),_,_) => tpFun(N,A).
+  frshn(tpExp(O,A),Ex,Env) => tpExp(rewrite(O,Ex,Env),rewrite(A,Ex,Env)).
+  frshn(tupleType(Els),Ex,Env) => tupleType(Els//((E)=>rewrite(E,Ex,Env))).
+  frshn(faceType(Els,Tps),Ex,Env) => faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Ex,Env))),Tps//(((Nm,E))=>(Nm,rewrite(E,Ex,Env)))).
+  frshn(allType(K,T),Ex,Env) => allType(K,rewrite(T,_addMem(K,Ex),Env)).
+  frshn(existType(K,T),Ex,Env) => existType(K,rewrite(T,_addMem(K,Ex),Env)).
+  frshn(typeLambda(H,T),Ex,Env) => typeLambda(rewrite(H,Ex,Env),rewrite(T,Ex,Env)).
+  frshn(typeExists(H,T),Ex,Env) => typeExists(rewrite(H,Ex,Env),rewrite(T,Ex,Env)).
+  frshn(constrainedType(T,C),Ex,Env) => constrainedType(rewrite(T,Ex,Env),frshnConstraint(C,Ex,Env)).
+
+  rewrite(Tp,Ex,Env) => frshn(deRef(Tp),Ex,Env).
+
+  frshnConstraint(conConstraint(Nm,Args,Deps),Ex,Env) =>
+    conConstraint(Nm,Args//((E)=>rewrite(E,Ex,Env)),Deps//((E)=>rewrite(E,Ex,Env))).
+  frshnConstraint(implConstraint(T,I),Ex,Env) => implConstraint(rewrite(T,Ex,Env),rewrite(I,Ex,Env)).
 
 }

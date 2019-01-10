@@ -12,5 +12,4 @@ star.compiler.misc{
   markerString(conMark)=>"#".
   markerString(overMark)=>"!".
   markerString(pkgMark) => "#".
-
 }

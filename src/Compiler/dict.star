@@ -6,13 +6,25 @@ star.compiler.dict{
   import star.compiler.location.
   import star.compiler.types.
 
-  tpDef ::= tpDef(locn,tipe,tipe) |
-    tpVar(locn,tipe).
+  tpDef ::= tpVar(option[locn],tipe) |
+    tpDefn(option[locn],string,tipe,tipe).
 
   public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe,()=>tipe).
 
   public scope ::= scope(map[string,tpDef],map[string,vrEntry],cons[constraint],map[string,map[string,constraint]]).
   public dict ~> cons[scope].
 
-  
+  public declareType:(string,option[locn],tipe,dict) => dict.
+  declareType(Nm,Lc,Tp,[scope(Tps,Vrs,Cns,Imps),..Rest]) => [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,voidType)],Vrs,Cns,Imps),..Rest].
+
+  public findType:(dict,string) => option[(option[locn],tipe,tipe)].
+  findType([],Nm) => none.
+  findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
+  findType([_,..Rest],Ky) => findType(Rest,Ky).
+
+  public findImplementation:(dict,string,string) => option[constraint].
+  findImplementation([scope(_,_,_,Imps),.._],Nm,INm) where Ims ^= Imps[Nm] && Imp ^= Ims[INm] => some(Imp).
+  findImplementation([_,..Rest],Nm,INm) => findImplementation(Rest,Nm,INm).
+  findImplementation([],_,_) => none.
+
 }
