@@ -9,6 +9,8 @@ locOf(floatTok(_,Lc),Lc).
 locOf(stringTok(_,Lc),Lc).
 locOf(terminal,missing).
 
+mergeLoc(Lc1,Lc2,Lc1) :- var(Lc2),!.
+mergeLoc(Lc1,Lc2,Lc2) :- var(Lc1),!.
 mergeLoc(loc(Pk,Ln,LnOff,Co1,_),loc(_,_,_,Co2,Len),loc(Pk,Ln,LnOff,Co1,Len1)) :- Len1 is Co2-Co1+Len.
 
 showLocation(loc(Pk,Ln,Col,_,Sz),O,E) :-
