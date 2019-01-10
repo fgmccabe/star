@@ -31,7 +31,7 @@ star.sets{
     dispEntry([],K,_) => [disp(K)].
     dispEntry(L,K,_) default => [disp(K),ss(","),..L].
   } in {.
-    disp(set(M)) => ssSeq([ss("["),ssSeq(ixLeft(dispEntry,[],M)),ss("]")]).
+    disp(set(M)) => ssSeq([ss("{"),ssSeq(ixLeft(dispEntry,[],M)),ss("}")]).
   .}
 
   public implementation all e ~~ sizeable[set[e]] => {.

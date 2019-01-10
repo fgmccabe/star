@@ -1,6 +1,7 @@
 star.compiler.types{
   import star.
   import star.iterable.
+  import star.sort.
 
   import star.compiler.location.
   import star.compiler.misc.
@@ -33,6 +34,22 @@ star.compiler.types{
     constraints : ref list[constraint].
   }
 
+  public isUnbound:(tipe) => boolean.
+  isUnbound(tVar(B,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
+  isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
+  isUnbound(_) default => false.
+
+  public constraintsOf:(tipe) => option[list[constraint]].
+  constraintsOf(Tp) => conOf(deRef(Tp)).
+
+  conOf(tVar(T,_)) => some(T.constraints!).
+  conOf(_) default => none.
+
+  public setConstraints:(tipe,list[constraint]) => option[()].
+  setConstraints(tVar(V,_),Cx) where _.= (V.constraints := Cx) => some(()).
+  setConstraints(tFun(V,_,_),Cx) where _.= (V.constraints := Cx) => some(()).
+  setConstraints(_,_) default => none.
+
   public deRef:(tipe) => tipe.
   deRef(tVar(B,_)) where T^=B.binding! => deRef(T).
   deRef(tFun(B,_,_)) where T^=B.binding! => deRef(T).
@@ -43,6 +60,57 @@ star.compiler.types{
 
   public newTypeFun:(string,integer) => tipe.
   newTypeFun(Pre,Ax) => tFun(tv{binding := none. constraints := []. },Ax,genSym(Pre)).
+
+  public skolemFun:(string,integer) => tipe.
+  skolemFun(Nm,0) => kVar(genSym(Nm)).
+  skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).
+
+  public implementation equality[tipe] => {
+    T1==T2 => identType(T1,T2,[]).
+  }
+
+  identType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
+  identType(voidType,voidType,_) => true.
+  identType(thisType,thisType,_) => true.
+  identType(kVar(N1),kVar(N2),_) => N1==N2.
+  identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
+  identType(tVar(_,N1),tVar(_,N2),_) => N1==N2.
+  identType(tFun(_,A1,N1),tFun(_,A2,N2),_) => N1==N2 && A1==A2.
+  identType(tipe(N1),tipe(N2),_) => N1==N2.
+  identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
+  identType(tpExp(O1,A1),tpExp(O2,A2),Q) => identType(O1,O2,Q) && identType(A1,A2,Q).
+  identType(refType(T1),refType(T2),Q) => identType(T1,T2,Q).
+  identType(tupleType(E1),tupleType(E2),_) => E1==E2.
+  identType(allType(V1,T1),allType(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(existType(V1,T1),existType(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(typeLambda(V1,T1),typeLambda(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(typeExists(V1,T1),typeExists(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(faceType(V1,T1),faceType(V2,T2),Q) => identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
+  identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) => identType(T1,T2,Q).
+  identType(_,_,_) default => false.
+
+  identNmTypes(L1,L2,Q) => let{
+    sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2))
+  } in (sortByNm(L1) == sortByNm(L2)).
+
+  public implementation equality[constraint] => {.
+    conConstraint(Nm,A1,D1) == conConstraint(Nm,A2,D2) => A1==A2 && D1==D2.
+    implConstraint(V1,T1) == implConstraint(V2,T2) => V1==V2 && T1==T2.
+    _ == _ default => false.
+  .}
+
+  public implementation hash[tipe] => let {
+    hsh(voidType) => 0.
+    hsh(thisType) => -1.
+    hsh(kVar(Nm)) => hash(Nm).
+    hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
+    hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
+    hsh(tFun(_,Ar,Nm)) => (hash("V")+Ar)*37+hash(Nm).
+    hsh(tipe(Nm)) => hash(Nm).
+    hsh(tpFun(Nm,Ar)) => Ar*37+hash(Nm).
+  } in {.
+    hash(Tp) => hsh(deRef(Tp)).
+  .}
 
   public implementation display[tipe] => {.
     disp(T) => showType(T,false,10000)
@@ -125,5 +193,13 @@ star.compiler.types{
   surfaceName(constrainedType(T,_)) => surfaceName(deRef(T)).
   surfaceName(typeLambda(_,T)) => surfaceName(deRef(T)).
   surfaceName(tupleType(A)) => ["!()\(size(A))"].
+
+  public implementation hasType[constraint] => {.
+    typeOf(conConstraint(Nm,Args,Deps)) =>
+      mkTypeExp(tpFun(Nm,size(Args)+size(Deps)),Args++Deps).
+  .}
+
+  mkTypeExp(Tp,[]) => Tp.
+  mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
 
 }
