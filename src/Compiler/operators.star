@@ -65,6 +65,7 @@ star.compiler.operators{
   oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
   oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
   oper(".>>.") => [infixOp(600,600,599)].
+  oper("*>") => [infixOp(904,905,904)].
   oper(",") => [infixOp(999,1000,1000)].
   oper("contract") => [prefixOp(1260,1259)].
   oper("-") => [prefixOp(300,299), infixOp(720,720,719)].
@@ -188,6 +189,7 @@ star.compiler.operators{
   follows("&",0c&) => some("&&").
   follows("(",0c.) => some("(.").
   follows("*",0c*) => some("**").
+  follows("*",0c>) => some("*>").
   follows("+",0c+) => some("++").
   follows("++",0c+) => some("+++").
   follows(",",0c.) => some(",.").
@@ -267,6 +269,7 @@ star.compiler.operators{
   final(")") => true.  /* parentheses */
   final("*") => true.  /* zero or more repetitions */
   final("**") => true.  /* exponentiation */
+  final("*>") => true.  /* for all */
   final("+") => true.  /* one or more repetitions */
   final("++") => true.  /* concatenate */
   final("+++") => true.  /* choice */

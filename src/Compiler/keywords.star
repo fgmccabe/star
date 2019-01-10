@@ -5,6 +5,7 @@ star.comp.keywords {
   keyword("|") => true.
   keyword("||") => true.
   keyword("&&") => true.
+  keyword("*>") => true.
   keyword(";") => true.
   keyword(":") => true.
   keyword("::") => true.

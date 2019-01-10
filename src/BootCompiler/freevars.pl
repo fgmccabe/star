@@ -27,6 +27,7 @@ freeVars(lambda(_,Eqns,_),Ex,Q,F,FV) :- freeVarsInRules(Eqns,Ex,Q,F,FV).
 freeVars(conj(Lc,L,R),Ex,Q,F,FV) :- ptnGoalVars(conj(Lc,L,R),Ex,E1),freeVars(L,E1,Q,F,F0),freeVars(R,E1,Q,F0,FV).
 freeVars(disj(_,L,R),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
 freeVars(neg(_,L),Ex,Q,F,FV) :- freeVars(L,Ex,Q,F,FV).
+freeVars(implies(_,G,T),Ex,Q,F,FV) :- ptnGoalVars(G,Ex,E1),freeVars(G,E1,Q,F,F0),freeVars(T,E1,Q,F0,FV).
 freeVars(match(_,L,R),Ex,Q,F,FV) :- ptnVars(L,Ex,Ex1), freeVars(L,Ex1,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
 freeVars(search(_,L,R,I),Ex,Q,F,FV) :-
   ptnVars(L,Ex,Ex1),
@@ -126,8 +127,10 @@ ptnGoalVars(conj(_,L,R),Q,Qx) :-
   ptnGoalVars(L,Q,Q0),
   ptnGoalVars(R,Q0,Qx).
 ptnGoalVars(disj(_,L,R),Q,Qx) :-
-  ptnGoalVars(L,Q,Q0),
-  ptnGoalVars(R,Q0,Qx).
+  ptnGoalVars(L,[],LQ),
+  ptnGoalVars(R,[],RQ),
+  intersect(LQ,RQ,DQ),
+  merge(Q,DQ,Qx).
 ptnGoalVars(match(_,L,G),Q,Qx) :-
   ptnVars(L,Q,Q0),
   ptnGoalVars(G,Q0,Qx).
@@ -135,6 +138,9 @@ ptnGoalVars(cond(_,T,L,R,_),Q,Qx) :-
   ptnGoalVars(T,Q,Q0),
   ptnGoalVars(L,Q0,Q1),
   ptnGoalVars(R,Q1,Qx).
+ptnGoalVars(implies(_,G,T),Q,Qx) :-
+  ptnGoalVars(G,Q,Q0),
+  ptnGoalVars(T,Q0,Qx).
 ptnGoalVars(given(_,P,_),Q,Qx) :-
   ptnVars(P,Q,Qx).
 ptnGoalVars(_,Q,Q).

@@ -9,7 +9,7 @@
     isConditional/5,conditional/5,isOfTerm/4,
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
-    isConjunct/4,isDisjunct/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
+    isConjunct/4,isDisjunct/4,isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
     isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isValof/3,isHandle/4,
     isLetDef/4,mkLetDef/4,
     whereTerm/4,
@@ -258,8 +258,7 @@ isOptionMatch(Trm,Lc,Ptn,Vl) :-
 optionMatch(Lc,Ptn,Exp,Term) :-
   binary(Lc,"^=",Ptn,Exp,Term).
 
-isCoerce(Trm,Lc,Lhs,Rhs) :-
-  isBinary(Trm,Lc,"::",Lhs,Rhs).
+isCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,"::",Lhs,Rhs).
 
 isConjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"&&",L,R).
@@ -269,6 +268,9 @@ isDisjunct(Trm,Lc,L,R) :-
 
 isNegation(Trm,Lc,L) :-
   isUnary(Trm,Lc,"\\+",L).
+
+isForall(Trm,Lc,L,R) :-
+  isBinary(Trm,Lc,"*>",L,R).
 
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,".=",P,E),!.

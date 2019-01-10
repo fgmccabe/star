@@ -70,7 +70,7 @@ showTrm(C,O) :-
   showConstraint(C,O,[]).
 showTrm(T,O) :-
   isCanon(T),!,
-  showCanonTerm(T,O,[]).
+  showCanonTerm(T,0,O,[]).
 showTrm(T,O) :-
   isLocation(T),
   showLocation(T,O,[]).

@@ -287,6 +287,15 @@
     "desc": "conjunction"
   },
   {
+    "infixOp": "*>",
+    "priorities": [
+      904,
+      905,
+      904
+    ],
+    "desc": "for all"
+  },
+  {
     "infixOp": "->",
     "priorities": [
       899,

@@ -1,4 +1,4 @@
-:- module(cnc,[genAbstraction/3,genSearch/3]).
+:- module(cnc,[genAbstraction/3,genSearch/3,genIterableGl/3]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -60,6 +60,28 @@ genSearch(search(Lc,Ptn,Src,Iterator),Path,Gl) :-
   Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
   Gl = match(Lc,apply(Lc,v(Lc,"noMore",CnsTp),tple(Lc,[Pttrn]),StTp),Exp).
 
+
+  /*
+   * 'iterable' conditions become a match on the result of a search
+   *
+   * becomes:
+   *
+   * noMore(PtnV) .= let{
+   *  sF(Ptn,_) => noMore(PtnV).
+   *  sF(_,St) default => St.
+   *  nF(_,_) => noneFound.
+   * } in <genCondition(Cond,Path,sF,nF,noneFound)>
+   */
+
+genIterableGl(Cond,Path,Gl) :-
+  locOfCanon(Cond,Lc),
+  goalVars(Cond,Vrs),
+  VTpl = tple(Lc,Vrs),
+  typeOfCanon(VTpl,ETp),
+  IterTp = tpExp(tpFun("star.iterable*iterState",1),ETp),
+  InitState = enm(Lc,"noneFound",IterTp),
+  genCondition(Cond,Path,cnc:setEl(Lc,VTpl,ETp,IterTp),cnc:passSt(Lc),InitState,Seq),
+  Gl = match(Lc,apply(Lc,v(Lc,"noMore",funType(tupleType([ETp]),IterTp)),tple(Lc,[VTpl]),IterTp),Seq).
 
 /*
  * Ptn in Src
@@ -158,6 +180,8 @@ genCondition(disj(_,A,B),Path,Succ,Fail,Initial,Exp) :-
   genCondition(B,Path,Succ,Fail,E1,Exp).
 genCondition(neg(_,A),Path,Succ,Fail,Initial,Exp) :-
   genCondition(A,Path,Fail,Succ,Initial,Exp).
+genCondition(implies(Lc,G,T),Path,Succ,Fail,Initial,Exp) :-
+  genCondition(neg(Lc,conj(Lc,G,neg(Lc,T))),Path,Succ,Fail,Initial,Exp).
 % Other form of condition is treated similarly to a match
 genCondition(Other,Path,Succ,Fail,Initial,Exp) :-
   genstr("sf",Fn),
@@ -179,6 +203,8 @@ genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
   genstr(Pr,Nm).
 
 genEl(Lc,El,Gen,StTp,St,apply(Lc,Gen,tple(Lc,[El,St]),StTp)).
+
+setEl(Lc,El,ElTp,StTp,_St,apply(Lc,v(Lc,"noMore",funType(tupleType([ElTp]),StTp)),tple(Lc,[El]),StTp)).
 
 passSt(_,St,St).
 
