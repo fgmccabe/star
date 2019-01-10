@@ -378,20 +378,26 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   recordEnv(Path,nullRepo,Lc,Els,CFace,ThEnv,OEnv,Defs,Public,_Imports,Others),
   computeExport(Defs,Face,Public,_,Types,[],[]),!.
 
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,Types,Tp),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
-  newTypeVar("_",ThTp),
-  checkThetaBody(ThTp,Lc,Els,Env,ThEnv,Defs,Others,Types,_,ThPath),
-  typeOfExp(Ex,Tp,ThEnv,_,Bound,Path).
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,Others,Types,Tp),Bound),Path):-
+  pushScope(Env,ThEnv),
+  thetaEnv(ThPath,nullRepo,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,_Imports,Others),
+  typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
   genstr("Γ",ThNm),
   thetaName(Path,ThNm,ThPath),
+  pushScope(Env,ThEnv),
+  recordEnv(ThPath,nullRepo,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,_Imports,Others),
+  typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,Inner,Bound),Path):-
   newTypeVar("_",ThTp),
-  checkThetaBody(ThTp,Lc,Els,Env,ThEnv,Defs,Others,Types,_,ThPath),
-  typeOfExp(Ex,Tp,ThEnv,_,Bound,Path).
+  typeOfExp(Th,ThTp,Env,_,Inner,Path),
+  faceOfType(ThTp,Env,Face),
+  pushFace(Face,Lc,Env,EnvI),
+  typeOfExp(Ex,Tp,EnvI,_,Bound,Path).
 
 splitHead(tuple(_,"()",[A]),Nm,Args,IsDeflt) :-!,
   splitHd(A,Nm,Args,IsDeflt).
@@ -705,6 +711,12 @@ typeOfExp(Term,Tp,Env,Ev,disj(Lc,Lhs,Rhs),Path) :-
   typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
   typeOfExp(R,LogicalTp,Env,E2,Rhs,Path),
   mergeDict(E1,E2,Env,Ev).
+typeOfExp(Term,Tp,Env,Ex,implies(Lc,Lhs,Rhs),Path) :-
+  isForall(Term,Lc,L,R),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  checkType(Lc,LogicalTp,Tp,Env),
+  typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
+  typeOfExp(R,LogicalTp,E1,Ex,Rhs,Path).
 typeOfExp(Term,Tp,Env,Ex,neg(Lc,Rhs),Path) :-
   isNegation(Term,Lc,R),!,
   findType("boolean",Lc,Env,LogicalTp),
