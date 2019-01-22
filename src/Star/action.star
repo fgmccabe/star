@@ -22,4 +22,10 @@ star.action{
 
     _raise(S) => err(S).
   }
+
+  public (:=):all a ~~ (ref a,a) => action[(),()].
+  (:=)(L,V) => delay(() where _ .= _assign(L,V) => done(())).
+
+  public (!):all a ~~ (ref a)=>a.
+  (!)(V) => _get(V).
 }
