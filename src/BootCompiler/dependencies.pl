@@ -467,7 +467,7 @@ collectTermRefs(T,A,R0,Refs) :-
   collectCondRefs(G,A,R1,Refs).
 collectTermRefs(T,A,R0,Refs) :-
   isDoTerm(T,_,Stmts),!,
-  collectTermRefs(Stmts,A,R0,Refs).
+  collectDoRefs(Stmts,A,R0,Refs).
 collectTermRefs(T,_A,Refs,Refs) :-
   isDoTerm(T,_),!.
 collectTermRefs(T,A,R0,Refs) :-
@@ -520,6 +520,28 @@ collectFaceRefs([],_,R,R).
 collectFaceRefs([St|L],All,R0,Refs) :-
   collectStmtRefs(St,All,R0,R1),
   collectFaceRefs(L,All,R1,Refs).
+
+collectDoRefs(T,All,Rf,Rfx) :-
+  isBinary(T,_,";",L,R),!,
+  collectDoRefs(L,All,Rf,Rf1),
+  collectDoRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isBraceTuple(T,_,[St]),!,
+  collectDoRefs(St,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isBind(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isAssignment(T,_,L,R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isHandle(T,_,L,R),!,
+  collectDoRefs(L,All,Rf,Rf1),
+  collectTermRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  collectTermRefs(T,All,Rf,Rfx).
 
 collectTypeRefs(V,All,SoFar,Refs) :-
   isIden(V,Nm),
