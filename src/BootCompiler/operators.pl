@@ -59,7 +59,7 @@
   operator("exists", [prefixOp(1010, 1009)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
-  operator(";", [infixOp(914, 915, 915)]).
+  operator(";", [infixOp(1250, 1251, 1251)]).
   operator("-->", [infixOp(1199, 1200, 1199)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
@@ -100,7 +100,7 @@
   operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(800, 800, 799)]).
-  operator(">>>", [infixOp(919, 920, 919)]).
+  operator(">>>", [infixOp(959, 960, 959)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).

@@ -117,15 +117,15 @@
   {
     "infixOp": ";",
     "priorities": [
-      914,
-      915,
-      915
+      1250,
+      1251,
+      1251
     ],
     "desc": "sequencing operator"
   },
   {
     "infixOp": ">>>",
-    "priorities": [919,920,919],
+    "priorities": [959,960,959],
     "desc": "handle error"
   },
   {
