@@ -10,7 +10,7 @@
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
-    isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isValof/3,isHandle/4,
+    isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isBind/4,isValof/3,isHandle/4,
     isLetDef/4,mkLetDef/4,
     whereTerm/4,
     packageName/2,pkgName/2,
@@ -359,6 +359,13 @@ isDoTerm(A,Lc) :-
   isBraceTuple(Arg,_,[]).
 isDoTerm(A) :-
   isApply(A,_,name(_,"do"),_).
+
+isBind(T,Lc,bind(B),E) :-
+  isBinary(T,Lc,"<-",R,E),!,
+  roundTuple(Lc,[R],B).
+isBind(T,Lc,let(B),E) :-
+  isBinary(T,Lc,"=",R,E),
+  roundTuple(Lc,[R],B).
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
