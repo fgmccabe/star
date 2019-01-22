@@ -1,16 +1,17 @@
 :- module(vartypes,[typeOfVar/7,isEnumVr/3,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
 
+:- use_module(abstract).
 :- use_module(freshen).
 :- use_module(unify).
 :- use_module(dict).
 :- use_module(errors).
 :- use_module(types).
 
-typeOfVar(Lc,_,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
+typeOfVar(Lc,Vr,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   freshen(VTp,Env,_,VrTp),
   call(MkTerm,Lc,Tp,Exp),
   manageConstraints(VrTp,[],Lc,Exp,MTp,Env,Ev,Term),
-  checkType(Lc,MTp,Tp,Env).
+  checkType(Vr,MTp,Tp,Env).
 
 isEnumVr(Lc,Tp,vrEntry(_,MkTerm,_,_)) :-
   \+call(MkTerm,Lc,Tp,v(_,_,_)),!.
@@ -27,8 +28,9 @@ manageConstraints(T,RCons,Lc,V,Tp,Env,Env,over(Lc,V,Tp,Cons)) :-
 
 checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).
-checkType(Lc,S,T,_) :-
-  reportError("%s not consistent with expected type %s",[S,T],Lc).
+checkType(Ast,S,T,_) :-
+  locOfAst(Ast,Lc),
+  reportError("%s:%s not consistent with expected type %s",[Ast,S,T],Lc).
 
 declareVr(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,dict:mkVr(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
