@@ -45,20 +45,22 @@ genStmt(T,void,Exp) :-
   isHandle(T,Lc,L,R),
   genStmt(L,_,Lhs),
   binary(Lc,"_handle",Lhs,R,Exp).
+genStmt(T,void,Exp) :-
+  isBraceTuple(T,_,[St]),
+  genBody(St,Exp).
 genStmt(T,void,T).
 
 genBind(void,Lc,LL,RR,Bd) :-
   anonArg(Lc,A),
-  genBind(A,Lc,LL,RR,Bd).
-genBind(A,Lc,LL,RR,Bd) :-
+  genBind(bind(A),Lc,LL,RR,Bd).
+genBind(bind(A),Lc,LL,RR,Bd) :- % Generate LL >>= (A)=>RR
   binary(Lc,"=>",A,RR,Fn),
   binary(Lc,">>=",LL,Fn,Bd).
+genBind(let(A),Lc,LL,RR,Bd) :- % Generate ((A)=>RR)(LL)
+  binary(Lc,"=>",A,RR,Fn),
+  roundTerm(Lc,Fn,[LL],Bd).
 
 anonArg(Lc,tuple(Lc,"()",[name(Lc,"_")])).
-
-isBind(T,Lc,R,E) :-
-  isBinary(T,Lc,"<-",Rh,E),
-  isTuple(R,Lc,[Rh]).
 
 genValof(T,E) :-
   isUnary(T,Lc,"valof",A),
