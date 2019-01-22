@@ -39,16 +39,37 @@ star.compiler.types{
   isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
   isUnbound(_) default => false.
 
+  public setBinding:(tipe,tipe) => action[(),()].
+  setBinding(tVar(B,_),T) => bnd(B,T).
+  setBinding(tFun(B,_,_),T) => bnd(B,T).
+
+  bnd:(tv,tipe) => action[(),()].
+  bnd(B,T) where B.binding! == none => do {
+    B.binding := some(T)
+  }
+  bnd(_,_) default => done(()).
+
+  public resetBinding:(tipe) => action[(),()].
+  resetBinding(tVar(B,_)) => do {
+    B.binding := none
+  }
+
   public constraintsOf:(tipe) => option[list[constraint]].
   constraintsOf(Tp) => conOf(deRef(Tp)).
 
   conOf(tVar(T,_)) => some(T.constraints!).
   conOf(_) default => none.
 
-  public setConstraints:(tipe,list[constraint]) => option[()].
-  setConstraints(tVar(V,_),Cx) where _.= (V.constraints := Cx) => some(()).
-  setConstraints(tFun(V,_,_),Cx) where _.= (V.constraints := Cx) => some(()).
-  setConstraints(_,_) default => none.
+  public setConstraints:(tipe,list[constraint]) => action[(),()].
+  setConstraints(tVar(V,_),Cx) => do{
+    V.constraints := Cx;
+    return ()
+  }
+  setConstraints(tFun(V,_,_),Cx) => do{
+    V.constraints := Cx;
+    return ()
+  }
+  setConstraints(_,_) default => done(()).
 
   public deRef:(tipe) => tipe.
   deRef(tVar(B,_)) where T^=B.binding! => deRef(T).
