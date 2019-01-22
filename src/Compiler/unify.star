@@ -56,13 +56,38 @@ star.compiler.unify{
   tpName(tpExp(O,_)) => tpName(O).
   tpName(_) => none.
 
-
   varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => true.
   varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => bind(T1,T2,Env).
   varBinding(_,_,_) default => false.
 
-  bind(V,T,Env) where isUnbound(T) => setBinding(V,T) && _ ^= setConstraints(V,^mergeConstraints(V,constraintsOf(T),Env)).
-  bind(V,T,Env) default => setBinding(V,T) && checkConstraints(constraintsOf(V),Env).
+  bind(V,T,Env) where isUnbound(T) =>
+    valof do{
+      CV = valof constraintsOf(V);
+      CT = valof constraintsOf(T);
+      MM = valof mergeConstraints(CV,CT,Env);
+      setConstraints(T,MM);
+      setBinding(V,T);
+      return true
+    }.
+  bind(V,T,Env) => valof do {
+    VC = constraintsOf(V);
+    {
+      setBinding(V,T);
+      checkConstraints(VC,Env);
+      return true
+    } >>> (E) => do {
+      resetBinding(V);
+      return false
+    }
+  }
+
+  bind(V,T,Env) where isUnbound(T) =>
+        (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
+          ( _ ^= setConstraints(T,MM) && _^= setBinding(V,T)) ||
+          false).
+  bind(V,T,Env) where VC .= constraintsOf(V) =>
+      ( _ ^= setBinding(V,T) && checkConstraints(VC,Env) ? true || resetBinding(V)).
+  bind(_,_,_) default => false.
 
   checkConstraints([],_) => true.
   checkConstraints([C,..Rest],Env) => checkConstraint(C,Env) && checkConstraints(Rest,Env).
@@ -73,6 +98,26 @@ star.compiler.unify{
       sameType(typeOf(conConstraint(Nm,Args,Deps)),typeOf(Im),Env).
   checkConstraint(implConstraint(T,F),Env) where Face ^= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
   checkConstraint(_,_) default => false.
+
+  mergeConstraints:(list[constraint],list[constraint],dict) => option[list[constraint]].
+  mergeConstraints(Cl,Cr,Env) => mergeCons(Cl,Cr,Cr,Env).
+
+  mergeCons:(list[constraint],list[constraint],list[constraint],dict) => option[list[constraint]].
+  mergeCons([],_,Cx,_) => some(Cx).
+  mergeCons([C,..Cx],Cy,Sx,Env) where S1^=mergeConstraint(C,Cy,Sx,Env) =>
+    mergeCons(Cx,Cy,S1,Env).
+  mergeCons(_,_,_,_) default => none.
+
+  mergeConstraint:(constraint,list[constraint],list[constraint],dict) => option[list[constraint]].
+  mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
+  mergeConstraint(conConstraint(Nm,A,D),[conConstraint(Nm,A1,D1),.._],Cs,Env) =>
+    (sameContract(conConstraint(Nm,A,D),conConstraint(Nm,A1,D1),Env) ? some(Cs) || none).
+  -- TODO: handle merging implementsFace more gracefully
+  mergeConstraint(C,[_,..R],Cs,Env) => mergeConstraint(C,R,Cs,Env).
+
+  sameContract(conConstraint(Nm,A,D),conConstraint(Nm,A1,D1),Env) =>
+    smTypes(A,A1,Env) && smTypes(D,D1,Env).
+  sameContract(_,_,_) default => false.
 
   subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
     subF(Ts1,Ts2) => (Nm,Tp1) in Ts1 *> ((Nm,Tp2) in Ts2 && sameType(Tp1,Tp2,Env)).
