@@ -34,6 +34,7 @@ isCanon(neg(_,_)).
 isCanon(varRef(_,_)).
 isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
+isCanon(lambda(_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(intLit(_,_)).
