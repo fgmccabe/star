@@ -1,0 +1,162 @@
+@node Introduction
+@chapter Introduction to @code{Star}
+
+@menu
+* About this reference::
+@end menu
+
+@noindent
+@code{Star} is a high-level symbolic programming language oriented to
+the needs of large-scale high performance processing in modern
+parallel and distributed computing environments.
+
+@code{Star} is a "`functional-first`" language -- in that functions
+and other programs are first class values. However, it is explicitly
+not a pure language: it has support for updatable variables and
+structures. However, its bias is definitely in favor of functional
+programming and in order to get the best value from programming in
+@code{Star}, such side-effecting features should be used sparingly.
+
+@code{Star} is strongly, statically, typed. What this means is that
+all programs and all values have a single type that is determined by a
+combination of type inference and explicit type annotations.
+
+While this definitely increases the initial burden of the programmer;
+we believe that correctness of programs is a long-term productivity
+gain -- especially for large programs developed by teams of
+programmers.
+
+The type language is very rich; including polymorphic types, type
+constraints and higher-rank and higher kinded types. Furthermore,
+except in cases where higher-ranked types are required, type inference
+is used extensively to reduce the burden of type bureaucracy on
+programmers.
+
+@code{Star} is extensible; there are many mechanisms designed to allow
+extensions to the language to be designed simply and
+effectively. Using such techniques can significantly ease the burden
+of writing applications.
+
+@node About this reference
+@section About this Reference
+
+@menu
+* Metagrammar::
+* Typographical Conventions::
+@end menu
+
+@noindent
+This reference is the language definition of the @code{Star}
+language. It is intended to be thorough and as precise as possible in
+the features discussed. However, where appropriate, we give simple
+examples as illustrative background to the specification itself.
+
+@node Metagrammar
+@subsection Metagrammar
+
+@noindent
+Throughout this document we introduce many syntactic features of the
+language. We use a variant of traditional BNF grammars to do this. The
+meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
+
+@float
+@anchor{metaGrammar}
+@smallexample
+@var{MetaGrammar} ::= @var{Production} , .. , @var{Production}
+@var{Production} ::= @var{NonTerminal} `::=` @var{Body}
+@var{Production} ::+= @var{NonTerminal} `::+=` @var{Body}
+@var{Body} ::= @var{Quoted} | @var{NonTerminal} | @var{Choice} | @var{Optional} | @var{Sequence} | ( @var{Body} )
+@var{Quoted} ::= '@var{Characters}'
+@var{NonTerminal} ::= @var{Identifier}
+@var{Choice} ::= @var{Body} |..| @var{Body}
+@var{Optional} ::= [ @var{Body} ]
+@var{Sequence} ::= @var{Body}  @var{op} .. @var{op} @var{Body} [+]
+@end smallexample
+@caption{MetaGrammar Used in this Reference}
+@shortcaption{MetaGrammar}
+@end float
+
+Some grammar combinations are worth explaining as they occur quite
+frequently and may not be standard in BNF-style grammars. For example
+the rules for actions contain:
+
+@smallexample
+@var{Action} ::= @{ @var{Action} ; .. ; @var{Action} @}
+@end smallexample
+
+This grammar rule defines an @var{Action} as a possibly empty sequence of
+@var{Action}s separated by semi-colons and enclosed in braces -- i.e.,
+the classic definition of a block.
+
+The rule:
+@smallexample
+@var{Decimal} ::= @var{Digit} .. @var{Digit}+
+@end smallexample
+
+@noindent
+denotes a definition in which there must be at least one occurrence of
+a @var{Digit}; in this case there is also no separator between the
+@var{Digit}s.
+
+Occasionally, where a non-terminal is not conveniently captured in a
+single production, later sections will add to the definition of the
+non-terminal. This is signaled with a @code{::+=} production, as in:
+
+@smallexample
+@var{Expression} ::+= @var{ListLiteral}
+@end smallexample
+
+which signals that, in addition
+to previously defined expressions, a @var{ListLiteral} is also an
+@var{Expression}.
+
+@node Typographical Conventions
+@subsection Typographical Conventions
+@cindex typographical conventions
+
+@noindent
+Any text on a programming language often has a significant number of
+examples of programs and program fragments. In this reference, we show
+these using a `typewriter`-like font, often broken out in a display
+form:
+
+@smallexample
+...
+P : integer
+...
+@end smallexample
+
+We use the @code{...} ellipsis to explicitly indicate a fragment of a
+program that is embedded in a context.
+@cindex ellipsis
+@cindex ...
+
+
+Occasionally, we have to show a somewhat generic fragment of a program
+where you, the programmer, are expected to put your own text in. We
+highlight such areas using @code{@var{this}} font:
+
+@smallexample
+(@var{Args}) => @var{Expr}
+@end smallexample
+
+
+This kind of notation is intended to suggest that @code{@var{Args}} and
+@code{@var{Expr}} are a kind of @emph{meta-variable} which are intended to be
+replaced by specific text.
+
+@quotation TIP
+Some parts of the text require more careful reading, or represent
+comments about potential implications of the main text. These notes
+are highlighted the way this note is. @footnote{Notes which are not
+really part of the main exposition, but still represent nuggets of
+wisdom are relegated to footnotes.}
+@end quotation
+
+@quotation WARNING
+Occasionally, there are areas where the programmer may
+accidentally `trip over' some feature of the language.
+@end quotation
+
+
+
