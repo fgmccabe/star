@@ -1,0 +1,68 @@
+\input texinfo
+@include version.texi
+@setfilename star.info
+@settitle Star Reference @value{VERSION}
+
+@dircategory Programming
+@direntry
+* star: (star).		Star programming language
+@end direntry
+
+@copying
+Copyright @copyright{} 2019 and beyond, Francis G. McCabe
+
+All rights reserved.
+@end copying
+
+@titlepage
+@title Star Reference
+@author Francis G. McCabe
+
+
+@page
+@insertcopying
+@end titlepage
+
+@ifplaintext
+@insertcopying
+@end ifplaintext
+
+@summarycontents
+@contents
+
+@node Top
+@top Star Reference
+
+@noindent
+This is the 
+@ifinfo
+on-line
+@end ifinfo 
+reference for the @code{Star} language, version @value{VERSION}.  
+@refill
+
+@noindent
+This manual offers an in-depth and complete description of the
+@code{Star} language. However, it is not a tutorial on the language,
+and the order of presentation within the manual reflects that. For a
+more tutorial introduction, the reader is referred to @emph{Star Programming} (by F.G. McCabe).
+
+@menu
+* Introduction::
+
+* Concept index::
+* Function index::
+@end menu
+
+
+@include intro.texi
+
+@node Concept index
+@unnumbered Concept index
+@printindex cp
+
+@node Function index
+@unnumbered Standard function index
+@printindex fn
+
+@bye
