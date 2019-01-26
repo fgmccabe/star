@@ -192,10 +192,8 @@ showCanonTerm(letExp(_,Env,Ex),Dp,O,Ox) :-
   showCanonTerm(Env,Dp,O1,O2),
   appStr(" in ",O2,O3),
   showCanonTerm(Ex,Dp,O3,Ox).
-showCanonTerm(lambda(_,Rles,_),Dp,O,Ox) :-
-  appStr("lambda {",O,O1),
-  showRls("",Rles,Dp,O1,O2),
-  appStr("}",O2,Ox).
+showCanonTerm(lambda(_,Rle,_),Dp,O,Ox) :-
+  showRule("",Dp,Rle,O,Ox).
 showCanonTerm(tple(_,Els),Dp,O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,Dp,O1,O2),
