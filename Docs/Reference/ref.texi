@@ -49,6 +49,7 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 
 @menu
 * Introduction::
+* Lexical Syntax::
 
 * Concept index::
 * Function index::
@@ -56,6 +57,8 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 
 
 @include intro.texi
+
+@include lexical.texi
 
 @node Concept index
 @unnumbered Concept index

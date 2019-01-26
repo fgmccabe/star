@@ -59,8 +59,7 @@ Throughout this document we introduce many syntactic features of the
 language. We use a variant of traditional BNF grammars to do this. The
 meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
 
-@float
-@anchor{metaGrammar}
+@float BNF,metaGrammar
 @smallexample
 @var{MetaGrammar} ::= @var{Production} , .. , @var{Production}
 @var{Production} ::= @var{NonTerminal} `::=` @var{Body}

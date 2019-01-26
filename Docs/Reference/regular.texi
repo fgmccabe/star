@@ -1,0 +1,21 @@
+[[regexps]]
+== Regular Expressions
+(((regular expression)))
+
+A regular expression may be used to match against string values. Regular expressions are written using a regexp notation that is close to the common formats; with some simplifications and extensions.
+
+[[regFig]]
+.Regular Expressions
+****
+[[RegularExpression]]RegularExpression::=```<<Regex>>```
+
+[[Regex]]Regex ::= `.` | `^` | `$`
+&nbsp;&nbsp;| <<CharRef>>
+&nbsp;&nbsp;| <<DisjunctiveGroup>>
+&nbsp;&nbsp;| <<CharacterClass>>
+&nbsp;&nbsp;| <<Binding>>
+&nbsp;&nbsp;| <<Regex>> <<Cardinality>>
+&nbsp;&nbsp;| <<Regex>> <<Regex>>
+****
+
+<<regFig>> shows the lexical syntax of regular expressions; however, see <<regularExpressions>> for a more detailed explanations of regular expression syntax and semantics.

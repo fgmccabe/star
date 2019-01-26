@@ -1,0 +1,514 @@
+@node Lexical Syntax
+@chapter Lexical Syntax
+
+
+@menu
+* Characters::
+* Number Literals::
+* Strings and Characters::
+* Identifiers::
+@end menu
+
+@node Characters
+@section Characters
+@cindex character set
+@cindex Unicode
+
+@code{Star} source text is based on the Unicode character set. This
+means that identifiers and string values may directly use any Unicode
+characters. However, all the standard operators and keywords fall in
+the ASCII subset of Unicode.
+
+@menu
+* Comments and White Space::
+@end menu
+
+@node Comments and White Space
+@subsection Comments and White Space
+@cindex white space
+
+@menu
+* Line Comment::
+* Block Comment::
+@end menu
+
+@noindent
+Input is tokenized according to rules that are similar to most modern
+programming languages: contiguous sequences of characters are assumed
+to belong to the same token unless the class of character changes --
+for example, a punctuation mark separates sequences of letter
+characters. In addition, white space and comments serve as token
+boundaries; otherwise white space and comments are ignored by the
+higher-level semantics of the language.
+
+@float BNF,ignorableFig
+@caption{Ignorable Characters}
+@smallexample
+@anchor{Ignorable}@var{Ignorable} ::= @var{LineComment}
+  | @var{BlockComment}
+  | @var{WhiteSpace}
+@end smallexample
+@end float
+
+There are two forms of comment: line comment and block comment.
+
+@node Line Comment
+@subsubsection Line Comment
+@cindex comment,line
+@cindex line comment
+A line comment consists of a @code{-- } or a @code{--\t} followed by all
+characters up to the next new-line. Here, @code{\t} refers to the
+Horizontal Tab.
+
+@float BNF,lineCommentFig
+@caption{Line Comment}
+@smallexample
+@anchor{LineComment}@var{LineComment} ::= (--  | --\t) @var{Char} .. @var{Char}\n
+@end smallexample
+@end float
+
+@node Block Comment
+@subsubsection Block Comment
+@cindex comment,block
+@cindex block comment
+A block comment consists of the characters @code{/*} followed by any
+characters and terminated by the characters @code{*/}.
+
+@float BNF,blockCommentFig
+@caption{Block Comment}
+@smallexample
+@anchor{BlockComment}@var{BlockComment} ::= /* @var{char} .. @var{char} */
+@end smallexample
+@end float
+
+Each form of comment overrides the other: a @code{/*} sequence in a
+line comment is _not_ the start of a block comment, and a @code{-- }
+sequence in a block comment is similarly not the start of a
+line comment but the continuation of the block comment.
+
+@node Number Literals
+@section Number Literals
+@cindex numeric literals
+@cindex literal,number
+
+@menu
+* Integer Literals::
+* Hexadecimal Integers::
+* Floating Point Numbers::
+* Character Codes::
+@end menu
+
+@code{Star} supports integer values, floating point values, decimal
+values and character codes as numeric values.
+
+@float BNF,numericLiteralFig
+@caption{Numeric Literals}
+@smallexample
+@anchor{NumericLiteral}@var{NumericLiteral} ::= @var{IntegerLiteral}
+  | @var{Hexadecimal}
+  | @var{FloatingPoint}
+  | @var{Decimal}
+  | @var{CharacterCode}
+@end smallexample
+@end float
+
+@quotation TIP
+The lexical syntax for numeric values is for positive values only. The
+interpretation of negative numeric literals is part of the grammar,
+not the lexical notation.
+@end quotation
+
+@node Integer Literals
+@subsection Integer Literals
+@cindex integer
+@cindex number,integer
+@cindex syntax,integer
+
+@noindent
+An integer is written using the normal decimal notation (@pxref{decimalFig}):
+@smallexample
+1  34 -99
+@end smallexample
+
+@float BNF,decimalFig
+@caption{Integer Literals}
+@smallexample
+@anchor{IntegerLiteral}@var{IntegerLiteral}::=@var{Digit} ... @var{Digit}+
+@anchor{Digit}@var{Digit}::=0|1|2|3|4|5|6|7|8|9
+@end smallexample
+@end float
+
+@quotation TIP
+All integers are represented as at least 64 bit values.
+@end quotation
+
+@node Hexadecimal Integers 
+@subsection Hexadecimal Integers
+@cindex hexadecimal
+@cindex number,hexadecimal
+@cindex syntax,hexadecimal
+
+@noindent
+A hexadecimal number is an integer written using hexadecimal
+notation. A hexadecimal number consists of a leading @code{0x}
+followed by a sequence of hex digits. For example,
+
+@smallexample
+0x0 0xff
+0x34fe
+@end smallexample
+are all hexadecimals.
+
+@float BNF,hexadecimalFig
+@caption{Hexadecimal numbers}
+@smallexample
+@anchor{Hexadecimal}@var{Hexadecimal}::= 0x @var{Hex} ... @var{Hex}+
+@anchor{Hex}@var{Hex}::= 0|1|2|3|4|5|6|7|8|9|a|b|c|d|e|f
+@end smallexample
+@end float
+
+@node Floating Point Numbers
+@subsection Floating Point Numbers
+@cindex floating point
+@cindex number,floating point
+@cindex syntax,floating point number
+
+Floating point numbers are written using a notation that is
+familiar. For example,
+
+@smallexample
+234.45  1.0e45
+@end smallexample
+
+See @ref{floatingPointFig} for a complete syntax diagram for floating point numbers.
+
+@float BNF,floatingPointFig
+@caption{Floating Point numbers}
+@smallexample
+@anchor{FloatingPoint}@var{FloatingPoint}::=@var{Digit} ... @var{Digit}+ . @var{Digit}...@var{Digit}+ [e[-]@var{Digit}...@var{Digit}+]]
+@end smallexample
+@end float
+
+@quotation TIP
+All floating point number are represented to a precision that is at
+least equal to 64-bit double precision. There is no equivalent of
+single-precision floating pointer numbers.
+@end quotation
+
+@node Character Codes
+@subsection Character Codes
+@cindex character code
+@cindex number,character code
+@cindex syntax,character code
+@noindent
+The character code notation allows a number to be based on the coding
+value of a character. Any Unicode character code point can be entered
+in this way:
+@smallexample
+0cX 0c[ 0c\n 0c
+@end smallexample
+
+For example, @code{0c\n} is the code point associated with the new
+line character, i.e., its value is @code{10}.
+
+@quotation TIP
+Unicode has the capability to represent up to one million character code points.
+@end quotation
+
+@float BNF,characterCodeFig
+@caption{Character Codes}
+@smallexample
+@anchor{CharacterCode}@var{CharacterCode}::=0c @var{CharRef}
+@end smallexample
+@end float
+
+A @var{CharacterCode} has type @code{integer}.
+
+@node Strings and Characters
+@section Strings and Characters
+@cindex string
+@cindex string literal
+@cindex character reference
+@cindex syntax,string literal
+
+@menu
+* Character Reference::
+* Quoted Strings::
+* Block String::
+@end menu
+
+@noindent
+A @code{string} consists of a sequence of characters -- specifically
+@var{CharRef}s. There is no specific type in @code{Star} for the
+characters themselves -- instead, there are primitives for accessing individual code points as @code{integer}s.
+
+@quotation CAUTION
+The reasons for this are due to the fact that Unicode @code{string}
+values cannot be easily represented as a unique sequence.
+@end quotation
+
+@node Character Reference
+@subsection Character Reference
+@cindex character reference
+@cindex syntax, character reference
+@noindent
+A @var{CharRef} is a denotation of a single character.
+
+@float BNF,charRefFig
+@caption{Character Reference}
+@smallexample
+@anchor{CharRef}@var{CharRef} ::= @var{Char} | @var{Escape}
+
+@anchor{Escape}@var{Escape}::=\b|\d|\e|\f|\n|\r|\t|\v |
+  \ @var{Char} | \u @var{Hex} ... @var{Hex};
+@end smallexample
+@end float
+
+@noindent
+For most characters, the character reference for that character is the
+character itself. For example, the string @code{"T"} contains the
+character @code{T}. However, certain standard characters are normally
+referenced by escape sequences consisting of a backslash character
+followed by other characters; for example, the new-line character is
+typically written @code{\n}. The standard escapes references are shown
+in @pxref{CharEscape}.
+
+@float Table,CharEscape
+@caption{Character Escapes}
+@table @code
+@item \b
+Back space
+@item \d
+Delete
+@item \e
+Escape
+@item \f
+Form Feed
+@item \n
+New line
+@item \r
+Carriage return
+@item \t
+Tab
+@item \v
+Vertical Tab
+@item \u@var{Hex}..@var{Hex};
+Unicode code point
+@item \ @var{Char}
+The @var{Char} itself
+@end table
+@end float
+
+Apart from the standard character references, there is a hex encoding
+for directly encoding unicode characters that may not be available on
+a given keyboard:
+@smallexample
+\u34ff;
+@end smallexample
+
+This notation accommodates the Unicode's varying width of character
+codes -- from 8 bits through to 20 bits.
+
+@node Quoted Strings
+@subsection Quoted Strings
+@cindex string,quoted
+
+@noindent
+A string is a sequence of character references (
+@pxref{CharRef}) enclosed in double quotes; alternately a
+string may take the form of a @xref{BlockString}.
+
+@float BNF,quotedStringFig
+@caption{Quoted String}
+@smallexample
+@anchor{StringLiteral}@var{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
+
+@anchor{QuotedString} @var{QuotedString} ::= " @var{StrChar} ... @var{StrChar} "
+
+@anchor{StrChar}StrChar ::= @var{CharRef} | @var{Interpolation}
+
+@anchor{Interpolation}@var{Interpolation} ::= [$| \#] @var{Identifier}[:@var{FormattingSpec} ;]
+  | [$ | # ] (@var{Expression} )[:@var{FormattingSpec} ;]
+
+@anchor{FormattingSpec}@var{FormattingSpec} ::= @var{CharRef} ... @var{CharRef}
+@end smallexample
+@end float
+
+@quotation TIP
+Strings are @emph{not} permitted to contain the new-line character -- other
+than as a character reference.
+@end quotation
+
+@smallexample
+"This string has a \nnew line in the middle"
+@end smallexample
+
+@node Block String
+@subsection Block String
+@cindex strings,block form of
+@cindex block of data
+
+
+@noindent
+In addition to the normal notation for strings, there is a block form
+of string that permits raw character data to be processed as a string.
+
+@float BNF,blockStringFig
+@caption{Block String Literal}
+@smallexample
+@anchor{BlockString}@var{BlockString}::=""" @var{Char} ... @var{Char} """
+@end smallexample
+@end float
+
+@noindent
+The block form of string allows any characters in the text and
+performs no interpretation of those characters.
+
+Block strings are written using triple quote characters at either
+end. Any new-line characters enclosed by the block quotes are
+considered to be part of the strings.
+
+The normal interpretation of @code{$} and @code{#} characters as
+interpolation markers is suppressed within a block string.
+
+@smallexample
+"""This is a block string with $ and
+uninterpreted # characters"""
+@end smallexample
+
+@quotation TIP
+This form of string literal can be a convenient method for including
+block text into a program source.
+@end quotation
+
+@node Identifiers
+@section Identifiers
+@cindex identifier
+
+@noindent
+Identifiers are used to denote operators, keywords and
+variables. There are three main kinds of identifier: regular
+alpha-numeric identifiers, graphic identifiers and quoted
+identifiers. However, semantically, all these are essentially
+equivalent: they all identify some variable or some type.
+
+@menu
+* Alphanumeric Identifiers::
+* Punctuation Symbols and Graphic Identifiers::
+* Quoted Identifiers::
+* Standard Keywords::
+@end menu
+
+@node Alphanumeric Identifiers
+@subsection Alphanumeric Identifiers
+@cindex alpha numeric identifier
+
+@noindent
+Identifiers in @code{Star} are based on the Unicode definition of
+identifier. For the ASCII subset of characters, the definition
+corresponds to the common form of identifier -- a letter followed by a
+sequence of digits and letters. However, non-ASCII characters are also
+permitted in an identifier.
+
+@float BNF,identifierFig
+@caption{Identifier Syntax}
+@smallexample
+@anchor{Identifier}@var{Identifier}::=@var{AlphaNumeric}
+  | @var{GraphicIdentifier}
+  | @var{QuotedIdentifier}
+
+@anchor{AlphaNumeric}@var{AlphaNumeric}::=@var{LeadChar}@var{BodyChar}...@var{BodyChar}
+
+@anchor{LeadChar}@var{LeadChar}::=@var{LetterNumber}
+  | @var{LowerCase}
+  | @var{UpperCase}
+  | @var{TitleCase}
+  | @var{OtherNumber}
+  | @var{OtherLetter}
+  | @var{ConnectorPunctuation}
+
+@anchor{BodyChar}@var{BodyChar}::=@var{LeadChar}
+  | @var{ModifierLetter}
+  | @var{Digit}
+@end smallexample
+@end float
+
+The terms @var{LetterNumber}, @var{ModifierLetter} and so on; referred to in
+@ref{identifierFig} refer to standard character categories defined in
+Unicode.
+
+@quotation TIP
+This definition of @ref{Identifier} closely follows the standard
+definition of Identifier as contained in the Unicode specification.
+@end quotation
+
+@node Punctuation Symbols and Graphic Identifiers
+@subsection Punctuation Symbols and Graphic Identifiers
+@cindex punctuation
+@noindent
+The standard operators often have a graphic form -- such as @code{+},
+and @code{=<}. <<standardGraphicsTable>> contains a complete listing
+of all the standard graphic-form identifiers.
+
+@float BNF,graphicIdentifierFig
+@caption{Graphic Identifiers}
+@smallexample
+@anchor{GraphicIdentifier}@var{GraphicIdentifier} ::= @var{SymbolicChar}...@var{SymbolicChar}
+
+@anchor{SymbolicChar}@var{SymbolicChar} ::= @var{Char} excepting @var{BodyChar}
+@end smallexample
+@end float
+
+@quotation TIP
+Apart from their graphic form there is no particular semantic
+distinction between a graphic form identifier and a alphanumeric form
+identifier. In fact, new graphical tokens may be introduced as a
+result of declaring an operator -- see <<symbolicOperators>>.
+@end quotation
+
+@node Quoted Identifiers
+@subsection Quoted Identifiers
+@cindex identifier,quoted
+@cindex quoted identifiers
+
+@noindent
+A quoted identifiers is denoted by a sequence of @var{charRef}s enclosed
+in single quotes. Recall that strings are enclosed in double quotes.
+
+@float BNF quotedIdentFig
+@caption{Quoted Identifier}
+@smallexample
+@anchor{QuotedIdentifier}@var{QuotedIdentifier} ::= '@var{StrChar}...@var{StrChar}'
+@end smallexample
+@end float
+
+A quoted identifier suppresses any operator or keyword interpretation
+that the identifier might otherwise have.
+
+@quotation TIP
+This can be useful for external facing interfaces where, for example,
+the name of a field in a structure must have a particular form -- even
+if that would otherwise be a keyword.
+@end quotation
+
+@node Standard Keywords
+@subsection Standard Keywords
+@cindex standard keywords
+@cindex keywords
+
+@noindent
+There are a number of keywords which are reserved by the language --
+these may not be used as identifiers or in any other role.
+
+@quotation TIP
+On those occasions where it is important to have an identifier that is
+a keyword it is possible to achieve this by enclosing the keyword in
+single quotes.
+
+For example, while @code{type} is a keyword in the language; enclosing
+the word in parentheses: @code{'type'} has the effect of suppressing
+the keyword interpretation -- even though the printed representations are the same.
+
+Enclosing a name in parentheses also has the effect of suppressing any
+operator information about the name.
+@end quotation
