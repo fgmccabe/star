@@ -562,10 +562,10 @@ implementFunCall(Lc,localCons(Mdl,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q,Q
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
-liftLambda(lambda(Lc,Eqns,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
-  lambdaMap(lambda(Lc,Eqns,Tp),Q,Map,LclName,Closure,LMap),
+liftLambda(lambda(Lc,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
+  lambdaMap(lambda(Lc,Eqn,Tp),Q,Map,LclName,Closure,LMap),
   (is_member(showTrCode,Opts) -> dispMap("Lambda map: ",LMap);true),
-  transformEquations(LMap,LMap,Opts,LclName,Eqns,Rls,[],Ex,Exx),
+  transformEqn(Eqn,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun),

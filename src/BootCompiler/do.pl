@@ -56,6 +56,12 @@ genBind(void,Lc,LL,RR,Bd) :-
 genBind(bind(A),Lc,LL,RR,Bd) :- % Generate LL >>= (A)=>RR
   binary(Lc,"=>",A,RR,Fn),
   binary(Lc,">>=",LL,Fn,Bd).
+genBind(let(A),Lc,LL,RR,Bd) :- %  X = valof E
+  isValof(LL,Lc1,E),!,    % Generate _coerce(_handle(LL,_raise)) >>= (A)=>RR
+  binary(Lc1,"_handle",E,name(Lc1,"_raise"),LL1),
+  unary(Lc1,"_coerce",LL1,Lhs),
+  binary(Lc,"=>",A,RR,Fn),
+  binary(Lc,">>=",Lhs,Fn,Bd).
 genBind(let(A),Lc,LL,RR,Bd) :- % Generate ((A)=>RR)(LL)
   binary(Lc,"=>",A,RR,Fn),
   roundTerm(Lc,Fn,[LL],Bd).

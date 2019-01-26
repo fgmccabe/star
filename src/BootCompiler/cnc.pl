@@ -250,7 +250,7 @@ analyseExp(assertion(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
 analyseExp(show(_,Rhs),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(Rhs,Df,Dfx,Rq,Rqx,Cand).
 analyseExp(lambda(_,Rle,_),Df,Dfx,Rq,Rqx,Cond) :-
-  analyseRules(Rle,Df,Dfx,Rq,Rqx,Cond).
+  analyseRule(Rle,Df,Dfx,Rq,Rqx,Cond).
 analyseExp(theta(_Lc,_Path,_,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(record(_Lc,_Path,_,_Defs,_Others,_Types,_Sig),Dfx,Dfx,Rqx,Rqx,_Cand).
 analyseExp(letExp(_,Th,Exp),Df,Dfx,Rq,Rqx,Cand) :-
@@ -276,7 +276,7 @@ analysePtn(where(_,P,C),Df,Dfx,Rq,Rqx,Cand) :-
 analysePtn(P,Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(P,Df,Dfx,Rq,Rqx,Cand).
 
-analyseRl(equation(_,A,Cond,Value),Df,Dfx,Rq,Rqx,Cand) :-
+analyseRule(equation(_,A,Cond,Value),Df,Dfx,Rq,Rqx,Cand) :-
   analyseExp(A,Df,Df1,Rq,Rq1,Cand),
   analyseExp(Cond,Df1,Df2,Rq1,Rq2,Cand),
   analyseExp(Value,Df2,Dfx,Rq2,Rqx,Cand).
@@ -291,9 +291,6 @@ analysePtns(Ptns,Df,Dfx,Rq,Rqx,Cand) :-
 
 analyseExps(Exps,Df,Dfx,Rq,Rqx,Cand) :-
   analyseMany(Exps,cnc:analyseExp,Df,Dfx,Rq,Rqx,Cand).
-
-analyseRules(Rls,Df,Dfx,Rq,Rqx,Cand) :-
-  analyseMany(Rls,cnc:analyseRl,Df,Dfx,Rq,Rqx,Cand).
 
 addVar(v(_,Nm,_),D,D) :- is_member(v(_,Nm,_),D),!.
 addVar(V,D,[V|D]).

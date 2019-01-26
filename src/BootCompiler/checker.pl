@@ -752,7 +752,7 @@ funLbl(cons(_,Nm,_),Nm).
 funLbl(enm(_,Nm,_),Nm).
 funLbl(mtd(_,Nm,_),Nm).
 
-typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
+typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,apply(Lc,Fun,Args,Tp),Path) :-
   newTypeVar("F",FnTp),
   genTpVars(A,Vrs),
   At = tupleType(Vrs),
@@ -760,15 +760,13 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path) :-
   simplifyType(FnTp,Env,_,[],FTp),
   evidence(At,E0,_,AT),
   (sameType(funType(At,Tp),FTp,E0) ->
-    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args,Tp) ;
+    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path);
    sameType(consType(At,Tp),FTp,E0) ->
-    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path),
-    Exp = apply(Lc,Fun,Args,Tp);
+    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path);
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
    Env=Ev).
 
-typeOfLambda(Term,Tp,Env,lambda(Lc,[equation(Lc,Args,Cond,Exp)],Tp),Path) :-
+typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
   typeOfArgPtn(H,AT,Env,E1,Args,Path),

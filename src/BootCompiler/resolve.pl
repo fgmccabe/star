@@ -54,7 +54,7 @@ overloadRules(Eqns,Dict,St,Stx,OEqns) :-
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,
-    lambda(Lc,[equation(Lc,tple(Lc,CVars),enm(Lc,"true",type("star.core*boolean")),RExp)],OTp))) :-
+    lambda(Lc,equation(Lc,tple(Lc,CVars),enm(Lc,"true",type("star.core*boolean")),RExp),OTp))) :-
   defineCVars(Lc,Cx,Dict,CVars,FDict),
   contractTypes(Cx,Tps),
   makeContractFunType(Tp,Tps,OTp),
@@ -169,8 +169,8 @@ overloadTerm(over(Lc,T,IsFn,Cx),Dict,St,Stx,Over) :-
 overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   genMsg("cannot find implementation for %s",[Nm],Msg),
   markActive(St,Lc,Msg,Stx).
-overloadTerm(lambda(Lc,Eqns,Tp),Dict,St,Stx,lambda(Lc,OEqns,Tp)) :-
-  overloadRules(Eqns,Dict,St,Stx,OEqns).
+overloadTerm(lambda(Lc,Eqn,Tp),Dict,St,Stx,lambda(Lc,OEqn,Tp)) :-
+  overloadRule(Eqn,Dict,St,Stx,OEqn).
 
 overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.
@@ -178,8 +178,8 @@ overApply(Lc,OverOp,Args,Tp,Lam) :-
   curryOver(Lc,OverOp,Args,Tp,Lam).
 
 curryOver(Lc,OverOp,Cx,Tp,
-    lambda(Lc,[equation(Lc,tple(Lc,Args),enm(Lc,"true",type("star.core*boolean")),
-          apply(Lc,OverOp,tple(Lc,NArgs),Tp))],funType(tupleType(ArTps),Tp))) :-
+    lambda(Lc,equation(Lc,tple(Lc,Args),enm(Lc,"true",type("star.core*boolean")),
+          apply(Lc,OverOp,tple(Lc,NArgs),Tp)),funType(tupleType(ArTps),Tp))) :-
   progArgTypes(Tp,ArTps),
   genVrs(ArTps,Lc,Args),
   concat(Cx,Args,NArgs).
