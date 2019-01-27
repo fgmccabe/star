@@ -15,6 +15,7 @@
 
 static retCode procOperator(void *n, void *r, void *c);
 static retCode procBrackets(void *n, void *r, void *c);
+static retCode genTexiStr(ioPo f, void *data, long depth, long precision, logical alt);
 
 static char *pC(char *buff, long *ix, char c);
 
@@ -43,7 +44,7 @@ static char *pC(char *buff, long *ix, char c) {
 }
 
 enum {
-  genProlog, genStar
+  genProlog, genStar, genTexi
 } genMode = genProlog;
 
 typedef struct {
@@ -79,13 +80,16 @@ static void initTries() {
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "pst:o:d:D")) >= 0) {
+  while ((opt = getopt(argc, argv, "psit:o:d:D")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
         break;
       case 's':
         genMode = genStar;
+        break;
+      case 'i':
+        genMode = genTexi;
         break;
       case 'o':
         opers = optarg;
@@ -121,6 +125,8 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
     case genStar:
       outMsg(c->out, "  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
+    case genTexi:
+      break;
   }
 }
 
@@ -142,6 +148,8 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
       case genStar:
         outMsg(out, "  final(\"%P\") => true.  /* %s */\n", op->name, op->cmt);
         break;
+      case genTexi:
+        break;
     }
   }
 }
@@ -162,6 +170,8 @@ int main(int argc, char **argv) {
   initTries();
   initLogfile("-");
   installMsgProc('P', genQuotedStr);
+  installMsgProc('I', genTexiStr);
+
   int narg = getOptions(argc, argv);
 
   if (narg < 0) {
@@ -311,6 +321,8 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
         default:
           return Error;
       }
+    case genTexi:
+      return Ok;
   }
 }
 
@@ -329,6 +341,33 @@ static retCode procOperator(void *n, void *r, void *c) {
     case genStar:
       ret = outMsg(out, "  oper(\"%P\") => [", nm);
       break;
+    case genTexi: {
+      while (p != NULL && ret == Ok) {
+        opPo op = p->op;
+        switch (op->style) {
+          case prefixOp: {
+            char *type = (op->right == op->prior ? "associative" : "non-associative");
+            ret = outMsg(out, "@item @code{%I}\n%s prefix, priority=%d\n", nm, type, op->prior);
+            break;
+          }
+          case infixOp: {
+            char *type = (op->right == op->prior ? "right associative" :
+                          op->left == op->prior ? "left associative" : "non-associative");
+            ret = outMsg(out, "@item @code{%I}\n%s infix, priority=%d\n", nm, type, op->prior);
+            break;
+          }
+          case postfixOp: {
+            char *type = (op->left == op->prior ? "associative" : "non-associative");
+            ret = outMsg(out, "@item @code{%I}\n%s postfix, priority=%d\n", nm, type, op->prior);
+            break;
+          }
+          default:
+            return Error;
+        }
+        p = p->next;
+      }
+      return ret;
+    }
     default:
       break;
   }
@@ -383,7 +422,74 @@ retCode procBrackets(void *n, void *r, void *c) {
 
 static inline byte hxDgit(integer h) {
   if (h < 10)
-    return (byte) (((byte)h) | (byte)'0');
+    return (byte) (((byte) h) | (byte) '0');
   else
     return (byte) (h + 'a' - 10);
+}
+
+static retCode quoteChar(ioPo f, codePoint ch) {
+  retCode ret;
+  switch (ch) {
+    case '\a':
+      ret = outStr(f, "\\a");
+      break;
+    case '\b':
+      ret = outStr(f, "\\b");
+      break;
+    case '\x7f':
+      ret = outStr(f, "\\d");
+      break;
+    case '\x1b':
+      ret = outStr(f, "\\e");
+      break;
+    case '\f':
+      ret = outStr(f, "\\f");
+      break;
+    case '\n':
+      ret = outStr(f, "\\n");
+      break;
+    case '\r':
+      ret = outStr(f, "\\r");
+      break;
+    case '\t':
+      ret = outStr(f, "\\t");
+      break;
+    case '\v':
+      ret = outStr(f, "\\v");
+      break;
+    case '\\':
+      ret = outStr(f, "\\\\");
+      break;
+    case '\"':
+      ret = outStr(f, "\\\"");
+      break;
+    case '@':
+      ret = outStr(f,"@@");
+      break;
+    default:
+      if (ch < ' ') {
+        ret = outChar(f, '\\');
+        if (ret == Ok)
+          ret = outChar(f, ((ch >> 6) & 3) | '0');
+        if (ret == Ok)
+          ret = outChar(f, ((ch >> 3) & 7) | '0');
+        if (ret == Ok)
+          ret = outChar(f, (ch & 7) | '0');
+      } else
+        ret = outChar(f, ch);
+  }
+  return ret;
+}
+
+retCode genTexiStr(ioPo f, void *data, long depth, long precision, logical alt) {
+  char *txt = (char *) data;
+  integer len = (integer) uniStrLen(txt);
+  integer pos = 0;
+
+  retCode ret = Ok;
+  while (ret == Ok && pos < len) {
+    codePoint cp = nextCodePoint(txt, &pos, len);
+    ret = quoteChar(f, cp);
+  }
+  return ret;
 }

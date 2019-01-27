@@ -10,7 +10,7 @@
 the needs of large-scale high performance processing in modern
 parallel and distributed computing environments.
 
-@code{Star} is a "`functional-first`" language -- in that functions
+@code{Star} is a @emph{functional-first} language -- in that functions
 and other programs are first class values. However, it is explicitly
 not a pure language: it has support for updatable variables and
 structures. However, its bias is definitely in favor of functional
@@ -62,8 +62,8 @@ meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
 @float BNF,metaGrammar
 @smallexample
 @var{MetaGrammar} ::= @var{Production} , .. , @var{Production}
-@var{Production} ::= @var{NonTerminal} `::=` @var{Body}
-@var{Production} ::+= @var{NonTerminal} `::+=` @var{Body}
+@var{Production} ::= @var{NonTerminal} ::= @var{Body}
+@var{Production} ::+= @var{NonTerminal} ::+= @var{Body}
 @var{Body} ::= @var{Quoted} | @var{NonTerminal} | @var{Choice} | @var{Optional} | @var{Sequence} | ( @var{Body} )
 @var{Quoted} ::= '@var{Characters}'
 @var{NonTerminal} ::= @var{Identifier}
