@@ -1,0 +1,6 @@
+@float
+@caption{Standard Operators}
+@table @asis
+#(Operators)
+@end table
+@end float

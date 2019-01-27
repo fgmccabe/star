@@ -1,0 +1,1786 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2019 and beyond, Francis G. McCabe
+
+All rights reserved. -->
+<!-- Created by GNU Texinfo 5.2, http://www.gnu.org/software/texinfo/ -->
+<head>
+<title>Star Reference 2.0</title>
+
+<meta name="description" content="Star Reference 2.0">
+<meta name="keywords" content="Star Reference 2.0">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="#Top" rel="start" title="Top">
+<link href="#Concept-index" rel="index" title="Concept index">
+<link href="#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="dir.html#Top" rel="up" title="(dir)">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.indentedblock {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smallindentedblock {margin-left: 3.2em; font-size: smaller}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style:oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:nowrap}
+span.nolinebreak {white-space:nowrap}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+<h1 class="settitle" align="center">Star Reference 2.0</h1>
+
+
+
+
+
+<a name="SEC_Overview"></a>
+<h2 class="shortcontents-heading">Short Table of Contents</h2>
+
+<div class="shortcontents">
+<ul class="no-bullet">
+<li><a name="stoc-Introduction-to-Star" href="#toc-Introduction-to-Star">1 Introduction to <code>Star</code></a></li>
+<li><a name="stoc-Lexical-Syntax-1" href="#toc-Lexical-Syntax-1">2 Lexical Syntax</a></li>
+<li><a name="stoc-Grammar-1" href="#toc-Grammar-1">3 Grammar</a></li>
+<li><a name="stoc-Concept-index-1" href="#toc-Concept-index-1">Concept index</a></li>
+<li><a name="stoc-Standard-function-index" href="#toc-Standard-function-index">Standard function index</a></li>
+<li><a name="stoc-List-of-Syntax-Rules-1" href="#toc-List-of-Syntax-Rules-1">List of Syntax Rules</a></li>
+</ul>
+</div>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Introduction-to-Star" href="#Introduction">1 Introduction to <code>Star</code></a>
+  <ul class="no-bullet">
+    <li><a name="toc-About-this-Reference" href="#About-this-reference">1.1 About this Reference</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Metagrammar-1" href="#Metagrammar">1.1.1 Metagrammar</a></li>
+      <li><a name="toc-Typographical-Conventions-1" href="#Typographical-Conventions">1.1.2 Typographical Conventions</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Lexical-Syntax-1" href="#Lexical-Syntax">2 Lexical Syntax</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Characters-1" href="#Characters">2.1 Characters</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Comments-and-White-Space-1" href="#Comments-and-White-Space">2.1.1 Comments and White Space</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Line-Comment-1" href="#Line-Comment">2.1.1.1 Line Comment</a></li>
+        <li><a name="toc-Block-Comment-1" href="#Block-Comment">2.1.1.2 Block Comment</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a name="toc-Number-Literals-1" href="#Number-Literals">2.2 Number Literals</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Integer-Literals-1" href="#Integer-Literals">2.2.1 Integer Literals</a></li>
+      <li><a name="toc-Hexadecimal-Integers-1" href="#Hexadecimal-Integers">2.2.2 Hexadecimal Integers</a></li>
+      <li><a name="toc-Floating-Point-Numbers-1" href="#Floating-Point-Numbers">2.2.3 Floating Point Numbers</a></li>
+      <li><a name="toc-Character-Codes-1" href="#Character-Codes">2.2.4 Character Codes</a></li>
+    </ul></li>
+    <li><a name="toc-Strings-and-Characters-1" href="#Strings-and-Characters">2.3 Strings and Characters</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Character-Reference-1" href="#Character-Reference">2.3.1 Character Reference</a></li>
+      <li><a name="toc-Quoted-Strings-1" href="#Quoted-Strings">2.3.2 Quoted Strings</a></li>
+      <li><a name="toc-Block-String-1" href="#Block-String">2.3.3 Block String</a></li>
+    </ul></li>
+    <li><a name="toc-Identifiers-1" href="#Identifiers">2.4 Identifiers</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Alphanumeric-Identifiers-1" href="#Alphanumeric-Identifiers">2.4.1 Alphanumeric Identifiers</a></li>
+      <li><a name="toc-Graphic-Identifiers-1" href="#Graphic-Identifiers">2.4.2 Graphic Identifiers</a></li>
+      <li><a name="toc-Quoted-Identifiers-1" href="#Quoted-Identifiers">2.4.3 Quoted Identifiers</a></li>
+      <li><a name="toc-Standard-Keywords-1" href="#Standard-Keywords">2.4.4 Standard Keywords</a></li>
+    </ul></li>
+    <li><a name="toc-Punctuation-1" href="#Punctuation">2.5 Punctuation</a>
+    <ul class="no-bullet">
+      <li><a name="toc-End-of-Term-1" href="#End-of-Term">2.5.1 End of Term</a></li>
+      <li><a name="toc-Parentheses-1" href="#Parentheses">2.5.2 Parentheses</a></li>
+      <li><a name="toc-Square-brackets-1" href="#Square-brackets">2.5.3 Square brackets</a></li>
+      <li><a name="toc-Braces-1" href="#Braces">2.5.4 Braces</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-Grammar-1" href="#Grammar">3 Grammar</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Operator-Precedence-Grammar-1" href="#Operator-Precedence-Grammar">3.1 Operator Precedence Grammar</a></li>
+    <li><a name="toc-Standard-Operators-1" href="#Standard-Operators">3.2 Standard Operators</a></li>
+  </ul></li>
+  <li><a name="toc-Concept-index-1" href="#Concept-index">Concept index</a></li>
+  <li><a name="toc-Standard-function-index" href="#Function-index">Standard function index</a></li>
+  <li><a name="toc-List-of-Syntax-Rules-1" href="#List-of-Syntax-Rules">List of Syntax Rules</a></li>
+</ul>
+</div>
+
+
+<a name="Top"></a>
+<div class="header">
+<p>
+Next: <a href="#Introduction" accesskey="n" rel="next">Introduction</a>, Up: <a href="dir.html#Top" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Star-Reference"></a>
+<h1 class="top">Star Reference</h1>
+
+<p>This is the 
+reference for the <code>Star</code> language, version 2.0.  
+
+</p>
+<p>This manual offers an in-depth and complete description of the
+<code>Star</code> language. However, it is not a tutorial on the language,
+and the order of presentation within the manual reflects that. For a
+more tutorial introduction, the reader is referred to <em>Star Programming</em> (by F.G. McCabe).
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Introduction" accesskey="1">Introduction</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Lexical-Syntax" accesskey="2">Lexical Syntax</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Grammar" accesskey="3">Grammar</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Concept-index" accesskey="4">Concept index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Function-index" accesskey="5">Function index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#List-of-Syntax-Rules" accesskey="6">List of Syntax Rules</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+
+<hr>
+<a name="Introduction"></a>
+<div class="header">
+<p>
+Next: <a href="#Lexical-Syntax" accesskey="n" rel="next">Lexical Syntax</a>, Previous: <a href="#Top" accesskey="p" rel="prev">Top</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Introduction-to-Star"></a>
+<h2 class="chapter">1 Introduction to <code>Star</code></h2>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#About-this-reference" accesskey="1">About this reference</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<p><code>Star</code> is a high-level symbolic programming language oriented to
+the needs of large-scale high performance processing in modern
+parallel and distributed computing environments.
+</p>
+<p><code>Star</code> is a <em>functional-first</em> language &ndash; in that functions
+and other programs are first class values. However, it is explicitly
+not a pure language: it has support for updatable variables and
+structures. However, its bias is definitely in favor of functional
+programming and in order to get the best value from programming in
+<code>Star</code>, such side-effecting features should be used sparingly.
+</p>
+<p><code>Star</code> is strongly, statically, typed. What this means is that
+all programs and all values have a single type that is determined by a
+combination of type inference and explicit type annotations.
+</p>
+<p>While this definitely increases the initial burden of the programmer;
+we believe that correctness of programs is a long-term productivity
+gain &ndash; especially for large programs developed by teams of
+programmers.
+</p>
+<p>The type language is very rich; including polymorphic types, type
+constraints and higher-rank and higher kinded types. Furthermore,
+except in cases where higher-ranked types are required, type inference
+is used extensively to reduce the burden of type bureaucracy on
+programmers.
+</p>
+<p><code>Star</code> is extensible; there are many mechanisms designed to allow
+extensions to the language to be designed simply and
+effectively. Using such techniques can significantly ease the burden
+of writing applications.
+</p>
+<hr>
+<a name="About-this-reference"></a>
+<div class="header">
+<p>
+Up: <a href="#Introduction" accesskey="u" rel="up">Introduction</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="About-this-Reference"></a>
+<h3 class="section">1.1 About this Reference</h3>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Metagrammar" accesskey="1">Metagrammar</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Typographical-Conventions" accesskey="2">Typographical Conventions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<p>This reference is the language definition of the <code>Star</code>
+language. It is intended to be thorough and as precise as possible in
+the features discussed. However, where appropriate, we give simple
+examples as illustrative background to the specification itself.
+</p>
+<hr>
+<a name="Metagrammar"></a>
+<div class="header">
+<p>
+Next: <a href="#Typographical-Conventions" accesskey="n" rel="next">Typographical Conventions</a>, Up: <a href="#About-this-reference" accesskey="u" rel="up">About this reference</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Metagrammar-1"></a>
+<h4 class="subsection">1.1.1 Metagrammar</h4>
+
+<p>Throughout this document we introduce many syntactic features of the
+language. We use a variant of traditional BNF grammars to do this. The
+meta-grammar can be described using itself; as shown in see <a href="#metaGrammar">BNF 1.1</a>.
+</p>
+<div class="float"><a name="metaGrammar"></a>
+<div class="smallexample">
+<pre class="smallexample"><var>MetaGrammar</var> ::= <var>Production</var> , .. , <var>Production</var>
+<var>Production</var> ::= <var>NonTerminal</var> ::= <var>Body</var>
+<var>Production</var> ::+= <var>NonTerminal</var> ::+= <var>Body</var>
+<var>Body</var> ::= <var>Quoted</var> | <var>NonTerminal</var> | <var>Choice</var> | <var>Optional</var> | <var>Sequence</var> | ( <var>Body</var> )
+<var>Quoted</var> ::= '<var>Characters</var>'
+<var>NonTerminal</var> ::= <var>Identifier</var>
+<var>Choice</var> ::= <var>Body</var> |..| <var>Body</var>
+<var>Optional</var> ::= [ <var>Body</var> ]
+<var>Sequence</var> ::= <var>Body</var>  <var>op</var> .. <var>op</var> <var>Body</var> [+]
+</pre></div>
+
+
+<div class="float-caption"><p><strong>BNF 1.1: </strong>MetaGrammar Used in this Reference</p></div></div>
+<p>Some grammar combinations are worth explaining as they occur quite
+frequently and may not be standard in BNF-style grammars. For example
+the rules for actions contain:
+</p>
+<div class="smallexample">
+<pre class="smallexample"><var>Action</var> ::= { <var>Action</var> ; .. ; <var>Action</var> }
+</pre></div>
+
+<p>This grammar rule defines an <var>Action</var> as a possibly empty sequence of
+<var>Action</var>s separated by semi-colons and enclosed in braces &ndash; i.e.,
+the classic definition of a block.
+</p>
+<p>The rule:
+</p><div class="smallexample">
+<pre class="smallexample"><var>Decimal</var> ::= <var>Digit</var> .. <var>Digit</var>+
+</pre></div>
+
+<p>denotes a definition in which there must be at least one occurrence of
+a <var>Digit</var>; in this case there is also no separator between the
+<var>Digit</var>s.
+</p>
+<p>Occasionally, where a non-terminal is not conveniently captured in a
+single production, later sections will add to the definition of the
+non-terminal. This is signaled with a <code>::+=</code> production, as in:
+</p>
+<div class="smallexample">
+<pre class="smallexample"><var>Expression</var> ::+= <var>ListLiteral</var>
+</pre></div>
+
+<p>which signals that, in addition
+to previously defined expressions, a <var>ListLiteral</var> is also an
+<var>Expression</var>.
+</p>
+<hr>
+<a name="Typographical-Conventions"></a>
+<div class="header">
+<p>
+Previous: <a href="#Metagrammar" accesskey="p" rel="prev">Metagrammar</a>, Up: <a href="#About-this-reference" accesskey="u" rel="up">About this reference</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Typographical-Conventions-1"></a>
+<h4 class="subsection">1.1.2 Typographical Conventions</h4>
+<a name="index-typographical-conventions"></a>
+
+<p>Any text on a programming language often has a significant number of
+examples of programs and program fragments. In this reference, we show
+these using a &lsquo;typewriter&lsquo;-like font, often broken out in a display
+form:
+</p>
+<div class="smallexample">
+<pre class="smallexample">...
+P : integer
+...
+</pre></div>
+
+<p>We use the <code>...</code> ellipsis to explicitly indicate a fragment of a
+program that is embedded in a context.
+<a name="index-ellipsis"></a>
+<a name="index-_002e_002e_002e"></a>
+</p>
+
+<p>Occasionally, we have to show a somewhat generic fragment of a program
+where you, the programmer, are expected to put your own text in. We
+highlight such areas using <code><var>this</var></code> font:
+</p>
+<div class="smallexample">
+<pre class="smallexample">(<var>Args</var>) =&gt; <var>Expr</var>
+</pre></div>
+
+
+<p>This kind of notation is intended to suggest that <code><var>Args</var></code> and
+<code><var>Expr</var></code> are a kind of <em>meta-variable</em> which are intended to be
+replaced by specific text.
+</p>
+<blockquote>
+<p><b>TIP:</b> Some parts of the text require more careful reading, or represent
+comments about potential implications of the main text. These notes
+are highlighted the way this note is. <a name="DOCF1" href="#FOOT1"><sup>1</sup></a>
+</p></blockquote>
+
+<blockquote>
+<p><b>WARNING:</b> Occasionally, there are areas where the programmer may
+accidentally &lsquo;trip over&rsquo; some feature of the language.
+</p></blockquote>
+
+
+
+
+<hr>
+<a name="Lexical-Syntax"></a>
+<div class="header">
+<p>
+Next: <a href="#Grammar" accesskey="n" rel="next">Grammar</a>, Previous: <a href="#Introduction" accesskey="p" rel="prev">Introduction</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Lexical-Syntax-1"></a>
+<h2 class="chapter">2 Lexical Syntax</h2>
+
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Characters" accesskey="1">Characters</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Number-Literals" accesskey="2">Number Literals</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Strings-and-Characters" accesskey="3">Strings and Characters</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Identifiers" accesskey="4">Identifiers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Punctuation" accesskey="5">Punctuation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Characters"></a>
+<div class="header">
+<p>
+Next: <a href="#Number-Literals" accesskey="n" rel="next">Number Literals</a>, Up: <a href="#Lexical-Syntax" accesskey="u" rel="up">Lexical Syntax</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Characters-1"></a>
+<h3 class="section">2.1 Characters</h3>
+<a name="index-character-set"></a>
+<a name="index-Unicode"></a>
+
+<p><code>Star</code> source text is based on the Unicode character set. This
+means that identifiers and string values may directly use any Unicode
+characters. However, all the standard operators and keywords fall in
+the ASCII subset of Unicode.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Comments-and-White-Space" accesskey="1">Comments and White Space</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Comments-and-White-Space"></a>
+<div class="header">
+<p>
+Up: <a href="#Characters" accesskey="u" rel="up">Characters</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Comments-and-White-Space-1"></a>
+<h4 class="subsection">2.1.1 Comments and White Space</h4>
+<a name="index-white-space"></a>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Line-Comment" accesskey="1">Line Comment</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Block-Comment" accesskey="2">Block Comment</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<p>Input is tokenized according to rules that are similar to most modern
+programming languages: contiguous sequences of characters are assumed
+to belong to the same token unless the class of character changes &ndash;
+for example, a punctuation mark separates sequences of letter
+characters. In addition, white space and comments serve as token
+boundaries; otherwise white space and comments are ignored by the
+higher-level semantics of the language.
+</p>
+<div class="float"><a name="ignorableFig"></a>
+
+<div class="example">
+<pre class="example"><a name="Ignorable"></a><var>Ignorable</var> ::= <var>LineComment</var>
+  | <var>BlockComment</var>
+  | <var>WhiteSpace</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.1: </strong>Ignorable Characters</p></div></div>
+<p>There are two forms of comment: line comment and block comment.
+</p>
+<hr>
+<a name="Line-Comment"></a>
+<div class="header">
+<p>
+Next: <a href="#Block-Comment" accesskey="n" rel="next">Block Comment</a>, Up: <a href="#Comments-and-White-Space" accesskey="u" rel="up">Comments and White Space</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Line-Comment-1"></a>
+<h4 class="subsubsection">2.1.1.1 Line Comment</h4>
+<a name="index-comment_002cline"></a>
+<a name="index-line-comment"></a>
+<p>A line comment consists of a <code>-- </code> or a <code>--\t</code> followed by all
+characters up to the next new-line. Here, <code>\t</code> refers to the
+Horizontal Tab.
+</p>
+<div class="float"><a name="lineCommentFig"></a>
+
+<div class="display">
+<pre class="display"><a name="LineComment"></a><var>LineComment</var> ::= (<code>-- </code> | <code>--\t</code>) <var>Char</var> &hellip; <var>Char</var> \n
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.2: </strong>Line Comment</p></div></div>
+<hr>
+<a name="Block-Comment"></a>
+<div class="header">
+<p>
+Previous: <a href="#Line-Comment" accesskey="p" rel="prev">Line Comment</a>, Up: <a href="#Comments-and-White-Space" accesskey="u" rel="up">Comments and White Space</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Block-Comment-1"></a>
+<h4 class="subsubsection">2.1.1.2 Block Comment</h4>
+<a name="index-comment_002cblock"></a>
+<a name="index-block-comment"></a>
+<p>A block comment consists of the characters <code>/*</code> followed by any
+characters and terminated by the characters <code>*/</code>.
+</p>
+<div class="float"><a name="blockCommentFig"></a>
+
+<div class="display">
+<pre class="display"><a name="BlockComment"></a><var>BlockComment</var> ::= <code>/*</code> <var>char</var> &hellip; <var>char</var> <code>*/</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.3: </strong>Block Comment</p></div></div>
+<p>Each form of comment overrides the other: a <code>/*</code> sequence in a
+line comment is <em>not</em> the start of a block comment, and a <code>-- </code>
+sequence in a block comment is similarly not the start of a
+line comment but the continuation of the block comment.
+</p>
+<hr>
+<a name="Number-Literals"></a>
+<div class="header">
+<p>
+Next: <a href="#Strings-and-Characters" accesskey="n" rel="next">Strings and Characters</a>, Previous: <a href="#Characters" accesskey="p" rel="prev">Characters</a>, Up: <a href="#Lexical-Syntax" accesskey="u" rel="up">Lexical Syntax</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Number-Literals-1"></a>
+<h3 class="section">2.2 Number Literals</h3>
+<a name="index-numeric-literals"></a>
+<a name="index-literal_002cnumber"></a>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Integer-Literals" accesskey="1">Integer Literals</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Hexadecimal-Integers" accesskey="2">Hexadecimal Integers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Floating-Point-Numbers" accesskey="3">Floating Point Numbers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Character-Codes" accesskey="4">Character Codes</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<p><code>Star</code> supports integer values, floating point values, decimal
+values and character codes as numeric values.
+</p>
+<div class="float"><a name="numericLiteralFig"></a>
+
+<div class="display">
+<pre class="display"><a name="NumericLiteral"></a><var>NumericLiteral</var> ::= <var>IntegerLiteral</var>
+  | <var>Hexadecimal</var>
+  | <var>FloatingPoint</var>
+  | <var>Decimal</var>
+  | <var>CharacterCode</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.4: </strong>Numeric Literals</p></div></div>
+<blockquote>
+<p><b>TIP:</b> The lexical syntax for numeric values is for positive values only. The
+interpretation of negative numeric literals is part of the grammar,
+not the lexical notation.
+</p></blockquote>
+
+<hr>
+<a name="Integer-Literals"></a>
+<div class="header">
+<p>
+Next: <a href="#Hexadecimal-Integers" accesskey="n" rel="next">Hexadecimal Integers</a>, Up: <a href="#Number-Literals" accesskey="u" rel="up">Number Literals</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Integer-Literals-1"></a>
+<h4 class="subsection">2.2.1 Integer Literals</h4>
+<a name="index-integer"></a>
+<a name="index-number_002cinteger"></a>
+<a name="index-syntax_002cinteger"></a>
+
+<p>An integer is written using the normal decimal notation (see <a href="#decimalFig">BNF 2.5</a>):
+</p><div class="example">
+<pre class="example">1  34 -99
+</pre></div>
+
+<div class="float"><a name="decimalFig"></a>
+
+<div class="display">
+<pre class="display"><a name="IntegerLiteral"></a><var>IntegerLiteral</var>::=<var>Digit</var> &hellip; <var>Digit</var>+
+<a name="Digit"></a><var>Digit</var>::=<code>0</code>|<code>1</code>|<code>2</code>|<code>3</code>|<code>4</code>|<code>5</code>|<code>6</code>|<code>7</code>|<code>8</code>|<code>9</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.5: </strong>Integer Literals</p></div></div>
+<blockquote>
+<p><b>TIP:</b> All integers are represented as at least 64 bit values.
+</p></blockquote>
+
+<hr>
+<a name="Hexadecimal-Integers"></a>
+<div class="header">
+<p>
+Next: <a href="#Floating-Point-Numbers" accesskey="n" rel="next">Floating Point Numbers</a>, Previous: <a href="#Integer-Literals" accesskey="p" rel="prev">Integer Literals</a>, Up: <a href="#Number-Literals" accesskey="u" rel="up">Number Literals</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Hexadecimal-Integers-1"></a>
+<h4 class="subsection">2.2.2 Hexadecimal Integers</h4>
+<a name="index-hexadecimal"></a>
+<a name="index-number_002chexadecimal"></a>
+<a name="index-syntax_002chexadecimal"></a>
+
+<p>A hexadecimal number is an integer written using hexadecimal
+notation. A hexadecimal number consists of a leading <code>0x</code>
+followed by a sequence of hex digits. For example,
+</p>
+<div class="example">
+<pre class="example">0x0 0xff
+0x34fe
+</pre></div>
+<p>are all hexadecimals.
+</p>
+<div class="float"><a name="hexadecimalFig"></a>
+
+<div class="display">
+<pre class="display"><a name="Hexadecimal"></a><var>Hexadecimal</var>::= <code>0x</code> <var>Hex</var> &hellip; <var>Hex</var>+
+<a name="Hex"></a><var>Hex</var>::= <code>0</code>|<code>1</code>|<code>2</code>|<code>3</code>|<code>4</code>|<code>5</code>|<code>6</code>|<code>7</code>|<code>8</code>|<code>9</code>|<code>a</code>|<code>b</code>|<code>c</code>|<code>d</code>|<code>e</code>|<code>f</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.6: </strong>Hexadecimal numbers</p></div></div>
+<hr>
+<a name="Floating-Point-Numbers"></a>
+<div class="header">
+<p>
+Next: <a href="#Character-Codes" accesskey="n" rel="next">Character Codes</a>, Previous: <a href="#Hexadecimal-Integers" accesskey="p" rel="prev">Hexadecimal Integers</a>, Up: <a href="#Number-Literals" accesskey="u" rel="up">Number Literals</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Floating-Point-Numbers-1"></a>
+<h4 class="subsection">2.2.3 Floating Point Numbers</h4>
+<a name="index-floating-point"></a>
+<a name="index-number_002cfloating-point"></a>
+<a name="index-syntax_002cfloating-point-number"></a>
+
+<p>Floating point numbers are written using a notation that is
+familiar. For example,
+</p>
+<div class="example">
+<pre class="example">234.45  1.0e45
+</pre></div>
+
+<p>See <a href="#floatingPointFig">BNF 2.7</a> for a complete syntax diagram for floating point numbers.
+</p>
+<div class="float"><a name="floatingPointFig"></a>
+
+<div class="display">
+<pre class="display"><a name="FloatingPoint"></a><var>FloatingPoint</var>::=<var>Digit</var>&hellip;<var>Digit</var>+ <code>.</code> <var>Digit</var>&hellip;<var>Digit</var>+ [<code>e</code>[<code>-</code>]<var>Digit</var>&hellip;<var>Digit</var>+]]
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.7: </strong>Floating Point numbers</p></div></div>
+<blockquote>
+<p><b>TIP:</b> All floating point number are represented to a precision that is at
+least equal to 64-bit double precision. There is no equivalent of
+single-precision floating pointer numbers.
+</p></blockquote>
+
+<hr>
+<a name="Character-Codes"></a>
+<div class="header">
+<p>
+Previous: <a href="#Floating-Point-Numbers" accesskey="p" rel="prev">Floating Point Numbers</a>, Up: <a href="#Number-Literals" accesskey="u" rel="up">Number Literals</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Character-Codes-1"></a>
+<h4 class="subsection">2.2.4 Character Codes</h4>
+<a name="index-character-code"></a>
+<a name="index-number_002ccharacter-code"></a>
+<a name="index-syntax_002ccharacter-code"></a>
+<p>The character code notation allows a number to be based on the coding
+value of a character. Any Unicode character code point can be entered
+in this way:
+</p><div class="example">
+<pre class="example">0cX 0c[ 0c\n 0c
+</pre></div>
+
+<p>For example, <code>0c\n</code> is the code point associated with the new
+line character, i.e., its value is <code>10</code>.
+</p>
+<blockquote>
+<p><b>TIP:</b> Unicode has the capability to represent up to one million character code points.
+</p></blockquote>
+
+<div class="float"><a name="characterCodeFig"></a>
+
+<div class="display">
+<pre class="display"><a name="CharacterCode"></a><var>CharacterCode</var>::= <code>0c</code> <var>CharRef</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.8: </strong>Character Codes</p></div></div>
+<p>A <var>CharacterCode</var> has type <code>integer</code>.
+</p>
+<hr>
+<a name="Strings-and-Characters"></a>
+<div class="header">
+<p>
+Next: <a href="#Identifiers" accesskey="n" rel="next">Identifiers</a>, Previous: <a href="#Number-Literals" accesskey="p" rel="prev">Number Literals</a>, Up: <a href="#Lexical-Syntax" accesskey="u" rel="up">Lexical Syntax</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Strings-and-Characters-1"></a>
+<h3 class="section">2.3 Strings and Characters</h3>
+<a name="index-string"></a>
+<a name="index-string-literal"></a>
+<a name="index-character-reference"></a>
+<a name="index-syntax_002cstring-literal"></a>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Character-Reference" accesskey="1">Character Reference</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Quoted-Strings" accesskey="2">Quoted Strings</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Block-String" accesskey="3">Block String</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<p>A <code>string</code> consists of a sequence of characters &ndash; specifically
+<var>CharRef</var>s. There is no specific type in <code>Star</code> for the
+characters themselves &ndash; instead, there are primitives for accessing individual code points as <code>integer</code>s.
+</p>
+<blockquote>
+<p><b>CAUTION:</b> The reasons for this are due to the fact that Unicode <code>string</code>
+values cannot be easily represented as a unique sequence.
+</p></blockquote>
+
+<hr>
+<a name="Character-Reference"></a>
+<div class="header">
+<p>
+Next: <a href="#Quoted-Strings" accesskey="n" rel="next">Quoted Strings</a>, Up: <a href="#Strings-and-Characters" accesskey="u" rel="up">Strings and Characters</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Character-Reference-1"></a>
+<h4 class="subsection">2.3.1 Character Reference</h4>
+<a name="index-character-reference-1"></a>
+<a name="index-syntax_002c-character-reference"></a>
+<p>A <var>CharRef</var> is a denotation of a single character.
+</p>
+<div class="float"><a name="charRefFig"></a>
+
+<div class="display">
+<pre class="display"><a name="CharRef"></a><var>CharRef</var> ::= <var>Char</var> | <var>Escape</var>
+
+<a name="Escape"></a><var>Escape</var>::=<code>\b</code> | <code>\d</code> | <code>\e</code> | <code>\f</code> | <code>\n</code> | <code>\r</code> | <code>\t</code> | <code>\v</code> |
+   <code>\</code><var>Char</var> | <code>\u</code> <var>Hex</var>&hellip;<var>Hex</var><code>;</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.9: </strong>Character Reference</p></div></div>
+<p>For most characters, the character reference for that character is the
+character itself. For example, the string <code>&quot;T&quot;</code> contains the
+character <code>T</code>. However, certain standard characters are normally
+referenced by escape sequences consisting of a backslash character
+followed by other characters; for example, the new-line character is
+typically written <code>\n</code>. The standard escapes references are shown
+in see <a href="#CharEscape">Table 2.1</a>.
+</p>
+<div class="float"><a name="CharEscape"></a>
+
+<dl compact="compact">
+<dt><code>\b</code></dt>
+<dd><p>Back space
+</p></dd>
+<dt><code>\d</code></dt>
+<dd><p>Delete
+</p></dd>
+<dt><code>\e</code></dt>
+<dd><p>Escape
+</p></dd>
+<dt><code>\f</code></dt>
+<dd><p>Form Feed
+</p></dd>
+<dt><code>\n</code></dt>
+<dd><p>New line
+</p></dd>
+<dt><code>\r</code></dt>
+<dd><p>Carriage return
+</p></dd>
+<dt><code>\t</code></dt>
+<dd><p>Tab
+</p></dd>
+<dt><code>\v</code></dt>
+<dd><p>Vertical Tab
+</p></dd>
+<dt><code>\u<var>Hex</var>..<var>Hex</var>;</code></dt>
+<dd><p>Unicode code point
+</p></dd>
+<dt><code>\ <var>Char</var></code></dt>
+<dd><p>The <var>Char</var> itself
+</p></dd>
+</dl>
+<div class="float-caption"><p><strong>Table 2.1: </strong>Character Escapes</p></div></div>
+<p>Apart from the standard character references, there is a hex encoding
+for directly encoding unicode characters that may not be available on
+a given keyboard:
+</p><div class="example">
+<pre class="example">\u34ff;
+</pre></div>
+
+<p>This notation accommodates the Unicode&rsquo;s varying width of character
+codes &ndash; from 8 bits through to 20 bits.
+</p>
+<hr>
+<a name="Quoted-Strings"></a>
+<div class="header">
+<p>
+Next: <a href="#Block-String" accesskey="n" rel="next">Block String</a>, Previous: <a href="#Character-Reference" accesskey="p" rel="prev">Character Reference</a>, Up: <a href="#Strings-and-Characters" accesskey="u" rel="up">Strings and Characters</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Quoted-Strings-1"></a>
+<h4 class="subsection">2.3.2 Quoted Strings</h4>
+<a name="index-string_002cquoted"></a>
+
+<p>A string is a sequence of character references (
+see <a href="#CharRef">CharRef</a>) enclosed in double quotes; alternately a
+string may take the form of a See <a href="#BlockString">BlockString</a>.
+</p>
+<div class="float"><a name="quotedStringFig"></a>
+
+<div class="display">
+<pre class="display"><a name="StringLiteral"></a><var>StringLiteral</var> ::= <var>QuotedString</var> | <var>BlockString</var>
+
+<a name="QuotedString"></a><var>QuotedString</var> ::= <code>&quot;</code> <var>StrChar</var> &hellip; <var>StrChar</var> <code>&quot;</code>
+
+<a name="StrChar"></a><var>StrChar</var> ::= <var>CharRef</var> | <var>Interpolation</var>
+
+<a name="Interpolation"></a><var>Interpolation</var> ::= [ <code>$</code> | <code>#</code> ] (<var>Expression</var> <code>)</code> [ <code>:</code> <var>FormattingSpec</var> <code>;</code> ]
+
+<a name="FormattingSpec"></a><var>FormattingSpec</var> ::= <var>CharRef</var> &hellip; <var>CharRef</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.10: </strong>Quoted String</p></div></div>
+<blockquote>
+<p><b>TIP:</b> Strings are <em>not</em> permitted to contain the new-line character &ndash; other
+than as a character reference.
+</p></blockquote>
+
+<div class="example">
+<pre class="example">&quot;This string has a \nnew line in the middle&quot;
+</pre></div>
+
+<hr>
+<a name="Block-String"></a>
+<div class="header">
+<p>
+Previous: <a href="#Quoted-Strings" accesskey="p" rel="prev">Quoted Strings</a>, Up: <a href="#Strings-and-Characters" accesskey="u" rel="up">Strings and Characters</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Block-String-1"></a>
+<h4 class="subsection">2.3.3 Block String</h4>
+<a name="index-strings_002cblock-form-of"></a>
+<a name="index-block-of-data"></a>
+
+<p>In addition to the normal notation for strings, there is a block form
+of string that permits raw character data to be processed as a string.
+</p>
+<div class="float"><a name="blockStringFig"></a>
+
+<div class="display">
+<pre class="display"><a name="BlockString"></a><var>BlockString</var>::= <code>&quot;&quot;&quot;</code> <var>Char</var> &hellip; <var>Char</var> <code>&quot;&quot;&quot;</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.11: </strong>Block String Literal</p></div></div>
+<p>The block form of string allows any characters in the text and
+performs no interpretation of those characters.
+</p>
+<p>Block strings are written using triple quote characters at either
+end. Any new-line characters enclosed by the block quotes are
+considered to be part of the strings.
+</p>
+<p>The normal interpretation of <code>$</code> and <code>#</code> characters as
+interpolation markers is suppressed within a block string.
+</p>
+<div class="example">
+<pre class="example">&quot;&quot;&quot;This is a block string with $ and
+uninterpreted # characters&quot;&quot;&quot;
+</pre></div>
+
+<blockquote>
+<p><b>TIP:</b> This form of string literal can be a convenient method for including
+block text into a program source.
+</p></blockquote>
+
+<hr>
+<a name="Identifiers"></a>
+<div class="header">
+<p>
+Next: <a href="#Punctuation" accesskey="n" rel="next">Punctuation</a>, Previous: <a href="#Strings-and-Characters" accesskey="p" rel="prev">Strings and Characters</a>, Up: <a href="#Lexical-Syntax" accesskey="u" rel="up">Lexical Syntax</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Identifiers-1"></a>
+<h3 class="section">2.4 Identifiers</h3>
+<a name="index-identifier"></a>
+
+<p>Identifiers are used to denote operators, keywords and
+variables. There are three main kinds of identifier: regular
+alpha-numeric identifiers, graphic identifiers and quoted
+identifiers. However, semantically, all these are essentially
+equivalent: they all identify some variable or some type.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Alphanumeric-Identifiers" accesskey="1">Alphanumeric Identifiers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Graphic-Identifiers" accesskey="2">Graphic Identifiers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Quoted-Identifiers" accesskey="3">Quoted Identifiers</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Standard-Keywords" accesskey="4">Standard Keywords</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Alphanumeric-Identifiers"></a>
+<div class="header">
+<p>
+Next: <a href="#Graphic-Identifiers" accesskey="n" rel="next">Graphic Identifiers</a>, Up: <a href="#Identifiers" accesskey="u" rel="up">Identifiers</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Alphanumeric-Identifiers-1"></a>
+<h4 class="subsection">2.4.1 Alphanumeric Identifiers</h4>
+<a name="index-alpha-numeric-identifier"></a>
+
+<p>Identifiers in <code>Star</code> are based on the Unicode definition of
+identifier. For the ASCII subset of characters, the definition
+corresponds to the common form of identifier &ndash; a letter followed by a
+sequence of digits and letters. However, non-ASCII characters are also
+permitted in an identifier.
+</p>
+<div class="float"><a name="identifierFig"></a>
+
+<div class="display">
+<pre class="display"><a name="Identifier"></a><var>Identifier</var>::=<var>AlphaNumeric</var>
+  | <var>GraphicIdentifier</var>
+  | <var>QuotedIdentifier</var>
+
+<a name="AlphaNumeric"></a><var>AlphaNumeric</var>::=<var>LeadChar</var> <var>BodyChar</var>&hellip;<var>BodyChar</var>
+
+<a name="LeadChar"></a><var>LeadChar</var>::=<var>LetterNumber</var>
+  | <var>LowerCase</var>
+  | <var>UpperCase</var>
+  | <var>TitleCase</var>
+  | <var>OtherNumber</var>
+  | <var>OtherLetter</var>
+  | <var>ConnectorPunctuation</var>
+
+<a name="BodyChar"></a><var>BodyChar</var>::=<var>LeadChar</var>
+  | <var>ModifierLetter</var>
+  | <var>Digit</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.12: </strong>Identifier Syntax</p></div></div>
+<p>The terms <var>LetterNumber</var>, <var>ModifierLetter</var> and so on; referred to in
+<a href="#identifierFig">BNF 2.12</a> refer to standard character categories defined in
+Unicode.
+</p>
+<blockquote>
+<p><b>TIP:</b> This definition of <a href="#Identifier">Identifier</a> closely follows the standard
+definition of Identifier as contained in the Unicode specification.
+</p></blockquote>
+
+<hr>
+<a name="Graphic-Identifiers"></a>
+<div class="header">
+<p>
+Next: <a href="#Quoted-Identifiers" accesskey="n" rel="next">Quoted Identifiers</a>, Previous: <a href="#Alphanumeric-Identifiers" accesskey="p" rel="prev">Alphanumeric Identifiers</a>, Up: <a href="#Identifiers" accesskey="u" rel="up">Identifiers</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Graphic-Identifiers-1"></a>
+<h4 class="subsection">2.4.2 Graphic Identifiers</h4>
+<a name="index-graphic-identifier"></a>
+<a name="index-indentifier_002c-graphic"></a>
+<p>The standard operators often have a graphic form &ndash; such as <code>+</code>,
+and <code>=&lt;</code>. &lt;&lt;standardGraphicsTable&gt;&gt; contains a complete listing
+of all the standard graphic-form identifiers.
+</p>
+<div class="float"><a name="graphicIdentifierFig"></a>
+
+<div class="display">
+<pre class="display"><a name="GraphicIdentifier"></a><var>GraphicIdentifier</var> ::= <var>SymbolicChar</var>&hellip;<var>SymbolicChar</var>
+
+<a name="SymbolicChar"></a><var>SymbolicChar</var> ::= <var>Char</var> excepting <var>BodyChar</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF 2.13: </strong>Graphic Identifiers</p></div></div>
+<blockquote>
+<p><b>TIP:</b> Apart from their graphic form there is no particular semantic
+distinction between a graphic form identifier and a alphanumeric form
+identifier. In fact, new graphical tokens may be introduced as a
+result of declaring an operator &ndash; see &lt;&lt;symbolicOperators&gt;&gt;.
+</p></blockquote>
+
+<hr>
+<a name="Quoted-Identifiers"></a>
+<div class="header">
+<p>
+Next: <a href="#Standard-Keywords" accesskey="n" rel="next">Standard Keywords</a>, Previous: <a href="#Graphic-Identifiers" accesskey="p" rel="prev">Graphic Identifiers</a>, Up: <a href="#Identifiers" accesskey="u" rel="up">Identifiers</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Quoted-Identifiers-1"></a>
+<h4 class="subsection">2.4.3 Quoted Identifiers</h4>
+<a name="index-identifier_002cquoted"></a>
+<a name="index-quoted-identifiers"></a>
+
+<p>A quoted identifiers is denoted by a sequence of <var>charRef</var>s enclosed
+in single quotes. Recall that strings are enclosed in double quotes.
+</p>
+<div class="float">
+
+<div class="display">
+<pre class="display"><a name="QuotedIdentifier"></a><var>QuotedIdentifier</var> ::= <code>'</code> <var>CharRef</var>&hellip;<var>CharRef</var> <code>'</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF quotedIdentFig: </strong>Quoted Identifier</p></div></div>
+<p>A quoted identifier suppresses any operator or keyword interpretation
+that the identifier might otherwise have.
+</p>
+<blockquote>
+<p><b>TIP:</b> This can be useful for external facing interfaces where, for example,
+the name of a field in a structure must have a particular form &ndash; even
+if that would otherwise be a keyword.
+</p></blockquote>
+
+<hr>
+<a name="Standard-Keywords"></a>
+<div class="header">
+<p>
+Previous: <a href="#Quoted-Identifiers" accesskey="p" rel="prev">Quoted Identifiers</a>, Up: <a href="#Identifiers" accesskey="u" rel="up">Identifiers</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Standard-Keywords-1"></a>
+<h4 class="subsection">2.4.4 Standard Keywords</h4>
+<a name="index-standard-keywords"></a>
+<a name="index-keywords"></a>
+
+<p>There are a number of keywords which are reserved by the language &ndash;
+these may not be used as identifiers or in any other role.
+</p>
+<blockquote>
+<p><b>TIP:</b> On those occasions where it is important to have an identifier that is
+a keyword it is possible to achieve this by enclosing the keyword in
+single quotes.
+</p>
+<p>For example, while <code>type</code> is a keyword in the language; enclosing
+the word in parentheses: <code>'type'</code> has the effect of suppressing
+the keyword interpretation &ndash; even though the printed representations are the same.
+</p>
+<p>Enclosing a name in parentheses also has the effect of suppressing any
+operator information about the name.
+</p></blockquote>
+
+<hr>
+<a name="Punctuation"></a>
+<div class="header">
+<p>
+Previous: <a href="#Identifiers" accesskey="p" rel="prev">Identifiers</a>, Up: <a href="#Lexical-Syntax" accesskey="u" rel="up">Lexical Syntax</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Punctuation-1"></a>
+<h3 class="section">2.5 Punctuation</h3>
+<a name="index-punctuation"></a>
+
+<p><code>Star</code> has relatively few punctuations; although it has a large
+number of graphical identifiers, which are defined in <a href="#Graphic-Identifiers">Graphic Identifiers</a>.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#End-of-Term" accesskey="1">End of Term</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Parentheses" accesskey="2">Parentheses</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Square-brackets" accesskey="3">Square brackets</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Braces" accesskey="4">Braces</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="End-of-Term"></a>
+<div class="header">
+<p>
+Next: <a href="#Parentheses" accesskey="n" rel="next">Parentheses</a>, Up: <a href="#Punctuation" accesskey="u" rel="up">Punctuation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="End-of-Term-1"></a>
+<h4 class="subsection">2.5.1 End of Term</h4>
+
+<p>With a few exceptions, statements <a name="DOCF2" href="#FOOT2"><sup>2</sup></a> are terminated by the <var>Terminator</var> &ndash; which consists of a period followed by white space character.
+</p>
+<div class="float">
+
+<div class="display">
+<pre class="display"><a name="Terminator"></a><var>Terminator</var> ::= <code>.</code> <var>WhiteSpace</var>
+</pre></div>
+<div class="float-caption"><p><strong>BNF terminatorFig: </strong>Statement Terminator</p></div></div>
+<p>The exceptions are:
+</p><ul>
+<li> After a brace.
+If a statement&rsquo;s last character is a brace, then it does not need to
+be terminated with a <var>Terminator</var>. This mimics C-style
+conventions.
+
+</li><li> The last definition
+If a statement is the last in a sequence of statements that are
+enclosed in braces, then it does not need termination.
+</li></ul>
+
+<hr>
+<a name="Parentheses"></a>
+<div class="header">
+<p>
+Next: <a href="#Square-brackets" accesskey="n" rel="next">Square brackets</a>, Previous: <a href="#End-of-Term" accesskey="p" rel="prev">End of Term</a>, Up: <a href="#Punctuation" accesskey="u" rel="up">Punctuation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Parentheses-1"></a>
+<h4 class="subsection">2.5.2 Parentheses</h4>
+<a name="index-parentheses"></a>
+
+<p>Parentheses in <code>Star</code> are <em>active</em>: they are not simply a
+means of grouping expressions and/or overriding precedences of
+operators. This is because parentheses have two distinct roles: to
+group and/or override precedences, and as a way of enclosing tuples of
+terms.
+</p>
+<hr>
+<a name="Square-brackets"></a>
+<div class="header">
+<p>
+Next: <a href="#Braces" accesskey="n" rel="next">Braces</a>, Previous: <a href="#Parentheses" accesskey="p" rel="prev">Parentheses</a>, Up: <a href="#Punctuation" accesskey="u" rel="up">Punctuation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Square-brackets-1"></a>
+<h4 class="subsection">2.5.3 Square brackets</h4>
+<a name="index-square-brackets"></a>
+
+<p>Square brackets (<code>[</code> and <code>]</code>) are used to delimit certain kinds of list and sequence expressions.
+</p>
+<hr>
+<a name="Braces"></a>
+<div class="header">
+<p>
+Previous: <a href="#Square-brackets" accesskey="p" rel="prev">Square brackets</a>, Up: <a href="#Punctuation" accesskey="u" rel="up">Punctuation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Braces-1"></a>
+<h4 class="subsection">2.5.4 Braces</h4>
+<a name="index-braces"></a>
+
+<p>Braces are used in <code>Star</code> to delimit groups of statements.
+</p>
+<p>There are two forms of braces: with and without a period character.
+</p>
+<div class="float">
+
+<div class="display">
+<pre class="display"><a name="Brace"></a><var>Brace</var> ::= <code>{</code> | <code>}</code> | <code>{.</code> | <code>.}</code>
+</pre></div>
+<div class="float-caption"><p><strong>BNF bracesFig: </strong>Braces</p></div></div>
+<p>They must be appropriately paired: a <code>{</code> must be paired with a subsequent <code>}</code>; and similarly the <code>{.</code> must be paired with <code>.}</code>.
+</p>
+
+
+
+
+
+
+
+<hr>
+<a name="Grammar"></a>
+<div class="header">
+<p>
+Next: <a href="#Concept-index" accesskey="n" rel="next">Concept index</a>, Previous: <a href="#Lexical-Syntax" accesskey="p" rel="prev">Lexical Syntax</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Grammar-1"></a>
+<h2 class="chapter">3 Grammar</h2>
+<a name="index-grammar"></a>
+<a name="index-ast"></a>
+
+<p>The grammar of <code>Star</code> is based on an <em>operator precedence
+grammar</em>. This allows us to address the full grammar and semantics of
+<code>Star</code> in a layered approach. The grammar layer is focused on the
+<em>well formed formedness</em> of <code>Star</code> programs &ndash; which
+expressions are syntactically valid even though they may not be type correct.
+</p>
+<p>In effect, the grammar layer represents the second layer (above the
+lexical layer) in the &rsquo;tower of semantics&rsquo; that represents the full
+semantics of <code>Star</code> programs.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Operator-Precedence-Grammar" accesskey="1">Operator Precedence Grammar</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Standard-Operators" accesskey="2">Standard Operators</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+
+<blockquote>
+<p><b>TIP:</b> This choice gives us two key benefits: it is simple to understand and
+it is simple to extend. The latter is particularly important in
+<code>Star</code> as a significant part of its functionality is derived from
+<em>profiles</em> which are similar to macros.
+</p></blockquote>
+
+<p>However, it also makes certain other aspects more challenging. In
+particular, an operator precedence grammar knows less about the
+program as it is parsed. This means that syntax errors are liable to
+less informative.
+</p>
+<hr>
+<a name="Operator-Precedence-Grammar"></a>
+<div class="header">
+<p>
+Next: <a href="#Standard-Operators" accesskey="n" rel="next">Standard Operators</a>, Up: <a href="#Grammar" accesskey="u" rel="up">Grammar</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Operator-Precedence-Grammar-1"></a>
+<h3 class="section">3.1 Operator Precedence Grammar</h3>
+<a name="index-operator-precedence-grammar"></a>
+
+<p>An operator precedence grammar (OPG) allows us to write expressions like:
+</p><div class="example">
+<pre class="example">X * Y + X / Y
+</pre></div>
+
+<p>and to know that this means the equivalent of:
+</p><div class="example">
+<pre class="example">(X * Y) + (X / Y)
+</pre></div>
+
+<p>or more specifically:
+</p><div class="example">
+<pre class="example">+(*(X, Y), /(X, Y))
+</pre></div>
+
+<p>Operator precedence grammars are often used to capture
+arithmetic-style expressions. In <code>Star</code> we extend the concept to
+cover the entire language.
+</p>
+<p>For example, an equation such as:
+</p><div class="example">
+<pre class="example">double(X) =&gt; X*X
+</pre></div>
+
+<p>can be interpreted &ndash; by treating <code>=&gt;</code> as an operator &ndash; as:
+</p><div class="example">
+<pre class="example">'=&gt;'(double(X),'*'(X,X))
+</pre></div>
+
+<p>Of course, this is merely a <em>parse</em> of the equation. The real
+task of the compiler is to interpret this abstract syntax as an
+equation rather than as an attempt to apply the <code>=&gt;</code>
+function.<a name="DOCF3" href="#FOOT3"><sup>3</sup></a>
+</p>
+<div class="float"><a name="srOpPrecGrammar"></a>
+
+<div class="display">
+<pre class="display"><var>Term</var>(Priority) ::= <var>Prefix</var>(Priority)
+  | <var>Infix</var>(Priority)
+  | <var>Postfix</var>(Priority)
+  | <var>Term0</var>
+
+<var>Prefix</var>(Priority) ::= <var>Identifier</var> <var>Term</var>(R) where prefix($1,P,R) and P&lt;=Priority
+
+<var>Infix</var>(Priority) ::= <var>Term</var>(L) <var>Identifier</var> <var>Term</var>(R) where infix($2,L,P,R) &amp;&amp; P&lt;=Priority
+
+<var>Postfix</var>(Priority) ::= <var>Term</var>(L) <var>Identifier</var> where postfix($2,L,P) &amp;&amp; P&lt;=Priority
+
+<var>Term0</var> ::= 
+
+</pre></div>
+<div class="float-caption"><p><strong>BNF 3.1: </strong>Operator Precedence Grammar</p></div></div>
+<p>Some notes about <a href="#srOpPrecGrammar">BNF 3.1</a>:
+</p><ul>
+<li> We are somewhat liberal with traditional BNF notation; terms such as
+<div class="display">
+<pre class="display">where infix($2,L,P,R) &amp;&amp; P&lt;=Priority
+</pre></div>
+<p>amount to <em>constraints</em> on the production: this condition must be satisfied in addition to the normal sequences of terminals and non-terminals
+</p></li><li> A non-terminal of the form:
+<div class="display">
+<pre class="display"><var>Term</var>(Priority)
+</pre></div>
+<p>amounts to a parameterized non-terminal. Or, equivalently, it stands
+for all possible expansions of the non-terminal.
+</p></li><li> This grammar is the basis of the actual grammar for <code>Star</code>;
+although the actual implementation is somewhat more efficient than the
+ambiguous grammar would suggest.
+</li><li> There is an additional constraint not implied by this set of rules: a given identifier may be an operator of more than one form - prefix, infix and postfix.
+</li></ul>
+
+<hr>
+<a name="Standard-Operators"></a>
+<div class="header">
+<p>
+Previous: <a href="#Operator-Precedence-Grammar" accesskey="p" rel="prev">Operator Precedence Grammar</a>, Up: <a href="#Grammar" accesskey="u" rel="up">Grammar</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Standard-Operators-1"></a>
+<h3 class="section">3.2 Standard Operators</h3>
+
+<p>A key input to the grammar is the table of operators. <code>Star</code> has
+a large number of standard operators; some of which are symbolic and
+others are alphanumeric in form.
+</p>
+<p>The standard operators are listed in <a href="#srOpPrecGrammar">BNF 3.1</a>. Operators in
+this table are listed in order of priority. Together with a priority,
+operators can also be considered to <code>prefix</code>, <code>infix</code>,
+<code>postfix</code>, or some combination of the three.
+</p>
+<p>The priority of an operator is the indication of the &lsquo;importance&rsquo; of
+the operator: the higher the priority the nearer the top of the
+abstract syntax tree the corresponding structure will be.
+</p>
+<p>Priorities are numbers in the range 1..2000; by convention, priorities
+in the range 1..899 refer to entities that normally take the role of
+expressions, priorities in the range 900..1000 refer to predicates and
+predicate-level connectives and priorities in the range 1001..2000
+refer to entries that have a statement or program level
+interpretation.
+</p>
+<div class="float">
+
+<dl compact="compact">
+<dt><code>all</code></dt>
+<dd><p>non-associative prefix, priority=1010
+</p></dd>
+<dt><code>^=</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>&amp;&amp;</code></dt>
+<dd><p>left associative infix, priority=910
+</p></dd>
+<dt><code>pure</code></dt>
+<dd><p>non-associative prefix, priority=300
+</p></dd>
+<dt><code>..,</code></dt>
+<dd><p>right associative infix, priority=1000
+</p></dd>
+<dt><code>~&gt;</code></dt>
+<dd><p>non-associative infix, priority=1231
+</p></dd>
+<dt><code>.|.</code></dt>
+<dd><p>left associative infix, priority=720
+</p></dd>
+<dt><code>import</code></dt>
+<dd><p>non-associative prefix, priority=900
+</p></dd>
+<dt><code>of</code></dt>
+<dd><p>non-associative infix, priority=400
+</p></dd>
+<dt><code>,..</code></dt>
+<dd><p>non-associative infix, priority=1000
+</p></dd>
+<dt><code>==&gt;</code></dt>
+<dd><p>non-associative infix, priority=950
+</p></dd>
+<dt><code>**</code></dt>
+<dd><p>left associative infix, priority=600
+</p></dd>
+<dt><code>-&gt;</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>.+.</code></dt>
+<dd><p>non-associative prefix, priority=700
+</p></dd>
+<dt><code>raise</code></dt>
+<dd><p>non-associative prefix, priority=300
+</p></dd>
+<dt><code>!</code></dt>
+<dd><p>non-associative postfix, priority=100
+</p></dd>
+<dt><code>-&gt;&gt;</code></dt>
+<dd><p>non-associative infix, priority=1200
+</p></dd>
+<dt><code>=!=</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>default</code></dt>
+<dd><p>non-associative postfix, priority=940
+</p></dd>
+<dt><code>#</code></dt>
+<dd><p>non-associative prefix, priority=1750
+</p></dd>
+<dt><code>#</code></dt>
+<dd><p>non-associative infix, priority=760
+</p></dd>
+<dt><code>^^</code></dt>
+<dd><p>non-associative prefix, priority=912
+</p></dd>
+<dt><code>^^</code></dt>
+<dd><p>non-associative infix, priority=912
+</p></dd>
+<dt><code>%</code></dt>
+<dd><p>left associative infix, priority=700
+</p></dd>
+<dt><code>&lt;-</code></dt>
+<dd><p>non-associative infix, priority=905
+</p></dd>
+<dt><code>.&gt;&gt;&gt;.</code></dt>
+<dd><p>left associative infix, priority=600
+</p></dd>
+<dt><code>\\+</code></dt>
+<dd><p>non-associative prefix, priority=905
+</p></dd>
+<dt><code>*</code></dt>
+<dd><p>non-associative postfix, priority=700
+</p></dd>
+<dt><code>*</code></dt>
+<dd><p>left associative infix, priority=700
+</p></dd>
+<dt><code>+</code></dt>
+<dd><p>non-associative postfix, priority=700
+</p></dd>
+<dt><code>+</code></dt>
+<dd><p>left associative infix, priority=720
+</p></dd>
+<dt><code>.&gt;&gt;.</code></dt>
+<dd><p>left associative infix, priority=600
+</p></dd>
+<dt><code>*&gt;</code></dt>
+<dd><p>non-associative infix, priority=905
+</p></dd>
+<dt><code>,</code></dt>
+<dd><p>right associative infix, priority=1000
+</p></dd>
+<dt><code>contract</code></dt>
+<dd><p>non-associative prefix, priority=1260
+</p></dd>
+<dt><code>-</code></dt>
+<dd><p>non-associative prefix, priority=300
+</p></dd>
+<dt><code>-</code></dt>
+<dd><p>left associative infix, priority=720
+</p></dd>
+<dt><code>.</code></dt>
+<dd><p>left associative infix, priority=100
+</p></dd>
+<dt><code>/</code></dt>
+<dd><p>left associative infix, priority=700
+</p></dd>
+<dt><code>&lt;*&gt;</code></dt>
+<dd><p>right associative infix, priority=950
+</p></dd>
+<dt><code>â¢</code></dt>
+<dd><p>left associative infix, priority=450
+</p></dd>
+<dt><code>exists</code></dt>
+<dd><p>non-associative prefix, priority=1010
+</p></dd>
+<dt><code>&lt;=</code></dt>
+<dd><p>non-associative infix, priority=950
+</p></dd>
+<dt><code>:</code></dt>
+<dd><p>non-associative infix, priority=1250
+</p></dd>
+<dt><code>;</code></dt>
+<dd><p>right associative infix, priority=1251
+</p></dd>
+<dt><code>--&gt;</code></dt>
+<dd><p>non-associative infix, priority=1200
+</p></dd>
+<dt><code>&lt;</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>.=</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>=</code></dt>
+<dd><p>non-associative infix, priority=975
+</p></dd>
+<dt><code>|:</code></dt>
+<dd><p>non-associative infix, priority=1235
+</p></dd>
+<dt><code>show</code></dt>
+<dd><p>non-associative prefix, priority=1260
+</p></dd>
+<dt><code>++</code></dt>
+<dd><p>right associative infix, priority=720
+</p></dd>
+<dt><code>&gt;</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>return</code></dt>
+<dd><p>non-associative prefix, priority=300
+</p></dd>
+<dt><code>?</code></dt>
+<dd><p>right associative infix, priority=920
+</p></dd>
+<dt><code>@</code></dt>
+<dd><p>non-associative prefix, priority=400
+</p></dd>
+<dt><code>@</code></dt>
+<dd><p>right associative infix, priority=400
+</p></dd>
+<dt><code>in</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>^|</code></dt>
+<dd><p>right associative infix, priority=1249
+</p></dd>
+<dt><code>open</code></dt>
+<dd><p>non-associative prefix, priority=900
+</p></dd>
+<dt><code>~~</code></dt>
+<dd><p>right associative infix, priority=1240
+</p></dd>
+<dt><code>assert</code></dt>
+<dd><p>non-associative prefix, priority=1260
+</p></dd>
+<dt><code>=.</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>.^.</code></dt>
+<dd><p>left associative infix, priority=720
+</p></dd>
+<dt><code>//</code></dt>
+<dd><p>left associative infix, priority=800
+</p></dd>
+<dt><code>public</code></dt>
+<dd><p>non-associative prefix, priority=1700
+</p></dd>
+<dt><code>ref</code></dt>
+<dd><p>non-associative prefix, priority=900
+</p></dd>
+<dt><code>.~.</code></dt>
+<dd><p>non-associative prefix, priority=650
+</p></dd>
+<dt><code>where</code></dt>
+<dd><p>non-associative infix, priority=911
+</p></dd>
+<dt><code>=&lt;</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>==</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>=&gt;</code></dt>
+<dd><p>right associative infix, priority=950
+</p></dd>
+<dt><code>^</code></dt>
+<dd><p>non-associative prefix, priority=100
+</p></dd>
+<dt><code>^</code></dt>
+<dd><p>non-associative infix, priority=100
+</p></dd>
+<dt><code>&lt;=&gt;</code></dt>
+<dd><p>non-associative infix, priority=950
+</p></dd>
+<dt><code>valof</code></dt>
+<dd><p>non-associative prefix, priority=300
+</p></dd>
+<dt><code>private</code></dt>
+<dd><p>non-associative prefix, priority=1700
+</p></dd>
+<dt><code>.&amp;.</code></dt>
+<dd><p>left associative infix, priority=700
+</p></dd>
+<dt><code>///</code></dt>
+<dd><p>left associative infix, priority=800
+</p></dd>
+<dt><code>::</code></dt>
+<dd><p>non-associative infix, priority=400
+</p></dd>
+<dt><code>+++</code></dt>
+<dd><p>right associative infix, priority=720
+</p></dd>
+<dt><code>:=</code></dt>
+<dd><p>non-associative infix, priority=975
+</p></dd>
+<dt><code>.&lt;&lt;.</code></dt>
+<dd><p>left associative infix, priority=600
+</p></dd>
+<dt><code>^+</code></dt>
+<dd><p>non-associative prefix, priority=905
+</p></dd>
+<dt><code>^.</code></dt>
+<dd><p>left associative infix, priority=450
+</p></dd>
+<dt><code>&gt;&gt;=</code></dt>
+<dd><p>right associative infix, priority=950
+</p></dd>
+<dt><code>^/</code></dt>
+<dd><p>left associative infix, priority=800
+</p></dd>
+<dt><code>&gt;&gt;&gt;</code></dt>
+<dd><p>non-associative infix, priority=960
+</p></dd>
+<dt><code>&lt;~</code></dt>
+<dd><p>non-associative infix, priority=1231
+</p></dd>
+<dt><code>type</code></dt>
+<dd><p>non-associative prefix, priority=1251
+</p></dd>
+<dt><code>implementation</code></dt>
+<dd><p>non-associative prefix, priority=1260
+</p></dd>
+<dt><code>|</code></dt>
+<dd><p>right associative infix, priority=1249
+</p></dd>
+<dt><code>.~</code></dt>
+<dd><p>non-associative infix, priority=500
+</p></dd>
+<dt><code>.#.</code></dt>
+<dd><p>left associative infix, priority=600
+</p></dd>
+<dt><code>~</code></dt>
+<dd><p>non-associative infix, priority=499
+</p></dd>
+<dt><code>^//</code></dt>
+<dd><p>left associative infix, priority=800
+</p></dd>
+<dt><code>||</code></dt>
+<dd><p>right associative infix, priority=920
+</p></dd>
+<dt><code>::=</code></dt>
+<dd><p>non-associative infix, priority=1250
+</p></dd>
+<dt><code>&gt;=</code></dt>
+<dd><p>non-associative infix, priority=900
+</p></dd>
+<dt><code>&gt;&gt;</code></dt>
+<dd><p>right associative infix, priority=950
+</p>
+</dd>
+</dl>
+<div class="float-caption"><p>Standard Operators</p></div></div>
+
+
+<hr>
+<a name="Concept-index"></a>
+<div class="header">
+<p>
+Next: <a href="#Function-index" accesskey="n" rel="next">Function index</a>, Previous: <a href="#Grammar" accesskey="p" rel="prev">Grammar</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Concept-index-1"></a>
+<h2 class="unnumbered">Concept index</h2>
+<table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-index_cp_symbol-1"><b>.</b></a>
+ &nbsp; 
+<br>
+<a class="summary-letter" href="#Concept-index_cp_letter-A"><b>A</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-B"><b>B</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-C"><b>C</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-E"><b>E</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-F"><b>F</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-G"><b>G</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-H"><b>H</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-I"><b>I</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-K"><b>K</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-L"><b>L</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-N"><b>N</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-O"><b>O</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-P"><b>P</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-Q"><b>Q</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-S"><b>S</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-T"><b>T</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-U"><b>U</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-W"><b>W</b></a>
+ &nbsp; 
+</td></tr></table>
+<table class="index-cp" border="0">
+<tr><td></td><th align="left">Index Entry</th><td>&nbsp;</td><th align="left"> Section</th></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_symbol-1">.</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-_002e_002e_002e">...</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Typographical-Conventions">Typographical Conventions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-A">A</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-alpha-numeric-identifier">alpha numeric identifier</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Alphanumeric-Identifiers">Alphanumeric Identifiers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-ast">ast</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Grammar">Grammar</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-B">B</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-block-comment">block comment</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Block-Comment">Block Comment</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-block-of-data">block of data</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Block-String">Block String</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-braces">braces</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Braces">Braces</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-C">C</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-character-code">character code</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Codes">Character Codes</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-character-reference">character reference</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Strings-and-Characters">Strings and Characters</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-character-reference-1">character reference</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Reference">Character Reference</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-character-set">character set</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Characters">Characters</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-comment_002cblock">comment,block</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Block-Comment">Block Comment</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-comment_002cline">comment,line</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Line-Comment">Line Comment</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-E">E</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-ellipsis">ellipsis</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Typographical-Conventions">Typographical Conventions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-F">F</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-floating-point">floating point</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Floating-Point-Numbers">Floating Point Numbers</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-G">G</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-grammar">grammar</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Grammar">Grammar</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-graphic-identifier">graphic identifier</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graphic-Identifiers">Graphic Identifiers</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-H">H</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-hexadecimal">hexadecimal</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hexadecimal-Integers">Hexadecimal Integers</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-I">I</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-identifier">identifier</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Identifiers">Identifiers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-identifier_002cquoted">identifier,quoted</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Quoted-Identifiers">Quoted Identifiers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-indentifier_002c-graphic">indentifier, graphic</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Graphic-Identifiers">Graphic Identifiers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-integer">integer</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Integer-Literals">Integer Literals</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-K">K</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-keywords">keywords</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Standard-Keywords">Standard Keywords</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-L">L</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-line-comment">line comment</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Line-Comment">Line Comment</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-literal_002cnumber">literal,number</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Number-Literals">Number Literals</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-N">N</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-number_002ccharacter-code">number,character code</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Codes">Character Codes</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-number_002cfloating-point">number,floating point</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Floating-Point-Numbers">Floating Point Numbers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-number_002chexadecimal">number,hexadecimal</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hexadecimal-Integers">Hexadecimal Integers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-number_002cinteger">number,integer</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Integer-Literals">Integer Literals</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-numeric-literals">numeric literals</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Number-Literals">Number Literals</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-O">O</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-operator-precedence-grammar">operator precedence grammar</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Operator-Precedence-Grammar">Operator Precedence Grammar</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-P">P</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-parentheses">parentheses</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Parentheses">Parentheses</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-punctuation">punctuation</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Punctuation">Punctuation</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-Q">Q</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-quoted-identifiers">quoted identifiers</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Quoted-Identifiers">Quoted Identifiers</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-S">S</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-square-brackets">square brackets</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Square-brackets">Square brackets</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-standard-keywords">standard keywords</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Standard-Keywords">Standard Keywords</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-string">string</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Strings-and-Characters">Strings and Characters</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-string-literal">string literal</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Strings-and-Characters">Strings and Characters</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-string_002cquoted">string,quoted</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Quoted-Strings">Quoted Strings</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-strings_002cblock-form-of">strings,block form of</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Block-String">Block String</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-syntax_002c-character-reference">syntax, character reference</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Reference">Character Reference</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-syntax_002ccharacter-code">syntax,character code</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Character-Codes">Character Codes</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-syntax_002cfloating-point-number">syntax,floating point number</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Floating-Point-Numbers">Floating Point Numbers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-syntax_002chexadecimal">syntax,hexadecimal</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Hexadecimal-Integers">Hexadecimal Integers</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-syntax_002cinteger">syntax,integer</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Integer-Literals">Integer Literals</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-syntax_002cstring-literal">syntax,string literal</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Strings-and-Characters">Strings and Characters</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-T">T</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-typographical-conventions">typographical conventions</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Typographical-Conventions">Typographical Conventions</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-U">U</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-Unicode">Unicode</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Characters">Characters</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+<tr><th><a name="Concept-index_cp_letter-W">W</a></th><td></td><td></td></tr>
+<tr><td></td><td valign="top"><a href="#index-white-space">white space</a>:</td><td>&nbsp;</td><td valign="top"><a href="#Comments-and-White-Space">Comments and White Space</a></td></tr>
+<tr><td colspan="4"> <hr></td></tr>
+</table>
+<table><tr><th valign="top">Jump to: &nbsp; </th><td><a class="summary-letter" href="#Concept-index_cp_symbol-1"><b>.</b></a>
+ &nbsp; 
+<br>
+<a class="summary-letter" href="#Concept-index_cp_letter-A"><b>A</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-B"><b>B</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-C"><b>C</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-E"><b>E</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-F"><b>F</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-G"><b>G</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-H"><b>H</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-I"><b>I</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-K"><b>K</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-L"><b>L</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-N"><b>N</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-O"><b>O</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-P"><b>P</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-Q"><b>Q</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-S"><b>S</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-T"><b>T</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-U"><b>U</b></a>
+ &nbsp; 
+<a class="summary-letter" href="#Concept-index_cp_letter-W"><b>W</b></a>
+ &nbsp; 
+</td></tr></table>
+
+<hr>
+<a name="Function-index"></a>
+<div class="header">
+<p>
+Next: <a href="#List-of-Syntax-Rules" accesskey="n" rel="next">List of Syntax Rules</a>, Previous: <a href="#Concept-index" accesskey="p" rel="prev">Concept index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Standard-function-index"></a>
+<h2 class="unnumbered">Standard function index</h2>
+
+<hr>
+<a name="List-of-Syntax-Rules"></a>
+<div class="header">
+<p>
+Previous: <a href="#Function-index" accesskey="p" rel="prev">Function index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="List-of-Syntax-Rules-1"></a>
+<h2 class="unnumbered">List of Syntax Rules</h2>
+<dl class="listoffloats">
+<dt><a href="#metaGrammar">BNF 1.1</a></dt><dd><p>MetaGrammar</p></dd>
+<dt><a href="#ignorableFig">BNF 2.1</a></dt><dd><p>Ignorable Characters</p></dd>
+<dt><a href="#lineCommentFig">BNF 2.2</a></dt><dd><p>Line Comment</p></dd>
+<dt><a href="#blockCommentFig">BNF 2.3</a></dt><dd><p>Block Comment</p></dd>
+<dt><a href="#numericLiteralFig">BNF 2.4</a></dt><dd><p>Numeric Literals</p></dd>
+<dt><a href="#decimalFig">BNF 2.5</a></dt><dd><p>Integer Literals</p></dd>
+<dt><a href="#hexadecimalFig">BNF 2.6</a></dt><dd><p>Hexadecimal numbers</p></dd>
+<dt><a href="#floatingPointFig">BNF 2.7</a></dt><dd><p>Floating Point numbers</p></dd>
+<dt><a href="#characterCodeFig">BNF 2.8</a></dt><dd><p>Character Codes</p></dd>
+<dt><a href="#charRefFig">BNF 2.9</a></dt><dd><p>Character Reference</p></dd>
+<dt><a href="#quotedStringFig">BNF 2.10</a></dt><dd><p>Quoted String</p></dd>
+<dt><a href="#blockStringFig">BNF 2.11</a></dt><dd><p>Block String Literal</p></dd>
+<dt><a href="#identifierFig">BNF 2.12</a></dt><dd><p>Identifier Syntax</p></dd>
+<dt><a href="#graphicIdentifierFig">BNF 2.13</a></dt><dd><p>Graphic Identifiers</p></dd>
+<dt><a href="#srOpPrecGrammar">BNF 3.1</a></dt><dd><p>Operator Precedence Grammar</p></dd>
+</dl>
+
+
+<div class="footnote">
+<hr>
+<h4 class="footnotes-heading">Footnotes</h4>
+
+<h3><a name="FOOT1" href="#DOCF1">(1)</a></h3>
+<p>Notes which are not
+really part of the main exposition, but still represent nuggets of
+wisdom are relegated to footnotes.</p>
+<h3><a name="FOOT2" href="#DOCF2">(2)</a></h3>
+<p>A statement in <code>Star</code>
+is not to be confused with statements in languages like C or Java:
+statements in <code>Star</code> always declare some fact.</p>
+<h3><a name="FOOT3" href="#DOCF3">(3)</a></h3>
+<p>The entire operator precedence grammar (not
+including tokenization) is very succinct, as can be seen in
+See <a href="#srOpPrecGrammar">BNF 3.1</a>.</p>
+</div>
+<hr>
+
+
+
+</body>
+</html>

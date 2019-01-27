@@ -50,15 +50,19 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 @menu
 * Introduction::
 * Lexical Syntax::
+* Grammar::
 
 * Concept index::
 * Function index::
+* List of Syntax Rules::
 @end menu
 
 
 @include intro.texi
 
 @include lexical.texi
+
+@include grammar.texi
 
 @node Concept index
 @unnumbered Concept index
@@ -67,5 +71,10 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 @node Function index
 @unnumbered Standard function index
 @printindex fn
+
+@node List of Syntax Rules
+@unnumbered List of Syntax Rules
+@listoffloats BNF
+
 
 @bye
