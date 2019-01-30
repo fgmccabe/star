@@ -33,17 +33,29 @@ All rights reserved.
 @node Top
 @top Star Reference
 
+@macro Star
+@code{Star}
+@end macro
+
+@macro turnstile
+@U{22a6}
+@end macro
+
+@macro typeprod{E,Exp,T}
+@var{\E\}@turnstile{}\Exp\:@var{\T\}
+@end macro
+
 @noindent
 This is the 
 @ifinfo
 on-line
 @end ifinfo 
-reference for the @code{Star} language, version @value{VERSION}.  
+reference for the @Star{} language, version @value{VERSION}.  
 @refill
 
 @noindent
 This manual offers an in-depth and complete description of the
-@code{Star} language. However, it is not a tutorial on the language,
+@Star{} language. However, it is not a tutorial on the language,
 and the order of presentation within the manual reflects that. For a
 more tutorial introduction, the reader is referred to @emph{Star Programming} (by F.G. McCabe).
 
@@ -51,6 +63,7 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 * Introduction::
 * Lexical Syntax::
 * Grammar::
+* Well Formed Programs::
 
 * Concept index::
 * Function index::
@@ -58,11 +71,15 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 @end menu
 
 
+
+
 @include intro.texi
 
 @include lexical.texi
 
 @include grammar.texi
+
+@include wff.texi
 
 @node Concept index
 @unnumbered Concept index
