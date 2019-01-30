@@ -37,12 +37,20 @@ All rights reserved.
 @code{Star}
 @end macro
 
+
+@ifinfo
+@macro turnstile
+|-
+@end macro
+@end ifinfo
+@ifnotinfo
 @macro turnstile
 @U{22a6}
 @end macro
+@end ifnotinfo
 
 @macro typeprod{E,Exp,T}
-@var{\E\}@turnstile{}\Exp\:@var{\T\}
+@var{\E\}@turnstile{}\Exp\:\T\
 @end macro
 
 @noindent

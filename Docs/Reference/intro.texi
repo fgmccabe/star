@@ -156,14 +156,3 @@ wisdom are relegated to footnotes.}
 Occasionally, there are areas where the programmer may
 accidentally `trip over' some feature of the language.
 @end quotation
-
-
-
-@float
-@caption{A type proof}
-@display
-@typeprod{E,@var{El}@sub{1},@var{T}},@dots{},@typeprod{E,El@sub{n},@var{T}}
------------------------------
-@typeprod{E,@code{cons of [}@var{El}@sub{1},@dots{},@var{El}@sub{n}@code{]},@code{cons[}@var{T}@code{]}}
-@end display
-@end float
