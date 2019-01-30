@@ -28,6 +28,10 @@ confused with normal expressions. Types generally play no part in
 evaluation.
 @end quotation
 
+@menu
+* Type Rules::
+@end menu
+
 Viewed as sets, types have some particular properties: no value may be
 a member of more than one type set; all values are members of exactly
 one type set.
@@ -139,8 +143,10 @@ denote @emph{abstract types}; i.e., the existential quantifier signals
 that there is a type that should be treated as an opaque @emph{black
 box}.
 
-@subsection Type Safety
+@node Type Rules
+@subsection Type Rules
 @cindex type safety
+@cindex type rules
 
 The connection between the argument type of a @code{cons} type
 expression and the actual elements of lists is denoted by a @emph{type
@@ -148,15 +154,13 @@ inference rule}. Type inference rules are rules for relating
 expressions and statements in the language to the types associated
 with that statement. For example, the rule:
 
-@float
-@caption{A type proof}
 @display
 @typeprod{E,@var{El}@sub{1},@var{T}},@dots{},@typeprod{E,El@sub{n},@var{T}}
------------------------------
-@typeprod{E,@code{cons of [}@var{El}@sub{1},@dots{},@var{El}@sub{n}@code{]},@code{cons[}@var{T}@code{]}}
+@result{}
+@typeprod{E,@code{cons of[@var{El}@sub{1}@comma{}@dots{}@comma{}@var{El}@sub{n}]},@code{cons[@var{T}]}}
 @end display
-@end float
-says that if the expressions @var{El@sub{1}} through @var{El@sub{n}} all have type @var{T}, then the list expression
+says that if the expressions @var{El@sub{1}} through @var{El@sub{n}}
+all have type @var{T}, then the list expression
 @example
 cons of [@emph{El@sub{1}}\sequence{,}@emph{El@sub{n}}]
 @end example
@@ -164,15 +168,19 @@ has type @code{cons[@var{T}]}. This is the formal way of stating that
 all elements of a list must have the same type.
 
 The general form of a type inference rule that is determining a type (sometimes called a type judgment) is:
-\begin{prooftree}
-\AxiomC{\mbox{@emph{Condition}}}
-\UnaryInfC{\typeprd{E}{X}{T}}
-\end{prooftree}
-This should be read as
-\begin{quote}
-If @emph{Condition} is satisfied, then we can infer from the context @emph{E} that @emph{X} has type @emph{T}
-\end{quote}
-where the symbol \tinfers{} can be read as @emph{type implication}. In general, the type of an expression depends on the context that it is found.
+@display
+@var{Condition}
+@result{}
+@typeprod{E,@var{X},@var{T}}
+@end display
+@quotation
+If @emph{Condition} is satisfied, then we can infer from the context
+@var{E} that @var{X} has type @var{T}
+@end quotation
+where the symbol @turnstile{} can be read as @emph{type
+implication}. In general, the type of an expression depends on the
+context that it is found.
+
 
 \paragraph{Type Annotations}
 In most cases it is not necessary to explicitly declare the type of a variable. However, it is good practice to declare explicitly the types of programs; especially within @ref{thetaEnvironment}s.
@@ -180,6 +188,7 @@ In most cases it is not necessary to explicitly declare the type of a variable. 
 For example, a generic function @code{consLength} that takes a @code{cons} list and returns an integer would have the declaration:
 @example
 consLength:all t ~~ (cons[t])=>integer
+@end example
 
 This is an example of a universally quantified type -- see @ref{universalType} for more details.
 
@@ -188,155 +197,198 @@ This is an example of a universally quantified type -- see @ref{universalType} f
 Just as values have types, and the language system arranges to ensure that types are preserved, so types have @emph{kinds}. A @ref{Kind} is a @emph{kind of type}.
 
 @quotation NOTE
-Type @ref{Kind}s allow the language to keep track of the expected arity of a type: i.e., how many type arguments the type expected.
+Type @ref{Kind}s allow the language to keep track of the expected
+arity of a type: i.e., how many type arguments the type expected.
+@end quotation
 
 
-== Type Expressions
-[[typeExpressions]]
-(((forms of types)))
-(((type expressions)))
+@node Types of Types
+@section Types of Types
+@cindex type expressions
+@cindex forms of types
 
-@ref{typeFig} illustrates the top-levels of the different kinds of type expressions that the @Star{} programmer will encounter.
+@ref{typeFig} illustrates the top-levels of the different kinds of
+type expressions that the @Star{} programmer will encounter.
 
+@float BNF,typeFig
+@caption{Types of Types}
+@display
+@anchor{Type}@var{Type}::=@var{TypeExpression}
+  | @var{TypeVariable}
+  | @var{TupleType}
+  | @var{RecordType}
+  | @var{FunctionType} | @var{ConstructorType}
+  | @var{TypeQuantifier} @code{~~} @var{Type}
+  | @var{TypeConstraint} @code{|:} @var{Type}
+  | @code{(} @var{Type} @code{)}
+  | @var{EncapsulatedType}
 
-[[typeFig]]
-.Types of Types
-:hardbreaks:
-****
-[[Type]]Type::=@ref{TypeExpression}
-&nbsp;&nbsp;| @ref{TypeVariable} | @ref{ReferenceType}
-&nbsp;&nbsp;| @ref{TupleType} | @ref{RecordType}
-&nbsp;&nbsp;| @ref{FunctionType} | @ref{PatternType} | @ref{ConstructorType}
-&nbsp;&nbsp;| @ref{TypeQuantifier} @code{~~} @ref{Type}
-&nbsp;&nbsp;| @ref{TypeConstraint} @code{}|:@code{} @ref{Type}
-&nbsp;&nbsp;| @code{(} @ref{Type} @code{)}
-&nbsp;&nbsp;| @ref{EncapsulatedType}
+@anchor{TypeQuantifier}@var{TypeQuantifier} ::= @var{UniversalQuantifier} | @var{ExistentialQuantifier}
+@end display
+@end float
 
-[[TypeQuantifier]]TypeQuantifier ::= @ref{UniversalQuantifier} | @ref{ExistentialQuantifier}
-****
+@menu
+* Named Types::
+@end menu
 
-There are two main kinds of type expressions -- so-called @emph{structural} type expressions and @emph{named} type expression. A structural type expression encodes by convention the permitted @emph{forms} of values of that type. By contrast, a named type expression is defined via some form of @ref{TypeDefinition}.
+There are two main kinds of type expressions -- so-called
+@emph{structural} type expressions and @emph{named} type expression. A
+structural type expression encodes by convention the permitted
+@emph{forms} of values of that type. By contrast, a named type
+expression is defined via some form of @ref{TypeDefinition}.
 
-A classic example of a structural type expression is the function type. A function type expression defines both the types of the arguments and result type of the function. But, more importantly, it signals that the value is a function.
+A classic example of a structural type expression is the function
+type. A function type expression defines both the types of the
+arguments and result type of the function. But, more importantly, it
+signals that the value is a function.
 
-A good example of a named type is the standard @code{integer} type. The word @code{integer} does not signal by itself that the allowable operations on integer values include arithmetic, comparison and so on. That information must come from additional statements and declarations.
+@node Named Types
+@subsection Named Types
+@cindex named types
+@cindex types,nominal
 
-One of the other differences between structural and named type expressions is that the latter may be used to denote @emph{recursive} types, whereas the former cannot.
+A @var{NamedType} is a term that identifies a class of values by
+name. The name may or may not have @ref{TypeArgument}s -- in which
+case, the type is said to be @emph{parameterized}.
+
+A good example of a named type (or, more formally, nominal type) is
+the standard @code{integer} type. The word @code{integer} does not
+signal by itself that the allowable operations on integer values
+include arithmetic, comparison and so on. That information must come
+from additional statements and declarations.
+
+One of the other differences between structural and named type
+expressions is that the latter may be used to denote @emph{recursive}
+types, whereas the former cannot.
 
 @quotation TIP
-A recursive type is one whose values may contain elements that are themselves of the same type. For example, in a @code{tree} type: the nodes of the tree are typically themselves trees.
+A recursive type is one whose values may contain elements that are
+themselves of the same type. For example, in a @code{tree} type: the
+nodes of the tree are typically themselves trees.
+@end quotation
 
-=== Type Expressions
-[[typeNames]]
-(((type)))
+@menu
+* Simple Types::
+* Parameterized Types::
+@end menu
 
+@float BNF,typeExpressionFig
+@caption{Type Expressions}
+@display
+@anchor{NamedType}@var{NamedType} ::= @var{TypeConstructor} @code{[@var{Type} ,@dots{}, @var{Type} ]}
+  | @var{TypeConstructor}
 
-[[typeExpressionFig]]
-.Type Expressions
-:hardbreaks:
-****
-[[TypeExpression]]TypeExpression ::= @ref{TypeConstructor} @code{[}@ref{Type} ,..., @ref{Type} @code{]}
-&nbsp;&nbsp;| @ref{Identifier}
+@anchor{TypeConstructor}@var{TypeConstructor} ::= @var{Identifier}
+@end display
+@end float
 
-[[TypeConstructor]]TypeConstructor ::= @ref{Identifier} | @ref{TypeVar}
-****
+@node Simple Types
+@subsubsection Simple Types
+@cindex simple type
 
-A @ref{TypeExpression} is a term that identifies a class of values by name. The name may or may not have @ref{TypeArgument}s -- in which case, the type is said to be @emph{parameterized}.
-(((type,parameterized)))
-(((parameterized types)))
+A simple type is @ref{TypeExpression} with no type arguments. Some
+simple types are pre-defined, @ref{predefinedTypes} gives a table of
+such types.
 
-==== Simple Types
-[[simpleType]]
-(((type,simple)))
-A simple type is @ref{TypeExpression} with no type arguments. Some simple types are pre-defined, @ref{predefinedTypes} gives a table of such types.
-(((standard,simple types)))
+@float tbl,predefinedTypes
+@caption{Standard Pre-defined Types}
+@table @code
+@item boolean
+used for logical values and conditions
+@item float
+type of floating point numbers
+@item integer
+type of integer values
+@item string
+type of string values
+@end table
+@end float
 
-[[predefinedTypes]]
-.Standard Pre-defined Types
-[cols="1,3"]
-|===
-| Type | Description
-| @code{boolean} | used for logical values and conditions
-| @code{float} | type of floating point numbers
-| @code{integer} | type of integer values
-| @code{string} | type of string values
-| @code{quoted} | type of abstract syntax
-| @code{astLocation} | type of location marker
-| @code{exception} | type of exception token
-|===
+@node Parameterized Types
+@subsubsection Parameterized Types
+@cindex type expression
+@cindex parameterized types
+A parameterized @var{TypeExpression} consists of a
+@var{TypeConstructor} applied to one of more @var{Type} arguments. For
+example, the standard @code{cons} type constructor has one type
+argument -- the type of elements of the @code{cons}.
 
-==== Parameterized Types
-[[parameterizedType]]
-(((type,parameterized)))
-(((parameterized type)))
+A parameterized type has a @emph{type arity} -- the number of type
+arguments it expects. This is defined when the type itself is
+defined. It is an error to write a type expression involving an
+incorrect number of type arguments.
 
-A parameterized @ref{TypeExpression} consists of a @ref{TypeConstructor} applied to one of more @ref{Type} arguments. For example, the standard @code{cons} type constructor has one type argument -- the type of elements of the @code{cons}.
+Parameterized types may be defined using a @var{TypeDefinition}
+statement.
 
-A parameterized type has a @emph{type arity} -- the number of type arguments it expects. This is defined when the type itself is defined. It is an error to write a type expression involving an incorrect number of type arguments.
-
-Parameterized types may be defined using a @ref{TypeDefinition} statement.
-
-==== Variable Type Constructors
-[[variableConstructor]]
-(((type,variable constructor)))
-(((type constructor expression)))
+==== Variable Type Constructors [[variableConstructor]]
+(((type,variable constructor))) (((type constructor expression)))
 
 A type expression of the form:
 @example
 c[t1,...,tn]
 
-where @code{c} is a
-type variable -- i.e., bound by a quantifier -- denotes a rather special form of type: a type constructor expression. Like other parameterized type expressions, this expression does not denote a single type; but a set of types. For example, the type expression:
+where @code{c} is a type variable -- i.e., bound by a quantifier --
+denotes a rather special form of type: a type constructor
+expression. Like other parameterized type expressions, this expression
+does not denote a single type; but a set of types. For example, the
+type expression:
 @example
 c of integer
 
 denotes a type @emph{something of @code{integer}}.
 
-A subsequent constraint on @code{c} may cause it to be bound to the @ref{TypeConstructor} @code{cons} (say), in which case the type expression becomes ground to the parameterized type expression @code{cons[integer]}.
+A subsequent constraint on @code{c} may cause it to be bound to the
+@var{TypeConstructor} @code{cons} (say), in which case the type
+expression becomes ground to the parameterized type expression
+@code{cons[integer]}.
 
-Such type expressions are of most use in certain forms of @ref{Contract} where the contract is about a certain form of parameterized type.
+Such type expressions are of most use in certain forms of
+@var{Contract} where the contract is about a certain form of
+parameterized type.
 
 @quotation NOTE
-A variable constructor is equivalent to a regular type variable with a @ref{HasKind} constraint.
+A variable constructor is equivalent to a regular type variable with a
+@var{HasKind} constraint.
 
-=== Tuple Types
-[[tupleType]]
-A tuple type is a tuple of types; written as a sequence of type expressions enclosed in parentheses.
+=== Tuple Types [[tupleType]] A tuple type is a tuple of types;
+written as a sequence of type expressions enclosed in parentheses.
 
-.Tuple Type
-[[tupleTypeFig]]
-****
-[[TupleType]]TupleType ::= @code{()}
-&nbsp;&nbsp;| `\((` @ref{Type} `))`
-&nbsp;&nbsp;| `(`@ref{Type} ,.., @ref{Type}`)`+2
-****
+.Tuple Type [[tupleTypeFig]] **** [[TupleType]]TupleType ::= @code{()}
+&nbsp;&nbsp;| `\((` @var{Type} `))` &nbsp;&nbsp;| `(`@var{Type} ,..,
+@var{Type}`)`+2 ****
 
-A tuple type denotes a fixed grouping of elements. Each element of the tuple may have a different type.
+A tuple type denotes a fixed grouping of elements. Each element of the
+tuple may have a different type.
 
-There are two special cases in @ref{TupleType}s: the empty tuple and the singleton tuple type.
+There are two special cases in @var{TupleType}s: the empty tuple and
+the singleton tuple type.
 
-==== Empty Tuple
-(((tuple,empty tuple type)))
+==== Empty Tuple (((tuple,empty tuple type)))
 
 The empty tuple type:
 @example
 ()
 
-refers to the empty tuple. It is useful primarily for writing function types where the function has no arguments:
+varers to the empty tuple. It is useful primarily for writing function
+types where the function has no arguments:
 @example
 ()=>string
 
-When used as the return type of a function, the @code{()} type denotes a void result:
+When used as the return type of a function, the @code{()} type denotes
+a void result:
 @example
 (integer)=>()
 
 @quotation TIP
-The @code{()} type -- sometimes referred to as the @emph{unit type} -- is also used to denote the return type of some actions.
+The @code{()} type -- sometimes varerred to as the @emph{unit type} --
+is also used to denote the return type of some actions.
 
-==== Singleton Tuple
-(((tuple,singleton tuple type)))
+==== Singleton Tuple (((tuple,singleton tuple type)))
 
-A singleton tuple must be written with two parentheses. This is to disambiguate such terms from simple expression parentheses. A type expression of the form:
+A singleton tuple must be written with two parentheses. This is to
+disambiguate such terms from simple expression parentheses. A type
+expression of the form:
 @example
 (integer)
 
@@ -344,24 +396,28 @@ is equivalent to just the @code{integer} type; whereas
 @example
 ((integer))
 
-denotes the single element tuple type whose element type is @code{integer}.
+denotes the single element tuple type whose element type is
+@code{integer}.
 
-[[recordType]]
-=== Record Type
-A @ref{RecordType} is a type expression that denotes a named association of fields and types. A record type is written as a sequence of type annotations enclosed in braces.
+[[recordType]] === Record Type A @var{RecordType} is a type expression
+that denotes a named association of fields and types. A record type is
+written as a sequence of type annotations enclosed in braces.
 
 
-[[recordTypeFig]]
-.Record Type
-****
-[[RecordType]]RecordType ::= @code{{}@ref{Annotation} ; .. ;@ref{Annotation} @code{}}
+[[recordTypeFig]] .Record Type **** [[RecordType]]RecordType ::=
+@code{{}@var{Annotation} ; .. ;@var{Annotation} @code{}}
 
-[[TypeEquality]]TypeEquality ::= @code{type} @ref{Identifier} @code{=} @ref{Type}
-****
+[[TypeEquality]]TypeEquality ::= @code{type} @var{Identifier} @code{=}
+@var{Type} ****
 
-Record types are used as the type of anonymous records (see @ref{anonRecord}). They are also the basis of other features of the type language -- including the @ref{ConstructorType} and @ref{Contract}s.
+Record types are used as the type of anonymous records (see
+@var{anonRecord}). They are also the basis of other features of the
+type language -- including the @var{ConstructorType} and
+@var{Contract}s.
 
-Two record types are equivalent if their elements are pair-wise equivalent. Note that the @emph{order} of elements is not important. For example, given the types:
+Two record types are equivalent if their elements are pair-wise
+equivalent. Note that the @emph{order} of elements is not
+important. For example, given the types:
 @example
 {a:string ; b:integer }
 
@@ -369,39 +425,49 @@ and
 @example
 {b:integer ; a:t }
 
-these types unify -- assuming that @code{t} is a bound type variable, provided that @code{t} is unifiable with @code{string}.
+these types unify -- assuming that @code{t} is a bound type variable,
+provided that @code{t} is unifiable with @code{string}.
 
 @quotation NOTE
-All user-defined types -- i.e., types defined by an @ref{AlgebraicType} definition -- have a @ref{RecordType} interface associated with them. This, as is detailed in @ref{algebraicInterface}, defines a type for all of the fields in any of the constructors for the type. In turn, this permits a @ref{RecordAccess} expression to apply to a user-defined type as well as a @ref{RecordType}.
+All user-defined types -- i.e., types defined by an
+@var{AlgebraicType} definition -- have a @var{RecordType} interface
+associated with them. This, as is detailed in
+@var{algebraicInterface}, defines a type for all of the fields in any
+of the constructors for the type. In turn, this permits a
+@var{RecordAccess} expression to apply to a user-defined type as well
+as a @var{RecordType}.
 
-[[functionType]]
-=== Function Type
-(((function type)))(((type,function)))A function type denotes a function value. It takes the form of a possibly empty sequence of argument types -- denoting the types of the arguments to the function -- enclosed in parentheses; followed by the result type of the function. @ref{functionTypeFig} highlights the form of the function type:
+[[functionType]] === Function Type (((function
+type)))(((type,function)))A function type denotes a function value. It
+takes the form of a possibly empty sequence of argument types --
+denoting the types of the arguments to the function -- enclosed in
+parentheses; followed by the result type of the
+function. @var{functionTypeFig} highlights the form of the function
+type:
 
 
-[[functionTypeFig]]
-.Function Type
-****
-[[FunctionType]]FunctionType ::= @ref{TupleType} @code{\=>} @ref{Type}
-****
+[[functionTypeFig]] .Function Type **** [[FunctionType]]FunctionType
+::= @var{TupleType} @code{\=>} @var{Type} ****
 
-For example, a function of two arguments -- an @code{integer} and a @code{string} that returns a list of @code{string}s has a type that takes the form:
+For example, a function of two arguments -- an @code{integer} and a
+@code{string} that returns a list of @code{string}s has a type that
+takes the form:
 @example
 (integer,string) => cons[string]
 
 
-==== Procedure Type
-[[procedureType]]
-(((procedure type)))
+==== Procedure Type [[procedureType]] (((procedure type)))
 (((type,procedure)))
 
-A procedure is an abstraction of an action. I.e., a procedure is a function that does not return a value but is executed purely for its side effect(s). This is expressed in the form of procedure types, which take the form of a function type that returns an empty tuple:
+A procedure is an abstraction of an action. I.e., a procedure is a
+function that does not return a value but is executed purely for its
+side effect(s). This is expressed in the form of procedure types,
+which take the form of a function type that returns an empty tuple:
 
-****
-@ref{TupleType} @code{\=> ()}
-****
+**** @var{TupleType} @code{\=> ()} ****
 
-For example, a procedure that takes @code{string} and @code{integer} arguments would have the type signature:
+For example, a procedure that takes @code{string} and @code{integer}
+arguments would have the type signature:
 @example
 (string,integer)=>()
 
@@ -412,116 +478,134 @@ And the type:
 denotes the type of a procedure that takes no arguments.
 
 
-=== Pattern Abstraction Type
-A @ref{PatternAbstraction} is an abstraction of a pattern. Pattern abstractions allow patterns to be treated as first class values -- i.e., passed in as arguments to programs and bound to variables -- and they may be applied in contexts where patterns are valid.
+=== Pattern Abstraction Type A @var{PatternAbstraction} is an
+abstraction of a pattern. Pattern abstractions allow patterns to be
+treated as first class values -- i.e., passed in as arguments to
+programs and bound to variables -- and they may be applied in contexts
+where patterns are valid.
 
-The form of a pattern abstraction type is defined in @ref{patternAbTypeFig}.
+The form of a pattern abstraction type is defined in
+@var{patternAbTypeFig}.
 
-[[patternAbTypeFig]]
-.Pattern Type
-****
-[[PatternType]]PatternType ::= @ref{TupleType} @code{\<=} @ref{Type}
-****
+[[patternAbTypeFig]] .Pattern Type **** [[PatternType]]PatternType ::=
+@var{TupleType} @code{\<=} @var{Type} ****
 
-Pattern abstractions match a pattern, and extract values from that pattern; values that, in turn, may be matched against where the pattern abstraction is applied.
-For example, a @ref{PatternAbstraction} that matches @code{string}s that are intended to denote @code{integer} literals, and extracts such an @code{integer} would have the type
+Pattern abstractions match a pattern, and extract values from that
+pattern; values that, in turn, may be matched against where the
+pattern abstraction is applied.  For example, a
+@var{PatternAbstraction} that matches @code{string}s that are intended
+to denote @code{integer} literals, and extracts such an @code{integer}
+would have the type
 @example
 (integer) <= string
 
 
-=== Constructor Type
-[[constructorType]]
-(((constructor type)))
+=== Constructor Type [[constructorType]] (((constructor type)))
 (((type,constructor)))
 
-A constructor is a special function that is introduced in an @ref{AlgebraicType} definition.
+A constructor is a special function that is introduced in an
+@var{AlgebraicType} definition.
 
 @quotation NOTE
-Constructors are special because they can be viewed simultaneously as a function and as a pattern. Hence the form of the constructor reflects that bidirectionality.
+Constructors are special because they can be viewed simultaneously as
+a function and as a pattern. Hence the form of the constructor
+varlects that bidirectionality.
 
-The form of a constructor type is given in @ref{constructorTypeFig}.
+The form of a constructor type is given in @var{constructorTypeFig}.
 
-[[constructorTypeFig]]
-.Constructor Type
-****
-[[ConstructorType]]ConstructorType::=@ref{Type} @code{\<\=>} @ref{Type}
-****
+[[constructorTypeFig]] .Constructor Type ****
+[[ConstructorType]]ConstructorType::=@var{Type} @code{\<\=>}
+@var{Type} ****
 
-The left hand side of a constructor type should either be a @ref{TupleType} or an @ref{RecordType} -- depending on whether the denoted constructor is a term constructor constructor or a record constructor.
+The left hand side of a constructor type should either be a
+@var{TupleType} or an @var{RecordType} -- depending on whether the
+denoted constructor is a term constructor constructor or a record
+constructor.
 
 @quotation TIP
-@ref{ConstructorType}s are most used in the context of the signatures of @emph{abstract data types}: where a type and its constructors are @emph{exported} from a record.
+@var{ConstructorType}s are most used in the context of the signatures
+of @emph{abstract data types}: where a type and its constructors are
+@emph{exported} from a record.
 
-=== Reference Type
-[[referenceType]]
-(((reference type)))
-(((type,ref@@code{ref})))
+=== Varerence Type [[varerenceType]] (((varerence type)))
+(((type,var@@code{var})))
 
-A re-assignable variable is given a @code{ref}erence type.
+A re-assignable variable is given a @code{var}erence type.
 
 
-[[referenceTypeFig]]
-.Reference Type
-****
-[[ReferenceType]]ReferenceType ::= @code{ref} @ref{Type}
-****
+[[varerenceTypeFig]] .Varerence Type ****
+[[VarerenceType]]VarerenceType ::= @code{var} @var{Type} ****
 
-Reference types allow the programmer to distinguish re-assignable variables from other values; in particular they allow one to distinguish between binding to the @emph{value} of a re-assignable variable or to its @emph{name}.
-
-@quotation NOTE
-The latter is not as common, but is important to support abstractions involving re-assignable variables.
-
-=== Type Variables
-[[typeVariable]]
-(((type,variable)))
-
-A type variable is a variable which may be bound to a type. Depending on whether the scope of a type variable is explicitly determined or implicitly determined, type variables are written as regular identifiers -- they are distinguished from regular named types by virtue of the quantifier they are bound by.
-
-[[typeVariableFig]]
-.Type Variables
-****
-[[TypeVariable]]TypeVariable ::= @ref{Identifier}
-****
-
-==== Type Variable Kind
-Type variables are associated with a @ref{Kind} -- which constrains the kinds (sic) of types that the type variables may be bound to. For example, a @ref{Kind} of @code{type} implies that the type variable may be bound to any valid type -- but may not be bound to a @ref{TypeConstructor}.
+Varerence types allow the programmer to distinguish re-assignable
+variables from other values; in particular they allow one to
+distinguish between binding to the @emph{value} of a re-assignable
+variable or to its @emph{name}.
 
 @quotation NOTE
-The different kinds of type variable may not be mixed: it is not permissible to bind a type variable to a @ref{TypeConstructor}, and vice versa.
+The latter is not as common, but is important to support abstractions
+involving re-assignable variables.
+
+=== Type Variables [[typeVariable]] (((type,variable)))
+
+A type variable is a variable which may be bound to a type. Depending
+on whether the scope of a type variable is explicitly determined or
+implicitly determined, type variables are written as regular
+identifiers -- they are distinguished from regular named types by
+virtue of the quantifier they are bound by.
+
+[[typeVariableFig]] .Type Variables **** [[TypeVariable]]TypeVariable
+::= @var{Identifier} ****
+
+==== Type Variable Kind Type variables are associated with a
+@var{Kind} -- which constrains the kinds (sic) of types that the type
+variables may be bound to. For example, a @var{Kind} of @code{type}
+implies that the type variable may be bound to any valid type -- but
+may not be bound to a @var{TypeConstructor}.
+
+@quotation NOTE
+The different kinds of type variable may not be mixed: it is not
+permissible to bind a type variable to a @var{TypeConstructor}, and
+vice versa.
 
 For example, given:
 @example
 all t ~~ cons[t] ::= nil | cons(t, cons[t]);
 
-The type variable @code{t} may be bound to a type expression such as @code{cons[string]} but not to a higher-kinded type (such as @code{cons} itself).
+The type variable @code{t} may be bound to a type expression such as
+@code{cons[string]} but not to a higher-kinded type (such as
+@code{cons} itself).
 
 
-==== Scope of Type Variables
-[[typeVarScope]]
+==== Scope of Type Variables [[typeVarScope]]
 (((type,variable!scope)))
 
-All type variables have a scope which generally follows the scoping rules for normal variables.
+All type variables have a scope which generally follows the scoping
+rules for normal variables.
 
-There are two particular cases that are important: type variables introduced via @ref{TypeDefinition}s and those introduced via explicitly quantified type expressions.
+There are two particular cases that are important: type variables
+introduced via @var{TypeDefinition}s and those introduced via
+explicitly quantified type expressions.
 
-A variable introduced in the head of an @ref{AlgebraicType} definition, or in the head of a @ref{Contract} definition are in scope throughout the definition or contract respectively.
+A variable introduced in the head of an @var{AlgebraicType}
+definition, or in the head of a @var{Contract} definition are in scope
+throughout the definition or contract respectively.
 
-=== Universally Quantified Types
-[[universalType]]
-(((types,universally quantified)))
-(((universally quantified type)))
+=== Universally Quantified Types [[universalType]]
+(((types,universally quantified))) (((universally quantified type)))
 
-A universal type denotes a type that is valid for all substitutions of a type variable.
+A universal type denotes a type that is valid for all substitutions of
+a type variable.
 
-[[universalTypeFig]]
-.Universal Type Expression
-****
-[[UniversalType]]UniversalType::= @code{all} @ref{BoundType},..,@ref{BoundType}\ @code{~~} @ref{Type}
+[[universalTypeFig]] .Universal Type Expression ****
+[[UniversalType]]UniversalType::= @code{all}
+@var{BoundType},..,@var{BoundType}\ @code{~~} @var{Type}
 
-[[BoundType]]BoundType ::= @ref{Identifier} | @ref{Identifier}@code{/}@ref{Decimal}
-****
+[[BoundType]]BoundType ::= @var{Identifier} |
+@var{Identifier}@code{/}@var{Decimal} ****
 
-The first form of @ref{BoundType} introduces a regular type variable -- i.e., a variable of @ref{Kind} @code{type}. The second form is used to introduce a higher-kinded type variable.
+The first form of @var{BoundType} introduces a regular type variable
+-- i.e., a variable of @var{Kind} @code{type}. The second form is used
+to introduce a higher-kinded type variable.
 
 For example, the quantification:
 
@@ -531,431 +615,499 @@ all c/1 ~~ ...
 denotes a type variable of kind @code{type[type]}.
 
 @quotation TIP
-Higher kinded type variables are most commonly used in the context of @ref{Contract} definitions.
+Higher kinded type variables are most commonly used in the context of
+@var{Contract} definitions.
 
-@Star{} will infer the type of expressions; but does @emph{not} infer the types associated with defined variables -- i.e., variables defined in @code{let} environments and at the top-level of a package.
+@Star{} will infer the type of expressions; but does @emph{not} infer
+the types associated with defined variables -- i.e., variables defined
+in @code{let} environments and at the top-level of a package.
 
-Furthermore, the type checker @emph{never} infers a so-called generic type (a type that has universally or existentially quantified variables)
+Furthermore, the type checker @emph{never} infers a so-called generic
+type (a type that has universally or existentially quantified
+variables)
 
-One consequence of this is that all top-level definitions must have an explicit type annotation; and all generically typed expressions footnote:[This can happen if function-valued argument to a function is going to be used in different situations within the function then that argument needs to explicitly marked as universal.] must be explicitly quantified.
+One consequence of this is that all top-level definitions must have an
+explicit type annotation; and all generically typed expressions
+footnote:[This can happen if function-valued argument to a function is
+going to be used in different situations within the function then that
+argument needs to explicitly marked as universal.] must be explicitly
+quantified.
 
 @quotation NOTE
-The reason for this is that explicit types provide superior documentation to programs -- especially where the actual type is complex.
+The reason for this is that explicit types provide superior
+documentation to programs -- especially where the actual type is
+complex.
 
-For example, the  @code{dblFilter} function in Program~\vref{dblFilter} applies a @code{map} function in two different situations -- one for each element of each pair in the input list.
+For example, the @code{dblFilter} function in Program~\vvar{dblFilter}
+applies a @code{map} function in two different situations -- one for
+each element of each pair in the input list.
 
-[[dblFilter]]
-.A @code{double} filter
+[[dblFilter]] .A @code{double} filter
 @example
-dblFilter:all u,v ~~
-     (all t~~(t)=>t, cons[(u,v)])=>cons[(u,v)]
-dblFilter(M,[]) => []
-dblFilter(M,[(A,B),..L]) =>
-      [(M(A),M(B)),..dblFilter(M,L)]
+dblFilter:all u,v ~~ (all t~~(t)=>t, cons[(u,v)])=>cons[(u,v)]
+     dblFilter(M,[]) => [] dblFilter(M,[(A,B),..L]) =>
+     [(M(A),M(B)),..dblFilter(M,L)]
 
-It is important to note that any actual function argument supplied to @code{dblFilter} will itself have to be generic -- i.e., its type will also be universally quantified.
+It is important to note that any actual function argument supplied to
+@code{dblFilter} will itself have to be generic -- i.e., its type will
+also be universally quantified.
 
 
-[[existentialType]]
-=== Existentially Quantified Types
-(((types,existentially quantified)))
-(((existentially quantified type)))
-(((exists@code{exists})))
+[[existentialType]] === Existentially Quantified Types
+(((types,existentially quantified))) (((existentially quantified
+type))) (((exists@code{exists})))
 
 An existential type denotes an @emph{abstract} type.
 
-[[existentialTypeFig]]
-.Existential Type Expression
-****
-[[ExistentialType]]ExistentialType ::= @code{exists} @ref{BoundType},..,@ref{BoundType} @code{~~} @ref{Type}
-****
+[[existentialTypeFig]] .Existential Type Expression ****
+[[ExistentialType]]ExistentialType ::= @code{exists}
+@var{BoundType},..,@var{BoundType} @code{~~} @var{Type} ****
 
-An existentially quantified type denotes a type within which there is an @emph{abstract type}: i.e., the type exists but the expression is not explicit about which type.
+An existentially quantified type denotes a type within which there is
+an @emph{abstract type}: i.e., the type exists but the expression is
+not explicit about which type.
 
-Existential types are most often used in the type signatures of abstract data types. For example, the term in the statement:
+Existential types are most often used in the type signatures of
+abstract data types. For example, the term in the statement:
 @example
-R = {
-  type el = integer
-  op(X,Y) => X+Y
-}
+R = { type el = integer op(X,Y) => X+Y }
 
 has type:
 @example
 exists el ~~ { el :: type; op:(el,el)=>el }
 
 @quotation NOTE
-Note that the fact that within the record the type @code{el} is identified as @code{integer} does not escape the record itself. Externally, the existence of the type is known but not what it is.
+Note that the fact that within the record the type @code{el} is
+identified as @code{integer} does not escape the record
+itself. Externally, the existence of the type is known but not what it
+is.
 
-It is permissible to refer to the type within the record by a dot reference.
+It is permissible to varer to the type within the record by a dot
+varerence.
 
 @quotation TIP
-Existentially quantified types are generally not inferred for variables: i.e., if a variable has an existential type then that must be explicitly annotated.
+Existentially quantified types are generally not inferred for
+variables: i.e., if a variable has an existential type then that must
+be explicitly annotated.
 
-Existential types are inferred, however, for @ref{Record}s that contain a @ref{TypeDefinition} statement.
+Existential types are inferred, however, for @var{Record}s that
+contain a @var{TypeDefinition} statement.
 
-==== Encapsulated Types
-[[encapsulatedType]]
-(((encapsulated type)))
-(((type,encapsulated in record)))
-(((existential type)))
+==== Encapsulated Types [[encapsulatedType]] (((encapsulated type)))
+(((type,encapsulated in record))) (((existential type)))
 (((heterogenous types)))
 
-An @ref{EncapsulatedType} is a reference to a type that is embedded within a record.
+An @var{EncapsulatedType} is a varerence to a type that is embedded
+within a record.
 
 
-[[encapsulatedTypeFig]]
-.Encapsulated Type
+[[encapsulatedTypeFig]] .Encapsulated Type ****
+[[EncapsulatedType]]EncapsulatedType::=@var{Expression}@code{.}@var{Identifier}
 ****
-[[EncapsulatedType]]EncapsulatedType::=@ref{Expression}@code{.}@ref{Identifier}
-****
 
-As noted above, record literals may have types embedded within them. Such a record type is existentially quantified.
+As noted above, record literals may have types embedded within
+them. Such a record type is existentially quantified.
 
-It is possible to access the type embedded within such a record -- albeit with some restrictions:
+It is possible to access the type embedded within such a record --
+albeit with some restrictions:
 
-The form of an @ref{EncapsulatedType} reference is limited to terms of the form:
+The form of an @var{EncapsulatedType} varerence is limited to terms of
+the form:
 @example
 R.t
 
-where @code{R} is a @ref{Variable} whose type interface contains the type @code{t}.
+where @code{R} is a @var{Variable} whose type interface contains the
+type @code{t}.
 
-More generally, an @ref{EncapsulatedType} reference may involve a sequence of field names where each intermediate field name refers to a sub-record:
+More generally, an @var{EncapsulatedType} varerence may involve a
+sequence of field names where each intermediate field name varers to a
+sub-record:
 @example
 R.f1.f2.t
 
-The @emph{value} of an encapsulated type is strictly opaque: it is assumed to be different to all other types. Which means that effectively @emph{only} the other fields of the record variable @code{R} contain functions and values that can be used in conjunction.
+The @emph{value} of an encapsulated type is strictly opaque: it is
+assumed to be different to all other types. Which means that
+effectively @emph{only} the other fields of the record variable
+@code{R} contain functions and values that can be used in conjunction.
 
 For example, consider the @code{group} type defined in:
 
-[[groupExample]]
-.The @code{group} Type
+[[groupExample]] .The @code{group} Type
 @example
-----
-group ::= group{
-  el :: quality[el] |: type
+---- group ::= group{ el :: quality[el] |: type
 
-  zero : el
-  op : (el,el)=>el
-  inv : (el)=>el
-}
-----
+  zero : el op : (el,el)=>el inv : (el)=>el } ----
 
 @quotation TIP
-====
-A @code{group} literal is analogous to a mathematical group: a set which is closed under a binary operation and whose elements have an inverse.
+==== A @code{group} literal is analogous to a mathematical group: a
+set which is closed under a binary operation and whose elements have
+an inverse.
 
-The contents of a @code{group} literal contain the definitions of the elements, the binary operation, the zero element and the inverse function.
-====
+The contents of a @code{group} literal contain the definitions of the
+elements, the binary operation, the zero element and the inverse
+function.  ====
 
-The qualification of the @code{el} type that it supports @code{equality} allows convenient access to equality of group elements. Without such a qualification, equality would not be possible for programs using @code{group} values.
+The qualification of the @code{el} type that it supports
+@code{equality} allows convenient access to equality of group
+elements. Without such a qualification, equality would not be possible
+for programs using @code{group} values.
 
-An additional requirement for a group is that its operation is associative. Such a property cannot be expressed in terms of type constraints.
+An additional requirement for a group is that its operation is
+associative. Such a property cannot be expressed in terms of type
+constraints.
 
-A @code{group} literal that implements the group for @code{integer}s is shown in:
+A @code{group} literal that implements the group for @code{integer}s
+is shown in:
 
-[[integerGroup]]
-.The @code{integer} @code{group} Record
+[[integerGroup]] .The @code{integer} @code{group} Record
 @example
-IG = group{
-  type el = integer
-  zero = 0
-  op = (+)
-  inv(X) => -X
-}
+IG = group{ type el = integer zero = 0 op = (+) inv(X) => -X }
 
-The @CODE{IG} value contains the elements of a group value. We can, for example, access the @code{zero} of @CODE{IG} using the statement:
+The @CODE{IG} value contains the elements of a group value. We can,
+for example, access the @code{zero} of @CODE{IG} using the statement:
 @example
-IZ : IG.el
-IZ = IG.zero
+IZ : IG.el IZ = IG.zero
 
-This asserts that @CODE{IZ}'s type is whatever the encapsulated type within @CODE{IG} is -- without being explicit about what that type is.
+This asserts that @CODE{IZ}'s type is whatever the encapsulated type
+within @CODE{IG} is -- without being explicit about what that type is.
 
-It is possible to construct functions over @code{group}s that refer to encapsulated types. For example, the @code{invertGroup} function below constructs a new group by @emph{inverting} the operation.
+It is possible to construct functions over @code{group}s that varer to
+encapsulated types. For example, the @code{invertGroup} function below
+constructs a new group by @emph{inverting} the operation.
 
-[[invertGroupProgram]]
-.A @code{group} Inverting Function
+[[invertGroupProgram]] .A @code{group} Inverting Function
 @example
-invertGroup : (group)=>group
-invertGroup(G) => group{
-  type el = G.el
-  zero = G.zero
-  op(X,Y) => G.op(G.inv(X),G.inv(Y))
-  inv(X) => G.inv(X)
-}
+invertGroup : (group)=>group invertGroup(G) => group{ type el = G.el
+zero = G.zero op(X,Y) => G.op(G.inv(X),G.inv(Y)) inv(X) => G.inv(X) }
 
-== Type Constraints
-[[typeConstraints]]
-(((type,constraints)))
+== Type Constraints [[typeConstraints]] (((type,constraints)))
 
-A @ref{TypeConstraint} is a constraint on a @ref{Type}; usually implying a constraint on the possible binding of a @ref{TypeVariable}.
+A @var{TypeConstraint} is a constraint on a @var{Type}; usually
+implying a constraint on the possible binding of a @var{TypeVariable}.
 
-Generally, a @ref{TypeConstraint} on a @ref{TypeVariable} restricts in some sense the possible bindings for that type variable. For example, a @ref{Contract} refers to a named collection of functions and a @ref{TypeVariable} constrained by a @ref{ContractConstraint} means that any concrete instantiation of the @ref{TypeVariable} must be to a @ref{Type} that @code{implement}s the @ref{Contract}.
+Generally, a @var{TypeConstraint} on a @var{TypeVariable} restricts in
+some sense the possible bindings for that type variable. For example,
+a @var{Contract} varers to a named collection of functions and a
+@var{TypeVariable} constrained by a @var{ContractConstraint} means
+that any concrete instantiation of the @var{TypeVariable} must be to a
+@var{Type} that @code{implement}s the @var{Contract}.
 
-Similarly, a @ref{FieldConstraint} constrains the @ref{TypeVariable} so that any binding must be to a @ref{Type} that has the named field in its definition.
+Similarly, a @var{FieldConstraint} constrains the @var{TypeVariable}
+so that any binding must be to a @var{Type} that has the named field
+in its definition.
 
-For example, using @code{arithmetic} as a constraint allows us to say @emph{the type can be anything that implements a form of arithmetic}. The type expression:
+For example, using @code{arithmetic} as a constraint allows us to say
+@emph{the type can be anything that implements a form of
+arithmetic}. The type expression:
 @example
 arithmetic[t] |: t
 
 denotes this kind of constrained type.
 
 @quotation NOTE
-It is possible to view a type variable binding itself as a form of constraint: if we bind the type variable @code{t} to the type @code{integer} then we are constraining the type @code{t} to be equal to @code{integer}.
+It is possible to view a type variable binding itself as a form of
+constraint: if we bind the type variable @code{t} to the type
+@code{integer} then we are constraining the type @code{t} to be equal
+to @code{integer}.
 
 
-[[typeConstraintFig]]
-.Type Constraints
-****
-[[TypeConstraint]]TypeConstraint ::= @ref{ContractConstraint}
-&nbsp;&nbsp;| @ref{FieldConstraint}
-&nbsp;&nbsp;| @ref{InstanceConstraint}
-&nbsp;&nbsp;| @ref{HasKindConstraint}
-&nbsp;&nbsp;| @ref{TupleConstraint}
-&nbsp;&nbsp;| @ref{TypeConstraint} ,.., @ref{TypeConstraint}
-****
+[[typeConstraintFig]] .Type Constraints ****
+[[TypeConstraint]]TypeConstraint ::= @var{ContractConstraint}
+&nbsp;&nbsp;| @var{FieldConstraint} &nbsp;&nbsp;|
+@var{InstanceConstraint} &nbsp;&nbsp;| @var{HasKindConstraint}
+&nbsp;&nbsp;| @var{TupleConstraint} &nbsp;&nbsp;| @var{TypeConstraint}
+,.., @var{TypeConstraint} ****
 
 A type expression of the form:
 @example
 comparable[t], arithmetic[t] |: (t)=>t
 
-denotes a unary function type for any type that implements both the @code{comparable} and the @code{arithmetic} contracts (see @ref{comparisonPredicates} and @ref{arithmeticContract}).
+denotes a unary function type for any type that implements both the
+@code{comparable} and the @code{arithmetic} contracts (see
+@var{comparisonPredicates} and @var{arithmeticContract}).
 
 @quotation NOTE
-In many cases type inference will automatically result in constraints being added to type expressions.
+In many cases type inference will automatically result in constraints
+being added to type expressions.
 
-It is possible mix different forms of @ref{TypeConstraint}; for example, if a @ref{TypeVariable} must be bound to a type that implements the @code{comparable} contract as well as having the @code{integer}-typed @code{ident} attribute, the type expression:
+It is possible mix different forms of @var{TypeConstraint}; for
+example, if a @var{TypeVariable} must be bound to a type that
+implements the @code{comparable} contract as well as having the
+@code{integer}-typed @code{ident} attribute, the type expression:
 @example
 comparable[t], t <~ { ident:integer }
 
 captures this.
 
 @quotation NOTE
-If a constrained type variable is unified with another type variable, then the constraints of the two variables are merged. It may be that such a merging of constraints is not possible; in such a case, the unification will fail.
+If a constrained type variable is unified with another type variable,
+then the constraints of the two variables are merged. It may be that
+such a merging of constraints is not possible; in such a case, the
+unification will fail.
 
-=== Contract Constraints
-[[contractContraint]]
-(((type,constraints!contract)))
-(((contract constraint)))
+=== Contract Constraints [[contractContraint]]
+(((type,constraints!contract))) (((contract constraint)))
 
-A @ref{ContractConstraint} is a requirement on a @ref{Type} -- or tuple of @ref{Type}s -- that whatever type it is, that there must exist an @code{implementation} of the @ref{Contract} for the @ref{Type} (see @ref{contracts}).
+A @var{ContractConstraint} is a requirement on a @var{Type} -- or
+tuple of @var{Type}s -- that whatever type it is, that there must
+exist an @code{implementation} of the @var{Contract} for the
+@var{Type} (see @var{contracts}).
 
 For example, the type constraint expression:
 @example
 comparable[t]
 
-means that the type variable @code{t} may only unify with concrete types that implement the @code{comparable} contract.
+means that the type variable @code{t} may only unify with concrete
+types that implement the @code{comparable} contract.
 @quotation NOTE
-If @code{t} is unified with another type variable, then the constraints on both type variables are @emph{merged}.
+If @code{t} is unified with another type variable, then the
+constraints on both type variables are @emph{merged}.
 
 @quotation NOTE
-Since only named types may implement @ref{Contract}s, it is also not permissible to unify the constrained variable with an structural type -- such as a function type.
+Since only named types may implement @var{Contract}s, it is also not
+permissible to unify the constrained variable with an structural type
+-- such as a function type.
 
 
-[[contractConstraintFig]]
-.Contract Constraint
-****
-[[ContractConstraint]]ContractConstraint ::= @ref{Identifier}@code{[}@ref{TypeArgument}@code{]}
-&nbsp;&nbsp;| @ref{Identifier}@code{[}@ref{TypeArgument} \->> @ref{TypeArgument}@code{]}
-****
+[[contractConstraintFig]] .Contract Constraint ****
+[[ContractConstraint]]ContractConstraint ::=
+@var{Identifier}@code{[}@var{TypeArgument}@code{]} &nbsp;&nbsp;|
+@var{Identifier}@code{[}@var{TypeArgument} \->>
+@var{TypeArgument}@code{]} ****
 
-It is possible for @ref{ContractConstraint}s to reference more than one type. For example, the standard @code{coercion} contract (see @ref{typeCoercionContractFig}) references two types. A @code{coercion} @ref{ContractConstraint} will therefore look like:
+It is possible for @var{ContractConstraint}s to varerence more than
+one type. For example, the standard @code{coercion} contract (see
+@var{typeCoercionContractFig}) varerences two types. A @code{coercion}
+@var{ContractConstraint} will thevarore look like:
 @example
 coercion[T1,T2]
 
-where @code{T1} represents the source type of the coercion and @code{T2} represents the destination type.
+where @code{T1} represents the source type of the coercion and
+@code{T2} represents the destination type.
 
-If the @code{\->>} clause is used, then the @ref{Contract} being referenced must have a @emph{functional dependency}
-(((functional dependency)))
-associated with it.
+If the @code{\->>} clause is used, then the @var{Contract} being
+varerenced must have a @emph{functional dependency} (((functional
+dependency))) associated with it.
 
 @quotation NOTE
-Conversely, if a @ref{Contract} has a functional dependency, then any constraint referring to it must also have a @code{\->>} clause.
+Conversely, if a @var{Contract} has a functional dependency, then any
+constraint varerring to it must also have a @code{\->>} clause.
 
-The @code{\->>} clause identifies which type(s) are dependent on the type argument(s) of the @ref{Contract}. (See @ref{ContractFunctionalDependency}).
+The @code{\->>} clause identifies which type(s) are dependent on the
+type argument(s) of the @var{Contract}. (See
+@var{ContractFunctionalDependency}).
 
-=== Field Constraints
-[[attributeConstraint]]
-(((type,field)))
+=== Field Constraints [[attributeConstraint]] (((type,field)))
 (((type,constraints!field)))
 
-A @emph{FieldConstraint} is a requirement on a variable that whatever type it is, it should have particular attributes of particular types defined for it.
+A @emph{FieldConstraint} is a requirement on a variable that whatever
+type it is, it should have particular attributes of particular types
+defined for it.
 
 
-[[attributeConstraintFig]]
-.Field Constraint
-****
-[[FieldConstraint]]FieldConstraint ::= @ref{Type} @code{<~} { @ref{TypeAnnotation} ;..; @ref{Annotation} }
-****
+[[attributeConstraintFig]] .Field Constraint ****
+[[FieldConstraint]]FieldConstraint ::= @var{Type} @code{<~} {
+@var{TypeAnnotation} ;..; @var{Annotation} } ****
 
 For example, in
 @example
 r <~ { alpha : string; beta : long }
 
-if @code{r} is unified against a concrete type then that type's @ref{RecordType} interface (see @ref{algebraicInterface}) must contain both of @code{alpha} and @code{beta}. In addition, the fields must be of the right types.
+if @code{r} is unified against a concrete type then that type's
+@var{RecordType} interface (see @var{algebraicInterface}) must contain
+both of @code{alpha} and @code{beta}. In addition, the fields must be
+of the right types.
 
 @quotation NOTE
-====
-It is also possible to require that an @ref{EncapsulatedType} exists. For example, the constraint:
+==== It is also possible to require that an @var{EncapsulatedType}
+exists. For example, the constraint:
 @example
-s <~ { type elem }
-====
-requires that any actual binding for type @code{s} must include the embedded type @code{elem}.
+s <~ { type elem } ==== requires that any actual binding for type
+@code{s} must include the embedded type @code{elem}.
 
 
-=== Instance Constraint
-[[instanceConstraint]]
+=== Instance Constraint [[instanceConstraint]]
 (((type,constraints!instance)))
 
-An @ref{InstanceConstraint} is a requirement on a variable that any instantiation of the variable is an @emph{instance of} a type -- typically that is a universally quantified type.
+An @var{InstanceConstraint} is a requirement on a variable that any
+instantiation of the variable is an @emph{instance of} a type --
+typically that is a universally quantified type.
 
 
-[[instanceConstraintFig]]
-.Instance Type Constraint
-****
-[[InstanceConstraint]]InstanceConstraint ::= @ref{TypeVar} @code{instance of} @ref{Type}
-****
+[[instanceConstraintFig]] .Instance Type Constraint ****
+[[InstanceConstraint]]InstanceConstraint ::= @var{TypeVar}
+@code{instance of} @var{Type} ****
 
 For example, in
 @example
 r instance of (all t ~~ (t)=>t)
 
-we establish a constraint on @code{r} that any binding of @code{r} must be some specialization of the function type:
+we establish a constraint on @code{r} that any binding of @code{r}
+must be some specialization of the function type:
 @example
 all t ~~ (t)=>t
 
-Note that this would permit, for example, @code{r} to be bound to the @code{integer} function type:
+Note that this would permit, for example, @code{r} to be bound to the
+@code{integer} function type:
 @example
 (integer)=>integer
 
-because this type is an instance of the @ref{UniversalType}.
+because this type is an instance of the @var{UniversalType}.
 
 
-=== Has Kind Constraint
-[[hasKindConstraint]]
-(((type,constraints!has kind)))
+=== Has Kind Constraint [[hasKindConstraint]] (((type,constraints!has
+kind)))
 
-An @ref{HasKindConstraint} is a requirement on a variable that any instantiation of the variable @emph{has the right kind}.
+An @var{HasKindConstraint} is a requirement on a variable that any
+instantiation of the variable @emph{has the right kind}.
 
-The kind of a type refers to whether the type is a regular type or a type constructor. It also encodes the expected number of type arguments -- in the case that the variable should be bound to a type constructor.
+The kind of a type varers to whether the type is a regular type or a
+type constructor. It also encodes the expected number of type
+arguments -- in the case that the variable should be bound to a type
+constructor.
 
-[[hasKindConstraintFig]]
-.Has Kind Type Constraint
-****
-[[HasKindConstraint]]HasKindConstraint::=@ref{TypeVar}\ @code{::} @ref{Kind}
-****
+[[hasKindConstraintFig]] .Has Kind Type Constraint ****
+[[HasKindConstraint]]HasKindConstraint::=@var{TypeVar}\ @code{::}
+@var{Kind} ****
 
 For example, in
 @example
 c :: type
 
-we establish a constraint on @code{c} that any binding of @code{c} must be a @ref{Type} (in particular, it may not be bound to a type constructor.
+we establish a constraint on @code{c} that any binding of @code{c}
+must be a @var{Type} (in particular, it may not be bound to a type
+constructor.
 
 The constraint:
 @example
 d :: type[type,type]
 
-establishes the constraint that @code{d} must be bound to a type constructor (@emph{not} a @ref{Type}) of arity two. Given this constraint, it would not be legal to bind @code{d} to the standard type constructor @code{cons} (say) -- because @code{cons} is a type constructor of one argument.
+establishes the constraint that @code{d} must be bound to a type
+constructor (@emph{not} a @var{Type}) of arity two. Given this
+constraint, it would not be legal to bind @code{d} to the standard
+type constructor @code{cons} (say) -- because @code{cons} is a type
+constructor of one argument.
 
 
-== Type Annotations
-[[typeAnnotation]]
-An @ref{Annotation} is a statement that declares a variable to have a certain @ref{Type} or a @ref{Type} to have a certain @ref{Kind}.
+== Type Annotations [[typeAnnotation]] An @var{Annotation} is a
+statement that declares a variable to have a certain @var{Type} or a
+@var{Type} to have a certain @var{Kind}.
 
 For example,
 @example
 alpha:all t ~~~ (t)=>string
 
-is a @ref{TypeAnnotation}, whereas
+is a @var{TypeAnnotation}, whereas
 @example
 el :: type
 
-is a @ref{KindAnnotation}.
+is a @var{KindAnnotation}.
 
-[[typeAnnotationFig]]
-.Type Annotations
-****
-[[Annotation]]Annotation ::= @ref{TypeAnnotation} | @ref{KindAnnotation}
+[[typeAnnotationFig]] .Type Annotations **** [[Annotation]]Annotation
+::= @var{TypeAnnotation} | @var{KindAnnotation}
 
-[[TypeAnnotation]]TypeAnnotation ::= @ref{Identifier} @code{:} @ref{Type}
+[[TypeAnnotation]]TypeAnnotation ::= @var{Identifier} @code{:}
+@var{Type}
 
-[[KindAnnotation]]KindAnnotation ::= @ref{Identifier} @code{::} @ref{Kind}
-&nbsp;&nbsp; | @ref{Identifier} @code{::} @ref{TypeConstraint} @code{|:} @ref{Kind}
+[[KindAnnotation]]KindAnnotation ::= @var{Identifier} @code{::}
+@var{Kind} &nbsp;&nbsp; | @var{Identifier} @code{::}
+@var{TypeConstraint} @code{|:} @var{Kind}
 
-[[Kind]]Kind::=@code{type} | @code{type/}@ref{Decimal} | @code{type[type,..,type]}
-****
+[[Kind]]Kind::=@code{type} | @code{type/}@var{Decimal} |
+@code{type[type,..,type]} ****
 
 
-== Type Definitions
-[[typeDefinitions]]
-(((type,definition)))
+== Type Definitions [[typeDefinitions]] (((type,definition)))
 
-A type definition is a statement that introduces a new type into the current scope. There are two forms of type definition statement: the @ref{TypeAlias} definition and the @ref{AlgebraicType} definition. In addition, the @ref{TypeWitness} is used to @emph{declare} a type.
+A type definition is a statement that introduces a new type into the
+current scope. There are two forms of type definition statement: the
+@var{TypeAlias} definition and the @var{AlgebraicType} definition. In
+addition, the @var{TypeWitness} is used to @emph{declare} a type.
 
-.Type Definition Statements
-[[typeDefinitionFig]]
-****
-[[TypeDefinition]]TypeDefinition ::= @ref{TypeAlias} | @ref{AlgebraicType} | @ref{TypeWitness}
-****
+.Type Definition Statements [[typeDefinitionFig]] ****
+[[TypeDefinition]]TypeDefinition ::= @var{TypeAlias} |
+@var{AlgebraicType} | @var{TypeWitness} ****
 
-=== Type Alias
-[[typeAlias]]
-(((type,alias)))
-A type alias is a statement that introduces a new type name by mapping it to an existing type expression.
+=== Type Alias [[typeAlias]] (((type,alias))) A type alias is a
+statement that introduces a new type name by mapping it to an existing
+type expression.
 
-.Type Alias Definition Statement
-[[typeAliasDefinitionFig]]
-****
-[[TypeAlias]]TypeAlias::=@code{type} @ref{TypeSpec} @code{\=>} @ref{Type}
-****
+.Type Alias Definition Statement [[typeAliasDefinitionFig]] ****
+[[TypeAlias]]TypeAlias::=@code{type} @var{TypeSpec} @code{\=>}
+@var{Type} ****
 
 @quotation NOTE
-====
-Type aliases may be parameterized -- in the sense that the type being defined may be parameterized and that the definiens may also be parameterized.
+==== Type aliases may be parameterized -- in the sense that the type
+being defined may be parameterized and that the definiens may also be
+parameterized.
 
-Note that the any type variables on the right hand side of a @ref{TypeAlias} statement must also have been mentioned on the left hand side.
-====
+Note that the any type variables on the right hand side of a
+@var{TypeAlias} statement must also have been mentioned on the left
+hand side.  ====
 
 For example, the statement:
 @example
 type time => integer
 
-declares a new type that is an alias for @code{time} -- i.e., that it is actually equivalent to the @code{integer} type.
+declares a new type that is an alias for @code{time} -- i.e., that it
+is actually equivalent to the @code{integer} type.
 
 @quotation TIP
-Type aliases allow the programmer to signal that a particular type is being used in a special way. In addition, during program development, type aliases are useful to provide markers for types that will be elaborated further with a regular algebraic definition.
+Type aliases allow the programmer to signal that a particular type is
+being used in a special way. In addition, during program development,
+type aliases are useful to provide markers for types that will be
+elaborated further with a regular algebraic definition.
 
-Type aliases have no run-time presence. In fact, they may be viewed as a simple form of type macro -- type expressions that match the left hand side are replaced by the type expression on the right hand side. However, type aliases have some definite constraints: a type alias may not be, directly or indirectly, recursive.
+Type aliases have no run-time presence. In fact, they may be viewed as
+a simple form of type macro -- type expressions that match the left
+hand side are replaced by the type expression on the right hand
+side. However, type aliases have some definite constraints: a type
+alias may not be, directly or indirectly, recursive.
 
-=== Algebraic Type Definitions
-[[algebraicTypeDefinitions]]
-An algebraic type definition is a statement that introduces a new type; it also defines the possible values associated with the type.
+=== Algebraic Type Definitions [[algebraicTypeDefinitions]] An
+algebraic type definition is a statement that introduces a new type;
+it also defines the possible values associated with the type.
 
-As illustrated in @ref{algebraicDefinitionFig}, an algebraic type definition introduces the new type and defines one or more @ref{Constructor}s -- separated by the @code{|} operator.
+As illustrated in @var{algebraicDefinitionFig}, an algebraic type
+definition introduces the new type and defines one or more
+@var{Constructor}s -- separated by the @code{|} operator.
 
-A @ref{Constructor} is a specification of a value of a type; i.e., constructors @emph{paint a picture} of the shape of potential values of the type.
+A @var{Constructor} is a specification of a value of a type; i.e.,
+constructors @emph{paint a picture} of the shape of potential values
+of the type.
 
-There are three kinds of @ref{Constructor}: enumerated symbols, term constructor constructors and labeled record constructors.
+There are three kinds of @var{Constructor}: enumerated symbols, term
+constructor constructors and labeled record constructors.
 
-[[algebraicDefinitionFig]]
-.Algebraic Type Definition Statement
-****
-[[AlgebraicType]]AlgebraicType::= @ref{TypeQuantifier}   [@code{|:} @ref{TypeConstraint}] @ref{TypeSpec} @code{::=} @ref{Constructor} | ... | @ref{Constructor}
+[[algebraicDefinitionFig]] .Algebraic Type Definition Statement ****
+[[AlgebraicType]]AlgebraicType::= @var{TypeQuantifier} [@code{|:}
+@var{TypeConstraint}] @var{TypeSpec} @code{::=} @var{Constructor} |
+... | @var{Constructor}
 
-[[TypeSpec]]TypeSpec ::= @ref{Identifier}
-&nbsp;&nbsp; | @ref{Identifier} @code{[}@ref{TypeVariable} ,...,@ref{TypeVariable}@code{]}
+[[TypeSpec]]TypeSpec ::= @var{Identifier} &nbsp;&nbsp; |
+@var{Identifier} @code{[}@var{TypeVariable}
+,...,@var{TypeVariable}@code{]}
 
-[[Constructor]]Constructor::=@ref{EnumeratedSymbol}
-&nbsp;&nbsp;| @ref{TermConstructor}
-&nbsp;&nbsp;| @ref{RecordConstructor}
-****
+[[Constructor]]Constructor::=@var{EnumeratedSymbol} &nbsp;&nbsp;|
+@var{TermConstructor} &nbsp;&nbsp;| @var{RecordConstructor} ****
 
 @quotation NOTE
-Most standard built-in types have type-specific constructors. For example, lists have a list notation, @code{dictionary}s have a dictionary notation and so on. Such constructors may not be defined using the algebraic type definition notation -- for example, the constructors for the @code{integer} type are denoted by the normal decimal notation for integers.
+Most standard built-in types have type-specific constructors. For
+example, lists have a list notation, @code{dictionary}s have a
+dictionary notation and so on. Such constructors may not be defined
+using the algebraic type definition notation -- for example, the
+constructors for the @code{integer} type are denoted by the normal
+decimal notation for integers.
 
-As elaborated below, each @emph{arm} of an algebraic type definition defines a value or set of values that belong to the type. There is a slightly more formal way of expressing this: an algebraic type definition induces a set of free functions.
+As elaborated below, each @emph{arm} of an algebraic type definition
+defines a value or set of values that belong to the type. There is a
+slightly more formal way of expressing this: an algebraic type
+definition induces a set of free functions.
 
-(((constructor,bijection)))
-Free functions are technically bijections -- they are one-to-one -- i.e., they have inverses. In programming languages, free functions are used as data structuring tools; but mathematically they are functions.
+(((constructor,bijection))) Free functions are technically bijections
+-- they are one-to-one -- i.e., they have inverses. In programming
+languages, free functions are used as data structuring tools; but
+mathematically they are functions.
 
 For example, the type definition:
 @example
@@ -969,186 +1121,198 @@ The enumerated symbol has a simpler type:
 @example
 noone : person;
 
-The complete set of constructor functions introduced within an algebraic type definition is complete: i.e., they define all the possible values of the type.
+The complete set of constructor functions introduced within an
+algebraic type definition is complete: i.e., they define all the
+possible values of the type.
 
 
 @quotation NOTE
-A given label, whether it is used as an @ref{EnumeratedSymbol}, the label of a @ref{LabeledType} or a @ref{LabeledRecord} can be defined only once. I.e., it is not permitted to @emph{share} constructor labels across different types.
+A given label, whether it is used as an @var{EnumeratedSymbol}, the
+label of a @var{LabeledType} or a @var{LabeledRecord} can be defined
+only once. I.e., it is not permitted to @emph{share} constructor
+labels across different types.
 
-==== Enumerated Symbol
-[[enumSymbol]]
-(((constructor,enumerated symbol)))
-(((enumerated symbol)))
-(((type,enumerated)))
+==== Enumerated Symbol [[enumSymbol]] (((constructor,enumerated
+symbol))) (((enumerated symbol))) (((type,enumerated)))
 
-An enumerated symbol is written as an identifier. The fact that an identifier has been mentioned in a type definition is sufficient to @emph{mark} it as a value -- and not as a variable for example.
+An enumerated symbol is written as an identifier. The fact that an
+identifier has been mentioned in a type definition is sufficient to
+@emph{mark} it as a value -- and not as a variable for example.
 
-[[enumSymbolFig]]
-.Enumerated Symbols
-****
-[[EnumeratedSymbol]]EnumeratedSymbol::=@ref{Identifier}
-****
+[[enumSymbolFig]] .Enumerated Symbols ****
+[[EnumeratedSymbol]]EnumeratedSymbol::=@var{Identifier} ****
 
-The standard type @code{boolean} is defined in terms of two enumerated symbols: @code{true} and @code{false}:
+The standard type @code{boolean} is defined in terms of two enumerated
+symbols: @code{true} and @code{false}:
 @example
 boolean ::= true | false
 
 
 @quotation NOTE
-An enumerated symbol must be unique across all types within the scope of the type definition.
+An enumerated symbol must be unique across all types within the scope
+of the type definition.
 
-==== Type Safety
-An enumerated symbol occurring within a type definition has the defined type.
+==== Type Safety An enumerated symbol occurring within a type
+definition has the defined type.
 
 @quotation NOTE
-A particular consideration should be made for the case where an enumerated symbol is part of a universally quantified type.
+A particular consideration should be made for the case where an
+enumerated symbol is part of a universally quantified type.
 
-==== Term Constructor
-[[conFun]]
-(((constructor,positional constructor)))
-(((positional constructor)))
-(((type,positional constructor)))
+==== Term Constructor [[conFun]] (((constructor,positional
+constructor))) (((positional constructor))) (((type,positional
+constructor)))
 
-A term constructor expression or pattern is written in the style of a function call. The specification of the term constructor uses @emph{types} in argument positions to denote the type of the corresponding argument.
+A term constructor expression or pattern is written in the style of a
+function call. The specification of the term constructor uses
+@emph{types} in argument positions to denote the type of the
+corresponding argument.
 
-[[positionalConFig]]
-.Term Specifier
-****
-[[TermConstructor]]TermConstructor ::= @ref{Identifier} @code{(} @ref{Type} ,.., @ref{Type} @code{)}
-****
+[[positionalConFig]] .Term Specifier ****
+[[TermConstructor]]TermConstructor ::= @var{Identifier} @code{(}
+@var{Type} ,.., @var{Type} @code{)} ****
 
-For example, a type definition for wrapping return values with an error code could have a definition:
+For example, a type definition for wrapping return values with an
+error code could have a definition:
 @example
 all t ~~ returnType[t] ::= error(string) | ok(t)
 
-A function returning a value of type @code{returnType} would either return @code{ok(@emph{value})} or @code{error("@emph{message}")}, where the message explained the error.
+A function returning a value of type @code{returnType} would either
+return @code{ok(@emph{value})} or @code{error("@emph{message}")},
+where the message explained the error.
 
-term constructors are well suited to situations where the number of arguments is limited and fairly obvious.
+term constructors are well suited to situations where the number of
+arguments is limited and fairly obvious.
 
 @quotation NOTE
-Any type variables that are referred to within a @ref{TermConstructor} constructor must either be bound by explicit quantifiers or must appear in the head of the @ref{AlgebraicType} definition itself.
+Any type variables that are varerred to within a @var{TermConstructor}
+constructor must either be bound by explicit quantifiers or must
+appear in the head of the @var{AlgebraicType} definition itself.
 
 
-==== Record Constructor
-[[aggCon]]
-(((constructor,record constructor)))
-(((record constructor)))
-(((type,record constructor)))
+==== Record Constructor [[aggCon]] (((constructor,record
+constructor))) (((record constructor))) (((type,record constructor)))
 
-Labeled records denote constructors whose elements are addressed by name rather than by argument position. A labeled record specification consists of a collection type annotations (see @ref{typeAnnotationFig}), separated by semicolons. In addition, the record specification may include @emph{default} values for some (or all) of the attributes of the record.
+Labeled records denote constructors whose elements are addressed by
+name rather than by argument position. A labeled record specification
+consists of a collection type annotations (see
+@var{typeAnnotationFig}), separated by semicolons. In addition, the
+record specification may include @emph{default} values for some (or
+all) of the attributes of the record.
 
 
-[[aggregateConFig]]
-.Labeled Record Constructor
-****
-[[RecordConstructor]]RecordConstructor ::= @ref{Identifier} @code{{} @ref{ElementType} ;..; @ref{ElementType} @code{}}
+[[aggregateConFig]] .Labeled Record Constructor ****
+[[RecordConstructor]]RecordConstructor ::= @var{Identifier} @code{{}
+@var{ElementType} ;..; @var{ElementType} @code{}}
 
-[[ElementType]]ElementType ::= @ref{Annotation}
-&nbsp;&nbsp;| @ref{Identifier} @code{default} @code{=} @ref{Expression}
-&nbsp;&nbsp;| @ref{Identifier} @code{default} @code{:=} @ref{Expression}
-&nbsp;&nbsp;| @ref{DefltEquation}
-&nbsp;&nbsp;| @code{assert} @ref{Condition}
-****
+[[ElementType]]ElementType ::= @var{Annotation} &nbsp;&nbsp;|
+@var{Identifier} @code{default} @code{=} @var{Expression}
+&nbsp;&nbsp;| @var{Identifier} @code{default} @code{:=}
+@var{Expression} &nbsp;&nbsp;| @var{DefltEquation} &nbsp;&nbsp;|
+@code{assert} @var{Condition} ****
 
-If there is more than one record constructor for a type then any attributes that they have in common must have the same type associated with them. For example, the type definition for a two-three tree structure is illustrated in @ref{twoThree}.
+If there is more than one record constructor for a type then any
+attributes that they have in common must have the same type associated
+with them. For example, the type definition for a two-three tree
+structure is illustrated in @var{twoThree}.
 
-[[twoThree]]
-.A @code{twoThree} tree type
+[[twoThree]] .A @code{twoThree} tree type
 @example
-all s ~~ twoThree[s] ::=
-  three{left:twoThree[s];
-        label:s;
-        right:twoThree[s]
-       }
-  | two{left:twoThree[s]; right:twoThree[s] }
-  | empty;
+all s ~~ twoThree[s] ::= three{left:twoThree[s]; label:s;
+  right:twoThree[s] } | two{left:twoThree[s]; right:twoThree[s] } |
+  empty;
 
-The @code{left} and @code{right} attributes in the two constructors are required to have the same type because they are shared by the two records.
+The @code{left} and @code{right} attributes in the two constructors
+are required to have the same type because they are shared by the two
+records.
 
 @quotation TIP
-Notice how the type annotations for the @code{left} and @code{right} sub-tree uses the same type identifier as in the definition itself. This marks @code{twoThree} as a @emph{recursive} type.
+Notice how the type annotations for the @code{left} and @code{right}
+sub-tree uses the same type identifier as in the definition
+itself. This marks @code{twoThree} as a @emph{recursive} type.
 
 
-==== Default Values
-[[defaultValues]]
-(((type,record constructor!default values)))
-(((default values,record constructor)))
+==== Default Values [[defaultValues]] (((type,record
+constructor!default values))) (((default values,record constructor)))
 
-It is permitted to associate a @emph{default value} with a field of an record constructor. A default value is simply an expression for an attribute that is used should a particular record literal expression (see @ref{recordLiteral}) not contain a value for that field.
+It is permitted to associate a @emph{default value} with a field of an
+record constructor. A default value is simply an expression for an
+attribute that is used should a particular record literal expression
+(see @var{recordLiteral}) not contain a value for that field.
 
-For example, for convenience, we might add @code{default} annotations in the @code{twoThree} type defined above, resulting in the type definition in @ref{twoThreeDef}.
+For example, for convenience, we might add @code{default} annotations
+in the @code{twoThree} type defined above, resulting in the type
+definition in @var{twoThreeDef}.
 
-[[twoThreeDef]]
-.A @code{twoThree} tree type with defaults
+[[twoThreeDef]] .A @code{twoThree} tree type with defaults
 @example
-all s ~~ twoThree[s] ::=
-  three{ left:twoThree[s];
-         left default = empty;
-         label:s;
-         right:twoThree[s];
-         right default = empty;
-       }
-  or two{ left:twoThree[s];
-         left default = empty;
-         right:twoThree[s];
-         right default = empty;
-       }
-  or empty;
+all s ~~ twoThree[s] ::= three{ left:twoThree[s]; left default =
+  empty; label:s; right:twoThree[s]; right default = empty; } or two{
+  left:twoThree[s]; left default = empty; right:twoThree[s]; right
+  default = empty; } or empty;
 
 
 @quotation NOTE
-(((expressions,default)))
-(((variable,scope)))
-A default value expression for an attribute is evaluated in the scope that is valid for the type definition itself. The default value expression may reference variables that are in scope at the point of type definition. The default value expression may also reference @emph{other} fields of the record constructor -- as though they were variables -- provided that they themselves do not have @code{default}s associated with them.
+(((expressions,default))) (((variable,scope))) A default value
+expression for an attribute is evaluated in the scope that is valid
+for the type definition itself. The default value expression may
+varerence variables that are in scope at the point of type
+definition. The default value expression may also varerence
+@emph{other} fields of the record constructor -- as though they were
+variables -- provided that they themselves do not have @code{default}s
+associated with them.
 
 For example, in this definition of @code{Person}:
 @example
-Person ::= someone{
-  name:string;
-  dob:date;
-  age:()=>float;
-  age() default => now()-dob;
-}
+Person ::= someone{ name:string; dob:date; age:()=>float; age()
+  default => now()-dob; }
 
-there is a @code{default} definition of the @code{age} field that is used if a given @code{someone} record literal does not mention a value for @code{age}. This @code{default} definition makes use of the @code{dob} field as though it were a free variable of the @code{age} function.
+there is a @code{default} definition of the @code{age} field that is
+used if a given @code{someone} record literal does not mention a value
+for @code{age}. This @code{default} definition makes use of the
+@code{dob} field as though it were a free variable of the @code{age}
+function.
 
 
-==== Defaults of @code{ref} Fields
-(((expressions,default!assignable field)))
-(((ref field@@code{ref} field,default value)))
+==== Defaults of @code{var} Fields (((expressions,default!assignable
+field))) (((var field@@code{var} field,default value)))
 
-To declare a @code{default} value for a @code{ref} field, the form:
-****
-@ref{Identifier} default := @ref{Expression}
-****
+To declare a @code{default} value for a @code{var} field, the form:
+**** @var{Identifier} default := @var{Expression} ****
 
 should be used. For example, in the type:
 @example
-account ::= account{
-  balance:ref integer;
-  balance default := 0
-}
+account ::= account{ balance:var integer; balance default := 0 }
 
-the @code{balance} field is a @code{ref} field, and its default value is @code{0}.
+the @code{balance} field is a @code{var} field, and its default value
+is @code{0}.
 
-==== Type Variables and Safe Algebraic Type Definitions
-(((type variables in an algebraic type definition)))
-(((constructor type variables)))
+==== Type Variables and Safe Algebraic Type Definitions (((type
+variables in an algebraic type definition))) (((constructor type
+variables)))
 
-For an @ref{AlgebraicType} definition to be safe requires a constraint on type variables within the definition. In particular, it is not permitted to @emph{introduce} a type variable in any of the constructors in the definition.
+For an @var{AlgebraicType} definition to be safe requires a constraint
+on type variables within the definition. In particular, it is not
+permitted to @emph{introduce} a type variable in any of the
+constructors in the definition.
 
 @quotation NOTE
-Specifically, any unbound type variables mentioned in a type definition must also occur within the @ref{TypeSpec} or be bound by an enclosing type quantifier.
+Specifically, any unbound type variables mentioned in a type
+definition must also occur within the @var{TypeSpec} or be bound by an
+enclosing type quantifier.
 
 
 For example, the type definition:
 @example
 opaque ::= op(t)
 
-is not valid because the type variable @code{t} mentioned in the @code{op} constructor is not mentioned in the @ref{TypeSpec} -- unless @code{t} is actually bound by a quantifier in an enclosing form.
+is not valid because the type variable @code{t} mentioned in the
+@code{op} constructor is not mentioned in the @var{TypeSpec} -- unless
+@code{t} is actually bound by a quantifier in an enclosing form.
 
 @quotation NOTE
-The reason for this is that type safety cannot be guaranteed for such constructors. For example, consider the invalid function:
+The reason for this is that type safety cannot be guaranteed for such
+constructors. For example, consider the invalid function:
 @example
 badOp(op(23)) is false;
 
@@ -1160,334 +1324,414 @@ and, according to type inference rules, an expression such as:
 @example
 badOp(op("alpha"))
 
-would be type safe. However, this expression will lead to a run-time failure when the integer 23 is compared against the string @code{"alpha"}.
+would be type safe. However, this expression will lead to a run-time
+failure when the integer 23 is compared against the string
+@code{"alpha"}.
 
 @quotation NOTE
-Note that the converse case, where a type variable is mentioned in the @ref{TypeSpec} is not mentioned in a constructor defined within the type definition is perfectly valid.
+Note that the converse case, where a type variable is mentioned in the
+@var{TypeSpec} is not mentioned in a constructor defined within the
+type definition is perfectly valid.
 
-It @emph{is} possible to have type variables mentioned in a constructor that are not defined in the @ref{TypeSpec}. The constraint is that such type variables must be closed by quantification.
+It @emph{is} possible to have type variables mentioned in a
+constructor that are not defined in the @var{TypeSpec}. The constraint
+is that such type variables must be closed by quantification.
 
 For example, the type definition:
 @example
 univ ::= univ(all t ~~ t)
 
-is a legally valid @ref{AlgebraicType} definition; albeit one that is quite restricted. Locally quantified types are usually associated with function types:
+is a legally valid @var{AlgebraicType} definition; albeit one that is
+quite restricted. Locally quantified types are usually associated with
+function types:
 @example
 uniFun ::= uniFun(all t ~~ (t,t)=>t)
 
-which describes a term constructor @code{uniFun} that expects a generic function as an argument.
+which describes a term constructor @code{uniFun} that expects a
+generic function as an argument.
 
-=== Automatic Synthesis of Contract Implementations
-(((automatically synthesizing implementations)))
-(((implementing contracts@@code{implementing} contracts)))
+=== Automatic Synthesis of Contract Implementations (((automatically
+synthesizing implementations))) (((implementing
+contracts@@code{implementing} contracts)))
 
-In some cases, the @emph{regular} implementation of a contract by be predicted by examining the algebraic type definition itself. The @Star{} compiler automatically generates implementations of the @code{equality} and the @code{pPrint} contracts, for example, by inspecting the type definition itself.
+In some cases, the @emph{regular} implementation of a contract by be
+predicted by examining the algebraic type definition itself. The
+@Star{} compiler automatically generates implementations of the
+@code{equality} and the @code{pPrint} contracts, for example, by
+inspecting the type definition itself.
 
-A programmer may extend this system of atomically implementing contracts by implementing a special macro whose name is of the form @code{implement\_\q{name}}. A type definition that is marked:
+A programmer may extend this system of atomically implementing
+contracts by implementing a special macro whose name is of the form
+@code{implement\_\q{name}}. A type definition that is marked:
 @example
-person ::= some{
-  name:string;
-} | noOne
-  implementing Spec
+person ::= some{ name:string; } | noOne implementing Spec
 
-will result in the macro @code{implement_Spec} being invoked on the type definition.
+will result in the macro @code{implement_Spec} being invoked on the
+type definition.
 
-This is used, for example, to allow coercion between types and the standard @code{quoted} type to be synthesized, instead of being constructed manually.
+This is used, for example, to allow coercion between types and the
+standard @code{quoted} type to be synthesized, instead of being
+constructed manually.
 
-=== Algebraic Interface Record
-[[algebraicInterface]]
-An @ref{AlgebraicType} definition induces an interface that is composed of all the fields in any of the @ref{RecordConstructor}s that are defined within the definition.
+=== Algebraic Interface Record [[algebraicInterface]] An
+@var{AlgebraicType} definition induces an interface that is composed
+of all the fields in any of the @var{RecordConstructor}s that are
+defined within the definition.
 
-This interface -- which takes the form of a @ref{RecordType} -- contains a @ref{Annotation} for every @ref{Annotation} that is present in a @ref{RecordConstructor}.
+This interface -- which takes the form of a @var{RecordType} --
+contains a @var{Annotation} for every @var{Annotation} that is present
+in a @var{RecordConstructor}.
 
-For example, the interface for the @code{account} type above consists of:
+For example, the interface for the @code{account} type above consists
+of:
 @example
-{
-  balance:ref integer;
-}
+{ balance:var integer; }
 
-This interface is used when determining the type soundness of a @ref{RecordAccess} expression.
+This interface is used when determining the type soundness of a
+@var{RecordAccess} expression.
 
 @quotation NOTE
-The condition noted above that two fields of the same name in two @ref{RecordConstructor}s of the same @ref{AlgebraicType} must have the same type can be formalized by declaring that the interface of an @ref{Algebraic} type must be well formed (which is only possible if there is only a single @ref{Annotation} for a given field).
+The condition noted above that two fields of the same name in two
+@var{RecordConstructor}s of the same @var{AlgebraicType} must have the
+same type can be formalized by declaring that the interface of an
+@var{Algebraic} type must be well formed (which is only possible if
+there is only a single @var{Annotation} for a given field).
 
-=== Type Witness Definition
-[[countsAs]]
+=== Type Witness Definition [[countsAs]]
 
-A @ref{TypeWitness} definition declares that a given type exists. It is used to assert that a given existential type exists.
+A @var{TypeWitness} definition declares that a given type exists. It
+is used to assert that a given existential type exists.
 
 
-[[typeCountsAsFig]]
-.Type Witness Statement
-****
-[[TypeWitness]]TypeWitness ::= @code{type} @ref{Identifier} @code{=} @ref{Type}
-****
+[[typeCountsAsFig]] .Type Witness Statement ****
+[[TypeWitness]]TypeWitness ::= @code{type} @var{Identifier} @code{=}
+@var{Type} ****
 
 For example, in the expression:
 @example
-group{
-  type elem = integer;
-  inv(X) => -X;
-  op(X,Y) => X+Y;
-  zero = 0;
-}
+group{ type elem = integer; inv(X) => -X; op(X,Y) => X+Y; zero = 0; }
 
 the statement:
 @example
 type elem = integer;
 
-asserts that the type @code{integer} is a witness for the existentially quantified type @code{elem}.
+asserts that the type @code{integer} is a witness for the
+existentially quantified type @code{elem}.
 @quotation NOTE
-@ref{TypeWitness} statements are inherently internal statements: the witness type itself is not exposed by the record that contains the @ref{TypeWitness} statement.
+@var{TypeWitness} statements are inherently internal statements: the
+witness type itself is not exposed by the record that contains the
+@var{TypeWitness} statement.
 
-== Contracts
-[[contracts]]
-(((type,contracts)))
+== Contracts [[contracts]] (((type,contracts)))
 
-A contract is a specification of a set of functions and action procedures that form a coherent collection of functionality. Associated with a @ref{Contract} are one or more @ref{Type}s -- the contract is said to be @emph{over} those types.
+A contract is a specification of a set of functions and action
+procedures that form a coherent collection of
+functionality. Associated with a @var{Contract} are one or more
+@var{Type}s -- the contract is said to be @emph{over} those types.
 
-=== Contract Definition
-[[ContractDefinition]]
+=== Contract Definition [[ContractDefinition]]
 (((type,contracts!definition)))
 
-A contract definition is a statement that defines the functions and action procedures associated with a contract. As can be seen in @ref{ContractFig}, a contract statement associates a contract name -- together with a set of type variables -- with a set of @ref{TypeAnnotation}s that define the elements of the contract. Within the @ref{Contract} statement, a @ref{TypeAnnotation} may refer to the type(s) in the contract head.
+A contract definition is a statement that defines the functions and
+action procedures associated with a contract. As can be seen in
+@var{ContractFig}, a contract statement associates a contract name --
+together with a set of type variables -- with a set of
+@var{TypeAnnotation}s that define the elements of the contract. Within
+the @var{Contract} statement, a @var{TypeAnnotation} may varer to the
+type(s) in the contract head.
 
-[[ContractFig]]
-.Contract Statement
+[[ContractFig]] .Contract Statement **** [[Contract]]Contract ::=
+@code{contract} @var{ContractSpec} @code{<~} @var{RecordType}
+
+[[ContractSpec]]ContractSpec ::= [ @var{TypeQuantifier} ]
+@var{Identifier} [ @var{TypeArgSpec} [@code{\->>} @var{TypeArgSpec} ]]
 ****
-[[Contract]]Contract ::= @code{contract} @ref{ContractSpec} @code{<~} @ref{RecordType}
 
-[[ContractSpec]]ContractSpec ::= [ @ref{TypeQuantifier} ] @ref{Identifier} [ @ref{TypeArgSpec} [@code{\->>} @ref{TypeArgSpec} ]]
-****
-
-For example, the contract that underlies type coercion (see @ref{typeCoercionExpression}) is:
+For example, the contract that underlies type coercion (see
+@var{typeCoercionExpression}) is:
 @example
-contract all s,t ~~ coercion[s,t] <~ {
-  coerce:(s)=>t
-}
+contract all s,t ~~ coercion[s,t] <~ { coerce:(s)=>t }
 
-(((default values,contract)))
-A contract statement may also include @emph{defaults} for the names defined in the contract. If a given contract implementation does not give an implementation for a name that has a default associated for it, then the default is used.
+(((default values,contract))) A contract statement may also include
+@emph{defaults} for the names defined in the contract. If a given
+contract implementation does not give an implementation for a name
+that has a default associated for it, then the default is used.
 
 @quotation NOTE
-Default specifications may use variables that are in scope at the point of the contract specification. footnote:[This is generally not the same scope as where a contract implementation is given.]
+Default specifications may use variables that are in scope at the
+point of the contract specification. footnote:[This is generally not
+the same scope as where a contract implementation is given.]
 
 
 @quotation TIP
-====
-An important usage pattern for contracts is to represent @emph{abstract types}. An abstract type is one defined by its contract rather than one defined by an explicit type definition.
+==== An important usage pattern for contracts is to represent
+@emph{abstract types}. An abstract type is one defined by its contract
+rather than one defined by an explicit type definition.
 
-For example, the @code{arithmetic} contract in @ref{arithmeticContractProg} defines a set of arithmetic functions. However, it can also be interpreted as a definition of an abstract type of arithmetic values -- the values that implement the @code{arithmetic} contract.
-====
+For example, the @code{arithmetic} contract in
+@var{arithmeticContractProg} defines a set of arithmetic
+functions. However, it can also be interpreted as a definition of an
+abstract type of arithmetic values -- the values that implement the
+@code{arithmetic} contract.  ====
 
-==== Functional Dependencies
-[[ContractFunctionalDependency]]
-(((type,contracts!functional dependencies)))
-(((functional dependencies in contracts)))
-(((determines@@code{determines})))
+==== Functional Dependencies [[ContractFunctionalDependency]]
+(((type,contracts!functional dependencies))) (((functional
+dependencies in contracts))) (((determines@@code{determines})))
 
-For certain forms of contract, it may be that the type parameters may not all be independent of each other. For example, consider the standard @code{iterable} contract (defined in @ref{iterateContractProg}) which reads:
+For certain forms of contract, it may be that the type parameters may
+not all be independent of each other. For example, consider the
+standard @code{iterable} contract (defined in
+@var{iterateContractProg}) which reads:
 @example
-contract all coll, el ~~ iterable[coll ->> el] <~ {
-  iterate: all r ~~
-      (coll,(el,IterState[r])=>IterState[r],IterState[r]) =>
-        IterState[r];
-}
+contract all coll, el ~~ iterable[coll ->> el] <~ { iterate: all r ~~
+  (coll,(el,IterState[r])=>IterState[r],IterState[r]) => IterState[r];
+  }
 
-The intention of the @code{iterable} contract is to support processing collections of elements in a sequential manner. The type parameter @code{coll} identifies the collection to be iterated over; and the type parameter @code{el} identifies the type of each element.
+The intention of the @code{iterable} contract is to support processing
+collections of elements in a sequential manner. The type parameter
+@code{coll} identifies the collection to be iterated over; and the
+type parameter @code{el} identifies the type of each element.
 
-However, the collection's type uniquely determines the type of each element: the element type is not independent of the collection. For example, to iterate over a @code{cons[t]}, each element will be of type @code{t}; and to iterate over a @code{string} each element will be a @code{integer} even though the @code{string} type does not mention @code{integer}.
+However, the collection's type uniquely determines the type of each
+element: the element type is not independent of the collection. For
+example, to iterate over a @code{cons[t]}, each element will be of
+type @code{t}; and to iterate over a @code{string} each element will
+be a @code{integer} even though the @code{string} type does not
+mention @code{integer}.
 
 @quotation NOTE
-Each @code{integer} represents a unicode code point in the @code{string}.
+Each @code{integer} represents a unicode code point in the
+@code{string}.
 
-Using a @code{\->>} clause in a @code{contract} -- and in corresponding contract @code{implementation} statements -- allows the contract designer to signal this relationship.
+Using a @code{\->>} clause in a @code{contract} -- and in
+corresponding contract @code{implementation} statements -- allows the
+contract designer to signal this relationship.
 
-=== Contract Implementation
-[[ContractImplementation]]
+=== Contract Implementation [[ContractImplementation]]
 (((type,contracts!implementation)))
 
-A contract implementation is a specification of how a contract may be implemented for a specific type combination.
+A contract implementation is a specification of how a contract may be
+implemented for a specific type combination.
 
-[[ContractImplementationFig]]
-.Contract Implementation Statement
-****
-[[Implementation]]Implementation::=@code{implementation} @ref{ContractSpec} [@code{default}] @code{=} @ref{Expression}
-****
+[[ContractImplementationFig]] .Contract Implementation Statement ****
+[[Implementation]]Implementation::=@code{implementation}
+@var{ContractSpec} [@code{default}] @code{=} @var{Expression} ****
 
-The @ref{Type}s mentioned in @ref{ContractSpec} must be either @ref{TypeExpression}s or, in the case of a @code{default} implementation, @ref{TypeVariable}s.
+The @var{Type}s mentioned in @var{ContractSpec} must be either
+@var{TypeExpression}s or, in the case of a @code{default}
+implementation, @var{TypeVariable}s.
 @quotation NOTE
-====
-In particular, it is not permitted to define an @code{implementation} of a contract for @ref{FunctionType}s, @ref{PatternType}s, nor for @ref{UniversalType}s or @ref{ExistentialType}s.
+==== In particular, it is not permitted to define an
+@code{implementation} of a contract for @var{FunctionType}s,
+@var{PatternType}s, nor for @var{UniversalType}s or
+@var{ExistentialType}s.
 
-It is permissible, however, to implement @ref{Contract}s for @ref{TupleType}s and @ref{RecordType}s.
-====
+It is permissible, however, to implement @var{Contract}s for
+@var{TupleType}s and @var{RecordType}s.  ====
 
-The body of a contract @code{implementation} must be an expression that gives a definition for each of the elements of the @code{contract} specification.
+The body of a contract @code{implementation} must be an expression
+that gives a definition for each of the elements of the
+@code{contract} specification.
 
 @quotation NOTE
-A @code{contract} implementation may either take the form of a regular @ref{AnonymousRecord} or an anonymous @ref{ThetaRecord}.
+A @code{contract} implementation may either take the form of a regular
+@var{AnonymousRecord} or an anonymous @var{ThetaRecord}.
 
-Usually, the implementation of a @code{contract} is fairly straightforward. Program~\vref{consSize}, for example, gives the implementation of the standard @code{sizeable} contract for the @code{cons} type.
+Usually, the implementation of a @code{contract} is fairly
+straightforward. Program~\vvar{consSize}, for example, gives the
+implementation of the standard @code{sizeable} contract for the
+@code{cons} type.
 
-[[consSize]]
-.Implementation of @code{sizeable} for @code{cons} values
+[[consSize]] .Implementation of @code{sizeable} for @code{cons} values
 @example
-implementation all e ~~ sizeable[cons[e]] <= {
-  size(nil) => 0
-  size(cons(_,T)) => size(T)+1
-  isEmpty(nil) => true
-  isEmpty(_) default => false
-}
+implementation all e ~~ sizeable[cons[e]] <= { size(nil) => 0
+  size(cons(_,T)) => size(T)+1 isEmpty(nil) => true isEmpty(_) default
+  => false }
 
 
 ==== Implementing Contracts with Functional Dependencies
-[[implContractFunctionalDependency]]
-(((type,contracts!functional dependencies)))
+[[implContractFunctionalDependency]] (((type,contracts!functional
+dependencies)))
 
-Implementing a contract which has a functional dependency is exactly analogous to implementing a regular contract. The dependent type(s) must be identified in the @code{implementation} statement. For example, the initial part of the implementation of the @code{sequence} contract over @code{string}s and @code{integer}s is:
+Implementing a contract which has a functional dependency is exactly
+analogous to implementing a regular contract. The dependent type(s)
+must be identified in the @code{implementation} statement. For
+example, the initial part of the implementation of the @code{sequence}
+contract over @code{string}s and @code{integer}s is:
 @example
-implementation sequence[string->>integer] = {
-  ...
+implementation sequence[string->>integer] = { ...
 
 
-Note that this @code{implementation} implies that a @code{sequence} over a @code{string} fixes the element type to @code{integer} -- i.e., a unicode CodePoint.
+Note that this @code{implementation} implies that a @code{sequence}
+over a @code{string} fixes the element type to @code{integer} -- i.e.,
+a unicode CodePoint.
 
-==== Default Contract Implementation
-[[defaultImplementation]]
+==== Default Contract Implementation [[defaultImplementation]]
 (((default implementation of contracts)))
 (((type,contracts!implementation!default)))
 (((default@@code{default})))
 
-A @code{default} implementation for a contract denotes an implementation to use for a contract when there is no known implementation. This can occur in two common situations: where a contract function is used that references a type that does not have an implementation for the contract, and where there is no type information.
+A @code{default} implementation for a contract denotes an
+implementation to use for a contract when there is no known
+implementation. This can occur in two common situations: where a
+contract function is used that varerences a type that does not have an
+implementation for the contract, and where there is no type
+information.
 
 @quotation TIP
-It is strongly recommended that the @code{default} implementation is generic; i.e., that the definition of the individual functions are generic. The contract type should be denoted by a variable and all the contract functions should be generic.
+It is strongly recommended that the @code{default} implementation is
+generic; i.e., that the definition of the individual functions are
+generic. The contract type should be denoted by a variable and all the
+contract functions should be generic.
 
 For example, the implementation statement:
 @example
-implementation all r ~~ equality[r] default = {
-  L=R => __equal(L,R)
-}
+implementation all r ~~ equality[r] default = { L=R => __equal(L,R) }
 
 uses a generic internal definition of @code{__equal}.
 
 
-As noted above, a @code{default} implementation is only used in restricted circumstances:
+As noted above, a @code{default} implementation is only used in
+restricted circumstances:
 
-No available implementation::
-If a contract is referenced for a type that does not implement the contract then the @code{default} implementation will be used.
-+
-For example, given a contract:
+No available implementation:: If a contract is varerenced for a type
+that does not implement the contract then the @code{default}
+implementation will be used.  + For example, given a contract:
 @example
-----
-contract foo over t is {
-  bar has type (t)=>boolean;
-}
-----
-and the functional expression:
+---- contract foo over t is { bar has type (t)=>boolean; } ---- and
+the functional expression:
 @example
-----
-bar("fred")
-----
-then, if @code{foo} is not implemented for @code{string}s then the @code{default} implementation will be used for this expression. Of course, if there is no @code{default} implementation then a compile error will be flagged.
+---- bar("fred") ---- then, if @code{foo} is not implemented for
+@code{string}s then the @code{default} implementation will be used for
+this expression. Of course, if there is no @code{default}
+implementation then a compile error will be flagged.
 
 
-Variable type::
-In a few circumstances a reference may be made to a contract involving no known types. For example, in the condition:
+Variable type:: In a few circumstances a varerence may be made to a
+contract involving no known types. For example, in the condition:
 @example
 XX = nil
 
-there is a hidden type variable associated with the enumerated symbol @code{nil}.
+there is a hidden type variable associated with the enumerated symbol
+@code{nil}.
 
 The symbol @code{nil} is from the standard definition of @code{cons}:
 @example
 all t ~~ cons[t] ::= nil | cons(t,cons[t])
 
-Since the type of @code{nil} is under-constrained -- i.e., the type of @code{nil} as an expression involves a type variable that is not constrained at all by the @code{nil} symbol -- even if @code{equality} is implemented for many types there is no way of knowing which implementation to use in this situation. In this case, a @code{default} implementation will be used if provided.
+Since the type of @code{nil} is under-constrained -- i.e., the type of
+@code{nil} as an expression involves a type variable that is not
+constrained at all by the @code{nil} symbol -- even if @code{equality}
+is implemented for many types there is no way of knowing which
+implementation to use in this situation. In this case, a
+@code{default} implementation will be used if provided.
 
 
 ==== Recursive Contract Implementations
 
-More complex contract implementations may require the use of auxiliary function definitions; and hence may involve the use of @code{let} or @code{using} expressions.
+More complex contract implementations may require the use of auxiliary
+function definitions; and hence may involve the use of @code{let} or
+@code{using} expressions.
 
-For example, this is an implementation of the @code{comparable} contract for @code{cons} values.
+For example, this is an implementation of the @code{comparable}
+contract for @code{cons} values.
 
-[[consCompare]]
-.Implementation of @code{comparable} for @code{cons} values
-----
-implementation all t ~~ comparable[t], equality[t] |: comparable[cons[t]] =
-  let{
-    consLess : all t ~~ (cons[t],cons[t])=>boolean
-    consLess([],[_ ,.. _]) => true
-    consLess([X,..L1],[X,..L2]) => consLess(L1,L2)
-    consLess([X,.._], [Y,.._]) :: X<Y => true
-    consLess(_,_) default => false
+[[consCompare]] .Implementation of @code{comparable} for @code{cons}
+values ---- implementation all t ~~ comparable[t], equality[t] |:
+comparable[cons[t]] = let{ consLess : all t ~~
+(cons[t],cons[t])=>boolean consLess([],[_ ,.. _]) => true
+consLess([X,..L1],[X,..L2]) => consLess(L1,L2) consLess([X,.._],
+[Y,.._]) :: X<Y => true consLess(_,_) default => false
 
-    consLessEq : all t ~~ (cons[t],cons[t])=>boolean
-    consLessEq([],_) => true
-    consLessEq([X,..L1],[Y,..L2]) :: X=<Y =>
-          consLessEq(L1,L2)
-    consLessEq(_,_) default => false
-  } in {
-    X < Y => consLess(X,Y)
-    X =< Y => consLessEq(X,Y)
-    X > Y => consLess(Y,X)
-    X >= Y => consLessEq(Y,X)
-  }
-----
+    consLessEq : all t ~~ (cons[t],cons[t])=>boolean consLessEq([],_)
+    => true consLessEq([X,..L1],[Y,..L2]) :: X=<Y => consLessEq(L1,L2)
+    consLessEq(_,_) default => false } in { X < Y => consLess(X,Y) X
+    =< Y => consLessEq(X,Y) X > Y => consLess(Y,X) X >= Y =>
+    consLessEq(Y,X) } ----
 @quotation NOTE
-The implementation of @code{comparable} for @code{cons} types is based on a requirement that the individual elements of lists must also be compared. Hence the clause
+The implementation of @code{comparable} for @code{cons} types is based
+on a requirement that the individual elements of lists must also be
+compared. Hence the clause
 
 @example
 comparable[t], equality[t] |: comparable[cons[t]]
 
-in the head of the contract @code{implementation} statement. The primary job of the definition of @code{<} within @ref{consCompare} is to show how @code{cons} values may be compared. Our definition of inequality for @code{cons} values assumes that:
+in the head of the contract @code{implementation} statement. The
+primary job of the definition of @code{<} within @var{consCompare} is
+to show how @code{cons} values may be compared. Our definition of
+inequality for @code{cons} values assumes that:
 
 
-. empty lists are less than any non-empty list;
-. one non-empty list is less than another if the first element is less than the first element of the second; and finally
-. if the first elements of the two lists are identical then we consider the tails of each list.
+. empty lists are less than any non-empty list; . one non-empty list
+is less than another if the first element is less than the first
+element of the second; and finally . if the first elements of the two
+lists are identical then we consider the tails of each list.
 
 @quotation TIP
-The curious reader may wonder why we introduce a new name @code{consLessEq} in order to define @code{=<} (and, by extension @code{consLess} for @code{<} etc.). The reason for this has to do with limitations on type inference in the context of recursive programs: within the equations that define a function, any @emph{use} of the function symbol must represent a recursive use.
+The curious reader may wonder why we introduce a new name
+@code{consLessEq} in order to define @code{=<} (and, by extension
+@code{consLess} for @code{<} etc.). The reason for this has to do with
+limitations on type inference in the context of recursive programs:
+within the equations that define a function, any @emph{use} of the
+function symbol must represent a recursive use.
 
 For example, in the equation:
 
 @example
-consLessEq([X,..L1],[Y,..L2]) :: X=<Y =>
-      consLessEq(L1,L2)
+consLessEq([X,..L1],[Y,..L2]) :: X=<Y => consLessEq(L1,L2)
 
-the occurrence of @code{consLessEq} in the right hand side of the equation represents a recursive call to the function (@code{consLessEq}) being defined.
+the occurrence of @code{consLessEq} in the right hand side of the
+equation represents a recursive call to the function
+(@code{consLessEq}) being defined.
 
 
-However, if we tried to define @code{=<} without the use of the auxiliary name we would get two occurrences of @code{=<} which really represent different functions:
+However, if we tried to define @code{=<} without the use of the
+auxiliary name we would get two occurrences of @code{=<} which really
+represent different functions:
 @example
 [X,..L1] =< [Y,..L2] where X=<Y => L1 =< L2
 
-However, the two occurrences of @code{=<} refer to @emph{different} kinds of use: one is as a @emph{normal} overloaded occurrence of @code{=<} and once as a recursive call to the function being defined.
+However, the two occurrences of @code{=<} varer to @emph{different}
+kinds of use: one is as a @emph{normal} overloaded occurrence of
+@code{=<} and once as a recursive call to the function being defined.
 
-Normally, outside of the definition of the function, it is permitted to allow a given function to be used in different uses -- always assuming that the types are consistent. However, within the definition of a function, all occurrences of the function symbol must refer to the same function.
+Normally, outside of the definition of the function, it is permitted
+to allow a given function to be used in different uses -- always
+assuming that the types are consistent. However, within the definition
+of a function, all occurrences of the function symbol must varer to
+the same function.
 
-In the case of the @code{=<} equation above, the type inference system would not be able to distinguish a recursive call from a call to a different overloaded function of the same name; and would assume that both uses of @code{=<} are intended to be part of the definition. This, in turn, would result in a type error being generated.
+In the case of the @code{=<} equation above, the type inference system
+would not be able to distinguish a recursive call from a call to a
+different overloaded function of the same name; and would assume that
+both uses of @code{=<} are intended to be part of the
+definition. This, in turn, would result in a type error being
+generated.
 
-In summary, when defining an overloaded function like @code{=<}, we often have to introduce an auxiliary function to @emph{carry} the recursion.
+In summary, when defining an overloaded function like @code{=<}, we
+often have to introduce an auxiliary function to @emph{carry} the
+recursion.
 
-In defining the implementation of a contract, each of the variables that are part of the contract must either be defined or have a default definition within the @code{contract} specification itself.
+In defining the implementation of a contract, each of the variables
+that are part of the contract must either be defined or have a default
+definition within the @code{contract} specification itself.
 
-=== Resolving Overloaded Definitions
-[[overloading]]
-(((type,contracts!resolving)))
-(((overloading)))
-(((resolving overloaded definitions)))
+=== Resolving Overloaded Definitions [[overloading]]
+(((type,contracts!resolving))) (((overloading))) (((resolving
+overloaded definitions)))
 
-When a program refers to a contract-defined function -- i.e., a variable that is declared within a @code{contract} -- then that reference must be @emph{resolved} to an actual program before the program can be said to be executable.
+When a program varers to a contract-defined function -- i.e., a
+variable that is declared within a @code{contract} -- then that
+varerence must be @emph{resolved} to an actual program before the
+program can be said to be executable.
 
 For example, consider the expression:
 @example
 A+3
 
-The @code{(+)} function is part of the @code{arithmetic} contract (see @ref{arithmeticContract}) which means that we need to resolve the call to @code{(+)} to an actual implemented function.
+The @code{(+)} function is part of the @code{arithmetic} contract (see
+@var{arithmeticContract}) which means that we need to resolve the call
+to @code{(+)} to an actual implemented function.
 
 The type signature for @code{(+)} is:
 @example
@@ -1497,52 +1741,77 @@ where the constraint
 @example
 arithmetic[t]
 
-is satisfied for any @code{t} for which there is an @code{implementation} of @code{arithmetic}.
+is satisfied for any @code{t} for which there is an
+@code{implementation} of @code{arithmetic}.
 
-In this case we know, because @code{3} is an @code{integer} that the type of @code{A} must also be @code{integer} -- as is the type of the whole expression. So, the actual constraint after taking type inference into account is:
+In this case we know, because @code{3} is an @code{integer} that the
+type of @code{A} must also be @code{integer} -- as is the type of the
+whole expression. So, the actual constraint after taking type
+inference into account is:
 @example
 arithmetic[integer]
 
-which @emph{is} satisfied because there is a standard implementation of @code{arithmetic} for @code{integer}.
+which @emph{is} satisfied because there is a standard implementation
+of @code{arithmetic} for @code{integer}.
 
-Implementations can be viewed as functions whose value is a record of all the elements of the defined contract. For example, the implementation function of @code{arithmetic} over @code{integer} has a definition that is similar to:
+Implementations can be viewed as functions whose value is a record of
+all the elements of the defined contract. For example, the
+implementation function of @code{arithmetic} over @code{integer} has a
+definition that is similar to:
 @example
-arithmetic#integer() is arithmetic{
-  X+Y => _integer_plus(X,Y)
-  ...
-  }
+arithmetic#integer() is arithmetic{ X+Y => _integer_plus(X,Y) ...  }
 
-Resolving the expression @code{A+3} is achieved by replacing the abstract function @code{(+)} with an actual function:
+Resolving the expression @code{A+3} is achieved by replacing the
+abstract function @code{(+)} with an actual function:
 @example
 arithmetic#integer().+(A,3)
 
-In some cases, there is not sufficient information about the types of variables to fully resolve the appropriate definition to use. In this case, it must be true that the type(s) involved must be variable and that they @emph{surface} to a point where the type variable(s) are generalized.
+In some cases, there is not sufficient information about the types of
+variables to fully resolve the appropriate definition to use. In this
+case, it must be true that the type(s) involved must be variable and
+that they @emph{surface} to a point where the type variable(s) are
+generalized.
 
 Consider the lambda:
 @example
 (X,Y) => X+Y*Y
 
-The type of @code{X} and @code{Y} may not be completely known, and are denoted by the same type variable (@code{t}) say; @code{t} is, however, a constrained type that is bound by the scope of the function itself.
+The type of @code{X} and @code{Y} may not be completely known, and are
+denoted by the same type variable (@code{t}) say; @code{t} is,
+however, a constrained type that is bound by the scope of the function
+itself.
 
-Ultimately, in some larger scope, either the @code{t} type becomes grounded into some specific type, or it is bound by an explicit quantifier. The quantifier must reflect the contract constraint -- otherwise the compiler will report an error. For example, it might be that we defined a variable in a @code{let} @ref{ThetaEnvironment}:
+Ultimately, in some larger scope, either the @code{t} type becomes
+grounded into some specific type, or it is bound by an explicit
+quantifier. The quantifier must varlect the contract constraint --
+otherwise the compiler will report an error. For example, it might be
+that we defined a variable in a @code{let} @var{ThetaEnvironment}:
 @example
-addSq : all t arithmetic[t] |: (t,t)=>t
-addSq = ((X,Y)=>X+X*Y)
+addSq : all t arithmetic[t] |: (t,t)=>t addSq = ((X,Y)=>X+X*Y)
 
-The @code{arithmetic} contract constraint is surfaced to the same level where the type variable @code{t} is bound.
+The @code{arithmetic} contract constraint is surfaced to the same
+level where the type variable @code{t} is bound.
 
-In general, where an overloaded name is used, there are two permitted possibilities: the type constraints implied by the overloaded name are subsumed by an explicit type equality or the type variable is bound in some @ref{thetaEnvironment}.
+In general, where an overloaded name is used, there are two permitted
+possibilities: the type constraints implied by the overloaded name are
+subsumed by an explicit type equality or the type variable is bound in
+some @var{thetaEnvironment}.
 
 @quotation NOTE
-The third possibility -- where the constrained type is a type variable but is not bound by a @ref{thetaEnvironment} is an error -- an unresolved overloaded identifier error.
+The third possibility -- where the constrained type is a type variable
+but is not bound by a @var{thetaEnvironment} is an error -- an
+unresolved overloaded identifier error.
 
-In the case of the @code{addSq} definition, there is not enough information here to @emph{fix} an actual implementation to use; and so we resolve this by rewriting the @code{addSq} function to take an additional argument -- the @code{arithmetic} dictionary represented by the variable @code{D}:
+In the case of the @code{addSq} definition, there is not enough
+information here to @emph{fix} an actual implementation to use; and so
+we resolve this by rewriting the @code{addSq} function to take an
+additional argument -- the @code{arithmetic} dictionary represented by
+the variable @code{D}:
 @example
-addSq#(D) => let{
-  addSq'(X,Y) => D.+(X,D.*(Y,Y));
-} in addSq'
+addSq#(D) => let{ addSq'(X,Y) => D.+(X,D.*(Y,Y)); } in addSq'
 
-In addition (sic), we will have to also resolve all @emph{calls} to @code{addSq} as well. A call to @code{addSq} such as:
+In addition (sic), we will have to also resolve all @emph{calls} to
+@code{addSq} as well. A call to @code{addSq} such as:
 @example
 addSq(A,3)
 
@@ -1550,119 +1819,132 @@ will be rewritten to:
 @example
 addSq#(arithmetic#integer())(A,3)
 
-because we know from the presence of the literal integer that @code{addSq} is being used with @code{integer} arguments.
+because we know from the presence of the literal integer that
+@code{addSq} is being used with @code{integer} arguments.
 
-Resolving for contract implementations @emph{pushes out} from expressions such as @code{A+3} outward until all references to contracts have been resolved by explicit implementations.
+Resolving for contract implementations @emph{pushes out} from
+expressions such as @code{A+3} outward until all varerences to
+contracts have been resolved by explicit implementations.
 
 @quotation NOTE
-It is an error for the top-level of a program -- i.e., package-level -- to contain unresolved references to contracts.
+It is an error for the top-level of a program -- i.e., package-level
+-- to contain unresolved varerences to contracts.
 
-The formal rules for satisfying (and hence resolving) contract constraints are shown in @ref{overloading}.
+The formal rules for satisfying (and hence resolving) contract
+constraints are shown in @var{overloading}.
 
 
-=== Standard Contracts
-[[standardContracts]]
-(((type,contracts!standard)))
-(((standard,contracts)))
+=== Standard Contracts [[standardContracts]]
+(((type,contracts!standard))) (((standard,contracts)))
 
-The language defines a few contracts as standard. These cover, for example, the concepts of @code{equality}, @code{comparable}, and @code{sizeable} entities and the @code{arithmetic} operations. These contracts are integral to the semantics of the language.
+The language defines a few contracts as standard. These cover, for
+example, the concepts of @code{equality}, @code{comparable}, and
+@code{sizeable} entities and the @code{arithmetic} operations. These
+contracts are integral to the semantics of the language.
 
-[[standardContractTable]]
-.Standard Contracts
-[cols="1,5,2"]
-|===
-|Contract | Description | Reference
+[[standardContractTable]] .Standard Contracts [cols="1,5,2"] |===
+|Contract | Description | Varerence
 
-|@code{equality[t]} |Definition of equality |  @ref{equalityPredicate}
+|@code{equality[t]} |Definition of equality | @var{equalityPredicate}
 
-|@code{comparable[t]} |Definition of comparability| @ref{comparisonPredicates}
+|@code{comparable[t]} |Definition of comparability|
+ @var{comparisonPredicates}
 
-|@code{arithmetic[t]}|Basic arithmetic| @ref{arithmeticContract}
+|@code{arithmetic[t]}|Basic arithmetic| @var{arithmeticContract}
 
-|@code{math[t]} | Misc math functions | @ref{mathContract}
+|@code{math[t]} | Misc math functions | @var{mathContract}
 
-|@code{trig[t]} | Trigonometry functions| @ref{trigContract}
+|@code{trig[t]} | Trigonometry functions| @var{trigContract}
 
-|@code{bitstring[t]} | Bitwise functions| @ref{bitString}
+|@code{bitstring[t]} | Bitwise functions| @var{bitString}
 
-|@code{sizeable[t]} | Definition of @code{size} and @code{empty}| @ref{sizeableContract}
-|@code{sequence[t]} | Sequences of values| @ref{sequenceContract}
-|@code{indexable[t]} | Random access| @ref{indexableContract}
-|@code{iterable[t]} | Iteration over collections| @ref{iterableContract}
-|@code{coercion[s,t]} | Coerce between types| @ref{typeCoercionContract}
-|@code{speech[a]} | Actor speech actions| @ref{speechContract}
-|@code{pPrint[t]} | Pretty Print Display| @ref{pPrintContract}
-|@code{computation[c]} | Computation Expressions| @ref{computationContractProg}
-|@code{execution[c]} | Computation Expressions| @ref{executionContractProg}
-|===
+|@code{sizeable[t]} | Definition of @code{size} and @code{empty}|
+|@var{sizeableContract} @code{sequence[t]} | Sequences of values|
+|@var{sequenceContract} @code{indexable[t]} | Random access|
+|@var{indexableContract} @code{iterable[t]} | Iteration over
+|collections| @var{iterableContract} @code{coercion[s,t]} | Coerce
+|between types| @var{typeCoercionContract} @code{speech[a]} | Actor
+|speech actions| @var{speechContract} @code{pPrint[t]} | Pretty Print
+|Display| @var{pPrintContract} @code{computation[c]} | Computation
+|Expressions| @var{computationContractProg} @code{execution[c]} |
+|Computation Expressions| @var{executionContractProg} ===
 
-[[typeSystem]]
-== Type System
-(((type,system)))
+[[typeSystem]] == Type System (((type,system)))
 
-The type system consists of a language of type expressions and a set of rules for showing consistency between types and programs.
+The type system consists of a language of type expressions and a set
+of rules for showing consistency between types and programs.
 
-The foundation of these rules are the rules that relate one type to another; and the primary relationship involved here is subsumption.
+The foundation of these rules are the rules that relate one type to
+another; and the primary relationship involved here is subsumption.
 
-In addition there are rules for determining when various constraints are satisfied and there are rules that relate specific expressions to types.
+In addition there are rules for determining when various constraints
+are satisfied and there are rules that relate specific expressions to
+types.
 
-=== Type Subsumption
-[[typeSubsumption]]
+=== Type Subsumption [[typeSubsumption]]
 
-The type system is based on the concept of type @emph{subsumption}. One type subsumes another if either it is already equivalent under some substitution or it is @emph{more general} than the other.
+The type system is based on the concept of type
+@emph{subsumption}. One type subsumes another if either it is already
+equivalent under some substitution or it is @emph{more general} than
+the other.
 
-The intuition is that if a function expects a certain kind of argument then either a value of exactly that type or one that is more general may be supplied.
+The intuition is that if a function expects a certain kind of argument
+then either a value of exactly that type or one that is more general
+may be supplied.
 
-We express this formally in terms of a subsumption relation @code{subsume}:
-\[
-T@sub{1}\subsume{}T@sub{2}
-\]
-is read as
-\begin{quote}
-$T@sub{1}$ subsumes, or is more general than, $T@sub{2}$.
-\end{quote}
-In general, type checking takes place in a certain context. For subsumption, this context defines available implementations of contracts as well as recording the types of variables. Furthermore, subsumption is likely to lead to the instantiation of type variables. Hence, in general, the predicate that we establish takes the form:
+We express this formally in terms of a subsumption relation
+@code{subsume}: \[ T@sub{1}\subsume{}T@sub{2} \] is read as
+\begin{quote} $T@sub{1}$ subsumes, or is more general than,
+$T@sub{2}$.  \end{quote} In general, type checking takes place in a
+certain context. For subsumption, this context defines available
+implementations of contracts as well as recording the types of
+variables. Furthermore, subsumption is likely to lead to the
+instantiation of type variables. Hence, in general, the predicate that
+we establish takes the form:
 \[\entail{E,\theta\sub{in}}{T@sub{1}\subsume{}T@sub{2}}\leadsto\theta\sub{out}\]
-where \ensuremath{\theta}
-takes the form \ensuremath{\{x@sub{1}/t@sub{1}\sequence{,}x@sub{n}/t@sub{n}}\}
-and defines a substitution of types t\subi{} for type variables x\subi{} where a given variable occurs at most once in the left hand side of a $x\subi/t\subi$ pair.
+where \ensuremath{\theta} takes the form
+\ensuremath{\{x@sub{1}/t@sub{1}\sequence{,}x@sub{n}/t@sub{n}}\} and
+defines a substitution of types t\subi{} for type variables x\subi{}
+where a given variable occurs at most once in the left hand side of a
+$x\subi/t\subi$ pair.
 
-\begin{aside}
-We do not take account of constraints at this time.
+\begin{aside} We do not take account of constraints at this time.
 \end{aside}
 
 ==== Subsumption of Basic Types
 
-\begin{itemize}
-\item One @ref{TypeExpression} subsumes another if they have the same arity, and if their type constructors and type arguments pairwise subsume:
-\begin{prooftree}
-\AxiomC{\entail{E,\theta@sub{0}}{t@sub{1}\subsume u@sub{1}\leadsto\theta@sub{1}}\sequence{\ }\entail{E,\theta\sub{n-1}}{t@sub{n}\subsume u@sub{n}\leadsto\theta@sub{n}}}
-\AxiomC{\entail{E,\theta@sub{n}}{C@sub{1}\subsume C@sub{2}\leadsto\theta}}
-\BinaryInfC{\entail{E,\theta@sub{0}}{C@sub{1}\ @code{of}\ (t@sub{1}\sequence{,}t@sub{n})\ \subsume\ C@sub{2}\ @code{of}\ (u@sub{1}\sequence{,}u@sub{n})\leadsto\theta}}
-\end{prooftree}
-where $t\subi$ and $u\subi$ are @ref{Type} expressions  and $C@sub{1}$ and $C@sub{2}$ are @ref{TypeConstructor}s.
+\begin{itemize} \item One @var{TypeExpression} subsumes another if
+they have the same arity, and if their type constructors and type
+arguments pairwise subsume: \begin{prooftree}
+\AxiomC{\entail{E,\theta@sub{0}}{t@sub{1}\subsume
+u@sub{1}\leadsto\theta@sub{1}}\sequence{\
+}\entail{E,\theta\sub{n-1}}{t@sub{n}\subsume
+u@sub{n}\leadsto\theta@sub{n}}}
+\AxiomC{\entail{E,\theta@sub{n}}{C@sub{1}\subsume
+C@sub{2}\leadsto\theta}}
+\BinaryInfC{\entail{E,\theta@sub{0}}{C@sub{1}\ @code{of}\
+(t@sub{1}\sequence{,}t@sub{n})\ \subsume\ C@sub{2}\ @code{of}\
+(u@sub{1}\sequence{,}u@sub{n})\leadsto\theta}} \end{prooftree} where
+$t\subi$ and $u\subi$ are @var{Type} expressions and $C@sub{1}$ and
+$C@sub{2}$ are @var{TypeConstructor}s.
 
-\item If a type variable $v$ is already in the unifier then we look it up:
-\begin{prooftree}
-\AxiomC{\ensuremath{v/t@sub{1}\in\theta\subi}}
+\item If a type variable $v$ is already in the unifier then we look it
+up: \begin{prooftree} \AxiomC{\ensuremath{v/t@sub{1}\in\theta\subi}}
 \AxiomC{\entail{E,\theta\subi}{t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \BinaryInfC{\entail{E,\theta\subi}{v\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \end{prooftree}
 
-\begin{prooftree}
-\AxiomC{\ensuremath{v/t@sub{2}\in\theta\subi}}
+\begin{prooftree} \AxiomC{\ensuremath{v/t@sub{2}\in\theta\subi}}
 \AxiomC{\entail{E,\theta\subi}{t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \BinaryInfC{\entail{E,\theta\subi}{t@sub{1}\subsume{}v\leadsto\theta\sub{o}}}
 \end{prooftree}
 
 \item A type variable $v$ may be inserted into the unifier:
-\begin{prooftree}
-\AxiomC{\ensuremath{v/t\notin\theta\subi}}
+\begin{prooftree} \AxiomC{\ensuremath{v/t\notin\theta\subi}}
 \AxiomC{\ensuremath{v\notin{}t@sub{2}}}
 \BinaryInfC{\entail{E,\theta}{v\subsume{}t@sub{2}\leadsto\theta\cup\{v/t@sub{2}\}}}
-\end{prooftree}
-where the condition \ensuremath{v\notin{}t} means that $v$ does not occur free in type $t$.
-\begin{prooftree}
+\end{prooftree} where the condition \ensuremath{v\notin{}t} means that
+$v$ does not occur free in type $t$.  \begin{prooftree}
 \AxiomC{\ensuremath{v/t\notin\theta\subi}}
 \AxiomC{\ensuremath{v\notin{}t@sub{1}}}
 \BinaryInfC{\entail{E,\theta}{t@sub{1}\subsume{}v\leadsto\theta\cup\{v/t@sub{1}\}}}
@@ -1670,35 +1952,46 @@ where the condition \ensuremath{v\notin{}t} means that $v$ does not occur free i
 
 \end{itemize}
 
-==== Subsumption of Tuples and Records
-\begin{itemize}
+==== Subsumption of Tuples and Records \begin{itemize}
 
-\item One @ref{TupleType} subsumes another if they are of the same length and each of their successive elements pairwise subsume.
-\begin{prooftree}
-\AxiomC{\entail{E,\theta@sub{0}}{t@sub{1}\subsume u@sub{1}\leadsto\theta@sub{1}}\sequence{\quad}\entail{E,\theta\sub{n-1}}{t@sub{n}\subsume u@sub{n}\leadsto\theta@sub{n}}}
-\UnaryInfC{\entail{E,\theta@sub{0}}{(t@sub{1}\sequence{,}t@sub{n})\ \subsume\ (u@sub{1}\sequence{,}u@sub{n})\leadsto\theta@sub{n}}}
-\end{prooftree}
-where $t\subi$ and $u\subi$ are types.
-
-
-\item One @ref{RecordType} subsumes another if every element of the first pairwise subsumes a corresponding element of the second. For the purposes of this exposition we assume that neither type contains any encapsulated types: this case is dealt with below under existential quantification.
+\item One @var{TupleType} subsumes another if they are of the same
+length and each of their successive elements pairwise subsume.
+\begin{prooftree} \AxiomC{\entail{E,\theta@sub{0}}{t@sub{1}\subsume
+u@sub{1}\leadsto\theta@sub{1}}\sequence{\quad}\entail{E,\theta\sub{n-1}}{t@sub{n}\subsume
+u@sub{n}\leadsto\theta@sub{n}}}
+\UnaryInfC{\entail{E,\theta@sub{0}}{(t@sub{1}\sequence{,}t@sub{n})\
+\subsume\ (u@sub{1}\sequence{,}u@sub{n})\leadsto\theta@sub{n}}}
+\end{prooftree} where $t\subi$ and $u\subi$ are types.
 
 
-\begin{prooftree}
-\AxiomC{\entail{E,\theta@sub{0}}{t@sub{0}\subsume u@sub{1}\leadsto\theta@sub{1}}\sequence{\quad}\entail{E,\theta\sub{n-1}}{t@sub{n}\subsume{} u@sub{n}\leadsto\theta@sub{n}}}
-\UnaryInfC{\entail{E,\theta@sub{0}}{@code{\{}f@sub{1}=t@sub{1}\sequence{;}f@sub{n}=t@sub{n}@code{\}}\ \subsume\ @code{\{}f@sub{1}=u@sub{1}\sequence{;}f@sub{n}=u@sub{n}@code{;..\}}\leadsto\theta@sub{n}}}
-\end{prooftree}
-where the $f\subi$ are distinct labels of fields and the trailing @code{;..} is intended to signify that there may be additional elements that are not considered.
+\item One @var{RecordType} subsumes another if every element of the
+first pairwise subsumes a corresponding element of the second. For the
+purposes of this exposition we assume that neither type contains any
+encapsulated types: this case is dealt with below under existential
+quantification.
+
+
+\begin{prooftree} \AxiomC{\entail{E,\theta@sub{0}}{t@sub{0}\subsume
+u@sub{1}\leadsto\theta@sub{1}}\sequence{\quad}\entail{E,\theta\sub{n-1}}{t@sub{n}\subsume{}
+u@sub{n}\leadsto\theta@sub{n}}}
+\UnaryInfC{\entail{E,\theta@sub{0}}{@code{\{}f@sub{1}=t@sub{1}\sequence{;}f@sub{n}=t@sub{n}@code{\}}\
+\subsume\
+@code{\{}f@sub{1}=u@sub{1}\sequence{;}f@sub{n}=u@sub{n}@code{;..\}}\leadsto\theta@sub{n}}}
+\end{prooftree} where the $f\subi$ are distinct labels of fields and
+the trailing @code{;..} is intended to signify that there may be
+additional elements that are not considered.
 
 \end{itemize}
 
 ==== Subsumption of Function Types
 
-The rules for subsumption for function types introduces the concept of @emph{contravariance}.
+The rules for subsumption for function types introduces the concept of
+@emph{contravariance}.
 
 \begin{itemize}
 
-\item A function type $F@sub{1}$ subsumes $F@sub{2}$ if the result types subsume and the argument types contra-subsume:
+\item A function type $F@sub{1}$ subsumes $F@sub{2}$ if the result
+types subsume and the argument types contra-subsume:
 
 \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{r@sub{1}\subsume{}r@sub{2}\leadsto\theta@sub{0}}}
@@ -1706,19 +1999,25 @@ The rules for subsumption for function types introduces the concept of @emph{con
 \BinaryInfC{\entail{E,\theta\subi}{a@sub{1}@code{=>}r@sub{1}\subsume{}a@sub{2}@code{=>}r@sub{2}\leadsto\theta\sub{o}}}
 \end{prooftree}
 
-The subsumption relation is inverted for the argument types of the two function types. This reflects the intuition that for one function type to subsume another its result type must subsume the latter but the argument type of the latter should subsume (be more general than) the former.
-\begin{aside}
-Without contravariance it becomes difficult and awkward to combine functions together.
-\end{aside}
+The subsumption relation is inverted for the argument types of the two
+function types. This varlects the intuition that for one function type
+to subsume another its result type must subsume the latter but the
+argument type of the latter should subsume (be more general than) the
+former.  \begin{aside} Without contravariance it becomes difficult and
+awkward to combine functions together.  \end{aside}
 
-\item The subsumption relation for pattern types is similar to that for function types:
-\begin{prooftree}
+\item The subsumption relation for pattern types is similar to that
+for function types: \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{r@sub{1}\subsume{}r@sub{2}\leadsto\theta@sub{0}}}
 \AxiomC{\entail{E,\theta@sub{0}}{a@sub{2}\subsume{}a@sub{1}\leadsto\theta\sub{o}}}
 \BinaryInfC{\entail{E,\theta\subi}{r@sub{1}@code{<=}a@sub{1}\subsume{}r@sub{2}@code{<=}a@sub{2}\leadsto\theta\sub{o}}}
 \end{prooftree}
 
-\item Subsumption for constructor types requires equivalence rather than subsumption. This is because a constructor may be used both as a pattern and as a function. We use the \equivt{} to denote this. We do not need to introduce a completely new definition for \equivt{}, instead we can define it in terms of \subsume:
+\item Subsumption for constructor types requires equivalence rather
+than subsumption. This is because a constructor may be used both as a
+pattern and as a function. We use the \equivt{} to denote this. We do
+not need to introduce a completely new definition for \equivt{},
+instead we can define it in terms of \subsume:
 
 \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{t@sub{1}\subsume{}t@sub{2}\leadsto\theta@sub{0}}}
@@ -1726,15 +2025,15 @@ Without contravariance it becomes difficult and awkward to combine functions tog
 \BinaryInfC{\entail{E,\theta\subi}{t@sub{1}\equivt{}t@sub{2}\leadsto\theta\sub{o}}}
 \end{prooftree}
 
-Given this definition of \equivt{}, we can define subsumption for constructor types:
-\begin{prooftree}
+Given this definition of \equivt{}, we can define subsumption for
+constructor types: \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{r@sub{1}\equivt{}r@sub{2}\leadsto\theta@sub{0}}}
 \AxiomC{\entail{E,\theta@sub{0}}{a@sub{2}\equivt{}a@sub{1}\leadsto\theta\sub{o}}}
 \BinaryInfC{\entail{E,\theta\subi}{r@sub{1}@code{<=>}a@sub{1}\subsume{}r@sub{2}@code{<=>}a@sub{2}\leadsto\theta\sub{o}}}
 \end{prooftree}
 
-Clearly, this definition is symmetric wrt the two constructor types, and we can also establish:
-\begin{prooftree}
+Clearly, this definition is symmetric wrt the two constructor types,
+and we can also establish: \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{r@sub{1}\equivt{}r@sub{2}\leadsto\theta@sub{0}}}
 \AxiomC{\entail{E,\theta@sub{0}}{a@sub{2}\equivt{}a@sub{1}\leadsto\theta\sub{o}}}
 \BinaryInfC{\entail{E,\theta\subi}{r@sub{2}@code{<=>}a@sub{2}\subsume{}r@sub{1}@code{<=>}a@sub{1}\leadsto\theta\sub{o}}}
@@ -1742,245 +2041,225 @@ Clearly, this definition is symmetric wrt the two constructor types, and we can 
 
 \end{itemize}
 
-==== Subsumption of Quantified Types
-Subsumption of quantified types must take into account the implied semantics of the quantifiers: a @ref{UniversalType} is less general than its bound type and so on.
+==== Subsumption of Quantified Types Subsumption of quantified types
+must take into account the implied semantics of the quantifiers: a
+@var{UniversalType} is less general than its bound type and so on.
 
-For simplicity of presentation we assume that all quantified types have been alpha-renamed so that no two quantified terms have the same bound variable.
+For simplicity of presentation we assume that all quantified types
+have been alpha-renamed so that no two quantified terms have the same
+bound variable.
 
-\begin{itemize}
-\item Any type subsumes its universally quantified variant if its subsumes a @emph{refreshed} variant of the latter:
+\begin{itemize} \item Any type subsumes its universally quantified
+variant if its subsumes a @emph{varreshed} variant of the latter:
 
 \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{t@sub{1}\subsume{}t'@sub{2}\leadsto\theta\sub{o}}}
 \AxiomC{\ensuremath{t'@sub{2}=t@sub{2}[x/x']}}
-\BinaryInfC{\entail{E,\theta\subi}{t@sub{1}\subsume@code{for all x such that }t@sub{2}\leadsto\theta\sub{o}}}
-\end{prooftree}
-where $x'$ is a variable not occurring elsewhere and $t[x/u]$ refers to the result of replacing occurrences of $x$ in $t$ with $u$.
+\BinaryInfC{\entail{E,\theta\subi}{t@sub{1}\subsume@code{for all x
+such that }t@sub{2}\leadsto\theta\sub{o}}} \end{prooftree} where $x'$
+is a variable not occurring elsewhere and $t[x/u]$ varers to the
+result of replacing occurrences of $x$ in $t$ with $u$.
 
 
-\item A universally quantified type subsumes a type if the bound type of the former subsumes the latter without binding the bound variable.
+\item A universally quantified type subsumes a type if the bound type
+of the former subsumes the latter without binding the bound variable.
 
 \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \AxiomC{\ensuremath{x/t\notin\theta\sub{o}}}
-\BinaryInfC{\entail{E,\theta\subi}{@code{for all x such that }t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
-\end{prooftree}
+\BinaryInfC{\entail{E,\theta\subi}{@code{for all x such that
+}t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}} \end{prooftree}
 
-\item An existentially quantified type subsumes a type if a @code{refreshed' variant of the
-former subsumes the latter:
+\item An existentially quantified type subsumes a type if a
+@code{varreshed' variant of the former subsumes the latter:
 
 \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{t'@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \AxiomC{\ensuremath{t'@sub{1}=t@sub{1}[x/x']}}
-\BinaryInfC{\entail{E,\theta\subi}{}exists x such that @code{t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
+\BinaryInfC{\entail{E,\theta\subi}{}exists x such that
+@code{t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \end{prooftree}
 
-\item A type subsumes its existentially quantified variant if
-the former subsumes the bound type of the latter without affecting the bound variable.
+\item A type subsumes its existentially quantified variant if the
+former subsumes the bound type of the latter without affecting the
+bound variable.
 
 \begin{prooftree}
 \AxiomC{\entail{E,\theta\subi}{t@sub{1}\subsume{}t@sub{2}\leadsto\theta\sub{o}}}
 \AxiomC{\ensuremath{x/t\notin\theta\sub{o}}}
-\BinaryInfC{\entail{E,\theta\subi}{t@sub{1}\subsume{}}exists x such that @code{t@sub{2}\leadsto\theta\sub{o}}}
-\end{prooftree}
+\BinaryInfC{\entail{E,\theta\subi}{t@sub{1}\subsume{}}exists x such
+that @code{t@sub{2}\leadsto\theta\sub{o}}} \end{prooftree}
 
 \end{itemize}
 
 
-%=== Satisfying Constraints
-%
-%==== Satisfying Contract Constraints
-%[[satisfyingContracts]]
-%(((contract constraint,satisfiability)))
-%(((satisfiability,contract constraint)))
-%(((resolving contract constraints)))
-%
-%A @ref{ContractConstraint} of the form:
-%@example[mathescape=true]
-%_Contract_ over (_Type@sub{1}_\sequence{,}_Type@sub{n}_) ...
-%
-%or
-%@example
-%_Contract_ over (_Type@sub{1}_\sequence{,}_Type@sub{n}_) determines (_Type\sub{n+1_}\sequence{,}_Type\sub{n+m_}) ...
-%
-%(((determines@}determines@code{)))
-%is satisfiable if all of _Type@sub{1}_ through _Type@sub{n}_ are @ref{TypeExpression}s and there is an }implementation@code{ for the types denoted. I.e., the constraint is satisfiable if there is a statement of the form:
-%@example
-%implementation @emph{Contract} over (@emph{T@sub{1}}\sequence{,}@emph{T@sub{n}}) ...
-%
-%or
-%@example
-%implementation @emph{Contract} over (@emph{T@sub{1}}\sequence{,}@emph{T@sub{n}}) determines (@emph{T\sub{n+1}}\sequence{,}@emph{T\sub{n+m}}) ...
-%
-%respectively; where @emph{Type\subi} unifies with @emph{T\subi} for each $i$.
-%
-%\begin{aside}
-%The determined types (@emph{T\sub{n+1}}\sequence{,}@emph{T\sub{n+m}}) take part in the satisfiability of a contract; but they do not determine the applicability of a contract implementation. I.e. only the types mentioned before the }determines@code{ clause actually affect the selection of the implementation.
-%
-%The intuition is that there is a dependency between the determined types and the main types: they are not independent.
-%\end{aside}
-%
-%A }default@code{ implementation of the form:
-%@example
-%implementation @emph{Contract} over (@emph{V@sub{1}}\sequence{,}@emph{V@sub{n}}) default is ...
-%
-%or, for contracts with functional dependencies, if it takes the form:
-%@example
-%implementation _Contract_ over (_V@sub{1}_\sequence{,}_V@sub{n}_)
-%         determines (_V\sub{n+1_}\sequence{,}_V\sub{n+m_}) default is ...
-%
-%where all of }_V\subi_@code{ are @ref{TypeVariable}s satisfies the @ref{ContractConstraint} for }_Contract_@code{ if _Type\subi_ unify with _V\subi_.
-%
-%\begin{aside}
-%A @ref{ContractConstraint} that has a }determines@code{ clause can only be satisfied by an }implementation@code{ that also has a matching }determines@code{ clause. Conversely, a @ref{ContractConstraint} that does not have a }determines@code{ clause can only be satisfied by implementations that also do not have a }determines@code{ clause.
-%\end{aside}
-%
-%\begin{aside}
-%This unification may induce other constraints, including constraints that require resolution of contracts.
-%\end{aside}
-%
-%It is an error if there are more than one non-}default@code{ candidates for satisfying a contract constraint. It is also an error if there are no candidates to satisfy the constraint.
-%
-%\begin{aside}
-%One of the less obvious requirements in satisfying contract constraints is that the contract constraint must already be partially determined. In particular, the 'top-level' of the types in the constraint must be known -- unless the }default@code{ implementation is used.
-%\end{aside}
-%
-%==== Consistency of Contract Constraints
-%A @ref{TypeVariable} may not be constrained by inconsistent type constraints.
-%
-%Two @ref{ContractConstraint}s are consistent if either they are about different contracts, or if they are about the same contract the corresponding contract types are unifiable. In the latter case, the determined types (if present) must also unify.
-%
-%==== Satisfying Attribute Constraints
-%An @ref{FieldConstraint} takes the form:
-%@example
-%@ref{Type} implements \{ @ref{Identifier}@sub{1} has type @ref{Type}@sub{1}\sequence{;}@ref{Identifier}@sub{n} has type @ref{Type}@sub{n} \}
-%
-%An @ref{FieldConstraint} is satisfiable if the left-hand @ref{Type} is an @ref{AlgebraicType} whose definition is such that for each @ref{Identifier}\subi{} has a @ref{LabeledRecord} that includes a @ref{TypeAnnotation} for the @ref{Identifier} and whose corresponding type also unifies with @ref{Type}\subi.
-%
-%==== Consistency of Attribute Constraints
-%Two @ref{FieldConstraint}s are consistent if either they are about different fields, or if they are about the same fields then corresponding field types must be unifiable.
-%
-%A @ref{TypeVariable} can be constrained by any number of @ref{FieldConstraint}s -- provided that they are consistent with each other. Similarly, a @ref{TypeVariable} can be constrained by combinations of @ref{ContractConstraint}s and @ref{FieldConstraint}s.
+%=== Satisfying Constraints ==== Satisfying Contract Constraints
+%[[satisfyingContracts]] (((contract constraint,satisfiability)))
+%(((satisfiability,contract constraint))) (((resolving contract
+%constraints))) A @var{ContractConstraint} of the form:
+%@example[mathescape=true] _Contract_ over
+%(_Type@sub{1}_\sequence{,}_Type@sub{n}_) ...  or @example _Contract_
+%over (_Type@sub{1}_\sequence{,}_Type@sub{n}_) determines
+%(_Type\sub{n+1_}\sequence{,}_Type\sub{n+m_}) ...
+%(((determines@}determines@code{))) is satisfiable if all of
+%_Type@sub{1}_ through _Type@sub{n}_ are @var{TypeExpression}s and
+%there is an }implementation@code{ for the types denoted. I.e., the
+%constraint is satisfiable if there is a statement of the
+%form: @example implementation @emph{Contract} over
+%(@emph{T@sub{1}}\sequence{,}@emph{T@sub{n}}) ...  or @example
+%implementation @emph{Contract} over
+%(@emph{T@sub{1}}\sequence{,}@emph{T@sub{n}}) determines
+%(@emph{T\sub{n+1}}\sequence{,}@emph{T\sub{n+m}}) ...  respectively;
+%where @emph{Type\subi} unifies with @emph{T\subi} for each $i$.
+%\begin{aside} The determined types
+%(@emph{T\sub{n+1}}\sequence{,}@emph{T\sub{n+m}}) take part in the
+%satisfiability of a contract; but they do not determine the
+%applicability of a contract implementation. I.e. only the types
+%mentioned before the }determines@code{ clause actually affect the
+%selection of the implementation.  The intuition is that there is a
+%dependency between the determined types and the main types: they are
+%not independent.  \end{aside} A }default@code{ implementation of the
+%form: @example implementation @emph{Contract} over
+%(@emph{V@sub{1}}\sequence{,}@emph{V@sub{n}}) default is ...  or, for
+%contracts with functional dependencies, if it takes the
+%form: @example implementation _Contract_ over
+%(_V@sub{1}_\sequence{,}_V@sub{n}_) determines
+%(_V\sub{n+1_}\sequence{,}_V\sub{n+m_}) default is ...  where all of
+%}_V\subi_@code{ are @var{TypeVariable}s satisfies the
+%@var{ContractConstraint} for }_Contract_@code{ if _Type\subi_ unify
+%with _V\subi_.  \begin{aside} A @var{ContractConstraint} that has a
+%}determines@code{ clause can only be satisfied by an
+%}implementation@code{ that also has a matching }determines@code{
+%clause. Conversely, a @var{ContractConstraint} that does not have a
+%}determines@code{ clause can only be satisfied by implementations
+%that also do not have a }determines@code{ clause.  \end{aside}
+%\begin{aside} This unification may induce other constraints,
+%including constraints that require resolution of contracts.
+%\end{aside} It is an error if there are more than one
+%non-}default@code{ candidates for satisfying a contract
+%constraint. It is also an error if there are no candidates to satisfy
+%the constraint.  \begin{aside} One of the less obvious requirements
+%in satisfying contract constraints is that the contract constraint
+%must already be partially determined. In particular, the 'top-level'
+%of the types in the constraint must be known -- unless the
+%}default@code{ implementation is used.  \end{aside} ==== Consistency
+%of Contract Constraints A @var{TypeVariable} may not be constrained
+%by inconsistent type constraints.  Two @var{ContractConstraint}s are
+%consistent if either they are about different contracts, or if they
+%are about the same contract the corresponding contract types are
+%unifiable. In the latter case, the determined types (if present) must
+%also unify.  ==== Satisfying Attribute Constraints An
+%@var{FieldConstraint} takes the form: @example @var{Type} implements
+%\{ @var{Identifier}@sub{1} has type
+%@var{Type}@sub{1}\sequence{;}@var{Identifier}@sub{n} has type
+%@var{Type}@sub{n} \} An @var{FieldConstraint} is satisfiable if the
+%left-hand @var{Type} is an @var{AlgebraicType} whose definition is
+%such that for each @var{Identifier}\subi{} has a @var{LabeledRecord}
+%that includes a @var{TypeAnnotation} for the @var{Identifier} and
+%whose corresponding type also unifies with @var{Type}\subi.  ====
+%Consistency of Attribute Constraints Two @var{FieldConstraint}s are
+%consistent if either they are about different fields, or if they are
+%about the same fields then corresponding field types must be
+%unifiable.  A @var{TypeVariable} can be constrained by any number of
+%@var{FieldConstraint}s -- provided that they are consistent with each
+%other. Similarly, a @var{TypeVariable} can be constrained by
+%combinations of @var{ContractConstraint}s and @var{FieldConstraint}s.
 
-%=== Type Inference
-%[[typeConstraints]]
-%(((type,constraints)))
-%A type inference constraint is a predicate relating elements of the program and any type expressions; the general form of which is:
-%\begin{prooftree}
-%\AxiomC{\mbox{_Condition_}}
-%\UnaryInfC{\typeprd{E}{X}{T}}
-%\end{prooftree}
-%This should be read as
-%\begin{quote}
-%If _Condition_ is satisfied, then we can infer from the context _E_ that _X_ has type _T_
-%\end{quote}
-%where the symbol \tinfers{} can be read as }type implication'. In general, the type of an expression depends on the context that it is found. The context of a type expression can be defined as a set of _bindings_ of names to values. Mostly these values are types -- the types of the names involved. But the environment also contains type definitions -- where the binding is from a name to a type.
-%
-%For example, the rule that determines if a function application is type-safe, and what resulting type of the expression is, is:
-%\begin{prooftree}
+%=== Type Inference [[typeConstraints]] (((type,constraints))) A type
+%inference constraint is a predicate relating elements of the program
+%and any type expressions; the general form of which is:
+%\begin{prooftree} \AxiomC{\mbox{_Condition_}}
+%\UnaryInfC{\typeprd{E}{X}{T}} \end{prooftree} This should be read as
+%\begin{quote} If _Condition_ is satisfied, then we can infer from the
+%context _E_ that _X_ has type _T_ \end{quote} where the symbol
+%\tinfers{} can be read as }type implication'. In general, the type of
+%an expression depends on the context that it is found. The context of
+%a type expression can be defined as a set of _bindings_ of names to
+%values. Mostly these values are types -- the types of the names
+%involved. But the environment also contains type definitions -- where
+%the binding is from a name to a type.  For example, the rule that
+%determines if a function application is type-safe, and what resulting
+%type of the expression is, is: \begin{prooftree}
 %\AxiomC{\typeprd{E}{F}{@code{(}t@sub{1},...,t@sub{n}@code{)}=>@code{}_R_}
 %\AxiomC{\typeprd{E}{}(@code{a@sub{1},...,a@sub{n}})@code{}{}(@code{t@sub{1},...,t@sub{n}})@code{}}
 %\BinaryInfC{\typeprd{E}{F}(@code{a@sub{1},...,a@sub{n}})@code{}{R}}
-%\end{prooftree}
-%This type rule implicitly calls for the unification of the type associated with the function and the types associated with the arguments to the function.
-%
-%The type rule for a variable bears some explanation:
-%\begin{prooftree}
-%\AxiomC{$X:T\in{}E$}
-%\UnaryInfC{\typeprd{E}{X}{\rm{refresh}(T)}}
-%\end{prooftree}
-%This can be read as
-%\begin{quote}
-%if the variable _X_ has type _T_ in the environment _E_, then the type of an _occurrence_ of the variable is refresh(T).
-%\end{quote}
-%(((refreshing type variables)))
-%(((type,variable!refreshing)))
-%(((renaming type variables)))
-%(((variable,type of)))
-%refresh(T) is the result of rewriting a universally quantified types with a new type with new type variables. For example, the type
-%@example
-%cons of \pcent{}t
-%
-%is better understood as being
-%@example
-%for all \pcent{}t such that cons of \pcent{}t footnote:[See Section \vref{universalType}.]
-%
-%and refreshing this type means stripping the quantifier and replacing all occurrences of }\pcent{@code{t} with a new variable:
-%@example
-%_refresh_(for all \pcent{}t such that cons of \pcent{}t) = cons of \pcent{}t2341
-%
-%where }\pcent{@code{t2341} is a }new' type variable that does not occur anywhere else.
-%\begin{aside}
-%This procedure of refreshing a universally quantified type is equivalent to the logical operation of _variable renaming_. In this process, type variables are replaced with new type variables that do not occur elsewhere. In addition, the universal quantifiers within a logical formula are moved to the outermost left-hand side of the formula.
-%\end{aside}
+%\end{prooftree} This type rule implicitly calls for the unification
+%of the type associated with the function and the types associated
+%with the arguments to the function.  The type rule for a variable
+%bears some explanation: \begin{prooftree} \AxiomC{$X:T\in{}E$}
+%\UnaryInfC{\typeprd{E}{X}{\rm{varresh}(T)}} \end{prooftree} This can
+%be read as \begin{quote} if the variable _X_ has type _T_ in the
+%environment _E_, then the type of an _occurrence_ of the variable is
+%varresh(T).  \end{quote} (((varreshing type variables)))
+%(((type,variable!varreshing))) (((renaming type variables)))
+%(((variable,type of))) varresh(T) is the result of rewriting a
+%universally quantified types with a new type with new type
+%variables. For example, the type @example cons of \pcent{}t is better
+%understood as being @example for all \pcent{}t such that cons of
+%\pcent{}t footnote:[See Section \vvar{universalType}.]  and
+%varreshing this type means stripping the quantifier and replacing all
+%occurrences of }\pcent{@code{t} with a new variable: @example
+%_varresh_(for all \pcent{}t such that cons of \pcent{}t) = cons of
+%\pcent{}t2341 where }\pcent{@code{t2341} is a }new' type variable
+%that does not occur anywhere else.  \begin{aside} This procedure of
+%varreshing a universally quantified type is equivalent to the logical
+%operation of _variable renaming_. In this process, type variables are
+%replaced with new type variables that do not occur elsewhere. In
+%addition, the universal quantifiers within a logical formula are
+%moved to the outermost left-hand side of the formula.  \end{aside}
 
-%=== Type Generalization
-%[[typeGeneralization]]
-%(((type,generalization)))
-%(((generalized types)))
-%The complement of refreshing types is type _generalization_. Like refreshing, generalizing a type involves moving type quantifiers; in this case, quantifiers are moved inward rather than outward.
-%
-%(((theta environment)))
-%In a @ref{thetaEnvironment}, definitions of programs -- functions, procedures and patterns -- involve a combination of inferring types based on the forms of the expressions and patterns and type generalization.
-%
-%For example, the rules of type inference will give a function expression such as:
-%@example
-%(function(X) is X)
-%
-%a type assignment of:
-%@example
-%(\pcent{}t)=>\pcent{}t
-%
-%
-%However, if a variable (@code{f}) within a @ref{thetaEnvironment} is bound to such a value then the variable is given the type:
-%@example
-%for all \pcent{}t such that (\pcent{}t)=>\pcent{}t
-%
-%\begin{aside}
-%This assumes that the type variable @code{\pcent{}t} is not referenced by any expression in the containing scope.
-%
-%It also assumes that the variable is not a re-assignable variable -- which in any case has a non-program type: a @code{ref} function type rather than a function type.
-%\end{aside}
-%This is justified by the possibility of safely re-using the @code{f} function. For example, suppose that the @ref{thetaEnvironment} also contains other definitions that reference @code{f}:
-%@example
-%foo(X) is f(X)+1;
-%...
-%bar(A) is f(A)++"a"
-%
-%The function @code{f} is used twice, but with different types for its argument; in one case @code{f} is used with an @code{integer} argument, in the other it is used with a @code{string} argument. It is safe to do so because the defining equation for @code{f} does not rely on the actual type of its argument.
-%
-%The formal description of this involves several steps:
-%\begin{enumerate}
-%\item A program definition -- such as a function definition -- of the form:
-%@example
-%f(_Ptn@sub{1}_\sequence{,}_Ptn@sub{n}_) is _Exp_
-%
-%is equivalent to the variable definition:
-%@example
-%f is (function(_Ptn@sub{1}_\sequence{,}_Ptn@sub{n}_) is _Exp_)
-%
-%I.e., in what follows, we are only concerned with variable definitions whose type is a program type. footnote:[A function may be defined by multiple equations. This does not materially alter this analysis.]
-%
-%\item For such a variable definition, type safety requires that the value has a program type. For brevity we deal with the function case only, but this analysis applies to all program definitions.
-%
-%\item
-%The defined variable is given a quantified type according to the type inference rule:
-%\begin{prooftree}
-%\AxiomC{\typeprd{E}{Ex}{T\sub{Ex}}}
-%\AxiomC{(@code{f},\ @code{for all \pcent{}t\subi{} such that }_T\sub{Ex_})$\in\ $E}
-%\BinaryInfC{\typesafe{E}{@code{f is }Ex}}
-%\end{prooftree}
-%where @code{\pcent{}t\subi} is the subset of the type variables occurring in $T\sub{Ex}$ that do not occur otherwise in _E_.
-%\end{enumerate}
-%
-%\begin{aside}
-%Logically, generalization is valid for _any_ type. However, the generalization rule is only applied to programmatic types -- such as function types, procedure types and pattern types.
-%
-%The reason is that these elements are inherently re-usable and their values do not `carry stateful information'.
-%\end{aside}
-%
-%\begin{aside}
-%Generalization of types is not applied to certain kinds of definition within a @ref{thetaEnvironment}. In particular, it is not applied to re-assignable variables and it is not applied to @ref{MemoFunction} defined variables.
-%
-%In the case of @ref{MemoFunction}s, their execute-once semantics is not consistent with the re-usability assumption behind type generalization.
+%=== Type Generalization [[typeGeneralization]]
+%(((type,generalization))) (((generalized types))) The complement of
+%varreshing types is type _generalization_. Like varreshing,
+%generalizing a type involves moving type quantifiers; in this case,
+%quantifiers are moved inward rather than outward.  (((theta
+%environment))) In a @var{thetaEnvironment}, definitions of programs
+%-- functions, procedures and patterns -- involve a combination of
+%inferring types based on the forms of the expressions and patterns
+%and type generalization.  For example, the rules of type inference
+%will give a function expression such as: @example (function(X) is X)
+%a type assignment of: @example (\pcent{}t)=>\pcent{}t However, if a
+%variable (@code{f}) within a @var{thetaEnvironment} is bound to such
+%a value then the variable is given the type: @example for all
+%\pcent{}t such that (\pcent{}t)=>\pcent{}t \begin{aside} This assumes
+%that the type variable @code{\pcent{}t} is not varerenced by any
+%expression in the containing scope.  It also assumes that the
+%variable is not a re-assignable variable -- which in any case has a
+%non-program type: a @code{var} function type rather than a function
+%type.  \end{aside} This is justified by the possibility of safely
+%re-using the @code{f} function. For example, suppose that the
+%@var{thetaEnvironment} also contains other definitions that varerence
+%@code{f}: @example foo(X) is f(X)+1; ...  bar(A) is f(A)++"a" The
+%function @code{f} is used twice, but with different types for its
+%argument; in one case @code{f} is used with an @code{integer}
+%argument, in the other it is used with a @code{string} argument. It
+%is safe to do so because the defining equation for @code{f} does not
+%rely on the actual type of its argument.  The formal description of
+%this involves several steps: \begin{enumerate} \item A program
+%definition -- such as a function definition -- of the form: @example
+%f(_Ptn@sub{1}_\sequence{,}_Ptn@sub{n}_) is _Exp_ is equivalent to the
+%variable definition: @example f is
+%(function(_Ptn@sub{1}_\sequence{,}_Ptn@sub{n}_) is _Exp_) I.e., in
+%what follows, we are only concerned with variable definitions whose
+%type is a program type. footnote:[A function may be defined by
+%multiple equations. This does not materially alter this analysis.]
+%\item For such a variable definition, type safety requires that the
+%value has a program type. For brevity we deal with the function case
+%only, but this analysis applies to all program definitions.  \item
+%The defined variable is given a quantified type according to the type
+%inference rule: \begin{prooftree} \AxiomC{\typeprd{E}{Ex}{T\sub{Ex}}}
+%\AxiomC{(@code{f},\ @code{for all \pcent{}t\subi{} such that
+%}_T\sub{Ex_})$\in\ $E} \BinaryInfC{\typesafe{E}{@code{f is }Ex}}
+%\end{prooftree} where @code{\pcent{}t\subi} is the subset of the type
+%variables occurring in $T\sub{Ex}$ that do not occur otherwise in
+%_E_.  \end{enumerate} \begin{aside} Logically, generalization is
+%valid for _any_ type. However, the generalization rule is only
+%applied to programmatic types -- such as function types, procedure
+%types and pattern types.  The reason is that these elements are
+%inherently re-usable and their values do not `carry stateful
+%information'.  \end{aside} \begin{aside} Generalization of types is
+%not applied to certain kinds of definition within a
+%@var{thetaEnvironment}. In particular, it is not applied to
+%re-assignable variables and it is not applied to @var{MemoFunction}
+%defined variables.  In the case of @var{MemoFunction}s, their execute-once semantics is not consistent with the re-usability assumption behind type generalization.
 %\end{aside}

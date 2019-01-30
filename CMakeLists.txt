@@ -9,3 +9,5 @@ add_subdirectory("src/Infra")
 add_subdirectory("src/Engine")
 add_subdirectory("src/Star")
 add_subdirectory("src/Tests")
+
+add_subdirectory("Docs")
