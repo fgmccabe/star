@@ -1,23 +1,23 @@
 @node Introduction
-@chapter Introduction to @code{Star}
+@chapter Introduction to @Star{}
 
 @menu
 * About this reference::
 @end menu
 
 @noindent
-@code{Star} is a high-level symbolic programming language oriented to
+@Star{} is a high-level symbolic programming language oriented to
 the needs of large-scale high performance processing in modern
 parallel and distributed computing environments.
 
-@code{Star} is a @emph{functional-first} language -- in that functions
+@Star{} is a @emph{functional-first} language -- in that functions
 and other programs are first class values. However, it is explicitly
 not a pure language: it has support for updatable variables and
 structures. However, its bias is definitely in favor of functional
 programming and in order to get the best value from programming in
-@code{Star}, such side-effecting features should be used sparingly.
+@Star{}, such side-effecting features should be used sparingly.
 
-@code{Star} is strongly, statically, typed. What this means is that
+@Star{} is strongly, statically, typed. What this means is that
 all programs and all values have a single type that is determined by a
 combination of type inference and explicit type annotations.
 
@@ -32,7 +32,7 @@ except in cases where higher-ranked types are required, type inference
 is used extensively to reduce the burden of type bureaucracy on
 programmers.
 
-@code{Star} is extensible; there are many mechanisms designed to allow
+@Star{} is extensible; there are many mechanisms designed to allow
 extensions to the language to be designed simply and
 effectively. Using such techniques can significantly ease the burden
 of writing applications.
@@ -46,7 +46,7 @@ of writing applications.
 @end menu
 
 @noindent
-This reference is the language definition of the @code{Star}
+This reference is the language definition of the @Star{}
 language. It is intended to be thorough and as precise as possible in
 the features discussed. However, where appropriate, we give simple
 examples as illustrative background to the specification itself.
@@ -60,37 +60,37 @@ language. We use a variant of traditional BNF grammars to do this. The
 meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
 
 @float BNF,metaGrammar
-@smallexample
-@var{MetaGrammar} ::= @var{Production} , .. , @var{Production}
-@var{Production} ::= @var{NonTerminal} ::= @var{Body}
-@var{Production} ::+= @var{NonTerminal} ::+= @var{Body}
+@caption{MetaGrammar Used in this Reference}
+@shortcaption{MetaGrammar}
+@display
+@var{MetaGrammar} ::= @var{Production} @dots{} @var{Production}
+@var{Production} ::= @var{NonTerminal} @code{::=} @var{Body}
+@var{Production} ::+= @var{NonTerminal} @code{::+=} @var{Body}
 @var{Body} ::= @var{Quoted} | @var{NonTerminal} | @var{Choice} | @var{Optional} | @var{Sequence} | ( @var{Body} )
 @var{Quoted} ::= '@var{Characters}'
 @var{NonTerminal} ::= @var{Identifier}
-@var{Choice} ::= @var{Body} |..| @var{Body}
+@var{Choice} ::= @var{Body} @code{|} @dots{} @code{|} @var{Body}
 @var{Optional} ::= [ @var{Body} ]
-@var{Sequence} ::= @var{Body}  @var{op} .. @var{op} @var{Body} [+]
-@end smallexample
-@caption{MetaGrammar Used in this Reference}
-@shortcaption{MetaGrammar}
+@var{Sequence} ::= @var{Body}  @var{op} @dots{} @var{op} @var{Body} [+]
+@end display
 @end float
 
 Some grammar combinations are worth explaining as they occur quite
 frequently and may not be standard in BNF-style grammars. For example
 the rules for actions contain:
 
-@smallexample
+@example
 @var{Action} ::= @{ @var{Action} ; .. ; @var{Action} @}
-@end smallexample
+@end example
 
 This grammar rule defines an @var{Action} as a possibly empty sequence of
 @var{Action}s separated by semi-colons and enclosed in braces -- i.e.,
 the classic definition of a block.
 
 The rule:
-@smallexample
+@example
 @var{Decimal} ::= @var{Digit} .. @var{Digit}+
-@end smallexample
+@end example
 
 @noindent
 denotes a definition in which there must be at least one occurrence of
@@ -101,9 +101,9 @@ Occasionally, where a non-terminal is not conveniently captured in a
 single production, later sections will add to the definition of the
 non-terminal. This is signaled with a @code{::+=} production, as in:
 
-@smallexample
+@example
 @var{Expression} ::+= @var{ListLiteral}
-@end smallexample
+@end example
 
 which signals that, in addition
 to previously defined expressions, a @var{ListLiteral} is also an
@@ -119,11 +119,11 @@ examples of programs and program fragments. In this reference, we show
 these using a `typewriter`-like font, often broken out in a display
 form:
 
-@smallexample
+@example
 ...
 P : integer
 ...
-@end smallexample
+@end example
 
 We use the @code{...} ellipsis to explicitly indicate a fragment of a
 program that is embedded in a context.
@@ -135,9 +135,9 @@ Occasionally, we have to show a somewhat generic fragment of a program
 where you, the programmer, are expected to put your own text in. We
 highlight such areas using @code{@var{this}} font:
 
-@smallexample
+@example
 (@var{Args}) => @var{Expr}
-@end smallexample
+@end example
 
 
 This kind of notation is intended to suggest that @code{@var{Args}} and
@@ -159,3 +159,11 @@ accidentally `trip over' some feature of the language.
 
 
 
+@float
+@caption{A type proof}
+@display
+@typeprod{E,@var{El}@sub{1},@var{T}},@dots{},@typeprod{E,El@sub{n},@var{T}}
+-----------------------------
+@typeprod{E,@code{cons of [}@var{El}@sub{1},@dots{},@var{El}@sub{n}@code{]},@code{cons[}@var{T}@code{]}}
+@end display
+@end float

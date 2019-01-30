@@ -15,7 +15,7 @@
 @cindex character set
 @cindex Unicode
 
-@code{Star} source text is based on the Unicode character set. This
+@Star{} source text is based on the Unicode character set. This
 means that identifiers and string values may directly use any Unicode
 characters. However, all the standard operators and keywords fall in
 the ASCII subset of Unicode.
@@ -64,7 +64,7 @@ Horizontal Tab.
 @float BNF,lineCommentFig
 @caption{Line Comment}
 @display
-@anchor{LineComment}@var{LineComment} ::= (@code{-- } | @code{--\t}) @var{Char} @dots{} @var{Char} \n
+@anchor{LineComment}@var{LineComment} ::= (@code{'-- '} | @code{'--\t'}) @var{Char} @dots{} @var{Char} @code{'\n'}
 @end display
 @end float
 
@@ -78,7 +78,7 @@ characters and terminated by the characters @code{*/}.
 @float BNF,blockCommentFig
 @caption{Block Comment}
 @display
-@anchor{BlockComment}@var{BlockComment} ::= @code{/*} @var{char} @dots{} @var{char} @code{*/}
+@anchor{BlockComment}@var{BlockComment} ::= @code{'/*'} @var{char} @dots{} @var{char} @code{'*/'}
 @end display
 @end float
 
@@ -99,7 +99,7 @@ line comment but the continuation of the block comment.
 * Character Codes::
 @end menu
 
-@code{Star} supports integer values, floating point values, decimal
+@Star{} supports integer values, floating point values, decimal
 values and character codes as numeric values.
 
 @float BNF,numericLiteralFig
@@ -131,17 +131,17 @@ An integer is written using the normal decimal notation (@pxref{decimalFig}):
 1  34 -99
 @end example
 
+@quotation TIP
+All integers are represented as at least 64 bit values.
+@end quotation
+
 @float BNF,decimalFig
 @caption{Integer Literals}
 @display
 @anchor{IntegerLiteral}@var{IntegerLiteral}::=@var{Digit} @dots{} @var{Digit}+
-@anchor{Digit}@var{Digit}::=@code{0}|@code{1}|@code{2}|@code{3}|@code{4}|@code{5}|@code{6}|@code{7}|@code{8}|@code{9}
+@anchor{Digit}@var{Digit}::=@code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
 @end display
 @end float
-
-@quotation TIP
-All integers are represented as at least 64 bit values.
-@end quotation
 
 @node Hexadecimal Integers 
 @subsection Hexadecimal Integers
@@ -163,8 +163,8 @@ are all hexadecimals.
 @float BNF,hexadecimalFig
 @caption{Hexadecimal numbers}
 @display
-@anchor{Hexadecimal}@var{Hexadecimal}::= @code{0x} @var{Hex} @dots{} @var{Hex}+
-@anchor{Hex}@var{Hex}::= @code{0}|@code{1}|@code{2}|@code{3}|@code{4}|@code{5}|@code{6}|@code{7}|@code{8}|@code{9}|@code{a}|@code{b}|@code{c}|@code{d}|@code{e}|@code{f}
+@anchor{Hexadecimal}@var{Hexadecimal}::= @code{'0x'} @var{Hex} @dots{} @var{Hex}+
+@anchor{Hex}@var{Hex}::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}|@code{'a'}|@code{'b'}|@code{'c'}|@code{'d'}|@code{'e'}|@code{'f'}
 @end display
 @end float
 
@@ -186,7 +186,7 @@ See @ref{floatingPointFig} for a complete syntax diagram for floating point numb
 @float BNF,floatingPointFig
 @caption{Floating Point numbers}
 @display
-@anchor{FloatingPoint}@var{FloatingPoint}::=@var{Digit}@dots{}@var{Digit}+ @code{.} @var{Digit}@dots{}@var{Digit}+ [@code{e}[@code{-}]@var{Digit}@dots{}@var{Digit}+]]
+@anchor{FloatingPoint}@var{FloatingPoint}::=@var{Digit}@dots{}@var{Digit}+ @code{'.'} @var{Digit}@dots{}@var{Digit}+ [@code{'e'}[@code{'-'}]@var{Digit}@dots{}@var{Digit}+]]
 @end display
 @end float
 
@@ -219,7 +219,7 @@ Unicode has the capability to represent up to one million character code points.
 @float BNF,characterCodeFig
 @caption{Character Codes}
 @display
-@anchor{CharacterCode}@var{CharacterCode}::= @code{0c} @var{CharRef}
+@anchor{CharacterCode}@var{CharacterCode}::= @code{'0c'} @var{CharRef}
 @end display
 @end float
 
@@ -240,7 +240,7 @@ A @var{CharacterCode} has type @code{integer}.
 
 @noindent
 A @code{string} consists of a sequence of characters -- specifically
-@var{CharRef}s. There is no specific type in @code{Star} for the
+@var{CharRef}s. There is no specific type in @Star{} for the
 characters themselves -- instead, there are primitives for accessing individual code points as @code{integer}s.
 
 @quotation CAUTION
@@ -260,8 +260,8 @@ A @var{CharRef} is a denotation of a single character.
 @display
 @anchor{CharRef}@var{CharRef} ::= @var{Char} | @var{Escape}
 
-@anchor{Escape}@var{Escape}::=@code{\b} | @code{\d} | @code{\e} | @code{\f} | @code{\n} | @code{\r} | @code{\t} | @code{\v} |
-   @code{\}@var{Char} | @code{\u} @var{Hex}@dots{}@var{Hex}@code{;}
+@anchor{Escape}@var{Escape}::=@code{'\b'} | @code{'\d'} | @code{'\e'} | @code{'\f'} | @code{'\n'} | @code{'\r'} | @code{'\t'} | @code{'\v'} |
+   @code{'\'}@var{Char} | @code{'\u'} @var{Hex}@dots{}@var{Hex}@code{';'}
 @end display
 @end float
 
@@ -324,11 +324,11 @@ string may take the form of a @xref{BlockString}.
 @display
 @anchor{StringLiteral}@var{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
 
-@anchor{QuotedString} @var{QuotedString} ::= @code{"} @var{StrChar} @dots{} @var{StrChar} @code{"}
+@anchor{QuotedString} @var{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
 
 @anchor{StrChar}@var{StrChar} ::= @var{CharRef} | @var{Interpolation}
 
-@anchor{Interpolation}@var{Interpolation} ::= [ @code{$} | @code{#} ] (@var{Expression} @code{)} [ @code{:} @var{FormattingSpec} @code{;} ]
+@anchor{Interpolation}@var{Interpolation} ::= [ @code{'$'} | @code{'#'} ] @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
 
 @anchor{FormattingSpec}@var{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
 @end display
@@ -355,7 +355,7 @@ of string that permits raw character data to be processed as a string.
 @float BNF,blockStringFig
 @caption{Block String Literal}
 @display
-@anchor{BlockString}@var{BlockString}::= @code{"""} @var{Char} @dots{} @var{Char} @code{"""}
+@anchor{BlockString}@var{BlockString}::= @code{'"""'} @var{Char} @dots{} @var{Char} @code{'"""'}
 @end display
 @end float
 
@@ -403,7 +403,7 @@ equivalent: they all identify some variable or some type.
 @cindex alpha numeric identifier
 
 @noindent
-Identifiers in @code{Star} are based on the Unicode definition of
+Identifiers in @Star{} are based on the Unicode definition of
 identifier. For the ASCII subset of characters, the definition
 corresponds to the common form of identifier -- a letter followed by a
 sequence of digits and letters. However, non-ASCII characters are also
@@ -478,7 +478,7 @@ in single quotes. Recall that strings are enclosed in double quotes.
 @float BNF quotedIdentFig
 @caption{Quoted Identifier}
 @display
-@anchor{QuotedIdentifier}@var{QuotedIdentifier} ::= @code{'} @var{CharRef}@dots{}@var{CharRef} @code{'}
+@anchor{QuotedIdentifier}@var{QuotedIdentifier} ::= @code{'''} @var{CharRef}@dots{}@var{CharRef} @code{'''}
 @end display
 @end float
 
@@ -507,7 +507,8 @@ single quotes.
 
 For example, while @code{type} is a keyword in the language; enclosing
 the word in parentheses: @code{'type'} has the effect of suppressing
-the keyword interpretation -- even though the printed representations are the same.
+the keyword interpretation -- even though the printed representations
+are the same.
 
 Enclosing a name in parentheses also has the effect of suppressing any
 operator information about the name.
@@ -518,7 +519,7 @@ operator information about the name.
 @cindex punctuation
 
 @noindent
-@code{Star} has relatively few punctuations; although it has a large
+@Star{} has relatively few punctuations; although it has a large
 number of graphical identifiers, which are defined in @ref{Graphic Identifiers}.
 
 @menu
@@ -531,14 +532,14 @@ number of graphical identifiers, which are defined in @ref{Graphic Identifiers}.
 @node End of Term
 @subsection End of Term
 
-With a few exceptions, statements @footnote{A statement in @code{Star}
+With a few exceptions, statements @footnote{A statement in @Star{}
 is not to be confused with statements in languages like C or Java:
-statements in @code{Star} always declare some fact.} are terminated by the @var{Terminator} -- which consists of a period followed by white space character.
+statements in @Star{} always declare some fact.} are terminated by the @var{Terminator} -- which consists of a period followed by white space character.
 
-@float BNF terminatorFig
+@float BNF,terminatorFig
 @caption{Statement Terminator}
 @display
-@anchor{Terminator}@var{Terminator} ::= @code{.} @var{WhiteSpace}
+@anchor{Terminator}@var{Terminator} ::= @code{'.'} @var{WhiteSpace}
 @end display
 @end float
 
@@ -558,7 +559,7 @@ enclosed in braces, then it does not need termination.
 @subsection Parentheses
 @cindex parentheses
 
-Parentheses in @code{Star} are @emph{active}: they are not simply a
+Parentheses in @Star{} are @emph{active}: they are not simply a
 means of grouping expressions and/or overriding precedences of
 operators. This is because parentheses have two distinct roles: to
 group and/or override precedences, and as a way of enclosing tuples of
@@ -568,24 +569,27 @@ terms.
 @subsection Square brackets
 @cindex square brackets
 
-Square brackets (@code{[} and @code{]}) are used to delimit certain kinds of list and sequence expressions.
+Square brackets (@code{[} and @code{]}) are used to delimit certain
+kinds of list and sequence expressions.
 
 @node Braces
 @subsection Braces
 @cindex braces
 
-Braces are used in @code{Star} to delimit groups of statements.
+Braces are used in @Star{} to delimit groups of statements.
 
 There are two forms of braces: with and without a period character.
 
 @float BNF bracesFig
 @caption{Braces}
 @display
-@anchor{Brace}@var{Brace} ::= @code{@{} | @code{@}} | @code{@{.} | @code{.@}}
+@anchor{Brace}@var{Brace} ::= @code{'@{'} | @code{'@}'} | @code{'@{.'} | @code{'.@}'}
 @end display
 @end float
 
-They must be appropriately paired: a @code{@{} must be paired with a subsequent @code{@}}; and similarly the @code{@{.} must be paired with @code{.@}}.
+They must be appropriately paired: a @code{@{} must be paired with a
+subsequent @code{@}}; and similarly the @code{@{.} must be paired with
+@code{.@}}.
 
 
 

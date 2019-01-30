@@ -111,13 +111,15 @@ This grammar is the basis of the actual grammar for @code{Star};
 although the actual implementation is somewhat more efficient than the
 ambiguous grammar would suggest.
 @item
-There is an additional constraint not implied by this set of rules: a given identifier may be an operator of more than one form - prefix, infix and postfix.
+There is an additional constraint not implied by this set of rules: a
+given identifier may be an operator of more than one form - prefix,
+infix and postfix.
 @end itemize
 
 @node Standard Operators
 @section Standard Operators
 
-A key input to the grammar is the table of operators. @code{Star} has
+A key input to the grammar is the table of operators. @Star{} has
 a large number of standard operators; some of which are symbolic and
 others are alphanumeric in form.
 
