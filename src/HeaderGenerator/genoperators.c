@@ -347,18 +347,18 @@ static retCode procOperator(void *n, void *r, void *c) {
         switch (op->style) {
           case prefixOp: {
             char *type = (op->right == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n%s prefix, priority=%d\n", nm, type, op->prior);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s prefix\n@tab %d\n", nm, type, op->prior);
             break;
           }
           case infixOp: {
             char *type = (op->right == op->prior ? "right associative" :
                           op->left == op->prior ? "left associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n%s infix, priority=%d\n", nm, type, op->prior);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s infix\n@tab %d\n", nm, type, op->prior);
             break;
           }
           case postfixOp: {
             char *type = (op->left == op->prior ? "associative" : "non-associative");
-            ret = outMsg(out, "@item @code{%I}\n%s postfix, priority=%d\n", nm, type, op->prior);
+            ret = outMsg(out, "@item @code{%I}\n@tab %s postfix\n@tab %d\n", nm, type, op->prior);
             break;
           }
           default:

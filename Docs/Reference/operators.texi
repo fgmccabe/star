@@ -1,206 +1,308 @@
 @float
 @caption{Standard Operators}
-@table @asis
+@multitable {implementation}{non-associative prefix}{1010}
+@headitem Operator @tab Form @tab Priority
 @item @code{all}
-non-associative prefix, priority=1010
+@tab non-associative prefix
+@tab 1010
 @item @code{^=}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{&&}
-left associative infix, priority=910
+@tab left associative infix
+@tab 910
 @item @code{pure}
-non-associative prefix, priority=300
+@tab non-associative prefix
+@tab 300
 @item @code{..,}
-right associative infix, priority=1000
+@tab right associative infix
+@tab 1000
 @item @code{~>}
-non-associative infix, priority=1231
+@tab non-associative infix
+@tab 1231
 @item @code{.|.}
-left associative infix, priority=720
+@tab left associative infix
+@tab 720
 @item @code{import}
-non-associative prefix, priority=900
+@tab non-associative prefix
+@tab 900
 @item @code{of}
-non-associative infix, priority=400
+@tab non-associative infix
+@tab 400
 @item @code{,..}
-non-associative infix, priority=1000
+@tab non-associative infix
+@tab 1000
 @item @code{==>}
-non-associative infix, priority=950
+@tab non-associative infix
+@tab 950
 @item @code{**}
-left associative infix, priority=600
+@tab left associative infix
+@tab 600
 @item @code{->}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{.+.}
-non-associative prefix, priority=700
+@tab non-associative prefix
+@tab 700
 @item @code{raise}
-non-associative prefix, priority=300
+@tab non-associative prefix
+@tab 300
 @item @code{!}
-non-associative postfix, priority=100
+@tab non-associative postfix
+@tab 100
 @item @code{->>}
-non-associative infix, priority=1200
+@tab non-associative infix
+@tab 1200
 @item @code{=!=}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{default}
-non-associative postfix, priority=940
+@tab non-associative postfix
+@tab 940
 @item @code{#}
-non-associative prefix, priority=1750
+@tab non-associative prefix
+@tab 1750
 @item @code{#}
-non-associative infix, priority=760
+@tab non-associative infix
+@tab 760
 @item @code{^^}
-non-associative prefix, priority=912
+@tab non-associative prefix
+@tab 912
 @item @code{^^}
-non-associative infix, priority=912
+@tab non-associative infix
+@tab 912
 @item @code{%}
-left associative infix, priority=700
+@tab left associative infix
+@tab 700
 @item @code{<-}
-non-associative infix, priority=905
+@tab non-associative infix
+@tab 905
 @item @code{.>>>.}
-left associative infix, priority=600
+@tab left associative infix
+@tab 600
 @item @code{\\+}
-non-associative prefix, priority=905
+@tab non-associative prefix
+@tab 905
 @item @code{*}
-non-associative postfix, priority=700
+@tab non-associative postfix
+@tab 700
 @item @code{*}
-left associative infix, priority=700
+@tab left associative infix
+@tab 700
 @item @code{+}
-non-associative postfix, priority=700
+@tab non-associative postfix
+@tab 700
 @item @code{+}
-left associative infix, priority=720
+@tab left associative infix
+@tab 720
 @item @code{.>>.}
-left associative infix, priority=600
+@tab left associative infix
+@tab 600
 @item @code{*>}
-non-associative infix, priority=905
+@tab non-associative infix
+@tab 905
 @item @code{,}
-right associative infix, priority=1000
+@tab right associative infix
+@tab 1000
 @item @code{contract}
-non-associative prefix, priority=1260
+@tab non-associative prefix
+@tab 1260
 @item @code{-}
-non-associative prefix, priority=300
+@tab non-associative prefix
+@tab 300
 @item @code{-}
-left associative infix, priority=720
+@tab left associative infix
+@tab 720
 @item @code{.}
-left associative infix, priority=100
+@tab left associative infix
+@tab 100
 @item @code{/}
-left associative infix, priority=700
+@tab left associative infix
+@tab 700
 @item @code{<*>}
-right associative infix, priority=950
+@tab right associative infix
+@tab 950
 @item @code{•}
-left associative infix, priority=450
+@tab left associative infix
+@tab 450
 @item @code{exists}
-non-associative prefix, priority=1010
+@tab non-associative prefix
+@tab 1010
 @item @code{<=}
-non-associative infix, priority=950
+@tab non-associative infix
+@tab 950
 @item @code{:}
-non-associative infix, priority=1250
+@tab non-associative infix
+@tab 1250
 @item @code{;}
-right associative infix, priority=1251
+@tab right associative infix
+@tab 1251
 @item @code{-->}
-non-associative infix, priority=1200
+@tab non-associative infix
+@tab 1200
 @item @code{<}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{.=}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{=}
-non-associative infix, priority=975
+@tab non-associative infix
+@tab 975
 @item @code{|:}
-non-associative infix, priority=1235
+@tab non-associative infix
+@tab 1235
 @item @code{show}
-non-associative prefix, priority=1260
+@tab non-associative prefix
+@tab 1260
 @item @code{++}
-right associative infix, priority=720
+@tab right associative infix
+@tab 720
 @item @code{>}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{return}
-non-associative prefix, priority=300
+@tab non-associative prefix
+@tab 300
 @item @code{?}
-right associative infix, priority=920
+@tab right associative infix
+@tab 920
 @item @code{@@}
-non-associative prefix, priority=400
+@tab non-associative prefix
+@tab 400
 @item @code{@@}
-right associative infix, priority=400
+@tab right associative infix
+@tab 400
 @item @code{in}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{^|}
-right associative infix, priority=1249
+@tab right associative infix
+@tab 1249
 @item @code{open}
-non-associative prefix, priority=900
+@tab non-associative prefix
+@tab 900
 @item @code{~~}
-right associative infix, priority=1240
+@tab right associative infix
+@tab 1240
 @item @code{assert}
-non-associative prefix, priority=1260
+@tab non-associative prefix
+@tab 1260
 @item @code{=.}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{.^.}
-left associative infix, priority=720
+@tab left associative infix
+@tab 720
 @item @code{//}
-left associative infix, priority=800
+@tab left associative infix
+@tab 800
 @item @code{public}
-non-associative prefix, priority=1700
+@tab non-associative prefix
+@tab 1700
 @item @code{ref}
-non-associative prefix, priority=900
+@tab non-associative prefix
+@tab 900
 @item @code{.~.}
-non-associative prefix, priority=650
+@tab non-associative prefix
+@tab 650
 @item @code{where}
-non-associative infix, priority=911
+@tab non-associative infix
+@tab 911
 @item @code{=<}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{==}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{=>}
-right associative infix, priority=950
+@tab right associative infix
+@tab 950
 @item @code{^}
-non-associative prefix, priority=100
+@tab non-associative prefix
+@tab 100
 @item @code{^}
-non-associative infix, priority=100
+@tab non-associative infix
+@tab 100
 @item @code{<=>}
-non-associative infix, priority=950
+@tab non-associative infix
+@tab 950
 @item @code{valof}
-non-associative prefix, priority=300
+@tab non-associative prefix
+@tab 300
 @item @code{private}
-non-associative prefix, priority=1700
+@tab non-associative prefix
+@tab 1700
 @item @code{.&.}
-left associative infix, priority=700
+@tab left associative infix
+@tab 700
 @item @code{///}
-left associative infix, priority=800
+@tab left associative infix
+@tab 800
 @item @code{::}
-non-associative infix, priority=400
+@tab non-associative infix
+@tab 400
 @item @code{+++}
-right associative infix, priority=720
+@tab right associative infix
+@tab 720
 @item @code{:=}
-non-associative infix, priority=975
+@tab non-associative infix
+@tab 975
 @item @code{.<<.}
-left associative infix, priority=600
+@tab left associative infix
+@tab 600
 @item @code{^+}
-non-associative prefix, priority=905
+@tab non-associative prefix
+@tab 905
 @item @code{^.}
-left associative infix, priority=450
+@tab left associative infix
+@tab 450
 @item @code{>>=}
-right associative infix, priority=950
+@tab right associative infix
+@tab 950
 @item @code{^/}
-left associative infix, priority=800
+@tab left associative infix
+@tab 800
 @item @code{>>>}
-non-associative infix, priority=960
+@tab non-associative infix
+@tab 960
 @item @code{<~}
-non-associative infix, priority=1231
+@tab non-associative infix
+@tab 1231
 @item @code{type}
-non-associative prefix, priority=1251
+@tab non-associative prefix
+@tab 1251
 @item @code{implementation}
-non-associative prefix, priority=1260
+@tab non-associative prefix
+@tab 1260
 @item @code{|}
-right associative infix, priority=1249
+@tab right associative infix
+@tab 1249
 @item @code{.~}
-non-associative infix, priority=500
+@tab non-associative infix
+@tab 500
 @item @code{.#.}
-left associative infix, priority=600
+@tab left associative infix
+@tab 600
 @item @code{~}
-non-associative infix, priority=499
+@tab non-associative infix
+@tab 499
 @item @code{^//}
-left associative infix, priority=800
+@tab left associative infix
+@tab 800
 @item @code{||}
-right associative infix, priority=920
+@tab right associative infix
+@tab 920
 @item @code{::=}
-non-associative infix, priority=1250
+@tab non-associative infix
+@tab 1250
 @item @code{>=}
-non-associative infix, priority=900
+@tab non-associative infix
+@tab 900
 @item @code{>>}
-right associative infix, priority=950
+@tab right associative infix
+@tab 950
 
-@end table
+@end multitable
 @end float
+

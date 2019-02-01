@@ -1,6 +1,8 @@
 @float
 @caption{Standard Operators}
-@table @asis
+@multitable {implementation}{non-associative prefix}{1010}
+@headitem Operator @tab Form @tab Priority
 #(Operators)
-@end table
+@end multitable
 @end float
+

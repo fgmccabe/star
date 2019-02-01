@@ -49,8 +49,23 @@ All rights reserved.
 @end macro
 @end ifnotinfo
 
+@ifinfo
+@macro noteq
+!=
+@end macro
+@end ifinfo
+@ifnotinfo
+@macro noteq
+@U{2260}
+@end macro
+@end ifnotinfo
+
 @macro typeprod{E,Exp,T}
 @var{\E\}@turnstile{}\Exp\:\T\
+@end macro
+
+@macro anchored{T}
+@anchor{\T\}@var{\T\}
 @end macro
 
 @noindent
@@ -72,6 +87,7 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 * Lexical Syntax::
 * Grammar::
 * Well Formed Programs::
+* Types::
 
 * Concept index::
 * Function index::
@@ -88,6 +104,8 @@ more tutorial introduction, the reader is referred to @emph{Star Programming} (b
 @include grammar.texi
 
 @include wff.texi
+
+@include types.texi
 
 @node Concept index
 @unnumbered Concept index

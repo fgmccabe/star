@@ -3,5 +3,5 @@ project(Reference)
 
 include(../makeinfo.cmake)
 
-add_info(ref intro lexical grammar)
+add_info(ref intro lexical grammar types)
 
