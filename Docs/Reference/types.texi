@@ -1137,7 +1137,6 @@ and
 cons[integer] @noteq cons[integer,string]
 @end example
 
-
 @end itemize
 
 @node Unifying Tuple Types
@@ -1146,14 +1145,122 @@ cons[integer] @noteq cons[integer,string]
 Two @ref{TupleType}s unify if they have the same number of elements,
 and those elements unify in a pairwise fashion.
 
+@example
+() = ()
+@end example
+and
+@example
+(integer,string) = (integer,string)
+@end example
+and
+@example
+(integer,string) = (integer,t)
+@end example
+where @code{t} is an arity-0 type variable, with the additional effect that @code{t} will be bound to the @code{string} type.
+
+However,
+@example
+() @noteq{} (())
+@end example
+because the second is actually a unary tuple containing a zero-tuple; and
+@example
+(string,integer) @noteq{} (integer,string)
+@end example
+because elements must unify in a pairwise way.
+
 @node Unifying Record Types
 @subsection Unifying Record Types
+
+Fields in a record are not intrinsically ordered, but the spirit of
+unification for records is similar to that of tuples:
+
+Two record types unify iff:
+@itemize @bullet
+@item
+they have the same fields and embedded types
+@item
+each field's type in one record type unifies with the corresponding field of the other record type
+@item
+each embedded type in one record unifies with the corresponding embedded type of the other record type.
+@end itemize
+
+@quotation NOTE
+There is no syntax in @Star{} for @emph{partial} records.
+@end quotation
+
+For example,
+@example
+@{@} = @{@}
+@end example
+and
+@example
+@{ foo:integer. type bar @} = @{ foo:t. type bar @}
+@end example
+with @code{t} being bound to @code{integer}; whereas
+@example
+@{ foo:integer. @} @noteq{} @{bar:integer@}
+@end example
+because the second record type does not have a @code{foo} field, and
+the first does not have a @code{bar} field.
 
 @node Unifying Function Types
 @subsection Unifying Function Types
 
+Two function types unify iff their arguments unify and the result
+unifies. Note that the simple function type does not unify with the
+constructor function type.
+
+@example
+(integer)=>integer = (t)=>t
+@end example
+where @code{t} is a type variable that is subsequently bound to @code{integer}; whereas
+@example
+(integer,string)=>integer @noteq{} (string,integer)=>integer
+@end example
+and
+@example
+(integer,string)=>integer @noteq{} (integer,string)<=>integer
+@end example
+
 @node Unifying Type Variables
 @subsection Unifying Type Variables
+
+There are two sub-cases for unifying type variables:
+@enumerate
+@item
+if either the left or the right terms are not type variables, then
+@emph{provided the type variable does not itself appear in the
+non-variable type} and @emph{provided that any type constraints on the
+type variable are satisfied by the non-variable type} then the two
+types are unifiable.
+
+In addition, the fact of the unification is recorded as a binding for
+the variable type. Thereafter, when unifying types, this binding must
+be applied to all occurrences of the same type variable.
+@item
+if both left and right terms are type variables then the unification
+is permitted; and the fact of the unification is recorded as a binding
+for the variable that is bound. As for non-variable bindings, the
+binding must be applied to all occurrences of the same type variable.
+
+In addition, any type constraints on the type variables are
+@emph{merged}. If this merging is not possible then the two type
+variables do not unify.
+
+Type constraints are merged as follows, assuming that @code{t@sub{a}
+is bound to @code{t@sub{b}}:
+@enumerate
+@item
+for every contract constraint in @code{t@sub{a}}, if a contract
+contraint exists for @code{t@sub{b}} with the same contract name, then
+the two contracts must unify, otherwise it is appended to the
+contraints for @code{t@sub{b}}.
+@item
+if there is a field constraint in @code{t@sub{a}}, it is merged with
+the corresponding field constraint for @code{t@sub{b}}.
+@end enumerate
+@end enumerate
+
 
 @node Unifying Quantified Types
 @subsection Unifying Quantified Types
