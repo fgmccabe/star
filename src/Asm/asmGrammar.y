@@ -14,7 +14,7 @@
 %locations
 %pure-parser
 %defines
-%error-verbose
+%define parse.error verbose
 
 %debug
 
