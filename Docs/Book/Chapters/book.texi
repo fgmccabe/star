@@ -18,7 +18,6 @@ All rights reserved.
 @title Programming in Star
 @author Francis G. McCabe
 
-
 @page
 @insertcopying
 @end titlepage
@@ -36,7 +35,6 @@ All rights reserved.
 @macro Star
 @code{Star}
 @end macro
-
 
 @macro anchored{T}
 @anchor{\T\}@var{\T\}
@@ -57,7 +55,7 @@ language; for which the reader is referred to @emph{Star Reference} by
 F.G. McCabe.
 
 @menu
-* Introduction::
+* Why be a Star programmer?::
 
 * Concept index::
 * Function index::
