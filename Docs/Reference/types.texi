@@ -17,7 +17,7 @@ types and a system of verifying the type consistency of programs.
 * Structural Types::
 * Quantified Types::
 * Type Constraints::
-* Type Unification::
+* Type Semantics::
 @end menu
 
 @node What is a Type?
@@ -34,7 +34,6 @@ evaluation.
 @end quotation
 
 @menu
-* Type Rules::
 * Type Annotations::
 * Types of Types::
 @end menu
@@ -150,43 +149,6 @@ denote @emph{abstract types}; i.e., the existential quantifier signals
 that there is a type that should be treated as an opaque @emph{black
 box}.
 
-@node Type Rules
-@subsection Type Rules
-@cindex type safety
-@cindex type rules
-
-The connection between the argument type of a @code{cons} type
-expression and the actual elements of lists is denoted by a @emph{type
-inference rule}. Type inference rules are rules for relating
-expressions and statements in the language to the types associated
-with that statement. For example, the rule:
-
-@display
-@typeprod{E,@var{El}@sub{1},@var{T}},@dots{},@typeprod{E,El@sub{n},@var{T}}
-@result{}
-@typeprod{E,@code{cons of[@var{El}@sub{1}@comma{}@dots{}@comma{}@var{El}@sub{n}]},@code{cons[@var{T}]}}
-@end display
-says that if the expressions @var{El@sub{1}} through @var{El@sub{n}}
-all have type @var{T}, then the list expression
-@example
-cons of [@emph{El@sub{1}}@comma{}@dots{}@comma{}@emph{El@sub{n}}]
-@end example
-has type @code{cons[@var{T}]}. This is the formal way of stating that
-all elements of a list must have the same type.
-
-The general form of a type inference rule that is determining a type (sometimes called a type judgment) is:
-@display
-@var{Condition}
-@result{}
-@typeprod{E,@var{X},@var{T}}
-@end display
-@quotation
-If @emph{Condition} is satisfied, then we can infer from the context
-@var{E} that @var{X} has type @var{T}
-@end quotation
-where the symbol @turnstile{} can be read as @emph{type
-implication}. In general, the type of an expression depends on the
-context that it is found.
 
 @node Type Annotations
 @subsection Type Annotations
@@ -1052,8 +1014,7 @@ defined for it.
 @float BNF,attributeConstraintFig
 @caption{Field Constraint}
 @display
-@anchored{FieldConstraint} ::= @var{Type} @code{<~} @{
-@var{TypeAnnotation} . @dots{}. @var{Annotation} @}
+@anchored{FieldConstraint} ::= @var{Type} @code{<~} @{ @var{Annotation} . @dots{}. @var{Annotation} @}
 @end display
 @end float
 
@@ -1077,8 +1038,143 @@ requires that any actual binding for type
 @code{s} must include the embedded type @code{elem}.
 @end quotation
 
+@node Type Semantics
+@section Type Semantics
+@cindex semantics of types
+
+@menu
+* Type Rules::
+* Freshening and Skolemization::
+* Type Unification::
+@end menu
+
+@node Type Rules
+@subsection Type Rules
+@cindex type safety
+@cindex type rules
+
+The connection between the argument type of a @code{cons} type
+expression and the actual elements of lists is denoted by a @emph{type
+inference rule}. Type inference rules are rules for relating
+expressions and statements in the language to the types associated
+with that statement. For example, the rule:
+
+@display
+@typeprod{E,@var{El}@sub{1},@var{T}},@dots{},@typeprod{E,El@sub{n},@var{T}}
+@result{}
+@typeprod{E,@code{cons of[@var{El}@sub{1}@comma{}@dots{}@comma{}@var{El}@sub{n}]},@code{cons[@var{T}]}}
+@end display
+says that if the expressions @var{El@sub{1}} through @var{El@sub{n}}
+all have type @var{T}, then the list expression
+@example
+cons of [@emph{El@sub{1}}@comma{}@dots{}@comma{}@emph{El@sub{n}}]
+@end example
+has type @code{cons[@var{T}]}. This is the formal way of stating that
+all elements of a list must have the same type.
+
+The general form of a type inference rule that is determining a type
+(sometimes called a type judgment) is:
+@display
+@var{Condition}
+@result{}
+@typeprod{E,@var{X},@var{T}}
+@end display
+@quotation
+If @emph{Condition} is satisfied, then we can infer from the context
+@var{E} that @var{X} has type @var{T}
+@end quotation
+where the symbol @turnstile{} can be read as @emph{type
+implication}. In general, the type of an expression depends on the
+context that it is found.
+
+The @emph{environment} part of the type judgement consists of a sequence of
+type bindings, type equalities and type constraints:
+@itemize
+@item
+A type binding consists of a type annotation:
+@example
+@var{var} : @var{type}
+@end example
+@item
+A type equality consists of an equality between a type variable and a type:
+@example
+@var{type} = @var{type}
+@end example
+@item
+A type constraint consists of an instance of a @ref{TypeConstraint}s:
+@example
+@var{Constraint}
+@end example
+@end itemize
+The environment's primary purpose is to establish the context of a
+type judgement.
+
+@quotation NOTE
+The environment is described as an ordered sequence because @Star{}
+permits scope hiding: where a local definition of a value may obscure
+an outer definition.
+@end quotation
+
+@node Freshening and Skolemization
+@subsection Freshening and Skolemization
+@cindex skolemization
+
+In any logic with quantifiers, reasoning about terms can involves
+rewriting quantified expressions. The type system of @Star{} has two
+related operations over types: freshening and skolemization.
+
+@menu
+* Freshening::
+* Skolemization::
+@end menu
+
+@node Freshening
+@subsubsection Freshening
+
+Freshening refers to the process of copying a quantified type
+expression and replacing the bound type variable with a @emph{new}
+type variable; crucially, one that may be bound in a subsequent
+inference step.
+
+@quotation NOTE
+Freshening is closely connected to the logical inference step of
+@emph{standardizing apart}; which involves renaming bound variables so
+that they are unique and moving the associated quantifier @emph{all
+the way outside}. In effect, the new type variable becomes free in the
+logical formula.
+@end quotation
+
+The most common situation that freshening occurs in @Star{}'s type
+system is when inferring the type of an identifier
+occurrence. Informally, freshening corresponds to the intuition that a
+generic type may be used in many ways; and this is realized in type
+inference by freshening the recorded type of an identifier for each
+occurrence of the identifier in the program.
+
+@node Skolemization
+@subsubsection Skolemization
+
+Skolemization refers to the process of copying a quantified type
+expression and replacing the bound type variable with a @emph{new}
+type; crucially, one that is @emph{not} equal to any existing type.
+
+The most common situation that skolemization occurs in @Star{}'s type
+system is when validating that a variable's definition is consistent
+with its declared type.
+
+Informally, skolemization corresponds to the intuition that any
+definition of a variable (or function) whose type is generic must obey
+certain constraints: specifically the definition may not further
+constrain the type by any entanglement with additional
+constraints.
+
+This is acheived by marking the type variable as
+effectively read-only within the definition; or equivalently, by using
+a new type that does not appear anywhere and therefore has no
+knowledge of functions that may be defined for it.
+
 @node Type Unification
-@section Type Unification
+@subsection Type Unification
 @cindex type,unification
 
 @noindent
@@ -1089,6 +1185,7 @@ typically by replacing variables with values.
 
 @menu
 * Unifying Nominal Types::
+* Unifying Reference Types::
 * Unifying Tuple Types::
 * Unifying Record Types::
 * Unifying Function Types::
@@ -1097,7 +1194,7 @@ typically by replacing variables with values.
 @end menu
 
 @node Unifying Nominal Types
-@subsection  Unifying Nominal Types
+@subsubsection  Unifying Nominal Types
 
 Two nominal types unify if they can be made identical:
 @itemize @bullet
@@ -1114,7 +1211,9 @@ integer @noteq{} string
 @end example
 
 @item
-Two @ref{ParameterizedType}s unify if their @var{TypeConstructor}s unify, they have the same number of @ref{TypeArgument}s, and those arguments pairwise unify.
+Two @ref{ParameterizedType}s unify if their @var{TypeConstructor}s
+unify, they have the same number of @ref{TypeArgument}s, and those
+arguments pairwise unify.
 
 For example,
 @example
@@ -1136,11 +1235,29 @@ and
 @example
 cons[integer] @noteq cons[integer,string]
 @end example
-
 @end itemize
 
+
+@node Unifying Reference Types
+@subsubsection  Unifying Reference Types
+
+Two reference types unify if their argument types unify
+
+For example,
+@example
+ref integer = ref integer
+@end example
+but,
+@example
+ref integer @noteq ref string
+@end example
+and
+@example
+ref integer @noteq list[integer]
+@end example
+
 @node Unifying Tuple Types
-@subsection Unifying Tuple Types
+@subsubsection Unifying Tuple Types
 
 Two @ref{TupleType}s unify if they have the same number of elements,
 and those elements unify in a pairwise fashion.
@@ -1156,7 +1273,8 @@ and
 @example
 (integer,string) = (integer,t)
 @end example
-where @code{t} is an arity-0 type variable, with the additional effect that @code{t} will be bound to the @code{string} type.
+where @code{t} is an arity-0 type variable, with the additional effect
+that @code{t} will be bound to the @code{string} type.
 
 However,
 @example
@@ -1169,7 +1287,7 @@ because the second is actually a unary tuple containing a zero-tuple; and
 because elements must unify in a pairwise way.
 
 @node Unifying Record Types
-@subsection Unifying Record Types
+@subsubsection Unifying Record Types
 
 Fields in a record are not intrinsically ordered, but the spirit of
 unification for records is similar to that of tuples:
@@ -1179,9 +1297,11 @@ Two record types unify iff:
 @item
 they have the same fields and embedded types
 @item
-each field's type in one record type unifies with the corresponding field of the other record type
+each field's type in one record type unifies with the corresponding
+field of the other record type
 @item
-each embedded type in one record unifies with the corresponding embedded type of the other record type.
+each embedded type in one record unifies with the corresponding
+embedded type of the other record type.
 @end itemize
 
 @quotation NOTE
@@ -1204,7 +1324,7 @@ because the second record type does not have a @code{foo} field, and
 the first does not have a @code{bar} field.
 
 @node Unifying Function Types
-@subsection Unifying Function Types
+@subsubsection Unifying Function Types
 
 Two function types unify iff their arguments unify and the result
 unifies. Note that the simple function type does not unify with the
@@ -1213,7 +1333,8 @@ constructor function type.
 @example
 (integer)=>integer = (t)=>t
 @end example
-where @code{t} is a type variable that is subsequently bound to @code{integer}; whereas
+where @code{t} is a type variable that is subsequently bound to
+@code{integer}; whereas
 @example
 (integer,string)=>integer @noteq{} (string,integer)=>integer
 @end example
@@ -1223,17 +1344,29 @@ and
 @end example
 
 @node Unifying Type Variables
-@subsection Unifying Type Variables
+@subsubsection Unifying Type Variables
 
 There are two sub-cases for unifying type variables:
 @enumerate
 @item
 if either the left or the right terms are not type variables, then
-@emph{provided the type variable does not itself appear in the
-non-variable type} and @emph{provided that any type constraints on the
-type variable are satisfied by the non-variable type} then the two
+@emph{provided that}:
+@itemize @bullet
+@item
+the type variable does not itself appear in the non-variable type; and
+@item
+any type constraints on the type variable are satisfied by the
+non-variable type;
+@end itemize
+then the two
 types are unifiable.
 
+@quotation NOTE
+The first condition is known as an @emph{occurs check}.
+@cindex Occurrs check
+@end quotation
+
+@noindent
 In addition, the fact of the unification is recorded as a binding for
 the variable type. Thereafter, when unifying types, this binding must
 be applied to all occurrences of the same type variable.
@@ -1247,7 +1380,7 @@ In addition, any type constraints on the type variables are
 @emph{merged}. If this merging is not possible then the two type
 variables do not unify.
 
-Type constraints are merged as follows, assuming that @code{t@sub{a}
+Type constraints are merged as follows, assuming that @code{t@sub{a}}
 is bound to @code{t@sub{b}}:
 @enumerate
 @item
@@ -1263,46 +1396,86 @@ the corresponding field constraint for @code{t@sub{b}}.
 
 
 @node Unifying Quantified Types
-@subsection Unifying Quantified Types
+@subsubsection Unifying Quantified Types
 
-Two quantified types are equal iff the quantified variables are the same
-and the quantified expressions are the same. Note that the meaning of a
-quantified formula is unchanged if the quantified variables are renamed
-(provided that the new name does not iteself occur in the quantified
-formula). 
-
-So, we can show that two quantified types are equal iff we can rename
-one or more of the quantified variables (remembering to replace all
-occurrences of the old variable with the new one) and then after such
-renaming the two quantified types are equal.
-
-For example, the two quantified type expressions:
-
-@smallexample
-%a-((%a[])=>(%a))
-@end smallexample
 @noindent
-and
-@smallexample
-%b-((%b[])=>(%b))
-@end smallexample
-@noindent
-are equal because we can rename @code{%a} to @code{%b}.
+Unifying quantified types is slightly more involved than that of other
+forms of type. Two quantified types are unifiable iff they can be made
+to be identical; however, a quantified type stands for all or some
+type. In particular, two quantified types are considered to be
+identical if they differ only in the name of the bound variable.
 
-More formally, we can say that
-@smallexample
-@var{%a}-@var{typeA} = @var{%b}-@var{typeB}
-@end smallexample
-@noindent
-iff there is a @var{%c} which does not occur in either of @var{typeA} or
-@var{typeB} and:
-@smallexample
-@var{typeA'} = @var{typeB'}
-@end smallexample
-@noindent
-where @var{typeA'} results from replacing all
-occurrences of @var{%a} by @var{%c} in @var{typeA} and @var{typeB'}
-results from replacing all
-occurrences of @var{%b} by @var{%c} in @var{typeB}
+For example,
+@example
+all x ~~ cons[x]
+@end example
+is equivalent to
+@example
+all y ~~ cons[y]
+@end example
 
+Our rule for unifying two quantified types reflects this:
 
+Two quantified types are unifiable if
+@itemize @bullet
+@item
+they are the same form of quantifier (@code{all} vs @code{exists}
+@item
+for some type name @code{t} that does not occur in either of them,
+@example
+all x~~@var{T1}
+@end example
+is renamed to
+@example
+all t~~@var{T1'}
+@end example
+where @var{T1'} is obtained from @var{T1} by systematically replacing
+all occurrences of @code{x} by @code{t} -- except for any further
+occurrences of @code{x} as a bound variable in a quantified type
+within @var{T1}.
+
+Similarly,
+@example
+all y~~@var{T2}
+@end example
+is rewritten to
+@example
+all t~~@var{T2'}
+@end example
+
+@quotation NOTE
+Both @var{T1} and @var{T2} are rewritten using the same target name @code{t}.
+@end quotation
+
+Finally, the two quantified types unify iff
+@example
+@var{T1'} = @var{T2'}
+@end example
+@end itemize
+
+@quotation NOTE
+Because both @code{x} and @code{y} are bound type variables, they
+cannot occur in any outer type terms -- should the quantified types be
+part of larger type terms that are being unified there cannot be any
+binding 'side effect' by rewriting either of @code{x} or @code{y}.
+@end quotation
+
+Some examples:
+@smallexample
+all a~~((cons[a])=>(a)) = all b~~((cons[b])=>(b))
+@end smallexample
+are equal because we can rename both @code{a} and @code{b} to @code{c}
+and unify the bound types:
+@example
+all c~~((cons[c])=>(c)) = all c~~((cons[c])=>(c))
+@end example
+
+However
+@example
+all a~~(a)=>integer @noteq{} exists b~~(b)=>integer
+@end example
+because of the different quantifiers, and
+@example
+all a~~(a)=>integer @noteq{} (@var{t})=>integer
+@end example
+for any type @var{t} because the latter type is not quantified.
