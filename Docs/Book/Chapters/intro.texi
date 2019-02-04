@@ -1,0 +1,211 @@
+@chapter Why be a Star programmer?
+@node Why be a Star programmer?
+
+This book is about the programming language called **Star**. Why, you
+may ask, do you need to learn yet another language? We hope to answer
+that question and more in the course of this book. We also aim to show
+you how to program effectively in **Star** to solve real world
+problems.
+
+@section Programming has changed
+@node Programming has changed
+
+Many of the world's most popular languages are quite old: C/C++ date
+back to the 1970's and 1980's; Java dates back to 1995. Although it
+sometimes does not seem like it; quite a lot has changed since those
+days.
+
+@subsection Programs are huge
+@node Programs are huge
+If your program is 100 lines long, it does not actually matter what programming language you use to write it in -- unless you are learning programming for the first time.
+
+However, in practice, many software systems are huge. It is normal to develop and to encounter programs measured in 100 Klocs (thousands of lines of code) and it is not uncommon to encounter software systems measured in the millions of lines of code.
+
+>To put these numbers into perspective, 500KLocs is comparable to the expected output of a programmer over their entire career. So, these systems necessarily involve many people over many years: a team of 10 programmers would take 10 years to write 1M lines of code.[^Not including code thrown away due to changes of requirements over that time period.]
+
+Software development at this scale does not share much with developing small systems. Large scale software is invariably a team effort, spread over multiple years. It often involves large numbers of components and multiple sub-systems interacting with each other. Overall, this is a scenario of staggering heterogeneity and complexity.
+
+If there is one theme that is common in large code bases is that tooling is critical: powerful IDEs can make a difference in productivity measured in factors of 2-5. However, it is our opinion that language tooling starts with a sound programming language design: the sounder the foundations, the taller the structure that can be built on it.
+
+@subsection Planning for change
+@node Planning for change
+Furthermore, *change* is the dominant fact of life for large systems. Software systems evolve, grow, are repurposed to meet new objectives, and are re-implemented to take advantage of new technologies.
+
+Managing change in code is often left to Source Code Control Systems; but these systems only address part of the problem. For example, *code re-use* is also a requirement and a challenge for large systems. In fact, one could imagine a “three R’s” for software engineering: Reuse, Repurpose, and Refactor.
+
+When the code base is over 500 Kloc, the theoretical probability of being able to re-use existing code is high, the actual probability of re-use may be very low -- software engineers may simply not be able to find the needle in the code haystack, or, typically, the cost of re-using code may outweigh the cost of developing from scratch.
+
+The need to repurpose reflects the fact that requirements change and that software written for one purpose may be used for something different. Finally, even if the requirements dont change, the context almost certainly will: increasing workload can lead to a need to refactor existing code to enable it to meet changing needs.
+
+There is another kind of change that we need to consider: the evolution of our programming languages and other tools. A successful programming language is part of an ecosystem. That ecosystem consists of the language itself, together with compilers and related tools. It also contains libraries, frameworks and packages. In many cases the libraries that are associated with a language are far more important than the language compiler (e.g., Java's package ecosystem is enormous).
+
+A well designed language is capable of supporting a large variety of libraries without running into limitations. Furthermore, a well designed language is structured in a way that supports its own evolution -- new requirements can lead to new features being added to the language.
+
+>Managing this evolution may be the hardest aspect of designing programming languages!
+
+@subsection Programming safely and effectively
+@node Programming safely and effectively
+
+At the same time, safety and security are also critical: no-one likes to have their private information exposed to the bad guys. Most main-stream programming languages were designed in an era when safety was not uppermost in programmers’ minds -- usually it was performance. Some seemingly trivial design choices -- such as C’s conventions for laying out strings in memory -- turn out to have potentially devastating security implications.
+
+In addition, systems that are built assuming a shielded execution environment, behind closed doors as it were, are often actually expected to perform in the full glare of the Internet. Hardening programs so that they stand up to that glare can often dramatically add to the cost of development -- both in time and in money.
+
+@subsection Real-time is normal time.
+@node Real-time is normal time.
+
+Many kinds of business are becoming more and more ‘real-time’: a small -- over the order of milliseconds -- slowdown in loading a web page can mean the loss of 5% or more of revenue for an e-commerce site; an unrented car, like an unrented hotel room, represents a permanent loss of business and a competitive disadvantage.
+
+For the modern programmer, this means that applications must be engineered from the start to be responsive and multitasking -- aspects that challenge even the most professional of programmers.
+
+@subsection This train is leaving the station
+@node This train is leaving the station
+
+Perhaps most importantly, we need to be able to do these things *now* -- time to market is a critical factor in many if not most modern applications. Its no good developing the world’s best widget if you run out of ‘runway’ trying to build it.
+
+A major bottleneck is the relative poor productivity of most modern programming languages. It is simply too hard to produce correct robust code in languages like C/C++, Python etc.
+
+Productivity is an issue for individual programmers but is especially salient for programmer teams.
+
+>Every successful software project involves a team.
+
+The requirements for team-based development tend to put certain aspects of programming language design into sharp focus. For example, strong types and clear interfaces may be excellent aids for individual programmers but they are absolutely paramount for team development.
+
+More generally, in a competitive environment, the only way to reliably out-perform the competition in reaching the market is to use radically more productive technology.
+
+
+@subsection Technology
+@node Technology
+
+The technology platform that programs are written for is also changing. Just a few decades ago most computers were single-core; nowadays most computers are multi-core and are capable of significant parallelism.
+
+Especially spectacular is the parallelism available in modern GPUs; where a high end graphics processor may have thousands of cores capable of processing instructions in parallel. We expect that the days of personal computers with thousands of cores is not too far in the future.
+
+Programming parallel machines with conventional languages is an exercise in frustration. This is because programming models that worked in single core computers do not scale well to highly parallel machines. One of the primary reasons for this is that state -- as represented by the changing values of variables -- is *implicit* in procedural and object oriented languages. The implicitness of state is important because it makes many programs easier to express. On the other hand, that implicitness becomes a liability in multi-threaded and parallel situations where state is no longer so well behaved.
+
+However, **Star** has adopted some of the recent innovations in that make dealing with multi-tasking and parallel execution easier. These innovations layer on top of basic features such as threading and provide simpler models of execution than ‘conventional’ threaded models. **Star**’s computation expressions combine the best of fork-join queues and map-reduce frameworks whilst enabling a more normal style of programming.
+
+
+@section Is Star for you?
+@node Is Star for you?
+
+Choosing a programming language -- when you actually have a choice -- is highly personal. Here are some reasons to think about **Star**.
+
+@subsection If you are already a Java (or C, C# or C++) programmers
+@node If you are already a Java (or C, C# or C++) programmers
+
+Most OO languages are embracing some of the simpler features of functional languages. Even modern Java with its lambda expressions and stream features represents a nod to the power of functional programming. However, at the same time, there is a substantial gap in the capabilities of most OO languages compared to modern functional programming languages.
+
+Fundamentally, OO languages revolve around *nouns* rather than *verbs*. Verbs (methods) are relegated to being inside the scope of some noun (object): they are not first class.  In functional programming languages, like **Star**, there is more of an balance between nouns and verbs.
+
+It is possible to have functions that are about data; it is also quite straightforward in functional programming languages to have data structures with functions embedded in them. In fact, a simple definition of a *module* is a record that contains functions in it.
+
+While OO languages like Java provide excellent *data abstraction* tools, the same cannot be said for *control abstractions*. The result is that OO languages are ‘stuck in the 1970s’ when it comes to control abstractions. However, concepts such as map/reduce, computation expressions, and continuations bring a rich suite of new control possibilities that solve important problems in modern programming.
+
+Similarly, the type systems of languages like Java (or C# or C/C++) make are not as expressive or sensitive as modern type systems in functional languages can be. Professional programmers will recognize a typical symptom of insufficiently expressive types: lots of casting and dynamic meta-programming. But, while powerful, these techniques amount to giving up on types and their important advantages. Furthermore, contrary to many programmers’ expectations, a modern type system is quite capable of dealing statically with scenarios that require dynamic programming in languages like Java.
+
+@subsection If you are already a functional programmers
+@node If you are already a functional programmers
+
+You have many choices for functional programming languages that are excellent. The author considers two languages that are principal sources of inspiration for many of the functional features of **Star**: Haskell and Standard ML (SML) -- both of which are excellent; but not perfect.
+
+For the functional programmer, the principal benefits of **Star** are *readability*, *modernity* and *predictability*.
+
+One of the major drivers of the design of Haskell and (to a lesser extent) SML is conciseness. However, conciseness is not the same as readability. In modern software development environments there are many stakeholders beyond the developer. Having a language that is easy to follow by non-technical readers is a major benefit in mixed skill teams.
+
+Like Haskell, **Star** has a powerful type system. **Star**’s type system has many features in common with Haskell’s type system -- features that typically go beyond the capabilities of many OO languages. In particular, **Star**’s contract system is reminiscent of Haskell’s type classes; and **Star**’s existential and higher-kinded types give considerable expressive power to the programmer.
+
+**Star** does not follow all of Haskell’s type features; and some type concepts are rephrased into terminology that is more familiar to main-stream (sic) programmers.
+
+Like SML, **Star** has a powerful module system. However, unlike SML’s functors, **Star** modules are first class values. This means that there is no artificial separation between ‘ordinary’ programs and ‘functor’ programs.
+
+The result is a balanced set of type features that provides capabilities that scale well from small programs to large systems.
+
+**Star**’s evaluation is, like that of SML but unlike Haskell, strict. We believe that that makes it significantly easier to reason about the actual behavior and performance of programs. However, **Star** has a rich set of features that support productive concurrent and parallel programming -- based on a combination of system threads and the features of Concurrent ML.
+
+Like SML, **Star** is not a strictly ‘pure’ language. This was neither an accident nor an afterthought. Computer systems are built to fulfill purposeful activity (although there may be many times when the actual purpose is hard to discern). For example, if I deposit a check into my bank account, I require that the bank’s state is updated to reflect my new balance: the world has changed as a result of my action.
+
+However, the converse does not follow: just because the world is stateful does not mean that all our programs should be needlessly stateful. Much, if not most, of a given application program can and should be crafted in a mathematical style -- the merits of functional programming are very great.
+
+Overall, the primary rationale in the design of **Star** is to empower the programmer in making obviously correct programs.
+
+@section Design goals for Star
+@node Design goals for Star
+
+**Star** is a multi-paradigm high-level *symbolic* language. It is designed to be scalable, readable, accurate, high performing and extensible.
+
+Paradoxically, scalability in a programming language is always about large and small chunks of code. Scalability in **Star** is fostered by a range of elements that facilitate composition, change and re-use:
+
+* The language is strongly statically typed. This encourages both safety and documentation.
+* The type system is strong enough that there is very limited need to escape the type system. For example, modules can be given a first-class type semantics. This is important because it facilitates programmatic manipulation of modules in a safe manner.
+* Programs are defined in terms of rules; for example, functions are defined in terms of equations. Apart from being more readable, rules are also a natural unit of change in an evolving system.
+* A meta-language based on logical annotations makes it possible to build meaningfully connected documentation and facilitates processes such as code re-use, issue tracking, and code lifetime management.
+* The package system is intrinsically versioned and abstracted away from any underlying storage system.
+
+The syntax of **Star** is oriented towards readability rather than strict conciseness. The reason for this is that the programmer is only one of the stake holders in a given program. A readable program is one that is more easily trusted by non-programmers.
+
+Experience also suggests that readability enhances programmer productivity also: much of team-based development involves comprehending and modifying other programmers’ code.
+
+**Star** is a strongly, statically typed language. The purpose of a strong type system is to facilitate the communication of intent of the programmer. The purpose of static typing is to ensure that the compiler can rapidly ‘fail’ incorrect programs without requiring the program to be run. Furthermore, static type checking minimizes any run-time penalty for imposing type constraints.
+
+Although **Star** is strongly typed, it uses *type inference* to eliminate much of the clutter that some type systems impose on the programmer -- which itself is a productivity sink of course.
+
+Generally, the *stronger* the type system, the more the language system can detect errors before programs are run. In addition, the more *expressive* the type system is, the less the temptation to try to subvert or bypass the type system.
+
+However, even though it is technically feasible to completely eliminate type declarations of functions; doing so is in conflict with some of the other goals behind **Star**. For example, type declarations act as a form of documentation; and when there is a type error in your program, having *no* explicit type declarations can make tracking the culprit of the error very difficult. So all top-level variable definitions (typically functions) are required in **Star** to have explicit type *annotations*.[^fn1]
+
+**Star** has a range of features that make exploiting parallelism easier to manage. For example, it has support for *computation expressions* and *actors*. Partitioning an application into different *agents* allows programming to follow a more human approach. Computation expressions allow the programmer to manipulate computations as easily as they do data values; that in turns greatly eases the development of parallel and concurrent applications.
+
+There is no one technology that can solve all problems. This is as true for programming as for other domains. **Star** supports a range of programming paradigms that allows the developer to ‘use the best tool for the job’. However, we go beyond this ‘swiss army knife’ stance and make it straightforward to extend the language.
+
+Virtually every non-trivial program can be factored into a combination of general purpose mechanism and specific policy for applying the mechanism. **Star** has powerful self-extension features that allow programmers to design their own policy structures (a.k.a. domain specific languages).
+
+Many of **Star**’s own features -- such as its query notation and its actor notation -- are built using these extension mechanisms.
+
+[^fn1]: The term *type declaration* is reserved for defining a new type. Variable types are defined through *type annotations*.
+
+@section About this book
+@node About this book
+
+This book acts as an introduction to the language and to its use. The basic features of the language are introduced; however, this is not a reference manual: it is not intended to be a complete description of the language.
+
+That can be found in the **Star** Language Definition.
+
+Introducing a programming language like **Star** can be a challenge in presentation. This is because there is a significant amount of mutual support between elements of the language.
+
+Our strategy is to take a layered approach -- we start with simple examples, occasionally skipping over certain aspects of the language without explanation. Later chapters focus on deeper, more complex topics.
+
+For the most part, examples in the text of the book are executable. You are encouraged to try to get them running on your own system.
+
+@subsection Getting hold of Star
+@node Getting hold of Star
+The **Star** compiler and run-time is being developed as an open source project on GitHub. You can access the source by cloning or downloading the repository at
+
+```
+github.com/frankmccabe/star
+```
+
+
+@subsection Typographical conventions
+@node Typographical conventions
+
+Any text on a programming language often has a significant number of examples of programs and program fragments. We show these using a typewriter-like font, often broken out in a display form:
+
+```
+P:integer;
+...
+```
+
+We use the ... ellipsis to explicitly indicate a fragment of a program that may not be syntactically correct as it stands.
+
+As we noted above, **Star** is a rich language with many features. As a result, some parts of the text may require more careful reading, or represent comments about potential implications of the main text. These notes are highlighted the way this note is.
+
+@subsection Acknowledgements
+@node Acknowledgements
+
+No-one is an island, and no project of this scale is one person’s work. I have had the great fortune to be able to develop **Star** in the context of real world applications solving hard problems. Individuals have also played a large role; and it can be hard to ensure that all are properly acknowledged: please forgive any omissions.
+
+Of particular significance, I would like to thank Michael Sperber for our many discussions on the finer topics of language design; and for his not insignificant contributions to the implementation itself.
+
+I would also like to thank my colleagues at Starview inc., in particular Steve Baunach and Bob Riemenschneider who were the world’s first **Star** programmers! In addition, I would like to thank Michael Sperber, David Frese and Andreas Bernauer who helped with crucial parts of the implementation of the concurrency features. I would also like to thank Keith Clark, Kevin Cory, Prasenjit Dey, Chris Gray, Mack Mackenzie, and Kevin Twidle for their help and advice. I would like to acknowledge the support of Thomas Sulzbacher who originated the project and Jerry Meerkatz for keeping the faith.
+
+Last, but definitely not least, I would like to acknowledge the love and support of my family; without whom none of this makes sense.
