@@ -1,6 +1,7 @@
 star.action{
   import star.core.
   import star.monad.
+  import star.coerce.
 
   public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
 
@@ -12,7 +13,7 @@ star.action{
     return X => delay(()=>done(X)).
   .}
 
-  public implementation execution[action[string]->>string] => {
+  public implementation all e ~~ execution[action[e]->>e] => {
     _perform(done(X)) => X.
     _perform(delay(F)) => _perform(F()).
 
@@ -21,6 +22,11 @@ star.action{
     _handle(err(X),E) => E(X).
 
     _raise(S) => err(S).
+  }
+
+  public implementation all e ~~ coercion[option[e],action[(),e]] => {
+    _coerce(none) => err(()).
+    _coerce(some(X)) => done(X).
   }
 
   public (:=):all a ~~ (ref a,a) => action[(),()].
