@@ -11,11 +11,15 @@ The type system of @Star{} consists of a method for declaring new
 types, for annotating variables (and by extension programs) with their
 types and a system of verifying the type consistency of programs.
 
+This chapter focuses on the type language itself and the semantics of
+types.
+
 @menu
 * What is a Type?::
 * Nominal Types::
 * Structural Types::
 * Quantified Types::
+* Constrained Types::
 * Type Constraints::
 * Type Semantics::
 @end menu
@@ -866,6 +870,35 @@ invertGroup(G) => group@{
 @end example
 @end float
 
+@node Constrained Types
+@section Constrained Types
+@cindex contrained type
+
+A constrained type is one with additional constraints in the form of
+@ref{Type Constraints}.
+
+@float BNF,constrainedTypeFig
+@caption{Constrained Type}
+@display
+@anchored{ConstrainedType} ::= @var{TypeConstraint}@code{|:}@var{Type}
+@end display
+@end float
+
+Constrained types are generally either type variables or immediately
+enclosed by a quantifier.
+
+For example, a type expression of the form:
+@example
+all t ~~ comparable[t], arith[t] |: (t)=>t
+@end example
+
+denotes a generic unary function type for any type that implements
+both the @code{comparable} and the @code{arith} contracts (see
+@var{comparisonPredicates} and @var{arithmeticContract}).
+
+@xref{Type Constraints} for a description of the possible forms of
+type constraint.
+
 @node Type Constraints
 @section Type Constraints
 @cindex type,constraints
@@ -909,15 +942,6 @@ constraint: if we bind the type variable @code{t} to the type
 @code{integer} then we are constraining the type @code{t} to be equal
 to @code{integer}.
 @end quotation
-
-A type expression of the form:
-@example
-comparable[t], arith[t] |: (t)=>t
-@end example
-
-denotes a unary function type for any type that implements both the
-@code{comparable} and the @code{arith} contracts (see
-@var{comparisonPredicates} and @var{arithmeticContract}).
 
 @quotation NOTE
 In many cases type inference will automatically result in constraints
