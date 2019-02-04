@@ -5,7 +5,7 @@
 
 @dircategory Programming
 @direntry
-* star: (star).		Star programming language
+* star: (star).		Star programming language reference
 @end direntry
 
 @copying
@@ -54,10 +54,18 @@ All rights reserved.
 !=
 @end macro
 @end ifinfo
+@iftex
+@macro noteq
+!=
+@end macro
+@end iftex
+
 @ifnotinfo
+@ifnottex
 @macro noteq
 @U{2260}
 @end macro
+@end ifnottex
 @end ifnotinfo
 
 @macro typeprod{E,Exp,T}
