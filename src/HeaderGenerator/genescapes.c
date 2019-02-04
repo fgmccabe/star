@@ -11,7 +11,7 @@
 #include <ctype.h>
 
 enum {
-    genProlog, genStar
+  genProlog, genStar
 } genMode = genProlog;
 char *prefix = NULL;
 
@@ -141,10 +141,21 @@ static char *dumpSig(char *sig, bufferPo out) {
       break;
 
     case refSig: {
-      outMsg(O_IO(out), "refType(");
-      sig = dumpSig(sig, out);
-      outStr(O_IO(out), ")");
-      break;
+      switch (genMode) {
+        case genProlog:
+        case genStar:
+          outMsg(O_IO(out), "refType(");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), ")");
+          break;
+//          outStr(O_IO(out), "tpExp(");
+//          outStr(O_IO(out), "tpFun(");
+//          dumpStr("star.core*cell", out);
+//          outStr(O_IO(out), ",1),");
+//          sig = dumpSig(sig, out);
+//          outStr(O_IO(out), ")");
+//          break;
+      }
     }
     case tpfnSig: {
       outStr(O_IO(out), "tpFun(");
@@ -406,7 +417,7 @@ static void starIsEscape(FILE *out) {
 
 #include "escapes.h"
 
-  fprintf(out,"  isEscape(_) default => false.\n");
+  fprintf(out, "  isEscape(_) default => false.\n");
 
   closeFile(O_IO(buffer));
 }

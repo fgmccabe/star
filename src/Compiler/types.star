@@ -34,6 +34,13 @@ star.compiler.types{
     constraints : ref list[constraint].
   }
 
+  public isIdenticalVar:(tipe,tipe) => boolean.
+  isIdenticalVar(T1,T2) => isIdent(deRef(T1),deRef(T2)).
+
+  isIdent(tVar(_,K1),tVar(_,K2)) => K1==K2.
+  isIdent(tFun(_,A1,K1),tFun(_,A2,K2)) => K1==K2 && A1==A2.
+  isIdent(_,_) default => false.
+
   public isUnbound:(tipe) => boolean.
   isUnbound(tVar(B,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
   isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
@@ -54,11 +61,12 @@ star.compiler.types{
     B.binding := none
   }
 
-  public constraintsOf:(tipe) => option[list[constraint]].
+  public constraintsOf:(tipe) => list[constraint].
   constraintsOf(Tp) => conOf(deRef(Tp)).
 
-  conOf(tVar(T,_)) => some(T.constraints!).
-  conOf(_) default => none.
+  conOf(tVar(T,_)) => T.constraints!.
+  conOf(tFun(T,_,_)) => T.constraints!.
+  conOf(_) default => [].
 
   public setConstraints:(tipe,list[constraint]) => action[(),()].
   setConstraints(tVar(V,_),Cx) => do{

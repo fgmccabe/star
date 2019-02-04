@@ -8,7 +8,7 @@ star.compiler.unify{
   import star.compiler.types.
 
   public sameType:(tipe,tipe,dict) => boolean.
-  sameType(T1,T2,Env) => sm(deRf(T1),deRf(T2),Env).
+  sameType(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
 
   sm(voidType,voidType,_) => true.
   sm(thisType,thisType,_) => true.
@@ -25,10 +25,9 @@ star.compiler.unify{
   sm(tipe(Nm),tipe(Nm),_) => true.
   sm(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => true.
   sm(tpExp(O1,A1),tpExp(O2,A2),Env) => sameType(O1,O2,Env) && sameType(A1,A2,Env).
-  sm(refExp(O1),refExp(O2),Env) => sameType(O1,O2,Env).
+  sm(refType(O1),refType(O2),Env) => sameType(O1,O2,Env).
   sm(tupleType(A1),tupleType(A2),Env) => size(A1)==size(A2) && smTypes(A1,A2,Env).
   sm(typeLambda(O1,A1),typeLambda(O2,A2),Env) => sameType(O1,O2,Env) && sameType(A1,A2,Env).
-  sm(consType(O1,A1),consType(O2,A2),Env) => sameType(O1,O2,Env) && sameType(A1,A2,Env).
   sm(faceType(E1,T1),faceType(E2,T2),Env) where size(E1)==size(E2) && size(T1)==size(T2) => smFields(T1,T2,Env) && smFields(E1,E2,Env).
   sm(existType(V1,T1),existType(V2,T2),Env) => sameType(T1,T2,updateEnv(V1,V2,Env)).
   sm(allType(V1,T1),allType(V2,T2),Env) => sameType(T1,T2,updateEnv(V1,V2,Env)).
@@ -62,8 +61,8 @@ star.compiler.unify{
 
   bind(V,T,Env) where isUnbound(T) =>
     valof do{
-      CV = valof constraintsOf(V);
-      CT = valof constraintsOf(T);
+      CV = constraintsOf(V);
+      CT = constraintsOf(T);
       MM = valof mergeConstraints(CV,CT,Env);
       setConstraints(T,MM);
       setBinding(V,T);
@@ -73,8 +72,7 @@ star.compiler.unify{
     VC = constraintsOf(V);
     {
       setBinding(V,T);
-      checkConstraints(VC,Env);
-      return true
+      return checkConstraints(VC,Env)
     } >>> (E) => do {
       resetBinding(V);
       return false
@@ -83,10 +81,12 @@ star.compiler.unify{
 
   bind(V,T,Env) where isUnbound(T) =>
         (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
-          ( _ ^= setConstraints(T,MM) && _^= setBinding(V,T)) ||
-          false).
-  bind(V,T,Env) where VC .= constraintsOf(V) =>
-      ( _ ^= setBinding(V,T) && checkConstraints(VC,Env) ? true || resetBinding(V)).
+          valof do{
+            setConstraints(T,MM);
+            setBinding(V,T);
+            return true
+          }
+        || false).
   bind(_,_,_) default => false.
 
   checkConstraints([],_) => true.
@@ -130,4 +130,24 @@ star.compiler.unify{
 
   faceOfType(faceType(L,T),_) => some(faceType(L,T)).
 
+  occursIn(TV,Tp) where \+ isIdenticalVar(TV,Tp) =>
+      occIn(vrNm(TV),deRef(Tp)).
+
+  occIn(Id,tVar(_,Nm)) => Id==Nm.
+  occIn(Id,tFun(_,_,Nm)) => Id==Nm.
+  occIn(Id,tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
+  occIn(Id,tupleType(Els)) => El in Els && occIn(Id,deRef(El)).
+  occIn(Id,refType(B)) => occIn(Id,deRef(B)).
+  occIn(Id,allType(_,B)) => occIn(Id,deRef(B)).
+  occIn(Id,existType(_,B)) => occIn(Id,deRef(B)).
+  occIn(Id,faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
+  occIn(Id,typeLambda(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
+  occIn(Id,typeExists(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
+  occIn(Id,constrainedType(T,_)) => occIn(Id,deRef(T)).
+  occIn(_,_) default => false.
+
+  vrNm(tVar(_,Nm)) => Nm.
+  vrNm(tFun(_,_,Nm)) => Nm.
+
+  occInPrs(Id,Tps) => ((_,El) in Tps && occIn(Id,deRef(El))).
 }
