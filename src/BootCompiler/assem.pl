@@ -6,7 +6,7 @@
 :- use_module(encode).
 
 assem(method(Nm,Sig,Lx,Ins),MTpl) :-
-    genLblTbl(Ins,0,[],Lbs),
+    genLblTbl(Ins,0,labels{},Lbs),
     findLit([],Nm,_,Ls0),
     mnem(Ins,Lbs,Ls0,Lts,[],Lcs,[],Lines,0,Cde),
     mkInsTpl(Cde,Code),
@@ -136,8 +136,21 @@ mnem([iDLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[41,LtNo|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
 
 
+makeKey(Id,Key) :-
+  atom_string(Key,Id).
+
+findLbl(L,Lbs,Tgt) :-
+  makeKey(L,Ky),
+  get_dict(Ky,Lbs,Tgt),!.
+
+defineLbl(Lbl,Pc,Lbls,Lblx) :-
+  makeKey(Lbl,Key),
+  put_dict(Key,Lbls,Pc,Lblx).
+
 genLblTbl([],_,Lbls,Lbls).
-genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,[(Lbl,Pc)|Lbls],Lbx).
+genLblTbl([iLbl(Lbl)|Ins],Pc,Lbls,Lbx) :-
+  defineLbl(Lbl,Pc,Lbls,Lbli),
+  genLblTbl(Ins,Pc,Lbli,Lbx).
 genLblTbl([iLocal(_,_,_,_)|Ins],Pc,Lbls,Lbx) :- genLblTbl(Ins,Pc,Lbls,Lbx).
 genLblTbl([iLine(Lc)|Ins],Pc,Lbls,Lbx) :- genLblTbl([iDLine(Lc)|Ins],Pc,Lbls,Lbx).
 genLblTbl([iHalt|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
@@ -184,7 +197,6 @@ genLblTbl([iDRet|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lb
 genLblTbl([iDLine(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 
 
-findLbl(L,Lbs,Tgt) :- is_member((L,Tgt),Lbs),!.
 pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.
 
 findLit(Lits,V,LtNo,Lits) :- is_member((V,LtNo),Lits),!.
