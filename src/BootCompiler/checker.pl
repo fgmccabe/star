@@ -676,7 +676,6 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isDoTerm(Term),!,
   genDo(Term,Action),
-  display(Action),
   typeOfExp(Action,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isValof(Term,_,_),!,
