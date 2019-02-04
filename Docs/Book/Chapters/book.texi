@@ -1,0 +1,82 @@
+\input texinfo
+@include version.texi
+@setfilename guide.info
+@settitle Programming in Star
+
+@dircategory Programming
+@direntry
+* star-guide: (star).		Programming in Star
+@end direntry
+
+@copying
+Copyright @copyright{} 2019 and beyond, Francis G. McCabe
+
+All rights reserved.
+@end copying
+
+@titlepage
+@title Programming in Star
+@author Francis G. McCabe
+
+
+@page
+@insertcopying
+@end titlepage
+
+@ifplaintext
+@insertcopying
+@end ifplaintext
+
+@summarycontents
+@contents
+
+@node Top
+@top Star Guide
+
+@macro Star
+@code{Star}
+@end macro
+
+
+@macro anchored{T}
+@anchor{\T\}@var{\T\}
+@end macro
+
+@noindent
+This is the 
+@ifinfo
+on-line
+@end ifinfo 
+guide for the @Star{} language.  
+@refill
+
+@noindent
+This book gives an introduction into the form and usage of the @Star{}
+programming language. However, it is not a definitive reference on the
+language; for which the reader is referred to @emph{Star Reference} by
+F.G. McCabe.
+
+@menu
+* Introduction::
+
+* Concept index::
+* Function index::
+* List of Syntax Rules::
+@end menu
+
+@include intro.texi
+
+@node Concept index
+@unnumbered Concept index
+@printindex cp
+
+@node Function index
+@unnumbered Standard function index
+@printindex fn
+
+@node List of Syntax Rules
+@unnumbered List of Syntax Rules
+@listoffloats BNF
+
+
+@bye

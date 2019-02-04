@@ -85,10 +85,11 @@ reference for the @Star{} language, version @value{VERSION}.
 @refill
 
 @noindent
-This manual offers an in-depth and complete description of the
-@Star{} language. However, it is not a tutorial on the language,
-and the order of presentation within the manual reflects that. For a
-more tutorial introduction, the reader is referred to @emph{Star Programming} (by F.G. McCabe).
+This manual offers an in-depth and complete description of the @Star{}
+language. However, it is not a tutorial on the language, and the order
+of presentation within the manual reflects that. For a more tutorial
+introduction, the reader is referred to @emph{Star Programming} (by
+F.G. McCabe).
 
 @menu
 * Introduction::
