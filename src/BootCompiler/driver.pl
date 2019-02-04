@@ -100,8 +100,7 @@ processGroup([(P,Imps,Fl)|L],CP,CPx,Repo,Rx,CWD,Opts) :-
 processPkg(P,Imps,_,CP,CP,Repo,Repo,Opts) :-
   \+ is_member(forceCompile,Opts),
   importsOk(Imps,CP),
-  pkgOk(P,Repo),!,
-  reportMsg("skipping package %s",[P]).
+  pkgOk(P,Repo),!.
 processPkg(P,_,Fl,CP,[P|CP],Repo,Rx,Opts) :-
   reportMsg("compiling package %s",[P]),
   processFile(Fl,P,Repo,Rx,Opts),!.
