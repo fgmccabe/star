@@ -56,6 +56,8 @@ F.G. McCabe.
 
 @menu
 * Why be a Star programmer?::
+* A tour of Star::
+* Functional Programming::
 
 * Concept index::
 * Function index::
@@ -63,6 +65,10 @@ F.G. McCabe.
 @end menu
 
 @include intro.texi
+
+@include tour.texi
+
+@include func.texi
 
 @node Concept index
 @unnumbered Concept index
