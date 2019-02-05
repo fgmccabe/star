@@ -1,3 +1,10 @@
+@quotation Under the covers
+If the contract statement looks like a type definition, that is
+because it @emph{is} a kind of type definition. Specifically, it
+defines a dictionary of sorts -- of the elements defined within the
+contract.
+@end quotation
+
 
 === Instance Constraint @anchor{instanceConstraint}
 @cindex{type,constraints!instance}
