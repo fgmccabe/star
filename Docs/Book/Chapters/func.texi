@@ -121,8 +121,8 @@ An explicitly marked `default` equation does not need to be the last
 equation; but, wherever it is written, default equations are only
 attempted after all other equations have failed to apply.
 
-@node Patterns
-@subsection Patterns
+@node Functions
+@subsection Functions
 A function is defined as a sequence of @emph{rewrite equations} each
 of which consist of a @emph{pattern} and an @emph{expression}. There
 are three general forms of rewrite equations:
@@ -176,10 +176,10 @@ additional forms of patterns.
 @item Variable Pattern
 A variable pattern is denoted by an identifier; specifically by the
 first occurrence of an identifier.
+@end table
 
 A variable pattern always succeeds and has the additional effect of
 @emph{binding} the variable to the value being matched.
-@end table
 
 For example, the @code{X} in the left hand side of
 @example
@@ -232,7 +232,7 @@ strings are equal if they have the same sequence of characters in
 them, not just if they are the same object in memory.
 
 @quotation NOTE
-However, not all types admit equality: for example, functions are not
+not all types admit equality: for example, functions are not
 comparable; similarly, implementing equality for circular structures
 is problematic.@footnote{None of the standard @Star{} data types are
 circular in nature.}
@@ -276,7 +276,7 @@ X where X>0
 @end example
 We can put guard pattern anywhere that a pattern is valid; and, for
 convenience, we can also put them immediately to the left of the
-rewrite equation’s is operator.
+rewrite equation's @code{=>} operator.
 
 @quotation
 Any variables that are bound by the pattern part of a guarded pattern
@@ -295,13 +295,14 @@ condition @code{X>0}.
 arguments to functions are evaluated prior to calling the function.
 
 @quotation
-We do not specify the order of evaluation of the arguments of the function; except that:
-@enumerate
+We do not specify the order of evaluation of the arguments of the
+function; except that:
+@itemize
 @item
 Arguments are evaluated before entry to the function.
 @item
 The function is evaluated before entry to the function.
-@end enumerate
+@end itemize
 @end quotation
 
 Most programming languages are strict; for two main reasons:
@@ -345,9 +346,9 @@ exception being any default equation which is always tried last.
 
 @node Another look at types
 @section Another look at types
-Organizing data is fundamental to any programming language. @Star{}’s
+Organizing data is fundamental to any programming language. @Star{}'s
 data types are organized around the algebraic data type. In addition,
-@Star{}’s supports quantified types of several varieties.
+@Star{}'s supports quantified types of several varieties.
 
 @node Quantifier types
 @subsection Quantifier types
@@ -381,13 +382,13 @@ denotes the type of a generic binary function that returns a boolean
 value. The standard type for the equality predicate @code{==} is
 similar to this type.
 
-A universally quantified type should be read as ‘for all possible
-values’ of the bound variable. For example, this function type should
+A universally quantified type should be read as `for all possible
+values' of the bound variable. For example, this function type should
 be read as denoting functions that:
 
 @quotation
 for any possible type -- @code{x} -- the function takes two such
-@code{x}’s and returns a @code{boolean}.
+@code{x}'s and returns a @code{boolean}.
 @end quotation
 
 @Star{} also supports @emph{existentially} quantified types -- these
@@ -432,7 +433,8 @@ equality.
 
 We can do this by adding a @emph{contract constraint} to the type --
 the constraint states that equality must be defined for the type. We
-do this by prepending a constraint clause to the type:
+do this by prepending an @code{equality} constraint clause to the
+type:
 @example
 all x ~~ equality[x] |: (x,x)=>boolean
 @end example
@@ -447,7 +449,8 @@ contract all t ~~ equality[t] ::= @{
 @}
 @end example
 In effect, the @code{equality} contract states that there must be a
-single function defined -- @code{==} .
+single function defined -- @code{==} -- that is defined for any type that
+claims to satisfy the @code{equality} contract.
 
 If this seems a little circular, it is not. The @code{equality}
 contract is effectively saying that the @code{==} function must be
@@ -455,7 +458,7 @@ defined for the type; and we constrain function (and other) types with
 the @code{equality} contract constraint when we need to ensure that
 @code{==} is defined!
 
-We provide evidence for contracts through the implementation
+We provide evidence for contracts through the @code{implementation}
 statement. This declares that a given type satisfies a contract by
 providing implementations for the functions in the contract.
 
@@ -542,7 +545,7 @@ functions. Internally, when implementing functional languages like
 using data laid out in memory -- just like in any other programming
 language.
 
-@Star{} actually employs a special type for constructor functions; so
+@Star{} actually uses a special type for constructor functions; so
 the correct type of @code{polar} is given by:
 @example
 polar : (float,float)<=>point
@@ -569,8 +572,8 @@ Another example is the standard @code{boolean} type which is defined:
 boolean ::= true | false.
 @end example
 Unlike enumerated symbols in some languages, there is no numeric value
-associated with an enumeration symbol: an enumerated symbol ‘stands
-for’ itself only. The reason for this will become clear in our next
+associated with an enumeration symbol: an enumerated symbol `stands
+for' itself only. The reason for this will become clear in our next
 type definition which mixes enumerated symbols with constructor
 functions:
 @example
@@ -596,7 +599,10 @@ sNode(sNode(sEmpty,"alpha",sEmpty),
 @end example
 denotes the tree in:
 
-![A Binary string Tree][images/sTree.jpg]
+@float Figure,binaryStringTree
+@caption{A Binary string Tree}
+@image{images/sTree}
+@end float
 
 @quotation
 One of the hallmarks of languages like @Star{} is that @emph{every}
@@ -616,7 +622,7 @@ Here we see several new aspects of @Star{} syntax:
 @itemize
 @item
 An empty pattern -- marked by @code{_} -- matches anything. It is
-called the @emph{anonymous pattern} and is used whenever we don’t care
+called the @emph{anonymous pattern} and is used whenever we don't care
 about the actual content of the data.
 @item
 The @code{||} disjunction is a @emph{short-circuit} disjunction; much
@@ -706,7 +712,7 @@ expression? The conventional name for this value is @emph{closure}:
 A closure is a structure that is the value of a function expression and which may be applied to arguments.
 @end table
 
-It is important to note that, as a programmer, you will never ‘see’ a
+It is important to note that, as a programmer, you will never `see' a
 closure in your program. It is an implementation artifact in the same
 way that the representation of floating point numbers is an
 implementation artifact that allow computers to represent fractional
@@ -844,7 +850,7 @@ type @code{t}, @code{tree[t]} is also a type. There are infinitely
 many such types of course.
 
 The @code{all} quantifier is important: as in logic, there are two
-kinds of quantifiers in @Star{}’s type system: the @emph{universal}
+kinds of quantifiers in @Star{}'s type system: the @emph{universal}
 quantifier all and the @emph{existential} quantifier exists.
 
 @quotation
@@ -860,7 +866,7 @@ tEmpty:all t ~~ tree[t].
 
 tNode:all t ~~ (tree[t],t,tree[t)]<=>tree[t].
 @end example
-The type @code{tree[t]} on the right hand side of @code{tEmpty}’s type
+The type @code{tree[t]} on the right hand side of @code{tEmpty}'s type
 annotation raises a couple of interesting points:
 
 @enumerate
@@ -873,9 +879,9 @@ a definition for the name.
 @item
 The type of a literal @code{tEmpty} expression -- assuming that no
 further information is available -- will be of the form
-@code{tree[t34]} where @code{t34} is a ‘new’ type variable not
+@code{tree[t34]} where @code{t34} is a `new' type variable not
 occurring anywhere else in the program. In effect, the type of
-@code{tEmpty} is tree of @emph{some type} @code{t34} where we don’t
+@code{tEmpty} is tree of @emph{some type} @code{t34} where we don't
 know anything more about @code{t34}.
 @end enumerate
 
@@ -958,7 +964,7 @@ tVisit:all a,t ~~ (tree[t],(a,t)=>a,a)=>a.
 tVisit(tEmpty,_,A) => A.
 tVisit(tNode(L,Lb,R),F,A) => tVisit(R,F,F(tVisit(L,F,A),Lb)).
 @end example
-Just as the accumulating function acquires a new ‘state’ parameter, so
+Just as the accumulating function acquires a new `state' parameter, so
 the @code{tVisit} function also does. The @code{A} parameter in the
 two equations represents this accumulated state.
 
@@ -1197,8 +1203,8 @@ modify in any way the type definition of @code{tree} or
 @code{sTree}. From a software engineering point of view this is quite
 important: we are able to gain all the benefits of interfaces without
 needing to entangle them with our types. This becomes critical in
-situations where we are not able to modify types -- because they don’t
-belong to us and/or we don’t have access to the source.
+situations where we are not able to modify types -- because they don't
+belong to us and/or we don't have access to the source.
 
 @node Polymorphic arithmetic
 @section Polymorphic arithmetic
@@ -1277,8 +1283,8 @@ There are many situations where it is not possible to guarantee that a
 computation will succeed. The simplest examples of this include
 scenarios such as accessing external files; but may also apply to
 getting the first element of a list or the label of a @code{tree}
-node. The great unknown of accessing elements of a collection is ‘is
-it there?’. Its not guaranteed of course, and we need to be able to
+node. The great unknown of accessing elements of a collection is `is
+it there?'. Its not guaranteed of course, and we need to be able to
 handle failure.
 
 Many languages employ the concept of a special @code{null} value to
@@ -1342,7 +1348,7 @@ The meaning of @code{^=} is similar to the pattern match condition
 @code{.=}; except that the pattern is assumed to be for a @code{some}
 value.
 
-While the @code{^=} operator@footnote{Read as ‘has a value’.} is very
+While the @code{^=} operator@footnote{Read as `has a value'.} is very
 useful in unpacking an optional value, the @code{^|} operator allows
 us to handle cases where we always need to be able to give some kind
 of value. For example, normally a @code{map} returns none if an entry
@@ -1383,7 +1389,7 @@ some("P_spouse_name")
 (assuming that @code{nameOf} is defined for @code{Person}s.)
 
 Overall, the @code{option} type is part of an elegant approach to
-nullability that is easily incorporated into @Star{}’s (and similar)
+nullability that is easily incorporated into @Star{}'s (and similar)
 type system.
 
 @node A word about type inference
@@ -1423,7 +1429,7 @@ assume that the type of (@code{-}) is:
 @end example
 Type inference proceeds by using special @emph{type inference rules}
 which relate expressions to types, in this case the applicable rule is
-that a function application is consistent if the function’s parameter
+that a function application is consistent if the function's parameter
 types are consistent with the types of the actual arguments. If they
 are consistent, then the type of the function application is the
 return type of the function.
@@ -1447,7 +1453,10 @@ the arguments must be consistent with the expected types of the
 function; which we can do by making them @emph{the same}. There is a
 particular process used to do this -- called @emph{unification}.
 
-![Inferring the Type of N-1][images/minustype]
+@float Figure,minusTypeFig
+@caption{Inferring the Type of N-1}
+@image{images/minustype}
+@end float
 
 @table @emph
 @item Unification
@@ -1472,19 +1481,19 @@ those occurrences must also be consistent with integer; and if an
 occurrence is not consistent then the compiler will report an error --
 a given expression may only have one type!
 
-The bottom line is that @Star{}’s types are based on a combination of
+The bottom line is that @Star{}'s types are based on a combination of
 unification for comparing types and a series of type rules that have
 the effect of introducing @emph{constraints} on types based on which
 language features are present in the text. The type checker is really
 a constraint solver: if the constraints are not satisfiable (for
-example by trying to ‘call’ a variable and add a number to it) then
+example by trying to `call' a variable and add a number to it) then
 there is a type error in the program.
 
 The magic of type inference arises because it turns out that solving
 these constraints is sufficient for robustly type checking programs.
 
-A sharp-eyed reader will notice that @Star{}’s type system is
-different in nature to that found (say) in OO languages. In @Star{}’s
+A sharp-eyed reader will notice that @Star{}'s type system is
+different in nature to that found (say) in OO languages. In @Star{}'s
 type system, types are considered to be consistent in @Star{} if they
 are @emph{equal}. This is quite different to the notion of consistency
 in OO languages where an argument to a function is consistent if its
@@ -1492,16 +1501,16 @@ type is a @emph{sub-type} of the expected type.
 
 However, we would note that the apparent restriction to the type
 system imposed by type equality is much less severe in practice than
-in theory -- and that OO languages’ type systems also often
+in theory -- and that OO languages' type systems also often
 incorporate some of the same restrictions.
 
 @node Why is type inference restricted?
 @subsection Why is type inference restricted?
 We have stated a few times that @Star{}'s type system only infers
-types of variables that are @emph{not} quantified. In fact, it is fairly
-simple to build a type inference system that can infer quantified
-types. For example, such a complete type inference system would infer
-from these equations:
+types of variables that are @emph{not} quantified. In fact, it is
+fairly straightforward to build a type inference system that can infer
+quantified types. For example, such a complete type inference system
+would infer from these equations:
 
 @example
 conc(nil,x)=>x.
@@ -1511,7 +1520,8 @@ the generalized type for @code{conc}:
 @example
 conc:all t ~~ (cons[t],cons[t])=>cons[t].
 @end example
-However, several technical and non-technical considerations stay our hand at building such a type inference system:
+However, several technical and non-technical considerations stay our
+hand at building such a type inference system:
 
 @itemize
 @item
@@ -1521,11 +1531,14 @@ program.
 @item
 Having explicit type annotations is 'good style' in general and
 definitely aids in debugging type errors.
+@item
+Being explicit about quantification makes unification of quantified
+types simpler and more reliable.
 @end itemize
 
-On the other hand, requiring type annotations for @emph{every} variable is
-extremely tedious and verbose. An extreme version of this policy would
-require the @code{conc} program above to be written:
+On the other hand, requiring type annotations for @emph{every}
+variable would be extremely tedious and verbose. An extreme version of
+this policy would require the @code{conc} program above to be written:
 
 @example
 conc:all t ~~ (cons[t],cons[t])=>cons[t].
@@ -1554,11 +1567,11 @@ type.
 
 We are only able to scratch the surface of the type system here. It is
 certainly true that -- like many modern functional languages --
-@Star{}’s type system is complex and subtle. The primary motivation
+@Star{}'s type system is complex and subtle. The primary motivation
 for this complexity is to reduce the burden for the programmer: by
 being able to infer types automatically, and by being able to address
 many programming subtleties, the type system comes to be seen as the
-programmer’s friend rather than as an obstacle to be ‘gotten around’.
+programmer's friend rather than as an obstacle to be `gotten around'.
 
 @node Are we there yet?
 @section Are we there yet?

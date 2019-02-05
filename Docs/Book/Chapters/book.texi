@@ -33,7 +33,7 @@ All rights reserved.
 @top Star Guide
 
 @macro Star
-@code{Star}
+@strong{Star}
 @end macro
 
 @macro anchored{T}
@@ -51,8 +51,8 @@ guide for the @Star{} language.
 @noindent
 This book gives an introduction into the form and usage of the @Star{}
 programming language. However, it is not a definitive reference on the
-language; for which the reader is referred to @emph{Star Reference} by
-F.G. McCabe.
+language; for which the reader is referred to @xref{Top,,,star,The
+Star Reference} by F.G. McCabe.
 
 @menu
 * Why be a Star programmer?::

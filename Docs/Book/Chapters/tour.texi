@@ -14,9 +14,9 @@ reasonably workable subset of the complete language.
 
 Since a layered approach means that any given description may be
 incomplete or slightly inaccurate, there is a temptation to use
-footnote annotations which declare ‘@dots{} but there is
+footnote annotations which declare '@dots{} but there is
 also@footnote{Please forgive these pedantic notes when you see them.}
-@dots{}’.
+@dots{}'.
 
 @node A first Star program
 @section A first Star program
@@ -143,7 +143,7 @@ second recursive equation -- do not need type annotations. This is
 possible because underlying the type system is a powerful @emph{type
 inference} system that can actually infer all types.
 
-The result is that a lot of the ‘clutter’ that can pervade a strongly
+The result is that a lot of the `clutter' that can pervade a strongly
 typed language is just not necessary; but the use of explicit type
 annotations for top-level definitions provides useful structure and
 documentation.
@@ -173,8 +173,8 @@ such as code annotations, versioning and life-cycle management.
 @Star{} has various kinds of rules, including function definitions,
 grammar definitions, variable definitions and type definitions.
 
-@node Pattern
-@subsection Pattern
+@node Patterns
+@subsection Patterns
 Patterns are ubiquitous in @Star{}: they form the basis of many rules:
 including, most importantly, to define equations. In fact, @emph{all}
 variables are introduced by means of patterns.
@@ -646,8 +646,8 @@ total = valof do@{
 @}
 @end example
 
-The valof/return combination is a neat way of segueing from the ‘world
-of expressions’ into the ‘world of actions’.
+The valof/return combination is a neat way of segueing from the `world
+of expressions' into the `world of actions'.
 
 This program is essentially equivalent to the Java loop; although
 there are some subtleties about the nature of valof/valis that go
@@ -673,10 +673,10 @@ let@{
 while short, this code too has some of the same drawbacks as the for iteration.
 
 The type expression @code{cons[integer]} refers to the standard type
-of ‘cons lists’. Similarly, @code{nil} refers to the empty list and
+of `cons lists'. Similarly, @code{nil} refers to the empty list and
 @code{cons(E,L)} refers to the list obtained by prepending @code{E} to
 the list @code{L}. We will explore this in more detail in
-@ref{Functional Programming}.
+@pxref{Functional Programming}.
 
 Even if it is more declarative, there is still a lot of extra detail
 and architectural commitments here --- like the commitment to
@@ -999,6 +999,6 @@ As we have noted, @Star{} is a rich language and it would be
 impossible to try to cover it in a short introduction. Later chapters
 will look at some of the other features such as a deeper look at
 contracts, queries & query rules, actors, concurrency, existential
-types, and extending @Star{} with domain specific
-languages. @ref{Functional Programming} starts this process by
-looking at functional programming in @Star{}.
+types, and extending @Star{} with domain specific languages. The next
+chapter (@xref{Functional Programming}) starts this process by looking
+at functional programming in @Star{}.
