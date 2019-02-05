@@ -2721,7 +2721,7 @@ example:
 </p>
 <div class="float"><a name="binaryStringTree"></a>
 
-<img src="images/sTree.jpg" alt="images/sTree">
+<img src="images/sTree.png" alt="images/sTree">
 <div class="float-caption"><p><strong>Figure 3.1: </strong>A Binary string Tree</p></div></div>
 <blockquote>
 <p>One of the hallmarks of languages like <strong>Star</strong> is that <em>every</em>
@@ -3717,10 +3717,10 @@ Up: <a href="#A-word-about-type-inference" accesskey="u" rel="up">A word about t
 <a name="Why-is-type-inference-restricted_003f-1"></a>
 <h4 class="subsection">3.7.1 Why is type inference restricted?</h4>
 <p>We have stated a few times that <strong>Star</strong>&rsquo;s type system only infers
-types of variables that are <em>not</em> quantified. In fact, it is fairly
-simple to build a type inference system that can infer quantified
-types. For example, such a complete type inference system would infer
-from these equations:
+types of variables that are <em>not</em> quantified. In fact, it is
+fairly straightforward to build a type inference system that can infer
+quantified types. For example, such a complete type inference system
+would infer from these equations:
 </p>
 <div class="example">
 <pre class="example">conc(nil,x)=&gt;x.
@@ -3730,7 +3730,8 @@ conc(cons(h,tl),x) =&gt; cons(h,conc(tl,x))
 </p><div class="example">
 <pre class="example">conc:all t ~~ (cons[t],cons[t])=&gt;cons[t].
 </pre></div>
-<p>However, several technical and non-technical considerations stay our hand at building such a type inference system:
+<p>However, several technical and non-technical considerations stay our
+hand at building such a type inference system:
 </p>
 <ul>
 <li> There are still types that cannot be correctly inferred; and would
@@ -3738,11 +3739,13 @@ therefore require explicit type annotations to correctly type the
 program.
 </li><li> Having explicit type annotations is &rsquo;good style&rsquo; in general and
 definitely aids in debugging type errors.
+</li><li> Being explicit about quantification makes unification of quantified
+types simpler and more reliable.
 </li></ul>
 
-<p>On the other hand, requiring type annotations for <em>every</em> variable is
-extremely tedious and verbose. An extreme version of this policy would
-require the <code>conc</code> program above to be written:
+<p>On the other hand, requiring type annotations for <em>every</em>
+variable would be extremely tedious and verbose. An extreme version of
+this policy would require the <code>conc</code> program above to be written:
 </p>
 <div class="example">
 <pre class="example">conc:all t ~~ (cons[t],cons[t])=&gt;cons[t].
