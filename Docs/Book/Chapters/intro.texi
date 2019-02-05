@@ -102,8 +102,8 @@ programming languages!
 At the same time, safety and security are also critical: no-one likes
 to have their private information exposed to the bad guys. Most
 main-stream programming languages were designed in an era when safety
-was not uppermost in programmers’ minds -- usually it was
-performance. Some seemingly trivial design choices -- such as C’s
+was not uppermost in programmers' minds -- usually it was
+performance. Some seemingly trivial design choices -- such as C's
 conventions for laying out strings in memory -- turn out to have
 potentially devastating security implications.
 
@@ -116,7 +116,7 @@ add to the cost of development -- both in time and in money.
 @node Real-time is normal time.
 @subsection Real-time is normal time.
 
-Many kinds of business are becoming more and more ‘real-time’: a small
+Many kinds of business are becoming more and more `real-time': a small
 -- over the order of milliseconds -- slowdown in loading a web page
 can mean the loss of 5% or more of revenue for an e-commerce site; an
 unrented car, like an unrented hotel room, represents a permanent loss
@@ -131,8 +131,8 @@ that challenge even the most professional of programmers.
 
 Perhaps most importantly, we need to be able to do these things
 @emph{now} -- time to market is a critical factor in many if not most
-modern applications. Its no good developing the world’s best widget if
-you run out of ‘runway’ trying to build it.
+modern applications. Its no good developing the world's best widget if
+you run out of `runway' trying to build it.
 
 A major bottleneck is the relative poor productivity of most modern
 programming languages. It is simply too hard to produce correct robust
@@ -181,8 +181,8 @@ and parallel situations where state is no longer so well behaved.
 However, @Star{} has adopted some of the recent innovations in that
 make dealing with multi-tasking and parallel execution easier. These
 innovations layer on top of basic features such as threading and
-provide simpler models of execution than ‘conventional’ threaded
-models. @Star{}’s computation expressions combine the best of
+provide simpler models of execution than `conventional' threaded
+models. @Star{}'s computation expressions combine the best of
 fork-join queues and map-reduce frameworks whilst enabling a more
 normal style of programming.
 
@@ -192,8 +192,8 @@ normal style of programming.
 Choosing a programming language -- when you actually have a choice --
 is highly personal. Here are some reasons to think about @Star{}.
 
-@subsection If you are already a Java (or C, C# or C++) programmer
-@node If you are already a Java or C C# or C++ programmer
+@node If you are already a Java @asis{(or C#)}
+@subsection If you are already a Java @asis{(or C#)}
 
 Most OO languages are embracing some of the simpler features of
 functional languages. Even modern Java with its lambda expressions and
@@ -216,7 +216,7 @@ it.
 
 While OO languages like Java provide excellent @emph{data abstraction}
 tools, the same cannot be said for @emph{control abstractions}. The
-result is that OO languages are ‘stuck in the 1970s’ when it comes to
+result is that OO languages are `stuck in the 1970s' when it comes to
 control abstractions. However, concepts such as map/reduce,
 computation expressions, and continuations bring a rich suite of new
 control possibilities that solve important problems in modern
@@ -228,12 +228,12 @@ functional languages can be. Professional programmers will recognize a
 typical symptom of insufficiently expressive types: lots of casting
 and dynamic meta-programming. But, while powerful, these techniques
 amount to giving up on types and their important
-advantages. Furthermore, contrary to many programmers’ expectations, a
+advantages. Furthermore, contrary to many programmers' expectations, a
 modern type system is quite capable of dealing statically with
 scenarios that require dynamic programming in languages like Java.
 
 @node If you are already a C++ programmer
-@subsubsection If you are already a C++ programmer
+@subsection If you are already a C++ programmer
 
 Moving to a language like @Star{} is a radically different programming
 experience for the C++ programmer. However, most of the differences
@@ -255,7 +255,8 @@ single -- type agnostic -- implementation of generic functions.
 This affects many aspects of one's day-to-day usage of the language
 and its tooling. One of which is that, for a compiler that has been in
 daily use for over 40 years, C++ compilers are still remarkably
-slow. C++ binaries can often be very large.
+slow. C++ binaries can often be very large -- typically outclassed in
+performance by the Java compiler.
 
 The compatibility with C requirement has meant that C++ has to support
 many programming paradigms (such as pointer arithmetic) that most
@@ -264,6 +265,10 @@ modern programming languages -- @Star{} included -- eschew.
 Pointer arithmetic is known to put applications at risk of severe
 security problems; and there are many modern safer alternatives (which
 C++ does also support).
+
+Beyond these, you will find @Star{} to be a rich and expressive
+language; especilly if your focus is on applications rather than
+systems programming.
 
 @node If you are already a functional programmer
 @subsection If you are already a functional programmer
@@ -284,37 +289,37 @@ many stakeholders beyond the developer. Having a language that is easy
 to follow by non-technical readers is a major benefit in mixed skill
 teams.
 
-Like Haskell, @Star{} has a powerful type system. @Star{}’s type
-system has many features in common with Haskell’s type system --
+Like Haskell, @Star{} has a powerful type system. @Star{}'s type
+system has many features in common with Haskell's type system --
 features that typically go beyond the capabilities of many OO
-languages. In particular, @Star{}’s contract system is reminiscent of
-Haskell’s type classes; and @Star{}’s existential and higher-kinded
+languages. In particular, @Star{}'s contract system is reminiscent of
+Haskell's type classes; and @Star{}'s existential and higher-kinded
 types give considerable expressive power to the programmer.
 
-@Star{} does not follow all of Haskell’s type features; and some type
+@Star{} does not follow all of Haskell's type features; and some type
 concepts are rephrased into terminology that is more familiar to
 main-stream (sic) programmers.
 
-Like SML, @Star{} has a powerful module system. However, unlike SML’s
+Like SML, @Star{} has a powerful module system. However, unlike SML's
 functors, @Star{} modules are first class values. This means that
-there is no artificial separation between ‘ordinary’ programs and
-‘functor’ programs.
+there is no artificial separation between `ordinary' programs and
+`functor' programs.
 
 The result is a balanced set of type features that provides
 capabilities that scale well from small programs to large systems.
 
-@Star{}’s evaluation is, like that of SML but unlike Haskell,
+@Star{}'s evaluation is, like that of SML but unlike Haskell,
 strict. We believe that that makes it significantly easier to reason
 about the actual behavior and performance of programs. However,
 @Star{} has a rich set of features that support productive concurrent
 and parallel programming -- based on a combination of system threads
 and the features of Concurrent ML.
 
-Like SML, @Star{} is not a strictly ‘pure’ language. This was neither
+Like SML, @Star{} is not a strictly `pure' language. This was neither
 an accident nor an afterthought. Computer systems are built to fulfill
 purposeful activity (although there may be many times when the actual
 purpose is hard to discern). For example, if I deposit a check into my
-bank account, I require that the bank’s state is updated to reflect my
+bank account, I require that the bank's state is updated to reflect my
 new balance: the world has changed as a result of my action.
 
 However, the converse does not follow: just because the world is
@@ -365,12 +370,12 @@ that is more easily trusted by non-programmers.
 
 Experience also suggests that readability enhances programmer
 productivity also: much of team-based development involves
-comprehending and modifying other programmers’ code.
+comprehending and modifying other programmers' code.
 
 @Star{} is a strongly, statically typed language. The purpose of a
 strong type system is to facilitate the communication of intent of the
 programmer. The purpose of static typing is to ensure that the
-compiler can rapidly ‘fail’ incorrect programs without requiring the
+compiler can rapidly `fail' incorrect programs without requiring the
 program to be run. Furthermore, static type checking minimizes any
 run-time penalty for imposing type constraints.
 
@@ -404,8 +409,8 @@ eases the development of parallel and concurrent applications.
 
 There is no one technology that can solve all problems. This is as
 true for programming as for other domains. @Star{} supports a range of
-programming paradigms that allows the developer to ‘use the best tool
-for the job’. However, we go beyond this ‘swiss army knife’ stance and
+programming paradigms that allows the developer to `use the best tool
+for the job'. However, we go beyond this `swiss army knife' stance and
 make it straightforward to extend the language.
 
 Virtually every non-trivial program can be factored into a combination
@@ -414,7 +419,7 @@ mechanism. @Star{} has powerful self-extension features that allow
 programmers to design their own policy structures (a.k.a. domain
 specific languages).
 
-Many of @Star{}’s own features -- such as its query notation and its
+Many of @Star{}'s own features -- such as its query notation and its
 actor notation -- are built using these extension mechanisms.
 
 @node About this book
@@ -473,7 +478,7 @@ text. These notes are highlighted the way this note is.
 @node Acknowledgements
 @subsection Acknowledgements
 
-No-one is an island, and no project of this scale is one person’s
+No-one is an island, and no project of this scale is one person's
 work. I have had the great fortune to be able to develop @Star{} in
 the context of real world applications solving hard
 problems. Individuals have also played a large role; and it can be
@@ -485,7 +490,7 @@ our many discussions on the finer topics of language design; and for
 his not insignificant contributions to the implementation itself.
 
 I would also like to thank my old colleagues at Starview inc., in
-particular Steve Baunach and Bob Riemenschneider who were the world’s
+particular Steve Baunach and Bob Riemenschneider who were the world's
 first @Star{} programmers! In addition, I would like to thank Michael
 Sperber, David Frese and Andreas Bernauer who helped with crucial
 parts of the implementation of the concurrency features. I would also
