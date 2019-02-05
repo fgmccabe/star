@@ -1,0 +1,3904 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Copyright (C) 2019 and beyond, Francis G. McCabe
+
+All rights reserved. -->
+<!-- Created by GNU Texinfo 6.5, http://www.gnu.org/software/texinfo/ -->
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Programming in Star</title>
+
+<meta name="description" content="Programming in Star">
+<meta name="keywords" content="Programming in Star">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<link href="#Top" rel="start" title="Top">
+<link href="#Concept-index" rel="index" title="Concept index">
+<link href="#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="dir.html#Top" rel="up" title="(dir)">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<h1 class="settitle" align="center">Programming in Star</h1>
+
+
+
+
+
+<a name="SEC_Overview"></a>
+<h2 class="shortcontents-heading">Short Table of Contents</h2>
+
+<div class="shortcontents">
+<ul class="no-bullet">
+<li><a name="stoc-Why-be-a-Star-programmer_003f-1" href="#toc-Why-be-a-Star-programmer_003f-1">1 Why be a Star programmer?</a></li>
+<li><a name="stoc-A-tour-of-Star-1" href="#toc-A-tour-of-Star-1">2 A tour of Star</a></li>
+<li><a name="stoc-Functional-Programming-1" href="#toc-Functional-Programming-1">3 Functional Programming</a></li>
+<li><a name="stoc-Concept-index-1" href="#toc-Concept-index-1">Concept index</a></li>
+<li><a name="stoc-Standard-function-index" href="#toc-Standard-function-index">Standard function index</a></li>
+<li><a name="stoc-List-of-Syntax-Rules-1" href="#toc-List-of-Syntax-Rules-1">List of Syntax Rules</a></li>
+</ul>
+</div>
+
+<a name="SEC_Contents"></a>
+<h2 class="contents-heading">Table of Contents</h2>
+
+<div class="contents">
+
+<ul class="no-bullet">
+  <li><a name="toc-Why-be-a-Star-programmer_003f-1" href="#Why-be-a-Star-programmer_003f">1 Why be a Star programmer?</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Programming-has-changed-1" href="#Programming-has-changed">1.1 Programming has changed</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Programs-are-huge-1" href="#Programs-are-huge">1.1.1 Programs are huge</a></li>
+      <li><a name="toc-Planning-for-change-1" href="#Planning-for-change">1.1.2 Planning for change</a></li>
+      <li><a name="toc-Programming-safely-and-effectively-1" href="#Programming-safely-and-effectively">1.1.3 Programming safely and effectively</a></li>
+      <li><a name="toc-Real_002dtime-is-normal-time_002e-1" href="#Real_002dtime-is-normal-time_002e">1.1.4 Real-time is normal time.</a></li>
+      <li><a name="toc-This-train-is-leaving-the-station-1" href="#This-train-is-leaving-the-station">1.1.5 This train is leaving the station</a></li>
+      <li><a name="toc-Technology-1" href="#Technology">1.1.6 Technology</a></li>
+    </ul></li>
+    <li><a name="toc-Is-Star-for-you_003f-1" href="#Is-Star-for-you_003f">1.2 Is Star for you?</a>
+    <ul class="no-bullet">
+      <li><a name="toc-If-you-are-already-a-Java-_0028or-C_002c-C_0023-or-C_002b_002b_0029-programmer" href="#If-you-are-already-a-Java-_0028or-C_002c-C_0023-or-C_002b_002b_0029-programmer">1.2.1 If you are already a Java (or C, C# or C++) programmer</a>
+      <ul class="no-bullet">
+        <li><a name="toc-If-you-are-already-a-C_002b_002b-programmer-1" href="#If-you-are-already-a-C_002b_002b-programmer">1.2.1.1 If you are already a C++ programmer</a></li>
+      </ul></li>
+      <li><a name="toc-If-you-are-already-a-functional-programmer-1" href="#If-you-are-already-a-functional-programmer">1.2.2 If you are already a functional programmer</a></li>
+    </ul></li>
+    <li><a name="toc-Design-goals-for-Star-1" href="#Design-goals-for-Star">1.3 Design goals for Star</a></li>
+    <li><a name="toc-About-this-book-1" href="#About-this-book">1.4 About this book</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Getting-hold-of-Star-1" href="#Getting-hold-of-Star">1.4.1 Getting hold of Star</a></li>
+      <li><a name="toc-Typographical-conventions-1" href="#Typographical-conventions">1.4.2 Typographical conventions</a></li>
+      <li><a name="toc-Acknowledgements-1" href="#Acknowledgements">1.4.3 Acknowledgements</a></li>
+    </ul></li>
+  </ul></li>
+  <li><a name="toc-A-tour-of-Star-1" href="#A-tour-of-Star">2 A tour of Star</a>
+  <ul class="no-bullet">
+    <li><a name="toc-A-first-Star-program-1" href="#A-first-Star-program">2.1 A first Star program</a></li>
+    <li><a name="toc-Texture-1" href="#Texture">2.2 Texture</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Lexical-style-1" href="#Lexical-style">2.2.1 Lexical style</a></li>
+      <li><a name="toc-Types-1" href="#Types">2.2.2 Types</a></li>
+      <li><a name="toc-Rules-1" href="#Rules">2.2.3 Rules</a></li>
+      <li><a name="toc-Pattern-1" href="#Pattern">2.2.4 Pattern</a></li>
+      <li><a name="toc-Packages-1" href="#Packages">2.2.5 Packages</a></li>
+      <li><a name="toc-Worksheets-1" href="#Worksheets">2.2.6 Worksheets</a></li>
+      <li><a name="toc-String-interpolation-1" href="#String-interpolation">2.2.7 String interpolation</a></li>
+    </ul></li>
+    <li><a name="toc-Types_002c-more-types-and-even-more-types" href="#Types-more-types-and-even-more-types">2.3 Types, more types and even more types</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Nominative-types-1" href="#Nominative-types">2.3.1 Nominative types</a></li>
+      <li><a name="toc-Reference-Type-1" href="#Reference-Type">2.3.2 Reference Type</a></li>
+      <li><a name="toc-Structural-types-1" href="#Structural-types">2.3.3 Structural types</a></li>
+      <li><a name="toc-Optional-values-1" href="#Optional-values">2.3.4 Optional values</a></li>
+      <li><a name="toc-The-flavors-of-equality-1" href="#The-flavors-of-equality">2.3.5 The flavors of equality</a></li>
+    </ul></li>
+    <li><a name="toc-A-tale-of-three-loops-1" href="#A-tale-of-three-loops">2.4 A tale of three loops</a></li>
+    <li><a name="toc-A-functional-loop-1" href="#A-functional-loop">2.5 A functional loop</a>
+    <ul class="no-bullet">
+      <li><a name="toc-A-totalizer-query-1" href="#A-totalizer-query">2.5.1 A totalizer query</a></li>
+      <li><a name="toc-The-homunculus-in-the-machine-1" href="#The-homunculus-in-the-machine">2.5.2 The homunculus in the machine</a></li>
+    </ul></li>
+    <li><a name="toc-Contracts-and-constrained-types-1" href="#Contracts-and-constrained-types">2.6 Contracts and constrained types</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Implementing-contracts-1" href="#Implementing-contracts">2.6.1 Implementing contracts</a></li>
+      <li><a name="toc-Coercion_002c-not-casting" href="#Coercion-not-casting">2.6.2 Coercion, not casting</a></li>
+    </ul></li>
+    <li><a name="toc-There-is-more-1" href="#There-is-more">2.7 There is more</a></li>
+  </ul></li>
+  <li><a name="toc-Functional-Programming-1" href="#Functional-Programming">3 Functional Programming</a>
+  <ul class="no-bullet">
+    <li><a name="toc-What-is-functional-programming_003f-1" href="#What-is-functional-programming_003f">3.1 What is functional programming?</a></li>
+    <li><a name="toc-Basics-1" href="#Basics">3.2 Basics</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Patterns-1" href="#Patterns">3.2.1 Patterns</a></li>
+      <li><a name="toc-Order-of-evaluation-1" href="#Order-of-evaluation">3.2.2 Order of evaluation</a></li>
+    </ul></li>
+    <li><a name="toc-Another-look-at-types-1" href="#Another-look-at-types">3.3 Another look at types</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Quantifier-types-1" href="#Quantifier-types">3.3.1 Quantifier types</a></li>
+      <li><a name="toc-Contract-constrained-types-1" href="#Contract-constrained-types">3.3.2 Contract constrained types</a></li>
+      <li><a name="toc-Algebraic-data-types-1" href="#Algebraic-data-types">3.3.3 Algebraic data types</a></li>
+    </ul></li>
+    <li><a name="toc-Functions-as-values-1" href="#Functions-as-values">3.4 Functions as values</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Functions-and-closures-1" href="#Functions-and-closures">3.4.1 Functions and closures</a></li>
+      <li><a name="toc-Let-binding-1" href="#Let-binding">3.4.2 Let binding</a></li>
+      <li><a name="toc-Generic-types-1" href="#Generic-types">3.4.3 Generic types</a></li>
+      <li><a name="toc-Generic-functions-1" href="#Generic-functions">3.4.4 Generic functions</a></li>
+    </ul></li>
+    <li><a name="toc-Going-further-1" href="#Going-further">3.5 Going further</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Going-even-further-1" href="#Going-even-further">3.5.1 Going even further</a></li>
+    </ul></li>
+    <li><a name="toc-Polymorphic-arithmetic-1" href="#Polymorphic-arithmetic">3.6 Polymorphic arithmetic</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Optional-computing-1" href="#Optional-computing">3.6.1 Optional computing</a></li>
+      <li><a name="toc-Special-syntax-for-optional-values-1" href="#Special-syntax-for-optional-values">3.6.2 Special syntax for <code>option</code>al values</a></li>
+    </ul></li>
+    <li><a name="toc-A-word-about-type-inference-1" href="#A-word-about-type-inference">3.7 A word about type inference</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Why-is-type-inference-restricted_003f-1" href="#Why-is-type-inference-restricted_003f">3.7.1 Why is type inference restricted?</a></li>
+    </ul></li>
+    <li><a name="toc-Are-we-there-yet_003f-1" href="#Are-we-there-yet_003f">3.8 Are we there yet?</a></li>
+  </ul></li>
+  <li><a name="toc-Concept-index-1" href="#Concept-index">Concept index</a></li>
+  <li><a name="toc-Standard-function-index" href="#Function-index">Standard function index</a></li>
+  <li><a name="toc-List-of-Syntax-Rules-1" href="#List-of-Syntax-Rules">List of Syntax Rules</a></li>
+</ul>
+</div>
+
+
+<a name="Top"></a>
+<div class="header">
+<p>
+Next: <a href="#Why-be-a-Star-programmer_003f" accesskey="n" rel="next">Why be a Star programmer?</a>, Up: <a href="dir.html#Top" accesskey="u" rel="up">(dir)</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Star-Guide"></a>
+<h1 class="top">Star Guide</h1>
+
+
+
+<p>This is the 
+guide for the <code>Star</code> language.  
+
+</p>
+<p>This book gives an introduction into the form and usage of the <code>Star</code>
+programming language. However, it is not a definitive reference on the
+language; for which the reader is referred to <em>Star Reference</em> by
+F.G. McCabe.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Why-be-a-Star-programmer_003f" accesskey="1">Why be a Star programmer?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#A-tour-of-Star" accesskey="2">A tour of Star</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Functional-Programming" accesskey="3">Functional Programming</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Concept-index" accesskey="4">Concept index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Function-index" accesskey="5">Function index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#List-of-Syntax-Rules" accesskey="6">List of Syntax Rules</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Why-be-a-Star-programmer_003f"></a>
+<div class="header">
+<p>
+Next: <a href="#A-tour-of-Star" accesskey="n" rel="next">A tour of Star</a>, Previous: <a href="#Top" accesskey="p" rel="prev">Top</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Why-be-a-Star-programmer_003f-1"></a>
+<h2 class="chapter">1 Why be a Star programmer?</h2>
+
+<p>This book is about the programming language called <code>Star</code>. Why, you
+may ask, do you need to learn yet another language? We hope to answer
+that question and more in the course of this book. We also aim to show
+you how to program effectively in <code>Star</code> to solve real world
+problems.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Programming-has-changed" accesskey="1">Programming has changed</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Is-Star-for-you_003f" accesskey="2">Is Star for you?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Design-goals-for-Star" accesskey="3">Design goals for Star</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#About-this-book" accesskey="4">About this book</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Programming-has-changed"></a>
+<div class="header">
+<p>
+Next: <a href="#Is-Star-for-you_003f" accesskey="n" rel="next">Is Star for you?</a>, Up: <a href="#Why-be-a-Star-programmer_003f" accesskey="u" rel="up">Why be a Star programmer?</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Programming-has-changed-1"></a>
+<h3 class="section">1.1 Programming has changed</h3>
+
+<p>Many of the world&rsquo;s most popular languages are quite old: C/C++ date
+back to the 1970&rsquo;s and 1980&rsquo;s; Java dates back to 1995. Although it
+sometimes does not seem like it; quite a lot has changed since those
+days.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Programs-are-huge" accesskey="1">Programs are huge</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Planning-for-change" accesskey="2">Planning for change</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Programming-safely-and-effectively" accesskey="3">Programming safely and effectively</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Real_002dtime-is-normal-time_002e" accesskey="4">Real-time is normal time.</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#This-train-is-leaving-the-station" accesskey="5">This train is leaving the station</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Technology" accesskey="6">Technology</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Programs-are-huge"></a>
+<div class="header">
+<p>
+Next: <a href="#Planning-for-change" accesskey="n" rel="next">Planning for change</a>, Up: <a href="#Programming-has-changed" accesskey="u" rel="up">Programming has changed</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Programs-are-huge-1"></a>
+<h4 class="subsection">1.1.1 Programs are huge</h4>
+<p>If your program is 100 lines long, it does not actually matter what
+programming language you use to write it in &ndash; unless you are learning
+programming for the first time.
+</p>
+<p>However, in practice, many software systems are huge. It is normal to
+develop and to encounter programs measured in 100 Klocs (thousands of
+lines of code) and it is not uncommon to encounter software systems
+measured in the millions of lines of code.
+</p>
+<blockquote>
+<p><b>NOTE:</b> To put these numbers into perspective, 500KLocs is comparable to the
+expected output of a programmer over their entire career. So, these
+systems necessarily involve many people over many years: a team of 10
+programmers would take 10 years to write 1M lines of
+code.<a name="DOCF1" href="#FOOT1"><sup>1</sup></a>
+</p></blockquote>
+
+<p>Software development at this scale does not share much with developing
+small systems. Large scale software is invariably a team effort,
+spread over multiple years. It often involves large numbers of
+components and multiple sub-systems interacting with each
+other. Overall, this is a scenario of staggering heterogeneity and
+complexity.
+</p>
+<p>If there is one theme that is common in large code bases is that
+tooling is critical: powerful IDEs can make a difference in
+productivity measured in factors of 2-5. However, it is our opinion
+that language tooling starts with a sound programming language design:
+the sounder the foundations, the taller the structure that can be
+built on it.
+</p>
+<hr>
+<a name="Planning-for-change"></a>
+<div class="header">
+<p>
+Next: <a href="#Programming-safely-and-effectively" accesskey="n" rel="next">Programming safely and effectively</a>, Previous: <a href="#Programs-are-huge" accesskey="p" rel="prev">Programs are huge</a>, Up: <a href="#Programming-has-changed" accesskey="u" rel="up">Programming has changed</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Planning-for-change-1"></a>
+<h4 class="subsection">1.1.2 Planning for change</h4>
+<p>Furthermore, <em>change</em> is the dominant fact of life for large
+systems. Software systems evolve, grow, are repurposed to meet new
+objectives, and are re-implemented to take advantage of new
+technologies.
+</p>
+<p>Managing change in code is often left to Source Code Control Systems;
+but these systems only address part of the problem. For example,
+<em>code re-use</em> is also a requirement and a challenge for large
+systems. In fact, one could imagine a <em>three
+Rs</em><a name="DOCF2" href="#FOOT2"><sup>2</sup></a>  for software engineering: Reuse, Repurpose, and
+Refactor.
+</p>
+<p>When the code base is over 500 Kloc, the theoretical probability of
+being able to re-use existing code is high, the actual probability of
+re-use may be very low &ndash; software engineers may simply not be able to
+find the needle in the code haystack, or, typically, the cost of
+re-using code may outweigh the cost of developing from scratch.
+</p>
+<p>The need to repurpose reflects the fact that requirements change and
+that software written for one purpose may be used for something
+different. Finally, even if the requirements dont change, the context
+almost certainly will: increasing workload can lead to a need to
+refactor existing code to enable it to meet changing needs.
+</p>
+<p>There is another kind of change that we need to consider: the
+evolution of our programming languages and other tools. A successful
+programming language is part of an ecosystem. That ecosystem consists
+of the language itself, together with compilers and related tools. It
+also contains libraries, frameworks and packages. In many cases the
+libraries that are associated with a language are far more important
+than the language compiler (e.g., Java&rsquo;s package ecosystem is
+enormous).
+</p>
+<p>A well designed language is capable of supporting a large variety of
+libraries without running into limitations. Furthermore, a well
+designed language is structured in a way that supports its own
+evolution &ndash; new requirements can lead to new features being added to
+the language.
+</p>
+<blockquote>
+<p>Managing this evolution may be the hardest aspect of designing
+programming languages!
+</p></blockquote>
+
+<hr>
+<a name="Programming-safely-and-effectively"></a>
+<div class="header">
+<p>
+Next: <a href="#Real_002dtime-is-normal-time_002e" accesskey="n" rel="next">Real-time is normal time.</a>, Previous: <a href="#Planning-for-change" accesskey="p" rel="prev">Planning for change</a>, Up: <a href="#Programming-has-changed" accesskey="u" rel="up">Programming has changed</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Programming-safely-and-effectively-1"></a>
+<h4 class="subsection">1.1.3 Programming safely and effectively</h4>
+
+<p>At the same time, safety and security are also critical: no-one likes
+to have their private information exposed to the bad guys. Most
+main-stream programming languages were designed in an era when safety
+was not uppermost in programmersâ minds &ndash; usually it was
+performance. Some seemingly trivial design choices &ndash; such as Câs
+conventions for laying out strings in memory &ndash; turn out to have
+potentially devastating security implications.
+</p>
+<p>In addition, systems that are built assuming a shielded execution
+environment, behind closed doors as it were, are often actually
+expected to perform in the full glare of the Internet. Hardening
+programs so that they stand up to that glare can often dramatically
+add to the cost of development &ndash; both in time and in money.
+</p>
+<hr>
+<a name="Real_002dtime-is-normal-time_002e"></a>
+<div class="header">
+<p>
+Next: <a href="#This-train-is-leaving-the-station" accesskey="n" rel="next">This train is leaving the station</a>, Previous: <a href="#Programming-safely-and-effectively" accesskey="p" rel="prev">Programming safely and effectively</a>, Up: <a href="#Programming-has-changed" accesskey="u" rel="up">Programming has changed</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Real_002dtime-is-normal-time_002e-1"></a>
+<h4 class="subsection">1.1.4 Real-time is normal time.</h4>
+
+<p>Many kinds of business are becoming more and more âreal-timeâ: a small
+&ndash; over the order of milliseconds &ndash; slowdown in loading a web page
+can mean the loss of 5% or more of revenue for an e-commerce site; an
+unrented car, like an unrented hotel room, represents a permanent loss
+of business and a competitive disadvantage.
+</p>
+<p>For the modern programmer, this means that applications must be
+engineered from the start to be responsive and multitasking &ndash; aspects
+that challenge even the most professional of programmers.
+</p>
+<hr>
+<a name="This-train-is-leaving-the-station"></a>
+<div class="header">
+<p>
+Next: <a href="#Technology" accesskey="n" rel="next">Technology</a>, Previous: <a href="#Real_002dtime-is-normal-time_002e" accesskey="p" rel="prev">Real-time is normal time.</a>, Up: <a href="#Programming-has-changed" accesskey="u" rel="up">Programming has changed</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="This-train-is-leaving-the-station-1"></a>
+<h4 class="subsection">1.1.5 This train is leaving the station</h4>
+
+<p>Perhaps most importantly, we need to be able to do these things
+<em>now</em> &ndash; time to market is a critical factor in many if not most
+modern applications. Its no good developing the worldâs best widget if
+you run out of ârunwayâ trying to build it.
+</p>
+<p>A major bottleneck is the relative poor productivity of most modern
+programming languages. It is simply too hard to produce correct robust
+code in languages like C/C++, Python etc.
+</p>
+<p>Productivity is an issue for individual programmers but is especially
+salient for programmer teams.
+</p>
+<blockquote>
+<p>Every successful software project involves a team.
+</p></blockquote>
+
+<p>The requirements for team-based development tend to put certain
+aspects of programming language design into sharp focus. For example,
+strong types and clear interfaces may be excellent aids for individual
+programmers but they are absolutely paramount for team development.
+</p>
+<p>More generally, in a competitive environment, the only way to reliably
+out-perform the competition in reaching the market is to use radically
+more productive technology.
+</p>
+<hr>
+<a name="Technology"></a>
+<div class="header">
+<p>
+Previous: <a href="#This-train-is-leaving-the-station" accesskey="p" rel="prev">This train is leaving the station</a>, Up: <a href="#Programming-has-changed" accesskey="u" rel="up">Programming has changed</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Technology-1"></a>
+<h4 class="subsection">1.1.6 Technology</h4>
+
+<p>The technology platform that programs are written for is also
+changing. Just a few decades ago most computers were single-core;
+nowadays most computers are multi-core and are capable of significant
+parallelism.
+</p>
+<p>Especially spectacular is the parallelism available in modern GPUs;
+where a high end graphics processor may have thousands of cores
+capable of processing instructions in parallel. We expect that the
+days of personal computers with thousands of cores is not too far in
+the future.
+</p>
+<p>Programming parallel machines with conventional languages is an
+exercise in frustration. This is because programming models that
+worked in single core computers do not scale well to highly parallel
+machines. One of the primary reasons for this is that state &ndash; as
+represented by the changing values of variables &ndash; is <em>implicit</em>
+in procedural and object oriented languages. The implicitness of state
+is important because it makes many programs easier to express. On the
+other hand, that implicitness becomes a liability in multi-threaded
+and parallel situations where state is no longer so well behaved.
+</p>
+<p>However, <code>Star</code> has adopted some of the recent innovations in that
+make dealing with multi-tasking and parallel execution easier. These
+innovations layer on top of basic features such as threading and
+provide simpler models of execution than âconventionalâ threaded
+models. <code>Star</code>âs computation expressions combine the best of
+fork-join queues and map-reduce frameworks whilst enabling a more
+normal style of programming.
+</p>
+<hr>
+<a name="Is-Star-for-you_003f"></a>
+<div class="header">
+<p>
+Next: <a href="#Design-goals-for-Star" accesskey="n" rel="next">Design goals for Star</a>, Previous: <a href="#Programming-has-changed" accesskey="p" rel="prev">Programming has changed</a>, Up: <a href="#Why-be-a-Star-programmer_003f" accesskey="u" rel="up">Why be a Star programmer?</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Is-Star-for-you_003f-1"></a>
+<h3 class="section">1.2 Is Star for you?</h3>
+
+<p>Choosing a programming language &ndash; when you actually have a choice &ndash;
+is highly personal. Here are some reasons to think about <code>Star</code>.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#If-you-are-already-a-functional-programmer" accesskey="1">If you are already a functional programmer</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<a name="If-you-are-already-a-Java-_0028or-C_002c-C_0023-or-C_002b_002b_0029-programmer"></a>
+<h4 class="subsection">1.2.1 If you are already a Java (or C, C# or C++) programmer</h4>
+<hr>
+<a name="If-you-are-already-a-Java-or-C-C_0023-or-C_002b_002b-programmer"></a>
+<div class="header">
+<p>
+ &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<h4 class="node-heading">If you are already a Java or C C# or C++ programmer</h4>
+
+<p>Most OO languages are embracing some of the simpler features of
+functional languages. Even modern Java with its lambda expressions and
+stream features represents a nod to the power of functional
+programming. However, at the same time, there is a substantial gap in
+the capabilities of most OO languages compared to modern functional
+programming languages.
+</p>
+<p>Fundamentally, OO languages revolve around <em>nouns</em> rather than
+<em>verbs</em>. Verbs (methods) are relegated to being inside the scope
+of some noun (object): they are not first class.  In functional
+programming languages, like <code>Star</code>, there is more of an balance
+between nouns and verbs.
+</p>
+<p>It is possible to have functions that are about data; it is also quite
+straightforward in functional programming languages to have data
+structures with functions embedded in them. In fact, a simple
+definition of a <em>module</em> is a record that contains functions in
+it.
+</p>
+<p>While OO languages like Java provide excellent <em>data abstraction</em>
+tools, the same cannot be said for <em>control abstractions</em>. The
+result is that OO languages are âstuck in the 1970sâ when it comes to
+control abstractions. However, concepts such as map/reduce,
+computation expressions, and continuations bring a rich suite of new
+control possibilities that solve important problems in modern
+programming.
+</p>
+<p>Similarly, the type systems of languages like Java (or C# or C/C++)
+make are not as expressive or sensitive as modern type systems in
+functional languages can be. Professional programmers will recognize a
+typical symptom of insufficiently expressive types: lots of casting
+and dynamic meta-programming. But, while powerful, these techniques
+amount to giving up on types and their important
+advantages. Furthermore, contrary to many programmersâ expectations, a
+modern type system is quite capable of dealing statically with
+scenarios that require dynamic programming in languages like Java.
+</p>
+<hr>
+<a name="If-you-are-already-a-C_002b_002b-programmer"></a>
+<div class="header">
+<p>
+ &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="If-you-are-already-a-C_002b_002b-programmer-1"></a>
+<h4 class="subsubsection">1.2.1.1 If you are already a C++ programmer</h4>
+
+<p>Moving to a language like <code>Star</code> is a radically different programming
+experience for the C++ programmer. However, most of the differences
+are not because <code>Star</code> is a functional programming language. Rather,
+it is because <code>Star</code> does not abide by two of C++&rsquo;s core principles:
+zero-cost abstractions and compatibility with C.
+</p>
+<p>While <code>Star</code>&rsquo;s compiler does not willfully make programs execute more
+slowly, strict CPU performance is not the primary driver for design
+features. This shows up in a desire to avoid the so-called premature
+optimization problem: of optimizing the wrong feature.
+</p>
+<p>In the case of <code>Star</code> vs C++, the most salient of these is likely to
+be the different ways that generic programs are compiled: C++ compiles
+generic programs by constructing special case implementations for all
+used versions of the generic program; whereas <code>Star</code> constructs a
+single &ndash; type agnostic &ndash; implementation of generic functions.
+</p>
+<p>This affects many aspects of one&rsquo;s day-to-day usage of the language
+and its tooling. One of which is that, for a compiler that has been in
+daily use for over 40 years, C++ compilers are still remarkably
+slow. C++ binaries can often be very large.
+</p>
+<p>The compatibility with C requirement has meant that C++ has to support
+many programming paradigms (such as pointer arithmetic) that most
+modern programming languages &ndash; <code>Star</code> included &ndash; eschew.
+</p>
+<p>Pointer arithmetic is known to put applications at risk of severe
+security problems; and there are many modern safer alternatives (which
+C++ does also support).
+</p>
+<hr>
+<a name="If-you-are-already-a-functional-programmer"></a>
+<div class="header">
+<p>
+Up: <a href="#Is-Star-for-you_003f" accesskey="u" rel="up">Is Star for you?</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="If-you-are-already-a-functional-programmer-1"></a>
+<h4 class="subsection">1.2.2 If you are already a functional programmer</h4>
+
+<p>You have many choices for functional programming languages that are
+excellent. The author considers two languages that are principal
+sources of inspiration for many of the functional features of <code>Star</code>:
+Haskell and Standard ML (SML) &ndash; both of which are excellent; but not
+perfect.
+</p>
+<p>For the functional programmer, the principal benefits of <code>Star</code> are
+<em>readability</em>, <em>modernity</em> and <em>predictability</em>.
+</p>
+<p>One of the major drivers of the design of Haskell and (to a lesser
+extent) SML is conciseness. However, conciseness is not the same as
+readability. In modern software development environments there are
+many stakeholders beyond the developer. Having a language that is easy
+to follow by non-technical readers is a major benefit in mixed skill
+teams.
+</p>
+<p>Like Haskell, <code>Star</code> has a powerful type system. <code>Star</code>âs type
+system has many features in common with Haskellâs type system &ndash;
+features that typically go beyond the capabilities of many OO
+languages. In particular, <code>Star</code>âs contract system is reminiscent of
+Haskellâs type classes; and <code>Star</code>âs existential and higher-kinded
+types give considerable expressive power to the programmer.
+</p>
+<p><code>Star</code> does not follow all of Haskellâs type features; and some type
+concepts are rephrased into terminology that is more familiar to
+main-stream (sic) programmers.
+</p>
+<p>Like SML, <code>Star</code> has a powerful module system. However, unlike SMLâs
+functors, <code>Star</code> modules are first class values. This means that
+there is no artificial separation between âordinaryâ programs and
+âfunctorâ programs.
+</p>
+<p>The result is a balanced set of type features that provides
+capabilities that scale well from small programs to large systems.
+</p>
+<p><code>Star</code>âs evaluation is, like that of SML but unlike Haskell,
+strict. We believe that that makes it significantly easier to reason
+about the actual behavior and performance of programs. However,
+<code>Star</code> has a rich set of features that support productive concurrent
+and parallel programming &ndash; based on a combination of system threads
+and the features of Concurrent ML.
+</p>
+<p>Like SML, <code>Star</code> is not a strictly âpureâ language. This was neither
+an accident nor an afterthought. Computer systems are built to fulfill
+purposeful activity (although there may be many times when the actual
+purpose is hard to discern). For example, if I deposit a check into my
+bank account, I require that the bankâs state is updated to reflect my
+new balance: the world has changed as a result of my action.
+</p>
+<p>However, the converse does not follow: just because the world is
+stateful does not mean that all our programs should be needlessly
+stateful. Much, if not most, of a given application program can and
+should be crafted in a mathematical style &ndash; the merits of functional
+programming are very great.
+</p>
+<p>Overall, the primary rationale in the design of <code>Star</code> is to empower
+the programmer in making obviously correct programs.
+</p>
+<hr>
+<a name="Design-goals-for-Star"></a>
+<div class="header">
+<p>
+Next: <a href="#About-this-book" accesskey="n" rel="next">About this book</a>, Previous: <a href="#Is-Star-for-you_003f" accesskey="p" rel="prev">Is Star for you?</a>, Up: <a href="#Why-be-a-Star-programmer_003f" accesskey="u" rel="up">Why be a Star programmer?</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Design-goals-for-Star-1"></a>
+<h3 class="section">1.3 Design goals for Star</h3>
+
+<p><code>Star</code> is a multi-paradigm high-level <em>symbolic</em> language. It is
+designed to be scalable, readable, accurate, high performing and
+extensible.
+</p>
+<p>Paradoxically, scalability in a programming language is always about
+large and small chunks of code. Scalability in <code>Star</code> is fostered by
+a range of elements that facilitate composition, change and re-use:
+</p>
+<ul>
+<li> The language is strongly statically typed. This encourages both safety
+and documentation.  The type system is strong enough that there is
+very limited need to escape the type system. For example, modules can
+be given a first-class type semantics. This is important because it
+facilitates programmatic manipulation of modules in a safe manner.
+
+</li><li> Programs are defined in terms of rules; for example, functions are
+defined in terms of equations. Apart from being more readable, rules
+are also a natural unit of change in an evolving system.
+
+<p>A meta-language based on logical annotations makes it possible to
+build meaningfully connected documentation and facilitates processes
+such as code re-use, issue tracking, and code lifetime management.
+</p></li><li> The package system is intrinsically versioned and abstracted away from
+any underlying storage system.
+</li></ul>
+
+<p>The syntax of <code>Star</code> is oriented towards readability rather than
+strict conciseness. The reason for this is that the programmer is only
+one of the stake holders in a given program. A readable program is one
+that is more easily trusted by non-programmers.
+</p>
+<p>Experience also suggests that readability enhances programmer
+productivity also: much of team-based development involves
+comprehending and modifying other programmersâ code.
+</p>
+<p><code>Star</code> is a strongly, statically typed language. The purpose of a
+strong type system is to facilitate the communication of intent of the
+programmer. The purpose of static typing is to ensure that the
+compiler can rapidly âfailâ incorrect programs without requiring the
+program to be run. Furthermore, static type checking minimizes any
+run-time penalty for imposing type constraints.
+</p>
+<p>Although <code>Star</code> is strongly typed, it uses <em>type inference</em> to
+eliminate much of the clutter that some type systems impose on the
+programmer &ndash; which itself is a productivity sink of course.
+</p>
+<p>Generally, the <em>stronger</em> the type system, the more the language
+system can detect errors before programs are run. In addition, the
+more <em>expressive</em> the type system is, the less the temptation to
+try to subvert or bypass the type system.
+</p>
+<p>However, even though it is technically feasible to completely
+eliminate type declarations of functions; doing so is in conflict with
+some of the other goals behind <code>Star</code>. For example, type declarations
+act as a form of documentation; and when there is a type error in your
+program, having <em>no</em> explicit type declarations can make tracking
+the culprit of the error very difficult. So all top-level variable
+definitions (typically functions) are required in <code>Star</code> to have
+explicit type <em>annotations</em>.<a name="DOCF3" href="#FOOT3"><sup>3</sup></a>
+</p>
+<p><code>Star</code> has a range of features that make exploiting parallelism
+easier to manage. For example, it has support for <em>computation
+expressions</em> and <em>actors</em>. Partitioning an application into
+different <em>agents</em> allows programming to follow a more human
+approach. Computation expressions allow the programmer to manipulate
+computations as easily as they do data values; that in turns greatly
+eases the development of parallel and concurrent applications.
+</p>
+<p>There is no one technology that can solve all problems. This is as
+true for programming as for other domains. <code>Star</code> supports a range of
+programming paradigms that allows the developer to âuse the best tool
+for the jobâ. However, we go beyond this âswiss army knifeâ stance and
+make it straightforward to extend the language.
+</p>
+<p>Virtually every non-trivial program can be factored into a combination
+of general purpose mechanism and specific policy for applying the
+mechanism. <code>Star</code> has powerful self-extension features that allow
+programmers to design their own policy structures (a.k.a. domain
+specific languages).
+</p>
+<p>Many of <code>Star</code>âs own features &ndash; such as its query notation and its
+actor notation &ndash; are built using these extension mechanisms.
+</p>
+<hr>
+<a name="About-this-book"></a>
+<div class="header">
+<p>
+Previous: <a href="#Design-goals-for-Star" accesskey="p" rel="prev">Design goals for Star</a>, Up: <a href="#Why-be-a-Star-programmer_003f" accesskey="u" rel="up">Why be a Star programmer?</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="About-this-book-1"></a>
+<h3 class="section">1.4 About this book</h3>
+
+<p>This book acts as an introduction to the language and to its use. The
+basic features of the language are introduced; however, this is not a
+reference manual: it is not intended to be a complete description of
+the language.
+</p>
+<p>That can be found in the <code>Star</code> Language Definition.
+</p>
+<p>Introducing a programming language like <code>Star</code> can be a challenge in
+presentation. This is because there is a significant amount of mutual
+support between elements of the language.
+</p>
+<p>Our strategy is to take a layered approach &ndash; we start with simple
+examples, occasionally skipping over certain aspects of the language
+without explanation. Later chapters focus on deeper, more complex
+topics.
+</p>
+<p>For the most part, examples in the text of the book are
+executable. You are encouraged to try to get them running on your own
+system.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Getting-hold-of-Star" accesskey="1">Getting hold of Star</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Typographical-conventions" accesskey="2">Typographical conventions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Acknowledgements" accesskey="3">Acknowledgements</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Getting-hold-of-Star"></a>
+<div class="header">
+<p>
+Next: <a href="#Typographical-conventions" accesskey="n" rel="next">Typographical conventions</a>, Up: <a href="#About-this-book" accesskey="u" rel="up">About this book</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Getting-hold-of-Star-1"></a>
+<h4 class="subsection">1.4.1 Getting hold of Star</h4>
+<p>The <code>Star</code> compiler and run-time is being developed as an open source
+project on GitHub. You can access the source by cloning or downloading
+the repository at
+</p>
+<div class="example">
+<pre class="example">github.com/frankmccabe/star
+</pre></div>
+
+<hr>
+<a name="Typographical-conventions"></a>
+<div class="header">
+<p>
+Next: <a href="#Acknowledgements" accesskey="n" rel="next">Acknowledgements</a>, Previous: <a href="#Getting-hold-of-Star" accesskey="p" rel="prev">Getting hold of Star</a>, Up: <a href="#About-this-book" accesskey="u" rel="up">About this book</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Typographical-conventions-1"></a>
+<h4 class="subsection">1.4.2 Typographical conventions</h4>
+
+<p>Any text on a programming language often has a significant number of
+examples of programs and program fragments. We show these using a
+typewriter-like font, often broken out in a display form:
+</p>
+<div class="example">
+<pre class="example">P:integer;
+&hellip;
+</pre></div>
+
+<p>We use the &hellip; ellipsis to explicitly indicate a fragment of a
+program that may not be syntactically correct as it stands.
+</p>
+<p>As we noted above, <code>Star</code> is a rich language with many features. As a
+result, some parts of the text may require more careful reading, or
+represent comments about potential implications of the main
+text. These notes are highlighted the way this note is.
+</p>
+<hr>
+<a name="Acknowledgements"></a>
+<div class="header">
+<p>
+Previous: <a href="#Typographical-conventions" accesskey="p" rel="prev">Typographical conventions</a>, Up: <a href="#About-this-book" accesskey="u" rel="up">About this book</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Acknowledgements-1"></a>
+<h4 class="subsection">1.4.3 Acknowledgements</h4>
+
+<p>No-one is an island, and no project of this scale is one personâs
+work. I have had the great fortune to be able to develop <code>Star</code> in
+the context of real world applications solving hard
+problems. Individuals have also played a large role; and it can be
+hard to ensure that all are properly acknowledged: please forgive any
+omissions.
+</p>
+<p>Of particular significance, I would like to thank Michael Sperber for
+our many discussions on the finer topics of language design; and for
+his not insignificant contributions to the implementation itself.
+</p>
+<p>I would also like to thank my old colleagues at Starview inc., in
+particular Steve Baunach and Bob Riemenschneider who were the worldâs
+first <code>Star</code> programmers! In addition, I would like to thank Michael
+Sperber, David Frese and Andreas Bernauer who helped with crucial
+parts of the implementation of the concurrency features. I would also
+like to thank Keith Clark, Kevin Cory, Prasenjit Dey, Chris Gray, Mack
+Mackenzie, and Kevin Twidle for their help and advice. I would like to
+acknowledge the support of Thomas Sulzbacher who originated the
+project and Jerry Meerkatz for keeping the faith.
+</p>
+<p>Last, but definitely not least, I would like to acknowledge the love
+and support of my family; without whom none of this makes sense.
+</p>
+<hr>
+<a name="A-tour-of-Star"></a>
+<div class="header">
+<p>
+Next: <a href="#Functional-Programming" accesskey="n" rel="next">Functional Programming</a>, Previous: <a href="#Why-be-a-Star-programmer_003f" accesskey="p" rel="prev">Why be a Star programmer?</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-tour-of-Star-1"></a>
+<h2 class="chapter">2 A tour of Star</h2>
+
+<p>Our first task is to introduce you to the <code>Star</code> language. It is
+difficult to find the right order in which to present a programming
+language like <code>Star</code>; this is because many of the features are highly
+inter-related. For example, types depend on values which depend on
+functions which depend on types!
+</p>
+<p>Instead, our approach in this book is to take a series of horizontal
+slices through the whole language; going progressively deeper as you
+become more comfortable with the language. Each layer represents a
+reasonably workable subset of the complete language.
+</p>
+<p>Since a layered approach means that any given description may be
+incomplete or slightly inaccurate, there is a temptation to use
+footnote annotations which declare â&hellip; but there is
+also<a name="DOCF4" href="#FOOT4"><sup>4</sup></a>
+&hellip;â.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#A-first-Star-program" accesskey="1">A first Star program</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Texture" accesskey="2">Texture</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Types-more-types-and-even-more-types" accesskey="3">Types more types and even more types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#A-tale-of-three-loops" accesskey="4">A tale of three loops</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#A-functional-loop" accesskey="5">A functional loop</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Contracts-and-constrained-types" accesskey="6">Contracts and constrained types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#There-is-more" accesskey="7">There is more</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="A-first-Star-program"></a>
+<div class="header">
+<p>
+Next: <a href="#Texture" accesskey="n" rel="next">Texture</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-first-Star-program-1"></a>
+<h3 class="section">2.1 A first Star program</h3>
+
+<p>It is traditional to introduce a new programming language with
+something like the hello world example. Which we will do in a
+moment. However, the factorial function often makes a better first
+example for functional programming languages:
+</p>
+<div class="example">
+<pre class="example">sample.factorial{
+  import star.               -- Access standard language features
+
+  public fact : (integer)=&gt;integer.
+  fact(0) =&gt; 1.              -- base case
+  fact(N) where N&gt;0 =&gt; N*fact(N-1).
+}
+</pre></div>
+
+<p>This is not an executable program per se.; however, it does represent
+a more typical source code unit &ndash; most programs are built from many
+smaller modules which come together to make the application. This
+program is small, but already introduces many of the key elements of
+the <code>Star</code> language.
+</p>
+<p>In this module, we see the name of the module &ndash;
+<code>sample.factorial</code> &ndash; an import statement and a function
+definition &ndash; of the <code>fact</code> function.
+</p>
+<p>Source code can be in any form of textual container. There is, for
+example, no specific requirement that this <code>sample.factorial</code>
+package be in a file called <code>factorial.star</code>; although that may
+be good advice. Instead, the <code>Star</code> system relies on a <em>catalog
+based</em> system that maps package names to text entities. The catalog
+system also serves as an anchor point in the version management of
+<code>Star</code> programs. We will cover this, and the related repository
+system for generated artifacts, in Chapter 4.
+</p>
+<hr>
+<a name="Texture"></a>
+<div class="header">
+<p>
+Next: <a href="#Types-more-types-and-even-more-types" accesskey="n" rel="next">Types more types and even more types</a>, Previous: <a href="#A-first-Star-program" accesskey="p" rel="prev">A first Star program</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Texture-1"></a>
+<h3 class="section">2.2 Texture</h3>
+
+<p>All programming languages can be said to have a particular
+<em>style</em> or <em>texture</em>. This is often so strong that it is
+often possible to identify a programming language from a single line
+of source code. In the case of <code>Star</code>, this line might be:
+</p>
+<div class="example">
+<pre class="example">public fact : (integer)=&gt;integer.
+</pre></div>
+<p>which is a <em>type annotation statement</em> declaring the type of the
+function <code>fact</code>.
+</p>
+<p>The <code>public</code> annotation means that the function is exported by
+this module and will be available in other modules where the
+<code>sample.factorial</code> module is imported.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Lexical-style" accesskey="1">Lexical style</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Types" accesskey="2">Types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Rules" accesskey="3">Rules</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Pattern" accesskey="4">Pattern</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Packages" accesskey="5">Packages</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Worksheets" accesskey="6">Worksheets</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#String-interpolation" accesskey="7">String interpolation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Lexical-style"></a>
+<div class="header">
+<p>
+Next: <a href="#Types" accesskey="n" rel="next">Types</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Lexical-style-1"></a>
+<h4 class="subsection">2.2.1 Lexical style</h4>
+
+<p><code>Star</code>âs lexical syntax uses a combination of special operators and
+keywords.
+</p>
+<p>It can be difficult for language designers to decide when to use a
+keyword and when to use a special operator. In the case of <code>Star</code> we
+use special operators for common elements and keywords when either a
+graphical operator would be obscure and/or is not common.
+</p>
+<p>For example, in the factorial module, we use braces for grouping; but
+we also use the <code>import</code> and the <code>where</code> keywords. The
+rationale here is that programmers have become used to seeing braces
+for grouping statements;<a name="DOCF5" href="#FOOT5"><sup>5</sup></a>
+whereas the import and where elements are somewhat rarer.
+</p>
+<p>Notice that every statement is terminated with a period. This is one
+of those places where a little redundancy can help when building large
+programs: the statement terminator is not technically necessary; but
+it helps to reduce the scope of error messages.<a name="DOCF6" href="#FOOT6"><sup>6</sup></a>
+</p>
+<blockquote>
+<p><b>NOTE:</b> The precise rule is slightly more nuanced: a period is required to
+terminate a statement; unless the last character of the statement is a
+closing brace &ndash; or unless the statement is itself the last statement
+in a brace sequence.<a name="DOCF7" href="#FOOT7"><sup>7</sup></a>
+</p></blockquote>
+
+<p>Another aspect of <code>Star</code>âs texture that may not be visible at this
+stage is the reliance on an underlying meta-grammar &ndash; specifically on
+an <em>operator precedence grammar</em>. OPGs are likely already
+familiar to you: it is the almost universally used grammar that
+underpins arithmetic expressions. We take the OPG and stretch its use
+to include the whole language. The relevance of this will be apparrent
+when we look at <em>extending</em> <code>Star</code> with new language features.
+</p>
+<hr>
+<a name="Types"></a>
+<div class="header">
+<p>
+Next: <a href="#Rules" accesskey="n" rel="next">Rules</a>, Previous: <a href="#Lexical-style" accesskey="p" rel="prev">Lexical style</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Types-1"></a>
+<h4 class="subsection">2.2.2 Types</h4>
+<p><code>Star</code> is a strongly, statically typed language. This means that all
+variables and expressions have a single type; and that all type
+constraints are enforceable at compile-time. This is a fairly strong
+(sic) statement but it is a key aspect of <code>Star</code>âs design &ndash; we need
+everything to be well typed and we also want to guarantee completeness
+of the type system.
+</p>
+<p>The type annotation statement:
+</p><div class="example">
+<pre class="example">fact : (integer)=&gt;integer.
+</pre></div>
+
+<p>is a statement that declares that the type of <code>fact</code> is a
+function of one integer argument and which returns an integer result.
+</p>
+<p><code>Star</code> encourages, but does not require, most programs to have
+explicit type annotations. The precise rule is a little subtle:
+variables whose type are not quantified <em>may</em> have their type
+automatically inferred. For top-level functions, that annotation is
+often contiguous in the text; but in other cases that may not be the
+case.
+</p>
+<p>Other variables &ndash; like the variable <code>N</code> which is part of the
+second recursive equation &ndash; do not need type annotations. This is
+possible because underlying the type system is a powerful <em>type
+inference</em> system that can actually infer all types.
+</p>
+<p>The result is that a lot of the âclutterâ that can pervade a strongly
+typed language is just not necessary; but the use of explicit type
+annotations for top-level definitions provides useful structure and
+documentation.
+</p>
+<p>Note that the requirement is that quantified <em>definitions</em> have
+explicit type annotations. We donât distinguish functions in any way
+here. In particular, functions which are <em>not</em> generic &ndash; for
+example lambda functions &ndash; do not need type annotations.
+</p>
+<hr>
+<a name="Rules"></a>
+<div class="header">
+<p>
+Next: <a href="#Pattern" accesskey="n" rel="next">Pattern</a>, Previous: <a href="#Types" accesskey="p" rel="prev">Types</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Rules-1"></a>
+<h4 class="subsection">2.2.3 Rules</h4>
+
+<p>In <code>Star</code>, most programs are defined using <em>rules</em>. In this
+case, <code>fact</code> is defined using <em>equations</em>. The equations
+that make up a function definition (or any program definition for that
+matter) are statements that are written in order.
+</p>
+<p>Rule-based programs support a <em>case driven</em> approach to
+programming: a program is defined in terms of the different cases or
+situations that apply. Using rules to cover different cases allows the
+programmer to focus on each case in relative isolation.
+</p>
+<p>In addition, as we shall see later on, the partitioning of programs
+into cases like this is very helpful in supporting large-scale issues
+such as code annotations, versioning and life-cycle management.
+</p>
+<p><code>Star</code> has various kinds of rules, including function definitions,
+grammar definitions, variable definitions and type definitions.
+</p>
+<hr>
+<a name="Pattern"></a>
+<div class="header">
+<p>
+Next: <a href="#Packages" accesskey="n" rel="next">Packages</a>, Previous: <a href="#Rules" accesskey="p" rel="prev">Rules</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Pattern-1"></a>
+<h4 class="subsection">2.2.4 Pattern</h4>
+<p>Patterns are ubiquitous in <code>Star</code>: they form the basis of many rules:
+including, most importantly, to define equations. In fact, <em>all</em>
+variables are introduced by means of patterns.
+</p>
+<p>A pattern can be viewed as a combination of a test &mdash; does a value
+match a particular pattern &mdash; and as a way ( <em>the</em> way in
+<code>Star</code>) of binding a variable to a value.
+</p>
+<p>An equationâs pattern defines when the equation is applicable. The
+first equation for <code>fact</code> above:
+</p>
+<div class="example">
+<pre class="example">fact(0) =&gt; 1.
+</pre></div>
+<p>has a literal pattern on the left hand side of the <code>=&gt;</code>
+operator. This equation only applies when <code>fact</code> is called with
+zero as its argument.
+</p>
+<p>The pattern in the second equation:
+</p><div class="example">
+<pre class="example">fact(N) where N&gt;0 =&gt; N*fact(N-1).
+</pre></div>
+
+<p>has a guard on it &mdash; after the <code>where</code> keyword. Guards are
+additional conditions that constrain patterns. In this case, the
+equation only applies if the argument is greater than zero.
+</p>
+<p>Any pattern may be qualified with a guard; we could have written the
+guard <em>inside</em> the argument pattern:
+</p>
+<div class="example">
+<pre class="example">fact(N where N&gt;0) =&gt; N*fact(N-1).
+</pre></div>
+
+<p>We did not because having the guard outside the arguments is neater.
+</p>
+<blockquote>
+<p><b>NOTE:</b> The fact functionâs equations are not fully covering: there are no cases for fact for negative numbers. This means that the function is <em>partial</em>; and if called with a negative number will result in a run-time exception.
+</p></blockquote>
+
+<hr>
+<a name="Packages"></a>
+<div class="header">
+<p>
+Next: <a href="#Worksheets" accesskey="n" rel="next">Worksheets</a>, Previous: <a href="#Pattern" accesskey="p" rel="prev">Pattern</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Packages-1"></a>
+<h4 class="subsection">2.2.5 Packages</h4>
+
+<p>The normal compilation unit is a <em>package</em>. The sample.factorial
+package contains just the function fact, but packages can contain
+functions, type definitions, import statements and many other elements
+that we will encounter.
+</p>
+<p>Package names and references to packages do not refer to file names;
+package names are symbolic &ndash; in general a package name consists of a
+sequence of identifiers separated by periods.
+</p>
+<p>The <em>catalog</em> and <em>repository</em> system explored in Chapter 7
+that supports the language ensures a proper connection between files
+and packages.
+</p>
+<hr>
+<a name="Worksheets"></a>
+<div class="header">
+<p>
+Next: <a href="#String-interpolation" accesskey="n" rel="next">String interpolation</a>, Previous: <a href="#Packages" accesskey="p" rel="prev">Packages</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Worksheets-1"></a>
+<h4 class="subsection">2.2.6 Worksheets</h4>
+
+<p>The other main kind of compilation unit is the
+<em>worksheet</em>. Worksheets are a modern replacement for the
+REPL<a name="DOCF8" href="#FOOT8"><sup>8</sup></a> that you see in many functional
+programming languages.
+</p>
+<p>We say a <em>modern</em> replacement for REPLs because worksheets fit
+much better in the typical environment of an IDE.
+</p>
+<p>A worksheet can be used to implement the infamous hello world example
+in just a few lines:
+</p>
+<div class="example">
+<pre class="example">worksheet{
+  show &quot;hello world&quot;.
+}
+</pre></div>
+
+<p>We can also use a worksheet to display the results of using and
+testing our fact function:
+</p>
+<div class="example">
+<pre class="example">worksheet{
+  import sample.factorial.
+  show &quot;fact(10) is \(fact(10))&quot;.
+  assert fact(5) == 120.
+}
+</pre></div>
+
+<p>Worksheets are like a combination of a module and the transcript of a
+session. In an IDE, the ideal mode of displaying a worksheet is via an
+interactive editor that responds to edit changes by recomputing the
+transcript and displaying the results in-line.
+</p>
+<p>The key features of a worksheet that we will use are the ability to
+import packages, define elements, show the results of computations and
+define assertions.
+</p>
+<hr>
+<a name="String-interpolation"></a>
+<div class="header">
+<p>
+Previous: <a href="#Worksheets" accesskey="p" rel="prev">Worksheets</a>, Up: <a href="#Texture" accesskey="u" rel="up">Texture</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="String-interpolation-1"></a>
+<h4 class="subsection">2.2.7 String interpolation</h4>
+
+<p>The expression
+</p><div class="example">
+<pre class="example">&quot;fact(10) is \(fact(10))&quot;
+</pre></div>
+<p>is an <em>interpolated string</em> expression. It means the string
+<code>&quot;fact(10) is \(fact(10))&quot;</code> with the substring <code>(fact(10)</code>
+replaced by the value of the expression embedded within. Interpolated
+string expressions are a convenient way of constructing string values;
+and, via the use of contracts, are also type safe.
+</p>
+<hr>
+<a name="Types-more-types-and-even-more-types"></a>
+<div class="header">
+<p>
+Next: <a href="#A-tale-of-three-loops" accesskey="n" rel="next">A tale of three loops</a>, Previous: <a href="#Texture" accesskey="p" rel="prev">Texture</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Types_002c-more-types-and-even-more-types"></a>
+<h3 class="section">2.3 Types, more types and even more types</h3>
+
+<p>In many ways, the defining characteristic of a programming language is
+the approach to types. As we shall see, <code>Star</code>âs type system is quite
+extensive and powerful; however, simple types are quite
+straightforward.
+</p>
+<p>The most basic question to ask about types is
+</p>
+<blockquote>
+<p>What is a type?
+</p></blockquote>
+
+<p>There is some surprising variability to the answer to this question;
+for example, in many OO languages, types are conflated with
+classes. <code>Star</code> types are terms &ndash; i.e., names &ndash; that denote
+different kinds of values.
+</p>
+<blockquote>
+<p><b>Type:</b> A type is a term that denotes a collection of values.<a name="DOCF9" href="#FOOT9"><sup>9</sup></a>
+</p></blockquote>
+
+<p><code>Star</code>âs type system can be broken down into a number of dimensions:
+</p>
+<ul>
+<li> How legal values of various kinds can be identified with a type;
+</li><li> the treatment of type variables and quantifiers; and
+</li><li> constraints on types, particularly type variables
+</li></ul>
+
+<p><code>Star</code> distinguishes two basic styles of type: so-called
+<em>structural</em> or transparent types and <em>nominative</em> or opaque
+types. A structural type term echoes the values it models, whereas a
+nominative type typically does not.
+</p>
+<p>For example, the standard type <code>integer</code> is nominative &mdash; its
+name gives no hint as to the representation, structure or kinds of
+values that are modeled by integer.<a name="DOCF10" href="#FOOT10"><sup>10</sup></a> However, a nominative type often indicates some
+actual entity being modeled &ndash; in this case integer values. Two
+nominative types which have different names always denote distinct
+values, whereas two structural types that look the same are actually
+identical.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Nominative-types" accesskey="1">Nominative types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Reference-Type" accesskey="2">Reference Type</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Structural-types" accesskey="3">Structural types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Optional-values" accesskey="4">Optional values</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-flavors-of-equality" accesskey="5">The flavors of equality</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Nominative-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Reference-Type" accesskey="n" rel="next">Reference Type</a>, Up: <a href="#Types-more-types-and-even-more-types" accesskey="u" rel="up">Types more types and even more types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Nominative-types-1"></a>
+<h4 class="subsection">2.3.1 Nominative types</h4>
+
+<p>A nominative type is normally defined using an <em>algebraic type
+definition</em>. This both introduces a type and defines all the legal
+values that belong to the type. For example, we might introduce a
+Person type with the type definition:
+</p>
+<div class="example">
+<pre class="example">Person ::= noOne
+         | someOne{
+             name : string.
+             dob : date.
+           }
+</pre></div>
+
+<p>This statement tells us that there are two kinds of <code>Person</code>: a
+<code>someOne</code> who has a <code>name</code> and date of birth (<code>dob</code>)
+associated with them; and a distinguished individual we identify as
+<code>noOne</code>. The no-one individual <em>does not</em> have a name or
+date of birth.
+</p>
+<blockquote>
+<p>Notice how the type annotation statement we saw for declaring the type
+of <code>fact</code> is also used for defining the types of fields in the
+<code>someOne</code> record.
+</p></blockquote>
+
+<p>We can <em>make</em> a Person value with a labeled record expression:
+</p>
+<div class="example">
+<pre class="example">S = someOne{
+  name = &quot;fred&quot;.
+  dob = today()
+}
+</pre></div>
+
+<p>The equality symbol is used to introduce a new single-assignment
+variable. In this case the variable <code>S</code> is defined to be a
+<code>someOne</code> record.
+</p>
+<p>Recall that names do not always require an explicit type
+annotation. In this case we can infer that <code>S</code> is a <code>Person</code>
+(because <code>someOne</code> marks it). Furthermore, we do not need to
+explicitly give types to the <code>name</code> and <code>dob</code> fields because
+their type is constrained by the type declaration for <code>Person</code>.
+</p>
+
+<hr>
+<a name="Reference-Type"></a>
+<div class="header">
+<p>
+Next: <a href="#Structural-types" accesskey="n" rel="next">Structural types</a>, Previous: <a href="#Nominative-types" accesskey="p" rel="prev">Nominative types</a>, Up: <a href="#Types-more-types-and-even-more-types" accesskey="u" rel="up">Types more types and even more types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Reference-Type-1"></a>
+<h4 class="subsection">2.3.2 Reference Type</h4>
+
+<p>An important detail about the <code>someOne</code> record defined above is
+that the fields within it are not re-assignable. If we want to make a
+variable reassignable, or if we want to make a field of a record
+reassignable, we use a special <code>ref</code> type to denote that. For
+example, the type definition
+</p>
+<div class="example">
+<pre class="example">employee ::= employee{
+  dept : ref string.
+  name : string
+}
+</pre></div>
+
+<p>allows the <code>dept</code> field within the employee record to be
+modifiable &ndash; although the employee&rsquo;s name is still fixed.
+</p>
+<p>Only fields that have a <code>ref</code> type are modifiable in
+records. This is even true when a record is assigned to a reassignable
+variable.
+</p>
+<p>A reassignable variable is declared using the <code>:=</code> operator:
+</p>
+<div class="example">
+<pre class="example">N := employee{
+  dept := &quot;your department&quot;.
+  name = &quot;Anon. Y. Mouse&quot;
+}
+</pre></div>
+
+<p>Since the variable <code>N</code> is declared as being reassignable, we can
+give it a new value:
+</p>
+<div class="example">
+<pre class="example">N := employee{
+  dept := &quot;another&quot;.
+  name = &quot;some one&quot;
+}
+</pre></div>
+
+<p>We can also modify the <code>dept</code> field of <code>N</code>:
+</p>
+<div class="example">
+<pre class="example">N.dept := &quot;new department&quot;.
+</pre></div>
+<p>However, we cannot modify the <code>name</code> field &ndash; because it is not
+re-assignable within the <code>Person</code> type.
+</p>
+<p>Notice that the re-assignability of variables and fields does not
+inherit: each field or variable is separate. So, for example, if we
+declared a single-assignment variable <code>D</code> to be an employee:
+</p>
+<div class="example">
+<pre class="example">D = employee{
+  dept := &quot;his department&quot;.
+  name = &quot;Your Name Here&quot;
+}
+</pre></div>
+
+<p>then, even though <code>D</code> itself cannot be re-assigned to, the
+<code>dept</code> field of <code>D</code> <em>can</em> be altered:
+</p>
+<div class="example">
+<pre class="example">D.dept := &quot;my department&quot;
+</pre></div>
+
+<hr>
+<a name="Structural-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Optional-values" accesskey="n" rel="next">Optional values</a>, Previous: <a href="#Reference-Type" accesskey="p" rel="prev">Reference Type</a>, Up: <a href="#Types-more-types-and-even-more-types" accesskey="u" rel="up">Types more types and even more types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Structural-types-1"></a>
+<h4 class="subsection">2.3.3 Structural types</h4>
+
+<p>A structural type is, informally, a type that looks like a value. For
+example, the type
+</p>
+<div class="example">
+<pre class="example">(integer,string,employee)
+</pre></div>
+<p>is a <em>tuple type</em> &ndash; it denotes the type of a triple of values,
+consisting of an <code>integer</code>, a <code>string</code> and an
+<code>employee</code> in this case. Values of this tuple type are also
+tuples; for example:
+</p><div class="example">
+<pre class="example">(3,&quot;fred&quot;,employee{name=&quot;peter&quot;. dept:=&quot;sales&quot;})
+</pre></div>
+
+<p><code>Star</code> has several forms of structural type, the tuple type is one of
+them; others include <em>record types</em> and <em>function types</em>.
+</p>
+<p>We shall see more of these as we introduce the rest of the
+language. However, it is worth pausing to ask the question <em>Why</em>?
+</p>
+<p>Briefly, nominative types help the programmer focus on what a value
+<em>denotes</em>; whereas structural types tend to expose what a value
+can <em>do</em>.
+</p>
+<p>For example, the <code>employee</code> type clearly points to what an
+employee value is intended to denote (an employee!), but does not help
+if we want to know what an employee can do. On the other hand, the
+function type in the annotation:
+</p>
+<div class="example">
+<pre class="example">f : (integer)=&gt;string
+</pre></div>
+
+<p>clearly indicates what one can use <code>f</code> for, but it does not
+indicate anything about why you would want to (except, perhaps, to
+convert an <code>integer</code> to a <code>string</code>).
+</p>
+<p>In summary, use nominative types when you are modeling real world
+entities and structural types when the focus is on operations and
+structure more than on what the intention is. In practice, of course,
+you will use both in some combination.
+</p>
+<hr>
+<a name="Optional-values"></a>
+<div class="header">
+<p>
+Next: <a href="#The-flavors-of-equality" accesskey="n" rel="next">The flavors of equality</a>, Previous: <a href="#Structural-types" accesskey="p" rel="prev">Structural types</a>, Up: <a href="#Types-more-types-and-even-more-types" accesskey="u" rel="up">Types more types and even more types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Optional-values-1"></a>
+<h4 class="subsection">2.3.4 Optional values</h4>
+<p>Notice that we identified a special case of <code>noOne</code> in our
+<code>Person</code> type. One reason for including this in a type is to be
+able to cope with non-existent people. However, this approach is not
+always the most effective one when modeling situations where a
+variable or field may not have a value.
+</p>
+<p>Explicit null values, as found in Java and similar languages, cause a
+great number of problems: for example, null must have a special
+universal type; there are many scenarios where it is not possible for
+a variable to be null but the compiler must discover those for itself;
+and there is often a consequent tendency in defensive programming to
+test for null.
+</p>
+<p><code>Star</code> has no direct equivalent of a global null value. However, the
+standard <code>option</code> type allows the equivalent of selective
+nullability. Any variable that might not have a proper value can be
+marked with the option type rather than the underlying type. And you
+can use <code>none</code> in those cases to indicate the equivalent of no
+value.
+</p>
+<p>So, for example, suppose that a <code>Person</code> might have a
+<code>spouse</code> &mdash; who is also a <code>Person</code> &mdash; but is not
+guaranteed to have one. Such a type can be described using:
+</p>
+<div class="example">
+<pre class="example">Person ::= someOne{
+  name : string.
+  dob : date.
+  spouse : ref option[Person].
+}
+</pre></div>
+
+<p>Here we have done two things: we have eliminated the <code>noOne</code> case
+for <code>Person</code> and we have marked the <code>spouse</code> as being both
+read-write and <code>option</code>al.
+</p>
+<p>Someone with no spouse would be written:
+</p>
+<div class="example">
+<pre class="example">freddy = someOne{
+  name = &quot;Freddy&quot;.
+  dob = today().
+  spouse := none
+}
+</pre></div>
+
+<p>whereas someone who has a spouse would be written:
+</p>
+<div class="example">
+<pre class="example">someOne{
+  name = &quot;Lisa&quot;.
+  dob = lastYear.
+  spouse := some(johnny)
+}
+</pre></div>
+
+<p>Of course, we can record <code>freddy</code>âs marriage to <code>lisa</code> using
+an assignment:
+</p>
+<div class="example">
+<pre class="example">freddy.spouse := some(lisa)
+
+lisa.spouse := some(freddy)
+</pre></div>
+<p>although such circular structures should be avoided where possible.
+</p>
+<hr>
+<a name="The-flavors-of-equality"></a>
+<div class="header">
+<p>
+Previous: <a href="#Optional-values" accesskey="p" rel="prev">Optional values</a>, Up: <a href="#Types-more-types-and-even-more-types" accesskey="u" rel="up">Types more types and even more types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-flavors-of-equality-1"></a>
+<h4 class="subsection">2.3.5 The flavors of equality</h4>
+
+<p>Equality in programming languages is typically a very subtle
+topic. The issues can range from the nature of floating point numbers,
+the difference between integers and long values and the multiple
+potential concepts of equality for objects.
+</p>
+<p>Equality in <code>Star</code> is always between values of the <em>same type</em>
+and it is always <em>semantic</em>. So, for example, an equality
+condition such as:
+</p>
+<div class="example">
+<pre class="example">3==3.0
+</pre></div>
+<p>is not considered type safe &mdash; because <code>3</code> is an <code>integer</code>
+literal and <code>3.0</code> is a <code>float</code> literal. If you need to
+compare an integer and a floating point number for equality you will
+need to first of all decide in which type the comparison will be made
+(integer or floating point equality) and then <em>coerce</em> the other
+value into that type:
+</p><div class="example">
+<pre class="example">3 :: float == 3.0
+</pre></div>
+<p>is valid<a name="DOCF11" href="#FOOT11"><sup>11</sup></a>
+excepting, of course, that exact comparison between floating point
+numbers is not <em>stable</em>.
+</p>
+<p>This is an important issue because not all integer values can be
+represented in a float value and vice-versa. So, comparing an integer
+and a floating point value raises the possibility of spurious accuracy
+as a result of losing information. The intended effect of the coercion
+is to make explicit the nature of equality being relied on.
+</p>
+<p>The second principle is that equality is semantic. What that means is
+that the <code>==</code> symbol is the name of a boolean-valued
+function. The precise type of <code>==</code> is quite interesting, we
+shall, however, leave it to later when we have covered some of the
+core type features around contracts.
+</p>
+<p>In effect, equality is <em>not</em> considered to be privileged; and it
+is definable by the programmer &mdash; albeit with some important useful
+default implementations.
+</p>
+<hr>
+<a name="A-tale-of-three-loops"></a>
+<div class="header">
+<p>
+Next: <a href="#A-functional-loop" accesskey="n" rel="next">A functional loop</a>, Previous: <a href="#Types-more-types-and-even-more-types" accesskey="p" rel="prev">Types more types and even more types</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-tale-of-three-loops-1"></a>
+<h3 class="section">2.4 A tale of three loops</h3>
+<p>Imagine that your task is to add up a list of numbers. Sounds simple
+enough: in most procedural or OO languages (such as Java) one would
+write a fragment of code that looks like:
+</p>
+<div class="example">
+<pre class="example">int total = 0;
+
+for(Integer ix:L)
+  total += ix;
+</pre></div>
+<p>However, this code is also full of pitfalls. For one thing we have a
+lot of extra detail in this code that represents additional
+commitments beyond those we might be comfortable with:
+</p>
+<ul>
+<li> we have had to fix on the type of the number being totaled;
+</li><li> we had to know about Javaâs boxed v.s. unboxed types; and
+</li><li> we had to construct an explicit loop, with the result that we sequentialized the process of adding up the numbers.
+</li></ul>
+
+<p>We can also write an equivalent loop in <code>Star</code>:
+</p>
+<div class="example">
+<pre class="example">total = valof do{
+  tot := 0;
+  for ix in L do
+    tot := tot+ix;
+  return tot
+}
+</pre></div>
+
+<p>The valof/return combination is a neat way of segueing from the âworld
+of expressionsâ into the âworld of actionsâ.
+</p>
+<p>This program is essentially equivalent to the Java loop; although
+there are some subtleties about the nature of valof/valis that go
+beyond Java. As a result, it has similar architectural issues.
+</p>
+<p>While one loop is not going to hurt anyone; real code in languages
+like Java typically has many such loops. Especially when nesting loops
+to any depth, such code quickly becomes impossible to follow.
+</p>
+<hr>
+<a name="A-functional-loop"></a>
+<div class="header">
+<p>
+Next: <a href="#Contracts-and-constrained-types" accesskey="n" rel="next">Contracts and constrained types</a>, Previous: <a href="#A-tale-of-three-loops" accesskey="p" rel="prev">A tale of three loops</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-functional-loop-1"></a>
+<h3 class="section">2.5 A functional loop</h3>
+
+<p>A more idiomatic way of expressing a computation like the totalizer is
+to use a function. For example, we can write:
+</p>
+<div class="example">
+<pre class="example">let{
+  total:(cons[integer])=&gt;integer.
+  total(nil) =&gt; 0.
+  total(cons(E,L)) =&gt; total(L)+E
+} in total(L)
+</pre></div>
+<p>while short, this code too has some of the same drawbacks as the for iteration.
+</p>
+<p>The type expression <code>cons[integer]</code> refers to the standard type
+of âcons listsâ. Similarly, <code>nil</code> refers to the empty list and
+<code>cons(E,L)</code> refers to the list obtained by prepending <code>E</code> to
+the list <code>L</code>. We will explore this in more detail in
+<a href="#Functional-Programming">Functional Programming</a>.
+</p>
+<p>Even if it is more declarative, there is still a lot of extra detail
+and architectural commitments here &mdash; like the commitment to
+<code>cons</code> lists and the commitment to integers. These result in a
+function that is needlessly restricted.
+</p>
+<p>Like other functional languages, <code>Star</code> has a range of higher-order
+operators that may come to the rescue. For example, we can avoid the
+explicit recursion altogether by using <code>leftFold</code>:
+</p>
+<div class="example">
+<pre class="example">leftFold((+),0,L)
+</pre></div>
+<p>where <code>leftFold</code> means
+</p>
+<blockquote>
+<p>apply a left associative accumulating function to the elements of the data, assuming that the applied operator is left associative.
+</p></blockquote>
+
+<p>This expression is clearly both more concise and higher-level than
+either the explicit loop or the explicit recursion; and it begins to
+illustrate the productivity gains that are potentially available to
+the functional programmer.
+</p>
+<p>Using <code>leftFold</code> means that we can often abstract away the
+machinery of loops and recursion completely &mdash; instead we can solve
+the problem at a more holistic level. This is one of the hallmarks of
+functional programming &ndash; it is possible to eliminate many instances
+of explicit loops and recursions.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#A-totalizer-query" accesskey="1">A totalizer query</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-homunculus-in-the-machine" accesskey="2">The homunculus in the machine</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="A-totalizer-query"></a>
+<div class="header">
+<p>
+Next: <a href="#The-homunculus-in-the-machine" accesskey="n" rel="next">The homunculus in the machine</a>, Up: <a href="#A-functional-loop" accesskey="u" rel="up">A functional loop</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-totalizer-query-1"></a>
+<h4 class="subsection">2.5.1 A totalizer query</h4>
+
+<p>While concise, expressions involving much use of <code>leftFold</code> (and
+the analogous <code>rightFold</code>) can be difficult to follow. An even
+clearer way of adding up numbers is to use a <em>query expression</em>:
+</p>
+<div class="example">
+<pre class="example">{fold X with (+) | X in L}
+</pre></div>
+<p>This query expression frees us from most of the commitments we endured
+before: it can add up the elements of any kind of collection &mdash; not
+just <code>cons</code> lists &mdash; and it can add up floating point numbers
+just as easily as integers. Finally, we have not had to say exactly
+how the numbers should be added up: the language system is free to use
+a parallel algorithm for the computation should it be more optimal.
+</p>
+<p>The query expression is also very close to the natural specification:
+</p>
+<blockquote>
+<p>Add up the numbers in L
+</p></blockquote>
+
+<p><code>Star</code>âs query expressions &mdash; which are similar to but also more
+expressive than LINQ &mdash; can be used to encapsulate a wide range of
+such computations. We shall look deeper into them when we look at
+query rules in <code>Star</code>.
+</p>
+<blockquote>
+<p>Of course, SQL programmers have long had access to this kind of
+conciseness and declarative expressiveness. However, SQL is
+constrained by the fact that it is intended to represent queries and
+actions over a very particular form of data &mdash; the relational table.
+</p></blockquote>
+
+<hr>
+<a name="The-homunculus-in-the-machine"></a>
+<div class="header">
+<p>
+Previous: <a href="#A-totalizer-query" accesskey="p" rel="prev">A totalizer query</a>, Up: <a href="#A-functional-loop" accesskey="u" rel="up">A functional loop</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-homunculus-in-the-machine-1"></a>
+<h4 class="subsection">2.5.2 The homunculus in the machine</h4>
+
+<p>Programming is often taught in terms of constructing sequences of
+steps that must be followed. What does that imply for the programmer?
+It means that the programmer has to be able to imagine what it is like
+to be a computer following instructions.
+</p>
+<p>It is like imagining a little person &mdash; a homunculus &mdash; in the
+machine that is listening to your instructions and following them
+literally. You, the programmer, have to imagine yourself in the
+position of the homunculus if you want to write effective programs in
+most languages today.
+</p>
+<p>Not everyone finds such feats of imagination easy. It is certainly
+often tedious to do so. Using query expressions and other higher-order
+abstractions significantly reduces the programmerâs burden &mdash;
+precisely by being able to take a more declarative approach to
+programming.
+</p>
+<hr>
+<a name="Contracts-and-constrained-types"></a>
+<div class="header">
+<p>
+Next: <a href="#There-is-more" accesskey="n" rel="next">There is more</a>, Previous: <a href="#A-functional-loop" accesskey="p" rel="prev">A functional loop</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Contracts-and-constrained-types-1"></a>
+<h3 class="section">2.6 Contracts and constrained types</h3>
+
+<p>The concepts of interface and contract are foundational in modern
+software engineering. This is because explicit interfaces make it
+substantially easier to develop and evolve systems. A <code>Star</code> contract
+goes beyond the traditional concept of interface in important ways: we
+do not mark the definition of a type with its implemented contracts
+and we allow contracts to involve multiple types.
+</p>
+<p>A contract defines a collection of signatures and an implementation
+provides specific implementations for those functions for a specific
+type (or type combination).
+</p>
+<p>For example, we can imagine a contract for simple four function
+calculator arithmetic containing definitions for the basic four
+functions of addition, subtraction, multiplication and division:
+</p>
+<div class="example">
+<pre class="example">contract all t ~~ four[t] ::= {
+  plus : (t,t)=&gt;t.
+  sub : (t,t)=&gt;t.
+  mul : (t,t)=&gt;t.
+  div : (t,t)=&gt;t.
+}
+</pre></div>
+
+<p>This contract defines &mdash; but does not implement &mdash; the four
+calculator functions <code>plus</code>, <code>sub</code>, <code>mul</code> and
+<code>div</code>. All these functions have a similar type, the type for
+<code>plus</code> is:
+</p>
+<div class="example">
+<pre class="example">plus :  all t ~~ four[t] |: (t,t)=&gt;t.
+</pre></div>
+
+<p>The clause <code>four[t] |:</code> is a <em>type constraint</em>, specifically
+a <em>contract constraint</em>. So, these functions are generic
+(universally quantified) but the bound type (<code>t</code>) has the
+additional constraint that there must be an implementation for
+<code>four</code> for <code>t</code>.
+</p>
+<p>The <code>four</code> contract defines a set of functions that can be used
+without necessarily knowing the type(s) that are involved. For
+example, we can define the <code>double</code> function in terms of
+<code>plus</code>:
+</p>
+<div class="example">
+<pre class="example">double(X) =&gt; plus(X,X).
+</pre></div>
+
+<p>The type of <code>double</code> reflects the fact that we are using elements
+from the <code>four</code> contract:
+</p><div class="example">
+<pre class="example">double : all t ~~ four[t] |: (t)=&gt;t.
+</pre></div>
+<p>I.e., it inherits the same constraint as the function <code>plus</code>
+has. There are several kinds of type constraint in <code>Star</code>âs type
+system; but the <em>contract constraint</em> is the most significant of
+them.
+</p>
+<blockquote>
+<p>Notice that we have to give an explicit type annotation for
+<code>double</code>. The reason is that we want to have it have a quantified
+type.
+</p></blockquote>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Implementing-contracts" accesskey="1">Implementing contracts</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Coercion-not-casting" accesskey="2">Coercion not casting</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Implementing-contracts"></a>
+<div class="header">
+<p>
+Next: <a href="#Coercion-not-casting" accesskey="n" rel="next">Coercion not casting</a>, Up: <a href="#Contracts-and-constrained-types" accesskey="u" rel="up">Contracts and constrained types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Implementing-contracts-1"></a>
+<h4 class="subsection">2.6.1 Implementing contracts</h4>
+
+<p>Defining a contract is a big step, but it is not generally sufficient
+to produce working programs. If we had a <code>worksheet</code> containing
+only:
+</p>
+<div class="example">
+<pre class="example">worksheet{
+  contract all t ~~ four[t] ::= {
+    plus : (t,t)=&gt;t.
+    sub : (t,t)=&gt;t.
+    mul : (t,t)=&gt;t.
+    div : (t,t)=&gt;t.
+  }
+
+  double : all t ~~ four[t] |: (t)=&gt;t.
+  double(X) =&gt; plus(X,X).
+
+  show double(2)
+}
+</pre></div>
+
+<p>we would get a compiler error along the lines of:
+</p>
+<div class="example">
+<pre class="example">2:integer
+  which is not consistent with
+  display[t_12] , four[t_12] |: t_12
+  because four[integer] not known to be implemented
+</pre></div>
+
+<p>This error message is effectively warning us that we have defined the
+<code>four</code> contract but we have not implemented it. Until we do, the
+program is not complete. However, if we do supply an implementation of
+four over <code>integer</code>s:
+</p><div class="example">
+<pre class="example">worksheet{
+  contract all t ~~ four[t] ::= {
+    plus : (t,t)=&gt;t.
+    sub : (t,t)=&gt;t.
+    mul : (t,t)=&gt;t.
+    div : (t,t)=&gt;t.
+  }
+
+  double : all t ~~ four[t] |: (t)=&gt;t.
+  double(X) =&gt; plus(X,X).
+
+  implementation four[integer] =&gt; {
+    plus(x,y) =&gt; x+y.
+    sub(x,y) =&gt; x-y.
+    mul(x,y) =&gt; x*y.
+    div(x,y) =&gt; x/y.
+  }
+
+  show double(2)
+}
+</pre></div>
+
+<p>then everything works as expected.
+</p>
+<p>Notice that the error message above shows that type t_12 actually has
+two type constraints:
+</p>
+<div class="example">
+<pre class="example">display[t_12] <var>,</var> four[t_12] |: t_12
+</pre></div>
+
+<p>This is because the <code>show</code> action also results in a type
+constraint being involved. The <code>display</code> contract is used to
+display values in a number of circumstances; including the string
+formatting we saw above.
+</p>
+<p>As may be expected, arithmetic itself is also mediated via the
+arithmetic contract in <code>Star</code>. This is how we can support multiple
+numeric types using a common set of operators: there are standard
+implementations of arithmetic for integers, and floating point
+numbers.
+</p>
+<hr>
+<a name="Coercion-not-casting"></a>
+<div class="header">
+<p>
+Previous: <a href="#Implementing-contracts" accesskey="p" rel="prev">Implementing contracts</a>, Up: <a href="#Contracts-and-constrained-types" accesskey="u" rel="up">Contracts and constrained types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Coercion_002c-not-casting"></a>
+<h4 class="subsection">2.6.2 Coercion, not casting</h4>
+
+<p><code>Star</code> does not support automatic type casting, as found in languages
+like Java and C/C++. This is for many reasons, not the least of which
+is safety and predictability of code.
+</p>
+<p>Casting in many languages is really two kinds of operations-in-one
+which we can refer to as <em>casting</em> and <em>coercion</em>. Casting
+is mapping of a value from one type to another without changing the
+value itself; and coercion involves converting a value from one type
+to another.
+</p>
+<p>For example, the Java cast expression:
+</p><div class="example">
+<pre class="example">(Person)X
+</pre></div>
+<p>amounts to a request to verify that <code>X</code> is actually a
+<code>Person</code> object. In particular, this only checks the value of
+<code>X</code> to see if it is a <code>Person</code>. On the other hand, casting
+an integer to a floating point number involves changing the value to
+conform to the floating point representation.
+</p>
+<p><code>Star</code> does not support casting, but does support coercion. However,
+coercion in <code>Star</code> is never silent or implicit &ndash; as it can be in
+Java and C/C++. An expression of the form:
+</p><div class="example">
+<pre class="example">3+4.5
+</pre></div>
+<p>will fail to type in <code>Star</code> &ndash; because there is an attempt to add an
+integer to a floating point number.
+</p>
+<p>The reason for signaling an error is strongly related to safety and
+predictability: automatic conversion of integers to floating point can
+be a common source of errors in languages like C &ndash; because such
+coercions are not always guaranteed to be semantics preserving (not
+all integers can be represented as floating point values). The
+implicit coercion of numeric values is easy to miss when reading
+arithmetic expressions.
+</p>
+<p><code>Star</code> provides a coercion notation that allows programmers to be
+precise in their expectations:
+</p>
+<div class="example">
+<pre class="example">(3 :: float)+4.5
+</pre></div>
+<p>denotes the explicit coercion of the integer <code>3</code> to a
+<code>float</code> and type checks as expected.
+</p>
+<p>In fact, type coercion in <code>Star</code> is mediated via a contract and this
+expression is equivalent to
+</p><div class="example">
+<pre class="example">(_coerce(3):float)+4.5
+</pre></div>
+<p>where <code>_coerce</code> is defined in the <code>coercion</code> contract
+involving two types:
+</p>
+<div class="example">
+<pre class="example">contract all s,t ~~ coercion[s,t] ::= {
+  _coerce :: (s)=&gt;t
+}
+</pre></div>
+
+<p>The <code>coercion</code> contract is an interface, but has no analog in
+most OO languages: it involves two types &ndash; the source type and the
+destination type. Each implementation of coercion specifies both
+types. For example, the implementation of coercion between integers
+and floating point is explicitly given:
+</p><div class="example">
+<pre class="example">implementation coercion[integer,float] =&gt; { &hellip; }
+</pre></div>
+<p>This statement gives the implementation for coercing integers to
+floats. Other implementation statements give the definitions for other
+forms of coercion.
+</p>
+<p>Having coercion as a contract makes it straightforward to add new
+forms of coercion. This is used quite extensively within <code>Star</code>
+itself: for example, parsing JSON can be viewed as coercion from
+string values to <code>json</code> values. Thus the interface to parsers can
+be standard across all types and parsers.
+</p>
+<hr>
+<a name="There-is-more"></a>
+<div class="header">
+<p>
+Previous: <a href="#Contracts-and-constrained-types" accesskey="p" rel="prev">Contracts and constrained types</a>, Up: <a href="#A-tour-of-Star" accesskey="u" rel="up">A tour of Star</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="There-is-more-1"></a>
+<h3 class="section">2.7 There is more</h3>
+
+<p>As we have noted, <code>Star</code> is a rich language and it would be
+impossible to try to cover it in a short introduction. Later chapters
+will look at some of the other features such as a deeper look at
+contracts, queries &amp; query rules, actors, concurrency, existential
+types, and extending <code>Star</code> with domain specific
+languages. <a href="#Functional-Programming">Functional Programming</a> starts this process by
+looking at functional programming in <code>Star</code>.
+</p>
+<hr>
+<a name="Functional-Programming"></a>
+<div class="header">
+<p>
+Next: <a href="#Concept-index" accesskey="n" rel="next">Concept index</a>, Previous: <a href="#A-tour-of-Star" accesskey="p" rel="prev">A tour of Star</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Functional-Programming-1"></a>
+<h2 class="chapter">3 Functional Programming</h2>
+
+<p>There is a perception of functional programming that it is
+<em>weird</em> and <em>difficult</em>. This is unfortunate for a number of
+reasons; the most important being that functional programming is
+<em>not</em> weirder than procedural programming and that all
+programmers can benefit by programming functionally.
+</p>
+<p>As for being difficult, a more accurate description would be that
+there is a deeper <em>range of features</em> in functional programming
+than in most modern programming languages: so a perception of
+complexity can arise simply because there is more to say about
+functional programming languages. However, the simplest aspects of
+functional programming are very simple and the ramp need not be steep.
+</p>
+<p>What may be surprising to the reader who is not familiar with
+functional programming is that it is <em>old</em>: predating the origins
+of modern computing itself, that there is a huge amount that can be
+expressed functionally, and that functional programming is often at
+least as efficient and sometimes more efficient than procedural
+programming.
+</p>
+<p>In this chapter we will show how we can utilize <code>Star</code> as a vehicle
+for functional programming. As a side-goal, we also hope to demystify
+some of the language and ideas found in functional programming.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#What-is-functional-programming_003f" accesskey="1">What is functional programming?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Basics" accesskey="2">Basics</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Another-look-at-types" accesskey="3">Another look at types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Functions-as-values" accesskey="4">Functions as values</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Going-further" accesskey="5">Going further</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Polymorphic-arithmetic" accesskey="6">Polymorphic arithmetic</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#A-word-about-type-inference" accesskey="7">A word about type inference</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Are-we-there-yet_003f" accesskey="8">Are we there yet?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="What-is-functional-programming_003f"></a>
+<div class="header">
+<p>
+Next: <a href="#Basics" accesskey="n" rel="next">Basics</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="What-is-functional-programming_003f-1"></a>
+<h3 class="section">3.1 What is functional programming?</h3>
+
+<p>The foundations of functional programming rest on two principles:
+</p>
+<ol>
+<li> Programs are expressed in terms of functions, where a somewhat
+mathematical view of functions is taken; i.e., functions always
+produce the same output for the same input.
+
+<p>This is what people mean when they say that functional programs are
+<em>declarative</em>.<a name="DOCF12" href="#FOOT12"><sup>12</sup></a>
+</p>
+</li><li> Functions are values: they can be passed as arguments to functions,
+returned from functions, and they can be put into and retrieved from
+data structures.
+</li></ol>
+
+<p>This last principle is what people mean when they refer to functions
+as being <em>first class</em> values. It is also what is meant when we
+say that functional programming languages are <em>higher order</em>.
+</p>
+<p>It is worth asking why these two principles are so important. Although
+most early programmers were mathematicians; the extreme constraints
+imposed by early machines meant that one might not have seen much
+evidence of mathematical thinking in those early programs. However,
+almost by accident, programming and mathematics share some attributes:
+the importance of <em>composition</em> and the power of
+<em>abstraction</em>. Functional programming is almost ideally placed to
+exploit both of these to the full.
+</p>
+<p><code>Star</code> is not actually a <em>pure</em> functional programming language;
+i.e., it is possible to write programs that violate the declarative
+principle. However, it is a <em>functional-first</em> programming language: a
+declarative style is strongly encouraged. In this book we shall mostly
+focus on writing pure functional programs in <code>Star</code>.
+</p>
+<hr>
+<a name="Basics"></a>
+<div class="header">
+<p>
+Next: <a href="#Another-look-at-types" accesskey="n" rel="next">Another look at types</a>, Previous: <a href="#What-is-functional-programming_003f" accesskey="p" rel="prev">What is functional programming?</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Basics-1"></a>
+<h3 class="section">3.2 Basics</h3>
+
+<p>It is often easier to introduce functional programming using numerical
+examples. Last chapter we saw, for example, the factorial
+program. This is mostly because most programmers are already familiar
+with numbers. Continuing that tradition, here is a function that
+returns the sign of a number:
+</p>
+<div class="example">
+<pre class="example">sign(X) where X&lt;0 =&gt; -1.
+sign(0) =&gt; 0.
+sign(X) where X&gt;0 =&gt; 1.
+</pre></div>
+
+<p>Each of these equations applies to different situations: the first
+equation applies when the input argument is negative, the second when
+it is exactly zero and the third when it is strictly positive. These
+represent the three possible cases in the definition of the sign
+function.
+</p>
+<p>A <code>Star</code> function may be built from any number of rewrite equations;
+however, they must all be contiguous within the same group of
+statements.
+</p>
+<p>Although it is good practice to ensure that equations in a function
+definition do not overlap, <code>Star</code> will try the equations in a
+function definition in the order they are written in.<a name="DOCF13" href="#FOOT13"><sup>13</sup></a> We could
+have relied on this and written &lsquo;sign&lsquo; using:
+</p>
+<div class="example">
+<pre class="example">sign(X) where X&lt;0 =&gt; -1.
+sign(0) =&gt; 0.
+sign(X) =&gt; 1.
+</pre></div>
+
+<p>Sometimes it is important to mark a particular equation as the
+<em>default</em> case: i.e., an equation that should be used if none of the
+other cases apply:
+</p>
+<div class="example">
+<pre class="example">sign(X) where X&lt;0 =&gt; -1.
+sign(0) =&gt; 0.
+sign(X) default =&gt; 1.
+</pre></div>
+<p>An explicitly marked &lsquo;default&lsquo; equation does not need to be the last
+equation; but, wherever it is written, default equations are only
+attempted after all other equations have failed to apply.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Patterns" accesskey="1">Patterns</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Order-of-evaluation" accesskey="2">Order of evaluation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Patterns"></a>
+<div class="header">
+<p>
+Next: <a href="#Order-of-evaluation" accesskey="n" rel="next">Order of evaluation</a>, Up: <a href="#Basics" accesskey="u" rel="up">Basics</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Patterns-1"></a>
+<h4 class="subsection">3.2.1 Patterns</h4>
+<p>A function is defined as a sequence of <em>rewrite equations</em> each
+of which consist of a <em>pattern</em> and an <em>expression</em>. There
+are three general forms of rewrite equations:
+</p>
+<div class="example">
+<pre class="example"><var>Pattern</var> =&gt; <var>Expression</var>
+</pre></div>
+
+<p>or
+</p><div class="example">
+<pre class="example"><var>Pattern</var> where <var>Condition</var> =&gt; <var>Expression</var>
+</pre></div>
+
+<p>or
+</p><div class="example">
+<pre class="example"><var>Pattern</var> default =&gt; <var>Expression</var>
+</pre></div>
+
+<p>The left hand side of a rewrite equation consists of a pattern which
+determines the applicability of the equation; and the right hand side
+represents the value of the function if the pattern matches.
+</p>
+<blockquote>
+<p><b>Pattern:</b> A pattern represents a test or guard on an (implicit) value. Patterns
+can be said to succeed or fail depending on whether the value being
+tested matches the pattern.
+</p></blockquote>
+
+<p>We also refer to a pattern being <em>satisfied</em> when matching a
+value.<a name="DOCF14" href="#FOOT14"><sup>14</sup></a>
+</p>
+<p>The pattern in a rewrite equation is a guard on the arguments of the
+function call. For example, given a call
+</p><div class="example">
+<pre class="example">sign(34)
+</pre></div>
+<p>the patterns in the different equations of the <code>sign</code> function
+will be applied to the integer value <code>34</code>.
+</p>
+<p>When the pattern on the left hand side of a rewrite equation succeeds
+then the equation <em>fires</em> and the value of the expression on the
+right hand side of the equation becomes the value of the function.
+</p>
+<p>There are many kinds of pattern in <code>Star</code>; here, we look at three of
+the most common kinds of pattern, and in later sections, we look at
+additional forms of patterns.
+</p>
+<dl compact="compact">
+<dt><em>Variable Pattern</em></dt>
+<dd><p>A variable pattern is denoted by an identifier; specifically by the
+first occurrence of an identifier.
+</p>
+<p>A variable pattern always succeeds and has the additional effect of
+<em>binding</em> the variable to the value being matched.
+</p></dd>
+</dl>
+
+<p>For example, the <code>X</code> in the left hand side of
+</p><div class="example">
+<pre class="example">double(X) =&gt; X+X
+</pre></div>
+<p>is a variable pattern. Binding <code>X</code> means that it is available for
+use in the right hand side of the equation &ndash; here to participate in
+the expression <code>X+X</code>.
+</p>
+<p>The part of the program that a variable has value is called its <em>scope</em>.
+</p>
+<ul>
+<li> Variables in rewrite equations always have scope ranging from the
+initial occurrence of the variable through to the whole of the right
+hand side of the equation.
+</li><li> Variable patterns are the <em>only</em> way that a variable can get a
+value in <code>Star</code>.
+</li></ul>
+
+<p>Subsequent occurrences of variables in a pattern are semantically
+equivalent to an equality test; specifically a call to the <code>==</code>
+predicate. For example, in the equation:
+</p>
+<div class="example">
+<pre class="example">same(X,X) =&gt; true.
+</pre></div>
+<p>the second occurrence of <code>X</code> is regarded as an equality test;
+i.e., this equation is equivalent to:
+</p>
+<div class="example">
+<pre class="example">same(X,X1 where X==X1) =&gt; true.
+</pre></div>
+
+<p>Sometimes, the earlier occurrence of a variable is not in the pattern
+itself but in an outer scope.
+</p>
+<dl compact="compact">
+<dt><em>Literal Pattern</em></dt>
+<dd><p>A literal pattern &ndash; such as a numeric literal or a string literal &ndash; only matches the identical number or string.
+</p></dd>
+</dl>
+
+<p>Clearly, a literal match amounts to a comparison of two values: the
+pattern match succeeds if they are identical and fails otherwise.
+</p>
+<p>Equality is based on <em>semantic equality</em> rather than
+<em>reference equality</em>. What this means, for example, is that two
+strings are equal if they have the same sequence of characters in
+them, not just if they are the same object in memory.
+</p>
+<blockquote>
+<p><b>NOTE:</b> However, not all types admit equality: for example, functions are not
+comparable; similarly, implementing equality for circular structures
+is problematic.<a name="DOCF15" href="#FOOT15"><sup>15</sup></a>
+</p></blockquote>
+
+<p>There is no automatic coercion of values to see if they <em>might</em>
+match. In particular, an integer pattern will only match an integer
+value and will not match a float value &ndash; even if the numerical values
+are the same. I.e., there will be no attempt made to coerce either the
+pattern or the value to fit.
+</p>
+<p>This, too, is based on the desire to avoid hard-to-detect bugs from
+leaking into a program.
+</p>
+<dl compact="compact">
+<dt><em>Guard Pattern</em></dt>
+<dd><p>Sometimes known as a <em>semantic guard</em>, a guard pattern consists
+of a pair of a pattern and a condition:
+</p>
+<div class="example">
+<pre class="example"><var>Pattern</var> where <var>Condition</var>
+</pre></div>
+</dd>
+</dl>
+
+<p>Conditions are boolean-valued and a guard succeeds if both its pattern
+matches and if its condition is <em>satisfied</em>.
+</p>
+<blockquote>
+<p>Note that conditions <em>may</em> bind variables. This is why we do not state
+that conditions are boolean-valued expressions.
+</p></blockquote>
+
+<p><code>Star</code> has a normal complement of special conditional forms which we
+shall explore as we encounter the need. In the case of the equation:
+</p><div class="example">
+<pre class="example">sign(X) where X&gt;0
+</pre></div>
+<p>the guard pattern is equivalent to:
+</p><div class="example">
+<pre class="example">X where X&gt;0
+</pre></div>
+<p>We can put guard pattern anywhere that a pattern is valid; and, for
+convenience, we can also put them immediately to the left of the
+rewrite equationâs is operator.
+</p>
+<blockquote>
+<p>Any variables that are bound by the pattern part of a guarded pattern
+are <em>in scope</em> in the condition part of the guard. Furthermore,
+any variables that are bound by the condition part of the guarded
+pattern have the same scope as variables introduced in the pattern.
+</p></blockquote>
+
+<p>In the pattern above, the variable <code>X</code> will be bound in the
+variable pattern <code>X</code> and will then be tested by evaluating the
+condition <code>X&gt;0</code>.
+</p>
+<hr>
+<a name="Order-of-evaluation"></a>
+<div class="header">
+<p>
+Previous: <a href="#Patterns" accesskey="p" rel="prev">Patterns</a>, Up: <a href="#Basics" accesskey="u" rel="up">Basics</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Order-of-evaluation-1"></a>
+<h4 class="subsection">3.2.2 Order of evaluation</h4>
+<p><code>Star</code> is a so-called <em>strict</em> language. What that means is that
+arguments to functions are evaluated prior to calling the function.
+</p>
+<blockquote>
+<p>We do not specify the order of evaluation of the arguments of the function; except that:
+</p><ol>
+<li> Arguments are evaluated before entry to the function.
+</li><li> The function is evaluated before entry to the function.
+</li></ol>
+</blockquote>
+
+<p>Most programming languages are strict; for two main reasons:
+</p>
+<ol>
+<li> It is significantly easier for programmers to predict the evaluation
+characteristics of a strict language.
+</li><li> It is also easier to implement a strict language efficiently on modern
+hardware. Suffice it to say that modern hardware was designed for
+evaluating strict languages, so this argument is somewhat circular.
+</li></ol>
+
+<p>There many possible styles of evaluation order; one of the great
+merits of programming declaratively is that the order of evaluation
+does not affect the actual results of the computation.
+</p>
+<p>It may, however, affect whether you get a result. Different strategies
+for evaluating expressions can easily lead to differences in which
+programs terminate and which do not.
+</p>
+<p>One other kind of evaluation that is often considered is <em>lazy</em>
+evaluation. Lazy evaluation means simply that expressions are only
+evaluated <em>when needed</em>. Lazy evaluation has many potential
+benefits: it certainly enables some very elegant programming
+techniques.
+</p>
+<p>Essentially for the reasons noted above, <code>Star</code> does not use lazy
+evaluation; however, as we shall see, there are features of <code>Star</code>
+that allow us to recover some of the power of lazy
+evaluation.<a name="DOCF16" href="#FOOT16"><sup>16</sup></a>
+</p>
+<p>The other dimension in evaluation order relates to the rewrite
+equations used to define functions. Here, <code>Star</code> uses an in-order
+evaluation strategy: the equations that make up the definition of a
+function are tried in the order that they are written &ndash; with the one
+exception being any default equation which is always tried last.
+</p>
+<hr>
+<a name="Another-look-at-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Functions-as-values" accesskey="n" rel="next">Functions as values</a>, Previous: <a href="#Basics" accesskey="p" rel="prev">Basics</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Another-look-at-types-1"></a>
+<h3 class="section">3.3 Another look at types</h3>
+<p>Organizing data is fundamental to any programming language. <code>Star</code>âs
+data types are organized around the algebraic data type. In addition,
+<code>Star</code>âs supports quantified types of several varieties.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Quantifier-types" accesskey="1">Quantifier types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Contract-constrained-types" accesskey="2">Contract constrained types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Algebraic-data-types" accesskey="3">Algebraic data types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Quantifier-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Contract-constrained-types" accesskey="n" rel="next">Contract constrained types</a>, Up: <a href="#Another-look-at-types" accesskey="u" rel="up">Another look at types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Quantifier-types-1"></a>
+<h4 class="subsection">3.3.1 Quantifier types</h4>
+
+<p>A <em>generic</em> type is one which has one or more type variables in
+it. For example, the type expression:
+</p><div class="example">
+<pre class="example">(x,x)=&gt;boolean
+</pre></div>
+<p>is such a generic type (assuming that <code>x</code> is a type variable &ndash;
+see below).
+</p>
+<p>All type variables must be bound by a quantifier in some enclosing
+scope. If a type variable is not bound within a particular type
+expression, it is considered <em>free</em> in that type expression.
+</p>
+<p>A <em>quantified type</em> is a type that introduces (i.e., binds) a
+type variable. There are two quantifiers in <code>Star</code>: a universal
+quantifier and an existential quantifier.
+</p>
+<p>The most common quantifier is the <em>universal quantifier</em> and
+universally quantified types correspond closely to generic types in
+other languages.
+</p>
+<p>Universally quantified types are often used to denote function types
+and collection types. For example, the type
+</p><div class="example">
+<pre class="example">all x ~~ (x,x)=&gt;boolean
+</pre></div>
+<p>denotes the type of a generic binary function that returns a boolean
+value. The standard type for the equality predicate <code>==</code> is
+similar to this type.
+</p>
+<p>A universally quantified type should be read as âfor all possible
+valuesâ of the bound variable. For example, this function type should
+be read as denoting functions that:
+</p>
+<blockquote>
+<p>for any possible type &ndash; <code>x</code> &ndash; the function takes two such
+<code>x</code>âs and returns a <code>boolean</code>.
+</p></blockquote>
+
+<p><code>Star</code> also supports <em>existentially</em> quantified types &ndash; these
+are useful for denoting the types of modules and/or abstract data
+types. For example, the type expression:
+</p>
+<div class="example">
+<pre class="example">exists e ~~ { f1 : e }
+</pre></div>
+<p>denotes the type of a record with a field &ndash; <code>f1</code> &ndash; which has a
+type. The analogous reading for this type expression would be:
+</p>
+<blockquote>
+<p>there is a type &ndash; <code>x</code> &ndash; such that the record has a field &ndash;
+called <code>f1</code> &ndash; of this type.
+</p></blockquote>
+
+<p>As may be guessed, this is kind of obscure: <code>f1</code> has a type, but
+we don&rsquo;t know much else about it!
+</p>
+<p>However, existential types can be very useful, especially in
+combination with record types like this one. We will leave our more
+detailed exploration of existential types for later.
+</p>
+<hr>
+<a name="Contract-constrained-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Algebraic-data-types" accesskey="n" rel="next">Algebraic data types</a>, Previous: <a href="#Quantifier-types" accesskey="p" rel="prev">Quantifier types</a>, Up: <a href="#Another-look-at-types" accesskey="u" rel="up">Another look at types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Contract-constrained-types-1"></a>
+<h4 class="subsection">3.3.2 Contract constrained types</h4>
+<p>We noted above that the type of the standard equality predicate was
+almost the same as:
+</p><div class="example">
+<pre class="example">all x ~~ (x,x)=&gt;boolean
+</pre></div>
+<p>This type denotes a universally quantified function type that can be
+applied to arguments of any given type. However, equality in a normal
+programming language is <em>not</em> universal: not all values admit to
+being reliably tested for equality. A great example of such a
+limitation are functions &ndash; equality between functions is not well
+defined.<a name="DOCF17" href="#FOOT17"><sup>17</sup></a>
+</p>
+<p>To capture this, we need to be able to constrain the scope of the
+quantifier; specifically to those argument types that do admit
+equality.
+</p>
+<p>We can do this by adding a <em>contract constraint</em> to the type &ndash;
+the constraint states that equality must be defined for the type. We
+do this by prepending a constraint clause to the type:
+</p><div class="example">
+<pre class="example">all x ~~ equality[x] |: (x,x)=&gt;boolean
+</pre></div>
+<p>The <code>equality[x] |:</code> clause states that the type variable
+<code>x</code> must satisfy the <code>equality</code> contract.
+</p>
+<p>What is implied when we state this? This is captured in the definition
+of the contract itself, in this case:
+</p><div class="example">
+<pre class="example">contract all t ~~ equality[t] ::= {
+  (==) : (t,t) =&gt; boolean.
+}
+</pre></div>
+<p>In effect, the <code>equality</code> contract states that there must be a
+single function defined &ndash; <code>==</code> .
+</p>
+<p>If this seems a little circular, it is not. The <code>equality</code>
+contract is effectively saying that the <code>==</code> function must be
+defined for the type; and we constrain function (and other) types with
+the <code>equality</code> contract constraint when we need to ensure that
+<code>==</code> is defined!
+</p>
+<p>We provide evidence for contracts through the implementation
+statement. This declares that a given type satisfies a contract by
+providing implementations for the functions in the contract.
+</p>
+<p>For example, we can provide evidence that the <code>equality</code> contract
+applies to strings using a built-in primitive to actually implement
+equality for strings:
+</p><div class="example">
+<pre class="example">implementation equality[string] =&gt; {
+  s1 == s2 =&gt; _string_eq(s1,s2).
+}
+</pre></div>
+<p>We shall explore more fully the power of this form of type constraint
+in later sections and chapters. For now, the core concept is that
+quantified types can be constrained to allow very precise formulations
+of types.
+</p>
+<hr>
+<a name="Algebraic-data-types"></a>
+<div class="header">
+<p>
+Previous: <a href="#Contract-constrained-types" accesskey="p" rel="prev">Contract constrained types</a>, Up: <a href="#Another-look-at-types" accesskey="u" rel="up">Another look at types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Algebraic-data-types-1"></a>
+<h4 class="subsection">3.3.3 Algebraic data types</h4>
+<p>An algebraic data type definition achieves several things
+simultaneously: it introduces a new type into scope, it gives an
+enumeration of the legal values of the new type and it defines both
+constructors for the values and it defines patterns for decomposing
+values. This is a lot for a single statement to do!
+</p>
+<p>For example, we can define a type that denotes a point in a
+two-dimensional space:
+</p><div class="example">
+<pre class="example">point ::= cart(float,float).
+</pre></div>
+<p>This kind of statement is called a <em>type definition statement</em>
+and is legal in the same places that a function definition is legal.
+</p>
+<p>The new type that is named by this statement is point; so, a variable
+may have point type, we can pass point values in functions and so on.
+</p>
+<p>The constructor cart allows us to have expression that allow new
+point structures to be made:
+</p><div class="example">
+<pre class="example">cart(3.4,2.1)
+</pre></div>
+<p><code>cart</code> is also the name of a <em>pattern</em> operator that we can
+use to take apart point values. For example, the euclid function
+computes the Euclidian distance associated with a point:
+</p><div class="example">
+<pre class="example">euclid:(point)=&gt;float.
+euclid(cart(X,Y)) =&gt; sqrt(X*X+Y*Y).
+</pre></div>
+<p>Of course, this particular <code>point</code> type is based on the
+assumption that point values are represented in a cartesian coordinate
+system. One of the more powerful aspects of algebraic data types is
+that it is easy to introduce multiple alternate forms of data. For
+example, we might want to support two forms of point: in cartesian
+coordinates and in polar coordinates. We can do this by introducing
+another case in the type definition statement:
+</p><div class="example">
+<pre class="example">point ::= cart(float,float)
+        | polar(float,float).
+</pre></div>
+<p>Of course, our <code>euclid</code> function also needs updating with the new
+case:
+</p><div class="example">
+<pre class="example">euclid:(point)=&gt;float.
+euclid(cart(X,Y)) =&gt; sqrt(X*X+Y*Y).
+euclid(polar(R,T)) =&gt; R.
+</pre></div>
+<p><code>cart</code> and <code>polar</code> are called <em>constructor
+functions</em>. The term <em>constructor</em> refers to the common
+programming concept of constructing data structures. They are called
+functions because, logically, they <em>are</em> functions.
+</p>
+<p>For example, we might give a type to <code>polar</code>:
+</p><div class="example">
+<pre class="example">polar : (float,float)=&gt;point
+</pre></div>
+<p>In fact, constructor functions are one-to-one functions. Variously
+known as <em>free functions</em> (in logic), <em>bijections</em> (in
+Math), one-to-one functions are guaranteed to have an inverse. This is
+the logical property that makes constructor functions useful for
+representing data.
+</p>
+<p>Of course, we are talking of a <em>logical</em> property of constructor
+functions. Internally, when implementing functional languages like
+<code>Star</code>, the values returned by constructor functions are represented
+using data laid out in memory &ndash; just like in any other programming
+language.
+</p>
+<p><code>Star</code> actually employs a special type for constructor functions; so
+the correct type of <code>polar</code> is given by:
+</p><div class="example">
+<pre class="example">polar : (float,float)&lt;=&gt;point
+</pre></div>
+<p>The double arrow representing the fact that constructor functions are
+bijections.
+</p>
+<p>In addition to constructor functions, an algebraic type definition can
+introduce two other forms of data: <em>enumerated symbols</em> and
+<em>record functions</em>. Enumerated symbols are quite useful in
+representing symbolic alternatives. The classic example of an
+enumerated type is <code>daysOfWeek</code>:
+</p><div class="example">
+<pre class="example">daysOfWeek ::= monday
+             | tuesday
+             | wednesday
+             | thursday
+             | friday
+             | saturday
+             | sunday.
+</pre></div>
+<p>Another example is the standard <code>boolean</code> type which is defined:
+</p><div class="example">
+<pre class="example">boolean ::= true | false.
+</pre></div>
+<p>Unlike enumerated symbols in some languages, there is no numeric value
+associated with an enumeration symbol: an enumerated symbol âstands
+forâ itself only. The reason for this will become clear in our next
+type definition which mixes enumerated symbols with constructor
+functions:
+</p><div class="example">
+<pre class="example">sTree ::= sEmpty | sNode(sTree,string,sTree)
+</pre></div>
+<p>In addition to mixing the enumerated symbol (<code>sEmpty</code>) with the
+<code>sNode</code> constructor, this type is <em>recursive</em>: in fact, this
+is a classic binary tree type where the labels of the non-empty nodes
+are strings. (We shall see shortly how to generalize this).
+</p>
+<p>Whenever you have a recursive type, its definition must always include
+one or more cases that are not recursive and which can form the base
+case(s). In that sense, an enumerated symbol like <code>sEmpty</code> plays
+a similar role in <code>Star</code> as null does in other languages; except that
+<code>sEmpty</code> is only associated with the sTree type.
+</p>
+<p>We can use <code>sTree</code> to construct binary trees of string value; for
+example:
+</p><div class="example">
+<pre class="example">sNode(sNode(sEmpty,&quot;alpha&quot;,sEmpty),
+      &quot;beta&quot;,
+      sNode(sEmpty,&quot;gamma&quot;,sEmpty))
+</pre></div>
+<p>denotes the tree in:
+</p>
+<p>![A Binary string Tree][images/sTree.jpg]
+</p>
+<blockquote>
+<p>One of the hallmarks of languages like <code>Star</code> is that <em>every</em>
+value has a legal syntax: it is possible to construct an expression
+that denotes a literal value of any type.
+</p></blockquote>
+
+<p>Just as we can define <code>sTree</code> values, so we can also define
+functions over <code>sTree</code>s. For example, the <code>check</code> function
+returns <code>true</code> if a given tree contains a particular search term:
+</p><div class="example">
+<pre class="example">check(sEmpty,_) =&gt; false.
+check(sNode(L,Lb,R),S) =&gt; Lb==S || check(L,S) || check(R,S).
+</pre></div>
+<p>Here we see several new aspects of <code>Star</code> syntax:
+</p>
+<ul>
+<li> An empty pattern &ndash; marked by <code>_</code> &ndash; matches anything. It is
+called the <em>anonymous pattern</em> and is used whenever we donât care
+about the actual content of the data.
+</li><li> The <code>||</code> disjunction is a <em>short-circuit</em> disjunction; much
+like <code>||</code> in languages like Java. Similarly, conjunction
+(<code>&amp;&amp;</code>) is also short-circuiting.
+</li><li> Functions can be recursive. <code>Star</code> permits <em>mutual recursion</em>
+just as easily: there is no special requirement to order function
+definitions in a program.
+</li></ul>
+
+<p>We can use <code>sTest</code> to check for the occurrence of particular
+strings:
+</p><div class="example">
+<pre class="example">T = sNode(sNode(sEmpty,&quot;alpha&quot;,sEmpty),
+          &quot;beta&quot;,
+          sNode(sEmpty,&quot;gamma&quot;,sEmpty)).
+
+show check(T,&quot;alpha&quot;).          -- results in true
+show check(T,&quot;delta&quot;).          -- results in false
+</pre></div>
+
+<hr>
+<a name="Functions-as-values"></a>
+<div class="header">
+<p>
+Next: <a href="#Going-further" accesskey="n" rel="next">Going further</a>, Previous: <a href="#Another-look-at-types" accesskey="p" rel="prev">Another look at types</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Functions-as-values-1"></a>
+<h3 class="section">3.4 Functions as values</h3>
+<p>The second principle of functional programming is that functions are
+first class. What that means is that we can have functions that are
+bound to variables, passed into functions and returned as the values
+of functions. In effect, a function is a legal <em>expression</em> in
+the language. It also means that we can have <em>function types</em> in
+addition to having types about data.
+</p>
+<p>We can see this best by looking at a few examples. One of the benefits
+of passing functions as arguments to other functions is that it makes
+certain kinds of parameterization easy. For example, suppose that you
+wanted to generalize <code>check</code> to apply an arbitrary test to each
+node &ndash; rather than just looking for a particular string.
+</p>
+<p>We will first of all define our <code>fTest</code> function itself:
+</p><div class="example">
+<pre class="example">fTest:(sTree,(string)=&gt;boolean)=&gt;boolean.
+fTest(sEmpty,_) =&gt; false.
+fTest(sNode(L,Lb,R),F) =&gt; F(Lb) || fTest(L,F) || fTest(R,F).
+</pre></div>
+<p>The substantial change here is that, rather than passing a string to
+look for, we pass <code>fTest</code> a boolean-valued function to apply;
+within <code>fTest</code> we replace the equality test <code>Lb==S</code> with a
+call <code>F(Lb)</code>.
+</p>
+<p>Notice that the type annotation for <code>fTest</code> shows that the type
+of the second argument is a function type &ndash; from <code>string</code> to
+<code>boolean</code>.
+</p>
+<p>Given <code>fTest</code>, we can redefine our earlier <code>check</code> function
+with:
+</p><div class="example">
+<pre class="example">check(T,S) =&gt; fTest(T,(X)=&gt;X==S).
+</pre></div>
+<p>We have a new form of expression here: the <em>anonymous function</em>
+or <em>lambda expression</em>. The expression
+</p><div class="example">
+<pre class="example">(X)=&gt;X==S
+</pre></div>
+<p>denotes a function of one argument, which returns <code>true</code> if its
+argument is the same value as <code>S</code>.
+</p>
+<p>Interestingly, it would be difficult to define a top-level function
+that is equivalent to this lambda because of the occurrence of the
+variable <code>S</code> in the body of the lambda. This is an example of a
+<em>free variable</em>: a variable that is mentioned in the body of a
+function but which is defined outside the function. Because <code>S</code>
+is free, because it is not mentioned in the arguments, one cannot
+simply have a function which is equivalent to the lambda as a
+top-level function.
+</p>
+<p>Free variables are a powerful feature of functional programming
+languages because they have an <em>encapsulating</em> effect: in this
+case the lambda encapsulates the free variable so that the
+<code>fTest</code> function does not need knowledge of <code>S</code>.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Functions-and-closures" accesskey="1">Functions and closures</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Let-binding" accesskey="2">Let binding</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Generic-types" accesskey="3">Generic types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Generic-functions" accesskey="4">Generic functions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Functions-and-closures"></a>
+<div class="header">
+<p>
+Next: <a href="#Let-binding" accesskey="n" rel="next">Let binding</a>, Up: <a href="#Functions-as-values" accesskey="u" rel="up">Functions as values</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Functions-and-closures-1"></a>
+<h4 class="subsection">3.4.1 Functions and closures</h4>
+<p>If a function is an expression, what is the value of the function
+expression? The conventional name for this value is <em>closure</em>:
+</p>
+<dl compact="compact">
+<dt><em>Closure</em></dt>
+<dd><p>A closure is a structure that is the value of a function expression and which may be applied to arguments.
+</p></dd>
+</dl>
+
+<p>It is important to note that, as a programmer, you will never âseeâ a
+closure in your program. It is an implementation artifact in the same
+way that the representation of floating point numbers is an
+implementation artifact that allow computers to represent fractional
+numbers but which programmers (almost) never see explicitly in
+programs.
+</p>
+<p>Pragmatically, one of the important roles of closures is to capture
+any free variables that occur in the function. Most functional
+programming languages implement functions using closure
+structures. Most functional programming languages (including <code>Star</code>)
+do not permit direct manipulation of the closure structure: the only
+thing that you can <em>do</em> with a closure structure is to use it as
+a function.
+</p>
+<blockquote>
+<p>In the world of programming languages, there is a lot of confusion
+about closures. Sometimes you will see a closure referring to a
+function that captures one or more free variables.
+</p></blockquote>
+
+<hr>
+<a name="Let-binding"></a>
+<div class="header">
+<p>
+Next: <a href="#Generic-types" accesskey="n" rel="next">Generic types</a>, Previous: <a href="#Functions-and-closures" accesskey="p" rel="prev">Functions and closures</a>, Up: <a href="#Functions-as-values" accesskey="u" rel="up">Functions as values</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Let-binding-1"></a>
+<h4 class="subsection">3.4.2 Let binding</h4>
+
+<p>We noted that it is difficult to achieve the effect of the
+<code>(X)=&gt;X==S</code> lambda expression with named functions. The reason is
+that the lambda is <em>not</em> defined in the same way that named
+functions are defined &ndash; because it occurs as an expression not as a
+statement. If we wanted to define a named function which also captures
+<code>S</code>, we would have to be able to define functions inside
+expressions.
+</p>
+<p>There is an expression that allows us to do this: the <code>let</code>
+expression. A <code>let</code> expression allows us to introduce local
+definitions anywhere within an expression. We can define our lambda as
+the named function <code>isS</code> using the <code>let</code> expression:
+</p><div class="example">
+<pre class="example">let{
+  isS(X) =&gt; X==S
+} in isS
+</pre></div>
+<p>The region between the braces is a <em>definition environment</em> and
+<code>Star</code> allows <em>any</em> definition statement to be in such an
+environment. We can define check using a let expression:
+</p><div class="example">
+<pre class="example">check(T,S) =&gt; fTest(T,
+    let{
+      isS(X) =&gt; X==S.
+    } in isS)
+</pre></div>
+<p>This is a somewhat long-winded way of achieving what we did with the
+anonymous lambda function &ndash; we would not normally recommend this way
+of writing the <code>check</code> function as it is significantly more
+complicated than our earlier version. However, there is a strong
+inter-relationship between anonymous lambdas, let expressions and
+variable definitions. In particular, these are equivalent:
+</p><div class="example">
+<pre class="example">let{
+  isS = (X) =&gt; X==S
+} in isS
+</pre></div>
+<p>and
+</p><div class="example">
+<pre class="example">(X)=&gt;X==S
+</pre></div>
+<p>Apart from being long-winded, the <code>let</code> expression is
+significantly more flexible than a simple lambda. It is much easier
+within a <code>let</code> expression to define functions with more than one
+rewrite equation; or to define multiple functions. We can even define
+types within the let binding environment.
+</p>
+<p>Conversely, lambda functions are so compact because they have strong
+limitations: you cannot easily define a multi-rewrite equation
+function with a lambda and you cannot easily define a recursive
+function as a lambda.
+</p>
+<p>In short, we would use a <code>let</code> expression when the function being
+defined is at all complex; and we would use a lambda when the function
+being defined is simple and small.
+</p>
+<p>Assembling functions in this way, either by using anonymous lambdas or
+by using <code>let</code> expressions, is one of the hallmarks of functional
+programming.
+</p>
+<hr>
+<a name="Generic-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Generic-functions" accesskey="n" rel="next">Generic functions</a>, Previous: <a href="#Let-binding" accesskey="p" rel="prev">Let binding</a>, Up: <a href="#Functions-as-values" accesskey="u" rel="up">Functions as values</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Generic-types-1"></a>
+<h4 class="subsection">3.4.3 Generic types</h4>
+
+<p>What actually makes <code>fTest</code> more constrained than it could be is
+the type definition of <code>sTree</code> itself. It too is unnecessarily
+restrictive: why not allow trees of any type? We can, using the type
+definition for <code>tree</code>:
+</p><div class="example">
+<pre class="example">all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).
+</pre></div>
+<p>Like the original <code>sTree</code> type definition, this statement
+introduces a new type: <code>tree[t]</code> which can be read as <em>tree
+of something</em>. The name <code>tree</code> is not actually a type identifier
+&ndash; although we often refer to the tree type &ndash; but it is a <em>type
+constructor</em>.
+</p>
+<p>In an analogous fashion to constructor functions, a type constructor
+constructs types from other types. Type constructors are even
+bijections &ndash; one-to-one functions from types to types.
+</p>
+<blockquote>
+<p>Unlike constructor functions though, type functions play no part in
+the run-time evaluation of programs.
+</p></blockquote>
+
+<p>The identifier <code>t</code> in the type definition for <code>tree</code> denotes
+a <em>type variable</em>. Again, similarly to regular variables and
+parameters, a type variable denotes a single unspecified type. The
+role of the type variable <code>t</code> is like a parameter in a function:
+it identifies the unknown type and its role.
+</p>
+<p>The <code>tree</code> type is a universally quantified type. What that means
+is that instead of defining a single type it defines a family of
+related types: for example:
+</p><div class="example">
+<pre class="example">tree[string]
+tree[integer]
+&hellip;
+</pre></div>
+
+<p>are <code>tree</code> types. We can even have trees of trees:
+</p><div class="example">
+<pre class="example">tree[tree[string]]
+</pre></div>
+<p>We capture this genericity of the tree type by using a <em>universal
+quantifier</em>:
+</p><div class="example">
+<pre class="example">all t ~~ tree[t]
+</pre></div>
+<p>What this type expression denotes is a set of possible types: for any
+type <code>t</code>, <code>tree[t]</code> is also a type. There are infinitely
+many such types of course.
+</p>
+<p>The <code>all</code> quantifier is important: as in logic, there are two
+kinds of quantifiers in <code>Star</code>âs type system: the <em>universal</em>
+quantifier all and the <em>existential</em> quantifier exists.
+</p>
+<blockquote>
+<p><code>Star</code> uses context to determine whether any given identifier is a
+type variable or a type name. Specifically, if an identifier is bound
+by a quantifier then it must refer to a type variable.
+</p></blockquote>
+
+<p>The types of the two constructors introduced in the <code>tree</code> type
+definition are similarly quantified:
+</p><div class="example">
+<pre class="example">tEmpty:all t ~~ tree[t].
+
+tNode:all t ~~ (tree[t],t,tree[t)]&lt;=&gt;tree[t].
+</pre></div>
+<p>The type <code>tree[t]</code> on the right hand side of <code>tEmpty</code>âs type
+annotation raises a couple of interesting points:
+</p>
+<ol>
+<li> This looks like a type annotation with no associated definition. The
+fact that the <code>tEmpty</code> symbol was originally introduced in a type
+definition is enough of a signal for the compiler to avoid looking for
+a definition for the name.
+
+</li><li> The type of a literal <code>tEmpty</code> expression &ndash; assuming that no
+further information is available &ndash; will be of the form
+<code>tree[t34]</code> where <code>t34</code> is a ânewâ type variable not
+occurring anywhere else in the program. In effect, the type of
+<code>tEmpty</code> is tree of <em>some type</em> <code>t34</code> where we donât
+know anything more about <code>t34</code>.
+</li></ol>
+
+<hr>
+<a name="Generic-functions"></a>
+<div class="header">
+<p>
+Previous: <a href="#Generic-types" accesskey="p" rel="prev">Generic types</a>, Up: <a href="#Functions-as-values" accesskey="u" rel="up">Functions as values</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Generic-functions-1"></a>
+<h4 class="subsection">3.4.4 Generic functions</h4>
+<p>Given this definition of the tree type, we can construct a more
+general form of the tree test function; which is almost identical to
+fTest:<a name="DOCF18" href="#FOOT18"><sup>18</sup></a>
+</p><div class="example">
+<pre class="example">test:all t ~~ (tree[t],(t)=&gt;boolean)=&gt;boolean.
+test(tEmpty,_) =&gt; false.
+test(tNode(L,Lb,R),F) =&gt; F(Lb) || test(L,F) || test(R,F).
+</pre></div>
+<p>and our original string check function becomes:
+</p><div class="example">
+<pre class="example">check(T,S) =&gt; test(T,(X) =&gt; X==S)
+</pre></div>
+<p>The type of check is also more generic:
+</p><div class="example">
+<pre class="example">check:all t ~~ (tree[t],t)=&gt;boolean
+</pre></div>
+<p>I.e., <code>check</code> can be used to find any type of element in a tree
+&ndash; providing that the types align of course.
+</p>
+<p>Actually, this is not the correct the type for check. This is because
+we do not, in general, know that the type can support equality. The
+precise type for check should take this into account:
+</p><div class="example">
+<pre class="example">check:all t ~~ equality[t] |: (tree[t],t) =&gt; boolean
+</pre></div>
+
+<hr>
+<a name="Going-further"></a>
+<div class="header">
+<p>
+Next: <a href="#Polymorphic-arithmetic" accesskey="n" rel="next">Polymorphic arithmetic</a>, Previous: <a href="#Functions-as-values" accesskey="p" rel="prev">Functions as values</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Going-further-1"></a>
+<h3 class="section">3.5 Going further</h3>
+<p>Although better than the original <code>sTest</code> program there is still
+one major sense in which the test program is not general enough. We
+can see this by looking at another example: a function that counts
+elements in the tree:
+</p><div class="example">
+<pre class="example">count:all t ~~ (tree[t]) =&gt; integer.
+count(tEmpty) =&gt; 0.
+count(tNode(L,_,R)) =&gt; count(L)+count(R)+1
+</pre></div>
+<p>This code is very similar, but not identical, to the <code>test</code>
+function.
+</p>
+<p>The issue is that <code>test</code> is trying to do two things
+simultaneously: in order to apply its test predicate to a binary tree
+it has to implement a walk over the tree, and it also encodes the fact
+that the function we are computing over the tree is a boolean-value
+function.
+</p>
+<p>We often need to do all kinds of things to our data structures and
+writing this kind of recursion over and over again is tedious and
+error prone. What we would like to do is to write a single
+<em>visitor</em> function and specialize it appropriately when we want
+to perform a specific function.
+</p>
+<p>This principle of separating out the different aspects of a system is
+one of the core foundations of good software engineering. It usually
+goes under the label <em>separation of concerns</em>. One of the
+beautiful things about functional programming is that it directly
+supports such good architectural practices.
+</p>
+<p>Since this visitor may be asked to perform any kind of computation on
+the labels in the tree we will need to slightly generalize the type of
+function that is passed to the visitor. Specifically, the type of
+function should look like:
+</p><div class="example">
+<pre class="example">F : (a,t)=&gt;a
+</pre></div>
+<p>where the <code>a</code> input represents accumulated state, <code>t</code>
+represents an element of the tree and the result is another
+accumulation.
+</p>
+<p>Using this, we can write a <code>tVisit</code> function that implements tree
+walking as:
+</p><div class="example">
+<pre class="example">tVisit:all a,t ~~ (tree[t],(a,t)=&gt;a,a)=&gt;a.
+tVisit(tEmpty,_,A) =&gt; A.
+tVisit(tNode(L,Lb,R),F,A) =&gt; tVisit(R,F,F(tVisit(L,F,A),Lb)).
+</pre></div>
+<p>Just as the accumulating function acquires a new âstateâ parameter, so
+the <code>tVisit</code> function also does. The <code>A</code> parameter in the
+two equations represents this accumulated state.
+</p>
+<p>The second rewrite equation for <code>tVisit</code> is a bit dense so let us
+open it out and look more closely. A more expanded way of writing the
+<code>tVisit</code> function would be:
+</p><div class="example">
+<pre class="example">tVisit(tEmpty,_,A) =&gt; A.
+tVisit(tNode(L,Lb,R),F,A) =&gt; let{
+  A1 = tVisit(L,F,A).
+  A2 = F(A1,Lb).
+  } in tVisit(R,F,A2)
+</pre></div>
+<p>where <code>A1</code> and <code>A2</code> are two local variables that represent
+the result of visiting the left sub-tree and applying the accumulator
+function respectively. We have used the let expression form to make
+the program more obvious, rather than to introduce new functions
+locally; but this is a legitimate role for let expressions.
+</p>
+<p>The <code>tVisit</code> function knows almost nothing about the computation
+being performed, all it knows about is how to walk the tree and it
+knows to apply functions to labels in the tree.
+</p>
+<p>Given <code>tVisit</code>, we can implement our original <code>check</code> and
+<code>count</code> functions as one-liners:
+</p><div class="example">
+<pre class="example">check(T,S) =&gt; tVisit(T,(A,X)=&gt;(A || X==S),false).
+count(T) =&gt; tVisit(T,(A,X)=&gt;A+1,0).
+</pre></div>
+<p>The lambda that is embedded in the definition of check bears a little
+closer scrutiny:
+</p><div class="example">
+<pre class="example">(A,X)=&gt;(A || X==S)
+</pre></div>
+<p>In this lambda, we return <code>A</code> &ndash; if it is <code>true</code> &ndash; or we
+return the result of the test <code>X==S</code>. This is a common pattern in
+such programs: the accumulator <code>A</code> acts as a kind of state
+parameter that keeps track of whether we have already found the value.
+</p>
+<blockquote>
+<p>Functional programs are not actually <em>state-free</em>; often quite
+the opposite. However, the state in a functional program is never
+<em>hidden</em>. This is the true distinction between functional and
+regular procedural programs.
+</p></blockquote>
+
+<p>Notice that we have effectively hidden the recursion in the function
+definitions of <code>check</code> and <code>count</code> &ndash; all the recursion is
+encapsulated within the <code>tVisit</code> function.
+</p>
+<blockquote>
+<p>One of the unofficial mantras of functional programming is <em>hide
+the recursion</em>.
+</p></blockquote>
+
+<p>The reason we want to hide recursions that this allows the designer of
+functions to focus on <em>what</em> is being computed rather than
+focusing on the structure of the data and, furthermore, this allows
+the implementation of the visitor to be <em>shared</em> by all users of
+the tree type.
+</p>
+<p>Notice that, while <code>a</code> and <code>t</code> are type variables, we did
+not put an explicit quantifier on the type of <code>F</code>. This is
+because the quantifier is actually put on the type of <code>tVisit</code>
+instead:
+</p><div class="example">
+<pre class="example">tVisit:all a,t ~~ (tree[t],(a,t)=&gt;a,a)=&gt;a
+</pre></div>
+<p>Just like regular variables, type variables have scope and points of
+introduction. Also like regular variables, a type variable may be
+<em>free</em> in a given type expression; although it must ultimately be
+<em>bound</em> by a quantifier.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Going-even-further" accesskey="1">Going even further</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Going-even-further"></a>
+<div class="header">
+<p>
+Up: <a href="#Going-further" accesskey="u" rel="up">Going further</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Going-even-further-1"></a>
+<h4 class="subsection">3.5.1 Going even further</h4>
+<p>We have focused so far on generalizing the visitor from the
+perspective of the tree type. But there is another sense in which we
+are still <em>architecturally entangled</em>: from the perspective of
+the <code>check</code> and <code>count</code> functions themselves.
+</p>
+<p>In short, they are both tied to our <code>tree</code> type. However, there
+are many possible collection data types; <code>Star</code> for instance has some
+5 or 6 different standard collection types. We would prefer not to
+have to re-implement the <code>check</code> and <code>count</code> functions for
+each type.
+</p>
+<p>The good news is that, using contracts, we can write a single
+definition of <code>check</code> and <code>count</code> that will work for a range
+of collection types.
+</p>
+<p>Let us start by defining a contract that encapsulates what it means to
+visit a collection:
+</p><div class="example">
+<pre class="example">contract all c,t ~~ visitor[c-&gt;&gt;t] ::= {
+  visit:all a ~~ (c,(a,t)=&gt;a,a)=&gt;a
+}
+</pre></div>
+<p>This <code>visitor</code> contract defines a single function that embodies
+what it means to <em>visit</em> a collection structure. There are quite
+a few pieces here, and it is worth examining them carefully.
+</p>
+<p>A contract header has a template that defines a form of <em>contract
+constraint</em>. The clause
+</p><div class="example">
+<pre class="example">visitor[c -&gt;&gt; t]
+</pre></div>
+<p>is such a constraint. The sub-clause
+</p><div class="example">
+<pre class="example">c -&gt;&gt; t
+</pre></div>
+<p>refers to two types: <code>c</code> and <code>t</code>. The presence of the
+<code>-&gt;&gt;</code> term identifies the fact that <code>t</code> <em>depends</em> on
+<code>c</code>.
+</p>
+<p>The <code>visitor</code> contract itself is about the collection type
+<code>c</code>. But, within the contract, we need to refer to both the
+collection type and to the type of elements in the collection: the
+<code>visit</code> function is over the collection, it applies a function to
+elements of the collection.
+</p>
+<p>Furthermore, as we design the contract, we <em>do not know</em> the
+exact relationship between the collection type and the element
+type. For example, the collection type may be generic in one argument
+type &ndash; in which case the element type is likely that argument type;
+conversely, if the type is <em>not</em> generic (like <code>string</code>
+say), then we have no direct handle on the element type.
+</p>
+<p>We <em>do know</em> that within the contract the element type is
+<em>functionally determined</em> by the collection type: if you know the
+collection type then you should be able to figure out the element
+type.
+</p>
+<p>We express this dependency relationship with the the <code>c -&gt;&gt; t</code>
+form: whatever type <code>c</code> is, <code>t</code> must be based on it.
+</p>
+<p>The body of the contract contains a single type annotation:
+</p><div class="example">
+<pre class="example">visit:all a ~~(c,(a,t)=&gt;a,a)=&gt;a
+</pre></div>
+<p>This type annotation has three type variables: the types <code>c</code> and
+<code>t</code> come from the contract header and <code>a</code> is local to the
+signature. What the signature means is
+</p>
+<blockquote>
+<p>Given the visitor contract, the <code>visit</code> function is from the
+collection type <code>c</code>, a function argument and an initial state and
+returns a new accumulation state.
+</p></blockquote>
+
+<p>It is worth comparing the type of <code>visit</code> with the type of
+<code>tVisit</code>:
+</p><div class="example">
+<pre class="example">tVisit:all t,a ~~(tree[t],(a,t)=&gt;a,a)=&gt;a
+</pre></div>
+<p>The most significant difference here is that in <code>tVisit</code> the type
+of the first argument is fixed to <code>tree[t]</code> whereas in
+<code>visit</code> it is left simply as <code>c</code> (our collection type).
+</p>
+<p>Given this contract, we can re-implement our two <code>check</code> and
+<code>count</code> functions even more succinctly:
+</p><div class="example">
+<pre class="example">check(T,S) =&gt; visit(T, (A,X)=&gt;A || X==S,false)
+count(T) =&gt; visit(T, (A,X)=&gt;A+1,0)
+</pre></div>
+<p>These functions will apply to <em>any</em> type that satisfies &ndash; or
+implements &ndash; the <code>visitor</code> contract. This is made visible in the
+revised type signature for <code>count</code>:
+</p><div class="example">
+<pre class="example">count:all c,t ~~ visitor[c-&gt;&gt;t] |: (c)=&gt;integer.
+</pre></div>
+<p>This type is an example of a <em>constrained type</em>. It is generic in
+<code>c</code> and <code>t</code> but that generality is constrained by the
+requirement that the <code>visitor</code> contract is appropriately
+implemented. The eagled-eyed reader will notice that <code>count</code> does
+not actually depend on the type of the elements in the collection:
+this is what we should expect since <code>count</code> does not actually
+care about the elements themselves.
+</p>
+<p>The type signature for <code>check</code>, however, does care about the
+types of the elements:
+</p><div class="example">
+<pre class="example">check:all c,t ~~
+  visitor[c-&gt;&gt;t], equality[c] |: (c,t)=&gt;boolean
+</pre></div>
+<p>This type annotation now has two contract constraints associated with
+it: the collection must be something that is visitable and the
+elements of the collection must support <code>equality</code>.
+</p>
+<p>Given the work we have done, we can implement the <code>visitor</code>
+contract for our <code>tree[t]</code> type quite straightforwardly:
+</p><div class="example">
+<pre class="example">implementation all t ~~ visitor[tree[t]-&gt;&gt;t] =&gt; {
+  visit = tVisit
+}
+</pre></div>
+<p>Notice that header of the implementation statement provides the
+connection between the collection type (which is <code>tree[t]</code>) with
+the element type (<code>t</code>). The clause
+</p><div class="example">
+<pre class="example">visitor[tree[t]-&gt;&gt;t]
+</pre></div>
+<p>is effectively a declaration of that connection.
+</p>
+<p>Now that we have disconnected <code>visit</code> from <code>tree</code> types, we
+can extend our program by implementing it for other types. In
+particular, we could also implement the visitor for the <code>sTree</code>
+type:
+</p><div class="example">
+<pre class="example">implementation visitor[sTree -&gt;&gt; string] =&gt; {
+  visit = sVisit
+}
+</pre></div>
+<p>however, we leave the definition of <code>sVisit</code> as a simple exercise
+for the reader.
+</p>
+<p>Our final versions of <code>count</code> and <code>check</code> are now quite
+general: they rely on a generic implementation of the <code>visit</code>
+function to hide the recursion and are effectively independent of the
+actual collection types involved.
+</p>
+<p>If we take a second look at our visitor contract we can see something
+quite remarkable: it counts as a definition of the famous
+<em>visitor pattern</em>. This is remarkable because, although visitor
+patterns are a common design pattern in OO languages, it is often hard
+in those languages to be crisp about the semantics of visiting; in
+fact, they are called patterns because they represent patterns of use
+which may be encoded in Java (say) whilst not necessarily being
+definable in them.
+</p>
+<p>The combination of contract and implementation represents a quite
+formal way of defining patterns like the visitor pattern.
+</p>
+<p>There is something else here that is quite important too: we are able
+to define and implement the visitor contract <em>without</em> having to
+modify in any way the type definition of <code>tree</code> or
+<code>sTree</code>. From a software engineering point of view this is quite
+important: we are able to gain all the benefits of interfaces without
+needing to entangle them with our types. This becomes critical in
+situations where we are not able to modify types &ndash; because they donât
+belong to us and/or we donât have access to the source.
+</p>
+<hr>
+<a name="Polymorphic-arithmetic"></a>
+<div class="header">
+<p>
+Next: <a href="#A-word-about-type-inference" accesskey="n" rel="next">A word about type inference</a>, Previous: <a href="#Going-further" accesskey="p" rel="prev">Going further</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Polymorphic-arithmetic-1"></a>
+<h3 class="section">3.6 Polymorphic arithmetic</h3>
+<p>There are other ways in which programs can be polymorphic. In
+particular, let us focus for a while on arithmetic. One of the issues
+in arithmetic functions is that there are many different kinds of
+numbers. Pretty much every programming language distinguishes several
+kinds of numbers; for example, Java distinguishes byte, short, int,
+long, float, double, BigInteger and BigDecimal &ndash; and this does not
+count the wrapped versions. Other languages have even more choice.
+</p>
+<p>One question that might seem relevant is why? The basic answer is that
+different applications call for different properties of numbers and no
+one numeric type seems to fit all needs. However, that variety comes
+at a cost: when we use numbers we tend to have to make too early a
+choice for the numeric type.
+</p>
+<p>For example, consider the <code>double</code> function we saw earlier:
+</p><div class="example">
+<pre class="example">double(X) =&gt; X+X
+</pre></div>
+<p>What type should <code>double</code> have? In particular, what should the
+type of <code>+</code> be? Most people would be reluctant to use different
+arithmetic operators for different types of numbers.<a name="DOCF19" href="#FOOT19"><sup>19</sup></a> This is resolved in
+<code>Star</code> by relying on contracts for the arithmetic operations.
+</p>
+<p>The result is that the most appropriate type signature for
+<code>double</code> is exquisitely tuned:
+</p><div class="example">
+<pre class="example">double:all t ~~ arith[t] |: (t)=&gt;t
+</pre></div>
+<p>This type is precisely the most general type that <code>double</code> could
+have. Any further constraints result in making a potentially premature
+choice for the numeric type.
+</p>
+<p>If we take another look at our original <code>fact</code> function:
+</p><div class="example">
+<pre class="example">fact(0) =&gt; 1
+fact(N) =&gt; N*fact(N-1)
+</pre></div>
+<p>this is constrained to be a function from <code>integer</code> to
+<code>integer</code> because we introduced the literal integers <code>0</code> and
+<code>1</code>. However, the <code>arith</code> contract contains synonyms for
+these very common literals. Using <code>zero</code> and <code>one</code> allow us
+to be abstract in many arithmetic functions:
+</p><div class="example">
+<pre class="example">genFact:all a ~~ arith[a] |: (a)=&gt;a.
+genFact(zero) =&gt; one.
+genFact(N) =&gt; N*genFact(N-one).
+</pre></div>
+<p>We call out <code>zero</code> and one for special treatment because they
+occur very frequently in numerical functions. We can introduce other
+numeric literals without compromising our type by using
+<em>coercion</em>; although it is more clumsy:
+</p><div class="example">
+<pre class="example">factorialC:all t ~~
+  arith[t],coercion[integer,t] |: (t)=&gt;t.
+factorialC(N) where N==0::t =&gt; 1::t.
+factorialC(N) =&gt; N*factorialC(N-1::t).
+</pre></div>
+<p>The expressions <code>0::t</code> and <code>1::t</code> are coercions from
+<code>integer</code> to <code>t</code>.
+</p>
+<p>Of course, coercion is also governed by contract, a fact represented
+in the type signature by the coercion contract constraints on the type
+of <code>t</code>.
+</p>
+<p>In any case, using these techniques, it is possible to write numeric
+functions without unnecessarily committing to specific number
+types. That in turn helps to make them more useful.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Optional-computing" accesskey="1">Optional computing</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Special-syntax-for-optional-values" accesskey="2">Special syntax for <code>option</code>al values</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Optional-computing"></a>
+<div class="header">
+<p>
+Next: <a href="#Special-syntax-for-optional-values" accesskey="n" rel="next">Special syntax for <code>option</code>al values</a>, Up: <a href="#Polymorphic-arithmetic" accesskey="u" rel="up">Polymorphic arithmetic</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Optional-computing-1"></a>
+<h4 class="subsection">3.6.1 Optional computing</h4>
+<p>There are many situations where it is not possible to guarantee that a
+computation will succeed. The simplest examples of this include
+scenarios such as accessing external files; but may also apply to
+getting the first element of a list or the label of a <code>tree</code>
+node. The great unknown of accessing elements of a collection is âis
+it there?â. Its not guaranteed of course, and we need to be able to
+handle failure.
+</p>
+<p>Many languages employ the concept of a special <code>null</code> value to
+denote some of these cases &ndash; like a <code>someOne</code> not having a
+<code>spouse</code>. However, the special <code>null</code> value brings its own
+problems: the type of <code>null</code> is problematic (it is a legal value
+for every type) and there are many situations where <code>null</code> is
+never possible.
+</p>
+<p>We address this by handling those situations where failure is possible
+differently than where it is not. Specifically, we do this via the
+<code>option</code> type.
+</p>
+<p>The type definition of <code>option</code> is quite straightforward:
+</p><div class="example">
+<pre class="example">all t ~~ option[t] ::= none | some(t).
+</pre></div>
+<p>where <code>none</code> is intended to denote the non-existence of a value
+and <code>some</code> denotes an actual value.
+</p>
+<p>The <code>option</code> type is intended to be used in cases where functions
+are known to be partial.<a name="DOCF20" href="#FOOT20"><sup>20</sup></a> An <code>option</code>
+return type signals that the function may not always have a value.
+</p>
+<p>Normal pattern matching can be used to access a value wrapped in a
+<code>some</code>; for example, to access someone&rsquo;s <code>spouse</code> we can use
+the condition:
+</p><div class="example">
+<pre class="example">isMarriedTo(P,J) where some(JJ).=P.spouse =&gt; J==JJ.
+isMarriedTo(_,_) default =&gt; false.
+</pre></div>
+<p>The important detail here is that all access to a <code>option</code>
+wrapped value is gated by some form of pattern matching and that,
+normally, this takes place in a condition.
+</p>
+<blockquote>
+<p>The condition
+</p><div class="example">
+<pre class="example">some(JJ).=P.spouse
+</pre></div>
+<p>represents a pattern matching condition: it is satisfied if
+<code>P.spouse</code> matches <code>some(JJ)</code> and has the additional effect
+of defining and binding the variable <code>JJ</code> to the matched spouse.
+</p></blockquote>
+
+<hr>
+<a name="Special-syntax-for-optional-values"></a>
+<div class="header">
+<p>
+Previous: <a href="#Optional-computing" accesskey="p" rel="prev">Optional computing</a>, Up: <a href="#Polymorphic-arithmetic" accesskey="u" rel="up">Polymorphic arithmetic</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Special-syntax-for-optional-values-1"></a>
+<h4 class="subsection">3.6.2 Special syntax for <code>option</code>al values</h4>
+<p>Of course, the code above <em>is</em> kind of clumsy! There is a range
+of operators in <code>Star</code> to make using <code>option</code> values more
+pleasant.
+</p>
+<p>The most important of these is the <code>^=</code> operator which combines
+the <code>.=</code> with the <code>some</code> match. Using this, the
+<code>isMarriedTo</code> function becomes:
+</p><div class="example">
+<pre class="example">isMarriedTo(P,J) where JJ^=P.spouse =&gt; J==JJ.
+isMarriedTo(_,_) default =&gt; false.
+</pre></div>
+<p>The meaning of <code>^=</code> is similar to the pattern match condition
+<code>.=</code>; except that the pattern is assumed to be for a <code>some</code>
+value.
+</p>
+<p>While the <code>^=</code> operator<a name="DOCF21" href="#FOOT21"><sup>21</sup></a> is very
+useful in unpacking an optional value, the <code>^|</code> operator allows
+us to handle cases where we always need to be able to give some kind
+of value. For example, normally a <code>map</code> returns none if an entry
+is not present. However, a <em>cache</em> is structured differently: if
+a value is not present in a cache then we must go fetch it:
+</p>
+<div class="example">
+<pre class="example">cacheValue(K) =&gt; cache[K] ^| fetch(K)
+</pre></div>
+
+<p>We can also apply a match <em>in line</em> to an <code>option</code>al value. The
+<code>^</code> operator allows a pattern to be formed by applying a
+<code>option</code> valued function directly in place. For example, the
+equation:
+</p><div class="example">
+<pre class="example">head(first^(1)) =&gt; &quot;alpha&quot;
+</pre></div>
+<p>is equivalent to:
+</p><div class="example">
+<pre class="example">head(X) where some(1).=first(X) =&gt; &quot;alpha&quot;
+</pre></div>
+<p>We will see more examples of this when we look more closely at
+sequences and collections processing.
+</p>
+<p>Finally, we can promote an optional expression into an enclosing
+expression (which is therefore also optional). For example, in the
+expression:
+</p>
+<div class="example">
+<pre class="example">nameOf(^P.spouse)
+</pre></div>
+<p>if <code>P.spouse</code> is <code>none</code>, then the value returned by the
+<code>nameOf</code> expression is also <code>none</code>, otherwise it takes the
+form:
+</p><div class="example">
+<pre class="example">some(&quot;P_spouse_name&quot;)
+</pre></div>
+<p>(assuming that <code>nameOf</code> is defined for <code>Person</code>s.)
+</p>
+<p>Overall, the <code>option</code> type is part of an elegant approach to
+nullability that is easily incorporated into <code>Star</code>âs (and similar)
+type system.
+</p>
+<hr>
+<a name="A-word-about-type-inference"></a>
+<div class="header">
+<p>
+Next: <a href="#Are-we-there-yet_003f" accesskey="n" rel="next">Are we there yet?</a>, Previous: <a href="#Polymorphic-arithmetic" accesskey="p" rel="prev">Polymorphic arithmetic</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-word-about-type-inference-1"></a>
+<h3 class="section">3.7 A word about type inference</h3>
+<p>We have seen some powerful forms of types in this chapter: recursive
+types defined using algebraic type definitions, generic types and even
+function types. Recall also that <code>Star</code> only requires programmers to
+explicitly declare the types of quantified variables and functions. It
+is worth pausing a little to see how this might be done.
+</p>
+<p>Recall our original <code>fact</code> function:
+</p><div class="example">
+<pre class="example">fact(0) =&gt; 1.
+fact(N) =&gt; N*fact(N-1).
+</pre></div>
+<p>The compiler is able to compute the types of the various variables
+automatically through a process known as <em>type inference</em>. Type
+inference may seem magical, but is actually (mostly) quite simple. Let
+us take a look at the expression:
+</p><div class="example">
+<pre class="example">N-1
+</pre></div>
+<p>which is buried within the recursive call in <code>fact</code>. Although it
+looks like a special operator, <code>Star</code> does not treat arithmetic
+expressions in a special way; the <code>-</code> function is just a function
+from numbers to numbers; its type is given by:<a name="DOCF22" href="#FOOT22"><sup>22</sup></a>
+</p><div class="example">
+<pre class="example">(-) : all t ~~ arith[t] |: (t,t)=&gt;t
+</pre></div>
+<p>However, we should simplify this type a little in order to make the
+explanation of type inference a little simpler. In what follows, we
+assume that the type of (<code>-</code>) is:
+</p><div class="example">
+<pre class="example">(-) : (integer,integer)=&gt;integer
+</pre></div>
+<p>Type inference proceeds by using special <em>type inference rules</em>
+which relate expressions to types, in this case the applicable rule is
+that a function application is consistent if the functionâs parameter
+types are consistent with the types of the actual arguments. If they
+are consistent, then the type of the function application is the
+return type of the function.
+</p>
+<p>The type inference process initially gives every variable an unknown
+type &ndash; represented by a new type variable not appearing anywhere
+else. For our tiny <code>N-1</code> example, we will give <code>N</code> the type
+<var>t<sub>N</sub></var>.
+</p>
+<p>The (<code>-</code>) function has two arguments whose types can be expressed
+as a tuple of types:
+</p><div class="example">
+<pre class="example">(integer,integer)
+</pre></div>
+<p>and the types of the actual arguments are also a tuple:
+</p><div class="example">
+<pre class="example">(<var>t<sub>N</sub></var>,integer)
+</pre></div>
+<p>In order for the expression to be type correct, the actual types of
+the arguments must be consistent with the expected types of the
+function; which we can do by making them <em>the same</em>. There is a
+particular process used to do this &ndash; called <em>unification</em>.
+</p>
+<p>![Inferring the Type of N-1][images/minustype]
+</p>
+<dl compact="compact">
+<dt><em>Unification</em></dt>
+<dd><p>An algorithm that replaces variables with values in such a way as to
+make two terms identical.
+</p></dd>
+</dl>
+
+<p>Unification matches equals with equals and handles (type) variables by
+substitutions &ndash; for example, we can make these two type expressions
+equal by <em>binding</em> the type variable <var>t<sub>N</sub></var> to
+<code>integer</code>.
+</p>
+<p>We initially picked the type of <code>N</code> to be an arbitrary type
+variable, but the process of checking consistency leads us to refine
+this and make the type concrete. I.e., the use of <code>N</code> in a
+context where an integer is expected is enough to allow the compiler
+to infer that the type of <code>N</code> is indeed <code>integer</code> and not
+<var>t<sub>N</sub></var>.
+</p>
+<p>Of course, if there are multiple occurrences of <code>N</code> then each of
+those occurrences must also be consistent with integer; and if an
+occurrence is not consistent then the compiler will report an error &ndash;
+a given expression may only have one type!
+</p>
+<p>The bottom line is that <code>Star</code>âs types are based on a combination of
+unification for comparing types and a series of type rules that have
+the effect of introducing <em>constraints</em> on types based on which
+language features are present in the text. The type checker is really
+a constraint solver: if the constraints are not satisfiable (for
+example by trying to âcallâ a variable and add a number to it) then
+there is a type error in the program.
+</p>
+<p>The magic of type inference arises because it turns out that solving
+these constraints is sufficient for robustly type checking programs.
+</p>
+<p>A sharp-eyed reader will notice that <code>Star</code>âs type system is
+different in nature to that found (say) in OO languages. In <code>Star</code>âs
+type system, types are considered to be consistent in <code>Star</code> if they
+are <em>equal</em>. This is quite different to the notion of consistency
+in OO languages where an argument to a function is consistent if its
+type is a <em>sub-type</em> of the expected type.
+</p>
+<p>However, we would note that the apparent restriction to the type
+system imposed by type equality is much less severe in practice than
+in theory &ndash; and that OO languagesâ type systems also often
+incorporate some of the same restrictions.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Why-is-type-inference-restricted_003f" accesskey="1">Why is type inference restricted?</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Why-is-type-inference-restricted_003f"></a>
+<div class="header">
+<p>
+Up: <a href="#A-word-about-type-inference" accesskey="u" rel="up">A word about type inference</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Why-is-type-inference-restricted_003f-1"></a>
+<h4 class="subsection">3.7.1 Why is type inference restricted?</h4>
+<p>We have stated a few times that <code>Star</code>&rsquo;s type system only infers
+types of variables that are <em>not</em> quantified. In fact, it is fairly
+simple to build a type inference system that can infer quantified
+types. For example, such a complete type inference system would infer
+from these equations:
+</p>
+<div class="example">
+<pre class="example">conc(nil,x)=&gt;x.
+conc(cons(h,tl),x) =&gt; cons(h,conc(tl,x))
+</pre></div>
+<p>the generalized type for <code>conc</code>:
+</p><div class="example">
+<pre class="example">conc:all t ~~ (cons[t],cons[t])=&gt;cons[t].
+</pre></div>
+<p>However, several technical and non-technical considerations stay our hand at building such a type inference system:
+</p>
+<ul>
+<li> There are still types that cannot be correctly inferred; and would
+therefore require explicit type annotations to correctly type the
+program.
+</li><li> Having explicit type annotations is &rsquo;good style&rsquo; in general and
+definitely aids in debugging type errors.
+</li></ul>
+
+<p>On the other hand, requiring type annotations for <em>every</em> variable is
+extremely tedious and verbose. An extreme version of this policy would
+require the <code>conc</code> program above to be written:
+</p>
+<div class="example">
+<pre class="example">conc:all t ~~ (cons[t],cons[t])=&gt;cons[t].
+conc(nil,x:list[t])=&gt;x.
+conc(cons(h:t,tl:list[t]),x:list[t]) =&gt; cons(h,conc(t,x))
+</pre></div>
+<p>The design of <code>Star</code> strikes a balance between useability and rigor:
+most variables do not require explicit type annotations. We require
+them only when something &rsquo;special&rsquo; is being indicated; one of those
+special circumstances is when defining a generic function.
+</p>
+<p>Even there, there are many situations where explicit type annotations
+are not needed: for example when defining a field in a record, or a
+function in the implementation of a contract, there already is a type
+that the type system can use to verify the program.
+</p>
+<p>So, the precise rule for type inference is:
+</p>
+<blockquote>
+<p>If the type of a variable is known from context, then use that type to
+verify the type of any value the variable may be bound to. Otherwise,
+use type inference on the value to infer a type for the variable but
+do not attempt to generalize it by adding quantifiers to the inferred
+type.
+</p></blockquote>
+
+<p>We are only able to scratch the surface of the type system here. It is
+certainly true that &ndash; like many modern functional languages &ndash;
+<code>Star</code>âs type system is complex and subtle. The primary motivation
+for this complexity is to reduce the burden for the programmer: by
+being able to infer types automatically, and by being able to address
+many programming subtleties, the type system comes to be seen as the
+programmerâs friend rather than as an obstacle to be âgotten aroundâ.
+</p>
+<hr>
+<a name="Are-we-there-yet_003f"></a>
+<div class="header">
+<p>
+Previous: <a href="#A-word-about-type-inference" accesskey="p" rel="prev">A word about type inference</a>, Up: <a href="#Functional-Programming" accesskey="u" rel="up">Functional Programming</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Are-we-there-yet_003f-1"></a>
+<h3 class="section">3.8 Are we there yet?</h3>
+
+<p>The straightforward answer to this is no. There is a great deal more
+to functional programming than can be captured in a few
+pages. However, we have covered some of the key features of functional
+programming &ndash; particularly as it applies to <code>Star</code>. In subsequent
+chapters we will take a closer look at collections, at modular
+programming, at concurrency and even take a pot shot at Monads.
+</p>
+<p>If there is a single idea to take away from this chapter it should be
+that functional programming is natural. If there is a single piece of
+advice for the budding functional <code>Star</code> programmer, it should be to
+<em>hide the recursion</em>. If there is a single bit of comfort to
+offer programmers it should be that <em>Rome was not built in a
+day</em>.
+</p>
+<p>In the next chapter we look at collections, one of the richest topics
+in programming.
+</p>
+<hr>
+<a name="Concept-index"></a>
+<div class="header">
+<p>
+Next: <a href="#Function-index" accesskey="n" rel="next">Function index</a>, Previous: <a href="#Functional-Programming" accesskey="p" rel="prev">Functional Programming</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Concept-index-1"></a>
+<h2 class="unnumbered">Concept index</h2>
+
+<hr>
+<a name="Function-index"></a>
+<div class="header">
+<p>
+Next: <a href="#List-of-Syntax-Rules" accesskey="n" rel="next">List of Syntax Rules</a>, Previous: <a href="#Concept-index" accesskey="p" rel="prev">Concept index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Standard-function-index"></a>
+<h2 class="unnumbered">Standard function index</h2>
+
+<hr>
+<a name="List-of-Syntax-Rules"></a>
+<div class="header">
+<p>
+Previous: <a href="#Function-index" accesskey="p" rel="prev">Function index</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="List-of-Syntax-Rules-1"></a>
+<h2 class="unnumbered">List of Syntax Rules</h2>
+
+
+<div class="footnote">
+<hr>
+<h4 class="footnotes-heading">Footnotes</h4>
+
+<h3><a name="FOOT1" href="#DOCF1">(1)</a></h3>
+<p>Not including code thrown away due to changes of
+requirements over that time period.</p>
+<h3><a name="FOOT2" href="#DOCF2">(2)</a></h3>
+<p>Originally, <em>R</em>eading, w<em>R</em>iting and
+a<em>R</em>ithmetic.</p>
+<h3><a name="FOOT3" href="#DOCF3">(3)</a></h3>
+<p>The term <em>type
+declaration</em> is reserved for defining a new type. Variable types are
+defined through <em>type annotations</em>.</p>
+<h3><a name="FOOT4" href="#DOCF4">(4)</a></h3>
+<p>Please forgive these pedantic notes when you see them.</p>
+<h3><a name="FOOT5" href="#DOCF5">(5)</a></h3>
+<p>Those who remember Algol 60 will
+understand that braces are not the only way of grouping statements.</p>
+<h3><a name="FOOT6" href="#DOCF6">(6)</a></h3>
+<p>We use the
+period rather than the commonly used semi-colon because <code>Star</code>
+statements are statements, not instructions to perform in sequence.</p>
+<h3><a name="FOOT7" href="#DOCF7">(7)</a></h3>
+<p>This is one of those somewhat pedantic
+notes!</p>
+<h3><a name="FOOT8" href="#DOCF8">(8)</a></h3>
+<p>Read-Eval-Print-Loop</p>
+<h3><a name="FOOT9" href="#DOCF9">(9)</a></h3>
+<p>Not a
+set of values because not all collections of values are mathematical
+sets.</p>
+<h3><a name="FOOT10" href="#DOCF10">(10)</a></h3>
+<p>I.e., everything you
+thought you knew about integers may or may not apply to the values
+denoted by integer.</p>
+<h3><a name="FOOT11" href="#DOCF11">(11)</a></h3>
+<p>The expression <code>3::float</code> is a coercion
+expression that converts the integer <code>3</code> into a float value.</p>
+<h3><a name="FOOT12" href="#DOCF12">(12)</a></h3>
+<p>The term declarative has a technical
+definition. But this captures much of the essence of declarativeness
+(sic).</p>
+<h3><a name="FOOT13" href="#DOCF13">(13)</a></h3>
+<p>The
+<em>Church Rosser Theorem</em> guarantees some independence on the order of
+the rewrite equations provided that the different rewrite equations
+that make up function definitions do not overlap. Usually, however, it
+is too fussy to <em>require</em> programmers to ensure that their equations
+do not overlap; hence the reliance on ordering of equations.</p>
+<h3><a name="FOOT14" href="#DOCF14">(14)</a></h3>
+<p>This terminology originates from Logic &ndash; where a
+formula can be satisfied (made true) by observations from the world.</p>
+<h3><a name="FOOT15" href="#DOCF15">(15)</a></h3>
+<p>None of the standard <code>Star</code> data types are
+circular in nature.</p>
+<h3><a name="FOOT16" href="#DOCF16">(16)</a></h3>
+<p>Even predominantly lazy languages like Haskell
+have features which enforce strict evaluation. It reduces to a
+question of which is the <em>default</em> evaluation style.</p>
+<h3><a name="FOOT17" href="#DOCF17">(17)</a></h3>
+<p>Strictly, not decidable.</p>
+<h3><a name="FOOT18" href="#DOCF18">(18)</a></h3>
+<p>This time too, we must use an explicit type
+annotation.</p>
+<h3><a name="FOOT19" href="#DOCF19">(19)</a></h3>
+<p>Although
+some languages &ndash; such as SML &ndash; do require this.</p>
+<h3><a name="FOOT20" href="#DOCF20">(20)</a></h3>
+<p>A partial function does not have a
+value across the whole range of its arguments.</p>
+<h3><a name="FOOT21" href="#DOCF21">(21)</a></h3>
+<p>Read as âhas a valueâ.</p>
+<h3><a name="FOOT22" href="#DOCF22">(22)</a></h3>
+<p>We put the (-)
+in parentheses to highlight the use of an operator as a normal
+symbol.</p>
+</div>
+<hr>
+
+
+
+</body>
+</html>

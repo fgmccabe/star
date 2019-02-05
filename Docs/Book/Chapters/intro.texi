@@ -59,8 +59,10 @@ technologies.
 Managing change in code is often left to Source Code Control Systems;
 but these systems only address part of the problem. For example,
 @emph{code re-use} is also a requirement and a challenge for large
-systems. In fact, one could imagine a “three R’s” for software
-engineering: Reuse, Repurpose, and Refactor.
+systems. In fact, one could imagine a @emph{three
+Rs}@footnote{Originally, @emph{R}eading, w@emph{R}iting and
+a@emph{R}ithmetic.}  for software engineering: Reuse, Repurpose, and
+Refactor.
 
 When the code base is over 500 Kloc, the theoretical probability of
 being able to re-use existing code is high, the actual probability of
@@ -191,7 +193,7 @@ Choosing a programming language -- when you actually have a choice --
 is highly personal. Here are some reasons to think about @Star{}.
 
 @subsection If you are already a Java (or C, C# or C++) programmer
-@node If you are already a Java (or C, C# or C++) programmer
+@node If you are already a Java or C C# or C++ programmer
 
 Most OO languages are embracing some of the simpler features of
 functional languages. Even modern Java with its lambda expressions and
@@ -234,13 +236,34 @@ scenarios that require dynamic programming in languages like Java.
 @subsubsection If you are already a C++ programmer
 
 Moving to a language like @Star{} is a radically different programming
-experience. However, most of the differences are not because @Star{}
-is a functional programming language. Rather, it is because @Star{}
-does not abide by two of C++'s core principles: zero-cost abstractions
-and compatibility with C.
+experience for the C++ programmer. However, most of the differences
+are not because @Star{} is a functional programming language. Rather,
+it is because @Star{} does not abide by two of C++'s core principles:
+zero-cost abstractions and compatibility with C.
+
+While @Star{}'s compiler does not willfully make programs execute more
+slowly, strict CPU performance is not the primary driver for design
+features. This shows up in a desire to avoid the so-called premature
+optimization problem: of optimizing the wrong feature.
+
+In the case of @Star{} vs C++, the most salient of these is likely to
+be the different ways that generic programs are compiled: C++ compiles
+generic programs by constructing special case implementations for all
+used versions of the generic program; whereas @Star{} constructs a
+single -- type agnostic -- implementation of generic functions.
 
 This affects many aspects of one's day-to-day usage of the language
-and its tooling.
+and its tooling. One of which is that, for a compiler that has been in
+daily use for over 40 years, C++ compilers are still remarkably
+slow. C++ binaries can often be very large.
+
+The compatibility with C requirement has meant that C++ has to support
+many programming paradigms (such as pointer arithmetic) that most
+modern programming languages -- @Star{} included -- eschew.
+
+Pointer arithmetic is known to put applications at risk of severe
+security problems; and there are many modern safer alternatives (which
+C++ does also support).
 
 @node If you are already a functional programmer
 @subsection If you are already a functional programmer
