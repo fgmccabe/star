@@ -34,7 +34,7 @@ All rights reserved.
 @top Star Reference
 
 @macro Star
-@code{Star}
+@strong{Star}
 @end macro
 
 
