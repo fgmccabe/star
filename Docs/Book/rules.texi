@@ -1,0 +1,494 @@
+@node Making choices
+@chapter Making choices
+
+@noindent
+One of the common themes of systems that `face the world' (aka online
+applications) is that they often have to make decisions. More
+specifically, any outward facing system will receive requests that the
+system must decide whether they are legitimate or not. Before acting
+on a request, we must decide whether or not to trust it.
+
+We can draw an extremely simplistic view of a large class of @emph{online}
+applications:
+
+@float Figure,onlineApp
+@caption{Simplistic Online Application}
+@image{images/online}
+@end float
+
+This diagram illustrates the four main elements of an online
+application: a @emph{source} of events, a @emph{processor} which processes
+events, a @emph{Sink} which represents externally visible actions being
+taken by the system, and, finally, a @emph{Store}.
+
+We are being deliberately simplistic here; because we wish to focus on
+a part of this picture: the @emph{Store}.
+
+A @emph{Store} is part of most online applications because applications
+need some form of context: there is typically not enough information
+in an event to determine how to react to it: we must also have some
+history as well. For example, if an event represents a log-in attempt,
+then in order to know how to respond, we need to know if the
+originator has an account, whether the offered password is consistent
+with our records and so on.
+
+The @emph{Store} concept is simply an abstract way of representing this
+context. However, we can go a little further and claim that the
+dominant mode of accessing a store is through @emph{queries}.
+
+A query is simply an expression that is evaluated in the right
+context; however, the natural semantics for query processing is more
+like that of database searches than arithmetic evaluation. The reason
+for that is that a typical @emph{Store} may be quite large and serve
+multiple functions. As a result, @Star{} queries have a lot in common
+with logic and database programming paradigms.
+
+@node Queries
+@section Queries
+
+@noindent
+Consider, if you will, the problem of finding a set of
+grandparent-grandchild pairs -- given information about parent-child
+relationships. For example, suppose that we had a list of pairs - each
+pair indicating a parent and child:
+@example
+parents:list[(string,string)].
+parents = [("john","peter), ("peter","jane"), @dots{} ].
+@end example
+and that we wanted to construct a result list -- also of pairs --
+along the lines of:
+@example
+GC:list[(string,string)].
+GC = [("john","jane"),@dots{}].
+@end example
+Computing the list of grandparent/grandchildren pairs involves
+searching the @code{parents} for pairs that satisfy the grandparent
+relationship. This, in turn, involves a double iteration: each pair in
+the @code{parent}s list might represent the upper or lower half of a
+grandparent/grandchild relationship (or both).
+
+Based on the collection operators we have seen so far, we can build
+such a search using two @code{foldLeft} operations:
+@example
+foldLeft(
+ (SoFar,(X,Z)) => foldLeft(
+   let @{
+     acc(gp1,(ZZ,Y)) where Z==ZZ => [gp1..,(X,Y)].
+     acc(gp1,_) => gp1.
+   @} in acc,
+   SoFar,parents),
+   list of [],
+  parents)
+@end example
+This, rather intimidating,@footnote{There are, unfortunately, some
+functional programmers that revel in complex code expressions like
+this one. We are not one of them!} expression uses one @code{foldLeft}
+to look for the grandparent, and the second @code{foldLeft} finds all
+the grand-children. All without any explicit recursion.
+
+The @code{acc} function defined above in the @code{let} expression
+implements the logic of deciding what to accumulate depending on
+whether we had found a grandparent or not.
+
+The various filter, @code{fmap} and @code{foldLeft} functions @emph{are}
+powerful ways of processing entire collections. However, as we can
+see, combination iterations can be difficult to construct and harder
+to follow; something that is not helped by the occasional need to
+construct complex functions in the middle, as in this case.
+
+What is needed is a way of expressing such complex query conditions in
+a way that can be @emph{implemented} using @code{foldLeft} expressions
+but which are easier to read.
+
+Consider the conjunction:
+@example
+(X,Z) in parents && (Z,Y) in parents
+@end example
+This could be read as specifying what it means to be grandparents:
+
+@quotation
+For which @code{X}, @code{Y} and @code{Z} can we assert that @code{X}
+is the parent of @code{Z}, and @code{Z} is the parent of @code{Y}?.
+@end quotation
+
+This should be significantly easier to follow than the complex
+expression above; and it is easier to be sure whether it is a correct
+representation of what it means to be a grand parent.
+
+@node Satisfaction semantics
+@subsection Satisfaction semantics
+
+@noindent
+Conditions like the ones above are boolean valued -- but they are not
+always expressions. For example, the first condition there being a
+parent:
+@example
+(X,Z) in parents
+@end example
+is not evaluated in the way that expressions are normally evaluated --
+by @emph{testing} to see if a given pair of @code{X} and @code{Z} are
+in some @code{parents} collection. Instead, the condition needs to be
+evaluated by trying to @emph{find} @code{X} and @code{Z} that are in
+the @code{parents} collection. Only if, and when, suitable bindings
+for @code{X} and @code{Z} are found does the condition `return' true;
+otherwise it returns false. In effect, the condition becomes a
+@emph{search} for suitable candidate pairs.
+
+Technically this is called @emph{satisfying} the condition -- to
+distinguish what is going on in normal expression
+@emph{evaluation}. Of course, satisfying and evaluating are close
+cousins of each other and amount to the same thing when there is no
+search involved.
+
+In addition to individual @emph{search conditions} like this, it is
+also possible to use logical operators -- called @emph{connectives} --
+to combine conditions. In the case of our grand-parent query, there is
+a conjunction; which uses the variable @code{Z} to acts as a kind of
+glue to the two search conditions.
+
+@quotation
+In database query terminology, conjunctions like this one amount to
+@emph{inner joins}. Languages like SQL have many operators and
+features to make expressing queries easier; the fundamental semantics
+of @Star{}'s queries are similar in power to those of SQL.
+@end quotation
+
+The available connectives include the usual favorites: @code{&&},
+@code{||}, and @code{\+}. We may also see the need for some less
+familiar connectives: @code{implies} and @code{otherwise}.
+
+@quotation
+An @code{implies} connective is a way of testing complete compliance
+with a condition; for example, we can define a query capturing the
+situation that a manager earns more than his/her members by requiring
+that anyone who works for the manager earns less than they do:
+@example
+(X,M) in worksFor implies X.salary=<M.salary.
+@end example
+@end quotation
+
+@node Abstracting queries
+@subsection Abstracting queries
+
+@noindent
+The grandparent condition shows how to define what grandparent-hood
+means; but we also need ways of abstracting and naming such
+queries. The most straightforward way of this is to use a @emph{query
+abstraction} expression. For example, we can embody the grandparent
+situation in:
+@example
+@{ (X,Y) | (X,Z) in parents && (Z,Y) in parents@}
+@end example
+The value of a query abstraction expression is typically a @code{set}
+-- in this case a set of the pairs of strings in the
+grandparent-grandchild relation.
+
+Since it's an expression, we can assign it to a variable:
+@example
+gp = @{ (X,Y) | (X,Z) in parents and (Z,Y) in parents@}
+@end example
+and we can feed this set into another query:
+@example
+(X,"f") in gp
+@end example
+and we can define functions whose values are the results of queries:
+@example
+gpOf(GC) => @{X | (X,GC) in gp@}
+@end example
+We shall explore query expressions a little more, but first an
+editorial:
+
+@node A Splash of Inference
+@subsection A Splash of Inference
+
+@noindent
+Queries have an important role in @Star{} for two reasons: queries
+often have a much more obvious and transparent semantics than other
+programs -- even functional programs! Secondly, queries have a deep
+connection to logic.
+
+There are many reasons why one might be interested in logic; from a
+theoretical modeling perspective (does the universe follow rational
+rules@footnote{Surprisingly, yes! Of course, discovering the
+rationality may be hard; but the immense success of Western thought
+was only possible because the universe is very rationally
+constructed.}) to the deeply pragmatic reason that logical programs
+are often easier to understand and therefore easier to trust.
+
+Like programming languages, it turns out that there are many kinds of
+logic. Again, like programming languages, there is a trade-off between
+expressivity and complexity. The primary source of complexity in a
+rule language is the machinery needed to realize it -- together with
+understanding it sufficiently to be able to predict the meaning of a
+written rule.
+
+A somewhat simplified enumeration of the different kinds of logic might be:
+
+@table @asis
+@item Propositional calculus
+This is characterized by single-letter
+conditions (sometimes confusingly called @emph{predicate variables})
+and a guaranteed finite evaluation mechanism.
+@item Datalog
+This is characterized by relations with simple unstructured
+values (i.e., strings and numbers). Execution in Datalog has similar
+performance characteristics as querying databases.
+@item First Order Predicate Calculus
+This is probably the most well known
+and well understood logic. From an expressiveness point of view its
+focus is on the logical relationships amongst individual entities --
+which includes things like trees, lists and so on. Inference in First
+Order has many of the same characteristics as program evaluation: not
+decidable in general but many effective sub-cases.
+@item Higher Order Predicate Calculus
+There are actually many higher-order logics. The main expressive
+enhancement over First Order is that one can directly talk about
+relationships between entities as well as entities themselves. The
+cost of this is that inference becomes problematic -- even equality is
+undecidable.
+@end table
+
+Each of these levels represents a step both in expressiveness and in
+complexity. In general, the right logic for your application is
+something only you can decide; however, in designing a language, we
+have to choose for you.
+
+In our view, there is a sweet spot between Datalog and First Order
+Logic. Datalog allows one to right rules (unlike pure SQL) but is not
+capable of handling arbitrary data structures. On the other hand, it
+may be that @emph{recursion} is something that we can do without -- as
+we have seen earlier, many well structured functional programs have no
+explicit recursion!
+
+However, we must also be able to @emph{embed} our logic into our more
+regular programs. The key goal here is to maximize the benefit of
+providing a logical formalism whilst minimizing the burden on both the
+programmer and on the language implementation. This also recognizes
+that, while important, logical reasoning is typically only a small
+part of an overall system. It also recognizes the fact that gaps in
+the reasoning capability of a system can be patched more easily if the
+logic is simpler.
+
+And so, in @Star{}, we highlight the @emph{query} aspect of logical
+reasoning and bless queries as first class entities in the language.
+
+Critically, queries have a @emph{declarative} semantics as well as a
+@emph{programmatic} one; this dual reading is essential if one is to
+be able to understand the reasoning.
+
+@quotation Historical note
+in earlier iterations of the design for embedding logic into Star, a
+more-or-less complete rule system was envisaged. Such inference rules
+would have a similar status to functions and equations do. However, a
+combination of complexities and edge cases (such as how to handle a
+combination of inputs and outputs in rules) lead the designers to
+radically simplify the proposal and simply focus on queries. This gave
+us 90% of the potential benefit of inference rules at 10% of the cost.
+@end quotation
+
+Sometimes, a splash of logic is all we need. In terms of styles of
+logic, our approach is most reminiscent of @emph{answer set
+programming}.
+
+@node Anatomy of a Query
+@subsection Anatomy of a Query
+
+@noindent
+A query can be seen as combining two elements: a @emph{condition} and
+an @emph{answer template}. A query condition may be @emph{satisfied}
+in one or more ways -- each time potentially binding variables in the
+condition to values -- and the answer template encodes how we want to
+use the result of a successful satisfaction. Notice that the variables
+that are bound by the condition @emph{are in scope} within the answer
+template.
+
+The syntax and style of @Star{}’s query notation has strong echoes
+with SQL’s syntax -- deliberately so. Specifically, we take SQL’s
+@emph{relational calculus} subset -- the language of wheres and of
+boolean combinations. @Star{}’s query expressions do not have the
+equivalent of explicit relational join operators.
+
+
+@node Query Conditions
+@subsubsection Query Conditions
+
+@noindent
+The condition takes the form of a boolean combination of
+@emph{predications}; a predication is either a normal boolean-valued
+expression, a @emph{match} condition, or a @emph{search}
+condition. Various types of boolean combinations are supported; the
+most common being conjunction (@code{&&}), disjunction (@code{||}) and
+negation (@code{\+}).
+
+We have already seen match conditions; for example:
+@example
+some(X) .= opValue
+@end example
+is a match condition that is satisfied if the value of @code{opValue}
+matches the pattern @code{some(X)}. A successful match has the
+additional effect of binding @code{X} to the value embedded in the
+@code{some} value.@footnote{The form @code{X^=opValue} is actually a
+short form of the same condition.}
+
+Where a match condition has at most one way of being satisfied, a
+search condition can potentially have many solutions. Search
+conditions look like:
+
+@example
+@var{Pattern} in @var{Expression}
+@end example
+
+We saw an example of this earlier in our grandparent query:
+@example
+(X,Z) in parents
+@end example
+As should be anticipated at this point, search is realized via a
+contract. This allows us to search any type -- so long as the
+@code{iterable} contract is implemented for that type.
+
+The final form of query condition is simply the boolean-valued
+expression. Note that, unlike the other forms of query condition,
+boolean expressions are test-only: they cannot result in bindings for
+query variables.
+
+@node The @code{iterable} contract
+@subsubsection The @code{iterable} contract
+
+@noindent
+The @code{iterable} contract is similar in intention to the
+@code{folding} contract we saw before. However, it is more tuned to
+supporting different combination of queries.
+
+The @code{iterable} contract looks like:
+@example
+contract all s,e ~~ iterable[s->>e] ::= @{
+  _iterate:all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
+@}
+@end example
+This contract states that to search a collection, you have to be able
+to iterate over it using the @code{_iterate} function. The
+@code{_iterate} function uses the @code{iterState} type to help guide
+the search:
+@example
+all t ~~ iterState[t] ::= noneFound      -- no results yet
+                      | noMore(t)        -- all needed results found
+                      | continueWith(t)  -- keep going
+                      | abortIter(string).
+@end example
+The different cases in the @code{iterState} type codify different
+things that can happen during a search. The most commonly used case is
+the @code{continueWith} case -- which is used to encapsulate the
+results found so far.
+
+There are two companion contracts to the @code{iterable} contract: the
+@code{indexed_iterable} contract supports search over key/value pairs
+and the @code{generator} contract is used to help construct answers.
+
+@node Answer Templates
+@subsubsection Answer Templates
+
+@noindent
+The result of a query is governed by the @emph{answer template} of the
+query abstraction. There are two main forms of answer template: the
+expression template and the fold template.
+
+@table @asis
+@item Expression Template
+A @var{expression template} is simply an expression. 
+@end table
+
+The expression template is evaluated for each successful way that the
+query condition can be satisfied; typically, there are free variables
+in the template expression that refer to variables bound in the query
+condition. That way. values found during the search can be extracted
+and made part of the overall answer.
+
+@table @asis
+@item Fold Template
+A fold template is used when it is desired to aggregate over the found
+solutions. The form of a fold template is:
+@end table
+
+@example
+fold Exp with Fn
+@end example 
+
+We saw this form of query at the beginning of the book where we looked
+at nice ways of adding up elements of a list:
+
+@example
+@{ fold X with (+) | X in L @}
+@end example
+
+@table @asis
+@item Bounded Query
+A bounded query is similar to the regular query except that we
+restrict the search to a fixed number of answers.
+@end table
+
+The form of a bounded query template is:
+
+@example
+N of Exp 
+@end example
+For example, since we know that a person can have at most 2 parents
+(special gene therapy excepted), we can ask for someone's parents
+using:
+
+@example
+parentsOf(X) => @{ 2 of P | (P,X) in parents @}
+@end example
+
+@node Classifying
+@section Classifying
+
+@noindent
+Recall that we asserted that classification is a key part of any
+outward facing system: the system has to decide how to act on an
+incoming request. It may be instructive to see just how the query
+formalism can be used to help.
+
+Let us imagine a system that has some external face, for example, a
+server that allows users to fetch and store documents. We have a
+business requirement to allow anyone to store and fetch documents;
+however, we also reserve the right to not process bad
+documents.@footnote{However that is defined!}
+
+Since we anticipate enormous success for our service, and we also
+anticipate that some people will try to game our system in order to
+further their own nefarious goals. So, we have to put in place a
+classification system that can decide how to process requests and
+which we anticipate will need continuous evolution.
+
+We have already claimed that the simplest online processing system can
+be viewed as having four components: a source of events, a processor,
+a sink where the output of the system is targeted and a knowledge base
+that is used to inform the processor.
+
+@float Figure,online
+@caption{A Simple Event Processor}
+@image{images/online}
+@end float
+
+One of the tasks that the processor must perform is to decide how to
+react to incoming events; this is an example of a @emph{classification
+problem}; in this case we are classifying events into those we choose
+to act on and those we will ignore (or complain about).
+
+Classification always depends on a combination of information gleaned
+from the event itself and on global or contextual information. In our
+case, we can usefully breakdown the contextual knowledge into two
+kinds: @emph{rules} that embody our processing policy and
+@emph{reputation} data that the system has collected about external
+entities.
+
+@float Figure,classifier
+@caption{Rules and Reputations}
+@image{images/classifier}
+@end float
+
+We distinguish these two sources of knowledge, partly because the way
+that we collect and use them are different; but mainly because they
+are about different things. However, we can use our query formalisms --
+together with functions -- for both.
+

@@ -1,0 +1,1001 @@
+@node Boiling the Ocean
+@chapter Boiling the Ocean
+
+@noindent
+It is a commonplace in software engineering that you should not try to
+`boil the ocean'; which is a synonym for `biting off more than you can
+chew'. However, it @emph{is} possible to build very large scale
+systems if you approach it in the right way. This is the purview of
+architecture and of software development teams.
+
+The `right' way to boil an ocean is one cup at a time. The `smart' way
+to do it is to build a machine that makes cups that boil the ocean.
+
+Building software in the context of a team is quite different to
+writing individual functions in a program. It is not enough for your
+code to compute the correct function; it must also interact properly
+with the environment it is in. As a result, professional programmers
+find themselves often more concerned with making sure that all the
+`pieces' are in the right place than simply the correctness of an
+algorithm.@footnote{This is not to deny that correctness is
+important. It is just that algorithmic correctness is @emph{not
+enough.}} Interfaces, contracts, APIs and integration issues often
+dominate the system builder’s landscape.
+
+One’s attitude to basic language features like types is also
+different: having to deal with the knowledge that is in your
+co-worker’s head (and not in yours) should be enough to convince
+anyone of the merits of strong static types.
+
+@Star{}'s modularity features are built from the same functional
+programming foundation as the other features of the language. This has
+important implications for the programmability of larger systems.
+
+@node Packages are records
+@section Packages are records
+
+@noindent
+If we take a slightly deeper look at @Star{}'s package we will see
+some surprising features; features that are sadly not very common in
+programming languages.
+
+Let's start with a super simple source package:
+@example
+ss@{
+  public double:(integer)=>integer.
+  double(X) is X*2.
+@}
+@end example
+This package structure is semantically equivalent to a variable
+declaration:
+@example
+ss:@{double:(integer)=>integer@}.
+ss = let@{
+  double:(integer)=>integer.
+  double(X) is X*2
+@} in @{. double=double .@}
+@end example
+In effect, a package reduces to a variable declaration whose type is a
+record type and whose value is an anonymous record of all the public
+functions defined in the package.
+
+We have seen this before, but it may be worth taking another look at
+the special form:
+@example
+@{. double=double .@}
+@end example
+This is a record structure; the periods in the braces signify that the
+record is not @emph{recursive}: the definitions within the record
+cannot reference each other.@footnote{This is somewhat analogous to
+the difference between a let and a letrec form in languages like SML.}
+We use this slightly complicated way of defining the package record
+because not all members of the package are public --- and this
+formulation allows us to be precise in what elements of the package
+record can be seen by others.
+
+What about types though? Like other programming languages @Star{}
+allows us to export types from packages too:
+@example
+simple@{
+  public all t ~~ foo[t] ::= foo(t) | bar.
+
+  public fooMe:all t ~~ (t)=>foo[t].
+  fooMe(X) => foo(X)
+@}
+@end example
+The ability to export types --- and their constructors --- is an
+extremely important part of the package functionality. However, having
+types in records is not a common feature in programming languages ---
+this may be one reason why the correspondence between packages and
+records is not more widely understood.
+
+It turns out that we @emph{can} account for types like @code{too} in
+our semantics of packages. Similarly to our previous unfolding, the
+simple package is equivalent to:
+@example
+simple: exists foo/1 ~~ @{
+  type foo/1.
+
+  foo:all t ~~ (t) <=> foo[t].
+  bar:all t ~~ foo[t].
+
+  fooMe:all t ~~ (t)=>foo[t].
+@}
+
+simple = @{
+  all t ~~ foo[t] ::= foo(t) | bar.
+
+  fooMe:all t ~~ (t)=>foo[t].
+  fooMe(X) => foo(X).
+@}
+@end example
+This is clearly quite a bit more complex than our super-simple
+example; but the basic story is still there: a package consists of a
+variable definition whose value is an anonymous record. In this case,
+the anonymous record contains a type, two constructors as well as a
+regular function. It also includes a @emph{type} statement that, in
+this case, informs the type system that the existentially quantified
+type foo type should also be viewed as being part of the record.
+
+Having constructors in a type is only a small extension to the
+conventional notion of a record --- while many languages restrict
+records to containing just data values, most functional programming
+languages do allow functions in records. A constructor is just a
+special kind of function.
+
+On the other hand, having a type in a record is quite different.
+
+@node Existential types
+@section Existential types
+
+@noindent
+What does it mean to have a type in a record? From a programmer's
+point of view it is actually quite a natural extension of the concept
+of a record; there does not seem to be any intrinsic reason why a
+record shouldn't have types in it. However, the logic of this bears a
+deeper look.
+
+The declaration of the @code{foo} type involves the use of an
+@emph{existential} quantifier:
+@example
+simple:exists foo/1 ~~ @{
+  @dots{}
+@}
+@end example
+The meaning of an existentially quantified type is complementary to
+the universally quantified type. An existential type quantification is
+an assertion that the type exists, in this case that @code{foo} exists
+and is a type constructor of 1 argument.
+
+The statement:
+@example
+type foo/1.
+@end example
+is a @emph{type} statement. Its role is to `bridge the gap' between
+the quantifier and external views of the record: in effect, it is a
+reminder that a @emph{type annotation} such as
+@example
+X:simple.foo
+@end example
+means to use the type that is embedded in the simple record (actually
+package) and assign @code{X}'s type to that embedded type.
+
+@node Use and evidence
+@subsection Use and evidence
+
+@noindent
+To get a better grip on type quantification in general and
+existentially quantified types in particular it can be helpful to see
+what the rules and expectations are for a universally quantified
+type. Occurrences of any type variable can be classified into two
+forms --- depending on whether the context is one of @emph{using} a
+variable or whether one is @emph{defining} it --- or providing
+evidence for it.
+
+Consider the simple function @code{d} with its type annotation:
+@example
+d:all t ~~ arith[t] |: (t)=>t.
+d(X) => X+X.
+@end example
+In the equation that defines @code{d} the rules of type inference lead
+us to determine that --- within the equation --- type of @code{X} is
+@code{t}. The @emph{only} assumption we can make about @code{t} is
+that it implements the @code{arith} contract; no other constraints on
+@code{t} are permitted.
+
+For example, if we had forgotten the @code{arith} constraint, the
+compiler would have complained because we try to add @code{X} to
+itself, which implies that @code{X} had an arithmetic type.
+
+In general, whenever we define a universally quantified type we cannot
+make any assumptions about what it can and cannot do -- apart from any
+explicitly introduced constraints.
+
+On the other hand, when we @emph{call} @code{d}, the rules for type
+variables are more generous: calls of the forms @code{d(2)} and
+@code{d(2.4)} are both permitted because we are allowed to @emph{use}
+any type --- that implements the @code{arith} contract.
+
+The reason we can substitute any type for @code{t} is because @code{t}
+is bound by a universal quantifier: an all quantifier means we can use
+any type for @code{t}.
+
+We can summarize this by stating that, for a universally quantified
+type,
+
+@itemize
+@item
+we can @emph{use} it for any type, but
+@item
+we can make no assumptions about it when giving @emph{evidence} for a
+correct implementation.
+@end itemize
+
+For existentially quantified types the situation is reversed: when
+giving evidence in an implementation involving an existential type we
+can use what ever type we want --- again, providing that other
+constraints have been met --- but @emph{outside} the defining
+expression we can't make any assumptions or additional constraints
+about the quantified type.
+
+For various reasons, which we will explore further, existentially
+quantified types are mostly associated with records --- like the
+package record we saw earlier.
+
+As with universally quantified types, there are two kinds of contexts
+in which we use existentially quantified type variables: @emph{use}
+and @emph{evidence} contexts. In the former we are using the type and
+in the latter we are providing evidence that an expression has the
+right type.
+
+The existential quantifier means that within an instance of this
+record we can instantiate foo to any type that meets the
+constraints. The simplest way is to provide a type definition for it:
+@example
+simple = @{
+  all t ~~ foo[t] ::= foo(t) | bar.
+  fooMe(X) => foo(X).
+@}
+@end example
+We can do this because, within the implementing expression, we can do
+whatever we like for the type @code{foo} -- so long as it exists.
+
+Notice that we actually needed to achieve two separate but related
+goals when describing the package as a record: we needed to define a
+type within the record and we need to be able to have external
+references to the @code{foo} type field.
+
+When we use a type from a record, we can make use of it's existence;
+but we cannot further constrain it. For example, we can use simple's
+@code{foo} type, as well as the @code{fooMe} function that relies on
+it; for example, in:
+@example
+m:for all t ~~ (t)=>simple.foo[t].
+m(X) => simple.fooMe(X).
+@end example
+There is something a little different going on here: the type of
+@code{m} appears to be dependent on a field of the variable
+@code{simple}; i.e., the type of @code{m} apparently depends on the
+@emph{value} of @code{simple}. This is not something that we would
+normally sanction in a type system because of the potential for
+disaster.
+
+For example, consider the scenario where `@code{simple} is not
+simple'; i.e., suppose that its value were computed; for example its
+value might depend on a conditional computation. In that case the
+actual type @code{simple.foo} might also depend on the conditional
+computation; furthermore, different invokations could easily result in
+having a different actual type being exported by @code{simple}. Why
+does this not cause problems?
+
+Normally such `dynamic types' do cause substantial problems. However,
+the type rules for existentially quantified variables are crafted so
+that @emph{it must not matter} what the actual type @code{simple.foo} is. So
+long as no additional constraints on the simple.foo are permitted then
+the program is provably compile-time type-safe. I.e., uses of an
+existentially quantified type may not further constrain the type ---
+the exact complement of the situation with universally quantified
+types.
+
+Note that this also relies on single assignment semantics. It is not
+enough to constrain @code{simple.foo} to be effectively unconstrained
+in its usage, it must also be that the simple variable cannot itself
+be changed. Luckily for us, this is true for packages even if it may
+not be true for all variables.
+
+Of course, as with universally quantified types, we can constrain the
+existential type with a type constraint. This would mean that, when
+implementing it we have to give evidence for the constraint being
+satisfied and when using it we could rely on that implementation --
+without knowledge of the actual implementation.
+
+@node Using existentially quantified types
+@subsection Using existentially quantified types
+
+@noindent
+So, what @emph{are} the rules for existentially quantified types? The
+first is one that we have already been looking at:
+
+An existential variable may be bound to a type when providing
+@emph{evidence} that a value has a certain type, but may not be
+constrained when @emph{using} a value with an existential quantifier
+in its type.
+
+The second is related to this:
+
+@quotation
+Each occurrence of an existentially quantified type is potentially
+different.
+@end quotation
+
+Think about a function with the type:
+@example
+exFn:for all t ~~ (t)=>exists e ~~ R[e,t]
+@end example
+For the moment, we don't much care about @code{R}. Now, consider how
+we might use @code{exFn}:
+@example
+X1 = exFn("alpha")
+@dots{}
+X2 = exFn("alpha")
+@end example
+An important question is `what is the relationship between the type of
+@code{X1} and the type of @code{X2}?'. Unfortunately, the fundamental
+answer is `we cannot know in general' --- because we cannot assume
+that @code{exFn} is without side-effects in its implementation ---
+which in type terms means effectively there is no relationship: they
+are different. The reason is that the internal type used within the
+implementation of @code{exFn} may result in @emph{different}
+instantiations for @code{e} for each invocation. The result is we
+cannot assume @emph{any} link between the types of @code{X1} and
+@code{X2}: they are different. This has some serious consequences for
+how we use existentially quantified types.
+
+On the other hand, consider the similar sequence of definitions:
+@example
+Y1 = exFn("alpha")
+@dots{}
+Y2 = Y1
+@end example
+In this case we @emph{do} know that the type of @code{Y1} is identical
+to the type of @code{Y2}. This leads us to the third rule:
+
+Each @emph{use} of an existential quantification introduces a new type
+--- called a @emph{Skolem type}@footnote{Technically, the type is
+denoted by a Skolem Constant or a Skolem Function.} --- that follows
+the normal inference rules for all types.
+
+I.e., once a type has been introduced as a Skolem type, it behaves
+just like any regular type and the normal rules of inference
+apply. This applies equally to the two fragments of code above; but
+the additional constraint on the immutable values of @code{Y1} and
+@code{Y2} make it easier to propagate type information.
+
+We can see this a little clearly by looking at the effective type
+annotations of @code{Y1} and @code{Y2}:
+@example
+Y1:R[e345,string]
+Y1 = exFn("alpha")
+@dots{}
+Y2:R[e345,string]
+Y2 = Y1
+@end example
+where @code{e345} is the skolemized variant of the existential type
+@code{e}.
+
+The effective annotations for @code{X1} and @code{X2} will have
+different skolem constants:
+@example
+X1:R[e235,string]
+X1 = exFn("alpha")
+@dots{}
+X2:R[e678,string]
+X2 = exFn("alpha")
+@end example
+If @code{Y1} or @code{Y2} were declared to be re-assignable variables
+then, once again, we would not be able to connect the types of
+@code{Y1} and @code{Y2} together.
+
+@node Wrapping up packages
+@subsection Wrapping up packages
+
+@noindent
+Our original simple package record had the type
+
+@example
+simple: exists foo/1 ~~ @{
+  type foo/1.
+  foo:all t ~~ (t) <=> foo[t].
+  bar:all t ~~ foo[t].
+
+  fooMe:all t ~~ (t)=>foo[t].
+@}
+@end example
+
+The type signature has a type @code{foo} and a constructor @code{foo}
+in it. This is permitted because types and values have different name
+spaces in @Star{}.@footnote{Not allowing that would cause significant
+hardship for programmers: it would require that program names could
+not be the same as type names; including constructors like foo.}
+
+Why, one might ask, is it so important for packages to have this kind
+of semantics? After all, few other programming languages make the
+effort to give a first class semantics for modules.@footnote{A notable
+exception being SML.} The most straightforward answer is that it
+likely will not matter unless your programs because very large.
+
+In mega-scale applications, programming between modules can easily
+become a major headache if not semantized (sic) correctly. However, we
+shall see an application of this for much smaller systems in Chapter 8
+when we discuss building platforms rather than simple applications.
+
+@node Abstract data types
+@section Abstract data types
+
+@noindent
+Abstract data types can be viewed as the mathematics behind object
+oriented programming.@footnote{Not to be confused with Algebraic Data
+Types --- which represent the mathematical foundation for enumerations
+and other non-object values.}
+
+@table @emph
+@item Abstract Data Type
+An abstract data type is a mathematical model of a set of related
+values that share a common set of semantics.
+@end table
+
+In programming, it is the @emph{common} semantics that defines the
+structure; but, of course, programming languages are not able to
+capture the full semantics of a program or type and hence the stand-in
+for this is usually a type specification.
+
+Perhaps an example is overdue. In our chapter on Collections we looked
+at many operators over collections and not a few example collection
+types. Although programs using the stream contract are fairly
+abstract, the type of the collection itself is still visible. Suppose
+we wanted to build a set structure where only the fact that there is a
+set, and the set-like operators over the set were visible. The
+representation type for the set should otherwise be completely opaque.
+
+One might start with a type definition that defines some operators over sets:
+
+@example
+exists coll/1 ~~ genSet ::= genSet@{
+  type coll/1.
+  z:all t ~~ coll[t].
+  addElement:all t ~~ (t,coll[t])=>coll[t].
+  present:all t ~~ (t,coll[t])=>boolean.
+@}
+@end example
+
+The essence of this type declaration is a collection of operators that
+define set-style operators. By protecting the coll type with an
+existential quantifier, we ensure that the representation of genSet
+values is not accessible externally; whilst at the same time we do
+allow other programs to @emph{use} the set operators.
+
+One example implementation of @code{genSet} might use lists to
+represent the set structure itself:
+
+@example
+LS = genSet@{
+  all t ~~ coll[t] <~ list[t].
+  z = list of [].
+  addElement(X,L) where X in L => L.
+  addElement(X,L) => list of [X,..L].
+  present(X,L) => X in L
+@}
+@end example
+
+The statement:
+@example
+all t ~~ coll[t] <~ list[t].
+@end example
+which is a type alias statement, represents one of the ways that we
+can give evidence for the existence (sic) of the coll type. We could
+also have simply declared that:
+
+@example
+type coll = list
+@end example
+
+Given @code{LS}, we can use it like a set generator --- @code{LS}
+provides a set of operators over sets:
+
+@example
+Z = LS.z
+
+One = LS.addElement(1,Z)
+
+Two = LS.addElement(2,One)
+@end example
+
+The type of @code{LS} gives no clue as to the internal type used to
+represent sets generated by it:
+
+@example
+LS:genSet
+@end example
+
+But @code{Z}, @code{One} and @code{Two} have more interesting types:
+
+@example
+Z:collK341[integer]
+@end example
+
+where @code{collK341} is a Skolem type --- a unique type generated
+when we assign a type to LS. In effect, LS is a module that exports
+the set type and associated operators; this module is referenced by
+name and is used to construct particular sets.
+
+A reasonable question here is `where is the Abstract Data Type?'. What
+we have is a record with a type and some functions in it. Recall that
+an ADT is a `model of a set of related values that share a common set
+of semantics'. The semantics in common are the functions in the
+record; and the type itself is the existentially quantified type in
+that record --- coll.
+
+Notice how we index off the @code{LS} variable to access the operators
+for this set; even while passing into it instances of sets created and
+modified by LS. This is one of the hallmarks of a module system.
+
+@node Opening up
+@subsection Opening up
+
+@noindent
+One of the reasons that we are so interested in establishing a
+`normal' semantics for modules and ADTs is that we can develop systems
+where the contents of a module depends on some additional computation;
+i.e., we can use @emph{functions over modules}. For example, we can
+show that @emph{aspect oriented programming} and @emph{dependency
+injection} can be realized just using normal code structuring with
+functions and let environments.
+
+Techniques like dependency injection are typically applied to large
+programs; unfortunately that makes constructing small examples a
+little forced. So, we'll use a crow-bar to open a soda
+bottle. Imagine, if you will, that we needed to define a new
+arithmetic type that supported arbitrary fractions.
+
+Floating point numbers are fractions. But they do not permit the
+representation of all fractions --- e.g., it is not possible to
+represent 1/3 exactly in IEEE 754.
+
+However, while we want to expose the type, and a set of operator
+functions, we definitely do not want to expose anything about the
+implementation of fractional numbers: as far as users are to be
+concerned, the type fraction is to be completely opaque and might be
+implemented in any way.
+
+Let us start with an interface; which in this case will take the form
+of a record type:
+
+@example
+fractionals ::= exists fraction ~~ fracts@{
+  type fraction.
+
+  frPlus:(fraction,fraction)=>fraction.
+  frToString:(fraction)=>string.
+
+  frParse:(string)=>fraction.
+  fraction:(integer,integer)=>fraction
+@}
+@end example
+
+One of the first things to note here is that fraction is existentially
+quantified; secondly we need to ensure that the set of operators we
+expose is complete. Our interface is not really complete, but includes
+two critical operators: a means of constructing fractions -- via the
+fractions and frParse functions -- and a means of escaping from the
+world of fractions to other types (in this case @code{string} via
+@code{frToString}).
+
+Here we are mostly concerned with @emph{using} fractions, so we will
+assume that we have at least one implementation --- courtesy of the @code{FR}
+variable:
+
+@example
+FR:fractionals
+@end example
+
+One way to use our implementation of fractions would be to reference
+the needed operators via the @code{FR} variable:
+
+@example
+F0 = FR.frParse("3/4")
+
+F1 = FR.fraction(1,2)
+
+F2 = FR.frPlus(F0,F1)
+
+show FR.frToString(F2)   -- results in 5/4
+@end example
+
+However, we can do rather better than this in @Star{}. We have already
+encountered the import statement; there is an analogous statement that
+allows us to unwrap a record like @code{FR} in a binding environment
+--- such as:
+
+@example
+let@{
+  open FR
+
+  F0 = frParse("3/4").
+  F1 = fraction(1,2).
+  F2 = frPlus(F0,F1).
+@} in 
+  show frToString(F2)   -- results in 5/4
+@end example
+
+The @code{open} statement has a similar effect to the package import:
+it enables the functions, types and other elements that are embedded
+in a record to be made available as normal identifiers within the
+normal scope of the let action (or expression).
+
+Of course, this code is still fairly clumsy; since we would like to
+use normal arithmetic notation over fractions; which we can do by
+implementing the arith contract:
+
+@example
+let@{
+  open FR.
+
+  implementation arith[fraction] => @{
+    X+Y => frPlus(X,Y)
+    @dots{} -- more operators needed
+  @}
+@} in @{
+  F0 = frParse("3/4").
+  F1 = fraction(1,2).
+  F2 = F0+F1.
+
+  show frString(F2)
+@}
+@end example
+
+We can improve this further by also implementing the coercion contract
+between @code{strings} and @code{fractions}:
+
+@example
+let@{
+  open FR.
+
+  implementation arith[fraction] => @{
+    X+Y => frPlus(X,Y)
+    @dots{} -- more operators needed
+  @}
+  implementation coercion[string,fraction] => @{
+    _coerce(S) => frParse(S)
+  @}
+
+  implementation coercion[fraction,string] => @{
+    _coerce(F) => frToString(F)
+  @}
+@}
+@end example
+
+This allows us to use a more natural notation for expressions
+involving our fractions:
+
+@example
+let@{
+  open FR.
+  @dots{}
+@} in @{
+  F0 = "3/4" :: fraction.
+  F1 = fraction(1,2).
+
+  show F0+F1
+@}
+@end example
+
+While much better than our original, we still have too much code to
+write to use the fraction type: we have to get the type and then
+demonstrate the appropriate implementations. We want to be able to
+combine everything that is important about fractions into a single
+structure.
+
+There is a straightforward way we can do this. Our original signature
+for fractionals simply required the presence of the fraction
+type. What we can do is further require that the arith and appropriate
+coercion contracts are also implemented; we do this by constraining
+the type definition for @code{fractionals}:
+
+@example
+fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts@{
+  type fraction.
+
+  frPlus:(fraction,fraction)=>fraction.
+  fraction:(integer,integer)=>fraction.
+@}
+@end example
+
+Since we are using contracts we do not need the explicit
+@code{frParse} and @code{frToString} functions in the signature any
+more.
+
+When we instantiate a @code{fracts} record we must provide --- within
+the record itself --- appropriate implementations of @code{arith} and
+@code{coercion}:
+
+@example
+FX = fracts@{
+  fraction <~ myFraction.
+  implementation arith[myFraction] => @{
+    X+Y => frPlus(X,Y).
+    @dots{} --- more operators needed
+  @}
+  implementation coercion[string,myFraction] => @{
+    _coerce(S) => frParse(S)
+  @}
+  implementation coercion[myFraction,string] => @{
+    _coerce(F) => frToString(F)
+  @}
+  @dots{}
+@}
+@end example
+
+Notice that we implemented arithmetic for the internal
+@code{myFraction} type. We could have equally implemented the contract
+for @code{fraction} type too; the key requirement is to provide
+evidence that arithmetic is implemented for the type.
+
+The @code{FX} record now has everything we want to expose about
+fractional numbers.@footnote{Assuming that we added the missing
+operators that we would actually need.} If we open the structure then
+indeed we can write programs like:
+
+@example
+let@{
+  open FX.
+@} in @{
+  F0 = "3/4" :: fraction.
+  F1 = fraction(1,2).
+  show F0+F1.
+@}
+@end example
+
+This is virtually equivalent to the code we might have written if we
+were importing a package with the definition of the @code{fraction}
+type in it. The difference is that we have access to the full
+expressive power of the language in computing @code{FX}.
+
+@node Injection
+@subsection Injection
+
+@noindent
+Injection is a technique where we specialize a program with additional
+information; especially where that additional information is not part
+of the normal argument flow. Of course, it can be hard to be crisp
+about `not part of the normal argument flow'; but injection is an
+architectural technique to apply if and when it makes a difference in
+the readability of your code.
+
+Injection is often used to manage @emph{configuration} of code: the
+configuration is injected into the main program; for example, we might
+configure an application server with the path name of a particular
+application, or with the port on which the app server should be
+listening. Neither of these would normally be considered part of the
+normal information flow in an application server.
+
+There is a standard functional programming style that can be used to
+represent injection --- namely functions that return functions. To
+take an extremely simple example, suppose that we wanted to have a
+function that counted the percentage of a class that passes an
+exam. The function itself is pretty simple:
+
+@example
+passes(L) => fraction(
+  size(list of @{ X | X in L && X.score>Pass@}),
+  size(L))
+@end example
+  
+The configuration parameter here is obviously the @code{Pass} value;
+this is an important parameter to the function but is not part of the
+normal argument flow (think about computing the pass count for an
+entire school).
+
+We can use the function returning approach to inject an appropriate
+value of @code{Pass}:
+
+@example
+passes(Pass) =>
+  (L)=>fraction(
+    size(list of @{ X | X in L && X.score>Pass@}),
+    size(L))
+@end example
+Using this passes is a two-step process; we first use a specific
+passing grade to construct the test function and then use this to
+measure performance on groups of students:
+
+@example
+HS = passes(60)
+
+allPass = list of @{ C | C in Courses && HS(C)>0.80 @}
+@end example
+
+The two-step process is a key part of the injection technique.
+
+@node Extensible types
+@subsection Extensible types
+
+@noindent
+Sometimes, rather than configuring a program with a numeric value (or
+any other value for that matter), we need to configure it with a
+@emph{type}. This does not happen that often, and @Star{}'s type
+constraints can eliminate many cases where it might be needed; but the
+requirement still shows up occasionally. Where it can show up is in
+situations where you need to develop customizable applications ---
+applications that can be extended further by your customers without
+you having to change a line of your own code.
+
+For example, you might need to build a system that attempts to predict
+the behavior of equipment based on historical performance and current
+demand. This kind of software could be very useful in determining a
+proper maintenance schedule. Suppose that you determine that what is
+important in predicting potential breakdowns is the number of units
+processed and the number of days since the last scheduled
+maintenance. You might keep track of this in a record:
+
+@example
+maint ::= maint@{
+  date:date.
+  units:integer.
+@}
+@end example
+
+And you will also probably have a description of each piece of
+equipment:
+
+@example
+equip ::= equip@{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+@}
+@end example
+
+Using this, and similar records, together with some clever algorithms,
+you design a function that determines the next most likely piece of
+equipment to fail --- perhaps together with an expected failure date:
+
+@example
+nextToFail:(list[maint],list[equip])=>(equip,date).
+@end example
+
+The details of this algorithm, while critical to an actual
+application, are of no concern to us here.
+
+Now, you deliver your software to your customer and the first thing
+that they ask for is an ability to tweak it. You see, you designed it
+for generic pieces of equipment and they have particular pieces of
+equipment, with particular foibles affecting the computations needed
+to determine when equipment needs maintenance. And they need to keep
+some information in the description of equipment and maybe also in the
+maintenance records that is not in your types.
+
+Your challenge is to permit this kind of extension without requiring
+your code to be modified or even recompiled for each customer.
+
+The standard OO approach to addressing would be to permit the customer
+to @emph{sub-class} some of the critical types (such as maint and
+equip). However, there are problems with using sub-types: in
+particular, if your algorithm requires computing @emph{new} instances
+of data structures then sub-classing cannot work: when your algorithm
+creates a new equip record, it will not know how to create a customer
+variant of that record:
+
+@example
+updateEquip(E,W) => equip@{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = W.
+@}
+@end example
+
+with the result that the customer data is lost. An alternative
+approach is to allow some extensibility in the record by having a
+special extra field:
+
+@example
+equip[t] ::= equip@{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  extra:t.
+@}
+@end example
+
+Since we do not want to constrain the kind of information our
+customizer can store we make its type quantified. The extra field is
+there to support extensions; and, because we know about its existence,
+we can carry the data with us:
+
+@example
+updateEquip(E,W) => equip@{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = W.
+  extra = E.extra.
+@}
+@end example
+
+The problem with adding such an extra field is its type: this version
+changes the unquantified @code{equip} type into a quantified one. This
+will have potentially devastating impact on your code --- especially
+if you want to allow multiple extensions for multiple data
+structures. The reason is that potentially a large number of functions
+will be required to carry the type parameters in their type
+signatures. This is doubly galling as these extra type parameters do
+not have any significance in the main code: they are there only to
+support potential customizations.
+
+Instead of universal quantification, we can use an existential type
+for the extra field:
+
+@example
+equip ::= exists t ~~ equip@{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+
+  type t.
+  extra:t.
+@}
+@end example
+
+This has the effect of permitting a local extension to a record type
+while also effectively hiding the type from the main code.
+
+Of course, in order for extra to have any effect on our code, we have
+to be able to make use of it within our algorithm. This is another
+customization point in the code: not only do we need to allow
+additional data but we need to be able to reference it
+appropriately. For example, we might decide that the extra field
+should have a say in determining the next maintenance date; so our
+updateEquip function should take it into account --- but how?
+
+A simple way is to add to the equip record a set of extensibility
+functions that the customer must supply, in addition to the data
+itself:
+
+@example
+equip ::= exists t ~~ equip@{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  type t.
+  extra:t.
+  extraDate:(t,date)=>date.
+@}
+@end example
+
+Then, our @code{updateEquip} function calls this @code{extraDate}
+function when computing the new maintenance schedule:
+
+@example
+updateEquip(E,W) => equip@{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = E.extraDate(E.extra,W).
+  type t = E.t.     --- note evidence for type
+  extra = E.extra.
+  extraDate = E.extraDate.
+@}
+@end example
+
+Of course, the customer has to provide functions that create the
+initial data structures, and the initial values of @code{extra} and
+the updating function @code{extraDate}. You, as the provider of the
+software, will offer a default implementation:
+
+@example
+equip(Id,Tp,Maint) => equip@{
+  id = Id.
+  eqpType = Tp.
+  nextMaint = Maint.
+  type t = ().  -- () is Star's void type
+  extra = ().
+  extraDate = (_,W) => W.
+@}
+@end example
+
+This approach meets our goals: we can allow customers of our software
+access to key data structures in a safe way that does not require use
+to modify our code for each customer or even to recompile it.
+
+@node Phew
+@section Phew
+
+@noindent
+This Chapter covers some difficult material! We start with a
+requirement to scale --- to be able to scale code from a single module
+through to applications built by assembling libraries. Along the way
+we take in existential quantification and abstract data types.
+
+What we have not yet addressed are the needs of distributed
+applications. Managing distributed applications is one of the most
+tedious and difficult challenges of modern software
+development. However, before we can demonstrate @Star{}'s approach to
+this, we must look at @emph{agent oriented systems} and **actors** ---
+the subject of Chattering Agents.
