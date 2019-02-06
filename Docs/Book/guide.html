@@ -63,6 +63,9 @@ ul.no-bullet {list-style: none}
 <li><a name="stoc-Why-be-a-Star-programmer_003f-1" href="#toc-Why-be-a-Star-programmer_003f-1">1 Why be a Star programmer?</a></li>
 <li><a name="stoc-A-tour-of-Star-1" href="#toc-A-tour-of-Star-1">2 A tour of Star</a></li>
 <li><a name="stoc-Functional-Programming-1" href="#toc-Functional-Programming-1">3 Functional Programming</a></li>
+<li><a name="stoc-Collections-1" href="#toc-Collections-1">4 Collections</a></li>
+<li><a name="stoc-Making-choices-1" href="#toc-Making-choices-1">5 Making choices</a></li>
+<li><a name="stoc-Boiling-the-Ocean-1" href="#toc-Boiling-the-Ocean-1">6 Boiling the Ocean</a></li>
 <li><a name="stoc-Concept-index-1" href="#toc-Concept-index-1">Concept index</a></li>
 <li><a name="stoc-Standard-function-index" href="#toc-Standard-function-index">Standard function index</a></li>
 <li><a name="stoc-List-of-Syntax-Rules-1" href="#toc-List-of-Syntax-Rules-1">List of Syntax Rules</a></li>
@@ -170,6 +173,80 @@ ul.no-bullet {list-style: none}
     </ul></li>
     <li><a name="toc-Are-we-there-yet_003f-1" href="#Are-we-there-yet_003f">3.8 Are we there yet?</a></li>
   </ul></li>
+  <li><a name="toc-Collections-1" href="#Collections">4 Collections</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Sequence-notation-1" href="#Sequence-notation">4.1 Sequence notation</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Partial-sequence-notation-1" href="#Partial-sequence-notation">4.1.1 Partial sequence notation</a></li>
+      <li><a name="toc-The-stream-and-sequence-contracts-1" href="#The-stream-and-sequence-contracts">4.1.2 The <code>stream</code> and <code>sequence</code> contracts</a></li>
+      <li><a name="toc-Stream-patterns-1" href="#Stream-patterns">4.1.3 Stream patterns</a></li>
+      <li><a name="toc-Notation-and-contracts-1" href="#Notation-and-contracts">4.1.4 Notation and contracts</a></li>
+    </ul></li>
+    <li><a name="toc-Indexing-1" href="#Indexing">4.2 Indexing</a>
+    <ul class="no-bullet">
+      <li><a name="toc-The-indexed-contract-1" href="#The-indexed-contract">4.2.1 The indexed contract</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Adding-and-removing-elements-1" href="#Adding-and-removing-elements">4.2.1.1 Adding and removing elements</a></li>
+      </ul></li>
+      <li><a name="toc-The-index-notation-1" href="#The-index-notation">4.2.2 The index notation</a></li>
+      <li><a name="toc-Implementing-indexing-1" href="#Implementing-indexing">4.2.3 Implementing indexing</a></li>
+      <li><a name="toc-Index-slices-1" href="#Index-slices">4.2.4 Index slices</a></li>
+    </ul></li>
+    <li><a name="toc-Doing-stuff-with-collections-1" href="#Doing-stuff-with-collections">4.3 Doing stuff with collections</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Filtering-1" href="#Filtering">4.3.1 Filtering</a>
+      <ul class="no-bullet">
+        <li><a name="toc-The-filter-contract-1" href="#The-filter-contract">4.3.1.1 The <code>filter</code> contract</a></li>
+      </ul></li>
+      <li><a name="toc-The-sieve-of-Erastosthneses-1" href="#The-sieve-of-Erastosthneses">4.3.2 The sieve of Erastosthneses</a></li>
+      <li><a name="toc-Mapping-to-make-new-collections-1" href="#Mapping-to-make-new-collections">4.3.3 Mapping to make new collections</a>
+      <ul class="no-bullet">
+        <li><a name="toc-More-Type-Inference-Magic-1" href="#More-Type-Inference-Magic">4.3.3.1 More Type Inference Magic</a></li>
+      </ul></li>
+      <li><a name="toc-Compressing-collections-1" href="#Compressing-collections">4.3.4 Compressing collections</a></li>
+    </ul></li>
+    <li><a name="toc-Different-types-of-collection-1" href="#Different-types-of-collection">4.4 Different types of collection</a>
+    <ul class="no-bullet">
+      <li><a name="toc-The-cons-type-1" href="#The-cons-type">4.4.1 The <code>cons</code> type</a></li>
+      <li><a name="toc-The-list-type-1" href="#The-list-type">4.4.2 The <code>list</code> type</a></li>
+      <li><a name="toc-The-map-type-1" href="#The-map-type">4.4.3 The <code>map</code> type</a></li>
+      <li><a name="toc-The-set-type-1" href="#The-set-type">4.4.4 The <code>set</code> type</a></li>
+    </ul></li>
+    <li><a name="toc-Collecting-it-together-1" href="#Collecting-it-together">4.5 Collecting it together</a></li>
+  </ul></li>
+  <li><a name="toc-Making-choices-1" href="#Making-choices">5 Making choices</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Queries-1" href="#Queries">5.1 Queries</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Satisfaction-semantics-1" href="#Satisfaction-semantics">5.1.1 Satisfaction semantics</a></li>
+      <li><a name="toc-Abstracting-queries-1" href="#Abstracting-queries">5.1.2 Abstracting queries</a></li>
+      <li><a name="toc-A-Splash-of-Inference-1" href="#A-Splash-of-Inference">5.1.3 A Splash of Inference</a></li>
+      <li><a name="toc-Anatomy-of-a-Query-1" href="#Anatomy-of-a-Query">5.1.4 Anatomy of a Query</a>
+      <ul class="no-bullet">
+        <li><a name="toc-Query-Conditions-1" href="#Query-Conditions">5.1.4.1 Query Conditions</a></li>
+        <li><a name="toc-The-iterable-contract-1" href="#The-iterable-contract">5.1.4.2 The <code>iterable</code> contract</a></li>
+        <li><a name="toc-Answer-Templates-1" href="#Answer-Templates">5.1.4.3 Answer Templates</a></li>
+      </ul></li>
+    </ul></li>
+    <li><a name="toc-Classifying-1" href="#Classifying">5.2 Classifying</a></li>
+  </ul></li>
+  <li><a name="toc-Boiling-the-Ocean-1" href="#Boiling-the-Ocean">6 Boiling the Ocean</a>
+  <ul class="no-bullet">
+    <li><a name="toc-Packages-are-records-1" href="#Packages-are-records">6.1 Packages are records</a></li>
+    <li><a name="toc-Existential-types-1" href="#Existential-types">6.2 Existential types</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Use-and-evidence-1" href="#Use-and-evidence">6.2.1 Use and evidence</a></li>
+      <li><a name="toc-Using-existentially-quantified-types-1" href="#Using-existentially-quantified-types">6.2.2 Using existentially quantified types</a></li>
+      <li><a name="toc-Wrapping-up-packages-1" href="#Wrapping-up-packages">6.2.3 Wrapping up packages</a></li>
+    </ul></li>
+    <li><a name="toc-Abstract-data-types-1" href="#Abstract-data-types">6.3 Abstract data types</a>
+    <ul class="no-bullet">
+      <li><a name="toc-Opening-up-1" href="#Opening-up">6.3.1 Opening up</a></li>
+      <li><a name="toc-Injection-1" href="#Injection">6.3.2 Injection</a></li>
+      <li><a name="toc-Extensible-types-1" href="#Extensible-types">6.3.3 Extensible types</a></li>
+    </ul></li>
+    <li><a name="toc-Phew-1" href="#Phew">6.4 Phew</a></li>
+  </ul></li>
   <li><a name="toc-Concept-index-1" href="#Concept-index">Concept index</a></li>
   <li><a name="toc-Standard-function-index" href="#Function-index">Standard function index</a></li>
   <li><a name="toc-List-of-Syntax-Rules-1" href="#List-of-Syntax-Rules">List of Syntax Rules</a></li>
@@ -203,13 +280,19 @@ Star Reference</a></cite> by F.G. McCabe.
 </td></tr>
 <tr><td align="left" valign="top">&bull; <a href="#Functional-Programming" accesskey="3">Functional Programming</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Collections" accesskey="4">Collections</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Making-choices" accesskey="5">Making choices</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Boiling-the-Ocean" accesskey="6">Boiling the Ocean</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 
-</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Concept-index" accesskey="4">Concept index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top">&bull; <a href="#Concept-index" accesskey="7">Concept index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#Function-index" accesskey="5">Function index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#Function-index" accesskey="8">Function index</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; <a href="#List-of-Syntax-Rules" accesskey="6">List of Syntax Rules</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; <a href="#List-of-Syntax-Rules" accesskey="9">List of Syntax Rules</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
@@ -2051,7 +2134,7 @@ at functional programming in <strong>Star</strong>.
 <a name="Functional-Programming"></a>
 <div class="header">
 <p>
-Next: <a href="#Concept-index" accesskey="n" rel="next">Concept index</a>, Previous: <a href="#A-tour-of-Star" accesskey="p" rel="prev">A tour of Star</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Collections" accesskey="n" rel="next">Collections</a>, Previous: <a href="#A-tour-of-Star" accesskey="p" rel="prev">A tour of Star</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
 </div>
 <a name="Functional-Programming-1"></a>
 <h2 class="chapter">3 Functional Programming</h2>
@@ -3807,10 +3890,3112 @@ day</em>.
 in programming.
 </p>
 <hr>
+<a name="Collections"></a>
+<div class="header">
+<p>
+Next: <a href="#Making-choices" accesskey="n" rel="next">Making choices</a>, Previous: <a href="#Functional-Programming" accesskey="p" rel="prev">Functional Programming</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Collections-1"></a>
+<h2 class="chapter">4 Collections</h2>
+
+<p>Modern programming &ndash; whether it is OO programming, functional
+programming or just plain C programming &ndash; relies on a rich standard
+library. Given that nearly every program needs to be able to manage
+collections of <em>things</em>, the central pearl of any standard
+library is the <em>collections</em> library. Recalling our mantra of
+hiding recursion; a well designed collections library can make a huge
+difference to the programmer&rsquo;s productivity, often by hiding many of
+the recursions and iterations required to process collections.
+</p>
+<p>The collections architecture in <strong>Star</strong> has four main components:
+</p><ol>
+<li> a range of standard collection types &ndash; including array-like lists,
+cons lists, first-in first-out queues, and ideal hash trees;
+</li><li> a range of standard functions &ndash; mostly defined in contracts &ndash; that
+define the core capabilities of functions over collections;
+</li><li> special notations that make programming with collections in a type
+independent way more straightforward; and
+</li><li> the final major component of the collections architecture is
+<em>queries</em>. <strong>Star</strong> has a simple yet powerful set of features aimed at
+simplifying querying collections.
+</li></ol>
+
+<p>The query component is sufficiently involved to merit a chapter of its
+own.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Sequence-notation" accesskey="1">Sequence notation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Indexing" accesskey="2">Indexing</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Doing-stuff-with-collections" accesskey="3">Doing stuff with collections</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Different-types-of-collection" accesskey="4">Different types of collection</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Collecting-it-together" accesskey="5">Collecting it together</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Sequence-notation"></a>
+<div class="header">
+<p>
+Next: <a href="#Indexing" accesskey="n" rel="next">Indexing</a>, Up: <a href="#Collections" accesskey="u" rel="up">Collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Sequence-notation-1"></a>
+<h3 class="section">4.1 Sequence notation</h3>
+
+<p>A sequence is an ordered collection; a sequence expression is an
+expression involving a complete or partial enumeration of the values
+in the collection. Star has a straightforward notation for expressing
+sequences of any underlying type; for example, a <code>cons</code> sequence of
+integers from 1 through 5 can be written:
+</p><div class="example">
+<pre class="example">cons of [1, 2, 3, 4, 5]
+</pre></div>
+<p>In situations where we do not know or do not wish to specify the
+collection type, we can write instead:
+</p><div class="example">
+<pre class="example">[1, 2, 3, 4, 5]
+</pre></div>
+<p>This term &ndash; it could be either an expression or a pattern &ndash; denotes
+the sequence <em>without</em> specifying the underlying collection
+type. The difference in the types of the two terms is telling:
+</p><div class="example">
+<pre class="example">cons[integer]
+</pre></div>
+<p>and
+</p><div class="example">
+<pre class="example">sequence[c-&gt;&gt;integer] |: c
+</pre></div>
+<p>respectively &ndash; where <code>c</code> is a type variable. The first is a
+concrete type expression, the second is a constrained type &ndash; in this
+case <code>c</code> must implement the <code>sequence</code> contract.
+</p>
+<p>Although the second type expression is longer, and a bit more complex
+to read, it is also actually less constraining. The type expression
+<code>cons[integer]</code> does not allow for variation of the underlying
+collection type; the second type expression allows the term to be used
+in contexts that require different concrete types.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Partial-sequence-notation" accesskey="1">Partial sequence notation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-stream-and-sequence-contracts" accesskey="2">The <code>stream</code> and <code>sequence</code> contracts</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Stream-patterns" accesskey="3">Stream patterns</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Notation-and-contracts" accesskey="4">Notation and contracts</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Partial-sequence-notation"></a>
+<div class="header">
+<p>
+Next: <a href="#The-stream-and-sequence-contracts" accesskey="n" rel="next">The <code>stream</code> and <code>sequence</code> contracts</a>, Up: <a href="#Sequence-notation" accesskey="u" rel="up">Sequence notation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Partial-sequence-notation-1"></a>
+<h4 class="subsection">4.1.1 Partial sequence notation</h4>
+<p>The sequence notation also allows for the specification of partial
+sequences; this is particularly useful in writing functions that
+construct and traverse sequences. The sequence term:
+</p><div class="example">
+<pre class="example">[1,2,..X]
+</pre></div>
+<p>denotes the sequence whose first two elements are <code>1</code> and
+<code>2</code> and whose remainder is denoted by the variable <code>X</code> &ndash;
+which must also be a sequence of the appropriate type. Similarly, the
+term:
+</p><div class="example">
+<pre class="example">[F..,23]
+</pre></div>
+<p>denotes the sequence obtained by gluing <code>23</code> to the back of the
+sequence <code>F</code>.
+</p>
+<p>There is a strong relationship between the normal sequence notation
+and the partial sequence notation. In particular, the sequence
+expression
+</p><div class="example">
+<pre class="example">cons of [1,2]
+</pre></div>
+<p>is equivalent to:
+</p><div class="example">
+<pre class="example">cons of [1,..cons of [2,..cons of []]]
+</pre></div>
+<p>However, we are not permitted to use both of <code>,..</code> and <code>..,</code>
+in the same expression:
+</p><div class="example">
+<pre class="example">[F..,2,3,..B]
+</pre></div>
+<p>is not permitted (since it amounts to a concatenation of two sequences
+which, in turn, implies a non-deterministic decomposition when used as
+a pattern).
+</p>
+<p>The major benefit of general sequence notation is that it allows us to
+construct programs involving collections that are independent of type
+<em>and</em> to do so in a syntax which is concise.
+</p>
+<p>For example, we can use sequence notation to write functions over
+sequences; such as the <code>concat</code> function that concatenates two
+sequences:
+</p><div class="example">
+<pre class="example">concat:all c,e ~~ stream[c-&gt;&gt;e], sequence[c-&gt;&gt;e] |: (c,c)=&gt;c.
+concat([],X) =&gt; X.
+concat([E,..X],Y) =&gt; [E,..concat(X,Y)].
+</pre></div>
+<p>This function will work equally well with <code>cons</code> lists, lists,
+strings, even your own collection types. All that is required is that
+there is an implementation of the <code>stream</code> and the
+<code>sequence</code> contracts for the actual type being concatenated.
+</p>
+<blockquote>
+<p>There are two contracts here: the <code>stream</code> contract is used when
+decomposing sequences and the <code>sequence</code> contract is used when
+building them.
+</p></blockquote>
+
+<hr>
+<a name="The-stream-and-sequence-contracts"></a>
+<div class="header">
+<p>
+Next: <a href="#Stream-patterns" accesskey="n" rel="next">Stream patterns</a>, Previous: <a href="#Partial-sequence-notation" accesskey="p" rel="prev">Partial sequence notation</a>, Up: <a href="#Sequence-notation" accesskey="u" rel="up">Sequence notation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-stream-and-sequence-contracts-1"></a>
+<h4 class="subsection">4.1.2 The <code>stream</code> and <code>sequence</code> contracts</h4>
+
+<p>Underlying the sequence notation are two contracts: the <code>sequence</code>
+contract and the <code>stream</code> contract. These contracts contains
+type signatures that can be used to construct and to match against
+sequence values. The sequence notation is realized by the compiler
+translating sequence terms to a series of calls to those functions.
+</p>
+<p>The standard <code>stream</code> contract is
+</p><div class="example">
+<pre class="example">contract stream[t-&gt;&gt;e] ::= {
+  _eof:()=&gt;boolean.   -- is stream empty
+  _hdtl:(t)=&gt;option[(e,t)]. -- match front of stream
+  _back:(t)=&gt;option[(t,e)]. -- match back of stream
+}
+</pre></div>
+<p>and the standard <code>sequence</code> contract is:
+</p><div class="example">
+<pre class="example">contract stream[t-&gt;&gt;e] ::= {
+  _nil:t.     -- empty stream
+  _cons:(e,t)=&gt;t. -- add to front
+  _apnd:(t,e)=&gt;e. -- add to back
+}
+</pre></div>
+
+<p>The entries in the <code>sequence</code> contract should be fairly self-evident:
+</p>
+<ul>
+<li> <code>_nil</code> is the empty sequence;
+</li><li> <code>_cons</code> is a function that &lsquo;glues&rsquo; a new element to the front of
+the sequence; and
+</li><li> <code>_apnd</code> appends elements to the *back* of the sequence.
+</li></ul>
+
+<p>The compiler uses these three functions to transform sequence
+expressions into function calls.
+</p>
+<p>For example, the sequence expression:
+</p><div class="example">
+<pre class="example">[1,2,3]
+</pre></div>
+<p>is transformed into
+</p><div class="example">
+<pre class="example">_cons(1,_cons(2,_cons(3,_nil())))
+</pre></div>
+<p>If a sequence expression has an explicit type marker on it, then its
+translation is slightly different &ndash; to allow the type checker to make
+use of the type information. For example,
+</p><div class="example">
+<pre class="example">cons of [1,2]
+</pre></div>
+<p>is translated as:
+</p><div class="example">
+<pre class="example">_cons(1,_cons(2,_nil())):cons[_]
+</pre></div>
+<p>This annotation is all that is needed to force the compiler to treat
+the result as a concrete cons list. Type inference does the rest of
+the hard work.<a name="DOCF23" href="#FOOT23"><sup>23</sup></a>
+</p>
+<hr>
+<a name="Stream-patterns"></a>
+<div class="header">
+<p>
+Next: <a href="#Notation-and-contracts" accesskey="n" rel="next">Notation and contracts</a>, Previous: <a href="#The-stream-and-sequence-contracts" accesskey="p" rel="prev">The <code>stream</code> and <code>sequence</code> contracts</a>, Up: <a href="#Sequence-notation" accesskey="u" rel="up">Sequence notation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Stream-patterns-1"></a>
+<h4 class="subsection">4.1.3 Stream patterns</h4>
+<p>The the <code>stream</code> contract is used in <em>patterns</em> to match and
+decompose sequences. For example, the signature for <code>hdtl</code> &ndash;
+which is used to decompose sequences into a head and tail &ndash; is:
+</p><div class="example">
+<pre class="example">_hdtl:(t)=&gt;option[(e,t)].
+</pre></div>
+<p>This function will be applied to a sequence in the attempt to split it
+into a head and remainder. The question is how can a function be used
+in a pattern?
+</p>
+<p>The term <code>[1,2,..X]</code> <em>as a pattern</em> is rewritten as:
+</p><div class="example">
+<pre class="example">_hdtl^(1,_hdtl^(2,X))
+</pre></div>
+<p>where the <code>^</code> is syntactic sugar for the more elaborate form:
+</p><div class="example">
+<pre class="example">S0 where (1,S1) ^= _hdtl(S0) &amp;&amp; (2,X)^=_hdtl(S1)
+</pre></div>
+<p>which is, in turn, syntactic sugar for:
+</p><div class="example">
+<pre class="example">S0 where some((1,S1)) .= _hdtl(S0) &amp;&amp; some((2,X)) .= _hdtl(S1)
+</pre></div>
+<p>I.e., the sequence pattern becomes a series of progressive
+decompositions of the stream; at each stage an <code>option</code>-valued
+function is applied to peel off elements from the stream.
+</p>
+<p>We can now straightforwardly give the translation for sequence
+patterns. Syntactically, there is no distinction between sequence
+expressions and stream patterns &ndash; what distinguishes them is context:
+stream patterns show up as patterns in functions and sequence
+expressions show up in the expression context.
+</p>
+<p>A stream pattern, as in the pattern <code>[E,..X]</code> for the non-empty
+case in <code>concat</code>:
+</p><div class="example">
+<pre class="example">concat([E,..X],Y) =&gt; [E,..concat(X,Y)]
+</pre></div>
+<p>is transformed into the pattern:
+</p><div class="example">
+<pre class="example">_hdtl^(E,X)
+</pre></div>
+<p>and the entire <code>concat</code> equation becomes:
+</p><div class="example">
+<pre class="example">concat(_hdtl^(E,X),Y) =&gt; _cons(E,concat(X,Y))
+</pre></div>
+<p>which, as we noted above, is actually equivalent to:
+</p><div class="example">
+<pre class="example">concat(S0,Y) where some((E,X)).=S0 =&gt;
+  _cons(E,concat(X,Y)).
+</pre></div>
+
+<p>The <code>sequence</code> and <code>stream</code> contracts are two of the most
+important and commonly used contracts in the <strong>Star</strong> library. As we
+shall see further, many of the standard collections functions are
+built on top of it.
+</p>
+<blockquote>
+<p>We have two contracts &ndash; one for composing and another for decomposing
+sequences &ndash; because not all collections are equally amenable to
+decomposing and/or composing. For example, the <code>map</code> type we
+describe below does not have a natural notion of decomposing (because
+ordering within a <code>map</code> is not preserved); even though it does
+have a natural form of describing actual <code>map</code> collections.
+</p></blockquote>
+
+
+<hr>
+<a name="Notation-and-contracts"></a>
+<div class="header">
+<p>
+Previous: <a href="#Stream-patterns" accesskey="p" rel="prev">Stream patterns</a>, Up: <a href="#Sequence-notation" accesskey="u" rel="up">Sequence notation</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Notation-and-contracts-1"></a>
+<h4 class="subsection">4.1.4 Notation and contracts</h4>
+<p>One of the distinctive features of the sequence notation is that it is
+an example of <em>syntax</em> that is underwritten by a semantics
+expressed as a <em>contract</em>. This is part of a widespread pattern
+in <strong>Star</strong>.
+</p>
+<p>This has a parallel in modern OO languages like Java and C# where
+important contracts are expressed as interfaces rather than concrete
+types. However, <strong>Star</strong> extends the concept by permitting special
+notation as well as abstract interfaces &ndash; as many mathematicians
+understand, a good notation can sometimes make a hard problem easy. In
+<strong>Star</strong> we further separate interfaces from types by separating the
+type definition from any contracts that may be implemented by it.
+</p>
+<p>The merit of this combination of special syntax and contracts is that
+we can have the special notation expressing a salient concept &ndash; in
+this case the sequence &ndash; and we can realize the notation without
+undue commitment in its lower-level details. In the case of sequence
+notation, we can have a notation of sequences without having to commit
+to the type of the sequence itself.
+</p>
+<hr>
+<a name="Indexing"></a>
+<div class="header">
+<p>
+Next: <a href="#Doing-stuff-with-collections" accesskey="n" rel="next">Doing stuff with collections</a>, Previous: <a href="#Sequence-notation" accesskey="p" rel="prev">Sequence notation</a>, Up: <a href="#Collections" accesskey="u" rel="up">Collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Indexing-1"></a>
+<h3 class="section">4.2 Indexing</h3>
+<p>Accessing collections conveniently is arguably more important than a
+good notation for representing them. There is a long standing
+traditional notation for accessing arrays:
+</p><div class="example">
+<pre class="example">L[ix]
+</pre></div>
+<p>where <code>L</code> is some array or other collection and <code>ix</code> is an
+integer offset into the array. <strong>Star</strong> uses a notation based on this
+for accessing collections with random indices; suitably generalized to
+include dictionaries (collections accessed with non-numeric indices)
+and <em>slices</em> (contiguous sub-regions of collections).
+</p>
+<p>Before we explore <strong>Star</strong>&rsquo;s indexing notation it is worth looking at
+the contract that underlies it &ndash; the <code>indexed</code> contract.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#The-indexed-contract" accesskey="1">The indexed contract</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-index-notation" accesskey="2">The index notation</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Implementing-indexing" accesskey="3">Implementing indexing</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Index-slices" accesskey="4">Index slices</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="The-indexed-contract"></a>
+<div class="header">
+<p>
+Next: <a href="#The-index-notation" accesskey="n" rel="next">The index notation</a>, Up: <a href="#Indexing" accesskey="u" rel="up">Indexing</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-indexed-contract-1"></a>
+<h4 class="subsection">4.2.1 The indexed contract</h4>
+<p>The indexed contract captures the essence of accessing a collection in
+a random-access fashion. There are functions in the contract to access
+a directly accessed element, to replace and to delete elements from
+the collection:
+</p>
+<div class="example">
+<pre class="example">contract all s,k,v ~~ indexed[s-&gt;&gt;k,v] ::= {
+  _index:(s,k)=&gt;option[v].
+  _insert:(s,k,v)=&gt;s.
+  _replace:(s,k,v)=&gt;s.
+  _remove:(s,k)=&gt;s.
+}
+</pre></div>
+<p>There are several noteworthy points here:
+</p>
+<ul>
+<li> the form of the contract itself; the signature for <code>_index</code> which
+accesses elements; and
+</li><li> the signatures for <code>_insert</code>, <code>_replace</code> and <code>_remove</code>
+which return new collections rather than modifying them in-place.
+</li></ul>
+
+<p>Recall that the <code>stream</code> contract had the form:
+</p><div class="example">
+<pre class="example">contract all s, e ~~ stream[s-&gt;&gt;e] ::= ...
+</pre></div>
+<p>the <code>s-&gt;&gt;e</code> clause allows the implementation of the contract to
+functionally determine (sic) the type of the elements of the
+collection.
+</p>
+<p>In the case of <code>indexed</code>, the contract form determines <em>two</em>
+types denoted by <code>k</code> and <code>v</code>. The type <code>k</code> denotes the
+type of the key used to access the collection and <code>v</code> denotes the
+type of the elements of the collection. Each individual implementation
+of indexed is free to specify these types; usually in a way that best
+reflects the natural structure of the collection.
+</p>
+<p>For example, the implementation of <code>indexed</code> for strings starts:
+</p><div class="example">
+<pre class="example">implementation indexed[string -&gt;&gt; integer,integer] =&gt; ...
+</pre></div>
+<p>reflecting the fact that the natural index for strings is integer and
+the natural element type is integer (neither being explicitly part of
+the string type name).  <a name="DOCF24" href="#FOOT24"><sup>24</sup></a>
+</p>
+<p>On the other hand, the implementation of <code>indexed</code> for the
+concrete type <code>map</code> starts:
+</p><div class="example">
+<pre class="example">implementation all k,v ~~
+  indexed[map[k,v] -&gt;&gt; k,v] =&gt; { &hellip; }
+</pre></div>
+<p>reflecting the fact that dictionaries are naturally generic over both
+the key and value types.
+</p>
+<p>If we look at the signature for <code>_index</code> we can see that this
+function does not directly return a value from the collection, but
+instead returns an <code>option</code> value. This bears further
+explanation.
+</p>
+<p>The great unknown of accessing elements of a collection is &lsquo;is it
+there?&rsquo;. Its not guaranteed of course, and we need to be able to
+handle failure. In the case of the <code>_index</code> function, its
+responsibility is to either return a value wrapped as a <code>some</code>
+value &ndash; if the index lookup is successful &ndash; or the signal
+<code>none</code> if the index lookup fails. Just to be clear: <code>_index</code>
+can act both as a lookup <em>and</em> as a test for membership in the
+collection.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Adding-and-removing-elements" accesskey="1">Adding and removing elements</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Adding-and-removing-elements"></a>
+<div class="header">
+<p>
+Up: <a href="#The-indexed-contract" accesskey="u" rel="up">The indexed contract</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Adding-and-removing-elements-1"></a>
+<h4 class="subsubsection">4.2.1.1 Adding and removing elements</h4>
+<p>The function <code>_insert</code> is used to add an element to a collection
+associating it with a particular index position; and the function
+<code>_remove</code> removes an identified element from the collection. The
+function <code>_replace</code> is similar to <code>_insert</code> except that it
+is expected that an existing element is replaced rather than a new
+value being inserted.
+</p>
+<p>These functions have a property often seen in functional programming
+languages and not often seen elsewhere: they are defined to return a
+complete new collection rather than simply side-effecting the
+collection. This is inline with an emphasis on <em>persistent data
+structures</em><a name="DOCF25" href="#FOOT25"><sup>25</sup></a> and on <em>declarative programming</em>.
+</p>
+<p>One might believe that this is a bit wasteful and expensive &ndash;
+returning new collections instead of side-effecting the
+collection. However, that is something of a misconception: modern
+functional data structures have excellent computational properties and
+approach the best side-effecting structures in efficiency. At the same
+time, persistent data structures have many advantages &ndash; including
+substantially better correctness properties and behavior in parallel
+execution contexts.
+</p>
+<blockquote>
+<p>It should also be stressed that the <code>indexed</code> contract allows and
+encourages persistence but does not <em>enforce</em> it. It is quite
+possible to implement indexing for data structures that are not
+persistent.
+</p></blockquote>
+
+<hr>
+<a name="The-index-notation"></a>
+<div class="header">
+<p>
+Next: <a href="#Implementing-indexing" accesskey="n" rel="next">Implementing indexing</a>, Previous: <a href="#The-indexed-contract" accesskey="p" rel="prev">The indexed contract</a>, Up: <a href="#Indexing" accesskey="u" rel="up">Indexing</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-index-notation-1"></a>
+<h4 class="subsection">4.2.2 The index notation</h4>
+<p>Given the indexed contract we can now show the specific notation that
+<strong>Star</strong> has for accessing elements of a collection. Accessing a
+collection by index follows conventional notation:
+</p><div class="example">
+<pre class="example">C[ix]
+</pre></div>
+<p>will access the collection <code>C</code> with element identified by
+<code>ix</code>. For example, given a <code>map</code> <code>D</code> of strings to
+strings, we can access the entry associated with âalphaâ using:
+</p><div class="example">
+<pre class="example">D[&quot;alpha&quot;]
+</pre></div>
+<p>Similarly, we can access the third character in a string <code>S</code> using:
+</p><div class="example">
+<pre class="example">S[2]
+</pre></div>
+<p>As might be expected, given the discussion above, the type of an index
+expression is optional.
+</p>
+<p>The most natural way of making use of an index expression is to use it
+in combination with a <code>^=</code> condition or an <code>^|</code> expression
+&ndash; which allows for smooth handling of the case where the index
+fails. For example, we might have:
+</p>
+<div class="example">
+<pre class="example">nameOf(F) where N ^= names[F] =&gt; N.
+nameOf(F) default =&gt; ...
+</pre></div>
+
+<p>We will take a deeper look at exceptions and more elaborate management
+of tentative computation in <var>Computation Expressions</var>.
+</p>
+<p><strong>Star</strong> also has specific notation to represent modified
+collections. For example, the expression
+</p><div class="example">
+<pre class="example">D[&quot;beta&quot;-&gt;&quot;three&quot;]
+</pre></div>
+<p>denotes the map <code>D</code> with the entry associated with <code>&quot;beta&quot;</code>
+replaced by the value <code>&quot;three&quot;</code>. Note that the value of this
+expression is the updated map.
+</p>
+<p>For familiarity&rsquo;s sake, we also suppose a form of assignment for the
+case where the collection is part of a read-write variable. The
+action:
+</p><div class="example">
+<pre class="example">D[&quot;beta&quot;] := &quot;three&quot;
+</pre></div>
+<p>is entirely equivalent to:
+</p><div class="example">
+<pre class="example">D := D[&quot;beta&quot;-&gt;&quot;three&quot;]
+</pre></div>
+<p>always assuming that the type of <code>D</code> permits assignment.
+</p>
+<p>Similarly, the expression:
+</p><div class="example">
+<pre class="example">D[\+&quot;gamma&quot;]
+</pre></div>
+<p>which denotes the map <code>D</code> where the value associated with the key
+<code>&quot;gamma&quot;</code> has been removed.
+</p>
+<p>Although, in these examples, we have assumed that <code>D</code> is a map
+value (which is a standard type in <strong>Star</strong>); in fact the index
+notation does not specify the type. As with the sequence notation, the
+only requirement is that the <code>indexed</code> contract is implemented
+for the collection being indexed.
+</p>
+<p>In particular, as well as the <code>map</code> type, index notation is
+supported for the built-in <code>list</code> type, and is even supported for
+the <code>string</code> type.
+</p>
+<p>In addition to the indexed access notation described so far, <strong>Star</strong>
+also allows a variant of the sequence notation for constructing
+indexed literals (aka dictionaries). In particular, an expression of
+the form:
+</p><div class="example">
+<pre class="example">[&quot;alpha&quot;-&gt;1, &quot;beta&quot;-&gt;2, &quot;gamma&quot;-&gt;3]
+</pre></div>
+<p>is equivalent to a sequence of tuples, or to:
+</p><div class="example">
+<pre class="example">_cons((&quot;alpha&quot;,1),_cons((&quot;beta&quot;,2),_cons((&quot;gamma&quot;,3),_nil))
+</pre></div>
+<p>which is understood by indexed types as denoting the contruction of a
+literal.
+</p>
+<p>Note that there are two levels of domain-specific notation here: the
+representation of indexed literals in terms of a sequence of
+two-tuples and the implicit rule governing indexed types: they should
+implement a specific form of <code>sequence</code> contract. Both are
+actually part of the semantics of representing indexed literals.
+</p>
+<hr>
+<a name="Implementing-indexing"></a>
+<div class="header">
+<p>
+Next: <a href="#Index-slices" accesskey="n" rel="next">Index slices</a>, Previous: <a href="#The-index-notation" accesskey="p" rel="prev">The index notation</a>, Up: <a href="#Indexing" accesskey="u" rel="up">Indexing</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Implementing-indexing-1"></a>
+<h4 class="subsection">4.2.3 Implementing indexing</h4>
+
+<p>Of course, this includes our own types. For example, before, when
+looking at generic types we saw the tree type:
+</p><div class="example">
+<pre class="example">all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).
+</pre></div>
+<p>We can define an implementation for the indexed contract for this type
+&ndash; if we arrange for the tree to be a tree of key-value pairs:
+</p><div class="example">
+<pre class="example">implementation all k,v ~~
+    order[k], equality[k] |: indexed[tree[(k,v)]-&gt;&gt;k,v] =&gt; {
+  _index(T,K) =&gt; findInTree(T,K).
+  _insert(T,K,V) =&gt; setKinTree(T,K,V).
+  _replace(T,K,V) =&gt; setKinTree(T,K,V).
+  _remove(T,K) =&gt; removeKfromTree(T,K).
+}
+</pre></div>
+<p>The form of the type expression <code>tree[(k,v)]</code> is required to
+avoid confusion &ndash; <code>tree</code> takes a single type argument that, in
+this case, is a tuple type. The extra set of parentheses ensures that
+<code>tree</code> is not interpreted (incorrectly) as a type that takes two
+type arguments.
+</p>
+<p>With this statement in scope, we can treat appropriate <code>tree</code>
+expressions as though they were regular arrays or dictionaries:
+</p><div class="example">
+<pre class="example">T = tNode(tEmpty,(&quot;alpha&quot;,&quot;one&quot;),tEmpty)
+assert &quot;one&quot; ^= T[&quot;alpha&quot;].
+U = T[&quot;beta&quot;-&gt;&quot;two&quot;]. -- Add in &quot;beta&quot;
+assert &quot;one&quot; ^= U[&quot;alpha&quot;].
+</pre></div>
+<p>The implementation statement relies on another feature of <strong>Star</strong>&rsquo;s
+type system &ndash; we need to constrain the implementation of indexed to a
+certain subset of possible instances of tree types &ndash; namely, where
+the element type of the tree is a <em>pair</em> &ndash; a two-tuple &ndash; and
+secondly we require that the first element of the pair is comparable
+&ndash; i.e., it has the <code>order</code> contract defined for it.
+</p>
+<p>This is captured in the contract clause of the implementation
+statement:
+</p><div class="example">
+<pre class="example">implementation all k,v ~~ order[k], equality[k] |:
+      indexed[tree[(k,v)]-&gt;&gt;k,v] =&gt; ...
+</pre></div>
+<p>This implementation contract qualifier is fairly long, and the type
+constraints are fairly complex; but it is exquisitely targeted at
+precisely the right kind of tree without us having to make any
+unnecessary assumptions.<a name="DOCF26" href="#FOOT26"><sup>26</sup></a>
+</p>
+<p>Implementing the indexed contract requires us to implement three
+functions: <code>findInTree</code>, <code>setKinTree</code> and
+<code>removeKfromTree</code>. The <code>findInTree</code> function is quite
+straightforward:
+</p><div class="example">
+<pre class="example">findInTree:all k,v ~~ equality[k], order[k] |: (tree[(k,v)],k)=&gt;option[v].
+findInTree(tEmpty,_) =&gt; none.
+findInTree(tNode(_,(K,V),_),K) =&gt; some(V).
+findInTree(tNode(L,(K1,_),_),K) where K1&gt;K =&gt; findInTree(L,K).
+findInTree(tNode(_,(K1,_),R),K) where K1&lt;K =&gt; findInTree(R,K).
+</pre></div>
+<p>Notice that each &lsquo;label&rsquo; in the tree is a 2-tuple &ndash; consisting of the
+key and the value. This function is also where we need the key type to
+be both comparable and supporting equality. The comparable constraint
+has an obvious source: we perform inequality tests on the key.
+</p>
+<p>The <code>equality</code> constraint comes from a slightly less obvious
+source: the repeated occurrence of the <code>K</code> variable in the second
+equation. This repeated occurrence means that the equation is
+equivalent to:
+</p><div class="example">
+<pre class="example">findInTree(tNode(_,(K,V),_),K1) where K==K1 =&gt; some(V).
+</pre></div>
+<p>We leave the implementations of <code>setKinTree</code> and
+<code>removeKfromTree</code> as an exercise for the reader.
+</p>
+<p>Along with the implementation of <code>indexed</code>, we should also
+implement <code>sequence</code> for our trees:
+</p><div class="example">
+<pre class="example">implementation all k,v ~~ order[k], equality[k] |:
+  sequence[tree[(k,v)]-&gt;&gt;(k,v)] =&gt; {
+    _nil = tEmpty.
+    _cons((K,V),T) =&gt; setKinTree(T,K,V).
+    _apnd(T,(K,V)) =&gt; setKinTree(T,K,V).
+}
+</pre></div>
+<blockquote>
+<p><b>Notice:</b> that adding a pair to the front of a <code>tree</code> is semantically the
+same as adding it to the back &ndash; since the <code>tree</code> is ordered.
+</p></blockquote>
+
+<p>The reason for implementing <code>sequence</code> is that that will allow
+users of the tree to use the indexed variant of the sequence notation
+for writing tree literals; as in:
+</p><div class="example">
+<pre class="example">tree of [1-&gt;âalphaâ, 2-&gt;âbetaâ]
+</pre></div>
+<p>We do not implement the companion <code>stream</code> contract for our
+<code>tree</code> because its semantics would be somewhat
+problematic. However, there is nothing preventing the reader from
+experimenting with an appropriate tree-ordering.
+</p>
+<hr>
+<a name="Index-slices"></a>
+<div class="header">
+<p>
+Previous: <a href="#Implementing-indexing" accesskey="p" rel="prev">Implementing indexing</a>, Up: <a href="#Indexing" accesskey="u" rel="up">Indexing</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Index-slices-1"></a>
+<h4 class="subsection">4.2.4 Index slices</h4>
+<p>Related to accessing and manipulating individual elements of
+collections are the <em>indexed slice</em> operators. An indexed slice
+of a collection refers to a bounded subset of the collection. The
+expression:
+</p><div class="example">
+<pre class="example">C[fx:tx]
+</pre></div>
+<p>denotes the subsequence of <code>C</code> starting with &ndash; and including &ndash;
+the element indexed at <code>fx</code> and ending &ndash; but <em>not</em>
+including the element indexed at <code>tx</code>.
+</p>
+<p>As might be expected, the index slice notation is also governed by a
+contract &ndash; the <code>sliceable</code> contract. This contract defines the
+core functions for slicing collections and for updating subsequences
+of collections:
+</p><div class="example">
+<pre class="example">contract all s,k ~~ sliceable[s-&gt;&gt;k] ::= {
+  _slice:(s,k,k)=&gt;s.
+  _tail:(s,k)=&gt;s.
+  _splice:(s,k,k,s)=&gt;s.
+}
+</pre></div>
+<p>The <code>_slice</code> function is used extract a slice from the
+collection, <code>_tail</code> is a variant that returns the &lsquo;rest&rsquo; of the
+collection, and <code>_splice</code> is used to replace a subset of the
+collection with another collection.
+</p>
+<p>Like the indexing notation, there is notation for each of the three
+cases:
+</p><div class="example">
+<pre class="example">C[fx:]
+</pre></div>
+<p>denotes the tail of the collection &ndash; all the elements in <code>C</code>
+that come after <code>fx</code> (including <code>fx</code> itself);<a name="DOCF27" href="#FOOT27"><sup>27</sup></a>. and
+</p><div class="example">
+<pre class="example">C[fx:tx-&gt;D]
+</pre></div>
+<p>denotes the result of splicing <code>D</code> into <code>C</code>. This last form
+has an additional incarnation &ndash; in the form of an assignment
+statement:
+</p><div class="example">
+<pre class="example">C[fx:tx] := D
+</pre></div>
+<p>This action is equivalent to the assignment:
+</p><div class="example">
+<pre class="example">C := _splice(C,fx,tx,D)
+</pre></div>
+<p>which, of course, assumes that <code>C</code> is defined as a read/write
+variable.
+</p>
+<p>The slice notation is an interesting edge case in domain specific
+languages. It is arguably a little obscure, and, furthermore, the use
+case it represents is not all that common. On the other hand, without
+specific support, the functionality of slicing is hard to duplicate
+with the standard indexing functions.
+</p>
+<hr>
+<a name="Doing-stuff-with-collections"></a>
+<div class="header">
+<p>
+Next: <a href="#Different-types-of-collection" accesskey="n" rel="next">Different types of collection</a>, Previous: <a href="#Indexing" accesskey="p" rel="prev">Indexing</a>, Up: <a href="#Collections" accesskey="u" rel="up">Collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Doing-stuff-with-collections-1"></a>
+<h3 class="section">4.3 Doing stuff with collections</h3>
+
+<p>One of the most powerful features of collections is the ability to
+treat a collection as a whole. We have already seen a little of this
+in our analysis of the visitor pattern <a href="#Going-even-further">Going even further</a>. Of
+course, the point of collections is to be able to operate over them as
+entities in their own right. As should now be obvious, most of the
+features we discuss are governed by contracts and it is paradigmatic
+to focus on contract specifications rather than specific
+implementations.
+</p>
+<p>The number of things that people want to do with collections is only
+limited by our imagination; however, we can summarize a class of
+operations in terms several patterns:
+</p>
+<ul>
+<li> Filtering
+</li><li> Transforming into new collections
+</li><li> Summarizing collections
+</li><li> Querying collections
+</li></ul>
+
+<p>Each of these patterns has some support from <strong>Star</strong>&rsquo;s standard
+repertoire of functions.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Filtering" accesskey="1">Filtering</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-sieve-of-Erastosthneses" accesskey="2">The sieve of Erastosthneses</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Mapping-to-make-new-collections" accesskey="3">Mapping to make new collections</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Compressing-collections" accesskey="4">Compressing collections</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Filtering"></a>
+<div class="header">
+<p>
+Next: <a href="#The-sieve-of-Erastosthneses" accesskey="n" rel="next">The sieve of Erastosthneses</a>, Up: <a href="#Doing-stuff-with-collections" accesskey="u" rel="up">Doing stuff with collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Filtering-1"></a>
+<h4 class="subsection">4.3.1 Filtering</h4>
+
+<p>The simplest operation on a collection is to subset it. The standard
+filter function &ndash; <code>^/</code> &ndash; allows us to do this with some
+elegance. Using filter is fairly straightforward; for example, to
+remove all odd numbers from a collection we can use the expression:
+</p><div class="example">
+<pre class="example">Nums^/((X)=&gt;X%2==0)
+</pre></div>
+<p>For example, if <code>Nums</code> were the list:
+</p><div class="example">
+<pre class="example">list of [1,2,3,4,5,6,7,8,9]
+</pre></div>
+<p>then the value of the filter expression would be
+</p><div class="example">
+<pre class="example">list of [2,4,6,8]
+</pre></div>
+<p>The right hand argument to <code>^/</code> is a <em>predicate</em>: a function
+that returns a <code>boolean</code> value. The <code>^/</code> function (which is
+part of the standard <code>filter</code> contract) is required to apply the
+predicate to every element of its left hand argument and return a
+<em>new</em> collection of every element that satisfies the
+predicate.<a name="DOCF28" href="#FOOT28"><sup>28</sup></a>
+</p>
+<p>Note that the <code>%</code> function is arithmetic remainder, and the
+expression <code>X%2==0</code> amounts to a test that <code>X</code> is even (its
+remainder modulo 2 is 0).
+</p>
+<p>The <code>^/</code> operator allows us to represent many filtering
+algorithms whilst not making any recursion explicit. However, not all
+filters are easily handled in this way; for example, a prime number
+filter <em>can</em> be written
+</p><div class="example">
+<pre class="example">N^/isPrime
+</pre></div>
+<p>but such an expression is likely to be very expensive (the
+<code>isPrime</code> test is difficult to do well).
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#The-filter-contract" accesskey="1">The <code>filter</code> contract</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="The-filter-contract"></a>
+<div class="header">
+<p>
+Up: <a href="#Filtering" accesskey="u" rel="up">Filtering</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-filter-contract-1"></a>
+<h4 class="subsubsection">4.3.1.1 The <code>filter</code> contract</h4>
+
+<p>As noted above, the <code>^/</code> function is governed by a contract, the
+<code>filter</code> contract:
+</p><div class="example">
+<pre class="example">contract all c,e ~~ filter[c-&gt;&gt;e] ::= {
+  (^/):(c,(e)=&gt;boolean) =&gt; c.
+}
+</pre></div>
+
+<hr>
+<a name="The-sieve-of-Erastosthneses"></a>
+<div class="header">
+<p>
+Next: <a href="#Mapping-to-make-new-collections" accesskey="n" rel="next">Mapping to make new collections</a>, Previous: <a href="#Filtering" accesskey="p" rel="prev">Filtering</a>, Up: <a href="#Doing-stuff-with-collections" accesskey="u" rel="up">Doing stuff with collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-sieve-of-Erastosthneses-1"></a>
+<h4 class="subsection">4.3.2 The sieve of Erastosthneses</h4>
+
+<p>One of the classic algorithms for finding primes that can be expressed
+using filters is the so-called <em>sieve of Eratosthenes</em>. This
+algorithm works by repeatedly removing multiples of primes from a list
+of natural numbers. We cannot (yet) show how to deal with infinite
+lists of numbers but we can capture the essence of this algorithm
+using a cascading sequence of filter operations.
+</p>
+<p>The core of the sieve algorithm involves taking a list of numbers and
+removing multiples of a given number from the list. This is very
+similar to our even-number finding task, and we can easily define a
+function that achieves this:
+</p><div class="example">
+<pre class="example">filterMultiples(K,N) =&gt; N^/((X)=&gt;X%K=!=0).
+</pre></div>
+<p>The overall Eratosthenes algorithm works by taking the first element
+of a candidate list of numbers as the first prime, removing multiples
+of that number from the rest, and recursing on the result:
+</p><div class="example">
+<pre class="example">sieve([N,..rest]) =&gt; [N,..sieve(filterMultiples(N,rest))].
+</pre></div>
+<p>There is a base case of course, when the list of numbers is exhausted
+then we have no more primes:
+</p><div class="example">
+<pre class="example">sieve([]) =&gt; [].
+</pre></div>
+<p>The complete prime finding program is hardly larger than the original
+filter specification:
+</p><div class="example">
+<pre class="example">primes(Max) =&gt; let{
+  sieve([]) =&gt; [].
+  sieve([N,..rest]) =&gt; [N,..sieve(filterMultiples(N,rest))].
+
+  filterMultiples(K,N) =&gt; N^/((X)=&gt;X%K=!=0).
+
+  iota(Mx,St) where Mx&gt;Max =&gt; [].
+  iota(Cx,St) =&gt; [Cx,..iota(Cx+St,St)].
+} in [2,..sieve(iota(3,2))]
+</pre></div>
+<p>The <code>iota</code> function is used to construct a list of numbers, in
+this case the integer range from <code>3</code> through to Max with an
+increment of <code>2</code>. We start the <code>sieve</code> with <code>2</code> and the
+list of integers with <code>3</code> since we are making use of our prior
+knowledge that <code>2</code> is prime.
+</p>
+<p>It should be emphasized that the sieve of Eratosthenes hardly counts
+as an efficient algorithm for finding primes. For one thing, it
+requires that we start with a list of integers; most of which will be
+discarded. In fact, each &lsquo;sweep&rsquo; of the list of numbers results in a
+new list of numbers; many of which too will eventually be
+discarded. Furthermore, the <code>filterMultiples</code> function examines
+every integer in the list; it does not make effective use of the fact
+that successive multiples occupy predictable slots in the list of
+integers.
+</p>
+<blockquote>
+<p>In fact, building a highly optimized version of the sieve of
+Eratosthenes is not actually the main point here &ndash; our purpose is to
+illustrate the power of <strong>Star</strong>&rsquo;s collections processing functions.
+</p></blockquote>
+
+<p>We might ask whether the <code>sieve</code> function can also be expressed
+as a filter. The straightforward answer is that it cannot: the sieve
+<em>is</em> a kind of filter, but the predicate being applied depends on
+the entire collection; not on each element. The standard filter
+function does not expose the entire collection to the
+predicate. However, we will see at least one way of achieving the
+sieve without any explicit recursion below when we look at folding
+operations.
+</p>
+<hr>
+<a name="Mapping-to-make-new-collections"></a>
+<div class="header">
+<p>
+Next: <a href="#Compressing-collections" accesskey="n" rel="next">Compressing collections</a>, Previous: <a href="#The-sieve-of-Erastosthneses" accesskey="p" rel="prev">The sieve of Erastosthneses</a>, Up: <a href="#Doing-stuff-with-collections" accesskey="u" rel="up">Doing stuff with collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Mapping-to-make-new-collections-1"></a>
+<h4 class="subsection">4.3.3 Mapping to make new collections</h4>
+
+<p>One of the limitations of the filter function is that it does not
+create new elements: we can use it to subset collections but we cannot
+transform them into new ones. The <code>fmap</code> function &ndash; part of the
+<code>functor</code> contract &ndash; can be used to perform many transformations
+of collections.
+</p>
+<p>For example, to compute the lengths of strings in a list we can use
+the expression:
+</p><div class="example">
+<pre class="example">fmap(size,list of [&quot;alpha&quot;,&quot;beta&quot;,&quot;gamma&quot;])
+</pre></div>
+<p>which results in the list:
+</p><div class="example">
+<pre class="example">list of [5,4,5]
+</pre></div>
+<p>The <code>fmap</code> function is defined via the <code>functor</code> contract &ndash;
+thus allowing different implementations for different collection
+types:
+</p><div class="example">
+<pre class="example">contract all c/1 ~~ functor[c] ::= {
+  fmap:all a,b ~~ ((a)=&gt;b,c[a])=&gt;c[b].
+}
+</pre></div>
+<p>Notice how the contract specifies the collection type &ndash; <code>c</code> &ndash;
+without specifying the type of the collection&rsquo;s element type. We are
+using a different technique here than we used for the <code>stream</code>
+and <code>filter</code> contracts. Instead of using a functional dependency
+to connect the type of the collection to the type of the element, we
+denote the type of the input and output collections using a <em>type
+constructor</em> variable as in <code>c[a]</code> and <code>c[b]</code>.<a name="DOCF29" href="#FOOT29"><sup>29</sup></a>
+</p>
+<p>We are also using a variant of the quantifier. A quantified type
+variable of the form <code>c/1</code> denotes a type constructor variable
+rather than a regular type variable. In this case, <code>c/1</code> means
+that the variable <code>c</code> must be a type constructor that takes one
+argument.
+</p>
+<p>The reason for this form of contract is that <code>functor</code> implies
+creating a new collection from an old collection; with a possibly
+different element type. This is only possible if the collection is
+generic and hence the type expressions <code>c[a]</code> for the second
+argument type of <code>fmap</code> and <code>c[b]</code> for its return type.
+</p>
+<p>One might ask whether we could not have used functional dependencies
+in a similar way to <code>stream</code> and <code>filter</code>; for example,
+a contract of the form:
+</p><div class="example">
+<pre class="example">contract all c,e,f ~~ mappable[c-&gt;&gt;e,f] ::=  {
+  mmap:((e)=&gt;f,c)=&gt;c.
+}
+</pre></div>
+<p>However, <em>this</em> contract forces the types of the result of the
+<code>mmap</code> to be identical to its input type, it also allows the
+implementer of the <code>mappable</code> contract to fix the types of the
+collection elements &ndash; not at all what we want from a <code>fmap</code>.
+</p>
+<p>It is not all that common that we need to construct a list of sizes of
+strings. A much more realistic use of <code>fmap</code> is for
+<em>projection</em>. For example, if we wanted to compute the average
+age of a collection of people, which is characterized by the type
+definition:
+</p><div class="example">
+<pre class="example">person ::= someOne{
+  name:string.
+  age:()=&gt;float.
+}
+</pre></div>
+<p>Suppose that we already had a function <code>average</code> that could
+average a collection of numbers; but which (of course) does not
+understand people. We can use our average by first of all projecting
+out the ages and then applying the average function:
+</p><div class="example">
+<pre class="example">average(fmap((X)=&gt;X.age(),People))
+</pre></div>
+<p>In this expression we project out from the <code>People</code> collection
+the ages of the people and then use that as input to the average
+function.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#More-Type-Inference-Magic" accesskey="1">More Type Inference Magic</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="More-Type-Inference-Magic"></a>
+<div class="header">
+<p>
+Up: <a href="#Mapping-to-make-new-collections" accesskey="u" rel="up">Mapping to make new collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="More-Type-Inference-Magic-1"></a>
+<h4 class="subsubsection">4.3.3.1 More Type Inference Magic</h4>
+
+<p>There is something a little magic about the lambda function in this
+expression: how does the type checker &lsquo;know&rsquo; that <code>X</code> can have a
+field <code>age</code> in it? How much does the type checker know about
+types anyway?
+</p>
+<p>In this particular situation the type checker could infer the type of
+the lambda via the linking between the type of the <code>fmap</code>
+function and the type of the <code>People</code> variable. However, the type
+checker is actually capable of giving a type to the lambda even
+without this context. Consider the function:
+</p><div class="example">
+<pre class="example">nameOf(R) =&gt; R.name
+</pre></div>
+<p>This function takes an arbitrary record as input and returns the value
+of the <code>name</code> field. The <code>nameOf</code> function <em>is</em> well
+typed, its type annotation just needs a slightly different form than
+that we have seen so far:<a name="DOCF30" href="#FOOT30"><sup>30</sup></a>
+</p><div class="example">
+<pre class="example">nameOf:all r,n ~~ r &lt;~ {name:n} |: (r)=&gt;n
+</pre></div>
+<p>This is another example of a <em>constrained type</em>: in this case,
+the constraint on <code>r</code> is that it has a field called <code>name</code>
+whose type is the same as that returned by <code>nameOf</code> itself.
+</p>
+<p>The type constraint:
+</p><div class="example">
+<pre class="example">r &lt;~ {name:n}
+</pre></div>
+<p>means that any type bound to <code>r</code> must have a <code>name</code> field
+whose type is denoted by the type variable <code>n</code> in this case.
+</p>
+<p>With this type signature, we can use <code>nameOf</code> with any type that
+that a <code>name</code> field. This can be a record type; it can also be a
+type defined with an algebraic type definition that includes a record
+constructor.
+</p>
+<hr>
+<a name="Compressing-collections"></a>
+<div class="header">
+<p>
+Previous: <a href="#Mapping-to-make-new-collections" accesskey="p" rel="prev">Mapping to make new collections</a>, Up: <a href="#Doing-stuff-with-collections" accesskey="u" rel="up">Doing stuff with collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Compressing-collections-1"></a>
+<h4 class="subsection">4.3.4 Compressing collections</h4>
+
+<p>Another way of using collections is to summarize or aggregate over
+them. For example, the <code>average</code> function computes a single
+number from an entire collection of numbers &ndash; as do many of the other
+statistical functions. We can define average using the standard
+<code>foldLeft</code> function, which is part of the standard <code>folding</code>
+contract:
+</p><div class="example">
+<pre class="example">average(C) is foldLeft((+),0,C)::float/size(C)::float
+</pre></div>
+
+<blockquote>
+<p>This definition of the <code>average</code> function is about as close to a
+specification of average as is possible in a programming language!
+</p></blockquote>
+
+<blockquote>
+<p><b>Notice:</b> the use of coercion here &ndash; coercing both the result of the
+<code>foldLeft</code> and <code>size</code> to float. The reason for doing this is
+that functions like <code>average</code> are &lsquo;naturally&rsquo; real
+functions.<a name="DOCF31" href="#FOOT31"><sup>31</sup></a> Without the explicit
+coercion, averaging a list of integers will also result in an integer
+value &ndash; which is likely to be inaccurate.
+</p></blockquote>
+
+<p>Of course, in our definition of <code>average</code> we need to coerce
+<em>both</em> the numerator and denominator of the division because
+<strong>Star</strong> does not have implicit coercion.
+</p>
+<p>The <code>foldLeft</code> function applies a binary function to a
+collection: starting from the first element and successively &lsquo;adding
+up&rsquo; each of the elements in the collection using the supplied
+operator.
+</p>
+<div class="float"><a name="leftFold"></a>
+
+<img src="images/leftfold.png" alt="images/leftfold">
+<div class="float-caption"><p><strong>Figure 4.1: </strong>Left Folding a Collection</p></div></div>
+<p>As we noted above, <code>foldLeft</code> is part of the <code>folding</code>
+contract. Like the <code>functor</code> contract, this uses some more subtle
+type constraints:
+</p><div class="example">
+<pre class="example">contract all c,e ~~ folding[c-&gt;&gt;e] ::= {
+  foldRight:all x ~~ (((e,x)=&gt;x),x,c) =&gt; x.
+  foldLeft:all x ~~ (((x,e)=&gt;x),x,c) =&gt; x.
+}
+</pre></div>
+<p>The <code>folding</code> contract uses quantifiers in two places: once in
+the contract specification and once in the type signature for
+<code>foldLeft</code> (and <code>foldRight</code>). What we are trying to express
+here is that any implementation of <code>folding</code> must allow for a
+generic function to process the collection.
+</p>
+<p>The <code>foldLeft</code> (and <code>foldRight</code>) functions have an
+&lsquo;accumulator&rsquo; (of type <code>x</code>) which need not be the same as the
+type of the elements of the collection.<a name="DOCF32" href="#FOOT32"><sup>32</sup></a> This argument acts as a kind of
+linking thread during the entire computation &ndash; and represents the
+returned value when the fold is complete.
+</p>
+<p>But we can do much more than computing averages with a fold. Recall
+that when we realized the sieve of Eratosthenes, we still had a
+recursive structure to the program. Furthermore, the way our original
+program was written each filter results in a new list of numbers being
+produced. Instead of doing this, we can construct a cascade of filter
+functions - each level in the cascade is responsible for eliminating
+multiples of a specific prime.
+</p>
+<p>The complete cascade filters by checking each level of the cascade:
+for example, after encountering 3, 5 and 7, there will be a cascade of
+three functions that check each incoming number: one to look for
+multiples of 3, one for multiples of 5 and one for multiples of
+7. When we encounter the next prime (11) then we glue on to the
+cascade a function to eliminate multiples of 11.
+</p>
+<p>Consider the task of adding a filter to an existing cascade of
+filters. What is needed is a new function that combines the effect of
+the new filter with the old one. The <code>cascade</code> function takes a
+filter function and a prime as arguments and constructs a new function
+that checks both the prime <em>and</em> the existing filter:
+</p><div class="example">
+<pre class="example">cascade:((integer)=&gt;boolean,integer)=&gt;((integer)=&gt;boolean).
+cascade(F,K) =&gt; (X)=&gt;F(X) &amp;&amp; X%K=!=0.
+</pre></div>
+
+<blockquote>
+<p>This is a truly higher-order function: it takes a function as argument
+and returns another function.
+</p></blockquote>
+
+<p>Given <code>cascade</code>, we can reformulate the <code>sieve</code> function
+itself as a <code>foldRight</code> &ndash; at each new prime step we &lsquo;accumulate&rsquo;
+a new cascaded filter function:
+</p><div class="example">
+<pre class="example">stp:(integer,(integer)=&gt;boolean)=&gt;((integer)=&gt;boolean).
+stp(X,F) where F(X) =&gt; cascade(F,X).
+stp(X,F) =&gt; F.
+</pre></div>
+<p>At each step in the fold we want to know whether to continue to
+propagate the existing filter or whether to construct a new filter.
+</p>
+<p>The <code>sieve</code> function itself is now very short: we simply invoke
+<code>foldRight</code> using <code>stp</code> and an initial &lsquo;state&rsquo; consisting of
+a function that checks for odd numbers:
+</p><div class="example">
+<pre class="example">sieve(C) =&gt; foldRight(stp,(K)=&gt;K%2=!=0,C).
+</pre></div>
+<p>This version of <code>sieve</code> is not quite satisfactory as, while it
+does find prime numbers, it does not report them. A more complete
+version has to also accumulate a list of primes that are found. We can
+do this by expanding the accumulated state to include both the
+cascaded filter function and the list of found primes. The main
+alteration is to the <code>step</code> function:
+</p><div class="example">
+<pre class="example">step:((list[integer],(integer)=&gt;boolean),integer) =&gt; (list[integer],(integer)=&gt;boolean).
+step(X,(P,F)) where F(X) =&gt; ([P..,X],cascade(F,X)).
+step(_,(P,F)) =&gt; (P,F).
+</pre></div>
+<p>and the initial state has an empty list:
+</p><div class="example">
+<pre class="example">sieve(C) is fst(foldRight(step,([],(K)=&gt;K%2=!=0),C)).
+</pre></div>
+<p>where <code>fst</code> and <code>snd</code> are standard functions that pick the
+left and right hand sides of a tuple pair:
+</p><div class="example">
+<pre class="example">fst:all s,t ~~ ((s,t))=&gt;s.
+fst((L,R)) =&gt; L
+snd:all s,t ~~ ((s,t))=&gt;t.
+snd((L,R)) =&gt; R
+</pre></div>
+<p>There is one final step we can make before leaving our sieve of
+Eratosthenes &ndash; we can do something about the initial list of
+integers. As it stands, while the sieve program does not construct any
+intermediate lists of integers, it still requires an initial list of
+integers to filter. However, this particular sequence can be
+represented in a very compact form &ndash; as a <code>range</code> term.
+</p>
+<p><code>range</code> terms are special forms of collections that denote ranges
+of numeric values. For example, the expression
+</p><div class="example">
+<pre class="example">range(0,100,2)
+</pre></div>
+<p>denotes the sequence of integers starting at zero, not including 100,
+each succesive integer being incremented by 2.
+</p>
+<p>Using a similar <code>range</code> term, we can denote the list of primes
+less than 1000 with
+</p><div class="example">
+<pre class="example">primes(Max) =&gt; let{
+  cascade:((integer)=&gt;boolean,integer) =&gt; ((integer)=&gt;boolean).
+  cascade(F,K) =&gt; (X)=&gt;(F(X) &amp;&amp; X%K=!=0).
+
+  step(X,(P,F)) where F(X) =&gt; ([P..,X],cascade(F,X)).
+  step(_,(P,F)) =&gt; (P,F).
+
+  sieve:(range[integer])=&gt;list[integer].
+  sieve(R) =&gt; fst(foldRight(step,([],(K)=&gt;true),R)).
+} in sieve(range(3,Max,2)).
+
+show primes(1000)
+</pre></div>
+<p>This final program has an important property: there are no explicit
+recursions in it &ndash; in addition, apart from the <code>foldRight</code>
+function, there are no recursive programs at all in the definition of
+<code>primes</code>.
+</p>
+<blockquote>
+<p>Of course, it still would not count as the <em>most efficient</em>
+primes finding program; but that was not the goal of this discussion.
+</p></blockquote>
+
+<hr>
+<a name="Different-types-of-collection"></a>
+<div class="header">
+<p>
+Next: <a href="#Collecting-it-together" accesskey="n" rel="next">Collecting it together</a>, Previous: <a href="#Doing-stuff-with-collections" accesskey="p" rel="prev">Doing stuff with collections</a>, Up: <a href="#Collections" accesskey="u" rel="up">Collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Different-types-of-collection-1"></a>
+<h3 class="section">4.4 Different types of collection</h3>
+
+<p>Just as there are many uses of collections, so there are different
+performance requirements for collections themselves. The most
+challenging aspects of implementing collections revolves around the
+cost of <em>adding</em> to the collection, the cost of <em>accessing</em>
+elements of the collection and the cost of <em>modifying</em> elements
+in the collection.
+</p>
+<p>There is a strong emphasis on <em>persistent</em> semantics for the
+types and functions that make up <strong>Star</strong>&rsquo;s collections
+architecture. This is manifest in the fact, for example, that
+functions that add and remove elements from collections <em>do not</em>
+modify the original collection.
+</p>
+<p>However, even without that constraint, different implementation
+techniques for collections tend to favor some operations at the cost
+of others. Hence, there are different types of collection that favor
+different patterns of use.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#The-cons-type" accesskey="1">The <code>cons</code> type</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-list-type" accesskey="2">The <code>list</code> type</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-map-type" accesskey="3">The <code>map</code> type</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-set-type" accesskey="4">The <code>set</code> type</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="The-cons-type"></a>
+<div class="header">
+<p>
+Next: <a href="#The-list-type" accesskey="n" rel="next">The <code>list</code> type</a>, Up: <a href="#Different-types-of-collection" accesskey="u" rel="up">Different types of collection</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-cons-type-1"></a>
+<h4 class="subsection">4.4.1 The <code>cons</code> type</h4>
+
+<p>This is the simplest collection type; and is perhaps the original
+collection type used in functional programming languages. It is
+defined by the type declaration:
+</p><div class="example">
+<pre class="example">all t ~~ cons[t] ::= nil | cons(t,cons[t]).
+</pre></div>
+<p>Cons lists have the property that adding an element to the front of a
+list is a constant-time operation; similarly, splitting a <code>cons</code>
+list into its head and tail is also a constant time
+operation. However, almost every other operation is significantly more
+expensive: putting an element on to the end of a <code>cons</code> list is
+linear in the length of the list.
+</p>
+<p>The main merit of the <code>cons</code> list is the sheer simplicity of its
+definition. Also, for small collections, its simple implementation may
+outweigh the advantages that more complex collections offer.
+</p>
+<hr>
+<a name="The-list-type"></a>
+<div class="header">
+<p>
+Next: <a href="#The-map-type" accesskey="n" rel="next">The <code>map</code> type</a>, Previous: <a href="#The-cons-type" accesskey="p" rel="prev">The <code>cons</code> type</a>, Up: <a href="#Different-types-of-collection" accesskey="u" rel="up">Different types of collection</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-list-type-1"></a>
+<h4 class="subsection">4.4.2 The <code>list</code> type</h4>
+
+<p>The list type offers a different trade-off to the <code>cons</code> type:
+where the latter is optimal for ease of constructing and for
+traversing complete lists, the list type offers constant-time access
+to random elements within the array &ndash; at the potential cost of more
+expensive construction of lists.
+</p>
+<p>Unlike the <code>cons</code> type, the <code>list</code> type does not have a
+straightforward definition as an algebraic type. Internally, a list
+structure consists of an array of locations with a &lsquo;control pointer&rsquo;
+giving the portion of the array block that represents a given list
+value. This is sometimes called a Copy on Write (COW) structure.
+</p>
+<p>The <code>list</code> type is optimized for random access and for shared
+storage &ndash; recall that <strong>Star</strong> collection types are persistent: that
+means that different values can share some or all of their internal
+structure. The diagram below shows two list values that overlap in
+their elements and consequently share some of their structure.
+</p>
+<div class="float"><a name="twoarrays"></a>
+
+<img src="images/twoarrays.png" alt="images/twoarrays">
+<div class="float-caption"><p><strong>Figure 4.2: </strong>Two lists Sharing Structure</p></div></div>
+<hr>
+<a name="The-map-type"></a>
+<div class="header">
+<p>
+Next: <a href="#The-set-type" accesskey="n" rel="next">The <code>set</code> type</a>, Previous: <a href="#The-list-type" accesskey="p" rel="prev">The <code>list</code> type</a>, Up: <a href="#Different-types-of-collection" accesskey="u" rel="up">Different types of collection</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-map-type-1"></a>
+<h4 class="subsection">4.4.3 The <code>map</code> type</h4>
+
+<p>Unlike the <code>cons</code> or <code>list</code> type, the <code>map</code> type is
+oriented for access by arbitrary keys. The <code>map</code> is also quite
+different to hash maps as found in Java (say), the <code>map</code> type is
+<em>persistent</em>: the functions that access dictionaries such as by
+adding or removing elements return new dictionaries rather than
+modifying a single shared structure. However, the efficiency of
+<code>map</code> is quite comparable to Java&rsquo;s HashMap.
+</p>
+<p>The template for the <code>map</code> type is:
+</p><div class="example">
+<pre class="example">all k,v ~~ equality[k], hash[k] |: map[k,v]
+</pre></div>
+<p>Notice that there is an implied constraint here: the <code>map</code>
+assumes that the keys in the map can be compared for equality, and
+that they are hashable &ndash; have a <code>hash</code> function.
+</p>
+<p>A <code>map</code> value can be written using the sequence notation, using
+tuple pairs for the key-value pairs:
+</p><div class="example">
+<pre class="example">map of [(1,&quot;alpha&quot;),(2,&quot;betaâ)]
+</pre></div>
+<p>As we saw before, <code>map</code>s also have a special variant of the
+sequence notation; instead of writing the pairs as tuples we can use
+an arrow notation for <code>map</code> terms:
+</p><div class="example">
+<pre class="example">map of [1-&gt;&quot;alpha&quot;, 2-&gt;&quot;beta&quot;]
+</pre></div>
+<p>Maps also have their own special variant of a <em>query search
+condition</em>. A condition of the form
+</p><div class="example">
+<pre class="example">K-&gt;V in D
+</pre></div>
+<p>where D is a <code>map</code> will be satisfied if there is a key/value pair
+in D corresponding to K and V. For example, the condition:
+</p><div class="example">
+<pre class="example">K-&gt;V in map of [1-&gt;&quot;alpha&quot;, 2-&gt;&quot;beta&quot;] &amp;&amp; V==&quot;alpha&quot;
+</pre></div>
+<p>is satisfied for only one pair of <code>K</code> and <code>V</code>: namely
+<code>1</code> and <code>&quot;alpha&quot;</code> respectively.
+</p>
+<p>For the curious, dictionaries are implemented using techniques similar
+to, as described by Bagwell in <cite>Ideal Hash Trees, P. Bagwell</cite>. This
+results in a structure with an effective O(1) cost for accessing
+elements <em>and</em> for modifying the <code>map</code> &ndash; all the while
+offering an applicative data structure.
+</p>
+<hr>
+<a name="The-set-type"></a>
+<div class="header">
+<p>
+Previous: <a href="#The-map-type" accesskey="p" rel="prev">The <code>map</code> type</a>, Up: <a href="#Different-types-of-collection" accesskey="u" rel="up">Different types of collection</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-set-type-1"></a>
+<h4 class="subsection">4.4.4 The <code>set</code> type</h4>
+
+<p>There are many instances where a programmer needs a collection but
+does not wish specify any ordering or mapping relationship. The
+standard <code>set</code> type allows you to construct such entities.
+</p>
+<p>Using a <code>set</code> type offers the programmer a signal that minimizes
+assumptions about the structures: the set type is not ordered, and
+offers no ordering guarantees. It does, however, offer a guarantee
+that operations such as element insertion, search and set operations
+like set union are implemented efficiently.
+</p>
+<p>Like <code>map</code>, the <code>set</code> type is not publicly defined using an
+algebraic type definition: its implementation is private. It&rsquo;s type is
+given by the template:
+</p><div class="example">
+<pre class="example">all t ~~ equality[t] |: set[t]
+</pre></div>
+
+<hr>
+<a name="Collecting-it-together"></a>
+<div class="header">
+<p>
+Previous: <a href="#Different-types-of-collection" accesskey="p" rel="prev">Different types of collection</a>, Up: <a href="#Collections" accesskey="u" rel="up">Collections</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Collecting-it-together-1"></a>
+<h3 class="section">4.5 Collecting it together</h3>
+
+<p>Collections form an important part of any modern programming
+language. The suite of features that make up the collections
+architecture in <strong>Star</strong> consists of a number of data types, contracts
+and special syntax that combine to significantly reduce the burden of
+the programmer.
+</p>
+<p>The collections facility amounts to a form of DSL &ndash; Domain Specific
+Language &ndash; that is, in this case, built-in to the language. We shall
+see later on that, like many DSLs, this results in a pattern where
+there is a syntactic extension to the language that is backed by a
+suite of contracts that define the semantics of the DSL.
+</p>
+<hr>
+<a name="Making-choices"></a>
+<div class="header">
+<p>
+Next: <a href="#Boiling-the-Ocean" accesskey="n" rel="next">Boiling the Ocean</a>, Previous: <a href="#Collections" accesskey="p" rel="prev">Collections</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Making-choices-1"></a>
+<h2 class="chapter">5 Making choices</h2>
+
+<p>One of the common themes of systems that &lsquo;face the world&rsquo; (aka online
+applications) is that they often have to make decisions. More
+specifically, any outward facing system will receive requests that the
+system must decide whether they are legitimate or not. Before acting
+on a request, we must decide whether or not to trust it.
+</p>
+<p>We can draw an extremely simplistic view of a large class of <em>online</em>
+applications:
+</p>
+<div class="float"><a name="onlineApp"></a>
+
+<img src="images/online.png" alt="images/online">
+<div class="float-caption"><p><strong>Figure 5.1: </strong>Simplistic Online Application</p></div></div>
+<p>This diagram illustrates the four main elements of an online
+application: a <em>source</em> of events, a <em>processor</em> which processes
+events, a <em>Sink</em> which represents externally visible actions being
+taken by the system, and, finally, a <em>Store</em>.
+</p>
+<p>We are being deliberately simplistic here; because we wish to focus on
+a part of this picture: the <em>Store</em>.
+</p>
+<p>A <em>Store</em> is part of most online applications because applications
+need some form of context: there is typically not enough information
+in an event to determine how to react to it: we must also have some
+history as well. For example, if an event represents a log-in attempt,
+then in order to know how to respond, we need to know if the
+originator has an account, whether the offered password is consistent
+with our records and so on.
+</p>
+<p>The <em>Store</em> concept is simply an abstract way of representing this
+context. However, we can go a little further and claim that the
+dominant mode of accessing a store is through <em>queries</em>.
+</p>
+<p>A query is simply an expression that is evaluated in the right
+context; however, the natural semantics for query processing is more
+like that of database searches than arithmetic evaluation. The reason
+for that is that a typical <em>Store</em> may be quite large and serve
+multiple functions. As a result, <strong>Star</strong> queries have a lot in common
+with logic and database programming paradigms.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Queries" accesskey="1">Queries</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Classifying" accesskey="2">Classifying</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Queries"></a>
+<div class="header">
+<p>
+Next: <a href="#Classifying" accesskey="n" rel="next">Classifying</a>, Up: <a href="#Making-choices" accesskey="u" rel="up">Making choices</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Queries-1"></a>
+<h3 class="section">5.1 Queries</h3>
+
+<p>Consider, if you will, the problem of finding a set of
+grandparent-grandchild pairs &ndash; given information about parent-child
+relationships. For example, suppose that we had a list of pairs - each
+pair indicating a parent and child:
+</p><div class="example">
+<pre class="example">parents:list[(string,string)].
+parents = [(&quot;john&quot;,&quot;peter), (&quot;peter&quot;,&quot;jane&quot;), &hellip; ].
+</pre></div>
+<p>and that we wanted to construct a result list &ndash; also of pairs &ndash;
+along the lines of:
+</p><div class="example">
+<pre class="example">GC:list[(string,string)].
+GC = [(&quot;john&quot;,&quot;jane&quot;),&hellip;].
+</pre></div>
+<p>Computing the list of grandparent/grandchildren pairs involves
+searching the <code>parents</code> for pairs that satisfy the grandparent
+relationship. This, in turn, involves a double iteration: each pair in
+the <code>parent</code>s list might represent the upper or lower half of a
+grandparent/grandchild relationship (or both).
+</p>
+<p>Based on the collection operators we have seen so far, we can build
+such a search using two <code>foldLeft</code> operations:
+</p><div class="example">
+<pre class="example">foldLeft(
+ (SoFar,(X,Z)) =&gt; foldLeft(
+   let {
+     acc(gp1,(ZZ,Y)) where Z==ZZ =&gt; [gp1..,(X,Y)].
+     acc(gp1,_) =&gt; gp1.
+   } in acc,
+   SoFar,parents),
+   list of [],
+  parents)
+</pre></div>
+<p>This, rather intimidating,<a name="DOCF33" href="#FOOT33"><sup>33</sup></a> expression uses one <code>foldLeft</code>
+to look for the grandparent, and the second <code>foldLeft</code> finds all
+the grand-children. All without any explicit recursion.
+</p>
+<p>The <code>acc</code> function defined above in the <code>let</code> expression
+implements the logic of deciding what to accumulate depending on
+whether we had found a grandparent or not.
+</p>
+<p>The various filter, <code>fmap</code> and <code>foldLeft</code> functions <em>are</em>
+powerful ways of processing entire collections. However, as we can
+see, combination iterations can be difficult to construct and harder
+to follow; something that is not helped by the occasional need to
+construct complex functions in the middle, as in this case.
+</p>
+<p>What is needed is a way of expressing such complex query conditions in
+a way that can be <em>implemented</em> using <code>foldLeft</code> expressions
+but which are easier to read.
+</p>
+<p>Consider the conjunction:
+</p><div class="example">
+<pre class="example">(X,Z) in parents &amp;&amp; (Z,Y) in parents
+</pre></div>
+<p>This could be read as specifying what it means to be grandparents:
+</p>
+<blockquote>
+<p>For which <code>X</code>, <code>Y</code> and <code>Z</code> can we assert that <code>X</code>
+is the parent of <code>Z</code>, and <code>Z</code> is the parent of <code>Y</code>?.
+</p></blockquote>
+
+<p>This should be significantly easier to follow than the complex
+expression above; and it is easier to be sure whether it is a correct
+representation of what it means to be a grand parent.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Satisfaction-semantics" accesskey="1">Satisfaction semantics</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Abstracting-queries" accesskey="2">Abstracting queries</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#A-Splash-of-Inference" accesskey="3">A Splash of Inference</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Anatomy-of-a-Query" accesskey="4">Anatomy of a Query</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Satisfaction-semantics"></a>
+<div class="header">
+<p>
+Next: <a href="#Abstracting-queries" accesskey="n" rel="next">Abstracting queries</a>, Up: <a href="#Queries" accesskey="u" rel="up">Queries</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Satisfaction-semantics-1"></a>
+<h4 class="subsection">5.1.1 Satisfaction semantics</h4>
+
+<p>Conditions like the ones above are boolean valued &ndash; but they are not
+always expressions. For example, the first condition there being a
+parent:
+</p><div class="example">
+<pre class="example">(X,Z) in parents
+</pre></div>
+<p>is not evaluated in the way that expressions are normally evaluated &ndash;
+by <em>testing</em> to see if a given pair of <code>X</code> and <code>Z</code> are
+in some <code>parents</code> collection. Instead, the condition needs to be
+evaluated by trying to <em>find</em> <code>X</code> and <code>Z</code> that are in
+the <code>parents</code> collection. Only if, and when, suitable bindings
+for <code>X</code> and <code>Z</code> are found does the condition &lsquo;return&rsquo; true;
+otherwise it returns false. In effect, the condition becomes a
+<em>search</em> for suitable candidate pairs.
+</p>
+<p>Technically this is called <em>satisfying</em> the condition &ndash; to
+distinguish what is going on in normal expression
+<em>evaluation</em>. Of course, satisfying and evaluating are close
+cousins of each other and amount to the same thing when there is no
+search involved.
+</p>
+<p>In addition to individual <em>search conditions</em> like this, it is
+also possible to use logical operators &ndash; called <em>connectives</em> &ndash;
+to combine conditions. In the case of our grand-parent query, there is
+a conjunction; which uses the variable <code>Z</code> to acts as a kind of
+glue to the two search conditions.
+</p>
+<blockquote>
+<p>In database query terminology, conjunctions like this one amount to
+<em>inner joins</em>. Languages like SQL have many operators and
+features to make expressing queries easier; the fundamental semantics
+of <strong>Star</strong>&rsquo;s queries are similar in power to those of SQL.
+</p></blockquote>
+
+<p>The available connectives include the usual favorites: <code>&amp;&amp;</code>,
+<code>||</code>, and <code>\+</code>. We may also see the need for some less
+familiar connectives: <code>implies</code> and <code>otherwise</code>.
+</p>
+<blockquote>
+<p>An <code>implies</code> connective is a way of testing complete compliance
+with a condition; for example, we can define a query capturing the
+situation that a manager earns more than his/her members by requiring
+that anyone who works for the manager earns less than they do:
+</p><div class="example">
+<pre class="example">(X,M) in worksFor implies X.salary=&lt;M.salary.
+</pre></div>
+</blockquote>
+
+<hr>
+<a name="Abstracting-queries"></a>
+<div class="header">
+<p>
+Next: <a href="#A-Splash-of-Inference" accesskey="n" rel="next">A Splash of Inference</a>, Previous: <a href="#Satisfaction-semantics" accesskey="p" rel="prev">Satisfaction semantics</a>, Up: <a href="#Queries" accesskey="u" rel="up">Queries</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Abstracting-queries-1"></a>
+<h4 class="subsection">5.1.2 Abstracting queries</h4>
+
+<p>The grandparent condition shows how to define what grandparent-hood
+means; but we also need ways of abstracting and naming such
+queries. The most straightforward way of this is to use a <em>query
+abstraction</em> expression. For example, we can embody the grandparent
+situation in:
+</p><div class="example">
+<pre class="example">{ (X,Y) | (X,Z) in parents &amp;&amp; (Z,Y) in parents}
+</pre></div>
+<p>The value of a query abstraction expression is typically a <code>set</code>
+&ndash; in this case a set of the pairs of strings in the
+grandparent-grandchild relation.
+</p>
+<p>Since it&rsquo;s an expression, we can assign it to a variable:
+</p><div class="example">
+<pre class="example">gp = { (X,Y) | (X,Z) in parents and (Z,Y) in parents}
+</pre></div>
+<p>and we can feed this set into another query:
+</p><div class="example">
+<pre class="example">(X,&quot;f&quot;) in gp
+</pre></div>
+<p>and we can define functions whose values are the results of queries:
+</p><div class="example">
+<pre class="example">gpOf(GC) =&gt; {X | (X,GC) in gp}
+</pre></div>
+<p>We shall explore query expressions a little more, but first an
+editorial:
+</p>
+<hr>
+<a name="A-Splash-of-Inference"></a>
+<div class="header">
+<p>
+Next: <a href="#Anatomy-of-a-Query" accesskey="n" rel="next">Anatomy of a Query</a>, Previous: <a href="#Abstracting-queries" accesskey="p" rel="prev">Abstracting queries</a>, Up: <a href="#Queries" accesskey="u" rel="up">Queries</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="A-Splash-of-Inference-1"></a>
+<h4 class="subsection">5.1.3 A Splash of Inference</h4>
+
+<p>Queries have an important role in <strong>Star</strong> for two reasons: queries
+often have a much more obvious and transparent semantics than other
+programs &ndash; even functional programs! Secondly, queries have a deep
+connection to logic.
+</p>
+<p>There are many reasons why one might be interested in logic; from a
+theoretical modeling perspective (does the universe follow rational
+rules<a name="DOCF34" href="#FOOT34"><sup>34</sup></a>) to the deeply pragmatic reason that logical programs
+are often easier to understand and therefore easier to trust.
+</p>
+<p>Like programming languages, it turns out that there are many kinds of
+logic. Again, like programming languages, there is a trade-off between
+expressivity and complexity. The primary source of complexity in a
+rule language is the machinery needed to realize it &ndash; together with
+understanding it sufficiently to be able to predict the meaning of a
+written rule.
+</p>
+<p>A somewhat simplified enumeration of the different kinds of logic might be:
+</p>
+<dl compact="compact">
+<dt>Propositional calculus</dt>
+<dd><p>This is characterized by single-letter
+conditions (sometimes confusingly called <em>predicate variables</em>)
+and a guaranteed finite evaluation mechanism.
+</p></dd>
+<dt>Datalog</dt>
+<dd><p>This is characterized by relations with simple unstructured
+values (i.e., strings and numbers). Execution in Datalog has similar
+performance characteristics as querying databases.
+</p></dd>
+<dt>First Order Predicate Calculus</dt>
+<dd><p>This is probably the most well known
+and well understood logic. From an expressiveness point of view its
+focus is on the logical relationships amongst individual entities &ndash;
+which includes things like trees, lists and so on. Inference in First
+Order has many of the same characteristics as program evaluation: not
+decidable in general but many effective sub-cases.
+</p></dd>
+<dt>Higher Order Predicate Calculus</dt>
+<dd><p>There are actually many higher-order logics. The main expressive
+enhancement over First Order is that one can directly talk about
+relationships between entities as well as entities themselves. The
+cost of this is that inference becomes problematic &ndash; even equality is
+undecidable.
+</p></dd>
+</dl>
+
+<p>Each of these levels represents a step both in expressiveness and in
+complexity. In general, the right logic for your application is
+something only you can decide; however, in designing a language, we
+have to choose for you.
+</p>
+<p>In our view, there is a sweet spot between Datalog and First Order
+Logic. Datalog allows one to right rules (unlike pure SQL) but is not
+capable of handling arbitrary data structures. On the other hand, it
+may be that <em>recursion</em> is something that we can do without &ndash; as
+we have seen earlier, many well structured functional programs have no
+explicit recursion!
+</p>
+<p>However, we must also be able to <em>embed</em> our logic into our more
+regular programs. The key goal here is to maximize the benefit of
+providing a logical formalism whilst minimizing the burden on both the
+programmer and on the language implementation. This also recognizes
+that, while important, logical reasoning is typically only a small
+part of an overall system. It also recognizes the fact that gaps in
+the reasoning capability of a system can be patched more easily if the
+logic is simpler.
+</p>
+<p>And so, in <strong>Star</strong>, we highlight the <em>query</em> aspect of logical
+reasoning and bless queries as first class entities in the language.
+</p>
+<p>Critically, queries have a <em>declarative</em> semantics as well as a
+<em>programmatic</em> one; this dual reading is essential if one is to
+be able to understand the reasoning.
+</p>
+<blockquote>
+<p><b>Historical note:</b> in earlier iterations of the design for embedding logic into Star, a
+more-or-less complete rule system was envisaged. Such inference rules
+would have a similar status to functions and equations do. However, a
+combination of complexities and edge cases (such as how to handle a
+combination of inputs and outputs in rules) lead the designers to
+radically simplify the proposal and simply focus on queries. This gave
+us 90% of the potential benefit of inference rules at 10% of the cost.
+</p></blockquote>
+
+<p>Sometimes, a splash of logic is all we need. In terms of styles of
+logic, our approach is most reminiscent of <em>answer set
+programming</em>.
+</p>
+<hr>
+<a name="Anatomy-of-a-Query"></a>
+<div class="header">
+<p>
+Previous: <a href="#A-Splash-of-Inference" accesskey="p" rel="prev">A Splash of Inference</a>, Up: <a href="#Queries" accesskey="u" rel="up">Queries</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Anatomy-of-a-Query-1"></a>
+<h4 class="subsection">5.1.4 Anatomy of a Query</h4>
+
+<p>A query can be seen as combining two elements: a <em>condition</em> and
+an <em>answer template</em>. A query condition may be <em>satisfied</em>
+in one or more ways &ndash; each time potentially binding variables in the
+condition to values &ndash; and the answer template encodes how we want to
+use the result of a successful satisfaction. Notice that the variables
+that are bound by the condition <em>are in scope</em> within the answer
+template.
+</p>
+<p>The syntax and style of <strong>Star</strong>âs query notation has strong echoes
+with SQLâs syntax &ndash; deliberately so. Specifically, we take SQLâs
+<em>relational calculus</em> subset &ndash; the language of wheres and of
+boolean combinations. <strong>Star</strong>âs query expressions do not have the
+equivalent of explicit relational join operators.
+</p>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Query-Conditions" accesskey="1">Query Conditions</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#The-iterable-contract" accesskey="2">The <code>iterable</code> contract</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Answer-Templates" accesskey="3">Answer Templates</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Query-Conditions"></a>
+<div class="header">
+<p>
+Next: <a href="#The-iterable-contract" accesskey="n" rel="next">The <code>iterable</code> contract</a>, Up: <a href="#Anatomy-of-a-Query" accesskey="u" rel="up">Anatomy of a Query</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Query-Conditions-1"></a>
+<h4 class="subsubsection">5.1.4.1 Query Conditions</h4>
+
+<p>The condition takes the form of a boolean combination of
+<em>predications</em>; a predication is either a normal boolean-valued
+expression, a <em>match</em> condition, or a <em>search</em>
+condition. Various types of boolean combinations are supported; the
+most common being conjunction (<code>&amp;&amp;</code>), disjunction (<code>||</code>) and
+negation (<code>\+</code>).
+</p>
+<p>We have already seen match conditions; for example:
+</p><div class="example">
+<pre class="example">some(X) .= opValue
+</pre></div>
+<p>is a match condition that is satisfied if the value of <code>opValue</code>
+matches the pattern <code>some(X)</code>. A successful match has the
+additional effect of binding <code>X</code> to the value embedded in the
+<code>some</code> value.<a name="DOCF35" href="#FOOT35"><sup>35</sup></a>
+</p>
+<p>Where a match condition has at most one way of being satisfied, a
+search condition can potentially have many solutions. Search
+conditions look like:
+</p>
+<div class="example">
+<pre class="example"><var>Pattern</var> in <var>Expression</var>
+</pre></div>
+
+<p>We saw an example of this earlier in our grandparent query:
+</p><div class="example">
+<pre class="example">(X,Z) in parents
+</pre></div>
+<p>As should be anticipated at this point, search is realized via a
+contract. This allows us to search any type &ndash; so long as the
+<code>iterable</code> contract is implemented for that type.
+</p>
+<p>The final form of query condition is simply the boolean-valued
+expression. Note that, unlike the other forms of query condition,
+boolean expressions are test-only: they cannot result in bindings for
+query variables.
+</p>
+<hr>
+<a name="The-iterable-contract"></a>
+<div class="header">
+<p>
+Next: <a href="#Answer-Templates" accesskey="n" rel="next">Answer Templates</a>, Previous: <a href="#Query-Conditions" accesskey="p" rel="prev">Query Conditions</a>, Up: <a href="#Anatomy-of-a-Query" accesskey="u" rel="up">Anatomy of a Query</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="The-iterable-contract-1"></a>
+<h4 class="subsubsection">5.1.4.2 The <code>iterable</code> contract</h4>
+
+<p>The <code>iterable</code> contract is similar in intention to the
+<code>folding</code> contract we saw before. However, it is more tuned to
+supporting different combination of queries.
+</p>
+<p>The <code>iterable</code> contract looks like:
+</p><div class="example">
+<pre class="example">contract all s,e ~~ iterable[s-&gt;&gt;e] ::= {
+  _iterate:all r ~~ (s,(e,iterState[r])=&gt;iterState[r],iterState[r]) =&gt; iterState[r].
+}
+</pre></div>
+<p>This contract states that to search a collection, you have to be able
+to iterate over it using the <code>_iterate</code> function. The
+<code>_iterate</code> function uses the <code>iterState</code> type to help guide
+the search:
+</p><div class="example">
+<pre class="example">all t ~~ iterState[t] ::= noneFound      -- no results yet
+                      | noMore(t)        -- all needed results found
+                      | continueWith(t)  -- keep going
+                      | abortIter(string).
+</pre></div>
+<p>The different cases in the <code>iterState</code> type codify different
+things that can happen during a search. The most commonly used case is
+the <code>continueWith</code> case &ndash; which is used to encapsulate the
+results found so far.
+</p>
+<p>There are two companion contracts to the <code>iterable</code> contract: the
+<code>indexed_iterable</code> contract supports search over key/value pairs
+and the <code>generator</code> contract is used to help construct answers.
+</p>
+<hr>
+<a name="Answer-Templates"></a>
+<div class="header">
+<p>
+Previous: <a href="#The-iterable-contract" accesskey="p" rel="prev">The <code>iterable</code> contract</a>, Up: <a href="#Anatomy-of-a-Query" accesskey="u" rel="up">Anatomy of a Query</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Answer-Templates-1"></a>
+<h4 class="subsubsection">5.1.4.3 Answer Templates</h4>
+
+<p>The result of a query is governed by the <em>answer template</em> of the
+query abstraction. There are two main forms of answer template: the
+expression template and the fold template.
+</p>
+<dl compact="compact">
+<dt>Expression Template</dt>
+<dd><p>A <var>expression template</var> is simply an expression. 
+</p></dd>
+</dl>
+
+<p>The expression template is evaluated for each successful way that the
+query condition can be satisfied; typically, there are free variables
+in the template expression that refer to variables bound in the query
+condition. That way. values found during the search can be extracted
+and made part of the overall answer.
+</p>
+<dl compact="compact">
+<dt>Fold Template</dt>
+<dd><p>A fold template is used when it is desired to aggregate over the found
+solutions. The form of a fold template is:
+</p></dd>
+</dl>
+
+<div class="example">
+<pre class="example">fold Exp with Fn
+</pre></div>
+
+<p>We saw this form of query at the beginning of the book where we looked
+at nice ways of adding up elements of a list:
+</p>
+<div class="example">
+<pre class="example">{ fold X with (+) | X in L }
+</pre></div>
+
+<dl compact="compact">
+<dt>Bounded Query</dt>
+<dd><p>A bounded query is similar to the regular query except that we
+restrict the search to a fixed number of answers.
+</p></dd>
+</dl>
+
+<p>The form of a bounded query template is:
+</p>
+<div class="example">
+<pre class="example">N of Exp 
+</pre></div>
+<p>For example, since we know that a person can have at most 2 parents
+(special gene therapy excepted), we can ask for someone&rsquo;s parents
+using:
+</p>
+<div class="example">
+<pre class="example">parentsOf(X) =&gt; { 2 of P | (P,X) in parents }
+</pre></div>
+
+<hr>
+<a name="Classifying"></a>
+<div class="header">
+<p>
+Previous: <a href="#Queries" accesskey="p" rel="prev">Queries</a>, Up: <a href="#Making-choices" accesskey="u" rel="up">Making choices</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Classifying-1"></a>
+<h3 class="section">5.2 Classifying</h3>
+
+<p>Recall that we asserted that classification is a key part of any
+outward facing system: the system has to decide how to act on an
+incoming request. It may be instructive to see just how the query
+formalism can be used to help.
+</p>
+<p>Let us imagine a system that has some external face, for example, a
+server that allows users to fetch and store documents. We have a
+business requirement to allow anyone to store and fetch documents;
+however, we also reserve the right to not process bad
+documents.<a name="DOCF36" href="#FOOT36"><sup>36</sup></a>
+</p>
+<p>Since we anticipate enormous success for our service, and we also
+anticipate that some people will try to game our system in order to
+further their own nefarious goals. So, we have to put in place a
+classification system that can decide how to process requests and
+which we anticipate will need continuous evolution.
+</p>
+<p>We have already claimed that the simplest online processing system can
+be viewed as having four components: a source of events, a processor,
+a sink where the output of the system is targeted and a knowledge base
+that is used to inform the processor.
+</p>
+<div class="float"><a name="online"></a>
+
+<img src="images/online.png" alt="images/online">
+<div class="float-caption"><p><strong>Figure 5.2: </strong>A Simple Event Processor</p></div></div>
+<p>One of the tasks that the processor must perform is to decide how to
+react to incoming events; this is an example of a <em>classification
+problem</em>; in this case we are classifying events into those we choose
+to act on and those we will ignore (or complain about).
+</p>
+<p>Classification always depends on a combination of information gleaned
+from the event itself and on global or contextual information. In our
+case, we can usefully breakdown the contextual knowledge into two
+kinds: <em>rules</em> that embody our processing policy and
+<em>reputation</em> data that the system has collected about external
+entities.
+</p>
+<div class="float"><a name="classifier"></a>
+
+<img src="images/classifier.png" alt="images/classifier">
+<div class="float-caption"><p><strong>Figure 5.3: </strong>Rules and Reputations</p></div></div>
+<p>We distinguish these two sources of knowledge, partly because the way
+that we collect and use them are different; but mainly because they
+are about different things. However, we can use our query formalisms &ndash;
+together with functions &ndash; for both.
+</p>
+
+<hr>
+<a name="Boiling-the-Ocean"></a>
+<div class="header">
+<p>
+Next: <a href="#Concept-index" accesskey="n" rel="next">Concept index</a>, Previous: <a href="#Making-choices" accesskey="p" rel="prev">Making choices</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Boiling-the-Ocean-1"></a>
+<h2 class="chapter">6 Boiling the Ocean</h2>
+
+<p>It is a commonplace in software engineering that you should not try to
+&lsquo;boil the ocean&rsquo;; which is a synonym for &lsquo;biting off more than you can
+chew&rsquo;. However, it <em>is</em> possible to build very large scale
+systems if you approach it in the right way. This is the purview of
+architecture and of software development teams.
+</p>
+<p>The &lsquo;right&rsquo; way to boil an ocean is one cup at a time. The &lsquo;smart&rsquo; way
+to do it is to build a machine that makes cups that boil the ocean.
+</p>
+<p>Building software in the context of a team is quite different to
+writing individual functions in a program. It is not enough for your
+code to compute the correct function; it must also interact properly
+with the environment it is in. As a result, professional programmers
+find themselves often more concerned with making sure that all the
+&lsquo;pieces&rsquo; are in the right place than simply the correctness of an
+algorithm.<a name="DOCF37" href="#FOOT37"><sup>37</sup></a> Interfaces, contracts, APIs and integration issues often
+dominate the system builderâs landscape.
+</p>
+<p>Oneâs attitude to basic language features like types is also
+different: having to deal with the knowledge that is in your
+co-workerâs head (and not in yours) should be enough to convince
+anyone of the merits of strong static types.
+</p>
+<p><strong>Star</strong>&rsquo;s modularity features are built from the same functional
+programming foundation as the other features of the language. This has
+important implications for the programmability of larger systems.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Packages-are-records" accesskey="1">Packages are records</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Existential-types" accesskey="2">Existential types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Abstract-data-types" accesskey="3">Abstract data types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Phew" accesskey="4">Phew</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Packages-are-records"></a>
+<div class="header">
+<p>
+Next: <a href="#Existential-types" accesskey="n" rel="next">Existential types</a>, Up: <a href="#Boiling-the-Ocean" accesskey="u" rel="up">Boiling the Ocean</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Packages-are-records-1"></a>
+<h3 class="section">6.1 Packages are records</h3>
+
+<p>If we take a slightly deeper look at <strong>Star</strong>&rsquo;s package we will see
+some surprising features; features that are sadly not very common in
+programming languages.
+</p>
+<p>Let&rsquo;s start with a super simple source package:
+</p><div class="example">
+<pre class="example">ss{
+  public double:(integer)=&gt;integer.
+  double(X) is X*2.
+}
+</pre></div>
+<p>This package structure is semantically equivalent to a variable
+declaration:
+</p><div class="example">
+<pre class="example">ss:{double:(integer)=&gt;integer}.
+ss = let{
+  double:(integer)=&gt;integer.
+  double(X) is X*2
+} in {. double=double .}
+</pre></div>
+<p>In effect, a package reduces to a variable declaration whose type is a
+record type and whose value is an anonymous record of all the public
+functions defined in the package.
+</p>
+<p>We have seen this before, but it may be worth taking another look at
+the special form:
+</p><div class="example">
+<pre class="example">{. double=double .}
+</pre></div>
+<p>This is a record structure; the periods in the braces signify that the
+record is not <em>recursive</em>: the definitions within the record
+cannot reference each other.<a name="DOCF38" href="#FOOT38"><sup>38</sup></a>
+We use this slightly complicated way of defining the package record
+because not all members of the package are public &mdash; and this
+formulation allows us to be precise in what elements of the package
+record can be seen by others.
+</p>
+<p>What about types though? Like other programming languages <strong>Star</strong>
+allows us to export types from packages too:
+</p><div class="example">
+<pre class="example">simple{
+  public all t ~~ foo[t] ::= foo(t) | bar.
+
+  public fooMe:all t ~~ (t)=&gt;foo[t].
+  fooMe(X) =&gt; foo(X)
+}
+</pre></div>
+<p>The ability to export types &mdash; and their constructors &mdash; is an
+extremely important part of the package functionality. However, having
+types in records is not a common feature in programming languages &mdash;
+this may be one reason why the correspondence between packages and
+records is not more widely understood.
+</p>
+<p>It turns out that we <em>can</em> account for types like <code>too</code> in
+our semantics of packages. Similarly to our previous unfolding, the
+simple package is equivalent to:
+</p><div class="example">
+<pre class="example">simple: exists foo/1 ~~ {
+  type foo/1.
+
+  foo:all t ~~ (t) &lt;=&gt; foo[t].
+  bar:all t ~~ foo[t].
+
+  fooMe:all t ~~ (t)=&gt;foo[t].
+}
+
+simple = {
+  all t ~~ foo[t] ::= foo(t) | bar.
+
+  fooMe:all t ~~ (t)=&gt;foo[t].
+  fooMe(X) =&gt; foo(X).
+}
+</pre></div>
+<p>This is clearly quite a bit more complex than our super-simple
+example; but the basic story is still there: a package consists of a
+variable definition whose value is an anonymous record. In this case,
+the anonymous record contains a type, two constructors as well as a
+regular function. It also includes a <em>type</em> statement that, in
+this case, informs the type system that the existentially quantified
+type foo type should also be viewed as being part of the record.
+</p>
+<p>Having constructors in a type is only a small extension to the
+conventional notion of a record &mdash; while many languages restrict
+records to containing just data values, most functional programming
+languages do allow functions in records. A constructor is just a
+special kind of function.
+</p>
+<p>On the other hand, having a type in a record is quite different.
+</p>
+<hr>
+<a name="Existential-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Abstract-data-types" accesskey="n" rel="next">Abstract data types</a>, Previous: <a href="#Packages-are-records" accesskey="p" rel="prev">Packages are records</a>, Up: <a href="#Boiling-the-Ocean" accesskey="u" rel="up">Boiling the Ocean</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Existential-types-1"></a>
+<h3 class="section">6.2 Existential types</h3>
+
+<p>What does it mean to have a type in a record? From a programmer&rsquo;s
+point of view it is actually quite a natural extension of the concept
+of a record; there does not seem to be any intrinsic reason why a
+record shouldn&rsquo;t have types in it. However, the logic of this bears a
+deeper look.
+</p>
+<p>The declaration of the <code>foo</code> type involves the use of an
+<em>existential</em> quantifier:
+</p><div class="example">
+<pre class="example">simple:exists foo/1 ~~ {
+  &hellip;
+}
+</pre></div>
+<p>The meaning of an existentially quantified type is complementary to
+the universally quantified type. An existential type quantification is
+an assertion that the type exists, in this case that <code>foo</code> exists
+and is a type constructor of 1 argument.
+</p>
+<p>The statement:
+</p><div class="example">
+<pre class="example">type foo/1.
+</pre></div>
+<p>is a <em>type</em> statement. Its role is to &lsquo;bridge the gap&rsquo; between
+the quantifier and external views of the record: in effect, it is a
+reminder that a <em>type annotation</em> such as
+</p><div class="example">
+<pre class="example">X:simple.foo
+</pre></div>
+<p>means to use the type that is embedded in the simple record (actually
+package) and assign <code>X</code>&rsquo;s type to that embedded type.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Use-and-evidence" accesskey="1">Use and evidence</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Using-existentially-quantified-types" accesskey="2">Using existentially quantified types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Wrapping-up-packages" accesskey="3">Wrapping up packages</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Use-and-evidence"></a>
+<div class="header">
+<p>
+Next: <a href="#Using-existentially-quantified-types" accesskey="n" rel="next">Using existentially quantified types</a>, Up: <a href="#Existential-types" accesskey="u" rel="up">Existential types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Use-and-evidence-1"></a>
+<h4 class="subsection">6.2.1 Use and evidence</h4>
+
+<p>To get a better grip on type quantification in general and
+existentially quantified types in particular it can be helpful to see
+what the rules and expectations are for a universally quantified
+type. Occurrences of any type variable can be classified into two
+forms &mdash; depending on whether the context is one of <em>using</em> a
+variable or whether one is <em>defining</em> it &mdash; or providing
+evidence for it.
+</p>
+<p>Consider the simple function <code>d</code> with its type annotation:
+</p><div class="example">
+<pre class="example">d:all t ~~ arith[t] |: (t)=&gt;t.
+d(X) =&gt; X+X.
+</pre></div>
+<p>In the equation that defines <code>d</code> the rules of type inference lead
+us to determine that &mdash; within the equation &mdash; type of <code>X</code> is
+<code>t</code>. The <em>only</em> assumption we can make about <code>t</code> is
+that it implements the <code>arith</code> contract; no other constraints on
+<code>t</code> are permitted.
+</p>
+<p>For example, if we had forgotten the <code>arith</code> constraint, the
+compiler would have complained because we try to add <code>X</code> to
+itself, which implies that <code>X</code> had an arithmetic type.
+</p>
+<p>In general, whenever we define a universally quantified type we cannot
+make any assumptions about what it can and cannot do &ndash; apart from any
+explicitly introduced constraints.
+</p>
+<p>On the other hand, when we <em>call</em> <code>d</code>, the rules for type
+variables are more generous: calls of the forms <code>d(2)</code> and
+<code>d(2.4)</code> are both permitted because we are allowed to <em>use</em>
+any type &mdash; that implements the <code>arith</code> contract.
+</p>
+<p>The reason we can substitute any type for <code>t</code> is because <code>t</code>
+is bound by a universal quantifier: an all quantifier means we can use
+any type for <code>t</code>.
+</p>
+<p>We can summarize this by stating that, for a universally quantified
+type,
+</p>
+<ul>
+<li> we can <em>use</em> it for any type, but
+</li><li> we can make no assumptions about it when giving <em>evidence</em> for a
+correct implementation.
+</li></ul>
+
+<p>For existentially quantified types the situation is reversed: when
+giving evidence in an implementation involving an existential type we
+can use what ever type we want &mdash; again, providing that other
+constraints have been met &mdash; but <em>outside</em> the defining
+expression we can&rsquo;t make any assumptions or additional constraints
+about the quantified type.
+</p>
+<p>For various reasons, which we will explore further, existentially
+quantified types are mostly associated with records &mdash; like the
+package record we saw earlier.
+</p>
+<p>As with universally quantified types, there are two kinds of contexts
+in which we use existentially quantified type variables: <em>use</em>
+and <em>evidence</em> contexts. In the former we are using the type and
+in the latter we are providing evidence that an expression has the
+right type.
+</p>
+<p>The existential quantifier means that within an instance of this
+record we can instantiate foo to any type that meets the
+constraints. The simplest way is to provide a type definition for it:
+</p><div class="example">
+<pre class="example">simple = {
+  all t ~~ foo[t] ::= foo(t) | bar.
+  fooMe(X) =&gt; foo(X).
+}
+</pre></div>
+<p>We can do this because, within the implementing expression, we can do
+whatever we like for the type <code>foo</code> &ndash; so long as it exists.
+</p>
+<p>Notice that we actually needed to achieve two separate but related
+goals when describing the package as a record: we needed to define a
+type within the record and we need to be able to have external
+references to the <code>foo</code> type field.
+</p>
+<p>When we use a type from a record, we can make use of it&rsquo;s existence;
+but we cannot further constrain it. For example, we can use simple&rsquo;s
+<code>foo</code> type, as well as the <code>fooMe</code> function that relies on
+it; for example, in:
+</p><div class="example">
+<pre class="example">m:for all t ~~ (t)=&gt;simple.foo[t].
+m(X) =&gt; simple.fooMe(X).
+</pre></div>
+<p>There is something a little different going on here: the type of
+<code>m</code> appears to be dependent on a field of the variable
+<code>simple</code>; i.e., the type of <code>m</code> apparently depends on the
+<em>value</em> of <code>simple</code>. This is not something that we would
+normally sanction in a type system because of the potential for
+disaster.
+</p>
+<p>For example, consider the scenario where &lsquo;<code>simple</code> is not
+simple&rsquo;; i.e., suppose that its value were computed; for example its
+value might depend on a conditional computation. In that case the
+actual type <code>simple.foo</code> might also depend on the conditional
+computation; furthermore, different invokations could easily result in
+having a different actual type being exported by <code>simple</code>. Why
+does this not cause problems?
+</p>
+<p>Normally such &lsquo;dynamic types&rsquo; do cause substantial problems. However,
+the type rules for existentially quantified variables are crafted so
+that <em>it must not matter</em> what the actual type <code>simple.foo</code> is. So
+long as no additional constraints on the simple.foo are permitted then
+the program is provably compile-time type-safe. I.e., uses of an
+existentially quantified type may not further constrain the type &mdash;
+the exact complement of the situation with universally quantified
+types.
+</p>
+<p>Note that this also relies on single assignment semantics. It is not
+enough to constrain <code>simple.foo</code> to be effectively unconstrained
+in its usage, it must also be that the simple variable cannot itself
+be changed. Luckily for us, this is true for packages even if it may
+not be true for all variables.
+</p>
+<p>Of course, as with universally quantified types, we can constrain the
+existential type with a type constraint. This would mean that, when
+implementing it we have to give evidence for the constraint being
+satisfied and when using it we could rely on that implementation &ndash;
+without knowledge of the actual implementation.
+</p>
+<hr>
+<a name="Using-existentially-quantified-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Wrapping-up-packages" accesskey="n" rel="next">Wrapping up packages</a>, Previous: <a href="#Use-and-evidence" accesskey="p" rel="prev">Use and evidence</a>, Up: <a href="#Existential-types" accesskey="u" rel="up">Existential types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Using-existentially-quantified-types-1"></a>
+<h4 class="subsection">6.2.2 Using existentially quantified types</h4>
+
+<p>So, what <em>are</em> the rules for existentially quantified types? The
+first is one that we have already been looking at:
+</p>
+<p>An existential variable may be bound to a type when providing
+<em>evidence</em> that a value has a certain type, but may not be
+constrained when <em>using</em> a value with an existential quantifier
+in its type.
+</p>
+<p>The second is related to this:
+</p>
+<blockquote>
+<p>Each occurrence of an existentially quantified type is potentially
+different.
+</p></blockquote>
+
+<p>Think about a function with the type:
+</p><div class="example">
+<pre class="example">exFn:for all t ~~ (t)=&gt;exists e ~~ R[e,t]
+</pre></div>
+<p>For the moment, we don&rsquo;t much care about <code>R</code>. Now, consider how
+we might use <code>exFn</code>:
+</p><div class="example">
+<pre class="example">X1 = exFn(&quot;alpha&quot;)
+&hellip;
+X2 = exFn(&quot;alpha&quot;)
+</pre></div>
+<p>An important question is &lsquo;what is the relationship between the type of
+<code>X1</code> and the type of <code>X2</code>?&rsquo;. Unfortunately, the fundamental
+answer is &lsquo;we cannot know in general&rsquo; &mdash; because we cannot assume
+that <code>exFn</code> is without side-effects in its implementation &mdash;
+which in type terms means effectively there is no relationship: they
+are different. The reason is that the internal type used within the
+implementation of <code>exFn</code> may result in <em>different</em>
+instantiations for <code>e</code> for each invocation. The result is we
+cannot assume <em>any</em> link between the types of <code>X1</code> and
+<code>X2</code>: they are different. This has some serious consequences for
+how we use existentially quantified types.
+</p>
+<p>On the other hand, consider the similar sequence of definitions:
+</p><div class="example">
+<pre class="example">Y1 = exFn(&quot;alpha&quot;)
+&hellip;
+Y2 = Y1
+</pre></div>
+<p>In this case we <em>do</em> know that the type of <code>Y1</code> is identical
+to the type of <code>Y2</code>. This leads us to the third rule:
+</p>
+<p>Each <em>use</em> of an existential quantification introduces a new type
+&mdash; called a <em>Skolem type</em><a name="DOCF39" href="#FOOT39"><sup>39</sup></a> &mdash; that follows
+the normal inference rules for all types.
+</p>
+<p>I.e., once a type has been introduced as a Skolem type, it behaves
+just like any regular type and the normal rules of inference
+apply. This applies equally to the two fragments of code above; but
+the additional constraint on the immutable values of <code>Y1</code> and
+<code>Y2</code> make it easier to propagate type information.
+</p>
+<p>We can see this a little clearly by looking at the effective type
+annotations of <code>Y1</code> and <code>Y2</code>:
+</p><div class="example">
+<pre class="example">Y1:R[e345,string]
+Y1 = exFn(&quot;alpha&quot;)
+&hellip;
+Y2:R[e345,string]
+Y2 = Y1
+</pre></div>
+<p>where <code>e345</code> is the skolemized variant of the existential type
+<code>e</code>.
+</p>
+<p>The effective annotations for <code>X1</code> and <code>X2</code> will have
+different skolem constants:
+</p><div class="example">
+<pre class="example">X1:R[e235,string]
+X1 = exFn(&quot;alpha&quot;)
+&hellip;
+X2:R[e678,string]
+X2 = exFn(&quot;alpha&quot;)
+</pre></div>
+<p>If <code>Y1</code> or <code>Y2</code> were declared to be re-assignable variables
+then, once again, we would not be able to connect the types of
+<code>Y1</code> and <code>Y2</code> together.
+</p>
+<hr>
+<a name="Wrapping-up-packages"></a>
+<div class="header">
+<p>
+Previous: <a href="#Using-existentially-quantified-types" accesskey="p" rel="prev">Using existentially quantified types</a>, Up: <a href="#Existential-types" accesskey="u" rel="up">Existential types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Wrapping-up-packages-1"></a>
+<h4 class="subsection">6.2.3 Wrapping up packages</h4>
+
+<p>Our original simple package record had the type
+</p>
+<div class="example">
+<pre class="example">simple: exists foo/1 ~~ {
+  type foo/1.
+  foo:all t ~~ (t) &lt;=&gt; foo[t].
+  bar:all t ~~ foo[t].
+
+  fooMe:all t ~~ (t)=&gt;foo[t].
+}
+</pre></div>
+
+<p>The type signature has a type <code>foo</code> and a constructor <code>foo</code>
+in it. This is permitted because types and values have different name
+spaces in <strong>Star</strong>.<a name="DOCF40" href="#FOOT40"><sup>40</sup></a>
+</p>
+<p>Why, one might ask, is it so important for packages to have this kind
+of semantics? After all, few other programming languages make the
+effort to give a first class semantics for modules.<a name="DOCF41" href="#FOOT41"><sup>41</sup></a> The most straightforward answer is that it
+likely will not matter unless your programs because very large.
+</p>
+<p>In mega-scale applications, programming between modules can easily
+become a major headache if not semantized (sic) correctly. However, we
+shall see an application of this for much smaller systems in Chapter 8
+when we discuss building platforms rather than simple applications.
+</p>
+<hr>
+<a name="Abstract-data-types"></a>
+<div class="header">
+<p>
+Next: <a href="#Phew" accesskey="n" rel="next">Phew</a>, Previous: <a href="#Existential-types" accesskey="p" rel="prev">Existential types</a>, Up: <a href="#Boiling-the-Ocean" accesskey="u" rel="up">Boiling the Ocean</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Abstract-data-types-1"></a>
+<h3 class="section">6.3 Abstract data types</h3>
+
+<p>Abstract data types can be viewed as the mathematics behind object
+oriented programming.<a name="DOCF42" href="#FOOT42"><sup>42</sup></a>
+</p>
+<dl compact="compact">
+<dt><em>Abstract Data Type</em></dt>
+<dd><p>An abstract data type is a mathematical model of a set of related
+values that share a common set of semantics.
+</p></dd>
+</dl>
+
+<p>In programming, it is the <em>common</em> semantics that defines the
+structure; but, of course, programming languages are not able to
+capture the full semantics of a program or type and hence the stand-in
+for this is usually a type specification.
+</p>
+<p>Perhaps an example is overdue. In our chapter on Collections we looked
+at many operators over collections and not a few example collection
+types. Although programs using the stream contract are fairly
+abstract, the type of the collection itself is still visible. Suppose
+we wanted to build a set structure where only the fact that there is a
+set, and the set-like operators over the set were visible. The
+representation type for the set should otherwise be completely opaque.
+</p>
+<p>One might start with a type definition that defines some operators over sets:
+</p>
+<div class="example">
+<pre class="example">exists coll/1 ~~ genSet ::= genSet{
+  type coll/1.
+  z:all t ~~ coll[t].
+  addElement:all t ~~ (t,coll[t])=&gt;coll[t].
+  present:all t ~~ (t,coll[t])=&gt;boolean.
+}
+</pre></div>
+
+<p>The essence of this type declaration is a collection of operators that
+define set-style operators. By protecting the coll type with an
+existential quantifier, we ensure that the representation of genSet
+values is not accessible externally; whilst at the same time we do
+allow other programs to <em>use</em> the set operators.
+</p>
+<p>One example implementation of <code>genSet</code> might use lists to
+represent the set structure itself:
+</p>
+<div class="example">
+<pre class="example">LS = genSet{
+  all t ~~ coll[t] &lt;~ list[t].
+  z = list of [].
+  addElement(X,L) where X in L =&gt; L.
+  addElement(X,L) =&gt; list of [X,..L].
+  present(X,L) =&gt; X in L
+}
+</pre></div>
+
+<p>The statement:
+</p><div class="example">
+<pre class="example">all t ~~ coll[t] &lt;~ list[t].
+</pre></div>
+<p>which is a type alias statement, represents one of the ways that we
+can give evidence for the existence (sic) of the coll type. We could
+also have simply declared that:
+</p>
+<div class="example">
+<pre class="example">type coll = list
+</pre></div>
+
+<p>Given <code>LS</code>, we can use it like a set generator &mdash; <code>LS</code>
+provides a set of operators over sets:
+</p>
+<div class="example">
+<pre class="example">Z = LS.z
+
+One = LS.addElement(1,Z)
+
+Two = LS.addElement(2,One)
+</pre></div>
+
+<p>The type of <code>LS</code> gives no clue as to the internal type used to
+represent sets generated by it:
+</p>
+<div class="example">
+<pre class="example">LS:genSet
+</pre></div>
+
+<p>But <code>Z</code>, <code>One</code> and <code>Two</code> have more interesting types:
+</p>
+<div class="example">
+<pre class="example">Z:collK341[integer]
+</pre></div>
+
+<p>where <code>collK341</code> is a Skolem type &mdash; a unique type generated
+when we assign a type to LS. In effect, LS is a module that exports
+the set type and associated operators; this module is referenced by
+name and is used to construct particular sets.
+</p>
+<p>A reasonable question here is &lsquo;where is the Abstract Data Type?&rsquo;. What
+we have is a record with a type and some functions in it. Recall that
+an ADT is a &lsquo;model of a set of related values that share a common set
+of semantics&rsquo;. The semantics in common are the functions in the
+record; and the type itself is the existentially quantified type in
+that record &mdash; coll.
+</p>
+<p>Notice how we index off the <code>LS</code> variable to access the operators
+for this set; even while passing into it instances of sets created and
+modified by LS. This is one of the hallmarks of a module system.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="#Opening-up" accesskey="1">Opening up</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Injection" accesskey="2">Injection</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="#Extensible-types" accesskey="3">Extensible types</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
+
+<hr>
+<a name="Opening-up"></a>
+<div class="header">
+<p>
+Next: <a href="#Injection" accesskey="n" rel="next">Injection</a>, Up: <a href="#Abstract-data-types" accesskey="u" rel="up">Abstract data types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Opening-up-1"></a>
+<h4 class="subsection">6.3.1 Opening up</h4>
+
+<p>One of the reasons that we are so interested in establishing a
+&lsquo;normal&rsquo; semantics for modules and ADTs is that we can develop systems
+where the contents of a module depends on some additional computation;
+i.e., we can use <em>functions over modules</em>. For example, we can
+show that <em>aspect oriented programming</em> and <em>dependency
+injection</em> can be realized just using normal code structuring with
+functions and let environments.
+</p>
+<p>Techniques like dependency injection are typically applied to large
+programs; unfortunately that makes constructing small examples a
+little forced. So, we&rsquo;ll use a crow-bar to open a soda
+bottle. Imagine, if you will, that we needed to define a new
+arithmetic type that supported arbitrary fractions.
+</p>
+<p>Floating point numbers are fractions. But they do not permit the
+representation of all fractions &mdash; e.g., it is not possible to
+represent 1/3 exactly in IEEE 754.
+</p>
+<p>However, while we want to expose the type, and a set of operator
+functions, we definitely do not want to expose anything about the
+implementation of fractional numbers: as far as users are to be
+concerned, the type fraction is to be completely opaque and might be
+implemented in any way.
+</p>
+<p>Let us start with an interface; which in this case will take the form
+of a record type:
+</p>
+<div class="example">
+<pre class="example">fractionals ::= exists fraction ~~ fracts{
+  type fraction.
+
+  frPlus:(fraction,fraction)=&gt;fraction.
+  frToString:(fraction)=&gt;string.
+
+  frParse:(string)=&gt;fraction.
+  fraction:(integer,integer)=&gt;fraction
+}
+</pre></div>
+
+<p>One of the first things to note here is that fraction is existentially
+quantified; secondly we need to ensure that the set of operators we
+expose is complete. Our interface is not really complete, but includes
+two critical operators: a means of constructing fractions &ndash; via the
+fractions and frParse functions &ndash; and a means of escaping from the
+world of fractions to other types (in this case <code>string</code> via
+<code>frToString</code>).
+</p>
+<p>Here we are mostly concerned with <em>using</em> fractions, so we will
+assume that we have at least one implementation &mdash; courtesy of the <code>FR</code>
+variable:
+</p>
+<div class="example">
+<pre class="example">FR:fractionals
+</pre></div>
+
+<p>One way to use our implementation of fractions would be to reference
+the needed operators via the <code>FR</code> variable:
+</p>
+<div class="example">
+<pre class="example">F0 = FR.frParse(&quot;3/4&quot;)
+
+F1 = FR.fraction(1,2)
+
+F2 = FR.frPlus(F0,F1)
+
+show FR.frToString(F2)   -- results in 5/4
+</pre></div>
+
+<p>However, we can do rather better than this in <strong>Star</strong>. We have already
+encountered the import statement; there is an analogous statement that
+allows us to unwrap a record like <code>FR</code> in a binding environment
+&mdash; such as:
+</p>
+<div class="example">
+<pre class="example">let{
+  open FR
+
+  F0 = frParse(&quot;3/4&quot;).
+  F1 = fraction(1,2).
+  F2 = frPlus(F0,F1).
+} in 
+  show frToString(F2)   -- results in 5/4
+</pre></div>
+
+<p>The <code>open</code> statement has a similar effect to the package import:
+it enables the functions, types and other elements that are embedded
+in a record to be made available as normal identifiers within the
+normal scope of the let action (or expression).
+</p>
+<p>Of course, this code is still fairly clumsy; since we would like to
+use normal arithmetic notation over fractions; which we can do by
+implementing the arith contract:
+</p>
+<div class="example">
+<pre class="example">let{
+  open FR.
+
+  implementation arith[fraction] =&gt; {
+    X+Y =&gt; frPlus(X,Y)
+    &hellip; -- more operators needed
+  }
+} in {
+  F0 = frParse(&quot;3/4&quot;).
+  F1 = fraction(1,2).
+  F2 = F0+F1.
+
+  show frString(F2)
+}
+</pre></div>
+
+<p>We can improve this further by also implementing the coercion contract
+between <code>strings</code> and <code>fractions</code>:
+</p>
+<div class="example">
+<pre class="example">let{
+  open FR.
+
+  implementation arith[fraction] =&gt; {
+    X+Y =&gt; frPlus(X,Y)
+    &hellip; -- more operators needed
+  }
+  implementation coercion[string,fraction] =&gt; {
+    _coerce(S) =&gt; frParse(S)
+  }
+
+  implementation coercion[fraction,string] =&gt; {
+    _coerce(F) =&gt; frToString(F)
+  }
+}
+</pre></div>
+
+<p>This allows us to use a more natural notation for expressions
+involving our fractions:
+</p>
+<div class="example">
+<pre class="example">let{
+  open FR.
+  &hellip;
+} in {
+  F0 = &quot;3/4&quot; :: fraction.
+  F1 = fraction(1,2).
+
+  show F0+F1
+}
+</pre></div>
+
+<p>While much better than our original, we still have too much code to
+write to use the fraction type: we have to get the type and then
+demonstrate the appropriate implementations. We want to be able to
+combine everything that is important about fractions into a single
+structure.
+</p>
+<p>There is a straightforward way we can do this. Our original signature
+for fractionals simply required the presence of the fraction
+type. What we can do is further require that the arith and appropriate
+coercion contracts are also implemented; we do this by constraining
+the type definition for <code>fractionals</code>:
+</p>
+<div class="example">
+<pre class="example">fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts{
+  type fraction.
+
+  frPlus:(fraction,fraction)=&gt;fraction.
+  fraction:(integer,integer)=&gt;fraction.
+}
+</pre></div>
+
+<p>Since we are using contracts we do not need the explicit
+<code>frParse</code> and <code>frToString</code> functions in the signature any
+more.
+</p>
+<p>When we instantiate a <code>fracts</code> record we must provide &mdash; within
+the record itself &mdash; appropriate implementations of <code>arith</code> and
+<code>coercion</code>:
+</p>
+<div class="example">
+<pre class="example">FX = fracts{
+  fraction &lt;~ myFraction.
+  implementation arith[myFraction] =&gt; {
+    X+Y =&gt; frPlus(X,Y).
+    &hellip; --- more operators needed
+  }
+  implementation coercion[string,myFraction] =&gt; {
+    _coerce(S) =&gt; frParse(S)
+  }
+  implementation coercion[myFraction,string] =&gt; {
+    _coerce(F) =&gt; frToString(F)
+  }
+  &hellip;
+}
+</pre></div>
+
+<p>Notice that we implemented arithmetic for the internal
+<code>myFraction</code> type. We could have equally implemented the contract
+for <code>fraction</code> type too; the key requirement is to provide
+evidence that arithmetic is implemented for the type.
+</p>
+<p>The <code>FX</code> record now has everything we want to expose about
+fractional numbers.<a name="DOCF43" href="#FOOT43"><sup>43</sup></a> If we open the structure then
+indeed we can write programs like:
+</p>
+<div class="example">
+<pre class="example">let{
+  open FX.
+} in {
+  F0 = &quot;3/4&quot; :: fraction.
+  F1 = fraction(1,2).
+  show F0+F1.
+}
+</pre></div>
+
+<p>This is virtually equivalent to the code we might have written if we
+were importing a package with the definition of the <code>fraction</code>
+type in it. The difference is that we have access to the full
+expressive power of the language in computing <code>FX</code>.
+</p>
+<hr>
+<a name="Injection"></a>
+<div class="header">
+<p>
+Next: <a href="#Extensible-types" accesskey="n" rel="next">Extensible types</a>, Previous: <a href="#Opening-up" accesskey="p" rel="prev">Opening up</a>, Up: <a href="#Abstract-data-types" accesskey="u" rel="up">Abstract data types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Injection-1"></a>
+<h4 class="subsection">6.3.2 Injection</h4>
+
+<p>Injection is a technique where we specialize a program with additional
+information; especially where that additional information is not part
+of the normal argument flow. Of course, it can be hard to be crisp
+about &lsquo;not part of the normal argument flow&rsquo;; but injection is an
+architectural technique to apply if and when it makes a difference in
+the readability of your code.
+</p>
+<p>Injection is often used to manage <em>configuration</em> of code: the
+configuration is injected into the main program; for example, we might
+configure an application server with the path name of a particular
+application, or with the port on which the app server should be
+listening. Neither of these would normally be considered part of the
+normal information flow in an application server.
+</p>
+<p>There is a standard functional programming style that can be used to
+represent injection &mdash; namely functions that return functions. To
+take an extremely simple example, suppose that we wanted to have a
+function that counted the percentage of a class that passes an
+exam. The function itself is pretty simple:
+</p>
+<div class="example">
+<pre class="example">passes(L) =&gt; fraction(
+  size(list of { X | X in L &amp;&amp; X.score&gt;Pass}),
+  size(L))
+</pre></div>
+  
+<p>The configuration parameter here is obviously the <code>Pass</code> value;
+this is an important parameter to the function but is not part of the
+normal argument flow (think about computing the pass count for an
+entire school).
+</p>
+<p>We can use the function returning approach to inject an appropriate
+value of <code>Pass</code>:
+</p>
+<div class="example">
+<pre class="example">passes(Pass) =&gt;
+  (L)=&gt;fraction(
+    size(list of { X | X in L &amp;&amp; X.score&gt;Pass}),
+    size(L))
+</pre></div>
+<p>Using this passes is a two-step process; we first use a specific
+passing grade to construct the test function and then use this to
+measure performance on groups of students:
+</p>
+<div class="example">
+<pre class="example">HS = passes(60)
+
+allPass = list of { C | C in Courses &amp;&amp; HS(C)&gt;0.80 }
+</pre></div>
+
+<p>The two-step process is a key part of the injection technique.
+</p>
+<hr>
+<a name="Extensible-types"></a>
+<div class="header">
+<p>
+Previous: <a href="#Injection" accesskey="p" rel="prev">Injection</a>, Up: <a href="#Abstract-data-types" accesskey="u" rel="up">Abstract data types</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Extensible-types-1"></a>
+<h4 class="subsection">6.3.3 Extensible types</h4>
+
+<p>Sometimes, rather than configuring a program with a numeric value (or
+any other value for that matter), we need to configure it with a
+<em>type</em>. This does not happen that often, and <strong>Star</strong>&rsquo;s type
+constraints can eliminate many cases where it might be needed; but the
+requirement still shows up occasionally. Where it can show up is in
+situations where you need to develop customizable applications &mdash;
+applications that can be extended further by your customers without
+you having to change a line of your own code.
+</p>
+<p>For example, you might need to build a system that attempts to predict
+the behavior of equipment based on historical performance and current
+demand. This kind of software could be very useful in determining a
+proper maintenance schedule. Suppose that you determine that what is
+important in predicting potential breakdowns is the number of units
+processed and the number of days since the last scheduled
+maintenance. You might keep track of this in a record:
+</p>
+<div class="example">
+<pre class="example">maint ::= maint{
+  date:date.
+  units:integer.
+}
+</pre></div>
+
+<p>And you will also probably have a description of each piece of
+equipment:
+</p>
+<div class="example">
+<pre class="example">equip ::= equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+}
+</pre></div>
+
+<p>Using this, and similar records, together with some clever algorithms,
+you design a function that determines the next most likely piece of
+equipment to fail &mdash; perhaps together with an expected failure date:
+</p>
+<div class="example">
+<pre class="example">nextToFail:(list[maint],list[equip])=&gt;(equip,date).
+</pre></div>
+
+<p>The details of this algorithm, while critical to an actual
+application, are of no concern to us here.
+</p>
+<p>Now, you deliver your software to your customer and the first thing
+that they ask for is an ability to tweak it. You see, you designed it
+for generic pieces of equipment and they have particular pieces of
+equipment, with particular foibles affecting the computations needed
+to determine when equipment needs maintenance. And they need to keep
+some information in the description of equipment and maybe also in the
+maintenance records that is not in your types.
+</p>
+<p>Your challenge is to permit this kind of extension without requiring
+your code to be modified or even recompiled for each customer.
+</p>
+<p>The standard OO approach to addressing would be to permit the customer
+to <em>sub-class</em> some of the critical types (such as maint and
+equip). However, there are problems with using sub-types: in
+particular, if your algorithm requires computing <em>new</em> instances
+of data structures then sub-classing cannot work: when your algorithm
+creates a new equip record, it will not know how to create a customer
+variant of that record:
+</p>
+<div class="example">
+<pre class="example">updateEquip(E,W) =&gt; equip{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = W.
+}
+</pre></div>
+
+<p>with the result that the customer data is lost. An alternative
+approach is to allow some extensibility in the record by having a
+special extra field:
+</p>
+<div class="example">
+<pre class="example">equip[t] ::= equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  extra:t.
+}
+</pre></div>
+
+<p>Since we do not want to constrain the kind of information our
+customizer can store we make its type quantified. The extra field is
+there to support extensions; and, because we know about its existence,
+we can carry the data with us:
+</p>
+<div class="example">
+<pre class="example">updateEquip(E,W) =&gt; equip{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = W.
+  extra = E.extra.
+}
+</pre></div>
+
+<p>The problem with adding such an extra field is its type: this version
+changes the unquantified <code>equip</code> type into a quantified one. This
+will have potentially devastating impact on your code &mdash; especially
+if you want to allow multiple extensions for multiple data
+structures. The reason is that potentially a large number of functions
+will be required to carry the type parameters in their type
+signatures. This is doubly galling as these extra type parameters do
+not have any significance in the main code: they are there only to
+support potential customizations.
+</p>
+<p>Instead of universal quantification, we can use an existential type
+for the extra field:
+</p>
+<div class="example">
+<pre class="example">equip ::= exists t ~~ equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+
+  type t.
+  extra:t.
+}
+</pre></div>
+
+<p>This has the effect of permitting a local extension to a record type
+while also effectively hiding the type from the main code.
+</p>
+<p>Of course, in order for extra to have any effect on our code, we have
+to be able to make use of it within our algorithm. This is another
+customization point in the code: not only do we need to allow
+additional data but we need to be able to reference it
+appropriately. For example, we might decide that the extra field
+should have a say in determining the next maintenance date; so our
+updateEquip function should take it into account &mdash; but how?
+</p>
+<p>A simple way is to add to the equip record a set of extensibility
+functions that the customer must supply, in addition to the data
+itself:
+</p>
+<div class="example">
+<pre class="example">equip ::= exists t ~~ equip{
+  id:string.
+  eqpType:string.
+  nextMaint:date.
+  type t.
+  extra:t.
+  extraDate:(t,date)=&gt;date.
+}
+</pre></div>
+
+<p>Then, our <code>updateEquip</code> function calls this <code>extraDate</code>
+function when computing the new maintenance schedule:
+</p>
+<div class="example">
+<pre class="example">updateEquip(E,W) =&gt; equip{
+  id = E.id.
+  eqpType = E.eqpType.
+  nextMaint = E.extraDate(E.extra,W).
+  type t = E.t.     --- note evidence for type
+  extra = E.extra.
+  extraDate = E.extraDate.
+}
+</pre></div>
+
+<p>Of course, the customer has to provide functions that create the
+initial data structures, and the initial values of <code>extra</code> and
+the updating function <code>extraDate</code>. You, as the provider of the
+software, will offer a default implementation:
+</p>
+<div class="example">
+<pre class="example">equip(Id,Tp,Maint) =&gt; equip{
+  id = Id.
+  eqpType = Tp.
+  nextMaint = Maint.
+  type t = ().  -- () is Star's void type
+  extra = ().
+  extraDate = (_,W) =&gt; W.
+}
+</pre></div>
+
+<p>This approach meets our goals: we can allow customers of our software
+access to key data structures in a safe way that does not require use
+to modify our code for each customer or even to recompile it.
+</p>
+<hr>
+<a name="Phew"></a>
+<div class="header">
+<p>
+Previous: <a href="#Abstract-data-types" accesskey="p" rel="prev">Abstract data types</a>, Up: <a href="#Boiling-the-Ocean" accesskey="u" rel="up">Boiling the Ocean</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+</div>
+<a name="Phew-1"></a>
+<h3 class="section">6.4 Phew</h3>
+
+<p>This Chapter covers some difficult material! We start with a
+requirement to scale &mdash; to be able to scale code from a single module
+through to applications built by assembling libraries. Along the way
+we take in existential quantification and abstract data types.
+</p>
+<p>What we have not yet addressed are the needs of distributed
+applications. Managing distributed applications is one of the most
+tedious and difficult challenges of modern software
+development. However, before we can demonstrate <strong>Star</strong>&rsquo;s approach to
+this, we must look at <em>agent oriented systems</em> and **actors** &mdash;
+the subject of Chattering Agents.
+</p>
+<hr>
 <a name="Concept-index"></a>
 <div class="header">
 <p>
-Next: <a href="#Function-index" accesskey="n" rel="next">Function index</a>, Previous: <a href="#Functional-Programming" accesskey="p" rel="prev">Functional Programming</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
+Next: <a href="#Function-index" accesskey="n" rel="next">Function index</a>, Previous: <a href="#Boiling-the-Ocean" accesskey="p" rel="prev">Boiling the Ocean</a>, Up: <a href="#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="#SEC_Contents" title="Table of contents" rel="contents">Contents</a>][<a href="#Concept-index" title="Index" rel="index">Index</a>]</p>
 </div>
 <a name="Concept-index-1"></a>
 <h2 class="unnumbered">Concept index</h2>
@@ -3911,6 +7096,80 @@ value across the whole range of its arguments.</p>
 <p>We put the (-)
 in parentheses to highlight the use of an operator as a normal
 symbol.</p>
+<h3><a name="FOOT23" href="#DOCF23">(23)</a></h3>
+<p>The type expression <code>_</code> is a special type
+that denotes an anonymous type: each occurrence of the type expression
+denotes a different unknown type. It is useful in situations, like
+this one, where only some of the type information is known.</p>
+<h3><a name="FOOT24" href="#DOCF24">(24)</a></h3>
+<p>Note that we use <code>integer</code> to
+denote the type of string characters because the complexities of
+Unicode representation make a consistent character encoding very
+difficult.</p>
+<h3><a name="FOOT25" href="#DOCF25">(25)</a></h3>
+<p>A persistent structure is one which is never
+modified &ndash; changes are represented by new structures rather than
+modifiying existing ones.</p>
+<h3><a name="FOOT26" href="#DOCF26">(26)</a></h3>
+<p>It is also true that most
+programmers will not be constructing new implementations of the
+indexed contract very frequently.</p>
+<h3><a name="FOOT27" href="#DOCF27">(27)</a></h3>
+<p>The
+complement of the tail slice is simple: <code>C[0:tx]</code></p>
+<h3><a name="FOOT28" href="#DOCF28">(28)</a></h3>
+<p>The original collection is unaffected by the
+filter.</p>
+<h3><a name="FOOT29" href="#DOCF29">(29)</a></h3>
+<p>This
+also means that the collection type in <code>fmap</code> must be generic: it
+is not possible to implement <code>functor</code> for strings.</p>
+<h3><a name="FOOT30" href="#DOCF30">(30)</a></h3>
+<p>Note that the <strong>Star</strong> type system
+will not <em>infer</em> this generalized type.</p>
+<h3><a name="FOOT31" href="#DOCF31">(31)</a></h3>
+<p>Real as in the âeal numbers.</p>
+<h3><a name="FOOT32" href="#DOCF32">(32)</a></h3>
+<p>We saw something
+similar with the visitor pattern.</p>
+<h3><a name="FOOT33" href="#DOCF33">(33)</a></h3>
+<p>There are, unfortunately, some
+functional programmers that revel in complex code expressions like
+this one. We are not one of them!</p>
+<h3><a name="FOOT34" href="#DOCF34">(34)</a></h3>
+<p>Surprisingly, yes! Of course, discovering the
+rationality may be hard; but the immense success of Western thought
+was only possible because the universe is very rationally
+constructed.</p>
+<h3><a name="FOOT35" href="#DOCF35">(35)</a></h3>
+<p>The form <code>X^=opValue</code> is actually a
+short form of the same condition.</p>
+<h3><a name="FOOT36" href="#DOCF36">(36)</a></h3>
+<p>However that is defined!</p>
+<h3><a name="FOOT37" href="#DOCF37">(37)</a></h3>
+<p>This is not to deny that correctness is
+important. It is just that algorithmic correctness is <em>not
+enough.</em></p>
+<h3><a name="FOOT38" href="#DOCF38">(38)</a></h3>
+<p>This is somewhat analogous to
+the difference between a let and a letrec form in languages like SML.</p>
+<h3><a name="FOOT39" href="#DOCF39">(39)</a></h3>
+<p>Technically, the type is
+denoted by a Skolem Constant or a Skolem Function.</p>
+<h3><a name="FOOT40" href="#DOCF40">(40)</a></h3>
+<p>Not allowing that would cause significant
+hardship for programmers: it would require that program names could
+not be the same as type names; including constructors like foo.</p>
+<h3><a name="FOOT41" href="#DOCF41">(41)</a></h3>
+<p>A notable
+exception being SML.</p>
+<h3><a name="FOOT42" href="#DOCF42">(42)</a></h3>
+<p>Not to be confused with Algebraic Data
+Types &mdash; which represent the mathematical foundation for enumerations
+and other non-object values.</p>
+<h3><a name="FOOT43" href="#DOCF43">(43)</a></h3>
+<p>Assuming that we added the missing
+operators that we would actually need.</p>
 </div>
 <hr>
 

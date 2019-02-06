@@ -58,6 +58,9 @@ Star Reference} by F.G. McCabe.
 * Why be a Star programmer?::
 * A tour of Star::
 * Functional Programming::
+* Collections::
+* Making choices::
+* Boiling the Ocean::
 
 * Concept index::
 * Function index::
@@ -69,6 +72,12 @@ Star Reference} by F.G. McCabe.
 @include tour.texi
 
 @include func.texi
+
+@include collections.texi
+
+@include rules.texi
+
+@include ocean.texi
 
 @node Concept index
 @unnumbered Concept index

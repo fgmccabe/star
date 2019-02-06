@@ -14,9 +14,9 @@ File: guide.info,  Node: Top,  Next: Why be a Star programmer?,  Up: (dir)
 Star Guide
 **********
 
-This is the on-line guide for the 'Star' language.
+This is the on-line guide for the *Star* language.
 
-This book gives an introduction into the form and usage of the 'Star'
+This book gives an introduction into the form and usage of the *Star*
 programming language.  However, it is not a definitive reference on the
 language; for which the reader is referred to *Note (star)Top:: by F.G.
 McCabe.
@@ -26,6 +26,7 @@ McCabe.
 * Why be a Star programmer?::
 * A tour of Star::
 * Functional Programming::
+* Collections::
 
 * Concept index::
 * Function index::
@@ -37,10 +38,10 @@ File: guide.info,  Node: Why be a Star programmer?,  Next: A tour of Star,  Prev
 1 Why be a Star programmer?
 ***************************
 
-This book is about the programming language called 'Star'.  Why, you may
+This book is about the programming language called *Star*.  Why, you may
 ask, do you need to learn yet another language?  We hope to answer that
 question and more in the course of this book.  We also aim to show you
-how to program effectively in 'Star' to solve real world problems.
+how to program effectively in *Star* to solve real world problems.
 
 * Menu:
 
@@ -164,8 +165,8 @@ File: guide.info,  Node: Programming safely and effectively,  Next: Real-time is
 At the same time, safety and security are also critical: no-one likes to
 have their private information exposed to the bad guys.  Most
 main-stream programming languages were designed in an era when safety
-was not uppermost in programmers’ minds - usually it was performance.
-Some seemingly trivial design choices - such as C’s conventions for
+was not uppermost in programmers' minds - usually it was performance.
+Some seemingly trivial design choices - such as C's conventions for
 laying out strings in memory - turn out to have potentially devastating
 security implications.
 
@@ -181,11 +182,11 @@ File: guide.info,  Node: Real-time is normal time.,  Next: This train is leaving
 1.1.4 Real-time is normal time.
 -------------------------------
 
-Many kinds of business are becoming more and more ‘real-time’: a
-small - over the order of milliseconds - slowdown in loading a web page
-can mean the loss of 5% or more of revenue for an e-commerce site; an
-unrented car, like an unrented hotel room, represents a permanent loss
-of business and a competitive disadvantage.
+Many kinds of business are becoming more and more 'real-time': a small -
+over the order of milliseconds - slowdown in loading a web page can mean
+the loss of 5% or more of revenue for an e-commerce site; an unrented
+car, like an unrented hotel room, represents a permanent loss of
+business and a competitive disadvantage.
 
    For the modern programmer, this means that applications must be
 engineered from the start to be responsive and multitasking - aspects
@@ -199,8 +200,8 @@ File: guide.info,  Node: This train is leaving the station,  Next: Technology,  
 
 Perhaps most importantly, we need to be able to do these things _now_ -
 time to market is a critical factor in many if not most modern
-applications.  Its no good developing the world’s best widget if you
-run out of ‘runway’ trying to build it.
+applications.  Its no good developing the world's best widget if you run
+out of 'runway' trying to build it.
 
    A major bottleneck is the relative poor productivity of most modern
 programming languages.  It is simply too hard to produce correct robust
@@ -245,11 +246,11 @@ because it makes many programs easier to express.  On the other hand,
 that implicitness becomes a liability in multi-threaded and parallel
 situations where state is no longer so well behaved.
 
-   However, 'Star' has adopted some of the recent innovations in that
+   However, *Star* has adopted some of the recent innovations in that
 make dealing with multi-tasking and parallel execution easier.  These
 innovations layer on top of basic features such as threading and provide
-simpler models of execution than ‘conventional’ threaded models.
-'Star'’s computation expressions combine the best of fork-join queues
+simpler models of execution than 'conventional' threaded models.
+*Star*'s computation expressions combine the best of fork-join queues
 and map-reduce frameworks whilst enabling a more normal style of
 programming.
 
@@ -260,7 +261,7 @@ File: guide.info,  Node: Is Star for you?,  Next: Design goals for Star,  Prev: 
 ====================
 
 Choosing a programming language - when you actually have a choice - is
-highly personal.  Here are some reasons to think about 'Star'.
+highly personal.  Here are some reasons to think about *Star*.
 
 * Menu:
 
@@ -284,7 +285,7 @@ programming languages.
    Fundamentally, OO languages revolve around _nouns_ rather than
 _verbs_.  Verbs (methods) are relegated to being inside the scope of
 some noun (object): they are not first class.  In functional programming
-languages, like 'Star', there is more of an balance between nouns and
+languages, like *Star*, there is more of an balance between nouns and
 verbs.
 
    It is possible to have functions that are about data; it is also
@@ -294,8 +295,8 @@ definition of a _module_ is a record that contains functions in it.
 
    While OO languages like Java provide excellent _data abstraction_
 tools, the same cannot be said for _control abstractions_.  The result
-is that OO languages are ‘stuck in the 1970s’ when it comes to
-control abstractions.  However, concepts such as map/reduce, computation
+is that OO languages are 'stuck in the 1970s' when it comes to control
+abstractions.  However, concepts such as map/reduce, computation
 expressions, and continuations bring a rich suite of new control
 possibilities that solve important problems in modern programming.
 
@@ -305,7 +306,7 @@ functional languages can be.  Professional programmers will recognize a
 typical symptom of insufficiently expressive types: lots of casting and
 dynamic meta-programming.  But, while powerful, these techniques amount
 to giving up on types and their important advantages.  Furthermore,
-contrary to many programmers’ expectations, a modern type system is
+contrary to many programmers' expectations, a modern type system is
 quite capable of dealing statically with scenarios that require dynamic
 programming in languages like Java.
 
@@ -315,35 +316,40 @@ File: guide.info,  Node: If you are already a C++ programmer,  Next: If you are 
 1.2.2 If you are already a C++ programmer
 -----------------------------------------
 
-Moving to a language like 'Star' is a radically different programming
+Moving to a language like *Star* is a radically different programming
 experience for the C++ programmer.  However, most of the differences are
-not because 'Star' is a functional programming language.  Rather, it is
-because 'Star' does not abide by two of C++'s core principles: zero-cost
+not because *Star* is a functional programming language.  Rather, it is
+because *Star* does not abide by two of C++'s core principles: zero-cost
 abstractions and compatibility with C.
 
-   While 'Star''s compiler does not willfully make programs execute more
+   While *Star*'s compiler does not willfully make programs execute more
 slowly, strict CPU performance is not the primary driver for design
 features.  This shows up in a desire to avoid the so-called premature
 optimization problem: of optimizing the wrong feature.
 
-   In the case of 'Star' vs C++, the most salient of these is likely to
+   In the case of *Star* vs C++, the most salient of these is likely to
 be the different ways that generic programs are compiled: C++ compiles
 generic programs by constructing special case implementations for all
-used versions of the generic program; whereas 'Star' constructs a single
+used versions of the generic program; whereas *Star* constructs a single
 - type agnostic - implementation of generic functions.
 
    This affects many aspects of one's day-to-day usage of the language
 and its tooling.  One of which is that, for a compiler that has been in
 daily use for over 40 years, C++ compilers are still remarkably slow.
-C++ binaries can often be very large.
+C++ binaries can often be very large - typically outclassed in
+performance by the Java compiler.
 
    The compatibility with C requirement has meant that C++ has to
 support many programming paradigms (such as pointer arithmetic) that
-most modern programming languages - 'Star' included - eschew.
+most modern programming languages - *Star* included - eschew.
 
    Pointer arithmetic is known to put applications at risk of severe
 security problems; and there are many modern safer alternatives (which
 C++ does also support).
+
+   Beyond these, you will find *Star* to be a rich and expressive
+language; especilly if your focus is on applications rather than systems
+programming.
 
 
 File: guide.info,  Node: If you are already a functional programmer,  Prev: If you are already a C++ programmer,  Up: Is Star for you?
@@ -353,11 +359,11 @@ File: guide.info,  Node: If you are already a functional programmer,  Prev: If y
 
 You have many choices for functional programming languages that are
 excellent.  The author considers two languages that are principal
-sources of inspiration for many of the functional features of 'Star':
+sources of inspiration for many of the functional features of *Star*:
 Haskell and Standard ML (SML) - both of which are excellent; but not
 perfect.
 
-   For the functional programmer, the principal benefits of 'Star' are
+   For the functional programmer, the principal benefits of *Star* are
 _readability_, _modernity_ and _predictability_.
 
    One of the major drivers of the design of Haskell and (to a lesser
@@ -366,38 +372,38 @@ readability.  In modern software development environments there are many
 stakeholders beyond the developer.  Having a language that is easy to
 follow by non-technical readers is a major benefit in mixed skill teams.
 
-   Like Haskell, 'Star' has a powerful type system.  'Star'’s type
-system has many features in common with Haskell’s type system -
-features that typically go beyond the capabilities of many OO languages.
-In particular, 'Star'’s contract system is reminiscent of Haskell’s
-type classes; and 'Star'’s existential and higher-kinded types give
+   Like Haskell, *Star* has a powerful type system.  *Star*'s type
+system has many features in common with Haskell's type system - features
+that typically go beyond the capabilities of many OO languages.  In
+particular, *Star*'s contract system is reminiscent of Haskell's type
+classes; and *Star*'s existential and higher-kinded types give
 considerable expressive power to the programmer.
 
-   'Star' does not follow all of Haskell’s type features; and some
-type concepts are rephrased into terminology that is more familiar to
+   *Star* does not follow all of Haskell's type features; and some type
+concepts are rephrased into terminology that is more familiar to
 main-stream (sic) programmers.
 
-   Like SML, 'Star' has a powerful module system.  However, unlike
-SML’s functors, 'Star' modules are first class values.  This means
-that there is no artificial separation between ‘ordinary’ programs
-and ‘functor’ programs.
+   Like SML, *Star* has a powerful module system.  However, unlike SML's
+functors, *Star* modules are first class values.  This means that there
+is no artificial separation between 'ordinary' programs and 'functor'
+programs.
 
    The result is a balanced set of type features that provides
 capabilities that scale well from small programs to large systems.
 
-   'Star'’s evaluation is, like that of SML but unlike Haskell,
-strict.  We believe that that makes it significantly easier to reason
-about the actual behavior and performance of programs.  However, 'Star'
-has a rich set of features that support productive concurrent and
-parallel programming - based on a combination of system threads and the
-features of Concurrent ML.
+   *Star*'s evaluation is, like that of SML but unlike Haskell, strict.
+We believe that that makes it significantly easier to reason about the
+actual behavior and performance of programs.  However, *Star* has a rich
+set of features that support productive concurrent and parallel
+programming - based on a combination of system threads and the features
+of Concurrent ML.
 
-   Like SML, 'Star' is not a strictly ‘pure’ language.  This was
-neither an accident nor an afterthought.  Computer systems are built to
-fulfill purposeful activity (although there may be many times when the
-actual purpose is hard to discern).  For example, if I deposit a check
-into my bank account, I require that the bank’s state is updated to
-reflect my new balance: the world has changed as a result of my action.
+   Like SML, *Star* is not a strictly 'pure' language.  This was neither
+an accident nor an afterthought.  Computer systems are built to fulfill
+purposeful activity (although there may be many times when the actual
+purpose is hard to discern).  For example, if I deposit a check into my
+bank account, I require that the bank's state is updated to reflect my
+new balance: the world has changed as a result of my action.
 
    However, the converse does not follow: just because the world is
 stateful does not mean that all our programs should be needlessly
@@ -405,7 +411,7 @@ stateful.  Much, if not most, of a given application program can and
 should be crafted in a mathematical style - the merits of functional
 programming are very great.
 
-   Overall, the primary rationale in the design of 'Star' is to empower
+   Overall, the primary rationale in the design of *Star* is to empower
 the programmer in making obviously correct programs.
 
 
@@ -414,12 +420,12 @@ File: guide.info,  Node: Design goals for Star,  Next: About this book,  Prev: I
 1.3 Design goals for Star
 =========================
 
-'Star' is a multi-paradigm high-level _symbolic_ language.  It is
+*Star* is a multi-paradigm high-level _symbolic_ language.  It is
 designed to be scalable, readable, accurate, high performing and
 extensible.
 
    Paradoxically, scalability in a programming language is always about
-large and small chunks of code.  Scalability in 'Star' is fostered by a
+large and small chunks of code.  Scalability in *Star* is fostered by a
 range of elements that facilitate composition, change and re-use:
 
    * The language is strongly statically typed.  This encourages both
@@ -440,23 +446,23 @@ range of elements that facilitate composition, change and re-use:
    * The package system is intrinsically versioned and abstracted away
      from any underlying storage system.
 
-   The syntax of 'Star' is oriented towards readability rather than
+   The syntax of *Star* is oriented towards readability rather than
 strict conciseness.  The reason for this is that the programmer is only
 one of the stake holders in a given program.  A readable program is one
 that is more easily trusted by non-programmers.
 
    Experience also suggests that readability enhances programmer
 productivity also: much of team-based development involves comprehending
-and modifying other programmers’ code.
+and modifying other programmers' code.
 
-   'Star' is a strongly, statically typed language.  The purpose of a
+   *Star* is a strongly, statically typed language.  The purpose of a
 strong type system is to facilitate the communication of intent of the
 programmer.  The purpose of static typing is to ensure that the compiler
-can rapidly ‘fail’ incorrect programs without requiring the program
-to be run.  Furthermore, static type checking minimizes any run-time
+can rapidly 'fail' incorrect programs without requiring the program to
+be run.  Furthermore, static type checking minimizes any run-time
 penalty for imposing type constraints.
 
-   Although 'Star' is strongly typed, it uses _type inference_ to
+   Although *Star* is strongly typed, it uses _type inference_ to
 eliminate much of the clutter that some type systems impose on the
 programmer - which itself is a productivity sink of course.
 
@@ -467,14 +473,14 @@ subvert or bypass the type system.
 
    However, even though it is technically feasible to completely
 eliminate type declarations of functions; doing so is in conflict with
-some of the other goals behind 'Star'.  For example, type declarations
+some of the other goals behind *Star*.  For example, type declarations
 act as a form of documentation; and when there is a type error in your
 program, having _no_ explicit type declarations can make tracking the
 culprit of the error very difficult.  So all top-level variable
-definitions (typically functions) are required in 'Star' to have
+definitions (typically functions) are required in *Star* to have
 explicit type _annotations_.(1)
 
-   'Star' has a range of features that make exploiting parallelism
+   *Star* has a range of features that make exploiting parallelism
 easier to manage.  For example, it has support for _computation
 expressions_ and _actors_.  Partitioning an application into different
 _agents_ allows programming to follow a more human approach.
@@ -483,18 +489,18 @@ as easily as they do data values; that in turns greatly eases the
 development of parallel and concurrent applications.
 
    There is no one technology that can solve all problems.  This is as
-true for programming as for other domains.  'Star' supports a range of
-programming paradigms that allows the developer to ‘use the best tool
-for the job’.  However, we go beyond this ‘swiss army knife’
-stance and make it straightforward to extend the language.
+true for programming as for other domains.  *Star* supports a range of
+programming paradigms that allows the developer to 'use the best tool
+for the job'.  However, we go beyond this 'swiss army knife' stance and
+make it straightforward to extend the language.
 
    Virtually every non-trivial program can be factored into a
 combination of general purpose mechanism and specific policy for
-applying the mechanism.  'Star' has powerful self-extension features
+applying the mechanism.  *Star* has powerful self-extension features
 that allow programmers to design their own policy structures (a.k.a.
 domain specific languages).
 
-   Many of 'Star'’s own features - such as its query notation and its
+   Many of *Star*'s own features - such as its query notation and its
 actor notation - are built using these extension mechanisms.
 
    ---------- Footnotes ----------
@@ -513,9 +519,9 @@ basic features of the language are introduced; however, this is not a
 reference manual: it is not intended to be a complete description of the
 language.
 
-   That can be found in the 'Star' Language Definition.
+   That can be found in the *Star* Language Definition.
 
-   Introducing a programming language like 'Star' can be a challenge in
+   Introducing a programming language like *Star* can be a challenge in
 presentation.  This is because there is a significant amount of mutual
 support between elements of the language.
 
@@ -539,7 +545,7 @@ File: guide.info,  Node: Getting hold of Star,  Next: Typographical conventions,
 1.4.1 Getting hold of Star
 --------------------------
 
-The 'Star' compiler and run-time is being developed as an open source
+The *Star* compiler and run-time is being developed as an open source
 project on GitHub.  You can access the source by cloning or downloading
 the repository at
 
@@ -561,7 +567,7 @@ typewriter-like font, often broken out in a display form:
    We use the ... ellipsis to explicitly indicate a fragment of a
 program that may not be syntactically correct as it stands.
 
-   As we noted above, 'Star' is a rich language with many features.  As
+   As we noted above, *Star* is a rich language with many features.  As
 a result, some parts of the text may require more careful reading, or
 represent comments about potential implications of the main text.  These
 notes are highlighted the way this note is.
@@ -572,19 +578,19 @@ File: guide.info,  Node: Acknowledgements,  Prev: Typographical conventions,  Up
 1.4.3 Acknowledgements
 ----------------------
 
-No-one is an island, and no project of this scale is one person’s
-work.  I have had the great fortune to be able to develop 'Star' in the
-context of real world applications solving hard problems.  Individuals
-have also played a large role; and it can be hard to ensure that all are
-properly acknowledged: please forgive any omissions.
+No-one is an island, and no project of this scale is one person's work.
+I have had the great fortune to be able to develop *Star* in the context
+of real world applications solving hard problems.  Individuals have also
+played a large role; and it can be hard to ensure that all are properly
+acknowledged: please forgive any omissions.
 
    Of particular significance, I would like to thank Michael Sperber for
 our many discussions on the finer topics of language design; and for his
 not insignificant contributions to the implementation itself.
 
    I would also like to thank my old colleagues at Starview inc., in
-particular Steve Baunach and Bob Riemenschneider who were the world’s
-first 'Star' programmers!  In addition, I would like to thank Michael
+particular Steve Baunach and Bob Riemenschneider who were the world's
+first *Star* programmers!  In addition, I would like to thank Michael
 Sperber, David Frese and Andreas Bernauer who helped with crucial parts
 of the implementation of the concurrency features.  I would also like to
 thank Keith Clark, Kevin Cory, Prasenjit Dey, Chris Gray, Mack
@@ -601,9 +607,9 @@ File: guide.info,  Node: A tour of Star,  Next: Functional Programming,  Prev: W
 2 A tour of Star
 ****************
 
-Our first task is to introduce you to the 'Star' language.  It is
+Our first task is to introduce you to the *Star* language.  It is
 difficult to find the right order in which to present a programming
-language like 'Star'; this is because many of the features are highly
+language like *Star*; this is because many of the features are highly
 inter-related.  For example, types depend on values which depend on
 functions which depend on types!
 
@@ -653,7 +659,7 @@ programming languages:
 a more typical source code unit - most programs are built from many
 smaller modules which come together to make the application.  This
 program is small, but already introduces many of the key elements of the
-'Star' language.
+*Star* language.
 
    In this module, we see the name of the module - 'sample.factorial' -
 an import statement and a function definition - of the 'fact' function.
@@ -661,9 +667,9 @@ an import statement and a function definition - of the 'fact' function.
    Source code can be in any form of textual container.  There is, for
 example, no specific requirement that this 'sample.factorial' package be
 in a file called 'factorial.star'; although that may be good advice.
-Instead, the 'Star' system relies on a _catalog based_ system that maps
+Instead, the *Star* system relies on a _catalog based_ system that maps
 package names to text entities.  The catalog system also serves as an
-anchor point in the version management of 'Star' programs.  We will
+anchor point in the version management of *Star* programs.  We will
 cover this, and the related repository system for generated artifacts,
 in Chapter 4.
 
@@ -676,7 +682,7 @@ File: guide.info,  Node: Texture,  Next: Types more types and even more types,  
 All programming languages can be said to have a particular _style_ or
 _texture_.  This is often so strong that it is often possible to
 identify a programming language from a single line of source code.  In
-the case of 'Star', this line might be:
+the case of *Star*, this line might be:
 
      public fact : (integer)=>integer.
    which is a _type annotation statement_ declaring the type of the
@@ -702,11 +708,11 @@ File: guide.info,  Node: Lexical style,  Next: Types,  Up: Texture
 2.2.1 Lexical style
 -------------------
 
-'Star'’s lexical syntax uses a combination of special operators and
+*Star*’s lexical syntax uses a combination of special operators and
 keywords.
 
    It can be difficult for language designers to decide when to use a
-keyword and when to use a special operator.  In the case of 'Star' we
+keyword and when to use a special operator.  In the case of *Star* we
 use special operators for common elements and keywords when either a
 graphical operator would be obscure and/or is not common.
 
@@ -725,13 +731,13 @@ helps to reduce the scope of error messages.(2)
      statement is a closing brace - or unless the statement is itself
      the last statement in a brace sequence.(3)
 
-   Another aspect of 'Star'’s texture that may not be visible at this
+   Another aspect of *Star*’s texture that may not be visible at this
 stage is the reliance on an underlying meta-grammar - specifically on an
 _operator precedence grammar_.  OPGs are likely already familiar to you:
 it is the almost universally used grammar that underpins arithmetic
 expressions.  We take the OPG and stretch its use to include the whole
 language.  The relevance of this will be apparrent when we look at
-_extending_ 'Star' with new language features.
+_extending_ *Star* with new language features.
 
    ---------- Footnotes ----------
 
@@ -739,7 +745,7 @@ _extending_ 'Star' with new language features.
 the only way of grouping statements.
 
    (2) We use the period rather than the commonly used semi-colon
-because 'Star' statements are statements, not instructions to perform in
+because *Star* statements are statements, not instructions to perform in
 sequence.
 
    (3) This is one of those somewhat pedantic notes!
@@ -750,10 +756,10 @@ File: guide.info,  Node: Types,  Next: Rules,  Prev: Lexical style,  Up: Texture
 2.2.2 Types
 -----------
 
-'Star' is a strongly, statically typed language.  This means that all
+*Star* is a strongly, statically typed language.  This means that all
 variables and expressions have a single type; and that all type
 constraints are enforceable at compile-time.  This is a fairly strong
-(sic) statement but it is a key aspect of 'Star'’s design - we need
+(sic) statement but it is a key aspect of *Star*’s design - we need
 everything to be well typed and we also want to guarantee completeness
 of the type system.
 
@@ -763,7 +769,7 @@ of the type system.
    is a statement that declares that the type of 'fact' is a function of
 one integer argument and which returns an integer result.
 
-   'Star' encourages, but does not require, most programs to have
+   *Star* encourages, but does not require, most programs to have
 explicit type annotations.  The precise rule is a little subtle:
 variables whose type are not quantified _may_ have their type
 automatically inferred.  For top-level functions, that annotation is
@@ -775,9 +781,9 @@ recursive equation - do not need type annotations.  This is possible
 because underlying the type system is a powerful _type inference_ system
 that can actually infer all types.
 
-   The result is that a lot of the ‘clutter’ that can pervade a
-strongly typed language is just not necessary; but the use of explicit
-type annotations for top-level definitions provides useful structure and
+   The result is that a lot of the 'clutter' that can pervade a strongly
+typed language is just not necessary; but the use of explicit type
+annotations for top-level definitions provides useful structure and
 documentation.
 
    Note that the requirement is that quantified _definitions_ have
@@ -791,7 +797,7 @@ File: guide.info,  Node: Rules,  Next: Patterns,  Prev: Types,  Up: Texture
 2.2.3 Rules
 -----------
 
-In 'Star', most programs are defined using _rules_.  In this case,
+In *Star*, most programs are defined using _rules_.  In this case,
 'fact' is defined using _equations_.  The equations that make up a
 function definition (or any program definition for that matter) are
 statements that are written in order.
@@ -805,7 +811,7 @@ focus on each case in relative isolation.
 into cases like this is very helpful in supporting large-scale issues
 such as code annotations, versioning and life-cycle management.
 
-   'Star' has various kinds of rules, including function definitions,
+   *Star* has various kinds of rules, including function definitions,
 grammar definitions, variable definitions and type definitions.
 
 
@@ -814,12 +820,12 @@ File: guide.info,  Node: Patterns,  Next: Packages,  Prev: Rules,  Up: Texture
 2.2.4 Patterns
 --------------
 
-Patterns are ubiquitous in 'Star': they form the basis of many rules:
+Patterns are ubiquitous in *Star*: they form the basis of many rules:
 including, most importantly, to define equations.  In fact, _all_
 variables are introduced by means of patterns.
 
    A pattern can be viewed as a combination of a test -- does a value
-match a particular pattern -- and as a way ( _the_ way in 'Star') of
+match a particular pattern -- and as a way ( _the_ way in *Star*) of
 binding a variable to a value.
 
    An equation’s pattern defines when the equation is applicable.  The
@@ -931,7 +937,7 @@ File: guide.info,  Node: Types more types and even more types,  Next: A tale of 
 =========================================
 
 In many ways, the defining characteristic of a programming language is
-the approach to types.  As we shall see, 'Star'’s type system is quite
+the approach to types.  As we shall see, *Star*’s type system is quite
 extensive and powerful; however, simple types are quite straightforward.
 
    The most basic question to ask about types is
@@ -940,19 +946,19 @@ extensive and powerful; however, simple types are quite straightforward.
 
    There is some surprising variability to the answer to this question;
 for example, in many OO languages, types are conflated with classes.
-'Star' types are terms - i.e., names - that denote different kinds of
+*Star* types are terms - i.e., names - that denote different kinds of
 values.
 
      Type: A type is a term that denotes a collection of values.(1)
 
-   'Star'’s type system can be broken down into a number of
+   *Star*’s type system can be broken down into a number of
 dimensions:
 
    * How legal values of various kinds can be identified with a type;
    * the treatment of type variables and quantifiers; and
    * constraints on types, particularly type variables
 
-   'Star' distinguishes two basic styles of type: so-called _structural_
+   *Star* distinguishes two basic styles of type: so-called _structural_
 or transparent types and _nominative_ or opaque types.  A structural
 type term echoes the values it models, whereas a nominative type
 typically does not.
@@ -1097,7 +1103,7 @@ consisting of an 'integer', a 'string' and an 'employee' in this case.
 Values of this tuple type are also tuples; for example:
      (3,"fred",employee{name="peter". dept:="sales"})
 
-   'Star' has several forms of structural type, the tuple type is one of
+   *Star* has several forms of structural type, the tuple type is one of
 them; others include _record types_ and _function types_.
 
    We shall see more of these as we introduce the rest of the language.
@@ -1142,7 +1148,7 @@ variable to be null but the compiler must discover those for itself; and
 there is often a consequent tendency in defensive programming to test
 for null.
 
-   'Star' has no direct equivalent of a global null value.  However, the
+   *Star* has no direct equivalent of a global null value.  However, the
 standard 'option' type allows the equivalent of selective nullability.
 Any variable that might not have a proper value can be marked with the
 option type rather than the underlying type.  And you can use 'none' in
@@ -1197,7 +1203,7 @@ issues can range from the nature of floating point numbers, the
 difference between integers and long values and the multiple potential
 concepts of equality for objects.
 
-   Equality in 'Star' is always between values of the _same type_ and it
+   Equality in *Star* is always between values of the _same type_ and it
 is always _semantic_.  So, for example, an equality condition such as:
 
      3==3.0
@@ -1254,7 +1260,7 @@ beyond those we might be comfortable with:
    * we had to construct an explicit loop, with the result that we
      sequentialized the process of adding up the numbers.
 
-   We can also write an equivalent loop in 'Star':
+   We can also write an equivalent loop in *Star*:
 
      total = valof do{
        tot := 0;
@@ -1264,7 +1270,7 @@ beyond those we might be comfortable with:
      }
 
    The valof/return combination is a neat way of segueing from the
-‘world of expressions’ into the ‘world of actions’.
+'world of expressions' into the 'world of actions'.
 
    This program is essentially equivalent to the Java loop; although
 there are some subtleties about the nature of valof/valis that go beyond
@@ -1292,17 +1298,16 @@ to use a function.  For example, we can write:
 iteration.
 
    The type expression 'cons[integer]' refers to the standard type of
-‘cons lists’.  Similarly, 'nil' refers to the empty list and
-'cons(E,L)' refers to the list obtained by prepending 'E' to the list
-'L'.  We will explore this in more detail in *note Functional
-Programming::.
+'cons lists'.  Similarly, 'nil' refers to the empty list and 'cons(E,L)'
+refers to the list obtained by prepending 'E' to the list 'L'.  We will
+explore this in more detail in *note Functional Programming::.
 
    Even if it is more declarative, there is still a lot of extra detail
 and architectural commitments here -- like the commitment to 'cons'
 lists and the commitment to integers.  These result in a function that
 is needlessly restricted.
 
-   Like other functional languages, 'Star' has a range of higher-order
+   Like other functional languages, *Star* has a range of higher-order
 operators that may come to the rescue.  For example, we can avoid the
 explicit recursion altogether by using 'leftFold':
 
@@ -1350,10 +1355,10 @@ parallel algorithm for the computation should it be more optimal.
 
      Add up the numbers in L
 
-   'Star'’s query expressions -- which are similar to but also more
+   *Star*’s query expressions -- which are similar to but also more
 expressive than LINQ -- can be used to encapsulate a wide range of such
 computations.  We shall look deeper into them when we look at query
-rules in 'Star'.
+rules in *Star*.
 
      Of course, SQL programmers have long had access to this kind of
      conciseness and declarative expressiveness.  However, SQL is
@@ -1392,7 +1397,7 @@ File: guide.info,  Node: Contracts and constrained types,  Next: There is more, 
 
 The concepts of interface and contract are foundational in modern
 software engineering.  This is because explicit interfaces make it
-substantially easier to develop and evolve systems.  A 'Star' contract
+substantially easier to develop and evolve systems.  A *Star* contract
 goes beyond the traditional concept of interface in important ways: we
 do not mark the definition of a type with its implemented contracts and
 we allow contracts to involve multiple types.
@@ -1433,7 +1438,7 @@ The type of 'double' reflects the fact that we are using elements from
 the 'four' contract:
      double : all t ~~ four[t] |: (t)=>t.
    I.e., it inherits the same constraint as the function 'plus' has.
-There are several kinds of type constraint in 'Star'’s type system;
+There are several kinds of type constraint in *Star*’s type system;
 but the _contract constraint_ is the most significant of them.
 
      Notice that we have to give an explicit type annotation for
@@ -1512,7 +1517,7 @@ being involved.  The 'display' contract is used to display values in a
 number of circumstances; including the string formatting we saw above.
 
    As may be expected, arithmetic itself is also mediated via the
-arithmetic contract in 'Star'.  This is how we can support multiple
+arithmetic contract in *Star*.  This is how we can support multiple
 numeric types using a common set of operators: there are standard
 implementations of arithmetic for integers, and floating point numbers.
 
@@ -1522,7 +1527,7 @@ File: guide.info,  Node: Coercion not casting,  Prev: Implementing contracts,  U
 2.6.2 Coercion, not casting
 ---------------------------
 
-'Star' does not support automatic type casting, as found in languages
+*Star* does not support automatic type casting, as found in languages
 like Java and C/C++.  This is for many reasons, not the least of which
 is safety and predictability of code.
 
@@ -1539,11 +1544,11 @@ is a 'Person'.  On the other hand, casting an integer to a floating
 point number involves changing the value to conform to the floating
 point representation.
 
-   'Star' does not support casting, but does support coercion.  However,
-coercion in 'Star' is never silent or implicit - as it can be in Java
+   *Star* does not support casting, but does support coercion.  However,
+coercion in *Star* is never silent or implicit - as it can be in Java
 and C/C++.  An expression of the form:
      3+4.5
-   will fail to type in 'Star' - because there is an attempt to add an
+   will fail to type in *Star* - because there is an attempt to add an
 integer to a floating point number.
 
    The reason for signaling an error is strongly related to safety and
@@ -1554,14 +1559,14 @@ integers can be represented as floating point values).  The implicit
 coercion of numeric values is easy to miss when reading arithmetic
 expressions.
 
-   'Star' provides a coercion notation that allows programmers to be
+   *Star* provides a coercion notation that allows programmers to be
 precise in their expectations:
 
      (3 :: float)+4.5
    denotes the explicit coercion of the integer '3' to a 'float' and
 type checks as expected.
 
-   In fact, type coercion in 'Star' is mediated via a contract and this
+   In fact, type coercion in *Star* is mediated via a contract and this
 expression is equivalent to
      (_coerce(3):float)+4.5
    where '_coerce' is defined in the 'coercion' contract involving two
@@ -1582,7 +1587,7 @@ floats.  Other implementation statements give the definitions for other
 forms of coercion.
 
    Having coercion as a contract makes it straightforward to add new
-forms of coercion.  This is used quite extensively within 'Star' itself:
+forms of coercion.  This is used quite extensively within *Star* itself:
 for example, parsing JSON can be viewed as coercion from string values
 to 'json' values.  Thus the interface to parsers can be standard across
 all types and parsers.
@@ -1593,16 +1598,16 @@ File: guide.info,  Node: There is more,  Prev: Contracts and constrained types, 
 2.7 There is more
 =================
 
-As we have noted, 'Star' is a rich language and it would be impossible
+As we have noted, *Star* is a rich language and it would be impossible
 to try to cover it in a short introduction.  Later chapters will look at
 some of the other features such as a deeper look at contracts, queries &
 query rules, actors, concurrency, existential types, and extending
-'Star' with domain specific languages.  The next chapter (*Note
+*Star* with domain specific languages.  The next chapter (*Note
 Functional Programming::) starts this process by looking at functional
-programming in 'Star'.
+programming in *Star*.
 
 
-File: guide.info,  Node: Functional Programming,  Next: Concept index,  Prev: A tour of Star,  Up: Top
+File: guide.info,  Node: Functional Programming,  Next: Collections,  Prev: A tour of Star,  Up: Top
 
 3 Functional Programming
 ************************
@@ -1627,7 +1632,7 @@ expressed functionally, and that functional programming is often at
 least as efficient and sometimes more efficient than procedural
 programming.
 
-   In this chapter we will show how we can utilize 'Star' as a vehicle
+   In this chapter we will show how we can utilize *Star* as a vehicle
 for functional programming.  As a side-goal, we also hope to demystify
 some of the language and ideas found in functional programming.
 
@@ -1674,11 +1679,11 @@ attributes: the importance of _composition_ and the power of
 _abstraction_.  Functional programming is almost ideally placed to
 exploit both of these to the full.
 
-   'Star' is not actually a _pure_ functional programming language;
+   *Star* is not actually a _pure_ functional programming language;
 i.e., it is possible to write programs that violate the declarative
 principle.  However, it is a _functional-first_ programming language: a
 declarative style is strongly encouraged.  In this book we shall mostly
-focus on writing pure functional programs in 'Star'.
+focus on writing pure functional programs in *Star*.
 
    ---------- Footnotes ----------
 
@@ -1707,12 +1712,12 @@ is exactly zero and the third when it is strictly positive.  These
 represent the three possible cases in the definition of the sign
 function.
 
-   A 'Star' function may be built from any number of rewrite equations;
+   A *Star* function may be built from any number of rewrite equations;
 however, they must all be contiguous within the same group of
 statements.
 
    Although it is good practice to ensure that equations in a function
-definition do not overlap, 'Star' will try the equations in a function
+definition do not overlap, *Star* will try the equations in a function
 definition in the order they are written in.(1)  We could have relied on
 this and written 'sign' using:
 
@@ -1783,7 +1788,7 @@ be applied to the integer value '34'.
 then the equation _fires_ and the value of the expression on the right
 hand side of the equation becomes the value of the function.
 
-   There are many kinds of pattern in 'Star'; here, we look at three of
+   There are many kinds of pattern in *Star*; here, we look at three of
 the most common kinds of pattern, and in later sections, we look at
 additional forms of patterns.
 
@@ -1791,8 +1796,8 @@ _Variable Pattern_
      A variable pattern is denoted by an identifier; specifically by the
      first occurrence of an identifier.
 
-     A variable pattern always succeeds and has the additional effect of
-     _binding_ the variable to the value being matched.
+   A variable pattern always succeeds and has the additional effect of
+_binding_ the variable to the value being matched.
 
    For example, the 'X' in the left hand side of
      double(X) => X+X
@@ -1807,7 +1812,7 @@ _scope_.
      initial occurrence of the variable through to the whole of the
      right hand side of the equation.
    * Variable patterns are the _only_ way that a variable can get a
-     value in 'Star'.
+     value in *Star*.
 
    Subsequent occurrences of variables in a pattern are semantically
 equivalent to an equality test; specifically a call to the '=='
@@ -1834,8 +1839,8 @@ equality_.  What this means, for example, is that two strings are equal
 if they have the same sequence of characters in them, not just if they
 are the same object in memory.
 
-     NOTE: However, not all types admit equality: for example, functions
-     are not comparable; similarly, implementing equality for circular
+     NOTE: not all types admit equality: for example, functions are not
+     comparable; similarly, implementing equality for circular
      structures is problematic.(2)
 
    There is no automatic coercion of values to see if they _might_
@@ -1859,14 +1864,14 @@ pattern matches and if its condition is _satisfied_.
      Note that conditions _may_ bind variables.  This is why we do not
      state that conditions are boolean-valued expressions.
 
-   'Star' has a normal complement of special conditional forms which we
+   *Star* has a normal complement of special conditional forms which we
 shall explore as we encounter the need.  In the case of the equation:
      sign(X) where X>0
    the guard pattern is equivalent to:
      X where X>0
    We can put guard pattern anywhere that a pattern is valid; and, for
 convenience, we can also put them immediately to the left of the rewrite
-equation’s is operator.
+equation's '=>' operator.
 
      Any variables that are bound by the pattern part of a guarded
      pattern are _in scope_ in the condition part of the guard.
@@ -1882,7 +1887,7 @@ pattern 'X' and will then be tested by evaluating the condition 'X>0'.
    (1) This terminology originates from Logic - where a formula can be
 satisfied (made true) by observations from the world.
 
-   (2) None of the standard 'Star' data types are circular in nature.
+   (2) None of the standard *Star* data types are circular in nature.
 
 
 File: guide.info,  Node: Order of evaluation,  Prev: Functions,  Up: Basics
@@ -1890,13 +1895,13 @@ File: guide.info,  Node: Order of evaluation,  Prev: Functions,  Up: Basics
 3.2.2 Order of evaluation
 -------------------------
 
-'Star' is a so-called _strict_ language.  What that means is that
+*Star* is a so-called _strict_ language.  What that means is that
 arguments to functions are evaluated prior to calling the function.
 
      We do not specify the order of evaluation of the arguments of the
      function; except that:
-       1. Arguments are evaluated before entry to the function.
-       2. The function is evaluated before entry to the function.
+        * Arguments are evaluated before entry to the function.
+        * The function is evaluated before entry to the function.
 
    Most programming languages are strict; for two main reasons:
 
@@ -1920,12 +1925,12 @@ evaluation.  Lazy evaluation means simply that expressions are only
 evaluated _when needed_.  Lazy evaluation has many potential benefits:
 it certainly enables some very elegant programming techniques.
 
-   Essentially for the reasons noted above, 'Star' does not use lazy
-evaluation; however, as we shall see, there are features of 'Star' that
+   Essentially for the reasons noted above, *Star* does not use lazy
+evaluation; however, as we shall see, there are features of *Star* that
 allow us to recover some of the power of lazy evaluation.(1)
 
    The other dimension in evaluation order relates to the rewrite
-equations used to define functions.  Here, 'Star' uses an in-order
+equations used to define functions.  Here, *Star* uses an in-order
 evaluation strategy: the equations that make up the definition of a
 function are tried in the order that they are written - with the one
 exception being any default equation which is always tried last.
@@ -1942,9 +1947,9 @@ File: guide.info,  Node: Another look at types,  Next: Functions as values,  Pre
 3.3 Another look at types
 =========================
 
-Organizing data is fundamental to any programming language.  'Star'’s
+Organizing data is fundamental to any programming language.  *Star*'s
 data types are organized around the algebraic data type.  In addition,
-'Star'’s supports quantified types of several varieties.
+*Star*'s supports quantified types of several varieties.
 
 * Menu:
 
@@ -1969,7 +1974,7 @@ scope.  If a type variable is not bound within a particular type
 expression, it is considered _free_ in that type expression.
 
    A _quantified type_ is a type that introduces (i.e., binds) a type
-variable.  There are two quantifiers in 'Star': a universal quantifier
+variable.  There are two quantifiers in *Star*: a universal quantifier
 and an existential quantifier.
 
    The most common quantifier is the _universal quantifier_ and
@@ -1983,14 +1988,14 @@ and collection types.  For example, the type
 value.  The standard type for the equality predicate '==' is similar to
 this type.
 
-   A universally quantified type should be read as ‘for all possible
-values’ of the bound variable.  For example, this function type should
+   A universally quantified type should be read as 'for all possible
+values' of the bound variable.  For example, this function type should
 be read as denoting functions that:
 
-     for any possible type - 'x' - the function takes two such 'x'’s
-     and returns a 'boolean'.
+     for any possible type - 'x' - the function takes two such 'x''s and
+     returns a 'boolean'.
 
-   'Star' also supports _existentially_ quantified types - these are
+   *Star* also supports _existentially_ quantified types - these are
 useful for denoting the types of modules and/or abstract data types.
 For example, the type expression:
 
@@ -2028,7 +2033,7 @@ quantifier; specifically to those argument types that do admit equality.
 
    We can do this by adding a _contract constraint_ to the type - the
 constraint states that equality must be defined for the type.  We do
-this by prepending a constraint clause to the type:
+this by prepending an 'equality' constraint clause to the type:
      all x ~~ equality[x] |: (x,x)=>boolean
    The 'equality[x] |:' clause states that the type variable 'x' must
 satisfy the 'equality' contract.
@@ -2039,14 +2044,15 @@ definition of the contract itself, in this case:
        (==) : (t,t) => boolean.
      }
    In effect, the 'equality' contract states that there must be a single
-function defined - '==' .
+function defined - '==' - that is defined for any type that claims to
+satisfy the 'equality' contract.
 
    If this seems a little circular, it is not.  The 'equality' contract
 is effectively saying that the '==' function must be defined for the
 type; and we constrain function (and other) types with the 'equality'
 contract constraint when we need to ensure that '==' is defined!
 
-   We provide evidence for contracts through the implementation
+   We provide evidence for contracts through the 'implementation'
 statement.  This declares that a given type satisfies a contract by
 providing implementations for the functions in the contract.
 
@@ -2122,12 +2128,12 @@ property that makes constructor functions useful for representing data.
 
    Of course, we are talking of a _logical_ property of constructor
 functions.  Internally, when implementing functional languages like
-'Star', the values returned by constructor functions are represented
+*Star*, the values returned by constructor functions are represented
 using data laid out in memory - just like in any other programming
 language.
 
-   'Star' actually employs a special type for constructor functions; so
-the correct type of 'polar' is given by:
+   *Star* actually uses a special type for constructor functions; so the
+correct type of 'polar' is given by:
      polar : (float,float)<=>point
    The double arrow representing the fact that constructor functions are
 bijections.
@@ -2148,8 +2154,8 @@ symbolic alternatives.  The classic example of an enumerated type is
      boolean ::= true | false.
    Unlike enumerated symbols in some languages, there is no numeric
 value associated with an enumeration symbol: an enumerated symbol
-‘stands for’ itself only.  The reason for this will become clear in
-our next type definition which mixes enumerated symbols with constructor
+'stands for' itself only.  The reason for this will become clear in our
+next type definition which mixes enumerated symbols with constructor
 functions:
      sTree ::= sEmpty | sNode(sTree,string,sTree)
    In addition to mixing the enumerated symbol ('sEmpty') with the
@@ -2160,7 +2166,7 @@ strings.  (We shall see shortly how to generalize this).
    Whenever you have a recursive type, its definition must always
 include one or more cases that are not recursive and which can form the
 base case(s).  In that sense, an enumerated symbol like 'sEmpty' plays a
-similar role in 'Star' as null does in other languages; except that
+similar role in *Star* as null does in other languages; except that
 'sEmpty' is only associated with the sTree type.
 
    We can use 'sTree' to construct binary trees of string value; for
@@ -2170,9 +2176,11 @@ example:
            sNode(sEmpty,"gamma",sEmpty))
    denotes the tree in:
 
-   ![A Binary string Tree][images/sTree.jpg]
+ [image src="images/sTree.png" ]
 
-     One of the hallmarks of languages like 'Star' is that _every_ value
+Figure 3.1: A Binary string Tree
+
+     One of the hallmarks of languages like *Star* is that _every_ value
      has a legal syntax: it is possible to construct an expression that
      denotes a literal value of any type.
 
@@ -2181,15 +2189,15 @@ over 'sTree's.  For example, the 'check' function returns 'true' if a
 given tree contains a particular search term:
      check(sEmpty,_) => false.
      check(sNode(L,Lb,R),S) => Lb==S || check(L,S) || check(R,S).
-   Here we see several new aspects of 'Star' syntax:
+   Here we see several new aspects of *Star* syntax:
 
    * An empty pattern - marked by '_' - matches anything.  It is called
-     the _anonymous pattern_ and is used whenever we don’t care about
+     the _anonymous pattern_ and is used whenever we don't care about
      the actual content of the data.
    * The '||' disjunction is a _short-circuit_ disjunction; much like
      '||' in languages like Java.  Similarly, conjunction ('&&') is also
      short-circuiting.
-   * Functions can be recursive.  'Star' permits _mutual recursion_ just
+   * Functions can be recursive.  *Star* permits _mutual recursion_ just
      as easily: there is no special requirement to order function
      definitions in a program.
 
@@ -2272,16 +2280,16 @@ _Closure_
      A closure is a structure that is the value of a function expression
      and which may be applied to arguments.
 
-   It is important to note that, as a programmer, you will never
-‘see’ a closure in your program.  It is an implementation artifact
-in the same way that the representation of floating point numbers is an
+   It is important to note that, as a programmer, you will never 'see' a
+closure in your program.  It is an implementation artifact in the same
+way that the representation of floating point numbers is an
 implementation artifact that allow computers to represent fractional
 numbers but which programmers (almost) never see explicitly in programs.
 
    Pragmatically, one of the important roles of closures is to capture
 any free variables that occur in the function.  Most functional
 programming languages implement functions using closure structures.
-Most functional programming languages (including 'Star') do not permit
+Most functional programming languages (including *Star*) do not permit
 direct manipulation of the closure structure: the only thing that you
 can _do_ with a closure structure is to use it as a function.
 
@@ -2310,7 +2318,7 @@ function 'isS' using the 'let' expression:
        isS(X) => X==S
      } in isS
    The region between the braces is a _definition environment_ and
-'Star' allows _any_ definition statement to be in such an environment.
+*Star* allows _any_ definition statement to be in such an environment.
 We can define check using a let expression:
      check(T,S) => fTest(T,
          let{
@@ -2392,10 +2400,10 @@ type 't', 'tree[t]' is also a type.  There are infinitely many such
 types of course.
 
    The 'all' quantifier is important: as in logic, there are two kinds
-of quantifiers in 'Star'’s type system: the _universal_ quantifier all
+of quantifiers in *Star*'s type system: the _universal_ quantifier all
 and the _existential_ quantifier exists.
 
-     'Star' uses context to determine whether any given identifier is a
+     *Star* uses context to determine whether any given identifier is a
      type variable or a type name.  Specifically, if an identifier is
      bound by a quantifier then it must refer to a type variable.
 
@@ -2404,7 +2412,7 @@ definition are similarly quantified:
      tEmpty:all t ~~ tree[t].
 
      tNode:all t ~~ (tree[t],t,tree[t)]<=>tree[t].
-   The type 'tree[t]' on the right hand side of 'tEmpty'’s type
+   The type 'tree[t]' on the right hand side of 'tEmpty''s type
 annotation raises a couple of interesting points:
 
   1. This looks like a type annotation with no associated definition.
@@ -2414,9 +2422,9 @@ annotation raises a couple of interesting points:
 
   2. The type of a literal 'tEmpty' expression - assuming that no
      further information is available - will be of the form 'tree[t34]'
-     where 't34' is a ‘new’ type variable not occurring anywhere
-     else in the program.  In effect, the type of 'tEmpty' is tree of
-     _some type_ 't34' where we don’t know anything more about 't34'.
+     where 't34' is a 'new' type variable not occurring anywhere else in
+     the program.  In effect, the type of 'tEmpty' is tree of _some
+     type_ 't34' where we don't know anything more about 't34'.
 
 
 File: guide.info,  Node: Generic functions,  Prev: Generic types,  Up: Functions as values
@@ -2490,9 +2498,9 @@ walking as:
      tVisit:all a,t ~~ (tree[t],(a,t)=>a,a)=>a.
      tVisit(tEmpty,_,A) => A.
      tVisit(tNode(L,Lb,R),F,A) => tVisit(R,F,F(tVisit(L,F,A),Lb)).
-   Just as the accumulating function acquires a new ‘state’
-parameter, so the 'tVisit' function also does.  The 'A' parameter in the
-two equations represents this accumulated state.
+   Just as the accumulating function acquires a new 'state' parameter,
+so the 'tVisit' function also does.  The 'A' parameter in the two
+equations represents this accumulated state.
 
    The second rewrite equation for 'tVisit' is a bit dense so let us
 open it out and look more closely.  A more expanded way of writing the
@@ -2567,7 +2575,7 @@ _architecturally entangled_: from the perspective of the 'check' and
 'count' functions themselves.
 
    In short, they are both tied to our 'tree' type.  However, there are
-many possible collection data types; 'Star' for instance has some 5 or 6
+many possible collection data types; *Star* for instance has some 5 or 6
 different standard collection types.  We would prefer not to have to
 re-implement the 'check' and 'count' functions for each type.
 
@@ -2692,7 +2700,7 @@ in any way the type definition of 'tree' or 'sTree'.  From a software
 engineering point of view this is quite important: we are able to gain
 all the benefits of interfaces without needing to entangle them with our
 types.  This becomes critical in situations where we are not able to
-modify types - because they don’t belong to us and/or we don’t have
+modify types - because they don't belong to us and/or we don't have
 access to the source.
 
 
@@ -2719,7 +2727,7 @@ choice for the numeric type.
      double(X) => X+X
    What type should 'double' have?  In particular, what should the type
 of '+' be?  Most people would be reluctant to use different arithmetic
-operators for different types of numbers.(1)  This is resolved in 'Star'
+operators for different types of numbers.(1)  This is resolved in *Star*
 by relying on contracts for the arithmetic operations.
 
    The result is that the most appropriate type signature for 'double'
@@ -2778,9 +2786,8 @@ There are many situations where it is not possible to guarantee that a
 computation will succeed.  The simplest examples of this include
 scenarios such as accessing external files; but may also apply to
 getting the first element of a list or the label of a 'tree' node.  The
-great unknown of accessing elements of a collection is ‘is it
-there?’.  Its not guaranteed of course, and we need to be able to
-handle failure.
+great unknown of accessing elements of a collection is 'is it there?'.
+Its not guaranteed of course, and we need to be able to handle failure.
 
    Many languages employ the concept of a special 'null' value to denote
 some of these cases - like a 'someOne' not having a 'spouse'.  However,
@@ -2828,7 +2835,7 @@ File: guide.info,  Node: Special syntax for optional values,  Prev: Optional com
 ------------------------------------------
 
 Of course, the code above _is_ kind of clumsy!  There is a range of
-operators in 'Star' to make using 'option' values more pleasant.
+operators in *Star* to make using 'option' values more pleasant.
 
    The most important of these is the '^=' operator which combines the
 '.=' with the 'some' match.  Using this, the 'isMarriedTo' function
@@ -2867,12 +2874,12 @@ expression is also 'none', otherwise it takes the form:
    (assuming that 'nameOf' is defined for 'Person's.)
 
    Overall, the 'option' type is part of an elegant approach to
-nullability that is easily incorporated into 'Star'’s (and similar)
-type system.
+nullability that is easily incorporated into *Star*'s (and similar) type
+system.
 
    ---------- Footnotes ----------
 
-   (1) Read as ‘has a value’.
+   (1) Read as 'has a value'.
 
 
 File: guide.info,  Node: A word about type inference,  Next: Are we there yet?,  Prev: Polymorphic arithmetic,  Up: Functional Programming
@@ -2882,7 +2889,7 @@ File: guide.info,  Node: A word about type inference,  Next: Are we there yet?, 
 
 We have seen some powerful forms of types in this chapter: recursive
 types defined using algebraic type definitions, generic types and even
-function types.  Recall also that 'Star' only requires programmers to
+function types.  Recall also that *Star* only requires programmers to
 explicitly declare the types of quantified variables and functions.  It
 is worth pausing a little to see how this might be done.
 
@@ -2895,7 +2902,7 @@ inference may seem magical, but is actually (mostly) quite simple.  Let
 us take a look at the expression:
      N-1
    which is buried within the recursive call in 'fact'.  Although it
-looks like a special operator, 'Star' does not treat arithmetic
+looks like a special operator, *Star* does not treat arithmetic
 expressions in a special way; the '-' function is just a function from
 numbers to numbers; its type is given by:(1)
      (-) : all t ~~ arith[t] |: (t,t)=>t
@@ -2905,8 +2912,8 @@ assume that the type of ('-') is:
      (-) : (integer,integer)=>integer
    Type inference proceeds by using special _type inference rules_ which
 relate expressions to types, in this case the applicable rule is that a
-function application is consistent if the function’s parameter types
-are consistent with the types of the actual arguments.  If they are
+function application is consistent if the function's parameter types are
+consistent with the types of the actual arguments.  If they are
 consistent, then the type of the function application is the return type
 of the function.
 
@@ -2924,7 +2931,9 @@ the arguments must be consistent with the expected types of the
 function; which we can do by making them _the same_.  There is a
 particular process used to do this - called _unification_.
 
-   ![Inferring the Type of N-1][images/minustype]
+ [image src="images/minustype.png" ]
+
+Figure 3.2: Inferring the Type of N-1
 
 _Unification_
      An algorithm that replaces variables with values in such a way as
@@ -2945,28 +2954,28 @@ those occurrences must also be consistent with integer; and if an
 occurrence is not consistent then the compiler will report an error - a
 given expression may only have one type!
 
-   The bottom line is that 'Star'’s types are based on a combination
-of unification for comparing types and a series of type rules that have
-the effect of introducing _constraints_ on types based on which language
+   The bottom line is that *Star*'s types are based on a combination of
+unification for comparing types and a series of type rules that have the
+effect of introducing _constraints_ on types based on which language
 features are present in the text.  The type checker is really a
 constraint solver: if the constraints are not satisfiable (for example
-by trying to ‘call’ a variable and add a number to it) then there is
-a type error in the program.
+by trying to 'call' a variable and add a number to it) then there is a
+type error in the program.
 
    The magic of type inference arises because it turns out that solving
 these constraints is sufficient for robustly type checking programs.
 
-   A sharp-eyed reader will notice that 'Star'’s type system is
-different in nature to that found (say) in OO languages.  In 'Star'’s
-type system, types are considered to be consistent in 'Star' if they are
+   A sharp-eyed reader will notice that *Star*'s type system is
+different in nature to that found (say) in OO languages.  In *Star*'s
+type system, types are considered to be consistent in *Star* if they are
 _equal_.  This is quite different to the notion of consistency in OO
 languages where an argument to a function is consistent if its type is a
 _sub-type_ of the expected type.
 
    However, we would note that the apparent restriction to the type
 system imposed by type equality is much less severe in practice than in
-theory - and that OO languages’ type systems also often incorporate
-some of the same restrictions.
+theory - and that OO languages' type systems also often incorporate some
+of the same restrictions.
 
 * Menu:
 
@@ -2983,11 +2992,11 @@ File: guide.info,  Node: Why is type inference restricted?,  Up: A word about ty
 3.7.1 Why is type inference restricted?
 ---------------------------------------
 
-We have stated a few times that 'Star''s type system only infers types
-of variables that are _not_ quantified.  In fact, it is fairly simple to
-build a type inference system that can infer quantified types.  For
-example, such a complete type inference system would infer from these
-equations:
+We have stated a few times that *Star*'s type system only infers types
+of variables that are _not_ quantified.  In fact, it is fairly
+straightforward to build a type inference system that can infer
+quantified types.  For example, such a complete type inference system
+would infer from these equations:
 
      conc(nil,x)=>x.
      conc(cons(h,tl),x) => cons(h,conc(tl,x))
@@ -3001,15 +3010,17 @@ hand at building such a type inference system:
      program.
    * Having explicit type annotations is 'good style' in general and
      definitely aids in debugging type errors.
+   * Being explicit about quantification makes unification of quantified
+     types simpler and more reliable.
 
-   On the other hand, requiring type annotations for _every_ variable is
-extremely tedious and verbose.  An extreme version of this policy would
-require the 'conc' program above to be written:
+   On the other hand, requiring type annotations for _every_ variable
+would be extremely tedious and verbose.  An extreme version of this
+policy would require the 'conc' program above to be written:
 
      conc:all t ~~ (cons[t],cons[t])=>cons[t].
      conc(nil,x:list[t])=>x.
      conc(cons(h:t,tl:list[t]),x:list[t]) => cons(h,conc(t,x))
-   The design of 'Star' strikes a balance between useability and rigor:
+   The design of *Star* strikes a balance between useability and rigor:
 most variables do not require explicit type annotations.  We require
 them only when something 'special' is being indicated; one of those
 special circumstances is when defining a generic function.
@@ -3029,12 +3040,11 @@ that the type system can use to verify the program.
 
    We are only able to scratch the surface of the type system here.  It
 is certainly true that - like many modern functional languages -
-'Star'’s type system is complex and subtle.  The primary motivation
-for this complexity is to reduce the burden for the programmer: by being
+*Star*'s type system is complex and subtle.  The primary motivation for
+this complexity is to reduce the burden for the programmer: by being
 able to infer types automatically, and by being able to address many
 programming subtleties, the type system comes to be seen as the
-programmer’s friend rather than as an obstacle to be ‘gotten
-around’.
+programmer's friend rather than as an obstacle to be 'gotten around'.
 
 
 File: guide.info,  Node: Are we there yet?,  Prev: A word about type inference,  Up: Functional Programming
@@ -3045,13 +3055,13 @@ File: guide.info,  Node: Are we there yet?,  Prev: A word about type inference, 
 The straightforward answer to this is no.  There is a great deal more to
 functional programming than can be captured in a few pages.  However, we
 have covered some of the key features of functional programming -
-particularly as it applies to 'Star'.  In subsequent chapters we will
+particularly as it applies to *Star*.  In subsequent chapters we will
 take a closer look at collections, at modular programming, at
 concurrency and even take a pot shot at Monads.
 
    If there is a single idea to take away from this chapter it should be
 that functional programming is natural.  If there is a single piece of
-advice for the budding functional 'Star' programmer, it should be to
+advice for the budding functional *Star* programmer, it should be to
 _hide the recursion_.  If there is a single bit of comfort to offer
 programmers it should be that _Rome was not built in a day_.
 
@@ -3059,7 +3069,1188 @@ programmers it should be that _Rome was not built in a day_.
 in programming.
 
 
-File: guide.info,  Node: Concept index,  Next: Function index,  Prev: Functional Programming,  Up: Top
+File: guide.info,  Node: Collections,  Next: Concept index,  Prev: Functional Programming,  Up: Top
+
+4 Collections
+*************
+
+Modern programming - whether it is OO programming, functional
+programming or just plain C programming - relies on a rich standard
+library.  Given that nearly every program needs to be able to manage
+collections of _things_, the central pearl of any standard library is
+the _collections_ library.  Recalling our mantra of hiding recursion; a
+well designed collections library can make a huge difference to the
+programmer’s productivity, often by hiding many of the recursions and
+iterations required to process collections.
+
+   The collections architecture in *Star* has four main components:
+  1. a range of standard collection types - including array-like lists,
+     cons lists, first-in first-out queues, and ideal hash trees;
+  2. a range of standard functions - mostly defined in contracts - that
+     define the core capabilities of functions over collections;
+  3. special notations that make programming with collections in a type
+     independent way more straightforward; and
+  4. the final major component of the collections architecture is
+     _queries_.  *Star* has a simple yet powerful set of features aimed
+     at simplifying querying collections.
+
+   The query component is sufficiently involved to merit a chapter of
+its own.
+
+* Menu:
+
+* Sequence notation::
+* Indexing::
+* Doing stuff with collections::
+* Different types of collection::
+
+
+File: guide.info,  Node: Sequence notation,  Next: Indexing,  Up: Collections
+
+4.1 Sequence notation
+=====================
+
+A sequence is an ordered collection; a sequence expression is an
+expression involving a complete or partial enumeration of the values in
+the collection.  Star has a straightforward notation for expressing
+sequences of any underlying type; for example, a 'cons' sequence of
+integers from 1 through 5 can be written:
+     cons of [1, 2, 3, 4, 5]
+   In situations where we do not know or do not wish to specify the
+collection type, we can write instead:
+     [1, 2, 3, 4, 5]
+   This term - it could be either an expression or a pattern - denotes
+the sequence _without_ specifying the underlying collection type.  The
+difference in the types of the two terms is telling:
+     cons[integer]
+   and
+     sequence[c->>integer] |: c
+   respectively - where 'c' is a type variable.  The first is a concrete
+type expression, the second is a constrained type - in this case 'c'
+must implement the 'sequence' contract.
+
+   Although the second type expression is longer, and a bit more complex
+to read, it is also actually less constraining.  The type expression
+'cons[integer]' does not allow for variation of the underlying
+collection type; the second type expression allows the term to be used
+in contexts that require different concrete types.
+
+* Menu:
+
+* Partial sequence notation::
+* The stream and sequence contracts::
+* Stream patterns::
+* Notation and contracts::
+
+
+File: guide.info,  Node: Partial sequence notation,  Next: The stream and sequence contracts,  Up: Sequence notation
+
+4.1.1 Partial sequence notation
+-------------------------------
+
+The sequence notation also allows for the specification of partial
+sequences; this is particularly useful in writing functions that
+construct and traverse sequences.  The sequence term:
+     [1,2,..X]
+   denotes the sequence whose first two elements are '1' and '2' and
+whose remainder is denoted by the variable 'X' - which must also be a
+sequence of the appropriate type.  Similarly, the term:
+     [F..,23]
+   denotes the sequence obtained by gluing '23' to the back of the
+sequence 'F'.
+
+   There is a strong relationship between the normal sequence notation
+and the partial sequence notation.  In particular, the sequence
+expression
+     cons of [1,2]
+   is equivalent to:
+     cons of [1,..cons of [2,..cons of []]]
+   However, we are not permitted to use both of ',..' and '..,' in the
+same expression:
+     [F..,2,3,..B]
+   is not permitted (since it amounts to a concatenation of two
+sequences which, in turn, implies a non-deterministic decomposition when
+used as a pattern).
+
+   The major benefit of general sequence notation is that it allows us
+to construct programs involving collections that are independent of type
+_and_ to do so in a syntax which is concise.
+
+   For example, we can use sequence notation to write functions over
+sequences; such as the 'concat' function that concatenates two
+sequences:
+     concat:all c,e ~~ stream[c->>e], sequence[c->>e] |: (c,c)=>c.
+     concat([],X) => X.
+     concat([E,..X],Y) => [E,..concat(X,Y)].
+   This function will work equally well with 'cons' lists, lists,
+strings, even your own collection types.  All that is required is that
+there is an implementation of the 'stream' and the 'sequence' contracts
+for the actual type being concatenated.
+
+     There are two contracts here: the 'stream' contract is used when
+     decomposing sequences and the 'sequence' contract is used when
+     building them.
+
+
+File: guide.info,  Node: The stream and sequence contracts,  Next: Stream patterns,  Prev: Partial sequence notation,  Up: Sequence notation
+
+4.1.2 The 'stream' and 'sequence' contracts
+-------------------------------------------
+
+Underlying the sequence notation are two contracts: the 'sequence'
+contract and the 'stream' contract.  These contracts contains type
+signatures that can be used to construct and to match against sequence
+values.  The sequence notation is realized by the compiler translating
+sequence terms to a series of calls to those functions.
+
+   The standard 'stream' contract is
+     contract stream[t->>e] ::= {
+       _eof:()=>boolean.   -- is stream empty
+       _hdtl:(t)=>option[(e,t)]. -- match front of stream
+       _back:(t)=>option[(t,e)]. -- match back of stream
+     }
+   and the standard 'sequence' contract is:
+     contract stream[t->>e] ::= {
+       _nil:t.     -- empty stream
+       _cons:(e,t)=>t. -- add to front
+       _apnd:(t,e)=>e. -- add to back
+     }
+
+   The entries in the 'sequence' contract should be fairly self-evident:
+
+   * '_nil' is the empty sequence;
+   * '_cons' is a function that 'glues' a new element to the front of
+     the sequence; and
+   * '_apnd' appends elements to the *back* of the sequence.
+
+   The compiler uses these three functions to transform sequence
+expressions into function calls.
+
+   For example, the sequence expression:
+     [1,2,3]
+   is transformed into
+     _cons(1,_cons(2,_cons(3,_nil())))
+   If a sequence expression has an explicit type marker on it, then its
+translation is slightly different - to allow the type checker to make
+use of the type information.  For example,
+     cons of [1,2]
+   is translated as:
+     _cons(1,_cons(2,_nil())):cons[_]
+   This annotation is all that is needed to force the compiler to treat
+the result as a concrete cons list.  Type inference does the rest of the
+hard work.(1)
+
+   ---------- Footnotes ----------
+
+   (1) The type expression '_' is a special type that denotes an
+anonymous type: each occurrence of the type expression denotes a
+different unknown type.  It is useful in situations, like this one,
+where only some of the type information is known.
+
+
+File: guide.info,  Node: Stream patterns,  Next: Notation and contracts,  Prev: The stream and sequence contracts,  Up: Sequence notation
+
+4.1.3 Stream patterns
+---------------------
+
+The the 'stream' contract is used in _patterns_ to match and decompose
+sequences.  For example, the signature for 'hdtl' - which is used to
+decompose sequences into a head and tail - is:
+     _hdtl:(t)=>option[(e,t)].
+   This function will be applied to a sequence in the attempt to split
+it into a head and remainder.  The question is how can a function be
+used in a pattern?
+
+   The term '[1,2,..X]' _as a pattern_ is rewritten as:
+     _hdtl^(1,_hdtl^(2,X))
+   where the '^' is syntactic sugar for the more elaborate form:
+     S0 where (1,S1) ^= _hdtl(S0) && (2,X)^=_hdtl(S1)
+   which is, in turn, syntactic sugar for:
+     S0 where some((1,S1)) .= _hdtl(S0) && some((2,X)) .= _hdtl(S1)
+   I.e., the sequence pattern becomes a series of progressive
+decompositions of the stream; at each stage an 'option'-valued function
+is applied to peel off elements from the stream.
+
+   We can now straightforwardly give the translation for sequence
+patterns.  Syntactically, there is no distinction between sequence
+expressions and stream patterns - what distinguishes them is context:
+stream patterns show up as patterns in functions and sequence
+expressions show up in the expression context.
+
+   A stream pattern, as in the pattern '[E,..X]' for the non-empty case
+in 'concat':
+     concat([E,..X],Y) => [E,..concat(X,Y)]
+   is transformed into the pattern:
+     _hdtl^(E,X)
+   and the entire 'concat' equation becomes:
+     concat(_hdtl^(E,X),Y) => _cons(E,concat(X,Y))
+   which, as we noted above, is actually equivalent to:
+     concat(S0,Y) where some((E,X)).=S0 =>
+       _cons(E,concat(X,Y)).
+
+   The 'sequence' and 'stream' contracts are two of the most important
+and commonly used contracts in the *Star* library.  As we shall see
+further, many of the standard collections functions are built on top of
+it.
+
+     We have two contracts - one for composing and another for
+     decomposing sequences - because not all collections are equally
+     amenable to decomposing and/or composing.  For example, the 'map'
+     type we describe below does not have a natural notion of
+     decomposing (because ordering within a 'map' is not preserved);
+     even though it does have a natural form of describing actual 'map'
+     collections.
+
+
+File: guide.info,  Node: Notation and contracts,  Prev: Stream patterns,  Up: Sequence notation
+
+4.1.4 Notation and contracts
+----------------------------
+
+One of the distinctive features of the sequence notation is that it is
+an example of _syntax_ that is underwritten by a semantics expressed as
+a _contract_.  This is part of a widespread pattern in *Star*.
+
+   This has a parallel in modern OO languages like Java and C# where
+important contracts are expressed as interfaces rather than concrete
+types.  However, *Star* extends the concept by permitting special
+notation as well as abstract interfaces - as many mathematicians
+understand, a good notation can sometimes make a hard problem easy.  In
+*Star* we further separate interfaces from types by separating the type
+definition from any contracts that may be implemented by it.
+
+   The merit of this combination of special syntax and contracts is that
+we can have the special notation expressing a salient concept - in this
+case the sequence - and we can realize the notation without undue
+commitment in its lower-level details.  In the case of sequence
+notation, we can have a notation of sequences without having to commit
+to the type of the sequence itself.
+
+
+File: guide.info,  Node: Indexing,  Next: Doing stuff with collections,  Prev: Sequence notation,  Up: Collections
+
+4.2 Indexing
+============
+
+Accessing collections conveniently is arguably more important than a
+good notation for representing them.  There is a long standing
+traditional notation for accessing arrays:
+     L[ix]
+   where 'L' is some array or other collection and 'ix' is an integer
+offset into the array.  *Star* uses a notation based on this for
+accessing collections with random indices; suitably generalized to
+include dictionaries (collections accessed with non-numeric indices) and
+_slices_ (contiguous sub-regions of collections).
+
+   Before we explore *Star*’s indexing notation it is worth looking at
+the contract that underlies it - the 'indexed' contract.
+
+* Menu:
+
+* The indexed contract::
+* The index notation::
+* Implementing indexing::
+* Index slices::
+
+
+File: guide.info,  Node: The indexed contract,  Next: The index notation,  Up: Indexing
+
+4.2.1 The indexed contract
+--------------------------
+
+The indexed contract captures the essence of accessing a collection in a
+random-access fashion.  There are functions in the contract to access a
+directly accessed element, to replace and to delete elements from the
+collection:
+
+     contract all s,k,v ~~ indexed[s->>k,v] ::= {
+       _index:(s,k)=>option[v].
+       _insert:(s,k,v)=>s.
+       _replace:(s,k,v)=>s.
+       _remove:(s,k)=>s.
+     }
+   There are several noteworthy points here:
+
+   * the form of the contract itself; the signature for '_index' which
+     accesses elements; and
+   * the signatures for '_insert', '_replace' and '_remove' which return
+     new collections rather than modifying them in-place.
+
+   Recall that the 'stream' contract had the form:
+     contract all s, e ~~ stream[s->>e] ::= ...
+   the 's->>e' clause allows the implementation of the contract to
+functionally determine (sic) the type of the elements of the collection.
+
+   In the case of 'indexed', the contract form determines _two_ types
+denoted by 'k' and 'v'.  The type 'k' denotes the type of the key used
+to access the collection and 'v' denotes the type of the elements of the
+collection.  Each individual implementation of indexed is free to
+specify these types; usually in a way that best reflects the natural
+structure of the collection.
+
+   For example, the implementation of 'indexed' for strings starts:
+     implementation indexed[string ->> integer,integer] => ...
+   reflecting the fact that the natural index for strings is integer and
+the natural element type is integer (neither being explicitly part of
+the string type name).  (1)
+
+   On the other hand, the implementation of 'indexed' for the concrete
+type 'map' starts:
+     implementation all k,v ~~
+       indexed[map[k,v] ->> k,v] => { ... }
+   reflecting the fact that dictionaries are naturally generic over both
+the key and value types.
+
+   If we look at the signature for '_index' we can see that this
+function does not directly return a value from the collection, but
+instead returns an 'option' value.  This bears further explanation.
+
+   The great unknown of accessing elements of a collection is 'is it
+there?'.  Its not guaranteed of course, and we need to be able to handle
+failure.  In the case of the '_index' function, its responsibility is to
+either return a value wrapped as a 'some' value - if the index lookup is
+successful - or the signal 'none' if the index lookup fails.  Just to be
+clear: '_index' can act both as a lookup _and_ as a test for membership
+in the collection.
+
+* Menu:
+
+* Adding and removing elements::
+
+   ---------- Footnotes ----------
+
+   (1) Note that we use 'integer' to denote the type of string
+characters because the complexities of Unicode representation make a
+consistent character encoding very difficult.
+
+
+File: guide.info,  Node: Adding and removing elements,  Up: The indexed contract
+
+4.2.1.1 Adding and removing elements
+....................................
+
+The function '_insert' is used to add an element to a collection
+associating it with a particular index position; and the function
+'_remove' removes an identified element from the collection.  The
+function '_replace' is similar to '_insert' except that it is expected
+that an existing element is replaced rather than a new value being
+inserted.
+
+   These functions have a property often seen in functional programming
+languages and not often seen elsewhere: they are defined to return a
+complete new collection rather than simply side-effecting the
+collection.  This is inline with an emphasis on _persistent data
+structures_(1) and on _declarative programming_.
+
+   One might believe that this is a bit wasteful and expensive -
+returning new collections instead of side-effecting the collection.
+However, that is something of a misconception: modern functional data
+structures have excellent computational properties and approach the best
+side-effecting structures in efficiency.  At the same time, persistent
+data structures have many advantages - including substantially better
+correctness properties and behavior in parallel execution contexts.
+
+     It should also be stressed that the 'indexed' contract allows and
+     encourages persistence but does not _enforce_ it.  It is quite
+     possible to implement indexing for data structures that are not
+     persistent.
+
+   ---------- Footnotes ----------
+
+   (1) A persistent structure is one which is never modified - changes
+are represented by new structures rather than modifiying existing ones.
+
+
+File: guide.info,  Node: The index notation,  Next: Implementing indexing,  Prev: The indexed contract,  Up: Indexing
+
+4.2.2 The index notation
+------------------------
+
+Given the indexed contract we can now show the specific notation that
+*Star* has for accessing elements of a collection.  Accessing a
+collection by index follows conventional notation:
+     C[ix]
+   will access the collection 'C' with element identified by 'ix'.  For
+example, given a 'map' 'D' of strings to strings, we can access the
+entry associated with “alpha” using:
+     D["alpha"]
+   Similarly, we can access the third character in a string 'S' using:
+     S[2]
+   As might be expected, given the discussion above, the type of an
+index expression is optional.
+
+   The most natural way of making use of an index expression is to use
+it in combination with a '^=' condition or an '^|' expression - which
+allows for smooth handling of the case where the index fails.  For
+example, we might have:
+
+     nameOf(F) where N ^= names[F] => N.
+     nameOf(F) default => ...
+
+   We will take a deeper look at exceptions and more elaborate
+management of tentative computation in COMPUTATION EXPRESSIONS.
+
+   *Star* also has specific notation to represent modified collections.
+For example, the expression
+     D["beta"->"three"]
+   denotes the map 'D' with the entry associated with '"beta"' replaced
+by the value '"three"'.  Note that the value of this expression is the
+updated map.
+
+   For familiarity’s sake, we also suppose a form of assignment for
+the case where the collection is part of a read-write variable.  The
+action:
+     D["beta"] := "three"
+   is entirely equivalent to:
+     D := D["beta"->"three"]
+   always assuming that the type of 'D' permits assignment.
+
+   Similarly, the expression:
+     D[\+"gamma"]
+   which denotes the map 'D' where the value associated with the key
+'"gamma"' has been removed.
+
+   Although, in these examples, we have assumed that 'D' is a map value
+(which is a standard type in *Star*); in fact the index notation does
+not specify the type.  As with the sequence notation, the only
+requirement is that the 'indexed' contract is implemented for the
+collection being indexed.
+
+   In particular, as well as the 'map' type, index notation is supported
+for the built-in 'list' type, and is even supported for the 'string'
+type.
+
+   In addition to the indexed access notation described so far, *Star*
+also allows a variant of the sequence notation for constructing indexed
+literals (aka dictionaries).  In particular, an expression of the form:
+     ["alpha"->1, "beta"->2, "gamma"->3]
+   is equivalent to a sequence of tuples, or to:
+     _cons(("alpha",1),_cons(("beta",2),_cons(("gamma",3),_nil))
+   which is understood by indexed types as denoting the contruction of a
+literal.
+
+   Note that there are two levels of domain-specific notation here: the
+representation of indexed literals in terms of a sequence of two-tuples
+and the implicit rule governing indexed types: they should implement a
+specific form of 'sequence' contract.  Both are actually part of the
+semantics of representing indexed literals.
+
+
+File: guide.info,  Node: Implementing indexing,  Next: Index slices,  Prev: The index notation,  Up: Indexing
+
+4.2.3 Implementing indexing
+---------------------------
+
+Of course, this includes our own types.  For example, before, when
+looking at generic types we saw the tree type:
+     all t ~~ tree[t] ::= tEmpty | tNode(tree[t],t,tree[t]).
+   We can define an implementation for the indexed contract for this
+type - if we arrange for the tree to be a tree of key-value pairs:
+     implementation all k,v ~~
+         order[k], equality[k] |: indexed[tree[(k,v)]->>k,v] => {
+       _index(T,K) => findInTree(T,K).
+       _insert(T,K,V) => setKinTree(T,K,V).
+       _replace(T,K,V) => setKinTree(T,K,V).
+       _remove(T,K) => removeKfromTree(T,K).
+     }
+   The form of the type expression 'tree[(k,v)]' is required to avoid
+confusion - 'tree' takes a single type argument that, in this case, is a
+tuple type.  The extra set of parentheses ensures that 'tree' is not
+interpreted (incorrectly) as a type that takes two type arguments.
+
+   With this statement in scope, we can treat appropriate 'tree'
+expressions as though they were regular arrays or dictionaries:
+     T = tNode(tEmpty,("alpha","one"),tEmpty)
+     assert "one" ^= T["alpha"].
+     U = T["beta"->"two"]. -- Add in "beta"
+     assert "one" ^= U["alpha"].
+   The implementation statement relies on another feature of *Star*’s
+type system - we need to constrain the implementation of indexed to a
+certain subset of possible instances of tree types - namely, where the
+element type of the tree is a _pair_ - a two-tuple - and secondly we
+require that the first element of the pair is comparable - i.e., it has
+the 'order' contract defined for it.
+
+   This is captured in the contract clause of the implementation
+statement:
+     implementation all k,v ~~ order[k], equality[k] |:
+           indexed[tree[(k,v)]->>k,v] => ...
+   This implementation contract qualifier is fairly long, and the type
+constraints are fairly complex; but it is exquisitely targeted at
+precisely the right kind of tree without us having to make any
+unnecessary assumptions.(1)
+
+   Implementing the indexed contract requires us to implement three
+functions: 'findInTree', 'setKinTree' and 'removeKfromTree'.  The
+'findInTree' function is quite straightforward:
+     findInTree:all k,v ~~ equality[k], order[k] |: (tree[(k,v)],k)=>option[v].
+     findInTree(tEmpty,_) => none.
+     findInTree(tNode(_,(K,V),_),K) => some(V).
+     findInTree(tNode(L,(K1,_),_),K) where K1>K => findInTree(L,K).
+     findInTree(tNode(_,(K1,_),R),K) where K1<K => findInTree(R,K).
+   Notice that each 'label' in the tree is a 2-tuple - consisting of the
+key and the value.  This function is also where we need the key type to
+be both comparable and supporting equality.  The comparable constraint
+has an obvious source: we perform inequality tests on the key.
+
+   The 'equality' constraint comes from a slightly less obvious source:
+the repeated occurrence of the 'K' variable in the second equation.
+This repeated occurrence means that the equation is equivalent to:
+     findInTree(tNode(_,(K,V),_),K1) where K==K1 => some(V).
+   We leave the implementations of 'setKinTree' and 'removeKfromTree' as
+an exercise for the reader.
+
+   Along with the implementation of 'indexed', we should also implement
+'sequence' for our trees:
+     implementation all k,v ~~ order[k], equality[k] |:
+       sequence[tree[(k,v)]->>(k,v)] => {
+         _nil = tEmpty.
+         _cons((K,V),T) => setKinTree(T,K,V).
+         _apnd(T,(K,V)) => setKinTree(T,K,V).
+     }
+     Notice: that adding a pair to the front of a 'tree' is semantically
+     the same as adding it to the back - since the 'tree' is ordered.
+
+   The reason for implementing 'sequence' is that that will allow users
+of the tree to use the indexed variant of the sequence notation for
+writing tree literals; as in:
+     tree of [1->”alpha”, 2->”beta”]
+   We do not implement the companion 'stream' contract for our 'tree'
+because its semantics would be somewhat problematic.  However, there is
+nothing preventing the reader from experimenting with an appropriate
+tree-ordering.
+
+   ---------- Footnotes ----------
+
+   (1) It is also true that most programmers will not be constructing
+new implementations of the indexed contract very frequently.
+
+
+File: guide.info,  Node: Index slices,  Prev: Implementing indexing,  Up: Indexing
+
+4.2.4 Index slices
+------------------
+
+Related to accessing and manipulating individual elements of collections
+are the _indexed slice_ operators.  An indexed slice of a collection
+refers to a bounded subset of the collection.  The expression:
+     C[fx:tx]
+   denotes the subsequence of 'C' starting with - and including - the
+element indexed at 'fx' and ending - but _not_ including the element
+indexed at 'tx'.
+
+   As might be expected, the index slice notation is also governed by a
+contract - the 'sliceable' contract.  This contract defines the core
+functions for slicing collections and for updating subsequences of
+collections:
+     contract all s,k ~~ sliceable[s->>k] ::= {
+       _slice:(s,k,k)=>s.
+       _tail:(s,k)=>s.
+       _splice:(s,k,k,s)=>s.
+     }
+   The '_slice' function is used extract a slice from the collection,
+'_tail' is a variant that returns the 'rest' of the collection, and
+'_splice' is used to replace a subset of the collection with another
+collection.
+
+   Like the indexing notation, there is notation for each of the three
+cases:
+     C[fx:]
+   denotes the tail of the collection - all the elements in 'C' that
+come after 'fx' (including 'fx' itself);(1).  and
+     C[fx:tx->D]
+   denotes the result of splicing 'D' into 'C'.  This last form has an
+additional incarnation - in the form of an assignment statement:
+     C[fx:tx] := D
+   This action is equivalent to the assignment:
+     C := _splice(C,fx,tx,D)
+   which, of course, assumes that 'C' is defined as a read/write
+variable.
+
+   The slice notation is an interesting edge case in domain specific
+languages.  It is arguably a little obscure, and, furthermore, the use
+case it represents is not all that common.  On the other hand, without
+specific support, the functionality of slicing is hard to duplicate with
+the standard indexing functions.
+
+   ---------- Footnotes ----------
+
+   (1) The complement of the tail slice is simple: 'C[0:tx]'
+
+
+File: guide.info,  Node: Doing stuff with collections,  Next: Different types of collection,  Prev: Indexing,  Up: Collections
+
+4.3 Doing stuff with collections
+================================
+
+One of the most powerful features of collections is the ability to treat
+a collection as a whole.  We have already seen a little of this in our
+analysis of the visitor pattern *note Going even further::.  Of course,
+the point of collections is to be able to operate over them as entities
+in their own right.  As should now be obvious, most of the features we
+discuss are governed by contracts and it is paradigmatic to focus on
+contract specifications rather than specific implementations.
+
+   The number of things that people want to do with collections is only
+limited by our imagination; however, we can summarize a class of
+operations in terms several patterns:
+
+   * Filtering
+   * Transforming into new collections
+   * Summarizing collections
+   * Querying collections
+
+   Each of these patterns has some support from *Star*’s standard
+repertoire of functions.
+
+* Menu:
+
+* Filtering::
+* The sieve of Erastosthneses::
+* Mapping to make new collections::
+* Compressing collections::
+
+
+File: guide.info,  Node: Filtering,  Next: The sieve of Erastosthneses,  Up: Doing stuff with collections
+
+4.3.1 Filtering
+---------------
+
+The simplest operation on a collection is to subset it.  The standard
+filter function - '^/' - allows us to do this with some elegance.  Using
+filter is fairly straightforward; for example, to remove all odd numbers
+from a collection we can use the expression:
+     Nums^/((X)=>X%2==0)
+   For example, if 'Nums' were the list:
+     list of [1,2,3,4,5,6,7,8,9]
+   then the value of the filter expression would be
+     list of [2,4,6,8]
+   The right hand argument to '^/' is a _predicate_: a function that
+returns a 'boolean' value.  The '^/' function (which is part of the
+standard 'filter' contract) is required to apply the predicate to every
+element of its left hand argument and return a _new_ collection of every
+element that satisfies the predicate.(1)
+
+   Note that the '%' function is arithmetic remainder, and the
+expression 'X%2==0' amounts to a test that 'X' is even (its remainder
+modulo 2 is 0).
+
+   The '^/' operator allows us to represent many filtering algorithms
+whilst not making any recursion explicit.  However, not all filters are
+easily handled in this way; for example, a prime number filter _can_ be
+written
+     N^/isPrime
+   but such an expression is likely to be very expensive (the 'isPrime'
+test is difficult to do well).
+
+* Menu:
+
+* The filter contract::
+
+   ---------- Footnotes ----------
+
+   (1) The original collection is unaffected by the filter.
+
+
+File: guide.info,  Node: The filter contract,  Up: Filtering
+
+4.3.1.1 The 'filter' contract
+.............................
+
+As noted above, the '^/' function is governed by a contract, the
+'filter' contract:
+     contract all c,e ~~ filter[c->>e] ::= {
+       (^/):(c,(e)=>boolean) => c.
+     }
+
+
+File: guide.info,  Node: The sieve of Erastosthneses,  Next: Mapping to make new collections,  Prev: Filtering,  Up: Doing stuff with collections
+
+4.3.2 The sieve of Erastosthneses
+---------------------------------
+
+One of the classic algorithms for finding primes that can be expressed
+using filters is the so-called _sieve of Eratosthenes_.  This algorithm
+works by repeatedly removing multiples of primes from a list of natural
+numbers.  We cannot (yet) show how to deal with infinite lists of
+numbers but we can capture the essence of this algorithm using a
+cascading sequence of filter operations.
+
+   The core of the sieve algorithm involves taking a list of numbers and
+removing multiples of a given number from the list.  This is very
+similar to our even-number finding task, and we can easily define a
+function that achieves this:
+     filterMultiples(K,N) => N^/((X)=>X%K=!=0).
+   The overall Eratosthenes algorithm works by taking the first element
+of a candidate list of numbers as the first prime, removing multiples of
+that number from the rest, and recursing on the result:
+     sieve([N,..rest]) => [N,..sieve(filterMultiples(N,rest))].
+   There is a base case of course, when the list of numbers is exhausted
+then we have no more primes:
+     sieve([]) => [].
+   The complete prime finding program is hardly larger than the original
+filter specification:
+     primes(Max) => let{
+       sieve([]) => [].
+       sieve([N,..rest]) => [N,..sieve(filterMultiples(N,rest))].
+
+       filterMultiples(K,N) => N^/((X)=>X%K=!=0).
+
+       iota(Mx,St) where Mx>Max => [].
+       iota(Cx,St) => [Cx,..iota(Cx+St,St)].
+     } in [2,..sieve(iota(3,2))]
+   The 'iota' function is used to construct a list of numbers, in this
+case the integer range from '3' through to Max with an increment of '2'.
+We start the 'sieve' with '2' and the list of integers with '3' since we
+are making use of our prior knowledge that '2' is prime.
+
+   It should be emphasized that the sieve of Eratosthenes hardly counts
+as an efficient algorithm for finding primes.  For one thing, it
+requires that we start with a list of integers; most of which will be
+discarded.  In fact, each 'sweep' of the list of numbers results in a
+new list of numbers; many of which too will eventually be discarded.
+Furthermore, the 'filterMultiples' function examines every integer in
+the list; it does not make effective use of the fact that successive
+multiples occupy predictable slots in the list of integers.
+
+     In fact, building a highly optimized version of the sieve of
+     Eratosthenes is not actually the main point here - our purpose is
+     to illustrate the power of *Star*’s collections processing
+     functions.
+
+   We might ask whether the 'sieve' function can also be expressed as a
+filter.  The straightforward answer is that it cannot: the sieve _is_ a
+kind of filter, but the predicate being applied depends on the entire
+collection; not on each element.  The standard filter function does not
+expose the entire collection to the predicate.  However, we will see at
+least one way of achieving the sieve without any explicit recursion
+below when we look at folding operations.
+
+
+File: guide.info,  Node: Mapping to make new collections,  Next: Compressing collections,  Prev: The sieve of Erastosthneses,  Up: Doing stuff with collections
+
+4.3.3 Mapping to make new collections
+-------------------------------------
+
+One of the limitations of the filter function is that it does not create
+new elements: we can use it to subset collections but we cannot
+transform them into new ones.  The 'fmap' function - part of the
+'functor' contract - can be used to perform many transformations of
+collections.
+
+   For example, to compute the lengths of strings in a list we can use
+the expression:
+     fmap(size,list of ["alpha","beta","gamma"])
+   which results in the list:
+     list of [5,4,5]
+   The 'fmap' function is defined via the 'functor' contract - thus
+allowing different implementations for different collection types:
+     contract all c/1 ~~ functor[c] ::= {
+       fmap:all a,b ~~ ((a)=>b,c[a])=>c[b].
+     }
+   Notice how the contract specifies the collection type - 'c' - without
+specifying the type of the collection’s element type.  We are using a
+different technique here than we used for the 'stream' and 'filter'
+contracts.  Instead of using a functional dependency to connect the type
+of the collection to the type of the element, we denote the type of the
+input and output collections using a _type constructor_ variable as in
+'c[a]' and 'c[b]'.(1)
+
+   We are also using a variant of the quantifier.  A quantified type
+variable of the form 'c/1' denotes a type constructor variable rather
+than a regular type variable.  In this case, 'c/1' means that the
+variable 'c' must be a type constructor that takes one argument.
+
+   The reason for this form of contract is that 'functor' implies
+creating a new collection from an old collection; with a possibly
+different element type.  This is only possible if the collection is
+generic and hence the type expressions 'c[a]' for the second argument
+type of 'fmap' and 'c[b]' for its return type.
+
+   One might ask whether we could not have used functional dependencies
+in a similar way to 'stream' and 'filterable'; for example, a contract
+of the form:
+     contract all c,e,f ~~ mappable[c->>e,f] ::=  {
+       mmap:((e)=>f,c)=>c.
+     }
+   However, _this_ contract forces the types of the result of the 'mmap'
+to be identical to its input type, it also allows the implementer of the
+'mappable' contract to fix the types of the collection elements - not at
+all what we want from a 'fmap'.
+
+   It is not all that common that we need to construct a list of sizes
+of strings.  A much more realistic use of 'fmap' is for _projection_.
+For example, if we wanted to compute the average age of a collection of
+people, which is characterized by the type definition:
+     person ::= someOne{
+       name:string.
+       age:()=>float.
+     }
+   Suppose that we already had a function 'average' that could average a
+collection of numbers; but which (of course) does not understand people.
+We can use our average by first of all projecting out the ages and then
+applying the average function:
+     average(fmap((X)=>X.age(),People))
+   In this expression we project out from the 'People' collection the
+ages of the people and then use that as input to the average function.
+
+* Menu:
+
+* More Type Inference Magic::
+
+   ---------- Footnotes ----------
+
+   (1) This also means that the collection type in 'fmap' must be
+generic: it is not possible to implement 'functor' for strings.
+
+
+File: guide.info,  Node: More Type Inference Magic,  Up: Mapping to make new collections
+
+4.3.3.1 More Type Inference Magic
+.................................
+
+There is something a little magic about the lambda function in this
+expression: how does the type checker 'know' that 'X' can have a field
+'age' in it?  How much does the type checker know about types anyway?
+
+   In this particular situation the type checker could infer the type of
+the lambda via the linking between the type of the 'fmap' function and
+the type of the 'People' variable.  However, the type checker is
+actually capable of giving a type to the lambda even without this
+context.  Consider the function:
+     nameOf(R) => R.name
+   This function takes an arbitrary record as input and returns the
+value of the 'name' field.  The 'nameOf' function _is_ well typed, its
+type annotation just needs a slightly different form than that we have
+seen so far:(1)
+     nameOf:all r,n ~~ r <~ {name:n} |: (r)=>n
+   This is another example of a _constrained type_: in this case, the
+constraint on 'r' is that it has a field called 'name' whose type is the
+same as that returned by 'nameOf' itself.
+
+   The type constraint:
+     r <~ {name:n}
+   means that any type bound to 'r' must have a 'name' field whose type
+is denoted by the type variable 'n' in this case.
+
+   With this type signature, we can use 'nameOf' with any type that that
+a 'name' field.  This can be a record type; it can also be a type
+defined with an algebraic type definition that includes a record
+constructor.
+
+   ---------- Footnotes ----------
+
+   (1) Note that the *Star* type system will not _infer_ this
+generalized type.
+
+
+File: guide.info,  Node: Compressing collections,  Prev: Mapping to make new collections,  Up: Doing stuff with collections
+
+4.3.4 Compressing collections
+-----------------------------
+
+Another way of using collections is to summarize or aggregate over them.
+For example, the 'average' function computes a single number from an
+entire collection of numbers - as do many of the other statistical
+functions.  We can define average using the standard 'foldLeft'
+function, which is part of the standard 'folding' contract:
+     average(C) is foldLeft((+),0,C)::float/size(C)::float
+
+     This definition of the 'average' function is about as close to a
+     specification of average as is possible in a programming language!
+
+     Notice: the use of coercion here - coercing both the result of the
+     'foldLeft' and 'size' to float.  The reason for doing this is that
+     functions like 'average' are 'naturally' real functions.(1)
+     Without the explicit coercion, averaging a list of integers will
+     also result in an integer value - which is likely to be inaccurate.
+
+   Of course, in our definition of 'average' we need to coerce _both_
+the numerator and denominator of the division because *Star* does not
+have implicit coercion.
+
+   The 'foldLeft' function applies a binary function to a collection:
+starting from the first element and successively 'adding up' each of the
+elements in the collection using the supplied operator.
+
+ [image src="images/leftfold.png" ]
+
+Figure 4.1: Left Folding a Collection
+
+   As we noted above, 'foldLeft' is part of the 'folding' contract.
+Like the 'functor' contract, this uses some more subtle type
+constraints:
+     contract all c,e ~~ folding[c->>e] ::= {
+       foldRight:all x ~~ (((e,x)=>x),x,c) => x.
+       foldLeft:all x ~~ (((x,e)=>x),x,c) => x.
+     }
+   The 'folding' contract uses quantifiers in two places: once in the
+contract specification and once in the type signature for 'foldLeft'
+(and 'foldRight').  What we are trying to express here is that any
+implementation of 'folding' must allow for a generic function to process
+the collection.
+
+   The 'foldLeft' (and 'foldRight') functions have an 'accumulator' (of
+type 'x') which need not be the same as the type of the elements of the
+collection.(2)  This argument acts as a kind of linking thread during
+the entire computation - and represents the returned value when the fold
+is complete.
+
+   But we can do much more than computing averages with a fold.  Recall
+that when we realized the sieve of Eratosthenes, we still had a
+recursive structure to the program.  Furthermore, the way our original
+program was written each filter results in a new list of numbers being
+produced.  Instead of doing this, we can construct a cascade of filter
+functions - each level in the cascade is responsible for eliminating
+multiples of a specific prime.
+
+   The complete cascade filters by checking each level of the cascade:
+for example, after encountering 3, 5 and 7, there will be a cascade of
+three functions that check each incoming number: one to look for
+multiples of 3, one for multiples of 5 and one for multiples of 7.  When
+we encounter the next prime (11) then we glue on to the cascade a
+function to eliminate multiples of 11.
+
+   Consider the task of adding a filter to an existing cascade of
+filters.  What is needed is a new function that combines the effect of
+the new filter with the old one.  The 'cascade' function takes a filter
+function and a prime as arguments and constructs a new function that
+checks both the prime _and_ the existing filter:
+     cascade:((integer)=>boolean,integer)=>((integer)=>boolean).
+     cascade(F,K) => (X)=>F(X) && X%K=!=0.
+
+     This is a truly higher-order function: it takes a function as
+     argument and returns another function.
+
+   Given 'cascade', we can reformulate the 'sieve' function itself as a
+'foldRight' - at each new prime step we 'accumulate' a new cascaded
+filter function:
+     stp:(integer,(integer)=>boolean)=>((integer)=>boolean).
+     stp(X,F) where F(X) => cascade(F,X).
+     stp(X,F) => F.
+   At each step in the fold we want to know whether to continue to
+propagate the existing filter or whether to construct a new filter.
+
+   The 'sieve' function itself is now very short: we simply invoke
+'foldRight' using 'stp' and an initial 'state' consisting of a function
+that checks for odd numbers:
+     sieve(C) => foldRight(stp,(K)=>K%2=!=0,C).
+   This version of 'sieve' is not quite satisfactory as, while it does
+find prime numbers, it does not report them.  A more complete version
+has to also accumulate a list of primes that are found.  We can do this
+by expanding the accumulated state to include both the cascaded filter
+function and the list of found primes.  The main alteration is to the
+'step' function:
+     step:((list[integer],(integer)=>boolean),integer) => (list[integer],(integer)=>boolean).
+     step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X)).
+     step(_,(P,F)) => (P,F).
+   and the initial state has an empty list:
+     sieve(C) is fst(foldRight(step,([],(K)=>K%2=!=0),C)).
+   where 'fst' and 'snd' are standard functions that pick the left and
+right hand sides of a tuple pair:
+     fst:all s,t ~~ ((s,t))=>s.
+     fst((L,R)) => L
+     snd:all s,t ~~ ((s,t))=>t.
+     snd((L,R)) => R
+   There is one final step we can make before leaving our sieve of
+Eratosthenes - we can do something about the initial list of integers.
+As it stands, while the sieve program does not construct any
+intermediate lists of integers, it still requires an initial list of
+integers to filter.  However, this particular sequence can be
+represented in a very compact form - as a 'range' term.
+
+   'range' terms are special forms of collections that denote ranges of
+numeric values.  For example, the expression
+     range(0,100,2)
+   denotes the sequence of integers starting at zero, not including 100,
+each succesive integer being incremented by 2.
+
+   Using a similar 'range' term, we can denote the list of primes less
+than 1000 with
+     primes(Max) => let{
+       cascade:((integer)=>boolean,integer) => ((integer)=>boolean).
+       cascade(F,K) => (X)=>(F(X) && X%K=!=0).
+
+       step(X,(P,F)) where F(X) => ([P..,X],cascade(F,X)).
+       step(_,(P,F)) => (P,F).
+
+       sieve:(range[integer])=>list[integer].
+       sieve(R) => fst(foldRight(step,([],(K)=>true),R)).
+     } in sieve(range(3,Max,2)).
+
+     show primes(1000)
+   This final program has an important property: there are no explicit
+recursions in it - in addition, apart from the 'foldRight' function,
+there are no recursive programs at all in the definition of 'primes'.
+
+     Of course, it still would not count as the _most efficient_ primes
+     finding program; but that was not the goal of this discussion.
+
+   ---------- Footnotes ----------
+
+   (1) Real as in the ℝeal numbers.
+
+   (2) We saw something similar with the visitor pattern.
+
+
+File: guide.info,  Node: Different types of collection,  Prev: Doing stuff with collections,  Up: Collections
+
+4.4 Different types of collection
+=================================
+
+Just as there are many uses of collections, so there are different
+performance requirements for collections themselves.  The most
+challenging aspects of implementing collections revolves around the cost
+of _adding_ to the collection, the cost of _accessing_ elements of the
+collection and the cost of _modifying_ elements in the collection.
+
+   There is a strong emphasis on _persistent_ semantics for the types
+and functions that make up *Star*’s collections architecture.  This is
+manifest in the fact, for example, that functions that add and remove
+elements from collections _do not_ modify the original collection.
+
+   However, even without that constraint, different implementation
+techniques for collections tend to favor some operations at the cost of
+others.  Hence, there are different types of collection that favor
+different patterns of use.
+
+* Menu:
+
+* The cons type::
+* The list type::
+* The map type::
+* The set type::
+
+
+File: guide.info,  Node: The cons type,  Next: The list type,  Up: Different types of collection
+
+4.4.1 The 'cons' type
+---------------------
+
+This is the simplest collection type; and is perhaps the original
+collection type used in functional programming languages.  It is defined
+by the type declaration:
+     all t ~~ cons[t] ::= nil | cons(t,cons[t]).
+   Cons lists have the property that adding an element to the front of a
+list is a constant-time operation; similarly, splitting a 'cons' list
+into its head and tail is also a constant time operation.  However,
+almost every other operation is significantly more expensive: putting an
+element on to the end of a 'cons' list is linear in the length of the
+list.
+
+   The main merit of the 'cons' list is the sheer simplicity of its
+definition.  Also, for small collections, its simple implementation may
+outweigh the advantages that more complex collections offer.
+
+
+File: guide.info,  Node: The list type,  Next: The map type,  Prev: The cons type,  Up: Different types of collection
+
+4.4.2 The 'list' type
+---------------------
+
+The list type offers a different trade-off to the 'cons' type: where the
+latter is optimal for ease of constructing and for traversing complete
+lists, the list type offers constant-time access to random elements
+within the array - at the potential cost of more expensive construction
+of lists.
+
+   Unlike the 'cons' type, the 'list' type does not have a
+straightforward definition as an algebraic type.  Internally, a list
+structure consists of an array of locations with a 'control pointer'
+giving the portion of the array block that represents a given list
+value.  This is sometimes called a Copy on Write (COW) structure.
+
+   The 'list' type is optimized for random access and for shared storage
+- recall that *Star* collection types are persistent: that means that
+different values can share some or all of their internal structure.  The
+diagram below shows two list values that overlap in their elements and
+consequently share some of their structure.
+
+ [image src="images/twoarrays.png" ]
+
+Figure 4.2: Two lists Sharing Structure
+
+
+File: guide.info,  Node: The map type,  Next: The set type,  Prev: The list type,  Up: Different types of collection
+
+4.4.3 The map type
+------------------
+
+Unlike the 'cons' or 'list' type, the 'map' type is oriented for access
+by arbitrary keys.  The 'map' is also quite different to hash maps as
+found in Java (say), the 'map' type is _persistent_: the functions that
+access dictionaries such as by adding or removing elements return new
+dictionaries rather than modifying a single shared structure.  However,
+the efficiency of 'map' is quite comparable to Java’s HashMap.
+
+   The template for the 'map' type is:
+     all k,v ~~ equality[k], hash[k] |: map[k,v]
+   Notice that there is an implied constraint here: the 'map' assumes
+that the keys in the map can be compared for equality, and that they are
+hashable - have a 'hash' function.
+
+   A 'map' value can be written using the sequence notation, using tuple
+pairs for the key-value pairs:
+     map of [(1,"alpha"),(2,"beta”)]
+   As we saw before, 'map's also have a special variant of the sequence
+notation; instead of writing the pairs as tuples we can use an arrow
+notation for 'map' terms:
+     map of [1->"alpha", 2->"beta"]
+   Maps also have their own special variant of a _query search
+condition_.  A condition of the form
+     K->V in D
+   where D is a 'map' will be satisfied if there is a key/value pair in
+D corresponding to K and V. For example, the condition:
+     K->V in map of [1->"alpha", 2->"beta"] && V=="alpha"
+   is satisfied for only one pair of 'K' and 'V': namely '1' and
+'"alpha"' respectively.
+
+   For the curious, dictionaries are implemented using techniques
+similar to , as described by Bagwell 'Ideal Hash Trees, P. Bagwell'.
+This results in a structure with an effective O(1) cost for accessing
+elements _and_ for modifying the 'map' - all the while offering an
+applicative data structure.
+
+
+File: guide.info,  Node: The set type,  Prev: The map type,  Up: Different types of collection
+
+4.4.4 The 'set' type
+--------------------
+
+There are many instances where a programmer needs a collection but does
+not wish specify any ordering or mapping relationship.  The standard
+'set' type allows you to construct such entities.
+
+   Using a 'set' type offers the programmer a signal that minimizes
+assumptions about the structures: the set type is not ordered, and
+offers no ordering guarantees.  It does, however, offer a guarantee that
+operations such as element insertion, search and set operations like set
+union are implemented efficiently.
+
+   Like 'map', the 'set' type is not publicly defined using an algebraic
+type definition: its implementation is private.  It’s type is given by
+the template:
+     all t ~~ equality[t] |: set[t]
+
+4.5 Collecting it together
+==========================
+
+
+File: guide.info,  Node: Collecting it together
+
+Collections form an important part of any modern programming language.
+The suite of features that make up the collections architecture in
+*Star* consists of a number of data types, contracts and special syntax
+that combine to significantly reduce the burden of the programmer.
+
+   The collections facility amounts to a form of DSL - Domain Specific
+Language - that is, in this case, built-in to the language.  We shall
+see later on that, like many DSLs, this results in a pattern where there
+is a syntactic extension to the language that is backed by a suite of
+contracts that define the semantics of the DSL.
+
+
+File: guide.info,  Node: Concept index,  Next: Function index,  Prev: Collections,  Up: Top
 
 Concept index
 *************
@@ -3080,93 +4271,132 @@ List of Syntax Rules
 
 Tag Table:
 Node: Top257
-Node: Why be a Star programmer?782
-Node: Programming has changed1327
-Node: Programs are huge1885
-Ref: Programs are huge-Footnote-13492
-Node: Planning for change3585
-Ref: Planning for change-Footnote-15881
-Node: Programming safely and effectively5940
-Node: Real-time is normal time.6949
-Node: This train is leaving the station7706
-Node: Technology8982
-Node: Is Star for you?10667
-Node: If you are already a Java (or C#)11119
-Node: If you are already a C++ programmer13257
-Node: If you are already a functional programmer15074
-Node: Design goals for Star18236
-Ref: Design goals for Star-Footnote-122741
-Node: About this book22869
-Node: Getting hold of Star23922
-Node: Typographical conventions24277
-Node: Acknowledgements25080
-Node: A tour of Star26519
-Ref: A tour of Star-Footnote-127667
-Node: A first Star program27730
-Node: Texture29293
-Node: Lexical style30102
-Ref: Lexical style-Footnote-131878
-Ref: Lexical style-Footnote-231987
-Ref: Lexical style-Footnote-332137
-Node: Types32191
-Node: Rules33939
-Node: Patterns34882
-Node: Packages36365
-Node: Worksheets37046
-Ref: Worksheets-Footnote-138291
-Node: String interpolation38320
-Node: Types more types and even more types38820
-Ref: Types more types and even more types-Footnote-140690
-Ref: Types more types and even more types-Footnote-240779
-Node: Nominative types40895
-Node: Reference Type42441
-Node: Structural types44193
-Node: Optional values45828
-Node: The flavors of equality47969
-Ref: The flavors of equality-Footnote-149858
-Node: A tale of three loops49967
-Node: A functional loop51550
-Node: A totalizer query53577
-Node: The homunculus in the machine54995
-Node: Contracts and constrained types56001
-Node: Implementing contracts58363
-Node: Coercion not casting60483
-Node: There is more63534
-Node: Functional Programming64117
-Node: What is functional programming?65725
-Ref: What is functional programming?-Footnote-167492
-Node: Basics67614
-Ref: Basics-Footnote-169405
-Node: Functions69756
-Ref: Functions-Footnote-174917
-Ref: Functions-Footnote-275043
-Node: Order of evaluation75114
-Ref: Order of evaluation-Footnote-177237
-Node: Another look at types77409
-Node: Quantifier types77874
-Node: Contract constrained types80055
-Ref: Contract constrained types-Footnote-182476
-Node: Algebraic data types82509
-Node: Functions as values88675
-Node: Functions and closures91263
-Node: Let binding92635
-Node: Generic types95074
-Node: Generic functions98243
-Ref: Generic functions-Footnote-199251
-Node: Going further99315
-Node: Going even further104256
-Node: Polymorphic arithmetic110795
-Ref: Polymorphic arithmetic-Footnote-1113841
-Node: Optional computing113906
-Ref: Optional computing-Footnote-1116073
-Node: Special syntax for optional values116163
-Ref: Special syntax for optional values-Footnote-1118248
-Node: A word about type inference118283
-Ref: A word about type inference-Footnote-1122958
-Node: Why is type inference restricted?123052
-Node: Are we there yet?125783
-Node: Concept index126765
-Node: Function index126900
-Node: List of Syntax Rules127053
+Node: Why be a Star programmer?798
+Node: Programming has changed1343
+Node: Programs are huge1901
+Ref: Programs are huge-Footnote-13508
+Node: Planning for change3601
+Ref: Planning for change-Footnote-15897
+Node: Programming safely and effectively5956
+Node: Real-time is normal time.6961
+Node: This train is leaving the station7714
+Node: Technology8984
+Node: Is Star for you?10663
+Node: If you are already a Java (or C#)11115
+Node: If you are already a C++ programmer13247
+Node: If you are already a functional programmer15276
+Node: Design goals for Star18408
+Ref: Design goals for Star-Footnote-122897
+Node: About this book23025
+Node: Getting hold of Star24078
+Node: Typographical conventions24433
+Node: Acknowledgements25236
+Node: A tour of Star26670
+Ref: A tour of Star-Footnote-127818
+Node: A first Star program27881
+Node: Texture29444
+Node: Lexical style30253
+Ref: Lexical style-Footnote-132029
+Ref: Lexical style-Footnote-232138
+Ref: Lexical style-Footnote-332288
+Node: Types32342
+Node: Rules34086
+Node: Patterns35029
+Node: Packages36512
+Node: Worksheets37193
+Ref: Worksheets-Footnote-138438
+Node: String interpolation38467
+Node: Types more types and even more types38967
+Ref: Types more types and even more types-Footnote-140837
+Ref: Types more types and even more types-Footnote-240926
+Node: Nominative types41042
+Node: Reference Type42588
+Node: Structural types44340
+Node: Optional values45975
+Node: The flavors of equality48116
+Ref: The flavors of equality-Footnote-150005
+Node: A tale of three loops50114
+Node: A functional loop51689
+Node: A totalizer query53712
+Node: The homunculus in the machine55130
+Node: Contracts and constrained types56136
+Node: Implementing contracts58498
+Node: Coercion not casting60618
+Node: There is more63669
+Node: Functional Programming64252
+Node: What is functional programming?65858
+Ref: What is functional programming?-Footnote-167625
+Node: Basics67747
+Ref: Basics-Footnote-169538
+Node: Functions69889
+Ref: Functions-Footnote-175034
+Ref: Functions-Footnote-275160
+Node: Order of evaluation75231
+Ref: Order of evaluation-Footnote-177354
+Node: Another look at types77526
+Node: Quantifier types77987
+Node: Contract constrained types80162
+Ref: Contract constrained types-Footnote-182674
+Node: Algebraic data types82707
+Ref: binaryStringTree87472
+Node: Functions as values88888
+Node: Functions and closures91476
+Node: Let binding92844
+Node: Generic types95283
+Node: Generic functions98442
+Ref: Generic functions-Footnote-199450
+Node: Going further99514
+Node: Going even further104451
+Node: Polymorphic arithmetic110986
+Ref: Polymorphic arithmetic-Footnote-1114032
+Node: Optional computing114097
+Ref: Optional computing-Footnote-1116259
+Node: Special syntax for optional values116349
+Ref: Special syntax for optional values-Footnote-1118432
+Node: A word about type inference118463
+Ref: minusTypeFig120881
+Ref: A word about type inference-Footnote-1123152
+Node: Why is type inference restricted?123246
+Node: Are we there yet?126095
+Node: Collections127077
+Node: Sequence notation128570
+Node: Partial sequence notation130057
+Node: The stream and sequence contracts132107
+Ref: The stream and sequence contracts-Footnote-1134048
+Node: Stream patterns134297
+Node: Notation and contracts136719
+Node: Indexing137942
+Node: The indexed contract138831
+Ref: The indexed contract-Footnote-1141570
+Node: Adding and removing elements141749
+Ref: Adding and removing elements-Footnote-1143320
+Node: The index notation143464
+Node: Implementing indexing146591
+Ref: Implementing indexing-Footnote-1150784
+Node: Index slices150916
+Ref: Index slices-Footnote-1152879
+Node: Doing stuff with collections152941
+Node: Filtering154129
+Ref: Filtering-Footnote-1155592
+Node: The filter contract155653
+Node: The sieve of Erastosthneses155950
+Node: Mapping to make new collections159118
+Ref: Mapping to make new collections-Footnote-1162441
+Node: More Type Inference Magic162572
+Ref: More Type Inference Magic-Footnote-1164155
+Node: Compressing collections164236
+Ref: leftFold165678
+Ref: Compressing collections-Footnote-1171039
+Ref: Compressing collections-Footnote-2171078
+Node: Different types of collection171137
+Node: The cons type172256
+Node: The list type173177
+Ref: twoarrays174301
+Node: The map type174382
+Node: The set type176268
+Node: Collecting it together177170
+Node: Concept index177832
+Node: Function index177956
+Node: List of Syntax Rules178109
 
 End Tag Table
