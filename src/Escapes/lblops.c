@@ -64,7 +64,7 @@ ReturnStatus g__callLbl(processPo P, ptrPo tos) {
       assert(P->sp > (ptrPo) P->stackBase);
       P->prog = prog;
 
-      ret.ret = Fail;               // Special flag for dynamic call
+      ret.ret = Switch;               // Special flag for dynamic call
       return ret;
     }
   } else {

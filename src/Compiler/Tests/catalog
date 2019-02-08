@@ -4,7 +4,8 @@
 		"test.comp.err" : "errtest.star",
 		"test.comp.gram" : "gramtest.star",
 		"test.comp.lx" : "lextest.star",
-		"test.comp.cat" : "catalogtest.star"
+		"test.comp.cat" : "catalogtest.star",
+		"test.comp.unify" : "unifytest.star"
 	},
 	"version": "1.0.0",
 	"default": "../catalog"

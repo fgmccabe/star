@@ -1,0 +1,92 @@
+
+
+# The 'M' word
+
+One of the most common themes in programming is that of _combining_ things. Many things are combined; and large programs are often seen as compositions of smaller programs -- all the way down to individual atomic entities.
+
+However, most programming languages also make many _distinctions_: modules vs functions, data vs code, input vs output, statement vs expressions, and so on. In many cases these distinctions work to obscure the fundamentals of the combinatorial nature of computing.
+
+There is a mathematical discipline that focuses on the same theme: _category theory_. A mathematical category is a deceptively simple concept:
+
+>A _category_ is a directed graph, whose nodes are called _objects_ and whose edges are called _arrows_ or _morphisms_. There are two critical properties that a category must have:
+>* An identity arrow for each object, and
+>* arrows are associative (i.e., composable)
+
+What, one may ask, has this to do with programming? Well, the definition of a category turns out to be one of the simplest structures that is composable; and that simplicity allows many actual architectural features to be viewed through the categorical (sic) lens.
+
+
+
+
+## Monads for collections processing
+
+## Parser expression grammars
+
+One of the more surprising applications of monads is for parsing.[^At least, it was surprising to the aurhor.] There are many formalisms for expressing grammars and parsers; but the monadic way is perhas one of the more elegant.
+
+Mathematically, a grammar is a statement of the legal forms of expression of some language. From the perspective of programming, grammars are often viewed as _programs_ that can be used to _parse_ an instance of the language. This is the convention we will focus on here; but it behooves us to remember the declarative definition.
+
+To illustrate some fundamentals, we explore a simple language consisting of strings of the form:
+
+```
+aba
+b
+aabaa
+aaabaaa
+```
+Note that we do not intend:
+```
+abaa
+```
+to be a legal instance of this language.
+
+If our language is called `L`, then one grammar for this can be written:
+```
+L -> b | a L a.
+```
+Before we show how to write a parser for `L`, let us think about an even simpler language:
+```
+A -> a
+```
+What might the type signature for a function to parse the `A` language look like? The most obvious is probably:
+```
+A0:(string) => ()
+```
+The biggest issue with this is that the return gives no hint as to whether the parse was successful or not. In addition we need to consider whether there may be multiple ways of parsing the source; whether the parser should be able to return some _representation_ of the parse tree and how to express combinations of parsers.
+
+The final consideration mentioned -- combining parsers -- is where monads come in to focus.
+
+So, instead of simply defining a function whose job it is to parse a string, we define a `parser` structure that can be combined with other parsers -- using monadic bind -- and can be used to parse input.
+
+Our final relaxation is to move away from parsing strings to parsing sequences. The resulting type signature for the `A` grammar parser looks like:
+```
+A:parser[string,()].
+```
+which is intended to be read as:
+>A is a parser from strings and which returns the empty tuple.
+We can use the parser by calling the standard `parse` function with `A`:
+```
+parse(A,"a")
+```
+The `parse` function applies the parser defined by `A` to the sequence constructed by converting the string to a list of integers.
+
+The type signature for `parse` explains more-or-less what will happen:
+```
+public parse:all e,s ~~ (parser[s,e],s) => list[(e,s)]
+```
+The return value from invoking `parse` is a list of alternative parses: each alternative is a combination of the result of the parse itself (often a parse tree) and the so-called remainder stream (what is remaining of the input after a parse). If the returned value from `parse` is empty; then that means that it was not possible to parse the input stream.
+
+The `parser` type itself is a little reminiscent of the standard `option` type; except that it wraps a function rather than an arbitrary value:
+```
+public parser[s,e] ::= parser((s)=>list[(e,s)]).
+```
+
+Given this set up, we can now go ahead and define the parser for our super-small language `A`:
+```
+A = _item >>= (Ch) => (Ch==0ca ? (0ca)
+```
+This states that the only way of parsing an element of the `A` language is to encounter the literal character `a`. The `_tk` function is a part of the standard grammar package for **Star**. It is implemented:
+```
+
+```
+
+## A different kind of sequence

@@ -319,6 +319,7 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) 
     }
 
     default:
+      p->traceDepth = 0;
       return stepOver;
   }
 }
