@@ -3,6 +3,7 @@
 cmake-build-debug/
 cmake-build-release/
 Build/
+build/
 CMakeCache.txt
 CMakeFiles
 CTestTestfile.cmake

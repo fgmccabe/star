@@ -14,16 +14,6 @@ types and a system of verifying the type consistency of programs.
 This chapter focuses on the type language itself and the semantics of
 types.
 
-@menu
-* What is a Type?::
-* Nominal Types::
-* Structural Types::
-* Quantified Types::
-* Constrained Types::
-* Type Constraints::
-* Type Semantics::
-@end menu
-
 @node What is a Type?
 @section What is a Type?
 
@@ -36,11 +26,6 @@ Although a type is an expression, type expressions should not be
 confused with normal expressions. Types generally play no part in
 evaluation.
 @end quotation
-
-@menu
-* Type Annotations::
-* Types of Types::
-@end menu
 
 Viewed as sets, types have some particular properties: no value may be
 a member of more than one type set; all values are members of exactly
@@ -246,11 +231,6 @@ nodes of the tree are typically themselves trees.
 @end display
 @end float
 
-@menu
-* Simple Types::
-* Parameterized Types::
-@end menu
-
 @node Simple Types
 @subsection Simple Types
 @cindex simple type
@@ -329,13 +309,6 @@ A structural type is a type expression that looks like its
 purpose. @Star{} has three main forms of structural type: tuple types,
 program types and record types.
 
-@menu
-* Tuple Types::
-* Record Types::
-* Function Types::
-* Reference Type::
-@end menu
-
 @node Tuple Types
 @subsection Tuple Types
 @cindex tuple types
@@ -389,9 +362,9 @@ is also used to denote the return type of some actions.
 @cindex tuple,singleton tuple type
 
 @noindent
-A singleton tuple must be written with two parentheses. This is to
-disambiguate such terms from simple expression parentheses. A type
-expression of the form:
+In some cases, a singleton tuple must be written with two
+parentheses. This is to disambiguate such terms from simple expression
+parentheses. A type expression of the form:
 @example
 (integer)
 @end example
@@ -403,6 +376,22 @@ is equivalent to just the @code{integer} type; whereas
 
 denotes the single element tuple type whose element type is
 @code{integer}.
+
+@quotation NOTE
+The double set of parentheses is not needed, for example, in giving
+the type signature of a unary function.
+@end quotation
+For example, the type
+@example
+(integer)=>integer
+@end example
+denotes a unary function of one argument. The similar type expression:
+@example
+((integer))=>integer
+@end example
+denotes a unary function type, whose @emph{argument} is a unary or
+singleton tuple.@footnote{This complexity arises because parentheses
+have a dual role: to group expressions and as a notation for tuples.}
 
 @node Record Types
 @subsection Record Types
@@ -483,10 +472,6 @@ takes the form:
 (integer,string) => cons[string]
 @end example
 
-@menu
-* Constructor Type::
-@end menu
-
 @node Constructor Type
 @subsubsection Constructor Type
 @cindex constructor type
@@ -562,13 +547,6 @@ Associated with any quantified type is the bound type -- otherwise
 known as a type variable. The permitted uses of a given bound type
 variable depend on whether it is universally bound or existentially
 bound.
-
-@menu
-* Universally Quantified Types::
-* Existentially Quantified Types::
-* Bound Type Variables::
-* Encapsulated Types::
-@end menu
 
 @node Universally Quantified Types
 @subsection Universally Quantified Types
@@ -964,11 +942,6 @@ such a merging of constraints is not possible; in such a case, the
 unification will fail.
 @end quotation
 
-@menu
-* Contract Constraints::
-* Field Constraints::
-@end menu
-
 @node Contract Constraints
 @subsection Constract Constraints
 @cindex type,constraints!contract
@@ -1066,12 +1039,6 @@ requires that any actual binding for type
 @section Type Semantics
 @cindex semantics of types
 
-@menu
-* Type Rules::
-* Freshening and Skolemization::
-* Type Unification::
-@end menu
-
 @node Type Rules
 @subsection Type Rules
 @cindex type safety
@@ -1147,11 +1114,6 @@ In any logic with quantifiers, reasoning about terms can involves
 rewriting quantified expressions. The type system of @Star{} has two
 related operations over types: freshening and skolemization.
 
-@menu
-* Freshening::
-* Skolemization::
-@end menu
-
 @node Freshening
 @subsubsection Freshening
 
@@ -1206,16 +1168,6 @@ The type system is based on the concept of type
 @emph{equality}. Unification is an algorithm that can be used to
 determine if two terms can be made to be identical to each other --
 typically by replacing variables with values.
-
-@menu
-* Unifying Nominal Types::
-* Unifying Reference Types::
-* Unifying Tuple Types::
-* Unifying Record Types::
-* Unifying Function Types::
-* Unifying Type Variables::
-* Unifying Quantified Types::
-@end menu
 
 @node Unifying Nominal Types
 @subsubsection  Unifying Nominal Types
