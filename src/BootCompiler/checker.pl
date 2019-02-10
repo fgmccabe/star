@@ -562,16 +562,6 @@ typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
-  /*
-  typeOfExp(Term,Tp,Env,Ev,varRef(Lc,TT),Path) :-
-  isVarRef(Term,Lc,In),!,
-  typeOfExp(In,refType(Tp),Env,Ev,TT,Path).
-
-typeOfExp(Term,Tp,Env,Ev,assign(Lc,V,Vl),Path) :-
-  isAssignment(Term,Lc,Lhs,Rhs),!,
-  typeOfExp(Lhs,refType(Tp),Env,E0,V,Path),
-  typeOfExp(Rhs,Tp,E0,Ev,Vl,Path).
-  */
 typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   findType("boolean",Lc,Env,LogicalTp),
