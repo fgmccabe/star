@@ -54,8 +54,8 @@ logical isBreakPoint(breakPointPo b, const char *pk, integer lineNo, integer off
 }
 
 logical isCallBreakPoint(breakPointPo b, const char *nm, integer arity) {
-  if (b->offset >= 0)
-    return (logical) (b->bkType == callBreak && uniCmp(b->nm, nm) == same && b->offset == arity);
+  if (b->lineNo >= 0)
+    return (logical) (b->bkType == callBreak && uniCmp(b->nm, nm) == same && b->lineNo == arity);
   else
     return (logical) (b->bkType == callBreak && uniCmp(b->nm, nm) == same);
 }
@@ -88,8 +88,11 @@ logical lineBreakPointHit(normalPo loc) {
 }
 
 logical callBreakPointHit(labelPo lbl) {
+  char *const lblNm = labelName(lbl);
+  const integer lblArity = labelArity(lbl);
+
   for (int ix = 0; ix < breakPointCount; ix++) {
-    if (isCallBreakPoint(&breakPoints[ix], labelName(lbl), labelArity(lbl)))
+    if (isCallBreakPoint(&breakPoints[ix], lblNm, lblArity))
       return True;
   }
   return False;
@@ -264,7 +267,7 @@ DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl) {
     ret = addBreakPoint(&bp);
   if (ret != Ok) {
     outMsg(logFile, "Could not set spy point on %s\n", line);
-    outMsg(logFile, "usage: +pkg/Ln\n%_");
+    outMsg(logFile, "usage: +pkg/Arity or +pkg:LineNo\n%_");
   } else
     outMsg(logFile, "%sspy point set on %s\n%_", bp.bkType == callBreak ? "call " : "line ", line);
   return moreDebug;

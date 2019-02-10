@@ -10,11 +10,8 @@
 extern termPo getLbl(termPo lbl, int32 arity);
 
 extern DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins);
-extern DebugWaitFor callDebug(processPo p, termPo call);
-extern DebugWaitFor tailDebug(processPo p, termPo call);
-extern DebugWaitFor ocallDebug(processPo p, termPo call, int32 arity);
-extern DebugWaitFor retDebug(processPo p, termPo val);
 extern DebugWaitFor lineDebug(processPo p, termPo line);
+extern DebugWaitFor enterDebug(processPo p);
 
 extern retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 

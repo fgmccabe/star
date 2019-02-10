@@ -119,21 +119,13 @@ mnem([iBt(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[34,Off|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
 mnem([iFrame(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[35,V|M]) :- Pc1 is Pc+3,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
-mnem([iDCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[36,LtNo|M]) :- Pc1 is Pc+3,
+mnem([iDLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[36,LtNo|M]) :- Pc1 is Pc+3,
       findLit(Lt,V,LtNo,Lt1),
       mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
-mnem([iDOCall(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[37,V|M]) :- Pc1 is Pc+3,
+mnem([iDBug|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[37|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
-mnem([iDTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[38,LtNo|M]) :- Pc1 is Pc+3,
-      findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
-mnem([iDOTail(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[39,V|M]) :- Pc1 is Pc+3,
+mnem([iDBreak|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[38|M]) :- Pc1 is Pc+1,
       mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
-mnem([iDRet|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[40|M]) :- Pc1 is Pc+1,
-      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
-mnem([iDLine(V)|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[41,LtNo|M]) :- Pc1 is Pc+3,
-      findLit(Lt,V,LtNo,Lt1),
-      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).
 
 
 makeKey(Id,Key) :-
@@ -189,12 +181,9 @@ genLblTbl([iCmp(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,
 genLblTbl([iBf(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iBt(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iFrame(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iDCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iDOCall(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iDTail(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iDOTail(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
-genLblTbl([iDRet|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 genLblTbl([iDLine(_)|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+3,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iDBug|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
+genLblTbl([iDBreak|Ins],Pc,Lbls,Lbx) :- !, Pc1 is Pc+1,  genLblTbl(Ins,Pc1,Lbls,Lbx).
 
 
 pcGap(Pc,Tgt,Off) :- Off is Tgt-Pc.
@@ -533,45 +522,6 @@ showMnem([iFrame(XX)|Ins],Pc,Lbls,O,Ox) :- !,
   appNl(O2,O3),
   Pc1 is Pc+3,
   showMnem(Ins,Pc1,Lbls,O3,Ox).
-showMnem([iDCall(XX)|Ins],Pc,Lbls,O,Ox) :- !,
-  appInt(Pc,O,O0),
-  appStr(":",O0,O00),
-  appStr("dCall ",O00,O1),
-  showTerm(XX,0,O1,O2),
-  appNl(O2,O3),
-  Pc1 is Pc+3,
-  showMnem(Ins,Pc1,Lbls,O3,Ox).
-showMnem([iDOCall(XX)|Ins],Pc,Lbls,O,Ox) :- !,
-  appInt(Pc,O,O0),
-  appStr(":",O0,O00),
-  appStr("dOCall ",O00,O1),
-  appInt(XX,O1,O2),
-  appNl(O2,O3),
-  Pc1 is Pc+3,
-  showMnem(Ins,Pc1,Lbls,O3,Ox).
-showMnem([iDTail(XX)|Ins],Pc,Lbls,O,Ox) :- !,
-  appInt(Pc,O,O0),
-  appStr(":",O0,O00),
-  appStr("dTail ",O00,O1),
-  showTerm(XX,0,O1,O2),
-  appNl(O2,O3),
-  Pc1 is Pc+3,
-  showMnem(Ins,Pc1,Lbls,O3,Ox).
-showMnem([iDOTail(XX)|Ins],Pc,Lbls,O,Ox) :- !,
-  appInt(Pc,O,O0),
-  appStr(":",O0,O00),
-  appStr("dOTail ",O00,O1),
-  appInt(XX,O1,O2),
-  appNl(O2,O3),
-  Pc1 is Pc+3,
-  showMnem(Ins,Pc1,Lbls,O3,Ox).
-showMnem([iDRet|Ins],Pc,Lbls,O,Ox) :- !,
-  appInt(Pc,O,O0),
-  appStr(":",O0,O00),
-  appStr("dRet ",O00,O1),
-  appNl(O1,O2),
-  Pc1 is Pc+1,
-  showMnem(Ins,Pc1,Lbls,O2,Ox).
 showMnem([iDLine(XX)|Ins],Pc,Lbls,O,Ox) :- !,
   appInt(Pc,O,O0),
   appStr(":",O0,O00),
@@ -580,4 +530,18 @@ showMnem([iDLine(XX)|Ins],Pc,Lbls,O,Ox) :- !,
   appNl(O2,O3),
   Pc1 is Pc+3,
   showMnem(Ins,Pc1,Lbls,O3,Ox).
+showMnem([iDBug|Ins],Pc,Lbls,O,Ox) :- !,
+  appInt(Pc,O,O0),
+  appStr(":",O0,O00),
+  appStr("dBug ",O00,O1),
+  appNl(O1,O2),
+  Pc1 is Pc+1,
+  showMnem(Ins,Pc1,Lbls,O2,Ox).
+showMnem([iDBreak|Ins],Pc,Lbls,O,Ox) :- !,
+  appInt(Pc,O,O0),
+  appStr(":",O0,O00),
+  appStr("dBreak ",O00,O1),
+  appNl(O1,O2),
+  Pc1 is Pc+1,
+  showMnem(Ins,Pc1,Lbls,O2,Ox).
 
