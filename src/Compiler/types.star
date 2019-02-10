@@ -16,7 +16,6 @@ star.compiler.types{
     tipe(string) |
     tpFun(string,integer) |
     tpExp(tipe,tipe) |
-    refType(tipe) |
     tupleType(list[tipe]) |
     allType(tipe,tipe) |
     existType(tipe,tipe) |
@@ -27,7 +26,7 @@ star.compiler.types{
 
   public constraint ::=
     conConstraint(string,list[tipe],list[tipe]) |
-    implConstraint(tipe,tipe).
+    fieldConstraint(tipe,tipe).
 
   tv ::= tv{
     binding : ref option[tipe].
@@ -108,7 +107,6 @@ star.compiler.types{
   identType(tipe(N1),tipe(N2),_) => N1==N2.
   identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tpExp(O1,A1),tpExp(O2,A2),Q) => identType(O1,O2,Q) && identType(A1,A2,Q).
-  identType(refType(T1),refType(T2),Q) => identType(T1,T2,Q).
   identType(tupleType(E1),tupleType(E2),_) => E1==E2.
   identType(allType(V1,T1),allType(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
   identType(existType(V1,T1),existType(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
@@ -124,19 +122,33 @@ star.compiler.types{
 
   public implementation equality[constraint] => {.
     conConstraint(Nm,A1,D1) == conConstraint(Nm,A2,D2) => A1==A2 && D1==D2.
-    implConstraint(V1,T1) == implConstraint(V2,T2) => V1==V2 && T1==T2.
+    fieldConstraint(V1,T1) == fieldConstraint(V2,T2) => V1==V2 && T1==T2.
     _ == _ default => false.
   .}
 
+  -- in general, hashing types is not reliable because of unification
   public implementation hash[tipe] => let {
     hsh(voidType) => 0.
     hsh(thisType) => -1.
     hsh(kVar(Nm)) => hash(Nm).
     hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
-    hsh(tFun(_,Ar,Nm)) => (hash("V")+Ar)*37+hash(Nm).
+    hsh(tFun(_,Ar,Nm)) => (hash("F")+Ar)*37+hash(Nm).
     hsh(tipe(Nm)) => hash(Nm).
     hsh(tpFun(Nm,Ar)) => Ar*37+hash(Nm).
+    hsh(tpExp(O,A)) => hsh(deRef(O))*37+hsh(deRef(A)).
+    hsh(tupleType(Els)) => hshEls((hash("()")*37+size(Els))*37,Els).
+    hsh(faceType(Els,Tps)) => hshFields(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
+    hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+    hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+    hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
+
+    hshCon(conConstraint(Nm,Args,_)) => hshEls(hash("contract")*37+hash(Nm),Args).
+    hshCon(fieldConstraint(V,T)) => (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+
+    hshEls(H,Els) => foldLeft((Hx,El)=>Hx*37+hsh(deRef(El)),H,Els).
+
+    hshFields(H,Els) => foldLeft((Hx,(Nm,Tp))=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
   } in {.
     hash(Tp) => hsh(deRef(Tp)).
   .}
@@ -151,14 +163,15 @@ star.compiler.types{
   shType:(tipe,boolean,integer) => ss.
   shTipe(voidType,_,_) => ss("void").
   shTipe(thisType,_,_) => ss("this").
-  shTipe(kVar(Nm),_,_) => disp(Nm).
+  shTipe(kVar(Nm),_,_) => ss(Nm).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tVar(V,Nm),Sh,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tipe(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-  shTipe(tpExp(F,A),Sh,Dp) => showTypeExp(F,A,Sh,Dp).
-  shTipe(refType(T),Sh,Dp) => ssSeq([ss("ref "),showType(T,Sh,Dp)]).
+  shTipe(tpExp(tpExp(tpFun("=>",2),A),R),Sh,Dp) => ssSeq([showType(A,Sh,Dp-1),ss("=>"),showType(R,Sh,Dp-1)]).
+  shTipe(tpExp(tpFun("ref",1),A),Sh,Dp) => ssSeq([ss("ref "),showType(A,Sh,Dp-1)]).
+  shTipe(tpExp(F,A),Sh,Dp) => ssSeq([showTpExp(F,A,Sh,Dp),ss("]")]).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
   shTipe(allType(A,T),Sh,Dp) => ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
   shTipe(existType(A,T),Sh,Dp) => ssSeq([ss("exist "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
@@ -178,12 +191,12 @@ star.compiler.types{
     ssSeq(interleave([ssSeq([ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Els] ++
                [ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps],ss(". "))).
 
-  showTypeExp:(tipe,tipe,boolean,integer) => ss.
-  showTypeExp(tpExp(T,A),B,Sh,Dp) => ssSeq([showTypeExp(deRef(T),A,Sh,Dp),ss(","),showType(B,Sh,Dp)]).
-  showTypeExp(tpFun(Nm,_),A,Sh,Dp) => ssSeq([disp(Nm),ss("["),showType(A,Sh,Dp)]).
-  showTypeExp(kFun(Nm,_),A,Sh,Dp) => ssSeq([disp(Nm),ss("["),showType(A,Sh,Dp)]).
-  showTypeExp(tFun(_,_,Nm),A,Sh,Dp) => ssSeq([disp(Nm),ss("["),showType(A,Sh,Dp)]).
-  showTypeExp(T,A,Sh,Dp) => ssSeq([showType(T,Sh,Dp),ss("["),showType(A,Sh,Dp)]).
+  showTpExp:(tipe,tipe,boolean,integer) => ss.
+  showTpExp(tpExp(T,A),B,Sh,Dp) => ssSeq([showTpExp(deRef(T),A,Sh,Dp),ss(","),showType(B,Sh,Dp)]).
+  showTpExp(tpFun(Nm,_),B,Sh,Dp) => ssSeq([ss(Nm),ss("["),showType(B,Sh,Dp)]).
+  showTpExp(kFun(Nm,_),B,Sh,Dp) => ssSeq([ss(Nm),ss("["),showType(B,Sh,Dp)]).
+  showTpExp(tFun(_,_,Nm),B,Sh,Dp) => ssSeq([ss(Nm),ss("["),showType(B,Sh,Dp)]).
+  showTpExp(T,B,Sh,Dp) => ssSeq([showType(T,Sh,Dp),ss("["),showType(B,Sh,Dp)]).
 
   showAllConstraints([],Dp) => ss("").
   showAllConstraints([C,..Cs],Dp) => ssSeq([showConstraint(C,Dp),..showMoreConstraints(Cs,Dp)]).
@@ -192,13 +205,13 @@ star.compiler.types{
   showMoreConstraints([C,..Cs],Dp) => [ss(", "),showConstraint(C,Dp),..showMoreConstraints(Cs,Dp)].
 
   showMoreQuantified(allType(V,T),Sh,Dp) => [ss(","),showBound(V,Dp),..showMoreQuantified(T,Sh,Dp)].
-  showMoreQuantified(T,Sh,Dp) => [showType(T,Sh,Dp)].
+  showMoreQuantified(T,Sh,Dp) => [ss(" ~~ "),showType(T,Sh,Dp)].
 
   showBound(V,Dp) => showType(V,false,Dp).
 
   showConstraint(conConstraint(Nm,Args,[]),Dp) => ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("]")]).
   showConstraint(conConstraint(Nm,Args,Deps),Dp) => ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("->>"),showTypes(Deps,false,Dp),ss("]")]).
-  showConstraint(implConstraint(Tp,Fc),Dp) => ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
+  showConstraint(fieldConstraint(Tp,Fc),Dp) => ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
 
   public contract all c ~~ hasType[c] ::= {
     typeOf:(c)=>tipe.

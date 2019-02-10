@@ -27,4 +27,7 @@ star.compiler.dict{
   findImplementation([_,..Rest],Nm,INm) => findImplementation(Rest,Nm,INm).
   findImplementation([],_,_) => none.
 
+  public rootDict:dict.
+  rootDict = [scope([],[],[],[])].
+
 }

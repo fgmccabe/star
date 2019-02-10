@@ -1,13 +1,11 @@
 ;;; 
-;;;Star Emacs mode
+;;; Star Emacs mode
 ;;; Copyright (C) 2019 and beyond F.G. McCabe
 
 (require 'cl)
 (require 'font-lock)
 
-(defvar
-  star-xemacs (not (not (string-match "XEmacs" (emacs-version))))
-  "Whether star-mode is running under XEmacs or not")
+(defvar star-mode-hook nil)
 
 ;; Customization parameters
 
@@ -74,19 +72,14 @@
 (define-abbrev-table 'star-mode-abbrev-table ())
 
 ;;; Initialise the key map
-(defvar star-mode-map nil)
-(if star-mode-map 
-    nil
-  (setq star-mode-map (make-sparse-keymap))
-  (define-key star-mode-map "\t" 'indent-for-tab-command)
-  (define-key star-mode-map [(control meta q)] 'star-indent-sexp)
-  (define-key star-mode-map [(control c) (control c)] 'comment-region)
-  (define-key star-mode-map [(control c) (control d)] 'stardebug-buffer)
-  (mapcar #'(lambda (key-seq)
-	     (define-key star-mode-map 
-	       key-seq 
-	       'star-self-insert-and-indent-command))
-	  '("{" "}" ";" "|" "," "(" ")")))
+(defvar star-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\t" 'indent-for-tab-command)
+    (define-key map "C-M-q" 'star-indent-sexp)
+    (define-key map "C-c C-c" 'comment-region)
+    (define-key map "C-c C-d" 'stardebug-buffer)
+    map)
+  "Keymap for Star major mode")
 
 (defun star-self-insert-and-indent-command (n)
   "Self insert and indent appropriately"
@@ -98,19 +91,18 @@
   "Incremental parse state cache")
 
 ;;; Provide `star-mode' user callable function
-(defun star-mode ()
+(define-derived-mode star-mode prog-mode "Star code"
   "Major mode for editing Star programs"
-  (interactive)
-  (kill-all-local-variables)
+  (setq font-lock-defaults star-mode-font-lock-defaults)
+  
 
   (use-local-map star-mode-map)
-  (setq mode-name "Star!")
-  (setq major-mode 'star-mode)
+
+
 
   (setq local-abbrev-table star-mode-abbrev-table)
   (set-syntax-table star-mode-syntax-table)
 
-  (make-local-variable 'comment-start)
   (setq comment-start "-- ")
 
   (make-local-variable 'comment-end)
@@ -202,11 +194,8 @@
 	(match-end 0)
       nil)))
 
-(defun star-one-of (&rest l)
-  (if (cadr l) 
-      (concat (car l) "\\|"
-	      (apply 'star-one-of (cdr l)))
-    (car l)))
+(defun star-one-of (l)
+  (regexp-opt l t))
 
 (defvar star-close-par "[])}]"
   "Star close parentheses")
@@ -217,9 +206,7 @@
 (defvar star-body-comment "/\\*"
   "Star body comment")
 
-(defvar star-comment (concat "\\(" 
-			   (star-one-of star-line-comment star-body-comment)
-			   "\\)")
+(defvar star-comment (star-one-of star-line-comment star-body-comment)
   "Star comment")
 
 (defvar star-comment-bol (concat "^" star-comment)
@@ -612,84 +599,80 @@
 
 ;;; Font-lock support
 
-(defvar star-font-lock-keyword-regexp 
-  (concat "\\b\\("
-	  (star-one-of 
-	   "import"			; package
-           "private"                    ; non-exported element of package
-	   "action"			; control
-	   "valof"			; control
-
-	   "boolean"			; type
-	   "void"			; type
-	   "float"			; type 
-	   "integer"			; type 
-	   "opaque"			; type
-	   "thread"			; type
-
-	   "true"			; standard enumeration symbol
-	   "false"			; standard enumeration symbol
-
-	   "this"			; this object
-
-	   "string"			; type
-           "sync"
-	   "spawn"			; control
-	   "onerror"			; control
-	   "in"				; control
-           "case"                       ; control
-
-	   "raise"			; control
-	   "error"			; standard constructor
-           )
-	  "\\)\\b")
+(defvar star-font-lock-keyword-regexp
+  (concat "\\<"
+	  (star-one-of
+	   '(
+	     "import"		; package
+	     "private"		; non-exported element of package
+	     "public"		; exported element of package
+	     
+	     "boolean"		; type
+	     "void"			; type
+	     "float"		; type 
+	     "integer"		; type 
+	     
+	     "thread"		; type
+	     
+	     "true"			; standard enumeration symbol
+	     "false"		; standard enumeration symbol
+	     
+	     "this"			; this object
+	     
+	     "string"		; type
+	     "sync"			; control
+	     "spawn"		; control
+	     "onerror"		; control
+	     "in"			; control
+	     "case"			; control
+	     "valof"		; control
+	     
+	     "raise"		; control
+	     "error"		; standard constructor
+	     )) "\\>")
   "Regular expression matching the keywords to highlight in Star mode")
 
 ;;; I think that there is too much highlighting
 ;;; perhaps just highlight arrows => --> -> :- :-- ?
 
 (defvar star-font-lock-symbol-regexp
-  (concat "\\("
-	  (star-one-of 
-	   "::="
-	   "\\$"
-	   "=>"
-	   "->"
-	   "<="
-	   "{\\."
-	   "\\.}"
-	   "\\.\\."
-	   ":="
-	   "\\.="
-	   ">="
-	   "=="
-	   "=<"
-	   "="
-	   "<\\~"
-	   "<>"
-	   "\\*>"
-	   "::="
-	   "::"
-	   ":"
-	   "%%"
-	   "~"
-	   "@="
-	   "@>"
-	   "@@"
-	   "@"
-	   "#"
-	   "\\^"
-	   "\\^\\^"
-	   "\\\\\\+"
-	   "\\\\="
-	   ",\\.\\."
-	   "!\\."
-	   "\\."
-	   "!"
-	   "-+"
-	   "+"
-	   "-")
-	  "\\)")
+  (star-one-of '(
+		 "::="
+		 "=>"
+		 "->"
+		 "<=>"
+		 "{\\."
+		 "\\.}"
+		 "\\.\\."
+		 ":="
+		 "\\.="
+		 ">="
+		 "=="
+		 "=<"
+		 "="
+		 "<\\~"
+		 "\\*>"
+		 "::="
+		 "::"
+		 ":"
+		 "%%"
+		 "~~"
+		 "@="
+		 "@>"
+		 "@@"
+		 "@"
+		 "#"
+		 "\\^"
+		 "\\^\\^"
+		 "\\\\\\+"
+		 "\\\\="
+		 ",\\.\\."
+		 "!\\."
+		 "\\."
+		 "!"
+		 "+"
+		 "-")
+	       "\\)")
   "Regular expression matching the symbols to highlight in Star mode")
 
 (defvar star-font-lock-function-regexp
