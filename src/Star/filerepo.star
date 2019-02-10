@@ -33,7 +33,9 @@ star.repo.file{
 
   public loadFromRepo:(fileRepo,pkg,string) => option[string].
   loadFromRepo(repo(Root,Man),Pkg,Kind) where
+    -- _ .= logMsg("looking for \(Pkg) in \(Man)") &&
     U ^= locateInManifest(Man,Pkg,Kind) &&
+    -- _ .= logMsg("in manifest") &&
     Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
   loadFromRepo(_,_,_) default => none.
 

@@ -42,6 +42,7 @@ star.boot{
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= openRepository(RD) &&
+    -- _ .= logMsg("Repo = \(Repo)") &&
     Pkg ^= parsePkgName(Top) => do{
       setupPkg(Repo,Pkg);
       ^^ (Top,Args)
@@ -55,14 +56,16 @@ star.boot{
   }
 
   importPkgs:(list[pkg],list[pkg],fileRepo)=>action[string,()].
-  importPkgs([],Ld,_)=> return ().
+  importPkgs([],Ld,_) => return ().
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
   importPkgs(_,_,_) default => err("Could not load \(_command_line())").
 
   importPkg:(pkg,fileRepo,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).
   importPkg(P,R,Ld) where
+    -- _ .= logMsg("loading \(P)") &&
     Code ^= loadFromRepo(R,P,"code") &&
+    --  _ .= logMsg("found \(P)") &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => none.
 

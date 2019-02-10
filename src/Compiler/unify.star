@@ -27,7 +27,6 @@ star.compiler.unify{
   smT(tipe(Nm),tipe(Nm),_) => true.
   smT(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => true.
   smT(tpExp(O1,A1),tpExp(O2,A2),Env) => sameType(O1,O2,Env) && sameType(A1,A2,Env).
-  smT(refType(O1),refType(O2),Env) => sameType(O1,O2,Env).
   smT(tupleType(A1),tupleType(A2),Env) => size(A1)==size(A2) && smTypes(A1,A2,Env).
   smT(typeLambda(O1,A1),typeLambda(O2,A2),Env) => sameType(O1,O2,Env) && sameType(A1,A2,Env).
   smT(faceType(E1,T1),faceType(E2,T2),Env) where size(E1)==size(E2) && size(T1)==size(T2) => smFields(T1,T2,Env) && smFields(E1,E2,Env).
@@ -99,7 +98,7 @@ star.compiler.unify{
       INm.=implementationName(conConstraint(Nm,Args,Deps)) &&
       Im ^= findImplementation(Env,Nm,INm) =>
       sameType(typeOf(conConstraint(Nm,Args,Deps)),typeOf(Im),Env).
-  checkConstraint(implConstraint(T,F),Env) where Face ^= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
+  checkConstraint(fieldConstraint(T,F),Env) where Face ^= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
   checkConstraint(_,_) default => false.
 
   mergeConstraints:(list[constraint],list[constraint],dict) => option[list[constraint]].
@@ -140,7 +139,6 @@ star.compiler.unify{
   occIn(Id,tFun(_,_,Nm)) => Id==Nm.
   occIn(Id,tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
   occIn(Id,tupleType(Els)) => El in Els && occIn(Id,deRef(El)).
-  occIn(Id,refType(B)) => occIn(Id,deRef(B)).
   occIn(Id,allType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,existType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).

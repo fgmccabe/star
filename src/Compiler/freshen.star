@@ -37,17 +37,17 @@ star.compiler.freshen{
   genTypeFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
   frshn(voidType,_,_) => voidType.
-  frshn(Tp,Ex,_) where _contains(Ex,Tp) => Tp.
+  frshn(kVar(Nm),Ex,_) where _contains(Ex,kVar(Nm)) => kVar(Nm).
   frshn(kVar(Nm),_,Env) where (_,Tp,_)^=findType(Env,Nm) => Tp.
   frshn(kVar(Nm),_,_) => kVar(Nm).
 
+  frshn(kFun(Nm,Ar),Ex,_) where _contains(Ex,kFun(Nm,Ar)) => kFun(Nm,Ar).
   frshn(kFun(Nm,Ar),_,Env) where  (_,Tp,_)^=findType(Env,Nm) => Tp.
   frshn(kFun(Nm,Ar),_,_) => kFun(Nm,Ar).
 
   frshn(tVar(T,N),_,_) => tVar(T,N).
   frshn(tFun(T,A,N),_,_) => tFun(T,A,N).
 
-  frshn(refType(T),Ex,Env) => refType(rewrite(T,Ex,Env)).
   frshn(tipe(N),_,_) => tipe(N).
   frshn(tpFun(N,A),_,_) => tpFun(N,A).
   frshn(tpExp(O,A),Ex,Env) => tpExp(rewrite(O,Ex,Env),rewrite(A,Ex,Env)).
@@ -63,6 +63,6 @@ star.compiler.freshen{
 
   frshnConstraint(conConstraint(Nm,Args,Deps),Ex,Env) =>
     conConstraint(Nm,Args//((E)=>rewrite(E,Ex,Env)),Deps//((E)=>rewrite(E,Ex,Env))).
-  frshnConstraint(implConstraint(T,I),Ex,Env) => implConstraint(rewrite(T,Ex,Env),rewrite(I,Ex,Env)).
+  frshnConstraint(fieldConstraint(T,I),Ex,Env) => fieldConstraint(rewrite(T,Ex,Env),rewrite(I,Ex,Env)).
 
 }
