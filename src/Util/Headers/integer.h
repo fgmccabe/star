@@ -27,6 +27,9 @@ typedef uint64 uinteger;
 #define LARGE_INT64 ((integer)(((uinteger)-1)>>1))
 #define LARGE_INT32 ((int32)(((uint32)-1)>>1))
 
+#define INT32_DIGITS (10)
+#define INT64_DIGITS (19)
+
 typedef struct _ix_object_ *ixPo;
 
 extern integer ixVal(ixPo i);

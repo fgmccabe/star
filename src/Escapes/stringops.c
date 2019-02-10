@@ -134,13 +134,9 @@ ReturnStatus g__str_gen(processPo p, ptrPo tos) {
   const char *str = stringVal(tos[0], &len);
   char rnd[MAXLINE];
 
-  strMsg(rnd, NumberOf(rnd), "%d", randomInt());
+  strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len,NumberOf(rnd)-INT64_DIGITS), randomInt());
 
-  long bufLn = uniStrLen(rnd) + 1 + len;
-  char buff[bufLn];
-  uniNCpy(buff, bufLn, str, len);
-  uniTack(buff, bufLn, rnd);
-  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, uniStrLen(buff))};
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), rnd, uniStrLen(rnd))};
   return rt;
 }
 

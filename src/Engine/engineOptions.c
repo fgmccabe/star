@@ -206,9 +206,16 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         continue;
 #else
       logMsg(logFile,"package tracing not enabled");
-            return -1;
+      return -1;
 #endif
-
+      case '_':
+#ifdef ALLTRACE
+        debugDebugging = True;
+        continue;
+#else
+      logMsg(logFile,"debug debuggin not enabled");
+      return -1;
+#endif
       default:;
     }
   }

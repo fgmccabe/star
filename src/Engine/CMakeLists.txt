@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.7)
 project(star)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c99 -fsanitize=address -fsanitize=leak")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
 include_directories("Headers" "../Headers" "../Util/Headers" "../Escapes/Headers" "../Infra/Headers")
 
@@ -47,6 +46,6 @@ set(SOURCE_FILES
 
 add_executable(star ${SOURCE_FILES} ${HEADER_FILES})
 
-target_link_libraries(star escapes infra ooio)
+target_link_libraries(star escapes infra ooio m pthread)
 
 install(TARGETS star DESTINATION bin)
