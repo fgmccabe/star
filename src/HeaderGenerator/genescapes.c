@@ -141,10 +141,19 @@ static char *dumpSig(char *sig, bufferPo out) {
       break;
 
     case refSig: {
-      outMsg(O_IO(out), "refType(");
-      sig = dumpSig(sig, out);
-      outStr(O_IO(out), ")");
-      break;
+      switch (genMode) {
+        case genStar:
+          outStr(O_IO(out), "tpExp(tpFun(\"ref\",1),");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), ")");
+          break;
+        case genProlog:
+          outMsg(O_IO(out), "refType(");
+          sig = dumpSig(sig, out);
+          outStr(O_IO(out), ")");
+          break;
+      }
+      return sig;
     }
     case tpfnSig: {
       outStr(O_IO(out), "tpFun(");
@@ -171,7 +180,7 @@ static char *dumpSig(char *sig, bufferPo out) {
     case funSig:
       switch (genMode) {
         case genStar:
-          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"->\",2),");
+          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"=>\",2),");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), "),");
           sig = dumpSig(sig, out);
@@ -188,16 +197,16 @@ static char *dumpSig(char *sig, bufferPo out) {
     case conSig:
       switch (genMode) {
         case genProlog:
-          outStr(O_IO(out), "classType(");
+          outStr(O_IO(out), "consType(");
           sig = dTple(sig, out);
           outStr(O_IO(out), ",");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
           return sig;
         case genStar:
-          outStr(O_IO(out), "classType(");
+          outStr(O_IO(out), "tpExp(tpExp(tpFun(\"<=>\",2),");
           sig = dumpSig(sig, out);
-          outStr(O_IO(out), ",");
+          outStr(O_IO(out), "),");
           sig = dumpSig(sig, out);
           outStr(O_IO(out), ")");
           return sig;
