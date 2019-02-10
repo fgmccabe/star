@@ -365,6 +365,7 @@ void endFunction(mtdPo mtd) {
 #define szoff pc+=sizeof(int32);
 #define szEs pc+=sizeof(int32);
 #define szlit pc+=sizeof(int32);
+#define szlne pc+=sizeof(int32);
 #define szglb pc+=sizeof(int32);
 
 #define instruction(Op, A1, Dl, Cmt)    \
@@ -387,6 +388,7 @@ void endFunction(mtdPo mtd) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szlne
 #undef szglb
       default:;
     }
@@ -492,6 +494,9 @@ static void fixup_off(assemInsPo ins) {
 }
 
 static void fixup_lit(assemInsPo ins) {
+}
+
+static void fixup_lne(assemInsPo ins) {
 }
 
 static void fixup_glb(assemInsPo ins) {
@@ -778,6 +783,12 @@ static assemInsPo asm_lit(mtdPo mtd, OpCode op, int32 ix) {
   return ins;
 }
 
+static assemInsPo asm_lne(mtdPo mtd, OpCode op, int32 ix) {
+  assemInsPo ins = newIns(mtd, op);
+  ins->i = ix;
+  return ins;
+}
+
 static assemInsPo asm_glb(mtdPo mtd, OpCode op, char *nm) {
   assemInsPo ins = newIns(mtd, op);
   ins->txt = nm;
@@ -828,6 +839,9 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define oplit(X) ,int32 l##X
 #define arglit(X) ,l##X
 
+#define oplne(X) ,int32 l##X
+#define arglne(X) ,l##X
+
 #define opEs(X) ,char * f##X
 #define argEs(X) , f##X
 
@@ -858,8 +872,8 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef arglcl
 #undef oplcs
 #undef arglcs
-#undef openv
-#undef argenv
+#undef oplne
+#undef arglne
 #undef opoff
 #undef argoff
 #undef opEs
@@ -886,6 +900,7 @@ int32 codeSize(mtdPo mtd) {
 #define szoff pc+=(sizeof(int32)/sizeof(uint16));
 #define szEs pc+=(sizeof(int32)/sizeof(uint16));
 #define szlit pc+=(sizeof(int32)/sizeof(uint16));
+#define szlne pc+=(sizeof(int32)/sizeof(uint16));
 #define szglb pc+=(sizeof(int32)/sizeof(uint16));
 
 #define instruction(Op, A1, Dl, Cmt)    \
@@ -906,6 +921,7 @@ int32 codeSize(mtdPo mtd) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szlne
 #undef szglb
 #undef sznOp
 #undef sztOs
@@ -962,6 +978,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #define szoff if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szEs if(ret==Ok)ret = encodeStr(O_IO(bfr),ins->txt,uniStrLen(ins->txt));
 #define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szlne if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szglb if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 
 #define instruction(Op, A1, Dl, Cmt)    \

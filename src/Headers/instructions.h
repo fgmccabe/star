@@ -19,7 +19,7 @@ instruction(Nop,nOp,0,"No operation")
 
 instruction(Call,lit,0,"Call <prog>")
 instruction(OCall,art,0,"OCall")
-instruction(Escape,Es,0,"call C escape")
+instruction(Escape,Es,1,"call C escape")
 instruction(Tail,lit,0,"Tail <prog>")
 instruction(OTail,art,0,"OTail")
 instruction(Abort,tOs,0,"Abort execution")

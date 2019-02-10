@@ -131,6 +131,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
     case tOs:
       return sep;
     case lit:
+    case lne:
     case glb:
     case Es:
     case i32:
@@ -155,6 +156,7 @@ static void genCode(ioPo out, int op, opAndSpec A) {
     case tOs:
       outMsg(out, "%d|M]) :- Pc1 is Pc+1,\n", op);
       break;
+    case lne:
     case lit:
       outMsg(out, "%d,LtNo|M]) :- Pc1 is Pc+3,\n", op);
       outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
@@ -217,6 +219,7 @@ void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case tOs:
       break;
     case lit:
+    case lne:
     case i32:
     case art:
     case arg:
@@ -241,6 +244,7 @@ void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       outMsg(out, "Pc1 is Pc+1, ");
       break;
     case lit:
+    case lne:
     case i32:
     case art:
     case arg:
@@ -264,6 +268,7 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case tOs:
       break;
     case lit:
+    case lne:
     case i32:
     case art:
     case arg:
@@ -293,6 +298,7 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       outMsg(out, "  appNl(O1,O2),\n");
       Oy = "O2";
       break;
+    case lne:
     case lit:
       outMsg(out,"  showTerm(XX,0,O1,O2),\n");
       outMsg(out, "  appNl(O2,O3),\n");
@@ -327,6 +333,7 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       outMsg(out, "  Pc1 is Pc+1,\n");
       break;
     case lit:
+    case lne:
     case i32:
     case art:
     case arg:

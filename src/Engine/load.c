@@ -321,31 +321,42 @@ static void writeOperand(insPo *pc, uint32 val) {
   *(*pc)++ = (uint16) lower;
 }
 
+static retCode writeIntOperand(ioPo in, insPo *pc, integer *ix) {
+  integer and;
+  retCode ret = decodeInteger(in, &and);
+  writeOperand(pc, (uint32) and);
+  (*ix)++;
+  return ret;
+}
+
 static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *errorMsg, long msgSize) {
   integer op, and;
   char escNm[MAX_SYMB_LEN];
   retCode ret = decodeInteger(in, &op);
-  *(*pc)++ = (insWord) op;
-  (*ix)++;
-  switch (op) {
+
+  if (ret == Ok) {
+    *(*pc)++ = (insWord) op;
+    (*ix)++;
+    switch (op) {
 #define sznOp
 #define sztOs
-#define szart if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
+#define szart return writeIntOperand(in,pc,ix);
 #define szi32 if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
-#define szart if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szlcs if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,lookupEscape(escNm)); (*ix)++;}
 #define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
+#define szlne if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
 #define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,globalVarNo(escNm)); (*ix)++;}
 
 #define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
         (*si)+=Dl;      \
-  sz##A1                \
-    return ret;
+        sz##A1          \
+        return ret;
+
 
 #include "instructions.h"
 
@@ -358,12 +369,15 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *err
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szlne
 #undef szglb
 #undef sznOp
 #undef sztOs
-    default:
-      return Error;
+      default:
+        return Error;
+    }
   }
+  return ret;
 }
 
 static integer stackInc(insWord);
