@@ -73,8 +73,14 @@ static retCode showConstant(ioPo out, methodPo mtd, integer off) {
 
 static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
   if (focus == NULL || focus == p) {
+    if (debugDebugging) {
+      outMsg(logFile, "debug: traceDepth=%d, traceCount=%d, tracing=%s, ins: ", p->traceDepth, p->traceCount,
+             (p->tracing ? "yes" : "no"));
+      disass(logFile, p, p->prog, p->pc, p->fp, p->sp);
+      outMsg(logFile, "\n%_");
+    }
     switch (ins) {
-      case dRet: {
+      case Ret: {
         switch (p->waitFor) {
           case stepInto:
             return True;
@@ -86,8 +92,8 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
             return False;
         }
       }
-      case dCall:
-      case dOCall: {
+      case Call:
+      case OCall: {
         if (callBreakPointHit(C_LBL(arg))) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -106,8 +112,8 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
           }
         }
       }
-      case dTail:
-      case dOTail: {
+      case Tail:
+      case OTail:{
         if (callBreakPointHit(C_LBL(arg))) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -208,9 +214,9 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
     flushFile(stdErr);
     clearBuffer(cmdBuffer);
 
-    setCompletionCallback(cmdComplete, (void *) opts);
+    setEditLineCompletionCallback(cmdComplete, (void *) opts);
     retCode res = consoleInput(cmdBuffer);
-    setCompletionCallback(Null, Null);
+    clearEditLineCompletionCallback();
 
     switch (res) {
       case Eof:
@@ -257,25 +263,26 @@ static DebugWaitFor dbgOver(char *line, processPo p, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
 
   switch (ins) {
-    case dRet: {
+    case Ret: {
       p->traceDepth = 0;
       p->tracing = True;
       return stepOver;
     }
-    case dCall:
-    case dOCall: {
+    case Call:
+    case OCall: {
       p->traceDepth = 1;
       p->tracing = False;
       return stepOver;
     }
-    case dTail:
-    case dOTail: {
+    case Tail:
+    case OTail: {
       p->traceDepth = 0;
       p->tracing = False;
       return stepOver;
     }
 
     default:
+      p->traceDepth = 0;
       return stepOver;
   }
 }
@@ -303,23 +310,23 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) 
   p->tracing = False;
 
   switch (ins) {
-    case dRet: {
+    case Ret: {
       p->traceDepth = 1;
       return stepOver;
     }
-    case dCall:
-    case dOCall: {
+    case Call:
+    case OCall: {
       p->traceDepth = 2;
       return stepOver;
     }
-    case dTail:
-    case dOTail: {
+    case Tail:
+    case OTail: {
       p->traceDepth = 1;
       return stepOver;
     }
 
     default:
-      p->traceDepth = 0;
+      p->traceDepth = 1;
       return stepOver;
   }
 }
@@ -585,6 +592,12 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl)
 
 static logical shouldWeStopIns(processPo p, insWord ins) {
   if (focus == NULL || focus == p) {
+    if (debugDebugging) {
+      outMsg(logFile, "debug: traceDepth=%d, traceCount=%d, tracing=%s, ins: ", p->traceDepth, p->traceCount,
+             (p->tracing ? "yes" : "no"));
+      disass(logFile, p, p->prog, p->pc, p->fp, p->sp);
+      outMsg(logFile, "\n%_");
+    }
     switch (p->waitFor) {
       case stepInto:
         if (p->traceCount > 0)
@@ -599,7 +612,7 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
     }
 
     switch (ins) {
-      case dRet: {
+      case Ret: {
         switch (p->waitFor) {
           case stepOver:
             if (p->traceDepth > 0)
@@ -609,8 +622,8 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
             return False;
         }
       }
-      case dCall:
-      case dOCall: {
+      case Call:
+      case OCall: {
         switch (p->waitFor) {
           case stepOver:
             p->traceDepth++;
@@ -619,8 +632,8 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
             return False;
         }
       }
-      case dTail:
-      case dOTail:
+      case Tail:
+      case OTail:
         switch (p->waitFor) {
           case stepOver:
             return (logical) (p->traceDepth == 0 && p->traceCount == 0);
@@ -771,23 +784,48 @@ termPo getLbl(termPo lbl, int32 arity) {
 static DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show);
 
 DebugWaitFor callDebug(processPo p, termPo call) {
-  return lnDebug(p, dCall, call, showCall);
+  return lnDebug(p, Call, call, showCall);
 }
 
-DebugWaitFor ocallDebug(processPo p, termPo call, int32 arity) {
-  return lnDebug(p, dOCall, call, showCall);
+DebugWaitFor ocallDebug(processPo p, termPo call) {
+  return lnDebug(p, OCall, call, showCall);
 }
 
 DebugWaitFor tailDebug(processPo p, termPo call) {
-  return lnDebug(p, dTail, call, showTail);
+  return lnDebug(p, Tail, call, showTail);
 }
 
 DebugWaitFor retDebug(processPo p, termPo val) {
-  return lnDebug(p, dRet, val, showRet);
+  return lnDebug(p, Ret, val, showRet);
 }
 
 DebugWaitFor lineDebug(processPo p, termPo line) {
   return lnDebug(p, dLine, line, showLn);
+}
+
+DebugWaitFor enterDebug(processPo p){
+  insPo pc = p->pc;
+  insWord ins = *pc++;
+  switch(ins){
+    case Call:
+      return callDebug(p,getMtdLit(p->prog, collect32(pc)));
+    case Tail:
+      return tailDebug(p,getMtdLit(p->prog, collect32(pc)));
+    case OCall: {
+      int32 arity = collect32(pc);
+      termPo callee = getLbl(p->sp[0], arity);
+      return ocallDebug(p,callee);
+    }
+    case OTail:{
+      int32 arity = collect32(pc);
+      termPo callee = getLbl(p->sp[0], arity);
+      return tailDebug(p,callee);
+    }
+    case Ret:
+      return retDebug(p,p->sp[0]);
+    default:
+      return stepOver;
+  }
 }
 
 DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
@@ -820,10 +858,10 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 
   logical stopping = shouldWeStop(p, ins, ln);
 
-  if (debugDebugging) {
-    logMsg(logFile, "traceCount=%d, traceDepth=%d, stopping=%s, tracing=%s", p->traceCount, p->traceDepth,
-           (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
-  }
+//  if (debugDebugging) {
+//    logMsg(logFile, "traceCount=%d, traceDepth=%d, stopping=%s, tracing=%s", p->traceCount, p->traceDepth,
+//           (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
+//  }
   if (p->tracing || stopping) {
     if (ln != Null)
       show(stdErr, mtd, pc, ln, fp, sp);
@@ -980,6 +1018,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #define show_off outMsg(out," PC[%d]",collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
+#define show_lne showConstant(out,mtd,collectI32(pc))
 #define show_glb showGlb(out, findGlobalVar(collectI32(pc)),fp,sp)
 
 #define instruction(Op, A1, Dl, Cmt)    \

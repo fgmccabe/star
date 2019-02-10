@@ -83,7 +83,7 @@ genDef(_D,_Opts,rcDef(_,Nm,faceType(Fields,Tps)),O,[CdTrm|O]) :-
 glbCont(Nm,D,D,_,[iDup,iStG(Nm)|Cx],Cx,Stk,Stk).
 
 retCont(Opts,D,D,_,C,Cx,_Stk,none) :-
-  genDRtn(Opts,C,[iRet|Cx]).
+  genDbg(Opts,C,[iRet|Cx]).
 
 dropCont(D,D,_,[iDrop|Cx],Cx,Stk,Stk1) :-
   Stk1 is Stk-1.
@@ -251,17 +251,17 @@ escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1.
 
 cllCont(Nm,_Stk0,retCont(_),Opts,Dx,Dx,_,C,Cx,_Stk,none) :-!,
-  genDTail(Opts,Nm,C,[iTail(Nm)|Cx]).
+  genDbg(Opts,C,[iTail(Nm)|Cx]).
 cllCont(Nm,Stk0,Cont,Opts,D,Dx,End,C,Cx,_Stk,Stkx) :-
-  genDCall(Opts,Nm,C,[iCall(Nm),iFrame(Stk1)|C0]),
+  genDbg(Opts,C,[iCall(Nm),iFrame(Stk1)|C0]),
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
 oclCont(Stk0,retCont(_),Opts,Dx,Dx,_End,C,Cx,Stk,none) :-!,
-  genDOTail(Opts,Arity,C,[iOTail(Arity)|Cx]),
+  genDbg(Opts,C,[iOTail(Arity)|Cx]),
   Arity is Stk-Stk0.
 oclCont(Stk0,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  genDOCall(Opts,Arity,C,[iOCall(Arity),iFrame(Stk1)|C0]),
+  genDbg(Opts,C,[iOCall(Arity),iFrame(Stk1)|C0]),
   Stk1 is Stk0+1,
   Arity is Stk-Stk0,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
@@ -333,25 +333,9 @@ genLine(Opts,Lc,[iLine(Lt)|Cx],Cx) :-
   locTerm(Lc,Lt).
 genLine(_,_,Cx,Cx).
 
-genDCall(Opts,Lt,[iDCall(Lt)|Cx],Cx) :-
+genDbg(Opts,[iDBug|Cx],Cx) :-
   is_member(debugging,Opts),!.
-genDCall(_,_,Cx,Cx).
-
-genDOCall(Opts,Arity,[iDOCall(Arity)|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genDOCall(_,_,Cx,Cx).
-
-genDTail(Opts,Lt,[iDTail(Lt)|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genDTail(_,_,Cx,Cx).
-
-genDOTail(Opts,Arity,[iDOTail(Arity)|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genDOTail(_,_,Cx,Cx).
-
-genDRtn(Opts,[iDRet|Cx],Cx) :-
-  is_member(debugging,Opts),!.
-genDRtn(_,Cx,Cx).
+genDbg(_,Cx,Cx).
 
 popStack(lbl(_,Ar),St,Stx) :-
   Stx is St-Ar+1.

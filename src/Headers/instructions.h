@@ -61,9 +61,7 @@ instruction(Bf,off,-1,"bool --> branch if false")
 instruction(Bt,off,-1,"bool --> branch if true")
 
 instruction(Frame,i32,0,"frame instruction")
-instruction(dCall,lit,0,"--> debug call program")
-instruction(dOCall,i32,0,"--> debug call program")
-instruction(dTail,lit,0,"--> debug tail call program")
-instruction(dOTail,i32,0,"--> debug call program")
-instruction(dRet,tOs,0,"--> debug return from function")
-instruction(dLine,lit,0,"--> debug line")
+
+instruction(dLine,lne,0,"--> debug line")
+instruction(dBug,nOp,0,"debugging prefix")
+instruction(dBreak,nOp,0,"special instruction for break points")
