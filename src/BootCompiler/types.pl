@@ -325,7 +325,7 @@ mkTpExp(Op,A,tpExp(Op,A)).
 contractTypes(CTs,TPs) :-
   map(CTs,types:contractType,TPs).
 
-stdType("int",type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))).
+stdType("integer",type("star.core*integer"),typeExists(type("star.core*integer"),faceType([],[]))).
 stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceType([],[]))).
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).

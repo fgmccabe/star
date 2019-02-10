@@ -157,7 +157,7 @@ makeKey(Id,Key) :-
 
 stdDict(Base) :-
   pushScope([],B),
-  stdType("int",IntTp,ITpEx),
+  stdType("integer",IntTp,ITpEx),
   stdType("string",StrTp,StpEx),
   stdType("float",FltTp,FtEx),
   declareType("string",tpDef(std,StrTp,StpEx),B,B0),
