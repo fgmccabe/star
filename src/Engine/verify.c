@@ -259,6 +259,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
     }
     case Es:
     case lit:          /* constant literal */
+    case lne:           // Location literal
     case glb:           // Global variable name
       collect32(code, pc);
       return Ok;
@@ -422,6 +423,7 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
       }
       return Ok;
     }
+    case lne:
     case lit: {                          /* constant literal */
       int32 litNo = collect32(base, pc);
       if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {
@@ -465,11 +467,11 @@ checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, inte
         termPo lit = getMtdLit(seg->seg.mtd, litNo);
         if (isLabel(lit)) {
           integer arity = labelArity(C_LBL(lit));
+          if(seg->seg.stackDepth<arity){
+            strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, *pc);
+            return Error;
+          }
           seg->seg.stackDepth -= arity - 1;
-//          if(seg->seg.stackDepth<arity){
-//            strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, *pc);
-//            return Error;
-//          }
         } else {
           strMsg(errorMsg, msgLen, RED_ESC_ON "invalid call label: %t @ %d" RED_ESC_OFF, lit, *pc);
           return Error;

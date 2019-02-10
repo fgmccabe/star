@@ -191,6 +191,12 @@ static retCode enc_lit(ioPo out, assemInsPo ins) {
   return encodeInt(out, ins->i);
 }
 
+static retCode enc_lne(ioPo out, assemInsPo ins) {
+  tryRet(encodeInt(out, ins->op));
+  return encodeInt(out, ins->i);
+}
+
+
 static retCode enc_Es(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
