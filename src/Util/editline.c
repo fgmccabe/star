@@ -185,9 +185,14 @@ static retCode completeLine(LineState *ls) {
   } while (True);
 }
 
-void setCompletionCallback(CompletionCallback fn, void *cl) {
+void setEditLineCompletionCallback(CompletionCallback fn, void *cl) {
   completionCallback = fn;
   completionCl = cl;
+}
+
+void clearEditLineCompletionCallback(){
+  completionCallback = Null;
+  completionCl = Null;
 }
 
 static void refreshFromText(integer firstPos, integer pos, char *content, integer size) {

@@ -13,7 +13,10 @@
 
 typedef retCode (*CompletionCallback)(bufferPo lineBuff,void *cl,integer ix);
 
-void setCompletionCallback(CompletionCallback fn,void *cl);
+void setEditLineCompletionCallback(CompletionCallback fn, void *cl);
+
+void clearEditLineCompletionCallback();
+
 
 retCode consoleInput(bufferPo lineBuff);
 
