@@ -69,7 +69,7 @@ All rights reserved.
 @end ifnotinfo
 
 @macro typeprod{E,Exp,T}
-@var{\E\}@turnstile{}\Exp\:\T\
+@var{\E\} @turnstile{} \Exp\:\T\
 @end macro
 
 @macro anchored{T}
