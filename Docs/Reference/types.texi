@@ -1039,6 +1039,7 @@ requires that any actual binding for type
 @section Type Semantics
 @cindex semantics of types
 
+
 @node Type Rules
 @subsection Type Rules
 @cindex type safety
@@ -1061,7 +1062,11 @@ all have type @var{T}, then the list expression
 cons of [@emph{El@sub{1}}@comma{}@dots{}@comma{}@emph{El@sub{n}}]
 @end example
 has type @code{cons[@var{T}]}. This is the formal way of stating that
-all elements of a list must have the same type.
+all elements of a list must have the same type -- in this case because all the elements of the list have the same type:
+
+@display
+@typeprod{E,@var{El}@sub{i},@var{T}}
+@end display
 
 The general form of a type inference rule that is determining a type
 (sometimes called a type judgment) is:
