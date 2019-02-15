@@ -11,6 +11,7 @@
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
     isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isBind/4,isValof/3,isHandle/4,
+    isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
     isLetDef/4,mkLetDef/4,
     whereTerm/4,
     packageName/2,pkgName/2,
@@ -352,13 +353,14 @@ mergeCond(L,R,Lc,Cnd) :-
   binary(Lc,"&&",L,R,Cnd).
 
 isDoTerm(A,Lc,Stmts) :-
-  isApply(A,Lc,name(_,"do"),Args),
-  isBraceTuple(Args,_,[Stmts]).
+  isUnary(A,Lc,"do",R),
+  isBraceTuple(R,_,[Stmts]),!.
+  
 isDoTerm(A,Lc) :-
-  isApply(A,Lc,name(_,"do"),Arg),
-  isBraceTuple(Arg,_,[]).
+  isUnary(A,Lc,"do",_),!.
+
 isDoTerm(A) :-
-  isApply(A,_,name(_,"do"),_).
+  isUnary(A,_,"do",_),!.
 
 isBind(T,Lc,bind(B),E) :-
   isBinary(T,Lc,"<-",R,E),!,
@@ -372,6 +374,23 @@ isValof(A,Lc,E) :-
 
 isHandle(A,Lc,L,R) :-
   isBinary(A,Lc,">>>",L,R).
+
+isIfThenElse(A,Lc,Ts,Th,El) :-
+  isBinary(A,Lc,"else",Lhs,El),!,
+  isBinary(Lhs,_,"then",LL,Th),
+  isUnary(LL,_,"if",Ts).
+
+isIfThen(A,Lc,Ts,Th) :-
+  isBinary(A,Lc,"then",LL,Th),!,
+  isUnary(LL,_,"if",Ts).
+
+isWhileDo(A,Lc,Ts,Bd) :-
+  isBinary(A,Lc,"do",LL,Bd),
+  isUnary(LL,_,"while",Ts),!.
+
+isForDo(A,Lc,Ts,Bd) :-
+  isBinary(A,Lc,"do",LL,Bd),
+  isUnary(LL,_,"for",Ts),!.
 
 isParseTerm(A,Lc,Stmt) :-
   isApply(A,Lc,name(_,"prse"),Args),

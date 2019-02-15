@@ -44,14 +44,18 @@ star.compiler.operators{
   oper("..,") => [infixOp(999,1000,1000)].
   oper("~>") => [infixOp(1230,1231,1230)].
   oper(".|.") => [infixOp(720,720,719)].
+  oper("do") => [prefixOp(100,99), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
+  oper("catch") => [infixOp(1198,1199,1198)].
   oper("of") => [infixOp(399,400,399)].
   oper(",..") => [infixOp(999,1000,999)].
+  oper("for") => [prefixOp(1175,1174)].
   oper("==>") => [infixOp(949,950,949)].
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
   oper(".+.") => [prefixOp(700,699)].
   oper("raise") => [prefixOp(300,299)].
+  oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100)].
   oper("->>") => [infixOp(1199,1200,1199)].
   oper("=!=") => [infixOp(899,900,899)].
@@ -73,8 +77,10 @@ star.compiler.operators{
   oper("/") => [infixOp(700,700,699)].
   oper("<*>") => [infixOp(949,950,950)].
   oper("•") => [infixOp(450,450,449)].
+  oper("try") => [prefixOp(1200,1199)].
   oper("exists") => [prefixOp(1010,1009)].
   oper("<=") => [infixOp(949,950,949)].
+  oper("if") => [prefixOp(1175,1174)].
   oper(":") => [infixOp(1249,1250,1249)].
   oper(";") => [infixOp(1250,1251,1251)].
   oper("-->") => [infixOp(1199,1200,1199)].
@@ -106,6 +112,7 @@ star.compiler.operators{
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
   oper("valof") => [prefixOp(300,299)].
+  oper("while") => [prefixOp(1175,1174)].
   oper("private") => [prefixOp(1700,1699)].
   oper(".&.") => [infixOp(700,700,699)].
   oper("///") => [infixOp(800,800,799)].
@@ -127,6 +134,7 @@ star.compiler.operators{
   oper("~") => [infixOp(489,499,489)].
   oper("^//") => [infixOp(800,800,799)].
   oper("||") => [infixOp(919,920,920)].
+  oper("else") => [infixOp(1199,1200,1200)].
   oper("::=") => [infixOp(1249,1250,1249)].
   oper(">=") => [infixOp(899,900,899)].
   oper(">>") => [infixOp(949,950,950)].

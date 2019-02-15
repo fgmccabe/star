@@ -115,6 +115,51 @@
     "desc": "look ahead parser operator"
   },
   {
+    "prefixOp" : "if",
+    "priorities" : [1175,1174],
+     "desc": "if ... then ... else"
+  },
+  {
+    "infixOp" : "then",
+    "priorities" : [1179,1180,1179],
+     "desc": "if ... then ... else"
+  },
+  {
+    "infixOp" : "else",
+    "priorities" : [ 1199,1200,1200],
+     "desc": "if ... then ... else"
+  },
+  {
+    "infixOp" : "do",
+    "priorities" : [ 1199,1200,1199],
+     "desc": "while T do {}"
+  },
+  {
+    "prefixOp" : "do",
+    "priorities" : [ 100,99],
+     "desc": "do {}"
+  },
+  {
+    "prefixOp" : "while",
+    "priorities" : [1175,1174],
+     "desc": "while ... do {}"
+  },
+  {
+    "prefixOp" : "for",
+    "priorities" : [ 1175,1174],
+     "desc": "for ... do {}"
+  },
+  {
+    "prefixOp" : "try",
+    "priorities" : [ 1200,1199],
+     "desc": "try {...} catch {...}"
+  },
+  {
+    "infixOp" : "catch",
+    "priorities" : [ 1198,1199,1198],
+     "desc": "try {...} catch {...}"
+  },
+  {
     "infixOp": ";",
     "priorities": [
       1250,

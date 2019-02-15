@@ -23,15 +23,27 @@
 @item @code{.|.}
 @tab left associative infix
 @tab 720
+@item @code{do}
+@tab non-associative prefix
+@tab 100
+@item @code{do}
+@tab non-associative infix
+@tab 1200
 @item @code{import}
 @tab non-associative prefix
 @tab 900
+@item @code{catch}
+@tab non-associative infix
+@tab 1199
 @item @code{of}
 @tab non-associative infix
 @tab 400
 @item @code{,..}
 @tab non-associative infix
 @tab 1000
+@item @code{for}
+@tab non-associative prefix
+@tab 1175
 @item @code{==>}
 @tab non-associative infix
 @tab 950
@@ -47,6 +59,9 @@
 @item @code{raise}
 @tab non-associative prefix
 @tab 300
+@item @code{then}
+@tab non-associative infix
+@tab 1180
 @item @code{!}
 @tab non-associative postfix
 @tab 100
@@ -125,12 +140,18 @@
 @item @code{•}
 @tab left associative infix
 @tab 450
+@item @code{try}
+@tab non-associative prefix
+@tab 1200
 @item @code{exists}
 @tab non-associative prefix
 @tab 1010
 @item @code{<=}
 @tab non-associative infix
 @tab 950
+@item @code{if}
+@tab non-associative prefix
+@tab 1175
 @item @code{:}
 @tab non-associative infix
 @tab 1250
@@ -230,6 +251,9 @@
 @item @code{valof}
 @tab non-associative prefix
 @tab 300
+@item @code{while}
+@tab non-associative prefix
+@tab 1175
 @item @code{private}
 @tab non-associative prefix
 @tab 1700
@@ -293,6 +317,9 @@
 @item @code{||}
 @tab right associative infix
 @tab 920
+@item @code{else}
+@tab right associative infix
+@tab 1200
 @item @code{::=}
 @tab non-associative infix
 @tab 1250
