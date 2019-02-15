@@ -796,6 +796,29 @@ genTpVars([_|I],[Tp|More]) :-
   newTypeVar("__",Tp),
   genTpVars(I,More).
 
+
+checkActionType(Term,Env,Ev,Tp,ErTp,seqn(Lc,[A1|As]),Path) :-
+  isActionSeq(Term,Lc,S1,S2),!,
+  checkActionType(S1,Env,E1,Tp,ErTp,A1,Path),
+  checkActionSequence(S2,E1,Ev,Tp,ErTp,As,Path).
+checkActionType(Term,Env,Ev,Tp,ErTp,ifthen(Lc,Ts,Th,El),Path) :-
+  isIfThenElse(Term,Lc,T,H,E),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(T,Env,Et,Ts,Path),
+  checkActionType(H,Et,E1,Tp,ErTp,Th,Path),
+  checkActionType(E,Env,E2,Tp,ErTp,El,Path),
+  mergeDict(E1,E2,Env,Ev).
+
+checkActionSequence(T,Env,Ev,Tp,ErTp,[A1|As],Path) :-
+  isActionSeq(T,_,S1,S2),!,
+  checkActionType(S1,Env,E1,Tp,ErTp,A1,Path),
+  checkActionSequence(S1,E1,Ev,Tp,ErTp,As,Path).
+checkActionSequence(T,Env,Ev,Tp,ErTp,[A],Path) :-
+  isActionSeq(T,_,[S]),!,
+  checkActionType(S,Env,Ev,Tp,ErTp,A,Path).
+checkActionSequence(T,Env,Ev,Tp,ErTp,[A],Path) :-
+  checkActionType(A,Env,Ev,Tp,ErTp,A,Path).
+
 recordFace(Trm,Env,Env,v(Lc,Nm,Face),Face,_) :-
   isIden(Trm,Lc,Nm),
   isVar(Nm,Env,vrEntry(_,_,_,Fce)),!,
