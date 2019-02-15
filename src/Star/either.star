@@ -30,4 +30,22 @@ star.either{
     _handle(other(E),F) => F(E).
     _raise(E) => other(E).
   }
+
+  public implementation all a ~~ monad[either[a]] => {
+    (either(X) >>= F) => F(X).
+    (other(E) >>= _) => other(E).
+
+    return X => either(X).
+  }
+
+  public implementation all a ~~ functor[either[a]] => {
+    fmap(F,either(X)) => either(F(X)).
+    fmap(_,other(E)) => other(E).
+  }
+
+  public implementation all a ~~ applicative[either[a]] => {
+    pure X => either(X).
+    (either(F) <*> either(X)) => either(F(X)).
+    (_ <*> other(E)) => other(E).
+  }
 }
