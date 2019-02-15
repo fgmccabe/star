@@ -58,5 +58,13 @@
   keyword("do").
   keyword("valof").
   keyword("prse").
+  keyword("prse").
+  keyword("if").
+  keyword("then").
+  keyword("else").
+  keyword("while").
+  keyword("for").
+  keyword("try").
+  keyword("catch").
   keyword("#").
   keyword("$").

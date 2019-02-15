@@ -58,6 +58,13 @@ star.comp.keywords {
   keyword("do") => true.
   keyword("valof") => true.
   keyword("prse") => true.
+  keyword("if") => true.
+  keyword("then") => true.
+  keyword("else") => true.
+  keyword("while") => true.
+  keyword("for") => true.
+  keyword("try") => true.
+  keyword("catch") => true.
   keyword("#") => true.
   keyword("$") => true.
 
