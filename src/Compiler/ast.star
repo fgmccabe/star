@@ -73,6 +73,10 @@ star.compiler.ast{
     locOf(app(Lc,_,_)) => Lc.
   .}
 
+  public isName:(ast) => option[(locn,string)].
+  isName(nme(Lc,Id)) => some((Lc,Id)).
+  isName(_) default => none.
+
   public unary:(locn,string,ast) => ast.
   unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 
@@ -84,8 +88,12 @@ star.compiler.ast{
   binary(Lc,Op,L,R) where Lc.=mergeLoc(locOf(L),locOf(R)) =>
     app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,R])).
 
-  public isBinary:(ast) => option[(locn,string,ast,ast)].
-  isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R]))) => some((Lc,Op,L,R)).
+  public isBinary:(ast,string) => option[(locn,ast,ast)].
+  isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R]))) => some((Lc,L,R)).
   isBinary(_) default => none.
+
+  public isSquareTerm(ast) => option[(locn,ast,list[ast])].
+  isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some(Lc,Op,A).
+  isSquareTerm(_) default => none.
 
 }
