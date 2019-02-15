@@ -11,7 +11,7 @@
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
     isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isBind/4,isValof/3,isHandle/4,
-    isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
+    isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,isActionSeq/4,isActionSeq/3,
     isLetDef/4,mkLetDef/4,
     whereTerm/4,
     packageName/2,pkgName/2,
@@ -355,7 +355,7 @@ mergeCond(L,R,Lc,Cnd) :-
 isDoTerm(A,Lc,Stmts) :-
   isUnary(A,Lc,"do",R),
   isBraceTuple(R,_,[Stmts]),!.
-  
+
 isDoTerm(A,Lc) :-
   isUnary(A,Lc,"do",_),!.
 
@@ -391,6 +391,11 @@ isWhileDo(A,Lc,Ts,Bd) :-
 isForDo(A,Lc,Ts,Bd) :-
   isBinary(A,Lc,"do",LL,Bd),
   isUnary(LL,_,"for",Ts),!.
+
+isActionSeq(A,Lc,S1,S2) :-
+  isBinary(A,Lc,";",S1,S2).
+isActionSeq(A,Lc,S) :-
+  isUnary(A,Lc,";",S).
 
 isParseTerm(A,Lc,Stmt) :-
   isApply(A,Lc,name(_,"prse"),Args),
