@@ -664,6 +664,9 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   checkType(Term,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+    isDoTerm(Term),!,
+    checkDo(Term,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isDoTerm(Term),!,
   genDo(Term,Action),
   typeOfExp(Action,Tp,Env,Ev,Exp,Path).
@@ -796,18 +799,56 @@ genTpVars([_|I],[Tp|More]) :-
   newTypeVar("__",Tp),
   genTpVars(I,More).
 
+checkDo(Term,Env,Ev,Tp,
+	doTerm(Lc,Body,ElTp,ErTp,conTract(Op,[StTp],[ErTp]),Path) :-
+    isDoTerm(Term,Lc,B),
+    newTypeVar("_e",ElTp),
+    (getContract("execution",Env,conDef(_,_,Con)) ->
+	 freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ErTp]),_)),
+	 checkType(Term,Tp,tpExp(StTp,ElTp),Env);
+     reportError("execution contract not defined",[],Lc),
+     newTypeVar("_t",StTp),
+     newTypeVar("_E",ErTp)),
+    checkActionType(B,Env,Ev,StTp,ErTp,Body,Path).
 
 checkActionType(Term,Env,Ev,Tp,ErTp,seqn(Lc,[A1|As]),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
   checkActionType(S1,Env,E1,Tp,ErTp,A1,Path),
   checkActionSequence(S2,E1,Ev,Tp,ErTp,As,Path).
-checkActionType(Term,Env,Ev,Tp,ErTp,ifthen(Lc,Ts,Th,El),Path) :-
+checkActionType(Term,Env,Ev,Tp,ErTp,bind(Lc,Ptn,Exp,PT,ErTp),Path) :-
+  isBind(Term,Lc,bind(P),Ex),!,
+  newTypeVar("_P",PT),
+  typeOfPtn(P,PT,Env,Ev,Ptn,Path),
+  typeOfExp(Ex,PT,Env,_,Exp,Path).
+checkActionType(Term,Env,Ev,Tp,ErTp,vDef(Lc,Ptn,Exp,PT),Path) :-
+  isDefn(Term,Lc,P,Ex),!,
+  newTypeVar("_P",PT),
+  typeOfPtn(P,PT,Env,Ev,Ptn,Path),
+  typeOfExp(Ex,PT,Env,_,Exp,Path).
+checkActionType(Term,Env,Ev,Tp,ErTp,ifthen(Lc,Ts,Th,El,Tp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,Env,Et,Ts,Path),
   checkActionType(H,Et,E1,Tp,ErTp,Th,Path),
   checkActionType(E,Env,E2,Tp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
+checkActionType(Term,Env,Env,Tp,ErTp,whileDo(Lc,Ts,Bdy,Tp,ErTp),Path) :-
+  isWhileDo(Term,Lc,T,B),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(T,Env,Et,Ts,Path),
+  checkActionType(B,Et,_,Tp,ErTp,Th,Path).
+checkActionType(Term,Env,Env,Tp,ErTp,forDo(Lc,Ts,Bdy,Tp,ErTp),Path) :-
+  isForDo(Term,Lc,T,B),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(T,Env,Et,Ts,Path),
+  checkActionType(B,Et,_,Tp,ErTp,Th,Path).
+checkActionType(Term,Env,Env,Tp,ErTp,tryCatch(Lc,Bdy,Hndlr,Tp,ET),Path) :-
+  isTryCatch(Term,Lc,B,H),!,
+  newTypeVar("_E",ET),
+  checkActionType(B,Env,_,Tp,ET,Bdy,Path),
+  Htype = funType(tupleType(ET),Tp),
+  typeOfExp(H,Htype,Env,_,Hndlr,Path).
+  
 
 checkActionSequence(T,Env,Ev,Tp,ErTp,[A1|As],Path) :-
   isActionSeq(T,_,S1,S2),!,
