@@ -36,11 +36,11 @@ isCanon(assign(_,_,_)).
 isCanon(cell(_,_)).
 isCanon(lambda(_,_,_)).
 isCanon(seqn(_,_)).
-isCanon(ifthen(_,_,_,_)).
-isCanon(while(_,_,_)).
-isCanon(for(_,_,_)).
-isCanon(trycatch(_,_,_)).
-isCanon(bind(_,_,_)).
+isCanon(ifthen(_,_,_,_,_,_)).
+isCanon(whileDo(_,_,_,_,_)).
+isCanon(forDo(_,_,_,_,_)).
+isCanon(tryCatch(_,_,_,_,_)).
+isCanon(bind(_,_,_,_,_)).
 isCanon(return(_,_)).
 isCanon(raise(_,_)).
 
@@ -60,13 +60,13 @@ isGoal(neg(_,_)) :- !.
 isGoal(search(_,_,_,_)) :- !.
 
 isAction(seqn(_,_)).
-isAction(ifthen(_,_,_,_)).
-isAction(while(_,_,_)).
-isAction(for(_,_,_)).
-isAction(trycatch(_,_,_)).
+isAction(ifthen(_,_,_,_,_,_)).
+isAction(whileDo(_,_,_,_,_)).
+isAction(forDo(_,_,_,_,_)).
+isAction(tryCatch(_,_,_,_,_)).
 isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
-isAction(bind(_,_,_)).
+isAction(bind(_,_,_,_,_)).
 isAction(return(_,_)).
 isAction(raise(_,_)).
 
@@ -125,13 +125,13 @@ locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(varRef(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_),Lc) :-!.
 locOfCanon(seqn(Lc,_),Lc) :-!.
-locOfCanon(ifthen(Lc,_,_,_),Lc) :-!.
-locOfCanon(while(Lc,_,_),Lc) :-!.
-locOfCanon(for(Lc,_,_),Lc) :-!.
-locOfCanon(trycatch(Lc,_,_),Lc) :-!.
+locOfCanon(ifthen(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(whileDo(Lc,_,_),Lc) :-!.
+locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(tryCatch(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(bind(Lc,_,_),Lc) :-!.
+locOfCanon(bind(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(return(Lc,_),Lc) :-!.
 locOfCanon(raise(Lc,_),Lc) :-!.
 
