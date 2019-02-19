@@ -66,5 +66,6 @@
   keyword("for").
   keyword("try").
   keyword("catch").
+  keyword("throw").
   keyword("#").
   keyword("$").
