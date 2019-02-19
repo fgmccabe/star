@@ -83,7 +83,7 @@ star.uri{
   isSegChr(Ch) => isUnreserved(Ch).
 
   query:parser[list[integer],query].
-  query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ return noQ.
+  query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return noQ).
 
   userStar:parser[list[integer],integer].
   userStar = _sat(userCh).
@@ -100,7 +100,7 @@ star.uri{
 
   hostNamePort:parser[list[integer],host].
   hostNamePort = hostName >>= (H) =>
-    ((_tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ return host(H)).
+    ((_tk(0c:) >>= (_) => port >>= (P) => return hostPort(H,P)) +++ (return host(H))).
 
   hostName:parser[list[integer],string].
   hostName = _star(alphaDash) >>= (H)=> return (H::string).

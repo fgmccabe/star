@@ -2,21 +2,38 @@ test.dd{
   import star.
   import test.fact.
 
-  ff:(integer)=>action[string,integer].
-  ff(X) => delay(()=>return fact(X)).
+  ff:(integer)=>action[(),integer].
+  ff(X) => delay(()=>(return fact(X))).
 
-  XX : action[string,integer].
+  AA : action[(),integer].
+  AA = do{
+    return 34.
+  }.
+
+  XX : action[(),integer].
   XX = do{
     A <- ff(4);
     B <- ff(3);
-    ^^ A*B.
+    return A*B.
   }
 
-  YY : action[string,integer].
+  YY : action[(),integer].
   YY = do{
     ff(4)
   }
 
-  show "XX=\(_perform(XX))".
-  show "YY=\(_perform(YY))".
+  ZZ : action[(),integer].
+  ZZ = do {
+    try {
+      throw ()
+    } catch {
+      return 10
+    }
+  }
+
+  show "AA=\(valof AA)".
+  show "XX=\(valof XX)".
+  show "YY=\(valof YY)".
+
+  assert valof XX == 10.
 }
