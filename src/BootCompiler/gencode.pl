@@ -201,6 +201,11 @@ compTerm(Cond,Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCond(Cond,Lc,bothCont(succCont(),contCont(Nx)),bothCont(failCont(),contCont(Nx)),
       Opts,D0,D1,End,C,[iLbl(Nx)|C1],Stk,Stk1),
   call(Cont,D1,Dx,End,C1,Cx,Stk1,Stkx).
+compTerm(doAct(Lc,Act),OLc,Cont,Opts,D,Dx,_End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  genLbl(D,End,D0),
+  compAction(Act,Cont,Opts,D0,Dx,End,C0,[iLbl(End)|Cx],Stk,Stkx).
+  
 compTerm(T,Lc,_,_,Dx,Dx,_,C,C,Stk,Stk) :-
   reportError("cannot compile %s",[T],Lc),
   abort.
@@ -215,7 +220,7 @@ compVar(g(GlbNm),Cont,D,Dx,End,[iLdG(GlbNm)|C0],Cx,Stk,Stkx) :-
   Stk1 is Stk+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
-% Terms are generated in reverse order
+/* Terms are generated in reverse order*/
 compTerms([],_,Cont,_,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Cont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerms([T|Ts],Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -223,8 +228,21 @@ compTerms([T|Ts],Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerms(Ts,Lc,contCont(Nxt),Opts,D0,D1,End,C,[iLbl(Nxt)|C0],Stk,Stk0),
   compTerm(T,Lc,Cont,Opts,D1,Dx,End,C0,Cx,Stk0,Stkx).
 
+/* Compile actions as sequences with a return*/
+compAction(perf(Lc,Exp),Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compTerm(Exp,Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(seq(_,A,B),Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compAction(A,compAction(B,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(varD(Lc,idnt(Nm),E),Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  genLbl(D,Lb,D0),
+  defineLclVar(Nm,Lb,End,D0,D1,Off,C,C0),
+  compTerm(E,Lc,stoCont(Off,Lb,bothCont(Cont,releaseCont(Nm))),
+	   Opts,D1,Dx,End,C0,Cx,Stk,Stkx).
+
 contCont(Lbl,D,D,_,C,Cx,Stk,Stk) :-
-  (nonvar(Cx),Cx=[iLbl(Lbl)|_]) -> C=Cx ; C=[iJmp(Lbl)|Cx]. % some special logic here
+  (nonvar(Cx),Cx=[iLbl(Lbl)|_]) ->
+  C=Cx ;
+  C=[iJmp(Lbl)|Cx].			% some special logic here
 
 combCont([],Dx,Dx,_,Cx,Cx,Stk,Stk).
 combCont([Cnt],D,Dx,End,C,Cx,Stk,Stkx) :-
@@ -246,6 +264,9 @@ resetCont(Lvl,D,D,_,[iRst(Lvl)|Cx],Cx,_,Lvl).
 stoCont(Off,Lb,Cont,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
   Stk1 is Stk-1,
   call(Cont,D,Dx,End,C,Cx,Stk1,Stkx).
+
+releaseCont(Nm,D,Dx,_,Cx,Cx,Stk,Stk) :-
+  clearLclVar(Nm,D,Dx).
 
 escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1.

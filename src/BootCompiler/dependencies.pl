@@ -522,14 +522,18 @@ collectFaceRefs([St|L],All,R0,Refs) :-
   collectFaceRefs(L,All,R1,Refs).
 
 collectDoRefs(T,All,Rf,Rfx) :-
-  isBinary(T,_,";",L,R),!,
+  isActionSeq(T,_,L,R),!,
   collectDoRefs(L,All,Rf,Rf1),
   collectDoRefs(R,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isBraceTuple(T,_,[St]),!,
   collectDoRefs(St,All,Rf,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isBind(T,_,L,R),!,
+  isBind(T,_,bind(L),R),!,
+  collectTermRefs(L,All,Rf,Rf0),
+  collectTermRefs(R,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isDefn(T,_,L,R),!,
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
@@ -537,10 +541,32 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectTermRefs(L,All,Rf,Rf0),
   collectTermRefs(R,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
-  isHandle(T,_,L,R),!,
-  collectDoRefs(L,All,Rf,Rf1),
-  collectTermRefs(R,All,Rf1,Rfx).
+  isIfThenElse(T,_,Tt,H,E),!,
+  collectTermRefs(Tt,All,Rf,Rf0),
+  collectTermRefs(H,All,Rf0,Rf1),
+  collectTermRefs(E,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isWhileDo(T,_,Tt,B),!,
+  collectTermRefs(Tt,All,Rf,Rf0),
+  collectTermRefs(B,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isForDo(T,_,Tt,B),!,
+  collectTermRefs(Tt,All,Rf,Rf0),
+  collectTermRefs(B,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isTryCatch(T,_,L,R),!,
+  collectDoRefs(L,All,Rf,Rf1),
+  collectCatchRefs(R,All,Rf1,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isThrow(T,_,E),!,
+  collectTermRefs(E,All,Rf,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  collectTermRefs(T,All,Rf,Rfx).
+
+collectCatchRefs(T,All,Rf,Rfx) :-
+  isBraceTuple(T,_,[St]),!,
+  collectDoRefs(St,All,Rf,Rfx).
+collectCatchRefs(T,All,Rf,Rfx) :-
   collectTermRefs(T,All,Rf,Rfx).
 
 collectTypeRefs(V,All,SoFar,Refs) :-

@@ -1,13 +1,15 @@
-:- module(types,[isType/1,isConType/1,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
-      newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
-      progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
-      isFunctionType/1,isFunctionType/2,isCnsType/2,
-      isProgramType/1,
-      dispType/1,showType/4,showConstraint/3,contractType/2,contractTypes/2,
-      isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
-      moveQuants/3,reQuantTps/3,
-      moveConstraints/3,moveConstraints/4, implementationName/2,
-      stdType/3]).
+:- module(types,
+	  [isType/1,isConType/1,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
+	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
+	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
+	   isFunctionType/1,isFunctionType/2,isCnsType/2,
+	   isProgramType/1,
+	   dispType/1,dispType/2,showType/4,showConstraint/3,
+	   contractType/2,contractTypes/2,
+	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
+	   moveQuants/3,reQuantTps/3,
+	   moveConstraints/3,moveConstraints/4, implementationName/2,
+	   stdType/3]).
 :- use_module(misc).
 
 isType(anonType).
@@ -31,7 +33,8 @@ isType(constrained(_,_)).
 isConstraint(conTract(_,_,_)).
 isConstraint(implementsFace(_,_)).
 
-isConType(Tp) :- deRef(Tp,T),!,isCnType(T).
+isConType(Tp) :-
+  deRef(Tp,T),!,isCnType(T).
 
 isCnType(consType(_,_)).
 isCnType(allType(_,T)) :- isConType(T).
@@ -149,15 +152,18 @@ showType(constrained(Tp,Con),_,O,Ox) :- showConstraint(Con,O,O1), showMoreConstr
 
 showTypeExp(T,ShCon,O,Ox) :-
   deRef(T,Tp),
-  showTpExp(Tp,_,ShCon,O,O1),
+  showTpExp(Tp,_,ShCon,0,O,O1),
   appStr("]",O1,Ox).
 
-showTpExp(tpExp(T,A),",",ShCon,O,Ox) :-
+showTpExp(tpExp(T,A),",",ShCon,Ar,O,Ox) :-
   deRef(T,Op),
-  showTpExp(Op,Sep,ShCon,O,O1),
+  Ar2 is Ar+1,
+  showTpExp(Op,Sep,ShCon,Ar2,O,O1),
   appStr(Sep,O1,O2),
   showType(A,ShCon,O2,Ox).
-showTpExp(Tp,"[",ShCon,O,Ox) :-
+showTpExp(tpFun(Op,Ar),"[",_ShCon,Ar,O,Ox) :-!,
+  appStr(Op,O,Ox).
+showTpExp(Tp,"[",ShCon,_,O,Ox) :-
   showType(Tp,ShCon,O,Ox).
 
 showMoreConstraints(constrained(Tp,Con),O,Ox) :-
@@ -212,6 +218,12 @@ showTypeField((Nm,Tp),ShCon,O,E) :- appStr(Nm,O,O1), appStr(" ~> ",O1,O2), showT
 
 dispType(Tp) :-
   showType(Tp,true,Chrs,[]),
+  string_chars(Text,Chrs),
+  writeln(Text).
+
+dispType(Msg,Tp) :-
+  appStr(Msg,Chrs,C0),
+  showType(Tp,true,C0,[]),
   string_chars(Text,Chrs),
   writeln(Text).
 

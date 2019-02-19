@@ -181,6 +181,30 @@ showTerm(ng(_,R),Dp,O,Ox) :-
 showTerm(error(_,Msg),_,O,Ox) :-
   appStr("error: ",O,O1),
   appQuoted(Msg,"\"",O1,Ox).
+showTerm(doAct(_,Act),Dp,O,Ox) :-
+  appStr("do {",O,O1),
+  appNwln(Dp,O1,O2),
+  Dp2 is Dp+2,
+  showAction(Act,Dp2,O2,O3),
+  appStr("}",O3,Ox).
+
+showAction(seq(_,L,R),Dp,O,Ox) :-
+  showAction(L,Dp,O,O1),
+  appNwLn(Dp,O1,O2),
+  showAction(R,Dp,O2,Ox).
+showAction(seq(_,L,R),Dp,O,Ox) :-
+  showAction(L,Dp,O,O1),
+  appNwLn(Dp,O1,O2),
+  showAction(R,Dp,O2,Ox).
+showAction(varD(_,P,E),Dp,O,Ox) :-
+  Dp2 is Dp+2,
+  showTerm(P,Dp,O,O1),
+  appStr(" = ",O1,O2),
+  showTerm(E,Dp2,O2,Ox).
+showAction(perf(_,E),Dp,O,Ox) :-
+  appStr("perf ",O,O1),
+  showTerm(E,Dp,O1,Ox).
+
 
 showConOp(L,_,O,O) :-
   isTplStruct(L).
