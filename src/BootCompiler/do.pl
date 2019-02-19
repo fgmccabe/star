@@ -1,73 +1,62 @@
-:- module(do,[genDo/2,genValof/2]).
+:- module(do,[genAction/4]).
 
-:- use_module(wff).
-:- use_module(abstract).
 :- use_module(misc).
-:- use_module(display).
+:- use_module(canon).
+:- use_module(types).
 
-genDo(Trm,Exp) :-
-  isDoTerm(Trm,_Lc,Stmt),!,
-  genBody(Stmt,Exp).
-  %display(Exp).
-genDo(Trm,Exp) :-
-  isDoTerm(Trm,Lc),
-  unary(Lc,"return",tuple(Lc,"()",[]),Exp).
+% Implement the monadic transformation of do expressions
 
-genBody(B,Bd) :-
-  isBinary(B,Lc,";",L,R),
-  genStmt(L,Bnd,LL),
-  genBody(R,RR),
-  genBind(Bnd,Lc,LL,RR,Bd).
-genBody(B,Bd) :-
-  isParen(B,I),!,
-  genBody(I,Bd).
-genBody(B,Exp) :-
-  genStmt(B,_,Exp).
+genAction(seqDo(_,A,B),ConOp,Cont,Exp) :-
+	genAction(B,ConOp,Cont,RR),
+	genAction(A,ConOp,RR,Exp).
+genAction(returnDo(Lc,A,StTp,ErTp),ConOp,Cont,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
+  (Cont = noDo(_) ; reportError("return: %s must be last action",[A],Lc)),
+  typeOfCanon(A,ElTp),!,
+  Tp = tpExp(StTp,ElTp),		% monadic type of returned value
+  Gen = over(Lc,mtd(Lc,"_return",funType(tupleType([ElTp]),Tp)),
+    true,[conTract(ConOp,[StTp],[ErTp])]).
+genAction(bindDo(Lc,Ptn,Ex,PtnTp,StTp,ErTp),ConOp,Cont,Exp) :-
+  (Cont = noDo(_) ->
+   reportError("bind: %s<-%s may not be last action",[Ptn,Ex],Lc);
+   true),
+  typeOfCanon(Cont,ConTp),
+  LTp = funType(tupleType([PtnTp]),ConTp),
+  typeOfCanon(Ex,ExTp),
+  Lam = lambda(Lc,equation(Lc,tple(Lc,[Ptn]),enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
+  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([ExTp,LTp]),ConTp)),
+	     true,[conTract(ConOp,[StTp],[ErTp])]),
+  Exp = apply(Lc,Gen,tple(Lc,[Ex,Lam]),ConTp).
+genAction(varDo(Lc,Ptn,Ex),_ConOp,Cont,Exp) :-
+  (Cont = noDo(_) ->
+   reportError("bind: %s=%s may not be last action",[Ptn,Ex],Lc);
+   true),
+  typeOfCanon(Ptn,PtnTp),
+  typeOfCanon(Cont,ConTp),
+  LTp = funType(tupleType([PtnTp]),ConTp),
+  Lam = lambda(Lc,equation(Lc,tple(Lc,[Ptn]),enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
+  Exp = apply(Lc,Lam,tple(Lc,[Ex]),ConTp).
+genAction(tryCatchDo(Lc,Bdy,Hndlr,StTp,ErTp),ConOp,Cont,Exp) :-
+  typeOfCanon(Cont,ConTp),
+  typeOfCanon(Hndlr,HType),
+  typeOfCanon(Bdy,BType),
+  genAction(Bdy,ConOp,noDo(Lc),Body),
+  
+  H = over(Lc,mtd(Lc,"_handle",funType(tupleType([BType,HType]),ConTp)),
+	      true,[conTract(ConOp,[StTp],[ErTp])]),
+  HB = apply(Lc,H,tple(Lc,[Body,Hndlr]),ConTp),
+  combineActs(Lc,HB,Cont,ConOp,StTp,ErTp,Exp).
+genAction(performDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp) :-
+  combineActs(Lc,Ex,Cont,ConOp,StTp,ErTp,Exp).
 
-genStmt(C,V,Cl) :-
-  isBind(C,_,V,CC),
-  genStmt(CC,_,Cl).
-genStmt(S,void,Cl) :-
-  isBinary(S,_,";",_,_),!,
-  genBody(S,Cl).
-genStmt(T,V,Cl) :-
-  isParen(T,I),!,
-  genStmt(I,V,Cl).
-genStmt(B,void,Bd) :-
-  isBinary(B,Lc,"^^",L,R),
-  unary(Lc,"return",R,RR),
-  genStmt(L,Bnd,LL),
-  genBind(Bnd,Lc,LL,RR,Bd).
-genStmt(T,void,Cl) :-
-  isUnary(T,Lc,"^^",Exp),
-  unary(Lc,"return",Exp,Cl).
-genStmt(T,void,Exp) :-
-  isHandle(T,Lc,L,R),
-  genStmt(L,_,Lhs),
-  binary(Lc,"_handle",Lhs,R,Exp).
-genStmt(T,void,Exp) :-
-  isBraceTuple(T,_,[St]),
-  genBody(St,Exp).
-genStmt(T,void,T).
+combineActs(_,A1,noDo(_),_ConOp,_,_,A1) :-!.
+combineActs(Lc,A1,Cont,ConOp,StTp,ErTp,Exp) :-
+  typeOfCanon(Cont,ConTp),
+  anonVar(Lc,Anon,ATp),
+  LTp = funType(tupleType([ATp]),ConTp),
+  typeOfCanon(A1,A1Tp),
+  Lam = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
+			   enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
+  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([A1Tp,LTp]),ConTp)),
+	     true,[conTract(ConOp,[StTp],[ErTp])]),
+  Exp = apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
 
-genBind(void,Lc,LL,RR,Bd) :-
-  anonArg(Lc,A),
-  genBind(bind(A),Lc,LL,RR,Bd).
-genBind(bind(A),Lc,LL,RR,Bd) :- % Generate LL >>= (A)=>RR
-  binary(Lc,"=>",A,RR,Fn),
-  binary(Lc,">>=",LL,Fn,Bd).
-genBind(let(A),Lc,LL,RR,Bd) :- %  X = valof E
-  isValof(LL,Lc1,E),!,    % Generate _coerce(_handle(LL,_raise)) >>= (A)=>RR
-  binary(Lc1,"_handle",E,name(Lc1,"_raise"),LL1),
-  unary(Lc1,"_coerce",LL1,Lhs),
-  binary(Lc,"=>",A,RR,Fn),
-  binary(Lc,">>=",Lhs,Fn,Bd).
-genBind(let(A),Lc,LL,RR,Bd) :- % Generate ((A)=>RR)(LL)
-  binary(Lc,"=>",A,RR,Fn),
-  roundTerm(Lc,Fn,[LL],Bd).
-
-anonArg(Lc,tuple(Lc,"()",[name(Lc,"_")])).
-
-genValof(T,E) :-
-  isUnary(T,Lc,"valof",A),
-  unary(Lc,"_perform",A,E).

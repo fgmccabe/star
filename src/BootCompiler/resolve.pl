@@ -171,6 +171,42 @@ overloadTerm(mtd(Lc,Nm,Tp),_,St,Stx,mtd(Lc,Nm,Tp)) :-
   markActive(St,Lc,Msg,Stx).
 overloadTerm(lambda(Lc,Eqn,Tp),Dict,St,Stx,lambda(Lc,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
+overloadTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Dict,St,Stx,doTerm(Lc,RBody,ElTp,ErTp,Con)) :-
+  overloadAction(Body,Dict,St,Stx,RBody).
+
+overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
+  overloadAction(A,Dict,St,St1,RA),
+  overloadAction(B,Dict,St1,Stx,RB).
+overloadAction(bindDo(Lc,Ptn,Exp,PT,ErTp),Dict,St,Stx,bindDo(Lc,RPtn,RExp,PT,ErTp)) :-
+  overloadTerm(Ptn,Dict,St,St1,RPtn),
+  overloadTerm(Exp,Dict,St1,Stx,RExp).
+overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
+  overloadTerm(Ptn,Dict,St,St1,RPtn),
+  overloadTerm(Exp,Dict,St1,Stx,RExp).
+overloadAction(ifthenDo(Lc,Tst,Th,El,StTp,ErTp),Dict,St,Stx,ifthenDo(Lc,RTst,RTh,REl,StTp,ErTp)) :-
+  overloadTerm(Tst,Dict,St,St1,RTst),
+  overloadAction(Th,Dict,St1,St2,RTh),
+  overloadAction(El,Dict,St2,Stx,REl).
+overloadAction(whileDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,whileDo(Lc,RTst,RBody,StTp,ErTp)) :-
+  overloadTerm(Tst,Dict,St,St1,RTst),
+  overloadAction(Body,Dict,St1,Stx,RBody).
+overloadAction(forDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,forDo(Lc,RTst,RBody,StTp,ErTp)) :-
+  overloadTerm(Tst,Dict,St,St1,RTst),
+  overloadAction(Body,Dict,St1,Stx,RBody).
+overloadAction(tryCatchDo(Lc,Body,Hndlr,StTp,ErTp),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr,StTp,ErTp)) :-
+  overloadAction(Body,Dict,St,St1,RBody),
+  overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
+overloadAction(returnDo(Lc,Exp,ElTp),Dict,St,Stx,returnDo(Lc,RExp,ElTp)) :-
+  overloadTerm(Exp,Dict,St,Stx,RExp).
+overloadAction(throwDo(Lc,Exp,ErTp),Dict,St,Stx,throwDo(Lc,RExp,ErTp)) :-
+  overloadTerm(Exp,Dict,St,Stx,RExp).
+overloadAction(performDo(Lc,Exp,ErTp),Dict,St,Stx,performDo(Lc,RExp,ErTp)) :-
+  overloadTerm(Exp,Dict,St,Stx,RExp).
+
+overloadActions([],_,St,St,[]).
+overloadActions([A|As],Dict,St,Stx,[RA|RAs]) :-
+  overloadAction(A,Dict,St,St1,RA),
+  overloadActions(As,Dict,St1,Stx,RAs).
 
 overApply(_,OverOp,[],_,OverOp) :-!.
 overApply(Lc,OverOp,Args,Tp,apply(Lc,OverOp,tple(Lc,Args),Tp)) :- \+isProgramType(Tp),!.

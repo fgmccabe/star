@@ -10,7 +10,7 @@
     isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
     isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
     isConjunct/4,isDisjunct/4,isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
-    isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isBind/4,isValof/3,isHandle/4,isTryCatch/4,
+    isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isBind/4,isValof/3,isThrow/3,isReturn/3,isHandle/4,isTryCatch/4,
     isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,isActionSeq/4,isActionSeq/3,
     isLetDef/4,mkLetDef/4,
     whereTerm/4,
@@ -362,20 +362,22 @@ isDoTerm(A,Lc) :-
 isDoTerm(A) :-
   isUnary(A,_,"do",_),!.
 
-isBind(T,Lc,bind(B),E) :-
-  isBinary(T,Lc,"<-",R,E),!,
-  roundTuple(Lc,[R],B).
-isBind(T,Lc,let(B),E) :-
-  isBinary(T,Lc,"=",R,E),
-  roundTuple(Lc,[R],B).
+isBind(T,Lc,B,E) :-
+  isBinary(T,Lc,"<-",B,E),!.
+
+isReturn(A,Lc,E) :-
+  isUnary(A,Lc,"return",E).
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
 
+isThrow(A,Lc,E) :-
+  isUnary(A,Lc,"throw",E).
+
 isTryCatch(A,Lc,B,H) :-
   isUnary(A,Lc,"try",I),
   isBinary(I,_,"catch",B,H).
-  
+
 isHandle(A,Lc,L,R) :-
   isBinary(A,Lc,">>>",L,R).
 

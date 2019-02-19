@@ -665,14 +665,10 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
     isDoTerm(Term),!,
-    checkDo(Term,Env,Ev,Exp,Path).
+    checkDo(Term,Env,Ev,Tp,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isDoTerm(Term),!,
-  genDo(Term,Action),
-  typeOfExp(Action,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isValof(Term,_,_),!,
-  genValof(Term,VV),
+  isValof(Term,Lc,Ex),!,
+  unary(Lc,"_perform",Ex,VV),
   typeOfExp(VV,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isParseTerm(Term,_,PP),!,
@@ -799,66 +795,85 @@ genTpVars([_|I],[Tp|More]) :-
   newTypeVar("__",Tp),
   genTpVars(I,More).
 
-checkDo(Term,Env,Ev,Tp,
-	doTerm(Lc,Body,ElTp,ErTp,conTract(Op,[StTp],[ErTp]),Path) :-
-    isDoTerm(Term,Lc,B),
-    newTypeVar("_e",ElTp),
-    (getContract("execution",Env,conDef(_,_,Con)) ->
-	 freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ErTp]),_)),
-	 checkType(Term,Tp,tpExp(StTp,ElTp),Env);
-     reportError("execution contract not defined",[],Lc),
-     newTypeVar("_t",StTp),
-     newTypeVar("_E",ErTp)),
-    checkActionType(B,Env,Ev,StTp,ErTp,Body,Path).
+checkDo(Term,Env,Ev,Tp,EE,Path) :-
+  isDoTerm(Term,Lc,B),
+  newTypeVar("_e",ElTp),
+  (getContract("execution",Env,conDef(_,_,Con)) ->
+	  freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ErTp]),_)),
+	  checkType(Term,Tp,tpExp(StTp,ElTp),Env);
+   reportError("execution contract not defined",[],Lc),
+   newTypeVar("_t",StTp),
+   newTypeVar("_E",ErTp)),
+  checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
+  genAction(Body,Op,noDo(Lc),EE),
+  dispCanonTerm(EE).
 
-checkActionType(Term,Env,Ev,Tp,ErTp,seqn(Lc,[A1|As]),Path) :-
+checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
-  checkActionType(S1,Env,E1,Tp,ErTp,A1,Path),
-  checkActionSequence(S2,E1,Ev,Tp,ErTp,As,Path).
-checkActionType(Term,Env,Ev,Tp,ErTp,bind(Lc,Ptn,Exp,PT,ErTp),Path) :-
-  isBind(Term,Lc,bind(P),Ex),!,
+  newTypeVar("_e",FV),
+  checkAction(S1,Env,E1,Op,StTp,FV,ErTp,A1,Path),
+  checkAction(S2,E1,Ev,Op,StTp,ElTp,ErTp,A2,Path).
+checkAction(Term,Env,Ev,_,StTp,_,ErTp,bindDo(Lc,Ptn,Exp,PT,StTp,ErTp),Path) :-
+  isBind(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
-  typeOfPtn(P,PT,Env,Ev,Ptn,Path),
-  typeOfExp(Ex,PT,Env,_,Exp,Path).
-checkActionType(Term,Env,Ev,Tp,ErTp,vDef(Lc,Ptn,Exp,PT),Path) :-
+  HType = tpExp(StTp,PT),  % in a bind, the type of the value must be in the same monad
+  typeOfExp(Ex,HType,Env,E1,Exp,Path),
+  typeOfPtn(P,PT,E1,Ev,Ptn,Path).
+checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
   isDefn(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
-checkActionType(Term,Env,Ev,Tp,ErTp,ifthen(Lc,Ts,Th,El,Tp,ErTp),Path) :-
+checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifthenDo(Lc,Ts,Th,El,StTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(T,Env,Et,Ts,Path),
-  checkActionType(H,Et,E1,Tp,ErTp,Th,Path),
-  checkActionType(E,Env,E2,Tp,ErTp,El,Path),
+  typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
+  checkAction(H,Et,E1,Op,StTp,ElTp,ErTp,Th,Path),
+  checkAction(E,Env,E2,Op,StTp,ElTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkActionType(Term,Env,Env,Tp,ErTp,whileDo(Lc,Ts,Bdy,Tp,ErTp),Path) :-
+checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,whileDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
   isWhileDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(T,Env,Et,Ts,Path),
-  checkActionType(B,Et,_,Tp,ErTp,Th,Path).
-checkActionType(Term,Env,Env,Tp,ErTp,forDo(Lc,Ts,Bdy,Tp,ErTp),Path) :-
+  typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
+  checkAction(B,Et,_,Op,StTp,ElTp,ErTp,Bdy,Path).
+checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,forDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(T,Env,Et,Ts,Path),
-  checkActionType(B,Et,_,Tp,ErTp,Th,Path).
-checkActionType(Term,Env,Env,Tp,ErTp,tryCatch(Lc,Bdy,Hndlr,Tp,ET),Path) :-
+  typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
+  checkAction(B,Et,_,Op,StTp,ElTp,ErTp,Bdy,Path).
+checkAction(Term,Env,Env,Op,StTp,ElTp,_,
+	    tryCatchDo(Lc,Bdy,Hndlr,StTp,ET),Path) :-
   isTryCatch(Term,Lc,B,H),!,
-  newTypeVar("_E",ET),
-  checkActionType(B,Env,_,Tp,ET,Bdy,Path),
-  Htype = funType(tupleType(ET),Tp),
-  typeOfExp(H,Htype,Env,_,Hndlr,Path).
-  
+  anonVar(Lc,ET,Anon),
+  checkAction(B,Env,_,Op,StTp,ElTp,ET,Bdy,Path),
+  checkCatch(H,Env,Op,StTp,ElTp,ET,Anon,Hndlr,Path).
+checkAction(Term,Env,Env,_,StTp,_ElTp,ErTp,throwDo(Lc,Exp,ErTp),Path) :-
+  isThrow(Term,Lc,E),!,
+  newTypeVar("_",Anon),
+  unary(Lc,"_raise",E,ER),
+  ThrwTp = tpExp(StTp,Anon),
+  typeOfExp(ER,ThrwTp,Env,_,Exp,Path).
+checkAction(Term,Env,Env,_,StTp,ElTp,ErTp,returnDo(Lc,Exp,StTp,ErTp),Path) :-
+  isReturn(Term,Lc,Ex),!,
+  typeOfExp(Ex,ElTp,Env,_,Exp,Path).
+checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path) :-
+  isBraceTuple(Term,_,[Stmt]),!,
+  checkAction(Stmt,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path).
+checkAction(Term,Env,Ev,_,StTp,ElTp,ErTp,performDo(Lc,Exp,StTp,ErTp),Path) :-
+  locOfAst(Term,Lc),
+  typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
 
-checkActionSequence(T,Env,Ev,Tp,ErTp,[A1|As],Path) :-
-  isActionSeq(T,_,S1,S2),!,
-  checkActionType(S1,Env,E1,Tp,ErTp,A1,Path),
-  checkActionSequence(S1,E1,Ev,Tp,ErTp,As,Path).
-checkActionSequence(T,Env,Ev,Tp,ErTp,[A],Path) :-
-  isActionSeq(T,_,[S]),!,
-  checkActionType(S,Env,Ev,Tp,ErTp,A,Path).
-checkActionSequence(T,Env,Ev,Tp,ErTp,[A],Path) :-
-  checkActionType(A,Env,Ev,Tp,ErTp,A,Path).
+checkCatch(Term,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path) :-
+  isBraceTuple(Term,Lc,[St]),!,
+  Htype = funType(tupleType([ErTp]),tpExp(StTp,ElTp)),
+  checkAction(St,Env,_,Op,StTp,ElTp,ErTp,H,Path),
+  genAction(H,Op,noDo(Lc),HH),
+  Hndlr = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
+			     enm(Lc,"true",type("star.core*boolean")),
+			     HH),Htype).
+checkCatch(Term,Env,_,StTp,ElTp,ErTp,_,Hndlr,Path) :-
+  Htype = funType(tupleType([ErTp]),tpExp(StTp,ElTp)),
+  typeOfExp(Term,Htype,Env,_,Hndlr,Path).
 
 recordFace(Trm,Env,Env,v(Lc,Nm,Face),Face,_) :-
   isIden(Trm,Lc,Nm),
