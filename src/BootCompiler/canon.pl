@@ -112,6 +112,7 @@ typeOfCanon(assign(_,_,Vl),Tp) :-
   typeOfCanon(Vl,Tp).
 typeOfCanon(cell(_,Vl),refType(Tp)) :-
   typeOfCanon(Vl,Tp).
+typeOfCanon(lambda(_,_,Tp),Tp) :-!.
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_),Lc) :- !.
@@ -148,7 +149,9 @@ locOfCanon(throwDo(Lc,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
-dispCanonTerm(Term) :- showCanonTerm(Term,0,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
+dispCanonTerm(Term) :-
+  showCanonTerm(Term,0,Chrs,[]),
+  string_chars(Res,Chrs), writeln(Res).
 
 dispDefs(Defs) :- showDefs(Defs,0,Chrs,[]),string_chars(Res,Chrs),writeln(Res).
 

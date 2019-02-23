@@ -824,6 +824,11 @@ checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
+checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,assignDo(Lc,Lhs,Rhs,StTp,ErTp),Path) :-
+  isAssignment(Term,Lc,L,R),!,
+  newTypeVar("_V",PT),
+  typeOfExp(L,refType(PT),Env,Ev,Lhs,Path),
+  typeOfExp(R,PT,Env,_,Rhs,Path).
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifthenDo(Lc,Ts,Th,El,StTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -842,17 +847,14 @@ checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,forDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
   checkAction(B,Et,_,Op,StTp,ElTp,ErTp,Bdy,Path).
 checkAction(Term,Env,Env,Op,StTp,ElTp,_,
-	    tryCatchDo(Lc,Bdy,Hndlr,StTp,ET),Path) :-
+	    tryCatchDo(Lc,Bdy,Hndlr,StTp,ElTp,ErTp),Path) :-
   isTryCatch(Term,Lc,B,H),!,
-  anonVar(Lc,ET,Anon),
-  checkAction(B,Env,_,Op,StTp,ElTp,ET,Bdy,Path),
-  checkCatch(H,Env,Op,StTp,ElTp,ET,Anon,Hndlr,Path).
-checkAction(Term,Env,Env,_,StTp,_ElTp,ErTp,throwDo(Lc,Exp,ErTp),Path) :-
+  anonVar(Lc,Anon,ErTp),
+  checkAction(B,Env,_,Op,StTp,ElTp,ErTp,Bdy,Path),
+  checkCatch(H,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path).
+checkAction(Term,Env,Env,_,StTp,_ElTp,ErTp,throwDo(Lc,Exp,StTp,ErTp),Path) :-
   isThrow(Term,Lc,E),!,
-  newTypeVar("_",Anon),
-  unary(Lc,"_raise",E,ER),
-  ThrwTp = tpExp(StTp,Anon),
-  typeOfExp(ER,ThrwTp,Env,_,Exp,Path).
+  typeOfExp(E,ErTp,Env,_,Exp,Path).
 checkAction(Term,Env,Env,_,StTp,ElTp,ErTp,returnDo(Lc,Exp,StTp,ErTp),Path) :-
   isReturn(Term,Lc,Ex),!,
   typeOfExp(Ex,ElTp,Env,_,Exp,Path).

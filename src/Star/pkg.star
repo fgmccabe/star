@@ -73,5 +73,5 @@ star.pkg{
   isSegChr(Ch) => isAlphaNum(Ch).
 
   parseVersion:parser[list[integer],version].
-  parseVersion = ((_str("#") >>= (_) => segment >>= (Seg) => return vers(Seg)) +++ return defltVersion).
+  parseVersion = ((_str("#") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return defltVersion)).
 }

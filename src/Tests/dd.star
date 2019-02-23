@@ -35,5 +35,5 @@ test.dd{
   show "XX=\(valof XX)".
   show "YY=\(valof YY)".
 
-  assert valof XX == 10.
+  assert valof ZZ == 10.
 }
