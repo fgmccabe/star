@@ -3,7 +3,7 @@
 //
 
 #include <str.h>
-#include <pkg.h>
+#include <pkgP.h>
 #include <globals.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -12,6 +12,7 @@
 #include <errorCodes.h>
 #include <array.h>
 #include <tpl.h>
+#include <manifest.h>
 #include "pkgops.h"
 
 ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
@@ -89,4 +90,66 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
     return rt;
   } else
     return liberror(P, "_install_pkg", eFAIL);
+}
+
+ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
+  char pkg[MAX_SYMB_LEN];
+  char version[MAX_SYMB_LEN];
+  char kind[MAX_SYMB_LEN];
+
+  retCode ret = copyString2Buff(C_STR(Arg1), ((char *) (pkg)), NumberOf(pkg));
+  if (ret == Ok)
+    ret = copyString2Buff(C_STR(Arg2), ((char *) (version)), NumberOf(version));
+
+  if (ret == Ok)
+    ret = copyString2Buff(C_STR(Arg3), kind, NumberOf(kind));
+
+  if (ret == Ok) {
+    char *rsrc = manifestCompatibleResource(pkg, version, kind);
+
+    if (rsrc == Null) {
+      ReturnStatus rt = {.ret=Ok, .result= falseEnum};
+      return rt;
+    } else {
+      ReturnStatus rt = {.ret=Ok, .result= trueEnum};
+      return rt;
+    }
+  } else {
+    ReturnStatus rt = {.ret=ret, .result= voidEnum};
+    return rt;
+  }
+}
+
+ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  termPo Arg2 = tos[1];
+  termPo Arg3 = tos[2];
+  char pkg[MAX_SYMB_LEN];
+  char version[MAX_SYMB_LEN];
+  char kind[MAX_SYMB_LEN];
+
+  retCode ret = copyString2Buff(C_STR(Arg1), pkg, NumberOf(pkg));
+  if (ret == Ok)
+    ret = copyString2Buff(C_STR(Arg2), version, NumberOf(version));
+
+  if (ret == Ok)
+    ret = copyString2Buff(C_STR(Arg3), kind, NumberOf(kind));
+
+  if (ret == Ok) {
+    char *rsrc = manifestCompatibleResource(pkg, version, kind);
+
+    if (rsrc == Null) {
+      ReturnStatus rt = {.ret=Error, .result= voidEnum};
+      return rt;
+    } else {
+      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
+      return rt;
+    }
+  } else {
+    ReturnStatus rt = {.ret=ret, .result= voidEnum};
+    return rt;
+  }
 }

@@ -33,6 +33,7 @@
 		"star.redblack" : "redblack.star",
 		"star.redblack.impl" : "redblack-impl.star",
 		"star.repo": "repo.star",
+		"star.repo.boot": "bootrepo.star",
 		"star.repo.file": "filerepo.star",
 		"star.repo.manifest": "manifest.star",
 		"star.resources": "resources.star",

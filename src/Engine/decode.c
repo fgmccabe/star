@@ -165,10 +165,18 @@ static retCode estimateCns(integer arity, void *cl) {
   return Ok;
 }
 
+static retCode endEstimateCns(void *cl) {
+  return Ok;
+}
+
 static retCode estimateLst(integer count, void *cl) {
   Estimation *info = (Estimation *) cl;
 
   info->amnt += ListCellCount + BaseCellCount(count);
+  return Ok;
+}
+
+static retCode endEstimateLst(void *cl) {
   return Ok;
 }
 
@@ -187,7 +195,9 @@ retCode estimate(ioPo in, integer *amnt) {
     estimateLbl,           // decLbl
     estimateString,         // decString
     estimateCns,            // decCon
-    estimateLst
+    endEstimateCns,         // End of constructor
+    estimateLst,            // Start of list
+    endEstimateLst          // End of list
   };
 
   retCode ret = streamDecode(in, &estimateCB, &info);
@@ -417,6 +427,9 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
 
         for (i = 0; res == Ok && i < arity; i++)
           res = decodeStream(in, cb, cl, buff);
+
+        if (res == Ok)
+          res = cb->endCons(cl);
       }
 
       return res;
@@ -436,6 +449,9 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
 
         for (i = 0; res == Ok && i < count; i++)
           res = decodeStream(in, cb, cl, buff);
+
+        if (res == Ok)
+          res = cb->endLst(cl);
       }
 
       return res;
@@ -474,6 +490,18 @@ static retCode skipLst(integer ix, void *cl) {
   return Ok;
 }
 
+static retCode skipCns(integer ix, void *cl) {
+  return Ok;
+}
+
+static retCode endSkipCns(void *cl) {
+  return Ok;
+}
+
+static retCode endSkipLst(void *cl) {
+  return Ok;
+}
+
 static DecodeCallBacks skipCB = {
   skipFlag,           // startDecoding
   skipFlag,           // endDecoding
@@ -482,8 +510,10 @@ static DecodeCallBacks skipCB = {
   skipFlt,            // decFlt
   skipName,           // decLbl
   skipString,         // decString
-  skipInt,            // decCons
-  skipLst
+  skipCns,            // decCons
+  endSkipCns,         // End of constructor
+  skipLst,            // Start of list
+  endSkipLst          // End of list
 };
 
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen) {
@@ -566,6 +596,20 @@ static retCode copyCons(integer ar, void *cl) {
   return encodeInt(out, ar);
 }
 
+static retCode endCopyCons(void *cl) {
+  return Ok;
+}
+
+static retCode copyList(integer ar, void *cl) {
+  ioPo out = ((CopyRec *) cl)->out;
+  outChar(out, lstTrm);
+  return encodeInt(out, ar);
+}
+
+static retCode endCopyList(void *cl) {
+  return Ok;
+}
+
 static DecodeCallBacks copyCB = {
   copyFlag,           // startDecoding
   copyFlag,           // endDecoding
@@ -574,7 +618,10 @@ static DecodeCallBacks copyCB = {
   copyFlt,            // decFlt
   copyEnum,           // decLbl
   copyString,         // decString
-  copyCons            // decCons
+  copyCons,            // decCons
+  endCopyCons,        // Copying a structure
+  copyList,           // Copy a list
+  endCopyList         // End of copying a list
 };
 
 retCode copyEncoded(ioPo in, ioPo out, char *errorMsg, long msgLen) {

@@ -87,7 +87,7 @@ JsonCallBacks mapEvents = {
 typedef enum {
   initial,
   topLevel,
-  inPackage,
+  inManifest,
   inPkgName,
   inPkgVers,
   inFun,
@@ -95,7 +95,7 @@ typedef enum {
   inMap
 } ParseState;
 
-static char *stNames[] = {"initial", "inPackage", "inVersion", "inDetail", "inResource"};
+static char *stNames[] = {"initial", "inManifest", "inPackage", "inDetail", "inResource"};
 
 typedef struct {
   retCode status;
@@ -144,7 +144,7 @@ retCode startCollection(void *cl) {
       uniCpy((char *) &info->ver, NumberOf(info->ver), "");
       break;
 
-    case inPackage:
+    case inManifest:
       uniCpy((char *) &info->ver, NumberOf(info->ver), "");
       break;
 
@@ -167,7 +167,7 @@ retCode endCollection(void *cl) {
   switch (info->state) {
     case initial:
       return Error;
-    case inPackage:
+    case inManifest:
       info->state = topLevel;
       break;
     default:
@@ -211,13 +211,13 @@ retCode startEntry(const char *name, void *cl) {
       if (uniCmp(name, "pkg") == same) {
         uniCpy((char *) &info->pkg, NumberOf(info->pkg), "");
         uniCpy((char *) &info->ver, NumberOf(info->ver), "");
-        info->state = inPackage;
+        info->state = inManifest;
       } else if (uniCmp(name, "map") == same) {
         info->state = inMap;
       } else
         return Error;
 
-    case inPackage: {
+    case inManifest: {
       if (uniCmp(name, "name") == same) {
         info->state = inPkgName;
       } else if (uniCmp(name, "vers") == same) {
@@ -241,7 +241,7 @@ retCode endEntry(const char *name, void *cl) {
     logMsg(logFile, "Ending entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {
-    case inPackage:
+    case inManifest:
     default:
       break;
   }
@@ -256,7 +256,7 @@ retCode numEntry(double dx, void *cl) {
     logMsg(logFile, "Numeric entry, state = %s, value=%g", stNames[info->state], dx);
 
   switch (info->state) {
-    case inPackage:
+    case inManifest:
 
     default:
       return Error;

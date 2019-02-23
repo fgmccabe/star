@@ -35,7 +35,7 @@ retCode ProcessTable(procFun pr,hashPo tbl,void *c);
 retCode hashPut(hashPo htbl,void *name, void *r); // install a new entry
 void *hashGet(hashPo htbl,void *name); // search for an entry
 retCode hashRemove(hashPo htbl,void *name); // remove an entry from the hash tabl
-long hashSize(hashPo htbl);
+integer hashSize(hashPo htbl);
 
 void lockHash(hashPo tbl);
 void unlockHash(hashPo tbl);

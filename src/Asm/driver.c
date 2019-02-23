@@ -35,7 +35,7 @@ retCode parseContent(char *path) {
       closeFile(out);
 
       if (ret == Ok) {
-        ret = addToManifest(&pkg->pkg, "code", codeName);
+        ret = addToManifest(&pkg->pkg, "code", codeName, uniStrLen(codeName));
 
         if (ret == Ok)
           ret = flushManifest();

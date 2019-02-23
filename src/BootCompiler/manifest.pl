@@ -1,42 +1,76 @@
-:- module(manifest,[readManifest/2,jsonManifest/2,showManifest/3,manifestJson/2,writeManifest/2]).
+:- module(manifest,[readManifest/2,
+		    dispManifest/1,showManifest/3,
+		    writeManifest/2]).
 
-:- use_module(parseUtils).
 :- use_module(uri).
 :- use_module(misc).
-:- use_module(json).
 :- use_module(resource).
+:- use_module(encode).
+:- use_module(decode).
 
 readManifest(Path,Manifest) :-
   readFile(Path,Chars),
-  phrase(parseJson(J),Chars),
-  jsonManifest(J,Manifest).
+  phrase(decodeTerm(T),Chars),!,
+  termManifest(T,Manifest).
 
-jsonManifest(jColl(L),man(M)) :-
-  jsonEntries(L,M).
+termManifest(lst(Els),man(M)) :-
+  map(Els,manifest:termEntry,M).
 
-jsonEntries([],[]).
-jsonEntries([J|L],[Entry|More]) :-
-  jsonEntry(J,Entry),
-  jsonEntries(L,More).
+termEntry(ctpl(lbl("()2",2),[strg(P),lst(Es)]),entry(P,Vs)) :-
+  map(Es,manifest:termVersion,Vs).
 
-jsonEntry((P,jColl(V)),entry(P,Versions)) :-
-  jsonVersions(P,V,Versions).
-
-jsonVersions(_,[],[]).
-jsonVersions(P,[V|L],[Vers|More]) :-
-  jsonVersion(P,V,Vers),
-  jsonVersions(P,L,More).
-
-jsonVersion(_,("*",jColl(Dtl)),(defltVersion,Sig,SrcUri,fl(Code))) :-!,
-  is_member(("source",jTxt(Src)),Dtl),
-  is_member(("code",jTxt(Code)),Dtl),
-  is_member(("signature",jTxt(Sig)),Dtl),
+termVersion(ctpl(lbl("()2",2),[strg("*"),lst(Dtls)]),
+	    (defltVersion,Sig,SrcUri,fl(Code))) :- !,
+  findStrg("source",Dtls,Src),
+  findStrg("code",Dtls,Code),
+  findStrg("signature",Dtls,Sig),
   parseURI(Src,SrcUri).
-jsonVersion(_,(V,jColl(Dtl)),(ver(V),Sig,SrcUri,fl(Code))) :-
-  is_member(("source",jTxt(Src)),Dtl),
-  is_member(("code",jTxt(Code)),Dtl),
-  is_member(("signature",jTxt(Sig)),Dtl),
+
+termVersion(ctpl(lbl("()2",2),[strg(V),lst(Dtls)]),
+	    (ver(V),Sig,SrcUri,fl(Code))) :- !,
+  findStrg("source",Dtls,Src),
+  findStrg("code",Dtls,Code),
+  findStrg("signature",Dtls,Sig),
   parseURI(Src,SrcUri).
+
+findStrg(Nm,[ctpl(lbl(Nm,1),[strg(Vl)])|_],Vl) :- !.
+findStrg(Nm,[_|Es],Vl) :-
+  findStrg(Nm,Es,Vl).
+
+manifestTerm(man(M),lst(Els)) :-
+  map(M,manifest:entryTerm,Els).
+
+entryTerm(entry(P,Vs),ctpl(lbl("()2",2),[strg(P),lst(Es)])) :-
+  map(Vs,manifest:versionTerm,Es).
+
+versionTerm((defltVersion,Sig,SrcUri,fl(Code)),
+	    ctpl(lbl("()2",2),[strg("*"),
+			       lst([SrcTerm,CodeTerm,SigTerm])])) :-
+  showUri(SrcUri,U,[]),
+  string_chars(U,C),
+  mkDetail("source",C,SrcTerm),
+  mkDetail("code",Code,CodeTerm),
+  mkDetail("signature",Sig,SigTerm).
+versionTerm((ver(V),Sig,SrcUri,fl(Code)),
+	    ctpl(lbl("()2",2),[strg(V),
+			       lst([SrcTerm,CodeTerm,SigTerm])])) :-
+  showUri(SrcUri,U,[]),
+  string_chars(U,C),
+  mkDetail("source",C,SrcTerm),
+  mkDetail("code",Code,CodeTerm),
+  mkDetail("signature",Sig,SigTerm).
+
+mkDetail(Nm,Vl,ctpl(lbl(Nm,1),[strg(Vl)])).
+
+writeManifest(Fn,M) :-
+  manifestTerm(M,Term),
+  encode(Term,Text),
+  writeFile(Fn,Text).
+
+dispManifest(M) :-
+  showManifest(M,Chrs,[]),
+  string_chars(Txt,Chrs),
+  writeln(Txt).
 
 showManifest(man(E),O,Ox) :-
   appStr("manifest",O,O1),
@@ -80,30 +114,3 @@ showV(defltVersion,O,Ox) :-
 showFileName(fl(Nm),O,Ox) :-
   appStr(Nm,O,Ox).
 
-manifestJson(man(M),jColl(C)) :-
-  manifestEntries(M,C).
-
-manifestEntries([],[]).
-manifestEntries([entry(Pkg,Versions)|L],[(Pkg,jColl(Entry))|M]) :-
-  manifestVersions(Versions,Entry),
-  manifestEntries(L,M).
-
-manifestVersions([],[]).
-manifestVersions([V|L],[J|M]) :-
-  manifestVersion(V,J),
-  manifestVersions(L,M).
-
-manifestVersion((defltVersion,Sig,Uri,fl(CodeFn)), ("*",VV)) :-
-  manifestDetails(CodeFn,Sig,Uri,VV).
-manifestVersion((ver(Ver),Sig,Uri,fl(CodeFn)), (Ver,VV)) :-
-  manifestDetails(CodeFn,Sig,Uri,VV).
-
-manifestDetails(Fn,Sig,Uri,jColl([("source",jTxt(U)),("code",jTxt(Fn)),("signature",jTxt(Sig))])) :-
-  showUri(Uri,C,[]),
-  string_chars(U,C).
-
-writeManifest(Fn,M) :-
-  manifestJson(M,Json),
-  dispJson(Json,Chars,[]),
-  string_chars(Text,Chars),
-  writeFile(Fn,Text).

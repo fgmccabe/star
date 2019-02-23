@@ -170,6 +170,8 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
 
   escape(_install_pkg,True,False,"F(S)L(SS)","define package from string contents")
   escape(_pkg_is_present,True,False,"F(SS)l","True if an identified package is available")
+  escape(_in_manifest,True,False,"F(SSS)l","True if pkg/version/kind is present in manifest")
+  escape(_locate_in_manifest,True,False,"F(SSS)S","Access manifest resource")
 
   escape(_logmsg,True,False,"F(S)"sysRet,"log a message in logfile or console")
 
