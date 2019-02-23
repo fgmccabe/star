@@ -35,8 +35,8 @@ typedef struct bucket {
 } BucketRec;
 
 typedef struct _hashtable_ {
-  long size; // The number of entries in the table
-  long entries; /* how many entries do we have? */
+  integer size; // The number of entries in the table
+  integer entries; /* how many entries do we have? */
   bucketPo *table; /* The table of entries */
   hashFun hash; /* The hashing function */
   compFun compare; /* The comparison function */
@@ -321,14 +321,14 @@ logical verifyHash(hashPo htbl) {
   return stat;
 }
 
-long hashSize(hashPo htbl) {
-  long count = 0;
+integer hashSize(hashPo htbl) {
+  integer count = 0;
 
   pthread_mutex_lock(&htbl->mutex);
 
   {
     register int i;
-    register long size = htbl->size;
+    register integer size = htbl->size;
 
     for (i = 0; i < size; i++) {
       if (htbl->table[i] != NULL)

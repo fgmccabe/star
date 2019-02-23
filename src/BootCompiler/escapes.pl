@@ -128,6 +128,8 @@ escapeType("_put_file",funType(tupleType([type("star.core*string"),type("star.co
 escapeType("_show",funType(tupleType([tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string")]),tupleType([]))).
 escapeType("_install_pkg",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*list",1),tupleType([type("star.core*string"),type("star.core*string")])))).
 escapeType("_pkg_is_present",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
+escapeType("_in_manifest",funType(tupleType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
+escapeType("_locate_in_manifest",funType(tupleType([type("star.core*string"),type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_logmsg",funType(tupleType([type("star.core*string")]),tpExp(tpFun("star.core*resultType",1),type("star.core*string")))).
 escapeType("_connect",funType(tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer")]),tupleType([type("star.io*fileHandle"),type("star.io*fileHandle")]))).
 escapeType("_listen",funType(tupleType([type("star.core*integer")]),type("star.io*fileHandle"))).
@@ -344,6 +346,8 @@ isEscape("_put_file").
 isEscape("_show").
 isEscape("_install_pkg").
 isEscape("_pkg_is_present").
+isEscape("_in_manifest").
+isEscape("_locate_in_manifest").
 isEscape("_logmsg").
 isEscape("_connect").
 isEscape("_listen").

@@ -131,6 +131,8 @@ star.comp.escapes{
   escapeType("_show") => tpExp(tpExp(tpFun("=>",2),tupleType([tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer")]),tipe("star.core*string")])),tupleType([])).
   escapeType("_install_pkg") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))).
   escapeType("_pkg_is_present") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
+  escapeType("_in_manifest") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
+  escapeType("_locate_in_manifest") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_logmsg") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
   escapeType("_connect") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer")])),tupleType([tipe("star.io*fileHandle"),tipe("star.io*fileHandle")])).
   escapeType("_listen") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tipe("star.io*fileHandle")).
@@ -349,6 +351,8 @@ star.comp.escapes{
   isEscape("_show") => true.
   isEscape("_install_pkg") => true.
   isEscape("_pkg_is_present") => true.
+  isEscape("_in_manifest") => true.
+  isEscape("_locate_in_manifest") => true.
   isEscape("_logmsg") => true.
   isEscape("_connect") => true.
   isEscape("_listen") => true.

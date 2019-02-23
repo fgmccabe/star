@@ -1,56 +1,82 @@
 /*
   Manifest & repository handling
-  Copyright (c) 2017-2018. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
+  Copyright (c) 2017-2019. Francis G. McCabe
 */
 
 #include <stdlib.h>
 #include <pkgP.h>
-#include "jsonEvent.h"
+#include <decodeP.h>
 #include "manifestP.h"
 #include "engineOptions.h"
 #include "fileops.h"
 
-// Use the JSON event parser to parse a manifest file and build up a manifest structure
+// Use the stream decoder to parse a manifest file and build up a manifest structure
+typedef enum {
+  initial,
+  inManifest,
+  inPackage,
+  inVersion,
+  inResource,
+  inDetail
+} ParseState;
+
+typedef enum {
+  unknown,
+  inCode,
+  inSig,
+  inSrc,
+  ignoreDetail
+} ResourceState;
+
+static char *stNames[] = {"initial", "inManifest", "inPackage", "inVersion", "inResource", "inDetail"};
+
+static char *resNmes[] = {"unknown", "inCode", "inSig", "inSrc", "ignore"};
+
+typedef struct {
+  char pkg[MAX_SYMB_LEN]; // Package name
+  manifestEntryPo entry;
+  manifestVersionPo version;
+  char kind[MAX_SYMB_LEN];
+  ParseState state;
+  ResourceState resState;
+  integer pkgCount;
+  integer versionCount;
+  integer resourceCount;
+  integer fieldCount;
+} ParsingState, *statePo;
 
 static retCode startManifest(void *cl);
 static retCode endManifest(void *cl);
-static retCode startCollection(void *cl);
-static retCode endCollection(void *cl);
-static retCode startArray(void *cl);
-static retCode endArray(void *cl);
-static retCode startEntry(const char *name, void *cl);
-static retCode endEntry(const char *name, void *cl);
-static retCode numEntry(double dx, void *cl);
-static retCode boolEntry(logical trueVal, void *cl);
-static retCode txtEntry(const char *name, void *cl);
-static retCode nullEntry(void *cl);
+static retCode startList(integer arity, void *cl);
+static retCode endList(void *cl);
+static retCode startEntry(integer arity, void *cl);
+static retCode endEntry(void *cl);
+static retCode txtEntry(char *name, integer length, void *cl);
+static retCode lblEntry(char *name, integer arity, void *cl);
+static retCode intEntry(integer ix, void *cl);
+static retCode fltEntry(double dx, void *cl);
+static retCode badEntry(void *cl);
 static retCode errorEntry(const char *name, void *cl);
 
-JsonCallBacks manEvents = {
-  startManifest,
-  endManifest,
-  startCollection,
-  endCollection,
-  startArray,
-  endArray,
-  startEntry,
-  endEntry,
-  txtEntry,
-  numEntry,
-  boolEntry,
-  nullEntry,
-  errorEntry
-};
+retCode decodeManifest(ioPo in) {
+  ParsingState info = {.state=initial};
+
+  DecodeCallBacks decodeCB = {
+    startManifest,          // startDecoding
+    endManifest,            // endDecoding
+    badEntry,               // decVoid
+    intEntry,               // decInt
+    fltEntry,               // decFlt
+    lblEntry,               // decLbl
+    txtEntry,               // decString
+    startEntry,             // decCon
+    endEntry,               // End of constructor entry
+    startList,
+    endList
+  };
+
+  return streamDecode(in, &decodeCB, &info);
+}
 
 static poolPo manifestPool = NULL;
 static poolPo versionPool = NULL;
@@ -103,6 +129,10 @@ manifestVersionPo newVersion(manifestEntryPo entry, const char *version) {
   return vEntry;
 }
 
+integer countVersions(manifestEntryPo entry) {
+  return hashSize(entry->versions);
+}
+
 static retCode pickAny(void *n, void *r, void *c) {
   manifestVersionPo *tgt = (manifestVersionPo *) c;
   *tgt = (manifestVersionPo) r;
@@ -118,35 +148,39 @@ manifestVersionPo manifestVersion(manifestEntryPo entry, char *version) {
     return (manifestVersionPo) hashGet(entry->versions, version);
 }
 
-manifestRsrcPo newManifestResource(const char *kind, const char *fileNm) {
+manifestRsrcPo newManifestResource(const char *kind, const char *text, integer length) {
   manifestRsrcPo f = (manifestRsrcPo) allocPool(rsrcPool);
 
   uniCpy((char *) &f->kind, NumberOf(f->kind), kind);
-  uniCpy((char *) &f->fn, NumberOf(f->fn), fileNm);
+  uniNCpy((char *) &f->fn, NumberOf(f->fn), text, length);
 
   return f;
 }
 
-retCode addResource(manifestVersionPo version, const char *kind, const char *rscrc) {
-  manifestRsrcPo f = newManifestResource(kind, rscrc);
+retCode addResource(manifestVersionPo version, const char *kind, const char *rscrc, integer length) {
+  manifestRsrcPo f = newManifestResource(kind, rscrc, length);
 
   return hashPut(version->resources, &f->kind, f);
 }
 
 char *manifestResource(packagePo pkg, char *kind) {
-  manifestEntryPo entry = manifestEntry(pkg->packageName);
+  return manifestCompatibleResource(pkg->packageName,pkg->version,kind);
+}
 
-  if (entry != NULL) {
-    manifestVersionPo v = manifestVersion(entry, pkg->version);
-
-    if (v != NULL) {
+char *manifestCompatibleResource(char *pkg, char *version, char *kind) {
+  manifestEntryPo entry = manifestEntry(pkg);
+  if (entry != Null) {
+    manifestVersionPo v = manifestVersion(entry, version);
+    if(version!=Null){
       manifestRsrcPo f = hashGet(v->resources, kind);
 
       if (f != NULL)
         return f->fn;
     }
+    else
+      return Null;
   }
-  return NULL;
+  return Null;
 }
 
 char *manifestRsrcFlNm(packagePo pkg, char *kind, char *buffer, integer buffLen) {
@@ -158,7 +192,7 @@ char *manifestRsrcFlNm(packagePo pkg, char *kind, char *buffer, integer buffLen)
     return Null;
 }
 
-retCode addToManifest(packagePo package, char *kind, char *resrc) {
+retCode addToManifest(packagePo package, char *kind, char *resrc, integer length) {
   manifestEntryPo entry = getEntry(package->packageName);
 
   manifestVersionPo v = manifestVersion(entry, package->version);
@@ -166,27 +200,8 @@ retCode addToManifest(packagePo package, char *kind, char *resrc) {
     v = newVersion(entry, package->version);
   }
 
-  return addResource(v, kind, resrc);
+  return addResource(v, kind, resrc, length);
 }
-
-typedef enum {
-  initial,
-  inPackage,
-  inVersion,
-  inDetail,
-  inResource
-} ParseState;
-
-static char *stNames[] = {"initial", "inPackage", "inVersion", "inDetail", "inResource"};
-
-typedef struct {
-  char pkg[MAX_SYMB_LEN]; // Package name
-  manifestEntryPo entry;
-  char ver[MAX_SYMB_LEN];
-  manifestVersionPo version;
-  char kind[MAX_SYMB_LEN];
-  ParseState state;
-} ParsingState, *statePo;
 
 retCode loadManifest() {
   initManifest();
@@ -198,9 +213,7 @@ retCode loadManifest() {
   ioPo inFile = openInFile(manifestName, utf8Encoding);
 
   if (inFile != NULL) {
-    ParsingState info = {.state=initial};
-    yyparse(inFile, &manEvents, &info);
-    return Ok;
+    return decodeManifest(inFile);
   } else {
     return Fail;
   }
@@ -216,150 +229,217 @@ retCode startManifest(void *cl) {
 }
 
 retCode endManifest(void *cl) {
-  if (traceManifest)
+  if (traceManifest) {
     logMsg(logFile, "Ending parse of manifest");
+    dispManifest(logFile);
+    flushFile(logFile);
+  }
   return Ok;
 }
 
-retCode startCollection(void *cl) {
+retCode startList(integer arity, void *cl) {
   statePo info = (statePo) cl;
 
   if (traceManifest)
-    logMsg(logFile, "Starting collection, state = %s", stNames[info->state]);
+    logMsg(logFile, "Starting sequence, state = %s, %d elements", stNames[info->state], arity);
 
   switch (info->state) {
-    case initial:
-      info->state = inPackage;
+    case initial: {
+      info->state = inManifest;
       uniCpy((char *) &info->pkg, NumberOf(info->pkg), "");
-      break;
-    case inPackage:
-      uniCpy((char *) &info->ver, NumberOf(info->ver), "");
-      info->state = inVersion;
-      break;
-    case inVersion:
-      uniCpy((char *) &info->kind, NumberOf(info->kind), "");
-      info->state = inResource;
-      break;
-    case inResource:
-      break;
-
-    default:
-      return Error;
-  }
-  return Ok;
-}
-
-retCode endCollection(void *cl) {
-  statePo info = (statePo) cl;
-
-  if (traceManifest)
-    logMsg(logFile, "Ending collection, state = %s", stNames[info->state]);
-
-  switch (info->state) {
-    case initial:
-      return Error;
-    case inPackage:
-      info->state = initial;
-      break;
-    case inVersion:
-      info->state = inPackage;
-      break;
-    case inResource:
-      info->state = inVersion;
-      break;
-    case inDetail:
-      info->state = inResource;
-      break;
-    default:
-      return Error;
-  }
-
-  return Ok;
-}
-
-retCode startArray(void *cl) {
-  return Ok;
-}
-
-retCode endArray(void *cl) {
-  return Ok;
-}
-
-retCode startEntry(const char *name, void *cl) {
-  statePo info = (statePo) cl;
-
-  if (traceManifest)
-    logMsg(logFile, "Starting entry, state = %s, name=%s", stNames[info->state], name);
-
-  switch (info->state) {
-    case initial:
-      return Error;
+      info->pkgCount = arity;
+      return Ok;
+    }
+    case inManifest: {
+      return Ok;
+    }
     case inPackage: {
-      info->entry = getEntry(name);
-      break;
+      info->versionCount = arity;
+      return Ok;
     }
     case inVersion:
-      uniCpy((char *) &info->ver, NumberOf(info->ver), name);
-      info->version = newVersion(info->entry, name);
-      break;
-    case inResource:
-      uniCpy((char *) &info->kind, NumberOf(info->kind), name);
-      info->state = inDetail;
-      break;
-    case inDetail:
-      return Error; // expecting a text, not a collection
-    default:
-      return Error;
-  }
-  return Ok;
-}
-
-retCode endEntry(const char *name, void *cl) {
-  statePo info = (statePo) cl;
-
-  if (traceManifest)
-    logMsg(logFile, "Ending entry, state = %s, name=%s", stNames[info->state], name);
-
-  switch (info->state) {
-    case inDetail:
       info->state = inResource;
-      break;
+      return Ok;
     case inResource:
-    case inVersion:
-    case inPackage:
     default:
-      break;
+      return Error;
+  }
+}
+
+retCode endList(void *cl) {
+  statePo info = (statePo) cl;
+
+  if (traceManifest) {
+    logMsg(logFile, "Ending sequence, state = %s", stNames[info->state]);
   }
 
-  return Ok;
+  switch (info->state) {
+    case initial:
+      return Error;
+
+    case inManifest: {
+      info->state = initial;
+      return Ok;
+    }
+    case inPackage: {
+      return Ok;
+    }
+    case inResource:
+      info->state = inVersion;
+      return Ok;
+
+    case inVersion:
+      info->state = inPackage;
+      return Ok;
+
+    default:
+      return Error;
+  }
 }
 
-retCode numEntry(double dx, void *cl) {
-  return Ok;
-}
-
-retCode boolEntry(logical trueVal, void *cl) {
-  return Ok;
-}
-
-retCode txtEntry(const char *name, void *cl) {
+retCode startEntry(integer arity, void *cl) {
   statePo info = (statePo) cl;
 
   if (traceManifest)
-    logMsg(logFile, "Text entry, state = %s, name=%s", stNames[info->state], name);
+    logMsg(logFile, "Starting entry, state = %s, count=%d", stNames[info->state], arity);
 
   switch (info->state) {
+    case initial:
+      return Error;
+    case inManifest:
+      info->state = inPackage;
+      info->versionCount = arity;
+      return Ok;
+    case inPackage:
+      info->state = inVersion;
+      return Ok;
+    case inVersion:
+      info->state = inResource;
+      info->resState = unknown;
+      return Ok;
+    case inResource:
+      info->state = inDetail;
+      info->resState = unknown;
+      return Ok;
     default:
       return Error;
-    case inDetail:
-      addResource(info->version, (char *) &info->kind, name);
-      break;
   }
-  return Ok;
 }
 
-retCode nullEntry(void *cl) {
-  return Ok;
+retCode endEntry(void *cl) {
+  statePo info = (statePo) cl;
+
+  if (traceManifest)
+    logMsg(logFile, "End of entry, state = %s", stNames[info->state]);
+
+  switch (info->state) {
+    case initial:
+      return Error;
+    case inManifest: {
+      return Ok;
+    }
+    case inPackage:
+      info->state = inManifest;
+      return Ok;
+    case inVersion:
+      info->state = inPackage;
+      return Ok;
+    case inDetail:
+      info->resState = unknown;
+      info->state = inResource;
+      return Ok;
+    case inResource:
+      info->state = inVersion;
+      return Ok;
+    default:
+      return Error;
+  }
+}
+
+retCode lblEntry(char *name, integer arity, void *cl) {
+  statePo info = (statePo) cl;
+
+  if (traceManifest)
+    logMsg(logFile, "Label, state = %s, name=%s/%d", stNames[info->state], name, arity);
+
+  switch (info->state) {
+    case initial:
+      return Error;
+    case inManifest:
+    case inPackage:
+    case inVersion:
+      return Ok;
+    case inDetail:
+      if (uniIsLit(name, "code")) {
+        info->resState = inCode;
+        return Ok;
+      } else if (uniIsLit(name, "signature")) {
+        info->resState = inSig;
+        return Ok;
+      } else if (uniIsLit(name, "source")) {
+        info->resState = inSrc;
+        return Ok;
+      } else {
+        info->resState = ignoreDetail;
+        return Ok;
+      }
+    default:
+      return Error;
+  }
+}
+
+// No numeric entries in manifest
+retCode intEntry(integer ix, void *cl) {
+  return Error;
+}
+
+retCode fltEntry(double dx, void *cl) {
+  return Error;
+}
+
+retCode badEntry(void *cl) {
+  return Error;
+}
+
+retCode txtEntry(char *name, integer length, void *cl) {
+  statePo info = (statePo) cl;
+
+  if (traceManifest)
+    logMsg(logFile, "Text entry, state = %s(%s), name=%S", stNames[info->state],
+           (info->state == inDetail ? resNmes[info->resState] : ""), name, length);
+
+  char text[length + 1];
+  uniNCpy(text, length + 1, name, length);
+
+  switch (info->state) {
+    case initial:
+      return Error;
+    case inManifest: {
+      return Ok;
+    }
+    case inPackage: {
+      info->entry = getEntry(text);
+      return Ok;
+    }
+    case inVersion: {
+      info->version = newVersion(info->entry, text);
+      return Ok;
+    }
+    case inDetail: {
+      switch (info->resState) {
+        case inSrc:
+          return addResource(info->version, "source", name, length);
+        case inCode:
+          return addResource(info->version, "code", name, length);
+        case inSig:
+          //return addResource(info->version, "signature", name, length);
+        default:
+          return Ok;
+      }
+    }
+    default:
+      return Error;
+  }
 }
 
 retCode errorEntry(const char *name, void *cl) {
@@ -388,7 +468,7 @@ retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
   char *sep = policy->first ? "" : ",\n";
   policy->first = False;
 
-  return outMsg(policy->out, "%s%p\"%Q\":\"%Q\"", sep, policy->indent, rsrc->kind, rsrc->fn);
+  return outMsg(policy->out, "%s%p\"%s\":\"%s\"", sep, policy->indent, rsrc->kind, rsrc->fn);
 }
 
 retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
@@ -398,7 +478,7 @@ retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
   char *sep = policy->first ? "" : ",\n";
   policy->first = False;
 
-  retCode ret = outMsg(policy->out, "%s%p\"%Q\":{\n", sep, policy->indent, vers->version);
+  retCode ret = outMsg(policy->out, "%s%p\"%s\":{\n", sep, policy->indent, vers->version);
 
   if (ret == Ok)
     ret = ProcessTable((procFun) dumpRsrc, vers->resources, &inner);
@@ -408,14 +488,14 @@ retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
   return ret;
 }
 
-retCode dumpEntry(char *v, manifestEntryPo entry, void *cl) {
+retCode dispEntry(char *v, manifestEntryPo entry, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
   IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out, .first=True};
 
   char *sep = policy->first ? "" : ",\n";
   policy->first = False;
 
-  retCode ret = outMsg(policy->out, "%s%p\"%Q\":{\n", sep, policy->indent, entry->package);
+  retCode ret = outMsg(policy->out, "%s%p\"%s\":{\n", sep, policy->indent, entry->package);
 
   if (ret == Ok)
     ret = ProcessTable((procFun) dumpVersion, entry->versions, &inner);
@@ -425,13 +505,13 @@ retCode dumpEntry(char *v, manifestEntryPo entry, void *cl) {
   return ret;
 }
 
-retCode dumpManifest(ioPo out) {
+retCode dispManifest(ioPo out) {
   IndentPolicy policy = {.indent=2, .out=out, .first=True};
 
-  retCode ret = outMsg(out, "{\n");
+  retCode ret = outMsg(out, "manifest{\n");
 
   if (ret == Ok)
-    ret = ProcessTable((procFun) dumpEntry, manifest, &policy);
+    ret = ProcessTable((procFun) dispEntry, manifest, &policy);
 
   if (ret == Ok)
     ret = outMsg(out, "}");
@@ -446,7 +526,7 @@ retCode flushManifest() {
   ioPo outFile = openOutFile(manifestName, utf8Encoding);
 
   if (outFile != NULL) {
-    retCode ret = dumpManifest(outFile);
+    retCode ret = dispManifest(outFile);
 
     if (ret == Ok)
       ret = closeFile(outFile);
