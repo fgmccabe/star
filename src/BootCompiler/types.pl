@@ -155,7 +155,7 @@ showTypeExp(T,ShCon,O,Ox) :-
   showTpExp(Tp,_,ShCon,0,O,O1),
   appStr("]",O1,Ox).
 
-showTpExp(tpExp(T,A),",",ShCon,Ar,O,Ox) :-
+showTpExp(tpExp(T,A),",",ShCon,Ar,O,Ox) :-!,
   deRef(T,Op),
   Ar2 is Ar+1,
   showTpExp(Op,Sep,ShCon,Ar2,O,O1),

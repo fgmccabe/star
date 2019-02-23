@@ -83,36 +83,36 @@ star.parse{
   _opt(P) => P +++ zed.
 
   public _star:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
-  _star(P) => _plus(P) ++ return [].
+  _star(P) => _plus(P) ++ (return []).
 
   public _plus:all e,t ~~ (parser[t,e]) => parser[t,list[e]].
   _plus(P) =>
-    P >>= (A)=> _star(P) >>= (As) => return [A,..As].
+    P >>= (A)=> _star(P) >>= (As) => (return [A,..As]).
 
   public sepby:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,list[a]].
-  sepby(P,Sep) => sepby1(P,Sep) ++ return [].
+  sepby(P,Sep) => sepby1(P,Sep) ++ (return []).
 
   public sepby1:all a,b,t ~~ (parser[t,a],parser[t,b])=>parser[t,list[a]].
   sepby1(P,Sep) => P >>= (A) => _star(Sep>>=(_)=>P) >>= (AS) => return [A,..AS].
 
   public chainl:all e,t ~~ (parser[t,e],parser[t,(e,e)=>e],e)=>parser[t,e].
-  chainl(P,Op,A) => chainl1(P,Op)++return A.
+  chainl(P,Op,A) => chainl1(P,Op)++(return A).
 
   public chainl1:all e,t ~~ (parser[t,e],parser[t,(e,e)=>e])=>parser[t,e].
   chainl1(P,Op) => let{
-    rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) ++ return A
+    rest(A) => (Op >>= (F)=> P >>= (B) => rest(F(A,B))) ++ (return A)
   } in (P >>= rest).
 
   public _pstar:all e,t,u ~~ (parser[t,e],(e,u)=>u,u)=>parser[t,u].
   _pstar(P,Op,Z) => let{
     prs:(u) => parser[t,u].
-    prs(A) => (P >>= (O) => prs(Op(O,A))) ++ return A
+    prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
   } in prs(Z).
 
   public _pplus:all t,u ~~ (parser[t,u],(u,u)=>u)=>parser[t,u].
   _pplus(P,Op) => let{
     prs:(u) => parser[t,u].
-    prs(A) => (P >>= (O) => prs(Op(O,A))) ++ return A
+    prs(A) => (P >>= (O) => prs(Op(O,A))) ++ (return A)
   } in (P>>=(Z) => prs(Z)).
 
   public spaces:parser[list[integer],()].

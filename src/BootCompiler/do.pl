@@ -3,6 +3,7 @@
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(types).
+:- use_module(errors).
 
 % Implement the monadic transformation of do expressions
 
@@ -35,16 +36,28 @@ genAction(varDo(Lc,Ptn,Ex),_ConOp,Cont,Exp) :-
   LTp = funType(tupleType([PtnTp]),ConTp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[Ptn]),enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
   Exp = apply(Lc,Lam,tple(Lc,[Ex]),ConTp).
-genAction(tryCatchDo(Lc,Bdy,Hndlr,StTp,ErTp),ConOp,Cont,Exp) :-
-  typeOfCanon(Cont,ConTp),
+genAction(assignDo(Lc,Lhs,Rhs,StTp,ErTp),ConOp,Cont,Exp) :-
+  newTypeVar("_",TpV),
+  typeOfCanon(Lhs,LTp),
+  typeOfCanon(Rhs,RTp),
+  combineActs(apply(Lc,v(Lc,"_assign",funType(tupleType([LTp,RTp]),RTp)),
+		    tple(Lc,[Lhs,Rhs]),TpV),
+	      Cont,ConOp,StTp,ErTp,Exp).
+genAction(tryCatchDo(Lc,Bdy,Hndlr,StTp,ElTp,ErTp),ConOp,Cont,Exp) :-
   typeOfCanon(Hndlr,HType),
-  typeOfCanon(Bdy,BType),
+  ConTp = tpExp(StTp,ElTp),
   genAction(Bdy,ConOp,noDo(Lc),Body),
-  
+  typeOfCanon(Body,BType),
+
   H = over(Lc,mtd(Lc,"_handle",funType(tupleType([BType,HType]),ConTp)),
 	      true,[conTract(ConOp,[StTp],[ErTp])]),
   HB = apply(Lc,H,tple(Lc,[Body,Hndlr]),ConTp),
   combineActs(Lc,HB,Cont,ConOp,StTp,ErTp,Exp).
+genAction(throwDo(Lc,A,StTp,ErTp),ConOp,Cont,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
+  (Cont = noDo(_) ; reportError("throw %s must be last action",[A],Lc)),
+  Tp = tpExp(StTp,ErTp),		% monadic type of thrown value
+  Gen = over(Lc,mtd(Lc,"_raise",funType(tupleType([ErTp]),Tp)),
+    true,[conTract(ConOp,[StTp],[ErTp])]).
 genAction(performDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp) :-
   combineActs(Lc,Ex,Cont,ConOp,StTp,ErTp,Exp).
 
@@ -59,4 +72,3 @@ combineActs(Lc,A1,Cont,ConOp,StTp,ErTp,Exp) :-
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([A1Tp,LTp]),ConTp)),
 	     true,[conTract(ConOp,[StTp],[ErTp])]),
   Exp = apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
-
