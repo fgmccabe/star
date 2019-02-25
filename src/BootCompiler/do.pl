@@ -3,6 +3,7 @@
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(types).
+:- use_module(cnc).
 :- use_module(errors).
 
 % Implement the monadic transformation of do expressions
@@ -60,6 +61,11 @@ genAction(throwDo(Lc,A,StTp,ErTp),ConOp,Cont,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
     true,[conTract(ConOp,[StTp],[ErTp])]).
 genAction(performDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp) :-
   combineActs(Lc,Ex,Cont,ConOp,StTp,ErTp,Exp).
+genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp),ConOp,Cont,
+	  cond(Lc,Ts,Then,Else,tpExp(StTp,ElTp))) :-
+  genAction(Th,ConOp,Cont,Then),
+  genAction(El,ConOp,Cont,Else).
+
 
 combineActs(_,A1,noDo(_),_ConOp,_,_,A1) :-!.
 combineActs(Lc,A1,Cont,ConOp,StTp,ErTp,Exp) :-
