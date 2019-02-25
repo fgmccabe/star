@@ -242,14 +242,14 @@ star.ideal{
   .}
 
   public implementation all k,v ~~ indexed_iterable[map[k,v]->>k,v] => let{
-    iter:all s ~~ (map[k,v],(k,v,iterState[s])=>iterState[s],iterState[s])=>iterState[s].
+    iter:all e,s ~~ (map[k,v],(k,v,iterState[e,s])=>iterState[e,s],iterState[e,s])=>iterState[e,s].
     iter(_,_,noMore(X)) => noMore(X).
     iter(_,_,abortIter(S)) => abortIter(S).
     iter(ihEmpty,_,S) => S.
     iter(ihLeaf(_,Els),F,S) => consIter(Els,F,S).
     iter(ihNode((A1,A2,A3,A4)),F,S) => iter(A4,F,iter(A3,F,iter(A2,F,iter(A1,F,S)))).
 
-    consIter:all s ~~ (cons[(k,v)],(k,v,iterState[s])=>iterState[s],iterState[s])=>iterState[s].
+    consIter:all e,s ~~ (cons[(k,v)],(k,v,iterState[e,s])=>iterState[e,s],iterState[e,s])=>iterState[e,s].
 
     consIter(_,_,noMore(X)) => noMore(X).
     consIter(_,_,abortIter(S)) => abortIter(S).
