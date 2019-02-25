@@ -31,9 +31,20 @@ test.dd{
     }
   }
 
+  UU : (integer)=>action[(),integer].
+  UU = (U)=>do {
+    if valof ZZ == U then
+      return 1
+    else
+      YY
+  }
+
   show "AA=\(valof AA)".
   show "XX=\(valof XX)".
   show "YY=\(valof YY)".
 
   assert valof ZZ == 10.
+
+  show "UU(10)=\(valof UU(10))".
+  show "UU(9) = \(valof UU(9))".
 }
