@@ -64,11 +64,15 @@ star.boot{
   importPkg:(pkg,bootRepo,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).
   importPkg(P,R,Ld) where
-    -- _ .= logMsg("loading \(P)") &&
-    Code ^= locateCode(R,P) &&
-    --  _ .= logMsg("found \(P)") &&
+    Code ^= loadFromRepo(R,P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => none.
+
+  loadFromRepo:all r ~~ repo[r] |: (r,pkg) => option[string].
+  loadFromRepo(Repo,Pkg) where
+    U ^= hasResource(Repo,Pkg,"code") &&
+    Uri ^= parseUri(U) => getResource(resolveUri(repoRoot(Repo),Uri)).
+  loadFromRepo(_,_) default => none.
 
   initialize:(pkg) => action[string,()].
   initialize(pkg(P,_)) where
