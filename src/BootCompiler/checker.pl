@@ -829,7 +829,7 @@ checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,assignDo(Lc,Lhs,Rhs,StTp,ErTp),Path)
   newTypeVar("_V",PT),
   typeOfExp(L,refType(PT),Env,Ev,Lhs,Path),
   typeOfExp(R,PT,Env,_,Rhs,Path).
-checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifthenDo(Lc,Ts,Th,El,StTp,ErTp),Path) :-
+checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
