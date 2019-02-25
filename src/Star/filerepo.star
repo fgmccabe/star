@@ -18,6 +18,7 @@ star.repo.file{
 
   public implementation repo[fileRepo] => {
     hasResource(repo(Root,Man),Pkg,Kind) => locateInManifest(Man,Pkg,Kind).
+    repoRoot(repo(Root,_)) => Root.
   }
 
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
