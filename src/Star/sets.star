@@ -44,7 +44,7 @@ star.sets{
     _iterate(set(M),F,St) => _ixiterate(M,(K,_,S)=>F(K,S),St).
   .}
 
-  public implementation all e ~~ equality[e],hash[e] |: generator[set[e]->>e] => {.
+  public implementation all t ~~ equality[t],hash[t] |: generator[set[t]->>t] => {.
     _generate(E,continueWith(S)) => continueWith(_cons(E,S)).
     _generate(E,noneFound) => continueWith(_cons(E,empty)).
     _generate(_,St) default => St.
