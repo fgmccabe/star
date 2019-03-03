@@ -805,7 +805,8 @@ checkDo(Term,Env,Ev,Tp,EE,Path) :-
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
   checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-  genAction(Body,Op,noDo(Lc),EE),
+  dispCanonTerm(doTerm(Lc,Body,_,_,_)),
+  genAction(Body,Op,StTp,ErTp,EE,Path),
   dispCanonTerm(EE).
 
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
@@ -824,6 +825,13 @@ checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
+checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,delayDo(Lc,varDo(Lc,Lhs,cell(Lc,Rhs)),StTp,ErTp),Path) :-
+  isAssignment(Term,Lc,L,R),
+  isIden(L,_,Vr),
+  \+isVar(Vr,Env,_),!,
+  newTypeVar("_V",PT),
+  typeOfPtn(L,refType(PT),Env,Ev,Lhs,Path),
+  typeOfExp(R,PT,Env,_,Rhs,Path).
 checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,assignDo(Lc,Lhs,Rhs,StTp,ErTp),Path) :-
   isAssignment(Term,Lc,L,R),!,
   newTypeVar("_V",PT),
@@ -836,16 +844,29 @@ checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp),Path) 
   checkAction(H,Et,E1,Op,StTp,ElTp,ErTp,Th,Path),
   checkAction(E,Env,E2,Op,StTp,ElTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,whileDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
+checkAction(Term,Env,Env,Op,StTp,_,ErTp,whileDo(Lc,Ts,Lcls,Bdy,StTp,ErTp),
+	    Path) :-
   isWhileDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
-  checkAction(B,Et,_,Op,StTp,ElTp,ErTp,Bdy,Path).
-checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,forDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
+  pushScope(Env,WEnv),
+  typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
+  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path),
+  pullLocalVars(WEnv,Lcls).
+checkAction(Term,Env,Env,Op,StTp,_,ErTp,forDo(Lc,Ts,Lcls,Bdy,StTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
-  checkAction(B,Et,_,Op,StTp,ElTp,ErTp,Bdy,Path).
+  pushEnv(Env,FEnv),
+  typeOfExp(T,LogicalTp,FEnv,Et,Ts,Path),
+  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path),
+  pullLocalVars(FEnv,Lcls).
+
+  % BdTp = tpExp(StTp,tupleType([])),
+  % (getContract("coercion",Env,conDef(_,_,Con)) ->
+  % 	  freshen(Con,Env,_,contractExists(conTract(COp,[BdTp,StTp],[]),_)),
+  % 	  checkType(Term,Tp,tpExp(StTp,ElTp),Env);
+
+
+   
 checkAction(Term,Env,Env,Op,StTp,ElTp,_,
 	    tryCatchDo(Lc,Bdy,Hndlr,StTp,ElTp,ErTp),Path) :-
   isTryCatch(Term,Lc,B,H),!,
@@ -861,7 +882,7 @@ checkAction(Term,Env,Env,_,StTp,ElTp,ErTp,returnDo(Lc,Exp,StTp,ErTp),Path) :-
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path).
-checkAction(Term,Env,Ev,_,StTp,ElTp,ErTp,performDo(Lc,Exp,StTp,ErTp),Path) :-
+checkAction(Term,Env,Ev,_,StTp,ElTp,ErTp,simpleDo(Lc,Exp,StTp,ErTp),Path) :-
   locOfAst(Term,Lc),
   typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
 
@@ -869,7 +890,7 @@ checkCatch(Term,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,
   Htype = funType(tupleType([ErTp]),tpExp(StTp,ElTp)),
   checkAction(St,Env,_,Op,StTp,ElTp,ErTp,H,Path),
-  genAction(H,Op,noDo(Lc),HH),
+  genAction(H,Op,noDo(Lc),StTp,ErTp,HH,Path),
   Hndlr = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
 			     enm(Lc,"true",type("star.core*boolean")),
 			     HH),Htype).
@@ -1086,3 +1107,11 @@ mergeVDefs([_|D1],D2,Env,D3) :-
 
 sameDesc(vrEntry(_,C1,Tp1,_),vrEntry(_,C1,Tp2,_),Env) :-
   sameType(Tp1,Tp2,Env).
+
+pullLocalVars([scope(_,Vs,_,_,_)|_],Vrs) :-
+  dict_pairs(Vs,_,Prs),
+  buildVars(Prs,Vrs).
+
+buildVars([],[]).
+buildVars([Nm-vrEntry(Lc,_,Tp,_)|Es],[v(Lc,Nm,Tp)|Vs]) :-
+  buildVars(Es,Vs).
