@@ -83,6 +83,7 @@
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1260, 1259)]).
+  operator("!!", [prefixOp(900, 899)]).
   operator("=.", [infixOp(899, 900, 899)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(800, 800, 799)]).
@@ -231,6 +232,7 @@
   follows('>','>','>>').
   follows('>>','=','>>=').
   follows('>>','>','>>>').
+  follows('!','!','!!').
 
 
   final('%',"%").	 /* modulo */
@@ -315,6 +317,7 @@
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up a value from a ref cell */
+  final('!!',"!!").	 /* cell value */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
   final('$',"$").	 /* Used for curried functions and types */

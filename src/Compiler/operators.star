@@ -100,6 +100,7 @@ star.compiler.operators{
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
   oper("assert") => [prefixOp(1260,1259)].
+  oper("!!") => [prefixOp(900,899)].
   oper("=.") => [infixOp(899,900,899)].
   oper(".^.") => [infixOp(720,720,719)].
   oper("//") => [infixOp(800,800,799)].
@@ -268,6 +269,7 @@ star.compiler.operators{
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
   follows(">>",0c>) => some(">>>").
+  follows("!",0c!) => some("!!").
   follows(_,_) default => none.
 
   public final:(string) => boolean.
@@ -353,6 +355,7 @@ star.compiler.operators{
   final("?") => true.  /* conditional operator */
   final("@") => true.  /* meta annotation */
   final("!") => true.  /* pick up a value from a ref cell */
+  final("!!") => true.  /* cell value */
   final("•") => true.  /* function composition */
   final("#") => true.  /* Macro statement marker */
   final("$") => true.  /* Used for curried functions and types */
