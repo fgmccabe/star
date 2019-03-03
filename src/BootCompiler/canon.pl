@@ -40,7 +40,7 @@ isCanon(lambda(_,_,_)).
 isCanon(doTerm(_,_,_,_,_)).
 isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
-isCanon(ifthenDo(_,_,_,_,_,_)).
+isCanon(ifThenDo(_,_,_,_,_,_)).
 isCanon(whileDo(_,_,_,_,_)).
 isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_)).
@@ -66,7 +66,7 @@ isGoal(neg(_,_)) :- !.
 isGoal(search(_,_,_,_)) :- !.
 
 isAction(seqDo(_,_,_)).
-isAction(ifthenDo(_,_,_,_,_,_)).
+isAction(ifThenDo(_,_,_,_,_,_)).
 isAction(whileDo(_,_,_,_,_)).
 isAction(forDo(_,_,_,_,_)).
 isAction(tryCatch(_,_,_,_,_)).
@@ -136,16 +136,16 @@ locOfCanon(varRef(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
-locOfCanon(ifthenDo(Lc,_,_,_,_,_),Lc) :-!.
-locOfCanon(whileDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(ifThenDo(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(whileDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(tryCatchDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(assign(Lc,_,_),Lc) :-!.
+locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(bindDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(bindDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(throwDo(Lc,_,_),Lc) :-!.
+locOfCanon(throwDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
@@ -204,18 +204,16 @@ showCanonTerm(enm(_,Nm,_),_,O,Ox) :-
 showCanonTerm(cons(_,Nm,_),_,O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
-showCanonTerm(theta(_,Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
-  appStr(Path,O,O1),
-  appStr("{",O1,O2),
+showCanonTerm(theta(_,_Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
+  appStr("{",O,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
   showTypeDefs(Types,Dp2,O3,O4),
   showDefs(Defs,Dp2,O4,O5),
   showOthers(Others,Dp2,O5,O6),
   appStr("}",O6,Ox).
-showCanonTerm(record(_,Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
-  appStr(Path,O,O1),
-  appStr("{",O1,O2),
+showCanonTerm(record(_,_Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
+  appStr("{.",O,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
   showTypeDefs(Types,Dp2,O3,O4),
@@ -238,7 +236,9 @@ showCanonTerm(letExp(_,Env,Ex),Dp,O,Ox) :-
   appStr(" in ",O2,O3),
   showCanonTerm(Ex,Dp,O3,Ox).
 showCanonTerm(lambda(_,Rle,_),Dp,O,Ox) :-
-  showRule("",Dp,Rle,O,Ox).
+  appStr("(",O,O1),
+  showRule("",Dp,Rle,O1,O2),
+  appStr(")",O2,Ox).
 showCanonTerm(tple(_,Els),Dp,O,Ox) :-
   appStr("(",O,O1),
   showTerms(Els,Dp,O1,O2),
@@ -296,8 +296,7 @@ showCanonTerm(neg(_,R),Dp,O,Ox) :-
   showCanonTerm(R,Dp,O1,Ox).
 showCanonTerm(doTerm(_,Body,_,_,_),Dp,O,Ox) :-
   appStr("do ",O,O1),
-  Dp2 is Dp+2,
-  showCanonAction(Body,Dp2,O1,Ox).
+  showCanonAction(Body,Dp,O1,Ox).
 
 showTerms([],_,O,O).
 showTerms([T|More],Dp,O,Ox) :-
@@ -311,9 +310,15 @@ showMoreTerms([T|More],Dp,O,Ox) :-
   showMoreTerms(More,Dp,O2,Ox).
 
 showCanonAction(seqDo(Lc,A,B),Dp,O,Ox) :-
-  appStr("{",O,O1),
-  showCanonActions(seqDo(Lc,A,B),Dp,O1,O2),
-  appStr("}",O2,Ox).
+  appStr("{",O,O0),
+  Dp2 is Dp+2,
+  appNwln(Dp2,O0,O1),
+  showCanonActions(seqDo(Lc,A,B),Dp2,O1,O2),
+  appNwln(Dp,O2,O3),
+  appStr("}",O3,Ox).
+showCanonAction(delayDo(_,Actn,_,_),Dp,O,Ox) :-
+  appStr("delay ",O,O1),
+  showCanonAction(Actn,Dp,O1,Ox).
 showCanonAction(bindDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" <- ",O1,O2),
@@ -322,7 +327,11 @@ showCanonAction(varDo(_,Ptn,Exp),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" = ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(ifthenDo(_,Tst,Th,El,_,_),Dp,O,Ox) :-
+showCanonAction(assignDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
+  showCanonTerm(Ptn,Dp,O,O1),
+  appStr(" := ",O1,O2),
+  showCanonTerm(Exp,Dp,O2,Ox).
+showCanonAction(ifThenDo(_,Tst,Th,El,_,_),Dp,O,Ox) :-
   appStr("if ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Tst,Dp,O1,O2),
@@ -330,7 +339,7 @@ showCanonAction(ifthenDo(_,Tst,Th,El,_,_),Dp,O,Ox) :-
   showCanonAction(Th,Dp2,O3,O4),
   appStr(" else ",O4,O5),
   showCanonAction(El,Dp2,O5,Ox).
-showCanonAction(whileDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
+showCanonAction(whileDo(_,Tst,_,Bdy,_,_),Dp,O,Ox) :-
   appStr("while ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Tst,Dp,O1,O2),
@@ -360,13 +369,15 @@ showCanonAction(performDo(_,Exp,_,_),Dp,O,Ox) :-
   appStr("perform ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
+showCanonAction(simpleDo(_,Exp,_,_),Dp,O,Ox) :-
+  showCanonTerm(Exp,Dp,O,Ox).
 showCanonAction(noDo(_),_,O,Ox) :-
   appStr("nop",O,Ox).
 
 showCanonActions(seqDo(_,A,B),Dp,O,Ox) :-
   showCanonAction(A,Dp,O,O1),
   appStr("; ",O1,O2),
-  appNl(O2,O3),
+  appNwln(Dp,O2,O3),
   showCanonActions(B,Dp,O3,Ox).
 showCanonActions(A,Dp,O,Ox) :-
   showCanonAction(A,Dp,O,Ox).

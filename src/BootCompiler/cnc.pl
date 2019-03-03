@@ -1,4 +1,5 @@
-:- module(cnc,[genAbstraction/3,genSearch/3,genIterableGl/3]).
+:- module(cnc,[genAbstraction/3,genSearch/3,genIterableGl/3,
+	       genCondition/6]).
 
 :- use_module(wff).
 :- use_module(types).

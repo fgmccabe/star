@@ -543,16 +543,16 @@ collectDoRefs(T,All,Rf,Rfx) :-
 collectDoRefs(T,All,Rf,Rfx) :-
   isIfThenElse(T,_,Tt,H,E),!,
   collectTermRefs(Tt,All,Rf,Rf0),
-  collectTermRefs(H,All,Rf0,Rf1),
-  collectTermRefs(E,All,Rf1,Rfx).
+  collectDoRefs(H,All,Rf0,Rf1),
+  collectDoRefs(E,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isWhileDo(T,_,Tt,B),!,
   collectTermRefs(Tt,All,Rf,Rf0),
-  collectTermRefs(B,All,Rf0,Rfx).
+  collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isForDo(T,_,Tt,B),!,
   collectTermRefs(Tt,All,Rf,Rf0),
-  collectTermRefs(B,All,Rf0,Rfx).
+  collectDoRefs(B,All,Rf0,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
   isTryCatch(T,_,L,R),!,
   collectDoRefs(L,All,Rf,Rf1),

@@ -204,7 +204,7 @@ compTerm(Cond,Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
 compTerm(doAct(Lc,Act),OLc,Cont,Opts,D,Dx,_End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
   genLbl(D,End,D0),
-  compAction(Act,Cont,Opts,D0,Dx,End,C0,[iLbl(End)|Cx],Stk,Stkx).
+  compAction(Act,Lc,Cont,Opts,D0,Dx,End,C0,[iLbl(End)|Cx],Stk,Stkx).
   
 compTerm(T,Lc,_,_,Dx,Dx,_,C,C,Stk,Stk) :-
   reportError("cannot compile %s",[T],Lc),
@@ -229,15 +229,21 @@ compTerms([T|Ts],Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerm(T,Lc,Cont,Opts,D1,Dx,End,C0,Cx,Stk0,Stkx).
 
 /* Compile actions as sequences with a return*/
-compAction(perf(Lc,Exp),Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compTerm(Exp,Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx).
-compAction(seq(_,A,B),Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  compAction(A,compAction(B,Cont),Opts,D,Dx,End,C,Cx,Stk,Stkx).
-compAction(varD(Lc,idnt(Nm),E),Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+compAction(perf(Lc,Exp),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  compTerm(Exp,Lc,bothCont(dropCont,Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+compAction(seq(Lc,A,B),_,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  compAction(A,Lc,compAction(B,Cont),Lc,Opts,D,Dx,End,C,Cx,Stk,Stkx).
+compAction(varD(Lc,idnt(Nm),E),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
   genLbl(D,Lb,D0),
-  defineLclVar(Nm,Lb,End,D0,D1,Off,C,C0),
+  defineLclVar(Nm,Lb,End,D0,D1,Off,C0,C1),
   compTerm(E,Lc,stoCont(Off,Lb,bothCont(Cont,releaseCont(Nm))),
-	   Opts,D1,Dx,End,C0,Cx,Stk,Stkx).
+	   Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
+compAction(cnd(Lc,T,L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+  chLine(Opts,OLc,Lc,C,C0),
+  splitCont(Cont,OC),
+  compCond(T,Lc,compAction(L,Lc,OC,Opts),compAction(R,Lc,OC,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 
 contCont(Lbl,D,D,_,C,Cx,Stk,Stk) :-
   (nonvar(Cx),Cx=[iLbl(Lbl)|_]) ->
