@@ -56,6 +56,7 @@ star.option{
     _perform(some(X)) => X.
     _handle(some(X),_) => some(X).
     _handle(none,E) => E(()).
+    _return(X) => some(X).
   }
 
   public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {.

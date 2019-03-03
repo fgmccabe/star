@@ -24,11 +24,12 @@ star.either{
     hash(other(B)) => hash(B)*41.
   .}
 
-  public implementation all a,b ~~ execution[either[a]->>a] => {
+  public implementation all a ~~ execution[either[a]->>a] => {
     _perform(either(X)) => X.
     _handle(either(X),_) => either(X).
     _handle(other(E),F) => F(E).
     _raise(E) => other(E).
+    _return(E) => either(E).
   }
 
   public implementation all a ~~ monad[either[a]] => {
