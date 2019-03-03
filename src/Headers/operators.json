@@ -914,6 +914,14 @@
     "desc": "pick up a value from a ref cell"
   },
   {
+    "prefixOp": "!!",
+    "priorities": [
+      900,
+      899
+    ],
+    "desc": "cell value"
+  },
+  {
     "token": "$",
     "desc": "Used for curried functions and types"
   },
