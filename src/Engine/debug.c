@@ -113,7 +113,7 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
         }
       }
       case Tail:
-      case OTail:{
+      case OTail: {
         if (callBreakPointHit(C_LBL(arg))) {
           p->waitFor = stepInto;
           p->tracing = True;
@@ -308,6 +308,7 @@ static DebugWaitFor dbgCont(char *line, processPo p, insWord ins, void *cl) {
 static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->tracing = False;
+  resetDeflt("n");
 
   switch (ins) {
     case Ret: {
@@ -480,9 +481,13 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
 
   integer frameNo = 0;
 
-  outMsg(out, "Stack trace for p: 0x%x ", p);
-  stackSummary(out, p, sp);
-  heapSummary(out, h);
+  outMsg(out, "Stack trace for process %d ", p->processNo);
+#ifdef TRACEEXEC
+  if(debugDebugging) {
+    stackSummary(out, p, sp);
+    heapSummary(out, h);
+  }
+#endif
   outMsg(out, "\n");
 
   while (fp->fp < (framePo) p->stackLimit) {
@@ -803,26 +808,26 @@ DebugWaitFor lineDebug(processPo p, termPo line) {
   return lnDebug(p, dLine, line, showLn);
 }
 
-DebugWaitFor enterDebug(processPo p){
+DebugWaitFor enterDebug(processPo p) {
   insPo pc = p->pc;
   insWord ins = *pc++;
-  switch(ins){
+  switch (ins) {
     case Call:
-      return callDebug(p,getMtdLit(p->prog, collect32(pc)));
+      return callDebug(p, getMtdLit(p->prog, collect32(pc)));
     case Tail:
-      return tailDebug(p,getMtdLit(p->prog, collect32(pc)));
+      return tailDebug(p, getMtdLit(p->prog, collect32(pc)));
     case OCall: {
       int32 arity = collect32(pc);
       termPo callee = getLbl(p->sp[0], arity);
-      return ocallDebug(p,callee);
+      return ocallDebug(p, callee);
     }
-    case OTail:{
+    case OTail: {
       int32 arity = collect32(pc);
       termPo callee = getLbl(p->sp[0], arity);
-      return tailDebug(p,callee);
+      return tailDebug(p, callee);
     }
     case Ret:
-      return retDebug(p,p->sp[0]);
+      return retDebug(p, p->sp[0]);
     default:
       return stepOver;
   }
@@ -1037,8 +1042,12 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   showStackEntry(stdErr, 0, mtd, pc, fp, sp, True);
 
-  stackSummary(stdErr, p, sp);
-  heapSummary(stdErr, h);
+#ifdef TRACEEXEC
+  if (debugDebugging) {
+    stackSummary(stdErr, p, sp);
+    heapSummary(stdErr, h);
+  }
+#endif
   outMsg(stdErr, "\n%_");
 }
 
