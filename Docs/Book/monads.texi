@@ -1,10 +1,16 @@
+@node The `M' Word
+@chapter The `M' Word
+@cindex{monad}
 
+One of the most common themes in programming is that of _combining_
+things. Many things are combined; and large programs are often seen as
+compositions of smaller programs -- all the way down to individual
+atomic entities.
 
-# The 'M' word
-
-One of the most common themes in programming is that of _combining_ things. Many things are combined; and large programs are often seen as compositions of smaller programs -- all the way down to individual atomic entities.
-
-However, most programming languages also make many _distinctions_: modules vs functions, data vs code, input vs output, statement vs expressions, and so on. In many cases these distinctions work to obscure the fundamentals of the combinatorial nature of computing.
+However, most programming languages also make many _distinctions_:
+modules vs functions, data vs code, input vs output, statement vs
+expressions, and so on. In many cases these distinctions work to
+obscure the fundamentals of the combinatorial nature of computing.
 
 There is a mathematical discipline that focuses on the same theme: _category theory_. A mathematical category is a deceptively simple concept:
 
