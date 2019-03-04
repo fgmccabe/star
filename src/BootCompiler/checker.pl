@@ -570,6 +570,23 @@ typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   typeOfExp(El,Tp,Env,E2,Else,Path),
   mergeDict(E1,E2,Env,Ev).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isActionTerm(Term,Lc,Stmts),!,
+  findType("action",Lc,Env,ActionTp),
+  newTypeVar("E",ErTp),
+  newTypeVar("X",ElTp),
+  checkType(Term,tpExp(tpExp(ActionTp,ErTp),ElTp),Tp,Env),
+  checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isTaskTerm(Term,Lc,Stmts),!,
+  findType("task",Lc,Env,TaskTp), % action type is just the core
+  newTypeVar("E",ErTp),
+  newTypeVar("X",ElTp),
+  checkType(Term,tpExp(tpExp(TaskTp,ErTp),ElTp),Tp,Env),
+  checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isDoTerm(Term,Lc,Stmts),!,
+  checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Term,Lc,Els,Tp,Env,Ev,Exp,Path).
@@ -663,10 +680,6 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   newTypeVar("_El",ElTp),
   checkType(Term,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
-  
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-    isDoTerm(Term),!,
-    checkDo(Term,Env,Ev,Tp,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isValof(Term,Lc,Ex),!,
   unary(Lc,"_perform",Ex,VV),
@@ -796,12 +809,11 @@ genTpVars([_|I],[Tp|More]) :-
   newTypeVar("__",Tp),
   genTpVars(I,More).
 
-checkDo(Term,Env,Ev,Tp,EE,Path) :-
-  isDoTerm(Term,Lc,B),
+checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
   newTypeVar("_e",ElTp),
   (getContract("execution",Env,conDef(_,_,Con)) ->
 	  freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ErTp]),_)),
-	  checkType(Term,Tp,tpExp(StTp,ElTp),Env);
+	  checkType(B,Tp,tpExp(StTp,ElTp),Env);
    reportError("execution contract not defined",[],Lc),
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
@@ -845,7 +857,7 @@ checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp),Path) 
   checkAction(H,Et,E1,Op,StTp,ElTp,ErTp,Th,Path),
   checkAction(E,Env,E2,Op,StTp,ElTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,returnDo(Lc,tple(Lc,[]),StTp,ErTp),StTp,ElTp),Path) :-
+checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,StTp,ErTp),Path) :-
   isIfThen(Term,Lc,T,H),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),

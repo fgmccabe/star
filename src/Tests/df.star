@@ -18,10 +18,11 @@ test.df{
   CX(Is,Lm) => do{
     Cx := 0;
 
-    VV = _iterate(Is,(Ix,St) => valof do{
-           if Ix<Lm then
-             Cx:=Cx!+Ix
-           },noneFound)::action[(),()];
+    VV = _iterate(Is,(Ix,St) => valof action{
+            if Ix<Lm then
+              Cx:=Cx!+Ix;
+            return St
+          },continueWith(()))::action[(),()];
 
     return Cx!
   }

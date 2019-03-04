@@ -24,7 +24,7 @@ test.dl{
   show "ST(4,[3,2,1])=\(valof ST(4,[3,2,1]))".
 
   FF:(integer)=>action[(),integer].
-  FF(Lx)=> do{
+  FF(Lx)=> action{
     Cx := 1;
     Fx := 1;
     while Cx!=<Lx do {
@@ -40,7 +40,6 @@ test.dl{
 
   show "FR = \(valof FR)".
   show "FR = \(valof FR)".
-
 
   II(Lx) =>
     return () >>=

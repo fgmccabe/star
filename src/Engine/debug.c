@@ -931,7 +931,7 @@ void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp) {
       if (*var != Null && *var != voidEnum)
         outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
       else
-        outMsg(out, "  %s(%d) (unset)", vName, vx);
+        outMsg(out, "  %s(%d) (unset)\n", vName, vx);
     }
   }
 }
