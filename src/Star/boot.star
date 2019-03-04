@@ -75,17 +75,21 @@ star.boot{
   loadFromRepo(_,_) default => none.
 
   initialize:(pkg) => action[string,()].
-  initialize(pkg(P,_)) where
-    Pred .= P++"@init" =>
-    ( _definedLbl(Pred,0) ?
-      _return(_callLbl(Pred,0,[])) ||
-      _raise("No init for \(P)")).
+  initialize(pkg(P,_)) => do{
+    Pred = P++"@init";
+    if _definedLbl(Pred,0) then {
+      return _callLbl(Pred,0,[])
+    } else
+      throw "No init for \(P)"
+  }
 
   invokeMain:(string,list[string]) => action[string,()].
-  invokeMain(Top,Args) where
-    Pred .= Top++"#_main" =>
-    ( _definedLbl(Pred,1) ?
-      _return(_callLbl(Pred,1,[Args])) ||
-      err("No main program: \(Top)") ).
-
+  invokeMain(Top,Args) => do {
+    Pred = Top++"#_main";
+    if _definedLbl(Pred,1) then {
+      return _callLbl(Pred,1,[Args])
+    }
+    else
+      throw "No main program: \(Top)".
+  }
 }

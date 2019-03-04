@@ -1,6 +1,7 @@
 :- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,dispToken/2,subTokenize/3]).
 :- use_module(operators).
 :- use_module(errors).
+:- use_module(misc).
 
 /* tokenState(text,currLine,currOff,currPos,PkNm) */
 
@@ -57,9 +58,30 @@ dispToken(idQTok(Id,_),St) :- string_chars(Id,St).
 dispToken(idTok(Id,_),St) :- string_chars(Id,St).
 dispToken(integerTok(Ix,_),Str) :- number_string(Ix,St),string_chars(St,Str).
 dispToken(floatTok(Dx,_),Str) :- number_string(Dx,St),string_chars(St,Str).
-dispToken(stringTok(St,_),Str) :- string_chars(St,Str).
+dispToken(stringTok(St,_),Str) :-
+  appStr("\"",Chrs,C0),
+  dispString(St,C0,C1),
+  appStr("\"",C1,[]),
+  string_chars(Chrs,Str).
 dispToken(termTok(_),['.',' ']).
 dispToken(terminal,[]).
+
+dispString([],Cx,Cx).
+dispString([segment(Txt,_)|Ts],C,Cx) :-
+  appStr(Txt,C,C0),
+  dispString(Ts,C0,Cx).
+dispString([interpolate(Text,"",_)|Ts],C,Cx) :-
+  appStr("(",C,C0),
+  appStr(Text,C0,C1),
+  appStr(")",C1,C2),
+  dispString(Ts,C2,Cx).
+dispString([interpolate(Text,Fmt,_)|Ts],C,Cx) :-
+  appStr("(",C,C0),
+  appStr(Text,C0,C1),
+  appStr("):",C1,C2),
+  appStr(Fmt,C2,C3),
+  appStr(";",C3,C4),
+  dispString(Ts,C4,Cx).
 
 isSpace(' ').
 isSpace('\t').

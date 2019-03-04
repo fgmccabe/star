@@ -372,7 +372,10 @@ isDoTerm(A) :-
   isUnary(A,_,"do",_),!.
 
 isActionTerm(A,Lc,Stmts) :-
-  isBraceTerm(A,Lc,"action",[Stmts]).
+  isBrace(A,Lc,"action",[Stmts]).
+
+isTaskTerm(A,Lc,Stmts) :-
+  isBrace(A,Lc,"task",[Stmts]).
 
 isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.

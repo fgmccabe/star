@@ -78,6 +78,14 @@ genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp),ConOp,Cont,
 	  cond(Lc,Ts,Then,Else,tpExp(StTp,ElTp)),Path) :-
   genAction(Th,ConOp,Cont,Then,Path),
   genAction(El,ConOp,Cont,Else,Path).
+genAction(ifThenDo(Lc,Ts,Th,StTp,ElTp),ConOp,Cont,
+	  cond(Lc,Ts,Then,Cont,tpExp(StTp,ElTp)),Path) :-
+  (Cont = noDo(_) ->
+   reportError("%s may not be last action",
+	       [doTerm(Lc,ifThenDo(Lc,Ts,Th,StTp,ElTp),_,_,_)],Lc);
+   true),
+  genAction(Th,ConOp,Cont,Then,Path).
+
 
 /* Construct a local iterator function:
    let{
