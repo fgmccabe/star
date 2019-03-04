@@ -382,7 +382,6 @@ annotation. In this case we can infer that @code{S} is a @code{Person}
 explicitly give types to the @code{name} and @code{dob} fields because
 their type is constrained by the type declaration for @code{Person}.
 
-
 @node Reference Type
 @subsection Reference Type
 
@@ -451,6 +450,18 @@ then, even though @code{D} itself cannot be re-assigned to, the
 @example
 D.dept := "my department"
 @end example
+
+@node Accessing Reference Variables
+@subsubsection Accessing Reference Variables
+
+The value of a re-assignable variable is accessed using the @code{!}
+operator. For example:
+@example
+D.dept!
+@end example
+will retrieve the actual department @var{D} is assigned to. The
+expression @code{D.dept} actually means something different -- it
+denotes the @emph{container} for the department.
 
 @node Structural types
 @subsection Structural types
@@ -991,6 +1002,63 @@ forms of coercion. This is used quite extensively within @Star{}
 itself: for example, parsing JSON can be viewed as coercion from
 string values to @code{json} values. Thus the interface to parsers can
 be standard across all types and parsers.
+
+@node Actions
+@section Actions
+
+@Star{} is primarily intended to be a functional programming
+language. The preferred phrase is @emph{functional first}. However,
+even in functional programming, sequence can be important.
+
+The way that we handle sequential computation is a little
+idiosynctratic: actions are entities that are created separately from
+being performed. This is based on the standard @code{execution}
+contract@footnote{Which is actually a richer version of the
+@code{monad} contract.}
+
+The basic concept is that one uses expressions to build up an action
+entity and then evaluates that entity -- and often also extract a
+returned value from the computation.
+
+Actions can be constructed from primitive elements, but the normal
+method is to use the @code{do} notation. For example, this @code{do}
+expression can be used to compute factorial (somewhat laboriously):
+
+@example
+AA = do@{
+    Cx := 1;
+    Fx := 1;
+    while Cx!=<Lx do @{
+      Fx := Fx! * Cx!;
+      Cx := Cx! + 1
+    @};
+    return Fx!
+  @}
+@end example
+
+Not all @code{do} expressions will involve using re-assignable
+variables, but nearly all use of re-assignable variables is in the
+context of @code{do} expressions.
+
+It is important to note that a @code{do} expression does not directly
+compute its value: instead, it is an expression that @emph{denotes} a
+computation. So, @code{AA} above is not an @code{integer} but a
+computation that will produce an integer.
+
+To run a computation and to get its value we use the @code{valof} operator:
+
+@example
+FF = valof AA
+@end example
+
+There are actually several variants of computation expressions, all
+based on the same fundamental structure; two of the most important are
+the @code{action} expression and the @code{task} expression.
+
+@code{action} expressions are used to represent normal sequential
+computations and @code{task} expressions are used to represent
+concurrent computations; both of which we will explore later on in the
+book.
 
 @node There is more
 @section There is more
