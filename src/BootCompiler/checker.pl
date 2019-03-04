@@ -663,6 +663,7 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   newTypeVar("_El",ElTp),
   checkType(Term,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
+  
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
     isDoTerm(Term),!,
     checkDo(Term,Env,Ev,Tp,Exp,Path).
@@ -844,18 +845,23 @@ checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp),Path) 
   checkAction(H,Et,E1,Op,StTp,ElTp,ErTp,Th,Path),
   checkAction(E,Env,E2,Op,StTp,ElTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(Term,Env,Env,Op,StTp,_,ErTp,whileDo(Lc,Ts,Lcls,Bdy,StTp,ErTp),
+checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,returnDo(Lc,tple(Lc,[]),StTp,ErTp),StTp,ElTp),Path) :-
+  isIfThen(Term,Lc,T,H),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
+  checkAction(H,Et,_E1,Op,StTp,ElTp,ErTp,Th,Path).
+checkAction(Term,Env,Env,Op,StTp,_,ErTp,whileDo(Lc,Ts,Bdy,StTp,ErTp),
 	    Path) :-
   isWhileDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
   pushScope(Env,WEnv),
   typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
-  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path),
-  pullLocalVars(WEnv,Lcls).
+  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path).
+
 checkAction(Term,Env,Env,Op,StTp,_,ErTp,forDo(Lc,Ts,Lcls,Bdy,StTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
-  pushEnv(Env,FEnv),
+  pushScope(Env,FEnv),
   typeOfExp(T,LogicalTp,FEnv,Et,Ts,Path),
   checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path),
   pullLocalVars(FEnv,Lcls).

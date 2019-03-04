@@ -84,7 +84,7 @@ genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp),ConOp,Cont,
      loop() => do{ if C then { B; loop() } else  <Cont> 
    } in loop()
 */
-genAction(whileDo(Lc,Ts,_Lcls,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
+genAction(whileDo(Lc,Ts,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
   packageVarName(Path,"loop",LclName),
   thetaName(Path,"lp",ThPath),
   genstr("loop",Fn),
