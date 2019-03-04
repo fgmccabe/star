@@ -1,23 +1,32 @@
 :-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,
-    isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
-    isConstrained/3,reConstrain/3,
-    isContractStmt/6,isImplementationStmt/6,
-    isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,isTypeLambda/4,
-    isImport/3, isMacro/3,isPrivate/3,isPublic/3,
-    isDefault/3,isDefault/4,
-    isIntegrity/3,isShow/3,isOpen/3,
-    isConditional/5,conditional/5,isOfTerm/4,
-    isEquation/5,isDefn/4,isAssignment/4,eqn/5,isCurriedRule/5,ruleHead/4,
-    isWhere/4,isCoerce/4,isFieldAcc/4,isVarRef/3,isOptionPtn/4,isOptionMatch/4,optionMatch/4,
-    isConjunct/4,isDisjunct/4,isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,isAbstraction/4,isListAbstraction/4,
-    isParseTerm/3,isNTLookAhead/3,isDoTerm/3,isDoTerm/2,isDoTerm/1,isBind/4,isValof/3,isThrow/3,isReturn/3,isHandle/4,isTryCatch/4,
-    isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,isActionSeq/4,isActionSeq/3,
-    isLetDef/4,mkLetDef/4,
-    whereTerm/4,
-    packageName/2,pkgName/2,
-    isComma/4,deComma/2,reComma/2,
-    mergeCond/4,
-    findVars/3]).
+	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
+	      isConstrained/3,reConstrain/3,
+	      isContractStmt/6,isImplementationStmt/6,
+	      isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
+	      isTypeLambda/4,
+	      isImport/3, isMacro/3,isPrivate/3,isPublic/3,
+	      isDefault/3,isDefault/4,
+	      isIntegrity/3,isShow/3,isOpen/3,
+	      isConditional/5,conditional/5,isOfTerm/4,
+	      isEquation/5,isDefn/4,isAssignment/4,eqn/5,
+	      isCurriedRule/5,ruleHead/4,
+	      isWhere/4,isCoerce/4,
+	      isFieldAcc/4,isVarRef/3,
+	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
+	      isConjunct/4,isDisjunct/4,
+	      isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,
+	      isAbstraction/4,isListAbstraction/4,
+	      isParseTerm/3,isNTLookAhead/3,
+	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,
+	      isBind/4,isValof/3,isThrow/3,isReturn/3,isHandle/4,isTryCatch/4,
+	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
+	      isActionSeq/4,isActionSeq/3,
+	      isLetDef/4,mkLetDef/4,
+	      whereTerm/4,
+	      packageName/2,pkgName/2,
+	      isComma/4,deComma/2,reComma/2,
+	      mergeCond/4,
+	      findVars/3]).
 :- use_module(abstract).
 :- use_module(misc).
 
@@ -361,6 +370,9 @@ isDoTerm(A,Lc) :-
 
 isDoTerm(A) :-
   isUnary(A,_,"do",_),!.
+
+isActionTerm(A,Lc,Stmts) :-
+  isBraceTerm(A,Lc,"action",[Stmts]).
 
 isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.
