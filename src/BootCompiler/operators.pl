@@ -26,7 +26,7 @@
   operator("pure", [prefixOp(300, 299)]).
   operator("..,", [infixOp(999, 1000, 1000)]).
   operator("~>", [infixOp(1230, 1231, 1230)]).
-  operator("throw", [prefixOp(300, 299)]).
+  operator("throw", [prefixOp(930, 929)]).
   operator(".|.", [infixOp(720, 720, 719)]).
   operator("do", [prefixOp(100, 99), infixOp(1199, 1200, 1199)]).
   operator("import", [prefixOp(900, 899)]).
@@ -75,7 +75,7 @@
   operator("show", [prefixOp(1260, 1259)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
-  operator("return", [prefixOp(919, 918)]).
+  operator("return", [prefixOp(930, 929)]).
   operator("?", [infixOp(919, 920, 920)]).
   operator("@", [prefixOp(400, 399), infixOp(399, 400, 400)]).
   operator("in", [infixOp(899, 900, 899)]).

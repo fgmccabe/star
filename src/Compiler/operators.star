@@ -43,7 +43,7 @@ star.compiler.operators{
   oper("pure") => [prefixOp(300,299)].
   oper("..,") => [infixOp(999,1000,1000)].
   oper("~>") => [infixOp(1230,1231,1230)].
-  oper("throw") => [prefixOp(300,299)].
+  oper("throw") => [prefixOp(930,929)].
   oper(".|.") => [infixOp(720,720,719)].
   oper("do") => [prefixOp(100,99), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
@@ -92,7 +92,7 @@ star.compiler.operators{
   oper("show") => [prefixOp(1260,1259)].
   oper("++") => [infixOp(719,720,720)].
   oper(">") => [infixOp(899,900,899)].
-  oper("return") => [prefixOp(919,918)].
+  oper("return") => [prefixOp(930,929)].
   oper("?") => [infixOp(919,920,920)].
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
   oper("in") => [infixOp(899,900,899)].

@@ -22,7 +22,7 @@
 @tab 1231
 @item @code{throw}
 @tab non-associative prefix
-@tab 300
+@tab 930
 @item @code{.|.}
 @tab left associative infix
 @tab 720
@@ -187,7 +187,7 @@
 @tab 900
 @item @code{return}
 @tab non-associative prefix
-@tab 919
+@tab 930
 @item @code{?}
 @tab right associative infix
 @tab 920
