@@ -55,7 +55,6 @@ star.compiler.operators{
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
   oper(".+.") => [prefixOp(700,699)].
-  oper("raise") => [prefixOp(1250,1249)].
   oper("then") => [infixOp(1179,1180,1179)].
   oper("!") => [postfixOp(99,100)].
   oper("->>") => [infixOp(1199,1200,1199)].

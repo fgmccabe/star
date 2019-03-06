@@ -38,7 +38,6 @@
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
   operator(".+.", [prefixOp(700, 699)]).
-  operator("raise", [prefixOp(1250, 1249)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
