@@ -59,9 +59,6 @@
 @item @code{.+.}
 @tab non-associative prefix
 @tab 700
-@item @code{raise}
-@tab non-associative prefix
-@tab 1250
 @item @code{then}
 @tab non-associative infix
 @tab 1180

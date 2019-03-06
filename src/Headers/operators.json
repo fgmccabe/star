@@ -179,11 +179,6 @@
     "desc" : "evaluate an action expression"
   },
   {
-    "prefixOp": "throw",
-    "priorities" : [930, 929],
-    "desc" : "raise an exception"
-  },
-  {
     "infixOp": "->>",
     "priorities": [
       1199,
@@ -859,19 +854,13 @@
   },
   {
     "prefixOp": "return",
-    "priorities": [
-      930,
-      929
-    ],
+    "priorities": [930, 929],
     "desc": "wrap value in monad"
   },
   {
-    "prefixOp": "raise",
-    "priorities": [
-      1250,
-      1249
-    ],
-    "desc": "error return in monad"
+    "prefixOp": "throw",
+    "priorities" : [930, 929],
+    "desc" : "throw an exception"
   },
   {
     "prefixOp": "-",
