@@ -57,12 +57,20 @@ sm(allType(kVar(K1),T1),allType(kVar(K2),T2),Env) :-
 sm(allType(kFun(K1,Ar),T1),allType(kFun(K2,Ar),T2),Env) :-
   rewriteType(T2,Env,[(K2,kFun(K1,Ar))],[],TT2),
   sameType(T1,TT2,Env).
+sm(constrained(T1,C1),constrained(T2,C2),Env) :-
+  sameType(T1,T2,Env),
+  sameConstraint(C1,C2,Env).
 
 varBinding(T1,T2,_) :- isIdenticalVar(T1,T2),!.
 varBinding(T1,T2,Env) :-
   bind(T1,T2,Env).
 
 sameLength(L1,L2) :- length(L1,L), length(L2,L).
+
+sameConstraint(C1,C2,Env) :-
+  sameContract(C1,C2,Env),!.
+sameConstraint(C1,C2,Env) :-
+  sameImplements(C1,C2,Env).
 
 sameContract(conTract(Nm,A1,D1),conTract(Nm,A2,D2),Env) :-
   smpTps(A1,Env,[],_,AA1),
@@ -146,6 +154,9 @@ mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- is_member((Nm,STp),SoFar),!,
   mergeFields(R,Env,SoFar,Face).
 mergeFields([(Nm,Tp)|R],Env,SoFar,Face) :- mergeFields(R,Env,[(Nm,Tp)|SoFar],Face).
 
+sameImplements(implementsFace(T1,F1),implementsFace(T2,F2),Env) :-
+  sameType(T1,T2,Env),
+  sameType(F1,F2,Env).
 
 idenType(T1,T2,Env) :- deRef(T1,Tp1), deRef(T2,Tp2), id(Tp1,Tp2,Env), !.
 
