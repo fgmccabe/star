@@ -105,6 +105,7 @@ star.iterable{
 
     iterateOverList(_,Ix,Mx,_,St) where Ix>=Mx => St.
     iterateOverList(_,_,_,_,noMore(X)) => noMore(X).
+    iterateOverList(_,_,_,_,abortIter(E)) => abortIter(E).
     iterateOverList(Lst,Ix,Mx,Fn,St) where El^=Lst[Ix] => iterateOverList(Lst,Ix+1,Mx,Fn,Fn(El,St)).
   }
 
