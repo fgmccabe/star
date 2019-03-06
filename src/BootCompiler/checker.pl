@@ -266,6 +266,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
   packageVarName(Path,N,LclName),
   collectPrograms(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
+%  reportMsg("type of %s:%s",[N,ProgramType]).
 
 processStmts([],_,Defs,Defs,Dflts,Dflts,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,Env,Path) :-
@@ -818,9 +819,7 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
   checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-  dispCanonTerm(doTerm(Lc,Body,_,_,_)),
-  genAction(Body,Op,StTp,ErTp,EE,Path),
-  dispCanonTerm(EE).
+  genAction(Body,Op,StTp,ErTp,EE,Path).
 
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
@@ -1062,7 +1061,7 @@ checkType(_,Actual,Expected,Env) :-
   sameType(Actual,Expected,Env).
 checkType(Ast,S,T,_) :-
   locOfAst(Ast,Lc),
-  reportError("%s:%s not consistent with expected type %s",[Ast,S,T],Lc).
+  reportError("%s:%s not consistent with expected type\n%s",[Ast,S,T],Lc).
 
 computeExport(Defs,Fields,Public,Exports,Types,Cons,Impls) :-
   compExport(Defs,Fields,Public,Exports,Types,Cons,Impls,misc:is_member).
