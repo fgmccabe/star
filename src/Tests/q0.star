@@ -2,7 +2,7 @@ test.q0{
   import star.
   import star.iterable.
 
-  -- Test simple query rules
+  -- Test simple query expressions
 
   parent:list[(string,string)].
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
