@@ -2,6 +2,8 @@ star.cons{
   import star.core.
   import star.arith.
   import star.collection.
+  import star.iterable.
+  import star.monad.
   import star.lists.
 
   public all t ~~ cons[t] ::= nil | cons(t,cons[t]).
@@ -79,6 +81,15 @@ star.cons{
   public implementation all e ~~ reduce[cons[e]->>e] => {
     reducer(F) => (L,U) => foldRight(F,U,L).
     reducel(F) => (U,L) => foldLeft(F,U,L).
+  }
+
+  public implementation all e ~~ iterable[cons[e]->>e] => {
+    _iterate(Lst,Fn,Init) => iterateOverCons(Lst,Fn,Init).
+
+    iterateOverCons(nil,_,St) => St.
+    iterateOverCons(_,_,abortIter(E)) => abortIter(E).
+    iterateOverCons(_,_,noMore(E)) => noMore(E).
+    iterateOverCons(cons(H,T),Fn,St) => iterateOverCons(T,Fn,Fn(H,St)).
   }
 
   public implementation all e ~~ display[e] |: display[cons[e]] => {.
