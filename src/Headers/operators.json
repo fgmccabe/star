@@ -180,7 +180,7 @@
   },
   {
     "prefixOp": "throw",
-    "priorities" : [300, 299],
+    "priorities" : [930, 929],
     "desc" : "raise an exception"
   },
   {
@@ -860,8 +860,8 @@
   {
     "prefixOp": "return",
     "priorities": [
-      919,
-      918
+      930,
+      929
     ],
     "desc": "wrap value in monad"
   },
