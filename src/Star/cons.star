@@ -83,6 +83,12 @@ star.cons{
     reducel(F) => (U,L) => foldLeft(F,U,L).
   }
 
+  -- Implement iteration of executions over a cons list
+  public implementation all t ~~ iter[cons[t]->>t] => {
+    _iter(nil,St,_) => St.
+    _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
+  }
+
   public implementation all e ~~ iterable[cons[e]->>e] => {
     _iterate(Lst,Fn,Init) => iterateOverCons(Lst,Fn,Init).
 
@@ -90,6 +96,12 @@ star.cons{
     iterateOverCons(_,_,abortIter(E)) => abortIter(E).
     iterateOverCons(_,_,noMore(E)) => noMore(E).
     iterateOverCons(cons(H,T),Fn,St) => iterateOverCons(T,Fn,Fn(H,St)).
+  }
+
+  public implementation all e ~~ generator[cons[e]->>e] => {
+    _generate(E,continueWith(L)) => continueWith(cons(E,L)).
+    _generate(E,noneFound) => continueWith(cons(E,nil)).
+    _generate(_,St) default => St.
   }
 
   public implementation all e ~~ display[e] |: display[cons[e]] => {.

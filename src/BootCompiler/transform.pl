@@ -499,10 +499,9 @@ liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
   % dispTerm(Exp).
 liftExp(lambda(Lc,Rle,Tp),Rslt,Q,Q,Map,Opts,Ex,Exx) :-!,
-  liftLambda(lambda(Lc,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx),
-  (is_member(showTrCode,Opts) -> dispTerm(Rslt);true).
-liftExp(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
-  liftAbstraction(abstraction(Lc,Bnd,Cond,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
+  liftLambda(lambda(Lc,Rle,Tp),Rslt,Q,Map,Opts,Ex,Exx).
+liftExp(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx) :- !,
+  liftAbstraction(abstraction(Lc,Bnd,Cond,Zed,Gen,Tp),Rslt,Q,Qx,Map,Opts,Ex,Exx).
 liftExp(doTerm(Lc,Action),doAct(Lc,Act),Q,Q,Map,Opts,Ex,Exx) :-
   liftAction(Action,Act,Q,_,Map,Opts,Ex,Exx).
 liftExp(XX,void,Q,Q,_,_,Ex,Ex) :-
@@ -575,12 +574,11 @@ implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,E
 
 liftLambda(lambda(Lc,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Eqn,Tp),Q,Map,LclName,Closure,LMap),
-%  (is_member(showTrCode,Opts) -> dispMap("Lambda map: ",LMap);true),
   transformEqn(Eqn,LMap,LMap,Opts,LclName,Rls,[],Ex,Exx),
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
-  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun),
-  (is_member(showTrCode,Opts) -> dispRuleSet(LamFun);true).
+  functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
+%  (is_member(showTrCode,Opts) -> dispRuleSet(LamFun);true).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -590,13 +588,13 @@ lambdaLbl(Map,Variant,Nm) :-
 liftAbstraction(Ab,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
   genAbstraction(Ab,Path,AbExp),
-  (is_member(showSetCode,Opts) -> dispCanonTerm(AbExp);true),
+%  (is_member(showSetCode,Opts) -> dispCanonTerm(AbExp);true),
   liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
 liftSearch(Serch,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
   genSearch(Serch,Path,AbGl),
-  (is_member(showSetCode,Opts) -> dispCanonTerm(AbGl);true),
+%  (is_member(showSetCode,Opts) -> dispCanonTerm(AbGl);true),
   liftExp(AbGl,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
 mkClosure(Lam,FreeVars,Closure) :-
@@ -618,7 +616,7 @@ liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   isIterableGoal(Cond),!,
   layerName(Map,Path),
   genIterableGl(Cond,Path,Gl),
-  (is_member(showSetCode,Opts) -> dispCanonTerm(Gl);true),
+%  (is_member(showSetCode,Opts) -> dispCanonTerm(Gl);true),
   liftExp(Gl,Exp,Q,Qx,Map,Opts,Ex,Exx).
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).
@@ -653,8 +651,8 @@ liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
 %  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),I,Ex,Ex1),
-  transformOthers(Path,ThMap,Opts,Others,I,ThCond,Ex1,Exx),
-  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
+  transformOthers(Path,ThMap,Opts,Others,I,ThCond,Ex1,Exx).
+%  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=record(Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),
   genVar("_ThR",ThVr),

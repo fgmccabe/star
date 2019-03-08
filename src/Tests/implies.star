@@ -1,6 +1,5 @@
 test.implies{
   import star.
-  import star.iterable.
 
   pars : list[(string,string)].
   pars = [("a","b"),("c","b"),("b","d"),("e","d"),("f","e")].

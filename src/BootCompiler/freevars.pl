@@ -34,11 +34,12 @@ freeVars(search(_,L,R,I),Ex,Q,F,FV) :-
   freeVars(L,Ex1,Q,F,F0),
   freeVars(R,Ex1,Q,F0,F1),
   freeVars(I,Ex1,Q,F1,FV).
-freeVars(abstraction(_,B,C,G,_),Ex,Q,F,FV) :-
+freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
   ptnGoalVars(C,Ex,Ex1),
   freeVars(B,Ex1,Q,F,F0),
   freeVars(C,Ex1,Q,F0,F1),
-  freeVars(G,Ex1,Q,F1,FV).
+  freevars(Z,Ex1,Q,F1,F2),
+  freeVars(G,Ex1,Q,F2,FV).
 freeVars(theta(_,_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
   freeVarsInDefs(Defs,Ex1,Q,F,F0),

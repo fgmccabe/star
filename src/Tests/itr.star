@@ -1,0 +1,4 @@
+test.itr{
+  import star.
+
+}

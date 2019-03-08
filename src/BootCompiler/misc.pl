@@ -9,7 +9,7 @@
         localName/4,splitLocalName/4,
         listShow/5,
         stringHash/3,hashSixtyFour/2,stringEndsWith/2,
-        marker/2,packageVarName/3,thetaName/3,packageTypeName/3,
+        marker/2,packageVarName/3,thetaName/3,packageTypeName/3,genNewName/3,
         same/2,
         interleave/3,concatStrings/2,
         sort/3,sortedMerge/4,
@@ -245,6 +245,11 @@ packageVarName(Pkg,Nm,LclName) :-
 thetaName(Path,Nm,LclName) :-
   marker(value,Mrk),
   localName(Path,Mrk,Nm,LclName).
+
+genNewName(Path,Prfx,Name) :-
+  marker(value,Mrk),
+  genstr(Prfx,Pre),
+  localName(Path,Mrk,Pre,Name).
 
 packageTypeName(Pkg,Nm,LclName) :-
   marker(type,Mrk),

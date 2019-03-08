@@ -1,4 +1,4 @@
-:- module(do,[genAction/6]).
+:- module(do,[genAction/6,genPerform/7,genReturn/6]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -94,9 +94,9 @@ genAction(ifThenDo(Lc,Ts,Th,StTp,ElTp),ConOp,Cont,
 */
 genAction(whileDo(Lc,Ts,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
   packageVarName(Path,"loop",LclName),
-  thetaName(Path,"lp",ThPath),
+  genNewName(Path,"lp",ThPath),
   genstr("loop",Fn),
-  genstr("Γ",ThNm),
+  genNewName(Path,"Γ",ThNm),
   UnitTp = tupleType([]),
   LpTp = tpExp(StTp,UnitTp),
   FnTp = funType(tupleType([]),LpTp),
@@ -113,13 +113,45 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
 	      theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),
 	       apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
 
+
+/*
+   for C do {A}
+  becomes:
+  
+  <iterator>( do{return ()}, (Lcls,St) => do {A; return St})
+*/
+genAction(forDo(Lc,Tst,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
+  Unit = tple(Lc,[]),
+  genReturn(Lc,Unit,StTp,ErTp,ConOp,Initial),
+  genAction(Body,ConOp,noDo(Lc),IterBody,Path),
+  genCondition(Tst,Path,
+	       do:genRtn(Lc,ConOp,StTp,ErTp),
+	       do:genForBody(Lc,StTp,ErTp,ConOp,IterBody),
+	       do:genPassSt(Lc,StTp,ErTp,ConOp),
+	       Initial,ForLoop),
+  combineActs(Lc,ForLoop,Cont,ConOp,StTp,ErTp,Exp).
+
+genRtn(Lc,ExOp,ExStTp,ErTp,St,Reslt) :-
+  genReturn(Lc,St,ExStTp,ErTp,ExOp,Reslt).
+
 genReturn(Lc,A,StTp,ErTp,ConOp,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
   typeOfCanon(A,ElTp),!,
   Tp = tpExp(StTp,ElTp),		% monadic type of returned value
   Gen = over(Lc,mtd(Lc,"_return",funType(tupleType([ElTp]),Tp)),
-    true,[conTract(ConOp,[StTp],[ErTp])]).
+	     true,[conTract(ConOp,[StTp],[ErTp])]).
 
-%invokeCont(Cont,St,v(Lc,"_",voidType)).
+genPerform(Lc,A,Tp,StTp,ErTp,ConOp,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-
+  typeOfCanon(A,MdTp),!,
+  Perf = over(Lc,mtd(Lc,"_perform",funType(tupleType([MdTp]),Tp)),
+	      true,[conTract(ConOp,[StTp],[ErTp])]).
+
+genPassSt(Lc,StTp,ErTp,ConOp,St,Exp) :-
+  genReturn(Lc,St,StTp,ErTp,ConOp,Exp).
+
+genForBody(Lc,StTp,ErTp,ConOp,IterBody,St,Exp) :-
+  genReturn(Lc,St,StTp,ErTp,ConOp,End),
+  combineActs(Lc,IterBody,End,ConOp,StTp,ErTp,Exp),
+  reportMsg("for body-> %s",[Exp]).
 
 combineActs(_,A1,noDo(_),_ConOp,_,_,A1) :-!.
 combineActs(Lc,A1,Cont,ConOp,StTp,ErTp,Exp) :-
