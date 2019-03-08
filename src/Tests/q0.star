@@ -1,6 +1,5 @@
 test.q0{
   import star.
-  import star.iterable.
 
   -- Test simple query expressions
 

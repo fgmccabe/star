@@ -1,19 +1,35 @@
 test.di{
   import star.
-
-  public contract all s,t,m/1,e ~~ iter[s,m->>t,e] ::= {
-    _iter:all x ~~ (s,m[x],(t,x)=>m[x]) => m[x]
-  }
-
-  public implementation all t,e ~~ iter[cons[t],action[e]->>t,e] => {
-    _iter(nil,St,_) => St.
-    _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
-  }
+  import test.itr.
 
   Is = cons(1,cons(2,cons(3,cons(4,nil)))).
 
-  Px : action[(),integer].
-  Px = _iter(Is,action{return 1},(Ix,Cx)=>action{return Ix*Cx}).
+  -- Px : action[(),integer].
+  -- Px = _iter(Is,do{return 1},(Ix,Cx)=>do{return Ix*Cx}).
+  --
+  -- show "Px=\(valof Px)".
+  --
+  -- Rx : action[(),cons[integer]].
+  -- Rx = _iter(Is,do { return _nil}, (Ix,Cx)=>do {return _cons(Ix,Cx)}).
+  --
+  -- show "Rx=\(valof Rx)".
 
-  show "Px=\(valof Px)".
+  Fc(I) => action{
+    Fx := 1;
+    for E in I do {
+      Fx := Fx!*E
+    };
+    return Fx!
+  }
+
+  show "Fc(Is) = \(valof Fc(Is))".
+
+  -- FX:(cons[integer]) => action[(),integer].
+  -- FX(I) => action{
+  --   Fx := 1;
+  --   _iter(I,do {return ()}, (Ix,_) => do { Fx:=Fx!*Ix; return ()});
+  --   return Fx!
+  -- }
+  --
+  -- show "FX(Is) = \(valof FX(Is))".
 }

@@ -1,5 +1,5 @@
 :- module(cnc,[genAbstraction/3,genSearch/3,genIterableGl/3,
-	       genCondition/6]).
+	       genCondition/7]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -9,6 +9,7 @@
 :- use_module(terms).
 :- use_module(freevars).
 :- use_module(misc).
+:- use_module(do).
 
 analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
   analysePtn(Ptn,Df,Df1,Rq,Rq1,Cand),
@@ -18,15 +19,11 @@ analyseCondition(search(_,Ptn,Src,_),Df,Dfx,Rq,Rqx,Cand) :-
  * { Exp | Cond }
  *
  * becomes
- * generator((X)=>Exp,nil)
+ * generator(Exp,Zed)
  * where generator is a function that implements the Cond
  */
-genAbstraction(abstraction(Lc,El,Cond,Gen,Tp),Path,Exp) :-
-  IterTp = tpExp(tpFun("star.iterable*iterState",1),Tp),
-  InitState = enm(Lc,"noneFound",IterTp),
-  genCondition(Cond,Path,cnc:genEl(Lc,El,Gen,IterTp),cnc:passSt(Lc),InitState,Seq),
-  typeOfCanon(El,ElTp),
-  Exp = apply(Lc,v(Lc,"unwrapIter",funType(tupleType([ElTp,IterTp]),IterTp)),tple(Lc,[Seq]),Tp).
+genAbstraction(abstraction(Lc,Exp,Cond,Zed,Gen,Tp),Path,Abstr) :-
+  genCondition(Cond,Path,cnc:genEl(Lc,Exp,Gen),cnc:genPassSt(Lc),Zed,Abstr).
 
 /*
  * Ptn in Src -- as a standalone condition
@@ -45,8 +42,7 @@ genSearch(search(Lc,Ptn,Src,Iterator),Path,Gl) :-
   StTp = tpExp(tpFun("star.iterable*iterState",1),PtnTp),
   genNme(Lc,StTp,"_st",St),
   genNme(Lc,PtnTp,"_",Anon),
-  genstr("Γ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  genNewName(Path,"Γ",ThPath),
   genstr("sF",Fn),
   packageVarName(ThPath,Fn,LclName),
   Initial = enm(Lc,"noneFound",StTp),
@@ -57,7 +53,7 @@ genSearch(search(Lc,Ptn,Src,Iterator),Path,Gl) :-
         apply(Lc,v(Lc,"noMore",CnsTp),tple(Lc,[Pttrn]),StTp)),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
   ]),
-  Let = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+  Let = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
   Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
   Gl = match(Lc,apply(Lc,v(Lc,"noMore",CnsTp),tple(Lc,[Pttrn]),StTp),Exp).
 
@@ -89,63 +85,68 @@ genIterableGl(Cond,Path,Gl) :-
  * becomes
  * let{
  *  sF(Ptn,St) => AddEl(X,St).
- *  sF(_,St) default => St.
- * } in _iterate(Src,sF,Initial)
+ *  sF(_,St) default => do { return St}.
+ * } in _iter(Src,Initial,sF)
  *
  * where AddEl, InitState are parameters to the conversion
  */
-genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
+genCondition(search(Lc,Ptn,Src,Iterator),Path,_Lift,Succ,Fail,Initial,Exp) :-
   genstr("f",Fn),
   typeOfCanon(Ptn,PtnTp),
   genNme(Lc,PtnTp,"_",Anon),
+  typeOfCanon(Initial,MdTp),
+  typeOfCanon(Iterator,ItrTp),
   typeOfCanon(Src,SrcTp),
-  StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
-  genNme(Lc,StTp,"_st",St),
-  genstr("Γ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  newTypeVar("_strm",StrmTp),
+  FnTp = funType(tupleType([PtnTp,StrmTp]),MdTp),
+  % entangle type of iterator with the Initial
+  sameType(funType(tupleType([SrcTp,MdTp,FnTp]),MdTp),ItrTp,[]),
+  genNme(Lc,StrmTp,"_st",St),
+  genNewName(Path,"Γ",ThPath),
   packageVarName(ThPath,Fn,LclName),
   call(Succ,St,AddToFront),
   splitPtn(Ptn,Pttrn,PtnCond),
-  FnTp = funType(tupleType([PtnTp,StTp]),StTp),
+  call(Fail,St,Dflt),
   FF=funDef(Lc,Fn,LclName,FnTp,[],[
     equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
-    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
+    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),Dflt)
   ]),
-  Let = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
-  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp).
-  /*
-   * Key->Ptn in Src
-   * becomes
-   * let{
-   *  sF(Key,Ptn,St) => AddEl(X,St).
-   *  sF(_,_,St) default => St.
-   * } in ixiterate(Src,sF,Initial)
-   *
-   * where AddEl, InitState are parameters to the conversion
-   */
-  genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
-    genstr("f",Fn),
-    typeOfCanon(Ptn,PtnTp),
-    genNme(Lc,PtnTp,"_",Anon),
-    genNme(Lc,StTp,"_st",St),
-    typeOfCanon(Key,KyTp),
-    genNme(Lc,KyTp,"_k",KAnon),
-    genstr("Γ",ThNm),
-    thetaName(Path,ThNm,ThPath),
-    packageVarName(ThPath,Fn,LclName),
-    call(Succ,St,AddToFront),
-    splitPtn(Ptn,Pttrn,PtnCond),
-    splitPtn(Key,KPtrn,KeyCond),
-    mergeGl(KeyCond,PtnCond,Lc,IxCond),
-    FF=funDef(Lc,Fn,LclName,FnTp,[],[
-      equation(Lc,tple(Lc,[KPtrn,Pttrn,St]),IxCond,AddToFront),
-      equation(Lc,tple(Lc,[KAnon,Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
-    ]),
-    Let = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
-    Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
-    typeOfCanon(Src,SrcTp),
-    StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
-    FnTp = funType(tupleType([KyTp,PtnTp,StTp]),StTp).
+  Let = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+  Exp = apply(Lc,Iterator,tple(Lc,[Src,Initial,Let]),MdTp).
+
+/*
+  * Key->Ptn in Src
+  * becomes
+  * let{
+  *  sF(Key,Ptn,St) => AddEl(X,St).
+  *  sF(_,_,St) default => St.
+  * } in ixiterate(Src,sF,Initial)
+  *
+  * where AddEl, InitState are parameters to the conversion
+*/
+genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,_Lift,Succ,_Fail,Initial,Exp) :-
+  genstr("f",Fn),
+  typeOfCanon(Ptn,PtnTp),
+  genNme(Lc,PtnTp,"_",Anon),
+  genNme(Lc,StTp,"_st",St),
+  typeOfCanon(Key,KyTp),
+  genNme(Lc,KyTp,"_k",KAnon),
+  genNewName(Path,"Γ",ThPath),
+  packageVarName(ThPath,Fn,LclName),
+  call(Succ,St,AddToFront),
+  splitPtn(Ptn,Pttrn,PtnCond),
+  splitPtn(Key,KPtrn,KeyCond),
+  mergeGl(KeyCond,PtnCond,Lc,IxCond),
+  FF=funDef(Lc,Fn,LclName,FnTp,[],
+	    [
+	     equation(Lc,tple(Lc,[KPtrn,Pttrn,St]),IxCond,AddToFront),
+	     equation(Lc,tple(Lc,[KAnon,Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
+	    ]),
+  Let = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
+  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
+  typeOfCanon(Src,SrcTp),
+  StTp = tpExp(tpFun("star.iterable*iterState",1),SrcTp),
+  FnTp = funType(tupleType([KyTp,PtnTp,StTp]),StTp).
 
 /*
  * Ptn .= Expr
@@ -155,13 +156,12 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Succ,_Fail,Initial,Exp) :-
  *  sF(_,St) default => Fail(St).
  * } in sF(Expr,Initial)
  */
-genCondition(match(Lc,Ptn,Exp),Path,Succ,Fail,Initial,Exp) :-
+genCondition(match(Lc,Ptn,Exp),Path,_Lift,Succ,Fail,Initial,Exp) :-
   splitPtn(Ptn,Pttrn,PtnCond),
   genstr("sf",Fn),
   genNme(Lc,PtnTp,"_",Anon),
   genNme(Lc,StTp,"_st",St),
-  genstr("Γ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  genNewName(Path,"Γ",ThPath),
   packageVarName(ThPath,Fn,LclName),
   call(Succ,St,AddToSucc),
   call(Fail,St,AddToFail),
@@ -170,26 +170,25 @@ genCondition(match(Lc,Ptn,Exp),Path,Succ,Fail,Initial,Exp) :-
     equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToSucc),
     equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),AddToFail)
   ]),
-  Exp = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Exp,Initial]),StTp)),
+  Exp = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Exp,Initial]),StTp)),
   typeOfCanon(Ptn,PtnTp),
   FnTp = funType(tupleType([PtnTp,StTp]),StTp).
 
-genCondition(conj(_Lc,A,B),Path,Succ,Fail,Initial,Exp) :-
-  genCondition(A,Path,cnc:genCondition(B,Path,Succ,Fail),Fail,Initial,Exp).
-genCondition(disj(_,A,B),Path,Succ,Fail,Initial,Exp) :-
-  genCondition(A,Path,Succ,Fail,Initial,E1),
-  genCondition(B,Path,Succ,Fail,E1,Exp).
-genCondition(neg(_,A),Path,Succ,Fail,Initial,Exp) :-
-  genCondition(A,Path,Fail,Succ,Initial,Exp).
-genCondition(implies(Lc,G,T),Path,Succ,Fail,Initial,Exp) :-
-  genCondition(neg(Lc,conj(Lc,G,neg(Lc,T))),Path,Succ,Fail,Initial,Exp).
+genCondition(conj(_Lc,A,B),Path,Lift,Succ,Fail,Initial,Exp) :-
+  genCondition(A,Path,Lift,cnc:liftCall(cnc:genCondition(B,Path,Lift,Succ,Fail),Lift),Fail,Initial,Exp).
+genCondition(disj(_,A,B),Path,Lift,Succ,Fail,Initial,Exp) :-
+  genCondition(A,Path,Lift,Succ,Fail,Initial,E1),
+  genCondition(B,Path,Lift,Succ,Fail,E1,Exp).
+genCondition(neg(_,A),Path,Lift,Succ,Fail,Initial,Exp) :-
+  genCondition(A,Path,Lift,Fail,Succ,Initial,Exp).
+genCondition(implies(Lc,G,T),Path,Lift,Succ,Fail,Initial,Exp) :-
+  genCondition(neg(Lc,conj(Lc,G,neg(Lc,T))),Path,Lift,Succ,Fail,Initial,Exp).
 % Other form of condition is treated similarly to a match
-genCondition(Other,Path,Succ,Fail,Initial,Exp) :-
+genCondition(Other,Path,_Lift,Succ,Fail,Initial,Exp) :-
   genstr("sf",Fn),
   locOfCanon(Other,Lc),
   genNme(Lc,StTp,"_st",St),
-  genstr("Γ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  genNewName(Path,"Γ",ThPath),
   packageVarName(ThPath,Fn,LclName),
   call(Succ,St,AddToSucc),
   call(Fail,St,AddToFail),
@@ -197,8 +196,13 @@ genCondition(Other,Path,Succ,Fail,Initial,Exp) :-
     equation(Lc,tple(Lc,[enm(Lc,"true",type("star.core*boolean")),St]),enm(Lc,"true",type("star.core*boolean")),AddToSucc),
     equation(Lc,tple(Lc,[enm(Lc,"false",type("star.core*boolean")),St]),enm(Lc,"true",type("star.core*boolean")),AddToFail)
   ]),
-  Exp = letExp(Lc,theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Other,Initial]),StTp)),
+  Exp = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[Other,Initial]),StTp)),
   FnTp = funType(tupleType([type("star.core*boolean"),StTp]),StTp).
+
+
+liftCall(Sub,Lift,Initial,Reslt) :-
+  call(Lift,Initial,Int),
+  call(Sub,Int,Reslt).
 
 genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
   genstr(Pr,Nm).

@@ -42,9 +42,9 @@ star.core {
 
   -- The sequence contract
   public contract all S,E ~~ sequence[S->>E] ::= {
-  _cons:(E,S) => S.
-  _apnd:(S,E) => S.
-  _nil:S.
+    _cons:(E,S) => S.
+    _apnd:(S,E) => S.
+    _nil:S.
   }
 
   -- Structured string.

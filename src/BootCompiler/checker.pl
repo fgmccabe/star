@@ -381,15 +381,13 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
 
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
-  genstr("Γ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   thetaEnv(ThPath,nullRepo,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,_Imports,Others),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
-  genstr("Γ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
   recordEnv(ThPath,nullRepo,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,_Imports,Others),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
@@ -594,14 +592,12 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
   \+isAbstraction(Term,_,_,_),
-  genstr("θ",ThNm),
-  thetaName(Path,ThNm,ThPath),
+  genNewName(Path,"θ",ThPath),
   checkThetaBody(Tp,Lc,Els,Env,_,Defs,Others,Types,Face,ThPath),
   checkType(Term,Face,Tp,Env).
 typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
   isQBraceTuple(Term,Lc,Els),
-  genstr("ρ",RcNm),
-  thetaName(Path,RcNm,ThPath),
+  genNewName(Path,"ρ",ThPath),
   checkRecordBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath),
   compExport(Defs,[],[],Fields,Tps,_,_,misc:bin_nop),
   checkType(Term,faceType(Fields,Tps),Tp,Env).
@@ -649,27 +645,33 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
 typeOfExp(Term,Tp,Env,Ev,ixsearch(Lc,Key,Ptn,Src,Iterator),Path) :-
-  isIxSearch(Term,Lc,K,L,R),!,
+  isIxSearch(Term,Lc,K,V,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Term,LogicalTp,Tp,Env),
-  newTypeVar("_St",StTp),
+  newTypeFun("_m",1,MTp),
+  newTypeVar("_x",StTp),
   newTypeVar("_Sr",SrTp),
-  newTypeVar("_El",ElTp),
   newTypeVar("_Ky",KyTp),
-  KyFnTp = funType(tupleType([SrTp,funType(tupleType([KyTp,ElTp,StTp]),StTp),StTp]),StTp),
-  typeOfKnown(name(Lc,"_ixiterate"),KyFnTp,Env,E0,Iterator,Path),
-  typeOfPtn(L,ElTp,E0,E1,Ptn,Path),
+  newTypeVar("_Vl",VlTp),
+  MdTp = tpExp(MTp,StTp),
+  ActFnTp = funType(tupleType([KyTp,VlTp,StTp]),MdTp),
+  ItrFnTp = funType(tupleType([SrTp,MdTp,ActFnTp]),MdTp),
+  typeOfKnown(name(Lc,"_ix_iter"),ItrFnTp,Env,E0,Iterator,Path),
+  typeOfPtn(V,VlTp,E0,E1,Ptn,Path),
   typeOfPtn(K,KyTp,E1,E2,Key,Path),
   typeOfExp(R,SrTp,E2,Ev,Src,Path).
 typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   isSearch(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Term,LogicalTp,Tp,Env),
-  newTypeVar("_St",StTp),
+  newTypeFun("_m",1,MTp),
+  newTypeVar("_x",StTp),
   newTypeVar("_Sr",SrTp),
   newTypeVar("_El",ElTp),
-  ElFnTp = funType(tupleType([SrTp,funType(tupleType([ElTp,StTp]),StTp),StTp]),StTp),
-  typeOfKnown(name(Lc,"_iterate"),ElFnTp,Env,E0,Iterator,Path),
+  MdTp = tpExp(MTp,StTp),
+  ActFnTp = funType(tupleType([ElTp,StTp]),MdTp),
+  ItrFnTp = funType(tupleType([SrTp,MdTp,ActFnTp]),MdTp),
+  typeOfKnown(name(Lc,"_iter"),ItrFnTp,Env,E0,Iterator,Path),
   typeOfPtn(L,ElTp,E0,E1,Ptn,Path),
   typeOfExp(R,SrTp,E1,Ev,Src,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
@@ -791,19 +793,44 @@ typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   binary(Lc,"_index",Mp,Arg,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 
-checkAbstraction(Term,Lc,B,G,Tp,Env,abstraction(Lc,Bnd,Cond,Gen,Tp),Path) :-
+checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
-  (getContract("generator",Env,conDef(_,_,Con)) ->
+  findType("action",Lc,Env,ActionTp),
+  (getContract("sequence",Env,conDef(_,_,Con)) ->
     freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
-    reportError("generator contract not defined",[],Lc),
+    reportError("sequence contract not defined",[],Lc),
     newTypeVar("_St",StTp),
-    newTypeVar("_El",ElTp)),
+   newTypeVar("_El",ElTp)),
   checkType(Term,Tp,StTp,Env),
   typeOfExp(B,ElTp,E1,_,Bnd,Path),
-  IterStateTp = tpExp(tpFun("star.iterable*iterState",1),ElTp),
-  Gen = over(Lc,mtd(Lc,"_generate",funType(tupleType([ElTp,IterStateTp]),IterStateTp)),
-      true,[conTract(Op,[StTp],[ElTp])]).
+  (getContract("execution",Env,conDef(_,_,ExCon)) ->
+   freshen(ExCon,Env,_,contractExists(conTract(ExOp,[ExStTp],[ErTp]),_)),
+   checkType(Term,ExStTp,tpExp(ActionTp,ErTp),Env);
+   reportError("execution contract not defined",[],Lc),
+   newTypeVar("_t",ExStTp),
+   newTypeVar("_E",ErTp)),
+  genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
+		    true,[conTract(Op,[StTp],[ElTp])]),
+	    ExStTp,ErTp,ExOp,Zed),
+  Gen = over(Lc,mtd(Lc,"_cons",
+		    funType(tupleType([ElTp,StTp]),StTp)),
+	     true,[conTract(Op,[StTp],[ElTp])]),
+  genCondition(Cond,Path,checker:genRtn(Lc,ExOp,ExStTp,ErTp),
+	       checker:genEl(Lc,Gen,Bnd,StTp,ExOp,ExStTp,ErTp),
+	       checker:genPass(Lc,ExStTp,ErTp,ExOp),Zed,ACond),
+  genPerform(Lc,ACond,Tp,ExStTp,ErTp,ExOp,Abstr),
+  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
+
+genPass(Lc,ExStTp,ErTp,ExOp,St,Exp) :-
+  genReturn(Lc,St,ExStTp,ErTp,ExOp,Exp).
+
+genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,St,Exp) :-
+  Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
+  genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
+
+genRtn(Lc,ExOp,ExStTp,ErTp,St,Reslt) :-
+  genReturn(Lc,St,ExStTp,ErTp,ExOp,Reslt).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
@@ -819,7 +846,9 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
   checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-  genAction(Body,Op,StTp,ErTp,EE,Path).
+  reportMsg("action: %s",[doTerm(Lc,Body,_,_,_)]),
+  genAction(Body,Op,StTp,ErTp,EE,Path),
+  reportMsg("Action-> %s",[EE]).
 
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
@@ -869,21 +898,12 @@ checkAction(Term,Env,Env,Op,StTp,_,ErTp,whileDo(Lc,Ts,Bdy,StTp,ErTp),
   typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
   checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path).
 
-checkAction(Term,Env,Env,Op,StTp,_,ErTp,forDo(Lc,Ts,Lcls,Bdy,StTp,ErTp),Path) :-
+checkAction(Term,Env,Env,Op,StTp,_,ErTp,forDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
   pushScope(Env,FEnv),
   typeOfExp(T,LogicalTp,FEnv,Et,Ts,Path),
-  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path),
-  pullLocalVars(FEnv,Lcls).
-
-  % BdTp = tpExp(StTp,tupleType([])),
-  % (getContract("coercion",Env,conDef(_,_,Con)) ->
-  % 	  freshen(Con,Env,_,contractExists(conTract(COp,[BdTp,StTp],[]),_)),
-  % 	  checkType(Term,Tp,tpExp(StTp,ElTp),Env);
-
-
-   
+  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path).
 checkAction(Term,Env,Env,Op,StTp,ElTp,_,
 	    tryCatchDo(Lc,Bdy,Hndlr,StTp,ElTp,ErTp),Path) :-
   isTryCatch(Term,Lc,B,H),!,
@@ -1125,10 +1145,3 @@ mergeVDefs([_|D1],D2,Env,D3) :-
 sameDesc(vrEntry(_,C1,Tp1,_),vrEntry(_,C1,Tp2,_),Env) :-
   sameType(Tp1,Tp2,Env).
 
-pullLocalVars([scope(_,Vs,_,_,_)|_],Vrs) :-
-  dict_pairs(Vs,_,Prs),
-  buildVars(Prs,Vrs).
-
-buildVars([],[]).
-buildVars([Nm-vrEntry(Lc,_,Tp,_)|Es],[v(Lc,Nm,Tp)|Vs]) :-
-  buildVars(Es,Vs).

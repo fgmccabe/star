@@ -32,8 +32,21 @@ star.iterable{
     _iterate : all r,e ~~ (s,(t,iterState[e,r])=>iterState[e,r],iterState[e,r]) => iterState[e,r].
   }
 
+
+
   public contract all s,t ~~ generator[s->>t] ::= {
     _generate : all e ~~ (t,iterState[e,s]) => iterState[e,s].
+  }
+
+  -- The iter contract is used in query evaluation
+  -- The _iter function takes an execution and iterates over the collection composing it
+
+  public contract all s,t ~~ iter[s->>t] ::= {
+    _iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
+  }
+
+  public contract all s,k,v ~~ indexed_iter[s->>k,v] ::= {
+    _ix_iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(k,v,x)=>m[x]) => m[x]
   }
 
   public contract all s,k,v ~~ indexed_iterable[s ->> k,v] ::= {

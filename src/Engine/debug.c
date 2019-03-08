@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <globals.h>
 #include <str.h>
+#include <jmorecfg.h>
 
 #include "debugP.h"
 #include "arith.h"
@@ -13,6 +14,8 @@ integer pcCount = 0;
 
 static void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp);
 static void showTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp);
+static void showOCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp);
+static void showOTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp);
 static void showLn(ioPo out, methodPo mtd, insPo pc, termPo ln, framePo fp, ptrPo sp);
 static void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp);
 
@@ -24,6 +27,7 @@ static retCode showArg(ioPo out, integer arg, methodPo mtd, framePo fp, ptrPo sp
 static void showAllArgs(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
 static void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp);
 static void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp);
+static void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, integer displayDepth);
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 static void stackSummary(ioPo out, processPo P, ptrPo sp);
 
@@ -437,7 +441,7 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, insWord ins, void *cl)
   return moreDebug;
 }
 
-void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, ptrPo sp, logical showStack) {
+void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, integer displayDepth) {
   integer pcOffset = (integer) (pc - mtd->code);
 
   termPo locn = findPcLocation(mtd, pcOffset);
@@ -453,7 +457,10 @@ void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo f
     sep = ", ";
   }
   outMsg(out, ")\n");
+}
 
+void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, ptrPo sp, logical showStack) {
+  showStackCall(out, frameNo, mtd, pc, fp, displayDepth);
   showAllLocals(out, mtd, pc, fp);
 
   if (showStack) {
@@ -483,7 +490,7 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
 
   outMsg(out, "Stack trace for process %d ", p->processNo);
 #ifdef TRACEEXEC
-  if(debugDebugging) {
+  if (debugDebugging) {
     stackSummary(out, p, sp);
     heapSummary(out, h);
   }
@@ -513,11 +520,7 @@ void dumpStackTrace(processPo p, ioPo out) {
   outMsg(out, "Stack dump for p: %d\n", p->processNo);
 
   while (fp->fp < (framePo) p->stackLimit) {
-    termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-    if (locn != Null)
-      outMsg(out, "[%d] %L: %T\n%_", frameNo, locn, mtd);
-    else
-      outMsg(out, "[%d] (unknown loc): %T[%d]\n%_", frameNo, mtd, (integer) (pc - mtd->code));
+    showStackCall(out, frameNo, mtd, pc, fp, 1);
 
     mtd = fp->prog;
     pc = fp->rtn;
@@ -745,19 +748,23 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     return outMsg(f, "%,*T", displayDepth, ln);
 }
 
-static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
-  if (locn != Null) {
-    tryRet(outMsg(out, "%L: %s %#.16T(", locn, msg, mtd));
-  } else
-    tryRet(outMsg(out, "%s: %#.16T(", msg, mtd));
-
-  integer count = argCount(mtd);
+static retCode shArgs(ioPo out, ptrPo sp, integer displayDepth, integer from, integer to) {
   char *sep = "";
-  for (integer ix = 0; ix < count; ix++) {
+  tryRet(outStr(out,"("));
+  for (integer ix = from; ix < to; ix++) {
     tryRet(outMsg(out, "%s%#,*T", sep, displayDepth, sp[ix]));
     sep = ", ";
   }
   return outMsg(out, ")");
+}
+
+static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
+  if (locn != Null) {
+    tryRet(outMsg(out, "%L: %s %#.16T", locn, msg, mtd));
+  } else
+    tryRet(outMsg(out, "%s: %#.16T", msg, mtd));
+
+  return shArgs(out, sp, displayDepth, 0, argCount(mtd));
 }
 
 void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
@@ -768,6 +775,28 @@ void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo s
 void showTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
   shCall(out, GREEN_ESC_ON"tail"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+}
+
+static retCode shOCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
+  if (locn != Null) {
+    tryRet(outMsg(out, "%L: %s ", locn, msg));
+  } else
+    tryRet(outMsg(out, "%s ", msg));
+
+  tryRet(outMsg(out, "%#,*T", displayDepth, sp[0]));
+  tryRet(outMsg(out, "•%#.16T", mtd));
+
+  return shArgs(out, sp, displayDepth, 1, argCount(mtd));
+}
+
+void showOCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
+  termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
+  shOCall(out, GREEN_ESC_ON"ocall"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+}
+
+void showOTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
+  termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
+  shOCall(out, GREEN_ESC_ON"otail"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp) {
@@ -793,11 +822,15 @@ DebugWaitFor callDebug(processPo p, termPo call) {
 }
 
 DebugWaitFor ocallDebug(processPo p, termPo call) {
-  return lnDebug(p, OCall, call, showCall);
+  return lnDebug(p, OCall, call, showOCall);
 }
 
 DebugWaitFor tailDebug(processPo p, termPo call) {
   return lnDebug(p, Tail, call, showTail);
+}
+
+DebugWaitFor otailDebug(processPo p, termPo call) {
+  return lnDebug(p, OTail, call, showOTail);
 }
 
 DebugWaitFor retDebug(processPo p, termPo val) {
@@ -824,7 +857,7 @@ DebugWaitFor enterDebug(processPo p) {
     case OTail: {
       int32 arity = collect32(pc);
       termPo callee = getLbl(p->sp[0], arity);
-      return tailDebug(p, callee);
+      return otailDebug(p, callee);
     }
     case Ret:
       return retDebug(p, p->sp[0]);

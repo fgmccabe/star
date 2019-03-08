@@ -146,10 +146,12 @@ overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
   overloadTerm(P,Dict,St,St0,RP),
   overloadTerm(S,Dict,St0,St1,RS),
   overloadTerm(I,Dict,St1,Stx,RI).
-overloadTerm(abstraction(Lc,B,C,G,Tp),Dict,St,Stx,abstraction(Lc,RB,RC,RG,Tp)) :-
+overloadTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
+	     Dict,St,Stx,abstraction(Lc,RB,RC,RZed,RGen,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
   overloadTerm(C,Dict,St0,St1,RC),
-  overloadTerm(G,Dict,St1,Stx,RG).
+  overloadTerm(Zed,Dict,St1,St2,RZed),
+  overloadTerm(Gen,Dict,St2,Stx,RGen).
 overloadTerm(apply(ALc,over(Lc,T,_,Cx),Args,Tp),Dict,St,Stx,apply(ALc,OverOp,tple(LcA,NArgs),Tp)) :-
   resolveContracts(Lc,Cx,Dict,St,St0,DTerms),
   markResolved(St0,St1),
@@ -235,9 +237,12 @@ overloadList([T|L],C,D,[RT|RL]) :-
   call(C,T,D,RT),
   overloadList(L,C,D,RL).
 
-overloadRef(_,mtd(Lc,Nm,Tp),[DT],RArgs,dot(Lc,DT,Nm,Tp),RArgs) :- !.
-overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),Args) :- !, concat(DT,RArgs,Args).
-overloadRef(_,C,DT,RArgs,C,Args) :- concat(DT,RArgs,Args).
+overloadRef(_,mtd(Lc,Nm,Tp),[DT|Ds],RArgs,dot(Lc,DT,Nm,Tp),Args) :- !,
+  concat(Ds,RArgs,Args).
+overloadRef(_,v(Lc,Nm,Tp),DT,RArgs,v(Lc,Nm,Tp),Args) :- !,
+  concat(DT,RArgs,Args).
+overloadRef(_,C,DT,RArgs,C,Args) :-
+  concat(DT,RArgs,Args).
 
 resolveContracts(_,[],_,St,St,[]).
 resolveContracts(Lc,[Con|C],Dict,St,Stx,[CV|Vs]) :-
