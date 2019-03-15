@@ -1,131 +1,165 @@
+;;; 
+;;;Star Emacs mode
+;;; Copyright (C) 2019 and beyond F.G. McCabe
 
+(require 'cl)
+(require 'font-lock)
 
+(defvar
+  star-xemacs (not (not (string-match "XEmacs" (emacs-version))))
+  "Whether star-mode is running under XEmacs or not")
 
+;; Customization parameters
 
-(defun star-vertical-bar-adjust (pos bar)
-  "Returns the number of columns occupied by the | and following spaces"
-  (save-excursion
-    (goto-char pos)
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (if (looking-at (concat bar "[ \t]*[^ \t\n\r]"))
-	(progn
-	  (forward-char)
-	  (1+ (skip-chars-forward " \t")))
-      1)))
+(defgroup star nil
+  "Major mode for editing and running Star under Emacs"
+  :group 'languages)
 
-(defun star-calculate-indent (pos)
-  (save-excursion
-    (goto-char pos)
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    
-    (cond
-     ;; Keep comments at beginning of line at the beginning
-     ((looking-at star-comment-bol) 0)
+(defcustom star-block-indent 2
+  "* Amount by which to indent blocks of code in Star mode"
+  :type 'integer
+  :group 'star)
 
-     ;; Otherwise indent to standard indent position
-     ((looking-at star-comment)
-      (star-calculate-brace-indent pos))
+(defcustom star-paren-indent 1
+  "* Amount by which to indent after a left paren in Star mode"
+  :type 'integer
+  :group 'star)
 
-     ;; If it's a close brace then we can short-cut (a bit)
-     ((looking-at star-close-par)
-      (star-calculate-outer-indent (point)))
+(defcustom star-brace-indent 2
+  "* Amount by which to indent after a left brace in Star mode"
+  :type 'integer
+  :group 'star)
 
-     ((looking-at "\\.}")
-      (star-calculate-outer-indent (1+ (point))))
+(defcustom star-bracket-indent 5
+  "* Amount by which to indent after a left bracket in Star mode"
+  :type 'integer
+  :group 'star)
 
-     ;; If it's a | we need to parse past it to get the
-     ;; real indentation level 
-     ;; (this method would work fine for close braces as well)
-     ((looking-at "[|?]")
-      (- (star-calculate-brace-indent 
-	  (star-line-get-pos-after pos "[|?]"))
-	 (star-vertical-bar-adjust pos "[|?]")))
-     
-     ;; Otherwise standard indent position
-     (t 
-      (star-calculate-brace-indent pos)))))
+(defcustom star-arrow-indent 4
+  "* Amount by which to indent after an arrow in Star mode"
+  :type 'integer
+  :group 'star)
 
-(defun star-goto-first-non-whitespace-maybe ()
-  (let ((dest (save-excursion
-		(beginning-of-line)
-		(skip-chars-forward " \t")
-		(point))))
-    (if (< (point) dest)
-	(goto-char dest))))
+(defcustom star-query-indent 2
+  "* Amount by which to indent after an query in Star mode"
+  :type 'integer
+  :group 'star)
 
-(defun star-debug (msg &rest args)
-  "Print a debug message to the *star-debug* buffer"
-  (if star-debugging
-      (save-excursion
-	(set-buffer (get-buffer-create "*star-debug*"))
-	(insert (apply 'format msg args)))))
-  
-;;; Hook called when the tab key is pressed
-(defun star-indent-line ()
-  (save-excursion
-    (let* ((bol         (progn (beginning-of-line) (point)))
-	   (cur-level   (star-indentation-level bol))
-	   (level       (star-calculate-indent bol)))
-      (if (= cur-level level)
-	  nil
-	(progn
-	  (delete-horizontal-space)
-	  (indent-to level)
-	  ;; (star-readjust-comment bol)
-	  ))))
-  (star-goto-first-non-whitespace-maybe))
+(defcustom comment-column 40
+  "* The column where -- comments are placed"
+  :type 'integer
+  :group 'star)
 
-;;; Readjust a -- comment on the same line
-;;; (not used for now)
-(defun star-readjust-comment (pos)
-  "readjust a line comment if there is one on the current line"
-  (save-excursion
-    (let
-	((bol (progn (goto-char pos)(beginning-of-line)(point)))
-	 (eol (progn (goto-char pos)(end-of-line)(point))))
-      (goto-char bol)
-      (cond ((search-forward-regexp comment-start-skip eol t)
-	     (indent-for-comment))))))
+;;; Initialise the syntax table
 
-(defun star-indent-sexp ()
+(defun star-define-syntax (table &rest pairs)
+  (while pairs
+    (modify-syntax-entry (car pairs) (cadr pairs) table)
+    (setq pairs (cddr pairs))))
+
+;;   Syntax table used while in Star mode.
+
+(defconst star-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (star-define-syntax table
+		    ?/   ". 14"
+		    ?*   ". 23"
+		    ?\n  (if star-xemacs ">78b" ">56b")
+  ;; Symbols
+		    ?_   "w"
+		    ?+   "_"
+		    ?=   "_"
+		    ?<   "_"
+		    ?>   "_"
+		    ?=   "_"
+		    ?~   "_"
+		    ?-   "_"
+		    ?$   "_"
+		    ?&   "_")
+    table))
+
+(defvar star-debugging nil
+  "Non-nil if should log messages to *star-debug*")
+
+;;; Initialise the abbrev table
+(defvar star-mode-abbrev-table nil
+  "Abbrev table used while in Star mode.")
+(define-abbrev-table 'star-mode-abbrev-table ())
+
+;;; Initialise the key map
+(defvar star-mode-map nil)
+(if star-mode-map 
+    nil
+  (setq star-mode-map (make-sparse-keymap))
+  (define-key star-mode-map "\t" 'indent-for-tab-command)
+  (define-key star-mode-map [(control meta q)] 'star-indent-sexp)
+  (define-key star-mode-map [(control c) (control c)] 'comment-region)
+  (define-key star-mode-map [(control c) (control d)] 'stardebug-buffer)
+  (mapcar #'(lambda (key-seq)
+	     (define-key star-mode-map 
+	       key-seq 
+	       'star-self-insert-and-indent-command))
+	  '("{" "}" ";" "|" "," "(" ")")))
+
+(defun star-self-insert-and-indent-command (n)
+  "Self insert and indent appropriately"
+  (interactive "*P")
+  (self-insert-command (prefix-numeric-value n))
+  (indent-for-tab-command))
+
+(defvar star-indent-cache nil
+  "Incremental parse state cache")
+
+;;; Provide `star-mode' user callable function
+(defun star-mode ()
+  "Major mode for editing Star programs"
   (interactive)
-  (save-excursion
-    (let (;(start  (point))
-	  (stop   (condition-case nil
-		      (save-excursion (forward-sexp 1) (point))
-		    (error (point)))))
-      (while (and (< (point) stop)
-		  (progn (star-indent-line) t)
-		  (eq (forward-line) 0)))
-      (star-indent-line))))
+  (kill-all-local-variables)
 
+  (use-local-map star-mode-map)
+  (setq mode-name "Star!")
+  (setq major-mode 'star-mode)
 
-;; Match a line comment, not inside a string.
-(defun star-match-line-comment (limit)
-  (let ((from (save-excursion (beginning-of-line) (point))))
-    (if (search-forward-regexp star-font-lock-comment-regexp limit t)
-	(let ((state (parse-partial-sexp from (match-beginning 1))))
-	  (if state
-	      (if (nth 3 state)
-		  (star-match-line-comment limit)
-		t)
-	    t)))))
+  (setq local-abbrev-table star-mode-abbrev-table)
+  (set-syntax-table star-mode-syntax-table)
 
-  ;; ;; star-indent-cache holds the parse state 
-  ;; ;; at particular points in the buffer.
-  ;; ;; It is a sorted list (largest points first)
-  ;; ;; of elements (POINT . PARSE-STATE)
-  ;; ;; PARSE-STATE are cells (STATE . STACK)
-  ;; (make-local-variable 'star-indent-cache)
-  ;; (setq star-indent-cache nil)
+  (make-local-variable 'comment-start)
+  (setq comment-start "-- ")
 
-  ;; ;; After a buffer change, we need
-  ;; ;; to ensure that the cache is consistent.
-  ;; (make-local-variable 'before-change-functions)
-  ;; (add-to-list 'before-change-functions 'star-before-change-function)
+  (make-local-variable 'comment-end)
+  (setq comment-end "")
 
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
+
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip "^-- \\|[^:]-- ")
+
+  ;; Local variables (indentation)
+  (make-local-variable 'indent-line-function)
+  (setq indent-line-function 'star-indent-line)
+
+  ;; very important that case-fold-search is nil
+  ;; since star! is a case-sensitive language
+  (setq case-fold-search nil)
+
+  ;; star-indent-cache holds the parse state 
+  ;; at particular points in the buffer.
+  ;; It is a sorted list (largest points first)
+  ;; of elements (POINT . PARSE-STATE)
+  ;; PARSE-STATE are cells (STATE . STACK)
+  (make-local-variable 'star-indent-cache)
+  (setq star-indent-cache nil)
+
+  ;; After a buffer change, we need
+  ;; to ensure that the cache is consistent.
+  (make-local-variable 'before-change-functions)
+  (add-to-list 'before-change-functions 'star-before-change-function)
+
+  ;; Initialise font-lock support
+
+  (star-init-font-lock)
+  (run-hooks 'star-mode-hook))
 
 (defun star-before-change-function (from to &rest rest)
   ;; The buffer has changed, we need to
@@ -181,7 +215,13 @@
 	(match-end 0)
       nil)))
 
-(defvar star-close-par "[\\])}]"
+(defun star-one-of (&rest l)
+  (if (cadr l) 
+      (concat (car l) "\\|"
+	      (apply 'star-one-of (cdr l)))
+    (car l)))
+
+(defvar star-close-par "[])}]"
   "Star close parentheses")
 
 (defvar star-line-comment "-- "
@@ -190,7 +230,9 @@
 (defvar star-body-comment "/\\*"
   "Star body comment")
 
-(defvar star-comment (star-one-of '(,star-line-comment ,star-body-comment))
+(defvar star-comment (concat "\\(" 
+			   (star-one-of star-line-comment star-body-comment)
+			   "\\)")
   "Star comment")
 
 (defvar star-comment-bol (concat "^" star-comment)
@@ -209,7 +251,11 @@
     (5000 ")"   ")"    nil  same nil	nil		  0)
     (5000 "]"   "\\]"  nil  same nil	nil		  0)
     (5000 "}"   "}"    nil  same nil	nil		  0)
-    (1200 "=>"  "=>"   t    t    nil	nil		  star-arrow-indent)
+    (1200 ":--" ":--"  t    t    nil	nil		  star-arrow-indent)
+    (1200 ":-"  ":-"   t    t    t	nil		  star-arrow-indent)
+    (1200 "-->"  "-->" t    t    nil	nil		  star-arrow-indent)
+    (1100 "onerror"  
+          "onerror\\b" t    t	 nil    nil               0)
     (900  ":="  ":="   t    t    nil    nil		  star-arrow-indent)
     (820  ".."  "\\.\\." t  t    nil	nil		  0)
     (1460 "::=" "::="  t    t    t	nil		  (* star-arrow-indent 2))
@@ -217,7 +263,6 @@
     (1199 "=>"  "=>"   t    t    t	nil		  star-arrow-indent)
     (1199 "<="  "<="   t    t    nil	nil		  star-arrow-indent)
     (1199 "<~"  "<~"   t    t    nil	nil		  star-arrow-indent)
-    (1199 "~>"  "~>"   t    t    nil	nil		  star-arrow-indent)
     (1250 "|"   "|"    t    t    nil	nil		  0)
     (1060 "||"  "||"   t    t    nil	nil		  0)
     (1010  "::"  "::"   t    t    nil	nil		  (* star-arrow-indent 2))
@@ -231,8 +276,6 @@
     (1040 "?"   "\\?"  t    t    nil	nil		  star-query-indent)
     (750  "private"  
           "private\\b" t    t    nil    nil		  0)
-    (750  "public"
-          "public\\b" t    t    nil    nil		  0)
     (750  "import"  
           "import\\b" t    t    nil    nil		  0)
     (750  "action" 
@@ -279,12 +322,12 @@
   "Regular expression matching the start of an escape")
 
 (defconst star-next-token-regex
-  (star-one-of '(,star-operators-regex 
-		 ,star-escaped-string-regex
-		 "\""
-		 "\'"
-		 ,star-body-comment
-		 ,star-line-comment))
+  (star-one-of star-operators-regex 
+	     star-escaped-string-regex
+	     "\""
+	     "\'"
+	     star-body-comment
+	     star-line-comment))
 
 ;; The PARSE-STATE is a stack with at least one element.
 ;; Each element is a list with format (PRECEDENCE OP INDENT)
@@ -482,6 +525,225 @@
 	(star-debug "stack: %s %s\n" state stack)
 	(cons state stack)))))
 
+(defun star-vertical-bar-adjust (pos bar)
+  "Returns the number of columns occupied by the | and following spaces"
+  (save-excursion
+    (goto-char pos)
+    (beginning-of-line)
+    (skip-chars-forward " \t")
+    (if (looking-at (concat bar "[ \t]*[^ \t\n\r]"))
+	(progn
+	  (forward-char)
+	  (1+ (skip-chars-forward " \t")))
+      1)))
+
+(defun star-calculate-indent (pos)
+  (save-excursion
+    (goto-char pos)
+    (beginning-of-line)
+    (skip-chars-forward " \t")
+    
+    (cond
+     ;; Keep comments at beginning of line at the beginning
+     ((looking-at star-comment-bol) 0)
+
+     ;; Otherwise indent to standard indent position
+     ((looking-at star-comment)
+      (star-calculate-brace-indent pos))
+
+     ;; If it's a close brace then we can short-cut (a bit)
+     ((looking-at star-close-par)
+      (star-calculate-outer-indent (point)))
+
+     ((looking-at "\\.}")
+      (star-calculate-outer-indent (1+ (point))))
+
+     ;; If it's a | we need to parse past it to get the
+     ;; real indentation level 
+     ;; (this method would work fine for close braces as well)
+     ((looking-at "[|?]")
+      (- (star-calculate-brace-indent 
+	  (star-line-get-pos-after pos "[|?]"))
+	 (star-vertical-bar-adjust pos "[|?]")))
+     
+     ;; Otherwise standard indent position
+     (t 
+      (star-calculate-brace-indent pos)))))
+
+(defun star-goto-first-non-whitespace-maybe ()
+  (let ((dest (save-excursion
+		(beginning-of-line)
+		(skip-chars-forward " \t")
+		(point))))
+    (if (< (point) dest)
+	(goto-char dest))))
+
+(defun star-debug (msg &rest args)
+  "Print a debug message to the *star-debug* buffer"
+  (if star-debugging
+      (save-excursion
+	(set-buffer (get-buffer-create "*star-debug*"))
+	(insert (apply 'format msg args)))))
+  
+;;; Hook called when the tab key is pressed
+(defun star-indent-line ()
+  (save-excursion
+    (let* ((bol         (progn (beginning-of-line) (point)))
+	   (cur-level   (star-indentation-level bol))
+	   (level       (star-calculate-indent bol)))
+      (if (= cur-level level)
+	  nil
+	(progn
+	  (delete-horizontal-space)
+	  (indent-to level)
+	  ;; (star-readjust-comment bol)
+	  ))))
+  (star-goto-first-non-whitespace-maybe))
+
+;;; Readjust a -- comment on the same line
+;;; (not used for now)
+(defun star-readjust-comment (pos)
+  "readjust a line comment if there is one on the current line"
+  (save-excursion
+    (let
+	((bol (progn (goto-char pos)(beginning-of-line)(point)))
+	 (eol (progn (goto-char pos)(end-of-line)(point))))
+      (goto-char bol)
+      (cond ((search-forward-regexp comment-start-skip eol t)
+	     (indent-for-comment))))))
+
+(defun star-indent-sexp ()
+  (interactive)
+  (save-excursion
+    (let (;(start  (point))
+	  (stop   (condition-case nil
+		      (save-excursion (forward-sexp 1) (point))
+		    (error (point)))))
+      (while (and (< (point) stop)
+		  (progn (star-indent-line) t)
+		  (eq (forward-line) 0)))
+      (star-indent-line))))
+
+;;; Font-lock support
+
+(defvar star-font-lock-keyword-regexp 
+  (concat "\\b\\("
+	  (star-one-of 
+	   "import"			; package
+           "private"                    ; non-exported element of package
+	   "action"			; control
+	   "valof"			; control
+	   "valis"			; control
+	   "istrue"			; control
+
+	   "logical"			; type
+	   "void"			; type
+	   "symbol"			; type
+	   "char"			; type
+	   "number"			; type 
+	   "float"			; type 
+	   "integer"			; type 
+	   "opaque"			; type
+	   "thread"			; type
+
+	   "rem"			; arithmetic operator
+	   "quot"			; arithmetic operator
+
+	   "true"			; standard enumeration symbol
+	   "false"			; standard enumeration symbol
+
+	   "this"			; this object
+
+	   "timeout"			;
+	   "string"			; type
+           "sync"
+	   "spawn"			; control
+	   "onerror"			; control
+	   "in"				; control
+           "case"                       ; control
+
+	   "raise"			; control
+	   "error"			; standard constructor
+           )
+	  "\\)\\b")
+  "Regular expression matching the keywords to highlight in Star mode")
+
+;;; I think that there is too much highlighting
+;;; perhaps just highlight arrows => --> -> :- :-- ?
+
+(defvar star-font-lock-symbol-regexp
+  (concat "\\("
+	  (star-one-of 
+	   "::="
+	   "\\$="
+	   "\\$"
+	   "=>"
+	   "-->"
+	   ":--"
+	   "->"
+	   "<="
+	   "{\\."
+	   "\\.}"
+	   "\\.\\."
+	   ":="
+	   "\\.="
+	   "%="
+	   ">="
+	   "=="
+	   "=<"
+	   "="
+	   "<\\~"
+	   "<>"
+	   "\\*>"
+	   "::="
+	   "::"
+	   ":"
+	   "%%"
+	   "~"
+	   "@="
+	   "@>"
+	   "@@"
+	   "@"
+	   "#"
+	   "\\^"
+	   "\\^\\^"
+	   "\\\\\\+"
+	   "\\\\="
+	   ",\\.\\."
+	   "!\\."
+	   "\\."
+	   "!"
+	   "-+"
+	   "+"
+	   "-")
+	  "\\)")
+  "Regular expression matching the symbols to highlight in Star mode")
+
+(defvar star-font-lock-function-regexp
+  "^[ \t]*\\(\\sw+\\)([][0-9_a-zA-Z?,.:`'\\ ]*)[ \t]*\\([=-]+>\\|:-\\)"
+  "Regular expression matching the function declarations to highlight in Star mode")
+
+(defvar star-font-lock-include-regexp
+  "import[ \t]+"
+  "Regular expression matching the compiler import package statement")
+
+(defvar star-font-lock-comment-regexp-bol
+  "^\\(--[ \t].*$\\)")
+
+(defvar star-font-lock-comment-regexp
+  "[^:]\\(--[ \t].*$\\)")
+
+;; Match a line comment, not inside a string.
+(defun star-match-line-comment (limit)
+  (let ((from (save-excursion (beginning-of-line) (point))))
+    (if (search-forward-regexp star-font-lock-comment-regexp limit t)
+	(let ((state (parse-partial-sexp from (match-beginning 1))))
+	  (if state
+	      (if (nth 3 state)
+		  (star-match-line-comment limit)
+		t)
+	    t)))))
+
 (defconst star-dot-space (intern ". "))
 (defconst star-dot-newline (intern ".\n"))
 (defconst star-dot-tab (intern ".\t"))
@@ -503,13 +765,22 @@
 	 (t
 	  (star-match-function limit))))))
 
-  (make-local-variable 'comment-start)
-  (setq comment-start "-- ")
-  (make-local-variable 'comment-end)
-  (setq comment-end "")
+(defconst star-font-lock-keywords-1
+  `((,star-font-lock-comment-regexp-bol (1 font-lock-comment-face))
+    (,star-font-lock-comment-regexp     (1 font-lock-comment-face))
+;;    (star-match-line-comment (1 font-lock-comment-face))
+    (,star-font-lock-keyword-regexp     (1 font-lock-keyword-face))
+    (,star-font-lock-symbol-regexp      (1 font-lock-reference-face))
+;;;    (,star-font-lock-include-regexp     (1 font-lock-doc-string-face))
+    (,star-font-lock-function-regexp    (1 font-lock-function-name-face))
+    (star-match-function     (1 font-lock-function-name-face t))
+    ))
 
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
+(defvar star-font-lock-keywords star-font-lock-keywords-1
+  "Keywords to syntax highlight with font-lock-mode")
 
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "^-- \\|[^:]-- ")
+(defun star-init-font-lock ()
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(star-font-lock-keywords nil nil nil nil)))
+
+(provide 'star)
