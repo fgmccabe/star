@@ -1,6 +1,8 @@
 star.lists{
   import star.core.
   import star.arith.
+  import star.iterable.
+  import star.monad.
 
   public implementation all x ~~ equality[x] |: equality[list[x]] => {.
     L1 == L2 where _list_size(L1)==_list_size(L2) =>
@@ -44,6 +46,17 @@ star.lists{
   public implementation all e ~~ sizeable[list[e]] => {
     size(L) => _list_size(L).
     isEmpty(L) => _list_empty(L).
+  }
+
+  public implementation all e ~~ iter[list[e]->>e] => {
+    _iter:all x,m/1,er ~~ execution[m->>er] |: (list[e],m[x],(e,x)=>m[x]) => m[x].
+    _iter(Lst,St,Fn) => iterOverList(Lst,0,size(Lst),St,Fn).
+
+    iterOverList:all x,m/1,er ~~ execution[m->>er] |:
+        (list[e],integer,integer,m[x],(e,x)=>m[x]) => m[x].
+    iterOverList(_,Ix,Mx,St,_) where Ix>=Mx => St.
+    iterOverList(Lst,Ix,Mx,St,Fn) where El.=_list_nth(Lst,Ix) => -- do not have collections here
+      _sequence(St,(SS)=>iterOverList(Lst,Ix+1,Mx,Fn(El,SS),Fn)).
   }
 
   -- display contract for lists

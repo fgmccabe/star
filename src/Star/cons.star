@@ -43,6 +43,21 @@ star.cons{
     _nil = nil.
   }
 
+    public contract all c ~~ sizeable[c] ::= {
+      size:(c) => integer.
+      isEmpty:(c) => boolean.
+    }
+
+  public implementation all e ~~ sizeable[cons[e]] => {
+    size(L) => consLength(L,0).
+    isEmpty(nil) => true.
+    isEMpty(_) default => false.
+  }
+
+  consLength:all e ~~ (cons[e],integer) => integer.
+  consLength(nil,Ln) => Ln.
+  consLength(cons(_,T),Ln) => consLength(T,Ln+1).
+
   last:all e ~~ (cons[e]) => (cons[e],e).
   last(cons(X,nil)) => (nil,X).
   last(cons(X,Y)) where last(Y) =. (L,E)  => (cons(X,L),E).
@@ -87,21 +102,6 @@ star.cons{
   public implementation all t ~~ iter[cons[t]->>t] => {
     _iter(nil,St,_) => St.
     _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
-  }
-
-  public implementation all e ~~ iterable[cons[e]->>e] => {
-    _iterate(Lst,Fn,Init) => iterateOverCons(Lst,Fn,Init).
-
-    iterateOverCons(nil,_,St) => St.
-    iterateOverCons(_,_,abortIter(E)) => abortIter(E).
-    iterateOverCons(_,_,noMore(E)) => noMore(E).
-    iterateOverCons(cons(H,T),Fn,St) => iterateOverCons(T,Fn,Fn(H,St)).
-  }
-
-  public implementation all e ~~ generator[cons[e]->>e] => {
-    _generate(E,continueWith(L)) => continueWith(cons(E,L)).
-    _generate(E,noneFound) => continueWith(cons(E,nil)).
-    _generate(_,St) default => St.
   }
 
   public implementation all e ~~ display[e] |: display[cons[e]] => {.

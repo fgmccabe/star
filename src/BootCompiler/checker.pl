@@ -1,4 +1,4 @@
-:- module(checker,[checkProgram/4]).
+:- module(checker,[checkProgram/5]).
 
 :- use_module(abstract).
 :- use_module(wff).
@@ -23,7 +23,7 @@
 :- use_module(cnc).
 :- use_module(vartypes).
 
-checkProgram(Prog,Pkg,Repo,
+checkProgram(Prog,Pkg,Repo,_Opts,
     prog(Pkg,Lc,Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   isBraceTerm(Prog,Lc,_,Els),
@@ -793,44 +793,55 @@ typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   binary(Lc,"_index",Mp,Arg,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 
+pickupContract(Lc,Env,Nm,StTp,DpTp,Op) :-
+  (getContract(Nm,Env,conDef(_,_,Con)) ->
+   freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[DpTp]),_));
+   reportError("%s contract not defined",[Nm],Lc),
+   newTypeVar("_St",StTp),
+   newTypeVar("_El",DpTp)).
+  
+
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
   findType("action",Lc,Env,ActionTp),
-  (getContract("sequence",Env,conDef(_,_,Con)) ->
-    freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ElTp]),_));
-    reportError("sequence contract not defined",[],Lc),
-    newTypeVar("_St",StTp),
-   newTypeVar("_El",ElTp)),
+  pickupContract(Lc,Env,"sequence",StTp,ElTp,Op),
   checkType(Term,Tp,StTp,Env),
   typeOfExp(B,ElTp,E1,_,Bnd,Path),
-  (getContract("execution",Env,conDef(_,_,ExCon)) ->
-   freshen(ExCon,Env,_,contractExists(conTract(ExOp,[ExStTp],[ErTp]),_)),
-   checkType(Term,ExStTp,tpExp(ActionTp,ErTp),Env);
-   reportError("execution contract not defined",[],Lc),
-   newTypeVar("_t",ExStTp),
-   newTypeVar("_E",ErTp)),
+  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
   genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
 		    true,[conTract(Op,[StTp],[ElTp])]),
-	    ExStTp,ErTp,ExOp,Zed),
+	    ExTp,ErTp,ExOp,Zed),
   Gen = over(Lc,mtd(Lc,"_cons",
 		    funType(tupleType([ElTp,StTp]),StTp)),
 	     true,[conTract(Op,[StTp],[ElTp])]),
-  genCondition(Cond,Path,checker:genRtn(Lc,ExOp,ExStTp,ErTp),
-	       checker:genEl(Lc,Gen,Bnd,StTp,ExOp,ExStTp,ErTp),
-	       checker:genPass(Lc,ExStTp,ErTp,ExOp),Zed,ACond),
-  genPerform(Lc,ACond,Tp,ExStTp,ErTp,ExOp,Abstr),
+%  reportMsg("Result type: %s, Gen:%s",[Tp,Gen]),
+%  reportMsg("Action type: %s, monad: %s",[ExTp,ExOp]),
+  genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
+	       checker:genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp),
+	       checker:genRtn(Lc,ExTp,ErTp,ExOp),lifted(Zed),ACond),
+  genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr),
   reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
-genPass(Lc,ExStTp,ErTp,ExOp,St,Exp) :-
+genRtn(_Lc,_ExStTp,_ErTp,_ExOp,lifted(Exp),Exp).
+genRtn(Lc,ExStTp,ErTp,ExOp,unlifted(St),Exp) :-
   genReturn(Lc,St,ExStTp,ErTp,ExOp,Exp).
 
-genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,St,Exp) :-
+genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
   genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
 
-genRtn(Lc,ExOp,ExStTp,ErTp,St,Reslt) :-
-  genReturn(Lc,St,ExStTp,ErTp,ExOp,Reslt).
+genSeq(Lc,ExOp,ExStTp,ErTp,St,Init,Reslt,Exp) :-
+  typeOfCanon(St,ATp),
+  MdTp = tpExp(ExStTp,ATp),
+  LTp = funType(tupleType([ATp]),MdTp),
+  Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
+			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
+  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
+	     true,[conTract(ExOp,[ExStTp],[ErTp])]),
+  genRtn(Lc,ExStTp,ErTp,ExOp,Init,Initial),
+  Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
 
 genTpVars([],[]).
 genTpVars([_|I],[Tp|More]) :-
@@ -846,9 +857,9 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
   checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-  reportMsg("action: %s",[doTerm(Lc,Body,_,_,_)]),
-  genAction(Body,Op,StTp,ErTp,EE,Path),
-  reportMsg("Action-> %s",[EE]).
+%  reportMsg("action: %s",[doTerm(Lc,Body,_,_,_)]),
+  genAction(Body,Op,StTp,ErTp,EE,Path).
+%  reportMsg("Action-> %s",[EE]).
 
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,

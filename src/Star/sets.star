@@ -40,13 +40,7 @@ star.sets{
   .}
 
   -- This is the core of the query semantics
-  public implementation all e ~~ equality[e],hash[e] |: iterable[set[e]->>e] => {.
-    _iterate(set(M),F,St) => _ixiterate(M,(K,_,S)=>F(K,S),St).
-  .}
-
-  public implementation all t ~~ equality[t],hash[t] |: generator[set[t]->>t] => {.
-    _generate(E,continueWith(S)) => continueWith(_cons(E,S)).
-    _generate(E,noneFound) => continueWith(_cons(E,empty)).
-    _generate(_,St) default => St.
+  public implementation all e ~~ equality[e],hash[e] |: iter[set[e]->>e] => {.
+    _iter(set(S),St,F) => _ix_iter(S,St,(K,_,X)=>F(K,X))
   .}
 }
