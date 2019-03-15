@@ -36,18 +36,6 @@ star.action{
     _coerce(some(X)) => done(X).
   }
 
-  public implementation all e,t ~~ coercion[action[e,t],iterState[e,t]] => {
-    _coerce(done(X)) => continueWith(X).
-    _coerce(err(E)) => abortIter(E).
-    _coerce(delay(F)) => _coerce(F()).
-  }
-
-  public implementation all e,t ~~ coercion[iterState[e,t],action[e,t]] => {
-    _coerce(abortIter(E)) => err(E).
-    _coerce(noMore(X)) => done(X).
-    _coerce(continueWith(X)) => done(X).
-  }
-
   public (:=):all a ~~ (ref a,a) => action[(),()].
   (:=)(L,V) => delay(() where _ .= _assign(L,V) => done(())).
 

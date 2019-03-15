@@ -69,7 +69,7 @@ main(Args) :-
   openRepo(Opts,Repo),
   locateCatalog(CWD,Cat),!,
   makeGraph(Repo,Cat,CWD,Pkgs,Groups),!,
-  (processGroups(Groups,[],Repo,CWD,Opts) ; reportMsg("aborting compiling",[])),!.
+  (processGroups(Groups,[],Repo,CWD,Opts),! ; reportMsg("aborting compiling",[]),!,fail),!.
 
 openR(Args,CWD,Cat,Repo,Groups) :-
   getCWDUri(CW),
@@ -115,7 +115,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
-  checkProgram(Term,Pkg,Repo,Prog),!,
+  checkProgram(Term,Pkg,Repo,Opts,Prog),!,
   (is_member(showTCCode,Opts) -> dispProg(Prog);true),
   noErrors,
   transformProg(Prog,Opts,Rules),!,

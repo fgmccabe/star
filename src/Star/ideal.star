@@ -8,6 +8,7 @@ star.ideal{
   import star.collection.
   import star.iterable.
   import star.tuples.
+  import star.monad.
 
   -- See "Ideal Hash Trees" by Phil Bagwell
 
@@ -241,21 +242,18 @@ star.ideal{
     ixLeft = idealLeft.
   .}
 
-  public implementation all k,v ~~ indexed_iterable[map[k,v]->>k,v] => let{
-    iter:all e,s ~~ (map[k,v],(k,v,iterState[e,s])=>iterState[e,s],iterState[e,s])=>iterState[e,s].
-    iter(_,_,noMore(X)) => noMore(X).
-    iter(_,_,abortIter(S)) => abortIter(S).
-    iter(ihEmpty,_,S) => S.
-    iter(ihLeaf(_,Els),F,S) => consIter(Els,F,S).
-    iter(ihNode((A1,A2,A3,A4)),F,S) => iter(A4,F,iter(A3,F,iter(A2,F,iter(A1,F,S)))).
+  public implementation all k,v ~~ indexed_iter[map[k,v]->>k,v] => let{
+    iter:all k,v,m/1,e,x ~~ execution[m->>e] |: (map[k,v],m[x],(k,v,x)=>m[x])=>m[x].
+    iter(ihEmpty,St,_) => St.
+    iter(ihLeaf(_,Els),St,Fn) => consIter(Els,St,Fn).
+    iter(ihNode((A1,A2,A3,A4)),St,Fn) =>
+      iter(A4,iter(A3,iter(A2,iter(A1,St,Fn),Fn),Fn),Fn).
 
-    consIter:all e,s ~~ (cons[(k,v)],(k,v,iterState[e,s])=>iterState[e,s],iterState[e,s])=>iterState[e,s].
-
-    consIter(_,_,noMore(X)) => noMore(X).
-    consIter(_,_,abortIter(S)) => abortIter(S).
-    consIter(nil,_,S) => S.
-    consIter(cons((K,V),T),F,S) => consIter(T,F,F(K,V,S)).
+    consIter:all k,v,m/1,e,x ~~ execution[m->>e] |: (cons[(k,v)],m[x],(k,v,x)=>m[x])=>m[x].
+    consIter(nil,S,_) => S.
+    consIter(cons((K,V),T),S,F) => _sequence(S,(SS)=>consIter(T,F(K,V,SS),F)).
   } in {
-    _ixiterate = iter
+    -- _ix_iter = iter -- TODO: fix this. May need something like currying.
+    _ix_iter(Tr,St,Fn) => iter(Tr,St,Fn)
   }
 }

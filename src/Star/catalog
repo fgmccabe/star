@@ -30,6 +30,7 @@
 		"star.range" : "range.star",
 		"star.rdf" : "rdf.star",
 		"star.rdf.n3" : "n3.star",
+		"star.result" : "result.star",
 		"star.redblack" : "redblack.star",
 		"star.redblack.impl" : "redblack-impl.star",
 		"star.repo": "repo.star",
