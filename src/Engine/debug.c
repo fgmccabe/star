@@ -259,7 +259,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
 static DebugWaitFor dbgSingle(char *line, processPo p, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->traceDepth = 0;
-  p->tracing = True;
+  p->tracing = p->traceCount==0;
   return stepInto;
 }
 
@@ -962,7 +962,7 @@ void showAllLocals(ioPo out, methodPo mtd, insPo pc, framePo fp) {
     if (localVName(mtd, pc, vx, vName, NumberOf(vName)) == Ok) {
       ptrPo var = localVar(fp, vx);
       if (*var != Null && *var != voidEnum)
-        outMsg(out, "  %s(%d) = %#,*T\n", vName, vx, displayDepth, *var);
+        outMsg(out, "  %s = %#,*T\n", vName, displayDepth, *var);
       else
         outMsg(out, "  %s(%d) (unset)\n", vName, vx);
     }
