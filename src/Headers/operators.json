@@ -161,11 +161,7 @@
   },
   {
     "infixOp": ";",
-    "priorities": [
-      1250,
-      1251,
-      1251
-    ],
+    "priorities": [1250, 1251, 1251],
     "desc": "sequencing operator"
   },
   {
@@ -180,182 +176,102 @@
   },
   {
     "infixOp": "->>",
-    "priorities": [
-      1199,
-      1200,
-      1199
-    ],
+    "priorities": [1199, 1200, 1199],
     "desc": "dependent type marker"
   },
   {
     "infixOp": ",",
-    "priorities": [
-      999,
-      1000,
-      1000
-    ],
+    "priorities": [ 999, 1000, 1000],
     "desc": "tupling operator"
   },
   {
     "infixOp": ",..",
-    "priorities": [
-      999,
-      1000,
-      999
-    ],
+    "priorities": [999, 1000, 999],
     "desc": "list cons"
   },
   {
     "infixOp": "..,",
-    "priorities": [
-      999,
-      1000,
-      1000
-    ],
+    "priorities": [999, 1000, 1000],
     "desc": "list cons"
   },
   {
     "infixOp": "=",
-    "priorities": [
-      974,
-      975,
-      974
-    ],
+    "priorities": [974, 975, 974],
     "desc": "definition"
   },
   {
     "infixOp": ":=",
-    "priorities": [
-      974,
-      975,
-      974
-    ],
+    "priorities": [974, 975, 974],
     "desc": "reassignable variable definition"
   },
   {
     "infixOp": "=>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
+    "priorities": [949, 950, 950],
     "desc": "function arrow"
   },
   {
     "infixOp": ">>=",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
+    "priorities": [949, 950, 950],
     "desc": "monadic bind"
   },
   {
     "infixOp": ">>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
+    "priorities": [949, 950, 950],
     "desc": "monadic bind"
   },
   {
     "infixOp": "<*>",
-    "priorities": [
-      949,
-      950,
-      950
-    ],
+    "priorities": [949, 950, 950],
     "desc": "applicative splat"
   },
   {
     "infixOp": "==>",
-    "priorities": [
-      949,
-      950,
-      949
-    ],
+    "priorities": [949, 950, 949],
     "desc": "macro arrow"
   },
   {
     "infixOp": "<=",
-    "priorities": [
-      949,
-      950,
-      949
-    ],
+    "priorities": [949, 950, 949],
     "desc": "pattern arrow"
   },
   {
     "infixOp": "<=>",
-    "priorities": [
-      949,
-      950,
-      949
-    ],
+    "priorities": [949, 950, 949],
     "desc": "constructor arrow"
   },
   {
     "infixOp": "where",
-    "priorities": [
-      910,
-      911,
-      910
-    ],
+    "priorities": [910, 911, 910],
     "desc": "semantic guard"
   },
   {
     "infixOp": "||",
-    "priorities": [
-      919,
-      920,
-      920
-    ],
+    "priorities": [919, 920, 920],
     "desc": "disjunction"
   },
   {
     "infixOp": "?",
-    "priorities": [
-      919,
-      920,
-      920
-    ],
+    "priorities": [919, 920, 920],
     "desc": "conditional operator"
   },
   {
     "infixOp": "&&",
-    "priorities": [
-      910,
-      910,
-      909
-    ],
+    "priorities": [910, 910, 909],
     "desc": "conjunction"
   },
   {
     "infixOp": "*>",
-    "priorities": [
-      904,
-      905,
-      904
-    ],
+    "priorities": [904, 905, 904],
     "desc": "for all"
   },
   {
     "infixOp": "->",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "map entry"
   },
   {
     "infixOp": "==",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "equality predicate"
   },
   {

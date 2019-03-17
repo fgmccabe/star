@@ -2,113 +2,6 @@
 ;;;Star Emacs mode
 ;;; Copyright (C) 2019 and beyond F.G. McCabe
 
-(require 'cl)
-(require 'font-lock)
-
-(defvar
-  star-xemacs (not (not (string-match "XEmacs" (emacs-version))))
-  "Whether star-mode is running under XEmacs or not")
-
-;; Customization parameters
-
-(defgroup star nil
-  "Major mode for editing and running Star under Emacs"
-  :group 'languages)
-
-(defcustom star-block-indent 2
-  "* Amount by which to indent blocks of code in Star mode"
-  :type 'integer
-  :group 'star)
-
-(defcustom star-paren-indent 1
-  "* Amount by which to indent after a left paren in Star mode"
-  :type 'integer
-  :group 'star)
-
-(defcustom star-brace-indent 2
-  "* Amount by which to indent after a left brace in Star mode"
-  :type 'integer
-  :group 'star)
-
-(defcustom star-bracket-indent 5
-  "* Amount by which to indent after a left bracket in Star mode"
-  :type 'integer
-  :group 'star)
-
-(defcustom star-arrow-indent 4
-  "* Amount by which to indent after an arrow in Star mode"
-  :type 'integer
-  :group 'star)
-
-(defcustom star-query-indent 2
-  "* Amount by which to indent after an query in Star mode"
-  :type 'integer
-  :group 'star)
-
-(defcustom comment-column 40
-  "* The column where -- comments are placed"
-  :type 'integer
-  :group 'star)
-
-;;; Initialise the syntax table
-
-(defun star-define-syntax (table &rest pairs)
-  (while pairs
-    (modify-syntax-entry (car pairs) (cadr pairs) table)
-    (setq pairs (cddr pairs))))
-
-;;   Syntax table used while in Star mode.
-
-(defconst star-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (star-define-syntax table
-		    ?/   ". 14"
-		    ?*   ". 23"
-		    ?\n  (if star-xemacs ">78b" ">56b")
-  ;; Symbols
-		    ?_   "w"
-		    ?+   "_"
-		    ?=   "_"
-		    ?<   "_"
-		    ?>   "_"
-		    ?=   "_"
-		    ?~   "_"
-		    ?-   "_"
-		    ?$   "_"
-		    ?&   "_")
-    table))
-
-(defvar star-debugging nil
-  "Non-nil if should log messages to *star-debug*")
-
-;;; Initialise the abbrev table
-(defvar star-mode-abbrev-table nil
-  "Abbrev table used while in Star mode.")
-(define-abbrev-table 'star-mode-abbrev-table ())
-
-;;; Initialise the key map
-(defvar star-mode-map nil)
-(if star-mode-map 
-    nil
-  (setq star-mode-map (make-sparse-keymap))
-  (define-key star-mode-map "\t" 'indent-for-tab-command)
-  (define-key star-mode-map [(control meta q)] 'star-indent-sexp)
-  (define-key star-mode-map [(control c) (control c)] 'comment-region)
-  (define-key star-mode-map [(control c) (control d)] 'stardebug-buffer)
-  (mapcar #'(lambda (key-seq)
-	     (define-key star-mode-map 
-	       key-seq 
-	       'star-self-insert-and-indent-command))
-	  '("{" "}" ";" "|" "," "(" ")")))
-
-(defun star-self-insert-and-indent-command (n)
-  "Self insert and indent appropriately"
-  (interactive "*P")
-  (self-insert-command (prefix-numeric-value n))
-  (indent-for-tab-command))
-
-(defvar star-indent-cache nil
-  "Incremental parse state cache")
 
 ;;; Provide `star-mode' user callable function
 (defun star-mode ()
@@ -161,13 +54,6 @@
   (star-init-font-lock)
   (run-hooks 'star-mode-hook))
 
-(defun star-before-change-function (from to &rest rest)
-  ;; The buffer has changed, we need to
-  ;; remove any parse states that have been saved
-  ;; past point 'from' in the buffer.
-  (while (and star-indent-cache
-	      (>= (caar star-indent-cache) from))
-    (setq star-indent-cache (cdr star-indent-cache))))
 
 ;;; Indentation and syntax
 (defsubst star-skip-block-comment ()
@@ -251,35 +137,31 @@
     (5000 ")"   ")"    nil  same nil	nil		  0)
     (5000 "]"   "\\]"  nil  same nil	nil		  0)
     (5000 "}"   "}"    nil  same nil	nil		  0)
-    (1200 ":--" ":--"  t    t    nil	nil		  star-arrow-indent)
     (1200 ":-"  ":-"   t    t    t	nil		  star-arrow-indent)
     (1200 "-->"  "-->" t    t    nil	nil		  star-arrow-indent)
     (1100 "onerror"  
-          "onerror\\b" t    t	 nil    nil               0)
+          "\\<onerror\\>" t    t	 nil    nil               0)
     (900  ":="  ":="   t    t    nil    nil		  star-arrow-indent)
     (820  ".."  "\\.\\." t  t    nil	nil		  0)
     (1460 "::=" "::="  t    t    t	nil		  (* star-arrow-indent 2))
     (1200 "->"  "->"   t    t    nil	nil		  star-arrow-indent)
     (1199 "=>"  "=>"   t    t    t	nil		  star-arrow-indent)
-    (1199 "<="  "<="   t    t    nil	nil		  star-arrow-indent)
     (1199 "<~"  "<~"   t    t    nil	nil		  star-arrow-indent)
     (1250 "|"   "|"    t    t    nil	nil		  0)
     (1060 "||"  "||"   t    t    nil	nil		  0)
-    (1010  "::"  "::"   t    t    nil	nil		  (* star-arrow-indent 2))
+    (1010  "where"  "where"   t    t    nil	nil		  (* star-arrow-indent 2))
     (1000 ","   ","    t    t    nil	nil		  0)
     (1000 ";"   ";"    t    t    nil	nil		  0)
     (900  ".="  "\\.=" t    t    nil    nil		  0)
     ;; "Terminating dot must be followed by whitespace"
-    (1900 ". "  "\\. " t    t    nil    nil               0)
-    (1900 ".\t"  "\\.\t" t  t    nil	nil		  0)
-    (1900 ".\n"  "\\.\n" t  t    nil	nil		  0)
+    (1900 "."  "\\.[ \t\n]" t    t    nil    nil               0)
     (1040 "?"   "\\?"  t    t    nil	nil		  star-query-indent)
     (750  "private"  
-          "private\\b" t    t    nil    nil		  0)
+          "\\<private\\>" t    t    nil    nil		  0)
     (750  "import"  
-          "import\\b" t    t    nil    nil		  0)
+          "\\<import\\>" t    t    nil    nil		  0)
     (750  "action" 
-	  "action\\b"  t    t    nil    nil		  0)
+	  "\\<action\\>>"  t    t    nil    nil		  0)
     (750  "sync" 
 	  "sync\\b"  t    t    nil    nil		  0)
     )
@@ -399,131 +281,6 @@
 (defsubst star-calculate-brace-indent (pos)
   (star-parse-state-indent (star-parse-until pos)))
 
-;;; Parse from POS to TO given initial PARSE-STATE
-;;; Return final PARSE-STATE at TO.
-(defun star-parse (pos to parse-state)
-  (let* ((case-fold-search nil)
-	 (state (car parse-state))
-	 (stack (cdr parse-state))
-	 (tos-prec   (first  state))
-	 (tos-op     (second state))
-	 (tos-indent (third  state))
-	 (tos-in-comment (fourth state)))
-    (save-excursion
-      (goto-char pos)
-      ;; We assume that the parsing does not
-      ;; resume from within a (block) comment.
-      ;; To implement that we would need
-      ;; to check tos-in-comment and scan for
-      ;; end-of-comment (*/) to escape it first.
-      (progn 
-	(while (< (point) to)
-	  (cond 
-	   ;; An important Star! operator
-	   ((looking-at star-operators-regex)
-
-	    (let* ((symbol (intern (match-string 0)))
-		   (symbol-prec (get symbol 'precedence)))
-
-	      ;; Check to see if we should pop any operators off the stack
-	      (if (get symbol 'pop)
-		  ;; Yes, pop off any lower precedence operators
-		  (while (<= tos-prec symbol-prec)
-		    (setq state (car stack)
-			  stack (cdr stack)
-			  tos-prec   (first state)
-			  tos-op     (second state)
-			  tos-indent (third state))))
-	    
-	      (if (get symbol 'pop-until-same)
-		  ;; Yes, pop of all operators until
-		  ;; we meet an operator with the same
-		  ;; precedence (for brackets)
-		  (progn
-		    (while (and (/= tos-prec symbol-prec) (cdr stack))
-		      (setq state (car stack)
-			    stack (cdr stack)
-			    tos-prec   (first state)
-			    tos-op     (second state)
-			    tos-indent (third state)))
-		    (setq state (car stack)
-			  stack (cdr stack)
-			  tos-prec   (first state)
-			  tos-op     (second state)
-			  tos-indent (third state))))
-
-	      ;; Push the symbol onto the stack, if allowed
-	      (if (get symbol 'push)
-		  (progn
-		    (setq 
-		     ;; Save the old state
-		     state (list tos-prec 
-				 tos-op 
-				 tos-indent)
-		     ;; Push it onto the stack
-		     stack (cons state stack) 
-		     ;; New top-of-stack (indentation carries on
-		     ;; from before)
-		     tos-prec   symbol-prec
-		     tos-op     symbol)))
-	    
-	      ;; Advance the pointer 
-	      (forward-char (get symbol 'length))
-
-	      ;; Adjust the indentation for hanging
-	      (if (and (get symbol 'hanging)
-		       (not (looking-at "[ \t]*\\(--[ \t]?\\)?$")))
-		  ;; Hanging
-		  (progn 
-		    (skip-chars-forward " \t")
-		    (setq tos-indent 
-			  (+ tos-indent
-			     (- (current-column)
-				(max (star-indentation-level (point))
-				     (third (car stack)))))))
-
-		;; Not Hanging
-		(setq tos-indent (+ tos-indent 
-				    (eval (get symbol 'delta)))))
-	      ))
-	 
-	   ;; Skip escaped characters
-	   ((looking-at "`\\\\.") (forward-char 3))
-
-	   ;; Skip syntax
-	   ((looking-at star-line-comment)
-	    (star-skip-line-comment))
-	   ((looking-at star-body-comment)
-	    (let ((co-col (current-column)))
-	      (star-skip-block-comment)
-	      (if (>= (point) to)
-		  (setq tos-indent (1+ co-col)
-			tos-in-comment t))))
-	   ((looking-at star-escaped-string-regex)
-	    (forward-char 2))
-	   ((looking-at "\"")
-	    (star-skip-string))
-	   ((looking-at "\'")
-	    (star-skip-symbol))
-	   ((looking-at "`")
-	    (star-skip-char))
-	   (t 
-	    ;; It might be better to forward char first and then scan
-	    ;; for the next token to eliminate any possibility of
-	    ;; an un-handled token.
-	    (or (and (search-forward-regexp star-next-token-regex to t)
-		     (goto-char (match-beginning 0)))
-		(forward-char)
-		)))
-	  (skip-chars-forward " \t\n"))
-
-	;; Save the state for future runs
-	(setq state (list tos-prec 
-			  tos-op 
-			  tos-indent
-			  tos-in-comment))
-	(star-debug "stack: %s %s\n" state stack)
-	(cons state stack)))))
 
 (defun star-vertical-bar-adjust (pos bar)
   "Returns the number of columns occupied by the | and following spaces"
@@ -537,46 +294,10 @@
 	  (1+ (skip-chars-forward " \t")))
       1)))
 
-(defun star-calculate-indent (pos)
-  (save-excursion
-    (goto-char pos)
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    
-    (cond
-     ;; Keep comments at beginning of line at the beginning
-     ((looking-at star-comment-bol) 0)
 
-     ;; Otherwise indent to standard indent position
-     ((looking-at star-comment)
-      (star-calculate-brace-indent pos))
 
-     ;; If it's a close brace then we can short-cut (a bit)
-     ((looking-at star-close-par)
-      (star-calculate-outer-indent (point)))
-
-     ((looking-at "\\.}")
-      (star-calculate-outer-indent (1+ (point))))
-
-     ;; If it's a | we need to parse past it to get the
-     ;; real indentation level 
-     ;; (this method would work fine for close braces as well)
-     ((looking-at "[|?]")
-      (- (star-calculate-brace-indent 
-	  (star-line-get-pos-after pos "[|?]"))
-	 (star-vertical-bar-adjust pos "[|?]")))
-     
-     ;; Otherwise standard indent position
-     (t 
-      (star-calculate-brace-indent pos)))))
-
-(defun star-goto-first-non-whitespace-maybe ()
-  (let ((dest (save-excursion
-		(beginning-of-line)
-		(skip-chars-forward " \t")
-		(point))))
-    (if (< (point) dest)
-	(goto-char dest))))
+(defvar star-debugging nil
+  "Non-nil if should log messages to *star-debug*")
 
 (defun star-debug (msg &rest args)
   "Print a debug message to the *star-debug* buffer"
@@ -585,20 +306,7 @@
 	(set-buffer (get-buffer-create "*star-debug*"))
 	(insert (apply 'format msg args)))))
   
-;;; Hook called when the tab key is pressed
-(defun star-indent-line ()
-  (save-excursion
-    (let* ((bol         (progn (beginning-of-line) (point)))
-	   (cur-level   (star-indentation-level bol))
-	   (level       (star-calculate-indent bol)))
-      (if (= cur-level level)
-	  nil
-	(progn
-	  (delete-horizontal-space)
-	  (indent-to level)
-	  ;; (star-readjust-comment bol)
-	  ))))
-  (star-goto-first-non-whitespace-maybe))
+
 
 ;;; Readjust a -- comment on the same line
 ;;; (not used for now)
@@ -612,17 +320,6 @@
       (cond ((search-forward-regexp comment-start-skip eol t)
 	     (indent-for-comment))))))
 
-(defun star-indent-sexp ()
-  (interactive)
-  (save-excursion
-    (let (;(start  (point))
-	  (stop   (condition-case nil
-		      (save-excursion (forward-sexp 1) (point))
-		    (error (point)))))
-      (while (and (< (point) stop)
-		  (progn (star-indent-line) t)
-		  (eq (forward-line) 0)))
-      (star-indent-line))))
 
 ;;; Font-lock support
 

@@ -16,7 +16,7 @@ test.a{
 
   a = do{
     x <- p;
-    ^^ x
+    return x
   }.
 
   assert valof a == 4.
