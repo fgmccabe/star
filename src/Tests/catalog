@@ -48,6 +48,7 @@
     "test.record": "record.star",
     "test.s": "s.star",
     "test.st": "st.star",
+    "test.sy": "sy.star",
     "test.t": "t.star",
     "test.tsort": "tsort.star",
     "test.u": "u.star"
