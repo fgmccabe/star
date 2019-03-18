@@ -5,7 +5,6 @@
 :- use_module(types).
 :- use_module(misc).
 :- use_module(location).
-:- use_module(freevars).
 :- use_module(terms).
 :- use_module(transutils).
 

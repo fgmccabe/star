@@ -7,6 +7,7 @@
 :- use_module(parse).
 :- use_module(dependencies).
 :- use_module(freshen).
+:- use_module(freevars).
 :- use_module(unify).
 :- use_module(types).
 :- use_module(parsetype).
@@ -334,8 +335,7 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   splitHead(H,_,A,IsDeflt),
   pushScope(E,Env),
   typeOfArgPtn(A,AT,Env,E0,Args,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E0,E1,Cond,Path),
+  checkGoal(C,E0,E1,Cond,Path),
   typeOfExp(R,RT,E1,_E2,Exp,Path),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[equation(Lc,Args,Cond,Exp)|Dfx]; Defs=[equation(Lc,Args,Cond,Exp)|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
@@ -491,8 +491,7 @@ typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfPtn(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),
   typeOfPtn(L,Tp,Env,E0,Ptn,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
+  checkGoal(C,E0,Ex,Cond,Path).
 typeOfPtn(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
@@ -556,15 +555,13 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
   isWhere(P,Lc,L,C),
   typeOfExp(L,Tp,Env,E0,Ptn,Path),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E0,Ex,Cond,Path).
+  checkGoal(C,E0,Ex,Cond,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(Tst,LogicalTp,Env,E0,Test,Path),
+  checkGoal(Tst,Env,E0,Test,Path),
   typeOfExp(Th,Tp,E0,E1,Then,Path),
   typeOfExp(El,Tp,Env,E2,Else,Path),
   mergeDict(E1,E2,Env,Ev).
@@ -777,8 +774,7 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
   typeOfArgPtn(H,AT,Env,E1,Args,Path),
   newTypeVar("_E",RT),
   checkType(Term,funType(AT,RT),Tp,Env),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,E1,E2,Cond,Path),
+  checkGoal(C,E1,E2,Cond,Path),
   typeOfExp(R,RT,E2,_,Exp,Path).
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
@@ -799,12 +795,56 @@ pickupContract(Lc,Env,Nm,StTp,DpTp,Op) :-
    reportError("%s contract not defined",[Nm],Lc),
    newTypeVar("_St",StTp),
    newTypeVar("_El",DpTp)).
+
+checkGoal(G,Env,Ev,Goal,Path) :-
+  locOfAst(G,Lc),
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(G,LogicalTp,Env,Ev,Cond,Path),
+  (isIterableGoal(Cond) ->
+   genIterableGl(Cond,Env,Path,Goal);
+   Cond=Goal).
+
+/*
+  * 'iterable' conditions become a match on the result of a search
+  *
+  * becomes:
+  *
+  * some(PtnV) .= <genCondition>(C,none,...)
+*/
+
+genIterableGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
+  locOfCanon(Cond,Lc),
+  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
+  findType("option",Lc,Env,OptionTp),
   
+  goalVars(Cond,Vrs),
+  VTpl = tple(Lc,Vrs),
+  typeOfCanon(VTpl,ETp),
+  OptTp = tpExp(OptionTp,ETp),
+
+  (sameType(OptionTp,ExTp,Env) ;
+   reportError("option not consistent with execution contract",Lc)),
+
+  genReturn(Lc,enm(Lc,"none",OptTp),ExTp,ErTp,ExOp,Zed),
+
+  Ptn = apply(Lc,v(Lc,"some",funType(tupleType([ETp]),OptTp)),
+		   tple(Lc,[VTpl]),OptTp),
+  
+  genCondition(Cond,Path,
+	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
+	       checker:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
+	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       lifted(Zed),Seq),
+  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
+%  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
+
+genVl(Lc,Ptn,ExTp,ErTp,ExOp,unlifted(_),Exp) :-
+  genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
-  findType("action",Lc,Env,ActionTp),
   pickupContract(Lc,Env,"sequence",StTp,ElTp,Op),
   checkType(Term,Tp,StTp,Env),
   typeOfExp(B,ElTp,E1,_,Bnd,Path),
@@ -820,9 +860,10 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,ExOp),
 	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
 	       checker:genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp),
-	       checker:genRtn(Lc,ExTp,ErTp,ExOp),lifted(Zed),ACond),
-  genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr),
-  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
+	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       lifted(Zed),ACond),
+  genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
+%  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
 genRtn(_Lc,_ExStTp,_ErTp,_ExOp,lifted(Exp),Exp).
 genRtn(Lc,ExStTp,ErTp,ExOp,unlifted(St),Exp) :-

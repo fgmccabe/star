@@ -11,7 +11,6 @@
   keyword("::").
   keyword(",").
   keyword("?").
-  %keyword("!").
   keyword("^").
   keyword("~").
   keyword("~~").
@@ -57,7 +56,6 @@
   keyword("in").
   keyword("do").
   keyword("valof").
-  keyword("prse").
   keyword("prse").
   keyword("if").
   keyword("then").
