@@ -105,17 +105,12 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "nop"         RT(NOP);
 
 "call"        RT(CALL);
-"ocall"       RT(OCALL);
-"dcall"       RT(DCALL);
-"docall"      RT(DOCALL);
 "escape"      RT(ESCAPE);
 "tail"        RT(TAIL);
 "otail"       RT(OTAIL);
-"dtail"       RT(DTAIL);
-"dotail"      RT(DOTAIL);
+"debug"       RT(DBG);
 
 "ret"         RT(RET);
-"dret"        RT(DRET);
 "jmp"         RT(JMP);
 "case"        RT(CASE);
 
