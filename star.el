@@ -88,6 +88,16 @@
   "return the 8th element of a list."
   (nth 7 l))
 
+(defun star-one-of (l)
+  "Construct optimized regexp from a list of strings (l)."
+  (regexp-opt l t))
+
+(defun star-compose-regexps (l)
+  (if (cadr l) 
+      (concat (car l) "\\|"
+	      (star-compose-regexps (cdr l)))
+    (car l)))
+
 ;;; Initialise the syntax table
 
 (defconst star-mode-syntax-table
@@ -110,9 +120,6 @@
        (modify-syntax-entry ?\} "){" table)
        (modify-syntax-entry ?_ "w" table)
        table))
-
-(defvar star-debugging nil
-  "Non-nil if should log messages to *star-debug*.")
 
 ;;; Initialise the key map
 (defvar star-mode-map
@@ -138,16 +145,6 @@ Argument N  oprefix."
 
 ;;; Font-lock support
 
-(defun star-one-of (l)
-  "Construct optimized regexp from a list of strings (l)."
-  (regexp-opt l t))
-
-(defun star-compose-regexps (l)
-  (if (cadr l) 
-      (concat (car l) "\\|"
-	      (star-compose-regexps (cdr l)))
-    (car l)))
-
 (defconst star-font-lock-function-regexp
   "^[ \t]*\\(\\sw+\\)([][0-9_a-zA-Z?,.:`'\\ ]*)[ \t]*=>"
   "Regular expression matching the function declarations to highlight in Star mode.")
@@ -163,51 +160,47 @@ Argument N  oprefix."
   "/\\*"
   "Star body comment start")
 
+(defconst star-close-par "[])}]"
+  "Star close parentheses")
+
+(defconst star-import-regexp
+  "\\(import +[[:word:]]+\\([.][[:word:]]+\\)*\\)"
+  "Match an import spec")
+
 (defvar star-keyword-regexp
   (concat "\\<"
 	  (star-one-of
 	   '(
+	     "private" "public"
 	     "import"
-	     "private"
-	     "public"
-
-	     "contract"
-	     "implementation"
-	     
-	     "valof"
-	     "return"
-	     "do"
-	     "if"
-	     "then"
-	     "else"
-	     "while"
-	     "for"
-	     "in"
+	     "contract" "implementation"
+	     "valof" "return" "do" "if" "then" "else" "while" "for" "in"
 	     "open"
-
-	     "try"
-	     "catch"
-	     "throw"
-
-	     "where"
-	     "type"
-	     "all"
-	     "exists"
-	     "let"
-	     )) "\\>")
-  "Regular expression matching the keywords to highlight in Star mode.")
+	     "try" "catch" "throw"
+	     "void"
+	     "where" "type" "all" "exists" "let" "default"
+	     "ref"
+	     "show" "assert")
+	   )
+	  "\\>")
+  "Regular expression matching the keywords to highlight in Star mode."
+  )
 
 (defvar star-constant-regexp
-  (concat "\\<"
-	  (star-one-of
+  (concat "\\<\\("
+	  (star-compose-regexps
 	   '(
 	     "true"
 	     "false"
 	     "this"
+	     "none"
+	     "zero"
+	     "one"
+	     "[-]?[0-9]+\\([.][0-9]+\\([eE][-+]?[0-9]+\\)?\\)?"
 	     ))
-	  "\\>")
+	  "\\)\\>")
 	  
-  "Regular expression matching constants and numbers in Star mode.")
+  "Regular expression matching special constants and numbers in Star mode.")
 
 (defvar star-symbol-regexp
   (star-one-of '(
@@ -215,37 +208,30 @@ Argument N  oprefix."
 		 "=>"
 		 "->"
 		 "<=>"
-		 "\\.\\."
+		 ".."
 		 ":="
-		 "\\.="
-		 "\\^="
-		 ">="
-		 ">>="
+		 ".="
+		 "^="
 		 "<-"
-		 "=="
-		 "=<"
 		 "="
 		 "<~"
-		 "\\*>"
+		 "*>"
 		 "::="
 		 "::"
 		 ":"
 		 "&&"
-		 "\\|"
-		 "\\|\\|"
-		 "%%"
+		 "|"
+		 "||"
 		 "~~"
 		 "@@"
 		 "@"
 		 "#"
-		 "\\^"
-		 "\\^\\^"
-		 "\\\\\\+"
-		 "\\\\="
-		 ",\\.\\."
-		 "!\\."
-		 "\\."
-		 "!"
+		 "^"
+		 "^^"
+		 "\\+"
+		 "\\="
+		 ",.."
+		 "."
 		 ))
   "Regular expression matching the symbols to highlight in Star mode."
   )
@@ -254,39 +240,29 @@ Argument N  oprefix."
   (concat "\\<"
 	  (star-one-of
 	   '(
-	     "boolean"
-	     "void"
-	     "float"
-	     "integer"
-	     "string"
-	     "action"
-	     "task"
-	     "list"
-	     "set"
-	     "cons"
-	     "option"
+	     "boolean" "float" "integer" "string"
+	     "action" "task" "list" "set" "cons" "option"
 	     )) "\\>")
   "Regular expression matching the standard types to highlight in Star mode.")
 
 (defvar star-builtin-regexp
-  (concat "\\<"
+  (concat "[^-+*/<>=!]"
 	  (star-one-of
 	   '(
-	     "show"
-	     "assert"
 	     "+"
 	     "-"
-	     "\\*"
+	     "*"
 	     "/"
 	     ">"
 	     "<"
 	     "=<"
 	     ">="
-	     )) "\\>")
+	     "=="
+	     ">>="
+	     "!"
+	     ))
+	  "[^-+*/<>=!]")
   "Regular expression matching some of the standard builtins.")
-
-(defconst star-close-par "[])}]"
-  "Star close parentheses")
 
 (defvar star-mode-font-lock-defaults
   `(
@@ -296,6 +272,7 @@ Argument N  oprefix."
     (,star-type-regexp (1 font-lock-type-face))
     (,star-builtin-regexp (1 font-lock-builtin-face))
     (,star-symbol-regexp (1 font-lock-keyword-face))
+    (,star-import-regexp (1 font-lock-doc-face))
     )
   "Keywords to syntax highlight with variable."
   )
@@ -333,14 +310,14 @@ Argument N  oprefix."
     (1200 "-->"  "-->" t    t    nil	star-arrow-indent)
     (1100 "catch" "catch" t    t nil    0)
     (900  ":="  ":="   t    t    nil    star-arrow-indent)
-    (1460 "::=" "::="  t    t    t	(* star-arrow-indent 2))
-    (1199 "="  "\\b=\\b"   t    t    t	star-arrow-indent)
-    (1199 "=>"  "=>"   t    t    t	star-arrow-indent)
+    (1460 "::=" "::="  t    t    nil	(* star-arrow-indent 2))
+    (1199 "="  "\\b=\\b"   t    t    nil	star-arrow-indent)
+    (1199 "=>"  "=>"   t    t    nil	star-arrow-indent)
     (1199 "<~"  "<~"   t    t    nil	star-arrow-indent)
     (1199 "~>"  "~>"   t    t    nil	star-arrow-indent)
     (1010 "|:" "|:"  t    t   nil	(* star-arrow-indent 2))
-    (1250 "|"   "[^|]|[^|]"  t    t    nil	0)
-    (1060 "||"  "||"   t    t    nil	0)
+    (1250 "|"   "[^|]|[^|]"  t    t    t	0)
+    (1060 "||"  "||"   t    t    t	0)
     (1010  "where" "where" t t   nil	(* star-arrow-indent 2))
     (1000 ","   ","    t    t    nil	0)
     (900 "->"  "->"    t    t    nil	star-arrow-indent)
@@ -382,7 +359,7 @@ Argument N  oprefix."
   "Regular expression matching important star operators")
 
 (defconst star-next-token-regex
-  (star-one-of
+  (star-compose-regexps
    (list star-operators-regex 
 	 star-body-comment-regexp
 	 star-line-comment-regexp))
@@ -520,7 +497,8 @@ Argument N  oprefix."
 		;; Not Hanging
 		(setq tos-indent (+ tos-indent 
 				    (eval (get symbol 'delta)))))
-	      ))
+	      )
+	    )
 	   
 	   ((looking-at star-line-comment-regexp)   ;; Skip comment
 	    (star-skip-line-comment))
@@ -530,12 +508,7 @@ Argument N  oprefix."
 	      (if (>= (point) to)
 		  (setq tos-indent (1+ co-col)
 			tos-in-comment t))))
-;	   ((looking-at star-escaped-string-regex)
-;	    (forward-char 2))
-	   ((looking-at "\"")
-	    (star-skip-string))
-	   ((looking-at "\'")
-	    (star-skip-string))
+	   ((looking-at "[\"\']") (star-skip-string))
 	   (t 
 	    ;; It might be better to forward char first and then scan
 	    ;; for the next token to eliminate any possibility of
@@ -683,6 +656,29 @@ Argument N  oprefix."
 	(match-end 0)
       nil)))
 
+(defun star-vertical-bar-adjust (pos bar)
+  "Returns the number of columns occupied by the | and following spaces"
+  (save-excursion
+    (goto-char pos)
+    (beginning-of-line)
+    (skip-chars-forward " \t")
+    (if (looking-at (concat bar "[ \t]*[^ \t\n\r]"))
+	(progn
+	  (forward-char)
+	  (1+ (skip-chars-forward " \t")))
+      1)))
+
+;;; Readjust a -- comment on the same line
+(defun star-readjust-comment (pos)
+  "readjust a line comment if there is one on the current line"
+  (save-excursion
+    (let
+	((bol (progn (goto-char pos)(beginning-of-line)(point)))
+	 (eol (progn (goto-char pos)(end-of-line)(point))))
+      (goto-char bol)
+      (cond ((search-forward-regexp comment-start-skip eol t)
+	     (indent-for-comment))))))
+
 ;;; Hook called when the tab key is pressed
 (defun star-indent-line ()
   (save-excursion
@@ -694,7 +690,7 @@ Argument N  oprefix."
 	(progn
 	  (delete-horizontal-space)
 	  (indent-to level)
-	  ;; (star-readjust-comment bol)
+	  (star-readjust-comment bol)
 	  ))))
   (star-goto-first-non-whitespace-maybe))
 
