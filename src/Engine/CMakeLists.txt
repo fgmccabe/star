@@ -19,6 +19,7 @@ set(HEADER_FILES
         Headers/engine.h
         Headers/decode.h
         ../Infra/Headers/encoding.h Headers/decodeP.h
+        ../Infra/Headers/streamDecode.h
         ../Infra/Headers/manifest.h ../Infra/Headers/manifestP.h ../Infra/Headers/pkg.h
         Headers/star.h
         Headers/future.h Headers/futureP.h
