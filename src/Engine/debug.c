@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <globals.h>
 #include <str.h>
-#include <jmorecfg.h>
 
 #include "debugP.h"
 #include "arith.h"
