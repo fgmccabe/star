@@ -613,12 +613,6 @@ liftAction(performDo(Lc,Exp,_),perf(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(Exp,E1,Q,Qx,Map,Opts,Ex,Exx).
 
 liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  isIterableGoal(Cond),!,
-  layerName(Map,Path),
-  genIterableGl(Cond,Path,Gl),
-%  (is_member(showSetCode,Opts) -> dispCanonTerm(Gl);true),
-  liftExp(Gl,Exp,Q,Qx,Map,Opts,Ex,Exx).
-liftGoal(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
   liftGl(Cond,Exp,Q,Qx,Map,Opts,Ex,Exx).
 
 liftGl(conj(Lc,L,R),cnj(Lc,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
@@ -739,7 +733,7 @@ findFreeVars(Term,Map,Q,LmFr0) :-
   labelVars(Map,Lv),
   merge(Lv,Q,Q1),
   merge(Df,Q1,Q2),
-  freeVars(Term,Df,Q1,[],ThFr),
+  freeVars(Term,Df,Q2,[],ThFr),
   freeLabelVars(Q2,Map,ThFr,LmFr0).
 
 freeLabelVars([],_,Fr,Fr).

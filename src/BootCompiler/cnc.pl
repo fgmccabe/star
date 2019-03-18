@@ -1,4 +1,4 @@
-:- module(cnc,[genSearch/3,genIterableGl/3,genCondition/8]).
+:- module(cnc,[genCondition/8]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -6,70 +6,10 @@
 :- use_module(unify).
 :- use_module(abstract).
 :- use_module(terms).
-:- use_module(freevars).
 :- use_module(misc).
 :- use_module(do).
 :- use_module(errors).
 
-/*
- * Ptn in Src -- as a standalone condition
- *
- * becomes:
- *
- * some(Ptnv) .= _iter(Src,none, let{
- *  sF(Ptn,none) =>  some(Ptnv)
- *  sF(_,St) => St
- * } in sF))
- */
-
-genSearch(search(Lc,Ptn,Src,Iterator),Path,Gl) :-
-  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
-  findType("action",Lc,Env,ActionTp),
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfCanon(Ptn,PtnTp),
-  splitPtn(Ptn,Pttrn,PtnCond),
-  
-  genNme(Lc,StTp,"_st",St),
-  genNme(Lc,PtnTp,"_",Anon),
-  genNewName(Path,"Γ",ThPath),
-  genstr("sF",Fn),
-  packageVarName(ThPath,Fn,LclName),
-  Initial = enm(Lc,"noneFound",StTp),
-  FnTp = funType(tupleType([PtnTp,StTp]),StTp),
-  CnsTp =  funType(tupleType([PtnTp]),StTp),
-  FF=funDef(Lc,Fn,LclName,FnTp,[],[
-    equation(Lc,tple(Lc,[Pttrn,St]),PtnCond,
-        apply(Lc,v(Lc,"noMore",CnsTp),tple(Lc,[Pttrn]),StTp)),
-    equation(Lc,tple(Lc,[Anon,St]),enm(Lc,"true",type("star.core*boolean")),St)
-  ]),
-  Let = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
-  Exp = apply(Lc,Iterator,tple(Lc,[Src,Let,Initial]),StTp),
-  Gl = match(Lc,apply(Lc,v(Lc,"noMore",CnsTp),tple(Lc,[Pttrn]),StTp),Exp).
-
-
-  /*
-   * 'iterable' conditions become a match on the result of a search
-   *
-   * becomes:
-   *
-   * some(PtnV) .= <genCondition>(C,none,...)
-   */
-
-genIterableGl(Cond,Path,Gl) :-
-  locOfCanon(Cond,Lc),
-  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
-  findType("boolean",Lc,Env,LogicalTp),
-  findType("option",Lc,Env,OptionTp),
-
-
-  
-  goalVars(Cond,Vrs),
-  VTpl = tple(Lc,Vrs),
-  typeOfCanon(VTpl,ETp),
-  IterTp = tpExp(tpFun("star.iterable*iterState",1),ETp),
-  InitState = enm(Lc,"noneFound",IterTp),
-  genCondition(Cond,Path,cnc:setEl(Lc,VTpl,ETp,IterTp),cnc:passSt(Lc),InitState,Seq),
-  Gl = match(Lc,apply(Lc,v(Lc,"noMore",funType(tupleType([ETp]),IterTp)),tple(Lc,[VTpl]),IterTp),Seq).
 
 /*
  * Ptn in Src
@@ -96,7 +36,7 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,Exp) :
   % entangle type of iterator with the monad
   sameType(funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp),ItrTp,[]),
 %  reportMsg("iterator type: %s",[ItrTp]),
-`  reportMsg("local fun type: %s",[FnTp]),
+%  reportMsg("local fun type: %s",[FnTp]),
   genstr("f",Fn),
   genNewName(Path,"Γ",ThPath),
   packageVarName(ThPath,Fn,LclName),
@@ -193,10 +133,6 @@ typeOfInitial(unlifted(C),T) :-
 
 genNme(Lc,Tp,Pr,v(Lc,Nm,Tp)) :-
   genstr(Pr,Nm).
-
-genEl(Lc,El,Gen,StTp,St,apply(Lc,Gen,tple(Lc,[El,St]),StTp)).
-
-setEl(Lc,El,ElTp,StTp,_St,apply(Lc,v(Lc,"noMore",funType(tupleType([ElTp]),StTp)),tple(Lc,[El]),StTp)).
 
 passSt(_,St,St).
 
