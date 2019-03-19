@@ -902,6 +902,8 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
   genAction(Body,Op,StTp,ErTp,EE,Path).
 %  reportMsg("Action-> %s",[EE]).
 
+checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
+  isIden(Term,Lc,"nothing"),!.
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
   newTypeVar("_e",FV),

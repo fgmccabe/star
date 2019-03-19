@@ -65,5 +65,6 @@
   keyword("try").
   keyword("catch").
   keyword("throw").
+  keyword("nothing").
   keyword("#").
   keyword("$").

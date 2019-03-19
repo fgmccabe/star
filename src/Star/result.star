@@ -15,7 +15,7 @@ star.result{
     _perform(_has_value(X)) => X.
     _perform(_not_yet(F)) => _perform(F()).
 
-    _return(X) => _not_yet(()=>_has_value(X)).
+    _lift(X) => _not_yet(()=>_has_value(X)).
 
     _sequence(_failed(E),_) => _failed(E).
     _sequence(_has_value(A),F) => _not_yet(()=>F(A)).

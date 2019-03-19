@@ -774,6 +774,16 @@
     "desc": "wrap value in monad"
   },
   {
+    "prefixOp": "lift",
+    "priorities": [930, 929],
+    "desc": "wrap value in execution"
+  },
+  {
+    "prefixOp": "ignore",
+    "priorities": [930, 929],
+    "desc": "evaluate expression in execution"
+  },
+  {
     "prefixOp": "throw",
     "priorities" : [930, 929],
     "desc" : "throw an exception"
