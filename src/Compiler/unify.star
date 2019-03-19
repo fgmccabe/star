@@ -71,24 +71,24 @@ star.compiler.unify{
       return true
     }.
   bind(V,T,Env) => valof do {
-    VC = constraintsOf(V);
-    {
-      setBinding(V,T);
-      return checkConstraints(VC,Env)
-    } >>> (E) => do {
-      resetBinding(V);
-      return false
-    }
-  }
+	VC = constraintsOf(V);
+	try {
+	  setBinding(V,T);
+	  return checkConstraints(VC,Env)
+	} catch {
+	  resetBinding(V);
+	  return false
+	}
+      }
 
   bind(V,T,Env) where isUnbound(T) =>
-        (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
-          valof do{
-            setConstraints(T,MM);
-            setBinding(V,T);
-            return true
-          }
-        || false).
+      (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
+	 valof do{
+	   setConstraints(T,MM);
+	   setBinding(V,T);
+	   return true
+	 }
+	 || false).
   bind(_,_,_) default => false.
 
   checkConstraints([],_) => true.
@@ -122,7 +122,8 @@ star.compiler.unify{
   sameContract(_,_,_) default => false.
 
   subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
-    subF(Ts1,Ts2) => (Nm,Tp1) in Ts1 *> ((Nm,Tp2) in Ts2 && sameType(Tp1,Tp2,Env)).
+	subF(Ts1,Ts2) =>
+	    (Nm,Tp1) in Ts1 *> ((Nm,Tp2) in Ts2 && sameType(Tp1,Tp2,Env)) ? true || false.
   .} in (subF(E1,E2) && subF(T1,T2)).
 
   public faceOfType:(tipe,dict) => option[tipe].
@@ -138,7 +139,7 @@ star.compiler.unify{
   occIn(Id,tVar(_,Nm)) => Id==Nm.
   occIn(Id,tFun(_,_,Nm)) => Id==Nm.
   occIn(Id,tpExp(O,A)) => occIn(Id,deRef(O)) || occIn(Id,deRef(A)).
-  occIn(Id,tupleType(Els)) => El in Els && occIn(Id,deRef(El)).
+  occIn(Id,tupleType(Els)) => El in Els && occIn(Id,deRef(El)) ? true || false.
   occIn(Id,allType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,existType(_,B)) => occIn(Id,deRef(B)).
   occIn(Id,faceType(Flds,Tps)) => occInPrs(Id,Flds) || occInPrs(Id,Tps).
@@ -150,5 +151,5 @@ star.compiler.unify{
   vrNm(tVar(_,Nm)) => Nm.
   vrNm(tFun(_,_,Nm)) => Nm.
 
-  occInPrs(Id,Tps) => ((_,El) in Tps && occIn(Id,deRef(El))).
+  occInPrs(Id,Tps) => ((_,El) in Tps && occIn(Id,deRef(El))) ? true || false.
 }
