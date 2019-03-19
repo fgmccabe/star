@@ -59,6 +59,9 @@
 @item @code{.+.}
 @tab non-associative prefix
 @tab 700
+@item @code{ignore}
+@tab non-associative prefix
+@tab 930
 @item @code{then}
 @tab non-associative infix
 @tab 1180
@@ -242,6 +245,9 @@
 @item @code{=>}
 @tab right associative infix
 @tab 950
+@item @code{lift}
+@tab non-associative prefix
+@tab 930
 @item @code{^}
 @tab non-associative prefix
 @tab 100
@@ -290,9 +296,6 @@
 @item @code{^/}
 @tab left associative infix
 @tab 800
-@item @code{>>>}
-@tab non-associative infix
-@tab 960
 @item @code{<~}
 @tab non-associative infix
 @tab 1231
