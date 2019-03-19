@@ -18,7 +18,6 @@ All rights reserved.
 @title Star Reference
 @author Francis G. McCabe
 
-
 @page
 @insertcopying
 @end titlepage
@@ -70,6 +69,10 @@ All rights reserved.
 
 @macro typeprod{E,Exp,T}
 @var{\E\} @turnstile{} \Exp\:\T\
+@end macro
+
+@macro typesafe{E,Exp}
+@var{\E\} @turnstile{} @emph{safe(}\Exp\@emph{)}
 @end macro
 
 @macro anchored{T}
