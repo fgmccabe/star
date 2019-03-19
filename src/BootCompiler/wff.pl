@@ -21,6 +21,7 @@
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isHandle/4,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
+              isIgnore/3,
 	      isLetDef/4,mkLetDef/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
@@ -381,7 +382,10 @@ isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.
 
 isReturn(A,Lc,E) :-
-  isUnary(A,Lc,"return",E).
+  isUnary(A,Lc,"lift",E).
+
+isIgnore(A,Lc,E) :-
+  isUnary(A,Lc,"ignore",E).
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).

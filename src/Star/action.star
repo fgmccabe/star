@@ -18,7 +18,7 @@ star.action{
     _perform(done(X)) => X.
     _perform(delay(F)) => _perform(F()).
 
-    _return(X) => delay(()=>done(X)).
+    _lift(X) => delay(()=>done(X)).
 
     _sequence(err(E),_) => err(E).
     _sequence(done(A),F) => delay(()=>F(A)).

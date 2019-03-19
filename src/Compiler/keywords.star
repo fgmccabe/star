@@ -63,6 +63,7 @@ star.comp.keywords {
   keyword("then") => true.
   keyword("else") => true.
   keyword("while") => true.
+  keyword("nothing") => true.
   keyword("for") => true.
   keyword("try") => true.
   keyword("catch") => true.

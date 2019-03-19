@@ -137,7 +137,7 @@ genRtn(Lc,ExOp,ExStTp,ErTp,St,Reslt) :-
 genReturn(Lc,A,StTp,ErTp,ConOp,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
   typeOfCanon(A,ElTp),!,
   Tp = tpExp(StTp,ElTp),		% monadic type of returned value
-  Gen = over(Lc,mtd(Lc,"_return",funType(tupleType([ElTp]),Tp)),
+  Gen = over(Lc,mtd(Lc,"_lift",funType(tupleType([ElTp]),Tp)),
 	     true,[conTract(ConOp,[StTp],[ErTp])]).
 
 genPerform(Lc,A,Tp,StTp,ErTp,ConOp,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-

@@ -3,16 +3,15 @@
 
 
 ;;; Commentary:
-;; 
+;; Implementation of Star mode
+;; Supports fontification and indentation.
+;;
 
 (require 'font-lock)
-(require 'smie)
 
 ;; Mode hook for Star
-;;; Code:
 
 (defvar star-mode-hook nil)
-
 
 ;; Customization parameters
 

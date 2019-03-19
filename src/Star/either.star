@@ -29,7 +29,7 @@ star.either{
     _handle(either(X),_) => either(X).
     _handle(other(E),F) => F(E).
     _raise(E) => other(E).
-    _return(E) => either(E).
+    _lift(E) => either(E).
   }
 
   public implementation all a ~~ monad[either[a]] => {
