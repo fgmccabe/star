@@ -138,8 +138,8 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
         switch (options[jx].hasArg) {
           case noArgument: {
             logical
-              setOpt = (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same || uniCmp(var, "yes") == same ||
-                        uniCmp(var, "YES") == same);
+              setOpt = (logical) (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same || uniCmp(var, "yes") == same ||
+                                      uniCmp(var, "YES") == same);
             if (options[jx].setter(var, setOpt, options[jx].cl) == Ok)
               processedOptions[jx] = True;
             else {

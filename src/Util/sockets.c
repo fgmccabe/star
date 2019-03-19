@@ -429,7 +429,7 @@ char * peerIP(sockPo stream, int *port, char * buff, long len) {
     if (port != NULL)
       *port = ntohs(cli_addr.sin_port);
 
-    strncpy((char *) buff, inet_ntoa(cli_addr.sin_addr), len);
+    strncpy(buff, inet_ntoa(cli_addr.sin_addr), len);
 
     return buff;
   }

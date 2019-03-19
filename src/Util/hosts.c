@@ -272,7 +272,7 @@ char *getNthHostIP(char *name, unsigned long i, char *buffer, unsigned long len)
   if ((h = locateHost(name)) == NULL)
     return NULL;
   else if (i < h->host.ip_count) {
-    strncpy((char *) buffer, inet_ntoa(h->host.ip[i]), len);
+    strncpy(buffer, inet_ntoa(h->host.ip[i]), len);
 
     return buffer;
   } else
@@ -302,7 +302,7 @@ char *machineIP(void) {
   if (HostClass.hostPart.ourHost == NULL) {
     return NULL;
   } else {
-    return ((char *) inet_ntoa(HostClass.hostPart.ourHost->host.ip[0]));
+    return inet_ntoa(HostClass.hostPart.ourHost->host.ip[0]);
   }
 }
 

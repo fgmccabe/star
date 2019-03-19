@@ -6,7 +6,7 @@
 #define STAR_PPP_H
 
 #include "pp.h"
-#include "iochnl.h"
+#include "io.h"
 
 typedef struct _display_ {
   ioPo out;

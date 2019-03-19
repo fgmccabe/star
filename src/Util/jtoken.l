@@ -189,35 +189,32 @@ static int hexValue(char ch)
   return ch-'0';
 }
 
-static long hextoi(char *text)
-{
+static long hextoi(char *text) {
   long val = 0;
 
-  if(strncmp(text,"0x",2)==0){
-    char *hexStr = text+strlen("0x");
+  if (strncmp(text, "0x", 2) == 0) {
+    char *hexStr = text + strlen("0x");
 
-    while(*hexStr!='\0'){
+    while (*hexStr != '\0') {
       int Hex = hexValue(*hexStr++);
-      
-      if(0<=Hex && Hex<16)
-	val = val*16+Hex;
+
+      if (0 <= Hex && Hex < 16)
+        val = val * 16 + Hex;
       else
-	outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
+        outMsg(logFile, "hex number %s not valid at %U/%l", text, fileName(yyFile), yylineno);
     }
-  }
-  else if(strncmp(text,"+",1)==0){
-    char *hexStr = text+1;
-    while(*hexStr!='\0' && *hexStr!=';'){
+  } else if (strncmp(text, "+", 1) == 0) {
+    char *hexStr = text + 1;
+    while (*hexStr != '\0' && *hexStr != ';') {
       int Hex = hexValue(*hexStr++);
-      
-      if(0<=Hex && Hex<16)
-	val = val*16+Hex;
+
+      if (0 <= Hex && Hex < 16)
+        val = val * 16 + Hex;
       else
-	outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
+        outMsg(logFile, "hex number %s not valid at %U/%l", text, fileName(yyFile), yylineno);
     }
-  }
-  else
-    outMsg(logFile,"hex number %s not valid at %U/%l",text,fileName(yyFile),yylineno);
-  
+  } else
+    outMsg(logFile, "hex number %s not valid at %U/%l", text, fileName(yyFile), yylineno);
+
   return val;
 }

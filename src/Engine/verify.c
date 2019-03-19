@@ -128,7 +128,7 @@ static integer segmentHash(objectPo o) {
 static logical segmentEquality(objectPo o1, objectPo o2) {
   segPo s1 = O_SEG(o1);
   segPo s2 = O_SEG(o2);
-  return s1->seg.segNo == s2->seg.segNo;
+  return (logical) (s1->seg.segNo == s2->seg.segNo);
 }
 
 static retCode
