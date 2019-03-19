@@ -144,9 +144,7 @@ ptnGoalVars(cond(_,T,L,R,_),A,Q,Qx) :-
   ptnGoalVars(T,A,Q,Q0),
   ptnGoalVars(L,A,Q0,Q1),
   ptnGoalVars(R,A,Q1,Qx).
-ptnGoalVars(implies(_,G,T),A,Q,Qx) :-
-  ptnGoalVars(G,A,Q,Q0),
-  ptnGoalVars(T,A,Q0,Qx).
+ptnGoalVars(implies(_,_,_),_,Qx,Qx). % implies does not add to available bound vars
 ptnGoalVars(given(_,P,_),A,Q,Qx) :-
   ptnVars(P,A,Q,Qx).
 ptnGoalVars(search(_,K,_,_),A,Q,Qx) :-

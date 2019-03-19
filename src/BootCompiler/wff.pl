@@ -18,7 +18,7 @@
 	      isAbstraction/4,isListAbstraction/4,
 	      isParseTerm/3,isNTLookAhead/3,
 	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,
-	      isBind/4,isValof/3,isThrow/3,isReturn/3,isHandle/4,isTryCatch/4,
+	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
               isIgnore/3,
@@ -382,7 +382,7 @@ isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.
 
 isReturn(A,Lc,E) :-
-  isUnary(A,Lc,"lift",E).
+  (isUnary(A,Lc,"lift",E) ; isUnary(A,Lc,"return")),!.
 
 isIgnore(A,Lc,E) :-
   isUnary(A,Lc,"ignore",E).
@@ -396,9 +396,6 @@ isThrow(A,Lc,E) :-
 isTryCatch(A,Lc,B,H) :-
   isUnary(A,Lc,"try",I),
   isBinary(I,_,"catch",B,H).
-
-isHandle(A,Lc,L,R) :-
-  isBinary(A,Lc,">>>",L,R).
 
 isIfThenElse(A,Lc,Ts,Th,El) :-
   isBinary(A,Lc,"else",Lhs,El),!,

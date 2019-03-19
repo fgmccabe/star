@@ -91,6 +91,7 @@ isIterableGoal(search(_,_,_,_)) :- !.
 isPkg(pkg(_,_)).
 
 typeOfCanon(v(_,_,Tp),Tp) :- !.
+typeOfCanon(dot(_,_,_,Tp),Tp) :- !.
 typeOfCanon(intLit(_,Tp),Tp) :- !.
 typeOfCanon(floatLit(_,Tp),Tp) :- !.
 typeOfCanon(stringLit(_,Tp),Tp) :- !.
@@ -120,6 +121,7 @@ typeOfCanon(over(_,T,_,_),Tp) :- typeOfCanon(T,Tp).
 typeOfCanon(mtd(_,_,Tp),Tp) :-!.
 
 locOfCanon(v(Lc,_,_),Lc) :- !.
+locOfCanon(dot(Lc,_,_,_),Lc) :- !.
 locOfCanon(intLit(Lc,_),Lc) :- !.
 locOfCanon(floatLit(Lc,_),Lc) :- !.
 locOfCanon(stringLit(Lc,_),Lc) :- !.
@@ -148,6 +150,7 @@ locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
+locOfCanon(assignDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(bindDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
