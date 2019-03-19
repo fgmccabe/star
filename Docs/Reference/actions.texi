@@ -1,19 +1,33 @@
 @node Actions
-@chapter Action
+@chapter Actions
 
-An action is the performance of an operation in a particular context.
+An action is the performance of an operation in a particular
+context. Actions in @Star{} are realized using the @code{execution}
+contract.
 
 @float BNF,actionFig
 @caption{Types of Action}
 @display
+@anchored{ActionExpression} ::= @var{DoAction}
+  | @var{ActionAction}
+  | @var{TaskAction}
+
+@anchored{DoAction} ::= @code{do} @var{Action}
+
+@anchored{ActionAction} ::= @code{action} @var{Action}
+
+@anchored{TaskAction} ::= @code{task} @var{Action}
+
 @anchored{Action}::=@var{NullAction}
   | @var{ActionBlock}
   | @var{InvokeAction}
+@c  | @var{IgnoreAction}
+  | @var{LiftAction}
   | @var{BindAction}
+  | @var{DefnAction}
   | @var{IfThenElseAction}
   | @var{WhileAction}
   | @var{ForAction}
-  | @var{ReturnAction}
   | @var{TryCatchAction}
   | @var{ThrowAction}
 @end display
@@ -22,50 +36,438 @@ An action is the performance of an operation in a particular context.
 @node The @code{execution} Contract
 @section The @code{execution} Contract
 
+Action Expressions are expressions that denote an action -- the action
+is performed when the action expression is performed in some way. This
+is mediated by means of the @code{execution} contract.@footnote{The
+@code{execution} contract is strongly related to the @code{monad}
+contract; except that it is slightly more elaborate.}
+
+@float BNF,executionFig
+@caption{Execution Contract}
+@display
+public contract all m/1,e ~~ execution[m->>e] ::= {
+  _lift:all a ~~ (a)=>m[a].
+  _perform:all a ~~ (m[a])=>a.
+  _sequence:all a,b ~~ (m[a],(a)=>m[b]) => m[b].
+  _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
+  _raise: all a ~~ (e) => m[a].
+}
+@end display
+@end float
+
+The @code{execution} contract is over a type function (@code{m/1} and
+has a dependent type that corresponds to the type of any exception or
+error that may be raised during the computation.
+
+@quotation Note
+There are many potential ways of implementing the @code{execution}
+contract; representing different computation characteristics. The two
+standard implementations are modeled by the @code{action} type and the
+@code{task} type; these also have special syntax associated with them.
+
+In addition to these, there are several `non-standard` implementation
+of the contract -- such as for @code{list}s and for the @code{option}
+type.
+@end quotation
+
+@quotation Note
+Although computation expressions are based on the functions in this
+contract, most programmers will not use these directly. Instead, there
+is an action notation that has a more familiar style for representing
+actions.
+@end quotation
+
+@node @code{_lift} a value as a computation
+@subsection @code{_lift} a value as a computation
+@cindex Lift a value into computation
+
+The @code{_lift} function takes an expression and makes it a computation.
+
+@node @code{_perform} a computation
+@subsection @code{_perform} a computation
+@cindex Perform a computation
+
+The @code{_perform} function takes a computation and performs it. It
+is assumed that the computation does not return any form of error or exception.
+
+@quotation Note
+Use the @code{_handle} function to enable the handling of exceptions.
+@end quotation
+
+@node @code{_sequence} computations
+@subsection @code{_sequence} computations
+@cindex Combine computations
+
+The @code{_sequence} function is a way of combining computations into
+a sequential order. The type signature for @code{_sequence} is:
+@display
+_sequence:all a,b,m/1,e ~~ execution[m->>e] |: (m[a],(a)=>m[b]) => m[b].
+@end display
+Abstractly, the @code{_sequence} function takes two computations and
+creates a new one that is the sequence composition of the two
+computations.
+
+In order to facilitate the flow of information between computations,
+the second computation is modeled as a function from the value of the
+first computation to a new computation.
+
+If an exception arises in the first computation, then the second
+computation is not performed and the exception becomes the value of
+the whole computation.
+
+@node @code{_handle} exceptional computations
+@subsection @code{_handle} exceptional computations
+@cindex Combine exceptional computations
+
+The @code{_handle} function takes a computation that may result in an
+exception and converts it into a potentially exception-free
+computation. It does so by handling any exception that arises.
+
+The type signature for @code{_handle} is:
+@display
+_handle:all a,m/1,e ~~ execution[m->>e] |: (m[a],(e)=>m[a]) => m[a].
+@end display
+
+The second argument to @code{_handle} is the exception handler. It is
+expected to return a computation of the same type as the first
+argument.
+
+The expected semantics of @code{_handle} are that if the first
+computation does not arise in an exception then that is the effective
+computation of the result; otherwise, if the first computation does
+result in an exception then the second argument is expected to take
+that exception and return a new computation.@footnote{That is
+presumably not exceptional.}
+
+@node @code{_raise} an exception
+@subsection @code{_raise} an exception
+@cindex Raise an exception
+
+The @code{_raise} function takes an expression and makes it an
+exceptional computation. One of the effects of this is that the
+exception is propagated through any subsequent computations -- unless
+and until the exception is handled.
+
+@node Expected invariants of computation
+@subsection Expected invariants of computation
+@cindex computation invariants
+The different functions in the @code{execution} contract are expected
+to work together in a coherent way. This is codified in a set of
+invariants that any implementation of the contract is expected to
+obey,
+
+@enumerate
+@item
+@code{_perform} is a left identity of @code{_lift}.
+
+I.e., for all @emph{E},
+@display
+_perform(_lift(@emph{E})) = @emph{E}
+@end display
+@item
+@code{_lift} is a left identity of @code{_perform}.
+
+I.e., for all non-exceptional @emph{C}:
+@display
+_lift(_perform(@emph{C})) = @emph{C}
+@end display
+This equality is not defined for computations @emph{C} that are the
+result of @code{_raise}.
+
+@item
+Left identity @code{_lift} and @code{_sequence}
+
+I.e., an expression of the form:
+@display
+_sequence(_lift @var{E},F)
+@end enumerate
+is equivalent to
+@display
+F(@var{E}
+@end display
+
+@item
+@code{_sequence} is associative.
+
+I.e., a composition of the form:
+@display
+_sequence(_sequence(@var{C},@var{F}),@var{G})
+@end display
+is equivalent to
+@display
+_sequence(@var{C},(X)=>_sequence(F(X),G))
+@end display
+Notice that the form of the associativity is not the same as that for
+arithmetic. This is because the @code{_sequence} function is
+inherently assymetric.
+@end enumerate
+
+@node Do Notation
+@section Do Notation
+@cindex Do notation
+@cindex action expressions
+
+The @code{do} notation is a way of writing computation expressions in
+a style that is likely to be familiar to programmers of other
+programming languages.
+
 @node Actions and Type Safety
 @subsection Actions and Type Safety
 @cindex actionTypeSafety
 The meaning of type safety is somewhat different for actions than for
-expressions and functions: by definition, actions do not denote values
-in the way that expressions do.
+expressions and functions: by definition, Actions do not denote values
+in the way that expressions do.@footnote{Or rather, the value of an
+action is a computation -- that will only result in a value if the
+computation is performed.}
 
-However, type safety still applies to actions. In particular, different actions have different _type constraints_ that must be satisfied; for example, an assignment action is _type safe_ if the type of the variable is consistent with the expression and if the variable is a re-assignable variable.
+However, type safety still applies to actions. In particular,
+different actions have different @emph{type constraints} that must be
+satisfied; for example, an assignment action is @emph{type safe} if the
+type of the variable is consistent with the expression and if the
+variable is a re-assignable variable.
 
-We use the meta-predicate \safeinf{} to indicate that a particular action is type safe. An assertion of the form:
-\[\typesafe{E}{A}\]
-means that the action $A$ is type-consistent given the environment $E$. In fact, this predicate is equivalent to a normal type derivation involving the `()` type:
-\[\typesafe{E}{A}\ \iff\ \typeprd{E}{A}{`()`}\]
+We use the meta-predicate @var{safe} to indicate that a particular
+action is type safe. An assertion of the form:
+@display
+@typesafe{E,A}
+@end display
+means that the action @var{A} is type-consistent given the environment
+@var{E}.
 
-== Binding Actions
-Many actions are operators that change the state of one of more variables. However, some actions may bind variables -- that is, establish a new variable.
+@node Nothing
+@subsection @code{nothing}
+@cindex no operation
+@findex nothing
+The @code{nothing} action does nothing; and does not return a value; or, more accurately, return the empty tuple:
 
-The most important binding actions are local variable definitions (<<localVar>>) and assignments (<<assignment>>).
+@float BNF,nothingFig
+@caption{No Operation}
+@display
+@anchor{NullAction} ::= @code{nothing}
+@end display
+@end float
 
-=== Local Variable Definition
-[[localVar]]
-(((action,local variable)))
-(((variables in actions)))
+The @code{nothing} action is equivalent to
+@display
+_lift(())
+@end display
 
-A local variable may be introduced within a block -- see <<blockAction>> -- using the same syntax as a variable declaration statement -- see <<VariableDeclaration>>.
-\begin{aside}
-It is named a local variable simply because it's scope is limited to the block of actions that contain the declaration.
-\end{aside}
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[LocalVariable]]LocalVariable::=`var`\ <<Identifier>>\ `:=`\ <<Expression>>\\
-&nbsp;&nbsp;| `def`<<Pattern>>\ `is`\ <<Expression>>
-\end{eqnarray*}
-.Local Variable
-[[localVariableFig]]
-\end{figure}
+@node Action Block
+@subsection Action Block
+@cindex action block
 
-The scope of a local variable declaration is from the local declaration itself to the end of the containing _ActionBlock_.
+An action block consists of a sequence of actions, enclosed in braces
+(@code{@{@}}) and separated by semi-colons.
+
+@float BNF,blockActionFig
+@caption{Action Block}
+@display
+@anchor{ActionBlock} ::= @{ @var{Action} ; @dots{} ; @var{Action} @}
+@end display
+@end float
+
+The empty action block -- @code{@{@}} -- is equivalent to the
+@var{NullAction}.
+
+Action blocks denote composition of actions using the @code{_sequence} function: for example, the actions @var{A}, @var{B} and @var{C} in:
+@display
+@{
+  A; B; C
+@}
+@end display
+
+are equivalent to the expression:
+@display
+_sequence(A,(_)=>_sequence(B,(_)=>C))
+@end display
+assuming that neither of @var{A} or @var{B} are @emph{binding} actions.
+
+@quotation Note
+The last action in an action block is not permitted to be a binding action.
+@end quotation
+
+@node Invoke Action
+@subsection Invoke Action
+@cindex invoke action
+
+The @var{InvokeAction} denotes the invokation of a
+sub-computation. Typically, an @var{InvokeAction} takes the form of a
+call to an action returning function:
+@float BNF,invokeActionFig
+@caption{Invoke Action}
+@display
+@anchor{InvokeAction} ::= @var{Expression} @var{Argument Tuple}
+@end display
+@end float
+
+The type of this expression should be one that is consistent with the
+enclosing computation expression. Specifically, if the enclosing
+computation is an @code{action}, then the invoked expression should
+also return an @code{action}.
+
+@node Lift Action
+@subsection Lift Action
+@cindex lift action
+@findex lift
+
+The @var{LiftAction} creates a computation from an expression.
+
+@float BNF,liftActionFig
+@caption{Lift Action}
+@display
+@anchor{LiftAction} ::= @code{lift} @var{Expression}
+@end display
+@end float
+
+When a @code{lift} action is performed, its expression is evaluated
+and that value is used as the value of the computation.
+
+@node Bind Action
+@subsection Bind Action
+@cindex bind action
+
+The @var{BindAction} is used to extract the value of a computation and
+pass it along as the value of this computation. The two computations
+need not be of the same type -- although the exception types should be.
+
+@float BNF,bindActionFig
+@caption{Bind Action}
+@display
+@anchor{BindAction} ::= @var{Variable} @code{<-} @var{Expression}
+@end display
+@end float
+
+@quotation Note
+A @var{BindAction} may not be the last action in an @var{ActionBlock}.
+
+@node Definition Action
+@subsection Definition Action
+@cindex definition action
+
+The @var{DefnAction} is used to bind a variable to a value -- that is
+available to subsequent actions.
+
+@float BNF,defnActionFig
+@caption{Definition Action}
+@display
+@anchor{DefnAction} ::= @var{Variable} @code{=} @var{Expression}
+@end display
+@end float
+
+A @var{DefnAction} differs from a @var{BindAction} primarily in the
+fact that the latter is used to unwrap a computation whereas the
+@var{DefnAction} computes any value and does not otherwise touch the
+value.
+
+@quotation Note
+Like the @var{BindAction}, it does not make sense for a
+@var{DefnAction} to be the last action in an @var{ActionBlock}.
+@end quotation
+
+@node Conditional Action
+@subsection Conditional Action
+@cindex conditional action
+
+The @var{IfThenElseAction} is used to denote a conditional computation.
+
+@float BNF,condActionFig
+@caption{If Then Else Action}
+@display
+@anchor{IfThenElseAction} ::= @code{if} @var{Expression} @code{then} @var{Action} @code{else} @var{Action}
+  | @code{if} @var{Expression} @code{then} @var{Action}
+@end display
+@end float
+
+The action expressions of the @code{then} and @code{else} branches
+must be of the same type. I.e., they must be the same computations of
+the same type of value.
+
+The second form of @var{IfThenElseAction} -- which omits the
+@code{else} branch -- is equivalent to one in which the else branch is
+replaced by the @var{NullAction}:
+
+@display
+if @var{Test} then
+  @var{A}
+else
+  nothing
+@end display
+
+Because of this, and because of the constraint that both arms of an
+@var{InThenElseAction} return the same type, the type returned by such
+an action is always the empty tuple -- @code{()}.
+
+@node While Action
+@subsection While Action
+@cindex while action
+@findex while
+
+The @var{WhileAction} is used to denote an iterative computation that
+repeats so long as some condition is satisfied.
+
+@float BNF,whileActionFig
+@caption{While Action}
+@display
+@anchor{WhileAction} ::= @code{while} @var{Condition} @code{do} @var{Action}
+@end display
+@end float
+
+The enclosed action will be repeated zero or more times, for so long
+as the test condition is satisfied.
+
+The value returned by a @var{WhileAction} is always the empty
+tuple. Because of this, @var{WhileActions} nearly always achieve their
+result by means of side-effects -- such as by assigning to
+reassignable variables.
+
+@node For Action
+@subsection For Action
+@cindex for action
+@findex for
+
+The @var{ForAction} is used to denote an iterative computation that is governed by alternate solutions to a @var{QueryCondition}.
+
+@float BNF,forActionFig
+@caption{For Action}
+@display
+@anchor{ForAction} ::= @code{for} @var{QueryCondition} @code{do} @var{Action}
+@end display
+@end float
+
+The enclosed action will be repeated zero or more times, for so long
+as the test condition is satisfied. Each such solution to the
+@var{QueryCondition} may result in different bindings for variables --
+those variables are in scope within the enclosed action.
+
+For example, the action:
+@display
+for (X,Y) in parent && (Y,Z) in parent do @{
+  gps := [(X,Z),..gps!]
+@}
+@end display
+collects grandparents into the re-assignable variable @code{gps}.
+
+Like @var{WhileAction}s, the value returned by a @var{ForAction} is
+always the empty tuple.
+
+
+
+
+
+
+
+
+
+
+
+
+The scope of a local variable declaration is from the local declaration itself to the end of the containing @emph{ActionBlock}.
 
 \begin{aside}
 It is an error for a variable to be referenced within its own definition. Recursive definitions are not permitted as <<LocalVariable>>s.
 \end{aside}
 
-A local variable declared using the `var`...`:=` form is _re-assignable_; whereas a variable declared using the `def`...`is` form is not. The type of a re-assignable variable is a `ref`erence type (see <<referenceType>>). For example, given the <<LocalVariable>> declaration:
+A local variable declared using the @code{var}...@code{:=} form is @emph{re-assignable}; whereas a variable declared using the @code{def}...@code{is} form is not. The type of a re-assignable variable is a @code{ref}erence type (see <<referenceType>>). For example, given the <<LocalVariable>> declaration:
 [listing]
 X := 3
 
@@ -85,15 +487,11 @@ def (Q,R) is ddivide(34,3)
 which would have the effect of binding `Q` to 11, and `R` to 1.
 \begin{aside}
 The reason that we get `integer` division with this call to `ddivide` is that the arguments to `ddivide` -- `34` and `3` -- are `integer`. The slightly different call:
-[listing]
-def (FQ,FR) is ddivide(34.0,3.0)
 
-relies on `float`int point `arithmetic` and results in binding `FQ` to 11.333333, and `FR` to 1.0.
-\end{aside}
 \end{aside}
 
 \begin{aside}
-Local variables may be reassigned by an assignment action anywhere _in the same_ block as the variable declaration itself. For example, the following, somewhat complex, scenario:
+Local variables may be reassigned by an assignment action anywhere @emph{in the same} block as the variable declaration itself. For example, the following, somewhat complex, scenario:
 [listing]
 valof\{
   var X := 0;
@@ -191,7 +589,7 @@ For a record update to be type safe, the field being updated must have `ref`eren
 \BinaryInfC{\typesafe{E}{R`.`N\ `:=`\ V}}
 \end{prooftree}
 \begin{aside}
-It is _not_ necessary for a variable holding the record to be itself re-assignable.
+It is @emph{not} necessary for a variable holding the record to be itself re-assignable.
 \end{aside}
 
 === Updating Indexable Collections
@@ -218,7 +616,7 @@ A := A[with ix->34]
 
 which, in turn, is shorthand for:
 [listing]
-A := _set_indexed(A,ix,34)
+A := @emph{set}indexed(A,ix,34)
 
 
 An assignment of the form:
@@ -231,7 +629,7 @@ A := A[without ix]
 
 which, in turn, is shorthand for:
 [listing]
-A := _delete_indexed(A,ix)
+A := @emph{delete}indexed(A,ix)
 
 
 \begin{aside}
@@ -351,7 +749,7 @@ An action procedure invocation is type safe if the types of the arguments of the
 ==== Evaluation Order of Arguments
 (((procedure invokation,evaluation order)))
 
-There is _no_ guarantee as to the order of evaluation of arguments to a procedure invocation. In fact, there is no guarantee that a given expression will, in fact, be evaluated. This is similar to the situation with function application.
+There is @emph{no} guarantee as to the order of evaluation of arguments to a procedure invocation. In fact, there is no guarantee that a given expression will, in fact, be evaluated. This is similar to the situation with function application.
 
 \begin{aside}
 In order to better support parallel execution, it is quite possible that arguments to an procedure invocation are evaluated in parallel; or that their evaluation will be delayed until the value of the argument expression could make a difference to a computation.
@@ -415,7 +813,7 @@ for Ix->P in array of ["alpha", "beta", "gamma"] do
 
 the variable `Ix` is successively bound to the index of the element being processed.
 
-A `for` loop implies a _scope extension_: variables declared in the pattern have their scope extend to the body of the loop. In this case the variable `X` introduced in the pattern is available for use in the `logMsg` procedure call.
+A `for` loop implies a @emph{scope extension}: variables declared in the pattern have their scope extend to the body of the loop. In this case the variable `X` introduced in the pattern is available for use in the `logMsg` procedure call.
 
 A particularly common case of for loop is the numeric for loop:
 [listing]
@@ -463,7 +861,7 @@ The `while` loop is used to repetitively evaluate a condition. The loop continue
    [[whileLoopFig]]
 \end{figure}
 
-A `while` loop only makes sense if there is a possibility of successive iterations of the body causing a change of state that would make the condition unsatisfiable. A common paradigm for this is the class of _relaxation_ algorithms: algorithms that continue until nothing changes:
+A `while` loop only makes sense if there is a possibility of successive iterations of the body causing a change of state that would make the condition unsatisfiable. A common paradigm for this is the class of @emph{relaxation} algorithms: algorithms that continue until nothing changes:
 [listing][escapechar=|]
 var done := false;
 while not done do{
@@ -479,7 +877,7 @@ During each iteration of the `while` loop, only the first `solution' to the gove
 \end{aside}
 
 ==== Type Safety
-The governing condition must be _satisfied_. Other than that, a `while` loop is type safe if the body is type safe.
+The governing condition must be @emph{satisfied}. Other than that, a `while` loop is type safe if the body is type safe.
 
 \begin{prooftree}
 \AxiomC{\typesat{E}{C}}
@@ -503,7 +901,7 @@ A conditional action is a straightforward `if`...`then`...`else` action: if the 
 \end{figure}
 
 \begin{aside}
-The `test' part of a conditional action takes the form of a _Condition_. This implies that the test may bind variables -- those variables are in scope within the `then' action but are not in scope for the `else' action.
+The `test' part of a conditional action takes the form of a @emph{Condition}. This implies that the test may bind variables -- those variables are in scope within the `then' action but are not in scope for the `else' action.
 \end{aside}
 \begin{aside}
 In general, a condition may be satisfied in many different ways. The conditional action only looks for the `first' way of satisfying the condition.
@@ -514,7 +912,7 @@ For example, we can use a <<Search>> condition to verify that an element is in a
 if {name="j"; amount=X} in Scores then
   |<<Action>>|
 
-tests to see if there is an entry that matches `\{name="j"; amount=X\`} in the `Scores` collection; and, if there is, binds the variable `X` appropriately within `_Action_`.
+tests to see if there is an entry that matches `\{name="j"; amount=X\`} in the `Scores` collection; and, if there is, binds the variable `X` appropriately within `@emph{Action}`.
 
 ==== Type Safety
 A conditional action is type safe if the condition is safe, and if both the branches are type safe.
