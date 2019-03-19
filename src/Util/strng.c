@@ -63,7 +63,7 @@ logical strgEquality(objectPo o1, objectPo o2) {
   strgPo s1 = O_STRG(o1);
   strgPo s2 = O_STRG(o2);
 
-  return uniNCmp(s1->s.txt, s1->s.len, s2->s.txt, s2->s.len) == same;
+  return (logical)(uniNCmp(s1->s.txt, s1->s.len, s2->s.txt, s2->s.len) == same);
 }
 
 strgPo newStrng(integer length, const char *txt) {

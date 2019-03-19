@@ -190,7 +190,7 @@ void setEditLineCompletionCallback(CompletionCallback fn, void *cl) {
   completionCl = cl;
 }
 
-void clearEditLineCompletionCallback(){
+void clearEditLineCompletionCallback() {
   completionCallback = Null;
   completionCl = Null;
 }
@@ -207,7 +207,7 @@ static void refreshLine(integer firstPos, bufferPo lineBuf) {
 }
 
 retCode insertChar(LineState *l, char c) {
-  return insertIntoBuffer(l->lineBuff, c);
+  return insertIntoBuffer(l->lineBuff, (codePoint) c);
 }
 
 /* Move cursor to the left. */

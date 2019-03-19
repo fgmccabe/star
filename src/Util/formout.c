@@ -16,7 +16,7 @@
 static retCode outString(ioPo f, char *str, integer len, long width, integer precision,
                          codePoint pad, logical leftPad);
 
-static retCode outUniString(ioPo f, char *str, long len, long width, int precision,
+static retCode outUniString(ioPo f, char *str, integer len, integer width, integer precision,
                             codePoint pad, logical leftPad, logical alt);
 
 retCode outInt(ioPo f, integer i) {
@@ -53,7 +53,7 @@ static integer natural2StrByBase(char *str, integer i, integer pos, uint16 base)
   return pos;
 }
 
-retCode outInteger(ioPo f, integer i, uint16 base, int width, int precision,
+retCode outInteger(ioPo f, integer i, uint16 base, integer width, integer precision,
                    codePoint pad, logical left, char *prefix, logical sign) {
   char iBuff[128];
   retCode ret;
@@ -75,7 +75,7 @@ retCode outInteger(ioPo f, integer i, uint16 base, int width, int precision,
   return ret;
 }
 
-static retCode outOctal(ioPo f, integer i, int width, int precision, codePoint pad,
+static retCode outOctal(ioPo f, integer i, integer width, integer precision, codePoint pad,
                         logical left, char *prefix, logical sign, logical alt) {
   char iBuff[64];
 
@@ -98,7 +98,7 @@ static retCode outOctal(ioPo f, integer i, int width, int precision, codePoint p
   return ret;
 }
 
-static retCode outHex(ioPo f, long i, int width, int precision, codePoint pad,
+static retCode outHex(ioPo f, long i, integer width, integer precision, codePoint pad,
                       logical left, char *prefix, logical sign, logical alt) {
   char iBuff[64];
 
@@ -533,7 +533,7 @@ retCode outString(ioPo f, char *str, integer len, long width, integer precision,
       len = (integer) width;    /* never print more than available width */
 
     if (!leftPad) {    /* right justified */
-      gaps = (long) (width - len);
+      gaps = width - len;
 
       ret = outText(f, str, len);
 
@@ -607,7 +607,7 @@ static retCode quoteChar(ioPo f, codePoint ch, integer *gaps) {
   return ret;
 }
 
-retCode outUniString(ioPo f, char *str, long len, long width, int precision,
+retCode outUniString(ioPo f, char *str, integer len, integer width, integer precision,
                      codePoint pad, logical leftPad, logical alt) {
   integer gaps;
   retCode ret = Ok;

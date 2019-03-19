@@ -147,7 +147,7 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
               if (p->traceDepth == 0) {
                 if (p->traceCount > 0)
                   p->traceCount--;
-                return (logical) p->traceCount == 0;
+                return (logical) (p->traceCount == 0);
               } else
                 return False;
             default:
@@ -258,7 +258,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
 static DebugWaitFor dbgSingle(char *line, processPo p, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->traceDepth = 0;
-  p->tracing = p->traceCount==0;
+  p->tracing = (logical)(p->traceCount==0);
   return stepInto;
 }
 
@@ -609,7 +609,7 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
       case stepInto:
         if (p->traceCount > 0)
           p->traceCount--;
-        return (logical) p->traceCount == 0;
+        return (logical) (p->traceCount == 0);
 
       case stepOver:
       case nextBreak:

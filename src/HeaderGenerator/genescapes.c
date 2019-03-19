@@ -268,7 +268,7 @@ static void dumpStdType(char *name, bufferPo out) {
 
 static int digitVal(char D) {
   assert(D >= '0' && D <= '9');
-  return (int) (D - '0');
+  return D - '0';
 }
 
 static char *dInt(char *sig, int *len) {

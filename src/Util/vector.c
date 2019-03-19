@@ -169,5 +169,5 @@ integer vectLength(vectorPo v) {
 }
 
 logical vectIsEmpty(vectorPo v){
-  return v->vect.count==0;
+  return (logical)(v->vect.count==0);
 }

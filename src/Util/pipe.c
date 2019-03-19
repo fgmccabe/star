@@ -127,7 +127,7 @@ static int _maxOpenFds() {
 retCode openPipe(char *exec, char **argv, char **envv, ioPo *inpipe, ioPo *outpipe, ioPo *errpipe,
                  ioEncoding encoding) {
   int child, pipe1[2], pipe2[2], pipe3[2];
-  char * name = (char *)exec;
+  char * name = exec;
 
   if (pipe(pipe1) < 0 || pipe(pipe2) < 0 || pipe(pipe3) < 0 || exec == NULL) {
     logMsg(logFile, "problem %s (%d) in opening pipe %s", strerror(errno), errno, exec);
