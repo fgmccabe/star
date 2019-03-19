@@ -33,7 +33,7 @@ star.boot{
       try{
         (Top,Args) <- handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd())));
         invokeMain(Top,Args)
-      } catch (E) => do{ return logMsg(E) }
+      } catch (E) => do{ lift logMsg(E) }
     }
   __boot() default => ().
 
@@ -46,7 +46,7 @@ star.boot{
     -- _ .= logMsg("Repo = \(Repo)") &&
     Pkg ^= parsePkgName(Top) => do{
       setupPkg(Repo,Pkg);
-      return (Top,Args)
+      lift (Top,Args)
     }
   handleCmdLineOpts(other(E)) => err(E).
 
@@ -57,7 +57,7 @@ star.boot{
   }
 
   importPkgs:(list[pkg],list[pkg],bootRepo)=>action[string,()].
-  importPkgs([],Ld,_) => (return ()).
+  importPkgs([],Ld,_) => do {lift ()}.
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
   importPkgs(_,_,_) default => err("Could not load \(_command_line())").
 
@@ -78,7 +78,7 @@ star.boot{
   initialize(pkg(P,_)) => do{
     Pred = P++"@init";
     if _definedLbl(Pred,0) then {
-      return _callLbl(Pred,0,[])
+      lift _callLbl(Pred,0,[])
     } else
       throw "No init for \(P)"
   }
@@ -87,7 +87,7 @@ star.boot{
   invokeMain(Top,Args) => do {
     Pred = Top++"#_main";
     if _definedLbl(Pred,1) then {
-      return _callLbl(Pred,1,[Args])
+      lift _callLbl(Pred,1,[Args])
     }
     else
       throw "No main program: \(Top)".

@@ -70,11 +70,11 @@ star.compiler.types{
   public setConstraints:(tipe,list[constraint]) => action[(),()].
   setConstraints(tVar(V,_),Cx) => do{
     V.constraints := Cx;
-    return ()
+    lift ()
   }
   setConstraints(tFun(V,_,_),Cx) => do{
     V.constraints := Cx;
-    return ()
+    lift ()
   }
   setConstraints(_,_) default => done(()).
 
