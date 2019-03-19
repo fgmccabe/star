@@ -836,8 +836,8 @@ genIterableGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
 	       checker:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
 	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
 	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
-%  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
+  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl),
+  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
 genVl(Lc,Ptn,ExTp,ErTp,ExOp,unlifted(_),Exp) :-
   genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
@@ -849,6 +849,8 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   checkType(Term,Tp,StTp,Env),
   typeOfExp(B,ElTp,E1,_,Bnd,Path),
   pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
+  findType("action",Lc,Env,ActionTp),
+  checkType(Term,tpExp(ActionTp,ErTp),ExTp,Env),
   genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
 		    true,[conTract(Op,[StTp],[ElTp])]),
 	    ExTp,ErTp,ExOp,Zed),
@@ -981,7 +983,7 @@ checkCatch(Term,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,
   Htype = funType(tupleType([ErTp]),tpExp(StTp,ElTp)),
   checkAction(St,Env,_,Op,StTp,ElTp,ErTp,H,Path),
-  genAction(H,Op,noDo(Lc),StTp,ErTp,HH,Path),
+  genAction(H,Op,StTp,ErTp,HH,Path),
   Hndlr = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
 			     enm(Lc,"true",type("star.core*boolean")),
 			     HH),Htype).
