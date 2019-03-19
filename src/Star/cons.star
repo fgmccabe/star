@@ -43,11 +43,6 @@ star.cons{
     _nil = nil.
   }
 
-    public contract all c ~~ sizeable[c] ::= {
-      size:(c) => integer.
-      isEmpty:(c) => boolean.
-    }
-
   public implementation all e ~~ sizeable[cons[e]] => {
     size(L) => consLength(L,0).
     isEmpty(nil) => true.
