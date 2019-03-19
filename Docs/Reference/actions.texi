@@ -322,6 +322,23 @@ The @var{LiftAction} creates a computation from an expression.
 When a @code{lift} action is performed, its expression is evaluated
 and that value is used as the value of the computation.
 
+@node Return Action
+@subsection Return Action
+@cindex return action
+@findex return
+
+The @var{ReturnAction} creates a computation from an expression.
+
+@float BNF,returnActionFig
+@caption{Return Action}
+@display
+@anchor{ReturnAction} ::= @code{return} @var{Expression}
+@end display
+@end float
+
+The @code{return} action, within an action expression, is a synonym of
+a @code{lift} expression.
+
 @node Bind Action
 @subsection Bind Action
 @cindex bind action
