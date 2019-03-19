@@ -111,10 +111,10 @@
        (modify-syntax-entry ?- ". 12" table)
        (modify-syntax-entry ?/ ". 14" table)
        (modify-syntax-entry ?* ". 23" table)
-       (modify-syntax-entry ?( "()" table)
-       (modify-syntax-entry ?) ")(" table)
-       (modify-syntax-entry ?[ "(]" table)
-       (modify-syntax-entry ?] ")[" table)
+       (modify-syntax-entry ?\( "()" table)
+       (modify-syntax-entry ?\) ")(" table)
+       (modify-syntax-entry ?\[ "(]" table)
+       (modify-syntax-entry ?\] ")[" table)
        (modify-syntax-entry ?\{ "(}" table)
        (modify-syntax-entry ?\} "){" table)
        (modify-syntax-entry ?_ "w" table)
@@ -173,7 +173,7 @@ Argument N  oprefix."
 	     "private" "public"
 	     "import"
 	     "contract" "implementation"
-	     "valof" "return" "do" "if" "then" "else" "while" "for" "in"
+	     "valof" "lift" "do" "if" "then" "else" "while" "for" "in"
 	     "open"
 	     "try" "catch" "throw"
 	     "void"
@@ -734,3 +734,10 @@ Argument N  oprefix."
 (provide 'star)
 
 ;;; star.el ends here
+;; Instructions for use:
+;; Add the following to your .emacs to enable automatic use of star mode
+;;
+;; Assumes that this file is located at:
+;; (add-to-list 'load-path "~/lib/emacs/site-lisp")
+;; (autoload 'star-mode "star")
+;; (add-to-list 'auto-mode-alist '("\\.\\(star\\)$" . star-mode))
