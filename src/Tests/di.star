@@ -15,12 +15,12 @@ test.di{
   -- show "Rx=\(valof Rx)".
 
   Fc(I) => action{
-    Fx := 1;
-    for E in I do {
-      Fx := Fx!*E
-    };
-    return Fx!
-  }
+	Fx := 1;
+	for E in I do {
+	  Fx := Fx!*E
+	};
+	return Fx!
+      }
 
   show "Fc(Is) = \(valof Fc(Is))".
 
