@@ -831,13 +831,13 @@ genIterableGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
 		   tple(Lc,[VTpl]),OptTp),
   
   genCondition(Cond,Path,
-	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       do:genRtn(Lc,ExTp,ErTp,ExOp),
 	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
 	       checker:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
 	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
 	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl),
-  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
+  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
+%  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
 genVl(Lc,Ptn,ExTp,ErTp,ExOp,unlifted(_),Exp) :-
   genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
@@ -866,10 +866,6 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
 	       lifted(Zed),ACond),
   genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
-
-genRtn(_Lc,_ExStTp,_ErTp,_ExOp,lifted(Exp),Exp).
-genRtn(Lc,ExStTp,ErTp,ExOp,unlifted(St),Exp) :-
-  genReturn(Lc,St,ExStTp,ErTp,ExOp,Exp).
 
 genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
