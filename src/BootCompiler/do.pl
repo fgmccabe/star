@@ -1,4 +1,4 @@
-:- module(do,[genAction/6,genPerform/7,genReturn/6]).
+:- module(do,[genAction/6,genPerform/7,genRtn/6,genReturn/6]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -125,14 +125,16 @@ genAction(forDo(Lc,Tst,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
   genReturn(Lc,Unit,StTp,ErTp,ConOp,Initial),
   genAction(Body,ConOp,noDo(Lc),IterBody,Path),
   genCondition(Tst,Path,
-	       do:genRtn(Lc,ConOp,StTp,ErTp),
+	       do:genRtn(Lc,StTp,ErTp,ConOp),
+	       do:genSeq(Lc,ConOp,StTp,ErTp),
 	       do:genForBody(Lc,StTp,ErTp,ConOp,IterBody),
-	       do:genPassSt(Lc,StTp,ErTp,ConOp),
+	       do:genRtn(Lc,StTp,ErTp,ConOp),
 	       Initial,ForLoop),
   combineActs(Lc,ForLoop,Cont,ConOp,StTp,ErTp,Exp).
 
-genRtn(Lc,ExOp,ExStTp,ErTp,St,Reslt) :-
-  genReturn(Lc,St,ExStTp,ErTp,ExOp,Reslt).
+genRtn(_Lc,_,_,_,lifted(Exp),Exp).
+genRtn(Lc,StTp,ErTp,ConOp,unlifted(St),Exp) :-
+  genReturn(Lc,St,StTp,ErTp,ConOp,Exp).
 
 genReturn(Lc,A,StTp,ErTp,ConOp,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
   typeOfCanon(A,ElTp),!,
@@ -145,13 +147,21 @@ genPerform(Lc,A,Tp,StTp,ErTp,ConOp,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-
   Perf = over(Lc,mtd(Lc,"_perform",funType(tupleType([MdTp]),Tp)),
 	      true,[conTract(ConOp,[StTp],[ErTp])]).
 
-genPassSt(Lc,StTp,ErTp,ConOp,St,Exp) :-
-  genReturn(Lc,St,StTp,ErTp,ConOp,Exp).
-
 genForBody(Lc,StTp,ErTp,ConOp,IterBody,St,Exp) :-
-  genReturn(Lc,St,StTp,ErTp,ConOp,End),
+  genRtn(Lc,StTp,ErTp,ConOp,St,End),
   combineActs(Lc,IterBody,End,ConOp,StTp,ErTp,Exp),
   reportMsg("for body-> %s",[Exp]).
+
+genSeq(Lc,ExOp,ExStTp,ErTp,St,Init,Reslt,Exp) :-
+  typeOfCanon(St,ATp),
+  MdTp = tpExp(ExStTp,ATp),
+  LTp = funType(tupleType([ATp]),MdTp),
+  Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
+			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
+  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
+	     true,[conTract(ExOp,[ExStTp],[ErTp])]),
+  genRtn(Lc,ExStTp,ErTp,ExOp,Init,Initial),
+  Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
 
 combineActs(_,A1,noDo(_),_ConOp,_,_,A1) :-!.
 combineActs(Lc,A1,Cont,ConOp,StTp,ErTp,Exp) :-
