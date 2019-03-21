@@ -16,8 +16,9 @@ def main(argv):
 
     pkgs = []
     compile_only = False
+    ignore_failures = False
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","heap","all"])
+        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","heap","all","ignore_failures"])
     except getopt.GetopError:
         print usage
         sys.exit(2)
@@ -31,6 +32,8 @@ def main(argv):
             compile_only = True
         elif opt in ['-d','--tracing']:
             tracing = True
+        elif opt == "--ignore_failures":
+            ignore_failures = True
         elif opt == '--all':
             with open('catalog') as cat:
                 catalog = json.load(cat)
@@ -45,9 +48,13 @@ def main(argv):
         return_code = bootCompile(pkg)
         if return_code!=0:
             print "compiling ",pkg," failed"
+            if not ignore_failures:
+                sys.exit(1)
         elif not compile_only:
             return_code = runPkg(pkg)
-            print "return code from running ",pkg," is ",return_code
+            if return_code!=0 and not ignore_failures:
+                print "return code from running ",pkg," is ",return_code
+                sys.exit(return_code)
 
 def bootCompile(Pkg):
     "Compile a package using the bootstrap compiler"
