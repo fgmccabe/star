@@ -41,8 +41,7 @@ isCanon(lambda(_,_,_)).
 isCanon(doTerm(_,_,_,_,_)).
 isCanon(noDo(_)).
 isCanon(seqDo(_,_,_)).
-isCanon(ifThenDo(_,_,_,_,_,_)).
-isCanon(ifThenDo(_,_,_,_,_)).
+isCanon(ifThenDo(_,_,_,_,_,_,_)).
 isCanon(whileDo(_,_,_,_,_)).
 isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_,_)).
@@ -51,6 +50,7 @@ isCanon(bindDo(_,_,_,_,_)).
 isCanon(returnDo(_,_,_,_)).
 isCanon(throwDo(_,_,_,_)).
 isCanon(performDo(_,_,_,_)).
+isCanon(simpleDo(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(intLit(_,_)).
@@ -68,8 +68,7 @@ isGoal(neg(_,_)) :- !.
 isGoal(search(_,_,_,_)) :- !.
 
 isAction(seqDo(_,_,_)).
-isAction(ifThenDo(_,_,_,_,_,_)).
-isAction(ifThenDo(_,_,_,_,_)).
+isAction(ifThenDo(_,_,_,_,_,_,_)).
 isAction(whileDo(_,_,_,_,_)).
 isAction(forDo(_,_,_,_,_)).
 isAction(tryCatch(_,_,_,_,_)).
@@ -143,8 +142,7 @@ locOfCanon(varRef(Lc,_),Lc) :-!.
 locOfCanon(lambda(Lc,_,_),Lc) :-!.
 locOfCanon(doTerm(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(seqDo(Lc,_,_),Lc) :-!.
-locOfCanon(ifThenDo(Lc,_,_,_,_,_),Lc) :-!.
-locOfCanon(ifThenDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(ifThenDo(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(whileDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
@@ -156,6 +154,7 @@ locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
 dispCanonTerm(Term) :-
@@ -340,7 +339,13 @@ showCanonAction(assignDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" := ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(ifThenDo(_,Tst,Th,El,_,_),Dp,O,Ox) :-
+showCanonAction(ifThenDo(_,Tst,Th,noDo(_),_,_,_),Dp,O,Ox) :-
+  appStr("if ",O,O1),
+  Dp2 is Dp+2,
+  showCanonTerm(Tst,Dp,O1,O2),
+  appStr(" then ",O2,O3),
+  showCanonAction(Th,Dp2,O3,Ox).
+showCanonAction(ifThenDo(_,Tst,Th,El,_,_,_),Dp,O,Ox) :-
   appStr("if ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Tst,Dp,O1,O2),
@@ -348,12 +353,6 @@ showCanonAction(ifThenDo(_,Tst,Th,El,_,_),Dp,O,Ox) :-
   showCanonAction(Th,Dp2,O3,O4),
   appStr(" else ",O4,O5),
   showCanonAction(El,Dp2,O5,Ox).
-showCanonAction(ifThenDo(_,Tst,Th,_,_),Dp,O,Ox) :-
-  appStr("if ",O,O1),
-  Dp2 is Dp+2,
-  showCanonTerm(Tst,Dp,O1,O2),
-  appStr(" then ",O2,O3),
-  showCanonAction(Th,Dp2,O3,Ox).
 showCanonAction(whileDo(_,Tst,Bdy,_,_),Dp,O,Ox) :-
   appStr("while ",O,O1),
   Dp2 is Dp+2,

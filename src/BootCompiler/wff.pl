@@ -382,7 +382,7 @@ isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.
 
 isReturn(A,Lc,E) :-
-  (isUnary(A,Lc,"lift",E) ; isUnary(A,Lc,"return")),!.
+  (isUnary(A,Lc,"lift",E) ; isUnary(A,Lc,"return",E)),!.
 
 isIgnore(A,Lc,E) :-
   isUnary(A,Lc,"ignore",E).

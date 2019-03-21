@@ -27,6 +27,7 @@ startCount :-
 
 incErrorCount() :-
   nb_getval(errors,C),
+  limitErrors(C),
   C1 is C+1,
   nb_setval(errors,C1).
 
@@ -35,6 +36,12 @@ errorCount(C) :-
 
 noErrors :-
   errorCount(0).
+
+limitErrors(C) :-
+  C>100,!,
+  writef("Too many errors\n"),
+  halt(9).
+limitErrors(_).
 
 reportMsg(Msg,A,Lc) :-
   showLocation(Lc,OLc,[]),
