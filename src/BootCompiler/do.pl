@@ -1,9 +1,10 @@
-:- module(do,[genAction/6,genPerform/7,genRtn/6,genReturn/6]).
+:- module(do,[genAction/6,genPerform/7,genRtn/6,genReturn/6,genIterableGl/7]).
 
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(types).
 :- use_module(cnc).
+:- use_module(freevars).
 :- use_module(errors).
 
 /* Implement the monadic transformation of do expressions */
@@ -74,18 +75,21 @@ genAction(performDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp,_) :-
   combineActs(Lc,Perf,Cont,ConOp,StTp,ErTp,Exp).
 genAction(simpleDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp,_) :-
   combineActs(Lc,Ex,Cont,ConOp,StTp,ErTp,Exp).
-genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp),ConOp,Cont,
+
+genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),ConOp,Cont,
+	  cond(Lc,Tst,Then,Else,tpExp(StTp,ElTp)),Path) :-
+  isIterableGoal(Ts),!,
+
+  genAction(Th,ConOp,Cont,Then,Path),
+  genAction(El,ConOp,Cont,Else,Path),
+
+  genIterableGl(Ts,StTp,ErTp,ConOp,tpFun("star.core*option",1),Path,Tst).
+
+
+genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp,_),ConOp,Cont,
 	  cond(Lc,Ts,Then,Else,tpExp(StTp,ElTp)),Path) :-
   genAction(Th,ConOp,Cont,Then,Path),
   genAction(El,ConOp,Cont,Else,Path).
-genAction(ifThenDo(Lc,Ts,Th,StTp,ElTp),ConOp,Cont,
-	  cond(Lc,Ts,Then,Cont,tpExp(StTp,ElTp)),Path) :-
-  (Cont = noDo(_) ->
-   reportError("%s may not be last action",
-	       [doTerm(Lc,ifThenDo(Lc,Ts,Th,StTp,ElTp),_,_,_)],Lc);
-   true),
-  genAction(Th,ConOp,Cont,Then,Path).
-
 
 /* Construct a local iterator function:
    let{
@@ -122,15 +126,49 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
 */
 genAction(forDo(Lc,Tst,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
   Unit = tple(Lc,[]),
-  genReturn(Lc,Unit,StTp,ErTp,ConOp,Initial),
   genAction(Body,ConOp,noDo(Lc),IterBody,Path),
   genCondition(Tst,Path,
 	       do:genRtn(Lc,StTp,ErTp,ConOp),
-	       do:genSeq(Lc,ConOp,StTp,ErTp),
+	       do:genSeq(Lc,StTp,ErTp,ConOp),
 	       do:genForBody(Lc,StTp,ErTp,ConOp,IterBody),
 	       do:genRtn(Lc,StTp,ErTp,ConOp),
-	       Initial,ForLoop),
+	       unlifted(Unit),ForLoop),
   combineActs(Lc,ForLoop,Cont,ConOp,StTp,ErTp,Exp).
+
+
+/*
+  * 'iterable' conditions become a match on the result of a search
+  *
+  * becomes:
+  *
+  * some(PtnV) .= <genCondition>(C,none,...)
+*/
+
+genIterableGl(Cond,ExTp,ErTp,ExOp,OptionTp,Path,match(Lc,Ptn,Gl)) :-
+  locOfCanon(Cond,Lc),
+  goalVars(Cond,Vrs),
+  VTpl = tple(Lc,Vrs),
+  typeOfCanon(VTpl,ETp),
+  OptTp = tpExp(OptionTp,ETp),
+
+  genReturn(Lc,enm(Lc,"none",OptTp),ExTp,ErTp,ExOp,Zed),
+
+  Ptn = apply(Lc,v(Lc,"some",funType(tupleType([ETp]),OptTp)),
+		   tple(Lc,[VTpl]),OptTp),
+  
+  genCondition(Cond,Path,
+	       do:genRtn(Lc,ExTp,ErTp,ExOp),
+	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
+	       do:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
+	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       lifted(Zed),Seq),
+  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
+%  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
+
+genVl(Lc,Ptn,ExTp,ErTp,ExOp,unlifted(_),Exp) :-
+  genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
+
+genUse(_Lc,_StTp,_ErTp,_ConOp,Exp,_,Exp).
 
 genRtn(_Lc,_,_,_,lifted(Exp),Exp).
 genRtn(Lc,StTp,ErTp,ConOp,unlifted(St),Exp) :-
@@ -152,7 +190,7 @@ genForBody(Lc,StTp,ErTp,ConOp,IterBody,St,Exp) :-
   combineActs(Lc,IterBody,End,ConOp,StTp,ErTp,Exp),
   reportMsg("for body-> %s",[Exp]).
 
-genSeq(Lc,ExOp,ExStTp,ErTp,St,Init,Reslt,Exp) :-
+genSeq(Lc,ExStTp,ErTp,ExOp,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
   MdTp = tpExp(ExStTp,ATp),
   LTp = funType(tupleType([ATp]),MdTp),

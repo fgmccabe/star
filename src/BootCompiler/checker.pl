@@ -160,8 +160,7 @@ checkOthers([St|Stmts],Ass,Env,Path) :-
 
 checkOther(St,[assertion(Lc,Cond)|More],More,Env,Path) :-
   isIntegrity(St,Lc,C),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(C,LogicalTp,Env,_,Cond,Path).
+  checkGoal(C,Env,_,Cond,Path).
 checkOther(St,[show(Lc,Vl)|More],More,Env,Path) :-
   isShow(St,Lc,C),!,
   findType("string",Lc,Env,StrTp),
@@ -337,7 +336,9 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   typeOfArgPtn(A,AT,Env,E0,Args,Path),
   checkGoal(C,E0,E1,Cond,Path),
   typeOfExp(R,RT,E1,_E2,Exp,Path),
-  (IsDeflt=isDeflt -> Defs=Defsx, Df=[equation(Lc,Args,Cond,Exp)|Dfx]; Defs=[equation(Lc,Args,Cond,Exp)|Defsx],Df=Dfx).
+  processIterable(Env,Path,Exp,Reslt),
+  Eqn = equation(Lc,Args,Cond,Reslt),
+  (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
 
@@ -345,12 +346,14 @@ checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E),
   typeOfExp(R,Tp,E,_E2,Value,Path),
+%  processIterable(Env,Path,Value,Reslt),
   packageVarName(Path,Nm,ExtNm).
 
-checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Value))|Defs],Defs,Env,Path) :-
+checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Reslt))|Defs],Defs,Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E1),
-  typeOfExp(R,Tp,E1,_E2,Value,Path),
+  typeOfExp(R,Tp,E1,_E2,Reslt,Path),
+%  processIterable(Env,Path,Value,Reslt),
   packageVarName(Path,Nm,ExtNm).
 checkVarDefn(Lc,L,_,Tp,Defs,Defs,_,_) :-
   reportError("expecting an assignable type, not %s for %s",[Tp,L],Lc).
@@ -801,46 +804,12 @@ checkGoal(G,Env,Ev,Goal,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,Ev,Cond,Path),
   (isIterableGoal(Cond) ->
-   genIterableGl(Cond,Env,Path,Goal);
+   pickupContract(Lc,Env,"execution",_ExTp,_ErTp,ExOp),
+   findType("option",Lc,Env,OptionTp),	% use the option monad
+   UnitTp = tupleType([]),
+   genIterableGl(Cond,OptionTp,UnitTp,ExOp,OptionTp,Path,Goal),
+   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
-
-/*
-  * 'iterable' conditions become a match on the result of a search
-  *
-  * becomes:
-  *
-  * some(PtnV) .= <genCondition>(C,none,...)
-*/
-
-genIterableGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
-  locOfCanon(Cond,Lc),
-  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
-  findType("option",Lc,Env,OptionTp),
-  
-  goalVars(Cond,Vrs),
-  VTpl = tple(Lc,Vrs),
-  typeOfCanon(VTpl,ETp),
-  OptTp = tpExp(OptionTp,ETp),
-
-  (sameType(OptionTp,ExTp,Env) ;
-   reportError("option not consistent with execution contract",Lc)),
-
-  genReturn(Lc,enm(Lc,"none",OptTp),ExTp,ErTp,ExOp,Zed),
-
-  Ptn = apply(Lc,v(Lc,"some",funType(tupleType([ETp]),OptTp)),
-		   tple(Lc,[VTpl]),OptTp),
-  
-  genCondition(Cond,Path,
-	       do:genRtn(Lc,ExTp,ErTp,ExOp),
-	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
-	       checker:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
-	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
-	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
-%  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
-
-genVl(Lc,Ptn,ExTp,ErTp,ExOp,unlifted(_),Exp) :-
-  genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
@@ -896,7 +865,6 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
   checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-%  reportMsg("action: %s",[doTerm(Lc,Body,_,_,_)]),
   genAction(Body,Op,StTp,ErTp,EE,Path).
 %  reportMsg("Action-> %s",[EE]).
 
@@ -930,14 +898,14 @@ checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,assignDo(Lc,Lhs,Rhs,StTp,ErTp),Path)
   newTypeVar("_V",PT),
   typeOfExp(L,refType(PT),Env,Ev,Lhs,Path),
   typeOfExp(R,PT,Env,_,Rhs,Path).
-checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp),Path) :-
+checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
   checkAction(H,Et,E1,Op,StTp,ElTp,ErTp,Th,Path),
   checkAction(E,Env,E2,Op,StTp,ElTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,StTp,ErTp),Path) :-
+checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,noDo(Lc),StTp,ElTp,ErTp),Path) :-
   isIfThen(Term,Lc,T,H),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
@@ -1065,6 +1033,51 @@ squareTupleExp(Term,Lc,Els,Tp,Env,Ev,Exp,Path) :-
     typeOfExp(Trm,Tp,Env,Ev,Exp,Path);
   macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
   typeOfExp(Trm,Tp,Env,Ev,Exp,Path).
+
+
+/* Process any remaining iterable conditions */
+
+processIterable(Env,Path,Cond,Goal) :-
+  isIterableGoal(Cond),!,
+  locOfCanon(Cond,Lc),
+  pickupContract(Lc,Env,"execution",_ExTp,_ErTp,ExOp),
+  findType("option",Lc,Env,OptionTp),
+  genIterableGl(Cond,OptionTp,tupleType([]),ExOp,OptionTp,Path,Goal),
+  reportMsg("iterable exp -> %s",[Goal]).
+processIterable(Env,Path,apply(Lc,Op,Arg,Tp),apply(Lc,NOp,NArg,Tp)) :-!,
+  processIterable(Env,Path,Op,NOp),
+  processIterable(Env,Path,Arg,NArg).
+processIterable(Env,Path,dot(Lc,Rc,Fld,Tp),dot(Lc,NRc,Fld,Tp)) :-!,
+  processIterable(Env,Path,Rc,NRc).
+processIterable(Env,Path,tple(Lc,Els),tple(Lc,NEls)) :-!,
+  map(Els,checker:processIterable(Env,Path),NEls).
+processIterable(Env,Path,where(Lc,E,C),where(Lc,NE,NC)) :-!,
+  processIterable(Env,Path,E,NE),
+  processIterable(Env,Path,C,NC).
+processIterable(Env,Path,conj(Lc,L,R),conj(Lc,NL,NR)) :-!,
+  processIterable(Env,Path,L,NL),
+  processIterable(Env,Path,R,NR).
+processIterable(Env,Path,disj(Lc,L,R),disj(Lc,NL,NR)) :-!,
+  processIterable(Env,Path,L,NL),
+  processIterable(Env,Path,R,NR).
+processIterable(Env,Path,implies(Lc,L,R),implies(Lc,NL,NR)) :-!,
+  processIterable(Env,Path,L,NL),
+  processIterable(Env,Path,R,NR).
+processIterable(Env,Path,cond(Lc,T,L,R),cond(Lc,NT,NL,NR)) :-!,
+  processIterable(Env,Path,T,NT),
+  processIterable(Env,Path,L,NL),
+  processIterable(Env,R,NR).
+processIterable(Env,Path,neg(Lc,L),neg(Lc,NL)) :-!,
+  processIterable(Env,Path,L,NL).
+processIterable(Env,Path,match(Lc,L,R),match(Lc,NL,NR)) :-!,
+  processIterable(Env,Path,L,NL),
+  processIterable(Env,Path,R,NR).
+processIterable(Env,Path,assign(Lc,L,R),assign(Lc,NL,NR)) :-!,
+  processIterable(Env,Path,L,NL),
+  processIterable(Env,Path,R,NR).
+processIterable(Env,Path,cell(Lc,L),cell(Lc,NL)) :-!,
+  processIterable(Env,Path,L,NL).
+processIterable(_,_,T,T).
 
 nilGen(Lc,name(Lc,"_nil")).
 
