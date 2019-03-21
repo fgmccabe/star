@@ -17,19 +17,6 @@ contract.
 @anchored{ActionAction} ::= @code{action} @var{Action}
 
 @anchored{TaskAction} ::= @code{task} @var{Action}
-
-@anchored{Action}::=@var{NullAction}
-  | @var{ActionBlock}
-  | @var{InvokeAction}
-@c  | @var{IgnoreAction}
-  | @var{LiftAction}
-  | @var{BindAction}
-  | @var{DefnAction}
-  | @var{IfThenElseAction}
-  | @var{WhileAction}
-  | @var{ForAction}
-  | @var{TryCatchAction}
-  | @var{ThrowAction}
 @end display
 @end float
 
@@ -44,15 +31,15 @@ contract; except that it is slightly more elaborate.}
 
 @float BNF,executionFig
 @caption{Execution Contract}
-@display
-public contract all m/1,e ~~ execution[m->>e] ::= {
+@example
+public contract all m/1,e ~~ execution[m->>e] ::= @{
   _lift:all a ~~ (a)=>m[a].
   _perform:all a ~~ (m[a])=>a.
   _sequence:all a,b ~~ (m[a],(a)=>m[b]) => m[b].
   _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
   _raise: all a ~~ (e) => m[a].
-}
-@end display
+@}
+@end example
 @end float
 
 The @code{execution} contract is over a type function (@code{m/1} and
@@ -100,9 +87,9 @@ Use the @code{_handle} function to enable the handling of exceptions.
 
 The @code{_sequence} function is a way of combining computations into
 a sequential order. The type signature for @code{_sequence} is:
-@display
+@example
 _sequence:all a,b,m/1,e ~~ execution[m->>e] |: (m[a],(a)=>m[b]) => m[b].
-@end display
+@end example
 Abstractly, the @code{_sequence} function takes two computations and
 creates a new one that is the sequence composition of the two
 computations.
@@ -124,9 +111,9 @@ exception and converts it into a potentially exception-free
 computation. It does so by handling any exception that arises.
 
 The type signature for @code{_handle} is:
-@display
+@example
 _handle:all a,m/1,e ~~ execution[m->>e] |: (m[a],(e)=>m[a]) => m[a].
-@end display
+@end example
 
 The second argument to @code{_handle} is the exception handler. It is
 expected to return a computation of the same type as the first
@@ -161,16 +148,16 @@ obey,
 @code{_perform} is a left identity of @code{_lift}.
 
 I.e., for all @emph{E},
-@display
+@example
 _perform(_lift(@emph{E})) = @emph{E}
-@end display
+@end example
 @item
 @code{_lift} is a left identity of @code{_perform}.
 
 I.e., for all non-exceptional @emph{C}:
-@display
+@example
 _lift(_perform(@emph{C})) = @emph{C}
-@end display
+@end example
 This equality is not defined for computations @emph{C} that are the
 result of @code{_raise}.
 
@@ -178,29 +165,53 @@ result of @code{_raise}.
 Left identity @code{_lift} and @code{_sequence}
 
 I.e., an expression of the form:
-@display
+@example
 _sequence(_lift @var{E},F)
-@end enumerate
+@end example
 is equivalent to
-@display
-F(@var{E}
-@end display
+@example
+F(@var{E})
+@end example
 
 @item
 @code{_sequence} is associative.
 
 I.e., a composition of the form:
-@display
+@example
 _sequence(_sequence(@var{C},@var{F}),@var{G})
-@end display
+@end example
 is equivalent to
-@display
+@example
 _sequence(@var{C},(X)=>_sequence(F(X),G))
-@end display
+@end example
 Notice that the form of the associativity is not the same as that for
 arithmetic. This is because the @code{_sequence} function is
 inherently assymetric.
 @end enumerate
+
+@c @node Actions and Type Safety
+@c @subsection Actions and Type Safety
+@c @cindex actionTypeSafety
+@c The meaning of type safety is somewhat different for actions than for
+@c expressions and functions: by definition, Actions do not denote values
+@c in the way that expressions do.@footnote{Or rather, the value of an
+@c action is a computation -- that will only result in a value if the
+@c computation is performed.}
+
+@c However, type safety still applies to actions. In particular,
+@c different actions have different @emph{type constraints} that must be
+@c satisfied; for example, an assignment action is @emph{type safe} if the
+@c type of the variable is consistent with the expression and if the
+@c variable is a re-assignable variable.
+
+@c We use the meta-predicate @var{safe} to indicate that a particular
+@c action is type safe. An assertion of the form:
+@c @display
+@c @typesafe{E,A}
+@c @end display
+@c means that the action @var{A} is type-consistent given the environment
+@c @var{E}.
+
 
 @node Do Notation
 @section Do Notation
@@ -211,28 +222,25 @@ The @code{do} notation is a way of writing computation expressions in
 a style that is likely to be familiar to programmers of other
 programming languages.
 
-@node Actions and Type Safety
-@subsection Actions and Type Safety
-@cindex actionTypeSafety
-The meaning of type safety is somewhat different for actions than for
-expressions and functions: by definition, Actions do not denote values
-in the way that expressions do.@footnote{Or rather, the value of an
-action is a computation -- that will only result in a value if the
-computation is performed.}
-
-However, type safety still applies to actions. In particular,
-different actions have different @emph{type constraints} that must be
-satisfied; for example, an assignment action is @emph{type safe} if the
-type of the variable is consistent with the expression and if the
-variable is a re-assignable variable.
-
-We use the meta-predicate @var{safe} to indicate that a particular
-action is type safe. An assertion of the form:
+@float BNF,doFig
+@caption{Do Notation}
 @display
-@typesafe{E,A}
+@anchored{Action}::=@var{NullAction}
+  | @var{BlockAction}
+  | @var{InvokeAction}
+@c  | @var{IgnoreAction}
+  | @var{LiftAction}
+  | @var{BindAction}
+  | @var{DefnAction}
+  | @var{AssignmentAction}
+  | @var{IfThenElseAction}
+  | @var{WhileAction}
+  | @var{ForAction}
+  | @var{TryCatchAction}
+  | @var{ThrowAction}
 @end display
-means that the action @var{A} is type-consistent given the environment
-@var{E}.
+@end float
+
 
 @node Nothing
 @subsection @code{nothing}
@@ -243,14 +251,14 @@ The @code{nothing} action does nothing; and does not return a value; or, more ac
 @float BNF,nothingFig
 @caption{No Operation}
 @display
-@anchor{NullAction} ::= @code{nothing}
+@anchored{NullAction} ::= @code{nothing}
 @end display
 @end float
 
 The @code{nothing} action is equivalent to
-@display
+@example
 _lift(())
-@end display
+@end example
 
 @node Action Block
 @subsection Action Block
@@ -262,7 +270,7 @@ An action block consists of a sequence of actions, enclosed in braces
 @float BNF,blockActionFig
 @caption{Action Block}
 @display
-@anchor{ActionBlock} ::= @{ @var{Action} ; @dots{} ; @var{Action} @}
+@anchored{BlockAction} ::= @{ @var{Action} ; @dots{} ; @var{Action} @}
 @end display
 @end float
 
@@ -270,16 +278,16 @@ The empty action block -- @code{@{@}} -- is equivalent to the
 @var{NullAction}.
 
 Action blocks denote composition of actions using the @code{_sequence} function: for example, the actions @var{A}, @var{B} and @var{C} in:
-@display
+@example
 @{
   A; B; C
 @}
-@end display
+@end example
 
 are equivalent to the expression:
-@display
+@example
 _sequence(A,(_)=>_sequence(B,(_)=>C))
-@end display
+@end example
 assuming that neither of @var{A} or @var{B} are @emph{binding} actions.
 
 @quotation Note
@@ -296,7 +304,7 @@ call to an action returning function:
 @float BNF,invokeActionFig
 @caption{Invoke Action}
 @display
-@anchor{InvokeAction} ::= @var{Expression} @var{Argument Tuple}
+@anchored{InvokeAction} ::= @var{Expression} @var{Argument Tuple}
 @end display
 @end float
 
@@ -315,7 +323,7 @@ The @var{LiftAction} creates a computation from an expression.
 @float BNF,liftActionFig
 @caption{Lift Action}
 @display
-@anchor{LiftAction} ::= @code{lift} @var{Expression}
+@anchored{LiftAction} ::= @code{lift} @var{Expression}
 @end display
 @end float
 
@@ -332,12 +340,14 @@ The @var{ReturnAction} creates a computation from an expression.
 @float BNF,returnActionFig
 @caption{Return Action}
 @display
-@anchor{ReturnAction} ::= @code{return} @var{Expression}
+@anchored{ReturnAction} ::= @code{return} @var{Expression}
 @end display
 @end float
 
+@quotation Note
 The @code{return} action, within an action expression, is a synonym of
 a @code{lift} expression.
+@end quotation
 
 @node Bind Action
 @subsection Bind Action
@@ -350,12 +360,13 @@ need not be of the same type -- although the exception types should be.
 @float BNF,bindActionFig
 @caption{Bind Action}
 @display
-@anchor{BindAction} ::= @var{Variable} @code{<-} @var{Expression}
+@anchored{BindAction} ::= @var{Pattern} @code{<-} @var{Expression}
 @end display
 @end float
 
 @quotation Note
-A @var{BindAction} may not be the last action in an @var{ActionBlock}.
+A @var{BindAction} may not be the last action in an @var{BlockAction}.
+@end quotation
 
 @node Definition Action
 @subsection Definition Action
@@ -367,7 +378,7 @@ available to subsequent actions.
 @float BNF,defnActionFig
 @caption{Definition Action}
 @display
-@anchor{DefnAction} ::= @var{Variable} @code{=} @var{Expression}
+@anchored{DefnAction} ::= @var{Pattern} @code{=} @var{Expression}
 @end display
 @end float
 
@@ -376,10 +387,68 @@ fact that the latter is used to unwrap a computation whereas the
 @var{DefnAction} computes any value and does not otherwise touch the
 value.
 
+The scope of a local variable declaration is from the local
+declaration itself to the end of the containing @emph{BlockAction}.
+
+@quotation Note
+It is an error for a variable to be referenced within its own
+definition. Recursive definitions are not permitted.
+@end quotation
+
+left hand side of a definition is a @var{Pattern}, not simply an
+@var{Identifier}.
+
+One primary use for this form is to allow the unpacking of function
+results.
+
+For example, the function @code{ddivide} below returns a pair of values: the
+quotient and the remainder result of dividing the first argument by
+the second:
+
+@example
+ddivide:(integer,integer)=>(integer,integer).
+ddivide(X,Y) => (X/Y,X%Y).
+@end example
+
+We can unpack the results of a call to @code{ddivide} using a
+@var{TuplePattern} on the left hand side of the declaration:
+
+@example
+(Q,R) = ddivide(34,3)
+@end example
+
+which would have the effect of binding @code{Q} to @code{11}, and @code{R} to @code{1}.
+
 @quotation Note
 Like the @var{BindAction}, it does not make sense for a
-@var{DefnAction} to be the last action in an @var{ActionBlock}.
+@var{DefnAction} to be the last action in an @var{BlockAction}.
 @end quotation
+
+@node Assignment Action
+@subsection Assignment Action
+@cindex assignment action
+@findex :=
+
+The @var{AssignmentAction} is used to modify the contents of a
+re-assignable variable.
+
+It does not return a useful value (actually returns the empty tuple),
+and so it is not normally part of a bind operation.
+
+There is a special case of the @var{AssignmentAction}: where the
+variable being assigned to is new (i.e., not otherwise in scope). Such
+an assignment is actually interpreted as establishing a local
+re-assignable variable; just like the @var{DefnAction}. In this case,
+the scope of the defined variable extends from the beginning of the
+next action to the end of the enclosing @var{BlockAction}.
+
+
+@float BNF,assignctionFig
+@caption{Assignment Action}
+@display
+@anchored{AssignmentAction} ::= @var{Variable} @code{:=} @var{Expression}
+@end display
+@end float
 
 @node Conditional Action
 @subsection Conditional Action
@@ -390,7 +459,7 @@ The @var{IfThenElseAction} is used to denote a conditional computation.
 @float BNF,condActionFig
 @caption{If Then Else Action}
 @display
-@anchor{IfThenElseAction} ::= @code{if} @var{Expression} @code{then} @var{Action} @code{else} @var{Action}
+@anchored{IfThenElseAction} ::= @code{if} @var{Expression} @code{then} @var{Action} @code{else} @var{Action}
   | @code{if} @var{Expression} @code{then} @var{Action}
 @end display
 @end float
@@ -403,12 +472,12 @@ The second form of @var{IfThenElseAction} -- which omits the
 @code{else} branch -- is equivalent to one in which the else branch is
 replaced by the @var{NullAction}:
 
-@display
+@example
 if @var{Test} then
   @var{A}
 else
   nothing
-@end display
+@end example
 
 Because of this, and because of the constraint that both arms of an
 @var{InThenElseAction} return the same type, the type returned by such
@@ -425,7 +494,7 @@ repeats so long as some condition is satisfied.
 @float BNF,whileActionFig
 @caption{While Action}
 @display
-@anchor{WhileAction} ::= @code{while} @var{Condition} @code{do} @var{Action}
+@anchored{WhileAction} ::= @code{while} @var{Condition} @code{do} @var{Action}
 @end display
 @end float
 
@@ -447,7 +516,7 @@ The @var{ForAction} is used to denote an iterative computation that is governed 
 @float BNF,forActionFig
 @caption{For Action}
 @display
-@anchor{ForAction} ::= @code{for} @var{QueryCondition} @code{do} @var{Action}
+@anchored{ForAction} ::= @code{for} @var{QueryCondition} @code{do} @var{Action}
 @end display
 @end float
 
@@ -457,706 +526,61 @@ as the test condition is satisfied. Each such solution to the
 those variables are in scope within the enclosed action.
 
 For example, the action:
-@display
+@example
 for (X,Y) in parent && (Y,Z) in parent do @{
   gps := [(X,Z),..gps!]
 @}
-@end display
+@end example
 collects grandparents into the re-assignable variable @code{gps}.
 
 Like @var{WhileAction}s, the value returned by a @var{ForAction} is
 always the empty tuple.
 
+@node Try Catch Action
+@subsection Try Catch Action
+@cindex try catch action
+@findex try
+@findex catch
+
+The @var{TryCatchAction} is used to denote a computation which may
+need to respond to exception situations. 
+
+@float BNF,tryCatchActionFig
+@caption{Try Catch Action}
+@display
+@anchored{TryCatchAction} ::= @code{try} @var{Action} @code{catch} @var{Handler}
+@anchored{Handler} ::= @var{BlockAction}
+                | @var{Expression}
+@end display
+@end float
+
+There are two forms of @var{TryCatchAction}s: one where the handler is
+very simple -- to the point of ignoring the exception itself -- and
+the second where the handler should be a function from the error type
+of the computation to a valid computation.
+
+@node Throw Action
+@subsection Throw Action
+@cindex throw action
+@findex throw
+
+The @var{ThrowAction} is used to denote a failed computation. The
+@var{ThrowAction} takes an error value which becomes the error value
+of computation as a whole.
+
+@float BNF,throwctionFig
+@caption{Throw Action}
+@display
+@anchored{ThrowAction} ::= @code{throw} @var{Expression}
+@end display
+@end float
+
+@quotation Note
+If a computation throws an error value, and that error exception is
+not caught by a @var{TryCatchAction}, then the execution of the entire
+program is terminated.
+@end quotation
 
 
 
 
-
-
-
-
-
-
-
-The scope of a local variable declaration is from the local declaration itself to the end of the containing @emph{ActionBlock}.
-
-\begin{aside}
-It is an error for a variable to be referenced within its own definition. Recursive definitions are not permitted as <<LocalVariable>>s.
-\end{aside}
-
-A local variable declared using the @code{var}...@code{:=} form is @emph{re-assignable}; whereas a variable declared using the @code{def}...@code{is} form is not. The type of a re-assignable variable is a @code{ref}erence type (see <<referenceType>>). For example, given the <<LocalVariable>> declaration:
-[listing]
-X := 3
-
-then the variable `X` has type `ref integer`.
-
-If the left hand side of an `is` local variable definition is an identifier, or is an unterm, then the `var` prefix is not required. However, it is good practice to use `var` in situations that may be confusing.
-
-\begin{aside}
-Note that the left hand side of an `is` definition is a `Pattern`, not simply an `Identifier`. One primary use for this form is to allow the `unpacking' of function results. For example, the function `ddivide` returns a pair of values: the quotient and the remainder result of dividing the first argument by the second:
-[listing]
-ddivide(X,Y) is (X/Y,X%Y)
-
-We can unpack the results of a call to `ddivide` using a <<TuplePattern>> on the left hand side of the declaration:
-[listing]
-def (Q,R) is ddivide(34,3)
-
-which would have the effect of binding `Q` to 11, and `R` to 1.
-\begin{aside}
-The reason that we get `integer` division with this call to `ddivide` is that the arguments to `ddivide` -- `34` and `3` -- are `integer`. The slightly different call:
-
-\end{aside}
-
-\begin{aside}
-Local variables may be reassigned by an assignment action anywhere @emph{in the same} block as the variable declaration itself. For example, the following, somewhat complex, scenario:
-[listing]
-valof\{
-  var X := 0;
-  def inc is (() do { X:=X+1; })
-  valis X
-\}
-
-the assignment to `X` within the `inc` procedure is permitted; even though it  side-effect a variable not defined directly within the procedure.
-\end{aside}
-
-==== Declaring Variables
-(((variable,declaration)))
-The type of a <<Variable>> can be declared in an action sequence using a <<TypeAnnotation>> statement prior to the declaration itself:
-[listing]
-X has type ref integer;
-var X := 3
-
-
-==== Type Safety
-A variable declaration is type safe if the type of the variable is the same as the type of the expression giving its value.
-\begin{aside}
-Of course, it is often the case that the type of a variable is determined from its declaration; so type safety is typically more an issue for other references to the variable identifier than for the variable declaration itself.
-\end{aside}
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{Ex}{T}}
-\AxiomC{\typeprd{E}{P}{T}}
-\BinaryInfC{\typesafe{E}{`def` P\ `is`\ Ex}}
-\end{prooftree}
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{Ex}{T}}
-\AxiomC{\typeprd{E}{V}{`ref`\ T}}
-\BinaryInfC{\typesafe{E}{`var`\ V\ `:=`\ Ex}}
-\end{prooftree}
-
-=== Assignment
-[[assignment]]
-(((action,assignment)))
-(((assignment)))
-The assignment action `:=` replaces the contents of a variable with a new value. For example:
-[listing]
-Count := Count+3
-
-changes the value associated with the variable `Count` to `Count+3` -- where `Count+3` refers to the `old' value of `Count`.
-
-There are a number of variations on the basic form of assignment; it is possible to `replace' an element of a `list` or an attribute of a record. However, semantically, all the different syntactic forms of assignment have a common root: that of changing a variable to have a different value.
-
-Figures~\vref{assignmentFig}, \vref{recordTargetFig}, and \vref{IndexTargetFig} show the different syntactic forms of an assignment action.
-
-\begin{aside}
-Assignment is restricted to replacing the value of a `ref`erence typed variable or record field.
-\end{aside}
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[Assignment]]Assignment::=<<VariableAssignment>>\\
-&nbsp;&nbsp;| <<IndexedAssignment>>\\
-&nbsp;&nbsp;| <<RecordAssignment>>\\
-[[VariableAssignment]]VariableAssignment::=<<Variable>>\ `:=`\ <<Expression>>
-\end{eqnarray*}
-.Assignment Action
-[[assignmentFig]]
-\end{figure}
-
-==== Type Safety
-A variable assignment is safe iff the type of the variable is a `ref`erence type that is consistent with the expression denoting the variable's new value.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{V}{`ref`\ T}}
-\AxiomC{\typeprd{E}{Vl}{T}}
-\BinaryInfC{\typesafe{E}{V` := `Vl}}
-\end{prooftree}
-
-=== Updating Records
-[[recordUpdate]]
-(((record values,update)))
-(((update record values)))
-An individual field of a record may be updated using the dot-notation on the left hand side of an assignment action -- provided that the type of the field is a `ref` type. In effect, assignment to a record field is permitted only if the field was marked as being updateable.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[RecordAssignment]]RecordAssignment::=<<Expression>>`.`<<Identifier>> `:=`\ <<Expression>>\\
-\end{eqnarray*}
-.Record Assignment[[recordTargetFig]]
-\end{figure}
-
-
-==== Type Safety
-For a record update to be type safe, the field being updated must have `ref`erence type.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{R}{T\sub{R}\ `where `T\sub{R}` implements \{`N` has type ref `T\sub{N}`\`}}}
-\AxiomC{\typeprd{E}{V}{T\sub{N}}}
-\BinaryInfC{\typesafe{E}{R`.`N\ `:=`\ V}}
-\end{prooftree}
-\begin{aside}
-It is @emph{not} necessary for a variable holding the record to be itself re-assignable.
-\end{aside}
-
-=== Updating Indexable Collections
-[[sequenceUpdate]]
-(((sequences,update)))
-(((update sequences)))
-An `indexable` sequence may be updated using the square index notation on the on the left hand side of an assignment action.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[IndexedAssignment]IndexedAssignment::=<<Expression>>`[`<<Expression>>`]]``:=`\ <<Expression>>\\
-&nbsp;&nbsp;| `remove`\ <<Expression>>`[`<<Expression>>`]`
-\end{eqnarray*}
-.Index Assignment[[IndexTargetFig]]
-\end{figure}
-
-An assignment of the form:
-[listing]
-A[ix] := 34
-
-is syntactic short-hand for
-[listing]
-A := A[with ix->34]
-
-which, in turn, is shorthand for:
-[listing]
-A := @emph{set}indexed(A,ix,34)
-
-
-An assignment of the form:
-[listing]
-remove C[ix]
-
-means to delete the identified element of the collection and is syntactic shorthand for the assignment:
-[listing]
-A := A[without ix]
-
-which, in turn, is shorthand for:
-[listing]
-A := @emph{delete}indexed(A,ix)
-
-
-\begin{aside}
-As noted in <<indexableContract>>, the sequence assignment is not restricted to sequences with `integer` indices. The same assignment statement also applies to `dictionary` updates.
-\end{aside}
-
-==== Type Safety
-For an indexable update to be type safe, the left hand side of the assignment must refer to a variable with a `ref`erence type -- see <<referenceType>> -- and whose type implements the `indexable` contract -- see Program~\vref{indexableContractDef}.
-
-\begin{prooftree}
-\def\defaultHypSeparation{}
-\AxiomC{\typeprd{E}{s}{`ref`\ S`where indexable over`\ S\ `determines`\ `(`K`,`V`)`}}
-\AxiomC{\typeprd{E}{k}{K}}
-\AxiomC{\typeprd{E}{v}{V}}
-\TrinaryInfC{\typesafe{E}{s`[`k`]`\ `:=`\ v}}
-\end{prooftree}
-
-
-== Control Flow Actions
-[[controlFlow]]
-
-=== Action Block
-[[blockAction]]
-(((action,block)))
-(((block action)))
-An action block simply consists of a sequence of actions, separated by semicolons and enclosed within the pair of keywords `\{` and `\`}.
-
-The actions in an action block are executed in sequence.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[ActionBlock]]ActionBlock::=`\{`\ <<Action>>\ `;`...`;` <<Action>>\ `\`}
-\end{eqnarray*}
-.Action Block
-[[blockActionFig]]
-\end{figure}
-
-==== Scope
-An <<ActionBlock>> represents a <<Scope>>. Any <<LocalVariable>>s that are defined within an <<ActionBlock>> are not defined outside the <<ActionBlock>>.
-
-==== Type Safety
-An action block is type safe if each of the actions within it are type safe.
-
-\begin{prooftree}
-\AxiomC{\typesafe{E}{A\sub1}}
-\AxiomC{...}
-\AxiomC{\typesafe{E}{A\subn}}
-\TrinaryInfC{\typesafe{E}{`\{ `A\sub1;...;A\subn` \`}}}
-\end{prooftree}
-
-=== Null Action
-[[nullAction]]
-(((nothing@`nothing`)))
-
-The `nothing` action does nothing. It is type safe by default.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[NullAction]]NullAction::=`nothing`\ |\ `\{\`}
-\end{eqnarray*}
-.Null Action
-[[nullActionFig]]
-\end{figure}
-
-=== Let Action
-[[letActionion]]
-(((actions,let action@`let` action)))
-(((let action@`let` action)))
-
-A `let` action allows an action to be defined in terms of  auxiliary definitions.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[LetAction]]LetAction::=`let`\ <<thetaEnvironment>>\ `in`\ <<Action>>\\
-&nbsp;&nbsp;| <<Action>>\ `using`\ <<thetaEnvironment>>\\
-\end{eqnarray*}
-.Let Action
-[[letActionFig]]
-\end{figure}
-
-(((theta environment)))
-A `let` action (or its cousin the `using` action) consists of an action that is performed in the enhanced context of a set of auxiliary definition. It is directly analogous to the <<LetExpression>>.
-
-
-==== Type Safety
-The primary safety requirement for a `let` action is that the statements that are defined within the body are type consistent. This is the same requirement for any theta environment.
-
-=== Procedure Invocation
-[[invokeProcedure]]
-(((action,invoke procedure)))
-(((invoke procedure action)))
-A procedure invocation is the invocation of an action procedure -- effectively a sub-routine call.
-
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[InvokeAction]]InvokeAction::=<<Expression>>`(`\ <<Expression>>\sequence{,}<<Expression>>\ `)`
-\end{eqnarray*}
-.Procedure Invocation
-[[invokeProcedureFig]]
-\end{figure}
-
-
-==== Type Safety
-[[procedureApplyType]]
-(((type,procedure invocation)))
-An action procedure invocation is type safe if the types of the arguments of the application match the argument types of the action procedure.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{`P`}{t\sub{P}}}
-\AxiomC{\typeprd{E}{`A`}{t\sub{A}}}
-\AxiomC{\entail{E}{t\sub{P}\subsume{}t\sub{A}`=>()`}}
-\TrinaryInfC{\typesafe{E}{`P A`}}
-\end{prooftree}
-
-
-==== Evaluation Order of Arguments
-(((procedure invokation,evaluation order)))
-
-There is @emph{no} guarantee as to the order of evaluation of arguments to a procedure invocation. In fact, there is no guarantee that a given expression will, in fact, be evaluated. This is similar to the situation with function application.
-
-\begin{aside}
-In order to better support parallel execution, it is quite possible that arguments to an procedure invocation are evaluated in parallel; or that their evaluation will be delayed until the value of the argument expression could make a difference to a computation.
-\end{aside}
-
-\begin{aside}
-In general, the programmer should make the fewest possible assumptions about order of evaluation.
-\end{aside}
-
-=== Ignore Action
-[[ignore]]
-(((ignore,ignore action)))
-(((ignore action)))
-(((action that ignores result)))
-An <<IgnoreAction>> is an action that simply ignores the value of its <<Expression>> argument.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[IgnoreAction]]IgnoreAction::=`ignore`\ <<Expression>>
-\end{eqnarray*}
-.Ignore Action[[ignoreActionFig]]
-\end{figure}
-
-==== Type Safety
-An `ignore` action is type safe if its ignore expression has a type.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{Ex}{Tp}}
-\UnaryInfC{\typesafe{E}{`ignore`\ Ex}}
-\end{prooftree}
-
-\begin{aside}
-Clearly, the purpose of `ignore` is to capture the effect of evaluating an expression. One common purpose of `ignore` is to allow a function to be invoked as a procedure call.
-\end{aside}
-
-=== For Loop
-[[forLoop]]
-(((action,for loop@`for` loop)))
-(((for loop action@`for` loop action)))
-(((loop,for@`for`)))
-A `for` loop is used to iterate over the elements of a collection. The collection may be of any of the standard `collection' types:  `list`, `cons` and `dictionary`.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[ForLoop]]ForLoop::=`for`\ <<Condition>>\ `do`\ <<Action>>
-\end{eqnarray*}
-.For Loop[[forLoopFig]]
-\end{figure}
-\noindent
-For example, the loop:
-[listing]
-for ("j",X) in list of [ ("j","s"), ("k","t"), ("j","u") ] do
-  logMsg(info,X);
-
-results in log messages (see <<logMsg>>) being printed for `"s"` and `"u"` (but not for `"t"` because `("j",X)` does not match against `("k","t")`).
-
-A variant of the `for` loop allows access to the `index' of the element being processed. For example, in the loop:
-[listing]
-for Ix->P in array of ["alpha", "beta", "gamma"] do
-  logMsg(info,"P=$P, index=$Ix");
-
-the variable `Ix` is successively bound to the index of the element being processed.
-
-A `for` loop implies a @emph{scope extension}: variables declared in the pattern have their scope extend to the body of the loop. In this case the variable `X` introduced in the pattern is available for use in the `logMsg` procedure call.
-
-A particularly common case of for loop is the numeric for loop:
-[listing]
-for Ix in range(0,10,1) do
-  logMsg(info,"$Ix")
-
-This will result in the integers 0 through 9 being displayed on the log.
-
-==== Type Safety
-A `for` loop is dependent on the `iterable` contract (see <<iterableContract>>; the type safety rules reflect this:
-\begin{prooftree}
-%\insertBetweenHyps{\hskip 0pt}
-\alwaysNoLine
-\AxiomC{\typeprd{E}{C}{T\sub{C}\ `where iterable over `T\sub{C}` determines (`T\sub{ix}, T\sub{P}`)`}}
-\def\extraVskip{1ex}
-\UnaryInfC{{\typeprd{E}{P}{T\sub{P}} {\hskip 2.5in} \typesafe{E$\cup$varsin(P)}{Body}}}
-\alwaysSingleLine
-\UnaryInfC{\typesafe{E}{`for `P\ `in`\ C\ ` do `Body}}
-\end{prooftree}
-
-`for` loops using the indexed form depend on `indexed\_iterable`:
-\begin{prooftree}
-\alwaysNoLine
-\AxiomC{\typeprd{E}{C}{T\sub{C}\ `where indexed\_iterable over `T\sub{C}` determines (`T\sub{ix}, T\sub{P}`)`}}
-\def\extraVskip{1ex}
-\UnaryInfC{{\typeprd{E}{P}{T\sub{P}} {\hskip 1in} {\typeprd{E}{Ix}{T\sub{Ix}}}{\hskip 1in}\typesafe{E$\cup$varsin(P)}{Body}}}
-\alwaysSingleLine
-\UnaryInfC{\typesafe{E}{`for `Ix` -> `\ P\ `in`\ C\ ` do `Body}}
-\end{prooftree}
-
-
-=== While Loop
-[[whileLoop]]
-(((action,while loop@`while` loop)))
-(((while loop action@`while` loop action)))
-(((loop,while@`while`)))
-
-The `while` loop is used to repetitively evaluate a condition. The loop continues execution for so long as the governing <<Condition>> is satisfiable.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[WhileLoop]]WhileLoop::=`while`\ <<Condition>>\ `do`\ <<Action>>
-\end{eqnarray*}
-.While Loop
-   [[whileLoopFig]]
-\end{figure}
-
-A `while` loop only makes sense if there is a possibility of successive iterations of the body causing a change of state that would make the condition unsatisfiable. A common paradigm for this is the class of @emph{relaxation} algorithms: algorithms that continue until nothing changes:
-[listing][escapechar=|]
-var done := false;
-while not done do{
-  done := true;
-  if |...| then
-    done := false;
-}
-
-
-Like the `for` loop, a `while` loop also implies a scope extension. Variables defined within the governing condition are available for use within the body of the loop.
-\begin{aside}
-During each iteration of the `while` loop, only the first `solution' to the governing <<Condition>> is `used' and can therefore result in bindings of variables.
-\end{aside}
-
-==== Type Safety
-The governing condition must be @emph{satisfied}. Other than that, a `while` loop is type safe if the body is type safe.
-
-\begin{prooftree}
-\AxiomC{\typesat{E}{C}}
-\AxiomC{\typesafe{E$\cup$varsin(C)}{Body}}
-\BinaryInfC{\typesafe{E}{`while `C` do `Body}}
-\end{prooftree}
-
-=== Conditional Action
-[[ifThenElse]]
-(((action,conditional action)))
-(((conditional action)))
-(((if then else@`if` `then` `else` action)))
-
-A conditional action is a straightforward `if`...`then`...`else` action: if the governing condition is satisfied the `then` branch is taken; otherwise the `else` branch is taken. The `else` branch is optional in a conditional action; if not present then no action is taken if the condition is not `true`.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[ConditionalAction]ConditionalAction::=`if`\ <<Condition>>\ `then`\ <<Action>>\ [\ `else`\ <<Action>>\ ]]
-\end{eqnarray*}
-.Conditional Action[[conditionalActionFig]]
-\end{figure}
-
-\begin{aside}
-The `test' part of a conditional action takes the form of a @emph{Condition}. This implies that the test may bind variables -- those variables are in scope within the `then' action but are not in scope for the `else' action.
-\end{aside}
-\begin{aside}
-In general, a condition may be satisfied in many different ways. The conditional action only looks for the `first' way of satisfying the condition.
-\end{aside}
-
-For example, we can use a <<Search>> condition to verify that an element is in a collection. The fragment:
-[listing][escapechar=|]
-if {name="j"; amount=X} in Scores then
-  |<<Action>>|
-
-tests to see if there is an entry that matches `\{name="j"; amount=X\`} in the `Scores` collection; and, if there is, binds the variable `X` appropriately within `@emph{Action}`.
-
-==== Type Safety
-A conditional action is type safe if the condition is safe, and if both the branches are type safe.
-
-\begin{prooftree}
-\AxiomC{\typesat{E}{C}}
-\AxiomC{\typesafe{E$\cup$varsin(C)}{Th}}
-\AxiomC{\typesafe{E}{El}}
-\TrinaryInfC{\typesafe{E}{`if `C` then `Th` else `El}}
-\end{prooftree}
-
-
-=== Switch Actions
-[[SwitchAction]]
-(((action,switch@`switch`)))
-(((switch action@`switch` action)))
-
-A `switch` action uses a selector expression and a set of action rules to determine which action to perform.
-\begin{aside}
-As with `switch` expressions (see <<caseExpression>>). `switch` actions are often constructed during the process of compiling other kinds of program.
-\end{aside}
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[SwitchAction]]SwitchAction::=`switch`\ <<Expression>>\ `in`\ <<SwitchActionBody>>\\
-[[SwitchActionBody]]SwitchActionBody::=`\{`<<ActionArm>>\sequence{`;`}<<ActionArm>>`\`}\\
-[[ActionArm]]ActionArm::=`case`\ <<Pattern>>\ `do`\ <<Action>>\\
-&nbsp;&nbsp;| `case`\ <<Pattern>>\ `default`\ `do`\ <<Action>>
-\end{eqnarray*}
-.Switch Action
-[[SwitchActionFig]]
-\end{figure}
-
-The `selector' expression is evaluated, and then, at most one of the <<SwitchAction>>s is selected based on whether the <<Pattern>> matches or not. If one of these does match, then the corresponding <<Action>> on the right hand side is performed.
-
-If none of the <<ActionArm>>'s case patterns match, and if a `default` <<Action>> is specified, then that action is performed. If a `default` is not specified then `nothing` is performed.
-
-Program~\vref{treeWalkProg} shows an example of using a `case` action to walk a tree in left-to-right ordering.
-\begin{program}
-[listing]
-type tree of t is empty or node(tree of t, t, tree of t);
-
-walk has type for all t such that (tree of t, (t)=>())=>()
-prc walk(T,P) do {
-  switch T in {
-    case empty do nothing;
-    case node(L,Lb,R) do {
-      walk(L,P);
-      P(Lb); -- visit the node
-      walk(R,P)
-    }
-  }
-};
-
-.A Left-to-Right Tree Walk Program[[treeWalkProg]]
-\end{program}
-
-
-Each <<ActionArm>>'s pattern may introduce variables; these variables are `in scope' only for the corresponding case action.
-
-Optionally, a `case` action may have a `default` clause. If none of the cases in the <<SwitchActionBody>> match then the `default` case is performed. If there is no `default` clause, then if none of the cases match `nothing` is performed -- and execution continues with the next action.
-
-
-\paragraph{Evaluation Order}
-The <<ActionArm>>s in a <<SwitchAction>> are tried in the order that they are written -- with the exception of any `default` <<ActionArm>> -- which is guaranteed to be attempted only if all others do not apply.
-
-==== Type Safety
-The type safety requirements of a `case` action are that the types of the patterns of each <<ActionArm>> are the same, and are the same as the selector expression. In addition, the right hand sides of the <<ActionArm>>s should also be consistently typed.
-
-\begin{prooftree}
-\AxiomC{\typeprd{E}{S}{T}}
-\AxiomC{\typeprd{E}{P\subi}{T}}
-\AxiomC{\typesafe{E$\cup{}$varsIn(P\subi)}{A\subi}}
-\TrinaryInfC{\typesafe{E}{`switch`\ S\ `in\{``case`P\sub1\ `do`\ A\sub1\sequence{;}`case`P\subn\ `do`\ A\subn\ `\`}}}
-\end{prooftree}
-
-In the case that there is a `default` clause, then that too must be type safe:
-\begin{prooftree}
-\AxiomC{\typeprd{E}{S}{T}}
-\AxiomC{\typeprd{E}{P\subi}{T}}
-\AxiomC{\typesafe{E$\cup{}$varsIn(P\subi)}{A\subi}}
-\TrinaryInfC{\typesafe{E}{`switch`\ S\ `in\{`...`; case` P\subn\ `default do` A\subn`;`...`\`}}}
-\end{prooftree}
-
-=== Valis Action
-[[valisAction]]
-(((action,valis@`valis`)))
-(((valis action@`valis` action)))
-(((returning value to `valof` expression)))
-
-The `valis` action determines the value of the nearest textually enclosing  <<ValueExpression>>.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[ValisAction]]ValisAction::=`valis`\ <<Expression>>
-\end{eqnarray*}
-.Valis Action
-[[valisActionFig]]
-\end{figure}
-
-On executing the `valis` action, the corresponding <<ValueExpression>> `completes' -- no further actions within the <<ValueExpression>> are executed.
-
-
-\begin{aside}
-The `valis` action has special significance within a <<ComputationExpression>>. There the <<ValisAction>> becomes syntactic sugar for an occurrence of the `\_encapsulate` function.
-\end{aside}
-
-=== Assert Action
-[[assert]]
-(((action,assert action)))
-(((assert action)))
-(((checking code with assertions)))
-An _AssertAction_ is an action that simply verifies that a particular condition is satisfied. If the assertion is not satisfiable then execution will terminate.
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[AssertAction]]AssertAction::=`assert`\ <<Condition>>
-\end{eqnarray*}
-.Assert Action[[assertActionFig]]
-\end{figure}
-
-\begin{aside}
-It is possible to control whether or not assertions are actually executed -- without modifying the source of the program.
-\end{aside}
-
-
-==== Type Safety
-An assert action is type safe if the condition is satisfiable.
-
-\begin{prooftree}
-\AxiomC{\typesat{E}{C}}
-\UnaryInfC{\typesafe{E}{`assert`\ C}}
-\end{prooftree}
-
-== Exceptions and Recovery
-[[exceptions]]
-Exceptions represent a way of capturing the non-normal flow of computation. Where a computation may _fail_ this may be denoted by an `exception` being `raise`d during the computation. Raised exceptions may be captured by means of an `on abort` handler.
-\begin{aside}
-Exceptions and abort handling features are an important tool for expressing non-regular flows of computation. However, excessive use of this feature may result in programs that are hard to read.
-\end{aside}
-
-=== The `exception` Type
-[[exceptionType]]
-(((exception type@`exception` type)))
-(((type,exception@`exception`)))
-Exceptions and their handling center on the `exception` type. When an exception is `raise`d, there is an opportunity to communicate a value to the handling code; the `exception` is the means by which this is done.
-
-The definition of the `exception` type is given in Program~\vref{exceptionDef}.
-\begin{program}
-[listing]
-type exception is exception(string,any,location)
-
-.The definition of the standard `exception` type[[exceptionDef]]
-\end{program}
-
-The first element of the `exception` constructor is intended to be used as a form of code: it is a string that represents the kind of exception. For internally generated errors, the value of this code is the string `"error"`. For user-defined programs, if no value is given to the code then `nonString` is used.
-
-The second element of the `exception` constructor is an arbitrary exception signal. It is of type `any` -- which suggests that it may be any value; however, in most cases, the exception signal is actually a `string`.
-
-The third element of the `exception` constructor is a `location` value. This is typically the source location within the program that gave rise to the exception.
-
-=== Abort Action
-[[raiseAction]]
-(((raise an exception)))
-(((abort computation)))
-(((actions,abort with`abort with`)))
-The `abort with` action is used to signal that the current computation should terminate abnormally. The form of the `abort with` is given in <<abortWithFig>>.
-
-
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[AbortAction]]AbortAction::=`abort with`\ <<Expression>>\\
-\end{eqnarray*}
-.Raise Expression Action
-[[abortWithFig]]
-\end{figure}
-
-The type of the `abort expression' depends on the context. In the case of a computation expression (see <<computation>>), the argument must have a type consistent with the error type of the governing monad.
-
-In the case of an `abort with` occurring outside of computation expressions, the type should be `exception`.
-
-For example, in the context:
-[listing]
-good computation {
-  abort with "A message"
-}
-
-The type of the expression associated with the `abort with` should be `string`. This is because the implementation signature for the `good` monad is:
-
-[listing]
-implementation (computation) over good determines string is ...
-
-
-=== Abort Handling Action
-[[except]]
-(((actions,exception handling)))
-(((handling exceptions)))
-(((try action@`try` action)))
-The `try` ...{} `on abort` action allows recovery from actions and expressions that cause exceptions.
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[TryAction]]TryAction::=`try`\ <<Action>>\ `on abort`\ <<SwitchActionBody>>
-\end{eqnarray*}
-.Try Action
-[[tryActionFig]]
-\end{figure}
-
-If an exception is caused during the execution of the protected <<Action>> then the handler in entered. This handler takes the form of the body of a <<SwitchAction>> -- i.e., is a sequence of recovery clauses, each of which is a <<ActionArm>>. The pattern part of the recovery clause is matched against the exception value; and the first pattern that matches is used to recover from the exception.
-
-Exceptions are caused either by an error condition -- such as when the equations of a function fail to match a call -- or by an explicit invocation of the `raise` action/expression.
-
-For example, in the fragment:
-[listing]
-try{
-  def A is first(nil); -- Will raise an exception
-  logMsg(info,"A is $A");
-} on abort {
-  case E do logMsg(info,"Had exception: $E");
-}
-
-the evaluation of `first(nil)` will fail because `nil` is empty. As a result, the rest of the <<Action>> it is embedded in is aborted and execution continues with the recovery clause.
-
-==== Type Safety
-An `try` action is type safe if both arms of the action are safe.
-
-\begin{prooftree}
-\AxiomC{\typesafe{E}{P}}
-\AxiomC{\typesafe{E}{X}}
-\BinaryInfC{\typesafe{E}{`try`\ P\ `on abort`\ X}}
-\end{prooftree}

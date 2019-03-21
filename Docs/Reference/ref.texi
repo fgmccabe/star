@@ -76,7 +76,8 @@ All rights reserved.
 @end macro
 
 @macro anchored{T}
-@anchor{\T\}@var{\T\}
+@anchor{\T\}
+@var{\T\}
 @end macro
 
 @noindent
@@ -100,6 +101,7 @@ F.G. McCabe).
 * Grammar::
 * Well Formed Programs::
 * Types::
+* Actions::
 
 * Concept index::
 * Function index::
@@ -118,6 +120,8 @@ F.G. McCabe).
 @include wff.texi
 
 @include types.texi
+
+@include actions.texi
 
 @node Concept index
 @unnumbered Concept index
