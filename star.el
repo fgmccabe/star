@@ -298,16 +298,18 @@ Argument N  oprefix."
 ;;; Parse tables
 (defconst star-operators
   ;; Prec Text  Regex  Push Pop Hanging Delta
-  '((5000 "{"   "{"    t    nil  nil    star-brace-indent)
+  '((5000 "{"   "{"    same    nil  nil    star-brace-indent)
     (5000 "}"   "}"    nil  same nil	0)
     (4500 ". "  "\\.\\([ \n\t]\\|$\\)" nil    t  nil  0)
     (4000 "["   "\\["  t    nil  t	star-bracket-indent)
-    (4000 "("   "("    t    nil  t	star-paren-indent)
-    (4000 ")"   ")"    nil  same nil	0)
     (4000 "]"   "\\]"  nil  same nil	0)
+    (3000 "("   "("    t    nil  t	star-paren-indent)
+    (3000 ")"   ")"    nil  same nil	0)
     (1250 ";"   ";"    t    t    nil	0)
     (1200 "-->"  "-->" t    t    nil	star-arrow-indent)
     (1100 "catch" "catch" t    t nil    0)
+    (1000 "then" "then" same nil nil star-query-indent)
+    (1000 "else" "else" t same (- star-query-indent) star-query-indent)
     (900  ":="  ":="   t    t    nil    star-arrow-indent)
     (1460 "::=" "::="  t    t    nil	(* star-arrow-indent 2))
     (1199 "="  "\\b=\\b"   t    t    nil	star-arrow-indent)
@@ -344,7 +346,8 @@ Argument N  oprefix."
 	(put symbol 'precedence precedence)
 	(put symbol 'text text)
 	(put symbol 'regex regex)
-	(put symbol 'push push)
+	(put symbol 'push (if (eq push 'same) t 'same))
+	(put symbol 'push-same (eq push 'same))
 	(put symbol 'pop (if (eq pop 'same) nil pop))
 	(put symbol 'pop-until-same (eq pop 'same))
 	(put symbol 'hanging hanging)
@@ -352,6 +355,7 @@ Argument N  oprefix."
 	(put symbol 'length (length text)))
       (setq l (cdr l)))))
 (star-setup-operators-hash)
+
 
 (defconst star-operators-regex
   (star-compose-regexps (mapcar 'caddr star-operators))
@@ -429,7 +433,7 @@ Argument N  oprefix."
       ;; to check tos-in-comment and scan for
       ;; end-of-comment (*/) to escape it first.
       (progn 
-	(while (< (point) to)
+	(while (<= (point) to)
 	  (cond 
 	   ;; An important Star! operator
 	   ((looking-at star-operators-regex)
@@ -462,6 +466,17 @@ Argument N  oprefix."
 			  tos-prec   (1st state)
 			  tos-op     (2nd state)
 			  tos-indent (3rd state))))
+
+	      ;; if push-same then use prior indent as basis of indent
+	      (if (get symbol 'push-same)
+		  (progn
+		    (setq stk stack)
+		    (while (and stk (not (eq (2nd (car stk)) symbol)))
+		      (setq stk (cdr stk)))
+		    (if (and stk (eq (2nd (car stk)) symbol))
+			(setq tos-indent (3rd (car stk))))
+		    )
+		)
 
 	      ;; Push the symbol onto the stack, if allowed
 	      (if (get symbol 'push)
@@ -506,7 +521,7 @@ Argument N  oprefix."
 	      (star-skip-block-comment)
 	      (if (>= (point) to)
 		  (setq tos-indent (1+ co-col)
-			tos-in-comment t))))
+			tos-in-comment t)))  )
 	   ((looking-at "[\"\']") (star-skip-string))
 	   (t 
 	    ;; It might be better to forward char first and then scan
