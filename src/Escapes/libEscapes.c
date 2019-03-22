@@ -64,6 +64,7 @@ ReturnStatus rtnStatus(processPo p, retCode ret, char *msg) {
       rtn.result = okEnum;
       return rtn;
     case Fail:
+      rtn.result = failEnum;
       return rtn;
     case Eof:
       rtn.result = eofEnum;

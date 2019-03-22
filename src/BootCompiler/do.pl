@@ -75,7 +75,6 @@ genAction(performDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp,_) :-
   combineActs(Lc,Perf,Cont,ConOp,StTp,ErTp,Exp).
 genAction(simpleDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp,_) :-
   combineActs(Lc,Ex,Cont,ConOp,StTp,ErTp,Exp).
-
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),ConOp,Cont,
 	  cond(Lc,Tst,Then,Else,tpExp(StTp,ElTp)),Path) :-
   isIterableGoal(Ts),!,
@@ -84,8 +83,6 @@ genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),ConOp,Cont,
   genAction(El,ConOp,Cont,Else,Path),
 
   genIterableGl(Ts,StTp,ErTp,ConOp,tpFun("star.core*option",1),Path,Tst).
-
-
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ElTp,_),ConOp,Cont,
 	  cond(Lc,Ts,Then,Else,tpExp(StTp,ElTp)),Path) :-
   genAction(Th,ConOp,Cont,Then,Path),
@@ -126,7 +123,8 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
 */
 genAction(forDo(Lc,Tst,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
   Unit = tple(Lc,[]),
-  genAction(Body,ConOp,noDo(Lc),IterBody,Path),
+  genReturn(Lc,Unit,StTp,ErTp,ConOp,Zed),
+  genAction(Body,ConOp,Zed,IterBody,Path),
   genCondition(Tst,Path,
 	       do:genRtn(Lc,StTp,ErTp,ConOp),
 	       do:genSeq(Lc,StTp,ErTp,ConOp),
@@ -134,6 +132,7 @@ genAction(forDo(Lc,Tst,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
 	       do:genRtn(Lc,StTp,ErTp,ConOp),
 	       unlifted(Unit),ForLoop),
   combineActs(Lc,ForLoop,Cont,ConOp,StTp,ErTp,Exp).
+genAction(noDo(_),_,Cont,Cont,_).
 
 
 /*

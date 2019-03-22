@@ -6,7 +6,7 @@
 
 /* Declare standard types used in escapes */
 
-#define sysRet "Uz1'star.core*resultType'S"
+#define sysRet "t'star.core*sysResult'"
 #define processState "t'star.thread*processState'"
 #define threadType "t'star.thread*thread'"
 #define lockType "t'star.thread*lock'"
