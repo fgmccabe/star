@@ -86,13 +86,13 @@ star.comp.escapes{
   escapeType("_list_flatten") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*list",1),tpExp(tpFun("star.core*list",1),kVar("t")))])),tpExp(tpFun("star.core*list",1),kVar("t")))).
   escapeType("_list_reverse") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*list",1),kVar("t"))])),tpExp(tpFun("star.core*list",1),kVar("t")))).
   escapeType("_cwd") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*string")).
-  escapeType("_cd") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_rm") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_mv") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_mkdir") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_rmdir") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_cd") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*sysResult")).
+  escapeType("_rm") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*sysResult")).
+  escapeType("_mv") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*sysResult")).
+  escapeType("_mkdir") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.core*sysResult")).
+  escapeType("_rmdir") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*sysResult")).
   escapeType("_isdir") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*boolean")).
-  escapeType("_file_chmod") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_file_chmod") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.core*sysResult")).
   escapeType("_ls") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*list",1),tipe("star.core*string"))).
   escapeType("_repo") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*string")).
   escapeType("_file_mode") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*integer")).
@@ -106,7 +106,7 @@ star.comp.escapes{
   escapeType("_openAppendFile") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.io*fileHandle")).
   escapeType("_openAppendIOFile") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.io*fileHandle")).
   escapeType("_popen") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tpExp(tpFun("star.core*list",1),tipe("star.core*string")),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))])),tupleType([tipe("star.io*fileHandle"),tipe("star.io*fileHandle"),tipe("star.io*fileHandle")])).
-  escapeType("_close") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_close") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*sysResult")).
   escapeType("_end_of_file") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*boolean")).
   escapeType("_ready_to_read") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*boolean")).
   escapeType("_ready_to_write") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*boolean")).
@@ -116,16 +116,16 @@ star.comp.escapes{
   escapeType("_inbyte") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*integer")).
   escapeType("_inline") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*string")).
   escapeType("_intext") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*string")])),tipe("star.core*string")).
-  escapeType("_outchar") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_outbyte") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_outbytes") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tpExp(tpFun("star.core*list",1),tipe("star.core*integer"))])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_outtext") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_outchar") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tipe("star.core*sysResult")).
+  escapeType("_outbyte") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tipe("star.core*sysResult")).
+  escapeType("_outbytes") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tpExp(tpFun("star.core*list",1),tipe("star.core*integer"))])),tipe("star.core*sysResult")).
+  escapeType("_outtext") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*string")])),tipe("star.core*sysResult")).
   escapeType("_stdfile") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tipe("star.io*fileHandle")).
   escapeType("_fposition") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*integer")).
-  escapeType("_fseek") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_flush") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_fseek") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tipe("star.core*sysResult")).
+  escapeType("_flush") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tipe("star.core*sysResult")).
   escapeType("_flushall") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tupleType([])).
-  escapeType("_setfileencoding") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_setfileencoding") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle"),tipe("star.core*integer")])),tipe("star.core*sysResult")).
   escapeType("_get_file") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_put_file") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tupleType([])).
   escapeType("_show") => tpExp(tpExp(tpFun("=>",2),tupleType([tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer")]),tipe("star.core*string")])),tupleType([])).
@@ -133,14 +133,14 @@ star.comp.escapes{
   escapeType("_pkg_is_present") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
   escapeType("_in_manifest") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
   escapeType("_locate_in_manifest") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*string")).
-  escapeType("_logmsg") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_logmsg") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*sysResult")).
   escapeType("_connect") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer")])),tupleType([tipe("star.io*fileHandle"),tipe("star.io*fileHandle")])).
   escapeType("_listen") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tipe("star.io*fileHandle")).
   escapeType("_accept") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.io*fileHandle")])),tupleType([tipe("star.io*fileHandle"),tipe("star.io*fileHandle"),tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*string")])).
   escapeType("_hosttoip") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tpExp(tpFun("star.core*list",1),tipe("star.core*string"))).
   escapeType("_iptohost") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*string")).
-  escapeType("_delay") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_sleep") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_delay") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*sysResult")).
+  escapeType("_sleep") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*sysResult")).
   escapeType("_now") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
   escapeType("_today") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
   escapeType("_ticks") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
@@ -207,19 +207,19 @@ star.comp.escapes{
   escapeType("_str_cons") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer"),tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_str_apnd") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer")])),tipe("star.core*string")).
   escapeType("_getenv") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*string")).
-  escapeType("_setenv") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_setenv") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*sysResult")).
   escapeType("_envir") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))).
   escapeType("_getlogin") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*string")).
-  escapeType("_fork") => tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("=>",2),tupleType([])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string")))])),tipe("star.thread*thread")).
+  escapeType("_fork") => tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*sysResult"))])),tipe("star.thread*thread")).
   escapeType("_thread") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.thread*thread")).
-  escapeType("_kill") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_kill") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.core*sysResult")).
   escapeType("_thread_state") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.thread*processState")).
-  escapeType("_waitfor") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_waitfor") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.core*sysResult")).
   escapeType("_shell") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tpExp(tpFun("star.core*list",1),tipe("star.core*string")),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))])),tipe("star.core*integer")).
   escapeType("_newLock") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.thread*lock")).
-  escapeType("_acquireLock") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*lock"),tipe("star.core*float")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_waitLock") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*lock"),tipe("star.core*float")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
-  escapeType("_releaseLock") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*lock")])),tpExp(tpFun("star.core*resultType",1),tipe("star.core*string"))).
+  escapeType("_acquireLock") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*lock"),tipe("star.core*float")])),tipe("star.core*sysResult")).
+  escapeType("_waitLock") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*lock"),tipe("star.core*float")])),tipe("star.core*sysResult")).
+  escapeType("_releaseLock") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*lock")])),tipe("star.core*sysResult")).
   escapeType("_ins_debug") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tupleType([])).
   escapeType("_stackTrace") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tupleType([])).
   escapeType("_assert") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*boolean"),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer")])])),tupleType([])).

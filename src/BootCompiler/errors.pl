@@ -40,7 +40,7 @@ noErrors :-
 limitErrors(C) :-
   C>100,!,
   writef("Too many errors\n"),
-  halt(9).
+  abort.
 limitErrors(_).
 
 reportMsg(Msg,A,Lc) :-
