@@ -9,8 +9,262 @@
 
 (require 'font-lock)
 
-(require 'star-utils)
-(require 'star-fontlock)
+;;;
+;;; Utility functions for star mode
+;;;
+
+(defsubst 1st (l)
+  "return the first element of a list."
+  (nth 0 l))
+
+(defsubst 2nd (l)
+  "return the second element of a list."
+  (nth 1 l))
+
+(defsubst 3rd (l)
+  "return the third element of a list."
+  (nth 2 l))
+
+(defsubst 4th (l)
+  "return the fourth element of a list."
+  (nth 3 l))
+
+(defsubst 5th (l)
+  "return the fifth element of a list."
+  (nth 4 l))
+
+(defsubst 6th (l)
+  "return the sixth element of a list."
+  (nth 5 l))
+
+(defsubst 7th (l)
+  "return the 7th element of a list."
+  (nth 6 l))
+
+(defsubst 8th (l)
+  "return the 8th element of a list."
+  (nth 7 l))
+
+(defun star-one-of (l)
+  "Construct optimized regexp from a list of strings (l)."
+  (regexp-opt l t))
+
+(defun star-compose-regexps (l)
+  (if (cadr l) 
+      (concat (car l) "\\|"
+	      (star-compose-regexps (cdr l)))
+    (car l)))
+
+(defsubst star-skip-block-comment ()
+  (forward-comment 1))
+
+(defsubst star-skip-line-comment ()
+  (search-forward "\n"))
+
+(defsubst star-skip-string ()
+  (goto-char (or (scan-sexps (point) 1) (buffer-end 1))))
+
+(defvar star-debugging nil
+  "Non-nil if should log messages to *star-debug*")
+
+(defun star-debug (msg &rest args)
+  "Print a debug message to the *star-debug* buffer"
+  (if star-debugging
+      (save-excursion
+	(set-buffer (get-buffer-create "*star-debug*"))
+	(goto-char (point-max))
+	(insert (apply 'format (concat msg "\n") args)))))
+
+(defun star-debug-reset ()
+  "reset debug msg buffer"
+  (if star-debugging
+      (save-excursion
+	(set-buffer (get-buffer-create "*star-debug*"))
+	(erase-buffer))
+    )
+  )
+
+
+;;;
+;;; Fontlock support for Star
+;;;
+
+(defconst star-mode-syntax-table
+  (let ((table (make-syntax-table)))
+       ;; ' is a quoted identifier delim, looks like string
+       (modify-syntax-entry ?' "\"" table)
+       ;; " is an actual string delimiter
+       (modify-syntax-entry ?\" "\"" table)
+       ;; \n ends line comments
+       (modify-syntax-entry ?\n ">" table)
+       ;; - is an operator, -- is a comment starter
+       (modify-syntax-entry ?- ". 12" table)
+       (modify-syntax-entry ?/ ". 14" table)
+       (modify-syntax-entry ?* ". 23" table)
+       (modify-syntax-entry ?\( "()" table)
+       (modify-syntax-entry ?\) ")(" table)
+       (modify-syntax-entry ?\[ "(]" table)
+       (modify-syntax-entry ?\] ")[" table)
+       (modify-syntax-entry ?\{ "(}" table)
+       (modify-syntax-entry ?\} "){" table)
+       (modify-syntax-entry ?_ "w" table)
+       table))
+
+;;; Initialise the key map
+(defvar star-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\t" 'indent-for-tab-command)
+    (define-key map "C-M-q" 'star-indent)
+    (define-key map "C-c C-c" 'comment-region)
+    (define-key map "C-c C-d" 'stardebug-buffer)
+    (mapcar #'(lambda (key-seq)
+		(define-key map 
+		  key-seq 
+		  'star-self-insert-and-indent-command))
+	    '("{" "}" ";" "|" "," "(" ")"))
+    map)
+  "Keymap for Star major mode.")
+
+;;; Font-lock support
+
+(defconst star-font-lock-function-regexp
+  "^[ \t]*\\(\\sw+\\)([][0-9_a-zA-Z?,.:`'\\ ]*)[ \t]*=>"
+  "Regular expression matching the function declarations to highlight in Star mode.")
+
+;;; Regular expression matching important star operators
+(defvar star-line-comment-regexp
+  "\\(--[ \t].*$\\)")
+
+(defvar star-line-comment-regexp-bol
+  (concat "^" star-line-comment-regexp))
+
+(defvar star-body-comment-regexp
+  "/\\*"
+  "Star body comment start")
+
+(defconst star-close-par "[])}]"
+  "Star close parentheses")
+
+(defconst star-import-regexp
+  "\\(import +[[:word:]]+\\([.][[:word:]]+\\)*\\)"
+  "Match an import spec")
+
+(defvar star-keyword-regexp
+  (concat "\\<"
+	  (star-one-of
+	   '(
+	     "private" "public"
+	     "import"
+	     "contract" "implementation"
+	     "valof" "lift" "do" "if" "then" "else" "while" "for" "in"
+	     "open"
+	     "try" "catch" "throw"
+	     "void"
+	     "where" "type" "all" "exists" "let" "default"
+	     "ref"
+	     "show" "assert")
+	   )
+	  "\\>")
+  "Regular expression matching the keywords to highlight in Star mode."
+  )
+
+(defvar star-constant-regexp
+  (concat "\\<\\("
+	  (star-compose-regexps
+	   '(
+	     "true"
+	     "false"
+	     "this"
+	     "none"
+	     "zero"
+	     "one"
+	     "[-]?[0-9]+\\([.][0-9]+\\([eE][-+]?[0-9]+\\)?\\)?"
+	     ))
+	  "\\)\\>")
+	  
+  "Regular expression matching special constants and numbers in Star mode.")
+
+(defvar star-symbol-regexp
+  (star-one-of '(
+		 "::="
+		 "=>"
+		 "->"
+		 "<=>"
+		 ".."
+		 ":="
+		 ".="
+		 "^="
+		 "<-"
+		 "="
+		 "<~"
+		 "*>"
+		 "::="
+		 "::"
+		 ":"
+		 "&&"
+		 "|"
+		 "||"
+		 "~~"
+		 "@@"
+		 "@"
+		 "#"
+		 "^"
+		 "^^"
+		 "\\+"
+		 "\\="
+		 ",.."
+		 "."
+		 ))
+  "Regular expression matching the symbols to highlight in Star mode."
+  )
+
+(defvar star-type-regexp
+  (concat "\\<"
+	  (star-one-of
+	   '(
+	     "boolean" "float" "integer" "string"
+	     "action" "task" "list" "set" "cons" "option"
+	     )) "\\>")
+  "Regular expression matching the standard types to highlight in Star mode.")
+
+(defvar star-builtin-regexp
+  (concat "[^-+*/<>=!]"
+	  (star-one-of
+	   '(
+	     "+"
+	     "-"
+	     "*"
+	     "/"
+	     ">"
+	     "<"
+	     "=<"
+	     ">="
+	     "=="
+	     ">>="
+	     "!"
+	     ))
+	  "[^-+*/<>=!]")
+  "Regular expression matching some of the standard builtins.")
+
+(defvar star-mode-font-lock-defaults
+  `(
+    (,star-line-comment-regexp (1 font-lock-comment-face))
+    (,star-constant-regexp (1 font-lock-constant-face))
+    (,star-keyword-regexp (1 font-lock-keyword-face))
+    (,star-type-regexp (1 font-lock-type-face))
+    (,star-builtin-regexp (1 font-lock-builtin-face))
+    (,star-symbol-regexp (1 font-lock-keyword-face))
+    (,star-import-regexp (1 font-lock-doc-face))
+    )
+  "Keywords to syntax highlight with variable."
+  )
+
+(defun star-init-font-lock ()
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(star-mode-font-lock-defaults nil nil nil nil))
+  (font-lock-ensure)
+  )
+
 ;; Mode hook for Star
 
 (defvar star-mode-hook nil)
@@ -301,23 +555,22 @@ Argument N  oprefix."
 	      (forward-char (get symbol 'length))
 
 	      ;; Compute new indentation
-	      (setq delta
-		    ;; Adjust the indentation for hanging
-		    (if (and (get symbol 'hanging)
-			     (not (looking-at "[ \t]*\\(--[ \t]?\\)?$")))
-			;; Hanging
-			(progn 
-			  (skip-chars-forward " \t")
-			  (- (current-column)
-			     (max (star-indentation-level (point))
-				  (3rd (car stack)))))
-		      ;; Not Hanging
-		      (eval (get symbol 'delta))))
-	      
-	      (setq state
-		    (star-adjust-indent state 
-					(+ (star-state-indent state)
-					   delta)))
+	      (let ((delta
+		     ;; Adjust the indentation for hanging
+		     (if (and (get symbol 'hanging)
+			      (not (looking-at "[ \t]*\\(--[ \t]?\\)?$")))
+			 ;; Hanging
+			 (progn 
+			   (skip-chars-forward " \t")
+			   (- (current-column)
+			      (max (star-indentation-level (point))
+				   (3rd (car stack)))))
+		       ;; Not Hanging
+		       (eval (get symbol 'delta)))))
+		(setq state
+		      (star-adjust-indent state 
+					  (+ (star-state-indent state)
+					     delta))))
 
 	      (star-debug "state after operator: %s" state)
 	      (star-debug "stack after operator: %s" stack)
@@ -451,15 +704,6 @@ Argument N  oprefix."
 
 (defun star-calculate-brace-indent (pos)
   (star-parse-state-indent (star-parse-until pos)))
-
-(defsubst star-skip-block-comment ()
-  (forward-comment 1))
-
-(defsubst star-skip-line-comment ()
-  (search-forward "\n"))
-
-(defsubst star-skip-string ()
-  (goto-char (or (scan-sexps (point) 1) (buffer-end 1))))
 
 (defun star-calculate-outer-indent (pos)
   (save-excursion

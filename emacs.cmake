@@ -4,25 +4,29 @@ if(NOT EMACS_EXECUTABLE)
   message(SEND_ERROR "Emacs could not be found")
 endif()
 
-function(add_emacs el)
+function(add_emacs args)
   if(EMACS_EXECUTABLE)
-    
-    # copy source to binary tree
-    configure_file(${el} ${CMAKE_CURRENT_BINARY_DIR}/${el})
-    # add rule (i.e. command) how to generate the byte-compiled file
-    add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${el}c
-      COMMAND ${EMACS_EXECUTABLE} -batch -f batch-byte-compile
-      ${CMAKE_CURRENT_BINARY_DIR}/${el}
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${el}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-      COMMENT "Creating byte-compiled Emacs lisp ${CMAKE_CURRENT_BINARY_DIR}/${el}c")
+
+    set(emacs_elc)
+
+    foreach(v ${ARGV})
+      set(emacs_tgt ${CMAKE_CURRENT_BINARY_DIR}/${v}.elc)
+      set(emacs_src ${CMAKE_CURRENT_BINARY_DIR}/${v}.el)
+      set(emacs_elc ${emacs_elc} ${emacs_tgt})
+      configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${v}.el ${emacs_src})
+      add_custom_command(OUTPUT ${emacs_tgt}
+	COMMAND ${EMACS_EXECUTABLE} -batch -f batch-byte-compile
+	${emacs_src}
+	DEPENDS ${emacs_src}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMENT "Creating byte-compiled Emacs lisp ${emacs_tgt} from ${emacs_src}")
+    endforeach()
 
     # add a top-level target to byte-compile all emacs-lisp sources
-    add_custom_target(emacs_byte_compile ALL
-      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${el}c)
+    add_custom_target(emacs_byte_compile ALL DEPENDS ${emacs_elc})
 
     # install the byte-compiled emacs-lisp sources
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${el}c
+    install(FILES ${emacs_elc}
       DESTINATION share/emacs/site-lisp)
   endif(EMACS_EXECUTABLE)
 endfunction(add_emacs)
