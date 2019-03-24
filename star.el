@@ -84,7 +84,6 @@
     )
   )
 
-
 ;;;
 ;;; Fontlock support for Star
 ;;;
@@ -290,12 +289,12 @@
   :type 'integer
   :group 'star)
 
-(defcustom star-bracket-indent 5
+(defcustom star-bracket-indent 2
   "* Amount by which to indent after a left bracket in Star mode."
   :type 'integer
   :group 'star)
 
-(defcustom star-arrow-indent 4
+(defcustom star-arrow-indent 2
   "* Amount by which to indent after an arrow in Star mode."
   :type 'integer
   :group 'star)
@@ -338,18 +337,18 @@ Argument N  oprefix."
     (1000 "then" "then" t nil nil star-query-indent)
     (1000 "else" "else" t same (- star-query-indent) star-query-indent)
     (900  ":="  ":="   t    t    nil    star-arrow-indent)
-    (1460 "::=" "::="  t    t    nil	(* star-arrow-indent 2))
-    (1199 "="  "\\b=\\b"   t    t    nil	star-arrow-indent)
+    (1460 "::=" "::="  t    t    nil	star-arrow-indent)
+    (1199 "="  "\\b=\\b"  t t    nil	star-arrow-indent)
     (1199 "=>"  "=>"   t    t    nil	star-arrow-indent)
     (1199 "<~"  "<~"   t    t    nil	star-arrow-indent)
     (1199 "~>"  "~>"   t    t    nil	star-arrow-indent)
-    (1010 "|:" "|:"  t    t   nil	(* star-arrow-indent 2))
-    (1250 "|"   "[^|]|[^|]"  t    t    t	0)
+    (1010 "|:" "|:"    t    t    nil	star-arrow-indent)
+    (1250 "|"  "[^|]|[^|]"  t    t    t	0)
     (1060 "||"  "||"   t    t    t	0)
     (1010  "where" "where" t t   nil	(* star-arrow-indent 2))
     (1000 ","   ","    t    t    nil	0)
     (900 "->"  "->"    t    t    nil	star-arrow-indent)
-    (900  "=="  "=="   t    nil    nil    0)
+    (900  "=="  "=="   t    nil  nil    0)
     (900  ".="  "\\.=" t    t    nil    0)
     (900  "^="  "\\^=" t    t    nil    0)
     (1040 "?"   "\\?"  t    t    nil	star-query-indent)
@@ -531,12 +530,15 @@ Argument N  oprefix."
 	      ;; if push-same then use prior indent as basis of indent
 	      (if (get symbol 'push-same)
 		  (progn
-		    (star-debug "push-pop until %s/%s" symbol symbol-prec)
+		    (star-debug "look for %s/%s" symbol symbol-prec)
 
-		    (while (and stack (/= (star-state-prec state) symbol-prec))
-		      (setq state (car stack)
-			    stack (cdr stack)
-			    ))
+		    (let (stck stack)
+		      (while (and stck (/= (star-state-prec state) symbol-prec))
+			(setq state (car stck)
+			      stck (cdr stck)
+			      ))
+		      )
+		    (star-debug "found state %s" state)
 		    )
 		)
 
