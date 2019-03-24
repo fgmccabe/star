@@ -9,6 +9,8 @@
 
 (require 'font-lock)
 
+(require 'star-utils)
+(require 'star-fontlock)
 ;; Mode hook for Star
 
 (defvar star-mode-hook nil)
@@ -53,87 +55,8 @@
   "* The column where -- comments are placed."
   :type 'integer
   :group 'star)
-
-;; Some utility functions
-(defsubst 1st (l)
-  "return the first element of a list."
-  (nth 0 l))
-
-(defsubst 2nd (l)
-  "return the second element of a list."
-  (nth 1 l))
-
-(defsubst 3rd (l)
-  "return the third element of a list."
-  (nth 2 l))
-
-(defsubst 4th (l)
-  "return the fourth element of a list."
-  (nth 3 l))
-
-(defsubst 5th (l)
-  "return the fifth element of a list."
-  (nth 4 l))
-
-(defsubst 6th (l)
-  "return the sixth element of a list."
-  (nth 5 l))
-
-(defsubst 7th (l)
-  "return the 7th element of a list."
-  (nth 6 l))
-
-(defsubst 8th (l)
-  "return the 8th element of a list."
-  (nth 7 l))
-
-(defun star-one-of (l)
-  "Construct optimized regexp from a list of strings (l)."
-  (regexp-opt l t))
-
-(defun star-compose-regexps (l)
-  (if (cadr l) 
-      (concat (car l) "\\|"
-	      (star-compose-regexps (cdr l)))
-    (car l)))
-
 ;;; Initialise the syntax table
 
-(defconst star-mode-syntax-table
-  (let ((table (make-syntax-table)))
-       ;; ' is a quoted identifier delim, looks like string
-       (modify-syntax-entry ?' "\"" table)
-       ;; " is an actual string delimiter
-       (modify-syntax-entry ?\" "\"" table)
-       ;; \n ends line comments
-       (modify-syntax-entry ?\n ">" table)
-       ;; - is an operator, -- is a comment starter
-       (modify-syntax-entry ?- ". 12" table)
-       (modify-syntax-entry ?/ ". 14" table)
-       (modify-syntax-entry ?* ". 23" table)
-       (modify-syntax-entry ?\( "()" table)
-       (modify-syntax-entry ?\) ")(" table)
-       (modify-syntax-entry ?\[ "(]" table)
-       (modify-syntax-entry ?\] ")[" table)
-       (modify-syntax-entry ?\{ "(}" table)
-       (modify-syntax-entry ?\} "){" table)
-       (modify-syntax-entry ?_ "w" table)
-       table))
-
-;;; Initialise the key map
-(defvar star-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\t" 'indent-for-tab-command)
-    (define-key map "C-M-q" 'star-indent)
-    (define-key map "C-c C-c" 'comment-region)
-    (define-key map "C-c C-d" 'stardebug-buffer)
-    (mapcar #'(lambda (key-seq)
-		(define-key map 
-		  key-seq 
-		  'star-self-insert-and-indent-command))
-	    '("{" "}" ";" "|" "," "(" ")"))
-    map)
-  "Keymap for Star major mode.")
 
 (defun star-self-insert-and-indent-command (n)
   "Self insert and indent appropriately.
@@ -142,165 +65,15 @@ Argument N  oprefix."
   (self-insert-command (prefix-numeric-value n))
   (indent-for-tab-command))
 
-;;; Font-lock support
-
-(defconst star-font-lock-function-regexp
-  "^[ \t]*\\(\\sw+\\)([][0-9_a-zA-Z?,.:`'\\ ]*)[ \t]*=>"
-  "Regular expression matching the function declarations to highlight in Star mode.")
-
-;;; Regular expression matching important star operators
-(defvar star-line-comment-regexp
-  "\\(--[ \t].*$\\)")
-
-(defvar star-line-comment-regexp-bol
-  (concat "^" star-line-comment-regexp))
-
-(defvar star-body-comment-regexp
-  "/\\*"
-  "Star body comment start")
-
-(defconst star-close-par "[])}]"
-  "Star close parentheses")
-
-(defconst star-import-regexp
-  "\\(import +[[:word:]]+\\([.][[:word:]]+\\)*\\)"
-  "Match an import spec")
-
-(defvar star-keyword-regexp
-  (concat "\\<"
-	  (star-one-of
-	   '(
-	     "private" "public"
-	     "import"
-	     "contract" "implementation"
-	     "valof" "lift" "do" "if" "then" "else" "while" "for" "in"
-	     "open"
-	     "try" "catch" "throw"
-	     "void"
-	     "where" "type" "all" "exists" "let" "default"
-	     "ref"
-	     "show" "assert")
-	   )
-	  "\\>")
-  "Regular expression matching the keywords to highlight in Star mode."
-  )
-
-(defvar star-constant-regexp
-  (concat "\\<\\("
-	  (star-compose-regexps
-	   '(
-	     "true"
-	     "false"
-	     "this"
-	     "none"
-	     "zero"
-	     "one"
-	     "[-]?[0-9]+\\([.][0-9]+\\([eE][-+]?[0-9]+\\)?\\)?"
-	     ))
-	  "\\)\\>")
-	  
-  "Regular expression matching special constants and numbers in Star mode.")
-
-(defvar star-symbol-regexp
-  (star-one-of '(
-		 "::="
-		 "=>"
-		 "->"
-		 "<=>"
-		 ".."
-		 ":="
-		 ".="
-		 "^="
-		 "<-"
-		 "="
-		 "<~"
-		 "*>"
-		 "::="
-		 "::"
-		 ":"
-		 "&&"
-		 "|"
-		 "||"
-		 "~~"
-		 "@@"
-		 "@"
-		 "#"
-		 "^"
-		 "^^"
-		 "\\+"
-		 "\\="
-		 ",.."
-		 "."
-		 ))
-  "Regular expression matching the symbols to highlight in Star mode."
-  )
-
-(defvar star-type-regexp
-  (concat "\\<"
-	  (star-one-of
-	   '(
-	     "boolean" "float" "integer" "string"
-	     "action" "task" "list" "set" "cons" "option"
-	     )) "\\>")
-  "Regular expression matching the standard types to highlight in Star mode.")
-
-(defvar star-builtin-regexp
-  (concat "[^-+*/<>=!]"
-	  (star-one-of
-	   '(
-	     "+"
-	     "-"
-	     "*"
-	     "/"
-	     ">"
-	     "<"
-	     "=<"
-	     ">="
-	     "=="
-	     ">>="
-	     "!"
-	     ))
-	  "[^-+*/<>=!]")
-  "Regular expression matching some of the standard builtins.")
-
-(defvar star-mode-font-lock-defaults
-  `(
-    (,star-line-comment-regexp (1 font-lock-comment-face))
-    (,star-constant-regexp (1 font-lock-constant-face))
-    (,star-keyword-regexp (1 font-lock-keyword-face))
-    (,star-type-regexp (1 font-lock-type-face))
-    (,star-builtin-regexp (1 font-lock-builtin-face))
-    (,star-symbol-regexp (1 font-lock-keyword-face))
-    (,star-import-regexp (1 font-lock-doc-face))
-    )
-  "Keywords to syntax highlight with variable."
-  )
-
-(defun star-init-font-lock ()
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(star-mode-font-lock-defaults nil nil nil nil))
-  (font-lock-ensure)
-  )
-
-(defvar star-debugging nil
-  "Non-nil if should log messages to *star-debug*")
-
-(defun star-debug (msg &rest args)
-  "Print a debug message to the *star-debug* buffer"
-  (if star-debugging
-      (save-excursion
-	(set-buffer (get-buffer-create "*star-debug*"))
-	(insert (apply 'format msg args)))))
-  
 ;; Parsing in the buffer
 
 ;; Operators we might be indenting on
 ;;; Parse tables
-(defconst star-operators
-  ;; Prec Text  Regex  Push Pop Hanging Delta
-  '((5000 "{"   "{"    same    nil  nil    star-brace-indent)
-    (5000 "}"   "}"    nil  same nil	0)
-    (4500 ". "  "\\.\\([ \n\t]\\|$\\)" nil    t  nil  0)
+(defvar star-operators
+  ;; Prec Text  Regex  Push  Pop   Hanging Delta
+  '((5000 "{"   "{"    same  nil   nil    star-brace-indent)
+    (5000 "}"   "}"    nil   same  nil	0)
+    (4500 ". "  "\\.\\([ \n\t]\\|$\\)" t    t  nil  0)
     (4000 "["   "\\["  t    nil  t	star-bracket-indent)
     (4000 "]"   "\\]"  nil  same nil	0)
     (3000 "("   "("    t    nil  t	star-paren-indent)
@@ -308,7 +81,7 @@ Argument N  oprefix."
     (1250 ";"   ";"    t    t    nil	0)
     (1200 "-->"  "-->" t    t    nil	star-arrow-indent)
     (1100 "catch" "catch" t    t nil    0)
-    (1000 "then" "then" same nil nil star-query-indent)
+    (1000 "then" "then" t nil nil star-query-indent)
     (1000 "else" "else" t same (- star-query-indent) star-query-indent)
     (900  ":="  ":="   t    t    nil    star-arrow-indent)
     (1460 "::=" "::="  t    t    nil	(* star-arrow-indent 2))
@@ -346,9 +119,9 @@ Argument N  oprefix."
 	(put symbol 'precedence precedence)
 	(put symbol 'text text)
 	(put symbol 'regex regex)
-	(put symbol 'push (if (eq push 'same) t 'same))
+	(put symbol 'push (if (eq push 'same) t push))
 	(put symbol 'push-same (eq push 'same))
-	(put symbol 'pop (if (eq pop 'same) nil pop))
+	(put symbol 'pop (eq pop 't))
 	(put symbol 'pop-until-same (eq pop 'same))
 	(put symbol 'hanging hanging)
 	(put symbol 'delta delta)
@@ -378,7 +151,7 @@ Argument N  oprefix."
   (list 
    (list 9999 'none 0 nil)))
 
-;; Accessor functions for a PARSE-STATE ((PREC OP INDENT) . STACK)
+;; Accessor functions for a PARSE-STATE ((PREC OP INDENT IN-COMMENT) . STACK)
 (defsubst star-parse-state-indent (parse-state)
   (3rd (car parse-state)))
 
@@ -416,23 +189,47 @@ Argument N  oprefix."
       (intern ". ")
     (intern str)))
 
+(defun star-state-prec (state)
+  (1st state))
+
+(defun star-state-op (state)
+  (2nd state))
+
+(defun star-state-indent (state)
+  (3rd state))
+
+(defun star-state-in-comment (state)
+  (4th state))
+
+(defun star-new-state (prec op indent incomment)
+  (list prec op indent incomment)
+  )
+
+(defun star-adjust-indent (state indent)
+  (star-new-state (star-state-prec state)
+		  (star-state-op state)
+		  indent
+		  (star-state-in-comment state)))
+
 ;;; Parse from POS to TO given initial PARSE-STATE
 ;;; Return final PARSE-STATE at TO.
 (defun star-parse (pos to parse-state)
   (let* ((state (car parse-state))
-	 (stack (cdr parse-state))
-	 (tos-prec   (1st  state))
-	 (tos-op     (2nd state))
-	 (tos-indent (3rd  state))
-	 (tos-in-comment (4th state)))
+	 (stack (cdr parse-state)))
+
     (save-excursion
       (goto-char pos)
       ;; We assume that the parsing does not
       ;; resume from within a (block) comment.
       ;; To implement that we would need
-      ;; to check tos-in-comment and scan for
+      ;; to check in-comment and scan for
       ;; end-of-comment (*/) to escape it first.
-      (progn 
+
+      (star-debug "\nstar-parse from %s to %s" pos to)
+      (star-debug "state at start %s" state)
+      (star-debug "stack at start %s" stack)
+      
+      (progn	
 	(while (<= (point) to)
 	  (cond 
 	   ;; An important Star! operator
@@ -440,41 +237,52 @@ Argument N  oprefix."
 	    (let* ((symbol (star-pick-operator (match-string 0)))
 		   (symbol-prec (get symbol 'precedence)))
 
+	      (star-debug "\nwe have operator %s @ %s" symbol (point))
+	      (star-debug "state: %s" state)
+	      (star-debug "stack: %s" stack)
+
 	      ;; Check to see if we should pop any operators off the stack
 	      (if (get symbol 'pop)
-		  ;; Yes, pop off any lower precedence operators
-		  (while (<= tos-prec symbol-prec)
-		    (setq state (car stack)
-			  stack (cdr stack)
-			  tos-prec   (1st state)
-			  tos-op     (2nd state)
-			  tos-indent (3rd state))))
+		  (progn
+		    (star-debug "popping %s/%s" symbol symbol-prec)
+
+		    ;; Yes, pop off any lower precedence operators
+		    (while (and stack (<= (star-state-prec state) symbol-prec))
+		      (setq state (car stack)
+			    stack (cdr stack)))
+		    (star-debug "after pop state: %s" state)
+		    (star-debug "after pop stack: %s" stack)
+		    )
+		)
 	      
 	      (if (get symbol 'pop-until-same)
 		  ;; Yes, pop of all operators until
 		  ;; we meet an operator with the same
 		  ;; precedence (for brackets)
 		  (progn
-		    (while (and (/= tos-prec symbol-prec) (cdr stack))
+		    (star-debug "popping for %s until %s" symbol symbol-prec)
+
+		    (while (and (/= (star-state-prec state) symbol-prec) stack)
 		      (setq state (car stack)
-			    stack (cdr stack)
-			    tos-prec   (1st state)
-			    tos-op     (2nd state)
-			    tos-indent (3rd state)))
-		    (setq state (car stack)
-			  stack (cdr stack)
-			  tos-prec   (1st state)
-			  tos-op     (2nd state)
-			  tos-indent (3rd state))))
+			    stack (cdr stack)))
+		    (if (and stack (= (star-state-prec state) symbol-prec))
+		    	(progn
+		    	  (star-debug "discard state")
+		    	  (setq state (car stack)
+		    		stack (cdr stack))
+		    	  ))
+		    )
+		)
 
 	      ;; if push-same then use prior indent as basis of indent
 	      (if (get symbol 'push-same)
 		  (progn
-		    (setq stk stack)
-		    (while (and stk (not (eq (2nd (car stk)) symbol)))
-		      (setq stk (cdr stk)))
-		    (if (and stk (eq (2nd (car stk)) symbol))
-			(setq tos-indent (3rd (car stk))))
+		    (star-debug "push-pop until %s/%s" symbol symbol-prec)
+
+		    (while (and stack (/= (star-state-prec state) symbol-prec))
+		      (setq state (car stack)
+			    stack (cdr stack)
+			    ))
 		    )
 		)
 
@@ -482,35 +290,37 @@ Argument N  oprefix."
 	      (if (get symbol 'push)
 		  (progn
 		    (setq 
-		     ;; Save the old state
-		     state (list tos-prec 
-				 tos-op 
-				 tos-indent)
-		     ;; Push it onto the stack
-		     stack (cons state stack) 
-		     ;; New top-of-stack (indentation carries on
-		     ;; from before)
-		     tos-prec   symbol-prec
-		     tos-op     symbol)))
+		     ;; Save the old state on the stack
+		     stack (cons state stack)
+		     state (star-new-state symbol-prec symbol
+					   (star-state-indent state) nil)
+		     ))
+		)
 	      
 	      ;; Advance the pointer 
 	      (forward-char (get symbol 'length))
 
-	      ;; Adjust the indentation for hanging
-	      (if (and (get symbol 'hanging)
-		       (not (looking-at "[ \t]*\\(--[ \t]?\\)?$")))
-		  ;; Hanging
-		  (progn 
-		    (skip-chars-forward " \t")
-		    (setq tos-indent 
-			  (+ tos-indent
-			     (- (current-column)
-				(max (star-indentation-level (point))
-				     (3rd (car stack)))))))
+	      ;; Compute new indentation
+	      (setq delta
+		    ;; Adjust the indentation for hanging
+		    (if (and (get symbol 'hanging)
+			     (not (looking-at "[ \t]*\\(--[ \t]?\\)?$")))
+			;; Hanging
+			(progn 
+			  (skip-chars-forward " \t")
+			  (- (current-column)
+			     (max (star-indentation-level (point))
+				  (3rd (car stack)))))
+		      ;; Not Hanging
+		      (eval (get symbol 'delta))))
+	      
+	      (setq state
+		    (star-adjust-indent state 
+					(+ (star-state-indent state)
+					   delta)))
 
-		;; Not Hanging
-		(setq tos-indent (+ tos-indent 
-				    (eval (get symbol 'delta)))))
+	      (star-debug "state after operator: %s" state)
+	      (star-debug "stack after operator: %s" stack)
 	      )
 	    )
 	   
@@ -520,8 +330,7 @@ Argument N  oprefix."
 	    (let ((co-col (current-column)))
 	      (star-skip-block-comment)
 	      (if (>= (point) to)
-		  (setq tos-indent (1+ co-col)
-			tos-in-comment t)))  )
+		  (setq state (star-adjust-indent state (1+ co-col))))))
 	   ((looking-at "[\"\']") (star-skip-string))
 	   (t 
 	    ;; It might be better to forward char first and then scan
@@ -534,16 +343,17 @@ Argument N  oprefix."
 	  (skip-chars-forward " \t\n"))
 
 	;; Save the state for future runs
-	(setq state (list tos-prec 
-			  tos-op 
-			  tos-indent
-			  tos-in-comment))
-	(star-debug "stack: %s %s\n" state stack)
+	(star-debug "after parse state: %s" state)
+	(star-debug "after parse stack: %s" stack)
 	(cons state stack)))))
 
 (defun star-parse-until (pos)
   ;; Find the most recent parse state in the cache 
   ;; that is <= pos
+
+  (star-debug "parse until %s" pos)
+  (star-debug "indent-cache: %s\n" star-indent-cache)
+  
   (let ((parse-state (star-init-parse-state)) ; The parse-state just before POS
 	(parse-pos   1)			; The position of the above parse-state
 	(before      star-indent-cache)   ; All the parse-states before POS
@@ -567,12 +377,16 @@ Argument N  oprefix."
 	  (let ((new-parse-state (star-parse parse-pos pos parse-state)))
 	    ;; If we parsed into a comment
 	    ;; don't bother saving the parse state.
+	    (star-debug "state from parse: %s" new-parse-state)
 	    (if (star-parse-state-in-comment new-parse-state)
 		new-parse-state
 	      (progn
 		;; Insert the new-parse-state into the indent-cache
 		;; Cache is sorted, largest first.
-		;; cache = (reverse after) <> [new-parse-state,parse-state,..before]	
+		;; cache = (reverse after) <> [new-parse-state,parse-state,..before]
+
+		(star-debug "indent-cache (before): %s\n" star-indent-cache)
+		
 		(setq star-indent-cache
 		      (cons (cons parse-pos parse-state) 
 			    before))
@@ -582,6 +396,9 @@ Argument N  oprefix."
 		(while after
 		  (setq star-indent-cache (cons (car after) star-indent-cache)
 			after (cdr after)))
+
+		(star-debug "indent-cache (after): %s\n" star-indent-cache)
+			  
 		new-parse-state)))
 	(t ;; Some error occurred
 	 parse-state)))
@@ -593,7 +410,7 @@ Argument N  oprefix."
     (goto-char pos)
     (beginning-of-line)
     (skip-chars-forward " \t")
-    
+
     (cond
      ;; Keep comments at beginning of line at the beginning
      ((looking-at star-line-comment-regexp-bol) 0)
@@ -649,7 +466,8 @@ Argument N  oprefix."
     (condition-case nil
 	(progn (goto-char pos)
 	       (goto-char (scan-lists pos -1 1))
-	       (star-calculate-indent (point)))
+	       (star-indentation-level (point)))
+;;	       (star-calculate-indent (point)))
       (error 0))))
 
 ;;; look for a the first non-whitespace
@@ -698,6 +516,7 @@ Argument N  oprefix."
   (save-excursion
     (let* ((bol         (progn (beginning-of-line) (point)))
 	   (cur-level   (star-indentation-level bol))
+;;	   (level       (star-calculate-brace-indent bol)))
 	   (level       (star-calculate-indent bol)))
       (if (= cur-level level)
 	  nil
@@ -711,8 +530,8 @@ Argument N  oprefix."
 (defun star-indent ()
   (interactive)
   (save-excursion
-    (let (;(start  (point))
-	  (stop   (condition-case nil
+    (star-debug-reset)
+    (let ((stop   (condition-case nil
 		      (save-excursion (forward-sexp 1) (point))
 		    (error (point)))))
       (while (and (< (point) stop)
