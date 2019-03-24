@@ -1,6 +1,18 @@
 test.df{
-  import star.
+  import star. 
+  
+  CX : (list[integer],integer) => action[(),integer].
+  CX(Is,Lm) => do{
+    Cx := 0;
 
+    for Ix in Is do{
+      if Ix<Lm then
+	Cx := Cx!+Ix
+    };
+
+    return Cx!
+  }
+  
   IS = [1,2,-3,5,-2,56,10,0].
 
   -- CX : (list[integer],integer) => action[(),integer].
@@ -13,22 +25,10 @@ test.df{
   --   };
   --   return Cx!
   -- }
-  
-  CX : (list[integer],integer) => action[(),integer].
-  CX(Is,Lm) => do{
-    Cx := 0;
 
-    for Ix in Is do{
-      if Ix<Lm then
-	Cx:=Cx!+Ix
-      };
-
-    return Cx!
-    }
-
-    CC = CX(IS,4).
-
-    show "CC(IS,2) = \(valof CX(IS,2))".
+  CC = CX(IS,4).
+    
+  show "CC(IS,2) = \(valof CX(IS,2))".
 
   show "CC = \(valof CC)".
   show "CC = \(valof CC)".
