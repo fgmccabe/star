@@ -65,11 +65,11 @@ genAction(tryCatchDo(Lc,Bdy,Hndlr,StTp,ElTp,ErTp),ConOp,Cont,Exp,Path) :-
 	      true,[conTract(ConOp,[StTp],[ErTp])]),
   HB = apply(Lc,H,tple(Lc,[Body,Hndlr]),ConTp),
   combineActs(Lc,HB,Cont,ConOp,StTp,ErTp,Exp).
-genAction(throwDo(Lc,A,StTp,ErTp),ConOp,Cont,apply(Lc,Gen,tple(Lc,[A]),Tp),_) :-
-  (Cont = noDo(_) ; reportError("throw %s must be last action",[A],Lc)),
+genAction(throwDo(Lc,A,StTp,ErTp),ConOp,Cont,Exp,_) :-
   Tp = tpExp(StTp,ErTp),		% monadic type of thrown value
   Gen = over(Lc,mtd(Lc,"_raise",funType(tupleType([ErTp]),Tp)),
-    true,[conTract(ConOp,[StTp],[ErTp])]).
+	     true,[conTract(ConOp,[StTp],[ErTp])]),
+  combineActs(Lc,apply(Lc,Gen,tple(Lc,[A]),Tp),Cont,ConOp,StTp,ErTp,Exp).
 genAction(performDo(Lc,Ex,StTp,ErTp),ConOp,Cont,Exp,_) :-
   genReturn(Lc,Ex,StTp,ErTp,ConOp,Perf),
   combineActs(Lc,Perf,Cont,ConOp,StTp,ErTp,Exp).
@@ -186,8 +186,8 @@ genPerform(Lc,A,Tp,StTp,ErTp,ConOp,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-
 
 genForBody(Lc,StTp,ErTp,ConOp,IterBody,St,Exp) :-
   genRtn(Lc,StTp,ErTp,ConOp,St,End),
-  combineActs(Lc,IterBody,End,ConOp,StTp,ErTp,Exp),
-  reportMsg("for body-> %s",[Exp]).
+  combineActs(Lc,IterBody,End,ConOp,StTp,ErTp,Exp).
+  %reportMsg("for body-> %s",[Exp]).
 
 genSeq(Lc,ExStTp,ErTp,ExOp,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
