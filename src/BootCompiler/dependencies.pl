@@ -552,6 +552,10 @@ collectDoRefs(T,All,Rf,Rfx) :-
   collectDoRefs(H,All,Rf0,Rf1),
   collectDoRefs(E,All,Rf1,Rfx).
 collectDoRefs(T,All,Rf,Rfx) :-
+  isIfThen(T,_,Tt,H),!,
+  collectTermRefs(Tt,All,Rf,Rf0),
+  collectDoRefs(H,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
   isWhileDo(T,_,Tt,B),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(B,All,Rf0,Rfx).

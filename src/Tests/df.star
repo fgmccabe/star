@@ -1,30 +1,30 @@
 test.df{
   import star. 
   
-  -- CX : (list[integer],integer) => action[(),integer].
-  -- CX(Is,Lm) => do{
-  --   Cx := 0;
+  CX : (list[integer],integer) => action[(),integer].
+  CX(Is,Lm) => do{
+    Cx := 0;
 
-  --   for Ix in Is do{
-  --     if Ix<Lm then
-  -- 	Cx := Cx!+Ix
-  --   };
+    for Ix in Is do{
+      if Ix<Lm then
+  	Cx := Cx!+Ix
+    };
 
-  --   return Cx!
-  -- }
+    return Cx!
+  }
   
-  -- IS = [1,2,-3,5,-2,56,10,0].
+  IS = [1,2,-3,5,-2,56,10,0].
 
-  -- CC = CX(IS,4).
+  CC = CX(IS,4).
     
-  -- show "CC(IS,2) = \(valof CX(IS,2))".
+  show "CC(IS,2) = \(valof CX(IS,2))".
 
-  -- show "CC = \(valof CC)".
-  -- show "CC = \(valof CC)".
+  show "CC = \(valof CC)".
+  show "CC = \(valof CC)".
 
-  -- assert valof CC == valof CC.
+  assert valof CC == valof CC.
 
-  TX : (list[integer],integer) => action[(),integer].
+  TX : (list[integer],integer) => action[integer,integer].
   TX(Is,Lm) => do{
       Cx := 0;
       
@@ -42,5 +42,5 @@ test.df{
       }
   }
     
-    -- show "TX(IS,2) = \(TX(IS,2))".
+  show "TX(IS,2) = \(valof TX(IS,2))".
 }
