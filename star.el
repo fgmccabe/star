@@ -326,6 +326,8 @@ Argument N  oprefix."
   ;; Prec Text  Regex  Push  Pop   Hanging Delta
   '((5000 "{"   "{"    same  nil   nil    star-brace-indent)
     (5000 "}"   "}"    nil   same  nil	0)
+    (5000 "{."   "{\\."    same  nil   nil    star-brace-indent)
+    (5000 ".}"   "\\}"    nil   same  nil	0)
     (4500 ". "  "\\.\\([ \n\t]\\|$\\)" t    t  nil  0)
     (4000 "["   "\\["  t    nil  t	star-bracket-indent)
     (4000 "]"   "\\]"  nil  same nil	0)
