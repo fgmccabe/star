@@ -1,8 +1,10 @@
 :- module(parsetype,[parseType/3,parseType/6,
-  parseBoundTpVars/3,reQuant/3,reQuantX/3,wrapConstraints/3,
-  parseTypeHead/5,
-  parseTypeCore/3,parseContract/4,parseTypeDef/6,pickTypeTemplate/2,typeTemplate/3,
-  parseConstraints/5,parseContractConstraint/6,bindAT/4]).
+		     parseBoundTpVars/3,reQuant/3,reQuantX/3,wrapConstraints/3,
+		     parseTypeHead/5,
+		     parseTypeCore/3,
+		     parseContract/4,parseTypeDef/6,
+		     pickTypeTemplate/2,typeTemplate/3,
+		     parseConstraints/5,parseContractConstraint/6,bindAT/4]).
 
 :- use_module(abstract).
 :- use_module(dict).
@@ -46,9 +48,6 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   freshen(Op,Env,Qx,OOp),
   applyTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,T),
   reBind(Qx,Env,T,Tp).
-parseType(T,Env,Q,C,Cx,tpExp(tpFun("{}",1),ArgType)) :-
-  isTupleBrace(T,_,Tpl),
-  parseArgType(Tpl,Env,Q,C,Cx,ArgType).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isBinary(F,_,"=>",L,R),
   parseArgType(L,Env,B,C0,C1,AT),
