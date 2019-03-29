@@ -37,4 +37,6 @@ test.compose{
   assert dec("1234"::list[integer])=.some(([],1234)).
 
   assert dec("123 "::list[integer])=.some(([0c ],123)).
+
+  show "dec(123) = \(dec("123 "::list[integer]))"
 }
