@@ -20,7 +20,6 @@ static retCode genTexiStr(ioPo f, void *data, long depth, long precision, logica
 static char *pC(char *buff, long *ix, char c);
 
 static char *pS(char *buff, char *s) {
-  char *p = buff;
   long ix = 0;
 
   while (*s != '\0') {
@@ -52,7 +51,6 @@ typedef struct {
   char cmt[1024];
 } TokenRecord, *tokenPo;
 
-char *prefix = NULL;
 char *templateFn = "starops.py.plate";
 char *opers = "operators.json";
 char date[MAXLINE] = "";
@@ -126,6 +124,7 @@ static void dumpFollows(char *prefix, codePoint last, void *V, void *cl) {
       outMsg(c->out, "  follows(\"%P\",0c%#c) => some(\"%P%#c\").\n", prefix, last, prefix, last);
       break;
     case genTexi:
+    default:
       break;
   }
 }
@@ -149,6 +148,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
         outMsg(out, "  final(\"%P\") => true.  /* %s */\n", op->name, op->cmt);
         break;
       case genTexi:
+      default:
         break;
     }
   }
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
     genFinal(O_IO(finalBuff));
     hashPut(vars, "Final", getTextFromBuffer(finalBuff, &len));
 
-    retCode ret = processTemplate(out, plate, vars, NULL, NULL);
+    processTemplate(out, plate, vars, NULL, NULL);
 
     flushOut();
     closeFile(out);
@@ -323,6 +323,8 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
       }
     case genTexi:
       return Ok;
+    default:
+      return Error;
   }
 }
 
@@ -398,7 +400,6 @@ retCode procBrackets(void *n, void *r, void *c) {
   char *nm = (char *) n;
 
   retCode ret = Ok;
-  char *sep = "";
 
   switch (genMode) {
     case genProlog:
@@ -471,11 +472,11 @@ static retCode quoteChar(ioPo f, codePoint ch) {
       if (ch < ' ') {
         ret = outChar(f, '\\');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 6) & 3) | '0');
+          ret = outChar(f, ((ch >> 6u) & 3u) | (unsigned )'0');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 3) & 7) | '0');
+          ret = outChar(f, ((ch >> 3u) & 7u) | (unsigned)'0');
         if (ret == Ok)
-          ret = outChar(f, (ch & 7) | '0');
+          ret = outChar(f, (ch & 7u) | (unsigned )'0');
       } else
         ret = outChar(f, ch);
   }
