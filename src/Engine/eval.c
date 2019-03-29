@@ -27,8 +27,8 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
 #define local(off) (((ptrPo)FP)-(off))
 #define arg(off) (((ptrPo)(FP+1))+(off))
 
-#define saveRegisters(P, SP) { (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = (SP);}
-#define restoreRegisters(P) { PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);}
+#define saveRegisters(P, SP) STMT_WRAP({ (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = (SP);})
+#define restoreRegisters(P) STMT_WRAP({ PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);})
 
 /*
  * Execute program on a given process/thread structure

@@ -19,6 +19,10 @@
 #define AddressOf(tp, field) ((long)(void*)(&((tp*)0)->field))
 #endif
 
+#ifndef STMT_WRAP
+#define STMT_WRAP(S) do S while(False)
+#endif
+
 static integer inline minimum(integer a, integer b) {
   if (a < b)
     return a;
