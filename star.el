@@ -70,18 +70,10 @@
 (defun star-debug (msg &rest args)
   "Print a debug message to the *star-debug* buffer"
   (if star-debugging
-      (save-excursion
-	(set-buffer (get-buffer-create "*star-debug*"))
-	(goto-char (point-max))
-	(insert (apply 'format (concat msg "\n") args)))))
-
-(defun star-debug-reset ()
-  "reset debug msg buffer"
-  (if star-debugging
-      (save-excursion
-	(set-buffer (get-buffer-create "*star-debug*"))
-	(erase-buffer))
-    )
+      (let ((debug-buffer (get-buffer-create "*star-debug*")))
+	(with-current-buffer debug-buffer 
+	  (goto-char (point-max))
+	  (insert (apply 'format (concat msg "\n") args)))))
   )
 
 ;;;
@@ -111,16 +103,16 @@
 
 ;;; Initialise the key map
 (defvar star-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+        (electric-keys '("{" "}" ";" "|" "," "(" ")")))
     (define-key map "\t" 'indent-for-tab-command)
-    (define-key map "C-M-q" 'star-indent)
-    (define-key map "C-c C-c" 'comment-region)
-    (define-key map "C-c C-d" 'stardebug-buffer)
-    (mapcar #'(lambda (key-seq)
-		(define-key map 
-		  key-seq 
-		  'star-self-insert-and-indent-command))
-	    '("{" "}" ";" "|" "," "(" ")"))
+    (define-key map "\C-\M-q" 'star-indent)
+    (define-key map "\C-c \C-c" 'comment-region)
+    (define-key map "\C-c \C-d" 'stardebug-buffer)
+    (dolist (key electric-keys)
+      (define-key map 
+	key 
+	'star-self-insert-and-indent-command))
     map)
   "Keymap for Star major mode.")
 
@@ -175,6 +167,7 @@
 	     "false"
 	     "this"
 	     "none"
+	     "some"
 	     "zero"
 	     "one"
 	     "[-]?[0-9]+\\([.][0-9]+\\([eE][-+]?[0-9]+\\)?\\)?"
@@ -778,7 +771,6 @@ Argument N  oprefix."
 (defun star-indent ()
   (interactive)
   (save-excursion
-    (star-debug-reset)
     (let ((stop   (condition-case nil
 		      (save-excursion (forward-sexp 1) (point))
 		    (error (point)))))
