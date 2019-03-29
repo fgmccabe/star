@@ -195,7 +195,6 @@ star.compiler.operators{
   follows("",0c!) => some("!").
   follows("",0c•) => some("•").
   follows("",0c#) => some("#").
-  follows("",0c$) => some("$").
   follows("&",0c&) => some("&&").
   follows("(",0c.) => some("(.").
   follows("*",0c*) => some("**").
@@ -356,6 +355,5 @@ star.compiler.operators{
   final("!!") => true.  /* cell value */
   final("•") => true.  /* function composition */
   final("#") => true.  /* Macro statement marker */
-  final("$") => true.  /* Used for curried functions and types */
   final(_) default => false.
 }

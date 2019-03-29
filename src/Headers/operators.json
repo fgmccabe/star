@@ -832,10 +832,6 @@
     "desc": "cell value"
   },
   {
-    "token": "$",
-    "desc": "Used for curried functions and types"
-  },
-  {
     "token": ". ",
     "desc": "statement terminator"
   },

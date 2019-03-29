@@ -66,4 +66,3 @@
   keyword("throw").
   keyword("nothing").
   keyword("#").
-  keyword("$").

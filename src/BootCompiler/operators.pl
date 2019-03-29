@@ -158,7 +158,6 @@
   follows('','!','!').
   follows('','•','•').
   follows('','#','#').
-  follows('','$','$').
   follows('&','&','&&').
   follows('(','.','(.').
   follows('*','*','**').
@@ -318,5 +317,4 @@
   final('!!',"!!").	 /* cell value */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
-  final('$',"$").	 /* Used for curried functions and types */
 
