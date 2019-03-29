@@ -44,11 +44,11 @@ static retCode quoteChar(ioPo f, codePoint ch) {
       if (ch < ' ') {
         ret = outChar(f, '\\');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 6) & 3) | '0');
+          ret = outChar(f, ((ch >> 6u) & 3u) | (unsigned)'0');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 3) & 7) | '0');
+          ret = outChar(f, ((ch >> 3u) & 7u) | (unsigned)'0');
         if (ret == Ok)
-          ret = outChar(f, (ch & 7) | '0');
+          ret = outChar(f, (ch & 7u) | (unsigned)'0');
       } else
         ret = outChar(f, ch);
   }

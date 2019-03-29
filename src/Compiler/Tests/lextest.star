@@ -44,6 +44,6 @@ test.comp.lx{
 
   show disp(allTokens(initSt(lc,"\"alpha$(4+f(\"beta\"))$gamma\""::list[integer])))::string.
   assert isTokens(allTokens(initSt(lc,"\"alpha$(4+f(\"beta\"))$gamma\""::list[integer])),
-            [strTok("alpha"), idTok("$("), intTok(4), idTok("+"), idTok("f"),
-             idTok("("), strTok("beta"),idTok(")"),idTok(")$"),strTok("gamma")]).
+            [strTok("alpha"), idTok("\$("), intTok(4), idTok("+"), idTok("f"),
+             idTok("("), strTok("beta"),idTok(")"),idTok(")"),strTok("gamma")]).
 }

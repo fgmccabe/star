@@ -339,6 +339,7 @@ static retCode procOperator(void *n, void *r, void *c) {
       ret = outMsg(out, "  operator(\"%P\", [", nm);
       break;
     case genStar:
+
       ret = outMsg(out, "  oper(\"%P\") => [", nm);
       break;
     case genTexi: {

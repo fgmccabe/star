@@ -67,7 +67,6 @@ star.comp.keywords {
   keyword("try") => true.
   keyword("catch") => true.
   keyword("#") => true.
-  keyword("$") => true.
 
   keyword(_) default => false.
 }
