@@ -1,8 +1,6 @@
 test.c {
   import star.
 
-  all t ~~ foo[t] ::= bar(t) | baz.
-
   all t ~~ /* equality[t] |: */person[t] ::=
     someOne{
       name : t.

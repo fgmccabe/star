@@ -105,6 +105,7 @@ ptnVars(tple(_,Els),A,Q,Qx) :- ptnVarsInList(Els,A,Q,Qx).
 ptnVars(apply(_,_,Arg,_),A,Q,Qx) :- ptnVars(Arg,A,Q,Qx).
 ptnVars(theta(_,_,Els,_,_,_),A,Q,Qx) :- ptnVarsInDefs(Els,A,Q,Qx).
 ptnVars(record(_,_,Els,_,_,_),A,Q,Qx) :- ptnVarsInDefs(Els,A,Q,Qx).
+ptnVars(dot(_,_,_,_),_,Q,Q).
 
 ptnVarsInList([],_,Q,Q).
 ptnVarsInList([P|L],A,Q,Qx) :-

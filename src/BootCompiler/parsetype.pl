@@ -290,6 +290,7 @@ parseContractSpec(T,Q,C0,Cx,Env,conTract(ConNm,ArgTps,Deps),Nm,ConNm,Path) :-
 
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
   isTypeExistsStmt(St,Lc,Quants,Ct,Hd,Body),!,
+%  reportMsg("parse type exists: %s",[St]),
   parseTypeExists(Lc,Quants,Ct,Hd,Body,Defn,E,Ev,Path).
 parseTypeDef(St,[Defn|Dx],Dx,E,Ev,Path) :-
   isTypeFunStmt(St,Lc,Quants,Ct,Hd,Bd),
@@ -299,12 +300,15 @@ parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FaceRule),E,Ev,Path) :-
   parseBoundTpVars(Quants,[],Q),
   parseTypeHead(Hd,Q,Tp,Nm,Path),
   parseConstraints(Ct,E,Q,[],C0),
-  parseType(Body,E,Q,C0,Cx,RTp),
+  pickTypeTemplate(Tp,Tmp),
+  declareType(Nm,tpDef(Lc,Tmp,typeExists(Tmp,faceType([],[]))),E,E0),
+  parseType(Body,E0,Q,C0,Cx,RTp),
   wrapConstraints(Cx,typeExists(Tp,RTp),Rl),
   reQuant(Q,Rl,FaceRule),
   reQuant(Q,Tp,Type),
   pickTypeTemplate(Type,Tmp),
   declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev).
+
 
 parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   parseBoundTpVars(Quants,[],Q),

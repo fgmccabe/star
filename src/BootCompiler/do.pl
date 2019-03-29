@@ -129,7 +129,7 @@ genAction(forDo(Lc,Tst,Body,StTp,ErTp),ConOp,Cont,Exp,Path) :-
 	       do:genRtn(Lc,StTp,ErTp,ConOp),
 	       do:genSeq(Lc,StTp,ErTp,ConOp),
 	       do:genForBody(Lc,StTp,ErTp,ConOp,IterBody),
-	       do:genRtn(Lc,StTp,ErTp,ConOp),
+%	       do:genRtn(Lc,StTp,ErTp,ConOp),
 	       unlifted(Unit),ForLoop),
   combineActs(Lc,ForLoop,Cont,ConOp,StTp,ErTp,Exp).
 genAction(noDo(_),_,Cont,Cont,_).
@@ -159,12 +159,11 @@ genIterableGl(Cond,ExTp,ErTp,ExOp,OptionTp,Path,match(Lc,Ptn,Gl)) :-
 	       do:genRtn(Lc,ExTp,ErTp,ExOp),
 	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
 	       do:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
-	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
 	       lifted(Zed),Seq),
   genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
-%  reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
+  %reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
-genVl(Lc,Ptn,ExTp,ErTp,ExOp,unlifted(_),Exp) :-
+genVl(Lc,Ptn,ExTp,ErTp,ExOp,_,Exp) :-
   genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
 
 genUse(_Lc,_StTp,_ErTp,_ConOp,Exp,_,Exp).

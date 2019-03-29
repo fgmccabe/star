@@ -534,8 +534,10 @@ typeOfArgTerm(T,Tp,Env,Ev,Exp,Path) :-
 
 typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),
-  isVar(N,Env,Spec),!,
-  typeOfVar(Lc,V,Tp,Spec,Env,Ev,Term).
+  (isVar(N,Env,Spec) ->
+   typeOfVar(Lc,V,Tp,Spec,Env,Ev,Term);
+   reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
+   Term=void).
 typeOfExp(integer(Lc,Ix),Tp,Env,Env,intLit(Ix,IntTp),_Path) :- !,
   findType("integer",Lc,Env,IntTp),
   checkType(integer(Lc,Ix),IntTp,Tp,Env).
@@ -720,17 +722,17 @@ typeOfExp(Term,Tp,Env,Ev,disj(Lc,Lhs,Rhs),Path) :-
   typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
   typeOfExp(R,LogicalTp,Env,E2,Rhs,Path),
   mergeDict(E1,E2,Env,Ev).
-typeOfExp(Term,Tp,Env,Ex,implies(Lc,Lhs,Rhs),Path) :-
+typeOfExp(Term,Tp,Env,Env,implies(Lc,Lhs,Rhs),Path) :-
   isForall(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Term,LogicalTp,Tp,Env),
   typeOfExp(L,LogicalTp,Env,E1,Lhs,Path),
-  typeOfExp(R,LogicalTp,E1,Ex,Rhs,Path).
-typeOfExp(Term,Tp,Env,Ex,neg(Lc,Rhs),Path) :-
+  typeOfExp(R,LogicalTp,E1,_Ex,Rhs,Path).
+typeOfExp(Term,Tp,Env,Env,neg(Lc,Rhs),Path) :-
   isNegation(Term,Lc,R),!,
   findType("boolean",Lc,Env,LogicalTp),
   checkType(Term,LogicalTp,Tp,Env),
-  typeOfExp(R,LogicalTp,Env,Ex,Rhs,Path).
+  typeOfExp(R,LogicalTp,Env,_Ex,Rhs,Path).
 typeOfExp(Term,Tp,Env,Ev,match(Lc,Lhs,Rhs),Path) :-
   isMatch(Term,Lc,P,E),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -807,8 +809,8 @@ checkGoal(G,Env,Ev,Goal,Path) :-
    pickupContract(Lc,Env,"execution",_ExTp,_ErTp,ExOp),
    findType("option",Lc,Env,OptionTp),	% use the option monad
    UnitTp = tupleType([]),
-   genIterableGl(Cond,OptionTp,UnitTp,ExOp,OptionTp,Path,Goal),
-   reportMsg("iterable goal: %s",[Goal]);
+   genIterableGl(Cond,OptionTp,UnitTp,ExOp,OptionTp,Path,Goal);
+%   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
@@ -831,7 +833,6 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,ExOp),
 	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
 	       checker:genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp),
-	       checker:genRtn(Lc,ExTp,ErTp,ExOp),
 	       lifted(Zed),ACond),
   genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
@@ -1042,8 +1043,8 @@ processIterable(Env,Path,Cond,Goal) :-
   locOfCanon(Cond,Lc),
   pickupContract(Lc,Env,"execution",_ExTp,_ErTp,ExOp),
   findType("option",Lc,Env,OptionTp),
-  genIterableGl(Cond,OptionTp,tupleType([]),ExOp,OptionTp,Path,Goal),
-  reportMsg("iterable exp -> %s",[Goal]).
+  genIterableGl(Cond,OptionTp,tupleType([]),ExOp,OptionTp,Path,Goal).
+  %reportMsg("iterable exp -> %s",[Goal]).
 processIterable(Env,Path,apply(Lc,Op,Arg,Tp),apply(Lc,NOp,NArg,Tp)) :-!,
   processIterable(Env,Path,Op,NOp),
   processIterable(Env,Path,Arg,NArg).

@@ -11,7 +11,7 @@ test.d{
     ee ~> integer.
   }
 
-  all t ~~ index[t] ::= exists e ~~ xc{ get:(t)=>e. test:t. type ee : e. } | none.
+  all t ~~ index[t] ::= exists e ~~ xc{ get:(t)=>e. test:t. type ee : e. }.
 
   yy : xx.ee.
   yy = xx.get(false).
