@@ -8,18 +8,18 @@ test.q0{
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  show "\(parent)".
+  show "$(parent)".
 
   assert size(parent)==10.
 
   gp : list[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
-  show "\(gp)".
+  show "$(gp)".
 
   pp = [X|(X,"ab") in parent || (X,"de") in parent].
 
-  show "\(pp)".
+  show "$(pp)".
 
   -- A different example, filtering positive numbers
   someInts : list[integer].
@@ -28,6 +28,6 @@ test.q0{
   pos : list[integer].
   pos = { X | X in someInts && X>0 }.
 
-  show "\(pos)".
+  show "$(pos)".
 
 }

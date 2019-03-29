@@ -234,7 +234,7 @@ star.compiler.types{
   surfaceName(existType(_,T)) => surfaceName(deRef(T)).
   surfaceName(constrainedType(T,_)) => surfaceName(deRef(T)).
   surfaceName(typeLambda(_,T)) => surfaceName(deRef(T)).
-  surfaceName(tupleType(A)) => ["!()\(size(A))"].
+  surfaceName(tupleType(A)) => ["!()$(size(A))"].
 
   public implementation hasType[constraint] => {.
     typeOf(conConstraint(Nm,Args,Deps)) =>

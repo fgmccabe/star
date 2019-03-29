@@ -241,7 +241,8 @@ A @var{CharacterCode} has type @code{integer}.
 @noindent
 A @code{string} consists of a sequence of characters -- specifically
 @var{CharRef}s. There is no specific type in @Star{} for the
-characters themselves -- instead, there are primitives for accessing individual code points as @code{integer}s.
+characters themselves -- instead, there are primitives for accessing
+individual code points as @code{integer}s.
 
 @quotation CAUTION
 The reasons for this are due to the fact that Unicode @code{string}
@@ -328,7 +329,7 @@ string may take the form of a @xref{BlockString}.
 
 @anchor{StrChar}@var{StrChar} ::= @var{CharRef} | @var{Interpolation}
 
-@anchor{Interpolation}@var{Interpolation} ::= [ @code{'$'} | @code{'#'} ] @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
+@anchor{Interpolation}@var{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
 
 @anchor{FormattingSpec}@var{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
 @end display
@@ -367,8 +368,8 @@ Block strings are written using triple quote characters at either
 end. Any new-line characters enclosed by the block quotes are
 considered to be part of the strings.
 
-The normal interpretation of @code{$} and @code{#} characters as
-interpolation markers is suppressed within a block string.
+The normal interpretation of @code{$} characters as interpolation
+markers is suppressed within a block string.
 
 @example
 """This is a block string with $ and

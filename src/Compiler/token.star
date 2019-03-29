@@ -30,8 +30,8 @@ star.compiler.token{
 
   implementation display[stringSegment] => {.
     disp(segment(_,S)) => ss(S).
-    disp(interpolate(_,S,"")) => ssSeq([ss("\\("),disp(S),ss(")")]).
-    disp(interpolate(_,S,F)) => ssSeq([ss("\\("),disp(S),ss("):"),ss(F),ss(";")]).
+    disp(interpolate(_,S,"")) => ssSeq([ss("\$("),disp(S),ss(")")]).
+    disp(interpolate(_,S,F)) => ssSeq([ss("\$("),disp(S),ss("):"),ss(F),ss(";")]).
   .}
 
   implementation equality[stringSegment] => {.

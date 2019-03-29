@@ -9,7 +9,7 @@ test.qs{
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  show "parent = \(parent)".
+  show "parent = $(parent)".
 
   /* A comment */
 
@@ -18,15 +18,15 @@ test.qs{
   gp : set[(string,string)].
   gp = { (X,Y) | (X,Z) in parent && (Z,Y) in parent}.
 
-  show "\(gp)".
+  show "$(gp)".
 
   pp = [X|(X,"ab") in parent || (X,"de") in parent].
 
-  show "\(pp)".
+  show "$(pp)".
 
   pm = [X| (X,Y) in parent && "ab".=Y].
 
-  show "pm=\(pm)".
+  show "pm=$(pm)".
 
   -- A different example, filtering positive numbers
   someInts : list[integer].
@@ -35,7 +35,7 @@ test.qs{
   pos : list[integer].
   pos = { X | X in someInts && X>0 }.
   
-  show "\(pos)".
+  show "$(pos)".
 
   fact(0)=>1.
   fact(N) where N>0 => fact(N-1)*N.
@@ -43,5 +43,5 @@ test.qs{
   ff:list[integer].
   ff = { fact(X) | X in someInts && X>=0}
  
-  show "ff = \(ff)".
+  show "ff = $(ff)".
 }

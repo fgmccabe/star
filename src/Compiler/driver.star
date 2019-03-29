@@ -40,11 +40,11 @@ star.compiler{
 
   handleCmdLineOpts:(either[string,(compilerOptions,list[string])])=>().
   handleCmdLineOpts(either((compilerOptions(RU,CU),Args))) where
-    _ .= _logmsg("CU=\(CU), RU=\(RU)") &&
+    _ .= _logmsg("CU=$(CU), RU=$(RU)") &&
     Repo .= openRepository(resolveUri(CU,RU)) &&
     _ .= _logmsg("opened repo") &&
     CatUri ^= parseUri("catalog") &&
-    -- _ .= _logmsg("catalog = \(loadCatalog(resolveUri(CU,CatUri)))") &&
+    -- _ .= _logmsg("catalog = $(loadCatalog(resolveUri(CU,CatUri)))") &&
     Cat ^= loadCatalog(resolveUri(CU,CatUri)) =>
     processPkgs(Args,Cat,Repo,CU).
 
@@ -57,8 +57,8 @@ star.compiler{
   processPkg:(string,catalog) => ().
   processPkg(Nm,Cat) where
     (U,P) ^= resolveInCatalog(Cat,Nm) &&
-    _ .= _logmsg("Parse \(P) in \(U)") &&
+    _ .= _logmsg("Parse $(P) in $(U)") &&
     (Ast,Rpt) .= parseSrc(U,P,reports([])) &&
-    _ .= _logmsg("Src = \(Ast)") => ().
+    _ .= _logmsg("Src = $(Ast)") => ().
 
 }

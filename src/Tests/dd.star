@@ -39,12 +39,12 @@ test.dd{
       YY
   }
 
-  show "AA=\(valof AA)".
-  show "XX=\(valof XX)".
-  show "YY=\(valof YY)".
+  show "AA=$(valof AA)".
+  show "XX=$(valof XX)".
+  show "YY=$(valof YY)".
 
   assert valof ZZ == 10.
 
-  show "UU(10)=\(valof UU(10))".
-  show "UU(9) = \(valof UU(9))".
+  show "UU(10)=$(valof UU(10))".
+  show "UU(9) = $(valof UU(9))".
 }

@@ -36,7 +36,7 @@ star.compiler.opg{
       termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Rpt1,Needs),Priority).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
     (ILft,IPr,IRgt) ^= isInfixOp(Op) && IPr=<Priority && ILft>=LeftPriority &&
-    -- _ .= _logmsg("\(Op) is an infix operator") &&
+    -- _ .= _logmsg("$(Op) is an infix operator") &&
     (Rhs,RPriority,RToks,Rpt1,Needs) .= term(Toks,Rpt,IRgt) =>
       termRight((binary(mergeLoc(locOf(Lhs),locOf(Rhs)),Op,Lhs,Rhs),RPriority,RToks,Rpt1,Needs),Priority).
   termRight((Lhs,LeftPriority,[tok(Lc,idTok(Op)),..Toks],Rpt,LeftNeed),Priority) where
@@ -148,7 +148,7 @@ star.compiler.opg{
 
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).
   checkToken(Tk,Rpt,[tok(Lc,Tk),..Toks]) => (Lc,Rpt,Toks).
-  checkToken(Tk,Rpt,[tok(Lc,T),..Toks]) => (Lc,reportError(Rpt,"missing \(Tk)",Lc),[tok(Lc,T),..Toks]).
+  checkToken(Tk,Rpt,[tok(Lc,T),..Toks]) => (Lc,reportError(Rpt,"missing $(Tk)",Lc),[tok(Lc,T),..Toks]).
 
   checkTerminator:(reports,cons[token],needsTerm) => (reports,cons[token]).
   checkTerminator(Rpt,[tok(_,idTok(". ")),..Toks],_) => (Rpt,Toks).
