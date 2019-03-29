@@ -7,7 +7,7 @@ test.u{
   loop(_,0) => ().
   loop(F,N) where F()=._ => loop(F,N-1).
 
-  tt() => loop(() where _.=parse(uriParse,"http://foo.bar.com?query"::list[integer])=>(),1000).
+  tt() => loop(() where _.=parse(uriParse,"http://foo.bar.com?query"::list[integer])=>(),100).
 
   assert _.=tt().
 

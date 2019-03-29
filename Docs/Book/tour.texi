@@ -257,7 +257,7 @@ testing our fact function:
 @example
 worksheet@{
   import sample.factorial.
-  show "fact(10) is \(fact(10))".
+  show "fact(10) is $(fact(10))".
   assert fact(5) == 120.
 @}
 @end example
@@ -276,10 +276,10 @@ define assertions.
 
 The expression
 @example
-"fact(10) is \(fact(10))"
+"fact(10) is $(fact(10))"
 @end example
 is an @emph{interpolated string} expression. It means the string
-@code{"fact(10) is \(fact(10))"} with the substring @code{(fact(10)}
+@code{"fact(10) is $(fact(10))"} with the substring @code{(fact(10)}
 replaced by the value of the expression embedded within. Interpolated
 string expressions are a convenient way of constructing string values;
 and, via the use of contracts, are also type safe.

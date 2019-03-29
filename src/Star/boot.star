@@ -43,7 +43,7 @@ star.boot{
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= bootRepo(RD) &&
-    -- _ .= logMsg("Repo = \(Repo)") &&
+    -- _ .= logMsg("Repo = $(Repo)") &&
     Pkg ^= parsePkgName(Top) => do{
       setupPkg(Repo,Pkg);
       lift (Top,Args)
@@ -59,7 +59,7 @@ star.boot{
   importPkgs:(list[pkg],list[pkg],bootRepo)=>action[string,()].
   importPkgs([],Ld,_) => do {lift ()}.
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
-  importPkgs(_,_,_) default => err("Could not load \(_command_line())").
+  importPkgs(_,_,_) default => err("Could not load $(_command_line())").
 
   importPkg:(pkg,bootRepo,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).
@@ -80,7 +80,7 @@ star.boot{
     if _definedLbl(Pred,0) then {
       lift _callLbl(Pred,0,[])
     } else
-      throw "No init for \(P)"
+      throw "No init for $(P)"
   }
 
   invokeMain:(string,list[string]) => action[string,()].
@@ -90,6 +90,6 @@ star.boot{
       lift _callLbl(Pred,1,[Args])
     }
     else
-      throw "No main program: \(Top)".
+      throw "No main program: $(Top)".
   }
 }

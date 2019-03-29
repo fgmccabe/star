@@ -20,7 +20,7 @@ star.compiler.typeparse{
       if (Qx,OOp) .= freshen(Op,[],Env) then {
         return rebind(Qx,wrapConstraints(C2,applyTypeFun(OOp,ArgTps,Env)))
       } else
-        raise reportError(Rp,"Could not freshen \(Op)",Lc)
+        raise reportError(Rp,"Could not freshen $(Op)",Lc)
     }
 
   } in

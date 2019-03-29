@@ -28,7 +28,7 @@ test.sy{
     ff(X,F) where X>zero => ff(X-one,F*X).
   } in ff(N,one).
 
-  show "fact(3) = \(fact(3))".
+  show "fact(3) = $(fact(3))".
 
   CX : (list[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{

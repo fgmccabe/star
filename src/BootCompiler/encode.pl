@@ -44,7 +44,10 @@ findDelim(Chrs,Delim) :-
   \+ is_member(Delim,Chrs),!.
 findDelim(_,'"').
 
-encodeText(Txt,[Delim|O],Ox) :- string_chars(Txt,Chrs), findDelim(Chrs,Delim), encodeQuoted(Chrs,Delim,O,Ox).
+encodeText(Txt,[Delim|O],Ox) :-
+  string_chars(Txt,Chrs),
+  findDelim(Chrs,Delim),
+  encodeQuoted(Chrs,Delim,O,Ox).
 
 encodeQuoted([],Delim,[Delim|Ox],Ox) :- !.
 encodeQuoted(['\\'|More],Delim,['\\','\\'|O],Ox) :-

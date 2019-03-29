@@ -7,12 +7,12 @@ test.di{
   Px : action[(),integer].
   Px = _iter(Is,do{lift 1},(Ix,Cx)=>do{lift Ix*Cx}).
   
-  show "Px=\(valof Px)".
+  show "Px=$(valof Px)".
   
   Rx : action[(),cons[integer]].
   Rx = _iter(Is,do { return _nil}, (Ix,Cx)=>do {return _cons(Ix,Cx)}).
   
-  show "Rx=\(valof Rx)".
+  show "Rx=$(valof Rx)".
 
   Fc(I) => action{
 	Fx := 1;
@@ -22,7 +22,7 @@ test.di{
 	return Fx!
       }
 
-  show "Fc(Is) = \(valof Fc(Is))".
+  show "Fc(Is) = $(valof Fc(Is))".
 
   FX:(cons[integer]) => action[(),integer].
   FX(I) => action{
@@ -31,5 +31,5 @@ test.di{
     return Fx!
   }
   
-  show "FX(Is) = \(valof FX(Is))".
+  show "FX(Is) = $(valof FX(Is))".
 }

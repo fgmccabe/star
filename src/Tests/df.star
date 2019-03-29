@@ -17,10 +17,10 @@ test.df{
 
   CC = CX(IS,4).
     
-  show "CC(IS,2) = \(valof CX(IS,2))".
+  show "CC(IS,2) = $(valof CX(IS,2))".
 
-  show "CC = \(valof CC)".
-  show "CC = \(valof CC)".
+  show "CC = $(valof CC)".
+  show "CC = $(valof CC)".
 
   assert valof CC == valof CC.
 
@@ -42,5 +42,5 @@ test.df{
       }
   }
     
-  show "TX(IS,2) = \(valof TX(IS,2))".
+  show "TX(IS,2) = $(valof TX(IS,2))".
 }

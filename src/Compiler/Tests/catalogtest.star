@@ -18,9 +18,9 @@ test.comp.cat{
   	"version": "1.0.0"
   }"""::json.
 
-  show "json is \(cj)".
+  show "json is $(cj)".
 
   cc = parseCat(cj,cwd()).
 
-  show "catalog is \(cc)".
+  show "catalog is $(cc)".
 }

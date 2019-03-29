@@ -11,8 +11,8 @@ test.implies{
 
   hasD(P) => (P,S) in pars && \+ S in ms.
 
-  show "hasD(a) = \(hasD("a"))".
-  show "hasD(f) = \(hasD("f"))".
+  show "hasD(a) = $(hasD("a"))".
+  show "hasD(f) = $(hasD("f"))".
   
 
   foldOnlySons:(string)=>option[()].
@@ -43,8 +43,8 @@ test.implies{
   	    checkSon(_,So) => _lift(So)
   	  } in checkSon).
 
-  show "actionOnlySons(a) = \(valof actionOnlySons("a"))".
-  show "actionOnlySons(f) = \(valof actionOnlySons("f"))".
+  show "actionOnlySons(a) = $(valof actionOnlySons("a"))".
+  show "actionOnlySons(f) = $(valof actionOnlySons("f"))".
 
   assert onlySons("a").
 
