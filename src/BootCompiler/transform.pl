@@ -156,10 +156,10 @@ transformMdlDef(funDef(Lc,Nm,ExtNm,Tp,[],Eqns),_,Map,Opts,Ix,Ix,Dx,Dxx) :-
 transformMdlDef(varDef(Lc,Nm,ExtNm,[],Tp,Value),_,Map,Opts,I,Ix,Dx,Dxx) :-
   transformGblDefn(Lc,Nm,ExtNm,Tp,Value,Map,Opts,I,Ix,Dx,Dxx).
 transformMdlDef(cnsDef(_Lc,_Nm,enm(_,_,_),_Tp),_Pkg,_Map,_Opts,Ix,Ix,Dx,Dx).
-transformMdlDef(cnsDef(Lc,Nm,cons(_,_,_),Tp),Pkg,Map,Opts,Ix,Ix,D,Dx) :-
+transformMdlDef(cnsDef(Lc,Nm,cons(_,_,_),Tp),_Pkg,Map,Opts,Ix,Ix,D,Dx) :-
   moveQuants(Tp,_,QTp),
   moveConstraints(QTp,_,Template),
-  transformConsDef(Lc,Nm,Template,Pkg,Map,Opts,D,Dx).
+  transformConsDef(Lc,Nm,Template,Map,Opts,D,Dx).
 transformMdlDef(typeDef(_,_,_,_),_,_,_,Ix,Ix,Dx,Dx).
 transformMdlDef(conDef(_,_,_),_,_,_,Ix,Ix,Dx,Dx).
 transformMdlDef(implDef(_,_,_,_),_,_,_,Ix,Ix,Dx,Dx).
@@ -168,7 +168,7 @@ extraArity(Arity,Vars,ExAr) :-
   length(Vars,E),
   ExAr is E+Arity.
 
-transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),_Pkg,Map,Opts,[CFun|D],Dx) :-
+transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),Map,Opts,[CFun|D],Dx) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,ConsNm,Arity),
   extraVars(Map,Extra),
@@ -179,7 +179,7 @@ transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),_Pkg,Map,Opts,[CFun|D],Dx)
   extendFunTp(funType(tupleType([]),Tp),Args,ATp),
   CFun=fnDef(Lc,LclPrg,ATp,Args,ctpl(lbl(ConsNm,Ar),BndArgs)),
   genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),Map,Opts,D,Dx).
-transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),_Pkg,Map,_Opts,[CFun|D],D) :-
+transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),Map,_Opts,[CFun|D],D) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,ConsNm,Arity),
   extraVars(Map,Extra),
@@ -188,28 +188,10 @@ transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),_Pkg,Map,_Opts,[CFun|D],D) :-
   genConsArgs(Lc,Els,Args,Extra,BndArgs,Extra),
   extendFunTp(funType(tupleType([]),Tp),Args,ATp),
   CFun=fnDef(Lc,LclPrg,ATp,Args,ctpl(lbl(ConsNm,Ar),BndArgs)).
-transformConsDef(Lc,Nm,consType(existType(_,Inn),Tp),Pkg,Map,Opts,D,Dx) :-
-  transformConsDef(Lc,Nm,consType(Inn,Tp),Pkg,Map,Opts,D,Dx).
+transformConsDef(Lc,Nm,consType(existType(_,Inn),Tp),Map,Opts,D,Dx) :-
+  transformConsDef(Lc,Nm,consType(Inn,Tp),Map,Opts,D,Dx).
 
 genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx).
-/*
-genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx) :-
-  length(Els,Ar),
-  sort(Els,transform:cmpName,SrtEls),
-  genConsArgs(Lc,SrtEls,Args,Extra,_BndArgs,Extra),
-  makeRecordAccessEqns(Lc,ctpl(lbl(ConsNm,Ar),Args),SrtEls,Args,AccEqns),
-  functionMatcher(Lc,2,lbl(ConsNm,2),funType(tupleType([anonType,anonType]),anonType),AccEqns,_AFun).
-
-makeRecordAccessEqns(Lc,_,Els,_Args,Eqns) :-
-  genVar("_",Vr),
-  makeAccessEqns(Lc,Els,Vr,0,Eqns).
-
-makeAccessEqns(_,[],_,_,[]).
-makeAccessEqns(Lc,[(Nm,_)|Tps],Vr,Ix,[(Lc,[Vr,enum(DotNm)],enum("star.core#true"),dte(Lc,Vr,intgr(Ix)))|Eqns]) :-
-  Ix1 is Ix+1,
-  string_concat(".",Nm,DotNm),
-  makeAccessEqns(Lc,Tps,Vr,Ix1,Eqns).
-*/
 
 genConsArgs(_,[],Args,Args,BndArgs,BndArgs).
 genConsArgs(Lc,[_|Els],[V|Args],Ax,[V|Bnd],Bx) :-
@@ -343,7 +325,11 @@ transformThetaDef(funDef(Lc,Nm,ExtNm,Tp,_,Eqns),Map,OMap,Opts,Fx,Fx,Ix,Ix,Dx,Dxx
   transformFunction(Lc,Nm,ExtNm,Tp,Eqns,Map,OMap,Opts,Dx,Dxx).
 transformThetaDef(varDef(Lc,Nm,ExtNm,_,Tp,Value),Map,OMap,Opts,F,Fx,Ix,Ix,Dx,Dxx) :-
   transformThetaDefn(Lc,Nm,ExtNm,Tp,Value,Map,OMap,Opts,F,Fx,Dx,Dxx).
-transformThetaDef(cnsDef(_Lc,_Nm,_Con,_Tp),_Map,_,_Opts,Fx,Fx,Ix,Ix,Dx,Dx).
+transformThetaDef(cnsDef(_Lc,_Nm,enm(_,_,_),_Tp),_Map,_,_Opts,Fx,Fx,Ix,Ix,Dx,Dx).
+transformThetaDef(cnsDef(Lc,Nm,cons(_,_,_),Tp),Map,_,Opts,Fx,Fx,Ix,Ix,D,Dx) :-
+  moveQuants(Tp,_,QTp),
+  moveConstraints(QTp,_,Template),
+  transformConsDef(Lc,Nm,Template,Map,Opts,D,Dx).
 transformThetaDef(typeDef(_,_,_,_),_,_,_,Fx,Fx,Ix,Ix,Dx,Dx).
 transformThetaDef(conDef(_,_,_),_,_,_,Fx,Fx,Ix,Ix,Dx,Dx).
 
@@ -835,6 +821,7 @@ programAccess(moduleFun(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(moduleCons(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(localFun(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
+programAccess(localCons(Prog,Closure,Arity,_),Prog,Closure,Arity).
 
 makeDotLbl(Nm,enum(Dot)) :-
   localName("",".",Nm,Dot).
