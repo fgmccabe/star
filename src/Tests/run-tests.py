@@ -70,10 +70,19 @@ def runPkg(Pkg):
     "Run a previously compiled package"
     if tracing:
         print "run:",execRoot+"src/Engine/star","-r",root+"src/Star/Build/", "-h","4m", Pkg
-    return subprocess.call([execRoot+"src/Engine/star",
-                            "-r",root+"src/Star/Build/",
-                            "-h","4m",
-                            Pkg])
+
+    try:
+        out = subprocess.check_output([execRoot+"src/Engine/star",
+                                       "-r",root+"src/Star/Build/",
+                                       "-h","4m",
+                                       Pkg],
+                                      stderr=subprocess.STDOUT)
+        if tracing:
+            print out
+        return 0
+    except subprocess.CalledProcessError as err:
+        print err.output
+        return err.returncode
 
 if __name__ == "__main__":
     main(sys.argv[1:])

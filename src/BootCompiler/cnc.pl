@@ -1,4 +1,4 @@
-:- module(cnc,[genCondition/8]).
+:- module(cnc,[genCondition/7]).
 
 :- use_module(wff).
 :- use_module(types).
@@ -21,7 +21,7 @@
  *
  * where AddEl, InitState are parameters to the conversion
  */
-genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,Exp) :-
+genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
   typeOfCanon(Ptn,PtnTp),
   genNme(Lc,PtnTp,"_",Anon),
   typeOfCanon(Iterator,ItrTp),
@@ -30,7 +30,7 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,Exp) :
   genNme(Lc,RsltTp,"_st",St),
   call(Succ,unlifted(St),AddToFront),
   splitPtn(Ptn,Pttrn,PtnCond),
-  call(Fail,unlifted(St),Dflt),
+  call(Lift,unlifted(St),Dflt),
   typeOfCanon(AddToFront,MdlTp),
   FnTp = funType(tupleType([PtnTp,RsltTp]),MdlTp),
   % entangle type of iterator with the monad
@@ -59,7 +59,7 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,Exp) :
   *
   * where AddEl, InitState are parameters to the conversion
 */
-genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,Exp) :-
+genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
   typeOfCanon(Ptn,PtnTp),
   typeOfCanon(Key,KyTp),
 
@@ -74,7 +74,8 @@ genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,
   mergeGl(KeyCond,PtnCond,Lc,IxCond),
 
   call(Succ,unlifted(St),AddToFront),
-  call(Fail,unlifted(St),Dflt),
+  call(Lift,unlifted(St),Dflt),
+  
   typeOfCanon(AddToFront,MdlTp),
   newTypeVar("_strm",RsltTp),
   FnTp = funType(tupleType([KyTp,PtnTp,RsltTp]),MdlTp),
@@ -96,35 +97,42 @@ genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Fail,Initial,
   Exp = apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp).
 
 
-/*
- * Ptn .= Expr
- * becomes
- * (Init)>>=(St)=>(Ptn.=Expr?Succ(St)||Fail(St)
- */
-genCondition(match(Lc,Ptn,Exp),_Path,_Lift,Seq,Succ,Fail,Initial,Exp) :-
-  call(Succ,unlifted(St),AddToSucc),
-  call(Fail,unlifted(St),AddToFail),
-  typeOfCanon(AddToSucc,Tp),
-  call(Seq,St,Initial,cond(Lc,match(Lc,Ptn,Exp),AddToSucc,AddToFail,Tp),Exp).
-
-genCondition(conj(_Lc,A,B),Path,Lift,Seq,Succ,Fail,Initial,Exp) :-
-  genCondition(A,Path,Lift,Seq,cnc:genCondition(B,Path,Lift,Seq,Succ,Fail),Fail,Initial,Exp).
-genCondition(disj(_,A,B),Path,Lift,Seq,Succ,Fail,Initial,Exp) :-
-  genCondition(A,Path,Lift,Seq,Succ,Fail,Initial,E1),
-  genCondition(B,Path,Lift,Seq,Succ,Fail,lifted(E1),Exp).
-genCondition(neg(_,A),Path,Lift,Seq,Succ,Fail,Initial,Exp) :-
-  genCondition(A,Path,Lift,Seq,Fail,Succ,Initial,Exp).
-genCondition(implies(Lc,G,T),Path,Lift,Seq,Succ,Fail,Initial,Exp) :-
-  genCondition(neg(Lc,conj(Lc,G,neg(Lc,T))),Path,Lift,Seq,Succ,Fail,Initial,Exp).
+genCondition(conj(_Lc,A,B),Path,Lift,Seq,Succ,Initial,Exp) :-
+  genCondition(A,Path,Lift,Seq,cnc:genCondition(B,Path,Lift,Seq,Succ),Initial,Exp).
+genCondition(disj(_,A,B),Path,Lift,Seq,Succ,Initial,Exp) :-
+  genCondition(A,Path,Lift,Seq,Succ,Initial,E1),
+  genCondition(B,Path,Lift,Seq,Succ,lifted(E1),Exp).
+genCondition(neg(Lc,N),Path,Lift,Seq,Succ,Initial,Exp) :-
+  negatedCondition(Lc,N,Path,Lift,Seq,Succ,Initial,Exp).
+genCondition(implies(Lc,G,T),Path,Lift,Seq,Succ,Initial,Exp) :-
+  genCondition(neg(Lc,conj(Lc,G,neg(Lc,T))),Path,Lift,Seq,Succ,Initial,Exp).
 % Other form of condition is treated similarly to a match
-genCondition(Other,_Path,_Lift,Seq,Succ,Fail,Initial,Exp) :-
-  locOfCanon(Other,Lc),
+genCondition(Other,_Path,Lift,Seq,Succ,Initial,Exp) :-
+  call(Succ,Initial,AddToSucc),
   newTypeVar("_",StTp),
-  genNme(Lc,StTp,"_st",St),
-  call(Succ,unlifted(St),AddToSucc),
-  call(Fail,unlifted(St),AddToFail),
+  genNme(Lc,StTp,"_",St),
   typeOfCanon(AddToSucc,Tp),
-  call(Seq,St,Initial,cond(Lc,Other,AddToSucc,AddToFail,Tp),Exp).
+  locOfCanon(Other,Lc),
+  call(Lift,Initial,Init),
+  call(Seq,St,Initial,cond(Lc,Other,AddToSucc,Init,Tp),Exp).
+
+negatedCondition(Lc,Qury,Path,Lift,Seq,Succ,Initial,Exp) :-
+  LogicalTp = type("star.core*boolean"),
+  genCondition(Qury,Path,Lift,Seq,
+	       cnc:mkLogical(Lc,Lift,"true"),
+	       unlifted(enm(Lc,"false",LogicalTp)),
+	       Negated),
+
+  genNme(Lc,LogicalTp,"_",St),
+  call(Succ,Initial,SuccCase),
+  call(Lift,Initial,Init),
+  typeOfCanon(Init,Tp),
+
+  call(Seq,St,lifted(Negated),cond(Lc,St,Init,SuccCase,Tp),Exp).
+%  reportMsg("negated condition -> %s",[Exp]).
+
+mkLogical(Lc,Lift,Case,_,Deflt) :-
+  call(Lift,unlifted(enm(Lc,Case,type("star.core*boolean"))),Deflt).
 
 typeOfInitial(lifted(C),T) :-!,
   typeOfCanon(C,T).

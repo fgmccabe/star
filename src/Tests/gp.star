@@ -46,79 +46,26 @@ test.gp{
 
   show disp(gpF("abc")).
 
-  -- Using iterable contract
-  iPs:(list[(string,string)],string,iterState[list[string]]) => iterState[list[string]].
-  iPs(Ps,Ch,St) => _iterate(Ps,let{
-    rightP((P,Ch),continueWith(So)) => continueWith(addP(P,So)).
-    rightP((P,Ch),noneFound) => continueWith([P]).
-    rightP(_,So) => So.
-  } in rightP,St).
-
-  iGp:(iterState[list[string]],iterState[list[string]]) => iterState[list[string]].
-  iGp(noneFound,_) => noneFound.
-  iGp(continueWith(Ps),St) => _iterate(Ps,(P,So)=>iPs(parent,P,So),St).
-
-  gpI:(string) => iterState[list[string]].
-  gpI(GC) => iGp(iPs(parent,GC,noneFound),noneFound).
-
-  show disp(gpI("abc")).
-
-  -- As though translated from the query rule:
+  -- Translated from the query rule:
   -- gp(X,Y) <- parent(X,Z) && parent(Z,Y).
 
-  qP1() =>
-    _iterate(parent,let{
-      f1((X,Z),St0) => _iterate(parent,let{
-        f2((Z,Y),St1) => mergeState((X,Y),St1).
-        f2(_,St1) => St1.
-      } in f2,St0).
-    }in f1,noneFound).
-
-  mergeState:all e ~~ (e,iterState[list[e]]) => iterState[list[e]].
-  mergeState(P1,noneFound) => continueWith([P1]).
-  mergeState(P1,continueWith(S)) => continueWith([P1,..S]).
+  qP1:()=>set[(string,string)].
+  qP1() => { (X,Y) | (X,Z) in parent && (Z,Y) in parent }.
 
   show disp(qP1()).
 
   -- As though translated from the query rule:
   -- gc(X) given (Y) <- parent(X,Z) && parent(Z,Y).
 
-  qC2(Y) =>
-    _iterate(parent,let{
-      f1((X,Z),St0) => _iterate(parent,let{
-        f2((Z,Y),St1) => mergeState(X,St1).
-        f2(_,St1) => St1.
-      } in f2,St0).
-      f1(_,St0) default => St0.
-    }in f1,noneFound).
+  qC2:(string) => list[string].
+  qC2(Y) => { X | (X,Z) in parent && (Z,Y) in parent }.
 
   show disp(qC2("abc")).
 
   -- By changing the order of the calls, it is more efficient
-  -- gc(X) given (Y) <- parent(Z,Y) && parent(X,Z).
 
-  qC3(Y) =>
-    _iterate(parent,let{
-      f1((Z,Y),St0) => _iterate(parent,let{
-        f2((X,Z),St1) => mergeState(X,St1).
-        f2(_,St1) => St1.
-      } in f2,St0).
-      f1(_,St0) default => St0.
-    }in f1,noneFound).
+  qC3:(string)=>list[string].
+  qC3(Y) => { X | (Z,Y) in parent && (X,Z) in parent }.
 
   show disp(qC3("abc")).
-
-  -- A different example, filtering positive numbers
-  someInts : list[integer].
-  someInts = [0,2,-1,-10,4,6,7,-3].
-
-  pos = _iterate(someInts,let{
-    f1(I,St0) => let{
-      f2(St1) where I>=0 => mergeState(I,St1).
-      f2(St1) default => St1.
-    } in f2(St0).
-    f1(_,St0) default => St0.
-  } in f1,noneFound).
-
-  show disp(pos).
 }

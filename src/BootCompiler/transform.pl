@@ -188,6 +188,8 @@ transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),_Pkg,Map,_Opts,[CFun|D],D) :-
   genConsArgs(Lc,Els,Args,Extra,BndArgs,Extra),
   extendFunTp(funType(tupleType([]),Tp),Args,ATp),
   CFun=fnDef(Lc,LclPrg,ATp,Args,ctpl(lbl(ConsNm,Ar),BndArgs)).
+transformConsDef(Lc,Nm,consType(existType(_,Inn),Tp),Pkg,Map,Opts,D,Dx) :-
+  transformConsDef(Lc,Nm,consType(Inn,Tp),Pkg,Map,Opts,D,Dx).
 
 genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),_Map,_Opts,[rcDef(Lc,ConsNm,faceType(Els,Tps))|Dx],Dx).
 /*
@@ -376,27 +378,20 @@ liftPtn(stringLit(Sx,_),strg(Sx),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(tple(_,Ptns),PTpl,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(Ptns,Ps,Q,Qx,Map,Opts,Ex,Exx),
   mkTpl(Ps,PTpl).
-liftPtn(apply(Lc,v(_,Nm),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,v(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(apply(Lc,cons(_,Nm,_),tple(_,A)),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
+liftPtn(apply(Lc,cons(_,Nm,_),tple(_,A),_),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtns(A,Args,Q,Q0,Map,Opts,Ex,Ex0),
   trPtnCallOp(Lc,Nm,Args,Ptn,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(apply(Lc,Op,tple(_,A),Tp),whr(Lc,idnt(N),mtch(Lc,XArg,XTrm)),Q,Qx,Map,Opts,Ex,Exx) :-
-  genstr("_X",N),
-  typeOfCanon(A,ATp),
-  liftExp(apply(Lc,Op,tple(Lc,[v(Lc,N,ATp)]),Tp),XTrm,Q,Q0,Map,Opts,Ex,Ex0),
-  liftPtns(A,Args,Q0,Q1,Map,Opts,Ex0,Exx),
-  merge([idnt(N)],Q1,Qx),
-  mkTpl(Args,TA),
-  XArg=ctpl(lbl("star.core#some",1),[TA]).
 liftPtn(where(_,P,enm(_,"true",type("star.core*boolean"))),Ptn,Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,Ptn,Q,Qx,Map,Opts,Ex,Exx).
 liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
-liftPtn(XX,Exp,Q,Qx,Map,Opts,Ex,Exx) :-
-  liftExp(XX,Exp,Q,Qx,Map,Opts,Ex,Exx).
+liftPtn(XX,whr(Lc,Vr,mtch(Lc,Vr,Val)),Q,Qx,Map,Opts,Ex,Exx) :-
+  genVar("_",Vr),
+  liftExp(XX,Val,Q,Qx,Map,Opts,Ex,Exx).
 
 trVarPtn(_,"_",idnt("_"),Q,Q,_,_).
 trVarPtn(Lc,Nm,A,Q,Qx,Map,_) :-
