@@ -1,0 +1,393 @@
+@node Programs
+@chapter Programs
+
+This chapter focuses on the organization of programs using functions,
+types and other computational forms. Apart from program values
+themselves, a key concept is the @refer{ThetaEnvironment}. This is
+where many programs, types etc. are defined. @refer{ThetaEnvironment}s
+are also first-class values -- showing up as @refer{AnonymousRecord}s.
+
+@node Package Structure
+@section Package Structure
+
+The top-level compilation unit is a package.
+
+@node Theta Environment
+@section Theta Environment
+@cindex theta environment
+@cindex program declaration
+
+A @refer{ThetaEnvironment} consists of a set of definitions of types,
+programs and variables.
+
+@float BNF,statementFig
+@caption{Definition}
+@display
+@anchored{ThetaEnvironment} ::= @code{@{} @refer{Definition} @code{.} ... @code{.} @refer{Definition} @code{@}}
+
+@anchored{Definition} ::= @refer{TypeDefinition}
+  | @refer{Annotation}
+  | @refer{TypeAnnotation}
+  | @refer{TypeDefinition}
+  | @refer{VariableDefinition}
+  | @refer{FunctionDefinition}
+  | @refer{Contract}
+  | @refer{Implementation}
+  | @refer{OpenStatement}
+  | @refer{ImportStatement}
+@end display
+@end float
+
+Many of the definitions in a @refer{ThetaEnvironment} define entities
+that may be recursive and mutually recursive.
+
+@node Type Annotations
+@section Type Annotations
+@cindex type annotation
+In most cases it is not necessary to explicitly declare the type of a
+variable -- or any expression. However, it is good practice to declare
+explicitly the types of programs; especially within
+@var{ThetaEnvironment}s, and it is required if the type of the
+variable is intended to be generic.
+
+@float BNF,typeAnnotationFig
+@caption{Type Annotation}
+@display
+@anchored{TypeAnnotation} ::= @refer{Variable} @code{:} @refer{Type}
+@end display
+@end float
+
+For example, a generic function @code{consLength} that takes a
+@code{cons} list and returns an integer would have the declaration:
+@example
+consLength:all t ~~ (cons[t])=>integer
+@end example
+
+@node Type Definitions
+@section Type Definitions
+@cindex type definition
+
+There are several ways that a type may be defined in a scope --
+i.e., a @refer{ThetaEnvironment}.
+
+@float BNF,typeDefinitionFig
+@caption{Type Definition}
+@display
+@anchored{TypeDefinition} ::= @refer{AlgebraicTypeDefinition}
+  | @refer{TypeExistsStmt}
+  | @refer{TypeAliasStmt}
+@end display
+@end float
+
+@node Algebraic Type Definition
+@subsection Algebraic Type Definition
+
+An algebraic type definition is a statement that defines a type in
+terms of different constructors for the type.
+
+@float BNF,algebraicTypeDefinFig
+@caption{Algebraic Type Definition}
+@display
+@anchored{AlgebraicTypeDefinition} ::= @refer{Type} @code{::=} @refer{AlgebraicConstructor}  @dots{}  @refer{AlgebraicConstructor}
+@end display
+@end float 
+
+
+@node Type Exists Statement
+@subsection Type Exists Statement
+
+@node Type Alias Statement
+@subsection Type Alias Statement
+
+@node Functions and Equations
+@section Functions and Equations
+@cindex function
+
+A function is a program for computing values; organized as a set of equations.
+
+@float BNF,functionFig
+@caption{Functions}
+@display
+@anchored{Function} ::= @refer{Equation} ... @refer{Equation}
+
+@anchored{Equation} ::= @refer{RuleHead} [@refer{RuleGuard}]] @code{=>} @refer{Expression}
+  | @refer{DefltEquation}
+
+@anchored{DefltEquation} ::= @refer{RuleHead} @code{default} @code{=>} @refer{Expression}
+
+@anchored{RuleHead}RuleHead ::= @refer{Identifier}@code{(}@refer{Pattern},...,@refer{Pattern}>@code{)}
+
+@anchored{RuleGuard}RuleGuard ::= @code{default} | @refer{GuardCondition}>
+
+@anchored{GuardCondition}GuardCondition ::= @code{where} @refer{Condition}
+@end display
+@end float
+
+
+@quotation Note
+Functions and other program values are first class values; as a result
+they may be passed as arguments to other functions as well as being
+assigned as attributes of records.
+@end quotation
+
+Functions can be defined in a @refer{ThetaEnvironment} -- which case
+they must be associated with an explicit or implicit
+@refer{TypeAnnotation} -- or they may be @emph{anonymous} -- i.e.,
+appear as a function literal in an expression.
+
+@node Equations
+@subsection Equations
+An equation is a rule for deciding how to rewrite an expression into a
+simpler expression. Each equation consists of a @refer{TuplePattern}
+that is used to match the call to the function and a replacement
+expression. The left hand side of the function may also have a guard
+associated with it, this guard may use variables introduced in the
+pattern.
+
+@quotation Note
+An equation is said to apply iff the patterns in the left hand side of
+the equation (including any @code{where} clauses) all match the
+corresponding actual arguments to the function application.
+@end quotation
+
+@cindex theta environment
+Functions are defined in the context of a @refer{ThetaEnvironment} --
+for example, in the body of a @code{let} expression (see
+@refer{LetExpression}), or at the top-level of a @code{package}.
+
+It is not necessary for the equations that define a function to be
+contiguous within a @refer{ThetaEnvironment}. However, all the
+equations for a function must be present in the @emph{same}
+@refer{ThetaEnvironment}.
+
+@subsubsection Type of Functions
+The type safety of a function is addressed in stages. In the first
+place, we give the rules for individual equations:
+
+@display
+@emph{E} |= @code{A}:@code{AT} /\ @emph{E'} |= @code{R}:@code{RT} => @emph{E} |= @code{A=>R} : @code{AT=>RT}
+@end display
+
+This states that the type of an equation is a function type: from the
+type of the argument pattern to the type of the result expression.
+
+If the equation has a @refer{GuardCondition}, that that condition must
+be type satisfiable:
+
+@display
+@emph{E} |= @emph{A}:@emph{AT} /\ @emph{E'} |= sat(C) /\ @emph{E''} |= @emph{R}:@emph{RT} => @emph{E} |= @code{A=>R} : @code{AT=>RT}
+@end display
+
+where @emph{E'} is the original environment @emph{E} extended with the
+variable definitions found in the pattern @code{A} and @emph{E''} is
+@emph{E'} extended with the variables found in the condition @code{C}.
+
+In fact this rule slightly understates the type safety
+requirement. For any statement in a theta environment we also have:
+
+@node Evaluation Order of Equations
+@subsection Evaluation Order of Equations
+@cindex equations,evaluation order
+
+Using multiple equations to define a function permits a case-base
+approach to function design -- each equation relates to a single case
+in the function. When such a function is @emph{applied} to actual
+arguments then only one of the equations in the definition may apply.
+
+Equations are applied in the order that they are written -- apart from
+any equation that is marked @code{default}. If two equations overlap
+in their patterns then the first equation to apply is the one used.
+
+@node Default Equations
+@subsection Default Equations
+@cindex default equation@code{default} equation
+@cindex functions,default@code{default} equation
+
+It is permitted to assign one of the equations in a function
+definition to be the @code{default} equation. An equation marked as
+@code{default} is guaranteed @emph{not} to be used if any of the
+non-default equations apply. Thus, a @code{default} equation may be
+used to capture any remaining cases not covered by other equations.
+
+@cindex patterns,variable pattern
+A @code{default} equation may not have a @code{where} clause associated with
+it, and furthermore, the patterns in the left hand-side should be
+generally be variable patterns (see @refer{patternVariables}).
+
+@quotation Note
+In particular, it @emph{should} be guaranteed that a @code{default}
+equation cannot fail to apply.
+@end quotation
+
+@node Evaluation Order of Arguments
+@subsection Evaluation Order of Arguments
+@cindex function application,evaluation order
+
+There is @emph{no} guarantee as to the order of evaluation of
+arguments to a function application. In fact, there is no guarantee
+that a given expression will, in fact, be evaluated.
+
+@quotation Note
+The programmer should also @emph{not} assume that argument expressions
+will @emph{not} be evaluated!
+@end quotation
+
+In general, the programmer should make the fewest possible assumptions
+about order of evaluation.
+
+@node Pattern Coverage
+@subsection Pattern Coverage
+@anchored{patternCoverage}
+@cindex patterns,coverage of
+
+Any given equation in a function definition need not completely cover
+the possible arguments to the function. For example, in
+@example
+F : (integer)=>integer.
+F(0) => 1.
+F(X) => X*F(X-1).
+@end example
+
+the first equation only applies if the actual argument is the number
+@code{0}; which is certainly not all the @code{integer}s.
+
+The set of equations that define a function also define a coverage of
+the potential values of the actual arguments. In general, the coverage
+of a set of equations is smaller than the possible values as
+determined by the type of the function.
+
+If a function is @emph{partial} -- i.e., if the coverage implied by
+the patterns of the function's equations is not complete with respect
+to the types -- then the compiler @emph{may} issue an incomplete
+coverage warning. Furthermore, if a function fails to apply at
+run-time then this is a @emph{fatal error} and evaluation of the
+program will halt.
+
+@quotation Note
+The programmer is advised to make functions @emph{total} by supplying
+an appropriate @code{default} equation. In the case of the
+@code{F}actorial function above, we can make the @code{default} case
+explicit as is shown in @refer{factorialFunProg}.
+@end quotation
+
+@float Program, factorialFunProg
+@caption{Factorial Function}
+@example
+fact : (integer)=>integer.
+fact(X) where X>0 => X*fact(X-1).
+fact(X) default => 1
+@end example
+@end float
+
+@node Anonymous Function
+@subsection Anonymous Function
+@cindex anonymous function
+@cindex expressions,function
+
+Anonymous functions -- or lambda expressions -- are expressions of the form:
+@example
+(X) => X+Y
+@end example
+Lambda expressions may appear anywhere a function value is permitted.
+
+@float BNF,anonymousFunctionFig
+@caption{Anonymous Function}
+@display
+@anchored{LambdaExpression} ::= @refer{TuplePattern} @code{=>} @refer{Expression}
+@end display
+@end float
+
+@quotation Note
+If it desired to have a single-argument anonymous function that takes
+a tuple pattern then use double parentheses:
+@example
+((X,Y)) => X+Y
+@end example
+@end quotation
+
+For example, a lambda expression to add 1 to its single argument would
+be:
+@example
+(X) => X+1
+@end example
+
+Lambda expressions are often used in function-valued functions. For example in:
+@example
+addX:(integer)=>((integer)=>integer).
+addX(X) => ((Y) => X+Y)
+@end example
+
+the value returned by @code{addX} is another function -- a single
+argument function that adds a fixed number to its argument.
+
+@quotation Note
+Note the extra set of parentheses around both the embedded function type and around the returned function value.
+@end quotation
+
+@quotation Note
+Lambda expressions functions may reference free variables.
+@end quotation
+
+@node Open Statement
+@section Open Statement
+@anchored{openStatement}
+@cindex open statement
+@cindex opening a record
+@cindex record,opening
+
+The @refer{OpenStatement} takes a @refer{Record}-valued expression and
+opens its contents in a @refer{ThetaEnvironment}. It is analogous to
+an @refer{Import} of the record.
+
+@float BNF,openStatementFig
+@caption{Open Statement}
+@display
+@anchored{OpenStatement} ::= @code{open} @refer{Expression}
+@end display
+@end float
+
+Any fields and types that are declared within the @refer{Expression}'s
+type become defined within the enclosing @refer{ThetaEnvironment}.
+@quotation Note
+The existing scope rules continue to apply; in particular, if there is
+a name that is duplicated already in scope then a duplicate definition
+error will be signaled.
+@end quotation
+
+Normal type inference is not able to infer anything about the type of
+the @code{open}ed @refer{Expression}. Hence, this statement requires
+that the type of the expression is already known.
+
+For example, given the definition:
+@example
+R : @{ type elem. op:(elem,elem)=>elem. zero:elem @}
+R = @{
+  integer ~> elem.
+  op(X,Y) => X+Y.
+  zero = 0.
+@}
+@end example
+
+then we can @code{open} @code{R} in a @refer{LetExpression}:
+@example
+let@{
+  open R.
+  Z : elem.
+  Z = zero.
+@} in Z
+@end example
+
+@quotation Note
+Although the @code{open} statement makes available the types and
+fields embedded in a record; existential abstraction still applies. In
+particular, in this case the fact that the @code{elem} type is
+manifest as @code{integer} within the record expression @code{R} is
+hidden.
+
+The @code{elem} type (and the @code{zero} and @code{op} fields) are
+available within the @code{let}; but no information about what
+@code{elem} actually is is available.
+@end quotation
+
+
+

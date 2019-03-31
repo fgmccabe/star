@@ -19,3 +19,143 @@ A regular expression may be used to match against string values. Regular express
 ****
 
 <<regFig>> shows the lexical syntax of regular expressions; however, see <<regularExpressions>> for a more detailed explanations of regular expression syntax and semantics.
+
+
+
+@node Overloaded Functions
+@subsection Overloaded Functions
+@anchored{overloadedFunctions}
+The type of an overloaded function has a characteristic signature: it's type is universally quantified but with a constraint on the bound type variables.
+
+For example, given the definition:
+@example
+dble:all t ~~ arithmetic[t] |: (t)=>t
+dble(X) => X+X
+@end example
+
+the generalized type of @code{dble} is:
+@example
+all t ~~ arithmetic[t] |: (t)=>t
+@end example
+
+As noted in @refer{overloading}, the @code{dble} function is converted
+to a function with an explicit dictionary argument that carries the
+implementation of the @code{arithmetic} contract:
+
+@example
+dble:all t ~~ (arithmetic[t])$=>(t)=>t
+dble(A) => let{
+  dble_:(t)=>t
+  dble_(X) => (A.+)(X,X)
+} in dble_
+
+In effect, this means that the @code{dble} has _two_ types assigned to it: the constrained type above that is inferred through type inference and an overloaded type that results from its translation.
+[listing]
+all t ~~ (arithmetic[t])$=>(t)=>t
+
+[NOTE]
+Overloaded types are function types, but we use a different types symbol -- @code{$\=>} -- to help distinguish the special role that overloaded types have.
+
+[TIP]
+The existence of an overloaded type associated with a variable is an important signal: it means that references to the variable must be resolved -- that appropriate @code{implementation}s of the required contracts are found.
+
+When an overloaded function variable is referenced the normal type of the variable expression is identical to the normal rule for variable expressions: the type of the expression is the refreshed type of the constrained type associated with the variable.
+
+However, the existence of the overloaded type associated with the variable acts as a signal that the overloading must be resolved.
+
+For example, in the function:
+[listing]
+quad:all t ~~ arithmetic[t] |: (t)=>t
+quad(X) => dble(dble(X))
+
+the type of each @code{dble} variable expression is determined to be:
+[listing]
+arithmetic[t] |: (t)=>t
+
+[NOTE]
+They are the same type in this case because of the calling pattern for @code{dble}.
+
+Since @code{dble} originally had a constrained type -- together with its associated overloaded type -- both references must be resolved by supplying an implementation of @code{arithmetic}. I.e., both @code{dble} expressions are interpreted as:
+[listing]
+dble[A](dble[A](X))
+
+where we use @code{dble[A]} as a special form function call footnote:[We use this notation for exposition purposes only -- it is not normal `*Star* syntax'.] that denotes a use of the overloaded function.
+
+The @code{quad} function is generic, and so its type is also a generalized constrained type:
+[listing]
+quad:all t ~~ arithmetic[t] |: (t)=>t
+
+and is also transformed into the overloaded definition:
+[listing]
+quad:all t ~~ (arithmetic[t]) $=> (t)=>t
+quad(A) => let{
+  quad_:(t)=>t
+  quad_(X) => dble[A](dble[A](X))
+} in quad_
+
+In effect, the resolved dictionary for @code{arithmetic} is `pulled out' to a larger scope.
+
+In all cases, for overloaded functions to be invoked correctly, there must be some outermost point where an overloaded function is invoked with a concrete implementation value.
+
+If an overloaded variable is not properly resolved, then the compiler will issue a syntax error.
+
+In most cases, the outermost scope of a program is package-level. It is possible for a package to export an overloaded function -- in which case imports of the package must resolve the overloaded function.
+
+@anchored{localAction}
+@node Local Actions
+@subsection Local Actions
+@cindex Actions executed within a @refer{thetaEnvironment}
+
+A local action is a sequence of actions -- enclosed in braces -- that are performed when the theta environment is first entered and before any dependent bound expressions are evaluated.
+
+For example, in:
+[listing]
+traceF : (integer)=>integer
+traceF(X) =>
+  let{
+    f:(integer)=>integer
+    f(0) => 1
+    f(XX) => XX*f(XX-1)
+    {
+      logMsg(info,"in theta environment");
+    }
+  } in f(X)
+
+The action
+[listing]
+logMsg(info,"in theta environment")
+
+is executed as part of establishing the @refer{thetaEnvironment} prior to the function @code{f} being evaluated.
+
+Local actions are useful for situations where proper initialization of the entries in the theta environment are more extensive than binding a variable to a value.
+
+[TIP]
+There is no predetermined order of execution of @refer{LocalAction}s -- for example, if there is more than one in a given @refer{thetaEnvironment}. The compiler ensures that all the preconditions for the @refer{LocalAction} -- specifically definitions that are referenced by the @refer{LocalAction} -- are established prior to the execution of the action.
+
+
+
+
+@cindex type,definition
+@quotation 
+Type definition:: is the definition of a type. See @refer{typeDefinitions}
+@cindex type,declaration
+@end quotation
+
+Type declaration:: is a statement that defines the type of a variable or program. See @refer{typeAnnotation}
+@cindex variable,definition
+Variable definition:: is a statement that defines a variable and gives it a value. There are two forms of variable definition corresponding to a normal single assignment variable and a re-assignable variable. See @refer{VariableDeclaration}
+Function definition::
+@cindex function,definition
+is a group of equations that defines a function. See @refer{equations}.
+Procedure definition::
+@cindex procedure,definition
+ is a statement that defines an action procedure. See @refer{procedures}.
+LocalAction::
+@cindex actions,in a theta environment
+A @refer{LocalAction} is an action -- enclosed in braces -- that is performed prior to the bound expression of a @refer{thetaEnvironment}.
+Contract definition::
+@cindex contract,definition
+is a statement that defines a coherent collection of functions and procedures that may be associated with different types. See @refer{ContractDefinition}.
+Contract implementation::
+@cindex contract,implementation
+is a statement that establishes that a particular type @emph{implements} a contract -- and gives the implementation. See @refer{ContractImplementation}.
