@@ -178,7 +178,6 @@
 
 (defvar star-symbol-regexp
   (star-one-of '(
-		 "::="
 		 "=>"
 		 "->"
 		 "<=>"
