@@ -8,15 +8,15 @@ contract.
 @float BNF,actionFig
 @caption{Types of Action}
 @display
-@anchored{ActionExpression} ::= @var{DoAction}
-  | @var{ActionAction}
-  | @var{TaskAction}
+@anchored{ActionExpression} ::= @refer{DoAction}
+  | @refer{ActionAction}
+  | @refer{TaskAction}
 
-@anchored{DoAction} ::= @code{do} @var{Action}
+@anchored{DoAction} ::= @code{do} @refer{Action}
 
-@anchored{ActionAction} ::= @code{action} @var{Action}
+@anchored{ActionAction} ::= @code{action} @refer{Action}
 
-@anchored{TaskAction} ::= @code{task} @var{Action}
+@anchored{TaskAction} ::= @code{task} @refer{Action}
 @end display
 @end float
 
@@ -225,19 +225,19 @@ programming languages.
 @float BNF,doFig
 @caption{Do Notation}
 @display
-@anchored{Action}::=@var{NullAction}
-  | @var{BlockAction}
-  | @var{InvokeAction}
-@c  | @var{IgnoreAction}
-  | @var{LiftAction}
-  | @var{BindAction}
-  | @var{DefnAction}
-  | @var{AssignmentAction}
-  | @var{IfThenElseAction}
-  | @var{WhileAction}
-  | @var{ForAction}
-  | @var{TryCatchAction}
-  | @var{ThrowAction}
+@anchored{Action}::=@refer{NullAction}
+  | @refer{BlockAction}
+  | @refer{InvokeAction}
+@c  | @refer{IgnoreAction}
+  | @refer{LiftAction}
+  | @refer{BindAction}
+  | @refer{DefnAction}
+  | @refer{AssignmentAction}
+  | @refer{IfThenElseAction}
+  | @refer{WhileAction}
+  | @refer{ForAction}
+  | @refer{TryCatchAction}
+  | @refer{ThrowAction}
 @end display
 @end float
 
@@ -270,12 +270,12 @@ An action block consists of a sequence of actions, enclosed in braces
 @float BNF,blockActionFig
 @caption{Action Block}
 @display
-@anchored{BlockAction} ::= @{ @var{Action} ; @dots{} ; @var{Action} @}
+@anchored{BlockAction} ::= @{ @refer{Action} ; @dots{} ; @refer{Action} @}
 @end display
 @end float
 
 The empty action block -- @code{@{@}} -- is equivalent to the
-@var{NullAction}.
+@refer{NullAction}.
 
 Action blocks denote composition of actions using the @code{_sequence} function: for example, the actions @var{A}, @var{B} and @var{C} in:
 @example
@@ -298,13 +298,13 @@ The last action in an action block is not permitted to be a binding action.
 @subsection Invoke Action
 @cindex invoke action
 
-The @var{InvokeAction} denotes the invokation of a
-sub-computation. Typically, an @var{InvokeAction} takes the form of a
+The @refer{InvokeAction} denotes the invokation of a
+sub-computation. Typically, an @refer{InvokeAction} takes the form of a
 call to an action returning function:
 @float BNF,invokeActionFig
 @caption{Invoke Action}
 @display
-@anchored{InvokeAction} ::= @var{Expression} @var{Argument Tuple}
+@anchored{InvokeAction} ::= @refer{Expression} @refer{Argument Tuple}
 @end display
 @end float
 
@@ -318,12 +318,12 @@ also return an @code{action}.
 @cindex lift action
 @findex lift
 
-The @var{LiftAction} creates a computation from an expression.
+The @refer{LiftAction} creates a computation from an expression.
 
 @float BNF,liftActionFig
 @caption{Lift Action}
 @display
-@anchored{LiftAction} ::= @code{lift} @var{Expression}
+@anchored{LiftAction} ::= @code{lift} @refer{Expression}
 @end display
 @end float
 
@@ -335,12 +335,12 @@ and that value is used as the value of the computation.
 @cindex return action
 @findex return
 
-The @var{ReturnAction} creates a computation from an expression.
+The @refer{ReturnAction} creates a computation from an expression.
 
 @float BNF,returnActionFig
 @caption{Return Action}
 @display
-@anchored{ReturnAction} ::= @code{return} @var{Expression}
+@anchored{ReturnAction} ::= @code{return} @refer{Expression}
 @end display
 @end float
 
@@ -353,38 +353,38 @@ a @code{lift} expression.
 @subsection Bind Action
 @cindex bind action
 
-The @var{BindAction} is used to extract the value of a computation and
+The @refer{BindAction} is used to extract the value of a computation and
 pass it along as the value of this computation. The two computations
 need not be of the same type -- although the exception types should be.
 
 @float BNF,bindActionFig
 @caption{Bind Action}
 @display
-@anchored{BindAction} ::= @var{Pattern} @code{<-} @var{Expression}
+@anchored{BindAction} ::= @refer{Pattern} @code{<-} @refer{Expression}
 @end display
 @end float
 
 @quotation Note
-A @var{BindAction} may not be the last action in an @var{BlockAction}.
+A @refer{BindAction} may not be the last action in an @refer{BlockAction}.
 @end quotation
 
 @node Definition Action
 @subsection Definition Action
 @cindex definition action
 
-The @var{DefnAction} is used to bind a variable to a value -- that is
+The @refer{DefnAction} is used to bind a variable to a value -- that is
 available to subsequent actions.
 
 @float BNF,defnActionFig
 @caption{Definition Action}
 @display
-@anchored{DefnAction} ::= @var{Pattern} @code{=} @var{Expression}
+@anchored{DefnAction} ::= @refer{Pattern} @code{=} @refer{Expression}
 @end display
 @end float
 
-A @var{DefnAction} differs from a @var{BindAction} primarily in the
+A @refer{DefnAction} differs from a @refer{BindAction} primarily in the
 fact that the latter is used to unwrap a computation whereas the
-@var{DefnAction} computes any value and does not otherwise touch the
+@refer{DefnAction} computes any value and does not otherwise touch the
 value.
 
 The scope of a local variable declaration is from the local
@@ -395,8 +395,8 @@ It is an error for a variable to be referenced within its own
 definition. Recursive definitions are not permitted.
 @end quotation
 
-left hand side of a definition is a @var{Pattern}, not simply an
-@var{Identifier}.
+left hand side of a definition is a @refer{Pattern}, not simply an
+@refer{Identifier}.
 
 One primary use for this form is to allow the unpacking of function
 results.
@@ -411,7 +411,7 @@ ddivide(X,Y) => (X/Y,X%Y).
 @end example
 
 We can unpack the results of a call to @code{ddivide} using a
-@var{TuplePattern} on the left hand side of the declaration:
+@refer{TuplePattern} on the left hand side of the declaration:
 
 @example
 (Q,R) = ddivide(34,3)
@@ -420,8 +420,8 @@ We can unpack the results of a call to @code{ddivide} using a
 which would have the effect of binding @code{Q} to @code{11}, and @code{R} to @code{1}.
 
 @quotation Note
-Like the @var{BindAction}, it does not make sense for a
-@var{DefnAction} to be the last action in an @var{BlockAction}.
+Like the @refer{BindAction}, it does not make sense for a
+@refer{DefnAction} to be the last action in an @refer{BlockAction}.
 @end quotation
 
 @node Assignment Action
@@ -429,24 +429,24 @@ Like the @var{BindAction}, it does not make sense for a
 @cindex assignment action
 @findex :=
 
-The @var{AssignmentAction} is used to modify the contents of a
+The @refer{AssignmentAction} is used to modify the contents of a
 re-assignable variable.
 
 It does not return a useful value (actually returns the empty tuple),
 and so it is not normally part of a bind operation.
 
-There is a special case of the @var{AssignmentAction}: where the
+There is a special case of the @refer{AssignmentAction}: where the
 variable being assigned to is new (i.e., not otherwise in scope). Such
 an assignment is actually interpreted as establishing a local
-re-assignable variable; just like the @var{DefnAction}. In this case,
+re-assignable variable; just like the @refer{DefnAction}. In this case,
 the scope of the defined variable extends from the beginning of the
-next action to the end of the enclosing @var{BlockAction}.
+next action to the end of the enclosing @refer{BlockAction}.
 
 
 @float BNF,assignctionFig
 @caption{Assignment Action}
 @display
-@anchored{AssignmentAction} ::= @var{Variable} @code{:=} @var{Expression}
+@anchored{AssignmentAction} ::= @refer{Variable} @code{:=} @refer{Expression}
 @end display
 @end float
 
@@ -454,13 +454,13 @@ next action to the end of the enclosing @var{BlockAction}.
 @subsection Conditional Action
 @cindex conditional action
 
-The @var{IfThenElseAction} is used to denote a conditional computation.
+The @refer{IfThenElseAction} is used to denote a conditional computation.
 
 @float BNF,condActionFig
 @caption{If Then Else Action}
 @display
-@anchored{IfThenElseAction} ::= @code{if} @var{Expression} @code{then} @var{Action} @code{else} @var{Action}
-  | @code{if} @var{Expression} @code{then} @var{Action}
+@anchored{IfThenElseAction} ::= @code{if} @refer{Expression} @code{then} @refer{Action} @code{else} @refer{Action}
+  | @code{if} @refer{Expression} @code{then} @refer{Action}
 @end display
 @end float
 
@@ -468,9 +468,9 @@ The action expressions of the @code{then} and @code{else} branches
 must be of the same type. I.e., they must be the same computations of
 the same type of value.
 
-The second form of @var{IfThenElseAction} -- which omits the
+The second form of @refer{IfThenElseAction} -- which omits the
 @code{else} branch -- is equivalent to one in which the else branch is
-replaced by the @var{NullAction}:
+replaced by the @refer{NullAction}:
 
 @example
 if @var{Test} then
@@ -480,7 +480,7 @@ else
 @end example
 
 Because of this, and because of the constraint that both arms of an
-@var{InThenElseAction} return the same type, the type returned by such
+@refer{IfThenElseAction} return the same type, the type returned by such
 an action is always the empty tuple -- @code{()}.
 
 @node While Action
@@ -488,21 +488,21 @@ an action is always the empty tuple -- @code{()}.
 @cindex while action
 @findex while
 
-The @var{WhileAction} is used to denote an iterative computation that
+The @refer{WhileAction} is used to denote an iterative computation that
 repeats so long as some condition is satisfied.
 
 @float BNF,whileActionFig
 @caption{While Action}
 @display
-@anchored{WhileAction} ::= @code{while} @var{Condition} @code{do} @var{Action}
+@anchored{WhileAction} ::= @code{while} @refer{Condition} @code{do} @refer{Action}
 @end display
 @end float
 
 The enclosed action will be repeated zero or more times, for so long
 as the test condition is satisfied.
 
-The value returned by a @var{WhileAction} is always the empty
-tuple. Because of this, @var{WhileActions} nearly always achieve their
+The value returned by a @refer{WhileAction} is always the empty
+tuple. Because of this, @refer{WhileAction}s nearly always achieve their
 result by means of side-effects -- such as by assigning to
 reassignable variables.
 
@@ -511,18 +511,18 @@ reassignable variables.
 @cindex for action
 @findex for
 
-The @var{ForAction} is used to denote an iterative computation that is governed by alternate solutions to a @var{QueryCondition}.
+The @refer{ForAction} is used to denote an iterative computation that is governed by alternate solutions to a @refer{QueryCondition}.
 
 @float BNF,forActionFig
 @caption{For Action}
 @display
-@anchored{ForAction} ::= @code{for} @var{QueryCondition} @code{do} @var{Action}
+@anchored{ForAction} ::= @code{for} @refer{QueryCondition} @code{do} @refer{Action}
 @end display
 @end float
 
 The enclosed action will be repeated zero or more times, for so long
 as the test condition is satisfied. Each such solution to the
-@var{QueryCondition} may result in different bindings for variables --
+@refer{QueryCondition} may result in different bindings for variables --
 those variables are in scope within the enclosed action.
 
 For example, the action:
@@ -533,7 +533,7 @@ for (X,Y) in parent && (Y,Z) in parent do @{
 @end example
 collects grandparents into the re-assignable variable @code{gps}.
 
-Like @var{WhileAction}s, the value returned by a @var{ForAction} is
+Like @refer{WhileAction}s, the value returned by a @refer{ForAction} is
 always the empty tuple.
 
 @node Try Catch Action
@@ -542,19 +542,19 @@ always the empty tuple.
 @findex try
 @findex catch
 
-The @var{TryCatchAction} is used to denote a computation which may
+The @refer{TryCatchAction} is used to denote a computation which may
 need to respond to exception situations. 
 
 @float BNF,tryCatchActionFig
 @caption{Try Catch Action}
 @display
-@anchored{TryCatchAction} ::= @code{try} @var{Action} @code{catch} @var{Handler}
-@anchored{Handler} ::= @var{BlockAction}
-                | @var{Expression}
+@anchored{TryCatchAction} ::= @code{try} @refer{Action} @code{catch} @refer{Handler}
+@anchored{Handler} ::= @refer{BlockAction}
+                | @refer{Expression}
 @end display
 @end float
 
-There are two forms of @var{TryCatchAction}s: one where the handler is
+There are two forms of @refer{TryCatchAction}s: one where the handler is
 very simple -- to the point of ignoring the exception itself -- and
 the second where the handler should be a function from the error type
 of the computation to a valid computation.
@@ -564,20 +564,20 @@ of the computation to a valid computation.
 @cindex throw action
 @findex throw
 
-The @var{ThrowAction} is used to denote a failed computation. The
-@var{ThrowAction} takes an error value which becomes the error value
+The @refer{ThrowAction} is used to denote a failed computation. The
+@refer{ThrowAction} takes an error value which becomes the error value
 of computation as a whole.
 
 @float BNF,throwctionFig
 @caption{Throw Action}
 @display
-@anchored{ThrowAction} ::= @code{throw} @var{Expression}
+@anchored{ThrowAction} ::= @code{throw} @refer{Expression}
 @end display
 @end float
 
 @quotation Note
 If a computation throws an error value, and that error exception is
-not caught by a @var{TryCatchAction}, then the execution of the entire
+not caught by a @refer{TryCatchAction}, then the execution of the entire
 program is terminated.
 @end quotation
 

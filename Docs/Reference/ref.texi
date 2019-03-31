@@ -80,6 +80,10 @@ All rights reserved.
 @var{\T\}
 @end macro
 
+@macro refer{R}
+@ref{\R\}
+@end macro
+
 @noindent
 This is the 
 @ifinfo
@@ -100,16 +104,16 @@ F.G. McCabe).
 * Lexical Syntax::
 * Grammar::
 * Well Formed Programs::
+* Programs::
 * Types::
+* Patterns::
+* Expressions::
 * Actions::
 
 * Concept index::
 * Function index::
 * List of Syntax Rules::
 @end menu
-
-
-
 
 @include intro.texi
 
@@ -119,9 +123,31 @@ F.G. McCabe).
 
 @include wff.texi
 
+@include programs.texi
+
 @include types.texi
 
+@include patterns.texi
+
+@include expressions.texi
+
 @include actions.texi
+
+@c @include queries.texi
+
+@c @include computation.texi
+
+@c @include numbers.texi
+
+@c @include strings.texi
+
+@c @include collections.texi
+
+@c @include concurrent.texi
+
+@c @include io.texi
+
+@c @include system.texi
 
 @node Concept index
 @unnumbered Concept index

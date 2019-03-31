@@ -1,0 +1,220 @@
+== Collection and Sequence Expressions [[sequenceExpression]]
+(((sequence,expressions))) (((expressions,sequence)))
+(((of@@code{of},expression)))
+
+Collection expressions and sequence expressions are a syntactic
+feature that make it straightforward to represent collective
+values. The difference between a @code{collection} and a @code{sequence} is that
+the latter embodies a sequential ordering of the elements. A
+@code{collection} may have an ordering present; but that is not required by
+the contract and is not enforced in the notation.
+
+
+A sequence expression represents a use of the standard @code{sequence}
+contract (see Program~\vref{sequenceContractDef}) to construct
+sequences of values.
+
+@quotation Note
+There is a similar form to @refer{SequenceExpression} which is used to
+denote @emph{queries} -- the programmer's analog of set
+abstractions. @refer{Query} expressions are defined in
+Chapter~\ref{queries}.
+@end quotation
+
+@float BNF,enumeratedSymbolFig
+@caption{Enumerated Symbol}
+@display
+
+_Expression_&\arrowplus&@refer{SequenceExp}\\
+[[SequenceExp]SequenceExp::=@refer{SequenceType}\
+@code{of}@code{[}@refer{ExpSequence}@code{]]}\\ | @code{[}@refer{ExpSequence}@code{]}\\
+[[ExpSequence]ExpSequence::=[@refer{Expression}@code{..,}]@refer{Expression}\sequence{,}@refer{Expression}[@code{,..}@refer{Expression}]]\\
+@anchored{SequenceType}::=@refer{Identifier} \end{eqnarray*} .Sequence
+Expression [[sequenceExpressionFig]] \end{figure} I.e., a sequence
+expression consists of a sequence of @refer{Expression}s separated by
+commas. In addition, either -- but not both -- the tail or the front
+of the sequence may be denoted by an expression. Otherwise the
+sequence is nil-terminated.
+
+An expression of the form: 
+@example
+[escapechar=|] |_Label_| of
+[|_E\sub1_\sequence{,}_E\subn_|]
+
+is equivalent to the expression: 
+@example
+[escapechar=|]
+_cons(|_E\sub1_\sequence{,}|_cons(|_E\subn_|,_nil())|\sequence{}|) has
+type |_Label_| of %t|\sub{new}|
+
+_provided that \emph{Label_ is the label of a @refer{Type} that
+implements the @code{sequence} contract} -- see @refer{sequenceContract}
+and where @code{\%t\sub{new}} is a new type variable not occurring
+elsewhere. Included in that contract are two functions -- denoting the
+empty sequence (@code{\_nil()}) and a non-empty sequence (@code{\_cons()}) --
+that are used to build the true value of a sequence expression.
+
+A sequence can be built up from other sequences by prepending to
+them. An expression of the form: 
+@example
+[escapechar=|] |_Label_| of
+[|_E\sub1_\sequence{,}_E\sub{n-1_}@code{,..}_E\subn_|]
+
+is equivalent to the expression: 
+@example
+[escapechar=|]
+_cons(|_E\sub1_\sequence{,}|_cons(|_E\sub{n-1_}|,|_E\subn_|)|\sequence{}|)
+
+
+Conversely, a sequence may be @code{front' loaded and be defined by
+appending elements to a }front' expression: 
+@example
+[escapechar=|]
+|_Label_| of [|_F_@code{..,}_E\sub1_\sequence{,}_E\subn_|]
+
+is equivalent to the expression: 
+@example
+[escapechar=|]
+_apnd(|\sequence{}|_apnd(|_F_|,|_E\sub1_|)|\sequence{}_E\subn_|)
+
+
+@quotation Note
+It is also possible to have a sequence expression is that is _both_
+front-loaded and back-loaded: 
+@example
+[escapechar=|] |_Label_| of
+[|_F_|..,|_M_|,..|_T_|]
+
+is equivalent to: 
+@example
+[escapechar=|]
+_apnd(_cons(|_F_|,|_M_|),|_T_|)
+
+which, in turn, is equivalent to: 
+@example
+[escapechar=|]
+_cons(|_F_|,_apnd(|_M_|,|_T_|))
+
+@end quotation
+
+==== Type Safety Since a sequence expression is essentially a macro
+for the use of the @code{sequence} contract, its type safety determined by
+the @code{sequence} contract in Program~\vref{sequenceContractDef}.
+
+== Index and Slice Notation [[indexNotation]] (((index notation)))
+(((notation for indexed access)))
+
+In a similar vein to the @refer{Sequence} notation, the
+@refer{IndexExp} notation provides a high-level notation for accessing
+elements and subsets of collections.
+
+@float BNF,enumeratedSymbolFig
+@caption{Enumerated Symbol}
+@display
+
+_Expression_&\arrowplus&@refer{IndexExp}\\
+@anchored{IndexExp}::=@refer{Index}\ |\ @refer{IndexWith}\ |\
+@refer{Slice}\\ [[Index]Index::=@refer{Expression}\
+@code{[}@refer{Expression}@code{]]}\\
+[[IndexWith]IndexWith::=@refer{Expression}\ @code{[}@code{with}\
+@refer{Expression}@code{->}@refer{Expression}@code{]]}\\ | @refer{Expression}\
+@code{[}@code{without}\ @refer{Expression}@code{]}\\
+[[Slice]Slice::=@refer{Expression}\
+@code{[}@refer{Expression}@code{:}@refer{Expression}@code{]]}\\ | @refer{Expression}\
+@code{[}@refer{Expression}@code{:}@code{]} \end{eqnarray*} .Index and Slice
+Expressions [[indexExpressionFig]] \end{figure}
+
+@quotation Note
+There is some subtlety in the interpretation of index expressions;
+depending on whether the @refer{IndexExp} is an expression, or whether
+it is the left hand side of an assignment: 
+@example
+ L[Ix] := E
+
+
+In the sections that follow, and in @refer{sequenceUpdate}, we show
+the different interpretations of an index expression.
+@end quotation
+
+=== Accessing Elements of a Collection [[indexedAccess]] (((indexed
+access to collection))) (((access list with index))) An expression of
+the form: 
+@example
+ C[ix]
+
+is equivalent to the expression 
+@example
+ _index(C,ix)
+
+@quotation Note
+The type of the resulting value from an indexed access is @code{option}al
+-- see @refer{optionExpression}. I.e., since it cannot be guaranteed
+-- in general -- that the element exists, the resulting type expresses
+that uncertainty.
+
+You can extract the underlying value by using the @code{someValue} function
+-- see @refer{someValue} -- but a safer way is to use a @code{has value}
+condition (see @refer{hasValueCond}.
+@end quotation
+
+The presence of an element can be tested in one of two ways: by using
+the @code{present} predicate -- see @refer{presentCond}: 
+@example
+ present
+C[Ix]
+
+which tests whether @code{C} has an element at index @code{Ix} or using the
+special condition: 
+@example
+ C[Ix] has value V
+
+which are equivalent to 
+@example
+ _index(C,Ix) matches some(_)
+
+and 
+@example
+ _index(C,Ix) matches some(V)
+
+respectively.
+
+=== Substitutions in a Collection It is possible to denote the
+collection obtained by @emph{substituting} an element -- or deleting
+an element -- with expressions such as: 
+@example
+ C[with Kx->Vx]
+
+and 
+@example
+ C[without Kx]
+
+which represent 
+@example
+ _set_indexed(Cx,Kx,Vx)
+
+and 
+@example
+ _delete_indexed(Cx,Kx)
+
+respectively.
+
+=== Slicing Collections A more powerful form of accessing single
+elements from a collection is the @emph{slice} notation. A slice
+expression takes the form: 
+@example
+[escapechar=|]
+|_C_|[|_From_|:|_To_|]
+
+which denotes the subset of elements @code{starting' at }@emph{From}@code{ and
+}ending' (but _not_ including) with @code{_To_}.
+
+The special variant: 
+@example
+[escapechar=|] |_C_|[|_From_|:]
+
+denotes all the remaining elements of the collection after @code{From}.
+
+@quotation Note
+Related to the indexing and slicing expressions are the indexed
+assignments -- as can be seen in @refer{sequenceUpdate}.
+@end quotation

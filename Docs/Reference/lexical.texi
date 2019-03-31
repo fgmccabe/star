@@ -45,7 +45,7 @@ higher-level semantics of the language.
 @float BNF,ignorableFig
 @caption{Ignorable Characters}
 @example
-@anchor{Ignorable}@var{Ignorable} ::= @var{LineComment}
+@anchored{Ignorable} ::= @var{LineComment}
   | @var{BlockComment}
   | @var{WhiteSpace}
 @end example
@@ -64,7 +64,7 @@ Horizontal Tab.
 @float BNF,lineCommentFig
 @caption{Line Comment}
 @display
-@anchor{LineComment}@var{LineComment} ::= (@code{'-- '} | @code{'--\t'}) @var{Char} @dots{} @var{Char} @code{'\n'}
+@anchored{LineComment} ::= (@code{'-- '} | @code{'--\t'}) @var{Char} @dots{} @var{Char} @code{'\n'}
 @end display
 @end float
 
@@ -78,7 +78,7 @@ characters and terminated by the characters @code{*/}.
 @float BNF,blockCommentFig
 @caption{Block Comment}
 @display
-@anchor{BlockComment}@var{BlockComment} ::= @code{'/*'} @var{char} @dots{} @var{char} @code{'*/'}
+@anchored{BlockComment} ::= @code{'/*'} @var{char} @dots{} @var{char} @code{'*/'}
 @end display
 @end float
 
@@ -105,10 +105,9 @@ values and character codes as numeric values.
 @float BNF,numericLiteralFig
 @caption{Numeric Literals}
 @display
-@anchor{NumericLiteral}@var{NumericLiteral} ::= @var{IntegerLiteral}
+@anchored{NumericLiteral} ::= @var{DecimalLiteral}
   | @var{Hexadecimal}
   | @var{FloatingPoint}
-  | @var{Decimal}
   | @var{CharacterCode}
 @end display
 @end float
@@ -136,10 +135,10 @@ All integers are represented as at least 64 bit values.
 @end quotation
 
 @float BNF,decimalFig
-@caption{Integer Literals}
+@caption{Decimal Literals}
 @display
-@anchor{IntegerLiteral}@var{IntegerLiteral}::=@var{Digit} @dots{} @var{Digit}+
-@anchor{Digit}@var{Digit}::=@code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
+@anchored{Decimal} ::=@var{Digit} @dots{} @var{Digit}+
+@anchored{Digit} ::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
 @end display
 @end float
 
@@ -163,8 +162,8 @@ are all hexadecimals.
 @float BNF,hexadecimalFig
 @caption{Hexadecimal numbers}
 @display
-@anchor{Hexadecimal}@var{Hexadecimal}::= @code{'0x'} @var{Hex} @dots{} @var{Hex}+
-@anchor{Hex}@var{Hex}::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}|@code{'a'}|@code{'b'}|@code{'c'}|@code{'d'}|@code{'e'}|@code{'f'}
+@anchored{Hexadecimal}::= @code{'0x'} @var{Hex} @dots{} @var{Hex}+
+@anchored{Hex}::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}|@code{'a'}|@code{'b'}|@code{'c'}|@code{'d'}|@code{'e'}|@code{'f'}
 @end display
 @end float
 
@@ -186,7 +185,7 @@ See @ref{floatingPointFig} for a complete syntax diagram for floating point numb
 @float BNF,floatingPointFig
 @caption{Floating Point numbers}
 @display
-@anchor{FloatingPoint}@var{FloatingPoint}::=@var{Digit}@dots{}@var{Digit}+ @code{'.'} @var{Digit}@dots{}@var{Digit}+ [@code{'e'}[@code{'-'}]@var{Digit}@dots{}@var{Digit}+]]
+@anchored{FloatLiteral} ::= @var{Digit}@dots{}@var{Digit}+ @code{'.'} @var{Digit}@dots{}@var{Digit}+ [@code{'e'}[@code{'-'}]@var{Digit}@dots{}@var{Digit}+]]
 @end display
 @end float
 
@@ -219,7 +218,7 @@ Unicode has the capability to represent up to one million character code points.
 @float BNF,characterCodeFig
 @caption{Character Codes}
 @display
-@anchor{CharacterCode}@var{CharacterCode}::= @code{'0c'} @var{CharRef}
+@anchored{CharacterCode} ::= @code{'0c'} @var{CharRef}
 @end display
 @end float
 
@@ -259,9 +258,9 @@ A @var{CharRef} is a denotation of a single character.
 @float BNF,charRefFig
 @caption{Character Reference}
 @display
-@anchor{CharRef}@var{CharRef} ::= @var{Char} | @var{Escape}
+@anchored{CharRef} ::= @var{Char} | @var{Escape}
 
-@anchor{Escape}@var{Escape}::=@code{'\b'} | @code{'\d'} | @code{'\e'} | @code{'\f'} | @code{'\n'} | @code{'\r'} | @code{'\t'} | @code{'\v'} |
+@anchored{Escape} ::= @code{'\b'} | @code{'\d'} | @code{'\e'} | @code{'\f'} | @code{'\n'} | @code{'\r'} | @code{'\t'} | @code{'\v'} |
    @code{'\'}@var{Char} | @code{'\u'} @var{Hex}@dots{}@var{Hex}@code{';'}
 @end display
 @end float
@@ -323,15 +322,15 @@ string may take the form of a @xref{BlockString}.
 @float BNF,quotedStringFig
 @caption{Quoted String}
 @display
-@anchor{StringLiteral}@var{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
+@anchored{StringLiteral} ::= @var{QuotedString} | @var{BlockString}
 
-@anchor{QuotedString} @var{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
+@anchored{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
 
-@anchor{StrChar}@var{StrChar} ::= @var{CharRef} | @var{Interpolation}
+@anchored{StrChar} ::= @var{CharRef} | @var{Interpolation}
 
-@anchor{Interpolation}@var{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
+@anchored{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
 
-@anchor{FormattingSpec}@var{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
+@anchored{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
 @end display
 @end float
 
@@ -356,7 +355,7 @@ of string that permits raw character data to be processed as a string.
 @float BNF,blockStringFig
 @caption{Block String Literal}
 @display
-@anchor{BlockString}@var{BlockString}::= @code{'"""'} @var{Char} @dots{} @var{Char} @code{'"""'}
+@anchored{BlockString} ::= @code{'"""'} @var{Char} @dots{} @var{Char} @code{'"""'}
 @end display
 @end float
 
@@ -369,11 +368,12 @@ end. Any new-line characters enclosed by the block quotes are
 considered to be part of the strings.
 
 The normal interpretation of @code{$} characters as interpolation
-markers is suppressed within a block string.
+markers is suppressed within a block string; as are any escape
+characters' interpretations.
 
 @example
 """This is a block string with $ and
-uninterpreted # characters"""
+uninterpreted \n characters"""
 @end example
 
 @quotation TIP
@@ -413,13 +413,13 @@ permitted in an identifier.
 @float BNF,identifierFig
 @caption{Identifier Syntax}
 @display
-@anchor{Identifier}@var{Identifier}::=@var{AlphaNumeric}
+@anchored{Identifier} ::= @var{AlphaNumeric}
   | @var{GraphicIdentifier}
   | @var{QuotedIdentifier}
 
-@anchor{AlphaNumeric}@var{AlphaNumeric}::=@var{LeadChar} @var{BodyChar}@dots{}@var{BodyChar}
+@anchored{AlphaNumeric} ::= @var{LeadChar} @var{BodyChar}@dots{}@var{BodyChar}
 
-@anchor{LeadChar}@var{LeadChar}::=@var{LetterNumber}
+@anchored{LeadChar} ::= @var{LetterNumber}
   | @var{LowerCase}
   | @var{UpperCase}
   | @var{TitleCase}
@@ -427,7 +427,7 @@ permitted in an identifier.
   | @var{OtherLetter}
   | @var{ConnectorPunctuation}
 
-@anchor{BodyChar}@var{BodyChar}::=@var{LeadChar}
+@anchored{BodyChar} ::= @var{LeadChar}
   | @var{ModifierLetter}
   | @var{Digit}
 @end display
@@ -454,9 +454,9 @@ of all the standard graphic-form identifiers.
 @float BNF,graphicIdentifierFig
 @caption{Graphic Identifiers}
 @display
-@anchor{GraphicIdentifier}@var{GraphicIdentifier} ::= @var{SymbolicChar}@dots{}@var{SymbolicChar}
+@anchored{GraphicIdentifier} ::= @var{SymbolicChar}@dots{}@var{SymbolicChar}
 
-@anchor{SymbolicChar}@var{SymbolicChar} ::= @var{Char} excepting @var{BodyChar}
+@anchored{SymbolicChar} ::= @var{Char} excepting @var{BodyChar}
 @end display
 @end float
 
@@ -479,7 +479,7 @@ in single quotes. Recall that strings are enclosed in double quotes.
 @float BNF quotedIdentFig
 @caption{Quoted Identifier}
 @display
-@anchor{QuotedIdentifier}@var{QuotedIdentifier} ::= @code{'''} @var{CharRef}@dots{}@var{CharRef} @code{'''}
+@anchored{QuotedIdentifier} ::= @code{'''} @var{CharRef}@dots{}@var{CharRef} @code{'''}
 @end display
 @end float
 
@@ -540,7 +540,7 @@ statements in @Star{} always declare some fact.} are terminated by the @var{Term
 @float BNF,terminatorFig
 @caption{Statement Terminator}
 @display
-@anchor{Terminator}@var{Terminator} ::= @code{'.'} @var{WhiteSpace}
+@anchored{Terminator} ::= @code{'.'} @var{WhiteSpace}
 @end display
 @end float
 
@@ -584,7 +584,7 @@ There are two forms of braces: with and without a period character.
 @float BNF bracesFig
 @caption{Braces}
 @display
-@anchor{Brace}@var{Brace} ::= @code{'@{'} | @code{'@}'} | @code{'@{.'} | @code{'.@}'}
+@anchored{Brace} ::= @code{'@{'} | @code{'@}'} | @code{'@{.'} | @code{'.@}'}
 @end display
 @end float
 

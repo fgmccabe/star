@@ -138,22 +138,6 @@ denote @emph{abstract types}; i.e., the existential quantifier signals
 that there is a type that should be treated as an opaque @emph{black
 box}.
 
-
-@node Type Annotations
-@subsection Type Annotations
-@cindex type annotation
-In most cases it is not necessary to explicitly declare the type of a
-variable -- or any expression. However, it is good practice to declare
-explicitly the types of programs; especially within
-@var{thetaEnvironment}s, and it is required if the type of the
-variable is intended to be generic.
-
-For example, a generic function @code{consLength} that takes a
-@code{cons} list and returns an integer would have the declaration:
-@example
-consLength:all t ~~ (cons[t])=>integer
-@end example
-
 @node Types of Types
 @subsection Types of Types
 @cindex type expressions

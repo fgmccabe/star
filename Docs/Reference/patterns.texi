@@ -1,0 +1,359 @@
+@node Patterns
+@chapter Patterns
+@cindex patterns
+Patterns are templates that are used to match against a value;
+possibly binding one or more variables to components of the matched
+value. Patterns are used as guards in equations, as filters in query
+expressions and in @code{for} loops. Patterns represent one of the
+fundamental mechanisms that can guide the course of a computation.
+
+@float BNF,patternsFig
+@caption{Patterns}
+@display
+@anchored{Pattern}::=@refer{ScalarPattern}
+  | @refer{Variable}
+  | @refer{ConstructorPattern}
+  | @refer{TuplePattern}
+  | @refer{AnonymousRecordPattern}
+  | @refer{GuardedPattern}
+  | @refer{SequencePattern}
+@end display
+@end float
+
+@quotation Patterns and Types
+@cindex patterns,type of
+Every pattern has a type associated with it. This is the type of
+values that the pattern is valid to match against. In the type safety
+productions involving patterns, we use the same meta predicate:
+@typeprod{E,P,T} as for expressions.
+@end quotation
+
+@node Variables in Patterns
+@section Variables in Patterns
+@cindex pattern,variable pattern
+@cindex variables
+@anchor{patternVariables}
+Variables in patterns are used to bind variables to elements of the
+input being matched against.
+
+@quotation Note
+A repeated occurrence of a variable in a pattern is equivalent to a
+call to the @code{==} predicate. For example, the pattern:
+@example
+(X,Y,X)
+@end example
+
+is equivalent to the @refer{GuardedPattern}:
+@example
+(X,Y,X1) where X==X1
+@end example
+
+The @code{==} predicate is defined in the standard @code{equality}
+contract (see @refer{EqualityContract}); and therefore, the call and
+the pattern may not be valid if @code{equality} is not implemented for
+the type of @code{X}.
+@end quotation
+
+@node Scope of Pattern Variables
+@subsection Scope of Pattern Variables
+@cindex variables,scope of
+A pattern always occurs in the context of a @emph{scope extension} -- a new potential scope for variables. For example, in the equation:
+@example
+fact(N) is N*fact(N-1)
+@end example
+the pattern on the left hand side of the equation:
+@example
+fact(N)
+@end example
+introduces variables that are in scope on the right hand side of the equation:
+@example
+N*fact(N-1)
+@end example
+
+@node Anonymous Variable Pattern
+@subsection Anonymous Variable Pattern
+The special identifier -- @code{_} -- is used on those occasions where
+a filler of some kind is needed. Every occurrence of @code{_} refers
+to a different variable. A match with @code{_} is always successful,
+but the value itself is ignored.
+
+@node Scalar Literal Patterns
+@section Scalar Literal Patterns
+
+@float BNF,scalarLiteralPtnFig
+@caption{Scalar Patterns}
+@display
+@anchored{ScalarPattern}::= @refer{StringLiteral}
+  | @refer{NumericLiteral}
+@end display
+@end float  
+
+@node Literal String Patterns
+@subsection Literal String Patterns
+@cindex string,pattern
+@cindex patterns,literal string
+
+A literal string as a pattern matches exactly that string; the type of
+a string pattern is @code{string}.
+
+@quotation Note
+The operators that are used to denoted string interpolation
+expressions (see @refer{stringInterpolation}) must @emph{not} be used
+in string patterns. In particular, the dollar character
+@emph{must} be quoted in a string pattern.
+@end quotation
+
+For example, in the function:
+@example
+hasDollar("has$") is true
+@end example
+the string pattern @code{"has$"} is not legal. You should use:
+@example
+hasDollar("has\$") is true
+@end example
+
+
+@node Literal Numbers
+@subsection Literal Numbers
+@cindex number pattern
+@cindex patterns,literal number
+
+A literal number -- @code{integer} or @code{float} -- as a pattern
+matches exactly that number.
+
+The type of the pattern depends on the type of the number literal:
+@code{integer} literals have type @code{integer}, @code{float}
+literals have type @code{float}.
+
+@node Constructor Patterns
+@section Constructor Patterns
+@cindex constructor,pattern
+@cindex patterns,constructor
+
+A constructor pattern denotes an occurrence of a value that has been
+declared within an algebraic type definition (see
+@refer{AlgebraicTypeDefinition}).
+
+A constructor pattern mimics the form of the constructor definition
+itself: for a @refer{PositionalConstructorLiteral} it consists of an
+identifier followed by a sequence of patterns, enclosed in parentheses
+and separated by commas, denoting the arguments to the
+@refer{PositionalConstructorLiteral}.
+
+@float BNF,constructorPtnFig
+@caption{Constructor Pattern}
+@display
+@anchored{ConstructorPattern}::= @refer{EnumeratedSymbolPattern}
+  | @refer{PositionalConstructorPattern}
+  | @refer{RecordConstructorPattern}
+@end display
+@end float  
+
+@quotation Note
+@refer{PositionalConstructorPattern}s are the only way that a
+constructor value may be inspected and elements of it extracted. There
+are no indexing operators over because it is not possible to give a
+consistent typing to such operators.
+@end quotation
+
+@node Enumerated Symbol Patterns
+@subsection Enumerated Symbol Patterns
+@cindex patterns,enumerated symbol
+@cindex enumerated symbol pattern
+
+An enumerated symbol -- as a pattern -- matches the same symbol
+only.
+
+@float BNF,enumeratedPtnFig
+@caption{Enumerated Symbol Pattern}
+@display
+@anchored{EnumeratedSymbolPattern}::= @refer{Identifier}
+@end display
+@end float  
+
+@node Positional Constructor Patterns
+@subsection Positional Constructor Patterns
+@cindex patterns,positional constructor
+@cindex positional constructor patterns
+@anchor{posConPattern}
+A positional constructor pattern consists of a constructor label
+followed by the argument patterns -- as introduced in the appropriate
+@refer{AlgebraicTypeDefinition}.
+
+@float BNF,positionalConstructorPtnFig
+@caption{Positional Constructor Pattern}
+@display
+@anchored{PositionalConstructorPattern}::= @refer{Identifier} @code{(} @refer{Pattern}, @dots{}, @refer{Pattern}@code{)}
+@end display
+@end float  
+
+@node Record Patterns
+@subsection Record Patterns
+@cindex patterns,record constructor
+@cindex record constructor pattern
+
+A record pattern consists of the record label, followed by attribute
+patterns enclosed in braces.
+
+Each attribute pattern takes the form:
+@example
+@refer{Identifier} = @refer{Pattern}
+@end example
+where @emph{Pattern} is a pattern that the @refer{Identifier}
+attribute must satisfy.
+
+Unlike positional constructor patterns, it is not required for all of
+the attributes to be mentioned in a record constructor pattern. At its
+limit, a pattern of the form:
+@example
+label@{@}
+@end example
+
+becomes a test that the @code{label} record literal is present -- with
+no constraints on the attributes of the record.
+
+@float BNF,recordConstructorPtnFig
+@caption{Record Constructor Pattern}
+@display
+@anchored{RecordConstructorPattern} ::= @refer{Identifier} @code{@{} @refer{AttributePattern}. @dots{} @refer{AttributePattern}@code{@}}
+
+@anchored{AttributePattern} ::= @refer{Identifier} @code{=} @refer{Pattern}
+@end display
+@end float
+
+@node Tuple Patterns
+@section Tuple Patterns
+@cindex patterns,tuple
+
+A tuple pattern consists of a tuple with patterns as the elements of the tuple.
+
+@float BNF,tuplePtnFig
+@caption{Tuple Pattern}
+@display
+@anchored{TuplePattern}::= @code{(} @refer{Pattern}, @dots{}, @refer{Pattern}@code{)}
+@end display
+@end float  
+
+Such anonymous tuple patterns can be used to extract values from tuple
+values (@refer{TupleLiteral}). For example, the pattern @code{(X,Y)}
+in the query condition:
+@example
+(X,Y) in R
+@end example
+matches against the elements of @code{R} and `binds' the local
+variables @code{X} and @code{Y} to the first and second tuple member
+of each successive elements of @code{R}.
+
+@quotation Note
+As noted in @refer{TupleType}, anonymous tuples are essentially
+syntactic sugar for automatically defined algebraic types. The above
+query is equivalent to:
+@example
+$2(X,Y)@footnote{Noting, of course, that @code{$2} is not a legal @Star{} identifier.} in R
+@end example
+@end quotation
+
+@node Anonymous Record Patterns
+@subsection Anonymous Record Patterns
+@cindex matching anonymous records
+@cindex pattern,anonymous record
+@cindex anonymous record pattern
+
+An anonymous record pattern is written in an analogous form to the
+regular record pattern, except that there is no label prefixed to it.
+
+@float BNF,anonRecordPtnFig
+@caption{Anonymous Record Pattern}
+@display
+@anchored{AnonymousRecordPattern} ::= @code{@{} @refer{AttributePattern}. @dots{} @refer{AttributePattern}@code{@}}
+@end display
+@end float
+
+For example,
+@example
+@{name=N. address=A @} in R
+@end example
+uses an anonymous record pattern to match elements of the list @code{R}.
+
+@quotation Note
+Unlike with most other patterns, the type checker is generally
+@emph{not} able to reliably infer the type of an anonymous record
+pattern. As a result, it must @emph{always} be the case that the
+anonymous record pattern occurs in a context where the type may be
+inferred. In the above example, the type of the anonymous record
+pattern:
+
+@example
+@{name=N. address=A@}
+@end example
+can be inferred from the context it occurs in, and the type of
+@code{R}. However, if @code{R}'s type is not already known by other
+means, then a syntax error will result.
+
+The reason for this is that, like other record patterns, an anonymous
+record pattern need not contain an element for every attribute
+defined.
+@end quotation
+
+@node Guarded Patterns
+@section Guarded Patterns
+@anchored{guardPattern}
+@cindex patterns,guarded
+@cindex guarded patterns
+
+A guarded pattern attaches a semantic condition on a pattern. It
+consists of a pattern, followed by the @code{where} keyword and a
+predication condition -- all enclosed in parentheses.
+
+Guarded patterns are useful in enhancing the specificity of patterns
+-- which apart from guarded patterns are purely syntactic in nature.
+
+@float BNF,guardedPtnFig
+@caption{Guarded Pattern}
+@display
+@anchored{GuardedPattern} ::= @refer{Pattern} @code{where} @refer{Condition}
+@end display
+@end float
+
+A guarded pattern has a type assignment based on the type of the left
+hand side, and the type safety of the condition.
+
+@node Sequence Patterns
+@section Sequence Patterns
+
+@cindex sequence,patterns
+@cindex patterns,sequence
+
+
+A sequence pattern represents a use of the standard @code{sequence}
+contract to match sequences of values.
+
+@float BNF,sequencePtnFig
+@caption{Sequence Pattern}
+@display
+@anchored{SequencePattern} ::= @code{[} @refer{PtnSequence} @code{]}
+
+@anchored{PtnSequence} ::= @refer{Pattern}[@code{..,}@refer{Pattern}], @dots{},@refer{Pattern}[@code{,..}@refer{Pattern}
+@end display
+@end float
+
+In a similar way to @refer{SequenceExp}s, @refer{SequencePattern}
+depend on the @code{stream} contract, In fact, a
+@refer{SequencePattern} is syntactic sugar for terms involving the
+@code{stream} contract -- which is defined in
+Program~@refer{StreamContractDef}.
+
+A pattern of the form:
+
+@example
+[@var{Ptn@sub{1}}, @dots{}, @var{Ptn@sub{n}}]
+@end example
+
+is equivalent to the pattern:
+@example
+Str where (@var{Ptn@sub{1}},X1) ^= _hdtl(Str) &&
+    ...
+    (@var{Ptn@sub{n}},Xn) ^= _hdtl(Xn-1) &&
+    Xn == _nil
+@end example
+
