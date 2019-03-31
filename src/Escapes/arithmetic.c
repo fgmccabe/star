@@ -138,7 +138,7 @@ ReturnStatus g__bxor(processPo p, ptrPo tos) {
 }
 
 ReturnStatus g__bnot(processPo p, ptrPo tos) {
-  termPo Rs = (termPo) allocateInteger(processHeap(p), ~integerVal(tos[0]));
+  termPo Rs = (termPo) allocateInteger(processHeap(p), ~(unsigned) integerVal(tos[0]));
 
   ReturnStatus ret = {.ret=Ok, .result=Rs};
 
@@ -219,12 +219,12 @@ static integer countBits(integer ix) {
   static uinteger SKFF16 = 0x0000FFFF0000FFFF;
   static uinteger SKFF32 = 0x00000000FFFFFFFF;
 
-  ux = (ux & SK5) + ((ux >> 1) & SK5);
-  ux = (ux & SK3) + ((ux >> 2) & SK3);
-  ux = (ux & SKF0) + ((ux >> 4) & SKF0);
-  ux = (ux & SKFF) + ((ux >> 8) & SKFF);
-  ux = (ux & SKFF16) + ((ux >> 16) & SKFF16);
-  ux = (ux & SKFF32) + ((ux >> 32) & SKFF32);
+  ux = (ux & SK5) + ((ux >> 1u) & SK5);
+  ux = (ux & SK3) + ((ux >> 2u) & SK3);
+  ux = (ux & SKF0) + ((ux >> 4u) & SKF0);
+  ux = (ux & SKFF) + ((ux >> 8u) & SKFF);
+  ux = (ux & SKFF16) + ((ux >> 16u) & SKFF16);
+  ux = (ux & SKFF32) + ((ux >> 32u) & SKFF32);
   return ux;
 }
 
@@ -451,6 +451,32 @@ ReturnStatus g__int2flt(processPo p, ptrPo tos) {
 ReturnStatus g__flt2int(processPo p, ptrPo tos) {
   double Arg = floatVal(tos[0]);
   termPo Rs = (termPo) allocateInteger(processHeap(p), (integer) Arg);
+
+  ReturnStatus ret = {.ret=Ok, .result=Rs};
+
+  return ret;
+}
+
+ReturnStatus g__bits_float(processPo p, ptrPo tos) {
+  union {
+    integer Ix;
+    double Dx;
+  } Arg;
+  Arg.Ix = integerVal(tos[0]);
+  termPo Rs = (termPo) allocateFloat(processHeap(p), Arg.Dx);
+
+  ReturnStatus ret = {.ret=Ok, .result=Rs};
+
+  return ret;
+}
+
+ReturnStatus g__float_bits(processPo p, ptrPo tos) {
+  union {
+    integer Ix;
+    double Dx;
+  } Arg;
+  Arg.Dx = floatVal(tos[0]);
+  termPo Rs = (termPo) allocateInteger(processHeap(p), Arg.Ix);
 
   ReturnStatus ret = {.ret=Ok, .result=Rs};
 

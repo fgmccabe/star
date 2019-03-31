@@ -32,6 +32,8 @@ star.comp.escapes{
   escapeType("_flt_ge") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*boolean")).
   escapeType("_int2flt") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tipe("star.core*float")).
   escapeType("_flt2int") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*integer")).
+  escapeType("_bits_float") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tipe("star.core*float")).
+  escapeType("_float_bits") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*integer")).
   escapeType("_flt_hash") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*integer")).
   escapeType("_flt_pwr") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*float")).
   escapeType("sqrt") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
@@ -252,6 +254,8 @@ star.comp.escapes{
   isEscape("_flt_ge") => true.
   isEscape("_int2flt") => true.
   isEscape("_flt2int") => true.
+  isEscape("_bits_float") => true.
+  isEscape("_float_bits") => true.
   isEscape("_flt_hash") => true.
   isEscape("_flt_pwr") => true.
   isEscape("sqrt") => true.
