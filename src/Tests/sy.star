@@ -15,11 +15,16 @@ test.sy{
   /* Block comment */
   assert _perform(p) == 4.		/* block comment */
 
+  public contract all x ~~ lS[x] ::= {
+    large : x.
+    small : x.
+  }
+
   a = do{
     x <- p; 
     return x
     }
-
+  
   assert valof a == 4.
 
   fact:all e ~~ arith[e],comp[e] |: (e)=>e. 
