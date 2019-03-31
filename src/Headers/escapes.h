@@ -50,6 +50,9 @@ escape(_flt_ge,True,False,"F(ff)l","float greater or equal")
 escape(_int2flt,True,False,"F(i)f","convert integer to float")
 escape(_flt2int,True,False,"F(f)i","convert float to integer")
 
+escape(_bits_float,True,False,"F(i)f","convert a bit pattern to a float")
+escape(_float_bits,True,False,"F(f)i","convert a float into a bit pattern")
+
 escape(_flt_hash,True,False,"F(f)i","compute hash of float")
 
 escape(_flt_pwr,True,False,"F(ff)f","raise X to the power Y")

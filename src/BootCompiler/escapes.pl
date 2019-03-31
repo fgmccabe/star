@@ -29,6 +29,8 @@ escapeType("_flt_lt",funType(tupleType([type("star.core*float"),type("star.core*
 escapeType("_flt_ge",funType(tupleType([type("star.core*float"),type("star.core*float")]),type("star.core*boolean"))).
 escapeType("_int2flt",funType(tupleType([type("star.core*integer")]),type("star.core*float"))).
 escapeType("_flt2int",funType(tupleType([type("star.core*float")]),type("star.core*integer"))).
+escapeType("_bits_float",funType(tupleType([type("star.core*integer")]),type("star.core*float"))).
+escapeType("_float_bits",funType(tupleType([type("star.core*float")]),type("star.core*integer"))).
 escapeType("_flt_hash",funType(tupleType([type("star.core*float")]),type("star.core*integer"))).
 escapeType("_flt_pwr",funType(tupleType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("sqrt",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
@@ -247,6 +249,8 @@ isEscape("_flt_lt").
 isEscape("_flt_ge").
 isEscape("_int2flt").
 isEscape("_flt2int").
+isEscape("_bits_float").
+isEscape("_float_bits").
 isEscape("_flt_hash").
 isEscape("_flt_pwr").
 isEscape("sqrt").

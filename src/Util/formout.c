@@ -28,22 +28,23 @@ retCode outInt(ioPo f, integer i) {
 
 static inline byte hxDgit(integer h) {
   if (h < 10)
-    return (byte) (h | '0');
+    return (byte) ((unsigned) h | (unsigned) '0');
   else
     return (byte) (h + 'a' - 10);
 }
 
-static integer natural2StrByBase(char *str, integer i, integer pos, uint16 base);
+static integer natural2StrByBase(char *str, uinteger i, integer pos, uint16 base);
 
 integer int2StrByBase(char *str, integer i, integer pos, uint16 base) {
   if (i < 0) {
     str[pos++] = '-';
+
     return natural2StrByBase(str, -i, pos, base);
   } else
     return natural2StrByBase(str, i, pos, base);
 }
 
-static integer natural2StrByBase(char *str, integer i, integer pos, uint16 base) {
+static integer natural2StrByBase(char *str, uinteger i, integer pos, uint16 base) {
   if (i < base)
     str[pos++] = hxDgit(i);
   else {
@@ -680,7 +681,7 @@ static codePoint nextDecimal(char *str, integer *pos, integer len, va_list args,
   codePoint fcp = nextCodePoint(str, pos, len);
   if (fcp == '*') {
     *ix = (integer) va_arg(args, integer);
-    fcp = nextCodePoint(str,pos,len);
+    fcp = nextCodePoint(str, pos, len);
   } else {
     integer val = 0;
     while (isNdChar(fcp) && *pos < len) { /* extract the width field */
