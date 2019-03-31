@@ -10,7 +10,7 @@ star.arith{
     (/): (x,x)=>x.
     (%): (x,x)=>x.
     one:x.
-  }
+  }.
 
   -- implement standard contracts for integers
   public implementation arith[integer] => {
@@ -22,7 +22,7 @@ star.arith{
     X%Y => _int_mod(X,Y).
     one = 1.
     __minus(Ix) => _int_minus(0,Ix).
-  }
+  }.
 
   public implementation equality[integer] => {
     X == Y => _int_eq(X,Y).
