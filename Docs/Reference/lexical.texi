@@ -28,11 +28,6 @@ the ASCII subset of Unicode.
 @subsection Comments and White Space
 @cindex white space
 
-@menu
-* Line Comment::
-* Block Comment::
-@end menu
-
 @noindent
 Input is tokenized according to rules that are similar to most modern
 programming languages: contiguous sequences of characters are assumed
@@ -45,9 +40,9 @@ higher-level semantics of the language.
 @float BNF,ignorableFig
 @caption{Ignorable Characters}
 @example
-@anchored{Ignorable} ::= @var{LineComment}
-  | @var{BlockComment}
-  | @var{WhiteSpace}
+@anchored{Ignorable} ::= @refer{LineComment}
+  | @refer{BlockComment}
+  | @refer{WhiteSpace}
 @end example
 @end float
 
@@ -87,6 +82,21 @@ line comment is @emph{not} the start of a block comment, and a @code{-- }
 sequence in a block comment is similarly not the start of a
 line comment but the continuation of the block comment.
 
+@node White Space
+@subsubsection White Space
+@cindex white space
+White space characters are used in @Star{} to help delimit other
+tokens. Except when they occur in a @refer{StringLiteral} or in a
+@refer{QuotedIdentifier} they serve no other purpose.
+
+@float BNF,whiteSpaceFig
+@caption{White Space}
+@display
+@anchored{WhiteSpace} ::= @code{' '} | @code{'\n'} |@code{'\r'} | @code{'\f'} |@code{'\t'}
+@end display
+@end float
+
+
 @node Number Literals
 @section Number Literals
 @cindex numeric literals
@@ -105,10 +115,10 @@ values and character codes as numeric values.
 @float BNF,numericLiteralFig
 @caption{Numeric Literals}
 @display
-@anchored{NumericLiteral} ::= @var{DecimalLiteral}
-  | @var{Hexadecimal}
-  | @var{FloatingPoint}
-  | @var{CharacterCode}
+@anchored{NumericLiteral} ::= @refer{Decimal}
+  | @refer{Hexadecimal}
+  | @refer{FloatingPoint}
+  | @refer{CharacterCode}
 @end display
 @end float
 
@@ -137,7 +147,7 @@ All integers are represented as at least 64 bit values.
 @float BNF,decimalFig
 @caption{Decimal Literals}
 @display
-@anchored{Decimal} ::=@var{Digit} @dots{} @var{Digit}+
+@anchored{Decimal} ::=@var{Digit} @dots{} @refer{Digit}+
 @anchored{Digit} ::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
 @end display
 @end float
@@ -162,7 +172,7 @@ are all hexadecimals.
 @float BNF,hexadecimalFig
 @caption{Hexadecimal numbers}
 @display
-@anchored{Hexadecimal}::= @code{'0x'} @var{Hex} @dots{} @var{Hex}+
+@anchored{Hexadecimal}::= @code{'0x'} @refer{Hex} @dots{} @refer{Hex}+
 @anchored{Hex}::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}|@code{'a'}|@code{'b'}|@code{'c'}|@code{'d'}|@code{'e'}|@code{'f'}
 @end display
 @end float
@@ -185,7 +195,7 @@ See @ref{floatingPointFig} for a complete syntax diagram for floating point numb
 @float BNF,floatingPointFig
 @caption{Floating Point numbers}
 @display
-@anchored{FloatLiteral} ::= @var{Digit}@dots{}@var{Digit}+ @code{'.'} @var{Digit}@dots{}@var{Digit}+ [@code{'e'}[@code{'-'}]@var{Digit}@dots{}@var{Digit}+]]
+@anchored{FloatingPoint} ::= @var{Digit}@dots{}@var{Digit}+ @code{'.'} @var{Digit}@dots{}@var{Digit}+ [@code{'e'}[@code{'-'}]@var{Digit}@dots{}@var{Digit}+]]
 @end display
 @end float
 
@@ -218,7 +228,7 @@ Unicode has the capability to represent up to one million character code points.
 @float BNF,characterCodeFig
 @caption{Character Codes}
 @display
-@anchored{CharacterCode} ::= @code{'0c'} @var{CharRef}
+@anchored{CharacterCode} ::= @code{'0c'} @refer{CharRef}
 @end display
 @end float
 
@@ -239,7 +249,7 @@ A @var{CharacterCode} has type @code{integer}.
 
 @noindent
 A @code{string} consists of a sequence of characters -- specifically
-@var{CharRef}s. There is no specific type in @Star{} for the
+@refer{CharRef}s. There is no specific type in @Star{} for the
 characters themselves -- instead, there are primitives for accessing
 individual code points as @code{integer}s.
 
@@ -253,15 +263,17 @@ values cannot be easily represented as a unique sequence.
 @cindex character reference
 @cindex syntax, character reference
 @noindent
-A @var{CharRef} is a denotation of a single character.
+A @refer{CharRef} is a denotation of a single character.
 
 @float BNF,charRefFig
 @caption{Character Reference}
 @display
-@anchored{CharRef} ::= @var{Char} | @var{Escape}
+@anchored{CharRef} ::= @refer{Char} | @refer{Escape}
+
+@anchored{Char} ::= @var{CodePoint}
 
 @anchored{Escape} ::= @code{'\b'} | @code{'\d'} | @code{'\e'} | @code{'\f'} | @code{'\n'} | @code{'\r'} | @code{'\t'} | @code{'\v'} |
-   @code{'\'}@var{Char} | @code{'\u'} @var{Hex}@dots{}@var{Hex}@code{';'}
+   @code{'\'}@refer{Char} | @code{'\u'} @refer{Hex}@dots{}@refer{Hex}@code{';'}
 @end display
 @end float
 

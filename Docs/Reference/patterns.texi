@@ -59,7 +59,7 @@ the type of @code{X}.
 @cindex variables,scope of
 A pattern always occurs in the context of a @emph{scope extension} -- a new potential scope for variables. For example, in the equation:
 @example
-fact(N) is N*fact(N-1)
+fact(N) => N*fact(N-1)
 @end example
 the pattern on the left hand side of the equation:
 @example
@@ -105,11 +105,11 @@ in string patterns. In particular, the dollar character
 
 For example, in the function:
 @example
-hasDollar("has$") is true
+hasDollar("has$") => true
 @end example
 the string pattern @code{"has$"} is not legal. You should use:
 @example
-hasDollar("has\$") is true
+hasDollar("has\$") => true
 @end example
 
 
@@ -321,12 +321,29 @@ hand side, and the type safety of the condition.
 @node Sequence Patterns
 @section Sequence Patterns
 
+A sequence pattern represents a use of the standard @code{stream}
+contract to match sequences of values.
+
 @cindex sequence,patterns
 @cindex patterns,sequence
 
+@node The stream Contract
+@subsection The @code{stream} Contract
+@findex @code{stream} contract
 
-A sequence pattern represents a use of the standard @code{sequence}
-contract to match sequences of values.
+@float Program,streamContractProg
+@caption{The @code{stream} contract}
+@example
+public contract all S,E ~~ stream[S->>E] ::= @{
+ _eof:(S) => boolean.
+ _hdtl:(S) => option[(E,S)].
+ _back:(S) => option[(S,E)].
+@}
+@end example
+@end float
+
+@node Sequence Pattern Notation
+@subsection Sequence Pattern Notation
 
 @float BNF,sequencePtnFig
 @caption{Sequence Pattern}
@@ -337,11 +354,11 @@ contract to match sequences of values.
 @end display
 @end float
 
-In a similar way to @refer{SequenceExp}s, @refer{SequencePattern}
-depend on the @code{stream} contract, In fact, a
-@refer{SequencePattern} is syntactic sugar for terms involving the
+In a similar way to @refer{SequenceExpression}s,
+@refer{SequencePattern} depend on the @code{stream} contract, In fact,
+a @refer{SequencePattern} is syntactic sugar for terms involving the
 @code{stream} contract -- which is defined in
-Program~@refer{StreamContractDef}.
+Program~@ref{streamContractProg}.
 
 A pattern of the form:
 

@@ -14,9 +14,10 @@ computational process of realizing the denoted value.
   | @refer{ConditionalExpression}
   | @refer{Condition}
   | @refer{LetExpression}
-  | @refer{ValueExpression}
+  | @refer{ValofExpression}
   | @refer{LambdaExpression}
   | @refer{TypedExpression}
+  | @refer{SequenceExpression}
 @end display
 @end float
 
@@ -57,15 +58,15 @@ that signals the re-assignable property.
 @cindex variable declaration
 @cindex declaration, variable
 
-A @refer{VariableDeclaration} is a @refer{Definition} or an
+A @refer{VariableDefinition} is a @refer{Definition} or an
 @refer{Action} that explicitly denotes the declaration of a
-variable. @refer{VariableDeclaration}s may appear in
+variable. @refer{VariableDefinition}s may appear in
 @refer{ThetaEnvironment}s and @refer{Action}s.
 
 @float BNF,variableDeclararionFig
-@caption{Variable Declaration}
+@caption{Variable Definition}
 @display
-@anchored{VariableDeclaration}::=@refer{Pattern} @code{=} @refer{Expression}
+@anchored{VariableDefinition}::=@refer{Pattern} @code{=} @refer{Expression}
  | @refer{Variable} @code{:=} @refer{Expression}
 @end display
 @end float
@@ -157,9 +158,9 @@ Variables that are imported into a package body from another package
 extend to the entire body of the importing package.
 @item
 Variables that are declared in an @refer{BlockAction} extend from the
-end of their @refer{VariableDeclaration} to the end of the block that they
+end of their @refer{VariableDefinition} to the end of the block that they
 are defined in. The scope of a variable does not include its
-@refer{VariableDeclaration}.
+@refer{VariableDefinition}.
 
 It is not permitted for a variable to be declared more than once in a
 given action block.
@@ -314,7 +315,7 @@ string literals and enumerated symbols.
 @caption{Scalar Literal}
 @display
 @anchored{ScalarLiteral}::=@refer{IntegerLiteral}
-  | @refer{FloatLiteral}
+  | @refer{FloatingPoint}
   | @refer{StringLiteral}
 @end display
 @end float
@@ -428,9 +429,9 @@ is the string:
 @end example
 
 Detailed formatting is controlled by the @code{format} contract -- see
-@refer{formatContract} -- which in turn means that different types of
-expression will have type appropriate ways of specifying the
-formatting.
+Program~@refer{formatContractProg} -- which in turn means that
+different types of expression will have type appropriate ways of
+specifying the formatting.
 
 @node Semantics of String Interpolation
 @subsubsection Semantics of String Interpolation
@@ -611,11 +612,11 @@ focuses on the former.
 For example, given the type definition: 
 @example
 employee ::= emp@{
-         name : string.
-         hireDate : date.
-         salary : ref integer.
-         dept : ref string.
-       @}
+  name : string.
+  hireDate : date.
+  salary : ref integer.
+  dept : ref string.
+@}
 @end example
        
 A literal @code{emp} value will look like: 
@@ -628,9 +629,9 @@ E = emp@{. name = "Fred Nice".
 @end example
   
 @quotation Note
-Fields whose type is a @code{ref}erence type -- see @refer{referenceType}
--- are defined within the record using the @code{:=} operator. All other
-fields are defined using the @code{=} operator.
+Fields whose type is a @refer{ReferenceType} are defined within the
+record using the @code{:=} operator. All other fields are defined
+using the @code{=} operator.
 @end quotation
 
 For any given @refer{RecordLiteral} @emph{all} the fields of the
@@ -1124,8 +1125,8 @@ of one type to that of another.  For example, coercing a @code{float}
 value to an @code{integer} value -- which also has the potential to
 change the value (stripping any fractional part of the value).
 
-Type coercion is supported by a special @code{coercion} @refer{Contract}
-shown in:
+Type coercion is supported by a special @code{coercion}
+@refer{ContractDefinition} shown in:
 
 @example
 all s,t ~~ contract coercion[s,t] ::= @{
@@ -1152,4 +1153,73 @@ There are many standard coercions available.  However, it is also
 possible for a programmer to define their own type coercion by
 appropriately implementing the @code{coercion} contract.
 
+@node Sequence Expressions
+@section Sequence Expressions
+@cindex sequence expressions
+@cindex expression,sequence
 
+Sequence expressions are a syntactic feature that make it
+straightforward to represent sequence and other forms of collective
+values. The difference between a collection and a
+sequence is that the latter embodies a sequential ordering of
+the elements. A collection may have an ordering present; but
+that is not required by the contract and is not enforced in the
+notation.
+
+@node The sequence Contract
+@subsection The @code{sequence} Contract
+
+A sequence expression represents a use of one of the two standard
+contracts: Program~@ref{streamContractProg} and
+Program~@ref{sequenceContractProg}. The former is used when parsing a
+sequence and the latter is used when constructing a sequence. More
+formally, the @code{stream} contract is used for
+@refer{SequencePattern}s and the @code{sequence} contract is used for
+@refer{SequenceExpression}s.
+
+@float Program,sequenceContractProg
+@caption{The @code{sequence} contract}
+@example
+public contract all S,E ~~ sequence[S->>E] ::= @{
+  _cons:(E,S) => S.
+  _apnd:(S,E) => S.
+  _nil:S.
+@}
+@end example
+@end float
+
+@node Sequence Expression Notation
+@subsection Sequence Expression Notation
+
+@float BNF,sequenceExpressionFig
+@caption{Sequence Expressions}
+@display
+@anchored{SequenceExpression} ::= @code{[} @refer{ExpSequence} @code{]}
+
+@anchored{ExpSequence} ::= @refer{Expression}[@code{..,}@refer{Expression}], @dots{},@refer{Expression}[@code{,..}@refer{Expression}
+@end display
+@end float
+
+I.e., a sequence expression consists of a sequence of
+@refer{Expression}s separated by commas. In addition, either -- but
+not both -- the tail or the front of the sequence may be denoted by an
+expression. Otherwise the sequence is nil-terminated.
+
+Sequence expressions are interpreted in terms of the @code{stream} contract.
+
+An expression of the form: 
+@example
+[@var{E@sub{1}},@dots{},@var{E@sub{n}}]
+@end example
+
+is equivalent to the expression: 
+@example
+_cons(@var{E@sub{1}}, @dots{} , _cons(@var{E@sub{n}},_nil) @dots{} )
+@end example
+
+This sequence is constructed from the back. Conversely, a sequence may
+be front loaded and be defined by appending elements to a front
+expression:
+@example
+_apnd(@dots{}_apnd(_apnd(_nil,@var{E@sub{1}})@var{E@sub{2}})@dots{},@var{E@sub{n}})
+@end example

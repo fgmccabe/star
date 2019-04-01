@@ -1,9 +1,15 @@
 @node Actions
 @chapter Actions
 
-An action is the performance of an operation in a particular
+An action is the specification of an operation in a particular
 context. Actions in @Star{} are realized using the @code{execution}
 contract.
+
+@quotation Note
+We separate the @emph{specification} of an operation from its
+@emph{performance}. There are specific operators that can take an
+@refer{Action} and perform it to extract its value.
+@end quotation
 
 @float BNF,actionFig
 @caption{Types of Action}
@@ -304,7 +310,7 @@ call to an action returning function:
 @float BNF,invokeActionFig
 @caption{Invoke Action}
 @display
-@anchored{InvokeAction} ::= @refer{Expression} @refer{Argument Tuple}
+@anchored{InvokeAction} ::= @refer{Expression} @refer{TupleLiteral}
 @end display
 @end float
 
@@ -511,18 +517,18 @@ reassignable variables.
 @cindex for action
 @findex for
 
-The @refer{ForAction} is used to denote an iterative computation that is governed by alternate solutions to a @refer{QueryCondition}.
+The @refer{ForAction} is used to denote an iterative computation that is governed by alternate solutions to a @refer{Condition}.
 
 @float BNF,forActionFig
 @caption{For Action}
 @display
-@anchored{ForAction} ::= @code{for} @refer{QueryCondition} @code{do} @refer{Action}
+@anchored{ForAction} ::= @code{for} @refer{Condition} @code{do} @refer{Action}
 @end display
 @end float
 
 The enclosed action will be repeated zero or more times, for so long
 as the test condition is satisfied. Each such solution to the
-@refer{QueryCondition} may result in different bindings for variables --
+@refer{Condition} may result in different bindings for variables --
 those variables are in scope within the enclosed action.
 
 For example, the action:
@@ -581,6 +587,33 @@ not caught by a @refer{TryCatchAction}, then the execution of the entire
 program is terminated.
 @end quotation
 
+@node Performing Actions
+@section Performing Actions
 
+All actions have a value associated with them -- this is the value
+that is returned by the action after it is performed.
 
+There are several situations where actions are performed
+automatically; however, the @refer{ValofExpression} is a principal way
+in which an action can be performed and its value returned.
+
+@node Valof Expression
+@subsection Valof Expressions
+
+@float BNF,valofExpressionFig
+@caption{Valof Expression}
+@display
+@anchored{ValofExpression} ::= @code{valof} @refer{Expression}
+@end display
+@end float
+
+The @refer{ValofExpression} is applied to an @refer{Action}. The
+effect of this is to perform the action and return its value as the
+value of the @refer{ValofExpression}.
+
+@quotation WARNING
+It is a fatal error for the performed action to return exceptionally
+-- the performed action should return a value and not exit by means of
+a @refer{ThrowAction}.
+@end quotation
 

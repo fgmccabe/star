@@ -103,11 +103,11 @@ F.G. McCabe).
 * Introduction::
 * Lexical Syntax::
 * Grammar::
-* Well Formed Programs::
 * Programs::
 * Types::
 * Patterns::
 * Expressions::
+* Conditions::
 * Actions::
 
 * Concept index::
@@ -121,8 +121,6 @@ F.G. McCabe).
 
 @include grammar.texi
 
-@include wff.texi
-
 @include programs.texi
 
 @include types.texi
@@ -131,15 +129,15 @@ F.G. McCabe).
 
 @include expressions.texi
 
+@include conditions.texi
+
 @include actions.texi
 
 @c @include queries.texi
 
-@c @include computation.texi
-
 @c @include numbers.texi
 
-@c @include strings.texi
+@include strings.texi
 
 @c @include collections.texi
 
