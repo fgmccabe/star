@@ -1,0 +1,480 @@
+@node Conditions
+@chapter Conditions
+
+Conditions are used to express constraints. For example, a
+@code{where} pattern (@refer{GuardedPattern}) uses a condition to
+attach a semantic guard to a pattern. Conditions are also as guards on
+@refer{Equation}s and in other forms of rule.
+
+@quotation Note
+Conditions should not be confused with @code{boolean}-valued
+expressions; the fundamental semantics of conditions is based on
+@emph{satisfiability} -- not @emph{evaluation}.  However, a
+@code{boolean}-valued expression @emph{may} act as a degenerate
+example of a condition.
+@end quotation
+
+@float BNF,conditionFormFig
+@caption{Condition}
+@display
+@anchored{Condition}::=@refer{MatchesCondition}
+  | @refer{HasValueCondition}
+  | @refer{SearchCondition}
+  | @refer{IndexedSearchCondition}
+  | @refer{ConjunctionCondition}
+  | @refer{DisjunctionCondition}
+  | @refer{ImpliesCondition}
+  | @refer{NegatedCondition}
+  | @refer{ConditionalCondition}
+  | @code{(} @refer{Condition} @code{)}
+  | @refer{Expression}
+@end display
+@end float
+
+@node Matching Conditions
+@section Matching Conditions
+
+@node Matches Condition
+@subsection Matches Condition
+The @code{matches} condition is a special condition that applies a
+pattern to a value. The condition is satisfied if the pattern matches
+the expression.
+
+@float BNF,matchesPredicateFig
+@caption{Matches Condition}
+@display
+@anchored{MatchesCondition}::=@refer{Pattern} .= @refer{Expression}
+@anchored{HasValueCondition} ::= @refer{Pattern} ^= @refer{Expression}
+@end display
+@end float  
+
+A @refer{MatchesCondition} is type safe if the types of the left hand
+side and right hand side are the same. Recall that the left hand side
+is an expression, whereas the right hand side is a pattern.
+
+The first form succeeds if the @refer{Pattern} exactly matches the
+@refer{Expression}; the @refer{HasValueCondition} variant can be used
+as a @refer{Condition} to 'unwrap' an @code{option}al to access its
+contents in a safe way. I.e., a @refer{Condition} of the form:
+@example
+@refer{Pattern} ^= @refer{Expression}
+@end example
+is equivalent to:
+@example
+some(@refer{Pattern}) .= @refer{Expression}
+@end example
+
+@quotation Note
+Any variables which are introduced in the @refer{Pattern} of a
+matching condition may form part of the scope extension of the
+condition -- depending on whether the matching condition is embedded
+in a deeper condition that masks the variables.
+@end quotation
+
+One common use of the @code{^=} condition is to 'bring into scope' a
+variable which represents the wrapped content of the @code{option}al
+value.
+
+For example, suppose that @code{P} has the type given by
+@example
+P : Person
+@end example
+then the condition in the equation:
+@example
+nameOf(P) where PP ^= P => PP.name
+@end example
+unwraps the optional value of @code{P} into the non-optional @code{PP}.
+
+
+@node Search
+@section Search
+
+@node Search Condition
+@subsection Search Condition
+@anchor{searchCondition} A search condition is satisfied by finding
+elements of collections that meet some criterion.
+
+@float BNF,searchFormFig
+@caption{Search Condition}
+@display
+@anchored{SearchCondition}::=@refer{Pattern} @code{in} @refer{Expression}
+@end display
+@end float  
+
+@quotation Note
+The collection being searched must implement the @code{iter} contract -- see @refer{iterContract}.
+@end quotation
+
+For example, the search condition:
+@example
+(X,"john") in parent
+@end example
+is satisfied (potentially multiple times) if there is a pair of the form:
+@example
+(@emph{Val},"john")
+@end example
+in the collection identified as @code{parent}. If @code{parent} were
+defined as the list:
+@example
+[ ("alpha","john"), ("beta","peter"), ("gamma","john") ]
+@end example
+then the search condition has two solutions: one corresponding to
+@code{"alpha"} and the other to @code{"gamma"}.
+
+A search condition is type safe if the type of the pattern corresponds
+to an element of the type of the collection; and if the contract
+@code{iter} has been implemented for the collection.
+
+
+@node Indexed Search Condition
+@subsection Indexed Search Condition
+@anchor{indexedSearchCondition} An @refer{IndexedSearchCondition} 
+is satisfied by finding elements of collections that match a pattern
+and where the index of the element within the collection is also
+matched against.
+
+@float BNF,indexedSearchFormFig
+@caption{Indexed Search Condition}
+@display
+@anchored{IndexedSearchCondition}::=@refer{Pattern} @code{->} @refer{Pattern} @code{in} @refer{Expression}
+@end display
+@end float
+
+The first pattern refers to the @emph{keys} in the collection and the
+second refers to the @emph{values}.
+
+@quotation Note
+The collection being searched must implement the @code{indexed\_iter}
+contract -- see @refer{indexedIterableContract}.
+@end quotation
+
+@refer{IndexedSearchCondition}s allow the programmer to not only
+access the element of the collection but also its position within the
+collection. For example, the condition:
+@example
+(Ix->V where V>0 and Ix<10) in L
+@end example
+is satisfied for those elements in @code{L} which are greater than
+zero, and whose index is less than 10.
+
+@quotation Note
+One of the important features of the @refer{IndexedSearchCondition} is
+that it could potentially be satisfied for each element of the
+collection -- depending, of course, on the patterns involved.
+@end quotation
+
+@node Logical Combinations
+@section Logical Combinations
+
+@node Conjunction Condition
+@subsection Conjunction Condition
+A conjunction -- using the @code{&&} operator -- is satisfied iff both
+the left and right `arms' of the conjunction are satisfied.
+
+@float BNF,conjunctionConditionFig
+@caption{Conjunction Condition}
+@display
+@anchored{ConjunctionCondition}::=@refer{Condition} @code{&&} @refer{Condition}
+@end display
+@end float
+
+A @refer{ConjunctionCondition} is satisfied if both the left and right
+arms are satisfied.
+
+@quotation Note
+@refer{ConjunctionCondition} are @emph{short circuiting}: if the left
+arm is not satisfiable then the right arm will not be attempted.
+@end quotation
+
+@quotation Note
+Any variables that are introduced into scope as a result of the left
+arm of the conjunction are also in scope for the right arm -- and for
+the extending scope the conjunction itself is part of.
+@end quotation
+
+@node Disjunction Condition
+@subsection Disjunction Condition
+@anchor{disjunction}
+@cindex disjunctive condition
+@findex @code{||} condition
+A disjunction -- using the @code{||} operator -- is satisfied if either the left or the right operands are satisfied.
+
+@float BNF,disjunctionConditionFig
+@caption{Disjunction Condition}
+@display
+@anchored{DisjunctionCondition}::=@refer{Condition} @code{||} @refer{Condition}
+@end display
+@end float
+
+@quotation Note
+@refer{DisjunctionCondition}s are @emph{short circuiting}: if the left
+arm is satisfiable then the right arm may not be attempted.
+@end quotation
+
+@quotation Note
+Only those variables which are introduced in @emph{both} of the left
+and right arms of the disjunction will be part of the scope extension
+of the condition.
+@end quotation
+
+@node Negated Condition
+@subsection Negated Condition
+A negation is satisfied iff the operand is @emph{not} satisfied.
+
+@float BNF,negationConditionFig
+@caption{Negation Condition}
+@display
+@anchored{NegatedCondition}::= @code{\+} @refer{Condition}
+@end display
+@end float
+
+@quotation Note
+None of any variables that are introduced in the negated
+@refer{Condition} are part of the scope extension of the condition.
+@end quotation
+
+@node Implies Condition
+@subsection Implies Condition
+An @emph{implication} condition -- using the @code{implies} operator
+-- is satisfied iff there is a solution to the right hand side for
+every solution to the left hand side.
+
+@float BNF,impliesConditionFig
+@caption{Implies Condition}
+@display
+@anchored{ImpliesCondition}::=@refer{Condition} @code{*>} @refer{Condition}
+@end display
+@end float
+
+For example, the state of having only sons can be defined as the
+condition that all ones children are male. This can be expressed using
+the condition:
+@example
+(P,X) in children *> X in male
+@end example
+
+@quotation
+Like negation, an @refer{ImpliesCondition} condition can never result
+in binding a variable to a value. It can only be used to verify a
+condition. Thus, to actually look for people who only have sons, a
+separate `generator' condition is needed.
+
+A query expression such as:
+@example
+(P,_) in children && (P,X) in children *> X in male
+@end example
+is effectively using the first `@code{(P,X) in children}' condition to
+find a person who has children, where the second implies condition
+verifies that @code{P} only has sons.
+@end quotation
+
+@node Conditional Condition
+@subsection Conditional Condition
+@anchor{conditionalQuery}
+@cindex conditional condition
+
+A conditional condition is used when the actual condition to apply
+depends on a test.
+
+@float BNF,conditionConditionFig
+@caption{Condition Condition}
+@display
+@anchored{ConditionalCondition}::= @code{(} @refer{Condition} @code{?} @refer{Condition} @code{||} @refer{Condition} @code{)}
+@end display
+@end float
+
+For example, if the salary of an employee may be gotten from two
+different relations depending on whether the employee was a manager or
+not, the salary may be retrieved using a query:
+@example
+@{ S | ( isManager(P) ?
+            (P,S) in manager_salary ||
+            (P,S) in employee_salary )
+@}
+@end example
+
+As with @refer{ConditionalExpression}s, the @emph{test} part of the
+@refer{ConditionalCondition} is evaluated and, depending on whether
+the test is @emph{satisfiable} or not, the @emph{then} branch or the
+@emph{else} branch is used in the query constraint.
+
+@quotation Note
+Only variables that are present in all three of @emph{test},
+@emph{then} and @emph{else} parts of the @refer{ConditionalCondition}
+form part of its scope extension.
+
+However, the scope extension of the @emph{then} part of the
+@refer{ConditionalCondition} does extend to the @emph{then} part of the
+condition.
+@end quotation
+
+@quotation Note
+In the case that the @emph{test }is satisfiable; then only solutions from the @emph{then} branch will be considered for the overall query. Conversely, if the `test' is not satisfiable,@footnote{A normal @code{boolean}-valued expression is considered to be satisfiable iff it evaluates to @code{true}.} then only solutions from the @emph{else} branch will be used for the overall query.
+@end quotation
+
+For example, the @refer{ConditionalCondition} above defines the
+variable @code{S} in both the `then' and `else' branch. Depending on
+the @code{isManager} test, the result of the query will either contain
+the value of a @code{manager_salary} or an @code{employee_salary}.
+
+@node Standard Predicates
+@section Standard Predicates
+
+The standard predicates are based on the @code{equality} and
+@code{comp} contracts. These contracts define what it means for two
+values to be equal, or for one value to be lesser than another.
+
+@c The @code{equality} contract is automatically implemented for any type
+@c that does not reference a program type (i.e., does not contain
+@c functions, procedures or other program values). However, the
+@c programmer may wish to explicitly implement @code{equality} for a
+@c user-defined type if equality for that type is not based on simple
+@c comparison of data structures. Such user-defined implementations
+@c override any defined by the language.
+
+@node The @code{equality} contract
+@subsection The @code{equality} contract
+@anchor{EqualityContract}
+@cindex equality contract
+Equality is based on the @code{equality} contract. This defines the
+@code{boolean}-valued function: @code{==}. The complementary function
+@code{=!=} is not defined as part of the @code{equality} contract; but
+is defined in terms of @code{==}.
+
+@findex @code{equality} contract
+@float Program,equalityContract
+@caption{The Standard @code{equality} Contract}
+@example
+contract all t ~~ equality[t] ::= @{
+  (==) : (t,t)=>boolean
+@}
+@end example
+@end float
+
+@c It is not necessary to explicitly implement the @code{equality}
+@c contract. The language processor automatically implements it for types
+@c that do not contain program values. However, it is possible to provide
+@c an explicit implementation for @code{equality} for cases where a more
+@c semantic definition of equality is desired.
+
+@node @code{==} -- equals
+@subsection @code{==} -- equals
+@anchor{equalsPredicate}
+@findex @code{==} predicate
+@cindex equality predicate
+@code{==} is part of the standard @code{equality} contract.
+
+Its type is given by:
+@example
+(==) : all t ~~ equality[t] |: (t,t) => boolean
+@end example
+
+In general, equality is @emph{not} defined for all values. In
+particular, equality is not defined for functions, procedures and
+other program values.@footnote{Whether two expressions that denote
+functions of the same type denote the same function is, in general,
+not effectively decidable.}
+
+@node @code{=!=} -- not equals
+@subsection @code{=!=} -- not equals
+@anchor{notEqualsPredicate}
+@findex @code{=!=} predicate
+@cindex inequality predicate
+
+The type signature for @code{=!=} is:
+@example
+(=!=) : all t ~~ equality[t] |: (t,t) => boolean
+@end example
+
+The @code{=!=} predicate has a standard definition that makes it
+equivalent to a negated equality:
+@example
+X =!= Y => \+ X==Y
+@end example
+
+@node The @code{comp} contract
+@subsection The @code{comp} contract
+@anchor{comparisonPredicates}
+
+Comparison between values is based on the standard @code{comp}
+contract -- see Program@ref{comparableContract}.
+
+Comparison is @emph{not} automatically implemented for all types --
+the standard language provides implementations for the arithmetic
+types (@code{integer}s, @code{float}s etc.) and for the @code{string}
+type.
+
+@float Program,comparableContract
+@caption{The Standard @code{comp} Contract}
+@example
+contract all t ~~ comp[t] ::= @{
+  (<) : (t,t)=>boolean.
+  (>=) : (t,t)=>boolean.
+@}
+@end example
+@end float
+
+@node @code{<} -- less than
+@subsection @code{<} -- less than
+@findex @code{<} predicate
+The type signature for @code{<} is:
+@example
+(<) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{<} predicate is satisfied if the left argument is less than
+the right argument. The precise definition of less than depends on the
+actual implementation of the @code{comp} contract for the type
+being compared; however, for arithmetic types, less than is defined as
+being arithmetic less than. For @code{string}s, one string is less
+than another if it is smaller in the standard lexicographic ordering
+of strings.
+
+
+@node @code{>=} -- greater then or equal
+@subsection @code{>=} -- greater then or equal
+@findex @code{>=} predicate
+The type signature for @code{>=} is:
+@example
+(>=) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{>=} predicate is satisfied if the left argument is greater
+than or equal to the right argument; as determined by the particular
+implementation of the @code{comp} contract.
+
+
+@node @code{=<} -- less than or equal
+@subsection @code{=<} -- less than or equal
+@findex @code{=<} predicate
+The type signature for @code{=<} is:
+@example
+(=<) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{=<} predicate is satisfied if the left argument is less than
+or equals to the right argument.
+
+This predicate is not directly part of the @code{comp} contract, instead it is defined in terms of @code{>=}:
+
+@example
+X =< Y => Y >= X.
+@end example
+
+@node @code{>} -- greater than
+@subsection @code{>} -- greater than
+@findex @code{>} predicate
+The type signature for @code{>} is:
+@example
+(>) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{>} predicate is satisfied if the left argument is strictly
+greater than the right argument.
+
+This predicate is not directly part of the @code{comp} contract, instead it is defined in terms of @code{<}:
+
+@example
+X > Y => Y< X.
+@end example
+

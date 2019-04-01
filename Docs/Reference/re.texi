@@ -159,3 +159,62 @@ is a statement that defines a coherent collection of functions and procedures th
 Contract implementation::
 @cindex contract,implementation
 is a statement that establishes that a particular type @emph{implements} a contract -- and gives the implementation. See @refer{ContractImplementation}.
+
+@node Satisfaction Semantics
+@section Satisfaction Semantics
+@anchored{querySemantics}
+@cindex query,semantics of
+@cindex variable,in queries
+
+The semantics of conditions is based on @emph{satisfaction} -- for
+example, the answer to a query is based on the different ways that the
+condition part of the query may be satisfied.
+
+The satisfiability of a condition is not identical to the normal
+concept of evaluating @code{boolean}-valued expressions. In essence, a
+@refer{Condition} is satisfied if there is a binding for the unbound
+variables within the @refer{Condition} that makes the
+@refer{Condition} true.
+
+Variables that are bound as a result of satisfying a @refer{Condition}
+are often used to produce a value from the @refer{Condition}. For
+example, an @code{all} query has as value @emph{all} the tuples that
+satisfy the @refer{Condition} and the @code{anyof} query has as value
+any tuple that satisfies the @refer{Condition}.
+
+A variable may occur in an outer context as well as within a
+@refer{Condition}. Such a variable is in scope within the query but is
+not defined by the query. As with repeated occurrences of variables,
+such free variables become constraints on the satisfaction of the
+query.
+
+\begin{description}
+A @refer{SearchCondition}:: of the form:
+[listing][escapechar=|]
+|@refer{Pattern}| in |@refer{Expression}|
+
+is considered satisfiable for any value in the collection identified by @refer{Expression} that matches the @refer{Pattern}.
+\end{description}
+
+
+The result of a query is expressed as the value of an expression. Each element of the result is obtained by evaluating the @emph{bound} expression in the context of the bindings of the variables arrived at during the satisfaction of the query constraint.
+
+In the case of an @code{all} query and the @code{view} definition, the computed result contains the result of evaluating the bound expression for every possible way of satisfying the query.  The @code{one} query looks for just one way of solving the query constraint and a numerically bounded query looks for that many ways. footnote:[Of course, if the query asks for 10 results (say), there may not be that many answers.]
+
+\begin{aside}
+@cindex conditions,relative order of terms
+@cindex order of terms in conditions
+It is important to note that, in the case of a conjunction or disjunction, the relative order of terms is not relevant. For example the conditions
+[listing]
+X in male and ("fred",X) in parent
+
+and
+[listing]
+("fred",X) in parent and X in male
+
+have the same solutions -- are satisfied for the same bindings of the variable @code{X}.
+\end{aside}
+
+==== Type Safety
+@anchored{querytypesatty}
+A relational query is type if the type of the pattern is consistent with the type of the elements of the tuple.

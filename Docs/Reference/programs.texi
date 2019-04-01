@@ -12,6 +12,15 @@ are also first-class values -- showing up as @refer{AnonymousRecord}s.
 
 The top-level compilation unit is a package.
 
+@float BNF,packageFig
+@caption{Package Structure}
+@display
+@anchored{Package} ::= @refer{PackageName} @refer{ThetaEnvironment}
+
+@anchored{PackageName} ::= @refer{Identifier} @code{.} @dots{} @code{.} @refer{Identifier}
+@end display
+@end float
+
 @node Theta Environment
 @section Theta Environment
 @cindex theta environment
@@ -31,8 +40,8 @@ programs and variables.
   | @refer{TypeDefinition}
   | @refer{VariableDefinition}
   | @refer{FunctionDefinition}
-  | @refer{Contract}
-  | @refer{Implementation}
+  | @refer{ContractDefinition}
+  | @refer{ContractImplementation}
   | @refer{OpenStatement}
   | @refer{ImportStatement}
 @end display
@@ -96,8 +105,22 @@ terms of different constructors for the type.
 @node Type Exists Statement
 @subsection Type Exists Statement
 
+@float BNF,typeExistsFig
+@caption{Type Exists Statement}
+@display
+@anchored{TypeExistsStmt} ::= @refer{Type} @code{<~} @refer{RecordType}
+@end display
+@end float
+
 @node Type Alias Statement
 @subsection Type Alias Statement
+
+@float BNF,typeAliasFig
+@caption{Type Alias Statement}
+@display
+@anchored{TypeAliasStmt} ::= @refer{Type} @code{~>} @refer{Type}
+@end display
+@end float
 
 @node Functions and Equations
 @section Functions and Equations
@@ -108,7 +131,7 @@ A function is a program for computing values; organized as a set of equations.
 @float BNF,functionFig
 @caption{Functions}
 @display
-@anchored{Function} ::= @refer{Equation} ... @refer{Equation}
+@anchored{FunctionDefinition} ::= @refer{Equation} ... @refer{Equation}
 
 @anchored{Equation} ::= @refer{RuleHead} [@refer{RuleGuard}]] @code{=>} @refer{Expression}
   | @refer{DefltEquation}
@@ -328,16 +351,371 @@ Note the extra set of parentheses around both the embedded function type and aro
 Lambda expressions functions may reference free variables.
 @end quotation
 
+
+@node Contract Definition
+@section Contract Definition
+@cindex type,contracts
+
+A contract definition is a statement that defines the functions and
+action procedures associated with a contract. As can be seen in
+Figure~@var{contractFig}, a contract statement associates a contract name --
+together with a set of type variables -- with a set of
+@var{TypeAnnotation}s that define the elements of the contract. Within
+the @var{Contract} statement, a @var{TypeAnnotation} may varer to the
+type(s) in the contract head.
+
+@float BNF,contractFig
+@caption{Contract Definition}
+@display
+@anchored{ContractDefinition} ::= @code{contract} @var{ContractSpec} @code{::=} @var{RecordType}
+
+@anchored{ContractSpec} ::= [ @var{TypeQuantifier} ]
+@var{Identifier} [ @var{TypeArgSpec} [@code{\->>} @var{TypeArgSpec} ]]
+@end display
+@end float
+
+For example, the contract that underlies type coercion (see
+@var{typeCoercionExpression}) is:
+@example
+contract all s,t ~~ coercion[s,t] <~ @{ coerce:(s)=>t @}
+@end example
+
+@cindex default values,contract
+A contract statement may also include @emph{defaults} for the names
+defined in the contract. If a given contract implementation does not
+give an implementation for a name that has a default associated for
+it, then the default is used.
+
+@quotation NOTE
+Default specifications may use variables that are in scope at the
+point of the contract specification.@footnote{This is generally not
+the same scope as where a contract implementation is given.}
+@end quotation
+
+@quotation TIP
+An important usage pattern for contracts is to represent
+@emph{abstract types}. An abstract type is one defined by its contract
+rather than one defined by an explicit type definition.
+
+For example, the @code{arith} contract in
+Program~@var{arithmeticContractProg} defines a set of arithmetic
+functions. However, it can also be interpreted as a definition of an
+abstract type of arithmetic values -- the values that implement the
+@code{arithmetic} contract.
+@end quotation
+
+@node Functional Dependencies
+@anchor{ContractFunctionalDependency}
+@cindex type,contracts!functional dependencies
+@cindex functional dependencies in contracts
+
+For certain forms of contract, it may be that the type parameters may
+not all be independent of each other. For example, consider the
+standard @code{stream} contract (defined in
+Program~@var{streamContractProg}) which reads:
+@example
+public contract all S,E ~~ stream[S ->> E] ::= @{
+  _eof:(S) => boolean.
+  _hdtl:(S) => option[(E,S)].
+  _back:(S) => option[(S,E)].
+@}
+@end example
+
+The intention of the @code{stream} contract is to support processing
+collections of elements in a sequential manner. The type parameter
+@code{S} identifies the collection to be iterated over; and the
+type parameter @code{E} identifies the type of each element.
+
+However, the collection's type uniquely determines the type of each
+element: the element type is not independent of the collection. For
+example, to iterate over a @code{cons[t]}, each element will be of
+type @code{t}; and to iterate over a @code{string} each element will
+be a @code{integer} even though the @code{string} type does not
+mention @code{integer}.
+
+@quotation NOTE
+Each @code{integer} represents a unicode code point in the
+@code{string}.
+@end quotation
+
+Using a @code{->>} clause in a @code{contract} -- and in
+corresponding contract @code{implementation} statements -- allows the
+contract designer to signal this relationship.
+
+@node Contract Implementation
+@section Contract Implementation
+@cindex type,contracts!implementation
+
+A contract implementation is a specification of how a contract is to be
+implemented for a specific type combination.
+
+@float BNF,contractImplementationFig
+@caption{Contract Implementation Statement}
+@display
+@anchor{ContractImplementation} ::= @code{implementation}
+@var{ContractSpec} @code{=>} @var{Expression}
+@end display
+@end float
+
+The @var{Type}s mentioned in @var{ContractSpec} must be 
+@var{TypeExpression}s.
+
+@quotation NOTE
+In particular, it is not permitted to define an
+@code{implementation} of a contract for @var{FunctionType}s.
+
+It is permissible, however, to implement @var{Contract}s for
+@var{TupleType}s.
+@end quotation
+
+The body of a contract @code{implementation} must be an expression
+that gives a definition for each of the elements of the
+@code{contract} specification.
+
+@quotation NOTE
+A @code{contract} implementation often takes the form of a regular
+@var{AnonymousRecord} or an anonymous @var{ThetaRecord}.
+@end quotation
+
+Usually, the implementation of a @code{contract} is fairly
+straightforward. Program~@ref{consSizeProg}, for example, gives the
+implementation of the standard @code{sizeable} contract for the
+@code{cons} type.
+
+@float Program,consSizeProg
+@caption{Implementation of @code{sizeable} for @code{cons} values}
+@example
+implementation all e ~~ sizeable[cons[e]] => @{
+  size(nil) => 0
+  size(cons(_,T)) => size(T)+1
+
+  isEmpty(nil) => true.
+  isEmpty(_) default  => false
+@}
+@end example
+@end float
+
+@node Implementing Contracts with Functional Dependencies
+@subsection Implementing Contracts with Functional Dependencies
+@anchor{implContractFunctionalDependency}
+@cindex type,contracts!functional dependencies
+
+Implementing a contract which has a functional dependency is exactly
+analogous to implementing a regular contract. The dependent type(s)
+must be identified in the @code{implementation} statement. For
+example, the initial part of the implementation of the @code{stream}
+contract over @code{cons} lists:
+@example
+implementation all e ~~ stream[cons[e]->>e] => @{
+@end example
+
+Note that this @code{implementation} implies that a @code{stream}
+over a @code{cons} list connects the element type of the @code{cons[t]} type to the elements of the @code{stream} contract.
+
+
+@node Recursive Contract Implementations
+@subsection Recursive Contract Implementations
+
+More complex contract implementations may require the use of auxiliary
+function definitions; and hence may involve the use of @code{let}
+expressions. This is particularly the case when implementing a
+contract that itself depends on other contracts being implemented.
+
+For example, this is an implementation of the @code{comp}
+contract for @code{cons} values:
+
+@float Program,consCompProg
+@caption{Implementation of @code{comp} for @code{cons}}
+@example
+public implementation all x ~~ comp[x],equality[x] |: comp[cons[x]] => let@{
+  consLess(nil,_) => true.
+  consLess(cons(H1,T1),cons(H2,T2)) where H1<H2 => true.
+  consLess(cons(H1,T1),cons(H2,T2)) where H1==H2 => consLess(T1,T2).
+  consLess(_,_) default => false.
+
+  consGe(L1,L2) => \+ consLess(L2,L1).
+@} in @{. (<) = consLess. (>=) = consGe .@}
+@end example
+@end float
+
+@quotation NOTE
+The implementation of @code{comp} for @code{cons} types is based
+on a requirement that the individual elements of lists must also be
+compared. Hence the clause
+
+@example
+comp[x],equality[x] |: comp[cons[x]]
+@end example
+
+in the head of the contract @code{implementation} statement. The
+primary job of the @code{consLess} function is to show how @code{cons}
+values may be compared. However, it depends on @code{<} being defined
+for the element of the @code{cons} list.
+@end quotation
+
+Our definition of
+inequality for @code{cons} values assumes that:
+@itemize
+@item
+@code{nil} lists are less than any non-empty list;
+@item
+one non-empty list is less than another if the first element is less
+than the first element of the second; and finally
+@item
+if the first elements of the two lists are identical then we consider
+the tails of each list.
+@end itemize
+
+@quotation TIP
+The curious reader may wonder why we introduce a new name
+@code{consLess} in order to define @code{<} (and, by extension
+@code{consGe} for @code{>=}). The reason for this has to do with
+limitations on type inference in the context of recursive programs:
+within the equations that define a function, any @emph{use} of the
+function symbol must represent a recursive use.
+@end quotation
+
+For example, in the equation:
+@example
+consLess(cons(H1,T1),cons(H2,T2)) where H1<H2 => true.
+@end example
+we are relying on a definition of inequality for the elements of the @code{cons} list -- whilst we are defining inequality for @code{cons} lists themselves.
+
+If we had tried to define @code{<} directly, using, for example:
+@example
+cons(H1,T1)<cons(H2,T2) where H1<H2 => true.
+@end example
+then we would have two occurrences of @code{<} which really
+represent different functions.
+
+Normally, outside of the definition of the function, it is permitted
+to allow a given function to be used in different uses -- always
+assuming that the types are consistent. However, within the definition
+of a function, all occurrences of the function symbol must varer to
+the same function.
+
+In the case of the @code{<} equation above, the type inference system
+would not be able to distinguish a recursive call from a call to a
+different overloaded function of the same name; and would assume that
+both uses of @code{<} are intended to be part of the same
+definition. This, in turn, would result in a type error being
+generated.
+
+In summary, when defining an overloaded function like @code{<}, we
+often have to introduce an auxiliary function to @emph{carry} the
+recursion.
+
+By using the @code{let} expression and the auxilliary @code{consLess}
+function we are able to separately define inequality for @code{cons}
+lists while depending on the implementation of @code{<} for their
+elements.
+
+@node Importing Packages
+@section Importing Packages
+@cindex import package
+@cindex package,import
+
+The @refer{ImportStatement} is used to signal that this package
+depends on other packages.@footnote{The @code{import} statement is
+only permitted at the top-level of a package.}
+
+A package may use another package by importing it. The
+@refer{ImportStatement} denotes a requirement that the types, programs
+and other elements of the imported package are made available to the
+importing package.
+
+The @refer{ImportStatement} is used to denote that the exported
+elements of another package should be made available within this package. There
+are two variants of the @refer{ImportStatement}: the open import and
+the named import.
+
+@float BNF,importStatementFig
+@caption{Import Package Statement}
+@display
+@anchored{ImportStatement} ::= @refer{OpenImportStatement}
+  | @refer{NamedImportStatement}
+
+@anchored{OpenImportStatement} ::= [@code{public}] @code{import} @refer{PackageName}
+
+@anchored{NamedImportStatement} ::= @refer{Variable} @code{import} @refer{PackageName}
+@end display
+@end float
+
+@node The open @code{import} Statement
+@subsection The open import statement
+@anchor{openImportStatement}
+@cindex import,open
+@cindex open import
+@findex @code{import}
+
+An @refer{ImportStatement} of the form:
+@example
+import @var{Pkg}
+@end example
+imports all the definitions that are located with the @var{Pkg} and
+declares them as being at the @emph{same} scope level as other
+@refer{Definition}s within the package.
+
+This has two primary implications: all the exported definitions may be
+used without qualification as though they had been defined
+locally. However, if a given name is declared twice -- even if in two
+separate packages -- then the compiler will show an error.
+
+In addition to the regular functions and types defined in the imported
+package, any contracts, and contract implementations that are defined
+in the imported package are also in scope.
+
+If the @refer{OpenImportStatement} is prefixed by a @code{public} keyword then, in addition to importing the definitions, they are also implicitly @emph{re-exported} by thhis package.
+
+@quotation Note
+By using @code{public} package imports it is possible to construct the
+equivalent of a library -- consisting of multiple packages internally
+but viewed as a single package externally.
+@end quotation
+
+@node Named Import
+@subsection Named Import
+@anchor{namedImport}
+@cindex import,named
+
+An @refer{ImportStatement} of the form:
+@example
+P import Pkg
+@end example
+
+is a @emph{named import} -- so-called because it establishes a
+@refer{Variable} whose value is the contents of the imported package
+and whose name is used to access the imported package.
+
+Definitions that are imported as a named import are not immediately
+defined to be in scope. Instead, they must be accessed via the package
+variable -- using @refer{RecordAccess} expressions.
+
+For example, if @code{Pkg} exports a type @code{person} and a function
+@code{someone}, then to use the type and function they are referenced from
+the @code{P} variable -- much like accessing @refer{Record} fields:
+@example
+Joe : P.person.
+Joe = P.someone("Joe")
+@end example
+
+Using named imports in this way is a convenient way to establish
+different name spaces. Since all the definitions within the package
+must be accessed via the @refer{RecordAccess} operator, the name used
+to import the package effectively becomes a local name space for that
+package and will not clash with neither other imported packages nor
+locally defined functions and types.
+
 @node Open Statement
 @section Open Statement
-@anchored{openStatement}
+@anchor{openStatement}
 @cindex open statement
 @cindex opening a record
 @cindex record,opening
 
 The @refer{OpenStatement} takes a @refer{Record}-valued expression and
 opens its contents in a @refer{ThetaEnvironment}. It is analogous to
-an @refer{Import} of the record.
+an @code{import} of the record.
 
 @float BNF,openStatementFig
 @caption{Open Statement}
@@ -348,6 +726,7 @@ an @refer{Import} of the record.
 
 Any fields and types that are declared within the @refer{Expression}'s
 type become defined within the enclosing @refer{ThetaEnvironment}.
+
 @quotation Note
 The existing scope rules continue to apply; in particular, if there is
 a name that is duplicated already in scope then a duplicate definition

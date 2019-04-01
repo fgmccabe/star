@@ -1,0 +1,464 @@
+@node Strings
+@chapter Strings
+@cindex strings
+A string is a sequence of Unicode characters that denotes a fragment
+of text. This chapter focuses on the built-in functions that are based
+on the @code{string} type. 
+
+@node The Structured String @code{ss} Type
+@section The Structured String @code{ss} Type
+
+@cindex ss type
+@cindex type,ss@@code{ss}
+The @code{ss} type -- as defined in Program~\vref{ppTypeProg} -- denotes a @empg{structured} string value where the structure may be used to represent lines, sub sequences and so on.
+
+@quotation
+A primary purpose of the @code{ss} type is to permit simple formatting
+policies to be applied after the generation of the displayed form of a
+value.
+@end quotation
+
+@float Program,ppTypeProg
+@caption{The Structured String @code{ss} type}
+@example
+ss ::=
+     ss(string)
+   | sc(integer)
+   | ssSeq(list[ss])
+@end example
+@end float   
+
+The intended semantics of the constructors are:
+@table @code
+@item ss
+A literal string. Whenever a literal string is to be generated, the @code{ss} constructor is used to @emph{hold} that string. For example, if the display of a value calls for an opening parenthesis, then the term:
+@example
+ss("(")
+@end example
+may be used to denote that.
+@item sc
+A unicode code point.
+@item ssSeq
+The @code{ssSeq} constructor signals a subsequence in the display. Its argument is a @code{list} of @code{ss} terms.
+@end table
+
+@node The @code{display} contract
+@section The @code{display} contract
+@findex @code{display} contract
+@cindex pretty print contract
+@anchor displayContract
+
+The standard contract @code{display}, shown in
+Program~@ref{displayContractProg} together with the @code{ss} type
+shown in Program~@ref{ppTypeProg}, is at the core of the standard
+method for displaying arbitrary values.
+
+@float Program,displayContractProg
+@caption{The Standard @code{display} Contract}
+@example
+public contract all t ~~ display[t] ::= @{
+  disp:(t)=>ss.
+@}
+@end example
+@end float
+
+One of the primary purposes of the @code{display} contract is to
+support the standard string @refer{Interpolation} form.
+
+@quotation Tip
+One of the primary benefits of allowing programmers to define their
+own implementation of @code{display} is to enable higher quality
+display of values. By defining @code{display} for yourself, you can
+use application oriented display of your values.
+@end quotation
+
+@node Implementing the @code{display} Contract
+@subsection Implementing the @code{display} Contract
+There are standard implementations of @code{display} contract for many
+of the standard types. However, it is quite possible to define one's
+own implementation, either to support your own types or to override
+the standard display. For example, supposing that values of the
+@code{tree} type:
+@example
+tree[t] ::= empty | node(tree[t],t,tree[t])
+@end example
+
+were intended to be displayed:
+@example
+@{ "alpha" "beta" "gamma" @}
+@end example
+then the following implementation of @code{display} would ensure that
+such trees were displayed more conveniently:
+@example
+implementation all t ~~ display[t] |: display[tree[t]] => let@{
+  treeDisplay(empty) => ss(" ").
+  treeDisplay(node(L,Lb,R)) => ssSeq([treeDisplay(L),disp(Lb),treeDisplay(R)])
+@} in @{.
+  disp(T) => ssSeq([ss("{"),treeDisplay(T),ss("}")])
+@}
+@end example
+
+Note how the use of @code{disp} within the definition of
+@code{treeDisplay} will ensure that the display of tree labels may
+also be overridden with user-defined implementations of
+@code{display}.
+
+@node The @code{format} contract
+@section The @code{format} contract
+@findex @code{format} contract
+@anchor formatContract
+
+The standard contract @code{format}, shown in
+Program~@ref{formatContractProg} is used when displaying values in a
+formatted manner -- especially within @refer{Interpolation}
+expressions.
+
+@float Program,formatContractProg
+@caption{The Standard @code{format} Contract}
+@example
+public contract all t ~~ format[t] ::= @{
+  frmt:(t,string)=>ss.
+@}
+@end example
+@end float
+
+The second argument to @code{frmt} is normally a formatting string
+that is in a format (sic) that is understood by any specific
+implementers of the @code{format} contract.
+
+@quotation
+Normally, like @code{display}, calls to @code{\_format} are
+represented implicitly in string @refer{Interpolation} expressions.
+@end quotation
+
+@node Formatting Codes
+@subsection Formatting Codes
+
+A formatting code is a description of how a numeric or @code{string}
+valued expression should be displayed. Formatting codes allow more
+detailed control of the representation of the format in terms of
+minimum and maximum widths of output, the number of decimal places to
+show and the style of representing numbers -- including how negative
+numbers are displayed and the display of currencies.
+
+A formatting code is introduced with a @code{:} character immediately
+after the @code{$} form and is terminated by a @code{;} character. An
+invalid formatting code is ignored, and treated as though it were part
+of the quoted string proper.
+
+Each type of value to be formatted may have different formatting
+codes; reflecting the natural variations in the type. For example
+formatting integral values may involve ways of managing the display of
+the sign of the number and formatting @code{date} values involves ways
+of show dates and times.
+
+For example, to show a dollar value -- represented as pennies -- in
+@emph{accounting style} we can use:
+@example
+"Balance: $(Amnt):P999900.00P; remaining"
+@end example
+
+This format spec displays at least the four least significant digits
+of the variable @code{Amnt}. If the value of that variable is greater
+than 9999 then the leading digits are displayed also -- up to a
+maximum of eight digits. If the value of @code{Amnt} is negative then
+the number is displayed enclosed in parentheses.
+
+For example, if @code{Amnt} had value -100000, then the value of the
+expression would be:
+@example
+Balance: (1000.00) remaining
+@end example
+
+If @code{Amnt} were 10000:
+@example
+Balance:  1000.00  remaining
+@end example
+
+@quotation Note
+the additional spaces: if the @code{P} mode is used for representing
+sign, a white space character is generated for positive numbers. This
+facilitate straightforward alignment of columnar reports.
+@end quotation
+If @code{Amnt} had value 45, then the result would be:
+@example
+Balance:  00.45  remaining
+@end example
+
+The @code{0} in the format will result in leading zeros being printed.
+@quotation
+If a value cannot be represented in the delimited number of characters
+then the string:
+@example
+*Error*
+@end example
+is displayed; at least, as much of @code{*Error*} as is possible in
+the allocated space.
+@end quotation
+
+
+The format specification for @code{string} values is given in the
+regular expression:
+@example
+[LCR][0-9]+
+@end example
+
+where each control code is defined:
+@table @code
+@item L
+The value is shown left-aligned in the text.
+
+The decimal value immediately after the @code{L} character is the size
+of the field.
+
+If the displayed length of the number or string is less than that
+permitted; then the value is shown left-aligned. If the length of the
+value is greater than the size of the field then the text is truncated
+-- i.e., the first N characters of the value are used.
+
+@item R
+The value is shown right-aligned in the text -- if the length of the
+value is less than the size of the field.
+
+If the length of the value is greater than the size of the field then
+the text is truncated.
+
+@item C
+The value is shown centered in the field.
+@end table
+
+@node Standard String Functions
+@section Standard String Functions
+[[simpleString]]
+In addition to certain specific string functions -- such as string concatenation -- the }string@code{ type implements the }comparable@code{ contract which enables }string@code{ values to be compared. The }indexable@code{ contract -- see Program~\vref{sizeableContract} -- is also implemented for }string@code{s, which means that the normal }[]@code{ notation may be used to access the characters of a string.
+
+@node }isEmpty@code{ -- test for empty string
+@subsection }isEmpty@code{ -- test for empty string
+[[stringEmptyFunction]]
+}isEmpty@code{ is part of the standard }sizeable@code{ contract (see Program~\vref{sizeableContract}):
+[listing]
+isEmpty has type (string)=>boolean
+
+The }isEmpty` function returns true if its argument is the empty string. It's definition is equivalent to:
+[listing]
+isEmpty(X) is X="";
+
+
+@node @code{size} -- size of the string
+@subsection @code{size} -- size of the string
+[[stringSizeFunction]]
+@code{size} is part of the standard @code{sizeable} contract (see Program~\vref{sizeableContract}):
+[listing]
+size has type (string)=>integer
+
+The @code{size} function returns the number of Unicode characters in the @code{string}. Note that this is not generally the same as the number of bytes in the string.
+
+@node @code{flattenPP} -- Flatten a Structured String
+@subsection @code{flattenPP} -- Flatten a Structured String
+@cindex flattenPP@@code{flattenPP}
+[listing]
+flattenPP has type (pP)=>string;
+
+The @code{flattenPP} function takes a structured string and `flattens it' into a regular @code{string}.
+
+\begin{aside}
+This function is used by the standard functions @code{display} and @code{format} to convert the result of displaying or formatting a value into a @code{string}.
+\end{aside}
+
+@node @code{<} -- less than
+@subsection @code{<} -- less than
+@cindex <@@code{<} predicate
+[listing]
+(<) has type (string,string)=>boolean
+
+@code{(<)} is part of the standard @code{comparable} contract -- see Program~\vref{comparableContract}.
+
+String comparison is based on a lexicographic comparison: one @code{string} is less than another if its first character is less than the first character of the second -- irrespective of the actual lengths of the strings. Thus
+[listing]
+Abbbbbbb < B
+
+because @code{A} is less than @code{B}. Characters are compared based on their _code point_ within the Unicode encoding. footnote:[This is the same concept of string ordering as that within Java\tm.]
+
+=== @code{=<} -- less than or equal
+@cindex =<@@code{=<} predicate
+[listing]
+(=<) has type (string,string)=>boolean
+
+@code{(=<)} is part of the standard @code{comparable} contract -- see Program~\vref{comparableContract}.
+
+The @code{=<} predicate for @code{string} values is satisfied if the left argument is less than or equals to the right argument under the lexicographic ordering.
+
+@node @code{>} -- greater than
+@subsection @code{>} -- greater than
+@cindex >@@code{>} predicate
+[listing]
+(>) has type (string,string)=>boolean
+
+@code{(>)} is part of the standard @code{comparable} contract -- see Program~\vref{comparableContract}.
+The @code{>} predicate is satisfied if the left argument is lexicographically greater than the right argument.
+
+@node @code{>=} -- greater then or equal
+@subsection @code{>=} -- greater then or equal
+@cindex >=@@code{>=} predicate
+[listing]
+(>=) has type (string,string)=>boolean
+
+@code{(>=)} is part of the standard @code{comparable} contract -- see Program~\vref{comparableContract}.
+The @code{>=} predicate is satisfied if the left argument is lexicographically greater than or equal to the right argument.
+
+@node @code{\_index} -- Index Codepoint from String
+@subsection @code{\_index} -- Index Codepoint from String
+[[indexString]]
+@code{\_index} is part of the standard @code{indexable} contract -- see Program~\vref{indexableContractDef}.
+[listing]
+_index has type (string,integer)=>option of integer
+
+The @code{\_index} function returns a CodePoint from a @code{string} value at a particular position.
+
+One can use the the normal indexing notation to access CodePoints from a @code{string} -- as with other kinds of @code{indexable} types:
+[listing]
+S[ix]
+
+instead of
+[listing]
+_index(S,ix)
+
+
+@node @code{\_slice} -- Substring
+@subsection @code{\_slice} -- Substring
+[[sliceString]]
+@code{\_slice} is part of the @code{sliceable} contract -- see Program~\vref{sliceableContractProg}.
+[listing]
+_slice(string,integer,integer)=>string
+
+The @code{\_slice} function extracts a substring from its first argument. The first character of the extracted substring is identified by the second argument; and the end point of the substring is identified by the third argument. An expression of the form:
+[listing]
+_slice("this is a string",5,7)
+
+returns the substring @code{"is"} -- corresponding to the two characters located at positions 5 and 6 in the source string.
+
+There is a special notation for this functionality: the slice notation (see @refer{sliceFunction}. For example, if the variable @code{S} is bound to the string @code{"this is a string"}, then the above expression may be written:
+[listing]
+S[5:7]
+
+
+@node @code{\_splice} -- Replace Substring
+@subsection @code{\_splice} -- Replace Substring
+[[spliceString]]
+@code{\_splice} is part of the @code{sliceable} contract -- see Program~\vref{sliceableContractProg}.
+[listing]
+_splice has type (string,integer,integer,string) => string
+
+The @code{\_splice} function replaces a substring within its first argument. For example, the expression:
+[listing]
+_splice("this is a string",5,7,"was")
+
+has, as its value:
+[listing]
+"this was a string"
+
+
+Like the @code{\_slice} notation, there is special syntax for this function -- when used as an action. The action:
+[listing]
+S[ix:tx] := U
+
+is equivalent to the assignment:
+[listing]
+S := _splice(S,ix,cx,U)
+
+
+@node @code{++} -- string concatenation
+@subsection @code{++} -- string concatenation
+[[stringConcatFunction]]
+@code{++} is the standard string concatenation function. It is part of the @code{concatenate} contract (see Program~\vref{concatenateContractDef})
+[listing]
+(++) has type (string,string)=>string;
+
+
+@cindex string,interpolation
+Use of the @code{++} function over strings is implied by the _string interpolation expression_ (see @refer{StringInterpolation}). For example, the string expression:
+[listing]
+"Count = $count, Sum=$sum"
+
+is shorthand for
+[listing]
+"Count ="++display(count)++", Sum="++display(sum)
+
+
+@node @code{explode} -- Explode a string to code points
+@subsection @code{explode} -- Explode a string to code points
+[[stringExplodeFunction]]
+The @code{explode} function is part of the @code{explosion} contract.
+[listing]
+explode has type (string)=>cons[integer];
+
+\begin{aside}
+This version of the @code{explode} function is useful when performing complex operations over @code{string} values. For example, it can be more efficient to first of all @code{explode} a @code{string} before tokenizing the string.
+\end{aside}
+
+@node @code{implode} -- Implode a cons list[code] points to a string
+@subsection @code{implode} -- Implode a cons list[code] points to a string
+[[stringImplodeFunction]]
+The @code{implode} function is part of the @code{explosion} contract.
+[listing]
+implode has type (cons[integer])=>string;
+
+The @code{implode} function takes a @code{cons} list of @code{integer} code points and constructs a @code{string} value from it.
+
+@node @code{reverse} -- Reverse the characters in a string
+@subsection @code{reverse} -- Reverse the characters in a string
+[[stringReverseFunction]]
+The @code{reverse} function is part of the @code{reversible} contract -- see Program~\vref{reversibleContractDef}.
+[listing]
+reverse has type (string)=>string
+
+
+@node @code{findstring} -- string search
+@subsection @code{findstring} -- string search
+[[findStringFunction]]
+@code{findstring} is used to determine the (next) location of a search token within a @code{string}.
+[listing]
+findstring has type (string,string,integer)=>integer;
+
+
+@cindex string,search within
+@cindex finding substrings
+The @code{findstring} function searches a string for an occurrence of another string. The first argument is the string to search, the second is the search token, and the third is the integer offset where to start the search.
+
+For example, the result of the expression:
+[listing]
+findstring("the lazy dog jumped over the quick brown fox","the",5)
+
+is @code{25}.
+
+If the search token is not present then @code{findstring} returns -1;
+
+@node @code{gensym} -- Generate Unique String
+@subsection @code{gensym} -- Generate Unique String
+[[gensym]]
+@cindex gensym standard function@@code{gensym} standard function
+[listing]
+gensym has type (string)=>string
+
+The @code{gensym} function is used to generate unique strings that have an arbitrarily high probability of being unique.
+
+The generated string has a prefix consisting of the single argument, a middle which is a unique string generated based on a globally unique identifier identifying the current process and a counter.
+
+The result is a string that has a high probability of being unique. It is guaranteed to be unique within the current processor.
+
+@node @code{spaces} -- Generate a string of spaces
+@subsection @code{spaces} -- Generate a string of spaces
+[[spaces]]
+@cindex spaces standard function@@code{spaces} standard function
+[listing]
+spaces has type (integer)=>string
+
+
+The @code{spaces} function generates a @code{string} containing only the space character -- `'\spce'@code{. For example, the value of
+[listing]
+spaces(3)
+
+is the }string`
+[listing]
+"   "
+

@@ -160,10 +160,11 @@ signals that the value is a function.
 @float BNF,typeFig
 @caption{Types of Types}
 @display
-@anchored{Type}::=@var{TypeExpression}
+@anchored{Type}::=@refer{NominalType}
   | @var{TypeVariable}
   | @var{TupleType}
   | @var{RecordType}
+  | @refer{ReferenceType}
   | @var{FunctionType} | @var{ConstructorType}
   | @var{TypeQuantifier} @code{~~} @var{Type}
   | @var{TypeConstraint} @code{|:} @var{Type}
@@ -1201,7 +1202,6 @@ and
 cons[integer] @noteq cons[integer,string]
 @end example
 @end itemize
-
 
 @node Unifying Reference Types
 @subsubsection  Unifying Reference Types
