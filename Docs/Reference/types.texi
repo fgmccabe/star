@@ -548,6 +548,24 @@ The latter is not as common, but is important to support abstractions
 involving re-assignable variables.
 @end quotation
 
+The type of a re-assignable variable takes the form:
+
+@example
+ref @refer{Type}
+@end example
+For example, given the declaration:
+@example
+var Ix := 0
+@end example
+
+the variable @code{Ix} has type @code{ref integer}; whereas the
+declaration:
+@example
+Jx = 0
+@end example
+results in the variable @code{Jx} having type @code{integer}.
+
+
 @node Quantified Types
 @section Quantified Types
 @cindex quantified types
@@ -580,8 +598,7 @@ substitutions of a type variable.
 @display
 @anchored{UniversalQuantifier} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} 
 
-@anchored{BoundType} ::= @refer{Identifier}
-  | @refer{Identifier}@code{/}@refer{Decimal}
+@anchored{BoundType} ::= @refer{Identifier} | @refer{Identifier} @code{/} @refer{Decimal}
 @end display
 @end float
 
@@ -629,8 +646,8 @@ Higher kinded type variables are most commonly used in the context of
 @end quotation
 
 The compiler will infer the type of expressions; but does @emph{not}
-infer any quantified type. That the compiler may not infer an
-appropriate type for your functions if you intend them to be generic.
+infer any quantified type. Functions that are intended to be generic
+must have explicit type annotations associated with them.
 
 For example, the @code{dblFilter} function in @ref{dblFilter} applies
 a @code{map} function in two different situations -- one for each
@@ -718,7 +735,6 @@ for a program to dynamically determine the type of a value.
 @caption{Type Variables}
 @display
 @anchored{TypeVariable} ::= @refer{Identifier}
-  | @refer{Identifier} @code{/} @refer{Decimal}
 @end display
 @end float
 
