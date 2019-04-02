@@ -1,3 +1,0 @@
-@node Well Formed Programs
-@chapter Well Formed Programs
-

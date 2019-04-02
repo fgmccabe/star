@@ -260,20 +260,6 @@ code is ignored, and treated as though it were part of the quoted
 string proper.
 @end quotation
 
-@node The @code{concat} Contract
-@section The @code{concat} Contract
-
-The @code{concat} contract defines a single function (@code{++}) that is intended to mean `glue together' -- in a type specific way.
-
-@float Program,concatContractProg
-@caption{The Standard @code{concat} Contract}
-@example
-public contract all t ~~ concat[t] ::= @{
-  (++) : (t,t)=>t
-@}
-@end example
-@end float
-
 @node The @code{reversible} Contract
 @section The @code{reversible} Contract
 
@@ -288,16 +274,41 @@ public contract all t ~~ reversible[t] ::= @{
 @end example
 @end float
 
+@node The @code{concat} Contract
+@section The @code{concat} Contract
+
+The @code{concat} contract defines a single function (@code{++}) that is intended to mean `glue together' -- in a type specific way.
+
+@float Program,concatContractProg
+@caption{The Standard @code{concat} Contract}
+@example
+public contract all t ~~ concat[t] ::= @{
+  (++) : (t,t)=>t
+@}
+@end example
+@end float
+
+@node The @code{++} Contract Function
+@subsection The @code{++} Contract Function
+@findex @code{++} contract function
+@anchor{plusPlusFunction}
+
+The type signature for @code{++} is:
+@example
+(++) : all t ~~ concat[t] |: (t,t) => t
+@end example
+
+The @code{++} function concatenates two sequences to form their conjunction.
+
 @node The @code{slice} Contract
 @section The @code{slice} Contract
 
 @float Program,sliceContractProg
 @caption{The @code{slice} contract}
 @example
-public contract all s,k ~~ sliceable[s->>k] ::= @{
-  _slice : (s,k,k)=>s;
-  _tail : (s,k)=>s;
-  _splice : (s,k,k,s)=>s;
+public contract all s,k ~~ slice[s->>k] ::= @{
+  _slice : (s,k,k)=>s.
+  _splice : (s,k,k,s)=>s.
 @}
 @end example
 @end float
@@ -307,7 +318,53 @@ public contract all s,k ~~ sliceable[s->>k] ::= @{
 @findex @code{_slice} contract function
 @anchor{sliceFunction}
 
+The type signature for @code{_slice} is:
+@example
+_slice : all s,k ~~ _slice[s->>k] |: (s,k,k) => s
+@end example
 
+The @code{_slice} function extracts a subsequence from a source
+sequence. A call of the form:
+@example
+_slice(S,F,T)
+@end example
+extracts a subsequence of @code{S} starting from (and including)
+@code{F} and ending with (but not including) @code{T}.
+
+It is not required that @code{k} is actually @code{integer}; but it is
+often more convenient.
+
+The core property of @code{_slice} is that it should follow the equality:
+@display
+_slice(S,@var{zero},X)++_slice(S,X,@var{end}) == S
+@end display
+where @var{zero} is the index of the first entry in @code{S} and
+@var{end} is just beyond the last entry in the collection.
+
+@node The @code{_splice} Contract Function
+@subsection The @code{_splice} Contract Function
+@findex @code{_splice} contract function
+@anchor{spliceFunction}
+
+The type signature for @code{_splice} is:
+@example
+_splice : all s,k ~~ _slice[s->>k] |: (s,k,k,s) => s
+@end example
+
+The @code{_splice} function replaces a subsequence from a source
+sequence. A call of the form:
+@example
+_splice(S,F,T,N)
+@end example
+returns a new sequence consisting of @code{S} with the subsequence
+starting from (and including) @code{F} and ending with (but not
+including) @code{T} replaced by @code{N}.
+
+Furthermore, for any valid @code{K}:
+@display
+_splice(S,K,K,@var{empty}) == S
+@end display
+where @var{empty} is the empty sequence for the type @code{s}.
 
 @node The stream Contract
 @section The @code{stream} Contract
@@ -424,7 +481,6 @@ public contract all m,k,v ~~ indexed[m ->> k,v] ::= @{
   _index:(m,k) => option[v].
   _insert:(m,k,v) => m.
   _remove:(m,k) => m.
-  _replace:(m,k,v) => m.
   _empty:m.
 @}
 @end example
@@ -457,7 +513,6 @@ present in the collection.
 The @code{_insert} contract function specifies what it means to add a
 new key-value pair to a collection (or to modify an existing
 association):
-
 
 @float Program,insertFunctionProg
 @caption{The @code{_insert} Function}

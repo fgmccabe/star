@@ -111,10 +111,12 @@ F.G. McCabe).
 * Actions::
 * Standard Contracts::
 
+* Numbers::
 * Strings::
 * Concept index::
 * Function index::
 * List of Syntax Rules::
+* List of Programs::
 @end menu
 
 @include intro.texi
@@ -139,7 +141,7 @@ F.G. McCabe).
 
 @include standard.texi
 
-@c @include numbers.texi
+@include numbers.texi
 
 @include strings.texi
 
@@ -163,5 +165,8 @@ F.G. McCabe).
 @unnumbered List of Syntax Rules
 @listoffloats BNF
 
+@node List of Programs
+@unnumbered List of Programs
+@listoffloats Program
 
 @bye
