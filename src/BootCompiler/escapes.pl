@@ -34,7 +34,7 @@ escapeType("_float_bits",funType(tupleType([type("star.core*float")]),type("star
 escapeType("_flt_hash",funType(tupleType([type("star.core*float")]),type("star.core*integer"))).
 escapeType("_flt_pwr",funType(tupleType([type("star.core*float"),type("star.core*float")]),type("star.core*float"))).
 escapeType("sqrt",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
-escapeType("_exp",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
+escapeType("exp",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
 escapeType("log",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
 escapeType("log10",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
 escapeType("pi",funType(tupleType([]),type("star.core*float"))).
@@ -200,6 +200,7 @@ escapeType("_str_split",funType(tupleType([type("star.core*string"),type("star.c
 escapeType("_str_concat",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_reverse",funType(tupleType([type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_start",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
+escapeType("_str_splice",funType(tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_multicat",funType(tupleType([tpExp(tpFun("star.core*list",1),type("star.core*string"))]),type("star.core*string"))).
 escapeType("_str_hdtl",funType(tupleType([type("star.core*string")]),tupleType([type("star.core*integer"),type("star.core*string")]))).
 escapeType("_str_back",funType(tupleType([type("star.core*string")]),tupleType([type("star.core*string"),type("star.core*integer")]))).
@@ -254,7 +255,7 @@ isEscape("_float_bits").
 isEscape("_flt_hash").
 isEscape("_flt_pwr").
 isEscape("sqrt").
-isEscape("_exp").
+isEscape("exp").
 isEscape("log").
 isEscape("log10").
 isEscape("pi").
@@ -420,6 +421,7 @@ isEscape("_str_split").
 isEscape("_str_concat").
 isEscape("_str_reverse").
 isEscape("_str_start").
+isEscape("_str_splice").
 isEscape("_str_multicat").
 isEscape("_str_hdtl").
 isEscape("_str_back").

@@ -37,7 +37,7 @@ star.comp.escapes{
   escapeType("_flt_hash") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*integer")).
   escapeType("_flt_pwr") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float"),tipe("star.core*float")])),tipe("star.core*float")).
   escapeType("sqrt") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
-  escapeType("_exp") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
+  escapeType("exp") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
   escapeType("log") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
   escapeType("log10") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
   escapeType("pi") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
@@ -203,6 +203,7 @@ star.comp.escapes{
   escapeType("_str_concat") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_str_reverse") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_str_start") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
+  escapeType("_str_splice") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_str_multicat") => tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*list",1),tipe("star.core*string"))])),tipe("star.core*string")).
   escapeType("_str_hdtl") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tupleType([tipe("star.core*integer"),tipe("star.core*string")])).
   escapeType("_str_back") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tupleType([tipe("star.core*string"),tipe("star.core*integer")])).
@@ -259,7 +260,7 @@ star.comp.escapes{
   isEscape("_flt_hash") => true.
   isEscape("_flt_pwr") => true.
   isEscape("sqrt") => true.
-  isEscape("_exp") => true.
+  isEscape("exp") => true.
   isEscape("log") => true.
   isEscape("log10") => true.
   isEscape("pi") => true.
@@ -425,6 +426,7 @@ star.comp.escapes{
   isEscape("_str_concat") => true.
   isEscape("_str_reverse") => true.
   isEscape("_str_start") => true.
+  isEscape("_str_splice") => true.
   isEscape("_str_multicat") => true.
   isEscape("_str_hdtl") => true.
   isEscape("_str_back") => true.

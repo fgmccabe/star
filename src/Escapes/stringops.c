@@ -134,7 +134,7 @@ ReturnStatus g__str_gen(processPo p, ptrPo tos) {
   const char *str = stringVal(tos[0], &len);
   char rnd[MAXLINE];
 
-  strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len,NumberOf(rnd)-INT64_DIGITS), randomInt());
+  strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
   ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), rnd, uniStrLen(rnd))};
   return rt;
@@ -350,6 +350,37 @@ ReturnStatus g__str_concat(processPo p, ptrPo tos) {
   uniNCpy(&buff[llen], len - llen, rhs, rlen);
 
   ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, llen + rlen)};
+  return rt;
+}
+
+ReturnStatus g__str_splice(processPo p, ptrPo tos) {
+  termPo Arg1 = tos[0];
+  integer from = integerVal(tos[1]);
+  integer cnt = integerVal(tos[2]);
+  termPo Arg4 = tos[3];
+
+  integer llen;
+  const char *lhs = stringVal(Arg1, &llen);
+  integer rlen;
+  const char *rhs = stringVal(Arg4, &rlen);
+
+  // Clamp the from and cnt values
+  if (from < 0)
+    from = 0;
+  if (cnt < 0)
+    cnt = 0;
+  if (from > llen)
+    from = llen;
+  if (from + cnt > llen)
+    cnt = llen - from;
+
+  integer len = llen + rlen - cnt;
+  char buff[len];
+  uniNCpy(buff, len, lhs, from);
+  uniNCpy(&buff[from], len - from, rhs, rlen);
+  uniNCpy(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
+
+  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, len)};
   return rt;
 }
 

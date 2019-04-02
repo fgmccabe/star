@@ -58,7 +58,7 @@ escape(_flt_hash,True,False,"F(f)i","compute hash of float")
 escape(_flt_pwr,True,False,"F(ff)f","raise X to the power Y")
 
 escape(sqrt,True,False,"F(f)f","square root")
-escape(_exp,True,False,"F(f)f","exponential")
+escape(exp,True,False,"F(f)f","exponential")
 escape(log,True,False,"F(f)f","logarithm")
 escape(log10,True,False,"F(f)f","10-based logarithm")
 escape(pi,True,False,"F()f","return PI")
@@ -269,6 +269,8 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_str_concat,True,False,"F(SS)S","Concatenate two strings")
   escape(_str_reverse,True,False,"F(S)S","Unicode reverse of string")
   escape(_str_start,True,False,"F(SS)l","True if second string starts with first")
+  escape(_str_splice,True,False,"F(SiiS)S","splice a substring into a string")
+
   escape(_str_multicat,True,False,"F(LS)S","Concatenate a list of strings into one")
   escape(_str_hdtl,True,False,"F(S)(iS)","pick up the first character and return remainder")
   escape(_str_back,True,False,"F(S)(Si)","pick up the last character and return remainder")

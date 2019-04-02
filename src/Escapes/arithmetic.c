@@ -374,7 +374,7 @@ ReturnStatus g__flt_abs(processPo p, ptrPo tos) {
   return ret;
 }
 
-ReturnStatus g__exp(processPo P, ptrPo tos) {
+ReturnStatus g_exp(processPo P, ptrPo tos) {
   double x = floatVal(tos[0]);
 
   errno = 0;    /* clear errno prior to computation */

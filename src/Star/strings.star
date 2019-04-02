@@ -32,7 +32,12 @@ star.strings{
 
   public implementation concat[string] => {
     S1++S2 => _str_concat(S1,S2).
-  }
+  }.
+
+  public implementation slice[string->>integer] => {
+    _slice(S,F,T) => _sub_str(S,F,T).
+    _splice(S,F,T,N) => _str_splice(S,F,T,N).
+  }.
 
   public implementation reversible[string] => {
     reverse(L) => _str_reverse(L).
