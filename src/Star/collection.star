@@ -46,12 +46,6 @@ star.collection{
     _empty:m.
   }.
 
-  public contract all s,k ~~ sliceable[s->>k] ::= {
-  _slice : (s,k,k)=>s.
-  _tail : (s,k)=>s.
-  _splice : (s,k,k,s)=>s.
-  }
-
   public contract all k,e ~~ membership[k->>e] ::= {
     empty: k.
     _addMem:(e,k)=>k.
