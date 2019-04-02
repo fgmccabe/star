@@ -69,7 +69,7 @@ argument is a @code{list} of @code{ss} terms.
 @node Sizeable for String
 @subsection Sizeable for String
 
-See Program~@ref{sizeableContractProg} for a specification of the
+See @refer{sizeableContractProg} for a specification of the
 @code{sizeable} contract.
 
 The @code{isEmpty} function returns true if its argument is the empty
