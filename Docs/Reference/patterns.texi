@@ -322,25 +322,10 @@ hand side, and the type safety of the condition.
 @section Sequence Patterns
 
 A sequence pattern represents a use of the standard @code{stream}
-contract to match sequences of values.
+contract (see Program~@ref{streamContractProg}) to match sequences of values.
 
 @cindex sequence,patterns
 @cindex patterns,sequence
-
-@node The stream Contract
-@subsection The @code{stream} Contract
-@findex @code{stream} contract
-
-@float Program,streamContractProg
-@caption{The @code{stream} contract}
-@example
-public contract all S,E ~~ stream[S->>E] ::= @{
- _eof:(S) => boolean.
- _hdtl:(S) => option[(E,S)].
- _back:(S) => option[(S,E)].
-@}
-@end example
-@end float
 
 @node Sequence Pattern Notation
 @subsection Sequence Pattern Notation

@@ -429,9 +429,10 @@ is the string:
 @end example
 
 Detailed formatting is controlled by the @code{format} contract -- see
-Program~@refer{formatContractProg} -- which in turn means that
-different types of expression will have type appropriate ways of
-specifying the formatting.
+Program~@refer{formatContractProg} -- in particular the different
+implementations of that contract which in turn means that different
+types of expression will have type appropriate ways of specifying the
+formatting.
 
 @node Semantics of String Interpolation
 @subsubsection Semantics of String Interpolation
@@ -1165,28 +1166,6 @@ sequence is that the latter embodies a sequential ordering of
 the elements. A collection may have an ordering present; but
 that is not required by the contract and is not enforced in the
 notation.
-
-@node The sequence Contract
-@subsection The @code{sequence} Contract
-
-A sequence expression represents a use of one of the two standard
-contracts: Program~@ref{streamContractProg} and
-Program~@ref{sequenceContractProg}. The former is used when parsing a
-sequence and the latter is used when constructing a sequence. More
-formally, the @code{stream} contract is used for
-@refer{SequencePattern}s and the @code{sequence} contract is used for
-@refer{SequenceExpression}s.
-
-@float Program,sequenceContractProg
-@caption{The @code{sequence} contract}
-@example
-public contract all S,E ~~ sequence[S->>E] ::= @{
-  _cons:(E,S) => S.
-  _apnd:(S,E) => S.
-  _nil:S.
-@}
-@end example
-@end float
 
 @node Sequence Expression Notation
 @subsection Sequence Expression Notation
