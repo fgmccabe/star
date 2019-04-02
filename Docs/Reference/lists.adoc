@@ -298,42 +298,6 @@ The actual sort algorithm used is not represented here.
 
 The `sorting` contract is implemented for the `list` type and the `cons` list type.
 
-== The `sizeable` Contract
-[[sizeableContract]]
-The standard `sizeable` contract is defined for those collections that have a concept of size associated with them.
-
-(((type,contracts! sizeable@`sizeable`)))
-(((sizeable contract@`sizeable` contract)))
-
-The `sizeable` contract -- which is defined in Program~\vref{sizeableContractProg} -- defines the functions `size` and `isEmpty`.
-
-\begin{program}
-[listing]
-contract sizeable of t is {
-  size has type (t) => integer;
-  isEmpty has type (t) => boolean;
-}
-
-.The Standard `sizeable` Contract[[sizeableContractProg]]
-\end{program}
-
-=== `size` -- Size of a `sizeable` Collection
-[[sizeFunction]]
-(((sizeable contract@`sizeable` contract,size@`size`)))
-[listing]
-size has type for all t such that (t)=>integer where sizeable over t
-
-
-The `size` function returns the number of elements of a `sizeable` collection. The precise meaning of the `size` function is likely to be type-specific; for example, for `string`s, the `size` of a `string` is the number of characters in the string.
-
-=== `isEmpty` -- Is a `sizeable` Collection Empty
-[[isEmptyFunction]]
-(((sizeable contract@`sizeable` contract,isEmpty@`isEmpty`)))
-[listing]
-isEmpty has type for all t such that (t)=>boolean where sizeable over t
-
-The `isEmpty` function returns `true` if the collection has no elements.
-
 == The `indexable` Contract
 [[indexableContract]]
 The `indexable` contract defines the functions that relate to the `indexable' expressions.

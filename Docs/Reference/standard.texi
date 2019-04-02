@@ -1,0 +1,403 @@
+@node Standard Contracts
+@chapter Standard Contracts
+
+In this chapter we outline the major standard contracts that are part
+of @Star{}.
+
+Many of these contracts have multiple implementations, for different
+types and type combinations; these are outlined in separate chapters.
+
+@node The @code{equality} contract
+@section The @code{equality} contract
+@anchor{EqualityContract}
+@cindex equality contract
+Equality is based on the @code{equality} contract. This defines the
+@code{boolean}-valued function: @code{==}. The complementary function
+@code{=!=} is not defined as part of the @code{equality} contract; but
+is defined in terms of @code{==}.
+
+@findex @code{equality} contract
+@float Program,equalityContract
+@caption{The Standard @code{equality} Contract}
+@example
+contract all t ~~ equality[t] ::= @{
+  (==) : (t,t)=>boolean
+@}
+@end example
+@end float
+
+@c It is not necessary to explicitly implement the @code{equality}
+@c contract. The language processor automatically implements it for types
+@c that do not contain program values. However, it is possible to provide
+@c an explicit implementation for @code{equality} for cases where a more
+@c semantic definition of equality is desired.
+
+@node @code{==} -- equals
+@subsection @code{==} -- equals
+@anchor{equalsPredicate}
+@findex @code{==} predicate
+@cindex equality predicate
+@code{==} is part of the standard @code{equality} contract.
+
+Its type is given by:
+@example
+(==) : all t ~~ equality[t] |: (t,t) => boolean
+@end example
+
+In general, equality is @emph{not} defined for all values. In
+particular, equality is not defined for functions, procedures and
+other program values.@footnote{Whether two expressions that denote
+functions of the same type denote the same function is, in general,
+not effectively decidable.}
+
+@node @code{=!=} -- not equals
+@subsection @code{=!=} -- not equals
+@anchor{notEqualsPredicate}
+@findex @code{=!=} predicate
+@cindex inequality predicate
+
+The type signature for @code{=!=} is:
+@example
+(=!=) : all t ~~ equality[t] |: (t,t) => boolean
+@end example
+
+The @code{=!=} predicate has a standard definition that makes it
+equivalent to a negated equality:
+@example
+X =!= Y => \+ X==Y
+@end example
+
+@node The @code{comp} contract
+@section The @code{comp} contract
+@anchor{comparisonPredicates}
+
+Comparison between values is based on the standard @code{comp}
+contract -- see Program@ref{comparableContract}.
+
+Comparison is @emph{not} automatically implemented for all types --
+the standard language provides implementations for the arithmetic
+types (@code{integer}s, @code{float}s etc.) and for the @code{string}
+type.
+
+@float Program,comparableContract
+@caption{The Standard @code{comp} Contract}
+@example
+contract all t ~~ comp[t] ::= @{
+  (<) : (t,t)=>boolean.
+  (>=) : (t,t)=>boolean.
+@}
+@end example
+@end float
+
+@node @code{<} -- less than
+@subsection @code{<} -- less than
+@findex @code{<} predicate
+The type signature for @code{<} is:
+@example
+(<) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{<} predicate is satisfied if the left argument is less than
+the right argument. The precise definition of less than depends on the
+actual implementation of the @code{comp} contract for the type
+being compared; however, for arithmetic types, less than is defined as
+being arithmetic less than. For @code{string}s, one string is less
+than another if it is smaller in the standard lexicographic ordering
+of strings.
+
+@node @code{>=} -- greater then or equal
+@subsection @code{>=} -- greater then or equal
+@findex @code{>=} predicate
+The type signature for @code{>=} is:
+@example
+(>=) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{>=} predicate is satisfied if the left argument is greater
+than or equal to the right argument; as determined by the particular
+implementation of the @code{comp} contract.
+
+@node @code{=<} -- less than or equal
+@subsection @code{=<} -- less than or equal
+@findex @code{=<} predicate
+The type signature for @code{=<} is:
+@example
+(=<) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{=<} predicate is satisfied if the left argument is less than
+or equals to the right argument.
+
+This predicate is not directly part of the @code{comp} contract, instead it is defined in terms of @code{>=}:
+
+@example
+X =< Y => Y >= X.
+@end example
+
+@node @code{>} -- greater than
+@subsection @code{>} -- greater than
+@findex @code{>} predicate
+The type signature for @code{>} is:
+@example
+(>) : all t ~~ comp[t] |: (t,t)=>boolean
+@end example
+
+The @code{>} predicate is satisfied if the left argument is strictly
+greater than the right argument.
+
+This predicate is not directly part of the @code{comp} contract, instead it is defined in terms of @code{<}:
+
+@example
+X > Y => Y< X.
+@end example
+
+@node The @code{display} contract
+@section The @code{display} contract
+@findex @code{display} contract
+@cindex pretty print contract
+@anchor{displayContract}
+
+The standard contract @code{display}, shown in
+Program~@ref{displayContractProg} together with the @code{ss} type
+shown in Program~@ref{ppTypeProg}, is at the core of the standard
+method for displaying values.
+
+@quotation Note
+The @code{display} contract is also used as part of
+@refer{stringInterpolation} expressions.
+@end quotation
+
+@float Program,displayContractProg
+@caption{The Standard @code{display} Contract}
+@example
+public contract all t ~~ display[t] ::= @{
+  disp:(t)=>ss.
+@}
+@end example
+@end float
+
+One of the primary purposes of the @code{display} contract is to
+support the standard string @refer{Interpolation} form.
+
+@quotation Tip
+One of the primary benefits of allowing programmers to define their
+own implementation of @code{display} is to enable higher quality
+display of values. By defining @code{display} for yourself, you can
+use application oriented display of your values.
+@end quotation
+
+There are standard implementations of @code{display} contract for many
+of the standard types. However, it is quite possible to define one's
+own implementation, either to support your own types or to override
+the standard display. For example, supposing that values of the
+@code{tree} type:
+@example
+tree[t] ::= empty | node(tree[t],t,tree[t])
+@end example
+
+were intended to be displayed:
+@example
+@{ "alpha" "beta" "gamma" @}
+@end example
+then the following implementation of @code{display} would ensure that
+such trees were displayed more conveniently:
+@example
+implementation all t ~~ display[t] |: display[tree[t]] => let@{
+  treeDisplay(empty) => ss(" ").
+  treeDisplay(node(L,Lb,R)) => ssSeq([treeDisplay(L),disp(Lb),treeDisplay(R)])
+@} in @{
+  disp(T) => ssSeq([ss("@{"),treeDisplay(T),ss("@}")])
+@}
+@end example
+
+Note how the use of @code{disp} within the definition of
+@code{treeDisplay} will ensure that the display of tree labels may
+also be overridden with user-defined implementations of
+@code{display}.
+
+@node The @code{format} contract
+@section The @code{format} contract
+@findex @code{format} contract
+@anchor{formatContract}
+
+The standard contract @code{format}, shown in
+Program~@ref{formatContractProg} is used when displaying values in a
+formatted manner -- especially within @refer{Interpolation}
+expressions.
+
+@float Program,formatContractProg
+@caption{The Standard @code{format} Contract}
+@example
+public contract all t ~~ format[t] ::= @{
+  frmt:(t,string)=>ss.
+@}
+@end example
+@end float
+
+The second argument to @code{frmt} is normally a formatting string
+that is in a format (sic) that is understood by any specific
+implementers of the @code{format} contract.
+
+@quotation
+Normally, like @code{display}, calls to @code{frmt} are
+represented implicitly in string @refer{Interpolation} expressions.
+@end quotation
+
+@node Formatting Codes
+@subsection Formatting Codes
+
+A formatting code is a description of how a numeric or @code{string}
+valued expression should be displayed. Formatting codes allow more
+detailed control of the representation of the format in terms of
+minimum and maximum widths of output, the number of decimal places to
+show and the style of representing numbers -- including how negative
+numbers are displayed and the display of currencies.
+
+@quotation Note
+In @refer{stringInterpolation} expressions, formatting codes are
+introduced with a @code{:} character immediately after the @code{$}
+form and is terminated by a @code{;} character. An invalid formatting
+code is ignored, and treated as though it were part of the quoted
+string proper.
+@end quotation
+
+@node The @code{concat} Contract
+@section The @code{concat} Contract
+
+The @code{concat} contract defines a single function (@code{++}) that is intended to mean `glue together' -- in a type specific way.
+
+@float Program,concatContractProg
+@caption{The Standard @code{concat} Contract}
+@example
+public contract all t ~~ concat[t] ::= @{
+  (++) : (t,t)=>t
+@}
+@end example
+@end float
+
+@node The @code{reversible} Contract
+@section The @code{reversible} Contract
+
+The @code{reversible} contract defines a single function @code{reverse} that is intended to mean reverse.
+
+@float Program,reverseContractProg
+@caption{The Standard @code{reversible} Contract}
+@example
+public contract all t ~~ reversible[t] ::= @{
+  reverse : (t)=>t
+@}
+@end example
+@end float
+
+@node The @code{index} Contract
+@section The @code{index} Contract
+
+@node The @code{slice} Contract
+@section The @code{slice} Contract
+
+@node The @code{splice} Contract
+@section The @code{splice} Contract
+
+@node The stream Contract
+@section The @code{stream} Contract
+@findex @code{stream} contract
+
+@float Program,streamContractProg
+@caption{The @code{stream} contract}
+@example
+public contract all S,E ~~ stream[S->>E] ::= @{
+ _eof:(S) => boolean.
+ _hdtl:(S) => option[(E,S)].
+ _back:(S) => option[(S,E)].
+@}
+@end example
+@end float
+
+@node @code{_eof} -- End of Stream
+@subsection @code{_eof} -- End of Stream
+
+@node @code{_hdtl} -- Head of Stream
+@subsection @code{_hdtl} -- Head of Stream
+
+@node @code{_back} -- Back of Stream
+@subsection @code{_back} -- Back of Stream
+
+@node The @code{sequence} Contract
+@section The @code{sequence} Contract
+@findex @code{sequence} contract
+
+A sequence expression represents a use of one of the two standard
+contracts: Program~@ref{streamContractProg} and
+Program~@ref{sequenceContractProg}. The former is used when parsing a
+sequence and the latter is used when constructing a sequence. More
+formally, the @code{stream} contract is used for
+@refer{SequencePattern}s and the @code{sequence} contract is used for
+@refer{SequenceExpression}s.
+
+@float Program,sequenceContractProg
+@caption{The @code{sequence} contract}
+@example
+public contract all S,E ~~ sequence[S->>E] ::= @{
+  _cons:(E,S) => S.
+  _apnd:(S,E) => S.
+  _nil:S.
+@}
+@end example
+@end float
+
+@node @code{_nil} -- Empty Sequence
+@subsection @code{_nil} -- Empty Sequence
+
+@node @code{_cons} -- Add to Front of Sequence
+@subsection @code{_cons} -- Add to Front of Sequence
+
+@node @code{_apnd} -- Add to End of Sequence
+@subsection @code{_apnd} -- Add to End of Sequence
+
+
+@node The @code{sizeable} Contract
+@section The @code{sizeable} Contract
+
+The @code{sizeable} contract defines two functions for measuring the
+size of an entity.
+
+The standard @code{sizeable} contract is defined for those collections
+that have a concept of size associated with them.
+
+@float Program,sizeableContractProg
+@caption{The Standard @code{sizeable} Contract}
+@example
+contract all t ~~ sizeable[t] ::= @{
+  size : (t) => integer;
+  isEmpty : (t) => boolean;
+@}
+@end example
+@end float
+
+@node Size of a @code{sizeable} Collection
+@subsection Size of a @code{sizeable} Collection
+@findex @code{size} contract function
+
+@example
+size : all t ~~ sizeable[t] |: (t)=>integer
+@end example
+
+The @code{size} function returns the number of elements of a
+@code{sizeable} collection. The precise meaning of the @code{size}
+function is likely to be type-specific; for example, for
+@code{string}s, the @code{size} of a @code{string} is the number of
+characters in the string.
+
+@node Is a @code{sizeable} Collection Empty
+@subsection  Is a @code{sizeable} Collection Empty
+@findex @code{isEmpty} contract function
+
+@example
+isEmpty : all t ~~ sizeable[t] |: (t)=>boolean
+@end example
+
+The @code{isEmpty} function returns @code{true} if the collection has
+no elements.
+
+
+

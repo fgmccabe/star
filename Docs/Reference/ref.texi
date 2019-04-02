@@ -109,7 +109,9 @@ F.G. McCabe).
 * Expressions::
 * Conditions::
 * Actions::
+* Standard Contracts::
 
+* Strings::
 * Concept index::
 * Function index::
 * List of Syntax Rules::
@@ -134,6 +136,8 @@ F.G. McCabe).
 @include actions.texi
 
 @c @include queries.texi
+
+@include standard.texi
 
 @c @include numbers.texi
 
