@@ -130,6 +130,165 @@ terms of different constructors for the type.
 @end display
 @end float
 
+@node Variable Definition
+@section Variable Definition
+@cindex variable definition
+@cindex declaration, variable
+
+A @refer{VariableDefinition} is a @refer{Definition} or an
+@refer{Action} that explicitly denotes the declaration of a
+variable. @refer{VariableDefinition}s may appear in
+@refer{ThetaEnvironment}s and @refer{Action}s.
+
+@float BNF,variableDeclararionFig
+@caption{Variable Definition}
+@display
+@anchored{VariableDefinition}::=@refer{Pattern} @code{=} @refer{Expression}
+ | @refer{Variable} @code{:=} @refer{Expression}
+@end display
+@end float
+
+The left-hand side of a single assignment declaration may be a
+@refer{Pattern}. This permits multiple variables to be declared in a
+single statement. This, in turn, facilitates the handling of functions
+that return more than one value.
+
+For example, assuming that @code{split} partitions a @code{list} into a front half and a back half, returning both in a 2-tuple, the declaration:
+@example
+(L,R) = split(Lst)
+@end example
+will bind the variables @code{L} and @code{R} to the front and back
+halves respectively.
+
+A re-assignable variable is declared using the form:
+@example
+@refer{Variable} := @refer{Expression}
+@end example
+
+@quotation Note
+Unlike single assignment variable declarations, the re-assignable
+variable declaration is restricted to defining individual variables.
+@end quotation
+
+@quotation Note
+It is not possible to declare a variable without also giving it a
+value.
+@end quotation
+
+@node Variable Scope
+@subsection Variable Scope
+@cindex variable, scope
+@cindex scope of variable
+@anchor{scopeExtension}
+
+In general, the scope of a variable extends to include the entire
+context in which it is declared. In the case of a variable declaration
+in a @refer{ThetaEnvironment}, the scope includes the entire
+@refer{ThetaEnvironment} and any associated bound element. In the case
+of an @refer{BlockAction} the scope extends from the action following
+the declaration through to the end of the enclosing
+@refer{BlockAction}.
+
+The precise rules for the scope of a variable are slightly complex but
+result in a natural interpretation for the scopes of variables:
+
+@itemize
+@item
+Variables that are defined in patterns are limited to the element that
+is naturally associated with that pattern:
+@itemize
+@item
+Variables declared in the head pattern of an equation or other rule
+are scoped to that equation or rule.
+@item
+If a pattern governs a conditional expression or statement, variables
+declared in the pattern extend to the then part of the conditional but
+not to any else part.
+@item
+No variables declared in a negated condition escape that condition
+@item
+If a pattern governs a @code{for} loop, or a @code{while} loop, then
+variables declared in the pattern extend to the body of the loop. (See
+@refer{ForAction} and @refer{WhileAction}).
+@end itemize
+
+@item
+Variables that are defined in a @refer{Condition} are bound by the
+scope of the @refer{Condition}.
+
+@item
+Variables that are declared in a @refer{ThetaEnvironment} extend to
+all the definitions in the @refer{ThetaEnvironment} and to any bound
+expression or action.
+@quotation Note
+In particular, variables defined within a @refer{ThetaEnvironment} may
+be mutually recursive.
+@quotation Note
+Note that it is @emph{not} permissible for a non-program variable to
+be involved in a mutually recursive group of variables. I.e., if a
+group of mutually recursive of variables occurs in a
+@refer{ThetaEnvironment} then all the variables must be bound to
+functions or other program elements.
+@end quotation
+@end quotation
+@item
+Variables that are imported into a package body from another package
+extend to the entire body of the importing package.
+@item
+Variables that are declared in an @refer{BlockAction} extend from the
+end of their @refer{VariableDefinition} to the end of the block that they
+are defined in. The scope of a variable does not include its
+@refer{VariableDefinition}.
+
+It is not permitted for a variable to be declared more than once in a
+given action block.
+@end itemize
+
+@node Scope Hiding
+@subsubsection Scope Hiding
+@cindex scope, hiding
+@cindex variable, hiding
+
+It is not permitted to define a variable with the same name as another
+variable that is already in scope. This applies to variables declared
+in patterns as well as variables declared in
+@refer{ThetaEnvironment}s.
+
+For example, in the function:
+@example
+hider(X) => let@{
+  X = 1
+@} in X
+@end example
+the inner declaration of @code{X} effectively amounts to an equality
+test that the the @code{X} that occurs in the head of the function is
+equal to @code{1}.
+
+@node Re-assignable Variables
+@subsection Re-assignable Variables
+@cindex variable, re-assignable
+
+Re-assignable variables serve two primary roles within programs: to
+hold and represent state and to facilitate several classes of
+algorithms that rely on the manipulation of temporary state in order
+to compute a result.
+
+In order to facilitate program combinations -- including procedural
+abstraction involving re-assignable variables -- there are additional
+differences between re-assignable variables and single-assignment
+variables.
+
+@findex @code{ref} type
+In particular, re-assignable variables have a distinguished type
+compared to single-valued variables -- they must be of @refer{ReferenceType}.
+
+In addition to the different type, there are two operators that are
+associated with re-assignable variables: @code{ref} and @code{!}
+(pronounced @emph{shriek}). The former is used in situations where a
+variable's name is intended to mean the variable itself -- rather than
+its value. The latter is the converse: where an expression denotes a
+reference value that must be `dereferenced'.
+
 @node Functions and Equations
 @section Functions and Equations
 @cindex function
@@ -146,11 +305,11 @@ A function is a program for computing values; organized as a set of equations.
 
 @anchored{DefltEquation} ::= @refer{RuleHead} @code{default} @code{=>} @refer{Expression}
 
-@anchored{RuleHead}RuleHead ::= @refer{Identifier}@code{(}@refer{Pattern},...,@refer{Pattern}>@code{)}
+@anchored{RuleHead} ::= @refer{Identifier}@code{(}@refer{Pattern},...,@refer{Pattern}@code{)}
 
-@anchored{RuleGuard}RuleGuard ::= @code{default} | @refer{GuardCondition}>
+@anchored{RuleGuard} ::= @code{default} | @refer{GuardCondition}>
 
-@anchored{GuardCondition}GuardCondition ::= @code{where} @refer{Condition}
+@anchored{GuardCondition} ::= @code{where} @refer{Condition}
 @end display
 @end float
 
