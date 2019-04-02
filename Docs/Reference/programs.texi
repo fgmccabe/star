@@ -98,6 +98,14 @@ terms of different constructors for the type.
 @caption{Algebraic Type Definition}
 @display
 @anchored{AlgebraicTypeDefinition} ::= @refer{Type} @code{::=} @refer{AlgebraicConstructor}  @dots{}  @refer{AlgebraicConstructor}
+
+@anchored{AlgebraicConstructor} ::= @refer{EnumeratedSymbol}
+  | @refer{PositionalConstructor}
+  | @refer{RecordConstructor}
+
+@anchored{PositionalConstructor} ::= @refer{Identifier} @code{(} @refer{Type}  @dots{}  @refer{Type} @code{)}
+
+@anchored{RecordConstructor} ::= @refer{Identifier} @code{@{} @refer{Annotation}  @dots{}  @refer{Annotation} @code{@}}
 @end display
 @end float 
 
@@ -358,7 +366,7 @@ Lambda expressions functions may reference free variables.
 
 A contract definition is a statement that defines the functions and
 action procedures associated with a contract. As can be seen in
-Figure~@var{contractFig}, a contract statement associates a contract name --
+@var{contractFig}, a contract statement associates a contract name --
 together with a set of type variables -- with a set of
 @var{TypeAnnotation}s that define the elements of the contract. Within
 the @var{Contract} statement, a @var{TypeAnnotation} may varer to the
@@ -369,13 +377,15 @@ type(s) in the contract head.
 @display
 @anchored{ContractDefinition} ::= @code{contract} @var{ContractSpec} @code{::=} @var{RecordType}
 
-@anchored{ContractSpec} ::= [ @var{TypeQuantifier} ]
-@var{Identifier} [ @var{TypeArgSpec} [@code{\->>} @var{TypeArgSpec} ]]
+@anchored{ContractSpec} ::= [ @refer{TypeQuantifier} ]
+@refer{Identifier} [ @refer{TypeArgSpec} [@code{->>} @refer{TypeArgSpec} ]]
+
+@anchored{TypeArgSpec} ::= @refer{TypeVariable}
 @end display
 @end float
 
 For example, the contract that underlies type coercion (see
-@var{typeCoercionExpression}) is:
+@refer{typeCoercionExpression}) is:
 @example
 contract all s,t ~~ coercion[s,t] <~ @{ coerce:(s)=>t @}
 @end example
@@ -398,13 +408,14 @@ An important usage pattern for contracts is to represent
 rather than one defined by an explicit type definition.
 
 For example, the @code{arith} contract in
-Program~@var{arithmeticContractProg} defines a set of arithmetic
+@refer{arithContractProg} defines a set of arithmetic
 functions. However, it can also be interpreted as a definition of an
 abstract type of arithmetic values -- the values that implement the
 @code{arithmetic} contract.
 @end quotation
 
 @node Functional Dependencies
+@subsection Functional Dependencies
 @anchor{ContractFunctionalDependency}
 @cindex type,contracts!functional dependencies
 @cindex functional dependencies in contracts
@@ -412,7 +423,7 @@ abstract type of arithmetic values -- the values that implement the
 For certain forms of contract, it may be that the type parameters may
 not all be independent of each other. For example, consider the
 standard @code{stream} contract (defined in
-Program~@var{streamContractProg}) which reads:
+@refer{streamContractProg}) which reads:
 @example
 public contract all S,E ~~ stream[S ->> E] ::= @{
   _eof:(S) => boolean.
@@ -452,13 +463,13 @@ implemented for a specific type combination.
 @float BNF,contractImplementationFig
 @caption{Contract Implementation Statement}
 @display
-@anchor{ContractImplementation} ::= @code{implementation}
-@var{ContractSpec} @code{=>} @var{Expression}
+@anchored{ContractImplementation} ::= @code{implementation}
+@refer{ContractSpec} @code{=>} @refer{Expression}
 @end display
 @end float
 
-The @var{Type}s mentioned in @var{ContractSpec} must be 
-@var{TypeExpression}s.
+The @refer{Type}s mentioned in @refer{ContractSpec} must be 
+@refer{NominalType}s.
 
 @quotation NOTE
 In particular, it is not permitted to define an

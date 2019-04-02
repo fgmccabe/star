@@ -170,7 +170,6 @@ star.ideal{
     _index(Tr,Ky) => findIdeal(Tr,Ky).
     _insert(Tr,Ky,Vl) => insertIdeal(Tr,Ky,Vl).
     _remove(Tr,Ky) => removeIdeal(Tr,Ky).
-    _replace(Tr,Ky,Vl) => replaceIdeal(Tr,Ky,Vl).
     _empty = ihEmpty.
   }
 

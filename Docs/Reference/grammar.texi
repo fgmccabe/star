@@ -3,7 +3,7 @@
 @cindex grammar
 @cindex ast
 
-The grammar of @code{Star} is based on an @emph{operator precedence
+The grammar of @Star{} is based on an @emph{operator precedence
 grammar}. This allows us to address the full grammar and semantics of
 @code{Star} in a layered approach. The grammar layer is focused on the
 @emph{well formed formedness} of @code{Star} programs -- which
@@ -119,8 +119,8 @@ infix and postfix.
 @node Standard Operators
 @section Standard Operators
 
-A key input to the grammar is the table of operators. @Star{} has
-a large number of standard operators; some of which are symbolic and
+A key input to the grammar is the table of operators. There are a
+large number of standard operators; some of which are symbolic and
 others are alphanumeric in form.
 
 The standard operators are listed in @ref{srOpPrecGrammar}. Operators in

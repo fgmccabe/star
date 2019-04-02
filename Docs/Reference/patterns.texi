@@ -249,8 +249,9 @@ As noted in @refer{TupleType}, anonymous tuples are essentially
 syntactic sugar for automatically defined algebraic types. The above
 query is equivalent to:
 @example
-$2(X,Y)@footnote{Noting, of course, that @code{$2} is not a legal @Star{} identifier.} in R
+$2(X,Y) in R
 @end example
+Noting, of course, that @code{$2} is not a legal @refer{Identifier}.
 @end quotation
 
 @node Anonymous Record Patterns
@@ -322,7 +323,7 @@ hand side, and the type safety of the condition.
 @section Sequence Patterns
 
 A sequence pattern represents a use of the standard @code{stream}
-contract (see Program~@ref{streamContractProg}) to match sequences of values.
+contract (see @ref{streamContractProg}) to match sequences of values.
 
 @cindex sequence,patterns
 @cindex patterns,sequence
@@ -343,7 +344,7 @@ In a similar way to @refer{SequenceExpression}s,
 @refer{SequencePattern} depend on the @code{stream} contract, In fact,
 a @refer{SequencePattern} is syntactic sugar for terms involving the
 @code{stream} contract -- which is defined in
-Program~@ref{streamContractProg}.
+@refer{streamContractProg}.
 
 A pattern of the form:
 

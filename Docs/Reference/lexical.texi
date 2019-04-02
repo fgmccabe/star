@@ -59,7 +59,7 @@ Horizontal Tab.
 @float BNF,lineCommentFig
 @caption{Line Comment}
 @display
-@anchored{LineComment} ::= (@code{'-- '} | @code{'--\t'}) @var{Char} @dots{} @var{Char} @code{'\n'}
+@anchored{LineComment} ::= (@code{'-- '} | @code{'--\t'}) @refer{Char} @dots{} @refer{Char} @code{'\n'}
 @end display
 @end float
 
@@ -73,7 +73,7 @@ characters and terminated by the characters @code{*/}.
 @float BNF,blockCommentFig
 @caption{Block Comment}
 @display
-@anchored{BlockComment} ::= @code{'/*'} @var{char} @dots{} @var{char} @code{'*/'}
+@anchored{BlockComment} ::= @code{'/*'} @refer{Char} @dots{} @refer{Char} @code{'*/'}
 @end display
 @end float
 
@@ -85,7 +85,7 @@ line comment but the continuation of the block comment.
 @node White Space
 @subsubsection White Space
 @cindex white space
-White space characters are used in @Star{} to help delimit other
+White space characters are used to help delimit other
 tokens. Except when they occur in a @refer{StringLiteral} or in a
 @refer{QuotedIdentifier} they serve no other purpose.
 
@@ -109,8 +109,9 @@ tokens. Except when they occur in a @refer{StringLiteral} or in a
 * Character Codes::
 @end menu
 
-@Star{} supports integer values, floating point values, decimal
-values and character codes as numeric values.
+The numeric values include integer values, floating point values,
+decimal values and character codes. The latter are integers that
+represent the Unicode code points of particular characters.
 
 @float BNF,numericLiteralFig
 @caption{Numeric Literals}
@@ -147,7 +148,7 @@ All integers are represented as at least 64 bit values.
 @float BNF,decimalFig
 @caption{Decimal Literals}
 @display
-@anchored{Decimal} ::=@var{Digit} @dots{} @refer{Digit}+
+@anchored{Decimal} ::=@refer{Digit} @dots{} @refer{Digit}+
 @anchored{Digit} ::= @code{'0'}|@code{'1'}|@code{'2'}|@code{'3'}|@code{'4'}|@code{'5'}|@code{'6'}|@code{'7'}|@code{'8'}|@code{'9'}
 @end display
 @end float
@@ -195,7 +196,7 @@ See @ref{floatingPointFig} for a complete syntax diagram for floating point numb
 @float BNF,floatingPointFig
 @caption{Floating Point numbers}
 @display
-@anchored{FloatingPoint} ::= @var{Digit}@dots{}@var{Digit}+ @code{'.'} @var{Digit}@dots{}@var{Digit}+ [@code{'e'}[@code{'-'}]@var{Digit}@dots{}@var{Digit}+]]
+@anchored{FloatingPoint} ::= @refer{Digit}@dots{}@refer{Digit}+ @code{'.'} @refer{Digit}@dots{}@refer{Digit}+ [@code{'e'}[@code{'-'}]@refer{Digit}@dots{}@refer{Digit}+]]
 @end display
 @end float
 
@@ -249,9 +250,9 @@ A @var{CharacterCode} has type @code{integer}.
 
 @noindent
 A @code{string} consists of a sequence of characters -- specifically
-@refer{CharRef}s. There is no specific type in @Star{} for the
-characters themselves -- instead, there are primitives for accessing
-individual code points as @code{integer}s.
+@refer{CharRef}s. There is no specific type for the characters
+themselves -- instead, there are primitives for accessing individual
+code points as @code{integer}s.
 
 @quotation CAUTION
 The reasons for this are due to the fact that Unicode @code{string}
@@ -288,28 +289,29 @@ in @pxref{CharEscape}.
 
 @float Table,CharEscape
 @caption{Character Escapes}
-@table @code
-@item \b
-Back space
-@item \d
-Delete
-@item \e
-Escape
-@item \f
-Form Feed
-@item \n
-New line
-@item \r
-Carriage return
-@item \t
-Tab
-@item \v
-Vertical Tab
-@item \u@var{Hex}..@var{Hex};
-Unicode code point
-@item \ @var{Char}
-The @var{Char} itself
-@end table
+@multitable {LongishChar}{Long Description}
+@headitem Char @tab Description
+@item @code{\b}
+@tab Back space
+@item @code{\d}
+@tab Delete
+@item @code{\e}
+@tab Escape
+@item @code{\f}
+@tab Form Feed
+@item @code{\n}
+@tab New line
+@item @code{\r}
+@tab Carriage return
+@item @code{\t}
+@tab Tab
+@item @code{\v}
+@tab Vertical Tab
+@item @code{\u}@var{Hex}..@var{Hex};
+@tab Unicode code point
+@item @code{\ @var{Char}}
+@tab The @var{Char} itself
+@end multitable
 @end float
 
 Apart from the standard character references, there is a hex encoding
@@ -416,11 +418,11 @@ equivalent: they all identify some variable or some type.
 @cindex alpha numeric identifier
 
 @noindent
-Identifiers in @Star{} are based on the Unicode definition of
-identifier. For the ASCII subset of characters, the definition
-corresponds to the common form of identifier -- a letter followed by a
-sequence of digits and letters. However, non-ASCII characters are also
-permitted in an identifier.
+Identifiers are based on the Unicode definition of identifier. For the
+ASCII subset of characters, the definition corresponds to the common
+form of identifier -- a letter followed by a sequence of digits and
+letters. However, non-ASCII characters are also permitted in an
+identifier.
 
 @float BNF,identifierFig
 @caption{Identifier Syntax}
@@ -532,8 +534,9 @@ operator information about the name.
 @cindex punctuation
 
 @noindent
-@Star{} has relatively few punctuations; although it has a large
-number of graphical identifiers, which are defined in @ref{Graphic Identifiers}.
+There are relatively few punctuation symbols; although it has a large
+number of graphical identifiers, which are defined in @ref{Graphic
+Identifiers}.
 
 @menu
 * End of Term::
@@ -572,7 +575,7 @@ enclosed in braces, then it does not need termination.
 @subsection Parentheses
 @cindex parentheses
 
-Parentheses in @Star{} are @emph{active}: they are not simply a
+Parentheses are @emph{active}: they are not simply a
 means of grouping expressions and/or overriding precedences of
 operators. This is because parentheses have two distinct roles: to
 group and/or override precedences, and as a way of enclosing tuples of
@@ -589,7 +592,7 @@ kinds of list and sequence expressions.
 @subsection Braces
 @cindex braces
 
-Braces are used in @Star{} to delimit groups of statements.
+Braces are used to delimit groups of statements.
 
 There are two forms of braces: with and without a period character.
 

@@ -9,7 +9,8 @@ computational process of realizing the denoted value.
 @display
 @anchored{Expression}::=@refer{Variable}
   | @refer{ScalarLiteral}
-  | @refer{AlgebraicConstructor}
+  | @refer{StringLiteral}
+  | @refer{AlgebraicLiteral}
   | @refer{ApplicativeExpression}
   | @refer{ConditionalExpression}
   | @refer{Condition}
@@ -316,7 +317,6 @@ string literals and enumerated symbols.
 @display
 @anchored{ScalarLiteral}::=@refer{IntegerLiteral}
   | @refer{FloatingPoint}
-  | @refer{StringLiteral}
 @end display
 @end float
 
@@ -348,18 +348,18 @@ point numbers are represented as IEEE double precision -- i.e., 64
 bit.
 
 The syntax of floating point numbers is given in
-Figure~@refer{floatingPointFig}.
+@ref{floatingPointFig}.
 
-@node String Literals
-@subsection String Literals
-@cindex string literal
+@node String Expressions
+@section String Expressions
+@cindex string expressions
 
 The @code{string} type is used to denote string values. There are two
 main forms of @code{string} literal: the double-quoted string
 expression and the triple-quoted or block-quoted @code{string}
 literal.
 
-The syntax of @code{string} literals is given in Figure~@refer{quotedStringFig}.
+The syntax of @code{string} literals is given in @ref{quotedStringFig}.
 
 The simplest form of @code{string} literal is a sequence of characters
 enclosed in double-quotes.
@@ -369,7 +369,7 @@ expressions -- which are embedded expressions whose values are
 interpolated into the actual string value.
 
 @node String Interpolation
-@subsubsection String Interpolation
+@subsection String Interpolation
 @cindex string interpolation
 @anchor{stringInterpolation}
 String interpolation refers to the embedding of expressions in string
@@ -401,13 +401,13 @@ also. I.e., it is not necessary to `double-quote' strings within
 For example, the @code{string} expression in:
 
 @example
-logMsg(info,"The price of cheese is $(priceOf("cheese"))")
+"The price of cheese is $(priceOf("cheese"))"
 @end example
 
 works as expected: the argument to the @code{priceOf} function is the
 string literal @code{"cheese"}. An even more nested example is:
 @example
-logMsg(info,"The price of $(P) is $(priceOf("SKU$(P)"))")
+"The price of $(P) is $(priceOf("SKU$(P)"))"
 @end example
 
 In this example, we have a @code{string} interpolation expression embedded
@@ -429,7 +429,7 @@ is the string:
 @end example
 
 Detailed formatting is controlled by the @code{format} contract -- see
-Program~@refer{formatContractProg} -- in particular the different
+@refer{formatContractProg} -- in particular the different
 implementations of that contract which in turn means that different
 types of expression will have type appropriate ways of specifying the
 formatting.
@@ -466,12 +466,12 @@ where @code{frmt} is part of the @code{format} contract -- see
 @refer{formatContract}.
 
 @node Block Strings
-@subsubsection Block Strings
+@subsection Block Strings
 @cindex block string
 
 A @var{BlockString} is a string literal that consists of a sequence of
 characters enclosed in triple quotes; as defined in
-Figure~@refer{blockStringFig}.
+@ref{blockStringFig}.
 
 The principal difference between a @var{BlockString} and a regular
 @var{QuotedString} is that no interpretation of characters in the text
@@ -502,7 +502,7 @@ Enumerated Symbols
 @float BNF,algebraicExpressionFig
 @caption{Algebraic Constructor Expressions}
 @display
-@anchored{AlgebraicConstructor} ::= @refer{EnumeratedSymbol}
+@anchored{AlgebraicLiteral} ::= @refer{EnumeratedSymbol}
   | @refer{PositionalConstructorLiteral}
   | @refer{RecordLiteral}
 @end display
@@ -1113,6 +1113,7 @@ analogously to the @refer{TypeAnnotation}s found in
 @node Type Coercion
 @subsection Type Coercion
 @cindex type coercion
+@anchor{typeCoercionExpression}
 
 @float BNF,typeCoercionFig
 @caption{Type Coercion}

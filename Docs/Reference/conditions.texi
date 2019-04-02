@@ -102,7 +102,8 @@ elements of collections that meet some criterion.
 @end float  
 
 @quotation Note
-The collection being searched must implement the @code{iter} contract -- see @refer{iterContract}.
+The collection being searched must implement the @code{iter} contract
+-- see Program@ref{iterContractProg}.
 @end quotation
 
 For example, the search condition:
@@ -144,8 +145,8 @@ The first pattern refers to the @emph{keys} in the collection and the
 second refers to the @emph{values}.
 
 @quotation Note
-The collection being searched must implement the @code{indexed\_iter}
-contract -- see @refer{indexedIterableContract}.
+The collection being searched must implement the @code{indexed_iter}
+contract -- see @refer{indexed_iterContractProg}.
 @end quotation
 
 @refer{IndexedSearchCondition}s allow the programmer to not only

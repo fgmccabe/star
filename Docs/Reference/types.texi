@@ -7,9 +7,9 @@ values and all variables must have a unique well-defined type that is
 determinable by inspecting the text of the program -- effectively at
 @emph{compile time}.
 
-The type system of @Star{} consists of a method for declaring new
-types, for annotating variables (and by extension programs) with their
-types and a system of verifying the type consistency of programs.
+The type system consists of a method for declaring new types, for
+annotating variables (and by extension programs) with their types and
+a system of verifying the type consistency of programs.
 
 This chapter focuses on the type language itself and the semantics of
 types.
@@ -31,8 +31,8 @@ Viewed as sets, types have some particular properties: no value may be
 a member of more than one type set; all values are members of exactly
 one type set.
 
-A @var{TypeDefinition} introduces a new type and defines what values
-belong to the type. A @var{TypeAnnotation} is an assertion that a
+A @refer{TypeDefinition} introduces a new type and defines what values
+belong to the type. A @refer{TypeAnnotation} is an assertion that a
 particular expression -- usually a variable -- has a certain type.
 
 For many simple cases, a type is denoted by an identifier. For
@@ -94,17 +94,18 @@ Technically, the @code{cons} symbol in:
 cons[integer]
 @end example
 @cindex type function
-is a @var{Type Constructor}: it takes a type as an argument and
+is a @refer{TypeConstructor}: it takes a type as an argument and
 returns another type as result.
 @end quotation
 
 Often it is convenient to be able to @emph{talk} about types without
 being specific about the type itself; for this purpose we use
-@var{TypeVariable}s.
+@refer{TypeVariable}s.
 
 A type variable a type identifier that is distinguished by being
 introduced using an explicit quantifier -- either a
-@ref{universalType} or a @ref{existentialType} . The type expression:
+@ref{UniversalQuantifier} or a @ref{ExistentialQuantifier} . The type
+expression:
 @example
 all t ~~ cons[t]
 @end example
@@ -126,14 +127,14 @@ there are three possibilities: the type variable may be identified
 with (equal to) another type; the type variable may be bound by a
 universal quantifier or by an existential quantifier.
 
-A universally quantified type (see @ref{universalType}) denotes a type
+A universally quantified type (see @ref{UniversalQuantifier}) denotes a type
 that allows all possible instantiations for the type variable. For
 example, function types often involve universal types. A universally
 typed function is expected to work @emph{for all values} of the type
 variable -- which, in turn, means that the function definition can
 make no assumptions about the actual type.
 
-Existentially quantified types (see @ref{existentialType}) are used to
+Existentially quantified types (see @ref{ExistentialQuantifier}) are used to
 denote @emph{abstract types}; i.e., the existential quantifier signals
 that there is a type that should be treated as an opaque @emph{black
 box}.
@@ -144,13 +145,13 @@ box}.
 @cindex forms of types
 
 @ref{typeFig} illustrates the top-levels of the different kinds of
-type expressions that the @Star{} programmer will encounter.
+type expressions that the programmer will encounter.
 
 There are two main kinds of type expressions -- so-called
 @emph{structural} type expressions and @emph{named} type expression. A
 structural type expression encodes by convention the permitted
 @emph{forms} of values of that type. By contrast, a named type
-expression is defined via some form of @var{TypeDefinition}.
+expression is defined via some form of @refer{TypeDefinition}.
 
 A classic example of a structural type expression is the function
 type. A function type expression defines both the types of the
@@ -161,17 +162,17 @@ signals that the value is a function.
 @caption{Types of Types}
 @display
 @anchored{Type}::=@refer{NominalType}
-  | @var{TypeVariable}
-  | @var{TupleType}
-  | @var{RecordType}
+  | @refer{TypeVariable}
+  | @refer{TupleType}
+  | @refer{RecordType}
   | @refer{ReferenceType}
-  | @var{FunctionType} | @var{ConstructorType}
-  | @var{TypeQuantifier} @code{~~} @var{Type}
-  | @var{TypeConstraint} @code{|:} @var{Type}
-  | @code{(} @var{Type} @code{)}
-  | @var{EncapsulatedType}
+  | @refer{FunctionType} | @refer{ConstructorType}
+  | @refer{TypeQuantifier} @code{~~} @refer{Type}
+  | @refer{TypeConstraint} @code{|:} @refer{Type}
+  | @code{(} @refer{Type} @code{)}
+  | @refer{EncapsulatedType}
 
-@anchored{TypeQuantifier} ::= @var{UniversalQuantifier} | @var{ExistentialQuantifier}
+@anchored{TypeQuantifier} ::= @refer{UniversalQuantifier} | @refer{ExistentialQuantifier}
 @end display
 @end float
 
@@ -180,7 +181,7 @@ signals that the value is a function.
 @cindex nomical types
 @cindex types,nominal
 
-A @var{NamedType} is a term that identifies a class of values by
+A @refer{NominalType} is a term that identifies a class of values by
 name. The name may or may not have @ref{TypeArgument}s -- in which
 case, the type is said to be @emph{parameterized}.
 
@@ -203,15 +204,15 @@ nodes of the tree are typically themselves trees.
 @float BNF,typeExpressionFig
 @caption{Type Expressions}
 @display
-@anchored{NominalType} ::= @var{SimpleType} | @var{ParameterizedType}
+@anchored{NominalType} ::= @refer{SimpleType} | @refer{ParameterizedType}
 
-@anchored{SimpleType} ::= @var{TypeConstructor}
+@anchored{SimpleType} ::= @refer{TypeConstructor}
 
-@anchored{ParameterizedType} ::= @var{TypeConstructor} @code{[}@var{TypeArgument}@code{]}
+@anchored{ParameterizedType} ::= @refer{TypeConstructor} @code{[}@refer{TypeArgument}@code{]}
 
-@anchored{TypeConstructor} ::= @var{Identifier}
+@anchored{TypeConstructor} ::= @refer{Identifier}
 
-@anchored{TypeArgument} ::= @var{Type} | @var{Type} ,@dots{}, @var{Type}
+@anchored{TypeArgument} ::= @refer{Type} | @refer{Type} ,@dots{}, @refer{Type}
 
 @end display
 @end float
@@ -242,8 +243,8 @@ type of string values
 @subsection Parameterized Types
 @cindex type expression
 @cindex parameterized types
-A parameterized @var{TypeExpression} consists of a
-@var{TypeConstructor} applied to one of more @var{Type} arguments. For
+A parameterized @refer{Type} consists of a
+@refer{TypeConstructor} applied to one of more @refer{Type} arguments. For
 example, the standard @code{cons} type constructor has one type
 argument -- the type of elements of the @code{cons}.
 
@@ -252,7 +253,7 @@ arguments it expects. This is defined when the type itself is
 defined. It is an error to write a type expression involving an
 incorrect number of type arguments.
 
-Parameterized types may be defined using a @var{TypeDefinition}
+Parameterized types may be defined using a @refer{TypeDefinition}
 statement.
 
 @quotation NOTE
@@ -276,13 +277,46 @@ c[integer]
 denotes a type @emph{something of @code{integer}}.
 
 A subsequent constraint on @code{c} may cause it to be bound to the
-@var{TypeConstructor} @code{cons} (say), in which case the type
+@refer{TypeConstructor} @code{cons} (say), in which case the type
 expression becomes ground to the parameterized type expression
 @code{cons[integer]}.
 
 Such type expressions are of most use in certain forms of
-@var{Contract} where the contract is about a certain form of
+@refer{Contract} where the contract is about a certain form of
 parameterized type.
+@end quotation
+
+@node Type Interface
+@subsection Type Interface
+@anchor{algebraicInterface}
+
+Nominal types are associated with a @refer{RecordType} that denotes
+the @emph{interface} to the type.
+
+This interface contains all the fields that are defined in any of the
+@refer{RecordConstructor}s that are part of the
+@refer{AlgebraicTypeDefinition} that defines the @refer{NominalType}.
+
+For example, given the type definition:
+@example
+person ::= layPerson@{name : string. address:string @}
+  | student@{name:string. study:string @}
+@end example
+the interface to @code{person} is determined to be the @refer{RecordType}:
+@example
+@{
+  name : string.
+  address : string.
+  study : string
+@}
+@end example
+
+@quotation Note
+The interface of a @refer{NominalType} is formed from the union of all
+the fields defined in the @refer{RecordConstructor}s.
+
+This is one reason why a given field occurring in multiple
+@refer{RecordConstructor}s must have the same type.
 @end quotation
 
 @node Structural Types
@@ -291,7 +325,7 @@ parameterized type.
 @cindex structural types
 
 A structural type is a type expression that looks like its
-purpose. @Star{} has three main forms of structural type: tuple types,
+purpose. There are three main forms of structural type: tuple types,
 program types and record types.
 
 @node Tuple Types
@@ -306,15 +340,15 @@ expressions enclosed in parentheses.
 @caption{Tuple Type}
 @display
 @anchored{TupleType} ::= @code{()}
-  | @code{((} @var{Type} @code{))}
-  | @code{(}@var{Type} ,@dots{},@var{Type}@code{)}
+  | @code{((} @refer{Type} @code{))}
+  | @code{(}@refer{Type} ,@dots{},@refer{Type}@code{)}
 @end display
 @end float
 
 A tuple type denotes a fixed grouping of elements. Each element of the
 tuple may have a different type.
 
-There are two special cases in @var{TupleType}s: the empty tuple and
+There are two special cases in @refer{TupleType}s: the empty tuple and
 the singleton tuple type.
 
 @subsubsection Empty Tuple
@@ -383,19 +417,19 @@ have a dual role: to group expressions and as a notation for tuples.}
 @cindex type,record type
 @cindex record type
 @noindent
-A @var{RecordType} is a type expression that denotes a named
+A @refer{RecordType} is a type expression that denotes a named
 association of fields and types. A record type is written as a
 sequence of type annotations enclosed in braces.
 
 @float BNF,recordTypeFig
 @caption{Record Type}
 @display
-@anchored{RecordType} ::= @code{@{}@var{Annotation} @dots{} @var{Annotation} @code{@}}
+@anchored{RecordType} ::= @code{@{}@refer{Annotation} @dots{} @refer{Annotation} @code{@}}
 
-@anchored{Annotation} ::= @var{TypeAnnotation}
-  | @var{TypeEquality}
+@anchored{Annotation} ::= @refer{TypeAnnotation}
+  | @refer{TypeEquality}
 
-@anchored{TypeEquality} ::= @code{type} @var{Identifier} @code{=} @var{Type}
+@anchored{TypeEquality} ::= @code{type} @refer{Identifier} @code{=} @refer{Type}
 @end display
 @end float
 @quotation NOTE
@@ -404,9 +438,9 @@ terminator.
 @end quotation
 
 Record types are used as the type of anonymous records (see
-@var{anonRecord}). They are also the basis of other features of the
-type language -- including the @var{ConstructorType} and
-@var{Contract}s.
+@refer{AnonymousRecord}). They are also the basis of other features of the
+type language -- including the @refer{ConstructorType} and
+@refer{Contract}s.
 
 Two record types are equivalent if their elements are pair-wise
 equivalent. Note that the @emph{order} of elements is not
@@ -424,11 +458,11 @@ these types unify -- assuming that @code{t} is a bound type variable --
 provided that @code{t} is unifiable with @code{string}.
 
 @quotation NOTE
-All nomimal types have a @var{RecordType} interface associated with
-them. This, as is detailed in @var{algebraicInterface}, defines a type
+All nomimal types have a @refer{RecordType} interface associated with
+them. This, as is detailed in @refer{algebraicInterface}, defines a type
 for all of the fields in any of the constructors for the type. In
-turn, this permits a @var{RecordAccess} expression to apply to a
-user-defined type as well as a @var{RecordType}.
+turn, this permits a @refer{RecordAccess} expression to apply to a
+user-defined type as well as a @refer{RecordType}.
 @end quotation
 
 @node Function Types
@@ -440,13 +474,13 @@ user-defined type as well as a @var{RecordType}.
 A function type denotes a function value. It takes the form of a
 possibly empty sequence of argument types -- denoting the types of the
 arguments to the function -- enclosed in parentheses; followed by the
-result type of the function. @var{functionTypeFig} highlights the form
+result type of the function. @refer{functionTypeFig} highlights the form
 of the function type:
 
 @float BNT,functionTypeFig
 @caption{Function Type}
 @display
-@anchored{FunctionType} ::= @var{TupleType} @code{=>} @var{Type}
+@anchored{FunctionType} ::= @refer{TupleType} @code{=>} @refer{Type}
 @end display
 @end float
 
@@ -463,7 +497,7 @@ takes the form:
 @cindex type,constructor
 
 A constructor is a special function that is introduced in an
-@var{AlgebraicType} definition.
+@refer{AlgebraicTypeDefinition}.
 
 @quotation NOTE
 Constructors are special because they can be viewed simultaneously as
@@ -474,17 +508,17 @@ reflects that bidirectionality.
 @float BNF,constructorTypeFig
 @caption{Constructor Type}
 @display
-@anchored{ConstructorType} ::= @var{Type} @code{<=>} @var{Type}
+@anchored{ConstructorType} ::= @refer{Type} @code{<=>} @refer{Type}
 @end display
 @end float
 
 The left hand side of a constructor type should either be a
-@var{TupleType} or an @var{RecordType} -- depending on whether the
+@refer{TupleType} or an @refer{RecordType} -- depending on whether the
 denoted constructor is a term constructor constructor or a record
 constructor.
 
 @quotation TIP
-Explicit @var{ConstructorType}s are most used in the context of the signatures
+Explicit @refer{ConstructorType}s are most used in the context of the signatures
 of @emph{abstract data types}: where a type and its constructors are
 @emph{exported} from a record.
 @end quotation
@@ -499,7 +533,7 @@ A re-assignable variable is given a @code{ref}erence type.
 @float BNF,referenceTypeFig
 @caption{Reference Type}
 @display
-@anchored{ReferenceType} ::= @code{ref} @var{Type}
+@anchored{ReferenceType} ::= @code{ref} @refer{Type}
 @end display
 @end float
 
@@ -544,10 +578,10 @@ substitutions of a type variable.
 @float BNF,universalTypeFig
 @caption{Universal Type Expression}
 @display
-@anchored{universalType} ::= @code{all} @var{BoundType} @comma{}@dots{}@comma{}@var{BoundType} @code{~~} @var{Type}
+@anchored{UniversalQuantifier} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} 
 
-@anchored{BoundType} ::= @var{Identifier}
-  | @var{Identifier}@code{/}@var{Decimal}
+@anchored{BoundType} ::= @refer{Identifier}
+  | @refer{Identifier}@code{/}@refer{Decimal}
 @end display
 @end float
 
@@ -558,10 +592,10 @@ all x ~~ (x,x)=>boolean
 denotes the generic function type of two arguments that returns a
 @code{boolean}.
 
-There are two forms of @var{BoundType}, a simple type variable and a
+There are two forms of @refer{BoundType}, a simple type variable and a
 second form that includes an arity.
 
-The first form of @var{BoundType} introduces a regular type variable
+The first form of @refer{BoundType} introduces a regular type variable
 -- i.e., a variable which may be bound to any @code{type}. The second
 form is used to introduce a higher-kinded type variable.
 
@@ -579,9 +613,8 @@ expression; or to a type constructor that takes more than one type
 argument.
 @end quotation
 
-The @Star{} compiler also accepts a short hand form of the universally
-quantified type where there are multiple quantifiers. I.e., instead of
-writing
+There is also a short hand form of the universally quantified type
+where there are multiple quantifiers. I.e., instead of writing
 @example
 all x ~~ all y ~~ (x,y)=>tp
 @end example
@@ -592,12 +625,12 @@ all x,y ~~ (x,y)=>tp
 
 @quotation TIP
 Higher kinded type variables are most commonly used in the context of
-@var{Contract} definitions.
+@refer{Contract} definitions.
 @end quotation
 
-@Star{} will infer the type of expressions; but does @emph{not} infer
-any quantified type. That the compiler may not infer an appropriate
-type for your functions if you intend them to be generic.
+The compiler will infer the type of expressions; but does @emph{not}
+infer any quantified type. That the compiler may not infer an
+appropriate type for your functions if you intend them to be generic.
 
 For example, the @code{dblFilter} function in @ref{dblFilter} applies
 a @code{map} function in two different situations -- one for each
@@ -637,7 +670,7 @@ quantifiers apply to type expressions.
 @float BNF,existentialTypeFig
 @caption{Existential Type Expression}
 @display
-@anchored{existentialType} ::= @code{exists} @var{BoundType},..,@var{BoundType} @code{~~} @var{Type}
+@anchored{ExistentialQuantifier} ::= @code{exists} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} 
 @end display
 @end float
 
@@ -684,7 +717,8 @@ for a program to dynamically determine the type of a value.
 @float BNF,typeVariableFig
 @caption{Type Variables}
 @display
-@anchored{TypeVariable} ::= @var{Identifier}
+@anchored{TypeVariable} ::= @refer{Identifier}
+  | @refer{Identifier} @code{/} @refer{Decimal}
 @end display
 @end float
 
@@ -703,6 +737,13 @@ The type variable @code{t} may be bound to a type expression such as
 @code{cons[string]} but not to a higher-kinded type (such as
 @code{cons} itself).
 
+On the other hand, given:
+@example
+_iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
+@end example
+The type variable @code{m} is specified with the arity @code{1} --
+making it a higher-kinded type that expects one type argument.
+
 @subsubsection Scope of Type Variables
 @cindex type,variable!scope
 
@@ -710,11 +751,11 @@ All type variables have a scope which generally follows the scoping
 rules for normal variables.
 
 There are two particular cases that are important: type variables
-introduced via @var{TypeDefinition}s and those introduced via
+introduced via @refer{TypeDefinition}s and those introduced via
 explicitly quantified type expressions.
 
-A variable introduced in the head of an @var{AlgebraicType}
-definition, or in the head of a @var{Contract} definition are in scope
+A variable introduced in the head of an @refer{AlgebraicTypeDefinition}
+definition, or in the head of a @refer{ContractDefinition} are in scope
 throughout the definition or contract respectively.
 
 @node Encapsulated Types
@@ -724,13 +765,13 @@ throughout the definition or contract respectively.
 @cindex existential type
 @cindex heterogenous types
 
-An @var{EncapsulatedType} is a reference to a type that is embedded
+An @refer{EncapsulatedType} is a reference to a type that is embedded
 within a record.
 
 @float BNF,encapsulatedTypeFig
 @caption{Encapsulated Type}
 @display
-@anchored{EncapsulatedType} ::= @var{Expression}@code{.}@var{Identifier}
+@anchored{EncapsulatedType} ::= @refer{Expression}@code{.}@refer{Identifier}
 @end display
 @end float
 
@@ -740,16 +781,16 @@ them. Such a record type is existentially quantified.
 It is possible to access the type embedded within such a record --
 albeit with some restrictions:
 
-The form of an @var{EncapsulatedType} reference is limited to terms of
+The form of an @refer{EncapsulatedType} reference is limited to terms of
 the form:
 @example
 R.t
 @end example
 
-where @code{R} is a @var{Variable} whose type interface contains the
+where @code{R} is a @refer{Variable} whose type interface contains the
 type @code{t}.
 
-More generally, an @var{EncapsulatedType} reference may involve a
+More generally, an @refer{EncapsulatedType} reference may involve a
 sequence of field names where each intermediate field name varers to a
 sub-record:
 @example
@@ -843,7 +884,7 @@ A constrained type is one with additional constraints in the form of
 @float BNF,constrainedTypeFig
 @caption{Constrained Type}
 @display
-@anchored{ConstrainedType} ::= @var{TypeConstraint}@code{|:}@var{Type}
+@anchored{ConstrainedType} ::= @refer{TypeConstraint}@code{|:}@refer{Type}
 @end display
 @end float
 
@@ -852,12 +893,12 @@ enclosed by a quantifier.
 
 For example, a type expression of the form:
 @example
-all t ~~ comparable[t], arith[t] |: (t)=>t
+all t ~~ comp[t], arith[t] |: (t)=>t
 @end example
 
 denotes a generic unary function type for any type that implements
-both the @code{comparable} and the @code{arith} contracts (see
-@var{comparisonPredicates} and @var{arithmeticContract}).
+both the @code{comp} and the @code{arith} contracts (see
+@refer{comparisonPredicates} and @refer{arithmeticContract}).
 
 @xref{Type Constraints} for a description of the possible forms of
 type constraint.
@@ -867,28 +908,30 @@ type constraint.
 @cindex type,constraints
 
 @noindent
-A @var{TypeConstraint} is a constraint on a @var{Type}; usually
-implying a constraint on the possible binding of a @var{TypeVariable}.
+A @refer{TypeConstraint} is a constraint on a @refer{Type}; usually
+implying a constraint on the possible binding of a @refer{TypeVariable}.
 
 @float BNF,typeConstraintFig
 @caption{Type Constraints}
 @display
-@anchored{TypeConstraint} ::= @var{ContractConstraint}
-  | @var{FieldConstraint}
-  | @var{TypeConstraint} ,@comma{}, @var{TypeConstraint}
+@anchored{TypeConstraint} ::= @refer{Contract}
+  | @refer{FieldConstraint}
+  | @refer{TypeConstraint} ,@comma{}, @refer{TypeConstraint}
 @end display
 @end float
 
-Generally, a @var{TypeConstraint} on a @var{TypeVariable} restricts in
-some sense the possible bindings for that type variable. For example,
-a @var{Contract} refers to a named collection of functions and a
-@var{TypeVariable} constrained by a @var{ContractConstraint} means
-that any concrete instantiation of the @var{TypeVariable} must be to a
-@var{Type} that @code{implement}s the
-@var{Contract}.
+Generally, a @refer{TypeConstraint} on a @refer{TypeVariable}
+restricts in some sense the possible bindings for that type
+variable.
 
-Similarly, a @var{FieldConstraint} constrains the @var{TypeVariable}
-so that any binding must be to a @var{Type} that has the named field
+For example, a @refer{Contract} refers to a named
+collection of functions and a @refer{TypeVariable} constrained by a
+@refer{Contract} means that any concrete instantiation of
+the @refer{TypeVariable} must be to a @refer{Type} that implements the
+@refer{Contract}.
+
+Similarly, a @refer{FieldConstraint} constrains the @refer{TypeVariable}
+so that any binding must be to a @refer{Type} that has the named field
 in its definition.
 
 For example, using @code{arith} as a constraint allows us to say
@@ -911,12 +954,12 @@ In many cases type inference will automatically result in constraints
 being added to type expressions.
 @end quotation
 
-It is possible mix different forms of @var{TypeConstraint}; for
-example, if a @var{TypeVariable} must be bound to a type that
-implements the @code{comparable} contract as well as having the
+It is possible mix different forms of @refer{TypeConstraint}; for
+example, if a @refer{TypeVariable} must be bound to a type that
+implements the @code{comp} contract as well as having the
 @code{integer}-typed @code{ident} attribute, the type expression:
 @example
-comparable[t], t <~ @{ ident:integer @}
+comp[t], t <~ @{ ident:integer @}
 @end example
 captures this.
 
@@ -933,20 +976,20 @@ unification will fail.
 @cindex contract constraint
 
 @noindent
-A @var{ContractConstraint} is a requirement on a @var{Type} -- or
-tuple of @var{Type}s -- that whatever type it is, that there must
-exist an @code{implementation} of the @var{Contract} for the
-@var{Type} (see @var{contracts}).
+A @refer{Contract} is a requirement on a @refer{Type} -- or
+tuple of @refer{Type}s -- that whatever type it is, that there must
+exist an @code{implementation} of the @refer{Contract} for the
+@refer{Type}.
 
 For example, the type constraint expression in the constrained type:
 @example
-comparable[t] |: t
+comp[t] |: t
 @end example
 means that the type variable @code{t} may only unify with concrete
-types that implement the @code{comparable} contract.
+types that implement the @code{comp} contract.
 
 @quotation NOTE
-Since only named types may implement @var{Contract}s, it is also not
+Since only named types may implement @refer{Contract}s, it is also not
 permissible to unify the constrained variable with an structural type
 -- such as a function type.
 @end quotation
@@ -954,15 +997,15 @@ permissible to unify the constrained variable with an structural type
 @float BNF,contractConstraintFig
 @caption{Contract Constraint}
 @display
-@anchored{ContractConstraint} ::= @var{Identifier}@code{[}@var{TypeArgument}@code{]}
-  | @var{Identifier}@code{[}@var{TypeArgument} ->> @var{TypeArgument}@code{]}
+@anchored{Contract} ::= @refer{Identifier}@code{[}@refer{TypeArgument}@code{]}
+  | @refer{Identifier}@code{[}@refer{TypeArgument} ->> @refer{TypeArgument}@code{]}
 @end display
 @end float
 
-It is possible for @var{ContractConstraint}s to reference more than
+It is possible for @refer{Contract}s to reference more than
 one type. For example, the standard @code{coercion} contract (see
-@var{typeCoercionContractFig}) references two types. A @code{coercion}
-@var{ContractConstraint} will therefore look like:
+@refer{coercionContractProg}) references two types. A @code{coercion}
+@refer{Contract} will therefore look like:
 @example
 coercion[T1,T2]
 @end example
@@ -970,19 +1013,19 @@ coercion[T1,T2]
 where @code{T1} represents the source type of the coercion and
 @code{T2} represents the destination type.
 
-If the @code{->>} clause is used, then the @var{Contract} being
+If the @code{->>} clause is used, then the @refer{Contract} being
 referenced must have a @emph{functional dependency}
 @cindex functional dependency
 associated with it.
 
 @quotation NOTE
-Conversely, if a @var{Contract} has a functional dependency, then any
+Conversely, if a @refer{Contract} has a functional dependency, then any
 constraint varerring to it must also have a @code{\->>} clause.
 @end quotation
 
 The @code{->>} clause identifies which type(s) are dependent on the
-type argument(s) of the @var{Contract}. (See
-@var{ContractFunctionalDependency}).
+type argument(s) of the @refer{Contract}. (See
+@refer{ContractFunctionalDependency}).
 
 @node Field Constraints
 @subsection Field Constraints
@@ -996,7 +1039,7 @@ defined for it.
 @float BNF,attributeConstraintFig
 @caption{Field Constraint}
 @display
-@anchored{FieldConstraint} ::= @var{Type} @code{<~} @{ @var{Annotation} . @dots{}. @var{Annotation} @}
+@anchored{FieldConstraint} ::= @refer{Type} @code{<~} @{ @refer{Annotation} . @dots{}. @refer{Annotation} @}
 @end display
 @end float
 
@@ -1006,12 +1049,12 @@ r <~ @{ alpha : string. beta : integer @}
 @end example
 
 if @code{r} is unified against a concrete type then that type's
-@var{RecordType} interface (see @var{algebraicInterface}) must contain
+@refer{RecordType} interface (see @refer{algebraicInterface}) must contain
 both of @code{alpha} and @code{beta}. In addition, the fields must be
 of the right types.
 
 @quotation NOTE
-It is also possible to require that an @var{EncapsulatedType}
+It is also possible to require that an @refer{EncapsulatedType}
 exists. For example, the constraint:
 @example
 s <~ @{ type elem @}
@@ -1091,9 +1134,9 @@ The environment's primary purpose is to establish the context of a
 type judgement.
 
 @quotation NOTE
-The environment is described as an ordered sequence because @Star{}
-permits scope hiding: where a local definition of a value may obscure
-an outer definition.
+The environment is described as an ordered sequence because of scope
+hiding: where a local definition of a value may obscure an outer
+definition.
 @end quotation
 
 @node Freshening and Skolemization
@@ -1101,8 +1144,8 @@ an outer definition.
 @cindex skolemization
 
 In any logic with quantifiers, reasoning about terms can involves
-rewriting quantified expressions. The type system of @Star{} has two
-related operations over types: freshening and skolemization.
+rewriting quantified expressions. The type system has two related
+operations over types: freshening and skolemization.
 
 @node Freshening
 @subsubsection Freshening
@@ -1120,12 +1163,11 @@ the way outside}. In effect, the new type variable becomes free in the
 logical formula.
 @end quotation
 
-The most common situation that freshening occurs in @Star{}'s type
-system is when inferring the type of an identifier
-occurrence. Informally, freshening corresponds to the intuition that a
-generic type may be used in many ways; and this is realized in type
-inference by freshening the recorded type of an identifier for each
-occurrence of the identifier in the program.
+The most common situation that freshening occurs when inferring the
+type of an identifier occurrence. Informally, freshening corresponds
+to the intuition that a generic type may be used in many ways; and
+this is realized in type inference by freshening the recorded type of
+an identifier for each occurrence of the identifier in the program.
 
 @node Skolemization
 @subsubsection Skolemization
@@ -1134,9 +1176,8 @@ Skolemization refers to the process of copying a quantified type
 expression and replacing the bound type variable with a @emph{new}
 type; crucially, one that is @emph{not} equal to any existing type.
 
-The most common situation that skolemization occurs in @Star{}'s type
-system is when validating that a variable's definition is consistent
-with its declared type.
+The most common situation that skolemization occurs is when validating
+that a variable's definition is consistent with its declared type.
 
 Informally, skolemization corresponds to the intuition that any
 definition of a variable (or function) whose type is generic must obey
@@ -1177,7 +1218,7 @@ integer @noteq{} string
 @end example
 
 @item
-Two @ref{ParameterizedType}s unify if their @var{TypeConstructor}s
+Two @ref{ParameterizedType}s unify if their @refer{TypeConstructor}s
 unify, they have the same number of @ref{TypeArgument}s, and those
 arguments pairwise unify.
 
@@ -1270,7 +1311,7 @@ embedded type of the other record type.
 @end itemize
 
 @quotation NOTE
-There is no syntax in @Star{} for @emph{partial} records.
+There is no syntax for @emph{partial} records.
 @end quotation
 
 For example,

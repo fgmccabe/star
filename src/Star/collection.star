@@ -43,9 +43,14 @@ star.collection{
     _index:(m,k) => option[v].
     _insert:(m,k,v) => m.
     _remove:(m,k) => m.
-    _replace:(m,k,v) => m.
     _empty:m.
   }.
+
+  public contract all s,k ~~ sliceable[s->>k] ::= {
+  _slice : (s,k,k)=>s.
+  _tail : (s,k)=>s.
+  _splice : (s,k,k,s)=>s.
+  }
 
   public contract all k,e ~~ membership[k->>e] ::= {
     empty: k.
