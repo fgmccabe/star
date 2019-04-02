@@ -784,7 +784,7 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,
-  ternary(Lc,"_replace",Mp,Ky,Vl,Term),
+  ternary(Lc,"_insert",Mp,Ky,Vl,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isUnary(Arg,_,"\\+",Ky),!,

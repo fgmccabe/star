@@ -1,8 +1,7 @@
 @node Standard Contracts
 @chapter Standard Contracts
 
-In this chapter we outline the major standard contracts that are part
-of @Star{}.
+In this chapter we outline the major standard contracts.
 
 Many of these contracts have multiple implementations, for different
 types and type combinations; these are outlined in separate chapters.
@@ -289,14 +288,26 @@ public contract all t ~~ reversible[t] ::= @{
 @end example
 @end float
 
-@node The @code{index} Contract
-@section The @code{index} Contract
-
 @node The @code{slice} Contract
 @section The @code{slice} Contract
 
-@node The @code{splice} Contract
-@section The @code{splice} Contract
+@float Program,sliceContractProg
+@caption{The @code{slice} contract}
+@example
+public contract all s,k ~~ sliceable[s->>k] ::= @{
+  _slice : (s,k,k)=>s;
+  _tail : (s,k)=>s;
+  _splice : (s,k,k,s)=>s;
+@}
+@end example
+@end float
+
+@node The @code{_slice} Contract Function
+@subsection The @code{_slice} Contract Function
+@findex @code{_slice} contract function
+@anchor{sliceFunction}
+
+
 
 @node The stream Contract
 @section The @code{stream} Contract
@@ -399,5 +410,349 @@ isEmpty : all t ~~ sizeable[t] |: (t)=>boolean
 The @code{isEmpty} function returns @code{true} if the collection has
 no elements.
 
+@node The @code{indexed} Contract
+@section The @code{indexed} Contract
+@anchor{indexedContract}
 
+The @code{indexed} contract provides functions that define what it
+means to access and modify key-value collections.
+
+@float Program,indexedContractProg
+@caption{The Standard @code{indexed} Contract}
+@example
+public contract all m,k,v ~~ indexed[m ->> k,v] ::= @{
+  _index:(m,k) => option[v].
+  _insert:(m,k,v) => m.
+  _remove:(m,k) => m.
+  _replace:(m,k,v) => m.
+  _empty:m.
+@}
+@end example
+@end float
+
+@node The @code{_index} Access Function
+@subsection The @code{_index} Access Function
+@findex @code{_index} contract function
+
+The @code{_index} contract function specifies what it means to access
+a key-value collection:
+
+@float Program,indexFunctionProg
+@caption{The @code{_index} Function}
+@example
+_index : all m,k,v ~~ indexed[m ->> k,v] |: (m,k) => option[v].
+@end example
+@end float
+
+@quotation Note
+The @code{_index} function returns an @code{option}al value since it
+is not normally guaranteed that a particular key-value combination is
+present in the collection.
+@end quotation
+
+@node The @code{_insert} Function
+@subsection The @code{_insert} Function
+@findex @code{_insert} contract function
+
+The @code{_insert} contract function specifies what it means to add a
+new key-value pair to a collection (or to modify an existing
+association):
+
+
+@float Program,insertFunctionProg
+@caption{The @code{_insert} Function}
+@example
+_insert : all m,k,v ~~ indexed[m ->> k,v] |: (m,k,v) => m.
+@end example
+@end float
+
+@quotation Note
+The @code{_insert} function returns a new collection with the modified
+information in it. This supports but does not require that the
+implementation of @code{indexed} is @emph{applicative} in nature.
+@end quotation
+
+The standard implementations of @code{indexed} for the standard
+@code{map} type is applicative.
+
+@node The @code{_remove} Function
+@subsection The @code{_remove} Function
+@findex @code{_remove} contract function
+
+The @code{_remove} contract function specifies what it means to remove a
+new key-value pair from a collection.
+
+@float Program,removeFunctionProg
+@caption{The @code{_remove} Function}
+@example
+_remove : all m,k,v ~~ indexed[m ->> k,v] |: (m,k) => m.
+@end example
+@end float
+
+@quotation Note
+Like the @code{_insert} function, @code{_remove} returns a new
+collection with the modified information in it.
+@end quotation
+
+@node The @code{_empty} Value
+@subsection The @code{_empty} Value
+@findex @code{_empty} contract variable
+
+The @code{_empty} value denotes an empty key-value collection of the
+appropriate sort.
+
+@float Program,emptyValueProg
+@caption{The @code{_empty} Value}
+@example
+_empty : all m,k,v ~~ indexed[m ->> k,v] |: m.
+@end example
+@end float
+
+@quotation Note
+The @code{_empty} value is often used as the starting point for
+building up a key-value collection.
+@end quotation
+
+
+@node The @code{iter} Contract
+@section The @code{iter} Contract
+
+The @code{iter} contract integrates with the @code{execution} contract
+to allow iteration over collections.
+
+@float Program,iterContractProg
+@caption{The Standard @code{iter} Contract}
+@example
+public contract all s,t ~~ iter[s->>t] ::= @{
+  _iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
+@}
+@end example
+@end float
+
+@node The @code{_iter} Iteration Function
+@subsection The @code{_iter} Iteration Function
+@findex @code{_iter} contract function
+
+The @code{_iter} function specifies a key part of iteration over
+collections: how individual elements of the collection should be
+handled.
+
+@node The @code{indexed_iter} Contract
+@section The @code{indexed_iter} Contract
+
+The @code{indexed_iter} contract integrates with the @code{execution} contract
+to allow iteration over key-value collections.
+
+@float Program,indexed_iterContractProg
+@caption{The Standard @code{indexed_iter} Contract}
+@example
+public contract all s,k,v ~~ indexed_iter[s->>k,v] ::= @{
+  _ix_iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(k,v,x)=>m[x]) => m[x]
+@}
+@end example
+@end float
+
+@node The @code{_ix_iter} Iteration Function
+@subsection The @code{_ix_iter} Iteration Function
+@findex @code{_ix_iter} contract function
+
+The @code{_ix_iter} function specifies a key part of iteration over
+key-value collections: how individual elements of the collection should be
+handled.
+
+@node The @code{arith} Contract
+@section The @code{arith} Contract
+@anchor{arithmeticContract}
+
+The @code{arith} contract encodes the basic -- so-called calculator --
+functions.
+
+@float Program,arithContractProg
+@caption{The Standard @code{arith} Contract}
+@example
+public contract all x ~~ arith[x] ::= @{
+  (+): (x,x)=>x.
+  (-): (x,x)=>x.
+  __minus: (x)=>x.
+  zero: x.
+  (*): (x,x)=>x.
+  (/): (x,x)=>x.
+  (%): (x,x)=>x.
+  one:x.
+@}.
+@end example
+@end float
+
+@node The @code{+} Function
+@subsection The @code{+} Function
+@findex @code{+} contract function
+
+The @code{+} function defines the addition of two elements:
+
+@float Program,plusFunctionProg
+@caption{The @code{+} Function}
+@example
+(+) : all t ~~ arith[t] |: (t,t) => t.
+@end example
+@end float
+
+@quotation Note
+The @code{(+)} function takes two arguments of the same type and
+returns a value of the same type as its arguments.
+
+In fact, it is @emph{this} specification that ensures that there is no
+implicit coercion between different kinds of numeric value.
+@end quotation
+
+@node The @code{-} Function
+@subsection The @code{-} Function
+@findex @code{-} contract function
+
+The @code{-} function defines the subtraction of one element from another.
+
+@float Program,minusFunctionProg
+@caption{The @code{-} Function}
+@example
+(-) : all t ~~ arith[t] |: (t,t) => t.
+@end example
+@end float
+
+@quotation Note
+The @code{(-)} is a binary function. A separate function -- @code{_uminus} -- is used to denote unary negation.
+@end quotation
+
+@node The @code{_uminus} Function
+@subsection The @code{_uminus} Function
+@findex @code{_uminus} contract function
+
+The @code{_uminus} function defines the unary negation of a number.
+
+@float Program,uminusFunctionProg
+@caption{The @code{_uminus} Function}
+@example
+_uminus : all t ~~ arith[t] |: (t) => t.
+@end example
+@end float
+
+@quotation Note
+The @code{_uminus} function is automatically substituted for
+occurrences of unary minus in source programs. There is rarely a need
+to explicitly refer to this function.
+@end quotation
+
+@node The @code{zero} Value
+@subsection The @code{zero} Value
+@findex @code{zero} contract variable
+
+The @code{zero} value denotes the 0 value of the arithmetic type.
+
+@float Program,zeroProg
+@caption{The @code{zero} Value}
+@example
+zero : all t ~~ arith[t] |: t. 
+@end example
+@end float
+
+@quotation Note
+The @code{zero} value is particularly useful when defining arithmetic functions that should be neutral with respect to the actual type of numeric value. Literal decimal numbers have a fixed type -- @code{integer}.
+@end quotation
+
+@node The @code{*} Function
+@subsection The @code{*} Function
+@findex @code{*} contract function
+
+The @code{*} function defines the multiplication of one element by another.
+
+@float Program,timesFunctionProg
+@caption{The @code{*} Function}
+@example
+(*) : all t ~~ arith[t] |: (t,t) => t.
+@end example
+@end float
+
+@node The @code{/} Function
+@subsection The @code{/} Function
+@findex @code{/} contract function
+
+The @code{/} function defines the division of one element by another.
+
+@float Program,divideFunctionProg
+@caption{The @code{/} Function}
+@example
+(/) : all t ~~ arith[t] |: (t,t) => t.
+@end example
+@end float
+
+@node The @code{%} Function
+@subsection The @code{%} Function
+@findex @code{%} contract function
+
+The @code{%} function defines the modulus of one element with respect
+to another.
+
+@float Program,modFunctionProg
+@caption{The @code{%} Function}
+@example
+(%) : all t ~~ arith[t] |: (t,t) => t.
+@end example
+@end float
+
+@node The @code{one} Value
+@subsection The @code{one} Value
+@findex @code{one} contract variable
+
+The @code{one} value denotes the 1 value of the arithmetic type; i.e.,
+the @emph{unit} of multiplication.
+
+@float Program,oneProg
+@caption{The @code{one} Value}
+@example
+one : all t ~~ arith[t] |: t. 
+@end example
+@end float
+
+@quotation Note
+Like the @code{zero}, the @code{one} value is particularly useful when
+defining arithmetic functions that should be neutral with respect to
+the actual type of numeric value.
+@end quotation
+
+@node The @code{coercion} Contract
+@section The @code{coercion} Contract
+@anchor{coercionContract}
+
+The @code{coercion} contract embodies what it means to convert a value
+of one type to another.
+
+@float Program,coercionContractProg
+@caption{The Standard @code{coercion} Contract}
+@example
+public contract all s,d ~~ coercion[s,d] ::= @{
+  _coerce:(s)=>d
+@}.
+@end example
+@end float
+
+@node The @code{_coerce} Function
+@subsection The @code{_coerce} Function
+@findex @code{_coerce} contract function
+
+The @code{_coerce} function defines a function that converts a value
+of one type to another.
+
+@float Program,coerceFunctionProg
+@caption{The @code{_coerce} Function}
+@example
+_coerce : all s,d ~~ coercion[s,d] |: (s) => d.
+@end example
+@end float
+
+@quotation Note
+This is the basis of all coercion; expressions of the form:
+@example
+foo :: type
+@end example
+amount to calls to the appropriate implementation of the
+@code{_coerce} function.
+@end quotation
 
