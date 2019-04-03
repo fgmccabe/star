@@ -2,7 +2,6 @@
   "content": {
     "test.a": "a.star",
     "test.aa": "aa.star",
-    "test.ar" : "ar.star",
     "test.assign": "assign.star",
     "test.ast": "ast.star",
     "test.cons": "constest.star",

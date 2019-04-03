@@ -115,4 +115,20 @@ star.cons{
   consDisp:all e ~~ display[e] |: (cons[e]) => ss.
   consDisp(nil) => ss(".").
   consDisp(cons(E,T)) => ssSeq([disp(E),ss(": "),consDisp(T)]).
+
+  public multicat : all e ~~ (cons[cons[e]]) => cons[e].
+  multicat(nil) => nil.
+  multicat(cons(H,T)) => concat(H,multicat(T)).
+
+  public implementation functor[cons] => let{
+    fm(_,nil) => nil.
+    fm(f,cons(H,T)) => cons(f(H),fm(f,T))
+  } in {.
+    fmap = fm
+  .}
+
+  public implementation monad[cons] => {
+    (return X) => cons(X,nil).
+    (XS >>= F) => multicat(fmap(F,XS)).
+  }
 }
