@@ -784,7 +784,7 @@ typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,
-  ternary(Lc,"_insert",Mp,Ky,Vl,Term),
+  ternary(Lc,"_put",Mp,Ky,Vl,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isUnary(Arg,_,"\\+",Ky),!,
@@ -977,7 +977,7 @@ macroMapEntries(Lc,[],name(Lc,"_empty")).
 macroMapEntries(_,[E|L],T) :-
   isBinary(E,Lc,"->",Ky,Vl),!,
   macroMapEntries(Lc,L,Tr),
-  roundTerm(Lc,name(Lc,"_replace"),[Tr,Ky,Vl],T).
+  roundTerm(Lc,name(Lc,"_put"),[Tr,Ky,Vl],T).
 macroMapEntries(Lc,[E|L],T) :-
   reportError("invalid entry in map %s",[E],Lc),
   macroMapEntries(Lc,L,T).

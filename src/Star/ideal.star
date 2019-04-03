@@ -168,7 +168,7 @@ star.ideal{
 
   public implementation all k,v ~~ equality[k],hash[k] |: indexed[map[k,v]->>k,v] => {
     _index(Tr,Ky) => findIdeal(Tr,Ky).
-    _insert(Tr,Ky,Vl) => insertIdeal(Tr,Ky,Vl).
+    _put(Tr,Ky,Vl) => insertIdeal(Tr,Ky,Vl).
     _remove(Tr,Ky) => removeIdeal(Tr,Ky).
     _empty = ihEmpty.
   }

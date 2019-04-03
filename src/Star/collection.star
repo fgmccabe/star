@@ -41,7 +41,7 @@ star.collection{
 
   public contract all m,k,v ~~ indexed[m ->> k,v] ::= {
     _index:(m,k) => option[v].
-    _insert:(m,k,v) => m.
+    _put:(m,k,v) => m.
     _remove:(m,k) => m.
     _empty:m.
   }.
