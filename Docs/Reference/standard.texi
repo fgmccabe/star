@@ -384,11 +384,51 @@ public contract all S,E ~~ stream[S->>E] ::= @{
 @node @code{_eof} -- End of Stream
 @subsection @code{_eof} -- End of Stream
 
+This function should report @code{true} if its argument represents the
+empty stream.
+
+@float Program,endOfStreamProg
+@caption{The @code{_eof} Function}
+@example
+_eof : all s,e ~~ stream[s->>e] |: (s) => boolean.
+@end example
+@end float
+
 @node @code{_hdtl} -- Head of Stream
 @subsection @code{_hdtl} -- Head of Stream
 
+This function removes the head of the stream and returns a pair
+consisting of that head and the remainder of the stream.
+
+@float Program,headOfStreamProg
+@caption{The @code{_hdtl} Function}
+@example
+_hdtl : all s,e ~~ stream[s->>e] |: (s) => option[(e,s)].
+@end example
+@end float
+
+@quotation Note
+The return value of @code{_hdtl} is a @code{option} value -- because
+it may be applied to empty streams.
+@end quotation
+
 @node @code{_back} -- Back of Stream
 @subsection @code{_back} -- Back of Stream
+
+This function removes the last element of the stream and returns a pair
+consisting of that element and the front of the stream.
+
+@float Program,backOfStreamProg
+@caption{The @code{_back} Function}
+@example
+_back : all s,e ~~ stream[s->>e] |: (s) => option[(s,e)].
+@end example
+@end float
+
+@quotation Note
+The return value of @code{_back} is a @code{option} value -- because
+it may be applied to empty streams.
+@end quotation
 
 @node The @code{sequence} Contract
 @section The @code{sequence} Contract
@@ -416,12 +456,48 @@ public contract all S,E ~~ sequence[S->>E] ::= @{
 @node @code{_nil} -- Empty Sequence
 @subsection @code{_nil} -- Empty Sequence
 
+This is a constant value that denotes the empty sequence.
+
+@float Program,nilSequenceProg
+@caption{The @code{_nil} sequence}
+@example
+_nil : all S,E ~~ sequence[S->>E] |: S
+@end example
+@end float
+
 @node @code{_cons} -- Add to Front of Sequence
 @subsection @code{_cons} -- Add to Front of Sequence
+
+@float Program,consToStreamProg
+@caption{The @code{_cons} Function}
+@example
+_cons : all S,E ~~ sequence[S->>E] |: (E,S) => S
+@end example
+@end float
+
+This function puts an element onto the front of the sequence; and
+returns the resulting extended sequence.
 
 @node @code{_apnd} -- Add to End of Sequence
 @subsection @code{_apnd} -- Add to End of Sequence
 
+
+@float Program,appendToStreamProg
+@caption{The @code{_apnd} Function}
+@example
+_apnd : all S,E ~~ sequence[S->>E] |: (S,E) => S
+@end example
+@end float
+
+This function puts an element onto the end of the sequence; and
+returns the resulting extended sequence.
+
+@quotation Note
+Not all implementations of the @code{sequence} contract will be
+neutral with respect to the use of @code{_cons} and/or
+@code{_apnd}. It may be that one is more expensive than the other --
+depending on the data types used to represent the sequence.
+@end quotation
 
 @node The @code{sizeable} Contract
 @section The @code{sizeable} Contract
@@ -442,8 +518,8 @@ contract all t ~~ sizeable[t] ::= @{
 @end example
 @end float
 
-@node Size of a @code{sizeable} Collection
-@subsection Size of a @code{sizeable} Collection
+@node Size of a @code{sizeable} Entity
+@subsection Size of a @code{sizeable} Entity
 @findex @code{size} contract function
 
 @example
@@ -456,16 +532,15 @@ function is likely to be type-specific; for example, for
 @code{string}s, the @code{size} of a @code{string} is the number of
 characters in the string.
 
-@node Is a @code{sizeable} Collection Empty
-@subsection  Is a @code{sizeable} Collection Empty
+@node Is a @code{sizeable} Entity Empty
+@subsection  Is a @code{sizeable} Entity Empty
 @findex @code{isEmpty} contract function
 
 @example
 isEmpty : all t ~~ sizeable[t] |: (t)=>boolean
 @end example
 
-The @code{isEmpty} function returns @code{true} if the collection has
-no elements.
+The @code{isEmpty} function returns @code{true} if the entity is empty.
 
 @node The @code{indexed} Contract
 @section The @code{indexed} Contract
@@ -479,7 +554,7 @@ means to access and modify key-value collections.
 @example
 public contract all m,k,v ~~ indexed[m ->> k,v] ::= @{
   _index:(m,k) => option[v].
-  _insert:(m,k,v) => m.
+  _put:(m,k,v) => m.
   _remove:(m,k) => m.
   _empty:m.
 @}
@@ -506,23 +581,23 @@ is not normally guaranteed that a particular key-value combination is
 present in the collection.
 @end quotation
 
-@node The @code{_insert} Function
-@subsection The @code{_insert} Function
-@findex @code{_insert} contract function
+@node The @code{_put} Function
+@subsection The @code{_put} Function
+@findex @code{_put} contract function
 
-The @code{_insert} contract function specifies what it means to add a
+The @code{_put} contract function specifies what it means to add a
 new key-value pair to a collection (or to modify an existing
 association):
 
 @float Program,insertFunctionProg
-@caption{The @code{_insert} Function}
+@caption{The @code{_put} Function}
 @example
-_insert : all m,k,v ~~ indexed[m ->> k,v] |: (m,k,v) => m.
+_put : all m,k,v ~~ indexed[m ->> k,v] |: (m,k,v) => m.
 @end example
 @end float
 
 @quotation Note
-The @code{_insert} function returns a new collection with the modified
+The @code{_put} function returns a new collection with the modified
 information in it. This supports but does not require that the
 implementation of @code{indexed} is @emph{applicative} in nature.
 @end quotation
@@ -545,7 +620,7 @@ _remove : all m,k,v ~~ indexed[m ->> k,v] |: (m,k) => m.
 @end float
 
 @quotation Note
-Like the @code{_insert} function, @code{_remove} returns a new
+Like the @code{_put} function, @code{_remove} returns a new
 collection with the modified information in it.
 @end quotation
 
@@ -567,7 +642,6 @@ _empty : all m,k,v ~~ indexed[m ->> k,v] |: m.
 The @code{_empty} value is often used as the starting point for
 building up a key-value collection.
 @end quotation
-
 
 @node The @code{iter} Contract
 @section The @code{iter} Contract
@@ -709,7 +783,10 @@ zero : all t ~~ arith[t] |: t.
 @end float
 
 @quotation Note
-The @code{zero} value is particularly useful when defining arithmetic functions that should be neutral with respect to the actual type of numeric value. Literal decimal numbers have a fixed type -- @code{integer}.
+The @code{zero} value is particularly useful when defining arithmetic
+functions that should be neutral with respect to the actual type of
+numeric value. Literal decimal numbers have a fixed type --
+@code{integer}.
 @end quotation
 
 @node The @code{*} Function

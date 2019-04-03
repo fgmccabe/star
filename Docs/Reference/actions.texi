@@ -1,9 +1,9 @@
 @node Actions
 @chapter Actions
 
-An action is the specification of an operation in a particular
-context. Actions in @Star{} are realized using the @code{execution}
-contract.
+An action is the specification of an operation -- one that may be
+@emph{performed}.  Actions in @Star{} are realized using the
+@code{execution} contract.
 
 @quotation Note
 We separate the @emph{specification} of an operation from its
@@ -18,11 +18,11 @@ We separate the @emph{specification} of an operation from its
   | @refer{ActionAction}
   | @refer{TaskAction}
 
-@anchored{DoAction} ::= @code{do} @refer{Action}
+@anchored{DoAction} ::= @code{do} @refer{BlockAction}
 
-@anchored{ActionAction} ::= @code{action} @refer{Action}
+@anchored{ActionAction} ::= @code{action} @refer{BlockAction}
 
-@anchored{TaskAction} ::= @code{task} @refer{Action}
+@anchored{TaskAction} ::= @code{task} @refer{BlockAction}
 @end display
 @end float
 
@@ -33,7 +33,7 @@ Action Expressions are expressions that denote an action -- the action
 is performed when the action expression is performed in some way. This
 is mediated by means of the @code{execution} contract.@footnote{The
 @code{execution} contract is strongly related to the @code{monad}
-contract; except that it is slightly more elaborate.}
+contract; except that it is somewhat more elaborate.}
 
 @float BNF,executionFig
 @caption{Execution Contract}
@@ -48,7 +48,7 @@ public contract all m/1,e ~~ execution[m->>e] ::= @{
 @end example
 @end float
 
-The @code{execution} contract is over a type function (@code{m/1} and
+The @code{execution} contract is over a type function (@code{m/1}) and
 has a dependent type that corresponds to the type of any exception or
 error that may be raised during the computation.
 
@@ -58,16 +58,15 @@ contract; representing different computation characteristics. The two
 standard implementations are modeled by the @code{action} type and the
 @code{task} type; these also have special syntax associated with them.
 
-In addition to these, there are several `non-standard` implementation
-of the contract -- such as for @code{list}s and for the @code{option}
-type.
+In addition to these, there are `non-standard` implementation
+of the contract -- such as for the @code{option} type.
 @end quotation
 
 @quotation Note
 Although computation expressions are based on the functions in this
 contract, most programmers will not use these directly. Instead, there
-is an action notation that has a more familiar style for representing
-actions.
+is an action notation (see @ref{Do Notation}) that has a more familiar
+style for representing actions.
 @end quotation
 
 @node @code{_lift} a value as a computation
@@ -266,15 +265,15 @@ The @code{nothing} action is equivalent to
 _lift(())
 @end example
 
-@node Action Block
-@subsection Action Block
-@cindex action block
+@node Block Action
+@subsection Block Action
+@cindex block action
 
 An action block consists of a sequence of actions, enclosed in braces
 (@code{@{@}}) and separated by semi-colons.
 
 @float BNF,blockActionFig
-@caption{Action Block}
+@caption{Block Action}
 @display
 @anchored{BlockAction} ::= @{ @refer{Action} ; @dots{} ; @refer{Action} @}
 @end display

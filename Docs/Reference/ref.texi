@@ -36,17 +36,24 @@ All rights reserved.
 @strong{Star}
 @end macro
 
-
 @ifinfo
 @macro turnstile
 |-
 @end macro
 @end ifinfo
 @ifnotinfo
+@ifnottex
 @macro turnstile
 @U{22a6}
 @end macro
+@end ifnottex
 @end ifnotinfo
+
+@iftex
+@macro turnstile
+|-
+@end macro
+@end iftex
 
 @ifinfo
 @macro noteq

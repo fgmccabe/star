@@ -9,9 +9,9 @@ on the @code{string} type.
 @section The Structured String @code{ss} Type
 
 @cindex ss type
-The @code{ss} type -- as defined in Program~@ref{ppTypeProg} --
-denotes a @emph{structured} string value where the structure may be
-used to represent lines, sub sequences and so on.
+The @code{ss} type -- as defined in @ref{ppTypeProg} -- denotes a
+@emph{structured} string value where the structure may be used to
+represent lines, sub sequences and so on.
 
 @quotation
 A primary purpose of the @code{ss} type is to permit simple formatting
