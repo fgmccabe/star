@@ -64,7 +64,7 @@
 (defsubst star-skip-string ()
   (goto-char (or (scan-sexps (point) 1) (buffer-end 1))))
 
-(defvar star-debugging nil
+(defvar star-debugging t
   "Non-nil if should log messages to *star-debug*")
 
 (defun star-debug (msg &rest args)
@@ -525,8 +525,10 @@ Argument N  oprefix."
 	      (if (get symbol 'push-same)
 		  (progn
 		    (star-debug "look for %s/%s" symbol symbol-prec)
+		    (star-debug "stack : %s" stack)
+		    (star-debug "state : %s" state)
 
-		    (let (stck stack)
+		    (let ((stck stack))
 		      (while (and stck (/= (star-state-prec state) symbol-prec))
 			(setq state (car stck)
 			      stck (cdr stck)
