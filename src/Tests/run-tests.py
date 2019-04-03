@@ -12,13 +12,13 @@ tracing = False
 
 
 def main(argv):
-    global tracing
+    global tracing,execRoot,root
 
     pkgs = []
     compile_only = False
     ignore_failures = False
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","heap","all","ignore_failures"])
+        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","heap","all","ignore_failures","execroot=","root="])
     except getopt.GetopError:
         print usage
         sys.exit(2)
@@ -40,7 +40,11 @@ def main(argv):
 
                 for pk in catalog["content"]:
                     pkgs.append(pk)
-        
+        elif opt=="--execroot":
+            execRoot = arg
+        elif opt=="--root":
+            root = arg
+
     print "Run tests on ",pkgs
     for pkg in pkgs:
         print "Testing:",pkg
