@@ -2,4 +2,12 @@
 *~
 *.epub
 *.html
+*.aux
+*.cp
+*.cps
+*.fn
+*.fns
+*.log
+*.pdf
+*.toc
 

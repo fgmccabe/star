@@ -318,19 +318,6 @@ variable @code{S} in both the `then' and `else' branch. Depending on
 the @code{isManager} test, the result of the query will either contain
 the value of a @code{manager_salary} or an @code{employee_salary}.
 
-@node Standard Predicates
-@section Standard Predicates
 
-The standard predicates are based on the @code{equality} and
-@code{comp} contracts. These contracts define what it means for two
-values to be equal, or for one value to be lesser than another.
-
-@c The @code{equality} contract is automatically implemented for any type
-@c that does not reference a program type (i.e., does not contain
-@c functions, procedures or other program values). However, the
-@c programmer may wish to explicitly implement @code{equality} for a
-@c user-defined type if equality for that type is not based on simple
-@c comparison of data structures. Such user-defined implementations
-@c override any defined by the language.
 
 

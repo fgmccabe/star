@@ -1,5 +1,5 @@
 @node Introduction
-@chapter Introduction to @Star{}
+@chapter Introduction to Star
 
 @menu
 * About this reference::

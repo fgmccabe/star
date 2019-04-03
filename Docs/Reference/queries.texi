@@ -7,7 +7,7 @@ operations and constraints on other identified values. Typically, the
 result of a query is an @code{list} but it may be of any @refer{Type} --
 provided that it implements the @code{sequence} contract.
 
-There are several flavors of query: the @code{all} query (shown in
+There are several flavors of query: the all-solutions query (shown in
 @refer{allSolutionsFig}) projects a subset over one or more base
 collections; the @emph{N} @code{of} query extracts a list containing
 at most @emph{N} tuples from a collection; and the @code{any} query
@@ -15,34 +15,31 @@ extracts a tuple that satisfies the query.
 
 The results of a query may be sorted and may be filtered for uniqueness.
 
-\begin{figure}[htbp]
-\begin{eqnarray*}
-_Expression_&\arrowplus&@refer{Query}\\
-[[Query]]Query::=@refer{SequenceQuery}\ |\ @refer{ReductionQuery}\ |\ @refer{SatisfactionQuery}
-\end{eqnarray*}
-.Query Expression[[relationQueryFig]]
-\end{figure}
+@float BNF,queryExpression
+@caption{Query Expressions}
+@display
+@anchored{QueryExpression} ::= @refer{SequenceQuery} | @refer{ReductionQuery} | @refer{SatisfactionQuery}
+@end display
+@end float
 
-== Sequence Queries
-[[sequenceQueries]]
+@node Sequence Queries
+@section Sequence Queries
 
-A @refer{SequenceQuery} returns a collection of answers -- either all of them or some subset of them.
+A @refer{SequenceQuery} returns a collection of answers -- either all
+of them or some subset of them.
 
-\begin{figure}[htbp]
-\begin{eqnarray*}
-[[SequenceQuery]]SequenceQuery::=@refer{SequenceType}\ @code{of}\ @code{\{}@refer{QueryExpression}\ @code{\}}\\
-[[QueryExpression]]QueryExpression::=@refer{AllSolutionsQuery}\\
-&nbsp;&nbsp;| @refer{BoundedCardinalityQuery}
-\end{eqnarray*}
-.Sequence Query Expression[[sequenceQueryFig]]
-\end{figure}
-
-\noindent
-where the @refer{SequenceType} plays a similar role in identifying the type of the result to that in @refer{SequenceExpression}s. If the @refer{SequenceType} is the keyword @code{sequence} then the result type is determined by the context of the @refer{Query} expression. Otherwise, @refer{SequenceType} identifies the name of a @refer{Type} -- which must implement the @code{sequence} contract (see Program~\vref{sequenceContractDef}) -- that denotes the result type of the query.
+@float BNF,sequenceQueryExpression
+@caption{Sequence Query Expressions}
+@display
+@anchored{SequenceQuery} ::= @code{@{} @refer{Expression} @code{|} @refer{Condition} @code{@}}
+  | @code{[} @refer{Expression} @code{|} @refer{Condition} @code{]}
+@end display
+@end float
 
 There are two variants of the @refer{SequenceQuery} -- @refer{AllSolutionsQuery} which returns a collection of all the answers to a question and @refer{BoundedCardinalityQuery} which returns some bounded subset of the query answers.
 
-=== All Solutions Queries
+@node All Solutions Queries
+@subsection All Solutions Queries
 [[allSolutions]]
 @cindex query,all solutions
 The all solutions query expressions return results corresponding to all the different ways that a condition may be satisfied. There are variants corresponding to finding distinct solutions and having the result sets ordered.
@@ -131,7 +128,8 @@ The @code{unique} query requires that the type of the `bound expression' impleme
 The @code{unique} query is potentially more expensive than the @code{all} query -- since it involves post-processing the results as the @code{all} query to perform the duplicate elimination.
 \end{aside}
 
-=== Bounded Cardinality Queries
+@node Bounded Cardinality Queries
+@subsection Bounded Cardinality Queries
 The @emph{N} @code{of} quantifier delivers @emph{at most} N solutions to the query. For example, the query:
 [listing]
 list of { 5 of X where (P,X) in children }
@@ -171,7 +169,8 @@ If the @code{order descending} modifier is used then the `largest' results will 
 Of course, in order to compute this smallest set, all the answers must first be computed. The result set sorted and only then the first elements picked.
 \end{aside}
 
-== Satisfaction Queries
+@node Satisfaction Queries
+@section Satisfaction Queries
 A @refer{Satisfaction} is used to find an individual that satisfies the condition. It returns a  @emph{single} result corresponding to a solution of the query -- as an @code{option}al value.
 
 \begin{figure}[htbp]
@@ -200,7 +199,8 @@ For example, to find the youngest child of @code{"john"} we can use the query:
 any of X where ("john",X) in children and (X,A) in ages order by A
 
 
-== Reduction Query
+@node Reduction Query
+@section Reduction Query
 [[reductionQuery]]
 @cindex accumulating over a query
 @cindex applying a function to the results of a query
