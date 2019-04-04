@@ -23,6 +23,7 @@ retCode outInteger(ioPo f, integer i, uint16 base, integer width, integer precis
 retCode outDouble(ioPo out, double x, char mode, int width, int precision, codePoint pad, logical left, logical sign);
 retCode formattedFloat(double dx, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen);
 retCode formattedLong(integer ix, char *out, integer *endPos, integer outLen, const char *frmt, integer formatLen);
+retCode frmtLong(integer ix, bufferPo out, const char *frmt, integer formatLen);
 retCode outMsg(ioPo f, char *fmt, ...);
 retCode logMsg(ioPo out, char *fmt, ...);
 

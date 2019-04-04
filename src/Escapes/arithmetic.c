@@ -256,10 +256,11 @@ ReturnStatus g__int_format(processPo p, ptrPo tos) {
   char buff[64];
   integer pos = 0;
 
+
   retCode ret = formattedLong(ix, buff, &pos, NumberOf(buff), fmt, length);
 
   if (ret == Ok) {
-    ReturnStatus rtn = {.result = (termPo) allocateString(processHeap(p), buff, uniStrLen(buff)), .ret=Ok};
+    ReturnStatus rtn = {.result = (termPo) allocateString(processHeap(p), buff, pos), .ret=Ok};
     return rtn;
   } else
     return liberror(p, "_int_format", eINVAL);
