@@ -1,4 +1,4 @@
-This is guide.info, produced by makeinfo version 6.5 from book.texi.
+This is guide.info, produced by makeinfo version 6.3 from book.texi.
 
 Copyright (C) 2019 and beyond, Francis G. McCabe
 
@@ -27,6 +27,8 @@ McCabe.
 * A tour of Star::
 * Functional Programming::
 * Collections::
+* Making choices::
+* Boiling the Ocean::
 
 * Concept index::
 * Function index::
@@ -630,6 +632,7 @@ annotations which declare '... but there is also(1) ...'.
 * A tale of three loops::
 * A functional loop::
 * Contracts and constrained types::
+* Actions::
 * There is more::
 
    ---------- Footnotes ----------
@@ -899,7 +902,7 @@ testing our fact function:
 
      worksheet{
        import sample.factorial.
-       show "fact(10) is \(fact(10))".
+       show "fact(10) is $(fact(10))".
        assert fact(5) == 120.
      }
 
@@ -923,9 +926,9 @@ File: guide.info,  Node: String interpolation,  Prev: Worksheets,  Up: Texture
 --------------------------
 
 The expression
-     "fact(10) is \(fact(10))"
+     "fact(10) is $(fact(10))"
    is an _interpolated string_ expression.  It means the string
-'"fact(10) is \(fact(10))"' with the substring '(fact(10)' replaced by
+'"fact(10) is $(fact(10))"' with the substring '(fact(10)' replaced by
 the value of the expression embedded within.  Interpolated string
 expressions are a convenient way of constructing string values; and, via
 the use of contracts, are also type safe.
@@ -951,8 +954,7 @@ values.
 
      Type: A type is a term that denotes a collection of values.(1)
 
-   *Star*’s type system can be broken down into a number of
-dimensions:
+   *Star*’s type system can be broken down into a number of dimensions:
 
    * How legal values of various kinds can be identified with a type;
    * the treatment of type variables and quantifiers; and
@@ -1087,6 +1089,23 @@ declared a single-assignment variable 'D' to be an employee:
 field of 'D' _can_ be altered:
 
      D.dept := "my department"
+
+* Menu:
+
+* Accessing Reference Variables::
+
+
+File: guide.info,  Node: Accessing Reference Variables,  Up: Reference Type
+
+2.3.2.1 Accessing Reference Variables
+.....................................
+
+The value of a re-assignable variable is accessed using the '!'
+operator.  For example:
+     D.dept!
+   will retrieve the actual department D is assigned to.  The expression
+'D.dept' actually means something different - it denotes the _container_
+for the department.
 
 
 File: guide.info,  Node: Structural types,  Next: Optional values,  Prev: Reference Type,  Up: Types more types and even more types
@@ -1385,12 +1404,11 @@ most languages today.
 
    Not everyone finds such feats of imagination easy.  It is certainly
 often tedious to do so.  Using query expressions and other higher-order
-abstractions significantly reduces the programmer’s burden --
-precisely by being able to take a more declarative approach to
-programming.
+abstractions significantly reduces the programmer’s burden -- precisely
+by being able to take a more declarative approach to programming.
 
 
-File: guide.info,  Node: Contracts and constrained types,  Next: There is more,  Prev: A functional loop,  Up: A tour of Star
+File: guide.info,  Node: Contracts and constrained types,  Next: Actions,  Prev: A functional loop,  Up: A tour of Star
 
 2.6 Contracts and constrained types
 ===================================
@@ -1438,8 +1456,8 @@ The type of 'double' reflects the fact that we are using elements from
 the 'four' contract:
      double : all t ~~ four[t] |: (t)=>t.
    I.e., it inherits the same constraint as the function 'plus' has.
-There are several kinds of type constraint in *Star*’s type system;
-but the _contract constraint_ is the most significant of them.
+There are several kinds of type constraint in *Star*’s type system; but
+the _contract constraint_ is the most significant of them.
 
      Notice that we have to give an explicit type annotation for
      'double'.  The reason is that we want to have it have a quantified
@@ -1593,9 +1611,67 @@ to 'json' values.  Thus the interface to parsers can be standard across
 all types and parsers.
 
 
-File: guide.info,  Node: There is more,  Prev: Contracts and constrained types,  Up: A tour of Star
+File: guide.info,  Node: Actions,  Next: There is more,  Prev: Contracts and constrained types,  Up: A tour of Star
 
-2.7 There is more
+2.7 Actions
+===========
+
+*Star* is primarily intended to be a functional programming language.
+The preferred phrase is _functional first_.  However, even in functional
+programming, sequence can be important.
+
+   The way that we handle sequential computation is a little
+idiosynctratic: actions are entities that are created separately from
+being performed.  This is based on the standard 'execution' contract(1)
+
+   The basic concept is that one uses expressions to build up an action
+entity and then evaluates that entity - and often also extract a
+returned value from the computation.
+
+   Actions can be constructed from primitive elements, but the normal
+method is to use the 'do' notation.  For example, this 'do' expression
+can be used to compute factorial (somewhat laboriously):
+
+     AA = do{
+         Cx := 1;
+         Fx := 1;
+         while Cx!=<Lx do {
+           Fx := Fx! * Cx!;
+           Cx := Cx! + 1
+         };
+         return Fx!
+       }
+
+   Not all 'do' expressions will involve using re-assignable variables,
+but nearly all use of re-assignable variables is in the context of 'do'
+expressions.
+
+   It is important to note that a 'do' expression does not directly
+compute its value: instead, it is an expression that _denotes_ a
+computation.  So, 'AA' above is not an 'integer' but a computation that
+will produce an integer.
+
+   To run a computation and to get its value we use the 'valof'
+operator:
+
+     FF = valof AA
+
+   There are actually several variants of computation expressions, all
+based on the same fundamental structure; two of the most important are
+the 'action' expression and the 'task' expression.
+
+   'action' expressions are used to represent normal sequential
+computations and 'task' expressions are used to represent concurrent
+computations; both of which we will explore later on in the book.
+
+   ---------- Footnotes ----------
+
+   (1) Which is actually a richer version of the 'monad' contract.
+
+
+File: guide.info,  Node: There is more,  Prev: Actions,  Up: A tour of Star
+
+2.8 There is more
 =================
 
 As we have noted, *Star* is a rich language and it would be impossible
@@ -2176,7 +2252,7 @@ example:
            sNode(sEmpty,"gamma",sEmpty))
    denotes the tree in:
 
- [image src="images/sTree.png" ]
+ [image src="images/sTree.jpg" ]
 
 Figure 3.1: A Binary string Tree
 
@@ -3069,7 +3145,7 @@ programmers it should be that _Rome was not built in a day_.
 in programming.
 
 
-File: guide.info,  Node: Collections,  Next: Concept index,  Prev: Functional Programming,  Up: Top
+File: guide.info,  Node: Collections,  Next: Making choices,  Prev: Functional Programming,  Up: Top
 
 4 Collections
 *************
@@ -3080,7 +3156,7 @@ library.  Given that nearly every program needs to be able to manage
 collections of _things_, the central pearl of any standard library is
 the _collections_ library.  Recalling our mantra of hiding recursion; a
 well designed collections library can make a huge difference to the
-programmer’s productivity, often by hiding many of the recursions and
+programmer's productivity, often by hiding many of the recursions and
 iterations required to process collections.
 
    The collections architecture in *Star* has four main components:
@@ -3103,6 +3179,7 @@ its own.
 * Indexing::
 * Doing stuff with collections::
 * Different types of collection::
+* Collecting it together::
 
 
 File: guide.info,  Node: Sequence notation,  Next: Indexing,  Up: Collections
@@ -3342,7 +3419,7 @@ accessing collections with random indices; suitably generalized to
 include dictionaries (collections accessed with non-numeric indices) and
 _slices_ (contiguous sub-regions of collections).
 
-   Before we explore *Star*’s indexing notation it is worth looking at
+   Before we explore *Star*'s indexing notation it is worth looking at
 the contract that underlies it - the 'indexed' contract.
 
 * Menu:
@@ -3497,9 +3574,8 @@ For example, the expression
 by the value '"three"'.  Note that the value of this expression is the
 updated map.
 
-   For familiarity’s sake, we also suppose a form of assignment for
-the case where the collection is part of a read-write variable.  The
-action:
+   For familiarity's sake, we also suppose a form of assignment for the
+case where the collection is part of a read-write variable.  The action:
      D["beta"] := "three"
    is entirely equivalent to:
      D := D["beta"->"three"]
@@ -3564,7 +3640,7 @@ expressions as though they were regular arrays or dictionaries:
      assert "one" ^= T["alpha"].
      U = T["beta"->"two"]. -- Add in "beta"
      assert "one" ^= U["alpha"].
-   The implementation statement relies on another feature of *Star*’s
+   The implementation statement relies on another feature of *Star*'s
 type system - we need to constrain the implementation of indexed to a
 certain subset of possible instances of tree types - namely, where the
 element type of the tree is a _pair_ - a two-tuple - and secondly we
@@ -3700,7 +3776,7 @@ operations in terms several patterns:
    * Summarizing collections
    * Querying collections
 
-   Each of these patterns has some support from *Star*’s standard
+   Each of these patterns has some support from *Star*'s standard
 repertoire of functions.
 
 * Menu:
@@ -3815,7 +3891,7 @@ multiples occupy predictable slots in the list of integers.
 
      In fact, building a highly optimized version of the sieve of
      Eratosthenes is not actually the main point here - our purpose is
-     to illustrate the power of *Star*’s collections processing
+     to illustrate the power of *Star*'s collections processing
      functions.
 
    We might ask whether the 'sieve' function can also be expressed as a
@@ -3849,7 +3925,7 @@ allowing different implementations for different collection types:
        fmap:all a,b ~~ ((a)=>b,c[a])=>c[b].
      }
    Notice how the contract specifies the collection type - 'c' - without
-specifying the type of the collection’s element type.  We are using a
+specifying the type of the collection's element type.  We are using a
 different technique here than we used for the 'stream' and 'filter'
 contracts.  Instead of using a functional dependency to connect the type
 of the collection to the type of the element, we denote the type of the
@@ -3868,8 +3944,8 @@ generic and hence the type expressions 'c[a]' for the second argument
 type of 'fmap' and 'c[b]' for its return type.
 
    One might ask whether we could not have used functional dependencies
-in a similar way to 'stream' and 'filterable'; for example, a contract
-of the form:
+in a similar way to 'stream' and 'filter'; for example, a contract of
+the form:
      contract all c,e,f ~~ mappable[c->>e,f] ::=  {
        mmap:((e)=>f,c)=>c.
      }
@@ -4093,7 +4169,7 @@ there are no recursive programs at all in the definition of 'primes'.
    (2) We saw something similar with the visitor pattern.
 
 
-File: guide.info,  Node: Different types of collection,  Prev: Doing stuff with collections,  Up: Collections
+File: guide.info,  Node: Different types of collection,  Next: Collecting it together,  Prev: Doing stuff with collections,  Up: Collections
 
 4.4 Different types of collection
 =================================
@@ -4105,7 +4181,7 @@ of _adding_ to the collection, the cost of _accessing_ elements of the
 collection and the cost of _modifying_ elements in the collection.
 
    There is a strong emphasis on _persistent_ semantics for the types
-and functions that make up *Star*’s collections architecture.  This is
+and functions that make up *Star*'s collections architecture.  This is
 manifest in the fact, for example, that functions that add and remove
 elements from collections _do not_ modify the original collection.
 
@@ -4173,15 +4249,15 @@ Figure 4.2: Two lists Sharing Structure
 
 File: guide.info,  Node: The map type,  Next: The set type,  Prev: The list type,  Up: Different types of collection
 
-4.4.3 The map type
-------------------
+4.4.3 The 'map' type
+--------------------
 
 Unlike the 'cons' or 'list' type, the 'map' type is oriented for access
 by arbitrary keys.  The 'map' is also quite different to hash maps as
 found in Java (say), the 'map' type is _persistent_: the functions that
 access dictionaries such as by adding or removing elements return new
 dictionaries rather than modifying a single shared structure.  However,
-the efficiency of 'map' is quite comparable to Java’s HashMap.
+the efficiency of 'map' is quite comparable to Java's HashMap.
 
    The template for the 'map' type is:
      all k,v ~~ equality[k], hash[k] |: map[k,v]
@@ -4206,7 +4282,7 @@ D corresponding to K and V. For example, the condition:
 '"alpha"' respectively.
 
    For the curious, dictionaries are implemented using techniques
-similar to , as described by Bagwell 'Ideal Hash Trees, P. Bagwell'.
+similar to, as described by Bagwell in 'Ideal Hash Trees, P. Bagwell'.
 This results in a structure with an effective O(1) cost for accessing
 elements _and_ for modifying the 'map' - all the while offering an
 applicative data structure.
@@ -4228,15 +4304,15 @@ operations such as element insertion, search and set operations like set
 union are implemented efficiently.
 
    Like 'map', the 'set' type is not publicly defined using an algebraic
-type definition: its implementation is private.  It’s type is given by
+type definition: its implementation is private.  It's type is given by
 the template:
      all t ~~ equality[t] |: set[t]
 
+
+File: guide.info,  Node: Collecting it together,  Prev: Different types of collection,  Up: Collections
+
 4.5 Collecting it together
 ==========================
-
-
-File: guide.info,  Node: Collecting it together
 
 Collections form an important part of any modern programming language.
 The suite of features that make up the collections architecture in
@@ -4250,7 +4326,1443 @@ is a syntactic extension to the language that is backed by a suite of
 contracts that define the semantics of the DSL.
 
 
-File: guide.info,  Node: Concept index,  Next: Function index,  Prev: Collections,  Up: Top
+File: guide.info,  Node: Making choices,  Next: Boiling the Ocean,  Prev: Collections,  Up: Top
+
+5 Making choices
+****************
+
+One of the common themes of systems that 'face the world' (aka online
+applications) is that they often have to make decisions.  More
+specifically, any outward facing system will receive requests that the
+system must decide whether they are legitimate or not.  Before acting on
+a request, we must decide whether or not to trust it.
+
+   We can draw an extremely simplistic view of a large class of _online_
+applications:
+
+ [image src="images/online.png" ]
+
+Figure 5.1: Simplistic Online Application
+
+   This diagram illustrates the four main elements of an online
+application: a _source_ of events, a _processor_ which processes events,
+a _Sink_ which represents externally visible actions being taken by the
+system, and, finally, a _Store_.
+
+   We are being deliberately simplistic here; because we wish to focus
+on a part of this picture: the _Store_.
+
+   A _Store_ is part of most online applications because applications
+need some form of context: there is typically not enough information in
+an event to determine how to react to it: we must also have some history
+as well.  For example, if an event represents a log-in attempt, then in
+order to know how to respond, we need to know if the originator has an
+account, whether the offered password is consistent with our records and
+so on.
+
+   The _Store_ concept is simply an abstract way of representing this
+context.  However, we can go a little further and claim that the
+dominant mode of accessing a store is through _queries_.
+
+   A query is simply an expression that is evaluated in the right
+context; however, the natural semantics for query processing is more
+like that of database searches than arithmetic evaluation.  The reason
+for that is that a typical _Store_ may be quite large and serve multiple
+functions.  As a result, *Star* queries have a lot in common with logic
+and database programming paradigms.
+
+* Menu:
+
+* Queries::
+* Classifying::
+
+
+File: guide.info,  Node: Queries,  Next: Classifying,  Up: Making choices
+
+5.1 Queries
+===========
+
+Consider, if you will, the problem of finding a set of
+grandparent-grandchild pairs - given information about parent-child
+relationships.  For example, suppose that we had a list of pairs - each
+pair indicating a parent and child:
+     parents:list[(string,string)].
+     parents = [("john","peter), ("peter","jane"), ... ].
+   and that we wanted to construct a result list - also of pairs - along
+the lines of:
+     GC:list[(string,string)].
+     GC = [("john","jane"),...].
+   Computing the list of grandparent/grandchildren pairs involves
+searching the 'parents' for pairs that satisfy the grandparent
+relationship.  This, in turn, involves a double iteration: each pair in
+the 'parent's list might represent the upper or lower half of a
+grandparent/grandchild relationship (or both).
+
+   Based on the collection operators we have seen so far, we can build
+such a search using two 'foldLeft' operations:
+     foldLeft(
+      (SoFar,(X,Z)) => foldLeft(
+        let {
+          acc(gp1,(ZZ,Y)) where Z==ZZ => [gp1..,(X,Y)].
+          acc(gp1,_) => gp1.
+        } in acc,
+        SoFar,parents),
+        list of [],
+       parents)
+   This, rather intimidating,(1) expression uses one 'foldLeft' to look
+for the grandparent, and the second 'foldLeft' finds all the
+grand-children.  All without any explicit recursion.
+
+   The 'acc' function defined above in the 'let' expression implements
+the logic of deciding what to accumulate depending on whether we had
+found a grandparent or not.
+
+   The various filter, 'fmap' and 'foldLeft' functions _are_ powerful
+ways of processing entire collections.  However, as we can see,
+combination iterations can be difficult to construct and harder to
+follow; something that is not helped by the occasional need to construct
+complex functions in the middle, as in this case.
+
+   What is needed is a way of expressing such complex query conditions
+in a way that can be _implemented_ using 'foldLeft' expressions but
+which are easier to read.
+
+   Consider the conjunction:
+     (X,Z) in parents && (Z,Y) in parents
+   This could be read as specifying what it means to be grandparents:
+
+     For which 'X', 'Y' and 'Z' can we assert that 'X' is the parent of
+     'Z', and 'Z' is the parent of 'Y'?.
+
+   This should be significantly easier to follow than the complex
+expression above; and it is easier to be sure whether it is a correct
+representation of what it means to be a grand parent.
+
+* Menu:
+
+* Satisfaction semantics::
+* Abstracting queries::
+* A Splash of Inference::
+* Anatomy of a Query::
+
+   ---------- Footnotes ----------
+
+   (1) There are, unfortunately, some functional programmers that revel
+in complex code expressions like this one.  We are not one of them!
+
+
+File: guide.info,  Node: Satisfaction semantics,  Next: Abstracting queries,  Up: Queries
+
+5.1.1 Satisfaction semantics
+----------------------------
+
+Conditions like the ones above are boolean valued - but they are not
+always expressions.  For example, the first condition there being a
+parent:
+     (X,Z) in parents
+   is not evaluated in the way that expressions are normally evaluated -
+by _testing_ to see if a given pair of 'X' and 'Z' are in some 'parents'
+collection.  Instead, the condition needs to be evaluated by trying to
+_find_ 'X' and 'Z' that are in the 'parents' collection.  Only if, and
+when, suitable bindings for 'X' and 'Z' are found does the condition
+'return' true; otherwise it returns false.  In effect, the condition
+becomes a _search_ for suitable candidate pairs.
+
+   Technically this is called _satisfying_ the condition - to
+distinguish what is going on in normal expression _evaluation_.  Of
+course, satisfying and evaluating are close cousins of each other and
+amount to the same thing when there is no search involved.
+
+   In addition to individual _search conditions_ like this, it is also
+possible to use logical operators - called _connectives_ - to combine
+conditions.  In the case of our grand-parent query, there is a
+conjunction; which uses the variable 'Z' to acts as a kind of glue to
+the two search conditions.
+
+     In database query terminology, conjunctions like this one amount to
+     _inner joins_.  Languages like SQL have many operators and features
+     to make expressing queries easier; the fundamental semantics of
+     *Star*'s queries are similar in power to those of SQL.
+
+   The available connectives include the usual favorites: '&&', '||',
+and '\+'.  We may also see the need for some less familiar connectives:
+'implies' and 'otherwise'.
+
+     An 'implies' connective is a way of testing complete compliance
+     with a condition; for example, we can define a query capturing the
+     situation that a manager earns more than his/her members by
+     requiring that anyone who works for the manager earns less than
+     they do:
+          (X,M) in worksFor implies X.salary=<M.salary.
+
+
+File: guide.info,  Node: Abstracting queries,  Next: A Splash of Inference,  Prev: Satisfaction semantics,  Up: Queries
+
+5.1.2 Abstracting queries
+-------------------------
+
+The grandparent condition shows how to define what grandparent-hood
+means; but we also need ways of abstracting and naming such queries.
+The most straightforward way of this is to use a _query abstraction_
+expression.  For example, we can embody the grandparent situation in:
+     { (X,Y) | (X,Z) in parents && (Z,Y) in parents}
+   The value of a query abstraction expression is typically a 'set' - in
+this case a set of the pairs of strings in the grandparent-grandchild
+relation.
+
+   Since it's an expression, we can assign it to a variable:
+     gp = { (X,Y) | (X,Z) in parents and (Z,Y) in parents}
+   and we can feed this set into another query:
+     (X,"f") in gp
+   and we can define functions whose values are the results of queries:
+     gpOf(GC) => {X | (X,GC) in gp}
+   We shall explore query expressions a little more, but first an
+editorial:
+
+
+File: guide.info,  Node: A Splash of Inference,  Next: Anatomy of a Query,  Prev: Abstracting queries,  Up: Queries
+
+5.1.3 A Splash of Inference
+---------------------------
+
+Queries have an important role in *Star* for two reasons: queries often
+have a much more obvious and transparent semantics than other programs -
+even functional programs!  Secondly, queries have a deep connection to
+logic.
+
+   There are many reasons why one might be interested in logic; from a
+theoretical modeling perspective (does the universe follow rational
+rules(1)) to the deeply pragmatic reason that logical programs are often
+easier to understand and therefore easier to trust.
+
+   Like programming languages, it turns out that there are many kinds of
+logic.  Again, like programming languages, there is a trade-off between
+expressivity and complexity.  The primary source of complexity in a rule
+language is the machinery needed to realize it - together with
+understanding it sufficiently to be able to predict the meaning of a
+written rule.
+
+   A somewhat simplified enumeration of the different kinds of logic
+might be:
+
+Propositional calculus
+     This is characterized by single-letter conditions (sometimes
+     confusingly called _predicate variables_) and a guaranteed finite
+     evaluation mechanism.
+Datalog
+     This is characterized by relations with simple unstructured values
+     (i.e., strings and numbers).  Execution in Datalog has similar
+     performance characteristics as querying databases.
+First Order Predicate Calculus
+     This is probably the most well known and well understood logic.
+     From an expressiveness point of view its focus is on the logical
+     relationships amongst individual entities - which includes things
+     like trees, lists and so on.  Inference in First Order has many of
+     the same characteristics as program evaluation: not decidable in
+     general but many effective sub-cases.
+Higher Order Predicate Calculus
+     There are actually many higher-order logics.  The main expressive
+     enhancement over First Order is that one can directly talk about
+     relationships between entities as well as entities themselves.  The
+     cost of this is that inference becomes problematic - even equality
+     is undecidable.
+
+   Each of these levels represents a step both in expressiveness and in
+complexity.  In general, the right logic for your application is
+something only you can decide; however, in designing a language, we have
+to choose for you.
+
+   In our view, there is a sweet spot between Datalog and First Order
+Logic.  Datalog allows one to right rules (unlike pure SQL) but is not
+capable of handling arbitrary data structures.  On the other hand, it
+may be that _recursion_ is something that we can do without - as we have
+seen earlier, many well structured functional programs have no explicit
+recursion!
+
+   However, we must also be able to _embed_ our logic into our more
+regular programs.  The key goal here is to maximize the benefit of
+providing a logical formalism whilst minimizing the burden on both the
+programmer and on the language implementation.  This also recognizes
+that, while important, logical reasoning is typically only a small part
+of an overall system.  It also recognizes the fact that gaps in the
+reasoning capability of a system can be patched more easily if the logic
+is simpler.
+
+   And so, in *Star*, we highlight the _query_ aspect of logical
+reasoning and bless queries as first class entities in the language.
+
+   Critically, queries have a _declarative_ semantics as well as a
+_programmatic_ one; this dual reading is essential if one is to be able
+to understand the reasoning.
+
+     Historical note: in earlier iterations of the design for embedding
+     logic into Star, a more-or-less complete rule system was envisaged.
+     Such inference rules would have a similar status to functions and
+     equations do.  However, a combination of complexities and edge
+     cases (such as how to handle a combination of inputs and outputs in
+     rules) lead the designers to radically simplify the proposal and
+     simply focus on queries.  This gave us 90% of the potential benefit
+     of inference rules at 10% of the cost.
+
+   Sometimes, a splash of logic is all we need.  In terms of styles of
+logic, our approach is most reminiscent of _answer set programming_.
+
+   ---------- Footnotes ----------
+
+   (1) Surprisingly, yes!  Of course, discovering the rationality may be
+hard; but the immense success of Western thought was only possible
+because the universe is very rationally constructed.
+
+
+File: guide.info,  Node: Anatomy of a Query,  Prev: A Splash of Inference,  Up: Queries
+
+5.1.4 Anatomy of a Query
+------------------------
+
+A query can be seen as combining two elements: a _condition_ and an
+_answer template_.  A query condition may be _satisfied_ in one or more
+ways - each time potentially binding variables in the condition to
+values - and the answer template encodes how we want to use the result
+of a successful satisfaction.  Notice that the variables that are bound
+by the condition _are in scope_ within the answer template.
+
+   The syntax and style of *Star*’s query notation has strong echoes
+with SQL’s syntax - deliberately so.  Specifically, we take SQL’s
+_relational calculus_ subset - the language of wheres and of boolean
+combinations.  *Star*’s query expressions do not have the equivalent of
+explicit relational join operators.
+
+* Menu:
+
+* Query Conditions::
+* The iterable contract::
+* Answer Templates::
+
+
+File: guide.info,  Node: Query Conditions,  Next: The iterable contract,  Up: Anatomy of a Query
+
+5.1.4.1 Query Conditions
+........................
+
+The condition takes the form of a boolean combination of _predications_;
+a predication is either a normal boolean-valued expression, a _match_
+condition, or a _search_ condition.  Various types of boolean
+combinations are supported; the most common being conjunction ('&&'),
+disjunction ('||') and negation ('\+').
+
+   We have already seen match conditions; for example:
+     some(X) .= opValue
+   is a match condition that is satisfied if the value of 'opValue'
+matches the pattern 'some(X)'.  A successful match has the additional
+effect of binding 'X' to the value embedded in the 'some' value.(1)
+
+   Where a match condition has at most one way of being satisfied, a
+search condition can potentially have many solutions.  Search conditions
+look like:
+
+     PATTERN in EXPRESSION
+
+   We saw an example of this earlier in our grandparent query:
+     (X,Z) in parents
+   As should be anticipated at this point, search is realized via a
+contract.  This allows us to search any type - so long as the 'iterable'
+contract is implemented for that type.
+
+   The final form of query condition is simply the boolean-valued
+expression.  Note that, unlike the other forms of query condition,
+boolean expressions are test-only: they cannot result in bindings for
+query variables.
+
+   ---------- Footnotes ----------
+
+   (1) The form 'X^=opValue' is actually a short form of the same
+condition.
+
+
+File: guide.info,  Node: The iterable contract,  Next: Answer Templates,  Prev: Query Conditions,  Up: Anatomy of a Query
+
+5.1.4.2 The 'iterable' contract
+...............................
+
+The 'iterable' contract is similar in intention to the 'folding'
+contract we saw before.  However, it is more tuned to supporting
+different combination of queries.
+
+   The 'iterable' contract looks like:
+     contract all s,e ~~ iterable[s->>e] ::= {
+       _iterate:all r ~~ (s,(e,iterState[r])=>iterState[r],iterState[r]) => iterState[r].
+     }
+   This contract states that to search a collection, you have to be able
+to iterate over it using the '_iterate' function.  The '_iterate'
+function uses the 'iterState' type to help guide the search:
+     all t ~~ iterState[t] ::= noneFound      -- no results yet
+                           | noMore(t)        -- all needed results found
+                           | continueWith(t)  -- keep going
+                           | abortIter(string).
+   The different cases in the 'iterState' type codify different things
+that can happen during a search.  The most commonly used case is the
+'continueWith' case - which is used to encapsulate the results found so
+far.
+
+   There are two companion contracts to the 'iterable' contract: the
+'indexed_iterable' contract supports search over key/value pairs and the
+'generator' contract is used to help construct answers.
+
+
+File: guide.info,  Node: Answer Templates,  Prev: The iterable contract,  Up: Anatomy of a Query
+
+5.1.4.3 Answer Templates
+........................
+
+The result of a query is governed by the _answer template_ of the query
+abstraction.  There are two main forms of answer template: the
+expression template and the fold template.
+
+Expression Template
+     A EXPRESSION TEMPLATE is simply an expression.
+
+   The expression template is evaluated for each successful way that the
+query condition can be satisfied; typically, there are free variables in
+the template expression that refer to variables bound in the query
+condition.  That way.  values found during the search can be extracted
+and made part of the overall answer.
+
+Fold Template
+     A fold template is used when it is desired to aggregate over the
+     found solutions.  The form of a fold template is:
+
+     fold Exp with Fn
+
+   We saw this form of query at the beginning of the book where we
+looked at nice ways of adding up elements of a list:
+
+     { fold X with (+) | X in L }
+
+Bounded Query
+     A bounded query is similar to the regular query except that we
+     restrict the search to a fixed number of answers.
+
+   The form of a bounded query template is:
+
+     N of Exp
+   For example, since we know that a person can have at most 2 parents
+(special gene therapy excepted), we can ask for someone's parents using:
+
+     parentsOf(X) => { 2 of P | (P,X) in parents }
+
+
+File: guide.info,  Node: Classifying,  Prev: Queries,  Up: Making choices
+
+5.2 Classifying
+===============
+
+Recall that we asserted that classification is a key part of any outward
+facing system: the system has to decide how to act on an incoming
+request.  It may be instructive to see just how the query formalism can
+be used to help.
+
+   Let us imagine a system that has some external face, for example, a
+server that allows users to fetch and store documents.  We have a
+business requirement to allow anyone to store and fetch documents;
+however, we also reserve the right to not process bad documents.(1)
+
+   Since we anticipate enormous success for our service, and we also
+anticipate that some people will try to game our system in order to
+further their own nefarious goals.  So, we have to put in place a
+classification system that can decide how to process requests and which
+we anticipate will need continuous evolution.
+
+   We have already claimed that the simplest online processing system
+can be viewed as having four components: a source of events, a
+processor, a sink where the output of the system is targeted and a
+knowledge base that is used to inform the processor.
+
+ [image src="images/online.png" ]
+
+Figure 5.2: A Simple Event Processor
+
+   One of the tasks that the processor must perform is to decide how to
+react to incoming events; this is an example of a _classification
+problem_; in this case we are classifying events into those we choose to
+act on and those we will ignore (or complain about).
+
+   Classification always depends on a combination of information gleaned
+from the event itself and on global or contextual information.  In our
+case, we can usefully breakdown the contextual knowledge into two kinds:
+_rules_ that embody our processing policy and _reputation_ data that the
+system has collected about external entities.
+
+ [image src="images/classifier.png" ]
+
+Figure 5.3: Rules and Reputations
+
+   We distinguish these two sources of knowledge, partly because the way
+that we collect and use them are different; but mainly because they are
+about different things.  However, we can use our query formalisms -
+together with functions - for both.
+
+   ---------- Footnotes ----------
+
+   (1) However that is defined!
+
+
+File: guide.info,  Node: Boiling the Ocean,  Next: Concept index,  Prev: Making choices,  Up: Top
+
+6 Boiling the Ocean
+*******************
+
+It is a commonplace in software engineering that you should not try to
+'boil the ocean'; which is a synonym for 'biting off more than you can
+chew'.  However, it _is_ possible to build very large scale systems if
+you approach it in the right way.  This is the purview of architecture
+and of software development teams.
+
+   The 'right' way to boil an ocean is one cup at a time.  The 'smart'
+way to do it is to build a machine that makes cups that boil the ocean.
+
+   Building software in the context of a team is quite different to
+writing individual functions in a program.  It is not enough for your
+code to compute the correct function; it must also interact properly
+with the environment it is in.  As a result, professional programmers
+find themselves often more concerned with making sure that all the
+'pieces' are in the right place than simply the correctness of an
+algorithm.(1)  Interfaces, contracts, APIs and integration issues often
+dominate the system builder’s landscape.
+
+   One’s attitude to basic language features like types is also
+different: having to deal with the knowledge that is in your co-worker’s
+head (and not in yours) should be enough to convince anyone of the
+merits of strong static types.
+
+   *Star*'s modularity features are built from the same functional
+programming foundation as the other features of the language.  This has
+important implications for the programmability of larger systems.
+
+* Menu:
+
+* Packages are records::
+* Existential types::
+* Abstract data types::
+* Phew::
+
+   ---------- Footnotes ----------
+
+   (1) This is not to deny that correctness is important.  It is just
+that algorithmic correctness is _not enough._
+
+
+File: guide.info,  Node: Packages are records,  Next: Existential types,  Up: Boiling the Ocean
+
+6.1 Packages are records
+========================
+
+If we take a slightly deeper look at *Star*'s package we will see some
+surprising features; features that are sadly not very common in
+programming languages.
+
+   Let's start with a super simple source package:
+     ss{
+       public double:(integer)=>integer.
+       double(X) is X*2.
+     }
+   This package structure is semantically equivalent to a variable
+declaration:
+     ss:{double:(integer)=>integer}.
+     ss = let{
+       double:(integer)=>integer.
+       double(X) is X*2
+     } in {. double=double .}
+   In effect, a package reduces to a variable declaration whose type is
+a record type and whose value is an anonymous record of all the public
+functions defined in the package.
+
+   We have seen this before, but it may be worth taking another look at
+the special form:
+     {. double=double .}
+   This is a record structure; the periods in the braces signify that
+the record is not _recursive_: the definitions within the record cannot
+reference each other.(1)  We use this slightly complicated way of
+defining the package record because not all members of the package are
+public -- and this formulation allows us to be precise in what elements
+of the package record can be seen by others.
+
+   What about types though?  Like other programming languages *Star*
+allows us to export types from packages too:
+     simple{
+       public all t ~~ foo[t] ::= foo(t) | bar.
+
+       public fooMe:all t ~~ (t)=>foo[t].
+       fooMe(X) => foo(X)
+     }
+   The ability to export types -- and their constructors -- is an
+extremely important part of the package functionality.  However, having
+types in records is not a common feature in programming languages --
+this may be one reason why the correspondence between packages and
+records is not more widely understood.
+
+   It turns out that we _can_ account for types like 'too' in our
+semantics of packages.  Similarly to our previous unfolding, the simple
+package is equivalent to:
+     simple: exists foo/1 ~~ {
+       type foo/1.
+
+       foo:all t ~~ (t) <=> foo[t].
+       bar:all t ~~ foo[t].
+
+       fooMe:all t ~~ (t)=>foo[t].
+     }
+
+     simple = {
+       all t ~~ foo[t] ::= foo(t) | bar.
+
+       fooMe:all t ~~ (t)=>foo[t].
+       fooMe(X) => foo(X).
+     }
+   This is clearly quite a bit more complex than our super-simple
+example; but the basic story is still there: a package consists of a
+variable definition whose value is an anonymous record.  In this case,
+the anonymous record contains a type, two constructors as well as a
+regular function.  It also includes a _type_ statement that, in this
+case, informs the type system that the existentially quantified type foo
+type should also be viewed as being part of the record.
+
+   Having constructors in a type is only a small extension to the
+conventional notion of a record -- while many languages restrict records
+to containing just data values, most functional programming languages do
+allow functions in records.  A constructor is just a special kind of
+function.
+
+   On the other hand, having a type in a record is quite different.
+
+   ---------- Footnotes ----------
+
+   (1) This is somewhat analogous to the difference between a let and a
+letrec form in languages like SML.
+
+
+File: guide.info,  Node: Existential types,  Next: Abstract data types,  Prev: Packages are records,  Up: Boiling the Ocean
+
+6.2 Existential types
+=====================
+
+What does it mean to have a type in a record?  From a programmer's point
+of view it is actually quite a natural extension of the concept of a
+record; there does not seem to be any intrinsic reason why a record
+shouldn't have types in it.  However, the logic of this bears a deeper
+look.
+
+   The declaration of the 'foo' type involves the use of an
+_existential_ quantifier:
+     simple:exists foo/1 ~~ {
+       ...
+     }
+   The meaning of an existentially quantified type is complementary to
+the universally quantified type.  An existential type quantification is
+an assertion that the type exists, in this case that 'foo' exists and is
+a type constructor of 1 argument.
+
+   The statement:
+     type foo/1.
+   is a _type_ statement.  Its role is to 'bridge the gap' between the
+quantifier and external views of the record: in effect, it is a reminder
+that a _type annotation_ such as
+     X:simple.foo
+   means to use the type that is embedded in the simple record (actually
+package) and assign 'X''s type to that embedded type.
+
+* Menu:
+
+* Use and evidence::
+* Using existentially quantified types::
+* Wrapping up packages::
+
+
+File: guide.info,  Node: Use and evidence,  Next: Using existentially quantified types,  Up: Existential types
+
+6.2.1 Use and evidence
+----------------------
+
+To get a better grip on type quantification in general and existentially
+quantified types in particular it can be helpful to see what the rules
+and expectations are for a universally quantified type.  Occurrences of
+any type variable can be classified into two forms -- depending on
+whether the context is one of _using_ a variable or whether one is
+_defining_ it -- or providing evidence for it.
+
+   Consider the simple function 'd' with its type annotation:
+     d:all t ~~ arith[t] |: (t)=>t.
+     d(X) => X+X.
+   In the equation that defines 'd' the rules of type inference lead us
+to determine that -- within the equation -- type of 'X' is 't'.  The
+_only_ assumption we can make about 't' is that it implements the
+'arith' contract; no other constraints on 't' are permitted.
+
+   For example, if we had forgotten the 'arith' constraint, the compiler
+would have complained because we try to add 'X' to itself, which implies
+that 'X' had an arithmetic type.
+
+   In general, whenever we define a universally quantified type we
+cannot make any assumptions about what it can and cannot do - apart from
+any explicitly introduced constraints.
+
+   On the other hand, when we _call_ 'd', the rules for type variables
+are more generous: calls of the forms 'd(2)' and 'd(2.4)' are both
+permitted because we are allowed to _use_ any type -- that implements
+the 'arith' contract.
+
+   The reason we can substitute any type for 't' is because 't' is bound
+by a universal quantifier: an all quantifier means we can use any type
+for 't'.
+
+   We can summarize this by stating that, for a universally quantified
+type,
+
+   * we can _use_ it for any type, but
+   * we can make no assumptions about it when giving _evidence_ for a
+     correct implementation.
+
+   For existentially quantified types the situation is reversed: when
+giving evidence in an implementation involving an existential type we
+can use what ever type we want -- again, providing that other
+constraints have been met -- but _outside_ the defining expression we
+can't make any assumptions or additional constraints about the
+quantified type.
+
+   For various reasons, which we will explore further, existentially
+quantified types are mostly associated with records -- like the package
+record we saw earlier.
+
+   As with universally quantified types, there are two kinds of contexts
+in which we use existentially quantified type variables: _use_ and
+_evidence_ contexts.  In the former we are using the type and in the
+latter we are providing evidence that an expression has the right type.
+
+   The existential quantifier means that within an instance of this
+record we can instantiate foo to any type that meets the constraints.
+The simplest way is to provide a type definition for it:
+     simple = {
+       all t ~~ foo[t] ::= foo(t) | bar.
+       fooMe(X) => foo(X).
+     }
+   We can do this because, within the implementing expression, we can do
+whatever we like for the type 'foo' - so long as it exists.
+
+   Notice that we actually needed to achieve two separate but related
+goals when describing the package as a record: we needed to define a
+type within the record and we need to be able to have external
+references to the 'foo' type field.
+
+   When we use a type from a record, we can make use of it's existence;
+but we cannot further constrain it.  For example, we can use simple's
+'foo' type, as well as the 'fooMe' function that relies on it; for
+example, in:
+     m:for all t ~~ (t)=>simple.foo[t].
+     m(X) => simple.fooMe(X).
+   There is something a little different going on here: the type of 'm'
+appears to be dependent on a field of the variable 'simple'; i.e., the
+type of 'm' apparently depends on the _value_ of 'simple'.  This is not
+something that we would normally sanction in a type system because of
+the potential for disaster.
+
+   For example, consider the scenario where ''simple' is not simple';
+i.e., suppose that its value were computed; for example its value might
+depend on a conditional computation.  In that case the actual type
+'simple.foo' might also depend on the conditional computation;
+furthermore, different invokations could easily result in having a
+different actual type being exported by 'simple'.  Why does this not
+cause problems?
+
+   Normally such 'dynamic types' do cause substantial problems.
+However, the type rules for existentially quantified variables are
+crafted so that _it must not matter_ what the actual type 'simple.foo'
+is.  So long as no additional constraints on the simple.foo are
+permitted then the program is provably compile-time type-safe.  I.e.,
+uses of an existentially quantified type may not further constrain the
+type -- the exact complement of the situation with universally
+quantified types.
+
+   Note that this also relies on single assignment semantics.  It is not
+enough to constrain 'simple.foo' to be effectively unconstrained in its
+usage, it must also be that the simple variable cannot itself be
+changed.  Luckily for us, this is true for packages even if it may not
+be true for all variables.
+
+   Of course, as with universally quantified types, we can constrain the
+existential type with a type constraint.  This would mean that, when
+implementing it we have to give evidence for the constraint being
+satisfied and when using it we could rely on that implementation -
+without knowledge of the actual implementation.
+
+
+File: guide.info,  Node: Using existentially quantified types,  Next: Wrapping up packages,  Prev: Use and evidence,  Up: Existential types
+
+6.2.2 Using existentially quantified types
+------------------------------------------
+
+So, what _are_ the rules for existentially quantified types?  The first
+is one that we have already been looking at:
+
+   An existential variable may be bound to a type when providing
+_evidence_ that a value has a certain type, but may not be constrained
+when _using_ a value with an existential quantifier in its type.
+
+   The second is related to this:
+
+     Each occurrence of an existentially quantified type is potentially
+     different.
+
+   Think about a function with the type:
+     exFn:for all t ~~ (t)=>exists e ~~ R[e,t]
+   For the moment, we don't much care about 'R'.  Now, consider how we
+might use 'exFn':
+     X1 = exFn("alpha")
+     ...
+     X2 = exFn("alpha")
+   An important question is 'what is the relationship between the type
+of 'X1' and the type of 'X2'?'.  Unfortunately, the fundamental answer
+is 'we cannot know in general' -- because we cannot assume that 'exFn'
+is without side-effects in its implementation -- which in type terms
+means effectively there is no relationship: they are different.  The
+reason is that the internal type used within the implementation of
+'exFn' may result in _different_ instantiations for 'e' for each
+invocation.  The result is we cannot assume _any_ link between the types
+of 'X1' and 'X2': they are different.  This has some serious
+consequences for how we use existentially quantified types.
+
+   On the other hand, consider the similar sequence of definitions:
+     Y1 = exFn("alpha")
+     ...
+     Y2 = Y1
+   In this case we _do_ know that the type of 'Y1' is identical to the
+type of 'Y2'.  This leads us to the third rule:
+
+   Each _use_ of an existential quantification introduces a new type --
+called a _Skolem type_(1) -- that follows the normal inference rules for
+all types.
+
+   I.e., once a type has been introduced as a Skolem type, it behaves
+just like any regular type and the normal rules of inference apply.
+This applies equally to the two fragments of code above; but the
+additional constraint on the immutable values of 'Y1' and 'Y2' make it
+easier to propagate type information.
+
+   We can see this a little clearly by looking at the effective type
+annotations of 'Y1' and 'Y2':
+     Y1:R[e345,string]
+     Y1 = exFn("alpha")
+     ...
+     Y2:R[e345,string]
+     Y2 = Y1
+   where 'e345' is the skolemized variant of the existential type 'e'.
+
+   The effective annotations for 'X1' and 'X2' will have different
+skolem constants:
+     X1:R[e235,string]
+     X1 = exFn("alpha")
+     ...
+     X2:R[e678,string]
+     X2 = exFn("alpha")
+   If 'Y1' or 'Y2' were declared to be re-assignable variables then,
+once again, we would not be able to connect the types of 'Y1' and 'Y2'
+together.
+
+   ---------- Footnotes ----------
+
+   (1) Technically, the type is denoted by a Skolem Constant or a Skolem
+Function.
+
+
+File: guide.info,  Node: Wrapping up packages,  Prev: Using existentially quantified types,  Up: Existential types
+
+6.2.3 Wrapping up packages
+--------------------------
+
+Our original simple package record had the type
+
+     simple: exists foo/1 ~~ {
+       type foo/1.
+       foo:all t ~~ (t) <=> foo[t].
+       bar:all t ~~ foo[t].
+
+       fooMe:all t ~~ (t)=>foo[t].
+     }
+
+   The type signature has a type 'foo' and a constructor 'foo' in it.
+This is permitted because types and values have different name spaces in
+*Star*.(1)
+
+   Why, one might ask, is it so important for packages to have this kind
+of semantics?  After all, few other programming languages make the
+effort to give a first class semantics for modules.(2)  The most
+straightforward answer is that it likely will not matter unless your
+programs because very large.
+
+   In mega-scale applications, programming between modules can easily
+become a major headache if not semantized (sic) correctly.  However, we
+shall see an application of this for much smaller systems in Chapter 8
+when we discuss building platforms rather than simple applications.
+
+   ---------- Footnotes ----------
+
+   (1) Not allowing that would cause significant hardship for
+programmers: it would require that program names could not be the same
+as type names; including constructors like foo.
+
+   (2) A notable exception being SML.
+
+
+File: guide.info,  Node: Abstract data types,  Next: Phew,  Prev: Existential types,  Up: Boiling the Ocean
+
+6.3 Abstract data types
+=======================
+
+Abstract data types can be viewed as the mathematics behind object
+oriented programming.(1)
+
+_Abstract Data Type_
+     An abstract data type is a mathematical model of a set of related
+     values that share a common set of semantics.
+
+   In programming, it is the _common_ semantics that defines the
+structure; but, of course, programming languages are not able to capture
+the full semantics of a program or type and hence the stand-in for this
+is usually a type specification.
+
+   Perhaps an example is overdue.  In our chapter on Collections we
+looked at many operators over collections and not a few example
+collection types.  Although programs using the stream contract are
+fairly abstract, the type of the collection itself is still visible.
+Suppose we wanted to build a set structure where only the fact that
+there is a set, and the set-like operators over the set were visible.
+The representation type for the set should otherwise be completely
+opaque.
+
+   One might start with a type definition that defines some operators
+over sets:
+
+     exists coll/1 ~~ genSet ::= genSet{
+       type coll/1.
+       z:all t ~~ coll[t].
+       addElement:all t ~~ (t,coll[t])=>coll[t].
+       present:all t ~~ (t,coll[t])=>boolean.
+     }
+
+   The essence of this type declaration is a collection of operators
+that define set-style operators.  By protecting the coll type with an
+existential quantifier, we ensure that the representation of genSet
+values is not accessible externally; whilst at the same time we do allow
+other programs to _use_ the set operators.
+
+   One example implementation of 'genSet' might use lists to represent
+the set structure itself:
+
+     LS = genSet{
+       all t ~~ coll[t] <~ list[t].
+       z = list of [].
+       addElement(X,L) where X in L => L.
+       addElement(X,L) => list of [X,..L].
+       present(X,L) => X in L
+     }
+
+   The statement:
+     all t ~~ coll[t] <~ list[t].
+   which is a type alias statement, represents one of the ways that we
+can give evidence for the existence (sic) of the coll type.  We could
+also have simply declared that:
+
+     type coll = list
+
+   Given 'LS', we can use it like a set generator -- 'LS' provides a set
+of operators over sets:
+
+     Z = LS.z
+
+     One = LS.addElement(1,Z)
+
+     Two = LS.addElement(2,One)
+
+   The type of 'LS' gives no clue as to the internal type used to
+represent sets generated by it:
+
+     LS:genSet
+
+   But 'Z', 'One' and 'Two' have more interesting types:
+
+     Z:collK341[integer]
+
+   where 'collK341' is a Skolem type -- a unique type generated when we
+assign a type to LS. In effect, LS is a module that exports the set type
+and associated operators; this module is referenced by name and is used
+to construct particular sets.
+
+   A reasonable question here is 'where is the Abstract Data Type?'.
+What we have is a record with a type and some functions in it.  Recall
+that an ADT is a 'model of a set of related values that share a common
+set of semantics'.  The semantics in common are the functions in the
+record; and the type itself is the existentially quantified type in that
+record -- coll.
+
+   Notice how we index off the 'LS' variable to access the operators for
+this set; even while passing into it instances of sets created and
+modified by LS. This is one of the hallmarks of a module system.
+
+* Menu:
+
+* Opening up::
+* Injection::
+* Extensible types::
+
+   ---------- Footnotes ----------
+
+   (1) Not to be confused with Algebraic Data Types -- which represent
+the mathematical foundation for enumerations and other non-object
+values.
+
+
+File: guide.info,  Node: Opening up,  Next: Injection,  Up: Abstract data types
+
+6.3.1 Opening up
+----------------
+
+One of the reasons that we are so interested in establishing a 'normal'
+semantics for modules and ADTs is that we can develop systems where the
+contents of a module depends on some additional computation; i.e., we
+can use _functions over modules_.  For example, we can show that _aspect
+oriented programming_ and _dependency injection_ can be realized just
+using normal code structuring with functions and let environments.
+
+   Techniques like dependency injection are typically applied to large
+programs; unfortunately that makes constructing small examples a little
+forced.  So, we'll use a crow-bar to open a soda bottle.  Imagine, if
+you will, that we needed to define a new arithmetic type that supported
+arbitrary fractions.
+
+   Floating point numbers are fractions.  But they do not permit the
+representation of all fractions -- e.g., it is not possible to represent
+1/3 exactly in IEEE 754.
+
+   However, while we want to expose the type, and a set of operator
+functions, we definitely do not want to expose anything about the
+implementation of fractional numbers: as far as users are to be
+concerned, the type fraction is to be completely opaque and might be
+implemented in any way.
+
+   Let us start with an interface; which in this case will take the form
+of a record type:
+
+     fractionals ::= exists fraction ~~ fracts{
+       type fraction.
+
+       frPlus:(fraction,fraction)=>fraction.
+       frToString:(fraction)=>string.
+
+       frParse:(string)=>fraction.
+       fraction:(integer,integer)=>fraction
+     }
+
+   One of the first things to note here is that fraction is
+existentially quantified; secondly we need to ensure that the set of
+operators we expose is complete.  Our interface is not really complete,
+but includes two critical operators: a means of constructing fractions -
+via the fractions and frParse functions - and a means of escaping from
+the world of fractions to other types (in this case 'string' via
+'frToString').
+
+   Here we are mostly concerned with _using_ fractions, so we will
+assume that we have at least one implementation -- courtesy of the 'FR'
+variable:
+
+     FR:fractionals
+
+   One way to use our implementation of fractions would be to reference
+the needed operators via the 'FR' variable:
+
+     F0 = FR.frParse("3/4")
+
+     F1 = FR.fraction(1,2)
+
+     F2 = FR.frPlus(F0,F1)
+
+     show FR.frToString(F2)   -- results in 5/4
+
+   However, we can do rather better than this in *Star*.  We have
+already encountered the import statement; there is an analogous
+statement that allows us to unwrap a record like 'FR' in a binding
+environment -- such as:
+
+     let{
+       open FR
+
+       F0 = frParse("3/4").
+       F1 = fraction(1,2).
+       F2 = frPlus(F0,F1).
+     } in
+       show frToString(F2)   -- results in 5/4
+
+   The 'open' statement has a similar effect to the package import: it
+enables the functions, types and other elements that are embedded in a
+record to be made available as normal identifiers within the normal
+scope of the let action (or expression).
+
+   Of course, this code is still fairly clumsy; since we would like to
+use normal arithmetic notation over fractions; which we can do by
+implementing the arith contract:
+
+     let{
+       open FR.
+
+       implementation arith[fraction] => {
+         X+Y => frPlus(X,Y)
+         ... -- more operators needed
+       }
+     } in {
+       F0 = frParse("3/4").
+       F1 = fraction(1,2).
+       F2 = F0+F1.
+
+       show frString(F2)
+     }
+
+   We can improve this further by also implementing the coercion
+contract between 'strings' and 'fractions':
+
+     let{
+       open FR.
+
+       implementation arith[fraction] => {
+         X+Y => frPlus(X,Y)
+         ... -- more operators needed
+       }
+       implementation coercion[string,fraction] => {
+         _coerce(S) => frParse(S)
+       }
+
+       implementation coercion[fraction,string] => {
+         _coerce(F) => frToString(F)
+       }
+     }
+
+   This allows us to use a more natural notation for expressions
+involving our fractions:
+
+     let{
+       open FR.
+       ...
+     } in {
+       F0 = "3/4" :: fraction.
+       F1 = fraction(1,2).
+
+       show F0+F1
+     }
+
+   While much better than our original, we still have too much code to
+write to use the fraction type: we have to get the type and then
+demonstrate the appropriate implementations.  We want to be able to
+combine everything that is important about fractions into a single
+structure.
+
+   There is a straightforward way we can do this.  Our original
+signature for fractionals simply required the presence of the fraction
+type.  What we can do is further require that the arith and appropriate
+coercion contracts are also implemented; we do this by constraining the
+type definition for 'fractionals':
+
+     fractionals ::= exists fraction ~~ arith[fraction], coercion[string,fraction], coercion[fraction,string] |: fracts{
+       type fraction.
+
+       frPlus:(fraction,fraction)=>fraction.
+       fraction:(integer,integer)=>fraction.
+     }
+
+   Since we are using contracts we do not need the explicit 'frParse'
+and 'frToString' functions in the signature any more.
+
+   When we instantiate a 'fracts' record we must provide -- within the
+record itself -- appropriate implementations of 'arith' and 'coercion':
+
+     FX = fracts{
+       fraction <~ myFraction.
+       implementation arith[myFraction] => {
+         X+Y => frPlus(X,Y).
+         ... --- more operators needed
+       }
+       implementation coercion[string,myFraction] => {
+         _coerce(S) => frParse(S)
+       }
+       implementation coercion[myFraction,string] => {
+         _coerce(F) => frToString(F)
+       }
+       ...
+     }
+
+   Notice that we implemented arithmetic for the internal 'myFraction'
+type.  We could have equally implemented the contract for 'fraction'
+type too; the key requirement is to provide evidence that arithmetic is
+implemented for the type.
+
+   The 'FX' record now has everything we want to expose about fractional
+numbers.(1)  If we open the structure then indeed we can write programs
+like:
+
+     let{
+       open FX.
+     } in {
+       F0 = "3/4" :: fraction.
+       F1 = fraction(1,2).
+       show F0+F1.
+     }
+
+   This is virtually equivalent to the code we might have written if we
+were importing a package with the definition of the 'fraction' type in
+it.  The difference is that we have access to the full expressive power
+of the language in computing 'FX'.
+
+   ---------- Footnotes ----------
+
+   (1) Assuming that we added the missing operators that we would
+actually need.
+
+
+File: guide.info,  Node: Injection,  Next: Extensible types,  Prev: Opening up,  Up: Abstract data types
+
+6.3.2 Injection
+---------------
+
+Injection is a technique where we specialize a program with additional
+information; especially where that additional information is not part of
+the normal argument flow.  Of course, it can be hard to be crisp about
+'not part of the normal argument flow'; but injection is an
+architectural technique to apply if and when it makes a difference in
+the readability of your code.
+
+   Injection is often used to manage _configuration_ of code: the
+configuration is injected into the main program; for example, we might
+configure an application server with the path name of a particular
+application, or with the port on which the app server should be
+listening.  Neither of these would normally be considered part of the
+normal information flow in an application server.
+
+   There is a standard functional programming style that can be used to
+represent injection -- namely functions that return functions.  To take
+an extremely simple example, suppose that we wanted to have a function
+that counted the percentage of a class that passes an exam.  The
+function itself is pretty simple:
+
+     passes(L) => fraction(
+       size(list of { X | X in L && X.score>Pass}),
+       size(L))
+
+   The configuration parameter here is obviously the 'Pass' value; this
+is an important parameter to the function but is not part of the normal
+argument flow (think about computing the pass count for an entire
+school).
+
+   We can use the function returning approach to inject an appropriate
+value of 'Pass':
+
+     passes(Pass) =>
+       (L)=>fraction(
+         size(list of { X | X in L && X.score>Pass}),
+         size(L))
+   Using this passes is a two-step process; we first use a specific
+passing grade to construct the test function and then use this to
+measure performance on groups of students:
+
+     HS = passes(60)
+
+     allPass = list of { C | C in Courses && HS(C)>0.80 }
+
+   The two-step process is a key part of the injection technique.
+
+
+File: guide.info,  Node: Extensible types,  Prev: Injection,  Up: Abstract data types
+
+6.3.3 Extensible types
+----------------------
+
+Sometimes, rather than configuring a program with a numeric value (or
+any other value for that matter), we need to configure it with a _type_.
+This does not happen that often, and *Star*'s type constraints can
+eliminate many cases where it might be needed; but the requirement still
+shows up occasionally.  Where it can show up is in situations where you
+need to develop customizable applications -- applications that can be
+extended further by your customers without you having to change a line
+of your own code.
+
+   For example, you might need to build a system that attempts to
+predict the behavior of equipment based on historical performance and
+current demand.  This kind of software could be very useful in
+determining a proper maintenance schedule.  Suppose that you determine
+that what is important in predicting potential breakdowns is the number
+of units processed and the number of days since the last scheduled
+maintenance.  You might keep track of this in a record:
+
+     maint ::= maint{
+       date:date.
+       units:integer.
+     }
+
+   And you will also probably have a description of each piece of
+equipment:
+
+     equip ::= equip{
+       id:string.
+       eqpType:string.
+       nextMaint:date.
+     }
+
+   Using this, and similar records, together with some clever
+algorithms, you design a function that determines the next most likely
+piece of equipment to fail -- perhaps together with an expected failure
+date:
+
+     nextToFail:(list[maint],list[equip])=>(equip,date).
+
+   The details of this algorithm, while critical to an actual
+application, are of no concern to us here.
+
+   Now, you deliver your software to your customer and the first thing
+that they ask for is an ability to tweak it.  You see, you designed it
+for generic pieces of equipment and they have particular pieces of
+equipment, with particular foibles affecting the computations needed to
+determine when equipment needs maintenance.  And they need to keep some
+information in the description of equipment and maybe also in the
+maintenance records that is not in your types.
+
+   Your challenge is to permit this kind of extension without requiring
+your code to be modified or even recompiled for each customer.
+
+   The standard OO approach to addressing would be to permit the
+customer to _sub-class_ some of the critical types (such as maint and
+equip).  However, there are problems with using sub-types: in
+particular, if your algorithm requires computing _new_ instances of data
+structures then sub-classing cannot work: when your algorithm creates a
+new equip record, it will not know how to create a customer variant of
+that record:
+
+     updateEquip(E,W) => equip{
+       id = E.id.
+       eqpType = E.eqpType.
+       nextMaint = W.
+     }
+
+   with the result that the customer data is lost.  An alternative
+approach is to allow some extensibility in the record by having a
+special extra field:
+
+     equip[t] ::= equip{
+       id:string.
+       eqpType:string.
+       nextMaint:date.
+       extra:t.
+     }
+
+   Since we do not want to constrain the kind of information our
+customizer can store we make its type quantified.  The extra field is
+there to support extensions; and, because we know about its existence,
+we can carry the data with us:
+
+     updateEquip(E,W) => equip{
+       id = E.id.
+       eqpType = E.eqpType.
+       nextMaint = W.
+       extra = E.extra.
+     }
+
+   The problem with adding such an extra field is its type: this version
+changes the unquantified 'equip' type into a quantified one.  This will
+have potentially devastating impact on your code -- especially if you
+want to allow multiple extensions for multiple data structures.  The
+reason is that potentially a large number of functions will be required
+to carry the type parameters in their type signatures.  This is doubly
+galling as these extra type parameters do not have any significance in
+the main code: they are there only to support potential customizations.
+
+   Instead of universal quantification, we can use an existential type
+for the extra field:
+
+     equip ::= exists t ~~ equip{
+       id:string.
+       eqpType:string.
+       nextMaint:date.
+
+       type t.
+       extra:t.
+     }
+
+   This has the effect of permitting a local extension to a record type
+while also effectively hiding the type from the main code.
+
+   Of course, in order for extra to have any effect on our code, we have
+to be able to make use of it within our algorithm.  This is another
+customization point in the code: not only do we need to allow additional
+data but we need to be able to reference it appropriately.  For example,
+we might decide that the extra field should have a say in determining
+the next maintenance date; so our updateEquip function should take it
+into account -- but how?
+
+   A simple way is to add to the equip record a set of extensibility
+functions that the customer must supply, in addition to the data itself:
+
+     equip ::= exists t ~~ equip{
+       id:string.
+       eqpType:string.
+       nextMaint:date.
+       type t.
+       extra:t.
+       extraDate:(t,date)=>date.
+     }
+
+   Then, our 'updateEquip' function calls this 'extraDate' function when
+computing the new maintenance schedule:
+
+     updateEquip(E,W) => equip{
+       id = E.id.
+       eqpType = E.eqpType.
+       nextMaint = E.extraDate(E.extra,W).
+       type t = E.t.     --- note evidence for type
+       extra = E.extra.
+       extraDate = E.extraDate.
+     }
+
+   Of course, the customer has to provide functions that create the
+initial data structures, and the initial values of 'extra' and the
+updating function 'extraDate'.  You, as the provider of the software,
+will offer a default implementation:
+
+     equip(Id,Tp,Maint) => equip{
+       id = Id.
+       eqpType = Tp.
+       nextMaint = Maint.
+       type t = ().  -- () is Star's void type
+       extra = ().
+       extraDate = (_,W) => W.
+     }
+
+   This approach meets our goals: we can allow customers of our software
+access to key data structures in a safe way that does not require use to
+modify our code for each customer or even to recompile it.
+
+
+File: guide.info,  Node: Phew,  Prev: Abstract data types,  Up: Boiling the Ocean
+
+6.4 Phew
+========
+
+This Chapter covers some difficult material!  We start with a
+requirement to scale -- to be able to scale code from a single module
+through to applications built by assembling libraries.  Along the way we
+take in existential quantification and abstract data types.
+
+   What we have not yet addressed are the needs of distributed
+applications.  Managing distributed applications is one of the most
+tedious and difficult challenges of modern software development.
+However, before we can demonstrate *Star*'s approach to this, we must
+look at _agent oriented systems_ and **actors** -- the subject of
+Chattering Agents.
+
+
+File: guide.info,  Node: Concept index,  Next: Function index,  Prev: Boiling the Ocean,  Up: Top
 
 Concept index
 *************
@@ -4271,132 +5783,170 @@ List of Syntax Rules
 
 Tag Table:
 Node: Top257
-Node: Why be a Star programmer?798
-Node: Programming has changed1343
-Node: Programs are huge1901
-Ref: Programs are huge-Footnote-13508
-Node: Planning for change3601
-Ref: Planning for change-Footnote-15897
-Node: Programming safely and effectively5956
-Node: Real-time is normal time.6961
-Node: This train is leaving the station7714
-Node: Technology8984
-Node: Is Star for you?10663
-Node: If you are already a Java (or C#)11115
-Node: If you are already a C++ programmer13247
-Node: If you are already a functional programmer15276
-Node: Design goals for Star18408
-Ref: Design goals for Star-Footnote-122897
-Node: About this book23025
-Node: Getting hold of Star24078
-Node: Typographical conventions24433
-Node: Acknowledgements25236
-Node: A tour of Star26670
-Ref: A tour of Star-Footnote-127818
-Node: A first Star program27881
-Node: Texture29444
-Node: Lexical style30253
-Ref: Lexical style-Footnote-132029
-Ref: Lexical style-Footnote-232138
-Ref: Lexical style-Footnote-332288
-Node: Types32342
-Node: Rules34086
-Node: Patterns35029
-Node: Packages36512
-Node: Worksheets37193
-Ref: Worksheets-Footnote-138438
-Node: String interpolation38467
-Node: Types more types and even more types38967
-Ref: Types more types and even more types-Footnote-140837
-Ref: Types more types and even more types-Footnote-240926
-Node: Nominative types41042
-Node: Reference Type42588
-Node: Structural types44340
-Node: Optional values45975
-Node: The flavors of equality48116
-Ref: The flavors of equality-Footnote-150005
-Node: A tale of three loops50114
-Node: A functional loop51689
-Node: A totalizer query53712
-Node: The homunculus in the machine55130
-Node: Contracts and constrained types56136
-Node: Implementing contracts58498
-Node: Coercion not casting60618
-Node: There is more63669
-Node: Functional Programming64252
-Node: What is functional programming?65858
-Ref: What is functional programming?-Footnote-167625
-Node: Basics67747
-Ref: Basics-Footnote-169538
-Node: Functions69889
-Ref: Functions-Footnote-175034
-Ref: Functions-Footnote-275160
-Node: Order of evaluation75231
-Ref: Order of evaluation-Footnote-177354
-Node: Another look at types77526
-Node: Quantifier types77987
-Node: Contract constrained types80162
-Ref: Contract constrained types-Footnote-182674
-Node: Algebraic data types82707
-Ref: binaryStringTree87472
-Node: Functions as values88888
-Node: Functions and closures91476
-Node: Let binding92844
-Node: Generic types95283
-Node: Generic functions98442
-Ref: Generic functions-Footnote-199450
-Node: Going further99514
-Node: Going even further104451
-Node: Polymorphic arithmetic110986
-Ref: Polymorphic arithmetic-Footnote-1114032
-Node: Optional computing114097
-Ref: Optional computing-Footnote-1116259
-Node: Special syntax for optional values116349
-Ref: Special syntax for optional values-Footnote-1118432
-Node: A word about type inference118463
-Ref: minusTypeFig120881
-Ref: A word about type inference-Footnote-1123152
-Node: Why is type inference restricted?123246
-Node: Are we there yet?126095
-Node: Collections127077
-Node: Sequence notation128570
-Node: Partial sequence notation130057
-Node: The stream and sequence contracts132107
-Ref: The stream and sequence contracts-Footnote-1134048
-Node: Stream patterns134297
-Node: Notation and contracts136719
-Node: Indexing137942
-Node: The indexed contract138831
-Ref: The indexed contract-Footnote-1141570
-Node: Adding and removing elements141749
-Ref: Adding and removing elements-Footnote-1143320
-Node: The index notation143464
-Node: Implementing indexing146591
-Ref: Implementing indexing-Footnote-1150784
-Node: Index slices150916
-Ref: Index slices-Footnote-1152879
-Node: Doing stuff with collections152941
-Node: Filtering154129
-Ref: Filtering-Footnote-1155592
-Node: The filter contract155653
-Node: The sieve of Erastosthneses155950
-Node: Mapping to make new collections159118
-Ref: Mapping to make new collections-Footnote-1162441
-Node: More Type Inference Magic162572
-Ref: More Type Inference Magic-Footnote-1164155
-Node: Compressing collections164236
-Ref: leftFold165678
-Ref: Compressing collections-Footnote-1171039
-Ref: Compressing collections-Footnote-2171078
-Node: Different types of collection171137
-Node: The cons type172256
-Node: The list type173177
-Ref: twoarrays174301
-Node: The map type174382
-Node: The set type176268
-Node: Collecting it together177170
-Node: Concept index177832
-Node: Function index177956
-Node: List of Syntax Rules178109
+Node: Why be a Star programmer?839
+Node: Programming has changed1384
+Node: Programs are huge1942
+Ref: Programs are huge-Footnote-13549
+Node: Planning for change3642
+Ref: Planning for change-Footnote-15938
+Node: Programming safely and effectively5997
+Node: Real-time is normal time.7002
+Node: This train is leaving the station7755
+Node: Technology9025
+Node: Is Star for you?10704
+Node: If you are already a Java (or C#)11156
+Node: If you are already a C++ programmer13288
+Node: If you are already a functional programmer15317
+Node: Design goals for Star18449
+Ref: Design goals for Star-Footnote-122938
+Node: About this book23066
+Node: Getting hold of Star24119
+Node: Typographical conventions24474
+Node: Acknowledgements25277
+Node: A tour of Star26711
+Ref: A tour of Star-Footnote-127871
+Node: A first Star program27934
+Node: Texture29497
+Node: Lexical style30306
+Ref: Lexical style-Footnote-132082
+Ref: Lexical style-Footnote-232191
+Ref: Lexical style-Footnote-332341
+Node: Types32395
+Node: Rules34139
+Node: Patterns35082
+Node: Packages36565
+Node: Worksheets37246
+Ref: Worksheets-Footnote-138491
+Node: String interpolation38520
+Node: Types more types and even more types39020
+Ref: Types more types and even more types-Footnote-140890
+Ref: Types more types and even more types-Footnote-240979
+Node: Nominative types41095
+Node: Reference Type42641
+Node: Accessing Reference Variables44437
+Node: Structural types44861
+Node: Optional values46496
+Node: The flavors of equality48637
+Ref: The flavors of equality-Footnote-150526
+Node: A tale of three loops50635
+Node: A functional loop52210
+Node: A totalizer query54233
+Node: The homunculus in the machine55651
+Node: Contracts and constrained types56657
+Node: Implementing contracts59013
+Node: Coercion not casting61133
+Node: Actions64184
+Ref: Actions-Footnote-166177
+Node: There is more66245
+Node: Functional Programming66804
+Node: What is functional programming?68410
+Ref: What is functional programming?-Footnote-170177
+Node: Basics70299
+Ref: Basics-Footnote-172090
+Node: Functions72441
+Ref: Functions-Footnote-177586
+Ref: Functions-Footnote-277712
+Node: Order of evaluation77783
+Ref: Order of evaluation-Footnote-179906
+Node: Another look at types80078
+Node: Quantifier types80539
+Node: Contract constrained types82714
+Ref: Contract constrained types-Footnote-185226
+Node: Algebraic data types85259
+Ref: binaryStringTree90024
+Node: Functions as values91440
+Node: Functions and closures94028
+Node: Let binding95396
+Node: Generic types97835
+Node: Generic functions100994
+Ref: Generic functions-Footnote-1102002
+Node: Going further102066
+Node: Going even further107003
+Node: Polymorphic arithmetic113538
+Ref: Polymorphic arithmetic-Footnote-1116584
+Node: Optional computing116649
+Ref: Optional computing-Footnote-1118811
+Node: Special syntax for optional values118901
+Ref: Special syntax for optional values-Footnote-1120984
+Node: A word about type inference121015
+Ref: minusTypeFig123433
+Ref: A word about type inference-Footnote-1125704
+Node: Why is type inference restricted?125798
+Node: Are we there yet?128647
+Node: Collections129629
+Node: Sequence notation131148
+Node: Partial sequence notation132635
+Node: The stream and sequence contracts134685
+Ref: The stream and sequence contracts-Footnote-1136626
+Node: Stream patterns136875
+Node: Notation and contracts139297
+Node: Indexing140520
+Node: The indexed contract141407
+Ref: The indexed contract-Footnote-1144146
+Node: Adding and removing elements144325
+Ref: Adding and removing elements-Footnote-1145896
+Node: The index notation146040
+Node: Implementing indexing149165
+Ref: Implementing indexing-Footnote-1153356
+Node: Index slices153488
+Ref: Index slices-Footnote-1155451
+Node: Doing stuff with collections155513
+Node: Filtering156699
+Ref: Filtering-Footnote-1158162
+Node: The filter contract158223
+Node: The sieve of Erastosthneses158520
+Node: Mapping to make new collections161686
+Ref: Mapping to make new collections-Footnote-1165003
+Node: More Type Inference Magic165134
+Ref: More Type Inference Magic-Footnote-1166717
+Node: Compressing collections166798
+Ref: leftFold168240
+Ref: Compressing collections-Footnote-1173601
+Ref: Compressing collections-Footnote-2173640
+Node: Different types of collection173699
+Node: The cons type174847
+Node: The list type175768
+Ref: twoarrays176892
+Node: The map type176973
+Node: The set type178863
+Node: Collecting it together179708
+Node: Making choices180481
+Ref: onlineApp181035
+Node: Queries182528
+Ref: Queries-Footnote-1185202
+Node: Satisfaction semantics185343
+Node: Abstracting queries187492
+Node: A Splash of Inference188524
+Ref: A Splash of Inference-Footnote-1192916
+Node: Anatomy of a Query193110
+Node: Query Conditions194062
+Ref: Query Conditions-Footnote-1195520
+Node: The iterable contract195598
+Node: Answer Templates196999
+Node: Classifying198437
+Ref: online199625
+Ref: classifier200302
+Ref: Classifying-Footnote-1200664
+Node: Boiling the Ocean200697
+Ref: Boiling the Ocean-Footnote-1202401
+Node: Packages are records202518
+Ref: Packages are records-Footnote-1205755
+Node: Existential types205863
+Node: Use and evidence207163
+Node: Using existentially quantified types212681
+Ref: Using existentially quantified types-Footnote-1215609
+Node: Wrapping up packages215693
+Ref: Wrapping up packages-Footnote-1216850
+Ref: Wrapping up packages-Footnote-2217032
+Node: Abstract data types217071
+Ref: Abstract data types-Footnote-1220633
+Node: Opening up220779
+Ref: Opening up-Footnote-1227330
+Node: Injection227412
+Node: Extensible types229480
+Node: Phew235693
+Node: Concept index236415
+Node: Function index236545
+Node: List of Syntax Rules236698
 
 End Tag Table

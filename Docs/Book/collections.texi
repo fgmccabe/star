@@ -10,7 +10,7 @@ hiding recursion; a well designed collections library can make a huge
 difference to the programmer's productivity, often by hiding many of
 the recursions and iterations required to process collections.
 
-The collections architecture in @Star{} has four main components:
+The collections architecture has four main components:
 @enumerate
 @item
 a range of standard collection types -- including array-like lists,
@@ -23,7 +23,7 @@ special notations that make programming with collections in a type
 independent way more straightforward; and
 @item
 the final major component of the collections architecture is
-@emph{queries}. @Star{} has a simple yet powerful set of features aimed at
+@emph{queries}. There is a simple yet powerful set of features aimed at
 simplifying querying collections.
 @end enumerate
 
@@ -248,9 +248,8 @@ concat(S0,Y) where some((E,X)).=S0 =>
 @end example
 
 The @code{sequence} and @code{stream} contracts are two of the most
-important and commonly used contracts in the @Star{} library. As we
-shall see further, many of the standard collections functions are
-built on top of it.
+important and commonly used contracts. As we shall see further, many
+of the standard collections functions are built on top of it.
 
 @quotation
 We have two contracts -- one for composing and another for decomposing
@@ -266,16 +265,15 @@ have a natural form of describing actual @code{map} collections.
 @subsection Notation and contracts
 One of the distinctive features of the sequence notation is that it is
 an example of @emph{syntax} that is underwritten by a semantics
-expressed as a @emph{contract}. This is part of a widespread pattern
-in @Star{}.
+expressed as a @emph{contract}. 
 
 This has a parallel in modern OO languages like Java and C# where
 important contracts are expressed as interfaces rather than concrete
-types. However, @Star{} extends the concept by permitting special
-notation as well as abstract interfaces -- as many mathematicians
-understand, a good notation can sometimes make a hard problem easy. In
-@Star{} we further separate interfaces from types by separating the
-type definition from any contracts that may be implemented by it.
+types. However, we extend the concept by permitting special notation
+as well as abstract interfaces -- as many mathematicians understand, a
+good notation can sometimes make a hard problem easy. We further
+separate interfaces from types by separating the type definition from
+any contracts that may be implemented by it.
 
 The merit of this combination of special syntax and contracts is that
 we can have the special notation expressing a salient concept -- in
@@ -293,13 +291,13 @@ traditional notation for accessing arrays:
 L[ix]
 @end example
 where @code{L} is some array or other collection and @code{ix} is an
-integer offset into the array. @Star{} uses a notation based on this
+integer offset into the array. We use a notation based on this
 for accessing collections with random indices; suitably generalized to
 include dictionaries (collections accessed with non-numeric indices)
 and @emph{slices} (contiguous sub-regions of collections).
 
-Before we explore @Star{}'s indexing notation it is worth looking at
-the contract that underlies it -- the @code{indexed} contract.
+Before we explore the indexing notation it is worth looking at the
+contract that underlies it -- the @code{indexed} contract.
 
 @node The indexed contract
 @subsection The indexed contract
@@ -411,9 +409,9 @@ persistent.
 
 @node The index notation
 @subsection The index notation
-Given the indexed contract we can now show the specific notation that
-@Star{} has for accessing elements of a collection. Accessing a
-collection by index follows conventional notation:
+Given the indexed contract we can now show the specific notation for
+accessing elements of a collection. Accessing a collection by index
+follows conventional notation:
 @example
 C[ix]
 @end example
@@ -443,7 +441,7 @@ nameOf(F) default => ...
 We will take a deeper look at exceptions and more elaborate management
 of tentative computation in @var{Computation Expressions}.
 
-@Star{} also has specific notation to represent modified
+We also have a specific notation to represent modified
 collections. For example, the expression
 @example
 D["beta"->"three"]
@@ -472,7 +470,7 @@ which denotes the map @code{D} where the value associated with the key
 @code{"gamma"} has been removed.
 
 Although, in these examples, we have assumed that @code{D} is a map
-value (which is a standard type in @Star{}); in fact the index
+value (which is a standard type); in fact the index
 notation does not specify the type. As with the sequence notation, the
 only requirement is that the @code{indexed} contract is implemented
 for the collection being indexed.
@@ -481,10 +479,9 @@ In particular, as well as the @code{map} type, index notation is
 supported for the built-in @code{list} type, and is even supported for
 the @code{string} type.
 
-In addition to the indexed access notation described so far, @Star{}
-also allows a variant of the sequence notation for constructing
-indexed literals (aka dictionaries). In particular, an expression of
-the form:
+In addition to the indexed access notation described so far, there is
+also a variant of the sequence notation for constructing indexed
+literals (aka dictionaries). In particular, an expression of the form:
 @example
 ["alpha"->1, "beta"->2, "gamma"->3]
 @end example
@@ -535,7 +532,7 @@ assert "one" ^= T["alpha"].
 U = T["beta"->"two"]. -- Add in "beta"
 assert "one" ^= U["alpha"].
 @end example
-The implementation statement relies on another feature of @Star{}'s
+The implementation statement relies on another feature of the
 type system -- we need to constrain the implementation of indexed to a
 certain subset of possible instances of tree types -- namely, where
 the element type of the tree is a @emph{pair} -- a two-tuple -- and
@@ -694,8 +691,8 @@ Summarizing collections
 Querying collections
 @end itemize
 
-Each of these patterns has some support from @Star{}'s standard
-repertoire of functions.
+Each of these patterns has some support from the standard repertoire
+of functions.
 
 @node Filtering
 @subsection Filtering
@@ -811,7 +808,7 @@ integers.
 @quotation
 In fact, building a highly optimized version of the sieve of
 Eratosthenes is not actually the main point here -- our purpose is to
-illustrate the power of @Star{}'s collections processing functions.
+illustrate the power of collections processing functions.
 @end quotation
 
 We might ask whether the @code{sieve} function can also be expressed
@@ -927,7 +924,7 @@ nameOf(R) => R.name
 This function takes an arbitrary record as input and returns the value
 of the @code{name} field. The @code{nameOf} function @emph{is} well
 typed, its type annotation just needs a slightly different form than
-that we have seen so far:@footnote{Note that the @Star{} type system
+that we have seen so far:@footnote{Note that the type system
 will not @emph{infer} this generalized type.}
 @example
 nameOf:all r,n ~~ r <~ @{name:n@} |: (r)=>n
@@ -1135,7 +1132,7 @@ elements of the collection and the cost of @emph{modifying} elements
 in the collection.
 
 There is a strong emphasis on @emph{persistent} semantics for the
-types and functions that make up @Star{}'s collections
+types and functions that make up the  collections
 architecture. This is manifest in the fact, for example, that
 functions that add and remove elements from collections @emph{do not}
 modify the original collection.
@@ -1183,8 +1180,8 @@ giving the portion of the array block that represents a given list
 value. This is sometimes called a Copy on Write (COW) structure.
 
 The @code{list} type is optimized for random access and for shared
-storage -- recall that @Star{} collection types are persistent: that
-means that different values can share some or all of their internal
+storage -- recall that collection types are persistent: that means
+that different values can share some or all of their internal
 structure. The diagram below shows two list values that overlap in
 their elements and consequently share some of their structure.
 
@@ -1270,9 +1267,9 @@ all t ~~ equality[t] |: set[t]
 @noindent
 Collections form an important part of any modern programming
 language. The suite of features that make up the collections
-architecture in @Star{} consists of a number of data types, contracts
-and special syntax that combine to significantly reduce the burden of
-the programmer.
+architecture consists of a number of data types, contracts and special
+syntax that combine to significantly reduce the burden of the
+programmer.
 
 The collections facility amounts to a form of DSL -- Domain Specific
 Language -- that is, in this case, built-in to the language. We shall
