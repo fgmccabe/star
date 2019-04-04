@@ -1,3 +1,14 @@
+@node Collections
+@chapter Collections
+
+This chapter defines the standard collection types.
+
+
+
+
+
+
+
 == Collection and Sequence Expressions [[sequenceExpression]]
 (((sequence,expressions))) (((expressions,sequence)))
 (((of@@code{of},expression)))

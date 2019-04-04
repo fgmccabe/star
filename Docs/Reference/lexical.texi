@@ -555,7 +555,7 @@ statements in @Star{} always declare some fact.} are terminated by the @var{Term
 @float BNF,terminatorFig
 @caption{Statement Terminator}
 @display
-@anchored{Terminator} ::= @code{'.'} @var{WhiteSpace}
+@anchored{Terminator} ::= @code{'.'} @refer{WhiteSpace}
 @end display
 @end float
 

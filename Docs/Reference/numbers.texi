@@ -76,7 +76,7 @@ leading space is displayed instead of a leading zero.
 
 For example, the value of
 @example
-"--$(5):00;--"
+"--$(5): 0;--"
 @end example
 is the string
 @example
@@ -153,7 +153,7 @@ appended to either end; otherwise the number is enclosed in
 The @code{P} code should be placed at @emph{both} ends of the format
 specification.  For example, the expression:
 @example
-"Balance: $Amnt:P999900.00P; remaining"
+"Balance: $(Amnt):P999900.00P; remaining"
 @end example
 
 where @code{Amnt} had value -563 would result in
@@ -169,7 +169,7 @@ non-zero or there is a non-zero digit to the left of the digit.
 
 For example, this can be used to display the Unicode equivalent of a character:
 @example
-"Unicode: $C/$(C as integer):XXXXX;"
+"Unicode: $(C)/$(C::integer):XXXXX;"
 @end example
 @end table
 

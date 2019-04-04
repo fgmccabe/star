@@ -18,11 +18,11 @@ We separate the @emph{specification} of an operation from its
   | @refer{ActionAction}
   | @refer{TaskAction}
 
-@anchored{DoAction} ::= @code{do} @refer{BlockAction}
+@anchored{DoAction} ::= @code{'do'} @refer{BlockAction}
 
-@anchored{ActionAction} ::= @code{action} @refer{BlockAction}
+@anchored{ActionAction} ::= @code{'action'} @refer{BlockAction}
 
-@anchored{TaskAction} ::= @code{task} @refer{BlockAction}
+@anchored{TaskAction} ::= @code{'task'} @refer{BlockAction}
 @end display
 @end float
 
@@ -256,7 +256,7 @@ The @code{nothing} action does nothing; and does not return a value; or, more ac
 @float BNF,nothingFig
 @caption{No Operation}
 @display
-@anchored{NullAction} ::= @code{nothing}
+@anchored{NullAction} ::= @code{'nothing'}
 @end display
 @end float
 
@@ -275,7 +275,7 @@ An action block consists of a sequence of actions, enclosed in braces
 @float BNF,blockActionFig
 @caption{Block Action}
 @display
-@anchored{BlockAction} ::= @{ @refer{Action} ; @dots{} ; @refer{Action} @}
+@anchored{BlockAction} ::= @code{'@{'} @refer{Action} @code{';'} @dots{} @code{';'} @refer{Action} @code{'@}'}
 @end display
 @end float
 
@@ -328,7 +328,7 @@ The @refer{LiftAction} creates a computation from an expression.
 @float BNF,liftActionFig
 @caption{Lift Action}
 @display
-@anchored{LiftAction} ::= @code{lift} @refer{Expression}
+@anchored{LiftAction} ::= @code{'lift'} @refer{Expression}
 @end display
 @end float
 
@@ -345,7 +345,7 @@ The @refer{ReturnAction} creates a computation from an expression.
 @float BNF,returnActionFig
 @caption{Return Action}
 @display
-@anchored{ReturnAction} ::= @code{return} @refer{Expression}
+@anchored{ReturnAction} ::= @code{'return'} @refer{Expression}
 @end display
 @end float
 
@@ -365,7 +365,7 @@ need not be of the same type -- although the exception types should be.
 @float BNF,bindActionFig
 @caption{Bind Action}
 @display
-@anchored{BindAction} ::= @refer{Pattern} @code{<-} @refer{Expression}
+@anchored{BindAction} ::= @refer{Pattern} @code{'<-'} @refer{Expression}
 @end display
 @end float
 
@@ -383,7 +383,7 @@ available to subsequent actions.
 @float BNF,defnActionFig
 @caption{Definition Action}
 @display
-@anchored{DefnAction} ::= @refer{Pattern} @code{=} @refer{Expression}
+@anchored{DefnAction} ::= @refer{Pattern} @code{'='} @refer{Expression}
 @end display
 @end float
 
@@ -451,7 +451,7 @@ next action to the end of the enclosing @refer{BlockAction}.
 @float BNF,assignctionFig
 @caption{Assignment Action}
 @display
-@anchored{AssignmentAction} ::= @refer{Variable} @code{:=} @refer{Expression}
+@anchored{AssignmentAction} ::= @refer{Variable} @code{':='} @refer{Expression}
 @end display
 @end float
 
@@ -464,8 +464,8 @@ The @refer{IfThenElseAction} is used to denote a conditional computation.
 @float BNF,condActionFig
 @caption{If Then Else Action}
 @display
-@anchored{IfThenElseAction} ::= @code{if} @refer{Expression} @code{then} @refer{Action} @code{else} @refer{Action}
-  | @code{if} @refer{Expression} @code{then} @refer{Action}
+@anchored{IfThenElseAction} ::= @code{'if'} @refer{Condition} @code{'then'} @refer{Action} @code{'else'} @refer{Action}
+  | @code{'if'} @refer{Condition} @code{'then'} @refer{Action}
 @end display
 @end float
 
@@ -499,7 +499,7 @@ repeats so long as some condition is satisfied.
 @float BNF,whileActionFig
 @caption{While Action}
 @display
-@anchored{WhileAction} ::= @code{while} @refer{Condition} @code{do} @refer{Action}
+@anchored{WhileAction} ::= @code{'while'} @refer{Condition} @code{'do'} @refer{Action}
 @end display
 @end float
 
@@ -521,7 +521,7 @@ The @refer{ForAction} is used to denote an iterative computation that is governe
 @float BNF,forActionFig
 @caption{For Action}
 @display
-@anchored{ForAction} ::= @code{for} @refer{Condition} @code{do} @refer{Action}
+@anchored{ForAction} ::= @code{'for'} @refer{Condition} @code{'do'} @refer{Action}
 @end display
 @end float
 
@@ -553,7 +553,7 @@ need to respond to exception situations.
 @float BNF,tryCatchActionFig
 @caption{Try Catch Action}
 @display
-@anchored{TryCatchAction} ::= @code{try} @refer{Action} @code{catch} @refer{Handler}
+@anchored{TryCatchAction} ::= @code{'try'} @refer{Action} @code{'catch'} @refer{Handler}
 @anchored{Handler} ::= @refer{BlockAction}
                 | @refer{Expression}
 @end display
@@ -576,7 +576,7 @@ of computation as a whole.
 @float BNF,throwctionFig
 @caption{Throw Action}
 @display
-@anchored{ThrowAction} ::= @code{throw} @refer{Expression}
+@anchored{ThrowAction} ::= @code{'throw'} @refer{Expression}
 @end display
 @end float
 
@@ -602,7 +602,7 @@ in which an action can be performed and its value returned.
 @float BNF,valofExpressionFig
 @caption{Valof Expression}
 @display
-@anchored{ValofExpression} ::= @code{valof} @refer{Expression}
+@anchored{ValofExpression} ::= @code{'valof'} @refer{Expression}
 @end display
 @end float
 
