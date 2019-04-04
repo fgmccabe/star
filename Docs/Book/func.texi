@@ -64,7 +64,7 @@ exploit both of these to the full.
 i.e., it is possible to write programs that violate the declarative
 principle. However, it is a @emph{functional-first} programming language: a
 declarative style is strongly encouraged. In this book we shall mostly
-focus on writing pure functional programs in @Star{}.
+focus on writing pure functional programs.
 
 @node Basics
 @section Basics
@@ -88,17 +88,16 @@ it is exactly zero and the third when it is strictly positive. These
 represent the three possible cases in the definition of the sign
 function.
 
-A @Star{} function may be built from any number of rewrite equations;
-however, they must all be contiguous within the same group of
-statements.
+A function may be built from any number of rewrite equations; however,
+they must all be contiguous within the same group of statements.
 
 Although it is good practice to ensure that equations in a function
-definition do not overlap, @Star{} will try the equations in a
-function definition in the order they are written in.@footnote{The
-@emph{Church Rosser Theorem} guarantees some independence on the order of
-the rewrite equations provided that the different rewrite equations
-that make up function definitions do not overlap. Usually, however, it
-is too fussy to @emph{require} programmers to ensure that their equations
+definition do not overlap, the equations in a function definition are
+tried in the order they are written in.@footnote{The @emph{Church
+Rosser Theorem} guarantees some independence on the order of the
+rewrite equations provided that the different rewrite equations that
+make up function definitions do not overlap. Usually, however, it is
+too fussy to @emph{require} programmers to ensure that their equations
 do not overlap; hence the reliance on ordering of equations.} We could
 have relied on this and written `sign` using:
 
@@ -168,9 +167,9 @@ When the pattern on the left hand side of a rewrite equation succeeds
 then the equation @emph{fires} and the value of the expression on the
 right hand side of the equation becomes the value of the function.
 
-There are many kinds of pattern in @Star{}; here, we look at three of
-the most common kinds of pattern, and in later sections, we look at
-additional forms of patterns.
+There are many kinds of pattern; here, we look at three of the most
+common kinds of pattern, and in later sections, we look at additional
+forms of patterns.
 
 @table @emph
 @item Variable Pattern
@@ -198,7 +197,7 @@ initial occurrence of the variable through to the whole of the right
 hand side of the equation.
 @item
 Variable patterns are the @emph{only} way that a variable can get a
-value in @Star{}.
+value.
 @end itemize
 
 Subsequent occurrences of variables in a pattern are semantically
@@ -234,8 +233,8 @@ them, not just if they are the same object in memory.
 @quotation NOTE
 not all types admit equality: for example, functions are not
 comparable; similarly, implementing equality for circular structures
-is problematic.@footnote{None of the standard @Star{} data types are
-circular in nature.}
+is problematic.@footnote{None of the standard data types are circular
+in nature.}
 @end quotation
 
 There is no automatic coercion of values to see if they @emph{might}
@@ -265,7 +264,7 @@ Note that conditions @emph{may} bind variables. This is why we do not state
 that conditions are boolean-valued expressions.
 @end quotation
 
-@Star{} has a normal complement of special conditional forms which we
+There is a normal complement of special conditional forms which we
 shall explore as we encounter the need. In the case of the equation:
 @example
 sign(X) where X>0
@@ -332,11 +331,11 @@ benefits: it certainly enables some very elegant programming
 techniques.
 
 Essentially for the reasons noted above, @Star{} does not use lazy
-evaluation; however, as we shall see, there are features of @Star{}
-that allow us to recover some of the power of lazy
-evaluation.@footnote{Even predominantly lazy languages like Haskell
-have features which enforce strict evaluation. It reduces to a
-question of which is the @emph{default} evaluation style.}
+evaluation; however, as we shall see, there are features that allow us
+to recover some of the power of lazy evaluation.@footnote{Even
+predominantly lazy languages like Haskell have features which enforce
+strict evaluation. It reduces to a question of which is the
+@emph{default} evaluation style.}
 
 The other dimension in evaluation order relates to the rewrite
 equations used to define functions. Here, @Star{} uses an in-order
@@ -347,8 +346,7 @@ exception being any default equation which is always tried last.
 @node Another look at types
 @section Another look at types
 Organizing data is fundamental to any programming language. @Star{}'s
-data types are organized around the algebraic data type. In addition,
-@Star{}'s supports quantified types of several varieties.
+data types are organized around the algebraic data type. 
 
 @node Quantifier types
 @subsection Quantifier types
@@ -366,8 +364,8 @@ scope. If a type variable is not bound within a particular type
 expression, it is considered @emph{free} in that type expression.
 
 A @emph{quantified type} is a type that introduces (i.e., binds) a
-type variable. There are two quantifiers in @Star{}: a universal
-quantifier and an existential quantifier.
+type variable. There are two quantifiers: a universal quantifier and
+an existential quantifier.
 
 The most common quantifier is the @emph{universal quantifier} and
 universally quantified types correspond closely to generic types in
@@ -540,13 +538,12 @@ the logical property that makes constructor functions useful for
 representing data.
 
 Of course, we are talking of a @emph{logical} property of constructor
-functions. Internally, when implementing functional languages like
-@Star{}, the values returned by constructor functions are represented
-using data laid out in memory -- just like in any other programming
-language.
+functions. Internally, when implementing functional languages, the
+values returned by constructor functions are represented using data
+laid out in memory -- just like in any other programming language.
 
-@Star{} actually uses a special type for constructor functions; so
-the correct type of @code{polar} is given by:
+Constructor functions have a special type; so the correct type of
+@code{polar} is given by:
 @example
 polar : (float,float)<=>point
 @end example
@@ -587,7 +584,7 @@ are strings. (We shall see shortly how to generalize this).
 Whenever you have a recursive type, its definition must always include
 one or more cases that are not recursive and which can form the base
 case(s). In that sense, an enumerated symbol like @code{sEmpty} plays
-a similar role in @Star{} as null does in other languages; except that
+a similar role that null does in other languages; except that
 @code{sEmpty} is only associated with the sTree type.
 
 We can use @code{sTree} to construct binary trees of string value; for
@@ -629,9 +626,8 @@ The @code{||} disjunction is a @emph{short-circuit} disjunction; much
 like @code{||} in languages like Java. Similarly, conjunction
 (@code{&&}) is also short-circuiting.
 @item
-Functions can be recursive. @Star{} permits @emph{mutual recursion}
-just as easily: there is no special requirement to order function
-definitions in a program.
+Functions can be recursive; including @emph{mutually recursive}: there
+is no special requirement to order function definitions in a program.
 @end itemize
 
 We can use @code{sTest} to check for the occurrence of particular
@@ -722,10 +718,9 @@ programs.
 Pragmatically, one of the important roles of closures is to capture
 any free variables that occur in the function. Most functional
 programming languages implement functions using closure
-structures. Most functional programming languages (including @Star{})
-do not permit direct manipulation of the closure structure: the only
-thing that you can @emph{do} with a closure structure is to use it as
-a function.
+structures. Most functional programming languages do not permit direct
+manipulation of the closure structure: the only thing that you can
+@emph{do} with a closure structure is to use it as a function.
 
 @quotation
 In the world of programming languages, there is a lot of confusion
@@ -754,8 +749,8 @@ let@{
 @} in isS
 @end example
 The region between the braces is a @emph{definition environment} and
-@Star{} allows @emph{any} definition statement to be in such an
-environment. We can define check using a let expression:
+@emph{any} definition statement may be in such an environment. We can
+define check using a let expression:
 @example
 check(T,S) => fTest(T,
     let@{
@@ -850,14 +845,8 @@ type @code{t}, @code{tree[t]} is also a type. There are infinitely
 many such types of course.
 
 The @code{all} quantifier is important: as in logic, there are two
-kinds of quantifiers in @Star{}'s type system: the @emph{universal}
-quantifier all and the @emph{existential} quantifier exists.
-
-@quotation
-@Star{} uses context to determine whether any given identifier is a
-type variable or a type name. Specifically, if an identifier is bound
-by a quantifier then it must refer to a type variable.
-@end quotation
+kinds of quantifiers: the @emph{universal} quantifier all and the
+@emph{existential} quantifier exists.
 
 The types of the two constructors introduced in the @code{tree} type
 definition are similarly quantified:
@@ -1229,8 +1218,8 @@ double(X) => X+X
 What type should @code{double} have? In particular, what should the
 type of @code{+} be? Most people would be reluctant to use different
 arithmetic operators for different types of numbers.@footnote{Although
-some languages -- such as SML -- do require this.} This is resolved in
-@Star{} by relying on contracts for the arithmetic operations.
+some languages -- such as SML -- do require this.} This is resolved by
+relying on contracts for the arithmetic operations.
 
 The result is that the most appropriate type signature for
 @code{double} is exquisitely tuned:
@@ -1334,8 +1323,7 @@ of defining and binding the variable @code{JJ} to the matched spouse.
 @node Special syntax for @code{option}al values
 @subsection Special syntax for @code{option}al values
 Of course, the code above @emph{is} kind of clumsy! There is a range
-of operators in @Star{} to make using @code{option} values more
-pleasant.
+of operators to make using @code{option} values more pleasant.
 
 The most important of these is the @code{^=} operator which combines
 the @code{.=} with the @code{some} match. Using this, the
@@ -1389,14 +1377,13 @@ some("P_spouse_name")
 (assuming that @code{nameOf} is defined for @code{Person}s.)
 
 Overall, the @code{option} type is part of an elegant approach to
-nullability that is easily incorporated into @Star{}'s (and similar)
-type system.
+nullability that is easily incorporated into the type system.
 
 @node A word about type inference
 @section A word about type inference
 We have seen some powerful forms of types in this chapter: recursive
 types defined using algebraic type definitions, generic types and even
-function types. Recall also that @Star{} only requires programmers to
+function types. Recall also that we only require programmers to
 explicitly declare the types of quantified variables and functions. It
 is worth pausing a little to see how this might be done.
 
@@ -1413,11 +1400,10 @@ us take a look at the expression:
 N-1
 @end example
 which is buried within the recursive call in @code{fact}. Although it
-looks like a special operator, @Star{} does not treat arithmetic
-expressions in a special way; the @code{-} function is just a function
-from numbers to numbers; its type is given by:@footnote{We put the (-)
-in parentheses to highlight the use of an operator as a normal
-symbol.}
+looks like a special operator, arithmetic expressions are not special;
+the @code{-} function is just a function from numbers to numbers; its
+type is given by:@footnote{We put the (-) in parentheses to highlight
+the use of an operator as a normal symbol.}
 @example
 (-) : all t ~~ arith[t] |: (t,t)=>t
 @end example
@@ -1481,7 +1467,7 @@ those occurrences must also be consistent with integer; and if an
 occurrence is not consistent then the compiler will report an error --
 a given expression may only have one type!
 
-The bottom line is that @Star{}'s types are based on a combination of
+The bottom line is that types are based on a combination of
 unification for comparing types and a series of type rules that have
 the effect of introducing @emph{constraints} on types based on which
 language features are present in the text. The type checker is really
@@ -1494,10 +1480,10 @@ these constraints is sufficient for robustly type checking programs.
 
 A sharp-eyed reader will notice that @Star{}'s type system is
 different in nature to that found (say) in OO languages. In @Star{}'s
-type system, types are considered to be consistent in @Star{} if they
-are @emph{equal}. This is quite different to the notion of consistency
-in OO languages where an argument to a function is consistent if its
-type is a @emph{sub-type} of the expected type.
+type system, types are considered to be consistent if they are
+@emph{equal}. This is quite different to the notion of consistency in
+OO languages where an argument to a function is consistent if its type
+is a @emph{sub-type} of the expected type.
 
 However, we would note that the apparent restriction to the type
 system imposed by type equality is much less severe in practice than
@@ -1506,9 +1492,9 @@ incorporate some of the same restrictions.
 
 @node Why is type inference restricted?
 @subsection Why is type inference restricted?
-We have stated a few times that @Star{}'s type system only infers
-types of variables that are @emph{not} quantified. In fact, it is
-fairly straightforward to build a type inference system that can infer
+We have stated a few times that the type system only infers types of
+variables that are @emph{not} quantified. In fact, it is fairly
+straightforward to build a type inference system that can infer
 quantified types. For example, such a complete type inference system
 would infer from these equations:
 
