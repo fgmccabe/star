@@ -183,7 +183,7 @@ followed by the argument patterns -- as introduced in the appropriate
 @float BNF,positionalConstructorPtnFig
 @caption{Positional Constructor Pattern}
 @display
-@anchored{PositionalConstructorPattern}::= @refer{Identifier} @code{(} @refer{Pattern}, @dots{}, @refer{Pattern}@code{)}
+@anchored{PositionalConstructorPattern}::= @refer{Identifier} @code{'('} @refer{Pattern}@code{','} @dots{}@code{','} @refer{Pattern}@code{')'}
 @end display
 @end float  
 
@@ -215,9 +215,9 @@ no constraints on the attributes of the record.
 @float BNF,recordConstructorPtnFig
 @caption{Record Constructor Pattern}
 @display
-@anchored{RecordConstructorPattern} ::= @refer{Identifier} @code{@{} @refer{AttributePattern}. @dots{} @refer{AttributePattern}@code{@}}
+@anchored{RecordConstructorPattern} ::= @refer{Identifier} @code{'@{'} @refer{AttributePattern}@code{'.'} @dots{} @code{'.'} @refer{AttributePattern}@code{'@}'}
 
-@anchored{AttributePattern} ::= @refer{Identifier} @code{=} @refer{Pattern}
+@anchored{AttributePattern} ::= @refer{Identifier} @code{'='} @refer{Pattern}
 @end display
 @end float
 
@@ -230,7 +230,7 @@ A tuple pattern consists of a tuple with patterns as the elements of the tuple.
 @float BNF,tuplePtnFig
 @caption{Tuple Pattern}
 @display
-@anchored{TuplePattern}::= @code{(} @refer{Pattern}, @dots{}, @refer{Pattern}@code{)}
+@anchored{TuplePattern}::= @code{'('} @refer{Pattern}@code{','} @dots{}@code{','} @refer{Pattern}@code{')'}
 @end display
 @end float  
 
@@ -266,7 +266,7 @@ regular record pattern, except that there is no label prefixed to it.
 @float BNF,anonRecordPtnFig
 @caption{Anonymous Record Pattern}
 @display
-@anchored{AnonymousRecordPattern} ::= @code{@{} @refer{AttributePattern}. @dots{} @refer{AttributePattern}@code{@}}
+@anchored{AnonymousRecordPattern} ::= @code{'@{'} @refer{AttributePattern}@code{'.'} @dots{} @code{'.'} @refer{AttributePattern}@code{'@}'}
 @end display
 @end float
 
@@ -312,7 +312,7 @@ Guarded patterns are useful in enhancing the specificity of patterns
 @float BNF,guardedPtnFig
 @caption{Guarded Pattern}
 @display
-@anchored{GuardedPattern} ::= @refer{Pattern} @code{where} @refer{Condition}
+@anchored{GuardedPattern} ::= @refer{Pattern} @code{'where'} @refer{Condition}
 @end display
 @end float
 
@@ -334,9 +334,9 @@ contract (see @ref{streamContractProg}) to match sequences of values.
 @float BNF,sequencePtnFig
 @caption{Sequence Pattern}
 @display
-@anchored{SequencePattern} ::= @code{[} @refer{PtnSequence} @code{]}
+@anchored{SequencePattern} ::= @code{'['} @refer{PtnSequence} @code{']'}
 
-@anchored{PtnSequence} ::= @refer{Pattern}[@code{..,}@refer{Pattern}], @dots{},@refer{Pattern}[@code{,..}@refer{Pattern}
+@anchored{PtnSequence} ::= @refer{Pattern}[@code{'..,'}@refer{Pattern}]@code{','} @dots{} @code{','} @refer{Pattern}[@code{',..'}@refer{Pattern}
 @end display
 @end float
 

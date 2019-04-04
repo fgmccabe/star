@@ -319,7 +319,7 @@ anonymous records}.
 There are three primary forms of @refer{AlgebraicConstructor}s:
 @itemize
 @item
-Enumerated Symbols
+@refer{EnumeratedSymbol}s
 @item
 @refer{PositionalConstructorLiteral} terms, and
 @item
@@ -385,7 +385,7 @@ constructors that are introduced in an algebraic
 @float BNF,positionalConstructorFig
 @caption{Positional Constructor Literal}
 @display
-@anchored{PositionalConstructorLiteral} ::= @refer{Identifier}@code{(}@refer{Expression}@code{,}...@code{,}@refer{Expression}@code{)}
+@anchored{PositionalConstructorLiteral} ::= @refer{Identifier}@code{'('}@refer{Expression}@code{','} @dots{} @code{','}@refer{Expression}@code{')'}
 @end display
 @end float
 The valid types of the arguments to a @refer{PositionalConstructorLiteral} are determined by its definition within the appropriate type definition.
@@ -426,10 +426,10 @@ constrains the types of the expressions associated with the fields.
 @caption{Record Literal}
 @display
 @anchored{RecordLiteral}::=@refer{Record} | @refer{ThetaRecord}
-@anchored{Record} ::= @refer{Identifier}@{. @refer{RecordElement}@dots{}@refer{RecordElement} .@}
-@anchored{RecordElement} ::= @refer{Identifier} = @refer{Expression}
-| @refer{Identifier} := @refer{Expression}
-| @code{type} @refer{Identifier} = @refer{Type}
+@anchored{Record} ::= @refer{Identifier}@code{'@{.'} @refer{RecordElement} @refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
+@anchored{RecordElement} ::= @refer{Identifier} @code{'='} @refer{Expression}
+| @refer{Identifier} @code{':='} @refer{Expression}
+| @code{'type'} @refer{Identifier} @code{'='} @refer{Type}
 @end display
 @end float
 
@@ -481,7 +481,7 @@ a record value.
 @float BNF,recordAccessFig
 @caption{Record Access}
 @display
-@anchored{RecordAccess}::=@refer{Expression} . @refer{Identifier}
+@anchored{RecordAccess}::=@refer{Expression} @refer{Terminator} @refer{Identifier}
 @end display
 @end float
 
@@ -538,7 +538,7 @@ labeled and anonymous records.}
 @float BNF,thetaRecordFig
 @caption{Theta Record}
 @display
-@anchored{ThetaRecord} ::= @refer{Identifier}@{ @refer{Definition}@dots{}@refer{Definition} @}
+@anchored{ThetaRecord} ::= @refer{Identifier}@code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
 @end display
 @end float
 
@@ -607,7 +607,7 @@ omitted.
 @float BNF,tupleFig
 @caption{Tuple Literal}
 @display
-@anchored{TupleLiteral}::= ( @refer{Expression}, @dots{}, @refer{Expression} )
+@anchored{TupleLiteral}::= @code{'('} @refer{Expression}@code{','} @dots{} @code{','} @refer{Expression} @code{')'}
 @end display
 @end float
 
@@ -696,8 +696,8 @@ Like the normal @refer{RecordLiteral}, there are two variants: an
 @float BNF,anonRecordFig
 @caption{Anonymous Record Literal}
 @display
-@anchored{AnonymousRecord}::= @{. @refer{RecordElement}. @dots{} @refer{RecordElement} .@}
-@anchored{AnonymousThetaRecord}::= @{ @refer{Definition}. @dots{} @refer{Definition} @}
+@anchored{AnonymousRecord}::= @code{'@{.'} @refer{RecordElement}@refer{Terminator} @dots{} @refer{Terminator} @refer{RecordElement} @code{'.@}'}
+@anchored{AnonymousThetaRecord}::= @code{'@{'} @refer{Definition}@refer{Terminator} @dots{} @refer{Terminator} @refer{Definition} @code{'@}'}
 @end display
 @end float
 
@@ -724,7 +724,7 @@ arguments.
 @float BNF,applicationFig
 @caption{Function Application Expression}
 @display
-@anchored{ApplicativeExpression} ::= @refer{Expression}(@refer{Expression},@dots{},@refer{Expression})
+@anchored{ApplicativeExpression} ::= @refer{Expression} @code{'('} @refer{Expression}@code{','} @dots{} @code{','} @refer{Expression}@code{')'}
 @end display
 @end float
 
@@ -769,7 +769,7 @@ other expressions and actions.
 @float BNF,conditionalExpressionFig
 @caption{Conditional Expression}
 @display
-@anchored{ConditionalExpression} ::= @code{(}@refer{Condition} @code{?} @refer{Expression} @code{||} @refer{Expression}@code{)}
+@anchored{ConditionalExpression} ::= @code{'('}@refer{Condition} @code{'?'} @refer{Expression} @code{'||'} @refer{Expression}@code{')'}
 @end display
 @end float
 
@@ -822,8 +822,7 @@ auxiliary definitions.
 @float BNF,letExpressionFig
 @caption{Let Expression}
 @display
-@anchored{LetExpression}::=@code{let} @refer{AnonymousRecord} @code{in}
-@refer{Expression}
+@anchored{LetExpression}::=@code{'let'} @refer{AnonymousRecord} @code{'in'} @refer{Expression}
 @end display
 @end float
 
@@ -924,7 +923,7 @@ with a @refer{Type}. The annotation amounts to an assertion that the
 @float BNF,typeAnnotationExpressionFig
 @caption{Type Annotation Expressions}
 @display
-@anchored{TypeAnnotationExpression} ::= @code{(}@refer{Expression} @code{:} @refer{Type}@code{)}
+@anchored{TypeAnnotationExpression} ::= @code{'('}@refer{Expression} @code{':'} @refer{Type}@code{')'}
 @end display
 @end float
 
@@ -945,7 +944,7 @@ analogously to the @refer{TypeAnnotation}s found in
 @float BNF,typeCoercionFig
 @caption{Type Coercion}
 @display
-@anchored{TypeCoercion} ::= @code{(}@refer{Expression} @code{::} @refer{Type}@code{)}
+@anchored{TypeCoercion} ::= @refer{Expression} @code{'::'} @refer{Type}
 @end display
 @end float
 
@@ -1001,9 +1000,9 @@ notation.
 @float BNF,sequenceExpressionFig
 @caption{Sequence Expressions}
 @display
-@anchored{SequenceExpression} ::= @code{[} @refer{ExpSequence} @code{]}
+@anchored{SequenceExpression} ::= @code{'['} @refer{ExpSequence} @code{']'}
 
-@anchored{ExpSequence} ::= @refer{Expression}[@code{..,}@refer{Expression}], @dots{},@refer{Expression}[@code{,..}@refer{Expression}
+@anchored{ExpSequence} ::= @refer{Expression}[@code{'..,'}@refer{Expression}]@code{','} @dots{} @code{','} @refer{Expression}[@code{',..'}@refer{Expression}
 @end display
 @end float
 

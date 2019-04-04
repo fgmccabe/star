@@ -103,9 +103,8 @@ being specific about the type itself; for this purpose we use
 @refer{TypeVariable}s.
 
 A type variable a type identifier that is distinguished by being
-introduced using an explicit quantifier -- either a
-@ref{UniversalQuantifier} or a @ref{ExistentialQuantifier} . The type
-expression:
+introduced using an explicit quantifier -- either @code{all} or
+@code{exist}.  The type expression:
 @example
 all t ~~ cons[t]
 @end example
@@ -127,14 +126,14 @@ there are three possibilities: the type variable may be identified
 with (equal to) another type; the type variable may be bound by a
 universal quantifier or by an existential quantifier.
 
-A universally quantified type (see @ref{UniversalQuantifier}) denotes a type
+A universally quantified type (see @ref{UniversalType}) denotes a type
 that allows all possible instantiations for the type variable. For
 example, function types often involve universal types. A universally
 typed function is expected to work @emph{for all values} of the type
 variable -- which, in turn, means that the function definition can
 make no assumptions about the actual type.
 
-Existentially quantified types (see @ref{ExistentialQuantifier}) are used to
+Existentially quantified types (see @ref{ExistentialType}) are used to
 denote @emph{abstract types}; i.e., the existential quantifier signals
 that there is a type that should be treated as an opaque @emph{black
 box}.
@@ -167,12 +166,13 @@ signals that the value is a function.
   | @refer{RecordType}
   | @refer{ReferenceType}
   | @refer{FunctionType} | @refer{ConstructorType}
-  | @refer{TypeQuantifier} @code{~~} @refer{Type}
+  | @refer{QuantifiedType}
   | @refer{TypeConstraint} @code{|:} @refer{Type}
   | @code{(} @refer{Type} @code{)}
   | @refer{EncapsulatedType}
 
-@anchored{TypeQuantifier} ::= @refer{UniversalQuantifier} | @refer{ExistentialQuantifier}
+@anchored{QuantifiedType} ::= @refer{UniversalType} | @refer{ExistentialType}
+
 @end display
 @end float
 
@@ -596,7 +596,9 @@ substitutions of a type variable.
 @float BNF,universalTypeFig
 @caption{Universal Type Expression}
 @display
-@anchored{UniversalQuantifier} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} 
+@anchored{UniversalType} ::= @refer{UniversalQuantifier} @refer{Type}
+
+@anchored{UniversalQuantifier} ::= @code{all} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~}
 
 @anchored{BoundType} ::= @refer{Identifier} | @refer{Identifier} @code{/} @refer{Decimal}
 @end display
@@ -642,7 +644,7 @@ all x,y ~~ (x,y)=>tp
 
 @quotation TIP
 Higher kinded type variables are most commonly used in the context of
-@refer{Contract} definitions.
+@refer{ContractDefinition}s.
 @end quotation
 
 The compiler will infer the type of expressions; but does @emph{not}
@@ -687,7 +689,7 @@ quantifiers apply to type expressions.
 @float BNF,existentialTypeFig
 @caption{Existential Type Expression}
 @display
-@anchored{ExistentialQuantifier} ::= @code{exists} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} 
+@anchored{ExistentialType} ::= @code{exists} @refer{BoundType} @comma{}@dots{}@comma{}@refer{BoundType} @code{~~} @refer{Type}
 @end display
 @end float
 

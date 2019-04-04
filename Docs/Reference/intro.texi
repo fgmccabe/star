@@ -64,14 +64,14 @@ meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
 @shortcaption{MetaGrammar}
 @display
 @var{MetaGrammar} ::= @var{Production} @dots{} @var{Production}
-@var{Production} ::= @var{NonTerminal} @code{::=} @var{Body}
-@var{Production} ::+= @var{NonTerminal} @code{::+=} @var{Body}
-@var{Body} ::= @var{Quoted} | @var{NonTerminal} | @var{Choice} | @var{Optional} | @var{Sequence} | ( @var{Body} )
+@var{Production} ::= @var{NonTerminal} @code{'::='} @var{Body}
+@var{Production} ::+= @var{NonTerminal} @code{'::+='} @var{Body}
+@var{Body} ::= @var{Quoted} | @var{NonTerminal} | @var{Choice} | @var{Optional} | @var{Sequence} | @code{'('} @var{Body} @code{')'}
 @var{Quoted} ::= '@var{Characters}'
 @var{NonTerminal} ::= @var{Identifier}
-@var{Choice} ::= @var{Body} @code{|} @dots{} @code{|} @var{Body}
+@var{Choice} ::= @var{Body} @code{'|'} @dots{} @code{'|'} @var{Body}
 @var{Optional} ::= [ @var{Body} ]
-@var{Sequence} ::= @var{Body}  @var{op} @dots{} @var{op} @var{Body} [+]
+@var{Sequence} ::= @var{Body}  @var{op} @dots{} @var{op} @var{Body} [@code{'+'}]
 @end display
 @end float
 
@@ -80,7 +80,7 @@ frequently and may not be standard in BNF-style grammars. For example
 the rules for actions contain:
 
 @example
-@var{Action} ::= @{ @var{Action} ; .. ; @var{Action} @}
+@var{Action} ::= '@{' @var{Action} ';' .. ';' @var{Action} '@}'
 @end example
 
 This grammar rule defines an @var{Action} as a possibly empty sequence of

@@ -32,64 +32,7 @@ All rights reserved.
 @node Top
 @top Star Reference
 
-@macro Star
-@strong{Star}
-@end macro
-
-@ifinfo
-@macro turnstile
-|-
-@end macro
-@end ifinfo
-@ifnotinfo
-@ifnottex
-@macro turnstile
-@U{22a6}
-@end macro
-@end ifnottex
-@end ifnotinfo
-
-@iftex
-@macro turnstile
-|-
-@end macro
-@end iftex
-
-@ifinfo
-@macro noteq
-!=
-@end macro
-@end ifinfo
-@iftex
-@macro noteq
-!=
-@end macro
-@end iftex
-
-@ifnotinfo
-@ifnottex
-@macro noteq
-@U{2260}
-@end macro
-@end ifnottex
-@end ifnotinfo
-
-@macro typeprod{E,Exp,T}
-@var{\E\} @turnstile{} \Exp\:\T\
-@end macro
-
-@macro typesafe{E,Exp}
-@var{\E\} @turnstile{} @emph{safe(}\Exp\@emph{)}
-@end macro
-
-@macro anchored{T}
-@anchor{\T\}
-@var{\T\}
-@end macro
-
-@macro refer{R}
-@ref{\R\}
-@end macro
+@include macros.texi
 
 @noindent
 This is the 
