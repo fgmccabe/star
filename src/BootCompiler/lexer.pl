@@ -172,7 +172,7 @@ backslashRef(St,St,'e','\e').
 backslashRef(St,St,'t','\t').
 backslashRef(St,St,'n','\n').
 backslashRef(St,St,'r','\r').
-backslashRef(St,Nxt,'u',Hx) :- hexChar(St,Nxt,0,Hx).
+backslashRef(St,Nxt,'u',Ch) :- hexChar(St,Nxt,0,Hx), string_codes(SS,[Hx]),string_chars(SS,[Ch]).
 backslashRef(St,St,Ch,Ch).
 
 hexChar(St,NxSt,SF,SF) :- nextSt(St,NxSt,';').
