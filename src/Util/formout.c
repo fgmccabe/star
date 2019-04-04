@@ -280,6 +280,9 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
   logical encounteredSign = False;
   int zeroDigits = countSignificants(format, 0, formatLen, "0 ");
 
+  char signFmt = (uniIndexOf(format, formatLen, 0, '-') >= 0 ? '-' :
+                  uniIndexOf(format, formatLen, 0, '+') >= 0 ? '+' : ' ');
+
   if (precision > formSigDigits)
     return Error;
 
@@ -325,8 +328,32 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
         if (px >= 0) { // more of the raw result to write out
           attachChar(out, pos, outLen, digits[px]);
           px--;
-        } else if (zeroDigits > 0)
-          attachChar(out, pos, outLen, ' ');
+        } else if (zeroDigits > 0) {
+          switch (signFmt) {
+            case '-':
+              if (isSigned) {
+                attachChar(out, pos, outLen, '-');
+                isSigned = False;
+                signFmt = ' ';
+              } else {
+                attachChar(out, pos, outLen, ' ');
+              }
+              break;
+            case '+':{
+              if (isSigned) {
+                attachChar(out, pos, outLen, '-');
+                isSigned = False;
+              } else {
+                attachChar(out, pos, outLen, '+');
+              }
+              signFmt = ' ';
+              break;
+            }
+            default:
+              attachChar(out, pos, outLen, ' ');
+              break;
+          }
+        }
 
         zeroDigits--;
         break;
@@ -346,6 +373,10 @@ formatDigits(logical isSigned, const char *digits, int64 precision, const char *
           px--;
         }
         break;
+      case 'U':
+        if (px >= 0) {
+
+        }
       case 'e':
       case 'E':
       case 'L':
