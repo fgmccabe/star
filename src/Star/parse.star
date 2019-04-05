@@ -128,23 +128,28 @@ star.parse{
   digit = _sat(isDigit).
 
   numeral:parser[list[integer],integer].
-  numeral = prse{ D<-digit ^^ digitVal(D) }.
+  numeral = digit >>= (D) => return digitVal(D).
 
   public natural:parser[list[integer],integer].
   natural = _pplus(numeral,(d,s)=>s*10+d).
 
   public decimal:parser[list[integer],integer].
-  decimal = prse{ natural || ("-" ; N<-natural ^^ -N) }.
+  decimal = (_tk(0c-) >>= (_) => natural >>= (N) => return -N) ++ natural.
 
   public real:parser[list[integer],float].
-  real = prse{ (M<-natural; (("."; F<-fraction(M::float,0.1); E<-exponent^^(F*E))
-             || ""^^(M::float)))
-         || ("-"; N<-real ^^(-N))}.
+  real = (natural >>= (M) =>
+	    ((_tk(0c.) >>= (_) =>
+		fraction(M::float,0.1) >>= (F) =>
+		exponent >>= (E) => return F*E) +++ (return M::float))) +++
+  (_tk(0c-) >>= (_) =>
+     real >>= (N) => return -N).
 
   fraction:(float,float) => parser[list[integer],float].
-  fraction(SoFar,Scale) => prse{ (D<-numeral; fraction(SoFar+Scale*(D::float),Scale*0.1))
-                        || ""^^SoFar }.
+  fraction(SoFar,Scale) =>
+    (numeral >>= (D) => fraction(SoFar+Scale*(D::float),Scale*0.1)) +++
+    (return SoFar).
 
   exponent:parser[list[integer],float].
-  exponent = prse{ "e"; E<-decimal ^^ 10.0**(E::float) }.
+  exponent = (_tk(0ce) >>= (_) =>
+		decimal >>= (E) => return 10.0**(E::float)) +++ (return 1.0).
 }

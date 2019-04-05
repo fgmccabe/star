@@ -152,9 +152,9 @@ star.uri{
   isMark(0c!) => true.
   isMark(0c~) => true.
   isMark(0c*) => true.
-  isMark(0c') => true.
-  isMark(0c() => true.
-  isMark(0c)) => true.
+  isMark(0c\') => true.
+  isMark(0c\() => true.
+  isMark(0c\)) => true.
   isMark(_) => false.
 
   isUnreserved:(integer) => boolean.
@@ -165,7 +165,7 @@ star.uri{
   isDelim(0c>) => true.
   isDelim(0c#) => true.
   isDelim(0c%) => true.
-  isDelim(0c") => true.
+  isDelim(0c\") => true.
   isDelim(_) => false.
 
   -- Implement equality for URIs
