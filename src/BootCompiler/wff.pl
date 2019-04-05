@@ -16,7 +16,6 @@
 	      isConjunct/4,isDisjunct/4,
 	      isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,
 	      isAbstraction/4,isListAbstraction/4,
-	      isParseTerm/3,isNTLookAhead/3,
 	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
@@ -308,9 +307,6 @@ isFieldAcc(Trm,Lc,R,Fld) :-
   isBinary(Trm,Lc,".",R,F),
   isIden(F,Fld).
 
-isNTLookAhead(Trm,Lc,N) :-
-  isUnary(Trm,Lc,"+",N).
-
 isVarRef(Trm,Lc,In) :-
   isUnary(Trm,Lc,"!",In).
 
@@ -419,6 +415,3 @@ isActionSeq(A,Lc,S1,S2) :-
 isActionSeq(A,Lc,S) :-
   isUnary(A,Lc,";",S).
 
-isParseTerm(A,Lc,Stmt) :-
-  isApply(A,Lc,name(_,"prse"),Args),
-  isBraceTuple(Args,_,[Stmt]).

@@ -4,7 +4,6 @@
 :- use_module(wff).
 :- use_module(macro).
 :- use_module(do).
-:- use_module(parse).
 :- use_module(dependencies).
 :- use_module(freshen).
 :- use_module(freevars).
@@ -483,6 +482,21 @@ typeOfPtn(integer(Lc,Ix),Tp,Env,Env,intLit(Ix,IntTp),_Path) :- !,
 typeOfPtn(float(Lc,Ix),Tp,Env,Env,floatLit(Ix,FltTp),_Path) :- !,
   findType("float",Lc,Env,FltTp),
   checkType(float(Lc,Ix),FltTp,Tp,Env).
+typeOfPtn(Term,Tp,Env,Ev,Exp,_Path) :-
+  isUnary(Term,Lc,"-",Arg), % handle unary minus
+  (Arg=integer(_,Ix) ->
+    findType("integer",Lc,Env,IntTp),
+    checkType(Arg,IntTp,Tp,Env),
+    Env=Ev,
+    Ng is -Ix,
+    Exp = intLit(Ng,IntTp) ;
+  Arg=float(_,Dx) ->
+    findType("float",Lc,Env,FltTp),
+    checkType(Arg,FltTp,Tp,Env),
+    Env=Ev,
+    Ng is -Dx,
+   Exp = floatLit(Ng,FltTp) ;
+   fail).
 typeOfPtn(string(Lc,Ix),Tp,Env,Env,stringLit(Ix,StrTp),_Path) :- !,
   findType("string",Lc,Env,StrTp),
   checkType(string(Lc,Ix),StrTp,Tp,Env).
@@ -689,10 +703,6 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isValof(Term,Lc,Ex),!,
   unary(Lc,"_perform",Ex,VV),
   typeOfExp(VV,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isParseTerm(Term,_,PP),!,
-  genParser(PP,Action),
-  typeOfExp(Action,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   (hasPromotion(Term) ->
