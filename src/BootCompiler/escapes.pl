@@ -49,6 +49,8 @@ escapeType("floor",funType(tupleType([type("star.core*float")]),type("star.core*
 escapeType("ceil",funType(tupleType([type("star.core*float")]),type("star.core*float"))).
 escapeType("integral",funType(tupleType([type("star.core*float")]),type("star.core*boolean"))).
 escapeType("_irand",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
+escapeType("_random",funType(tupleType([]),type("star.core*float"))).
+escapeType("_seed",funType(tupleType([type("star.core*integer")]),tupleType([]))).
 escapeType("_ldexp",funType(tupleType([type("star.core*float"),type("star.core*integer")]),type("star.core*float"))).
 escapeType("_frexp",funType(tupleType([type("star.core*float")]),tupleType([type("star.core*float"),type("star.core*integer")]))).
 escapeType("_modf",funType(tupleType([type("star.core*float")]),tupleType([type("star.core*float"),type("star.core*integer")]))).
@@ -270,6 +272,8 @@ isEscape("floor").
 isEscape("ceil").
 isEscape("integral").
 isEscape("_irand").
+isEscape("_random").
+isEscape("_seed").
 isEscape("_ldexp").
 isEscape("_frexp").
 isEscape("_modf").
