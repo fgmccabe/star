@@ -10,7 +10,26 @@ are also first-class values -- showing up as @refer{AnonymousRecord}s.
 @node Package Structure
 @section Package Structure
 
-The top-level compilation unit is a package.
+A @refer{Package} consists of the identification of the package and a set of @refer{Definition}s enclosed in braces. For example, the text:
+@example
+hello@{
+  hello() => "hello".
+@}
+@end example
+
+defines a @code{package} -- called @code{hello} -- that contains a
+single function -- also called @code{hello}.
+
+The body of a @refer{Package} may contain @refer{Definition}s which
+may also include @refer{ImportStatement}s.
+
+A @refer{Package} consists of all the elements that are defined in a package source:
+@itemize
+@item
+The types defined with the source unit
+@item
+The functions and other variables defined
+@end itemize
 
 @float BNF,packageFig
 @caption{Package Structure}
@@ -20,6 +39,15 @@ The top-level compilation unit is a package.
 @anchored{PackageName} ::= @refer{Identifier} @refer{Terminator} @dots{} @code{'.'} @refer{Identifier}
 @end display
 @end float
+
+
+@node Managing Exposed Elements of a Package
+@subsection Managing Exposed Elements of a Package
+By default, all the elements that are defined in a package are
+@emph{not} exported as part of the package. Only those elements that
+are marked @code{public} will be exported.@footnote{An element in a
+package may be marked @code{private} -- which will also ensure that it
+is not visible outside the package.}
 
 @node Theta Environment
 @section Theta Environment
