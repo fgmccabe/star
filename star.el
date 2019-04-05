@@ -99,6 +99,7 @@
        (modify-syntax-entry ?\{ "(}" table)
        (modify-syntax-entry ?\} "){" table)
        (modify-syntax-entry ?_ "w" table)
+       (modify-syntax-entry ?\\ "\\" table)
        table))
 
 ;;; Initialise the key map
