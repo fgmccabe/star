@@ -79,6 +79,17 @@ Star Reference} by F.G. McCabe.
 
 @include ocean.texi
 
+@c @include monads.texi
+
+@c @include concurrency.texi
+
+@c @include policy.texi
+
+@c @include market.texi
+
+@c @include arewedone.texi
+
+
 @node Concept index
 @unnumbered Concept index
 @printindex cp

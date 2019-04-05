@@ -1,0 +1,119 @@
+@node Catalogs and Repositories
+@appendix Catalogs and Repositories
+
+Catalogs and repositories are responses to two related but distinct
+problems: how to organize and access sources of programs and how to
+organize access to executable code.
+
+@node Catalogs and Sources
+@section Catalogs and Sources
+
+When a package imports another package the source merely contains a
+statement that indicated which package is required:
+
+@example
+import star.json.
+@end example
+
+In order to determine what actual package this refers to there are two
+systems that play a role: the @emph{catalog} system and the
+@emph{repository} system.
+
+The primary purpose of the catalog is to map package identifiers to
+package URIs; which in turn identifies the actual resource.
+
+When a program is compiled it is compiled in the context of a catalog;
+which, by default, takes the form of a JSON file.
+
+@node Catalogs
+@subsection Catalogs
+
+A catalog is a mapping from logical names to URIs. The @Star{} language system uses this mapping to locate source files and compiled code when the corresponding resource is @code{import}ed by name.
+
+Catalogs offer an additional level of indirection between a name and
+the named entity. This indirection can be used, for example, to
+implement versioned access to resources. In addition, catalogs serve
+the role of pulling together the resources that a program or
+application needs into a coherent set.
+
+The standard format of a @code{catalog} is in JSON. For example, a
+fragment of the catalog for the standard core library is:
+
+@example
+@{
+  "content": @{
+    "star": "star.star",
+    "star.arith": "arith.star",
+    "star.action": "action.star",
+    "star.boot": "boot.star",
+    "star.cmdOpts": "cmdOpts.star",
+    @dots{}
+  @},
+  "version": "1.0.0"
+@}
+@end example
+
+We can also give a @Star{} type definition for the catalog:
+@float Program,catalogType
+@caption{The @code{catalog} Type}
+@example
+public catalog ::= catalog@{
+  base : uri.
+  parent:option[catalog].
+  vers:option[version].
+  entries:map[string,uri].
+@}
+@end example
+@end float
+
+The elements of the @code{catalog} @refer{RecordConstructor} are:
+@itemize
+@item @code{base}
+@item @code{parent}
+@item @code{vers}
+@item @code{entries}
+@end itemize
+
+
+@node Accessing Packages Using Catalogs
+@subsection Accessing Packages Using Catalogs
+@cindex accessing packages with catalogs
+@cindex catalog,accessing packages with
+The process of accessing a package involves:
+@enumerate
+@item
+If the package is identified by name, the URI of the package is looked up within the @emph{current} catalog.
+@enumerate
+@item If the name is not present in the catalog, a fall-back catalog is searched if available.
+@item If the name is not present, and there is no fall-back, exit with an error.
+@end enumerate
+@item The located URI is resolved against the URI of the current catalog. This allows catalogs themselves to contain relative URIs where possible.  This is the so-called target URI.
+
+@item The target URI is dereferenced -- using a transducer -- and accessed. If the resource does not exist, or is not valid, exit with an error.
+@item The catalog uri:
+@example
+"../catalog"
+@end example
+is resolved against the URI of the package containing the reference.
+@enumerate
+@item If a catalog exists in this location then that catalog is used to resolve references within the target resource.
+@item If there is no catalog, then a catalog _may_ be synthesized by @emph{exploring} the space around the target URI.
+@end enumerate
+@end enumerate
+
+@node Multiple Versions of a Package
+@subsection Multiple Versions of a Package
+A source and/or code repository may contain multiple versions of a
+package. However, only one version of a given package may be imported
+by a given package.
+
+As a result, it is sufficient for the catalog to refer to a
+version-specific URI for each package in its catalog.
+
+However, the catalog itself may have a version identifier -- this refers to the version ....
+
+However specified, the versions that a package is compiled against are
+fixed during the compilation of the package. I.e., when a package is
+compiled, it is compiled against specific versions of imported
+packages. When the package is later executed, the specific versions
+that were accessed at compile time are also used at run-time.

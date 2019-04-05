@@ -63,6 +63,7 @@ F.G. McCabe).
 
 * Numbers::
 * Strings::
+* Source Catalogs::
 * Concept index::
 * Function index::
 * List of Syntax Rules::
@@ -102,6 +103,8 @@ F.G. McCabe).
 @c @include io.texi
 
 @c @include system.texi
+
+@include catalog.texi
 
 @node Concept index
 @unnumbered Concept index
