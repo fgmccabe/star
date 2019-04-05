@@ -8,6 +8,7 @@
 #include <tpl.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <globals.h>
 #include "ooio.h"
 #include "engine.h"
 #include "arithP.h"
@@ -656,8 +657,23 @@ ReturnStatus g__irand(processPo P, ptrPo tos) {
   return ret;
 }
 
+ReturnStatus g__rand(processPo P, ptrPo tos) {
+  double rnd = random()/(double)LARGE_INT32;
+
+  ReturnStatus ret = {.ret=Ok, .result=(termPo) allocateFloat(processHeap(P), rnd)};
+  return ret;
+}
+
+ReturnStatus g__seed(processPo P,ptrPo tos){
+  srandom((unsigned int)integerVal(tos[0]));
+  ReturnStatus ret = {.ret=Ok, .result=unitEnum};
+  return ret;
+}
+
 integer randomInt() {
   integer rnd = random();
 
   return rnd;
 }
+
+

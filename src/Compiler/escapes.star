@@ -52,6 +52,8 @@ star.comp.escapes{
   escapeType("ceil") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*float")).
   escapeType("integral") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*boolean")).
   escapeType("_irand") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tipe("star.core*integer")).
+  escapeType("_random") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
+  escapeType("_seed") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer")])),tupleType([])).
   escapeType("_ldexp") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float"),tipe("star.core*integer")])),tipe("star.core*float")).
   escapeType("_frexp") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tupleType([tipe("star.core*float"),tipe("star.core*integer")])).
   escapeType("_modf") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tupleType([tipe("star.core*float"),tipe("star.core*integer")])).
@@ -275,6 +277,8 @@ star.comp.escapes{
   isEscape("ceil") => true.
   isEscape("integral") => true.
   isEscape("_irand") => true.
+  isEscape("_random") => true.
+  isEscape("_seed") => true.
   isEscape("_ldexp") => true.
   isEscape("_frexp") => true.
   isEscape("_modf") => true.

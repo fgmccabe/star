@@ -75,6 +75,8 @@ escape(ceil,True,False,"F(f)f","truncate to next integer")
 escape(integral,True,False,"F(f)l","test if number is integral")
 
 escape(_irand,True,False,"F(i)i","generate random integer")
+escape(_random,True,False,"F()f","generate random float in range [0..1)")
+escape(_seed,True,False,"F(i)()","set random number seed")
 
 escape(_ldexp,True,False,"F(fi)f","raise x to 2**y")
 escape(_frexp,True,False,"F(f)(fi)","split x into mant and exp")
