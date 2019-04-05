@@ -23,5 +23,9 @@ test.nm{
 
   assert -34 ^= optInt(^first(parse(real,"-34"::list[integer]))).
 
+  assert XX ^= optInt(^first(parse(real,"-34"::list[integer]))) && XX==-34.
+
+  assert XX ^= optInt(^first(parse(real,"-34"::list[integer]))) && -XX==34.
+
   show disp(first(parse(decimal,"-34"::list[integer]))).
 }

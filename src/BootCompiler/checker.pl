@@ -476,27 +476,14 @@ typeOfPtn(V,Tp,Env,Ev,Term,Path) :-
 typeOfPtn(V,Tp,Ev,Env,v(Lc,N,Tp),_Path) :-
   isIden(V,Lc,N),
   declareVr(Lc,N,Tp,Ev,Env).
-typeOfPtn(integer(Lc,Ix),Tp,Env,Env,intLit(Ix,IntTp),_Path) :- !,
+typeOfPtn(Trm,Tp,Env,Env,intLit(Ix,IntTp),_) :-
+  isLiteralInteger(Trm,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
-  checkType(integer(Lc,Ix),IntTp,Tp,Env).
-typeOfPtn(float(Lc,Ix),Tp,Env,Env,floatLit(Ix,FltTp),_Path) :- !,
+  checkType(Trm,IntTp,Tp,Env).
+typeOfPtn(T,Tp,Env,Env,floatLit(Dx,FltTp),_Path) :- 
+  isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
-  checkType(float(Lc,Ix),FltTp,Tp,Env).
-typeOfPtn(Term,Tp,Env,Ev,Exp,_Path) :-
-  isUnary(Term,Lc,"-",Arg), % handle unary minus
-  (Arg=integer(_,Ix) ->
-    findType("integer",Lc,Env,IntTp),
-    checkType(Arg,IntTp,Tp,Env),
-    Env=Ev,
-    Ng is -Ix,
-    Exp = intLit(Ng,IntTp) ;
-  Arg=float(_,Dx) ->
-    findType("float",Lc,Env,FltTp),
-    checkType(Arg,FltTp,Tp,Env),
-    Env=Ev,
-    Ng is -Dx,
-   Exp = floatLit(Ng,FltTp) ;
-   fail).
+  checkType(T,FltTp,Tp,Env).
 typeOfPtn(string(Lc,Ix),Tp,Env,Env,stringLit(Ix,StrTp),_Path) :- !,
   findType("string",Lc,Env,StrTp),
   checkType(string(Lc,Ix),StrTp,Tp,Env).
@@ -552,12 +539,14 @@ typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
    typeOfVar(Lc,V,Tp,Spec,Env,Ev,Term);
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
    Term=void).
-typeOfExp(integer(Lc,Ix),Tp,Env,Env,intLit(Ix,IntTp),_Path) :- !,
+typeOfExp(T,Tp,Env,Env,intLit(Ix,IntTp),_Path) :-
+  isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
-  checkType(integer(Lc,Ix),IntTp,Tp,Env).
-typeOfExp(float(Lc,Ix),Tp,Env,Env,floatLit(Ix,FltTp),_Path) :- !,
+  checkType(T,IntTp,Tp,Env).
+typeOfExp(T,Tp,Env,Env,floatLit(Dx,FltTp),_Path) :-
+  isLiteralFloat(T,Lc,Dx),!,
   findType("float",Lc,Env,FltTp),
-  checkType(float(Lc,Ix),FltTp,Tp,Env).
+  checkType(T,FltTp,Tp,Env).
 typeOfExp(string(Lc,Ix),Tp,Env,Env,stringLit(Ix,StrTp),_Path) :- !,
   findType("string",Lc,Env,StrTp),
   checkType(string(Lc,Ix),StrTp,Tp,Env).
@@ -646,20 +635,8 @@ typeOfExp(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isUnary(Term,Lc,"-",Arg), % handle unary minus
-  (Arg=integer(_,Ix) ->
-    findType("integer",Lc,Env,IntTp),
-    checkType(Arg,IntTp,Tp,Env),
-    Env=Ev,
-    Ng is -Ix,
-    Exp = intLit(Ng,IntTp) ;
-  Arg=float(_,Dx) ->
-    findType("float",Lc,Env,FltTp),
-    checkType(Arg,FltTp,Tp,Env),
-    Env=Ev,
-    Ng is -Dx,
-    Exp = floatLit(Ng,FltTp) ;
   unary(Lc,"__minus",Arg,Sub),
-  typeOfExp(Sub,Tp,Env,Ev,Exp,Path)).
+  typeOfExp(Sub,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,ixsearch(Lc,Key,Ptn,Src,Iterator),Path) :-
   isIxSearch(Term,Lc,K,V,R),!,
   findType("boolean",Lc,Env,LogicalTp),
