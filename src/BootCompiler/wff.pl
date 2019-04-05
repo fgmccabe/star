@@ -6,6 +6,7 @@
 	      isTypeLambda/4,
 	      isImport/3, isMacro/3,isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
+	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/5,isDefn/4,isAssignment/4,eqn/5,
@@ -269,6 +270,16 @@ optionMatch(Lc,Ptn,Exp,Term) :-
   binary(Lc,"^=",Ptn,Exp,Term).
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,"::",Lhs,Rhs).
+
+isLiteralInteger(integer(Lc,Ix),Lc,Ix) :-!.
+isLiteralInteger(I,Lc,Nx) :-
+  isUnary(I,Lc,"-",integer(_,Ix)),!,
+  Nx is -Ix.
+
+isLiteralFloat(float(Lc,Dx),Lc,Dx) :-!.
+isLiteralFloat(T,Lc,Nx) :-
+  isUnary(T,Lc,"-",float(_,Dx)),!,
+  Nx is -Dx.
 
 isConjunct(Trm,Lc,L,R) :-
   isBinary(Trm,Lc,"&&",L,R).
