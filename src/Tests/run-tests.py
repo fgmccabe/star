@@ -6,19 +6,20 @@ import sys, getopt
 
 root = "../../"
 execRoot = root+"cmake-build-debug/"
+testDir = root+"src/Tests/"
 usage = "runtests.py -t <testpkg>"
 
 tracing = False
 
 
 def main(argv):
-    global tracing,execRoot,root
+    global tracing,execRoot,root,testDir
 
     pkgs = []
     compile_only = False
     ignore_failures = False
     try:
-        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","heap","all","ignore_failures","execroot=","root="])
+        opts,args = getopt.getopt(argv,"dhct:",["test=","help","compile_only","tracing","heap","all","ignore_failures","execroot=","root=","testdir="])
     except getopt.GetopError:
         print usage
         sys.exit(2)
@@ -35,7 +36,7 @@ def main(argv):
         elif opt == "--ignore_failures":
             ignore_failures = True
         elif opt == '--all':
-            with open('catalog') as cat:
+            with open(testDir+'catalog') as cat:
                 catalog = json.load(cat)
 
                 for pk in catalog["content"]:
@@ -44,6 +45,9 @@ def main(argv):
             execRoot = arg
         elif opt=="--root":
             root = arg
+        elif opt=="--testdir":
+            testDir = arg
+            
 
     print "Run tests on ",pkgs
     for pkg in pkgs:
