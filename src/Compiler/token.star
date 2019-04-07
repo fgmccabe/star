@@ -11,7 +11,7 @@ star.compiler.token{
               | rgtTok(string)
               | intTok(integer)
               | fltTok(float)
-              | strTok(list[stringSegment]).
+              | strTok(cons[stringSegment]).
 
   public stringSegment ::= segment(locn,string) | interpolate(locn,cons[token],string).
 
@@ -25,8 +25,8 @@ star.compiler.token{
     disp(rgtTok(Id)) => ssSeq([ss(Id),ss(">")]).
   .}
 
-  dispSegments:(list[stringSegment]) => list[ss].
-  dispSegments(Segs) => Segs//disp.
+  dispSegments:(cons[stringSegment]) => list[ss].
+  dispSegments(Segs) => (Segs//disp) :: list[ss].
 
   implementation display[stringSegment] => {.
     disp(segment(_,S)) => ss(S).

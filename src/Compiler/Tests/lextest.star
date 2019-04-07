@@ -32,18 +32,16 @@ test.comp.lx{
   show(disp(nextToken(initSt(lc,"/*flt*/64.32e-1"::list[integer])))::string).
   assert (_,tok(_,fltTok(6.432))) ^= nextToken(initSt(lc,"/*flt*/64.32e-1"::list[integer])).
 
-  show disp(allTokens(initSt(lc,"foo bar()*45.3. "::list[integer])))::string.
+  show disp(allTokens(initSt(lc,"foo bar()*45. "::list[integer])))::string.
 
-  isTokens:(list[token],list[tk])=>boolean.
+  isTokens:(cons[token],list[tk])=>boolean.
   isTokens([],[]) => true.
   isTokens([tok(_,Tk),..Toks],[Tk,..Tks]) => isTokens(Toks,Tks).
   isTokens(_,_) => false.
 
-  assert isTokens(allTokens(initSt(lc,"foo bar()*45.3. "::list[integer])),
-            [idTok("foo"),idTok("bar"),idTok("("), idTok(")"), idTok("*"), fltTok(45.3), idTok(". ")]).
+  assert isTokens(allTokens(initSt(lc,"foo bar()*45. "::list[integer])),
+		  [idTok("foo"),idTok("bar"),lftTok("()"), rgtTok("()"), idTok("*"), intTok(45), idTok(". ")]).
 
-  show disp(allTokens(initSt(lc,"\"alpha$(4+f(\"beta\"))$gamma\""::list[integer])))::string.
-  assert isTokens(allTokens(initSt(lc,"\"alpha$(4+f(\"beta\"))$gamma\""::list[integer])),
-            [strTok("alpha"), idTok("\$("), intTok(4), idTok("+"), idTok("f"),
-             idTok("("), strTok("beta"),idTok(")"),idTok(")"),strTok("gamma")]).
+  show disp(allTokens(initSt(lc,"\"alpha\$(4+f(\"beta\"))gamma\""::list[integer])))::string.
+
 }

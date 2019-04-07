@@ -89,11 +89,11 @@ star.compiler.ast{
     app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,R])).
 
   public isBinary:(ast,string) => option[(locn,ast,ast)].
-  isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R]))) => some((Lc,L,R)).
-  isBinary(_) default => none.
+  isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R])),Op) => some((Lc,L,R)).
+  isBinary(_,_) default => none.
 
-  public isSquareTerm(ast) => option[(locn,ast,list[ast])].
-  isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some(Lc,Op,A).
+  public isSquareTerm:(ast) => option[(locn,ast,list[ast])].
+  isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
   isSquareTerm(_) default => none.
 
 }
