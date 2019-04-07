@@ -123,16 +123,16 @@ star.compiler.opg{
   terms(Toks,_,Rpt,SoFar) => (SoFar,Rpt,Toks).
 
   deComma:(ast)=>list[ast].
-  deComma(Trm) where (_,",",Lhs,Rhs) ^= isBinary(Trm) => [Lhs,..deComma(Rhs)].
+  deComma(Trm) where (_,Lhs,Rhs) ^= isBinary(Trm,",") => [Lhs,..deComma(Rhs)].
   deComma(Trm) => [Trm].
 
-  handleInterpolation:(list[stringSegment],reports,locn) => (ast,reports).
+  handleInterpolation:(cons[stringSegment],reports,locn) => (ast,reports).
   handleInterpolation([segment(Lc,Str)],Rpt,_) => (lit(Lc,strg(Str)),Rpt).
   handleInterpolation([],Rpt,Lc) => (lit(Lc,strg("")),Rpt).
   handleInterpolation(Segments,Rp,Lc) where
     (Segs,Rpx) .= stringSegments(Segments,Rp,[]) => (binary(Lc,"::",unary(Lc,"ssSeq",tpl(Lc,"[]",Segs)),nme(Lc,"string")),Rpx).
 
-  stringSegments:(list[stringSegment],reports,list[ast]) => (list[ast],reports).
+  stringSegments:(cons[stringSegment],reports,list[ast]) => (list[ast],reports).
   stringSegments([],Rp,SoFar) => (SoFar,Rp).
   stringSegments([Seg,..More],Rp,SoFar) where
     (Sg,Rp1).=stringSegment(Seg,Rp) => stringSegments(More,Rp1,[SoFar..,Sg]).
