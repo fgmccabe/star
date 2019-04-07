@@ -30,7 +30,7 @@ star.uri{
   absoluteUri = scheme >>= (Scheme) =>
     hierPart >>= (Hier) =>
     query >>= (Query) => return absUri(Scheme,Hier,Query).
-
+  
   scheme:parser[list[integer],string].
   scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(0c:) >>= (_) => return ([A,..Rest]::string).
 
