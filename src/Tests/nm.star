@@ -20,7 +20,7 @@ test.nm{
   optInt(F) => F::integer.
 
   show disp(optInt(^first(parse(real,"-34"::list[integer])))).
-
+  
   assert -34 ^= optInt(^first(parse(real,"-34"::list[integer]))).
 
   assert XX ^= optInt(^first(parse(real,"-34"::list[integer]))) && XX==-34.

@@ -1,13 +1,12 @@
 test.c {
   import star.
 
-  all t ~~ /* equality[t] |: */person[t] ::=
-    someOne{
-      name : t.
-      spouse: option[person[t]].
-      spouse default = none.
-      assert spouse=!=none
-    }
+  all t ~~ person[t] ::= someOne{
+    name : t.
+    spouse: option[person[t]].
+    spouse default = none.
+    assert spouse=!=none
+  }
     
   implementation all t ~~ equality[t] |: equality[person[t]] => {.
     P1 == P2 => P1.name == P2.name.
@@ -15,7 +14,7 @@ test.c {
 
   foo : string.
   foo = "".
-
+  
   fp : person[string].
   fp = someOne{ name = foo. spouse = none. /*assert name == foo*/}
 
