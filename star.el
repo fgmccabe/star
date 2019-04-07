@@ -317,17 +317,16 @@ Argument N  oprefix."
 ;;; Parse tables
 (defvar star-operators
   ;; Prec Text  Regex  Push  Pop   Hanging Delta
-  '((5000 "{"   "{"    same  nil   nil    star-brace-indent)
+  '((5000 "{"   "{"    same nil   nil    star-brace-indent)
     (5000 "}"   "}"    nil   same  nil	0)
     (5000 "{."   "{\\."    same  nil   nil    star-brace-indent)
-    (5000 ".}"   "\\}"    nil   same  nil	0)
+    (5000 ".}"   "\\.}"    nil   same  nil  0)
     (4500 ". "  "\\.\\([ \n\t]\\|$\\)" t    t  nil  0)
     (4000 "["   "\\["  t    nil  t	star-bracket-indent)
-    (4000 "]"   "\\]"  nil  same nil	0)
+    (4000 "]"   "\\]"  nil  same nil	(- star-bracket-indent))
     (3000 "("   "("    t    nil  t	star-paren-indent)
     (3000 ")"   ")"    nil  same nil	0)
     (1250 ";"   ";"    t    t    nil	0)
-    (1200 "-->"  "-->" t    t    nil	star-arrow-indent)
     (1100 "catch" "catch" t    t nil    0)
     (1000 "then" "then" t nil nil star-query-indent)
     (1000 "else" "else" t same (- star-query-indent) star-query-indent)
@@ -337,7 +336,7 @@ Argument N  oprefix."
     (1199 "=>"  "=>"   t    t    nil	star-arrow-indent)
     (1199 "<~"  "<~"   t    t    nil	star-arrow-indent)
     (1199 "~>"  "~>"   t    t    nil	star-arrow-indent)
-    (1010 "|:" "|:"    t    t    nil	star-arrow-indent)
+    (1010 "|:" "|:"    t    t    nil	0)
     (1250 "|"  "[^|]|[^|]"  t    t    t	0)
     (1060 "||"  "||"   t    t    t	0)
     (1010  "where" "where" t t   nil	(* star-arrow-indent 2))
@@ -367,7 +366,7 @@ Argument N  oprefix."
 	(put symbol 'precedence precedence)
 	(put symbol 'text text)
 	(put symbol 'regex regex)
-	(put symbol 'push (if (eq push 'same) t push))
+	(put symbol 'push (eq push t))
 	(put symbol 'push-same (eq push 'same))
 	(put symbol 'pop (eq pop 't))
 	(put symbol 'pop-until-same (eq pop 'same))
@@ -514,41 +513,51 @@ Argument N  oprefix."
 		      (setq state (car stack)
 			    stack (cdr stack)))
 		    (if (and stack (= (star-state-prec state) symbol-prec))
-		    	(progn
-		    	  (star-debug "discard state")
-		    	  (setq state (car stack)
-		    		stack (cdr stack))
-		    	  ))
+			;; Discard stack
+			(setq state (car stack)
+			      stack (cdr stack)))
 		    )
 		)
 
-	      ;; if push-same then use prior indent as basis of indent
-	      (if (get symbol 'push-same)
-		  (progn
-		    (star-debug "look for %s/%s" symbol symbol-prec)
-		    (star-debug "stack : %s" stack)
-		    (star-debug "state : %s" state)
+	      (cond ((get symbol 'push)
+		     (progn
+		       (setq 
+			;; Save the old state on the stack
+			stack (cons state stack)
+			state (star-new-state symbol-prec symbol
+					      (star-state-indent state) nil)
+			)))
+		    ((get symbol 'push-same)
+		     ;; if push-same then use prior indent as basis of indent
+		     (progn
+		       (star-debug "look for %s/%s" symbol symbol-prec)
+		       (star-debug "stack : %s" stack)
+		       (star-debug "state : %s" state)
 
-		    (let ((stck stack))
-		      (while (and stck (/= (star-state-prec state) symbol-prec))
-			(setq state (car stck)
-			      stck (cdr stck)
-			      ))
-		      )
-		    (star-debug "found state %s" state)
+			;; Save the old state on the stack
+		       (setq stack (cons state stack))
+		       
+		       (let ((stck stack)
+			     (curr-state state))
+			 ;;look for an entry with the same precedence
+			 (while (and stck
+			 	     (/= (star-state-prec curr-state)
+			 		 symbol-prec))
+			   (setq
+			    curr-state (car stck)
+			    stck (cdr stck))
+			   )
+
+			 (setq state (star-new-state
+				      symbol-prec symbol
+				      (if (= (star-state-prec curr-state)
+					     symbol-prec)
+					  (star-state-indent curr-state)
+					(star-state-indent state))
+				      nil)))
+		       )
+		     )
 		    )
-		)
-
-	      ;; Push the symbol onto the stack, if allowed
-	      (if (get symbol 'push)
-		  (progn
-		    (setq 
-		     ;; Save the old state on the stack
-		     stack (cons state stack)
-		     state (star-new-state symbol-prec symbol
-					   (star-state-indent state) nil)
-		     ))
-		)
 	      
 	      ;; Advance the pointer 
 	      (forward-char (get symbol 'length))
