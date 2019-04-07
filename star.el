@@ -153,7 +153,6 @@
 	     "try" "catch" "throw"
 	     "void"
 	     "where" "type" "all" "exists" "let" "default"
-	     "ref"
 	     "show" "assert")
 	   )
 	  "\\>")
@@ -214,7 +213,7 @@
   (concat "\\<"
 	  (star-one-of
 	   '(
-	     "boolean" "float" "integer" "string"
+	     "boolean" "float" "integer" "string" "ref"
 	     "action" "task" "list" "set" "cons" "option"
 	     )) "\\>")
   "Regular expression matching the standard types to highlight in Star mode.")
@@ -318,7 +317,7 @@ Argument N  oprefix."
 (defvar star-operators
   ;; Prec Text  Regex  Push  Pop   Hanging Delta
   '((5000 "{"   "{"    same nil   nil    star-brace-indent)
-    (5000 "}"   "}"    nil   same  nil	0)
+    (5000 "}"   "}"    nil same  nil	0)
     (5000 "{."   "{\\."    same  nil   nil    star-brace-indent)
     (5000 ".}"   "\\.}"    nil   same  nil  0)
     (4500 ". "  "\\.\\([ \n\t]\\|$\\)" t    t  nil  0)
