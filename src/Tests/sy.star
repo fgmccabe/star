@@ -2,6 +2,11 @@ test.sy{
   import star.
   -- Test of syntax of star
 
+  public contract all x ~~ lS[x] ::= {
+    large : x.
+    small : x.
+  }
+
   o : action[string,integer]. 
   o = return 1.
 
@@ -11,19 +16,14 @@ test.sy{
   double(X) => action{ lift X+X }.
 
   assert valof o == 1.		-- End comment
-
+  
   /* Block comment */
   assert _perform(p) == 4.		/* block comment */
-
-  public contract all x ~~ lS[x] ::= {
-    large : x.
-    small : x.
-  }
 
   a = do{
     x <- p; 
     return x
-    }
+  }
   
   assert valof a == 4.
 
