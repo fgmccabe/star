@@ -20,7 +20,7 @@ star.core {
   hash@"defines functions associated with hash encoding".
   public contract all x ~~ hash[x] ::= {
     hash:(x)=>integer.
-  }.
+  }
 
   public contract all s,k ~~ slice[s->>k] ::= {
     _slice : (s,k,k)=>s.

@@ -5,6 +5,7 @@ star.cons{
   import star.iterable.
   import star.monad.
   import star.lists.
+  import star.coerce.
 
   public all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 
@@ -89,6 +90,14 @@ star.cons{
     tail(nil) => none.
   }
 
+  public implementation mapping[cons] => {
+    L//F => mapOverList(L,F).
+
+    mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
+    mapOverList(nil,_) => nil.
+    mapOverList(cons(H,T),F) => cons(F(H),mapOverList(T,F)).
+  }
+
   public implementation all e ~~ folding[cons[e]->>e] => {
     foldRight(F,U,nil) => U.
     foldRight(F,U,cons(H,T)) => F(H,foldRight(F,U,T)).
@@ -131,4 +140,11 @@ star.cons{
     (return X) => cons(X,nil).
     (XS >>= F) => multicat(fmap(F,XS)).
   }
+
+  public implementation all e ~~ coercion[cons[e],list[e]] => let{
+    mkList(nil) => [].
+    mkList(cons(H,T)) => [H,..mkList(T)].
+  } in {.
+    _coerce = mkList
+  .}
 }
