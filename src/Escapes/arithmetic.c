@@ -657,7 +657,7 @@ ReturnStatus g__irand(processPo P, ptrPo tos) {
   return ret;
 }
 
-ReturnStatus g__rand(processPo P, ptrPo tos) {
+ReturnStatus g__random(processPo P, ptrPo tos) {
   double rnd = random()/(double)LARGE_INT32;
 
   ReturnStatus ret = {.ret=Ok, .result=(termPo) allocateFloat(processHeap(P), rnd)};
