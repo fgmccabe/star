@@ -61,34 +61,33 @@ star.compiler.unify{
   varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => bind(T1,T2,Env).
   varBinding(_,_,_) default => false.
 
-  bind(V,T,Env) where isUnbound(T) =>
-    valof do{
-      CV = constraintsOf(V);
-      CT = constraintsOf(T);
-      MM = valof mergeConstraints(CV,CT,Env);
-      setConstraints(T,MM);
-      setBinding(V,T);
-      return true
-    }.
+  bind(V,T,Env) where isUnbound(T) => valof do{
+    CV = constraintsOf(V);
+    CT = constraintsOf(T);
+    MM = valof mergeConstraints(CV,CT,Env);
+    setConstraints(T,MM);
+    setBinding(V,T);
+    return true
+  }.
   bind(V,T,Env) => valof do {
-	VC = constraintsOf(V);
-	try {
-	  setBinding(V,T);
-	  return checkConstraints(VC,Env)
-	} catch {
-	  resetBinding(V);
-	  return false
-	}
-      }
+    VC = constraintsOf(V);
+    try {
+      setBinding(V,T);
+      return checkConstraints(VC,Env)
+    } catch {
+      resetBinding(V);
+      return false
+    }
+  }.
 
   bind(V,T,Env) where isUnbound(T) =>
-      (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
-	 valof do{
-	   setConstraints(T,MM);
-	   setBinding(V,T);
-	   return true
-	 }
-	 || false).
+    (MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) ?
+       valof action{
+    setConstraints(T,MM);
+    setBinding(V,T);
+    return true
+       }
+       || false).
   bind(_,_,_) default => false.
 
   checkConstraints([],_) => true.
@@ -151,5 +150,5 @@ star.compiler.unify{
   vrNm(tVar(_,Nm)) => Nm.
   vrNm(tFun(_,_,Nm)) => Nm.
 
-  occInPrs(Id,Tps) => ((_,El) in Tps && occIn(Id,deRef(El))) ? true || false.
+  occInPrs(Id,Tps) => ((_,El) in Tps && occIn(Id,deRef(El))).
 }

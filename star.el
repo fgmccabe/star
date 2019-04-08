@@ -315,36 +315,36 @@ Argument N  oprefix."
 ;; Operators we might be indenting on
 ;;; Parse tables
 (defvar star-operators
-  ;; Prec Text  Regex  Push  Pop   Hanging Delta
-  '((5000 "{"   "{"    same nil   nil    star-brace-indent)
-    (5000 "}"   "}"    nil same  nil	0)
-    (5000 "{."   "{\\."    same  nil   nil    star-brace-indent)
-    (5000 ".}"   "\\.}"    nil   same  nil  0)
-    (4500 ". "  "\\.\\([ \n\t]\\|$\\)" t    t  nil  0)
-    (4000 "["   "\\["  t    nil  t	star-bracket-indent)
-    (4000 "]"   "\\]"  nil  same nil	(- star-bracket-indent))
-    (3000 "("   "("    t    nil  t	star-paren-indent)
-    (3000 ")"   ")"    nil  same nil	0)
-    (1250 ";"   ";"    t    t    nil	0)
-    (1100 "catch" "catch" t    t nil    0)
-    (1000 "then" "then" t nil nil star-query-indent)
-    (1000 "else" "else" t same (- star-query-indent) star-query-indent)
-    (900  ":="  ":="   t    t    nil    star-arrow-indent)
-    (1460 "::=" "::="  t    t    nil	star-arrow-indent)
-    (1199 "="  "\\b=\\b"  t t    nil	star-arrow-indent)
-    (1199 "=>"  "=>"   t    t    nil	star-arrow-indent)
-    (1199 "<~"  "<~"   t    t    nil	star-arrow-indent)
-    (1199 "~>"  "~>"   t    t    nil	star-arrow-indent)
-    (1010 "|:" "|:"    t    t    nil	0)
-    (1250 "|"  "[^|]|[^|]"  t    t    t	0)
-    (1060 "||"  "||"   t    t    t	0)
-    (1010  "where" "where" t t   nil	(* star-arrow-indent 2))
-    (1000 ","   ","    t    t    nil	0)
-    (900 "->"  "->"    t    t    nil	star-arrow-indent)
-    (900  "=="  "=="   t    nil  nil    0)
-    (900  ".="  "\\.=" t    t    nil    0)
-    (900  "^="  "\\^=" t    t    nil    0)
-    (1040 "?"   "\\?"  t    t    nil	star-query-indent)
+  ;; Prec Text  Regex  Align Hanging Delta
+  '((5000 "{"   "{"    left  nil    star-brace-indent)
+    (5000 "}"   "}"    right nil	0)
+    (5000 "{."   "{\\." left  nil    star-brace-indent)
+    (5000 ".}"   "\\.}"  right nil  0)
+    (4500 ". "  "\\.\\([ \n\t]\\|$\\)" align nil  0)
+    (3000 "("   "("    left nil	star-paren-indent)
+    (3000 ")"   ")"    right nil	0)
+    (2000 "["   "\\["  left nil star-bracket-indent)
+    (2000 "]"   "\\]"  right nil 	(- star-bracket-indent))
+    (1250 ";"   ";"    align nil	0)
+    (1100 "catch" "catch" align nil    0)
+    (1000 "then" "then" align nil star-query-indent)
+    (1000 "else" "else" align  t star-query-indent)
+    (900  ":="  ":="   align  nil    star-arrow-indent)
+    (1460 "::=" "::="  hang  nil	star-arrow-indent)
+    (1199 "="  "\\b=\\b"  align nil	star-arrow-indent)
+    (1199 "=>"  "=>"   align nil	star-arrow-indent)
+    (1199 "<~"  "<~"   align nil	star-arrow-indent)
+    (1199 "~>"  "~>"   align nil	star-arrow-indent)
+    (1010 "|:" "|:"    align nil	0)
+    (1250 "|"  "|"  align nil	0)
+    (1060 "||"  "||"   align nil  t	0)
+    (1040 "?"   "\\?"  align nil star-query-indent)
+    (1010  "where" "where" align nil	(* star-arrow-indent 2))
+    (1000 ","   ","    align nil 0)
+    (900 "->"  "->"    align nil star-arrow-indent)
+    (900  "=="  "=="   align nil 0)
+    (900  ".="  "\\.=" align nil 0)
+    (900  "^="  "\\^=" align nil 0)
     )
   "Star operators and precedences")
 
@@ -357,18 +357,14 @@ Argument N  oprefix."
 	     (precedence (1st o))
 	     (text (2nd o))
 	     (regex (3rd o))
-	     (push (4th o))
-	     (pop  (5th o))
-	     (hanging (6th o))
-	     (delta (7th o))
+	     (align (4th o))
+	     (hanging (5th o))
+	     (delta (6th o))
 	     (symbol (intern text)))
 	(put symbol 'precedence precedence)
 	(put symbol 'text text)
 	(put symbol 'regex regex)
-	(put symbol 'push (eq push t))
-	(put symbol 'push-same (eq push 'same))
-	(put symbol 'pop (eq pop 't))
-	(put symbol 'pop-until-same (eq pop 'same))
+	(put symbol 'align align)
 	(put symbol 'hanging hanging)
 	(put symbol 'delta delta)
 	(put symbol 'length (length text)))
@@ -457,6 +453,13 @@ Argument N  oprefix."
 		  indent
 		  (star-state-in-comment state)))
 
+(defun star-blank-line-to-left (pos)
+  (save-excursion
+    (goto-char pos)
+    (beginning-of-line)
+    (skip-chars-forward " \t")
+    (>= (point) pos)))
+
 ;;; Parse from POS to TO given initial PARSE-STATE
 ;;; Return final PARSE-STATE at TO.
 (defun star-parse (pos to parse-state)
@@ -481,103 +484,85 @@ Argument N  oprefix."
 	   ;; An important Star! operator
 	   ((looking-at star-operators-regex)
 	    (let* ((symbol (star-pick-operator (match-string 0)))
-		   (symbol-prec (get symbol 'precedence)))
+		   (symbol-prec (get symbol 'precedence))
+		   (delta (eval (get symbol 'delta)))
+		   (alignment (get symbol 'align)))
 
-	      (star-debug "\nwe have operator %s @ %s" symbol (point))
-	      (star-debug "state: %s" state)
-	      (star-debug "stack: %s" stack)
+	      (star-debug "\nwe have operator %s @ %s : %s" symbol (point) alignment)
+;;	      (star-debug "state: %s" state)
+;;	      (star-debug "stack: %s" stack)
 
-	      ;; Check to see if we should pop any operators off the stack
-	      (if (get symbol 'pop)
-		  (progn
-		    (star-debug "popping %s/%s" symbol symbol-prec)
+	      ;; Clear stack to proper base
+	      (while (and stack
+			  (< (star-state-prec state) symbol-prec))
+		(setq state (car stack)
+		      stack (cdr stack)))
 
-		    ;; Yes, pop off any lower precedence operators
-		    (while (and stack (<= (star-state-prec state) symbol-prec))
-		      (setq state (car stack)
-			    stack (cdr stack)))
-		    (star-debug "after pop state: %s" state)
-		    (star-debug "after pop stack: %s" stack)
-		    )
-		)
-	      
-	      (if (get symbol 'pop-until-same)
-		  ;; Yes, pop of all operators until
-		  ;; we meet an operator with the same
-		  ;; precedence (for brackets)
-		  (progn
-		    (star-debug "popping for %s until %s" symbol symbol-prec)
+	      (star-debug "after pop state: %s" state)
+	      (star-debug "after pop stack: %s" stack)
 
-		    (while (and (/= (star-state-prec state) symbol-prec) stack)
-		      (setq state (car stack)
-			    stack (cdr stack)))
-		    (if (and stack (= (star-state-prec state) symbol-prec))
-			;; Discard stack
-			(setq state (car stack)
-			      stack (cdr stack)))
-		    )
-		)
-
-	      (cond ((get symbol 'push)
+	      (cond ((eq alignment 'left)
 		     (progn
-		       (setq 
-			;; Save the old state on the stack
-			stack (cons state stack)
-			state (star-new-state symbol-prec symbol
-					      (star-state-indent state) nil)
-			)))
-		    ((get symbol 'push-same)
-		     ;; if push-same then use prior indent as basis of indent
-		     (progn
-		       (star-debug "look for %s/%s" symbol symbol-prec)
-		       (star-debug "stack : %s" stack)
-		       (star-debug "state : %s" state)
-
-			;; Save the old state on the stack
+		       ;; push state back on
 		       (setq stack (cons state stack))
-		       
-		       (let ((stck stack)
-			     (curr-state state))
-			 ;;look for an entry with the same precedence
-			 (while (and stck
-			 	     (/= (star-state-prec curr-state)
-			 		 symbol-prec))
-			   (setq
-			    curr-state (car stck)
-			    stck (cdr stck))
-			   )
 
+		       ;; Compute new indentation
+		       (let* ((indent (+ (star-state-indent state)
+					 delta)))
 			 (setq state (star-new-state
 				      symbol-prec symbol
-				      (if (= (star-state-prec curr-state)
-					     symbol-prec)
-					  (star-state-indent curr-state)
-					(star-state-indent state))
+				      indent
 				      nil)))
 		       )
+		     )
+		    ((eq alignment 'right)
+		     (progn
+		       (if (and stack
+				(= (star-state-prec state) symbol-prec))
+		       ;; pop found state
+			   (setq state (car stack)
+				 stack (cdr stack)))
+		       )
+		     )
+		    ((eq alignment 'align)
+		     (progn
+		       (if (/= (star-state-prec state) symbol-prec)
+			   ;; push state back on
+			   (setq stack (cons state stack))
+			 )
+		       (let*
+			   ((indent (star-state-indent state)))
+
+			 ;; Adjust the indentation for hanging
+			 (if (and (get symbol 'hanging)
+				  (star-blank-line-to-left (point)))
+			     ;; Hanging
+			    (setq delta (- delta (+ (get symbol 'length) 1)))
+			 )
+			 (setq state (star-new-state
+				      symbol-prec symbol
+				      (+ (star-state-indent state) delta)
+				      nil))
+			 )
+		       )
+		     )
+		    ((eq alignment 'hang)
+		     (progn
+		       (if (/= (star-state-prec state) symbol-prec)
+			   ;; push state back on
+			   (setq stack (cons state stack))
+			 )
+		       )
+		     (setq state (star-new-state
+				  symbol-prec symbol
+				  (current-column)
+				  nil))
+		     
 		     )
 		    )
 	      
 	      ;; Advance the pointer 
 	      (forward-char (get symbol 'length))
-
-	      ;; Compute new indentation
-	      (let ((delta
-		     ;; Adjust the indentation for hanging
-		     (if (and (get symbol 'hanging)
-			      (not (looking-at "[ \t]*\\(--[ \t]?\\)?$")))
-			 ;; Hanging
-			 (progn 
-			   (skip-chars-forward " \t")
-			   (- (current-column)
-			      (max (star-indentation-level (point))
-				   (3rd (car stack)))))
-		       ;; Not Hanging
-		       (eval (get symbol 'delta)))))
-		(setq state
-		      (star-adjust-indent state 
-					  (+ (star-state-indent state)
-					     delta))))
 
 	      (star-debug "state after operator: %s" state)
 	      (star-debug "stack after operator: %s" stack)
@@ -689,10 +674,10 @@ Argument N  oprefix."
      ;; If it's a | we need to parse past it to get the
      ;; real indentation level 
      ;; (this method would work fine for close braces as well)
-     ((looking-at "[|?]")
-      (- (star-calculate-brace-indent 
-	  (star-line-get-pos-after pos "[|?]"))
-	 (star-vertical-bar-adjust pos "[|?]")))
+     ;; ((looking-at "[|?]")
+     ;;  (- (star-calculate-brace-indent 
+     ;; 	  (star-line-get-pos-after pos "[|?]"))
+     ;; 	 (star-vertical-bar-adjust pos "[|?]")))
      
      ;; Otherwise standard indent position
      (t 

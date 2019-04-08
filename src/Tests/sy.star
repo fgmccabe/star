@@ -7,6 +7,10 @@ test.sy{
     small : x.
   }
 
+  person ::= noone
+	 | someone
+	 | everyone.
+
   o : action[string,integer]. 
   o = return 1.
 
@@ -15,7 +19,7 @@ test.sy{
 
   double(X) => action{ lift X+X }.
 
-  assert valof o == 1.		-- End comment
+  assert valof o == 1.			-- End comment
   
   /* Block comment */
   assert _perform(p) == 4.		/* block comment */
