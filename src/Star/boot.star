@@ -33,7 +33,7 @@ star.boot{
       try{
         (Top,Args) <- handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd())));
         invokeMain(Top,Args)
-      } catch (E) => do{ lift logMsg(E) }
+      } catch (E) => logMsg(E)
     }
   __boot() default => ().
 
