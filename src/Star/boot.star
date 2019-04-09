@@ -43,7 +43,6 @@ star.boot{
     RU ^= parseUri(RepoDir) &&
     RD .= resolveUri(CW,RU) &&
     Repo .= bootRepo(RD) &&
-    -- _ .= logMsg("Repo = $(Repo)") &&
     Pkg ^= parsePkgName(Top) => do{
       setupPkg(Repo,Pkg);
       lift (Top,Args)
