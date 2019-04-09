@@ -1,5 +1,5 @@
 :- module(resource,[locateResource/2,locateResource/3,openResource/2,putResource/2,
-      readFile/2,writeFile/2]).
+      readFile/2,writeFile/2,readStdin/1]).
 
 :- use_module(uri).
 
@@ -10,6 +10,23 @@ locateResource(URI,Chars) :-
 locateResource(Base,Rel,Chars) :-
   resolveURI(Base,Rel,Uri),
   locateResource(Uri,Chars).
+
+readStdin(Chars) :-
+  set_stream(user_input,eof_action(eof_code)),
+  set_stream(user_input,tty(false)),
+  prompt(_,''),
+  read_all(user_input,Chars),!.
+
+
+read_all(Str,Chars) :-
+  get_char(Str,Ch),
+  read_more(Str,Ch,Chars).
+
+
+read_more(_,end_of_file,[]) :- !.
+read_more(Str,Ch,[Ch|Rest]) :-
+  get_char(Str,NCh),
+  read_more(Str,NCh,Rest).
 
 read_until_eof(Str,[]) :- at_end_of_stream(Str), close(Str).
 read_until_eof(Str,[Ch|M]) :- get_char(Str,Ch), read_until_eof(Str,M).

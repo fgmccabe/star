@@ -13,12 +13,12 @@
 reportError(Msg,A,Lc) :- incErrorCount(),
   errorCount(E),
   showLocation(Lc,OLc,[]),
-  writef("Error %w: at %s\n",[E,OLc]),
+  writef("\nError %w - %s\n",[E,OLc]),
   genDisplay(A,AA),
   writef(Msg,AA),nl(),!.
 reportError(Msg,A) :- incErrorCount(),
   errorCount(E),
-  writef("Error %w:\n",[E]),
+  writef("\nError %w:\n",[E]),
   genDisplay(A,AA),
   writef(Msg,AA),nl(),!.
 
