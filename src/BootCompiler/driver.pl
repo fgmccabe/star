@@ -41,6 +41,8 @@ parseFlags(['-r', R|More],CWD,Cx,[repository(Repo)|Opts],Files) :-!,
   resolveURI(CWD,RU,Ruri),
   openRepository(Ruri,Repo),
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-c'|More],CWD,Cx,[compileOnly|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-v', V|More],CWD,Cx,[ver(Vers)|Opts],Files) :-!,
   atom_string(V,Vers),
   parseFlags(More,CWD,Cx,Opts,Files).
@@ -53,6 +55,8 @@ parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
 parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dA'|More],CWD,Cx,[showSetCode|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['--stdin'|More],CWD,Cx,[processStdin|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['--'|More], CWD,CWD, [], Files) :- !, stringify(More,Files).
 parseFlags(More, CWD,CWD, [], Files) :- stringify(More,Files).
@@ -68,8 +72,11 @@ main(Args) :-
   parseFlags(Args,CW,CWD,Opts,Pkgs),!,
   openRepo(Opts,Repo),
   locateCatalog(CWD,Cat),!,
-  makeGraph(Repo,Cat,CWD,Pkgs,Groups),!,
-  (processGroups(Groups,[],Repo,CWD,Opts),! ; reportMsg("aborting compiling",[]),!,fail),!.
+  (is_member(processStdin,Opts) ->
+   Pkgs = [Pkg|_],
+   processStdin(Pkg,Repo,Opts);
+   makeGraph(Repo,Cat,CWD,Pkgs,Groups),!,
+   (processGroups(Groups,[],Repo,CWD,Opts),! ; reportMsg("aborting compiling",[]),!,fail)),!.
 
 openR(Args,CWD,Cat,Repo,Groups) :-
   getCWDUri(CW),
@@ -118,13 +125,22 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   checkProgram(Term,Pkg,Repo,Opts,Prog),!,
   (is_member(showTCCode,Opts) -> dispProg(Prog);true),
   noErrors,
-  transformProg(Prog,Opts,Rules),!,
-  (is_member(showTrCode,Opts) -> displayRules(Rules);true),
+  (\+ is_member(compileOnly,Opts) ->
+   transformProg(Prog,Opts,Rules),!,
+   (is_member(showTrCode,Opts) -> displayRules(Rules);true),
+   noErrors,
+   genPkgSig(Rules,Sig),
+   genCode(Rules,Opts,Text),
+   noErrors,
+   addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx);
+   true).
+
+processStdin(Pkg,Repo,Opts) :-
+  startCount,
+  readStdin(Src),
+  parseFile(pkg(Pkg,defltVersion),Src,Term),!,
   noErrors,
-  genPkgSig(Rules,Sig),
-  genCode(Rules,Opts,Text),
-  noErrors,
-  addCodePackage(Repo,SrcUri,Pkg,Sig,Text,Rx).
+  checkProgram(Term,Pkg,Repo,Opts,_Prog),!.
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.
