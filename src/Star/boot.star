@@ -39,14 +39,14 @@ star.boot{
 
   handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>action[string,(string,list[string])].
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
-    CW ^= parseUri(Cwd) &&
-    RU ^= parseUri(RepoDir) &&
-    RD .= resolveUri(CW,RU) &&
-    Repo .= bootRepo(RD) &&
-    Pkg ^= parsePkgName(Top) => do{
-      setupPkg(Repo,Pkg);
-      lift (Top,Args)
-    }
+      CW ^= parseUri(Cwd) &&
+  RU ^= parseUri(RepoDir) &&
+  RD .= resolveUri(CW,RU) &&
+  Pkg ^= parsePkgName(Top) => do{
+    Repo = bootRepo(RD);
+    setupPkg(Repo,Pkg);
+    lift (Top,Args)
+  }
   handleCmdLineOpts(other(E)) => err(E).
 
   setupPkg:(bootRepo,pkg) => action[string,()].
