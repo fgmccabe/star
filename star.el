@@ -300,8 +300,11 @@
   "* The column where -- comments are placed."
   :type 'integer
   :group 'star)
-;;; Initialise the syntax table
 
+(defcustom build-repo "../Star/Build/"
+  "* Where the repository for your project lives."
+  :type 'directory
+  :group 'star)
 
 (defun star-self-insert-and-indent-command (n)
   "Self insert and indent appropriately.
@@ -324,9 +327,9 @@ Argument N  oprefix."
     (3000 "("   "("    left nil	star-paren-indent)
     (3000 ")"   ")"    right nil	0)
     (2000 "["   "\\["  left nil star-bracket-indent)
-    (2000 "]"   "\\]"  right nil 	(- star-bracket-indent))
+    (2000 "]"   "\\]"  right nil 	0)
     (1250 ";"   ";"    align nil	0)
-    (1100 "catch" "catch" align nil    0)
+    (1100 "catch" "catch" align nil     0)
     (1000 "then" "then" align nil star-query-indent)
     (1000 "else" "else" align  t star-query-indent)
     (900  ":="  ":="   align  nil    star-arrow-indent)
@@ -339,8 +342,9 @@ Argument N  oprefix."
     (1250 "|"  "|"  align nil	0)
     (1060 "||"  "||"   align nil  t	0)
     (1040 "?"   "\\?"  align nil star-query-indent)
-    (1010  "where" "where" align nil	(* star-arrow-indent 2))
+    (1010  "where" "where" hang nil	(* star-arrow-indent 2))
     (1000 ","   ","    align nil 0)
+    (950 "&&"  "&&"    align nil 0)
     (900 "->"  "->"    align nil star-arrow-indent)
     (900  "=="  "=="   align nil 0)
     (900  ".="  "\\.=" align nil 0)
@@ -703,7 +707,6 @@ Argument N  oprefix."
 	(progn (goto-char pos)
 	       (goto-char (scan-lists pos -1 1))
 	       (star-indentation-level (point)))
-;;	       (star-calculate-indent (point)))
       (error 0))))
 
 ;;; look for a the first non-whitespace
@@ -752,7 +755,6 @@ Argument N  oprefix."
   (save-excursion
     (let* ((bol         (progn (beginning-of-line) (point)))
 	   (cur-level   (star-indentation-level bol))
-;;	   (level       (star-calculate-brace-indent bol)))
 	   (level       (star-calculate-indent bol)))
       (if (= cur-level level)
 	  nil
@@ -774,14 +776,10 @@ Argument N  oprefix."
 		  (eq (forward-line) 0)))
       (star-indent-line))))
 
-
 (defvar-local star--flymake-proc nil)
 
 (defvar star-compiler "/Users/fgm/Projects/star/src/BootCompiler/sbc"
   "Exec path to the star compiler")
-
-(defvar star-build-repo "../Star/Build/"
-  "Name of the build repository for the compiler")
 
 (defun star-package ()
   (save-excursion
@@ -856,11 +854,10 @@ Argument N  oprefix."
     (save-restriction
       (widen)
       ;; Reset the `star--flymake-proc' process to a new process
-      (setq star-pkg (star-package))
       (setq star--flymake-proc
 	    (star-compile source
-			  star-build-repo
-			  star-pkg
+			  build-repo
+			  (star-package)
 			  (file-name-directory (buffer-file-name source))
 			  report-fn))
       (process-send-region star--flymake-proc (point-min) (point-max))
@@ -871,6 +868,8 @@ Argument N  oprefix."
      
 (defun star-setup-flymake-backend ()
   (add-hook 'flymake-diagnostic-functions 'star-flymake nil t))
+
+(add-hook 'star-mode-hook 'star-setup-flymake-backend)
 
 ;;; Provide `star-mode' user callable function
 (define-derived-mode star-mode prog-mode "Star Mode"
@@ -895,7 +894,6 @@ Argument N  oprefix."
   (setq case-fold-search nil)
 
   (star-init-font-lock)
-  (star-setup-flymake-backend)
   (run-hooks 'star-mode-hook)
   )
 
