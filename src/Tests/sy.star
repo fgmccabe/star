@@ -7,6 +7,19 @@ test.sy{
     small : x.
   }
 
+  bind(X) where X>0 => valof action{
+    logMsg("trying");
+    return true
+  }
+  
+
+  bind(X) where X>0 =>
+    (MM ^= some(X) ? valof action{
+      logMsg("trying");
+      return true
+    }
+    || false).
+      
   person ::= noone
 	 | someone
 	 | everyone.

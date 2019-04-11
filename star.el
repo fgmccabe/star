@@ -271,7 +271,7 @@
   :type 'integer
   :group 'star)
 
-(defcustom star-paren-indent 1
+(defcustom star-paren-indent 2
   "* Amount by which to indent after a left paren in Star mode."
   :type 'integer
   :group 'star)
@@ -323,11 +323,11 @@ Argument N  oprefix."
     (5000 "}"   "}"    right nil	0)
     (5000 "{."   "{\\." left  nil    star-brace-indent)
     (5000 ".}"   "\\.}"  right nil  0)
+    (5000 "("   "("    left nil	star-paren-indent)
+    (5000 ")"   ")"    right nil	0)
+    (5000 "["   "\\["  left nil star-bracket-indent)
+    (5000 "]"   "\\]"  right nil 	0)
     (4500 ". "  "\\.\\([ \n\t]\\|$\\)" align nil  0)
-    (3000 "("   "("    left nil	star-paren-indent)
-    (3000 ")"   ")"    right nil	0)
-    (2000 "["   "\\["  left nil star-bracket-indent)
-    (2000 "]"   "\\]"  right nil 	0)
     (1250 ";"   ";"    align nil	0)
     (1100 "catch" "catch" align nil     0)
     (1000 "then" "then" align nil star-query-indent)
