@@ -22,6 +22,7 @@ logical insDebugging = False;     // instruction tracing option
 logical lineDebugging = False;
 logical debugDebugging = False;
 logical tracing = False;          /* tracing option */
+int debuggerPort = 0;                // Debug port to establish listener on
 
 logical traceVerify = False;      // true if tracing code verification
 logical traceMessage = False;     // true if tracing message passing
@@ -264,6 +265,13 @@ static retCode setDebugger(char *option, logical enable, void *cl) {
   return Ok;
 }
 
+static retCode setDebuggerPort(char *option, logical enable, void *cl) {
+  debuggerPort = parseInteger(option, uniStrLen(option));
+  if (debuggerPort <= 0)
+    return Error;
+  return Ok;
+}
+
 static retCode setMainEntry(char *option, logical enable, void *cl) {
   uniCpy(entry, NumberOf(entry), option);
   return Ok;
@@ -298,18 +306,19 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",        hasArgument, STAR_DBG_OPTS,   debugOption,    Null, "-d|--debug <flags>", debugOptHelp},
-  {'g', "symbol-debug", noArgument,  Null,            symbolDebug,    Null, "-g|--symbol-debug"},
-  {'G', "debugger",     hasArgument, STAR_DEBUGGER,   setDebugger,    Null, "-G|--debugger <pkg>"},
-  {'v', "version",      noArgument,  Null,            displayVersion, Null, "-v|--version"},
-  {'b', "boot-pkg",     hasArgument, STAR_BOOT,       setBootPkg,     Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",         hasArgument, STAR_MAIN,       setMainEntry,   Null, "-m|--main <entry>"},
-  {'L', "logFile",      hasArgument, STAR_LOGFILE,    setLogFile,     Null, "-L|--logFile <path>"},
-  {'r', "repository",   hasArgument, STAR_REPO,       setRepoDir,     Null, "-r|--repository <path>"},
-  {'w', "set-wd",       hasArgument, STAR_WD,         setWD,          Null, "-w|--set-wd <dir>"},
-  {'V', "verify",       noArgument,  STAR_VERIFY,     setVerify,      Null, "-V|--verify code"},
-  {'h', "heap",         hasArgument, STAR_INIT_HEAP,  setHeapSize,    Null, "-h|--heap <size>"},
-  {'s', "stack",        hasArgument, STAR_INIT_STACK, setStackSize,   Null, "-s|--stack <size>"},};
+  {'d', "debug",        hasArgument, STAR_DBG_OPTS,      debugOption,     Null, "-d|--debug <flags>", debugOptHelp},
+  {'g', "symbol-debug", noArgument,  Null,               symbolDebug,     Null, "-g|--symbol-debug"},
+  {'\0', "debugger-port",  hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, Null, "--debugger-port"},
+  {'G', "debugger",     hasArgument, STAR_DEBUGGER,      setDebugger,     Null, "-G|--debugger <pkg>"},
+  {'v', "version",      noArgument,  Null,               displayVersion,  Null, "-v|--version"},
+  {'b', "boot-pkg",     hasArgument, STAR_BOOT,          setBootPkg,      Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",         hasArgument, STAR_MAIN,          setMainEntry,    Null, "-m|--main <entry>"},
+  {'L', "logFile",      hasArgument, STAR_LOGFILE,       setLogFile,      Null, "-L|--logFile <path>"},
+  {'r', "repository",   hasArgument, STAR_REPO,          setRepoDir,      Null, "-r|--repository <path>"},
+  {'w', "set-wd",       hasArgument, STAR_WD,            setWD,           Null, "-w|--set-wd <dir>"},
+  {'V', "verify",       noArgument,  STAR_VERIFY,        setVerify,       Null, "-V|--verify code"},
+  {'h', "heap",         hasArgument, STAR_INIT_HEAP,     setHeapSize,     Null, "-h|--heap <size>"},
+  {'s', "stack",        hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},};
 
 static void showStar(ioPo out) {
   outMsg(out, "star - %s", copyright);

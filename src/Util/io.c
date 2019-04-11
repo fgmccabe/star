@@ -43,7 +43,7 @@ static retCode nullSeek(ioPo f, integer count);
 
 static retCode nullClose(ioPo f);
 
-IoClassRec IoClass = {
+const IoClassRec IoClass = {
   {
     (classPo) &LockedClass,               /* parent class is object */
     "io",                                 /* this is the io class */

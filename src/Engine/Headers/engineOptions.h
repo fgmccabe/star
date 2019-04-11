@@ -23,6 +23,7 @@
 #define STAR_MAIN "STAR_MAIN"
 #define STAR_BOOT "STAR_BOOT"
 #define STAR_DBG_OPTS "STAR_DEBUG_OPTS"
+#define STAR_DEBUGGER_PORT "STAR_DEBUGGER_PORT"
 
 extern char *copyright;
 
@@ -31,6 +32,7 @@ extern logical tracing;        /* tracing option */
 extern logical insDebugging;
 extern logical lineDebugging;
 extern logical debugDebugging;
+extern int debuggerPort;
 extern logical interactive;      /* interactive instruction tracing option */
 extern logical runStats;
 

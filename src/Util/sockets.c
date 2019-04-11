@@ -333,12 +333,12 @@ static retCode sockConfigure(filePo conn, ioConfigOpt mode) {
   switch (mode) {
     case turnOffBlocking: {
       int SokOpt = True;
-      int fd_flags = fcntl(sock, F_GETFL, 0);
+      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
 
       if (fd_flags == -1)
         return Error;
 
-      fd_flags |= O_NONBLOCK;
+      fd_flags |= (unsigned) O_NONBLOCK;
       if (fcntl(sock, F_SETFL, fd_flags) == -1)
         return Error;
       /* Set the socket to non-delay mode to avoid buffering problems */
@@ -347,12 +347,12 @@ static retCode sockConfigure(filePo conn, ioConfigOpt mode) {
     }
 
     case turnOnBlocking: {
-      int fd_flags = fcntl(sock, F_GETFL, 0);
+      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
 
       if (fd_flags == -1)
         return Error;
 
-      fd_flags &= ~O_NONBLOCK;
+      fd_flags &= ~(unsigned)O_NONBLOCK;
       if (fcntl(sock, F_SETFL, fd_flags) == -1)
         return Error;
       return Ok;
@@ -365,12 +365,12 @@ static retCode sockConfigure(filePo conn, ioConfigOpt mode) {
     else
       return Error;
 #else
-      int fd_flags = fcntl(sock, F_GETFL, 0);
+      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
 
       if (fd_flags == -1)
         return Error;
 
-      if (fcntl(sock, F_SETOWN, getpid()) < 0 || fcntl(sock, F_SETFL, fd_flags | O_ASYNC) < 0)
+      if (fcntl(sock, F_SETOWN, getpid()) < 0 || fcntl(sock, F_SETFL, fd_flags | (unsigned)O_ASYNC) < 0)
         return Error;
       else
         return Ok;
@@ -384,12 +384,12 @@ static retCode sockConfigure(filePo conn, ioConfigOpt mode) {
     else
       return Error;
 #else
-      int fd_flags = fcntl(sock, F_GETFL, 0);
+      unsigned int fd_flags = fcntl(sock, F_GETFL, 0);
 
       if (fd_flags == -1)
         return Error;
 
-      if (fcntl(sock, F_SETFL, fd_flags & ~O_ASYNC) < 0)
+      if (fcntl(sock, F_SETFL, fd_flags & ~(unsigned)O_ASYNC) < 0)
         return Error;
       else
         return Ok;
