@@ -44,7 +44,7 @@
 
 /* Set up the file class */
 
-FileClassRec FileClass = {
+const FileClassRec FileClass = {
   {
     (classPo) &IoClass,                   // parent class is io object
     "file",                               // this is the file class

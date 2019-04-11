@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <globals.h>
 #include <str.h>
+#include <ioTcp.h>
 
 #include "debugP.h"
 #include "arith.h"
@@ -31,6 +32,27 @@ static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, int
 static void stackSummary(ioPo out, processPo P, ptrPo sp);
 
 static insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+
+static sockPo debuggerListener = Null;
+
+static ioPo debugInChnnl = Null;
+static ioPo debugOutChnnl = Null;
+
+static void setupDebugChannels() {
+  if (debuggerPort > 0 && debugInChnnl == Null) {
+    if (debuggerListener == Null) {
+      debuggerListener = listeningPort("star-debug", debuggerPort);
+
+      retCode ret = acceptConnection(debuggerListener, rawEncoding, &debugInChnnl, &debugOutChnnl);
+      if (ret != Ok) {
+        syserr("fatal problem in establishing debugger connection");
+      }
+    }
+  } else if (debugInChnnl == Null) {
+    debugInChnnl = Stdin();
+    debugOutChnnl = Stdout();
+  }
+}
 
 static inline int32 collect32(insPo pc) {
   uint32 hi = (uint32) pc[0];
@@ -66,7 +88,7 @@ static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 static integer displayDepth = 10;
 
 void dC(termPo w) {
-  outMsg(stdErr, "%,*T\n", displayDepth, w);
+  outMsg(debugOutChnnl, "%,*T\n", displayDepth, w);
   flushOut();
 }
 
@@ -213,12 +235,12 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
     cmdBuffer = newStringBuffer();
 
   while (interactive) {
-    outMsg(stdErr, " => ");
-    flushFile(stdErr);
+    outMsg(debugOutChnnl, " => ");
+    flushFile(debugOutChnnl);
     clearBuffer(cmdBuffer);
 
     setEditLineCompletionCallback(cmdComplete, (void *) opts);
-    retCode res = consoleInput(cmdBuffer);
+    retCode res = (debuggerListener == Null ? consoleInput(cmdBuffer) : inLine(debugInChnnl, cmdBuffer, "\n"));
     clearEditLineCompletionCallback();
 
     switch (res) {
@@ -243,12 +265,12 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
           if (opts->opts[ix].c == cmd)
             return opts->opts[ix].cmd(&cmdLine[nxt], p, ins, opts->opts[ix].cl);
         }
-        outMsg(stdErr, "invalid debugger command: %s\n", cmdLine);
+        outMsg(debugOutChnnl, "invalid debugger command: %s\n", cmdLine);
       }
       default:
         for (int ix = 0; ix < opts->count; ix++)
-          outMsg(stdErr, "%s\n", opts->opts[ix].usage);
-        flushFile(stdErr);
+          outMsg(debugOutChnnl, "%s\n", opts->opts[ix].usage);
+        flushFile(debugOutChnnl);
         return moreDebug;
     }
   }
@@ -258,7 +280,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
 static DebugWaitFor dbgSingle(char *line, processPo p, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->traceDepth = 0;
-  p->tracing = (logical)(p->traceCount==0);
+  p->tracing = (logical) (p->traceCount == 0);
   return stepInto;
 }
 
@@ -356,11 +378,11 @@ static DebugWaitFor dbgShowArg(char *line, processPo p, insWord ins, void *cl) {
   ptrPo sp = p->sp;
 
   if (argNo == 0)
-    showAllArgs(stdErr, p, mtd, fp, sp);
+    showAllArgs(debugOutChnnl, p, mtd, fp, sp);
   else if (argNo > 0 && argNo < argCount(mtd))
-    showArg(stdErr, argNo, mtd, fp, sp);
+    showArg(debugOutChnnl, argNo, mtd, fp, sp);
   else
-    outMsg(stdErr, "invalid argument number: %d", argNo);
+    outMsg(debugOutChnnl, "invalid argument number: %d", argNo);
 
   resetDeflt("n");
   return moreDebug;
@@ -373,11 +395,11 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, insWord ins, void *cl)
   ptrPo sp = p->sp;
 
   if (lclNo == 0)
-    showAllLocals(stdErr, mtd, p->pc, fp);
+    showAllLocals(debugOutChnnl, mtd, p->pc, fp);
   else if (lclNo > 0 && lclNo <= lclCount(mtd))
-    showLcl(stdErr, cmdCount(line, 0), mtd, fp, sp);
+    showLcl(debugOutChnnl, cmdCount(line, 0), mtd, fp, sp);
   else
-    outMsg(stdErr, "invalid local number: %d", lclNo);
+    outMsg(debugOutChnnl, "invalid local number: %d", lclNo);
 
   resetDeflt("n");
   return moreDebug;
@@ -416,9 +438,9 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, insWord ins, void *cl
     if (glb != Null) {
       termPo val = getGlobal(glb);
       if (val != Null)
-        outMsg(stdErr, "%s = %,*T\n", buff, displayDepth, val);
+        outMsg(debugOutChnnl, "%s = %,*T\n", buff, displayDepth, val);
       else
-        outMsg(stdErr, "%s not set\n", buff);
+        outMsg(debugOutChnnl, "%s not set\n", buff);
     }
   }
 
@@ -432,9 +454,9 @@ static DebugWaitFor dbgShowStack(char *line, processPo p, insWord ins, void *cl)
   ptrPo sp = p->sp;
 
   if (line[0] == '\n') {
-    showAllStack(stdErr, p, mtd, fp, sp);
+    showAllStack(debugOutChnnl, p, mtd, fp, sp);
   } else
-    showStack(stdErr, p, mtd, cmdCount(line, 1), fp, sp);
+    showStack(debugOutChnnl, p, mtd, cmdCount(line, 1), fp, sp);
 
   resetDeflt("n");
   return moreDebug;
@@ -472,7 +494,7 @@ void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo f
 }
 
 static DebugWaitFor dbgStackTrace(char *line, processPo p, insWord ins, void *cl) {
-  stackTrace(p, stdErr, (logical) (cl));
+  stackTrace(p, debugOutChnnl, (logical) (cl));
 
   resetDeflt("n");
   return moreDebug;
@@ -537,11 +559,11 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, insWord ins, void *cl) 
   insPo last = entryPoint(mtd) + insCount(mtd);
 
   for (integer ix = 0; ix < count && pc < last; ix++) {
-    pc = disass(stdErr, p, mtd, pc, Null, Null);
-    outStr(stdErr, "\n");
+    pc = disass(debugOutChnnl, p, mtd, pc, Null, Null);
+    outStr(debugOutChnnl, "\n");
   }
 
-  flushFile(stdErr);
+  flushFile(debugOutChnnl);
   resetDeflt("n");
 
   return moreDebug;
@@ -591,7 +613,7 @@ static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl)
       sp[ix] = voidEnum;
 #endif
   } else
-    outMsg(stdErr, "Could not drop %d stack frame\n%_", count);
+    outMsg(debugOutChnnl, "Could not drop %d stack frame\n%_", count);
 
   resetDeflt("n");
   return moreDebug;
@@ -691,6 +713,8 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
     .deflt = Null
   };
 
+  setupDebugChannels();
+
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
@@ -698,18 +722,18 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
 
   logical stopping = shouldWeStopIns(p, ins);
   if (p->tracing || stopping) {
-    outMsg(stdErr, "[%d]: ", pcCount);
-    disass(stdErr, p, mtd, pc, fp, sp);
+    outMsg(debugOutChnnl, "[%d]: ", pcCount);
+    disass(debugOutChnnl, p, mtd, pc, fp, sp);
 
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
           p->waitFor = cmder(&opts, p, mtd, ins);
         else {
-          outStr(stdErr, "\n");
+          outStr(debugOutChnnl, "\n");
         }
 
-        flushFile(stdErr);
+        flushFile(debugOutChnnl);
 
         switch (p->waitFor) {
           case moreDebug:
@@ -724,8 +748,8 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
         }
       }
     } else {
-      outStr(stdErr, "\n");
-      flushFile(stdErr);
+      outStr(debugOutChnnl, "\n");
+      flushFile(debugOutChnnl);
     }
   }
   return p->waitFor;
@@ -749,7 +773,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
 
 static retCode shArgs(ioPo out, ptrPo sp, integer displayDepth, integer from, integer to) {
   char *sep = "";
-  tryRet(outStr(out,"("));
+  tryRet(outStr(out, "("));
   for (integer ix = from; ix < to; ix++) {
     tryRet(outMsg(out, "%s%#,*T", sep, displayDepth, sp[ix]));
     sep = ", ";
@@ -893,6 +917,8 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   ptrPo sp = p->sp;
   insPo pc = p->pc;
 
+  setupDebugChannels();
+
   logical stopping = shouldWeStop(p, ins, ln);
 
 //  if (debugDebugging) {
@@ -901,14 +927,14 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 //  }
   if (p->tracing || stopping) {
     if (ln != Null)
-      show(stdErr, mtd, pc, ln, fp, sp);
+      show(debugOutChnnl, mtd, pc, ln, fp, sp);
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
           p->waitFor = cmder(&opts, p, mtd, ins);
         else {
-          outStr(stdErr, "\n");
-          flushFile(stdErr);
+          outStr(debugOutChnnl, "\n");
+          flushFile(debugOutChnnl);
         }
 
         switch (p->waitFor) {
@@ -924,8 +950,8 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
         }
       }
     } else {
-      outStr(stdErr, "\n");
-      flushFile(stdErr);
+      outStr(debugOutChnnl, "\n");
+      flushFile(debugOutChnnl);
     }
   }
   return p->waitFor;
@@ -1072,15 +1098,15 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 }
 
 void showRegisters(processPo p, heapPo h, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
-  showStackEntry(stdErr, 0, mtd, pc, fp, sp, True);
+  showStackEntry(debugOutChnnl, 0, mtd, pc, fp, sp, True);
 
 #ifdef TRACEEXEC
   if (debugDebugging) {
-    stackSummary(stdErr, p, sp);
-    heapSummary(stdErr, h);
+    stackSummary(debugOutChnnl, p, sp);
+    heapSummary(debugOutChnnl, h);
   }
 #endif
-  outMsg(stdErr, "\n%_");
+  outMsg(debugOutChnnl, "\n%_");
 }
 
 static char *anonPrefix = "__";
@@ -1113,10 +1139,10 @@ void countIns(insWord ins) {
 }
 
 #undef instruction
-#define instruction(Op, Arg, Dl, Cmt) outMsg(stdErr,#Op": %d\n",insCounts[Op]);
+#define instruction(Op, Arg, Dl, Cmt) outMsg(debugOutChnnl,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
-  logMsg(stdErr, "%d instructions executed\n", pcCount);
+  logMsg(debugOutChnnl, "%d instructions executed\n", pcCount);
 }
 
 void dumpInsStats() {

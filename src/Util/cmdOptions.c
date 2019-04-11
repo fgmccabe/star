@@ -121,6 +121,28 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
                 goto failOptions;
             }
           }
+        } else if (uniIsLitPrefix(opt, "--") && uniCmp(options[j].longName, opt + uniStrLen("--")) == same) {
+          switch (options[j].hasArg) {
+            case hasArgument: {
+              if (ix < argc - 1) {
+                if (options[j].setter(argv[++ix], True, options[j].cl) != Ok)
+                  goto failOptions;
+                else {
+                  processedOptions[j] = True;
+                  goto optionLoop;
+                }
+              } else
+                goto failOptions;
+            }
+            case noArgument: {
+              if (options[j].setter(Null, True, options[j].cl) != Ok)
+                goto failOptions;
+              else {
+                processedOptions[j] = True;
+                goto optionLoop;
+              }
+            }
+          }
         }
       }
       outMsg(stdErr, "unknown option: %s\n", opt);
@@ -138,8 +160,9 @@ int processOptions(char *copyRight, int argc, char **argv, Option *options, int 
         switch (options[jx].hasArg) {
           case noArgument: {
             logical
-              setOpt = (logical) (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same || uniCmp(var, "yes") == same ||
-                                      uniCmp(var, "YES") == same);
+              setOpt = (logical) (uniCmp(var, "true") == same || uniCmp(var, "TRUE") == same ||
+                                  uniCmp(var, "yes") == same ||
+                                  uniCmp(var, "YES") == same);
             if (options[jx].setter(var, setOpt, options[jx].cl) == Ok)
               processedOptions[jx] = True;
             else {
