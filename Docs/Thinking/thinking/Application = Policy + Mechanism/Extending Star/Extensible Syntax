@@ -1,0 +1,7 @@
+Star's core grammar is more of a meta-grammar than a conventional grammar. It is known as an operator precedence grammar. This is very similar to the approach taken in Prolog and similar languages.
+A programmer can introduce new operators into the language, including new graphic tokens. For example:
+#infix(">\\",999)
+defines a new infix operator >\ that was previously unknown to the Star compiler.
+We can also define multi-word tokens. This capability can be useful when grammar suggests multiple worded keywords. Some of Star's keywords are defined as multi-word operators; for example, the group by operator is defined by the declaration:
+#infix(“group by“,1005)
+The meta-grammar allows arbitrary spaces and comments between the words of such an operator — but no other text.

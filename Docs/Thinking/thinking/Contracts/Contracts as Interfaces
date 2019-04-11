@@ -1,0 +1,16 @@
+At their most basic, contracts are a way of denoting `overloaded' functions. I.e., by giving different implementations of a contract for different types, it is possible to provide multiple implementations of a function. For example, there are several implementations of arith for integers, floats, and so on. It is also straightforward to implement arith for your own type.
+However, another pattern of use of contracts is as an analog of interfaces. For example, we saw in Actors that actors used speech actions to express communication between them.
+In fact, there are many entities that can handle speech actions. In addition to basic actors, Star also has concurrent actors — which have a completely different implementation.
+In addition to these implementations we can envisage many other entities that will want to be able to handle speech actions.
+To enable all these diverse uses of speech actions we encapsulate the semantics of speech actions in a contract:
+contract all t ~~ speech[t] ::= {
+  _notify:all x ~~ (t,(x)=>())=>().
+  _query: all x,s ~~ (t,(x)=>s) => s.
+  _request: all x ~~ (t,(x)=>())=>()
+}
+As we shall see in Application = Policy + Mechanism, a speech action such as:
+query A with list of { all X where X in R }
+is translated by macros into the call to the function _query:
+_query(A,(AA) => list of { all X where X in AA.R }))
+Now the role of the speech contract may be highlighted: it serves as the specification of the semantics of speech actions. More informally, one can think of the language of speech actions as a kind of `ceiling': the DSL defines a language that is embedded within Star. The speech contract, on the other hand, represents a `floor' to the speech action language.
+As a specification of semantics, contracts do not address all the issues. It is not possible, for example, to express that implementations of arithmetic obey the normal Peano axioms of arithmetic. However, it is possible to place assertions in a contract that are verified when the implementation is created.

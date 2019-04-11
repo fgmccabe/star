@@ -1,0 +1,9 @@
+Many functional programming languages — including Star — are based on an ‘equational style’. Equational programs are written as a series of equations; for example, in the credit function:
+credit:(customer)=>float.
+credit(C) where inGoodStanding(C) => 0.15.
+credit(C) where inDefault(C) => -0.1.
+  ...
+credit(_) default => 0.0.
+Each line of this definition is an equation. It specifies the meaning of the credit function in a restricted setting – the complete function is understood by combining the cases together.
+Using equations we can separate out the different cases for the customer’s credit and ‘work on them separately’. This allows the programmer to focus attention and allows for rapid editing and reorganization should the need arise.
+Case-based approaches to programming are significantly more productive than traditional if-then-else procedural programming.

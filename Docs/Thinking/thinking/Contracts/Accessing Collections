@@ -1,0 +1,48 @@
+Contracts are deeply embedded within the Star language. For example, consider the task of accessing a collection. This is captured in the standard indexable contract; which includes a definition of the _index function. It includes other functions too; which we omit in this discussion.
+contract all c,k,v ~~ indexable[c->>k,v] ::= {
+  _index:(c,k)=>option[v]
+ ...
+}
+The _index function is rarely used directly; instead it is accessed via the index expression, as in:
+L[34]
+Accessing collections always introduces the element of tentativeness: it cannot normally be shown at compile time that L[34] exists. Star does not have the equivalent of Java null values; instead we make extensive use of the option type when we want to represent a tentative result.
+Thus the type of L[34] is not integer, but
+option[integer]
+This indexable contract also introduces an important feature of contracts: functional dependencies. The clause:
+indexable[c->>k,v]
+declares that any implementation of indexable for a type — c — will `fix' two further types — in this case the `index type' and the `element type' of the elements of the collection.
+For example, the implementation of indexable for the standard list type starts with:
+implementation all t ~~ indexable[list[t]->>integer,t] => …
+This states that implementing indexable for lists requires that the index type is an integer and that the element type is the type of the element of the list. Much as one might expect. This allows expressions like L[34] to be typed as expected.
+The indexable contract is also implemented for associative dictionaries. In this case the index type is the type of the keys in the dictionary and the element type is the type of the values in the dictionary:
+implementation all k,v ~~ indexable[dictionary[k,v]->>k,v] => …
+Thus, if we had a dictionary M whose keys were strings and whose values were integer, then the expression:
+M["alpha"]
+would have the type option[integer].
+There is no requirement that the index type be a simple type. For example, consider the representation of JSON values. The standard infoset type allows JSON values to be represented abstractly in a way that permits easy processing of the data.
+The most appropriate way of extracting elements from a JSON/infoset value is by using a path. For example, the path to the image title in the JSON value:
+{
+  "Image": {
+    "Width": 800,
+    "Height": 600,
+    "Title": "View from 15th Floor",
+    "Thumbnail": {
+      "Url": "http://www.example.com/image/481989943",
+      "Height": 125,
+      "Width": "100"
+    },
+    "IDs": [116, 943, 234, 38793]
+  }
+}
+may be expressed as Image.Title, and the last ID might be expressed as the path Image.IDS.3. If the infoset of this value were bound to the variable I, then we can express these values using the expressions:
+I[[kString("Image"),kString("Title")]]
+and
+I[[kString("Image"), kString("IDs"), kInt(3)]]
+respectively.
+Note that the elements of the path are not simply bare strings and integers. This is because a structure like:
+[1, "fred", 2]
+is not well typed. The elements of the path are from the iKey type which is written as an algebraic type definition:
+iKey ::= kString(string) | kInt(integer)
+Wrapping the path elements as iKey values makes the path expression a legal Star value.
+In summary, the simple contract specification for indexing can be applied to lists (arrays), to associative dictionaries and to tree-like structures. This has a powerful unifying effect on Star programs.
+In the next chapter we show how syntactic features — like our indexing notation — can be implemented in Star.

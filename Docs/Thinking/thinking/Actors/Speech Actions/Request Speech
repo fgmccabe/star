@@ -1,0 +1,7 @@
+Query speech actions have an implied intention that the query expression is not intended to modify the state of the listener. The final form of speech action request assumes that the listener should do something.
+For example, we can ask an actor to clear all balances that are negative using a request along the lines of:
+request C to {
+  for B in accounts and B.balance<0 do
+    clear(B)
+}
+Notice that the argument of a request is a whole action. In effect it is a small script. It is possible for the listener to the request to decline to perform this request. This ability (or lack of) to not react to speech actions is a characteristic of the responding actor.

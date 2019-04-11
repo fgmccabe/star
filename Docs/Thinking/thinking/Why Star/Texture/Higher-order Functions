@@ -1,0 +1,9 @@
+Star supports higher-order functions. The following apply function corresponds to the familiar map function from other functional languages.
+apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
+apply(f, nil) => nil.
+apply(f, cons(x, xs)) =>
+      cons(f(x), apply(f, xs)).
+Although Star has a sophisticated type system that supports automatic type inference, we strongly recommend that programmers supply type annotations, which often improve readability. Here the type annotation for apply:
+apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
+states that apply is a generic function – in two types – that takes a function and a cons list and returns a new cons list.
+Without the explicit type annotation, the Star compiler could actually infer a different type for applythat may not meet the programmer's intentions.

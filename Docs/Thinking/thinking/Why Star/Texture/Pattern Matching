@@ -1,0 +1,16 @@
+Patterns and pattern matching are ubiquitous in Star. Nearly all literal forms have a pattern equivalent that allows matching and, most importantly, de-structuring such values.
+For example, we can define functions over collections that allow us to (say) compute the maximum element in a collection:
+maximum:all t ~~ arith[t] |: (list[t],t)=>t.
+maximum([H,..T]) => let{
+  max([],Mx) => Mx.
+  max([F,..R],Mx) where F>Mx => max(R,F).
+  max([_,..R],Mx) default => max(R,Mx).
+} in max(T,H)
+The max function enclosed in the let body uses patterns to match against the successive elements of the collection. It is important to note that the max and the maximum functions will work over any kind of collection.
+The pattern form:
+[H,..T]
+matches any non-empty sequence; and binds the first element of the sequence to the variable H and the remainder of the sequence to T.
+The pattern form:
+[]
+only matches an empty collection.
+The maximum function is written in terms of a local function – max – and a call to that local function. The let expression is one of the foundations and cornerstones of functional programming.

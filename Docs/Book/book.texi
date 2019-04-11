@@ -29,16 +29,10 @@ All rights reserved.
 @summarycontents
 @contents
 
+@include ../macros.texi
+
 @node Top
 @top Star Guide
-
-@macro Star
-@strong{Star}
-@end macro
-
-@macro anchored{T}
-@anchor{\T\}@var{\T\}
-@end macro
 
 @noindent
 This is the 

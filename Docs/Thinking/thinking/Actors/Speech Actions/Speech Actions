@@ -1,0 +1,23 @@
+Speech actions were first investigated by John Austin5 in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by Searle6 and standardized in KQML7 and FIPA.8
+Within Star, a speech action can be viewed as a generalization of a method call where the method to be invoked can be a complete script or expression. Star supports three performatives:[^fn1] notify — which corresponds to one entity informing another that something has happened — query — which corresponds to a question — and request — which corresponds to a request to perform an action.
+Star supports this simplified model of speech action with special syntax. A notify is written:
+notify A with withdrawn(45.6) on account
+This notify means
+that the account channel should handle withdrawn(45.6)
+or, in the terminology of speech act theory,
+Inform agent A that withdrawn(45.6)has occurred.
+The notify speech action does not explicitly refer to time. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech.
+How the listening agent responds to speech actions depends of course on its internal structure. An actor reacts to a notify by means of an event rule:
+A = actor{
+  balance := 0.0.
+
+  on withdrawn(Am) on account do
+    balance := balance-Am
+}
+The type annotation for A declares that it is an actor that responds to certain speech actions; specifically, it will respond to notify actions on the account channel. When that happens, the event rule simply states that the balance will be decremented by the amount Am that is embedded within thewithdrawn message.
+What is not stated here is what happens to the notifier while the responding actor handles the notification. In fact, there are several variants of entity that can respond to speech actions; each has a different way of handling the run-time semantics. However, all agents must obey the following rule:
+All speech actions from one entity to another are processed in order.
+This pairwise rule covers many situations; but not all. However, we leave that discussion to another document.
+
+
+[^fn1]: Informally, each performative can be viewed as a kind of speech action.

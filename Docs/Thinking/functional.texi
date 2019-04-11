@@ -1,0 +1,144 @@
+@node Functional Programming
+@chapter Functional Programming
+
+Functional programming has roots that go back to the origins of
+programming itself. However, it has been recently gaining in
+prominence because of some of the inherent advantages in the paradigm:
+
+@quotation
+Its ‘declarative’ nature makes reasoning about functional programs
+easier than for ‘procedural’ programs.
+@end quotation
+
+This benefits programmers in a surprising number of ways. Of course,
+the most obvious one is that correctness and type safety are easier to
+establish than for a program built out of assignment and for-loops.
+
+A subtler but equally critical benefit is that it can make programming
+itself easier: the programmer is free to focus on sub-problems without
+unnecessary entanglement with other sub-problems.
+
+The impact of this benefit can be quite dramatic: similar in effect to
+the introduction of garbage collected memory compared to managed
+memory allocation.
+
+@node Functional First
+@section Functional First
+Star is a ‘functional-first’ programming language. What this means is
+that Star makes it easier and more natural to write in a functional
+style. However, not all problems are best addressed in the functional
+way and it is certainly possible to write procedural Star programs.
+
+@node Equations as Cases
+@section Equations as Cases
+
+Many functional programming languages — including Star — are based on
+an ‘equational style’. Equational programs are written as a series of
+equations; for example, in the credit function:
+
+@example
+credit:(customer)=>float.
+credit(C) where inGoodStanding(C) => 0.15.
+credit(C) where inDefault(C) => -0.1.
+  ...
+credit(_) default => 0.0.
+@end example
+Each line of this definition is an equation. It specifies the meaning
+of the credit function in a restricted setting – the complete function
+is understood by combining the cases together.
+
+Using equations we can separate out the different cases for the
+customer’s credit and ‘work on them separately’. This allows the
+programmer to focus attention and allows for rapid editing and
+reorganization should the need arise.  Case-based approaches to
+programming are significantly more productive than traditional
+if-then-else procedural programming.
+
+@node Equations as State
+@section Equations as State
+
+Contrary to some expectations, it is possible to write stateful
+programs in a functional style. The difference is that you have to be
+explicit about the state. For example, the function:
+
+@example
+addAll:(integer,integer)=>integer.
+addAll(from,to) => let@{
+  accum(ix,acc) where ix>=to => acc.
+  accum(ix,acc) => accum(ix+1,acc+ix).
+@} in accum(from,0).
+@end example
+is the ‘functional equivalent’ of the normal Java loop:
+@example
+int addAll(int from,int to)@{
+  int acc = 0;
+  for(int ix=from;ix<to;ix++)
+    acc = acc+ix;
+  return acc;
+@}
+@end example
+Apart from the use of recursion, the other main difference is that the
+‘state’ – which in both cases is held in the acc variable – is
+explicitly handed down the functional program, whereas the Java
+program handles state implicitly.
+
+The issue for the Java programmer is that what works for simple
+programs can become unmanageable for complex multi-threaded
+systems. On the other hand, while the functional programmer may be
+more burdened for simple cases, complex parallel programs are not much
+harder than the simple case.
+
+Functional programming, with its declarative and explicit manipulation
+of state makes crafting parallel programs significantly simpler and
+less error-prone.
+
+@node Verbs as well as Nouns
+@section Verbs as well as Nouns
+
+Object oriented languages have a very finely developed sense of the
+noun. An object is intrinsically a noun; objects reference concrete or
+abstract things that a programmer is manipulating. The notation of
+classes, interfaces, inheritance and so on represents a powerful set
+of concepts for organizing the application’s nouns.
+
+However, just as in spoken languages like English, verbs are also
+important: what you do with objects is at least as important as the
+objects themselves. Most OO languages do not treat verbs –
+a.k.a. methods – with the same respect that they confer on nouns.
+
+The result is that methods are written using a vocabulary that a
+programmer in the 1970’s would be completely familiar with – even when
+the same programmer would find classes and interfaces novel concepts.
+
+Functional languages give more weight to the verbs. A function is a
+first class value and there are many ways in which functions can be
+combined and abstracted. The result is that the expression of control
+in a functional language can be subtler and more expressive than is
+possible in most OO languages. This makes a material difference to the
+productivity of the programmer and can also make a difference in the
+readability of the code.
+
+@node Non-sequential Code
+@section Non-sequential Code
+Another benefit that perhaps explains some of the modern excitement is
+that functional programming represents a more tractable route to
+developing parallel and multi-threaded programs.
+
+A program written in a classic von Neumann style is best understood in
+terms of instructions to a simple machine. Each successive instruction
+modifies the state of the machine in some way – such as storing values
+in cells or printing a result.
+
+The issue with this programming model is that modern machines do not
+fit the original von Neumann model very well. It is normal now for a
+single computer to have eight ‘cores’, which permit up to 16
+independently executing tasks to execute in parallel. Furthermore,
+modern graphics processors come with thousands of cores — which do not
+necessarily have to be processing graphics!
+
+Traditional procedural programming languages have a very difficult
+time with multi-threaded and parallel programs. Because of the
+complexity of writing them safely, they must currently be written by
+‘programming masters’.
+
+

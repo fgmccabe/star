@@ -1,0 +1,2 @@
+The origins of Star lie in a platform that was originally oriented towards complex event processing applications.\cite{luckham:2012} StarRules — as it was known then — was a rules language that allowed one to express CEP-style rules succinctly.
+However, as often happens, requirements evolved and CEP itself became just one of many application areas that the Starview platform can address. The same pressures for generality in the platform lead to a greater interest in extensibility and generality in the programming language.

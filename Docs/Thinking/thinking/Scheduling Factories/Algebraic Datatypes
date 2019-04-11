@@ -1,0 +1,21 @@
+While the previous section showed how ALPS 4 solves the hardest problem associated with the queue-time problem, the solution starts with a seemingly trivial aspect of the system: how to representroutes in the system.
+A route lists the sequence of production steps a lot goes through as it traverses the fab. This suggests a simple list data structure to represent it. However, a route needs to represent the queue-time zones within the sequence. They could be stored in a separate list, which contains pointers or indices into the first list. However, this creates potential consistency problems between the two lists – changes in the list of steps may affect the list with the queue-time zones.
+Moreover, the system also needs to represent progress within a route. Naïvely, this would be done using a pointer into the first list. In addition, the system would have to keep track of the queue-time zones that have already been entered. This creates additional potential consistency problems, and keeping the information about queue-time zones up-to-date as lots enter and exit them makes this representation hard to manipulate. Moreover, the position pointer needs to be checked against the end of the first list, and any potential queue-time zones. Moreover, the search for queue-time zones about to be entered is cumbersome and expensive.
+ALPS 4 uses an alternative representation for routes that unifies the route itself and the position with the route: It uses a single type RouteRem to represent the route remainder – what remains to be done of a route. In the beginning, the route remainder is the entire route, and as fabrication progresses, the route remainder gets shorter and shorter.
+Ignoring queue-time zones for now, here is the simple definition of route remainders:
+RouteRem ::= RouteList(cons[RouteElement]).
+RouteElement ::= RouteOp(Operation)
+This Star type corresponds nicely to the definition:
+A route remainder is a list of route elements.
+A route element is a single operation.
+Moreover, the representation is easily extensible to also handle queue-time zones: A queue-time zone is essentially a sub-route embedded in the route. An extension to the RouteElement type reflects this notion:
+RouteElement ::= RouteOp(Operation) 
+             | RouteQTZone(Duration, RouteRem)
+Now a route element can also be a queue-time zone, consisting of a maximum duration (assuming an appropriate definition for the Duration type), and a sub-route represented by the RouteRemcomponent.
+This definition is not quite complete, however: While RouteQTZone can represent a queue-time zone before it is entered, it is not sufficient to represent a queue-time zone ‘in progress’. For this, we add a case to RouteRem:
+  RouteRem ::= RouteList(cons[RouteElement])
+           | RouteQTLimit(Time, RouteRem, RouteRem)
+The RouteQTLimit constructor carries the time when the queue-time zone ends, as well as a route remainder within the queue-time zone and the remaining route after the queue-time zone.
+While simple and elegant, this is also almost exactly the representation ALPS 4 uses for routes. In particular, it is compositional: routes are assembled (‘composed’) from smaller routes, thus enabling flexible manipulation and construction without rigid hierarchies that are characteristic of more traditional designs. Moreover, Star's algebraic datatypes subsequently guide the design of functions operating on routes, making their implementation drastically easier than would be the case with index- or pointer-based representations. Furthermore, this representation quite naturally handles nested queue-time zones.
+In particular, this representation is easily extensible: For example, conditional branches – such as needed to insert metrology, for example – can be handled by extending the RouteElement type, and without invalidating the existing code.
+Compositional representations such as the one for routes occur at all levels of the ALPS 4 systems: They describe the structure of composite tools (such as multi-chamber tools), scheduling strategies, scheduling policies, and hope. (For details on the latter, see the next section.)

@@ -32,7 +32,7 @@ All rights reserved.
 @node Top
 @top Star Reference
 
-@include macros.texi
+@include ../macros.texi
 
 @noindent
 This is the 

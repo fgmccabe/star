@@ -1,0 +1,30 @@
+The concept of a contract is fundamental to good software engineering. This is because it allows separation between the specification of a concept and its implementation.
+A Star contract takes the form of a description of a set of functions and values - in effect a type. For example, the contract for basic arithmetic is
+contract all t ~~ arith[t] ::= {
+    (+) : (t,t)=>t.
+    (-) : (t,t)=>t.
+    (*) : (t,t)=>t.
+    (/) : (t,t)=>t.
+    one : t.
+    zero : t.
+}
+This has the effect of declaring a group of functions that work together to form a basic arithmetic.
+Once defined, a contract can be used simply by mentioning one of its members. Thus, in Star, all arithmetic depends on the arith contract:
+fact(0) => 1.
+fact(X) => X*fact(X-1)
+Furthermore, if we want to state that the type of a variable is `something' that implements a contract we can do so by adding a constraint to the variable's type:
+F : arith[t] |: t
+This has the effect to declaring that F's type is a type variable — but one that is constrained such that whatever concrete type it eventually gets, it must be one that is defined for arith.12
+In fact, however, this version of factorial is not the most paradigmatic (sic) version. The reason is that the type signature for fact is not generic but tied to integer:
+fact:(integer)=>integer
+The reason that fact is not fully generic is interesting: it’s the presence of the literal numbers 0 and 1 in the program. The type of any literal integer is integer! This is enough to force the type of fact to be restricted to integers.  In particular, Star does not support implicit coercion, including coercion of literal numbers from integer to any other type.
+The solution is simple, if a little strange: we declared in the arith contract two non-function entries: zero and one.  By explicitly identifying zero and one as elements of the arith contract we can use them in lieu of 0 and 1 respectively without committing to integers.[^fn1] 
+Using these, we can write a much more paradigmatic version of the factorial function:
+factorial(zero) => one.
+factorial(N) => factorial(N-one)*N.
+This function is quite generic, and its type signature is given by:
+factorial: all t ~~ arith[t] |: (t)=>t.[^fn2]
+
+[^fn1]: There is some Mathematical justification for this: the arith contract defines a Field which requires zero elements for the two operators (+ and *).
+
+[^fn2]: Of course, in this case, our definition of factorial is not well defined for the real numbers; but that is a different issue!
