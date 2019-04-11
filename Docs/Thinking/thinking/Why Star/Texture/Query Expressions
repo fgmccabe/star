@@ -1,0 +1,3 @@
+Star has a built-in query expression notation that allows us to avoid a lot of common recursive forms of definition. For example, the apply function can be written more succinctly using:
+apply(f,C) => cons of { all f(X) where X in C}
+the meaning of the expression is equivalent to the recursive definition we saw of apply above.

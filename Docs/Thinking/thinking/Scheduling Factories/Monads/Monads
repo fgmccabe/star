@@ -1,0 +1,26 @@
+Fab scheduling poses a particularly intricate problem to schedulers: As equipment in the fab breaks down so frequently, instructions from the scheduler to the fab have only the status of recommendations. The scheduler needs to be able to deal with circumstances where its instructions do not get executed. Moreover, the fab typically will not give feedback when it cannot execute a scheduler instruction – the scheduler can only observe that actions did not happen that should be the consequence of executing an instruction.
+The scheduler needs to take action when the fab does not execute an instruction: Otherwise, lots may get delayed indefinitely as the scheduler just waits fruitlessly for the result of the instruction to appear. Thus, the scheduler needs to manage hope about instructions it has issued across the board, and track when hope gets fulfilled, delayed or shattered. This is especially relevant when an instruction is part of a larger, more coordinated effort such as transporting a reticle to a lithography unit, and performing the necessary setup to enable a particular lot – which is also inbound – to be processed.
+When looking at this problem, the ALPS 4 team considered implementing specialized tracking mechanisms for lot movement, reticle transport, setup etc. This quickly proved intractable, however, because of the wide variety of circumstances that are part of this general notion.
+However, the use of Star enabled an elegant general solution to the problem of managing hope.
+![][hope]
+The Structure of Hope
+The most important basic idea is that hope can be represented as a function that examines the state of the world to check on its status. In particular, one of several things can happen to a hope:
+	•	A hope can be fulfilled, in which case there is a particular result (the payload) from the fulfillment.
+	•	A hope can be shattered when there is no possibility that it will ever be fulfilled.
+	•	A hope can be deferred in the form of a new hope, which may or may not be identical to the original hope.
+As the hope checks on the world, it may also issue instructions to expedite fulfillment. Figure 3 illustrates the concept.
+The two aspects of a hope interacting with the outside world – observing what has happened in the world as well as issuing instructions – are examples of handling state. Hope can observe as well as modify state. Consequently, hope functions have this type:
+all a,s ~~ Hope[a, s] <~ ((s) => HopeResult of (a, s))
+The s type parameter represents the state, and the a represents the potential payload from the hope. The hope function can observe the state going in, and can modify it by returning a different state. The definition of the HopeResult type corresponds directly to Figure 3:
+all a,s ~~ HopeResult[a, s] ::=
+   HopeFulfilled(a, s)
+ | HopeShattered(string)
+ | HopeDeferred(Hope[a, s], s)
+This definition may seem simple, but is indeed the basis for all management of hope in the ALPS 4 system, and has replaced all previous, more complicated and cumbersome mechanisms in the system.
+This makes the system exceedingly flexible and easy to adapt to new kinds of processes within a fab. Again, the powerful type-definition facilities in Star guides the design of simple solutions such as this one.
+The definition is the outcome of viewing hope as a monad.[^fn1] Monads are a powerful pattern in functional programming, and thus directly accessible to Star programmers. In this case, they provide a framework for constructing hope that is compositional, providing the advantages described in the previous section.
+
+
+[hope]: hope.png width=1717px height=1029px
+
+[^fn1]: Since their original introduction into programming in the early 90s, monads have become a popular subject, with many tutorials and explanations available on the Web.

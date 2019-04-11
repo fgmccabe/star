@@ -1,0 +1,8 @@
+Star has a standard way of writing sequences and collections – like lists and dictionaries. For example, the expression
+list of [4, 8, 15, 16, 42]
+denotes the list with the numbers 4, 8, 15, 16 and 42 in it. This notation – which is called the sequence notation – is quite general. We can denote a different kind of collection, containing cons elements for example, using:
+cons of [4, 8, 15, 16, 42]
+or, we can even denote a general collection without being explicit about the type of collection:
+[4, 8, 15, 16, 42]
+As another example, we can see that a dictionary literal is also a variation on the collection – except that we have keys as well as values:
+dictionary of [ “alpha”->1, “beta”->2 ]

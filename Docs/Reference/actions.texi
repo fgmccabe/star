@@ -58,7 +58,7 @@ contract; representing different computation characteristics. The two
 standard implementations are modeled by the @code{action} type and the
 @code{task} type; these also have special syntax associated with them.
 
-In addition to these, there are `non-standard` implementation
+In addition to these, there are `non-standard' implementations
 of the contract -- such as for the @code{option} type.
 @end quotation
 
@@ -251,7 +251,8 @@ programming languages.
 @subsection @code{nothing}
 @cindex no operation
 @findex nothing
-The @code{nothing} action does nothing; and does not return a value; or, more accurately, return the empty tuple:
+The @code{nothing} action does nothing; and does not return a value;
+or, more accurately, return the empty tuple:
 
 @float BNF,nothingFig
 @caption{No Operation}
@@ -282,7 +283,8 @@ An action block consists of a sequence of actions, enclosed in braces
 The empty action block -- @code{@{@}} -- is equivalent to the
 @refer{NullAction}.
 
-Action blocks denote composition of actions using the @code{_sequence} function: for example, the actions @var{A}, @var{B} and @var{C} in:
+Action blocks denote composition of actions using the @code{_sequence}
+function: for example, the actions @var{A}, @var{B} and @var{C} in:
 @example
 @{
   A; B; C

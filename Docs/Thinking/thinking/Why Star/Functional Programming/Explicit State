@@ -1,0 +1,16 @@
+Contrary to some expectations, it is possible to write stateful programs in a functional style. The difference is that you have to be explicit about the state. For example, the function:
+addAll:(integer,integer)=>integer.
+addAll(from,to) => let{
+  accum(ix,acc) where ix>=to => acc.
+  accum(ix,acc) => accum(ix+1,acc+ix).
+} in accum(from,0).
+is the ‘functional equivalent’ of the normal Java loop:
+int addAll(int from,int to){
+  int acc = 0;
+  for(int ix=from;ix<to;ix++)
+    acc = acc+ix;
+  return acc;
+}
+Apart from the use of recursion, the other main difference is that the ‘state’ – which in both cases is held in the acc variable – is explicitly handed down the functional program, whereas the Java program handles state implicitly.
+The issue for the Java programmer is that what works for simple programs can become unmanageable for complex multi-threaded systems. On the other hand, while the functional programmer may be more burdened for simple cases, complex parallel programs are not much harder than the simple case.
+Functional programming, with its declarative and explicit manipulation of state makes crafting parallel programs significantly simpler and less error-prone.

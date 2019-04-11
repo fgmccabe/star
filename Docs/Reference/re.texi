@@ -1,41 +1,21 @@
-[[regexps]]
-== Regular Expressions
-(((regular expression)))
-
-A regular expression may be used to match against string values. Regular expressions are written using a regexp notation that is close to the common formats; with some simplifications and extensions.
-
-[[regFig]]
-.Regular Expressions
-****
-[[RegularExpression]]RegularExpression::=```<<Regex>>```
-
-[[Regex]]Regex ::= `.` | `^` | `$`
-&nbsp;&nbsp;| <<CharRef>>
-&nbsp;&nbsp;| <<DisjunctiveGroup>>
-&nbsp;&nbsp;| <<CharacterClass>>
-&nbsp;&nbsp;| <<Binding>>
-&nbsp;&nbsp;| <<Regex>> <<Cardinality>>
-&nbsp;&nbsp;| <<Regex>> <<Regex>>
-****
-
-<<regFig>> shows the lexical syntax of regular expressions; however, see <<regularExpressions>> for a more detailed explanations of regular expression syntax and semantics.
-
-
 
 @node Overloaded Functions
 @subsection Overloaded Functions
 @anchored{overloadedFunctions}
-The type of an overloaded function has a characteristic signature: it's type is universally quantified but with a constraint on the bound type variables.
+
+The type of an overloaded function has a characteristic signature:
+it's type is universally quantified but with a constraint on the bound
+type variables.
 
 For example, given the definition:
 @example
-dble:all t ~~ arithmetic[t] |: (t)=>t
+dble:all t ~~ arith[t] |: (t)=>t
 dble(X) => X+X
 @end example
 
 the generalized type of @code{dble} is:
 @example
-all t ~~ arithmetic[t] |: (t)=>t
+all t ~~ arith[t] |: (t)=>t
 @end example
 
 As noted in @refer{overloading}, the @code{dble} function is converted
@@ -43,15 +23,16 @@ to a function with an explicit dictionary argument that carries the
 implementation of the @code{arithmetic} contract:
 
 @example
-dble:all t ~~ (arithmetic[t])$=>(t)=>t
+dble:all t ~~ (arith[t])$=>(t)=>t
 dble(A) => let{
   dble_:(t)=>t
   dble_(X) => (A.+)(X,X)
 } in dble_
+@end example
 
 In effect, this means that the @code{dble} has _two_ types assigned to it: the constrained type above that is inferred through type inference and an overloaded type that results from its translation.
 [listing]
-all t ~~ (arithmetic[t])$=>(t)=>t
+all t ~~ (arith[t])$=>(t)=>t
 
 [NOTE]
 Overloaded types are function types, but we use a different types symbol -- @code{$\=>} -- to help distinguish the special role that overloaded types have.
@@ -65,12 +46,12 @@ However, the existence of the overloaded type associated with the variable acts 
 
 For example, in the function:
 [listing]
-quad:all t ~~ arithmetic[t] |: (t)=>t
+quad:all t ~~ arith[t] |: (t)=>t
 quad(X) => dble(dble(X))
 
 the type of each @code{dble} variable expression is determined to be:
 [listing]
-arithmetic[t] |: (t)=>t
+arith[t] |: (t)=>t
 
 [NOTE]
 They are the same type in this case because of the calling pattern for @code{dble}.
@@ -83,11 +64,11 @@ where we use @code{dble[A]} as a special form function call footnote:[We use thi
 
 The @code{quad} function is generic, and so its type is also a generalized constrained type:
 [listing]
-quad:all t ~~ arithmetic[t] |: (t)=>t
+quad:all t ~~ arith[t] |: (t)=>t
 
 and is also transformed into the overloaded definition:
 [listing]
-quad:all t ~~ (arithmetic[t]) $=> (t)=>t
+quad:all t ~~ (arith[t]) $=> (t)=>t
 quad(A) => let{
   quad_:(t)=>t
   quad_(X) => dble[A](dble[A](X))
@@ -132,33 +113,6 @@ Local actions are useful for situations where proper initialization of the entri
 [TIP]
 There is no predetermined order of execution of @refer{LocalAction}s -- for example, if there is more than one in a given @refer{thetaEnvironment}. The compiler ensures that all the preconditions for the @refer{LocalAction} -- specifically definitions that are referenced by the @refer{LocalAction} -- are established prior to the execution of the action.
 
-
-
-
-@cindex type,definition
-@quotation 
-Type definition:: is the definition of a type. See @refer{typeDefinitions}
-@cindex type,declaration
-@end quotation
-
-Type declaration:: is a statement that defines the type of a variable or program. See @refer{typeAnnotation}
-@cindex variable,definition
-Variable definition:: is a statement that defines a variable and gives it a value. There are two forms of variable definition corresponding to a normal single assignment variable and a re-assignable variable. See @refer{VariableDeclaration}
-Function definition::
-@cindex function,definition
-is a group of equations that defines a function. See @refer{equations}.
-Procedure definition::
-@cindex procedure,definition
- is a statement that defines an action procedure. See @refer{procedures}.
-LocalAction::
-@cindex actions,in a theta environment
-A @refer{LocalAction} is an action -- enclosed in braces -- that is performed prior to the bound expression of a @refer{thetaEnvironment}.
-Contract definition::
-@cindex contract,definition
-is a statement that defines a coherent collection of functions and procedures that may be associated with different types. See @refer{ContractDefinition}.
-Contract implementation::
-@cindex contract,implementation
-is a statement that establishes that a particular type @emph{implements} a contract -- and gives the implementation. See @refer{ContractImplementation}.
 
 @node Satisfaction Semantics
 @section Satisfaction Semantics

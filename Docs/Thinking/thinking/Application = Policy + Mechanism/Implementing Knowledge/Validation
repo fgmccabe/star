@@ -1,0 +1,44 @@
+If you actually try to run this program you will get an error along the lines of:
+`!(john, (parent, sam))' not a valid statement
+In general, new syntax elements that a DSL author adds to Star are not already valid expressions in the language. To help with this, Star also has a tool for extending Star's concept of valid forms. In this case, we need to tell the compiler that the graph expression is a special kind of expression that has triples in it. We can do that with the two rules:
+#graph{?B} :: expression :- B;*triple
+
+#?S ! ?P $ ?O :: triple
+These rules declare that graph expressions are expressions. provided that they contain only triples.
+Together, these validation rules, the operator declarations, and the macro rules allow Star to process a new form of expression.
+The complete package to implement this tiny DSL is just a few lines:
+miniN3{
+  #right((!),500).
+  #right(($),450).
+
+  n3Graph ::= n3Graph(list[triple]).
+
+  triple ::= triple(concept,concept,concept).
+
+  concept ::= concept(string).
+
+  #graph{?B} :: expression :- B;*triple.
+
+  #?S ! ?P $ ?O :: triple.
+
+  #graph{?B} ==> n3Graph(list of [ B ]) ## {
+    # ?S ! ?P $ ?O ==> triple(concept(S),concept(P),concept(O)).
+    #concept(identifier?I) ==> concept($$I).
+  }
+}
+We can use this DSL simply by importing the package in our code:
+worksheet{
+  import miniN3.
+  G = graph{
+    john ! parent $ sam.
+    sam ! parent $ joe.
+  }
+  show G.
+}
+which results in:
+n3Graph(list of [
+  triple(concept("sam"), concept("parent"), concept("joe")),
+  triple(concept("john"), concept("parent"), concept("sam"))
+])
+being displayed.
+However, the DSL author's task is not yet complete: she must also provide ways of interpreting and using the resulting n3Graph expressions. But that is a task for another day.

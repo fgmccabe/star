@@ -40,7 +40,7 @@ This is not an executable program per se.; however, it does represent
 a more typical source code unit -- most programs are built from many
 smaller modules which come together to make the application. This
 program is small, but already introduces many of the key elements of
-the @Star{} language.
+the language.
 
 In this module, we see the name of the module --
 @code{sample.factorial} -- an import statement and a function
@@ -49,11 +49,11 @@ definition -- of the @code{fact} function.
 Source code can be in any form of textual container. There is, for
 example, no specific requirement that this @code{sample.factorial}
 package be in a file called @code{factorial.star}; although that may
-be good advice. Instead, the @Star{} system relies on a @emph{catalog
-based} system that maps package names to text entities. The catalog
-system also serves as an anchor point in the version management of
-@Star{} programs. We will cover this, and the related repository
-system for generated artifacts, in Chapter 4.
+be good advice. Instead, the compiler relies on a @emph{catalog based}
+system that maps package names to text entities -- specifically
+resources with a URI. The catalog system also serves as an anchor
+point in the version management of packages. We will cover this, and
+the related repository system for generated artifacts, in @refer{ocean}.
 
 @node Texture
 @section Texture
@@ -61,7 +61,7 @@ system for generated artifacts, in Chapter 4.
 All programming languages can be said to have a particular
 @emph{style} or @emph{texture}. This is often so strong that it is
 often possible to identify a programming language from a single line
-of source code. In the case of @Star{}, this line might be:
+of source code. In our case, this line might be:
 
 @example
 public fact : (integer)=>integer.
@@ -76,13 +76,10 @@ this module and will be available in other modules where the
 @node Lexical style
 @subsection Lexical style
 
-@Star{}’s lexical syntax uses a combination of special operators and
-keywords.
-
 It can be difficult for language designers to decide when to use a
-keyword and when to use a special operator. In the case of @Star{} we
-use special operators for common elements and keywords when either a
-graphical operator would be obscure and/or is not common.
+keyword and when to use a special operator. We use special operators
+for common elements and keywords when either a graphical operator
+would be obscure and/or is not common.
 
 For example, in the factorial module, we use braces for grouping; but
 we also use the @code{import} and the @code{where} keywords. The
@@ -111,17 +108,15 @@ stage is the reliance on an underlying meta-grammar -- specifically on
 an @emph{operator precedence grammar}. OPGs are likely already
 familiar to you: it is the almost universally used grammar that
 underpins arithmetic expressions. We take the OPG and stretch its use
-to include the whole language. The relevance of this will be apparrent
-when we look at @emph{extending} @Star{} with new language features.
+to include the whole language.
 
 @node Types
 @subsection Types
 @Star{} is a strongly, statically typed language. This means that all
 variables and expressions have a single type; and that all type
 constraints are enforceable at compile-time. This is a fairly strong
-(sic) statement but it is a key aspect of @Star{}’s design -- we need
-everything to be well typed and we also want to guarantee completeness
-of the type system.
+(sic) statement but we need everything to be well typed and we also
+want to guarantee completeness of the type system.
 
 The type annotation statement:
 @example
@@ -131,8 +126,8 @@ fact : (integer)=>integer.
 is a statement that declares that the type of @code{fact} is a
 function of one integer argument and which returns an integer result.
 
-@Star{} encourages, but does not require, most programs to have
-explicit type annotations. The precise rule is a little subtle:
+Programmers are encouraged, but not required to, attach explicit type
+annotations to most programs. The precise rule is a little subtle:
 variables whose type are not quantified @emph{may} have their type
 automatically inferred. For top-level functions, that annotation is
 often contiguous in the text; but in other cases that may not be the
@@ -156,7 +151,7 @@ example lambda functions -- do not need type annotations.
 @node Rules
 @subsection Rules
 
-In @Star{}, most programs are defined using @emph{rules}. In this
+Most programs are defined using @emph{rules}. In this
 case, @code{fact} is defined using @emph{equations}. The equations
 that make up a function definition (or any program definition for that
 matter) are statements that are written in order.
@@ -170,7 +165,7 @@ In addition, as we shall see later on, the partitioning of programs
 into cases like this is very helpful in supporting large-scale issues
 such as code annotations, versioning and life-cycle management.
 
-@Star{} has various kinds of rules, including function definitions,
+There are various kinds of rules, including function definitions,
 grammar definitions, variable definitions and type definitions.
 
 @node Patterns
@@ -180,8 +175,8 @@ including, most importantly, to define equations. In fact, @emph{all}
 variables are introduced by means of patterns.
 
 A pattern can be viewed as a combination of a test --- does a value
-match a particular pattern --- and as a way ( @emph{the} way in
-@Star{}) of binding a variable to a value.
+match a particular pattern --- and as a way ( @emph{the} way) of
+binding a variable to a value.
 
 An equation’s pattern defines when the equation is applicable. The
 first equation for @code{fact} above:
@@ -309,7 +304,7 @@ set of values because not all collections of values are mathematical
 sets.}
 @end quotation
 
-@Star{}’s type system can be broken down into a number of dimensions:
+The type system can be broken down into a number of dimensions:
 
 @itemize
 @item
@@ -320,10 +315,10 @@ the treatment of type variables and quantifiers; and
 constraints on types, particularly type variables
 @end itemize
 
-@Star{} distinguishes two basic styles of type: so-called
-@emph{structural} or transparent types and @emph{nominative} or opaque
-types. A structural type term echoes the values it models, whereas a
-nominative type typically does not.
+We distinguish two basic styles of type: so-called @emph{structural}
+or transparent types and @emph{nominative} or opaque types. A
+structural type term echoes the values it models, whereas a nominative
+type typically does not.
 
 For example, the standard type @code{integer} is nominative --- its
 name gives no hint as to the representation, structure or kinds of
@@ -480,7 +475,7 @@ tuples; for example:
 (3,"fred",employee@{name="peter". dept:="sales"@})
 @end example
 
-@Star{} has several forms of structural type, the tuple type is one of
+There are several forms of structural type, the tuple type is one of
 them; others include @emph{record types} and @emph{function types}.
 
 We shall see more of these as we introduce the rest of the
@@ -523,8 +518,8 @@ a variable to be null but the compiler must discover those for itself;
 and there is often a consequent tendency in defensive programming to
 test for null.
 
-@Star{} has no direct equivalent of a global null value. However, the
-standard @code{option} type allows the equivalent of selective
+There is no direct equivalent of a global @emph{null} value. However,
+the standard @code{option} type allows the equivalent of selective
 nullability. Any variable that might not have a proper value can be
 marked with the option type rather than the underlying type. And you
 can use @code{none} in those cases to indicate the equivalent of no
@@ -584,9 +579,9 @@ topic. The issues can range from the nature of floating point numbers,
 the difference between integers and long values and the multiple
 potential concepts of equality for objects.
 
-Equality in @Star{} is always between values of the @emph{same type}
-and it is always @emph{semantic}. So, for example, an equality
-condition such as:
+Equality is always between values of the @emph{same type} and it is
+always @emph{semantic}. So, for example, an equality condition such
+as:
 
 @example
 3==3.0
@@ -704,7 +699,8 @@ leftFold((+),0,L)
 where @code{leftFold} means
 
 @quotation
-apply a left associative accumulating function to the elements of the data, assuming that the applied operator is left associative.
+apply a left associative accumulating function to the elements of the
+data, assuming that the applied operator is left associative.
 @end quotation
 
 This expression is clearly both more concise and higher-level than
@@ -741,10 +737,9 @@ The query expression is also very close to the natural specification:
 Add up the numbers in L
 @end quotation
 
-@Star{}’s query expressions --- which are similar to but also more
-expressive than LINQ --- can be used to encapsulate a wide range of
-such computations. We shall look deeper into them when we look at
-query rules in @Star{}.
+Query expressions --- which are similar to but also more expressive
+than LINQ --- can be used to encapsulate a wide range of such
+computations.
 
 @quotation
 Of course, SQL programmers have long had access to this kind of
@@ -780,10 +775,10 @@ programming.
 @noindent
 The concepts of interface and contract are foundational in modern
 software engineering. This is because explicit interfaces make it
-substantially easier to develop and evolve systems. A @Star{} contract
-goes beyond the traditional concept of interface in important ways: we
-do not mark the definition of a type with its implemented contracts
-and we allow contracts to involve multiple types.
+substantially easier to develop and evolve systems. A contract goes
+beyond the traditional concept of interface in important ways: we do
+not mark the definition of a type with its implemented contracts and
+we allow contracts to involve multiple types.
 
 A contract defines a collection of signatures and an implementation
 provides specific implementations for those functions for a specific
@@ -833,9 +828,8 @@ from the @code{four} contract:
 double : all t ~~ four[t] |: (t)=>t.
 @end example
 I.e., it inherits the same constraint as the function @code{plus}
-has. There are several kinds of type constraint in @Star{}’s type
-system; but the @emph{contract constraint} is the most significant of
-them.
+has. There are several kinds of type constraint; but the
+@emph{contract constraint} is the most significant of them.
 
 @quotation
 Notice that we have to give an explicit type annotation for
@@ -917,7 +911,7 @@ display values in a number of circumstances; including the string
 formatting we saw above.
 
 As may be expected, arithmetic itself is also mediated via the
-arithmetic contract in @Star{}. This is how we can support multiple
+arithmetic contract. This is how we can support multiple
 numeric types using a common set of operators: there are standard
 implementations of arithmetic for integers, and floating point
 numbers.
@@ -925,9 +919,9 @@ numbers.
 @node Coercion not casting
 @subsection Coercion, not casting
 
-@Star{} does not support automatic type casting, as found in languages
-like Java and C/C++. This is for many reasons, not the least of which
-is safety and predictability of code.
+@Star{} does not support type casting, as found in languages like Java
+and C/C++. This is for many reasons, not the least of which is safety
+and predictability of code.
 
 Casting in many languages is really two kinds of operations-in-one
 which we can refer to as @emph{casting} and @emph{coercion}. Casting
@@ -945,14 +939,13 @@ amounts to a request to verify that @code{X} is actually a
 an integer to a floating point number involves changing the value to
 conform to the floating point representation.
 
-@Star{} does not support casting, but does support coercion. However,
-coercion in @Star{} is never silent or implicit -- as it can be in
-Java and C/C++. An expression of the form:
+However, coercion in @Star{} is never silent or implicit -- as it can
+be in Java and C/C++. An expression of the form:
 @example
 3+4.5
 @end example
-will fail to type in @Star{} -- because there is an attempt to add an
-integer to a floating point number.
+will fail to type -- because there is an attempt to add an integer to
+a floating point number.
 
 The reason for signaling an error is strongly related to safety and
 predictability: automatic conversion of integers to floating point can
@@ -962,8 +955,8 @@ all integers can be represented as floating point values). The
 implicit coercion of numeric values is easy to miss when reading
 arithmetic expressions.
 
-@Star{} provides a coercion notation that allows programmers to be
-precise in their expectations:
+We have a coercion notation that allows programmers to be precise in
+their expectations:
 
 @example
 (3 :: float)+4.5
@@ -971,8 +964,8 @@ precise in their expectations:
 denotes the explicit coercion of the integer @code{3} to a
 @code{float} and type checks as expected.
 
-In fact, type coercion in @Star{} is mediated via a contract and this
-expression is equivalent to
+In fact, type coercion is mediated via a contract and this expression
+is equivalent to
 @example
 (_coerce(3):float)+4.5
 @end example
@@ -1068,5 +1061,5 @@ impossible to try to cover it in a short introduction. Later chapters
 will look at some of the other features such as a deeper look at
 contracts, queries & query rules, actors, concurrency, existential
 types, and extending @Star{} with domain specific languages. The next
-chapter (@xref{Functional Programming}) starts this process by looking
-at functional programming in @Star{}.
+chapter (@refer{Functional Programming}) starts this process by looking
+at functional programming.

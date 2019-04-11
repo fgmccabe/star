@@ -1,0 +1,12 @@
+The second form of speech action is the query. This represents a question being posed. For example, to query an (augmented) account actor for its balances one might use:
+query B with
+  cons of { all X where X in balances &&
+    X.ts>=yesterday}
+Note that this expression combines two different elements of Star: a query speech action and a query expression. The expression
+cons of { all X where X in balances and X.ts>=yesterday }
+represents the question:
+All the X's, where X is in the balances collection and where X's time stamp is more recent than yesterday.
+The answer is presented as a cons list. Different forms of query allow the result to be presented as any form of collection – or be further processed via reduction.
+Query expressions have many uses. The full query expression notation has similar expressive power to that of SQL; except that instead of being restricted to flat tables, Star's query notation can be applied to a large variety of types of data.
+There is no special kind of rule within an actor that is used to respond to query speech actions. Instead the response to the query is determined simply by evaluating the whole expression relative to the actor's internal environment.
+However, there may be situations where this permissive approach to handling query speech actions is not appropriate. In that situation, it is possible to get behind the scenes and intercept thequery — or any speech action — and analyze it before deciding to honor the query.

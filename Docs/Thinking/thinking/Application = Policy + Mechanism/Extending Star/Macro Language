@@ -1,0 +1,9 @@
+A macro is a program that is used to `replace' some source text with other source text. Except that we do not mean literal string text here. Star's macros operate on abstract syntax terms; i.e., the result of parsing the source text using the operator precedence grammar.
+We have already seen some simple examples of macros. There are two kinds of macros in Star: macro rules, like this rule which implements a form of lambda expression:
+# ?L >\ ?E ==> (L) => E
+and code macros. Code macros are simply normal Star functions that are applied to the program rather than to input data.
+The macro language is sufficiently powerful to allow arbitrary transformations of source programs. This is important because there are many occasions where the transformations required can involve expression forms and semantics that are unknown to the core Star language.
+A good example of this is the built-in query notation used for conditions, queries and so on in Star. The semantics of a condition like:
+(X,Y) in R1 && (Y,Z) in R2
+are not based on evaluation but on satisfaction. The condition is satisfied if there are bindings for X, Yand Z that make the predicates true. In particular, it may be that one or more of these variables is completely defined within the condition and is not referenced externally.
+The satisfaction semantics has to be implemented by transforming the condition into an equivalent expression that uses evaluation to compute the necessary bindings.

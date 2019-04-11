@@ -1,0 +1,7 @@
+Star is first of all a general purpose programming language. You can use it to effectively solve problems in many domains. Star was developed to help write analytical and statistical applications. However, it has evolved into a general purpose problem-oriented programming language.[^fn1] Many of the features and functionalities of the platform are expressed in a way that is consistent with Star. As such, it plays a key role in enabling the different elements of an application built on the platform to work smoothly together.
+Like any programming language, Star represents a distinct view point on what programming languages should be. Star is a rich functional-first language with extensibility capabilities. Star is designed to be readable, powerful, safe and extensible.
+In the spectrum of high-level and low-level programming languages, Star is at the higher end of the range. But, importantly, it's extensibility features enable it to support even higher level constructs.
+Performance is also important, of course. However, we view performance as being guided by the principle of `fast enough is good enough'. In practice, since the compiler is based on the JVM, many Star programs have a performance profile that is commensurate with comparable Java programs.
+
+
+[^fn1]: As opposed to a systems-oriented programming language like C.

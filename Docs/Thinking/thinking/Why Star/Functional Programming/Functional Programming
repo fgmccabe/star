@@ -1,0 +1,5 @@
+Functional programming has roots that go back to the origins of programming itself. However, it has been recently gaining in prominence because of some of the inherent advantages in the paradigm:
+Its ‘declarative’ nature makes reasoning about functional programs easier than for ‘procedural’ programs.
+This benefits programmers in a surprising number of ways. Of course, the most obvious one is that correctness and type safety are easier to establish than for a program built out of assignment and for-loops.
+A subtler but equally critical benefit is that it can make programming itself easier: the programmer is free to focus on sub-problems without unnecessary entanglement with other sub-problems.
+The impact of this benefit can be quite dramatic: similar in effect to the introduction of garbage collected memory compared to managed memory allocation.

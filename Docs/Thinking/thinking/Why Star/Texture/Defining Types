@@ -1,0 +1,19 @@
+Like most functional languages, Star supports many forms of sequence collection natively. One of the more common kinds of list is the ‘cons list’ a.k.a. single-linked list. Cons lists are defined using a type definition that introduces the type and its different ‘shapes’:
+all t ~~ cons[t] ::= nil | cons(t,cons[t]).
+This states that there are two forms of cons lists: the empty cons list nil, and a pairing cons(x, xs) where x is the first element, and xs is the rest of the list. The all quantifier at the beginning of the declaration of the cons type marks the type as a generic type – specifically a universal type.
+All Star values can be written as literals, including user defined types like cons. For example, the cons list:
+cons(“alpha”,cons(“beta”,cons(“gamma”,nil)))
+contains the strings “alpha”, “beta” and “gamma”. 
+The standard implementation of cons lists in Star also supports the sequence notation we saw above. So, this list can be written:
+cons of [“alpha”, “beta”, “gamma”]
+Note that we are not allowed to mix strings and integers in the same list. That is because Star is strongly, statically typed and such a heterogeneous list is not permitted.
+Just as with sequences, we can define functions over cons lists via pattern matching:
+maxCons:(cons[integer]) => integer.
+maxCons(cons(x, nil)) => x.
+maxCons(cons(x, xs)) default => let {
+     maxRest = maxCons(xs).
+   } in (x > maxRest ? x : maxRest)
+The first maxCons equation is for cons lists with one element, where maxCons simply returns that element. The second equation first computes the maximum of the rest of the list via a recursive call, and uses a conditional expression to compute the maximum for the entire list.
+The expression
+(x > maxRest ? x : maxRest)
+is a conditional expression: if x is greater then maxRest then it is the maximum; otherwise maxRest is. This is an example of a very well known form of expression that uses symbolic operators rather than keywords. Similar forms of expression can be found in all the major programming languages; so it would have seemed curmudgeonly to invent special keywords for it.

@@ -1,0 +1,4 @@
+The Star actor represents the simplest possible entity that can respond to speech actions. In that sense, a Star actor is the simplest possible mechanism for embodying responsibility.
+There are other entities that also implement the speech contract; in particular, an agent could be seen as being the simplest entity that both responds to speech actions and has some awareness of its own goals and activities.
+Thus actors and agents span a range of scales from the very small to the very large, but with a unified representation of `units of collaboration': the speech action. In particular, Star actors are able to operate on a reified representation of query and request speech actions, similar to (but developed independently from) LINQ's approach10.
+Star's actors should not be confused with what is arguably the original definition of actor by Hewitt11. Hewitt actors are a representation of concurrent programs; Star actors may or may not be concurrent.

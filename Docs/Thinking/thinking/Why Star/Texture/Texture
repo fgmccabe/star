@@ -1,0 +1,36 @@
+All programming languages can be said to have a particular style or texture. This is often so strong that it only needs a single line of source code to be able to identify a programming language. In the case of Star, this line might be (we explain what it means a bit later on):
+factorial:all t ~~ arith[t] |: (t)=>t.
+Overall, the texture of Star is designed to enhance the readability of programs. Readability is important because many people have to be able to read programs; perhaps more than are involved in writing them. Even with an emphasis on readability, the power of the language is such that Star programs tend to be shorter than their equivalents written in languages like Java.
+On the other hand, Star is not COBOL! Some symbols have an almost universally consistent meaning and Star uses them where it is appropriate.
+To convey a sense of what Star programs look like we start with some simple examples. Here is a simple Star function definition with (hopefully) obvious semantics:
+doubleMe:(integer)=>integer.
+doubleMe(x) => x + x.
+Although not mandatory, in most cases we strongly favor a programming style where the type of functions and other top-level definitions are called out explicitly. Here is another function calling the just-defined doubleMe:
+doubleUs:(integer,integer)=>integer.
+doubleUs(x, y) => doubleMe(x) + doubleMe(y).
+A complete Star program that uses these functions to print a result is:
+sample.first{
+  doubleMe:(integer)=>integer.
+  doubleMe(x) => x + x.
+
+  doubleUs:(integer,integer)=>integer.
+  doubleUs(x, y) => doubleMe(x) + doubleMe(y).
+
+  main:()=>().
+  main() do {
+    logMsg(info,"double trouble is \(doubleUs(3,4))")
+  }
+}
+Function definitions can use multiple clauses, pattern matching, and guards:
+lucky:(integer)=>string.
+lucky(7) => "LUCKY NUMBER SEVEN!".
+lucky(x) default => "Sorry, you’re out of luck, pal!"
+
+factorial:(integer)=>integer.
+factorial(0) => 1.
+factorial(n) where n > 0 => n * factorial(n-1)
+In fact, this last function is not fully paradigmatic of Star. A better, albeit more complex, version of this would be:
+factorial:all t ~~ arith[t] |: (t)=>t.
+factorial(zero) => one.
+factorial(n) where n > zero => n * factorial(n-one)
+This version of factorial will work with integers, floats anything that can do arithmetic.

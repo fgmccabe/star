@@ -1,0 +1,42 @@
+As a somewhat larger demonstration of the capabilities of Star's macro language, let us look at a significant example: representing knowledge.
+There are many knowledge representation languages; here we use one that is based on N3 notation15. In order to be relatively brief, we focus on a very reduced form of this notation: the knowledge triple. A statement of the form:
+john ! parent $ sam
+is intended to mean
+john is parent of sam
+more specifically,
+john is the subject, parent is the relationship and sam is the object
+Such a representation has many uses; one salient one for our purposes is that this kind of notation is very suited to representing configurations of various kinds.
+It should also be obvious that such statements are not ordinary expressions or statements. Hence, to integrate such statements into a Star program we have a little work to do!
+The first step is to bound the occurrences of such statements — to decide where they are legal. There are several ways of doing this; depending on the kind of extension we want to implement. In this case, we define a new kind of expression — the knowledge graph. N3 statements are legal only in knowledge graph expressions.
+For example,
+graph{
+  john ! parent $ sam
+}
+is such a knowledge graph expression. We also have to define ! and $ as infix operators — which can be done using:
+#right("!",500)
+#right("\$",450)
+We have to escape the $ because it is a special character in Star string syntax.
+The second step is to define how to represent such graphs. We choose to do so by using a data structure:
+n3Graph(
+  list of [
+    triple(concept("john"),concept("parent"),concept("sam"))
+  ]
+)
+So, the task of the macro code is to translate the graph expression into an n3Graph term. The latter is readily understood by the Star compiler.
+We are not addressing here how to use such graph expressions.
+The core transformation of triples is handled by the macro rule:
+# ?S ! ?P $ ? O ==>
+  triple(concept(S),concept(P),concept(O))
+We use an intermediate concept of concept because the N3 language includes other kinds of concepts — such as strings and numbers.
+Notice that the macro rule for triples directly matches the triples that we want to handle. This makes it very clear what the macro is intended to match against.
+The concept is also transformed using a macro rule:
+#concept(identifier?C) ==> concept($$C)
+There are many special purpose operators in the macro language. The $$ operator `converts' an identifier into a string literal. This allows us to reinterpret the john identifier as the string literal "john".
+The graph itself it handled in a similar way to individual triples. Since triples are only valid inside a graph, we reflect that with the graph macro too:
+#graph{?B} ==> n3Graph(list of [ B ]) ## {
+  # ?S ! ?P $ ? O ==>
+    triple(concept(S),concept(P),concept(O))
+}
+The macro replacement form:
+Repl ## { Macros }
+is the macro analog of a let expression: the macro rules in Macros are in scope for macro processing the expression Repl.

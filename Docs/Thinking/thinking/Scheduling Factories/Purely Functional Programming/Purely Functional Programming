@@ -1,0 +1,39 @@
+The queue-time problem described above puts a severe strain on existing scheduling solutions for semiconductor fabrication.
+The scheduler needs to predict whether a given lot that is just about to enter a queue-time zone will make it through the zone in the time allotted for it. Thus, the scheduler needs to ‘see into the future’, or at least make an educated guess as to what the future might be.
+To that end, ALPS implements speculative simulation: it simulates the operation of the fab up to the point where the lot in question either successfully completes the queue time zone or has exceeded its time limit to do so. The simulation is speculative in the sense that, once it is completed, the system must return to the present.
+![][alps-speculative-simulation]
+Speculative Simulation in ALPS 4
+Figure 1 shows the basic situation with speculative simulation: Each circle represents a fab state. If the scheduler chooses to conduct a simulation based on a given fab state, it needs to represent the simulated fab states before returning to the original state.
+In a traditional system, which stores the fab-state information in a relational database, speculative simulation is prohibitively expensive, as it requires creating a copy of the database upon starting the simulation in order to return to the present.
+Star, in contrast, offers high-performance persistent data-structures. To understand what ‘persistent’ means, consider manipulating a data-structure such as a list in a traditional language such as Java:
+List<Thing> lis = new List<Thing>();
+  lis.add(thing1);
+  lis.add(thing2);
+  ...
+This code fragment first creates an empty list lis and then adds elements to them. Each addition is destructive in the sense that the state of the list before an addition is no longer present after it: For example, after the addition of thing1, lis has one element, and after the addition thing, it has two elements: The state where lis had one element no longer exists.
+Contrast this to Star's cons lists, for example:
+let {
+  lis0 = nil.
+  lis1 = cons(thing1, lis0).
+  lis2 = cons(thing2, lis1).
+  ...
+} in ...
+In this example, even though lis2 is built from lis1, lis1 is still present and has one element, while lis2 has two. Thus, lis1 persists even after the program has created lis2. Moreover, despite the fact that lis1 and lis2 appear to be completely independent objects, they share the memory occupied by lis1.
+![][Image0]
+Star's cons lists are persistent
+Figure 2 shows the memory layout of the cons lists from the example, and illustrates the sharing. Thus, it is possible for a program to have two different lists with a million elements each, and have them share the memory for identical portions, and using significantly less memory than would be needed for two completely different lists.
+Similarly to cons lists, Star's sets and dictionaries are persistent. Albeit, their implementation is considerably more complicated, involving tree data structures. The exact implementation is not usually important for the Star programmer however: What matters is that modifying a dictionary – which creates a new dictionary and preserves the ‘old’ one – essentially uses storage only to represent the delta between the old and new dictionary.
+This way of building up data structures is surprisingly efficient, even though it creates new objects at a high rate: modern JVMs can allocate objects extremely quickly. Furthermore, the long term cost of allocation becomes essentially zero; due to the use of generational garbage collection – when an ‘old’ dictionary is no longer needed, the JVM's garbage collection can reclaim the memory used by it.
+Applied to speculative scheduling, this means that a simulation step only needs to store the delta between one fab state to the next.
+Although the size of a complete factory state is large, it is not too large for modern multi-gigabyte laptops. As a result, ALPS 4 does not keep the fab state in a relational database, but rather replicates the fab state using Star's native data structures.
+This makes speculative scheduling not only feasible, but also natural and easy to implement. In fact, ALPS 4 uses only persistent data structures, and is thus a purely functional program.
+Doing this in a purely functional manner has numerous other advantages: In particular, the program becomes immediately amenable to parallelization, as no state mutations need to be coordinated between threads. Moreover, transactional integrity is never a problem with the management of the factory state, as no inconsistent intermediate states are ever globally visible. More specifically, schedulers in ALPS 4 can call other schedulers without having to fear interference.
+With speculative simulation in place, addressing the queue-time problem is surprisingly easy: ALPS 4 runs a simulation inside the scheduler, monitoring the lots that are inside a queue-time zone until completion or failure. Once the simulation has determined how many lots about to enter a queue-time zone would fail, it simply delays moving those lots along, thus preventing the queue-time violations predicted by the simulation.
+ALPS 4 implements a number of other optimizations to further address the queue-time problem: For instance, it records the progress of the lots in a queue-time zone during the simulation, and ensures that the lots make similar progress in actual fabrication: If a lot falls behind the recorded trace – and is thus likely to fail completing the queue-time zone on time – ALPS 4 will speed its processing until it again matches the predicted schedule.
+
+
+
+
+[alps-speculative-simulation]: alps-speculative-simulation.png width=3125px height=1271px
+
+[Image0]: Image0.png
