@@ -18,6 +18,7 @@ function(add_info nm)
       COMMAND ${MAKEINFO} -o ${info_out} ${info_texi}
       DEPENDS ${info_deps} 
       COMMENT "Creating Info file ${info_out}"
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       VERBATIM)
 
     add_custom_target(info ALL DEPENDS ${info_out})
@@ -25,6 +26,7 @@ function(add_info nm)
     add_custom_command(OUTPUT ${info_html}
       COMMAND ${MAKEINFO} --html --no-split -o ${info_html} ${info_texi}
       DEPENDS ${info_deps} 
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT "Creating HTML file ${info_html}"
       VERBATIM)
 
