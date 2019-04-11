@@ -98,7 +98,13 @@ star.compiler.unify{
     setBinding(V,T);
     return true
        }
-       || false).
+  || false).
+
+  bind(V,T,Env) where isUnbound(T) &&  MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) => valof action{
+    setConstraints(T,MM);
+    setBinding(V,T);
+    return true
+  }
   bind(_,_,_) default => false.
 
   checkConstraints([],_) => true.

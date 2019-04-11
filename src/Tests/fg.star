@@ -4,6 +4,6 @@ test.fg{
 
   _main:(list[string])=>().
   _main([F,.._]) where Fn.=F::integer &&
-	  _.=_logmsg("Fact of $(Fn) is $(fact(Fn))") => ().
+		 _.=_logmsg("Fact of $(Fn) is $(fact(Fn))") => ().
   _main([]) => ().
 }
