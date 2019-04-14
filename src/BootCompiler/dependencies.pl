@@ -28,6 +28,11 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isIntegrity(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isShow(St,_,_).
+collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[Tp])|Defs],Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
+  isTypeAnnotation(St,Lc,L,T),
+  isIden(L,V),
+  isConstructorType(T,_,Tp),!,
+  call(Export,var(V),P,Px).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
   isTypeAnnotation(St,_,L,T),
   isIden(L,V),

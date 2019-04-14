@@ -9,4 +9,13 @@ test.i{
 
   assert 1^=kk["alpha"].
   assert some(1).=_index(ll,"alpha").
+
+  public all k,v ~~ mp[k,v] <~ {}.
+
+  private ihE : all k,v ~~ () <=> mp[k,v].
+  private ihL: all k,v ~~ (integer,cons[(k,v)]) <=> mp[k,v].
+
+  foo = ihL(3,([("al",2)]:cons[_])).
+  ef = ihE.
+
 }
