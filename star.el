@@ -301,7 +301,7 @@
   :type 'integer
   :group 'star)
 
-(defcustom build-repo "../Star/Build/"
+(defcustom star-build-repo "../Star/Build/"
   "* Where the repository for your project lives."
   :type 'directory
   :group 'star)
@@ -545,7 +545,7 @@ Argument N  oprefix."
 			 )
 			 (setq state (star-new-state
 				      symbol-prec symbol
-				      (+ (star-state-indent state) delta)
+				      (+ indent delta)
 				      nil))
 			 )
 		       )
@@ -856,7 +856,7 @@ Argument N  oprefix."
       ;; Reset the `star--flymake-proc' process to a new process
       (setq star--flymake-proc
 	    (star-compile source
-			  build-repo
+			  star-build-repo
 			  (star-package)
 			  (file-name-directory (buffer-file-name source))
 			  report-fn))
