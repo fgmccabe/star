@@ -5,6 +5,7 @@
 #include <globals.h>
 #include <str.h>
 #include <ioTcp.h>
+#include <manifest.h>
 
 #include "debugP.h"
 #include "arith.h"
@@ -38,20 +39,23 @@ static sockPo debuggerListener = Null;
 static ioPo debugInChnnl = Null;
 static ioPo debugOutChnnl = Null;
 
-static void setupDebugChannels() {
+retCode setupDebugChannels() {
   if (debuggerPort > 0 && debugInChnnl == Null) {
     if (debuggerListener == Null) {
       debuggerListener = listeningPort("star-debug", debuggerPort);
 
-      retCode ret = acceptConnection(debuggerListener, rawEncoding, &debugInChnnl, &debugOutChnnl);
+      retCode ret = acceptConnection(debuggerListener, utf8Encoding, &debugInChnnl, &debugOutChnnl);
       if (ret != Ok) {
         syserr("fatal problem in establishing debugger connection");
       }
+      return ret;
     }
   } else if (debugInChnnl == Null) {
     debugInChnnl = Stdin();
     debugOutChnnl = Stdout();
+    return Ok;
   }
+  return Error;
 }
 
 static inline int32 collect32(insPo pc) {
@@ -88,7 +92,7 @@ static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 static integer displayDepth = 10;
 
 void dC(termPo w) {
-  outMsg(debugOutChnnl, "%,*T\n", displayDepth, w);
+  outMsg(logFile, "%,*T\n", displayDepth, w);
   flushOut();
 }
 
@@ -228,6 +232,14 @@ static retCode cmdComplete(bufferPo b, void *cl, integer cx) {
   }
 }
 
+static void dbgPrompt(processPo p) {
+//  if (debuggerListener != Null) {
+  outMsg(debugOutChnnl, "\n[%d]>>%_", processNo(p));
+//  } else {
+//    outMsg(debugOutChnnl, "\n[%d]>>%_",processNo(p));
+//  }
+}
+
 static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord ins) {
   static bufferPo cmdBuffer = Null;
 
@@ -235,8 +247,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
     cmdBuffer = newStringBuffer();
 
   while (interactive) {
-    outMsg(debugOutChnnl, " => ");
-    flushFile(debugOutChnnl);
+    dbgPrompt(p);
     clearBuffer(cmdBuffer);
 
     setEditLineCompletionCallback(cmdComplete, (void *) opts);
@@ -467,7 +478,7 @@ void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp
 
   termPo locn = findPcLocation(mtd, pcOffset);
   if (locn != Null)
-    outMsg(out, "[%d] %L: %T(", frameNo, locn, mtd);
+    outMsg(out, "[%d] %#L: %T(", frameNo, locn, mtd);
   else
     outMsg(out, "[%d] (unknown loc): %T[%d](", frameNo, mtd, pcOffset);
 
@@ -538,7 +549,7 @@ void dumpStackTrace(processPo p, ioPo out) {
 
   integer frameNo = 0;
 
-  outMsg(out, "Stack dump for p: %d\n", p->processNo);
+  outMsg(out, "Stack dump for p: %d\n", processNo(p));
 
   while (fp->fp < (framePo) p->stackLimit) {
     showStackCall(out, frameNo, mtd, pc, fp, 1);
@@ -706,14 +717,13 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
       {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
       {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
       {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
+      //{.c = '@', .cmd=dbgShowLocation, .usage="L show location"},
       {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
       {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
       {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"}},
     .count = 18,
     .deflt = Null
   };
-
-  setupDebugChannels();
 
   methodPo mtd = p->prog;
   framePo fp = p->fp;
@@ -756,7 +766,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
 }
 
 void showLn(ioPo out, methodPo mtd, insPo pc, termPo ln, framePo fp, ptrPo sp) {
-  outMsg(out, BLUE_ESC_ON"line"BLUE_ESC_OFF": %L%_", ln);
+  outMsg(out, BLUE_ESC_ON"line:"BLUE_ESC_OFF" %#L%_", ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -764,18 +774,25 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
 
   if (isNormalPo(ln)) {
     normalPo line = C_TERM(ln);
-    integer pLen;
-    const char *pkgNm = stringVal(nthArg(line, 0), &pLen);
-    return outMsg(f, "%S:%T:%T(%T)", pkgNm, pLen, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+    char pkgNm[MAX_SYMB_LEN];
+    copyString2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
+
+    if (alt && debuggerListener != Null) {
+      packagePo pkg = loadedPackage(pkgNm);
+      char *src = manifestResource(pkg, "source");
+
+      return outMsg(f, "%s(%T,%T,%T)%_", src, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+    } else
+      return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
   } else
     return outMsg(f, "%,*T", displayDepth, ln);
 }
 
-static retCode shArgs(ioPo out, ptrPo sp, integer displayDepth, integer from, integer to) {
+static retCode shArgs(ioPo out, ptrPo sp, integer depth, integer from, integer to) {
   char *sep = "";
   tryRet(outStr(out, "("));
   for (integer ix = from; ix < to; ix++) {
-    tryRet(outMsg(out, "%s%#,*T", sep, displayDepth, sp[ix]));
+    tryRet(outMsg(out, "%s%#,*T", sep, depth, sp[ix]));
     sep = ", ";
   }
   return outMsg(out, ")");
@@ -783,26 +800,26 @@ static retCode shArgs(ioPo out, ptrPo sp, integer displayDepth, integer from, in
 
 static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
   if (locn != Null) {
-    tryRet(outMsg(out, "%L: %s %#.16T", locn, msg, mtd));
+    tryRet(outMsg(out, "%s %#L %#.16T", msg, locn, mtd));
   } else
-    tryRet(outMsg(out, "%s: %#.16T", msg, mtd));
+    tryRet(outMsg(out, "%s %#.16T", msg, mtd));
 
   return shArgs(out, sp, displayDepth, 0, argCount(mtd));
 }
 
 void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shCall(out, GREEN_ESC_ON"call"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  shCall(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 void showTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shCall(out, GREEN_ESC_ON"tail"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  shCall(out, GREEN_ESC_ON"tail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 static retCode shOCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
   if (locn != Null) {
-    tryRet(outMsg(out, "%L: %s ", locn, msg));
+    tryRet(outMsg(out, "%s %#L ", msg, locn));
   } else
     tryRet(outMsg(out, "%s ", msg));
 
@@ -814,21 +831,21 @@ static retCode shOCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo f
 
 void showOCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shOCall(out, GREEN_ESC_ON"ocall"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  shOCall(out, GREEN_ESC_ON"ocall:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 void showOTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shOCall(out, GREEN_ESC_ON"otail"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  shOCall(out, GREEN_ESC_ON"otail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
 
   if (locn != Null)
-    outMsg(out, "%L: "RED_ESC_ON"return"RED_ESC_OFF" %T->%#,*T", locn, mtd, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T", locn, mtd, displayDepth, val);
   else
-    outMsg(out, RED_ESC_ON"return"RED_ESC_OFF": %T->%#,*T", mtd, displayDepth, val);
+    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %T->%#,*T", mtd, displayDepth, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp, ptrPo sp);
@@ -916,8 +933,6 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
   framePo fp = p->fp;
   ptrPo sp = p->sp;
   insPo pc = p->pc;
-
-  setupDebugChannels();
 
   logical stopping = shouldWeStop(p, ins, ln);
 
@@ -1148,3 +1163,4 @@ void dumpInsCount() {
 void dumpInsStats() {
 #include "instructions.h"
 }
+

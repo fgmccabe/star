@@ -245,6 +245,10 @@ ProcessState processState(processPo p) {
   return p->state;
 }
 
+integer processNo(processPo p){
+  return p->processNo;
+}
+
 typedef struct {
   procProc pr;
   void *cl;

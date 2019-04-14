@@ -205,8 +205,8 @@ termPo getMtdLit(methodPo mtd, integer litNo) {
   return nthArg(codeLits(mtd), litNo);
 }
 
-packagePo loadedPackage(char *package) {
-  return (packagePo) hashGet(packages, package);
+packagePo loadedPackage(const char *package) {
+  return (packagePo) hashGet(packages, (void*)package);
 }
 
 logical isLoadedPackage(packagePo pkg) {

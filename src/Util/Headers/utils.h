@@ -51,4 +51,6 @@ extern char *genSym(char *prefix);
 extern integer nextPrime(integer min);
 
 extern void syserr(const char *msg);
+
+extern char *stripFileScheme(char *src);
 #endif

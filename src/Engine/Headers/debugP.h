@@ -27,4 +27,5 @@ typedef struct {
   DebugOption opts[ZEROARRAYSIZE];
 } DebugOptions, *debugOptPo;
 
+
 #endif //STAR_DEBUGP_H

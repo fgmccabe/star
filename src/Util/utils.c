@@ -101,3 +101,10 @@ integer nextPrime(integer min) {
 
   return candidate;
 }
+
+char *stripFileScheme(char *src){
+  if(uniIsLitPrefix(src,"file:"))
+    return src+uniStrLen("file:");
+  else
+    return src;
+}
