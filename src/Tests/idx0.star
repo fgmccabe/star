@@ -7,7 +7,7 @@ test.idx0{
   zip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,T[I->E]),(Ix,T0),L)).
 
   t0 : map[integer,string].
-  t0 = ihEmpty.
+  t0 = [].
 
   t1 = t0[45->"a"].
 
@@ -37,7 +37,7 @@ test.idx0{
 
   show disp(a2).
 
-  u0 = zip(["a","b","c"],0,4,ihEmpty).
+  u0 = zip(["a","b","c"],0,4,[]).
 
   -- show disp(u0).
 
@@ -55,17 +55,17 @@ test.idx0{
 
   assert u1[12] == some("d").
 
-  show disp(zip(["a","b","c","d","e","f","g","h","i"],0,1,ihEmpty)).
+  show disp(zip(["a","b","c","d","e","f","g","h","i"],0,1,[])).
 
-  show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,ihEmpty)).
+  show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l"],0,1,[])).
 
-  show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l","m"],0,1,ihEmpty)).
+  show disp(zip(["a","b","c","d","e","f","g","h","i","j","k","l","m"],0,1,[])).
 
   letters:list[string].
   letters = ["a","b","c","d","e","f","g","h","i","j","k","l","m",
                  "n","o","p","q","r","s","t","u","v","w","x","y","z"].
 
-  aa0 = zip(letters,0,1,ihEmpty).
+  aa0 = zip(letters,0,1,[]).
 
   show disp(aa0).
 
@@ -83,7 +83,7 @@ test.idx0{
   unzip:all e ~~ (list[e],integer,integer,map[integer,e])=>map[integer,e].
   unzip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,T[\+I]),(Ix,T0),L)).
 
-  show disp(unzip(["a","b","c"],0,4,ihEmpty)).
+  show disp(unzip(["a","b","c"],0,4,[])).
 
   show disp(unzip(["a","b","c"],0,4,u1)).
 

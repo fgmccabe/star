@@ -1,4 +1,4 @@
-:-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,
+:-module(wff,[isAlgebraicTypeStmt/6,isConstructor/3,isConstructorType/3,
 	      isQuantified/3,isXQuantified/3,reUQuant/3,reXQuant/3,
 	      isConstrained/3,reConstrain/3,
 	      isContractStmt/6,isImplementationStmt/6,
@@ -69,6 +69,18 @@ isConstructor(C,Lc,Nm) :-
   isRound(C,Lc,Nm,_).
 isConstructor(C,Lc,Nm) :-
   isBrace(C,Lc,Nm,_).
+
+isConstructorType(C,Lc,Tp) :-
+  isQuantified(C,U,I),
+  isConstructorType(I,Lc,T),!,
+  reUQuant(U,T,Tp).
+isConstructorType(C,Lc,Tp) :-
+  isXQuantified(C,U,I),
+  isConstructorType(I,Lc,T),!,
+  reXQuant(U,T,Tp).
+isConstructorType(C,Lc,Tp) :-
+  isBinary(C,Lc,"<=>",Lhs,Rhs),!,
+  (isTuple(Lhs,_,[]) -> Tp=Rhs ; Tp=C).
 
 isQuantified(T,Q,B) :-
   isBinary(T,_,"~~",L,B),
