@@ -26,9 +26,6 @@ star.resources{
   public isDir:(string) => boolean.
   isDir(D) => _isdir(D).
 
-  public logMsg:(string) => ().
-  logMsg(Txt) where _ .= _logmsg(Txt) => ().
-
   public cwd:()=>uri.
   cwd() where U^=parseUri(_cwd()) => U.
 }
