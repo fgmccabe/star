@@ -23,8 +23,6 @@ char *manifestCompatibleResource(char *pkg,char *version,char *kind);
 
 char *manifestResource(packagePo pkg, char *kind);
 
-char *manifestRsrcFlNm(packagePo pkg, char *kind, char *buffer, integer buffLen);
-
 retCode addToManifest(packagePo package, char *kind, char *resrc, integer length);
 char *manifestOutPath(packagePo pkg, char *suff, char *buffer, int bufLen);
 char *repoRsrcPath(char *name,char *buffer,int bufLen);

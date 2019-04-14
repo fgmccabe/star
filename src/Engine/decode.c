@@ -288,6 +288,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
         termPo el = voidEnum;
         gcAddRoot(H, &el);
+        gcAddRoot(H, (ptrPo)&obj);
 
         // In case of GC, we mark all the elements as void before doing any decoding
         for (integer ix = 0; ix < arity; ix++)

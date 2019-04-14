@@ -164,32 +164,22 @@ retCode addResource(manifestVersionPo version, const char *kind, const char *rsc
 }
 
 char *manifestResource(packagePo pkg, char *kind) {
-  return manifestCompatibleResource(pkg->packageName,pkg->version,kind);
+  return manifestCompatibleResource(pkg->packageName, pkg->version, kind);
 }
 
 char *manifestCompatibleResource(char *pkg, char *version, char *kind) {
   manifestEntryPo entry = manifestEntry(pkg);
   if (entry != Null) {
     manifestVersionPo v = manifestVersion(entry, version);
-    if(version!=Null){
+    if (version != Null) {
       manifestRsrcPo f = hashGet(v->resources, kind);
 
       if (f != NULL)
         return f->fn;
-    }
-    else
+    } else
       return Null;
   }
   return Null;
-}
-
-char *manifestRsrcFlNm(packagePo pkg, char *kind, char *buffer, integer buffLen) {
-  char *rsrc = manifestResource(pkg, kind);
-
-  if (rsrc != Null) {
-    return strMsg(buffer, buffLen, "%s/%s", repoDir, rsrc);
-  } else
-    return Null;
 }
 
 retCode addToManifest(packagePo package, char *kind, char *resrc, integer length) {

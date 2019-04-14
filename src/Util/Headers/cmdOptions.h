@@ -15,6 +15,8 @@ typedef retCode (*setOption)(char *option,logical enable,void *cl);
 
 typedef retCode (*helpOption)(ioPo out,char shortName,char *usage,void *cl);
 
+typedef retCode (*postOption)(integer count);
+
 typedef enum {
   hasArgument,
   noArgument

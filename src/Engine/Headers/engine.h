@@ -40,6 +40,7 @@ extern void setupProcess(processPo P,methodPo mtd);
 extern void switchProcessState(processPo p, ProcessState state);
 extern void setProcessRunnable(processPo p);
 extern ProcessState processState(processPo p);
+extern integer processNo(processPo p);
 
 typedef retCode (*procProc)(processPo p, void *cl);
 retCode processProcesses(procProc p, void *cl);

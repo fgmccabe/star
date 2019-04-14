@@ -61,6 +61,8 @@ int main(int argc, char **argv) {
   defltCWD();
   defltRepoDir();
 
+  setupDebugChannels();
+
   installMsgProc('M', showMtdLbl);
   installMsgProc('L', showLoc);
   installMsgProc('T', showTerm);
