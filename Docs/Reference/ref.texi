@@ -63,6 +63,7 @@ F.G. McCabe).
 
 * Numbers::
 * Strings::
+* Collections::
 * Source Catalogs::
 * Concept index::
 * Function index::
@@ -96,7 +97,7 @@ F.G. McCabe).
 
 @include strings.texi
 
-@c @include collections.texi
+@include collections.texi
 
 @c @include concurrent.texi
 

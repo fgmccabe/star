@@ -42,12 +42,6 @@ with an emphasis on readability, the power of the language is such
 that Star programs tend to be shorter than their equivalents written
 in languages like Java.
 
-On the other hand, Star is not COBOL! Some symbols have an almost
-universally consistent meaning and Star uses them where it is
-appropriate.  To convey a sense of what Star programs look like we
-start with some simple examples. Here is a simple Star function
-definition with (hopefully) obvious semantics:
-
 @example
 doubleMe:(integer)=>integer.
 doubleMe(x) => x + x.
@@ -116,8 +110,8 @@ for @code{apply}:
 @example
 apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
 @end example
-states that apply is a generic function – in two types – that takes a
-function and a cons list and returns a new cons list.
+states that @code{apply} is a generic function – in two types – that takes a
+function and a @code{cons} list and returns a new @code{cons} list.
 
 @quotation Note
 Specifically, the rule for type inference is that Star will
@@ -145,10 +139,8 @@ maximum([H,..T]) => let @{
   max([_,..R],Mx) default => max(R,Mx).
 @} in max(T,H)
 @end example
-The @code{max} function enclosed in the let body uses patterns to
-match against the successive elements of the collection. It is
-important to note that the max and the maximum functions will work
-over any kind of collection.
+The @code{max} function enclosed in the @code{let} body uses patterns to
+match against the successive elements of the collection. 
 
 The pattern form:
 @example
@@ -180,10 +172,10 @@ definition that introduces the type and its different ‘shapes’:
 all t ~~ cons[t] ::= nil | cons(t,cons[t]).
 @end example
 
-This states that there are two forms of cons lists: the empty cons
+This states that there are two forms of @code{cons} lists: the empty cons
 list @code{nil}, and a pairing @code{cons(x, xs)} where @code{x} is
 the first element, and @code{xs} is the rest of the list. The
-@code{all} quantifier at the beginning of the declaration of the cons
+@code{all} quantifier at the beginning of the declaration of the @code{cons}
 type marks the type as a generic type – specifically a universal type.
 
 All Star values can be written as literals, including user defined
@@ -194,7 +186,8 @@ cons("alpha",cons("beta",cons("gamma",nil)))
 @end example
 contains the strings @code{“alpha”}, @code{“beta”} and @code{“gamma”}.
 
-The standard implementation of @code{cons} lists in Star also supports the sequence notation we saw above. So, this list can also be written:
+The standard implementation of @code{cons} lists in Star also supports
+the sequence notation we saw above. So, this list can also be written:
 @example
 [“alpha”, “beta”, “gamma”]:cons[string]
 @end example
@@ -202,7 +195,7 @@ Note that we are not allowed to mix strings and integers in the same
 list. That is because Star is strongly, statically typed and such a
 heterogeneous list is not permitted.
 
-Just as with sequences, we can define functions over cons lists via
+Just as with sequences, we can define functions over @code{cons} lists via
 pattern matching:
 @example
 maxCons:(cons[integer]) => integer.

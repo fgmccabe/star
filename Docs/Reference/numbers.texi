@@ -13,6 +13,18 @@ trigonometry, bit string manipulation and so on.
 @node Numeric Types
 @section Numeric Types
 
+There are two standard numeric types: @code{integer} and @code{float}.
+
+@node Integer Type
+@subsection Integer Type
+
+Integers are 64 bit. 
+
+@node Float Type
+@subsection Float Type
+
+Floating point numbers are the equivalent of IEEE 754 double values.
+
 @node Implemented Arithmetic Contracts
 @section Implemented Arithmetic Contracts
 @cindex contract, implemented for @code{integer} and @code{float}
