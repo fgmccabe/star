@@ -1,16 +1,6 @@
 /*
   File I/O class
   Copyright (c) 2016, 2017. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
 */
 
 #include "config.h"    // Invoke configuration header
@@ -87,52 +77,73 @@ void inheritFile(classPo class, classPo request) {
   FileClassRec *req = (FileClassRec *) request;
   FileClassRec *template = (FileClassRec *) class;
 
-  logical done = False;
+  /* logical done = False; */
 
-  while (!done) {
-    done = True;
+  /* while (!done) { */
+  /*   done = True; */
 
-    if (req->filePart.configure == O_INHERIT_DEF) {
-      if (template->filePart.configure != O_INHERIT_DEF)
-        req->filePart.configure = template->filePart.configure;
-      else
-        done = False;
-    }
+  /*   if (req->filePart.configure == O_INHERIT_DEF) { */
+  /*     if (template->filePart.configure != O_INHERIT_DEF) */
+  /*       req->filePart.configure = template->filePart.configure; */
+  /*     else */
+  /*       done = False; */
+  /*   } */
 
-    if (req->filePart.seek == O_INHERIT_DEF) {
-      if (template->filePart.seek != O_INHERIT_DEF)
-        req->filePart.seek = template->filePart.seek;
-      else
-        done = False;
-    }
+  /*   if (req->filePart.seek == O_INHERIT_DEF) { */
+  /*     if (template->filePart.seek != O_INHERIT_DEF) */
+  /*       req->filePart.seek = template->filePart.seek; */
+  /*     else */
+  /*       done = False; */
+  /*   } */
 
-    if (req->filePart.filler == O_INHERIT_DEF) {
-      if (template->filePart.filler != O_INHERIT_DEF)
-        req->filePart.filler = template->filePart.filler;
-      else
-        done = False;
-    }
+  /*   if (req->filePart.filler == O_INHERIT_DEF) { */
+  /*     if (template->filePart.filler != O_INHERIT_DEF) */
+  /*       req->filePart.filler = template->filePart.filler; */
+  /*     else */
+  /*       done = False; */
+  /*   } */
 
-    if (req->filePart.inReady == O_INHERIT_DEF) {
-      if (template->filePart.inReady != O_INHERIT_DEF)
-        req->filePart.inReady = template->filePart.inReady;
-      else
-        done = False;
-    }
+  /*   if (req->filePart.inReady == O_INHERIT_DEF) { */
+  /*     if (template->filePart.inReady != O_INHERIT_DEF) */
+  /*       req->filePart.inReady = template->filePart.inReady; */
+  /*     else */
+  /*       done = False; */
+  /*   } */
 
-    if (req->filePart.outReady == O_INHERIT_DEF) {
-      if (template->filePart.outReady != O_INHERIT_DEF)
-        req->filePart.outReady = template->filePart.outReady;
-      else
-        done = False;
-    }
+  /*   if (req->filePart.outReady == O_INHERIT_DEF) { */
+  /*     if (template->filePart.outReady != O_INHERIT_DEF) */
+  /*       req->filePart.outReady = template->filePart.outReady; */
+  /*     else */
+  /*       done = False; */
+  /*   } */
 
-    template = (FileClassRec *) (template->objectPart.parent);
-  }
+  /*   template = (FileClassRec *) (template->objectPart.parent); */
+  /* } */
 }
 
 void initFileClass(classPo class, classPo request) {
   assert(request->pool != NULL);
+
+  FileClassRec *req = (FileClassRec *) request;
+  FileClassRec *template = (FileClassRec *) class;
+  
+  if (req->filePart.configure == O_INHERIT_DEF) 
+    req->filePart.configure = template->filePart.configure;
+
+  if (req->filePart.seek == O_INHERIT_DEF) 
+    req->filePart.seek = template->filePart.seek;
+
+  if (req->filePart.filler == O_INHERIT_DEF) {
+    req->filePart.filler = template->filePart.filler;
+  }
+
+  if (req->filePart.inReady == O_INHERIT_DEF) {
+    req->filePart.inReady = template->filePart.inReady;
+  }
+
+  if (req->filePart.outReady == O_INHERIT_DEF) {
+    req->filePart.outReady = template->filePart.outReady;
+  }
 }
 
 // IO initialization should already be done at this point
