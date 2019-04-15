@@ -1,10 +1,15 @@
 @node Collections
 @chapter Collections
 
-This chapter defines the standard collection types.
+This chapter defines the standard collection types. Note that all the
+functions that are implemented over collection types are exposed via
+contract implementations.
 
 @node Collection Types
 @section Collection Types
+
+There are four basic collection types supported: @code{cons} lists, an
+array-like @code{list} type, @code{map} type and the @code{set} type.
 
 @node The Cons List
 @subsection The Cons List
@@ -32,6 +37,10 @@ all e ~~ list[e] <~ @{@}
 @end example
 @end float
 
+The internal implementation of @code{list} is not exposed; however, it
+is intended that it supports constant-time access to elements of the
+list -- making it somewhat array-like in performance.
+
 @node The Map Type
 @subsection The Map Type
 
@@ -48,13 +57,32 @@ all k,v ~~ equality[k], hash[k] |: map[k,v] <~ @{@}
 All uses of the @code{map} type require that the key type supports
 both @code{equality} and @code{hash}.@footnote{This is because the underlying implementation requires it.}
 
+@quotation Note
+The underlying implementation of @code{map} is based on 'Ideal Hash
+Trees'; which offer effectively constant time performance for
+accessing and modifying the @code{map}.
+@end quotation
+
 @node The Set Type
 @subsection The Set Type
+
+The @code{set} type supports set membership style functions. Its type
+is partially exposed:
+
+@float Program,setType
+@caption{The @code{set} Type}
+@example
+all e ~~ equality[e], hash[e] |: set[e] <~ @{@}
+@end example
+@end float
+
+Like the @code{map} type, using the @code{set} requires that element
+type supports @code{equality} and @code{hash}.
 
 @node Implemented Collection Contracts
 @section Implemented Collection Contracts
 
-For the vast majority of functions, all of the built-in functions that
+For the vast majority of cases, the built-in functions that
 are implemented for collections are mediated through contracts.
 
 @node Equality Contract For Collections

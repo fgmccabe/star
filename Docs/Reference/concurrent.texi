@@ -1,0 +1,417 @@
+@node Concurrent Execution
+@chapter Concurrent Execution
+@cindex concurrent execution
+@cindex execution,parallel
+
+Concurrent and parallel execution involves two inter-related concepts:
+the @code{task} and the @code{rendezvous}. A @code{task} is a form of
+@refer{ComputationExpression} with support for parallel and
+asynchronous execution.  A @code{rendezvous} represents a 'meeting
+place' between two or more independent activities. In particular,
+messages may be exchanged between @code{task}s at a @code{rendezvous}.
+
+The concurrency concepts and features are inspired by similar features found in Concurrent ML \cite{reppy:99}; which, in turn, have similar underpinnings as Hoare's Concurrent Sequential Processes \cite{hoare:85}.
+
+== Accessing Concurrency Features
+
+\begin{aside}
+In order to access the concurrency features described in this chapter it is required to `import` the `concurrency` package:
+[listing]
+import concurrency;
+ 
+\end{aside}
+
+== Tasks
+[[tasks]]
+The foundation for concurrency is the @refer{TaskExpression}. A @code{task} is a @refer{ComputationExpression} that denotes a computation that may be performed in parallel with other computations.
+
+=== Task Expressions
+[[taskExpressions]]
+
+A @code{task} expression consists of a @code{task}-labeled @refer{ActionBlock}.
+
+\begin{figure}[htbp]
+\begin{eqnarray*}
+_Expression_&\arrowplus&@refer{TaskExpression}\\
+[[TaskExpression]]TaskExpression::=@code{task}\ `\{`\ @refer{Action}\sequence{;}@refer{Action}`\`}
+\end{eqnarray*}
+.Task Expression
+[[taskExpressionFig]]
+\end{figure}
+
+@refer{TaskExpression}s denote computations that are expected to be performed asynchronously or in parallel.
+
+A @code{task} is 'created' with the @code{task} notation:
+[listing]
+def T is task\{ logMsg(info,"This is a task action") \}
+
+\begin{aside}
+Apart from @code{background} tasks (see @refer{backgroundTask}), a @refer{TaskExpression} is not 'started' until it is @code{perform}ed or @code{valof} is applied.
+\end{aside}
+In order to start the task, the task must be @code{perform}ed:
+[listing]
+perform T
+
+This is the same as for all @refer{ComputationExpression}s.
+
+@refer{TaskExpression}s may have values; and may be composed and constructed like other expressions. For example, the function:
+[listing]
+tt(X) is task\{
+  def Y is 2;
+  valis X+Y;
+\}
+
+represents a rather elaborate way of adding 2 to a number. As with @code{T} above, the expression:
+[listing]
+def I is tt(3)
+
+is not an @code{integer} but an @code{integer}-valued @refer{TaskExpression}. The value returned may be extracted using @code{valof}:
+[listing]
+def Five is valof I
+
+As with all @refer{ComputationExpression}s, if there is a possibility that the @refer{TaskExpression} will fail, then the @code{on abort} variant of @code{valof} should be used:
+[listing]
+Fdef ive is valof I
+  on abort \{ E do \{
+    logMsg(info,"Was not expecting this");
+    valis nonInteger
+  \}
+\}
+
+
+=== The @code{task} type
+[[taskType]]
+The @code{task} type is a standard type that is used to represent @refer{TaskExpression}s. It also represents the 'concurrency Monad'.
+
+[listing]
+task has kind type of type
+
+
+\begin{aside}
+Although the `task' type is implemented as a normal type, it's definition is hidden as its internals are not relevant to the programmer. Hence, it is declared using the @refer{HasKind} statement rather than with a @refer{AlgebraicType} definition.
+\end{aside}
+
+== Task-related Functions
+[[taskFunctions]]
+@cindex task functions
+
+=== Background Task
+[[backgroundTask]]
+The @code{background} function takes a @code{task} and performs it in the background (i.e., in parallel with the invoking call). The value of the @code{background} task is the same as the value of the backgrounded task.
+[listing]
+background has type for all t such that (task of t)=>task of t
+
+\begin{aside}
+@code{background} is a standard prefix operator; defined as:
+[listing]
+\#prefix((background),900);
+
+hence a call to @code{background} may be written without parentheses.
+\end{aside}
+
+== Rendezvous
+[[rendezvous]]
+
+A rendezvous is a coordination point between two or more independent tasks. Typically, these represent message communication but can involve time-outs, i/o operations and so on.
+
+=== The @code{rendezvous} Type
+[[rendezvousType]]
+The @code{rendezvous} type is a standard type that denotes a rendezvous.
+[listing]
+rendezvous has kind type of type;
+
+\begin{aside}
+It is an opaque type -- i.e., its existence is public, but its definition is not.
+\end{aside}
+
+=== Waiting for a Rendezvous
+[[waitfor]]
+The @code{wait for} function is used to wait at a rendezvous until the rendezvous 'occurs'.
+
+[listing]
+wait for has type for all t such that (rendezvous of t)=>task of t
+
+
+\begin{aside}
+The @code{wait for} function name is also a multi-word prefix operator defined:
+[listing]
+\#prefix("wait for",999);
+
+\end{aside}
+
+Waiting for a @code{rendezvous} is the central mechanism that multiple @code{task}s may use to coordinate their activities.
+
+The result of waiting for a @code{rendezvous} is also a @code{task}. This means, for example, that there can be a distinction between a 'coordination point' between @code{task}s and the computation enabled by that coordination.
+
+=== The @code{alwaysRv} Rendezvous Function
+[[alwaysRendezvous]]
+@cindex rendezvous,alwaysRv@@code{alwaysRv}
+
+The @code{alwaysRv} returns a @code{rendezvous} that is always 'ready'. It has a single argument which is returned -- wrapped as a @code{task} -- by @code{wait for}.
+
+[listing]
+alwaysRv has type for all t such that (t)=>rendezvous of t
+
+
+In effect, the @code{alwaysRv} rendezvous obeys the law:
+\begin{equation*}
+@code{wait for alwaysRv(X)}\ \equiv\ @code{task\{ valis X\}}
+\end{equation*}
+
+=== The @code{neverRv} Rendezvous
+[[neverRendezvous]]
+@cindex rendezvous,never@@code{never}
+
+The @code{neverRv} @code{rendezvous} is _never_ 'ready'.
+
+[listing]
+neverRv has type for all t such that rendezvous of t
+
+
+\begin{aside}
+Waiting for a @code{neverRv} rendezvous is rarely useful by itself; but is especially useful when combined with @code{guardRv}.
+\end{aside}
+
+=== The @code{chooseRv} Rendezvous Function
+[[chooseRvFun]]
+@cindex rendezvous,choose@@code{choose}
+@cindex multiple rendezvous
+@cindex selecting from many rendezvous
+
+The @code{chooseRv} rendezvous function is used to combine a collection of rendezvous into a single non-deterministic disjunction. Waiting for a @code{chooseRv} rendezvous is successful if one of its 'arms' is successful.
+
+[listing]
+chooseRv has type for all s,t such that (s)=>rendezvous of t
+                  where sequence over s determines rendezvous of t
+
+
+The argument to @code{chooseRv} is a @code{sequence} of @code{rendezvous} values -- any of which may activate in order to activate the @code{chooseRv}.
+
+The @code{chooseRv} rendezvous combinator is important because it allows a one-of selection from multiple alternatives.
+
+\begin{aside}
+Waiting on a @code{chooseRv} rendezvous is successful when one of the @code{rendezvous} in its argument collection becomes available -- i.e., a call of @code{wait for} on the @code{chooseRv} collection completes when @code{wait for} would complete on one of the elements of that collection.
+
+If more than one element @code{rendezvous} is ready then one of them will be selected non-deterministically.
+\end{aside}
+
+\begin{aside}
+The @code{chooseRv} @code{rendezvous} is analogous to the Unix-style @code{select} function; except that rather than being limited to waiting for an I/O descriptor to be ready, the @code{chooseRv} rendezvous allows many different forms of rendezvous to be selected from.
+\end{aside}
+
+For example, the rendezvous expression:
+[listing]
+chooseRv(list of [sendRv(Ch,"M"), timeoutRv(10)])
+
+can be used to represent a combination of trying to send a message on the @code{Ch} channel -- see @refer{sendRvFun} -- or if no one received the message within 10 milliseconds then giving up on the send.
+
+=== The @code{guardRv} Rendezvous
+[[guardRvFun]]
+@cindex rendezvous,guardRv@@code{guardRv}
+@cindex guarded rendezvous
+
+A @code{guardRv} function is used to dynamically compute a @code{rendezvous}. Applied just before a rendezvous is waited on, the @code{quardRv} allows the precise rendezvous to be computed dynamically.
+
+[listing]
+guardRv has type for all t such that
+                 (task of rendezvous of t) => rendezvous of t
+
+
+The argument to @code{guardRv} is a @code{task}; the @code{valof} of which is the actual @code{rendezvous}. Guards are evaluated -- @code{valof}'ed -- immediately prior to actually waiting for the @code{rendezvous}.
+
+A classic use of @code{guardRv} is to enable a semantic condition to be satisfied before enabling a particular @code{rendezvous}. For example, if it 'did not make sense' to accept a message on a channel unless a particular @code{queue} was non-empty could be represented with:
+[listing]
+var Q := queue of [];
+...
+testQ() is task\{
+  if empty(Q) then
+    valis neverRv
+  else
+    valis recvRv(Ch)
+\}
+...
+wait for guardRv(testQ())
+
+
+=== The @code{wrapRv} Rendezvous Function
+[[wrapRvFun]]
+@cindex wrap rendezvous
+@cindex rendezvous,wrap
+
+A @code{wrapRv} can be used to 'convert' a @code{rendezvous} of one type to another form. This is often used to enable one @code{rendezvous} to 'count as' another @code{rendezvous}.
+
+[listing]
+wrapRv has type for all a,b such that
+                (rendezvous of a, (a) => task of b) => rendezvous of b
+
+
+The first argument of @code{wrapRv} is the @code{rendezvous} that is actually waited on. The second argument is a function that takes the result of that @code{rendezvous} and returns a new @code{task} using that return value.
+
+One use for the @code{wrapRv} function is to perform another @code{rendezvous} wait. For example:
+[listing]
+requestReply(SCh,RCh,Msg) is guardRv(sendRv(Ch,Msg),
+                                (_) => wait for recvRv(RCh))
+
+will send a @code{Msg} on the 'send channel' @code{SCh}; and once that message was successfully sent will wait for a reply on the @code{RCh} channel.
+
+@code{requestRepl} is a @code{rendezvous}-valued function; and so can be used in conjunction with other @code{rendezvous} expressions. For example, to send a message to two other @code{task}s but only wait for one result we might use:
+[listing]
+def R is valof wait for chooseRv\{
+  requestReply(S1,RCh);
+  requestReply(S2,RCh)
+  \}
+
+
+=== The @code{withNackRv} Rendezvous
+[[nackRvFun]]
+The @code{withNackRv} function can be used to discover if another rendezvous _was not_ triggered.
+[listing]
+withNackRv has type for all t such that
+                    ((rendezvous of ())=>rendezvous of t)=>rendezvous of t
+
+
+The argument to @code{withNackRv} is a function which is invoked during synchronization -- analogously to the @code{guardRv} function -- to construct the @code{rendezvous} to be monitored. If that @code{rendezvous} is _not_ selected -- in a call to @code{wait for} -- then a special _abort_ rendezvous _is_ selected. That abort rendezvous is the one that is passed in to the argument function.
+
+For example, in the expression:
+[listing]
+withNackRv(F)
+
+@code{F} should be a function that takes a @code{rendezvous} and returns a @code{rendezvous}:
+[listing]
+F(A) is recvRv(Ch)
+
+The type of @code{A} is @code{rendezvous of ()}.
+
+Waiting on @code{withNackRv(F)} is similar to a @code{wait for} the @code{rendezvous}
+[listing]
+recvRv(Ch)
+
+
+If this @code{rendezvous} is selected then nothing further happens.
+
+However, if this @code{rendezvous} were in a @code{chooseRv} and a different @code{rendezvous} were selected then `A' becomes 'available'. In effect, @code{A} being active means that the @code{recvRv} was not activated.
+
+A slightly more complex example should illustrate this:
+[listing]
+showMsg(Ch) is let\{
+  F(A) is valof\{
+    ignore background task \{
+      ignore wait for A; -- will block unless recvRv not active
+      logMsg(info,"Did not receive message");
+    \}
+    valis recvRv(Ch)
+  \}
+\} in withNackRv(F)
+
+If we used this to @code{wait for} a message; perhaps with a @code{timeoutRv}:
+[listing]
+wait for chooseRv(list of [
+  showMsg(Chnl),
+  timeoutRv(1000)
+])
+
+then, if a timeout occurred the message
+[listing]
+Did not receive message
+
+would appear in the log.
+
+=== The @code{timeoutRv} Rendezvous
+[[timeoutRvFun]]
+@cindex rendezvous,timeout
+
+The @code{timeoutRv} function returns a @code{rendezvous} that will be available a certain number of milliseconds after the start of the @code{wait for}.
+[listing]
+timeoutRv has type (long)=>rendezvous of ()
+
+The timeout interval starts at some point after the @code{wait for} function has been entered; and it is guaranteed to be 'available' some time _after_ the required number of milliseconds.
+\begin{aside}
+It is not possible to guarantee a precise timeout interval -- in the sense of some computation proceeding at exactly the right moment.
+
+Thus, any time-sensitive computation triggered by @code{timeoutRv} should takes its own measurement of the 'current' time when it is activated.
+\end{aside}
+
+\noindent
+The @code{timeoutRv} is most often used in conjunction with other @code{rendezvous} functions;  typically a message receive or message send @code{rendezvous}.
+
+For example, the expression:
+[listing]
+wait for chooseRv(list of [
+  sendRv(Ch,"Hello"),
+  timeoutRv(100)
+]
+
+represents an attempt to send the @code{"Hello"} message on the @code{Ch} channel; but the message send will be abandoned shortly after 100 milliseconds have elapsed.
+
+=== The @code{atDateRv} Rendezvous Function
+[[atDateRvFun]]
+@cindex rendezvous,timeout
+The @code{atDateRv} is similar to the @code{timeoutRv} rendezvous; except that instead of a fixed interval of milliseconds the timeout is expressed as a particular @code{date} value.
+[listing]
+atDateRv has type (date)=>rendezvous of ()
+
+The @code{atDateRv} will be triggered some time after the specified date.
+
+== Channels and Messages
+[[channels]]
+
+A channel is a typed communications channel between @code{task}s. In order for a @code{task} to 'send a message' to another @code{task}, they would share the channel object itself and then the receiver would use @code{recvRv} to wait for the message and the sender would use @code{sendRv} to send the message.
+
+=== The @code{channel} Type
+[[channelType]]
+
+[listing]
+channel has kind type of type;
+
+
+Like the @code{rendezvous} and @code{task} types, the @code{channel} type is _opaque_.
+
+=== The @code{channel} Function
+[[channelFun]]
+
+The @code{channel} function is used to create channels.
+[listing]
+channel has type for all t such that ()=>channel of t
+
+Each created channel may be used for sending and receiving multiple messages. However, the channel is typed; i.e., only messages of that type may be communicated.
+
+Channels are multi-writer multi-reader channels: any number of tasks may be reading and writing to a channel. However, any given communication is between two tasks: one sender and one receiver.
+
+If more than one @code{task} is trying to send a message then it is non-deterministic which message is sent. If more than one @code{task} is trying to receive a message then only one will get the message.
+
+Message receives and sends may take place in either order. However, message communication is _synchronous_. I.e., both sender and receiver are blocked until a communication occurs.
+
+An immediate implication of synchronous communication is that there is no buffer of messages associated with @code{channel}s.
+
+=== Receive Message Rendezvous
+[[recvRvFun]]
+The @code{recvRv} function takes a @code{channel} and returns a @code{rendezvous} that represents a wait for a message on the @code{channel}.
+
+[listing]
+recvRv has type for all t such that (channel of t)=>rendezvous of t
+
+
+To actually receive a message on a channel, first the @code{rendezvous} must be created, then it must be 'waited for', and then the message itself is extracted from the resulting @code{task}:
+[listing]
+Data is valof wait for recvRv(_Channel_)
+
+
+As noted in @refer{channelFun}, if more than one @code{task} is actively waiting for a message on the same channel then it is non-deterministic which @code{task} will 'get' the first message. All other @code{task}s will continue to be blocked until a subsequent message is sent.
+
+=== Send Message Rendezvous
+[[sendRvFun]]
+The @code{sendRv} function is used to send messages on @code{channel}s.
+
+[listing]
+sendRv has type for all t such that (channel of t,t)=>rendezvous of ()
+
+
+The result of a @code{sendRv} function is a @code{rendezvous}. Waiting on this @code{rendezvous} amounts to the attempt to send the message on the @code{channel}.
+
+\begin{aside}
+Note that the type of @code{rendezvous} returned by @code{sendRv} is
+[listing]
+rendezvous of ()
+
+I.e., there is no 'value' associated with a successful send message.
+\end{aside}
