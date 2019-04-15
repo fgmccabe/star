@@ -69,12 +69,32 @@
 	(if pp
 	    (-let [(cmd file line col len end) pp]
 	      (progn
-		(star-debug "file=%s, buffer=%s, line=%s, col=%s, cmd=%s"
-			    file (find-buffer-visiting file) line col cmd)
+		(let* ((buffer (find-buffer-visiting file)))
+		  (star-debug "file=%s, buffer=%s, line=%s, col=%s, cmd=%s"
+			      file buffer line col cmd)
+		  (if buffer
+		      (star-mark-pos buffer file line col len)))
 		(setq pos end)))
 	  (setq pos max))))
     )
   )
+
+
+(defun star-mark-pos (buffer file line col len)
+  (save-excursion
+    (with-current-buffer buffer
+      (save-restriction
+	(widen)
+	(goto-line line)
+	(move-to-column 0)
+	(let* ((window (and buffer (or (get-buffer-window buffer)
+				       (display-buffer buffer)))))
+	  (setq overlay-arrow-string "=>")
+	  (or overlay-arrow-position
+	      (setq overlay-arrow-position (make-marker)))
+	  (set-marker overlay-arrow-position (point) buffer)
+	  (set-window-point window overlay-arrow-position)
+	  (move-to-column col))))))
 
 (define-derived-mode star-shell-mode comint-mode "Star"
   "Major mode for running star"
