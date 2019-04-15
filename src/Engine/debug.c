@@ -43,6 +43,7 @@ retCode setupDebugChannels() {
   if (debuggerPort > 0 && debugInChnnl == Null) {
     if (debuggerListener == Null) {
       debuggerListener = listeningPort("star-debug", debuggerPort);
+      showPkgFile = True;
 
       retCode ret = acceptConnection(debuggerListener, utf8Encoding, &debugInChnnl, &debugOutChnnl);
       if (ret != Ok) {
@@ -233,11 +234,7 @@ static retCode cmdComplete(bufferPo b, void *cl, integer cx) {
 }
 
 static void dbgPrompt(processPo p) {
-//  if (debuggerListener != Null) {
   outMsg(debugOutChnnl, "\n[%d]>>%_", processNo(p));
-//  } else {
-//    outMsg(debugOutChnnl, "\n[%d]>>%_",processNo(p));
-//  }
 }
 
 static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord ins) {
@@ -766,7 +763,10 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
 }
 
 void showLn(ioPo out, methodPo mtd, insPo pc, termPo ln, framePo fp, ptrPo sp) {
-  outMsg(out, BLUE_ESC_ON"line:"BLUE_ESC_OFF" %#L%_", ln);
+  if (showColors)
+    outMsg(out, BLUE_ESC_ON"line:"BLUE_ESC_OFF" %#L%_", ln);
+  else
+    outMsg(out, "line: %#L%_", ln);
 }
 
 retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
@@ -777,7 +777,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
     char pkgNm[MAX_SYMB_LEN];
     copyString2Buff(C_STR(nthArg(line, 0)), pkgNm, NumberOf(pkgNm));
 
-    if (alt && debuggerListener != Null) {
+    if (alt && showPkgFile) {
       packagePo pkg = loadedPackage(pkgNm);
       char *src = manifestResource(pkg, "source");
 
@@ -809,12 +809,19 @@ static retCode shCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp
 
 void showCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shCall(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  if (showColors)
+    shCall(out, GREEN_ESC_ON"call:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  else
+    shCall(out, "call:", locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 void showTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shCall(out, GREEN_ESC_ON"tail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  if (showColors)
+    shCall(out, GREEN_ESC_ON"tail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  else
+    shCall(out, "tail:", locn, labelCode(C_LBL(call)), fp, sp);
+
 }
 
 static retCode shOCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo fp, ptrPo sp) {
@@ -831,21 +838,31 @@ static retCode shOCall(ioPo out, char *msg, termPo locn, methodPo mtd, framePo f
 
 void showOCall(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shOCall(out, GREEN_ESC_ON"ocall:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  if (showColors)
+    shOCall(out, GREEN_ESC_ON"ocall:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  else
+    shOCall(out, "ocall:", locn, labelCode(C_LBL(call)), fp, sp);
 }
 
 void showOTail(ioPo out, methodPo mtd, insPo pc, termPo call, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
-  shOCall(out, GREEN_ESC_ON"otail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  if (showColors)
+    shOCall(out, GREEN_ESC_ON"otail:"GREEN_ESC_OFF, locn, labelCode(C_LBL(call)), fp, sp);
+  else
+    shOCall(out, "otail:", locn, labelCode(C_LBL(call)), fp, sp);
+
 }
 
 void showRet(ioPo out, methodPo mtd, insPo pc, termPo val, framePo fp, ptrPo sp) {
   termPo locn = findPcLocation(mtd, insOffset(mtd, pc));
 
-  if (locn != Null)
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T", locn, mtd, displayDepth, val);
-  else
-    outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %T->%#,*T", mtd, displayDepth, val);
+  if (locn != Null) {
+    if (showColors)
+      outMsg(out, RED_ESC_ON"return:"RED_ESC_OFF" %#L %T->%#,*T", locn, mtd, displayDepth, val);
+    else
+      outMsg(out, "return: %#L %T->%#,*T", locn, mtd, displayDepth, val);
+  } else
+    outMsg(out, "return: %T->%#,*T", mtd, displayDepth, val);
 }
 
 typedef void (*showCmd)(ioPo out, methodPo mtd, insPo pc, termPo trm, framePo fp, ptrPo sp);

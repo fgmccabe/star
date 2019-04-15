@@ -23,6 +23,8 @@ logical lineDebugging = False;
 logical debugDebugging = False;
 logical tracing = False;          /* tracing option */
 int debuggerPort = 0;                // Debug port to establish listener on
+logical showPkgFile = False;      // True if we show file names instead of package names
+logical showColors = True;        // True if we want to show colored output
 
 logical traceVerify = False;      // true if tracing code verification
 logical traceMessage = False;     // true if tracing message passing
@@ -41,10 +43,9 @@ char bootInit[MAX_SYMB_LEN] = "star.boot@init";
 PackageRec bootPkge = {.packageName="star.boot", .version="*"};
 
 char entry[MAX_SYMB_LEN] = "star.boot#__boot";  // entry point
-char debugPkg[MAX_SYMB_LEN] = "";  // Standard debug package
 
 static retCode displayVersion(char *option, logical enable, void *cl) {
-  return outMsg(logFile, "%s", version);
+  return outMsg(logFile, "star - %s", version);
 }
 
 static logical isDigit(char ch) {
@@ -209,6 +210,14 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       logMsg(logFile,"package tracing not enabled");
       return -1;
 #endif
+      case 'F':   // Show file name instead of package
+        showPkgFile = True;
+        continue;
+
+      case 'C': // Toggle showing colors
+        showColors = !showColors;
+        continue;
+
       default:;
     }
   }
@@ -242,6 +251,7 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage, void *cl) {
                      #ifdef TRACEPKG
                      "P"
                      #endif
+                     "F"
                      ">\n%_");
 }
 
@@ -257,11 +267,6 @@ static retCode setRepoDir(char *option, logical enable, void *cl) {
 static retCode symbolDebug(char *option, logical enable, void *cl) {
   lineDebugging = True;  /* turn on symbolic insDebugging */
   interactive = True;       // Initially its also interactive
-  return Ok;
-}
-
-static retCode setDebugger(char *option, logical enable, void *cl) {
-  uniCpy(debugPkg, NumberOf(debugPkg), option);
   return Ok;
 }
 
@@ -306,24 +311,18 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",        hasArgument, STAR_DBG_OPTS,      debugOption,     Null, "-d|--debug <flags>", debugOptHelp},
-  {'g', "symbol-debug", noArgument,  Null,               symbolDebug,     Null, "-g|--symbol-debug"},
-  {'\0', "debugger-port",  hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, Null, "--debugger-port"},
-  {'G', "debugger",     hasArgument, STAR_DEBUGGER,      setDebugger,     Null, "-G|--debugger <pkg>"},
-  {'v', "version",      noArgument,  Null,               displayVersion,  Null, "-v|--version"},
-  {'b', "boot-pkg",     hasArgument, STAR_BOOT,          setBootPkg,      Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",         hasArgument, STAR_MAIN,          setMainEntry,    Null, "-m|--main <entry>"},
-  {'L', "logFile",      hasArgument, STAR_LOGFILE,       setLogFile,      Null, "-L|--logFile <path>"},
-  {'r', "repository",   hasArgument, STAR_REPO,          setRepoDir,      Null, "-r|--repository <path>"},
-  {'w', "set-wd",       hasArgument, STAR_WD,            setWD,           Null, "-w|--set-wd <dir>"},
-  {'V', "verify",       noArgument,  STAR_VERIFY,        setVerify,       Null, "-V|--verify code"},
-  {'h', "heap",         hasArgument, STAR_INIT_HEAP,     setHeapSize,     Null, "-h|--heap <size>"},
-  {'s', "stack",        hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},};
-
-static void showStar(ioPo out) {
-  outMsg(out, "star - %s", copyright);
-}
-
+  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,     Null, "-d|--debug <flags>", debugOptHelp},
+  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,     Null, "-g|--symbol-debug"},
+  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, Null, "-G|--debugger-port"},
+  {'v', "version",       noArgument,  Null,               displayVersion,  Null, "-v|--version"},
+  {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,      Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",          hasArgument, STAR_MAIN,          setMainEntry,    Null, "-m|--main <entry>"},
+  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,      Null, "-L|--logFile <path>"},
+  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,      Null, "-r|--repository <path>"},
+  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,           Null, "-w|--set-wd <dir>"},
+  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,       Null, "-V|--verify code"},
+  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,     Null, "-h|--heap <size>"},
+  {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},};
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

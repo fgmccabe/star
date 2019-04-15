@@ -19,11 +19,11 @@
 #define TRACELOCK
 #endif
 
-#define STAR_DEBUGGER "STAR_DEBUGGER"
 #define STAR_MAIN "STAR_MAIN"
 #define STAR_BOOT "STAR_BOOT"
 #define STAR_DBG_OPTS "STAR_DEBUG_OPTS"
 #define STAR_DEBUGGER_PORT "STAR_DEBUGGER_PORT"
+#define SYMBOL_DEBUG "STAR_DEBUG"
 
 extern char *copyright;
 
@@ -33,6 +33,8 @@ extern logical insDebugging;
 extern logical lineDebugging;
 extern logical debugDebugging;
 extern int debuggerPort;
+extern logical showPkgFile;       // True if we show file instead of package during debugging
+extern logical showColors;
 extern logical interactive;      /* interactive instruction tracing option */
 extern logical runStats;
 
