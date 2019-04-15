@@ -14,7 +14,7 @@
 ;; Mode hook for Star shell
 (defvar star-shell-mode-hook nil)
 
-(defvar star-flags `("-g" "-dFC" "-r" "/Users/fgm/Projects/star/src/Star/Build")
+(defvar star-flags `("-g" "-dFC" "-r" "~/Projects/star/src/Star/Build")
   "standard flags to pass to star executable")
 
 (defvar star-prompt-regexp "\\[\\([0-9]+\\)\\]>>"
