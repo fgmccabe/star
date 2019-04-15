@@ -92,14 +92,13 @@ void decReference(objectPo o) {
   }
 }
 
+static  pthread_mutexattr_t attr;
 void initRecursiveMutex(pthread_mutex_t *mutex) {
-  pthread_mutexattr_t attr;
-
   pthread_mutexattr_init(&attr);
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 
   pthread_mutex_init(mutex, &attr);
-  pthread_mutexattr_destroy(&attr);
+  //  pthread_mutexattr_destroy(&attr);
 }
 
 static void objectInit(objectPo o, va_list *args) {

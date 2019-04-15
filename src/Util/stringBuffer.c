@@ -37,7 +37,7 @@ static retCode bufferReset(ioPo io, integer mark);
 BufferClassRec BufferClass = {
   {(classPo) &IoClass,                    /* parent class is io object */
     "buffer",                             /* this is the buffer class */
-    NULL,
+    O_INHERIT_DEF,
     initBufferClass,                      /* Buffer class initializer */
     O_INHERIT_DEF,                        /* Buffer object element creation */
     BufferDestroy,                        /* Buffer objectdestruction */

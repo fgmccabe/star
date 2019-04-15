@@ -2,17 +2,7 @@
   I/O handling library, common framework module
   This is an abstract class -- cannot be instantiated by itself
  
-  Copyright (c) 2016, 2017, 2018. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
+  Copyright (c) 2016, 2017, 2018, 2019. Francis G. McCabe
 */
 
 #include "ioP.h"
@@ -76,17 +66,18 @@ classPo ioClass = (classPo) &IoClass;
 static void inheritIo(classPo class, classPo request) {
   IoClassRec *req = (IoClassRec *) request;
   IoClassRec *template = (IoClassRec *) class;
+  
   logical done = False;
 
   while (!done) {
     done = True;
 
-    if (req->ioPart.read == O_INHERIT_DEF) {
-      if (template->ioPart.read != O_INHERIT_DEF)
-        req->ioPart.read = template->ioPart.read;
-      else
-        done = False;
-    }
+    /* if (req->ioPart.read == O_INHERIT_DEF) { */
+    /*   if (template->ioPart.read != O_INHERIT_DEF) */
+    /*     req->ioPart.read = template->ioPart.read; */
+    /*   else */
+    /*     done = False; */
+    /* } */
 
     if (req->ioPart.backByte == O_INHERIT_DEF) {
       if (template->ioPart.backByte != O_INHERIT_DEF)
@@ -136,6 +127,33 @@ static void initIoEtc(void) {
 
 static void initIoClass(classPo class, classPo request) {
   pthread_once(&ioOnce, initIoEtc);
+
+  IoClassRec *req = (IoClassRec *) request;
+  IoClassRec *template = (IoClassRec *) class;
+
+  if (req->ioPart.read == O_INHERIT_DEF) {
+    req->ioPart.read = template->ioPart.read;
+  }
+
+  if (req->ioPart.backByte == O_INHERIT_DEF) {
+    req->ioPart.backByte = template->ioPart.backByte;
+  }
+
+  if (req->ioPart.write == O_INHERIT_DEF) {
+    req->ioPart.write = template->ioPart.write;
+  }
+
+  if (req->ioPart.isAtEof == O_INHERIT_DEF) {
+    req->ioPart.isAtEof = template->ioPart.isAtEof;
+  }
+
+  if (req->ioPart.flush == O_INHERIT_DEF) {
+    req->ioPart.flush = template->ioPart.flush;
+  }
+
+  if (req->ioPart.close == O_INHERIT_DEF) {
+    req->ioPart.close = template->ioPart.close;
+  }
 }
 
 static ioPo activeSet = NULL;
@@ -144,7 +162,7 @@ static void IoInit(objectPo o, va_list *args) {
   ioPo f = O_IO(o);
   char *name = va_arg(*args, char *);
 
-  lockClass(ioClass);
+  lockClass(f->object.class);
 
   if (activeSet == NULL)
     activeSet = f->io.next = f->io.prev = f;
@@ -164,7 +182,7 @@ static void IoInit(objectPo o, va_list *args) {
   f->io.currColumn = 0;
   f->io.encoding = unknownEncoding;
 
-  unlockClass(ioClass);
+  unlockClass(f->object.class);
 }
 
 static void ioClose(objectPo o) {
