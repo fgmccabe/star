@@ -37,7 +37,7 @@ typedef struct _io_class_ {
   IoClassPartRec ioPart;                /* the io part of the class information */
 } IoClassRec;
 
-extern const IoClassRec IoClass;              /* the standard pointer to an IO class record */
+extern IoClassRec IoClass;              /* the standard pointer to an IO class record */
 
 typedef struct _io_part_{
   char filename[MAXFILELEN];            /* File name */
