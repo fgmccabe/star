@@ -34,7 +34,6 @@ PipeClassRec PipeClass = {
   {
     (classPo) &FileClass,                  // parent class is file object
     "pipe",                               // this is the pipe class
-    NULL,                                  // no special inheritance to do
     initPipeClass,                        // Pipe class initializer, phase I
     O_INHERIT_DEF,                        // Pipe object element creation
     PipeDestroy,                          // Pipe object destruction

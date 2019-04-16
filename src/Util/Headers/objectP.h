@@ -40,7 +40,6 @@ typedef struct _object_ {
 typedef struct _class_ {
   classPo parent;                       /* parent class of this object */
   char *className;                      /* name of this class */
-  classInitProc classInherit;           /* procedure to set up inheritance */
   classInitProc classInit;            /* procedure to initialize classes */
   objectCreateProc create;              /* procedure to create an object */
   objectProc destroy;                   /* procedure to destroy an object */

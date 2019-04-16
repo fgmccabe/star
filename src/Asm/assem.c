@@ -38,7 +38,6 @@ ConstClassRec ConstClass = {
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     O_INHERIT_DEF,
-    O_INHERIT_DEF,
     constInit,
     sizeof(ConstRecord),
     NULL,
@@ -72,7 +71,6 @@ LineClassRec LineClass = {
   {
     (classPo) &ObjectClass,
     "line",
-    O_INHERIT_DEF,
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     O_INHERIT_DEF,

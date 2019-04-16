@@ -13,8 +13,6 @@
 
 static void initIoClass(classPo class, classPo request);
 
-static void inheritIo(classPo class, classPo request);
-
 static void ioClose(objectPo o);
 
 static void IoInit(objectPo o, va_list *args);
@@ -37,7 +35,6 @@ const IoClassRec IoClass = {
   {
     (classPo) &LockedClass,               /* parent class is object */
     "io",                                 /* this is the io class */
-    inheritIo,                            /* deal with inheritance */
     initIoClass,                          /* IO class initializer */
     O_INHERIT_DEF,                        /* IO object element creation */
     ioClose,                              /* IO objectdestruction */
@@ -62,61 +59,6 @@ const IoClassRec IoClass = {
 };
 
 classPo ioClass = (classPo) &IoClass;
-
-static void inheritIo(classPo class, classPo request) {
-  IoClassRec *req = (IoClassRec *) request;
-  IoClassRec *template = (IoClassRec *) class;
-  
-  logical done = False;
-
-  while (!done) {
-    done = True;
-
-    /* if (req->ioPart.read == O_INHERIT_DEF) { */
-    /*   if (template->ioPart.read != O_INHERIT_DEF) */
-    /*     req->ioPart.read = template->ioPart.read; */
-    /*   else */
-    /*     done = False; */
-    /* } */
-
-    if (req->ioPart.backByte == O_INHERIT_DEF) {
-      if (template->ioPart.backByte != O_INHERIT_DEF)
-        req->ioPart.backByte = template->ioPart.backByte;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.write == O_INHERIT_DEF) {
-      if (template->ioPart.write != O_INHERIT_DEF)
-        req->ioPart.write = template->ioPart.write;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.isAtEof == O_INHERIT_DEF) {
-      if (template->ioPart.isAtEof != O_INHERIT_DEF)
-        req->ioPart.isAtEof = template->ioPart.isAtEof;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.flush == O_INHERIT_DEF) {
-      if (template->ioPart.flush != O_INHERIT_DEF)
-        req->ioPart.flush = template->ioPart.flush;
-      else
-        done = False;
-    }
-
-    if (req->ioPart.close == O_INHERIT_DEF) {
-      if (template->ioPart.close != O_INHERIT_DEF)
-        req->ioPart.close = template->ioPart.close;
-      else
-        done = False;
-    }
-
-    template = (IoClassRec *) (template->objectPart.parent);
-  }
-}
 
 static pthread_once_t ioOnce = PTHREAD_ONCE_INIT;
 

@@ -29,10 +29,9 @@ static void destroyHost(objectPo o);
 HostClassRec HostClass = {
   {
     (classPo) &ObjectClass,    /* parent is managed */
-    "host",        /* This is the host class */
-    NULL,        /* Nothing special for inheritance */
-    initHostClass,      /* This is what we need to init class */
-    O_INHERIT_DEF,      /* host class object element creation */
+    "host",               /* This is the host class */
+    initHostClass,        /* This is what we need to init class */
+    O_INHERIT_DEF,        /* host class object element creation */
     destroyHost,      /* host class object destruction */
     O_INHERIT_DEF,      /* nothing special for erasure */
     hostObject,        /* init of a host object */

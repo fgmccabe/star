@@ -22,7 +22,6 @@ VectorClassRec VectorClass = {
     "vector",
     O_INHERIT_DEF,
     O_INHERIT_DEF,
-    O_INHERIT_DEF,
     vectorDestroy,
     O_INHERIT_DEF,
     vectorInit,

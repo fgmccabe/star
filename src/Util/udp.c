@@ -13,7 +13,7 @@
   permissions and limitations under the License.
   Contact: Francis McCabe <frankmccabe@mac.com>
 */
-#include "config.h"		/* pick up standard configuration header */
+#include "config.h"    /* pick up standard configuration header */
 #include "iosockP.h"
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +41,6 @@
 #define INVALID_SOCKET (-1)
 #endif
 
-static void inheritUDP(classPo class, classPo request);
 static void initUDPClass(classPo class, classPo request);
 static void UdpInit(objectPo o, va_list *args);
 static retCode udpReadyIn(udpPo f);
@@ -54,7 +53,6 @@ UdpClassRec UdpClass = {
   {
     (classPo) &LockedClass,               /* parent class is locked object */
     "udp",                                /* this is the udp class */
-    inheritUDP,                           /* deal with inheritance */
     initUDPClass,                         /* UDP class initializer */
     O_INHERIT_DEF,                        /* UDP object element creation */
     O_INHERIT_DEF,                        /* UDP objectdestruction */
@@ -77,39 +75,6 @@ UdpClassRec UdpClass = {
 
 classPo udpClass = (classPo) &UdpClass;
 
-static void inheritUDP(classPo class, classPo request) {
-  UdpClassRec *req = (UdpClassRec *) request;
-  UdpClassRec *template = (UdpClassRec *) class;
-  logical done = False;
-
-  while (!done) {
-    done = True;
-
-    if (req->udpPart.inReady == O_INHERIT_DEF) {
-      if (template->udpPart.inReady != O_INHERIT_DEF)
-        req->udpPart.inReady = template->udpPart.inReady;
-      else
-        done = False;
-    }
-
-    if (req->udpPart.outReady == O_INHERIT_DEF) {
-      if (template->udpPart.outReady != O_INHERIT_DEF)
-        req->udpPart.outReady = template->udpPart.outReady;
-      else
-        done = False;
-    }
-
-    if (req->udpPart.close == O_INHERIT_DEF) {
-      if (template->udpPart.close != O_INHERIT_DEF)
-        req->udpPart.close = template->udpPart.close;
-      else
-        done = False;
-    }
-
-    template = (UdpClassRec *) (template->objectPart.parent);
-  }
-}
-
 static pthread_once_t udpOnce = PTHREAD_ONCE_INIT;
 
 static void initMutexes(void) {
@@ -118,11 +83,26 @@ static void initMutexes(void) {
 
 static void initUDPClass(classPo class, classPo request) {
   pthread_once(&udpOnce, initMutexes);
+
+  UdpClassRec *req = (UdpClassRec *) request;
+  UdpClassRec *template = (UdpClassRec *) class;
+
+  if (req->udpPart.inReady == O_INHERIT_DEF) {
+    req->udpPart.inReady = template->udpPart.inReady;
+  }
+
+  if (req->udpPart.outReady == O_INHERIT_DEF) {
+    req->udpPart.outReady = template->udpPart.outReady;
+  }
+
+  if (req->udpPart.close == O_INHERIT_DEF) {
+    req->udpPart.close = template->udpPart.close;
+  }
 }
 
 static void UdpInit(objectPo o, va_list *args) {
   udpPo f = O_UDP(o);
-  char * name = va_arg(*args, char *);
+  char *name = va_arg(*args, char *);
 
   lockClass(udpClass);
 
@@ -194,7 +174,7 @@ retCode closeUDP(udpPo f) {
   return Ok;
 }
 
-char * udpName(udpPo f) {
+char *udpName(udpPo f) {
   return f->udp.name;
 }
 
@@ -203,7 +183,7 @@ uint16 udpPortNo(udpPo u) {
 }
 
 /* reading from a UDP Socket */
-retCode udpRead(udpPo u, byte *buff, long *blen, char * peer, long peerLen, int *port) {
+retCode udpRead(udpPo u, byte *buff, long *blen, char *peer, long peerLen, int *port) {
   assert(isUDPport(O_OBJECT(u)));
 
   again:
@@ -229,14 +209,15 @@ retCode udpRead(udpPo u, byte *buff, long *blen, char * peer, long peerLen, int 
         case EWOULDBLOCK:            /* Would have blocked */
           setUdpStatus(u, Ok);
           return Fail;
-        default:setUdpStatus(u, Eof);
+        default:
+          setUdpStatus(u, Eof);
           return Error;                  /* Something unspecific */
       }
     }
   }
 }
 
-retCode udpSend(udpPo u, byte *buff, long blen, char * peer, int port) {
+retCode udpSend(udpPo u, byte *buff, long blen, char *peer, int port) {
   assert(isUDPport(O_OBJECT(u)));
 
   byte *cp = buff;
@@ -244,7 +225,7 @@ retCode udpSend(udpPo u, byte *buff, long blen, char * peer, int port) {
   size_t actual = (size_t) (blen * sizeof(byte));
   int16 sock = u->udp.sock;
   struct sockaddr_in serv_addr;
-  char * host = getHostname(peer);
+  char *host = getHostname(peer);
   struct in_addr *addr = host != NULL ? getHostIP(host, 0) : NULL;
 
   if (addr != NULL) {
@@ -272,7 +253,8 @@ retCode udpSend(udpPo u, byte *buff, long blen, char * peer, int port) {
             }
             return Ok;
           }
-          default:return Error;
+          default:
+            return Error;
         }
       } else {
         cp += nBytes;

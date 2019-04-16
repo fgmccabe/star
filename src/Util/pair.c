@@ -31,7 +31,6 @@ PairClassRec PairClass = {
     "pair",
     O_INHERIT_DEF,
     O_INHERIT_DEF,
-    O_INHERIT_DEF,
     destroyPair,
     O_INHERIT_DEF,
     pairInit,
