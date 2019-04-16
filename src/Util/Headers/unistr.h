@@ -97,7 +97,7 @@ retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLe
 retCode uniReverse(char *dest, integer len);
 char * uniDupl(char *str,integer len);
 
-int64 uniIndexOf(const char *s, integer len, integer from, codePoint c);
+integer uniIndexOf(const char *s, integer len, integer from, codePoint c);
 integer uniLastIndexOf(char *s, integer len, codePoint c);
 char * uniSubStr(char * s, long len, long from, long cnt, char * buff, long bLen);
 

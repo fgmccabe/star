@@ -1,19 +1,11 @@
 /*
   Utility functions
   Copyright (c) 2016, 2017. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
 */
 
 #include <stdlib.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include "utils.h"
 #include "formio.h"
 #include "file.h"
@@ -30,6 +22,15 @@ char *genSym(char *prefix) {
 
   strMsg(buffer, NumberOf(buffer), "%s%d", prefix, count++);
   return buffer;
+}
+
+retCode homeDir(char *user,char *buffer,integer bufLen){
+  struct passwd *up = getpwnam(user);
+  if(up!=Null){
+    uniCpy(buffer,bufLen,up->pw_dir);
+    return Ok;
+  }
+  return Fail;
 }
 
 static pthread_mutex_t prMutex = PTHREAD_MUTEX_INITIALIZER;
