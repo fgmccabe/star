@@ -41,6 +41,9 @@
       (star-debug "run %s" (list "Star" nil star-path args))
       (apply 'make-comint-in-buffer "Star" nil
 	     star-path () args)
+      ;; (let* ((bfr-proc (get-buffer-process buffer)))
+      ;; 	(set-process-filter bfr-proc 'star-shell-filter)
+      ;; 	(set-process-sentinel bfr-proc 'star-shell-sentinel))
       (star-shell-mode))))
 
 (defun star-shell-initialize ()
@@ -52,7 +55,7 @@
 	(let* ((cmd (intern (match-string 1 text)))
 	       (file (match-string 2 text))
 	       (line (string-to-number (match-string 3 text)))
-	       (col (string-to-number (match-string 4 text)))
+	       (col (1- (string-to-number (match-string 4 text))))
 	       (len (string-to-number (match-string 5 text)))
 	       )
 	  (list cmd file line col len (match-end 0)))
@@ -94,7 +97,27 @@
 	      (setq overlay-arrow-position (make-marker)))
 	  (set-marker overlay-arrow-position (point) buffer)
 	  (set-window-point window overlay-arrow-position)
-	  (move-to-column col))))))
+	  (move-to-column col)
+	  (star-overlay-pos buffer line col len))))))
+
+(defvar star-overlay nil)
+
+(defun star-overlay-pos (buffer line col len)
+  (save-excursion
+    (with-current-buffer buffer
+      (save-restriction
+	(widen)
+	(goto-line line)
+	(move-to-column col)
+	(let* ((start (point))
+	       (end (+ start len)))
+	  (progn
+	    (if star-overlay
+		(move-overlay star-overlay start end buffer)
+	      (progn
+		(setq star-overlay (make-overlay start end buffer))
+		(overlay-put star-overlay 'face 'underline))
+	      )))))))
 
 (define-derived-mode star-shell-mode comint-mode "Star"
   "Major mode for running star"
