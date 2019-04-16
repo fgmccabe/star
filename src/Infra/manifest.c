@@ -542,5 +542,9 @@ retCode setManifestPath(char *path) {
     resolveFileName(wd, path, uniStrLen(path), repoDir, NumberOf(repoDir));
   } else
     strMsg(repoDir, NumberOf(repoDir), "%s", path);
+#ifdef TRACEMANIFEST
+  if(traceManifest)
+    logMsg(logFile,"repository manifest set to %s",repoDir);
+#endif
   return Ok;
 }

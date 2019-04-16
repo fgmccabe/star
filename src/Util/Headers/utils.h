@@ -53,4 +53,7 @@ extern integer nextPrime(integer min);
 extern void syserr(const char *msg);
 
 extern char *stripFileScheme(char *src);
+
+extern retCode homeDir(char *user,char *buffer,integer bufLen);
+
 #endif
