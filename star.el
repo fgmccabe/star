@@ -64,7 +64,7 @@
 (defsubst star-skip-string ()
   (goto-char (or (scan-sexps (point) 1) (buffer-end 1))))
 
-(defvar star-debugging nil
+(defvar star-debugging t
   "Non-nil if should log messages to *star-debug*")
 
 (defun star-debug (msg &rest args)
