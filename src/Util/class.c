@@ -22,14 +22,6 @@ static void revInit(classPo cl,classPo class)
 
 static void initClass(void)
 {
-  classPo cl = classToInit;
-
-  while(cl!=NULL){
-    if(cl->classInherit!=NULL && cl->classInherit!=O_INHERIT_DEF)
-      cl->classInherit(cl,classToInit);
-    cl = cl->parent;
-  }
-
   revInit(classToInit,classToInit);
 }
 

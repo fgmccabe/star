@@ -38,7 +38,6 @@ static logical objectEquality(objectPo o1, objectPo o2);
 ObjectClassRec ObjectClass = {
   NULL,                                 /* has no parent class */
   "object",
-  NULL,
   objectClassInit,                      /* standard class initializer */
   objectCreate,                         /* object creation */
   objectDestroy,                        /* object destruction */

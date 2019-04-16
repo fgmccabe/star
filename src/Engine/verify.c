@@ -42,7 +42,6 @@ SegmentClassRec SegmentClass = {
     "segment",
     O_INHERIT_DEF,
     O_INHERIT_DEF,
-    O_INHERIT_DEF,
     segmentDestroy,
     O_INHERIT_DEF,
     segmentInit,

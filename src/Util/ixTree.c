@@ -19,7 +19,6 @@
 
 // Implement the tree leaf class structure
 
-static void inheritTree(classPo class, classPo request);
 static void initLeafClass(classPo class, classPo request);
 static void eraseLeaf(objectPo o);
 static void eraseNode(objectPo o);
@@ -59,7 +58,6 @@ IxTreeClassRec TreeLeafClass = {
   {
     (classPo) &ObjectClass,                 /* parent class is object */
     "leafTree",                             /* this is the tree leaf class */
-    inheritTree,                            /* inherit class init */
     initLeafClass,                          /* tree leaf class init */
     O_INHERIT_DEF,                          /* Leaf object element creation */
     O_INHERIT_DEF,                          /* Leaf objectdestruction */
@@ -84,61 +82,6 @@ IxTreeClassRec TreeLeafClass = {
 
 classPo leafClass = (classPo) &TreeLeafClass;
 
-void inheritTree(classPo class, classPo request) {
-  IxTreeClassRec *req = (IxTreeClassRec *) request;
-  IxTreeClassRec *template = (IxTreeClassRec *) class;
-
-  logical done = False;
-
-  while (!done) {
-    done = True;
-
-    if (req->treePart.find == O_INHERIT_DEF) {
-      if (template->treePart.find != O_INHERIT_DEF)
-        req->treePart.find = template->treePart.find;
-      else
-        done = False;
-    }
-
-    if (req->treePart.delete == O_INHERIT_DEF) {
-      if (template->treePart.delete != O_INHERIT_DEF)
-        req->treePart.delete = template->treePart.delete;
-      else
-        done = False;
-    }
-
-    if (req->treePart.merge == O_INHERIT_DEF) {
-      if (template->treePart.merge != O_INHERIT_DEF)
-        req->treePart.merge = template->treePart.merge;
-      else
-        done = False;
-    }
-
-    if (req->treePart.isEmpty == O_INHERIT_DEF) {
-      if (template->treePart.isEmpty != O_INHERIT_DEF)
-        req->treePart.isEmpty = template->treePart.isEmpty;
-      else
-        done = False;
-    }
-
-    if (req->treePart.size == O_INHERIT_DEF) {
-      if (template->treePart.size != O_INHERIT_DEF)
-        req->treePart.size = template->treePart.size;
-      else
-        done = False;
-    }
-
-    if (req->treePart.fold == O_INHERIT_DEF) {
-      if (template->treePart.fold != O_INHERIT_DEF)
-        req->treePart.fold = template->treePart.fold;
-      else
-        done = False;
-    }
-
-    template = (IxTreeClassRec *) (template->objectPart.parent);
-  }
-}
-
 static pthread_once_t ioOnce = PTHREAD_ONCE_INIT;
 
 static void initLeafTree(void) {
@@ -148,6 +91,33 @@ static void initLeafTree(void) {
 
 static void initLeafClass(classPo class, classPo request) {
   pthread_once(&ioOnce, initLeafTree);
+
+  IxTreeClassRec *req = (IxTreeClassRec *) request;
+  IxTreeClassRec *template = (IxTreeClassRec *) class;
+
+  if (req->treePart.find == O_INHERIT_DEF) {
+    req->treePart.find = template->treePart.find;
+  }
+
+  if (req->treePart.delete == O_INHERIT_DEF) {
+    req->treePart.delete = template->treePart.delete;
+  }
+
+  if (req->treePart.merge == O_INHERIT_DEF) {
+    req->treePart.merge = template->treePart.merge;
+  }
+
+  if (req->treePart.isEmpty == O_INHERIT_DEF) {
+    req->treePart.isEmpty = template->treePart.isEmpty;
+  }
+
+  if (req->treePart.size == O_INHERIT_DEF) {
+    req->treePart.size = template->treePart.size;
+  }
+
+  if (req->treePart.fold == O_INHERIT_DEF) {
+    req->treePart.fold = template->treePart.fold;
+  }
 }
 
 static void eraseLeaf(objectPo o) {
@@ -332,7 +302,6 @@ IxTreeClassRec TreeNodeClass = {
   {
     (classPo) &ObjectClass,                 /* parent class is object */
     "nodeTree",                             /* this is the tree leaf class */
-    inheritTree,                            /* inherit class init */
     O_INHERIT_DEF,                          /* tree leaf create */
     O_INHERIT_DEF,                          /* Leaf object element creation */
     O_INHERIT_DEF,                          /* Leaf objectdestruction */
@@ -396,8 +365,7 @@ static logical nodeEquality(objectPo o1, objectPo o2) {
                       equals(O_OBJECT(n1->node.l2), O_OBJECT(n2->node.l2)) &&
                       equals(O_OBJECT(n1->node.r1), O_OBJECT(n2->node.r1)) &&
                       equals(O_OBJECT(n1->node.r2), O_OBJECT(n2->node.r2)));
-  }
-  else
+  } else
     return False;
 }
 

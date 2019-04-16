@@ -15,7 +15,6 @@ IxClassRec IxClass = {
     O_INHERIT_DEF,
     O_INHERIT_DEF,
     O_INHERIT_DEF,
-    O_INHERIT_DEF,
     ixInit,
     sizeof(IxObjRecord),
     ixHash,
