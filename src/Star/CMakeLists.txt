@@ -7,5 +7,10 @@ set(REPO_DIR "${CMAKE_CURRENT_BINARY_DIR}/Build/")
 
 add_custom_command(TARGET boot
         COMMAND ${CMAKE_COMMAND} -E make_directory ${REPO_DIR}
-        COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.boot"
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler
+        COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.boot"
       )
+
+
+
+
