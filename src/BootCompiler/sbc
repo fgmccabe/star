@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/local/bin/swipl
+#!/usr/bin/env /usr/bin/swipl
 
 :- initialization top.
 
