@@ -74,7 +74,7 @@ main(Args) :-
   locateCatalog(CWD,Cat),!,
   (is_member(processStdin,Opts) ->
    Pkgs = [Pkg|_],
-   processStdin(Pkg,Repo,Opts);
+   processStdin(pkg(Pkg,defltVersion),Repo,Opts);
    makeGraph(Repo,Cat,CWD,Pkgs,Groups),!,
    (processGroups(Groups,[],Repo,CWD,Opts),! ; reportMsg("aborting compiling",[]),!,fail)),!.
 
@@ -137,10 +137,13 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
 
 processStdin(Pkg,Repo,Opts) :-
   startCount,
-  readStdin(Src),
-  parseFile(pkg(Pkg,defltVersion),Src,Term),!,
+  readStdinput(Src),
+  parseFile(Pkg,Src,Term),!,
+%  reportMsg("parse of stdin %s",[Term]),
   noErrors,
+%  reportMsg("starting type check",[]),
   checkProgram(Term,Pkg,Repo,Opts,_Prog),!.
+%  reportMsg("typed %s",[Prog]).
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.

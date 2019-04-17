@@ -790,6 +790,15 @@ Argument N  oprefix."
       (forward-char -1)
       (buffer-substring-no-properties start (point)))))
 
+(defun star-line-to-pos (buffer line col)
+  (save-excursion
+    (with-current-buffer buffer
+      (save-restriction
+	(widen)
+	(goto-line line)
+	(move-to-column col)
+	(point)))))
+
 (defun star-compile (source repo pkg dir report-fn)
   (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
     (star-debug "starting star compile on %s into buffer %s" pkg compile-buffer)
@@ -824,23 +833,28 @@ Argument N  oprefix."
     )
   )
 
+(defconst star-loc-regexp
+  "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\)]")
+
 (defun star-parse-errors (source buffer)
   (with-current-buffer buffer
-    (goto-char (point-min))
-    (cl-loop
-     while (search-forward-regexp
-            "^\\(Error\\|Warning\\) \\(?:[0-9]+\\) - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)]\\(?:[0-9]+:[0-9]+\\)\n\\(.*\\)$"
-            nil t)
-     for beg = (string-to-number (match-string 3))
-     for len = (string-to-number (match-string 4))
-     for end = (+ beg len)
-     for msg = (match-string 5)
-     collect (flymake-make-diagnostic source
-                                      beg
-                                      end
-                                      :error
-                                      msg)
-     )))
+    (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
+      (progn
+	(goto-char (point-min))
+	(cl-loop
+	 while (search-forward-regexp errRe nil t)
+	 for line = (string-to-number (match-string 3))
+	 for col = (1- (string-to-number (match-string 4)))
+	 for len = (string-to-number (match-string 5))
+	 for beg = (star-line-to-pos source line col)
+	 for end = (+ beg len)
+	 for msg = (match-string 6)
+	 collect (flymake-make-diagnostic source
+					  beg
+					  end
+					  :error
+					  msg)
+	 )))))
 
 (defun star-flymake (report-fn &rest _args)
   ;; check for the star compiler

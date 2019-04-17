@@ -24,7 +24,7 @@
 :- use_module(vartypes).
 
 checkProgram(Prog,Pkg,Repo,_Opts,
-    prog(Pkg,Lc,Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
+	     prog(Pkg,Lc,Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   isBraceTerm(Prog,Lc,_,Els),
   pushScope(Base,Env),
@@ -341,18 +341,18 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
 checkEquation(Lc,_,_,_,ProgramType,Defs,Defs,Df,Df,_,_) :-
   reportError("equation not consistent with expected type: %s",[ProgramType],Lc).
 
-checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Value),Env,Path) :-
+checkDefn(Lc,L,R,Tp,varDef(Lc,Nm,ExtNm,[],Tp,Reslt),Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E),
   typeOfExp(R,Tp,E,_E2,Value,Path),
-%  processIterable(Env,Path,Value,Reslt),
+  processIterable(Env,Path,Value,Reslt),
   packageVarName(Path,Nm,ExtNm).
 
 checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Reslt))|Defs],Defs,Env,Path) :-
   splitHead(L,Nm,none,_),
   pushScope(Env,E1),
-  typeOfExp(R,Tp,E1,_E2,Reslt,Path),
-%  processIterable(Env,Path,Value,Reslt),
+  typeOfExp(R,Tp,E1,_E2,Value,Path),
+  processIterable(Env,Path,Value,Reslt),
   packageVarName(Path,Nm,ExtNm).
 checkVarDefn(Lc,L,_,Tp,Defs,Defs,_,_) :-
   reportError("expecting an assignable type, not %s for %s",[Tp,L],Lc).
@@ -758,6 +758,7 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,apply(Lc,Fun,Args,Tp),Path) :-
    sameType(consType(At,Tp),FTp,E0) ->
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path);
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
+   Args = tple(Lc,[]),
    Env=Ev).
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-

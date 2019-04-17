@@ -41,9 +41,9 @@
       (star-debug "run %s" (list "Star" nil star-path args))
       (apply 'make-comint-in-buffer "Star" nil
 	     star-path () args)
-      ;; (let* ((bfr-proc (get-buffer-process buffer)))
+       (let* ((bfr-proc (get-buffer-process buffer)))
       ;; 	(set-process-filter bfr-proc 'star-shell-filter)
-      ;; 	(set-process-sentinel bfr-proc 'star-shell-sentinel))
+       	 (set-process-sentinel bfr-proc 'star-shell-sentinel))
       (star-shell-mode))))
 
 (defun star-shell-initialize ()
@@ -62,9 +62,11 @@
     nil)
   )
 
+(defun star-shell-sentinal (proc msg)
+  (star-debug "run-sentinel triggered for %s with %s" proc msg))
 
 (defun star-shell-filter (text)
-  (star-debug "output from shell: %s" text)
+;;  (star-debug "output from shell: %s" text)
   (let ((pos 0)
 	(max (length text)))
     (while (< pos max)
