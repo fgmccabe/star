@@ -35,6 +35,15 @@ structures that is composable; and that simplicity allows many actual
 architectural features to be viewed through the categorical (sic)
 lens.
 
+In this chapter we look at two structures that are good for expressing
+compositions -- monads and executions. Monads are a familiar tool in
+functional programming and @code{execution} is a specific contract
+used to represent sequences of action.
+
+@node Monads
+@section Monads
+
+Monads are 
 
 
 
@@ -42,76 +51,110 @@ lens.
 
 
 
-## Monads for collections processing
 
-## Parser expression grammars
+@node Monads for Collections Processing
+@section Monads for Collections Processing
 
-One of the more surprising applications of monads is for parsing.[^At least, it was surprising to the aurhor.] There are many formalisms for expressing grammars and parsers; but the monadic way is perhas one of the more elegant.
+@node Parser Expression Grammars
+@subsection Parser Expressions Grammars
 
-Mathematically, a grammar is a statement of the legal forms of expression of some language. From the perspective of programming, grammars are often viewed as @emph{programs} that can be used to @emph{parse} an instance of the language. This is the convention we will focus on here; but it behooves us to remember the declarative definition.
+One of the more surprising applications of monads is for
+parsing.@footnote{At least, it was surprising to the author.} There
+are many formalisms for expressing grammars and parsers; but the
+monadic way is perhas one of the more elegant.
 
-To illustrate some fundamentals, we explore a simple language consisting of strings of the form:
+Mathematically, a grammar is a statement of the legal forms of
+expression of some language. From the perspective of programming,
+grammars are often viewed as @emph{programs} that can be used to
+@emph{parse} an instance of the language. This is the convention we
+will focus on here; but it behooves us to remember the declarative
+definition.
 
-```
+To illustrate some fundamentals, we explore a simple language
+consisting of strings of the form:
+
+@example
 aba
 b
 aabaa
 aaabaaa
-```
+@end example
+
 Note that we do not intend:
-```
+@example
 abaa
-```
+@end example
 to be a legal instance of this language.
 
-If our language is called `L`, then one grammar for this can be written:
-```
+If our language is called @code{L}, then one grammar for this can be written:
+@example
 L -> b | a L a.
-```
-Before we show how to write a parser for `L`, let us think about an even simpler language:
-```
+@end example
+Before we show how to write a parser for @code{L}, let us think about an even simpler language:
+@example
 A -> a
-```
-What might the type signature for a function to parse the `A` language look like? The most obvious is probably:
-```
+@end example
+What might the type signature for a function to parse the @code{A} language look like? The most obvious is probably:
+@example
 A0:(string) => ()
-```
-The biggest issue with this is that the return gives no hint as to whether the parse was successful or not. In addition we need to consider whether there may be multiple ways of parsing the source; whether the parser should be able to return some @emph{representation} of the parse tree and how to express combinations of parsers.
+@end example
+The biggest issue with this is that the return gives no hint as to
+whether the parse was successful or not. In addition we need to
+consider whether there may be multiple ways of parsing the source;
+whether the parser should be able to return some @emph{representation}
+of the parse tree and how to express combinations of parsers.
 
-The final consideration mentioned -- combining parsers -- is where monads come in to focus.
+The final consideration mentioned -- combining parsers -- is where
+monads come in to focus.
 
-So, instead of simply defining a function whose job it is to parse a string, we define a `parser` structure that can be combined with other parsers -- using monadic bind -- and can be used to parse input.
+So, instead of simply defining a function whose job it is to parse a
+string, we define a @code{parser} structure that can be combined with
+other parsers -- using monadic bind -- and can be used to parse input.
 
-Our final relaxation is to move away from parsing strings to parsing sequences. The resulting type signature for the `A` grammar parser looks like:
-```
+Our final relaxation is to move away from parsing strings to parsing sequences. The resulting type signature for the @code{A} grammar parser looks like:
+@example
 A:parser[string,()].
-```
+@end example
 which is intended to be read as:
->A is a parser from strings and which returns the empty tuple.
-We can use the parser by calling the standard `parse` function with `A`:
-```
+@quotation
+A is a parser from strings and which returns the empty tuple.
+@end quotation
+We can use the parser by calling the standard @code{parse} function with @code{A}:
+@example
 parse(A,"a")
-```
-The `parse` function applies the parser defined by `A` to the sequence constructed by converting the string to a list of integers.
+@end example
+The @code{parse} function applies the parser defined by @code{A} to
+the sequence constructed by converting the string to a list of
+integers.
 
-The type signature for `parse` explains more-or-less what will happen:
-```
+The type signature for @code{parse} explains more-or-less what will happen:
+@example
 public parse:all e,s ~~ (parser[s,e],s) => list[(e,s)]
-```
-The return value from invoking `parse` is a list of alternative parses: each alternative is a combination of the result of the parse itself (often a parse tree) and the so-called remainder stream (what is remaining of the input after a parse). If the returned value from `parse` is empty; then that means that it was not possible to parse the input stream.
+@end example
+The return value from invoking @code{parse} is a list of alternative
+parses: each alternative is a combination of the result of the parse
+itself (often a parse tree) and the so-called remainder stream (what
+is remaining of the input after a parse). If the returned value from
+@code{parse} is empty; then that means that it was not possible to
+parse the input stream.
 
-The `parser` type itself is a little reminiscent of the standard `option` type; except that it wraps a function rather than an arbitrary value:
-```
+The @code{parser} type itself is a little reminiscent of the standard
+@code{option} type; except that it wraps a function rather than an
+arbitrary value:
+@example
 public parser[s,e] ::= parser((s)=>list[(e,s)]).
-```
+@end example
 
-Given this set up, we can now go ahead and define the parser for our super-small language `A`:
-```
+Given this set up, we can now go ahead and define the parser for our super-small language @code{A}:
+@example
 A = _item >>= (Ch) => (Ch==0ca ? (0ca)
-```
-This states that the only way of parsing an element of the `A` language is to encounter the literal character `a`. The `_tk` function is a part of the standard grammar package for **Star**. It is implemented:
-```
+@end example
+This states that the only way of parsing an element of the @code{A}
+language is to encounter the literal character @code{a}. The
+@code{_item} function is a part of the standard grammar package. It is
+implemented:
+@example
+@end example
 
-```
 
 ## A different kind of sequence
