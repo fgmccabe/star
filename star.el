@@ -483,7 +483,7 @@ Argument N  oprefix."
       (star-debug "stack at start %s" stack)
       
       (progn	
-	(while (<= (point) to)
+	(while (< (point) to)
 	  (cond 
 	   ;; An important Star! operator
 	   ((looking-at star-operators-regex)
