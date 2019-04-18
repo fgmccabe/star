@@ -644,7 +644,7 @@ we had to construct an explicit loop, with the result that we sequentialized the
 We can also write an equivalent loop in @Star{}:
 
 @example
-total = valof do@{
+total = valof action@{
   tot := 0;
   for ix in L do
     tot := tot+ix;
@@ -686,7 +686,7 @@ the list @code{L}. We will explore this in more detail in
 
 Even if it is more declarative, there is still a lot of extra detail
 and architectural commitments here --- like the commitment to
-@code{cons} lists and the commitment to integers. These result in a
+@code{cons} lists and the commitment to @code{integer}s. These result in a
 function that is needlessly restricted.
 
 Like other functional languages, @Star{} has a range of higher-order
@@ -694,7 +694,7 @@ operators that may come to the rescue. For example, we can avoid the
 explicit recursion altogether by using @code{leftFold}:
 
 @example
-leftFold((+),0,L)
+total = leftFold((+),0,L)
 @end example
 where @code{leftFold} means
 
@@ -722,7 +722,7 @@ the analogous @code{rightFold}) can be difficult to follow. An even
 clearer way of adding up numbers is to use a @emph{query expression}:
 
 @example
-@{fold X with (+) | X in L@}
+total = @{fold X with (+) | X in L@}
 @end example
 This query expression frees us from most of the commitments we endured
 before: it can add up the elements of any kind of collection --- not
@@ -834,7 +834,9 @@ has. There are several kinds of type constraint; but the
 @quotation
 Notice that we have to give an explicit type annotation for
 @code{double}. The reason is that we want to have it have a quantified
-type.
+type.@footnote{More accurately, there is a restriction/design choice
+that type inference can be used to infer @emph{monomorphic} types but
+not @emph{polymorphic} types.}
 @end quotation
 
 @node Implementing contracts
@@ -898,11 +900,11 @@ worksheet@{
 
 then everything works as expected.
 
-Notice that the error message above shows that type t_12 actually has
-two type constraints:
+Notice that the error message above shows that type @code{t_12}
+actually has two type constraints:
 
 @example
-display[t_12] @var{,} four[t_12] |: t_12
+display[t_12] , four[t_12] |: t_12
 @end example
 
 This is because the @code{show} action also results in a type
