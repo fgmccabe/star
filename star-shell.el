@@ -27,23 +27,20 @@
       (define-key map "\t" 'completion-at-point)
       map)))
 
-(defun run-star ()
+(defun run-star (arg)
   "Run in a shell"
-  (interactive)
+  (interactive "sRun with argument: ")
   (let* ((buffer (comint-check-proc "Star"))
-	 (args (append star-flags (list (star-package)))))
+	 (args (append star-flags (list (star-package) arg))))
     (pop-to-buffer-same-window
      (if (or buffer (not (derived-mode-p 'star-shell-mode))
 	     (comint-check-proc (current-buffer)))
 	 (get-buffer-create (or buffer "*Star*"))
-       (current-buffer)))
+       (current-buffer)) t)
     (unless buffer
       (star-debug "run %s" (list "Star" nil star-path args))
       (apply 'make-comint-in-buffer "Star" nil
 	     star-path () args)
-       (let* ((bfr-proc (get-buffer-process buffer)))
-      ;; 	(set-process-filter bfr-proc 'star-shell-filter)
-       	 (set-process-sentinel bfr-proc 'star-shell-sentinel))
       (star-shell-mode))))
 
 (defun star-shell-initialize ()
