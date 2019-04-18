@@ -493,9 +493,6 @@ Argument N  oprefix."
 		   (alignment (get symbol 'align)))
 
 	      (star-debug "\nwe have operator %s @ %s : %s" symbol (point) alignment)
-;;	      (star-debug "state: %s" state)
-;;	      (star-debug "stack: %s" stack)
-
 	      ;; Clear stack to proper base
 	      (while (and stack
 			  (< (star-state-prec state) symbol-prec))
@@ -795,7 +792,8 @@ Argument N  oprefix."
     (with-current-buffer buffer
       (save-restriction
 	(widen)
-	(goto-line line)
+	(goto-char (point-min))
+	(forward-line (- line (line-number-at-pos)))
 	(move-to-column col)
 	(point)))))
 
