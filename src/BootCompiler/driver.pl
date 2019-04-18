@@ -139,11 +139,8 @@ processStdin(Pkg,Repo,Opts) :-
   startCount,
   readStdinput(Src),
   parseFile(Pkg,Src,Term),!,
-%  reportMsg("parse of stdin %s",[Term]),
   noErrors,
-%  reportMsg("starting type check",[]),
   checkProgram(Term,Pkg,Repo,Opts,_Prog),!.
-%  reportMsg("typed %s",[Prog]).
 
 packageVersion(Opts,ver(Vers)) :-
   is_member(ver(Vers),Opts),!.
