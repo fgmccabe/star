@@ -2,23 +2,42 @@
 @chapter The `M' Word
 @cindex{monad}
 
-One of the most common themes in programming is that of _combining_
-things. Many things are combined; and large programs are often seen as
-compositions of smaller programs -- all the way down to individual
-atomic entities.
+One of the most common themes in programming is that of
+@emph{combining} things. Many things are combined; and large programs
+are often seen as compositions of smaller programs -- all the way down
+to individual atomic entities.
 
-However, most programming languages also make many _distinctions_:
+However, most programming languages also make many @emph{distinctions}:
 modules vs functions, data vs code, input vs output, statement vs
 expressions, and so on. In many cases these distinctions work to
 obscure the fundamentals of the combinatorial nature of computing.
 
-There is a mathematical discipline that focuses on the same theme: _category theory_. A mathematical category is a deceptively simple concept:
+There is a mathematical discipline that focuses on the same theme:
+@emph{category theory}. A mathematical category is a deceptively
+simple concept:
 
->A _category_ is a directed graph, whose nodes are called _objects_ and whose edges are called _arrows_ or _morphisms_. There are two critical properties that a category must have:
->* An identity arrow for each object, and
->* arrows are associative (i.e., composable)
+@quotation Note
+A @emph{category} is a directed graph, whose nodes are called
+@emph{objects} and whose edges are called @emph{arrows} or
+@emph{morphisms}. There are two critical properties that a category
+must have:
+@itemize
+@item
+An identity arrow for each object, and
+@item
+arrows are associative (i.e., composable)
+@end itemize
+@end quotation
 
-What, one may ask, has this to do with programming? Well, the definition of a category turns out to be one of the simplest structures that is composable; and that simplicity allows many actual architectural features to be viewed through the categorical (sic) lens.
+What, one may ask, has this to do with programming? Well, the
+definition of a category turns out to be one of the simplest
+structures that is composable; and that simplicity allows many actual
+architectural features to be viewed through the categorical (sic)
+lens.
+
+
+
+
 
 
 
@@ -29,7 +48,7 @@ What, one may ask, has this to do with programming? Well, the definition of a ca
 
 One of the more surprising applications of monads is for parsing.[^At least, it was surprising to the aurhor.] There are many formalisms for expressing grammars and parsers; but the monadic way is perhas one of the more elegant.
 
-Mathematically, a grammar is a statement of the legal forms of expression of some language. From the perspective of programming, grammars are often viewed as _programs_ that can be used to _parse_ an instance of the language. This is the convention we will focus on here; but it behooves us to remember the declarative definition.
+Mathematically, a grammar is a statement of the legal forms of expression of some language. From the perspective of programming, grammars are often viewed as @emph{programs} that can be used to @emph{parse} an instance of the language. This is the convention we will focus on here; but it behooves us to remember the declarative definition.
 
 To illustrate some fundamentals, we explore a simple language consisting of strings of the form:
 
@@ -57,7 +76,7 @@ What might the type signature for a function to parse the `A` language look like
 ```
 A0:(string) => ()
 ```
-The biggest issue with this is that the return gives no hint as to whether the parse was successful or not. In addition we need to consider whether there may be multiple ways of parsing the source; whether the parser should be able to return some _representation_ of the parse tree and how to express combinations of parsers.
+The biggest issue with this is that the return gives no hint as to whether the parse was successful or not. In addition we need to consider whether there may be multiple ways of parsing the source; whether the parser should be able to return some @emph{representation} of the parse tree and how to express combinations of parsers.
 
 The final consideration mentioned -- combining parsers -- is where monads come in to focus.
 
