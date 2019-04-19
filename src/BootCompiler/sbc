@@ -1,15 +1,21 @@
-#!/usr/bin/env /usr/bin/swipl
+#!/bin/sh
+CWD=`pwd`
+REPO=`pwd`
+PKG=''
 
-:- initialization top.
+while [ "$1" != "" ]; do
+    case $1 in
+        -w | --source-dir )     shift
+                                CWD=`realpath $1`
+                                ;;
+	-r | --repo-dir )       shift
+                                REPO=`realpath $1`
+                                ;;
+	* )                     PKG=$1
+				;;
+    esac
+    shift
+done
 
-:- use_module(driver).
-
-eval :-
-        current_prolog_flag(argv, Argv),
-        main(Argv).
-
-top :-
-        catch(eval, E, (print_message(error, E), fail)),
-        halt(0).
-top :-
-        halt(1).
+cd $HOME/Projects/star/src/BootCompiler
+swipl sbc.pl -r $REPO/ -w $CWD/ $PKG

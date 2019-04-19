@@ -11,6 +11,3 @@ add_custom_command(TARGET boot
         COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.boot"
       )
 
-
-
-
