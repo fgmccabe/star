@@ -1,7 +1,6 @@
 ;;; star.el --- Emacs mode for Star -*- lexical-binding: t; -*-
 ;;; Copyright (C) 2019 and beyond F.G. McCabe
 
-;;; Commentary:
 ;; Implementation of Star mode
 ;; Supports fontification and indentation.
 ;;

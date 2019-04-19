@@ -19,4 +19,20 @@ test.comp.unify{
   T1T = snd(T1F).
 
   assert sameType(T1T,T2,rootDict) && _.= _logmsg(disp(T1T)::string).
+
+  CT1 = allType(kVar("a"),allType(kVar("b"),allType(kVar("c"),
+	funType(tupleType([
+	      funType(tupleType([kVar("b")]),kVar("c")),
+	      funType(tupleType([kVar("a")]),kVar("b"))]),
+	  funType(tupleType([kVar("a")]),kVar("c")))))).
+
+  IT1 = allType(kVar("x"),funType(tupleType([kVar("x")]),kVar("x"))).
+
+  CT1F = freshen(CT1,[],rootDict).
+  ITF = freshen(IT1,[],rootDict).
+  DT = funType(tupleType([tipe("integer")]),tipe("integer")).
+
+  assert V1.=newTypeVar("_") &&
+  sameType(funType(tupleType([DT,snd(ITF)]),V1),snd(CT1F),rootDict) &&
+  _ .= _logmsg(disp(V1)::string).
 }
