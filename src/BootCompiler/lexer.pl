@@ -194,6 +194,11 @@ readMoreString(St,NxSt,[Seg|Segments]) :-
       hedChar(St1,'('),!,
       interpolation(St1,St2,Seg),
       readMoreString(St2,NxSt,Segments).
+readMoreString(St,NxSt,[Seg|Segments]) :-
+      nextSt(St,St1,'#'),
+      hedChar(St1,'('),!,
+      coercion(St1,St2,Seg),
+      readMoreString(St2,NxSt,Segments).
 readMoreString(St,NxSt,Segments) :-
       readStr(St,St1,Chars),!,
       string_chars(Seg,Chars),
@@ -213,11 +218,15 @@ readStr(St,St1,[]) :- nextSt(St,St1,'\n'), !,
 readStr(St,NxSt,[Ch|Seg]) :- charRef(St,St1,Ch), readStr(St1,NxSt,Seg).
 
 interpolation(St,NxSt,interpolate(Text,Fmt,Lc)) :-
-    bracketCount(St,St1,[],Text),
-    readFormat(St1,NxSt,FmtChars),
-    string_chars(Fmt,FmtChars),
-    makeLoc(St,NxSt,Lc).
+  bracketCount(St,St1,[],Text),
+  readFormat(St1,NxSt,FmtChars),
+  string_chars(Fmt,FmtChars),
+  makeLoc(St,NxSt,Lc).
 
+coercion(St,NxSt,coerce(Text,Lc)) :-
+  bracketCount(St,NxSt,[],Text),
+  makeLoc(St,NxSt,Lc).
+  
 bracketCount(St,NxSt,Stk,Chrs) :- nextSt(St,St1,Ch), bracketCount(St,St1,NxSt,Ch,Stk,Chrs).
 
 bracketCount(_,St1,NxSt,Cl,[Cl|Stk],[Cl|Chrs]) :- nextSt(St1,St2,Ch), bracketCount(St1,St2,NxSt,Ch,Stk,Chrs).
