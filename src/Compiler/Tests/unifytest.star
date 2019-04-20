@@ -34,5 +34,9 @@ test.comp.unify{
 
   assert V1.=newTypeVar("_") &&
   sameType(funType(tupleType([DT,snd(ITF)]),V1),snd(CT1F),rootDict) &&
-  _ .= _logmsg(disp(V1)::string).
+  _ .= _logmsg(disp(V1)::string). 
+  assert \+ sameType(tipe("integer"),funType(tupleType([]),tipe("string")),rootDict).
+
+  
+  
 }
