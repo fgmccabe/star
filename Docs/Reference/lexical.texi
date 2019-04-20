@@ -340,11 +340,14 @@ string may take the form of a @xref{BlockString}.
 
 @anchored{QuotedString} ::= @code{'"'} @var{StrChar} @dots{} @var{StrChar} @code{'"'}
 
-@anchored{StrChar} ::= @var{CharRef} | @var{Interpolation}
+@anchored{StrChar} ::= @var{CharRef} | @var{Interpolation} | @var{Embedding}
 
 @anchored{Interpolation} ::= @code{'$'} @code{'('} @var{Expression} @code{')'} [ @code{':'} @var{FormattingSpec} @code{';'} ]
 
 @anchored{FormattingSpec} ::= @var{CharRef} @dots{} @var{CharRef}
+
+@anchored{Embedding} ::= @code{'#'} @code{'('} @var{Expression} @code{')'}
+
 @end display
 @end float
 
@@ -381,7 +384,7 @@ Block strings are written using triple quote characters at either
 end. Any new-line characters enclosed by the block quotes are
 considered to be part of the strings.
 
-The normal interpretation of @code{$} characters as interpolation
+The normal interpretation of @code{$} and @code{#} characters as interpolation
 markers is suppressed within a block string; as are any escape
 characters' interpretations.
 

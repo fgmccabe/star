@@ -27,7 +27,9 @@ all e ~~ cons[e] ::= nil | cons(e,cons[e]).
 @node The List Type
 @subsection The List Type
 
-The @code{list} type is a built-in type that is used to represent linear sequences. It does not have a definition in terms of @refer{AlgebraicTypeDefinition}s.
+The @code{list} type is a built-in type that is used to represent
+linear sequences. It does not have a definition in terms of
+@refer{AlgebraicTypeDefinition}s.
 
 The type signature for @code{list} types is given by:
 @float Program,listType
@@ -40,6 +42,12 @@ all e ~~ list[e] <~ @{@}
 The internal implementation of @code{list} is not exposed; however, it
 is intended that it supports constant-time access to elements of the
 list -- making it somewhat array-like in performance.
+
+@quotation Note
+Internally, the implementation uses a @emph{Copy On Write} strategy
+that has the effect of amortizing the cost of adding elements to the
+list.
+@end quotation
 
 @node The Map Type
 @subsection The Map Type
@@ -55,7 +63,8 @@ all k,v ~~ equality[k], hash[k] |: map[k,v] <~ @{@}
 @end float
 
 All uses of the @code{map} type require that the key type supports
-both @code{equality} and @code{hash}.@footnote{This is because the underlying implementation requires it.}
+both @code{equality} and @code{hash}.@footnote{This is because the
+underlying implementation requires it.}
 
 @quotation Note
 The underlying implementation of @code{map} is based on 'Ideal Hash
