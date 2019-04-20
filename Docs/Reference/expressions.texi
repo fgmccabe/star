@@ -292,6 +292,24 @@ ssSeq([ss("@var{prefix}"),frmt(@var{Exp},@var{Format}),ss("@var{suffix})]::strin
 where @code{frmt} is part of the @code{format} contract -- see
 @refer{formatContract}.
 
+@node String Embedding
+@subsection String Embedding
+@cindex string embedding
+@anchor{stringEmbedding} String embedding is a simpler form of string
+interpolation where the contents of the embedded expression are
+expected to be already @code{string}-valued and are simply
+subistituted in place.
+
+For example, given a variable @code{F} with the value @code{"foo"}, then:
+@example
+"#(F) is the complement of bar"
+@end example
+
+would have values:
+@example
+"foo is the complement of bar"
+@end example
+
 @node Block Strings
 @subsection Block Strings
 @cindex block string

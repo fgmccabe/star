@@ -4,7 +4,7 @@ test.fm{
   show "--$(-15):-   0;--".
 
   assert "--  -15--" == "--$(-15):-   0;--".
-
+  
   show "--$(5):00;--".
 
   assert "--$(5):00;--" == "--05--".
@@ -33,5 +33,9 @@ test.fm{
 
 
   C = 0c\u22a6; .
+
   show "Unicode: $(([C]:list[integer])::string)/$(C):XXXXX;".
+
+  bar = "bar".
+  show "Foo#(bar)".
 }

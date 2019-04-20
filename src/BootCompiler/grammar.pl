@@ -192,7 +192,7 @@ stringSegment(interpolate(Text,Fmt,Lc),Disp) :-
 stringSegment(coerce(Text,Lc),Disp) :-
   subTokenize(Lc,Text,Toks),
   term(Toks,2000,Term,TksX,_),
-  binary(Lc,"::",Term,name(Lc,"string"),Disp),
+  unary(Lc,"ss",Term,Disp),
   ( TksX = [] ; lookAhead(ATk,TksX),locOf(ATk,ALc),reportError("extra tokens in string interpolation",[],ALc)).
 
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.

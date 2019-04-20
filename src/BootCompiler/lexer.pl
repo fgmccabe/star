@@ -211,7 +211,8 @@ appendSegment(Seg,Lc,[segment(Seg,Lc)|More],More) :-
   \+Seg="".
 
 readStr(St,St,[]) :- hedChar(St,'"'). /* Terminated by end of string */
-readStr(St,St,[]) :- hedChar(St,'$'), hedHedChar(St,'('). /* interpolation marker */
+readStr(St,St,[]) :- hedChar(St,'$'), hedHedChar(St,'('). /* interpolation */
+readStr(St,St,[]) :- hedChar(St,'#'), hedHedChar(St,'(').
 readStr(St,St1,[]) :- nextSt(St,St1,'\n'), !,
   makeLoc(St,St1,Lc),
   reportError("new line found in string",[],Lc).
