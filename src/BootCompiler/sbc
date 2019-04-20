@@ -1,21 +1,2 @@
-#!/bin/sh
-CWD=`pwd`
-REPO=`pwd`
-PKG=''
-
-while [ "$1" != "" ]; do
-    case $1 in
-        -w | --source-dir )     shift
-                                CWD=`realpath $1`
-                                ;;
-	-r | --repo-dir )       shift
-                                REPO=`realpath $1`
-                                ;;
-	* )                     PKG=$1
-				;;
-    esac
-    shift
-done
-
-cd $HOME/Projects/star/src/BootCompiler
-swipl sbc.pl -r $REPO/ -w $CWD/ $PKG
+#!/bin/bash
+/usr/local/bin/swipl $HOME/Projects/star/src/BootCompiler/sbc.pl $*

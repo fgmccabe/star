@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(sbc)
 
 set(BOOT_COMPILER_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+find_program(SWIPL swipl)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sbc.in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sbc)
 file(COPY ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/sbc
