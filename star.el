@@ -348,6 +348,7 @@ Argument N  oprefix."
     (900  "=="  "=="   align nil 0)
     (900  ".="  "\\.=" align nil 0)
     (900  "^="  "\\^=" align nil 0)
+    (800 "assert" "assert" align nil star-arrow-indent)
     )
   "Star operators and precedences")
 
@@ -835,6 +836,7 @@ Argument N  oprefix."
 
 (defun star-parse-errors (source buffer)
   (with-current-buffer buffer
+    (star-debug "report from compiling: %s" buffer)
     (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
       (progn
 	(goto-char (point-min))
@@ -846,11 +848,7 @@ Argument N  oprefix."
 	 for beg = (star-line-to-pos source line col)
 	 for end = (+ beg len)
 	 for msg = (match-string 6)
-	 collect (flymake-make-diagnostic source
-					  beg
-					  end
-					  :error
-					  msg)
+	 collect (flymake-make-diagnostic source beg end :error msg)
 	 )))))
 
 (defun star-flymake (report-fn &rest _args)

@@ -21,6 +21,7 @@
     "test.fg": "fg.star",
     "test.fi": "fi.star",
     "test.fm": "fm.star",
+    "test.fmt": "fmt.star",
     "test.i": "i.star",
     "test.idx0": "idx0.star",
     "test.itr": "itr.star",
