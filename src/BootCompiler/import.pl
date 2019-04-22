@@ -1,4 +1,4 @@
-:- module(import, [importPkg/3,loadPkg/4,loadPrologPkg/4,consultPrologPkg/3]).
+:- module(import, [importPkg/4,loadPkg/4,loadPrologPkg/4,consultPrologPkg/3]).
 
 :- use_module(resource).
 :- use_module(types).
@@ -8,14 +8,15 @@
 :- use_module(decode).
 :- use_module(repository).
 
-importPkg(Pkg,Repo,spec(Act,Face,Classes,Contracts,Implementations,Imports)) :-
+importPkg(Pkg,Lc,Repo,
+	  spec(Act,Face,Classes,Contracts,Implementations,Imports)) :-
   codePackagePresent(Repo,Pkg,Act,Sig,_U,_SrcWhen,_When),
-  pickupPkgSpec(Sig,Pkg,Imports,Face,Classes,Contracts,Implementations).
+  pickupPkgSpec(Sig,Lc,Pkg,Imports,Face,Classes,Contracts,Implementations).
 
-pickupPkgSpec(Enc,Pkg,Imports,Face,Classes,Contracts,Implementations) :-
+pickupPkgSpec(Enc,Lc,Pkg,Imports,Face,Classes,Contracts,Implementations) :-
   decodeValue(Enc,ctpl(_,[Pk,ctpl(_,Imps),FTps,ctpl(_,ClsSigs),ctpl(_,ConSigs),ctpl(_,ImplSigs)])),
   pickupPkg(Pk,Pkg),
-  pickupImports(Imps,Imports),
+  pickupImports(Imps,Lc,Imports),
   pickupFace(FTps,Face),
   pickupClasses(ClsSigs,Classes,[]),
   pickupContracts(ConSigs,Contracts),
@@ -31,11 +32,11 @@ pickupVersion(strg(V),ver(V)).
 consistentVersion(defltVersion,_).
 consistentVersion(ver(V),ver(V)).
 
-pickupImports([],[]).
-pickupImports([ctpl(lbl("import",2),[V,P])|L],[import(Viz,Pkg)|M]) :-
+pickupImports([],_,[]).
+pickupImports([ctpl(lbl("import",2),[V,P])|L],Lc,[import(Lc,Viz,Pkg)|M]) :-
   pickupViz(V,Viz),
   pickupPkg(P,Pkg),
-  pickupImports(L,M).
+  pickupImports(L,Lc,M).
 
 pickupViz(enum("private"),private).
 pickupViz(enum("public"),public).
