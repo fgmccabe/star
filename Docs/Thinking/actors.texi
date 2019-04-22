@@ -1,0 +1,75 @@
+@node Actors
+@chapter Actors
+
+Agenthood is often a useful metaphor in structuring large systems
+Singh3, Wooldridge4. The intuition is that an agent represents a focus
+of responsibility within a system: by structuring the system in terms
+of who is responsible for what it can make large systems more
+tractable. Star supports the agent metaphor with two key concepts: the
+concept of a speech action and the concept of an actor.
+
+There may be many technical distinctions between agents and objects. The essential distinction is not technological, though: an agent is an embodiment of a functionally important part of a system and class notation is a technique for constructing programs. Agents reflect a division of requirements; object orientation reflects implementation.
+Agenthood is also useful when the application programmer is tasked with modeling aspects of the world that are self-actuated: for example when modeling the behavior of people or of machines. Agents are also key to understanding systems that cross multiple ownership domains. Indeed, in an environment where different elements of a system reside on different machines some degree of self-responsibility is almost inevitable.
+The agent metaphor suggests more; in particular two aspects: agents are typically designed to be `in charge of' their own area of responsibility and agents collaborate by `talking' to each other. There is an implication of autonomy with an agent; and agents posses the power of speech. One of the hallmarks of agents in the real world is that they chatter to each other with messages — rather than directly interfering with each other by setting variables.
+
+@node Speech Actions
+@section Speech Actions
+
+Speech actions were first investigated by John Austin5 in the 1940's as a vehicle for understanding the role of speech in human society. Since that time the basic ideas have been progressively formalized by Searle6 and standardized in KQML7 and FIPA.8
+Within Star, a speech action can be viewed as a generalization of a method call where the method to be invoked can be a complete script or expression. Star supports three performatives:[^fn1] notify — which corresponds to one entity informing another that something has happened — query — which corresponds to a question — and request — which corresponds to a request to perform an action.
+Star supports this simplified model of speech action with special syntax. A notify is written:
+notify A with withdrawn(45.6) on account
+This notify means
+that the account channel should handle withdrawn(45.6)
+or, in the terminology of speech act theory,
+Inform agent A that withdrawn(45.6)has occurred.
+The notify speech action does not explicitly refer to time. This is because there may be multiple senses in which time must be conveyed: the time of the occurrence, the time of its being noticed, or the time of this speech.
+How the listening agent responds to speech actions depends of course on its internal structure. An actor reacts to a notify by means of an event rule:
+A = actor{
+  balance := 0.0.
+
+  on withdrawn(Am) on account do
+    balance := balance-Am
+}
+The type annotation for A declares that it is an actor that responds to certain speech actions; specifically, it will respond to notify actions on the account channel. When that happens, the event rule simply states that the balance will be decremented by the amount Am that is embedded within thewithdrawn message.
+What is not stated here is what happens to the notifier while the responding actor handles the notification. In fact, there are several variants of entity that can respond to speech actions; each has a different way of handling the run-time semantics. However, all agents must obey the following rule:
+All speech actions from one entity to another are processed in order.
+This pairwise rule covers many situations; but not all. However, we leave that discussion to another document.
+
+
+[^fn1]: Informally, each performative can be viewed as a kind of speech action.
+
+@node Query Speech
+@subsection Query Speech
+
+The second form of speech action is the query. This represents a question being posed. For example, to query an (augmented) account actor for its balances one might use:
+query B with
+  cons of { all X where X in balances &&
+    X.ts>=yesterday}
+Note that this expression combines two different elements of Star: a query speech action and a query expression. The expression
+cons of { all X where X in balances and X.ts>=yesterday }
+represents the question:
+All the X's, where X is in the balances collection and where X's time stamp is more recent than yesterday.
+The answer is presented as a cons list. Different forms of query allow the result to be presented as any form of collection – or be further processed via reduction.
+Query expressions have many uses. The full query expression notation has similar expressive power to that of SQL; except that instead of being restricted to flat tables, Star's query notation can be applied to a large variety of types of data.
+There is no special kind of rule within an actor that is used to respond to query speech actions. Instead the response to the query is determined simply by evaluating the whole expression relative to the actor's internal environment.
+However, there may be situations where this permissive approach to handling query speech actions is not appropriate. In that situation, it is possible to get behind the scenes and intercept thequery — or any speech action — and analyze it before deciding to honor the query.
+
+@node Request Speech
+@subsection Request Speech
+
+Query speech actions have an implied intention that the query expression is not intended to modify the state of the listener. The final form of speech action request assumes that the listener should do something.
+For example, we can ask an actor to clear all balances that are negative using a request along the lines of:
+request C to {
+  for B in accounts and B.balance<0 do
+    clear(B)
+}
+Notice that the argument of a request is a whole action. In effect it is a small script. It is possible for the listener to the request to decline to perform this request. This ability (or lack of) to not react to speech actions is a characteristic of the responding actor.
+
+@node Other Kinds of Agent
+@section Other Kinds of Agent
+
+The Star actor represents the simplest possible entity that can respond to speech actions. In that sense, a Star actor is the simplest possible mechanism for embodying responsibility.
+There are other entities that also implement the speech contract; in particular, an agent could be seen as being the simplest entity that both responds to speech actions and has some awareness of its own goals and activities.
+Thus actors and agents span a range of scales from the very small to the very large, but with a unified representation of `units of collaboration': the speech action. In particular, Star actors are able to operate on a reified representation of query and request speech actions, similar to (but developed independently from) LINQ's approach10.
+Star's actors should not be confused with what is arguably the original definition of actor by Hewitt11. Hewitt actors are a representation of concurrent programs; Star actors may or may not be concurrent.

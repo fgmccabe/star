@@ -1,0 +1,812 @@
+This is guide.info, produced by makeinfo version 6.5 from think.texi.
+
+Copyright (C) 2019 and beyond, Francis G. McCabe
+
+   All rights reserved.
+INFO-DIR-SECTION Programming
+START-INFO-DIR-ENTRY
+* star-guide: (star).		Programming in Star
+END-INFO-DIR-ENTRY
+
+   Star is a functional, multi-paradigm and extensible programming
+language.  It is a full-scale language, capable of expressing many kinds
+of program.  As such it is a rich language with many features.  Star was
+originally developed as part of a framework for processing a range of
+real-time business applications such as factory scheduling and data
+analytics.  This white paper explores some of the basic features of the
+language and shows by example how it can be used to solve problems.
+
+
+File: guide.info,  Node: Why Star?,  Next: Functional Programming
+
+1 Why Star?
+***********
+
+Star is first of all a general purpose programming language.  You can
+use it to effectively solve problems in many domains.  Star was
+originally developed to help write analytical and statistical
+applications.  However, it has evolved into a general purpose
+problem-oriented programming language.(1)  Many of the features and
+functionalities of the platform are expressed in a way that is
+consistent with Star.  As such, it plays a key role in enabling the
+different elements of an application built on the platform to work
+smoothly together.
+
+   Like any programming language, Star represents a distinct view point
+on what programming languages should be.  Star is a rich
+functional-first language with carefully constructed semantics.  Star is
+designed to be readable, powerful, safe and extensible.
+
+   Performance is also important, of course.  However, we view
+performance as being guided by the principle of 'fast enough is good
+enough'.
+
+* Menu:
+
+* Texture::
+* Higher Order Functions::
+* Patterns::
+* Defining Types::
+* Collections::
+* Comprehensions::
+* A Little Context::
+* Star is Rich::
+
+   ---------- Footnotes ----------
+
+   (1) As opposed to a systems-oriented programming language like C.
+
+
+File: guide.info,  Node: Texture,  Next: Higher Order Functions,  Up: Why Star?
+
+1.1 Texture
+===========
+
+All programming languages can be said to have a particular style or
+texture.  This is often so strong that it only needs a single line of
+source code to be able to identify a programming language.  In the case
+of Star, this line might be (we explain what it means a bit later on):
+
+     factorial:all t ~~ arith[t] |: (t)=>t.
+
+   This is a _type annotation_: a description of the type of a variable
+- in this case 'factorial'.  It is a function type - which means that we
+can call 'factorial'.  It is also, somewhat unusually for factorial,
+_generic_: the factorial of any type can be computed - provided that
+arithmetic has been implemented for it.
+
+   Overall, the texture of Star is designed to enhance the readability
+of programs.  Readability is important because many people have to be
+able to read programs; perhaps more than are involved in writing them.
+Even with an emphasis on readability, the power of the language is such
+that Star programs tend to be shorter than their equivalents written in
+languages like Java.
+
+   This is a function definition that should be more straightforward to
+understand:
+     doubleMe:(integer)=>integer.
+     doubleMe(x) => x + x.
+
+   Although not mandatory, in most cases we strongly favor a programming
+style where the type of functions and other top-level definitions are
+called out explicitly.  Here is another function calling the
+just-defined 'doubleMe':
+
+     doubleUs:(integer,integer)=>integer.
+     doubleUs(x, y) => doubleMe(x) + doubleMe(y).
+
+   A complete Star program that uses the 'doubleMe' and 'doubleUs'
+functions to print a result is:
+     sample.first{
+       doubleMe:(integer)=>integer.
+       doubleMe(x) => x + x.
+
+       doubleUs:(integer,integer)=>integer.
+       doubleUs(x, y) => doubleMe(x) + doubleMe(y).
+
+       main:()=>action[(),()].
+       main() => do {
+         logMsg(info,"double trouble is $(doubleUs(3,4))")
+       }
+     }
+
+   Function definitions can use multiple clauses, pattern matching, and
+guards:
+     lucky:(integer)=>string.
+     lucky(7) => "LUCKY NUMBER SEVEN!".
+     lucky(x) default => "Sorry, you’re out of luck, pal!"
+
+     fctrl:(integer)=>integer.
+     fctrl(0) => 1.
+     fctrl(n) where n > 0 => n * fctrl(n-1)
+   In fact, this last function is not fully paradigmatic of Star.  A
+better, albeit more complex, version of this would be:
+     factorial:all t ~~ arith[t] |: (t)=>t.
+     factorial(zero) => one.
+     factorial(n) where n > zero => n * factorial(n-one)
+   This version of factorial will work with integers, floats anything
+that can do arithmetic.  Here we use special variables 'zero' and 'one'
+to denote 0 and 1 in a type-agnostic way.
+
+
+File: guide.info,  Node: Higher Order Functions,  Next: Patterns,  Prev: Texture,  Up: Why Star?
+
+1.2 Higher Order Functions
+==========================
+
+Star supports higher-order functions.  The following 'apply' function
+corresponds to the familiar map function from other functional
+languages.
+     apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
+     apply(f, nil) => nil.
+     apply(f, cons(x, xs)) =>
+           cons(f(x), apply(f, xs)).
+   Although Star has a sophisticated type system that supports automatic
+type inference, we recommend that that programmers supply type
+annotations, which often improve readability.
+
+     Note: Specifically, the rule for type inference is that Star will
+     automatically infer the types of all variables; but will never
+     infer a _generic_ - or quantified - type for functions.
+
+     This represents an interesting balance between convenience - many
+     programs are not actually fully generic - and precision.
+   So, since 'apply' is supposed to be generic, we are required to
+supply a type annotation for it:
+     apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
+   This states that 'apply' is generic in two types, that it takes a
+function argument and a 'cons' list argument and returns a new 'cons'
+list.
+
+
+File: guide.info,  Node: Patterns,  Next: Defining Types,  Prev: Higher Order Functions,  Up: Why Star?
+
+1.3 Patterns
+============
+
+Patterns and pattern matching are ubiquitous in Star.  Nearly all
+literal forms have a pattern equivalent that allows matching and, most
+importantly, de-structuring such values.
+
+   For example, we can define functions over collections that allow us
+to (say) compute the maximum element in a collection:
+
+     maximum:all t ~~ arith[t] |: (list[t],t)=>t.
+     maximum([H,..T]) => let {
+       max([],Mx) => Mx.
+       max([F,..R],Mx) where F>Mx => max(R,F).
+       max([_,..R],Mx) default => max(R,Mx).
+     } in max(T,H)
+   The 'max' function enclosed in the 'let' body uses patterns to match
+against the successive elements of the collection.
+
+   The pattern form:
+     [H,..T]
+   matches any non-empty sequence; and binds the first element of the
+sequence to the variable 'H' and the remainder of the sequence to 'T'.
+
+   The pattern form:
+     []
+   only matches an empty collection.
+
+   The 'maximum' function is written in terms of a local function –
+'max' – and a call to that local function.  The 'let' expression is
+one of the foundations and cornerstones of functional programming.
+
+
+File: guide.info,  Node: Defining Types,  Next: Collections,  Prev: Patterns,  Up: Why Star?
+
+1.4 Defining Types
+==================
+
+Like most functional languages, Star supports many forms of sequence
+collection natively.  One of the more common kinds of list is the
+‘cons list’ a.k.a.  single-linked list.  Cons lists are defined
+using a type definition that introduces the type and its different
+‘shapes’:
+
+     all t ~~ cons[t] ::= nil | cons(t,cons[t]).
+
+   This states that there are two forms of 'cons' lists: the empty cons
+list 'nil', and a pairing 'cons(x, xs)' where 'x' is the first element,
+and 'xs' is the rest of the list.  The 'all' quantifier at the beginning
+of the declaration of the 'cons' type marks the type as a generic type
+– specifically a universal type.
+
+   All Star values can be written as literals, including user defined
+types like cons.  For example, the 'cons' list:
+
+     cons("alpha",cons("beta",cons("gamma",nil)))
+   contains the strings '"alpha"', '"beta"' and '"gamma"'.
+
+   The standard implementation of 'cons' lists in Star also supports the
+sequence notation we saw above.  So, this list can also be written:
+     ["alpha", "beta", "gamma"]:cons[string]
+   Note that we are not allowed to mix strings and integers in the same
+list.  That is because Star is strongly, statically typed and requires
+all elements of a list to have the same type.
+
+   Just as with sequences, we can define functions over 'cons' lists via
+pattern matching:
+     maxCons:(cons[integer]) => integer.
+     maxCons(cons(x, nil)) => x.
+     maxCons(cons(x, xs)) default => let {
+          maxRest = maxCons(xs).
+        } in (x > maxRest ? x || maxRest)
+
+   The first 'maxCons' equation is for 'cons' lists with one element,
+where 'maxCons' simply returns that element.  The second equation first
+computes the maximum of the rest of the list via a recursive call, and
+uses a conditional expression to compute the maximum for the entire
+list.
+
+   The expression
+     (x > maxRest ? x || maxRest)
+   is a conditional expression: if 'x' is greater than 'maxRest' then it
+is the maximum; otherwise 'maxRest' is.  This is an example of a very
+well known form of expression that uses symbolic operators rather than
+keywords.
+
+
+File: guide.info,  Node: Collections,  Next: Comprehensions,  Prev: Defining Types,  Up: Why Star?
+
+1.5 Collections
+===============
+
+Star has a standard way of writing sequences and collections – like
+lists and dictionaries.  For example, the expression
+     [4, 8, 15, 16, 42]:list[integer]
+   denotes the list with the numbers 4, 8, 15, 16 and 42 in it.  This
+notation – which is called the sequence notation – is quite general.
+We can denote a different kind of collection, containing cons elements
+for example, using:
+     [4, 8, 15, 16, 42]:cons[integer]
+   or, we can even denote a general collection without being explicit
+about the type of collection:
+     [4, 8, 15, 16, 42]
+   In this last case, the compiler may have to rely on the context to
+fully determine the type of the sequence.
+
+   As another example, we can see that a dictionary literal is also a
+variation on the collection – except that we have keys as well as
+values:
+     [ "alpha"->1, "beta"->2 ]
+
+
+File: guide.info,  Node: Comprehensions,  Next: A Little Context,  Prev: Collections,  Up: Why Star?
+
+1.6 Comprehensions
+==================
+
+Star has a built-in query expression notation that allows us to avoid a
+lot of common recursive forms of definition.  For example, the 'apply'
+function can be written more succinctly using:
+     apply(f,C) => { f(X) | X in C }
+   the meaning of the expression is equivalent to the recursive
+definition we saw of 'apply' above.
+
+
+File: guide.info,  Node: A Little Context,  Next: Star is Rich,  Prev: Comprehensions,  Up: Why Star?
+
+1.7 A Little Context
+====================
+
+The origins of Star lie in a platform that was originally oriented
+towards complex event processing applications.'luckham:2012' StarRules
+— as it was known then — was a rules language that allowed one to
+express CEP-style rules succinctly.
+
+   However, as often happens, requirements evolved and CEP itself became
+just one of many application areas that the Starview platform can
+address.  The same pressures for generality in the platform lead to a
+greater interest in extensibility and generality in the programming
+language.
+
+* Menu:
+
+* All Projects are Team Projects::
+* Requirements Change and Systems Evolve::
+
+
+File: guide.info,  Node: All Projects are Team Projects,  Next: Requirements Change and Systems Evolve,  Up: A Little Context
+
+1.7.1 All Projects are Team Projects
+------------------------------------
+
+A key observation about successful software projects is that they
+involve teams; even if they start out as solo projects, they invariably
+become team projects.  Furthermore, deployment targets will often extend
+to span a range of devices from smart phones to multi-cluster super
+computers.  Finally, software is rarely completely useful in isolation:
+integration with other systems if often key to realizing the benefits of
+a given system.  These aspects have continually influenced Star’s
+design.
+
+   Another strong influence on Star was the social context: We assumed
+that any any given software project would involve many people.  This led
+us to conclude that features such as clear semantics, safety, strong
+modularization, and in particular multi-paradigm support are essential
+rather than being optional.
+
+   The foundations for safety in a programming language stem from an
+expressive type system — the more expressive the type system, the less
+the temptation to escape from it — and from an easy-to-reason-about
+semantics.  These requirements favor primarily functional languages,
+especially when it comes to reasoning about parallel and distributed
+programming.
+
+   Star is not a pure language in the sense that it permits programs
+with assignments and stateful objects.  This is both because we wish to
+permit programmers to build in ways that suits their needs and because
+some algorithms are easier to express using mutable state.  However, the
+language encourages the programmer to program more declaratively.  Star
+enables procedural programming whilst constraining features to avoid
+some pitfalls of global hidden state.
+
+
+File: guide.info,  Node: Requirements Change and Systems Evolve,  Prev: All Projects are Team Projects,  Up: A Little Context
+
+1.7.2 Requirements Change and Systems Evolve
+--------------------------------------------
+
+One particular scenario played out several times: we developed some
+high-level but specific feature that was designed to meet a particular
+goal; but, in order to address a slightly different goal we were forced
+to evolve to a simpler but more general form.
+
+   For example, initially Star had a high-level concurrency model to
+allow multiple agents to process events with some degree of parallelism.
+This model was elegant and had an intuitive semantics, but did not fit
+certain kinds of applications that we also wanted to be able to support.
+At this point we had a choice: to develop additional forms of
+concurrency to address the new requirements or to modify the original.
+
+   We chose to refactor the concurrency model with a more general one.
+The main reason being that we could not be certain that other variants
+of concurrency would also be important in the future.
+
+   This refactor also had the side-effect of making the concurrency
+framework lower-level.  This process of replacing specific but
+high-level features with more general but lower-level ones occurred
+several times: for concurrency, relational data structures and the rules
+formalism itself.
+
+   It was partly in response to this that we invested effort in making
+the Star language extensible via an extensible grammar and macros.  In
+effect, we adopted a domain-specific language methodology for the design
+of Star itself.  Using these extensibility facilities means that we are
+often able to present high-level features while basing them on more
+general more low-level capabilities.
+
+
+File: guide.info,  Node: Star is Rich,  Prev: A Little Context,  Up: Why Star?
+
+1.8 Star is Rich
+================
+
+Star is a full-featured language.  It is an intentionally rich language.
+In addition to the features described here are concurrency features,
+data abstraction features that include the concept of existentially
+quantified types – that enables abstract data types – and
+computation expressions – that are important when designing systems
+that rely on being able to delay and control how expressions are
+evaluated; and many more.
+
+   In the chapters that follow, we will focus on three major features of
+Star that define much of the essence of Star: actors, contracts and the
+features needed to extend the syntax and capabilities of Star.
+
+
+File: guide.info,  Node: Functional Programming,  Next: Contract Oriented Programming,  Prev: Why Star?
+
+2 Functional Programming
+************************
+
+Functional programming has roots that go back to the origins of
+programming itself.  However, it has been recently gaining in prominence
+because of some of the inherent advantages in the paradigm:
+
+     Its ‘declarative’ nature makes reasoning about functional
+     programs easier than for ‘procedural’ programs.
+
+   This benefits programmers in a surprising number of ways.  Of course,
+the most obvious one is that correctness and type safety are easier to
+establish than for a program built out of assignment and for-loops.
+
+   A subtler but equally critical benefit is that it can make
+programming itself easier: the programmer is free to focus on
+sub-problems without unnecessary entanglement with other sub-problems.
+
+   The impact of this benefit can be quite dramatic: similar in effect
+to the introduction of garbage collected memory compared to managed
+memory allocation.
+
+* Menu:
+
+* Functional First::
+* Equations as Cases::
+* Equations as State::
+* Verbs as well as Nouns::
+* Non-sequential Code::
+
+
+File: guide.info,  Node: Functional First,  Next: Equations as Cases,  Up: Functional Programming
+
+2.1 Functional First
+====================
+
+Star is a 'functional-first' programming language.  What this means is
+that Star makes it easier and more natural to write in a functional
+style.  However, not all problems are best addressed in the functional
+way and it is certainly possible to write procedural Star programs.
+
+
+File: guide.info,  Node: Equations as Cases,  Next: Equations as State,  Prev: Functional First,  Up: Functional Programming
+
+2.2 Equations as Cases
+======================
+
+Many functional programming languages — including Star — are based
+on an 'equational style'.  Equational programs are written as a series
+of equations; for example, in the credit function:
+
+     credit:(customer)=>float.
+     credit(C) where inGoodStanding(C) => 0.15.
+     credit(C) where inDefault(C) => -0.1.
+       ...
+     credit(_) default => 0.0.
+   Each line of this definition is an equation.  It specifies the
+meaning of the credit function in a restricted setting – the complete
+function is understood by combining the cases together.
+
+   Using equations we can separate out the different cases for the
+customer’s credit and ‘work on them separately’.  This allows the
+programmer to focus attention and allows for rapid editing and
+reorganization should the need arise.  Case-based approaches to
+programming are significantly more productive than traditional
+if-then-else procedural programming.
+
+
+File: guide.info,  Node: Equations as State,  Next: Verbs as well as Nouns,  Prev: Equations as Cases,  Up: Functional Programming
+
+2.3 Equations as State
+======================
+
+Contrary to some expectations, it is possible to write stateful programs
+in a functional style.  The difference is that you have to be explicit
+about the state.  For example, the function:
+
+     addAll:(integer,integer)=>integer.
+     addAll(from,to) => let{
+       accum(ix,acc) where ix>=to => acc.
+       accum(ix,acc) => accum(ix+1,acc+ix).
+     } in accum(from,0).
+   is the ‘functional equivalent’ of the normal Java loop:
+     int addAll(int from,int to){
+       int acc = 0;
+       for(int ix=from;ix<to;ix++)
+         acc = acc+ix;
+       return acc;
+     }
+   Apart from the use of recursion, the other main difference is that
+the ‘state’ – which in both cases is held in the acc variable –
+is explicitly handed down the functional program, whereas the Java
+program handles state implicitly.
+
+   The issue for the Java programmer is that what works for simple
+programs can become unmanageable for complex multi-threaded systems.  On
+the other hand, while the functional programmer may be more burdened for
+simple cases, complex parallel programs are not much harder than the
+simple case.
+
+   Functional programming, with its declarative and explicit
+manipulation of state makes crafting parallel programs significantly
+simpler and less error-prone.
+
+
+File: guide.info,  Node: Verbs as well as Nouns,  Next: Non-sequential Code,  Prev: Equations as State,  Up: Functional Programming
+
+2.4 Verbs as well as Nouns
+==========================
+
+Object oriented languages have a very finely developed sense of the
+noun.  An object is intrinsically a noun; objects reference concrete or
+abstract things that a programmer is manipulating.  The notation of
+classes, interfaces, inheritance and so on represents a powerful set of
+concepts for organizing the application’s nouns.
+
+   However, just as in spoken languages like English, verbs are also
+important: what you do with objects is at least as important as the
+objects themselves.  Most OO languages do not treat verbs – a.k.a.
+methods – with the same respect that they confer on nouns.
+
+   The result is that methods are written using a vocabulary that a
+programmer in the 1970’s would be completely familiar with – even
+when the same programmer would find classes and interfaces novel
+concepts.
+
+   Functional languages give more weight to the verbs.  A function is a
+first class value and there are many ways in which functions can be
+combined and abstracted.  The result is that the expression of control
+in a functional language can be subtler and more expressive than is
+possible in most OO languages.  This makes a material difference to the
+productivity of the programmer and can also make a difference in the
+readability of the code.
+
+
+File: guide.info,  Node: Non-sequential Code,  Prev: Verbs as well as Nouns,  Up: Functional Programming
+
+2.5 Non-sequential Code
+=======================
+
+Another benefit that perhaps explains some of the modern excitement is
+that functional programming represents a more tractable route to
+developing parallel and multi-threaded programs.
+
+   A program written in a classic von Neumann style is best understood
+in terms of instructions to a simple machine.  Each successive
+instruction modifies the state of the machine in some way – such as
+storing values in cells or printing a result.
+
+   The issue with this programming model is that modern machines do not
+fit the original von Neumann model very well.  It is normal now for a
+single computer to have eight ‘cores’, which permit up to 16
+independently executing tasks to execute in parallel.  Furthermore,
+modern graphics processors come with thousands of cores — which do not
+necessarily have to be processing graphics!
+
+   Traditional procedural programming languages have a very difficult
+time with multi-threaded and parallel programs.  Because of the
+complexity of writing them safely, they must currently be written by
+‘programming masters’.
+
+
+File: guide.info,  Node: Contract Oriented Programming,  Prev: Functional Programming
+
+3 Contract Oriented Programming
+*******************************
+
+The concept of a contract is fundamental to good software engineering.
+This is because it allows separation between the specification of a
+concept and its implementation.
+
+   A Star contract takes the form of a description of a set of functions
+and values - in effect a type.  For example, the contract for basic
+arithmetic is
+     contract all t ~~ arith[t] ::= {
+         (+) : (t,t)=>t.
+         (-) : (t,t)=>t.
+         (*) : (t,t)=>t.
+         (/) : (t,t)=>t.
+         one : t.
+         zero : t.
+     }
+
+   This has the effect of declaring a group of functions that work
+together to form a basic arithmetic suite.
+
+   Once defined, a contract can be used simply by mentioning one of its
+members.  Thus, in Star, all arithmetic depends on the arith contract:
+     fact(0) => 1.
+     fact(X) => X*fact(X-1)
+   The connection between the use of operators such as '+' and '*' and
+the appropriate definitions is automatically computed by the compiler.
+
+   Furthermore, if we want to state that the type of a variable is
+'something' that implements a contract we can do so by adding a
+constraint to the variable's type:
+     F : arith[t] |: t
+
+   This has the effect to declaring that F's type is a type variable —
+but one that is constrained such that whatever concrete type it
+eventually gets, it must be one that is defined for arith.
+
+   In fact, however, this version of factorial is not the most
+paradigmatic (sic) version.  The reason is that the type signature for
+fact is not generic but tied to integer:
+     fact:(integer)=>integer
+   The reason that fact is not fully generic is interesting: it’s the
+presence of the literal numbers 0 and 1 in the program.  The type of any
+literal integer is integer!  This is enough to force the type of fact to
+be restricted to integers.  In particular, Star does not support
+implicit coercion, including coercion of literal numbers from integer to
+any other type.
+
+   The solution is simple, if a little strange: we declared in the
+'arith' contract two non-function entries: 'zero' and 'one'.  By
+explicitly identifying zero and one as elements of the arith contract we
+can use them in lieu of 0 and 1 respectively without committing to
+integers.(1)
+
+   Using these, we can write a much more paradigmatic version of the
+factorial function:
+     factorial(zero) => one.
+     factorial(N) => factorial(N-one)*N.
+   This function is quite generic, and its type signature is given by:
+     factorial: all t ~~ arith[t] |: (t)=>t.
+     Note: Of course, in this case, our definition of factorial is not
+     well defined for the real numbers; but that is a different issue!
+
+* Menu:
+
+* Contracts as Interfaces::
+* Accessing Collections::
+
+   ---------- Footnotes ----------
+
+   (1) There is some Mathematical justification for this: the arith
+contract defines a Field which requires zero elements for the two
+operators (+ and *).
+
+
+File: guide.info,  Node: Contracts as Interfaces,  Next: Accessing Collections,  Up: Contract Oriented Programming
+
+3.1 Contracts as Interfaces
+===========================
+
+At their most basic, contracts are a way of denoting 'overloaded'
+functions.  I.e., by giving different implementations of a contract for
+different types, it is possible to provide multiple implementations of a
+function.  For example, there are several implementations of arith for
+integers, floats, and so on.  It is also straightforward to implement
+arith for your own type.
+
+   However, another pattern of use of contracts is as an analog of
+interfaces.  For example, we saw in Actors that actors used speech
+actions to express communication between them.
+
+   In fact, there are many entities that can handle speech actions.  In
+addition to basic actors, Star also has concurrent actors — which have
+a completely different implementation.
+
+   In addition to these implementations we can envisage many other
+entities that will want to be able to handle speech actions.
+
+   To enable all these diverse uses of speech actions we encapsulate the
+semantics of speech actions in a contract:
+     contract all t ~~ speech[t] ::= {
+       _notify:all x ~~ (t,(x)=>())=>().
+       _query: all x,s ~~ (t,(x)=>s) => s.
+       _request: all x ~~ (t,(x)=>())=>()
+     }
+
+   As we shall see in Application = Policy + Mechanism, a speech action
+such as:
+     query A with list of {  X | X in R }
+   is translated by macros into the call to the function _query:
+     _query(A,(AA) => list of { X | X in AA.R })
+   Now the role of the speech contract may be highlighted: it serves as
+the specification of the semantics of speech actions.  More informally,
+one can think of the language of speech actions as a kind of 'ceiling':
+the DSL defines a language that is embedded within Star.  The speech
+contract, on the other hand, represents a 'floor' to the speech action
+language.
+
+   As a specification of semantics, contracts do not address all the
+issues.  It is not possible, for example, to express that
+implementations of arithmetic obey the normal Peano axioms of
+arithmetic.  However, it is possible to place assertions in a contract
+that are verified when the implementation is created.
+
+
+File: guide.info,  Node: Accessing Collections,  Prev: Contracts as Interfaces,  Up: Contract Oriented Programming
+
+3.2 Accessing Collections
+=========================
+
+Contracts are deeply embedded within the Star language.  For example,
+consider the task of accessing a collection.  This is captured in the
+standard indexable contract; which includes a definition of the _index
+function.  It includes other functions too; which we omit in this
+discussion.
+
+     contract all c,k,v ~~ indexable[c->>k,v] ::= {
+       _index:(c,k)=>option[v]
+       ...
+     }
+   The '_index' function is rarely used directly; instead it is accessed
+via the index expression, as in:
+     L[34]
+   Accessing collections always introduces the element of tentativeness:
+it cannot normally be shown at compile time that 'L[34]' exists.  Star
+does not have the equivalent of Java null values; instead we make
+extensive use of the option type when we want to represent a tentative
+result.
+
+   Thus the type of 'L[34]' is not 'integer', but
+     option[integer]
+   This indexable contract also introduces an important feature of
+contracts: functional dependencies.  The clause:
+     indexable[c->>k,v]
+   declares that any implementation of indexable for a type — c —
+will 'fix' two further types — in this case the 'index type' and the
+'element type' of the elements of the collection.
+
+   For example, the implementation of indexable for the standard list
+type starts with:
+     implementation all t ~~ indexable[list[t]->>integer,t] => ...
+   This states that implementing indexable for lists requires that the
+index type is an integer and that the element type is the type of the
+element of the list.  Much as one might expect.  This allows expressions
+like 'L[34]' to be typed as expected.
+
+   The indexable contract is also implemented for associative
+dictionaries.  In this case the index type is the type of the keys in
+the dictionary and the element type is the type of the values in the
+dictionary:
+     implementation all k,v ~~ indexable[dictionary[k,v]->>k,v] => …
+   Thus, if we had a dictionary M whose keys were strings and whose
+values were integer, then the expression:
+     M["alpha"]
+   would have the type 'option[integer]'.
+
+   There is no requirement that the index type be a simple type.  For
+example, consider the representation of JSON values.  The standard
+infoset type allows JSON values to be represented abstractly in a way
+that permits easy processing of the data.
+
+   The most appropriate way of extracting elements from a JSON/infoset
+value is by using a path.  For example, the path to the image title in
+the JSON value:
+     {
+       "Image": {
+         "Width": 800,
+         "Height": 600,
+         "Title": "View from 15th Floor",
+         "Thumbnail": {
+           "Url": "http://www.example.com/image/481989943",
+           "Height": 125,
+           "Width": "100"
+         },
+         "IDs": [116, 943, 234, 38793]
+       }
+     }
+   might be expressed as 'Image.Title', and the last ID might be
+expressed as the path 'Image.IDS'.  If the infoset of this value were
+bound to the variable I, then we can express these values using the
+expressions:
+     I[[kString("Image"),kString("Title")]]
+   and
+     I[[kString("Image"), kString("IDs"), kInt(3)]]
+   respectively.
+
+   Note that the elements of the path are not simply bare strings and
+integers.  This is because a structure like:
+     [1, "fred", 2]
+   is not well typed.  The elements of the path are from the iKey type
+which is written as an algebraic type definition:
+     iKey ::= kString(string) | kInt(integer)
+   Wrapping the path elements as iKey values makes the path expression a
+legal Star value.
+
+   In summary, the simple contract specification for indexing can be
+applied to lists (arrays), to associative dictionaries and to tree-like
+structures.  This has a powerful unifying effect on Star programs.
+
+
+
+Tag Table:
+Node: Why Star?750
+Ref: Why Star?-Footnote-11979
+Node: Texture2049
+Node: Higher Order Functions4811
+Node: Patterns6065
+Node: Defining Types7296
+Node: Collections9544
+Node: Comprehensions10527
+Node: A Little Context10998
+Node: All Projects are Team Projects11767
+Node: Requirements Change and Systems Evolve13614
+Node: Star is Rich15393
+Node: Functional Programming16153
+Node: Functional First17330
+Node: Equations as Cases17753
+Node: Equations as State18848
+Node: Verbs as well as Nouns20301
+Node: Non-sequential Code21751
+Node: Contract Oriented Programming22969
+Ref: Contract Oriented Programming-Footnote-125845
+Node: Contracts as Interfaces26001
+Node: Accessing Collections28258
+
+End Tag Table
