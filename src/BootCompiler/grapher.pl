@@ -33,7 +33,7 @@ scanPkg(pkg(Pkg,RqV),_,_,_,SoFar,SoFar) :-
 scanPkg(Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
   codePackagePresent(Repo,Pkg,_,_,SrcFn,SrcWhen,CodeWhen),
   ( CodeWhen>SrcWhen ->
-    importPkg(Pkg,Repo,Spec),
+    importPkg(Pkg,none,Repo,Spec),
     checkPkg(Spec,Repo,Cat,CWD,SrcFn,SoFar,Pkgs) ;
     scanCat(Cat,Repo,Pkg,CWD,SoFar,Pkgs)).
 scanPkg(Pkg,Repo,Cat,CWD,Pi,Px) :-
@@ -56,7 +56,7 @@ checkPkg(spec(Pkg,_,_,_,_,Imports),Repo,Cat,CWD,SrcFn,SoFar,Pkgs) :-
   scanImports(Imps,Repo,Cat,CWD,[(Pkg,Imps,Imps,SrcFn)|SoFar],Pkgs).
 
 reformatImports([],[]).
-reformatImports([import(_,P)|L],[P|M]) :- reformatImports(L,M).
+reformatImports([import(_,_,P)|L],[P|M]) :- reformatImports(L,M).
 
 scanImports([],_,_,_,Pkgs,Pkgs).
 scanImports([Pkg|Imports],Repo,Cat,CWD,SoFar,Pkgs) :-

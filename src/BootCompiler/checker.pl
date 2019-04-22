@@ -55,22 +55,22 @@ recordEnv(Path,Repo,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
 %  dispDefs(Defs).
 
 processImportGroup(Stmts,ImportSpecs,Repo,Env,Ex) :-
-  findAllImports(Stmts,Lc,Imports),
+  findAllImports(Stmts,Imports),
   importAll(Imports,Repo,AllImports),
-  importAllDefs(AllImports,Lc,ImportSpecs,Repo,Env,Ex),!.
+  importAllDefs(AllImports,ImportSpecs,Repo,Env,Ex),!.
 
-findAllImports([],_,[]).
-findAllImports([St|More],Lc,[Spec|Imports]) :-
-  findImport(St,Lc,private,Spec),
-  findAllImports(More,_,Imports).
+findAllImports([],[]).
+findAllImports([St|More],[Spec|Imports]) :-
+  findImport(St,private,Spec),
+  findAllImports(More,Imports).
 
-findImport(St,Lc,_,Spec) :-
-  isPrivate(St,Lc,I),
-  findImport(I,_,private,Spec).
-findImport(St,Lc,_,Spec) :-
-  isPublic(St,Lc,I),
-  findImport(I,_,public,Spec).
-findImport(St,Lc,Viz,import(Viz,Pkg)) :-
+findImport(St,_,Spec) :-
+  isPrivate(St,_Lc,I),
+  findImport(I,private,Spec).
+findImport(St,_,Spec) :-
+  isPublic(St,_,I),
+  findImport(I,public,Spec).
+findImport(St,Viz,import(Lc,Viz,Pkg)) :-
   isImport(St,Lc,P),
   pkgName(P,Pkg).
 
@@ -102,13 +102,13 @@ importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
   declareType(Nm,tpDef(Lc,Type,Rule),Env,E0),
   importTypes(More,Lc,E0,Ex).
 
-importAllDefs([],_,[],_,Env,Env).
-importAllDefs([import(Viz,Pkg)|More],Lc,
+importAllDefs([],[],_,Env,Env).
+importAllDefs([import(Lc,Viz,Pkg)|More],
       [import(Viz,Pkg,Exported,Classes,Cons,Impls)|Specs],Repo,Env,Ex) :-
-  importPkg(Pkg,Repo,Spec),
+  importPkg(Pkg,Lc,Repo,Spec),
   Spec = spec(_,Exported,Classes,Cons,Impls,_),
   importDefs(Spec,Lc,Env,Ev0),
-  importAllDefs(More,Lc,Specs,Repo,Ev0,Ex).
+  importAllDefs(More,Specs,Repo,Ev0,Ex).
 
 importContracts([],_,Env,Env).
 importContracts([C|L],Lc,E,Env) :-
@@ -116,21 +116,21 @@ importContracts([C|L],Lc,E,Env) :-
   defineContract(Nm,Lc,C,E,E0),
   importContracts(L,Lc,E0,Env).
 
-notAlreadyImported(import(_,Pkg),SoFar) :-
-  \+ is_member(import(_,Pkg),SoFar),!.
+notAlreadyImported(import(_,_,Pkg),SoFar) :-
+  \+ is_member(import(_,_,Pkg),SoFar),!.
 
-importMore(Repo,import(Viz,Pkg),SoFar,[import(Viz,Pkg)|SoFar],Inp,More) :-
-  importPkg(Pkg,Repo,spec(_,_,_,_,_,Imports)),
+importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
+  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,_,Imports)),
   addPublicImports(Imports,Inp,More).
-importMore(_,import(_,Pkg),SoFar,SoFar,Inp,Inp) :-
-  reportError("could not import package %s",[Pkg]).
+importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
+  reportError("could not import package %s",[Pkg],Lc).
 
 addPublicImports([],Imp,Imp).
-addPublicImports([import(public,Pkg)|I],Rest,[import(transitive,Pkg)|Out]) :-
+addPublicImports([import(Lc,public,Pkg)|I],Rest,[import(Lc,transitive,Pkg)|Out]) :-
   addPublicImports(I,Rest,Out).
-addPublicImports([import(private,_)|I],Rest,Out) :-
+addPublicImports([import(_,private,_)|I],Rest,Out) :-
   addPublicImports(I,Rest,Out).
-addPublicImports([import(transitive,_)|I],Rest,Out) :-
+addPublicImports([import(_,transitive,_)|I],Rest,Out) :-
   addPublicImports(I,Rest,Out).
 
 findImportedImplementations([import(_,_,_,_,_,Impls)|Specs],D,OverDict) :-
