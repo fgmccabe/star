@@ -3,7 +3,7 @@
 
 Star is first of all a general purpose programming language. You can
 use it to effectively solve problems in many domains. Star was
-developed to help write analytical and statistical
+originally developed to help write analytical and statistical
 applications. However, it has evolved into a general purpose
 problem-oriented programming language.@footnote{As opposed to a
 systems-oriented programming language like C.} Many of the features
@@ -14,13 +14,8 @@ smoothly together.
 
 Like any programming language, Star represents a distinct view point
 on what programming languages should be. Star is a rich
-functional-first language with extensibility capabilities. Star is
-designed to be readable, powerful, safe and extensible.
-
-In the spectrum of high-level and low-level programming languages,
-Star is at the higher end of the range. But, importantly, it's
-extensibility features enable it to support even higher level
-constructs.
+functional-first language with carefully constructed semantics. Star
+is designed to be readable, powerful, safe and extensible.
 
 Performance is also important, of course. However, we view performance
 as being guided by the principle of `fast enough is good enough'.
@@ -35,6 +30,13 @@ of Star, this line might be (we explain what it means a bit later on):
 @example
 factorial:all t ~~ arith[t] |: (t)=>t.
 @end example
+
+This is a @emph{type annotation}: a description of the type of a
+variable -- in this case @code{factorial}. It is a function type --
+which means that we can call @code{factorial}. It is also, somewhat
+unusually for factorial, @emph{generic}: the factorial of any type can
+be computed -- provided that arithmetic has been implemented for it.
+
 Overall, the texture of Star is designed to enhance the readability of
 programs. Readability is important because many people have to be able
 to read programs; perhaps more than are involved in writing them. Even
@@ -42,6 +44,8 @@ with an emphasis on readability, the power of the language is such
 that Star programs tend to be shorter than their equivalents written
 in languages like Java.
 
+This is a function definition that should be more straightforward to
+understand:
 @example
 doubleMe:(integer)=>integer.
 doubleMe(x) => x + x.
@@ -56,7 +60,9 @@ just-defined @code{doubleMe}:
 doubleUs:(integer,integer)=>integer.
 doubleUs(x, y) => doubleMe(x) + doubleMe(y).
 @end example
-A complete Star program that uses these functions to print a result is:
+
+A complete Star program that uses the @code{doubleMe} and
+@code{doubleUs} functions to print a result is:
 @example
 sample.first@{
   doubleMe:(integer)=>integer.
@@ -78,9 +84,9 @@ lucky:(integer)=>string.
 lucky(7) => "LUCKY NUMBER SEVEN!".
 lucky(x) default => "Sorry, you’re out of luck, pal!"
 
-factorial:(integer)=>integer.
-factorial(0) => 1.
-factorial(n) where n > 0 => n * factorial(n-1)
+fctrl:(integer)=>integer.
+fctrl(0) => 1.
+fctrl(n) where n > 0 => n * fctrl(n-1)
 @end example
 In fact, this last function is not fully paradigmatic of Star. A
 better, albeit more complex, version of this would be:
@@ -90,11 +96,12 @@ factorial(zero) => one.
 factorial(n) where n > zero => n * factorial(n-one)
 @end example
 This version of factorial will work with integers, floats anything
-that can do arithmetic.
+that can do arithmetic. Here we use special variables @code{zero} and
+@code{one} to denote 0 and 1 in a type-agnostic way.
 
 @node Higher Order Functions
-@section Higher Order Functions
-Star supports higher-order functions. The following apply function
+@subsection Higher Order Functions
+Star supports higher-order functions. The following @code{apply} function
 corresponds to the familiar map function from other functional
 languages.
 @example
@@ -104,14 +111,8 @@ apply(f, cons(x, xs)) =>
       cons(f(x), apply(f, xs)).
 @end example
 Although Star has a sophisticated type system that supports automatic
-type inference, we strongly recommend that programmers supply type
-annotations, which often improve readability. Here the type annotation
-for @code{apply}:
-@example
-apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
-@end example
-states that @code{apply} is a generic function – in two types – that takes a
-function and a @code{cons} list and returns a new @code{cons} list.
+type inference, we recommend that that programmers supply type
+annotations, which often improve readability.
 
 @quotation Note
 Specifically, the rule for type inference is that Star will
@@ -121,9 +122,18 @@ automatically infer the types of all variables; but will never infer a
 This represents an interesting balance between convenience -- many
 programs are not actually fully generic -- and precision.
 @end quotation
+So, since @code{apply} is supposed to be generic, we are required to
+supply a type annotation for it:
+@example
+apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
+@end example
+This states that @code{apply} is generic in two types, that it takes a
+function argument and a @code{cons} list argument and returns a new
+@code{cons} list.
+
 
 @node Patterns
-@section Patterns
+@subsection Patterns
 Patterns and pattern matching are ubiquitous in Star. Nearly all
 literal forms have a pattern equivalent that allows matching and, most
 importantly, de-structuring such values.
@@ -162,7 +172,7 @@ expression is one of the foundations and cornerstones of functional
 programming.
 
 @node Defining Types
-@section Defining Types
+@subsection Defining Types
 Like most functional languages, Star supports many forms of sequence
 collection natively. One of the more common kinds of list is the ‘cons
 list’ a.k.a. single-linked list. Cons lists are defined using a type
@@ -184,16 +194,16 @@ types like cons. For example, the @code{cons} list:
 @example
 cons("alpha",cons("beta",cons("gamma",nil)))
 @end example
-contains the strings @code{“alpha”}, @code{“beta”} and @code{“gamma”}.
+contains the strings @code{"alpha"}, @code{"beta"} and @code{"gamma"}.
 
 The standard implementation of @code{cons} lists in Star also supports
 the sequence notation we saw above. So, this list can also be written:
 @example
-[“alpha”, “beta”, “gamma”]:cons[string]
+["alpha", "beta", "gamma"]:cons[string]
 @end example
 Note that we are not allowed to mix strings and integers in the same
-list. That is because Star is strongly, statically typed and such a
-heterogeneous list is not permitted.
+list. That is because Star is strongly, statically typed and requires
+all elements of a list to have the same type.
 
 Just as with sequences, we can define functions over @code{cons} lists via
 pattern matching:
@@ -221,17 +231,21 @@ is. This is an example of a very well known form of expression that
 uses symbolic operators rather than keywords.
 
 @node Collections
-@section Collections
+@subsection Collections
 Star has a standard way of writing sequences and collections – like
 lists and dictionaries. For example, the expression
 @example
 [4, 8, 15, 16, 42]:list[integer]
 @end example
-denotes the list with the numbers 4, 8, 15, 16 and 42 in it. This notation – which is called the sequence notation – is quite general. We can denote a different kind of collection, containing cons elements for example, using:
+denotes the list with the numbers 4, 8, 15, 16 and 42 in it. This
+notation – which is called the sequence notation – is quite
+general. We can denote a different kind of collection, containing cons
+elements for example, using:
 @example
 [4, 8, 15, 16, 42]:cons[integer]
 @end example
-or, we can even denote a general collection without being explicit about the type of collection:
+or, we can even denote a general collection without being explicit
+about the type of collection:
 @example
 [4, 8, 15, 16, 42]
 @end example
@@ -242,16 +256,16 @@ As another example, we can see that a dictionary literal is also a
 variation on the collection – except that we have keys as well as
 values:
 @example
-[ “alpha”->1, “beta”->2 ]
+[ "alpha"->1, "beta"->2 ]
 @end example
 
 @node Comprehensions
-@section Comprehensions
+@subsection Comprehensions
 Star has a built-in query expression notation that allows us to avoid
-a lot of common recursive forms of definition. For example, the apply
-function can be written more succinctly using:
+a lot of common recursive forms of definition. For example, the
+@code{apply} function can be written more succinctly using:
 @example
-apply(f,C) => { f(X) | X in C}
+apply(f,C) => @{ f(X) | X in C @}
 @end example
 the meaning of the expression is equivalent to the recursive
 definition we saw of @code{apply} above.
@@ -260,7 +274,7 @@ definition we saw of @code{apply} above.
 @section A Little Context
 
 The origins of Star lie in a platform that was originally oriented
-towards complex event processing applications.\cite{luckham:2012}
+towards complex event processing applications.@cite{luckham:2012}
 StarRules — as it was known then — was a rules language that allowed
 one to express CEP-style rules succinctly.
 
@@ -303,8 +317,8 @@ the language encourages the programmer to program more
 declaratively. Star enables procedural programming whilst constraining
 features to avoid some pitfalls of global hidden state.
 
-@node Requirements Change, Systems Evolve
-@subsection Requirements Change, Systems Evolve
+@node Requirements Change and Systems Evolve
+@subsection Requirements Change and Systems Evolve
 
 One particular scenario played out several times: we developed some
 high-level but specific feature that was designed to meet a particular

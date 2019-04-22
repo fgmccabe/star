@@ -44,6 +44,14 @@ solve problems.
 
 @include functional.texi
 
+@include contracts.texi
+
+@node References
+@unnumbered References
+
+@noindent
+[luckham:2012] Luckham, David, @emph{Event Processing for Business: Organizing the Real-Time Enterprise}, John Wiley & Sons, 2012.
+
 @bye
 
 

@@ -6,8 +6,8 @@ programming itself. However, it has been recently gaining in
 prominence because of some of the inherent advantages in the paradigm:
 
 @quotation
-Its ‘declarative’ nature makes reasoning about functional programs
-easier than for ‘procedural’ programs.
+Its `declarative' nature makes reasoning about functional programs
+easier than for `procedural' programs.
 @end quotation
 
 This benefits programmers in a surprising number of ways. Of course,
@@ -24,7 +24,7 @@ memory allocation.
 
 @node Functional First
 @section Functional First
-Star is a ‘functional-first’ programming language. What this means is
+Star is a `functional-first' programming language. What this means is
 that Star makes it easier and more natural to write in a functional
 style. However, not all problems are best addressed in the functional
 way and it is certainly possible to write procedural Star programs.
@@ -33,7 +33,7 @@ way and it is certainly possible to write procedural Star programs.
 @section Equations as Cases
 
 Many functional programming languages — including Star — are based on
-an ‘equational style’. Equational programs are written as a series of
+an `equational style'. Equational programs are written as a series of
 equations; for example, in the credit function:
 
 @example
@@ -48,7 +48,7 @@ of the credit function in a restricted setting – the complete function
 is understood by combining the cases together.
 
 Using equations we can separate out the different cases for the
-customer’s credit and ‘work on them separately’. This allows the
+customer's credit and `work on them separately'. This allows the
 programmer to focus attention and allows for rapid editing and
 reorganization should the need arise.  Case-based approaches to
 programming are significantly more productive than traditional
@@ -68,7 +68,7 @@ addAll(from,to) => let@{
   accum(ix,acc) => accum(ix+1,acc+ix).
 @} in accum(from,0).
 @end example
-is the ‘functional equivalent’ of the normal Java loop:
+is the `functional equivalent' of the normal Java loop:
 @example
 int addAll(int from,int to)@{
   int acc = 0;
@@ -78,7 +78,7 @@ int addAll(int from,int to)@{
 @}
 @end example
 Apart from the use of recursion, the other main difference is that the
-‘state’ – which in both cases is held in the acc variable – is
+`state' – which in both cases is held in the acc variable – is
 explicitly handed down the functional program, whereas the Java
 program handles state implicitly.
 
@@ -99,7 +99,7 @@ Object oriented languages have a very finely developed sense of the
 noun. An object is intrinsically a noun; objects reference concrete or
 abstract things that a programmer is manipulating. The notation of
 classes, interfaces, inheritance and so on represents a powerful set
-of concepts for organizing the application’s nouns.
+of concepts for organizing the application's nouns.
 
 However, just as in spoken languages like English, verbs are also
 important: what you do with objects is at least as important as the
@@ -107,7 +107,7 @@ objects themselves. Most OO languages do not treat verbs –
 a.k.a. methods – with the same respect that they confer on nouns.
 
 The result is that methods are written using a vocabulary that a
-programmer in the 1970’s would be completely familiar with – even when
+programmer in the 1970's would be completely familiar with – even when
 the same programmer would find classes and interfaces novel concepts.
 
 Functional languages give more weight to the verbs. A function is a
@@ -131,7 +131,7 @@ in cells or printing a result.
 
 The issue with this programming model is that modern machines do not
 fit the original von Neumann model very well. It is normal now for a
-single computer to have eight ‘cores’, which permit up to 16
+single computer to have eight `cores', which permit up to 16
 independently executing tasks to execute in parallel. Furthermore,
 modern graphics processors come with thousands of cores — which do not
 necessarily have to be processing graphics!
@@ -139,6 +139,6 @@ necessarily have to be processing graphics!
 Traditional procedural programming languages have a very difficult
 time with multi-threaded and parallel programs. Because of the
 complexity of writing them safely, they must currently be written by
-‘programming masters’.
+`programming masters'.
 
 
