@@ -1,0 +1,244 @@
+@node Contract Oriented Programming
+@chapter Contract Oriented Programming
+
+The concept of a contract is fundamental to good software
+engineering. This is because it allows separation between the
+specification of a concept and its implementation.
+
+A Star contract takes the form of a description of a set of functions
+and values -- in effect a type. For example, the contract for basic
+arithmetic is
+@example
+contract all t ~~ arith[t] ::= @{
+    (+) : (t,t)=>t.
+    (-) : (t,t)=>t.
+    (*) : (t,t)=>t.
+    (/) : (t,t)=>t.
+    one : t.
+    zero : t.
+@}
+@end example
+
+This has the effect of declaring a group of functions that work
+together to form a basic arithmetic suite.
+
+Once defined, a contract can be used simply by mentioning one of its
+members. Thus, in Star, all arithmetic depends on the arith contract:
+@example
+fact(0) => 1.
+fact(X) => X*fact(X-1)
+@end example
+The connection between the use of operators such as @code{+} and
+@code{*} and the appropriate definitions is automatically computed by
+the compiler.
+
+Furthermore, if we want to state that the type of a variable is
+`something' that implements a contract we can do so by adding a
+constraint to the variable's type:
+@example
+F : arith[t] |: t
+@end example
+
+This has the effect to declaring that F's type is a type variable —
+but one that is constrained such that whatever concrete type it
+eventually gets, it must be one that is defined for arith.
+
+In fact, however, this version of factorial is not the most
+paradigmatic (sic) version. The reason is that the type signature for
+fact is not generic but tied to integer:
+@example
+fact:(integer)=>integer
+@end example
+The reason that fact is not fully generic is interesting: it’s the
+presence of the literal numbers 0 and 1 in the program. The type of
+any literal integer is integer! This is enough to force the type of
+fact to be restricted to integers.  In particular, Star does not
+support implicit coercion, including coercion of literal numbers from
+integer to any other type.
+
+The solution is simple, if a little strange: we declared in the
+@code{arith} contract two non-function entries: @code{zero} and
+@code{one}.  By explicitly identifying zero and one as elements of the
+arith contract we can use them in lieu of 0 and 1 respectively without
+committing to integers.@footnote{There is some Mathematical
+justification for this: the arith contract defines a Field which
+requires zero elements for the two operators (+ and *).}
+
+Using these, we can write a much more paradigmatic version of the
+factorial function:
+@example
+factorial(zero) => one.
+factorial(N) => factorial(N-one)*N.
+@end example
+This function is quite generic, and its type signature is given by:
+@example
+factorial: all t ~~ arith[t] |: (t)=>t.
+@end example
+@quotation Note
+Of course, in this case, our definition of factorial is not well
+defined for the real numbers; but that is a different issue!
+@end quotation
+
+@node Contracts as Interfaces
+@section Contracts as Interfaces
+
+At their most basic, contracts are a way of denoting `overloaded'
+functions. I.e., by giving different implementations of a contract for
+different types, it is possible to provide multiple implementations of
+a function. For example, there are several implementations of arith
+for integers, floats, and so on. It is also straightforward to
+implement arith for your own type.
+
+However, another pattern of use of contracts is as an analog of
+interfaces. For example, we saw in Actors that actors used speech
+actions to express communication between them.
+
+In fact, there are many entities that can handle speech actions. In
+addition to basic actors, Star also has concurrent actors — which have
+a completely different implementation.
+
+In addition to these implementations we can envisage many other
+entities that will want to be able to handle speech actions.
+
+To enable all these diverse uses of speech actions we encapsulate the
+semantics of speech actions in a contract:
+@example
+contract all t ~~ speech[t] ::= @{
+  _notify:all x ~~ (t,(x)=>())=>().
+  _query: all x,s ~~ (t,(x)=>s) => s.
+  _request: all x ~~ (t,(x)=>())=>()
+@}
+@end example
+
+As we shall see in Application = Policy + Mechanism, a speech action such as:
+@example
+query A with list of @{  X | X in R @}
+@end example
+is translated by macros into the call to the function _query:
+@example
+_query(A,(AA) => list of @{ X | X in AA.R @})
+@end example
+Now the role of the speech contract may be highlighted: it serves as
+the specification of the semantics of speech actions. More informally,
+one can think of the language of speech actions as a kind of
+`ceiling': the DSL defines a language that is embedded within
+Star. The speech contract, on the other hand, represents a `floor' to
+the speech action language.
+
+As a specification of semantics, contracts do not address all the
+issues. It is not possible, for example, to express that
+implementations of arithmetic obey the normal Peano axioms of
+arithmetic. However, it is possible to place assertions in a contract
+that are verified when the implementation is created.
+
+@node Accessing Collections
+@section Accessing Collections
+Contracts are deeply embedded within the Star language. For example,
+consider the task of accessing a collection. This is captured in the
+standard indexable contract; which includes a definition of the _index
+function. It includes other functions too; which we omit in this
+discussion.
+
+@example
+contract all c,k,v ~~ indexable[c->>k,v] ::= @{
+  _index:(c,k)=>option[v]
+  @dots{}
+@}
+@end example
+The @code{_index} function is rarely used directly; instead it is
+accessed via the index expression, as in:
+@example
+L[34]
+@end example
+Accessing collections always introduces the element of tentativeness:
+it cannot normally be shown at compile time that @code{L[34]}
+exists. Star does not have the equivalent of Java null values; instead
+we make extensive use of the option type when we want to represent a
+tentative result.
+
+Thus the type of @code{L[34]} is not @code{integer}, but
+@example
+option[integer]
+@end example
+This indexable contract also introduces an important feature of contracts: functional dependencies. The clause:
+@example
+indexable[c->>k,v]
+@end example
+declares that any implementation of indexable for a type — c — will
+`fix' two further types — in this case the `index type' and the
+`element type' of the elements of the collection.
+
+For example, the implementation of indexable for the standard list
+type starts with:
+@example
+implementation all t ~~ indexable[list[t]->>integer,t] => @dots{}
+@end example
+This states that implementing indexable for lists requires that the
+index type is an integer and that the element type is the type of the
+element of the list. Much as one might expect. This allows expressions
+like @code{L[34]} to be typed as expected.
+
+The indexable contract is also implemented for associative
+dictionaries. In this case the index type is the type of the keys in
+the dictionary and the element type is the type of the values in the
+dictionary:
+@example
+implementation all k,v ~~ indexable[dictionary[k,v]->>k,v] => …
+@end example
+Thus, if we had a dictionary M whose keys were strings and whose values were integer, then the expression:
+@example
+M["alpha"]
+@end example
+would have the type @code{option[integer]}.
+
+There is no requirement that the index type be a simple type. For
+example, consider the representation of JSON values. The standard
+infoset type allows JSON values to be represented abstractly in a way
+that permits easy processing of the data.
+
+The most appropriate way of extracting elements from a JSON/infoset value is by using a path. For example, the path to the image title in the JSON value:
+@example
+@{
+  "Image": @{
+    "Width": 800,
+    "Height": 600,
+    "Title": "View from 15th Floor",
+    "Thumbnail": @{
+      "Url": "http://www.example.com/image/481989943",
+      "Height": 125,
+      "Width": "100"
+    @},
+    "IDs": [116, 943, 234, 38793]
+  @}
+@}
+@end example
+might be expressed as @code{Image.Title}, and the last ID might be
+expressed as the path @code{Image.IDS}. If the infoset of this value were
+bound to the variable I, then we can express these values using the
+expressions:
+@example
+I[[kString("Image"),kString("Title")]]
+@end example
+and
+@example
+I[[kString("Image"), kString("IDs"), kInt(3)]]
+@end example
+respectively.
+
+Note that the elements of the path are not simply bare strings and
+integers. This is because a structure like:
+@example
+[1, "fred", 2]
+@end example
+is not well typed. The elements of the path are from the iKey type
+which is written as an algebraic type definition:
+@example
+iKey ::= kString(string) | kInt(integer)
+@end example
+Wrapping the path elements as iKey values makes the path expression a
+legal Star value.
+
+In summary, the simple contract specification for indexing can be
+applied to lists (arrays), to associative dictionaries and to
+tree-like structures. This has a powerful unifying effect on Star
+programs.
