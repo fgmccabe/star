@@ -9,6 +9,7 @@ set(TESTDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/runtests.in
   ${CMAKE_CURRENT_BINARY_DIR}/runtests.py)
 
-add_custom_target(unit
-  COMMAND python ${CURRENT_BINARY_DIR}/runtests.py --all)
+add_custom_target(unit ALL DEPENDS ${STAREXEC} ${STARCOMPILER} boot
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMAND python ${CMAKE_CURRENT_BINARY_DIR}/runtests.py --all)
 
