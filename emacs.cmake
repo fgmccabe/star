@@ -6,9 +6,7 @@ endif()
 
 function(add_emacs args)
   if(EMACS_EXECUTABLE)
-
     set(emacs_elc)
-
     foreach(v ${ARGV})
       set(emacs_tgt ${CMAKE_CURRENT_BINARY_DIR}/${v}.elc)
       set(emacs_src ${CMAKE_CURRENT_BINARY_DIR}/${v}.el)
