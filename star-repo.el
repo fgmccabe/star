@@ -1,14 +1,34 @@
 ;;; star-repo.el --- Manage a Star repo  -*- lexical-binding: t; -*-
 
-;; use flymake to report errors
-
-(defvar-local star-build-repo "../Star/Build/"
-  "Where the repository for your project lives.")
-
-(defcustom star-repo-name ".repo"
-  "Name of the star repository"
+(defcustom star-repo-name ".star-repo"
+  "Name of the star repository directory"
   :type 'directory
   :group 'star)
+
+(defcustom star-compiler "/Users/fgm/Projects/star/src/BootCompiler/sbc"
+  "Exec path to the star compiler"
+  :type 'file
+  :group 'star)
+
+(defun star-find-project-root (fn sentinel)
+  (star-debug "looking for project root starting from %s" fn)
+  (let ((dr (file-name-as-directory fn))
+	(home (file-name-as-directory (expand-file-name "~"))))
+    (catch 'find-root
+      (while (not (equal dr home))
+	(let ((tgt (expand-file-name sentinel dr)))
+	  (if (file-exists-p tgt)
+	      (throw 'find-root dr)
+	    (setq dr (file-name-directory (directory-file-name dr))))))
+      nil)))
+
+(defvar-local star-build-repo
+  (file-name-as-directory
+   (expand-file-name star-repo-name
+		     (star-find-project-root
+		      (file-name-directory (buffer-file-name))
+		      star-repo-name)))
+  "Where the repository for this project lives.")
 
 (defvar-local star--flymake-proc nil)
 
@@ -55,9 +75,6 @@
       )
     )
   )
-
-(defvar star-compiler "/Users/fgm/Projects/star/src/BootCompiler/sbc"
-  "Exec path to the star compiler")
 
 (defun star-compile (source repo pkg dir report-fn)
   (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
@@ -122,16 +139,5 @@
 	(forward-line (- line (line-number-at-pos)))
 	(move-to-column col)
 	(point)))))
-
-(defun star-find-project-root (fn sentinel)
-  (let ((dr (file-name-as-directory fn))
-	(home (file-name-as-directory (expand-file-name "~"))))
-    (catch 'find-root
-      (while (not (equal dr home))
-	(let ((tgt (expand-file-name sentinel dr)))
-	  (if (file-exists-p tgt)
-	      (throw 'find-root dr)
-	    (setq dr (file-name-directory (directory-file-name dr))))))
-      nil)))
 
 (provide 'star-repo)
