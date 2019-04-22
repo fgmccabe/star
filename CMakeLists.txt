@@ -15,7 +15,6 @@ add_subdirectory("src/Tests")
 
 add_subdirectory("Docs")
 
-add_emacs(star)
-add_emacs(star-repo)
+add_emacs(star star-repo)
 
 
