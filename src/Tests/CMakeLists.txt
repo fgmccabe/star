@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.7)
 project(units)
 
-enable_testing()
+set(REPODIR "${CMAKE_BINARY_DIR}/.star-repo/")
+set(STAREXEC "${CMAKE_BINARY_DIR}/src/Engine/star")
+set(STARCOMPILER "${CMAKE_BINARY_DIR}/src/BootCompiler/sbc")
+set(TESTDIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-set(REPO_DIR "${CMAKE_CURRENT_BINARY_DIR}/Build/")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/runtests.in
+  ${CMAKE_CURRENT_BINARY_DIR}/runtests.py)
 
-add_test(NAME c WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMAND star -r ${REPO_DIR} -b test.c -m test.c@init)
+add_custom_target(unit
+  COMMAND python ${CURRENT_BINARY_DIR}/runtests.py --all)
+
