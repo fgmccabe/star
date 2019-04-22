@@ -77,6 +77,10 @@ star.compiler.ast{
   isName(nme(Lc,Id)) => some((Lc,Id)).
   isName(_) default => none.
 
+  public isInt:(ast) => option[(locn,integer)].
+  isInt(lit(Lc,intgr(Ix))) => some((Lc,Ix)).
+  isInt(_) default => none.
+
   public unary:(locn,string,ast) => ast.
   unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 
