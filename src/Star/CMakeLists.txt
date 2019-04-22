@@ -3,7 +3,7 @@ project(bootlib)
 
 add_custom_target(boot ALL)
 
-set(REPO_DIR "${CMAKE_CURRENT_BINARY_DIR}/Build/")
+set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
 
 add_custom_command(TARGET boot
         COMMAND ${CMAKE_COMMAND} -E make_directory ${REPO_DIR}
