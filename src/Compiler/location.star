@@ -5,7 +5,7 @@ star.compiler.location{
   public locn ::= locn(pkg,integer,integer,integer,integer).
 
   public implementation display[locn] => {.
-    disp(locn(pkg(P,_),Line,Col,Off,Ln)) => ssSeq([ss(P),ss(":"),disp(Line),ss(":"),disp(Col),ss("("),disp(Ln),ss(")")]).
+    disp(locn(pkg(P,_),Line,Col,_,Ln)) => ssSeq([ss(P),ss(":"),disp(Line),ss(":"),disp(Col),ss("("),disp(Ln),ss(")")]).
   .}
 
   public implementation equality[locn] => {.
