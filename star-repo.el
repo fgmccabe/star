@@ -22,13 +22,15 @@
 	    (setq dr (file-name-directory (directory-file-name dr))))))
       nil)))
 
-(defvar-local star-build-repo
+(defcustom star-build-repo
   (file-name-as-directory
    (expand-file-name star-repo-name
 		     (star-find-project-root
 		      (file-name-directory (buffer-file-name))
 		      star-repo-name)))
-  "Where the repository for this project lives.")
+  "Where the repository for this project lives."
+  :group 'star
+  :type 'directory)
 
 (defvar-local star--flymake-proc nil)
 
