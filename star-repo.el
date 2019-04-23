@@ -5,7 +5,7 @@
   :type 'directory
   :group 'star)
 
-(defcustom star-compiler "/Users/fgm/Projects/star/src/BootCompiler/sbc"
+(defcustom star-compiler (executable-find "sbc")
   "Exec path to the star compiler"
   :type 'file
   :group 'star)
