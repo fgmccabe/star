@@ -45,6 +45,12 @@ star.compiler.types{
   isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
   isUnbound(_) default => false.
 
+  public isUnboundFVar:(tipe) => option[integer].
+  isUnboundFVar(tVar(B,_)) => ((T^=B.binding!) ? isUnboundFVar(T) || none).
+  isUnboundFVar(tFun(B,Ar,_)) =>
+    ((T^=B.binding!) ? isUnboundFVar(T) || some(Ar)).
+  isUnboundFVar(_) default => none.
+
   public setBinding:(tipe,tipe) => action[(),()].
   setBinding(tVar(B,_),T) => bnd(B,T).
   setBinding(tFun(B,_,_),T) => bnd(B,T).

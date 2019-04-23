@@ -21,7 +21,7 @@ star.compiler.typeparse{
     parseT(Tp,Q,C) where (Lc,Nm) ^= isName(Tp) =>
       parseTypeName(Lc,Nm,C).
     parseT(Tp,Q,C) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
-      (Op,C1) <- parseT(O,C);
+      (Op,C1) <- parseT(O,Q,C);
       (ArgTps,C2) <- parseTps(Args,C1);
       if (Qx,OOp) .= freshen(Op,[],Env) then {
         return rebind(Qx,wrapConstraints(C2,applyTypeFun(OOp,ArgTps,Env)))
@@ -42,11 +42,22 @@ star.compiler.typeparse{
     (_,Ar) ^= isInt(Rhs) => either((Id,newTypeFun(Id,Ar))).
     parseBoundTpVar(O) default =>
       other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
+
+    rebind:(cons[(string,tipe)],tipe)=>tipe.
+    rebind([],T) => T.
+    rebind([(Nm,TV),..L],T) where Ar ^= isUnboundFVar(TV) && sameType(TV,kFun(Nm,Ar),Env) =>
+      rebind(L,allType(kFun(Nm,Ar),T)).
+    rebind([(Nm,TV),..L],T) where sameType(TV,kVar(Nm),Env) =>
+      rebind(L,allType(kVar(Nm),T)).
+    
+      
+    
   } in parseT(Tp,[],Rp).
 
   reQuant:(cons[(string,tipe)],tipe) => tipe.
   reQuant(nil,Tp) => Tp.
   reQuant(cons((_,KV),T),Tp) => reQuant(T,allType(KV,Tp)).
+
 
 
 }
