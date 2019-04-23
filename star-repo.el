@@ -41,6 +41,7 @@
 				 (star-find-project-root
 				  (file-name-directory (buffer-file-name))
 				  star-repo-name))))
+  (add-hook 'after-save-hook 'star-compile-maybe nil t)
   (flymake-mode t))
 
 (defun star-package ()
@@ -61,22 +62,24 @@
     (kill-process star--flymake-proc))
      
   (let ((source (current-buffer)))
-    (save-restriction
-      (widen)
-      ;; Reset the `star--flymake-proc' process to a new process
-      (setq star--flymake-proc
-	    (star-compile source
-			  star-build-repo
-			  (star-package)
-			  (file-name-directory (buffer-file-name source))
-			  report-fn))
-      (process-send-region star--flymake-proc (point-min) (point-max))
-      (process-send-eof star--flymake-proc)
+    (save-excursion
+      (save-restriction
+	(widen)
+	;; Reset the `star--flymake-proc' process to a new process
+	(setq star--flymake-proc
+	      (star-fly-compile source
+			    star-build-repo
+			    (star-package)
+			    (file-name-directory (buffer-file-name source))
+			    report-fn))
+	(process-send-region star--flymake-proc (point-min) (point-max))
+	(process-send-eof star--flymake-proc)
+	)
       )
     )
   )
 
-(defun star-compile (source repo pkg dir report-fn)
+(defun star-fly-compile (source repo pkg dir report-fn)
   (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
     (star-debug "starting star compile %s" `(,star-compiler "--stdin" "-r" ,repo "-w" ,dir "--" ,pkg))
     (make-process
@@ -110,29 +113,63 @@
     )
   )
 
+;; Normal compilation
+(defun star-compile (source repo pkg dir)
+  (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
+    (star-debug "starting star compile %s" `(,star-compiler "-r" ,repo "-w" ,dir "--" ,pkg))
+    (make-process
+     :name "star-compile-on-save" :noquery t :connection-type 'pipe
+     :buffer compile-buffer
+     :command `(,star-compiler "-r" ,repo "-w" ,dir "--" ,pkg)
+     :sentinel
+     (lambda (proc event)
+       (star-debug "event %s from %s" event proc)
+       (when (eq 'exit (process-status proc))
+         (kill-buffer (process-buffer proc))
+	 (message "%s compiled" pkg)))
+    )
+    )
+  )
+
+(defun star-compile-maybe ()
+  (let ((source (current-buffer)))
+    (with-current-buffer source
+      (if (equal major-mode 'star-mode)
+	  (star-compile source star-build-repo (star-package)
+			(file-name-directory (buffer-file-name source))))
+      )
+    )
+  )
+
+  
 (defconst star-loc-regexp
   "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\)]")
 
 (defun star-parse-errors (source buffer)
-  (with-current-buffer buffer
-    (star-debug "report from compiling: %s" buffer)
-    (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
-      (progn
-	(goto-char (point-min))
-	(cl-loop
-	 while (search-forward-regexp errRe nil t)
-	 for line = (string-to-number (match-string 3))
-	 for col = (1- (string-to-number (match-string 4)))
-	 for len = (string-to-number (match-string 5))
-	 for beg = (star-line-to-pos source line col)
-	 for end = (+ beg len)
-	 for msg = (match-string 6)
-	 collect (flymake-make-diagnostic source beg end :error msg)
-	 )))))
-
-(defun star-line-to-pos (buffer line col)
   (save-excursion
     (with-current-buffer buffer
+      (star-debug "report from compiling: %s" buffer)
+      (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
+	(progn
+	  (goto-char (point-min))
+	  (cl-loop
+	   while (search-forward-regexp errRe nil t)
+	   for line = (string-to-number (match-string 3))
+	   for col = (1- (string-to-number (match-string 4)))
+	   for len = (string-to-number (match-string 5))
+	   for beg = (star-line-to-pos source line col)
+	   for end = (+ beg len)
+	   for msg = (match-string 6)
+	   collect (flymake-make-diagnostic source beg end :error msg)
+	   ))
+	)
+      )
+    )
+  )
+
+(defun star-line-to-pos (buffer line col)
+  (with-current-buffer buffer
+    (save-excursion
       (save-restriction
 	(widen)
 	(goto-char (point-min))
