@@ -42,7 +42,11 @@ star.compiler.typeparse{
     (_,Ar) ^= isInt(Rhs) => either((Id,newTypeFun(Id,Ar))).
     parseBoundTpVar(O) default =>
       other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
-  } in parseT(Tp,[],Rp)
+  } in parseT(Tp,[],Rp).
+
+  reQuant:(cons[(string,tipe)],tipe) => tipe.
+  reQuant(nil,Tp) => Tp.
+  reQuant(cons((_,KV),T),Tp) => reQuant(T,allType(KV,Tp)).
 
 
 }
