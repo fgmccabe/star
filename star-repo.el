@@ -35,12 +35,6 @@
 (defun enable-star-flymake ()
   (interactive)
   (add-hook 'flymake-diagnostic-functions 'star-flymake nil t)
-  (setq-local star-build-repo
-	      (file-name-as-directory
-	       (expand-file-name star-repo-name
-				 (star-find-project-root
-				  (file-name-directory (buffer-file-name))
-				  star-repo-name))))
   (add-hook 'after-save-hook 'star-compile-maybe nil t)
   (flymake-mode t))
 
