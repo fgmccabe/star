@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.7)
+
+add_subdirectory("Util")
+add_subdirectory("HeaderGenerator")
+add_subdirectory("Escapes")
+add_subdirectory("BootCompiler")
+add_subdirectory("Asm")
+add_subdirectory("Infra")
+add_subdirectory("Engine")
+add_subdirectory("Star")
+add_subdirectory("Tests")
