@@ -1,12 +1,7 @@
 \input texinfo
 @include version.texi
-@setfilename guide.info
+@setfilename thinking.info
 @settitle Programming in Star
-
-@dircategory Programming
-@direntry
-* star-guide: (star).		Programming in Star
-@end direntry
 
 @copying
 Copyright @copyright{} 2019 and beyond, Francis G. McCabe
@@ -26,7 +21,6 @@ All rights reserved.
 @insertcopying
 @end ifplaintext
 
-@summarycontents
 @contents
 
 @include ../macros.texi
@@ -46,11 +40,14 @@ solve problems.
 
 @include contracts.texi
 
+@include knowledge.texi
+
 @node References
 @unnumbered References
 
 @noindent
-[luckham:2012] Luckham, David, @emph{Event Processing for Business: Organizing the Real-Time Enterprise}, John Wiley & Sons, 2012.
+[luckham:2012] Luckham, David, @emph{Event Processing for Business:
+Organizing the Real-Time Enterprise}, John Wiley & Sons, 2012.
 
 @bye
 
