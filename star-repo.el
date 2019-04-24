@@ -32,8 +32,6 @@
   :group 'star
   :type 'directory)
 
-(defvar-local star--flymake-proc nil)
-
 (defun enable-star-flymake ()
   (interactive)
   (add-hook 'flymake-diagnostic-functions 'star-flymake nil t)
@@ -48,6 +46,43 @@
       (search-forward "{")
       (forward-char -1)
       (buffer-substring-no-properties start (point)))))
+
+(defconst star-loc-regexp
+  "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\)]")
+
+(defun star-parse-errors (source buffer)
+  (save-excursion
+    (with-current-buffer buffer
+      (star-debug "report from compiling: %s" buffer)
+      (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
+	(progn
+	  (goto-char (point-min))
+	  (cl-loop
+	   while (search-forward-regexp errRe nil t)
+	   for line = (string-to-number (match-string 3))
+	   for col = (1- (string-to-number (match-string 4)))
+	   for len = (string-to-number (match-string 5))
+	   for beg = (star-line-to-pos source line col)
+	   for end = (+ beg len)
+	   for msg = (match-string 6)
+	   collect (flymake-make-diagnostic source beg end :error msg)
+	   ))
+	)
+      )
+    )
+  )
+
+(defun star-line-to-pos (buffer line col)
+  (with-current-buffer buffer
+    (save-excursion
+      (save-restriction
+	(widen)
+	(goto-char (point-min))
+	(forward-line (- line (line-number-at-pos)))
+	(move-to-column col)
+	(point)))))
+
+(defvar-local star--flymake-proc nil)
 
 (defun star-flymake (report-fn &rest _args)
   ;; check for the star compiler
@@ -87,9 +122,6 @@
        (star-debug "event %s from %s" event proc)
        (when (eq 'exit (process-status proc))
          (unwind-protect
-	     (with-current-buffer compile-buffer 
-	       (star-debug "report: %s" (buffer-string)))
-	     (star-debug "start parsing result of compilation of %s" pkg)
              ;; Only proceed if `proc' is the same as
              ;; `star--flymake-proc', which indicates that
              ;; `proc' is not an obsolete process.
@@ -119,10 +151,10 @@
      :command `(,star-compiler "-r" ,repo "-w" ,dir "--" ,pkg)
      :sentinel
      (lambda (proc event)
-       (star-debug "event %s from %s" event proc)
+       (star-debug "event %s from compiling %s" event pkg)
        (when (eq 'exit (process-status proc))
          (kill-buffer (process-buffer proc))
-	 (message "%s compiled" pkg)))
+	 (message "%s compiling %s" (string-trim event) pkg)))
     )
     )
   )
@@ -137,40 +169,5 @@
     )
   )
 
-  
-(defconst star-loc-regexp
-  "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\)]")
-
-(defun star-parse-errors (source buffer)
-  (save-excursion
-    (with-current-buffer buffer
-      (star-debug "report from compiling: %s" buffer)
-      (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
-	(progn
-	  (goto-char (point-min))
-	  (cl-loop
-	   while (search-forward-regexp errRe nil t)
-	   for line = (string-to-number (match-string 3))
-	   for col = (1- (string-to-number (match-string 4)))
-	   for len = (string-to-number (match-string 5))
-	   for beg = (star-line-to-pos source line col)
-	   for end = (+ beg len)
-	   for msg = (match-string 6)
-	   collect (flymake-make-diagnostic source beg end :error msg)
-	   ))
-	)
-      )
-    )
-  )
-
-(defun star-line-to-pos (buffer line col)
-  (with-current-buffer buffer
-    (save-excursion
-      (save-restriction
-	(widen)
-	(goto-char (point-min))
-	(forward-line (- line (line-number-at-pos)))
-	(move-to-column col)
-	(point)))))
 
 (provide 'star-repo)
