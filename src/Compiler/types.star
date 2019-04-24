@@ -95,6 +95,10 @@ star.compiler.types{
   public newTypeFun:(string,integer) => tipe.
   newTypeFun(Pre,Ax) => tFun(tv{binding := none. constraints := []. },Ax,genSym(Pre)).
 
+  public mkTypeExp:(tipe,list[tipe])=>tipe.
+  mkTypeExp(Tp,[]) => Tp.
+  mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
+
   public skolemFun:(string,integer) => tipe.
   skolemFun(Nm,0) => kVar(genSym(Nm)).
   skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).

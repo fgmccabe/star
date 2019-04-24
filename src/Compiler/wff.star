@@ -5,14 +5,13 @@ star.compiler.wff{
   import star.compiler.misc.
   import star.compiler.location.
 
-  public isQuantified:(ast)=>option[(locn,cons[ast],ast)].
+  public isQuantified:(ast)=>option[(locn,list[ast],ast)].
   isQuantified(T) where
       (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"all") =>
     some((Lc,deComma(V),B)).
   isQuantified(_) default => none.
 
-
-  deComma:(ast) => cons[ast].
+  deComma:(ast) => list[ast].
   deComma(Trm) => let{
     deC(T,SoF) where (_,Lh,Rh)^=isBinary(T,",") =>
       deC(Rh,deC(Lh,SoF)).
