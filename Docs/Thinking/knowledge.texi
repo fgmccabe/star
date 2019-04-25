@@ -1,0 +1,196 @@
+@node Representing Knowledge
+@chapter Representing Knowledge
+
+One of the design goals for Star was that it would be able to stretch
+from relatively low-level problems to very high-level ones. In
+particular, we should be able to borrow some of the powerful features
+of languages like Prolog and SQL to express high-level concepts.
+
+In this chapter we look at how the combination of query expressions
+and set data structures -- together with the more normal features of
+the language -- can be combined to construct an effective policy
+mechanism.
+
+@node Application = Mechanism + Policy
+@section Application = Mechanism + Policy
+
+It is an informal truism of software engineering that it is often
+easier to solve a more general version of a presented problem and to
+then allow customization of that solution for particular needs. This
+is also how we can amortize the cost of development across multiple
+use-cases.
+
+We can crystalize this idea by factoring applications into two parts:
+a mechanism that embodies the functionality of the application and a
+policy that guides us how to actually use the mechanism.
+
+We see this from two perspectives: that of the owner of the
+application and that of the application code itself.
+
+@node What is a policy?
+@subsection What is a policy?
+
+One reasonable definition of policy is in terms of constraints:
+
+@quotation
+A policy is a constraint on the behavior of a system.
+@end quotation
+
+For example, we might have a policy of never lending books to library
+customers if they have any outstanding fines.
+
+It is quite possible to unpack this definition into many important
+aspects; for example we can distinguish @emph{permissive} policies
+from @emph{audit} policies. However, for lack of space, we avoid that
+here and instead note that policies are:
+
+@quotation
+declarative statements of the intention of the stakeholders of a system
+@end quotation
+
+A key differentiator of different policy systems is the expressiveness
+of the notation that one can use to represent policies.
+
+There is another way of defining policies; from the perspective of the
+code of the application system:
+
+@quotation
+A policy is the answer to a question that the software system has
+about how to proceed in a particular situation.
+@end quotation
+
+This highlights one of the important roles of policies: to control the
+behaviour of software systems. More specifically, there are often
+`questions' that an executing system must answer that are not
+immediately answerable by the system itself.
+
+For example, a system for lending books to readers has to validate the
+user, has to validate that the book is one that the library owns and
+has to validate that the user is `allowed' to borrow the book. The
+first two of these questions are typically answereable within the
+system: there are standard ways of authenticating the user and there
+are similarly standard mechanisms for determining the library's
+inventory. But, the right to borrow the book in question is typically
+not intrinsic to the system software: it is beyond the software's
+@emph{paygrade}.
+
+Instead, the function that is deciding whether to allow the
+registration has to call out to a system that @emph{is} charged with
+implementing library policy. That step -- of calling out to an oracle
+is at the heart of many configuration and policy systems.
+
+From the software's point of view, this amounts to a kind of level
+shift: from the world of bits and algorithms to the world of actions
+and permissions. In many cases, the kinds of programming constructs
+involved are likely to be quite different and it makes good
+engineering sense to centralize that decision making functionality.
+
+@node Atomic Policies
+@section Atomic Policies
+
+In this chapter we look at modeling polices in terms of @emph{sets} of
+atomic fragments and @emph{queries} over them for particular
+scenarios.
+
+Configuration of software is often expressed in terms of key/value
+pairs. For example, the Star compiler has a configuration point of
+where the code repository lives. This is expressed as the value
+associated with the key @code{star-repo} and its value should be a
+directory.
+
+@quotation
+It is a separate question of how configuration information information
+is delivered to the software. In the case of a command line tool like
+a compiler this is often realized by so-called command line options.
+
+Other systems, again typically services that are expected to be long
+running, read their configuration from files.
+
+For our purposes, how the system gets the information is not relevant.
+@end quotation
+
+The repository directory is an example of an @emph{atomic} policy: an
+indivisible fact that represents a constraint on the system.
+
+Another example of an atomic policy might be the maximum balance a
+reader may have before being permitted to borrow a library book.
+
+We can model such atomic policies by using type definitions:
+
+@example
+compilerConfig ::= repoDir(directory).
+
+readerFinancialConfig ::= maximumBalance(money).
+@end example
+
+A typical system has many such atomic policies; of different kinds and
+relating to different areas. Our library might also be concerned with
+the number of servers deployed at any one time -- such a policy should
+not be mixed with the concerns of readers:
+
+@example
+deployment ::= concurrentServers(integer)
+           | standardPort(integer)
+           | databaseUrl(uri).
+@end example
+
+Some atomic polices have more than one parameter. For example, our
+library system may need to know how much to fine a reader for a late
+return. That in turn depends on the number of days that it is late:
+
+@example
+fineSchedule ::= lateness@{days:integer. fine:money@}. -- days 
+@end example
+where there might be a set of such thresholds:
+@example
+[lateness@{days=3. fine=pennies(225)@},
+  lateness@{days=10. fine=pennies(500)@},
+  lateness@{days=14. fine=dollars(25)@}]:set[fineSchedule]
+@end example
+
+@quotation
+The notation
+@example
+[ El@sub{1}, @dots{}, El@sub{n}] : set[@var{Type}
+@end example
+is one way in which we can denote a @code{set} value in Star.
+@end quotation
+
+@node Querying Policies
+@section Querying Policies
+
+Programs respond to policies by asking the `policy oracle' at
+appropriate moments. This is often deep in the heart of the
+application; however, the process is simple enough: ask the oracle.
+
+Questions in Star are often expressed as @emph{queries}; for example, in the function:
+
+@example
+mayBorrow(Reader,Book) =>
+  accountBalance(Reader) < maximumBalance.
+@end example
+
+except that @code{maximumBalance} should not be hard-coded; instead we
+ask what that is:
+
+@example
+mayBorrow(Reader,Book) where maximumBalance(Max) in oracle =>
+  accountBalanace(Reader) < Max.
+@end example
+
+The condition
+@example
+maximumBalance(Max) in oracle
+@end example
+is a simple query that is satisfied if the @code{oracle} has a record
+of the @code{maximumBalance} permitted.
+
+@quotation Note
+If the oracle does not have that information then the query
+@emph{fails} and an alternate must be found; maybe the library will
+lend the book if it does not have a policy about reader balances:
+@end quotation
+
+@example
+mayBorrow(Reader,Book) default => true.
+@end example
