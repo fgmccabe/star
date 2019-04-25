@@ -47,14 +47,14 @@
       (forward-char -1)
       (buffer-substring-no-properties start (point)))))
 
-(defconst star-loc-regexp
+(defconst star-errormsg-regexp
   "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\)]")
 
 (defun star-parse-errors (source buffer)
   (save-excursion
     (with-current-buffer buffer
       (star-debug "report from compiling: %s" buffer)
-      (let* ((errRe (concat "^" star-loc-regexp "\n\\(.*\\)$")))
+      (let* ((errRe (concat "^" star-errormsg-regexp "\n\\(.*\\)$")))
 	(progn
 	  (goto-char (point-min))
 	  (cl-loop
