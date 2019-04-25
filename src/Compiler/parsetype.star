@@ -24,7 +24,7 @@ star.compiler.typeparse{
       Op <- parseT(O,Q);
       ArgTps <- parseTps(Args,Q);
       if (Qx,OOp) .= freshen(Op,[],Env) then {
-	Inn <- applyTypeFun(deRef(OOp),ArgTps);
+	Inn <- applyTypeFun(deRef(OOp),ArgTps,locOf(O));
         return rebind(Qx,Inn)
       } else
         throw reportError(Rp,"Could not freshen $(Op)",Lc)
@@ -42,9 +42,18 @@ star.compiler.typeparse{
     parseTypeName(Lc,"this",_) => either(thisType).
     parseTypeName(_,Nm,Q) where (Nm,Tp) in Q => either(Tp).
 
-    applyTypeFun(kFun(Nm,Ar),Args) where size(Args)==Ar => either(mkTypeExp(kFun(Nm,Ar),Args)).
+    applyTypeFun(kFun(Nm,Ar),Args,_) where size(Args)=<Ar =>
+      either(mkTypeExp(kFun(Nm,Ar),Args)).
+    applyTypeFun(tFun(U,Ar,Nm),Args,_) where size(Args)=<Ar =>
+      either(mkTypeExp(tFun(U,Ar,Nm),Args)).
+    applyTypeFun(tpFun(Nm,Ar),Args,Lc) where size(Args)=<Ar =>
+      either(mkTypeExp(tpFun(Nm,Ar),Args)).
+    applyTypeFun(typeLambda(L,R),[A,..Args],Lc) where sameType(L,A,Env) =>
+      applyTypeFun(R,Args,Lc).
+    applyTypeFun(Tp,[],_) => either(Tp).
+    applyTypeFun(Tp,Args,Lc) =>
+      other(reportError(Rp,"type $(Tp) to applicable to $(Args)",Lc)).
     
-
     parseBoundTpVars:(list[ast])=>either[reports,list[(string,tipe)]].
     parseBoundTpVars([]) => either([]).
     parseBoundTpVars([V,..R]) =>
@@ -61,7 +70,8 @@ star.compiler.typeparse{
 
     rebind:(list[(string,tipe)],tipe)=>tipe.
     rebind([],T) => T.
-    rebind([(Nm,TV),..L],T) where Ar ^= isUnboundFVar(TV) && sameType(TV,kFun(Nm,Ar),Env) =>
+    rebind([(Nm,TV),..L],T) where
+	Ar ^= isUnboundFVar(TV) && sameType(TV,kFun(Nm,Ar),Env) =>
       rebind(L,allType(kFun(Nm,Ar),T)).
     rebind([(Nm,TV),..L],T) where sameType(TV,kVar(Nm),Env) =>
       rebind(L,allType(kVar(Nm),T)).
