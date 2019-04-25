@@ -1,0 +1,73 @@
+@node Getting Star
+@appendix Getting Star
+
+The Star language system is available on github at:
+@url{https://github.com/fgmccabe/star}
+
+@node Building Star
+@section Building Star
+
+To build the Star language system from scratch requires a few
+dependencies; most notably SWI-Prolog -- which is used to build the
+bootstrap compiler -- and cmake. The latter should be at least version 3.7.
+
+Once dependencies are satisfied, and the source code has been
+downloaded from GitHub, building is straightforward: construct a
+@code{build} directory:
+
+@example
+$ mkdir build
+$ cd build
+$ cmake ..
+@end example
+Once @code{cmake} has run, just @code{make}:
+@example
+$ make
+@end example
+
+This builds the run-time, compiles the bootstrap compiler and compiles
+the standard library and runs the tests.
+
+Once completed without errors, install:
+@example
+$ make install
+@end example
+
+@node Emacs Support
+@section Emacs Support
+There is a fairly rudimentary support for Star for Emacs. Installing
+Star should ensure that the compiled elisp files are in the correct
+location. To enable access to Star mode, add the following to your
+@code{.emacs} file:
+
+@example
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/")
+(autoload 'star-mode "star")
+(add-to-list 'auto-mode-alist '("\\.\\(star\\)$" . star-mode))
+@end example
+
+@node Font Coloring
+@subsection Font Coloring
+
+@node Indentation
+@subsection Indentation
+
+@node Error Reporting
+@subsection Error Reporting
+
+@node Customization
+@subsection Customization
+
+@node Documentation
+@section Documentation
+
+The documentation for Star is split into three documents: this
+document, the Star reference manual and a programming guide to
+Star. It is recommended that you read the latter as you familiarize
+yourself with the language.
+
+
+
+
+
+

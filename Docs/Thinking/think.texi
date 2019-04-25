@@ -1,7 +1,7 @@
 \input texinfo
 @include version.texi
 @setfilename thinking.info
-@settitle Programming in Star
+@settitle Thinking About Star
 
 @copying
 Copyright @copyright{} 2019 and beyond, Francis G. McCabe
@@ -23,6 +23,9 @@ All rights reserved.
 
 @contents
 
+@node Top
+@top Thinking About Star
+
 @include ../macros.texi
 
 Star is a functional, multi-paradigm and extensible programming
@@ -41,6 +44,8 @@ solve problems.
 @include contracts.texi
 
 @include knowledge.texi
+
+@include getting.texi
 
 @node References
 @unnumbered References
