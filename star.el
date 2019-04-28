@@ -75,6 +75,12 @@
 	  (insert (apply 'format (concat msg "\n") args)))))
   )
 
+(defun star-clear-debug ()
+  (if star-debugging
+      (let ((debug-buffer (get-buffer-create "*star-debug*")))
+	(with-current-buffer debug-buffer 
+	  (erase-buffer)))))
+
 ;;;
 ;;; Fontlock support for Star
 ;;;
@@ -178,33 +184,9 @@
 
 (defvar star-symbol-regexp
   (star-one-of '(
-		 "=>"
-		 "->"
-		 "<=>"
-		 ".."
-		 ":="
-		 ".="
-		 "^="
-		 "<-"
-		 "="
-		 "<~"
-		 "*>"
-		 "::="
-		 "::"
-		 ":"
-		 "&&"
-		 "|"
-		 "||"
-		 "~~"
-		 "@@"
-		 "@"
-		 "#"
-		 "^"
-		 "^^"
-		 "\\+"
-		 "\\="
-		 ",.."
-		 "."
+		 "=>" "->" "<=>" ".." ":=" ".="
+		 "^=" "<-" "=" "<~" "*>" "::=" "::" ":" "&&" "|" "||"
+		 "~~" "@@" "@" "#" "^" "^^" "\\+" "\\=" ",.." "."
 		 ))
   "Regular expression matching the symbols to highlight in Star mode."
   )
@@ -222,17 +204,7 @@
   (concat "[^-+*/<>=!]"
 	  (star-one-of
 	   '(
-	     "+"
-	     "-"
-	     "*"
-	     "/"
-	     ">"
-	     "<"
-	     "=<"
-	     ">="
-	     "=="
-	     ">>="
-	     "!"
+	     "+" "-" "*" "/" ">" "<" "=<" ">=" "==" ">>=" "!"
 	     ))
 	  "[^-+*/<>=!]")
   "Regular expression matching some of the standard builtins.")
@@ -425,7 +397,8 @@ Argument N  oprefix."
   ;; past point 'from' in the buffer.
   (while (and star-indent-cache
 	      (>= (star-cached-indent star-indent-cache) from))
-    (setq star-indent-cache (cdr star-indent-cache))))
+    (setq star-indent-cache (cdr star-indent-cache)))
+  (star-clear-debug))
 
 (defun star-pick-operator (str)
   (if (string-match "\\.\\([ \n\t]\\|$\\)" str)
@@ -594,6 +567,7 @@ Argument N  oprefix."
   ;; Find the most recent parse state in the cache 
   ;; that is <= pos
 
+  (star-clear-debug)
   (star-debug "parse until %s" pos)
   (star-debug "indent-cache: %s\n" star-indent-cache)
   
@@ -700,7 +674,7 @@ Argument N  oprefix."
     (condition-case nil
 	(progn (goto-char pos)
 	       (goto-char (scan-lists pos -1 1))
-	       (star-indentation-level (point)))
+	       (star-calculate-indent (point)))
       (error 0))))
 
 ;;; look for a the first non-whitespace
