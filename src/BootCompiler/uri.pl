@@ -11,7 +11,7 @@ isUri(relUri(_,_)).
 
 parseURI(S,U) :-
   string_chars(S,Chrs),
-  phrase(uri(U),Chrs).
+  phrase(uri(U),Chrs),!.
 
 uri(absUri(Scheme,Path,Query)) --> absoluteURI(Scheme,Path,Query).
 uri(relUri(Path,Query)) --> relativeURI(Path,Query).

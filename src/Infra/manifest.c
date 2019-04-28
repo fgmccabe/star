@@ -440,9 +440,25 @@ retCode errorEntry(const char *name, void *cl) {
 void defltRepoDir() {
   if (uniIsLit(repoDir, "")) { // overridden?
     char *dir = getenv("STAR_DIR"); /* pick up the installation directory */
-    if (dir == NULL)
-      dir = STARDIR;                  /* Default installation path */
-    uniCpy(repoDir, NumberOf(repoDir), dir);
+    if (dir == NULL) {
+      char DF[MAXFILELEN];
+      getcwd(DF, sizeof(DF));
+
+      while (uniStrLen(DF) > 0) {
+        strMsg(repoDir, NumberOf(repoDir), "%s/.star-repo", DF);
+        if (isDirectory(repoDir) == Ok)
+          return;
+        else {
+          integer slash = uniLastIndexOf(DF, uniStrLen(DF), '/');
+          if (slash > 0) {
+            DF[slash] = '\0';
+          } else {
+            uniCpy(repoDir, NumberOf(repoDir), STARDIR);  /* Default installation path */
+            return;
+          }
+        }
+      }
+    }
   }
 }
 
@@ -543,8 +559,8 @@ retCode setManifestPath(char *path) {
   } else
     strMsg(repoDir, NumberOf(repoDir), "%s", path);
 #ifdef TRACEMANIFEST
-  if(traceManifest)
-    logMsg(logFile,"repository manifest set to %s",repoDir);
+  if (traceManifest)
+    logMsg(logFile, "repository manifest set to %s", repoDir);
 #endif
   return Ok;
 }
