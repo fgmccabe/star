@@ -65,4 +65,8 @@ star.compiler.freshen{
     conConstraint(Nm,Args//((E)=>rewrite(E,Ex,Env)),Deps//((E)=>rewrite(E,Ex,Env))).
   frshnConstraint(fieldConstraint(T,I),Ex,Env) => fieldConstraint(rewrite(T,Ex,Env),rewrite(I,Ex,Env)).
 
+  public freshenContractDefn:(contractDefn,set[tipe],dict) => (list[(string,tipe)],constraint,tipe).
+  freshenContractDefn(conDfn(_,_,Q,A,D,I),Ex,Env) =>
+    
+
 }

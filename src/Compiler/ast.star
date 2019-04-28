@@ -75,6 +75,7 @@ star.compiler.ast{
 
   public isName:(ast) => option[(locn,string)].
   isName(nme(Lc,Id)) => some((Lc,Id)).
+  isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => none.
 
   public isInt:(ast) => option[(locn,integer)].

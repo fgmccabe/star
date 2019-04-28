@@ -10,14 +10,24 @@ star.compiler.typeparse{
   import star.compiler.unify.
   import star.compiler.wff.
 
-  public parseType:(ast,dict,reports) => either[reports,tipe].
+  public parseType:(list[(string,tipe)],ast,dict,reports) => either[reports,tipe].
 
   parseType(Typ,Env,Rp) => let{
     parseT(Tp,Q) where (Lc,V,BT) ^= isQuantified(Tp) => do{
       BV <- parseBoundTpVars(V);
       In <- parseT(BT,Q++BV);
       lift reQuant(BV,In)
-    }. 
+    }.
+    parseT(Tp,Q) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
+      BV <- parseBoundTpVars(V);
+      In <- parseT(BT,Q++BV);
+      lift reQuantX(BV,In)
+    }.
+    parseT(Tp,Q) where (Lc,C,B) ^= isConstrained(Tp) => do{
+      Cx <- parseConstraints(C,Q);
+      Inn <- parseT(B,Q);
+      lift wrapConstraints(Cx,Inn)
+    }
     parseT(Tp,Q) where (Lc,Nm) ^= isName(Tp) =>
       parseTypeName(Lc,Nm,Q).
     parseT(Tp,Q) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
@@ -68,6 +78,19 @@ star.compiler.typeparse{
     parseBoundTpVar(O) default =>
       other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
 
+    parseConstraints:(list[ast],list[(string,tipe)])=>either[reports,list[constraint]].
+    parseConstraints([],_) => either([]).
+    parseConstraints([A,..As],Q) => do{
+      Cn <- parseConstraint(A,Q);
+      Cx <- parseConstraints(As,Q);
+      lift [Cn,..Cx]
+    }
+
+    parseConstraint(A,Q) where (Lc,Lh,Rh) ^= isBinary(A,"<~") =>
+      either(fieldConstraint(parseT(Lh,Q),parseT(Rh,Q))).
+    parseConstraint(A,Q) where (Lc,Op,Args) ^= isSquareTerm(A) =>
+      parseContractConstraint(Q,A,Env).
+
     rebind:(list[(string,tipe)],tipe)=>tipe.
     rebind([],T) => T.
     rebind([(Nm,TV),..L],T) where
@@ -75,7 +98,9 @@ star.compiler.typeparse{
       rebind(L,allType(kFun(Nm,Ar),T)).
     rebind([(Nm,TV),..L],T) where sameType(TV,kVar(Nm),Env) =>
       rebind(L,allType(kVar(Nm),T)).
-    
+
+    wrapConstraints([],Tp)=>Tp.
+    wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,constrainedType(Tp,Cx)).
       
     
   } in parseT(Typ,[]).
@@ -84,6 +109,45 @@ star.compiler.typeparse{
   reQuant([],Tp) => Tp.
   reQuant([(_,KV),..T],Tp) => reQuant(T,allType(KV,Tp)).
 
+  reQuantX:(list[(string,tipe)],tipe) => tipe.
+  reQuantX([],Tp) => Tp.
+  reQuantX([(_,KV),..T],Tp) => reQuantX(T,existType(KV,Tp)).
 
+  parseContractConstraint:(list[(string,tipe)],ast,dict,reports) =>
+    either[reports,constraint].
+  parseContractConstraint(Q,A,Env,Rp) where
+      (Lc,Op,Ags) ^= isSquareTerm(A) => do{
+    (Args,Deps) <- parseContractArgs(Q,Ags,Env,Rp);
+    conConstraint(Con,ATs,Dps) <- parseContractName(Op,Env,Rp);
+    if sameType(tupleType(Args),tupleType(ATs),Env) &&
+    sameType(tupleType(Deps),tupleType(Dps),Env) then
+      lift conConstraint(Con,Args,Deps)
+    else
+ throw reportError(Rp,"$(A) not consistent with contract $(Op)",Lc)
+      }
+  parseContractConstraint(_,A,Env,Rp) =>
+    other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
+
+  parseContractName:(ast,dict,reports)=>either[reports,constraint].
+  parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) 
+
+  parseContractArgs:(list[(string,tipe)],list[ast],dict,reports) =>
+    either[reports,(list[tipe],list[tipe])].
+  parseContractArgs(Q,[A],Env,Rp) where
+      (_,Lhs,Rhs) ^= isBinary(A,"->>") => do{
+    LA <- parseTypes(Q,deComma(Lhs),Env,Rp);
+    DA <- parseTypes(Q,deComma(Rhs),Env,Rp);
+    lift (LA,DA)
+      }
+    
+  parseTypes:(list[(string,tipe)],list[ast],dict,reports) => either[reports,list[tipe]].
+  parseTypes(_,[],_,_) => either([]).
+  parseTypes(Q,[T,..L],Env,Rp) => do{
+    Tl <- parseType(Q,T,Env,Rp);
+    Tr <- parseTypes(Q,L,Env,Rp);
+    lift [Tl,..Tr]
+  }
+
+  
 
 }
