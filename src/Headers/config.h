@@ -54,4 +54,4 @@ typedef unsigned long long uint64;
 
 #define VERIFY_OBJECT
 
-#define STARDIR "/opt/star/star"
+#define STARDIR "/opt/star/star-repo/"

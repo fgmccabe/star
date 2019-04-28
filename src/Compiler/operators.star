@@ -51,7 +51,6 @@ star.compiler.operators{
   oper("of") => [infixOp(399,400,399)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("for") => [prefixOp(1175,1174)].
-  oper("==>") => [infixOp(949,950,949)].
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
   oper(".+.") => [prefixOp(700,699)].
@@ -62,7 +61,6 @@ star.compiler.operators{
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
   oper("#") => [prefixOp(1750,1749), infixOp(759,760,759)].
-  oper("^^") => [prefixOp(912,911), infixOp(911,912,911)].
   oper("%") => [infixOp(700,700,699)].
   oper("<-") => [infixOp(904,905,904)].
   oper(".>>>.") => [infixOp(600,600,599)].
@@ -84,7 +82,6 @@ star.compiler.operators{
   oper("if") => [prefixOp(1175,1174)].
   oper(":") => [infixOp(1249,1250,1249)].
   oper(";") => [infixOp(1250,1251,1251)].
-  oper("-->") => [infixOp(1199,1200,1199)].
   oper("<") => [infixOp(899,900,899)].
   oper(".=") => [infixOp(899,900,899)].
   oper("=") => [infixOp(974,975,974)].
@@ -123,7 +120,6 @@ star.compiler.operators{
   oper("+++") => [infixOp(719,720,720)].
   oper(":=") => [infixOp(974,975,974)].
   oper(".<<.") => [infixOp(600,600,599)].
-  oper("^+") => [prefixOp(905,904)].
   oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
   oper("^/") => [infixOp(800,800,799)].
@@ -203,9 +199,7 @@ star.compiler.operators{
   follows("++",0c+) => some("+++").
   follows(",",0c.) => some(",.").
   follows(",.",0c.) => some(",..").
-  follows("-",0c-) => some("--").
   follows("-",0c>) => some("->").
-  follows("--",0c>) => some("-->").
   follows("->",0c>) => some("->>").
   follows(".",0c#) => some(".#").
   follows(".",0c&) => some(".&").
@@ -241,8 +235,6 @@ star.compiler.operators{
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
   follows("\\",0c+) => some("\\+").
-  follows("^",0c+) => some("^+").
-  follows("^",0c^) => some("^^").
   follows("^",0c.) => some("^.").
   follows("^",0c/) => some("^/").
   follows("^",0c=) => some("^=").
@@ -263,7 +255,6 @@ star.compiler.operators{
   follows("=",0c=) => some("==").
   follows("=",0c>) => some("=>").
   follows("=!",0c=) => some("=!=").
-  follows("==",0c>) => some("==>").
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
@@ -285,7 +276,6 @@ star.compiler.operators{
   final(",") => true.  /* tupling operator */
   final(",..") => true.  /* list cons */
   final("-") => true.  /* arithmetic negation */
-  final("-->") => true.  /* grammar rule */
   final("->") => true.  /* map entry */
   final("->>") => true.  /* dependent type marker */
   final(".") => true.  /* object access */
@@ -320,8 +310,6 @@ star.compiler.operators{
   final("\\+") => true.  /* logical negation */
   final("]") => true.  /* square brackets */
   final("^") => true.  /* Optional propagation */
-  final("^+") => true.  /* look ahead parser operator */
-  final("^^") => true.  /* output from an action expression */
   final("^.") => true.  /* optional object access */
   final("^/") => true.  /* filter */
   final("^//") => true.  /* filter map */
@@ -343,7 +331,6 @@ star.compiler.operators{
   final("=.") => true.  /* pattern match */
   final("=!=") => true.  /* not equals */
   final("==") => true.  /* equality predicate */
-  final("==>") => true.  /* macro arrow */
   final("=>") => true.  /* function arrow */
   final(">") => true.  /* greater than */
   final(">=") => true.  /* greater than or equal */

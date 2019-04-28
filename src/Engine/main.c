@@ -22,7 +22,7 @@
 
 #include "stringBufferP.h"
 
-char *copyright = "(c) 2010-2018 F.G.McCabe\nApache Licence 2.0";
+char *copyright = "(c) 2010-2019 F.G.McCabe\nApache Licence 2.0";
 
 int main(int argc, char **argv) {
   int narg;
