@@ -43,7 +43,7 @@ static char *pC(char *buff, long *ix, char c) {
 }
 
 enum {
-  genProlog, genStar, genTexi
+  genProlog, genStar, genTexi, genEmacs
 } genMode = genProlog;
 
 typedef struct {
@@ -78,7 +78,7 @@ static void initTries() {
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "psit:o:d:D")) >= 0) {
+  while ((opt = getopt(argc, argv, "psiet:o:d:D")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
@@ -88,6 +88,9 @@ int getOptions(int argc, char **argv) {
         break;
       case 'i':
         genMode = genTexi;
+        break;
+      case 'e':
+        genMode = genEmacs;
         break;
       case 'o':
         opers = optarg;
@@ -323,6 +326,17 @@ static retCode procOper(ioPo out, char *sep, opPo op) {
       }
     case genTexi:
       return Ok;
+    case genEmacs:
+      switch (op->style) {
+        case prefixOp:
+          return outMsg(out, "%s(prefix %d %d)", sep, op->prior, op->right);
+        case infixOp:
+          return outMsg(out, "%s(infix %d %d %d)", sep, op->left, op->prior, op->right);
+        case postfixOp:
+          return outMsg(out, "%s(postfix %d %d)", sep, op->left, op->prior);
+        default:
+          return Error;
+      }
     default:
       return Error;
   }
@@ -333,18 +347,33 @@ static retCode procOperator(void *n, void *r, void *c) {
   pairPo p = (pairPo) r;
   char *nm = (char *) n;
 
-  retCode ret = Ok;
   char *sep = "";
 
   switch (genMode) {
-    case genProlog:
-      ret = outMsg(out, "  operator(\"%P\", [", nm);
-      break;
-    case genStar:
-
-      ret = outMsg(out, "  oper(\"%P\") => [", nm);
-      break;
+    case genProlog: {
+      retCode ret = outMsg(out, "  operator(\"%P\", [", nm);
+      while (ret == Ok && p != NULL) {
+        ret = procOper(out, sep, p->op);
+        p = p->next;
+        sep = ", ";
+      }
+      if (ret == Ok)
+        ret = outStr(out, "]).\n");
+      return ret;
+    }
+    case genStar: {
+      retCode ret = outMsg(out, "  oper(\"%P\") => [", nm);
+      while (ret == Ok && p != NULL) {
+        ret = procOper(out, sep, p->op);
+        p = p->next;
+        sep = ", ";
+      }
+      if (ret == Ok)
+        ret = outStr(out, "].\n");
+      return ret;
+    }
     case genTexi: {
+      retCode ret = Ok;
       while (p != NULL && ret == Ok) {
         opPo op = p->op;
         switch (op->style) {
@@ -371,27 +400,21 @@ static retCode procOperator(void *n, void *r, void *c) {
       }
       return ret;
     }
-    default:
-      break;
-  }
+    case genEmacs: {
+      retCode ret = outMsg(out, "  (\"%P\" (", nm);
 
-  while (ret == Ok && p != NULL) {
-    ret = procOper(out, sep, p->op);
-    p = p->next;
-    sep = ", ";
-  }
+      while (ret == Ok && p != NULL) {
+        ret = procOper(out, " ", p->op);
+        p = p->next;
+      }
 
-  if (ret == Ok)
-    switch (genMode) {
-      case genProlog:
-        ret = outStr(out, "]).\n");
-        break;
-      case genStar:
-        ret = outStr(out, "].\n");
-      default:
-        break;
+      if (ret == Ok)
+        ret = outStr(out, "))\n");
+      return ret;
     }
-  return ret;
+    default:
+      return Error;
+  }
 }
 
 retCode procBrackets(void *n, void *r, void *c) {
@@ -415,6 +438,8 @@ retCode procBrackets(void *n, void *r, void *c) {
         ret = outMsg(out, "  isBracket(\"%P\") => some(bkt(\"%P\",\"%P\",\"%P\",%d)).\n", b->name, b->left, b->name,
                      b->right, b->priority);
       break;
+    case genEmacs:
+      return outMsg(out, "  ( \"%P\" \"%P\" \"%P\" %d)\n", nm, b->left, b->right, b->priority);
     default:
       break;
   }
@@ -466,17 +491,17 @@ static retCode quoteChar(ioPo f, codePoint ch) {
       ret = outStr(f, "\\\"");
       break;
     case '@':
-      ret = outStr(f,"@@");
+      ret = outStr(f, "@@");
       break;
     default:
       if (ch < ' ') {
         ret = outChar(f, '\\');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 6u) & 3u) | (unsigned )'0');
+          ret = outChar(f, ((ch >> 6u) & 3u) | (unsigned) '0');
         if (ret == Ok)
-          ret = outChar(f, ((ch >> 3u) & 7u) | (unsigned)'0');
+          ret = outChar(f, ((ch >> 3u) & 7u) | (unsigned) '0');
         if (ret == Ok)
-          ret = outChar(f, (ch & 7u) | (unsigned )'0');
+          ret = outChar(f, (ch & 7u) | (unsigned) '0');
       } else
         ret = outChar(f, ch);
   }

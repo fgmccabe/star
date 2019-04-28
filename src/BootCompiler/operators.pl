@@ -34,7 +34,6 @@
   operator("of", [infixOp(399, 400, 399)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
-  operator("==>", [infixOp(949, 950, 949)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
   operator(".+.", [prefixOp(700, 699)]).
@@ -45,7 +44,6 @@
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
   operator("#", [prefixOp(1750, 1749), infixOp(759, 760, 759)]).
-  operator("^^", [prefixOp(912, 911), infixOp(911, 912, 911)]).
   operator("%", [infixOp(700, 700, 699)]).
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
@@ -67,7 +65,6 @@
   operator("if", [prefixOp(1175, 1174)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [infixOp(1250, 1251, 1251)]).
-  operator("-->", [infixOp(1199, 1200, 1199)]).
   operator("<", [infixOp(899, 900, 899)]).
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=", [infixOp(974, 975, 974)]).
@@ -106,7 +103,6 @@
   operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(974, 975, 974)]).
   operator(".<<.", [infixOp(600, 600, 599)]).
-  operator("^+", [prefixOp(905, 904)]).
   operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
   operator("^/", [infixOp(800, 800, 799)]).
@@ -166,9 +162,7 @@
   follows('++','+','+++').
   follows(',','.',',.').
   follows(',.','.',',..').
-  follows('-','-','--').
   follows('-','>','->').
-  follows('--','>','-->').
   follows('->','>','->>').
   follows('.','#','.#').
   follows('.','&','.&').
@@ -204,8 +198,6 @@
   follows('~','~','~~').
   follows('~','>','~>').
   follows('\\','+','\\+').
-  follows('^','+','^+').
-  follows('^','^','^^').
   follows('^','.','^.').
   follows('^','/','^/').
   follows('^','=','^=').
@@ -226,7 +218,6 @@
   follows('=','=','==').
   follows('=','>','=>').
   follows('=!','=','=!=').
-  follows('==','>','==>').
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
@@ -247,7 +238,6 @@
   final(',',",").	 /* tupling operator */
   final(',..',",..").	 /* list cons */
   final('-',"-").	 /* arithmetic negation */
-  final('-->',"-->").	 /* grammar rule */
   final('->',"->").	 /* map entry */
   final('->>',"->>").	 /* dependent type marker */
   final('.',".").	 /* object access */
@@ -282,8 +272,6 @@
   final('\\+',"\\+").	 /* logical negation */
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */
-  final('^+',"^+").	 /* look ahead parser operator */
-  final('^^',"^^").	 /* output from an action expression */
   final('^.',"^.").	 /* optional object access */
   final('^/',"^/").	 /* filter */
   final('^//',"^//").	 /* filter map */
@@ -305,7 +293,6 @@
   final('=.',"=.").	 /* pattern match */
   final('=!=',"=!=").	 /* not equals */
   final('==',"==").	 /* equality predicate */
-  final('==>',"==>").	 /* macro arrow */
   final('=>',"=>").	 /* function arrow */
   final('>',">").	 /* greater than */
   final('>=',">=").	 /* greater than or equal */

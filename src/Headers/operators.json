@@ -72,15 +72,6 @@
     "desc": "type function"
   },
   {
-    "infixOp": "-->",
-    "priorities": [
-      1199,
-      1200,
-      1199
-    ],
-    "desc": "grammar rule"
-  },
-  {
     "infixOp": "<-",
     "priorities": [
       904,
@@ -88,31 +79,6 @@
       904
     ],
     "desc": "variable bind"
-  },
-  {
-    "infixOp": "^^",
-    "priorities": [
-      911,
-      912,
-      911
-    ],
-    "desc": "Overall output from a parser rule, or action expression"
-  },
-  {
-    "prefixOp": "^^",
-    "priorities": [
-      912,
-      911
-    ],
-    "desc": "output from an action expression"
-  },
-  {
-    "prefixOp": "^+",
-    "priorities": [
-      905,
-      904
-    ],
-    "desc": "look ahead parser operator"
   },
   {
     "prefixOp" : "if",
@@ -218,11 +184,6 @@
     "infixOp": "<*>",
     "priorities": [949, 950, 950],
     "desc": "applicative splat"
-  },
-  {
-    "infixOp": "==>",
-    "priorities": [949, 950, 949],
-    "desc": "macro arrow"
   },
   {
     "infixOp": "<=",
