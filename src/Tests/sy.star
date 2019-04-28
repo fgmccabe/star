@@ -1,31 +1,47 @@
 test.sy{
   import star.
+
   -- Test of syntax of star
 
   public contract all x ~~ lS[x] ::= {
-    large : x.
-    small : x.
-  }
+      large : x.
+      small : x.
+    }
 
   bind(X) where X>0 => valof action{
-    logMsg("trying");
-    return true
-  }
-  
-
-  bind(X) where X>0 =>
-    (MM ^= some(X) ? valof action{
       logMsg("trying");
       return true
-    }
-    || false).
-      
-  person ::= noone
-	 | someone
-	 | everyone.
+    }.
 
-  o : action[string,integer]. 
-  o = return 1.
+  bind(X) where X>0 => (MM ^= some(X) ? valof action{
+	  logMsg("trying");
+      return true
+	}
+  || false).
+
+  bind(X) where
+      X>0 =>
+    (MM ^= some(X) ?
+	valof action{
+	  logMsg("trying");
+      return true
+	}
+  || false).
+
+ 
+    foo(X) where
+      bind(X) => 1.
+  foo(X) where bind(X) &&
+      foo(X-1) > 1 &&
+      foo(X) => 2.
+  
+
+person ::= noone
+	| someone
+	| everyone.
+
+      o : action[string,integer]. 
+      o = return 1.
 
   p : action[string,integer].
   p = (o >>= double) >>= double.
