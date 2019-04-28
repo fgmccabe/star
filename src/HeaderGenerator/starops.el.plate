@@ -1,0 +1,61 @@
+;;; starops.el -- Automatically generated -- Do not edit  -*- lexical-binding: t; -*-
+
+(defconst star-ops
+  '(#(Operators))
+  "Table of standard star operators"
+)
+
+(defconst star-brackets
+  '(#(Brackets))
+  "Table of standard star brackets"
+)
+
+(defun star-genops-hash ()
+  (let ((l star-ops)
+        (b star-brackets)
+        (m (make-hash-table :test 'eq)))
+    (while l
+      (let* ((o (car l))
+             (op (intern (1st o)))
+             (specs (2nd o)))
+         (puthash op specs m)
+         (setq l (cdr l))))
+    (while b
+      (let* ((o (car b))
+             (left (intern (2nd o)))
+             (right (intern (3rd o)))
+             (inner (4th o)))
+        (puthash left (list `(left ,right ,inner)) m)
+        (puthash right (list `(right ,left ,inner)) m)
+        (setq b (cdr b))))
+    m
+  ))
+
+(setq-local star-opers (star-genops-hash))
+
+(defun star-is-oper (op table mode)
+  (let ((specs (gethash op table)))
+    (if specs
+      (catch 'star-is-oper
+        (while specs
+          (let ((sp (car specs)))
+            (if (eq (1st sp) mode)
+              (throw 'star-is-oper (cdr sp))
+              (setq specs (cdr specs)))))
+            nil)
+       nil)))
+
+(defun star-is-prefixop (op)
+  (star-is-oper op star-opers 'prefix))
+
+(defun star-is-infixop (op)
+  (star-is-oper op star-opers 'infix))
+
+(defun star-is-postfixop (op)
+  (star-is-oper op star-opers 'postfix))
+
+(defun star-is-left (op)
+  (star-is-oper op star-opers 'left))
+
+(defconst star-operator-regexp
+  (star-one-of (mapcar 'car star-ops)))
