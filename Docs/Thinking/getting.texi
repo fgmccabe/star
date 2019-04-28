@@ -58,6 +58,48 @@ location. To enable access to Star mode, add the following to your
 @node Customization
 @subsection Customization
 
+@node Compiling Programs
+@section Compiling Programs
+
+@node The @code{catalog}
+@subsection The @code{catalog}
+
+@node Using the Bootstrap Compiler
+@subsection Using the Bootstrap Compiler
+
+The bootstrap compiler is ultimately intended purely for developing
+Star itself. However, it is also currently the only compiler.
+
+@quotation Note
+The bootstrap compiler is written in SWI-Prolog; and it requires that
+@code{swipl} is installed in your system.
+@end quotation
+
+The command line usage for @code{sbc} is:
+
+@example
+$ sbc -r @var{repo} -w @var{wd} -g --stdin -- @var{package}
+@end example
+
+@table @code
+@item r
+The @code{-r} flag indicates the directory where the @emph{code
+repository} is. If it is not specified explicitly the compiler will
+search the current working directory for a sub-directory called
+@code{.star-repo}; and its parent directories until root, until it
+finds one.
+@item -w
+The @code{-w} flag indicates that the compiler should search the
+indicated directory for the appropriate catalog file for the package
+to compile.
+@item -g
+The @code{-g} flag enables the generation of additional code that will
+allow debuggers to debug the execution of the program.
+@item --stdin
+The @code{--stdin} flag is used when the source of the file to compile
+is provided via @code{stdin} rather than an explicit file.
+@end table
+
 @node Documentation
 @section Documentation
 

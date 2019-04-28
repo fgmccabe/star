@@ -47,9 +47,6 @@
 @item @code{for}
 @tab non-associative prefix
 @tab 1175
-@item @code{==>}
-@tab non-associative infix
-@tab 950
 @item @code{**}
 @tab left associative infix
 @tab 600
@@ -83,12 +80,6 @@
 @item @code{#}
 @tab non-associative infix
 @tab 760
-@item @code{^^}
-@tab non-associative prefix
-@tab 912
-@item @code{^^}
-@tab non-associative infix
-@tab 912
 @item @code{%}
 @tab left associative infix
 @tab 700
@@ -161,9 +152,6 @@
 @item @code{;}
 @tab right associative infix
 @tab 1251
-@item @code{-->}
-@tab non-associative infix
-@tab 1200
 @item @code{<}
 @tab non-associative infix
 @tab 900
@@ -284,9 +272,6 @@
 @item @code{.<<.}
 @tab left associative infix
 @tab 600
-@item @code{^+}
-@tab non-associative prefix
-@tab 905
 @item @code{^.}
 @tab left associative infix
 @tab 450
