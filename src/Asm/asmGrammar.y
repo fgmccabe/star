@@ -74,10 +74,10 @@
 %token <id> ID
 %token <f> FLOAT
 
-%type <lbl> label;
-%type <str> libName;
-%type <str> signature;
-%type <i> literal local lbl;
+%type <lbl> label
+%type <str> libName
+%type <str> signature
+%type <i> literal local lbl
 
 %%
 
