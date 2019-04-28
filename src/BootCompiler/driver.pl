@@ -89,7 +89,8 @@ openRepo(Opts,Repo) :-
   is_member(repository(Repo),Opts),!.
 openRepo(_,Repo) :-
   getCWDUri(CWD),
-  openRepository(CWD,Repo).
+  searchForRepo(CWD,RepoUri),
+  openRepository(RepoUri,Repo).
 
 processGroups([],_,_,_,_).
 processGroups([G|L],CPkgs,Repo,CWD,Opts) :-

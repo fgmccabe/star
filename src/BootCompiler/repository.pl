@@ -1,9 +1,11 @@
 :- module(repository,[openRepository/2,
-          locatePackage/6,
-          openPackageAsStream/6,
-          openCodePackageAsStream/6,
-          codePackagePresent/7,
-          addCodePackage/6]).
+		      locatePackage/6,
+		      openPackageAsStream/6,
+		      openCodePackageAsStream/6,
+		      codePackagePresent/7,
+		      addCodePackage/6,
+		      searchForRepo/2
+		      ]).
 
 % Implement a file-based repository.
 
@@ -76,6 +78,16 @@ codePackagePresent(repo(Root,Man),Pkg,Act,Sig,U,SrcWhen,When) :-
 flushManifest(Root,M) :-
   resolveFile(Root,"manifest",Fn),
   writeManifest(Fn,M).
+
+searchForRepo(Root,RepoUri) :-
+  parseURI(".star-repo/",RU),
+  resolveURI(Root,RU,RepoUri),
+  getUriPath(RepoUri,Repo),
+  access_file(Repo,read),!.
+searchForRepo(Root,Repo) :-
+  parseURI("../",PU),
+  resolveURI(Root,PU,Parent),!,
+  searchForRepo(Parent,Repo).
 
 %% Each end-point directory has a manifest file in it.
 % The role of the manifest is to map URIs to files
