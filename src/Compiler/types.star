@@ -22,7 +22,8 @@ star.compiler.types{
     faceType(list[(string,tipe)],list[(string,tipe)]) |
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
-    constrainedType(tipe,constraint).
+    constrainedType(tipe,constraint) |
+  conTract(string,list[tipe],list[tipe]).
 
   public constraint ::=
     conConstraint(string,list[tipe],list[tipe]) |

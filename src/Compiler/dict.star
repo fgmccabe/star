@@ -11,7 +11,11 @@ star.compiler.dict{
 
   public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe,()=>tipe).
 
-  public scope ::= scope(map[string,tpDef],map[string,vrEntry],cons[constraint],map[string,map[string,constraint]]).
+  public contractDefn ::= conDfn(option[locn],string,list[tipe],list[tipe],list[tipe],tipe).
+
+  public scope ::= scope(map[string,tpDef],
+    map[string,vrEntry],map[string,contractDefn],
+    map[string,map[string,constraint]]).
   public dict ~> cons[scope].
 
   public declareType:(string,option[locn],tipe,dict) => dict.
@@ -21,6 +25,11 @@ star.compiler.dict{
   findType([],Nm) => none.
   findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
+
+  public findContract:(dict,string) => option[contractDefn].
+  findContract([],Nm) => none.
+  findContract([scope(_,_,Cns,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
+  findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public findImplementation:(dict,string,string) => option[constraint].
   findImplementation([scope(_,_,_,Imps),.._],Nm,INm) where Ims ^= Imps[Nm] && Imp ^= Ims[INm] => some(Imp).

@@ -11,7 +11,19 @@ star.compiler.wff{
     some((Lc,deComma(V),B)).
   isQuantified(_) default => none.
 
-  deComma:(ast) => list[ast].
+  public isXQuantified:(ast)=>option[(locn,list[ast],ast)].
+  isXQuantified(T) where
+      (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"exists") =>
+    some((Lc,deComma(V),B)).
+  isXQuantified(_) default => none.
+
+  public isConstrained:(ast) => option[(locn,list[ast],ast)].
+  isConstrained(T) where
+      (Lc,Lh,B) ^= isBinary(T,"|:") => some((Lc,deComma(Lh),B)).
+  isConstrained(_) default => none.
+    
+
+  public deComma:(ast) => list[ast].
   deComma(Trm) => let{
     deC(T,SoF) where (_,Lh,Rh)^=isBinary(T,",") =>
       deC(Rh,deC(Lh,SoF)).
