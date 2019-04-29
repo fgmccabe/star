@@ -288,19 +288,19 @@ Argument N  oprefix."
   ;; Prec Text  Regex  Align Hanging Delta
   '((5000 "{"   "{"    left  nil    star-brace-indent)
     (5000 "}"   "}"    right nil	0)
-    (5000 "{."   "{\\." left  nil    star-brace-indent)
-    (5000 ".}"   "\\.}"  right nil  0)
-    (5000 "("   "("    left nil	star-paren-indent)
-    (5000 ")"   ")"    right nil	0)
-    (5000 "["   "\\["  left nil star-bracket-indent)
-    (5000 "]"   "\\]"  right nil 	0)
+    (4900 "{."   "{\\." left  nil    star-brace-indent)
+    (4900 ".}"   "\\.}"  right nil  0)
+    (4800 "("   "("    left nil	star-paren-indent)
+    (4800 ")"   ")"    right nil	0)
+    (4700 "["   "\\["  left nil star-bracket-indent)
+    (4700 "]"   "\\]"  right nil 	0)
     (4500 ". "  "\\.\\([ \n\t]\\|$\\)" align nil  0)
-    (1250 ";"   ";"    align nil	0)
+    (4550 ";"   ";"    align nil	0)
     (1100 "catch" "catch" align nil     0)
     (1000 "then" "then" align nil star-query-indent)
     (1000 "else" "else" align  t star-query-indent)
     (900  ":="  ":="   align  nil    star-arrow-indent)
-    (1460 "::=" "::="  hang  nil	star-arrow-indent)
+    (1460 "::=" "::="  align  nil	star-arrow-indent)
     (1199 "="  "\\b=\\b"  align nil	star-arrow-indent)
     (1199 "=>"  "=>"   align nil	star-arrow-indent)
     (1199 ">>=" ">>="  align nil	star-arrow-indent)
@@ -427,6 +427,16 @@ Argument N  oprefix."
 		  indent
 		  (star-state-in-comment state)))
 
+(defun star-find-state (state stack prec)
+  "Find right level in stack"
+  (while (and stack
+		(< (star-state-prec (car stack)) prec))
+    (setq stack (cdr stack)))
+  (if (and stack (= (star-state-prec (car stack)) prec))
+      (car stack)
+    state)
+  )
+
 (defun star-blank-line-to-left (pos)
   (save-excursion
     (goto-char pos)
@@ -463,20 +473,17 @@ Argument N  oprefix."
 		   (alignment (get symbol 'align)))
 
 	      (star-debug "\nwe have operator %s @ %s : %s" symbol (point) alignment)
-	      ;; Clear stack to proper base
-	      (while (and stack
-			  (< (star-state-prec state) symbol-prec))
-		(setq state (car stack)
-		      stack (cdr stack)))
-
-	      (star-debug "after pop state: %s" state)
-	      (star-debug "after pop stack: %s" stack)
+	      (star-debug "state: %s" state)
+	      (star-debug "stack: %s" stack)
 
 	      (cond ((eq alignment 'left)
 		     (progn
-		       ;; push state back on
+		       ;; Push current state on stack
 		       (setq stack (cons state stack))
 
+		       ;; Find the base state
+		      ;; (setq state (star-find-state state stack symbol-prec))
+		       
 		       ;; Compute new indentation
 		       (let* ((indent (+ (star-state-indent state)
 					 delta)))
@@ -488,19 +495,37 @@ Argument N  oprefix."
 		     )
 		    ((eq alignment 'right)
 		     (progn
-		       (if (and stack
-				(= (star-state-prec state) symbol-prec))
-		       ;; pop found state
-			   (setq state (car stack)
-				 stack (cdr stack)))
-		       )
-		     )
+		       ;; Clear stack to proper base
+		       (while (and stack
+				   (< (star-state-prec state) symbol-prec))
+			 (setq state (car stack)
+			       stack (cdr stack)))
+		       ;; pop stack
+		       (if (and stack (= (star-state-prec state) symbol-prec))
+			   (progn (setq state (car stack))
+				  (setq stack (cdr stack))
+				  )
+			 (if (> (star-state-prec state) symbol-prec)
+			     (setq stack (cons state stack))
+			   )
+			 )
+		       (setq state (star-find-state state stack symbol-prec))
+		     ))
 		    ((eq alignment 'align)
 		     (progn
-		       (if (/= (star-state-prec state) symbol-prec)
-			   ;; push state back on
-			   (setq stack (cons state stack))
+		       ;; Clear stack to proper base
+		       (while (and stack
+				   (< (star-state-prec state) symbol-prec))
+			 (setq state (car stack)
+			       stack (cdr stack)))
+		       ;; pop stack
+		       (if (and stack (= (star-state-prec state) symbol-prec))
+			   (setq state (car stack))
+			 (if (> (star-state-prec state) symbol-prec)
+			     (setq stack (cons state stack))
+			   )
 			 )
+
 		       (let*
 			   ((indent (star-state-indent state)))
 
@@ -516,19 +541,6 @@ Argument N  oprefix."
 				      nil))
 			 )
 		       )
-		     )
-		    ((eq alignment 'hang)
-		     (progn
-		       (if (/= (star-state-prec state) symbol-prec)
-			   ;; push state back on
-			   (setq stack (cons state stack))
-			 )
-		       )
-		     (setq state (star-new-state
-				  symbol-prec symbol
-				  (current-column)
-				  nil))
-		     
 		     )
 		    )
 	      
