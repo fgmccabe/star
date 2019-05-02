@@ -11,17 +11,19 @@ locOf(terminal,missing).
 
 mergeLoc(Lc1,Lc2,Lc1) :- var(Lc2),!.
 mergeLoc(Lc1,Lc2,Lc2) :- var(Lc1),!.
-mergeLoc(loc(Pk,Ln,LnOff,Co1,_),loc(_,_,_,Co2,Len),loc(Pk,Ln,LnOff,Co1,Len1)) :- Len1 is Co2-Co1+Len.
+mergeLoc(loc(Pk,Ln,Pos,Co1,_),loc(_,_,_,Co2,Len),loc(Pk,Ln,Pos,Co1,Len1)) :- Len1 is Co2-Co1+Len.
 
-showLocation(loc(Pk,Ln,Col,_Pos,Sz),O,E) :-
+showLocation(loc(Pk,Ln,Col,Pos,Sz),O,E) :-
   appStr(Pk,O,O0),
   appStr("[",O0,O1),
   appInt(Ln,O1,O2),
   appStr(":",O2,O3),
   appInt(Col,O3,O4),
-  appStr("-",O4,O5),
-  appInt(Sz,O5,O6),
-  appStr("]",O6,E).
+  appStr("@",O4,O5),
+  appInt(Pos,O5,O6),
+  appStr("-",O6,O7),
+  appInt(Sz,O7,O8),
+  appStr("]",O8,E).
 
 lcPk(loc(Pk,_,_,_,_),Pk).
 lcLine(loc(_,Ln,_,_,_),Ln).

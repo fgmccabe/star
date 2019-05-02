@@ -350,8 +350,8 @@ termHash(lbl(Nm,Ar),Hx) :-
   Ix is Ar*37+Lx,
   hashSixtyFour(Ix,Hx).
 
-locTerm(loc(Pk,Ln,Off,Str,Len),Tpl) :-
-  mkTpl([strg(Pk),intgr(Ln),intgr(Off),intgr(Str),intgr(Len)],Tpl).
+locTerm(loc(Pk,Ln,Col,Pos,Len),Tpl) :-
+  mkTpl([strg(Pk),intgr(Ln),intgr(Col),intgr(Pos),intgr(Len)],Tpl).
 
 idInTerm(idnt(Nm),Term) :-
   inTerm(Term,Nm),!.

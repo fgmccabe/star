@@ -781,7 +781,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
       packagePo pkg = loadedPackage(pkgNm);
       char *src = manifestResource(pkg, "source");
 
-      return outMsg(f, "%s(%T,%T,%T)%_", src, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
+      return outMsg(f, "%s(%T:%T@%T,%T)%_", src, nthArg(line, 1), nthArg(line, 2), nthArg(line,3), nthArg(line, 4));
     } else
       return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
   } else
