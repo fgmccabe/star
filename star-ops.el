@@ -117,25 +117,33 @@
 (defun star-genops-hash ()
   (let ((l star-ops)
         (b star-brackets)
-        (m (make-hash-table :test 'eq)))
+        (m (make-hash-table :test 'equal))
+	(res ())
+	(bs ()))
     (while l
       (let* ((o (car l))
-             (op (intern (1st o)))
+             (op (1st o))
              (specs (2nd o)))
-         (puthash op specs m)
-         (setq l (cdr l))))
+        (puthash op specs m)
+	(setq res (cons op res))
+        (setq l (cdr l))))
     (while b
       (let* ((o (car b))
-             (left (intern (2nd o)))
-             (right (intern (3rd o)))
+             (left (2nd o))
+             (right (3rd o))
              (inner (4th o)))
         (puthash left (list `(left ,right ,inner)) m)
         (puthash right (list `(right ,left ,inner)) m)
+	(setq bs (cons left (cons right bs)))
         (setq b (cdr b))))
-    m
-  ))
+    (list m res bs)
+    )
+  )
 
-(setq-local star-opers (star-genops-hash))
+(let ((ops (star-genops-hash)))
+  (setq-local star-opers (1st ops))
+  (setq-local star-op-regexp (star-one-of (2nd ops)))
+  (setq-local star-bkt-regexp (star-one-of (3rd ops))))
 
 (defun star-is-oper (op table mode)
   (let ((specs (gethash op table)))
@@ -152,6 +160,18 @@
 (defun star-is-prefixop (op)
   (star-is-oper op star-opers 'prefix))
 
+(defun star-prefix-priority (op)
+  (let ((spec (star-is-prefixop op)))
+    (if spec
+      (1st spec)
+      nil)))
+
+(defun star-prefix-arg-priority (op)
+  (let ((spec (star-is-prefixop op)))
+    (if spec
+      (2nd spec)
+      nil)))
+
 (defun star-is-infixop (op)
   (star-is-oper op star-opers 'infix))
 
@@ -163,3 +183,4 @@
 
 (defconst star-operator-regexp
   (star-one-of (mapcar 'car star-ops)))
+

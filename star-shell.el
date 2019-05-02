@@ -52,10 +52,10 @@
 	(let* ((cmd (intern (match-string 1 text)))
 	       (file (match-string 2 text))
 	       (line (string-to-number (match-string 3 text)))
-	       (col (1- (string-to-number (match-string 4 text))))
-	       (len (string-to-number (match-string 5 text)))
+	       (pos (string-to-number (match-string 5 text)))
+	       (len (string-to-number (match-string 6 text)))
 	       )
-	  (list cmd file line col len (match-end 0)))
+	  (list cmd file line pos len (match-end 0)))
     nil)
   )
 
@@ -69,25 +69,26 @@
     (while (< pos max)
       (let ((pp (star-debug-parse text pos)))
 	(if pp
-	    (-let [(cmd file line col len end) pp]
+	    (-let [(cmd file line pos len end) pp]
 	      (progn
 		(let* ((buffer (find-buffer-visiting file)))
-		  (star-debug "file=%s, buffer=%s, line=%s, col=%s, cmd=%s"
-			      file buffer line col cmd)
+		  (star-debug "file=%s, buffer=%s, line=%s, cmd=%s"
+			      file buffer line cmd)
 		  (if buffer
-		      (star-mark-pos buffer file line col len)))
+		      (star-mark-pos buffer file pos len)))
 		(setq pos end)))
 	  (setq pos max))))
     )
   )
 
+(defvar-local star-overlay nil)
 
-(defun star-mark-pos (buffer file line col len)
+(defun star-mark-pos (buffer file pos len)
   (save-excursion
     (with-current-buffer buffer
       (save-restriction
 	(widen)
-	(goto-line line)
+	(goto-char pos)
 	(move-to-column 0)
 	(let* ((window (and buffer (or (get-buffer-window buffer)
 				       (display-buffer buffer)))))
@@ -96,27 +97,16 @@
 	      (setq overlay-arrow-position (make-marker)))
 	  (set-marker overlay-arrow-position (point) buffer)
 	  (set-window-point window overlay-arrow-position)
-	  (move-to-column col)
-	  (star-overlay-pos buffer line col len))))))
-
-(defvar star-overlay nil)
-
-(defun star-overlay-pos (buffer line col len)
-  (save-excursion
-    (with-current-buffer buffer
-      (save-restriction
-	(widen)
-	(goto-line line)
-	(move-to-column col)
-	(let* ((start (point))
-	       (end (+ start len)))
-	  (progn
-	    (if star-overlay
-		(move-overlay star-overlay start end buffer)
-	      (progn
-		(setq star-overlay (make-overlay start end buffer))
-		(overlay-put star-overlay 'face 'underline))
-	      )))))))
+	  (goto-char pos)
+	  (let ((end (+ pos len)))
+	    (progn
+	      (if star-overlay
+		  (move-overlay star-overlay pos end buffer)
+		(progn
+		  (setq star-overlay (make-overlay pos end buffer))
+		  (overlay-put star-overlay 'face 'underline))
+		)))
+	  )))))
 
 (define-derived-mode star-shell-mode comint-mode "Star"
   "Major mode for running star"

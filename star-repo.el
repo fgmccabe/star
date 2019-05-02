@@ -48,7 +48,7 @@
       (buffer-substring-no-properties start (point)))))
 
 (defconst star-errormsg-regexp
-  "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)-\\([0-9]+\\)]")
+  "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)]")
 
 (defun star-parse-errors (source buffer)
   (save-excursion
@@ -61,11 +61,11 @@
 	   while (search-forward-regexp errRe nil t)
 	   for line = (string-to-number (match-string 3))
 	   for col = (1- (string-to-number (match-string 4)))
-	   for len = (string-to-number (match-string 5))
-	   for beg = (star-line-to-pos source line col)
-	   for end = (+ beg len)
+	   for pos = (string-to-number (match-string 5))
+	   for len = (string-to-number (match-string 6))
+	   for end = (+ pos len)
 	   for msg = (match-string 6)
-	   collect (flymake-make-diagnostic source beg end :error msg)
+	   collect (flymake-make-diagnostic source pos end :error msg)
 	   ))
 	)
       )
