@@ -3,7 +3,7 @@
 
 Functional programming has roots that go back to the origins of
 programming itself. However, it has been recently gaining in
-prominence because of some of the inherent advantages in the paradigm:
+prominence because of some of the inherent advantages in the paradigm.
 
 @quotation
 Its `declarative' nature makes reasoning about functional programs
@@ -28,6 +28,16 @@ Star is a `functional-first' programming language. What this means is
 that Star makes it easier and more natural to write in a functional
 style. However, not all problems are best addressed in the functional
 way and it is certainly possible to write procedural Star programs.
+
+@quotation Note
+One way to characterize scenarios where functional programming is
+@emph{not} the best fit would be in regard to @emph{resources}. In
+contradistinction to values, resources are inherently created, are
+inherently not shareable and are known by name rather than by
+value. Building and managing resources is generally not best done with
+pure functional programming style.
+@end quotation
+
 
 @node Equations as Cases
 @section Equations as Cases
