@@ -129,7 +129,9 @@ star.compiler.typeparse{
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
 
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
-  parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) 
+    parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
+	Con <- findContract(Env,Id);
+      }
 
   parseContractArgs:(list[(string,tipe)],list[ast],dict,reports) =>
     either[reports,(list[tipe],list[tipe])].
