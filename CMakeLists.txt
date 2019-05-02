@@ -6,6 +6,6 @@ include(./emacs.cmake)
 add_subdirectory("src")
 add_subdirectory("Docs")
 
-add_emacs(star star-repo)
+add_emacs(star star-repo star-ops)
 
 
