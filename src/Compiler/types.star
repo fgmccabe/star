@@ -23,7 +23,7 @@ star.compiler.types{
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
     constrainedType(tipe,constraint) |
-  conTract(string,list[tipe],list[tipe]).
+    conTract(string,list[tipe],list[tipe]).
 
   public constraint ::=
     conConstraint(string,list[tipe],list[tipe]) |
