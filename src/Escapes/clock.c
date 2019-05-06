@@ -128,16 +128,8 @@ ReturnStatus g__today(processPo P, ptrPo tos) {
   return ret;
 }
 
-/*
- *  returns the current ticks
- */
-
-double get_ticks(void) {
-  return ((double) clock()) / CLOCKS_PER_SEC;
-}
-
 ReturnStatus g__ticks(processPo P, ptrPo tos) {
-  termPo now = (termPo) allocateFloat(currHeap, get_ticks());
+  termPo now = (termPo) allocateInteger(currHeap, clock());
 
   ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
   return ret;

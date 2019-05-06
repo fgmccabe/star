@@ -144,7 +144,7 @@ escapeType("_delay",funType(tupleType([type("star.core*float")]),type("star.core
 escapeType("_sleep",funType(tupleType([type("star.core*float")]),type("star.core*sysResult"))).
 escapeType("_now",funType(tupleType([]),type("star.core*float"))).
 escapeType("_today",funType(tupleType([]),type("star.core*float"))).
-escapeType("_ticks",funType(tupleType([]),type("star.core*float"))).
+escapeType("_ticks",funType(tupleType([]),type("star.core*integer"))).
 escapeType("_time2date",funType(tupleType([type("star.core*float")]),tupleType([type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*float"),type("star.core*integer"),type("star.core*integer")]))).
 escapeType("_time2utc",funType(tupleType([type("star.core*float")]),tupleType([type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*float"),type("star.core*integer"),type("star.core*integer")]))).
 escapeType("_date2time",funType(tupleType([type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*float"),type("star.core*integer")]),type("star.core*float"))).
