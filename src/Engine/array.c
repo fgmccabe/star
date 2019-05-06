@@ -418,7 +418,7 @@ listPo removeListEl(heapPo H, listPo list, integer px) {
   listPo slice = (listPo) newSlice(H, nb, nb->min, list->length - 1);
 
   assert(saneList(H,slice));
-  
+
   gcReleaseRoot(H, root);
   releaseHeapLock(H);
   return slice;

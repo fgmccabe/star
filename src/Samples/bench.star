@@ -1,13 +1,13 @@
 sample.bench{
   import star.
-  timer_start : (integer, string) => (float, integer, string).
+  timer_start : (integer, string) => (integer, integer, string).
   timer_start(count, msg) => (_ticks(), count, msg).
 
-  timer_finish : ((float, integer, string)) => action[(),float].
+  timer_finish : ((integer, integer, string)) => action[(),integer].
   timer_finish((start, count, msg)) => do {
     stop = _ticks();
-    elapsed = (stop - start);
-    ops_per_sec = (count::float) / elapsed;
+    elapsed = ((stop - start)::float)/1.0e6;
+    ops_per_sec = ((count::float) / elapsed)::integer;
     logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     lift ops_per_sec
   }

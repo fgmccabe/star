@@ -10,7 +10,6 @@ void reset_timer(void);
 struct timeval *nextTimeOut(void);
 long taxiFlag(void);
 
-double get_ticks(void);
 double get_time(void);
 double get_date(void);
 

@@ -147,7 +147,7 @@ star.comp.escapes{
   escapeType("_sleep") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tipe("star.core*sysResult")).
   escapeType("_now") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
   escapeType("_today") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
-  escapeType("_ticks") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*float")).
+  escapeType("_ticks") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*integer")).
   escapeType("_time2date") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tupleType([tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*float"),tipe("star.core*integer"),tipe("star.core*integer")])).
   escapeType("_time2utc") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*float")])),tupleType([tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*float"),tipe("star.core*integer"),tipe("star.core*integer")])).
   escapeType("_date2time") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*float"),tipe("star.core*integer")])),tipe("star.core*float")).

@@ -200,7 +200,7 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_sleep,True,False,"F(f)"sysRet,"sleep until a definite time")
   escape(_now,True,False,"F()f","current time")
   escape(_today,True,False,"F()f","time at midnight")
-  escape(_ticks,True,False,"F()f","used CPU time")
+  escape(_ticks,True,False,"F()i","used CPU time")
   escape(_time2date,True,False,"F(f)(iiiiiifii)", "convert a time to a date")
   escape(_time2utc,True,False, "F(f)(iiiiiifii)", "convert a time to UTC date")
   escape(_date2time,True,False,"F(iiiiifi)f", "convert a date to a time")
