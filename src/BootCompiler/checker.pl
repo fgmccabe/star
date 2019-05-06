@@ -681,14 +681,14 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   unary(Lc,"_perform",Ex,VV),
   typeOfExp(VV,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isIndexTerm(Term,Lc,F,A),!,
+  typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   (hasPromotion(Term) ->
     promoteOption(Term,NT),
     typeOfExp(NT,Tp,Env,Ev,Exp,Path);
     typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,Exp,Path)).
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isSquareTerm(Term,Lc,F,[A]),!,
-  typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isOfTerm(Term,Lc,Lbl,Tpl),!,
   macroOfTerm(Lbl,Lc,Tpl,Trm),
@@ -885,8 +885,13 @@ checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,delayDo(Lc,varDo(Lc,Lhs,cell(Lc,Rhs)
 checkAction(Term,Env,Ev,_Op,StTp,_ElTp,ErTp,assignDo(Lc,Lhs,Rhs,StTp,ErTp),Path) :-
   isAssignment(Term,Lc,L,R),!,
   newTypeVar("_V",PT),
-  typeOfExp(L,refType(PT),Env,Ev,Lhs,Path),
-  typeOfExp(R,PT,Env,_,Rhs,Path).
+  (isSquareTerm(L,LLc,Op,[A]) ->
+   unary(LLc,"!",Op,Vr),
+   ternary(LLc,"_put",Vr,A,R,Pt),
+   typeOfExp(Op,refType(PT),Env,Ev,Lhs,Path),
+   typeOfExp(Pt,PT,Env,_,Rhs,Path);
+   typeOfExp(L,refType(PT),Env,Ev,Lhs,Path),
+   typeOfExp(R,PT,Env,_,Rhs,Path)).
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
