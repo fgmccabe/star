@@ -6,8 +6,8 @@ sample.bench{
   timer_finish : ((float, integer, string)) => action[(),float].
   timer_finish((start, count, msg)) => do {
     stop = _ticks();
-    elapsed = (stop - start) / 1.0e6;
-    ops_per_sec = (count::float) / elapsed * 1.0e3;
+    elapsed = (stop - start);
+    ops_per_sec = (count::float) / elapsed;
     logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     lift ops_per_sec
   }
@@ -33,9 +33,9 @@ sample.bench{
       logMsg("start changing");
       timer := timer_start(Count, "Changing elements in native list");
       for ix in idxes do {
-	logMsg("changing $(el_list![ix])");
         el_list[ix] := ix + 1
       };
+      logMsg("end changing, el_list = $(el_list!)");
       timer_finish(timer!);
 
       timer := timer_start(Count, "Copying native list of size $(size(el_list!))");
@@ -53,7 +53,7 @@ sample.bench{
       timer_finish(timer!)
     };
     lift ()
-  }
+  } 
 
   main : (integer,string) => action[(),()].
   main(Count,Msg) => do {
@@ -64,5 +64,6 @@ sample.bench{
 
   _main:(list[string])=>().
   _main([]) => valof main(10,"test").
+  _main([Count]) => valof main(Count::integer,"test").
 
 }
