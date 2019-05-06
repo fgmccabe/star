@@ -38,12 +38,11 @@ value. Building and managing resources is generally not best done with
 pure functional programming style.
 @end quotation
 
-
 @node Equations as Cases
 @section Equations as Cases
 
 Many functional programming languages — including Star — are based on
-an `equational style'. Equational programs are written as a series of
+an equational style. Equational programs are written as a series of
 equations; for example, in the credit function:
 
 @example
