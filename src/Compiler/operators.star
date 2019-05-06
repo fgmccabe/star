@@ -54,9 +54,8 @@ star.compiler.operators{
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
   oper(".+.") => [prefixOp(700,699)].
-  oper("ignore") => [prefixOp(930,929)].
   oper("then") => [infixOp(1179,1180,1179)].
-  oper("!") => [postfixOp(99,100)].
+  oper("!") => [infixOp(99,100,99), postfixOp(99,100)].
   oper("->>") => [infixOp(1199,1200,1199)].
   oper("=!=") => [infixOp(899,900,899)].
   oper("default") => [postfixOp(939,940)].
@@ -105,6 +104,7 @@ star.compiler.operators{
   oper("ref") => [prefixOp(900,899)].
   oper(".~.") => [prefixOp(650,649)].
   oper("where") => [infixOp(910,911,910)].
+  oper("!.") => [infixOp(99,100,99)].
   oper("=<") => [infixOp(899,900,899)].
   oper("==") => [infixOp(899,900,899)].
   oper("=>") => [infixOp(949,950,950)].
@@ -126,7 +126,7 @@ star.compiler.operators{
   oper("<~") => [infixOp(1230,1231,1230)].
   oper("type") => [prefixOp(1251,1250)].
   oper("implementation") => [prefixOp(1260,1259)].
-  oper("|") => [infixOp(1248,1249,1249)].
+  oper("|") => [infixOp(1249,1249,1248)].
   oper(".~") => [infixOp(499,500,499)].
   oper(".#.") => [infixOp(600,600,599)].
   oper("~") => [infixOp(489,499,489)].
@@ -258,6 +258,7 @@ star.compiler.operators{
   follows(">",0c=) => some(">=").
   follows(">",0c>) => some(">>").
   follows(">>",0c=) => some(">>=").
+  follows("!",0c.) => some("!.").
   follows("!",0c!) => some("!!").
   follows(_,_) default => none.
 
@@ -339,6 +340,7 @@ star.compiler.operators{
   final("?") => true.  /* conditional operator */
   final("@") => true.  /* meta annotation */
   final("!") => true.  /* pick up a value from a ref cell */
+  final("!.") => true.  /* pick up a value from a ref record */
   final("!!") => true.  /* cell value */
   final("•") => true.  /* function composition */
   final("#") => true.  /* Macro statement marker */

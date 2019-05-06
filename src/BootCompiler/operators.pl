@@ -37,9 +37,8 @@
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
   operator(".+.", [prefixOp(700, 699)]).
-  operator("ignore", [prefixOp(930, 929)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
-  operator("!", [postfixOp(99, 100)]).
+  operator("!", [infixOp(99, 100, 99), postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
   operator("=!=", [infixOp(899, 900, 899)]).
   operator("default", [postfixOp(939, 940)]).
@@ -88,6 +87,7 @@
   operator("ref", [prefixOp(900, 899)]).
   operator(".~.", [prefixOp(650, 649)]).
   operator("where", [infixOp(910, 911, 910)]).
+  operator("!.", [infixOp(99, 100, 99)]).
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 950)]).
@@ -109,7 +109,7 @@
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("|", [infixOp(1248, 1249, 1249)]).
+  operator("|", [infixOp(1249, 1249, 1248)]).
   operator(".~", [infixOp(499, 500, 499)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).
@@ -221,6 +221,7 @@
   follows('>','=','>=').
   follows('>','>','>>').
   follows('>>','=','>>=').
+  follows('!','.','!.').
   follows('!','!','!!').
 
 
@@ -301,6 +302,7 @@
   final('?',"?").	 /* conditional operator */
   final('@',"@").	 /* meta annotation */
   final('!',"!").	 /* pick up a value from a ref cell */
+  final('!.',"!.").	 /* pick up a value from a ref record */
   final('!!',"!!").	 /* cell value */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
