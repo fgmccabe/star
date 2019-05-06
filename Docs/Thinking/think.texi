@@ -4,7 +4,7 @@
 @settitle Thinking About Star
 
 @copying
-Copyright @copyright{} 2019 and beyond, Francis G. McCabe
+Copyright @copyright{} 2019 and beyond, Francis G. McCabe and Michael Sperber
 
 All rights reserved.
 @end copying
@@ -12,6 +12,7 @@ All rights reserved.
 @titlepage
 @title Thinking about Star
 @author Francis G. McCabe
+@author Michael Sperber
 
 @page
 @insertcopying
