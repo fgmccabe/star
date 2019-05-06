@@ -34,9 +34,7 @@
 
 (defun enable-star-flymake ()
   (interactive)
-  (add-hook 'flymake-diagnostic-functions 'star-flymake nil t)
-  (add-hook 'after-save-hook 'star-compile-maybe nil t)
-  (flymake-mode t))
+  (flymake-mode `toggle))
 
 (defun star-package ()
   (save-excursion
@@ -48,26 +46,24 @@
       (buffer-substring-no-properties start (point)))))
 
 (defconst star-errormsg-regexp
-  "\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)]")
+  "^\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n\\(.*\\)\n$")
 
 (defun star-parse-errors (source buffer)
   (save-excursion
     (with-current-buffer buffer
       (star-debug "report from compiling: %s" buffer)
-      (let* ((errRe (concat "^" star-errormsg-regexp "\n\\(.*\\)$")))
-	(progn
-	  (goto-char (point-min))
-	  (cl-loop
-	   while (search-forward-regexp errRe nil t)
-	   for line = (string-to-number (match-string 3))
-	   for col = (1- (string-to-number (match-string 4)))
-	   for pos = (string-to-number (match-string 5))
-	   for len = (string-to-number (match-string 6))
-	   for end = (+ pos len)
-	   for msg = (match-string 6)
-	   collect (flymake-make-diagnostic source pos end :error msg)
-	   ))
-	)
+      (progn
+	(goto-char (point-min))
+	(cl-loop
+	 while (search-forward-regexp star-errormsg-regexp nil t)
+	 for line = (string-to-number (match-string 3))
+	 for col = (1- (string-to-number (match-string 4)))
+	 for pos = (string-to-number (match-string 5))
+	 for len = (string-to-number (match-string 6))
+	 for end = (+ pos len)
+	 for msg = (match-string 7)
+	 collect (flymake-make-diagnostic source pos end :error msg)
+	 ))
       )
     )
   )

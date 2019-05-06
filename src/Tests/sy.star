@@ -1,5 +1,6 @@
 test.sy{
   import star.
+  
 
   -- Test of syntax of star
 
@@ -8,32 +9,26 @@ test.sy{
   CX : (list[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{
     Cx := 0;
-      
+    
     for Ix in Is do{
       if Ix<Lm then
-	  Cx:=Cx!+Ix
-      };
-
-      return Cx!
-    }
+	Cx:=Cx!+Ix
+    };
+    
+    return Cx!
+  }
 
   -- another line comment
-  
-  bind(X) where X>0 => (MM ^= some(X) ? valof action{
-	  logMsg("trying");
-	  return true
-	}
-  || false).
 
   public contract all x ~~ lS[x] ::= {
-      large : x.
-      small : x.
-    }
+    large : x.
+    small : x.
+  }
 
   bind(X) where X>0 => valof action{
-      logMsg("trying");
-      return true
-    }
+    logMsg("trying");
+    return true
+  }
 
   bind(X) where
       X>0 =>
@@ -42,14 +37,14 @@ test.sy{
 	  logMsg("trying");
 	  return true
 	}
-  || false).
+	|| false).
 
   
   foo(X) where
       bind(X) => 1.
-  foo(X) where bind(X) &&
+  foo(X) where
+      bind(X) &&
       foo(X-1) > 1 => 2.
-  
   
   person ::= noone
     | someone
@@ -62,14 +57,15 @@ test.sy{
   p = (o >>= double) >>= double.
 
   double(X) => action{ lift X+X }.
-
+  
   assert valof o == 1.			-- End comment
   
   /* Block comment */
   assert _perform(p) == 4.		/* block comment */
 
   a = do{
-    x <- p; 
+    x <- p;
+    y <- p;
     return x
   }
   
@@ -77,9 +73,9 @@ test.sy{
 
   fact:all e ~~ arith[e],comp[e] |: (e)=>e. 
   fact(N)=>let{
-      ff(zero,F) => F.
-      ff(X,F) where X>zero => ff(X-one,F*X).
-    } in ff(N,one).
+    ff(zero,F) => F.
+    ff(X,F) where X>zero => ff(X-one,F*X).
+  } in ff(N,one).
   
   show """a multi
   line
