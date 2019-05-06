@@ -11,9 +11,9 @@
   {
     "infixOp": "|",
     "priorities": [
-      1248,
       1249,
-      1249
+      1249,
+      1248
     ],
     "desc": "type union, conditional, and abstraction"
   },
@@ -735,11 +735,6 @@
     "desc": "wrap value in execution"
   },
   {
-    "prefixOp": "ignore",
-    "priorities": [930, 929],
-    "desc": "evaluate expression in execution"
-  },
-  {
     "prefixOp": "throw",
     "priorities" : [930, 929],
     "desc" : "throw an exception"
@@ -783,6 +778,24 @@
       100
     ],
     "desc": "pick up a value from a ref cell"
+  },
+  {
+    "infixOp": "!",
+    "priorities": [
+	99,
+	100,
+	99
+    ],
+    "desc": "pick up a value from a ref cell"
+  },
+  {
+    "infixOp": "!.",
+    "priorities": [
+	99,
+	100,
+	99
+    ],
+    "desc": "pick up a value from a ref record"
   },
   {
     "prefixOp": "!!",

@@ -56,12 +56,12 @@
 @item @code{.+.}
 @tab non-associative prefix
 @tab 700
-@item @code{ignore}
-@tab non-associative prefix
-@tab 930
 @item @code{then}
 @tab non-associative infix
 @tab 1180
+@item @code{!}
+@tab non-associative infix
+@tab 100
 @item @code{!}
 @tab non-associative postfix
 @tab 100
@@ -224,6 +224,9 @@
 @item @code{where}
 @tab non-associative infix
 @tab 911
+@item @code{!.}
+@tab non-associative infix
+@tab 100
 @item @code{=<}
 @tab non-associative infix
 @tab 900
@@ -291,7 +294,7 @@
 @tab non-associative prefix
 @tab 1260
 @item @code{|}
-@tab right associative infix
+@tab left associative infix
 @tab 1249
 @item @code{.~}
 @tab non-associative infix
