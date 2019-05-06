@@ -106,7 +106,7 @@ star.collection{
     searchList([_,..L],F) => searchList(L,F).
   }
 
-  iota:(integer,integer)=>list[integer].
+  public iota:(integer,integer)=>list[integer].
   iota(Mx,Mx) => [].
   iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
 
@@ -118,7 +118,7 @@ star.collection{
     _index(L,ix) where ix>=0 && ix<_list_size(L) => some(_list_nth(L,ix)).
     _index(_,_) default => none.
 
-    _insert(L,ix,v) => _list_insert(L,ix,v).
+    _put(L,ix,v) => _list_insert(L,ix,v).
 
     _remove(L,ix) => _list_remove(L,ix).
 
