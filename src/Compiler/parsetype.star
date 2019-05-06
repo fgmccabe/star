@@ -13,44 +13,44 @@ star.compiler.typeparse{
   public parseType:(list[(string,tipe)],ast,dict,reports) => either[reports,tipe].
 
   parseType(Typ,Env,Rp) => let{
-    parseT(Tp,Q) where (Lc,V,BT) ^= isQuantified(Tp) => do{
-      BV <- parseBoundTpVars(V);
-      In <- parseT(BT,Q++BV);
-      lift reQuant(BV,In)
-    }.
-    parseT(Tp,Q) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
-      BV <- parseBoundTpVars(V);
-      In <- parseT(BT,Q++BV);
-      lift reQuantX(BV,In)
-    }.
-    parseT(Tp,Q) where (Lc,C,B) ^= isConstrained(Tp) => do{
-      Cx <- parseConstraints(C,Q);
-      Inn <- parseT(B,Q);
-      lift wrapConstraints(Cx,Inn)
-    }
-    parseT(Tp,Q) where (Lc,Nm) ^= isName(Tp) =>
-      parseTypeName(Lc,Nm,Q).
-    parseT(Tp,Q) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
-      Op <- parseT(O,Q);
-      ArgTps <- parseTps(Args,Q);
-      if (Qx,OOp) .= freshen(Op,[],Env) then {
-	Inn <- applyTypeFun(deRef(OOp),ArgTps,locOf(O));
-        return rebind(Qx,Inn)
-      } else
-        throw reportError(Rp,"Could not freshen $(Op)",Lc)
-    }
+      parseT(Tp,Q) where (Lc,V,BT) ^= isQuantified(Tp) => do{
+	  BV <- parseBoundTpVars(V);
+	  In <- parseT(BT,Q++BV);
+	  lift reQuant(BV,In)
+	}.
+      parseT(Tp,Q) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
+	  BV <- parseBoundTpVars(V);
+	  In <- parseT(BT,Q++BV);
+	  lift reQuantX(BV,In)
+	}.
+      parseT(Tp,Q) where (Lc,C,B) ^= isConstrained(Tp) => do{
+	  Cx <- parseConstraints(C,Q);
+	  Inn <- parseT(B,Q);
+	  lift wrapConstraints(Cx,Inn)
+	}
+      parseT(Tp,Q) where (Lc,Nm) ^= isName(Tp) =>
+	parseTypeName(Lc,Nm,Q).
+      parseT(Tp,Q) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
+	  Op <- parseT(O,Q);
+	  ArgTps <- parseTps(Args,Q);
+	  if (Qx,OOp) .= freshen(Op,[],Env) then {
+	      Inn <- applyTypeFun(deRef(OOp),ArgTps,locOf(O));
+		return rebind(Qx,Inn)
+	    } else
+	    throw reportError(Rp,"Could not freshen $(Op)",Lc)
+	}
 
-    parseTps:(list[ast],list[(string,tipe)]) => either[reports,list[tipe]].
-    parseTps([],_) => either([]).
-    parseTps([T,..L],Q) => do{
-      Tl <- parseT(T,Q);
-      Tr <- parseTps(L,Q);
-      lift [Tl,..Tr]
-    }
+	  parseTps:(list[ast],list[(string,tipe)]) => either[reports,list[tipe]].
+	  parseTps([],_) => either([]).
+	  parseTps([T,..L],Q) => do{
+		Tl <- parseT(T,Q);
+		Tr <- parseTps(L,Q);
+		lift [Tl,..Tr]
+	      }
 
-    parseTypeName(_,"_",_) => either(newTypeVar("_")).
-    parseTypeName(Lc,"this",_) => either(thisType).
-    parseTypeName(_,Nm,Q) where (Nm,Tp) in Q => either(Tp).
+	  parseTypeName(_,"_",_) => either(newTypeVar("_")).
+	  parseTypeName(Lc,"this",_) => either(thisType).
+	  parseTypeName(_,Nm,Q) where (Nm,Tp) in Q => either(Tp).
 
     applyTypeFun(kFun(Nm,Ar),Args,_) where size(Args)=<Ar =>
       either(mkTypeExp(kFun(Nm,Ar),Args)).
