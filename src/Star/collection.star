@@ -118,7 +118,7 @@ star.collection{
     _index(L,ix) where ix>=0 && ix<_list_size(L) => some(_list_nth(L,ix)).
     _index(_,_) default => none.
 
-    _put(L,ix,v) => _list_insert(L,ix,v).
+    _put(L,ix,v) => _list_replace(L,ix,v).
 
     _remove(L,ix) => _list_remove(L,ix).
 

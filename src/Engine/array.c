@@ -121,19 +121,19 @@ retCode sliceDisp(ioPo out, termPo t, integer precision, integer depth, logical 
   if (depth > 0) {
     integer ix = list->start;
     integer lx = ix + list->length;
-    integer maxIx = (precision==0?list->length+1:precision);
+    integer maxIx = (precision == 0 ? list->length + 1 : precision);
 
     char *sep = "";
 
-    while (ret == Ok && ix < lx && maxIx-->0) {
+    while (ret == Ok && ix < lx && maxIx-- > 0) {
       ret = outStr(out, sep);
       sep = ", ";
       if (ret == Ok)
         ret = dispTerm(out, base->els[ix], precision, depth - 1, alt);
       ix++;
     }
-    if(ret==Ok && maxIx<=0){
-      ret = outStr(out,"..");
+    if (ret == Ok && maxIx <= 0) {
+      ret = outStr(out, "..");
     }
   } else if (ret == Ok)
     ret = outStr(out, "..");
@@ -228,8 +228,25 @@ termPo sliceList(heapPo H, listPo list, integer from, integer count) {
   return (termPo) slice;
 }
 
-static basePo duplicateBase(heapPo H, basePo ob, integer delta);
 static basePo copyBase(heapPo H, basePo ob, integer from, integer count, integer delta);
+
+static logical saneList(heapPo H, listPo l) {
+  if (inHeap(H, (termPo) l)) {
+    basePo b = C_BASE(l->base);
+    if (inHeap(H, (termPo) b)) {
+      if (inHeap(H, (termPo) &b->els[b->max - 1])) {
+        if (l->start >= b->min) {
+          if (l->start + l->length <= b->max) {
+            if (b->max >= b->min) {
+              return b->length >= 0;
+            }
+          }
+        }
+      }
+    }
+  }
+  return False;
+}
 
 listPo appendToList(heapPo H, listPo list, termPo el) {
   basePo base = C_BASE(list->base);
@@ -301,19 +318,20 @@ listPo prependToList(heapPo H, listPo list, termPo el) {
 
 listPo insertListEl(heapPo H, listPo list, integer px, termPo vl) {
   basePo base = C_BASE(list->base);
-  int root = gcAddRoot(H, (ptrPo) (&base));
-  gcAddRoot(H, (ptrPo) (&list));
-  gcAddRoot(H, (ptrPo) (&vl));
 
   if (px <= 0)
     return prependToList(H, list, vl);
   else if (px >= listSize(list))
-    return addToList(H, list, vl);
+    return appendToList(H, list, vl);
   else {
+    int root = gcAddRoot(H, (ptrPo) (&base));
+    gcAddRoot(H, (ptrPo) (&list));
+    gcAddRoot(H, (ptrPo) (&vl));
+
     integer delta = base->length / 8;
-    integer newLen = base->length + delta;
+    integer newLen = base->length + delta + 1;
     basePo nb = (basePo) allocateObject(H, baseClass, BaseCellCount(newLen));
-    integer ocount = base->max - base->min;
+    integer ocount = list->length;
 
     assert(ocount >= 0);
 
@@ -334,30 +352,40 @@ listPo insertListEl(heapPo H, listPo list, integer px, termPo vl) {
     }
 
     gcAddRoot(H, (ptrPo) (&nb));
-    listPo slice = (listPo) newSlice(H, nb, list->start - 1, list->length + 1);
+    listPo slice = (listPo) newSlice(H, nb, nb->min, ocount + 1);
     gcReleaseRoot(H, root);
     releaseHeapLock(H);
+
+    assert(saneList(H, slice));
     return slice;
   }
 }
 
 listPo replaceListEl(heapPo H, listPo list, integer px, termPo vl) {
-  basePo base = C_BASE(list->base);
-  int root = gcAddRoot(H, (ptrPo) (&base));
-  gcAddRoot(H, (ptrPo) (&list));
-  gcAddRoot(H, (ptrPo) (&vl));
-  integer delta = base->length / 8;
+  if (px >= listSize(list))
+    return appendToList(H, list, vl);
+  else if (px < 0)
+    return prependToList(H, list, vl);
+  else {
+    basePo base = C_BASE(list->base);
+    int root = gcAddRoot(H, (ptrPo) (&base));
+    gcAddRoot(H, (ptrPo) (&list));
+    gcAddRoot(H, (ptrPo) (&vl));
+    integer delta = base->length / 8;
 
-  basePo nb = duplicateBase(H, base, delta);
+    basePo nb = copyBase(H, base, list->start, list->length, delta);
 
-  nb->els[px] = vl;
+    nb->els[nb->min + px] = vl;
 
-  gcAddRoot(H, (ptrPo) &nb);
+    gcAddRoot(H, (ptrPo) &nb);
 
-  listPo slice = (listPo) newSlice(H, nb, list->start, list->length);
-  gcReleaseRoot(H, root);
-  releaseHeapLock(H);
-  return slice;
+    listPo slice = (listPo) newSlice(H, nb, nb->min, list->length);
+    assert(saneList(H, slice));
+
+    gcReleaseRoot(H, root);
+    releaseHeapLock(H);
+    return slice;
+  }
 }
 
 listPo removeListEl(heapPo H, listPo list, integer px) {
@@ -366,28 +394,31 @@ listPo removeListEl(heapPo H, listPo list, integer px) {
   gcAddRoot(H, (ptrPo) (&list));
 
   integer delta = base->length / 8;
-  integer newLen = base->length + delta;
+  integer newLen = list->length + delta;
   basePo nb = (basePo) allocateObject(H, baseClass, BaseCellCount(newLen));
-  integer ocount = base->max - base->min;
+  integer ocount = list->length;
 
   assert(ocount >= 0);
 
   integer extra = newLen - ocount;
 
-  nb->min = extra / 2 - 1;
-  nb->max = nb->min + ocount + 1;
+  nb->min = extra / 2;
+  nb->max = nb->min + ocount-1;
   nb->length = newLen;
 
   for (integer ix = 0; ix < px; ix++) {
-    nb->els[nb->min + ix] = base->els[base->min + ix];
+    nb->els[nb->min + ix] = base->els[list->start + ix];
   }
 
   for (integer ix = px + 1; ix < ocount; ix++) {
-    nb->els[nb->min + ix] = base->els[base->min + ix];
+    nb->els[nb->min + ix] = base->els[list->start + ix];
   }
 
   gcAddRoot(H, (ptrPo) (&nb));
-  listPo slice = (listPo) newSlice(H, base, list->start, list->length - 1);
+  listPo slice = (listPo) newSlice(H, nb, nb->min, list->length - 1);
+
+  assert(saneList(H,slice));
+  
   gcReleaseRoot(H, root);
   releaseHeapLock(H);
   return slice;
@@ -549,29 +580,6 @@ termPo allocateBase(heapPo H, integer length, logical safeMode) {
       base->els[ix] = voidEnum;
   }
   return (termPo) base;
-}
-
-basePo duplicateBase(heapPo H, basePo ob, integer delta) {
-  int root = gcAddRoot(H, (ptrPo) (&ob));
-  integer newLen = ob->length + delta;
-  basePo base = (basePo) allocateObject(H, baseClass, BaseCellCount(newLen));
-
-  integer ocount = ob->max - ob->min;
-
-  assert(ocount >= 0);
-
-  integer extra = newLen - ocount;
-
-  base->min = extra / 2;
-  base->max = base->min + ocount;
-  base->length = newLen;
-
-  for (integer ix = 0; ix < ocount; ix++) {
-    base->els[base->min + ix] = ob->els[ob->min + ix];
-  }
-
-  gcReleaseRoot(H, root);
-  return base;
 }
 
 basePo copyBase(heapPo H, basePo ob, integer from, integer count, integer delta) {
