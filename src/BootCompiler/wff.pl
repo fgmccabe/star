@@ -12,7 +12,7 @@
 	      isEquation/5,isDefn/4,isAssignment/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
 	      isWhere/4,isCoerce/4,
-	      isFieldAcc/4,isVarRef/3,
+	      isFieldAcc/4,isVarRef/3,isIndexTerm/4,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,isDisjunct/4,
 	      isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,
@@ -21,7 +21,6 @@
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
-              isIgnore/3,
 	      isLetDef/4,mkLetDef/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
@@ -326,12 +325,23 @@ isListAbstraction(Trm,Lc,Bnd,Body) :-
   isSquareTuple(Trm,Lc,[T]),
   isBinary(T,_,"|",Bnd,Body).
 
-isFieldAcc(Trm,Lc,R,Fld) :-
-  isBinary(Trm,Lc,".",R,F),
-  isIden(F,Fld).
+isFieldAcc(Trm,Lc,Rc,Fld) :-
+  isBinary(Trm,Lc,".",Rc,F),
+  isIden(F,Fld),!.
+isFieldAcc(Trm,Lc,Rc,Fld) :-
+  isBinary(Trm,Lc,"!.",L,F),
+  isIden(F,Fld),!,
+  unary(Lc,"!",L,Rc).
 
 isVarRef(Trm,Lc,In) :-
   isUnary(Trm,Lc,"!",In).
+
+isIndexTerm(Trm,Lc,Lhs,Rhs) :-
+  isSquareTerm(Trm,Lc,Lhs,[Rhs]),!.
+isIndexTerm(Trm,Lc,Lhs,Rhs) :-
+  isBinary(Trm,Lc,"!",L,R),
+  unary(Lc,"!",L,Lhs),
+  isSquareTuple(R,_,[Rhs]),!.
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).
@@ -402,9 +412,6 @@ isBind(T,Lc,B,E) :-
 
 isReturn(A,Lc,E) :-
   (isUnary(A,Lc,"lift",E) ; isUnary(A,Lc,"return",E)),!.
-
-isIgnore(A,Lc,E) :-
-  isUnary(A,Lc,"ignore",E).
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
