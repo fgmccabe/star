@@ -207,6 +207,7 @@ star.comp.escapes{
   escapeType("_str_start") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*string")])),tipe("star.core*boolean")).
   escapeType("_str_splice") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tipe("star.core*integer"),tipe("star.core*integer"),tipe("star.core*string")])),tipe("star.core*string")).
   escapeType("_str_multicat") => tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("star.core*list",1),tipe("star.core*string"))])),tipe("star.core*string")).
+  escapeType("_str_flatten") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*ss")])),tipe("star.core*string")).
   escapeType("_str_hdtl") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tupleType([tipe("star.core*integer"),tipe("star.core*string")])).
   escapeType("_str_back") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tupleType([tipe("star.core*string"),tipe("star.core*integer")])).
   escapeType("_str_cons") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*integer"),tipe("star.core*string")])),tipe("star.core*string")).
@@ -432,6 +433,7 @@ star.comp.escapes{
   isEscape("_str_start") => true.
   isEscape("_str_splice") => true.
   isEscape("_str_multicat") => true.
+  isEscape("_str_flatten") => true.
   isEscape("_str_hdtl") => true.
   isEscape("_str_back") => true.
   isEscape("_str_cons") => true.

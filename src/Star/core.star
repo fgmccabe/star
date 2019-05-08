@@ -53,7 +53,7 @@ star.core {
   }
 
   -- Structured string.
-  public ss ::= ss(string) | sc(integer) | ssSeq(list[ss]).
+  public ss ::= ss(string) | sc(integer) | ssPr(ss,ss) | ssSeq(list[ss]).
 
   -- Displayable contract
   public contract all t ~~ display[t] ::= {

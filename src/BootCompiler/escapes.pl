@@ -204,6 +204,7 @@ escapeType("_str_reverse",funType(tupleType([type("star.core*string")]),type("st
 escapeType("_str_start",funType(tupleType([type("star.core*string"),type("star.core*string")]),type("star.core*boolean"))).
 escapeType("_str_splice",funType(tupleType([type("star.core*string"),type("star.core*integer"),type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
 escapeType("_str_multicat",funType(tupleType([tpExp(tpFun("star.core*list",1),type("star.core*string"))]),type("star.core*string"))).
+escapeType("_str_flatten",funType(tupleType([type("star.core*ss")]),type("star.core*string"))).
 escapeType("_str_hdtl",funType(tupleType([type("star.core*string")]),tupleType([type("star.core*integer"),type("star.core*string")]))).
 escapeType("_str_back",funType(tupleType([type("star.core*string")]),tupleType([type("star.core*string"),type("star.core*integer")]))).
 escapeType("_str_cons",funType(tupleType([type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
@@ -427,6 +428,7 @@ isEscape("_str_reverse").
 isEscape("_str_start").
 isEscape("_str_splice").
 isEscape("_str_multicat").
+isEscape("_str_flatten").
 isEscape("_str_hdtl").
 isEscape("_str_back").
 isEscape("_str_cons").
