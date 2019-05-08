@@ -14,7 +14,7 @@
 ;; Mode hook for Star shell
 (defvar star-shell-mode-hook nil)
 
-(defvar star-flags `("-g" "-dFC" "-r" "~/Projects/star/src/Star/Build/")
+(defvar star-flags `("-g" "-dFC")
   "standard flags to pass to star executable")
 
 (defvar star-prompt-regexp "\\[\\([0-9]+\\)\\]>>"
@@ -47,13 +47,17 @@
   (setq-local comint-process-echoes t)
   (setq-local comint-use-prompt-regexp t))
 
+(defconst star-debug-regexp 
+  "\\(line\\|call\\|ocall\\|tail\\|otail\\|return\\): file:\\([a-z0-9A-Z/.]+\\)(\\([0-9]+\\):\\(?:[0-9]+\\)@\\([0-9]+\\),\\([0-9]+\\))"
+  )
+
 (defun star-debug-parse (text from)
-  (if (string-match "\\(line\\|call\\|ocall\\|tail\\|otail\\|return\\): file:\\([a-z0-9A-Z/.]+\\)(\\([0-9]+\\),\\([0-9]+\\),\\([0-9]+\\))" text from)
+  (if (string-match star-debug-regexp text from)
 	(let* ((cmd (intern (match-string 1 text)))
 	       (file (match-string 2 text))
 	       (line (string-to-number (match-string 3 text)))
-	       (pos (string-to-number (match-string 5 text)))
-	       (len (string-to-number (match-string 6 text)))
+	       (pos (string-to-number (match-string 4 text)))
+	       (len (string-to-number (match-string 5 text)))
 	       )
 	  (list cmd file line pos len (match-end 0)))
     nil)
