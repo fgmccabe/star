@@ -12,6 +12,7 @@
 #define lockType "t'star.thread*lock'"
 #define fileType "t'star.io*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
+#define ssType "t'star.core*ss'"
 
 /* Define the standard escapes */
 escape(_exit,True,False,"F(i)()","terminate engine")
@@ -274,6 +275,7 @@ escape(_suspend,True,False,":k'u'P2k'u'P0","suspend handler if variable not boun
   escape(_str_splice,True,False,"F(SiiS)S","splice a substring into a string")
 
   escape(_str_multicat,True,False,"F(LS)S","Concatenate a list of strings into one")
+  escape(_str_flatten,True,False,"F("ssType")S","Flatten a structured string")
   escape(_str_hdtl,True,False,"F(S)(iS)","pick up the first character and return remainder")
   escape(_str_back,True,False,"F(S)(Si)","pick up the last character and return remainder")
   escape(_str_cons,True,False,"F(iS)S","put a char in the front")

@@ -411,7 +411,46 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+  closeFile(O_IO(strb));
   return rt;
+}
+
+static retCode flatten(bufferPo str, normalPo ss) {
+  integer cx = termSize(ss);
+  retCode ret = Ok;
+
+  for (integer ix = 0; ret==Ok && ix < cx; ix++) {
+    termPo arg = nthArg(ss, ix);
+    if (isString(arg)) {
+      integer len;
+      const char *elTxt = stringVal(arg, &len);
+      ret = outText(O_IO(str), elTxt, len);
+    } else if (isNormalPo(arg)) {
+      ret = flatten(str, C_TERM(arg));
+    } else if(isInteger(arg))
+      ret = outChar(O_IO(str),integerVal(arg));
+  }
+  return ret;
+}
+
+ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
+  normalPo ss = C_TERM(tos[0]);
+  bufferPo str = newStringBuffer();
+
+  retCode ret = flatten(str, ss);
+
+  if (ret == Ok) {
+    integer oLen;
+    const char *buff = getTextFromBuffer(str, &oLen);
+
+    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    closeFile(O_IO(str));
+    return rt;
+  } else {
+    ReturnStatus rt = {.ret=ret, .result = voidEnum};
+    closeFile(O_IO(str));
+    return rt;
+  }
 }
 
 ReturnStatus g__str_reverse(processPo p, ptrPo tos) {
