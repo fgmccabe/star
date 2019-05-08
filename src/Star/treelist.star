@@ -2,7 +2,8 @@ star.treelist{
   import star.
 
   /*
-  A tree structure used to represent arrays. Based on red-black trees
+  A tree structure used to represent arrays.
+  Balanced, supports addition on either end only.
   */
 
   public all e ~~ tl[e] <~ {}.        -- only expose the type
