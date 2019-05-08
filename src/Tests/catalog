@@ -4,6 +4,7 @@
     "test.aa": "aa.star",
     "test.assign": "assign.star",
     "test.ast": "ast.star",
+    "test.bench" : "bench.star",
     "test.cons": "constest.star",
     "test.c": "c.star",
     "test.cc": "cc.star",
@@ -47,6 +48,7 @@
     "test.st": "st.star",
     "test.sy": "sy.star",
     "test.t": "t.star",
+    "test.tl" : "tl.star",
     "test.tsort": "tsort.star",
     "test.u": "u.star"
   },

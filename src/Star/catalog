@@ -43,6 +43,7 @@
     "star.sets": "sets.star",
     "star.sort": "sort.star",
     "star.topsort": "topsort.star",
+    "star.treelist" : "treelist.star",
     "star.trie": "trie.star",
     "star.tuples": "tuples.star",
     "star.unit": "unit.star",
