@@ -106,7 +106,7 @@ star.collection{
     searchList([_,..L],F) => searchList(L,F).
   }
 
-  public iota:all c/1 ~~ sequence[c[integer]->>integer] |: (integer,integer)=>c[integer].
+  public iota: (integer,integer)=>list[integer].
   iota(Mx,Mx) => [].
   iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
 

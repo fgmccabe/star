@@ -7,8 +7,8 @@ star.finger{
   -- 2-3 finger trees.
 
   public all a ~~ fingerTree[a] ::=
-      eTree |
-      single(a) |
+    private eTree |
+      private single(a) |
       deep(digit[a],fingerTree[node[a]],digit[a]).
 
   all a ~~ digit[a] ::= one(a) | two(a,a) | three(a,a,a) | four(a,a,a,a).

@@ -18,7 +18,7 @@ test.bench{
 
     logMsg("******* native lists ******");
     timer := timer_start(Count, "Creating native list $(iota(0,Count))");
-    el_list := iota(0,Count);
+    el_list := (iota(0,Count):list[integer]);
     timer_finish(timer!); 
     ignore := el_list![0];
 

@@ -12,7 +12,7 @@ test.assign{
 
   assert checkInc().
 
-  show alpha!.
+  show alpha! .
 
   rec : (integer)=>person.
   rec(A) => let{
