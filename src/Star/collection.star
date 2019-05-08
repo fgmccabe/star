@@ -106,7 +106,7 @@ star.collection{
     searchList([_,..L],F) => searchList(L,F).
   }
 
-  public iota:(integer,integer)=>list[integer].
+  public iota:all c/1 ~~ sequence[c[integer]->>integer] |: (integer,integer)=>c[integer].
   iota(Mx,Mx) => [].
   iota(Ix,Mx) where Ix<Mx => [Ix,..iota(Ix+1,Mx)].
 
@@ -121,8 +121,6 @@ star.collection{
     _put(L,ix,v) => _list_replace(L,ix,v).
 
     _remove(L,ix) => _list_remove(L,ix).
-
-    _replace(L,ix,v) => _list_replace(L,ix,v).
   }
 
   public interleave: all t ~~ (list[t],t) => list[t].
