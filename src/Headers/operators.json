@@ -599,8 +599,8 @@
   {
     "prefixOp": "private",
     "priorities": [
-      1700,
-      1699
+      1200,
+      1199
     ],
     "desc": "private program"
   },
