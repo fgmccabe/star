@@ -61,8 +61,8 @@ The solution is simple, if a little strange: we declared in the
 @code{one}.  By explicitly identifying zero and one as elements of the
 arith contract we can use them in lieu of 0 and 1 respectively without
 committing to integers.@footnote{There is some Mathematical
-justification for this: the arith contract defines a Field which
-requires zero elements for the two operators (+ and *).}
+justification for this: the @code{arith} contract defines a @emph{Field} which
+requires zero elements for the two operators (@code{+} and @code{*}).}
 
 Using these, we can write a much more paradigmatic version of the
 factorial function:
@@ -104,9 +104,9 @@ To enable all these diverse uses of speech actions we encapsulate the
 semantics of speech actions in a contract:
 @example
 contract all t ~~ speech[t] ::= @{
-  _notify:all x ~~ (t,(x)=>())=>().
-  _query: all x,s ~~ (t,(x)=>s) => s.
-  _request: all x ~~ (t,(x)=>())=>()
+  _notify:all x ~~ (t,x)=>action[(),x].
+  _query: all x,s ~~ (t,(x)=>s) => action[(),s].
+  _request: all x ~~ (t,action[(),x]))=>action[(),x].
 @}
 @end example
 
@@ -160,7 +160,8 @@ Thus the type of @code{L[34]} is not @code{integer}, but
 @example
 option[integer]
 @end example
-This indexable contract also introduces an important feature of contracts: functional dependencies. The clause:
+This indexable contract also introduces an important feature of
+contracts: functional dependencies. The clause:
 @example
 indexable[c->>k,v]
 @end example
@@ -183,9 +184,10 @@ dictionaries. In this case the index type is the type of the keys in
 the dictionary and the element type is the type of the values in the
 dictionary:
 @example
-implementation all k,v ~~ indexable[dictionary[k,v]->>k,v] => …
+implementation all k,v ~~ indexable[dictionary[k,v]->>k,v] => @dots{}
 @end example
-Thus, if we had a dictionary M whose keys were strings and whose values were integer, then the expression:
+Thus, if we had a dictionary M whose keys were strings and whose
+values were integer, then the expression:
 @example
 M["alpha"]
 @end example
@@ -196,7 +198,9 @@ example, consider the representation of JSON values. The standard
 infoset type allows JSON values to be represented abstractly in a way
 that permits easy processing of the data.
 
-The most appropriate way of extracting elements from a JSON/infoset value is by using a path. For example, the path to the image title in the JSON value:
+The most appropriate way of extracting elements from a JSON/infoset
+value is by using a path. For example, the path to the image title in
+the JSON value:
 @example
 @{
   "Image": @{
