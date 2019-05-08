@@ -78,20 +78,19 @@
 		       (end (+ (point) (length op))))
 		  (setq done (list 'term ". " start end))
 		  )))
-	     
-	     ((looking-at star-op-regexp)
-	      (progn
-		(let* ((op (match-string 0))
-		       (start (point))
-		       (end (+ (point) (length op))))
-		  (setq done (list 'operator op start end))
-		  )))
 	     ((looking-at star-bkt-regexp)
 	      (progn
 		(let* ((op (match-string 0))
 		       (start (point))
 		       (end (+ (point) (length op))))
 		  (setq done (list 'bracket op start end))
+		  )))
+	     ((looking-at star-op-regexp)
+	      (progn
+		(let* ((op (match-string 0))
+		       (start (point))
+		       (end (+ (point) (length op))))
+		  (setq done (list 'operator op start end))
 		  )))
 	     ((looking-at star-num-regexp)
 	      (progn
@@ -298,7 +297,8 @@
 		       (while (and stack
 				   (not (and
 					 (eq (star-state-type state) 'bracket)
-					 (star-state-matching state "}"))))
+					 (or (star-state-matching state "}")
+					     (star-state-matching state ".}")))))
 			 (setq state (car stack)
 			       stack (cdr stack))))
 		      ((eq tktype 'operator)

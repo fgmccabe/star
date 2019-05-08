@@ -96,7 +96,7 @@
        ;; - is an operator, -- is a comment starter
        (modify-syntax-entry ?- ". 12" table)
        (modify-syntax-entry ?/ ". 14" table)
-       (modify-syntax-entry ?* ". 23" table)
+       (modify-syntax-entry ?* ". 23b" table)
        (modify-syntax-entry ?\( "()" table)
        (modify-syntax-entry ?\) ")(" table)
        (modify-syntax-entry ?\[ "(]" table)
@@ -115,7 +115,7 @@
     (define-key map "\C-\M-q" 'star-indent)
     (define-key map "\C-c\C-c" 'comment-region)
     (define-key map "\C-c\C-d" 'stardebug-buffer)
-    (define-key map "\C-cm" 'enable-star-flymake)
+    (define-key map "\C-cm" 'flymake-mode)
     (dolist (key electric-keys)
       (define-key map 
 	key 
@@ -285,8 +285,7 @@ Argument N  oprefix."
   (self-insert-command (prefix-numeric-value n))
   (indent-for-tab-command))
 
-;; Parsing in the buffer
-
+;; Parsing the buffer
 
 ;; Accessor functions for a PARSE-STATE ((PREC OP INDENT IN-COMMENT) . STACK)
      
@@ -313,7 +312,6 @@ Argument N  oprefix."
   (setq case-fold-search nil)
 
   (star-init-font-lock)
-  (autoload 'star-flymake "star-repo")
   (autoload 'star-after-change-function "star-indent")
   (autoload 'star-indent-line "star-indent")
   (autoload 'star-init-operators "star-ops")
