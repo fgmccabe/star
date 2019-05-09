@@ -15,7 +15,9 @@ reportError(Msg,A,Lc) :- incErrorCount(),
   showLocation(Lc,OLc,[]),
   writef("\nError %w - %s\n",[E,OLc]),
   genDisplay(A,AA),
-  writef(Msg,AA),nl(),!.
+  writef("<<"),
+  writef(Msg,AA),
+  writef(">>"),nl(),!.
 reportError(Msg,A) :- incErrorCount(),
   errorCount(E),
   writef("\nError %w:\n",[E]),
