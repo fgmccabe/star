@@ -138,7 +138,7 @@
 	   ("~>"     nil     star-arrow-indent)
 	   ("|:"     nil     star-arrow-indent)
 	   ("where"  nil     (* star-arrow-indent 2))
-	   ("|"      nil     star-query-indent)
+	   ("|"      nil     0)
 	   ("||"     t	     0)
 	   ("?"      nil     star-query-indent)
 	   (","      nil     0)
@@ -292,7 +292,7 @@
 	(let ((nxtok (star-next-tok limit)))
 	  (if nxtok
 	      (-let [(tktype op start end) nxtok]
-		(star-debug "token: %s %s %s %s" tktype op start end)
+;;		(star-debug "token: %s %s %s %s" tktype op start end)
 		(cond ((eq tktype 'term)
 		       (while (and stack
 				   (not (and
