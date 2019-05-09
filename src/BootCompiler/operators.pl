@@ -96,7 +96,7 @@
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("valof", [prefixOp(300, 299)]).
   operator("while", [prefixOp(1175, 1174)]).
-  operator("private", [prefixOp(1700, 1699)]).
+  operator("private", [prefixOp(1200, 1199)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(800, 800, 799)]).
   operator("::", [infixOp(399, 400, 399)]).
@@ -109,7 +109,7 @@
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
-  operator("|", [infixOp(1249, 1249, 1248)]).
+  operator("|", [infixOp(1248, 1248, 1247)]).
   operator(".~", [infixOp(499, 500, 499)]).
   operator(".#.", [infixOp(600, 600, 599)]).
   operator("~", [infixOp(489, 499, 489)]).

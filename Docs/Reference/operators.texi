@@ -256,7 +256,7 @@
 @tab 1175
 @item @code{private}
 @tab non-associative prefix
-@tab 1700
+@tab 1200
 @item @code{.&.}
 @tab left associative infix
 @tab 700
@@ -295,7 +295,7 @@
 @tab 1260
 @item @code{|}
 @tab left associative infix
-@tab 1249
+@tab 1248
 @item @code{.~}
 @tab non-associative infix
 @tab 500

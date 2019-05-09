@@ -113,7 +113,7 @@ star.compiler.operators{
   oper("<=>") => [infixOp(949,950,949)].
   oper("valof") => [prefixOp(300,299)].
   oper("while") => [prefixOp(1175,1174)].
-  oper("private") => [prefixOp(1700,1699)].
+  oper("private") => [prefixOp(1200,1199)].
   oper(".&.") => [infixOp(700,700,699)].
   oper("///") => [infixOp(800,800,799)].
   oper("::") => [infixOp(399,400,399)].
@@ -126,7 +126,7 @@ star.compiler.operators{
   oper("<~") => [infixOp(1230,1231,1230)].
   oper("type") => [prefixOp(1251,1250)].
   oper("implementation") => [prefixOp(1260,1259)].
-  oper("|") => [infixOp(1249,1249,1248)].
+  oper("|") => [infixOp(1248,1248,1247)].
   oper(".~") => [infixOp(499,500,499)].
   oper(".#.") => [infixOp(600,600,599)].
   oper("~") => [infixOp(489,499,489)].
