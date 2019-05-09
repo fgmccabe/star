@@ -46,7 +46,7 @@
       (buffer-substring-no-properties start (point)))))
 
 (defconst star-errormsg-regexp
-  "^\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n<<\\(.*?\\)>>")
+  "^\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n<<\\(\\(?:.\\|\n\\)*?\\)>>")
 
 (defun star-parse-errors (source buffer)
   (save-excursion
