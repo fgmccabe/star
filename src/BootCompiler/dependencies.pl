@@ -107,6 +107,12 @@ algebraicFace(C,Face) :-
   braceTuple(Lc,Entries,F),
   reConstrain(XC,F,CF),
   reXQuant(XQ,CF,Face).
+algebraicFace(C,Face) :-
+  isPrivate(C,_,I),
+  algebraicFace(I,Face).
+algebraicFace(C,Face) :-
+  isPublic(C,_,I),
+  algebraicFace(I,Face).
 
 combineFaces(F0,F,F) :-
   isEmptyBrace(F0).
