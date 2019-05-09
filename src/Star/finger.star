@@ -3,6 +3,8 @@ star.finger{
   import star.collection.
   import star.cons.
   import star.arith.
+  import star.coerce.
+  import star.lists.
 
   -- 2-3 finger trees.
 
@@ -15,7 +17,7 @@ star.finger{
 
   all a ~~ node[a] ::= node2(a,a) | node3(a,a,a).
 
-  implementation reduce[node] => {
+  implementation all e ~~ reduce[node[e]->>e] => {
     reducer(F) => let{
       rdr(node2(a,b),z) => F(a,F(b,z)).
       rdr(node3(a,b,c),z) => F(a,F(b,F(c,z))).
@@ -27,7 +29,7 @@ star.finger{
     } in rdl.
   }
 
-  implementation reduce[digit] => {
+  implementation all e ~~ reduce[digit[e]->>e] => {
     reducer(F) => let{
       rdr(one(x),z) => F(x,z).
       rdr(two(u,v),z) => F(u,F(v,z)).
@@ -49,24 +51,32 @@ star.finger{
     _coerce(four(x,y,z,u)) => [x,y,z,u].
   }
 
-  implementation reduce[fingerTree] => {.
-    reducer(F) => let{
+  implementation all e ~~ reduce[fingerTree[e]->>e] => let{
+    redr:all a ~~ ((e,a)=>a) => ((fingerTree[e],a)=>a).
+    redr(F) => let{
       rdr(eTree,z) => z.
       rdr(single(u),z) => F(u,z).
       rdr(deep(lft,mid,rgt),z) => let{
+	F1:(digit[e],a)=>a.
         F1 = reducer(F).
-        F2 = reducer(reducer(F)).
+	F2:(fingerTree[node[e]],a)=>a.
+        F2 = redr(redr(F)).
       } in F1(lft,F2(mid,F1(rgt,z)))
     } in rdr.
-    reducel(F) => let{
+    redl(F) => let{
       rdl(z,eTree) => z.
       rdl(z,single(u)) => F(z,u).
       rdl(z,deep(lft,mid,rgt)) => let{
+	F1:(digit[e],a)=>a.
         F1 = reducel(F).
+	F2:(fingerTree[node[e]],a)=>a.
         F2 = reducel(reducel(F)).
       } in F1(F2(F1(z,lft),mid),rgt).
     } in rdl.
-  .}
+  } in {.
+    reducer = redr.
+    reducel = redl
+  .}    
 
   implementation all e ~~ concat[digit[e]] => {
   -- Partial, full implementation not possible.
