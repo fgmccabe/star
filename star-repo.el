@@ -1,5 +1,7 @@
 ;;; star-repo.el --- Manage a Star repo  -*- lexical-binding: t; -*-
 
+(require 'subr-x)
+
 (defcustom star-repo-name ".star-repo"
   "Name of the star repository directory"
   :type 'directory
