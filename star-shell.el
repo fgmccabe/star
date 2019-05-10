@@ -6,7 +6,7 @@
 (require 'star)
 
 ;; Customization point -- where is the executable for star
-(defcustom star-path "/usr/local/bin/star"
+(defcustom star-path (executable-find "star")
   "Path name for star executable"
   :type 'file
   :group 'star)
