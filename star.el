@@ -116,6 +116,7 @@
     (define-key map "\C-c\C-c" 'comment-region)
     (define-key map "\C-c\C-d" 'stardebug-buffer)
     (define-key map "\C-cm" 'flymake-mode)
+    (define-key map "\C-cr" 'run-star)
     (dolist (key electric-keys)
       (define-key map 
 	key 
@@ -318,6 +319,7 @@ Argument N  oprefix."
   (autoload 'enable-star-flymake "star-repo")
   (autoload 'star-compile-maybe "star-repo")
   (autoload 'star-flymake "star-repo")
+  (autoload 'run-star "star-shell")
   (add-hook 'flymake-diagnostic-functions 'star-flymake nil t)
   (add-hook 'after-save-hook 'star-compile-maybe nil t)
 
