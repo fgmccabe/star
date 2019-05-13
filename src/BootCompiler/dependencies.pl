@@ -30,13 +30,17 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isShow(St,_,_).
 collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[Tp])|Defs],Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
   isTypeAnnotation(St,Lc,L,T),
-  isIden(L,V),
+  (isIden(L,V),Ex=Export; isPrivate(L,_,V1),isIden(V1,V),Ex=dependencies:nop),
   isConstructorType(T,_,Tp),!,
-  call(Export,var(V),P,Px).
+  call(Ex,var(V),P,Px).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
-  isTypeAnnotation(St,_,L,T),
-  isIden(L,V),
-  call(Export,var(V),P,Px).
+  isTypeAnnotation(St,Lc,L,T),
+  (isIden(L,V) ->
+   call(Export,var(V),P,Px) ;
+   isPrivate(L,_,V1), isIden(V1,V) ->
+   call(dependencies:nop,var(V),P,Px);
+   reportError("cannot understand type annotation of %s",[L],Lc),
+   P=Px).
 collectDefinition(St,Stmts,Stx,Defs,Dfx,P,P,A,Ax,I,Ix,O,Ox,_) :-
   isPrivate(St,_,Inner),
   collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,_,A,Ax,I,Ix,O,Ox,dependencies:nop).
@@ -337,9 +341,7 @@ collStmtRefs(St,All,_,R,Refs) :-
   collectFaceTypes(Defs,All,R0,Refs).
 collStmtRefs(St,All,_,R0,Refs) :-
   isImplementationStmt(St,_,_,C,Con,B),
-  collConstraints(C,All,R0,R1),
-  collectTypeRefs(Con,All,R1,R2),
-  collectTermRefs(B,All,R2,Refs).
+  collImplementationRefs(C,Con,B,All,R0,Refs).
 collStmtRefs(St,All,_,R,Rx) :-
   isIntegrity(St,_,Inner),
   collectCondRefs(Inner,All,R,Rx).
@@ -349,6 +351,11 @@ collStmtRefs(St,All,_,R,Rx) :-
 collStmtRefs(St,_,_,R,R) :-
   locOfAst(St,Lc),
   reportError("Cannot fathom definition %s",[St],Lc).
+
+collImplementationRefs(C,Con,B,All,R0,Refs) :-
+  collConstraints(C,All,R0,R1),
+  collectTypeRefs(Con,All,R1,R2),
+  collectTermRefs(B,All,R2,Refs).
 
 collectHeadRefs(Hd,All,R0,Refs) :-
   isWhere(Hd,_,L,C),
@@ -456,8 +463,7 @@ collectTermRefs(V,A,Refs,[cns(Nm)|Refs]) :-
   \+is_member(cns(Nm),Refs).
 collectTermRefs(T,A,R,Rx) :-
   isLetDef(T,_,B,Ex),!,
-  collectTermRefs(B,A,R,R0),
-  collectTermRefs(Ex,A,R0,Rx).
+  collectLetRefs(B,Ex,A,R,Rx).
 collectTermRefs(T,A,R0,Refs) :-
   isRoundTerm(T,O,Args),
   collectTermRefs(O,A,R0,R1),
@@ -519,6 +525,10 @@ collectTermListRefs([],_,Refs,Refs).
 collectTermListRefs([E|L],A,R0,Refs) :-
   collectTermRefs(E,A,R0,R1),
   collectTermListRefs(L,A,R1,Refs).
+
+collectLetRefs(B,Ex,A,R,Rx) :-
+  collectTermRefs(B,A,R,R0),
+  collectTermRefs(Ex,A,R0,Rx).
 
 collectIndexRefs([A],All,R,Refs) :-
   isBinary(A,_,"->",Ky,Vl),!,
