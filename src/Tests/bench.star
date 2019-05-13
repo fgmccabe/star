@@ -1,5 +1,7 @@
 test.bench{
   import star.
+  import star.finger.
+  
   timer_start : (integer, string) => (integer, integer, string).
   timer_start(count, msg) => (_ticks(), count, msg).
 
@@ -12,15 +14,25 @@ test.bench{
     lift ops_per_sec
   }
 
+  fingeriota:(integer,integer)=>fingerTree[integer].
+  fingeriota(Mx,Mx) => _nil.
+  fingeriota(Ix,Mx) where Ix<Mx => [Ix,..fingeriota(Ix+1,Mx)].
+
   benchNativeList(Count) => action {
     timer := timer_start(Count, "");
     idxes = iota(0, Count);
 
     logMsg("******* native lists ******");
-    timer := timer_start(Count, "Creating native list $(iota(0,Count))");
-    el_list := (iota(0,Count):list[integer]);
+    timer := timer_start(Count, "Creating native list of $(Count) elements");
+    el_list := iota(0,Count);
     timer_finish(timer!); 
     ignore := el_list![0];
+
+    logMsg("******* finger trees ******");
+    timer := timer_start(Count, "Creating finger tree");
+    fn_list := fingeriota(0,Count);
+    timer_finish(timer!);
+--    logMsg("finger tree: $(fn_list!)");
 
     timer := timer_start(Count, "Accessing all elements in native list");
     for i in (el_list!) do {
@@ -29,13 +41,18 @@ test.bench{
     timer_finish(timer!);
     logMsg("(last element: $(ignore!) (should be: $(idxes[(Count-1)])))");
 
+    timer := timer_start(Count, "Accessing all elements in finger list");
+    for i in (fn_list!) do {
+      ignore := some(i)
+    };
+    timer_finish(timer!);
+
     if Count =< 100000 then {
       logMsg("start changing");
       timer := timer_start(Count, "Changing elements in native list");
       for ix in idxes do {
         el_list[ix] := ix + 1
       };
-      logMsg("end changing, el_list = $(el_list!)");
       timer_finish(timer!);
 
       timer := timer_start(Count, "Copying native list of size $(size(el_list!))");

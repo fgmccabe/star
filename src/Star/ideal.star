@@ -14,18 +14,11 @@ star.ideal{
 
   all k,v ~~ subVect[k,v] ~> (map[k,v],map[k,v],map[k,v],map[k,v]).
 
-  -- public
-  -- all k,v ~~ map[k,v] ::=
-  --     ihEmpty                       -- empty dictionary
-  --   | ihLeaf(integer,cons[(k,v)])   -- leaf entries, all have the same hash
-  --   | ihNode(subVect[k,v]).         -- non-leaf case
-
-  public  all k,v ~~ map[k,v] <~ {}.   -- Expose the type only
-
-  private ihEmpty : all k,v ~~ () <=> map[k,v].  -- Empty dictionary
-  -- Leaf dictionary, all entries have the same hash
-  private ihLeaf : all k,v ~~ (integer,cons[(k,v)]) <=> map[k,v].
-  private ihNode : all k,v ~~ (subVect[k,v]) <=> map[k,v].  -- non-leaf case
+  public  all k,v ~~ map[k,v] ::=   -- Expose the type only
+    private ihEmpty | -- Empty dictionary
+    -- Leaf dictionary, all entries have the same hash
+    private ihLeaf(integer,cons[(k,v)]) | 
+    private ihNode(subVect[k,v]). -- non-leaf case
   
   findIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).
