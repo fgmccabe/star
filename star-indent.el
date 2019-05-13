@@ -15,11 +15,11 @@
 
 (defun star-clear-indent-cache (pos)
   "clear indent cache to pos"
-  (star-debug "clearing indent cache %s to %from" star-indent-cache pos)
+;;  (star-debug "clearing indent cache %s to %from" star-indent-cache pos)
   (while (and star-indent-cache
 	      (>= (star-indent-pos star-indent-cache) pos))
     (setq star-indent-cache (cdr star-indent-cache)))
-  (star-debug "indent cache now %s" star-indent-cache)
+;;  (star-debug "indent cache now %s" star-indent-cache)
 )  
 
 (defun star-after-change-function (from to &rest rest)
@@ -215,8 +215,8 @@
 
 (defun star-scan-until (pos)
   (star-clear-debug)
-  (star-debug "parse until %s" pos)
-  (star-debug "indent-cache: %s\n" star-indent-cache)
+;;  (star-debug "parse until %s" pos)
+;;  (star-debug "indent-cache: %s\n" star-indent-cache)
 
   (star-init-operators)
 
@@ -241,12 +241,12 @@
       ;; just return 0
       (condition-case nil
 	  (let ((new-parse-state (star-term parse-pos pos parse-state)))
-	    (star-debug "state from parse: %s" new-parse-state)
+;;	    (star-debug "state from parse: %s" new-parse-state)
 	    ;; Insert the new-parse-state into the indent-cache
 	    ;; Cache is sorted, largest first.
 	    ;; cache = (reverse after) <> [new-parse-state,parse-state,..before]
 
-	    (star-debug "indent-cache (before): %s\n" star-indent-cache)
+;;	    (star-debug "indent-cache (before): %s\n" star-indent-cache)
 		
 	    (setq star-indent-cache
 		  (cons (cons parse-pos parse-state) 
@@ -258,7 +258,7 @@
 	      (setq star-indent-cache (cons (car after) star-indent-cache)
 		    after (cdr after)))
 
-	    (star-debug "indent-cache (after): %s\n" star-indent-cache)
+;;	    (star-debug "indent-cache (after): %s\n" star-indent-cache)
 			  
 	    new-parse-state)
 	(t ;; Some error occurred
@@ -287,8 +287,8 @@
     (let ((state (car parse-state))
 	  (stack (cdr parse-state)))
       (while (< (point) limit)
-	(star-debug "state: %s" state)
-	(star-debug "stack: %s" stack)
+;;	(star-debug "state: %s" state)
+;;	(star-debug "stack: %s" stack)
 	(let ((nxtok (star-next-tok limit)))
 	  (if nxtok
 	      (-let [(tktype op start end) nxtok]

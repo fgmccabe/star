@@ -12,6 +12,11 @@
   :type 'file
   :group 'star)
 
+(defcustom star-compiler-flags '("-g")
+  "Custom flags to pass into star compiler"
+  :type (list 'string)
+  :group 'star)
+
 (defun star-find-project-root (fn sentinel)
   (star-debug "looking for project root starting from %s" fn)
   (let ((dr (file-name-as-directory fn))
@@ -142,11 +147,12 @@
 ;; Normal compilation
 (defun star-compile (source repo pkg dir)
   (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
-    (star-debug "starting star compile %s" `(,star-compiler "-r" ,repo "-w" ,dir "--" ,pkg))
+    (star-debug "starting star compile %s"
+		`(,star-compiler "-r" ,repo "-w" ,dir ,@star-compiler-flags "--" ,pkg))
     (make-process
      :name "star-compile-on-save" :noquery t :connection-type 'pipe
      :buffer compile-buffer
-     :command `(,star-compiler "-r" ,repo "-w" ,dir "--" ,pkg)
+     :command `(,star-compiler "-r" ,repo "-w" ,dir ,@star-compiler-flags "--" ,pkg)
      :sentinel
      (lambda (proc event)
        (star-debug "event %s from compiling %s" event pkg)
