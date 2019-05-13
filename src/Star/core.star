@@ -38,6 +38,11 @@ star.core {
     tail:(c)=>option[c].
   }
 
+  public contract all c,e ~~ back[c->>e] ::= {
+    last:(c) => option[e].
+    lead:(c) => option[c].
+  }
+
   -- stream contract
   public contract all S,E ~~ stream[S ->> E] ::= {
     _eof:(S) => boolean.
