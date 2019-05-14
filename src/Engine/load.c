@@ -1,15 +1,5 @@
 /*
   Copyright (c) 2016, 2017, 2018. Francis G. McCabe
-
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
-  except in compliance with the License. You may obtain a copy of the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  KIND, either express or implied. See the License for the specific language governing
-  permissions and limitations under the License.
  */
 
 #include <stdlib.h>
@@ -25,11 +15,11 @@
 #include "labelsP.h"
 #include "verify.h"
 
-static retCode decodePkgName(ioPo in, packagePo pkg);
+static retCode decodePkgName(ioPo in, packagePo pkg,char *errorMsg,integer msgLen);
 
-static retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity);
+static retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,char *errorMsg,integer msgLen);
 
-static retCode decodeLoadedPkg(packagePo pkg, ioPo in);
+static retCode decodeLoadedPkg(packagePo pkg, ioPo in,char *errorMsg,integer msgLen);
 
 static retCode decodeImportsSig(bufferPo sigBuffer, char *errorMsg, long msgLen, pickupPkg pickup, void *cl);
 
@@ -44,7 +34,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
   char *rsrc = manifestResource(pkg, "code");
 
   if (rsrc == NULL) {
-    logMsg(logFile, "cannot determine code for %P%_", pkg);
+    strMsg(errorMsg,msgSize, "cannot determine code for %P%_", pkg);
     return Error;
   } else {
     char codeFlNm[MAXFILELEN];
@@ -71,12 +61,12 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
         if (ret == Ok) {
           rewindBuffer(sigBuffer);
-          ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer));
+          ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer),errorMsg,msgSize);
         }
 
         if (ret == Ok && uniCmp(lddPkg.packageName, pkg->packageName) != same) {
           closeFile(O_IO(sigBuffer));
-          outMsg(logFile, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
+          strMsg(errorMsg,msgSize, "loaded package: %P not what was expected %P\n", &lddPkg, pkg);
           return Error;
         }
 
@@ -109,8 +99,9 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
     if (version != NULL) {
       if (!compatiblVersion(p->version, version)) {
-        logMsg(logFile, "invalid version of package already loaded: %P,"
-                        "version %s expected", p->version);
+        strMsg(errorMsg,msgSize,
+               "invalid version of package already loaded: %P,"
+               "version %s expected", p->version);
         return Error;
       } else
         return Ok; // already loaded correct version
@@ -131,7 +122,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
     if (ret == Ok) {
       rewindBuffer(sigBuffer);
-      ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer));
+      ret = decodeLoadedPkg(&lddPkg, O_IO(sigBuffer),errorMsg,msgSize);
 
       if (ret == Ok && !isLoadedPackage(&lddPkg)) {
         ret = decodeImportsSig(sigBuffer, errorMsg, msgSize, pickup, cl);
@@ -166,9 +157,9 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
  * We are only interested in the first two the pkg and the imports.
  */
 
-  retCode decodeLoadedPkg(packagePo pkg, ioPo in) {
+  retCode decodeLoadedPkg(packagePo pkg, ioPo in,char *errorMsg,integer msgLen) {
     if (isLookingAt(in, pkgSig) == Ok)
-      return decodePkgName(in, pkg);
+      return decodePkgName(in, pkg,errorMsg,msgLen);
     else
       return Error;
   }
@@ -198,7 +189,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
           PackageRec lddPkg;
 
           if (ret == Ok)
-            ret = decodePkgName(in, &lddPkg);
+            ret = decodePkgName(in, &lddPkg,errorMsg,msgLen);
 
           if (ret == Ok)
             ret = pickup(&lddPkg, errorMsg, msgLen, cl);
@@ -206,13 +197,17 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
             return ret;
         }
         return ret;
-      } else
+      } else{
+        strMsg(errorMsg,msgLen,"invalid package encoding");
         return Error;
-    } else
+      }
+    } else{
+      strMsg(errorMsg,msgLen,"invalid package signature encoding");
       return Error;
+    }
   }
 
-  retCode decodePkgName(ioPo in, packagePo pkg) {
+retCode decodePkgName(ioPo in, packagePo pkg,char *errorMsg,integer msgLen) {
     if (isLookingAt(in, "n2o2'pkg's") == Ok) {
       bufferPo pkgB = fixedStringBuffer(pkg->packageName, NumberOf(pkg->packageName));
       bufferPo vrB = fixedStringBuffer(pkg->version, NumberOf(pkg->version));
@@ -233,11 +228,14 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
       closeFile(O_IO(pkgB));
       closeFile(O_IO(vrB));
       return ret;
-    } else
+    } else{
+      strMsg(errorMsg,msgLen,"invalid package name encoding");
       return Error;
+    }
   }
 
-  retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity) {
+retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
+                  char *errorMsg,integer msgLen) {
     if (isLookingAt(in, "o") == Ok) {
       retCode ret = decInt(O_IO(in), arity);
 
@@ -250,8 +248,10 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
         closeFile(O_IO(pkgB));
         return ret;
       }
-    } else
+    } else{
+      strMsg(errorMsg,msgLen,"invalid label encoding");
       return Error;
+    }
   }
 
   retCode decodeTplCount(ioPo in, integer *count, char *errMsg, integer msgLen) {
@@ -260,10 +260,12 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
       integer ar;
       retCode ret = decInt(in, count);
       if (ret == Ok) {
-        ret = decodeLbl(in, nm, NumberOf(nm), &ar);
+        ret = decodeLbl(in, nm, NumberOf(nm), &ar,errMsg,msgLen);
         if (ret == Ok) {
-          if (ar != *count)
+          if (ar != *count){
+            strMsg(errMsg,msgLen,"invalid tuple arity encoding");
             return Error;
+          }
         }
       }
       return ret;
@@ -376,8 +378,10 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 #undef szglb
 #undef sznOp
 #undef sztOs
-        default:
+        default:{
+          strMsg(errorMsg,msgSize,"invalid instruction encoding");
           return Error;
+        }
       }
     }
     return ret;
@@ -391,7 +395,8 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
     integer lclCount = 0;
     integer maxStack = 0;
 
-    retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity);
+    retCode ret = decodeLbl(in, prgName, NumberOf(prgName), &arity,
+                            errorMsg,msgSize);
 
 #ifdef TRACEPKG
     if (tracePkg)
@@ -467,7 +472,8 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
     char lblName[MAX_SYMB_LEN];
     integer arity;
 
-    retCode ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
+    retCode ret = decodeLbl(in, lblName, NumberOf(lblName), &arity,
+                            errorMsg,msgSize);
 
 #ifdef TRACEPKG
     if (tracePkg)
@@ -489,7 +495,8 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
         for (integer ix = 0; ret == Ok && ix < count; ix++) {
           if (isLookingAt(in, fieldPreamble) == Ok) {
-            ret = decodeLbl(in, lblName, NumberOf(lblName), &arity);
+            ret = decodeLbl(in, lblName, NumberOf(lblName), &arity,
+                            errorMsg,msgSize);
             if (ret == Ok) {
               labelPo field = declareLbl(lblName, arity);
               ret = skipEncoded(in, errorMsg, msgSize); // Field signature
