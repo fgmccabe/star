@@ -3,7 +3,6 @@
 ;;; Copyright (C) 2019 and beyond F.G. McCabe
 
 (require 'comint)
-(require 'star)
 
 ;; Customization point -- where is the executable for star
 (defcustom star-path (executable-find "star")
@@ -31,7 +30,7 @@
   "Run in a shell"
   (interactive "sRun with argument: ")
   (let* ((buffer (comint-check-proc "Star"))
-	 (args (append star-flags (list (star-package) arg))))
+	 (args (append star-flags (list "-r" star-repo (star-package) arg))))
     (pop-to-buffer-same-window
      (if (or buffer (not (derived-mode-p 'star-shell-mode))
 	     (comint-check-proc (current-buffer)))

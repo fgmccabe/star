@@ -29,15 +29,13 @@
 	    (setq dr (file-name-directory (directory-file-name dr))))))
       nil)))
 
-(defcustom star-build-repo
+(defvar-local star-build-repo
   (file-name-as-directory
    (expand-file-name star-repo-name
 		     (star-find-project-root
 		      (file-name-directory (buffer-file-name))
 		      star-repo-name)))
-  "Where the repository for this project lives."
-  :group 'star
-  :type 'directory)
+  "Where the repository for this project lives.")
 
 (defun enable-star-flymake ()
   (interactive)
