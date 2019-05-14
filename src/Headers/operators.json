@@ -81,6 +81,14 @@
     "desc": "variable bind"
   },
   {
+    "prefixOp": "background",
+    "priorities": [
+      950,
+      949
+    ],
+    "desc": "task background"
+  },
+  {
     "prefixOp" : "if",
     "priorities" : [1175,1174],
      "desc": "if ... then ... else"

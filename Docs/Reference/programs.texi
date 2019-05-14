@@ -40,7 +40,6 @@ The functions and other variables defined
 @end display
 @end float
 
-
 @node Managing Exposed Elements of a Package
 @subsection Managing Exposed Elements of a Package
 By default, all the elements that are defined in a package are

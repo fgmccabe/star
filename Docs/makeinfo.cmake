@@ -33,14 +33,14 @@ function(add_info nm)
 
     add_custom_target(${nm}.html ALL DEPENDS ${out_html})
 
-    add_custom_command(OUTPUT ${out_pdf}
-      COMMAND ${MAKEINFO} --pdf -o ${out_pdf} ${info_texi}
-      DEPENDS ${info_deps} 
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMENT "Creating Pdf file ${out_pdf}"
-      VERBATIM)
+#    add_custom_command(OUTPUT ${out_pdf}
+#      COMMAND ${MAKEINFO} --pdf -o ${out_pdf} ${info_texi}
+      # DEPENDS ${info_deps} 
+      # WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+      # COMMENT "Creating Pdf file ${out_pdf}"
+      # VERBATIM)
 
-    add_custom_target(${nm}.pdf ALL DEPENDS ${out_pdf})
+#    add_custom_target(${nm}.pdf ALL DEPENDS ${out_pdf})
 
   endif(MAKEINFO)
 endfunction(add_info)

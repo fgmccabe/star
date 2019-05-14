@@ -79,6 +79,7 @@ star.compiler.operators{
   oper("exists") => [prefixOp(1010,1009)].
   oper("<=") => [infixOp(949,950,949)].
   oper("if") => [prefixOp(1175,1174)].
+  oper("background") => [prefixOp(950,949)].
   oper(":") => [infixOp(1249,1250,1249)].
   oper(";") => [infixOp(1250,1251,1251)].
   oper("<") => [infixOp(899,900,899)].
