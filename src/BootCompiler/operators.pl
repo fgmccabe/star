@@ -62,6 +62,7 @@
   operator("exists", [prefixOp(1010, 1009)]).
   operator("<=", [infixOp(949, 950, 949)]).
   operator("if", [prefixOp(1175, 1174)]).
+  operator("background", [prefixOp(950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
   operator(";", [infixOp(1250, 1251, 1251)]).
   operator("<", [infixOp(899, 900, 899)]).

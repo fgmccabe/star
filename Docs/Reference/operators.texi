@@ -146,6 +146,9 @@
 @item @code{if}
 @tab non-associative prefix
 @tab 1175
+@item @code{background}
+@tab non-associative prefix
+@tab 950
 @item @code{:}
 @tab non-associative infix
 @tab 1250
