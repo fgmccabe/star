@@ -15,7 +15,7 @@ test.bench{
   }
 
   fingeriota:(integer,integer)=>fingerTree[integer].
-  fingeriota(Mx,Mx) => _nil.
+  fingeriota(Mx,Mx) => [].
   fingeriota(Ix,Mx) where Ix<Mx => [Ix,..fingeriota(Ix+1,Mx)].
 
   benchNativeList(Count) => action {
