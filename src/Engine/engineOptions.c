@@ -274,6 +274,12 @@ static retCode setDebuggerPort(char *option, logical enable, void *cl) {
   debuggerPort = parseInteger(option, uniStrLen(option));
   if (debuggerPort <= 0)
     return Error;
+  else{
+    lineDebugging = True;   /* set up for remote symbolic insDebugging */
+    interactive = True;
+    showPkgFile = True;
+    showColors = False;
+  }
   return Ok;
 }
 
