@@ -22,7 +22,6 @@ star.compiler.wff{
       (Lc,Lh,B) ^= isBinary(T,"|:") => some((Lc,deComma(Lh),B)).
   isConstrained(_) default => none.
     
-
   public deComma:(ast) => list[ast].
   deComma(Trm) => let{
     deC(T,SoF) where (_,Lh,Rh)^=isBinary(T,",") =>
@@ -30,4 +29,7 @@ star.compiler.wff{
     deC(T,SoF) => [T,..SoF].
   } in deC(Trm,[]).
 
+  public isDepends:(ast) => option[(list[ast],list[ast])].
+  isDepends(T) where (_,Lh,Rh)^=isBinary(T,"->>") =>
+    some((deComma(Lh),deComma(Rh))).
 }

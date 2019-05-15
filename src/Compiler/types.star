@@ -23,7 +23,7 @@ star.compiler.types{
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
     constrainedType(tipe,constraint) |
-    conTract(string,list[tipe],list[tipe]).
+    conType(string,list[tipe],list[tipe]).
 
   public constraint ::=
     conConstraint(string,list[tipe],list[tipe]) |
@@ -70,8 +70,8 @@ star.compiler.types{
   public constraintsOf:(tipe) => list[constraint].
   constraintsOf(Tp) => conOf(deRef(Tp)).
 
-  conOf(tVar(T,_)) => T.constraints!.
-  conOf(tFun(T,_,_)) => T.constraints!.
+  conOf(tVar(T,_)) => T.constraints! .
+  conOf(tFun(T,_,_)) => T.constraints! .
   conOf(_) default => [].
 
   public setConstraints:(tipe,list[constraint]) => action[(),()].
@@ -117,19 +117,37 @@ star.compiler.types{
   identType(tFun(_,A1,N1),tFun(_,A2,N2),_) => N1==N2 && A1==A2.
   identType(tipe(N1),tipe(N2),_) => N1==N2.
   identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
-  identType(tpExp(O1,A1),tpExp(O2,A2),Q) => identType(O1,O2,Q) && identType(A1,A2,Q).
-  identType(tupleType(E1),tupleType(E2),_) => E1==E2.
-  identType(allType(V1,T1),allType(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
-  identType(existType(V1,T1),existType(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
-  identType(typeLambda(V1,T1),typeLambda(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
-  identType(typeExists(V1,T1),typeExists(V2,T2),Q) => identType(V1,V2,Q) && identType(T1,T2,Q).
-  identType(faceType(V1,T1),faceType(V2,T2),Q) => identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
-  identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) => identType(T1,T2,Q).
+  identType(tpExp(O1,A1),tpExp(O2,A2),Q) =>
+    identType(O1,O2,Q) && identType(A1,A2,Q).
+  identType(tupleType(E1),tupleType(E2),Q) => identTypes(E1,E2,Q).
+  identType(allType(V1,T1),allType(V2,T2),Q) =>
+    identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(existType(V1,T1),existType(V2,T2),Q) =>
+    identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(typeLambda(V1,T1),typeLambda(V2,T2),Q) =>
+    identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(typeExists(V1,T1),typeExists(V2,T2),Q) =>
+    identType(V1,V2,Q) && identType(T1,T2,Q).
+  identType(faceType(V1,T1),faceType(V2,T2),Q) =>
+    identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
+  identType(conType(Nm,A1,D1),conType(Nm,A2,D2),Q) =>
+    identTypes(A1,A2,Q) && identTypes(D1,D2,Q).
+  identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
+    identType(T1,T2,Q).
   identType(_,_,_) default => false.
 
+  identTypes([],[],_) => true.
+  identTypes([E1,..L1],[E2,..L2],Q) =>
+    identType(E1,E2,Q) &&
+	identTypes(L1,L2,Q).
+
   identNmTypes(L1,L2,Q) => let{
-    sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2))
-  } in (sortByNm(L1) == sortByNm(L2)).
+    sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
+    identPrs([],[]) => true.
+    identPrs([(Nm,E1),..L1],[(Nm,E2),..L2]) =>
+      identType(E1,E2,Q) &&
+	  identPrs(L1,L2).
+  } in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {.
     conConstraint(Nm,A1,D1) == conConstraint(Nm,A2,D2) => A1==A2 && D1==D2.
@@ -149,13 +167,17 @@ star.compiler.types{
     hsh(tpFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tpExp(O,A)) => hsh(deRef(O))*37+hsh(deRef(A)).
     hsh(tupleType(Els)) => hshEls((hash("()")*37+size(Els))*37,Els).
-    hsh(faceType(Els,Tps)) => hshFields(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
+    hsh(faceType(Els,Tps)) =>
+      hshFields(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
     hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
+    hsh(conType(Nm,A,D)) => hshEls(hshEls(hash(Nm),A),D).
 
-    hshCon(conConstraint(Nm,Args,_)) => hshEls(hash("contract")*37+hash(Nm),Args).
-    hshCon(fieldConstraint(V,T)) => (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+    hshCon(conConstraint(Nm,Args,_)) =>
+      hshEls(hash("contract")*37+hash(Nm),Args).
+    hshCon(fieldConstraint(V,T)) =>
+      (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
 
     hshEls(H,Els) => foldLeft((Hx,El)=>Hx*37+hsh(deRef(El)),H,Els).
 
@@ -180,17 +202,30 @@ star.compiler.types{
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tipe(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-  shTipe(tpExp(tpExp(tpFun("=>",2),A),R),Sh,Dp) => ssSeq([showType(A,Sh,Dp-1),ss("=>"),showType(R,Sh,Dp-1)]).
-  shTipe(tpExp(tpFun("ref",1),A),Sh,Dp) => ssSeq([ss("ref "),showType(A,Sh,Dp-1)]).
+  shTipe(tpExp(tpExp(tpFun("=>",2),A),R),Sh,Dp) =>
+    ssSeq([showType(A,Sh,Dp-1),ss("=>"),showType(R,Sh,Dp-1)]).
+  shTipe(tpExp(tpExp(tpFun("<=>",2),A),R),Sh,Dp) =>
+    ssSeq([showType(A,Sh,Dp-1),ss("<=>"),showType(R,Sh,Dp-1)]).
+  shTipe(tpExp(tpFun("ref",1),A),Sh,Dp) =>
+    ssSeq([ss("ref "),showType(A,Sh,Dp-1)]).
   shTipe(tpExp(F,A),Sh,Dp) => ssSeq([showTpExp(F,A,Sh,Dp),ss("]")]).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
-  shTipe(allType(A,T),Sh,Dp) => ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
-  shTipe(existType(A,T),Sh,Dp) => ssSeq([ss("exist "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
-  shTipe(faceType(Els,Tps),Sh,Dp) => ssSeq([ss("{"),showTypeEls(Els,Tps,Sh,Dp),ss("}")]).
-  shTipe(typeLambda(A,T),Sh,Dp) => ssSeq([showType(A,Sh,Dp),ss("~>"),showType(T,Sh,Dp)]).
-  shTipe(typeExists(A,T),Sh,Dp) => ssSeq([showType(A,Sh,Dp),ss("<~"),showType(T,Sh,Dp)]).
-  shTipe(constrainedType(T,C),Sh,Dp) => ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
-
+  shTipe(allType(A,T),Sh,Dp) =>
+    ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
+  shTipe(existType(A,T),Sh,Dp) =>
+    ssSeq([ss("exist "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
+  shTipe(faceType(Els,Tps),Sh,Dp) =>
+    ssSeq([ss("{"),showTypeEls(Els,Tps,Sh,Dp),ss("}")]).
+  shTipe(typeLambda(A,T),Sh,Dp) =>
+    ssSeq([showType(A,Sh,Dp),ss("~>"),showType(T,Sh,Dp)]).
+  shTipe(typeExists(A,T),Sh,Dp) =>
+    ssSeq([showType(A,Sh,Dp),ss("<~"),showType(T,Sh,Dp)]).
+  shTipe(constrainedType(T,C),Sh,Dp) =>
+    ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
+  shTipe(conType(Nm,Args,Deps),Sh,Dp) =>
+    ssSeq([disp(Nm),ss("["),showTypes(Args,Sh,Dp),
+	ss("->>"),showTypes(Deps,Sh,Dp),ss("]")]).
+  
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
 
@@ -220,9 +255,12 @@ star.compiler.types{
 
   showBound(V,Dp) => showType(V,false,Dp).
 
-  showConstraint(conConstraint(Nm,Args,[]),Dp) => ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("]")]).
-  showConstraint(conConstraint(Nm,Args,Deps),Dp) => ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("->>"),showTypes(Deps,false,Dp),ss("]")]).
-  showConstraint(fieldConstraint(Tp,Fc),Dp) => ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
+  showConstraint(conConstraint(Nm,Args,[]),Dp) =>
+    ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("]")]).
+  showConstraint(conConstraint(Nm,Args,Deps),Dp) =>
+    ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("->>"),showTypes(Deps,false,Dp),ss("]")]).
+  showConstraint(fieldConstraint(Tp,Fc),Dp) =>
+    ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
 
   public contract all c ~~ hasType[c] ::= {
     typeOf:(c)=>tipe.
@@ -231,7 +269,8 @@ star.compiler.types{
   public implementationName:(constraint) => string.
   implementationName(conConstraint(Nm,Args,_)) => Nm++surfaceNames(Args).
 
-  surfaceNames(Tps) => _str_multicat(flatten(Tps//((T)=>surfaceName(deRef(T))))).
+  surfaceNames(Tps) =>
+    _str_multicat(flatten(Tps//((T)=>surfaceName(deRef(T))))).
 
   surfaceName(tipe(Nm)) => ["!",Nm].
   surfaceName(tpExp(O,_)) => surfaceName(deRef(O)).
@@ -246,6 +285,7 @@ star.compiler.types{
   surfaceName(constrainedType(T,_)) => surfaceName(deRef(T)).
   surfaceName(typeLambda(_,T)) => surfaceName(deRef(T)).
   surfaceName(tupleType(A)) => ["!()$(size(A))"].
+  surfaceName(conType(Nm,_,_)) => [Nm].
 
   public implementation hasType[constraint] => {.
     typeOf(conConstraint(Nm,Args,Deps)) =>
@@ -254,5 +294,4 @@ star.compiler.types{
 
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
-
 }

@@ -1,6 +1,6 @@
 star.compiler.typeparse{
   import star.
-
+  
   import star.compiler.ast.
   import star.compiler.dict.
   import star.compiler.errors.
@@ -10,48 +10,56 @@ star.compiler.typeparse{
   import star.compiler.unify.
   import star.compiler.wff.
 
-  public parseType:(list[(string,tipe)],ast,dict,reports) => either[reports,tipe].
+  public parseType:(cons[(string,tipe)],ast,dict,reports) => either[reports,tipe].
 
-  parseType(Typ,Env,Rp) => let{
-      parseT(Tp,Q) where (Lc,V,BT) ^= isQuantified(Tp) => do{
-	  BV <- parseBoundTpVars(V);
-	  In <- parseT(BT,Q++BV);
-	  lift reQuant(BV,In)
-	}.
-      parseT(Tp,Q) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
-	  BV <- parseBoundTpVars(V);
-	  In <- parseT(BT,Q++BV);
-	  lift reQuantX(BV,In)
-	}.
-      parseT(Tp,Q) where (Lc,C,B) ^= isConstrained(Tp) => do{
-	  Cx <- parseConstraints(C,Q);
-	  Inn <- parseT(B,Q);
-	  lift wrapConstraints(Cx,Inn)
-	}
-      parseT(Tp,Q) where (Lc,Nm) ^= isName(Tp) =>
-	parseTypeName(Lc,Nm,Q).
-      parseT(Tp,Q) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
-	  Op <- parseT(O,Q);
-	  ArgTps <- parseTps(Args,Q);
-	  if (Qx,OOp) .= freshen(Op,[],Env) then {
-	      Inn <- applyTypeFun(deRef(OOp),ArgTps,locOf(O));
-		return rebind(Qx,Inn)
-	    } else
-	    throw reportError(Rp,"Could not freshen $(Op)",Lc)
-	}
+  parseType(Q0,Typ,Env,Rp) => let{
+    parseT(Q,Tp) where (Lc,V,BT) ^= isQuantified(Tp) => do{
+      BV <- parseBoundTpVars(V);
+      In <- parseT(Q++BV,BT);
+      lift reQuant(BV,In)
+    }
+    parseT(Q,Tp) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
+      BV <- parseBoundTpVars(V);
+      In <- parseT(Q++BV,BT);
+      lift reQuantX(BV,In)
+    }
+    parseT(Q,Tp) where (Lc,C,B) ^= isConstrained(Tp) => do{
+      Cx <- parseConstraints(Q,C);
+      Inn <- parseT(Q,B);
+      lift wrapConstraints(Cx,Inn)
+    }
+    parseT(Q,Tp) where (Lc,Nm) ^= isName(Tp) =>
+      parseTypeName(Q,Lc,Nm).
+    parseT(Q,Tp) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
+      Op <- parseT(Q,O);
+      (ArgTps,DepTps) <- parseTpArgs(Q,Args);
+      if (Qx,OOp) .= freshen(Op,[],Env) then {
+	Inn <- applyTypeFun(deRef(OOp),ArgTps,DepTps,locOf(O));
+	return rebind(Qx,Inn)
+      } else
+	throw reportError(Rp,"Could not freshen $(Op)",Lc)
+    }
 
-	  parseTps:(list[ast],list[(string,tipe)]) => either[reports,list[tipe]].
-	  parseTps([],_) => either([]).
-	  parseTps([T,..L],Q) => do{
-		Tl <- parseT(T,Q);
-		Tr <- parseTps(L,Q);
-		lift [Tl,..Tr]
-	      }
-
-	  parseTypeName(_,"_",_) => either(newTypeVar("_")).
-	  parseTypeName(Lc,"this",_) => either(thisType).
-	  parseTypeName(_,Nm,Q) where (Nm,Tp) in Q => either(Tp).
-
+    parseArgTps:(cons[(string,tipe)],list[ast]) => either[reports,(list[tipe],list[tipe])].
+    parseArgTps(Q,[XX]) where (As,Ds)^=isDepends(XX) => do{
+      Lhs <- parseTps(Q,As);
+      Rhs <- parseTps(Q,Ds);
+      lift (Lhs,Rhs)
+    }.
+    parseArgTps(Q,As) => parseTps(Q,As).
+      
+    parseTps:(cons[(string,tipe)],list[ast]) => either[reports,list[tipe]].
+    parseTps(_,[]) => either([]).
+    parseTps(Q,[T,..L]) => do{
+      Tl <- parseT(Q,T);
+      Tr <- parseTps(Q,L);
+      lift [Tl,..Tr]
+    }
+    
+    parseTypeName(_,_,"_") => either(newTypeVar("_")).
+    parseTypeName(_,Lc,"this") => either(thisType).
+    parseTypeName(Q,_,Nm) where (Nm,Tp) in Q => either(Tp).
+    
     applyTypeFun(kFun(Nm,Ar),Args,_) where size(Args)=<Ar =>
       either(mkTypeExp(kFun(Nm,Ar),Args)).
     applyTypeFun(tFun(U,Ar,Nm),Args,_) where size(Args)=<Ar =>
@@ -64,7 +72,7 @@ star.compiler.typeparse{
     applyTypeFun(Tp,Args,Lc) =>
       other(reportError(Rp,"type $(Tp) to applicable to $(Args)",Lc)).
     
-    parseBoundTpVars:(list[ast])=>either[reports,list[(string,tipe)]].
+    parseBoundTpVars:(list[ast])=>either[reports,cons[(string,tipe)]].
     parseBoundTpVars([]) => either([]).
     parseBoundTpVars([V,..R]) =>
       parseBoundTpVars(R) >>= (L) =>
@@ -73,12 +81,12 @@ star.compiler.typeparse{
     parseBoundTpVar(Nm) where (_,Id) ^= isName(Nm) => either((Id,newTypeVar(Id))).
     parseBoundTpVar(FNm) where
 	(_,Lhs,Rhs) ^= isBinary(FNm,"/") &&
-    (_,Id) ^= isName(Lhs) &&
-    (_,Ar) ^= isInt(Rhs) => either((Id,newTypeFun(Id,Ar))).
+	(_,Id) ^= isName(Lhs) &&
+	(_,Ar) ^= isInt(Rhs) => either((Id,newTypeFun(Id,Ar))).
     parseBoundTpVar(O) default =>
       other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
 
-    parseConstraints:(list[ast],list[(string,tipe)])=>either[reports,list[constraint]].
+    parseConstraints:(list[ast],cons[(string,tipe)])=>either[reports,list[constraint]].
     parseConstraints([],_) => either([]).
     parseConstraints([A,..As],Q) => do{
       Cn <- parseConstraint(A,Q);
@@ -117,30 +125,30 @@ star.compiler.typeparse{
     either[reports,constraint].
   parseContractConstraint(Q,A,Env,Rp) where
       (Lc,Op,Ags) ^= isSquareTerm(A) => do{
-    (Args,Deps) <- parseContractArgs(Q,Ags,Env,Rp);
-    conConstraint(Con,ATs,Dps) <- parseContractName(Op,Env,Rp);
-    if sameType(tupleType(Args),tupleType(ATs),Env) &&
-    sameType(tupleType(Deps),tupleType(Dps),Env) then
-      lift conConstraint(Con,Args,Deps)
-    else
- throw reportError(Rp,"$(A) not consistent with contract $(Op)",Lc)
-      }
+	(Args,Deps) <- parseContractArgs(Q,Ags,Env,Rp);
+	conConstraint(Con,ATs,Dps) <- parseContractName(Op,Env,Rp);
+	if sameType(tupleType(Args),tupleType(ATs),Env) &&
+	    sameType(tupleType(Deps),tupleType(Dps),Env) then
+	  lift conConstraint(Con,Args,Deps)
+	  else
+	  throw reportError(Rp,"$(A) not consistent with contract $(Op)",Lc)
+      }.
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
 
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
-    parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
-	Con <- findContract(Env,Id);
-      }
+  parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
+    Con <- findContract(Env,Id);
+  }
 
   parseContractArgs:(list[(string,tipe)],list[ast],dict,reports) =>
     either[reports,(list[tipe],list[tipe])].
   parseContractArgs(Q,[A],Env,Rp) where
       (_,Lhs,Rhs) ^= isBinary(A,"->>") => do{
-    LA <- parseTypes(Q,deComma(Lhs),Env,Rp);
-    DA <- parseTypes(Q,deComma(Rhs),Env,Rp);
-    lift (LA,DA)
-      }
+	LA <- parseTypes(Q,deComma(Lhs),Env,Rp);
+	DA <- parseTypes(Q,deComma(Rhs),Env,Rp);
+	lift (LA,DA)
+      }.
     
   parseTypes:(list[(string,tipe)],list[ast],dict,reports) => either[reports,list[tipe]].
   parseTypes(_,[],_,_) => either([]).
@@ -149,7 +157,4 @@ star.compiler.typeparse{
     Tr <- parseTypes(Q,L,Env,Rp);
     lift [Tl,..Tr]
   }
-
-  
-
 }
