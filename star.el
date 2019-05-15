@@ -7,79 +7,10 @@
 ;; This should be split into multiple files ... but ...
 
 (require 'font-lock)
-
-;;;
-;;; Utility functions for star mode
-;;;
-
-(defsubst 1st (l)
-  "return the first element of a list."
-  (nth 0 l))
-
-(defsubst 2nd (l)
-  "return the second element of a list."
-  (nth 1 l))
-
-(defsubst 3rd (l)
-  "return the third element of a list."
-  (nth 2 l))
-
-(defsubst 4th (l)
-  "return the fourth element of a list."
-  (nth 3 l))
-
-(defsubst 5th (l)
-  "return the fifth element of a list."
-  (nth 4 l))
-
-(defsubst 6th (l)
-  "return the sixth element of a list."
-  (nth 5 l))
-
-(defsubst 7th (l)
-  "return the 7th element of a list."
-  (nth 6 l))
-
-(defsubst 8th (l)
-  "return the 8th element of a list."
-  (nth 7 l))
-
-(defun star-one-of (l)
-  "Construct optimized regexp from a list of strings (l)."
-  (regexp-opt l t))
-
-(defun star-compose-regexps (l)
-  (if (cadr l) 
-      (concat (car l) "\\|"
-	      (star-compose-regexps (cdr l)))
-    (car l)))
-
-(defsubst star-skip-block-comment ()
-  (forward-comment 1))
-
-(defsubst star-skip-line-comment ()
-  (search-forward "\n"))
-
-(defsubst star-skip-string ()
-  (goto-char (or (scan-sexps (point) 1) (buffer-end 1))))
-
-(defvar star-debugging t
-  "Non-nil if should log messages to *star-debug*")
-
-(defun star-debug (msg &rest args)
-  "Print a debug message to the *star-debug* buffer"
-  (if star-debugging
-      (let ((debug-buffer (get-buffer-create "*star-debug*")))
-	(with-current-buffer debug-buffer 
-	  (goto-char (point-max))
-	  (insert (apply 'format (concat msg "\n") args)))))
-  )
-
-(defun star-clear-debug ()
-  (if star-debugging
-      (let ((debug-buffer (get-buffer-create "*star-debug*")))
-	(with-current-buffer debug-buffer 
-	  (erase-buffer)))))
+(require 'star-util)
+(require 'star-indent)
+(require 'star-ops)
+(require 'star-config)
 
 ;;;
 ;;; Fontlock support for Star
@@ -129,20 +60,6 @@
 (defconst star-font-lock-function-regexp
   "^[ \t]*\\(\\sw+\\)([][0-9_a-zA-Z?,.:`'\\ ]*)[ \t]*=>"
   "Regular expression matching the function declarations to highlight in Star mode.")
-
-;;; Regular expression matching important star operators
-(defvar star-line-comment-regexp
-  "\\(--[ \t].*$\\)")
-
-(defvar star-line-comment-regexp-bol
-  (concat "^" star-line-comment-regexp))
-
-(defvar star-body-comment-regexp
-  "/\\*"
-  "Star body comment start")
-
-(defconst star-close-par "[])}]"
-  "Star close parentheses")
 
 (defconst star-import-regexp
   "\\(import +[[:word:]]+\\([.][[:word:]]+\\)*\\)"
@@ -233,52 +150,6 @@
 
 (defvar star-mode-hook nil)
 
-;; Customization parameters
-
-(defgroup star nil
-  "Major mode for editing and running Star under Emacs"
-  :group 'languages)
-
-(defcustom star-block-indent 2
-  "* Amount by which to indent blocks of code in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom star-paren-indent 2
-  "* Amount by which to indent after a left paren in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom star-brace-indent 2
-  "* Amount by which to indent after a left brace in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom star-bracket-indent 2
-  "* Amount by which to indent after a left bracket in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom star-arrow-indent 2
-  "* Amount by which to indent after an arrow in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom star-query-indent 2
-  "* Amount by which to indent after an query in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom star-pred-indent 2
-  "* Amount by which to indent after a predicate in Star mode."
-  :type 'integer
-  :group 'star)
-
-(defcustom comment-column 40
-  "* The column where -- comments are placed."
-  :type 'integer
-  :group 'star)
-
 (defun star-self-insert-and-indent-command (n)
   "Self insert and indent appropriately.
 Argument N  oprefix."
@@ -315,7 +186,6 @@ Argument N  oprefix."
   (star-init-font-lock)
   (autoload 'star-after-change-function "star-indent")
   (autoload 'star-indent-line "star-indent")
-  (autoload 'star-init-operators "star-ops")
   (autoload 'enable-star-flymake "star-repo")
   (autoload 'star-compile-maybe "star-repo")
   (autoload 'star-flymake "star-repo")

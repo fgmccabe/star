@@ -1,5 +1,7 @@
 ;;; starops.el -- Automatically generated -- Do not edit  -*- lexical-binding: t; -*-
 
+(require 'star-util)
+
 (defconst star-ops
   '(#(Operators))
   "Table of standard star operators"
@@ -13,46 +15,45 @@
 (defun star-is-a-word (s)
   (string-match "\\`\\w+\\'" s))
 
-(defun star-genops-hash ()
+(defvar star-op-regexp nil
+  "operator regular expression")
+
+(defvar star-bkt-regexp nil
+  "bracket regular expression")
+
+(defconst star-opers
   (let ((l star-ops)
         (b star-brackets)
-        (m (make-hash-table :test 'equal))
-	(bs ())
-	(ops ())
-	(ws ()))
-    (while l
-      (let* ((o (car l))
-             (op (1st o))
-             (specs (2nd o)))
-        (puthash op specs m)
-	(if (star-is-a-word op)
-	    (setq ws (cons op ws))
-	  (setq ops (cons op ops)))
-        (setq l (cdr l))))
-    (while b
-      (let* ((o (car b))
-             (left (2nd o))
-             (right (3rd o))
-             (inner (4th o)))
-        (puthash left (list `(left ,right ,inner)) m)
-        (puthash right (list `(right ,left ,inner)) m)
-	(setq bs (cons left (cons right bs)))
-        (setq b (cdr b))))
-    (list m ops ws bs)
-    )
-  )
-
-(defun star-init-operators ()
-  (if (not (boundp 'star-opers))
-    (let* ((ops (star-genops-hash))
-           (syms (2nd ops))
-           (words (3rd ops))
-           (symregexp (star-one-of syms))
-           (wsregexp (concat "\\<" (star-one-of words) "\\>")))
-      (setq star-opers (1st ops))
-      (setq star-op-regexp (star-compose-regexps (list symregexp wsregexp)))
-      (setq star-bkt-regexp (star-one-of (4th ops))))
-  ))
+        (ops (make-hash-table :test 'equal))
+        (bs ())
+        (syms ())
+        (words ()))
+      (while l
+        (let* ((o (car l))
+               (op (1st o))
+               (specs (2nd o)))
+          (puthash op specs ops)
+	      (if (star-is-a-word op)
+	        (setq words (cons op words))
+	       (setq syms (cons op syms)))
+          (setq l (cdr l))))
+      (while b
+        (let* ((o (car b))
+               (left (2nd o))
+               (right (3rd o))
+               (inner (4th o)))
+          (puthash left (list `(left ,right ,inner)) ops)
+          (puthash right (list `(right ,left ,inner)) ops)
+	      (setq bs (cons left (cons right bs)))
+          (setq b (cdr b))))
+       (let* ((symregexp (star-one-of syms))
+              (wsregexp (concat "\\<" (star-one-of words) "\\>")))
+         (setq star-op-regexp (star-compose-regexps (list symregexp wsregexp)))
+         (setq star-bkt-regexp (star-one-of bs))
+         ops)
+        )
+   "internal table of star operators"
+)
 
 (defun star-is-oper (op table mode)
   (let ((specs (gethash op table)))
@@ -92,3 +93,5 @@
 
 (defun star-is-right (op)
   (star-is-oper op star-opers 'right))
+
+(provide 'star-ops)
