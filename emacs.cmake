@@ -13,7 +13,7 @@ function(add_emacs args)
       set(emacs_elc ${emacs_elc} ${emacs_tgt})
       configure_file(${CMAKE_CURRENT_SOURCE_DIR}/${v}.el ${emacs_src})
       add_custom_command(OUTPUT ${emacs_tgt}
-	COMMAND ${EMACS_EXECUTABLE} -batch -f batch-byte-compile
+	COMMAND ${EMACS_EXECUTABLE} -Q --batch -L . -f batch-byte-compile
 	${emacs_src}
 	DEPENDS ${emacs_src}
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

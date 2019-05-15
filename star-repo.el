@@ -1,21 +1,8 @@
 ;;; star-repo.el --- Manage a Star repo  -*- lexical-binding: t; -*-
 
 (require 'subr-x)
-
-(defcustom star-repo-name ".star-repo"
-  "Name of the star repository directory"
-  :type 'directory
-  :group 'star)
-
-(defcustom star-compiler (executable-find "sbc")
-  "Exec path to the star compiler"
-  :type 'file
-  :group 'star)
-
-(defcustom star-compiler-flags '("-g")
-  "Custom flags to pass into star compiler"
-  :type (list 'string)
-  :group 'star)
+(require 'star-util)
+(require 'star-config)
 
 (defun star-find-project-root (fn sentinel)
   (star-debug "looking for project root starting from %s" fn)
@@ -41,15 +28,6 @@
   (interactive)
   (flymake-mode `toggle))
 
-(defun star-package ()
-  (save-excursion
-    (goto-char 0)
-    (skip-chars-forward " \n\t")
-    (let ((start (point)))
-      (search-forward "{")
-      (forward-char -1)
-      (buffer-substring-no-properties start (point)))))
-
 (defconst star-errormsg-regexp
   "^\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n<<\\(\\(?:.\\|\n\\)*?\\)>>")
 
@@ -61,8 +39,6 @@
 	(goto-char (point-min))
 	(cl-loop
 	 while (search-forward-regexp star-errormsg-regexp nil t)
-	 for line = (string-to-number (match-string 3))
-	 for col = (1- (string-to-number (match-string 4)))
 	 for pos = (string-to-number (match-string 5))
 	 for len = (string-to-number (match-string 6))
 	 for end = (+ pos len)
@@ -100,10 +76,10 @@
 	;; Reset the `star--flymake-proc' process to a new process
 	(setq star--flymake-proc
 	      (star-fly-compile source
-			    star-build-repo
-			    (star-package)
-			    (file-name-directory (buffer-file-name source))
-			    report-fn))
+				star-build-repo
+				(star-package)
+				(file-name-directory (buffer-file-name source))
+				report-fn))
 	(process-send-region star--flymake-proc (point-min) (point-max))
 	(process-send-eof star--flymake-proc)
 	)
@@ -143,7 +119,7 @@
   )
 
 ;; Normal compilation
-(defun star-compile (source repo pkg dir)
+(defun star-compile (repo pkg dir)
   (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
     (star-debug "starting star compile %s"
 		`(,star-compiler "-r" ,repo "-w" ,dir ,@star-compiler-flags "--" ,pkg))
@@ -165,11 +141,10 @@
   (let ((source (current-buffer)))
     (with-current-buffer source
       (if (equal major-mode 'star-mode)
-	  (star-compile source star-build-repo (star-package)
+	  (star-compile star-build-repo (star-package)
 			(file-name-directory (buffer-file-name source))))
       )
     )
   )
-
 
 (provide 'star-repo)

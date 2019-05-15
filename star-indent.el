@@ -1,5 +1,8 @@
 ;;; star-indent.el -*- lexical-binding: t; -*-
 
+(require 'star-util)
+(require 'star-ops)
+
 
 ;; star-indent-cache holds the parse state 
 ;; at particular points in the buffer.
@@ -45,6 +48,12 @@
 (defconst star-term-regexp
   "\\(\\.\\(?:[ \t\n]\\|$\\)\\)"
   "regular expression that matches a statement terminator")
+
+(defsubst star-skip-block-comment ()
+  (forward-comment 1))
+
+(defsubst star-skip-line-comment ()
+  (search-forward "\n"))
 
 (defun star-skip-whitespace (buffer pos limit)
   (with-current-buffer buffer
@@ -218,8 +227,6 @@
 ;;  (star-debug "parse until %s" pos)
 ;;  (star-debug "indent-cache: %s\n" star-indent-cache)
 
-  (star-init-operators)
-
   (let ((parse-state (star-deflt-state)) ; The parse-state just before POS
 	(parse-pos   1)			; The position of the above parse-state
 	(before      star-indent-cache)   ; All the parse-states before POS
@@ -291,7 +298,10 @@
 ;;	(star-debug "stack: %s" stack)
 	(let ((nxtok (star-next-tok limit)))
 	  (if nxtok
-	      (-let [(tktype op start end) nxtok]
+	      (let ((tktype (1st nxtok))
+		    (op (2nd nxtok))
+		    (start (3rd nxtok))
+		    (end (4th nxtok)))
 ;;		(star-debug "token: %s %s %s %s" tktype op start end)
 		(cond ((eq tktype 'term)
 		       (while (and stack
@@ -305,7 +315,6 @@
 		       (cond ((star-is-prefixop op)
 			      (if (star-is-at-bol start)
 				  (let* ((spec (star-is-prefixop op))
-					 (prior (1st spec))
 					 (rprior (2nd spec)))
 				    (setq stack (cons state stack)
 					  state (star-create-state
@@ -366,6 +375,8 @@
       (cons state stack))))
 
 ;; Manage indentation
+(defconst star-close-par "[])}]"
+  "Star close parentheses")
 
 (defun star-calculate-indent (pos)
   (save-excursion
@@ -444,15 +455,6 @@
 	  ))))
   (star-goto-first-non-whitespace-maybe))
 
-;;; look for a the first non-whitespace
-(defun star-indentation-level (pos)
-  "returns the indentation level of the current line"
-  (save-excursion
-    (goto-char pos)
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (current-column)))
-
 (defun star-goto-first-non-whitespace-maybe ()
   (let ((dest (save-excursion
 		(beginning-of-line)
@@ -473,3 +475,4 @@
 		  (eq (forward-line) 0)))
       (star-indent-line))))
 
+(provide 'star-indent)
