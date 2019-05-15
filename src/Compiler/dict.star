@@ -7,7 +7,7 @@ star.compiler.dict{
   import star.compiler.types.
 
   tpDef ::= tpVar(option[locn],tipe) |
-    tpDefn(option[locn],string,tipe,tipe).
+  tpDefn(option[locn],string,tipe,tipe).
 
   public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe,()=>tipe).
 
@@ -16,6 +16,7 @@ star.compiler.dict{
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,contractDefn],
     map[string,map[string,constraint]]).
+
   public dict ~> cons[scope].
 
   public declareType:(string,option[locn],tipe,dict) => dict.
@@ -36,7 +37,20 @@ star.compiler.dict{
   findImplementation([_,..Rest],Nm,INm) => findImplementation(Rest,Nm,INm).
   findImplementation([],_,_) => none.
 
-  public rootDict:dict.
-  rootDict = [scope([],[],[],[])].
+-- Standard types are predefined by the language
+  public stdDict:dict.
+  stdDict = [
+    scope(["integer"->tpDefn(none,"integer",
+	  tipe("star.core*integer"),
+	  tipe("star.core*integer")),
+	"float" -> tpDefn(none,"float",
+	  tipe("star.core*float"),tipe("star.core*float")),
+	"boolean" -> tpDefn(none,"boolean",
+	  tipe("star.core*boolean"),tipe("star.core*boolean")),
+	"list" -> tpDefn(none,"list",tpFun("star.core*list",1),
+	  allType(kVar("e"),
+	    typeExists(tpExp(tpFun("star.core*list",1),kVar("e")),
+	      faceType([],[]))))
+      ],[],[],[])].
 
 }

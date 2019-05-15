@@ -40,11 +40,14 @@ star.compiler.unify{
     sameType(T1,T2,updateEnv(V1,V2,Env)).
   smT(allType(V1,T1),allType(V2,T2),Env) =>
     sameType(T1,T2,updateEnv(V1,V2,Env)).
+  smT(conType(Nm,A1,D1),conType(Nm,A2,D2),Env) =>
+    smTypes(A1,A2,Env) && smTypes(D1,D2,Env).
   smT(_,_,_) default => false.
 
   smTypes([],[],_) => true.
   smTypes([E1,..L1],[E2,..L2],Env) =>
     sameType(E1,E2,Env) && smTypes(L1,L2,Env).
+  smTypes(_,_,_) default => false.
 
   smFields([],[],_) => true.
   smFields([(F1,T1),..FS1],[(F2,T2),..FS2],Env) =>
