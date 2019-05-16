@@ -69,11 +69,11 @@
   (if (string-match star-debug-regexp text from)
       (let* ((cmd (intern (match-string 1 text)))
 	     (file (match-string 2 text))
-	     (line (string-to-number (match-string 3 text)))
 	     (pos (string-to-number (match-string 4 text)))
 	     (len (string-to-number (match-string 5 text)))
 	     )
-	(list cmd file line pos len (match-end 0)))
+	(star-debug "command: %s file %s pos: %s - %s" cmd file pos len)
+	(list cmd file pos len (match-end 0)))
     nil)
   )
 
