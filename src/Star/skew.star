@@ -1,11 +1,13 @@
 star.skew{
   import star.
+  import star.iterable.
+  import star.monad.
 
   tree[a] ::= leaf(a) | node(a,tree[a],tree[a]).
 
   all a ~~ rlist[a] ~> cons[(integer,tree[a])].
 
-  public rl[a] ::= private rl(rlist[a]).
+  public sk[a] ::= private rl(rlist[a]).
 
   cns:all a ~~ (a,rlist[a]) => rlist[a].
   cns(x,ts where cons((w1,t1),cons((w2,t2),rest)).=ts) =>
@@ -51,7 +53,7 @@ star.skew{
 	node(x,updateTree(Ix-1,w2,v,t1),t2) ||
 	node(x,t1,updateTree(Ix-1-w2,w2,v,t2))).
 
-  public implementation all e ~~ head[rl[e]->>e] => {
+  public implementation all e ~~ head[sk[e]->>e] => {
     head(rl(nil)) => none.
     head(rl(ts)) => some(hed(ts)).
 
@@ -59,12 +61,12 @@ star.skew{
     tail(rl(ts)) => some(rl(tl(ts))).
   }
 
-  public implementation all e ~~ sequence[rl[e]->>e] => {
+  public implementation all e ~~ sequence[sk[e]->>e] => {
     _nil = rl(nil).
     _cons(E,rl(L)) => rl(cns(E,L)).
   }
 
-  public implementation all e ~~ indexed[rl[e]->>integer,e] => {
+  public implementation all e ~~ indexed[sk[e]->>integer,e] => {
     _index(rl(ts),Ix) => lookup(Ix,ts).
 
     _put(rl(ts),Ix,V) => rl(update(Ix,ts,V)).
@@ -88,27 +90,27 @@ star.skew{
   foldTRight(F,A,leaf(E)) => F(E,A).
   foldTRight(F,A,node(X,L,R)) => F(X,foldTRight(F,foldTRight(F,A,R),L)).
 
-  public implementation all e ~~ folding[rl[e]->>e] => {
+  public implementation all e ~~ folding[sk[e]->>e] => {
     foldLeft(F,U,rl(Ds)) => foldDLeft(F,U,Ds).
     foldRight(F,U,rl(Ds)) => foldDRight(F,U,Ds).
   }
 
-  public implementation all e ~~ reversible[rl[e]] => {
+  public implementation all e ~~ reversible[sk[e]] => {
     reverse(rl(L)) => rl(foldDLeft((So,E)=>cns(E,So),nil,L)).
   }
 
-  public implementation all e ~~ concat[rl[e]] => {
+  public implementation all e ~~ concat[sk[e]] => {
     rl(L)++rl(R) => rl(foldDRight((E,So)=>cns(E,So),R,L)).
   }
 
-  public implementation all e ~~ filter[rl[e]->>e] => {
+  public implementation all e ~~ filter[sk[e]->>e] => {
     rl(L)^/F => let{
       ff(E,So) where F(E) => [E,..So].
       ff(_,So) => So.
     } in foldDRight(ff,[],L)
   }
 
-  public implementation all e ~~ display[e] |: dump[rl[e]] => let{
+  public implementation all e ~~ display[e] |: dump[sk[e]] => let{
     dumpList:all a ~~ display[a] |: (rlist[a]) => ss.
     dumpList(nil) => ss("").
     dumpList(cons((w,x),ts)) =>
@@ -127,10 +129,10 @@ star.skew{
 	      ssPr(dumpTree(t2),
 		ss("}")))))).
   } in {
-    dump(rl(ts)) => ssPr(ss("rl["),ssPr(dumpList(ts),ss("]"))).
+    dump(rl(ts)) => ssPr(ss("sk["),ssPr(dumpList(ts),ss("]"))).
   }
 
-  public implementation all e ~~ display[e] |: display[rl[e]] => let{
+  public implementation all e ~~ display[e] |: display[sk[e]] => let{
     dispList:all a ~~ display[a] |: (rlist[a],cons[ss]) => cons[ss].
     dispList(nil,L) => L.
     dispList(cons((_,T),rs),L) => dispTree(T,dispList(rs,L)).
@@ -147,7 +149,7 @@ star.skew{
     disp(rl(L)) => ssPr(ss("["),ssPr(rollup(dispList(L,nil)),ss("]"))).
   }
 
-  public implementation all e ~~ equality[e] |: equality[rl[e]] => let{
+  public implementation all e ~~ equality[e] |: equality[sk[e]] => let{
     equalList(nil,nil) => true.
     equalList(cons((W1,T1),L1),cons((W2,T2),L2)) =>
       W1==W2 && equalTree(T1,T2) && equalList(L1,L2).
@@ -161,7 +163,7 @@ star.skew{
     rl(L1) == rl(L2) => equalList(L1,L2).
   }
 
-  public implementation all e ~~ sizeable[rl[e]] => {
+  public implementation all e ~~ sizeable[sk[e]] => {
     isEmpty(rl(nil)) => true.
     isEmpty(rl(_)) => false.
 
@@ -169,5 +171,21 @@ star.skew{
 
     countSizes(nil,Sz) => Sz.
     countSizes(cons((W,_),L),Sz) => countSizes(L,Sz+W).
+  }
+
+  public implementation all t ~~ iter[sk[t]->>t] => let{
+    iterList:all e,m/1,x ~~ execution[m->>e] |: (rlist[t],m[x],(t,x)=>m[x])=>m[x].
+    iterList(nil,St,_) => St.
+    iterList(cons((_,T),R),St,Fn) =>
+      _sequence(iterTree(T,St,Fn),(SS)=>iterList(R,_lift(SS),Fn)).
+
+    iterTree:all e,m/1,x ~~ execution[m->>e] |: (tree[t],m[x],(t,x)=>m[x])=>m[x].
+    iterTree(leaf(E),St,Fn) => _sequence(St,(SS)=>Fn(E,SS)).
+    iterTree(node(X,T1,T2),St,Fn) =>
+      iterTree(T2,
+	iterTree(T1,
+	  _sequence(St,(SS)=>Fn(X,SS)),Fn),Fn).
+  } in {
+    _iter(rl(L),St,Fn) => iterList(L,St,Fn).
   }
 }
