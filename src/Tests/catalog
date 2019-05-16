@@ -47,6 +47,7 @@
     "test.ra" : "ra.star",
     "test.record": "record.star",
     "test.ralist" : "ralist.star",
+    "test.rl" : "rl.star",
     "test.s": "s.star",
     "test.st": "st.star",
     "test.sy": "sy.star",
