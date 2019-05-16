@@ -7,13 +7,6 @@
 #include <arith.h>
 #include <labels.h>
 
-typedef struct _break_point_ {
-  BreakPtType bkType;
-  char nm[MAX_SYMB_LEN];
-  integer lineNo;
-  integer offset;
-} BreakPoint;
-
 static BreakPoint breakPoints[10];
 static int breakPointCount = 0;
 
@@ -256,31 +249,4 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
     }
   }
   return Error;
-}
-
-DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl) {
-  BreakPoint bp;
-  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
-  if (ret == Ok)
-    ret = isValidBreakPoint(&bp);
-  if (ret == Ok)
-    ret = addBreakPoint(&bp);
-  if (ret != Ok) {
-    outMsg(logFile, "Could not set spy point on %s\n", line);
-    outMsg(logFile, "usage: +pkg/Arity or +pkg:LineNo\n%_");
-  } else
-    outMsg(logFile, "%sspy point set on %s\n%_", bp.bkType == callBreak ? "call " : "line ", line);
-  return moreDebug;
-}
-
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl) {
-  BreakPoint bp;
-  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
-  if (ret == Ok)
-    ret = clearBreakPoint(&bp);
-  if (ret != Ok)
-    outMsg(logFile, "Could not clear spy point on %s\n%_", line);
-  else
-    outMsg(logFile, "spy point cleared on %s\n%_", line);
-  return moreDebug;
 }
