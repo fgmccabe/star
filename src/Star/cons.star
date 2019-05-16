@@ -117,13 +117,25 @@ star.cons{
     _iter(cons(H,T),St,Fn) => _sequence(St,(SS)=>_iter(T,Fn(H,SS),Fn)).
   }
 
-  public implementation all e ~~ display[e] |: display[cons[e]] => {.
-    disp(L) => consDisp(L).
-  .}
+  public implementation all e ~~ display[e] |: dump[cons[e]] => let{
+    consDump:all e ~~ display[e] |: (cons[e]) => ss.
+    consDump(nil) => ss(".").
+    consDump(cons(E,T)) => ssSeq([disp(E),ss(": "),consDump(T)]).
+  } in {
+    dump(L) => consDump(L).
+  }
 
-  consDisp:all e ~~ display[e] |: (cons[e]) => ss.
-  consDisp(nil) => ss(".").
-  consDisp(cons(E,T)) => ssSeq([disp(E),ss(": "),consDisp(T)]).
+  public implementation all e ~~ display[e] |: display[cons[e]] => let{
+    consDisp(nil) => ss("").
+    consDisp(cons(X,nil)) => disp(X).
+    consDisp(cons(X,R)) =>
+      ssPr(disp(X),
+	ssPr(ss(","),
+	  consDisp(R))).
+  } in {
+    disp(L) => ssPr(ss("["),
+      ssPr(consDisp(L),ss("]"))).
+  }
 
   public multicat : all e ~~ (cons[cons[e]]) => cons[e].
   multicat(nil) => nil.
