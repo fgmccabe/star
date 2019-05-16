@@ -46,7 +46,7 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   parseType(N,Env,Q,C0,C1,Op),
   parseTypes(Args,Env,Q,C1,C2,ArgTps),
   freshen(Op,Env,Qx,OOp),
-  applyTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,T),
+  doTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,T),
   reBind(Qx,Env,T,Tp).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
   isBinary(F,_,"=>",L,R),
@@ -110,27 +110,22 @@ parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,C,C,Tp) :-
   isType(Id,Env,tpDef(_,T,TpDf)),
-  (TpDf=typeLambda(tupleType([]),Tp);T=Tp).
+  (isTypeLam(TpDf) ->
+   freshen(TpDf,Env,_,TpL),
+   (TpL=typeLambda(tupleType([]),Tp) ; Tp = TpL);
+   Tp=T).
 parseTypeName(Lc,Id,_,_,C,C,anonType) :-
   reportError("type %s not declared",[Id],Lc).
 
-applyTypeFun(_,kFun(T,Ar),Args,_,Cx,Cx,Tp) :-
-  length(Args,Ar),!,
-  mkTypeExp(kFun(T,Ar),Args,Tp).
-applyTypeFun(_,tFun(T,B,Ar,Id),Args,_,Cx,Cx,Tp) :-
-  length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tFun(T,B,Ar,Id),Args,Tp).
-applyTypeFun(_,tpFun(T,Ar),Args,_,Cx,Cx,Tp) :-
-  length(Args,AAr),AAr=<Ar,!,
-  mkTypeExp(tpFun(T,Ar),Args,Tp).
-applyTypeFun(Lc,constrained(Tp,Ct),ArgTps,Env,C,Cx,ATp) :-
-  applyTypeFun(Lc,Tp,ArgTps,Env,[Ct|C],Cx,ATp),!.
-applyTypeFun(Lc,typeLambda(L,Tp),[A|ArgTps],Env,C,Cx,RTp) :-
-  sameType(L,A,Env),!,
-  applyTypeFun(Lc,Tp,ArgTps,Env,C,Cx,RTp).
-applyTypeFun(_,Tp,[],_,C,C,Tp).
-applyTypeFun(Lc,Op,ArgTps,_,Cx,Cx,voidType) :-
-  reportError("type %s not applicable to args %s",[Op,ArgTps],Lc).
+doTypeFun(_,typeLambda(tupleType([]),Tp),[],_,Cx,Cx,Tp) :-!. % special case
+doTypeFun(_,Op,[],_,Cx,Cx,Op).
+doTypeFun(Lc,typeLambda(L,R),[A|Args],Env,C,Cx,Tp) :-
+  sameType(L,A,Env),
+  doTypeFun(Lc,R,Args,Env,C,Cx,Tp).
+doTypeFun(Lc,constrained(CTp,Ct),Args,Env,C,Cx,Tp) :-
+  doTypeFun(Lc,CTp,Args,Env,[Ct|C],Cx,Tp).
+doTypeFun(Lc,Op,[A|Args],Env,C,Cx,Tp) :-
+  doTypeFun(Lc,tpExp(Op,A),Args,Env,C,Cx,Tp).
 
 bindAT([],_,Q,Q).
 bindAT(_,[],Q,Q).
@@ -321,8 +316,8 @@ parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   reQuant(Q,Rl,Rule),
   declareType(Nm,tpDef(Lc,Type,Rule),E,Ev).
 
-mkTypeLambda(tpExp(Op,A),Tp,typeLambda(A,RRTp)) :-
-  mkTypeLambda(Op,Tp,RRTp).
+mkTypeLambda(tpExp(Op,A),Tp,RRTp) :-
+  mkTypeLambda(Op,typeLambda(A,Tp),RRTp).
 mkTypeLambda(tpFun(_,_),Tp,Tp).
 mkTypeLambda(type(_),Tp,typeLambda(tupleType([]),Tp)).
 
