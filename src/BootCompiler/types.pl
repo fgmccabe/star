@@ -295,8 +295,8 @@ isTpExp(tpExp(O,A),Op,Args,Ax) :-
 isTpExp(Op,Op,Args,Args).
 
 mkTypeExp(Op,[],Op).
-mkTypeExp(Op,[A|Ar],Tp) :-
-  mkTypeExp(tpExp(Op,A),Ar,Tp).
+mkTypeExp(Op,[A|Args],Tp) :-
+  mkTypeExp(tpExp(Op,A),Args,Tp).
 
 implementationName(conTract(Nm,Args,_),INm) :-
   appStr(Nm,S0,S1),
