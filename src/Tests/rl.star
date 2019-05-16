@@ -1,8 +1,8 @@
-test.ra{
+test.rl{
   import star.
-  import test.ralist.
+  import star.skew.
 
-  T:ra[string].
+  T:rl[string].
   T = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
   show dump(T).
@@ -22,7 +22,10 @@ test.ra{
   SS = ["zero",..T].
   show dump(SS).
 
-  rev:all e ~~ (ra[e])=>ra[e].
+  show disp(SS).
+
+/*
+  rev:all e ~~ (rl[e])=>rl[e].
   rev(Tt) => foldLeft((So,E)=>[E,..So],[],Tt).
 
   show dump(rev(SS)).
@@ -32,6 +35,5 @@ test.ra{
   show dump(SS++T).
 
   show dump(SS^/((Nm)=>size(Nm)<5)).
-
-  show disp(SS).
+*/
 }
