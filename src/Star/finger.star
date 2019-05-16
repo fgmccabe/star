@@ -15,9 +15,9 @@ star.finger{
     private single(a) |
     private deep(digit[a],fingerTree[node[a]],digit[a]).
 
-  all a ~~ digit[a] ::= one(a) | two(a,a) | three(a,a,a) | four(a,a,a,a).
+  digit[a] ::= one(a) | two(a,a) | three(a,a,a) | four(a,a,a,a).
 
-  all a ~~ node[a] ::= node2(a,a) | node3(a,a,a).
+  node[a] ::= node2(a,a) | node3(a,a,a).
 
   implementation all e ~~ reduce[node[e]->>e] => {
     reducer = reducerNode.
@@ -166,7 +166,7 @@ star.finger{
 
     iterOverFinger:all x,m/1,er ~~ execution[m->>er] |:
       (fingerTree[e],m[x],(e,x)=>m[x]) => m[x].
-    iterOverFinger(eTree_,St,_) => St.
+    iterOverFinger(eTree,St,_) => St.
     iterOverFinger(Tr,St,Fn) where 
 	consl(El,tl) .= viewl(Tr) =>
       _sequence(St,(SS)=>iterOverFinger(tl,Fn(El,SS),Fn)).
