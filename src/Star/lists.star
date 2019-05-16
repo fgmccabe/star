@@ -85,7 +85,6 @@ star.lists{
   contains(X,[_,..L]) => contains(X,L).
   contains(_,_) default => false.
 
-
   public implementation all x ~~ head[list[x]->>x] => {
     head(X) where \+_list_empty(X) => some(_list_nth(X,0)).
     head(_) => none.

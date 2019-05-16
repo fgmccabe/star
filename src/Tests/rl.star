@@ -2,7 +2,7 @@ test.rl{
   import star.
   import star.skew.
 
-  T:rl[string].
+  T:sk[string].
   T = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
   show dump(T).
@@ -24,8 +24,7 @@ test.rl{
 
   show disp(SS).
 
-/*
-  rev:all e ~~ (rl[e])=>rl[e].
+  rev:all e ~~ (sk[e])=>sk[e].
   rev(Tt) => foldLeft((So,E)=>[E,..So],[],Tt).
 
   show dump(rev(SS)).
@@ -35,5 +34,20 @@ test.rl{
   show dump(SS++T).
 
   show dump(SS^/((Nm)=>size(Nm)<5)).
-*/
+
+  assert rev(rev(SS))==SS.
+
+  _main:(list[string]) => ().
+  _main([]) =>
+    valof do {
+      XX := SS;
+
+      XX[5] := "alpha";
+      logMsg("XX=$(XX!)");
+
+      for El in (XX!) do{
+	logMsg("El: $(El)")
+      }
+    }.
+  
 }
