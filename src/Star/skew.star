@@ -94,11 +94,11 @@ star.skew{
   }
 
   public implementation all e ~~ reversible[rl[e]] => {
-    reverse(rl(L)) => foldDLeft((So,E)=>[E,..So],[],L).
+    reverse(rl(L)) => rl(foldDLeft((So,E)=>cns(E,So),nil,L)).
   }
 
   public implementation all e ~~ concat[rl[e]] => {
-    rl(L)++R => foldDRight((E,So)=>[E,..So],R,L).
+    rl(L)++rl(R) => rl(foldDRight((E,So)=>cns(E,So),R,L)).
   }
 
   public implementation all e ~~ filter[rl[e]->>e] => {
