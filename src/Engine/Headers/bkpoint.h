@@ -12,7 +12,12 @@ typedef enum {
   callBreak
 } BreakPtType;
 
-typedef struct _break_point_ *breakPointPo;
+typedef struct _break_point_ {
+  BreakPtType bkType;
+  char nm[MAX_SYMB_LEN];
+  integer lineNo;
+  integer offset;
+} BreakPoint, *breakPointPo;
 
 retCode addBreakPoint(breakPointPo bp);
 retCode isValidBreakPoint(breakPointPo b);
@@ -23,8 +28,5 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
 logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
 logical breakPointInUse(breakPointPo b);
 void markBpOutOfUse(breakPointPo b);
-
-DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl);
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl);
 
 #endif //STAR_BKPOINT_H

@@ -591,6 +591,34 @@ static DebugWaitFor dbgSymbolDebug(char *line, processPo p, insWord ins, void *c
   return stepInto;
 }
 
+static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl) {
+  BreakPoint bp;
+  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
+  if (ret == Ok)
+    ret = isValidBreakPoint(&bp);
+  if (ret == Ok)
+    ret = addBreakPoint(&bp);
+  if (ret != Ok) {
+    outMsg(debugOutChnnl, "Could not set spy point on %s\n", line);
+    outMsg(debugOutChnnl, "usage: +pkg/Arity or +pkg:LineNo\n%_");
+  } else
+    outMsg(debugOutChnnl, "%sspy point set on %s\n%_", bp.bkType == callBreak ? "call " : "line ", line);
+  return moreDebug;
+}
+
+DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl) {
+  BreakPoint bp;
+  retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
+  if (ret == Ok)
+    ret = clearBreakPoint(&bp);
+  if (ret != Ok)
+    outMsg(debugOutChnnl, "Could not clear spy point on %s\n%_", line);
+  else
+    outMsg(debugOutChnnl, "spy point cleared on %s\n%_", line);
+  return moreDebug;
+}
+
+
 static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl) {
   integer count = cmdCount(line, 0);
 
