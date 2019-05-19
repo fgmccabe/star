@@ -40,8 +40,8 @@ star.compiler.unify{
     sameType(T1,T2,updateEnv(V1,V2,Env)).
   smT(allType(V1,T1),allType(V2,T2),Env) =>
     sameType(T1,T2,updateEnv(V1,V2,Env)).
-  smT(conType(Nm,A1,D1),conType(Nm,A2,D2),Env) =>
-    smTypes(A1,A2,Env) && smTypes(D1,D2,Env).
+  smT(depType(A1,D1),depType(A2,D2),Env) =>
+    smT(A1,A2,Env) && smTypes(D1,D2,Env).
   smT(_,_,_) default => false.
 
   smTypes([],[],_) => true.
@@ -114,10 +114,10 @@ star.compiler.unify{
   checkConstraints([C,..Rest],Env) =>
     checkConstraint(C,Env) && checkConstraints(Rest,Env).
 
-  checkConstraint(conConstraint(Nm,Args,Deps),Env) where
-      INm.=implementationName(conConstraint(Nm,Args,Deps)) &&
-  Im ^= findImplementation(Env,Nm,INm) =>
-    sameType(typeOf(conConstraint(Nm,Args,Deps)),typeOf(Im),Env).
+  checkConstraint(typeConstraint(Tp),Env) where
+      INm.=implementationName(Tp) &&
+      Im ^= findImplementation(Env,typeName(Tp),INm) =>
+    sameType(Tp,typeOf(Im),Env).
   checkConstraint(fieldConstraint(T,F),Env) where
       Face ^= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
   checkConstraint(_,_) default => false.
@@ -136,13 +136,13 @@ star.compiler.unify{
   mergeConstraint:(constraint,list[constraint],list[constraint],dict) =>
     option[list[constraint]].
   mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
-  mergeConstraint(conConstraint(Nm,A,D),[conConstraint(Nm,A1,D1),.._],Cs,Env) =>
-    (sameContract(conConstraint(Nm,A,D),conConstraint(Nm,A1,D1),Env) ? some(Cs) || none).
+  mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
+    (sameType(Tp,Tp1,Env) ? some(Cs) || none).
   -- TODO: handle merging implementsFace more gracefully
   mergeConstraint(C,[_,..R],Cs,Env) => mergeConstraint(C,R,Cs,Env).
 
-  sameContract(conConstraint(Nm,A,D),conConstraint(Nm,A1,D1),Env) =>
-    smTypes(A,A1,Env) && smTypes(D,D1,Env).
+  sameContract(typeConstraint(Tp1),typeConstraint(Tp2),Env) =>
+    smT(Tp1,Tp2,Env).
   sameContract(_,_,_) default => false.
 
   subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
