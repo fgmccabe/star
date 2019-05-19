@@ -48,7 +48,6 @@ def main(argv):
         elif opt=="--testdir":
             testDir = arg
             
-
     print "Run tests on ",pkgs
     for pkg in pkgs:
         print "Testing:",pkg
