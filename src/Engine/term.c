@@ -162,12 +162,19 @@ normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
   return tpl;
 }
 
-termPo getField(normalPo term,labelPo field){
-  integer offset = fieldOffset(term->lbl,field);
-  return nthArg(term,offset);
+termPo getField(normalPo term, labelPo field) {
+  integer offset = fieldOffset(term->lbl, field);
+  if (offset >= 0)
+    return nthArg(term, offset);
+  else
+    return Null;
 }
 
-void setField(normalPo term,labelPo field,termPo val){
-  integer offset = fieldOffset(term->lbl,field);
-  setArg(term,offset,val);
+retCode setField(normalPo term, labelPo field, termPo val) {
+  integer offset = fieldOffset(term->lbl, field);
+  if(offset>=0) {
+    setArg(term, offset, val);
+    return Ok;
+  } else
+    return Error;
 }
