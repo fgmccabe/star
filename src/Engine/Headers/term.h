@@ -18,14 +18,19 @@ typedef struct term_record **ptrPo, *termPo;      /* pointer to a structured val
 
 typedef struct class_record *clssPo;
 
-extern clssPo labelClass, normalClass;
+extern clssPo labelClass, normalClass, classClass;
+
+typedef termPo (*gcWalkPo)(clssPo clss,termPo term,void *cl);
 
 typedef struct term_record {
   clssPo clss;
 } TermRecord;
 
 typedef struct class_record {
-  clssPo clss;
+  clssPo clss; // == classClass
+  gcWalkPo gcMark;
+  gcWalkPo gcScan;
+
 } ClassRecord;
 
 extern normalPo C_TERM(termPo t);
@@ -48,7 +53,7 @@ extern termPo nthArg(normalPo term, integer ix);
 extern void setArg(normalPo term, integer ix, termPo arg);
 
 extern termPo getField(normalPo term,labelPo field);
-extern void setField(normalPo term,labelPo field,termPo arg);
+extern retCode setField(normalPo term, labelPo field, termPo val);
 
 extern termPo falseEnum;
 extern termPo trueEnum;
