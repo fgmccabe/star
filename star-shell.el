@@ -23,7 +23,7 @@
       (define-key map "\t" 'completion-at-point)
       map)))
 
-(defun run-star (arg)
+(defun star-run (arg)
   "Run in a shell"
   (interactive "sRun with argument: ")
   (let* ((buffer (comint-check-proc "Star"))
@@ -151,3 +151,5 @@
   )
 
 (add-hook 'star-shell-mode-hook 'star-shell-initialize)
+
+(provide 'star-shell)

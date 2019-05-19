@@ -120,7 +120,7 @@
 
 ;; Normal compilation
 (defun star-compile (repo pkg dir)
-  (let* ((compile-buffer (generate-new-buffer "*star-compiler-output*")))
+  (let* ((compile-buffer (generate-new-buffer "*star-compile-on-save*")))
     (star-debug "starting star compile %s"
 		`(,star-compiler "-r" ,repo "-w" ,dir ,@star-compiler-flags "--" ,pkg))
     (make-process
@@ -129,11 +129,13 @@
      :command `(,star-compiler "-r" ,repo "-w" ,dir ,@star-compiler-flags "--" ,pkg)
      :sentinel
      (lambda (proc event)
-       (star-debug "event %s from compiling %s" event pkg)
-       (when (eq 'exit (process-status proc))
-         (kill-buffer (process-buffer proc))
-	 (message "%s compiling %s" (string-trim event) pkg)))
-    )
+       (let ((proc-status (process-status proc)))
+	 (star-debug "event %s/%s from compiling %s" event proc-status pkg)
+	 (when (or (eq 'exit proc-status) (eq 'closed proc-status))
+           (kill-buffer (process-buffer proc))
+	   (message "%s compiling %s" (string-trim event) pkg)))
+       )
+     )
     )
   )
 
