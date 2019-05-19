@@ -17,6 +17,7 @@
 #define TRACESTATS
 #define TRACEVERIFY
 #define TRACELOCK
+#define TRACE_DBG
 #endif
 
 #define STAR_MAIN "STAR_MAIN"
