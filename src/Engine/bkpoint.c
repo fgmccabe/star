@@ -186,16 +186,15 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
         }
       }
       case '/': {
-        switch (pState) {
-          case inNme:
-            appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
-            pState = inArity;
-            bkType = callBreak;
-            line = offset = 0;
-            continue;
-          default:
-            outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
-            return Error;
+        if (pState == inNme) {
+          appendCodePoint(bp->nm, &b, NumberOf(bp->nm), 0);
+          pState = inArity;
+          bkType = callBreak;
+          line = offset = 0;
+          continue;
+        } else {
+          outMsg(logFile, "invalid break point: %S\n", buffer, bLen);
+          return Error;
         }
       }
       case ' ':

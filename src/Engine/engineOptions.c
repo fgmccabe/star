@@ -117,7 +117,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 #endif
 
       case 'u':    /*  debug the debugger */
-#ifdef TRACEEXEC
+#ifdef TRACE_DBG
         debugDebugging = True;
         continue;
 #else

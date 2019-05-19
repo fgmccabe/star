@@ -981,10 +981,12 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
 
   logical stopping = shouldWeStop(p, ins, ln);
 
-//  if (debugDebugging) {
-//    logMsg(logFile, "traceCount=%d, traceDepth=%d, stopping=%s, tracing=%s", p->traceCount, p->traceDepth,
-//           (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
-//  }
+#ifdef TRACE_DBG
+  if (debugDebugging) {
+    logMsg(logFile, "traceCount=%d, traceDepth=%d, stopping=%s, tracing=%s", p->traceCount, p->traceDepth,
+           (stopping ? "yes" : "no"), (p->tracing ? "yes" : "no"));
+  }
+#endif
   if (p->tracing || stopping) {
     if (ln != Null)
       show(debugOutChnnl, mtd, pc, ln, fp, sp);
