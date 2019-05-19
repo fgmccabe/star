@@ -64,7 +64,7 @@ labelPo findLbl(const char *name, integer arity) {
   return hashGet(labels, &tst);
 }
 
-labelPo findLbls(const char *name){
+labelPo findLbls(const char *name) {
   return Null;
 }
 
@@ -177,8 +177,8 @@ retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl) {
   if (alt) {
     integer hashOff = uniLastIndexOf(lbl->name, lblLen, (codePoint) '#');
 
-    if (hashOff > 0)
-      return outMsg(out, "…%S", &lbl->name[hashOff], lblLen - hashOff);
+    if (hashOff > 0 && hashOff < lblLen - 1)
+      return outMsg(out, "…%S", &lbl->name[hashOff + 1], lblLen - hashOff - 1);
     else if (lblLen > prec) {
       integer half = prec / 2;
       integer hwp = backCodePoint(lbl->name, lblLen, half);
