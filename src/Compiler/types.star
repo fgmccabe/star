@@ -23,10 +23,10 @@ star.compiler.types{
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
     constrainedType(tipe,constraint) |
-    conType(string,list[tipe],list[tipe]).
+    depType(tipe,list[tipe]).
 
   public constraint ::=
-    conConstraint(string,list[tipe],list[tipe]) |
+    typeConstraint(tipe) |
     fieldConstraint(tipe,tipe).
 
   tv ::= tv{
@@ -130,8 +130,8 @@ star.compiler.types{
     identType(V1,V2,Q) && identType(T1,T2,Q).
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
-  identType(conType(Nm,A1,D1),conType(Nm,A2,D2),Q) =>
-    identTypes(A1,A2,Q) && identTypes(D1,D2,Q).
+  identType(depType(T1,D1),depType(T2,D2),Q) =>
+    identType(T1,T2,Q) && identTypes(D1,D2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
     identType(T1,T2,Q).
   identType(_,_,_) default => false.
@@ -150,40 +150,9 @@ star.compiler.types{
   } in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {.
-    conConstraint(Nm,A1,D1) == conConstraint(Nm,A2,D2) => A1==A2 && D1==D2.
+    typeConstraint(T1) == typeConstraint(T2) => T1==T2.
     fieldConstraint(V1,T1) == fieldConstraint(V2,T2) => V1==V2 && T1==T2.
     _ == _ default => false.
-  .}
-
-  -- in general, hashing types is not reliable because of unification
-  public implementation hash[tipe] => let {
-    hsh(voidType) => 0.
-    hsh(thisType) => -1.
-    hsh(kVar(Nm)) => hash(Nm).
-    hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
-    hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
-    hsh(tFun(_,Ar,Nm)) => (hash("F")+Ar)*37+hash(Nm).
-    hsh(tipe(Nm)) => hash(Nm).
-    hsh(tpFun(Nm,Ar)) => Ar*37+hash(Nm).
-    hsh(tpExp(O,A)) => hsh(deRef(O))*37+hsh(deRef(A)).
-    hsh(tupleType(Els)) => hshEls((hash("()")*37+size(Els))*37,Els).
-    hsh(faceType(Els,Tps)) =>
-      hshFields(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
-    hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
-    hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
-    hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
-    hsh(conType(Nm,A,D)) => hshEls(hshEls(hash(Nm),A),D).
-
-    hshCon(conConstraint(Nm,Args,_)) =>
-      hshEls(hash("contract")*37+hash(Nm),Args).
-    hshCon(fieldConstraint(V,T)) =>
-      (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
-
-    hshEls(H,Els) => foldLeft((Hx,El)=>Hx*37+hsh(deRef(El)),H,Els).
-
-    hshFields(H,Els) => foldLeft((Hx,(Nm,Tp))=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
-  } in {.
-    hash(Tp) => hsh(deRef(Tp)).
   .}
 
   public implementation display[tipe] => {.
@@ -208,7 +177,7 @@ star.compiler.types{
     ssSeq([showType(A,Sh,Dp-1),ss("<=>"),showType(R,Sh,Dp-1)]).
   shTipe(tpExp(tpFun("ref",1),A),Sh,Dp) =>
     ssSeq([ss("ref "),showType(A,Sh,Dp-1)]).
-  shTipe(tpExp(F,A),Sh,Dp) => ssSeq([showTpExp(F,A,Sh,Dp),ss("]")]).
+  shTipe(tpExp(F,A),Sh,Dp) => shTpExp(F,ssSeq([shTipe(A,Sh,Dp-1),ss("]")]),Sh,Dp-1).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
   shTipe(allType(A,T),Sh,Dp) =>
     ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
@@ -222,9 +191,8 @@ star.compiler.types{
     ssSeq([showType(A,Sh,Dp),ss("<~"),showType(T,Sh,Dp)]).
   shTipe(constrainedType(T,C),Sh,Dp) =>
     ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
-  shTipe(conType(Nm,Args,Deps),Sh,Dp) =>
-    ssSeq([disp(Nm),ss("["),showTypes(Args,Sh,Dp),
-	ss("->>"),showTypes(Deps,Sh,Dp),ss("]")]).
+  shTipe(depType(Tp,Deps),Sh,Dp) =>
+    shTpExp(Tp,ssSeq([ss("->>"),ssSeq(showEls(Deps,Sh,Dp-1,"")),ss("]")]),Sh,Dp-1).
   
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
@@ -237,12 +205,12 @@ star.compiler.types{
     ssSeq(interleave([ssSeq([ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Els] ++
                [ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps],ss(". "))).
 
-  showTpExp:(tipe,tipe,boolean,integer) => ss.
-  showTpExp(tpExp(T,A),B,Sh,Dp) => ssSeq([showTpExp(deRef(T),A,Sh,Dp),ss(","),showType(B,Sh,Dp)]).
-  showTpExp(tpFun(Nm,_),B,Sh,Dp) => ssSeq([ss(Nm),ss("["),showType(B,Sh,Dp)]).
-  showTpExp(kFun(Nm,_),B,Sh,Dp) => ssSeq([ss(Nm),ss("["),showType(B,Sh,Dp)]).
-  showTpExp(tFun(_,_,Nm),B,Sh,Dp) => ssSeq([ss(Nm),ss("["),showType(B,Sh,Dp)]).
-  showTpExp(T,B,Sh,Dp) => ssSeq([showType(T,Sh,Dp),ss("["),showType(B,Sh,Dp)]).
+  shTpExp:(tipe,ss,boolean,integer) => ss.
+  shTpExp(tpExp(T,A),R,Sh,Dp) => shTpExp(T,ssSeq([shTipe(A,Sh,Dp),ss(","),R]),Sh,Dp).
+  shTpExp(tpFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
+  shTpExp(kFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
+  shTpExp(tFun(_,_,Nm),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
+  shTpExp(T,R,Sh,Dp) => ssSeq([shTipe(T,Sh,Dp),ss("["),R]).
 
   showAllConstraints([],Dp) => ss("").
   showAllConstraints([C,..Cs],Dp) => ssSeq([showConstraint(C,Dp),..showMoreConstraints(Cs,Dp)]).
@@ -255,43 +223,107 @@ star.compiler.types{
 
   showBound(V,Dp) => showType(V,false,Dp).
 
-  showConstraint(conConstraint(Nm,Args,[]),Dp) =>
-    ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("]")]).
-  showConstraint(conConstraint(Nm,Args,Deps),Dp) =>
-    ssSeq([disp(Nm),ss("["),showTypes(Args,false,Dp),ss("->>"),showTypes(Deps,false,Dp),ss("]")]).
+  showConstraint(typeConstraint(Tp),Dp) => shTipe(Tp,false,Dp).
   showConstraint(fieldConstraint(Tp,Fc),Dp) =>
     ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
+
+  -- in general, hashing types is not reliable because of unification
+  public implementation hash[tipe] => let {
+    hsh(voidType) => 0.
+    hsh(thisType) => -1.
+    hsh(kVar(Nm)) => hash(Nm).
+    hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
+    hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
+    hsh(tFun(_,Ar,Nm)) => (hash("F")+Ar)*37+hash(Nm).
+    hsh(tipe(Nm)) => hash(Nm).
+    hsh(tpFun(Nm,Ar)) => Ar*37+hash(Nm).
+    hsh(tpExp(O,A)) => hsh(deRef(O))*37+hsh(deRef(A)).
+    hsh(tupleType(Els)) => hshEls((hash("()")*37+size(Els))*37,Els).
+    hsh(faceType(Els,Tps)) =>
+      hshFields(hshFields(hash("{}")*37+size(Els)+size(Tps),Els),Tps).
+    hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+    hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+    hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
+    hsh(depType(A,D)) => hshEls(hash(A),D).
+
+    hshCon(typeConstraint(Tp)) => hsh(deRef(Tp)).
+    hshCon(fieldConstraint(V,T)) =>
+      (hash("<~")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
+
+    hshEls(H,Els) => foldLeft((Hx,El)=>Hx*37+hsh(deRef(El)),H,Els).
+
+    hshFields(H,Els) => foldLeft((Hx,(Nm,Tp))=>(Hx*37+hash(Nm))*37+hsh(deRef(Tp)),H,Els).
+  } in {.
+    hash(Tp) => hsh(deRef(Tp)).
+  .}
 
   public contract all c ~~ hasType[c] ::= {
     typeOf:(c)=>tipe.
   }
 
-  public implementationName:(constraint) => string.
-  implementationName(conConstraint(Nm,Args,_)) => Nm++surfaceNames(Args).
+  public typeName:(tipe)=>string.
+  typeName(Tp) => let{
+    tpName(tipe(Nm)) => Nm.
+    tpName(tpExp(O,A)) => tpName(deRef(O)).
+    tpName(kVar(Nm)) => Nm.
+    tpName(kFun(Nm,_)) => Nm.
+    tpName(tpFun(Nm,_)) => Nm.
+    tpName(kVar(Nm)) => Nm.
+    tpName(tVar(_,_)) => "_".
+    tpName(tFun(_,_,_)) => "!_".
+    tpName(allType(_,T)) => tpName(deRef(T)).
+    tpName(existType(_,T)) => tpName(deRef(T)).
+    tpName(constrainedType(T,_)) => tpName(deRef(T)).
+    tpName(typeLambda(_,T)) => tpName(deRef(T)).
+    tpName(tupleType(A)) => "!()$(size(A))".
+    tpName(depType(T,_)) => tpName(T).
+  } in tpName(Tp).
 
-  surfaceNames(Tps) =>
-    _str_multicat(flatten(Tps//((T)=>surfaceName(deRef(T))))).
-
-  surfaceName(tipe(Nm)) => ["!",Nm].
-  surfaceName(tpExp(O,_)) => surfaceName(deRef(O)).
-  surfaceName(kVar(Nm)) => ["!",Nm].
-  surfaceName(kFun(Nm,_)) => ["!",Nm].
-  surfaceName(tpFun(Nm,_)) => ["!",Nm].
-  surfaceName(kVar(Nm)) => ["!",Nm].
-  surfaceName(tVar(_,_)) => ["!_"].
-  surfaceName(tFun(_,_,_)) => ["!_"].
-  surfaceName(allType(_,T)) => surfaceName(deRef(T)).
-  surfaceName(existType(_,T)) => surfaceName(deRef(T)).
-  surfaceName(constrainedType(T,_)) => surfaceName(deRef(T)).
-  surfaceName(typeLambda(_,T)) => surfaceName(deRef(T)).
-  surfaceName(tupleType(A)) => ["!()$(size(A))"].
-  surfaceName(conType(Nm,_,_)) => [Nm].
+  public implementationName:(tipe) => string.
+  implementationName(Tp) => let{
+    surfaceName:(tipe,list[string])=>list[string].
+    surfaceName(tipe(Nm),R) => ["!",Nm,..R].
+    surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(A,R)).
+    surfaceName(kVar(Nm),R) => ["!",Nm].
+    surfaceName(kFun(Nm,_),R) => ["!",Nm].
+    surfaceName(tpFun(Nm,_),R) => ["!",Nm].
+    surfaceName(kVar(Nm),R) => ["!",Nm].
+    surfaceName(tVar(_,_),R) => ["!_"].
+    surfaceName(tFun(_,_,_),R) => ["!_"].
+    surfaceName(allType(_,T),R) => surfaceName(deRef(T),R).
+    surfaceName(existType(_,T),R) => surfaceName(deRef(T),R).
+    surfaceName(constrainedType(T,_),R) => surfaceName(deRef(T),R).
+    surfaceName(typeLambda(_,T),R) => surfaceName(deRef(T),R).
+    surfaceName(tupleType(A),R) => ["!()$(size(A))"].
+    surfaceName(depType(T,_),R) => surfaceName(T,R).
+    
+    surfaceNm(tipe(Nm),R) => ["!",Nm,..R].
+    surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
+    surfaceNm(kVar(Nm),R) => ["!",Nm,..R].
+    surfaceNm(kFun(Nm,_),R) => ["!",Nm,..R].
+    surfaceNm(tpFun(Nm,_),R) => ["!",Nm,..R].
+    surfaceNm(kVar(Nm),R) => ["!",Nm,..R].
+    surfaceNm(tVar(_,_),R) => ["!_",..R].
+    surfaceNm(tFun(_,_,_),R) => ["!_",..R].
+    surfaceNm(allType(_,T),R) => surfaceNm(deRef(T),R).
+    surfaceNm(existType(_,T),R) => surfaceNm(deRef(T),R).
+    surfaceNm(constrainedType(T,_),R) => surfaceNm(deRef(T),R).
+    surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
+    surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
+    surfaceNm(depType(Tp,_),R) => surfaceNm(Tp,R).
+  } in  _str_multicat(surfaceName(deRef(Tp),[])).
 
   public implementation hasType[constraint] => {.
-    typeOf(conConstraint(Nm,Args,Deps)) =>
-      mkTypeExp(tpFun(Nm,size(Args)+size(Deps)),Args++Deps).
+    typeOf(typeConstraint(Tp)) => Tp.
   .}
 
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
+
+  public funType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
+
+  public intType = tipe("star.core*integer").
+  public strType = tipe("star.core*string").
+  public boolType = tipe("star.core*boolean").
+  public lstType(Tp) => tpExp(tpFun("star.core*list",1),Tp).
 }

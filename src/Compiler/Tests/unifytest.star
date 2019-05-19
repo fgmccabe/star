@@ -14,11 +14,11 @@ test.comp.unify{
 
   T2 = funType(tupleType([tipe("integer"),tpExp(tpFun("cons",1),tipe("string"))]),tipe("integer")).
 
-  T1F = freshen(T1,[],rootDict).
+  T1F = freshen(T1,[],stdDict).
   T1V = fst(T1F).
   T1T = snd(T1F).
 
-  assert sameType(T1T,T2,rootDict) && _.= _logmsg(disp(T1T)::string).
+  assert sameType(T1T,T2,stdDict) && _.= _logmsg(disp(T1T)::string).
 
   CT1 = allType(kVar("a"),allType(kVar("b"),allType(kVar("c"),
 	funType(tupleType([
@@ -28,14 +28,14 @@ test.comp.unify{
 
   IT1 = allType(kVar("x"),funType(tupleType([kVar("x")]),kVar("x"))).
 
-  CT1F = freshen(CT1,[],rootDict).
-  ITF = freshen(IT1,[],rootDict).
+  CT1F = freshen(CT1,[],stdDict).
+  ITF = freshen(IT1,[],stdDict).
   DT = funType(tupleType([tipe("integer")]),tipe("integer")).
 
   assert V1.=newTypeVar("_") &&
-  sameType(funType(tupleType([DT,snd(ITF)]),V1),snd(CT1F),rootDict) &&
+  sameType(funType(tupleType([DT,snd(ITF)]),V1),snd(CT1F),stdDict) &&
   _ .= _logmsg(disp(V1)::string). 
-  assert \+ sameType(tipe("integer"),funType(tupleType([]),tipe("string")),rootDict).
+  assert \+ sameType(tipe("integer"),funType(tupleType([]),tipe("string")),stdDict).
 
   
   

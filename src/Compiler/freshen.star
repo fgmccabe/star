@@ -53,19 +53,18 @@ star.compiler.freshen{
   frshn(tpExp(O,A),Ex,Env) => tpExp(rewrite(O,Ex,Env),rewrite(A,Ex,Env)).
   frshn(tupleType(Els),Ex,Env) => tupleType(frshnList(Els,Ex,Env)).
   frshn(faceType(Els,Tps),Ex,Env) => faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Ex,Env))),Tps//(((Nm,E))=>(Nm,rewrite(E,Ex,Env)))).
-  frshn(conType(Nm,A,D),Ex,Env) => conType(Nm,frshnList(A,Ex,Env),frshnList(D,Ex,Env)).
+  frshn(depType(A,D),Ex,Env) => depType(frshn(A,Ex,Env),frshnList(D,Ex,Env)).
   frshn(allType(K,T),Ex,Env) => allType(K,rewrite(T,_addMem(K,Ex),Env)).
   frshn(existType(K,T),Ex,Env) => existType(K,rewrite(T,_addMem(K,Ex),Env)).
   frshn(typeLambda(H,T),Ex,Env) => typeLambda(rewrite(H,Ex,Env),rewrite(T,Ex,Env)).
   frshn(typeExists(H,T),Ex,Env) => typeExists(rewrite(H,Ex,Env),rewrite(T,Ex,Env)).
   frshn(constrainedType(T,C),Ex,Env) => constrainedType(rewrite(T,Ex,Env),frshnConstraint(C,Ex,Env)).
 
-  frshnList:(list[ast],set[tipe],dict) => list[tipe].
-  frshnList(As,Ex,Env) => Ass//((E)=>rewrite(E,Ex,Env)).
+  frshnList:(list[tipe],set[tipe],dict) => list[tipe].
+  frshnList(As,Ex,Env) => As//((E)=>rewrite(E,Ex,Env)).
   rewrite(Tp,Ex,Env) => frshn(deRef(Tp),Ex,Env).
 
-  frshnConstraint(conConstraint(Nm,Args,Deps),Ex,Env) =>
-    conConstraint(Nm,Args//((E)=>rewrite(E,Ex,Env)),Deps//((E)=>rewrite(E,Ex,Env))).
+  frshnConstraint(typeConstraint(Tp),Ex,Env) => typeConstraint(rewrite(Tp,Ex,Env)).
   frshnConstraint(fieldConstraint(T,I),Ex,Env) => fieldConstraint(rewrite(T,Ex,Env),rewrite(I,Ex,Env)).
 
   public freshenContractDefn:(contractDefn,set[tipe],dict) => (cons[(string,tipe)],constraint,tipe).

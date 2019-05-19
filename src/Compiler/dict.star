@@ -6,12 +6,11 @@ star.compiler.dict{
   import star.compiler.location.
   import star.compiler.types.
 
-  tpDef ::= tpVar(option[locn],tipe) |
-  tpDefn(option[locn],string,tipe,tipe).
+  tpDef ::= tpVar(option[locn],tipe) | tpDefn(option[locn],string,tipe,tipe).
 
   public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe,()=>tipe).
 
-  public contractDefn ::= conDfn(option[locn],string,list[tipe],list[tipe],list[tipe],tipe).
+  public contractDefn ::= conDfn(option[locn],string,tipe,tipe).
 
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,contractDefn],
@@ -47,6 +46,8 @@ star.compiler.dict{
 	  tipe("star.core*float"),tipe("star.core*float")),
 	"boolean" -> tpDefn(none,"boolean",
 	  tipe("star.core*boolean"),tipe("star.core*boolean")),
+	"string" -> tpDefn(none,"string",
+	  tipe("star.core*string"),tipe("star.core*string")),
 	"list" -> tpDefn(none,"list",tpFun("star.core*list",1),
 	  allType(kVar("e"),
 	    typeExists(tpExp(tpFun("star.core*list",1),kVar("e")),

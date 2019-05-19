@@ -101,4 +101,16 @@ star.compiler.ast{
   isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
   isSquareTerm(_) default => none.
 
+  public isTuple:(ast) => option[(locn,list[ast])].
+  isTuple(tpl(Lc,"()",A)) => some((Lc,A)).
+  isTuple(_) => none.
+
+  public isSqTuple:(ast) => option[(locn,list[ast])].
+  isSqTuple(tpl(Lc,"[]",A)) => some((Lc,A)).
+  isSqTuple(_) => none.
+
+  public isBrTuple:(ast) => option[(locn,list[ast])].
+  isBrTuple(tpl(Lc,"{}",A)) => some((Lc,A)).
+  isBrTuple(_) => none.
+
 }
