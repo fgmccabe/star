@@ -107,11 +107,12 @@ faceOfType(T,Env,Face) :-
   simplifyType(T,Env,_,[],Tp),
   getFace(Tp,Env,Face).
 
-getFace(type(Nm),Env,Face) :- !,
-  isType(Nm,Env,tpDef(_,_,FaceRule)),
-  freshen(FaceRule,Env,_,typeExists(Lhs,FTp)),
-  sameType(type(Nm),Lhs,Env),!,
-  getFace(FTp,Env,Face).
+getFace(type(Nm),Env,Face) :- 
+  (isType(Nm,Env,tpDef(_,_,FaceRule)) ->
+   freshen(FaceRule,Env,_,typeExists(Lhs,FTp)),
+   sameType(type(Nm),Lhs,Env),!,
+   getFace(FTp,Env,Face) ;
+   Face=faceType([],[])).
 getFace(tpExp(Op,Arg),Env,Face) :-
   isTypeExp(tpExp(Op,Arg),tpFun(Nm,_),_),!,
   isType(Nm,Env,tpDef(_,_,FaceRule)),
