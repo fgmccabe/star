@@ -128,7 +128,7 @@ ReturnStatus g__abort(processPo P, ptrPo tos) {
   termPo msg = tos[1];
 
   logMsg(logFile, "Abort %T at %L", msg, lc);
-  stackTrace(P,logFile,True);
+  dumpStackTrace(P,logFile);
 
   ReturnStatus rt = {.ret=Error, .result=(termPo) voidEnum};
   return rt;
