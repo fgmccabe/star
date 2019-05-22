@@ -19,10 +19,9 @@ test.comp.parsetype{
   getAst((some(A),_)) => A.
 
   A1 = getAst(parseText(lc,"(integer,string)=>integer. ",R0)).
-
   T1 = valof parseType([],A1,stdDict,R0).
 
-  assert T1==funType(tupleType([intType,strType]),intType).
+--  assert T1==funType(tupleType([intType,strType]),intType).
 
   show disp(T1).
 
@@ -40,4 +39,13 @@ test.comp.parsetype{
   show disp(T3).
 
   assert T3==allType(kVar("e"),funType(tupleType([lstType(kVar("e"))]),lstType(kVar("e")))).
+
+  A4 = getAst(parseText(lc,"all e ~~ { get:()=>e. set:(e)=>e. }. ",R0)).
+  T4 = valof parseType([],A4,stdDict,R0).
+  show disp(T4).
+
+  assert T4==allType(kVar("e"),
+    faceType([("set",funType(tupleType([kVar("e")]),kVar("e"))),
+	("get",funType(tupleType([]),kVar("e")))],[])).
+
 }

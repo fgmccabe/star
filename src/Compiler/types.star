@@ -144,9 +144,10 @@ star.compiler.types{
   identNmTypes(L1,L2,Q) => let{
     sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
     identPrs([],[]) => true.
-    identPrs([(Nm,E1),..L1],[(Nm,E2),..L2]) =>
+    identPrs([(Nm,E1),..l1],[(Nm,E2),..l2]) =>
       identType(E1,E2,Q) &&
-	  identPrs(L1,L2).
+	  identPrs(l1,l2).
+    identPrs(_,_) => false.
   } in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {.
@@ -323,6 +324,7 @@ star.compiler.types{
   public funType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
 
   public intType = tipe("star.core*integer").
+  public fltType = tipe("star.core*float").
   public strType = tipe("star.core*string").
   public boolType = tipe("star.core*boolean").
   public lstType(Tp) => tpExp(tpFun("star.core*list",1),Tp).
