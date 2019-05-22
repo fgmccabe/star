@@ -40,7 +40,7 @@ set(HEADER_FILES
         Headers/repoP.h Headers/repo.h
         Headers/rrb.h Headers/rrbP.h
         Headers/verify.h Headers/verifyP.h Headers/srcMap.h Headers/srcMapP.h Headers/debugP.h
-        Headers/struct.h Headers/structP.h)
+        )
 
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c future.c globals.c future.c heap.c load.c main.c
