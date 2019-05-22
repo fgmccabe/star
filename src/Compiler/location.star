@@ -26,4 +26,6 @@ star.compiler.location{
 
   public pkgLoc:(pkg)=>locn.
   pkgLoc(P) => locn(P,1,0,0,0).
+
+  public visibility ::= priVate | pUblic.
 }

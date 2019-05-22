@@ -23,8 +23,6 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|I],I,Other,Other,_) :-
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|I],I,Other,Other,_) :-
   isOpen(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
-  isMacro(St,_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isIntegrity(St,_,_).
 collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
   isShow(St,_,_).
@@ -255,8 +253,6 @@ headOfRule(St,Hd) :-
   isAssignment(St,_,Hd,_),!.
 headOfRule(St,Hd) :-
   isEquation(St,_,Hd,_,_),!.
-headOfRule(St,Hd) :-
-  isBraceTerm(St,_,Hd,_),!.
 
 headName(Head,Nm) :-
   isRoundTerm(Head,Op,_),

@@ -4,6 +4,8 @@ star.compiler.canon{
   import star.compiler.location.
   import star.compiler.types.
 
+  
+
   public canon ::= vr(locn,string,tipe) |
     intLit(locn,integer) |
     floatLit(locn,float) |

@@ -2,6 +2,7 @@ star.compiler.ast{
   import star.
   import star.compiler.location.
   import star.compiler.operators.
+  import star.compiler.keywords.
 
   public ast ::=
       nme(locn,string)
@@ -74,10 +75,14 @@ star.compiler.ast{
   .}
 
   public isName:(ast) => option[(locn,string)].
-  isName(nme(Lc,Id)) => some((Lc,Id)).
+  isName(nme(Lc,Id)) where \+ keyword(Id) => some((Lc,Id)).
   isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
   isName(_) default => none.
 
+  public isKeyword:(ast) => option[(locn,string)].
+  isKeyword(nme(Lc,Id)) where keyword(Id) => some((Lc,Id)).
+  isKeyword(_) default => none.
+  
   public isInt:(ast) => option[(locn,integer)].
   isInt(lit(Lc,intgr(Ix))) => some((Lc,Ix)).
   isInt(_) default => none.
@@ -101,16 +106,45 @@ star.compiler.ast{
   isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
   isSquareTerm(_) default => none.
 
+  public isSquareApply:(ast) => option[(locn,string,list[ast])].
+  isSquareApply(app(Lc,Op,tpl(_,"[]",A))) where
+      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isSquareApply(_) default => none.
+  
   public isTuple:(ast) => option[(locn,list[ast])].
   isTuple(tpl(Lc,"()",A)) => some((Lc,A)).
   isTuple(_) => none.
+
+  public rndTuple:(locn,list[ast]) => ast.
+  rndTuple(Lc,Els) => tpl(Lc,"()",Els).
 
   public isSqTuple:(ast) => option[(locn,list[ast])].
   isSqTuple(tpl(Lc,"[]",A)) => some((Lc,A)).
   isSqTuple(_) => none.
 
+  public sqTuple:(locn,list[ast]) => ast.
+  sqTuple(Lc,Els) => tpl(Lc,"[]",Els).
+
   public isBrTuple:(ast) => option[(locn,list[ast])].
   isBrTuple(tpl(Lc,"{}",A)) => some((Lc,A)).
   isBrTuple(_) => none.
+
+  public brTuple:(locn,list[ast]) => ast.
+  brTuple(Lc,Els) => tpl(Lc,"{}",Els).
+
+  public isBrTerm:(ast) => option[(locn,ast,list[ast])].
+  isBrTerm(app(Lc,Op,tpl(_,"{}",A))) => some((Lc,Op,A)).
+  isBrTerm(_) default => none.
+
+  public isBrApply:(ast) => option[(locn,string,list[ast])].
+  isBrApply(app(Lc,Op,tpl(_,"{}",A))) where
+      (_,Id) ^= isName(Op) => some((Lc,Id,A)).
+  isBrApply(_) default => none.
+
+  public isRoundTerm:(ast) => option[(locn,ast,list[ast])].
+  isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where
+      (_,Id) ^= isName(Op) =>
+    (keyword(Id) ? none || some((Lc,Op,A))).
+  isRoundTerm(_) default => none.
 
 }
