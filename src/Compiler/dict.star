@@ -18,13 +18,19 @@ star.compiler.dict{
 
   public dict ~> cons[scope].
 
-  public declareType:(string,option[locn],tipe,dict) => dict.
-  declareType(Nm,Lc,Tp,[scope(Tps,Vrs,Cns,Imps),..Rest]) => [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,voidType)],Vrs,Cns,Imps),..Rest].
+  public declareType:(string,option[locn],tipe,tipe,dict) => dict.
+  declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
+    [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Imps),..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,tipe)].
   findType([],Nm) => none.
   findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
+
+  public declareContract:(option[locn],string,tipe,tipe,dict) => dict.
+  declareContract(Lc,Nm,Tp,TpRule,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
+    [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRule)],
+	Vrs,Cns[Nm->conDfn(Lc,Nm,Tp,TpRule)],Imps),..Rest].
 
   public findContract:(dict,string) => option[contractDefn].
   findContract([],Nm) => none.
@@ -38,20 +44,13 @@ star.compiler.dict{
 
 -- Standard types are predefined by the language
   public stdDict:dict.
-  stdDict = [
-    scope(["integer"->tpDefn(none,"integer",
-	  tipe("star.core*integer"),
-	  tipe("star.core*integer")),
-	"float" -> tpDefn(none,"float",
-	  tipe("star.core*float"),tipe("star.core*float")),
-	"boolean" -> tpDefn(none,"boolean",
-	  tipe("star.core*boolean"),tipe("star.core*boolean")),
-	"string" -> tpDefn(none,"string",
-	  tipe("star.core*string"),tipe("star.core*string")),
-	"list" -> tpDefn(none,"list",tpFun("star.core*list",1),
-	  allType(kVar("e"),
-	    typeExists(tpExp(tpFun("star.core*list",1),kVar("e")),
-	      faceType([],[]))))
-      ],[],[],[])].
-
+  stdDict =
+    declareType("integer",none,intType,intType,
+      declareType("float",none,fltType,fltType,
+	declareType("boolean",none,boolType,boolType,
+	  declareType("string",none,strType,strType,
+	    declareType("list",none,tpFun("star.core*list",1),
+	      allType(kVar("e"),
+		typeExists(lstType(kVar("e")),faceType([],[]))),
+	      [scope([],[],[],[])]))))).
 }
