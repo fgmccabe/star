@@ -38,10 +38,11 @@ star.compiler.typeparse{
       Op <- parseT(Q,O);
       if (Qx,OOp) .= freshen(Op,[],Env) then {
 	if [Arg].=Args && (Lc,L,R) ^= isBinary(Arg,"->>") then {
-	  ArgTps <- parseTps(Q,deComma(L));
-	  DepTps <- parseTps(Q,deComma(R));
+	  ArgTps <- parseTps(Q,deComma(L)++deComma(R));
+--	  DepTps <- parseTps(Q,deComma(R));
 	  Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
-	  lift rebind(Qx,depType(Inn,DepTps))
+--	  lift rebind(Qx,depType(Inn,DepTps))
+	  lift rebind(Qx,Inn)
 	} else {
 	  ArgTps <- parseTps(Q,Args);
 	  Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
@@ -62,7 +63,7 @@ star.compiler.typeparse{
     }
     parseT(Q,T) where (Lc,Rhs) ^= isUnary(T,"ref") => do{
       R <- parseT(Q,Rhs);
-      lift tpExp(tpFun("ref",2),R)
+      lift tpExp(tpFun("ref",1),R)
     }
     parseT(Q,T) where (Lc,[A]) ^= isTuple(T) => do{
       if (_,As) ^= isTuple(A) then{
@@ -126,7 +127,7 @@ star.compiler.typeparse{
 
     parseTypeField:(tipes,ast,tipes,tipes) => either[reports,(tipes,tipes)].
     parseTypeField(Q,F,Flds,Tps) where (_,Lhs,Rhs) ^= isTypeAnnotation(F) => do{
-      if (ILc,Nm) ^= isIden(Lhs) then {
+      if (ILc,Nm) ^= isName(Lhs) then {
 	FTp<-parseT(Q,Rhs);
 	lift ([(Nm,FTp),..Flds],Tps)
       } else
@@ -135,7 +136,7 @@ star.compiler.typeparse{
     parseTypeField(Q,F,Flds,Tps) where
 	(_,A)^=isUnary(F,"type") &&
 	(_,Lhs,Rhs) ^= isTypeAnnotation(A) => do{
-	  if (ILc,Nm) ^= isIden(Lhs) then {
+	  if (ILc,Nm) ^= isName(Lhs) then {
 	    FTp<-parseT(Q,Rhs);
 	    lift (Flds,[(Nm,FTp),..Tps])
 	  } else
@@ -144,8 +145,6 @@ star.compiler.typeparse{
     parseTypeField(Q,F,Flds,Tps) =>
       other(reportError(Rp,"invalid type field -- $(F)",locOf(F))).
 	  
-	
-    
     parseTypeName(_,_,"_") => either(newTypeVar("_")).
     parseTypeName(_,_,"this") => either(thisType).
     parseTypeName(Q,_,Nm) where (Nm,Tp) in Q => either(Tp).
