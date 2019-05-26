@@ -49,16 +49,6 @@
     )
   )
 
-(defun star-line-to-pos (buffer line col)
-  (with-current-buffer buffer
-    (save-excursion
-      (save-restriction
-	(widen)
-	(goto-char (point-min))
-	(forward-line (- line (line-number-at-pos)))
-	(move-to-column col)
-	(point)))))
-
 (defvar-local star--flymake-proc nil)
 
 (defun star-flymake (report-fn &rest _args)
@@ -67,6 +57,7 @@
     (error "Cannot find a suitable star compiler"))
 
   (when (process-live-p star--flymake-proc)
+    (kill-buffer (process-buffer star--flymake-proc))
     (kill-process star--flymake-proc))
      
   (let ((source (current-buffer)))
@@ -105,19 +96,16 @@
                ;; `star--flymake-proc', which indicates that
                ;; `proc' is not an obsolete process.
                ;;
-               (if (with-current-buffer source (eq proc star--flymake-proc))
+               (if (eq proc star--flymake-proc)
                    (with-current-buffer proc-buffer
 		     (let ((error-report
 			    (star-parse-errors source proc-buffer)))
 		       (star-debug "error report from %s is %s" pkg error-report)
-		       (funcall report-fn error-report)))
-		 (progn
-		   (star-debug "Canceling obsolete check %s"  proc)
-		   (kill-buffer (process-buffer star--flymake-proc))
-		   ))
-             ;; Cleanup the temporary buffer used to hold the compiler's output
-	     (star-debug "kill buffer %s" proc)
-             (kill-buffer proc-buffer)
+		       (funcall report-fn error-report))
+		     )
+		 )
+	     ;; Cleanup the temporary buffer used to hold the compiler's output
+	     (kill-buffer proc-buffer)
 	     ))))
      )
     )
