@@ -124,10 +124,13 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
       }
       case Call:
       case OCall: {
-        if (callBreakPointHit(C_LBL(arg))) {
+        breakPointPo bp = callBreakPointHit(C_LBL(arg));
+        if (bp != Null) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->traceDepth = p->traceCount = 0;
+          if (isTempBreakPoint(bp))
+            clearBreakPoint(bp);
           return True;
         } else {
           switch (p->waitFor) {
@@ -144,10 +147,14 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
       }
       case Tail:
       case OTail: {
-        if (callBreakPointHit(C_LBL(arg))) {
+        breakPointPo bp = callBreakPointHit(C_LBL(arg));
+
+        if (bp != Null) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->traceDepth = p->traceCount = 0;
+          if (isTempBreakPoint(bp))
+            clearBreakPoint(bp);
           return True;
         } else
           switch (p->waitFor) {
@@ -161,10 +168,13 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
       }
 
       case dLine: {
-        if (lineBreakPointHit(C_TERM(arg))) {
+        breakPointPo bp = lineBreakPointHit(C_TERM(arg));
+        if (bp != Null) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->traceDepth = p->traceCount = 0;
+          if (isTempBreakPoint(bp))
+            clearBreakPoint(bp);
           return True;
         } else
           switch (p->waitFor) {
@@ -237,7 +247,7 @@ static void dbgPrompt(processPo p) {
   outMsg(debugOutChnnl, "\n[%d]>>%_", processNo(p));
 }
 
-static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord ins) {
+static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, termPo loc, insWord ins) {
   static bufferPo cmdBuffer = Null;
 
   if (cmdBuffer == Null)
@@ -271,7 +281,7 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
 
         for (int ix = 0; ix < opts->count; ix++) {
           if (opts->opts[ix].c == cmd)
-            return opts->opts[ix].cmd(&cmdLine[nxt], p, ins, opts->opts[ix].cl);
+            return opts->opts[ix].cmd(&cmdLine[nxt], p, loc, ins, opts->opts[ix].cl);
         }
         outMsg(debugOutChnnl, "invalid debugger command: %s\n", cmdLine);
       }
@@ -285,14 +295,14 @@ static DebugWaitFor cmder(debugOptPo opts, processPo p, methodPo mtd, insWord in
   return moreDebug;
 }
 
-static DebugWaitFor dbgSingle(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgSingle(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->traceDepth = 0;
   p->tracing = (logical) (p->traceCount == 0);
   return stepInto;
 }
 
-static DebugWaitFor dbgOver(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgOver(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
 
   switch (ins) {
@@ -320,25 +330,25 @@ static DebugWaitFor dbgOver(char *line, processPo p, insWord ins, void *cl) {
   }
 }
 
-static DebugWaitFor dbgQuit(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgQuit(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   return quitDbg;
 }
 
-static DebugWaitFor dbgTrace(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgTrace(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   p->tracing = True;
 
   resetDeflt("n");
   return nextBreak;
 }
 
-static DebugWaitFor dbgCont(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgCont(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   p->tracing = False;
 
   resetDeflt("n");
   return nextBreak;
 }
 
-static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgUntilRet(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   p->traceCount = cmdCount(line, 0);
   p->tracing = False;
   resetDeflt("n");
@@ -365,21 +375,21 @@ static DebugWaitFor dbgUntilRet(char *line, processPo p, insWord ins, void *cl) 
   }
 }
 
-static DebugWaitFor dbgSetDepth(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgSetDepth(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   displayDepth = cmdCount(line, 0);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowRegisters(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgShowRegisters(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   showRegisters(p, p->heap, p->prog, p->pc, p->fp, p->sp);
 
   resetDeflt("n");
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowArg(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgShowArg(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   integer argNo = cmdCount(line, 0);
   methodPo mtd = p->prog;
   framePo fp = p->fp;
@@ -396,7 +406,7 @@ static DebugWaitFor dbgShowArg(char *line, processPo p, insWord ins, void *cl) {
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowLocal(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgShowLocal(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   integer lclNo = cmdCount(line, 0);
   methodPo mtd = p->prog;
   framePo fp = p->fp;
@@ -413,7 +423,7 @@ static DebugWaitFor dbgShowLocal(char *line, processPo p, insWord ins, void *cl)
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowGlobal(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   char buff[MAX_SYMB_LEN];
   integer pos = 0;
   integer ix = 0;
@@ -456,7 +466,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, insWord ins, void *cl
   return moreDebug;
 }
 
-static DebugWaitFor dbgShowStack(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgShowStack(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   ptrPo sp = p->sp;
@@ -501,7 +511,7 @@ void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo f
   }
 }
 
-static DebugWaitFor dbgStackTrace(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgStackTrace(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   stackTrace(p, debugOutChnnl, (logical) (cl));
 
   resetDeflt("n");
@@ -559,7 +569,7 @@ void dumpStackTrace(processPo p, ioPo out) {
   flushFile(out);
 }
 
-static DebugWaitFor dbgShowCode(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgShowCode(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   integer count = maximum(1, cmdCount(line, 1));
   methodPo mtd = p->prog;
   insPo pc = p->pc;
@@ -577,21 +587,21 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, insWord ins, void *cl) 
   return moreDebug;
 }
 
-static DebugWaitFor dbgInsDebug(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   lineDebugging = False;
   insDebugging = True;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgSymbolDebug(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgSymbolDebug(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   lineDebugging = True;
   insDebugging = False;
   resetDeflt("n");
   return stepInto;
 }
 
-static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
@@ -606,7 +616,7 @@ static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, insWord ins, void 
   return moreDebug;
 }
 
-DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl) {
+DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   BreakPoint bp;
   retCode ret = parseBreakPoint(line, uniStrLen(line), &bp);
   if (ret == Ok)
@@ -618,8 +628,7 @@ DebugWaitFor dbgClearBreakPoint(char *line, processPo p, insWord ins, void *cl) 
   return moreDebug;
 }
 
-
-static DebugWaitFor dbgDropFrame(char *line, processPo p, insWord ins, void *cl) {
+static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   integer count = cmdCount(line, 0);
 
   // First we check that there are enough frames
@@ -708,10 +717,13 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
       case dLine: {
         termPo loc = findPcLocation(p->prog, insOffset(p->prog, p->pc));
 
-        if (lineBreakPointHit(C_TERM(loc))) {
+        breakPointPo bp = lineBreakPointHit(C_TERM(loc));
+        if (bp != Null) {
           p->waitFor = stepInto;
           p->tracing = True;
           p->traceDepth = p->traceCount = 0;
+          if (isTempBreakPoint(bp))
+            clearBreakPoint(bp);
           return True;
         } else
           return False;
@@ -724,7 +736,7 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
     return False;
 }
 
-DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
+DebugWaitFor insDebug(processPo p, insWord ins) {
   static DebugOptions opts = {
     .opts = {
       {.c = 'n', .cmd=dbgSingle, .usage="n step into"},
@@ -742,7 +754,6 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
       {.c = 'g', .cmd=dbgShowGlobal, .usage="g <var> show global var"},
       {.c = 'i', .cmd=dbgShowCode, .usage="i show instructions"},
       {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
-      //{.c = '@', .cmd=dbgShowLocation, .usage="L show location"},
       {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
       {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
       {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"}},
@@ -763,7 +774,7 @@ DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(&opts, p, mtd, ins);
+          p->waitFor = cmder(&opts, p, mtd, Null, ins);
         else {
           outStr(debugOutChnnl, "\n");
         }
@@ -809,7 +820,7 @@ retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt) {
       packagePo pkg = loadedPackage(pkgNm);
       char *src = manifestResource(pkg, "source");
 
-      return outMsg(f, "%s(%T:%T@%T,%T)%_", src, nthArg(line, 1), nthArg(line, 2), nthArg(line,3), nthArg(line, 4));
+      return outMsg(f, "%s(%T:%T@%T,%T)%_", src, nthArg(line, 1), nthArg(line, 2), nthArg(line, 3), nthArg(line, 4));
     } else
       return outMsg(f, "%s:%T:%T(%T)", pkgNm, nthArg(line, 1), nthArg(line, 2), nthArg(line, 4));
   } else
@@ -993,7 +1004,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     if (stopping) {
       while (interactive) {
         if (p->traceCount == 0)
-          p->waitFor = cmder(&opts, p, mtd, ins);
+          p->waitFor = cmder(&opts, p, mtd, ln, ins);
         else {
           outStr(debugOutChnnl, "\n");
           flushFile(debugOutChnnl);

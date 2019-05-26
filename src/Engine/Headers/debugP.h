@@ -9,7 +9,7 @@
 #include "bkpoint.h"
 #include "vector.h"
 
-typedef DebugWaitFor (*debugCmd)(char *line, processPo p, insWord ins, void *cl);
+typedef DebugWaitFor (*debugCmd)(char *line, processPo p, termPo loc, insWord ins, void *cl);
 
 typedef retCode (*completeCb)(bufferPo, integer cx);
 
@@ -26,6 +26,5 @@ typedef struct {
   completeCb deflt;
   DebugOption opts[ZEROARRAYSIZE];
 } DebugOptions, *debugOptPo;
-
 
 #endif //STAR_DEBUGP_H

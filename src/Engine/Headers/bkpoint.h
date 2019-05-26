@@ -17,16 +17,20 @@ typedef struct _break_point_ {
   char nm[MAX_SYMB_LEN];
   integer lineNo;
   integer offset;
+  logical temporary;
 } BreakPoint, *breakPointPo;
 
 retCode addBreakPoint(breakPointPo bp);
+retCode createBreakPoint(BreakPtType type,char *name,integer lineNo,integer offset,logical temporary);
 retCode isValidBreakPoint(breakPointPo b);
-logical lineBreakPointHit(normalPo loc);
-logical callBreakPointHit(labelPo lbl);
+breakPointPo lineBreakPointHit(normalPo loc);
+breakPointPo callBreakPointHit(labelPo lbl);
 retCode clearBreakPoint(breakPointPo bp);
 retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
 logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
 logical breakPointInUse(breakPointPo b);
 void markBpOutOfUse(breakPointPo b);
+
+logical isTempBreakPoint(breakPointPo bp);
 
 #endif //STAR_BKPOINT_H

@@ -10,6 +10,18 @@
 static BreakPoint breakPoints[10];
 static int breakPointCount = 0;
 
+logical isTempBreakPoint(breakPointPo bp){
+  return bp->temporary;
+}
+
+retCode createBreakPoint(BreakPtType type,char *name,integer lineNo,integer offset,logical temporary)
+{
+  BreakPoint bp = {.bkType=type,.lineNo=lineNo,.offset=offset,.temporary=temporary};
+  uniCpy(bp.nm,NumberOf(bp.nm),name);
+
+  return addBreakPoint(&bp);
+}
+
 retCode addBreakPoint(breakPointPo bp) {
   for (int ix = 0; ix < breakPointCount; ix++) {
     if (!breakPointInUse(&breakPoints[ix])) {
@@ -66,7 +78,7 @@ retCode isValidBreakPoint(breakPointPo b) {
   }
 }
 
-logical lineBreakPointHit(normalPo loc) {
+breakPointPo lineBreakPointHit(normalPo loc) {
   char pkgNm[MAX_SYMB_LEN];
 
   copyString2Buff(C_STR(nthArg(loc, 0)), pkgNm, NumberOf(pkgNm));
@@ -75,20 +87,20 @@ logical lineBreakPointHit(normalPo loc) {
 
   for (int ix = 0; ix < breakPointCount; ix++) {
     if (isBreakPoint(&breakPoints[ix], pkgNm, lineNo, offset))
-      return True;
+      return &breakPoints[ix];
   }
-  return False;
+  return Null;
 }
 
-logical callBreakPointHit(labelPo lbl) {
+breakPointPo callBreakPointHit(labelPo lbl) {
   char *const lblNm = labelName(lbl);
   const integer lblArity = labelArity(lbl);
 
   for (int ix = 0; ix < breakPointCount; ix++) {
     if (isCallBreakPoint(&breakPoints[ix], lblNm, lblArity))
-      return True;
+      return &breakPoints[ix];
   }
-  return False;
+  return Null;
 }
 
 logical breakPointInUse(breakPointPo b) {
