@@ -360,9 +360,6 @@ collectHeadRefs(Hd,All,R0,Refs) :-
 collectHeadRefs(Hd,All,R0,Refs) :-
   isRoundTerm(Hd,_,A),
   collectTermListRefs(A,All,R0,Refs).
-collectHeadRefs(Hd,All,R,Refs) :-
-  isBraceTerm(Hd,_,_,Els),
-  collectStmtRefs(Els,All,[],R,Refs).
 collectHeadRefs(_,_,R,R).
 
 isConstructorStmt(C) :-
