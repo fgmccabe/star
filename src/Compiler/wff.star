@@ -75,6 +75,7 @@ star.compiler.wff{
   isTypeExistsStmt(A) where
       (Lc,H,I) ^= isBinary(A,"<~") =>
     some((Lc,getQuantifiers(H),[],H,I)).
+  isTypeExistsStmt(A) default => none.
 
   public isTypeFunStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
   isTypeFunStmt(A) where
@@ -86,6 +87,7 @@ star.compiler.wff{
   isTypeFunStmt(A) where
       (Lc,H,I) ^= isBinary(A,"~>") =>
     some((Lc,getQuantifiers(H),[],H,I)).
+  isTypeFunStmt(A) default => none.
 
   public isAlgebraicTypeStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
   isAlgebraicTypeStmt(A) where
@@ -97,6 +99,7 @@ star.compiler.wff{
   isAlgebraicTypeStmt(A) where
       (Lc,H,I) ^= isBinary(A,"::=") =>
     some((Lc,getQuantifiers(H),[],H,I)).
+  isAlgebraicTypeStmt(A) default => none.
 
   exportFn ~> (defnSp,list[defnSp])=>list[defnSp].
 
@@ -110,8 +113,8 @@ star.compiler.wff{
     Nm = typeName(H);
     Face <- algebraicFace(R,Rp);
     ExTp = reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
-    Spec = tpSp(Lc,Nm);
-    buildConstructors(R,Q,Cx,H,[defnSpec(Spec,[ExTp]),..Defs],Exp(Spec,Pb),As,Exp,Rp)
+    Spec = tpSp(Nm);
+    buildConstructors(R,Q,Cx,H,[defnSpec(Spec,Lc,[ExTp]),..Defs],Exp(Spec,Pb),As,Exp,Rp)
   }
 
   algebraicFace:(ast,reports) => either[reports,ast].
@@ -128,6 +131,28 @@ star.compiler.wff{
   combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F2) => either(F1).
   combineFaces(F1,F2,Rp) => other(reportError(Rp,"only one record constructor allowed",
       locOf(F1))).
+
+  public isLetDef:(ast) => option[(locn,ast,ast)].
+  isLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
+      app(_,nme(_,"let"),Body) .= Lh &&
+      (_ ^= isBrTuple(Body) || _ ^= isQBrTuple(Body)) => some((Lc,Body,Rh)).
+  isLetDef(_) default => none.
+
+  public isComprehension:(ast) => option[(locn,ast,ast)].
+  isComprehension(A) where (Lc,[T]) ^= isBrTuple(A) &&
+      (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).
+  isComprehension(A) => none.
+
+  public isConjunct(A) => isBinary(A,"&&").
+
+  public isDisjunct(A) => isBinary(A,"||").
+
+  public isNegation(A) => isUnary(A,"\\+").
+
+  public isConditional(A) where
+      (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
+      (_,Th,El) ^= isBinary(Rhs,"||") => some((Lc,Tst,Th,El)).
+  isConditional(_) => none.
 
   buildConstructors:(ast,
     list[ast],list[ast],ast,
@@ -150,24 +175,24 @@ star.compiler.wff{
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",reXQuant(XQs,
 		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
-	Sp = cnsSp(Lc,Nm).
-	Def = defnSpec(Sp,[Con]).
+	Sp = cnsSp(Nm).
+	Def = defnSpec(Sp,Lc,[Con]).
       } in either(([Def,..Defs],Exp(Sp,Pb),[(Nm,Con),..As])).
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
 	Con = reUQuant(Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp))).
-	Sp = cnsSp(Lc,Nm).
-	Def = defnSpec(Sp,[Con]).
+	Sp = cnsSp(Nm).
+	Def = defnSpec(Sp,Lc,[Con]).
       } in either(([Def,..Defs],Exp(Sp,Pb),[(Nm,Con),..As])).
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
       (Lc,Nm) ^= isName(A) => let{
 	Con = reUQuant(Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,[]),Tp))).
-	Sp = cnsSp(Lc,Nm).
-	Def = defnSpec(Sp,[Con]).
+	Sp = cnsSp(Nm).
+	Def = defnSpec(Sp,Lc,[Con]).
       } in either(([Def,..Defs],Exp(Sp,Pb),[(Nm,Con),..As])).
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
       (_,I) ^= isPrivate(A) => 
@@ -261,6 +286,7 @@ star.compiler.wff{
   public isImplementationStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
   isImplementationStmt(A) where
       (Lc,I) ^= isUnary(A,"implementation") => isImplSpec(locOf(A),[],[],I).
+  isImplementationStmt(_) default => none.
 
   isImplSpec(Lc,_,Cs,T) where
       (_,Qs,In) ^= isQuantified(T) =>
@@ -330,18 +356,18 @@ star.compiler.wff{
       (Lc,V,T) ^= isTypeAnnotation(A) => do{
 	if _ ^= isConstructorType(T) then {
 	  if (_,V1) ^= isPrivate(V) && (ILc,Id) ^= isName(V1) then {
-	    lift (Stmts,[defnSpec(cnsSp(Lc,Id),[T]),..Defs],
+	    lift (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
 	      Pb,[(Id,T),..As],Imp,Oth)
 	  }
 	    else if (ILc,Id) ^= isName(V) then{
-	      lift (Stmts,[defnSpec(cnsSp(Lc,Id),[T]),..Defs],
-		Ex(cnsSp(Lc,Id),Pb),[(Id,T),..As],Imp,Oth)
+	      lift (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+		Ex(cnsSp(Id),Pb),[(Id,T),..As],Imp,Oth)
 	      }
 		else
 		  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
 		  
 	} else if (VLc,Id) ^= isName(V) then{
-	  lift (Stmts,Defs,Ex(varSp(VLc,Id),Pb),[(Id,T),..As],Imp,Oth)
+	  lift (Stmts,Defs,Ex(varSp(Id),Pb),[(Id,T),..As],Imp,Oth)
 	} else
 	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
       }.
@@ -354,21 +380,21 @@ star.compiler.wff{
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,S,Els) ^= isContractStmt(A) &&
       (_,Nm,Qs,Cs) ^= isContractSpec(S)  =>
-    either((Stmts,[defnSpec(conSp(Lc,Nm),[A]),..Defs],
-	Ex(conSp(Lc,Nm),Pb),
+    either((Stmts,[defnSpec(conSp(Nm),Lc,[A]),..Defs],
+	Ex(conSp(Nm),Pb),
 	generateAnnotations(Qs,Els,Cs,As),
 	Imp,
 	Oth)).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
-      Sp .= implSp(Lc,implementedContractName(Cn)) =>
-    either((Stmts,[defnSpec(Sp,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
+      Sp .= implSp(implementedContractName(Cn)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
-      (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(Lc,typeName(L)) =>
-    either((Stmts,[defnSpec(Sp,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
+      (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
-      (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(Lc,typeName(L)) =>
-    either((Stmts,[defnSpec(Sp,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
+      (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
 	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Ex,Rp);
@@ -377,8 +403,8 @@ star.compiler.wff{
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
-	Sp = varSp(Lc,Nm);
-	lift (Ss,[defnSpec(Sp,[A,..Dfs]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+	Sp = varSp(Nm);
+	lift (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
       }.
 
   collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
@@ -401,10 +427,11 @@ star.compiler.wff{
   noExport:(defnSp,list[defnSp]) => list[defnSp].
   noExport(_,Pb) => Pb.
 
-  ruleName:(ast) => option[(locn,string)].
+  public ruleName:(ast) => option[(locn,string)].
   ruleName(A) where
       (Lc,Hd) ^= headOfRule(A) &&
       Id ^= headName(Hd) => some((Lc,Id)).
+  ruleName(_) default => none.
 
   headOfRule:(ast) => option[(locn,ast)].
   headOfRule(A) where
@@ -415,7 +442,7 @@ star.compiler.wff{
       (Lc,Hd,_,_) ^= isEquation(A) => some((Lc,Hd)).
   headOfRule(_) default => none.
 
-  headName:(ast) => option[string].
+  public headName:(ast) => option[string].
   headName(A) where
       (_,Nm,_) ^= isRoundTerm(A) => headName(Nm).
   headName(A) where
@@ -423,6 +450,7 @@ star.compiler.wff{
   headName(A) where
       (_,D) ^= isDefault(A) =>
     headName(D).
+  headName(_) default => none.
 
   public isDefn:(ast) => option[(locn,ast,ast)].
   isDefn(A) => isBinary(A,"=").
@@ -436,6 +464,7 @@ star.compiler.wff{
     ((_,Lhs,Cond) ^= isWhere(L) ?
 	some((Lc,Lhs,Cond,Rhs)) ||
 	some((Lc,L,nme(Lc,"true"),Rhs))).
+  isEquation(_) default => none.
 
   public isWhere:(ast) => option[(locn,ast,ast)].
   isWhere(A) => isBinary(A,"where").
