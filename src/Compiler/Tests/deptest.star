@@ -44,5 +44,32 @@ test.comp.depends{
   D1 = dependencies(A11,R0).
 
   show disp(D1).
-  
+
+  S2 = """
+  {
+  import star.
+
+    inc:(integer)=>integer.
+    inc(X) => X+1.
+
+    df(X)=>inc(f(X)).
+
+  f:(integer)=>integer.
+  f(0)=>1.
+  f(N)=>N*g(N-1).
+
+  g:(integer)=>integer.
+  g(0)=>1.
+  g(N)=>N*f(N-1).
+
+  fact(X) => f(X).
+
+  assert fact(3)==6.
+  }
+  """.
+
+  D2 = dependencies(getB(isBrTuple(getAst(parseText(lc,S2,R0)))),R0).
+
+  show disp(D2).
+ 
 }

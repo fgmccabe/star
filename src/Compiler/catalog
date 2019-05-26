@@ -20,6 +20,7 @@
     "star.compiler.misc": "misc.star",
     "star.compiler.operators": "operators.star",
     "star.compiler.plugin": "plugin.star",
+    "star.compiler.terms": "terms.star",
     "star.compiler.token": "token.star",
     "star.compiler.typeparse": "parsetype.star",
     "star.compiler.types": "types.star",
