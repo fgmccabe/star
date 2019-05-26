@@ -167,7 +167,7 @@ star.compiler.wff{
       (Lc,L,R) ^= isBinary(A,"|") => do{
 	(Dfs1,Pb1,As1) <- buildConstructors(L,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp);
 	(Dfs2,Pb2,As2) <- buildConstructors(R,Qs,Cx,Tp,Dfs1,Pb1,As1,Exp,Rp);
-	lift (Dfs2,Pb2,As2)
+	valis (Dfs2,Pb2,As2)
       }.
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
@@ -356,18 +356,18 @@ star.compiler.wff{
       (Lc,V,T) ^= isTypeAnnotation(A) => do{
 	if _ ^= isConstructorType(T) then {
 	  if (_,V1) ^= isPrivate(V) && (ILc,Id) ^= isName(V1) then {
-	    lift (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
 	      Pb,[(Id,T),..As],Imp,Oth)
 	  }
 	    else if (ILc,Id) ^= isName(V) then{
-	      lift (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+	      valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
 		Ex(cnsSp(Id),Pb),[(Id,T),..As],Imp,Oth)
 	      }
 		else
 		  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
 		  
 	} else if (VLc,Id) ^= isName(V) then{
-	  lift (Stmts,Defs,Ex(varSp(Id),Pb),[(Id,T),..As],Imp,Oth)
+	  valis (Stmts,Defs,Ex(varSp(Id),Pb),[(Id,T),..As],Imp,Oth)
 	} else
 	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
       }.
@@ -398,13 +398,13 @@ star.compiler.wff{
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
 	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Ex,Rp);
-	lift (Stmts,Dfs1,Pb1,As1,Imp,Oth)
+	valis (Stmts,Dfs1,Pb1,As1,Imp,Oth)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
 	Sp = varSp(Nm);
-	lift (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
       }.
 
   collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).

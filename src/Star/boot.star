@@ -45,7 +45,7 @@ star.boot{
   Pkg ^= parsePkgName(Top) => do{
     Repo = bootRepo(RD);
     setupPkg(Repo,Pkg);
-    lift (Top,Args)
+    valis (Top,Args)
   }
   handleCmdLineOpts(other(E)) => err(E).
 
@@ -56,7 +56,7 @@ star.boot{
   }
 
   importPkgs:(list[pkg],list[pkg],bootRepo)=>action[string,()].
-  importPkgs([],Ld,_) => do {lift ()}.
+  importPkgs([],Ld,_) => do {valis ()}.
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
   importPkgs(_,_,_) default => err("Could not load $(_command_line())").
 
@@ -77,7 +77,7 @@ star.boot{
   initialize(pkg(P,_)) => do{
     Pred = P++"@init";
     if _definedLbl(Pred,0) then {
-      lift _callLbl(Pred,0,[])
+      valis _callLbl(Pred,0,[])
     } else
       throw "No init for $(P)"
   }
@@ -86,7 +86,7 @@ star.boot{
   invokeMain(Top,Args) => do {
     Pred = Top++"#_main";
     if _definedLbl(Pred,1) then {
-      lift _callLbl(Pred,1,[Args])
+      valis _callLbl(Pred,1,[Args])
     }
     else
       throw "No main program: $(Top)".

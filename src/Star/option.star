@@ -64,7 +64,7 @@ star.option{
     _perform(some(X)) => X.
     _handle(some(X),_) => some(X).
     _handle(none,E) => E(()).
-    _lift(X) => some(X).
+    _valis(X) => some(X).
     _sequence(some(X),F) => F(X).
     _sequence(none,_) => none.
   }

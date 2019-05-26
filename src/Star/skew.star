@@ -177,7 +177,7 @@ star.skew{
     iterList:all e,m/1,x ~~ execution[m->>e] |: (rlist[t],m[x],(t,x)=>m[x])=>m[x].
     iterList(nil,St,_) => St.
     iterList(cons((_,T),R),St,Fn) =>
-      _sequence(iterTree(T,St,Fn),(SS)=>iterList(R,_lift(SS),Fn)).
+      _sequence(iterTree(T,St,Fn),(SS)=>iterList(R,_valis(SS),Fn)).
 
     iterTree:all e,m/1,x ~~ execution[m->>e] |: (tree[t],m[x],(t,x)=>m[x])=>m[x].
     iterTree(leaf(E),St,Fn) => _sequence(St,(SS)=>Fn(E,SS)).

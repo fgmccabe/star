@@ -93,14 +93,14 @@ task block; for example, in:
 T = task@{
   X = 1;
   Y = 2;
-  lift X+Y
+  valis X+Y
 @}
 @end example
 
 the variable @code{T} is bound to a task expression whose returned
 value will be 3 -- the value returned by the action:
 @example
-lift X+Y
+valis X+Y
 @end example
 
 Task expressions have a type: @code{task[t]} where @code{t} is the
@@ -117,10 +117,10 @@ as it produces an integer value.
 @subsection The value of a task
 
 As we saw above, a task computation produces a value by performing the
-@code{lift} action:
+@code{valis} action:
 
 @example
-lift X+Y
+valis X+Y
 @end example
 
 The value of a task value is obtained using the @code{valof} operator:
@@ -147,11 +147,11 @@ task[()]
 @end example
 
 Obviously a task that does not have a value does not require it's body
-to contain a @code{lift} action; however, if it does, then that action
+to contain a @code{valis} action; however, if it does, then that action
 should be:
 
 @example
-lift ()
+valis ()
 @end example
 
 In effect, tasks that do not purport to return values @emph{do} return a
@@ -238,7 +238,7 @@ simply calling the function:
 @example
 taskmap:all s,t ~~ ((s)=>t,list[s])=>list[t].
 taskmap(F,[]) => [].
-taskmap(F,[X,..Y]) => [valof task@{ lift F(X) @} ,.. taskmap(F,Y)].
+taskmap(F,[X,..Y]) => [valof task@{ valis F(X) @} ,.. taskmap(F,Y)].
 @end example
 
 As it stands, this function has very similar performance
@@ -264,7 +264,7 @@ parmap2:all s,t ~~ ((s)=>t,list[s])=>list[t].
 parmap2(F,L) => let{
   spread:(list[s])=>list[task[t]].
   spread([]) => [].
-  spread([X,..Y]) => [background task@{ lift F(X)@} ,.. spread(Y)].
+  spread([X,..Y]) => [background task@{ valis F(X)@} ,.. spread(Y)].
 
   collect:(list[task[t]])=>list[t].
   collect([]) => [].
@@ -292,12 +292,12 @@ collection type:
 parmap:all s,t,c/1 ~~ functor[c] |: ((s)=>t,c[s])=>task[c[t]].
 parmap(F,L) => let@{
   spread:()=>list[task[t]].
-  spread() => map((X)=>background task@{lift F(X)@},L).
+  spread() => map((X)=>background task@{valis F(X)@},L).
 
   collect:(list[task[t]])=>list[t].
   collect(Lt) is fmap((T)=>valof T,Lt).
 @} in task@{
-  lift collect(spread())
+  valis collect(spread())
 @}
 
 @node Computation expressions

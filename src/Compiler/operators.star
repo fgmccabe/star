@@ -49,6 +49,7 @@ star.compiler.operators{
   oper("import") => [prefixOp(900,899)].
   oper("catch") => [infixOp(1198,1199,1198)].
   oper("of") => [infixOp(399,400,399)].
+  oper("valis") => [prefixOp(930,929)].
   oper(",..") => [infixOp(999,1000,999)].
   oper("for") => [prefixOp(1175,1174)].
   oper("**") => [infixOp(600,600,599)].
@@ -109,7 +110,6 @@ star.compiler.operators{
   oper("=<") => [infixOp(899,900,899)].
   oper("==") => [infixOp(899,900,899)].
   oper("=>") => [infixOp(949,950,950)].
-  oper("lift") => [prefixOp(930,929)].
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
   oper("valof") => [prefixOp(300,299)].

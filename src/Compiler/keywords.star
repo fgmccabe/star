@@ -56,6 +56,7 @@ star.comp.keywords {
   keyword("in") => true.
   keyword("do") => true.
   keyword("valof") => true.
+  keyword("valis") => true.
   keyword("throw") => true.
   keyword("if") => true.
   keyword("then") => true.

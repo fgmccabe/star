@@ -19,7 +19,7 @@ star.compiler.dependencies{
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
     Groups = topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
     
-    lift (Pb,Imp,Oth,As,Groups)
+    valis (Pb,Imp,Oth,As,Groups)
   }
 
   definitionSpec ::= definition(defnSp,locn,list[defnSp],list[ast]).

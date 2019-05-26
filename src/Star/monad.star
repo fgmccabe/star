@@ -19,7 +19,7 @@ star.monad{
 
   public contract all m/1,e ~~ execution[m->>e] ::= {
     _perform:all a ~~ (m[a])=>a.
-    _lift:all a ~~ (a)=>m[a].
+    _valis:all a ~~ (a)=>m[a].
     _sequence:all a,b ~~ (m[a],(a)=>m[b]) => m[b].
     _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
     _raise: all a ~~ (e) => m[a].

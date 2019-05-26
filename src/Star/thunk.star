@@ -8,7 +8,7 @@ star.thunk{
     ff() => valof action{
       V = F();
       X := some(V);
-      lift V
+      valis V
     }
   } in ff.
 }

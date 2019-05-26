@@ -71,7 +71,7 @@ This is the same as for all @refer{ActionExpression}s.
 @example
 tt(X) => task@{
   Y = 2;
-  lift X+Y
+  valis X+Y
 @}
 @end example
 
@@ -96,7 +96,7 @@ encapsulated in a @code{try}-@code{catch} block:
 ive = valof @{
   try I catch @{
     logMsg(info,"Was not expecting this");
-    lift 0
+    valis 0
   @}
 @}
 @end example
