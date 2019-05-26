@@ -9,7 +9,7 @@
 
 extern termPo getLbl(termPo lbl, int32 arity);
 
-extern DebugWaitFor insDebug(processPo p, integer pcCount, insWord ins);
+extern DebugWaitFor insDebug(processPo p, insWord ins);
 extern DebugWaitFor lineDebug(processPo p, termPo line);
 extern DebugWaitFor enterDebug(processPo p);
 
