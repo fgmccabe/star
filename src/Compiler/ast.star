@@ -132,6 +132,10 @@ star.compiler.ast{
   public brTuple:(locn,list[ast]) => ast.
   brTuple(Lc,Els) => tpl(Lc,"{}",Els).
 
+  public isQBrTuple:(ast) => option[(locn,list[ast])].
+  isQBrTuple(tpl(Lc,"{..}",A)) => some((Lc,A)).
+  isQBrTuple(_) => none.
+
   public isBrTerm:(ast) => option[(locn,ast,list[ast])].
   isBrTerm(app(Lc,Op,tpl(_,"{}",A))) => some((Lc,Op,A)).
   isBrTerm(_) default => none.

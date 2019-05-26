@@ -1,8 +1,6 @@
 star.topsort{
   import star.
 
-  public topDef[o,t] ::= topDef{ orig:o. definitions:set[t]. references:list[t]. }
-
   public contract all d,t ~~ depends[d->>t] ::= {
     references:(d)=>list[t].
     defined:(d,t)=>boolean.

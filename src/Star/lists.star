@@ -92,4 +92,15 @@ star.lists{
     tail(X) where \+_list_empty(X) => some(_list_back(X,1)).
     tail(_) => none.
   }
+
+  public subtract:all e ~~ equality[e] |: (e,list[e]) => list[e].
+  subtract(El,L) where Ix ^= indexOf(El,L) => _list_remove(L,Ix).
+
+  public indexOf:all e ~~ equality[e] |: (e,list[e]) => option[integer].
+  indexOf(El,L) => let{
+    ixOf(Mx,Mx) => none.
+    ixOf(Ix,Mx) where Ix<Mx =>
+      (_list_nth(L,Ix) == El ? some(Ix) ||
+	ixOf(Ix+1,Mx)).
+  } in ixOf(0,size(L)).
 }
