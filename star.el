@@ -67,6 +67,10 @@
   "\\(import +[[:word:]]+\\([.][[:word:]]+\\)*\\)"
   "Match an import spec")
 
+(defconst star-annot-regexp
+  "\\([[:word:]]+\\s*:\\b\\)"
+  "Match a type annotation spec")
+
 (defvar star-keyword-regexp
   (concat "\\<"
 	  (star-one-of
@@ -138,6 +142,7 @@
     (,star-builtin-regexp (1 font-lock-builtin-face))
     (,star-symbol-regexp (1 font-lock-keyword-face))
     (,star-import-regexp (1 font-lock-doc-face))
+    (,star-annot-regexp (1 font-lock-function-name-face))
     )
   "Keywords to syntax highlight with variable."
   )
