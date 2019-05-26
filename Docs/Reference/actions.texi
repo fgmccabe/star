@@ -194,30 +194,6 @@ arithmetic. This is because the @code{_sequence} function is
 inherently assymetric.
 @end enumerate
 
-@c @node Actions and Type Safety
-@c @subsection Actions and Type Safety
-@c @cindex actionTypeSafety
-@c The meaning of type safety is somewhat different for actions than for
-@c expressions and functions: by definition, Actions do not denote values
-@c in the way that expressions do.@footnote{Or rather, the value of an
-@c action is a computation -- that will only result in a value if the
-@c computation is performed.}
-
-@c However, type safety still applies to actions. In particular,
-@c different actions have different @emph{type constraints} that must be
-@c satisfied; for example, an assignment action is @emph{type safe} if the
-@c type of the variable is consistent with the expression and if the
-@c variable is a re-assignable variable.
-
-@c We use the meta-predicate @var{safe} to indicate that a particular
-@c action is type safe. An assertion of the form:
-@c @display
-@c @typesafe{E,A}
-@c @end display
-@c means that the action @var{A} is type-consistent given the environment
-@c @var{E}.
-
-
 @node Do Notation
 @section Do Notation
 @cindex Do notation
