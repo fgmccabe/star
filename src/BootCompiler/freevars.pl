@@ -5,10 +5,10 @@
 :- use_module(types).
 
 %! freeVars(++,++,++,++,--) is det.
-freeVars(v(_Lc,Lb,_),Ex,Q,F,Fv) :-
+freeVars(v(Lc,Lb,Tp),Ex,Q,F,Fv) :-
   \+ excluded(Lb,Ex),
   qualifed(Lb,Q),!,
-  addFrVar(Lb,F,Fv).
+  addFrVar(v(Lc,Lb,Tp),F,Fv).
 freeVars(v(_,_,_),_,_,F,F).
 freeVars(enm(_,_,_),_,_,F,F).
 freeVars(cons(_,_,_),_,_,F,F).
@@ -32,7 +32,7 @@ freeVars(match(_,L,R),Ex,Q,F,FV) :-
   ptnVars(L,freevars:addFrVar,Ex,Ex1),
   freeVars(L,Ex1,Q,F,F0),freeVars(R,Ex,Q,F0,FV).
 freeVars(search(_,L,R,I),Ex,Q,F,FV) :-
-  ptnVars(L,freevars:addVar,Ex,Ex1),
+  ptnVars(L,freevars:addFrVar,Ex,Ex1),
   freeVars(L,Ex1,Q,F,F0),
   freeVars(R,Ex1,Q,F0,F1),
   freeVars(I,Ex1,Q,F1,FV).
@@ -80,7 +80,8 @@ freeVarsInRules(Eqns,Ex,Q,F,Fv) :-
   varsInList(Eqns,freevars:freeVarsInRule(Ex,Q),F,Fv).
 
 freeVarsInRule(Ex,Q,equation(_,H,Cond,Exp),F,FV) :-
-  ptnVars(H,freevars:addVar,Ex,Ex1),
+  ptnVars(H,freevars:addFrVar,Ex,Ex0),
+  ptnGoalVars(Cond,freevars:addFrVar,Ex0,Ex1),
   freeVars(H,Ex1,Q,F,F0),
   freeVars(Exp,Ex1,Q,F0,F1),
   freeVars(Cond,Ex1,Q,F1,FV).
@@ -126,9 +127,7 @@ goalVars(G,Q) :-
 
 addGlVar(V,Q,Qx) :- add_mem(V,Q,Qx).
 
-addVar(v(_,Nm,_),Q,Qx) :- add_mem(idnt(Nm),Q,Qx).
-
-addFrVar(Nm,Q,Qx) :- add_mem(idnt(Nm),Q,Qx).
+addFrVar(v(_,Nm,_),Q,Qx) :- add_mem(idnt(Nm),Q,Qx).
 
 ptnGoalVars(conj(_,L,R),A,Q,Qx) :-
   ptnGoalVars(L,A,Q,Q0),
