@@ -7,7 +7,7 @@ test.th{
   Th = thunk(()=> valof do {
       logMsg("called Th");
       X := X!+2;
-      lift 34}).
+      valis 34}).
 
   assert Th()==34.
   assert Th()==34.

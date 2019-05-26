@@ -32,6 +32,7 @@
   operator("import", [prefixOp(900, 899)]).
   operator("catch", [infixOp(1198, 1199, 1198)]).
   operator("of", [infixOp(399, 400, 399)]).
+  operator("valis", [prefixOp(930, 929)]).
   operator(",..", [infixOp(999, 1000, 999)]).
   operator("for", [prefixOp(1175, 1174)]).
   operator("**", [infixOp(600, 600, 599)]).
@@ -92,7 +93,6 @@
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("=>", [infixOp(949, 950, 950)]).
-  operator("lift", [prefixOp(930, 929)]).
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
   operator("valof", [prefixOp(300, 299)]).

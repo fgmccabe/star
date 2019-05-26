@@ -12,7 +12,7 @@ test.bench{
     elapsed = ((stop - start)::float)/1.0e6;
     ops_per_sec = ((count::float) / elapsed)::integer;
     logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
-    lift ops_per_sec
+    valis ops_per_sec
   }
 
   fingeriota:(integer,integer)=>fingerTree[integer].
@@ -112,14 +112,14 @@ test.bench{
       timer_finish(timer!)
       
     };
-    lift ()
+    valis ()
   }
 
   main : (integer,string) => action[(),()].
   main(Count,Msg) => do {
     logMsg("Do #(Msg) for $(Count) times");
     XX <- benchNativeList(Count);
-    lift ()
+    valis ()
   }
 
   _main:(list[string])=>().

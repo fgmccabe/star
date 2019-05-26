@@ -30,7 +30,7 @@ test.df{
       
       try{
 	VV <- _iter(Is,
-		    do{lift ()}, (Ix,_) => action{
+		    do{valis ()}, (Ix,_) => action{
 			if Ix<Lm then{
 			    Cx:=Cx!+Ix;
 			    throw -1

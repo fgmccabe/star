@@ -39,7 +39,7 @@ contract; except that it is somewhat more elaborate.}
 @caption{Execution Contract}
 @example
 public contract all m/1,e ~~ execution[m->>e] ::= @{
-  _lift:all a ~~ (a)=>m[a].
+  _valis:all a ~~ (a)=>m[a].
   _perform:all a ~~ (m[a])=>a.
   _sequence:all a,b ~~ (m[a],(a)=>m[b]) => m[b].
   _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
@@ -69,11 +69,11 @@ is an action notation (see @ref{Do Notation}) that has a more familiar
 style for representing actions.
 @end quotation
 
-@node @code{_lift} a value as a computation
-@subsection @code{_lift} a value as a computation
+@node @code{_valis} a value as a computation
+@subsection @code{_valis} a value as a computation
 @cindex Lift a value into computation
 
-The @code{_lift} function takes an expression and makes it a computation.
+The @code{_valis} function takes an expression and makes it a computation.
 
 @node @code{_perform} a computation
 @subsection @code{_perform} a computation
@@ -150,28 +150,28 @@ obey,
 
 @enumerate
 @item
-@code{_perform} is a left identity of @code{_lift}.
+@code{_perform} is a left identity of @code{_valis}.
 
 I.e., for all @emph{E},
 @example
-_perform(_lift(@emph{E})) = @emph{E}
+_perform(_valis(@emph{E})) = @emph{E}
 @end example
 @item
-@code{_lift} is a left identity of @code{_perform}.
+@code{_valis} is a left identity of @code{_perform}.
 
 I.e., for all non-exceptional @emph{C}:
 @example
-_lift(_perform(@emph{C})) = @emph{C}
+_valis(_perform(@emph{C})) = @emph{C}
 @end example
 This equality is not defined for computations @emph{C} that are the
 result of @code{_raise}.
 
 @item
-Left identity @code{_lift} and @code{_sequence}
+Left identity @code{_valis} and @code{_sequence}
 
 I.e., an expression of the form:
 @example
-_sequence(_lift @var{E},F)
+_sequence(_valis @var{E},F)
 @end example
 is equivalent to
 @example
@@ -210,7 +210,7 @@ programming languages.
   | @refer{BlockAction}
   | @refer{InvokeAction}
 @c  | @refer{IgnoreAction}
-  | @refer{LiftAction}
+  | @refer{ValisAction}
   | @refer{BindAction}
   | @refer{DefnAction}
   | @refer{AssignmentAction}
@@ -239,7 +239,7 @@ or, more accurately, return the empty tuple:
 
 The @code{nothing} action is equivalent to
 @example
-_lift(())
+_valis(())
 @end example
 
 @node Block Action
@@ -296,21 +296,21 @@ enclosing computation expression. Specifically, if the enclosing
 computation is an @code{action}, then the invoked expression should
 also return an @code{action}.
 
-@node Lift Action
-@subsection Lift Action
-@cindex lift action
-@findex lift
+@node Valis Action
+@subsection Valis Action
+@cindex valis action
+@findex valis
 
-The @refer{LiftAction} creates a computation from an expression.
+The @refer{ValisAction} creates a computation from an expression.
 
-@float BNF,liftActionFig
-@caption{Lift Action}
+@float BNF,valisActionFig
+@caption{Valis Action}
 @display
-@anchored{LiftAction} ::= @code{'lift'} @refer{Expression}
+@anchored{ValisAction} ::= @code{'valis'} @refer{Expression}
 @end display
 @end float
 
-When a @code{lift} action is performed, its expression is evaluated
+When a @code{valis} action is performed, its expression is evaluated
 and that value is used as the value of the computation.
 
 @node Return Action
@@ -329,7 +329,7 @@ The @refer{ReturnAction} creates a computation from an expression.
 
 @quotation Note
 The @code{return} action, within an action expression, is a synonym of
-a @code{lift} expression.
+a @code{valis} expression.
 @end quotation
 
 @node Bind Action

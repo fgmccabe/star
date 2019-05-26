@@ -56,7 +56,7 @@ test.sy{
   p : action[string,integer].
   p = (o >>= double) >>= double.
 
-  double(X) => action{ lift X+X }.
+  double(X) => action{ valis X+X }.
   
   assert valof o == 1.			-- End comment
   

@@ -32,15 +32,15 @@ test.implies{
 
   actionOnlySons:(string) => action[(),option[()]].
   actionOnlySons(P) =>
-    _iter(pars, _lift(none),
+    _iter(pars, _valis(none),
   	  let{
   	    checkSon((P,S),So) =>
-  	      _iter(ms, _lift(So),
+  	      _iter(ms, _valis(So),
   		    let{
-  		      checkMale(S,none) => _lift(some(())).
-  		      checkMale(_,St) => _lift(St)
+  		      checkMale(S,none) => _valis(some(())).
+  		      checkMale(_,St) => _valis(St)
   		    } in checkMale).
-  	    checkSon(_,So) => _lift(So)
+  	    checkSon(_,So) => _valis(So)
   	  } in checkSon).
 
   show "actionOnlySons(a) = $(valof actionOnlySons("a"))".

@@ -31,7 +31,7 @@ star.either{
     _sequence(either(X),F) => F(X).
     _sequence(other(E),_) => other(E).
     _raise(E) => other(E).
-    _lift(E) => either(E).
+    _valis(E) => either(E).
   }
 
   public implementation all a ~~ monad[either[a]] => {

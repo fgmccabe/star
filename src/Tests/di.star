@@ -5,7 +5,7 @@ test.di{
   Is = cons(1,cons(2,cons(3,cons(4,nil)))).
 
   Px : action[(),integer].
-  Px = _iter(Is,do{lift 1},(Ix,Cx)=>do{lift Ix*Cx}).
+  Px = _iter(Is,do{valis 1},(Ix,Cx)=>do{valis Ix*Cx}).
   
   show "Px=$(valof Px)".
   
@@ -27,7 +27,7 @@ test.di{
   FX:(cons[integer]) => action[(),integer].
   FX(I) => action{
     Fx := 1;
-    _iter(I,do {lift ()}, (Ix,_) => do { Fx:=Fx!*Ix});
+    _iter(I,do {valis ()}, (Ix,_) => do { Fx:=Fx!*Ix});
     return Fx!
   }
   

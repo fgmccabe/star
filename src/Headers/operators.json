@@ -738,7 +738,7 @@
     "desc": "wrap value in monad"
   },
   {
-    "prefixOp": "lift",
+    "prefixOp": "valis",
     "priorities": [930, 929],
     "desc": "wrap value in execution"
   },

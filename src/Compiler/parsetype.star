@@ -20,17 +20,17 @@ star.compiler.typeparse{
     parseT(Q,Tp) where (Lc,V,BT) ^= isQuantified(Tp) => do{
       BV <- parseBoundTpVars(V);
       In <- parseT(Q++BV,BT);
-      lift reQuant(BV,In)
+      valis reQuant(BV,In)
     }
     parseT(Q,Tp) where (Lc,V,BT) ^= isXQuantified(Tp) => do{
       BV <- parseBoundTpVars(V);
       In <- parseT(Q++BV,BT);
-      lift reQuantX(BV,In)
+      valis reQuantX(BV,In)
     }
     parseT(Q,Tp) where (Lc,C,B) ^= isConstrained(Tp) => do{
       Cx <- parseConstraints(C,Q);
       Inn <- parseT(Q,B);
-      lift wrapConstraints(Cx,Inn)
+      valis wrapConstraints(Cx,Inn)
     }
     parseT(Q,Tp) where (Lc,Nm) ^= isName(Tp) =>
       parseTypeName(Q,Lc,Nm).
@@ -41,8 +41,8 @@ star.compiler.typeparse{
 	  ArgTps <- parseTps(Q,deComma(L)++deComma(R));
 --	  DepTps <- parseTps(Q,deComma(R));
 	  Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
---	  lift rebind(Qx,depType(Inn,DepTps))
-	  lift rebind(Qx,Inn)
+--	  valis rebind(Qx,depType(Inn,DepTps))
+	  valis rebind(Qx,Inn)
 	} else {
 	  ArgTps <- parseTps(Q,Args);
 	  Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
@@ -54,36 +54,36 @@ star.compiler.typeparse{
     parseT(Q,T) where (Lc,Lhs,Rhs) ^= isBinary(T,"=>") => do{
       A <- parseArgType(Q,Lhs);
       R <- parseT(Q,Rhs);
-      lift tpExp(tpExp(tpFun("=>",2),A),R)
+      valis tpExp(tpExp(tpFun("=>",2),A),R)
     }
     parseT(Q,T) where (Lc,Lhs,Rhs) ^= isBinary(T,"<=>") => do{
       A <- parseArgType(Q,Lhs);
       R <- parseT(Q,Rhs);
-      lift tpExp(tpExp(tpFun("<=>",2),A),R)
+      valis tpExp(tpExp(tpFun("<=>",2),A),R)
     }
     parseT(Q,T) where (Lc,Rhs) ^= isUnary(T,"ref") => do{
       R <- parseT(Q,Rhs);
-      lift tpExp(tpFun("ref",1),R)
+      valis tpExp(tpFun("ref",1),R)
     }
     parseT(Q,T) where (Lc,[A]) ^= isTuple(T) => do{
       if (_,As) ^= isTuple(A) then{
 	ArgTps <- parseTps(Q,As);
-	lift tupleType(ArgTps)
+	valis tupleType(ArgTps)
       } else
 	parseT(Q,A)
     }
     parseT(Q,T) where (_,As) ^= isTuple(T) => do{
       ArgTps <- parseTps(Q,As);
-      lift tupleType(ArgTps)
+      valis tupleType(ArgTps)
     }
     parseT(Q,T) where (Lc,A) ^= isBrTuple(T) => do{
       (Flds,Tps) <- parseTypeFields(Q,A,[],[]);
-      lift faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)])
+      valis faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)])
     }
     parseT(Q,T) where (Lc,Lhs,Rhs) ^= isTypeLambda(T) => do{
       A <- parseArgType(Q,Lhs);
       R <- parseT(Q,Rhs);
-      lift typeLambda(A,R)
+      valis typeLambda(A,R)
     }
     -- TODO: field access of type
     parseT(Q,T) default =>
@@ -91,7 +91,7 @@ star.compiler.typeparse{
 
     parseArgType(Q,A) where (_,As) ^= isTuple(A) => do{
       Args <- parseTps(Q,As);
-      lift tupleType(Args)
+      valis tupleType(Args)
     }
     parseArgType(Q,A) =>
       parseT(Q,A).
@@ -101,11 +101,11 @@ star.compiler.typeparse{
     parseTypeArgs(_,Q,[XX]) where (As,Ds)^=isDepends(XX) => do{
       Lhs <- parseTps(Q,As);
       Rhs <- parseTps(Q,Ds);
-      lift (Lhs,Rhs)
+      valis (Lhs,Rhs)
     }.
     parseTypeArgs(_,Q,As) => do{
       ATps <- parseTps(Q,As);
-      lift (ATps,[])
+      valis (ATps,[])
     }
     parseTypeArgs(Lc,_,As) =>
       other(reportError(Rp,"cannot parse argument types $(As)",Lc)).
@@ -115,7 +115,7 @@ star.compiler.typeparse{
     parseTps(Q,[T,..L]) => do{
       Tl <- parseT(Q,T);
       Tr <- parseTps(Q,L);
-      lift [Tl,..Tr]
+      valis [Tl,..Tr]
     }
 
     parseTypeFields:(tipes,list[ast],tipes,tipes) => either[reports,(tipes,tipes)].
@@ -129,7 +129,7 @@ star.compiler.typeparse{
     parseTypeField(Q,F,Flds,Tps) where (_,Lhs,Rhs) ^= isTypeAnnotation(F) => do{
       if (ILc,Nm) ^= isName(Lhs) then {
 	FTp<-parseT(Q,Rhs);
-	lift ([(Nm,FTp),..Flds],Tps)
+	valis ([(Nm,FTp),..Flds],Tps)
       } else
 	throw reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs))
     }
@@ -138,7 +138,7 @@ star.compiler.typeparse{
 	(_,Lhs,Rhs) ^= isTypeAnnotation(A) => do{
 	  if (ILc,Nm) ^= isName(Lhs) then {
 	    FTp<-parseT(Q,Rhs);
-	    lift (Flds,[(Nm,FTp),..Tps])
+	    valis (Flds,[(Nm,FTp),..Tps])
 	  } else
 	    throw reportError(Rp,"invalid lhs -- $(Lhs) -- of type annotation",locOf(Lhs))
 	}.
@@ -182,13 +182,13 @@ star.compiler.typeparse{
     parseConstraints([A,..As],Q) => do{
       Cn <- parseConstraint(A,Q);
       Cx <- parseConstraints(As,Q);
-      lift [Cn,..Cx]
+      valis [Cn,..Cx]
     }
 
     parseConstraint(A,Q) where (Lc,Lh,Rh) ^= isBinary(A,"<~") => do{
       Bnd <- parseT(Q,Lh);
       Face <- parseT(Q,Rh);
-      lift fieldConstraint(Bnd,Face).
+      valis fieldConstraint(Bnd,Face).
     }
     parseConstraint(A,Q) where (Lc,Op,Args) ^= isSquareTerm(A) =>
       parseContractConstraint(Q,A,Env,Rp).
@@ -219,7 +219,7 @@ star.compiler.typeparse{
   parseContractConstraint(Q,A,Env,Rp) where
       (Lc,Op,Ags) ^= isSquareTerm(A) => do{
 	Con <- parseType(Q,A,Env,Rp);
-	lift typeConstraint(Con)
+	valis typeConstraint(Con)
       }.
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
@@ -227,7 +227,7 @@ star.compiler.typeparse{
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if conDfn(_,_,Con,_) ^= findContract(Env,Id) then {
-      lift typeConstraint(snd(freshen(Con,[],Env)))
+      valis typeConstraint(snd(freshen(Con,[],Env)))
     }
       else
 	throw reportError(Rp,"contract $(Op) not defined",locOf(Op))

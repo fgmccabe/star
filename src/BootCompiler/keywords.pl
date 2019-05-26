@@ -55,6 +55,7 @@
   keyword("in").
   keyword("do").
   keyword("valof").
+  keyword("valis").
   keyword("prse").
   keyword("if").
   keyword("then").

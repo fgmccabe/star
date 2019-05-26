@@ -411,7 +411,7 @@ isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.
 
 isReturn(A,Lc,E) :-
-  (isUnary(A,Lc,"lift",E) ; isUnary(A,Lc,"return",E)),!.
+  (isUnary(A,Lc,"valis",E) ; isUnary(A,Lc,"return",E)),!.
 
 isValof(A,Lc,E) :-
   isUnary(A,Lc,"valof",E).
