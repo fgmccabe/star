@@ -4,8 +4,7 @@ star.compiler.terms{
   import star.compiler.location.
   import star.compiler.types.
 
-  term ::= voyd
-    | idnt(string)
+  public term ::= voyd
     | intgr(integer)
     | flot(float)
     | strg(string)
@@ -13,21 +12,76 @@ star.compiler.terms{
     | lbl(string,integer)
     | enum(string).
 
-  public implementation display[term] => let{
-    dispTerm(voyd) => ss("␀").
-    dispTerm(idnt(Nm)) => ss(Nm).
-    dispTerm(intgr(Ix)) => disp(Ix).
-    dispTerm(flot(Dx)) => disp(Dx).
-    dispTerm(strg(Sx)) => disp(Sx).
-    dispTerm(data(Op,Args)) => ssSeq([dispTerm(Op),ss("("),ssSeq(dispTerms(Args,"")),ss(")")]).
-    dispTerm(lbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-    dispTerm(enum(Sx)) => ssSeq([ss("'"),ss(Sx),ss("'")]).
+  public core ::= idnt(string) |
+    lit(term) |
+    cll(locn,core,list[core]) |
+    ecll(locn,string,list[core]) |
+    ocll(locn,core,list[core]) |
+    dte(locn,core,core) |
+    ltt(locn,core,tipe,core,core) |
+    whr(locn,core,core) |
+    vrn(locn,list[(string,core,tipe)],core) |
+    case(locn,core,list[(locn,core,core)],core) |
+    seqn(locn,core,core) |
+    cnj(locn,core,core) |
+    cnd(locn,core,core,core) |
+    dsj(locn,core,core) |
+    mtch(locn,core,core) |
+    ng(locn,core).
 
-    dispTerms([],_) => [].
-    dispTerms([T,..Ts],Sp) => [dispTerm(T),ss(Sp),..dispTerms(Ts,", ")].
+  public implementation display[term] => let{
+    dispT(voyd) => ss("␀").
+    dispT(intgr(Ix)) => disp(Ix).
+    dispT(flot(Dx)) => disp(Dx).
+    dispT(strg(Sx)) => disp(Sx).
+    dispT(data(lbl("[]",_),Args)) => ssSeq([ss("["),ssSeq(dispTs(Args,"")),ss("]")]).
+    dispT(data(Op,Args)) => ssSeq([dispT(Op),ss("("),ssSeq(dispTs(Args,"")),ss(")")]).
+    dispT(lbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
+    dispT(enum(Sx)) => ssSeq([ss("'"),ss(Sx),ss("'")]).
+
+    dispTs([],_) => [].
+    dispTs([T,..Ts],Sp) => [dispT(T),ss(Sp),..dispTs(Ts,", ")].
   } in {.
-    disp(T) => dispTerm(T)
+    disp(T) => dispT(T)
   .}
+
+  public implementation display[core] => let{
+    dispC(idnt(Nm)) => ss(Nm).
+    dispC(lit(T)) => disp(T).
+    dispC(cll(_,Op,Args)) => ssSeq([dispC(Op),ss("("),ssSeq(dispAs(Args,"")),ss(")")]).
+    dispC(ecll(_,Op,Args)) => ssSeq([ss("esc "),ss(Op),
+	ss("("),ssSeq(dispAs(Args,"")),ss(")")]).
+    dispC(ocll(_,Ob,Args)) => ssSeq([dispC(Ob),ss(":("),ssSeq(dispAs(Args,"")),ss(")")]).
+    dispC(dte(_,Ob,F)) => ssSeq([dispC(Ob),ss("."),dispC(F)]).
+    dispC(ltt(_,Vr,T,Vl,B)) => ssSeq([ss("let {"),
+	dispC(Vr),ss(":"),disp(T),ss("="),dispC(Vl),ss("} in "),dispC(B)]).
+    dispC(whr(_,T,C)) => ssSeq([ss("("),dispC(T),ss(" where "),dispC(C),ss(")")]).
+    dispC(vrn(_,Nms,Val)) => ssSeq([ss("vars: ["),
+	ssSeq(dispVarNames(Nms)),ss("]->"),dispC(Val)]).
+    dispC(case(_,Exp,Cases,Deflt)) =>
+      ssSeq([ss("case "),dispC(Exp),ss(" in {"),
+	  ssSeq(dispCases(Cases)),ss("} else "),dispC(Deflt)]).
+    dispC(seqn(_,L,R)) => ssSeq([dispC(L),ss(";"),dispC(R)]).
+    dispC(cnj(_,L,R))  => ssSeq([dispC(L),ss("&&"),dispC(R)]).
+    dispC(cnd(_,T,L,R)) => ssSeq([ss("("),dispC(T),ss("?"),
+	dispC(L),ss("||"),dispC(R),ss(")")]).
+    dispC(dsj(_,L,R))  => ssSeq([dispC(L),ss("||"),dispC(R)]).
+    dispC(mtch(_,L,R)) => ssSeq([dispC(L),ss(".="),dispC(R)]).
+    dispC(ng(_,R)) => ssSeq([ss("\\+"),dispC(R)]).
+
+    dispAs([],_) => [].
+    dispAs([T,..Ts],Sp) => [dispC(T),ss(Sp),..dispAs(Ts,", ")].
+
+    dispVarNames([]) => [].
+    dispVarNames([(Nm,Vl,Tp),..Vs]) =>
+      [ss(Nm),ss(":"),disp(Tp),ss("="),dispC(Vl),..dispVarNames(Vs)].
+
+    dispCases([]) => [].
+    dispCases([(_,Ptn,Vl),..Cs]) => [dispC(Ptn),ss("->"),dispC(Vl),..dispCases(Cs)].
+  } in {.
+    disp(C) => dispC(C)
+  .}
+  
 
   decodeTerm:(list[integer])=>option[(term,list[integer])].
   decodeTerm([0cv,..Ls]) => some((voyd,Ls)).
@@ -54,6 +108,11 @@ star.compiler.terms{
     (Op,LL1) <- decodeTerm(L0);
     (Args,Lx) <- decodeTerms(LL1,Ax,[]);
     valis (data(Op,Args),Lx)
+  }
+  decodeTerm([0cl,..Ls]) => do{
+    (Ax,L0) <- decodeNat(Ls,0);
+    (Els,Lx) <- decodeTerms(L0,Ax,[]);
+    valis (data(lbl("[]",Ax),Els),Lx)
   }
 
   decodeTerms:(list[integer],integer,list[term]) => option[(list[term],list[integer])].
