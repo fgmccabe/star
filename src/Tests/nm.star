@@ -16,8 +16,8 @@ test.nm{
   show disp(first(parse(real,"34"::list[integer]))).
   show disp(first(parse(real,"-34"::list[integer]))).
 
-  optInt:(float)=>integer.
-  optInt(F) => F::integer.
+  optInt:(float)=>option[integer].
+  optInt(F) => some(F::integer).
 
   show disp(optInt(^first(parse(real,"-34"::list[integer])))).
   

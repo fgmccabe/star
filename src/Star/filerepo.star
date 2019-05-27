@@ -12,8 +12,9 @@ star.repo.file{
 
   public openRepository:(uri) => fileRepo.
   openRepository(Root) where
-    ManUri ^= parseUri("manifest") &&
-    Man ^= readManifest(resolveUri(Root,ManUri)) => repo(Root,Man).
+      ManUri ^= parseUri("manifest") &&
+      MU ^= resolveUri(Root,ManUri) &&
+      Man ^= readManifest() => repo(Root,Man).
   openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[fileRepo] => {
@@ -26,22 +27,25 @@ star.repo.file{
       Ext .= extensionMapping(Kind) &&
       Fn .= Pk++(hash(Pk)::string)++Ext &&
       FUri ^= parseUri(Fn) &&
-      () .= putResource(resolveUri(Root,FUri),Text) &&
+      FU ^= resolveUri(Root,FUri) &&
+      () .= putResource(FU,Text) &&
       NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn)&&
       MU ^= parseUri("manifest") &&
-      RepoUri .= resolveUri(Root,MU) &&
+      RepoUri ^= resolveUri(Root,MU) &&
       () .= flushManifest(RepoUri,NM) => repo(Root,NM).
 
   public loadFromRepo:(fileRepo,pkg,string) => option[string].
   loadFromRepo(repo(Root,Man),Pkg,Kind) where
-    U ^= locateInManifest(Man,Pkg,Kind) &&
-    Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
+      U ^= locateInManifest(Man,Pkg,Kind) &&
+      RU ^= resolveUri(Root,Uri) &&
+      Uri ^= parseUri(U) => getResource(RU).
   loadFromRepo(_,_,_) default => none.
 
   public locateCode:(fileRepo,pkg,string) => option[string].
   locateCode(repo(Root,Man),Pkg,U) where
-    U ^= locateInManifest(Man,Pkg,"code") &&
-    Uri ^= parseUri(U) => getResource(resolveUri(Root,Uri)).
+      U ^= locateInManifest(Man,Pkg,"code") &&
+      RU ^= resolveUri(Root,Uri) &&
+      Uri ^= parseUri(U) => getResource(RU).
 
   public packageCodeOk:(fileRepo,pkg) => boolean.
   packageCodeOk(Repo,Pkg) => packageOk(Repo,Pkg,"code").
@@ -51,9 +55,9 @@ star.repo.file{
     U ^= locateInManifest(Man,Pkg,Kind) &&
     S ^= locateInManifest(Man,Pkg,"source") &&
     CU ^= parseUri(U) &&
-    CodeFile .= resolveUri(Root,CU) &&
+    CodeFile ^= resolveUri(Root,CU) &&
     SU ^= parseUri(S) &&
-    SrcFile .= resolveUri(Root,SU) &&
+    SrcFile ^= resolveUri(Root,SU) &&
     resourcePresent(CodeFile) &&
     resourcePresent(SrcFile) =>
         newerFile(CodeFile,SrcFile).
@@ -80,4 +84,12 @@ star.repo.file{
       Txt ^= getResource(Url) &&
       J.=Txt::json => some(J::manifest).
   readManifest(_) default => none.
+
+  public searchForRepo:(uri) => option[uri].
+  searchForRepo(U) where RU ^= parseUri(".star-repo/")
+    PU ^= parseUri("..") => searchUpwards(U,RU,PU).
+
+  searchUpwards(R,RU,PU) where RpU ^= resolveUri(R,RU) && resourcePresent(RpU) => some(RpU).
+  searchUpwards(R,RU,PU) where 
+    
 }

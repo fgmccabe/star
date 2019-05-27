@@ -368,9 +368,6 @@ packageVersion(T,Pkg) :- isBinary(T,_,".",L,R),
   string_concat(I,RP,Pkg).
 
 headName(H,Nm) :-
-  isBinary(H,_,"^",L,_),
-  headName(L,Nm).
-headName(H,Nm) :-
   isIden(H,_,Nm).
 headName(H,Nm) :-
   isRoundTerm(H,N,_),

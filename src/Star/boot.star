@@ -41,7 +41,7 @@ star.boot{
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
       CW ^= parseUri(Cwd) &&
   RU ^= parseUri(RepoDir) &&
-  RD .= resolveUri(CW,RU) &&
+  RD ^= resolveUri(CW,RU) &&
   Pkg ^= parsePkgName(Top) => do{
     Repo = bootRepo(RD);
     setupPkg(Repo,Pkg);
@@ -69,8 +69,9 @@ star.boot{
 
   loadFromRepo:all r ~~ repo[r] |: (r,pkg) => option[string].
   loadFromRepo(Repo,Pkg) where
-    U ^= hasResource(Repo,Pkg,"code") &&
-    Uri ^= parseUri(U) => getResource(resolveUri(repoRoot(Repo),Uri)).
+      U ^= hasResource(Repo,Pkg,"code") &&
+      Uri ^= parseUri(U) &&
+      RU ^= resolveUri(repoRoot(Repo),Uri) => getResource(RU).
   loadFromRepo(_,_) default => none.
 
   initialize:(pkg) => action[string,()].
