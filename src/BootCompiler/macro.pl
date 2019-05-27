@@ -31,17 +31,16 @@ hasPromotion(Term) :-
 
 promoteOption(Term,T1) :-
   isRound(Term,Lc,Op,Els),
-  promoteArgs(Els,NEls,name(Lc,"true"),Cond),
-  roundTerm(Lc,Op,NEls,Rs),
-  unary(Lc,"some",Rs,Reslt),
-  conditional(Lc,Cond,Reslt,name(Lc,"none"),T1).
-
-promoteArgs([],[],Cond,Cond) :- !.
-promoteArgs([A|As],[V|NAs],C,Cx) :-
-  isUnary(A,Lc,"^",AA),!,
+  locOfAst(Term,Lc),
   genIden(Lc,V),
-  optionMatch(Lc,V,AA,C1),
-  mergeCond(C,C1,Lc,C2),
-  promoteArgs(As,NAs,C2,Cx).
-promoteArgs([A|As],[A|NAs],C,Cx) :-
-  promoteArgs(As,NAs,C,Cx).
+  promoteArgs(Els,NEls,V,XV),
+  roundTerm(Lc,Op,NEls,Rs),
+  roundTuple(Lc,[V],LA),
+  eqn(Lc,LA,name(Lc,"true"),Rs,Lm),
+  binary(Lc,">>=",XV,Lm,T1).
+
+promoteArgs([],[],_,_) :- !.
+promoteArgs([A|As],[V|As],V,AA) :-
+  isUnary(A,_,"^",AA),!.
+promoteArgs([A|As],[A|NAs],V,XV) :-
+  promoteArgs(As,NAs,V,XV).

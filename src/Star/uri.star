@@ -29,7 +29,7 @@ star.uri{
   absoluteUri:parser[list[integer],uri].
   absoluteUri = scheme >>= (Scheme) =>
     hierPart >>= (Hier) =>
-    query >>= (Query) => return absUri(Scheme,Hier,Query).
+      query >>= (Query) => return absUri(Scheme,Hier,Query).
   
   scheme:parser[list[integer],string].
   scheme = _sat(isAlphaNum) >>= (A) => _star(alphaStar) >>= (Rest) => _tk(0c:) >>= (_) => return ([A,..Rest]::string).
@@ -39,12 +39,12 @@ star.uri{
 
   netPath:parser[list[integer],rsrcName].
   netPath = _str("//") >>= (_) =>
-            authority >>= (A) =>
-            (absolutePath +++ relativePath) >>= (P) => return netRsrc(A,P).
+    authority >>= (A) =>
+      (absolutePath +++ relativePath) >>= (P) => return netRsrc(A,P).
 
   authority:parser[list[integer],authority].
   authority = (userInfo >>= (U) => _tk(0c@) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
-    (hostNamePort >>= (H) => return server(none,H)).
+  (hostNamePort >>= (H) => return server(none,H)).
 
   userInfo:parser[list[integer],userInfo].
   userInfo = _star(userStar) >>= (U) => return user(U::string).
@@ -200,24 +200,27 @@ star.uri{
   sameQuery(_,_) => false.
 
   -- Resolve a url against a base. The base must be an absolute URI, either net or local.
-  public resolveUri:(uri,uri) => uri.
-  resolveUri(_,U) where U=.absUri(_,_,_) => U.
-  resolveUri(absUri(Scheme,Base,_),relUri(Path,Query)) => absUri(Scheme,resolvePath(Base,Path),Query).
+  public resolveUri:(uri,uri) => option[uri].
+  resolveUri(_,U) where U=.absUri(_,_,_) => some(U).
+  resolveUri(absUri(Scheme,Base,_),relUri(Path,Query)) where
+    Pth ^= resolvePath(Base,Path) => some(absUri(Scheme,Pth,Query)).
 
-  resolvePath:(rsrcName,rsrcName)=>rsrcName.
-  resolvePath(_,netRsrc(A,P)) => netRsrc(A,P).
-  resolvePath(netRsrc(A,_),localRsrc(absPath(P))) => netRsrc(A,absPath(P)).
-  resolvePath(netRsrc(A,absPath(B)),localRsrc(relPath(P))) => netRsrc(A,absPath(edit(P,drop(reverse(B))))).
-  resolvePath(localRsrc(_),localRsrc(absPath(P))) => localRsrc(absPath(P)).
-  resolvePath(localRsrc(absPath(B)),localRsrc(relPath(P))) => localRsrc(absPath(edit(P,drop(reverse(B))))).
+  resolvePath:(rsrcName,rsrcName)=>option[rsrcName].
+  resolvePath(_,netRsrc(A,P)) => some(netRsrc(A,P)).
+  resolvePath(netRsrc(A,_),localRsrc(absPath(P))) => some(netRsrc(A,absPath(P))).
+  resolvePath(netRsrc(A,absPath(B)),localRsrc(relPath(P))) where Dr ^= drop(reverse(B)) =>
+    some(netRsrc(A,absPath(edit(P,Dr)))).
+  resolvePath(localRsrc(_),localRsrc(absPath(P))) => some(localRsrc(absPath(P))).
+  resolvePath(localRsrc(absPath(B)),localRsrc(relPath(P))) where Dr ^= drop(reverse(B)) => some(localRsrc(absPath(edit(P,Dr)))).
 
   edit: (list[string],list[string]) => list[string].
   edit([".",..Segs],R) => edit(Segs,R).
   edit(["..",..Segs],[_,..R]) => edit(Segs,R).
   edit(Segs,R) => reverse(R)++Segs.
 
-  drop:all t ~~ (list[t])=>list[t].
-  drop([_,..L])=>L.
+  drop:all t ~~ (list[t])=>option[list[t]].
+  drop([_,..L])=>some(L).
+  drop(_) default => none.
 
   public implementation display[uri] => {
     disp(absUri(Scheme,Rsrc,Query)) => ssSeq([ss(Scheme),ss(":"),dispRsrc(Rsrc),dispQuery(Query)]).

@@ -212,3 +212,6 @@ combineActs(Lc,A1,Cont,ConOp,StTp,ErTp,Exp) :-
   Exp = apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
 
 mkDelay(Lc,Act,StTp,ErTp,seqDo(Lc,returnDo(Lc,tple(Lc,[]),StTp,ErTp),Act)).
+
+
+
