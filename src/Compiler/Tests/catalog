@@ -8,6 +8,7 @@
     "test.comp.cat": "catalogtest.star",
     "test.comp.freshen": "freshentest.star",
     "test.comp.parsetype" : "tp.star",
+    "test.comp.repo" : "rep.star",
     "test.comp.unify": "unifytest.star"
   },
   "version": "1.0.0",
