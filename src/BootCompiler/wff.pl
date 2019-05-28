@@ -243,7 +243,7 @@ eqn(Lc,Args,Cond,Rhs,Eqn) :-
   whereTerm(Lc,Args,Cond,Lhs),
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 
-% refactor f(A)(B) where C => D to f(A) where C => (B)=>D
+% refactor f(A)(B) where C => D to f(A) => (B) where C =>D
 isCurriedRule(St,Lc,Op,Cond,Body) :-
   isBinary(St,Lc,"=>",L,R),!,
   ruleHead(L,H,Cond,_),

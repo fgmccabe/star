@@ -94,9 +94,6 @@ decodeConstraint(conTract(Nm,Args,Deps)) --> ['c'], decodeText(Nm), decodeType(t
 decodeConstraint(implementsFace(Tp,Face)) --> ['a'], decodeType(Tp), decodeType(faceType(Face,[])).
 decodeConstraint(allType(TV,Con)) --> [':'], decodeType(TV), decodeConstraint(Con).
 
-collectUntil(C,[]) --> [C].
-collectUntil(C,[B|More]) --> [B], collectUntil(C,More).
-
 digits(SoFar,Ix) --> digit(D), { Nx is SoFar*10+D}, digits(Nx,Ix).
 digits(Ix,Ix) --> \+ digit(_).
 

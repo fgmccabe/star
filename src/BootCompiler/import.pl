@@ -57,10 +57,6 @@ findContracts([ctpl(_,[strg(Nm),strg(CnNm),strg(Sig)])|M],[conDef(Nm,CnNm,Spec)|
   decodeSignature(Sig,Spec),
   findContracts(M,C,Cx).
 
-processImplementations(Env,Impls,MoreImpls) :-
-  decodeValue(Env,ctpl(_,Els)),
-  pickupImplementations(Els,Impls,MoreImpls).
-
 pickupImplementations([],I,I).
 pickupImplementations([ctpl(_,[strg(Nm),strg(Sig)])|M],[imp(Nm,Spec)|I],RI) :-
   decodeSignature(Sig,Spec),
