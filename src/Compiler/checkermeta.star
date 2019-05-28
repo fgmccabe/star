@@ -1,10 +1,19 @@
 star.compiler.meta{
   import star.
 
+  import star.pkg.
   import star.compiler.ast.
   import star.compiler.location.
 
-  public importSpec ::= pkgImp(locn,visibility,ast) | openStmt(locn,ast).
+  public visibility ::= priVate | pUblic | transItive.
+
+  public implementation display[visibility] => {
+    disp(priVate) => ss("private").
+    disp(pUblic) => ss("public").
+    disp(transItive) => ss("transitive").
+  }
+
+  public importSpec ::= pkgImp(locn,visibility,pkg) | openStmt(locn,ast).
 
   public defnSpec ::= defnSpec(defnSp,locn,list[ast]).
 

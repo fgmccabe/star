@@ -29,11 +29,11 @@ star.resources{
   public cwd:()=>uri.
   cwd() where U^=parseUri(_cwd()) => U.
 
-  public searchForRepo:(uri)=>option[uri].
-  searchForRepo(U) where P^=parseUri("../") && R ^= parseUri(".star-repo/") =>
+  public searchForRsRc:(uri,string)=>option[uri].
+  searchForRsRc(U,Pth) where P^=parseUri("../") && R ^= parseUri(Pth) =>
     let{
-    searchFor(C) where
-	RU ^= resolveUri(C,R) &&
+      searchFor(C) where
+	  RU ^= resolveUri(C,R) &&
 	  P1 .= getUriPath(RU) &&
 	  _file_present(P1) => some(RU).
       searchFor(C) where

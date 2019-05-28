@@ -8,9 +8,11 @@ star.compiler.dict{
 
   tpDef ::= tpVar(option[locn],tipe) | tpDefn(option[locn],string,tipe,tipe).
 
-  public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe,()=>tipe).
+  public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe).
 
-  public contractDefn ::= conDfn(option[locn],string,tipe,tipe).
+  public contractDefn ::= conDfn(option[locn],string,string,tipe).
+
+  public implDefn ::= implDfn(option[locn],string,tipe).
 
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,contractDefn],
@@ -18,6 +20,14 @@ star.compiler.dict{
 
   public dict ~> cons[scope].
 
+  public declareVar:(string,option[locn],tipe,dict) => dict.
+  declareVar(Nm,Lc,Tp,Dict) =>
+    declareVr(Nm,Lc,Tp,(L,T)=>vr(L,Nm,T),Dict).
+
+  declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
+  declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
+    [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
+  
   public declareType:(string,option[locn],tipe,tipe,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
     [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Imps),..Rest].
@@ -27,11 +37,29 @@ star.compiler.dict{
   findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
-  public declareContract:(option[locn],string,tipe,tipe,dict) => dict.
-  declareContract(Lc,Nm,Tp,TpRule,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
-    [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRule)],
-	Vrs,Cns[Nm->conDfn(Lc,Nm,Tp,TpRule)],Imps),..Rest].
+  public declareContract:(string,contractDefn,dict) => dict.
+  declareContract(Nm,Con,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
+    declareMethods(Con,[scope(Tps,Vrs,Cns[Nm->Con],Imps),..Rest]).
 
+  declareMethods:(contractDefn,dict) => dict.
+  declareMethods(conDfn(Lc,Nm,FullNm,Spec),Dict) where
+      (MQ,MI) .= deQuant(Spec) &&
+      (MC,contractExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
+      formMethods(Methods,Lc,MQ,MC,CT,Dict).
+
+  formMethods:(list[(string,tipe)],option[locn],list[tipe],list[constraint],constraint,dict) => dict.
+  formMethods([],_,_,_,_,Dict) => Dict.
+  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) where
+      (MQ,MI) .= deQuant(Tp) &&
+      MT .= reConstrain(Cx,constrainedType(Tp,Con)) =>
+    formMethods(Mtds,Lc,Q,Cx,Con,
+      declareMethod(Nm,Lc,reQuant(Q++MQ,MT),Dict)).
+
+  public declareMethod:(string,option[locn],tipe,dict) => dict.
+  declareMethod(Nm,Lc,Tp,Dict) =>
+    declareVr(Nm,Lc,Tp,(L,T)=>mtd(L,Nm,T),Dict).
+  
+      
   public findContract:(dict,string) => option[contractDefn].
   findContract([],Nm) => none.
   findContract([scope(_,_,Cns,_),.._],Ky) where Con^=Cns[Ky] => some(Con).

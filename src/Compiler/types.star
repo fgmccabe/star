@@ -22,6 +22,7 @@ star.compiler.types{
     faceType(list[(string,tipe)],list[(string,tipe)]) |
     typeLambda(tipe,tipe) |
     typeExists(tipe,tipe) |
+    contractExists(constraint,tipe) |
     constrainedType(tipe,constraint) |
     depType(tipe,list[tipe]).
 
@@ -322,10 +323,32 @@ star.compiler.types{
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
 
   public funType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
+  public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
 
   public intType = tipe("star.core*integer").
   public fltType = tipe("star.core*float").
   public strType = tipe("star.core*string").
   public boolType = tipe("star.core*boolean").
   public lstType(Tp) => tpExp(tpFun("star.core*list",1),Tp).
+  public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
+
+  public deQuant:(tipe) => (list[tipe],tipe).
+  deQuant(Tp) => let{
+    deQ(allType(V,I),Qs) => deQ(I,[Qs..,V]).
+    deQ(Tp,Qs) => (Qs,Tp).
+  } in deQ(Tp,[]).
+
+  public reQuant:(list[tipe],tipe) => tipe.
+  reQuant([],Tp) => Tp.
+  reQuant([Q,..Qs],Tp) => allType(Q,reQuant(Qs,Tp)).
+
+  public deConstrain:(tipe) => (list[constraint],tipe).
+  deConstrain(Tp) => let{
+    deC(constrainedType(I,V),Qs) => deC(I,[Qs..,V]).
+    deC(Tp,Qs) => (Qs,Tp).
+  } in deC(Tp,[]).
+
+  public reConstrain:(list[constraint],tipe) => tipe.
+  reConstrain([],Tp) => Tp.
+  reConstrain([Q,..Qs],Tp) => constrainedType(reConstrain(Qs,Tp),Q).
 }
