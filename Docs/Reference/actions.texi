@@ -222,7 +222,6 @@ programming languages.
 @end display
 @end float
 
-
 @node Nothing
 @subsection @code{nothing}
 @cindex no operation
@@ -349,6 +348,54 @@ need not be of the same type -- although the exception types should be.
 
 @quotation Note
 A @refer{BindAction} may not be the last action in an @refer{BlockAction}.
+@end quotation
+
+
+@node Bind Expression
+@subsection Bind Expression
+@cindex bind expression
+
+The @refer{BindExpression} has a similar role to teh
+@refer{BindAction} except that it is used in the context of an
+expression rather than an action.
+
+@float BNF,bindExpressionFig
+@caption{Bind Expression}
+@display
+@anchored{BindExpression} ::= @code{'^'} @refer{Expression}
+@end display
+@end float
+
+@quotation Note
+The @refer{BindExpression} has the effect of moving a computation
+inside an expression to the outside.
+@end quotation
+
+For example, in the fragment:
+@example
+do@{
+  A <- foo(^bar());
+  valis A
+@}
+@end example
+the function @code{foo} should be a suitably typed (i.e., have an
+@code{_execution} contract implemented for it), as should @code{bar}. This code is equivalent to:
+@example
+bar() >>= (XX)=>foo(XX) >>= (A) => _valis(A)
+@end example
+where @code{XX} is a new variable not appearing elsewhere in the program.
+
+@quotation Note
+The above example could have been written
+@example
+do@{
+  XX <- bar();
+  A <- foo(XX);
+  valis A
+@}
+@end example
+except that the @refer{BindExpression} makes it more compact -- and it
+is applicable in non @code{do} expressions also.
 @end quotation
 
 @node Definition Action
