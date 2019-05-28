@@ -89,10 +89,13 @@
   "Regular expression matching the keywords to highlight in Star mode."
   )
 
+(defvar star-char-regexp
+  "\\(\\\\u[0-9a-f]*;\\|.\\)")
+
 (defvar star-constant-regexp
   (concat "\\<\\("
 	  (star-compose-regexps
-	   '(
+	   `(
 	     "true"
 	     "false"
 	     "this"
@@ -100,10 +103,10 @@
 	     "some"
 	     "zero"
 	     "one"
+	     ,(concat "0c" star-char-regexp)
 	     "[-]?[0-9]+\\([.][0-9]+\\([eE][-+]?[0-9]+\\)?\\)?"
 	     ))
 	  "\\)\\>")
-	  
   "Regular expression matching special constants and numbers in Star mode.")
 
 (defvar star-symbol-regexp
