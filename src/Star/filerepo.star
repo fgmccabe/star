@@ -84,12 +84,4 @@ star.repo.file{
       Txt ^= getResource(Url) &&
       J.=Txt::json => some(J::manifest).
   readManifest(_) default => none.
-
-  public searchForRepo:(uri) => option[uri].
-  searchForRepo(U) where RU ^= parseUri(".star-repo/")
-    PU ^= parseUri("..") => searchUpwards(U,RU,PU).
-
-  searchUpwards(R,RU,PU) where RpU ^= resolveUri(R,RU) && resourcePresent(RpU) => some(RpU).
-  searchUpwards(R,RU,PU) where 
-    
 }

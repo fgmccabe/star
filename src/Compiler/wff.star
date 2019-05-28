@@ -1,5 +1,6 @@
 star.compiler.wff{
   import star.
+  import star.pkg.
   import star.topsort.
 
   import star.compiler.ast.
@@ -247,9 +248,31 @@ star.compiler.wff{
     (pkgImp(_,_,Im) ^= isImport(I) ?
 	some(pkgImp(Lc,priVate,Im)) ||
 	none).
-  isImport(A) where (Lc,I) ^= isUnary(A,"import") =>
-    some(pkgImp(Lc,priVate,I)).
+  isImport(A) where (Lc,I) ^= isUnary(A,"import") => do{
+    Pkg <- pkgName(I);
+    valis pkgImp(Lc,priVate,Pkg)
+  }
   isImport(_) default => none.
+
+  public pkgName:(ast) => option[pkg].
+  pkgName(A) where (_,L,R) ^= isBinary(A,"#") => do{
+    Nm <- dottedName(L);
+    Vr <- dottedName(R);
+    valis pkg(Nm,vers(Vr))
+  }
+  pkgName(A) => do{
+    Nm <- dottedName(A);
+    valis pkg(Nm,defltVersion)
+  }
+
+  dottedName:(ast) => option[string].
+  dottedName(N) where (_,Id) ^= isName(N) => some(Id).
+  dottedName(N) where (_,L,R) ^= isBinary(N,".") => do{
+    LL <- dottedName(L);
+    RR <- dottedName(R);
+    valis "$(LL).$(RR)"
+  }
+  dottedName(_) default => none.
 
   public isOpen:(ast)=> option[importSpec].
   isOpen(A) where (Lc,Nm) ^= isUnary(A,"open") => some(openStmt(Lc,Nm)).

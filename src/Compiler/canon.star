@@ -5,6 +5,7 @@ star.compiler.canon{
   import star.compiler.types.
 
   public canon ::= vr(locn,string,tipe) |
+    mtd(locn,string,tipe) |
     intLit(locn,integer) |
     floatLit(locn,float) |
     stringLit(locn,string) |
