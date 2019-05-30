@@ -103,4 +103,13 @@ star.lists{
       (_list_nth(L,Ix) == El ? some(Ix) ||
 	ixOf(Ix+1,Mx)).
   } in ixOf(0,size(L)).
+
+  public implementation functor[list] => let{
+    fmap:all a,b ~~ ((a)=>b,list[a])=>list[b].
+    fmap(_,[]) => [].
+    fmap(F,[E,..Els]) => [F(E),..fmap(F,Els)].
+  } in {.
+    fmap = fmap.
+    C <$ L => fmap((_)=>C,L).
+  .}
 }

@@ -44,6 +44,8 @@ star.either{
   public implementation all a ~~ functor[either[a]] => {
     fmap(F,either(X)) => either(F(X)).
     fmap(_,other(E)) => other(E).
+    C <$ either(_) => either(C).
+    C <$ other(E) => other(E).
   }
 
   public implementation all a ~~ applicative[either[a]] => {

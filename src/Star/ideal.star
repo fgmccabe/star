@@ -255,4 +255,14 @@ star.ideal{
     -- _ix_iter = iter -- TODO: fix this. May need something like currying.
     _ix_iter(Tr,St,Fn) => iter(Tr,St,Fn)
   }
+
+  public implementation all k ~~ hash[k],equality[k] |: functor[map[k]] => let{
+    fm:all a,b ~~ ((a)=>b,map[k,a]) => map[k,b].
+    fm(_,ihEmpty) => ihEmpty.
+    fm(F,ihLeaf(H,Els)) => ihLeaf(H,Els//(((K,V))=>(K,F(V)))).
+    fm(F,ihNode((A1,A2,A3,A4))) => ihNode((fm(F,A1),fm(F,A2),fm(F,A3),fm(F,A4))).
+  } in {.
+    fmap = fm.
+    C <$ L => fm((_)=>C,L).
+  .}    
 }

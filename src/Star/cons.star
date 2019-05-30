@@ -169,10 +169,12 @@ star.cons{
   multicat(cons(H,T)) => concat(H,multicat(T)).
 
   public implementation functor[cons] => let{
+    fm:all a,b ~~ ((a)=>b,cons[a])=>cons[b].
     fm(_,nil) => nil.
     fm(f,cons(H,T)) => cons(f(H),fm(f,T))
   } in {.
-    fmap = fm
+    fmap = fm.
+    C <$ L => fm((_)=>C,L).
   .}
 
   public implementation monad[cons] => {

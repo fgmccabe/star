@@ -40,6 +40,7 @@ star.option{
   public implementation functor[option] => {
     fmap(_,none) => none.
     fmap(F,some(A)) => some(F(A)).
+    C <$ L => fmap((_)=>C,L).
   }
 
   public implementation applicative[option] => {
