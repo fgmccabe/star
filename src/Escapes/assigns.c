@@ -44,10 +44,10 @@ ReturnStatus g__overwrite(processPo p, ptrPo tos) {
     for (integer ix = 0; ix < termSize(newval); ix++)
       orig->args[ix] = newval->args[ix];
 
-    ReturnStatus ret = {.ret=Ok, .result= trueEnum};
+    ReturnStatus ret = {.ret=Ok, .result=(termPo)orig};
     return ret;
   } else {
-    ReturnStatus ret = {.ret=Ok, .result= falseEnum};
+    ReturnStatus ret = {.ret=Error, .result= voidEnum};
     return ret;
   }
 }
