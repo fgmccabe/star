@@ -37,7 +37,9 @@
   operator("for", [prefixOp(1175, 1174)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
+  operator("force", [prefixOp(100, 99)]).
   operator(".+.", [prefixOp(700, 699)]).
+  operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
   operator("!", [infixOp(99, 100, 99), postfixOp(99, 100)]).
   operator("->>", [infixOp(1199, 1200, 1199)]).
@@ -209,6 +211,7 @@
   follows('::','=','::=').
   follows('<','*','<*').
   follows('<','~','<~').
+  follows('<','$','<$').
   follows('<','-','<-').
   follows('<','=','<=').
   follows('<*','>','<*>').
@@ -287,6 +290,7 @@
   final('<',"<").	 /* less than */
   final('<*>',"<*>").	 /* applicative splat */
   final('<~',"<~").	 /* type interface rule */
+  final('<$',"<$").	 /* constant replace */
   final('<-',"<-").	 /* variable bind */
   final('<=',"<=").	 /* pattern arrow */
   final('<=>',"<=>").	 /* constructor arrow */
