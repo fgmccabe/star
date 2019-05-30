@@ -54,7 +54,6 @@ star.compiler.operators{
   oper("for") => [prefixOp(1175,1174)].
   oper("**") => [infixOp(600,600,599)].
   oper("->") => [infixOp(899,900,899)].
-  oper("force") => [prefixOp(100,99)].
   oper(".+.") => [prefixOp(700,699)].
   oper("<$") => [infixOp(719,720,720)].
   oper("then") => [infixOp(1179,1180,1179)].

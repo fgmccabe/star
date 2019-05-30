@@ -823,14 +823,6 @@
     "desc": "cell value"
   },
   {
-    "prefixOp": "force",
-    "priorities": [
-	100,
-	99
-    ],
-    "desc": "force evaluation of lazy value"
-  },
-  {
     "token": ". ",
     "desc": "statement terminator"
   },
