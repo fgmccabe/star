@@ -86,6 +86,15 @@ star.compiler.types{
   }
   setConstraints(_,_) default => done(()).
 
+  public addConstraint:(tipe,constraint) => option[()].
+  addConstraint(T,C) => addCon(deRef(T),C).
+
+  addCon:(tipe,constraint) => option[()].
+  addCon(tVar(V,_),C) => do{
+    V.constraints := [C,..V.constraints!];
+    valis ()
+  }
+
   public deRef:(tipe) => tipe.
   deRef(tVar(B,_)) where T^=B.binding! => deRef(T).
   deRef(tFun(B,_,_)) where T^=B.binding! => deRef(T).

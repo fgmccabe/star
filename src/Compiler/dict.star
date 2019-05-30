@@ -27,6 +27,11 @@ star.compiler.dict{
   declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
+
+  public isVar:(string,dict) => option[vrEntry].
+  isVar(Nm,[]) => none.
+  isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
+  isVar(Nm,[_,..D]) => isVar(Nm,D).
   
   public declareType:(string,option[locn],tipe,tipe,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>

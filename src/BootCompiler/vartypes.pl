@@ -14,7 +14,8 @@ typeOfVar(Lc,Vr,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   checkType(Vr,MTp,Tp,Env).
 
 isEnumVr(Lc,Tp,vrEntry(_,MkTerm,_,_)) :-
-  \+call(MkTerm,Lc,Tp,v(_,_,_)),!.
+  call(MkTerm,Lc,Tp,V),
+  V\=v(_,_,_),V\=mtd(_,_,_).
 
 manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Env,Ev,Exp) :- !,
   declareConstraint(implementsFace(TV,Fc),Env,E0),

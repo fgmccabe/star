@@ -87,6 +87,14 @@ star.compiler.ast{
   isInt(lit(Lc,intgr(Ix))) => some((Lc,Ix)).
   isInt(_) default => none.
 
+  public isFlt:(ast) => option[(locn,float)].
+  isFlt(lit(Lc,flot(Dx))) => some((Lc,Dx)).
+  isFlt(_) default => none.
+
+  public isStr:(ast) => option[(locn,string)].
+  isStr(lit(Lc,strg(Sx))) => some((Lc,Sx)).
+  isStr(_) default => none.
+
   public unary:(locn,string,ast) => ast.
   unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 
