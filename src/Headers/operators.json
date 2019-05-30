@@ -436,6 +436,15 @@
     "desc": "bitwise xor"
   },
   {
+    "infixOp": "<$",
+    "priorities": [
+      719,
+      720,
+      720
+    ],
+    "desc": "constant replace"
+  },
+  {
     "infixOp": "*",
     "priorities": [
       700,
@@ -812,6 +821,14 @@
       899
     ],
     "desc": "cell value"
+  },
+  {
+    "prefixOp": "force",
+    "priorities": [
+	100,
+	99
+    ],
+    "desc": "force evaluation of lazy value"
   },
   {
     "token": ". ",

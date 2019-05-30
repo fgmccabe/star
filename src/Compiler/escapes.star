@@ -69,6 +69,7 @@ star.comp.escapes{
   escapeType("_cell") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([kVar("t")])),tpExp(tpFun("ref",1),kVar("t")))).
   escapeType("_get") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),kVar("t"))])),kVar("t"))).
   escapeType("_assign") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),kVar("t")),kVar("t")])),kVar("t"))).
+  escapeType("_overwrite") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([kVar("t"),kVar("t")])),tipe("star.core*boolean"))).
   escapeType("_isDefinedVr") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),tipe("star.core*boolean"))).
   escapeType("_definedVr") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string")])),kVar("t"))).
   escapeType("_defineVr") => allType(kVar("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),kVar("t")])),tipe("star.core*boolean"))).
@@ -295,6 +296,7 @@ star.comp.escapes{
   isEscape("_cell") => true.
   isEscape("_get") => true.
   isEscape("_assign") => true.
+  isEscape("_overwrite") => true.
   isEscape("_isDefinedVr") => true.
   isEscape("_definedVr") => true.
   isEscape("_defineVr") => true.

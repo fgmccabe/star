@@ -35,6 +35,23 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
   return ret;
 }
 
+ReturnStatus g__overwrite(processPo p, ptrPo tos) {
+  normalPo orig = C_TERM(tos[0]);
+  normalPo newval = C_TERM(tos[1]);
+
+  if (termSize(orig) == termSize(newval)) {
+    orig->lbl = newval->lbl;
+    for (integer ix = 0; ix < termSize(newval); ix++)
+      orig->args[ix] = newval->args[ix];
+
+    ReturnStatus ret = {.ret=Ok, .result= trueEnum};
+    return ret;
+  } else {
+    ReturnStatus ret = {.ret=Ok, .result= falseEnum};
+    return ret;
+  }
+}
+
 static globalPo globalLabel(termPo t) {
   char lblNm[MAX_SYMB_LEN];
 
