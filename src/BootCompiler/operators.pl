@@ -37,7 +37,6 @@
   operator("for", [prefixOp(1175, 1174)]).
   operator("**", [infixOp(600, 600, 599)]).
   operator("->", [infixOp(899, 900, 899)]).
-  operator("force", [prefixOp(100, 99)]).
   operator(".+.", [prefixOp(700, 699)]).
   operator("<$", [infixOp(719, 720, 720)]).
   operator("then", [infixOp(1179, 1180, 1179)]).
