@@ -53,8 +53,8 @@ star.compiler.unify{
   smFields([(F1,T1),..FS1],[(F2,T2),..FS2],Env) =>
     F1==F2 && sameType(T1,T2,Env) && smFields(FS1,FS2,Env).
 
-  updateEnv(kVar(K),T,Env) => declareType(K,none,T,Env).
-  updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,Env).
+  updateEnv(kVar(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
+  updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
 
   deRf:(tipe,dict)=>tipe.
   deRf(Ky,Env) where
