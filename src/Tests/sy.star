@@ -71,7 +71,7 @@ test.sy{
   
   assert valof a == 4.
 
-  fact:all e ~~ arith[e],comp[e] |: (e)=>e. 
+  fact:all e ~~ equality[e], arith[e],comp[e] |: (e)=>e. 
   fact(N)=>let{
     ff(zero,F) => F.
     ff(X,F) where X>zero => ff(X-one,F*X).
