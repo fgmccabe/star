@@ -110,6 +110,18 @@ star.skew{
     } in foldDRight(ff,[],L)
   }
 
+  public implementation functor[sk] => let{
+    fm:all a,b ~~ ((a)=>b,tree[a])=>tree[b].
+    fm(F,leaf(X)) => leaf(F(X)).
+    fm(F,node(X,L,R)) => node(F(X),fm(F,L),fm(F,R)).
+
+    fmp:all a,b ~~ ((a)=>b,sk[a])=>sk[b].
+    fmp(F,rl(L)) => rl(L//(((Ix,T))=>(Ix,fm(F,T)))).
+  } in {.
+    fmap = fmp.
+    C <$ L => fmp((_)=>C,L).
+  .}
+  
   public implementation all e ~~ display[e] |: dump[sk[e]] => let{
     dumpList:all a ~~ display[a] |: (rlist[a]) => ss.
     dumpList(nil) => ss("").
