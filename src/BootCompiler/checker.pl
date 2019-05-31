@@ -789,6 +789,13 @@ pickupContract(Lc,Env,Nm,StTp,DpTp,Op) :-
    newTypeVar("_St",StTp),
    newTypeVar("_El",DpTp)).
 
+pickupIxContract(Lc,Env,Nm,StTp,DpTps,Op) :-
+  (getContract(Nm,Env,conDef(_,_,Con)) ->
+   freshen(Con,Env,_,contractExists(conTract(Op,[StTp],DpTps),_));
+   reportError("%s contract not defined",[Nm],Lc),
+   newTypeVar("_St",StTp),
+   DpTps=[]).
+
 checkGoal(G,Env,Ev,Goal,Path) :-
   locOfAst(G,Lc),
   findType("boolean",Lc,Env,LogicalTp),
@@ -800,6 +807,30 @@ checkGoal(G,Env,Ev,Goal,Path) :-
    genIterableGl(Cond,OptionTp,UnitTp,ExOp,OptionTp,Path,Goal);
 %   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
+
+checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
+  isBinary(B,_,"->",Ky,Vl),!,
+  findType("boolean",Lc,Env,LogicalTp),
+  typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
+  pickupIxContract(Lc,Env,"indexed",StTp,[KyTp,VlTp],Op),
+  checkType(Term,Tp,StTp,Env),
+  typeOfExp(Ky,KyTp,E1,_,Key,Path),
+  typeOfExp(Vl,VlTp,E1,_,Value,Path),
+  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
+  findType("action",Lc,Env,ActionTp),
+  checkType(Term,tpExp(ActionTp,ErTp),ExTp,Env),
+  genReturn(Lc,over(Lc,mtd(Lc,"_empty",StTp),
+		    true,[conTract(Op,[StTp],[KyTp,VlTp])]),
+	    ExTp,ErTp,ExOp,Zed),
+  Gen = over(Lc,mtd(Lc,"_put",
+		    funType(tupleType([StTp,KyTp,VlTp]),StTp)),
+	     true,[conTract(Op,[StTp],[KyTp,VlTp])]),
+  genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,ExOp),
+	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
+	       checker:genPut(Lc,Gen,Key,Value,StTp,ExOp,ExTp,ErTp),
+	       lifted(Zed),ACond),
+  genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
+
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
@@ -825,8 +856,15 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
+
+
+
 genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
+  genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
+
+genPut(Lc,Gen,Key,Value,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
+  Next  = apply(Lc,Gen,tple(Lc,[St,Key,Value]),StTp),
   genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
 
 genSeq(Lc,ExOp,ExStTp,ErTp,St,Init,Reslt,Exp) :-
