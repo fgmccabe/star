@@ -230,7 +230,7 @@
   },
   {
     "infixOp": "->",
-    "priorities": [899, 900, 899],
+    "priorities": [889, 890, 889],
     "desc": "map entry"
   },
   {
