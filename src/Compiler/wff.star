@@ -287,6 +287,9 @@ star.compiler.wff{
   public isTypeAnnotation:(ast) => option[(locn,ast,ast)].
   isTypeAnnotation(A) => isBinary(A,":").
 
+  public isCoerce:(ast) => option[(locn,ast,ast)].
+  isCoerce(A) => isBinary(A,"::").
+
   public isContractStmt:(ast) => option[(locn,ast,list[ast])].
   isContractStmt(A) where
       (Lc,I) ^= isUnary(A,"contract") &&
