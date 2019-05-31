@@ -63,7 +63,6 @@ star.compiler.dict{
   public declareMethod:(string,option[locn],tipe,dict) => dict.
   declareMethod(Nm,Lc,Tp,Dict) =>
     declareVr(Nm,Lc,Tp,(L,T)=>mtd(L,Nm,T),Dict).
-  
       
   public findContract:(dict,string) => option[contractDefn].
   findContract([],Nm) => none.

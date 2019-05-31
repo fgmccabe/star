@@ -226,7 +226,7 @@ star.compiler.typeparse{
 
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
-    if conDfn(_,_,Con,_) ^= findContract(Env,Id) then {
+    if conDfn(_,_,_,Con) ^= findContract(Env,Id) then {
       valis typeConstraint(snd(freshen(Con,[],Env)))
     }
       else
