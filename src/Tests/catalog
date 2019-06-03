@@ -3,7 +3,6 @@
     "test.a": "a.star",
     "test.aa": "aa.star",
     "test.assign": "assign.star",
-    "test.ast": "ast.star",
     "test.bench" : "bench.star",
     "test.cons": "constest.star",
     "test.c": "c.star",

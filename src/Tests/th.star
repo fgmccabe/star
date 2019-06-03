@@ -19,7 +19,7 @@ test.th{
   fawce(Tk) => ff(Tk,Tk).
 
   ff(dun(XX),_) => XX.
-  ff(delaied(F),Tk) where XX .= F() && _overwrite(Tk,dun(XX)) => XX.
+  ff(delaied(F),Tk) where XX .= F() && _ .= _overwrite(Tk,dun(XX)) => XX.
 
   TTh = delaied(()=>valof do {
     logMsg("called TTh");
