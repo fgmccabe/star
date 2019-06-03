@@ -12,6 +12,7 @@
 #include "engine.h"
 #include "arithP.h"
 #include "errorCodes.h"
+#include "globals.h"
 
 long timezone_offset;    // offset in seconds from GMT
 
@@ -38,7 +39,6 @@ void initTime(void) {
 
 ReturnStatus g__delay(processPo P, ptrPo tos) {
   double dx = floatVal(tos[0]);
-  ReturnStatus ret = {.result=Null, .ret=Ok};
 
   struct timespec tm;
   double seconds;
@@ -61,13 +61,12 @@ ReturnStatus g__delay(processPo P, ptrPo tos) {
     }
   } else {
     setProcessRunnable(P);
-    return ret;
+    return (ReturnStatus){.ret = Ok, .result = voidEnum};
   }
 }
 
 ReturnStatus g__sleep(processPo P, ptrPo tos) {
   double f = floatVal(*tos);
-  ReturnStatus ret = {.result=Null, .ret=Ok};
 
   struct timeval now;
   double seconds;
@@ -77,7 +76,7 @@ ReturnStatus g__sleep(processPo P, ptrPo tos) {
 
   if (seconds < now.tv_sec ||
       (seconds == now.tv_sec && (fraction * 1000000) < now.tv_usec)) {
-    return ret;
+    return (ReturnStatus){.ret = Ok, .result = voidEnum};
   } else {
     struct timespec tm;
 
@@ -107,7 +106,7 @@ ReturnStatus g__sleep(processPo P, ptrPo tos) {
       }
     } else {
       setProcessRunnable(P);
-      return ret;
+      return (ReturnStatus){.ret = Ok, .result = voidEnum};
     }
   }
 }
@@ -116,23 +115,20 @@ ReturnStatus g__sleep(processPo P, ptrPo tos) {
 ReturnStatus g__now(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(processHeap(P), get_time());
 
-  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
-  return ret;
+  return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
 /* Return the time at midnight */
 ReturnStatus g__today(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateFloat(processHeap(P), get_date());
 
-  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
-  return ret;
+  return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
 ReturnStatus g__ticks(processPo P, ptrPo tos) {
   termPo now = (termPo) allocateInteger(currHeap, clock());
 
-  ReturnStatus ret = {.ret=now != Null ? Ok : Error, .result=now};
-  return ret;
+  return (ReturnStatus) {.ret=now != Null ? Ok : Error, .result=now};
 }
 
 /*

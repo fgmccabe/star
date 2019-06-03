@@ -26,8 +26,8 @@ ReturnStatus g__listen(processPo P, ptrPo tos) {
   if (listen == NULL)
     return liberror(P, "_listen", eNOPERM);
   else {
-    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), listen)};
-    return ret;
+    return (ReturnStatus) {.ret=Ok,
+              .result =(termPo) allocateIOChnnl(processHeap(P), listen)};
   }
 }
 
@@ -89,9 +89,7 @@ ReturnStatus g__accept(processPo P, ptrPo tos) {
 
         gcReleaseRoot(H, root);
 
-        ReturnStatus rt = {.ret=Ok, .result =(termPo) reslt};
-
-        return rt;
+        return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
       }
       default:
         return liberror(P, "_accept", eIOERROR);
@@ -130,9 +128,7 @@ ReturnStatus g__connect(processPo P, ptrPo tos) {
 
       gcReleaseRoot(H, root);
 
-      ReturnStatus rt = {.ret=Ok, .result =(termPo) reslt};
-
-      return rt;
+      return (ReturnStatus) {.ret=Ok, .result =(termPo) reslt};
     }
     default:
       logMsg(logFile, "Failed to establish connection: %S", host,hLen);
@@ -160,9 +156,7 @@ ReturnStatus g__hosttoip(processPo P, ptrPo tos) {
   }
 
   gcReleaseRoot(H, root);
-  ReturnStatus rt = {.ret=Ok, .result =(termPo) ipList};
-
-  return rt;
+  return (ReturnStatus) {.ret=Ok, .result =(termPo) ipList};
 }
 
 /* Access host name from IP address */
@@ -176,8 +170,7 @@ ReturnStatus g__iptohost(processPo P, ptrPo tos) {
 
   if (host != NULL) {
     stringPo Host = allocateCString(H, host);
-    ReturnStatus rt = {.ret=Ok, .result =(termPo) Host};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result =(termPo) Host};
   } else
     return liberror(P, "_iptohost", eNOTFND);
 }

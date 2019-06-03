@@ -13,15 +13,12 @@ ReturnStatus g__cell(processPo p, ptrPo tos) {
   termPo content = tos[0];
   cellPo cell = newCell(processHeap(p), content);
 
-  ReturnStatus ret = {.ret=Ok, .result=(termPo) cell};
-
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=(termPo) cell};
 }
 
 ReturnStatus g__get(processPo p, ptrPo tos) {
   cellPo cell = C_CELL(tos[0]);
-  ReturnStatus ret = {.ret=Ok, .result=getCell(cell)};
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=getCell(cell)};
 }
 
 ReturnStatus g__assign(processPo p, ptrPo tos) {
@@ -30,9 +27,7 @@ ReturnStatus g__assign(processPo p, ptrPo tos) {
 
   setCell(Cell, Content);
 
-  ReturnStatus ret = {.ret=Ok, .result=(termPo) Content};
-
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=(termPo) Content};
 }
 
 ReturnStatus g__overwrite(processPo p, ptrPo tos) {
@@ -44,11 +39,9 @@ ReturnStatus g__overwrite(processPo p, ptrPo tos) {
     for (integer ix = 0; ix < termSize(newval); ix++)
       orig->args[ix] = newval->args[ix];
 
-    ReturnStatus ret = {.ret=Ok, .result=(termPo)orig};
-    return ret;
+    return (ReturnStatus){.ret=Ok, .result=(termPo)orig};
   } else {
-    ReturnStatus ret = {.ret=Error, .result= voidEnum};
-    return ret;
+    return (ReturnStatus){.ret=Error, .result= voidEnum};
   }
 }
 
@@ -63,17 +56,13 @@ static globalPo globalLabel(termPo t) {
 ReturnStatus g__isDefinedVr(processPo p, ptrPo tos) {
   globalPo gv = globalLabel(tos[0]);
 
-  ReturnStatus ret = {.ret=Ok, .result=glbIsSet(gv) ? trueEnum : falseEnum};
-
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=glbIsSet(gv) ? trueEnum : falseEnum};
 }
 
 ReturnStatus g__definedVr(processPo p, ptrPo tos) {
   globalPo gv = globalLabel(tos[0]);
 
-  ReturnStatus ret = {.ret=Ok, .result=getGlobal(gv)};
-
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=getGlobal(gv)};
 }
 
 ReturnStatus g__defineVr(processPo p, ptrPo tos) {
@@ -81,7 +70,5 @@ ReturnStatus g__defineVr(processPo p, ptrPo tos) {
   termPo vl = tos[1];
   setGlobalVar(gv, vl);
 
-  ReturnStatus ret = {.ret=Ok, .result=trueEnum};
-
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=trueEnum};
 }

@@ -12,8 +12,8 @@ logical sameTerm(termPo t1, termPo t2) {
 }
 
 ReturnStatus g__identical(processPo P, ptrPo tos) {
-  ReturnStatus rt = {.ret=Ok, .result=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
-  return rt;
+  return (ReturnStatus) {.ret=Ok,
+            .result=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__tuple_nth(processPo P, ptrPo tos) {
@@ -22,8 +22,7 @@ ReturnStatus g__tuple_nth(processPo P, ptrPo tos) {
 
   termPo el = nthArg(tpl, ix);
 
-  ReturnStatus ret = {.ret=Ok, .result=el};
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result=el};
 }
 
 ReturnStatus g__tuple_set_nth(processPo P, ptrPo tos) {
@@ -34,6 +33,5 @@ ReturnStatus g__tuple_set_nth(processPo P, ptrPo tos) {
 
   setArg(tpl, ix, tos[2]);
 
-  ReturnStatus ret = {.ret=Ok, .result=(termPo)tpl };
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result=(termPo)tpl };
 }

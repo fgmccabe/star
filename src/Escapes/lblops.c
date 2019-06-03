@@ -17,9 +17,8 @@ ReturnStatus g__definedLbl(processPo P, ptrPo tos) {
   integer arity = integerVal(Arg2);
 
   labelPo lbl = findLbl(label, arity);
-  ReturnStatus ret = {.ret=Ok, .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok,
+            .result = findLbl(label, arity) != Null ? trueEnum : falseEnum};
 }
 
 static inline ptrPo checkStack(processPo P, ptrPo SP) {
