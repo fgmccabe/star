@@ -8,9 +8,9 @@ star.thunk{
 
   public implementation all e ~~ execution[thunk[e]->>e] => {
     _perform(Th) => _perf(Th,Th).
-    
+
     _perf(dne(X),_) => X.
-    _perf(delai(F),Th) => _perf(F(),Th).
+    _perf(delai(F),Th) => _perf(_overwrite(Th,F()),Th).
 
     _valis(X) => delai(()=>dne(X)).
 
