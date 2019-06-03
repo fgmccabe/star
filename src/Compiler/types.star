@@ -360,4 +360,10 @@ star.compiler.types{
   public reConstrain:(list[constraint],tipe) => tipe.
   reConstrain([],Tp) => Tp.
   reConstrain([Q,..Qs],Tp) => constrainedType(reConstrain(Qs,Tp),Q).
+
+  public isConstructorType:(tipe)=>boolean.
+  isConstructorType(Tp) => typeName(deRef(Tp))=="<=>".
+
+  public isMapType:(tipe)=>boolean.
+  isMapType(Tp) => typeName(deRef(Tp))=="map".
 }

@@ -74,6 +74,10 @@ star.compiler.ast{
     locOf(app(Lc,_,_)) => Lc.
   .}
 
+  public isLit:(ast) => boolean.
+  isLit(lit(_,_)) => true.
+  isLit(_) default => false.
+
   public isName:(ast) => option[(locn,string)].
   isName(nme(Lc,Id)) where \+ keyword(Id) => some((Lc,Id)).
   isName(tpl(_,"()",[nme(Lc,Id)])) => some((Lc,Id)).
@@ -109,6 +113,14 @@ star.compiler.ast{
   public isBinary:(ast,string) => option[(locn,ast,ast)].
   isBinary(app(Lc,nme(_,Op),tpl(_,"()",[L,R])),Op) => some((Lc,L,R)).
   isBinary(_,_) default => none.
+
+  public ternary:(locn,string,ast,ast,ast) => ast.
+  ternary(Lc,Op,L,M,R) where Lc.=mergeLoc(locOf(L),locOf(R)) =>
+    app(Lc,nme(Lc,Op),tpl(Lc,"()",[L,M,R])).
+
+  public isTernary:(ast,string) => option[(locn,ast,ast,ast)].
+  isTernary(app(Lc,nme(_,Op),tpl(_,"()",[L,M,R])),Op) => some((Lc,L,M,R)).
+  isTernary(_,_) default => none.
 
   public isSquareTerm:(ast) => option[(locn,ast,list[ast])].
   isSquareTerm(app(Lc,Op,tpl(_,"[]",A))) => some((Lc,Op,A)).
@@ -158,5 +170,8 @@ star.compiler.ast{
       (_,Id) ^= isName(Op) =>
     (keyword(Id) ? none || some((Lc,Op,A))).
   isRoundTerm(_) default => none.
+
+  public roundTerm:(locn,ast,list[ast]) => ast.
+  roundTerm(Lc,Op,Els) => app(Lc,Op,tpl(Lc,"()",Els)).
 
 }

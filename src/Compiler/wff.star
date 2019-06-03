@@ -9,6 +9,9 @@ star.compiler.wff{
   import star.compiler.location.
   import star.compiler.meta.
 
+  public genName:(locn,string) => ast.
+  genName(Lc,V) => nme(Lc,genSym(V)).
+
   public isQuantified:(ast)=>option[(locn,list[ast],ast)].
   isQuantified(T) where
       (Lc,Lh,B)^=isBinary(T,"~~") && (_,V)^=isUnary(Lh,"all") =>
@@ -290,6 +293,31 @@ star.compiler.wff{
   public isCoerce:(ast) => option[(locn,ast,ast)].
   isCoerce(A) => isBinary(A,"::").
 
+  public isIndex:(ast) => option[(locn,ast,ast)].
+  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) => some((Lc,Op,Ix)).
+  isIndex(A) where (Lc,L,R) ^= isBinary(A,"!") && (_,[Ix]) ^= isSqTuple(R) =>
+    some((Lc,unary(Lc,"!",L),Ix)).
+  isIndex(_) default => none.
+
+  public hasPromotion:(ast) => boolean.
+  hasPromotion(A) where (_,_,Els) ^= isRoundTerm(A) =>
+    E in Els && (_,_) ^= isUnary(E,"^").
+  hasPromotion(_) default => false.
+
+  public promoteOption:(ast) => ast.
+  promoteOption(A) where (Lc,Op,Els) ^= isRoundTerm(A) => valof action{
+    V = genName(Lc,"_V");
+    (NEls,XV) = promoteArgs(Els,[],V);
+    valis binary(Lc,">>=",XV,
+      binary(Lc,"=>",rndTuple(Lc,[V]),roundTerm(Lc,Op,NEls)))
+  }
+
+  promoteArgs:(list[ast],list[ast],ast) => (list[ast],ast).
+  promoteArgs([],Els,V) => (Els,V).
+  promoteArgs([E,..Es],XEs,V) where (_,A) ^= isUnary(E,"^") =>
+    ([XEs..,V]++Es,A).
+  promoteArgs([E,..Es],XEs,V) => promoteArgs(Es,[XEs..,E],V).
+
   public isContractStmt:(ast) => option[(locn,ast,list[ast])].
   isContractStmt(A) where
       (Lc,I) ^= isUnary(A,"contract") &&
@@ -495,8 +523,135 @@ star.compiler.wff{
   public isWhere:(ast) => option[(locn,ast,ast)].
   isWhere(A) => isBinary(A,"where").
 
+  public mkWhereEquality:(ast) =>ast.
+  mkWhereEquality(Nm) where Lc.=locOf(Nm) && V.=genName(Lc,"_W") =>
+    binary(Lc,"where",V,binary(Lc,"==",Nm,V)).
+    
+  public mkWhere:(locn,string) =>ast.
+  mkWhere(Lc,Op) where V.=genName(Lc,"_W") =>
+    binary(Lc,"where",V,unary(Lc,Op,V)).
+
+  public mkWherePtn:(locn,ast,ast) => ast.
+  mkWherePtn(Lc,Ptn,Op) where V.=genName(Lc,"_P") =>
+    binary(Lc,"where",V,binary(Lc,".=",unary(Lc,"some",Ptn),roundTerm(Lc,Op,[V]))).
+
+  public isOptionPtn:(ast) => option[(locn,ast,ast)].
+  isOptionPtn(A) => isBinary(A,"^").
+    
   public isDefault:(ast) => option[(locn,ast)].
   isDefault(A) => isUnary(A,"default").
 
+  public isDoTerm:(ast) => option[(locn,ast)].
+  isDoTerm(A) where (Lc,Op,Args) ^= isBrTerm(A) && (_,"do") ^= isName(Op) =>
+    some((Lc,brTuple(Lc,Args))).
+  isDoTerm(_) default => none.
+
+  public isActionTerm:(ast) => option[(locn,ast)].
+  isActionTerm(A) where (Lc,Op,Args) ^= isBrTerm(A) && (_,"action") ^= isName(Op) =>
+    some((Lc,brTuple(Lc,Args))).
+  isActionTerm(_) default => none.
+
+  public isLazyTerm:(ast) => option[(locn,ast)].
+  isLazyTerm(A) where (Lc,Op,Args) ^= isBrTerm(A) && (_,"lazy") ^= isName(Op) =>
+    some((Lc,brTuple(Lc,Args))).
+  isLazyTerm(_) default => none.
+
+  public isTaskTerm:(ast) => option[(locn,ast)].
+  isTaskTerm(A) where (Lc,Op,Args) ^= isBrTerm(A) && (_,"task") ^= isName(Op) =>
+    some((Lc,brTuple(Lc,Args))).
+  isTaskTerm(_) default => none.
+
+  public isActionSeq:(ast) => option[(locn,ast,ast)].
+  isActionSeq(A) => isBinary(A,";").
+
+  public isBind:(ast) => option[(locn,ast,ast)].
+  isBind(A) => isBinary(A,"<-").
+
+  public isValis:(ast) => option[(locn,ast)].
+  isValis(A) => isUnary(A,"valis").
+
+  public isValof:(ast) => option[(locn,ast)].
+  isValof(A) => isUnary(A,"valof").
+
+  public isThrow:(ast) => option[(locn,ast)].
+  isThrow(A) => isUnary(A,"throw").
+
+  public isTryCatch:(ast) => option[(locn,ast,ast)].
+  isTryCatch(A) where (Lc,I) ^= isUnary(A,"try") => isBinary(I,"catch").
+  isTryCatch(_) default => none.
+
+  public isIfThenElse:(ast) => option[(locn,ast,ast,ast)].
+  isIfThenElse(A) where
+      (Lc,Lhs,El) ^= isBinary(A,"else") &&
+      (_,LL,Th) ^= isBinary(Lhs,"then") &&
+      (_, Ts) ^= isUnary(LL,"if") => some((Lc,Ts,Th,El)).
+  isIfThenElse(_) default => none.
+
+  public isIfThen:(ast) => option[(locn,ast,ast)].
+  isIfThen(A) where
+      (Lc,LL,Th) ^= isBinary(A,"then") &&
+      (_, Ts) ^= isUnary(LL,"if") => some((Lc,Ts,Th)).
+  isIfThen(_) default => none.
+
+  public isWhileDo:(ast) => option[(locn,ast,ast)].
+  isWhileDo(A) where
+      (Lc,LL,Bd) ^= isBinary(A,"do") &&
+      (_, Ts) ^= isUnary(LL,"while") => some((Lc,Ts,Bd)).
+  isWhileDo(_) default => none.
+
+  public isForDo:(ast) => option[(locn,ast,ast)].
+  isForDo(A) where
+      (Lc,LL,Bd) ^= isBinary(A,"do") &&
+      (_, Ts) ^= isUnary(LL,"for") => some((Lc,Ts,Bd)).
+  isForDo(_) default => none.
+
+  public isLCons:(ast) => option[(locn,ast,ast)].
+  isLCons(A) => isBinary(A,"..,").
+
+  public isCons:(ast) => option[(locn,ast,ast)].
+  isCons(A) => isBinary(A,",..").
+
+  public isComma:(ast) => option[(locn,ast,ast)].
+  isComma(A) => isBinary(A,",").
+
+  public isMapSequence:(list[ast]) => boolean.
+  isMapSequence(Els) => (E in Els *> _ ^= isBinary(E,"->")).
+
+  public isAbstraction:(ast) => option[(locn,ast,ast)].
+  isAbstraction(A) where (Lc,[T]) ^= isBrTuple(A) &&
+      (_,B,C) ^= isBinary(T,"|") => some((Lc,B,C)).
+  isAbstraction(_) default => none.
+    
+
+  public macroSquarePtn:(locn,list[ast]) => ast.
+  macroSquarePtn(Lc,Els) =>
+    macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),
+      (Lx,H,T) => mkWherePtn(Lx,tpl(Lx,"()",[H,T]),nme(Lx,"_hdtl")),
+      (Lx,L,R) => mkWherePtn(Lx,tpl(Lx,"()",[L,R]),nme(Lx,"_back"))).
+
+  public macroSquareExp:(locn,list[ast]) => ast.
+  macroSquareExp(Lc,Els) =>
+    macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_nil"),
+      (Lx,H,T) => binary(Lx,"_cons",H,T),
+      (Lx,L,R) => binary(Lx,"_apnd",L,R)).
+
+  public macroMapExp:(locn,list[ast]) => ast.
+  macroMapExp(Lc,Els) =>
+    macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_empty"),
+      (Lx,H,T) where (_,K,V) ^= isBinary(H,"->") => ternary(Lx,"_put",T,K,V),
+      (Lx,T,H) where (_,K,V) ^= isBinary(H,"->") => ternary(Lx,"_put",T,K,V)).
+
+  macroListEntries:(locn,list[ast],(locn)=>ast,(locn,ast,ast)=>ast,(locn,ast,ast)=>ast) => ast.
+  macroListEntries(Lc,[],End,_,_) => End(Lc).
+  macroListEntries(_,[Cns],_,_,Tail) where (Lc,H,T) ^= isLCons(Cns) =>
+    macroLList(Lc,T,H,Tail).
+  macroListEntries(_,[Cns],_,Hed,_) where (Lc,H,T) ^= isCons(Cns) =>
+    Hed(Lc,H,T).
+  macroListEntries(Lc,[El,..Rest],Eof,Hed,Tail) =>
+    Hed(Lc,El,macroListEntries(Lc,Rest,Eof,Hed,Tail)).
+
+  macroLList(_,T,S,Tail) where (Lc,H,Tl) ^= isComma(T) =>
+    macroLList(Lc,Tl,Tail(Lc,S,H),Tail).
+  macroLList(Lc,T,S,Tail) => Tail(Lc,S,T).
 
 }
