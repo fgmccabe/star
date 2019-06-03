@@ -411,6 +411,5 @@ ReturnStatus g__flush(processPo p, ptrPo tos) {
 
 ReturnStatus g__flushall(processPo p, ptrPo tos) {
   flushOut();
-  ReturnStatus ret = {.ret=Ok, .result=voidEnum};
-  return ret;
+  return (ReturnStatus){.ret=Ok, .result=voidEnum};
 }

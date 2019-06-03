@@ -22,8 +22,7 @@ ReturnStatus g__cwd(processPo p, ptrPo tos) {
   strMsg(cwBuffer, NumberOf(cwBuffer), "%s/", processWd(p));
   termPo cwd = (termPo) allocateString(processHeap(p), cwBuffer, uniStrLen(cwBuffer));
 
-  ReturnStatus rtn = {.result = cwd, .ret=Ok};
-  return rtn;
+  return (ReturnStatus) {.result = cwd, .ret=Ok};
 }
 
 ReturnStatus g__cd(processPo p, ptrPo tos) {
@@ -326,9 +325,8 @@ ReturnStatus g__isdir(processPo P, ptrPo tos) {
   retCode present = isDirectory(acFn);
   setProcessRunnable(P);
 
-  ReturnStatus ret = {.ret=Ok, .result = present == Ok ? trueEnum : falseEnum};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok,
+            .result = present == Ok ? trueEnum : falseEnum};
 }
 
 /*
@@ -406,9 +404,7 @@ ReturnStatus g__file_type(processPo P, ptrPo tos) {
   else
     return liberror(P, "__file_type", eINVAL);
 
-  ReturnStatus ret = {.ret=Ok, .result =type};
-
-  return ret;
+  return (ReturnStatus) {.ret=Ok, .result =type};
 }
 
 ReturnStatus g__file_size(processPo P, ptrPo tos) {
@@ -451,9 +447,7 @@ ReturnStatus g__file_size(processPo P, ptrPo tos) {
 
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .result =details};
-
-    return ret;
+    return (ReturnStatus) {.ret=Ok, .result =details};
   }
 }
 
@@ -509,9 +503,7 @@ ReturnStatus g__file_date(processPo P, ptrPo tos) {
 
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .result =(termPo) triple};
-
-    return ret;
+    return (ReturnStatus) {.ret=Ok, .result =(termPo) triple};
   }
 }
 
@@ -555,9 +547,7 @@ ReturnStatus g__file_modified(processPo P, ptrPo tos) {
 
     setProcessRunnable(P);
 
-    ReturnStatus ret = {.ret=Ok, .result =mtime};
-
-    return ret;
+    return (ReturnStatus) {.ret=Ok, .result =mtime};
   }
 }
 
@@ -575,8 +565,8 @@ ReturnStatus g__openInFile(processPo P, ptrPo tos) {
   ioPo file = openInFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
-    return ret;
+    return (ReturnStatus) {.ret=Ok,
+              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openInFile", eNOTFND);
 }
@@ -595,8 +585,8 @@ ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
   ioPo file = openOutFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
-    return ret;
+    return (ReturnStatus) {.ret=Ok,
+              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openOutFile", eNOTFND);
 }
@@ -615,8 +605,8 @@ ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
   ioPo file = openAppendFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
-    return ret;
+    return (ReturnStatus) {.ret=Ok,
+              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openAppendFile", eNOTFND);
 }
@@ -635,8 +625,8 @@ ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
   ioPo file = openInOutAppendFile(acFn, enc);
 
   if (file != Null) {
-    ReturnStatus ret = {.ret=Ok, .result =(termPo) allocateIOChnnl(processHeap(P), file)};
-    return ret;
+    return (ReturnStatus) {.ret=Ok,
+              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openAppendIOFile", eNOTFND);
 }

@@ -66,8 +66,7 @@ ReturnStatus g__assert(processPo P, ptrPo tos) {
     logMsg(logFile, "assertion failed at %L\n", tos[1]);
     exit(10);
   }
-  ReturnStatus rt = {.ret=Ok, .result=unitEnum};
-  return rt;
+  return (ReturnStatus) {.ret=Ok, .result=unitEnum};
 }
 
 static char **argsv = NULL;  /* Store the command line list */
@@ -89,8 +88,7 @@ ReturnStatus g__command_line(processPo p, ptrPo tos) {
   }
 
   gcReleaseRoot(H, root);
-  ReturnStatus rt = {.ret=Ok, .result=(termPo) line};
-  return rt;
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) line};
 }
 
 extern char **environ;
@@ -129,8 +127,7 @@ ReturnStatus g__envir(processPo P, ptrPo tos) {
   }
   gcReleaseRoot(NULL, root);
   setProcessRunnable(P);
-  ReturnStatus rt = {.ret=Ok, .result=(termPo) list};
-  return rt;
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
 }
 
 ReturnStatus g__getenv(processPo P, ptrPo tos) {
@@ -143,11 +140,10 @@ ReturnStatus g__getenv(processPo P, ptrPo tos) {
   char *val = getenv((char *) key);
 
   if (val != NULL) {
-    ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateCString(processHeap(P), val)};
-    return rt;
+    return (ReturnStatus) {.ret=Ok,
+              .result=(termPo) allocateCString(processHeap(P), val)};
   } else {
-    ReturnStatus rt = {.ret=Ok, .result=Arg2};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result=Arg2};
   }
 }
 
@@ -161,8 +157,7 @@ ReturnStatus g__setenv(processPo P, ptrPo tos) {
   copyString2Buff(C_STR(Arg2), val, NumberOf(val));
 
   if (setenv((char *) key, val, 1) == 0) {
-    ReturnStatus rt = {.ret=Ok, .result=voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result=voidEnum};
   } else
     return liberror(P, "_setenv", eFAIL);
 }
@@ -172,13 +167,12 @@ ReturnStatus g__repo(processPo p, ptrPo tos) {
   strMsg(repoBuffer, NumberOf(repoBuffer), "%s/", repoDir);
   termPo repo = (termPo) allocateString(processHeap(p), repoBuffer, uniStrLen(repoBuffer));
 
-  ReturnStatus rtn = {.result = repo, .ret=Ok};
-  return rtn;
+  return (ReturnStatus) {.result = repo, .ret=Ok};
 }
 
 ReturnStatus g__getlogin(processPo P, ptrPo tos) {
-  ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateCString(processHeap(P), getlogin())};
-  return rt;
+  return (ReturnStatus) {.ret=Ok,
+            .result=(termPo) allocateCString(processHeap(P), getlogin())};
 }
 
 ReturnStatus g__shell(processPo P, ptrPo tos) {
@@ -272,8 +266,8 @@ ReturnStatus g__shell(processPo P, ptrPo tos) {
               continue;
           }
         } else if (WIFEXITED(childStatus)) { /* exited normally */
-          ReturnStatus rt = {.ret=Ok, .result = (termPo) allocateInteger(processHeap(P), WEXITSTATUS(childStatus))};
-          return rt;
+          return (ReturnStatus) {.ret=Ok,
+                    .result = (termPo) allocateInteger(processHeap(P), WEXITSTATUS(childStatus))};
         } else if (WIFSIGNALED(childStatus))
           return liberror(P, "__shell", eINTRUPT);
       } while (True);
@@ -361,8 +355,7 @@ ReturnStatus g__popen(processPo P, ptrPo tos) {
 
         gcReleaseRoot(H, root);
 
-        ReturnStatus rt = {.ret=Ok, .result = (termPo) triple};
-        return rt;
+        return (ReturnStatus) {.ret=Ok, .result = (termPo) triple};
       }
       default: {
         for (integer ix = 0; ix < argCnt; ix++)

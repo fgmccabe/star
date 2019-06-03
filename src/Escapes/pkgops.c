@@ -30,16 +30,13 @@ ReturnStatus g__pkg_is_present(processPo P, ptrPo tos) {
 
     if (version != NULL) {
       if (compatiblVersion(vers, version)) {
-        ReturnStatus rt = {.ret=Ok, .result= trueEnum};
-        return rt;
+        return (ReturnStatus) {.ret=Ok, .result= trueEnum};
       }
     }
 
-    ReturnStatus rt = {.ret=Ok, .result= falseEnum};
-    return rt;
+    return (ReturnStatus) {.ret=Ok, .result= falseEnum};
   } else {
-    ReturnStatus rt = {.ret=ret, .result= voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result= voidEnum};
   }
 }
 
@@ -86,8 +83,7 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
   gcReleaseRoot(H, root);
 
   if (ret == Ok) {
-    ReturnStatus rt = {.ret=ret, .result= (termPo) imports};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result= (termPo) imports};
   } else
     return liberror(P, "_install_pkg", eFAIL);
 }
@@ -111,15 +107,12 @@ ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
     char *rsrc = manifestCompatibleResource(pkg, version, kind);
 
     if (rsrc == Null) {
-      ReturnStatus rt = {.ret=Ok, .result= falseEnum};
-      return rt;
+      return (ReturnStatus) {.ret=Ok, .result= falseEnum};
     } else {
-      ReturnStatus rt = {.ret=Ok, .result= trueEnum};
-      return rt;
+      return (ReturnStatus) {.ret=Ok, .result= trueEnum};
     }
   } else {
-    ReturnStatus rt = {.ret=ret, .result= voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result= voidEnum};
   }
 }
 
@@ -142,14 +135,12 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
     char *rsrc = manifestCompatibleResource(pkg, version, kind);
 
     if (rsrc == Null) {
-      ReturnStatus rt = {.ret=Error, .result= voidEnum};
-      return rt;
+      return (ReturnStatus) {.ret=Error, .result= voidEnum};
     } else {
-      ReturnStatus rt = {.ret=Ok, .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
-      return rt;
+      return (ReturnStatus) {.ret=Ok,
+                .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
     }
   } else {
-    ReturnStatus rt = {.ret=ret, .result= voidEnum};
-    return rt;
+    return (ReturnStatus) {.ret=ret, .result= voidEnum};
   }
 }
