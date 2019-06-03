@@ -856,9 +856,6 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
-
-
-
 genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
   genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
@@ -1145,8 +1142,6 @@ macroSquarePtn(Lc,Els,Ptn) :-
 
 genEofTest(Lc,Trm) :-
   mkWhere(Lc,"_eof",Trm).
-
-genEndTest(Lc,name(Lc,"_")).
 
 genHedTest(Lc,L,R,Trm) :-
   mkWherePtn(Lc,tuple(Lc,"()",[L,R]),name(Lc,"_hdtl"),Trm).

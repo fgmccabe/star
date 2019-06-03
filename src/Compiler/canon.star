@@ -11,7 +11,10 @@ star.compiler.canon{
     stringLit(locn,string) |
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
-    abstraction(locn,canon,canon,canon,tipe) |
+    dot(locn,canon,string,tipe) |
+    abstraction(locn,canon,canon,tipe) |
+    ixabstraction(locn,canon,canon,canon,tipe) |
+    act(locn,canonAction) | 
     search(locn,canon,canon,canon) |
     match(locn,canon,canon) |
     conj(locn,canon,canon) |
@@ -21,10 +24,25 @@ star.compiler.canon{
     apply(locn,canon,canon,tipe) |
     tple(locn,list[canon]) |
     varRef(locn,canon,tipe) |
-    lambda(locn,list[(locn,canon,canon,canon)],tipe) |
+    lambda(locn,canon,canon,canon,tipe) |
     letExp(locn,canon,canon) |
     theta(locn,string,boolean,list[list[canonDef]],list[canon],tipe) |
-    record(locn,string,boolean,list[list[canonDef]],list[canon],tipe).
+    record(locn,string,boolean,list[list[canonDef]],list[canon],tipe) .
+
+  public canonAction ::= noDo(locn) |
+    seqnDo(locn,canonAction,canonAction) |
+    bindDo(locn,canon,canon,tipe,tipe,tipe) |
+    varDo(locn,canon,canon) |
+    delayDo(locn,canonAction,tipe,tipe) |
+    assignDo(locn,canon,canon,tipe,tipe) |
+    ifThenDo(locn,canon,canonAction,canonAction,tipe,tipe) |
+    whileDo(locn,canon,canonAction,tipe,tipe) |
+    forDo(locn,canon,canonAction,tipe,tipe) |
+    tryCatchDo(locn,canonAction,canon,tipe,tipe,tipe) |
+    throwDo(locn,canon,tipe,tipe) |
+    returnDo(locn,canon,tipe,tipe) |
+    simpleDo(locn,canon,tipe,tipe).
+    
 
   public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
       typeDef(locn,string,tipe,tipe) |
@@ -59,7 +77,9 @@ star.compiler.canon{
     showCanon(stringLit(_,Sx)) => disp(Sx).
     showCanon(enm(_,Nm,_)) => ss(Nm).
     showCanon(whr(_,E,C)) => ssSeq([showCanon(E),ss(" where "),showCanon(C)]).
-    showCanon(abstraction(_,Exp,Gen,_,_)) => ssSeq([ss("{"),showCanon(Exp),ss(" | "),showCanon(Gen),ss("}")]).
+    showCanon(abstraction(_,Exp,Gen,_)) => ssSeq([ss("{"),showCanon(Exp),ss(" | "),showCanon(Gen),ss("}")]).
+    showCanon(ixabstraction(_,Ky,Vl,Gen,_)) =>
+      ssSeq([ss("{"),showCanon(Ky),ss(" -> "),showCanon(Vl),ss(" | "),showCanon(Gen),ss("}")]).
     showCanon(search(_,Ptn,Gen,_)) => ssSeq([showCanon(Ptn),ss(" in "),showCanon(Gen)]).
     showCanon(match(_,Ptn,Gen)) => ssSeq([showCanon(Ptn),ss(" .= "),showCanon(Gen)]).
     showCanon(conj(_,L,R)) => ssSeq([showCanon(L),ss(" && "),showCanon(R)]).
@@ -69,7 +89,7 @@ star.compiler.canon{
     showCanon(apply(_,L,R,_)) => ssSeq([showCanon(L),showCanon(R)]).
     showCanon(tple(_,Els)) => ssSeq([ss("("),ssSeq(interleave(Els//showCanon,ss(","))),ss(")")]).
     showCanon(varRef(_,R,_)) => ssSeq([showCanon(R),ss("!")]).
-    showCanon(lambda(_,Rls,_)) => ssSeq(interleave(Rls//showRl,ss("|"))).
+    showCanon(lambda(Lc,Args,Cond,Exp,_)) => showRl((Lc,Args,Cond,Exp)).
     showCanon(letExp(_,Th,Ep)) => ssSeq([ss("let "),showCanon(Th),ss(" in "),showCanon(Ep)]).
     showCanon(theta(_,_,_,Groups,Others,_)) => ssSeq([ss("{"),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss("}")]).
     showCanon(record(_,_,_,Groups,Others,_)) => ssSeq([ss("{."),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss(".}")]).

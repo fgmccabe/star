@@ -119,7 +119,7 @@ star.compiler.unify{
       Im ^= findImplementation(Env,typeName(Tp),INm) =>
     sameType(Tp,typeOf(Im),Env).
   checkConstraint(fieldConstraint(T,F),Env) where
-      Face ^= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
+      Face .= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
   checkConstraint(_,_) default => false.
 
   mergeConstraints:(list[constraint],list[constraint],dict) =>
@@ -150,12 +150,12 @@ star.compiler.unify{
       (Nm,Tp1) in Ts1 *> ((Nm,Tp2) in Ts2 && sameType(Tp1,Tp2,Env)).
   .} in (subF(E1,E2) && subF(T1,T2)).
 
-  public faceOfType:(tipe,dict) => option[tipe].
+  public faceOfType:(tipe,dict) => tipe.
   faceOfType(T,Env) where Nm^=tpName(T) && (_,_,Rl) ^= findType(Env,Nm) &&
       (_,typeExists(Lhs,Rhs)) .= freshen(Rl,[],Env) &&
       sameType(Lhs,T,Env) => faceOfType(deRef(Rhs),Env).
 
-  faceOfType(faceType(L,T),_) => some(faceType(L,T)).
+  faceOfType(faceType(L,T),_) => faceType(L,T).
 
   occursIn(TV,Tp) where \+ isIdenticalVar(TV,Tp) =>
       occIn(vrNm(TV),deRef(Tp)).
