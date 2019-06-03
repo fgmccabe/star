@@ -201,6 +201,8 @@ star.compiler.checker{
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,C,R) ^= isEquation(A) =>
     typeOfLambda(Lc,Ar,C,R,Tp,Env,Path,Rp).
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTheta(A) =>
+    typeOfTheta(Lc,Els,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
     typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>

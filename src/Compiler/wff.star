@@ -610,7 +610,7 @@ star.compiler.wff{
 
   public isCons:(ast) => option[(locn,ast,ast)].
   isCons(A) => isBinary(A,",..").
-
+  
   public isComma:(ast) => option[(locn,ast,ast)].
   isComma(A) => isBinary(A,",").
 
@@ -621,7 +621,14 @@ star.compiler.wff{
   isAbstraction(A) where (Lc,[T]) ^= isBrTuple(A) &&
       (_,B,C) ^= isBinary(T,"|") => some((Lc,B,C)).
   isAbstraction(_) default => none.
-    
+
+  public isTheta:(ast) => option[(locn,list[ast])].
+  isTheta(A) where (Lc,Els) ^= isBrTuple(A) && \+ _ ^= isAbstraction(A) =>
+    some((Lc,Els)).
+  isTheta(_) default => none.
+
+  public isQTheta:(ast) => option[(locn,list[ast])].
+  isQTheta(A) => isQBrTuple(A).
 
   public macroSquarePtn:(locn,list[ast]) => ast.
   macroSquarePtn(Lc,Els) =>
