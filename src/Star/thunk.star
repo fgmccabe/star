@@ -7,26 +7,24 @@ star.thunk{
       private bad(e).
 
   public implementation all e ~~ execution[thunk[e]->>e] => {
-    _perform(Th) => perf(Th,Th).
+    _perform(Th) => _perf(Th,Th).
     
     _perf(dne(X),_) => X.
-    _perf(delay(F),Th) => _perform(F()).
+    _perf(delai(F),Th) => _perf(F(),Th).
 
-    _valis(X) => delay(()=>done(X)).
+    _valis(X) => delai(()=>dne(X)).
 
-    _sequence(err(E),_) => err(E).
-    _sequence(done(A),F) => delay(()=>F(A)).
-    _sequence(delay(G),F) => delay(()=>_sequence(G(),F)).
+    _sequence(bad(E),_) => bad(E).
+    _sequence(dne(A),F) => delai(()=>F(A)).
+    _sequence(delai(G),F) => delai(()=>_sequence(G(),F)).
 
-    _handle(done(X),_) => done(X).
-    _handle(delay(A),E) => _handle(A(),E).
-    _handle(err(X),E) => E(X).
+    _handle(dne(X),_) => dne(X).
+    _handle(delai(A),E) => _handle(A(),E).
+    _handle(bad(X),E) => E(X).
 
-    _raise(S) => err(S).
+    _raise(S) => bad(S).
   }
   
-  
-
   public thunk:all x ~~ (()=>x) => ()=>x.
   thunk(F) => let{
     X := none.
