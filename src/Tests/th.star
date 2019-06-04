@@ -2,15 +2,32 @@ test.th{
   import star.
   import star.thunk.
 
-  X := 0.
+  assign:all a,e/1,f ~~ execution[e->>f] |: (ref a,a) => e[()].
+  assign(L,V) => do {
+    _ = _assign(L,V);
+    valis ()
+  }
+
+  XX := 0.
 
   Thk:thunk[(),integer].
   Thk = do{
-    logMsg("Invoke thunk");
     XX := 2;
-    logMsg("Invoke thunk 2");
     valis XX!
   }
+
+  assert valof Thk == 2.
+
+  Thl:thunk[(),integer].
+  Thl = do{
+    assign(XX,3);
+    valis XX!
+  }
+
+  assert valof Thl == 3.
+  
+/*
+  X := 0.
 
   Th = thunk(()=> valof action {
       logMsg("called Th");
@@ -20,10 +37,9 @@ test.th{
   assert Th()==34.
   assert Th()==34.
   assert (X!)==2.
+*/
 
-  assert valof Thk == 2.
-
-  thk[e] ::= dun(e) | delaied(()=>e).
+/*  thk[e] ::= dun(e) | delaied(()=>e).
 
   fawce:all e ~~ (thk[e])=>e.
   fawce(Tk) => ff(Tk,Tk).
@@ -40,4 +56,5 @@ test.th{
   assert fawce(TTh) == 42.
   assert fawce(TTh) == 42.
   assert (X!) == 5.
+*/
 }
