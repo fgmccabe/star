@@ -889,7 +889,7 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    newTypeVar("_t",StTp),
    newTypeVar("_E",ErTp)),
   checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-  genAction(Body,Op,StTp,ErTp,EE,Path).
+  genAction(delayDo(Lc,Body,StTp,ErTp),Op,StTp,ErTp,EE,Path).
 %  reportMsg("Action-> %s",[EE]).
 
 checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
