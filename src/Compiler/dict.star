@@ -74,6 +74,27 @@ star.compiler.dict{
   findImplementation([_,..Rest],Nm,INm) => findImplementation(Rest,Nm,INm).
   findImplementation([],_,_) => none.
 
+  public declareImplementation:(string,string,tipe,dict) => dict.
+  declareImplementation(Nm,ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
+    (Ims ^= Imps[Nm] ?
+	[scope(Tps,Vrs,Cns,Imps[Nm->Ims[ImplNm->typeConstraint(Con)]]),..Env] ||
+	[scope(Tps,Vrs,Cns,Imps[Nm->[ImplNm->typeConstraint(Con)]]),..Env]).
+
+  public pushScope:(dict)=>dict.
+  pushScope(Env) => [scope([],[],[],[]),..Env].
+
+  public declareTypeVars:(list[(string,tipe)],dict) => dict.
+  declareTypeVars([],Env) => Env.
+  declareTypeVars([(Nm,Tp),..Q],Env) => declareTypeVars(Q,declareType(Nm,none,Tp,Tp,Env)).
+
+  public declareConstraints:(list[constraint],dict) => dict.
+  declareConstraints([],E) => E.
+  declareConstraints([typeConstraint(Con),..Cx],Env) =>
+    (conTract(Nm,Args,_) .= Con ?
+	declareConstraints(Cx,
+	  declareImplementation(Nm,implementationName(Con),Con,Env)) ||
+	declareConstraints(Cx,Env)).
+
 -- Standard types are predefined by the language
   public stdDict:dict.
   stdDict =

@@ -18,6 +18,16 @@ star.compiler.checker{
   import star.compiler.unify.
   import star.compiler.wff.
 
+  typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
+  typeOfTheta(Lc,Els,Tp,Env,Pth,Rp) => do{
+    (Q,ETp) = evidence(Tp,[],Env);
+    FaceTp = faceOfType(Tp,Env);
+    (Cx,Face) = deConstrain(FaceTp);
+    Base = pushScope(Env);
+    B0 = declareTypeVars(Q,Base);
+    
+  }
+
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
@@ -202,7 +212,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,C,R) ^= isEquation(A) =>
     typeOfLambda(Lc,Ar,C,R,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTheta(A) =>
-    typeOfTheta(Lc,Els,Tp,Env,Path,Rp).
+    typeOfTheta(Lc,Els,Tp,Env,genNewName(Path,"θ"),Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
     typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>
@@ -271,7 +281,7 @@ star.compiler.checker{
     ElTp = newTypeVar("_e");
     Lc = locOf(Stmts);
     if conDfn(_,_,_,Con) ^= findContract(Env,"execution") then{
-      (_,contractExists(typeConstraint(depType(tpExp(Op,StTp),[ErTp])),_)) = freshen(Con,[],Env);
+      (_,contractExists(typeConstraint(conTract(Op,[StTp],[ErTp])),_)) = freshen(Con,[],Env);
       if sameType(tpExp(StTp,ElTp),Tp,Env) then {
 	(Action,_) <- checkAction(Stmts,Env,StTp,ElTp,ErTp,Path,Rp);
 	valis act(Lc,Action)
@@ -414,15 +424,14 @@ star.compiler.checker{
 
   applyConstraint(fieldConstraint(T,F),Cons) where
       _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
-  applyConstraint(typeConstraint(T),Cons) => valof action{
-    _ = attachToArgs(T,typeConstraint(T));
+  applyConstraint(Con,Cons) where typeConstraint(conTract(_,A,_)).=Con => valof action{
+    _ = attachToArgs(A,Con);
     valis [Cons..,typeConstraint(T)]
   }
 
-  attachToArgs(depType(Lhs,_),Con) => attach(Lhs,Con).
-  attachToArgs(_,_) => ().
-  attach(tpExp(Op,A),Con) where _ ^= addConstraint(A,Con) => attach(Op,Con).
-  attach(_,_) => ().
+  attachToArgs([],_) => ().
+  attachToArgs([Tp,..Ts],Con) where _ ^= addConstraint(Tp,Con) => attachToArgs(Ts,Con).
+  attachToArga([_,..Ts],Con) => attachToArgs(Ts,Con).
   
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
   checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).
@@ -462,7 +471,7 @@ star.compiler.checker{
   pickupContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe)].
   pickupContract(Lc,Env,Nm,Rp) => do{
     if conDfn(_,_,_,Con) ^= findContract(Env,Nm) then{
-      (_,contractExists(typeConstraint(depType(tpExp(Op,StTp),[ErTp])),_)) =
+      (_,contractExists(typeConstraint(conTract(Op,[StTp],[ErTp])),_)) =
 	freshen(Con,[],Env);
       valis (Op,StTp,ErTp)
     } else
@@ -472,7 +481,7 @@ star.compiler.checker{
   pickupIxContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe,tipe)].
   pickupIxContract(Lc,Env,Nm,Rp) => do{
     if conDfn(_,_,_,Con) ^= findContract(Env,Nm) then{
-      (_,contractExists(typeConstraint(depType(tpExp(Op,IxTp),[KyTp,VlTp])),_)) =
+      (_,contractExists(typeConstraint(conTract(Op,[IxTp],[KyTp,VlTp])),_)) =
 	freshen(Con,[],Env);
       valis (Op,IxTp,KyTp,VlTp)
     } else

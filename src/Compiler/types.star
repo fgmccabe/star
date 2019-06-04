@@ -8,23 +8,23 @@ star.compiler.types{
 
   public tipe ::=
     voidType |
-    thisType |
-    kVar(string) |
-    kFun(string,integer) |
-    tVar(tv,string) |
-    tFun(tv,integer,string) |
-    tipe(string) |
-    tpFun(string,integer) |
-    tpExp(tipe,tipe) |
-    tupleType(list[tipe]) |
-    allType(tipe,tipe) |
-    existType(tipe,tipe) |
-    faceType(list[(string,tipe)],list[(string,tipe)]) |
-    typeLambda(tipe,tipe) |
-    typeExists(tipe,tipe) |
-    contractExists(constraint,tipe) |
-    constrainedType(tipe,constraint) |
-    depType(tipe,list[tipe]).
+      thisType |
+      kVar(string) |
+      kFun(string,integer) |
+      tVar(tv,string) |
+      tFun(tv,integer,string) |
+      tipe(string) |
+      tpFun(string,integer) |
+      tpExp(tipe,tipe) |
+      tupleType(list[tipe]) |
+      allType(tipe,tipe) |
+      existType(tipe,tipe) |
+      faceType(list[(string,tipe)],list[(string,tipe)]) |
+      typeLambda(tipe,tipe) |
+      typeExists(tipe,tipe) |
+      contractExists(constraint,tipe) |
+      constrainedType(tipe,constraint) |
+      conTract(string,list[tipe],list[tipe]).
 
   public constraint ::=
     typeConstraint(tipe) |
@@ -140,8 +140,8 @@ star.compiler.types{
     identType(V1,V2,Q) && identType(T1,T2,Q).
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
-  identType(depType(T1,D1),depType(T2,D2),Q) =>
-    identType(T1,T2,Q) && identTypes(D1,D2,Q).
+  identType(conTract(Nm,T1,D1),conTract(Nm,T2,D2),Q) =>
+    identTypes(T1,T2,Q) && identTypes(D1,D2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
     identType(T1,T2,Q).
   identType(_,_,_) default => false.
@@ -202,8 +202,11 @@ star.compiler.types{
     ssSeq([showType(A,Sh,Dp),ss("<~"),showType(T,Sh,Dp)]).
   shTipe(constrainedType(T,C),Sh,Dp) =>
     ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
-  shTipe(depType(Tp,Deps),Sh,Dp) =>
-    shTpExp(Tp,ssSeq([ss("->>"),ssSeq(showEls(Deps,Sh,Dp-1,"")),ss("]")]),Sh,Dp-1).
+  shType(conTract(Nm,Tps,[]),Sh,Dp) =>
+    ssSeq([ss(Nm),ss("["),ssSeq(showEls(Tps,Sh,Dp-1,"")),ss("]")]).
+  shType(conTract(Nm,Tps,Deps),Sh,Dp) =>
+    ssSeq([ss(Nm),ss("["),ssSeq(showEls(Tps,Sh,Dp-1,"")),ss("->>"),
+	ssSeq(showEls(Deps,Sh,Dp-1,"")),ss("]")]).
   
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
@@ -255,7 +258,7 @@ star.compiler.types{
     hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
-    hsh(depType(A,D)) => hshEls(hash(A),D).
+    hsh(conTract(Nm,A,D)) => hshEls(hshEls(hash("$")*37,A),D).
 
     hshCon(typeConstraint(Tp)) => hsh(deRef(Tp)).
     hshCon(fieldConstraint(V,T)) =>
@@ -287,7 +290,7 @@ star.compiler.types{
     tpName(constrainedType(T,_)) => tpName(deRef(T)).
     tpName(typeLambda(_,T)) => tpName(deRef(T)).
     tpName(tupleType(A)) => "!()$(size(A))".
-    tpName(depType(T,_)) => tpName(T).
+    tpName(conTract(Nm,_,_)) => Nm.
   } in tpName(Tp).
 
   public implementationName:(tipe) => string.
@@ -306,7 +309,10 @@ star.compiler.types{
     surfaceName(constrainedType(T,_),R) => surfaceName(deRef(T),R).
     surfaceName(typeLambda(_,T),R) => surfaceName(deRef(T),R).
     surfaceName(tupleType(A),R) => ["!()$(size(A))"].
-    surfaceName(depType(T,_),R) => surfaceName(T,R).
+    surfaceName(conTract(Nm,A,_),R) => ["$",Nm,..surfaceNames(A,"$",R)].
+
+    surfaceNames([],_,R) => R.
+    surfaceNames([T,..Ts],Sep,R) => [Sep,..surfaceName(T,surfaceNames(Ts,Sep,R))].
     
     surfaceNm(tipe(Nm),R) => ["!",Nm,..R].
     surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
@@ -321,7 +327,7 @@ star.compiler.types{
     surfaceNm(constrainedType(T,_),R) => surfaceNm(deRef(T),R).
     surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
     surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
-    surfaceNm(depType(Tp,_),R) => surfaceNm(Tp,R).
+    surfaceNm(conTract(Nm,A,_),R) => ["$",Nm,..R].
   } in  _str_multicat(surfaceName(deRef(Tp),[])).
 
   public implementation hasType[constraint] => {.

@@ -37,17 +37,9 @@ star.compiler.typeparse{
     parseT(Q,Tp) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
       Op <- parseT(Q,O);
       if (Qx,OOp) .= freshen(Op,[],Env) then {
-	if [Arg].=Args && (Lc,L,R) ^= isBinary(Arg,"->>") then {
-	  ArgTps <- parseTps(Q,deComma(L)++deComma(R));
---	  DepTps <- parseTps(Q,deComma(R));
-	  Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
---	  valis rebind(Qx,depType(Inn,DepTps))
-	  valis rebind(Qx,Inn)
-	} else {
-	  ArgTps <- parseTps(Q,Args);
-	  Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
-	  return rebind(Qx,Inn)
-	}
+	ArgTps <- parseTps(Q,Args);
+	Inn <- doTypeFun(deRef(OOp),ArgTps,locOf(O));
+	return rebind(Qx,Inn)
       }else
 	  throw reportError(Rp,"Could not freshen $(Op)",Lc)
     }
@@ -217,9 +209,15 @@ star.compiler.typeparse{
   parseContractConstraint:(tipes,ast,dict,reports) =>
     either[reports,constraint].
   parseContractConstraint(Q,A,Env,Rp) where
-      (Lc,Op,Ags) ^= isSquareTerm(A) => do{
-	Con <- parseType(Q,A,Env,Rp);
-	valis typeConstraint(Con)
+      (Lc,Op,Ags) ^= isSquareTerm(A) && (_,Nm) ^= isName(Op) => do{
+	if [Arg].=Ags && (Lc,L,R) ^= isBinary(Arg,"->>") then {
+	  ArgTps <- parseTypes(Q,deComma(L),Env,Rp);
+	  DepTps <- parseTypes(Q,deComma(R),Env,Rp);
+	  valis typeConstraint(conTract(Nm,ArgTps,DepTps))
+	} else {
+	  ArgTps <- parseTypes(Q,Ags,Env,Rp);
+	  valis typeConstraint(conTract(Nm,ArgTps,[]))
+	}
       }.
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
@@ -232,4 +230,13 @@ star.compiler.typeparse{
       else
 	throw reportError(Rp,"contract $(Op) not defined",locOf(Op))
   }
+
+  parseTypes:(tipes,list[ast],dict,reports) => either[reports,list[tipe]].
+  parseTypes(_,[],_,_) => either([]).
+  parseTypes(Q,[T,..L],Env,Rp) => do{
+    Tl <- parseType(Q,T,Env,Rp);
+    Tr <- parseTypes(Q,L,Env,Rp);
+    valis [Tl,..Tr]
+  }
+
 }
