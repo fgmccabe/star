@@ -267,7 +267,7 @@ star.compiler.terms{
       (Nm,T0) <- decodeText(T);
       (tupleType(Args),T1) <- decodeType(T0);
       (tupleType(Deps),T2) <- decodeType(T1);
-      valis (typeConstraint(depType(mkTypeExp(tpFun(Nm,size(Args)),Args),Deps)),T2)
+      valis (typeConstraint(conTract(Nm,Args,Deps)),T2)
     }
     decodeConstraint([0ca,..T]) => do{
       (BT,T0) <- decodeType(T);

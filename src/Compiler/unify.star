@@ -40,8 +40,8 @@ star.compiler.unify{
     sameType(T1,T2,updateEnv(V1,V2,Env)).
   smT(allType(V1,T1),allType(V2,T2),Env) =>
     sameType(T1,T2,updateEnv(V1,V2,Env)).
-  smT(depType(A1,D1),depType(A2,D2),Env) =>
-    smT(A1,A2,Env) && smTypes(D1,D2,Env).
+  smT(conTract(Nm,A1,D1),conTract(Nm,A2,D2),Env) =>
+    smTypes(A1,A2,Env) && smTypes(D1,D2,Env).
   smT(_,_,_) default => false.
 
   smTypes([],[],_) => true.
