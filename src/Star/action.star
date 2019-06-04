@@ -45,6 +45,10 @@ star.action{
   public (!!):all a ~~ (a)=>ref a.
   !! E => _cell(E).
 
-  public logMsg:all e,x ~~ coercion[x,string] |: (x)=>action[e,()].
-  logMsg(Msg) => delay(() where _ .= _logmsg(Msg::string) => done(())).
+  public logMsg:all e/1,f,x ~~ coercion[x,string],execution[e->>f] |:
+    (x)=>e[()].
+  logMsg(Msg) => do{
+    _ = _logmsg(Msg::string);
+    valis ()
+  }
 }

@@ -4,7 +4,15 @@ test.th{
 
   X := 0.
 
-  Th = thunk(()=> valof do {
+  Thk:thunk[(),integer].
+  Thk = do{
+    logMsg("Invoke thunk");
+    XX := 2;
+    logMsg("Invoke thunk 2");
+    valis XX!
+  }
+
+  Th = thunk(()=> valof action {
       logMsg("called Th");
       X := X!+2;
       valis 34}).
@@ -12,6 +20,8 @@ test.th{
   assert Th()==34.
   assert Th()==34.
   assert (X!)==2.
+
+  assert valof Thk == 2.
 
   thk[e] ::= dun(e) | delaied(()=>e).
 
@@ -21,7 +31,7 @@ test.th{
   ff(dun(XX),_) => XX.
   ff(delaied(F),Tk) where XX .= F() && _ .= _overwrite(Tk,dun(XX)) => XX.
 
-  TTh = delaied(()=>valof do {
+  TTh = delaied(()=>valof action {
     logMsg("called TTh");
     X := X!+3;
     valis 42
