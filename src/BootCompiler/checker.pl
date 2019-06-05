@@ -917,9 +917,9 @@ checkAction(Term,Env,Ev,_Op,_StTp,_ElTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :
   newTypeVar("_V",PT),
   typeOfPtn(L,refType(PT),Env,Ev,Lhs,Path),
   typeOfExp(R,PT,Env,_,Rhs,Path).
-checkAction(Term,Env,Ev,_Op,StTp,ElTp,ErTp,simpleDo(Lc,Exp,StTp,ErTp),Path) :-
-  isAssignment(Term,Lc,_L,_R),!,
-  typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
+checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,Act,Path) :-
+  isAssignment(Term,Lc,L,R),!,
+  checkAssignment(Lc,L,R,Env,Ev,Op,StTp,ElTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -939,7 +939,6 @@ checkAction(Term,Env,Env,Op,StTp,_,ErTp,whileDo(Lc,Ts,Bdy,StTp,ErTp),
   pushScope(Env,WEnv),
   typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
   checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path).
-
 checkAction(Term,Env,Env,Op,StTp,_,ErTp,forDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -955,14 +954,23 @@ checkAction(Term,Env,Env,Op,StTp,ElTp,_,
 checkAction(Term,Env,Env,_,StTp,_ElTp,ErTp,throwDo(Lc,Exp,StTp,ErTp),Path) :-
   isThrow(Term,Lc,E),!,
   typeOfExp(E,ErTp,Env,_,Exp,Path).
-checkAction(Term,Env,Env,_,StTp,ElTp,ErTp,returnDo(Lc,Exp,StTp,ErTp),Path) :-
+checkAction(Term,Env,Env,_,StTp,ElTp,ErTp,returnDo(Lc,Reslt,StTp,ErTp),Path) :-
   isReturn(Term,Lc,Ex),!,
-  typeOfExp(Ex,ElTp,Env,_,Exp,Path).
+  typeOfExp(Ex,ElTp,Env,_,Exp,Path),
+  processIterable(Env,Path,Exp,Reslt).
 checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path).
 checkAction(Term,Env,Ev,_,StTp,ElTp,ErTp,simpleDo(Lc,Exp,StTp,ErTp),Path) :-
   locOfAst(Term,Lc),
+  typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
+
+checkAssignment(Lc,L,R,Env,Ev,_Op,StTp,ElTp,ErTp,simpleDo(Lc,Exp,StTp,ErTp),Path) :-
+  (isIndexTerm(L,LLc,C,I) ->
+     unary(LLc,"!",C,CC),
+    ternary(LLc,"_put",CC,I,R,Repl),
+    binary(Lc,":=",C,Repl,Term);
+   binary(Lc,":=",L,R,Term)),
   typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
 
 checkCatch(Term,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path) :-
