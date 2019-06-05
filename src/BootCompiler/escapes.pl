@@ -217,7 +217,7 @@ escapeType("_getlogin",funType(tupleType([]),type("star.core*string"))).
 escapeType("_fork",funType(tupleType([funType(tupleType([]),type("star.core*sysResult"))]),type("star.thread*thread"))).
 escapeType("_thread",funType(tupleType([]),type("star.thread*thread"))).
 escapeType("_kill",funType(tupleType([type("star.thread*thread")]),type("star.core*sysResult"))).
-escapeType("_thread_state",funType(tupleType([type("star.thread*thread")]),type("star.thread*processState"))).
+escapeType("_thread_state",funType(tupleType([type("star.thread*thread")]),type("star.thread*threadState"))).
 escapeType("_waitfor",funType(tupleType([type("star.thread*thread")]),type("star.core*sysResult"))).
 escapeType("_shell",funType(tupleType([type("star.core*string"),tpExp(tpFun("star.core*list",1),type("star.core*string")),tpExp(tpFun("star.core*list",1),tupleType([type("star.core*string"),type("star.core*string")]))]),type("star.core*integer"))).
 escapeType("_newLock",funType(tupleType([]),type("star.thread*lock"))).
