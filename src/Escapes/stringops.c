@@ -402,7 +402,7 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
 }
 
 static retCode flatten(bufferPo str, normalPo ss) {
-  integer cx = termSize(ss);
+  integer cx = termArity(ss);
   retCode ret = Ok;
 
   for (integer ix = 0; ret==Ok && ix < cx; ix++) {
