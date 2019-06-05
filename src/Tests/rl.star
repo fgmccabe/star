@@ -39,7 +39,7 @@ test.rl{
 
   _main:(list[string]) => ().
   _main([]) =>
-    valof do {
+    valof action {
       XX := SS;
 
       XX[5] := "alpha";

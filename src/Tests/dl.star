@@ -17,11 +17,16 @@ test.dl{
 
   ST : (integer,list[integer]) => action[(),boolean].
   ST(Ix,Lx) => do {
-    return Ix in Lx
+    valis Ix in Lx
   }
 
   show "ST(1,[3,2,1])=$(valof ST(1,[3,2,1]))".
   show "ST(4,[3,2,1])=$(valof ST(4,[3,2,1]))".
+
+  SM:(integer,list[integer]) => boolean.
+  SM(X,L) => X in L.
+
+  assert SM(3,[1,2,3]).
 
   FF:(integer)=>action[(),integer].
   FF(Lx)=> action{

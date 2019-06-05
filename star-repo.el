@@ -29,7 +29,7 @@
   (flymake-mode `toggle))
 
 (defconst star-errormsg-regexp
-  "^\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n<<\\(\\(?:.\\|\n\\)*?\\)>>")
+  "^\\(Error\\|Warning\\) [0-9]+ - \\(.*?\\)\\[\\([0-9]+\\):\\([0-9]+\\)@\\([0-9]+\\)-\\([0-9]+\\)\\]\n<\\.\\(\\(?:.\\|\n\\)*?\\)\\.>")
 
 (defun star-parse-errors (source buffer)
   (save-excursion
