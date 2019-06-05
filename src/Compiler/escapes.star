@@ -220,7 +220,7 @@ star.comp.escapes{
   escapeType("_fork") => tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.core*sysResult"))])),tipe("star.thread*thread")).
   escapeType("_thread") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.thread*thread")).
   escapeType("_kill") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.core*sysResult")).
-  escapeType("_thread_state") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.thread*processState")).
+  escapeType("_thread_state") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.thread*threadState")).
   escapeType("_waitfor") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.thread*thread")])),tipe("star.core*sysResult")).
   escapeType("_shell") => tpExp(tpExp(tpFun("=>",2),tupleType([tipe("star.core*string"),tpExp(tpFun("star.core*list",1),tipe("star.core*string")),tpExp(tpFun("star.core*list",1),tupleType([tipe("star.core*string"),tipe("star.core*string")]))])),tipe("star.core*integer")).
   escapeType("_newLock") => tpExp(tpExp(tpFun("=>",2),tupleType([])),tipe("star.thread*lock")).
