@@ -1,13 +1,13 @@
 /*
   This is where you define a new escape function so that the compiler and
   the run-time system can see it
-  Copyright (c) 2016, 2017. Francis G. McCabe
+  Copyright (c) 2016, 2017 and beyond. Francis G. McCabe
  */
 
 /* Declare standard types used in escapes */
 
 #define sysRet "t'star.core*sysResult'"
-#define processState "t'star.thread*processState'"
+#define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
 #define lockType "t'star.thread*lock'"
 #define fileType "t'star.io*fileHandle'"
