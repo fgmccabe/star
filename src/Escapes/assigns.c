@@ -34,9 +34,9 @@ ReturnStatus g__overwrite(processPo p, ptrPo tos) {
   normalPo orig = C_TERM(tos[0]);
   normalPo newval = C_TERM(tos[1]);
 
-  if (termSize(orig) == termSize(newval)) {
+  if (termArity(orig) == termArity(newval)) {
     orig->lbl = newval->lbl;
-    for (integer ix = 0; ix < termSize(newval); ix++)
+    for (integer ix = 0; ix < termArity(newval); ix++)
       orig->args[ix] = newval->args[ix];
 
     return (ReturnStatus){.ret=Ok, .result=(termPo)orig};

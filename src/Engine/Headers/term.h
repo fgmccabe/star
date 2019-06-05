@@ -28,9 +28,6 @@ typedef struct term_record {
 
 typedef struct class_record {
   clssPo clss; // == classClass
-  gcWalkPo gcMark;
-  gcWalkPo gcScan;
-
 } ClassRecord;
 
 extern normalPo C_TERM(termPo t);

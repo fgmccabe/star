@@ -198,7 +198,7 @@ normalPo codeLits(methodPo mtd) {
 integer codeLitCount(methodPo mtd) {
   assert(mtd != Null && mtd->pool != Null);
   normalPo lits = mtd->pool;
-  return termSize(lits);
+  return termArity(lits);
 }
 
 termPo getMtdLit(methodPo mtd, integer litNo) {
