@@ -339,18 +339,18 @@
   {
     "infixOp": "//",
     "priorities": [
-      800,
-      800,
-      799
+      960,
+      960,
+      959
     ],
     "desc": "map over"
   },
   {
     "infixOp": "///",
     "priorities": [
-      800,
-      800,
-      799
+      960,
+      960,
+      959
     ],
     "desc": "indexed map over"
   },
