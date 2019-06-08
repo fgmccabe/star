@@ -35,7 +35,6 @@ star.comp.keywords {
   keyword("|:") => true.
   keyword("@") => true.
   keyword("let") => true.
-  keyword("this") => true.
   keyword("ref") => true.
   keyword("import") => true.
   keyword("public") => true.

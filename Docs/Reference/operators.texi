@@ -220,7 +220,7 @@
 @tab 720
 @item @code{//}
 @tab left associative infix
-@tab 800
+@tab 960
 @item @code{public}
 @tab non-associative prefix
 @tab 1700
@@ -268,7 +268,7 @@
 @tab 700
 @item @code{///}
 @tab left associative infix
-@tab 800
+@tab 960
 @item @code{::}
 @tab non-associative infix
 @tab 400

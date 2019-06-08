@@ -85,7 +85,7 @@
   operator("!!", [prefixOp(900, 899)]).
   operator("=.", [infixOp(899, 900, 899)]).
   operator(".^.", [infixOp(720, 720, 719)]).
-  operator("//", [infixOp(800, 800, 799)]).
+  operator("//", [infixOp(960, 960, 959)]).
   operator("public", [prefixOp(1700, 1699)]).
   operator("ref", [prefixOp(900, 899)]).
   operator(".~.", [prefixOp(650, 649)]).
@@ -100,7 +100,7 @@
   operator("while", [prefixOp(1175, 1174)]).
   operator("private", [prefixOp(1200, 1199)]).
   operator(".&.", [infixOp(700, 700, 699)]).
-  operator("///", [infixOp(800, 800, 799)]).
+  operator("///", [infixOp(960, 960, 959)]).
   operator("::", [infixOp(399, 400, 399)]).
   operator("+++", [infixOp(719, 720, 720)]).
   operator(":=", [infixOp(974, 975, 974)]).

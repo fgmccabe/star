@@ -50,7 +50,6 @@ decodeSignature(S,Tp) :-
 
 decodeType(anonType) --> ['_'].
 decodeType(voidType) --> ['v'].
-decodeType(thisType) --> ['h'].
 decodeType(type("star.core*integer")) --> ['i'].
 decodeType(type("star.core*float")) --> ['f'].
 decodeType(type("star.core*string")) --> ['S'].
