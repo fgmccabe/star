@@ -27,13 +27,11 @@ static retCode nullEof(ioPo f);
 
 static retCode nullFlusher(ioPo f, long count);
 
-static retCode nullSeek(ioPo f, integer count);
-
 static retCode nullClose(ioPo f);
 
 IoClassRec IoClass = {
   {
-    (classPo) &LockedClass,               /* parent class is object */
+    (classPo)&LockedClass,                /* parent class is object */
     "io",                                 /* this is the io class */
     initIoClass,                          /* IO class initializer */
     O_INHERIT_DEF,                        /* IO object element creation */
@@ -44,7 +42,7 @@ IoClassRec IoClass = {
     NULL,                                  /* pool of values for this class */
     O_INHERIT_DEF,                        // No special hash function
     O_INHERIT_DEF,                        // No special equality
-    PTHREAD_ONCE_INIT,        /* not yet initialized */
+    PTHREAD_ONCE_INIT,          /* not yet initialized */
     PTHREAD_MUTEX_INITIALIZER
   },
   {},
@@ -63,6 +61,7 @@ classPo ioClass = (classPo) &IoClass;
 static pthread_once_t ioOnce = PTHREAD_ONCE_INIT;
 
 static void initIoEtc(void) {
+  IoClass.objectPart.parent = lockedClass;
   atexit(closeIo);                      /* set up general closer for exit */
   initRecursiveMutex(&ioClass->mutex);
 }
@@ -157,42 +156,39 @@ retCode inByte(ioPo f, byte *b) {
 }
 
 retCode inBytes(ioPo f, byte *ch, integer count, integer *actual) {
-  objectPo o = O_OBJECT(f);
   retCode ret;
 
-  lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.read(f, ch, count, actual);
   f->io.inBpos += *actual;
-  unlock(O_LOCKED(o));
 
   return ret;
 }
 
 retCode putBackByte(ioPo f, byte b) {
-  objectPo o = O_OBJECT(f);
+//  objectPo o = O_OBJECT(f);
   retCode ret;
 
-  lock(O_LOCKED(o));
+//  lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.backByte(f, b);
 
   if (ret == Ok)
     f->io.inBpos--;
 
-  unlock(O_LOCKED(o));
+//  unlock(O_LOCKED(o));
   return ret;
 }
 
 /* Byte level output */
 
 retCode outBytes(ioPo f, byte *data, integer len, integer *actual) {
-  objectPo o = O_OBJECT(f);
+//  objectPo o = O_OBJECT(f);
   retCode ret;
 
-  lock(O_LOCKED(o));
+//  lock(O_LOCKED(o));
   ret = ((IoClassRec *) f->object.class)->ioPart.write(f, data, len, actual);
   f->io.outBpos += *actual;
 
-  unlock(O_LOCKED(o));
+//  unlock(O_LOCKED(o));
   return ret;
 }
 
@@ -247,7 +243,7 @@ retCode inChar(ioPo io, codePoint *ch) {
             ret = inByte(io, &up);
 
             if (ret == Ok) {
-              *ch = (codePoint) ((UX800(b) << 12) | (UXR(md) << 6) | (UXR(up)));
+              *ch = (codePoint) ((UX800(b) << 12u) | (UXR(md) << 6u) | (UXR(up)));
               return adjustCharInCount(io, *ch);
             } else {
               putBackByte(io, md);
@@ -270,7 +266,7 @@ retCode inChar(ioPo io, codePoint *ch) {
       retCode ret = inByte(io, &b);
 
       if (ret == Ok) {
-        *ch = ((codePoint) b) & 0xff;
+        *ch = ((codePoint) b) & 0xffu;
         return adjustCharInCount(io, *ch);
       } else
         return ret;

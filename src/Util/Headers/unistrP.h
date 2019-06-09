@@ -42,8 +42,8 @@
   1110xxxx 10xxxxxx 10xxxxxx
 
 */
-#define U800 ((0xeu)<<4)
-#define M800 ((0xfu)<<4)
+#define U800 ((0xeu)<<4u)
+#define M800 ((0xfu)<<4u)
 #define UC800(x) (((x)&M800)==U800)
 #define UX800(x) ((x)&(~M800))
 
