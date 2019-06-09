@@ -219,7 +219,7 @@ automatically constructed in some situations.
 
 The @refer{TypeExistsStmt} declares the existence of a type --
 together with its associated algebraic interface (see
-@refer{TypeInterface}). It does so without specifying any constructors
+@refer{algebraicInterface}). It does so without specifying any constructors
 for the type.
 
 @node Type Alias Statement
