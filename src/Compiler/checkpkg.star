@@ -21,11 +21,11 @@ star.compiler.checkpkg{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r]|:(r,ast,reports) => either[reports,(list[list[canonDef]],list[canon])].
-  checkPkg(Repo,P,Rp) => do{
+  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(list[list[canonDef]],list[canon])].
+  checkPkg(Repo,P,Base,Rp) => do{
     if (Lc,Pkg,Els) ^= isBrTerm(P) && Path ^= pkgName(Pkg) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
-      (PkgEnv,ImpSigs,AllImports) <- importAll(Imports,Repo,stdDict,[],[],Rp);
+      (PkgEnv,ImpSigs,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
       checkProgram(Els,packageVar(Path),PkgEnv,Rp)
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))

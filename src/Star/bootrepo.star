@@ -2,13 +2,19 @@ star.repo.boot{
   import star.
   import star.pkg.
   import star.repo.
+  import star.resources.
   import star.uri.
 
   public bootRepo ::= bootRepo(uri).
 
   public implementation repo[bootRepo] => {
-    hasResource(bootRepo(_),Pkg,Kind) => locateInBootRepo(Pkg,Kind).
-    repoRoot(bootRepo(Root)) => Root.
+    hasSignature(_,Pkg) => locateInBootRepo(Pkg,"signature").
+
+    hasCode(bootRepo(Root),Pkg) where 
+	U ^= locateInBootRepo(Pkg,"code") &&
+	Uri ^= parseUri(U) &&
+	RU ^= resolveUri(Root,Uri) => getResource(RU).
+    hasCode(_,_) default => none.
   }
 
   locateInBootRepo(pkg(P,defltVersion),Kind) where _in_manifest(P,"*",Kind) =>
