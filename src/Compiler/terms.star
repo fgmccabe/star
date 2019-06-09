@@ -162,7 +162,6 @@ star.compiler.terms{
   decodeSignature(St) => let{
     decodeType:(list[integer]) => option[(tipe,list[integer])].
     decodeType([0cv,..Ts]) => some((voidType,Ts)).
-    decodeType([0ch,..Ts]) => some((thisType,Ts)).
     decodeType([0ci,..Ts]) => some((tipe("star.core*integer"),Ts)).
     decodeType([0cf,..Ts]) => some((tipe("star.core*float"),Ts)).
     decodeType([0cS,..Ts]) => some((tipe("star.core*string"),Ts)).

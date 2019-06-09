@@ -43,12 +43,11 @@ star.compiler.canon{
     returnDo(locn,canon,tipe,tipe) |
     simpleDo(locn,canon,tipe,tipe).
     
-
   public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
       typeDef(locn,string,tipe,tipe) |
       conDef(locn,string,string,tipe) |
       cnsDef(locn,string,string,tipe) |
-      funDef(locn,string,string,list[(locn,canon,canon,canon)],tipe,list[constraint]).
+      funDef(locn,string,string,list[canon],tipe,list[constraint]).
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
@@ -89,7 +88,7 @@ star.compiler.canon{
     showCanon(apply(_,L,R,_)) => ssSeq([showCanon(L),showCanon(R)]).
     showCanon(tple(_,Els)) => ssSeq([ss("("),ssSeq(interleave(Els//showCanon,ss(","))),ss(")")]).
     showCanon(varRef(_,R,_)) => ssSeq([showCanon(R),ss("!")]).
-    showCanon(lambda(Lc,Args,Cond,Exp,_)) => showRl((Lc,Args,Cond,Exp)).
+    showCanon(lambda(Lc,Args,Cond,Exp,Tp)) => showRl("",lambda(Lc,Args,Cond,Exp,Tp)).
     showCanon(letExp(_,Th,Ep)) => ssSeq([ss("let "),showCanon(Th),ss(" in "),showCanon(Ep)]).
     showCanon(theta(_,_,_,Groups,Others,_)) => ssSeq([ss("{"),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss("}")]).
     showCanon(record(_,_,_,Groups,Others,_)) => ssSeq([ss("{."),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss(".}")]).
@@ -99,12 +98,17 @@ star.compiler.canon{
     disp(C) => showCanon(C)
   .}
 
-  showDef(varDef(_,Nm,_,V,_,_)) => ssSeq([ss(Nm),ss("="),disp(V)]).
+  public implementation display[canonDef] => {
+    disp(D) => showDef(D)
+  }
+
+  showDef(varDef(_,Nm,_,V,_,Tp)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),disp(V)]).
   showDef(typeDef(_,Nm,T,_)) => ssSeq([ss(Nm),ss("~>"),disp(T)]).
   showDef(conDef(_,Nm,_,Tp)) => ssSeq([ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,Nm,_,Tp)) => ssSeq([ss(Nm),ss("<=>"),disp(Tp)]).
-  showDef(funDef(_,Nm,_,Rls,_,_)) => ssSeq([ss(Nm),ss("="),ssSeq(Rls//showRl)]).
+  showDef(funDef(_,Nm,_,Rls,Tp,_)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". ")))]).
 
-  showRl:((locn,canon,canon,canon)) => ss.
-  showRl((_,Ptn,Cond,Val)) => ssSeq([disp(Ptn),ss(" where "),disp(Cond),ss(" => "),disp(Val)]).
+  showRl:(string,canon) => ss.
+  showRl(Nm,lambda(_,Ptn,vr(_,"true",tipe("star.core*boolean")),Val,_)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).
+  showRl(Nm,lambda(_,Ptn,Cond,Val,_)) => ssSeq([ss(Nm),disp(Ptn),ss(" where "),disp(Cond),ss(" => "),disp(Val)]).
 }

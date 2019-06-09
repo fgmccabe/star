@@ -1,5 +1,6 @@
 star.compiler.misc{
   import star.
+  import star.pkg.
 
   public genSym:(string) => string.
   genSym(Pre) => _str_gen(Pre).
@@ -19,5 +20,8 @@ star.compiler.misc{
   public localName:(string,string,string) => string.
   localName(_,Glue,Nm) where Ix .= _str_find(Nm,Glue,0) && Ix>=0 => Nm.
   localName(Pth,Glue,Nm) => _str_concat(Pth,_str_concat(Glue,Nm)).
+
+  public packageVar:(pkg)=>string.
+  packageVar(pkg(P,_)) => localName(P,markerString(pkgMark),"").
   
 }

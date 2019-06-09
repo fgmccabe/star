@@ -138,7 +138,6 @@ star.compiler.typeparse{
       other(reportError(Rp,"invalid type field -- $(F)",locOf(F))).
 	  
     parseTypeName(_,_,"_") => either(newTypeVar("_")).
-    parseTypeName(_,_,"this") => either(thisType).
     parseTypeName(Q,_,Nm) where (Nm,Tp) in Q => either(Tp).
     parseTypeName(Q,_,Nm) where (_,T,TpDf) ^= findType(Env,Nm) =>
       either(typeLambda(_,_).=TpDf ? TpDf || T).
