@@ -8,11 +8,11 @@ star.compiler.dict{
 
   tpDef ::= tpVar(option[locn],tipe) | tpDefn(option[locn],string,tipe,tipe).
 
-  public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe).
+  public vrEntry ::= vrEntry(option[locn],(locn,string,tipe)=>canon,tipe).
 
   public contractDefn ::= conDfn(option[locn],string,string,tipe).
 
-  public implDefn ::= implDfn(option[locn],string,tipe).
+  public implDefn ::= implDfn(option[locn],string,string,tipe).
 
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,contractDefn],
@@ -22,13 +22,14 @@ star.compiler.dict{
 
   public declareVar:(string,option[locn],tipe,dict) => dict.
   declareVar(Nm,Lc,Tp,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,T)=>vr(L,Nm,T),Dict).
+    declareVr(Nm,Lc,Tp,(L,Id,T)=>vr(L,Id,T),Dict).
 
-  declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
+  declareVr:(string,option[locn],tipe,(locn,string,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
 
   public isVar:(string,dict) => option[vrEntry].
+  isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(none,(L,Id,T)=>vr(L,Id,T),Tp)).
   isVar(Nm,[]) => none.
   isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
@@ -62,7 +63,7 @@ star.compiler.dict{
 
   public declareMethod:(string,option[locn],tipe,dict) => dict.
   declareMethod(Nm,Lc,Tp,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,T)=>mtd(L,Nm,T),Dict).
+    declareVr(Nm,Lc,Tp,(L,Id,T)=>mtd(L,Id,T),Dict).
       
   public findContract:(dict,string) => option[contractDefn].
   findContract([],Nm) => none.
@@ -83,7 +84,25 @@ star.compiler.dict{
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope([],[],[],[]),..Env].
 
-  public declareTypeVars:(list[(string,tipe)],dict) => dict.
+  public pushSig:(tipe,locn,(locn,string,tipe)=>canon,dict) => dict.
+  pushSig(faceType(Vrs,Tps),Lc,Mkr,Env) =>
+    pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
+  
+  public pushFace:(tipe,locn,dict) => dict.
+  pushFace(Tp,Lc,Env) =>
+    pushSig(deRef(Tp),Lc,(L,Id,T)=>vr(L,Id,T),Env).
+  
+  pushFlds:(list[(string,tipe)],locn,(locn,string,tipe)=>canon,dict) => dict.
+  pushFlds([],Lc,_,Env) => Env.
+  pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env) =>
+    pushFlds(Vrs,Lc,Mkr,declareVr(Nm,some(Lc),Tp,Mkr,Env)).
+
+  pushTypes:(list[(string,tipe)],locn,dict) => dict.
+  pushTypes([],Lc,Env) => Env.
+  pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
+    pushTypes(Tps,Lc,declareType(Nm,some(Lc),Tp,Tp,Env)).
+
+  public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
   declareTypeVars([(Nm,Tp),..Q],Env) => declareTypeVars(Q,declareType(Nm,none,Tp,Tp,Env)).
 

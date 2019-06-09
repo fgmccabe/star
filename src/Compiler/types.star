@@ -8,7 +8,6 @@ star.compiler.types{
 
   public tipe ::=
     voidType |
-      thisType |
       kVar(string) |
       kFun(string,integer) |
       tVar(tv,string) |
@@ -120,7 +119,6 @@ star.compiler.types{
 
   identType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
   identType(voidType,voidType,_) => true.
-  identType(thisType,thisType,_) => true.
   identType(kVar(N1),kVar(N2),_) => N1==N2.
   identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tVar(_,N1),tVar(_,N2),_) => N1==N2.
@@ -175,7 +173,6 @@ star.compiler.types{
 
   shType:(tipe,boolean,integer) => ss.
   shTipe(voidType,_,_) => ss("void").
-  shTipe(thisType,_,_) => ss("this").
   shTipe(kVar(Nm),_,_) => ss(Nm).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tVar(V,Nm),Sh,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
@@ -244,7 +241,6 @@ star.compiler.types{
   -- in general, hashing types is not reliable because of unification
   public implementation hash[tipe] => let {
     hsh(voidType) => 0.
-    hsh(thisType) => -1.
     hsh(kVar(Nm)) => hash(Nm).
     hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tVar(_,Nm)) => hash("V")+hash(Nm).

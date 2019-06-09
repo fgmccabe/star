@@ -6,6 +6,8 @@
     "test.comp.gram": "gramtest.star",
     "test.comp.lx": "lextest.star",
     "test.comp.cat": "catalogtest.star",
+    "test.comp.chk" : "chktest.star",
+    "test.comp.pkgchk" : "pkgchk.star",
     "test.comp.freshen": "freshentest.star",
     "test.comp.parsetype" : "tp.star",
     "test.comp.repo" : "rep.star",

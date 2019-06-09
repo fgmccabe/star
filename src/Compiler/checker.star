@@ -8,7 +8,6 @@ star.compiler.checker{
   import star.compiler.dependencies.
   import star.compiler.dict.
   import star.compiler.errors.
-  import star.compiler.impawt.
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -18,16 +17,145 @@ star.compiler.checker{
   import star.compiler.unify.
   import star.compiler.wff.
 
+  public checkProgram:(list[ast],string,dict,reports) => either[reports,(list[list[canonDef]],list[canon])].
+  checkProgram(Els,Path,Base,Rp) => do{
+    -- We treat a package specially, buts its essentially a theta record
+    (Public,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
+    
+    logMsg("Package $(Path), groups: $(Gps)");
+    (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,Base,Path,Rp);
+    Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
+    valis (Defs,Others)    
+  }
+
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
-  typeOfTheta(Lc,Els,Tp,Env,Pth,Rp) => do{
+  typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
     (Q,ETp) = evidence(Tp,[],Env);
     FaceTp = faceOfType(Tp,Env);
     (Cx,Face) = deConstrain(FaceTp);
-    Base = pushScope(Env);
-    B0 = declareTypeVars(Q,Base);
-    
+    Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
+    (Defs,Others,ThEnv) <- thetaEnv(Lc,Path,Els,Face,Base,Rp);
+    valis theta(Lc,Path,true,Defs,Others,reConstrain(Cx,faceOfType(Tp,ThEnv)))
   }
 
+  thetaEnv:(locn,string,list[ast],tipe,dict,reports) =>
+    either[reports,(list[list[canonDef]],list[canon],dict)].
+  thetaEnv(Lc,Pth,Els,Face,Env,Rp) => do{
+    (Public,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
+    logMsg("groups: $(Gps)");
+    Base = pushFace(Face,Lc,Env);
+    (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
+    Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
+    valis (Defs,Others,ThEnv)
+  }
+
+  checkGroups:(list[list[defnSpec]],list[list[canonDef]],
+    tipe,list[(string,ast)],dict,string,reports) =>
+    either[reports,(list[list[canonDef]],dict)].
+  checkGroups([],Gps,_,_,Env,_,Rp) => either((Gps,Env)).
+  checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
+    logMsg("check group $(G)");
+    TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
+    (Gp,Ev) <- checkGroup(G,[],TmpEnv,Path,Rp);
+    checkGroups(Gs,[Gx..,Gp],Face,Annots,Ev,Path,Rp)
+  }
+
+  parseAnnotations:(list[defnSpec],tipe,list[(string,ast)],dict,reports) => either[reports,dict].
+  parseAnnotations([],_,_,Env,_) => either(Env).
+  parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
+    Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
+    logMsg("found type of $(Nm)\:$(Tp)");
+    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
+  }
+  parseAnnotations([defnSpec(funSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
+    Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
+    logMsg("found type of $(Nm)\:$(Tp)");
+    parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
+  }
+
+  parseAnnotation:(string,locn,list[ast],tipe,list[(string,ast)],dict,reports) =>
+    either[reports,tipe].
+  parseAnnotation(Nm,_,_,_,Annots,Env,Rp) where (Nm,T) in Annots =>
+    parseType([],T,Env,Rp).
+  parseAnnotation(Nm,_,_,faceType(Vrs,_),_,_,_) where (Nm,Tp) in Vrs => either(Tp).
+  parseAnnotation(Nm,_,_,_,_,Env,Rp) where vrEntry(_,_,Tp) ^= isVar(Nm,Env) => either(Tp).
+  parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp) =>
+    guessStmtType(Stmts,Nm,Lc,Rp).
+
+  guessStmtType([],Nm,Lc,Rp) => other(reportError(Rp,"$(Nm) not declared",Lc)).
+  guessStmtType([St,.._],Nm,Lc,Rp) => do{
+    if (_,H,_,_) ^= isEquation(St) && (_,Args,_) ^= splitHead(H) then {
+      valis funType(tupleType(genTpVars(Args)),newTypeVar("_R"))
+    } else if (_,_,_) ^= isAssignment(St) then{
+      valis refType(newTypeVar("R"))
+    }
+    else{
+      valis newTypeVar("_D")
+    }
+  }
+      
+  checkGroup:(list[defnSpec],list[canonDef],dict,string,reports) =>
+    either[reports,(list[canonDef],dict)].
+  checkGroup([],Defs,Env,_,_) => either((Defs,Env)).
+  checkGroup([D,..Ds],Defs,Env,Path,Rp) => do{
+    (Defn,E0) <- checkDefn(D,Env,Path,Rp);
+    checkGroup(Ds,[Defs..,Defn],E0,Path,Rp)
+  }
+  
+  checkDefn(defnSpec(funSp(Nm),Lc,Stmts),Env,Path,Rp) where
+      vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
+	(Q,ETp) = evidence(Tp,[],Env);
+	(Cx,ProgramTp) = deConstrain(ETp);
+	Es = declareConstraints(Cx,declareTypeVars(Q,Env));
+	(Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Env,Path,Rp);
+	LclNm = localName(Path,markerString(pkgMark),Nm);
+	valis (funDef(Lc,Nm,LclNm,Rls++Dflt,Tp,Cx),declareVar(Nm,some(Lc),Tp,Env))
+      }.
+  checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Path,Rp) where
+      vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
+	(Q,ETp) = evidence(Tp,[],Env);
+	(Cx,VarTp) = deConstrain(ETp);
+	Es = declareConstraints(Cx,declareTypeVars(Q,Env));
+	if (_,Lhs,R) ^= isDefn(Stmt) then{
+	  Val <- typeOfExp(R,VarTp,Env,Path,Rp);
+	  LclNm = localName(Path,markerString(pkgMark),Nm);
+	  valis (varDef(Lc,Nm,LclNm,Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
+	} else{
+	  throw reportError(Rp,"bad definition $(Stmt)",Lc)
+	}
+      }.
+
+  processEqns:(list[ast],tipe,list[canon],list[canon],dict,string,reports) =>
+    either[reports,(list[canon],list[canon])].
+  processEqns([],_,Rls,Deflt,_,_,_) => either((Rls,Deflt)).
+  processEqns([St,..Ss],ProgramType,Rls,Deflt,Env,Path,Rp) => do{
+    (Rl,IsDeflt) <- processEqn(St,ProgramType,Env,Path,Rp);
+    if IsDeflt then{
+      if [DRl,.._] .= Deflt then{
+	throw reportError(Rp,"cannot have more than one default, other one at $(locOf(DRl))",
+	  locOf(Rl))
+      } else{
+	processEqns(Ss,ProgramType,Rls,[Rl],Env,Path,Rp)
+      }
+    }
+    else{
+      processEqns(Ss,ProgramType,[Rls..,Rl],Deflt,Env,Path,Rp)
+    }    
+  }
+
+  processEqn(St,ProgramType,Env,Path,Rp) where
+      (Lc,H,C,R) ^= isEquation(St) && (_,Els,IsDeflt) ^= splitHead(H) => do{
+	Ats = tupleType(genTpVars(Els));
+	RTp = newTypeVar("_R");
+	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
+	(Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),Ats,Env,Path,Rp);
+	(Cond,Ev1) <- checkGoal(C,Ev,Path,Rp);
+	Rep <- typeOfExp(R,RTp,Ev1,Path,Rp);
+	valis (lambda(Lc,Args,Cond,Rep,ProgramType),IsDeflt)
+      }.
+    
+  checkOthers:(list[ast],list[canon],dict,string,reports) => either[reports,list[canon]].
+  checkOthers([],Oth,_,_,_) => either(Oth).
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
@@ -36,10 +164,10 @@ star.compiler.checker{
       Exp <- typeOfVar(Lc,Id,Tp,Spec,Env,Rp);
       valis (Exp,Env)
     }
-      else{
-	  WhExp <- typeOfExp(mkWhereEquality(A),Tp,Env,Path,Rp);
-	  valis (WhExp,Env)
-	}
+    else{
+      WhExp <- typeOfExp(mkWhereEquality(A),Tp,Env,Path,Rp);
+      valis (WhExp,Env)
+    }
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
     Ev = declareVar(Id,some(Lc),Tp,Env);
@@ -383,7 +511,7 @@ star.compiler.checker{
   typeOfVar:(locn,string,tipe,vrEntry,dict,reports) => either[reports,canon].
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
     (_,VrTp) = freshen(VTp,[],Env);
-    (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
+    (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Nm,VrTp),Env,Rp);
     if sameType(Tp,MTp,Env) then {
       valis Term
     } else
@@ -426,7 +554,7 @@ star.compiler.checker{
       _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
   applyConstraint(Con,Cons) where typeConstraint(conTract(_,A,_)).=Con => valof action{
     _ = attachToArgs(A,Con);
-    valis [Cons..,typeConstraint(T)]
+    valis [Cons..,Con]
   }
 
   attachToArgs([],_) => ().
@@ -449,7 +577,7 @@ star.compiler.checker{
   } in mergeScopes(D1,D2).
 
   genTpVars:(list[ast]) => list[tipe].
-  genTpVars(Els) => Els//((_)=>newTypeVar("_v")).
+  genTpVars(Els) => (Els//(_)=>newTypeVar("_v")).
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) where (_,K,V) ^= isBinary(B,"->") => do{
@@ -468,7 +596,7 @@ star.compiler.checker{
     valis abstraction(Lc,Bnd,Cond,Tp)
   }
 
-  pickupContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe)].
+  pickupContract:(locn,dict,string,reports) => either[reports,(string,tipe,tipe)].
   pickupContract(Lc,Env,Nm,Rp) => do{
     if conDfn(_,_,_,Con) ^= findContract(Env,Nm) then{
       (_,contractExists(typeConstraint(conTract(Op,[StTp],[ErTp])),_)) =
@@ -478,7 +606,7 @@ star.compiler.checker{
       throw reportError(Rp,"$(Nm) contract not defined",Lc)
   }
 
-  pickupIxContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe,tipe)].
+  pickupIxContract:(locn,dict,string,reports) => either[reports,(string,tipe,tipe,tipe)].
   pickupIxContract(Lc,Env,Nm,Rp) => do{
     if conDfn(_,_,_,Con) ^= findContract(Env,Nm) then{
       (_,contractExists(typeConstraint(conTract(Op,[IxTp],[KyTp,VlTp])),_)) =
@@ -487,6 +615,4 @@ star.compiler.checker{
     } else
       throw reportError(Rp,"$(Nm) contract not defined",Lc)
   }
-
-
 }

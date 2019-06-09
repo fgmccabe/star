@@ -373,6 +373,19 @@ star.compiler.wff{
   typeName(Tp) where (_,Id,_) ^= isSquareApply(Tp) => Id.
   typeName(Tp) where (_,Els) ^= isTuple(Tp) => "()$(size(Els))".
 
+  public collectImports:(list[ast],
+    list[importSpec],
+    list[ast],
+    reports) => either[reports,(list[importSpec],list[ast])].
+  collectImports([],Imp,Oth,Rp) => either((Imp,Oth)).
+  collectImports([A,..Ss],Imp,Oth,Rp) => do{
+    if Spec ^= isImport(A) then{
+      collectImports(Ss,[Imp..,Spec],Oth,Rp)
+    } else{
+      collectImports(Ss,Imp,[Oth..,A],Rp)
+    }
+  }
+
   public collectDefinitions:(list[ast],
     list[defnSpec],
     list[defnSp],
@@ -454,10 +467,20 @@ star.compiler.wff{
 	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Ex,Rp);
 	valis (Stmts,Dfs1,Pb1,As1,Imp,Oth)
       }.
+  collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+      (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
+	Sp = varSp(Id);
+	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+      }.
+  collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+      (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
+	Sp = varSp(Id); -- map X:=E to X=!!E
+	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+      }.
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
-	Sp = varSp(Nm);
+	Sp = funSp(Nm);
 	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
       }.
 
@@ -520,6 +543,14 @@ star.compiler.wff{
 	some((Lc,L,nme(Lc,"true"),Rhs))).
   isEquation(_) default => none.
 
+  public splitHead:(ast) => option[(string,list[ast],boolean)].
+  splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,false).
+  splitHead(A) => splitHd(A,false).
+
+  splitHd(A,_) where (_,I) ^= isDefault(A) => splitHd(I,true).
+  splitHd(A,D) where (_,Nm,As) ^= isRoundTerm(A) && (_,Id) ^= isName(Nm) => some((Id,As,D)).
+  splitHd(A,D) where (_,Id) ^= isName(A) => some((Id,[],D)).
+  
   public isWhere:(ast) => option[(locn,ast,ast)].
   isWhere(A) => isBinary(A,"where").
 

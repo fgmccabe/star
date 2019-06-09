@@ -24,7 +24,6 @@ star.compiler.unify{
   sm(T1,T2,Env) default => smT(T1,T2,Env).
 
   smT(voidType,voidType,_) => true.
-  smT(thisType,thisType,_) => true.
   smT(tipe(Nm),tipe(Nm),_) => true.
   smT(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => true.
   smT(tpExp(O1,A1),tpExp(O2,A2),Env) =>

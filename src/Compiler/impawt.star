@@ -69,9 +69,9 @@ star.compiler.impawt{
 
   pickupImplementations:(list[term],list[implDefn]) => option[list[implDefn]].
   pickupImplementations([],Imps) => some(Imps).
-  pickupImplementations([term(_,[strg(Nm),strg(Sig)]),..Is],Imps) => do{
+  pickupImplementations([term(_,[strg(ConNm),strg(FullNm),strg(Sig)]),..Is],Imps) => do{
     Spec <- decodeSignature(Sig);
-    pickupImplementations(Is,[Imps..,implDfn(none,Nm,Spec)])
+    pickupImplementations(Is,[Imps..,implDfn(none,ConNm,FullNm,Spec)])
   }
   pickupImplementations(_,_) default => none.
   
