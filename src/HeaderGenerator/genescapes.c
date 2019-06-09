@@ -347,14 +347,14 @@ static char *dName(char *sig, bufferPo out) {
 }
 
 #undef escape
-#define escape(name, priv, secr, type, cmt) genLoEsc(out,buffer,#name,type,cmt);
+#define escape(name, priv, secr, type, cmt) genStarEsc(out,buffer,#name,type,cmt);
 
-static void genLoEsc(FILE *out, bufferPo buffer, char *name, char *sig, char *cmt) {
+static void genStarEsc(FILE *out, bufferPo buffer, char *name, char *sig, char *cmt) {
   outStr(O_IO(buffer), "  escapeType(");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), ") => ");
+  outStr(O_IO(buffer), ") => some(");
   dumpSig(sig, buffer);
-  outStr(O_IO(buffer), ".\n");
+  outStr(O_IO(buffer), ").\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -365,9 +365,11 @@ static void genLoEsc(FILE *out, bufferPo buffer, char *name, char *sig, char *cm
 static void starEscapeTypes(FILE *out) {
   bufferPo buffer = newStringBuffer();
 
-  fprintf(out, "  public escapeType:(string)=>tipe.\n");
+  fprintf(out, "  public escapeType:(string)=>option[tipe].\n");
 
 #include "escapes.h"
+
+  fprintf(out, "  escapeType(_) default => none.\n");
 
   closeFile(O_IO(buffer));
 }
