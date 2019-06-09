@@ -2,7 +2,8 @@ test.comp.pkgchk{
   import star.
   import star.pkg.
   import star.repo.
---  import star.repo.file.
+
+  import test.comp.nullrepo.
 
   import star.compiler.location.
   import star.compiler.ast.
@@ -18,12 +19,6 @@ test.comp.pkgchk{
   R0 = reports([]).
   Pk = pkg("test",defltVersion).
   lc = pkgLoc(Pk).
-
-  nullRepo ::= nullRepo.
-
-  implementation repo[nullRepo] => {
-    hasResource(_,_,_) => none.
-  }
 
   getAst((some(A),_)) => A.
 
@@ -43,7 +38,7 @@ test{
 
   SD = declareVar("true",none,tipe("star.core*boolean"),stdDict).
 
-  P1 = checkPkg(nullRepo,A1,R0).
+  P1 = checkPkg(nullRepo,A1,SD,R0).
 
   show disp(P1).
   

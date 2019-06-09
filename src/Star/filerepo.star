@@ -18,8 +18,13 @@ star.repo.file{
   openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[fileRepo] => {
-    hasResource(repo(Root,Man),Pkg,Kind) => locateInManifest(Man,Pkg,Kind).
-    repoRoot(repo(Root,_)) => Root.
+    hasSignature(repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
+
+    hasCode(repo(Root,Man),Pkg) where
+      U ^= locateInManifest(Man,Pkg,Kind) &&
+	RU ^= resolveUri(Root,Uri) &&
+	Uri ^= parseUri(U) => getResource(RU).
+    hasCode(_,_) default => none.
   }
 
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
@@ -33,19 +38,6 @@ star.repo.file{
       MU ^= parseUri("manifest") &&
       RepoUri ^= resolveUri(Root,MU) &&
       () .= flushManifest(RepoUri,NM) => repo(Root,NM).
-
-  public loadFromRepo:(fileRepo,pkg,string) => option[string].
-  loadFromRepo(repo(Root,Man),Pkg,Kind) where
-      U ^= locateInManifest(Man,Pkg,Kind) &&
-      RU ^= resolveUri(Root,Uri) &&
-      Uri ^= parseUri(U) => getResource(RU).
-  loadFromRepo(_,_,_) default => none.
-
-  public locateCode:(fileRepo,pkg,string) => option[string].
-  locateCode(repo(Root,Man),Pkg,U) where
-      U ^= locateInManifest(Man,Pkg,"code") &&
-      RU ^= resolveUri(Root,Uri) &&
-      Uri ^= parseUri(U) => getResource(RU).
 
   public packageCodeOk:(fileRepo,pkg) => boolean.
   packageCodeOk(Repo,Pkg) => packageOk(Repo,Pkg,"code").

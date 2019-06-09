@@ -2,7 +2,6 @@ test.comp.chk{
   import star.
   import star.pkg.
 
-
   import star.compiler.location.
   import star.compiler.ast.
   import star.compiler.canon.

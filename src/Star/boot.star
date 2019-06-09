@@ -31,22 +31,25 @@ star.boot{
   __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) =>
     valof do{
       try{
-        (Top,Args) <- handleCmdLineOpts(processOptions(_command_line(),[repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd())));
+	Opts = processOptions(_command_line(),
+	  [repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()));
+        (Top,Args) <- handleCmdLineOpts(Opts);
         invokeMain(Top,Args)
       } catch (E) => logMsg(E)
     }
   __boot() default => ().
 
-  handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>action[string,(string,list[string])].
+  handleCmdLineOpts:(either[string,(bootOptions,list[string])])=>
+    action[string,(string,list[string])].
   handleCmdLineOpts(either((bootOptions(RepoDir,Cwd),[Top,..Args]))) where
       CW ^= parseUri(Cwd) &&
-  RU ^= parseUri(RepoDir) &&
-  RD ^= resolveUri(CW,RU) &&
-  Pkg ^= parsePkgName(Top) => do{
-    Repo = bootRepo(RD);
-    setupPkg(Repo,Pkg);
-    valis (Top,Args)
-  }
+      RU ^= parseUri(RepoDir) &&
+      RD ^= resolveUri(CW,RU) &&
+      Pkg ^= parsePkgName(Top) => do{
+	Repo = bootRepo(RD);
+	setupPkg(Repo,Pkg);
+	valis (Top,Args)
+      }.
   handleCmdLineOpts(other(E)) => err(E).
 
   setupPkg:(bootRepo,pkg) => action[string,()].
@@ -63,16 +66,9 @@ star.boot{
   importPkg:(pkg,bootRepo,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).
   importPkg(P,R,Ld) where
-    Code ^= loadFromRepo(R,P) &&
+    Code ^= hasCode(R,P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => none.
-
-  loadFromRepo:all r ~~ repo[r] |: (r,pkg) => option[string].
-  loadFromRepo(Repo,Pkg) where
-      U ^= hasResource(Repo,Pkg,"code") &&
-      Uri ^= parseUri(U) &&
-      RU ^= resolveUri(repoRoot(Repo),Uri) => getResource(RU).
-  loadFromRepo(_,_) default => none.
 
   initialize:(pkg) => action[string,()].
   initialize(pkg(P,_)) => do{

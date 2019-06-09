@@ -13,8 +13,7 @@ star.compiler.impawt{
   public impawtSpec::=impawtPkg(pkg,list[importSpec],tipe,list[string],list[contractDefn],list[implDefn]).
 
   public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => option[impawtSpec].
-  importPkg(Pkg,Lc,Repo) where
-      Sig ^= hasResource(Repo,Pkg,"signature") => pickupPkgSpec(Sig,Lc).
+  importPkg(Pkg,Lc,Repo) where Sig ^= hasSignature(Repo,Pkg) => pickupPkgSpec(Sig,Lc).
   importPkg(_,_,_) default => none.
 
   pickupPkgSpec:(string,locn) => option[impawtSpec].
