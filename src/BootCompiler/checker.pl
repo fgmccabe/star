@@ -77,6 +77,12 @@ findImport(St,Viz,import(Lc,Viz,Pkg)) :-
 importAll(Imports,Repo,AllImports) :-
   closure(Imports,[],checker:notAlreadyImported,checker:importMore(Repo),AllImports).
 
+importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
+  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,_,Imports)),
+  addPublicImports(Imports,Inp,More).
+importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
+  reportError("could not import package %s",[Pkg],Lc).
+
 importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,Impls,_),Lc,E,Evx) :-
   importTypes(Types,Lc,E,E1),
   declareImportedFields(Exported,Pkg,Enums,Lc,E1,E2),
@@ -119,12 +125,6 @@ importContracts([C|L],Lc,E,Env) :-
 notAlreadyImported(import(_,_,Pkg),SoFar) :-
   \+ is_member(import(_,_,Pkg),SoFar),!.
 
-importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
-  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,_,Imports)),
-  addPublicImports(Imports,Inp,More).
-importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
-  reportError("could not import package %s",[Pkg],Lc).
-
 addPublicImports([],Imp,Imp).
 addPublicImports([import(Lc,public,Pkg)|I],Rest,[import(Lc,transitive,Pkg)|Out]) :-
   addPublicImports(I,Rest,Out).
@@ -138,15 +138,13 @@ findImportedImplementations([import(_,_,_,_,_,Impls)|Specs],D,OverDict) :-
   findImportedImplementations(Specs,D1,OverDict).
 findImportedImplementations([],D,D).
 
-declImpl(imp(ImplNm,Spec),SoFar,[(ImplNm,Spec)|SoFar]).
+declImpl(imp(_,FullNm,Spec),SoFar,[(FullNm,Spec)|SoFar]).
 
 importImplementations(Impls,Ev,Evx) :-
   rfold(Impls,checker:declImplementation,Ev,Evx).
 
-declImplementation(imp(ImplNm,Spec),Ev,Evx) :-
-  marker(over,Mrk),
-  splitLocalName(ImplNm,Mrk,Nm,_),
-  declareImplementation(Nm,ImplNm,Spec,Ev,Evx).
+declImplementation(imp(ImplNm,FullNm,Spec),Ev,Evx) :-
+  declareImplementation(ImplNm,FullNm,Spec,Ev,Evx).
 
 checkOthers([],[],_,_).
 checkOthers([St|Stmts],Ass,Env,Path) :-
@@ -264,8 +262,19 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   declareTypeVars(Q,Lc,E1,E2),
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
   packageVarName(Path,N,LclName),
-  collectPrograms(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
-%  reportMsg("type of %s:%s",[N,ProgramType]).
+  formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
+					%  reportMsg("type of %s:%s",[N,ProgramType]).
+
+formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
+  Eqn = equation(Lc,_,_,_),
+  declareVr(Lc,Nm,Tp,Env,Ev).
+formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
+    [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
+  faceOfType(Tp,Env,Face),
+  freshen(Face,Env,_,VFace),
+  declareVr(Lc,Nm,Tp,VFace,Env,Ev).
+
+
 
 processStmts([],_,Defs,Defs,Dflts,Dflts,_,_).
 processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,Env,Path) :-
@@ -315,10 +324,6 @@ guessType(_,N,Lc,GTp) :- !,
   reportError("%s not declared",[N],Lc),
   newTypeVar("_",GTp).
 
-pickupThisType(Env,Tp) :-
-  isVar("this",Env,vrEntry(_,_,Tp,_)),!.
-pickupThisType(_,voidType).
-
 declareConstraints([],Env,Env).
 declareConstraints([C|L],E,Ex) :-
   declareConstraint(C,E,E0),
@@ -364,8 +369,7 @@ checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Face2,Path) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  declareVr(Lc,"this",ETp,Face,BaseEnv,ThEnv),
-  thetaEnv(Path,nullRepo,Lc,Els,Face,ThEnv,OEnv,Defs,Public,_Imports,Others),
+  thetaEnv(Path,nullRepo,Lc,Els,Face,BaseEnv,OEnv,Defs,Public,_Imports,Others),
   faceOfType(ETp,Env,FaceTp2),
   moveConstraints(FaceTp2,_,Face2),
   computeExport(Defs,Face2,Public,_,Types,[],[]),!.
@@ -377,8 +381,7 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  declareVr(Lc,"this",Tp,Face,BaseEnv,ThEnv),
-  recordEnv(Path,nullRepo,Lc,Els,CFace,ThEnv,OEnv,Defs,Public,_Imports,Others),
+  recordEnv(Path,nullRepo,Lc,Els,CFace,BaseEnv,OEnv,Defs,Public,_Imports,Others),
   computeExport(Defs,Face,Public,_,Types,[],[]),!.
 
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
@@ -417,32 +420,23 @@ splitHd(Id,Nm,none,isDeflt) :-
 splitHd(Term,"()",Term,isDeflt) :-
   isTuple(Term,_).
 
-collectPrograms([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
-  Eqn = equation(Lc,_,_,_),
-  declareVr(Lc,Nm,Tp,Env,Ev).
-collectPrograms([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
-    [varDef(Lc,Nm,LclNm,Cx,Tp,Value)|Dx],Dx) :-
-  faceOfType(Tp,Env,Face),
-  freshen(Face,Env,_,VFace),
-  declareVr(Lc,Nm,Tp,VFace,Env,Ev).
-
 checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   isImplementationStmt(Stmt,Lc,Quants,Cons,Sq,IBody),
-  parseContractConstraint(Quants,Cons,Sq,Env,Nm,ConSpec),
+  parseContractConstraint(Quants,Cons,Sq,Env,ConNm,ConSpec),
   evidence(ConSpec,Env,IQ,CnSpec),
   moveConstraints(CnSpec,AC,contractExists(Spec,IFace)),
   declareTypeVars(IQ,Lc,Env,ThEnv),
   implementationName(Spec,ImplName),
   typeOfExp(IBody,IFace,ThEnv,_ThEv,ImplTerm,ImplName),
-  Impl = implDef(Lc,INm,ImplName,ConSpec),
+  Impl = implDef(INm,ConNm,ImplName,ConSpec),
   (AC=[] ->
     rfold(IQ,checker:pickBoundType,IFace,ImplTp),
     ImplDef = varDef(Lc,INm,ImplName,AC,ImplTp,ImplTerm);
     moveConstraints(ITp,AC,funType(tupleType([]),IFace)),
     rfold(IQ,checker:pickBoundType,ITp,ImplTp),
     ImplDef = funDef(Lc,INm,ImplName,ImplTp,AC,
-      [equation(Lc,tple(Lc,[]),enm(Lc,"true",type("star.core*boolean")),ImplTerm)])),
-  declareImplementation(Nm,ImplName,ConSpec,Env,Ex),!.
+		     [equation(Lc,tple(Lc,[]),enm(Lc,"true",type("star.core*boolean")),ImplTerm)])),
+  declareImplementation(ConNm,ImplName,ConSpec,Env,Ex),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
   reportError("could not check implementation statement",[Lc]).
@@ -1194,9 +1188,9 @@ exportDef(cnsDef(_,Nm,_,Tp),Fields,Public,[(Nm,Tp)|Ex],Ex,Tx,Tx,Cx,Cx,Impl,Impl,
   isPublicVar(Nm,Fields,Public,Check).
 exportDef(Con,_,Public,Ex,Ex,Types,Types,[Con|Cx],Cx,Impl,Impl,Check) :-
   isPublicContract(Con,Public,Check).
-exportDef(implDef(_,INm,IName,Spec),_,Public,Ex,Ex,Tps,Tps,Cx,Cx,
-    [imp(IName,Spec)|Ix],Ix,Check) :-
-  isPublicImpl(INm,Public,Check),!.
+exportDef(implDef(TmpNm,ConNm,ImplName,Spec),_,Public,Ex,Ex,Tps,Tps,Cx,Cx,
+	  [imp(ConNm,ImplName,Spec)|Ix],Ix,Check) :-
+  isPublicImpl(TmpNm,Public,Check),!.
 exportDef(_,_,_,Ex,Ex,Tps,Tps,Cx,Cx,Impls,Impls,_).
 
 isPublicVar(Nm,_,Public,Check) :-

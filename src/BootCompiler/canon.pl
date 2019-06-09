@@ -434,12 +434,14 @@ showContract(conDef(_,Nm,ConRule),O,Ox) :-
 showImpls(L,O,Ox) :-
   listShow(L,canon:showImpl,misc:appStr(""),O,Ox).
 
-showImpl(imp(ImplName,Spec),O,Ox) :-
+showImpl(imp(ImplName,FullName,Spec),O,Ox) :-
   appStr("implementation: ",O,O1),
   appStr(ImplName,O1,O2),
-  appStr(" for ",O2,O3),
-  showType(Spec,true,O3,O4),
-  appStr("\n",O4,Ox).
+  appStr("/",O2,O3),
+  appStr(FullName,O3,O4),
+  appStr(" for ",O4,O5),
+  showType(Spec,true,O5,O6),
+  appStr("\n",O6,Ox).
 
 showConstraints([],Ox,Ox).
 showConstraints(Cons,O,Ox) :-

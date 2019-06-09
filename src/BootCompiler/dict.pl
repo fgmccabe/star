@@ -26,8 +26,6 @@ declareType(Nm,TpDef,[scope(Types,Nms,Cons,Impls,Contracts)|Outer],[scope(Types1
   put_dict(Key,Types,TpDef,Types1).
 
 declareTypeVars([],_,Env,Env).
-declareTypeVars([(thisType,_)|Vars],Lc,Env,Ex) :- !,
-  declareTypeVars(Vars,Lc,Env,Ex).
 declareTypeVars([(Nm,Tp)|Vars],Lc,Env,Ex) :-
   declareType(Nm,tpDef(Lc,Tp,voidType),Env,E0),
   declareTypeVars(Vars,Lc,E0,Ex).

@@ -127,13 +127,13 @@ makeImportEntry(_,_,_,Pkg,Nm,[(Nm,moduleVar(LclName))|Mx],Mx) :-
   packageVarName(Pkg,Nm,LclName).
 
 importImplementations([],Map,Map).
-importImplementations([imp(Nm,Con)|L],[(Nm,moduleVar(Nm))|M],Mx) :-
+importImplementations([imp(_,FullNm,Con)|L],[(FullNm,moduleVar(FullNm))|M],Mx) :-
   contractArity(Con,0),
   importImplementations(L,M,Mx).
-importImplementations([imp(Nm,Con)|L],[(Nm,moduleFun(Nm,ClosureName,Ar))|M],Mx) :-
+importImplementations([imp(_,FullNm,Con)|L],[(FullNm,moduleFun(FullNm,ClosureName,Ar))|M],Mx) :-
   contractArity(Con,Ar),
   importImplementations(L,M,Mx),
-  localName("","^",Nm,ClosureName).
+  localName("","^",FullNm,ClosureName).
 
 importTypes(_,L,L).
 

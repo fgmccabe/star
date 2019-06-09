@@ -11,11 +11,6 @@ sameType(T1,T2,Env) :- deRef(T1,Tp1), deRef(T2,Tp2), sm(Tp1,Tp2,Env), !.
 sm(_,anonType,_).
 sm(anonType,_,_).
 sm(voidType,voidType,_).
-sm(thisType,thisType,_) :-!.
-sm(thisType,T2,Env) :- isVar("this",Env,vrEntry(_,_,T1,_)),!,
-  sameType(T1,T2,Env).
-sm(T1,thisType,Env) :- isVar("this",Env,vrEntry(_,_,T2,_)),!,
-  sameType(T1,T2,Env).
 sm(kVar(Nm),kVar(Nm),_).
 sm(kFun(Nm,Ar),kFun(Nm,Ar),_).
 sm(V1,V2,Env) :- isUnbound(V1), isUnbound(V2),!, varBinding(V1,V2,Env).
@@ -164,11 +159,6 @@ idenType(T1,T2,Env) :- deRef(T1,Tp1), deRef(T2,Tp2), id(Tp1,Tp2,Env), !.
 id(_,anonType,_).
 id(anonType,_,_).
 id(voidType,voidType,_).
-id(thisType,thisType,_) :-!.
-id(thisType,T2,Env) :- isVar("this",Env,vrEntry(_,_,T1,_)),!,
-  idenType(T1,T2,Env).
-id(T1,thisType,Env) :- isVar("this",Env,vrEntry(_,_,T2,_)),!,
-  idenType(T1,T2,Env).
 id(kVar(Nm),kVar(Nm),_).
 id(kFun(Nm,Ar),kFun(Nm,Ar),_).
 id(V1,V2,_) :- isUnbound(V1), isUnbound(V2), isIdenticalVar(V1,V2).
@@ -215,7 +205,6 @@ simplifyType(T,Env,C,Cx,Tp) :-
 
 smpTp(anonType,_,C,C,anonType).
 smpTp(voidType,_,C,C,voidType).
-smpTp(thisType,_,C,C,thisType).
 smpTp(type(Nm),_,C,C,type(Nm)).
 smpTp(tpExp(O,A),Env,C,Cx,Tp) :-
   isTypeFun(O,Args,Env,OO),!,

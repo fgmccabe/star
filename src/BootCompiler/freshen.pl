@@ -51,7 +51,6 @@ rewriteType(T,E,Q,Ex,WTp) :-
 
 frshn(anonType,_,_,_,anonType).
 frshn(voidType,_,_,_,voidType) :- !.
-frshn(thisType,E,_,_,Tp) :- isType("this",E,Tp),!.
 frshn(kVar(TV),E,B,Ex,Tp) :-
   is_member(kVar(TV),Ex) ->
     Tp=kVar(TV);

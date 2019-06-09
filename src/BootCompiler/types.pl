@@ -14,7 +14,6 @@
 
 isType(anonType).
 isType(voidType).
-isType(thisType).
 isType(kVar(_)).
 isType(tVar(_,_,_,_)).
 isType(tFun(_,_,_,_,_)).
@@ -125,7 +124,6 @@ moveConstraints(Tp,C,C,Tp).
 
 showType(anonType,_,O,Ox) :- appStr("_",O,Ox).
 showType(voidType,_,O,Ox) :- appStr("void",O,Ox).
-showType(thisType,_,O,Ox) :- appStr("this",O,Ox).
 showType(kVar(Nm),_,O,Ox) :- appStr(Nm,O,Ox).
 showType(kFun(Nm,Ar),_,O,Ox) :- appStr(Nm,O,O1),appStr("/",O1,O2),appInt(Ar,O2,Ox).
 showType(tVar(Curr,_,_,_),ShCon,O,Ox) :- nonvar(Curr),!,showType(Curr,ShCon,O,Ox).
