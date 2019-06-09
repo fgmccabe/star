@@ -91,7 +91,7 @@ star.cons{
   }
 
   public implementation mapping[cons] => {
-    L//F => mapOverList(L,F).
+    (L//F) => mapOverList(L,F).
 
     mapOverList:all e,f ~~ (cons[e],(e)=>f)=>cons[f].
     mapOverList(nil,_) => nil.
