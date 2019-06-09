@@ -208,7 +208,7 @@ star.ideal{
     applyF(cons((K,V),L),f) => cons((K,f(K,V)),applyF(L,f)).
   }
   in{
-    M///f => ixMap(M,f).
+    (M///f) => ixMap(M,f).
   }
 
   public implementation all k,v ~~ equality[k],hash[k] |: ixfilter[map[k,v]->>k,v] => {

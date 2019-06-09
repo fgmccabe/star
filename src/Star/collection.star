@@ -67,7 +67,7 @@ star.collection{
   }
 
   public implementation mapping[list] => {
-    L//F => mapOverList(L,F,0,_list_size(L)).
+    (L//F) => mapOverList(L,F,0,_list_size(L)).
 
     mapOverList:all e,f ~~ (list[e],(e)=>f,integer,integer)=>list[f].
     mapOverList(_,_,Lx,Lx)=>_list_nil(Lx).
