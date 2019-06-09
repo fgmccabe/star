@@ -21,7 +21,7 @@
 #include "strng.h"
 
 typedef enum {
-  ioNULL = 000, ioREAD = 001, ioWRITE = 002
+  ioNULL = 000u, ioREAD = 001u, ioWRITE = 002u
 } ioDirection;
 
 typedef struct _io_object_ *ioPo;

@@ -499,7 +499,7 @@ long uniSearch(const char *src, integer len, integer start, const char *tgt, int
   long pos = start;
 
   while (pos < len - tlen) {
-    if (uniNCmp(&src[pos], len - pos, tgt, tlen) == same)
+    if (uniIsPrefix(tgt,tlen,&src[pos], len - pos))
       return pos;
     else
       pos++;

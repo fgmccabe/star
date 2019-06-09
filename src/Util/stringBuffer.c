@@ -110,7 +110,6 @@ static retCode bufferInBytes(ioPo io, byte *ch, integer count, integer *actual) 
 }
 
 static retCode ensureSpace(bufferPo f, integer count) {
-  assert(isFileOpen(O_IO(f)) == Ok);
   if (f->buffer.out_pos + count >= f->buffer.bufferSize) {
     if (f->buffer.resizeable) {
       integer nlen = f->buffer.bufferSize + (f->buffer.bufferSize >> 1) + count; /* allow for some growth */
