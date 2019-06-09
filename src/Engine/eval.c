@@ -30,6 +30,13 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
 #define saveRegisters(P, SP) STMT_WRAP({ (P)->pc = PC; (P)->fp = FP; (P)->prog = PROG; (P)->sp = (SP);})
 #define restoreRegisters(P) STMT_WRAP({ PC = (P)->pc; FP = (P)->fp; PROG=(P)->prog; SP=(P)->sp; LITS=codeLits(PROG);})
 
+#define bail() {\
+  saveRegisters(P, SP);\
+  dumpStackTrace(P, logFile);\
+  return Error;\
+  }
+
+#define check(Cond,Msg) { if(!(Cond)) { logMsg(logFile,(Msg)); bail(); } }
 /*
  * Execute program on a given process/thread structure
  */
@@ -64,12 +71,8 @@ retCode run(processPo P) {
         continue;
 
       case Abort: {
-        termPo msg = pop();
-
-        logMsg(logFile, "Abort %T", msg);
-        saveRegisters(P, SP);
-        dumpStackTrace(P, logFile);
-        return Error;
+        logMsg(logFile, "Abort %T", pop());
+        bail();
       }
 
       case Call: {
@@ -316,7 +319,9 @@ retCode run(processPo P) {
         int32 glbNo = collectI32(PC);
         globalPo glb = findGlobalVar(glbNo);
         termPo vr = getGlobal(glb);
-        assert(vr != Null);
+
+        check(vr!=Null,"undefined global");
+
         push(vr);     /* load a global variable */
         continue;
       }
