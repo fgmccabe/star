@@ -10,7 +10,8 @@ are also first-class values -- showing up as @refer{AnonymousRecord}s.
 @node Package Structure
 @section Package Structure
 
-A @refer{Package} consists of the identification of the package and a set of @refer{Definition}s enclosed in braces. For example, the text:
+A @refer{Package} consists of the identification of the package and a
+set of @refer{Definition}s enclosed in braces. For example, the text:
 @example
 hello@{
   hello() => "hello".
@@ -135,7 +136,7 @@ terms of different constructors for the type.
 @end display
 @end float
 
- An algebraic type definition is a statement that introduces a new
+An algebraic type definition is a statement that introduces a new
 type; it also defines the possible values associated with the type.
 
 As illustrated in @refer{algebraicTypeDefFig}, an algebraic type
@@ -178,9 +179,27 @@ possible values of the type.
 
 @quotation NOTE
 A given label, whether it is used as an @refer{EnumeratedSymbol}, the
-label of a @refer{PositionalConstructor} or a @refer{RecordConstructor}
-can be defined only once. I.e., it is not permitted to @emph{share}
-constructor labels across different types.
+label of a @refer{PositionalConstructor} or a
+@refer{RecordConstructor} can be defined only once. I.e., it is not
+permitted to @emph{share} constructor labels across different
+types. Nor may such a label be used as the name of a variable in the
+same scope.
+@end quotation
+
+@quotation NOTE
+An @refer{AlgebraicTypeDefinition} statement for a generic type (i.e.,
+a type with type parameters) may omit the explicit quantifiers. I.e., instead of
+
+@example
+all e ~~ cons[e] ::= nil | cons(e,cons[e])
+@end example
+it is permissable to write:
+@example
+cons[e] ::= nil | cons(e,cons[e])
+@end example
+
+The reason is that the quantifiers in such a definition may be
+reliably inferred without being explicitly identified.
 @end quotation
 
 @node Type Exists Statement
@@ -200,8 +219,8 @@ automatically constructed in some situations.
 
 The @refer{TypeExistsStmt} declares the existence of a type --
 together with its associated algebraic interface (see
-@ref{Type Interface}). It does so without specifying any
-constructors for the type.
+@refer{TypeInterface}). It does so without specifying any constructors
+for the type.
 
 @node Type Alias Statement
 @subsection Type Alias Statement
@@ -263,22 +282,22 @@ variable. @refer{VariableDefinition}s may appear in
 @float BNF,variableDeclararionFig
 @caption{Variable Definition}
 @display
-@anchored{VariableDefinition}::=@refer{Pattern} @code{'='} @refer{Expression}
+@anchored{VariableDefinition}::=@refer{Variable} @code{'='} @refer{Expression}
  | @refer{Variable} @code{':='} @refer{Expression}
 @end display
 @end float
 
-The left-hand side of a single assignment declaration may be a
-@refer{Pattern}. This permits multiple variables to be declared in a
-single statement. This, in turn, facilitates the handling of functions
-that return more than one value.
+@c The left-hand side of a single assignment declaration may be a
+@c @refer{Pattern}. This permits multiple variables to be declared in a
+@c single statement. This, in turn, facilitates the handling of functions
+@c that return more than one value.
 
-For example, assuming that @code{split} partitions a @code{list} into a front half and a back half, returning both in a 2-tuple, the declaration:
-@example
-(L,R) = split(Lst)
-@end example
-will bind the variables @code{L} and @code{R} to the front and back
-halves respectively.
+@c For example, assuming that @code{split} partitions a @code{list} into a front half and a back half, returning both in a 2-tuple, the declaration:
+@c @example
+@c (L,R) = split(Lst)
+@c @end example
+@c will bind the variables @code{L} and @code{R} to the front and back
+@c halves respectively.
 
 A re-assignable variable is declared using the form:
 @example
