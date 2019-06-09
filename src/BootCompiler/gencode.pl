@@ -40,8 +40,8 @@ importPkgField(Pkg,(N,_),D,Dx) :-
   packageVarName(Pkg,N,Vn),
   defineGlbVar(Vn,D,Dx).
 
-importImpl(imp(ImpNm,_),D,Dx) :-
-  defineGlbVar(ImpNm,D,Dx).
+importImpl(imp(_,FullNm,_),D,Dx) :-
+  defineGlbVar(FullNm,D,Dx).
 
 defineGlobals(Defs,D,Dx) :-
   rfold(Defs,gencode:defGlbl,D,Dx).

@@ -106,7 +106,6 @@ fieldInFace(_,Nm,RcTp,Lc,anonType) :-
 
 parseTypeName(_,"_",_,_,C,C,Tp) :- newTypeVar("_",Tp).
 parseTypeName(_,"void",_,_,C,C,voidType).
-parseTypeName(_,"this",_,_,C,C,thisType).
 parseTypeName(_,Id,_,Q,C,C,Tp) :- is_member((Id,Tp),Q),!.
 parseTypeName(_,Id,Env,_,C,C,Tp) :-
   isType(Id,Env,tpDef(_,T,TpDf)),
