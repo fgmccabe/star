@@ -4,6 +4,7 @@ test.comp.pkgchk{
   import star.repo.
 
   import test.comp.nullrepo.
+  import test.comp.strrepo.
 
   import star.compiler.location.
   import star.compiler.ast.
@@ -24,8 +25,21 @@ test.comp.pkgchk{
 
   getBrEls(A) where (_,Els) ^= isBrTuple(A) => Els.
 
+  S0 = """
+star.core{
+  -- special core to use in emergency
+  public boolean ::= true | false.
+  }""".
+
+  A0 = getAst(parseText(lc,S0,R0)).
+
+  show disp(A0).
+
+  P0 = checkPkg(nullRepo,A0,stdDict,R0).
+  
   S1 = """
 test{
+  import star.core0.
 --  public fact:(integer)=>integer.
   fact(0)=>1.
   fact(N)=>_int_times(N,fact(_int_minus(N,1))).
