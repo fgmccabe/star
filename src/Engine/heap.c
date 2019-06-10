@@ -8,7 +8,7 @@
 #include "codeP.h"
 #include "labels.h"
 
-HeapRecord heap, oldHeap;
+HeapRecord heap;
 heapPo currHeap = NULL;
 
 integer numAllocated = 0;
@@ -21,7 +21,7 @@ void initHeap(long heapSize) {
     heap.curr = heap.old = heap.base = heap.start =
       (termPo) malloc(sizeof(ptrPo) * heapSize); /* Allocate heap */
     heap.outerLimit = heap.base + heapSize;  /* The actual outer limit */
-    heap.limit = heap.base + heapSize / 2;
+    heap.limit = heap.split = heap.base + heapSize / 2;
     heap.allocMode = lowerHalf;
     initHeapLck(&heap);
     currHeap = &heap;
@@ -60,6 +60,11 @@ retCode reserveSpace(heapPo H, integer amnt) {
 }
 
 termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
+#ifdef TRACEMEM
+  if (validateMemory) {
+    verifyHeap(H);
+  }
+#endif
   if ((((ptrPo) currHeap->curr) + amnt) < ((ptrPo) (currHeap->limit))) {
     termPo t = currHeap->curr;
     H->curr = H->curr + amnt;
@@ -68,9 +73,6 @@ termPo allocateObject(heapPo H, clssPo clss, size_t amnt) {
     if (traceMemory) {
       numAllocated++;
       totalAllocated += amnt;
-    }
-    if (validateMemory) {
-      verifyHeap(H);
     }
 #endif
     return t;

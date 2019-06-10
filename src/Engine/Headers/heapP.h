@@ -18,8 +18,9 @@ typedef struct _heap_ {
   termPo start;
   termPo curr;
   termPo limit;
-  termPo outerLimit;      /* The real */
   termPo base;
+  termPo split;
+  termPo outerLimit;      /* The real */
   termPo old;
   AllocMode allocMode;
   LockRecord heapLock;

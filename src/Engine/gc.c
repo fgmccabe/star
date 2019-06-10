@@ -16,6 +16,7 @@
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */
+long gcGrow = 0;
 #endif
 
 #ifndef MAX_TABLE
@@ -41,7 +42,8 @@ static void swapHeap(gcSupportPo G, heapPo H) {
       if (traceMemory)
         outMsg(logFile, "switching to upper half\n");
 #endif
-      H->start = H->curr;
+      assert(H->outerLimit - H->split >= H->curr - H->start);
+      H->start = H->curr = H->split;
       H->limit = H->outerLimit;  /* shift to the upper half */
       H->allocMode = upperHalf;    /* It is guaranteed to have enough room */
       break;
@@ -50,9 +52,9 @@ static void swapHeap(gcSupportPo G, heapPo H) {
       if (traceMemory)
         outMsg(logFile, "switching to lower half\n");
 #endif
-      H->limit = H->start;
-      H->start = H->base;
-      H->curr = H->base;
+      assert(H->split - H->base >= H->curr - H->start);
+      H->limit = H->split;
+      H->start = H->curr = H->base;
       H->allocMode = lowerHalf;
     default:;
   }
@@ -63,16 +65,9 @@ static logical inSwappedHeap(gcSupportPo G, termPo x) {
 }
 
 void setupGCSupport(heapPo H, gcSupportPo G) {
-  switch (H->allocMode) {
-    case lowerHalf:
-      G->oldBase = H->base;
-      G->oldLimit = H->curr;
-      break;
-    case upperHalf:
-      G->oldBase = H->start;
-      G->oldLimit = H->outerLimit;
-      break;
-  }
+  G->oldBase = H->start;
+  G->oldLimit = H->curr;
+
   G->H = H;
   G->oCnt = 0;
 }
@@ -80,6 +75,12 @@ void setupGCSupport(heapPo H, gcSupportPo G) {
 retCode gcCollect(heapPo H, long amount) {
   GCSupport GCSRec;
   gcSupportPo G = &GCSRec;
+
+#ifdef TRACEMEM
+  if (validateMemory) {
+    verifyHeap(H);
+  }
+#endif
 
   setupGCSupport(H, G);
 
@@ -90,6 +91,7 @@ retCode gcCollect(heapPo H, long amount) {
 #endif
 
 #ifdef TRACEMEM
+
   if (traceMemory) {
     if (H->owner != Null)
       verifyProc(H->owner, H);
@@ -113,13 +115,16 @@ retCode gcCollect(heapPo H, long amount) {
 
 #ifdef TRACEMEM
   if (traceMemory) {
-    outMsg(logFile, "%d objects found in mark phase\n%_", G->oCnt);
+    outMsg(logFile, "%d objects found in mark root phase\n%_", G->oCnt);
   }
 #endif
 
   termPo t = H->start;
-  while (t < H->curr)
+  while (t < H->curr) {
+    assert(t >= H->start && t < H->curr);
     t = scanTerm(G, t);
+    assert(H->curr < H->limit);
+  }
 
 #ifdef TRACEMEM
   if (traceMemory) {
@@ -130,7 +135,7 @@ retCode gcCollect(heapPo H, long amount) {
   }
 #endif
 
-  if (H->limit - H->curr <= amount) {
+  if (H->limit - H->curr <= amount + 100) {
     if (extendHeap(H, 2, amount) != Ok) {
       syserr("Unable to grow process heap");
       return Space;
@@ -139,6 +144,7 @@ retCode gcCollect(heapPo H, long amount) {
 
 #ifdef TRACEMEM
   if (traceMemory) {
+    outMsg(logFile, "%d objects found\n%_", G->oCnt);
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
   }
@@ -172,6 +178,7 @@ termPo markPtr(gcSupportPo G, ptrPo p) {
         return nn;
       }
     } else {
+      assert(!inHeap(G->H, t));
       return t;
     }
   } else
@@ -276,10 +283,12 @@ void verifyProc(processPo P, heapPo H) {
 }
 
 void dumpGcStats() {
-  logMsg(logFile, "%d allocations, %d words, %d gc collections", numAllocated, totalAllocated, gcCount);
+  logMsg(logFile, "%d allocations, %d words, %d gc collections, %d heap grows",
+         numAllocated, totalAllocated, gcCount, gcGrow);
 }
 
 retCode extendHeap(heapPo H, integer factor, integer hmin) {
+  gcGrow++;
 #ifdef TRACEMEM
   if (traceMemory)
     outMsg(logFile, "extending heap by: %d+%d\n%_", factor, hmin);
@@ -296,7 +305,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
 
   H->curr = H->old = H->base = H->start = newHeap;
   H->outerLimit = newHeap + newSize;
-  H->limit = H->base + newSize / 2;
+  H->limit = H->split = H->base + newSize / 2;
   H->allocMode = lowerHalf;
 
 #ifdef TRACEMEM
