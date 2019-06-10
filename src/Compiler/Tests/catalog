@@ -10,6 +10,7 @@
     "test.comp.pkgchk" : "pkgchk.star",
     "test.comp.freshen": "freshentest.star",
     "test.comp.nullrepo" : "nullrepo.star",
+    "test.comp.strrepo" : "stringrepo.star",
     "test.comp.parsetype" : "tp.star",
     "test.comp.repo" : "rep.star",
     "test.comp.unify": "unifytest.star"
