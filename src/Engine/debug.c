@@ -90,7 +90,7 @@ static integer cmdCount(char *cmdLine, integer deflt) {
 static processPo focus = NULL;
 static pthread_mutex_t debugMutex = PTHREAD_MUTEX_INITIALIZER;
 
-static integer displayDepth = 10;
+integer displayDepth = 1;
 
 void dC(termPo w) {
   outMsg(logFile, "%,*T\n", displayDepth, w);
@@ -559,7 +559,7 @@ void dumpStackTrace(processPo p, ioPo out) {
   outMsg(out, "Stack dump for p: %d\n", processNo(p));
 
   while (fp->fp < (framePo) p->stackLimit) {
-    showStackCall(out, frameNo, mtd, pc, fp, 1);
+    showStackCall(out, frameNo, mtd, pc, fp, displayDepth);
 
     mtd = fp->prog;
     pc = fp->rtn;

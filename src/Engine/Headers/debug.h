@@ -23,6 +23,8 @@ extern void dumpInsStats();
 extern void stackTrace(processPo p, ioPo out, logical showStack);
 extern void dumpStackTrace(processPo p, ioPo out);
 
+extern integer displayDepth;
+
 extern retCode setupDebugChannels();
 
 #endif //STAR_DEBUG_H

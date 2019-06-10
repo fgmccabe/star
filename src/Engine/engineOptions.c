@@ -267,6 +267,7 @@ static retCode setRepoDir(char *option, logical enable, void *cl) {
 static retCode symbolDebug(char *option, logical enable, void *cl) {
   lineDebugging = True;  /* turn on symbolic insDebugging */
   interactive = True;       // Initially its also interactive
+  displayDepth = 10;    // Set up larger display depth
   return Ok;
 }
 
@@ -311,6 +312,10 @@ static retCode setHeapSize(char *option, logical enable, void *cl) {
   return Ok;
 }
 
+static retCode setDisplayDepth(char *option, logical enable, void *cl) {
+  displayDepth = parseSize(option);
+  return Ok;
+}
 static retCode setStackSize(char *option, logical enable, void *cl) {
   initStackSize = parseSize(option);
   return Ok;
@@ -318,6 +323,7 @@ static retCode setStackSize(char *option, logical enable, void *cl) {
 
 Option options[] = {
   {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,     Null, "-d|--debug <flags>", debugOptHelp},
+  {'p', "depth",         hasArgument, STAR_DBG_OPTS,      setDisplayDepth, Null, "-p|--depth <depth>"},
   {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,     Null, "-g|--symbol-debug"},
   {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, Null, "-G|--debugger-port"},
   {'v', "version",       noArgument,  Null,               displayVersion,  Null, "-v|--version"},

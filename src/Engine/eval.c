@@ -133,7 +133,9 @@ retCode run(processPo P) {
         int32 escNo = collectI32(PC); /* escape number */
         escapePo esc = getEscape(escNo);
         saveRegisters(P, SP + esc->arity);
+        assert(heap->topRoot==0);
         ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
+        assert(heap->topRoot==0);
         restoreRegisters(P);
         switch (ret.ret) {
           case Ok:
