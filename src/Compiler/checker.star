@@ -72,6 +72,7 @@ star.compiler.checker{
     logMsg("found type of $(Nm)\:$(Tp)");
     parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
   }
+  parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
 
   parseAnnotation:(string,locn,list[ast],tipe,list[(string,ast)],dict,reports) =>
     either[reports,tipe].
