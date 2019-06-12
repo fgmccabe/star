@@ -2,7 +2,9 @@ star.compiler.typeparse{
   import star.
   
   import star.compiler.ast.
+  import star.compiler.canon.
   import star.compiler.dict.
+  import star.compiler.misc.
   import star.compiler.errors.
   import star.compiler.freshen.
   import star.compiler.location.
@@ -76,6 +78,11 @@ star.compiler.typeparse{
       A <- parseArgType(Q,Lhs);
       R <- parseT(Q,Rhs);
       valis typeLambda(A,R)
+    }
+    parseT(Q,T) where (Lc,Lhs,Rhs) ^= isTypeExists(T) => do{
+      A <- parseArgType(Q,Lhs);
+      R <- parseT(Q,Rhs);
+      valis typeExists(A,R)
     }
     -- TODO: field access of type
     parseT(Q,T) default =>
@@ -237,5 +244,39 @@ star.compiler.typeparse{
     Tr <- parseTypes(Q,L,Env,Rp);
     valis [Tl,..Tr]
   }
+
+  pickTypeTemplate:(tipe) => tipe.
+  pickTypeTemplate(allType(_,Tp)) => pickTypeTemplate(Tp).
+  pickTypeTemplate(existType(_,Tp)) => pickTypeTemplate(Tp).
+  pickTypeTemplate(constrainedType(Hd,_)) => pickTypeTemplate(Hd).
+  pickTypeTemplate(typeExists(Hd,_)) => pickTypeTemplate(Hd).
+  pickTypeTemplate(typeLambda(Hd,_)) => pickTypeTemplate(Hd).
+  pickTypeTemplate(tipe(Hd)) => tipe(Hd).
+  pickTypeTemplate(kVar(Nm)) => kVar(Nm).
+  pickTypeTemplate(tpFun(Nm,Ar)) => tpFun(Nm,Ar).
+  pickTypeTemplate(kFun(Nm,Ar)) => kFun(Nm,Ar).
+  pickTypeTemplate(tpExp(Op,_)) => pickTypeTemplate(Op).
+
+  public parseTypeDef:(string,ast,dict,string,reports) => either[reports,(canonDef,dict)].
+  parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeExistsStmt(St) => do{
+    TpRl <- parseType([],St,Env,Rp);
+    Tmplte = pickTypeTemplate(TpRl);
+    valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
+  }
+  parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => do{
+    TpRl <- parseType([],St,Env,Rp);
+    Tmplte = pickTypeTemplate(TpRl);
+    valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
+  }
+
+  public parseConstructor(Nm,St,Env,Path,Rp) => do{
+    Tp <- parseType([],St,Env,Rp);
+    Lc = locOf(St);
+    valis (cnsDef(Lc,Nm,localName(Path,markerString(conMark),Nm),Tp),
+	declareCon(Nm,some(Lc),Tp,Env))
+  }
+
+--  public parseContract(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B)^=isContractStmt(St) => do{
+    
 
 }

@@ -5,7 +5,6 @@
     "star.compiler": "driver.star",
     "star.compiler.canon": "canon.star",
     "star.compiler.checker": "checker.star",
-    "star.compiler.checkpkg": "checkpkg.star",
     "star.compiler.dependencies" : "dependencies.star",
     "star.compiler.dict": "dict.star",
     "star.compiler.errors": "errors.star",
