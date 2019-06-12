@@ -2,12 +2,14 @@ star.compiler.checker{
   import star.
 
   import star.pkg.
+  import star.repo.
 
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.dependencies.
   import star.compiler.dict.
   import star.compiler.errors.
+  import star.compiler.impawt.
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
@@ -17,15 +19,26 @@ star.compiler.checker{
   import star.compiler.unify.
   import star.compiler.wff.
 
-  public checkProgram:(list[ast],string,dict,reports) => either[reports,(list[list[canonDef]],list[canon])].
-  checkProgram(Els,Path,Base,Rp) => do{
-    -- We treat a package specially, buts its essentially a theta record
-    (Public,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
-    
-    logMsg("Package $(Path), groups: $(Gps)");
-    (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,Base,Path,Rp);
-    Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
-    valis (Defs,Others)    
+  -- package level of type checker
+
+  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(list[list[canonDef]],list[canon])].
+  checkPkg(Repo,P,Base,Rp) => do{
+    if (Lc,Pkg,Els) ^= isBrTerm(P) && PkgNm ^= pkgName(Pkg) then{
+      (Imports,Stmts) <- collectImports(Els,[],[],Rp);
+      (PkgEnv,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
+      logMsg("imports found all $(AllImports)");
+      logMsg("Pkg dict $(PkgEnv)");
+      
+      Path = packageVar(PkgNm);
+      -- We treat a package specially, buts its essentially a theta record
+      (Public,Opens,Ots,Annots,Gps) <- dependencies(Els,Rp);
+      
+      logMsg("Package $(PkgNm), groups: $(Gps)");
+      (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
+      Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
+      valis (Defs,Others)    
+    } else
+    throw reportError(Rp,"invalid package structure",locOf(P))
   }
 
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
@@ -121,10 +134,17 @@ star.compiler.checker{
 	  Val <- typeOfExp(R,VarTp,Env,Path,Rp);
 	  LclNm = localName(Path,markerString(pkgMark),Nm);
 	  valis (varDef(Lc,Nm,LclNm,Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
-	} else{
+	}
+	else{
 	  throw reportError(Rp,"bad definition $(Stmt)",Lc)
 	}
       }.
+  checkDefn(defnSpec(tpSp(TpNm),Lc,[St]),Env,Path,Rp) =>
+    parseTypeDef(TpNm,St,Env,Path,Rp).
+  checkDefn(defnSpec(cnsSp(CnNm),Lc,[St]),Env,Path,Rp) =>
+    parseConstructor(CnNm,St,Env,Path,Rp).
+--  checkDefn(defnSpec(conSp(ConNm),Lc,[St]),Env,Path,Rp) =>
+--    parseContract(ConNm,St,Env,Path,Rp).
 
   processEqns:(list[ast],tipe,list[canon],list[canon],dict,string,reports) =>
     either[reports,(list[canon],list[canon])].
@@ -161,7 +181,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && Spec ^= isVar(Id,Env) => do{
-    if isConstructorType(Tp) then{
+    if isConstructorType(vrType(Spec)) then{
       Exp <- typeOfVar(Lc,Id,Tp,Spec,Env,Rp);
       valis (Exp,Env)
     }
@@ -357,18 +377,16 @@ star.compiler.checker{
 
   typeOfRoundTerm:(locn,ast,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path,Rp) => do{
-    FnTp = newTypeVar("F");
     Vrs = genTpVars(As);
     At = tupleType(Vrs);
-    Fun <- typeOfExp(Op,FnTp,Env,Path,Rp);
-    if sameType(FnTp,funType(At,Tp),Env) then{
-      Args <- typeOfExps(As,Vrs,[],Env,Path,Rp);
-      valis apply(Lc,Fun,tple(Lc,Args),Tp)
-    } else if sameType(FnTp,consType(At,Tp),Env) then{
-      Args <- typeOfExps(As,Vrs,[],Env,Path,Rp);
+    FFTp = newTypeFun("_F",2);
+    ExTp = mkTypeExp(FFTp,[At,Tp]);
+    Fun <- typeOfExp(Op,ExTp,Env,Path,Rp);
+    Args <- typeOfExps(As,Vrs,[],Env,Path,Rp);
+    if sameType(FFTp,tpFun("=>",2),Env) || sameType(FFTp,tpFun("<=>",2),Env) then{
       valis apply(Lc,Fun,tple(Lc,Args),Tp)
     } else
-      throw reportError(Rp,"type of $(Op)\:$(FnTp) not consistent with $(funType(At,Tp))",Lc)
+      throw reportError(Rp,"type of $(Op)\:$(ExTp) not consistent with $(funType(At,Tp))",Lc)
   }
 
   typeOfArgExp:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
@@ -513,7 +531,7 @@ star.compiler.checker{
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
     (_,VrTp) = freshen(VTp,[],Env);
     (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Nm,VrTp),Env,Rp);
-    if sameType(Tp,MTp,Env) then {
+    if sameType(Tp,MTp,Env) || sameType(enumType(Tp),MTp,Env) then {
       valis Term
     } else
       throw reportError(Rp,"$(Nm)\:$(VrTp) not consistent with expected type: $(Tp)",Lc)

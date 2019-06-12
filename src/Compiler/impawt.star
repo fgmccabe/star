@@ -4,13 +4,37 @@ star.compiler.impawt{
   import star.pkg.
   import star.repo.
 
+  import star.compiler.canon.
   import star.compiler.dict.
+  import star.compiler.errors.
   import star.compiler.location.
+  import star.compiler.misc.
   import star.compiler.meta.
   import star.compiler.terms.
   import star.compiler.types.
 
   public impawtSpec::=impawtPkg(pkg,list[importSpec],tipe,list[string],list[contractDefn],list[implDefn]).
+
+  public importAll:all r ~~ repo[r]|:(list[importSpec],r,dict,list[importSpec],
+    list[(string,tipe)],reports) => either[reports,(dict,list[importSpec])].
+  importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported)).
+  importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
+    PkgVar = packageVar(Pkg);
+    if (PkgVar,_) in Sigs then
+      importAll(Imports,Repo,Env,Imported,Sigs,Rp)
+    else{
+      if impawtPkg(_,PkgImps,Sig,Cns,Cons,Impls) ^= importPkg(Pkg,Lc,Repo) then {
+	E0 = pushSig(Sig,Lc,(L,I,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
+	E1 = foldRight((conDfn(_,CNm,CFNm,CTp),EE)=>
+	    declareContract(CNm,conDfn(some(Lc),CNm,CFNm,CTp),EE), E0,Cons);
+	E2 = foldRight((implDfn(ILc,ConNm,FullNm,Tp),EE)=>
+	    declareImplementation(ConNm,FullNm,Tp,EE),E1,Impls);
+	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
+      } else{
+	throw reportError(Rp,"cannot import $(Pkg)",Lc)
+      }
+    }
+  }
 
   public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => option[impawtSpec].
   importPkg(Pkg,Lc,Repo) where Sig ^= hasSignature(Repo,Pkg) => pickupPkgSpec(Sig,Lc).
@@ -21,11 +45,17 @@ star.compiler.impawt{
     (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ClSigs),term(_,ConSigs),
 	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::list[integer]);
     Pkg <- pickupPkg(Pk);
+    logMsg("imported package $(Pkg)");
     Imports <- pickupImports(Imps,Lc);
+    logMsg("transative imports $(Imports)");
     Fce <- decodeSignature(FTps);
+    logMsg("imported type sig: $(Fce)");
     Cns <- pickupConstructors(ClSigs,[]);
+    logMsg("imported constructors $(Cns)");
     Cons <- pickupContracts(ConSigs,[]);
+    logMsg("imported contracts $(Cons)");
     Impls <- pickupImplementations(ImplSigs,[]);
+    logMsg("imported implementations $(Impls)");
     valis impawtPkg(Pkg,Imports,Fce,Cns,Cons,Impls)
   }
 

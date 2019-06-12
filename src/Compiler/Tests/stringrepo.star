@@ -27,7 +27,7 @@ test.comp.strrepo{
     _coerce(M) => strRepo(M///(Ky,Sg)=>sigEntry(Sg))
   }
 
-  public addSigToRp:(strRepo,pkg,string) => strRepo.
-  addSigTopRep(strRepo(M),pkg(Pk,_),Sig) =>
+  public addSigToRep:(strRepo,pkg,string) => strRepo.
+  addSigToRep(strRepo(M),pkg(Pk,_),Sig) =>
     strRepo(M[Pk->sigEntry(Sig)]).
 }

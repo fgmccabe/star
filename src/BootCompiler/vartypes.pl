@@ -13,6 +13,8 @@ typeOfVar(Lc,Vr,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   manageConstraints(VrTp,[],Lc,Exp,MTp,Env,Ev,Term),
   checkType(Vr,MTp,Tp,Env).
 
+isEnumVr(_,_,vrEntry(_,_,VTp,_)) :-
+  isCnsType(VTp,_),!.
 isEnumVr(Lc,Tp,vrEntry(_,MkTerm,_,_)) :-
   call(MkTerm,Lc,Tp,V),
   V\=v(_,_,_),V\=mtd(_,_,_).

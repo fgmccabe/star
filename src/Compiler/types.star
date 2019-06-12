@@ -168,6 +168,10 @@ star.compiler.types{
     disp(T) => showType(T,false,10000)
   .}
 
+  public implementation display[constraint] => {
+    disp(C) => showConstraint(C,2)
+  }
+
   public showType:(tipe,boolean,integer) => ss.
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
@@ -335,6 +339,7 @@ star.compiler.types{
 
   public funType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
+  public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
 
   public intType = tipe("star.core*integer").
   public fltType = tipe("star.core*float").
@@ -368,4 +373,12 @@ star.compiler.types{
 
   public isMapType:(tipe)=>boolean.
   isMapType(Tp) => typeName(deRef(Tp))=="map".
+
+  public typeTemplate:(tipe) => tipe.
+  typeTemplate(allType(K,T)) => allType(K,typeTemplate(T)).
+  typeTemplate(existType(K,T)) => existType(K,typeTemplate(T)).
+  typeTemplate(constrainedType(T,C)) => constrainedType(typeTemplate(T),C).
+  typeTemplate(typeLambda(T,_)) => T.
+  typeTemplate(typeExists(T,_)) => T.
+  typeTemplate(T) default => T.
 }

@@ -66,6 +66,9 @@ star.compiler.wff{
   public isTypeLambda:(ast) => option[(locn,ast,ast)].
   isTypeLambda(A) => isBinary(A,"~>").
 
+  public isTypeExists:(ast) => option[(locn,ast,ast)].
+  isTypeExists(A) => isBinary(A,"<~").
+
   public isTypeAnnotation:(ast)=>option[(locn,ast,ast)].
   isTypeAnnotation(A)=>isBinary(A,":").
 
@@ -273,7 +276,7 @@ star.compiler.wff{
   dottedName(N) where (_,L,R) ^= isBinary(N,".") => do{
     LL <- dottedName(L);
     RR <- dottedName(R);
-    valis "$(LL).$(RR)"
+    valis "#(LL).#(RR)"
   }
   dottedName(_) default => none.
 

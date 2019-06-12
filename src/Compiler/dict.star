@@ -20,9 +20,47 @@ star.compiler.dict{
 
   public dict ~> cons[scope].
 
+  public implementation display[scope] => let{
+    dd(scope(Tps,Vrs,Cons,Impls)) =>
+      ss("Types:$(Tps), Vars:$(Vrs), Contracts:$(Cons), Implementations: $(Impls)\n").
+  } in {
+    disp=dd
+  }
+
+  public implementation display[vrEntry] => let{
+    dd(vrEntry(Lc,Mk,Tp)) => disp(Tp).
+  } in {
+    disp(V) => dd(V)
+  }
+
+  public implementation display[tpDef] => let{
+    dd(tpVar(_,Tp)) => ss("tpvar:$(Tp)").
+    dd(tpDefn(_,_,Tmpl,Rl)) => disp(Rl).
+  } in {
+    disp(T) => dd(T)
+  }
+
+  public implementation display[contractDefn] => let{
+    dispCon(conDfn(_,Con,Full,Tp)) =>
+      ss("contract $(Con), full name $(Full), type: $(Tp)")
+  } in {
+    disp(D) => dispCon(D)
+  }
+
+  public implementation display[implDefn] => let{
+    dispImpl(implDfn(_,Con,Full,Tp)) =>
+      ss("implementation for $(Con), full name $(Full), type: $(Tp)")
+  } in {
+    disp(D) => dispImpl(D)
+  }
+
   public declareVar:(string,option[locn],tipe,dict) => dict.
   declareVar(Nm,Lc,Tp,Dict) =>
     declareVr(Nm,Lc,Tp,(L,Id,T)=>vr(L,Id,T),Dict).
+
+  public declareCon:(string,option[locn],tipe,dict) => dict.
+  declareCon(Nm,Lc,Tp,Env) =>
+    declareVr(Nm,Lc,Tp,(L,Id,T)=>enm(L,Id,T),Env).
 
   declareVr:(string,option[locn],tipe,(locn,string,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
@@ -33,6 +71,9 @@ star.compiler.dict{
   isVar(Nm,[]) => none.
   isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
+
+  public vrType:(vrEntry)=>tipe.
+  vrType(vrEntry(_,_,Tp))=>Tp.
   
   public declareType:(string,option[locn],tipe,tipe,dict) => dict.
   declareType(Nm,Lc,Tp,TpRl,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
@@ -100,7 +141,7 @@ star.compiler.dict{
   pushTypes:(list[(string,tipe)],locn,dict) => dict.
   pushTypes([],Lc,Env) => Env.
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
-    pushTypes(Tps,Lc,declareType(Nm,some(Lc),Tp,Tp,Env)).
+    pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeTemplate(Tp),Tp,Env)).
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.

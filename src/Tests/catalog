@@ -1,5 +1,6 @@
 {
   "content": {
+    "star.core0" : "core0.star",
     "test.a": "a.star",
     "test.aa": "aa.star",
     "test.assign": "assign.star",
