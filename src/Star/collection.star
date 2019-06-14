@@ -129,4 +129,12 @@ star.collection{
     inter([]) => [].
     inter([E,..L]) => [I,E,..inter(L)].
   } in [F,..inter(R)].
+
+  public implementation all e ~~ filter[list[e]->>e] => let{
+    filter([],F,L) => L.
+    filter([E,..Es],F,L) where F(E) => filter(Es,F,[L..,E]).
+    filter([_,..Es],F,L) => filter(Es,F,L).
+  } in {
+    (LL ^/ F) => filter(LL,F,[])
+  }
 }
