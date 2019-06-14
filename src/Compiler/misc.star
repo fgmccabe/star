@@ -23,5 +23,8 @@ star.compiler.misc{
 
   public packageVar:(pkg)=>string.
   packageVar(pkg(P,_)) => localName(P,markerString(pkgMark),"").
+
+  public packageName:(pkg)=>string.
+  packageName(pkg(P,_))=>P.
   
 }

@@ -23,17 +23,17 @@ star.compiler.checker{
 
   public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,list[list[canonDef]],list[canon])].
   checkPkg(Repo,P,Base,Rp) => do{
-    if (Lc,Pkg,Els) ^= isBrTerm(P) && PkgNm ^= pkgName(Pkg) then{
+    if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg ^= pkgName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
       logMsg("imports found all $(AllImports)");
       logMsg("Pkg dict $(PkgEnv)");
       
-      Path = packageVar(PkgNm);
+      Path = packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
       (Public,Opens,Ots,Annots,Gps) <- dependencies(Els,Rp);
       
-      logMsg("Package $(PkgNm), groups: $(Gps)");
+      logMsg("Package $(Pkg), groups: $(Gps)");
       logMsg("Public names: $(Public)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
@@ -43,10 +43,13 @@ star.compiler.checker{
       logMsg("exported contracts: $(Contracts)");
       Fields = exportedFields(Defs,Public);
       logMsg("exported fields: $(Fields)");
+      Impls = { implDfn(some(Lc),Nm,FullNm,Tp) |
+	  DD in Defs && implDef(Lc,Nm,FullNm,Tp) in DD && implSp(Nm) in Public};
+      logMsg("exported implementations $(Impls)");
       Types = { (Nm,ExTp) |
 	  DD in Defs && D in DD && typeDef(_,Nm,_,ExTp).=D && tpSp(Nm) in Public};
       logMsg("exported types: $(Types)");
-      valis (pkgSpec(PkgNm,Imports,faceType(Fields,Types),[],Contracts,exportedImpls(Defs,Public)),
+      valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
 	Defs,Others)    
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
@@ -60,11 +63,6 @@ star.compiler.checker{
 	      (varDef(_,Nm,_,_,_,Tp) .=D ||
 		funDef(_,Nm,_,_,Tp,_) .= D) && varSp(Nm) in Public ||
 	      (cnsDef(_,Nm,_,Tp) .=D && cnsSp(Nm) in Public))}.
-
-  exportedImpls:(list[list[canonDef]],list[defnSp]) => list[implDefn].
-  exportedImpls(Defs,Public) =>
-    { implDfn(some(Lc),Nm,FullNm,Tp) |
-	DD in Defs && implDef(Lc,Nm,FullNm,Tp) in DD && implSp(Nm) in Public}.
 
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
