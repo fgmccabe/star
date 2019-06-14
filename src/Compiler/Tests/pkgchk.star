@@ -55,7 +55,7 @@ test{
 
   SR0 = addSigToRep(strRepo([]),
     pkg("star.core",defltVersion),
-    """n6o6'()6'n2o2'pkg's'star.core's'1.0.0'n0o0'()0's"I{'true'C()t'star.core*boolean''false'C()t'star.core*boolean'}{'boolean'Yt'star.core*boolean'I{}{}}"n2o2'()2's'star.core#true's'star.core#false'n0o0'()0'n0o0'()0'""").
+    """n5o5'()5'n2o2'pkg's'star.core's'1.0.0'n0o0'()0's"I{'true'C()t'star.core*boolean''false'C()t'star.core*boolean'}{'boolean'Yt'star.core*boolean'I{}{}}"n0o0'()0'n0o0'()0'""").
 
   A1 = getAst(parseText(lc,S1,R0)).
 
