@@ -107,7 +107,7 @@
   operator(".<<.", [infixOp(600, 600, 599)]).
   operator("^.", [infixOp(450, 450, 449)]).
   operator(">>=", [infixOp(949, 950, 950)]).
-  operator("^/", [infixOp(800, 800, 799)]).
+  operator("^/", [infixOp(960, 960, 959)]).
   operator("<~", [infixOp(1230, 1231, 1230)]).
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
