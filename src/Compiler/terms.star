@@ -39,13 +39,16 @@ star.compiler.terms{
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
-    dispT(term(lbl("[]",_),Args)) => ssSeq([ss("["),ssSeq(dispTs(Args,"")),ss("]")]).
-    dispT(term(Op,Args)) => ssSeq([dispT(Op),ss("("),ssSeq(dispTs(Args,"")),ss(")")]).
+    dispT(term(lbl("[]",_),Args)) => ssSeq([ss("["),ssSeq(dispTs(Args)),ss("]")]).
+    dispT(term(lbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("("),ssSeq(dispTs(Args)),ss(")")]).
+    dispT(term(Op,Args)) => ssSeq([dispT(Op),ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(lbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
     dispT(enum(Sx)) => ssSeq([ss("'"),ss(Sx),ss("'")]).
 
-    dispTs([],_) => [].
-    dispTs([T,..Ts],Sp) => [dispT(T),ss(Sp),..dispTs(Ts,", ")].
+    dispTs(Els) => interleave(Els//dispT,ss(",")).
+
+    isTupleLbl(T) where [0c(,0c),.._] .= T::list[integer] => true.
+    isTupleLbl(_) default => false.
   } in {.
     disp(T) => dispT(T)
   .}
@@ -102,6 +105,10 @@ star.compiler.terms{
   } in {.
     disp(R) => dispRuleSet(R)
   .}
+
+  public implementation coercion[term,string] => {
+    _coerce(T) => _implode(encodeTerm(T)).
+  }
 
   public encodeTerm:(term)=>list[integer].
   encodeTerm(T) => encodeT(T,[]).
@@ -368,6 +375,7 @@ star.compiler.terms{
 
   encodeQuoted([],D,Ts) => [Ts..,D].
   encodeQuoted([D,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,0c\\,D]).
+  encodeQuoted([C,..Cs],D,Ts) => encodeQuoted(Cs,D,[Ts..,C]).
 
   encodeNat:(integer,list[integer]) => list[integer].
   encodeNat(Dx,Ts) where Dx>=0 && Dx=<9 =>
@@ -377,13 +385,4 @@ star.compiler.terms{
   encodeInt:(integer,list[integer])=>list[integer].
   encodeInt(Ix,Ts) where Ix<0 => encodeNat(-Ix,[Ts..,0c-]).
   encodeInt(Ix,Ts) => encodeNat(Ix,Ts).
-
-
-
-
-
-
-
-
-  
 }

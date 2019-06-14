@@ -143,7 +143,7 @@ star.compiler.impawt{
   public implementation coercion[pkgSpec,term] => let{
     mkTerm(pkgSpec(Pkg,Imports,Fields,Contracts,Implementations)) =>
       term(lbl("pkgSpec",5),[Pkg::term,
-	  Imports::term,Contracts::term,Implementations::term]).
+	  Imports::term,strg(encodeSignature(Fields)),Contracts::term,Implementations::term]).
   } in {
     _coerce(S) => mkTerm(S).
   }
