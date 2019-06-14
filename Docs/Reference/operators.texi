@@ -289,7 +289,7 @@
 @tab 950
 @item @code{^/}
 @tab left associative infix
-@tab 800
+@tab 960
 @item @code{<~}
 @tab non-associative infix
 @tab 1231

@@ -124,7 +124,7 @@ star.compiler.operators{
   oper(".<<.") => [infixOp(600,600,599)].
   oper("^.") => [infixOp(450,450,449)].
   oper(">>=") => [infixOp(949,950,950)].
-  oper("^/") => [infixOp(800,800,799)].
+  oper("^/") => [infixOp(960,960,959)].
   oper("<~") => [infixOp(1230,1231,1230)].
   oper("type") => [prefixOp(1251,1250)].
   oper("implementation") => [prefixOp(1260,1259)].
