@@ -1,5 +1,6 @@
 :- module(grapher,[scanPkg/6,makeGraph/5,pkgOk/2,consistentPkg/2]).
 
+:- use_module(location).
 :- use_module(topsort).
 :- use_module(uri).
 :- use_module(resource).
@@ -65,7 +66,7 @@ scanImports([Pkg|Imports],Repo,Cat,CWD,SoFar,Pkgs) :-
 
 scanCat(Cat,Repo,Pkg,CWD,Pi,Px) :-
   ( resolveCatalog(Cat,Pkg,Uri,VPkg) -> scanFile(Uri,VPkg,Repo,Cat,CWD,Pi,Px) ;
-  reportError("cannot locate package %s",[Pkg]),Pi=Px).
+    pkgLoc(Pkg,PLc),reportError("cannot locate package %s",[Pkg],PLc),Pi=Px).
 
 scanFile(Fl,Pkg,Repo,Cat,CWD,SoFar,Pkgs) :-
   parseFile(Pkg,Fl,Term),

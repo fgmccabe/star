@@ -197,7 +197,7 @@ stringSegment(coerce(Text,Lc),Disp) :-
 
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
 checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
-checkToken([],[],Tk,_,Msg,Extra) :- reportError(Msg,[Tk|Extra]).
+checkToken([],[],Tk,_,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
 
 checkTerminator(_,[],[]).
 checkTerminator(_,Toks,Toks) :- Toks = [rgtTok("{}",_)|_].
