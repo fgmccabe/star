@@ -13,8 +13,6 @@ star.compiler.impawt{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public impawtSpec::=impawtPkg(pkg,list[importSpec],tipe,list[string],list[contractDefn],list[implDefn]).
-
   public importAll:all r ~~ repo[r]|:(list[importSpec],r,dict,list[importSpec],
     list[(string,tipe)],reports) => either[reports,(dict,list[importSpec])].
   importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported)).
@@ -23,10 +21,10 @@ star.compiler.impawt{
     if (PkgVar,_) in Sigs then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
-      if impawtPkg(_,PkgImps,Sig,Cns,Cons,Impls) ^= importPkg(Pkg,Lc,Repo) then {
+      if pkgSpec(_,PkgImps,Sig,Cns,Cons,Impls) ^= importPkg(Pkg,Lc,Repo) then {
 	E0 = pushSig(Sig,Lc,(L,I,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
-	E1 = foldRight((conDfn(_,CNm,CFNm,CTp),EE)=>
-	    declareContract(CNm,conDfn(some(Lc),CNm,CFNm,CTp),EE), E0,Cons);
+	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
+	    declareContract(CNm,conDef(Lc,CNm,CFNm,CTp),EE), E0,Cons);
 	E2 = foldRight((implDfn(ILc,ConNm,FullNm,Tp),EE)=>
 	    declareImplementation(ConNm,FullNm,Tp,EE),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
@@ -36,11 +34,11 @@ star.compiler.impawt{
     }
   }
 
-  public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => option[impawtSpec].
+  public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => option[pkgSpec].
   importPkg(Pkg,Lc,Repo) where Sig ^= hasSignature(Repo,Pkg) => pickupPkgSpec(Sig,Lc).
   importPkg(_,_,_) default => none.
 
-  pickupPkgSpec:(string,locn) => option[impawtSpec].
+  pickupPkgSpec:(string,locn) => option[pkgSpec].
   pickupPkgSpec(Txt,Lc) => do{
     (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ClSigs),term(_,ConSigs),
 	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::list[integer]);
@@ -52,11 +50,11 @@ star.compiler.impawt{
     logMsg("imported type sig: $(Fce)");
     Cns <- pickupConstructors(ClSigs,[]);
     logMsg("imported constructors $(Cns)");
-    Cons <- pickupContracts(ConSigs,[]);
+    Cons <- pickupContracts(ConSigs,Lc,[]);
     logMsg("imported contracts $(Cons)");
     Impls <- pickupImplementations(ImplSigs,[]);
     logMsg("imported implementations $(Impls)");
-    valis impawtPkg(Pkg,Imports,Fce,Cns,Cons,Impls)
+    valis pkgSpec(Pkg,Imports,Fce,Cns,Cons,Impls)
   }
 
   pickupPkg:(term) => option[pkg].
@@ -89,11 +87,11 @@ star.compiler.impawt{
   pickupConstructors([strg(Nm),..Ls],Cs) => pickupConstructors(Ls,[Cs..,Nm]).
   pickupConstructors(_,_) default => none.
 
-  pickupContracts:(list[term],list[contractDefn]) => option[list[contractDefn]].
-  pickupContracts([],Cons) => some(Cons).
-  pickupContracts([term(_,[strg(Nm),strg(CnNm),strg(Sig)]),..Ts],Cons) => do{
+  pickupContracts:(list[term],locn,list[canonDef]) => option[list[canonDef]].
+  pickupContracts([],_,Cons) => some(Cons).
+  pickupContracts([term(_,[strg(Nm),strg(CnNm),strg(Sig)]),..Ts],Lc,Cons) => do{
     Tp <- decodeSignature(Sig);
-    pickupContracts(Ts,[Cons..,conDfn(none,Nm,CnNm,Tp)])
+    pickupContracts(Ts,Lc,[Cons..,conDef(Lc,Nm,CnNm,Tp)])
   }
 
   pickupImplementations:(list[term],list[implDefn]) => option[list[implDefn]].
@@ -103,5 +101,52 @@ star.compiler.impawt{
     pickupImplementations(Is,[Imps..,implDfn(none,ConNm,FullNm,Spec)])
   }
   pickupImplementations(_,_) default => none.
+
+  implementation coercion[pkg,term] => {
+    _coerce(pkg(P,defltVersion)) => term(lbl("pkg",2),[strg(P),enum("*")]).
+  }
+
+  implementation coercion[visibility,term] => {.
+    _coerce(priVate) => enum("private").
+    _coerce(pUblic) => enum("public").
+    _coerce(transItive) => enum("transitive").
+  .}
+
+  implementation coercion[string,term] => {
+    _coerce(S) => strg(S)
+  }
+
+  implementation coercion[tipe,term] => {.
+    _coerce(Tp) => strg(encodeSignature(Tp)).
+  .}
   
+  implementation coercion[importSpec,term] => {.
+    _coerce(pkgImp(_,Vz,Pk)) => term(lbl("import",2),[Vz::term,Pk::term])
+  .}
+
+  implementation coercion[canonDef,term] => {.
+    _coerce(cnsDef(_,Nm,FullNm,Tp)) =>
+      term(lbl("constructor",3),[strg(Nm),strg(FullNm),Tp::term]).
+    _coerce(conDef(_,Nm,FullNm,Tp)) =>
+      term(lbl("contract",3),[strg(Nm),strg(FullNm),Tp::term]).
+  .}
+  
+  implementation all e ~~ coercion[e,term] |: coercion[list[e],term] => let{
+    mkList(L) => term(lbl("()$(size(L))",size(L)),L//(e)=>e::term)
+  } in {
+    _coerce(L)=>mkList(L)
+  }
+
+  implementation coercion[implDefn,term] => {.
+    _coerce(implDfn(_,ConNm,FullNm,Spec)) =>
+      term(lbl("impl",3),[strg(ConNm),strg(FullNm),Spec::term])
+  .}
+  
+  public implementation coercion[pkgSpec,term] => let{
+    mkTerm(pkgSpec(Pkg,Imports,Fields,Classes,Contracts,Implementations)) =>
+      term(lbl("pkgSpec",6),[Pkg::term,
+	  Imports::term,Classes::term,Contracts::term,Implementations::term]).
+  } in {
+    _coerce(S) => mkTerm(S).
+  }
 }

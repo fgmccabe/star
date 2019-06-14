@@ -10,12 +10,8 @@ star.compiler.dict{
 
   public vrEntry ::= vrEntry(option[locn],(locn,string,tipe)=>canon,tipe).
 
-  public contractDefn ::= conDfn(option[locn],string,string,tipe).
-
-  public implDefn ::= implDfn(option[locn],string,string,tipe).
-
   public scope ::= scope(map[string,tpDef],
-    map[string,vrEntry],map[string,contractDefn],
+    map[string,vrEntry],map[string,canonDef],
     map[string,map[string,constraint]]).
 
   public dict ~> cons[scope].
@@ -38,20 +34,6 @@ star.compiler.dict{
     dd(tpDefn(_,_,Tmpl,Rl)) => disp(Rl).
   } in {
     disp(T) => dd(T)
-  }
-
-  public implementation display[contractDefn] => let{
-    dispCon(conDfn(_,Con,Full,Tp)) =>
-      ss("contract $(Con), full name $(Full), type: $(Tp)")
-  } in {
-    disp(D) => dispCon(D)
-  }
-
-  public implementation display[implDefn] => let{
-    dispImpl(implDfn(_,Con,Full,Tp)) =>
-      ss("implementation for $(Con), full name $(Full), type: $(Tp)")
-  } in {
-    disp(D) => dispImpl(D)
   }
 
   public declareVar:(string,option[locn],tipe,dict) => dict.
@@ -84,15 +66,15 @@ star.compiler.dict{
   findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
-  public declareContract:(string,contractDefn,dict) => dict.
+  public declareContract:(string,canonDef,dict) => dict.
   declareContract(Nm,Con,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
     declareMethods(Con,[scope(Tps,Vrs,Cns[Nm->Con],Imps),..Rest]).
 
-  declareMethods:(contractDefn,dict) => dict.
-  declareMethods(conDfn(Lc,Nm,FullNm,Spec),Dict) where
+  declareMethods:(canonDef,dict) => dict.
+  declareMethods(conDef(Lc,Nm,FullNm,Spec),Dict) where
       (MQ,MI) .= deQuant(Spec) &&
       (MC,contractExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
-      formMethods(Methods,Lc,MQ,MC,CT,Dict).
+    formMethods(Methods,some(Lc),MQ,MC,CT,Dict).
 
   formMethods:(list[(string,tipe)],option[locn],list[tipe],list[constraint],constraint,dict) => dict.
   formMethods([],_,_,_,_,Dict) => Dict.
@@ -106,7 +88,7 @@ star.compiler.dict{
   declareMethod(Nm,Lc,Tp,Dict) =>
     declareVr(Nm,Lc,Tp,(L,Id,T)=>mtd(L,Id,T),Dict).
       
-  public findContract:(dict,string) => option[contractDefn].
+  public findContract:(dict,string) => option[canonDef].
   findContract([],Nm) => none.
   findContract([scope(_,_,Cns,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
@@ -145,15 +127,16 @@ star.compiler.dict{
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
-  declareTypeVars([(Nm,Tp),..Q],Env) => declareTypeVars(Q,declareType(Nm,none,Tp,Tp,Env)).
+  declareTypeVars([(Nm,Tp),..Q],Env) =>
+    declareTypeVars(Q,declareType(Nm,none,Tp,Tp,Env)).
 
   public declareConstraints:(list[constraint],dict) => dict.
   declareConstraints([],E) => E.
   declareConstraints([typeConstraint(Con),..Cx],Env) =>
-    (conTract(Nm,Args,_) .= Con ?
-	declareConstraints(Cx,
-	  declareImplementation(Nm,implementationName(Con),Con,Env)) ||
-	declareConstraints(Cx,Env)).
+    declareConstraints(Cx,
+      declareImplementation(typeName(Con),implementationName(Con),Con,Env)).
+  declareConstraints([_,..Cx],Env) =>
+    declareConstraints(Cx,Env).
 
 -- Standard types are predefined by the language
   public stdDict:dict.

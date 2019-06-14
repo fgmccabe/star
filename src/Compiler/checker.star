@@ -21,7 +21,7 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(list[list[canonDef]],list[canon])].
+  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,list[list[canonDef]],list[canon])].
   checkPkg(Repo,P,Base,Rp) => do{
     if (Lc,Pkg,Els) ^= isBrTerm(P) && PkgNm ^= pkgName(Pkg) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
@@ -36,10 +36,20 @@ star.compiler.checker{
       logMsg("Package $(PkgNm), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
-      valis (Defs,Others)    
+      logMsg("Final Pkg dict $(ThEnv)");
+      ExportTp = faceType([],[]);
+      valis (pkgSpec(PkgNm,Imports,ExportTp,[],pickContracts(Defs),pickImpls(Defs)),
+	Defs,Others)    
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
+
+  pickContracts:(list[list[canonDef]])=>list[canonDef].
+  pickContracts(Defs) => { D | DD in Defs && D in DD && conDef(_,_,_,_).=D}.
+
+  pickImpls:(list[list[canonDef]]) => list[implDefn].
+  pickImpls(Defs) => { implDfn(some(Lc),Nm,FullNm,Tp) |
+      DD in Defs && implDef(Lc,Nm,FullNm,Tp) in DD}.
 
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
@@ -143,8 +153,10 @@ star.compiler.checker{
     parseTypeDef(TpNm,St,Env,Path,Rp).
   checkDefn(defnSpec(cnsSp(CnNm),Lc,[St]),Env,Path,Rp) =>
     parseConstructor(CnNm,St,Env,Path,Rp).
---  checkDefn(defnSpec(conSp(ConNm),Lc,[St]),Env,Path,Rp) =>
---    parseContract(ConNm,St,Env,Path,Rp).
+  checkDefn(defnSpec(conSp(ConNm),Lc,[St]),Env,Path,Rp) => do{
+    Contract <- parseContract(St,Env,Path,Rp);
+    valis (Contract,declareContract(ConNm,Contract,Env))
+  }
 
   processEqns:(list[ast],tipe,list[canon],list[canon],dict,string,reports) =>
     either[reports,(list[canon],list[canon])].
@@ -427,8 +439,8 @@ star.compiler.checker{
   checkDo(Stmts,Tp,Env,Path,Rp) => do{
     ElTp = newTypeVar("_e");
     Lc = locOf(Stmts);
-    if conDfn(_,_,_,Con) ^= findContract(Env,"execution") then{
-      (_,contractExists(typeConstraint(conTract(Op,[StTp],[ErTp])),_)) = freshen(Con,[],Env);
+    if conDef(_,_,_,Con) ^= findContract(Env,"execution") then{
+      (_,contractExists(typeConstraint(funDeps(tpExp(Op,StTp),[ErTp])),_)) = freshen(Con,[],Env);
       if sameType(tpExp(StTp,ElTp),Tp,Env) then {
 	(Action,_) <- checkAction(Stmts,Env,StTp,ElTp,ErTp,Path,Rp);
 	valis act(Lc,Action)
@@ -571,14 +583,13 @@ star.compiler.checker{
 
   applyConstraint(fieldConstraint(T,F),Cons) where
       _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
-  applyConstraint(Con,Cons) where typeConstraint(conTract(_,A,_)).=Con => valof action{
-    _ = attachToArgs(A,Con);
+  applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof action{
+    _ = attachToArgs(deRef(A),Con);
     valis [Cons..,Con]
   }
 
-  attachToArgs([],_) => ().
-  attachToArgs([Tp,..Ts],Con) where _ ^= addConstraint(Tp,Con) => attachToArgs(Ts,Con).
-  attachToArga([_,..Ts],Con) => attachToArgs(Ts,Con).
+  attachToArgs(tpExp(Op,A),Con) where _ ^= addConstraint(A,Con) => attachToArgs(Op,Con).
+  attachToArga(_,Con) => ()
   
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
   checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).
@@ -609,26 +620,26 @@ star.compiler.checker{
   }
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
-    (ExOp,StTp,BndTp) <- pickupContract(Lc,Env,"sequence",Rp);
+    (StTp,BndTp) <- pickupContract(Lc,Env,"sequence",Rp);
     checkType(B,Tp,StTp,Env,Rp);
     Bnd <- typeOfExp(B,BndTp,E0,Path,Rp);
     valis abstraction(Lc,Bnd,Cond,Tp)
   }
 
-  pickupContract:(locn,dict,string,reports) => either[reports,(string,tipe,tipe)].
+  pickupContract:(locn,dict,string,reports) => either[reports,(tipe,tipe)].
   pickupContract(Lc,Env,Nm,Rp) => do{
-    if conDfn(_,_,_,Con) ^= findContract(Env,Nm) then{
-      (_,contractExists(typeConstraint(conTract(Op,[StTp],[ErTp])),_)) =
+    if conDef(_,_,_,Con) ^= findContract(Env,Nm) then{
+      (_,contractExists(typeConstraint(funDeps(tpExp(Op,StTp),[ErTp])),_)) =
 	freshen(Con,[],Env);
-      valis (Op,StTp,ErTp)
+      valis (StTp,ErTp)
     } else
       throw reportError(Rp,"$(Nm) contract not defined",Lc)
   }
 
-  pickupIxContract:(locn,dict,string,reports) => either[reports,(string,tipe,tipe,tipe)].
+  pickupIxContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe,tipe)].
   pickupIxContract(Lc,Env,Nm,Rp) => do{
-    if conDfn(_,_,_,Con) ^= findContract(Env,Nm) then{
-      (_,contractExists(typeConstraint(conTract(Op,[IxTp],[KyTp,VlTp])),_)) =
+    if conDef(_,_,_,Con) ^= findContract(Env,Nm) then{
+      (_,contractExists(typeConstraint(funDeps(tpExp(Op,IxTp),[KyTp,VlTp])),_)) =
 	freshen(Con,[],Env);
       valis (Op,IxTp,KyTp,VlTp)
     } else

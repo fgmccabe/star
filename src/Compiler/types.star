@@ -23,7 +23,7 @@ star.compiler.types{
       typeExists(tipe,tipe) |
       contractExists(constraint,tipe) |
       constrainedType(tipe,constraint) |
-      conTract(string,list[tipe],list[tipe]).
+      funDeps(tipe,list[tipe]).
 
   public constraint ::=
     typeConstraint(tipe) |
@@ -138,8 +138,8 @@ star.compiler.types{
     identType(V1,V2,Q) && identType(T1,T2,Q).
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
-  identType(conTract(Nm,T1,D1),conTract(Nm,T2,D2),Q) =>
-    identTypes(T1,T2,Q) && identTypes(D1,D2,Q).
+  identType(funDeps(T1,D1),funDeps(T2,D2),Q) =>
+    identType(T1,T2,Q) && identTypes(D1,D2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
     identType(T1,T2,Q).
   identType(_,_,_) default => false.
@@ -203,11 +203,10 @@ star.compiler.types{
     ssSeq([showType(A,Sh,Dp),ss("<~"),showType(T,Sh,Dp)]).
   shTipe(constrainedType(T,C),Sh,Dp) =>
     ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
-  shType(conTract(Nm,Tps,[]),Sh,Dp) =>
-    ssSeq([ss(Nm),ss("["),ssSeq(showEls(Tps,Sh,Dp-1,"")),ss("]")]).
-  shType(conTract(Nm,Tps,Deps),Sh,Dp) =>
-    ssSeq([ss(Nm),ss("["),ssSeq(showEls(Tps,Sh,Dp-1,"")),ss("->>"),
-	ssSeq(showEls(Deps,Sh,Dp-1,"")),ss("]")]).
+  shTipe(funDeps(Tp,Deps),Sh,Dp) =>
+    shTpExp(Tp,ssSeq(showEls(Deps,Sh,Dp-1,"->>")),Sh,Dp-1).
+  shTipe(contractExists(C,I),Sh,Dp) =>
+    ssSeq([ss("contract "),showConstraint(C,Dp),ss(" ::= "),shTipe(I,false,Dp)]).
   
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
@@ -258,7 +257,7 @@ star.compiler.types{
     hsh(allType(V,T)) => (hash("all")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(existType(V,T)) => (hash("exist")*37+hsh(deRef(V)))*37+hsh(deRef(T)).
     hsh(constrainedType(T,C)) => (hash("|:")*37+hsh(deRef(T)))*37+hshCon(C).
-    hsh(conTract(Nm,A,D)) => hshEls(hshEls(hash("$")*37,A),D).
+    hsh(funDeps(T,D)) => hshEls(hsh(deRef(T)),D).
 
     hshCon(typeConstraint(Tp)) => hsh(deRef(Tp)).
     hshCon(fieldConstraint(V,T)) =>
@@ -290,7 +289,7 @@ star.compiler.types{
     tpName(constrainedType(T,_)) => tpName(deRef(T)).
     tpName(typeLambda(_,T)) => tpName(deRef(T)).
     tpName(tupleType(A)) => "!()$(size(A))".
-    tpName(conTract(Nm,_,_)) => Nm.
+    tpName(funDeps(T,_)) => tpName(T).
   } in tpName(Tp).
 
   public implementationName:(tipe) => string.
@@ -309,11 +308,8 @@ star.compiler.types{
     surfaceName(constrainedType(T,_),R) => surfaceName(deRef(T),R).
     surfaceName(typeLambda(_,T),R) => surfaceName(deRef(T),R).
     surfaceName(tupleType(A),R) => ["!()$(size(A))"].
-    surfaceName(conTract(Nm,A,_),R) => ["$",Nm,..surfaceNames(A,"$",R)].
+    surfaceName(funDeps(T,_),R) => surfaceName(T,R).
 
-    surfaceNames([],_,R) => R.
-    surfaceNames([T,..Ts],Sep,R) => [Sep,..surfaceName(T,surfaceNames(Ts,Sep,R))].
-    
     surfaceNm(tipe(Nm),R) => ["!",Nm,..R].
     surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
     surfaceNm(kVar(Nm),R) => ["!",Nm,..R].
@@ -327,7 +323,7 @@ star.compiler.types{
     surfaceNm(constrainedType(T,_),R) => surfaceNm(deRef(T),R).
     surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
     surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
-    surfaceNm(conTract(Nm,A,_),R) => ["$",Nm,..R].
+    surfaceNm(funDeps(T,_),R) => surfaceNm(T,R).
   } in  _str_multicat(surfaceName(deRef(Tp),[])).
 
   public implementation hasType[constraint] => {.
@@ -349,20 +345,24 @@ star.compiler.types{
   public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
 
   public deQuant:(tipe) => (list[tipe],tipe).
-  deQuant(Tp) => let{
+  deQuant(T) => let{
     deQ(allType(V,I),Qs) => deQ(I,[Qs..,V]).
     deQ(Tp,Qs) => (Qs,Tp).
-  } in deQ(Tp,[]).
+  } in deQ(T,[]).
 
   public reQuant:(list[tipe],tipe) => tipe.
   reQuant([],Tp) => Tp.
   reQuant([Q,..Qs],Tp) => allType(Q,reQuant(Qs,Tp)).
 
+  public reXQuant:(list[tipe],tipe) => tipe.
+  reXQuant([],Tp) => Tp.
+  reXQuant([Q,..Qs],Tp) => existType(Q,reXQuant(Qs,Tp)).
+
   public deConstrain:(tipe) => (list[constraint],tipe).
-  deConstrain(Tp) => let{
+  deConstrain(T) => let{
     deC(constrainedType(I,V),Qs) => deC(I,[Qs..,V]).
     deC(Tp,Qs) => (Qs,Tp).
-  } in deC(Tp,[]).
+  } in deC(T,[]).
 
   public reConstrain:(list[constraint],tipe) => tipe.
   reConstrain([],Tp) => Tp.
