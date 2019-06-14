@@ -1,4 +1,4 @@
-:-module(errors,[reportError/3,reportError/2,reportMsg/2,reportMsg/3,genMsg/3,
+:-module(errors,[reportError/3,reportMsg/2,reportMsg/3,genMsg/3,
           errorCount/1,noErrors/0,startCount/0]).
 :- use_module(display).
 :- use_module(abstract).
@@ -18,11 +18,6 @@ reportError(Msg,A,Lc) :- incErrorCount(),
   writef("<."),
   writef(Msg,AA),
   writef(".>"),nl(),!.
-reportError(Msg,A) :- incErrorCount(),
-  errorCount(E),
-  writef("\nError %w:\n",[E]),
-  genDisplay(A,AA),
-  writef(Msg,AA),nl(),!.
 
 startCount :-
   nb_setval(errors,0).

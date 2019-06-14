@@ -439,7 +439,7 @@ checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
   declareImplementation(ConNm,ImplName,ConSpec,Env,Ex),!.
 checkImplementation(Stmt,_,Defs,Defs,Env,Env,_,_) :-
   locOfAst(Stmt,Lc),
-  reportError("could not check implementation statement",[Lc]).
+  reportError("could not check implementation statement %s",[Stmt],Lc).
 
 pickBoundType((_,Tv),Tp,allType(Tv,Tp)).
 

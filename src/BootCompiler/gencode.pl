@@ -120,17 +120,17 @@ clearLclVar(Nm,scope(Vrs,Lbs,InUse),scope(NVrs,Lbs,NInUse)) :-
 defineGlbVar(Nm,scope(Vrs,Lbs,InUse),
       scope([(Nm,g(Nm),none,none)|Vrs],Lbs,InUse)).
 
-populateVarNames([],_,C,C).
-populateVarNames([(Nw,idnt(Ex))|Vs],D,C,Cx) :-
-  populateVarNm(Nw,Ex,D,C,C0),
-  populateVarNames(Vs,D,C0,Cx).
+populateVarNames([],_,_,C,C).
+populateVarNames([(Nw,idnt(Ex))|Vs],Lc,D,C,Cx) :-
+  populateVarNm(Nw,Lc,Ex,D,C,C0),
+  populateVarNames(Vs,Lc,D,C0,Cx).
 
-populateVarNm(Nw,Ex,scope(Vrs,_,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
+populateVarNm(Nw,_,Ex,scope(Vrs,_,_),[iLocal(Nw,Frm,End,Off)|Cx],Cx) :-
   is_member((Ex,l(Off),Frm,End),Vrs),!.
-populateVarNm(_,Ex,scope(Vrs,_,_),Cx,Cx) :-
+populateVarNm(_,_,Ex,scope(Vrs,_,_),Cx,Cx) :-
   is_member((Ex,a(_),_,_),Vrs),!.
-populateVarNm(_,Ex,_,C,C) :-
-  reportError("variable %s not known",[Ex]).
+populateVarNm(_,Lc,Ex,_,C,C) :-
+  reportError("variable %s not known",[Ex],Lc).
 
 nextFreeOff(InUse,Nxt,Nxt) :-
   Nxt is InUse+1.
@@ -174,7 +174,7 @@ compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compCase(T,Lc,Cases,Deflt,Cont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(varNames(Lc,Vrs,T),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  populateVarNames(Vrs,D,C0,C1),
+  populateVarNames(Vrs,Lc,D,C0,C1),
   compTerm(T,Lc,Cont,Opts,D,Dx,End,C1,Cx,Stk,Stkx).
 compTerm(whr(Lc,T,Cnd),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
