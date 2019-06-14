@@ -123,7 +123,7 @@ retCode gcCollect(heapPo H, long amount) {
   while (t < H->curr) {
     assert(t >= H->start && t < H->curr);
     t = scanTerm(G, t);
-    assert(H->curr < H->limit);
+    assert(H->curr <= H->limit);
   }
 
 #ifdef TRACEMEM
