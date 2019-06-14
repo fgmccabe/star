@@ -13,7 +13,7 @@ star.compiler.meta{
     disp(transItive) => ss("transitive").
   }
 
-  public importSpec ::= pkgImp(locn,visibility,pkg) | openStmt(locn,ast).
+  public importSpec ::= pkgImp(locn,visibility,pkg).
 
   public defnSpec ::= defnSpec(defnSp,locn,list[ast]).
 
@@ -57,8 +57,6 @@ star.compiler.meta{
   public implementation display[importSpec] => let{
     dispSpc(pkgImp(Lc,Vi,Pk)) =>
       ssSeq([disp(Vi),ss(" import "),disp(Pk)]).
-    dispSpc(openStmt(Lc,Pk)) =>
-      ssSeq([ss("open "),disp(Pk)]).
   } in {.
     disp(S) => dispSpc(S)
   .}

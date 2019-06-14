@@ -53,7 +53,7 @@ star.compiler.freshen{
   frshn(tpExp(O,A),Ex,Env) => tpExp(rewrite(O,Ex,Env),rewrite(A,Ex,Env)).
   frshn(tupleType(Els),Ex,Env) => tupleType(frshnList(Els,Ex,Env)).
   frshn(faceType(Els,Tps),Ex,Env) => faceType(Els//(((Nm,E))=>(Nm,rewrite(E,Ex,Env))),Tps//(((Nm,E))=>(Nm,rewrite(E,Ex,Env)))).
-  frshn(conTract(Nm,A,D),Ex,Env) => conTract(Nm,frshnList(A,Ex,Env),frshnList(D,Ex,Env)).
+  frshn(funDeps(T,D),Ex,Env) => funDeps(frshn(T,Ex,Env),frshnList(D,Ex,Env)).
   frshn(allType(K,T),Ex,Env) => allType(K,rewrite(T,_addMem(K,Ex),Env)).
   frshn(existType(K,T),Ex,Env) => existType(K,rewrite(T,_addMem(K,Ex),Env)).
   frshn(typeLambda(H,T),Ex,Env) => typeLambda(rewrite(H,Ex,Env),rewrite(T,Ex,Env)).

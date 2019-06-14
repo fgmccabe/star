@@ -27,16 +27,23 @@ test.comp.pkgchk{
 
   S0 = """
 star.core{
-  -- special core to use in emergency
-  public boolean ::= true | false.
-  }""".
+    -- special core to use in emergency	-- 
+    public boolean ::= true | false.
+
+    public contract equality[t] ::= {
+      (==):(t,t)=>boolean.
+    }
+  }
+""".
 
   A0 = getAst(parseText(lc,S0,R0)).
 
   show disp(A0).
 
   P0 = checkPkg(nullRepo,A0,stdDict,R0).
-  
+
+  show disp(P0).
+
   S1 = """
 test{
   import star.core.

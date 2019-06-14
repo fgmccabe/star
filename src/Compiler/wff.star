@@ -80,8 +80,9 @@ star.compiler.wff{
       (Lc,C,I) ^= isBinary(A,"|:") &&
       (_,Q,_,L,R) ^= isTypeExistsStmt(I) => some((Lc,Q,deComma(C),L,R)).
   isTypeExistsStmt(A) where
-      (Lc,H,I) ^= isBinary(A,"<~") =>
-    some((Lc,getQuantifiers(H),[],H,I)).
+      (Lc,H,I) ^= isBinary(A,"<~") &&
+      (Q,T) .= getQuantifiers(H) =>
+    some((Lc,Q,[],T,I)).
   isTypeExistsStmt(A) default => none.
 
   public isTypeFunStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
@@ -92,8 +93,9 @@ star.compiler.wff{
       (Lc,C,I) ^= isBinary(A,"|:") &&
       (_,Q,_,L,R) ^= isTypeFunStmt(I) => some((Lc,Q,deComma(C),L,R)).
   isTypeFunStmt(A) where
-      (Lc,H,I) ^= isBinary(A,"~>") =>
-    some((Lc,getQuantifiers(H),[],H,I)).
+      (Lc,H,I) ^= isBinary(A,"~>") &&
+      (Q,T) .= getQuantifiers(H) =>
+    some((Lc,Q,[],T,I)).
   isTypeFunStmt(A) default => none.
 
   public isAlgebraicTypeStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
@@ -104,8 +106,9 @@ star.compiler.wff{
       (Lc,C,I) ^= isBinary(A,"|:") &&
       (_,Q,_,L,R) ^= isAlgebraicTypeStmt(I) => some((Lc,Q,deComma(C),L,R)).
   isAlgebraicTypeStmt(A) where
-      (Lc,H,I) ^= isBinary(A,"::=") =>
-    some((Lc,getQuantifiers(H),[],H,I)).
+      (Lc,H,I) ^= isBinary(A,"::=") &&
+      (Q,T) .= getQuantifiers(H) =>
+    some((Lc,Q,[],T,I)).
   isAlgebraicTypeStmt(A) default => none.
 
   exportFn ~> (defnSp,list[defnSp])=>list[defnSp].
@@ -231,10 +234,10 @@ star.compiler.wff{
     
   
   getQuantifiers(T) where
-      (_,Q,_) ^= isQuantified(T) => Q.
+      (_,Q,I) ^= isQuantified(T) => (Q,I).
   getQuantifiers(T) where
-      (_,_,A) ^= isSquareTerm(T) => A.
-  getQuantifiers(_) default => [].
+      (_,_,A) ^= isSquareTerm(T) => (A,T).
+  getQuantifiers(T) default => ([],T).
 
   public isFieldAcc:(ast) => option[(locn,ast,ast)].
   isFieldAcc(A) => isBinary(A,".").
@@ -280,9 +283,8 @@ star.compiler.wff{
   }
   dottedName(_) default => none.
 
-  public isOpen:(ast)=> option[importSpec].
-  isOpen(A) where (Lc,Nm) ^= isUnary(A,"open") => some(openStmt(Lc,Nm)).
-  isOpen(_) default => none.
+  public isOpen:(ast)=> option[(locn,ast)].
+  isOpen(A) => isUnary(A,"open").
 
   public isIntegrity:(ast)=> option[(locn,ast)].
   isIntegrity(A) => isUnary(A,"assert").
@@ -325,19 +327,19 @@ star.compiler.wff{
   isContractStmt(A) where
       (Lc,I) ^= isUnary(A,"contract") &&
       (_,Lhs,B) ^= isBinary(I,"::=") &&
-      (_,Els) ^= isBrTuple(B) => some((Lc,B,Els)).
+      (_,Els) ^= isBrTuple(B) => some((Lc,Lhs,Els)).
   isContractStmt(A) default => none.
 
-  isContractSpec:(ast) => option[(locn,string,list[ast],list[ast])].
+  public isContractSpec:(ast) => option[(locn,string,list[ast],list[ast],ast)].
   isContractSpec(A) where
       (Lc,Quants,I) ^= isQuantified(A) &&
-      (_,Nm,_,II) ^= isContractSpec(I) => some((Lc,Nm,Quants,II)).
+      (_,Nm,_,II,T) ^= isContractSpec(I) => some((Lc,Nm,Quants,II,T)).
   isContractSpec(A) where
       (Lc,Lhs,Rhs) ^= isBinary(A,"|:") &&
-      (_,Nm,_,II) ^= isContractSpec(Rhs) => some((Lc,Nm,[],II++deComma(Lhs))).
+      (_,Nm,Q,II,T) ^= isContractSpec(Rhs) => some((Lc,Nm,Q,II++deComma(Lhs),T)).
   isContractSpec(A) where
-      (Lc,Nm,_) ^= isSquareTerm(A) &&
-      (_,Id) ^= isName(Nm) => some((Lc,Id,[],[A])).
+      (Lc,Nm,Els) ^= isSquareTerm(A) &&
+      (_,Id) ^= isName(Nm) => some((Lc,Id,Els,[],A)).
   isContractSpec(_) default => none.
 
   public isImplementationStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
@@ -417,7 +419,7 @@ star.compiler.wff{
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
       Spec ^= isImport(A) => either((Stmts,Defs,Pb,As,[Spec,..Imp],Oth)).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[Spec,..Imp],Oth)).
+      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
       _ ^= isIntegrity(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
@@ -449,7 +451,7 @@ star.compiler.wff{
     collectDefinition(Ai,Stmts,Defs,Pb,As,Imp,Oth,noExport,Rp).
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
       (Lc,S,Els) ^= isContractStmt(A) &&
-      (_,Nm,Qs,Cs) ^= isContractSpec(S)  =>
+      (_,Nm,Qs,Cs,T) ^= isContractSpec(S)  =>
     either((Stmts,[defnSpec(conSp(Nm),Lc,[A]),..Defs],
 	Ex(conSp(Nm),Pb),
 	generateAnnotations(Qs,Els,Cs,As),

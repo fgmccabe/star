@@ -1,8 +1,14 @@
 star.compiler.canon{
   import star.
+  import star.pkg.
 
+  import star.compiler.meta.
   import star.compiler.location.
   import star.compiler.types.
+
+  public pkgSpec::=pkgSpec(pkg,list[importSpec],tipe,list[string],list[canonDef],list[implDefn]).
+
+  public implDefn ::= implDfn(option[locn],string,string,tipe).
 
   public canon ::= vr(locn,string,tipe) |
     mtd(locn,string,tipe) |
@@ -44,10 +50,11 @@ star.compiler.canon{
     simpleDo(locn,canon,tipe,tipe).
     
   public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
-      typeDef(locn,string,tipe,tipe) |
-      conDef(locn,string,string,tipe) |
-      cnsDef(locn,string,string,tipe) |
-      funDef(locn,string,string,list[canon],tipe,list[constraint]).
+    typeDef(locn,string,tipe,tipe) |
+    conDef(locn,string,string,tipe) |
+    cnsDef(locn,string,string,tipe) |
+    implDef(locn,string,string,tipe) |
+    funDef(locn,string,string,list[canon],tipe,list[constraint]).
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
@@ -61,13 +68,23 @@ star.compiler.canon{
     typeOf(disj(_,_,_)) => tipe("star.core*boolean").
     typeOf(search(_,_,_,_)) => tipe("star.core*boolean").
     typeOf(cond(_,_,L,_)) => typeOf(L).
-
-
   .}
 
   public implementation hasLoc[canon] => {.
     locOf(vr(Lc,_,_)) => Lc.
   .}
+
+  public implementation display[pkgSpec] => {.
+    disp(pkgSpec(Pkg,Imports,Face,Enums,Cons,Impls)) =>
+      ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls)").
+  .}
+
+  public implementation display[implDefn] => let{
+    dispImpl(implDfn(_,Con,Full,Tp)) =>
+      ss("implementation for $(Con), full name $(Full), type: $(Tp)")
+  } in {
+    disp(D) => dispImpl(D)
+  }
 
   public implementation display[canon] => let{
     showCanon(vr(_,Nm,_)) => ss(Nm).
