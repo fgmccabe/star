@@ -35,6 +35,12 @@ star.core{
     public contract equality[t] ::= {
       (==):(t,t)=>boolean.
     }
+
+  public implementation all t ~~ equality[boolean] => {
+    true == true => true.
+    false == false => true.
+    _ == _ default => false.
+  }
   }
   """.
 

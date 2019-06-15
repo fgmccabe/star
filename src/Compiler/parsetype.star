@@ -160,7 +160,7 @@ star.compiler.typeparse{
   doTypeFun(Tp,Args,Lc,Env,Rp) =>
     other(reportError(Rp,"type $(Tp) to applicable to $(Args)",Lc)).
     
-  parseBoundTpVars:(list[ast],reports)=>either[reports,tipes].
+  public parseBoundTpVars:(list[ast],reports)=>either[reports,tipes].
   parseBoundTpVars([],_) => either([]).
   parseBoundTpVars([V,..R],Rp) =>
     parseBoundTpVars(R,Rp) >>= (L) =>
@@ -174,7 +174,7 @@ star.compiler.typeparse{
   parseBoundTpVar(O,Rp) default =>
     other(reportError(Rp,"invalid bound type variable $(O)",locOf(O))).
 
-  parseConstraints:(list[ast],tipes,dict,reports)=>either[reports,list[constraint]].
+  public parseConstraints:(list[ast],tipes,dict,reports)=>either[reports,list[constraint]].
   parseConstraints([],_,_,_) => either([]).
   parseConstraints([A,..As],Q,Env,Rp) => do{
     Cn <- parseConstraint(A,Q,Env,Rp);

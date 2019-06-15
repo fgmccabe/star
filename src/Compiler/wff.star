@@ -344,12 +344,12 @@ star.compiler.wff{
 
   public isImplementationStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
   isImplementationStmt(A) where
-      (Lc,I) ^= isUnary(A,"implementation") => isImplSpec(locOf(A),[],[],I).
+      (Lc,I) ^= isUnary(A,"implementation") => isImplSpec(Lc,[],[],I).
   isImplementationStmt(_) default => none.
 
   isImplSpec(Lc,_,Cs,T) where
       (_,Qs,In) ^= isQuantified(T) =>
-    isImplSpec(Lc,Qs,Cs,T).
+    isImplSpec(Lc,Qs,Cs,In).
   isImplSpec(Lc,Qs,_,T) where
       (_,Lhs,Rhs) ^= isBinary(T,"|:") =>
     isImplSpec(Lc,Qs,deComma(Lhs),Rhs).

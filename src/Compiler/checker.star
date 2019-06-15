@@ -23,15 +23,15 @@ star.compiler.checker{
 
   public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,list[list[canonDef]],list[canon])].
   checkPkg(Repo,P,Base,Rp) => do{
+    logMsg("processing package $(P)");
     if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg ^= pkgName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
-      logMsg("imports found all $(AllImports)");
-      logMsg("Pkg dict $(PkgEnv)");
+      logMsg("imports found all $(AllImports), statements=$(Stmts)");
       
       Path = packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
-      (Public,Opens,Ots,Annots,Gps) <- dependencies(Els,Rp);
+      (Public,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
       
       logMsg("Package $(Pkg), groups: $(Gps)");
       logMsg("Public names: $(Public)");
@@ -47,7 +47,7 @@ star.compiler.checker{
 	  DD in Defs && implDef(Lc,Nm,FullNm,Tp) in DD && implSp(Nm) in Public};
       logMsg("exported implementations $(Impls)");
       Types = { (Nm,ExTp) |
-	  DD in Defs && D in DD && typeDef(_,Nm,_,ExTp).=D && tpSp(Nm) in Public};
+	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public};
       logMsg("exported types: $(Types)");
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
 	Defs,Others)    
@@ -169,6 +169,18 @@ star.compiler.checker{
   checkDefn(defnSpec(conSp(ConNm),Lc,[St]),Env,Path,Rp) => do{
     Contract <- parseContract(St,Env,Path,Rp);
     valis (Contract,declareContract(ConNm,Contract,Env))
+  }
+  checkDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Path,Rp) => do {
+    if (_,Q,C,H,B) ^= isImplementationStmt(St) then {
+      BV <- parseBoundTpVars(Q,Rp);
+      Cx <- parseConstraints(C,BV,Env,Rp);
+      Cn <- parseConstraint(H,BV,Env,Rp);
+      logMsg("implementation statement for $(Nm)")
+    }
+    else{
+      throw reportError(Rp,"not a valid implementation statement",Lc)
+    };
+    throw reportError(Rp,"not done",Lc)
   }
 
   processEqns:(list[ast],tipe,list[canon],list[canon],dict,string,reports) =>
