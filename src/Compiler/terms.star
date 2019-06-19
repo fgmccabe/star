@@ -269,11 +269,6 @@ star.compiler.terms{
       (R,T1) <- decodeType(T0);
       valis (typeLambda(A,R),T1)
     }
-    decodeType([0cZ,..Ts]) => do{
-      (A,T0) <- decodeConstraint(Ts);
-      (R,T1) <- decodeType(T0);
-      valis (contractExists(A,R),T1)
-    }
 
     decodeTypes([0x29,..Ts],Tps) => some((Tps,Ts)). -- 0x29 == )
     decodeTypes(Ts,Tps) => do{
@@ -341,8 +336,6 @@ star.compiler.terms{
       encodeType(deRef(I),encodeType(deRef(H),[Ts..,0cY])).
     encodeType(typeLambda(Hd,I),Ts) =>
       encodeType(deRef(I),encodeType(deRef(Hd),[Ts..,0cy])).
-    encodeType(contractExists(C,I),Ts) =>
-      encodeType(deRef(I),encodeConstraint(C,[Ts..,0cZ])).
 
     encodeTypes:(list[tipe],list[integer])=>list[integer].
     encodeTypes([],Ts) => [Ts..,0x29].

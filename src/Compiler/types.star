@@ -21,7 +21,6 @@ star.compiler.types{
       faceType(list[(string,tipe)],list[(string,tipe)]) |
       typeLambda(tipe,tipe) |
       typeExists(tipe,tipe) |
-      contractExists(constraint,tipe) |
       constrainedType(tipe,constraint) |
       funDeps(tipe,list[tipe]).
 
@@ -175,7 +174,7 @@ star.compiler.types{
   public showType:(tipe,boolean,integer) => ss.
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
-  shType:(tipe,boolean,integer) => ss.
+  shTipe:(tipe,boolean,integer) => ss.
   shTipe(voidType,_,_) => ss("void").
   shTipe(kVar(Nm),_,_) => ss(Nm).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -189,7 +188,7 @@ star.compiler.types{
     ssSeq([showType(A,Sh,Dp-1),ss("<=>"),showType(R,Sh,Dp-1)]).
   shTipe(tpExp(tpFun("ref",1),A),Sh,Dp) =>
     ssSeq([ss("ref "),showType(A,Sh,Dp-1)]).
-  shTipe(tpExp(F,A),Sh,Dp) => shTpExp(F,ssSeq([shTipe(A,Sh,Dp-1),ss("]")]),Sh,Dp-1).
+  shTipe(tpExp(F,A),Sh,Dp) => shTpExp(deRef(F),ssSeq([showType(A,Sh,Dp-1),ss("]")]),Sh,Dp-1).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
   shTipe(allType(A,T),Sh,Dp) =>
     ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
@@ -205,8 +204,6 @@ star.compiler.types{
     ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
   shTipe(funDeps(Tp,Deps),Sh,Dp) =>
     shTpExp(Tp,ssSeq(showEls(Deps,Sh,Dp-1,"->>")),Sh,Dp-1).
-  shTipe(contractExists(C,I),Sh,Dp) =>
-    ssSeq([ss("contract "),showConstraint(C,Dp),ss(" ::= "),shTipe(I,false,Dp)]).
   
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
@@ -220,11 +217,11 @@ star.compiler.types{
                [ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps],ss(". "))).
 
   shTpExp:(tipe,ss,boolean,integer) => ss.
-  shTpExp(tpExp(T,A),R,Sh,Dp) => shTpExp(T,ssSeq([shTipe(A,Sh,Dp),ss(","),R]),Sh,Dp).
+  shTpExp(tpExp(T,A),R,Sh,Dp) => shTpExp(deRef(T),ssSeq([showType(A,Sh,Dp),ss(","),R]),Sh,Dp).
   shTpExp(tpFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
   shTpExp(kFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
   shTpExp(tFun(_,_,Nm),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
-  shTpExp(T,R,Sh,Dp) => ssSeq([shTipe(T,Sh,Dp),ss("["),R]).
+  shTpExp(T,R,Sh,Dp) => ssSeq([showType(T,Sh,Dp),ss("["),R]).
 
   showAllConstraints([],Dp) => ss("").
   showAllConstraints([C,..Cs],Dp) => ssSeq([showConstraint(C,Dp),..showMoreConstraints(Cs,Dp)]).
@@ -237,7 +234,7 @@ star.compiler.types{
 
   showBound(V,Dp) => showType(V,false,Dp).
 
-  showConstraint(typeConstraint(Tp),Dp) => shTipe(Tp,false,Dp).
+  showConstraint(typeConstraint(Tp),Dp) => showType(Tp,false,Dp).
   showConstraint(fieldConstraint(Tp,Fc),Dp) =>
     ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
 
@@ -295,20 +292,20 @@ star.compiler.types{
   public implementationName:(tipe) => string.
   implementationName(Tp) => let{
     surfaceName:(tipe,list[string])=>list[string].
-    surfaceName(tipe(Nm),R) => ["!",Nm,..R].
-    surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(A,R)).
-    surfaceName(kVar(Nm),R) => ["!",Nm].
-    surfaceName(kFun(Nm,_),R) => ["!",Nm].
-    surfaceName(tpFun(Nm,_),R) => ["!",Nm].
-    surfaceName(kVar(Nm),R) => ["!",Nm].
-    surfaceName(tVar(_,_),R) => ["!_"].
-    surfaceName(tFun(_,_,_),R) => ["!_"].
+    surfaceName(tipe(Nm),R) => [Nm,"!",..R].
+    surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(deRef(A),R)).
+    surfaceName(kVar(Nm),R) => [Nm,"!",..R].
+    surfaceName(kFun(Nm,_),R) => [Nm,..R].
+    surfaceName(tpFun(Nm,_),R) => [Nm,..R].
+    surfaceName(kVar(Nm),R) => [Nm,"!",..R].
+    surfaceName(tVar(_,_),R) => ["!_",..R].
+    surfaceName(tFun(_,_,_),R) => ["!_",..R].
     surfaceName(allType(_,T),R) => surfaceName(deRef(T),R).
     surfaceName(existType(_,T),R) => surfaceName(deRef(T),R).
     surfaceName(constrainedType(T,_),R) => surfaceName(deRef(T),R).
     surfaceName(typeLambda(_,T),R) => surfaceName(deRef(T),R).
-    surfaceName(tupleType(A),R) => ["!()$(size(A))"].
-    surfaceName(funDeps(T,_),R) => surfaceName(T,R).
+    surfaceName(tupleType(A),R) => ["()$(size(A))!",..R].
+    surfaceName(funDeps(T,_),R) => surfaceName(deRef(T),R).
 
     surfaceNm(tipe(Nm),R) => ["!",Nm,..R].
     surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
@@ -323,7 +320,7 @@ star.compiler.types{
     surfaceNm(constrainedType(T,_),R) => surfaceNm(deRef(T),R).
     surfaceNm(typeLambda(_,T),R) => surfaceNm(deRef(T),R).
     surfaceNm(tupleType(A),R) => ["!()$(size(A))",..R].
-    surfaceNm(funDeps(T,_),R) => surfaceNm(T,R).
+    surfaceNm(funDeps(T,_),R) => surfaceNm(deRef(T),R).
   } in  _str_multicat(surfaceName(deRef(Tp),[])).
 
   public implementation hasType[constraint] => {.
@@ -374,11 +371,13 @@ star.compiler.types{
   public isMapType:(tipe)=>boolean.
   isMapType(Tp) => typeName(deRef(Tp))=="map".
 
-  public typeTemplate:(tipe) => tipe.
-  typeTemplate(allType(K,T)) => allType(K,typeTemplate(T)).
-  typeTemplate(existType(K,T)) => existType(K,typeTemplate(T)).
-  typeTemplate(constrainedType(T,C)) => constrainedType(typeTemplate(T),C).
-  typeTemplate(typeLambda(T,_)) => T.
-  typeTemplate(typeExists(T,_)) => T.
-  typeTemplate(T) default => T.
+  public typeKey:(tipe) => tipe.
+  typeKey(allType(K,T)) => typeKey(T).
+  typeKey(existType(K,T)) => typeKey(T).
+  typeKey(constrainedType(T,C)) => typeKey(T).
+  typeKey(typeLambda(T,_)) => typeKey(T).
+  typeKey(typeExists(T,_)) => typeKey(T).
+  typeKey(tpExp(O,_)) => typeKey(O).
+  typeKey(funDeps(T,_)) => typeKey(T).
+  typeKey(T) default => T.
 }

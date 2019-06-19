@@ -6,9 +6,9 @@ star.compiler.canon{
   import star.compiler.location.
   import star.compiler.types.
 
-  public pkgSpec::=pkgSpec(pkg,list[importSpec],tipe,list[canonDef],list[implDefn]).
+  public pkgSpec::=pkgSpec(pkg,list[importSpec],tipe,list[canonDef],list[implSpec]).
 
-  public implDefn ::= implDfn(option[locn],string,string,tipe).
+  public implSpec ::= implSpec(option[locn],string,string,tipe).
 
   public canon ::= vr(locn,string,tipe) |
     mtd(locn,string,tipe) |
@@ -79,8 +79,8 @@ star.compiler.canon{
       ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls)").
   .}
 
-  public implementation display[implDefn] => let{
-    dispImpl(implDfn(_,Con,Full,Tp)) =>
+  public implementation display[implSpec] => let{
+    dispImpl(implSpec(_,Con,Full,Tp)) =>
       ss("implementation for $(Con), full name $(Full), type: $(Tp)")
   } in {
     disp(D) => dispImpl(D)
@@ -125,6 +125,7 @@ star.compiler.canon{
   showDef(conDef(_,Nm,_,Tp)) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,Nm,_,Tp)) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
   showDef(funDef(_,Nm,_,Rls,Tp,_)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". ")))]).
+  showDef(implDef(_,Nm,FullNm,Tp)) => ssSeq([ss("Implementation: "),ss(Nm),ss(" = "),ss(FullNm),ss(":"),disp(Tp)]).
 
   showRl:(string,canon) => ss.
   showRl(Nm,lambda(_,Ptn,vr(_,"true",tipe("star.core*boolean")),Val,_)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).

@@ -11,7 +11,7 @@ star.compiler.dict{
   public vrEntry ::= vrEntry(option[locn],(locn,string,tipe)=>canon,tipe).
 
   public scope ::= scope(map[string,tpDef],
-    map[string,vrEntry],map[string,canonDef],
+    map[string,vrEntry],map[string,tipe],
     map[string,map[string,constraint]]).
 
   public dict ~> cons[scope].
@@ -31,7 +31,7 @@ star.compiler.dict{
 
   public implementation display[tpDef] => let{
     dd(tpVar(_,Tp)) => ss("tpvar:$(Tp)").
-    dd(tpDefn(_,_,Tmpl,Rl)) => disp(Rl).
+    dd(tpDefn(_,_,Tmpl,Rl)) => ssSeq([disp(Tmpl),ss("=="),disp(Rl)]).
   } in {
     disp(T) => dd(T)
   }
@@ -44,7 +44,7 @@ star.compiler.dict{
   declareCon(Nm,Lc,Tp,Env) =>
     declareVr(Nm,Lc,Tp,(L,Id,T)=>enm(L,Id,T),Env).
 
-  declareVr:(string,option[locn],tipe,(locn,string,tipe)=>canon,dict) => dict.
+  public declareVr:(string,option[locn],tipe,(locn,string,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
 
@@ -66,21 +66,21 @@ star.compiler.dict{
   findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
-  public declareContract:(string,canonDef,dict) => dict.
-  declareContract(Nm,Con,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
-    declareMethods(Con,[scope(Tps,Vrs,Cns[Nm->Con],Imps),..Rest]).
+  public declareContract:(locn,string,tipe,dict) => dict.
+  declareContract(Lc,Nm,Con,[scope(Tps,Vrs,Cns,Imps),..Rest]) =>
+    declareMethods(Lc,Con,[scope(Tps[Nm->tpDefn(some(Lc),Nm,typeKey(Con),Con)],Vrs,Cns[Nm->Con],Imps),..Rest]).
 
-  declareMethods:(canonDef,dict) => dict.
-  declareMethods(conDef(Lc,Nm,FullNm,Spec),Dict) where
+  declareMethods:(locn,tipe,dict) => dict.
+  declareMethods(Lc,Spec,Dict) where
       (MQ,MI) .= deQuant(Spec) &&
-      (MC,contractExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
+      (MC,typeExists(CT,faceType(Methods,[]))) .= deConstrain(MI) =>
     formMethods(Methods,some(Lc),MQ,MC,CT,Dict).
 
-  formMethods:(list[(string,tipe)],option[locn],list[tipe],list[constraint],constraint,dict) => dict.
+  formMethods:(list[(string,tipe)],option[locn],list[tipe],list[constraint],tipe,dict) => dict.
   formMethods([],_,_,_,_,Dict) => Dict.
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) where
       (MQ,MI) .= deQuant(Tp) &&
-      MT .= reConstrain(Cx,constrainedType(Tp,Con)) =>
+      MT .= reConstrain(Cx,constrainedType(Tp,typeConstraint(Con))) =>
     formMethods(Mtds,Lc,Q,Cx,Con,
       declareMethod(Nm,Lc,reQuant(Q++MQ,MT),Dict)).
 
@@ -88,7 +88,7 @@ star.compiler.dict{
   declareMethod(Nm,Lc,Tp,Dict) =>
     declareVr(Nm,Lc,Tp,(L,Id,T)=>mtd(L,Id,T),Dict).
       
-  public findContract:(dict,string) => option[canonDef].
+  public findContract:(dict,string) => option[tipe].
   findContract([],Nm) => none.
   findContract([scope(_,_,Cns,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
@@ -123,7 +123,7 @@ star.compiler.dict{
   pushTypes:(list[(string,tipe)],locn,dict) => dict.
   pushTypes([],Lc,Env) => Env.
   pushTypes([(Nm,Tp),..Tps],Lc,Env) =>
-    pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeTemplate(Tp),Tp,Env)).
+    pushTypes(Tps,Lc,declareType(Nm,some(Lc),typeKey(Tp),Tp,Env)).
 
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
@@ -138,13 +138,15 @@ star.compiler.dict{
   declareConstraints([_,..Cx],Env) =>
     declareConstraints(Cx,Env).
 
+  emptyFace = faceType([],[]).
+
 -- Standard types are predefined by the language
   public stdDict:dict.
   stdDict =
-    declareType("integer",none,intType,intType,
-      declareType("float",none,fltType,fltType,
-	declareType("boolean",none,boolType,boolType,
-	  declareType("string",none,strType,strType,
+    declareType("integer",none,intType,typeExists(intType,emptyFace),
+      declareType("float",none,fltType,typeExists(fltType,emptyFace),
+	declareType("boolean",none,boolType,typeExists(boolType,emptyFace),
+	  declareType("string",none,strType,typeExists(strType,emptyFace),
 	    declareType("list",none,tpFun("star.core*list",1),
 	      allType(kVar("e"),
 		typeExists(lstType(kVar("e")),faceType([],[]))),
