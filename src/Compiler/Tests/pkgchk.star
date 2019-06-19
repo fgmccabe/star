@@ -36,11 +36,11 @@ star.core{
       (==):(t,t)=>boolean.
     }
 
-  public implementation all t ~~ equality[boolean] => {
-    true == true => true.
-    false == false => true.
-    _ == _ default => false.
-  }
+    public implementation all t ~~ equality[boolean] => {
+      true == true => true.
+      false == false => true.
+      _ == _ default => false.
+    }
   }
   """.
 

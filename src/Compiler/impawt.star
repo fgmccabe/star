@@ -24,9 +24,10 @@ star.compiler.impawt{
       if pkgSpec(_,PkgImps,Sig,Cons,Impls) ^= importPkg(Pkg,Lc,Repo) then {
 	E0 = pushSig(Sig,Lc,(L,I,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
 	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
-	    declareContract(CNm,conDef(Lc,CNm,CFNm,CTp),EE), E0,Cons);
-	E2 = foldRight((implDfn(ILc,ConNm,FullNm,Tp),EE)=>
-	    declareImplementation(ConNm,FullNm,Tp,EE),E1,Impls);
+	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
+	E2 = foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
+	    declareVr(FullNm,some(Lc),Tp,(LL,NN,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
+	      declareImplementation(ConNm,FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
       } else{
 	throw reportError(Rp,"cannot import $(Pkg)",Lc)
@@ -92,11 +93,11 @@ star.compiler.impawt{
     pickupContracts(Ts,Lc,[Cons..,conDef(Lc,Nm,CnNm,Tp)])
   }
 
-  pickupImplementations:(list[term],list[implDefn]) => option[list[implDefn]].
+  pickupImplementations:(list[term],list[implSpec]) => option[list[implSpec]].
   pickupImplementations([],Imps) => some(Imps).
   pickupImplementations([term(_,[strg(ConNm),strg(FullNm),strg(Sig)]),..Is],Imps) => do{
     Spec <- decodeSignature(Sig);
-    pickupImplementations(Is,[Imps..,implDfn(none,ConNm,FullNm,Spec)])
+    pickupImplementations(Is,[Imps..,implSpec(none,ConNm,FullNm,Spec)])
   }
   pickupImplementations(_,_) default => none.
 
@@ -135,8 +136,8 @@ star.compiler.impawt{
     _coerce(L)=>mkList(L)
   }
 
-  implementation coercion[implDefn,term] => {.
-    _coerce(implDfn(_,ConNm,FullNm,Spec)) =>
+  implementation coercion[implSpec,term] => {.
+    _coerce(implSpec(_,ConNm,FullNm,Spec)) =>
       term(lbl("impl",3),[strg(ConNm),strg(FullNm),Spec::term])
   .}
   

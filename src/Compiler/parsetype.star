@@ -187,10 +187,12 @@ star.compiler.typeparse{
     Face <- parseType(Q,Rh,Env,Rp);
     valis fieldConstraint(Bnd,Face).
   }
-  parseConstraint(A,Q,Env,Rp) where (Lc,Op,Args) ^= isSquareTerm(A) =>
-    parseContractConstraint(Q,A,Env,Rp).
+  parseConstraint(A,Q,Env,Rp) where (Lc,Op,Args) ^= isSquareTerm(A) => do{
+    Tp<-parseContractConstraint(Q,A,Env,Rp);
+    valis typeConstraint(Tp)
+  }
 
-  rebind:(tipes,tipe,dict)=>tipe.
+  public rebind:(tipes,tipe,dict)=>tipe.
   rebind([],T,_) => T.
   rebind([(Nm,TV),..L],T,Env) where
       Ar ^= isUnboundFVar(TV) && sameType(TV,kFun(Nm,Ar),Env) =>
@@ -198,30 +200,27 @@ star.compiler.typeparse{
   rebind([(Nm,TV),..L],T,Env) where sameType(TV,kVar(Nm),Env) =>
     rebind(L,allType(kVar(Nm),T),Env).
 
-  wrapConstraints([],Tp)=>Tp.
+  public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,constrainedType(Tp,Cx)).
     
-  reQuant:(tipes,tipe) => tipe.
+  public reQuant:(tipes,tipe) => tipe.
   reQuant([],Tp) => Tp.
   reQuant([(_,KV),..T],Tp) => reQuant(T,allType(KV,Tp)).
 
-  reQuantX:(tipes,tipe) => tipe.
+  public reQuantX:(tipes,tipe) => tipe.
   reQuantX([],Tp) => Tp.
   reQuantX([(_,KV),..T],Tp) => reQuantX(T,existType(KV,Tp)).
 
-  parseContractConstraint:(tipes,ast,dict,reports) =>
-    either[reports,constraint].
+  public parseContractConstraint:(tipes,ast,dict,reports) =>
+    either[reports,tipe].
   parseContractConstraint(Q,A,Env,Rp) where
-      _ ^= isSquareTerm(A) => do{
-	Tp<-parseType(Q,A,Env,Rp);
-	valis typeConstraint(Tp)
-      }
+      _ ^= isSquareTerm(A) =>  parseType(Q,A,Env,Rp).
   parseContractConstraint(_,A,Env,Rp) =>
     other(reportError(Rp,"$(A) is not a contract constraint",locOf(A))).
 
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
-    if conDef(_,_,_,Con) ^= findContract(Env,Id) then {
+    if Con ^= findContract(Env,Id) then {
       valis typeConstraint(snd(freshen(Con,[],Env)))
     }
       else
@@ -273,18 +272,18 @@ star.compiler.typeparse{
 
   parseTypeHead:(tipes,ast,dict,string,reports) => either[reports,tipe].
   parseTypeHead(Q,Tp,Env,Path,Rp) where (Lc,Nm) ^= isName(Tp) => 
-    either(tipe(localName(Path,markerString(typeMark),Nm))).
+    either(tipe(qualifiedName(Path,markerString(typeMark),Nm))).
   parseTypeHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	  ArgTps <- parseHeadArgs(Q,deComma(Lhs),[],Env,Rp);
 	  DepTps <- parseHeadArgs(Q,deComma(Rhs),[],Env,Rp);
-	  Inn <- doTypeFun(tpFun(localName(Nm,markerString(typeMark),Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
+	  Inn <- doTypeFun(tpFun(qualifiedName(Path,markerString(typeMark),Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
 	  valis funDeps(Inn,DepTps)
 	}
 	else{
 	  ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
-	  Inn <- doTypeFun(tpFun(localName(Nm,markerString(typeMark),Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
+	  Inn <- doTypeFun(tpFun(qualifiedName(Path,markerString(typeMark),Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
 	  valis Inn
 	}
       }.
@@ -298,11 +297,11 @@ star.compiler.typeparse{
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
     Tp <- parseType([],St,Env,Rp);
     Lc = locOf(St);
-    valis (cnsDef(Lc,Nm,localName(Path,markerString(conMark),Nm),Tp),
+    valis (cnsDef(Lc,Nm,qualifiedName(Path,markerString(conMark),Nm),Tp),
 	declareCon(Nm,some(Lc),Tp,Env))
   }
 
-  public parseContract:(ast,dict,string,reports) => either[reports,canonDef].
+  public parseContract:(ast,dict,string,reports) => either[reports,tipe].
   parseContract(St,Env,Path,Rp) where
       (Lc,Lhs,Els) ^= isContractStmt(St) &&
       (_,Nm,Q,C,T) ^= isContractSpec(Lhs) &&
@@ -312,6 +311,6 @@ star.compiler.typeparse{
 	(Flds,Tps) <- parseTypeFields(BV,Els,[],[],Env,Rp);
 	Face = faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)]);
 	Con <- parseTypeHead(BV,T,Env,Path,Rp);
-	valis conDef(Lc,Nm,Nm,reQuant(BV,contractExists(typeConstraint(Con),Face)))
+	valis reQuant(BV,typeExists(Con,Face))
       }
 }
