@@ -26,6 +26,8 @@ showLocation(loc(Pk,Ln,Col,Pos,Sz),O,E) :-
   appStr("-",O6,O7),
   appInt(Sz,O7,O8),
   appStr("]",O8,E).
+showLocation(missing,O,Ox) :-
+  appStr("unknown location",O,Ox).
 
 lcPk(loc(Pk,_,_,_,_),Pk).
 lcLine(loc(_,Ln,_,_,_),Ln).
