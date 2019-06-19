@@ -133,10 +133,10 @@ termArgs([lftTok("{}",_),rgtTok("{}",Lcy)|Tks],Op,T,Tks,_,rbrce) :-
     locOfAst(Op,Lcx),
     mergeLoc(Lcx,Lcy,Lc),
     apply(Lc,Op,tuple(Lc,"{}",[]),T).
-termArgs([lftTok("{}",_)|Tks],Op,T,Toks,_,rbrce) :-
+termArgs([lftTok("{}",Lcl)|Tks],Op,T,Toks,_,rbrce) :-
     locOfAst(Op,Lcx),
     terms(Tks,rgtTok("{}",_),Tks2,Seq),
-    checkToken(Tks2,Toks,rgtTok("{}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcx]),
+    checkToken(Tks2,Toks,rgtTok("{}",Lcy),Lcy,"missing close brace, got %s, left brace at %s",[Lcl]),
     mergeLoc(Lcx,Lcy,Lc),
     apply(Lc,Op,tuple(Lc,"{}",Seq),T).
 termArgs([lftTok("{..}",_),rgtTok("{..}",Lcy)|Tks],Op,T,Tks,_,rbrce) :-
@@ -197,7 +197,7 @@ stringSegment(coerce(Text,Lc),Disp) :-
 
 checkToken([Tk|Toks],Toks,Tk,_,_,_) :- !.
 checkToken([Tk|Toks],Toks,_,Lc,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
-checkToken([],[],Tk,_,Msg,Extra) :- locOfToken(Tk,Lc), reportError(Msg,[Tk|Extra],Lc).
+checkToken([],[],Tk,_,Msg,Extra) :- reportError(Msg,[Tk|Extra],missing).
 
 checkTerminator(_,[],[]).
 checkTerminator(_,Toks,Toks) :- Toks = [rgtTok("{}",_)|_].
