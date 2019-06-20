@@ -45,7 +45,7 @@ star.compiler.operators{
   oper("~>") => [infixOp(1230,1231,1230)].
   oper("throw") => [prefixOp(930,929)].
   oper(".|.") => [infixOp(720,720,719)].
-  oper("do") => [prefixOp(100,99), infixOp(1199,1200,1199)].
+  oper("do") => [prefixOp(200,199), infixOp(1199,1200,1199)].
   oper("import") => [prefixOp(900,899)].
   oper("catch") => [infixOp(1198,1199,1198)].
   oper("of") => [infixOp(399,400,399)].
