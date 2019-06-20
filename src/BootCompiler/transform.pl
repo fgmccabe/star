@@ -392,8 +392,6 @@ implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,whr(Lc,N,mtch(Lc,N,dte(Lc,Vr,intgr(Ix))
   liftVar(Lc,ThVr,Map,Vr,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
-implementVarPtn(localCons(Enum,_,_,ThVr),_,_,ctpl(lbl(Enum,1),[ThVr]),_,Q,Qx) :-
-  merge([ThVr],Q,Qx).
 implementVarPtn(notInMap,Nm,_,idnt(Nm),_,Q,Qx) :-                 % variable local to rule
   merge([idnt(Nm)],Q,Qx).
 
@@ -415,10 +413,6 @@ implementPtnCall(moduleFun(Fn,_,Ar),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A
   genVar("_X",X),
   merge([X],Q,Qx).
 implementPtnCall(moduleCons(Mdl,_,Ar),_,_,Args,ctpl(lbl(Mdl,Ar),Args),_,Q,Q).
-implementPtnCall(localCons(Mdl,_,_,ThVr),Lc,_,Args,ctpl(lbl(Mdl,Ar),XArgs),Map,Q,Qx) :-
-  liftVar(Lc,ThVr,Map,Vr,Q,Qx),
-  concat(Args,[Vr],XArgs),
-  length(XArgs,Ar).
 
 liftExps([],Args,Args,Q,Q,_,_,Ex,Ex) :-!.
 liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -509,8 +503,6 @@ implementVarExp(labelArg(_N,Ix,ThVr),Lc,_,dte(Lc,ThV,intgr(Ix)),Map,Q,Qx) :-
 implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
 implementVarExp(moduleCons(C,_,Ar),_,_,Cns,_,Q,Q) :-
   trCons(C,Ar,Cns).
-implementVarExp(localCons(Enum,_,_,ThVr),Lc,_,ctpl(lbl(Enum,1),[Vr]),Map,Q,Qx) :-
-  liftVar(Lc,ThVr,Map,Vr,Q,Qx).
 implementVarExp(notInMap,_,Nm,idnt(Nm),_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
 implementVarExp(moduleFun(_,Closure,_),_,_,ctpl(lbl(Closure,0),[]),_,Q,Q).
@@ -547,10 +539,6 @@ implementFunCall(Lc,localFun(Fn,_,_,Ar,ThVr),_,Args,cll(Lc,lbl(Fn,Ar2),XArgs),Q,
   Ar2 is Ar+1.
 implementFunCall(Lc,moduleFun(Fn,_,Ar),_,Args,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,Ex,Ex).
 implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
-implementFunCall(Lc,localCons(Mdl,_,Ar,ThVr),_,Args,ctpl(lbl(Mdl,Ar2),XArgs),Q,Qx,Map,_,Ex,Ex) :-
-  liftVar(Lc,ThVr,Map,Vr,Q,Qx),
-  concat([Vr],Args,XArgs),
-  Ar2 is Ar+1.
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
 
@@ -792,11 +780,11 @@ collectMtd(funDef(_Lc,Nm,LclName,Tp,_,_),OuterNm,ThV,List,
   progTypeArity(Tp,Ar).
 collectMtd(varDef(_Lc,_Nm,_LclName,_,_Tp,_),_OuterNm,_ThV,List,List) :-!.
 collectMtd(typeDef(_,_,_,_),_,_,List,List).
-collectMtd(cnsDef(_Lc,Nm,cons(_,_,_),Tp),OuterNm,ThV,List,[(Nm,localCons(LclName,AccessName,Ar,ThV))|List]) :-
+collectMtd(cnsDef(_Lc,Nm,cons(_,_,_),Tp),OuterNm,_ThV,List,[(Nm,moduleCons(LclName,AccessName,Ar))|List]) :-
   localName(OuterNm,"#",Nm,LclName),
   localName(OuterNm,"@",Nm,AccessName),
   progTypeArity(Tp,Ar).
-collectMtd(cnsDef(_Lc,Nm,enm(_,_,_),_),OuterNm,ThV,List,[(Nm,localCons(LclName,AccessName,0,ThV))|List]) :-
+collectMtd(cnsDef(_Lc,Nm,enm(_,_,_),_),OuterNm,_ThV,List,[(Nm,moduleCons(LclName,AccessName,0))|List]) :-
   localName(OuterNm,"#",Nm,LclName),
   localName(OuterNm,"@",Nm,AccessName).
 
@@ -822,7 +810,6 @@ programAccess(moduleFun(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(moduleCons(Prog,Closure,Arity),Prog,Closure,Arity).
 programAccess(localFun(Prog,_,Closure,Arity,_),Prog,Closure,Arity).
 programAccess(localVar(Prog,Closure,_),Prog,Closure,1).
-programAccess(localCons(Prog,Closure,Arity,_),Prog,Closure,Arity).
 
 makeDotLbl(Nm,enum(Dot)) :-
   localName("",".",Nm,Dot).

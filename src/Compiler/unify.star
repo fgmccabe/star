@@ -63,7 +63,7 @@ star.compiler.unify{
     varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
 
---    reset ::= resetVar(tipe) | resetConstraint(tipe,list[constraint]).
+    reset ::= resetVar(tipe) | resetConstraint(tipe,list[constraint]).
 
     resets : ref list[reset].
     resets := [].
@@ -160,8 +160,6 @@ star.compiler.unify{
   } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? true || valof resetBindings).
 
 
-  reset ::= resetVar(tipe) | resetConstraint(tipe,list[constraint]).
-  
   tpName:(tipe)=>option[string].
   tpName(kVar(Nm)) => some(Nm).
   tpName(kFun(Nm,_)) => some(Nm).
