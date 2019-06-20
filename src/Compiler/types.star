@@ -7,8 +7,7 @@ star.compiler.types{
   import star.compiler.misc.
 
   public tipe ::=
-    voidType |
-      kVar(string) |
+    kVar(string) |
       kFun(string,integer) |
       tVar(tv,string) |
       tFun(tv,integer,string) |
@@ -117,7 +116,6 @@ star.compiler.types{
   }
 
   identType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
-  identType(voidType,voidType,_) => true.
   identType(kVar(N1),kVar(N2),_) => N1==N2.
   identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tVar(_,N1),tVar(_,N2),_) => N1==N2.
@@ -175,20 +173,15 @@ star.compiler.types{
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
   shTipe:(tipe,boolean,integer) => ss.
-  shTipe(voidType,_,_) => ss("void").
-  shTipe(kVar(Nm),_,_) => ss(Nm).
+  shTipe(kVar(Nm),_,_) => ssSeq([ss("$"),ss(Nm)]).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-  shTipe(tVar(V,Nm),Sh,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
+  shTipe(tVar(V,Nm),false,Dp) => ssSeq([ss("%"),ss(Nm)]).
+  shTipe(tVar(V,Nm),true,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tipe(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-  shTipe(tpExp(tpExp(tpFun("=>",2),A),R),Sh,Dp) =>
-    ssSeq([showType(A,Sh,Dp-1),ss("=>"),showType(R,Sh,Dp-1)]).
-  shTipe(tpExp(tpExp(tpFun("<=>",2),A),R),Sh,Dp) =>
-    ssSeq([showType(A,Sh,Dp-1),ss("<=>"),showType(R,Sh,Dp-1)]).
-  shTipe(tpExp(tpFun("ref",1),A),Sh,Dp) =>
-    ssSeq([ss("ref "),showType(A,Sh,Dp-1)]).
-  shTipe(tpExp(F,A),Sh,Dp) => shTpExp(deRef(F),ssSeq([showType(A,Sh,Dp-1),ss("]")]),Sh,Dp-1).
+  shTipe(tpExp(O,A),Sh,Dp) =>
+    showTpExp(O,[A],Sh,Dp).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
   shTipe(allType(A,T),Sh,Dp) =>
     ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
@@ -216,6 +209,18 @@ star.compiler.types{
     ssSeq(interleave([ssSeq([ss(Nm),ss(":"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Els] ++
                [ssSeq([ss(Nm),ss("~>"),showType(Tp,Sh,Dp)]) | (Nm,Tp) in Tps],ss(". "))).
 
+  showTpExp:(tipe,list[tipe],boolean,integer) => ss.
+  showTpExp(tpFun("=>",2),[A,R],Sh,Dp) =>
+    ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("=>"),shTipe(deRef(R),Sh,Dp-1)]).
+  showTpExp(tpFun("<=>",2),[A,R],Sh,Dp) =>
+    ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("<=>"),shTipe(deRef(R),Sh,Dp-1)]).
+  showTpExp(tpFun("ref",1),[R],Sh,Dp) =>
+    ssSeq([ss("ref"),shTipe(deRef(R),Sh,Dp-1)]).
+  showTpExp(tpExp(O,A),R,Sh,Dp) =>
+    showTpExp(deRef(O),[A,..R],Sh,Dp).
+  showTpExp(Op,A,Sh,Dp) =>
+    ssSeq([shTipe(deRef(Op),Sh,Dp-1),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
+
   shTpExp:(tipe,ss,boolean,integer) => ss.
   shTpExp(tpExp(T,A),R,Sh,Dp) => shTpExp(deRef(T),ssSeq([showType(A,Sh,Dp),ss(","),R]),Sh,Dp).
   shTpExp(tpFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
@@ -240,7 +245,6 @@ star.compiler.types{
 
   -- in general, hashing types is not reliable because of unification
   public implementation hash[tipe] => let {
-    hsh(voidType) => 0.
     hsh(kVar(Nm)) => hash(Nm).
     hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tVar(_,Nm)) => hash("V")+hash(Nm).

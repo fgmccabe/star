@@ -35,17 +35,19 @@ star.compiler.checker{
       (Public,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
       
       logMsg("Package $(Pkg), groups: $(Gps)");
-      logMsg("Public names: $(Public)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
       logMsg("Final Pkg dict $(ThEnv)");
+      logMsg("Public names: $(Public)");
       logMsg("Defs: $(Defs)");
       Contracts = { D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && conSp(Nm) in Public };
       logMsg("exported contracts: $(Contracts)");
       Fields = exportedFields(Defs,Public);
       logMsg("exported fields: $(Fields)");
-      Impls = { implSpec(some(Lc),Nm,FullNm,Tp) |
-	  DD in Defs && implDef(Lc,Nm,FullNm,Tp) in DD && implSp(Nm) in Public};
+      Impls = { implSpec(some(ILc),INm,FllNm,ITp) |
+	  DD in Defs &&
+	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
+	      implSp(INm) in Public};
       logMsg("exported implementations $(Impls)");
       Types = { (Nm,ExTp) |
 	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public};
@@ -79,7 +81,7 @@ star.compiler.checker{
     either[reports,(list[list[canonDef]],list[canon],dict)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp) => do{
     (Public,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
-    logMsg("groups: $(Gps)");
+--    logMsg("groups: $(Gps)");
     Base = pushFace(Face,Lc,Env);
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
     Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
@@ -91,7 +93,7 @@ star.compiler.checker{
     either[reports,(list[list[canonDef]],dict)].
   checkGroups([],Gps,_,_,Env,_,Rp) => either((Gps,Env)).
   checkGroups([G,..Gs],Gx,Face,Annots,Env,Path,Rp) => do{
-    logMsg("check group $(G)");
+--    logMsg("check group $(G)");
     TmpEnv <- parseAnnotations(G,Face,Annots,Env,Rp);
     (Gp,Ev) <- checkGroup(G,[],TmpEnv,Path,Rp);
     checkGroups(Gs,[Gx..,Gp],Face,Annots,Ev,Path,Rp)
@@ -101,12 +103,12 @@ star.compiler.checker{
   parseAnnotations([],_,_,Env,_) => either(Env).
   parseAnnotations([defnSpec(varSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
-    logMsg("found type of $(Nm)\:$(Tp)");
+--    logMsg("found type of $(Nm)\:$(Tp)");
     parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
   }
   parseAnnotations([defnSpec(funSp(Nm),Lc,Stmts),..Gs],Fields,Annots,Env,Rp) => do{
     Tp <- parseAnnotation(Nm,Lc,Stmts,Fields,Annots,Env,Rp);
-    logMsg("found type of $(Nm)\:$(Tp)");
+--    logMsg("found type of $(Nm)\:$(Tp)");
     parseAnnotations(Gs,Fields,Annots,declareVar(Nm,some(Lc),Tp,Env),Rp)
   }
   parseAnnotations([_,..Gs],Fields,Annots,Env,Rp) => parseAnnotations(Gs,Fields,Annots,Env,Rp).
@@ -137,7 +139,7 @@ star.compiler.checker{
   checkGroup([],Defs,Env,_,_) => either((Defs,Env)).
   checkGroup([D,..Ds],Defs,Env,Path,Rp) => do{
     (Defn,E0) <- checkDefn(D,Env,Path,Rp);
-    logMsg("env after statement $(E0)");
+--    logMsg("env after statement $(E0)");
     checkGroup(Ds,[Defs..,Defn],E0,Path,Rp)
   }
   
@@ -189,11 +191,11 @@ star.compiler.checker{
 	  
 	  Es = declareConstraints(Cx,declareTypeVars(BV,Env));
 	  Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
-	  FullNm  = implementationName(ConTp);
+	  FullNm = implementationName(ConTp);
 	  logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	  ImplTp = rebind(BV,reConstrain(Cx,ConFaceTp),Es);
-	  valis (implDef(Lc,Nm,FullNm,ConTp),
-	    declareImplementation(Nm,FullNm,ImplTp,Env))
+	  valis (implDef(Lc,Nm,FullNm,Impl,ConTp),
+	    declareImplementation(Nm,FullNm,ConTp,Env))
 	}
 	else{
 	  throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -591,11 +593,13 @@ star.compiler.checker{
   typeOfVar:(locn,string,tipe,vrEntry,dict,reports) => either[reports,canon].
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
     (_,VrTp) = freshen(VTp,[],Env);
+    logMsg("var $(Nm) has recorded type $(VrTp)");
     (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Nm,VrTp),Env,Rp);
+    logMsg("managed type $(MTp) = $(Tp)?");
     if sameType(Tp,MTp,Env) || sameType(enumType(Tp),MTp,Env) then {
       valis Term
     } else
-      throw reportError(Rp,"$(Nm)\:$(VrTp) not consistent with expected type: $(Tp)",Lc)
+      throw reportError(Rp,"$(Nm)\:$(MTp) not consistent with expected type: $(Tp)",Lc)
   }
 
   typeOfField:(locn,canon,string,tipe,dict,string,reports) => either[reports,canon].
@@ -627,8 +631,10 @@ star.compiler.checker{
     either[reports,(tipe,canon)].
   manageConstraints(constrainedType(Tp,Con),Cons,Lc,Term,Env,Rp)
       where C0 .= applyConstraint(Con,Cons) =>
-    manageConstraints(Tp,C0,Lc,Term,Env,Rp).
+    manageConstraints(deRef(Tp),C0,Lc,Term,Env,Rp).
   manageConstraints(Tp,[],_,Term,Env,_) => either((Tp,Term)).
+  manageConstraints(Tp,Cons,Lc,Term,Env,Rp) =>
+    either((Tp,over(Lc,Term,Tp,Cons))).
 
   applyConstraint(fieldConstraint(T,F),Cons) where
       _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
@@ -638,7 +644,7 @@ star.compiler.checker{
   }
 
   attachToArgs(tpExp(Op,A),Con) where _ ^= addConstraint(A,Con) => attachToArgs(Op,Con).
-  attachToArga(_,Con) => ()
+  attachToArgs(_,Con) => ()
   
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
   checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).

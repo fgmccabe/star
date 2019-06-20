@@ -52,7 +52,7 @@ star.compiler.impawt{
     Cons <- pickupContracts(ConSigs,Lc,[]);
     logMsg("imported contracts $(Cons)");
     Impls <- pickupImplementations(ImplSigs,[]);
-    logMsg("imported implementations $(Impls)");
+    logMsg("imported implementations $(ImplSigs) -> $(Impls)");
     valis pkgSpec(Pkg,Imports,Fce,Cons,Impls)
   }
 

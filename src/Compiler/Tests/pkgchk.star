@@ -41,6 +41,18 @@ star.core{
       false == false => true.
       _ == _ default => false.
     }
+
+    public contract arith[t] ::= {
+      (+):(t,t)=>t.
+      (-):(t,t)=>t.
+      (*):(t,t)=>t.
+    }
+ 
+    public implementation arith[integer] => {
+      X+Y => _int_plus(X,Y).
+      X-Y => _int_minus(X,Y).
+      X*Y => _int_times(X,Y).
+    }    
   }
   """.
 
@@ -66,7 +78,7 @@ test{
   import star.core.
   public fact:(integer)=>integer.
   fact(0)=>1.
-  fact(N)=>_int_times(N,fact(_int_minus(N,1))).
+  fact(N)=>N*fact(N-1)
 }
   """.
 

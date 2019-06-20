@@ -23,7 +23,6 @@ star.compiler.unify{
   sm(T1,T2,Env) where tFun(_,_,_) .= T2 => varBinding(T2,T1,Env).
   sm(T1,T2,Env) default => smT(T1,T2,Env).
 
-  smT(voidType,voidType,_) => true.
   smT(tipe(Nm),tipe(Nm),_) => true.
   smT(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => true.
   smT(tpExp(O1,A1),tpExp(O2,A2),Env) =>
@@ -41,6 +40,10 @@ star.compiler.unify{
     sameType(T1,T2,updateEnv(V1,V2,Env)).
   smT(funDeps(T1,D1),funDeps(T2,D2),Env) =>
     sameType(T1,T2,Env) && smTypes(D1,D2,Env).
+  smT(T1,T2,_) => valof action{
+    logMsg("$(T1) != $(T2)");
+    valis false
+  }
   smT(_,_,_) default => false.
 
   smTypes([],[],_) => true.
@@ -54,11 +57,6 @@ star.compiler.unify{
 
   updateEnv(kVar(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
   updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
-
-  deRf:(tipe,dict)=>tipe.
-  deRf(Ky,Env) where
-      Nm^=tpName(deRef(Ky)) && (_,Tp,voidType)^=findType(Env,Nm) => deRef(Tp).
-  deRf(Tp,Env) => deRef(Tp).
 
   tpName:(tipe)=>option[string].
   tpName(kVar(Nm)) => some(Nm).

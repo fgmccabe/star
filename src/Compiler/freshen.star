@@ -36,7 +36,6 @@ star.compiler.freshen{
   genTypeFun(Nm,[]) => newTypeVar(Nm).
   genTypeFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
-  frshn(voidType,_,_) => voidType.
   frshn(kVar(Nm),Ex,_) where _contains(Ex,kVar(Nm)) => kVar(Nm).
   frshn(kVar(Nm),_,Env) where (_,Tp,_)^=findType(Env,Nm) => Tp.
   frshn(kVar(Nm),_,_) => kVar(Nm).
