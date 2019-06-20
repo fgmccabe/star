@@ -16,7 +16,9 @@
 #include "heapP.h"
 
 long initHeapSize = 200 * 1024;   /* How much memory to give the heap */
+long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
 long initStackSize = 1024;        /* How big is the stack */
+long maxStackSize = 100 * 1024;     /* 100K cells is max stack size */
 
 logical insDebugging = False;     // instruction tracing option
 logical lineDebugging = False;
@@ -275,7 +277,7 @@ static retCode setDebuggerPort(char *option, logical enable, void *cl) {
   debuggerPort = parseInteger(option, uniStrLen(option));
   if (debuggerPort <= 0)
     return Error;
-  else{
+  else {
     lineDebugging = True;   /* set up for remote symbolic insDebugging */
     interactive = True;
     showPkgFile = True;
@@ -312,12 +314,25 @@ static retCode setHeapSize(char *option, logical enable, void *cl) {
   return Ok;
 }
 
+static retCode setMaxHeapSize(char *option, logical enable, void *cl) {
+  maxHeapSize = parseSize(option);
+  if (maxHeapSize == 0)
+    return Error;
+  return Ok;
+}
+
 static retCode setDisplayDepth(char *option, logical enable, void *cl) {
   displayDepth = parseSize(option);
   return Ok;
 }
+
 static retCode setStackSize(char *option, logical enable, void *cl) {
   initStackSize = parseSize(option);
+  return Ok;
+}
+
+static retCode setMaxStackSize(char *option, logical enable, void *cl) {
+  maxStackSize = parseSize(option);
   return Ok;
 }
 
@@ -334,7 +349,9 @@ Option options[] = {
   {'w', "set-wd",        hasArgument, STAR_WD,            setWD,           Null, "-w|--set-wd <dir>"},
   {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,       Null, "-V|--verify code"},
   {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,     Null, "-h|--heap <size>"},
-  {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},};
+  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,  Null, "-H|--max-heap <size>"},
+  {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},
+  {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setMaxStackSize, Null, "-S|--max-stack <size>"},};
 
 int getOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

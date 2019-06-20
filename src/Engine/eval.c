@@ -36,7 +36,8 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
   return Error;\
   }
 
-#define check(Cond,Msg) { if(!(Cond)) { logMsg(logFile,(Msg)); bail(); } }
+#define check(Cond, Msg) { if(!(Cond)) { logMsg(logFile,(Msg)); bail(); } }
+
 /*
  * Execute program on a given process/thread structure
  */
@@ -86,18 +87,21 @@ retCode run(processPo P) {
 
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
+
+        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+          saveRegisters(P, SP);
+          if (extendStack(P, 2) != Ok) bail();
+          restoreRegisters(P);
+        }
+        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
-        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
-          saveRegisters(P, SP);
-          extendStack(P, 2);
-          restoreRegisters(P);
-        }
-        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
         continue;
       }
 
@@ -114,18 +118,21 @@ retCode run(processPo P) {
 
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
+
+        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+          saveRegisters(P, SP);
+          if (extendStack(P, 2) != Ok) bail();
+          restoreRegisters(P);
+        }
+        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
-        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
-          saveRegisters(P, SP);
-          extendStack(P, 2);
-          restoreRegisters(P);
-        }
-        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
         continue;
       }
 
@@ -133,9 +140,9 @@ retCode run(processPo P) {
         int32 escNo = collectI32(PC); /* escape number */
         escapePo esc = getEscape(escNo);
         saveRegisters(P, SP + esc->arity);
-        assert(heap->topRoot==0);
+        assert(heap->topRoot == 0);
         ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
-        assert(heap->topRoot==0);
+        assert(heap->topRoot == 0);
         restoreRegisters(P);
         switch (ret.ret) {
           case Ok:
@@ -185,12 +192,21 @@ retCode run(processPo P) {
 
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
+
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
 #ifdef TRACEEXEC
         for (integer ix = 0; ix < lclCnt; ix++)
           SP[ix] = voidEnum;
 #endif
+
+        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+          saveRegisters(P, SP);
+          if (extendStack(P, 2) != Ok) bail();
+          restoreRegisters(P);
+        }
+        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
         continue;       /* Were done */
       }
 
@@ -228,6 +244,14 @@ retCode run(processPo P) {
 
         push(FP);
         FP = (framePo) SP;     /* set the new frame pointer */
+
+        if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+          saveRegisters(P, SP);
+          if (extendStack(P, 2) != Ok) bail();
+          restoreRegisters(P);
+        }
+        assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
         integer lclCnt = lclCount(PROG);  /* How many locals do we have */
         SP -= lclCnt;
 #ifdef TRACEEXEC
@@ -322,7 +346,7 @@ retCode run(processPo P) {
         globalPo glb = findGlobalVar(glbNo);
         termPo vr = getGlobal(glb);
 
-        check(vr!=Null,"undefined global");
+        check(vr != Null, "undefined global");
 
         push(vr);     /* load a global variable */
         continue;
@@ -472,10 +496,10 @@ retCode run(processPo P) {
         PC += 2;
         continue;
 
-      case dBug:{
+      case dBug: {
 #ifdef TRACEEXEC
-        if(lineDebugging){
-          saveRegisters(P,SP);
+        if (lineDebugging) {
+          saveRegisters(P, SP);
           enterDebug(P);
           restoreRegisters(P);
         }
