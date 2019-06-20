@@ -78,10 +78,9 @@
 	     "private" "public"
 	     "import"
 	     "contract" "implementation"
-	     "valof" "lift" "do" "if" "then" "else" "while" "for" "in"
+	     "valof" "lift" "do" "if" "then" "else" "while" "for" "in" "valis"
 	     "open"
 	     "try" "catch" "throw"
-	     "void"
 	     "where" "type" "all" "exists" "let" "default"
 	     "show" "assert")
 	   )
