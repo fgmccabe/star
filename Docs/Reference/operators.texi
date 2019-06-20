@@ -28,7 +28,7 @@
 @tab 720
 @item @code{do}
 @tab non-associative prefix
-@tab 100
+@tab 200
 @item @code{do}
 @tab non-associative infix
 @tab 1200

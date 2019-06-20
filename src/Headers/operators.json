@@ -110,7 +110,7 @@
   },
   {
     "prefixOp" : "do",
-    "priorities" : [ 100,99],
+    "priorities" : [ 200,199],
      "desc": "do {}"
   },
   {
