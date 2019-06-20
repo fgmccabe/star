@@ -64,6 +64,9 @@ star.compiler.types{
   resetBinding(tVar(B,_)) => do {
     B.binding := none
   }
+  resetBinding(tFun(B,_,_)) => do{
+    B.binding := none
+  }
 
   public constraintsOf:(tipe) => list[constraint].
   constraintsOf(Tp) => conOf(deRef(Tp)).

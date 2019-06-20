@@ -392,7 +392,7 @@ implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,whr(Lc,N,mtch(Lc,N,dte(Lc,Vr,intgr(Ix))
   liftVar(Lc,ThVr,Map,Vr,Q,Q0),
   merge([N],Q0,Qx).
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
-implementVarPtn(localCons(Enum,_,_,ThVr),_,_,ctpl(Enum,[ThVr]),_,Q,Qx) :-
+implementVarPtn(localCons(Enum,_,_,ThVr),_,_,ctpl(lbl(Enum,1),[ThVr]),_,Q,Qx) :-
   merge([ThVr],Q,Qx).
 implementVarPtn(notInMap,Nm,_,idnt(Nm),_,Q,Qx) :-                 % variable local to rule
   merge([idnt(Nm)],Q,Qx).
@@ -415,9 +415,10 @@ implementPtnCall(moduleFun(Fn,_,Ar),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A
   genVar("_X",X),
   merge([X],Q,Qx).
 implementPtnCall(moduleCons(Mdl,_,Ar),_,_,Args,ctpl(lbl(Mdl,Ar),Args),_,Q,Q).
-implementPtnCall(localCons(Mdl,_,_,ThVr),Lc,_,Args,ctpl(Mdl,XArgs),Map,Q,Qx) :-
+implementPtnCall(localCons(Mdl,_,_,ThVr),Lc,_,Args,ctpl(lbl(Mdl,Ar),XArgs),Map,Q,Qx) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx),
-  concat(Args,[Vr],XArgs).
+  concat(Args,[Vr],XArgs),
+  length(XArgs,Ar).
 
 liftExps([],Args,Args,Q,Q,_,_,Ex,Ex) :-!.
 liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
@@ -508,7 +509,7 @@ implementVarExp(labelArg(_N,Ix,ThVr),Lc,_,dte(Lc,ThV,intgr(Ix)),Map,Q,Qx) :-
 implementVarExp(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
 implementVarExp(moduleCons(C,_,Ar),_,_,Cns,_,Q,Q) :-
   trCons(C,Ar,Cns).
-implementVarExp(localCons(Enum,_,_,ThVr),Lc,_,ctpl(Enum,[Vr]),Map,Q,Qx) :-
+implementVarExp(localCons(Enum,_,_,ThVr),Lc,_,ctpl(lbl(Enum,1),[Vr]),Map,Q,Qx) :-
   liftVar(Lc,ThVr,Map,Vr,Q,Qx).
 implementVarExp(notInMap,_,Nm,idnt(Nm),_,Q,Qx) :-
   merge([idnt(Nm)],Q,Qx).
