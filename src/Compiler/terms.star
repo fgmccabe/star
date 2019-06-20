@@ -184,7 +184,6 @@ star.compiler.terms{
   public decodeSignature:(string) => option[tipe].
   decodeSignature(St) => let{
     decodeType:(list[integer]) => option[(tipe,list[integer])].
-    decodeType([0cv,..Ts]) => some((voidType,Ts)).
     decodeType([0ci,..Ts]) => some((tipe("star.core*integer"),Ts)).
     decodeType([0cf,..Ts]) => some((tipe("star.core*float"),Ts)).
     decodeType([0cS,..Ts]) => some((tipe("star.core*string"),Ts)).
@@ -301,7 +300,6 @@ star.compiler.terms{
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => let{
     encodeType:(tipe,list[integer]) => list[integer].
-    encodeType(voidType,Ts) => [Ts..,0cv].
     encodeType(tipe("star.core*integer"),Ts) => [Ts..,0ci].
     encodeType(tipe("star.core*float"),Ts) => [Ts..,0cf].
     encodeType(tipe("star.core*string"),Ts) => [Ts..,0cS].

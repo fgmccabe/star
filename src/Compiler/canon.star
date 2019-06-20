@@ -12,6 +12,7 @@ star.compiler.canon{
 
   public canon ::= vr(locn,string,tipe) |
     mtd(locn,string,tipe) |
+    over(locn,canon,tipe,list[constraint]) |
     intLit(locn,integer) |
     floatLit(locn,float) |
     stringLit(locn,string) |
@@ -53,7 +54,7 @@ star.compiler.canon{
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
-    implDef(locn,string,string,tipe) |
+    implDef(locn,string,string,canon,tipe) |
     funDef(locn,string,string,list[canon],tipe,list[constraint]).
 
   public implementation hasType[canon] => {.
@@ -88,6 +89,8 @@ star.compiler.canon{
 
   public implementation display[canon] => let{
     showCanon(vr(_,Nm,_)) => ss(Nm).
+    showCanon(mtd(_,Fld,_)) => ssSeq([ss("µ"),ss(Fld)]).
+    showCanon(over(_,V,_,Cx)) => ssSeq([disp(Cx),ss("|:"),disp(V)]).
     showCanon(intLit(_,Ix)) => disp(Ix).
     showCanon(floatLit(_,Dx)) => disp(Dx).
     showCanon(stringLit(_,Sx)) => disp(Sx).
@@ -125,7 +128,7 @@ star.compiler.canon{
   showDef(conDef(_,Nm,_,Tp)) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,Nm,_,Tp)) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
   showDef(funDef(_,Nm,_,Rls,Tp,_)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". ")))]).
-  showDef(implDef(_,Nm,FullNm,Tp)) => ssSeq([ss("Implementation: "),ss(Nm),ss(" = "),ss(FullNm),ss(":"),disp(Tp)]).
+  showDef(implDef(_,Nm,FullNm,Exp,Tp)) => ssSeq([ss("Implementation: "),ss(Nm),ss(" = "),ss(FullNm),ss(":"),disp(Tp),ss("="),disp(Exp)]).
 
   showRl:(string,canon) => ss.
   showRl(Nm,lambda(_,Ptn,vr(_,"true",tipe("star.core*boolean")),Val,_)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).
