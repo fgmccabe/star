@@ -295,6 +295,10 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
 #endif
 
   integer newSize = (integer) ((H->outerLimit - H->base) * factor + hmin);
+
+  if(newSize>maxHeapSize)
+    return Error;
+
   termPo newHeap = (termPo) malloc(sizeof(ptrPo) * newSize);
   termPo oldHeap = H->base;
 

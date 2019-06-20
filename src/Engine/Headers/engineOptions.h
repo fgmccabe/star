@@ -45,8 +45,10 @@ extern logical tracePkg;
 extern logical traceManifest;
 extern logical traceVerify;
 
-extern long initHeapSize;    /* How much memory to give the heap */
-extern long initStackSize;    /* How big is the stack */
+extern long initHeapSize;        /* How much memory to give the heap */
+extern long maxHeapSize;         // Maximum permitted size of heap
+extern long initStackSize;       /* How big is the stack */
+extern long maxStackSize;        // How big may the stack grow?
 
 extern char entry[MAX_SYMB_LEN];
 extern char bootInit[MAX_SYMB_LEN];
