@@ -195,7 +195,7 @@ star.compiler.checker{
 	  logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	  ImplTp = rebind(BV,reConstrain(Cx,ConFaceTp),Es);
 	  valis (implDef(Lc,Nm,FullNm,Impl,ConTp),
-	    declareImplementation(Nm,FullNm,ConTp,Env))
+	    declareImplementation(FullNm,ConTp,Env))
 	}
 	else{
 	  throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
@@ -593,9 +593,7 @@ star.compiler.checker{
   typeOfVar:(locn,string,tipe,vrEntry,dict,reports) => either[reports,canon].
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
     (_,VrTp) = freshen(VTp,[],Env);
-    logMsg("var $(Nm) has recorded type $(VrTp)");
     (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Nm,VrTp),Env,Rp);
-    logMsg("managed type $(MTp) = $(Tp)?");
     if sameType(Tp,MTp,Env) || sameType(enumType(Tp),MTp,Env) then {
       valis Term
     } else
