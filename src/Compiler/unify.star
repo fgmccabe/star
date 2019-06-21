@@ -11,12 +11,12 @@ star.compiler.unify{
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
     sm(kVar(Nm),kVar(Nm),_) => true.
-    sm(kVar(Nm),T2,Env) where (_,T1,_)^=findType(Env,Nm) => sm(deRef(T1),T2,Env).
-    sm(T1,kVar(Nm),Env) where (_,T2,_)^=findType(Env,Nm) => sm(T1,deRef(T2),Env).
-    sm(kFun(Nm,Ar),T2,Env) where (_,T1,_)^=findType(Env,Nm) =>
-      sm(deRef(T1),T2,Env).
-    sm(T1,kFun(Nm,Ar),Env) where (_,T2,_)^=findType(Env,Nm) =>
-      sm(T1,deRef(T2),Env).
+--    sm(kVar(Nm),T2,Env) where (_,T1,_)^=findType(Env,Nm) => sm(deRef(T1),T2,Env).
+--    sm(T1,kVar(Nm),Env) where (_,T2,_)^=findType(Env,Nm) => sm(T1,deRef(T2),Env).
+--    sm(kFun(Nm,Ar),T2,Env) where (_,T1,_)^=findType(Env,Nm) =>
+--      sm(deRef(T1),T2,Env).
+--    sm(T1,kFun(Nm,Ar),Env) where (_,T2,_)^=findType(Env,Nm) =>
+--      sm(T1,deRef(T2),Env).
     sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => true.
     sm(T1,T2,Env) where tVar(_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where tVar(_,_) .= T2 => varBinding(T2,T1,Env).
@@ -122,7 +122,6 @@ star.compiler.unify{
       return true
     }
     bind(_,_,_) default => false.
-
 
     checkConstraints([],_) => true.
     checkConstraints([C,..Rest],Env) =>
