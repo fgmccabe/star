@@ -110,10 +110,6 @@ star.compiler.types{
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
 
-  public skolemFun:(string,integer) => tipe.
-  skolemFun(Nm,0) => kVar(genSym(Nm)).
-  skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).
-
   public implementation equality[tipe] => {
     T1==T2 => identType(T1,T2,[]).
   }

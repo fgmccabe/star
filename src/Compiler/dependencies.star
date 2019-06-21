@@ -267,7 +267,7 @@ star.compiler.dependencies{
   collectConstraintRefs:(list[ast],list[defnSp],list[defnSp],reports) =>
     either[reports,list[defnSp]].
   collectConstraintRefs([],_,R,_) => either(R).
-  collectContraintRefs([T,..Ts],All,Rf,Rp) => do {
+  collectConstraintRefs([T,..Ts],All,Rf,Rp) => do {
     R1 <- collectTypeRefs(T,All,Rf,Rp);
     collectConstraintRefs(Ts,All,R1,Rp)
   }

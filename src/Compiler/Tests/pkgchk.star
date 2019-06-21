@@ -78,7 +78,10 @@ test{
   import star.core.
   public fact:(integer)=>integer.
   fact(0)=>1.
-  fact(N)=>N*fact(N-1)
+  fact(N)=>N*fact(N-1).
+
+  double:all x ~~ arith[x] |: (x)=>x.
+  double(X) => X+X.
 }
   """.
 

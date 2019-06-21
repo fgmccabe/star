@@ -21,12 +21,21 @@ star.compiler.freshen{
   genSkolemFun(Nm,[]) => skolemFun(Nm,0).
   genSkolemFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
+  skolemFun:(string,integer) => tipe.
+  skolemFun(Nm,0) => kVar(genSym(Nm)).
+  skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).
+
   public evidence:(tipe,set[tipe],dict) => (cons[(string,tipe)],tipe).
-  evidence(Tp,Ex,Env) where (T,Q,Ev).=skolemQuants(deRef(Tp),[],Env) => (Q,frshn(deRef(T),Ex,Ev)).
+  evidence(Tp,Ex,Env) where (T,Q,Ev).=skolemQuants(deRef(Tp),[],Env) =>
+    (Q,frshn(deRef(T),Ex,Ev)).
   evidence(Tp,_,_) default => ([],Tp).
 
+  skolemQuants(allType(kVar(V),T),B,Env) where none.=findType(Env,V) =>
+    skolemQuants(deRef(T),[(V,kVar(V)),..B],Env).
   skolemQuants(allType(kVar(V),T),B,Env) where NV.=skolemFun(V,0) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+  skolemQuants(allType(kFun(V,Ar),T),B,Env)  where none.=findType(Env,V) =>
+    skolemQuants(deRef(T),[(V,kFun(V,Ar)),..B],declareType(V,none,kFun(V,Ar),faceType([],[]),Env)).
   skolemQuants(allType(kFun(V,Ar),T),B,Env)  where NV.=skolemFun(V,Ar)=>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   skolemQuants(existType(kVar(V),T),B,Env) where NV.=genTypeFun(V,B) =>

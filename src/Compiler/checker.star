@@ -139,19 +139,13 @@ star.compiler.checker{
   checkGroup([],Defs,Env,_,_) => either((Defs,Env)).
   checkGroup([D,..Ds],Defs,Env,Path,Rp) => do{
     (Defn,E0) <- checkDefn(D,Env,Path,Rp);
---    logMsg("env after statement $(E0)");
     checkGroup(Ds,[Defs..,Defn],E0,Path,Rp)
   }
-  
+
+  checkDefn:(defnSpec,dict,string,reports) => either[reports,(canonDef,dict)].
   checkDefn(defnSpec(funSp(Nm),Lc,Stmts),Env,Path,Rp) where
-      vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
-	(Q,ETp) = evidence(Tp,[],Env);
-	(Cx,ProgramTp) = deConstrain(ETp);
-	Es = declareConstraints(Cx,declareTypeVars(Q,Env));
-	(Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Env,Path,Rp);
-	LclNm = qualifiedName(Path,markerString(pkgMark),Nm);
-	valis (funDef(Lc,Nm,LclNm,Rls++Dflt,Tp,Cx),declareVar(Nm,some(Lc),Tp,Env))
-      }.
+      vrEntry(_,_,Tp) ^= isVar(Nm,Env) =>
+    checkFunction(Nm,Tp,Lc,Stmts,Env,Path,Rp).
   checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Path,Rp) where
       vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
 	(Q,ETp) = evidence(Tp,[],Env);
@@ -176,38 +170,22 @@ star.compiler.checker{
       declareContract(Lc,ConNm,Contract,Env))
   }
   checkDefn(defnSpec(implSp(Nm),Lc,[St]),Env,Path,Rp) => do {
-    if (_,Q,C,H,B) ^= isImplementationStmt(St) then {
-      BV <- parseBoundTpVars(Q,Rp);
-      Cx <- parseConstraints(C,BV,Env,Rp);
-      Cn <- parseContractConstraint(BV,H,Env,Rp);
-      logMsg("implemented contract type $(Cn)");
-      ConName = localName(typeName(Cn),typeMark);
-      if Con ^= findContract(Env,ConName) then{
-	(_,typeExists(ConTp,ConFaceTp)) =
-	  freshen(Con,[],Env);
-	logMsg("found contract type $(ConTp), implementation type $(ConFaceTp)");
-	if sameType(ConTp,Cn,Env) then {
-	  logMsg("implemented type should be $(ConTp)/$(ConFaceTp)");
-	  
-	  Es = declareConstraints(Cx,declareTypeVars(BV,Env));
-	  Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
-	  FullNm = implementationName(ConTp);
-	  logMsg("full name of implementation of $(ConTp) is $(FullNm)");
-	  ImplTp = rebind(BV,reConstrain(Cx,ConFaceTp),Es);
-	  valis (implDef(Lc,Nm,FullNm,Impl,ConTp),
-	    declareImplementation(FullNm,ConTp,Env))
-	}
-	else{
-	  throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
-	}
-      } else{
-	throw reportError(Rp,"Contract $(ConName) not known",Lc)
-      }
-    }
-    else{
+    if (_,Q,C,H,B) ^= isImplementationStmt(St) then
+      checkImplementation(Lc,Nm,Q,C,H,B,Env,Path,Rp)
+    else
       throw reportError(Rp,"not a valid implementation statement",Lc)
-    }
   }
+
+  checkFunction:(string,tipe,locn,list[ast],dict,string,reports) =>
+    either[reports,(canonDef,dict)].
+  checkFunction(Nm,Tp,Lc,Stmts,Env,Path,Rp) => do{
+    (Q,ETp) = evidence(Tp,[],Env);
+    (Cx,ProgramTp) = deConstrain(ETp);
+    Es = declareConstraints(Cx,declareTypeVars(Q,Env));
+    (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,Path,Rp);
+    LclNm = qualifiedName(Path,markerString(pkgMark),Nm);
+    valis (funDef(Lc,Nm,LclNm,Rls++Dflt,Tp,Cx),declareVar(Nm,some(Lc),Tp,Env))
+  }.
 
   processEqns:(list[ast],tipe,list[canon],list[canon],dict,string,reports) =>
     either[reports,(list[canon],list[canon])].
@@ -237,6 +215,37 @@ star.compiler.checker{
 	Rep <- typeOfExp(R,RTp,Ev1,Path,Rp);
 	valis (lambda(Lc,Args,Cond,Rep,ProgramType),IsDeflt)
       }.
+
+  checkImplementation:(locn,string,list[ast],list[ast],ast,ast,dict,string,reports) =>
+    either[reports,(canonDef,dict)].
+  checkImplementation(Lc,Nm,Q,C,H,B,Env,Path,Rp) => do{
+    BV <- parseBoundTpVars(Q,Rp);
+    Cx <- parseConstraints(C,BV,Env,Rp);
+    Cn <- parseContractConstraint(BV,H,Env,Rp);
+    logMsg("implemented contract type $(Cn)");
+    ConName = localName(typeName(Cn),typeMark);
+    if Con ^= findContract(Env,ConName) then{
+      (_,typeExists(ConTp,ConFaceTp)) =
+	freshen(Con,[],Env);
+      logMsg("found contract type $(ConTp), implementation type $(ConFaceTp)");
+      if sameType(ConTp,Cn,Env) then {
+	logMsg("implemented type should be $(ConTp)/$(ConFaceTp)");
+	
+	Es = declareConstraints(Cx,declareTypeVars(BV,Env));
+	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
+	FullNm = implementationName(ConTp);
+	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
+	ImplTp = rebind(BV,reConstrain(Cx,ConFaceTp),Es);
+	valis (implDef(Lc,Nm,FullNm,Impl,ConTp),
+	  declareImplementation(FullNm,ConTp,Env))
+      }
+      else{
+	throw reportError(Rp,"implementation type $(Cn) not consistent with contract type $(ConTp)",Lc)
+      }
+    } else{
+      throw reportError(Rp,"Contract $(ConName) not known",Lc)
+    }
+  }
     
   checkOthers:(list[ast],list[canon],dict,string,reports) => either[reports,list[canon]].
   checkOthers([],Oth,_,_,_) => either(Oth).
