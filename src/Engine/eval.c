@@ -398,6 +398,12 @@ retCode run(processPo P) {
         continue;
       }
 
+      case StV: {
+        int32 offset = collectI32(PC);
+        ptrPo dest = local(offset);
+        *dest = voidEnum;
+        continue;
+      }
       case TL: {
         int32 offset = collectI32(PC);
         ptrPo dest = local(offset);
