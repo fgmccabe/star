@@ -12,7 +12,7 @@ star.compiler.dict{
 
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,tipe],
-    map[string,map[string,constraint]]).
+    map[string,constraint]).
 
   public dict ~> cons[scope].
 
@@ -94,15 +94,13 @@ star.compiler.dict{
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public findImplementation:(dict,string,string) => option[constraint].
-  findImplementation([scope(_,_,_,Imps),.._],Nm,INm) where Ims ^= Imps[Nm] && Imp ^= Ims[INm] => some(Imp).
+  findImplementation([scope(_,_,_,Imps),.._],Nm,INm) where Imp ^= Imps[INm] => some(Imp).
   findImplementation([_,..Rest],Nm,INm) => findImplementation(Rest,Nm,INm).
   findImplementation([],_,_) => none.
 
-  public declareImplementation:(string,string,tipe,dict) => dict.
-  declareImplementation(Nm,ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
-    (Ims ^= Imps[Nm] ?
-	[scope(Tps,Vrs,Cns,Imps[Nm->Ims[ImplNm->typeConstraint(Con)]]),..Env] ||
-	[scope(Tps,Vrs,Cns,Imps[Nm->[ImplNm->typeConstraint(Con)]]),..Env]).
+  public declareImplementation:(string,tipe,dict) => dict.
+  declareImplementation(ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
+    [scope(Tps,Vrs,Cns,Imps[ImplNm->typeConstraint(Con)]),..Env].
 
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope([],[],[],[]),..Env].
@@ -134,7 +132,7 @@ star.compiler.dict{
   declareConstraints([],E) => E.
   declareConstraints([typeConstraint(Con),..Cx],Env) =>
     declareConstraints(Cx,
-      declareImplementation(typeName(Con),implementationName(Con),Con,Env)).
+      declareImplementation(implementationName(Con),Con,Env)).
   declareConstraints([_,..Cx],Env) =>
     declareConstraints(Cx,Env).
 

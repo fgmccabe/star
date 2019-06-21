@@ -41,10 +41,6 @@ star.compiler.unify{
       same(T1,T2,updateEnv(V1,V2,Env)).
     smT(funDeps(T1,D1),funDeps(T2,D2),Env) =>
       same(T1,T2,Env) && smTypes(D1,D2,Env).
-    smT(T1,T2,_) => valof action{
-      logMsg("$(T1) != $(T2)");
-      valis valof resetBindings
-    }
     smT(_,_,_) default => valof resetBindings.
 
     smTypes([],[],_) => true.
@@ -60,7 +56,8 @@ star.compiler.unify{
     updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => true.
-    varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => bind(T1,T2,Env).
+    varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => 
+      bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
 
     reset ::= resetVar(tipe) | resetConstraint(tipe,list[constraint]).
@@ -118,7 +115,6 @@ star.compiler.unify{
 	    return true
 	  }
 	  || false).
-
     bind(V,T,Env) where isUnbound(T) &&  MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) => valof action{
       addVarConstraints(T);
       setConstraints(T,MM);
@@ -127,11 +123,12 @@ star.compiler.unify{
     }
     bind(_,_,_) default => false.
 
+
     checkConstraints([],_) => true.
     checkConstraints([C,..Rest],Env) =>
       checkConstraint(C,Env) && checkConstraints(Rest,Env).
 
-    checkConstraint(typeConstraint(Tp),Env) where
+    checkConstraint(typeConstraint(Tp),Env) where 
 	INm.=implementationName(Tp) &&
 	Im ^= findImplementation(Env,typeName(Tp),INm) =>
       same(Tp,typeOf(Im),Env).

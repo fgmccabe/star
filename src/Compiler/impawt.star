@@ -27,7 +27,7 @@ star.compiler.impawt{
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
 	E2 = foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
 	    declareVr(FullNm,some(Lc),Tp,(LL,NN,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
-	      declareImplementation(ConNm,FullNm,Tp,EE)),E1,Impls);
+	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
       } else{
 	throw reportError(Rp,"cannot import $(Pkg)",Lc)
