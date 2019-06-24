@@ -25,8 +25,9 @@ star.compiler.resolve{
 
   overloadDef:(dict,canonDef,reports)=>either[reports,canonDef].
   overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp).
-  
+    overloadVarDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp). 
+  overloadDef(Dict,Def,Rp) default => either(Def).
+ 
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
     RVal <- resolveTerm(Val,Dict,Rp);
     valis varDef(Lc,Nm,FullNm,RVal,[],Tp)
