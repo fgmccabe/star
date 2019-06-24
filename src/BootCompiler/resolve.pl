@@ -48,9 +48,6 @@ overloadRule(equation(Lc,Args,Cond,Exp),Dict,St,Stx,equation(Lc,RArgs,RCond,RExp
   overloadTerm(Cond,Dict,St0,St1,RCond),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
 
-overloadRules(Eqns,Dict,St,Stx,OEqns) :-
-  overloadLst(Eqns,overloadRule,Dict,St,Stx,OEqns).
-
 overloadDefn(Lc,Nm,ExtNm,[],Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,RExp)) :-
   resolveTerm(Exp,Dict,RExp).
 overloadDefn(Lc,Nm,ExtNm,Cx,Tp,Exp,Dict,varDef(Lc,Nm,ExtNm,[],Tp,

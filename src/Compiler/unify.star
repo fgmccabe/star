@@ -129,7 +129,7 @@ star.compiler.unify{
 
     checkConstraint(typeConstraint(Tp),Env) where 
 	INm.=implementationName(Tp) &&
-	Im ^= findImplementation(Env,typeName(Tp),INm) =>
+	Im ^= findImplementation(Env,INm) =>
       same(Tp,typeOf(Im),Env).
     checkConstraint(fieldConstraint(T,F),Env) where
 	Face .= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).

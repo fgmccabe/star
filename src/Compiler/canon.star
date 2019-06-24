@@ -31,10 +31,12 @@ star.compiler.canon{
     apply(locn,canon,canon,tipe) |
     tple(locn,list[canon]) |
     varRef(locn,canon,tipe) |
-    lambda(locn,canon,canon,canon,tipe) |
+    lambda(list[equation],tipe) |
     letExp(locn,canon,canon) |
     theta(locn,string,boolean,list[list[canonDef]],list[canon],tipe) |
-    record(locn,string,boolean,list[list[canonDef]],list[canon],tipe) .
+    record(locn,string,boolean,list[list[canonDef]],list[canon],tipe).
+
+  public equation ::= eqn(locn,canon,canon,canon).
 
   public canonAction ::= noDo(locn) |
     seqnDo(locn,canonAction,canonAction) |
@@ -54,8 +56,7 @@ star.compiler.canon{
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
-    implDef(locn,string,string,canon,tipe) |
-    funDef(locn,string,string,list[canon],tipe,list[constraint]).
+    implDef(locn,string,string,canon,tipe).
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
@@ -73,6 +74,10 @@ star.compiler.canon{
 
   public implementation hasLoc[canon] => {.
     locOf(vr(Lc,_,_)) => Lc.
+  .}
+
+  public implementation hasLoc[equation] => {.
+    locOf(eqn(Lc,_,_,_)) => Lc.
   .}
 
   public implementation display[pkgSpec] => {.
@@ -109,7 +114,7 @@ star.compiler.canon{
     showCanon(apply(_,L,R,_)) => ssSeq([showCanon(L),showCanon(R)]).
     showCanon(tple(_,Els)) => ssSeq([ss("("),ssSeq(interleave(Els//showCanon,ss(","))),ss(")")]).
     showCanon(varRef(_,R,_)) => ssSeq([showCanon(R),ss("!")]).
-    showCanon(lambda(Lc,Args,Cond,Exp,Tp)) => showRl("",lambda(Lc,Args,Cond,Exp,Tp)).
+    showCanon(lambda(Rls,Tp)) => showRls("λ",Rls).
     showCanon(letExp(_,Th,Ep)) => ssSeq([ss("let "),showCanon(Th),ss(" in "),showCanon(Ep)]).
     showCanon(theta(_,_,_,Groups,Others,_)) => ssSeq([ss("{"),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss("}")]).
     showCanon(record(_,_,_,Groups,Others,_)) => ssSeq([ss("{."),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss(".}")]).
@@ -123,14 +128,21 @@ star.compiler.canon{
     disp(D) => showDef(D)
   }
 
+  showDef(varDef(_,Nm,_,lambda(Rls,_),_,Tp)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),showRls(Nm,Rls)]).
   showDef(varDef(_,Nm,_,V,_,Tp)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),disp(V)]).
   showDef(typeDef(_,Nm,T,_)) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
   showDef(conDef(_,Nm,_,Tp)) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,Nm,_,Tp)) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
-  showDef(funDef(_,Nm,_,Rls,Tp,_)) => ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". ")))]).
   showDef(implDef(_,Nm,FullNm,Exp,Tp)) => ssSeq([ss("Implementation: "),ss(Nm),ss(" = "),ss(FullNm),ss(":"),disp(Tp),ss("="),disp(Exp)]).
 
-  showRl:(string,canon) => ss.
-  showRl(Nm,lambda(_,Ptn,vr(_,"true",tipe("star.core*boolean")),Val,_)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).
-  showRl(Nm,lambda(_,Ptn,Cond,Val,_)) => ssSeq([ss(Nm),disp(Ptn),ss(" where "),disp(Cond),ss(" => "),disp(Val)]).
+  showRls:(string,list[equation]) => ss.
+  showRls(Nm,Rls) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". "))).
+
+  showRl:(string,equation) => ss.
+  showRl(Nm,eqn(_,Ptn,vr(_,"true",tipe("star.core*boolean")),Val)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).
+  showRl(Nm,eqn(_,Ptn,Cond,Val)) => ssSeq([ss(Nm),disp(Ptn),ss(" where "),disp(Cond),ss(" => "),disp(Val)]).
+
+  -- Useful constants
+  public trueEnum:(locn)=>canon.
+  trueEnum(Lc) => enm(Lc,"true",tipe("star.core*boolean")).
 }

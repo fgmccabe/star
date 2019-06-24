@@ -63,8 +63,7 @@ star.compiler.checker{
     { (Nm,Tp) |
 	DD in Defs && D in DD &&
 	    (
-	      (varDef(_,Nm,_,_,_,Tp) .=D ||
-		funDef(_,Nm,_,_,Tp,_) .= D) && varSp(Nm) in Public ||
+	      varDef(_,Nm,_,_,_,Tp) .=D && varSp(Nm) in Public ||
 	      (cnsDef(_,Nm,_,Tp) .=D && cnsSp(Nm) in Public))}.
 
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
@@ -184,11 +183,11 @@ star.compiler.checker{
     Es = declareConstraints(Cx,declareTypeVars(Q,Env));
     (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,Path,Rp);
     LclNm = qualifiedName(Path,markerString(pkgMark),Nm);
-    valis (funDef(Lc,Nm,LclNm,Rls++Dflt,Tp,Cx),declareVar(Nm,some(Lc),Tp,Env))
+    valis (varDef(Lc,Nm,LclNm,lambda(Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
   }.
 
-  processEqns:(list[ast],tipe,list[canon],list[canon],dict,string,reports) =>
-    either[reports,(list[canon],list[canon])].
+  processEqns:(list[ast],tipe,list[equation],list[equation],dict,string,reports) =>
+    either[reports,(list[equation],list[equation])].
   processEqns([],_,Rls,Deflt,_,_,_) => either((Rls,Deflt)).
   processEqns([St,..Ss],ProgramType,Rls,Deflt,Env,Path,Rp) => do{
     (Rl,IsDeflt) <- processEqn(St,ProgramType,Env,Path,Rp);
@@ -213,7 +212,7 @@ star.compiler.checker{
 	(Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),Ats,Env,Path,Rp);
 	(Cond,Ev1) <- checkGoal(C,Ev,Path,Rp);
 	Rep <- typeOfExp(R,RTp,Ev1,Path,Rp);
-	valis (lambda(Lc,Args,Cond,Rep,ProgramType),IsDeflt)
+	valis (eqn(Lc,Args,Cond,Rep),IsDeflt)
       }.
 
   checkImplementation:(locn,string,list[ast],list[ast],ast,ast,dict,string,reports) =>
@@ -591,8 +590,8 @@ star.compiler.checker{
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
     HT = funType(tupleType([ErTp]),tpExp(StTp,ElTp));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis lambda(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),
-      enm(Lc,"true",tipe("star.core*boolean")),act(locOf(A),H),HT)
+    valis lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),
+	  enm(Lc,"true",tipe("star.core*boolean")),act(locOf(A),H))],HT)
   }
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
     HT = funType(tupleType([ErTp]),tpExp(StTp,ElTp));
@@ -631,7 +630,7 @@ star.compiler.checker{
     (Cond,E1) <- checkGoal(C,E0,Path,Rp);
     Rep <- typeOfExp(R,Rt,E1,Path,Rp);
     checkType(A,funType(At,Rt),Tp,Env,Rp);
-    valis lambda(Lc,As,Cond,Rep,Tp)
+    valis lambda([eqn(Lc,As,Cond,Rep)],Tp)
   }
 
   manageConstraints:(tipe,list[constraint],locn,canon,dict,reports) =>
