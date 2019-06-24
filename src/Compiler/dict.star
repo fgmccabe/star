@@ -93,10 +93,10 @@ star.compiler.dict{
   findContract([scope(_,_,Cns,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
-  public findImplementation:(dict,string,string) => option[constraint].
-  findImplementation([scope(_,_,_,Imps),.._],Nm,INm) where Imp ^= Imps[INm] => some(Imp).
-  findImplementation([_,..Rest],Nm,INm) => findImplementation(Rest,Nm,INm).
-  findImplementation([],_,_) => none.
+  public findImplementation:(dict,string) => option[constraint].
+  findImplementation([scope(_,_,_,Imps),.._],INm) where Imp ^= Imps[INm] => some(Imp).
+  findImplementation([_,..Rest],INm) => findImplementation(Rest,INm).
+  findImplementation([],_) => none.
 
   public declareImplementation:(string,tipe,dict) => dict.
   declareImplementation(ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
