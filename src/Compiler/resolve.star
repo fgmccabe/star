@@ -11,11 +11,15 @@ star.compiler.resolve{
   import star.compiler.freshen.
   import star.compiler.unify.
 
-  public overload:(dict,list[list[canonDef]],reports) =>
-    either[reports,list[list[canonDef]]].
-  overload(Dict,Gps,Rp) => do{
+  public overloadEnvironment:(list[list[canonDef]],list[canon],dict,reports) =>
+    either[reports,(list[list[canonDef]],list[canon])].
+  overloadEnvironment(Gps,Ots,Dict,Rp) => do{
     TDict = declareImplementations(Gps,Dict);
-    overloadGroups(Gps,[],Dict,Rp)
+    logMsg("resolution dict = $(TDict)");
+    RGps <- overloadGroups(Gps,[],TDict,Rp);
+    ROts <- pickFailures(Ots//(T)=>resolveTerm(T,TDict,Rp));
+
+    valis (RGps,ROts)
   }
 
   declareImplementations([],Dict) => Dict.
@@ -67,6 +71,9 @@ star.compiler.resolve{
 
   resolveState ::= inactive | resolved | active(locn,string).
 
+  markResolved(inactive) => resolved.
+  markResolved(St) default => St.
+
   public resolveTerm(Term,Dict,Rp) => do{
     (St,RTerm) <- overloadTerm(Term,Dict,inactive,Rp);
     resolveAgain(inactive,St,RTerm,Dict,Rp)
@@ -98,8 +105,14 @@ star.compiler.resolve{
   }
   overloadTerm(over(Lc,T,Tp,Cx),Dict,St,Rp) => do{
     (St1,[A,..Args]) <- resolveContracts(Lc,Cx,[],Dict,St,Rp);
-    OverOp = (mtd(_,Nm,Tp) .= T ? dot(Lc,A,Nm,Tp) || T);
-    valis (St1,apply(Lc,OverOp,tple(Lc,[A,..Args]),Tp))
+    if mtd(_,Nm,MTp) .= T then{
+      if _eof(Args) then
+	valis (St1,dot(Lc,A,Nm,MTp))
+      else
+      valis (St1,apply(Lc,dot(Lc,A,Nm,MTp),tple(Lc,Args),Tp))
+    }
+    else
+    valis (St1,apply(Lc,T,tple(Lc,[A,..Args]),Tp))
   }
   overloadTerm(apply(lc,Op,Arg,Tp),Dict,St,Rp) => do{
     (St1,ROp) <- overloadTerm(Op,Dict,St,Rp);
@@ -166,16 +179,12 @@ star.compiler.resolve{
     valis (St1,act(Lc,RAct))
   }
   overloadTerm(theta(Lc,Nm,Lbled,Gps,Ots,Tp),Dict,St,Rp) => do{
-    TDict = declareImplementations(Gps,Dict);
-    RGps <- overloadGroups(Gps,[],TDict,Rp);
-    (St2,ROts) <- overloadTerms(Ots,[],TDict,St,Rp);
-    valis (St2,theta(Lc,Nm,Lbled,RGps,ROts,Tp))
+    (RGps,ROts) <- overloadEnvironment(Gps,Ots,Dict,Rp);
+    valis (St,theta(Lc,Nm,Lbled,RGps,ROts,Tp))
   }
   overloadTerm(record(Lc,Nm,Lbled,Gps,Ots,Tp),Dict,St,Rp) => do{
-    TDict = declareImplementations(Gps,Dict);
-    RGps <- overloadGroups(Gps,[],TDict,Rp);
-    (St2,ROts) <- overloadTerms(Ots,[],TDict,St,Rp);
-    valis (St2,record(Lc,Nm,Lbled,RGps,ROts,Tp))
+    (RGps,ROts) <- overloadEnvironment(Gps,Ots,Dict,Rp);
+    valis (St,record(Lc,Nm,Lbled,RGps,ROts,Tp))
   }
 
   overloadRules([],Els,Dict,St,_) => either((St,Els)).
@@ -251,7 +260,6 @@ star.compiler.resolve{
     valis (St1,simpleDo(Lc,RT,T1,T2))
   }
     
-
   resolveContracts:(locn,list[constraint],list[canon],dict,resolveState,reports) =>
     either[reports,(resolveState,list[canon])].
   resolveContracts(_,[],Cx,_,St,Rp) => either((St,Cx)).
@@ -263,8 +271,19 @@ star.compiler.resolve{
   resolveContract:(locn,tipe,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
     ImpNm = implementationName(Tp);
-    logMsg("we have implementation name $(ImpNm) for $(Tp)");
-    throw reportError(Rp,"cannot resolve $(Tp)",Lc)
+    if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
+      logMsg("we have implementation $(Mk(Lc,Tp)) for $(Tp)");
+      (MTp,VrTp) = freshen(VTp,[],Dict);
+      (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
+      if sameType(ITp,Tp,Dict) then {
+	logMsg("we found implementation $(Impl)\:$(ITp)");	
+	overloadTerm(Impl,Dict,markResolved(St),Rp)
+      } else{
+	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
+      }
+    } else{
+      throw reportError(Rp,"cannot find an implementation for $(Tp)",Lc)
+    }
   }
 }
   

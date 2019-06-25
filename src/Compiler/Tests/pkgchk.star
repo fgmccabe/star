@@ -3,7 +3,6 @@ test.comp.pkgchk{
   import star.pkg.
   import star.repo.
 
-  import test.comp.nullrepo.
   import test.comp.strrepo.
 
   import star.compiler.location.
@@ -11,10 +10,8 @@ test.comp.pkgchk{
   import star.compiler.canon.
   import star.compiler.checker.
   import star.compiler.dict.
-  import star.compiler.dependencies.
   import star.compiler.errors.
   import star.compiler.impawt.
-  import star.compiler.meta.
   import star.compiler.parser.
   import star.compiler.types.
   import star.compiler.terms.
@@ -24,8 +21,6 @@ test.comp.pkgchk{
   lc = pkgLoc(Pk).
 
   getAst((some(A),_)) => A.
-
-  getBrEls(A) where (_,Els) ^= isBrTuple(A) => Els.
 
   S0 = """
 star.core{
@@ -61,9 +56,6 @@ star.core{
 
   A0 = getAst(parseText(lc,S0,R0)).
 
-  show disp(A0).
-
-  
   SR1 = valof do{
     RP0 = strRepo([]);
     (Sp,_,_) <- checkPkg(RP0,A0,stdDict,R0);
@@ -86,8 +78,6 @@ test{
   """.
 
   A1 = getAst(parseText(lc,S1,R0)).
-
-  show disp(A1).
 
   P1 = checkPkg(SR1,A1,stdDict,R0).
 

@@ -22,11 +22,11 @@ star.compiler.impawt{
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
       if pkgSpec(_,PkgImps,Sig,Cons,Impls) ^= importPkg(Pkg,Lc,Repo) then {
-	E0 = pushSig(Sig,Lc,(L,I,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
+	E0 = pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
 	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
 	E2 = foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
-	    declareVr(FullNm,some(Lc),Tp,(LL,NN,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
+	    declareVr(FullNm,some(Lc),Tp,(LL,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
 	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
       } else{

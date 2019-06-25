@@ -3,12 +3,13 @@ star.compiler.dict{
 
   import star.compiler.canon.
   import star.compiler.escapes.
+  import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.types.
 
   tpDef ::= tpVar(option[locn],tipe) | tpDefn(option[locn],string,tipe,tipe).
 
-  public vrEntry ::= vrEntry(option[locn],(locn,string,tipe)=>canon,tipe).
+  public vrEntry ::= vrEntry(option[locn],(locn,tipe)=>canon,tipe).
 
   public scope ::= scope(map[string,tpDef],
     map[string,vrEntry],map[string,tipe],
@@ -24,7 +25,8 @@ star.compiler.dict{
   }
 
   public implementation display[vrEntry] => let{
-    dd(vrEntry(Lc,Mk,Tp)) => disp(Tp).
+    dd(vrEntry(some(Lc),Mk,Tp)) => ssSeq([disp(Mk(Lc,Tp)),ss("|-"),disp(Tp)]).
+    dd(vrEntry(none,Mk,Tp)) => disp(Tp).
   } in {
     disp(V) => dd(V)
   }
@@ -38,18 +40,18 @@ star.compiler.dict{
 
   public declareVar:(string,option[locn],tipe,dict) => dict.
   declareVar(Nm,Lc,Tp,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,Id,T)=>vr(L,Id,T),Dict).
+    declareVr(Nm,Lc,Tp,(L,T)=>vr(L,Nm,T),Dict).
 
   public declareCon:(string,option[locn],tipe,dict) => dict.
   declareCon(Nm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,Id,T)=>enm(L,Id,T),Env).
+    declareVr(Nm,Lc,Tp,(L,T)=>enm(L,Nm,T),Env).
 
-  public declareVr:(string,option[locn],tipe,(locn,string,tipe)=>canon,dict) => dict.
+  public declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
 
   public isVar:(string,dict) => option[vrEntry].
-  isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(none,(L,Id,T)=>vr(L,Id,T),Tp)).
+  isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(none,(L,T)=>vr(L,Nm,T),Tp)).
   isVar(Nm,[]) => none.
   isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
@@ -86,7 +88,7 @@ star.compiler.dict{
 
   public declareMethod:(string,option[locn],tipe,dict) => dict.
   declareMethod(Nm,Lc,Tp,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,Id,T)=>mtd(L,Id,T),Dict).
+    declareVr(Nm,Lc,Tp,(L,T)=>mtd(L,Nm,T),Dict).
       
   public findContract:(dict,string) => option[tipe].
   findContract([],Nm) => none.
@@ -105,18 +107,18 @@ star.compiler.dict{
   public pushScope:(dict)=>dict.
   pushScope(Env) => [scope([],[],[],[]),..Env].
 
-  public pushSig:(tipe,locn,(locn,string,tipe)=>canon,dict) => dict.
+  public pushSig:(tipe,locn,(string)=>(locn,tipe)=>canon,dict) => dict.
   pushSig(faceType(Vrs,Tps),Lc,Mkr,Env) =>
     pushTypes(Tps,Lc,pushFlds(Vrs,Lc,Mkr,Env)).
   
   public pushFace:(tipe,locn,dict) => dict.
   pushFace(Tp,Lc,Env) =>
-    pushSig(deRef(Tp),Lc,(L,Id,T)=>vr(L,Id,T),Env).
+    pushSig(deRef(Tp),Lc,(Id)=>(L,T)=>vr(L,Id,T),Env).
   
-  pushFlds:(list[(string,tipe)],locn,(locn,string,tipe)=>canon,dict) => dict.
+  pushFlds:(list[(string,tipe)],locn,(string)=>(locn,tipe)=>canon,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
   pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env) =>
-    pushFlds(Vrs,Lc,Mkr,declareVr(Nm,some(Lc),Tp,Mkr,Env)).
+    pushFlds(Vrs,Lc,Mkr,declareVr(Nm,some(Lc),Tp,Mkr(Nm),Env)).
 
   pushTypes:(list[(string,tipe)],locn,dict) => dict.
   pushTypes([],Lc,Env) => Env.
@@ -135,6 +137,26 @@ star.compiler.dict{
       declareImplementation(implementationName(Con),Con,Env)).
   declareConstraints([_,..Cx],Env) =>
     declareConstraints(Cx,Env).
+
+  public manageConstraints:(tipe,list[constraint],locn,canon,dict,reports) =>
+    either[reports,(tipe,canon)].
+  manageConstraints(constrainedType(Tp,Con),Cons,Lc,Term,Env,Rp)
+      where C0 .= applyConstraint(Con,Cons) =>
+    manageConstraints(deRef(Tp),C0,Lc,Term,Env,Rp).
+  manageConstraints(Tp,[],_,Term,Env,_) => either((Tp,Term)).
+  manageConstraints(Tp,Cons,Lc,Term,Env,Rp) =>
+    either((Tp,over(Lc,Term,Tp,Cons))).
+
+  applyConstraint(fieldConstraint(T,F),Cons) where
+      _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
+  applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof action{
+    _ = attachToArgs(deRef(A),Con);
+    valis [Cons..,Con]
+  }
+
+  attachToArgs(tpExp(Op,A),Con) where _ ^= addConstraint(A,Con) => attachToArgs(Op,Con).
+  attachToArgs(_,Con) => ()
+
 
   emptyFace = faceType([],[]).
 
