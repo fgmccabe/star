@@ -22,7 +22,7 @@ star.compiler.canon{
     abstraction(locn,canon,canon,tipe) |
     ixabstraction(locn,canon,canon,canon,tipe) |
     act(locn,canonAction) | 
-    search(locn,canon,canon,canon) |
+    serch(locn,canon,canon,canon) |
     match(locn,canon,canon) |
     conj(locn,canon,canon) |
     disj(locn,canon,canon) |
@@ -30,7 +30,6 @@ star.compiler.canon{
     cond(locn,canon,canon,canon) |
     apply(locn,canon,canon,tipe) |
     tple(locn,list[canon]) |
-    varRef(locn,canon,tipe) |
     lambda(list[equation],tipe) |
     letExp(locn,canon,canon) |
     theta(locn,string,boolean,list[list[canonDef]],list[canon],tipe) |
@@ -68,7 +67,7 @@ star.compiler.canon{
     typeOf(match(_,_,_)) => tipe("star.core*boolean").
     typeOf(conj(_,_,_)) => tipe("star.core*boolean").
     typeOf(disj(_,_,_)) => tipe("star.core*boolean").
-    typeOf(search(_,_,_,_)) => tipe("star.core*boolean").
+    typeOf(serch(_,_,_,_)) => tipe("star.core*boolean").
     typeOf(cond(_,_,L,_)) => typeOf(L).
   .}
 
@@ -105,7 +104,7 @@ star.compiler.canon{
     showCanon(abstraction(_,Exp,Gen,_)) => ssSeq([ss("{"),showCanon(Exp),ss(" | "),showCanon(Gen),ss("}")]).
     showCanon(ixabstraction(_,Ky,Vl,Gen,_)) =>
       ssSeq([ss("{"),showCanon(Ky),ss(" -> "),showCanon(Vl),ss(" | "),showCanon(Gen),ss("}")]).
-    showCanon(search(_,Ptn,Gen,_)) => ssSeq([showCanon(Ptn),ss(" in "),showCanon(Gen)]).
+    showCanon(serch(_,Ptn,Gen,_)) => ssSeq([showCanon(Ptn),ss(" in "),showCanon(Gen)]).
     showCanon(match(_,Ptn,Gen)) => ssSeq([showCanon(Ptn),ss(" .= "),showCanon(Gen)]).
     showCanon(conj(_,L,R)) => ssSeq([showCanon(L),ss(" && "),showCanon(R)]).
     showCanon(disj(_,L,R)) => ssSeq([showCanon(L),ss(" || "),showCanon(R)]).
@@ -113,7 +112,6 @@ star.compiler.canon{
     showCanon(cond(_,T,L,R)) => ssSeq([showCanon(T),ss("?"),showCanon(L),ss(" | "),showCanon(R)]).
     showCanon(apply(_,L,R,_)) => ssSeq([showCanon(L),showCanon(R)]).
     showCanon(tple(_,Els)) => ssSeq([ss("("),ssSeq(interleave(Els//showCanon,ss(","))),ss(")")]).
-    showCanon(varRef(_,R,_)) => ssSeq([showCanon(R),ss("!")]).
     showCanon(lambda(Rls,Tp)) => showRls("λ",Rls).
     showCanon(letExp(_,Th,Ep)) => ssSeq([ss("let "),showCanon(Th),ss(" in "),showCanon(Ep)]).
     showCanon(theta(_,_,_,Groups,Others,_)) => ssSeq([ss("{"),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss("}")]).
