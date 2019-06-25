@@ -502,6 +502,35 @@ retCode run(processPo P) {
         PC += 2;
         continue;
 
+      case Throw: {
+        termPo item = pop();
+        int32 off = collectI32(PC);
+
+        while (off == 0) {
+          int64 argCnt = argCount(PROG);
+
+          SP = (ptrPo) FP;     /* reset stack */
+
+          FP = (framePo) (*SP++);
+          PC = (insPo) (*SP++);
+          PROG = (methodPo) (*SP++);
+
+          LITS = codeLits(PROG);   /* reset pointer to code literals */
+
+          SP += argCnt;
+          OpCode nxt = (OpCode) (*PC++);
+          assert(nxt == Unwind);
+          off = collectI32(PC);     // look at the offset in the next instruction
+        }
+        PC += off;
+        push(item);
+        continue;
+      }
+
+      case Unwind:
+        PC += 2;
+        continue;
+
       case dBug: {
 #ifdef TRACEEXEC
         if (lineDebugging) {

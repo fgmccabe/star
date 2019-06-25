@@ -63,6 +63,9 @@ instruction(Bt,off,-1,"bool --> branch if true")
 
 instruction(Frame,i32,0,"frame instruction")
 
+instruction(Throw,off,0,"T --> T throw to handler or out")
+instruction(Unwind,off,0,"jump to handler")
+
 instruction(dLine,lne,0,"--> debug line")
 instruction(dBug,nOp,0,"debugging prefix")
 instruction(dBreak,nOp,0,"special instruction for break points")
