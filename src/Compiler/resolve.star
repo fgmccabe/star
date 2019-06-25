@@ -67,7 +67,7 @@ star.compiler.resolve{
 
   resolveState ::= inactive | resolved | active(locn,string).
 
-  resolveTerm(Term,Dict,Rp) => do{
+  public resolveTerm(Term,Dict,Rp) => do{
     (St,RTerm) <- overloadTerm(Term,Dict,inactive,Rp);
     resolveAgain(inactive,St,RTerm,Dict,Rp)
   }
