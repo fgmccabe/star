@@ -13,6 +13,7 @@ star.compiler.checker{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.resolve.
   import star.compiler.types.
   import star.compiler.typeparse.
   import star.compiler.freshen.
@@ -52,8 +53,9 @@ star.compiler.checker{
       Types = { (Nm,ExTp) |
 	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public};
       logMsg("exported types: $(Types)");
+      (RDefs,ROthers) <- overloadEnvironment(Defs,Others,PkgEnv,Rp);
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
-	Defs,Others)    
+	RDefs,ROthers)
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
@@ -601,7 +603,7 @@ star.compiler.checker{
   typeOfVar:(locn,string,tipe,vrEntry,dict,reports) => either[reports,canon].
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
     (_,VrTp) = freshen(VTp,[],Env);
-    (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Nm,VrTp),Env,Rp);
+    (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
     if sameType(Tp,MTp,Env) || sameType(enumType(Tp),MTp,Env) then {
       valis Term
     } else
@@ -633,25 +635,6 @@ star.compiler.checker{
     valis lambda([eqn(Lc,As,Cond,Rep)],Tp)
   }
 
-  manageConstraints:(tipe,list[constraint],locn,canon,dict,reports) =>
-    either[reports,(tipe,canon)].
-  manageConstraints(constrainedType(Tp,Con),Cons,Lc,Term,Env,Rp)
-      where C0 .= applyConstraint(Con,Cons) =>
-    manageConstraints(deRef(Tp),C0,Lc,Term,Env,Rp).
-  manageConstraints(Tp,[],_,Term,Env,_) => either((Tp,Term)).
-  manageConstraints(Tp,Cons,Lc,Term,Env,Rp) =>
-    either((Tp,over(Lc,Term,Tp,Cons))).
-
-  applyConstraint(fieldConstraint(T,F),Cons) where
-      _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
-  applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof action{
-    _ = attachToArgs(deRef(A),Con);
-    valis [Cons..,Con]
-  }
-
-  attachToArgs(tpExp(Op,A),Con) where _ ^= addConstraint(A,Con) => attachToArgs(Op,Con).
-  attachToArgs(_,Con) => ()
-  
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
   checkType(_,Actual,Expected,Env,_) where sameType(Actual,Expected,Env) => either(()).
   checkType(A,ATp,ETp,_,Rp) => other(reportError(

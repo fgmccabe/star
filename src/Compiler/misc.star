@@ -31,5 +31,12 @@ star.compiler.misc{
 
   public packageName:(pkg)=>string.
   packageName(pkg(P,_))=>P.
-  
+
+  public pickFailures:all e,x ~~ (list[either[e,x]])=>either[e,list[x]].
+  pickFailures(Ls) => let{
+    pick:all e,x ~~ (list[either[e,x]],list[x])=>either[e,list[x]].
+    pick([],L) => either(L).
+    pick([either(X),..Els],L) => pick(Els,[L..,X]).
+    pick([other(E),.._],_) => other(E).
+  } in pick(Ls,[]).
 }
