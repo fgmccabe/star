@@ -104,7 +104,7 @@ star.skew{
   }
 
   public implementation all e ~~ filter[sk[e]->>e] => {
-    rl(L)^/F => let{
+    (rl(L)^/F) => let{
       ff(E,So) where F(E) => [E,..So].
       ff(_,So) => So.
     } in foldDRight(ff,[],L)
