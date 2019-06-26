@@ -12,6 +12,8 @@ star.compiler.freshen{
 
   freshQuants(allType(kVar(V),T),B,Env) where NV.=newTypeVar(V) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+  freshQuants(allType(kVar(V),T),B,Env) where NV.=newTypeVar(V) =>
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   freshQuants(allType(kFun(V,Ar),T),B,Env) where NV.=newTypeFun(V,Ar) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   freshQuants(existType(kVar(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
@@ -70,14 +72,10 @@ star.compiler.freshen{
 
   frshnList:(list[tipe],set[tipe],dict) => list[tipe].
   frshnList(As,Ex,Env) => (As//(E)=>rewrite(E,Ex,Env)).
+
   rewrite(Tp,Ex,Env) => frshn(deRef(Tp),Ex,Env).
 
   frshnConstraint(typeConstraint(Tp),Ex,Env) => typeConstraint(rewrite(Tp,Ex,Env)).
   frshnConstraint(fieldConstraint(T,I),Ex,Env) => fieldConstraint(rewrite(T,Ex,Env),rewrite(I,Ex,Env)).
-
-  public freshenContractDefn:(contractDefn,set[tipe],dict) => (cons[(string,tipe)],constraint,tipe).
-
---  freshenContractDefn(conDfn(_,_,Q,A,D,I),Ex,Env) =>
-    
 
 }

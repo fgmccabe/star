@@ -180,7 +180,7 @@ star.compiler.types{
   shTipe(tipe(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tpExp(O,A),Sh,Dp) =>
-    showTpExp(O,[A],Sh,Dp).
+    showTpExp(deRef(O),[A],Sh,Dp).
   shTipe(tupleType(A),Sh,Dp) => ssSeq([ss("("),showTypes(A,Sh,Dp),ss(")")]).
   shTipe(allType(A,T),Sh,Dp) =>
     ssSeq([ss("all "),showBound(A,Dp),..showMoreQuantified(T,Sh,Dp)]).
@@ -195,7 +195,7 @@ star.compiler.types{
   shTipe(constrainedType(T,C),Sh,Dp) =>
     ssSeq([showConstraint(C,Dp),ss("|:"),showType(T,Sh,Dp)]).
   shTipe(funDeps(Tp,Deps),Sh,Dp) =>
-    shTpExp(Tp,ssSeq(showEls(Deps,Sh,Dp-1,"->>")),Sh,Dp-1).
+    shTpExp(deRef(Tp),"->>",ssSeq([showEls(Deps,Sh,Dp-1,"")..,ss("]")]),Sh,Dp-1).
   
   showTypes(_,_,0) => ss("...").
   showTypes(E,Sh,Dp) => ssSeq(showEls(E,Sh,Dp-1,"")).
@@ -215,17 +215,19 @@ star.compiler.types{
     ssSeq([shTipe(deRef(A),Sh,Dp-1),ss("<=>"),shTipe(deRef(R),Sh,Dp-1)]).
   showTpExp(tpFun("ref",1),[R],Sh,Dp) =>
     ssSeq([ss("ref"),shTipe(deRef(R),Sh,Dp-1)]).
+  showTpExp(tpFun(Nm,Ar),A,Sh,Dp) where size(A)==Ar =>
+    ssSeq([ss(Nm),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
   showTpExp(tpExp(O,A),R,Sh,Dp) =>
     showTpExp(deRef(O),[A,..R],Sh,Dp).
   showTpExp(Op,A,Sh,Dp) =>
     ssSeq([shTipe(deRef(Op),Sh,Dp-1),ss("["),ssSeq(showEls(A,Sh,Dp-1,"")),ss("]")]).    
 
-  shTpExp:(tipe,ss,boolean,integer) => ss.
-  shTpExp(tpExp(T,A),R,Sh,Dp) => shTpExp(deRef(T),ssSeq([showType(A,Sh,Dp),ss(","),R]),Sh,Dp).
-  shTpExp(tpFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
-  shTpExp(kFun(Nm,_),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
-  shTpExp(tFun(_,_,Nm),R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
-  shTpExp(T,R,Sh,Dp) => ssSeq([showType(T,Sh,Dp),ss("["),R]).
+  shTpExp:(tipe,string,ss,boolean,integer) => ss.
+  shTpExp(tpExp(T,A),Sep,R,Sh,Dp) => shTpExp(deRef(T),",",ssSeq([showType(A,Sh,Dp),ss(Sep),R]),Sh,Dp).
+  shTpExp(tpFun(Nm,_),Sep,R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
+  shTpExp(kFun(Nm,_),Sep,R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
+  shTpExp(tFun(_,_,Nm),Sep,R,_,Dp) => ssSeq([ss(Nm),ss("["),R]).
+  shTpExp(T,Sep,R,Sh,Dp) => ssSeq([showType(T,Sh,Dp),ss("["),R]).
 
   showAllConstraints([],Dp) => ss("").
   showAllConstraints([C,..Cs],Dp) => ssSeq([showConstraint(C,Dp),..showMoreConstraints(Cs,Dp)]).

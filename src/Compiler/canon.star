@@ -101,9 +101,9 @@ star.compiler.canon{
     showCanon(enm(_,Nm,_)) => ss(Nm).
     showCanon(whr(_,E,C)) => ssSeq([showCanon(E),ss(" where "),showCanon(C)]).
     showCanon(dot(_,R,F,_)) => ssSeq([showCanon(R),ss("."),ss(F)]).
-    showCanon(abstraction(_,Exp,Gen,_)) => ssSeq([ss("{"),showCanon(Exp),ss(" | "),showCanon(Gen),ss("}")]).
+    showCanon(abstraction(_,Exp,Gen,_)) => ssSeq([ss("["),showCanon(Exp),ss(" | "),showCanon(Gen),ss("]")]).
     showCanon(ixabstraction(_,Ky,Vl,Gen,_)) =>
-      ssSeq([ss("{"),showCanon(Ky),ss(" -> "),showCanon(Vl),ss(" | "),showCanon(Gen),ss("}")]).
+      ssSeq([ss("["),showCanon(Ky),ss(" -> "),showCanon(Vl),ss(" | "),showCanon(Gen),ss("]")]).
     showCanon(serch(_,Ptn,Gen,_)) => ssSeq([showCanon(Ptn),ss(" in "),showCanon(Gen)]).
     showCanon(match(_,Ptn,Gen)) => ssSeq([showCanon(Ptn),ss(" .= "),showCanon(Gen)]).
     showCanon(conj(_,L,R)) => ssSeq([showCanon(L),ss(" && "),showCanon(R)]).

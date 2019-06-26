@@ -21,7 +21,7 @@ star.compiler.wff{
   public reUQuant:(list[ast],ast) => ast.
   reUQuant([],T) => T.
   reUQuant([Q,..Qs],T) where Lc .= locOf(T) =>
-    unary(Lc,"all",binary(Lc,"~~",reComma(Qs,Q),T)).
+    binary(Lc,"~~",unary(Lc,"all",reComma(Qs,Q)),T).
 
   public isXQuantified:(ast)=>option[(locn,list[ast],ast)].
   isXQuantified(T) where
@@ -32,7 +32,7 @@ star.compiler.wff{
   public reXQuant:(list[ast],ast) => ast.
   reXQuant([],T) => T.
   reXQuant([Q,..Qs],T) where Lc .= locOf(T) =>
-    unary(Lc,"exists",binary(Lc,"~~",reComma(Qs,Q),T)).
+    binary(Lc,"~~",unary(Lc,"exists",reComma(Qs,Q)),T).
 
   public isConstrained:(ast) => option[(locn,list[ast],ast)].
   isConstrained(T) where
@@ -163,6 +163,8 @@ star.compiler.wff{
       (Lc,Tst,Rhs) ^= isBinary(A,"?") &&
       (_,Th,El) ^= isBinary(Rhs,"||") => some((Lc,Tst,Th,El)).
   isConditional(_) => none.
+
+  public isMatch(A) => isBinary(A,".=").
 
   buildConstructors:(ast,
     list[ast],list[ast],ast,
@@ -654,7 +656,7 @@ star.compiler.wff{
   isMapSequence(Els) => (E in Els *> _ ^= isBinary(E,"->")).
 
   public isAbstraction:(ast) => option[(locn,ast,ast)].
-  isAbstraction(A) where (Lc,[T]) ^= isBrTuple(A) &&
+  isAbstraction(A) where (Lc,[T]) ^= isSqTuple(A) &&
       (_,B,C) ^= isBinary(T,"|") => some((Lc,B,C)).
   isAbstraction(_) default => none.
 

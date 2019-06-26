@@ -273,10 +273,13 @@ star.compiler.resolve{
     ImpNm = implementationName(Tp);
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
       logMsg("we have implementation $(Mk(Lc,Tp)) for $(Tp)");
-      (MTp,VrTp) = freshen(VTp,[],Dict);
+      (_,VrTp) = freshen(VTp,[],Dict);
+      logMsg("freshened $(VrTp)");
+      
       (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
+      logMsg("deconstrained implementation $(ITp)");
       if sameType(ITp,Tp,Dict) then {
-	logMsg("we found implementation $(Impl)\:$(ITp)");	
+	logMsg("we found implementation $(Impl)\:$(ITp)");
 	overloadTerm(Impl,Dict,markResolved(St),Rp)
       } else{
 	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
