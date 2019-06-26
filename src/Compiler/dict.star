@@ -19,7 +19,7 @@ star.compiler.dict{
 
   public implementation display[scope] => let{
     dd(scope(Tps,Vrs,Cons,Impls)) =>
-      ss("Types:$(Tps), Vars:$(Vrs), Contracts:$(Cons), Implementations: $(Impls)\n").
+      ss("Types:$(Tps),\nVars:$(Vrs),\nContracts:$(Cons),\nImplementations: $(Impls)\n").
   } in {
     disp=dd
   }

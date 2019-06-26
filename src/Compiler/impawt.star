@@ -46,7 +46,7 @@ star.compiler.impawt{
     Pkg <- pickupPkg(Pk);
     logMsg("imported package $(Pkg)");
     Imports <- pickupImports(Imps,Lc);
-    logMsg("transative imports $(Imports)");
+    logMsg("transitive imports $(Imports)");
     Fce <- decodeSignature(FTps);
     logMsg("imported type sig: $(Fce)");
     Cons <- pickupContracts(ConSigs,Lc,[]);

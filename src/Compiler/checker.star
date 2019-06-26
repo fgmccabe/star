@@ -24,34 +24,34 @@ star.compiler.checker{
 
   public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,list[list[canonDef]],list[canon])].
   checkPkg(Repo,P,Base,Rp) => do{
-    logMsg("processing package $(P)");
+--    logMsg("processing package $(P)");
     if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg ^= pkgName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
-      logMsg("imports found all $(AllImports), statements=$(Stmts)");
-      logMsg("pkg env after imports $(PkgEnv)");
+      logMsg("imports found $(AllImports)");
+--      logMsg("pkg env after imports $(PkgEnv)");
       
       Path = packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
       (Public,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
       
-      logMsg("Package $(Pkg), groups: $(Gps)");
+--      logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
       logMsg("Final Pkg dict $(ThEnv)");
       logMsg("Public names: $(Public)");
       logMsg("Defs: $(Defs)");
-      Contracts = { D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && conSp(Nm) in Public };
+      Contracts = [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && conSp(Nm) in Public];
       logMsg("exported contracts: $(Contracts)");
       Fields = exportedFields(Defs,Public);
       logMsg("exported fields: $(Fields)");
-      Impls = { implSpec(some(ILc),INm,FllNm,ITp) |
+      Impls = [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
-	      implSp(INm) in Public};
+	      implSp(INm) in Public];
       logMsg("exported implementations $(Impls)");
-      Types = { (Nm,ExTp) |
-	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public};
+      Types = [ (Nm,ExTp) |
+	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public];
       logMsg("exported types: $(Types)");
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,PkgEnv,Rp);
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
@@ -62,11 +62,11 @@ star.compiler.checker{
 
   exportedFields:(list[list[canonDef]],list[defnSp]) => list[(string,tipe)].
   exportedFields(Defs,Public) =>
-    { (Nm,Tp) |
+    [ (Nm,Tp) |
 	DD in Defs && D in DD &&
 	    (
 	      varDef(_,Nm,_,_,_,Tp) .=D && varSp(Nm) in Public ||
-	      (cnsDef(_,Nm,_,Tp) .=D && cnsSp(Nm) in Public))}.
+	      (cnsDef(_,Nm,_,Tp) .=D && cnsSp(Nm) in Public))].
 
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
@@ -279,12 +279,15 @@ star.compiler.checker{
       }.
   typeOfPtn(A,Tp,Env,Path,Rp) where 
       (Lc,E,C) ^= isWhere(A) => do{
-	(Cond,Ev0) <- checkGoal(C,Env,Path,Rp);
-	(Ptn,Ev1) <- typeOfPtn(E,Tp,Ev0,Path,Rp);
+	(Ptn,Ev0) <- typeOfPtn(E,Tp,Env,Path,Rp);
+	(Cond,Ev1) <- checkGoal(C,Ev0,Path,Rp);
 	valis (whr(Lc,Ptn,Cond),Ev1)
       }.
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) =>
-    typeOfPtn(macroSquarePtn(Lc,Els),Tp,Env,Path,Rp).
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) => do{
+    SqPtn = macroSquarePtn(Lc,Els);
+    logMsg("square pattern $(A) rewritten to $(SqPtn)");
+    typeOfPtn(SqPtn,Tp,Env,Path,Rp)
+  }.
   typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
     typeOfPtn(El,Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
@@ -380,6 +383,13 @@ star.compiler.checker{
   }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       _ ^= isNegation(A) &&
+      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
+	checkType(A,BoolTp,Tp,Env,Rp);
+	(Gl,_) <- checkGoal(A,Env,Path,Rp);
+	valis Gl
+      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where
+      _ ^= isMatch(A) &&
       (_,BoolTp,_) ^= findType(Env,"boolean") => do{
 	checkType(A,BoolTp,Tp,Env,Rp);
 	(Gl,_) <- checkGoal(A,Env,Path,Rp);
@@ -491,6 +501,12 @@ star.compiler.checker{
     (Els,E2) <- checkGoal(R,Env,Path,Rp);
     valis (cond(Lc,Tst,Thn,Els),mergeDict(E1,E2,Env))
   }.
+  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isMatch(A) => do{
+    PtnTp = newTypeVar("_M");
+    Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
+    (Ptn,Ev) <- typeOfPtn(L,PtnTp,Env,Path,Rp);
+    valis (match(Lc,Ptn,Val),Ev)
+  }
   checkGoal(A,Env,Path,Rp) where (_,BoolTp,_) ^= findType(Env,"boolean") => do{
     Exp <- typeOfExp(A,BoolTp,Env,Path,Rp);
     valis (Exp,Env)
