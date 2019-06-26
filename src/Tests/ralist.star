@@ -108,7 +108,7 @@ test.ralist{
   }
 
   public implementation all e ~~ filter[ra[e]->>e] => {
-    ra(L)^/F => let{
+    (ra(L)^/F) => let{
       ff(E,So) where F(E) => [E,..So].
       ff(_,So) => So.
     } in foldDRight(ff,[],L)
