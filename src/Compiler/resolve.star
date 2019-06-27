@@ -60,7 +60,9 @@ star.compiler.resolve{
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
-    CTp = funType(tupleType(Cx),Tp);
+    (Qx,Qt) = deQuant(Tp);
+    (_,ITp) = deConstrain(Qt);
+    CTp = reQuant(Qx,funType(tupleType(Cx),ITp));
     valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),trueEnum(Lc),RVal)],CTp),[],CTp)
   }
 
@@ -272,7 +274,7 @@ star.compiler.resolve{
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
     ImpNm = implementationName(Tp);
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
-      logMsg("we have implementation $(Mk(Lc,Tp)) for $(Tp)");
+      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
       (_,VrTp) = freshen(VTp,[],Dict);
       logMsg("freshened $(VrTp)");
       
