@@ -112,7 +112,7 @@ star.compiler.canon{
     showCanon(cond(_,T,L,R)) => ssSeq([showCanon(T),ss("?"),showCanon(L),ss(" | "),showCanon(R)]).
     showCanon(apply(_,L,R,_)) => ssSeq([showCanon(L),showCanon(R)]).
     showCanon(tple(_,Els)) => ssSeq([ss("("),ssSeq(interleave(Els//showCanon,ss(","))),ss(")")]).
-    showCanon(lambda(Rls,Tp)) => showRls("λ",Rls).
+    showCanon(lambda(Rls,Tp)) => ssSeq([ss("(λ"),showRls("λ",Rls),ss("λ)")]).
     showCanon(letExp(_,Th,Ep)) => ssSeq([ss("let "),showCanon(Th),ss(" in "),showCanon(Ep)]).
     showCanon(theta(_,_,_,Groups,Others,_)) => ssSeq([ss("{"),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss("}")]).
     showCanon(record(_,_,_,Groups,Others,_)) => ssSeq([ss("{."),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss(".}")]).
