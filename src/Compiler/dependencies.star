@@ -79,11 +79,10 @@ star.compiler.dependencies{
     Rf0 <- collectAnnotRefs(V,All,Annots,Rf,Rp);
     collectTermRefs(D,All,Rf0,Rp)
   }
-  collectStmtRefs(A,All,Annots,Rf,Rp) where (_,H,C,R) ^= isEquation(A) => do{
+  collectStmtRefs(A,All,Annots,Rf,Rp) where (_,H,R) ^= isEquation(A) => do{
     Rf0 <- collectAnnotRefs(H,All,Annots,Rf,Rp);
     Rf1 <- collectHeadRefs(H,All,Rf0,Rp);
-    Rf2 <- collectCondRefs(C,All,Rf1,Rp);
-    collectTermRefs(R,All,Rf2,Rp)
+    collectTermRefs(R,All,Rf1,Rp)
   }
   collectStmtRefs(A,All,Annots,Rf,Rp) where isConstructorStmt(A) =>
     collectTypeRefs(A,All,Rf,Rp).

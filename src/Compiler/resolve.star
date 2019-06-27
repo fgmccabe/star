@@ -63,7 +63,7 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(tupleType(Cx),ITp));
-    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),trueEnum(Lc),RVal)],CTp),[],CTp)
+    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),RVal)],CTp),[],CTp)
   }
 
   defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
@@ -190,11 +190,10 @@ star.compiler.resolve{
   }
 
   overloadRules([],Els,Dict,St,_) => either((St,Els)).
-  overloadRules([eqn(Lc,Ptn,Cond,Exp),..Ts],Els,Dict,St,Rp) => do{
+  overloadRules([eqn(Lc,Ptn,Exp),..Ts],Els,Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
-    (St2,RCond) <- overloadTerm(Cond,Dict,St1,Rp);
-    (St3,RExp) <- overloadTerm(Exp,Dict,St2,Rp);
-    overloadRules(Ts,[Els..,eqn(Lc,RPtn,RCond,RExp)],Dict,St3,Rp)
+    (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
+    overloadRules(Ts,[Els..,eqn(Lc,RPtn,RExp)],Dict,St2,Rp)
   }
 
   overloadTerms([],Els,Dict,St,_) => either((St,Els)).
@@ -274,14 +273,13 @@ star.compiler.resolve{
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
     ImpNm = implementationName(Tp);
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
-      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
+--      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
       (_,VrTp) = freshen(VTp,[],Dict);
-      logMsg("freshened $(VrTp)");
       
       (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
-      logMsg("deconstrained implementation $(ITp)");
+--      logMsg("deconstrained implementation $(ITp)");
       if sameType(ITp,Tp,Dict) then {
-	logMsg("we found implementation $(Impl)\:$(ITp)");
+--	logMsg("we found implementation $(Impl)\:$(ITp)");
 	overloadTerm(Impl,Dict,markResolved(St),Rp)
       } else{
 	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)

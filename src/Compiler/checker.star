@@ -125,8 +125,8 @@ star.compiler.checker{
 
   guessStmtType([],Nm,Lc,Rp) => other(reportError(Rp,"$(Nm) not declared",Lc)).
   guessStmtType([St,.._],Nm,Lc,Rp) => do{
-    if (_,H,_,_) ^= isEquation(St) && (_,Args,_) ^= splitHead(H) then {
-      valis funType(tupleType(genTpVars(Args)),newTypeVar("_R"))
+    if (_,H,_) ^= isEquation(St) && (_,Args,_) ^= splitHead(H) then {
+      valis funType(genArgTps(Args),newTypeVar("_R"))
     } else if (_,_,_) ^= isAssignment(St) then{
       valis refType(newTypeVar("R"))
     }
@@ -207,14 +207,13 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,Env,Path,Rp) where
-      (Lc,H,C,R) ^= isEquation(St) && (_,Els,IsDeflt) ^= splitHead(H) => do{
-	Ats = tupleType(genTpVars(Els));
+      (Lc,H,R) ^= isEquation(St) && (_,Arg,IsDeflt) ^= splitHead(H) => do{
+	Ats = genArgTps(Arg);
 	RTp = newTypeVar("_R");
 	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
-	(Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),Ats,Env,Path,Rp);
-	(Cond,Ev1) <- checkGoal(C,Ev,Path,Rp);
-	Rep <- typeOfExp(R,RTp,Ev1,Path,Rp);
-	valis (eqn(Lc,Args,Cond,Rep),IsDeflt)
+	(Args,Ev) <- typeOfArgPtn(Arg,Ats,Env,Path,Rp);
+	Rep <- typeOfExp(R,RTp,Ev,Path,Rp);
+	valis (eqn(Lc,Args,Rep),IsDeflt)
       }.
 
   checkImplementation:(locn,string,list[ast],list[ast],ast,ast,dict,string,reports) =>
@@ -441,8 +440,8 @@ star.compiler.checker{
     checkAbstraction(Lc,B,C,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where hasPromotion(A) =>
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,C,R) ^= isEquation(A) =>
-    typeOfLambda(Lc,Ar,C,R,Tp,Env,Path,Rp).
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,R) ^= isEquation(A) =>
+    typeOfLambda(Lc,Ar,R,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTheta(A) =>
     typeOfTheta(Lc,Els,Tp,Env,genNewName(Path,"θ"),Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
@@ -608,8 +607,7 @@ star.compiler.checker{
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
     HT = funType(tupleType([ErTp]),tpExp(StTp,ElTp));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),
-	  enm(Lc,"true",tipe("star.core*boolean")),act(locOf(A),H))],HT)
+    valis lambda([eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),act(locOf(A),H))],HT)
   }
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
     HT = funType(tupleType([ErTp]),tpExp(StTp,ElTp));
@@ -640,15 +638,14 @@ star.compiler.checker{
       throw reportError(Rp,"field $(Fld) is not present in $(Rc)",Lc)
   }
 
-  typeOfLambda:(locn,ast,ast,ast,tipe,dict,string,reports) => either[reports,canon].
-  typeOfLambda(Lc,A,C,R,Tp,Env,Path,Rp) => do{
+  typeOfLambda:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
+  typeOfLambda(Lc,A,R,Tp,Env,Path,Rp) => do{
     At = newTypeVar("_A");
     Rt = newTypeVar("_R");
     (As,E0) <- typeOfArgPtn(A,At,Env,Path,Rp);
-    (Cond,E1) <- checkGoal(C,E0,Path,Rp);
-    Rep <- typeOfExp(R,Rt,E1,Path,Rp);
+    Rep <- typeOfExp(R,Rt,E0,Path,Rp);
     checkType(A,funType(At,Rt),Tp,Env,Rp);
-    valis lambda([eqn(Lc,As,Cond,Rep)],Tp)
+    valis lambda([eqn(Lc,As,Rep)],Tp)
   }
 
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].
@@ -668,6 +665,12 @@ star.compiler.checker{
 
   genTpVars:(list[ast]) => list[tipe].
   genTpVars(Els) => (Els//(_)=>newTypeVar("_v")).
+
+  genArgTps:(ast) => tipe.
+  genArgTps(A) where (_,Ar,_) ^= isWhere(A) =>
+    genArgTps(Ar).
+  genArgTps(A) where (_,Els) ^= isTuple(A) =>
+    tupleType(genTpVars(Els)).
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) where (_,K,V) ^= isBinary(B,"->") => do{
