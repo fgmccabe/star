@@ -523,7 +523,7 @@ star.compiler.wff{
   headOfRule(A) where
       (Lc,Hd,_) ^= isAssignment(A) => some((Lc,Hd)).
   headOfRule(A) where
-      (Lc,Hd,_,_) ^= isEquation(A) => some((Lc,Hd)).
+      (Lc,Hd,_) ^= isEquation(A) => some((Lc,Hd)).
   headOfRule(_) default => none.
 
   public headName:(ast) => option[string].
@@ -542,21 +542,18 @@ star.compiler.wff{
   public isAssignment:(ast) => option[(locn,ast,ast)].
   isAssignment(A) => isBinary(A,":=").
 
-  public isEquation:(ast) => option[(locn,ast,ast,ast)].
-  isEquation(A) where
-      (Lc,L,Rhs) ^= isBinary(A,"=>") =>
-    ((_,Lhs,Cond) ^= isWhere(L) ?
-	some((Lc,Lhs,Cond,Rhs)) ||
-	some((Lc,L,nme(Lc,"true"),Rhs))).
-  isEquation(_) default => none.
+  public isEquation:(ast) => option[(locn,ast,ast)].
+  isEquation(A) => isBinary(A,"=>").
 
-  public splitHead:(ast) => option[(string,list[ast],boolean)].
+  public splitHead:(ast) => option[(string,ast,boolean)].
   splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,false).
   splitHead(A) => splitHd(A,false).
 
   splitHd(A,_) where (_,I) ^= isDefault(A) => splitHd(I,true).
-  splitHd(A,D) where (_,Nm,As) ^= isRoundTerm(A) && (_,Id) ^= isName(Nm) => some((Id,As,D)).
-  splitHd(A,D) where (_,Id) ^= isName(A) => some((Id,[],D)).
+  splitHd(A,D) where (Lc,Nm,As) ^= isRoundTerm(A) && (_,Id) ^= isName(Nm) => some((Id,rndTuple(Lc,As),D)).
+  splitHd(A,D) where (Lc,Id) ^= isName(A) => some((Id,rndTuple(Lc,[]),D)).
+  splitHd(A,D) where (Lc,L,C) ^= isWhere(A) && (Nm,Arg,Df) ^= splitHd(L,D) =>
+    some((Nm,binary(Lc,"where",Arg,C),D)).
   
   public isWhere:(ast) => option[(locn,ast,ast)].
   isWhere(A) => isBinary(A,"where").

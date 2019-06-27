@@ -35,7 +35,7 @@ star.compiler.canon{
     theta(locn,string,boolean,list[list[canonDef]],list[canon],tipe) |
     record(locn,string,boolean,list[list[canonDef]],list[canon],tipe).
 
-  public equation ::= eqn(locn,canon,canon,canon).
+  public equation ::= eqn(locn,canon,canon).
 
   public canonAction ::= noDo(locn) |
     seqnDo(locn,canonAction,canonAction) |
@@ -76,7 +76,7 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[equation] => {.
-    locOf(eqn(Lc,_,_,_)) => Lc.
+    locOf(eqn(Lc,_,_)) => Lc.
   .}
 
   public implementation display[pkgSpec] => {.
@@ -137,8 +137,7 @@ star.compiler.canon{
   showRls(Nm,Rls) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". "))).
 
   showRl:(string,equation) => ss.
-  showRl(Nm,eqn(_,Ptn,vr(_,"true",tipe("star.core*boolean")),Val)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).
-  showRl(Nm,eqn(_,Ptn,Cond,Val)) => ssSeq([ss(Nm),disp(Ptn),ss(" where "),disp(Cond),ss(" => "),disp(Val)]).
+  showRl(Nm,eqn(_,Ptn,Val)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).
 
   -- Useful constants
   public trueEnum:(locn)=>canon.
