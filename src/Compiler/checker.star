@@ -93,12 +93,8 @@ star.compiler.checker{
     Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
 
     logMsg("Defs: $(Defs)");
-    logMsg("visibility: $(Vis)");
---    logMsg("exx $([(Nm,V)|DD in Defs && D in DD && varDef(_,Nm,_,_,_,_).=D && (funSp(Nm),V) in Vis])");
     PubVrTps = exportedFields(Defs,Vis,deFault);
     PubTps = exportedTypes(Defs,Vis,deFault);
-    logMsg("exported fields $(PubVrTps)");
-    logMsg("exported types $(PubTps)");
     valis (Defs,Others,ThEnv,faceType(PubVrTps,PubTps))
   }
 
