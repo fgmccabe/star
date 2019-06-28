@@ -11,9 +11,9 @@ star.compiler.dependencies{
 
   public dependencies:(list[ast],reports) =>
     either[reports,
-      (list[defnSp],list[importSpec],list[ast],list[(string,ast)],list[list[defnSpec]])].
+      (list[(defnSp,visibility)],list[importSpec],list[ast],list[(string,ast)],list[list[defnSpec]])].
   dependencies(Dfs,Rp) => do{
-    (Defs,Pb,As,Imp,Oth) <- collectDefinitions(Dfs,[],[],[],[],[],Rp);
+    (Defs,Pb,As,Imp,Oth) <- collectDefinitions(Dfs,Rp);
     AllRefs = Defs//((defnSpec(Nm,_,_))=>Nm);
 
     logMsg("found defs $(AllRefs)");

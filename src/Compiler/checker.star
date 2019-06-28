@@ -33,24 +33,24 @@ star.compiler.checker{
       
       Path = packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
-      (Public,_,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
+      (Vis,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
       
 --      logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
       logMsg("Final Pkg dict $(ThEnv)");
-      logMsg("Public names: $(Public)");
+      logMsg("Public names: $(Vis)");
       logMsg("Defs: $(Defs)");
-      Contracts = [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && conSp(Nm) in Public];
+      Contracts = [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && (conSp(Nm),pUblic) in Vis];
       logMsg("exported contracts: $(Contracts)");
-      Fields = exportedFields(Defs,Public);
+      Fields = exportedFields(Defs,Vis,pUblic);
       logMsg("exported fields: $(Fields)");
       Impls = [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
-	      implSp(INm) in Public];
+	      (implSp(INm),V) in Vis && V>=pUblic];
       logMsg("exported implementations $(Impls)");
-      Types = exportedTypes(Defs,Public);
+      Types = exportedTypes(Defs,Vis,pUblic);
       logMsg("exported types: $(Types)");
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,PkgEnv,Rp);
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
@@ -59,17 +59,17 @@ star.compiler.checker{
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
 
-  exportedFields:(list[list[canonDef]],list[defnSp]) => list[(string,tipe)].
-  exportedFields(Defs,Public) =>
+  exportedFields:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
+  exportedFields(Defs,Vis,DVz) =>
     [ (Nm,Tp) |
 	DD in Defs && D in DD &&
 	    (
-	      varDef(_,Nm,_,_,_,Tp) .=D && varSp(Nm) in Public ||
-	      (cnsDef(_,Nm,_,Tp) .=D && cnsSp(Nm) in Public))].
+	      varDef(_,Nm,_,_,_,Tp) .=D && (varSp(Nm),V) in Vis && V>= DVz||
+	      (cnsDef(_,Nm,_,Tp) .=D && (cnsSp(Nm),V) in Vis && V>=DVz))].
 
-  exportedTypes:(list[list[canonDef]],list[defnSp]) => list[(string,tipe)].
-  exportedTypes(Defs,Public) => [ (Nm,ExTp) |
-	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public].
+  exportedTypes:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
+  exportedTypes(Defs,Vis,DVz) => [ (Nm,ExTp) |
+      DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
 
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
@@ -87,20 +87,13 @@ star.compiler.checker{
   thetaEnv:(locn,string,list[ast],tipe,dict,reports) =>
     either[reports,(list[list[canonDef]],list[canon],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp) => do{
-    (Public,Private,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
+    (Vis,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
     Base = pushFace(Face,Lc,Env);
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
     Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
 
-    PubVrTps =
-      [ (Nm,Tp) |
-	  DD in Defs && D in DD &&
-	      (
-		varDef(_,Nm,_,_,_,Tp) .=D && \+ varSp(Nm) in Private ||
-		(cnsDef(_,Nm,_,Tp) .=D && \+ cnsSp(Nm) in Private))];
-
-    
-    PubTps = exportedTypes(Defs,Public);
+    PubVrTps = exportedFields(Defs,Vis,deFault);
+    PubTps = exportedTypes(Defs,Vis,deFault);
     logMsg("exported fields $(PubVrTps)");
     logMsg("exported types $(PubTps)");
     valis (Defs,Others,ThEnv,faceType(PubVrTps,PubTps))
