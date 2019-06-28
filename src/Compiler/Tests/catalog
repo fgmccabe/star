@@ -2,6 +2,7 @@
   "content": {
     "test.comp.op": "optest.star",
     "test.comp.depends": "deptest.star",
+    "test.comp.eqqchk" : "eqqchk.star",
     "test.comp.err": "errtest.star",
     "test.comp.gram": "gramtest.star",
     "test.comp.lx": "lextest.star",

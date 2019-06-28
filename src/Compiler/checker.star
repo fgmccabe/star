@@ -33,7 +33,7 @@ star.compiler.checker{
       
       Path = packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
-      (Public,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
+      (Public,_,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
       
 --      logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
@@ -50,8 +50,7 @@ star.compiler.checker{
 	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
 	      implSp(INm) in Public];
       logMsg("exported implementations $(Impls)");
-      Types = [ (Nm,ExTp) |
-	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public];
+      Types = exportedTypes(Defs,Public);
       logMsg("exported types: $(Types)");
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,PkgEnv,Rp);
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
@@ -68,25 +67,43 @@ star.compiler.checker{
 	      varDef(_,Nm,_,_,_,Tp) .=D && varSp(Nm) in Public ||
 	      (cnsDef(_,Nm,_,Tp) .=D && cnsSp(Nm) in Public))].
 
+  exportedTypes:(list[list[canonDef]],list[defnSp]) => list[(string,tipe)].
+  exportedTypes(Defs,Public) => [ (Nm,ExTp) |
+	  DD in Defs && typeDef(_,Nm,_,ExTp) in DD && tpSp(Nm) in Public].
+
   typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
     (Q,ETp) = evidence(Tp,[],Env);
     FaceTp = faceOfType(Tp,Env);
     (Cx,Face) = deConstrain(FaceTp);
     Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
-    (Defs,Others,ThEnv) <- thetaEnv(Lc,Path,Els,Face,Base,Rp);
-    valis theta(Lc,Path,true,Defs,Others,reConstrain(Cx,faceOfType(Tp,ThEnv)))
+    (Defs,Others,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp);
+    if sameType(ThetaTp,Tp,Env) then
+      valis theta(Lc,Path,true,Defs,Others,reConstrain(Cx,ThetaTp))
+    else
+    throw reportError(Rp,"type of theta: $(ThetaTp) not consistent with $(Tp)",Lc)
   }
 
   thetaEnv:(locn,string,list[ast],tipe,dict,reports) =>
-    either[reports,(list[list[canonDef]],list[canon],dict)].
+    either[reports,(list[list[canonDef]],list[canon],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp) => do{
-    (Public,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
---    logMsg("groups: $(Gps)");
+    (Public,Private,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
     Base = pushFace(Face,Lc,Env);
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
     Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
-    valis (Defs,Others,ThEnv)
+
+    PubVrTps =
+      [ (Nm,Tp) |
+	  DD in Defs && D in DD &&
+	      (
+		varDef(_,Nm,_,_,_,Tp) .=D && \+ varSp(Nm) in Private ||
+		(cnsDef(_,Nm,_,Tp) .=D && \+ cnsSp(Nm) in Private))];
+
+    
+    PubTps = exportedTypes(Defs,Public);
+    logMsg("exported fields $(PubVrTps)");
+    logMsg("exported types $(PubTps)");
+    valis (Defs,Others,ThEnv,faceType(PubVrTps,PubTps))
   }
 
   checkGroups:(list[list[defnSpec]],list[list[canonDef]],
@@ -446,6 +463,15 @@ star.compiler.checker{
     typeOfTheta(Lc,Els,Tp,Env,genNewName(Path,"θ"),Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
     typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Body,Bnd) ^= isLetDef(A) => do{
+    logMsg("checking let exp");
+    Btp = newTypeVar("_");
+    
+    Th <- typeOfExp(Body,Btp,Env,genNewName(Path,"Γ"),Rp);
+    logMsg("theta: $(Th), its type is $(Btp)");
+    El <- typeOfExp(Bnd,Tp,pushFace(faceOfType(Btp,Env),Lc,Env),Path,Rp);
+    valis letExp(Lc,Th,El)
+  }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Op,Args) ^= isRoundTerm(A) =>
     typeOfRoundTerm(Lc,Op,Args,Tp,Env,Path,Rp).
 
