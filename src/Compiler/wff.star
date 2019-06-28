@@ -116,15 +116,16 @@ star.compiler.wff{
   reformAlgebraic:(locn,list[ast],list[ast],ast,ast,
     list[defnSpec],
     list[defnSp],
-    list[(string,ast)],exportFn,reports) =>
+    list[defnSp],
+    list[(string,ast)],exportFn,exportFn,reports) =>
     either[reports,(list[defnSpec],
-	list[defnSp],list[(string,ast)])].
-  reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Exp,Rp) => do{
+	list[defnSp],list[defnSp],list[(string,ast)])].
+  reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,Pr,As,Exp,PV,Rp) => do{
     Nm = typeName(H);
     Face <- algebraicFace(R,Rp);
     ExTp = reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
     Spec = tpSp(Nm);
-    buildConstructors(R,Q,Cx,H,[defnSpec(Spec,Lc,[ExTp]),..Defs],Exp(Spec,Pb),As,Exp,Rp)
+    buildConstructors(R,Q,Cx,H,[defnSpec(Spec,Lc,[ExTp]),..Defs],Exp(Spec,Pb),PV(Spec,Pr),As,Exp,PV,Rp)
   }
 
   algebraicFace:(ast,reports) => either[reports,ast].
@@ -170,18 +171,20 @@ star.compiler.wff{
     list[ast],list[ast],ast,
     list[defnSpec],
     list[defnSp],
+    list[defnSp],
     list[(string,ast)],
+    exportFn,
     exportFn,
     reports
   ) => either[reports,(list[defnSpec],
-      list[defnSp],list[(string,ast)])].
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
+      list[defnSp],list[defnSp],list[(string,ast)])].
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) where
       (Lc,L,R) ^= isBinary(A,"|") => do{
-	(Dfs1,Pb1,As1) <- buildConstructors(L,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp);
-	(Dfs2,Pb2,As2) <- buildConstructors(R,Qs,Cx,Tp,Dfs1,Pb1,As1,Exp,Rp);
-	valis (Dfs2,Pb2,As2)
+	(Dfs1,Pb1,Pr1,As1) <- buildConstructors(L,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp);
+	(Dfs2,Pb2,Pr2,As2) <- buildConstructors(R,Qs,Cx,Tp,Dfs1,Pb1,Pr1,As1,Exp,PV,Rp);
+	valis (Dfs2,Pb2,Pr1,As2)
       }.
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isBraceCon(A) => let{
 	Con = reUQuant(Qs,
 	  reConstrain(Cx,
@@ -189,30 +192,30 @@ star.compiler.wff{
 		reConstrain(XCx,brTuple(Lc,Els))),Tp))).
 	Sp = cnsSp(Nm).
 	Def = defnSpec(Sp,Lc,[Con]).
-      } in either(([Def,..Defs],Exp(Sp,Pb),[(Nm,Con),..As])).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
+      } in either(([Def,..Defs],Exp(Sp,Pb),PV(Sp,Pr),[(Nm,Con),..As])).
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) where
       (Lc,Nm,XQs,XCx,Els) ^= isRoundCon(A) => let{
 	Con = reUQuant(Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,Els),Tp))).
 	Sp = cnsSp(Nm).
 	Def = defnSpec(Sp,Lc,[Con]).
-      } in either(([Def,..Defs],Exp(Sp,Pb),[(Nm,Con),..As])).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
+      } in either(([Def,..Defs],Exp(Sp,Pb),PV(Sp,Pr),[(Nm,Con),..As])).
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) where
       (Lc,Nm) ^= isName(A) => let{
 	Con = reUQuant(Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,[]),Tp))).
 	Sp = cnsSp(Nm).
 	Def = defnSpec(Sp,Lc,[Con]).
-      } in either(([Def,..Defs],Exp(Sp,Pb),[(Nm,Con),..As])).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
+      } in either(([Def,..Defs],Exp(Sp,Pb),PV(Sp,Pr),[(Nm,Con),..As])).
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) where
       (_,I) ^= isPrivate(A) => 
-    buildConstructors(I,Qs,Cx,Tp,Defs,Pb,As,noExport,Rp).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) where
+    buildConstructors(I,Qs,Cx,Tp,Defs,Pb,Pr,As,skipDfn,collectDfn,Rp).
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) where
       (_,I) ^= isPublic(A) => 
-    buildConstructors(I,Qs,Cx,Tp,Defs,Pb,As,collectExport,Rp).
-  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Exp,Rp) =>
+    buildConstructors(I,Qs,Cx,Tp,Defs,Pb,Pr,As,collectDfn,skipDfn,Rp).
+  buildConstructors(A,Qs,Cx,Tp,Defs,Pb,Pr,As,Exp,PV,Rp) =>
     other(reportError(Rp,"cannot fathom constructor $(A)",locOf(A))).
     
   isBraceCon:(ast) => option[(locn,string,list[ast],list[ast],list[ast])].
@@ -396,99 +399,102 @@ star.compiler.wff{
   public collectDefinitions:(list[ast],
     list[defnSpec],
     list[defnSp],
+    list[defnSp],
     list[(string,ast)],
     list[importSpec],
     list[ast],
-    reports) => either[reports,(list[defnSpec],
+    reports) => either[reports,(list[defnSpec],list[defnSp],
       list[defnSp],list[(string,ast)],list[importSpec],list[ast])].
-  collectDefinitions([],Defs,Pb,As,Imp,Oth,Rp) => either((Defs,Pb,As,Imp,Oth)).
-  collectDefinitions([A,..Ss],Defs,Pb,As,Imp,Oth,Rp) => do{
-    (SS1,Dfs1,Pb1,As1,Imp1,Oth1) <- collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,noExport,Rp);
-    collectDefinitions(SS1,Dfs1,Pb1,As1,Imp1,Oth1,Rp)
+  collectDefinitions([],Defs,Pb,Prv,As,Imp,Oth,Rp) => either((Defs,Pb,Prv,As,Imp,Oth)).
+  collectDefinitions([A,..Ss],Defs,Pb,Prv,As,Imp,Oth,Rp) => do{
+    (SS1,Dfs1,Pb1,Pr1,As1,Imp1,Oth1) <- collectDefinition(A,Ss,Defs,Pb,Prv,As,Imp,Oth,skipDfn,collectDfn,Rp);
+    collectDefinitions(SS1,Dfs1,Pb1,Pr1,As1,Imp1,Oth1,Rp)
   }
     
   collectDefinition:(ast,
     list[ast],
     list[defnSpec],
     list[defnSp],
+    list[defnSp],
     list[(string,ast)],
     list[importSpec],
     list[ast],
     exportFn,
+    exportFn,
     reports) => either[reports,(list[ast],list[defnSpec],
-      list[defnSp],list[(string,ast)],list[importSpec],list[ast])].
+      list[defnSp],list[defnSp],list[(string,ast)],list[importSpec],list[ast])].
 
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      Spec ^= isImport(A) => either((Stmts,Defs,Pb,As,[Spec,..Imp],Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      _ ^= isIntegrity(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      _ ^= isShow(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,_,_,Rp) where
+      Spec ^= isImport(A) => either((Stmts,Defs,Pb,Pr,As,[Spec,..Imp],Oth)).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,_,_,Rp) where
+      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,Pr,As,Imp,[A,..Oth])).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,_,_,Rp) where
+      _ ^= isIntegrity(A) => either((Stmts,Defs,Pb,Pr,As,Imp,[A,..Oth])).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,_,_,Rp) where
+      _ ^= isShow(A) => either((Stmts,Defs,Pb,Pr,As,Imp,[A,..Oth])).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,V,T) ^= isTypeAnnotation(A) => do{
 	if _ ^= isConstructorType(T) then {
 	  if (_,V1) ^= isPrivate(V) && (ILc,Id) ^= isName(V1) then {
 	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      Pb,[(Id,T),..As],Imp,Oth)
+	      Pb,[cnsSp(Id),..Pr],[(Id,T),..As],Imp,Oth)
 	  }
-	    else if (ILc,Id) ^= isName(V) then{
-	      valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-		Ex(cnsSp(Id),Pb),[(Id,T),..As],Imp,Oth)
-	      }
-		else
-		  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
-		  
+	  else if (ILc,Id) ^= isName(V) then{
+	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+	      Ex(cnsSp(Id),Pb),Pr,[(Id,T),..As],Imp,Oth)
+	  }
+	  else
+	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
 	} else if (VLc,Id) ^= isName(V) then{
-	  valis (Stmts,Defs,Ex(varSp(Id),Pb),[(Id,T),..As],Imp,Oth)
+	  valis (Stmts,Defs,Ex(varSp(Id),Pb),PV(varSp(Id),Pr),[(Id,T),..As],Imp,Oth)
 	} else
 	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
       }.
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (_,Ai) ^= isPublic(A) =>
-    collectDefinition(Ai,Stmts,Defs,Pb,As,Imp,Oth,collectExport,Rp).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+    collectDefinition(Ai,Stmts,Defs,Pb,Pr,As,Imp,Oth,collectDfn,skipDfn,Rp).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (_,Ai) ^= isPrivate(A) =>
-    collectDefinition(Ai,Stmts,Defs,Pb,As,Imp,Oth,noExport,Rp).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+    collectDefinition(Ai,Stmts,Defs,Pb,Pr,As,Imp,Oth,skipDfn,collectDfn,Rp).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,S,Els) ^= isContractStmt(A) &&
       (_,Nm,Qs,Cs,T) ^= isContractSpec(S)  =>
     either((Stmts,[defnSpec(conSp(Nm),Lc,[A]),..Defs],
 	Ex(conSp(Nm),Pb),
+	PV(conSp(Nm),Pr),
 	generateAnnotations(Qs,Els,Cs,As),
 	Imp,
 	Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
       Sp .= implSp(implementedContractName(Cn)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),PV(Sp,Pr),As,Imp,Oth)).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),PV(Sp,Pr),As,Imp,Oth)).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),PV(Sp,Pr),As,Imp,Oth)).
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
-	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Ex,Rp);
-	valis (Stmts,Dfs1,Pb1,As1,Imp,Oth)
+	(Dfs1,Pb1,Pr1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,Pr,As,Ex,PV,Rp);
+	valis (Stmts,Dfs1,Pb1,Pr1,As1,Imp,Oth)
       }.
-  collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+  collectDefinition(A,Ss,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
 	Sp = varSp(Id);
-	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],Ex(Sp,Pb),PV(Sp,Pr),As,Imp,Oth)
       }.
-  collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+  collectDefinition(A,Ss,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
 	Sp = varSp(Id); -- map X:=E to X=!!E
-	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],Ex(Sp,Pb),PV(Sp,Pr),As,Imp,Oth)
       }.
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Ex,Rp) where
+  collectDefinition(A,Stmts,Defs,Pb,Pr,As,Imp,Oth,Ex,PV,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
 	Sp = funSp(Nm);
-	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],Ex(Sp,Pb),As,Imp,Oth)
+	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],Ex(Sp,Pb),PV(Sp,Pr),As,Imp,Oth)
       }.
 
   collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
@@ -505,11 +511,11 @@ star.compiler.wff{
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
   
-  collectExport:(defnSp,list[defnSp]) => list[defnSp].
-  collectExport(Sp,Pb) => [Sp,..Pb].
+  collectDfn:(defnSp,list[defnSp]) => list[defnSp].
+  collectDfn(Sp,Pb) => [Sp,..Pb].
 
-  noExport:(defnSp,list[defnSp]) => list[defnSp].
-  noExport(_,Pb) => Pb.
+  skipDfn:(defnSp,list[defnSp]) => list[defnSp].
+  skipDfn(_,Pb) => Pb.
 
   public ruleName:(ast) => option[(locn,string)].
   ruleName(A) where

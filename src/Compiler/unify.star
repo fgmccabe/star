@@ -176,8 +176,8 @@ star.compiler.unify{
   faceOfType(T,Env) where Nm^=tpName(T) && (_,_,Rl) ^= findType(Env,Nm) &&
       (_,typeExists(Lhs,Rhs)) .= freshen(Rl,[],Env) &&
       sameType(Lhs,T,Env) => faceOfType(deRef(Rhs),Env).
-
   faceOfType(faceType(L,T),_) => faceType(L,T).
+  faceOfType(_,_) default => faceType([],[]).
 
   occursIn(TV,Tp) where \+ isIdenticalVar(TV,Tp) =>
       occIn(vrNm(TV),deRef(Tp)).

@@ -63,7 +63,7 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(tupleType(Cx),ITp));
-    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),RVal)],CTp),[],CTp)
+    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),RVal)],CTp),[],Tp)
   }
 
   defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
