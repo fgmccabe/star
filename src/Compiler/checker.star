@@ -64,7 +64,7 @@ star.compiler.checker{
     [ (Nm,Tp) |
 	DD in Defs && D in DD &&
 	    (
-	      varDef(_,Nm,_,_,_,Tp) .=D && (varSp(Nm),V) in Vis && V>= DVz||
+	      varDef(_,Nm,_,_,_,Tp) .=D && ((varSp(Nm),V) in Vis && V>= DVz || (funSp(Nm),V) in Vis && V>=DVz) ||
 	      (cnsDef(_,Nm,_,Tp) .=D && (cnsSp(Nm),V) in Vis && V>=DVz))].
 
   exportedTypes:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
@@ -92,6 +92,9 @@ star.compiler.checker{
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
     Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
 
+    logMsg("Defs: $(Defs)");
+    logMsg("visibility: $(Vis)");
+--    logMsg("exx $([(Nm,V)|DD in Defs && D in DD && varDef(_,Nm,_,_,_,_).=D && (funSp(Nm),V) in Vis])");
     PubVrTps = exportedFields(Defs,Vis,deFault);
     PubTps = exportedTypes(Defs,Vis,deFault);
     logMsg("exported fields $(PubVrTps)");
