@@ -5,13 +5,34 @@ star.compiler.meta{
   import star.compiler.ast.
   import star.compiler.location.
 
-  public visibility ::= priVate | pUblic | transItive.
+  public visibility ::= priVate | deFault | pUblic | transItive.
 
   public implementation display[visibility] => {
     disp(priVate) => ss("private").
     disp(pUblic) => ss("public").
+    disp(deFault) => ss("default").
     disp(transItive) => ss("transitive").
   }
+
+  public implementation comp[visibility] => {
+    priVate < pUblic => true.
+    priVate < transItive => true.
+    priVate < deFault => true.
+    deFault < pUblic => true.
+    deFault < transItive => true.
+    pUblic < transItive => true.
+    _ < _ default => false.
+
+    priVate >= priVate => true.
+    deFault >= priVate => true.
+    deFault >= deFault => true.
+    pUblic >= priVate => true.
+    pUblic >= deFault => true.
+    pUblic >= pUblic => true.
+    transItive >= _ => true.
+    _ >= _ default => false.
+  }
+
 
   public importSpec ::= pkgImp(locn,visibility,pkg).
 
