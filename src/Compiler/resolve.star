@@ -14,6 +14,7 @@ star.compiler.resolve{
   public overloadEnvironment:(list[list[canonDef]],list[canon],dict,reports) =>
     either[reports,(list[list[canonDef]],list[canon])].
   overloadEnvironment(Gps,Ots,Dict,Rp) => do{
+    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
     TDict = declareImplementations(Gps,Dict);
     logMsg("resolution dict = $(TDict)");
     RGps <- overloadGroups(Gps,[],TDict,Rp);
@@ -24,13 +25,15 @@ star.compiler.resolve{
 
   declareImplementations([],Dict) => Dict.
   declareImplementations([Gp,..Gps],Dict) =>
-    declareImplementations(Gps,declareGroup(Gp,Dict)).
+    declareImplementations(Gps,declareImplementationsInGroup(Gp,Dict)).
 
-  declareGroup:(list[canonDef],dict) => dict.
-  declareGroup([],Dict) => Dict.
-  declareGroup([implDef(Lc,Nm,FullNm,_,Tp),..Gp],Dict) =>
-    declareGroup(Gp,declareImplementation(FullNm,Tp,Dict)).
-  declareGroup([_,..Gp],Dict) => declareGroup(Gp,Dict).
+  declareImplementationsInGroup:(list[canonDef],dict) => dict.
+  declareImplementationsInGroup([],Dict) => Dict.
+  declareImplementationsInGroup([implDef(Lc,_,FullNm,_,Tp),..Gp],Dict) =>
+    declareImplementationsInGroup(Gp,
+      declareVr(FullNm,some(Lc),Tp,(LL,TT)=>vr(Lc,FullNm,Tp),
+	declareImplementation(FullNm,Tp,Dict))).
+  declareImplementationsInGroup([_,..Gp],Dict) => declareImplementationsInGroup(Gp,Dict).
 
   overloadGroups:(list[list[canonDef]],list[list[canonDef]],dict,reports) =>
     either[reports,list[list[canonDef]]].
@@ -272,14 +275,15 @@ star.compiler.resolve{
   resolveContract:(locn,tipe,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
     ImpNm = implementationName(Tp);
+    logMsg("looking for implementation $(Tp) - $(ImpNm)");
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
---      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
+      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
       (_,VrTp) = freshen(VTp,[],Dict);
       
       (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
---      logMsg("deconstrained implementation $(ITp)");
+      logMsg("deconstrained implementation $(ITp)");
       if sameType(ITp,Tp,Dict) then {
---	logMsg("we found implementation $(Impl)\:$(ITp)");
+	logMsg("we found implementation $(Impl)\:$(ITp)");
 	overloadTerm(Impl,Dict,markResolved(St),Rp)
       } else{
 	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
