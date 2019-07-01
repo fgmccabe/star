@@ -87,7 +87,7 @@ void initGlobals() {
   okEnum = (termPo) declareEnum("star.core#ok");
   failEnum = (termPo) declareEnum("star.core#fail");
   eofEnum = (termPo) declareEnum("star.core#eof");
-  errorLbl = declareLbl("star.core#error", 1);
+  errorLbl = declareLbl("star.core#error", 2);
 
   unitEnum = (termPo) allocateTpl(currHeap, 0);
 }

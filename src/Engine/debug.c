@@ -628,6 +628,15 @@ DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo loc, insWord ins
   return moreDebug;
 }
 
+
+DebugWaitFor dbgShowBreakPoints(char *line, processPo p, termPo loc, insWord ins, void *cl) {
+  retCode ret = showAllBreakPoints(debugOutChnnl);
+
+  if (ret != Ok)
+    outMsg(debugOutChnnl, "Could not show break points\n%_");
+  return moreDebug;
+}
+
 static DebugWaitFor dbgDropFrame(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   integer count = cmdCount(line, 0);
 
@@ -756,6 +765,7 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
       {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
       {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
       {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
+      {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
       {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"}},
     .count = 18,
     .deflt = Null
@@ -981,6 +991,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     {.c = 'd', .cmd=dbgSetDepth, .usage="d <dpth> set display depth"},
     {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
+    {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
     {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"}},
     .count = 18,
     .deflt = Null
