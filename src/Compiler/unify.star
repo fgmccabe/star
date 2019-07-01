@@ -35,7 +35,7 @@ star.compiler.unify{
       same(T1,T2,updateEnv(V1,V2,Env)).
     smT(funDeps(T1,D1),funDeps(T2,D2),Env) =>
       same(T1,T2,Env) && smTypes(D1,D2,Env).
-    smT(T1,T2,_) default => valof do{ logMsg("$(T1)!=$(T2)"); resetBindings} .
+    smT(T1,T2,_) default => valof resetBindings .
 
     smTypes([],[],_) => true.
     smTypes([E1,..L1],[E2,..L2],Env) =>
@@ -83,7 +83,6 @@ star.compiler.unify{
     bind(V,T,Env) where isUnbound(T) => valof do{
       CV = constraintsOf(V);
       CT = constraintsOf(T);
-      logMsg("binding $(V)~$(CV) to $(T)~$(CT)");
       MM = valof mergeConstraints(CV,CT,Env);
       setConstraints(T,MM);
       setBinding(V,T);
@@ -95,7 +94,6 @@ star.compiler.unify{
       try {
 	setBinding(V,T);
 	addVarBinding(V);
-	logMsg("checking constraints $(VC)");
 	checkConstraints(VC,Env)
       } catch {
 	valis false
@@ -135,10 +133,9 @@ star.compiler.unify{
       INm=implementationName(Tp);
       if Im ^= findImplementation(Env,INm) then{
         (_,FrTp) = freshen(typeOf(Im),[],Env);
-	logMsg("implementation $(FrTp) found for $(Tp)");
-	valis same(Tp,FrTp,Env)
+	(_,DeConTp) = deConstrain(FrTp);
+	valis same(Tp,DeConTp,Env)
       } else{
-	logMsg("no implementation found for $(Tp)");
 	valis true
       }
     }

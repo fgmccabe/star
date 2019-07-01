@@ -52,7 +52,7 @@ star.compiler.checker{
       logMsg("exported implementations $(Impls)");
       Types = exportedTypes(Defs,Vis,pUblic);
       logMsg("exported types: $(Types)");
-      (RDefs,ROthers) <- overloadEnvironment(Defs,Others,PkgEnv,Rp);
+      (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
 	RDefs,ROthers)
     } else
