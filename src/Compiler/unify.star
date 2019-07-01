@@ -11,12 +11,6 @@ star.compiler.unify{
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
     sm(kVar(Nm),kVar(Nm),_) => true.
---    sm(kVar(Nm),T2,Env) where (_,T1,_)^=findType(Env,Nm) => sm(deRef(T1),T2,Env).
---    sm(T1,kVar(Nm),Env) where (_,T2,_)^=findType(Env,Nm) => sm(T1,deRef(T2),Env).
---    sm(kFun(Nm,Ar),T2,Env) where (_,T1,_)^=findType(Env,Nm) =>
---      sm(deRef(T1),T2,Env).
---    sm(T1,kFun(Nm,Ar),Env) where (_,T2,_)^=findType(Env,Nm) =>
---      sm(T1,deRef(T2),Env).
     sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => true.
     sm(T1,T2,Env) where tVar(_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where tVar(_,_) .= T2 => varBinding(T2,T1,Env).
@@ -41,7 +35,7 @@ star.compiler.unify{
       same(T1,T2,updateEnv(V1,V2,Env)).
     smT(funDeps(T1,D1),funDeps(T2,D2),Env) =>
       same(T1,T2,Env) && smTypes(D1,D2,Env).
-    smT(_,_,_) default => valof resetBindings.
+    smT(T1,T2,_) default => valof do{ logMsg("$(T1)!=$(T2)"); resetBindings} .
 
     smTypes([],[],_) => true.
     smTypes([E1,..L1],[E2,..L2],Env) =>
@@ -89,6 +83,7 @@ star.compiler.unify{
     bind(V,T,Env) where isUnbound(T) => valof do{
       CV = constraintsOf(V);
       CT = constraintsOf(T);
+      logMsg("binding $(V)~$(CV) to $(T)~$(CT)");
       MM = valof mergeConstraints(CV,CT,Env);
       setConstraints(T,MM);
       setBinding(V,T);
@@ -100,7 +95,8 @@ star.compiler.unify{
       try {
 	setBinding(V,T);
 	addVarBinding(V);
-	valis checkConstraints(VC,Env)
+	logMsg("checking constraints $(VC)");
+	checkConstraints(VC,Env)
       } catch {
 	valis false
       }
@@ -123,17 +119,32 @@ star.compiler.unify{
     }
     bind(_,_,_) default => false.
 
-    checkConstraints([],_) => true.
-    checkConstraints([C,..Rest],Env) =>
-      checkConstraint(C,Env) && checkConstraints(Rest,Env).
+    checkConstraints:(list[constraint],dict) => action[(),boolean].
+    checkConstraints([],_) => do{ valis true }.
+    checkConstraints([C,..Rest],Env) => do{
+      Lhs <- checkConstraint(C,Env);
+      if Lhs then
+	checkConstraints(Rest,Env)
+      else{
+	valis false
+      }
+    }
 
-    checkConstraint(typeConstraint(Tp),Env) where 
-	INm.=implementationName(Tp) &&
-	Im ^= findImplementation(Env,INm) =>
-      same(Tp,typeOf(Im),Env).
+    checkConstraint:(constraint,dict) => action[(),boolean].
+    checkConstraint(typeConstraint(Tp),Env) => do {
+      INm=implementationName(Tp);
+      if Im ^= findImplementation(Env,INm) then{
+        (_,FrTp) = freshen(typeOf(Im),[],Env);
+	logMsg("implementation $(FrTp) found for $(Tp)");
+	valis same(Tp,FrTp,Env)
+      } else{
+	logMsg("no implementation found for $(Tp)");
+	valis true
+      }
+    }
     checkConstraint(fieldConstraint(T,F),Env) where
-	Face .= faceOfType(T,Env) => subFace(deRef(F),deRef(Face),Env).
-    checkConstraint(_,_) default => false.
+	Face .= faceOfType(T,Env) => do { valis subFace(deRef(F),deRef(Face),Env)}.
+    checkConstraint(_,_) default => do{ valis false}.
 
     mergeConstraints:(list[constraint],list[constraint],dict) =>
       option[list[constraint]].
@@ -173,11 +184,13 @@ star.compiler.unify{
   .} in (subF(E1,E2) && subF(T1,T2)).
 
   public faceOfType:(tipe,dict) => tipe.
-  faceOfType(T,Env) where Nm^=tpName(T) && (_,_,Rl) ^= findType(Env,Nm) &&
+  faceOfType(T,Env) => let{
+    fcTp(T) where Nm^=tpName(T) && (_,_,Rl) ^= findType(Env,Nm) &&
       (_,typeExists(Lhs,Rhs)) .= freshen(Rl,[],Env) &&
-      sameType(Lhs,T,Env) => faceOfType(deRef(Rhs),Env).
-  faceOfType(faceType(L,T),_) => faceType(L,T).
-  faceOfType(_,_) default => faceType([],[]).
+	sameType(Lhs,T,Env) => fcTp(deRef(Rhs)).
+    fcTp(faceType(Flds,Tps)) => faceType(Flds,Tps).
+    fcTp(_) default => faceType([],[]).
+  } in fcTp(deRef(T)).
 
   occursIn(TV,Tp) where \+ isIdenticalVar(TV,Tp) =>
       occIn(vrNm(TV),deRef(Tp)).

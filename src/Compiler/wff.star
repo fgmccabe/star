@@ -39,7 +39,7 @@ star.compiler.wff{
       (Lc,Lh,B) ^= isBinary(T,"|:") => some((Lc,deComma(Lh),B)).
   isConstrained(_) default => none.
 
-  public reConstrain:(list[ast],ast) => ast.
+  reConstrain:(list[ast],ast) => ast.
   reConstrain([],T) => T.
   reConstrain([C,..Cs],T) => binary(locOf(T),"|:",reComma(Cs,C),T).
 
@@ -110,8 +110,6 @@ star.compiler.wff{
       (Q,T) .= getQuantifiers(H) =>
     some((Lc,Q,[],T,I)).
   isAlgebraicTypeStmt(A) default => none.
-
-  exportFn ~> (defnSp,list[defnSp])=>list[defnSp].
 
   reformAlgebraic:(locn,list[ast],list[ast],ast,ast,
     list[defnSpec],
@@ -487,7 +485,7 @@ star.compiler.wff{
   collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
-	Sp = funSp(Nm);
+	Sp = varSp(Nm);
 	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],[(Sp,Vz),..Pb],As,Imp,Oth)
       }.
 
@@ -544,6 +542,9 @@ star.compiler.wff{
 
   public isEquation:(ast) => option[(locn,ast,ast)].
   isEquation(A) => isBinary(A,"=>").
+
+  public areEquations:(list[ast]) => boolean.
+  areEquations(L) => E in L *> _ ^= isEquation(E).
 
   public splitHead:(ast) => option[(string,ast,boolean)].
   splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,false).
