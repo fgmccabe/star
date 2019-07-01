@@ -30,6 +30,7 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp);
 logical sameBreakPoint(breakPointPo b1, breakPointPo b2);
 logical breakPointInUse(breakPointPo b);
 void markBpOutOfUse(breakPointPo b);
+retCode showAllBreakPoints(ioPo outChnnl);
 
 logical isTempBreakPoint(breakPointPo bp);
 

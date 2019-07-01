@@ -26,6 +26,7 @@ typedef struct _segment_ {
   integer maxPc;                    //  Maximum instruction in this segment
   integer stackDepth;               //  What is the current stack depth?
   integer entryPoints;              //  how many unchecked entry points are there here?
+  vectorPo entries;                 //  Which other segments enter this segment?
   vectorPo exits;                   //  What other segments does this segment reference?
 } SegObjRecord;
 

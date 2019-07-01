@@ -68,6 +68,7 @@ void segmentInit(objectPo o, va_list *args) {
   s->seg.entryPoints = 0;
   s->seg.checked = False;
   s->seg.lclCount = lclCount(s->seg.mtd);
+  s->seg.entries = vector(0);
   s->seg.exits = vector(0);
   s->seg.stackDepth = va_arg(*args, integer);
 
@@ -117,6 +118,7 @@ void segmentDestroy(objectPo o) {
   v->seg.locals = Null;
 
   decReference(O_OBJECT(v->seg.exits));
+  decReference(O_OBJECT(v->seg.entries));
 }
 
 static integer segmentHash(objectPo o) {
@@ -133,12 +135,19 @@ static logical segmentEquality(objectPo o1, objectPo o2) {
 static retCode
 splitIns(vectorPo blocks, insPo code, integer *pc, integer to, logical jmpSplit, char *errorMsg, long msgLen);
 
+static retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *errorMsg, long msgLen);
+
 retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   vectorPo blocks = vector(0);
   initVerify(mtd, blocks);
 
   integer pc = 0;
   retCode ret = splitIns(blocks, entryPoint(mtd), &pc, insCount(mtd), True, errorMsg, msgLen);
+
+  if (ret == Ok) {
+    pc = 0;
+    ret = findTgts(blocks, entryPoint(mtd), &pc, insCount(mtd), errorMsg, msgLen);
+  }
 
 #ifdef TRACEVERIFY
   if (traceVerify)
@@ -214,7 +223,8 @@ static retCode
 checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, logical jmpSplit,
            char *errorMsg, long msgLen);
 
-retCode splitIns(vectorPo blocks, insPo code, integer *pc, integer to, logical jmpSplit, char *errorMsg, long msgLen) {
+retCode
+splitIns(vectorPo blocks, insPo code, integer *pc, integer to, logical jmpSplit, char *errorMsg, long msgLen) {
   retCode ret = Ok;
   while (ret == Ok && *pc < to) {
     integer oPc = *pc;
@@ -248,12 +258,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
     case off: {         /* offset within current code */
       integer delta = collect32(code, pc);
       integer nPc = *pc + delta;
-      segPo tgt = splitSeg(blocks, nPc);
-      tgt->seg.entryPoints++;
-
-      segPo src = findSeg(blocks, oPc);
-      appendVectEl(src->seg.exits, O_OBJECT(newInteger(tgt->seg.segNo)));
-
+      splitSeg(blocks, nPc);
       break;
     }
     case Es:
@@ -275,6 +280,13 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case Halt:
       case Abort:
       case Ret: {
+        splitSeg(blocks, *pc);
+        return Ok;
+      }
+      case Bf:
+      case Bt:
+      case Cmp:
+      case CLbl: {
         splitSeg(blocks, *pc);
         return Ok;
       }
@@ -308,7 +320,124 @@ segPo splitSeg(vectorPo blocks, integer tgt) {
     return seg;
 }
 
-// Phase 2: verify instructions are behaving
+// Phase 2: wire up basic block targets
+
+#undef instruction
+#define instruction(Op, A1, Delta, Cmt)\
+    case Op:\
+      ret=checkTgt(blocks,code,oPc,pc,Op,A1,(*pc)>=to,errorMsg,msgLen);\
+      break;
+
+static retCode
+checkTgt(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, logical isLast,
+         char *errorMsg, long msgLen);
+
+static retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen);
+
+retCode findTgts(vectorPo blocks, insPo code, integer *pc, integer to, char *errorMsg, long msgLen) {
+  retCode ret = Ok;
+  while (ret == Ok && *pc < to) {
+    integer oPc = *pc;
+    insWord ins = code[(*pc)++];
+    switch (ins) {
+#include "instructions.h"
+
+      default:
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid instruction at %d" RED_ESC_OFF, pc);
+        return Error;
+    }
+
+    switch (ins) {
+      case Bf:
+      case Bt:
+      case Cmp:
+      case CLbl: {
+        ret = checkDest(blocks, oPc, *pc, errorMsg, msgLen);
+        break;
+      }
+      default:;
+    }
+  }
+
+  return ret;
+}
+
+retCode checkDest(vectorPo blocks, integer pc, integer tgt, char *errorMsg, long msgLen) {
+  segPo tgtSeg = findSeg(blocks, tgt);
+
+  if (tgtSeg != Null) {
+    segPo srcSeg = findSeg(blocks, pc);
+
+    if (srcSeg != Null) {
+      tgtSeg->seg.entryPoints++;
+      appendVectEl(tgtSeg->seg.entries, O_OBJECT(newInteger(srcSeg->seg.segNo)));
+      appendVectEl(srcSeg->seg.exits, O_OBJECT(newInteger(tgtSeg->seg.segNo)));
+      return Ok;
+    } else {
+      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid source pc %d" RED_ESC_OFF, pc);
+      return Error;
+    }
+  } else {
+    strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target pc %d @ %d" RED_ESC_OFF, tgt, pc);
+    return Error;
+  }
+}
+
+retCode checkTgt(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode op, opAndSpec A, logical isLast,
+                 char *errorMsg, long msgLen) {
+  retCode ret = Ok;
+
+  switch (A) {
+    case nOp:                                   // No operand
+    case tOs:
+      break;
+    case i32:          /* 32 bit literal operand */
+    case art:          // Arity
+    case arg:          /* argument variable offset */
+    case lcl:          /* local variable offset */
+    case lcs: {        // Store to local variable
+      collect32(code, pc);
+      break;
+    }
+    case off: {         /* offset within current code */
+      integer delta = collect32(code, pc);
+      integer nPc = *pc + delta;
+      ret = checkDest(blocks, oPc, nPc, errorMsg, msgLen);
+      break;
+    }
+    case Es:
+    case lit:          /* constant literal */
+    case lne:           // Location literal
+    case glb:           // Global variable name
+      collect32(code, pc);
+      break;
+    default:
+      strMsg(errorMsg, msgLen, RED_ESC_ON "invalid operand specifier %d @ %d" RED_ESC_OFF, A, pc);
+      return Error;
+  }
+//  if (isLast) {
+//    segPo next = findSeg(blocks, *pc);
+//    segPo current = findSeg(blocks, oPc);
+//
+//    if (next != Null && current != Null) {
+//      switch (code[oPc]) {
+//        case Jmp:
+//        case Tail:
+//        case OTail:
+//        case Abort:
+//        case Throw:
+//        case Unwind:
+//          break;
+//        default:
+//          appendVectEl(next->seg.entries, O_OBJECT(newInteger(current->seg.segNo)));
+//          appendVectEl(current->seg.exits, O_OBJECT(newInteger(next->seg.segNo)));
+//      }
+//    }
+//  }
+  return ret;
+}
+
+// Phase 3: verify instructions are behaving
 
 retCode mergeSegVars(segPo seg, segPo next) {
   if (next->seg.locals == Null) {
@@ -466,7 +595,7 @@ checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, inte
         termPo lit = getMtdLit(seg->seg.mtd, litNo);
         if (isLabel(lit)) {
           integer arity = labelArity(C_LBL(lit));
-          if(seg->seg.stackDepth<arity){
+          if (seg->seg.stackDepth < arity) {
             strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, *pc);
             return Error;
           }
@@ -484,6 +613,21 @@ checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, inte
         int32 depth = collect32(entryPoint(seg->seg.mtd), &iPc);
         seg->seg.stackDepth = depth;
         break;
+      }
+      case Bf:
+      case Bt:
+      case Cmp:
+      case CLbl: {
+        segPo alt = findSeg(blocks, *pc);
+
+        if (alt == Null || alt->seg.pc != *pc) {
+          strMsg(errorMsg, msgLen, RED_ESC_ON "invalid target of branch: %d @ %d" RED_ESC_OFF, *pc, oPc);
+          return Error;
+        } else {
+          if (--alt->seg.entryPoints <= 0)
+            pushBlock(stack, alt);
+          return mergeSegVars(seg, alt);
+        }
       }
 
       default:;
@@ -563,6 +707,10 @@ retCode showSeg(ioPo out, segPo seg) {
          seg->seg.checked ? "¶" : "",
          seg->seg.segNo, seg->seg.entryPoints, seg->seg.pc, seg->seg.maxPc, seg->seg.maxPc - seg->seg.pc,
          seg->seg.stackDepth);
+
+  for (integer ix = 0; ix < vectLength(seg->seg.entries); ix++) {
+    outMsg(out, ", src=%d", ixVal(O_IX(getVectEl(seg->seg.entries, ix))));
+  }
 
   for (integer ix = 0; ix < vectLength(seg->seg.exits); ix++) {
     outMsg(out, ", exit=%d", ixVal(O_IX(getVectEl(seg->seg.exits, ix))));

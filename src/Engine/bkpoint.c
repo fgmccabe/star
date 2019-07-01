@@ -10,14 +10,13 @@
 static BreakPoint breakPoints[10];
 static int breakPointCount = 0;
 
-logical isTempBreakPoint(breakPointPo bp){
+logical isTempBreakPoint(breakPointPo bp) {
   return bp->temporary;
 }
 
-retCode createBreakPoint(BreakPtType type,char *name,integer lineNo,integer offset,logical temporary)
-{
-  BreakPoint bp = {.bkType=type,.lineNo=lineNo,.offset=offset,.temporary=temporary};
-  uniCpy(bp.nm,NumberOf(bp.nm),name);
+retCode createBreakPoint(BreakPtType type, char *name, integer lineNo, integer offset, logical temporary) {
+  BreakPoint bp = {.bkType=type, .lineNo=lineNo, .offset=offset, .temporary=temporary};
+  uniCpy(bp.nm, NumberOf(bp.nm), name);
 
   return addBreakPoint(&bp);
 }
@@ -34,6 +33,25 @@ retCode addBreakPoint(breakPointPo bp) {
     return Ok;
   } else
     return Fail;
+}
+
+static retCode showBreakPoint(breakPointPo bp, ioPo outChnnl) {
+  switch (bp->bkType) {
+    case lineBreak:
+      return outMsg(outChnnl, "line: %s:%d %s", bp->nm, bp->lineNo, bp->temporary ? "(temp)" : "");
+    case callBreak:
+      return outMsg(outChnnl, "call: %s/%d %s", bp->nm, bp->lineNo, bp->temporary ? "(temp)" : "");
+  }
+}
+
+retCode showAllBreakPoints(ioPo outChnnl) {
+  retCode ret = Ok;
+  for (int ix = 0; ret == Ok && ix < breakPointCount; ix++) {
+    if (breakPointInUse(&breakPoints[ix])) {
+      ret = showBreakPoint(&breakPoints[ix], outChnnl);
+    }
+  }
+  return ret;
 }
 
 logical sameBreakPoint(breakPointPo b1, breakPointPo b2) {
@@ -143,6 +161,7 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
   integer line = -1;
   integer offset = -1;
   BreakPtType bkType = lineBreak;
+  logical temporary = False;
 
   enum {
     initSte,
@@ -180,6 +199,7 @@ retCode parseBreakPoint(char *buffer, long bLen, breakPointPo bp) {
         bp->lineNo = line;
         bp->offset = offset;
         bp->bkType = bkType;
+        bp->temporary = temporary;
         return Ok;
       case ':': {
         switch (pState) {
