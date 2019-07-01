@@ -33,13 +33,19 @@ star.compiler.meta{
     _ >= _ default => false.
   }
 
+  public implementation equality[visibility] => {
+    priVate == priVate => true.
+    deFault == deFault => true.
+    pUblic == pUblic => true.
+    transItive == transItive => true.
+    _ == _ default => false.
+  }
 
   public importSpec ::= pkgImp(locn,visibility,pkg).
 
   public defnSpec ::= defnSpec(defnSp,locn,list[ast]).
 
   public defnSp ::= varSp(string)
-    | funSp(string)
     | cnsSp(string)
     | tpSp(string)
     | conSp(string)
@@ -47,7 +53,6 @@ star.compiler.meta{
 
   public implementation display[defnSp] => let{
     dispSp(varSp(Nm)) => ssSeq([ss("var: "),ss(Nm)]).
-    dispSp(funSp(Nm)) => ssSeq([ss("function: "),ss(Nm)]).
     dispSp(cnsSp(Nm)) => ssSeq([ss("constructor: "),ss(Nm)]).
     dispSp(tpSp(Nm)) => ssSeq([ss("type: "),ss(Nm)]).
     dispSp(conSp(Nm)) => ssSeq([ss("contract: "),ss(Nm)]).
@@ -60,7 +65,6 @@ star.compiler.meta{
     eql(cnsSp(S1),cnsSp(S2)) => S1==S2.
     eql(tpSp(S1),tpSp(S2)) => S1==S2.
     eql(varSp(S1),varSp(S2)) => S1==S2.
-    eql(funSp(S1),funSp(S2)) => S1==S2.
     eql(implSp(S1),implSp(S2)) => S1==S2.
     eql(conSp(S1),conSp(S2)) => S1==S2.
     eql(_,_) default => false.
