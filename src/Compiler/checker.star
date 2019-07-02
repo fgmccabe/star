@@ -306,13 +306,6 @@ star.compiler.checker{
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
   }
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,K,V) ^= isBinary(A,"->") => do{
-    Tvs = genTpVars([K,V]);
-    checkType(K,tupleType(Tvs),Tp,Env,Rp);
-    (Ptns,Ev) <- typeOfPtns([K,V],Tvs,[],Env,Path,Rp);
-    valis (tple(Lc,Ptns),Ev)
-    
-  }
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Pt,Ex) ^= isOptionPtn(A) =>
     typeOfPtn(mkWherePtn(Lc,Pt,Ex),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Els) ^= isRoundTerm(A) => do{
@@ -465,12 +458,6 @@ star.compiler.checker{
     Tvs = genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     Ptns <- typeOfExps(Els,Tvs,[],Env,Path,Rp);
-    valis tple(Lc,Ptns)
-  }
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,K,V) ^= isBinary(A,"->") => do{
-    Tvs = genTpVars([K,V]);
-    checkType(A,tupleType(Tvs),Tp,Env,Rp);
-    Ptns <- typeOfExps([K,V],Tvs,[],Env,Path,Rp);
     valis tple(Lc,Ptns)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isAbstraction(A) =>

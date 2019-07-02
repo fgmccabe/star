@@ -310,8 +310,7 @@ isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"=.",E,P).
 
 isSearch(Trm,Lc,Ptn,Gen) :-
-  isBinary(Trm,Lc,"in",P,Gen),
-  (isBinary(P,LLc,"->",K,V) -> roundTuple(LLc,[K,V],Ptn) ; Ptn=P).
+  isBinary(Trm,Lc,"in",Ptn,Gen).
 
 isAbstraction(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),

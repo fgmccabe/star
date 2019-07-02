@@ -69,7 +69,7 @@ test{
     L1==L2 => consEq(L1,L2)
   }
 
-  assert cons(3,nil) == cons(3,nil)
+  assert cons(1,cons(3,nil)) == cons(1,cons(3,nil))
 }
   """.
 
