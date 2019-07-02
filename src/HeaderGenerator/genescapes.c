@@ -66,7 +66,6 @@ int main(int argc, char **argv) {
         fprintf(out, "  import star.\n");
         fprintf(out, "  import star.compiler.types.\n\n");
         starEscapeTypes(out);
-        starIsEscape(out);
         fprintf(out, "}.\n");
         break;
     }
@@ -87,8 +86,6 @@ static char *dTple(char *sig, bufferPo out);
 
 static char *dFields(char *sig, bufferPo out);
 
-static char *dumpSig(char *sig, bufferPo out);
-
 static char *dumpSig(char *sig, bufferPo out) {
   assert(sig != NULL && *sig != '\0');
 
@@ -106,9 +103,15 @@ static char *dumpSig(char *sig, bufferPo out) {
       dumpStdType("star.core*boolean", out);
       break;
     case kvrSig:
-      outStr(O_IO(out), "kVar(");
-      sig = dName(sig, out);
-      outStr(O_IO(out), ")");
+      if(genMode==genProlog){
+        outStr(O_IO(out), "kVar(");
+        sig = dName(sig, out);
+        outStr(O_IO(out), ")");
+      } else{
+        outStr(O_IO(out), "nomnal(");
+        sig = dName(sig, out);
+        outStr(O_IO(out), ")");
+      }        
       break;
     case kfnSig: {
       outStr(O_IO(out), "kFun(");
@@ -134,7 +137,7 @@ static char *dumpSig(char *sig, bufferPo out) {
           outMsg(O_IO(out), ")");
           return sig;
         case genStar:
-          outMsg(O_IO(out), "tipe(");
+          outMsg(O_IO(out), "nomnal(");
           sig = dName(sig, out);
           outMsg(O_IO(out), ")");
       }
@@ -260,7 +263,7 @@ static void dumpStdType(char *name, bufferPo out) {
       outMsg(O_IO(out), ")");
       return;
     case genStar:
-      outMsg(O_IO(out), "tipe(");
+      outMsg(O_IO(out), "nomnal(");
       dumpStr(name, out);
       outMsg(O_IO(out), ")");
   }

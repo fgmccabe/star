@@ -10,7 +10,7 @@ star.compiler.unify{
   sameType(Tp1,Tp2,Envir) => let{
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
-    sm(kVar(Nm),kVar(Nm),_) => true.
+
     sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => true.
     sm(T1,T2,Env) where tVar(_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where tVar(_,_) .= T2 => varBinding(T2,T1,Env).
@@ -18,7 +18,7 @@ star.compiler.unify{
     sm(T1,T2,Env) where tFun(_,_,_) .= T2 => varBinding(T2,T1,Env).
     sm(T1,T2,Env) default => smT(T1,T2,Env).
 
-    smT(tipe(Nm),tipe(Nm),_) => true.
+    smT(nomnal(Nm),nomnal(Nm),_) => true.
     smT(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => true.
     smT(tpExp(O1,A1),tpExp(O2,A2),Env) =>
       same(O1,O2,Env) && same(A1,A2,Env).
@@ -46,7 +46,7 @@ star.compiler.unify{
     smFields([(F1,T1),..FS1],[(F2,T2),..FS2],Env) =>
       F1==F2 && same(T1,T2,Env) && smFields(FS1,FS2,Env).
 
-    updateEnv(kVar(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
+    updateEnv(nomnal(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
     updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
 
     varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => true.
@@ -165,11 +165,10 @@ star.compiler.unify{
 
 
   tpName:(tipe)=>option[string].
-  tpName(kVar(Nm)) => some(Nm).
   tpName(kFun(Nm,_)) => some(Nm).
   tpName(tVar(_,Nm)) => some(Nm).
   tpName(tFun(_,_,Nm)) => some(Nm).
-  tpName(tipe(Nm)) => some(Nm).
+  tpName(nomnal(Nm)) => some(Nm).
   tpName(tpFun(Nm,_)) => some(Nm).
   tpName(tpExp(O,_)) => tpName(O).
   tpName(_) => none.

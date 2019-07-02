@@ -7,12 +7,12 @@ star.sets{
 
   public all e ~~ set[e] ::= set(map[e,()]).
 
-  public implementation all e ~~ equality[e],hash[e] |: sequence[set[e]->>e] => {
+  public implementation all e ~~ equality[e],hash[e] |: sequence[set[e]->>e] => {.
     _nil = set([]).
 
     _cons(E,set(M)) => set(M[E->()]).
     _apnd(set(M),E) => set(M[E->()]).
-  }
+  .}
 
   public implementation all e ~~ equality[e], hash[e] |: membership[set[e] ->> e] => {
     empty = _nil.

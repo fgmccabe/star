@@ -10,13 +10,11 @@ star.compiler.freshen{
   freshen(Tp,Ex,Env) where (T,Q,Ev) .= freshQuants(deRef(Tp),[],Env) => (Q,frshn(deRef(T),Ex,Ev)).
   freshen(Tp,_,_) default => ([],Tp).
 
-  freshQuants(allType(kVar(V),T),B,Env) where NV.=newTypeVar(V) =>
-    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
-  freshQuants(allType(kVar(V),T),B,Env) where NV.=newTypeVar(V) =>
+  freshQuants(allType(nomnal(V),T),B,Env) where NV.=newTypeVar(V) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   freshQuants(allType(kFun(V,Ar),T),B,Env) where NV.=newTypeFun(V,Ar) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
-  freshQuants(existType(kVar(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
+  freshQuants(existType(nomnal(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
     freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   freshQuants(T,B,Env) default => (T,B,Env).
 
@@ -24,7 +22,7 @@ star.compiler.freshen{
   genSkolemFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),skolemFun(Nm,size(Q)),Q).
 
   skolemFun:(string,integer) => tipe.
-  skolemFun(Nm,0) => kVar(genSym(Nm)).
+  skolemFun(Nm,0) => nomnal(genSym(Nm)).
   skolemFun(Nm,Ar) => kFun(genSym(Nm),Ar).
 
   public evidence:(tipe,set[tipe],dict) => (cons[(string,tipe)],tipe).
@@ -32,24 +30,24 @@ star.compiler.freshen{
     (Q,frshn(deRef(T),Ex,Ev)).
   evidence(Tp,_,_) default => ([],Tp).
 
-  skolemQuants(allType(kVar(V),T),B,Env) where none.=findType(Env,V) =>
-    skolemQuants(deRef(T),[(V,kVar(V)),..B],Env).
-  skolemQuants(allType(kVar(V),T),B,Env) where NV.=skolemFun(V,0) =>
+  skolemQuants(allType(nomnal(V),T),B,Env) where none.=findType(Env,V) =>
+    skolemQuants(deRef(T),[(V,nomnal(V)),..B],Env).
+  skolemQuants(allType(nomnal(V),T),B,Env) where NV.=skolemFun(V,0) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   skolemQuants(allType(kFun(V,Ar),T),B,Env)  where none.=findType(Env,V) =>
     skolemQuants(deRef(T),[(V,kFun(V,Ar)),..B],declareType(V,none,kFun(V,Ar),faceType([],[]),Env)).
   skolemQuants(allType(kFun(V,Ar),T),B,Env)  where NV.=skolemFun(V,Ar)=>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
-  skolemQuants(existType(kVar(V),T),B,Env) where NV.=genTypeFun(V,B) =>
+  skolemQuants(existType(nomnal(V),T),B,Env) where NV.=genTypeFun(V,B) =>
     skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
   skolemQuants(T,B,Env) default => (T,B,Env).
 
   genTypeFun(Nm,[]) => newTypeVar(Nm).
   genTypeFun(Nm,Q) => foldLeft((S,(_,V))=>tpExp(S,V),newTypeFun(Nm,size(Q)),Q).
 
-  frshn(kVar(Nm),Ex,_) where _contains(Ex,kVar(Nm)) => kVar(Nm).
-  frshn(kVar(Nm),_,Env) where (_,Tp,_)^=findType(Env,Nm) => Tp.
-  frshn(kVar(Nm),_,_) => kVar(Nm).
+  frshn(nomnal(Nm),Ex,_) where _contains(Ex,nomnal(Nm)) => nomnal(Nm).
+  frshn(nomnal(Nm),_,Env) where (_,Tp,_)^=findType(Env,Nm) => Tp.
+  frshn(nomnal(Nm),_,_) => nomnal(Nm).
 
   frshn(kFun(Nm,Ar),Ex,_) where _contains(Ex,kFun(Nm,Ar)) => kFun(Nm,Ar).
   frshn(kFun(Nm,Ar),_,Env) where  (_,Tp,_)^=findType(Env,Nm) => Tp.
@@ -58,7 +56,6 @@ star.compiler.freshen{
   frshn(tVar(T,N),_,_) => tVar(T,N).
   frshn(tFun(T,A,N),_,_) => tFun(T,A,N).
 
-  frshn(tipe(N),_,_) => tipe(N).
   frshn(tpFun(N,A),_,_) => tpFun(N,A).
   frshn(tpExp(O,A),Ex,Env) => tpExp(rewrite(O,Ex,Env),rewrite(A,Ex,Env)).
   frshn(tupleType(Els),Ex,Env) => tupleType(frshnList(Els,Ex,Env)).

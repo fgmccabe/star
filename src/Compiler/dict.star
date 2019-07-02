@@ -168,7 +168,7 @@ star.compiler.dict{
 	declareType("boolean",none,boolType,typeExists(boolType,emptyFace),
 	  declareType("string",none,strType,typeExists(strType,emptyFace),
 	    declareType("list",none,tpFun("star.core*list",1),
-	      allType(kVar("e"),
-		typeExists(lstType(kVar("e")),faceType([],[]))),
+	      allType(nomnal("e"),
+		typeExists(lstType(nomnal("e")),faceType([],[]))),
 	      [scope([],[],[],[])]))))).
 }

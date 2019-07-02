@@ -993,7 +993,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
     {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"}},
-    .count = 18,
+    .count = 20,
     .deflt = Null
   };
   methodPo mtd = p->prog;

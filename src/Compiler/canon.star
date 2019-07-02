@@ -58,15 +58,15 @@ star.compiler.canon{
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
-    typeOf(intLit(_,_)) => tipe("star.core*integer").
-    typeOf(floatLit(_,_)) => tipe("star.core*float").
-    typeOf(stringLit(_,_)) => tipe("star.core*string").
+    typeOf(intLit(_,_)) => nomnal("star.core*integer").
+    typeOf(floatLit(_,_)) => nomnal("star.core*float").
+    typeOf(stringLit(_,_)) => nomnal("star.core*string").
     typeOf(enm(_,_,Tp)) => Tp.
 
-    typeOf(match(_,_,_)) => tipe("star.core*boolean").
-    typeOf(conj(_,_,_)) => tipe("star.core*boolean").
-    typeOf(disj(_,_,_)) => tipe("star.core*boolean").
-    typeOf(serch(_,_,_,_)) => tipe("star.core*boolean").
+    typeOf(match(_,_,_)) => nomnal("star.core*boolean").
+    typeOf(conj(_,_,_)) => nomnal("star.core*boolean").
+    typeOf(disj(_,_,_)) => nomnal("star.core*boolean").
+    typeOf(serch(_,_,_,_)) => nomnal("star.core*boolean").
     typeOf(cond(_,_,L,_)) => typeOf(L).
   .}
 
@@ -138,5 +138,5 @@ star.compiler.canon{
 
   -- Useful constants
   public trueEnum:(locn)=>canon.
-  trueEnum(Lc) => enm(Lc,"true",tipe("star.core*boolean")).
+  trueEnum(Lc) => enm(Lc,"true",nomnal("star.core*boolean")).
 }
