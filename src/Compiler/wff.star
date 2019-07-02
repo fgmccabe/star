@@ -164,12 +164,9 @@ star.compiler.wff{
 
   public isMatch(A) => isBinary(A,".=").
 
-  public isSearch(A) where \+ _ ^= isIxSearch(A) => isBinary(A,"in").
-
-  public isIxSearch(A) where
-      (Lc,L,R) ^= isBinary(A,"in") && (_,K,V) ^= isBinary(L,"->") =>
-    some((Lc,K,V,R)).
-  isIxSearch(A) default => none.
+  public
+  isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && \+ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
+  isSearch(_) default => none.
 
   buildConstructors:(ast,
     list[ast],list[ast],ast,
