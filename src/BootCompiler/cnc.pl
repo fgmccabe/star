@@ -49,54 +49,6 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
   call(Lift,Initial,Init),
   Exp = apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp).
 
-/*
-  * Key->Ptn in Src
-  * becomes
-  * let{
-  *  sF(Key,Ptn,St) => AddEl(X,St).
-  *  sF(_,_,St) default => St.
-  * } in ixiterate(Src,sF,Initial)
-  *
-  * where AddEl, InitState are parameters to the conversion
-*/
-genCondition(ixsearch(Lc,Key,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
-  typeOfCanon(Ptn,PtnTp),
-  typeOfCanon(Key,KyTp),
-
-  genNme(Lc,PtnTp,"_",Anon),
-
-  typeOfCanon(Iterator,ItrTp),
-  typeOfCanon(Src,SrcTp),
-  genNme(Lc,RsltTp,"_st",St),
-
-  splitPtn(Ptn,Pttrn,PtnCond),
-  splitPtn(Key,KPtrn,KeyCond),
-  mergeGl(KeyCond,PtnCond,Lc,IxCond),
-
-  call(Succ,unlifted(St),AddToFront),
-  call(Lift,unlifted(St),Dflt),
-  
-  typeOfCanon(AddToFront,MdlTp),
-  newTypeVar("_strm",RsltTp),
-  FnTp = funType(tupleType([KyTp,PtnTp,RsltTp]),MdlTp),
-  % entangle type of iterator with the monad
-  sameType(funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp),ItrTp,[]),
-
-  genNme(Lc,KyTp,"_k",KAnon),
-  genstr("f",Fn),
-  genNewName(Path,"Γ",ThPath),
-  packageVarName(ThPath,Fn,LclName),
-
-  FF=funDef(Lc,Fn,LclName,FnTp,[],
-	    [
-	     equation(Lc,tple(Lc,[KPtrn,Pttrn,St]),IxCond,AddToFront),
-	     equation(Lc,tple(Lc,[KAnon,Anon,St]),enm(Lc,"true",type("star.core*boolean")),Dflt)
-	    ]),
-  Let = letExp(Lc,theta(Lc,ThPath,true,[FF],[],[],faceType([],[])),v(Lc,Fn,FnTp)),
-  call(Lift,Initial,Init),
-  Exp = apply(Lc,Iterator,tple(Lc,[Src,Init,Let]),MdlTp).
-
-
 genCondition(conj(_Lc,A,B),Path,Lift,Seq,Succ,Initial,Exp) :-
   genCondition(A,Path,Lift,Seq,cnc:genCondition(B,Path,Lift,Seq,Succ),Initial,Exp).
 genCondition(disj(_,A,B),Path,Lift,Seq,Succ,Initial,Exp) :-

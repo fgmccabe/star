@@ -41,6 +41,6 @@ star.sets{
 
   -- This is the core of the query semantics
   public implementation all e ~~ equality[e],hash[e] |: iter[set[e]->>e] => {.
-    _iter(set(S),St,F) => _ix_iter(S,St,(K,_,X)=>F(K,X))
+    _iter(set(S),St,F) => _iter(S,St,((K,_),X)=>F(K,X))
   .}
 }

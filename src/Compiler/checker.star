@@ -296,7 +296,6 @@ star.compiler.checker{
       }.
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) => do{
     SqPtn = macroSquarePtn(Lc,Els);
-    logMsg("square pattern $(A) rewritten to $(SqPtn)");
     typeOfPtn(SqPtn,Tp,Env,Path,Rp)
   }.
   typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
@@ -306,6 +305,13 @@ star.compiler.checker{
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
+  }
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,K,V) ^= isBinary(A,"->") => do{
+    Tvs = genTpVars([K,V]);
+    checkType(K,tupleType(Tvs),Tp,Env,Rp);
+    (Ptns,Ev) <- typeOfPtns([K,V],Tvs,[],Env,Path,Rp);
+    valis (tple(Lc,Ptns),Ev)
+    
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Pt,Ex) ^= isOptionPtn(A) =>
     typeOfPtn(mkWherePtn(Lc,Pt,Ex),Tp,Env,Path,Rp).
@@ -408,6 +414,20 @@ star.compiler.checker{
 	valis Gl
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
+      _ ^= isSearch(A) &&
+      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
+	checkType(A,BoolTp,Tp,Env,Rp);
+	(Gl,_) <- checkGoal(A,Env,Path,Rp);
+	valis Gl
+      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where
+      _ ^= isIxSearch(A) &&
+      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
+	checkType(A,BoolTp,Tp,Env,Rp);
+	(Gl,_) <- checkGoal(A,Env,Path,Rp);
+	valis Gl
+      }.
+  typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
 	Rc <- typeOfExp(R,newTypeVar("_r"),Env,Path,Rp);
 	typeOfField(Lc,Rc,Fld,Tp,Env,Path,Rp)
@@ -438,15 +458,19 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
     typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) =>
-    ((isMapSequence(Els) || isMapType(Tp)) ?
-	typeOfExp(macroMapExp(Lc,Els),Tp,Env,Path,Rp) ||
-	typeOfExp(macroSquareExp(Lc,Els),Tp,Env,Path,Rp)).
+    typeOfExp(macroSquareExp(Lc,Els),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
     Tvs = genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     Ptns <- typeOfExps(Els,Tvs,[],Env,Path,Rp);
+    valis tple(Lc,Ptns)
+  }
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,K,V) ^= isBinary(A,"->") => do{
+    Tvs = genTpVars([K,V]);
+    checkType(A,tupleType(Tvs),Tp,Env,Rp);
+    Ptns <- typeOfExps([K,V],Tvs,[],Env,Path,Rp);
     valis tple(Lc,Ptns)
   }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,B,C) ^= isAbstraction(A) =>
@@ -531,6 +555,19 @@ star.compiler.checker{
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
+  }
+  checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isSearch(A) => do{
+    MTp = newTypeFun("M",1);
+    StTp = newTypeVar("X");
+    SrTp = newTypeVar("Sr");
+    ElTp = newTypeVar("El");
+    MdTp = tpExp(MTp,StTp);
+    ActionTp = funType(tupleType([ElTp,StTp]),MdTp);
+    IterTp = funType(tupleType([SrTp,MdTp,ActionTp]),MdTp);
+    Iterator <- typeOfExp(nme(Lc,"_iter"),IterTp,Env,Path,Rp);
+    (Ptn,Ev) <- typeOfPtn(L,ElTp,Env,Path,Rp);
+    Gen <- typeOfExp(R,SrTp,Env,Path,Rp);
+    valis (serch(Lc,Ptn,Gen,Iterator),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (_,BoolTp,_) ^= findType(Env,"boolean") => do{
     Exp <- typeOfExp(A,BoolTp,Env,Path,Rp);
@@ -700,14 +737,6 @@ star.compiler.checker{
     tupleType(genTpVars(Els)).
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
-  checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) where (_,K,V) ^= isBinary(B,"->") => do{
-    (Cond,E0) <- checkGoal(C,Env,Path,Rp);
-    (ExOp,StTp,KyTp,VlTp) <- pickupIxContract(Lc,Env,"indexed",Rp);
-    checkType(B,Tp,StTp,Env,Rp);
-    Key <- typeOfExp(K,KyTp,E0,Path,Rp);
-    Val <- typeOfExp(V,VlTp,E0,Path,Rp);
-    valis ixabstraction(Lc,Key,Val,Cond,Tp)
-  }
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
     (StTp,BndTp) <- pickupContract(Lc,Env,"sequence",Rp);

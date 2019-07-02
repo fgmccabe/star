@@ -15,7 +15,7 @@
 	      isFieldAcc/4,isVarRef/3,isIndexTerm/4,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,isDisjunct/4,
-	      isForall/4,isNegation/3,isMatch/4,isSearch/4,isIxSearch/5,
+	      isForall/4,isNegation/3,isMatch/4,isSearch/4,
 	      isAbstraction/4,isListAbstraction/4,
 	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
@@ -309,13 +309,9 @@ isMatch(Trm,Lc,P,E) :-
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,"=.",E,P).
 
-isIxSearch(Trm,Lc,Ky,Pt,E) :-
-  isBinary(Trm,Lc,"in",L,E),
-  isBinary(L,_,"->",Ky,Pt),!.
-
-isSearch(Trm,Lc,P,E) :-
-  isBinary(Trm,Lc,"in",P,E),
-  \+isBinary(P,_,"->",_,_),!.
+isSearch(Trm,Lc,Ptn,Gen) :-
+  isBinary(Trm,Lc,"in",P,Gen),
+  (isBinary(P,LLc,"->",K,V) -> roundTuple(LLc,[K,V],Ptn) ; Ptn=P).
 
 isAbstraction(Trm,Lc,Bnd,Body) :-
   isBraceTuple(Trm,Lc,[T]),

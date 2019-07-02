@@ -17,7 +17,7 @@ star.ideal{
   public  all k,v ~~ map[k,v] ::=   -- Expose the type only
     private ihEmpty | -- Empty dictionary
     -- Leaf dictionary, all entries have the same hash
-    private ihLeaf(integer,cons[(k,v)]) | 
+    private ihLeaf(integer,cons[keyval[k,v]]) | 
     private ihNode(subVect[k,v]). -- non-leaf case
   
   findIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k) => option[v].
@@ -29,8 +29,8 @@ star.ideal{
     findInTree(Dpth+2,Hash,Ky,pickSub(Sub,subKey(Hash,Dpth))).
   findInTree(_,_,_,_) default => none.
 
-  findMember:all k,v ~~ equality[k] |: (k,cons[(k,v)])=>option[v].
-  findMember(K,cons((Ky,V),_)) where K==Ky => some(V).
+  findMember:all k,v ~~ equality[k] |: (k,cons[keyval[k,v]])=>option[v].
+  findMember(K,cons(Ky->V,_)) where K==Ky => some(V).
   findMember(K,cons(_,L)) => findMember(K,L).
   findMember(_,nil) => none.
 
@@ -38,17 +38,17 @@ star.ideal{
   insertIdeal(Tr,K,V) => insertTree(0,hash(K),Tr,K,V).
 
   insertTree:all k,v ~~ equality[k] |: (integer,integer,map[k,v],k,v) => map[k,v].
-  insertTree(Dpth,Hash,ihEmpty,Ky,Vl) => ihLeaf(Hash,cons((Ky,Vl),nil)).
+  insertTree(Dpth,Hash,ihEmpty,Ky,Vl) => ihLeaf(Hash,cons(Ky->Vl,nil)).
   insertTree(Dpth,Hash,ihLeaf(Hash,Els),Ky,Vl) => ihLeaf(Hash,mergeLf(Els,Ky,Vl)).
   insertTree(Dpth,Hash,ihLeaf(H,Els),Ky,Vl) =>
     insertTree(Dpth,Hash,ihNode(singleVec(subKey(H,Dpth),ihLeaf(H,Els))),Ky,Vl).
   insertTree(Dpth,Hash,ihNode(Sub),Ky,Vl) where Ix.=subKey(Hash,Dpth) =>
     ihNode(patchVec(Sub,Ix,(Sb)=>insertTree(Dpth+2,Hash,Sb,Ky,Vl))).
 
-  mergeLf:all k,v ~~ equality[k] |: (cons[(k,v)],k,v)=>cons[(k,v)].
-  mergeLf(nil,K,V) => cons((K,V),nil).
-  mergeLf(cons((K,V),T),K,Vl) => cons((K,Vl),T).
-  mergeLf(cons((K,V),T),Ky,Vl) => cons((K,V),mergeLf(T,Ky,Vl)).
+  mergeLf:all k,v ~~ equality[k] |: (cons[keyval[k,v]],k,v)=>cons[keyval[k,v]].
+  mergeLf(nil,K,V) => cons(K->V,nil).
+  mergeLf(cons(K->V,T),K,Vl) => cons(K->Vl,T).
+  mergeLf(cons(Pr,T),Ky,Vl) => cons(Pr,mergeLf(T,Ky,Vl)).
 
   removeIdeal:all k,v ~~ equality[k],hash[k] |: (map[k,v],k)=>map[k,v].
   removeIdeal(Tr,K) => deleteTree(Tr,0,hash(K),K).
@@ -59,9 +59,9 @@ star.ideal{
   deleteTree(ihNode(Sub),Dpth,Hash,K) where Ix.=subKey(Hash,Dpth) =>
     reformTree(ihNode(patchVec(Sub,Ix,(Sb)=>deleteTree(Sb,Dpth+2,Hash,K)))).
 
-  removeMember:all k,v ~~ equality[k] |: (k,cons[(k,v)])=>cons[(k,v)].
-  removeMember(K,cons((Ky,_),T)) where K==Ky => T.
-  removeMember(K,cons(Ky,L)) => cons(Ky,removeMember(K,L)).
+  removeMember:all k,v ~~ equality[k] |: (k,cons[keyval[k,v]])=>cons[keyval[k,v]].
+  removeMember(K,cons(Ky->_,T)) where K==Ky => T.
+  removeMember(K,cons(El,L)) => cons(El,removeMember(K,L)).
   removeMember(_,nil) => nil.
 
   reformTree:all k,v ~~ (map[k,v]) => map[k,v].
@@ -75,15 +75,15 @@ star.ideal{
 
   replaceIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k,v) => map[k,v].
   replaceIdeal(Tr,Ky,Vl) => let{
-    replaceInTree(ihEmpty,_,Hash) => ihLeaf(Hash,cons((Ky,Vl),nil)).
+    replaceInTree(ihEmpty,_,Hash) => ihLeaf(Hash,cons(Ky->Vl,nil)).
     replaceInTree(ihLeaf(Hash,Els),_,Hash) => ihLeaf(Hash,replaceInCons(Els)).
     replaceInTree(ihLeaf(H,Els),Dpth,Hash) =>
       insertTree(Dpth,Hash,ihLeaf(H,Els),Ky,Vl).
     replaceInTree(ihNode(Vect),Dpth,Hash) =>
       ihNode(patchVec(Vect,subKey(Hash,Dpth),(Sb)=>replaceInTree(Sb,Dpth+2,Hash))).
 
-    replaceInCons(nil) => cons((Ky,Vl),nil).
-    replaceInCons(cons((Ky,_),T)) => cons((Ky,Vl),T).
+    replaceInCons(nil) => cons(Ky->Vl,nil).
+    replaceInCons(cons(Ky->_,T)) => cons(Ky->Vl,T).
     replaceInCons(cons(P,T)) => cons(P,replaceInCons(T)).
   } in replaceInTree(Tr,0,hash(Ky)).
 
@@ -109,6 +109,10 @@ star.ideal{
   subKey(Hash,Depth) => _band(_blsr(Hash,Depth),0x3).
 
   -- Implement some standard contracts
+
+  implementation all k,v ~~ equality[k],equality[v] |: equality[keyval[k,v]] => {.
+    K1->V1 == K2->V2 => K1==K2 && V1==V2
+  .}
 
   public implementation all k,v ~~ equality[k],equality[v] |: equality[map[k,v]] => let {
     mapPairs(ihEmpty,L) => L.
@@ -137,7 +141,7 @@ star.ideal{
     dispTree(ihNode((A1,A2,A3,A4))) => ssSeq([dispTree(A1),dispTree(A2),dispTree(A3),dispTree(A4)]).
 
     dispEls(nil)=>[].
-    dispEls(cons((K,V),T)) => [disp(K),ss("->"),disp(V),ss(","),..dispEls(T)].
+    dispEls(cons(K->V,T)) => [disp(K),ss("->"),disp(V),ss(","),..dispEls(T)].
   } in {
      disp(Tr) => ssSeq([ss("["),dispTree(Tr),ss("]")]).
   }
@@ -151,13 +155,13 @@ star.ideal{
     dispVec:all k,v ~~ dump[k],dump[v] |: (subVect[k,v],integer) => ss.
     dispVec((A1,A2,A3,A4),Dp) => ssSeq([dispTree(A1,Dp),dispTree(A2,Dp),dispTree(A3,Dp),dispTree(A4,Dp)]).
 
-    dispEls:all k,v ~~ dump[k],dump[v] |: (cons[(k,v)]) => ss.
+    dispEls:all k,v ~~ dump[k],dump[v] |: (cons[keyval[k,v]]) => ss.
     dispEls(nil) => ss(".").
-    dispEls(cons((K,V),T)) => ssSeq([dump(K),ss("->"),dump(V),dispMoreEls(T)]).
+    dispEls(cons(K->V,T)) => ssSeq([dump(K),ss("->"),dump(V),dispMoreEls(T)]).
 
-    dispMoreEls:all k,v ~~ dump[k],dump[v] |: (cons[(k,v)]) => ss.
+    dispMoreEls:all k,v ~~ dump[k],dump[v] |: (cons[keyval[k,v]]) => ss.
     dispMoreEls(nil) => ss(".").
-    dispMoreEls(cons((K,V),T)) => ssSeq([ss(","),dump(K),ss("->"),dump(V),dispMoreEls(T)]).
+    dispMoreEls(cons(K->V,T)) => ssSeq([ss(","),dump(K),ss("->"),dump(V),dispMoreEls(T)]).
 
     spaces:(integer) => list[ss].
     spaces(0) => [].
@@ -177,7 +181,7 @@ star.ideal{
     _coerce(L) => foldRight(((K,V),M)=>insertIdeal(M,K,V),ihEmpty,L).
   }
 
-  public implementation all k,v ~~ coercion[map[k,v],list[(k,v)]] => let{
+  public implementation all k,v ~~ coercion[map[k,v],list[keyval[k,v]]] => let{
     pairs(ihEmpty,L) => L.
     pairs(ihLeaf(_,Els),L) => consPairs(Els,L).
     pairs(ihNode((A1,A2,A3,A4)),L) => pairs(A4,pairs(A3,pairs(A2,pairs(A1,L)))).
@@ -193,9 +197,9 @@ star.ideal{
   idealFold(f,u,ihLeaf(_,Els)) => foldLeafs(Els,f,u).
   idealFold(f,u,ihNode((A1,A2,A3,A4))) => idealFold(f,idealFold(f,idealFold(f,idealFold(f,u,A1),A2),A3),A4).
 
-  foldLeafs:all m,k,v,f,u ~~ (cons[(k,v)],(k,v,u)=>u,u) => u.
+  foldLeafs:all m,k,v,f,u ~~ (cons[keyval[k,v]],(k,v,u)=>u,u) => u.
   foldLeafs(nil,_,u)=>u.
-  foldLeafs(cons((k,v),l),f,u) => foldLeafs(l,f,f(k,v,u)).
+  foldLeafs(cons(k->v,l),f,u) => foldLeafs(l,f,f(k,v,u)).
 
   public implementation ixmap[map] => let {
     ixMap:all k,v,w ~~ (map[k,v],(k,v)=>w) => map[k,w].
@@ -203,9 +207,9 @@ star.ideal{
     ixMap(ihNode((A1,A2,A3,A4)),f) => ihNode((ixMap(A1,f),ixMap(A2,f),ixMap(A3,f),ixMap(A4,f))).
     ixMap(ihLeaf(Hash,Els),f) => ihLeaf(Hash,applyF(Els,f)).
 
-    private applyF:all k,v,w ~~ (cons[(k,v)],(k,v)=>w)=>cons[(k,w)].
+    private applyF:all k,v,w ~~ (cons[keyval[k,v]],(k,v)=>w)=>cons[keyval[k,w]].
     applyF(nil,_) => nil.
-    applyF(cons((K,V),L),f) => cons((K,f(K,V)),applyF(L,f)).
+    applyF(cons(K->V,L),f) => cons(K->f(K,V),applyF(L,f)).
   }
   in{
     (M///f) => ixMap(M,f).
@@ -228,41 +232,73 @@ star.ideal{
     idealRight(F,U,ihNode((A1,A2,A3,A4))) => idealRight(F,idealRight(F,idealRight(F,idealRight(F,U,A4),A3),A2),A1).
 
     consIxRight(F,U,nil) => U.
-    consIxRight(F,U,cons((K,V),T)) => F(K,V,consIxRight(F,U,T)).
+    consIxRight(F,U,cons(K->V,T)) => F(K,V,consIxRight(F,U,T)).
 
     idealLeft(F,U,ihEmpty) => U.
     idealLeft(F,U,ihLeaf(_,Els)) => consIxLeft(F,U,Els).
     idealLeft(F,U,ihNode((A1,A2,A3,A4))) => idealLeft(F,idealLeft(F,idealLeft(F,idealLeft(F,U,A1),A2),A3),A4).
 
     consIxLeft(F,U,nil) => U.
-    consIxLeft(F,U,cons((K,V),T)) => consIxLeft(F,F(U,K,V),T).
+    consIxLeft(F,U,cons(K->V,T)) => consIxLeft(F,F(U,K,V),T).
   } in {.
     ixRight = idealRight.
     ixLeft = idealLeft.
   .}
 
-  public implementation all k,v ~~ indexed_iter[map[k,v]->>k,v] => let{
-    iter:all k,v,m/1,e,x ~~ execution[m->>e] |: (map[k,v],m[x],(k,v,x)=>m[x])=>m[x].
+  public implementation all k,v ~~ iter[map[k,v]->>keyval[k,v]] => let{
+    iter:all k,v,m/1,e,x ~~ execution[m->>e] |: (map[k,v],m[x],(keyval[k,v],x)=>m[x])=>m[x].
     iter(ihEmpty,St,_) => St.
     iter(ihLeaf(_,Els),St,Fn) => consIter(Els,St,Fn).
     iter(ihNode((A1,A2,A3,A4)),St,Fn) =>
       iter(A4,iter(A3,iter(A2,iter(A1,St,Fn),Fn),Fn),Fn).
 
-    consIter:all k,v,m/1,e,x ~~ execution[m->>e] |: (cons[(k,v)],m[x],(k,v,x)=>m[x])=>m[x].
+    consIter:all el,m/1,e,x ~~ execution[m->>e] |: (cons[el],m[x],(el,x)=>m[x])=>m[x].
     consIter(nil,S,_) => S.
-    consIter(cons((K,V),T),S,F) => _sequence(S,(SS)=>consIter(T,F(K,V,SS),F)).
+    consIter(cons(E,T),S,F) => _sequence(S,(SS)=>consIter(T,F(E,SS),F)).
   } in {
-    -- _ix_iter = iter -- TODO: fix this. May need something like currying.
-    _ix_iter(Tr,St,Fn) => iter(Tr,St,Fn)
+    _iter(Tr,St,Fn) => iter(Tr,St,Fn)
+  }
+
+  public implementation all k,v ~~ hash[k], equality[k] |: sequence[map[k,v] ->> keyval[k,v]] => {
+    _nil = ihEmpty.
+    _cons(K->V,Tr) => insertIdeal(Tr,K,V).
+    _apnd(Tr,K->V) => insertIdeal(Tr,K,V).
   }
 
   public implementation all k ~~ hash[k],equality[k] |: functor[map[k]] => let{
     fm:all a,b ~~ ((a)=>b,map[k,a]) => map[k,b].
     fm(_,ihEmpty) => ihEmpty.
-    fm(F,ihLeaf(H,Els)) => ihLeaf(H,Els//(((K,V))=>(K,F(V)))).
+    fm(F,ihLeaf(H,Els)) => ihLeaf(H,Els//((K->V)=>(K->F(V)))).
     fm(F,ihNode((A1,A2,A3,A4))) => ihNode((fm(F,A1),fm(F,A2),fm(F,A3),fm(F,A4))).
   } in {.
     fmap = fm.
     C <$ L => fm((_)=>C,L).
-  .}    
+  .}
+
+  public implementation all k,v ~~ stream[map[k,v]->>keyval[k,v]] => let{
+    drop(ihLeaf(H,[_])) => ihEmpty.
+    drop(ihLeaf(H,[_,..Es])) => ihLeaf(H,Es).
+    drop(ihNode((ihEmpty,ihEmpty,ihEmpty,A4))) => drop(A4).
+    drop(ihNode((ihEmpty,ihEmpty,A3,A4))) => ihNode((ihEmpty,ihEmpty,drop(A3),A4)).
+    drop(ihNode((ihEmpty,A2,A3,A4))) => ihNode((ihEmpty,drop(A2),A3,A4)).
+    drop(ihNode((A1,A2,A3,A4))) => ihNode((drop(A1),A2,A3,A4)).
+
+    hd(ihLeaf(_,[E,.._])) => some(E).
+    hd(ihNode((ihEmpty,ihEmpty,ihEmpty,A4))) => hd(A4).
+    hd(ihNode((ihEmpty,ihEmpty,A3,A4))) => hd(A3).
+    hd(ihNode((ihEmpty,A2,A3,A4))) => hd(A2).
+    hd(ihNode((A1,A2,A3,A4))) => hd(A1).
+    hd(_) default => none.
+
+    hdtl(Tr) where H^=hd(Tr) => some((H,drop(Tr))).
+    hdtl(_) default => none.
+  } in {.
+    _eof(ihEmpty) => true.
+    _eof(_) default => false.
+
+    _hdtl(Tr) => hdtl(Tr).
+
+    _back(Tr) where (H,T)^=hdtl(Tr) => some((T,H)).
+    _back(_) default => none.
+  .}
 }
