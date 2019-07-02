@@ -7,11 +7,10 @@ star.compiler.types{
   import star.compiler.misc.
 
   public tipe ::=
-    kVar(string) |
       kFun(string,integer) |
       tVar(tv,string) |
       tFun(tv,integer,string) |
-      tipe(string) |
+      nomnal(string) |
       tpFun(string,integer) |
       tpExp(tipe,tipe) |
       tupleType(list[tipe]) |
@@ -115,11 +114,10 @@ star.compiler.types{
   }
 
   identType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
-  identType(kVar(N1),kVar(N2),_) => N1==N2.
   identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tVar(_,N1),tVar(_,N2),_) => N1==N2.
   identType(tFun(_,A1,N1),tFun(_,A2,N2),_) => N1==N2 && A1==A2.
-  identType(tipe(N1),tipe(N2),_) => N1==N2.
+  identType(nomnal(N1),nomnal(N2),_) => N1==N2.
   identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tpExp(O1,A1),tpExp(O2,A2),Q) =>
     identType(O1,O2,Q) && identType(A1,A2,Q).
@@ -172,12 +170,11 @@ star.compiler.types{
   showType(T,Sh,Dp) => shTipe(deRef(T),Sh,Dp).
 
   shTipe:(tipe,boolean,integer) => ss.
-  shTipe(kVar(Nm),_,_) => ssSeq([ss("$"),ss(Nm)]).
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tVar(V,Nm),false,Dp) => ssSeq([ss("%"),ss(Nm)]).
   shTipe(tVar(V,Nm),true,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
-  shTipe(tipe(Nm),_,_) => ss(Nm).
+  shTipe(nomnal(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
   shTipe(tpExp(O,A),Sh,Dp) =>
     showTpExp(deRef(O),[A],Sh,Dp).
@@ -246,11 +243,10 @@ star.compiler.types{
 
   -- in general, hashing types is not reliable because of unification
   public implementation hash[tipe] => let {
-    hsh(kVar(Nm)) => hash(Nm).
     hsh(kFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tVar(_,Nm)) => hash("V")+hash(Nm).
     hsh(tFun(_,Ar,Nm)) => (hash("F")+Ar)*37+hash(Nm).
-    hsh(tipe(Nm)) => hash(Nm).
+    hsh(nomnal(Nm)) => hash(Nm).
     hsh(tpFun(Nm,Ar)) => Ar*37+hash(Nm).
     hsh(tpExp(O,A)) => hsh(deRef(O))*37+hsh(deRef(A)).
     hsh(tupleType(Els)) => hshEls((hash("()")*37+size(Els))*37,Els).
@@ -278,12 +274,10 @@ star.compiler.types{
 
   public typeName:(tipe)=>string.
   typeName(Tp) => let{
-    tpName(tipe(Nm)) => Nm.
+    tpName(nomnal(Nm)) => Nm.
     tpName(tpExp(O,A)) => tpName(deRef(O)).
-    tpName(kVar(Nm)) => Nm.
     tpName(kFun(Nm,_)) => Nm.
     tpName(tpFun(Nm,_)) => Nm.
-    tpName(kVar(Nm)) => Nm.
     tpName(tVar(_,_)) => "_".
     tpName(tFun(_,_,_)) => "!_".
     tpName(allType(_,T)) => tpName(deRef(T)).
@@ -297,12 +291,10 @@ star.compiler.types{
   public implementationName:(tipe) => string.
   implementationName(Tp) => let{
     surfaceName:(tipe,list[string])=>list[string].
-    surfaceName(tipe(Nm),R) => [Nm,"!",..R].
+    surfaceName(nomnal(Nm),R) => [Nm,"!",..R].
     surfaceName(tpExp(O,A),R) => surfaceName(deRef(O),surfaceNm(deRef(A),R)).
-    surfaceName(kVar(Nm),R) => [Nm,"!",..R].
     surfaceName(kFun(Nm,_),R) => [Nm,..R].
     surfaceName(tpFun(Nm,_),R) => [Nm,..R].
-    surfaceName(kVar(Nm),R) => [Nm,"!",..R].
     surfaceName(tVar(_,_),R) => ["!_",..R].
     surfaceName(tFun(_,_,_),R) => ["!_",..R].
     surfaceName(allType(_,T),R) => surfaceName(deRef(T),R).
@@ -312,12 +304,10 @@ star.compiler.types{
     surfaceName(tupleType(A),R) => ["()$(size(A))!",..R].
     surfaceName(funDeps(T,_),R) => surfaceName(deRef(T),R).
 
-    surfaceNm(tipe(Nm),R) => ["!",Nm,..R].
+    surfaceNm(nomnal(Nm),R) => ["!",Nm,..R].
     surfaceNm(tpExp(O,A),R) => surfaceNm(deRef(O),R).
-    surfaceNm(kVar(Nm),R) => ["!",Nm,..R].
     surfaceNm(kFun(Nm,_),R) => ["!",Nm,..R].
     surfaceNm(tpFun(Nm,_),R) => ["!",Nm,..R].
-    surfaceNm(kVar(Nm),R) => ["!",Nm,..R].
     surfaceNm(tVar(_,_),R) => ["!_",..R].
     surfaceNm(tFun(_,_,_),R) => ["!_",..R].
     surfaceNm(allType(_,T),R) => surfaceNm(deRef(T),R).
@@ -339,10 +329,10 @@ star.compiler.types{
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
 
-  public intType = tipe("star.core*integer").
-  public fltType = tipe("star.core*float").
-  public strType = tipe("star.core*string").
-  public boolType = tipe("star.core*boolean").
+  public intType = nomnal("star.core*integer").
+  public fltType = nomnal("star.core*float").
+  public strType = nomnal("star.core*string").
+  public boolType = nomnal("star.core*boolean").
   public lstType(Tp) => tpExp(tpFun("star.core*list",1),Tp).
   public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
 

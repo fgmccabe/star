@@ -166,7 +166,7 @@ star.compiler.typeparse{
     parseBoundTpVars(R,Rp) >>= (L) =>
       parseBoundTpVar(V,Rp) >>= (Vr) => return [Vr,..L].
     
-  parseBoundTpVar(Nm,_) where (_,Id) ^= isName(Nm) => either((Id,kVar(Id))).
+  parseBoundTpVar(Nm,_) where (_,Id) ^= isName(Nm) => either((Id,nomnal(Id))).
   parseBoundTpVar(FNm,_) where
       (_,Lhs,Rhs) ^= isBinary(FNm,"/") &&
       (_,Id) ^= isName(Lhs) &&
@@ -197,8 +197,8 @@ star.compiler.typeparse{
   rebind([(Nm,TV),..L],T,Env) where
       Ar ^= isUnboundFVar(TV) && sameType(TV,kFun(Nm,Ar),Env) =>
     rebind(L,allType(kFun(Nm,Ar),T),Env).
-  rebind([(Nm,TV),..L],T,Env) where sameType(TV,kVar(Nm),Env) =>
-    rebind(L,allType(kVar(Nm),T),Env).
+  rebind([(Nm,TV),..L],T,Env) where sameType(TV,nomnal(Nm),Env) =>
+    rebind(L,allType(nomnal(Nm),T),Env).
 
   public wrapConstraints([],Tp)=>Tp.
   wrapConstraints([Cx,..Cs],Tp) => wrapConstraints(Cs,constrainedType(Tp,Cx)).
@@ -241,8 +241,7 @@ star.compiler.typeparse{
   pickTypeTemplate(constrainedType(Hd,_)) => pickTypeTemplate(Hd).
   pickTypeTemplate(typeExists(Hd,_)) => pickTypeTemplate(Hd).
   pickTypeTemplate(typeLambda(Hd,_)) => pickTypeTemplate(Hd).
-  pickTypeTemplate(tipe(Hd)) => tipe(Hd).
-  pickTypeTemplate(kVar(Nm)) => kVar(Nm).
+  pickTypeTemplate(nomnal(Hd)) => nomnal(Hd).
   pickTypeTemplate(tpFun(Nm,Ar)) => tpFun(Nm,Ar).
   pickTypeTemplate(kFun(Nm,Ar)) => kFun(Nm,Ar).
   pickTypeTemplate(tpExp(Op,_)) => pickTypeTemplate(Op).
@@ -272,7 +271,7 @@ star.compiler.typeparse{
 
   parseTypeHead:(tipes,ast,dict,string,reports) => either[reports,tipe].
   parseTypeHead(Q,Tp,Env,Path,Rp) where (Lc,Nm) ^= isName(Tp) => 
-    either(tipe(qualifiedName(Path,markerString(typeMark),Nm))).
+    either(nomnal(qualifiedName(Path,markerString(typeMark),Nm))).
   parseTypeHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
@@ -291,7 +290,7 @@ star.compiler.typeparse{
   parseHeadArgs:(tipes,list[ast],list[tipe],dict,reports) => either[reports,list[tipe]].
   parseHeadArgs(Q,[],ArgTps,_,_) => either(ArgTps).
   parseHeadArgs(Q,[A,..As],Args,Env,Rp) where (_,Nm) ^= isName(A) =>
-    parseHeadArgs(Q,As,[Args..,kVar(Nm)],Env,Rp).
+    parseHeadArgs(Q,As,[Args..,nomnal(Nm)],Env,Rp).
   parseHeadArgs(Q,[A,.._],_,_,Rp) => other(reportError(Rp,"invalid argument in type: $(A)",locOf(A))).
       
   public parseConstructor(Nm,St,Env,Path,Rp) => do{

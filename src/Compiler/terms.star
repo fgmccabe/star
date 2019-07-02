@@ -184,14 +184,10 @@ star.compiler.terms{
   public decodeSignature:(string) => option[tipe].
   decodeSignature(St) => let{
     decodeType:(list[integer]) => option[(tipe,list[integer])].
-    decodeType([0ci,..Ts]) => some((tipe("star.core*integer"),Ts)).
-    decodeType([0cf,..Ts]) => some((tipe("star.core*float"),Ts)).
-    decodeType([0cS,..Ts]) => some((tipe("star.core*string"),Ts)).
-    decodeType([0cl,..Ts]) => some((tipe("star.core*boolean"),Ts)).
-    decodeType([0ck,..Ts]) => do {
-      (Nm,T0) <- decodeText(Ts);
-      valis (kVar(Nm),T0)
-    }
+    decodeType([0ci,..Ts]) => some((nomnal("star.core*integer"),Ts)).
+    decodeType([0cf,..Ts]) => some((nomnal("star.core*float"),Ts)).
+    decodeType([0cS,..Ts]) => some((nomnal("star.core*string"),Ts)).
+    decodeType([0cl,..Ts]) => some((nomnal("star.core*boolean"),Ts)).
     decodeType([0cK,..Ts]) => do {
       (Ar,T0) <- decodeNat(Ts,0);
       (Nm,T1) <- decodeText(T0);
@@ -199,7 +195,7 @@ star.compiler.terms{
     }
     decodeType([0ct,..Ts]) => do {
       (Nm,T1) <- decodeText(Ts);
-      valis (tipe(Nm),T1)
+      valis (nomnal(Nm),T1)
     }
     decodeType([0cz,..Ts]) => do {
       (Ar,T0) <- decodeNat(Ts,0);
@@ -300,13 +296,12 @@ star.compiler.terms{
   public encodeSignature:(tipe) => string.
   encodeSignature(Tp) => let{
     encodeType:(tipe,list[integer]) => list[integer].
-    encodeType(tipe("star.core*integer"),Ts) => [Ts..,0ci].
-    encodeType(tipe("star.core*float"),Ts) => [Ts..,0cf].
-    encodeType(tipe("star.core*string"),Ts) => [Ts..,0cS].
-    encodeType(tipe("star.core*boolean"),Ts) => [Ts..,0cl].
-    encodeType(kVar(Nm),Ts) => encodeText(Nm,[Ts..,0ck]).
+    encodeType(nomnal("star.core*integer"),Ts) => [Ts..,0ci].
+    encodeType(nomnal("star.core*float"),Ts) => [Ts..,0cf].
+    encodeType(nomnal("star.core*string"),Ts) => [Ts..,0cS].
+    encodeType(nomnal("star.core*boolean"),Ts) => [Ts..,0cl].
+    encodeType(nomnal(Nm),Ts) => encodeText(Nm,[Ts..,0ct]).
     encodeType(kFun(Nm,Ar),Ts) => encodeText(Nm,encodeNat(Ar,[Ts..,0cK])).
-    encodeType(tipe(Nm),Ts) => encodeText(Nm,[Ts..,0ct]).
     encodeType(tpFun(Nm,Ar),Ts) => encodeText(Nm,encodeNat(Ar,[Ts..,0cz])).
     encodeType(tpExp(tpFun("star.core*list",1),El),Ts) =>
       encodeType(deRef(El),[Ts..,0cL]).
