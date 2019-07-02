@@ -51,6 +51,7 @@ isCanon(returnDo(_,_,_,_)).
 isCanon(throwDo(_,_,_,_)).
 isCanon(performDo(_,_,_,_)).
 isCanon(simpleDo(_,_,_,_)).
+isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
 isSimpleCanon(intLit(_,_)).

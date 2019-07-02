@@ -587,7 +587,7 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
-  squareTupleExp(Term,Lc,Els,Tp,Env,Ev,Exp,Path).
+  squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
   \+isAbstraction(Term,_,_,_),
@@ -631,20 +631,9 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isUnary(Term,Lc,"-",Arg), % handle unary minus
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSearch(Term,Lc,L,R),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  checkType(Term,LogicalTp,Tp,Env),
-  newTypeFun("_m",1,MTp),
-  newTypeVar("_x",StTp),
-  newTypeVar("_Sr",SrTp),
-  newTypeVar("_El",ElTp),
-  MdTp = tpExp(MTp,StTp),
-  ActFnTp = funType(tupleType([ElTp,StTp]),MdTp),
-  ItrFnTp = funType(tupleType([SrTp,MdTp,ActFnTp]),MdTp),
-  typeOfKnown(name(Lc,"_iter"),ItrFnTp,Env,E0,Iterator,Path),
-  typeOfPtn(L,ElTp,E0,E1,Ptn,Path),
-  typeOfExp(R,SrTp,E1,Ev,Src,Path).
+  typeOfSearch(Lc,L,R,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   isAbstraction(Term,Lc,B,G),!,
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
@@ -739,6 +728,21 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,apply(Lc,Fun,Args,Tp),Path) :-
    Args = tple(Lc,[]),
    Env=Ev).
 
+typeOfSearch(Lc,L,R,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
+  findType("boolean",Lc,Env,LogicalTp),
+  checkType(L,LogicalTp,Tp,Env),
+  newTypeFun("_m",1,MTp),
+  newTypeVar("_x",StTp),
+  newTypeVar("_Sr",SrTp),
+  newTypeVar("_El",ElTp),
+  MdTp = tpExp(MTp,StTp),
+  ActFnTp = funType(tupleType([ElTp,StTp]),MdTp),
+  ItrFnTp = funType(tupleType([SrTp,MdTp,ActFnTp]),MdTp),
+  typeOfKnown(name(Lc,"_iter"),ItrFnTp,Env,E0,Iterator,Path),
+  typeOfPtn(L,ElTp,E0,E1,Ptn,Path),
+  typeOfExp(R,SrTp,E1,Ev,Src,Path).
+%  reportMsg("search %s:%s",[search(Lc,Ptn,Src,Iterator),Tp]).
+
 typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
@@ -785,30 +789,6 @@ checkGoal(G,Env,Ev,Goal,Path) :-
    genIterableGl(Cond,OptionTp,UnitTp,ExOp,OptionTp,Path,Goal);
 %   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
-
-checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
-  isBinary(B,_,"->",Ky,Vl),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
-  pickupIxContract(Lc,Env,"indexed",StTp,[KyTp,VlTp],Op),
-  checkType(Term,Tp,StTp,Env),
-  typeOfExp(Ky,KyTp,E1,_,Key,Path),
-  typeOfExp(Vl,VlTp,E1,_,Value,Path),
-  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
-  findType("action",Lc,Env,ActionTp),
-  checkType(Term,tpExp(ActionTp,ErTp),ExTp,Env),
-  genReturn(Lc,over(Lc,mtd(Lc,"_empty",StTp),
-		    true,[conTract(Op,[StTp],[KyTp,VlTp])]),
-	    ExTp,ErTp,ExOp,Zed),
-  Gen = over(Lc,mtd(Lc,"_put",
-		    funType(tupleType([StTp,KyTp,VlTp]),StTp)),
-	     true,[conTract(Op,[StTp],[KyTp,VlTp])]),
-  genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,ExOp),
-	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
-	       checker:genPut(Lc,Gen,Key,Value,StTp,ExOp,ExTp,ErTp),
-	       lifted(Zed),ACond),
-  genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
-
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
@@ -1030,18 +1010,9 @@ typeOfPtns([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
 
 % Analyse a list term to try to disambiguate maps from lists.
 
-squareTupleExp(Term,Lc,Els,Tp,Env,Ev,Exp,Path) :-
-  (isMapSequence(Els) ; isMapType(Tp,Env)) ->
-    macroMapEntries(Lc,Els,Trm),
-    newTypeVar("k",KT),
-    newTypeVar("v",VT),
-    findType("map",Lc,Env,MapOp),
-    MapTp = tpExp(tpExp(MapOp,KT),VT),
-    checkType(Term,MapTp,Tp,Env),
-    typeOfExp(Trm,Tp,Env,Ev,Exp,Path);
+squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path) :-
   macroListEntries(Lc,Els,Trm,nilGen,consGen,appndGen),
   typeOfExp(Trm,Tp,Env,Ev,Exp,Path).
-
 
 /* Process any remaining iterable conditions */
 
