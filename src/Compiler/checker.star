@@ -28,7 +28,7 @@ star.compiler.checker{
     if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg ^= pkgName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
-      logMsg("imports found $(AllImports)");
+--      logMsg("imports found $(AllImports)");
 --      logMsg("pkg env after imports $(PkgEnv)");
       
       Path = packageName(Pkg);
@@ -227,10 +227,11 @@ star.compiler.checker{
   checkImplementation:(locn,string,list[ast],list[ast],ast,ast,dict,string,reports) =>
     either[reports,(canonDef,dict)].
   checkImplementation(Lc,Nm,Q,C,H,B,Env,Path,Rp) => do{
+    logMsg("check implementation $(Nm)");
     BV <- parseBoundTpVars(Q,Rp);
     Cx <- parseConstraints(C,BV,Env,Rp);
     Cn <- parseContractConstraint(BV,H,Env,Rp);
-    logMsg("implemented contract type $(Cn)");
+--    logMsg("implemented contract type $(Cn)");
     ConName = localName(typeName(Cn),typeMark);
     if Con ^= findContract(Env,ConName) then{
       (_,typeExists(ConTp,ConFaceTp)) =
@@ -238,11 +239,12 @@ star.compiler.checker{
       logMsg("found contract type $(ConTp), implementation type $(ConFaceTp)");
       if sameType(ConTp,Cn,Env) then {
 	Es = declareConstraints(Cx,declareTypeVars(BV,Env));
+	logMsg("check implementation body $(B) against $(ConFaceTp)");
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
 	FullNm = implementationName(ConTp);
-	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
+--	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
 	ImplTp = rebind(BV,reConstrain(Cx,ConTp),Es);
-	logMsg("implementation type $(ImplTp)");
+--	logMsg("implementation type $(ImplTp)");
 	valis (implDef(Lc,Nm,FullNm,Impl,ImplTp),
 	  declareImplementation(FullNm,ImplTp,Env))
       }
@@ -310,7 +312,7 @@ star.compiler.checker{
     typeOfPtn(mkWherePtn(Lc,Pt,Ex),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Els) ^= isRoundTerm(A) => do{
     At = newTypeVar("A");
-    logMsg("checking round patterm $(A) for $(consType(At,Tp))");
+--    logMsg("checking round patterm $(A) for $(consType(At,Tp))");
     Fun <- typeOfExp(Op,consType(At,Tp),Env,Path,Rp);
     (Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),At,Env,Path,Rp);
     valis (apply(Lc,Fun,Args,Tp),Ev)
@@ -414,13 +416,6 @@ star.compiler.checker{
 	valis Gl
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
-      _ ^= isIxSearch(A) &&
-      (_,BoolTp,_) ^= findType(Env,"boolean") => do{
-	checkType(A,BoolTp,Tp,Env,Rp);
-	(Gl,_) <- checkGoal(A,Env,Path,Rp);
-	valis Gl
-      }.
-  typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
 	Rc <- typeOfExp(R,newTypeVar("_r"),Env,Path,Rp);
 	typeOfField(Lc,Rc,Fld,Tp,Env,Path,Rp)
@@ -494,13 +489,13 @@ star.compiler.checker{
 
   typeOfRoundTerm:(locn,ast,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path,Rp) => do{
-    logMsg("checking round term $(Op)$(As) against $(Tp)");
+--    logMsg("checking round term $(Op)$(As) against $(Tp)");
     Vrs = genTpVars(As);
     At = tupleType(Vrs);
     FFTp = newTypeFun("_F",2);
     ExTp = mkTypeExp(FFTp,[At,Tp]);
     Fun <- typeOfExp(Op,ExTp,Env,Path,Rp);
-    logMsg("type of $(Op) |- $(ExTp)");
+--    logMsg("type of $(Op) |- $(ExTp)");
     Args <- typeOfExps(As,Vrs,[],Env,Path,Rp);
     if sameType(FFTp,tpFun("=>",2),Env) || sameType(FFTp,tpFun("<=>",2),Env) then{
       valis apply(Lc,Fun,tple(Lc,Args),Tp)
@@ -668,7 +663,7 @@ star.compiler.checker{
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
     (_,VrTp) = freshen(VTp,[],Env);
     (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
-    logMsg("check var $(Nm)\:$(MTp) against $(Tp)");
+--    logMsg("check var $(Nm)\:$(MTp) against $(Tp)");
     if sameType(Tp,MTp,Env) || sameType(enumType(Tp),MTp,Env) then {
       valis Term
     } else

@@ -44,15 +44,15 @@ star.compiler.impawt{
     (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ConSigs),
 	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::list[integer]);
     Pkg <- pickupPkg(Pk);
-    logMsg("imported package $(Pkg)");
+--    logMsg("imported package $(Pkg)");
     Imports <- pickupImports(Imps,Lc);
-    logMsg("transitive imports $(Imports)");
+--    logMsg("transitive imports $(Imports)");
     Fce <- decodeSignature(FTps);
-    logMsg("imported type sig: $(Fce)");
+--    logMsg("imported type sig: $(Fce)");
     Cons <- pickupContracts(ConSigs,Lc,[]);
-    logMsg("imported contracts $(Cons)");
+--    logMsg("imported contracts $(Cons)");
     Impls <- pickupImplementations(ImplSigs,[]);
-    logMsg("imported implementations $(Impls)");
+--    logMsg("imported implementations $(Impls)");
     valis pkgSpec(Pkg,Imports,Fce,Cons,Impls)
   }
 
