@@ -164,6 +164,13 @@ star.compiler.wff{
 
   public isMatch(A) => isBinary(A,".=").
 
+  public isSearch(A) where \+ _ ^= isIxSearch(A) => isBinary(A,"in").
+
+  public isIxSearch(A) where
+      (Lc,L,R) ^= isBinary(A,"in") && (_,K,V) ^= isBinary(L,"->") =>
+    some((Lc,K,V,R)).
+  isIxSearch(A) default => none.
+
   buildConstructors:(ast,
     list[ast],list[ast],ast,
     list[defnSpec],
@@ -650,9 +657,6 @@ star.compiler.wff{
   public isComma:(ast) => option[(locn,ast,ast)].
   isComma(A) => isBinary(A,",").
 
-  public isMapSequence:(list[ast]) => boolean.
-  isMapSequence(Els) => (E in Els *> _ ^= isBinary(E,"->")).
-
   public isAbstraction:(ast) => option[(locn,ast,ast)].
   isAbstraction(A) where (Lc,[T]) ^= isSqTuple(A) &&
       (_,B,C) ^= isBinary(T,"|") => some((Lc,B,C)).
@@ -677,12 +681,6 @@ star.compiler.wff{
     macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_nil"),
       (Lx,H,T) => binary(Lx,"_cons",H,T),
       (Lx,L,R) => binary(Lx,"_apnd",L,R)).
-
-  public macroMapExp:(locn,list[ast]) => ast.
-  macroMapExp(Lc,Els) =>
-    macroListEntries(Lc,Els,(Lx)=>nme(Lx,"_empty"),
-      (Lx,H,T) where (_,K,V) ^= isBinary(H,"->") => ternary(Lx,"_put",T,K,V),
-      (Lx,T,H) where (_,K,V) ^= isBinary(H,"->") => ternary(Lx,"_put",T,K,V)).
 
   macroListEntries:(locn,list[ast],(locn)=>ast,(locn,ast,ast)=>ast,(locn,ast,ast)=>ast) => ast.
   macroListEntries(Lc,[],End,_,_) => End(Lc).

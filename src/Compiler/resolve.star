@@ -133,17 +133,11 @@ star.compiler.resolve{
     (St2,RCond) <- overloadTerm(Cond,Dict,St1,Rp);
     valis (St2,abstraction(Lc,RExp,RCond,Tp))
   }
-  overloadTerm(ixabstraction(Lc,Ky,Val,Cond,Tp),Dict,St,Rp) => do{
-    (St1,RKey) <- overloadTerm(Ky,Dict,St,Rp);
-    (St2,RVal) <- overloadTerm(Val,Dict,St1,Rp);
-    (St3,RCond) <- overloadTerm(Cond,Dict,St2,Rp);
-    valis (St3,ixabstraction(Lc,RKey,RVal,RCond,Tp))
-  }
-  overloadTerm(serch(Lc,Ptn,Src,Cond),Dict,St,Rp) => do{
+  overloadTerm(serch(Lc,Ptn,Src,Iter),Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
     (St2,RSrc) <- overloadTerm(Src,Dict,St1,Rp);
-    (St3,RCond) <- overloadTerm(Cond,Dict,St2,Rp);
-    valis (St3,serch(Lc,RPtn,RSrc,RCond))
+    (St3,RIter) <- overloadTerm(Iter,Dict,St2,Rp);
+    valis (St3,serch(Lc,RPtn,RSrc,RIter))
   }
   overloadTerm(match(Lc,Ptn,Src),Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);

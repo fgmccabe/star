@@ -9,9 +9,7 @@ star.iterable{
     _iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(t,x)=>m[x]) => m[x]
   }
 
-  public contract all s,k,v ~~ indexed_iter[s->>k,v] ::= {
-    _ix_iter:all x,m/1,e ~~ execution[m->>e] |: (s,m[x],(k,v,x)=>m[x]) => m[x]
-  }
+  public all K,V ~~ keyval[K,V] ::= K->V.
 
   public contract all coll/1, m/2, k,v ~~ grouping[coll ->> m,k,v] ::=  {
     (group_by) : (coll[v], (v)=>k) => m[k,coll[v]]

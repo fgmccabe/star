@@ -631,22 +631,6 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isUnary(Term,Lc,"-",Arg), % handle unary minus
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,ixsearch(Lc,Key,Ptn,Src,Iterator),Path) :-
-  isIxSearch(Term,Lc,K,V,R),!,
-  findType("boolean",Lc,Env,LogicalTp),
-  checkType(Term,LogicalTp,Tp,Env),
-  newTypeFun("_m",1,MTp),
-  newTypeVar("_x",StTp),
-  newTypeVar("_Sr",SrTp),
-  newTypeVar("_Ky",KyTp),
-  newTypeVar("_Vl",VlTp),
-  MdTp = tpExp(MTp,StTp),
-  ActFnTp = funType(tupleType([KyTp,VlTp,StTp]),MdTp),
-  ItrFnTp = funType(tupleType([SrTp,MdTp,ActFnTp]),MdTp),
-  typeOfKnown(name(Lc,"_ix_iter"),ItrFnTp,Env,E0,Iterator,Path),
-  typeOfPtn(V,VlTp,E0,E1,Ptn,Path),
-  typeOfPtn(K,KyTp,E1,E2,Key,Path),
-  typeOfExp(R,SrTp,E2,Ev,Src,Path).
 typeOfExp(Term,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   isSearch(Term,Lc,L,R),!,
   findType("boolean",Lc,Env,LogicalTp),

@@ -149,9 +149,6 @@ ptnGoalVars(given(_,P,_),A,Q,Qx) :-
   ptnVars(P,A,Q,Qx).
 ptnGoalVars(search(_,K,_,_),A,Q,Qx) :-
   ptnVars(K,A,Q,Qx).
-ptnGoalVars(ixsearch(_,K,V,_,_),A,Q,Qx) :-
-  ptnVars(K,A,Q,Q0),
-  ptnVars(V,A,Q0,Qx).
 ptnGoalVars(_,_,Q,Q).
 
 varsInList([],_,F,F).
