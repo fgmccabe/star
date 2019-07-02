@@ -95,13 +95,6 @@ partTriples(L,L,_,[]).
 tripleArgMode(([A|_],_,_),Mode) :-
   argMode(A,Mode),!.
 
-% genVars(0,[]).
-% genVars(Ar,[idnt(NN)|LL]) :-
-%   Ar>0,
-%   genstr("_",NN),
-%   Ar1 is Ar-1,
-%   genVars(Ar1,LL).
-
 newVars([],V,V).
 newVars([_|L],V,[idnt(NN)|VV]) :-
   genstr("_",NN),
