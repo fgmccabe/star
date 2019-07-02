@@ -7,6 +7,7 @@
     "test.bench" : "bench.star",
     "test.cons": "constest.star",
     "test.c": "c.star",
+    "test.case": "casetest.star",
     "test.cc": "cc.star",
     "test.cmd": "cmd.star",
     "test.compose": "compose.star",

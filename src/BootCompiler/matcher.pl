@@ -157,7 +157,7 @@ subTriple(([_|Args],V,X),(Args,V,X)).
 earlierIndex((_,_,Ix1),(_,_,Ix2)) :-
   Ix1<Ix2.
 
-compareConstructorTriple(([A|_],_,_,_),([B|_],_,_,_)) :-
+compareConstructorTriple(([A|_],_,_),([B|_],_,_)) :-
   compareConstructor(A,B).
 
 compareConstructor(A,B) :-
