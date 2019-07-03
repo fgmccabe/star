@@ -18,12 +18,12 @@ star.json{
   dispJson(jNull,_) => ss("null").
   dispJson(jTxt(T),_) => disp(T).
   dispJson(jNum(D),_) => disp(D).
-  dispJson(jColl(M),Sp) => ssSeq([sc(0c{),ssSeq(dispColl(M::list[(string,json)],Sp+2,"")),sc(0c})]).
+  dispJson(jColl(M),Sp) => ssSeq([sc(0c{),ssSeq(dispColl(M::list[keyval[string,json]],Sp+2,"")),sc(0c})]).
   dispJson(jSeq(L),Sp) => ssSeq([sc(0c[),ssSeq(dispSeq(L,Sp,"")),sc(0c])]).
 
-  dispColl:(list[(string,json)],integer,string) => list[ss].
+  dispColl:(list[keyval[string,json]],integer,string) => list[ss].
   dispColl([],_,_) => [].
-  dispColl([(f,e),..l],Sp,s) => [ss(s),break(Sp),disp(f),ss(":"),dispJson(e,Sp),..dispColl(l,Sp,",")].
+  dispColl([f->e,..l],Sp,s) => [ss(s),break(Sp),disp(f),ss(":"),dispJson(e,Sp),..dispColl(l,Sp,",")].
 
   dispSeq:(list[json],integer,string) => list[ss].
   dispSeq([],_,_) => [].

@@ -5,12 +5,13 @@ star.compiler{
   import star.resources.
   import star.uri.
 
-  import star.repo.file.
+  import star.repo.
 
   import star.compiler.ast.
   import star.compiler.catalog.
   import star.compiler.checker.
   import star.compiler.errors.
+  import star.compiler.grapher.
   import star.compiler.parser.
   import star.compiler.location.
 

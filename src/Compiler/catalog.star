@@ -14,7 +14,7 @@ star.compiler.catalog{
 
   public parseCat:(json,uri) => option[catalog].
   parseCat(jColl(M),U) => some(catalog{
-    parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(resolveUri(U,PU)).
+    parent=M["default"]>>=(jTxt(Ut))=>parseUri(Ut)>>=(PU)=>loadCatalog(^resolveUri(U,PU)).
     vers=M["version"] >>= (jTxt(V)) => some(V::version).
     base=U.
     entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
@@ -27,7 +27,9 @@ star.compiler.catalog{
   public resolveInCatalog:(catalog,string) => option[(uri,pkg)].
   resolveInCatalog(Cat,Pkg) where
     E ^= Cat.entries[Pkg] &&
-    CU ^= parseUri(E) => some((resolveUri(Cat.base,CU),pkg(Pkg,deflt(Cat.vers,()=>defltVersion)))).
+      CU ^= parseUri(E) &&
+      PU ^= resolveUri(Cat.base,CU) =>
+    some((PU,pkg(Pkg,deflt(Cat.vers,()=>defltVersion)))).
   resolveInCatalog(Cat,Pkg) where
     P ^= Cat.parent => resolveInCatalog(P,Pkg).
   resolveInCatalog(_,_) => none.

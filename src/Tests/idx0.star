@@ -87,5 +87,5 @@ test.idx0{
 
   show disp(unzip(["a","b","c"],0,4,u1)).
 
-  show disp([12->"d"]).
+  show disp([12->"d"]:map[integer,string]).
 }
