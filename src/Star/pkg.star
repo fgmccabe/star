@@ -44,6 +44,10 @@ star.pkg{
     _coerce(vers(V)) => V.
   }
 
+  public compatiblePkg:(pkg,pkg)=>boolean.
+  compatiblePkg(pkg(P,V1),pkg(P,V2)) => compatibleVersion(V1,V2).
+  compatiblePkg(_,_) default => false.
+
   public compatibleVersion:(version,version)=>boolean.
   compatibleVersion(defltVersion,_)=>true.
   compatibleVersion(_,defltVersion)=>true.
