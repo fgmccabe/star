@@ -6,6 +6,12 @@ star.pkg{
 
   public version ::= defltVersion | vers(string).
 
+  public pkgName:(pkg)=>string.
+  pkgName(pkg(Nm,_))=>Nm.
+
+  public pkgVersion:(pkg)=>version.
+  pkgVersion(pkg(_,V))=>V.
+
   public implementation display[pkg] => {.
     disp(pkg(P,V)) => ssSeq([ss(P),ss(":"),disp(V)]).
   .}

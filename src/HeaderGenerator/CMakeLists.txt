@@ -13,11 +13,6 @@ add_executable(genesc ${ESC_SOURCE_FILES})
 
 target_link_libraries(genesc ooio)
 
-# set(INS_SOURCE_FILES instr.c ../Headers/instructions.h)
-# add_executable(genins ${INS_SOURCE_FILES})
-
-# target_link_libraries(genins ooio)
-
 set(ASM_SOURCE_FILES platemnem.c)
 add_executable(plmnem ${ASM_SOURCE_FILES})
 target_link_libraries(plmnem ooio infra)
@@ -26,21 +21,17 @@ set(OPCODES_FILES opcodes.c)
 add_executable(opcodes ${OPCODES_FILES})
 target_link_libraries(opcodes ooio)
 
-
-#set(ASM_LO ${CMAKE_CURRENT_SOURCE_DIR}/../LOCompiler/asm.lo)
-#set(INSTRUCTIONS_LO ${CMAKE_CURRENT_SOURCE_DIR}/../LOCompiler/instructions.lo)
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)
 set(ESCAPES_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/escapes.star)
 set(OPERATORS_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/operators.pl)
 set(ESCAPES_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/escapes.pl)
 set(ASM_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/assem.pl)
+set(ASM_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/assem.star)
 set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
 set(OPERATORS_EL ${CMAKE_SOURCE_DIR}/star-ops.el)
 
 add_custom_target(generate ALL
-#        COMMAND genins ${INSTRUCTIONS_LO}
-#        COMMAND ops -c lo.comp.operators ${OPERATORS_ST}
         COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
         COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST}
         COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_TEXI}
@@ -48,5 +39,5 @@ add_custom_target(generate ALL
         COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
         COMMAND genesc -p ${ESCAPES_PL}
         COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate -p ${ASM_PL}
-#        COMMAND opcodes ${OPCODES_H}
+        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate -s ${ASM_ST}
         )

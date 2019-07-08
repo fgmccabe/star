@@ -1,5 +1,6 @@
 {
   "content": {
+    "star.compiler.assem" : "assem.star",
     "star.compiler.ast": "ast.star",
     "star.compiler.catalog": "catalog.star",
     "star.compiler": "driver.star",
@@ -8,6 +9,7 @@
     "star.compiler.dependencies" : "dependencies.star",
     "star.compiler.dict": "dict.star",
     "star.compiler.errors": "errors.star",
+    "star.compiler.freevars": "freevars.star",
     "star.compiler.freshen": "freshen.star",
     "star.compiler.escapes": "escapes.star",
     "star.compiler.grapher": "grapher.star",
