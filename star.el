@@ -78,7 +78,7 @@
 	     "private" "public"
 	     "import"
 	     "contract" "implementation"
-	     "valof" "lift" "do" "if" "then" "else" "while" "for" "in" "valis"
+	     "valof" "do" "if" "then" "else" "while" "for" "in" "valis"
 	     "open"
 	     "try" "catch" "throw"
 	     "where" "type" "all" "exists" "let" "default"
@@ -89,7 +89,7 @@
   )
 
 (defvar star-char-regexp
-  "\\(\\\\u[0-9a-f]*;\\|.\\)")
+  "\\(\\\\u[0-9a-f]*;\\|\\\\.\\|[^\\]\\)")
 
 (defvar star-constant-regexp
   (concat "\\<\\("

@@ -1,83 +1,47 @@
 [
   {
     "infixOp": "::=",
-    "priorities": [
-      1249,
-      1250,
-      1249
-    ],
+    "priorities": [1249, 1250, 1249],
     "desc": "algebraic type definition"
   },
   {
     "infixOp": "|",
-    "priorities": [
-      1248,
-      1248,
-      1247
-    ],
+    "priorities": [1248, 1248, 1247],
     "desc": "type union, conditional, and abstraction"
   },
   {
     "infixOp": "^|",
-    "priorities": [
-      1248,
-      1249,
-      1249
-    ],
+    "priorities": [1248, 1249, 1249],
     "desc": "option or-else operator"
   },
   {
     "infixOp": ":",
-    "priorities": [
-      1249,
-      1250,
-      1249
-    ],
+    "priorities": [1249, 1250, 1249],
     "desc": "type annotation"
   },
   {
     "infixOp": "~~",
-    "priorities": [
-      1239,
-      1240,
-      1240
-    ],
+    "priorities": [1239, 1240, 1240],
     "desc": "quantifier"
   },
   {
     "infixOp": "|:",
-    "priorities": [
-      1234,
-      1235,
-      1234
-    ],
+    "priorities": [1234, 1235, 1234],
     "desc": "constrained type"
   },
   {
     "infixOp": "<~",
-    "priorities": [
-      1230,
-      1231,
-      1230
-    ],
+    "priorities": [1230, 1231, 1230],
     "desc": "type interface rule"
   },
   {
     "infixOp": "~>",
-    "priorities": [
-      1230,
-      1231,
-      1230
-    ],
+    "priorities": [1230, 1231, 1230],
     "desc": "type function"
   },
   {
     "infixOp": "<-",
-    "priorities": [
-      904,
-      905,
-      904
-    ],
+    "priorities": [904, 905, 904],
     "desc": "variable bind"
   },
   {
@@ -240,505 +204,307 @@
   },
   {
     "infixOp": "=!=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "not equals"
   },
   {
     "infixOp": ".=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "pattern match"
   },
   {
     "infixOp": "=.",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "pattern match"
   },
   {
     "infixOp": "^=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "optional decomposition match"
   },
   {
     "infixOp": "^",
-    "priorities": [
-      99,
-      100,
-      99
-    ],
+    "priorities": [99, 100, 99],
     "desc": "Apply optional function and match result"
   },
   {
     "prefixOp": "^",
-    "priorities": [
-      100,
-      99
-    ],
+    "priorities": [100, 99],
     "desc": "Optional propagation"
   },
   {
     "infixOp": "<",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "less than"
   },
   {
     "infixOp": "=<",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "less than or equal"
   },
   {
     "infixOp": ">",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "greater than"
   },
   {
     "infixOp": ">=",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "greater than or equal"
   },
   {
     "infixOp": "in",
-    "priorities": [
-      899,
-      900,
-      899
-    ],
+    "priorities": [899, 900, 899],
     "desc": "list membership"
   },
   {
     "infixOp": "//",
-    "priorities": [
-      960,
-      960,
-      959
-    ],
+    "priorities": [960, 960, 959],
     "desc": "map over"
   },
   {
     "infixOp": "///",
-    "priorities": [
-      960,
-      960,
-      959
-    ],
+    "priorities": [960, 960, 959],
     "desc": "indexed map over"
   },
   {
     "infixOp": "^/",
-    "priorities": [
-      960,
-      960,
-      959
-    ],
+    "priorities": [960, 960, 959],
     "desc": "filter"
   },
   {
     "infixOp": "^//",
-    "priorities": [
-      800,
-      800,
-      799
-    ],
+    "priorities": [800, 800, 799],
     "desc": "filter map"
   },
   {
     "infixOp": "#",
-    "priorities": [
-      759,
-      760,
-      759
-    ],
+    "priorities": [759, 760, 759],
     "desc": "package separator"
   },
   {
     "infixOp": "++",
-    "priorities": [
-      719,
-      720,
-      720
-    ],
+    "priorities": [719, 720, 720],
     "desc": "concatenate"
   },
   {
     "infixOp": "+++",
-    "priorities": [
-      719,
-      720,
-      720
-    ],
+    "priorities": [719, 720, 720],
     "desc": "choice"
   },
   {
     "infixOp": "+",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
+    "priorities": [720, 720, 719],
     "desc": "addition"
   },
   {
     "infixOp": "-",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
+    "priorities": [720, 720, 719],
     "desc": "subtraction"
   },
   {
     "infixOp": ".|.",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
+    "priorities": [720, 720, 719],
     "desc": "bitwise or"
   },
   {
     "infixOp": ".^.",
-    "priorities": [
-      720,
-      720,
-      719
-    ],
+    "priorities": [720, 720, 719],
     "desc": "bitwise xor"
   },
   {
     "infixOp": "<$",
-    "priorities": [
-      719,
-      720,
-      720
-    ],
+    "priorities": [719, 720, 720],
     "desc": "constant replace"
   },
   {
     "infixOp": "*",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
+    "priorities": [700, 700, 699],
     "desc": "multiplication"
   },
   {
     "infixOp": "/",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
+    "priorities": [700, 700, 699],
     "desc": "division"
   },
   {
+    "infixOp": "\\/",
+    "priorities": [720, 720, 719],
+    "desc": "union"
+  },
+  {
+    "infixOp": "/\\",
+    "priorities": [700, 700, 699],
+    "desc": "intersection"
+  },
+  {
+    "infixOp": "\\",
+    "priorities": [700, 700, 699],
+    "desc": "difference"
+  },
+  {
     "infixOp": ".&.",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
+    "priorities": [700, 700, 699],
     "desc": "bitwise and"
   },
   {
     "prefixOp": ".+.",
-    "priorities": [
-      700,
-      699
-    ],
+    "priorities": [700, 699],
     "desc": "count of number of bits"
   },
   {
     "infixOp": "%",
-    "priorities": [
-      700,
-      700,
-      699
-    ],
+    "priorities": [700, 700, 699],
     "desc": "modulo"
   },
   {
     "infixOp": "**",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
+    "priorities": [600, 600, 599],
     "desc": "exponentiation"
   },
   {
     "infixOp": ".<<.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
+    "priorities": [600, 600, 599],
     "desc": "shift left"
   },
   {
     "infixOp": ".>>.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
+    "priorities": [600, 600, 599],
     "desc": "logical shift right"
   },
   {
     "infixOp": ".>>>.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
+    "priorities": [600, 600, 599],
     "desc": "arithmetic shift right"
   },
   {
     "infixOp": ".#.",
-    "priorities": [
-      600,
-      600,
-      599
-    ],
+    "priorities": [600, 600, 599],
     "desc": "test nth bit"
   },
   {
     "infixOp": ".~",
-    "priorities": [
-      499,
-      500,
-      499
-    ],
+    "priorities": [499, 500, 499],
     "desc": "grammar parse"
   },
   {
     "infixOp": "~",
-    "priorities": [
-      489,
-      499,
-      489
-    ],
+    "priorities": [489, 499, 489],
     "desc": "grammar remainder"
   },
   {
     "infixOp": "•",
-    "priorities": [
-      450,
-      450,
-      449
-    ],
+    "priorities": [450, 450, 449],
     "desc": "function composition"
   },
   {
     "infixOp": "^.",
-    "priorities": [
-      450,
-      450,
-      449
-    ],
+    "priorities": [450, 450, 449],
     "desc": "optional object access"
   },
   {
     "infixOp": "@",
-    "priorities": [
-      399,
-      400,
-      400
-    ],
+    "priorities": [399, 400, 400],
     "desc": "meta annotation"
   },
   {
     "infixOp": "::",
-    "priorities": [
-      399,
-      400,
-      399
-    ],
+    "priorities": [399, 400, 399],
     "desc": "type coercion"
   },
   {
     "infixOp": "of",
-    "priorities": [
-      399,
-      400,
-      399
-    ],
+    "priorities": [399, 400, 399],
     "desc": "'of' term'"
   },
   {
     "infixOp": ".",
-    "priorities": [
-      100,
-      100,
-      99
-    ],
+    "priorities": [100, 100, 99],
     "desc": "object access"
   },
   {
     "prefixOp": "#",
-    "priorities": [
-      1750,
-      1749
-    ],
+    "priorities": [1750, 1749],
     "desc": "Macro statement marker"
   },
   {
     "prefixOp": "private",
-    "priorities": [
-      1200,
-      1199
-    ],
+    "priorities": [1200, 1199],
     "desc": "private program"
   },
   {
     "prefixOp": "public",
-    "priorities": [
-      1700,
-      1699
-    ],
+    "priorities": [1700, 1699],
     "desc": "public program"
   },
   {
     "prefixOp": "assert",
-    "priorities": [
-      1260,
-      1259
-    ],
+    "priorities": [1260, 1259],
     "desc": "assert condition"
   },
   {
     "prefixOp": "show",
-    "priorities": [
-      1260,
-      1259
-    ],
+    "priorities": [1260, 1259],
     "desc": "display debug message"
   },
   {
     "prefixOp": "contract",
-    "priorities": [
-      1260,
-      1259
-    ],
+    "priorities": [1260, 1259],
     "desc": "contract definition"
   },
   {
     "prefixOp": "implementation",
-    "priorities": [
-      1260,
-      1259
-    ],
+    "priorities": [1260, 1259],
     "desc": "contract implementation"
   },
   {
     "prefixOp": "type",
-    "priorities": [
-      1251,
-      1250
-    ],
+    "priorities": [1251, 1250],
     "desc": "type marker"
   },
   {
     "prefixOp": "all",
-    "priorities": [
-      1010,
-      1009
-    ],
+    "priorities": [1010, 1009],
     "desc": "universal quantifier"
   },
   {
     "prefixOp": "exists",
-    "priorities": [
-      1010,
-      1009
-    ],
+    "priorities": [1010, 1009],
     "desc": "existential quantifier"
   },
   {
     "prefixOp": "\\+",
-    "priorities": [
-      905,
-      904
-    ],
+    "priorities": [905, 904],
     "desc": "logical negation"
   },
   {
     "prefixOp": "ref",
-    "priorities": [
-      900,
-      899
-    ],
+    "priorities": [900, 899],
     "desc": "reference type"
   },
   {
     "prefixOp": "open",
-    "priorities": [
-      900,
-      899
-    ],
+    "priorities": [900, 899],
     "desc": "import object"
   },
   {
     "prefixOp": "import",
-    "priorities": [
-      900,
-      899
-    ],
+    "priorities": [900, 899],
     "desc": "import module"
   },
   {
     "prefixOp": ".~.",
-    "priorities": [
-      650,
-      649
-    ],
+    "priorities": [650, 649],
     "desc": "bitwise 1's complement"
   },
   {
     "prefixOp": "@",
-    "priorities": [
-      400,
-      399
-    ],
+    "priorities": [400, 399],
     "desc": "meta annotation"
   },
   {
     "prefixOp": "pure",
-    "priorities": [
-      300,
-      299
-    ],
+    "priorities": [300, 299],
     "desc": "wrap value in applicative"
   },
   {
@@ -758,68 +524,42 @@
   },
   {
     "prefixOp": "-",
-    "priorities": [
-      300,
-      299
-    ],
+    "priorities": [300, 299],
     "desc": "arithmetic negation"
   },
   {
     "postfixOp": "*",
-    "priorities": [
-      699,
-      700
-    ],
+    "priorities": [699, 700],
     "desc": "zero or more repetitions"
   },
   {
     "postfixOp": "+",
-    "priorities": [
-      699,
-      700
-    ],
+    "priorities": [699, 700],
     "desc": "one or more repetitions"
   },
   {
     "postfixOp": "default",
-    "priorities": [
-      939,
-      940
-    ],
+    "priorities": [939, 940],
     "desc": "default value marker"
   },
   {
     "postfixOp": "!",
-    "priorities": [
-      99,
-      100
-    ],
+    "priorities": [99, 100],
     "desc": "pick up a value from a ref cell"
   },
   {
     "infixOp": "!",
-    "priorities": [
-	99,
-	100,
-	99
-    ],
+    "priorities": [99, 100, 99],
     "desc": "pick up a value from a ref cell"
   },
   {
     "infixOp": "!.",
-    "priorities": [
-	99,
-	100,
-	99
-    ],
+    "priorities": [99, 100, 99],
     "desc": "pick up a value from a ref record"
   },
   {
     "prefixOp": "!!",
-    "priorities": [
-      900,
-      899
-    ],
+    "priorities": [900, 899],
     "desc": "cell value"
   },
   {

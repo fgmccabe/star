@@ -55,6 +55,7 @@
   operator("*>", [infixOp(904, 905, 904)]).
   operator(",", [infixOp(999, 1000, 1000)]).
   operator("contract", [prefixOp(1260, 1259)]).
+  operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
   operator(".", [infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
@@ -93,6 +94,7 @@
   operator("!.", [infixOp(99, 100, 99)]).
   operator("=<", [infixOp(899, 900, 899)]).
   operator("==", [infixOp(899, 900, 899)]).
+  operator("\\", [infixOp(700, 700, 699)]).
   operator("=>", [infixOp(949, 950, 950)]).
   operator("^", [prefixOp(100, 99), infixOp(99, 100, 99)]).
   operator("<=>", [infixOp(949, 950, 949)]).
@@ -119,6 +121,7 @@
   operator("||", [infixOp(919, 920, 920)]).
   operator("else", [infixOp(1199, 1200, 1200)]).
   operator("::=", [infixOp(1249, 1250, 1249)]).
+  operator("/\\", [infixOp(700, 700, 699)]).
   operator(">=", [infixOp(899, 900, 899)]).
   operator(">>", [infixOp(949, 950, 950)]).
 
@@ -192,6 +195,7 @@
   follows('.>>','>','.>>>').
   follows('.>>>','.','.>>>.').
   follows('..',',','..,').
+  follows('/','\\','/\\').
   follows('/','/','//').
   follows('//','/','///').
   follows('{','.','{.').
@@ -200,6 +204,7 @@
   follows('~','~','~~').
   follows('~','>','~>').
   follows('\\','+','\\+').
+  follows('\\','/','\\/').
   follows('^','.','^.').
   follows('^','/','^/').
   follows('^','=','^=').
@@ -261,6 +266,7 @@
   final('..,',"..,").	 /* list cons */
   final('. ',". ").	 /* statement terminator */
   final('/',"/").	 /* division */
+  final('/\\',"/\\").	 /* intersection */
   final('//',"//").	 /* map over */
   final('///',"///").	 /* indexed map over */
   final('{',"{").	 /* braces */
@@ -273,7 +279,9 @@
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
+  final('\\',"\\").	 /* difference */
   final('\\+',"\\+").	 /* logical negation */
+  final('\\/',"\\/").	 /* union */
   final(']',"]").	 /* square brackets */
   final('^',"^").	 /* Optional propagation */
   final('^.',"^.").	 /* optional object access */

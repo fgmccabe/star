@@ -72,6 +72,7 @@ star.compiler.operators{
   oper("*>") => [infixOp(904,905,904)].
   oper(",") => [infixOp(999,1000,1000)].
   oper("contract") => [prefixOp(1260,1259)].
+  oper("\\/") => [infixOp(720,720,719)].
   oper("-") => [prefixOp(300,299), infixOp(720,720,719)].
   oper(".") => [infixOp(100,100,99)].
   oper("/") => [infixOp(700,700,699)].
@@ -110,6 +111,7 @@ star.compiler.operators{
   oper("!.") => [infixOp(99,100,99)].
   oper("=<") => [infixOp(899,900,899)].
   oper("==") => [infixOp(899,900,899)].
+  oper("\\") => [infixOp(700,700,699)].
   oper("=>") => [infixOp(949,950,950)].
   oper("^") => [prefixOp(100,99), infixOp(99,100,99)].
   oper("<=>") => [infixOp(949,950,949)].
@@ -136,6 +138,7 @@ star.compiler.operators{
   oper("||") => [infixOp(919,920,920)].
   oper("else") => [infixOp(1199,1200,1200)].
   oper("::=") => [infixOp(1249,1250,1249)].
+  oper("/\\") => [infixOp(700,700,699)].
   oper(">=") => [infixOp(899,900,899)].
   oper(">>") => [infixOp(949,950,950)].
   oper(_) default => [].
@@ -229,6 +232,7 @@ star.compiler.operators{
   follows(".>>",0c>) => some(".>>>").
   follows(".>>>",0c.) => some(".>>>.").
   follows("..",0c,) => some("..,").
+  follows("/",0c\\) => some("/\\").
   follows("/",0c/) => some("//").
   follows("//",0c/) => some("///").
   follows("{",0c.) => some("{.").
@@ -237,6 +241,7 @@ star.compiler.operators{
   follows("~",0c~) => some("~~").
   follows("~",0c>) => some("~>").
   follows("\\",0c+) => some("\\+").
+  follows("\\",0c/) => some("\\/").
   follows("^",0c.) => some("^.").
   follows("^",0c/) => some("^/").
   follows("^",0c=) => some("^=").
@@ -299,6 +304,7 @@ star.compiler.operators{
   final("..,") => true.  /* list cons */
   final(". ") => true.  /* statement terminator */
   final("/") => true.  /* division */
+  final("/\\") => true.  /* intersection */
   final("//") => true.  /* map over */
   final("///") => true.  /* indexed map over */
   final("{") => true.  /* braces */
@@ -311,7 +317,9 @@ star.compiler.operators{
   final("~~") => true.  /* quantifier */
   final("~>") => true.  /* type function */
   final("[") => true.  /* square brackets */
+  final("\\") => true.  /* difference */
   final("\\+") => true.  /* logical negation */
+  final("\\/") => true.  /* union */
   final("]") => true.  /* square brackets */
   final("^") => true.  /* Optional propagation */
   final("^.") => true.  /* optional object access */
