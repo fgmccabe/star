@@ -18,12 +18,12 @@ star.monad{
     zed : all x ~~ m[x].
   }
 
-  public contract all m/1,e ~~ execution[m->>e] ::= {
-    _perform:all a ~~ (m[a])=>a.
-    _valis:all a ~~ (a)=>m[a].
-    _sequence:all a,b ~~ (m[a],(a)=>m[b]) => m[b].
-    _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
-    _raise: all a ~~ (e) => m[a].
+  public contract all m/2 ~~ execution[m] ::= {
+    _perform:all a,e ~~ (m[e,a])=>a.
+    _valis:all a ~~ (a)=>m[e,a].
+    _sequence:all a,b,e ~~ (m[e,a],(a)=>m[e,b]) => m[e,b].
+    _handle:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
+    _raise: all a,e ~~ (e) => m[e,a].
   }
 
   public contract all m/1,n/1 ~~ injection[m,n] ::= {
