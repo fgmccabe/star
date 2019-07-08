@@ -22,14 +22,13 @@ char date[MAXLINE] = "";
 int getOptions(int argc, char **argv) {
   int opt;
 
-  while ((opt = getopt(argc, argv, "ps:t:d:")) >= 0) {
+  while ((opt = getopt(argc, argv, "pst:d:")) >= 0) {
     switch (opt) {
       case 'p':
         genMode = genProlog;
         break;
       case 's':
         genMode = genStar;
-        prefix = optarg;
         break;
       case 't':
         templateFn = optarg;
@@ -43,9 +42,13 @@ int getOptions(int argc, char **argv) {
   return optind;
 }
 
-static void genIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
-static void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
-static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
 
 int main(int argc, char **argv) {
   initLogfile("-");
@@ -84,10 +87,20 @@ int main(int argc, char **argv) {
     // Set up the assembler proper
     bufferPo mnemBuff = newStringBuffer();
 
+    switch (genMode) {
+      case genProlog:
+
 #undef instruction
-#define instruction(M, A1, Dl, cmt) genIns(O_IO(mnemBuff),#M,M,A1,cmt);
+#define instruction(M, A1, Dl, cmt) genPrologIns(O_IO(mnemBuff),#M,M,A1,cmt);
 
 #include "instructions.h"
+        break;
+      case genStar:
+#undef instruction
+#define instruction(M, A1, Dl, cmt) genStarIns(O_IO(mnemBuff),#M,M,A1,cmt);
+
+#include "instructions.h"
+    }
 
     integer insLen;
     char *allCode = getTextFromBuffer(mnemBuff, &insLen);
@@ -97,10 +110,21 @@ int main(int argc, char **argv) {
 
     bufferPo lblBuff = newStringBuffer();
 
+    switch (genMode) {
+      case genProlog:
 #undef instruction
-#define instruction(M, A1, Dl, cmt) bmpPc(O_IO(lblBuff),#M,M,A1,cmt);
+#define instruction(M, A1, Dl, cmt) prologPc(O_IO(lblBuff),#M,M,A1,cmt);
 
 #include "instructions.h"
+
+        break;
+      case genStar:
+#undef instruction
+#define instruction(M, A1, Dl, cmt) starPc(O_IO(lblBuff),#M,M,A1,cmt);
+
+#include "instructions.h"
+        break;
+    }
 
     integer lblLen;
     char *lblCode = getTextFromBuffer(lblBuff, &lblLen);
@@ -109,14 +133,37 @@ int main(int argc, char **argv) {
     // Set up the display code
     bufferPo showBuff = newStringBuffer();
 
+    switch (genMode) {
+      case genProlog:
+
 #undef instruction
-#define instruction(M, A1, Dl, cmt) showIns(O_IO(showBuff),#M,M,A1,cmt);
+#define instruction(M, A1, Dl, cmt) showPrologIns(O_IO(showBuff),#M,M,A1,cmt);
 
 #include "instructions.h"
+        break;
+      case genStar:
+#undef instruction
+#define instruction(M, A1, Dl, cmt) showStarIns(O_IO(showBuff),#M,M,A1,cmt);
+
+#include "instructions.h"
+        break;
+    }
 
     integer showLen;
     char *showCode = getTextFromBuffer(showBuff, &showLen);
     hashPut(vars, "Show", showCode);
+
+    // Set up the opcodes for the type definition
+    bufferPo typeBuff = newStringBuffer();
+
+#undef instruction
+#define instruction(M, A1, Dl, Cmt) insOp(O_IO(typeBuff),#M,M,A1,Cmt);
+
+#include "instructions.h"
+
+    integer tpLen;
+    char *typeCode = getTextFromBuffer(typeBuff, &tpLen);
+    hashPut(vars, "OpCodes", typeCode);
 
     retCode ret = processTemplate(out, plate, vars, NULL, NULL);
 
@@ -150,11 +197,47 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
 
 char *tail = "      mnem(Ins,Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n";
 
-static void genCode(ioPo out, int op, opAndSpec A) {
+static void genPrologCode(ioPo out, int op, opAndSpec A) {
   switch (A) {
     case nOp:                             // No operand
     case tOs:
       outMsg(out, "%d|M]) :- Pc1 is Pc+1,\n", op);
+      break;
+    case lne:
+    case lit:
+      outMsg(out, "%d,LtNo|M]) :- Pc1 is Pc+3,\n", op);
+      outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
+      outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
+      return;
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+      outMsg(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
+      break;
+    case glb:
+    case Es:                              // escape code (0..65535)
+      outMsg(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
+      break;
+    case off:                            // program counter relative offset
+      outMsg(out, "%d,Off|M]) :- Pc1 is Pc+3,\n", op);
+      outMsg(out, "      findLbl(V,Lbls,Tgt),\n");
+      outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
+      break;
+    default:
+      outMsg(out, "Unknown instruction type code\n");
+      exit(1);
+  }
+  outMsg(out, "%s", tail);
+}
+
+
+static void genStarCode(ioPo out, int op, opAndSpec A) {
+  switch (A) {
+    case nOp:                             // No operand
+    case tOs:
+      outMsg(out, "mnem([%d,..M]) :- Pc1 is Pc+1,\n", op);
       break;
     case lne:
     case lit:
@@ -194,7 +277,7 @@ static char *capitalize(char *str) {
   return buffer;
 }
 
-static void genIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
   char *sep = "(";
 
   outMsg(out, "mnem([i%s", capitalize(mnem));
@@ -208,10 +291,53 @@ static void genIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
 
   outMsg(out, "%s|Ins],Lbls,Lt,Ltx,Lc,Lcx,Lns,Lnx,Pc,[", sep);
 
-  genCode(out, op, A1);
+  genPrologCode(out, op, A1);
 }
 
-void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, char *cmt) {
+  char *sep = "(";
+
+  outMsg(out, "  mnem([i%s", mnem);
+
+  sep = genArg(out, sep, A);
+
+  if (strcmp(sep, ",") == 0)
+    sep = ")";
+  else
+    sep = "";
+
+  outMsg(out, "%s,..Ins],Lbls,Lts,Lns,Lcs,Pc,Code) ", sep);
+
+  switch (A) {
+    case nOp:                             // No operand
+    case tOs:
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,[Code..,intgr(%d)]).\n", op);
+      break;
+    case lne:
+    case lit:
+      outMsg(out, "where (Lt1,LtNo) .= findLit(Lts,V) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(LtNo)]).\n", op);
+      return;
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(V)]).\n", op);
+      break;
+    case glb:
+    case Es:                              // escape code (0..65535)
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,[Code..,intgr(%d),strg(V)]).\n", op);
+      break;
+    case off:                            // program counter relative offset
+      outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(Tgt-Pc-3)]).\n", op);
+      break;
+    default:
+      outMsg(out, "Unknown instruction type code\n");
+      exit(1);
+  }
+}
+
+void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
   outMsg(out, "genLblTbl([i%s", capitalize(mnem));
 
   switch (A1) {
@@ -260,7 +386,85 @@ void bmpPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
   outMsg(out, " genLblTbl(Ins,Pc1,Lbls,Lbx).\n");
 }
 
-static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+  outMsg(out, "  genLblTbl([i%s", mnem);
+
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+      break;
+    case lit:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      outMsg(out, "(_)");
+      break;
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+  }
+
+  outMsg(out, ",..Ins],Pc,Lbls) => ");
+
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+      outMsg(out, "genLblTbl(Ins,Pc+1,Lbls).\n");
+      break;
+    case lit:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      outMsg(out, "genLblTbl(Ins,Pc+3,Lbls).\n");
+      break;
+  }
+}
+
+void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+  outMsg(out, "    i%s", mnem);
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+      break;
+    case lit:
+    case lne:
+      outMsg(out, "(term)");
+      break;
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+      outMsg(out, "(integer)");
+      break;
+
+    case off:
+    case Es:
+    case glb:
+      outMsg(out, "(string)");
+      break;
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+  }
+  outMsg(out, " |\n");
+}
+
+static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
   outMsg(out, "showMnem([i%s", capitalize(mnem));
 
   switch (A1) {
@@ -300,12 +504,12 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
     case lne:
     case lit:
-      outMsg(out,"  showTerm(XX,0,O1,O2),\n");
+      outMsg(out, "  showTerm(XX,0,O1,O2),\n");
       outMsg(out, "  appNl(O2,O3),\n");
       Oy = "O3";
       break;
     case Es:
-      outMsg(out,"  appStr(XX,O1,O2),\n");
+      outMsg(out, "  appStr(XX,O1,O2),\n");
       outMsg(out, "  appNl(O2,O3),\n");
       Oy = "O3";
       break;
@@ -347,4 +551,73 @@ static void showIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
   }
 
   outMsg(out, "  showMnem(Ins,Pc1,Lbls,%s,Ox).\n", Oy);
+}
+
+static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
+  outMsg(out, "  showMnem([i%s", mnem);
+
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+      break;
+    case lit:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      outMsg(out, "(XX)");
+      break;
+
+    default:
+      fprintf(stderr, "Unknown instruction type code\n");
+      exit(1);
+  }
+
+  outMsg(out, ",..Ins],Pc,Out) => showMnem(Ins,");
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+      outMsg(out, "Pc+1,");
+      break;
+    case lit:
+    case lne:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case Es:
+    case glb:
+    case off:
+      outMsg(out, "Pc+3,");
+      break;
+  }
+
+  outMsg(out, "[Out..,disp(Pc),ss(\":\"),ss(\"%P\")", mnem);
+
+  switch (A1) {
+    case nOp:                             // No operand
+    case tOs:
+      outMsg(out, ",ss(\"\\n\")]).\n");
+      break;
+    case lne:
+    case lit:
+    case i32:
+    case art:
+    case arg:
+    case lcl:
+    case lcs:
+    case glb:
+    case off:
+      outMsg(out, ",disp(XX),ss(\"\\n\")]).\n");
+      break;
+    case Es:
+      outMsg(out, ",ss(XX),ss(\"\\n\")]).\n");
+      break;
+  }
 }

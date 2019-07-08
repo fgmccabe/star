@@ -54,9 +54,9 @@ star.collection{
   }
 
   public contract all k ~~ setops[k] ::= {
-    _union : (k,k)=>k.
-    _intersect : (k,k)=>k.
-    _difference : (k,k)=>k.
+    (\/) : (k,k)=>k.
+    (/\) : (k,k)=>k.
+    (\) : (k,k)=>k.
   }
 
   public contract all r,t ~~ updateable[r->>t] ::= {

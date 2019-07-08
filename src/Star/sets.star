@@ -22,9 +22,9 @@ star.sets{
   }
 
   public implementation all e ~~ equality[e], hash[e] |: setops[set[e]] => {
-    _union(set(m1),set(m2)) => set(ixLeft(((mm,k,_) => mm[k->()]),m2,m1)).
-    _intersect(set(m1),set(m2)) => set(ixLeft((mm,k,_) => (some(_).=m2[k]?mm[k->()]||mm),[],m1)).
-    _difference(set(m1),set(m2)) => set(ixLeft((mm,k,_) => (some(_).=m2[k]?mm||mm[k->()]),[],m1)).
+    set(m1)\/set(m2) => set(ixLeft(((mm,k,_) => mm[k->()]),m2,m1)).
+    set(m1)/\set(m2) => set(ixLeft((mm,k,_) => (some(_).=m2[k]?mm[k->()]||mm),[],m1)).
+    set(m1)\set(m2) => set(ixLeft((mm,k,_) => (some(_).=m2[k]?mm||mm[k->()]),[],m1)).
   }
 
   public implementation all e ~~ display[e] |: display[set[e]] => let{

@@ -14,16 +14,16 @@ star.repo.file{
   openRepository(Root) where
       ManUri ^= parseUri("manifest") &&
       MU ^= resolveUri(Root,ManUri) &&
-      Man ^= readManifest() => repo(Root,Man).
+      Man ^= readManifest(MU) => repo(Root,Man).
   openRepository(Root) => repo(Root,man([])).
 
   public implementation repo[fileRepo] => {
     hasSignature(repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
 
     hasCode(repo(Root,Man),Pkg) where
-      U ^= locateInManifest(Man,Pkg,Kind) &&
-	RU ^= resolveUri(Root,Uri) &&
-	Uri ^= parseUri(U) => getResource(RU).
+      U ^= locateInManifest(Man,Pkg,"code") &&
+	Uri ^= parseUri(U) &&
+	RU ^= resolveUri(Root,Uri)  => getResource(RU).
     hasCode(_,_) default => none.
   }
 
@@ -40,21 +40,24 @@ star.repo.file{
       () .= flushManifest(RepoUri,NM) => repo(Root,NM).
 
   public packageCodeOk:(fileRepo,pkg) => boolean.
-  packageCodeOk(Repo,Pkg) => packageOk(Repo,Pkg,"code").
-
-  packageOk:(fileRepo,pkg,string) => boolean.
-  packageOk(repo(Root,Man),Pkg,Kind) where
-    U ^= locateInManifest(Man,Pkg,Kind) &&
-    S ^= locateInManifest(Man,Pkg,"source") &&
-    CU ^= parseUri(U) &&
-    CodeFile ^= resolveUri(Root,CU) &&
-    SU ^= parseUri(S) &&
-    SrcFile ^= resolveUri(Root,SU) &&
+  packageCodeOk(Repo,Pkg) where
+      (SrcFile,CodeFile) ^= packageCode(Repo,Pkg) =>
     resourcePresent(CodeFile) &&
-    resourcePresent(SrcFile) =>
+    resourcePresent(SrcFile) &&
         newerFile(CodeFile,SrcFile).
-  packageOk(_,_,_) default => false.
+  packageCodeOk(_,_) default => false.
 
+  public packageCode:(fileRepo,pkg) => option[(uri,uri)].
+  packageCode(repo(Root,Man),Pkg) where
+      U ^= locateInManifest(Man,Pkg,"code") &&
+      S ^= locateInManifest(Man,Pkg,"source") &&
+      CU ^= parseUri(U) &&
+      CodeFile ^= resolveUri(Root,CU) &&
+      SU ^= parseUri(S) &&
+      SrcFile ^= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
+  packageCode(_,_) default => none.
+  
+    
   public addPackage:(fileRepo,pkg,string) => fileRepo.
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
 

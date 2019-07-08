@@ -1,57 +1,71 @@
--- Automatically Generated Assembler at #(date) -- Do NOT Edit
+-- Automatically Generated Assembler at #(Date) -- Do NOT Edit
 
 star.compiler.assem{
   import star.
-  import star.compiler.instructions.
-  import star.compiler.encode.
-  import star.compiler.term.
+  import star.sort.
+
+  import star.compiler.location.
+  import star.compiler.terms.
+  import star.compiler.types.
+
+  public codeSegment ::= method(term,string,integer,list[assemOp]) |
+    struct(term,tipe,tipe).
+
+  public assemOp ::=
+#(OpCodes)
+    iLbl(string) |
+    iLocal(string,string,string,integer) |
+    iLine(term).
+
+  public assem:(codeSegment) => term.
+  assem(method(Nm,Sig,Stx,Ins)) where
+    (Lt0,_) .= findLit([],Nm) &&
+    (Code,Lts,Lns,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,[]) =>
+    mkTpl([Nm,strg(Sig),intgr(Stx),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),mkTpl(sortLines(Lns))]).
+  assem(struct(Lbl,Tp,Flds)) =>
+    mkTpl([Lbl,strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
+
+  mnem:(list[assemOp],map[string,integer],map[term,integer],map[term,integer],set[term],integer,list[term]) =>
+    (list[term],map[term,integer],map[term,integer],list[term]).
+  mnem([],Lbls,Lts,Lns,Lcs,Pc,Code) => (Code,Lts,Lns,[Lcl|Lcl in Lcs]).
+  mnem([iLbl(_),..Ins],Lbls,Lts,Lns,Lcs,Pc,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc,Code).
+  mnem([iLocal(Nm,Frm,End,Off),..Ins],Lbls,Lts,Lns,Lcs,Pc,Code) where
+    F ^= Lbls[Frm] &&
+    T ^= Lbls[End] =>
+    mnem(Ins,Lbls,Lts,Lns,_addMem(mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)]),Lcs),Pc,Code).
+  mnem([iLine(Lc),..Ins],Lbs,Lts,Lns,Lcs,Pc,Code) => mnem([idLine(Lc),..Ins],Lbs,Lts,Lns[mkTpl([Lc,intgr(Pc)])->Pc],Lcs,Pc,Code).
+#(Mnem)
+
+  genLblTbl:(list[assemOp],integer,map[string,integer]) => map[string,integer].
+  genLblTbl([],_,Lbls) => Lbls.
+  genLblTbl([iLbl(Lbl),..Ins],Pc,Lbls) =>
+    genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
+  genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
+    genLblTbl(Ins,Pc,Lbls).
+  genLblTbl([iLine(T),..Ins],Pc,Lbs) => genLblTbl([idLine(T),..Ins],Pc,Lbs).
+#(Lbls)
+
+  findLit:(map[term,integer],term) => (map[term,integer],integer).
+  findLit(Lts,T) where O ^= Lts[T] => (Lts,O).
+  findLit(Lts,T) where O .= size(Lts) => (Lts[T->O],O).
+
+  litTbl:(map[term,integer]) => term.
+  litTbl(Lts) => mkTpl(sort(Lts::list[keyval[term,integer]],((T1->Ix1), (T2->Ix2)) => Ix1<Ix2)//(K->_)=>K).
+
+  sortLines:(map[term,integer]) => list[term].
+  sortLines(Lns) => (sort(Lns::list[keyval[term,integer]],compLine)//(K->_)=>K).
+
+  compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
+  compLine(T1->P1,T2->P2) => P1<P2.
 
 
-  public assem:(assembler) => string.
-  assem(method(Nm,Sig,Lc,Ins)) =>
+  public implementation display[codeSegment] => {.
+    disp(method(Nm,Sig,_Lx,Ins)) => ssSeq([disp(Nm),ss(":"),ss(Sig),ss("\n"),..showMnem(Ins,0,[])]).
+  .}
 
-
-    mnem(Ins,genLblTbl(Ins,0,[]),findLit([],Nm),[],0) =. (Cde,Lts,Lcls)
-    mkInsTpl(Cde),
-    mkLitTpl(Lts),
-
-
-  fprintf(out, "assem([method(Nm,Sig,Lx)|Ins],MTpl) :-\n");
-  fprintf(out, "    genLblTbl(Ins,0,[],Lbs),\n");
-  fprintf(out, "    findLit([],Nm,_,Ls0),\n");
-  fprintf(out, "    mnem(Ins,Lbs,Ls0,Lts,[],Lcs,0,Cde),\n");
-  fprintf(out, "    mkInsTpl(Cde,Code),\n");
-  fprintf(out, "    mkLitTpl(Lts,LtTpl),\n");
-  fprintf(out, "    mkTpl(Lcs,LcsTpl),\n");
-  fprintf(out, "    mkTpl([Nm,strg(Sig),intgr(Lx),Code,LtTpl,LcsTpl],MTpl).\n\n");
-
-  fprintf(out, "mnem([],_,Lt,Lt,Lc,Lc,_,[]).\n");
-  fprintf(out, "mnem([iLbl(_)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :- mnem(Ins,Lbs,Lt,Lts,Lc,Lcx,Pc,Code).\n");
-
-  fprintf(out, "mnem([iLocal(Nm,Frm,End,Off)|Ins],Lbs,Lt,Lts,Lc,Lcx,Pc,Code) :-\n");
-  fprintf(out, "    findLbl(Frm,Lbs,F),\n");
-  fprintf(out, "    findLbl(End,Lbs,T),\n");
-  fprintf(out, "    mkTpl([strg(Nm),intgr(F),intgr(T),intgr(Off)],Entry),\n");
-  fprintf(out, "    (is_member(Entry,Lc)->Lc0=Lc;Lc0=[Entry|Lc]),\n");
-  fprintf(out, "    mnem(Ins,Lbs,Lt,Lts,Lc0,Lcx,Pc,Code).\n");
-
-#include "instructions.h"
-
-  genLblTbl:(list[instruction],integer,list[(string,integer)]) => list[(string,integer)].
-  genLblTbl([],_,Tbl) => Tbl.
-  genLblTbl([iLbl(Lbl),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc,[(Lbl,Pc),..Lbls]).
-  genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) => genLblTbl(Ins,Pc,Lbls).
-  #(LabelCode)
-
-
-
-
-
-  #(Operators)
-
-  public follows:(string,integer) => option[string].
-  #(Follows)
-
-  public final:(string) => boolean.
-  #(Final)
+  showMnem:(list[assemOp],integer,list[ss]) => list[ss].
+  showMnem([],_,Out) => Out.
+  showMnem([iLbl(Lb),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Lb),ss(":\n")]).
+  showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]).
+#(Show)
 }
