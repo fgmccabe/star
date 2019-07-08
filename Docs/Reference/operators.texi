@@ -122,6 +122,9 @@
 @item @code{contract}
 @tab non-associative prefix
 @tab 1260
+@item @code{\\/}
+@tab left associative infix
+@tab 720
 @item @code{-}
 @tab non-associative prefix
 @tab 300
@@ -242,6 +245,9 @@
 @item @code{==}
 @tab non-associative infix
 @tab 900
+@item @code{\\}
+@tab left associative infix
+@tab 700
 @item @code{=>}
 @tab right associative infix
 @tab 950
@@ -323,6 +329,9 @@
 @item @code{::=}
 @tab non-associative infix
 @tab 1250
+@item @code{/\\}
+@tab left associative infix
+@tab 700
 @item @code{>=}
 @tab non-associative infix
 @tab 900
