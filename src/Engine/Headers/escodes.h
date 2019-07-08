@@ -2,7 +2,7 @@
 #define _ESCODES_H_
 
 #undef escape
-#define escape(name,secr,pr,spec,cmnt) \
+#define escape(name,spec,cmnt) \
  Esc##name,
 
 

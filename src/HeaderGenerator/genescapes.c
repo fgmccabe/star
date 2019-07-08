@@ -66,6 +66,7 @@ int main(int argc, char **argv) {
         fprintf(out, "  import star.\n");
         fprintf(out, "  import star.compiler.types.\n\n");
         starEscapeTypes(out);
+        starIsEscape(out);
         fprintf(out, "}.\n");
         break;
     }
@@ -350,7 +351,7 @@ static char *dName(char *sig, bufferPo out) {
 }
 
 #undef escape
-#define escape(name, priv, secr, type, cmt) genStarEsc(out,buffer,#name,type,cmt);
+#define escape(name, type, cmt) genStarEsc(out,buffer,#name,type,cmt);
 
 static void genStarEsc(FILE *out, bufferPo buffer, char *name, char *sig, char *cmt) {
   outStr(O_IO(buffer), "  escapeType(");
@@ -378,7 +379,7 @@ static void starEscapeTypes(FILE *out) {
 }
 
 #undef escape
-#define escape(name, vis, secr, type, cmt) if(vis)genPrIsEsc(out,buffer,#name);
+#define escape(name, type, cmt) genPrIsEsc(out,buffer,#name);
 
 static void genPrIsEsc(FILE *out, bufferPo buffer, char *name) {
   outStr(O_IO(buffer), "isEscape(");
@@ -400,7 +401,7 @@ static void prologIsEscape(FILE *out) {
 }
 
 #undef escape
-#define escape(name, priv, secr, type, cmt) genStarIsEsc(out,buffer,#name);
+#define escape(name, type, cmt) genStarIsEsc(out,buffer,#name);
 
 static void genStarIsEsc(FILE *out, bufferPo buffer, char *name) {
   outStr(O_IO(buffer), "  isEscape(");
@@ -426,7 +427,7 @@ static void starIsEscape(FILE *out) {
 }
 
 #undef escape
-#define escape(name, priv, secr, type, cmt) genPrologEsc(out,buffer,#name,type,cmt);
+#define escape(name, type, cmt) genPrologEsc(out,buffer,#name,type,cmt);
 
 static void genPrologEsc(FILE *out, bufferPo buffer, char *name, char *sig, char *cmt) {
   outStr(O_IO(buffer), "escapeType(");

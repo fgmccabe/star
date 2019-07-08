@@ -15,7 +15,7 @@ static int topEsc = 0;
 static int installEscape(char *name, char *sig, libFun fun);
 
 #undef escape
-#define escape(Fun, Visible, Sys, Sig, Cmnt)\
+#define escape(Fun, Sig, Cmnt)\
 extern ReturnStatus g_##Fun(processPo p,ptrPo tos);\
   installEscape(#Fun,Sig,g_##Fun);
 
