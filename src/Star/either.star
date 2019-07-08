@@ -24,7 +24,7 @@ star.either{
     hash(other(B)) => hash(B)*41.
   .}
 
-  public implementation all a ~~ execution[either[a]->>a] => {
+  public implementation execution[either] => {
     _perform(either(X)) => X.
     _handle(either(X),_) => either(X).
     _handle(other(E),F) => F(E).

@@ -46,11 +46,11 @@ isCanon(whileDo(_,_,_,_,_)).
 isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_,_)).
 isCanon(varDo(_,_,_)).
-isCanon(bindDo(_,_,_,_,_)).
+isCanon(bindDo(_,_,_,_)).
 isCanon(returnDo(_,_,_,_)).
 isCanon(throwDo(_,_,_,_)).
-isCanon(performDo(_,_,_,_)).
-isCanon(simpleDo(_,_,_,_)).
+isCanon(performDo(_,_,_,_,_)).
+isCanon(simpleDo(_,_,_)).
 isCanon(search(_,_,_,_)).
 
 isSimpleCanon(v(_,_,_)).
@@ -75,11 +75,11 @@ isAction(forDo(_,_,_,_,_)).
 isAction(tryCatch(_,_,_,_,_)).
 isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
-isAction(bindDo(_,_,_,_,_,_)).
+isAction(bindDo(_,_,_,_)).
 isAction(varDo(_,_,_)).
 isAction(returnDo(_,_,_,_)).
 isAction(throwDo(_,_,_,_)).
-isAction(performDo(_,_,_,_)).
+isAction(performDo(_,_,_,_,_)).
 isAction(noDo(_)).
 
 isIterableGoal(conj(_,L,R)) :- !, (isIterableGoal(L) ; isIterableGoal(R)).
@@ -149,14 +149,14 @@ locOfCanon(forDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
-locOfCanon(delayDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(assignDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(bindDo(Lc,_,_,_,_,_),Lc) :-!.
+locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(performDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(simpleDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(simpleDo(Lc,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
 
 dispCanonTerm(Term) :-
@@ -326,10 +326,10 @@ showCanonAction(seqDo(Lc,A,B),Dp,O,Ox) :-
   showCanonActions(seqDo(Lc,A,B),Dp2,O1,O2),
   appNwln(Dp,O2,O3),
   appStr("}",O3,Ox).
-showCanonAction(delayDo(_,Actn,_,_),Dp,O,Ox) :-
+showCanonAction(delayDo(_,Actn,_,_,_),Dp,O,Ox) :-
   appStr("delay ",O,O1),
   showCanonAction(Actn,Dp,O1,Ox).
-showCanonAction(bindDo(_,Ptn,Exp,_,_,_),Dp,O,Ox) :-
+showCanonAction(bindDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" <- ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
@@ -382,11 +382,11 @@ showCanonAction(throwDo(_,Exp,_,_),Dp,O,Ox) :-
   appStr("throw ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(performDo(_,Exp,_,_),Dp,O,Ox) :-
+showCanonAction(performDo(_,Exp,_,_,_),Dp,O,Ox) :-
   appStr("perform ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(simpleDo(_,Exp,_,_),Dp,O,Ox) :-
+showCanonAction(simpleDo(_,Exp,_),Dp,O,Ox) :-
   showCanonTerm(Exp,Dp,O,Ox).
 showCanonAction(noDo(_),_,O,Ox) :-
   appStr("nop",O,Ox).

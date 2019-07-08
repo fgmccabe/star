@@ -14,7 +14,7 @@ star.action{
     return X => delay(()=>done(X)).
   .}
 
-  public implementation all e ~~ execution[action[e]->>e] => {
+  public implementation execution[action] => {
     _perform(done(X)) => X.
     _perform(delay(F)) => _perform(F()).
 
@@ -36,7 +36,7 @@ star.action{
     _coerce(some(X)) => done(X).
   }
 
-  public (:=):all a,e/1,f ~~ execution[e->>f] |: (ref a,a) => e[()].
+  public (:=):all a,m/2,e ~~ execution[m] |: (ref a,a) => m[e,()].
   (:=)(L,V) => do{
     _ = _assign(L,V);
     valis ()
@@ -48,7 +48,7 @@ star.action{
   public (!!):all a ~~ (a)=>ref a.
   !! E => _cell(E).
 
-  public logMsg:all e/1,f ~~ execution[e->>f] |: (string)=>e[()].
+  public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{
     _ = _logmsg(Msg);
     valis ()

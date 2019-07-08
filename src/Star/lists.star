@@ -49,11 +49,11 @@ star.lists{
   }
 
   public implementation all e ~~ iter[list[e]->>e] => {
-    _iter:all x,m/1,er ~~ execution[m->>er] |: (list[e],m[x],(e,x)=>m[x]) => m[x].
+    _iter:all x,m/2,er ~~ execution[m] |: (list[e],m[er,x],(e,x)=>m[er,x]) => m[er,x].
     _iter(Lst,St,Fn) => iterOverList(Lst,0,size(Lst),St,Fn).
 
-    iterOverList:all x,m/1,er ~~ execution[m->>er] |:
-        (list[e],integer,integer,m[x],(e,x)=>m[x]) => m[x].
+    iterOverList:all x,m/2,er ~~ execution[m] |:
+        (list[e],integer,integer,m[er,x],(e,x)=>m[er,x]) => m[er,x].
     iterOverList(_,Ix,Mx,St,_) where Ix>=Mx => St.
     iterOverList(Lst,Ix,Mx,St,Fn) where El.=_list_nth(Lst,Ix) => -- do not have collections here
       _sequence(St,(SS)=>iterOverList(Lst,Ix+1,Mx,Fn(El,SS),Fn)).

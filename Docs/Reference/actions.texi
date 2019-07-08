@@ -38,17 +38,17 @@ contract; except that it is somewhat more elaborate.}
 @float BNF,executionFig
 @caption{Execution Contract}
 @example
-public contract all m/1,e ~~ execution[m->>e] ::= @{
-  _valis:all a ~~ (a)=>m[a].
-  _perform:all a ~~ (m[a])=>a.
-  _sequence:all a,b ~~ (m[a],(a)=>m[b]) => m[b].
-  _handle:all a ~~ (m[a],(e)=>m[a]) => m[a].
-  _raise: all a ~~ (e) => m[a].
+public contract all m/2 ~~ execution[m] ::= @{
+  _valis:all a,e ~~ (a)=>m[e,a].
+  _perform:all a,e ~~ (m[e,a])=>a.
+  _sequence:all a,b,e ~~ (m[e,a],(a)=>m[e,b]) => m[e,b].
+  _handle:all a,e,f ~~ (m[e,a],(e)=>m[f,a]) => m[f,a].
+  _raise: all a,e ~~ (e) => m[e,a].
 @}
 @end example
 @end float
 
-The @code{execution} contract is over a type function (@code{m/1}) and
+The @code{execution} contract is over a type function (@code{m/2}) and
 has a dependent type that corresponds to the type of any exception or
 error that may be raised during the computation.
 
@@ -58,8 +58,10 @@ contract; representing different computation characteristics. The two
 standard implementations are modeled by the @code{action} type and the
 @code{task} type; these also have special syntax associated with them.
 
-In addition to these, there are `non-standard' implementations
-of the contract -- such as for the @code{option} type.
+However, the most basic implementation of the @code{execution}
+contract is based on the @code{either} type. This reflects the fact
+that computations can return in one of two ways: normally or
+abnormally.
 @end quotation
 
 @quotation Note
@@ -68,6 +70,21 @@ contract, most programmers will not use these directly. Instead, there
 is an action notation (see @ref{Do Notation}) that has a more familiar
 style for representing actions.
 @end quotation
+
+@node Exceptions in Computations
+@subsection Exceptions in Computations
+
+There are many cases where a computation can fail. This is accounted
+for in the @code{execution} contract by requiring that the computation
+type is parameterized both by the type of the result of the
+computation but also the type of any exceptions that may arise within
+the computation.
+
+There is a symmetry in the definitions of the @code{_sequence} and
+@code{_handle} methods: in the former, two computations are
+concatenated in the normal sequential case; and in the latter, two
+computations are concatenated where the first computation has failed
+in some sense.
 
 @node @code{_valis} a value as a computation
 @subsection @code{_valis} a value as a computation

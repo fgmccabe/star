@@ -176,7 +176,7 @@ overloadTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Dict,St,Stx,doTerm(Lc,RBody,ElTp,ErTp
 overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
   overloadAction(A,Dict,St,St1,RA),
   overloadAction(B,Dict,St1,Stx,RB).
-overloadAction(bindDo(Lc,Ptn,Exp,PT,ErTp),Dict,St,Stx,bindDo(Lc,RPtn,RExp,PT,ErTp)) :-
+overloadAction(bindDo(Lc,Ptn,Exp,ExTp),Dict,St,Stx,bindDo(Lc,RPtn,RExp,ExTp)) :-
   overloadTerm(Ptn,Dict,St,St1,RPtn),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
 overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
@@ -195,11 +195,11 @@ overloadAction(forDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,forDo(Lc,RTst,RBody,StTp
 overloadAction(tryCatchDo(Lc,Body,Hndlr,StTp,ErTp),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr,StTp,ErTp)) :-
   overloadAction(Body,Dict,St,St1,RBody),
   overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
-overloadAction(returnDo(Lc,Exp,ElTp),Dict,St,Stx,returnDo(Lc,RExp,ElTp)) :-
+overloadAction(returnDo(Lc,Exp,ExTp,VlTp,ErTp),Dict,St,Stx,returnDo(Lc,RExp,ExTp,VlTp,ErTp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(throwDo(Lc,Exp,ErTp),Dict,St,Stx,throwDo(Lc,RExp,ErTp)) :-
+overloadAction(throwDo(Lc,Exp,ExTp,VlTp,ErTp),Dict,St,Stx,throwDo(Lc,RExp,ExTp,VlTp,ErTp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
-overloadAction(performDo(Lc,Exp,ErTp),Dict,St,Stx,performDo(Lc,RExp,ErTp)) :-
+overloadAction(performDo(Lc,Exp,ExTp,VlTp,ErTp),Dict,St,Stx,performDo(Lc,RExp,ExTp,VlTp,ErTp)) :-
   overloadTerm(Exp,Dict,St,Stx,RExp).
 
 overloadActions([],_,St,St,[]).
