@@ -12,14 +12,18 @@ star.compiler.parser{
   import star.compiler.opg.
   import star.compiler.token.
 
-  public parseSrc:(uri,pkg,reports) => (option[ast],reports).
-  parseSrc(U,P,Rpt) where
-    Txt ^= getResource(U) =>
-      ( (Toks.=allTokens(initSt(pkgLoc(P),Txt::list[integer])) &&
-        (Trm,Rptx,_) .= astParse(Toks,Rpt)) ?
-          (some(Trm),Rptx) ||
-          (none, reportError(Rpt,"Could not successfully parse $(P)",pkgLoc(P)))).
-  parseSrc(U,P,Rpt) default => (none,reportError(Rpt,"Cannot locate $(P) in $(U)",pkgLoc(P))).
+  public parseSrc:(uri,pkg,reports) => either[reports,ast].
+  parseSrc(U,P,Rp) => do{
+    if Txt ^= getResource(U) then{
+      Toks = allTokens(initSt(pkgLoc(P),Txt::list[integer]));
+      (Trm,Rp1,_) = astParse(Toks,Rp);
+      if errorFree(Rp1) then
+	valis Trm
+      else
+      throw reportError(Rp,"could not parse $(P) properly",pkgLoc(P))
+    } else
+    throw reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))
+  }
 
   public parseText:(locn,string,reports) => (option[ast],reports).
   parseText(Lc,Txt,Rpt) =>

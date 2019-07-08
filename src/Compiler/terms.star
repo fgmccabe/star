@@ -12,28 +12,6 @@ star.compiler.terms{
     | lbl(string,integer)
     | enum(string).
 
-  public core ::= idnt(string) |
-    lit(term) |
-    tupl(locn,list[core]) | 
-    cll(locn,core,core) |
-    ecll(locn,string,core) |
-    ocll(locn,core,core) |
-    dte(locn,core,core) |
-    ltt(locn,core,tipe,core,core) |
-    whr(locn,core,core) |
-    vrn(locn,list[(string,core,tipe)],core) |
-    case(locn,core,list[(locn,core,core)],core) |
-    seqn(locn,core,core) |
-    cnj(locn,core,core) |
-    cnd(locn,core,core,core) |
-    dsj(locn,core,core) |
-    mtch(locn,core,core) |
-    ng(locn,core).
-
-  public ruleSet ::= fnDef(locn,term,tipe,list[core],core) |
-    vrDef(locn,term,tipe,core) |
-    rcDef(locn,term,tipe).
-
   public implementation display[term] => let{
     dispT(voyd) => ss("␀").
     dispT(intgr(Ix)) => disp(Ix).
@@ -53,58 +31,32 @@ star.compiler.terms{
     disp(T) => dispT(T)
   .}
 
-  public implementation display[core] => let{
-    dispC(idnt(Nm)) => ss(Nm).
-    dispC(lit(T)) => disp(T).
-    dispC(tupl(_,Args)) => ssSeq([ss("("),ssSeq(dispAs(Args,"")),ss(")")]).
-    dispC(cll(_,Op,Args)) => ssSeq([dispC(Op),dispC(Args)]).
-    dispC(ecll(_,Op,Args)) => ssSeq([ss("esc "),ss(Op),dispC(Args)]).
-    dispC(ocll(_,Ob,Args)) => ssSeq([dispC(Ob),ss(":"),dispC(Args)]).
-    dispC(dte(_,Ob,F)) => ssSeq([dispC(Ob),ss("."),dispC(F)]).
-    dispC(ltt(_,Vr,T,Vl,B)) => ssSeq([ss("let {"),
-	dispC(Vr),ss(":"),disp(T),ss("="),dispC(Vl),ss("} in "),dispC(B)]).
-    dispC(whr(_,T,C)) => ssSeq([ss("("),dispC(T),ss(" where "),dispC(C),ss(")")]).
-    dispC(vrn(_,Nms,Val)) => ssSeq([ss("vars: ["),
-	ssSeq(dispVarNames(Nms)),ss("]->"),dispC(Val)]).
-    dispC(case(_,Exp,Cases,Deflt)) =>
-      ssSeq([ss("case "),dispC(Exp),ss(" in {"),
-	  ssSeq(dispCases(Cases)),ss("} else "),dispC(Deflt)]).
-    dispC(seqn(_,L,R)) => ssSeq([dispC(L),ss(";"),dispC(R)]).
-    dispC(cnj(_,L,R))  => ssSeq([dispC(L),ss("&&"),dispC(R)]).
-    dispC(cnd(_,T,L,R)) => ssSeq([ss("("),dispC(T),ss("?"),
-	dispC(L),ss("||"),dispC(R),ss(")")]).
-    dispC(dsj(_,L,R))  => ssSeq([dispC(L),ss("||"),dispC(R)]).
-    dispC(mtch(_,L,R)) => ssSeq([dispC(L),ss(".="),dispC(R)]).
-    dispC(ng(_,R)) => ssSeq([ss("\\+"),dispC(R)]).
+  public implementation hash[term] => let{
+    hsh(intgr(X)) => X.
+    hsh(flot(X)) => hash(X).
+    hsh(strg(S)) => hash(S).
+    hsh(term(Op,Args)) =>
+      foldRight((T,H)=>H*37+hsh(T),hsh(Op)*37,Args).
+    hsh(enum(S)) => hash(S).
+    hsh(lbl(N,A)) => hash(N)*37+A
+  } in {
+    hash(T) => hsh(T)
+  }
 
-    dispAs([],_) => [].
-    dispAs([T,..Ts],Sp) => [dispC(T),ss(Sp),..dispAs(Ts,", ")].
-
-    dispVarNames([]) => [].
-    dispVarNames([(Nm,Vl,Tp),..Vs]) =>
-      [ss(Nm),ss(":"),disp(Tp),ss("="),dispC(Vl),..dispVarNames(Vs)].
-
-    dispCases([]) => [].
-    dispCases([(_,Ptn,Vl),..Cs]) => [dispC(Ptn),ss("->"),dispC(Vl),..dispCases(Cs)].
+  public implementation equality[term] => let{
+    eq(intgr(X),intgr(Y)) => X==Y.
+    eq(flot(X),flot(Y)) => X==Y.
+    eq(strg(X),strg(Y)) => X==Y.
+    eq(term(O1,A1),term(O2,A2)) => eq(O1,O2) && A1==A2.
+    eq(enum(X),enum(Y)) => X==Y.
+    eq(lbl(N1,A1),lbl(N2,A2)) => N1==N2 && A1==A2.
+    eq(_,_) default => false.
   } in {.
-    disp(C) => dispC(C)
+    X==Y => eq(X,Y).
   .}
 
-  public implementation display[ruleSet] => let{
-    dispRuleSet(fnDef(Lc,Nm,Tp,Args,Value)) =>
-      ssSeq([ss("Function @ "),disp(Lc),ss("\n"),
-	    disp(Nm),ss(":"),disp(Tp),ss("\n"),
-	  disp(Nm),disp(tupl(Lc,Args)), ss(" => "),disp(Value),ss(".")]).
-    dispRuleSet(vrDef(Lc,Nm,Tp,Value)) =>
-      ssSeq([ss("Variable @ "),disp(Lc),ss("\n"),
-	    disp(Nm),ss(":"),disp(Tp),ss("\n"),
-	  disp(Nm),ss(" = "),disp(Value),ss(".")]).
-    dispRuleSet(rcDef(Lc,Nm,Tp)) =>
-      ssSeq([ss("Constructor @ "),disp(Lc),ss("\n"),
-	  disp(Nm),ss(":"),disp(Tp),ss(".")])
-  } in {.
-    disp(R) => dispRuleSet(R)
-  .}
+  public mkTpl:(list[term]) => term.
+  mkTpl(A) where L.=size(A) => term(lbl("()$(L)",L),A).
 
   public implementation coercion[term,string] => {
     _coerce(T) => _implode(encodeTerm(T)).
@@ -314,7 +266,7 @@ star.compiler.terms{
     encodeType(tpExp(Op,A),Ts) =>
       encodeType(deRef(A),encodeType(deRef(Op),[Ts..,0cU])).
     encodeType(tupleType(Els),Ts) =>
-      encodeTypes(Els,[Ts..,0x28]). -- 0x28==(
+      encodeTypes(Els,[Ts..,0c(]).
     encodeType(allType(V,T),Ts) =>
       encodeType(deRef(T),encodeType(deRef(V),[Ts..,0c:])).
     encodeType(existType(V,T),Ts) =>
