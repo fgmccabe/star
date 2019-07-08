@@ -17,7 +17,7 @@ star.task{
 
   private taskWaitResult[e,a] ::= taskSleep | taskMicroSleep(task[e,a]).
 
-  public implementation all e ~~ execution[task[e]->>e] => let{
+  public implementation execution[task] => let{
     taskStep(_task(B),N) => let{
       takeStep(taskDone(X)) => taskContinue(N(X)).
       taskStep(taskContinue(B2)) => taskContinue(taskStep(B2,F)).

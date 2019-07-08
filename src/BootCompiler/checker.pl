@@ -764,12 +764,12 @@ typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   binary(Lc,"_index",Mp,Arg,Term),
   typeOfExp(Term,Tp,Env,Ev,Exp,Path).
 
-pickupContract(Lc,Env,Nm,StTp,DpTp,Op) :-
+pickupContract(Lc,Env,Nm,StTp,DpTps,Op) :-
   (getContract(Nm,Env,conDef(_,_,Con)) ->
-   freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[DpTp]),_));
+   freshen(Con,Env,_,contractExists(conTract(Op,[StTp],DpTps),_));
    reportError("%s contract not defined",[Nm],Lc),
    newTypeVar("_St",StTp),
-   newTypeVar("_El",DpTp)).
+   DpTps=[]).
 
 pickupIxContract(Lc,Env,Nm,StTp,DpTps,Op) :-
   (getContract(Nm,Env,conDef(_,_,Con)) ->
@@ -793,11 +793,12 @@ checkGoal(G,Env,Ev,Goal,Path) :-
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,E1,Cond,Path),
-  pickupContract(Lc,Env,"sequence",StTp,ElTp,Op),
+  pickupContract(Lc,Env,"sequence",StTp,[ElTp],Op),
   checkType(Term,Tp,StTp,Env),
   typeOfExp(B,ElTp,E1,_,Bnd,Path),
-  pickupContract(Lc,Env,"execution",ExTp,ErTp,ExOp),
+  pickupContract(Lc,Env,"execution",ExTp,_,ExOp),
   findType("action",Lc,Env,ActionTp),
+  newTypeVar("_Er",ErTp),
   checkType(Term,tpExp(ActionTp,ErTp),ExTp,Env),
   genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
 		    true,[conTract(Op,[StTp],[ElTp])]),
@@ -839,108 +840,111 @@ genTpVars([_|I],[Tp|More]) :-
   genTpVars(I,More).
 
 checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
-  newTypeVar("_e",ElTp),
+  newTypeVar("_x",ValTp),
+  newTypeVar("_er",ErTp),
   (getContract("execution",Env,conDef(_,_,Con)) ->
-	  freshen(Con,Env,_,contractExists(conTract(Op,[StTp],[ErTp]),_)),
-	  checkType(B,Tp,tpExp(StTp,ElTp),Env);
+     freshen(Con,Env,_,contractExists(conTract(Contract,[ExTp],[]),_)),
+     mkTypeExp(ExTp,[ErTp,ValTp],StTp),
+     checkType(B,Tp,StTp,Env);
    reportError("execution contract not defined",[],Lc),
-   newTypeVar("_t",StTp),
-   newTypeVar("_E",ErTp)),
-  checkAction(B,Env,Ev,Op,StTp,ElTp,ErTp,Body,Path),
-  genAction(delayDo(Lc,Body,StTp,ErTp),Op,StTp,ErTp,EE,Path).
+   newTypeVar("_t",StTp)),
+  checkAction(B,Env,Ev,ExTp,ValTp,ErTp,Body,Path),
+  genAction(delayDo(Lc,Body,ExTp,ValTp,ErTp),Contract,noDo(Lc),EE,Path).
 %  reportMsg("Action-> %s",[EE]).
 
 checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
   isIden(Term,Lc,"nothing"),!.
-checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,seqDo(Lc,A1,A2),Path) :-
+checkAction(Term,Env,Ev,ExTp,ValTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
   newTypeVar("_e",FV),
-  checkAction(S1,Env,E1,Op,StTp,FV,ErTp,A1,Path),
-  checkAction(S2,E1,Ev,Op,StTp,ElTp,ErTp,A2,Path).
-checkAction(Term,Env,Ev,_,StTp,_,ErTp,bindDo(Lc,Ptn,Exp,PT,StTp,ErTp),Path) :-
+  checkAction(S1,Env,E1,ExTp,FV,ErTp,A1,Path),
+  checkAction(S2,E1,Ev,ExTp,ValTp,ErTp,A2,Path).
+checkAction(Term,Env,Ev,ExTp,_,ErTp,bindDo(Lc,Ptn,Gen,ExTp),Path) :-
   isBind(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
-  HType = tpExp(StTp,PT),  % in a bind, the type of the value must be in the same monad
-  typeOfExp(Ex,HType,Env,E1,Exp,Path),
+  mkTypeExp(ExTp,[ErTp,PT],HType),  % in a bind, the type of the value must be in the same monad
+  typeOfExp(Ex,HType,Env,E1,Gen,Path),
   typeOfPtn(P,PT,E1,Ev,Ptn,Path).
-checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
+checkAction(Term,Env,Ev,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
   isDefn(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
-checkAction(Term,Env,Ev,_Op,_StTp,_ElTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :-
+checkAction(Term,Env,Ev,_ExTp,_ValTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :-
   isAssignment(Term,Lc,L,R),
   isIden(L,_,Vr),
   \+isVar(Vr,Env,_),!,
   newTypeVar("_V",PT),
   typeOfPtn(L,refType(PT),Env,Ev,Lhs,Path),
   typeOfExp(R,PT,Env,_,Rhs,Path).
-checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,Act,Path) :-
+checkAction(Term,Env,Ev,ExTp,ValTp,ErTp,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
-  checkAssignment(Lc,L,R,Env,Ev,Op,StTp,ElTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,El,StTp,ElTp,ErTp),Path) :-
+  checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,Act,Path).
+checkAction(Term,Env,Ev,ExTp,ValTp,ErTp,ifThenDo(Lc,Ts,Th,El,ExTp,ValTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
-  checkAction(H,Et,E1,Op,StTp,ElTp,ErTp,Th,Path),
-  checkAction(E,Env,E2,Op,StTp,ElTp,ErTp,El,Path),
+  checkAction(H,Et,E1,ExTp,ValTp,ErTp,Th,Path),
+  checkAction(E,Env,E2,ExTp,ValTp,ErTp,El,Path),
   mergeDict(E1,E2,Env,Ev).
-checkAction(Term,Env,Env,Op,StTp,ElTp,ErTp,ifThenDo(Lc,Ts,Th,noDo(Lc),StTp,ElTp,ErTp),Path) :-
+checkAction(Term,Env,Env,ExTp,ValTp,ErTp,ifThenDo(Lc,Ts,Th,noDo(Lc),ExTp,ValTp,ErTp),Path) :-
   isIfThen(Term,Lc,T,H),!,
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(T,LogicalTp,Env,Et,Ts,Path),
-  checkAction(H,Et,_E1,Op,StTp,ElTp,ErTp,Th,Path).
-checkAction(Term,Env,Env,Op,StTp,_,ErTp,whileDo(Lc,Ts,Bdy,StTp,ErTp),
-	    Path) :-
+  checkAction(H,Et,_E1,ExTp,ValTp,ErTp,Th,Path).
+checkAction(Term,Env,Env,ExTp,_,ErTp,whileDo(Lc,Ts,Bdy,ExTp,ErTp),Path) :-
   isWhileDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
   pushScope(Env,WEnv),
   typeOfExp(T,LogicalTp,WEnv,Et,Ts,Path),
-  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path).
-checkAction(Term,Env,Env,Op,StTp,_,ErTp,forDo(Lc,Ts,Bdy,StTp,ErTp),Path) :-
+  checkAction(B,Et,_,ExTp,tupleType([]),ErTp,Bdy,Path).
+checkAction(Term,Env,Env,ExTp,_,ErTp,forDo(Lc,Ts,Bdy,ExTp,ErTp),Path) :-
   isForDo(Term,Lc,T,B),!,
   findType("boolean",Lc,Env,LogicalTp),
   pushScope(Env,FEnv),
   typeOfExp(T,LogicalTp,FEnv,Et,Ts,Path),
-  checkAction(B,Et,_,Op,StTp,tupleType([]),ErTp,Bdy,Path).
-checkAction(Term,Env,Env,Op,StTp,ElTp,_,
-	    tryCatchDo(Lc,Bdy,Hndlr,StTp,ElTp,ErTp),Path) :-
+  checkAction(B,Et,_,ExTp,tupleType([]),ErTp,Bdy,Path).
+checkAction(Term,Env,Env,ExTp,ValTp,ErTp,
+	    tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,BdErTp,ErTp),Path) :-
   isTryCatch(Term,Lc,B,H),!,
-  anonVar(Lc,Anon,ErTp),
-  checkAction(B,Env,_,Op,StTp,ElTp,ErTp,Bdy,Path),
-  checkCatch(H,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path).
-checkAction(Term,Env,Env,_,StTp,_ElTp,ErTp,throwDo(Lc,Exp,StTp,ErTp),Path) :-
+  anonVar(Lc,Anon,BdErTp),
+  checkAction(B,Env,_,ExTp,ValTp,BdErTp,Bdy,Path),
+  checkCatch(H,Env,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path).
+checkAction(Term,Env,Env,ExTp,ValTp,ErTp,throwDo(Lc,Exp,ExTp,ValTp,ErTp),Path) :-
   isThrow(Term,Lc,E),!,
   typeOfExp(E,ErTp,Env,_,Exp,Path).
-checkAction(Term,Env,Env,_,StTp,ElTp,ErTp,returnDo(Lc,Reslt,StTp,ErTp),Path) :-
+checkAction(Term,Env,Env,ExTp,ValTp,ErTp,returnDo(Lc,Reslt,ExTp,VlTp,ErTp),Path) :-
   isReturn(Term,Lc,Ex),!,
-  typeOfExp(Ex,ElTp,Env,_,Exp,Path),
+  typeOfExp(Ex,ValTp,Env,_,Exp,Path),
   processIterable(Env,Path,Exp,Reslt).
-checkAction(Term,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path) :-
+checkAction(Term,Env,Ev,ExTp,ValTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
-  checkAction(Stmt,Env,Ev,Op,StTp,ElTp,ErTp,Exp,Path).
-checkAction(Term,Env,Ev,_,StTp,ElTp,ErTp,simpleDo(Lc,Exp,StTp,ErTp),Path) :-
+  checkAction(Stmt,Env,Ev,ExTp,ValTp,ErTp,Exp,Path).
+checkAction(Term,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
   locOfAst(Term,Lc),
-  typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
+  mkTypeExp(ExTp,[ErTp,ValTp],MTp),
+  typeOfExp(Term,MTp,Env,Ev,Exp,Path).
 
-checkAssignment(Lc,L,R,Env,Ev,_Op,StTp,ElTp,ErTp,simpleDo(Lc,Exp,StTp,ErTp),Path) :-
+checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
   (isIndexTerm(L,LLc,C,I) ->
      unary(LLc,"!",C,CC),
     ternary(LLc,"_put",CC,I,R,Repl),
     binary(Lc,":=",C,Repl,Term);
    binary(Lc,":=",L,R,Term)),
-  typeOfExp(Term,tpExp(StTp,ElTp),Env,Ev,Exp,Path).
+  typeOfExp(Term,tpExp(StTp,ValTp),Env,Ev,Exp,Path).
 
-checkCatch(Term,Env,Op,StTp,ElTp,ErTp,Anon,Hndlr,Path) :-
+checkCatch(Term,Env,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,
-  Htype = funType(tupleType([ErTp]),tpExp(StTp,ElTp)),
-  checkAction(St,Env,_,Op,StTp,ElTp,ErTp,H,Path),
+  mkTypeExp(ExTp,[ErTp,ValTp],MTp),
+  Htype = funType(tupleType([BdErTp]),MTp),
+  checkAction(St,Env,_,ExTp,ValTp,ErTp,H,Path),
   genAction(H,Op,StTp,ErTp,HH,Path),
   Hndlr = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
 			     enm(Lc,"true",type("star.core*boolean")),
 			     HH),Htype).
-checkCatch(Term,Env,_,StTp,ElTp,ErTp,_,Hndlr,Path) :-
-  Htype = funType(tupleType([ErTp]),tpExp(StTp,ElTp)),
+checkCatch(Term,Env,ExTp,ValTp,ErTp,BdErTp,_,Hndlr,Path) :-
+  mkTypeExp(ExTp,[ErTp,ValTp],MTp),
+  Htype = funType(tupleType([BdErTp]),MTp),
   typeOfExp(Term,Htype,Env,_,Hndlr,Path).
 
 recordFace(Trm,Env,Env,v(Lc,Nm,Face),Face,_) :-

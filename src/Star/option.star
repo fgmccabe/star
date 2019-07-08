@@ -60,16 +60,6 @@ star.option{
     zed = none.
   }
 
-  public implementation execution[option->>()] => {
-    _raise(_) => none.
-    _perform(some(X)) => X.
-    _handle(some(X),_) => some(X).
-    _handle(none,E) => E(()).
-    _valis(X) => some(X).
-    _sequence(some(X),F) => F(X).
-    _sequence(none,_) => none.
-  }
-
   public implementation all e,f ~~ coercion[e,f] |: coercion[option[e],option[f]] => {.
     _coerce(some(X)) => some(_coerce(X)).
     _coerce(none) => none.

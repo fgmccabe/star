@@ -6,7 +6,7 @@ star.thunk{
       private delai(()=>thunk[e,a]) |
       private bad(e).
 
-  public implementation all e ~~ execution[thunk[e]->>e] => {
+  public implementation execution[thunk] => {
     _perform(Th) => _perf(Th,Th).
 
     _perf(dne(X),_) => X.
