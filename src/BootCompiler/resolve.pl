@@ -192,7 +192,7 @@ overloadAction(whileDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,whileDo(Lc,RTst,RBody,
 overloadAction(forDo(Lc,Tst,Body,StTp,ErTp),Dict,St,Stx,forDo(Lc,RTst,RBody,StTp,ErTp)) :-
   overloadTerm(Tst,Dict,St,St1,RTst),
   overloadAction(Body,Dict,St1,Stx,RBody).
-overloadAction(tryCatchDo(Lc,Body,Hndlr,StTp,ErTp),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr,StTp,ErTp)) :-
+overloadAction(tryCatchDo(Lc,Body,Hndlr,ExTp,VlTp,ErTp),Dict,St,Stx,tryCatchDo(Lc,RBody,RHndlr,ExTp,VlTp,ErTp)) :-
   overloadAction(Body,Dict,St,St1,RBody),
   overloadTerm(Hndlr,Dict,St1,Stx,RHndlr).
 overloadAction(returnDo(Lc,Exp,ExTp,VlTp,ErTp),Dict,St,Stx,returnDo(Lc,RExp,ExTp,VlTp,ErTp)) :-

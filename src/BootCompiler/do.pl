@@ -29,9 +29,9 @@ genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,_) :-
   LTp = funType(tupleType([PtnTp]),ConTp),
   typeOfCanon(Gen,GenTp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[Ptn]),enm(Lc,"true",type("star.core*boolean")),Cont),LTp),
-  Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([GenTp,LTp]),ConTp)),
+  Seqn = over(Lc,mtd(Lc,"_sequence",funType(tupleType([GenTp,LTp]),ConTp)),
 	     true,[conTract(Contract,[ExTp],[])]),
-  Exp = apply(Lc,Gen,tple(Lc,[Gen,Lam]),ConTp).
+  Exp = apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp).
 /* X = E --> ((X)=>Cont)(E) */
 genAction(varDo(Lc,Ptn,Ex),_Contract,Cont,Exp,_) :-
   (Cont = noDo(_) ->
@@ -51,12 +51,11 @@ genAction(delayDo(Lc,Actn,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
 
 genAction(tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
   typeOfCanon(Hndlr,HType),
-  ConTp = tpExp(StTp,ValTp),
+  mkTypeExp(ExTp,[ErTp,ValTp],ConTp),
   genAction(Bdy,Contract,noDo(Lc),Body,Path),
   typeOfCanon(Body,BType),
-
   H = over(Lc,mtd(Lc,"_handle",funType(tupleType([BType,HType]),ConTp)),
-	      true,[conTract(Contract,[StTp],[ErTp])]),
+	      true,[conTract(Contract,[ExTp],[])]),
   HB = apply(Lc,H,tple(Lc,[Body,Hndlr]),ConTp),
   combineActs(Lc,HB,Cont,Contract,ExTp,Exp).
 genAction(throwDo(Lc,A,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
@@ -138,28 +137,28 @@ genAction(noDo(_),_,Cont,Cont,_).
   * some(PtnV) .= <genCondition>(C,none,...)
 */
 
-genIterableGl(Cond,ExTp,ErTp,ExOp,OptionTp,Path,match(Lc,Ptn,Gl)) :-
+genIterableGl(Cond,ExTp,ErTp,Contract,OptionTp,Path,match(Lc,Ptn,Gl)) :-
   locOfCanon(Cond,Lc),
   goalVars(Cond,Vrs),
   VTpl = tple(Lc,Vrs),
   typeOfCanon(VTpl,ETp),
   OptTp = tpExp(OptionTp,ETp),
 
-  genReturn(Lc,enm(Lc,"none",OptTp),ExTp,ErTp,ExOp,Zed),
+  genReturn(Lc,enm(Lc,"none",OptTp),ExTp,ErTp,Contract,Zed),
 
   Ptn = apply(Lc,v(Lc,"some",funType(tupleType([ETp]),OptTp)),
 		   tple(Lc,[VTpl]),OptTp),
   
   genCondition(Cond,Path,
-	       do:genRtn(Lc,ExTp,ErTp,ExOp),
-	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
-	       do:genVl(Lc,Ptn,ExTp,ErTp,ExOp),
+	       do:genRtn(Lc,ExTp,ErTp,Contract),
+	       checker:genSeq(Lc,Contract,ExTp,ErTp),
+	       do:genVl(Lc,Ptn,ExTp,ErTp,Contract),
 	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,OptTp,ExTp,ErTp,ExOp,Gl).
+  genPerform(Lc,Seq,OptTp,ExTp,ErTp,Contract,Gl).
   %reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
-genVl(Lc,Ptn,ExTp,ErTp,ExOp,_,Exp) :-
-  genReturn(Lc,Ptn,ExTp,ErTp,ExOp,Exp).
+genVl(Lc,Ptn,ExTp,ErTp,Contract,_,Exp) :-
+  genReturn(Lc,Ptn,ExTp,ErTp,Contract,Exp).
 
 genUse(_Lc,_StTp,_ErTp,_Contract,Exp,_,Exp).
 
@@ -172,25 +171,25 @@ genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,apply(Lc,Gen,tple(Lc,[A]),MTp)) :-
   Gen = over(Lc,mtd(Lc,"_valis",funType(tupleType([VlTp]),MTp)),
 	     true,[conTract(Contract,[ExTp],[])]).
 
-genPerform(Lc,A,Tp,StTp,ErTp,Contract,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-
+genPerform(Lc,A,Tp,ExTp,_ErTp,Contract,apply(Lc,Perf,tple(Lc,[A]),Tp)) :-
   typeOfCanon(A,MdTp),!,
   Perf = over(Lc,mtd(Lc,"_perform",funType(tupleType([MdTp]),Tp)),
-	      true,[conTract(Contract,[StTp],[ErTp])]).
+	      true,[conTract(Contract,[ExTp],[])]).
 
 genForBody(Lc,StTp,ErTp,Contract,IterBody,St,Exp) :-
   genRtn(Lc,StTp,ErTp,Contract,St,End),
   combineActs(Lc,IterBody,End,Contract,StTp,Exp).
   %reportMsg("for body-> %s",[Exp]).
 
-genSeq(Lc,ExStTp,ErTp,ExOp,St,Init,Reslt,Exp) :-
+genSeq(Lc,ExStTp,ErTp,Contract,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
   MdTp = tpExp(ExStTp,ATp),
   LTp = funType(tupleType([ATp]),MdTp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
 			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
-	     true,[conTract(ExOp,[ExStTp],[ErTp])]),
-  genRtn(Lc,ExStTp,ErTp,ExOp,Init,Initial),
+	     true,[conTract(Contract,[ExStTp],[])]),
+  genRtn(Lc,ExStTp,ErTp,Contract,Init,Initial),
   Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
 
 combineActs(_,A1,noDo(_),_Contract,_,A1) :-!.
