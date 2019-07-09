@@ -49,14 +49,6 @@ genAction(delayDo(Lc,Actn,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
   genAction(Actn,Contract,Cont,NAct,Path),
   combineActs(Lc,RtnUnit,NAct,Contract,ExTp,Exp).
 
-genAction(assignDo(Lc,Lhs,Rhs,ExTp,ValTp,ErTp),Contract,Cont,Exp,_) :-
-  typeOfCanon(Lhs,LTp),
-  typeOfCanon(Rhs,RTp),
-  UnitTp = tupleType([]),
-  Tp = tpExp(StTp,UnitTp),
-  Assgn = apply(Lc,v(Lc,":=",funType(tupleType([LTp,RTp]),Tp)),
-		tple(Lc,[Lhs,Rhs]),Tp),
-  combineActs(Lc,Assgn,Cont,Contract,ExTp,Exp).
 genAction(tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Exp,Path) :-
   typeOfCanon(Hndlr,HType),
   ConTp = tpExp(StTp,ValTp),
@@ -74,7 +66,7 @@ genAction(throwDo(Lc,A,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
   combineActs(Lc,apply(Lc,Gen,tple(Lc,[A]),Tp),Cont,Contract,ExTp,Exp).
 genAction(performDo(Lc,Ex,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
   genReturn(Lc,Ex,ExTp,VlTp,ErTp,Contract,Perf),
-  combineActs(Lc,Perf,Cont,Contract,StTp,Exp).
+  combineActs(Lc,Perf,Cont,Contract,ExTp,Exp).
 genAction(simpleDo(Lc,SimpleExp,ExTp),Contract,Cont,Exp,_) :-
   combineActs(Lc,SimpleExp,Cont,Contract,ExTp,Exp).
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
@@ -175,7 +167,7 @@ genRtn(_Lc,_,_,_,lifted(Exp),Exp).
 genRtn(Lc,StTp,ErTp,Contract,unlifted(St),Exp) :-
   genReturn(Lc,St,StTp,ErTp,Contract,Exp).
 
-genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,apply(Lc,Gen,tple(Lc,[A]),Tp)) :-
+genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,apply(Lc,Gen,tple(Lc,[A]),MTp)) :-
   mkTypeExp(ExTp,[ErTp,VlTp],MTp),		% monadic type of returned value
   Gen = over(Lc,mtd(Lc,"_valis",funType(tupleType([VlTp]),MTp)),
 	     true,[conTract(Contract,[ExTp],[])]).
