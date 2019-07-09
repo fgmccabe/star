@@ -11,7 +11,7 @@ star.result{
     | _failed(e).
 
 
-  public implementation all e ~~ execution[result[e]->>e] => {
+  public implementation execution[result] => {
     _perform(_has_value(X)) => X.
     _perform(_not_yet(F)) => _perform(F()).
 

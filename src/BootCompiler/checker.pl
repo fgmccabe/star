@@ -797,42 +797,42 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   pickupContract(Lc,Env,"sequence",StTp,[ElTp],Op),
   checkType(Term,Tp,StTp,Env),
   typeOfExp(B,ElTp,E1,_,Bnd,Path),
-  pickupContract(Lc,Env,"execution",ExTp,_,ExOp),
+  pickupContract(Lc,Env,"execution",ExTp,_,Contract),
   findType("action",Lc,Env,ActionTp),
   newTypeVar("_Er",ErTp),
   checkType(Term,tpExp(ActionTp,ErTp),ExTp,Env),
   genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
 		    true,[conTract(Op,[StTp],[ElTp])]),
-	    ExTp,ErTp,ExOp,Zed),
+	    ExTp,ErTp,Contract,Zed),
   Gen = over(Lc,mtd(Lc,"_cons",
 		    funType(tupleType([ElTp,StTp]),StTp)),
 	     true,[conTract(Op,[StTp],[ElTp])]),
 %  reportMsg("Result type: %s, Gen:%s",[Tp,Gen]),
-%  reportMsg("Action type: %s, monad: %s",[ExTp,ExOp]),
-  genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,ExOp),
-	       checker:genSeq(Lc,ExOp,ExTp,ErTp),
-	       checker:genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp),
+%  reportMsg("Action type: %s, monad: %s",[ExTp,Contract]),
+  genCondition(Cond,Path,checker:genRtn(Lc,ExTp,ErTp,Contract),
+	       checker:genSeq(Lc,Contract,ExTp,ErTp),
+	       checker:genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp),
 	       lifted(Zed),ACond),
-  genPerform(Lc,ACond,Tp,ExTp,ErTp,ExOp,Abstr).
+  genPerform(Lc,ACond,Tp,ExTp,ErTp,Contract,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
-genEl(Lc,Gen,Bnd,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
+genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
-  genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
+  genReturn(Lc,Next,ExTp,ErTp,Contract,Exp).
 
-genPut(Lc,Gen,Key,Value,StTp,ExOp,ExTp,ErTp,unlifted(St),Exp) :-
+genPut(Lc,Gen,Key,Value,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[St,Key,Value]),StTp),
-  genReturn(Lc,Next,ExTp,ErTp,ExOp,Exp).
+  genReturn(Lc,Next,ExTp,ErTp,Contract,Exp).
 
-genSeq(Lc,ExOp,ExStTp,ErTp,St,Init,Reslt,Exp) :-
+genSeq(Lc,Contract,ExStTp,ErTp,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
   MdTp = tpExp(ExStTp,ATp),
   LTp = funType(tupleType([ATp]),MdTp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
 			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
-	     true,[conTract(ExOp,[ExStTp],[ErTp])]),
-  genRtn(Lc,ExStTp,ErTp,ExOp,Init,Initial),
+	     true,[conTract(Contract,[ExStTp],[ErTp])]),
+  genRtn(Lc,ExStTp,ErTp,Contract,Init,Initial),
   Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
 
 genTpVars([],[]).
@@ -884,7 +884,7 @@ checkAction(Term,Env,Ev,_,_ExTp,_ValTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :-
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
   checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,Act,Path).
-checkAction(Term,Env,Ev,ExTp,Contract,ValTp,ErTp,
+checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,
 	    ifThenDo(Lc,Ts,Th,El,ExTp,ValTp,ErTp),Path) :-
   isIfThenElse(Term,Lc,T,H,E),!,
   findType("boolean",Lc,Env,LogicalTp),
@@ -911,7 +911,7 @@ checkAction(Term,Env,Env,Contract,ExTp,_,ErTp,forDo(Lc,Ts,Bdy,ExTp,ErTp),Path) :
   typeOfExp(T,LogicalTp,FEnv,Et,Ts,Path),
   checkAction(B,Et,_,Contract,ExTp,tupleType([]),ErTp,Bdy,Path).
 checkAction(Term,Env,Env,Contract,ExTp,ValTp,ErTp,
-	    tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,BdErTp,ErTp),Path) :-
+	    tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,ErTp),Path) :-
   isTryCatch(Term,Lc,B,H),!,
   anonVar(Lc,Anon,BdErTp),
   checkAction(B,Env,_,Contract,ExTp,ValTp,BdErTp,Bdy,Path),
@@ -1032,9 +1032,9 @@ squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path) :-
 processIterable(Env,Path,Cond,Goal) :-
   isIterableGoal(Cond),!,
   locOfCanon(Cond,Lc),
-  pickupContract(Lc,Env,"execution",_ExTp,_ErTp,ExOp),
+  pickupContract(Lc,Env,"execution",_ExTp,_ErTp,Contract),
   findType("option",Lc,Env,OptionTp),
-  genIterableGl(Cond,OptionTp,tupleType([]),ExOp,OptionTp,Path,Goal).
+  genIterableGl(Cond,OptionTp,tupleType([]),Contract,OptionTp,Path,Goal).
   %reportMsg("iterable exp -> %s",[Goal]).
 processIterable(Env,Path,apply(Lc,Op,Arg,Tp),apply(Lc,NOp,NArg,Tp)) :-!,
   processIterable(Env,Path,Op,NOp),

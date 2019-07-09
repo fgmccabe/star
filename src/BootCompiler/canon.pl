@@ -48,7 +48,7 @@ isCanon(tryCatchDo(_,_,_,_,_,_)).
 isCanon(varDo(_,_,_)).
 isCanon(bindDo(_,_,_,_)).
 isCanon(returnDo(_,_,_,_)).
-isCanon(throwDo(_,_,_,_)).
+isCanon(throwDo(_,_,_,_,_)).
 isCanon(performDo(_,_,_,_,_)).
 isCanon(simpleDo(_,_,_)).
 isCanon(search(_,_,_,_)).
@@ -78,7 +78,7 @@ isAction(apply(_,_,_,_)).
 isAction(bindDo(_,_,_,_)).
 isAction(varDo(_,_,_)).
 isAction(returnDo(_,_,_,_)).
-isAction(throwDo(_,_,_,_)).
+isAction(throwDo(_,_,_,_,_)).
 isAction(performDo(_,_,_,_,_)).
 isAction(noDo(_)).
 
@@ -153,7 +153,7 @@ locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(throwDo(Lc,_,_,_),Lc) :-!.
+locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(simpleDo(Lc,_,_),Lc) :-!.
 locOfCanon(noDo(Lc),Lc) :-!.
@@ -328,7 +328,7 @@ showCanonAction(seqDo(Lc,A,B),Dp,O,Ox) :-
 showCanonAction(delayDo(_,Actn,_,_,_),Dp,O,Ox) :-
   appStr("delay ",O,O1),
   showCanonAction(Actn,Dp,O1,Ox).
-showCanonAction(bindDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
+showCanonAction(bindDo(_,Ptn,Exp,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" <- ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
@@ -373,7 +373,7 @@ showCanonAction(returnDo(_,Exp,_,_,_),Dp,O,Ox) :-
   appStr("valis ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
-showCanonAction(throwDo(_,Exp,_,_),Dp,O,Ox) :-
+showCanonAction(throwDo(_,Exp,_,_,_),Dp,O,Ox) :-
   appStr("throw ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
