@@ -369,8 +369,8 @@ showCanonAction(tryCatchDo(_,Bdy,Hndlr,_,_,_),Dp,O,Ox) :-
   showCanonAction(Bdy,Dp2,O1,O2),
   appStr(" catch ",O2,O3),
   showCanonTerm(Hndlr,Dp2,O3,Ox).
-showCanonAction(returnDo(_,Exp,_,_),Dp,O,Ox) :-
-  appStr("return ",O,O1),
+showCanonAction(returnDo(_,Exp,_,_,_),Dp,O,Ox) :-
+  appStr("valis ",O,O1),
   Dp2 is Dp+2,
   showCanonTerm(Exp,Dp2,O1,Ox).
 showCanonAction(throwDo(_,Exp,_,_),Dp,O,Ox) :-

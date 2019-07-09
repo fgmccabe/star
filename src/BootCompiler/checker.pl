@@ -852,6 +852,7 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
    reportError("execution contract not defined",[],Lc),
    newTypeVar("_t",ExTp)),
   checkAction(B,Env,Ev,Contract,ExTp,ValTp,ErTp,Body,Path),
+  reportMsg("Basic action %s",[doTerm(Lc,Body,ExTp,ValTp,ErTp)]),
   genAction(delayDo(Lc,Body,ExTp,ValTp,ErTp),Contract,noDo(Lc),EE,Path),
   reportMsg("Action-> %s",[EE]).
 
