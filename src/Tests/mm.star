@@ -13,7 +13,7 @@ test.mm{
   main:() => action[integer,()].
   main() => do{
     logMsg(disp(conc([1,2,3],[4,5]))::string);
-    return ()
+    valis ()
   }
     
   _main(_) =>

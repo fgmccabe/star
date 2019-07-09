@@ -150,7 +150,6 @@ locOfCanon(tryCatchDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(assignDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(varDo(Lc,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
@@ -336,10 +335,6 @@ showCanonAction(bindDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
 showCanonAction(varDo(_,Ptn,Exp),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" = ",O1,O2),
-  showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(assignDo(_,Ptn,Exp,_,_),Dp,O,Ox) :-
-  showCanonTerm(Ptn,Dp,O,O1),
-  appStr(" := ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
 showCanonAction(ifThenDo(_,Tst,Th,noDo(_),_,_,_),Dp,O,Ox) :-
   appStr("if ",O,O1),
