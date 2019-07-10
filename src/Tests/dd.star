@@ -39,6 +39,22 @@ test.dd{
       YY
   }
 
+  -- Test different error types across try-catch
+  VV : action[(),integer].
+  VV = do {
+    try{
+      try {
+        throw "fred"
+      } catch (F) => do{
+        logMsg("we got exception $(F)");
+	throw ()
+      }
+    } catch (E) => do{
+      logMsg("we got exception $(E)");
+      valis 10
+    }
+  }
+  
   show "AA=$(valof AA)".
   show "XX=$(valof XX)".
   show "YY=$(valof YY)".
@@ -47,4 +63,6 @@ test.dd{
 
   show "UU(10)=$(valof UU(10))".
   show "UU(9) = $(valof UU(9))".
+
+  assert valof VV == 10.
 }
