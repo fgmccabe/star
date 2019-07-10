@@ -83,7 +83,7 @@ static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg 
 
       closeFile(file);
 
-      if (ret == Error)
+      if (ret != Ok)
         logMsg(logFile, "problem in loading %P: %s", pkg, errorMsg);
 
       return ret;
