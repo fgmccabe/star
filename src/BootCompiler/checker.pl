@@ -841,22 +841,22 @@ genTpVars([_|I],[Tp|More]) :-
   genTpVars(I,More).
 
 checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
-  reportMsg("do type %s",[Tp]),
+%  reportMsg("do type %s",[Tp]),
   newTypeVar("_x",ValTp),
   newTypeVar("_er",ErTp),
   (getContract("execution",Env,conDef(_,_,Con)) ->
    freshen(Con,Env,_,contractExists(conTract(Contract,[ExTp],[]),_)),
    mkTypeExp(ExTp,[ErTp,ValTp],MTp),
-   checkType(B,Tp,MTp,Env),
-   reportMsg("execution type %s",[MTp]);
+   checkType(B,Tp,MTp,Env);
+%   reportMsg("execution type %s",[MTp]);
    reportError("execution contract not defined",[],Lc),
    newTypeVar("_t",ExTp)),
   checkAction(B,Env,Ev,Contract,ExTp,ValTp,ErTp,Body,Path),
-  reportMsg("Basic action %s",[doTerm(Lc,Body,ExTp,ValTp,ErTp)]),
-  genAction(delayDo(Lc,Body,ExTp,ValTp,ErTp),Contract,noDo(Lc),EE,Path),
-  reportMsg("Action-> %s",[EE]).
+%  reportMsg("Basic action %s",[doTerm(Lc,Body,ExTp,ValTp,ErTp)]),
+  genAction(delayDo(Lc,Body,ExTp,ValTp,ErTp),Contract,noDo(Lc),EE,Path).
+%  reportMsg("Action-> %s",[EE]).
 
-checkAction(Term,Env,Env,_,_,_,_,_,noDo(Lc),_) :-
+checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
   isIden(Term,Lc,"nothing"),!.
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   isActionSeq(Term,Lc,S1,S2),!,
@@ -946,8 +946,8 @@ checkCatch(Term,Env,Contract,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
   Htype = funType(tupleType([BdErTp]),MTp),
-  checkAction(St,Env,_,ExTp,ValTp,ErTp,H,Path),
-  genAction(H,Contract,ExTp,ErTp,HH,Path),
+  checkAction(St,Env,_,Contract,ExTp,ValTp,ErTp,H,Path),
+  genAction(H,Contract,noDo(Lc),HH,Path),
   Hndlr = lambda(Lc,equation(Lc,tple(Lc,[Anon]),
 			     enm(Lc,"true",type("star.core*boolean")),
 			     HH),Htype).
