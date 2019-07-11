@@ -812,7 +812,7 @@ genIterGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
   Unit = apply(Lc,v(Lc,"other",funType(tupleType([UnitTp]),MTp)),
 	       tple(Lc,[tple(Lc,[])]),MTp),
 
-  genReturn(Lc,Unit,EItherTp,VlTp,ErTp,Contract,Zed),
+  genReturn(Lc,Unit,EitherTp,VlTp,ErTp,Contract,Zed),
 
   Ptn = apply(Lc,v(Lc,"either",funType(tupleType([VlTp]),MTp)),
 	      tple(Lc,[VTpl]),MTp),
@@ -820,9 +820,9 @@ genIterGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
   genCondition(Cond,Path,
 	       do:genRtn(Lc,EitherTp,VlTp,ErTp,Contract),
 	       checker:genSeq(Lc,Contract,EitherTp,ErTp),
-	       do:genVl(Lc,Ptn,ExTp,ErTp,Contract),
+	       do:genVl(Lc,Ptn,EitherTp,ErTp,Contract),
 	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,EitherTp,VlTp,ErTp,Contract,Gl).
+  genPerform(Lc,Seq,EitherTp,VlTp,Contract,Gl).
   %reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
@@ -847,7 +847,7 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
 	       checker:genSeq(Lc,Contract,ExTp,ErTp),
 	       checker:genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp),
 	       lifted(Zed),ACond),
-  genPerform(Lc,ACond,Tp,ExTp,ErTp,Contract,Abstr).
+  genPerform(Lc,ACond,Tp,ExTp,Contract,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
 genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
