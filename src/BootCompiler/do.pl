@@ -1,4 +1,4 @@
-:- module(do,[genAction/5,genPerform/7,genRtn/6,genReturn/7]).
+:- module(do,[genAction/5,genPerform/6,genRtn/7,genReturn/7]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -69,7 +69,7 @@ genAction(performDo(Lc,Ex,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
 genAction(simpleDo(Lc,SimpleExp,ExTp),Contract,Cont,Exp,_) :-
   combineActs(Lc,SimpleExp,Cont,Contract,ExTp,Exp).
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
-	  cond(Lc,Tst,Then,Else,MTp),Path) :-
+	  cond(Lc,match(Lc,Ptn,Gl),Then,Else,MTp),Path) :-
   mkTypeExp(StTp,[ErTp,ValTp],MTp),
   isIterableGoal(Ts),!,
 
@@ -78,47 +78,28 @@ genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
 
   EitherTp = tpFun("star.either*either",2),
 
-  
-
-  genIterableGl(Ts,StTp,ValTp,ErTp,Contract,tpFun("star.core*option",1),Path,Tst).
-
-
-
-
-
-genIterableGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
-
-  goalVars(Cond,Vrs),
+  goalVars(Ts,Vrs),
   VTpl = tple(Lc,Vrs),
   typeOfCanon(VTpl,VlTp),
 
   UnitTp = tupleType([]),
 
-  mkTypeExp(EitherTp,[UnitTp,VlTp],MTp),
+  mkTypeExp(EitherTp,[ErTp,VlTp],MTp),
 
   Unit = apply(Lc,v(Lc,"other",funType(tupleType([UnitTp]),MTp)),
 	       tple(Lc,[tple(Lc,[])]),MTp),
 
-  genReturn(Lc,Unit,EItherTp,VlTp,ErTp,Contract,Zed),
+  genReturn(Lc,Unit,EitherTp,VlTp,ErTp,Contract,Zed),
 
   Ptn = apply(Lc,v(Lc,"either",funType(tupleType([VlTp]),MTp)),
 	      tple(Lc,[VTpl]),MTp),
   
-  genCondition(Cond,Path,
+  genCondition(Ts,Path,
 	       do:genRtn(Lc,EitherTp,VlTp,ErTp,Contract),
 	       checker:genSeq(Lc,Contract,EitherTp,ErTp),
-	       do:genVl(Lc,Ptn,ExTp,ErTp,Contract),
+	       do:genVl(Lc,Ptn,EitherTp,ErTp,Contract),
 	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,EitherTp,VlTp,ErTp,Contract,Gl).
-
-
-
-
-
-
-
-
-
+  genPerform(Lc,Seq,EitherTp,VlTp,Contract,Gl).
 
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
 	  cond(Lc,Ts,Then,Else,MTp),Path) :-
@@ -170,44 +151,6 @@ genAction(forDo(Lc,Tst,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 	       unlifted(Unit),ForLoop),
   combineActs(Lc,ForLoop,Cont,Contract,StTp,Exp).
 genAction(noDo(_),_,Cont,Cont,_).
-
-
-/*
-  * 'iterable' conditions become a match on the result of a search
-  *
-  * becomes:
-  *
-  * either(PtnV) .= <genCondition>(C,other(()),...)
-*/
-
-genIterableGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
-  locOfCanon(Cond,Lc),
-  pickupContract(Lc,Env,"execution",_,_,Contract),
-  findType("either",Lc,Env,EitherTp),
-
-  goalVars(Cond,Vrs),
-  VTpl = tple(Lc,Vrs),
-  typeOfCanon(VTpl,VlTp),
-
-  UnitTp = tupleType([]),
-
-  mkTypeExp(EitherTp,[UnitTp,VlTp],MTp),
-
-  Unit = apply(Lc,v(Lc,"other",funType(tupleType([UnitTp]),MTp)),
-	       tple(Lc,[tple(Lc,[])]),MTp),
-
-  genReturn(Lc,Unit,EItherTp,VlTp,ErTp,Contract,Zed),
-
-  Ptn = apply(Lc,v(Lc,"either",funType(tupleType([VlTp]),MTp)),
-	      tple(Lc,[VTpl]),MTp),
-  
-  genCondition(Cond,Path,
-	       do:genRtn(Lc,EitherTp,VlTp,ErTp,Contract),
-	       checker:genSeq(Lc,Contract,EitherTp,ErTp),
-	       do:genVl(Lc,Ptn,ExTp,ErTp,Contract),
-	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,EitherTp,VlTp,ErTp,Contract,Gl).
-  %reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
 genVl(Lc,Ptn,ExTp,ErTp,Contract,_,Exp) :-
   genReturn(Lc,Ptn,ExTp,ErTp,Contract,Exp).
