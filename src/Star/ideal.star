@@ -16,7 +16,9 @@ star.ideal{
     private ihEmpty | -- Empty dictionary
     -- Leaf dictionary, all entries have the same hash
     private ihLeaf(integer,cons[keyval[k,v]]) | 
-    private ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
+      private ihNode(map[k,v],map[k,v],map[k,v],map[k,v]). -- non-leaf case
+
+  public all K,V ~~ keyval[K,V] ::= K->V.
   
   findIdeal: all k,v ~~ equality[k],hash[k] |: (map[k,v],k) => option[v].
   findIdeal(Tr,Ky) => findInTree(0,hash(Ky),Ky,Tr).
