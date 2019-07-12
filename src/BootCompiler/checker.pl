@@ -784,46 +784,11 @@ checkGoal(G,Env,Ev,Goal,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,Ev,Cond,Path),
   (isIterableGoal(Cond) ->
-     genIterGl(Cond,Env,Path,Goal);
+     genIterableGl(Cond,Path,Goal);
 %   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
 
-/*
-  * 'iterable' conditions become a match on the result of a search
-  *
-  * becomes:
-  *
-  * either(PtnV) .= <genCondition>(C,other(()),...)
-*/
 
-genIterGl(Cond,Env,Path,match(Lc,Ptn,Gl)) :-
-  locOfCanon(Cond,Lc),
-  pickupContract(Lc,Env,"execution",_,_,Contract),
-  findType("either",Lc,Env,EitherTp),
-
-  goalVars(Cond,Vrs),
-  VTpl = tple(Lc,Vrs),
-  typeOfCanon(VTpl,VlTp),
-
-  UnitTp = tupleType([]),
-
-  mkTypeExp(EitherTp,[UnitTp,VlTp],MTp),
-
-  Unit = apply(Lc,v(Lc,"other",funType(tupleType([UnitTp]),MTp)),
-	       tple(Lc,[tple(Lc,[])]),MTp),
-
-  genReturn(Lc,Unit,EitherTp,VlTp,ErTp,Contract,Zed),
-
-  Ptn = apply(Lc,v(Lc,"either",funType(tupleType([VlTp]),MTp)),
-	      tple(Lc,[VTpl]),MTp),
-  
-  genCondition(Cond,Path,
-	       do:genRtn(Lc,EitherTp,VlTp,ErTp,Contract),
-	       checker:genSeq(Lc,Contract,EitherTp,ErTp),
-	       do:genVl(Lc,Ptn,EitherTp,ErTp,Contract),
-	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,EitherTp,VlTp,Contract,Gl).
-  %reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
@@ -1065,8 +1030,10 @@ squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path) :-
 
 processIterable(Env,Path,Cond,Goal) :-
   isIterableGoal(Cond),!,
-  genIterGl(Cond,Env,Path,Goal).
-  %reportMsg("iterable exp -> %s",[Goal]).
+  locOfCanon(Cond,Lc),
+  pickupContract(Lc,Env,"execution",_,_,Contract),
+  genIterableGl(Cond,Contract,Path,Goal),
+  reportMsg("iterable exp -> %s",[Goal]).
 processIterable(Env,Path,apply(Lc,Op,Arg,Tp),apply(Lc,NOp,NArg,Tp)) :-!,
   processIterable(Env,Path,Op,NOp),
   processIterable(Env,Path,Arg,NArg).

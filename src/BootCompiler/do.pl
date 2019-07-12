@@ -1,4 +1,4 @@
-:- module(do,[genAction/5,genPerform/6,genRtn/7,genReturn/7]).
+:- module(do,[genAction/5,genPerform/6,genRtn/7,genReturn/7,genIterableGl/4]).
 
 :- use_module(misc).
 :- use_module(canon).
@@ -69,37 +69,14 @@ genAction(performDo(Lc,Ex,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
 genAction(simpleDo(Lc,SimpleExp,ExTp),Contract,Cont,Exp,_) :-
   combineActs(Lc,SimpleExp,Cont,Contract,ExTp,Exp).
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
-	  cond(Lc,match(Lc,Ptn,Gl),Then,Else,MTp),Path) :-
+	  cond(Lc,Tst,Then,Else,MTp),Path) :-
   mkTypeExp(StTp,[ErTp,ValTp],MTp),
   isIterableGoal(Ts),!,
 
   genAction(Th,Contract,Cont,Then,Path),
   genAction(El,Contract,Cont,Else,Path),
 
-  EitherTp = tpFun("star.either*either",2),
-
-  goalVars(Ts,Vrs),
-  VTpl = tple(Lc,Vrs),
-  typeOfCanon(VTpl,VlTp),
-
-  UnitTp = tupleType([]),
-
-  mkTypeExp(EitherTp,[ErTp,VlTp],MTp),
-
-  Unit = apply(Lc,v(Lc,"other",funType(tupleType([UnitTp]),MTp)),
-	       tple(Lc,[tple(Lc,[])]),MTp),
-
-  genReturn(Lc,Unit,EitherTp,VlTp,ErTp,Contract,Zed),
-
-  Ptn = apply(Lc,v(Lc,"either",funType(tupleType([VlTp]),MTp)),
-	      tple(Lc,[VTpl]),MTp),
-  
-  genCondition(Ts,Path,
-	       do:genRtn(Lc,EitherTp,VlTp,ErTp,Contract),
-	       checker:genSeq(Lc,Contract,EitherTp,ErTp),
-	       do:genVl(Lc,Ptn,EitherTp,ErTp,Contract),
-	       lifted(Zed),Seq),
-  genPerform(Lc,Seq,EitherTp,VlTp,Contract,Gl).
+  genIterableGl(Ts,Contract,Path,Tst).
 
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
 	  cond(Lc,Ts,Then,Else,MTp),Path) :-
@@ -198,6 +175,49 @@ combineActs(Lc,A1,Cont,Contract,StTp,Exp) :-
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([A1Tp,LTp]),ConTp)),
 	     true,[conTract(Contract,[StTp],[])]),
   Exp = apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
+
+
+/*
+  * 'iterable' conditions become a match on the result of a search
+  *
+  * becomes:
+  *
+  * either(some(PtnV)) .= <genCondition>(C,either(none),...)
+  *
+  * This will need more optimization ...
+*/
+
+genIterableGl(Cond,Contract,Path,match(Lc,Ptn,Gl)) :-
+  locOfCanon(Cond,Lc),
+  EitherTp = tpFun("star.either*either",2),
+  OptionTp = tpFun("star.core*option",1),
+
+  goalVars(Cond,Vrs),
+  VTpl = tple(Lc,Vrs),
+  typeOfCanon(VTpl,VlTp),
+
+  UnitTp = tupleType([]),
+
+  mkTypeExp(OptionTp,[VlTp],OptTp),
+  mkTypeExp(EitherTp,[UnitTp,OptTp],MTp),
+
+  Unit = apply(Lc,v(Lc,"either",funType(tupleType([OptTp]),MTp)),
+	       tple(Lc,[enm(Lc,"none",OptTp)]),MTp),
+
+  genReturn(Lc,Unit,EitherTp,OptTp,UnitTp,Contract,Zed),
+
+  Ptn = apply(Lc,v(Lc,"either",funType(tupleType([OptTp]),MTp)),
+	      tple(Lc,[apply(Lc,v(Lc,"some",funType(tupleType([VlTp]),OptTp)),
+			    tple(Lc,[VTpl]))]),MTp),
+  
+  genCondition(Cond,Path,
+	       do:genRtn(Lc,EitherTp,OptTp,UnitTp,Contract),
+	       checker:genSeq(Lc,Contract,EitherTp,UnitTp),
+	       do:genVl(Lc,Ptn,EitherTp,UnitTp,Contract),
+	       lifted(Zed),Seq),
+  genPerform(Lc,Seq,EitherTp,VlTp,Contract,Gl).
+  %reportMsg("iterable goal %s ->\n%s",[Cond,match(Lc,Ptn,Gl)]).
+
 
 
 
