@@ -263,7 +263,7 @@ checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
   packageVarName(Path,N,LclName),
   formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
-					%  reportMsg("type of %s:%s",[N,ProgramType]).
+%  reportMsg("type of %s:%s",[N,ProgramType]).
 
 formDefn([Eqn|Eqns],Nm,LclNm,Env,Ev,Tp,Cx,[funDef(Lc,Nm,LclNm,Tp,Cx,[Eqn|Eqns])|Dx],Dx) :-
   Eqn = equation(Lc,_,_,_),
@@ -784,11 +784,10 @@ checkGoal(G,Env,Ev,Goal,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
   typeOfExp(G,LogicalTp,Env,Ev,Cond,Path),
   (isIterableGoal(Cond) ->
-     genIterableGl(Cond,Path,Goal);
+   pickupContract(Lc,Env,"execution",_,_,ExContract),
+   genIterableGl(Cond,ExContract,Path,Goal);
 %   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
-
-
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),
@@ -799,7 +798,7 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   pickupContract(Lc,Env,"execution",ExTp,_,Contract),
   findType("action",Lc,Env,ActionTp),
   newTypeVar("_Er",ErTp),
-  checkType(Term,ActionTp,ExTp,Env),
+  checkType(name(Lc,"action"),ActionTp,ExTp,Env),
   genReturn(Lc,over(Lc,mtd(Lc,"_nil",StTp),
 		    true,[conTract(Op,[StTp],[ElTp])]),
 	    ExTp,StTp,ErTp,Contract,Zed),
@@ -812,26 +811,26 @@ checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
 	       checker:genSeq(Lc,Contract,ExTp,ErTp),
 	       checker:genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp),
 	       lifted(Zed),ACond),
-  genPerform(Lc,ACond,Tp,ExTp,Contract,Abstr).
+  genPerform(Lc,ACond,Tp,ActionTp,Contract,Abstr).
 %  reportMsg("abstraction %s ->\n%s",[Term,Abstr]).
 
 genEl(Lc,Gen,Bnd,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[Bnd,St]),StTp),
-  genReturn(Lc,Next,ExTp,ErTp,Contract,Exp).
+  genReturn(Lc,Next,ExTp,StTp,ErTp,Contract,Exp).
 
 genPut(Lc,Gen,Key,Value,StTp,Contract,ExTp,ErTp,unlifted(St),Exp) :-
   Next  = apply(Lc,Gen,tple(Lc,[St,Key,Value]),StTp),
-  genReturn(Lc,Next,ExTp,ErTp,Contract,Exp).
+  genReturn(Lc,Next,ExTp,StTp,ErTp,Contract,Exp).
 
 genSeq(Lc,Contract,ExStTp,ErTp,St,Init,Reslt,Exp) :-
   typeOfCanon(St,ATp),
-  MdTp = tpExp(ExStTp,ATp),
+  mkTypeExp(ExStTp,[ErTp,ATp],MdTp),
   LTp = funType(tupleType([ATp]),MdTp),
   Lam = lambda(Lc,equation(Lc,tple(Lc,[St]),
 			   enm(Lc,"true",type("star.core*boolean")),Reslt),LTp),
   Gen = over(Lc,mtd(Lc,"_sequence",funType(tupleType([MdTp,LTp]),MdTp)),
-	     true,[conTract(Contract,[ExStTp],[ErTp])]),
-  genRtn(Lc,ExStTp,ErTp,Contract,Init,Initial),
+	     true,[conTract(Contract,[ExStTp],[])]),
+  genRtn(Lc,ExStTp,LTp,ErTp,Contract,Init,Initial),
   Exp = apply(Lc,Gen,tple(Lc,[Initial,Lam]),MdTp).
 
 genTpVars([],[]).
@@ -908,7 +907,8 @@ checkAction(Term,Env,Env,Contract,ExTp,_,ErTp,forDo(Lc,Ts,Bdy,ExTp,ErTp),Path) :
   findType("boolean",Lc,Env,LogicalTp),
   pushScope(Env,FEnv),
   typeOfExp(T,LogicalTp,FEnv,Et,Ts,Path),
-  checkAction(B,Et,_,Contract,ExTp,tupleType([]),ErTp,Bdy,Path).
+  UnitTp = tupleType([]),
+  checkAction(B,Et,_,Contract,ExTp,UnitTp,ErTp,Bdy,Path).
 checkAction(Term,Env,Env,Contract,ExTp,ValTp,ErTp,
 	    tryCatchDo(Lc,Bdy,Hndlr,ExTp,ValTp,ErTp),Path) :-
   isTryCatch(Term,Lc,B,H),!,
@@ -1032,8 +1032,8 @@ processIterable(Env,Path,Cond,Goal) :-
   isIterableGoal(Cond),!,
   locOfCanon(Cond,Lc),
   pickupContract(Lc,Env,"execution",_,_,Contract),
-  genIterableGl(Cond,Contract,Path,Goal),
-  reportMsg("iterable exp -> %s",[Goal]).
+  genIterableGl(Cond,Contract,Path,Goal).
+%  reportMsg("iterable exp -> %s",[Goal]).
 processIterable(Env,Path,apply(Lc,Op,Arg,Tp),apply(Lc,NOp,NArg,Tp)) :-!,
   processIterable(Env,Path,Op,NOp),
   processIterable(Env,Path,Arg,NArg).

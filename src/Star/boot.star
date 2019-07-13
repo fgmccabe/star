@@ -31,7 +31,7 @@ star.boot{
   __boot() where _ .= _callLbl("star.boot@init",0,_list_nil(0)) =>
     valof do{
       try{
-	logMsg("starting boot");
+--	logMsg("starting boot");
 	Opts = processOptions(_command_line(),
 	  [repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()));
         (Top,Args) <- handleCmdLineOpts(Opts);

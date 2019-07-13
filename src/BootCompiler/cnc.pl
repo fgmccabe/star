@@ -23,8 +23,10 @@
  */
 genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
   typeOfCanon(Ptn,PtnTp),
+%  reportMsg("ptn in search has type %s",[PtnTp]),
   genNme(Lc,PtnTp,"_",Anon),
   typeOfCanon(Iterator,ItrTp),
+%  reportMsg("iterator in search has type %s",[ItrTp]),
   typeOfCanon(Src,SrcTp),
   newTypeVar("_strm",RsltTp),
   genNme(Lc,RsltTp,"_st",St),
@@ -33,9 +35,8 @@ genCondition(search(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Exp) :-
   call(Lift,unlifted(St),Dflt),
   typeOfCanon(AddToFront,MdlTp),
   FnTp = funType(tupleType([PtnTp,RsltTp]),MdlTp),
-  % entangle type of iterator with the monad
+%  reportMsg("entangle iterator type %s with monad %s",[ItrTp,funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp)]),
   sameType(funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp),ItrTp,[]),
-%  reportMsg("iterator type: %s",[ItrTp]),
 %  reportMsg("local fun type: %s",[FnTp]),
   genstr("f",Fn),
   genNewName(Path,"Γ",ThPath),
