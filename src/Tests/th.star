@@ -2,7 +2,7 @@ test.th{
   import star.
   import star.thunk.
 
-  assign:all a,e/1,f ~~ execution[e->>f] |: (ref a,a) => e[()].
+  assign:all a,e/2 ~~ execution[e] |: (ref a,a) => e[(),()].
   assign(L,V) => do {
     _ = _assign(L,V);
     valis ()

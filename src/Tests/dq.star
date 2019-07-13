@@ -1,6 +1,5 @@
 test.dq{
   import star.
-  import test.itr.
 
   -- Test simple query expressions
 

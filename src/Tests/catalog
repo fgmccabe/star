@@ -28,7 +28,6 @@
     "test.fn": "fn.star",
     "test.i": "i.star",
     "test.idx0": "idx0.star",
-    "test.itr": "itr.star",
     "test.implies": "implies.star",
     "test.l": "l.star",
     "test.ll": "ll.star",
