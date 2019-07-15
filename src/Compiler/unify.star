@@ -83,7 +83,7 @@ star.compiler.unify{
     bind(V,T,Env) where isUnbound(T) => valof do{
       CV = constraintsOf(V);
       CT = constraintsOf(T);
-      MM = valof mergeConstraints(CV,CT,Env);
+      some(MM) = mergeConstraints(CV,CT,Env);
       setConstraints(T,MM);
       setBinding(V,T);
       addVarBinding(V);

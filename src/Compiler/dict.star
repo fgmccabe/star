@@ -147,16 +147,19 @@ star.compiler.dict{
   manageConstraints(Tp,Cons,Lc,Term,Env,Rp) =>
     either((Tp,over(Lc,Term,Tp,Cons))).
 
-  applyConstraint(fieldConstraint(T,F),Cons) where
-      _ ^= addConstraint(T,fieldConstraint(T,F)) => Cons.
-  applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof action{
-    _ = attachToArgs(deRef(A),Con);
+  applyConstraint:(constraint,list[constraint]) => list[constraint].
+  applyConstraint(fieldConstraint(T,F),Cons) => valof do{
+    _ <- addConstraint(T,fieldConstraint(T,F));
+    valis Cons
+  }.
+  applyConstraint(Con,Cons) where typeConstraint(A).=Con => valof do{
+    AA := deRef(A);
+    while tpExp(Op,Arg) .= AA! do{
+      _ <- addConstraint(Arg,Con);
+      AA := deRef(Op)
+    };
     valis [Cons..,Con]
   }
-
-  attachToArgs(tpExp(Op,A),Con) where _ ^= addConstraint(A,Con) => attachToArgs(Op,Con).
-  attachToArgs(_,Con) => ()
-
 
   emptyFace = faceType([],[]).
 

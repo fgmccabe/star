@@ -25,7 +25,7 @@ star.compiler.checker{
   public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,list[list[canonDef]],list[canon])].
   checkPkg(Repo,P,Base,Rp) => do{
 --    logMsg("processing package $(P)");
-    if (Lc,Pk,Els) ^= isBrTerm(P) && Pkg ^= pkgName(Pk) then{
+    if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports) <- importAll(Imports,Repo,Base,[],[],Rp);
 --      logMsg("imports found $(AllImports)");
@@ -558,12 +558,13 @@ star.compiler.checker{
 
   checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
   checkDo(Stmts,Tp,Env,Path,Rp) => do{
-    ElTp = newTypeVar("_e");
+    VlTp = newTypeVar("_e");
+    ErTp = newTypeVar("_e");
     Lc = locOf(Stmts);
     if Con ^= findContract(Env,"execution") then{
-      (_,typeExists(funDeps(tpExp(Op,StTp),[ErTp]),_)) = freshen(Con,[],Env);
-      if sameType(tpExp(StTp,ElTp),Tp,Env) then {
-	(Action,_) <- checkAction(Stmts,Env,StTp,ElTp,ErTp,Path,Rp);
+      (_,typeExists(funDeps(tpExp(Op,StTp),[]),_)) = freshen(Con,[],Env);
+      if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
+	(Action,_) <- checkAction(Stmts,Env,StTp,VlTp,ErTp,Path,Rp);
 	valis act(Lc,Action)
       } else
 	throw reportError(Rp,"$(tpExp(StTp,ErTp)) not consistent with expected type $(Tp)",Lc)

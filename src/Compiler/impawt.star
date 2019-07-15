@@ -21,7 +21,9 @@ star.compiler.impawt{
     if (PkgVar,_) in Sigs then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
-      if pkgSpec(_,PkgImps,Sig,Cons,Impls) ^= importPkg(Pkg,Lc,Repo) then {
+      try{
+	pkgSpec(_,PkgImps,Sig,Cons,Impls) = valof importPkg(Pkg,Lc,Repo);
+	
 	E0 = pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
 	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
@@ -29,17 +31,18 @@ star.compiler.impawt{
 	    declareVr(FullNm,some(Lc),Tp,(LL,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
 	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)
-      } else{
+      }
+      catch {
 	throw reportError(Rp,"cannot import $(Pkg)",Lc)
       }
     }
   }
 
-  public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => option[pkgSpec].
+  public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => either[(),pkgSpec].
   importPkg(Pkg,Lc,Repo) where Sig ^= hasSignature(Repo,Pkg) => pickupPkgSpec(Sig,Lc).
-  importPkg(_,_,_) default => none.
+  importPkg(_,_,_) default => other(()).
 
-  pickupPkgSpec:(string,locn) => option[pkgSpec].
+  pickupPkgSpec:(string,locn) => either[(),pkgSpec].
   pickupPkgSpec(Txt,Lc) => do{
     (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ConSigs),
 	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::list[integer]);
@@ -51,16 +54,16 @@ star.compiler.impawt{
     valis pkgSpec(Pkg,Imports,Fce,Cons,Impls)
   }
 
-  pickupPkg:(term) => option[pkg].
+  pickupPkg:(term) => either[(),pkg].
   pickupPkg(term(lbl("pkg",2),[strg(Nm),V])) => do{
     Vr <- pickupVersion(V);
     valis pkg(Nm,Vr)
   }
 
-  pickupVersion:(term)=>option[version].
-  pickupVersion(enum("*")) => some(defltVersion).
-  pickupVersion(strg(V)) => some(vers(V)).
-  pickupVersion(_) default => none.
+  pickupVersion:(term)=>either[(),version].
+  pickupVersion(enum("*")) => either(defltVersion).
+  pickupVersion(strg(V)) => either(vers(V)).
+  pickupVersion(_) default => other(()).
 
   pickupViz:(term)=>option[visibility].
   pickupViz(enum("private")) => some(priVate).
@@ -68,33 +71,35 @@ star.compiler.impawt{
   pickupViz(enum("transitive")) => some(transItive).
   pickupVis(_) default => none.
 
-  pickupImports:(list[term],locn) => option[list[importSpec]].
+  pickupImports:(list[term],locn) => either[(),list[importSpec]].
   pickupImports(Trms,Lc) => let{
-    pickupImps([],Imx) => some(Imx).
+    pickupImps([],Imx) => either(Imx).
     pickupImps([term(_,[V,P]),..Imps],Imx) where
-	Vz ^= pickupViz(V) &&
-	Pkg ^= pickupPkg(P) => pickupImps(Imps,[Imx..,pkgImp(Lc,Vz,Pkg)]).
+	Vz ^= pickupViz(V) => do{
+	  Pkg <- pickupPkg(P);
+	  pickupImps(Imps,[Imx..,pkgImp(Lc,Vz,Pkg)])
+	}.
   } in pickupImps(Trms,[]).
 
-  pickupConstructors:(list[term],list[string]) => option[list[string]].
-  pickupConstructors([],Cs) => some(Cs).
+  pickupConstructors:(list[term],list[string]) => either[(),list[string]].
+  pickupConstructors([],Cs) => either(Cs).
   pickupConstructors([strg(Nm),..Ls],Cs) => pickupConstructors(Ls,[Cs..,Nm]).
-  pickupConstructors(_,_) default => none.
+  pickupConstructors(_,_) default => other(()).
 
-  pickupContracts:(list[term],locn,list[canonDef]) => option[list[canonDef]].
-  pickupContracts([],_,Cons) => some(Cons).
+  pickupContracts:(list[term],locn,list[canonDef]) => either[(),list[canonDef]].
+  pickupContracts([],_,Cons) => either(Cons).
   pickupContracts([term(_,[strg(Nm),strg(CnNm),strg(Sig)]),..Ts],Lc,Cons) => do{
     Tp <- decodeSignature(Sig);
     pickupContracts(Ts,Lc,[Cons..,conDef(Lc,Nm,CnNm,Tp)])
   }
 
-  pickupImplementations:(list[term],list[implSpec]) => option[list[implSpec]].
-  pickupImplementations([],Imps) => some(Imps).
+  pickupImplementations:(list[term],list[implSpec]) => either[(),list[implSpec]].
+  pickupImplementations([],Imps) => either(Imps).
   pickupImplementations([term(_,[strg(ConNm),strg(FullNm),strg(Sig)]),..Is],Imps) => do{
     Spec <- decodeSignature(Sig);
     pickupImplementations(Is,[Imps..,implSpec(none,ConNm,FullNm,Spec)])
   }
-  pickupImplementations(_,_) default => none.
+  pickupImplementations(_,_) default => other(()).
 
   implementation coercion[pkg,term] => {
     _coerce(pkg(P,defltVersion)) => term(lbl("pkg",2),[strg(P),enum("*")]).

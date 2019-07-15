@@ -261,31 +261,29 @@ star.compiler.wff{
     (pkgImp(_,_,Im) ^= isImport(I) ?
 	some(pkgImp(Lc,priVate,Im)) ||
 	none).
-  isImport(A) where (Lc,I) ^= isUnary(A,"import") => do{
-    Pkg <- pkgName(I);
-    valis pkgImp(Lc,priVate,Pkg)
-  }
+  isImport(A) where (Lc,I) ^= isUnary(A,"import") && either(Pkg) .= pkgeName(I) =>
+    some(pkgImp(Lc,priVate,Pkg)).
   isImport(_) default => none.
 
-  public pkgName:(ast) => option[pkg].
-  pkgName(A) where (_,L,R) ^= isBinary(A,"#") => do{
+  public pkgeName:(ast) => either[(),pkg].
+  pkgeName(A) where (_,L,R) ^= isBinary(A,"#") => do{
     Nm <- dottedName(L);
     Vr <- dottedName(R);
     valis pkg(Nm,vers(Vr))
   }
-  pkgName(A) => do{
+  pkgeName(A) => do{
     Nm <- dottedName(A);
     valis pkg(Nm,defltVersion)
   }
 
-  dottedName:(ast) => option[string].
-  dottedName(N) where (_,Id) ^= isName(N) => some(Id).
+  dottedName:(ast) => either[(),string].
+  dottedName(N) where (_,Id) ^= isName(N) => either(Id).
   dottedName(N) where (_,L,R) ^= isBinary(N,".") => do{
     LL <- dottedName(L);
     RR <- dottedName(R);
     valis "#(LL).#(RR)"
   }
-  dottedName(_) default => none.
+  dottedName(_) default => other(()).
 
   public isOpen:(ast)=> option[(locn,ast)].
   isOpen(A) => isUnary(A,"open").

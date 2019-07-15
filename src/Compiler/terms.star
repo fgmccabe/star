@@ -78,9 +78,12 @@ star.compiler.terms{
   encodeTerms([],Cs) => Cs.
   encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
   
-  public decodeTerm:(list[integer])=>option[(term,list[integer])].
-  decodeTerm([0cv,..Ls]) => some((voyd,Ls)).
-  decodeTerm([0cx,..Ls]) where (Ix,L0)^=decodeInt(Ls) => some((intgr(Ix),L0)).
+  public decodeTerm:(list[integer])=>either[(),(term,list[integer])].
+  decodeTerm([0cv,..Ls]) => either((voyd,Ls)).
+  decodeTerm([0cx,..Ls]) => do{
+    (Ix,L0) <- decodeInt(Ls);
+    valis (intgr(Ix),L0)
+  }.
   decodeTerm([0cd,..Ls]) => do{
     (Txt,Lx) <- decodeText(Ls);
     valis (flot(Txt::float),Lx)
@@ -110,36 +113,39 @@ star.compiler.terms{
     valis (term(lbl("[]",Ax),Els),Lx)
   }
 
-  decodeTerms:(list[integer],integer,list[term]) => option[(list[term],list[integer])].
-  decodeTerms(L,0,Args) => some((Args,L)).
+  decodeTerms:(list[integer],integer,list[term]) => either[(),(list[term],list[integer])].
+  decodeTerms(L,0,Args) => either((Args,L)).
   decodeTerms(L,Ix,Args) => do{
     (Arg,L0) <- decodeTerm(L);
     decodeTerms(L0,Ix-1,[Args..,Arg])
   }
 
-  decodeInt:(list[integer])=>option[(integer,list[integer])].
-  decodeInt([0c-,..L]) where (Px,Lx) ^= decodeNat(L,0) => some((-Px,Lx)).
+  decodeInt:(list[integer])=>either[(),(integer,list[integer])].
+  decodeInt([0c-,..L]) => do{
+    (Px,Lx) <- decodeNat(L,0);
+    valis (-Px,Lx)
+  }
   decodeInt(L) default => decodeNat(L,0).
   
-  decodeNat:(list[integer],integer) => option[(integer,list[integer])].
+  decodeNat:(list[integer],integer) => either[(),(integer,list[integer])].
   decodeNat([Cx,..Ls],Ix) where isDigit(Cx) => decodeNat(Ls,Ix*10+digitVal(Cx)).
-  decodeNat(Ls,Ix) default => some((Ix,Ls)).
+  decodeNat(Ls,Ix) default => either((Ix,Ls)).
 
-  decodeText:(list[integer]) => option[(string,list[integer])].
+  decodeText:(list[integer]) => either[(),(string,list[integer])].
   decodeText([C,..L]) => collectQuoted(L,[],C).
 
-  collectQuoted:(list[integer],list[integer],integer) => option[(string,list[integer])].
-  collectQuoted([S,..Lx],SoF,S) => some((SoF::string,Lx)).
+  collectQuoted:(list[integer],list[integer],integer) => either[(),(string,list[integer])].
+  collectQuoted([S,..Lx],SoF,S) => either((SoF::string,Lx)).
   collectQuoted([0c\\,X,..L],SoF,S) => collectQuoted(L,[SoF..,X],S).
   collectQuoted([X,..L],SoF,S) => collectQuoted(L,[SoF..,X],S).
 
-  public decodeSignature:(string) => option[tipe].
+  public decodeSignature:(string) => either[(),tipe].
   decodeSignature(St) => let{
-    decodeType:(list[integer]) => option[(tipe,list[integer])].
-    decodeType([0ci,..Ts]) => some((nomnal("star.core*integer"),Ts)).
-    decodeType([0cf,..Ts]) => some((nomnal("star.core*float"),Ts)).
-    decodeType([0cS,..Ts]) => some((nomnal("star.core*string"),Ts)).
-    decodeType([0cl,..Ts]) => some((nomnal("star.core*boolean"),Ts)).
+    decodeType:(list[integer]) => either[(),(tipe,list[integer])].
+    decodeType([0ci,..Ts]) => either((nomnal("star.core*integer"),Ts)).
+    decodeType([0cf,..Ts]) => either((nomnal("star.core*float"),Ts)).
+    decodeType([0cS,..Ts]) => either((nomnal("star.core*string"),Ts)).
+    decodeType([0cl,..Ts]) => either((nomnal("star.core*boolean"),Ts)).
     decodeType([0cK,..Ts]) => do {
       (Ar,T0) <- decodeNat(Ts,0);
       (Nm,T1) <- decodeText(T0);
@@ -217,7 +223,7 @@ star.compiler.terms{
       valis (typeLambda(A,R),T1)
     }
 
-    decodeTypes([0x29,..Ts],Tps) => some((Tps,Ts)). -- 0x29 == )
+    decodeTypes([0x29,..Ts],Tps) => either((Tps,Ts)). -- 0x29 == )
     decodeTypes(Ts,Tps) => do{
       (ElTp,T0) <- decodeType(Ts);
       decodeTypes(T0,[Tps..,ElTp])
@@ -225,7 +231,7 @@ star.compiler.terms{
 
     decodeFields([0x7b,..Ts]) => decodeFlds(Ts,[]). -- 0x7b == {
 
-    decodeFlds([0x7d,..Ts],Flds) => some((Flds,Ts)). -- 0x7d == }
+    decodeFlds([0x7d,..Ts],Flds) => either((Flds,Ts)). -- 0x7d == }
     decodeFlds(Ts,Flds) => do{
       (Nm,T0) <- decodeText(Ts);
       (Tp,T1) <- decodeType(T0);
