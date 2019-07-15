@@ -17,12 +17,14 @@ star.compiler{
   import star.compiler.parser.
   import star.compiler.location.
 
+  import test.comp.strrepo.
+
   implementation all e,k ~~ coercion[either[e,k],action[e,k]] => {
     _coerce(either(X)) => done(X).
     _coerce(other(Y)) => err(Y)
   }
 
-  compilerOptions ::= compilerOptions(uri,uri).
+  compilerOptions ::= compilerOptions(option[uri],uri).
 
   repoOption:optionsProcessor[compilerOptions].
   repoOption = {
@@ -31,7 +33,7 @@ star.compiler{
     usage = "-R dir -- directory of repository".
     validator = some(isDir).
     setOption(R,compilerOptions(_,W)) where RU ^= parseUri(R) && NR^=resolveUri(W,RU) =>
-      compilerOptions(NR,W).
+      compilerOptions(some(NR),W).
   }
 
   wdOption:optionsProcessor[compilerOptions].
@@ -48,31 +50,36 @@ star.compiler{
   _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
     valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions(RI,WI))).
 
+  openupRepo:(option[uri],uri) => (exists RR ~~ repo[RR] |: action[(), RR]).
+  openupRepo(none,_) => do { valis strRepo([])}.
+  openupRepo(some(RU),CU) => do{
+    if CRU ^= resolveUri(CU,RU) then
+      valis openRepository(CRU)
+    else{
+      logMsg("could not open repo (RU)");
+      valis strRepo([])
+    }
+  }
+
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
   handleCmds(either((compilerOptions(RU,CU),Args))) => do{
     logMsg("CU=$(CU), RU=$(RU)");
-    if CRU ^= resolveUri(CU,RU) then{
-      Repo = openRepository(CRU);
-      logMsg("opened repo");
-      if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(CU,CatUri) &&
-	  Cat ^= loadCatalog(CatU) then{
-	    for P in Args do{
-	      ErRp = reports([]);	
-	      try{
-		Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)::action[reports,list[(importSpec,list[importSpec])]];
-		processPkgs(Sorted,Repo,Cat,ErRp);
-		logMsg("done")
-	      } catch (Er) => action{
-		logMsg("$(Er)")
-	      }
+    Repo <- openupRepo(RU,CU);
+    if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(CU,CatUri) &&
+	Cat ^= loadCatalog(CatU) then{
+	  for P in Args do{
+	    ErRp = reports([]);	
+	    try{
+	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)::action[reports,list[(importSpec,list[importSpec])]];
+--		processPkgs(Sorted,Repo,Cat,ErRp);
+	      logMsg("graph: $(Sorted)")
+	    } catch (Er) => action{
+	      logMsg("$(Er)")
 	    }
 	  }
-      else{
-	logMsg("could not access catalog")
-      }
-    }
+	}
     else{
-      logMsg("could not resolve catalog URI $(CU)")
+      logMsg("could not access catalog")
     }
   }
 
