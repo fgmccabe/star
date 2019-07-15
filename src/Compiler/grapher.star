@@ -36,8 +36,17 @@ star.compiler.grapher{
     if (pkgImp(_,_,Pk),_) in SoFar && compatiblePkg(Pk,Pkg) then{
       scanPkgs(Pkgs,Repo,Cat,SoFar,Rp)
     } else if (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) then {
-      if newerFile(CodeUri,SrcUri) && pkgSpec(_,Imps,_,_,_) ^= importPkg(Pkg,Lc,Repo) then {
-	scanPkgs(Pkgs++Imps,Repo,Cat,[SoFar..,(P,Imps)],Rp)
+      if newerFile(CodeUri,SrcUri) then {
+	try{
+	  pkgSpec(_,Imps,_,_,_) <- importPkg(Pkg,Lc,Repo);
+	  try{
+	    scanPkgs(Pkgs++Imps,Repo,Cat,[SoFar..,(P,Imps)],Rp)
+	  } catch {
+	    throw () -- This is kind of ugly.
+	  }
+	} catch{
+	  throw reportError(Rp,"cannot import $(Pkg)",Lc)
+	}
       } else
       scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp)
     } else
