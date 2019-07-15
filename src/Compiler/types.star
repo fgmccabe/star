@@ -85,10 +85,10 @@ star.compiler.types{
   }
   setConstraints(_,_) default => done(()).
 
-  public addConstraint:(tipe,constraint) => option[()].
+  public addConstraint:(tipe,constraint) => either[(),()].
   addConstraint(T,C) => addCon(deRef(T),C).
 
-  addCon:(tipe,constraint) => option[()].
+  addCon:(tipe,constraint) => either[(),()].
   addCon(tVar(V,_),C) => do{
     V.constraints := [C,..V.constraints!];
     valis ()
