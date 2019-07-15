@@ -50,7 +50,7 @@ star.compiler{
   _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
     valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions(RI,WI))).
 
-  openupRepo:(option[uri],uri) => (exists RR ~~ repo[RR] |: action[(), RR]).
+  openupRepo:exists RR ~~ repo[RR] |: (option[uri],uri) => action[(), RR].
   openupRepo(none,_) => do { valis strRepo([])}.
   openupRepo(some(RU),CU) => do{
     if CRU ^= resolveUri(CU,RU) then
