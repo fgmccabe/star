@@ -315,6 +315,8 @@ surfaceName(tpExp(Op,_),Nm) :- deRef(Op,OO), surfaceName(OO,Nm).
 surfaceName(kVar(Nm),Nm).
 surfaceName(kFun(Nm,_),Nm).
 surfaceName(tpFun(Nm,_),Nm).
+surfaceName(tVar(_,_,Nm,_),Nm).
+surfaceName(tFun(_,_,Nm,_,_),Nm).
 surfaceName(allType(_,Tp),Nm) :-
   surfaceName(Tp,Nm).
 surfaceName(constrained(T,_),Nm) :-
