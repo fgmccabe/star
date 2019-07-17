@@ -7,4 +7,9 @@ star.repo{
     hasSignature:(r,pkg) => option[string].
     hasCode:(r,pkg) => option[string].
   }
+
+  public repository ~> {
+    hasSignature:(pkg) => option[string].
+    hasCode:(pkg) => option[string]
+  }
 }

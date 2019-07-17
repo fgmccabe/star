@@ -47,27 +47,27 @@ star.boot{
       RU ^= parseUri(RepoDir) &&
       RD ^= resolveUri(CW,RU) &&
       Pkg ^= parsePkgName(Top) => do{
-	Repo = bootRepo(RD);
+	Repo = btRepo(RD);
 	setupPkg(Repo,Pkg);
 	valis (Top,Args)
       }.
   handleCmdLineOpts(other(E)) => err(E).
 
-  setupPkg:(bootRepo,pkg) => action[string,()].
+  setupPkg:(repository,pkg) => action[string,()].
   setupPkg(Repo,Pkg) => do{
     importPkgs([Pkg],[],Repo);
     initialize(Pkg)
   }
 
-  importPkgs:(list[pkg],list[pkg],bootRepo)=>action[string,()].
+  importPkgs:(list[pkg],list[pkg],repository)=>action[string,()].
   importPkgs([],Ld,_) => do {valis ()}.
   importPkgs([P,..L],Ld,R) where SubImp ^= importPkg(P,R,Ld) => importPkgs(SubImp++L,[P,..Ld],R).
   importPkgs(_,_,_) default => err("Could not load $(_command_line())").
 
-  importPkg:(pkg,bootRepo,list[pkg])=>option[list[pkg]].
+  importPkg:(pkg,repository,list[pkg])=>option[list[pkg]].
   importPkg(P,_,Ld) where contains(P,Ld) => some([]).
   importPkg(P,R,Ld) where
-    Code ^= hasCode(R,P) &&
+    Code ^= R.hasCode(P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
   importPkg(_,_,_) default => none.
 
