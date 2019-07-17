@@ -9,7 +9,7 @@ test.xx{
     gimme((X,_)) => X.
   }
 
-  face ::= exists a ~~ alpha[a] |: face{get: a. type a : a . }
+  face ::= exists a ~~ alpha[a] |: face{get: a. gg:(a) => boolean. type a : a. }
 
   ineedOne(0) => face{ get = (true,0) }.
   ineedOne(1) => face{
@@ -21,6 +21,8 @@ test.xx{
       gimme(some(X)) => X.
       gimme(none) => false.
     }
+
+    gg(x) => gimme(x).
  }.
 
 --  show gimme(ineedOne(0).get).
