@@ -341,7 +341,8 @@ checkEquation(Lc,H,C,R,funType(AT,RT),Defs,Defsx,Df,Dfx,E,Path) :-
   pushScope(E,Env),
   typeOfArgPtn(A,AT,Env,E0,Args,Path),
   checkGoal(C,E0,E1,Cond,Path),
-  typeOfExp(R,RT,E1,_E2,Exp,Path),
+  expType(R,RT,E1,_,Exp,Path),
+%  typeOfExp(R,RT,E1,_E2,Exp,Path),
   processIterable(Env,Path,Exp,Reslt),
   Eqn = equation(Lc,Args,Cond,Reslt),
   (IsDeflt=isDeflt -> Defs=Defsx, Df=[Eqn|Dfx]; Defs=[Eqn|Defsx],Df=Dfx).
@@ -527,7 +528,16 @@ typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
   checkType(T,tupleType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els,Path).
 typeOfArgTerm(T,Tp,Env,Ev,Exp,Path) :-
-  typeOfExp(T,Tp,Env,Ev,Exp,Path).
+  expType(T,Tp,Env,Ev,Exp,Path).
+%  typeOfExp(T,Tp,Env,Ev,Exp,Path).
+
+expType(V,Tp,Env,Ev,Term,Path) :-
+  evidence(Tp,Env,Q,PT),
+  simplifyType(PT,Env,_,[],ETp),
+  locOfAst(V,Lc),
+  declareTypeVars(Q,Lc,Env,E1),
+  typeOfExp(V,ETp,E1,Ev,Term,Path).
+
 
 typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),
@@ -1006,7 +1016,8 @@ typeOfTerms([A|_],[],Env,Env,_,[],_) :-
   reportError("too many arguments: %s",[A],Lc).
 typeOfTerms([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
   deRef(ETp,ElTp),
-  typeOfExp(A,ElTp,Env,E0,Term,Path),
+  expType(A,ElTp,Env,E0,Term,Path),
+%  typeOfExp(A,ElTp,Env,E0,Term,Path),
   locOfAst(A,Lc),
   typeOfTerms(As,ElTypes,E0,Ev,Lc,Els,Path).
 

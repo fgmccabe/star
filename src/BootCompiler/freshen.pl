@@ -38,6 +38,8 @@ evidence(Tp,Env,Q,ProgramType) :-
   skolemize(T,[],Q,SkTp),
   freshn(SkTp,Env,Q,[],ProgramType).
 
+
+
 freshn(Tp,Env,Q,Ex,FTp) :- deRef(Tp,T),frshn(T,Env,Q,Ex,FTp),!.
 
 skolemize(allType(kVar(V),Tp),B,BV,FTp) :- skolemVar(V,TV),deRef(Tp,T),skolemize(T,[(V,TV)|B],BV,FTp).
