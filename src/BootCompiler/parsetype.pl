@@ -261,9 +261,9 @@ parseTypeField(S,Env,Bound,Flds,Flds,Types,[(Fld,FldTp)|Types]) :-
   parseType(FT,Env,Bound,[],Cx,FldTp),
   (Cx=[] -> true ; reportError("unexpected constraints in field type %s",[Nm],Lc)).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
-  isBinary(F,_,"@",_,_).
+  isUnary(F,_,"@",_).
 parseTypeField(F,_,_,Fields,Fields,Types,Types) :-
-  isBinary(F,_,"@",_,_,_).
+  isBinary(F,_,"@",_,_).
 parseTypeField(FS,_,_,Fields,Fields,Types,Types) :-
   locOfAst(FS,Lc),
   reportError("invalid field type %s",[FS],Lc).

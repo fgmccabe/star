@@ -115,6 +115,12 @@ algebraicFace(C,Face) :-
 algebraicFace(C,Face) :-
   isPublic(C,_,I),
   algebraicFace(I,Face).
+algebraicFace(C,Face) :-
+  isXQuantified(C,_,I),
+  algebraicFace(I,Face).
+algebraicFace(C,Face) :-
+  isConstrained(C,I,_),
+  algebraicFace(I,Face).
 
 combineFaces(F0,F,F) :-
   isEmptyBrace(F0).
@@ -176,7 +182,7 @@ isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
   isXQuantified(C,XQ,I),
   isCon(I,Tst,_,XC,Lc,Nm,Els,Export,P,Px).
 isCon(C,Tst,XQ,XC,Lc,Nm,Els,Export,P,Px) :-
-  isConstrained(C,XC,I),
+  isConstrained(C,I,XC),
   isCon(I,Tst,XQ,_,Lc,Nm,Els,Export,P,Px).
 
 pullOthers([],[],[],[]).

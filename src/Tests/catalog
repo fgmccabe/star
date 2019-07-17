@@ -58,7 +58,8 @@
     "test.tl" : "tl.star",
     "test.th" : "th.star",
     "test.tsort": "tsort.star",
-    "test.u": "u.star"
+    "test.u": "u.star",
+    "test.xx" : "xx.star"
   },
   "version": "1.0.0",
   "default": "../Star/catalog"
