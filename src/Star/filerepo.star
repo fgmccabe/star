@@ -10,23 +10,21 @@ star.repo.file{
 
   public fileRepo ::= repo(uri,manifest).
 
-  public openRepository:(uri) => fileRepo.
+  public openRepository:(uri) => repository.
   openRepository(Root) where
       ManUri ^= parseUri("manifest") &&
       MU ^= resolveUri(Root,ManUri) &&
-      Man ^= readManifest(MU) => repo(Root,Man).
-  openRepository(Root) => repo(Root,man([])).
+      Man ^= readManifest(MU) => {
+	hasSignature(Pkg) => locateInManifest(Man,Pkg,"signature").
 
-  public implementation repo[fileRepo] => {
-    hasSignature(repo(_,Man),Pkg) => locateInManifest(Man,Pkg,"signature").
-
-    hasCode(repo(Root,Man),Pkg) where
-      U ^= locateInManifest(Man,Pkg,"code") &&
-	Uri ^= parseUri(U) &&
-	RU ^= resolveUri(Root,Uri)  => getResource(RU).
-    hasCode(_,_) default => none.
-  }
-
+	hasCode(Pkg) where
+	    U ^= locateInManifest(Man,Pkg,"code") &&
+	    Uri ^= parseUri(U) &&
+	    RU ^= resolveUri(Root,Uri)  => getResource(RU).
+	hasCode(_) default => none.
+      }
+      openRepository(Root) => repo(Root,man([])).
+  
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
   addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) where
       Ext .= extensionMapping(Kind) &&
