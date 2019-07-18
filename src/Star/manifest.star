@@ -3,6 +3,7 @@ star.repo.manifest{
   import star.json.
   import star.parse.
   import star.pkg.
+  import star.repo.
   import star.resources.
 
   public manifest ::= man(map[string,pEntry]).
