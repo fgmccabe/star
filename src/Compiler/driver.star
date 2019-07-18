@@ -24,7 +24,7 @@ star.compiler{
     _coerce(other(Y)) => err(Y)
   }
 
-  compilerOptions ::= compilerOptions(option[uri],uri).
+  compilerOptions ::= compilerOptions(uri,uri).
 
   repoOption:optionsProcessor[compilerOptions].
   repoOption = {
@@ -33,7 +33,7 @@ star.compiler{
     usage = "-R dir -- directory of repository".
     validator = some(isDir).
     setOption(R,compilerOptions(_,W)) where RU ^= parseUri(R) && NR^=resolveUri(W,RU) =>
-      compilerOptions(some(NR),W).
+      compilerOptions(NR,W).
   }
 
   wdOption:optionsProcessor[compilerOptions].
@@ -50,15 +50,9 @@ star.compiler{
   _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
     valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions(RI,WI))).
 
-  openupRepo:exists RR ~~ repo[RR] |: (option[uri],uri) => action[(), RR].
-  openupRepo(none,_) => do { valis strRepo([])}.
-  openupRepo(some(RU),CU) => do{
-    if CRU ^= resolveUri(CU,RU) then
-      valis openRepository(CRU)
-    else{
-      logMsg("could not open repo (RU)");
-      valis strRepo([])
-    }
+  openupRepo:(uri,uri) => action[(), fileRepo].
+  openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
+    valis openRepository(CRU)
   }
 
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
