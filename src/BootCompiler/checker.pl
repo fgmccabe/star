@@ -256,8 +256,11 @@ parseTypeAnnotation(N,Lc,_,_,_,Face,Face) :-
 
 checkVarRules(N,Lc,Stmts,E,Ev,Defs,Dx,Face,Path) :-
   pickupVarType(N,Lc,Face,Stmts,E,E0,Tp),
-  simplifyType(Tp,E0,Cx,[],ProgramType),
-  processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E0,Path),
+  evidence(Tp,E,Q,ETp),
+  simplifyType(ETp,E0,Cx,[],ProgramType),
+  declareTypeVars(Q,Lc,E0,E1),
+  declareConstraints(Cx,E1,E2),
+  processStmts(Stmts,ProgramType,Rules,Deflts,Deflts,[],E2,Path),
   packageVarName(Path,N,LclName),
   formDefn(Rules,N,LclName,E,Ev,Tp,Cx,Defs,Dx).
 %  reportMsg("type of %s:%s",[N,ProgramType]).
@@ -271,16 +274,9 @@ formDefn([varDef(Lc,_,_,_,_,Value)],Nm,LclNm,Env,Ev,Tp,Cx,
   freshen(Face,Env,_,VFace),
   declareVr(Lc,Nm,Tp,VFace,Env,Ev).
 
-
-
 processStmts([],_,Defs,Defs,Dflts,Dflts,_,_).
-processStmts([St|More],Tp,Defs,Dx,Df,Dfx,E0,Path) :-
-  evidence(Tp,E0,Q,PT),
-  simplifyType(PT,E0,Cx,[],ProgramType),
-  declareConstraints(Cx,E0,E1),
-  locOfAst(St,Lc),
-  declareTypeVars(Q,Lc,E1,E2),
-  processStmt(St,ProgramType,Defs,D0,Df,Df0,E2,Path),!,
+processStmts([St|More],ProgramType,Defs,Dx,Df,Dfx,E0,Path) :-
+  processStmt(St,ProgramType,Defs,D0,Df,Df0,E0,Path),!,
   processStmts(More,ProgramType,D0,Dx,Df0,Dfx,E0,Path).
 
 processStmt(St,Tp,Defs,Defx,Df,Dfx,Env,Path) :-
@@ -528,8 +524,8 @@ typeOfArgTerm(T,Tp,Env,Ev,tple(Lc,Els),Path) :-
   checkType(T,tupleType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els,Path).
 typeOfArgTerm(T,Tp,Env,Ev,Exp,Path) :-
-  expType(T,Tp,Env,Ev,Exp,Path).
-%  typeOfExp(T,Tp,Env,Ev,Exp,Path).
+%  expType(T,Tp,Env,Ev,Exp,Path).
+  typeOfExp(T,Tp,Env,Ev,Exp,Path).
 
 expType(V,Tp,Env,Ev,Term,Path) :-
   evidence(Tp,Env,Q,PT),
