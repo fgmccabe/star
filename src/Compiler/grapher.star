@@ -32,6 +32,7 @@ star.compiler.grapher{
   }
 
   scanPkgs:(list[importSpec],fileRepo,catalog,list[(importSpec,list[importSpec])],reports)=>either[reports,list[(importSpec,list[importSpec])]].
+  scanPkgs([],_,_,SoFar,_) => either(SoFar).
   scanPkgs([P,..Pkgs],Repo,Cat,SoFar,Rp) where pkgImp(Lc,Vz,Pkg) .=P => do{
     if (pkgImp(_,_,Pk),_) in SoFar && compatiblePkg(Pk,Pkg) then{
       scanPkgs(Pkgs,Repo,Cat,SoFar,Rp)
