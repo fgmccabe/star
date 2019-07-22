@@ -6,6 +6,7 @@ star.compiler.opg{
   import star.compiler.errors.
   import star.compiler.lexer.
   import star.compiler.location.
+  import star.compiler.terms.
   import star.compiler.token.
   import star.pkg.
 

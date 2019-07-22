@@ -14,6 +14,7 @@ star.compiler.checker{
   import star.compiler.meta.
   import star.compiler.misc.
   import star.compiler.resolve.
+  import star.compiler.terms.
   import star.compiler.types.
   import star.compiler.typeparse.
   import star.compiler.freshen.
@@ -38,20 +39,20 @@ star.compiler.checker{
 --      logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
-      logMsg("Final Pkg dict $(ThEnv)");
-      logMsg("Public names: $(Vis)");
-      logMsg("Defs: $(Defs)");
+--      logMsg("Final Pkg dict $(ThEnv)");
+--      logMsg("Public names: $(Vis)");
+--      logMsg("Defs: $(Defs)");
       Contracts = [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && (conSp(Nm),pUblic) in Vis];
-      logMsg("exported contracts: $(Contracts)");
+--      logMsg("exported contracts: $(Contracts)");
       Fields = exportedFields(Defs,Vis,pUblic);
-      logMsg("exported fields: $(Fields)");
+--      logMsg("exported fields: $(Fields)");
       Impls = [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
 	      (implSp(INm),V) in Vis && V>=pUblic];
-      logMsg("exported implementations $(Impls)");
+--      logMsg("exported implementations $(Impls)");
       Types = exportedTypes(Defs,Vis,pUblic);
-      logMsg("exported types: $(Types)");
+--      logMsg("exported types: $(Types)");
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
       valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
 	RDefs,ROthers)
@@ -344,19 +345,19 @@ star.compiler.checker{
       (Lc,Ix) ^= isInt(A) &&
       (_,IntTp,_) ^= findType(Env,"integer") => do{
 	checkType(A,IntTp,Tp,Env,Rp);
-	valis intLit(Lc,Ix)
+	valis litrl(Lc,intgr(Ix),IntTp)
       }
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Dx) ^= isFlt(A) &&
       (_,FltTp,_) ^= findType(Env,"float") => do{
 	checkType(A,FltTp,Tp,Env,Rp);
-	valis floatLit(Lc,Dx)
+	valis litrl(Lc,flot(Dx),FltTp)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Sx) ^= isStr(A) &&
       (_,StrTp,_) ^= findType(Env,"string") => do{
 	checkType(A,StrTp,Tp,Env,Rp);
-	valis stringLit(Lc,Sx)
+	valis litrl(Lc,strg(Sx),StrTp)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,E,T) ^= isTypeAnnotation(A) => do{

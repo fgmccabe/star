@@ -3,17 +3,13 @@ star.compiler.ast{
   import star.compiler.location.
   import star.compiler.operators.
   import star.compiler.keywords.
+  import star.compiler.terms.
 
   public ast ::=
       nme(locn,string)
-    | lit(locn,literal)
+    | lit(locn,term)
     | tpl(locn,string,list[ast])
     | app(locn,ast,ast).
-
-  public literal ::=
-      intgr(integer)
-    | flot(float)
-    | strg(string).
 
   public implementation equality[ast] => {.
     nme(_,I1) == nme(_,I2) => I1==I2.
@@ -23,21 +19,8 @@ star.compiler.ast{
     _ == _ default => false.
   .}
 
-  public implementation equality[literal] => {.
-    intgr(I1) == intgr(I2) => I1==I2.
-    flot(F1) == flot(F2) => F1==F2.
-    strg(S1) == strg(S2) => S1==S2.
-    _ == _ default => false.
-  .}
-
   public implementation display[ast] => {.
     disp(A) => dispAst(A,2000).
-  .}
-
-  public implementation display[literal] => {.
-    disp(intgr(Ix)) => disp(Ix).
-    disp(flot(Dx)) => disp(Dx).
-    disp(strg(Sx)) => disp(Sx).
   .}
 
   public dispAst:(ast,integer) => ss.

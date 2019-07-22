@@ -7,6 +7,7 @@ star.compiler.resolve{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.misc.
+  import star.compiler.terms.
   import star.compiler.types.
   import star.compiler.freshen.
   import star.compiler.unify.
@@ -95,9 +96,7 @@ star.compiler.resolve{
 
   overloadTerm:(canon,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   overloadTerm(vr(Lc,Nm,Tp),_,St,Rp) => either((St,vr(Lc,Nm,Tp))).
-  overloadTerm(intLit(Lc,Ix),_,St,Rp) => either((St,intLit(Lc,Ix))).
-  overloadTerm(floatLit(Lc,Dx),_,St,Rp) => either((St,floatLit(Lc,Dx))).
-  overloadTerm(stringLit(Lc,Sx),_,St,Rp) => either((St,stringLit(Lc,Sx))).
+  overloadTerm(litrl(Lc,Lt,Tp),_,St,Rp) => either((St,litrl(Lc,Lt,Tp))).
   overloadTerm(enm(Lc,Nm,Tp),_,St,Rp) => either((St,enm(Lc,Nm,Tp))).
   overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Rp) => do{
     (Stx,Rc1) <- overloadTerm(Rc,Dict,St,Rp);

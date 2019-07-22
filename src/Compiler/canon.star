@@ -4,6 +4,7 @@ star.compiler.canon{
 
   import star.compiler.meta.
   import star.compiler.location.
+  import star.compiler.terms.
   import star.compiler.types.
 
   public pkgSpec::=pkgSpec(pkg,list[importSpec],tipe,list[canonDef],list[implSpec]).
@@ -13,9 +14,7 @@ star.compiler.canon{
   public canon ::= vr(locn,string,tipe) |
     mtd(locn,string,tipe) |
     over(locn,canon,tipe,list[constraint]) |
-    intLit(locn,integer) |
-    floatLit(locn,float) |
-    stringLit(locn,string) |
+    litrl(locn,term,tipe) |
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
     dot(locn,canon,string,tipe) |
@@ -58,9 +57,7 @@ star.compiler.canon{
 
   public implementation hasType[canon] => {.
     typeOf(vr(_,_,T)) => T.
-    typeOf(intLit(_,_)) => nomnal("star.core*integer").
-    typeOf(floatLit(_,_)) => nomnal("star.core*float").
-    typeOf(stringLit(_,_)) => nomnal("star.core*string").
+    typeOf(litrl(_,_,T)) => T.
     typeOf(enm(_,_,Tp)) => Tp.
 
     typeOf(match(_,_,_)) => nomnal("star.core*boolean").
@@ -94,9 +91,7 @@ star.compiler.canon{
     eq(vr(_,N1,T1),vr(_,N2,T2)) => N1==N2 && T1==T2.
     eq(mtd(_,N1,T1),mtd(_,N2,T2)) => N1==N2 && T1==T2.
     eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => N1==N2 && T1==T2 && C1==C2.
-    eq(intLit(_,I1),intLit(_,I2)) => I1==I2.
-    eq(floatLit(_,D1),floatLit(_,D2)) => D1==D2.
-    eq(stringLit(_,S1),stringLit(_,S2)) => S1==S2.
+    eq(litrl(_,L1,_),litrl(_,L2,_)) => L1==L2.
     eq(enm(_,N1,T1),enm(_,N2,T2)) => N1==N2 && T1==T2.
     eq(apply(_,O1,A1,T1),apply(_,O2,A2,T2)) => eq(O1,O2) && eq(A1,A2) && T1==T2.
     eq(whr(_,T1,C1),whr(_,T2,C2)) => eq(T1,T2) && eq(C1,C2).
@@ -110,9 +105,7 @@ star.compiler.canon{
     hsh(vr(_,N1,_)) => hash(N1).
     hsh(mtd(_,N1,_)) => hash(N1).
     hsh(over(_,N1,T1,C1)) => hash(N1)*37+hash(T1).
-    hsh(intLit(_,I1)) => hash(I1).
-    hsh(floatLit(_,D1)) => hash(D1).
-    hsh(stringLit(_,S1)) => hash(S1).
+    hsh(litrl(_,L,_)) => hash(L).
     hsh(enm(_,N1,_)) => hash(N1).
     hsh(apply(_,O1,A1,T1)) => hsh(O1)*36+hsh(A1).
     hsh(whr(_,T1,C1)) => hsh(T1) *37+hsh(C1).
@@ -126,9 +119,7 @@ star.compiler.canon{
     showCanon(vr(_,Nm,_)) => ss(Nm).
     showCanon(mtd(_,Fld,_)) => ssSeq([ss("µ"),ss(Fld)]).
     showCanon(over(_,V,_,Cx)) => ssSeq([disp(Cx),ss("|:"),disp(V)]).
-    showCanon(intLit(_,Ix)) => disp(Ix).
-    showCanon(floatLit(_,Dx)) => disp(Dx).
-    showCanon(stringLit(_,Sx)) => disp(Sx).
+    showCanon(litrl(_,Lt,_)) => disp(Lt).
     showCanon(enm(_,Nm,_)) => ss(Nm).
     showCanon(whr(_,E,C)) => ssSeq([showCanon(E),ss(" where "),showCanon(C)]).
     showCanon(dot(_,R,F,_)) => ssSeq([showCanon(R),ss("."),ss(F)]).

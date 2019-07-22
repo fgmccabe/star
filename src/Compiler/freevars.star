@@ -5,13 +5,13 @@ star.compiler.freevars{
   import star.compiler.canon.
   import star.compiler.types.
 
+  
+
   freeVarsInTerm:(canon,set[string],set[canon]) => set[canon].
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where Nm in Excl => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(vr(Lc,Nm,Tp),Fv).
-  freeVarsInTerm(intLit(_,_),_,Fv) => Fv.
-  freeVarsInTerm(floatLit(_,_),_,Fv) => Fv.
-  freeVarsInTerm(stringLit(_,_),_,Fv) => Fv.
+  freeVarsInTerm(litrl(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(enm(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(dot(_,Rc,_,_),Excl,Fv) => freeVarsInTerm(Rc,Excl,Fv).
   freeVarsInTerm(mtd(_,_,_),_,Fv) => Fv.
@@ -48,7 +48,6 @@ star.compiler.freevars{
   freeVarsInTerm(record(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) where
       Excl1 .= extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
     foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,flatten(Defs)).
-
 
   freeVarsInCond:(canon,set[string],set[canon]) => (set[string],set[canon]).
 
@@ -114,9 +113,7 @@ star.compiler.freevars{
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where Nm in Excl => Excl.
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Excl.
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(Nm,Excl).
-  ptnVars(intLit(_,_),Excl,Fv) => Excl.
-  ptnVars(floatLit(_,_),Excl,Fv) => Excl.
-  ptnVars(stringLit(_,_),Excl,Fv) => Excl.
+  ptnVars(litrl(_,_,_),Excl,Fv) => Excl.
   ptnVars(enm(_,_,_),Excl,Fv) => Excl.
   ptnVars(dot(_,Rc,_,_),Excl,Fv) => ptnVars(Rc,Excl,Fv).
   ptnVars(mtd(_,_,_),Excl,Fv) => Excl.

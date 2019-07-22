@@ -9,15 +9,17 @@ star.compiler{
   import star.repo.file.
 
   import star.compiler.ast.
+  import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
+  import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.grapher.
+  import star.compiler.impawt.
   import star.compiler.meta.
   import star.compiler.parser.
   import star.compiler.location.
-
-  import test.comp.strrepo.
+  import star.compiler.terms.
 
   implementation all e,k ~~ coercion[either[e,k],action[e,k]] => {
     _coerce(either(X)) => done(X).
@@ -57,16 +59,17 @@ star.compiler{
 
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
   handleCmds(either((compilerOptions(RU,CU),Args))) => do{
-    logMsg("CU=$(CU), RU=$(RU)");
+--    logMsg("CU=$(CU), RU=$(RU)");
     Repo <- openupRepo(RU,CU);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(CU,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
 	    ErRp = reports([]);	
 	    try{
-	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)::action[reports,list[(importSpec,list[importSpec])]];
---		processPkgs(Sorted,Repo,Cat,ErRp);
-	      logMsg("graph: $(Sorted)")
+	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
+	      ::action[reports,list[(importSpec,list[importSpec])]];
+	      Pkgs = Sorted//((Pk,_))=>Pk;
+	      processPkgs(Pkgs,Repo,Cat,ErRp)
 	    } catch (Er) => action{
 	      logMsg("$(Er)")
 	    }
@@ -83,10 +86,27 @@ star.compiler{
   extractPkgSpec(P) default =>
     pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).
 
+  addSpec:(pkgSpec,fileRepo) => fileRepo.
+  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
+
   processPkgs:(list[importSpec],fileRepo,catalog,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Rp) => do{
-    for P in Pks do{
-      logMsg("Process $(P)")
+    Repp := Repo;
+    for pkgImp(Lc,_,P) in Pks do{
+      try{
+	logMsg("Process $(P)");
+	if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
+	  Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
+	  logMsg("Ast of $(P) is $(Ast)");
+	  (PkgSpec,Defs,Oth) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,list[list[canonDef]],list[canon])];
+	  logMsg("Checked spec $(PkgSpec)");
+	  Repp := addSpec(PkgSpec,Repp!)
+	}
+	else
+	throw reportError(Rp,"cannot locate source of $(P)",Lc)
+      } catch (Erp) => do{
+	logMsg("Errors $(Erp)")
+      }
     }
   }
 }

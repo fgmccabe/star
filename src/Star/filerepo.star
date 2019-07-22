@@ -39,6 +39,10 @@ star.repo.file{
       RepoUri ^= resolveUri(Root,MU) &&
       () .= flushManifest(RepoUri,NM) => repo(Root,NM).
 
+  public addSigToRepo:(fileRepo,pkg,string) => fileRepo.
+  addSigToRepo(repo(Root,Man),Pk,Sig) =>
+    repo(Root,addToManifest(Man,Pk,"signature",Sig)).
+
   public packageCodeOk:(fileRepo,pkg) => boolean.
   packageCodeOk(Repo,Pkg) where
       (SrcFile,CodeFile) ^= packageCode(Repo,Pkg) =>
