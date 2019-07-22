@@ -1,0 +1,8 @@
+{
+  "content": {
+    "test.f": "f.star",
+    "star.core": "core.star"
+  },
+  "version": "1.0.0",
+  "default": "../catalog"
+}
