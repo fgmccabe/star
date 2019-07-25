@@ -315,7 +315,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
       if (res == Ok) {
         int root = gcAddRoot(H, &lbl);
-        listPo lst = allocateList(H, count, True);
+        listPo lst = allocateList(H, count);
         *tgt = (termPo) (lst);
 
         termPo el = voidEnum;

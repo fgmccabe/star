@@ -79,7 +79,7 @@ void init_args(char **argv, int argc, int start) {
 
 ReturnStatus g__command_line(processPo p, ptrPo tos) {
   heapPo H = processHeap(p);
-  listPo line = allocateList(H, argcnt, True);
+  listPo line = allocateList(H, argcnt);
   int root = gcAddRoot(H, (ptrPo) &line);
 
   for (integer ix = 0; ix < argcnt; ix++) {
@@ -102,7 +102,7 @@ integer countEnviron() {
 ReturnStatus g__envir(processPo P, ptrPo tos) {
   integer cnt = countEnviron();
   heapPo H = processHeap(P);
-  listPo list = allocateList(H, cnt, True);
+  listPo list = allocateList(H, cnt);
   int root = gcAddRoot(H, (ptrPo) &list);
   termPo ky = voidEnum;
   termPo vl = voidEnum;

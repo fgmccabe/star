@@ -153,7 +153,7 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   integer chCount = countCodePoints(str, 0, len);
 
   heapPo H = processHeap(p);
-  listPo list = allocateList(H, chCount, True);
+  listPo list = allocateList(H, chCount);
   int root = gcAddRoot(H, (ptrPo) &list);
 
   integer pos = 0;

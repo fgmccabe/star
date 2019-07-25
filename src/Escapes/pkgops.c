@@ -72,7 +72,7 @@ ReturnStatus g__install_pkg(processPo P, ptrPo tos) {
   char errMsg[MAXLINE];
   heapPo H = processHeap(P);
 
-  listPo imports = allocateList(H, 0, True);
+  listPo imports = allocateList(H, 0);
   int root = gcAddRoot(H, (ptrPo) &imports);
 
   pickupStruct Cl = {.list=&imports, .H=H};

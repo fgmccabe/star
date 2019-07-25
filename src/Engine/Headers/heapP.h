@@ -8,7 +8,7 @@
 // Are we allocating from the lower or upper half?
 typedef enum {
   lowerHalf, upperHalf
-} AllocMode;
+} allocMode;
 
 #ifndef MAX_ROOT
 #define MAX_ROOT 128
@@ -22,7 +22,7 @@ typedef struct _heap_ {
   termPo split;
   termPo outerLimit;      /* The real */
   termPo old;
-  AllocMode allocMode;
+  allocMode allocMode;
   LockRecord heapLock;
   ptrPo roots[MAX_ROOT];
   int topRoot;
