@@ -33,7 +33,7 @@ static comparison baseCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer baseHash(specialClassPo cl, termPo o);
 static retCode baseDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
-static termPo allocateBase(heapPo H, integer length, logical safeMode);
+static termPo allocateBase(heapPo H, integer length, allocSafety mode);
 
 SpecialClass BaseClass = {
   .clss = Null,
@@ -172,7 +172,7 @@ retCode processList(listPo list, listProc p, void *cl) {
   return ret;
 }
 
-listPo allocateList(heapPo H, integer length, logical safeMode) {
+listPo allocateList(heapPo H, integer length) {
   listPo list = (listPo) allocateObject(H, listClass, ListCellCount);
   int root = gcAddRoot(H, (ptrPo) &list);
   list->start = 0;
@@ -180,7 +180,7 @@ listPo allocateList(heapPo H, integer length, logical safeMode) {
   list->base = voidEnum;
 
   integer extra = maximum(length / 8, 1);
-  basePo base = (basePo) allocateBase(H, length + extra, safeMode);
+  basePo base = (basePo) allocateBase(H, length + extra, safeAlloc);
 
   base->min = extra / 2;
   base->max = base->min + length;
@@ -198,7 +198,7 @@ listPo createList(heapPo H, integer capacity) {
   list->length = 0;
   list->base = voidEnum;
 
-  basePo base = (basePo) allocateBase(H, capacity + extra, False);
+  basePo base = (basePo) allocateBase(H, capacity + extra, fastAlloc);
 
   base->min = base->max = list->start;
 
@@ -403,7 +403,7 @@ listPo removeListEl(heapPo H, listPo list, integer px) {
   integer extra = newLen - ocount;
 
   nb->min = extra / 2;
-  nb->max = nb->min + ocount-1;
+  nb->max = nb->min + ocount - 1;
   nb->length = newLen;
 
   for (integer ix = 0; ix < px; ix++) {
@@ -417,7 +417,7 @@ listPo removeListEl(heapPo H, listPo list, integer px) {
   gcAddRoot(H, (ptrPo) (&nb));
   listPo slice = (listPo) newSlice(H, nb, nb->min, list->length - 1);
 
-  assert(saneList(H,slice));
+  assert(saneList(H, slice));
 
   gcReleaseRoot(H, root);
   releaseHeapLock(H);
@@ -568,17 +568,18 @@ retCode baseDisp(ioPo out, termPo t, integer precision, integer depth, logical a
   return ret;
 }
 
-termPo allocateBase(heapPo H, integer length, logical safeMode) {
+termPo allocateBase(heapPo H, integer length, allocSafety mode) {
   basePo base = (basePo) allocateObject(H, baseClass, BaseCellCount(length));
 
   base->min = length / 2;
   base->max = length / 2;
   base->length = length;
 
-  if (safeMode) {
+  if (mode == safeAlloc) {
     for (integer ix = 0; ix < length; ix++)
       base->els[ix] = voidEnum;
   }
+
   return (termPo) base;
 }
 

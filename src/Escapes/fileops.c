@@ -199,7 +199,7 @@ ReturnStatus g__ls(processPo P, ptrPo tos) {
     }
   } else {
     heapPo H = processHeap(P);
-    listPo list = allocateList(H, 8, True);
+    listPo list = allocateList(H, 8);
     int root = gcAddRoot(H, (ptrPo) &list);
 
     struct dirent *ent;

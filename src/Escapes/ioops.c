@@ -131,7 +131,7 @@ ReturnStatus g__inbytes(processPo p, ptrPo tos) {
     char *text = getTextFromBuffer(buffer, &length);
 
     heapPo H = processHeap(p);
-    listPo lst = allocateList(H, length, True);
+    listPo lst = allocateList(H, length);
     int root = gcAddRoot(H, (ptrPo) &lst);
 
     for (long ix = 0; ix < length; ix++) {

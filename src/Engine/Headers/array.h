@@ -14,7 +14,12 @@ extern clssPo listClass;
 
 extern listPo C_LIST(termPo t);
 
-extern listPo allocateList(heapPo H, integer length, logical safeMode);
+typedef enum{
+  safeAlloc,
+  fastAlloc
+} allocSafety;
+
+extern listPo allocateList(heapPo H, integer length);
 
 extern listPo createList(heapPo H, integer capacity);
 
