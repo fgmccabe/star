@@ -16,8 +16,15 @@ star.compiler.normalize{
 
   nameMap ~> list[mapLayer].
 
-  thetaMap:(canon,set[string],nameMap,reports) => either[reports,(nameMap,term)].
+  thetaMap:(canon,set[string],nameMap,reports) => either[reports,(nameMap,canon)].
   thetaMap(Theta,Q,Outer,Rp) => do{
-    ThFree = freeVarsInTerm(Theta,Q,
+    ThFree = freeVarsInTerm(Theta,Q)
+  }
+
+  findFreeVars:(canon,nameMap,set[string]) => list[canon].
+  findFreeVars(Term,Map,Q) => do{
+    Df = defineProgs(Map);
+    Lv = labelVars(Map);
+    
 
 }
