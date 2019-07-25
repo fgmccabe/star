@@ -7,8 +7,8 @@ star.compiler.freevars{
 
   
 
-  freeVarsInTerm:(canon,set[string],set[canon]) => set[canon].
-  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where Nm in Excl => Fv.
+  freeVarsInTerm:(canon,set[canon],set[canon]) => set[canon].
+  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,Tp) in Excl => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(vr(Lc,Nm,Tp),Fv).
   freeVarsInTerm(litrl(_,_,_),_,Fv) => Fv.
@@ -49,7 +49,7 @@ star.compiler.freevars{
       Excl1 .= extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
     foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,flatten(Defs)).
 
-  freeVarsInCond:(canon,set[string],set[canon]) => (set[string],set[canon]).
+  freeVarsInCond:(canon,set[canon],set[canon]) => (set[canon],set[canon]).
 
   freeVarsInCond(cond(_,T,L,R),Excl,Fv) where
       (Excl1,Fv1) .= freeVarsInCond(T,Excl,Fv) &&
@@ -106,13 +106,13 @@ star.compiler.freevars{
   freeVarsInAction(simpleDo(_,E,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
 
-  extendExcl:(canon,set[string],set[canon]) => set[string].
+  extendExcl:(canon,set[canon],set[canon]) => set[canon].
   extendExcl(P,Excl,Fv) => ptnVars(P,Excl,Fv).
 
-  ptnVars:(canon,set[string],set[canon]) => set[string].
-  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where Nm in Excl => Excl.
+  ptnVars:(canon,set[canon],set[canon]) => set[canon].
+  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,Tp) in Excl => Excl.
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Excl.
-  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(Nm,Excl).
+  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(vr(Lc,Nm,Tp),Excl).
   ptnVars(litrl(_,_,_),Excl,Fv) => Excl.
   ptnVars(enm(_,_,_),Excl,Fv) => Excl.
   ptnVars(dot(_,Rc,_,_),Excl,Fv) => ptnVars(Rc,Excl,Fv).
