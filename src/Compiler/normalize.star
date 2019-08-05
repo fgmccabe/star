@@ -16,15 +16,27 @@ star.compiler.normalize{
 
   nameMap ~> list[mapLayer].
 
-  thetaMap:(canon,set[string],nameMap,reports) => either[reports,(nameMap,canon)].
+  thetaMap:(canon,set[canon],nameMap,reports) => either[reports,(nameMap,canon)].
   thetaMap(Theta,Q,Outer,Rp) => do{
-    ThFree = freeVarsInTerm(Theta,Q)
+    ThFree = findFreeVars(Theta,Outer,Q);
+    CellVars = cellVars(Theta);
   }
 
   findFreeVars:(canon,nameMap,set[string]) => list[canon].
   findFreeVars(Term,Map,Q) => do{
     Df = defineProgs(Map);
     Lv = labelVars(Map);
-    
+  }
+
+  cellVars:(canon) => list[canon].
+  cellVars(theta(_,_,_,Defs,_,_,_)) =>
+    foldRight(pickCellVar,[],Defs).
+  cellVars(record(_,_,_,Defs,_,_,_)) =>
+    foldRight(pickCellVar,[],Defs).
+
+  pickCellVar(varDef(Lc,Nm,_,_,_,Tp),CellVars) where isRefType(Tp) =>
+    _addMem(vr(Lc,Nm,Tp),CellVars).
+  pickCellVar(varDef(Lc,Nm,_,_,_,Tp),CellVars) => CellVars.
+  
 
 }

@@ -336,6 +336,9 @@ star.compiler.types{
   public lstType(Tp) => tpExp(tpFun("star.core*list",1),Tp).
   public refType(Tp) => tpExp(tpFun("star.core*ref",1),Tp).
 
+  public isRefType(Tp) => tpExp(Op,_) .= deRef(Tp) &&
+      tpFun("star.core*ref",1).=deRef(Op).
+
   public deQuant:(tipe) => (list[tipe],tipe).
   deQuant(T) => let{
     deQ(allType(V,I),Qs) => deQ(I,[Qs..,V]).
