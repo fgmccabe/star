@@ -25,6 +25,7 @@
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
 	      isComma/4,deComma/2,reComma/2,
+	      isUnaryMinus/3,
 	      mergeCond/4,
 	      findVars/3]).
 :- use_module(abstract).
@@ -168,6 +169,9 @@ reConstrain(Cx,T,CT) :-
   reComma(Cx,C),
   locOfAst(T,Lc),
   binary(Lc,"|:",C,T,CT).
+
+isUnaryMinus(T,Lc,A) :-
+  isUnary(T,Lc,"-",A).
 
 isTypeExistsStmt(St,Lc,Q,Cx,L,R) :-
   isQuantified(St,Q,B),

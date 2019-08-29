@@ -534,7 +534,6 @@ expType(V,Tp,Env,Ev,Term,Path) :-
   declareTypeVars(Q,Lc,Env,E1),
   typeOfExp(V,ETp,E1,Ev,Term,Path).
 
-
 typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   isIden(V,Lc,N),
   (isVar(N,Env,Spec) ->
@@ -637,7 +636,7 @@ typeOfExp(Trm,Tp,Env,Ev,tple(Lc,Els),Path) :-
   checkType(Trm,tupleType(ArgTps),Tp,Env),
   typeOfTerms(A,ArgTps,Env,Ev,Lc,Els,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isUnary(Term,Lc,"-",Arg), % handle unary minus
+  isUnaryMinus(Term,Lc,Arg), % handle unary minus
   unary(Lc,"__minus",Arg,Sub),
   typeOfExp(Sub,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
@@ -730,12 +729,14 @@ typeOfRoundTerm(Lc,F,A,Tp,Env,Ev,apply(Lc,Fun,Args,Tp),Path) :-
   simplifyType(FnTp,Env,_,[],FTp),
   evidence(At,E0,_,AT),
   (sameType(funType(At,Tp),FTp,E0) ->
-    typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path);
+%     reportMsg("type of %s:%s (%s)",[F,FTp,Tp]),
+     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path);
    sameType(consType(At,Tp),FTp,E0) ->
     typeOfArgTerm(tuple(Lc,"()",A),AT,E0,Ev,Args,Path);
    reportError("type of %s:\n%s\nnot consistent with:\n%s=>%s",[Fun,FTp,At,Tp],Lc),
    Args = tple(Lc,[]),
    Env=Ev).
+%   reportMsg("after type of %s:%s (%s)",[F,FTp,Tp]).
 
 typeOfSearch(Lc,L,R,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
   findType("boolean",Lc,Env,LogicalTp),
@@ -753,13 +754,18 @@ typeOfSearch(Lc,L,R,Tp,Env,Ev,search(Lc,Ptn,Src,Iterator),Path) :-
 %  reportMsg("search %s:%s",[search(Lc,Ptn,Src,Iterator),Tp]).
 
 typeOfLambda(Term,Tp,Env,lambda(Lc,equation(Lc,Args,Cond,Exp),Tp),Path) :-
+%  reportMsg("expected type of lambda %s = %s",[Term,Tp]),
+%  dispEnv(Env,1),
   isEquation(Term,Lc,H,C,R),
   newTypeVar("_A",AT),
   typeOfArgPtn(H,AT,Env,E1,Args,Path),
   newTypeVar("_E",RT),
   checkType(Term,funType(AT,RT),Tp,Env),
+%  reportMsg("type after arg %s",[Tp]),
   checkGoal(C,E1,E2,Cond,Path),
+%  dispEnv(E2,1),
   typeOfExp(R,RT,E2,_,Exp,Path).
+%  reportMsg("lambda: %s|=%s",[Term,Tp]).
 
 typeOfIndex(Lc,Mp,Arg,Tp,Env,Ev,Exp,Path) :-
   isBinary(Arg,_,"->",Ky,Vl),!,
@@ -1012,8 +1018,12 @@ typeOfTerms([A|_],[],Env,Env,_,[],_) :-
   reportError("too many arguments: %s",[A],Lc).
 typeOfTerms([A|As],[ETp|ElTypes],Env,Ev,_,[Term|Els],Path) :-
   deRef(ETp,ElTp),
-  expType(A,ElTp,Env,E0,Term,Path),
-%  typeOfExp(A,ElTp,Env,E0,Term,Path),
+  %  expType(A,ElTp,Env,E0,Term,Path),
+  % reportMsg("checking argument %s ?= %s",[A,ElTp]),
+  % dispEnv(Env,1),
+  typeOfExp(A,ElTp,Env,E0,Term,Path),
+  % reportMsg("type of argument %s |= %s",[A,ETp]),
+  % dispEnv(Env,1),
   locOfAst(A,Lc),
   typeOfTerms(As,ElTypes,E0,Ev,Lc,Els,Path).
 

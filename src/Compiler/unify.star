@@ -158,7 +158,7 @@ star.compiler.unify{
       option[list[constraint]].
     mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
     mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
-      (same(Tp,Tp1,Env) ? some(Cs) || none).
+      (Tp==Tp1 ? some(Cs) || none).
     -- TODO: handle merging implementsFace more gracefully
     mergeConstraint(C,[_,..R],Cs,Env) => mergeConstraint(C,R,Cs,Env).
   } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? true || valof resetBindings).

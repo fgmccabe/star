@@ -5,9 +5,7 @@ star.compiler.freevars{
   import star.compiler.canon.
   import star.compiler.types.
 
-  
-
-  freeVarsInTerm:(canon,set[canon],set[canon]) => set[canon].
+  public freeVarsInTerm:(canon,set[canon],set[canon]) => set[canon].
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,Tp) in Excl => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(vr(Lc,Nm,Tp),Fv).
