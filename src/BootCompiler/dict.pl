@@ -1,12 +1,15 @@
 :- module(dict,[declareType/4,isType/3,
-    declareTypeVars/4,isTypeVar/3,
-    declareVar/4,declareEnum/6,
-    mkVr/4,isVar/3,currentVar/3,restoreVar/4,
-    declareContract/4,getContract/3,
-    declareImplementation/5,getImplementations/3,getImplementation/4,
-    declareConstraint/3,allConstraints/2,
-    processNames/3,processTypes/3,
-    pushScope/2,pushFace/4,makeKey/2,stdDict/1]).
+		declareTypeVars/4,isTypeVar/3,
+		declareVar/4,declareEnum/6,
+		mkVr/4,isVar/3,currentVar/3,restoreVar/4,
+		declareContract/4,getContract/3,
+		declareImplementation/5,getImplementations/3,
+		getImplementation/4,
+		declareConstraint/3,allConstraints/2,
+		processTypes/3,
+		pushScope/2,pushFace/4,makeKey/2,stdDict/1,
+		dispEnv/2
+	       ]).
 
 :- use_module(misc).
 :- use_module(types).
@@ -122,17 +125,19 @@ pushTypes([(N,Type)|Tps],Lc,Env,ThEnv) :-
   declareType(N,tpDef(Lc,Type,faceType([],[])),Env,E0),
   pushTypes(Tps,Lc,E0,ThEnv).
 
-processNames(Dict,P,Result) :-
-  processNames(Dict,P,[],Result).
+processNames(Dict,P,Cx,Result) :-
+  processNames(Dict,P,Cx,[],Result),!.
 
-processNames([],_,SoFar,SoFar).
-processNames([scope(_,Names,_,_,_)|Outer],P,SoFar,Result) :-
+processNames(_,_,0,SoFar,SoFar).
+processNames([],_,_,SoFar,SoFar).
+processNames([scope(_,Names,_,_,_)|Outer],P,Cx,SoFar,Result) :-
   dict_pairs(Names,_,Pairs),
   procNames(Pairs,P,SoFar,S0),
-  processNames(Outer,P,S0,Result).
+  Cx1 is Cx-1,
+  processNames(Outer,P,Cx1,S0,Result).
 
 procNames([],_,SoFar,SoFar).
-procNames([K-vEntry(Vr,_)|More],P,SoFar,Result) :-
+procNames([K-Vr|More],P,SoFar,Result) :-
   call(P,K,Vr,SoFar,S0),
   procNames(More,P,S0,Result).
 
@@ -163,3 +168,14 @@ stdDict(Base) :-
   declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
   stdType("list",LstTp,LTp),
   declareType("list",tpDef(std,LstTp,LTp),B2,Base).
+
+dispEnv(Env,Cx) :-
+  processNames(Env,dict:showDictVarEntry,Cx,Chrs),
+  string_chars(Text,Chrs),
+  writeln(Text).
+
+showDictVarEntry(K,vrEntry(_Lc,_,Tp,_),Sx,S) :-
+  appSym(K,S,S0),
+  appStr("|=",S0,S1),
+  showType(Tp,true,S1,S2),
+  appNl(S2,Sx).

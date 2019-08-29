@@ -298,8 +298,9 @@ mergeConstraints(Cx,Cy,_Env) :- var(Cx),!, Cx=Cy.
 mergeConstraints([Cx|Xs],Y,Env) :- mergeConstraint(Cx,Y,Env), mergeConstraints(Xs,Y,Env).
 
 mergeConstraint(C,Y,_Env) :- var(Y),!,Y=[C|_].
-mergeConstraint(conTract(Nm,X,XDps),[conTract(Nm,Y,YDps)|_],Env) :-!,
-  sameContract(conTract(Nm,X,XDps),conTract(Nm,Y,YDps),Env).
+mergeConstraint(conTract(Nm,X,XDps),[conTract(Nm,Y,YDps)|_],Env) :-
+  idList(X,Y,Env), % only identical types merge
+  smList(XDps,YDps,Env),!.
 mergeConstraint(Cx,[_|Y],Env) :- !, % TODO: handle merging implementsFace more gracefully
   mergeConstraint(Cx,Y,Env).
 

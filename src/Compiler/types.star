@@ -110,8 +110,11 @@ star.compiler.types{
   mkTypeExp(Tp,[A,..L]) => mkTypeExp(tpExp(Tp,A),L).
 
   public implementation equality[tipe] => {
-    T1==T2 => identType(T1,T2,[]).
+    T1==T2 => eqType(T1,T2,[]).
   }
+  
+  eqType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
+  eqType(T1,T2,L) => identType(deRef(T1),deRef(T2),L).
 
   identType:(tipe,tipe,list[(tipe,tipe)]) => boolean.
   identType(kFun(N1,A1),kFun(N2,A2),_) => N1==N2 && A1==A2.
@@ -120,35 +123,33 @@ star.compiler.types{
   identType(nomnal(N1),nomnal(N2),_) => N1==N2.
   identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tpExp(O1,A1),tpExp(O2,A2),Q) =>
-    identType(O1,O2,Q) && identType(A1,A2,Q).
+    eqType(O1,O2,Q) && eqType(A1,A2,Q).
   identType(tupleType(E1),tupleType(E2),Q) => identTypes(E1,E2,Q).
   identType(allType(V1,T1),allType(V2,T2),Q) =>
-    identType(V1,V2,Q) && identType(T1,T2,Q).
+    eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(existType(V1,T1),existType(V2,T2),Q) =>
-    identType(V1,V2,Q) && identType(T1,T2,Q).
+    eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(typeLambda(V1,T1),typeLambda(V2,T2),Q) =>
-    identType(V1,V2,Q) && identType(T1,T2,Q).
+    eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(typeExists(V1,T1),typeExists(V2,T2),Q) =>
-    identType(V1,V2,Q) && identType(T1,T2,Q).
+    eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(faceType(V1,T1),faceType(V2,T2),Q) =>
     identNmTypes(V1,V2,Q) && identNmTypes(T1,T2,Q).
   identType(funDeps(T1,D1),funDeps(T2,D2),Q) =>
-    identType(T1,T2,Q) && identTypes(D1,D2,Q).
+    eqType(T1,T2,Q) && identTypes(D1,D2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
-    identType(T1,T2,Q).
+    eqType(T1,T2,Q).
   identType(_,_,_) default => false.
 
   identTypes([],[],_) => true.
   identTypes([E1,..L1],[E2,..L2],Q) =>
-    identType(E1,E2,Q) &&
-	identTypes(L1,L2,Q).
+    eqType(E1,E2,Q) && identTypes(L1,L2,Q).
 
   identNmTypes(L1,L2,Q) => let{
     sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
     identPrs([],[]) => true.
     identPrs([(Nm,E1),..l1],[(Nm,E2),..l2]) =>
-      identType(E1,E2,Q) &&
-	  identPrs(l1,l2).
+      eqType(E1,E2,Q) && identPrs(l1,l2).
     identPrs(_,_) => false.
   } in identPrs(sortByNm(L1),sortByNm(L2)).
 
