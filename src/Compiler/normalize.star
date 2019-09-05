@@ -2,6 +2,7 @@ star.compiler.normalize{
   import star.
 
   import star.compiler.canon.
+  import star.compiler.core.
   import star.compiler.errors.
   import star.compiler.freevars.
   import star.compiler.types.
@@ -10,22 +11,39 @@ star.compiler.normalize{
 
   import star.compiler.terms.
 
-  nameMapEntry ::= moduleFun(string,tipe,string,integer)
-    | moduleVar(string,tipe,string,integer)
-    | localFun(string,tipe,string,integer,canon)
-    | localVar(string,tipe,string,integer,canon)
-    | moduleCons(string,tipe,string,integer)
+  nameMapEntry ::= moduleFun(string,locn,tipe,string,integer)
+    | moduleVar(string,locn,tipe,string,integer)
+    | localFun(string,locn,tipe,string,integer,canon)
+    | localVar(string,locn,tipe,string,integer,canon)
+    | moduleCons(string,locn,tipe,string,integer)
     | labelArg(canon,integer,canon).
 
   mapLayer ::= lyr(string,map[string,nameMapEntry],canon,option[canon]).
 
   nameMap ~> list[mapLayer].
 
+  implementation hasType[nameMapEntry]=>{.
+    typeOf(moduleFun(_,_,Tp,_,_)) => Tp.
+    typeOf(moduleVar(_,_,Tp,_,_)) => Tp.
+    typeOf(localFun(_,_,Tp,_,_,_)) => Tp.
+    typeOf(localVar(_,_,Tp,_,_,_)) => Tp.
+    typeOf(moduleCons(_,_,Tp,_,_)) => Tp.
+  .}
+
+  implementation hasLoc[nameMapEntry]=>{
+    locOf(moduleFun(_,Lc,_,_,_)) => Lc.
+    locOf(moduleVar(_,Lc,_,_,_)) => Lc.
+    locOf(localFun(_,Lc,_,_,_,_)) => Lc.
+    locOf(localVar(_,Lc,_,_,_,_)) => Lc.
+    locOf(moduleCons(_,Lc,_,_,_)) => Lc.
+  }
+
   thetaMap:(canon,set[canon],nameMap,reports) => either[reports,(nameMap,canon)].
   thetaMap(Theta,Q,Outer,Rp) => do{
     ThFree = findFreeVars(Theta,Outer,Q);
+    logMsg("free vars = $(ThFree)");
     CellVars = cellVars(Theta);
-    throw reportError("not done",locOf(Theta))
+    throw reportError(Rp,"not done",locOf(Theta))
   }
 
   findFreeVars:(canon,nameMap,set[canon]) => set[canon].
@@ -49,8 +67,8 @@ star.compiler.normalize{
 	  [vr(locOf(Entry),Nm,typeOf(Entry)),..Df]).
     definedInDefs(_,_,Df) => Df.
 
-    definedP(moduleFun(_,_,_,_))=>true.
-    definedP(moduleVar(_,_,_,_))=>true.
+    definedP(moduleFun(_,_,_,_,_))=>true.
+    definedP(moduleVar(_,_,_,_,_))=>true.
     definedP(_) default => false.
     
   } in defProgs(Map,[]).
@@ -58,14 +76,16 @@ star.compiler.normalize{
   labelVars:(nameMap) => set[canon].
   labelVars(Map) => lblVars(Map,[]).
 
+  lblVars:(nameMap,set[canon])=>set[canon].
   lblVars([],Vrs) => Vrs.
   lblVars([lyr(_,Defs,_,none),..Map],Vrs) =>
-    lblVars(Map,foldRight(labelVarsInDef,Vrs,Defs)).
+    lblVars(Map,ixRight(labelVarsInDef,Vrs,Defs)).
   lblVars([lyr(_,Defs,_,some(ThVr)),..Map],Vrs) =>
-    lblVars(Map,foldRight(labelVarsInDef,_addMem(ThVr,Vrs),Defs)).
-  
-  labelVarsInDef((_,labelArg(V,_,_)),Vrs) => _addMem(V,Vrs).
-  labelVarsInDef(_,Vrs) => Vrs.
+    lblVars(Map,ixRight(labelVarsInDef,_addMem(ThVr,Vrs),Defs)).
+
+  labelVarsIndef:(string,nameMapEntry,set[canon])=>set[canon].
+  labelVarsInDef(_,labelArg(V,_,_),Vrs) => _addMem(V,Vrs).
+  labelVarsInDef(_,_,Vrs) => Vrs.
  
   cellVars:(canon) => list[canon].
   cellVars(theta(_,_,_,Defs,_,_)) =>
@@ -88,11 +108,11 @@ star.compiler.normalize{
 
   lookupThetaVar:(canon,nameMap,set[canon]) => set[canon].
   lookupThetaVar(vr(_,Nm,_),Map,FF) where
-      ThVr^=lookup(Map,Nm,isLocal) => _addMem(FF,ThVr).
+      ThVr^=lookup(Map,Nm,isLocal) => _addMem(ThVr,FF).
   lookupThetaVar(_,_,FF) default => FF.
 
-  isLocal(localFun(_,_,_,_,ThVr))=>some(ThVr).
-  isLocal(localVar(_,_,_,_,ThVr))=>some(ThVr).
+  isLocal(localFun(_,_,_,_,_,ThVr))=>some(ThVr).
+  isLocal(localVar(_,_,_,_,_,ThVr))=>some(ThVr).
   isLocal(_) default => none.
 
   lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].

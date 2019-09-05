@@ -4,15 +4,15 @@ star.compiler.terms{
   import star.compiler.location.
   import star.compiler.types.
 
-  public term ::= voyd
+  public data ::= voyd
     | intgr(integer)
     | flot(float)
     | strg(string)
-    | term(term,list[term])
+    | term(data,list[data])
     | lbl(string,integer)
     | enum(string).
 
-  public implementation display[term] => let{
+  public implementation display[data] => let{
     dispT(voyd) => ss("␀").
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
@@ -31,7 +31,7 @@ star.compiler.terms{
     disp(T) => dispT(T)
   .}
 
-  public implementation hash[term] => let{
+  public implementation hash[data] => let{
     hsh(intgr(X)) => X.
     hsh(flot(X)) => hash(X).
     hsh(strg(S)) => hash(S).
@@ -43,7 +43,7 @@ star.compiler.terms{
     hash(T) => hsh(T)
   }
 
-  public implementation equality[term] => let{
+  public implementation equality[data] => let{
     eq(intgr(X),intgr(Y)) => X==Y.
     eq(flot(X),flot(Y)) => X==Y.
     eq(strg(X),strg(Y)) => X==Y.
@@ -55,17 +55,17 @@ star.compiler.terms{
     X==Y => eq(X,Y).
   .}
 
-  public mkTpl:(list[term]) => term.
+  public mkTpl:(list[data]) => data.
   mkTpl(A) where L.=size(A) => term(lbl("()$(L)",L),A).
 
-  public implementation coercion[term,string] => {
+  public implementation coercion[data,string] => {
     _coerce(T) => _implode(encodeTerm(T)).
   }
 
-  public encodeTerm:(term)=>list[integer].
+  public encodeTerm:(data)=>list[integer].
   encodeTerm(T) => encodeT(T,[]).
 
-  encodeT:(term,list[integer])=>list[integer].
+  encodeT:(data,list[integer])=>list[integer].
   encodeT(voyd,Cs) => [Cs..,0cv].
   encodeT(intgr(Ix),Cs) => encodeInt(Ix,[Cs..,0cx]).
   encodeT(flot(Dx),Cs) => encodeText(Dx::string,[Cs..,0cd]).
@@ -78,7 +78,7 @@ star.compiler.terms{
   encodeTerms([],Cs) => Cs.
   encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
   
-  public decodeTerm:(list[integer])=>either[(),(term,list[integer])].
+  public decodeTerm:(list[integer])=>either[(),(data,list[integer])].
   decodeTerm([0cv,..Ls]) => either((voyd,Ls)).
   decodeTerm([0cx,..Ls]) => do{
     (Ix,L0) <- decodeInt(Ls);
@@ -113,7 +113,7 @@ star.compiler.terms{
     valis (term(lbl("[]",Ax),Els),Lx)
   }
 
-  decodeTerms:(list[integer],integer,list[term]) => either[(),(list[term],list[integer])].
+  decodeTerms:(list[integer],integer,list[data]) => either[(),(list[data],list[integer])].
   decodeTerms(L,0,Args) => either((Args,L)).
   decodeTerms(L,Ix,Args) => do{
     (Arg,L0) <- decodeTerm(L);
