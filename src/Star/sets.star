@@ -43,4 +43,9 @@ star.sets{
   public implementation all e ~~ equality[e],hash[e] |: iter[set[e]->>e] => {.
     _iter(set(S),St,F) => _iter(S,St,(K->_,X)=>F(K,X))
   .}
+
+  public implementation all e ~~ folding[set[e]->>e] => {
+    foldRight(F,A,set(S)) => ixRight((K,_,X) => F(K,X),A,S).
+    foldLeft(F,A,set(S)) => ixLeft((X,K,_)=>F(X,K),A,S).
+  }
 }
