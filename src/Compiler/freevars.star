@@ -3,12 +3,13 @@ star.compiler.freevars{
   import star.sets.
 
   import star.compiler.canon.
+  import star.compiler.core.
   import star.compiler.types.
 
-  public freeVarsInTerm:(canon,set[canon],set[canon]) => set[canon].
-  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,Tp) in Excl => Fv.
-  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Fv.
-  freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(vr(Lc,Nm,Tp),Fv).
+  public freeVarsInTerm:(canon,set[crVar],set[crVar]) => set[crVar].
+  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Fv.
+  freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Fv => Fv.
+  freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(crId(Nm,Tp),Fv).
   freeVarsInTerm(litrl(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(enm(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(dot(_,Rc,_,_),Excl,Fv) => freeVarsInTerm(Rc,Excl,Fv).
@@ -47,8 +48,7 @@ star.compiler.freevars{
       Excl1 .= extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
     foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,flatten(Defs)).
 
-  freeVarsInCond:(canon,set[canon],set[canon]) => (set[canon],set[canon]).
-
+  freeVarsInCond:(canon,set[crVar],set[crVar]) => (set[crVar],set[crVar]).
   freeVarsInCond(cond(_,T,L,R),Excl,Fv) where
       (Excl1,Fv1) .= freeVarsInCond(T,Excl,Fv) &&
       (Excl2,Fv2) .= freeVarsInCond(L,Excl1,Fv1) &&
@@ -104,13 +104,13 @@ star.compiler.freevars{
   freeVarsInAction(simpleDo(_,E,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
 
-  extendExcl:(canon,set[canon],set[canon]) => set[canon].
+  extendExcl:(canon,set[crVar],set[crVar]) => set[crVar].
   extendExcl(P,Excl,Fv) => ptnVars(P,Excl,Fv).
 
-  ptnVars:(canon,set[canon],set[canon]) => set[canon].
-  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,Tp) in Excl => Excl.
-  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where vr(_,Nm,_) in Fv => Excl.
-  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(vr(Lc,Nm,Tp),Excl).
+  ptnVars:(canon,set[crVar],set[crVar]) => set[crVar].
+  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Excl.
+  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Fv => Excl.
+  ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   ptnVars(litrl(_,_,_),Excl,Fv) => Excl.
   ptnVars(enm(_,_,_),Excl,Fv) => Excl.
   ptnVars(dot(_,Rc,_,_),Excl,Fv) => ptnVars(Rc,Excl,Fv).

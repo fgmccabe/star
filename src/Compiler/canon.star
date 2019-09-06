@@ -14,7 +14,7 @@ star.compiler.canon{
   public canon ::= vr(locn,string,tipe) |
     mtd(locn,string,tipe) |
     over(locn,canon,tipe,list[constraint]) |
-    litrl(locn,term,tipe) |
+    litrl(locn,data,tipe) |
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
     dot(locn,canon,string,tipe) |

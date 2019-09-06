@@ -13,12 +13,12 @@ star.compiler.normalize{
 
   nameMapEntry ::= moduleFun(string,locn,tipe,string,integer)
     | moduleVar(string,locn,tipe,string,integer)
-    | localFun(string,locn,tipe,string,integer,canon)
-    | localVar(string,locn,tipe,string,integer,canon)
+    | localFun(string,locn,tipe,string,integer,crVar)
+    | localVar(string,locn,tipe,string,integer,crVar)
     | moduleCons(string,locn,tipe,string,integer)
-    | labelArg(canon,integer,canon).
+    | labelArg(crVar,integer,crVar).
 
-  mapLayer ::= lyr(string,map[string,nameMapEntry],canon,option[canon]).
+  mapLayer ::= lyr(string,map[string,nameMapEntry],crVar,option[crVar]).
 
   nameMap ~> list[mapLayer].
 
@@ -38,7 +38,7 @@ star.compiler.normalize{
     locOf(moduleCons(_,Lc,_,_,_)) => Lc.
   }
 
-  thetaMap:(canon,set[canon],nameMap,reports) => either[reports,(nameMap,canon)].
+  thetaMap:(canon,set[crVar],nameMap,reports) => either[reports,(nameMap,canon)].
   thetaMap(Theta,Q,Outer,Rp) => do{
     ThFree = findFreeVars(Theta,Outer,Q);
     logMsg("free vars = $(ThFree)");
@@ -46,7 +46,7 @@ star.compiler.normalize{
     throw reportError(Rp,"not done",locOf(Theta))
   }
 
-  findFreeVars:(canon,nameMap,set[canon]) => set[canon].
+  findFreeVars:(canon,nameMap,set[crVar]) => set[crVar].
   findFreeVars(Term,Map,Q) => valof action{
     Df = definedProgs(Map);
     Lv = labelVars(Map);
@@ -55,16 +55,16 @@ star.compiler.normalize{
     valis freeLabelVars(Q1,Map,ThFr)
   }
 
-  definedProgs:(nameMap)=>set[canon].
+  definedProgs:(nameMap)=>set[crVar].
   definedProgs(Map) => let{
     defProgs([],Df) => Df.
     defProgs([lyr(_,Defs,_,_),..Mp],Df) =>
       defProgs(Mp,ixRight(definedInDefs,Df,Defs)).
 
     definedInDefs(Nm,Entry,Df) where definedP(Entry) =>
-      (vr(_,Nm,_) in Df ?
+      (crId(Nm,_) in Df ?
 	  Df ||
-	  [vr(locOf(Entry),Nm,typeOf(Entry)),..Df]).
+	  [crId(Nm,typeOf(Entry)),..Df]).
     definedInDefs(_,_,Df) => Df.
 
     definedP(moduleFun(_,_,_,_,_))=>true.
@@ -73,41 +73,37 @@ star.compiler.normalize{
     
   } in defProgs(Map,[]).
 
-  labelVars:(nameMap) => set[canon].
+  labelVars:(nameMap) => set[crVar].
   labelVars(Map) => lblVars(Map,[]).
 
-  lblVars:(nameMap,set[canon])=>set[canon].
+  lblVars:(nameMap,set[crVar])=>set[crVar].
   lblVars([],Vrs) => Vrs.
   lblVars([lyr(_,Defs,_,none),..Map],Vrs) =>
     lblVars(Map,ixRight(labelVarsInDef,Vrs,Defs)).
   lblVars([lyr(_,Defs,_,some(ThVr)),..Map],Vrs) =>
     lblVars(Map,ixRight(labelVarsInDef,_addMem(ThVr,Vrs),Defs)).
 
-  labelVarsIndef:(string,nameMapEntry,set[canon])=>set[canon].
+  labelVarsIndef:(string,nameMapEntry,set[crVar])=>set[crVar].
   labelVarsInDef(_,labelArg(V,_,_),Vrs) => _addMem(V,Vrs).
   labelVarsInDef(_,_,Vrs) => Vrs.
  
-  cellVars:(canon) => list[canon].
+  cellVars:(canon) => set[crVar].
   cellVars(theta(_,_,_,Defs,_,_)) =>
     foldRight((Ds,CV)=>foldRight(pickCellVar,CV,Ds),[],Defs).
---    foldRight(pickInDefs,[],Defs).
   cellVars(record(_,_,_,Defs,_,_)) =>
     foldRight((Ds,CV)=>foldRight(pickCellVar,CV,Ds),[],Defs).
 
---  pickInDefs:(list[canonDef],list[canon]) => list[canon].
---  pickInDefs(Ds,CV) => foldRight(pickCellVar,CV,Ds).
-
-  pickCellVar:(canonDef,list[canon])=>list[canon].
+  pickCellVar:(canonDef,set[crVar])=>set[crVar].
   pickCellVar(varDef(Lc,Nm,_,_,_,Tp),CellVars) where isRefType(Tp) =>
-    _addMem(vr(Lc,Nm,Tp),CellVars).
+    _addMem(crId(Nm,Tp),CellVars).
   pickCellVar(_,CellVars) => CellVars.
 
-  freeLabelVars:(set[canon],nameMap,set[canon]) => set[canon].
+  freeLabelVars:(set[crVar],nameMap,set[crVar]) => set[crVar].
   freeLabelVars(Q,Map,Fr) =>
     foldRight((V,FF)=>lookupThetaVar(V,Map,FF),Fr,Q).
 
-  lookupThetaVar:(canon,nameMap,set[canon]) => set[canon].
-  lookupThetaVar(vr(_,Nm,_),Map,FF) where
+  lookupThetaVar:(crVar,nameMap,set[crVar]) => set[crVar].
+  lookupThetaVar(crId(Nm,_),Map,FF) where
       ThVr^=lookup(Map,Nm,isLocal) => _addMem(ThVr,FF).
   lookupThetaVar(_,_,FF) default => FF.
 
