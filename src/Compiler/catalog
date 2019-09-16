@@ -21,6 +21,7 @@
     "star.compiler.keywords": "keywords.star",
     "star.compiler.lexer": "lexer.star",
     "star.compiler.location": "location.star",
+    "star.compiler.matcher": "matcher.star",
     "star.compiler.misc": "misc.star",
     "star.compiler.normalize": "normalize.star",
     "star.compiler.operators": "operators.star",

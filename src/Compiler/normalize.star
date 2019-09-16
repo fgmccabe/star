@@ -8,14 +8,13 @@ star.compiler.normalize{
   import star.compiler.types.
 
   import star.compiler.location.
-
   import star.compiler.terms.
 
-  nameMapEntry ::= moduleFun(string,locn,tipe,string,integer)
-    | moduleVar(string,locn,tipe,string,integer)
-    | localFun(string,locn,tipe,string,integer,crVar)
-    | localVar(string,locn,tipe,string,integer,crVar)
-    | moduleCons(string,locn,tipe,string,integer)
+  nameMapEntry ::= moduleFun(string,tipe)
+    | moduleVar(string,tipe)
+    | localFun(string,tipe,string,integer,crVar)
+    | localVar(string,tipe,string,integer,crVar)
+    | moduleCons(string,tipe,string,integer)
     | labelArg(crVar,integer,crVar).
 
   mapLayer ::= lyr(string,map[string,nameMapEntry],crVar,option[crVar]).
@@ -23,20 +22,13 @@ star.compiler.normalize{
   nameMap ~> list[mapLayer].
 
   implementation hasType[nameMapEntry]=>{.
-    typeOf(moduleFun(_,_,Tp,_,_)) => Tp.
-    typeOf(moduleVar(_,_,Tp,_,_)) => Tp.
-    typeOf(localFun(_,_,Tp,_,_,_)) => Tp.
-    typeOf(localVar(_,_,Tp,_,_,_)) => Tp.
-    typeOf(moduleCons(_,_,Tp,_,_)) => Tp.
+    typeOf(moduleFun(_,Tp)) => Tp.
+    typeOf(moduleVar(_,Tp)) => Tp.
+    typeOf(localFun(_,Tp,_,_,_)) => Tp.
+    typeOf(localVar(_,Tp,_,_,_)) => Tp.
+    typeOf(moduleCons(_,Tp,_,_)) => Tp.
+    typeOf(labelArg(_,_,V)) => typeOf(V).
   .}
-
-  implementation hasLoc[nameMapEntry]=>{
-    locOf(moduleFun(_,Lc,_,_,_)) => Lc.
-    locOf(moduleVar(_,Lc,_,_,_)) => Lc.
-    locOf(localFun(_,Lc,_,_,_,_)) => Lc.
-    locOf(localVar(_,Lc,_,_,_,_)) => Lc.
-    locOf(moduleCons(_,Lc,_,_,_)) => Lc.
-  }
 
   thetaMap:(canon,set[crVar],nameMap,reports) => either[reports,(nameMap,canon)].
   thetaMap(Theta,Q,Outer,Rp) => do{
@@ -67,8 +59,8 @@ star.compiler.normalize{
 	  [crId(Nm,typeOf(Entry)),..Df]).
     definedInDefs(_,_,Df) => Df.
 
-    definedP(moduleFun(_,_,_,_,_))=>true.
-    definedP(moduleVar(_,_,_,_,_))=>true.
+    definedP(moduleFun(_,_))=>true.
+    definedP(moduleVar(_,_))=>true.
     definedP(_) default => false.
     
   } in defProgs(Map,[]).
@@ -107,8 +99,8 @@ star.compiler.normalize{
       ThVr^=lookup(Map,Nm,isLocal) => _addMem(ThVr,FF).
   lookupThetaVar(_,_,FF) default => FF.
 
-  isLocal(localFun(_,_,_,_,_,ThVr))=>some(ThVr).
-  isLocal(localVar(_,_,_,_,_,ThVr))=>some(ThVr).
+  isLocal(localFun(_,_,_,_,ThVr))=>some(ThVr).
+  isLocal(localVar(_,_,_,_,ThVr))=>some(ThVr).
   isLocal(_) default => none.
 
   lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
@@ -116,6 +108,21 @@ star.compiler.normalize{
   lookup([lyr(_,Entries,_,_),..Map],Nm,P) where E ^= Entries[Nm] =>
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).
-  
 
+  lookupVarName:(nameMap,string)=>option[nameMapEntry].
+  lookupVarName(Map,Nm) => lookup(Map,Nm,anyDef).
+
+  anyDef(D) => some(D).
+
+  normExp:(canon,nameMap)=>crExp.
+  normExp(vr(Lc,Nm,Tp),Map) => normVar(Lc,Nm,Tp,Map).
+  normExp(litrl(Lc,Dt,Tp),_) => crLit(Lc,Dt,Tp).
+
+  normVar:(locn,string,tipe,nameMap)=>crExp.
+  normVar(Lc,Nm,Tp,Map) where V ^= lookupVarName(Map,Nm) =>
+    implementVarExp(V,Lc,Nm,Tp,Map).
+
+  implementVarExp(moduleVar(LNm,_),Lc,Nm,Tp,Map) => crVar(Lc,crId(LNm,Tp)).
+      
+  
 }

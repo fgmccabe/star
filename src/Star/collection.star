@@ -98,6 +98,20 @@ star.collection{
     } in fdl(0,Z).
   }
 
+  public implementation all e ~~ ixfold[list[e] ->> integer,e] => {
+    ixRight(F,Z,L) => let{
+      Mx = size(L).
+      fdr(Ix) where Ix>=Mx => Z.
+      fdr(Ix) => F(Ix,_list_nth(L,Ix),fdr(Ix+1)).
+    } in fdr(0).
+
+    ixLeft(F,Z,L) => let{
+      Mx = size(L).
+      fdl(Ix,I) where Ix>=Mx => I.
+      fdl(Ix,I) => fdl(Ix+1,F(I,Ix,_list_nth(L,Ix))).
+    } in fdl(0,Z).
+  }
+
   public implementation all e ~~ search[list[e]->>e] => {
     search(L,F) => searchList(L,F).
 
@@ -115,9 +129,6 @@ star.collection{
     _delMem(k,[e,..L]) => [e,.._delMem(k,L)].
     _contains(L,k) => _ ^= search(L,(e)=>e==k).
   }
-
-
-  
 
   public iota: (integer,integer)=>list[integer].
   iota(Mx,Mx) => [].

@@ -330,6 +330,11 @@ star.compiler.types{
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
 
+  public funTypeArg(Tp) where
+      tpExp(O,_) .= deRef(Tp) &&
+      tpExp(O2,A) .= deRef(O) &&
+      tpFun("=>",2).=deRef(O2) => deRef(A).
+
   public intType = nomnal("star.core*integer").
   public fltType = nomnal("star.core*float").
   public strType = nomnal("star.core*string").
