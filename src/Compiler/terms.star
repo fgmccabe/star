@@ -9,8 +9,7 @@ star.compiler.terms{
     | flot(float)
     | strg(string)
     | term(data,list[data])
-    | lbl(string,integer)
-    | enum(string).
+    | lbl(string,integer).
 
   public implementation display[data] => let{
     dispT(voyd) => ss("␀").
@@ -21,7 +20,6 @@ star.compiler.terms{
     dispT(term(lbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(term(Op,Args)) => ssSeq([dispT(Op),ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(lbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-    dispT(enum(Sx)) => ssSeq([ss("'"),ss(Sx),ss("'")]).
 
     dispTs(Els) => interleave(Els//dispT,ss(",")).
 
@@ -37,7 +35,6 @@ star.compiler.terms{
     hsh(strg(S)) => hash(S).
     hsh(term(Op,Args)) =>
       foldRight((T,H)=>H*37+hsh(T),hsh(Op)*37,Args).
-    hsh(enum(S)) => hash(S).
     hsh(lbl(N,A)) => hash(N)*37+A
   } in {
     hash(T) => hsh(T)
@@ -48,7 +45,6 @@ star.compiler.terms{
     eq(flot(X),flot(Y)) => X==Y.
     eq(strg(X),strg(Y)) => X==Y.
     eq(term(O1,A1),term(O2,A2)) => eq(O1,O2) && A1==A2.
-    eq(enum(X),enum(Y)) => X==Y.
     eq(lbl(N1,A1),lbl(N2,A2)) => N1==N2 && A1==A2.
     eq(_,_) default => false.
   } in {.
@@ -57,6 +53,13 @@ star.compiler.terms{
 
   public mkTpl:(list[data]) => data.
   mkTpl(A) where L.=size(A) => term(lbl("()$(L)",L),A).
+
+  public isScalar:(data)=>boolean.
+  isScalar(intgr(_)) => true.
+  isScalar(flot(_)) => true.
+  isScalar(strg(_)) => true.
+  isScalar(lbl(_,_)) => true.
+  isScalar(_) default => false.
 
   public implementation coercion[data,string] => {
     _coerce(T) => _implode(encodeTerm(T)).
@@ -71,7 +74,6 @@ star.compiler.terms{
   encodeT(flot(Dx),Cs) => encodeText(Dx::string,[Cs..,0cd]).
   encodeT(strg(Tx),Cs) => encodeText(Tx,[Cs..,0cs]).
   encodeT(lbl(Nm,Ar),Cs) => encodeText(Nm,encodeNat(Ar,[Cs..,0co])).
-  encodeT(enum(Nm),Cs) => encodeText(Nm,[Cs..,0ce]).
   encodeT(term(Op,Args),Cs) =>
     encodeTerms(Args,encodeT(Op,encodeNat(size(Args),[Cs..,0cn]))).
 
@@ -90,7 +92,7 @@ star.compiler.terms{
   }
   decodeTerm([0ce,..Ls]) => do{
     (Nm,Lx) <- decodeText(Ls);
-    valis (enum(Nm),Lx)
+    valis (lbl(Nm,0),Lx)
   }
   decodeTerm([0cs,..Ls]) => do{
     (Nm,Lx) <- decodeText(Ls);

@@ -10,13 +10,16 @@ star.compiler.core{
     | crApply(locn,crExp,list[crExp],tipe)
     | crLet(locn,crVar,crExp,crExp)
     | crLam(locn,list[crVar],crExp)
-    | crCase(locn,crExp,list[(locn,crExp,crExp)],tipe)
-    | crType(locn,tipe).
+    | crCase(locn,crExp,list[crCase],tipe)
+    | crType(locn,tipe)
+    | crAbort(locn,string).
   
   public crVar ::= crId(string,tipe)
     | crTpVr(string,crKind).
 
   crKind ~> tipe.
+
+  public crCase ~> (locn,crExp,crExp).
 
   public implementation equality[crVar] => {.
     crId(N1,T1) == crId(N2,T2) => N1==N2 && T1==T2.
@@ -74,4 +77,28 @@ star.compiler.core{
     disp(crTpVr(Nm,_)) => ssSeq([ss("%"),disp(Nm)]).
   .}
 
+  public rewriteTerm:(crExp,map[string,crExp])=>crExp.
+  rewriteTerm(crVar(Lc,V),M) => rewriteVar(Lc,V,M).
+  rewriteTerm(crLit(Lc,D,T),_) => crLit(Lc,D,T).
+  rewriteTerm(crApply(Lc,Op,Args,Tp),M) =>
+    crApply(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
+  rewriteTerm(crLet(Lc,V,B,E),M) where M1 .= dropVar(M,V) =>
+    crLet(Lc,V,rewriteTerm(B,M1),rewriteTerm(E,M1)).
+  rewriteTerm(crLam(Lc,Args,R),M) where M1 .= foldLeft(dropVar,M,Args) =>
+    crLam(Lc,Args,rewriteTerm(R,M1)).
+  rewriteTerm(crCase(Lc,Sel,Cases,Tp),M) =>
+    crCase(Lc,rewriteTerm(Sel,M),Cases//(C)=>rewriteCase(C,M),Tp).
+  rewriteTerm(crType(Lc,Tp),_)=>crType(Lc,Tp).
+  rewriteTerm(crAbort(Lc,Tp),_)=>crAbort(Lc,Tp).
+
+  dropVar:(map[string,crExp],crVar)=>map[string,crExp].
+  dropVar(M,crId(Nm,_)) => M[\+Nm].
+
+  rewriteVar:(locn,crVar,map[string,crExp])=>crExp.
+  rewriteVar(_,crId(Nm,_),M) where T^=M[Nm] => T.
+  rewriteVar(Lc,V,_) => crVar(Lc,V).
+
+  rewriteCase:(crCase,map[string,crExp]) => crCase.
+  rewriteCase((Lc,Ptn,Rp),M) => (Lc,rewriteTerm(Ptn,M),rewriteTerm(Rp,M)).
+  
 }
