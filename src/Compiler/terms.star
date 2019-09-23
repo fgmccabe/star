@@ -4,15 +4,13 @@ star.compiler.terms{
   import star.compiler.location.
   import star.compiler.types.
 
-  public data ::= voyd
-    | intgr(integer)
+  public data ::= intgr(integer)
     | flot(float)
     | strg(string)
     | term(data,list[data])
     | lbl(string,integer).
 
   public implementation display[data] => let{
-    dispT(voyd) => ss("␀").
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
@@ -52,7 +50,10 @@ star.compiler.terms{
   .}
 
   public mkTpl:(list[data]) => data.
-  mkTpl(A) where L.=size(A) => term(lbl("()$(L)",L),A).
+  mkTpl(A) where L.=size(A) => term(tplLbl(L),A).
+
+  public tplLbl:(integer)=>data.
+  tplLbl(Ar) => lbl("()$(Ar)",Ar).
 
   public isScalar:(data)=>boolean.
   isScalar(intgr(_)) => true.
@@ -69,7 +70,6 @@ star.compiler.terms{
   encodeTerm(T) => encodeT(T,[]).
 
   encodeT:(data,list[integer])=>list[integer].
-  encodeT(voyd,Cs) => [Cs..,0cv].
   encodeT(intgr(Ix),Cs) => encodeInt(Ix,[Cs..,0cx]).
   encodeT(flot(Dx),Cs) => encodeText(Dx::string,[Cs..,0cd]).
   encodeT(strg(Tx),Cs) => encodeText(Tx,[Cs..,0cs]).
@@ -81,7 +81,6 @@ star.compiler.terms{
   encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
   
   public decodeTerm:(list[integer])=>either[(),(data,list[integer])].
-  decodeTerm([0cv,..Ls]) => either((voyd,Ls)).
   decodeTerm([0cx,..Ls]) => do{
     (Ix,L0) <- decodeInt(Ls);
     valis (intgr(Ix),L0)

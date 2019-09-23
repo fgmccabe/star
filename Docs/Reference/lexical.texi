@@ -18,7 +18,7 @@
 @Star{} source text is based on the Unicode character set. This
 means that identifiers and string values may directly use any Unicode
 characters. However, all the standard operators and keywords fall in
-the ASCII subset of Unicode.
+he ASCII subset of Unicode.
 
 @menu
 * Comments and White Space::
@@ -52,14 +52,14 @@ There are two forms of comment: line comment and block comment.
 @subsubsection Line Comment
 @cindex comment,line
 @cindex line comment
-A line comment consists of a @code{-- } or a @code{--\t} followed by all
+A line comment consists of a @code{--@spce{}} or a @code{--\t} followed by all
 characters up to the next new-line. Here, @code{\t} refers to the
 Horizontal Tab.
 
 @float BNF,lineCommentFig
 @caption{Line Comment}
 @display
-@anchored{LineComment} ::= (@code{'-- '} | @code{'--\t'}) @refer{Char} @dots{} @refer{Char} @code{'\n'}
+@anchored{LineComment} ::= (@code{'--@spce{}'} | @code{'--\t'}) @refer{Char} @dots{} @refer{Char} @code{'\n'}
 @end display
 @end float
 
@@ -95,7 +95,6 @@ tokens. Except when they occur in a @refer{StringLiteral} or in a
 @anchored{WhiteSpace} ::= @code{' '} | @code{'\n'} |@code{'\r'} | @code{'\f'} |@code{'\t'}
 @end display
 @end float
-
 
 @node Number Literals
 @section Number Literals

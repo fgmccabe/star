@@ -68,7 +68,7 @@ meta-grammar can be described using itself; as shown in @pxref{metaGrammar}.
 @var{Production} ::+= @var{NonTerminal} @code{'::+='} @var{Body}
 @var{Body} ::= @var{Quoted} | @var{NonTerminal} | @var{Choice} | @var{Optional} | @var{Sequence} | @code{'('} @var{Body} @code{')'}
 @var{Quoted} ::= '@var{Characters}'
-@var{NonTerminal} ::= @var{Identifier}
+@var{NonTerminal} ::= @var{Identifier} | @var{Identifier} @code{'('} @var{Expression} @code{')'}
 @var{Choice} ::= @var{Body} @code{'|'} @dots{} @code{'|'} @var{Body}
 @var{Optional} ::= [ @var{Body} ]
 @var{Sequence} ::= @var{Body}  @var{op} @dots{} @var{op} @var{Body} [@code{'+'}]
@@ -80,10 +80,10 @@ frequently and may not be standard in BNF-style grammars. For example
 the rules for actions contain:
 
 @example
-@var{Action} ::= '@{' @var{Action} ';' .. ';' @var{Action} '@}'
+@var{BlockAction} ::= '@{' @var{Action} ';' .. ';' @var{Action} '@}'
 @end example
 
-This grammar rule defines an @var{Action} as a possibly empty sequence of
+This grammar rule defines an @var{BlockAction} as a possibly empty sequence of
 @var{Action}s separated by semi-colons and enclosed in braces -- i.e.,
 the classic definition of a block.
 
@@ -130,7 +130,6 @@ program that is embedded in a context.
 @cindex ellipsis
 @cindex ...
 
-
 Occasionally, we have to show a somewhat generic fragment of a program
 where you, the programmer, are expected to put your own text in. We
 highlight such areas using @code{@var{this}} font:
@@ -138,7 +137,6 @@ highlight such areas using @code{@var{this}} font:
 @example
 (@var{Args}) => @var{Expr}
 @end example
-
 
 This kind of notation is intended to suggest that @code{@var{Args}} and
 @code{@var{Expr}} are a kind of @emph{meta-variable} which are intended to be

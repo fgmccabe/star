@@ -41,6 +41,10 @@
 @end ifnottex
 @end ifnotinfo
 
+@macro spce
+@U{2420}
+@end macro
+
 @macro typeprod{E,Exp,T}
 @var{\E\} @turnstile{} \Exp\:\T\
 @end macro
