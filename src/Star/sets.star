@@ -1,5 +1,6 @@
 star.sets{
   import star.core.
+  import star.coerce.
   import star.collection.
   import star.ideal.
   import star.iterable.
@@ -47,5 +48,9 @@ star.sets{
   public implementation all e ~~ folding[set[e]->>e] => {
     foldRight(F,A,set(S)) => ixRight((K,_,X) => F(K,X),A,S).
     foldLeft(F,A,set(S)) => ixLeft((X,K,_)=>F(X,K),A,S).
+  }
+
+  public implementation all e ~~ coercion[set[e],list[e]] => {
+    _coerce(set(M)) => ixRight((K,_,X)=>[X..,K],[],M)
   }
 }

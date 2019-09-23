@@ -55,7 +55,7 @@ star.compiler.matcher{
 
   tripleArgMode(([A,.._],_,_)) => argMode(A).
 
-  argMode ::= inVars | inScalars | inConstructors.
+  argMode ::= inVars | inScalars | inConstructors | inOthers.
 
   implementation equality[argMode] => {
     inVars == inVars => true.
@@ -66,13 +66,15 @@ star.compiler.matcher{
 
   argMode(crVar(_,_)) => inVars.
   argMode(crLit(_,Lt,_)) => litArgMode(Lt).
-  argMode(crApply(_,_,_,_)) => inConstructors.
+  argMode(crApply(_,crLit(_,lbl(_,_),_),_,_)) => inConstructors.
+  argMode(_) default => inOthers.
 
   litArgMode(intgr(_)) => inScalars.
   litArgMode(flot(_)) => inScalars.
   litArgMode(strg(_)) => inScalars.
   litArgMode(lbl(_,_)) => inScalars.
   litArgMode(term(_,_)) => inConstructors.
+  litArgMode(_) => inOthers.
 
   matchSegments([],_,_,Deflt) => Deflt.
   matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt) =>

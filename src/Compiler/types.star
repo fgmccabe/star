@@ -323,6 +323,12 @@ star.compiler.types{
     typeOf(typeConstraint(Tp)) => Tp.
   .}
 
+  public arity:(tipe)=>integer.
+  arity(Tp) => let{
+    ar(tupleType(A)) => size(A).
+    ar(_) => 1
+  } in ar(deRef(funTypeArg(Tp))).
+  
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
 
@@ -334,6 +340,12 @@ star.compiler.types{
       tpExp(O,_) .= deRef(Tp) &&
       tpExp(O2,A) .= deRef(O) &&
       tpFun("=>",2).=deRef(O2) => deRef(A).
+
+  public isFunType:(tipe) => option[(tipe,tipe)].
+  isFunType(Tp) where
+      tpExp(O,B).=deRef(Tp) &&
+      tpExp(O2,A) .= deRef(O) &&
+      tpFun("=>",2).=deRef(O2) => some((A,B)).
 
   public intType = nomnal("star.core*integer").
   public fltType = nomnal("star.core*float").

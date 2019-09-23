@@ -21,6 +21,11 @@ star.compiler.core{
 
   public crCase ~> (locn,crExp,crExp).
 
+  public mkCrTpl:(list[crExp],locn) => crExp.
+  mkCrTpl(Args,Lc) where ATp .= tupleType(Args//typeOf) =>
+    crApply(Lc,crLit(Lc,tplLbl(size(Args)), consType(ATp,ATp)),
+      Args,ATp).
+
   public implementation equality[crVar] => {.
     crId(N1,T1) == crId(N2,T2) => N1==N2 && T1==T2.
     crTpVr(N1,T1) == crTpVr(N2,T2) => N1==N2 && T1==T2
