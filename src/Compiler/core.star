@@ -6,13 +6,20 @@ star.compiler.core{
   import star.compiler.types.
   
   public crExp ::= crVar(locn,crVar)
-    | crLit(locn,data,tipe)
+    | crInt(locn,integer)
+    | crFlot(locn,float)
+    | crStrg(locn,string)
+    | crLbl(locn,string,integer,tipe)
     | crApply(locn,crExp,list[crExp],tipe)
+    | crTerm(locn,string,list[crExp],tipe)
+    | crDte(locn,crExp,integer,tipe)
     | crLet(locn,crVar,crExp,crExp)
     | crLam(locn,list[crVar],crExp)
     | crCase(locn,crExp,list[crCase],tipe)
     | crType(locn,tipe)
-    | crAbort(locn,string).
+    | crAbort(locn,string)
+    | crWhere(locn,crExp,crExp)
+    | crMatch(locn,crExp,crExp).
   
   public crVar ::= crId(string,tipe)
     | crTpVr(string,crKind).
@@ -22,9 +29,8 @@ star.compiler.core{
   public crCase ~> (locn,crExp,crExp).
 
   public mkCrTpl:(list[crExp],locn) => crExp.
-  mkCrTpl(Args,Lc) where ATp .= tupleType(Args//typeOf) =>
-    crApply(Lc,crLit(Lc,tplLbl(size(Args)), consType(ATp,ATp)),
-      Args,ATp).
+  mkCrTpl(Args,Lc) =>
+    crTerm(Lc,tplLbl(size(Args)), Args, tupleType(Args//typeOf)).
 
   public implementation equality[crVar] => {.
     crId(N1,T1) == crId(N2,T2) => N1==N2 && T1==T2.
@@ -38,8 +44,15 @@ star.compiler.core{
 
   public implementation hasLoc[crExp] => {
     locOf(crVar(Lc,_)) => Lc.
-    locOf(crLit(Lc,_,_)) => Lc.
+    locOf(crInt(Lc,_)) => Lc.
+    locOf(crFlot(Lc,_)) => Lc.
+    locOf(crStrg(Lc,_)) => Lc.
+    locOf(crLbl(Lc,_,_,_)) => Lc.
+    locOf(crTerm(Lc,_,_,_)) => Lc.
+    locOf(crDte(Lc,_,_,_)) => Lc.
     locOf(crApply(Lc,_,_,_)) => Lc.
+    locOf(crWhere(Lc,_,_)) => Lc.
+    locOf(crMatch(Lc,_,_)) => Lc.
     locOf(crLet(Lc,_,_,_)) => Lc.
     locOf(crLam(Lc,_,_)) => Lc.
     locOf(crCase(Lc,_,_,_)) => Lc.
@@ -48,12 +61,19 @@ star.compiler.core{
 
   public implementation hasType[crExp] => let{
     tpOf(crVar(_,V)) => typeOf(V).
-    tpOf(crLit(_,_,Tp)) => Tp.
+    tpOf(crInt(_,_)) => intType.
+    tpOf(crFlot(_,_)) => fltType.
+    tpOf(crStrg(_,_)) => strType.
+    tpOf(crLbl(_,_,_,Tp)) => Tp.
     tpOf(crApply(_,_,_,Tp)) => Tp.
+    tpOf(crTerm(_,_,_,Tp)) => Tp.
+    tpOf(crDte(_,_,_,Tp)) => Tp.
     tpOf(crLet(_,_,_,E)) => tpOf(E).
     tpOf(crLam(_,Vs,E)) => funType(tupleType(Vs//typeOf),tpOf(E)).
     tpOf(crCase(_,_,_,Tp)) => Tp.
     tpOf(crType(_,Tp)) => Tp.
+    tpOf(crWhere(_,T,_)) => tpOf(T).
+    tpOf(crMatch(_,_,_)) => boolType.
   } in {
     typeOf = tpOf
   }
@@ -65,12 +85,19 @@ star.compiler.core{
 
   public implementation display[crExp] => let{
     dE(crVar(_,V)) => disp(V).
-    dE(crLit(_,D,_)) => disp(D).
+    dE(crInt(_,Ix)) => disp(Ix).
+    dE(crFlot(_,Dx)) => disp(Dx).
+    dE(crStrg(_,Sx)) => disp(Sx).
+    dE(crLbl(_,Lb,Ar,_)) => ssSeq([ss(Lb),ss("/"),disp(Ar)]).
     dE(crApply(_,Op,As,_)) => ssSeq([dE(Op),ss("("),ssSeq(interleave(As//dE,ss(","))),ss(")")]).
+    dE(crTerm(_,Op,As,_)) => ssSeq([ss(Op),ss("("),ssSeq(interleave(As//dE,ss(","))),ss(")")]).
+    dE(crDte(_,O,Ix,_)) => ssSeq([dE(O),ss("."),disp(Ix)]).
     dE(crLet(_,V,E,I)) => ssSeq([ss("let "),disp(V),ss(" = "),dE(E),ss(" in "),dE(I)]).
     dE(crLam(_,Ps,R)) => ssSeq([ss("lambda"),ss("("),ssSeq(interleave(Ps//disp,ss(","))),ss(") => "),dE(R)]).
     dE(crCase(_,E,Cs,_)) => ssSeq([ss("case "),dE(E),ss(" in {"),ssSeq(interleave(Cs//dCase,ss("; "))),ss("}")]).
     dE(crType(_,T)) => ssSeq([ss("@"),disp(T)]).
+    dE(crMatch(_,P,E)) => ssSeq([dE(P),ss(".="),dE(E)]).
+    dE(crWhere(_,T,C)) => ssSeq([dE(T),ss(" where "), dE(C)]).
 
     dCase((_,P,E)) => ssSeq([dE(P),ss(" -> "),dE(E)]).
   } in {
@@ -84,7 +111,13 @@ star.compiler.core{
 
   public rewriteTerm:(crExp,map[string,crExp])=>crExp.
   rewriteTerm(crVar(Lc,V),M) => rewriteVar(Lc,V,M).
-  rewriteTerm(crLit(Lc,D,T),_) => crLit(Lc,D,T).
+  rewriteTerm(crInt(Lc,Ix),_) => crInt(Lc,Ix).
+  rewriteTerm(crFlot(Lc,Dx),_) => crFlot(Lc,Dx).
+  rewriteTerm(crStrg(Lc,Sx),_) => crStrg(Lc,Sx).
+  rewriteTerm(crLbl(Lc,Sx,Ar,Tp),_) => crLbl(Lc,Sx,Ar,Tp).
+  rewriteTerm(crDte(Lc,R,Ix,Tp),M) => crDte(Lc,R,Ix,Tp).
+  rewriteTerm(crTerm(Lc,Op,Args,Tp),M) =>
+    crTerm(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crApply(Lc,Op,Args,Tp),M) =>
     crApply(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crLet(Lc,V,B,E),M) where M1 .= dropVar(M,V) =>
@@ -95,6 +128,12 @@ star.compiler.core{
     crCase(Lc,rewriteTerm(Sel,M),Cases//(C)=>rewriteCase(C,M),Tp).
   rewriteTerm(crType(Lc,Tp),_)=>crType(Lc,Tp).
   rewriteTerm(crAbort(Lc,Tp),_)=>crAbort(Lc,Tp).
+  rewriteTerm(crWhere(Lc,T,C),M) =>
+    crWhere(Lc,rewriteTerm(T,M),rewriteTerm(C,M)).
+  rewriteTerm(crMatch(Lc,P,E),M) =>
+    crMatch(Lc,rewriteTerm(P,M),rewriteTerm(E,M)).
+  rewriteTerm(crLet(Lc,V,B,E),M) where M1 .= dropVar(M,V) =>
+    crLet(Lc,V,rewriteTerm(B,M1),rewriteTerm(E,M1)).
 
   dropVar:(map[string,crExp],crVar)=>map[string,crExp].
   dropVar(M,crId(Nm,_)) => M[\+Nm].
@@ -105,5 +144,4 @@ star.compiler.core{
 
   rewriteCase:(crCase,map[string,crExp]) => crCase.
   rewriteCase((Lc,Ptn,Rp),M) => (Lc,rewriteTerm(Ptn,M),rewriteTerm(Rp,M)).
-  
 }
