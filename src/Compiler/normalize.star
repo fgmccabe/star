@@ -16,7 +16,7 @@ star.compiler.normalize{
     | localFun(string,string,string,tipe,crVar)
     | localVar(string,string,string,tipe,crVar)
     | moduleCons(string,tipe)
-    | labelArg(crVar,integer,crVar).
+    | labelArg(canon,integer,crVar).
 
   mapLayer ::= lyr(string,map[string,nameMapEntry],crVar).
 
@@ -77,7 +77,28 @@ star.compiler.normalize{
   }
 
   transformEquation(eqn(Lc,tple(_,As),Val),Map,Outer,Extra,Rp) => do{
-    
+    Ptns <- liftPtns(As,Map,Rp);
+    throw reportError(Rp,"not done",Lc)
+  }
+
+  liftPtn:(canon,nameMap,reports) => either[reports,crExp].
+  liftPtn(vr(Lc,Nm,Tp),Map,Rp) => trVarPtn(Lc,Nm,Tp,Map,Rp).
+  
+  liftPtns:(list[canon],nameMap,reports) => either[reports,list[crExp]].
+  liftPtns([],_,_) => either([]).
+  liftPtns([P,..Ps],Map,Rp) => do{
+    A <- liftPtn(P,Map,Rp);
+    As <- liftPtns(Ps,Map,Rp);
+    valis [A,..As]
+  }
+
+  trVarPtn(Lc,Nm,Tp,Map,Rp) => implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Rp).
+
+  implementVarPtn(Lc,Nm,none,Tp,_,_) => either(crVar(Lc,crId(Nm,Tp))).
+  implementVarPtn(Lc,Nm,some(moduleVar(_,_)),Tp,_,Rp) => other(reportError(Rp,"not permitted",Lc)).
+  implementVarPtn(Lc,Nm,some(labelArg(Base,Ix,V)),Tp,Map,Rp) => do{
+    Bse <- normExp(Base,Map,Rp);
+    valis crWhere(Lc,V,crMatch(Lc,V,crDot(Lc,Bse,Ix)))
   }
 
   extendFunTp(Tp,[]) => Tp.
@@ -205,15 +226,15 @@ star.compiler.normalize{
 
   anyDef(D) => some(D).
 
-  normExp:(canon,nameMap)=>crExp.
-  normExp(vr(Lc,Nm,Tp),Map) => normVar(Lc,Nm,Tp,Map).
-  normExp(litrl(Lc,Dt,Tp),_) => crLit(Lc,Dt,Tp).
+  normExp:(canon,nameMap,reports)=>either[reports,crExp].
+  normExp(vr(Lc,Nm,Tp),Map,Rp) => normVar(Lc,Nm,Tp,Map,Rp).
+  normExp(litrl(Lc,Dt,Tp),_,_) => either(crLit(Lc,Dt,Tp)).
 
-  normVar:(locn,string,tipe,nameMap)=>crExp.
-  normVar(Lc,Nm,Tp,Map) where V ^= lookupVarName(Map,Nm) =>
-    implementVarExp(V,Lc,Nm,Tp,Map).
+  normVar:(locn,string,tipe,nameMap,reports)=>either[reports,crExp].
+  normVar(Lc,Nm,Tp,Map,Rp) where V ^= lookupVarName(Map,Nm) =>
+    implementVarExp(V,Lc,Nm,Tp,Map,Rp).
 
-  implementVarExp(moduleVar(LNm,_),Lc,Nm,Tp,Map) => crVar(Lc,crId(LNm,Tp)).
+  implementVarExp(moduleVar(LNm,_),Lc,Nm,Tp,Map,_) => either(crVar(Lc,crId(LNm,Tp))).
 
   genVar:(string,tipe) => crVar.
   genVar(Pr,Tp) => crId(genSym(Pr),Tp).
