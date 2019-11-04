@@ -7,15 +7,15 @@ star.compiler.terms{
   public data ::= intgr(integer)
     | flot(float)
     | strg(string)
-    | term(string,list[data])
+    | term(data,list[data])
     | lbl(string,integer).
 
   public implementation display[data] => let{
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
-    dispT(term("[]",Args)) => ssSeq([ss("["),ssSeq(dispTs(Args)),ss("]")]).
-    dispT(term(T,Args)) where isTupleLbl(T) => ssSeq([ss("("),ssSeq(dispTs(Args)),ss(")")]).
+    dispT(term(lbl("[]",_),Args)) => ssSeq([ss("["),ssSeq(dispTs(Args)),ss("]")]).
+    dispT(term(lbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(term(Op,Args)) => ssSeq([disp(Op),ss("("),ssSeq(dispTs(Args)),ss(")")]).
     dispT(lbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
 
@@ -50,7 +50,7 @@ star.compiler.terms{
   .}
 
   public mkTpl:(list[data]) => data.
-  mkTpl(A) where L.=size(A) => term(tplLbl(L),A).
+  mkTpl(A) where L.=size(A) => term(lbl(tplLbl(L),L),A).
 
   public tplLbl:(integer)=>string.
   tplLbl(Ar) => "()$(Ar)".
@@ -75,7 +75,7 @@ star.compiler.terms{
   encodeT(strg(Tx),Cs) => encodeText(Tx,[Cs..,0cs]).
   encodeT(lbl(Nm,Ar),Cs) => encodeText(Nm,encodeNat(Ar,[Cs..,0co])).
   encodeT(term(Op,Args),Cs) =>
-    encodeTerms(Args,encodeText(Op,encodeNat(size(Args),[Cs..,0cn]))).
+    encodeTerms(Args,encodeT(Op,encodeNat(size(Args),[Cs..,0cn]))).
 
   encodeTerms([],Cs) => Cs.
   encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
@@ -104,14 +104,14 @@ star.compiler.terms{
   }
   decodeTerm([0cn,..Ls]) => do{
     (Ax,L0) <- decodeNat(Ls,0);
-    (Op,LL1) <- decodeText(L0);
+    (Op,LL1) <- decodeTerm(L0);
     (Args,Lx) <- decodeTerms(LL1,Ax,[]);
     valis (term(Op,Args),Lx)
   }
   decodeTerm([0cl,..Ls]) => do{
     (Ax,L0) <- decodeNat(Ls,0);
     (Els,Lx) <- decodeTerms(L0,Ax,[]);
-    valis (term("[]",Els),Lx)
+    valis (term(lbl("[]",size(Els)),Els),Lx)
   }
 
   decodeTerms:(list[integer],integer,list[data]) => either[(),(list[data],list[integer])].

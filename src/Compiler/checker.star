@@ -23,7 +23,7 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,list[list[canonDef]],list[canon])].
+  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,canon)].
   checkPkg(Repo,P,Base,Rp) => do{
 --    logMsg("processing package $(P)");
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
@@ -34,11 +34,11 @@ star.compiler.checker{
       
       Path = packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
-      (Vis,Opens,Ots,Annots,Gps) <- dependencies(Stmts,Rp);
+      (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
       
 --      logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
-      Others <- checkOthers(Ots,[],ThEnv,Path,Rp);
+      Others <- checkOthers(Opens,[],ThEnv,Path,Rp);
 --      logMsg("Final Pkg dict $(ThEnv)");
 --      logMsg("Public names: $(Vis)");
 --      logMsg("Defs: $(Defs)");
@@ -54,11 +54,14 @@ star.compiler.checker{
       Types = exportedTypes(Defs,Vis,pUblic);
 --      logMsg("exported types: $(Types)");
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
-      valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),
-	RDefs,ROthers)
+      PkgTheta = makePkgTheta(Lc,Path,faceType(Fields,Types),RDefs,ROthers);
+      valis (pkgSpec(Pkg,Imports,faceType(Fields,Types),Contracts,Impls),PkgTheta)
     } else
-    throw reportError(Rp,"invalid palckage structure",locOf(P))
+    throw reportError(Rp,"invalid package structure",locOf(P))
   }
+
+  makePkgTheta:(locn,string,tipe,list[list[canonDef]],list[canon])=>canon.
+  makePkgTheta(Lc,Nm,Tp,Defs,Oth) => theta(Lc,Nm,false,Defs,Oth,Tp).
 
   exportedFields:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -90,17 +93,16 @@ star.compiler.checker{
   thetaEnv:(locn,string,list[ast],tipe,dict,reports) =>
     either[reports,(list[list[canonDef]],list[canon],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp) => do{
-    (Vis,Imports,Ots,Annots,Gps) <- dependencies(Els,Rp);
+    (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
     logMsg("visible: $(Vis)");
     Base = pushFace(Face,Lc,Env);
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
-    Others <- checkOthers(Ots,[],ThEnv,Pth,Rp);
 
     logMsg("Defs: $(Defs)");
     PubVrTps = exportedFields(Defs,Vis,deFault);
     PubTps = exportedTypes(Defs,Vis,deFault);
     logMsg("exported fields $(PubVrTps)");
-    valis (Defs,Others,ThEnv,faceType(PubVrTps,PubTps))
+    valis (Defs,[],ThEnv,faceType(PubVrTps,PubTps))
   }
 
   checkGroups:(list[list[defnSpec]],list[list[canonDef]],
@@ -345,19 +347,19 @@ star.compiler.checker{
       (Lc,Ix) ^= isInt(A) &&
       (_,IntTp,_) ^= findType(Env,"integer") => do{
 	checkType(A,IntTp,Tp,Env,Rp);
-	valis litrl(Lc,intgr(Ix),IntTp)
+	valis intr(Lc,Ix)
       }
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Dx) ^= isFlt(A) &&
       (_,FltTp,_) ^= findType(Env,"float") => do{
 	checkType(A,FltTp,Tp,Env,Rp);
-	valis litrl(Lc,flot(Dx),FltTp)
+	valis flot(Lc,Dx)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Sx) ^= isStr(A) &&
       (_,StrTp,_) ^= findType(Env,"string") => do{
 	checkType(A,StrTp,Tp,Env,Rp);
-	valis litrl(Lc,strg(Sx),StrTp)
+	valis strng(Lc,Sx)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,E,T) ^= isTypeAnnotation(A) => do{
@@ -416,6 +418,27 @@ star.compiler.checker{
 	(Gl,_) <- checkGoal(A,Env,Path,Rp);
 	valis Gl
       }.
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,G,Cases) ^= isCaseExp(A) => let{
+    ETp = newTypeVar("_e").
+    
+    checkRle(E,RRp) where (Lc,H,R) ^= isEquation(E) => do{
+      (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
+      Rep <- typeOfExp(R,Tp,E0,Path,RRp);
+      valis eqn(Lc,Arg,Rep)
+    }
+    checkRle(E,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
+
+    typeOfCases:(list[ast],list[equation],reports) => either[reports,list[equation]].
+    typeOfCases([],Els,_) => either(Els).
+    typeOfCases([Cs,..Ps],SoFar,RRp) => do{
+      Trm <- checkRle(Cs,Rp);
+      typeOfCases(Ps,[SoFar..,Trm],RRp)
+    }
+  } in do{
+    Gv <- typeOfExp(G,ETp,Env,Path,Rp);
+    Gc <- typeOfCases(Cases,[],Rp);
+    valis csexp(Lc,Gv,Gc,Tp)
+  }
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,R,F) ^= isFieldAcc(A) && (_,Fld) ^= isName(F) => do{
 	Rc <- typeOfExp(R,newTypeVar("_r"),Env,Path,Rp);

@@ -96,7 +96,9 @@ star.compiler.resolve{
 
   overloadTerm:(canon,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   overloadTerm(vr(Lc,Nm,Tp),_,St,Rp) => either((St,vr(Lc,Nm,Tp))).
-  overloadTerm(litrl(Lc,Lt,Tp),_,St,Rp) => either((St,litrl(Lc,Lt,Tp))).
+  overloadTerm(intr(Lc,Ix),_,St,Rp) => either((St,intr(Lc,Ix))).
+  overloadTerm(flot(Lc,Dx),_,St,Rp) => either((St,flot(Lc,Dx))).
+  overloadTerm(strg(Lc,Sx),_,St,Rp) => either((St,strg(Lc,Sx))).
   overloadTerm(enm(Lc,Nm,Tp),_,St,Rp) => either((St,enm(Lc,Nm,Tp))).
   overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Rp) => do{
     (Stx,Rc1) <- overloadTerm(Rc,Dict,St,Rp);

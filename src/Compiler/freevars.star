@@ -4,13 +4,17 @@ star.compiler.freevars{
 
   import star.compiler.canon.
   import star.compiler.core.
+  import star.compiler.escapes.
   import star.compiler.types.
 
   public freeVarsInTerm:(canon,set[crVar],set[crVar]) => set[crVar].
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Fv => Fv.
+  freeVarsInTerm(vr(_,Nm,_),_,Fv) where isEscape(Nm) => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(crId(Nm,Tp),Fv).
-  freeVarsInTerm(litrl(_,_,_),_,Fv) => Fv.
+  freeVarsInTerm(intr(_,_),_,Fv) => Fv.
+  freeVarsInTerm(flot(_,_),_,Fv) => Fv.
+  freeVarsInTerm(strng(_,_),_,Fv) => Fv.
   freeVarsInTerm(enm(_,_,_),_,Fv) => Fv.
   freeVarsInTerm(dot(_,Rc,_,_),Excl,Fv) => freeVarsInTerm(Rc,Excl,Fv).
   freeVarsInTerm(mtd(_,_,_),_,Fv) => Fv.
@@ -43,10 +47,10 @@ star.compiler.freevars{
     freeVarsInTerm(B,Excl,freeVarsInTerm(E,Excl1,Fv)).
   freeVarsInTerm(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) where
       Excl1 .= extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
-    foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,flatten(Defs)).
+    foldRight((D,F)=>freeVarsInGroup(D,Excl1,F),Fv,Defs).
   freeVarsInTerm(record(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) where
       Excl1 .= extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
-    foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,flatten(Defs)).
+    foldRight((D,F)=>freeVarsInGroup(D,Excl1,F),Fv,Defs).
 
   freeVarsInCond:(canon,set[crVar],set[crVar]) => (set[crVar],set[crVar]).
   freeVarsInCond(cond(_,T,L,R),Excl,Fv) where
@@ -70,6 +74,11 @@ star.compiler.freevars{
   freeVarsInEqn(eqn(_,Ptn,Exp),Excl,Fv) where
       Excl1 .= extendExcl(Ptn,Excl,Fv) =>
     freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,Fv)).
+
+  public freeVarsInGroup:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
+  freeVarsInGroup(Defs,Excl,Fv) => let{
+    Excl1 = exclDfs(Defs,Excl,Fv)
+  } in foldRight((D,F)=>freeVarsInDef(D,Excl,F),Fv,Defs).
 
   freeVarsInDef(varDef(_,_,_,E,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
@@ -105,13 +114,25 @@ star.compiler.freevars{
     freeVarsInTerm(E,Excl,Fv).
 
   extendExcl:(canon,set[crVar],set[crVar]) => set[crVar].
+  extendExcl(theta(_,_,_,Defs,_,_),Excl,Fv) =>
+    foldRight((Dfs,Ex0)=>foldRight((D,Ex)=>exclDf(D,Ex,Fv),Ex0,Dfs),Excl,Defs).
+  extendExcl(record(_,_,_,Defs,_,_),Excl,Fv) =>
+    foldRight((Dfs,Ex0)=>exclDfs(Dfs,Ex0,Fv),Excl,Defs).
   extendExcl(P,Excl,Fv) => ptnVars(P,Excl,Fv).
+
+  exclDfs:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
+  exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
+
+  exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => ptnVars(vr(Lc,Nm,Tp),Excl,Fv).
+  exclDf(_,Excl,_) => Excl.
 
   ptnVars:(canon,set[crVar],set[crVar]) => set[crVar].
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Excl.
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Fv => Excl.
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
-  ptnVars(litrl(_,_,_),Excl,Fv) => Excl.
+  ptnVars(intr(_,_),Excl,_) => Excl.
+  ptnVars(flot(_,_),Excl,_) => Excl.
+  ptnVars(strng(_,_),Excl,_) => Excl.
   ptnVars(enm(_,_,_),Excl,Fv) => Excl.
   ptnVars(dot(_,Rc,_,_),Excl,Fv) => ptnVars(Rc,Excl,Fv).
   ptnVars(mtd(_,_,_),Excl,Fv) => Excl.

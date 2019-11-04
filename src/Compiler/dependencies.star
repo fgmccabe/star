@@ -11,9 +11,9 @@ star.compiler.dependencies{
 
   public dependencies:(list[ast],reports) =>
     either[reports,
-      (list[(defnSp,visibility)],list[importSpec],list[ast],list[(string,ast)],list[list[defnSpec]])].
+      (list[(defnSp,visibility)],list[ast],list[(string,ast)],list[list[defnSpec]])].
   dependencies(Dfs,Rp) => do{
-    (Defs,Pb,As,Imp,Oth) <- collectDefinitions(Dfs,Rp);
+    (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
     AllRefs = Defs//((defnSpec(Nm,_,_))=>Nm);
 
     logMsg("found defs $(AllRefs)");
@@ -21,7 +21,7 @@ star.compiler.dependencies{
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
     Groups = topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
     
-    valis (Pb,Imp,Oth,As,Groups)
+    valis (Pb,Opn,As,Groups)
   }
 
   definitionSpec ::= definition(defnSp,locn,list[defnSp],list[ast]).
@@ -30,6 +30,112 @@ star.compiler.dependencies{
     references(definition(_,_,Refs,_)) => Refs.
     defined(definition(Sp,_,_,_),Rf) => Sp==Rf.
   }
+
+  collectDefinitions:(list[ast],
+    reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
+      list[(string,ast)],list[ast])].
+  collectDefinitions(Stmts,Rp) => collectDefs(Stmts,[],[],[],[],Rp).
+
+  collectDefs:(list[ast],list[defnSpec],list[(defnSp,visibility)],list[(string,ast)],list[ast],reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
+      list[(string,ast)],list[ast])].
+  
+  collectDefs([],Defs,Pb,As,Opn,Rp) => either((Defs,Pb,As,Opn)).
+  collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) => do{
+    (SS1,Dfs1,Pb1,As1,Opn1) <- collectDefinition(A,Ss,Defs,Pb,As,Opn,deFault,Rp);
+    collectDefs(SS1,Dfs1,Pb1,As1,Opn1,Rp)
+  }
+    
+  collectDefinition:(ast,
+    list[ast],
+    list[defnSpec],
+    list[(defnSp,visibility)],
+    list[(string,ast)],
+    list[ast],
+    visibility,
+    reports) => either[reports,(list[ast],list[defnSpec],
+      list[(defnSp,visibility)],list[(string,ast)],list[ast])].
+
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
+      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[A,..Opn])).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,V,T) ^= isTypeAnnotation(A) => do{
+	if _ ^= isConstructorType(T) then {
+	  if (_,V1) ^= isPrivate(V) && (ILc,Id) ^= isName(V1) then {
+	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+	      [(cnsSp(Id),priVate),..Pb],[(Id,T),..As],Opn)
+	  }
+	  else if (ILc,Id) ^= isName(V) then{
+	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
+	  }
+	  else
+	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
+	} else if (VLc,Id) ^= isName(V) then{
+	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
+	} else
+	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
+      }.
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
+      (_,Ai) ^= isPublic(A) =>
+    collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,pUblic,Rp).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
+      (_,Ai) ^= isPrivate(A) =>
+    collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,priVate,Rp).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,S,Els) ^= isContractStmt(A) &&
+      (_,Nm,Qs,Cs,T) ^= isContractSpec(S)  =>
+    either((Stmts,[defnSpec(conSp(Nm),Lc,[A]),..Defs],
+	[(conSp(Nm),Vz),..Pb],
+	generateAnnotations(Qs,Els,Cs,As),
+	Opn)).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
+      Sp .= implSp(implementedContractName(Cn)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
+    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
+	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Vz,Rp);
+	valis (Stmts,Dfs1,Pb1,As1,Opn)
+      }.
+  collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
+	Sp = varSp(Id);
+	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)
+      }.
+  collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
+	Sp = varSp(Id); -- map X:=E to X=!!E
+	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],
+	  [(Sp,Vz),..Pb],As,Opn)
+      }.
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,Nm) ^= ruleName(A) => do{
+	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
+	Sp = varSp(Nm);
+	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],[(Sp,Vz),..Pb],As,Opn)
+      }.
+
+  collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
+  collectDefines([St,..Ss],Nm,Dfs) where
+      (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[Dfs..,St]).
+  collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
+	
+  generateAnnotations:(list[ast],list[ast],list[ast],list[(string,ast)]) =>
+    list[(string,ast)].
+  generateAnnotations([],_,_,As) => As.
+  generateAnnotations([A,..Ss],Qs,Cs,As) where
+      (_,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
+    generateAnnotations(Ss,Qs,Cs,[(Id,reUQuant(Qs,reConstrain(Cs,T))),..As]).
+  generateAnnotations([A,..Ss],Qs,Cs,As) =>
+    generateAnnotations(Ss,Qs,Cs,As).
+
+  
 
   collectThetaRefs:(list[defnSpec],list[defnSp],list[(string,ast)],
     list[definitionSpec],reports) =>
@@ -186,6 +292,23 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectCondRefs(Cond,All,Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,E,C) ^= isCaseExp(T) => do{
+    Rf0 <- collectTermRefs(E,All,Rf,Rp);
+    collectCasesRefs(C,All,Rf0,Rp)
+  }
+
+  collectCasesRefs([],_,Rf,_) => either(Rf).
+  collectCasesRefs([St,..Sts],All,Rf,Rp) => do{
+    Rf0 <- collectCaseRefs(St,All,Rf,Rp);
+    collectCasesRefs(Sts,All,Rf0,Rp)
+  }
+  collectCaseRefs(Cse,All,Rf,Rp) where (_,Lhs,Rhs) ^= isEquation(Cse) => do{
+    Rf1 <- collectTermRefs(Lhs,All,Rf,Rp);
+    collectTermRefs(Rhs,All,Rf1,Rp)
+  }
+  collectCaseRefs(Cse,_,_,Rp) =>
+    other(reportError(Rp,"invalid case in case expression $(Cse)",locOf(Cse))).
+    
   collectTermRefs(_,_,Rf,_) default => either(Rf).
 
   collectTermListRefs:(list[ast],list[defnSp],list[defnSp],reports) =>
@@ -291,5 +414,4 @@ star.compiler.dependencies{
   filterOut([tpSp(Nm),..As],Q) where V in Q && (_,Nm)^=isName(V) =>
     filterOut(As,Q).
   filterOut([Sp,..As],Q) => [Sp,..filterOut(As,Q)].
-
 }
