@@ -281,9 +281,10 @@ rewriteTerm(QTest,whr(Lc,T,C),whr(Lc,NT,NC)) :-
 rewriteTerm(QTest,varNames(Lc,V,T),varNames(Lc,NV,NT)) :-
   map(V,terms:rewriteVN(QTest),NV),
   rewriteTerm(QTest,T,NT).
-rewriteTerm(QTest,case(Lc,T,C),case(Lc,NT,NC)) :-
+rewriteTerm(QTest,case(Lc,T,C,D),case(Lc,NT,NC,ND)) :-
   rewriteTerm(QTest,T,NT),
-  map(C,terms:rewriteCase(QTest),NC).
+  map(C,terms:rewriteCase(QTest),NC),
+  rewriteTerm(QTest,D,ND).
 rewriteTerm(QTest,seq(Lc,L,R),seq(Lc,NL,NR)) :-
   rewriteTerm(QTest,L,NL),
   rewriteTerm(QTest,R,NR).
@@ -309,7 +310,7 @@ rewriteTerms(QTest,Els,NEls):-
 rewriteVN(QTest,(T,E),(T,NE)) :-
   rewriteTerm(QTest,E,NE).
 
-rewriteCase(QTest,(T,E),(NT,NE)) :-
+rewriteCase(QTest,(T,E,Lbl),(NT,NE,Lbl)) :-
   rewriteTerm(QTest,T,NT),
   rewriteTerm(QTest,E,NE).
 

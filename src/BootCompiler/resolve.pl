@@ -143,6 +143,9 @@ overloadTerm(search(Lc,P,S,I),Dict,St,Stx,search(Lc,RP,RS,RI)) :-
   overloadTerm(P,Dict,St,St0,RP),
   overloadTerm(S,Dict,St0,St1,RS),
   overloadTerm(I,Dict,St1,Stx,RI).
+overloadTerm(case(Lc,B,C,Tp),Dict,St,Stx,case(Lc,RB,RC,Tp)) :-
+  overloadTerm(B,Dict,St,St0,RB),
+  overloadCases(C,Dict,St0,Stx,RC).
 overloadTerm(abstraction(Lc,B,C,Zed,Gen,Tp),
 	     Dict,St,Stx,abstraction(Lc,RB,RC,RZed,RGen,Tp)) :-
   overloadTerm(B,Dict,St,St0,RB),
@@ -172,6 +175,9 @@ overloadTerm(lambda(Lc,Eqn,Tp),Dict,St,Stx,lambda(Lc,OEqn,Tp)) :-
   overloadRule(Eqn,Dict,St,Stx,OEqn).
 overloadTerm(doTerm(Lc,Body,ElTp,ErTp,Con),Dict,St,Stx,doTerm(Lc,RBody,ElTp,ErTp,Con)) :-
   overloadAction(Body,Dict,St,Stx,RBody).
+
+overloadCases(Cses,Dict,St,Stx,RCases) :-
+  overloadLst(Cses,resolve:overloadRule,Dict,St,Stx,RCases).
 
 overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
   overloadAction(A,Dict,St,St1,RA),

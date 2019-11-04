@@ -137,6 +137,7 @@ locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(theta(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(record(Lc,_,_,_,_,_,_),Lc) :-!.
 locOfCanon(letExp(Lc,_,_),Lc) :- !.
+locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(tple(Lc,_),Lc) :-!.
 locOfCanon(varRef(Lc,_),Lc) :-!.
@@ -213,6 +214,11 @@ showCanonTerm(enm(_,Nm,_),_,O,Ox) :-
 showCanonTerm(cons(_,Nm,_),_,O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).
+showCanonTerm(case(_,Bound,Cases,_),Dp,O,Ox) :-
+  showCanonTerm(Bound,Dp,O,O1),
+  appStr(" in {",O1,O2),
+  showRls("",Cases,Dp,O2,O3),
+  appStr("}",O3,Ox).
 showCanonTerm(theta(_,_Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
   appStr("{",O,O2),
   Dp2 is Dp+2,

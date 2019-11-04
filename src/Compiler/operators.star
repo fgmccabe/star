@@ -110,6 +110,7 @@ star.compiler.operators{
   oper("where") => [infixOp(910,911,910)].
   oper("!.") => [infixOp(99,100,99)].
   oper("=<") => [infixOp(899,900,899)].
+  oper("case") => [prefixOp(901,900)].
   oper("==") => [infixOp(899,900,899)].
   oper("\\") => [infixOp(700,700,699)].
   oper("=>") => [infixOp(949,950,950)].

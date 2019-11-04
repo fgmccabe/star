@@ -473,6 +473,10 @@ collectTermRefs(T,A,R0,Refs) :-
 collectTermRefs(T,A,R0,Refs) :-
   isSquareTuple(T,_,Els),
   collectTermListRefs(Els,A,R0,Refs).
+collectTermRefs(T,A,Rf,Refs) :-
+  isCaseExp(T,_,G,C),!,
+  collectTermRefs(G,A,Rf,R0),
+  collectCaseRefs(C,A,R0,Refs).
 collectTermRefs(T,A,R0,Refs) :-
   isAbstraction(T,_,B,G),!,
   collectTermRefs(B,A,R0,R1),
@@ -543,6 +547,11 @@ collectFaceRefs([],_,R,R).
 collectFaceRefs([St|L],All,R0,Refs) :-
   collectStmtRefs(St,All,R0,R1),
   collectFaceRefs(L,All,R1,Refs).
+
+collectCaseRefs([],_,Rf,Rf) :-!.
+collectCaseRefs([E|Cs],A,Rf,Refs) :-
+  collectTermRefs(E,A,Rf,R0),
+  collectCaseRefs(Cs,A,R0,Refs).
 
 collectDoRefs(T,All,Rf,Rfx) :-
   isActionSeq(T,_,L,R),!,
