@@ -93,6 +93,7 @@
   operator("where", [infixOp(910, 911, 910)]).
   operator("!.", [infixOp(99, 100, 99)]).
   operator("=<", [infixOp(899, 900, 899)]).
+  operator("case", [prefixOp(901, 900)]).
   operator("==", [infixOp(899, 900, 899)]).
   operator("\\", [infixOp(700, 700, 699)]).
   operator("=>", [infixOp(949, 950, 950)]).

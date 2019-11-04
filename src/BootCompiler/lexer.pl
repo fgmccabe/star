@@ -1,4 +1,4 @@
-:- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,dispToken/2,subTokenize/3]).
+:- module(lexer,[nextToken/3,allTokens/3,locOfToken/2,isToken/1,showToken/2,subTokenize/3]).
 :- use_module(operators).
 :- use_module(errors).
 :- use_module(misc).
@@ -48,23 +48,23 @@ locOfToken(stringTok(_,Lc),Lc).
 locOfToken(termTok(Lc),Lc).
 locOfToken(terminal,missing).
 
-dispToken(lftTok(Bkt,_),Chrs) :-
+showToken(lftTok(Bkt,_),Chrs) :-
   bracket(Bkt,Lft,_,_),!,
   string_chars(Lft,Chrs).
-dispToken(rgtTok(Bkt,_),Chrs) :-
+showToken(rgtTok(Bkt,_),Chrs) :-
   bracket(Bkt,_,Rgt,_),!,
   string_chars(Rgt,Chrs).
-dispToken(idQTok(Id,_),St) :- string_chars(Id,St).
-dispToken(idTok(Id,_),St) :- string_chars(Id,St).
-dispToken(integerTok(Ix,_),Str) :- number_string(Ix,St),string_chars(St,Str).
-dispToken(floatTok(Dx,_),Str) :- number_string(Dx,St),string_chars(St,Str).
-dispToken(stringTok(St,_),Str) :-
+showToken(idQTok(Id,_),St) :- string_chars(Id,St).
+showToken(idTok(Id,_),St) :- string_chars(Id,St).
+showToken(integerTok(Ix,_),Str) :- number_string(Ix,St),string_chars(St,Str).
+showToken(floatTok(Dx,_),Str) :- number_string(Dx,St),string_chars(St,Str).
+showToken(stringTok(St,_),Str) :-
   appStr("\"",Chrs,C0),
   dispString(St,C0,C1),
   appStr("\"",C1,[]),
   string_chars(Chrs,Str).
-dispToken(termTok(_),['.',' ']).
-dispToken(terminal,[]).
+showToken(termTok(_),['.',' ']).
+showToken(terminal,[]).
 
 dispString([],Cx,Cx).
 dispString([segment(Txt,_)|Ts],C,Cx) :-
@@ -256,14 +256,16 @@ readMoreId(St,St,[]).
 followGraph(Ch,Id,St,NxSt) :- nextSt(St,St1,NxCh), follows(Ch,NxCh,NxId), followGraph(NxId,Id,St1,NxSt).
 followGraph(Ch,Id,St,St) :- final(Ch,Id).
 
-nextToken(St,NxSt,Tk) :- skipToNx(St,St1), nxTok(St1,NxSt,Tk).
+nextToken(St,NxSt,Tk) :- skipToNx(St,St1), nxTok(St1,NxSt,Tk),!.
 
 allTokens(pkg(Pkg,_),Txt,Toks) :- initSt(Pkg,Txt,St), tokenize(St,_,Toks), !.
 
 tokenize(St,NxSt,Toks) :- skipToNx(St,St1), nxTokenize(St1,NxSt,Toks).
 
 nxTokenize(St,St,[]) :- isTerminal(St).
-nxTokenize(St,NxSt,[Tok|More]) :- nxTok(St,St1,Tok), !, tokenize(St1,NxSt,More).
+nxTokenize(St,NxSt,[Tok|More]) :- nxTok(St,St1,Tok), !,
+%  dispToken(Tok),
+  tokenize(St1,NxSt,More).
 
 finalizeToken(Lc,Id,lftTok(Bkt,Lc)) :-
   bracket(Bkt,Id,_,_),!.
@@ -273,3 +275,7 @@ finalizeToken(Lc,Id,idTok(Id,Lc)).
 
 subTokenize(loc(Pkg,LineNo,Col,Off,_),Chars,Toks) :-
   tokenize(tokenState(Chars,LineNo,Col,Off,Pkg),_,Toks).
+
+dispToken(Tk) :-
+  showToken(Tk,Chrs),
+  writef(Chrs),nl().

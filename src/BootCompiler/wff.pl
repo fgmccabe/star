@@ -17,6 +17,7 @@
 	      isConjunct/4,isDisjunct/4,
 	      isForall/4,isNegation/3,isMatch/4,isSearch/4,
 	      isAbstraction/4,isListAbstraction/4,
+	      isCaseExp/4,
 	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
@@ -265,6 +266,11 @@ isLetDef(Trm,Lc,Body,Exp) :-
 mkLetDef(Lc,Els,Bnd,Let) :-
   braceTerm(Lc,name(Lc,"let"),Els,Body),
   binary(Lc,"in",Body,Bnd,Let).
+
+isCaseExp(Trm,Lc,Exp,Cases) :-
+  isUnary(Trm,Lc,"case",L),
+  isBinary(L,_,"in",Exp,R),
+  isBraceTuple(R,_,Cases).
 
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).

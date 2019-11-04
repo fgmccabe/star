@@ -242,6 +242,9 @@
 @item @code{=<}
 @tab non-associative infix
 @tab 900
+@item @code{case}
+@tab non-associative prefix
+@tab 901
 @item @code{==}
 @tab non-associative infix
 @tab 900

@@ -65,7 +65,7 @@ showTrm(T,O) :-
   isAst(T), !, dispAst(T,0,O,[]).
 showTrm(L,O) :-
   isToken(L), !,
-  dispToken(L,O).
+  showToken(L,O).
 showTrm(T,O) :-
   isType(T),!,
   showType(T,true,O,[]).

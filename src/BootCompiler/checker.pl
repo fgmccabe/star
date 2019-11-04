@@ -414,9 +414,9 @@ splitHd(Term,Nm,A,notDeflt) :-
   isRoundTerm(Term,Lc,O,Args),
   isIden(O,_,Nm),
   roundTuple(Lc,Args,A).
-splitHd(Id,Nm,none,isDeflt) :-
+splitHd(Id,Nm,none,notDeflt) :-
   isIden(Id,_,Nm),!.
-splitHd(Term,"()",Term,isDeflt) :-
+splitHd(Term,"()",Term,notDeflt) :-
   isTuple(Term,_).
 
 checkImplementation(Stmt,INm,[Impl,ImplDef|Dfs],Dfs,Env,Ex,_,_Path) :-
@@ -562,7 +562,7 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   binary(Lc,":",LT,R,NT),
   typeOfExp(NT,Tp,Env,Ev,Exp,Path).
 typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
-  isWhere(P,Lc,L,C),
+  isWhere(P,Lc,L,C),!,
   typeOfExp(L,Tp,Env,E0,Ptn,Path),
   checkGoal(C,E0,Ex,Cond,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
@@ -574,6 +574,9 @@ typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   typeOfExp(Th,Tp,E0,E1,Then,Path),
   typeOfExp(El,Tp,Env,E2,Else,Path),
   mergeDict(E1,E2,Env,Ev).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isCaseExp(Term,Lc,Bnd,Cases),
+  checkCaseExp(Lc,Bnd,Cases,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isActionTerm(Term,Lc,Stmts),!,
   findType("action",Lc,Env,ActionTp),
@@ -802,6 +805,26 @@ checkGoal(G,Env,Ev,Goal,Path) :-
    genIterableGl(Cond,ExContract,Path,Goal);
 %   reportMsg("iterable goal: %s",[Goal]);
    Cond=Goal).
+
+checkCaseExp(Lc,Bnd,Cases,Tp,Env,Env,case(Lc,Bound,Eqns,Tp),Path) :-
+  newTypeVar("_L",LhsTp),
+  typeOfExp(Bnd,LhsTp,Env,_,Bound,Path),
+  reportMsg("case governer: %s:%s",[Bound,LhsTp]),
+  checkCases(Cases,LhsTp,Tp,Env,Eqns,Eqx,Eqx,[],Path),!.
+
+checkCases([],_,_,_,Eqs,Eqs,Dfx,Dfx,_).
+checkCases([C|Ss],LhsTp,Tp,Env,Eqns,Eqx,Df,Dfx,Path) :-
+  isEquation(C,Lc,L,Cond,R),!,
+  checkCase(Lc,L,Cond,R,LhsTp,Tp,Env,Eqns,Eqs,Df,Df0,Path),
+  checkCases(Ss,LhsTp,Tp,Env,Eqs,Eqx,Df0,Dfx,Path).
+
+checkCase(Lc,Lhs,C,R,LhsTp,Tp,Env,Eqns,Eqns,Df,Defx,Path) :-
+  isDefault(Lhs,_,DLhs),!,
+  checkCase(Lc,DLhs,C,R,LhsTp,Tp,Env,Df,Defx,_,_,Path).
+checkCase(Lc,H,C,R,LhsTp,Tp,Env,[equation(Lc,Arg,Cond,Exp)|Eqns],Eqns,Dfx,Dfx,Path) :-
+  typeOfPtn(H,LhsTp,Env,E1,Arg,Path),
+  checkGoal(C,E1,E2,Cond,Path),
+  typeOfExp(R,Tp,E2,_,Exp,Path).
 
 checkAbstraction(Term,Lc,B,G,Tp,Env,Abstr,Path) :-
   findType("boolean",Lc,Env,LogicalTp),

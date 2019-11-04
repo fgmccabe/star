@@ -437,6 +437,11 @@ liftExp(tple(_,A),TApl,Q,Qx,Map,Opts,Ex,Exx) :-!,
 liftExp(apply(Lc,Op,tple(_,A),_),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExps(A,LA,[],Q,Q1,Map,Opts,Ex,Ex1),
   trExpCallOp(Lc,Op,LA,Exp,Q1,Qx,Map,Opts,Ex1,Exx).
+liftExp(case(Lc,Bnd,Cses,_),Result,Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftExp(Bnd,Bound,Q,Q0,Map,Opts,Ex,Ex0),
+  liftCases(Cses,Cases,Q0,Qx,Map,Opts,Ex0,Exx),
+  caseMatcher(Lc,Bound,Cases,Result),
+  dispTerm(Result).
 liftExp(dot(Lc,Rec,Fld,_),dte(Lc,Rc,Lbl),Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftExp(Rec,Rc,Q,Qx,Map,Opts,Ex,Exx),
   makeDotLbl(Fld,Lbl).
@@ -541,6 +546,16 @@ implementFunCall(Lc,moduleFun(Fn,_,Ar),_,Args,cll(Lc,lbl(Fn,Ar),Args),Qx,Qx,_,_,
 implementFunCall(_,moduleCons(Mdl,_,Ar),_,Args,ctpl(lbl(Mdl,Ar),Args),Q,Q,_,_,Ex,Ex).
 implementFunCall(Lc,notInMap,Nm,Args,ocall(Lc,idnt(Nm),Args),Q,Q,_Map,_Opts,Ex,Ex) :-
   reportError("cannot compile unknown function %s",[Nm],Lc).
+
+liftCases([],[],Qx,Qx,_Map,_Opts,Exx,Exx) :- !.
+liftCases([C|Cses],[Case|Cases],Q,Qx,Map,Opts,Ex,Exx) :-
+  liftCase(C,Case,Q,Q0,Map,Opts,Ex,Ex0),
+  liftCases(Cses,Cases,Q0,Qx,Map,Opts,Ex0,Exx).
+
+liftCase(equation(Lc,P,Cond,Value),(Lc,[Ptn],Test,Rep),Q,Qx,Map,Opts,Ex,Exx) :-
+  liftPtn(P,Ptn,Q,Q0,Map,Opts,Ex,Ex0),
+  liftGoal(Cond,Test,Q0,Q1,Map,Opts,Ex0,Ex1),   % condition goals
+  liftExp(Value,Rep,Q1,Qx,Map,Opts,Ex1,Exx).  % replacement expression
 
 liftLambda(lambda(Lc,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   lambdaMap(lambda(Lc,Eqn,Tp),Q,Map,LclName,Closure,LMap),

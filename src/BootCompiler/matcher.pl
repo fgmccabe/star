@@ -1,4 +1,4 @@
-:- module(matcher,[functionMatcher/6]).
+:- module(matcher,[functionMatcher/6,caseMatcher/4]).
 
 :- use_module(canon).
 :- use_module(errors).
@@ -15,6 +15,11 @@ functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,NVrs,Reslt)) :-
   matchTriples(Lc,NVrs,Tpls,Error,Reslt),!.
 functionMatcher(Lc,_Ar,Nm,Tp,_Eqns,fnDef(Lc,Nm,Tp,[],enum("void"))) :-
   reportError("(internal) failed to construct function for %s",[Nm],Lc).
+
+caseMatcher(Lc,Bnd,Cases,Result) :-
+  makeTriples(Cases,0,Tpls),
+  genRaise(Lc,Error),
+  matchTriples(Lc,[Bnd],Tpls,Error,Result).
 
 genRaise(Lc,error(Lc,"no matches")).
 

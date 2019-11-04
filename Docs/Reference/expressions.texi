@@ -12,6 +12,7 @@ computational process of realizing the denoted value.
   | @refer{StringLiteral}
   | @refer{AlgebraicLiteral}
   | @refer{ApplicativeExpression}
+  | @refer{CaseExpression}
   | @refer{ConditionalExpression}
   | @refer{Condition}
   | @refer{LetExpression}
@@ -779,6 +780,41 @@ constructor defined in a @refer{TypeDefinition}.
 
 The so-called control expressions involve and modify the meaning of
 other expressions and actions.
+
+
+@node Case Expression
+@subsection Case Expressions
+@cindex case expression
+
+@float BNF,caseExpressionFig
+@caption{Case Expression}
+@display
+@anchored{CaseExpression} ::= @code{'case'}@refer{Expression} @code{'in @{'} @refer{Case}@code{'.'} @dots{} @code{'.'} @refer{Case}  @code{'@}'}
+@anchored{Case} ::= @refer{Pattern} @code{'=>'} @refer{Expression} |
+  @refer{Pattern} @code{default} @code{'=>'} @refer{Expression}
+@end display
+@end float
+
+The value of a case expression depends on which of the cases match its governing expression.
+
+For example, the expression: 
+@example
+case D in {
+  monday => 0.
+  tuesday => 1.
+  _ => 10
+}
+@end example
+
+compares the value of the variable @code{D} against the symbols
+@code{monday} and @code{tuesday} and returns 0 or 1 if either of those
+match. Other values of @code{D} return @code{10}.
+
+@quotation Note
+The cases of a case expression resemble syntactically the equations of
+a function definition. This is deliberate: a function definition
+expressed as equations is effectively a @code{case} expression.
+@end quotation
 
 @node Conditional Expression
 @subsection Conditional Expressions

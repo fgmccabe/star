@@ -233,6 +233,11 @@
     "desc": "Optional propagation"
   },
   {
+    "prefixOp": "case",
+    "priorities": [901, 900],
+    "desc": "case expression"
+  },
+  {
     "infixOp": "<",
     "priorities": [899, 900, 899],
     "desc": "less than"
