@@ -39,7 +39,7 @@ star.compiler.wff{
       (Lc,Lh,B) ^= isBinary(T,"|:") => some((Lc,deComma(Lh),B)).
   isConstrained(_) default => none.
 
-  reConstrain:(list[ast],ast) => ast.
+  public reConstrain:(list[ast],ast) => ast.
   reConstrain([],T) => T.
   reConstrain([C,..Cs],T) => binary(locOf(T),"|:",reComma(Cs,C),T).
 
@@ -111,7 +111,7 @@ star.compiler.wff{
     some((Lc,Q,[],T,I)).
   isAlgebraicTypeStmt(A) default => none.
 
-  reformAlgebraic:(locn,list[ast],list[ast],ast,ast,
+  public reformAlgebraic:(locn,list[ast],list[ast],ast,ast,
     list[defnSpec],
     list[(defnSp,visibility)],
     list[(string,ast)],visibility,reports) =>
@@ -360,7 +360,7 @@ star.compiler.wff{
     some((Lc,Qs,Cs,Cn,Exp)).
   isImplSpec(_,_,_,_) default => none.
 
-  implementedContractName:(ast) => string.
+  public implementedContractName:(ast) => string.
   implementedContractName(A) where
       (_,O,As) ^= isSquareApply(A) =>
     ssSeq([ss(O),..surfaceNames(As,markerString(overMark))])::string.
@@ -376,7 +376,7 @@ star.compiler.wff{
   surfaceName(T) where (_,_,I) ^= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ^= isTuple(T) => "()$(size(Els))".
 
-  typeName(Tp) where (_,Id) ^= isName(Tp) => Id.
+  public typeName(Tp) where (_,Id) ^= isName(Tp) => Id.
   typeName(Tp) where (_,Id,_) ^= isSquareApply(Tp) => Id.
   typeName(Tp) where (_,Els) ^= isTuple(Tp) => "()$(size(Els))".
 
@@ -392,124 +392,6 @@ star.compiler.wff{
       collectImports(Ss,Imp,[Oth..,A],Rp)
     }
   }
-
-  public collectDefinitions:(list[ast],
-    reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
-      list[(string,ast)],list[importSpec],list[ast])].
-  collectDefinitions(Stmts,Rp) => collectDefs(Stmts,[],[],[],[],[],Rp).
-
-  collectDefs:(list[ast],list[defnSpec],list[(defnSp,visibility)],list[(string,ast)],list[importSpec],list[ast],reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
-      list[(string,ast)],list[importSpec],list[ast])].
-  
-  collectDefs([],Defs,Pb,As,Imp,Oth,Rp) => either((Defs,Pb,As,Imp,Oth)).
-  collectDefs([A,..Ss],Defs,Pb,As,Imp,Oth,Rp) => do{
-    (SS1,Dfs1,Pb1,As1,Imp1,Oth1) <- collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,deFault,Rp);
-    collectDefs(SS1,Dfs1,Pb1,As1,Imp1,Oth1,Rp)
-  }
-    
-  collectDefinition:(ast,
-    list[ast],
-    list[defnSpec],
-    list[(defnSp,visibility)],
-    list[(string,ast)],
-    list[importSpec],
-    list[ast],
-    visibility,
-    reports) => either[reports,(list[ast],list[defnSpec],
-      list[(defnSp,visibility)],list[(string,ast)],list[importSpec],list[ast])].
-
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      Spec ^= isImport(A) => either((Stmts,Defs,Pb,As,[Spec,..Imp],Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      _ ^= isIntegrity(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      _ ^= isShow(A) => either((Stmts,Defs,Pb,As,Imp,[A,..Oth])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,V,T) ^= isTypeAnnotation(A) => do{
-	if _ ^= isConstructorType(T) then {
-	  if (_,V1) ^= isPrivate(V) && (ILc,Id) ^= isName(V1) then {
-	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      [(cnsSp(Id),priVate),..Pb],[(Id,T),..As],Imp,Oth)
-	  }
-	  else if (ILc,Id) ^= isName(V) then{
-	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Imp,Oth)
-	  }
-	  else
-	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
-	} else if (VLc,Id) ^= isName(V) then{
-	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],[(Id,T),..As],Imp,Oth)
-	} else
-	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
-      }.
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      (_,Ai) ^= isPublic(A) =>
-    collectDefinition(Ai,Stmts,Defs,Pb,As,Imp,Oth,pUblic,Rp).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,_,Rp) where
-      (_,Ai) ^= isPrivate(A) =>
-    collectDefinition(Ai,Stmts,Defs,Pb,As,Imp,Oth,priVate,Rp).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,S,Els) ^= isContractStmt(A) &&
-      (_,Nm,Qs,Cs,T) ^= isContractSpec(S)  =>
-    either((Stmts,[defnSpec(conSp(Nm),Lc,[A]),..Defs],
-	[(conSp(Nm),Vz),..Pb],
-	generateAnnotations(Qs,Els,Cs,As),
-	Imp,
-	Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,_,_,Cn,_) ^= isImplementationStmt(A) &&
-      Sp .= implSp(implementedContractName(Cn)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Imp,Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,_,_,L,R) ^= isTypeExistsStmt(A) && Sp .= tpSp(typeName(L)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Imp,Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,_,_,L,R) ^= isTypeFunStmt(A) && Sp .= tpSp(typeName(L)) =>
-    either((Stmts,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Imp,Oth)).
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,Q,Cx,H,R) ^= isAlgebraicTypeStmt(A) => do{
-	(Dfs1,Pb1,As1) <- reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Vz,Rp);
-	valis (Stmts,Dfs1,Pb1,As1,Imp,Oth)
-      }.
-  collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
-	Sp = varSp(Id);
-	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Imp,Oth)
-      }.
-  collectDefinition(A,Ss,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
-	Sp = varSp(Id); -- map X:=E to X=!!E
-	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],
-	  [(Sp,Vz),..Pb],As,Imp,Oth)
-      }.
-  collectDefinition(A,Stmts,Defs,Pb,As,Imp,Oth,Vz,Rp) where
-      (Lc,Nm) ^= ruleName(A) => do{
-	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
-	Sp = varSp(Nm);
-	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],[(Sp,Vz),..Pb],As,Imp,Oth)
-      }.
-
-  collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
-  collectDefines([St,..Ss],Nm,Dfs) where
-      (_,Nm) ^= ruleName(St) => collectDefines(Ss,Nm,[Dfs..,St]).
-  collectDefines(Ss,Nm,Dfs) default => (Ss,Dfs).
-	
-  generateAnnotations:(list[ast],list[ast],list[ast],list[(string,ast)]) =>
-    list[(string,ast)].
-  generateAnnotations([],_,_,As) => As.
-  generateAnnotations([A,..Ss],Qs,Cs,As) where
-      (_,V,T) ^= isTypeAnnotation(A) && (_,Id) ^= isName(V) =>
-    generateAnnotations(Ss,Qs,Cs,[(Id,reUQuant(Qs,reConstrain(Cs,T))),..As]).
-  generateAnnotations([A,..Ss],Qs,Cs,As) =>
-    generateAnnotations(Ss,Qs,Cs,As).
-  
-  collectDfn:(defnSp,list[defnSp]) => list[defnSp].
-  collectDfn(Sp,Pb) => [Sp,..Pb].
-
-  skipDfn:(defnSp,list[defnSp]) => list[defnSp].
-  skipDfn(_,Pb) => Pb.
 
   public ruleName:(ast) => option[(locn,string)].
   ruleName(A) where
@@ -547,6 +429,12 @@ star.compiler.wff{
 
   public areEquations:(list[ast]) => boolean.
   areEquations(L) => E in L *> _ ^= isEquation(E).
+
+  public isCaseExp:(ast) => option[(locn,ast,list[ast])].
+  isCaseExp(A) where (Lc,L) ^= isUnary(A,"case") &&
+      (_,Lhs,Rhs) ^= isBinary(L,"in") &&
+      (_,Els) ^= isBrTuple(Rhs) => some((Lc,Lhs,Els)).
+  isCaseExp(_) => none.
 
   public splitHead:(ast) => option[(string,ast,boolean)].
   splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,false).

@@ -341,6 +341,11 @@ star.compiler.types{
       tpExp(O2,A) .= deRef(O) &&
       tpFun("=>",2).=deRef(O2) => deRef(A).
 
+  public funTypeRes(Tp) where
+      tpExp(O,R) .= deRef(Tp) &&
+      tpExp(O2,_) .= deRef(O) &&
+      tpFun("=>",2).=deRef(O2) => deRef(R).
+
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where
       tpExp(O,B).=deRef(Tp) &&

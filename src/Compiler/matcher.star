@@ -14,13 +14,14 @@ star.compiler.matcher{
 
   triple ~> (list[crExp],(locn,list[(string,crVar)],crExp),integer).
 
-  functionMatcher:(locn,string,tipe,list[(locn,list[crExp],crExp)],reports) =>
-    either[reports,crExp].
-  functionMatcher(Lc,Nm,Tp,Eqns,Rp) => do{
+  public functionMatcher:(locn,string,tipe,list[(locn,list[crExp],crExp)]) => crDefn.
+  functionMatcher(Lc,Nm,Tp,Eqns) => valof action{
     NVrs = genVars(funTypeArg(Tp));
     Trpls = makeTriples(Eqns);
-    Error = genRaise(Lc);
-    valis matchTriples(Lc,NVrs,Trpls,Error)
+    Error = genRaise(Lc,funTypeRes(Tp));
+    logMsg("function triples: $(Trpls)");
+    Reslt = matchTriples(Lc,NVrs,Trpls,Error);
+    valis fnDef(Lc,Nm,Tp,NVrs,Reslt)
   }
 
   genVars:(tipe) => list[crVar].
@@ -31,15 +32,22 @@ star.compiler.matcher{
 
   makeTriples:(list[(locn,list[crExp],crExp)]) => list[triple].
   makeTriples(Eqns) => ixLeft((Ts,Ix,(Lc,Args,Exp))=>
-      [(Args,(Lc,[],Exp),Ix),..Ts],[],Eqns).
+      [Ts..,(Args,(Lc,[],Exp),Ix)],[],Eqns).
 
-  genRaise(Lc) => crAbort(Lc,"no matches").
+  genRaise(Lc,Tp) => crAbort(Lc,"no matches",Tp).
 
   matchTriples:(locn,list[crVar],list[triple],crExp) => crExp.
-  matchTriples(_,[],Trpls,Deflt) =>
-    conditionalize(Trpls,Deflt).
-  matchTriples(Lc,Vrs,Trpls,Deflt) =>
-    matchSegments(partitionTriples(Trpls),Vrs,Lc,Deflt).
+  matchTriples(_,[],Trpls,Deflt) => valof action{
+    Reslt = conditionalize(Trpls,Deflt);
+    logMsg("conditionalized $(Trpls) = $(Reslt)"); valis Reslt
+    }.
+  matchTriples(Lc,Vrs,Trpls,Deflt) => valof action{
+    Parts = partitionTriples(Trpls);
+    logMsg("partitioned $(Parts)");
+    Segs = matchSegments(Parts,Vrs,Lc,Deflt);
+    logMsg("segments = $(Segs)");
+    valis Segs
+  }.
 
   partitionTriples:(list[triple]) => list[(argMode,list[triple])].
   partitionTriples([]) => [].
@@ -57,6 +65,13 @@ star.compiler.matcher{
 
   argMode ::= inVars | inScalars | inConstructors | inOthers.
 
+  implementation display[argMode] => {.
+    disp(inVars) => ss("inVars").
+    disp(inScalars) => ss("inScalars").
+    disp(inConstructors) => ss("inConstructors").
+    disp(inOthers) => ss("inOthers").
+  .}
+
   implementation equality[argMode] => {
     inVars == inVars => true.
     inScalars == inScalars => true.
@@ -65,16 +80,12 @@ star.compiler.matcher{
   }
 
   argMode(crVar(_,_)) => inVars.
-  argMode(crLit(_,Lt,_)) => litArgMode(Lt).
-  argMode(crApply(_,crLit(_,lbl(_,_),_),_,_)) => inConstructors.
+  argMode(crInt(_,_)) => inScalars.
+  argMode(crFlot(_,_)) => inScalars.
+  argMode(crStrg(_,_)) => inScalars.
+  argMode(crLbl(_,_,_,_)) => inScalars.
+  argMode(crApply(_,crLbl(_,_,_,_),_,_)) => inConstructors.
   argMode(_) default => inOthers.
-
-  litArgMode(intgr(_)) => inScalars.
-  litArgMode(flot(_)) => inScalars.
-  litArgMode(strg(_)) => inScalars.
-  litArgMode(lbl(_,_)) => inScalars.
-  litArgMode(term(_,_)) => inConstructors.
-  litArgMode(_) => inOthers.
 
   matchSegments([],_,_,Deflt) => Deflt.
   matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt) =>
@@ -90,12 +101,12 @@ star.compiler.matcher{
   matchScalars(Seg,[V,..Vrs],Lc,Deflt) => valof action{
     ST = sort(Seg,compareScalarTriple);
     Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt);
-    valis mkCase(Cases,Lc,crVar(Lc,V),typeOf(Deflt))
+    valis mkCase(Cases,Lc,crVar(Lc,V),Deflt)
   }
 
   matchConstructors(Seg,[V,..Vrs],Lc,Deflt) =>
     mkCase(formCases(sort(Seg,compareConstructorTriple),sameConstructorTriple,Lc,Vrs,Deflt),
-      Lc,crVar(Lc,V),typeOf(Deflt)).
+      Lc,crVar(Lc,V),Deflt).
 
   matchVars(Trpls,[V,..Vrs],Lc,Deflt) =>
     matchTriples(Lc,Vrs,applyVar(V,Trpls),Deflt).
@@ -117,13 +128,19 @@ star.compiler.matcher{
   }
 
   formCase:(triple,list[triple],locn,list[crVar],crExp) => crCase.
-  formCase(([crLit(LLc,Lbl,LTp),.._],_,_),Tpls,Lc,Vars,Deflt) where isScalar(Lbl) =>
-    (LLc,crLit(LLc,Lbl,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crApply(Lc,crLit(LLc,Lbl,LTp),Args,Tp),.._],_,_),Trpls,_,Vars,Deflt) => valof action{
+  formCase(([crInt(LLc,Ix),.._],_,_),Tpls,Lc,Vars,Deflt) =>
+    (LLc,crInt(LLc,Ix),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
+  formCase(([crFlot(LLc,Dx),.._],_,_),Tpls,Lc,Vars,Deflt) =>
+    (LLc,crFlot(LLc,Dx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
+  formCase(([crStrg(LLc,Sx),.._],_,_),Tpls,Lc,Vars,Deflt) =>
+    (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
+  formCase(([crLbl(LLc,Nm,Ix,LTp),.._],_,_),Tpls,Lc,Vars,Deflt) =>
+    (LLc,crLbl(LLc,Nm,Ix,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
+  formCase(([crApply(Lc,Lbl,Args,Tp),.._],_,_),Trpls,_,Vars,Deflt) => valof action{
     Vrs = Args//(E) => crId(genSym("_"),typeOf(E));
     NTrpls = subTriples(Trpls);
     Case = matchTriples(Lc,Vrs++Vars,NTrpls,Deflt);
-    valis (LLc,crApply(LLc,crLit(LLc,Lbl,LTp),Vrs//(V)=>crVar(LLc,V),LTp),Case)
+    valis (Lc,crApply(Lc,Lbl,Vrs//(V)=>crVar(Lc,V),Tp),Case)
   }.
 
   pickMoreCases:(triple,list[triple],(triple,triple)=>boolean,
@@ -134,8 +151,8 @@ star.compiler.matcher{
   pickMoreCases(Tr,[A,..Trpls],Test,InCase,Others) =>
       pickMoreCases(Tr,Trpls,Test,InCase,[Others..,A]).
 
-  mkCase:(list[crCase],locn,crExp,tipe) => crExp.
-  mkCase(Cases,Lc,V,Tp) => crCase(Lc,V,Cases,Tp).
+  mkCase:(list[crCase],locn,crExp,crExp) => crExp.
+  mkCase(Cases,Lc,V,Deflt) => crCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
   subTriples(Tpls) => (Tpls//subTriple).
     
@@ -150,26 +167,29 @@ star.compiler.matcher{
   applyBindings([],_,Val) => Val.
 
   compareScalarTriple:(triple,triple) => boolean.
-  compareScalarTriple(([crLit(_,A,_),.._],_,_),([crLit(_,B,_),.._],_,_)) => compareScalar(A,B).
+  compareScalarTriple(([A,.._],_,_),([B,.._],_,_)) => compareScalar(A,B).
 
-  compareScalar(intgr(A),intgr(B)) => A<B.
-  compareScalar(flot(A),flot(B)) => A<B.
-  compareScalar(strg(A),strg(B)) => A<B.
-  compareScalar(lbl(A,L1),lbl(B,L2)) =>
+  compareScalar(crInt(_,A),crInt(_,B)) => A<B.
+  compareScalar(crFlot(_,A),crFlot(_,B)) => A<B.
+  compareScalar(crStrg(_,A),crStrg(_,B)) => A<B.
+  compareScalar(crLbl(_,A,L1,_),crLbl(_,B,L2,_)) =>
     A<B || A==B && L1<L2.
   compareScalar(_,_) default => false.
 
   sameScalarTriple:(triple,triple) => boolean.
-  sameScalarTriple(([crLit(_,A,_),.._],_,_),([crLit(_,B,_),.._],_,_)) => A==B.
+  sameScalarTriple(([crInt(_,A),.._],_,_),([crInt(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([crFlot(_,A),.._],_,_),([crFlot(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([crStrg(_,A),.._],_,_),([crStrg(_,B),.._],_,_)) => A==B.
+  sameScalarTriple(([crLbl(_,A,Ar,_),.._],_,_),([crLbl(_,B,Br,_),.._],_,_)) => A==B && Ar==Br.
   sameScalarTriple(_,_) default => false.
 
   compareConstructorTriple:(triple,triple) => boolean.
   compareConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => compareConstructor(A,B).
 
-  compareConstructor(crApply(_,crLit(_,lbl(A,_),_),_,_),
-    crApply(_,crLit(_,lbl(B,_),_),_,_)) => A=<B.
-
+  compareConstructor(crApply(_,crLbl(_,A,Ar,_),_,_),
+    crApply(_,crLbl(_,B,Br,_),_,_)) => A=<B && Ar==Br.
+  
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
-  sameConstructor(crApply(_,crLit(_,lbl(A,_),_),_,_),
-    crApply(_,crLit(_,lbl(B,_),_),_,_)) => A==B.
+  sameConstructor(crApply(_,crLbl(_,A,Ar,_),_,_), crApply(_,crLbl(_,B,Br,_),_,_)) =>
+    A==B && Ar==Br.
 }

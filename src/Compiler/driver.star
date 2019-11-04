@@ -12,6 +12,7 @@ star.compiler{
   import star.compiler.canon.
   import star.compiler.catalog.
   import star.compiler.checker.
+  import star.compiler.core.
   import star.compiler.dict.
   import star.compiler.errors.
   import star.compiler.grapher.
@@ -19,6 +20,7 @@ star.compiler{
   import star.compiler.meta.
   import star.compiler.parser.
   import star.compiler.location.
+  import star.compiler.normalize.
   import star.compiler.terms.
 
   implementation all e,k ~~ coercion[either[e,k],action[e,k]] => {
@@ -87,7 +89,7 @@ star.compiler{
     pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).
 
   addSpec:(pkgSpec,fileRepo) => fileRepo.
-  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
+  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
 
   processPkgs:(list[importSpec],fileRepo,catalog,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Rp) => do{
@@ -97,10 +99,12 @@ star.compiler{
 	logMsg("Process $(P)");
 	if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 	  Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
-	  logMsg("Ast of $(P) is $(Ast)");
-	  (PkgSpec,Defs,Oth) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,list[list[canonDef]],list[canon])];
+--	  logMsg("Ast of $(P) is $(Ast)");
+	  (PkgSpec,Defs) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canon)];
 	  logMsg("Checked spec $(PkgSpec)");
-	  Repp := addSpec(PkgSpec,Repp!)
+	  NormDefs <- normalize(Defs,Rp)::action[reports,list[crDefn]];
+	  Repp := addSpec(PkgSpec,Repp!);
+	  logMsg("Normalized program: $(NormDefs)")
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)
