@@ -1,6 +1,7 @@
 {
   "content": {
     "test.f": "f.star",
+    "test.fl" : "fl.star",
     "star.core": "core.star"
   },
   "version": "1.0.0",

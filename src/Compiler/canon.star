@@ -34,9 +34,9 @@ star.compiler.canon{
     apply(locn,canon,canon,tipe) |
     tple(locn,list[canon]) |
     lambda(list[equation],tipe) |
-    letExp(locn,canon,canon) |
+    letExp(locn,list[canonDef],canon) |
     theta(locn,string,boolean,list[list[canonDef]],list[canon],tipe) |
-    record(locn,string,boolean,list[list[canonDef]],list[canon],tipe).
+    record(locn,string,list[(string,canon)],tipe).
 
   public equation ::= eqn(locn,canon,canon).
 
@@ -99,7 +99,7 @@ star.compiler.canon{
     locOf(lambda([Eq,.._],_)) => locOf(Eq).
     locOf(letExp(Lc,_,_)) => Lc.
     locOf(theta(Lc,_,_,_,_,_)) => Lc.
-    locOf(record(Lc,_,_,_,_,_)) => Lc.
+    locOf(record(Lc,_,_,_)) => Lc.
   .}
 
   public implementation hasLoc[equation] => {.
@@ -174,15 +174,17 @@ star.compiler.canon{
     showCanon(tple(_,Els)) =>
       ssSeq([ss("("),ssSeq(interleave(Els//showCanon,ss(","))),ss(")")]).
     showCanon(lambda(Rls,Tp)) => ssSeq([ss("(λ"),showRls("λ",Rls),ss("λ)")]).
-    showCanon(letExp(_,Th,Ep)) =>
-      ssSeq([ss("let "),showCanon(Th),ss(" in "),showCanon(Ep)]).
-    showCanon(theta(_,_,_,Groups,Others,_)) =>
-      ssSeq([ss("{"),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss("}")]).
-    showCanon(record(_,_,_,Groups,Others,_)) =>
-      ssSeq([ss("{."),ssSeq(flatten(Groups)//showDef),ssSeq(Others//showOther),ss(".}")]).
+    showCanon(letExp(_,Defs,Ep)) =>
+      ssSeq([ss("let "),ss("{"),showGroup(Defs),ss("}"),ss(" in "),showCanon(Ep)]).
+    showCanon(theta(_,_,_,Groups,_,_)) =>
+      ssSeq([ss("{"),ssSeq(showGroups(Groups)),ss("}")]).
+    showCanon(record(_,_,Fields,_)) =>
+      ssSeq([ss("{."),ssSeq(interleave(Fields//showField,ss(".\n"))),ss(".}")]).
     showOther(T) => ssSeq([showCanon(T),ss(".\n")]).
 
     showCases(Cs) => ssSeq([ss("{"),showRls("",Cs),ss("}")]).
+
+    showField((Nm,Val)) => ssSeq([ss(Nm),ss("="),showCanon(Val)]).
     
   } in {.
     disp(C) => showCanon(C)
@@ -191,6 +193,13 @@ star.compiler.canon{
   public implementation display[canonDef] => {
     disp(D) => showDef(D)
   }
+
+  showGroups:(list[list[canonDef]]) => list[ss].
+  showGroups([]) => [].
+  showGroups([G,..Gs]) => [ss("{"),showGroup(G),ss("}\n"),..showGroups(Gs)].
+
+  showGroup:(list[canonDef]) => ss.
+  showGroup(G) => ssSeq(interleave(G//showDef,ss(".\n"))).
 
   showDef(varDef(_,Nm,_,lambda(Rls,_),_,Tp)) =>
     ssSeq([ss(Nm),ss(":"),disp(Tp),ss("="),showRls(Nm,Rls)]).
@@ -202,7 +211,7 @@ star.compiler.canon{
     ssSeq([ss("Implementation: "),ss(Nm),ss(" = "),ss(FullNm),ss(":"),disp(Tp),ss("="),disp(Exp)]).
 
   showRls:(string,list[equation]) => ss.
-  showRls(Nm,Rls) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(". "))).
+  showRls(Nm,Rls) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl),ss(".\n"))).
 
   showRl:(string,equation) => ss.
   showRl(Nm,eqn(_,Ptn,Val)) => ssSeq([ss(Nm),disp(Ptn),ss(" => "),disp(Val)]).

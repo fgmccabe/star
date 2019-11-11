@@ -135,8 +135,6 @@ star.compiler.dependencies{
   generateAnnotations([A,..Ss],Qs,Cs,As) =>
     generateAnnotations(Ss,Qs,Cs,As).
 
-  
-
   collectThetaRefs:(list[defnSpec],list[defnSp],list[(string,ast)],
     list[definitionSpec],reports) =>
     either[reports,list[definitionSpec]].
@@ -278,7 +276,7 @@ star.compiler.dependencies{
   }
   collectTermRefs(T,All,Rf,Rp) where (_,Env,Bnd) ^= isLetDef(T) => do{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
-    collectTermRefs(Env,All,Rf1,Rp)
+    collectStmtsRefs(Env,All,[],Rf1,Rp)
   }
   collectTermRefs(T,All,Rf,Rp) where (_,Op,Args) ^= isRoundTerm(T) => do{
     Rf1 <- collectTermRefs(Op,All,Rf,Rp);
@@ -296,6 +294,10 @@ star.compiler.dependencies{
     Rf0 <- collectTermRefs(E,All,Rf,Rp);
     collectCasesRefs(C,All,Rf0,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isBrTuple(T) =>
+    collectStmtsRefs(Sts,All,[],Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isQBrTuple(T) =>
+    collectStmtsRefs(Sts,All,[],Rf,Rp).
 
   collectCasesRefs([],_,Rf,_) => either(Rf).
   collectCasesRefs([St,..Sts],All,Rf,Rp) => do{
