@@ -95,7 +95,7 @@ star.compiler.operators{
   oper("return") => [prefixOp(930,929)].
   oper("?") => [infixOp(919,920,920)].
   oper("@") => [prefixOp(400,399), infixOp(399,400,400)].
-  oper("in") => [infixOp(899,900,899)].
+  oper("in") => [infixOp(899,900,900)].
   oper("^|") => [infixOp(1248,1249,1249)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].

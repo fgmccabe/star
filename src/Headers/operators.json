@@ -259,7 +259,7 @@
   },
   {
     "infixOp": "in",
-    "priorities": [899, 900, 899],
+    "priorities": [899, 900, 900],
     "desc": "list membership"
   },
   {
