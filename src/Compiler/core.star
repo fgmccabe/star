@@ -14,6 +14,7 @@ star.compiler.core{
     | crCall(locn,crExp,list[crExp],tipe)
     | crECall(locn,string,list[crExp],tipe)
     | crOCall(locn,crExp,list[crExp],tipe)
+    | crRecord(locn,string,list[(string,crExp)],tipe)
     | crDte(locn,crExp,string,tipe)
     | crTplDte(locn,crExp,integer,tipe)
     | crMtch(locn,crExp,crExp)

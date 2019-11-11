@@ -140,12 +140,18 @@ star.compiler.wff{
   combineFaces(F1,F2,Rp) => other(reportError(Rp,"only one record constructor allowed",
       locOf(F1))).
 
-  public isLetDef:(ast) => option[(locn,ast,ast)].
+  public isLetDef:(ast) => option[(locn,list[ast],ast)].
   isLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
       app(_,nme(_,"let"),Body) .= Lh &&
-      (_ ^= isBrTuple(Body) || _ ^= isQBrTuple(Body)) => some((Lc,Body,Rh)).
+      (_,Els) ^= isBrTuple(Body) => some((Lc,Els,Rh)).
   isLetDef(_) default => none.
 
+  public isQLetDef:(ast) => option[(locn,list[ast],ast)].
+  isQLetDef(A) where (Lc,Lh,Rh) ^= isBinary(A,"in") &&
+      app(_,nme(_,"let"),Body) .= Lh &&
+      (_,Els) ^= isQBrTuple(Body) => some((Lc,Els,Rh)).
+  isQLetDef(_) default => none.
+  
   public isComprehension:(ast) => option[(locn,ast,ast)].
   isComprehension(A) where (Lc,[T]) ^= isBrTuple(A) &&
       (_,Bnd,Body) ^= isBinary(T,"|") => some((Lc,Bnd,Body)).

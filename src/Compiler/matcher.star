@@ -19,7 +19,7 @@ star.compiler.matcher{
     NVrs = genVars(funTypeArg(Tp));
     Trpls = makeTriples(Eqns);
     Error = genRaise(Lc,funTypeRes(Tp));
-    logMsg("function triples: $(Trpls)");
+--    logMsg("function triples: $(Trpls)");
     Reslt = matchTriples(Lc,NVrs,Trpls,Error);
     valis fnDef(Lc,Nm,Tp,NVrs,Reslt)
   }
@@ -37,15 +37,17 @@ star.compiler.matcher{
   genRaise(Lc,Tp) => crAbort(Lc,"no matches",Tp).
 
   matchTriples:(locn,list[crVar],list[triple],crExp) => crExp.
-  matchTriples(_,[],Trpls,Deflt) => valof action{
+  matchTriples(_,[],Trpls,Deflt) => conditionalize(Trpls,Deflt).
+/*  matchTriples(_,[],Trpls,Deflt) => valof action{
     Reslt = conditionalize(Trpls,Deflt);
     logMsg("conditionalized $(Trpls) = $(Reslt)"); valis Reslt
     }.
+*/
   matchTriples(Lc,Vrs,Trpls,Deflt) => valof action{
     Parts = partitionTriples(Trpls);
-    logMsg("partitioned $(Parts)");
+--    logMsg("partitioned $(Parts)");
     Segs = matchSegments(Parts,Vrs,Lc,Deflt);
-    logMsg("segments = $(Segs)");
+--    logMsg("segments = $(Segs)");
     valis Segs
   }.
 

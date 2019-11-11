@@ -15,9 +15,9 @@ star.compiler.resolve{
   public overloadEnvironment:(list[list[canonDef]],list[canon],dict,reports) =>
     either[reports,(list[list[canonDef]],list[canon])].
   overloadEnvironment(Gps,Ots,Dict,Rp) => do{
-    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
+--    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
     TDict = declareImplementations(Gps,Dict);
-    logMsg("resolution dict = $(TDict)");
+--    logMsg("resolution dict = $(TDict)");
     RGps <- overloadGroups(Gps,[],TDict,Rp);
     ROts <- pickFailures(Ots//(T)=>resolveTerm(T,TDict,Rp));
 
@@ -42,6 +42,13 @@ star.compiler.resolve{
   overloadGroups([Gp,..Gps],RG,Dict,Rp) => do{
     RGp <- overloadDefs(Dict,Gp,[],Rp);
     overloadGroups(Gps,[RG..,RGp],Dict,Rp)
+  }
+
+  overloadGroup:(list[canonDef],dict,reports)=>either[reports,(list[canonDef],dict)].
+  overloadGroup(Dfs,Dict,Rp) => do{
+    TDict = declareImplementationsInGroup(Dfs,Dict);
+    RDefs <- overloadDefs(TDict,Dfs,[],Rp);
+    valis (RDefs,TDict)
   }
 
   overloadDefs:(dict,list[canonDef],list[canonDef],reports) =>
@@ -98,7 +105,7 @@ star.compiler.resolve{
   overloadTerm(vr(Lc,Nm,Tp),_,St,Rp) => either((St,vr(Lc,Nm,Tp))).
   overloadTerm(intr(Lc,Ix),_,St,Rp) => either((St,intr(Lc,Ix))).
   overloadTerm(flot(Lc,Dx),_,St,Rp) => either((St,flot(Lc,Dx))).
-  overloadTerm(strg(Lc,Sx),_,St,Rp) => either((St,strg(Lc,Sx))).
+  overloadTerm(strng(Lc,Sx),_,St,Rp) => either((St,strng(Lc,Sx))).
   overloadTerm(enm(Lc,Nm,Tp),_,St,Rp) => either((St,enm(Lc,Nm,Tp))).
   overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Rp) => do{
     (Stx,Rc1) <- overloadTerm(Rc,Dict,St,Rp);
@@ -169,10 +176,10 @@ star.compiler.resolve{
     (Stx,RRls) <- overloadRules(Rls,[],Dict,St,Rp);
     valis (Stx,lambda(RRls,Tp))
   }
-  overloadTerm(letExp(Lc,Lhs,Rhs),Dict,St,Rp) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St,Rp);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
-    valis (St2,letExp(Lc,RLhs,RRhs))
+  overloadTerm(letExp(Lc,Gp,Rhs),Dict,St,Rp) => do{
+    (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);
+    (St2,RRhs) <- overloadTerm(Rhs,RDct,St,Rp);
+    valis (St2,letExp(Lc,RDfs,RRhs))
   }
   overloadTerm(act(Lc,Act),Dict,St,Rp) => do{
     (St1,RAct) <- overloadAction(Act,Dict,St,Rp);
@@ -182,9 +189,9 @@ star.compiler.resolve{
     (RGps,ROts) <- overloadEnvironment(Gps,Ots,Dict,Rp);
     valis (St,theta(Lc,Nm,Lbled,RGps,ROts,Tp))
   }
-  overloadTerm(record(Lc,Nm,Lbled,Gps,Ots,Tp),Dict,St,Rp) => do{
-    (RGps,ROts) <- overloadEnvironment(Gps,Ots,Dict,Rp);
-    valis (St,record(Lc,Nm,Lbled,RGps,ROts,Tp))
+  overloadTerm(record(Lc,Nm,Fields,Tp),Dict,St,Rp) => do{
+    (Stx,RFields) <- overloadFields(Fields,[],Dict,St,Rp);
+    valis (St,record(Lc,Nm,RFields,Tp))
   }
 
   overloadRules([],Els,Dict,St,_) => either((St,Els)).
@@ -198,6 +205,12 @@ star.compiler.resolve{
   overloadTerms([T,..Ts],Els,Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
     overloadTerms(Ts,[Els..,RT],Dict,St1,Rp)
+  }
+
+  overloadFields([],Els,Dict,St,_) => either((St,Els)).
+  overloadFields([(N,T),..Ts],Els,Dict,St,Rp) => do{
+    (St1,RT) <- overloadTerm(T,Dict,St,Rp);
+    overloadFields(Ts,[Els..,(N,RT)],Dict,St1,Rp)
   }
 
   overloadAction(noDo(Lc),Dict,St,Rp) => either((St,noDo(Lc))).
@@ -270,15 +283,15 @@ star.compiler.resolve{
   resolveContract:(locn,tipe,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
     ImpNm = implementationName(Tp);
-    logMsg("looking for implementation $(Tp) - $(ImpNm)");
+--    logMsg("looking for implementation $(Tp) - $(ImpNm)");
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
-      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
+--      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
       (_,VrTp) = freshen(VTp,[],Dict);
       
       (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
-      logMsg("deconstrained implementation $(ITp)");
+--      logMsg("deconstrained implementation $(ITp)");
       if sameType(ITp,Tp,Dict) then {
-	logMsg("we found implementation $(Impl)\:$(ITp)");
+--	logMsg("we found implementation $(Impl)\:$(ITp)");
 	overloadTerm(Impl,Dict,markResolved(St),Rp)
       } else{
 	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
