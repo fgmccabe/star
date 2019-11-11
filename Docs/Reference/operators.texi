@@ -198,7 +198,7 @@
 @tab right associative infix
 @tab 400
 @item @code{in}
-@tab non-associative infix
+@tab right associative infix
 @tab 900
 @item @code{^|}
 @tab right associative infix
