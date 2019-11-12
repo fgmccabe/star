@@ -171,7 +171,7 @@ Argument N  oprefix."
 ;; Accessor functions for a PARSE-STATE ((PREC OP INDENT IN-COMMENT) . STACK)
      
 ;;; Provide `star-mode' user callable function
-(define-derived-mode star-mode prog-mode "Star Mode"
+(define-derived-mode star-mode prog-mode "Star"
   :syntax-table star-mode-syntax-table
   :after-hook star-mode-hook
   "Major mode for editing Star programs"
