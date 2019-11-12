@@ -27,7 +27,6 @@ computational process of realizing the denoted value.
 @section Variables
 @cindex variables
 
-
 A @refer{Variable} is a placeholder that denotes a value. Variables
 may be used to denote many kinds of values -- arithmetic values,
 complex data structures and programs.
@@ -799,11 +798,11 @@ The value of a case expression depends on which of the cases match its governing
 
 For example, the expression: 
 @example
-case D in {
+case D in @{
   monday => 0.
   tuesday => 1.
   _ => 10
-}
+@}
 @end example
 
 compares the value of the variable @code{D} against the symbols
