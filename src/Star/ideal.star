@@ -56,6 +56,7 @@ star.ideal{
   deleteTree:all k,v ~~ equality[k] |: (map[k,v],integer,integer,k)=>map[k,v].
   deleteTree(ihEmpty,_,_,_) => ihEmpty.
   deleteTree(ihLeaf(Hash,Els),_,Hash,K) => reformTree(ihLeaf(Hash,removeMember(K,Els))).
+  deleteTree(ihLeaf(Hash,Els),_,Hsh,K) => reformTree(ihLeaf(Hash,Els)).
   deleteTree(Sub,Dpth,Hash,K) where Ix.=subKey(Hash,Dpth) =>
     reformTree(patchVec(Sub,Ix,(Sb)=>deleteTree(Sb,Dpth+2,Hash,K))).
 
