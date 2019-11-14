@@ -35,7 +35,6 @@ star.compiler.canon{
     tple(locn,list[canon]) |
     lambda(list[equation],tipe) |
     letExp(locn,list[canonDef],canon) |
-    theta(locn,string,boolean,list[list[canonDef]],list[canon],tipe) |
     record(locn,string,list[(string,canon)],tipe).
 
   public equation ::= eqn(locn,canon,canon).
@@ -98,7 +97,6 @@ star.compiler.canon{
     locOf(tple(Lc,_)) => Lc.
     locOf(lambda([Eq,.._],_)) => locOf(Eq).
     locOf(letExp(Lc,_,_)) => Lc.
-    locOf(theta(Lc,_,_,_,_,_)) => Lc.
     locOf(record(Lc,_,_,_)) => Lc.
   .}
 
@@ -176,8 +174,6 @@ star.compiler.canon{
     showCanon(lambda(Rls,Tp)) => ssSeq([ss("(λ"),showRls("λ",Rls),ss("λ)")]).
     showCanon(letExp(_,Defs,Ep)) =>
       ssSeq([ss("let "),ss("{"),showGroup(Defs),ss("}"),ss(" in "),showCanon(Ep)]).
-    showCanon(theta(_,_,_,Groups,_,_)) =>
-      ssSeq([ss("{"),ssSeq(showGroups(Groups)),ss("}")]).
     showCanon(record(_,_,Fields,_)) =>
       ssSeq([ss("{."),ssSeq(interleave(Fields//showField,ss(".\n"))),ss(".}")]).
     showOther(T) => ssSeq([showCanon(T),ss(".\n")]).

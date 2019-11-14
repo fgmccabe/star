@@ -48,34 +48,10 @@ star.compiler.normalize{
     typeOf(labelArg(_,_,V)) => typeOf(V).
   .}
 
-  public normalize:(canon,reports)=>either[reports,list[crDefn]].
-  normalize(Th,Rp) => do{
-    logMsg("normalizing $(Th)");
-    (_,Defs) <- liftTheta(Th,[],[],[],Rp);
-    valis Defs
-  }
-
-  liftTheta:(canon,set[crVar],nameMap,list[crDefn],reports) => either[reports,crFlow].
-  liftTheta(Th,Q,Outer,Ex,Rp) => do{
-    logMsg("nomrlizing theta $(Th)");
-    (Map,FrTerm) <- thetaMap(Th,Q,Outer,Rp);
-    logMsg("theta map: $(Map)");
-    Defs <- transformThetaDefs(Th,Map,Outer,Ex,Rp);
-    valis (FrTerm,Defs)
-  }
-
-  thetaMap:(canon,set[crVar],nameMap,reports) => either[reports,(nameMap,crExp)].
-  thetaMap(Theta,Q,Outer,Rp) => do{
-    logMsg("making map");
-    ThFree = findFreeVars(Theta,Outer,Q);
-    logMsg("free vars = $(ThFree)");
-    CellVars = cellVars(Theta);
-    FreeVars = CellVars++ThFree;
-    ThVr = genVar("_ThVr",tupleType(FreeVars//typeOf));
-    L = collectLabelVars(FreeVars,crVar(locOf(Theta),ThVr),0,[]);
-    M = makeMtdMap(Theta,Outer,some(ThVr),L);
-    Lc = locOf(Theta);
-    valis (M,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
+  public normalize:(canon,reports)=>either[reports,crFlow].
+  normalize(Prg,Rp) => do{
+    logMsg("normalizing $(Prg)");
+    liftExp(Prg,[],[],Rp)
   }
 
   groupMap:(locn,list[canonDef],nameMap,reports) => either[reports,(nameMap,option[crVar],crExp)].
@@ -110,68 +86,60 @@ star.compiler.normalize{
   liftLetExp:(locn,list[canonDef],canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) where isFunctions(Defs) => do{
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,Map,Rp);
-    logMsg("group map $(GMap)");
-    (Ex1,Vars) <- transformGroup(Defs,GMap,Map,Ex,[],Rp);
+    logMsg("function group map $(GMap)");
+    (_,Ex1) <- transformGroup(Defs,GMap,Map,Ex,[],Rp);
 
-    if isEmpty(Vars) then{
-      (BndTrm,Ex2) <- liftExp(Bnd,GMap,Ex1,Rp);
-      if GrpThVr ^= GrpVr then
-	valis (crLet(Lc,GrpThVr,GrpFree,BndTrm),Ex2)
-      else
-      valis (BndTrm,Ex2)
-    } else{
-      ThV = genVar("_ThVr",tupleType(Vars//(V,_)=>typeOf(V)));
-      logMsg("var theta var for group is $(ThV)");
-      L = collectLabelVars(Vars//(V,_)=>V,crVar(Lc,ThV),0,[]);
-      logMsg("new label vars $(L)");
-      ThVr = some(ThV);
-      BMap = [lyr("",L,some(ThVr)),..GMap];
-      (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
-      if GrpThVr ^= GrpVr then
-	valis (crLet(Lc,GrpThVr,GrpFree,crLet(Lc,ThV,crTpl(Lc,Vars),BndTrm)),Ex2)
-      else
-      valis (crLet(Lc,ThV,crTpl(Lc,Vars),BndTrm),Ex2)
-    }
+    (BndTrm,Ex2) <- liftExp(Bnd,GMap,Ex1,Rp);
+    if GrpThVr ^= GrpVr then
+      valis (crLet(Lc,GrpThVr,GrpFree,BndTrm),Ex2)
+    else
+    valis (BndTrm,Ex2)
+  }
+  liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) => do{
+    (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,Map,Rp);
+    logMsg("var group map $(GMap)");
+    (Vars,Ex1) <- transformGroup(Defs,GMap,Map,Ex,[],Rp);
+
+    ThV = genVar("_ThVr",tupleType(Vars//((V,_))=>typeOf(V)));
+    logMsg("var theta var for group is $(ThV)");
+    Vrs = Vars//((V,_))=>V;
+    Vls = Vars//((_,V))=>V;
+    L = collectLabelVars(Vrs//(crVar(_,V))=>V,crVar(Lc,ThV),0,[]);
+    logMsg("new label vars $(L)");
+    ThVr = some(ThV);
+    BMap = [lyr("",L,ThVr),..GMap];
+    (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
+    if GrpThVr ^= GrpVr then
+      valis (crLet(Lc,GrpThVr,GrpFree,crLet(Lc,ThV,crTpl(Lc,Vls),BndTrm)),Ex2)
+    else
+    valis (crLet(Lc,ThV,crTpl(Lc,Vls),BndTrm),Ex2)
   }
 
   isFunctions:(list[canonDef])=>boolean.
-  isFunctions(Defs) => varDef(_,_,Vl,_,_) in Defs *> lambda(_,_).=Vl.
+  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> lambda(_,_).=Vl.
 
-  transformThetaDefs(theta(Lc,Path,Lbled,Groups,_,Tp),Map,Outer,Ex,Rp) => do{
-    Exx := Ex;
-    MMp := Map;
-    FrTerms := ([]:set[crVar]);
+  mkLetBinding:(locn,crVar,crExp,crExp) => crExp.
+  mkLetBinding(_,crId(Nm,_),crVar(Lc,W),Exp) => rewriteTerm(Exp,[Nm->crVar(Lc,W)]).
+  mkLetBinging(Lc,V,B,E) default => crLet(Lc,V,B,E).
 
-    for Gp in Groups do{
-      Df = definedProgs(MMp!);
-      Lv = labelVars(MMp!);
-      
-      for D in Gp do {
-	Ex0 <- transformThetaDef(D,Map,Outer,Exx!,Rp);
-	Exx := Ex0
-      }
-    };
-    valis Exx!
-  }
-
-  transformGroup:(list[canonDef],nameMap,nameMap,list[crDefn],list[(crExp,crExp)],reports) => either[reports,(list[crDefn],list[(crExp,crExp)]].
-  transformGroup([],_,_,D,Vs,_) => either((D,Vs)).
+  transformGroup:(list[canonDef],nameMap,nameMap,list[crDefn],list[(crExp,crExp)],reports) => either[reports,(list[(crExp,crExp)],list[crDefn])].
+  transformGroup([],_,_,D,Vs,_) => either((Vs,D)).
   transformGroup([D,..Ds],Map,Outer,Ex,V,Rp) => do {
-    (Ex1,V1) <- transformDef(D,Map,Ex,V,Rp);
+    (V1,Ex1) <- transformDef(D,Map,Ex,V,Rp);
     transformGroup(Ds,Map,Outer,Ex1,V1,Rp)
   }
 
   transformDef:(canonDef,nameMap,list[crDefn],list[(crExp,crExp)],reports) =>
-    either[reports,(list[crDefn],list[(crExp,crExp)])].
+    either[reports,(list[(crExp,crExp)],list[crDefn])].
   transformDef(varDef(Lc,Nm,FullNm,lambda(Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
     Exx <- transformFunction(Eqns,Nm,FullNm,Lc,Tp,Map,Ex,Rp);
-    valis (Exx,Vs)
+    valis (Vs,Exx)
   }
   transformDef(varDef(Lc,Nm,FullNm,Val,_,Tp),Map,Ex,Vs,Rp) => do{
-    (Exx,Vl) <- liftExp(Val,Map,Ex,Rp);
-    valis (Exx,[Vs..,(crVar(Lc,crId(Nm,Tp)),Vl)])
+    (Vl,Exx) <- liftExp(Val,Map,Ex,Rp);
+    valis ([Vs..,(crVar(Lc,crId(Nm,Tp)),Vl)],Exx)
   }
-  transformDef(_,_,Ex,Vs,_) => either((Ex,Vs)).
+  transformDef(_,_,Ex,Vs,_) => either((Vs,Ex)).
 
   transformThetaDef(varDef(Lc,Nm,FullNm,lambda(Eqns,Tp),_,_),Map,Outer,Ex,Rp) => 
     transformFunction(Eqns,Nm,FullNm,Lc,Tp,Map,Ex,Rp).
@@ -291,8 +259,6 @@ star.compiler.normalize{
     (LEl,Exx) <- liftExp(El,Map,Ex2,Rp);
     valis (crCnd(Lc,LTs,LTh,LEl),Exx)
   }
-  liftExp(theta(Lc,Path,Anon,Defs,Others,Tp),Map,Ex,Rp) =>
-    liftTheta(theta(Lc,Path,Anon,Defs,Others,Tp),[],Map,Ex,Rp).
   liftExp(record(Lc,Path,Fields,Tp),Map,Ex,Rp) => do{
     (LFields,Exx) <- liftFields(Fields,Map,Ex,Rp);
     valis (crRecord(Lc,Path,LFields,Tp),Exx)
@@ -408,16 +374,10 @@ star.compiler.normalize{
   extendTplType(Es,[]) => Es.
   extendTplType(Es,[V,..Vs]) => [typeOf(V),..extendTplType(Es,Vs)].
 
-  makeMtdMap(theta(_,Nm,_,Defs,_,_),Outer,ThVr,L) =>
-    [lyr(Nm,collectMtds(Defs,layerName(Outer),ThVr,L),ThVr),..Outer].
-
-  collectMtds(Defs,Outer,ThVr,L) =>
-    foldRight((Dfs,Li)=>foldRight((D,LL)=>collectMtd(D,Outer,ThVr,LL),Li,Dfs),L,Defs).
-
   collectMtd:(canonDef,string,option[crVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
-  collectMtd(varDef(Lc,Nm,FullNm,_,_,Tp),Outer,some(ThVr),LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),Outer,some(ThVr),LL) =>
     LL[Nm->localVar(FullNm,qualifiedName(Outer,"%",Nm),qualifiedName(Outer,"^",Nm),Tp,ThVr)].
-  collectMtd(varDef(Lc,Nm,FullNm,_,_,Tp),Outer,none,LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),Outer,none,LL) =>
     LL[Nm->moduleVar(qualifiedName(Outer,"%",Nm),Tp)].
   collectMtd(cnsDef(Lc,Nm,FullNm,Tp),Outer,ThVr,LL) =>
     LL[Nm->moduleCons(qualifiedName(Outer,"#",Nm),Tp)].
@@ -474,35 +434,6 @@ star.compiler.normalize{
   labelVarsIndef:(string,nameMapEntry,set[crVar])=>set[crVar].
   labelVarsInDef(_,labelArg(crVar(_,V),_,_),Vrs) => _addMem(V,Vrs).
   labelVarsInDef(_,_,Vrs) => Vrs.
-
-  cellDefs:(canon) => list[canonDef].
-  cellDefs(theta(_,_,_,Defs,_,_)) =>
-    foldRight((Ds,CV)=>foldRight(pickCellDef,CV,Ds),[],Defs).
-
-  pickCellDef:(canonDef,list[canonDef])=>list[canonDef].
-  pickCellDef(Df where varDef(Lc,Nm,_,_,_,Tp).=Df,CellDefs) where isRefType(Tp) =>
-    [CellDefs..,Df].
-  pickCellDef(_,CellDefs) => CellDefs.
-  
-  cellVars:(canon) => list[crVar].
-  cellVars(theta(_,_,_,Defs,_,_)) =>
-    foldRight(cellVarsInGroup,[],Defs).
-
-  cellVarsInGroup:(list[canonDef],list[crVar]) => list[crVar].
-  cellVarsInGroup(Grp,CV) => foldRight(pickCellVar,CV,Grp).
-
-  pickCellVar:(canonDef,list[crVar])=>list[crVar].
-  pickCellVar(varDef(Lc,Nm,_,_,_,Tp),CellVars) where isRefType(Tp) =>
-    [crId(Nm,Tp),..CellVars].
-  pickCellVar(_,CellVars) => CellVars.
-
-  varsInGroup:(list[canonDef],list[crVar]) => list[crVar].
-  varsInGroup(Grp,CV) => foldRight(pickVar,CV,Grp).
-
-  pickVar:(canonDef,list[crVar])=>list[crVar].
-  pickVar(varDef(Lc,Nm,_,Val,_,Tp),CellVars) where \+ lambda(_,_).=Val =>
-    [crId(Nm,Tp),..CellVars].
-  pickVar(_,CellVars) => CellVars.
 
   freeLabelVars:(set[crVar],nameMap,set[crVar]) => set[crVar].
   freeLabelVars(Q,Map,Fr) =>

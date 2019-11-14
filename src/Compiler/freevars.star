@@ -45,9 +45,6 @@ star.compiler.freevars{
     foldRight((Rl,F)=>freeVarsInEqn(Rl,Excl,F),Fv,Eqns).
   freeVarsInTerm(letExp(_,D,E),Excl,Fv) =>
     freeVarsInTerm(E,exclDfs(D,Excl,Fv),Fv).
-  freeVarsInTerm(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) where
-      Excl1 .= extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
-    foldRight((D,F)=>freeVarsInGroup(D,Excl1,F),Fv,Defs).
   freeVarsInTerm(record(Lc,Pth,Fields,Tp),Excl,Fv) =>
     foldRight(((_,V),F)=>freeVarsInTerm(V,Excl,F),Fv,Fields).
 
@@ -113,8 +110,6 @@ star.compiler.freevars{
     freeVarsInTerm(E,Excl,Fv).
 
   extendExcl:(canon,set[crVar],set[crVar]) => set[crVar].
-  extendExcl(theta(_,_,_,Defs,_,_),Excl,Fv) =>
-    foldRight((Dfs,Ex0)=>foldRight((D,Ex)=>exclDf(D,Ex,Fv),Ex0,Dfs),Excl,Defs).
   extendExcl(P,Excl,Fv) => ptnVars(P,Excl,Fv).
 
   exclDfs:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
@@ -152,7 +147,5 @@ star.compiler.freevars{
   ptnVars(neg(Lc,R),Excl,Fv) => Excl.
   ptnVars(lambda(Eqns,_),Excl,Fv) => Excl.
   ptnVars(letExp(_,B,E),Excl,Fv) => Excl.
-  ptnVars(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv) =>
-    extendExcl(theta(Lc,Pth,Fl,Defs,Oth,Tp),Excl,Fv).
   ptnVars(record(Lc,Pth,Defs,Tp),Excl,Fv) => foldRight(((_,P),F)=>ptnVars(P,Excl,F),Fv,Defs).
 }

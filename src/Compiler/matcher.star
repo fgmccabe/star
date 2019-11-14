@@ -21,7 +21,8 @@ star.compiler.matcher{
     Error = genRaise(Lc,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
     Reslt = matchTriples(Lc,NVrs,Trpls,Error);
-    valis fnDef(Lc,Nm,Tp,NVrs,Reslt)
+    (NArgs,NReslt) = pullVarLets(NVrs,Reslt);
+    valis fnDef(Lc,Nm,Tp,NArgs,NReslt)
   }
 
   genVars:(tipe) => list[crVar].
@@ -194,4 +195,12 @@ star.compiler.matcher{
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
   sameConstructor(crApply(_,crLbl(_,A,Ar,_),_,_), crApply(_,crLbl(_,B,Br,_),_,_)) =>
     A==B && Ar==Br.
+
+  pullVarLets:(list[crVar],crExp)=>(list[crVar],crExp).
+  pullVarLets(Vrs,crLet(Lc,V,crVar(_,A),Exp)) =>
+    pullVarLets(Vrs//replaceWith(A,V),Exp).
+  pullVarLets(Vrs,Exp) => (Vrs,Exp).
+
+  replaceWith:all x~~equality[x] |: (x,x) => (x)=>x.
+  replaceWith(A,B) => (X) => (X==A?B||X).
 }

@@ -102,9 +102,9 @@ star.compiler{
 --	  logMsg("Ast of $(P) is $(Ast)");
 	  (PkgSpec,Defs) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canon)];
 	  logMsg("Checked spec $(PkgSpec)");
-	  NormDefs <- normalize(Defs,Rp)::action[reports,list[crDefn]];
+	  (PrgVal,NormDefs) <- normalize(Defs,Rp)::action[reports,(crExp,list[crDefn])];
 	  Repp := addSpec(PkgSpec,Repp!);
-	  logMsg("Normalized program: $(NormDefs)")
+	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)")
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)
