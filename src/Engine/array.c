@@ -248,6 +248,17 @@ static logical saneList(heapPo H, listPo l) {
   return False;
 }
 
+// Extend the list 'in place' with a new element. Assumes caller knows
+static listPo addToList(heapPo H, listPo list, termPo el) {
+  basePo base = C_BASE(list->base);
+
+  assert(base->max < base->length && base->length > list->start + list->length);
+
+  base->els[base->max++] = el;
+  list->length++;
+  return list;
+}
+
 listPo appendToList(heapPo H, listPo list, termPo el) {
   basePo base = C_BASE(list->base);
   int root = gcAddRoot(H, (ptrPo) (&base));
@@ -272,17 +283,6 @@ listPo appendToList(heapPo H, listPo list, termPo el) {
   listPo slice = (listPo) newSlice(H, nb, nb->min, nb->max - nb->min);
   gcReleaseRoot(H, root);
   return slice;
-}
-
-// Extend the list 'in place' with a new element. Assumes caller knows
-static listPo addToList(heapPo H, listPo list, termPo el) {
-  basePo base = C_BASE(list->base);
-
-  assert(base->max < base->length && base->length > list->start + list->length);
-
-  base->els[base->max++] = el;
-  list->length++;
-  return list;
 }
 
 listPo prependToList(heapPo H, listPo list, termPo el) {
@@ -386,6 +386,30 @@ listPo replaceListEl(heapPo H, listPo list, integer px, termPo vl) {
     releaseHeapLock(H);
     return slice;
   }
+}
+
+listPo spliceList(heapPo H, listPo list, integer from, integer count, listPo rep)
+{
+  assert(from >= 0 && from + count <= list->length);
+  int root = gcAddRoot(H, (ptrPo) &list);
+  gcAddRoot(H,(ptrPo) &rep);
+
+  integer llen = list->length-count+rep->length;
+
+  listPo reslt = createList(H, llen + llen / 2); // leave some headroom
+
+  for (integer ix = 0; ix < from; ix++) {
+    reslt = addToList(H, reslt, nthEl(list, ix));
+  }
+  for (integer ix = 0; ix < rep->length; ix++) {
+    reslt = addToList(H, reslt, nthEl(rep, ix));
+  }
+  for (integer ix = from+count; ix < list->length; ix++) {
+    reslt = addToList(H, reslt, nthEl(list, ix));
+  }
+
+  gcReleaseRoot(H, root);
+  return reslt;
 }
 
 listPo removeListEl(heapPo H, listPo list, integer px) {

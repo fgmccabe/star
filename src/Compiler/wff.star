@@ -307,10 +307,15 @@ star.compiler.wff{
   isCoerce(A) => isBinary(A,"::").
 
   public isIndex:(ast) => option[(locn,ast,ast)].
-  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) => some((Lc,Op,Ix)).
+  isIndex(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && \+ _^=isBinary(Ix,":") => some((Lc,Op,Ix)).
   isIndex(A) where (Lc,L,R) ^= isBinary(A,"!") && (_,[Ix]) ^= isSqTuple(R) =>
     some((Lc,unary(Lc,"!",L),Ix)).
   isIndex(_) default => none.
+
+  public isSlice:(ast) => option[(locn,ast,ast,ast)].
+  isSlice(A) where (Lc,Op,[Ix]) ^= isSquareTerm(A) && (_,F,T) ^= isBinary(Ix,":") =>
+    some((Lc,Op,F,T)).
+  isSlice(_) default => none.
 
   public hasPromotion:(ast) => boolean.
   hasPromotion(A) where (_,_,Els) ^= isRoundTerm(A) =>

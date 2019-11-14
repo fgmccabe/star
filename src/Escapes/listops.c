@@ -64,6 +64,16 @@ ReturnStatus g__list_slice(processPo p, ptrPo tos) {
             .result=(termPo) sliceList(processHeap(p), l, from, count)};
 }
 
+ReturnStatus g__list_splice(processPo p, ptrPo tos) {
+  listPo l = C_LIST(tos[0]);
+  integer from = integerVal(tos[1]);
+  integer count = integerVal(tos[2]);
+  listPo r = C_LIST(tos[3]);
+
+  return (ReturnStatus) {.ret=Ok,
+        .result=(termPo) spliceList(processHeap(p), l, from, count,r)};
+}
+
 ReturnStatus g__list_front(processPo p, ptrPo tos) {
   listPo l = C_LIST(tos[0]);
   integer count = integerVal(tos[1]);
