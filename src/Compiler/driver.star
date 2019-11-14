@@ -83,7 +83,7 @@ star.compiler{
   }
 
   extractPkgSpec(P) where Lc .= _str_find(P,":",0) && Lc>0 => let{
-    Pkg = pkg(_sub_str(P,0,Lc),_sub_str(P,Lc+1,_str_len(P))::version).
+    Pkg = pkg(P[0:Lc],P[Lc+1:size(P)]::version).
   } in pkgImp(pkgLoc(Pkg),priVate,Pkg).
   extractPkgSpec(P) default =>
     pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).

@@ -662,6 +662,10 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isIndexTerm(Term,Lc,F,A),!,
   typeOfIndex(Lc,F,A,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isSlice(Term,Lc,S,F,T),!,
+  ternary(Lc,"_slice",S,F,T,Actual),
+  typeOfExp(Actual,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isRoundTerm(Term,Lc,F,A),
   (hasPromotion(Term) ->
     promoteOption(Term,NT),

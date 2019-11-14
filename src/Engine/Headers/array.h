@@ -25,6 +25,8 @@ extern listPo createList(heapPo H, integer capacity);
 
 extern termPo sliceList(heapPo H, listPo list, integer from, integer count);
 
+extern listPo spliceList(heapPo H, listPo list, integer from, integer count, listPo rep);
+
 extern listPo appendToList(heapPo H, listPo list, termPo el);
 
 extern listPo concatList(heapPo H, listPo l1, listPo l2);
