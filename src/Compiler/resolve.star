@@ -185,10 +185,6 @@ star.compiler.resolve{
     (St1,RAct) <- overloadAction(Act,Dict,St,Rp);
     valis (St1,act(Lc,RAct))
   }
-  overloadTerm(theta(Lc,Nm,Lbled,Gps,Ots,Tp),Dict,St,Rp) => do{
-    (RGps,ROts) <- overloadEnvironment(Gps,Ots,Dict,Rp);
-    valis (St,theta(Lc,Nm,Lbled,RGps,ROts,Tp))
-  }
   overloadTerm(record(Lc,Nm,Fields,Tp),Dict,St,Rp) => do{
     (Stx,RFields) <- overloadFields(Fields,[],Dict,St,Rp);
     valis (St,record(Lc,Nm,RFields,Tp))

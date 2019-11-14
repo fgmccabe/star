@@ -327,7 +327,7 @@ star.compiler.types{
   arity(Tp) => let{
     ar(tupleType(A)) => size(A).
     ar(_) => 1
-  } in ar(deRef(funTypeArg(Tp))).
+  } in ar(deRef(funTypeArg(deRef(Tp)))).
   
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
@@ -340,6 +340,11 @@ star.compiler.types{
       tpExp(O,_) .= deRef(Tp) &&
       tpExp(O2,A) .= deRef(O) &&
       tpFun("=>",2).=deRef(O2) => deRef(A).
+  funTypeArg(Tp) where
+      tpExp(O,_) .= deRef(Tp) &&
+      tpExp(O2,A) .= deRef(O) &&
+      tpFun("<=>",2).=deRef(O2) => deRef(A).
+  funTypeArg(allType(_,Tp)) => funTypeArg(deRef(Tp)).
 
   public funTypeRes(Tp) where
       tpExp(O,R) .= deRef(Tp) &&

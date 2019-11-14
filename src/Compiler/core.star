@@ -105,9 +105,11 @@ star.compiler.core{
     dE(crLbl(_,Lb,Ar,_)) => ssSeq([ss(Lb),ss("/"),disp(Ar)]).
     dE(crECall(_,Op,As,_)) => ssSeq([ss(Op),ss("("),ssSeq(interleave(As//dE,ss(","))),ss(")")]).
     dE(crCall(_,Op,As,_)) => ssSeq([dE(Op),ss("("),ssSeq(interleave(As//dE,ss(","))),ss(")")]).
+    dE(crApply(_,Op,As,_)) where isTplOp(Op) => ssSeq([ss("("),ssSeq(interleave(As//dE,ss(","))),ss(")")]).
     dE(crApply(_,Op,As,_)) => ssSeq([dE(Op),ss("("),ssSeq(interleave(As//dE,ss(","))),ss(")")]).
     dE(crDte(_,O,Ix,_)) => ssSeq([dE(O),ss("."),disp(Ix)]).
     dE(crTplDte(_,O,Ix,_)) => ssSeq([dE(O),ss("."),disp(Ix)]).
+    dE(crRecord(_,Path,Fs,_)) => ssSeq([ss(Path),ss("{"),ssSeq(interleave(Fs//((Nm,Vl))=>ssSeq([ss(Nm),ss("="),dE(Vl)]),ss(". "))),ss("}")]).
     dE(crLet(_,V,E,I)) => ssSeq([ss("let "),disp(V),ss(" = "),dE(E),ss(" in "),dE(I)]).
     dE(crLam(_,Ps,R)) => ssSeq([ss("lambda"),ss("("),ssSeq(interleave(Ps//disp,ss(","))),ss(") => "),dE(R)]).
     dE(crCase(_,E,Cs,Dflt,_)) => ssSeq([ss("case "),dE(E),ss(" in {"),ssSeq(interleave(Cs//dCase,ss("; "))),ss("} else "),disp(Dflt)]).
@@ -115,6 +117,9 @@ star.compiler.core{
     dE(crWhere(_,T,C)) => ssSeq([dE(T),ss(" where "), dE(C)]).
 
     dCase((_,P,E)) => ssSeq([dE(P),ss(" -> "),dE(E)]).
+
+    isTplOp(crLbl(_,Nm,_,_)) => isTplLbl(Nm).
+    isTplOp(_) default => false.
   } in {
     disp = dE
   }
@@ -133,6 +138,10 @@ star.compiler.core{
   rewriteTerm(crTplDte(Lc,R,Ix,Tp),M) => crTplDte(Lc,R,Ix,Tp).
   rewriteTerm(crApply(Lc,Op,Args,Tp),M) =>
     crApply(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
+  rewriteTerm(crCall(Lc,Op,Args,Tp),M) =>
+    crCall(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
+  rewriteTerm(crECall(Lc,Op,Args,Tp),M) =>
+    crECall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crLet(Lc,V,B,E),M) where M1 .= dropVar(M,V) =>
     crLet(Lc,V,rewriteTerm(B,M1),rewriteTerm(E,M1)).
   rewriteTerm(crLam(Lc,Args,R),M) where M1 .= foldLeft(dropVar,M,Args) =>

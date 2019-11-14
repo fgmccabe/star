@@ -1,5 +1,6 @@
 star.compiler.terms{
   import star.
+  import star.parse.
 
   import star.compiler.location.
   import star.compiler.types.
@@ -54,6 +55,10 @@ star.compiler.terms{
 
   public tplLbl:(integer)=>string.
   tplLbl(Ar) => "()$(Ar)".
+
+  public isTplLbl:(string)=>boolean.
+  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::list[integer]) => true.
+  isTplLbl(_) default => false.
 
   public isScalar:(data)=>boolean.
   isScalar(intgr(_)) => true.

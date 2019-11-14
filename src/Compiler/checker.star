@@ -61,7 +61,8 @@ star.compiler.checker{
   }
 
   makePkgTheta:(locn,string,tipe,list[list[canonDef]],list[canon])=>canon.
-  makePkgTheta(Lc,Nm,Tp,Defs,Oth) => theta(Lc,Nm,false,Defs,Oth,Tp).
+  makePkgTheta(Lc,Nm,Tp,Defs,Oth) =>
+    mkRecord(Lc,Nm,Tp,Defs,Tp).
 
   exportedFields:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
   exportedFields(Defs,Vis,DVz) =>
@@ -85,11 +86,17 @@ star.compiler.checker{
     Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
-      valis theta(Lc,Path,true,Defs,[],reConstrain(Cx,ThetaTp))
+--    logMsg("building record from theta");
+
+      valis mkRecord(Lc,Path,faceOfType(Tp,ThEnv),Defs,reConstrain(Cx,ThetaTp))
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp) not consistent with $(Tp)",Lc)
-  }
+    }
+
+  mkRecord(Lc,Path,faceType(Flds,Tps),Defs,Tp) =>
+    foldRight((Gp,I)=>letExp(Lc,Gp,I),
+      record(Lc,Path,Flds//((Nm,FTp))=>(Nm,vr(Lc,Nm,FTp)),Tp),Defs).
 
   thetaEnv:(locn,string,list[ast],tipe,dict,reports,visibility) =>
     either[reports,(list[list[canonDef]],dict,tipe)].
@@ -98,10 +105,10 @@ star.compiler.checker{
     Base = pushFace(Face,Lc,Env);
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
-    logMsg("Defs: $(Defs)");
+--    logMsg("Defs: $(Defs)");
     PubVrTps = exportedFields(Defs,Vis,DefViz);
     PubTps = exportedTypes(Defs,Vis,DefViz);
-    logMsg("exported fields $(PubVrTps)");
+--    logMsg("exported fields $(PubVrTps)");
     valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
   }
 
@@ -490,14 +497,14 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
     typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{
-    logMsg("checking let exp");
+--    logMsg("checking let exp");
 
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,
       priVate);
     
     BndEnv = pushFace(ThetaTp,Lc,Env);
-    logMsg("let env groups $(Defs)");
-    logMsg("sub env is $(BndEnv)");
+--    logMsg("let env groups $(Defs)");
+--    logMsg("sub env is $(BndEnv)");
     El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
     valis foldRight((Gp,I)=>letExp(Lc,Gp,I),El,Defs)
   }
