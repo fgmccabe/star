@@ -539,7 +539,8 @@ typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
   (isVar(N,Env,Spec) ->
    typeOfVar(Lc,V,Tp,Spec,Env,Ev,Term);
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
-   Term=void).
+   Term=void,
+   Env=Ev).
 typeOfExp(T,Tp,Env,Env,intLit(Ix,IntTp),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
