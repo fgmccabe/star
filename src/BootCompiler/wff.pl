@@ -357,10 +357,10 @@ isIndexTerm(Trm,Lc,Lhs,Rhs) :-
 isSlice(Trm,Lc,Lhs,Frm,To) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
   isBinary(Rhs,_,":",Frm,To),!.
-isSlice(Trm,Lc,Lhs,Frm,To) :-
+isSlice(Trm,Lc,Lhs,F,T) :-
   isBinary(Trm,Lc,"!",L,R),
   unary(Lc,"!",L,Lhs),
-  isSquareTerm(R,_,S,X),
+  isSquareTuple(R,_,[X]),
   isBinary(X,_,":",F,T),!.
 
 isSplice(Trm,Lc,S,F,T,R) :-

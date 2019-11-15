@@ -318,9 +318,9 @@ star.compiler.wff{
   isSlice(_) default => none.
 
   public isSplice:(ast) => option[(locn,ast,ast,ast,ast)]. -- S[F:T] := R
-  isSplit(A) where (Lc,Lhs,R)^= isAssignment(A) && (_,S,F,T) ^= isSlice(Lhs) =>
+  isSplice(A) where (Lc,Lhs,R)^= isAssignment(A) && (_,S,F,T) ^= isSlice(Lhs) =>
     some((Lc,S,F,T,R)).
-  isSplit(_) default => none.
+  isSplice(_) default => none.
 
   public hasPromotion:(ast) => boolean.
   hasPromotion(A) where (_,_,Els) ^= isRoundTerm(A) =>

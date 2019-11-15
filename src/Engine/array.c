@@ -218,11 +218,11 @@ static termPo newSlice(heapPo H, basePo base, integer start, integer length) {
   return (termPo) slice;
 }
 
-termPo sliceList(heapPo H, listPo list, integer from, integer count) {
-  assert(from >= 0 && from + count <= list->length);
+termPo sliceList(heapPo H, listPo list, integer from, integer to) {
+  assert(from >= 0 && to >= 0 && to <= list->length);
   int root = gcAddRoot(H, (ptrPo) &list);
 
-  listPo slice = (listPo) newSlice(H, C_BASE(list->base), list->start + from, count);
+  listPo slice = (listPo) newSlice(H, C_BASE(list->base), list->start + from, to-from);
 
   gcReleaseRoot(H, root);
   return (termPo) slice;

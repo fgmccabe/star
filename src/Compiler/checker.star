@@ -457,7 +457,7 @@ star.compiler.checker{
 	(_,N) ^= isUnary(Ix,"\\+") ?
 	  typeOfExp(binary(Lc,"_remove",C,N),Tp,Env,Path,Rp) ||
 	  typeOfExp(binary(Lc,"_index",C,Ix),Tp,Env,Path,Rp)).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isIndex(A) =>
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,S,F,T) ^= isSlice(A) =>
     typeOfExp(ternary(Lc,"_slice",S,F,T),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Stmts) ^= isActionTerm(A) &&
