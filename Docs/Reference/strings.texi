@@ -213,7 +213,7 @@ S[ix:tx] := U
 @end example
 is equivalent to the assignment:
 @example
-S := _splice(S,ix,cx,U)
+S := _splice(S!,ix,cx,U)
 @end example
 
 @node Standard String Functions

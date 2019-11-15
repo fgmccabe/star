@@ -921,6 +921,11 @@ checkAction(Term,Env,Ev,_,_ExTp,_ValTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :-
   typeOfPtn(L,refType(PT),Env,Ev,Lhs,Path),
   typeOfExp(R,PT,Env,_,Rhs,Path).
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
+  isSplice(Term,Lc,S,F,T,R),!,
+  unary(Lc,"!",S,Src),
+  nary(Lc,"_splice",[S,F,T,R],Rep),
+  checkAssignment(Lc,Src,Rep,Env,Ev,ExTp,ValTp,ErTp,Act,Path).
+checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
   isAssignment(Term,Lc,L,R),!,
   checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,

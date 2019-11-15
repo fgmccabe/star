@@ -9,11 +9,11 @@
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
-	      isEquation/5,isDefn/4,isAssignment/4,eqn/5,
+	      isEquation/5,isDefn/4,isAssignment/4,assignment/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
 	      isWhere/4,isCoerce/4,
 	      isFieldAcc/4,isVarRef/3,isIndexTerm/4,
-	      isSlice/5,
+	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
 	      isConjunct/4,isDisjunct/4,
 	      isForall/4,isNegation/3,isMatch/4,isSearch/4,
@@ -276,6 +276,9 @@ isCaseExp(Trm,Lc,Exp,Cases) :-
 isAssignment(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,":=",Lhs,Rhs).
 
+assignment(Lc,Lhs,Rhs,Stmt) :-
+  binary(Lc,":=",Lhs,Rhs,Stmt).
+
 isWhere(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"where",Lhs,Rhs).
 
@@ -343,15 +346,27 @@ isVarRef(Trm,Lc,In) :-
   isUnary(Trm,Lc,"!",In).
 
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
-  isSquareTerm(Trm,Lc,Lhs,[Rhs]),\+isBinary(Rhs,_,":",_,_),!.
+  isSquareTerm(Trm,Lc,Lhs,[Rhs]),
+  \+isBinary(Rhs,_,":",_,_),!.
 isIndexTerm(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"!",L,R),
   unary(Lc,"!",L,Lhs),
-  isSquareTuple(R,_,[Rhs]),!.
+  isSquareTuple(R,_,[Rhs]),
+  \+isBinary(Rhs,_,":",_,_),!.
 
 isSlice(Trm,Lc,Lhs,Frm,To) :-
   isSquareTerm(Trm,Lc,Lhs,[Rhs]),
   isBinary(Rhs,_,":",Frm,To),!.
+isSlice(Trm,Lc,Lhs,Frm,To) :-
+  isBinary(Trm,Lc,"!",L,R),
+  unary(Lc,"!",L,Lhs),
+  isSquareTerm(R,_,S,X),
+  isBinary(X,_,":",F,T),!.
+
+isSplice(Trm,Lc,S,F,T,R) :-
+  isAssignment(Trm,Lc,L,R), % S[F:T]:=R
+  isSquareTerm(L,_,S,X),
+  isBinary(X,_,":",F,T),!.
 
 packageName(T,Pkg) :- isIden(T,Pkg).
 packageName(T,Pkg) :- isString(T,Pkg).
