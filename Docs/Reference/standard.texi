@@ -300,7 +300,7 @@ The type signature for @code{++} is:
 
 The @code{++} function concatenates two sequences to form their conjunction.
 
-@node The @code{slice} Contract
+@node The slice Contract
 @section The @code{slice} Contract
 
 @float Program,sliceContractProg
@@ -542,7 +542,7 @@ isEmpty : all t ~~ sizeable[t] |: (t)=>boolean
 
 The @code{isEmpty} function returns @code{true} if the entity is empty.
 
-@node The @code{indexed} Contract
+@node The indexed Contract
 @section The @code{indexed} Contract
 @anchor{indexedContract}
 

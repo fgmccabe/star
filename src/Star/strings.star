@@ -35,8 +35,8 @@ star.strings{
   }.
 
   public implementation slice[string->>integer] => {
-    _slice(S,F,T) => _sub_str(S,F,T).
-    _splice(S,F,T,N) => _str_splice(S,F,T,N).
+    _slice(S,F,T) => _sub_str(S,F,T-F).
+    _splice(S,F,T,N) => _str_splice(S,F,T-F,N).
   }.
 
   public implementation reversible[string] => {

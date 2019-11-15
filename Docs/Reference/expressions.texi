@@ -1082,3 +1082,75 @@ expression:
 @example
 _apnd(@dots{}_apnd(_apnd(_nil,@var{E@sub{1}})@var{E@sub{2}})@dots{},@var{E@sub{n}})
 @end example
+
+@node Index Expression Notation
+@subsection Index Expression Notation
+
+@float BNF,indexExpressionFig
+@caption{Index Expressions}
+@display
+@anchored{IndexExpression} ::= @refer{Expression} @code{'['} @refer{Expression} @code{']'}
+ | @refer{Expression} @code{'['} @code{\+} @refer{Expression} @code{']'}
+ | @refer{Expression} @code{'['} @refer{Expression} @code{->} @refer{Expression} @code{']'}
+@end display
+@end float
+
+Index expressions are used to denote the common case of accessing
+elements of a collection. There are several variants of the notation
+-- corresponding to element selection, replacing an element in a
+collection and removing an element from a collection.
+
+There is a related similar notation -- the @refer{Slice Notation} --
+that is used to denote sub-sequences.
+
+The index notation is based on the @code{indexed} contract (@ref{The indexed Contract}).
+
+An expression of the form: 
+@example
+@var{C}[@var{E}]
+@end example
+
+is equivalent to: 
+@example
+_index(@var{C},@var{E})
+@end example
+
+@quotation Note
+The result type of an index expression is @code{option}al. This reflects the fact that accessing a collection for an element may not be succesfull.
+@end quotation
+
+The @code{indexed} contract (and therefore the index notation) is supported for lists, maps.
+
+@node Slice Notation
+@subsection Slice Notation
+
+@float BNF,sliceExpressionFig
+@caption{Slice Expressions}
+@display
+@anchored{SliceExpression} ::= @refer{Expression} @code{'['} @refer{Expression} @code{:} @refer{Expression} @code{']'}
+@end display
+@end float
+
+The slice notation is based on the @code{slice} contract (@ref{The slice Contract}).
+
+An expression of the form: 
+@example
+@var{C}[@var{F}:@var{T}]
+@end example
+
+refers to the subset of the collection @code{@var{C}} that starts at element @code{@var{F}} and continues until element @code{@var{T}} (but does not include it).
+
+The above expression is actually equivalent to a call to the @code{_slice} function:
+@example
+_slice(@var{C},@var{F},@var{T})
+@end example
+
+@quotation Note
+The result type of a slice expression is the same as the collection type that is being sliced.
+@end quotation
+
+
+
+
+
+
