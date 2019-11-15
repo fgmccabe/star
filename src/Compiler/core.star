@@ -42,6 +42,41 @@ star.compiler.core{
 	  disp(Rep)]).
   .}
 
+  dspExp:(crExp,integer) => ss.
+  dspExp(crVar(_,V),_) => disp(V).
+  dspExp(crInt(_,Ix),_) => disp(Ix).
+  dspExp(crFlot(_,Dx),_) => disp(Dx).
+  dspExp(crStrg(_,Sx),_) => disp(Sx).
+  dspExp(crLbl(_,Lb,Ar,_),_) => ssSeq([ss(Lb),ss("/"),disp(Ar)]).
+  dspExp(crECall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crApply(_,Op,As,_),Off) where isTplOp(Op) => ssSeq([ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crApply(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crDte(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
+  dspExp(crTplDte(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
+  dspExp(crRecord(_,Path,Fs,_),Off) => ssSeq([ss(Path),ss("{"),ssSeq(dsplyFlds(Fs,Off+2)),ss("}")]).
+  dspExp(crLet(_,V,E,I),Off) => ssSeq([ss("let "),disp(V),ss(" = "),dspExp(E,Off),ss(" in "),dspExp(I,Off)]).
+  dspExp(crLam(_,Ps,R),Off) => ssSeq([ss("lambda"),ss("("),ssSeq(interleave(Ps//disp,ss(","))),ss(") => "),dspExp(R,Off)]).
+  dspExp(crCase(_,E,Cs,Dflt,_),Off) => ssSeq([ss("case "),
+      dspExp(E,Off),ss(" in {"),ssSeq(dspCases(Cs,Off+2)),ss("} else "),dspExp(Dflt,Off)]).
+  dspExp(crMatch(_,P,E),Off) => ssSeq([dspExp(P,Off),ss(".="),dspExp(E,Off)]).
+  dspExp(crWhere(_,T,C),Off) => ssSeq([dspExp(T,Off),ss(" where "), dspExp(C,Off+2)]).
+
+  dspCases(Cs,Off) => let{
+    Gap = ss(";\n").
+  } in interleave(Cs//((_,P,V))=>ssSeq([dspExp(P,Off),ss("->"),dspExp(V,Off)]),Gap).
+
+  dsplyExps(Es,Off) => let{
+    Gap = ss(", ").
+  } in interleave(Es//(E)=>dspExp(E,Off),Gap).
+
+  dsplyFlds(Fs,Off) => let{
+    Gap = ss(", ").
+  } in interleave(Fs//((Nm,Vl))=>ssSeq([ss(Nm),ss("="),dspExp(Vl,Off)]),Gap).
+
+  isTplOp(crLbl(_,Nm,_,_)) => isTplLbl(Nm).
+  isTplOp(_) default => false.
+
   public mkCrTpl:(list[crExp],locn) => crExp.
   mkCrTpl(Args,Lc) => let{
     TpTp = tupleType(Args//typeOf).
