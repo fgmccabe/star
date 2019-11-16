@@ -20,6 +20,8 @@ computational process of realizing the denoted value.
   | @refer{LambdaExpression}
   | @refer{TypedExpression}
   | @refer{SequenceExpression}
+  | @refer{IndexExpression}
+  | @refer{SliceExpression}
 @end display
 @end float
 
@@ -780,7 +782,6 @@ constructor defined in a @refer{TypeDefinition}.
 The so-called control expressions involve and modify the meaning of
 other expressions and actions.
 
-
 @node Case Expression
 @subsection Case Expressions
 @cindex case expression
@@ -1083,8 +1084,8 @@ expression:
 _apnd(@dots{}_apnd(_apnd(_nil,@var{E@sub{1}})@var{E@sub{2}})@dots{},@var{E@sub{n}})
 @end example
 
-@node Index Expression Notation
-@subsection Index Expression Notation
+@node Index Expression
+@subsection Index Expression
 
 @float BNF,indexExpressionFig
 @caption{Index Expressions}
@@ -1095,10 +1096,9 @@ _apnd(@dots{}_apnd(_apnd(_nil,@var{E@sub{1}})@var{E@sub{2}})@dots{},@var{E@sub{n
 @end display
 @end float
 
-Index expressions are used to denote the common case of accessing
-elements of a collection. There are several variants of the notation
--- corresponding to element selection, replacing an element in a
-collection and removing an element from a collection.
+Index expressions are used to denote accessing elements of a collection. There
+are several variants of the notation -- corresponding to element selection,
+replacing an element in a collection and removing an element from a collection.
 
 There is a related similar notation -- the @refer{Slice Notation} --
 that is used to denote sub-sequences.
@@ -1116,10 +1116,46 @@ _index(@var{C},@var{E})
 @end example
 
 @quotation Note
-The result type of an index expression is @code{option}al. This reflects the fact that accessing a collection for an element may not be succesfull.
+The result type of an index expression is @code{option}al. This reflects the
+fact that accessing a collection for an element may not be succesfull.
 @end quotation
 
 The @code{indexed} contract (and therefore the index notation) is supported for lists, maps.
+
+Replacing elements in a collection is denoted using a variant of the index
+notation where the index takes the form of:
+
+@example
+@var{C}[@var{K} -> @var{E}]
+@end example
+
+which denotes the collection @code{@var{C}} with the element associated with
+@var{K} replaced (or set) with @code{@var{E}}. This expression is equivalent to
+the call:
+
+@example
+_put(@var{C},@var{K},@var{E})
+@end example
+
+and the returned value is a new collection with the replacement made.
+
+@quotation Note
+The original collection is generally @emph{not} updated by the call to @code{_put}.
+@end quotation
+
+Removing an element is denoted using the variant:
+
+@example
+@var{C}[\+@var{K}]
+@end example
+
+which denotes the collection @code{@var{C}} with the element @code{@var{K}} removed.
+
+@quotation Note
+If the collection did not contain any value associated with the key
+@code{@var{K}} then the result is the original collection. Otherwise the value
+is the collection with any value associated with @code{@var{K}} removed.
+@end quotation
 
 @node Slice Notation
 @subsection Slice Notation
@@ -1149,8 +1185,23 @@ _slice(@var{C},@var{F},@var{T})
 The result type of a slice expression is the same as the collection type that is being sliced.
 @end quotation
 
+For convenience, there is a variant of slice notation where the collection is
+the value of a re-assignable variable. An expression of the form:
 
+@example
+@var{C}![@var{F}:@var{T}]
+@end example
 
+is equivalent to the expression:
 
+@example
+(@var{C}!)[@var{F}:@var{T}]
+@end example
+
+which, in turn, is equivalent to
+
+@example
+_slice(@var{C}!,@var{F},@var{T})
+@end example
 
 
