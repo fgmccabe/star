@@ -1,7 +1,7 @@
 test.fl{
   import star.core.
   
-/*  public fact:(integer)=>integer.
+  public fact:(integer)=>integer.
   fact(N) => let{
     h(K) => f(K).
     
@@ -11,8 +11,8 @@ test.fl{
     g(0) => 1.
     g(K) => _int_times(K,f(_int_minus(K,1))).
   } in h(N).
-  checkOk = _int_eq(fact(3),6).
-*/
+
+  checkOk = fact(3)==6.
 
   public ff:(integer)=>integer.
   ff(N)=>let{
