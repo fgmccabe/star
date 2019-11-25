@@ -64,6 +64,7 @@ star.comp.keywords {
   keyword("for") => true.
   keyword("try") => true.
   keyword("catch") => true.
+  keyword("struct") => true.
   keyword("#") => true.
 
   keyword(_) default => false.

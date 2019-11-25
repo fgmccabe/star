@@ -219,7 +219,7 @@ static termPo newSlice(heapPo H, basePo base, integer start, integer length) {
 }
 
 termPo sliceList(heapPo H, listPo list, integer from, integer to) {
-  assert(from >= 0 && to >= 0 && to <= list->length);
+  assert(from >= 0 && to >= from && to-from <= list->length);
   int root = gcAddRoot(H, (ptrPo) &list);
 
   listPo slice = (listPo) newSlice(H, C_BASE(list->base), list->start + from, to-from);
@@ -388,13 +388,13 @@ listPo replaceListEl(heapPo H, listPo list, integer px, termPo vl) {
   }
 }
 
-listPo spliceList(heapPo H, listPo list, integer from, integer count, listPo rep)
+listPo spliceList(heapPo H, listPo list, integer from, integer to, listPo rep)
 {
-  assert(from >= 0 && from + count <= list->length);
+  assert(from >= 0 && to>=from && to <= list->length);
   int root = gcAddRoot(H, (ptrPo) &list);
   gcAddRoot(H,(ptrPo) &rep);
 
-  integer llen = list->length-count+rep->length;
+  integer llen = list->length - to + from + rep->length;
 
   listPo reslt = createList(H, llen + llen / 2); // leave some headroom
 
@@ -404,7 +404,7 @@ listPo spliceList(heapPo H, listPo list, integer from, integer count, listPo rep
   for (integer ix = 0; ix < rep->length; ix++) {
     reslt = addToList(H, reslt, nthEl(rep, ix));
   }
-  for (integer ix = from+count; ix < list->length; ix++) {
+  for (integer ix = to; ix < list->length; ix++) {
     reslt = addToList(H, reslt, nthEl(list, ix));
   }
 

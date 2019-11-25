@@ -39,6 +39,7 @@
     "test.let": "letish.star",
     "test.m": "m.star",
     "test.mm": "mm.star",
+    "test.ms" : "ms.star",
     "test.nm": "nm.star",
     "test.p": "p.star",
     "test.p0": "p0.star",

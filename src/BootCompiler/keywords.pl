@@ -47,6 +47,7 @@
   keyword("all").
   keyword("of").
   keyword("exists").
+  keyword("struct").
   keyword("assert").
   keyword("let").
   keyword("default").
