@@ -10,21 +10,21 @@ ReturnStatus g__list_nil(processPo p, ptrPo tos) {
   integer cap = integerVal(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) createList(processHeap(p), cap)};
+    .result=(termPo) createList(processHeap(p), cap)};
 }
 
 ReturnStatus g__list_empty(processPo p, ptrPo tos) {
   listPo l = C_LIST(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=listSize(l) == 0 ? trueEnum : falseEnum};
+    .result=listSize(l) == 0 ? trueEnum : falseEnum};
 }
 
 ReturnStatus g__list_size(processPo p, ptrPo tos) {
   listPo l = C_LIST(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(p), listSize(l))};
+    .result=(termPo) allocateInteger(processHeap(p), listSize(l))};
 }
 
 ReturnStatus g__list_nth(processPo p, ptrPo tos) {
@@ -43,7 +43,7 @@ ReturnStatus g__list_append(processPo p, ptrPo tos) {
   listPo l = C_LIST(Lhs);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) appendToList(processHeap(p), l, Rhs)};
+    .result=(termPo) appendToList(processHeap(p), l, Rhs)};
 }
 
 ReturnStatus g__list_prepend(processPo p, ptrPo tos) {
@@ -52,16 +52,15 @@ ReturnStatus g__list_prepend(processPo p, ptrPo tos) {
   listPo l = C_LIST(Lhs);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) prependToList(processHeap(p), l, Rhs)};
+    .result=(termPo) prependToList(processHeap(p), l, Rhs)};
 }
 
 ReturnStatus g__list_slice(processPo p, ptrPo tos) {
   listPo l = C_LIST(tos[0]);
   integer from = integerVal(tos[1]);
-  integer count = integerVal(tos[2]);
+  integer to = integerVal(tos[2]);
 
-  return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) sliceList(processHeap(p), l, from, count)};
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) sliceList(processHeap(p), l, from, to)};
 }
 
 ReturnStatus g__list_splice(processPo p, ptrPo tos) {
@@ -71,7 +70,7 @@ ReturnStatus g__list_splice(processPo p, ptrPo tos) {
   listPo r = C_LIST(tos[3]);
 
   return (ReturnStatus) {.ret=Ok,
-        .result=(termPo) spliceList(processHeap(p), l, from, count,r)};
+    .result=(termPo) spliceList(processHeap(p), l, from, count, r)};
 }
 
 ReturnStatus g__list_front(processPo p, ptrPo tos) {
@@ -79,7 +78,7 @@ ReturnStatus g__list_front(processPo p, ptrPo tos) {
   integer count = integerVal(tos[1]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) sliceList(processHeap(p), l, 0, count)};
+    .result=(termPo) sliceList(processHeap(p), l, 0, count)};
 }
 
 ReturnStatus g__list_back(processPo p, ptrPo tos) {
@@ -87,7 +86,7 @@ ReturnStatus g__list_back(processPo p, ptrPo tos) {
   integer from = integerVal(tos[1]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) sliceList(processHeap(p), l, from, listSize(l) - from)};
+    .result=(termPo) sliceList(processHeap(p), l, from, listSize(l))};
 }
 
 ReturnStatus g__list_concat(processPo p, ptrPo tos) {
@@ -97,7 +96,7 @@ ReturnStatus g__list_concat(processPo p, ptrPo tos) {
   listPo r = C_LIST(Rhs);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) concatList(processHeap(p), l, r)};
+    .result=(termPo) concatList(processHeap(p), l, r)};
 }
 
 ReturnStatus g__list_reverse(processPo p, ptrPo tos) {
@@ -105,14 +104,14 @@ ReturnStatus g__list_reverse(processPo p, ptrPo tos) {
   listPo l = C_LIST(Lhs);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) reverseList(processHeap(p), l)};
+    .result=(termPo) reverseList(processHeap(p), l)};
 }
 
 ReturnStatus g__list_flatten(processPo p, ptrPo tos) {
   listPo ll = C_LIST(tos[0]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) flattenList(processHeap(p), ll)};
+    .result=(termPo) flattenList(processHeap(p), ll)};
 }
 
 ReturnStatus g__list_insert(processPo p, ptrPo tos) {
@@ -121,7 +120,7 @@ ReturnStatus g__list_insert(processPo p, ptrPo tos) {
   termPo vl = tos[2];
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) insertListEl(processHeap(p), l, ix, vl)};
+    .result=(termPo) insertListEl(processHeap(p), l, ix, vl)};
 }
 
 ReturnStatus g__list_replace(processPo p, ptrPo tos) {
@@ -130,7 +129,7 @@ ReturnStatus g__list_replace(processPo p, ptrPo tos) {
   termPo vl = tos[2];
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) replaceListEl(processHeap(p), l, ix, vl)};
+    .result=(termPo) replaceListEl(processHeap(p), l, ix, vl)};
 }
 
 ReturnStatus g__list_remove(processPo p, ptrPo tos) {
@@ -138,5 +137,5 @@ ReturnStatus g__list_remove(processPo p, ptrPo tos) {
   integer ix = integerVal(tos[1]);
 
   return (ReturnStatus) {.ret=Ok,
-            .result=(termPo) removeListEl(processHeap(p), l, ix)};
+    .result=(termPo) removeListEl(processHeap(p), l, ix)};
 }
