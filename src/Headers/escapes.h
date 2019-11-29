@@ -244,6 +244,9 @@ escape(_suspend,":k'u'P2k'u'P0","suspend handler if variable not bound")
 
   escape(_isLetterChar,"F(i)l","is letter char")
   escape(_digitCode,"F(i)i","convert char to num")
+  
+  escape(_isIDStart,"F(i)l","is start char of identifier")
+  escape(_isIDContinue,"F(i)l","is continue char of identifier")
 
 // String handling escapes
   escape(_int2str,"F(iiii)S","format an integer as a string")

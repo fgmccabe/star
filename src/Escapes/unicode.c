@@ -255,12 +255,28 @@ ReturnStatus g__isLetterChar(processPo p, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok, .result=Rs};
 }
 
+ReturnStatus g__isIDStart(processPo p, ptrPo tos) {
+  codePoint ch = (codePoint) integerVal(tos[0]);
+
+  termPo Rs = (isIdStart(ch) ? trueEnum : falseEnum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
+ReturnStatus g__isIDContinue(processPo p, ptrPo tos) {
+  codePoint ch = (codePoint) integerVal(tos[0]);
+
+  termPo Rs = (isIdContinue(ch) ? trueEnum : falseEnum);
+
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
 ReturnStatus g__digitCode(processPo p, ptrPo tos) {
   codePoint ch = (codePoint) integerVal(tos[0]);
 
   if (isNdChar(ch)) {
     return (ReturnStatus) {.ret=Ok,
-              .result=(termPo) allocateInteger(processHeap(p), digitValue(ch))};
+      .result=(termPo) allocateInteger(processHeap(p), digitValue(ch))};
 
   } else {
     return (ReturnStatus) {.ret=Fail, .result=voidEnum};
