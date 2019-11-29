@@ -392,7 +392,8 @@ star.compiler.wff{
   surfaceName(T) where (_,_,I) ^= isQuantified(T) => surfaceName(I).
   surfaceName(T) where (_,Els) ^= isTuple(T) => "()$(size(Els))".
 
-  public typeName(Tp) where (_,Id) ^= isName(Tp) => Id.
+  public typeName:(ast)=>string.
+  typeName(Tp) where (_,Id) ^= isName(Tp) => Id.
   typeName(Tp) where (_,Id,_) ^= isSquareApply(Tp) => Id.
   typeName(Tp) where (_,Els) ^= isTuple(Tp) => "()$(size(Els))".
 

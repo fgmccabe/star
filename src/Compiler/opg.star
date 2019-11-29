@@ -25,7 +25,9 @@ star.compiler.opg{
   termLeft([tok(Lc,idTok(Op)),..Toks],Rpt,Priority) where
     (PPr,PRgt)^=isPrefixOp(Op) && PPr=<Priority &&
     (Arg,_,RToks,Rpt1,Needs) .= term(Toks,Rpt,PRgt) =>
-      (unary(mergeLoc(Lc,locOf(Arg)),Op,Arg),PPr,RToks,Rpt1,Needs).
+    (unary(mergeLoc(Lc,locOf(Arg)),Op,Arg),PPr,RToks,Rpt1,Needs).
+  termLeft([endTok(Lc),..Toks],Rpt,_) => (nme(Lc,"_eof"),0,[endTok(Lc),..Toks],reportError(Rpt,"end of file on input",Lc),noNeed).
+  
   termLeft(Toks,Rpt,_) => term0(Toks,Rpt).
 
   termRight:((ast,integer,cons[token],reports,needsTerm),integer) => (ast,integer,cons[token],reports,needsTerm).
@@ -72,7 +74,7 @@ star.compiler.opg{
   term0([tok(Lc,lftTok("{..}")),..Toks],Rpt) where
       (Els,Rpt1,Toks1) .= terms(Toks,rgtTok("{..}"),Rpt,[]) &&
       (Lc2,Rpt2,Toksx) .= checkToken(rgtTok("{..}"),Rpt1,Toks1) =>
-        (tpl(mergeLoc(Lc,Lc2),"{..}",Els),0,Toksx,Rpt2,noNeed).
+    (tpl(mergeLoc(Lc,Lc2),"{..}",Els),0,Toksx,Rpt2,noNeed).
   term0(Toks,Rpt) => termArgs(term00(Toks,Rpt)).
 
   term00:(cons[token],reports) => (ast,cons[token],reports,needsTerm).
@@ -150,9 +152,11 @@ star.compiler.opg{
   checkToken:(tk,reports,cons[token]) => (locn,reports,cons[token]).
   checkToken(Tk,Rpt,[tok(Lc,Tk),..Toks]) => (Lc,Rpt,Toks).
   checkToken(Tk,Rpt,[tok(Lc,T),..Toks]) => (Lc,reportError(Rpt,"missing $(Tk)",Lc),[tok(Lc,T),..Toks]).
+  checkToken(Tk,Rpt,[endTok(Lc),..Toks]) => (Lc,reportError(Rpt,"missing $(Tk) - end of input",Lc),[endTok(Lc),..Toks]).
 
   checkTerminator:(reports,cons[token],needsTerm) => (reports,cons[token]).
   checkTerminator(Rpt,[tok(_,idTok(". ")),..Toks],_) => (Rpt,Toks).
+  checkTerminator(Rpt,[endTok(Lc)],_) => (Rpt,[]).
   checkTerminator(Rpt,[],_) => (Rpt,[]).
   checkTerminator(Rpt,Toks,noNeed) => (Rpt,Toks).
   checkTerminator(Rpt,[tok(Lc,rgtTok("{}")),..Toks],needOne) => (Rpt,[tok(Lc,rgtTok("{}")),..Toks]).

@@ -15,7 +15,9 @@ star.compiler.parser{
   public parseSrc:(uri,pkg,reports) => either[reports,ast].
   parseSrc(U,P,Rp) => do{
     if Txt ^= getResource(U) then{
+--      logMsg("input text $(Txt::list[integer])");
       Toks = allTokens(initSt(pkgLoc(P),Txt::list[integer]));
+--      logMsg("input tokens are $(Toks)");
       (Trm,Rp1,_) = astParse(Toks,Rp);
       if errorFree(Rp1) then
 	valis Trm
@@ -28,7 +30,6 @@ star.compiler.parser{
   public parseText:(locn,string,reports) => (option[ast],reports).
   parseText(Lc,Txt,Rpt) =>
     ( (Toks.=allTokens(initSt(Lc,Txt::list[integer])) &&
-      -- _ .= _logmsg("tokens are $(Toks)") &&
       (Trm,Rptx,_) .= astParse(Toks,Rpt)) ?
         (some(Trm),Rptx) ||
         (none, reportError(Rpt,"Could not successfully parse",Lc))).

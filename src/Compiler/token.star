@@ -3,7 +3,7 @@ star.compiler.token{
   import star.compiler.ast.
   import star.compiler.location.
 
-  public token ::= tok(locn,tk).
+  public token ::= tok(locn,tk) | endTok(locn).
 
   public tk ::= idQTok(string)
               | idTok(string)
@@ -53,10 +53,13 @@ star.compiler.token{
 
   public implementation equality[token] => {.
     tok(_,T1)==tok(_,T2) => T1==T2.
+    endTok(_)==endTok(_) => true.
+    _ == _ default => false.
   .}
 
   public implementation display[token] => {.
     disp(tok(Lc,Tk)) => ssSeq([disp(Tk),ss("@"),disp(Lc)]).
+    disp(endTok(Lc)) => ssSeq([ss("end of stream: "),disp(Lc)]).
   .}
 
   public implementation hasLoc[token] => {.

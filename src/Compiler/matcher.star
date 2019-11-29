@@ -21,7 +21,7 @@ star.compiler.matcher{
     Error = genRaise(Lc,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
     Reslt = matchTriples(Lc,NVrs,Trpls,Error);
-    (NArgs,NReslt) = pullVarLets(NVrs,Reslt);
+    (NArgs,NReslt) = pullVarLets(NVrs//(V)=>crVar(Lc,V),Reslt);
     valis fnDef(Lc,Nm,Tp,NArgs,NReslt)
   }
 
@@ -118,7 +118,7 @@ star.compiler.matcher{
   applyVar(V,Trpls) => let{
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,Exp),Ix)) =>
-      (Args,(CLc,B,crLet(VLc,Vr,crVar(VLc,V),Exp)),Ix).
+      (Args,(CLc,B,crLtt(VLc,vrDef(VLc,Vr,crVar(VLc,V)),Exp)),Ix).
   } in (Trpls//applyToTriple).
 
   formCases:(list[triple],(triple,triple)=>boolean,locn,list[crVar],crExp)=>
@@ -155,6 +155,7 @@ star.compiler.matcher{
       pickMoreCases(Tr,Trpls,Test,InCase,[Others..,A]).
 
   mkCase:(list[crCase],locn,crExp,crExp) => crExp.
+  mkCase([(PLc,Ptn,Val)],Lc,Tst,Deflt) => crCnd(Lc,crMatch(PLc,Ptn,Tst),Val,Deflt).
   mkCase(Cases,Lc,V,Deflt) => crCase(Lc,V,Cases,Deflt,typeOf(Deflt)).
 
   subTriples(Tpls) => (Tpls//subTriple).
@@ -196,11 +197,11 @@ star.compiler.matcher{
   sameConstructor(crApply(_,crLbl(_,A,Ar,_),_,_), crApply(_,crLbl(_,B,Br,_),_,_)) =>
     A==B && Ar==Br.
 
-  pullVarLets:(list[crVar],crExp)=>(list[crVar],crExp).
-  pullVarLets(Vrs,crLet(Lc,V,crVar(_,A),Exp)) =>
+  pullVarLets:(list[crExp],crExp)=>(list[crExp],crExp).
+  pullVarLets(Vrs,crLtt(Lc,vrDef(Vlc,V,crVar(_,A)),Exp)) =>
     pullVarLets(Vrs//replaceWith(A,V),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
-  replaceWith:all x~~equality[x] |: (x,x) => (x)=>x.
-  replaceWith(A,B) => (X) => (X==A?B||X).
+  replaceWith:(crVar,crVar) => (crExp)=>crExp.
+  replaceWith(A,B) => (X) => (crVar(Lc,A).=X?crVar(Lc,B)||X).
 }

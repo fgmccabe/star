@@ -273,21 +273,21 @@ star.compiler.types{
     typeOf:(c)=>tipe.
   }
 
-  public typeName:(tipe)=>string.
-  typeName(Tp) => let{
-    tpName(nomnal(Nm)) => Nm.
-    tpName(tpExp(O,A)) => tpName(deRef(O)).
-    tpName(kFun(Nm,_)) => Nm.
-    tpName(tpFun(Nm,_)) => Nm.
-    tpName(tVar(_,_)) => "_".
-    tpName(tFun(_,_,_)) => "!_".
-    tpName(allType(_,T)) => tpName(deRef(T)).
-    tpName(existType(_,T)) => tpName(deRef(T)).
-    tpName(constrainedType(T,_)) => tpName(deRef(T)).
-    tpName(typeLambda(_,T)) => tpName(deRef(T)).
-    tpName(tupleType(A)) => "!()$(size(A))".
-    tpName(funDeps(T,_)) => tpName(T).
-  } in tpName(Tp).
+  public tpName:(tipe)=>string.
+  tpName(Tp) => let{
+    tName(nomnal(Nm)) => Nm.
+    tName(tpExp(O,A)) => tName(deRef(O)).
+    tName(kFun(Nm,_)) => Nm.
+    tName(tpFun(Nm,_)) => Nm.
+    tName(tVar(_,_)) => "_".
+    tName(tFun(_,_,_)) => "!_".
+    tName(allType(_,T)) => tName(deRef(T)).
+    tName(existType(_,T)) => tName(deRef(T)).
+    tName(constrainedType(T,_)) => tName(deRef(T)).
+    tName(typeLambda(_,T)) => tName(deRef(T)).
+    tName(tupleType(A)) => "!()$(size(A))".
+    tName(funDeps(T,_)) => tName(T).
+  } in tName(Tp).
 
   public implementationName:(tipe) => string.
   implementationName(Tp) => let{
@@ -345,17 +345,25 @@ star.compiler.types{
       tpExp(O2,A) .= deRef(O) &&
       tpFun("<=>",2).=deRef(O2) => deRef(A).
   funTypeArg(allType(_,Tp)) => funTypeArg(deRef(Tp)).
+  funTypeArg(constrainedType(T,_))=>funTypeArg(T).
 
   public funTypeRes(Tp) where
       tpExp(O,R) .= deRef(Tp) &&
       tpExp(O2,_) .= deRef(O) &&
       tpFun("=>",2).=deRef(O2) => deRef(R).
+  funTypeRes(Tp) where
+      tpExp(O,R) .= deRef(Tp) &&
+      tpExp(O2,A) .= deRef(O) &&
+      tpFun("<=>",2).=deRef(O2) => deRef(R).
+  funTypeRes(allType(_,Tp)) => funTypeRes(deRef(Tp)).
+  funTypeRes(constrainedType(T,_))=>funTypeRes(T).
 
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where
       tpExp(O,B).=deRef(Tp) &&
       tpExp(O2,A) .= deRef(O) &&
       tpFun("=>",2).=deRef(O2) => some((A,B)).
+  isFunType(_) default => none.
 
   public intType = nomnal("star.core*integer").
   public fltType = nomnal("star.core*float").
@@ -392,10 +400,10 @@ star.compiler.types{
   reConstrain([Q,..Qs],Tp) => constrainedType(reConstrain(Qs,Tp),Q).
 
   public isConstructorType:(tipe)=>boolean.
-  isConstructorType(Tp) => typeName(deRef(Tp))=="<=>".
+  isConstructorType(Tp) => tpName(deRef(Tp))=="<=>".
 
   public isMapType:(tipe)=>boolean.
-  isMapType(Tp) => typeName(deRef(Tp))=="map".
+  isMapType(Tp) => tpName(deRef(Tp))=="map".
 
   public typeKey:(tipe) => tipe.
   typeKey(allType(K,T)) => typeKey(T).

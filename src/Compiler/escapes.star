@@ -185,6 +185,8 @@ star.comp.escapes{
   escapeType("_isZsChar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_isLetterChar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_digitCode") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
+  escapeType("_isIDStart") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
+  escapeType("_isIDContinue") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_int2str") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
   escapeType("_flt2str") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*boolean")])),nomnal("star.core*string"))).
   escapeType("_int_format") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*string")])),nomnal("star.core*string"))).
@@ -413,6 +415,8 @@ star.comp.escapes{
   isEscape("_isZsChar") => true.
   isEscape("_isLetterChar") => true.
   isEscape("_digitCode") => true.
+  isEscape("_isIDStart") => true.
+  isEscape("_isIDContinue") => true.
   isEscape("_int2str") => true.
   isEscape("_flt2str") => true.
   isEscape("_int_format") => true.

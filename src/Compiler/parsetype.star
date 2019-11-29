@@ -296,8 +296,9 @@ star.compiler.typeparse{
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
     Tp <- parseType([],St,Env,Rp);
     Lc = locOf(St);
-    valis (cnsDef(Lc,Nm,qualifiedName(Path,markerString(conMark),Nm),Tp),
-	declareCon(Nm,some(Lc),Tp,Env))
+    FullNm = qualifiedName(Path,markerString(conMark),Nm);
+    valis (cnsDef(Lc,Nm,FullNm,Tp),
+      declareCon(Nm,FullNm,some(Lc),Tp,Env))
   }
 
   public parseContract:(ast,dict,string,reports) => either[reports,tipe].

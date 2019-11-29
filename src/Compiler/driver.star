@@ -89,28 +89,29 @@ star.compiler{
     pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).
 
   addSpec:(pkgSpec,fileRepo) => fileRepo.
-  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
+  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
 
   processPkgs:(list[importSpec],fileRepo,catalog,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Rp) => do{
     Repp := Repo;
-    for pkgImp(Lc,_,P) in Pks do{
-      try{
+    try{
+      for pkgImp(Lc,_,P) in Pks do{
 	logMsg("Process $(P)");
 	if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 	  Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
-	  (PkgSpec,Defs) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canon)];
+	  (PkgSpec,PkgFun) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canon)];
 	  logMsg("Checked spec $(PkgSpec)");
-	  (PrgVal,NormDefs) <- normalize(Defs,Rp)::action[reports,(crExp,list[crDefn])];
+	  (PrgVal,NormDefs) <- normalize(PkgSpec,PkgFun,Rp)::action[reports,(crExp,list[crDefn])];
 	  Repp := addSpec(PkgSpec,Repp!);
 	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)")
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)
-      } catch (Erp) => do{
-	logMsg("Errors $(Erp)")
       }
+    }catch (Erp) => do{
+      logMsg("Errors $(Erp)");
+      throw Erp
     }
   }
 }

@@ -10,7 +10,7 @@ star.compiler.lexer{
   public allTokens:(tokenState) => cons[token].
   allTokens(St) => let{
     allToks(Strm,SoFr) where (Nx,Tk)^=nextToken(Strm) => allToks(Nx,[SoFr..,Tk]).
-    allToks(_,SoFr) default => SoFr.
+    allToks(Strm,SoFr) default => [SoFr..,endTok(makeLoc(Strm,Strm))].
   } in allToks(St,[]).
 
   public initSt:(locn,list[integer])=>tokenState.
@@ -53,7 +53,7 @@ star.compiler.lexer{
     finalist(_,_,Deflt) => Deflt.
   } in graphFollow(St,Ld,finalist(Ld,St,none)).
   nxxTok(Chr,St,St0) where isIdentifierStart(Chr) => readIden(St,St0,[Chr]).
-  nxxTok(_,_,_) default => none.
+  nxxTok(_,St,St0) default => none.
 
   isIdentifierStart(Ch) => (Ch==0c_ || isLetter(Ch)).
 
