@@ -29,7 +29,7 @@ typedef enum {
   unknownEncoding
 } ioEncoding;
 
-logical isChar(codePoint ch);  /* Is character a legal codePoint char? */
+/* Is character a legal codePoint char? */
 
 logical isCcChar(codePoint ch);
 logical isCfChar(codePoint ch);
@@ -62,15 +62,16 @@ logical isZlChar(codePoint ch);
 logical isZpChar(codePoint ch);
 logical isZsChar(codePoint ch);
 
+logical isIdStart(codePoint ch);
+logical isIdContinue(codePoint ch);
+
 logical isLetterChar(codePoint ch);
 logical isSpaceChar(codePoint ch);
 int digitValue(codePoint ch);
 
 codePoint lowerOf(codePoint ch);
-codePoint upperOf(codePoint ch);
 
 integer countCodePoints(const char *src, integer start, integer end);
-integer uniCodeCount(char *src);
 
 integer advanceCodePoint(char *src, integer start, integer end, integer count);
 codePoint codePointAt(const char *src, integer pt, integer end);
@@ -81,17 +82,13 @@ integer backCodePoint(char *src, integer from, integer count);
 
 int codePointSize(codePoint pt);
 
-logical isUniIdentifier(char * id);
-
 integer uniStrLen(const char *s);
 integer uniNStrLen(const char *s,integer max);
 retCode uniCpy(char *dest, integer len, const char *src);
 retCode uniNCpy(char *dest, integer len, const char *src, integer sLen);
 comparison uniCmp(const char *s1, const char *s2);
 comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2);
-retCode uniInsert(char *dest, integer len, const char *src);
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch);
-retCode uniTack(char * dest, long len, const char *src);
 retCode uniAppend(char *dest, integer *pos, integer len, char *src);
 retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLen);
 retCode uniReverse(char *dest, integer len);
@@ -99,18 +96,14 @@ char * uniDupl(char *str,integer len);
 
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c);
 integer uniLastIndexOf(char *s, integer len, codePoint c);
-char * uniSubStr(char * s, long len, long from, long cnt, char * buff, long bLen);
 
 long uniSearch(const char *src, integer len, integer start, const char *tgt, integer tlen);
-char * uniSearchAny(char *s, integer len, char *term);
 codePoint uniSearchDelims(char *s, integer len, char *t);
-char * uniLast(char *s, integer l, codePoint c);
 char * uniDuplicate(const char *s);
 void uniDestroy(char *s);
 logical uniIsLit(const char *s1, const char *s2);
 logical uniIsLitPrefix(const char *s1, const char *s2);
 logical uniIsPrefix(const char *s1, integer len1, const char *s2, integer len2);
-char * uniEndStr(char * s);
 integer uniHash(const char * name);
 integer uniNHash(const char * name, long len);
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen);

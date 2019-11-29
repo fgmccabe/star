@@ -19,7 +19,6 @@
 #include <math.h>
 #include <pthread.h>
 #include <stdlib.h>
-#include <signal.h>
 #include "retcode.h"
 #include "timer.h"
 

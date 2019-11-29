@@ -50,7 +50,7 @@
 /*
  0x10000 - 0x1fffff
 */
-#define U1000 ((0xf0u)<<3)
+#define U1000 ((0xf0u)<<3u)
 #define M1000 (0x7u)
 #define UC1000(x) (((x)&M1000)==U1000)
 #define UX1000(x) ((x)&(~M1000))
