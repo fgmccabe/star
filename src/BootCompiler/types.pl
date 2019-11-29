@@ -3,7 +3,7 @@
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
 	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
-	   isProgramType/1,
+	   isProgramType/1,isFixedSizeType/1,
 	   dispType/1,dispType/2,showType/4,showConstraint/3,
 	   contractType/2,contractTypes/2,
 	   isUnbound/1,isBound/1,isUnboundFVar/2, isIdenticalVar/2,
@@ -28,6 +28,7 @@ isType(existType(_,_)).
 isType(faceType(_,_)).
 isType(typeLambda(_,_)).
 isType(constrained(_,_)).
+isType(valType(_)).
 
 isConstraint(conTract(_,_,_)).
 isConstraint(implementsFace(_,_)).
@@ -58,7 +59,6 @@ varConstraints(kFun(Id,Ar),Env,Con) :- !,
   getEnvConstraints(Env,types:isKCon(kFun(Id,Ar)),Con,_).
 
 isKCon(K,conTract(_,A,_)) :- is_member(K,A).
-
 
 getEnvConstraints([],_,Cx,Cx).
 getEnvConstraints([scope(_,_,Cns,_,_)|Ev],T,C,Cx) :-
@@ -137,6 +137,7 @@ showType(tupleType(A),ShCon,O,Ox) :- appStr("(",O,O1), showTypeEls(A,ShCon,O1,O2
 showType(funType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("=>",O1,O2), showType(R,ShCon,O2,Ox).
 showType(consType(A,R),ShCon,O,Ox) :- showType(A,ShCon,O,O1), appStr("<=>",O1,O2), showType(R,ShCon,O2,Ox).
 showType(refType(R),ShCon,O,Ox) :- appStr("ref ",O,O4), showType(R,ShCon,O4,Ox).
+showType(valType(R),ShCon,O,Ox) :- appStr("val ",O,O4), showType(R,ShCon,O4,Ox).
 showType(allType(V,Tp),ShCon,O,Ox) :- appStr("all ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
 showType(existType(V,Tp),ShCon,O,Ox) :- appStr("exist ",O,O1), showBound(V,O1,O2), showMoreQuantified(Tp,ShCon,O2,Ox).
 showType(faceType(Els,Tps),ShCon,O,Ox) :- appStr("{ ",O,O1),
@@ -256,7 +257,6 @@ tpArgTypes(constrained(_,Tp),ArTps) :- tpArgTypes(Tp,ArTps).
 tpArgTypes(funType(A,_),ArTps) :- tpArgTypes(A,ArTps).
 tpArgTypes(tupleType(ArTps),ArTps).
 
-
 isFunctionType(T) :- deRef(T,Tp), isFunctionType(Tp,_).
 
 isFunctionType(allType(_,T),Ar) :- deRef(T,Tp),isFunctionType(Tp,Ar).
@@ -342,3 +342,12 @@ stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceT
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
 stdType("list",tpFun("star.core*list",1),allType(kVar("e"),typeExists(tpExp(tpFun("star.core*list",1),kVar("e")),faceType([],[])))).
+
+isFixedSizeType(Tp) :- deRef(Tp,T),!,isFxTp(T).
+
+isFxTp(type("star.core*integer")).
+isFxTp(type("star.core*float")).
+isFxTp(type("star.core*boolean")).
+isFxTp(tupleType(Els)) :- forall(misc:is_member(T,Els),types:isFixedSizeType(T)).
+isFxTp(faceType(Flds,_)) :- forall(misc:is_member((_,T),Flds),types:isFixedSizeType(T)).
+

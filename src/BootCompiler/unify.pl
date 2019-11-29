@@ -28,6 +28,7 @@ sm(T1,tpExp(O2,A2),Env) :-
   sameType(T1,T2,Env).
 sm(tpExp(O1,A1),tpExp(O2,A2),Env) :- sameType(O1,O2,Env), sameType(A1,A2,Env).
 sm(refType(A1),refType(A2),Env) :- sameType(A1,A2,Env).
+sm(valType(A1),valType(A2),Env) :- sameType(A1,A2,Env).
 sm(tupleType(A1),tupleType(A2),Env) :- smList(A1,A2,Env).
 sm(funType(A1,R1),funType(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
 sm(typeLambda(A1,R1),typeLambda(A2,R2),Env) :- sameType(R1,R2,Env), sameType(A2,A1,Env).
@@ -128,6 +129,7 @@ getFace(allType(V,T),Env,allType(V,F)) :-
   faceOfType(T,Env,F).
 getFace(tupleType(_),_,faceType([],[])).
 getFace(refType(_),_,faceType([],[])).
+getFace(valType(T),Env,Face) :- getFace(T,Env,Face).
 
 isKvar(V) :- deRef(V,kVar(_)).
 
@@ -174,6 +176,7 @@ id(T1,tpExp(O2,A2),Env) :-
   idenType(T1,T2,Env).
 id(tpExp(O1,A1),tpExp(O2,A2),Env) :- idenType(O1,O2,Env),idenType(A1,A2,Env).
 id(refType(A1),refType(A2),Env) :- idenType(A1,A2,Env).
+id(valType(A1),valType(A2),Env) :- idenType(A1,A2,Env).
 id(tupleType(A1),tupleType(A2),Env) :- idList(A1,A2,Env).
 id(funType(A1,R1),funType(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
 id(typeLambda(A1,R1),typeLambda(A2,R2),Env) :- idenType(R1,R2,Env), idenType(A2,A1,Env).
@@ -218,6 +221,8 @@ smpTp(kFun(V,Ar),_,C,C,kFun(V,Ar)).
 smpTp(V,_,Cx,Cx,V) :- isUnbound(V),!.
 smpTp(tpFun(Id,Ar),_,Cx,Cx,tpFun(Id,Ar)).
 smpTp(refType(T),Env,C,Cx,refType(Tp)) :-
+  simplifyType(T,Env,C,Cx,Tp).
+smpTp(valType(T),Env,C,Cx,valType(Tp)) :-
   simplifyType(T,Env,C,Cx,Tp).
 smpTp(tupleType(A),Env,C,Cx,tupleType(As)) :-
   smpTps(A,Env,C,Cx,As).
@@ -334,6 +339,7 @@ occIn(Id,tFun(Curr,_,_,_,_)) :- nonvar(Curr), !, occIn(Id,Curr).
 occIn(Id,tpExp(O,_)) :- occIn(Id,O),!.
 occIn(Id,tpExp(_,A)) :- occIn(Id,A),!.
 occIn(Id,refType(I)) :- occIn(Id,I).
+occIn(Id,valType(I)) :- occIn(Id,I).
 occIn(Id,tupleType(L)) :- is_member(A,L), occIn(Id,A).
 occIn(Id,funType(A,_)) :- occIn(Id,A).
 occIn(Id,funType(_,R)) :- occIn(Id,R).

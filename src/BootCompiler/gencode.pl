@@ -498,6 +498,7 @@ caseHash(T,Mx,Hx) :-
   isLiteral(T),
   termHash(T,Hs),
   Hx is Hs mod Mx.
+%  reportMsg("raw hash of %s is %s, mod is %s",[T,Hs,Hx]).
 caseHash(ctpl(O,_),Mx,Hx) :-
   caseHash(O,Mx,Hx).
 caseHash(whr(_,P,_),Mx,Hx) :-

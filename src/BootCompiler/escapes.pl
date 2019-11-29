@@ -182,6 +182,8 @@ escapeType("_isZpChar",funType(tupleType([type("star.core*integer")]),type("star
 escapeType("_isZsChar",funType(tupleType([type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_isLetterChar",funType(tupleType([type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_digitCode",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
+escapeType("_isIDStart",funType(tupleType([type("star.core*integer")]),type("star.core*boolean"))).
+escapeType("_isIDContinue",funType(tupleType([type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_int2str",funType(tupleType([type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer")]),type("star.core*string"))).
 escapeType("_flt2str",funType(tupleType([type("star.core*float"),type("star.core*integer"),type("star.core*integer"),type("star.core*integer"),type("star.core*boolean")]),type("star.core*string"))).
 escapeType("_int_format",funType(tupleType([type("star.core*integer"),type("star.core*string")]),type("star.core*string"))).
@@ -407,6 +409,8 @@ isEscape("_isZpChar").
 isEscape("_isZsChar").
 isEscape("_isLetterChar").
 isEscape("_digitCode").
+isEscape("_isIDStart").
+isEscape("_isIDContinue").
 isEscape("_int2str").
 isEscape("_flt2str").
 isEscape("_int_format").
