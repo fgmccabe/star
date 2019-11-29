@@ -1,5 +1,6 @@
 test.fl{
   import star.core.
+  import test.ar
   
   public fact:(integer)=>integer.
   fact(N) => let{
@@ -17,7 +18,7 @@ test.fl{
   public ff:(integer)=>integer.
   ff(N)=>let{
     f(0)=>1.
-    f(K) => _int_times(K,f(_int_minus(K,1))).
+    f(K) => K*f(K-1).
   } in let{
     r = f(N)
   } in r.
