@@ -60,7 +60,7 @@
   operator(".", [infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("<*>", [infixOp(949, 950, 950)]).
-  operator("•", [infixOp(450, 450, 449)]).
+  operator("val", [prefixOp(900, 899)]).
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
   operator("<=", [infixOp(949, 950, 949)]).
@@ -102,6 +102,7 @@
   operator("valof", [prefixOp(300, 299)]).
   operator("while", [prefixOp(1175, 1174)]).
   operator("private", [prefixOp(1200, 1199)]).
+  operator("•", [infixOp(450, 450, 449)]).
   operator(".&.", [infixOp(700, 700, 699)]).
   operator("///", [infixOp(960, 960, 959)]).
   operator("::", [infixOp(399, 400, 399)]).

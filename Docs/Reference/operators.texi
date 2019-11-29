@@ -140,9 +140,9 @@
 @item @code{<*>}
 @tab right associative infix
 @tab 950
-@item @code{•}
-@tab left associative infix
-@tab 450
+@item @code{val}
+@tab non-associative prefix
+@tab 900
 @item @code{try}
 @tab non-associative prefix
 @tab 1200
@@ -272,6 +272,9 @@
 @item @code{private}
 @tab non-associative prefix
 @tab 1200
+@item @code{•}
+@tab left associative infix
+@tab 450
 @item @code{.&.}
 @tab left associative infix
 @tab 700
