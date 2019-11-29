@@ -15,262 +15,259 @@
 */
 
 #include "config.h"
-#include <assert.h>
-#include <stdlib.h>
 #include "unistrP.h"
 
-logical isChar(codePoint ch)
-{
-  return (logical)(genCatTbl[ch]!=Other);
-}
-
 /* Other, Control */
-logical isCcChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Cc);
+logical isCcChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Cc);
 }
 
 /* Other, format */
-logical isCfChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Cf);
+logical isCfChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Cf);
 }
 
 /* Other, unassigned */
-logical isCnChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Cn);
+logical isCnChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Cn);
 }
 
 /* Other, private */
-logical isCoChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Co);
+logical isCoChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Co);
 }
 
 /* Other, surrogate */
-logical isCsChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Cs);
+logical isCsChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Cs);
 }
 
 /* Letter, lowercase */
-logical isLlChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Ll);
+logical isLlChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Ll);
 }
 
 /* Letter, modifier */
-logical isLmChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Lm);
+logical isLmChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Lm);
 }
 
 /* Letter, other */
-logical isLoChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Lo);
+logical isLoChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Lo);
 }
 
 /* Letter, titlecase */
-logical isLtChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Lt);
+logical isLtChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Lt);
 }
 
 /* Letter, uppercase */
-logical isLuChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Lu);
+logical isLuChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Lu);
 }
 
 /* Mark, spacing combining */
-logical isMcChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Mc);
+logical isMcChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Mc);
 }
 
 /* Mark, enclosing */
-logical isMeChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Me);
+logical isMeChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Me);
 }
 
 /* Mark, nonspacing */
-logical isMnChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Mn);
+logical isMnChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Mn);
 }
 
 /* Number, decimal digit */
-logical isNdChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Nd);
+logical isNdChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Nd);
 }
 
 /* Number, letter */
-logical isNlChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Nl);
+logical isNlChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Nl);
 }
 
 /* Number, other */
-logical isNoChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==No);
+logical isNoChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == No);
 }
 
 /* Punctuation, connector */
-logical isPcChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Pc);
+logical isPcChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Pc);
 }
 
 /* Punctuation, dash */
-logical isPdChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Pd);
+logical isPdChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Pd);
 }
 
 /* Punctuation, close */
-logical isPeChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Pe);
+logical isPeChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Pe);
 }
 
 /* Punctuation, final quote */
-logical isPfChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Pf);
+logical isPfChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Pf);
 }
 
 /* Punctuation, initial quote */
-logical isPiChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Pi);
+logical isPiChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Pi);
 }
 
 /* Punctuation, other */
-logical isPoChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Po);
+logical isPoChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Po);
 }
 
 /* Punctuation, open */
-logical isPsChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Ps);
+logical isPsChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Ps);
 }
 
 /* Symbol, currency */
-logical isScChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Sc);
+logical isScChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Sc);
 }
 
 /* Symbol, modifier */
-logical isSkChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Sk);
+logical isSkChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Sk);
 }
 
 /* Symbol, math */
-logical isSmChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Sm);
+logical isSmChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Sm);
 }
 
 /* Symbol, other */
-logical isSoChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==So);
+logical isSoChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == So);
 }
 
 /* Separator, line */
-logical isZlChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Zl);
+logical isZlChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Zl);
 }
 
 /* Separator, paragraph */
-logical isZpChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Zp);
+logical isZpChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Zp);
 }
 
 /* Separator, space */
-logical isZsChar(codePoint ch){
-  return (logical)(genCatTbl[ch]==Zs);
+logical isZsChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Zs);
 }
 
-logical isLetterChar(codePoint ch)
-{
-  return (logical)(genCatTbl[ch]==Lu||genCatTbl[ch]==Ll||genCatTbl[ch]==Lt||genCatTbl[ch]==Lm||genCatTbl[ch]==Lo||genCatTbl[ch]==Nl);
+logical isIdStart(codePoint ch) {
+  return (logical) (
+    genCatTbl[ch] == Lu ||
+    genCatTbl[ch] == Ll ||
+    genCatTbl[ch] == Lt ||
+    genCatTbl[ch] == Lm ||
+    genCatTbl[ch] == Lo ||
+    genCatTbl[ch] == Nl);
 }
 
-logical isSpaceChar(codePoint ch)
-{
-  return (logical)(ch==' '||ch=='\t'||ch=='\n'||ch=='\r');
+logical isIdContinue(codePoint ch) {
+  return (logical) (isIdStart(ch) ||
+                    genCatTbl[ch] == Nd ||
+                    genCatTbl[ch] == Mn
+  );
+}
+
+logical isLetterChar(codePoint ch) {
+  return (logical) (genCatTbl[ch] == Lu || genCatTbl[ch] == Ll || genCatTbl[ch] == Lt || genCatTbl[ch] == Lm ||
+                    genCatTbl[ch] == Lo || genCatTbl[ch] == Nl);
+}
+
+logical isSpaceChar(codePoint ch) {
+  return (logical) (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r');
 }
 
 codePoint lowerOf(codePoint ch)             /* <<<<< Fix me <<<<< */
 {
-  if((ch >= 'A' && ch <= 'Z') ||
-     (ch >= 192 && ch <= 214) ||
-     (ch >= 216 && ch <= 222))
+  if ((ch >= 'A' && ch <= 'Z') ||
+      (ch >= 192 && ch <= 214) ||
+      (ch >= 216 && ch <= 222))
     return ch + 32;
   else
     return ch;
 }
 
-codePoint upperOf(codePoint ch)             /* <<<<< Fix me <<<<< */
-{
-  if((ch >= 'a' && ch <= 'z') ||
-     (ch >= 224 && ch <= 246) ||
-     (ch >= 248 && ch <= 254))
-    return ch - 32;
-  else
-    return ch;
-}
-
 /* Compute the digit value associated with a unicode digit character */
-int digitValue(codePoint ch)
-{
-  if(isNdChar(ch)){
-    if(0x30<=ch && ch<=0x39)	/* ASCII digits */
-      return ch-0x30;
-    else if(0x660<=ch && ch<=0x669) /* Arabic indic digits */
-      return ch-0x660;
-    else if(0x6F0<=ch && ch<=0x6F9) /* extended arabic */
-      return ch-0x6f0;
-    else if(0x7c0<=ch && ch<=0x7c9) /* ??? */
-      return ch-0x7c0;
-    else if(0x966<=ch && ch<=0x96f) /* devanagari digits */
-      return ch-0x966;
-    else if(0x9e6<=ch && ch<=0x9ef) /* Bengali digits */
-      return ch-0x9e6;
-    else if(0xa66<=ch && ch<=0xa6f) /* Gurmukhi digits */
-      return ch-0xa66;
-    else if(0xae6<=ch && ch<=0xaef) /* Gujurati digits */
-      return ch-0xae6;
-    else if(0xb66<=ch && ch<=0xb6f) /* Oriya digits */
-      return ch-0xb66;
-    else if(0xbe6<=ch && ch<=0xbef) /* Tamil digits */
-      return ch-0xbe6;
-    else if(0xc66<=ch && ch<=0xc6f) /* Telegu digits */
-      return ch-0xc66;
-    else if(0xce6<=ch && ch<=0xcef) /* Kannada digits */
-      return ch-0xce6;
-    else if(0xd66<=ch && ch<=0xd6f) /* Malayam digits */
-      return ch-0xd66;
-    else if(0xe50<=ch && ch<=0xe59) /* Thai digits */
-      return ch-0xe50;
-    else if(0xed0<=ch && ch<=0xed9) /* Lao digits */
-      return ch-0xed0;
-    else if(0xf20<=ch && ch<=0xf29) /* Tibetan digits */
-      return ch-0xf20;
-    else if(0x1040<=ch && ch<=0x1049) /* Myanmar digits */
-      return ch-0x1040;
-    else if(0x1369<=ch && ch<=0x1371) /* Ethiopic digits */
-      return ch-0x1369;
-    else if(0x17e0<=ch && ch<=0x17e9) /* Khmer digits */
-      return ch-0x17e0;
-    else if(0x1810<=ch && ch<=0x1819) /* Mongolian digits */
-      return ch-0x1810;
-    else if(ch==0x3007)		/* CJK digit 0 */
+int digitValue(codePoint ch) {
+  if (isNdChar(ch)) {
+    if (0x30 <= ch && ch <= 0x39)  /* ASCII digits */
+      return (int) (ch - 0x30u);
+    else if (0x660 <= ch && ch <= 0x669) /* Arabic indic digits */
+      return (int) (ch - 0x660u);
+    else if (0x6F0 <= ch && ch <= 0x6F9) /* extended arabic */
+      return (int) (ch - 0x6f0u);
+    else if (0x7c0 <= ch && ch <= 0x7c9) /* ??? */
+      return (int) (ch - 0x7c0u);
+    else if (0x966 <= ch && ch <= 0x96f) /* devanagari digits */
+      return (int) (ch - 0x966u);
+    else if (0x9e6 <= ch && ch <= 0x9ef) /* Bengali digits */
+      return (int) (ch - 0x9e6u);
+    else if (0xa66 <= ch && ch <= 0xa6f) /* Gurmukhi digits */
+      return (int) (ch - 0xa66u);
+    else if (0xae6 <= ch && ch <= 0xaef) /* Gujurati digits */
+      return (int) (ch - 0xae6u);
+    else if (0xb66 <= ch && ch <= 0xb6f) /* Oriya digits */
+      return (int) (ch - 0xb66u);
+    else if (0xbe6 <= ch && ch <= 0xbef) /* Tamil digits */
+      return (int) (ch - 0xbe6u);
+    else if (0xc66 <= ch && ch <= 0xc6f) /* Telegu digits */
+      return (int) (ch - 0xc66u);
+    else if (0xce6 <= ch && ch <= 0xcef) /* Kannada digits */
+      return (int) (ch - 0xce6u);
+    else if (0xd66 <= ch && ch <= 0xd6f) /* Malayam digits */
+      return (int) (ch - 0xd66u);
+    else if (0xe50 <= ch && ch <= 0xe59) /* Thai digits */
+      return (int) (ch - 0xe50u);
+    else if (0xed0 <= ch && ch <= 0xed9) /* Lao digits */
+      return (int) (ch - 0xed0u);
+    else if (0xf20 <= ch && ch <= 0xf29) /* Tibetan digits */
+      return (int) (ch - 0xf20u);
+    else if (0x1040 <= ch && ch <= 0x1049) /* Myanmar digits */
+      return (int) (ch - 0x1040u);
+    else if (0x1369 <= ch && ch <= 0x1371) /* Ethiopic digits */
+      return (int) (ch - 0x1369u);
+    else if (0x17e0 <= ch && ch <= 0x17e9) /* Khmer digits */
+      return (int) (ch - 0x17e0u);
+    else if (0x1810 <= ch && ch <= 0x1819) /* Mongolian digits */
+      return (int) (ch - 0x1810u);
+    else if (ch == 0x3007)    /* CJK digit 0 */
       return 0;
-    else if(ch==0x4e00)		/* CJK digit 1 */
+    else if (ch == 0x4e00)    /* CJK digit 1 */
       return 1;
-    else if(ch==0x4e8c)		/* CJK digit 2 */
+    else if (ch == 0x4e8c)    /* CJK digit 2 */
       return 2;
-    else if(ch==0x4e09)		/* CJK digit 3 */
+    else if (ch == 0x4e09)    /* CJK digit 3 */
       return 3;
-    else if(ch==0x56db)		/* CJK digit 4 */
+    else if (ch == 0x56db)    /* CJK digit 4 */
       return 4;
-    else if(ch==0x4e94)		/* CJK digit 5 */
+    else if (ch == 0x4e94)    /* CJK digit 5 */
       return 5;
-    else if(ch==0x516d)		/* CJK digit 6 */
+    else if (ch == 0x516d)    /* CJK digit 6 */
       return 6;
-    else if(ch==0x4e03)		/* CJK digit 7 */
+    else if (ch == 0x4e03)    /* CJK digit 7 */
       return 7;
-    else if(ch==0x516b)		/* CJK digit 8 */
+    else if (ch == 0x516b)    /* CJK digit 8 */
       return 8;
-    else if(ch==0x4e5d)		/* CJK digit 9 */
+    else if (ch == 0x4e5d)    /* CJK digit 9 */
       return 9;
     else
       return -1;
-  }
-  else
+  } else
     return -1;
 }

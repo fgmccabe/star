@@ -55,8 +55,6 @@ typedef struct _class_ {
 
 extern ObjectClassRec ObjectClass;
 
-objectPo checkCast(void *c,classPo class);
-
 #ifdef ALLTRACE
 #ifndef VERIFY_OBJECT
 #define VERIFY_OBJECT

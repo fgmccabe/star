@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
-#include <ooio.h>
 #include "unistrP.h"
 
 retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) {
@@ -22,7 +21,7 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
     } else if (UC80(b)) {
       if (pos < end) {
         unsigned char nb = (unsigned char) src[pos++];
-        codePoint ch = (codePoint) (UX80(b) << 6 | UXR(nb));
+        codePoint ch = (codePoint) (UX80(b) << 6u | UXR(nb));
 
         if (ch < 0x7ff) {
           *code = ch;
@@ -37,7 +36,7 @@ retCode nxtPoint(const char *src, integer *start, integer end, codePoint *code) 
         unsigned char md = (unsigned char) src[pos++];
         unsigned char up = (unsigned char) src[pos++];
 
-        codePoint ch = (codePoint) ((UX800(b) << 12) | (UXR(md) << 6) | (UXR(up)));
+        codePoint ch = (codePoint) ((UX800(b) << 12u) | (UXR(md) << 6u) | (UXR(up)));
 
         if (ch >= 0x800 && ch <= 0xffff) {
           *code = ch;
@@ -65,7 +64,7 @@ retCode prevPoint(const char *src, integer *start, codePoint *code) {
       return Ok;
     } else {
       codePoint pt = 0;
-      int factor = 0;
+      unsigned int factor = 0;
       while (UCR(b)) {
         pt = pt | (UXR(b) << factor);
         factor += 6;
@@ -122,12 +121,6 @@ int codePointSize(codePoint ch) {
     return 4;
 }
 
-integer uniCodeCount(char *src) {
-  integer end = uniByteLen(src);
-
-  return countCodePoints(src, 0, end);
-}
-
 integer advanceCodePoint(char *src, integer start, integer end, integer count) {
   while (count-- > 0 && start < end) {
     codePoint ch;
@@ -173,23 +166,6 @@ integer uniNStrLen(const char *s, integer max) {
   return count;
 }
 
-logical isUniIdentifier(char *str) {
-  integer pos = 0;
-  integer end = uniByteLen(str);
-  logical first = True;
-
-  while (pos < end) {
-    codePoint ch;
-    if (nxtPoint(str, &pos, end, &ch) == Ok) {
-      if (!(isLetterChar(ch) || (!first && isNdChar(ch))))
-        return False;
-      first = False;
-    } else
-      return False;
-  }
-  return first ? False : True; // empty strings are not identifiers
-}
-
 integer uniByteLen(const char *s) {
   integer len = 0;
   char *p = (char *) s;
@@ -199,38 +175,6 @@ integer uniByteLen(const char *s) {
   while (*p++ != 0)
     len++;
   return len;
-}
-
-retCode uniCat(char *dest, long len, const char *src) {
-  int pos = 0;
-  char *tst = (char *) src;
-
-  while (pos < len - 1 && dest[pos] != 0)
-    pos++;
-
-  while (pos < len - 1 && *src != 0)
-    dest[pos++] = *tst++;
-  dest[pos++] = 0;
-
-  if (pos < len)
-    return Ok;
-  else
-    return Eof;
-}
-
-retCode uniTackOn(char *dest, integer len, codePoint ch) {
-  integer pos = 0;
-  while (pos < len - 1 && dest[pos] != 0)
-    pos++;
-
-  if (appendCodePoint(dest, &pos, len, ch) == Ok) {
-    if (pos < len) {
-      dest[pos++] = 0;
-      return Ok;
-    } else
-      return Eof;
-  } else
-    return Error;
 }
 
 retCode uniAppend(char *dest, integer *pos, integer len, char *src) {
@@ -258,30 +202,30 @@ retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLe
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch) {
   if (ch <= 0x7f) {
     if ((*pos) < len - 1) {
-      dest[(*pos)++] = (byte) ((ch) & 0x7f);
+      dest[(*pos)++] = (byte) ((ch) & 0x7fu);
       return Ok;
     } else
       return Eof;
   } else if (ch <= 0x7ff) {
     if ((*pos) < len - 2) {
-      dest[(*pos)++] = (byte) ((((ch) >> 6) & 0x1f) | U80);
+      dest[(*pos)++] = (byte) ((((ch) >> 6u) & 0x1fu) | U80);
       dest[(*pos)++] = (byte) (UXR(ch) | UR);
       return Ok;
     } else
       return Eof;
   } else if (ch >= 0x800 && ch <= 0xffff) {
     if ((*pos) < len - 3) {
-      dest[(*pos)++] = (byte) ((((ch) >> 12) & 0xf) | U800);
-      dest[(*pos)++] = (byte) (UXR(ch >> 6) | UR);
+      dest[(*pos)++] = (byte) ((((ch) >> 12u) & 0xfu) | U800);
+      dest[(*pos)++] = (byte) (UXR(ch >> 6u) | UR);
       dest[(*pos)++] = (byte) (UXR(ch) | UR);
       return Ok;
     } else
       return Eof;
   } else if (ch >= 0x10000 && ch <= 0x1fffff) {
     if ((*pos) < len - 4) {
-      dest[(*pos)++] = (byte) ((((ch) >> 18) & 0xf) | U1000);
-      dest[(*pos)++] = (byte) (UXR(ch >> 12) | UR);
-      dest[(*pos)++] = (byte) (UXR(ch >> 6) | UR);
+      dest[(*pos)++] = (byte) ((((ch) >> 18u) & 0xfu) | U1000);
+      dest[(*pos)++] = (byte) (UXR(ch >> 12u) | UR);
+      dest[(*pos)++] = (byte) (UXR(ch >> 6u) | UR);
       dest[(*pos)++] = (byte) (UXR(ch) | UR);
       return Ok;
     } else
@@ -336,42 +280,6 @@ comparison uniCmp(const char *s1, const char *s2) {
     return bigger;
 }
 
-logical uniIsTail(char *s1, char *s2) {
-  long len = 0;
-  char *eS1 = uniEndStr(s1);
-
-  while (*s2 != 0) {
-    s2++;
-    len++;
-  }
-
-  while (eS1 > s1 && len-- > 0) {
-    if (*--eS1 != *--s2)
-      return False;
-  }
-  return True;
-}
-
-retCode uniInsert(char *dest, integer len, const char *src) {
-  integer iLen = uniStrLen(src);
-  integer dLen = uniStrLen(dest) + 1;
-
-  assert(iLen + dLen < len);
-
-  if (iLen + dLen < len) {
-    integer end = dLen + iLen;
-    integer pos = dLen;
-    while (--pos > 0)              /* Shuffle up the old text */
-      dest[--end] = dest[pos];
-
-    for (pos = 0; pos < iLen; pos++)
-      dest[pos] = src[pos];
-
-    return Ok;
-  }
-  return Error;                  /* Bomb out */
-}
-
 comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
   integer sz = minimum(l1, l2);
 
@@ -387,23 +295,6 @@ comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
     return bigger;
   else
     return same;
-}
-
-/* Tack on an ASCII string to the end of a unicode string */
-/* This is only necessary 'cos C is not codePoint friendle */
-retCode uniTack(char *dest, long len, const char *src) {
-  int pos = 0;
-  char *s = (char *) src;
-
-  while (pos < len - 1 && dest[pos] != 0)
-    pos++;
-
-  while (pos < len - 1 && *s != 0)
-    dest[pos++] = (byte) *s++;
-  if (pos < len - 1)
-    dest[pos++] = 0;
-
-  return pos < len ? Ok : Eof;
 }
 
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c) {
@@ -437,36 +328,7 @@ integer uniLastIndexOf(char *s, integer len, codePoint c) {
   return lx;
 }
 
-char *uniSubStr(char *s, long len, long from, long cnt, char *buff, long bLen) {
-  char *src = &s[from];
-  long ix;
-  for (ix = 0; ix < cnt && ix < bLen; ix++) {
-    buff[ix] = src[ix];
-    if (src[ix] == 0)
-      break;
-  }
-  if (ix < bLen)
-    buff[ix] = '\0';
-  return buff;
-}
-
-char *uniSearchAny(char *s, integer len, char *term) {
-  integer pos = 0;
-  integer termSize = uniStrLen(term);
-
-  while (pos < len) {
-    codePoint ch;
-    if (nxtPoint(term, &pos, termSize, &ch) == Ok) {
-      long index = uniIndexOf(s, len, 0, ch);
-      if (index >= 0)
-        return &s[index];
-    }
-  }
-  return NULL;
-}
-
 codePoint uniSearchDelims(char *s, integer len, char *t) {
-  integer pos = 0;
   integer tlen = uniStrLen(t);
   integer tSize = countCodePoints(t, 0, tlen);
 
@@ -499,21 +361,12 @@ long uniSearch(const char *src, integer len, integer start, const char *tgt, int
   long pos = start;
 
   while (pos < len - tlen) {
-    if (uniIsPrefix(tgt,tlen,&src[pos], len - pos))
+    if (uniIsPrefix(tgt, tlen, &src[pos], len - pos))
       return pos;
     else
       pos++;
   }
   return -1;
-}
-
-char *uniLast(char *s, integer l, codePoint c) {
-  long last = uniLastIndexOf(s, l, c);
-
-  if (last >= 0)
-    return &s[last];
-  else
-    return NULL;
 }
 
 logical uniIsTrivial(const char *s, integer len) {
@@ -585,34 +438,23 @@ logical uniIsPrefix(const char *s1, integer len1, const char *s2, integer len2) 
 }
 
 integer uniHash(const char *name) {
-  register integer hash = 0;
-  char *s = (char *) name;
-
-  while (*s) {
-    hash = hash * 37 + *s++;
-  }
-
-  return hash64(hash);
+  return uniNHash(name,uniByteLen((name)));
 }
 
 integer uniNHash(const char *name, long len) {
   register integer hash = 0;
-  char *s = (char *) name;
+  integer fx = 0;
 
-  for (long ix = 0; ix < len; ix++)
-    hash = hash * 37 + *s++;
+  while (fx < len) {
+    codePoint ch = nextCodePoint(name, &fx, len);
+    hash = hash * 37 + ch;
+  }
 
   return hash64(hash);
 }
 
 integer hash64(integer ix) {
   return (uint64) ix & ((uint64) LARGE_INT64);
-}
-
-char *uniEndStr(char *s) {
-  while (*s != 0)
-    s++;
-  return s;
 }
 
 retCode uniLower(const char *s, integer sLen, char *d, integer dLen) {
