@@ -39,4 +39,12 @@ star.compiler.misc{
     pick([either(X),..Els],L) => pick(Els,[L..,X]).
     pick([other(E),.._],_) => other(E).
   } in pick(Ls,[]).
+
+  public mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m] |:
+    ((a)=>m[b],s[a])=>m[s[b]].
+  mapOver(F,S)=>let{
+    mpOver([],Sf)=> return Sf.
+    mpOver([E,..Es],Sf) =>
+      F(E) >>= (E1)=>mpOver(Es,[Sf..,E1]).
+  } in mpOver(S,[]).
 }

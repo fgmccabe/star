@@ -14,15 +14,15 @@ star.compiler.impawt{
   import star.compiler.types.
 
   public importAll:all r ~~ repo[r]|:(list[importSpec],r,dict,list[importSpec],
-    list[(string,tipe)],reports) => either[reports,(dict,list[importSpec])].
-  importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported)).
+    list[(string,tipe)],reports) => either[reports,(dict,list[importSpec],list[(string,tipe)])].
+  importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported,Sigs)).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
     PkgVar = packageVar(Pkg);
     if (PkgVar,_) in Sigs then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
       try{
-	pkgSpec(_,PkgImps,Sig,Cons,Impls) = valof importPkg(Pkg,Lc,Repo);
+	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) = valof importPkg(Pkg,Lc,Repo);
 	
 	E0 = pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
 	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
@@ -51,7 +51,7 @@ star.compiler.impawt{
     Fce <- decodeSignature(FTps);
     Cons <- pickupContracts(ConSigs,Lc,[]);
     Impls <- pickupImplementations(ImplSigs,[]);
-    valis pkgSpec(Pkg,Imports,Fce,Cons,Impls)
+    valis pkgSpec(Pkg,Imports,Fce,Cons,Impls,[(pkgName(Pkg),Fce)])
   }
 
   pickupPkg:(data) => either[(),pkg].
@@ -142,7 +142,7 @@ star.compiler.impawt{
   .}
   
   public implementation coercion[pkgSpec,data] => let{
-    mkTerm(pkgSpec(Pkg,Imports,Fields,Contracts,Implementations)) =>
+    mkTerm(pkgSpec(Pkg,Imports,Fields,Contracts,Implementations,_)) =>
       term(lbl("pkgSpec",5),[Pkg::data,
 	  Imports::data,strg(encodeSignature(Fields)),Contracts::data,Implementations::data]).
   } in {

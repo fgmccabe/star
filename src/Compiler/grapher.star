@@ -39,7 +39,7 @@ star.compiler.grapher{
     } else if (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) then {
       if newerFile(CodeUri,SrcUri) then {
 	try{
-	  pkgSpec(_,Imps,_,_,_) <- importPkg(Pkg,Lc,Repo);
+	  pkgSpec(_,Imps,_,_,_,_) <- importPkg(Pkg,Lc,Repo);
 	  try{
 	    scanPkgs(Pkgs++Imps,Repo,Cat,[SoFar..,(P,Imps)],Rp)
 	  } catch {

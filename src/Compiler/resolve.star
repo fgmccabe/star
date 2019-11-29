@@ -60,21 +60,21 @@ star.compiler.resolve{
   }
 
   overloadDef:(dict,canonDef,reports)=>either[reports,canonDef].
-  overloadDef(Dict,varDef(Lc,Nm,FullNm,Val,Cx,Tp),Rp) =>
-    overloadVarDef(Dict,Lc,Nm,FullNm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp). 
+  overloadDef(Dict,varDef(Lc,Nm,Val,Cx,Tp),Rp) =>
+    overloadVarDef(Dict,Lc,Nm,Val,[CTp | typeConstraint(CTp) in Cx],Tp,Rp). 
   overloadDef(Dict,Def,Rp) default => either(Def).
  
-  overloadVarDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
+  overloadVarDef(Dict,Lc,Nm,Val,[],Tp,Rp) => do{
     RVal <- resolveTerm(Val,Dict,Rp);
-    valis varDef(Lc,Nm,FullNm,RVal,[],Tp)
+    valis varDef(Lc,Nm,RVal,[],Tp)
   }
-  overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
+  overloadVarDef(Dict,Lc,Nm,Val,Cx,Tp,Rp) => do{
     (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(tupleType(Cx),ITp));
-    valis varDef(Lc,Nm,FullNm,lambda([eqn(Lc,tple(Lc,Cvrs),RVal)],CTp),[],Tp)
+    valis varDef(Lc,Nm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),RVal)],CTp),[],Tp)
   }
 
   defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
@@ -172,9 +172,9 @@ star.compiler.resolve{
     (St3,RRhs) <- overloadTerm(Rhs,Dict,St2,Rp);
     valis (St3,cond(Lc,RTst,RLhs,RRhs))
   }
-  overloadTerm(lambda(Rls,Tp),Dict,St,Rp) => do{
+  overloadTerm(lambda(Lc,Rls,Tp),Dict,St,Rp) => do{
     (Stx,RRls) <- overloadRules(Rls,[],Dict,St,Rp);
-    valis (Stx,lambda(RRls,Tp))
+    valis (Stx,lambda(Lc,RRls,Tp))
   }
   overloadTerm(letExp(Lc,Gp,Rhs),Dict,St,Rp) => do{
     (RDfs,RDct) <- overloadGroup(Gp,Dict,Rp);

@@ -1,5 +1,6 @@
 star.compiler.normalize{
   import star.
+  import star.pkg.
 
   import star.compiler.canon.
   import star.compiler.core.
@@ -17,6 +18,7 @@ star.compiler.normalize{
     | localVar(string,string,string,tipe,crVar)
     | moduleCons(string,tipe)
     | labelArg(crExp,integer,crVar)
+    | importVar(crExp,string,tipe)
     | letVar(string,crExp,tipe).
 
   mapLayer ::= lyr(string,map[string,nameMapEntry],option[crVar]).
@@ -33,6 +35,7 @@ star.compiler.normalize{
     disp(moduleCons(Nm,Tp)) => ssSeq([ss("module cons "),ss(Nm),ss(":"),disp(Tp)]).
     disp(localVar(Nm,_,_,Tp,V)) => ssSeq([ss("local var "),ss(Nm),ss("~"),disp(V),ss(":"),disp(Tp)]).
     disp(labelArg(Base,Ix,Vr)) => ssSeq([ss("label arg"),disp(Vr),ss("@"),disp(Base),ss("["),disp(Ix),ss("]")]).
+    disp(importVar(M,Nm,Tp)) => ssSeq([ss("import "),disp(M),ss("#"),ss(Nm),ss(":"),disp(Tp)]).
   .}  
 
   crFlow ~> (crExp,list[crDefn]).
@@ -48,27 +51,32 @@ star.compiler.normalize{
     typeOf(labelArg(_,_,V)) => typeOf(V).
   .}
 
-  public normalize:(canon,reports)=>either[reports,crFlow].
-  normalize(Prg,Rp) => do{
+  public normalize:(pkgSpec,canon,reports)=>either[reports,crFlow].
+  normalize(PkgSpec,Prg,Rp) => do{
     logMsg("normalizing $(Prg)");
-    liftExp(Prg,[],[],Rp)
+    Map = pkgMap(PkgSpec);
+    logMsg("package map $(Map)");
+    liftExp(Prg,Map,[],Rp)
   }
+
+  pkgMap:(pkgSpec) => nameMap.
+  pkgMap(pkgSpec(Pkg,Imports,Tp,Defs,Impls,PkgVrs)) => [lyr(pkgName(Pkg),[],none)].
 
   groupMap:(locn,list[canonDef],nameMap,reports) => either[reports,(nameMap,option[crVar],crExp)].
   groupMap(Lc,Grp,Outer,Rp) => do{
-    logMsg("making map for group $(Grp)");
+--    logMsg("making map for group $(Grp), outer map=$(Outer)");
     FreeVars = findFreeVarsInGroup(Grp,Outer);
-    logMsg("free vars = $(FreeVars)");
+--    logMsg("free vars = $(FreeVars)");
 
     if isEmpty(FreeVars) then {
-      logMsg("no theta var for group $(Grp)");
+--      logMsg("no theta var for group $(Grp)");
       M = [lyr("",foldRight((D,LL)=>collectMtd(D,layerName(Outer),none,LL),[],Grp),none),..Outer];
       valis (M,none,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
     } else {
       ThV = genVar("_ThVr",tupleType(FreeVars//typeOf));
-      logMsg("theta var for group $(Grp) is $(ThV)");
+--      logMsg("theta var for group $(Grp) is $(ThV)");
       L = collectLabelVars(FreeVars,crVar(Lc,ThV),0,[]);
-      logMsg("new label vars $(L)");
+--      logMsg("new label vars $(L)");
       ThVr = some(ThV);
     
       M = [lyr("",foldRight((D,LL)=>collectMtd(D,layerName(Outer),ThVr,LL),L,Grp),ThVr),..Outer];
@@ -76,92 +84,118 @@ star.compiler.normalize{
     }
   }
 
-  findFreeVarsInGroup:(list[canonDef],nameMap) => list[crVar].
-  findFreeVarsInGroup(G,Map) => valof action{
-    DfFr = freeVarsInGroup(G,[],[]);
-    logMsg("DfFr=$(DfFr)");
-    valis freeLabelVars(DfFr,Map,[])::list[crVar]
+  lambdaMap:(canon,nameMap,reports) => either[reports,(nameMap,option[crVar],list[crExp])].
+  lambdaMap(Lam,Outer,Rp) => do{
+--    logMsg("making map for lambda $(Lam)");
+    freeVars = freeLabelVars(freeVarsInTerm(Lam,[],[]),Outer,[])::list[crVar];
+    Lc = locOf(Lam);
+    FullNm = genSym(layerName(Outer)++"λ");
+
+--    logMsg("free vars = $(freeVars), full name $(FullNm)");
+
+    if isEmpty(freeVars) then {
+--      logMsg("no theta var for lambda");
+      M = [lyr(FullNm,[],none),..Outer];
+      valis (M,none,[])
+    } else {
+      ThV = genVar("_ThVr",tupleType(freeVars//typeOf));
+--      logMsg("theta var is $(ThV)");
+      L = collectLabelVars(freeVars,crVar(Lc,ThV),0,[]);
+--      logMsg("new label vars $(L)");
+      ThVr = some(ThV);
+    
+      M = [lyr(FullNm,L,ThVr),..Outer];
+      valis (M,ThVr,freeVars//(V)=>crVar(Lc,V))
+    }
   }
+
+  findFreeVarsInGroup:(list[canonDef],nameMap) => list[crVar].
+  findFreeVarsInGroup(G,Map) => 
+    freeLabelVars(freeVarsInGroup(G,definedProgs(Map),[]),Map,[])::list[crVar].
+
+  definedProgs:(nameMap)=>set[crVar].
+  definedProgs(Map) => foldRight((lyr(_,Defs,_),Dfs)=>ixRight((_,Entry,DDfs)=>checkDefined(Entry,DDfs),Dfs,Defs),[],Map).
+
+  checkDefined(moduleVar(Nm,Tp),Dfs) => _addMem(crId(Nm,Tp),Dfs).
+  checkDefined(localVar(Nm,_,_,Tp,_),Dfs) => _addMem(crId(Nm,Tp),Dfs).
+  checkDefined(importVar(_,Nm,Tp),Dfs) => _addMem(crId(Nm,Tp),Dfs).
+  checkDefined(Entry,Dfs) default => Dfs.
 
   liftLetExp:(locn,list[canonDef],canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) where isFunctions(Defs) => do{
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,Map,Rp);
-    logMsg("function group map $(GMap)");
-    (_,Ex1) <- transformGroup(Defs,GMap,Map,Ex,[],Rp);
+--    logMsg("function group map $(GMap)");
+    (_,Ex1,BMap) <- transformGroup(Defs,GMap,[],[],Rp);
 
-    (BndTrm,Ex2) <- liftExp(Bnd,GMap,Ex1,Rp);
+    (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
     if GrpThVr ^= GrpVr then
-      valis (crLet(Lc,GrpThVr,GrpFree,BndTrm),Ex2)
+      valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,vrDef(Lc,GrpThVr,GrpFree),BndTrm),Ex2),Ex)
     else
-    valis (BndTrm,Ex2)
+    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),BndTrm,Ex2),Ex)
   }
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) => do{
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,Map,Rp);
-    logMsg("var group map $(GMap)");
-    (Vars,Ex1) <- transformGroup(Defs,GMap,Map,Ex,[],Rp);
+--    logMsg("var group map $(GMap)");
+    (Vars,Ex1,BMap) <- transformGroup(Defs,GMap,Ex,[],Rp);
 
     ThV = genVar("_ThVr",tupleType(Vars//((V,_))=>typeOf(V)));
-    logMsg("var theta var for group is $(ThV)");
+--    logMsg("var theta var for group is $(ThV)");
     Vrs = Vars//((V,_))=>V;
     Vls = Vars//((_,V))=>V;
     L = collectLabelVars(Vrs//(crVar(_,V))=>V,crVar(Lc,ThV),0,[]);
-    logMsg("new label vars $(L)");
+--    logMsg("new label vars $(L)");
     ThVr = some(ThV);
-    BMap = [lyr("",L,ThVr),..GMap];
-    (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
+    BBMap = [lyr("",L,ThVr),..BMap];
+    (BndTrm,Ex2) <- liftExp(Bnd,BBMap,Ex1,Rp);
+
     if GrpThVr ^= GrpVr then
-      valis (crLet(Lc,GrpThVr,GrpFree,crLet(Lc,ThV,crTpl(Lc,Vls),BndTrm)),Ex2)
+      valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,vrDef(Lc,GrpThVr,GrpFree),BndTrm),Ex2),Ex)
     else
-    valis (crLet(Lc,ThV,crTpl(Lc,Vls),BndTrm),Ex2)
+    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),BndTrm,Ex2),Ex)
   }
 
   isFunctions:(list[canonDef])=>boolean.
-  isFunctions(Defs) => varDef(_,_,_,Vl,_,_) in Defs *> lambda(_,_).=Vl.
+  isFunctions(Defs) => varDef(_,_,Vl,_,_) in Defs *> lambda(_,_,_).=Vl.
 
   mkLetBinding:(locn,crVar,crExp,crExp) => crExp.
   mkLetBinding(_,crId(Nm,_),crVar(Lc,W),Exp) => rewriteTerm(Exp,[Nm->crVar(Lc,W)]).
-  mkLetBinging(Lc,V,B,E) default => crLet(Lc,V,B,E).
+  mkLetBinding(Lc,V,B,E) default => crLtt(Lc,vrDef(Lc,V,B),E).
 
-  transformGroup:(list[canonDef],nameMap,nameMap,list[crDefn],list[(crExp,crExp)],reports) => either[reports,(list[(crExp,crExp)],list[crDefn])].
-  transformGroup([],_,_,D,Vs,_) => either((Vs,D)).
-  transformGroup([D,..Ds],Map,Outer,Ex,V,Rp) => do {
+  transformGroup:(list[canonDef],nameMap,list[crDefn],list[(crExp,crExp)],reports) => either[reports,(list[(crExp,crExp)],list[crDefn],nameMap)].
+  transformGroup([],Map,D,Vs,_) => either((Vs,D,Map)).
+  transformGroup([D,..Ds],Map,Ex,V,Rp) => do {
+    logMsg("transform def $(D)");
     (V1,Ex1) <- transformDef(D,Map,Ex,V,Rp);
-    transformGroup(Ds,Map,Outer,Ex1,V1,Rp)
+    logMsg("transformed def $(D) is $(V1)");
+    transformGroup(Ds,Map,Ex1,V1,Rp)
   }
 
   transformDef:(canonDef,nameMap,list[crDefn],list[(crExp,crExp)],reports) =>
     either[reports,(list[(crExp,crExp)],list[crDefn])].
-  transformDef(varDef(Lc,Nm,FullNm,lambda(Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
-    Exx <- transformFunction(Eqns,Nm,FullNm,Lc,Tp,Map,Ex,Rp);
+  transformDef(varDef(Lc,Nm,lambda(_,Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
+    Exx <- transformFunction(Eqns,Nm,Lc,Tp,Map,Ex,Rp);
     valis (Vs,Exx)
   }
-  transformDef(varDef(Lc,Nm,FullNm,Val,_,Tp),Map,Ex,Vs,Rp) => do{
+  transformDef(varDef(Lc,Nm,Val,_,Tp),Map,Ex,Vs,Rp) => do{
     (Vl,Exx) <- liftExp(Val,Map,Ex,Rp);
-    valis ([Vs..,(crVar(Lc,crId(Nm,Tp)),Vl)],Exx)
+    Vr = crId(Nm,Tp);
+    valis ([Vs..,(crVar(Lc,Vr),Vl)],[Exx..,vrDef(Lc,Vr,Vl)])
   }
+  transformDef(implDef(Lc,Nm,FullNm,Val,Tp),Map,Ex,Vs,Rp) =>
+    transformDef(varDef(Lc,FullNm,Val,[],Tp),Map,Ex,Vs,Rp).
   transformDef(_,_,Ex,Vs,_) => either((Vs,Ex)).
 
-  transformThetaDef(varDef(Lc,Nm,FullNm,lambda(Eqns,Tp),_,_),Map,Outer,Ex,Rp) => 
-    transformFunction(Eqns,Nm,FullNm,Lc,Tp,Map,Ex,Rp).
-/*  transformThetaDef(varDef(Lc,Nm,FullNm,Val,_,Tp),Map,Outer,Ex,Rp) => 
-      transformVarDef(Lc,Nm,FullNm,Val,Tp,Map,Ex,Rp).
-*/
-  transformThetaDef(typeDef(_,_,_,_),Map,Outer,Ex,Rp) => either(Ex).
-  transformThetaDef(conDef(_,_,_,_),Map,Outer,Ex,Rp) => either(Ex).
-  transformThetaDef(implDef(_,_,_,_,_),Map,Outer,Ex,Rp) => either(Ex).
-  transformThetaDef(cnsDef(_,_,_,_),Map,Outer,Ex,Rp) => either(Ex).
-
-  transformFunction:(list[equation],string,string,locn,tipe,
+  transformFunction:(list[equation],string,locn,tipe,
     nameMap,list[crDefn],reports) => either[reports,list[crDefn]].
-  transformFunction(Eqns,Nm,FullNm,Lc,Tp,Map,Ex,Rp) => do{
-    logMsg("transform function $(Nm)");
+  transformFunction(Eqns,Nm,Lc,Tp,Map,Ex,Rp) => do{
+    logMsg("transform function $(Nm)\n$(Eqns)\:$(Tp)");
     Extra = extraVars(Map);
     logMsg("extra vars in function: $(Extra)");
     ATp = extendFunTp(deRef(Tp),Extra);
-    LclPrg = lbl(FullNm,arity(ATp));
+    LclPrg = lbl(Nm,arity(ATp));
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Extra,Ex,Rp);
     logMsg("normalized equations for $(Nm)\: $(Eqs)");
-    valis [functionMatcher(Lc,FullNm,ATp,Eqs),..Ex1]
+    valis [functionMatcher(Lc,Nm,ATp,Eqs),..Ex1]
   }
 
   transformEquations:(list[equation],nameMap,list[crVar],list[crDefn],reports) =>
@@ -260,17 +294,29 @@ star.compiler.normalize{
     valis (crCnd(Lc,LTs,LTh,LEl),Exx)
   }
   liftExp(record(Lc,Path,Fields,Tp),Map,Ex,Rp) => do{
+    logMsg("lift record $(record(Lc,Path,Fields,Tp))");
     (LFields,Exx) <- liftFields(Fields,Map,Ex,Rp);
     valis (crRecord(Lc,Path,LFields,Tp),Exx)
   }
-
   liftExp(letExp(Lc,Grp,Bnd),Map,Ex,Rp) =>
     liftLetExp(Lc,Grp,Bnd,Map,Ex,Rp).
+  liftExp(Lam where lambda(Lc,Eqns,Tp).=Lam,Map,Ex,Rp) => do{
+--    logMsg("transform lambda $(Lam)");
+    (LMap,ClV,Cl) <- lambdaMap(Lam,Map,Rp);
+    Extra = extraVars(LMap);
+--    logMsg("extra vars in lambda: $(Extra)");
+    ATp = extendFunTp(deRef(Tp),Extra);
+    FullNm = layerName(LMap);
+    (Eqs,Ex1) <- transformEquations(Eqns,LMap,Extra,Ex,Rp);
+--    logMsg("normalized equations $(Eqs)");
+    LamFun = functionMatcher(Lc,FullNm,ATp,Eqs);
+
+    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,LamFun,crClos(Lc,[crVar(Lc,crId(FullNm,ATp)),..Cl],ATp)),Ex1),Ex)
+  }
 
 /*
     abstraction(locn,canon,canon,tipe) |
     act(locn,canonAction) | 
-    lambda(list[equation],tipe) |
 */
     
   liftExps:(list[canon],nameMap,list[crDefn],reports) => either[reports,(list[crExp],list[crDefn])].
@@ -315,6 +361,8 @@ star.compiler.normalize{
     either((crCall(Lc,crLbl(Lc,Fn,size(Args),FTp),Args,Tp),Ex)).
   implementFunCall(Lc,moduleCons(Fn,FTp),_,Args,Tp,Map,Ex,Rp) =>
     either((crApply(Lc,crLbl(Lc,Fn,size(Args),FTp),Args,Tp),Ex)).
+  implementFunCall(Lc,labelArg(Base,Ix,ThVr),_,Args,Tp,Map,Ex,Rp) =>
+    either((crCall(Lc,crTplDte(Lc,Base,Ix,Tp),Args,Tp),Ex)).
 
   liftVarExp:(locn,string,tipe,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftVarExp(Lc,Nm,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
@@ -323,13 +371,13 @@ star.compiler.normalize{
 
   implementVarExp:(locn,nameMapEntry,tipe,nameMap,list[crDefn],reports) => either[reports,crFlow].
   implementVarExp(Lc,localVar(Vn,_,_,VTp,ThVr),Tp,Map,Ex,Rp) =>
-    either((crCall(Lc,crLbl(Lc,Vn,1,VTp),[crVar(Lc,ThVr)],Tp),Ex)).
+    either((crCall(Lc,crVar(Lc,crId(Vn,VTp)),[crVar(Lc,ThVr)],Tp),Ex)).
   implementVarExp(Lc,labelArg(Base,Ix,ThVr),Tp,Map,Ex,Rp) =>
     either((crTplDte(Lc,Base,Ix,Tp),Ex)).
   implementVarExp(Lc,moduleCons(Enum,CTp),Tp,Map,Ex,Rp) =>
     either((crLbl(Lc,Enum,arity(CTp),Tp),Ex)).
   implementVarExp(Lc,moduleVar(FNm,FTp),Tp,Map,Ex,Rp) =>
-    either((crApply(Lc,crLbl(Lc,FNm,0,FTp),[],Tp),Ex)).
+    either((crVar(Lc,crId(FNm,FTp)),Ex)).
 
   liftGoal:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftGoal(conj(Lc,L,R),Map,Ex,Rp) => do{
@@ -355,7 +403,7 @@ star.compiler.normalize{
   liftGoal(match(Lc,P,E),Map,Ex,Rp) => do{
     (LP,Ex1) <- liftPtn(P,Map,Ex,Rp);
     (LE,Ex2) <- liftExp(E,Map,Ex1,Rp);
-    valis (crMtch(Lc,LP,LE),Ex2)
+    valis (crMatch(Lc,LP,LE),Ex2)
   }
   liftGoal(serch(Lc,Ptn,Gen,Iter),Map,_,Rp) =>
     other(reportError(Rp,"cannot deal with search condition",Lc)).
@@ -375,12 +423,11 @@ star.compiler.normalize{
   extendTplType(Es,[V,..Vs]) => [typeOf(V),..extendTplType(Es,Vs)].
 
   collectMtd:(canonDef,string,option[crVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),Outer,some(ThVr),LL) =>
-    LL[Nm->localVar(FullNm,qualifiedName(Outer,"%",Nm),qualifiedName(Outer,"^",Nm),Tp,ThVr)].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_),_,Tp),Outer,none,LL) =>
-    LL[Nm->moduleVar(qualifiedName(Outer,"%",Nm),Tp)].
-  collectMtd(cnsDef(Lc,Nm,FullNm,Tp),Outer,ThVr,LL) =>
-    LL[Nm->moduleCons(qualifiedName(Outer,"#",Nm),Tp)].
+  collectMtd(varDef(Lc,Nm,lambda(_,_,_),_,Tp),Outer,some(ThVr),LL) =>
+    LL[Nm->localVar(Nm,qualifiedName(Outer,"%",Nm),qualifiedName(Outer,"^",Nm),Tp,ThVr)].
+  collectMtd(varDef(Lc,Nm,lambda(_,_,_),_,Tp),Outer,none,LL) =>
+    LL[Nm->moduleVar(Nm,Tp)].
+  collectMtd(cnsDef(Lc,Nm,FullNm,Tp),Outer,ThVr,LL) => LL[Nm->moduleCons(FullNm,Tp)].
   collectMtd(_,_,_,LL) default => LL.
 
   findFreeVars:(canon,nameMap,set[crVar]) => list[crVar].
@@ -481,5 +528,8 @@ star.compiler.normalize{
     Tp = tupleType(Args//typeOf).
     Ar = size(Args).
   } in crApply(Lc,crLbl(Lc,tplLbl(Ar),Ar,Tp),Args,Tp).
+
+  crCon:(locn,string,list[crExp],tipe) => crExp.
+  crCon(Lc,Nm,Args,Tp) => crApply(Lc,crLbl(Lc,Nm,size(Args),Tp),Args,Tp).
   
 }
