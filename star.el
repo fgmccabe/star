@@ -81,7 +81,7 @@
 	     "valof" "do" "if" "then" "else" "while" "for" "in" "valis"
 	     "open"
 	     "try" "catch" "throw"
-	     "where" "type" "all" "exists" "let" "default"
+	     "where" "type" "all" "exists" "let" "default" "val"
 	     "show" "assert")
 	   )
 	  "\\>")
