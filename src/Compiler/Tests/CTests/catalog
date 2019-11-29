@@ -2,7 +2,9 @@
   "content": {
     "test.f": "f.star",
     "test.fl" : "fl.star",
-    "star.core": "core.star"
+    "test.ar" : "ar.star",
+    "star.core": "core.star",
+    "test.c" : "c.star"
   },
   "version": "1.0.0",
   "default": "../catalog"
