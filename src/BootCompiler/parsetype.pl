@@ -59,6 +59,10 @@ parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-
 parseType(F,Env,B,C0,Cx,refType(Tp)) :-
   isUnary(F,_,"ref",L),
   parseType(L,Env,B,C0,Cx,Tp).
+parseType(F,Env,B,C,Cx,valType(Tp)) :-
+  isValType(F,Lc,T),!,
+  parseType(T,Env,B,C,Cx,Tp),
+  (isFixedSizeType(Tp) -> true ; reportError("val type %s must be known size",[Tp],Lc)).
 parseType(T,Env,B,C0,Cx,tupleType(AT)) :-
   isTuple(T,[A]),
   isTuple(A,Inner),!,
@@ -302,7 +306,6 @@ parseTypeExists(Lc,Quants,Ct,Hd,Body,typeDef(Lc,Nm,Type,FaceRule),E,Ev,Path) :-
   reQuant(Q,Tp,Type),
   pickTypeTemplate(Type,Tmp),
   declareType(Nm,tpDef(Lc,Tmp,FaceRule),E,Ev).
-
 
 parseTypeFun(Lc,Quants,Ct,Hd,Bd,typeDef(Lc,Nm,Type,Rule),E,Ev,Path) :-
   parseBoundTpVars(Quants,[],Q),

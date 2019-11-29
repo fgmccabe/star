@@ -43,13 +43,11 @@
   keyword("implementation").
   keyword("type").
   keyword("where").
-  keyword("void").
   keyword("all").
   keyword("of").
   keyword("exists").
-  keyword("struct").
+  keyword("val").
   keyword("assert").
-  keyword("let").
   keyword("default").
   keyword("in").
   keyword("do").

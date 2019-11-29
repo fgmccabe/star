@@ -4,6 +4,7 @@
 	      isContractStmt/6,isImplementationStmt/6,
 	      isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
 	      isTypeLambda/4,
+	      isValType/3,
 	      isImport/3, isMacro/3,isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
@@ -145,6 +146,9 @@ implSpec(S,[],[],Con,Body) :-
 isConstrainedTp(T,C,R) :-
   isConstrained(T,R,C),!.
 isConstrainedTp(T,[],T).
+
+isValType(T,Lc,Tp) :-
+  isUnary(T,"val",Lc,Tp).
 
 isComma(T,Lc,L,R) :-
   isBinary(T,Lc,",",L,R).
