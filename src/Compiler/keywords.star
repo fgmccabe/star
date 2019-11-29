@@ -44,7 +44,6 @@ star.comp.keywords {
   keyword("implementation") => true.
   keyword("type") => true.
   keyword("where") => true.
-  keyword("void") => true.
   keyword("all") => true.
   keyword("of") => true.
   keyword("exists") => true.
@@ -64,7 +63,7 @@ star.comp.keywords {
   keyword("for") => true.
   keyword("try") => true.
   keyword("catch") => true.
-  keyword("struct") => true.
+  keyword("val") => true.
   keyword("#") => true.
 
   keyword(_) default => false.

@@ -488,6 +488,11 @@
     "desc": "reference type"
   },
   {
+    "prefixOp": "val",
+    "priorities": [900, 899],
+    "desc": "value type marker"
+  },
+  {
     "prefixOp": "open",
     "priorities": [900, 899],
     "desc": "import object"
