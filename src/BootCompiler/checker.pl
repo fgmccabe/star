@@ -814,7 +814,7 @@ checkGoal(G,Env,Ev,Goal,Path) :-
 checkCaseExp(Lc,Bnd,Cases,Tp,Env,Env,case(Lc,Bound,Eqns,Tp),Path) :-
   newTypeVar("_L",LhsTp),
   typeOfExp(Bnd,LhsTp,Env,_,Bound,Path),
-  reportMsg("case governer: %s:%s",[Bound,LhsTp]),
+%  reportMsg("case governer: %s:%s",[Bound,LhsTp]),
   checkCases(Cases,LhsTp,Tp,Env,Eqns,Eqx,Eqx,[],Path),!.
 
 checkCases([],_,_,_,Eqs,Eqs,Dfx,Dfx,_).
