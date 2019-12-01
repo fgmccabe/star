@@ -1,5 +1,6 @@
 star.compiler.unify{
   import star.
+  import star.sort.
 
   import star.compiler.dict.
   import star.compiler.errors.
@@ -28,7 +29,8 @@ star.compiler.unify{
       same(O1,O2,Env) && same(A1,A2,Env).
     smT(faceType(E1,T1),faceType(E2,T2),Env)
 	where size(E1)==size(E2) && size(T1)==size(T2) =>
-      smFields(T1,T2,Env) && smFields(E1,E2,Env).
+      smFields(sort(T1,cmpField),sort(T2,cmpField),Env) &&
+	  smFields(sort(E1,cmpField),sort(E2,cmpField),Env).
     smT(existType(V1,T1),existType(V2,T2),Env) =>
       same(T1,T2,updateEnv(V1,V2,Env)).
     smT(allType(V1,T1),allType(V2,T2),Env) =>
@@ -45,6 +47,9 @@ star.compiler.unify{
     smFields([],[],_) => true.
     smFields([(F1,T1),..FS1],[(F2,T2),..FS2],Env) =>
       F1==F2 && same(T1,T2,Env) && smFields(FS1,FS2,Env).
+
+    cmpField:((string,tipe),(string,tipe))=>boolean.
+    cmpField((F1,_),(F2,_)) => F1<F2.
 
     updateEnv(nomnal(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
     updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
