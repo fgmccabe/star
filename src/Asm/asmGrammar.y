@@ -57,7 +57,7 @@
 %token RET JMP CASE
 %token DROP DUP PULL ROT RST BF BT CLBL CMP
 
-%token LD ST T
+%token LD ST T LET
 
 %token A L
 %token ALLOC VOID
@@ -155,8 +155,6 @@ trailer: END nls { endFunction(currMtd); }
    | DROP { ADrop(currMtd); }
    | DUP { ADup(currMtd); }
    | RST DECIMAL { ARst(currMtd,$2); }
-   | PULL DECIMAL { APull(currMtd,$2); }
-   | ROT DECIMAL { ARot(currMtd,$2); }
    | LD LBRA DECIMAL RBRA { ANth(currMtd,$3); }
    ;
 
