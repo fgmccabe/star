@@ -5,13 +5,13 @@ star.compiler.terms{
   import star.compiler.location.
   import star.compiler.types.
 
-  public data ::= intgr(integer)
+  public term ::= intgr(integer)
     | flot(float)
     | strg(string)
-    | term(data,list[data])
+    | term(term,list[term])
     | lbl(string,integer).
 
-  public implementation display[data] => let{
+  public implementation display[term] => let{
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
@@ -28,7 +28,7 @@ star.compiler.terms{
     disp(T) => dispT(T)
   .}
 
-  public implementation hash[data] => let{
+  public implementation hash[term] => let{
     hsh(intgr(X)) => X.
     hsh(flot(X)) => hash(X).
     hsh(strg(S)) => hash(S).
@@ -39,7 +39,7 @@ star.compiler.terms{
     hash(T) => hsh(T)
   }
 
-  public implementation equality[data] => let{
+  public implementation equality[term] => let{
     eq(intgr(X),intgr(Y)) => X==Y.
     eq(flot(X),flot(Y)) => X==Y.
     eq(strg(X),strg(Y)) => X==Y.
@@ -50,7 +50,7 @@ star.compiler.terms{
     X==Y => eq(X,Y).
   .}
 
-  public mkTpl:(list[data]) => data.
+  public mkTpl:(list[term]) => term.
   mkTpl(A) where L.=size(A) => term(lbl(tplLbl(L),L),A).
 
   public tplLbl:(integer)=>string.
@@ -60,21 +60,21 @@ star.compiler.terms{
   isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::list[integer]) => true.
   isTplLbl(_) default => false.
 
-  public isScalar:(data)=>boolean.
+  public isScalar:(term)=>boolean.
   isScalar(intgr(_)) => true.
   isScalar(flot(_)) => true.
   isScalar(strg(_)) => true.
   isScalar(lbl(_,_)) => true.
   isScalar(_) default => false.
 
-  public implementation coercion[data,string] => {
+  public implementation coercion[term,string] => {
     _coerce(T) => _implode(encodeTerm(T)).
   }
 
-  public encodeTerm:(data)=>list[integer].
+  public encodeTerm:(term)=>list[integer].
   encodeTerm(T) => encodeT(T,[]).
 
-  encodeT:(data,list[integer])=>list[integer].
+  encodeT:(term,list[integer])=>list[integer].
   encodeT(intgr(Ix),Cs) => encodeInt(Ix,[Cs..,0cx]).
   encodeT(flot(Dx),Cs) => encodeText(Dx::string,[Cs..,0cd]).
   encodeT(strg(Tx),Cs) => encodeText(Tx,[Cs..,0cs]).
@@ -85,7 +85,7 @@ star.compiler.terms{
   encodeTerms([],Cs) => Cs.
   encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
   
-  public decodeTerm:(list[integer])=>either[(),(data,list[integer])].
+  public decodeTerm:(list[integer])=>either[(),(term,list[integer])].
   decodeTerm([0cx,..Ls]) => do{
     (Ix,L0) <- decodeInt(Ls);
     valis (intgr(Ix),L0)
@@ -119,7 +119,7 @@ star.compiler.terms{
     valis (term(lbl("[]",size(Els)),Els),Lx)
   }
 
-  decodeTerms:(list[integer],integer,list[data]) => either[(),(list[data],list[integer])].
+  decodeTerms:(list[integer],integer,list[term]) => either[(),(list[term],list[integer])].
   decodeTerms(L,0,Args) => either((Args,L)).
   decodeTerms(L,Ix,Args) => do{
     (Arg,L0) <- decodeTerm(L);
