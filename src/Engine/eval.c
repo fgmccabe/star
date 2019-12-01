@@ -295,22 +295,6 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Pull: {
-        int32 offset = collectI32(PC);    // How far down to reach stack
-        termPo se = SP[offset];
-        *--SP = se;
-        continue;
-      }
-
-      case Rot: {
-        int32 offset = collectI32(PC);    // How far down to reach into the stack
-        termPo se = SP[offset - 1];
-        for (int32 ix = offset - 1; ix > 0; ix--)
-          SP[ix] = SP[ix - 1];
-        *SP = se;
-        continue;
-      }
-
       case Rst: {
         int32 offset = collectI32(PC);
         assert(offset >= 0);
@@ -356,16 +340,6 @@ retCode run(processPo P) {
         labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
         normalPo trm = C_TERM(pop());
         push(getField(trm, lbl));
-        continue;
-      }
-
-      case CVd: {
-        termPo l = pop();
-        insPo exit = collectOff(PC);
-        assert(validPC(PROG, exit));
-
-        if (sameTerm(l, voidEnum))
-          PC = exit;
         continue;
       }
 

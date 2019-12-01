@@ -1,6 +1,6 @@
 /*
   Specification of the Star Bytecode Instruction set
-  (c) 2017 F.G.McCabe
+  (c) 2017, and beyond F.G.McCabe
 
   This file should NEVER be included directly. It must always be
   preceded and followed by undefs. A typical sequence looks like:
@@ -11,7 +11,7 @@
 #include "instruction.h"
 #undef instruction
 
-  Contact: Francis McCabe <frankmccabe@mac.com>
+  Contact: Francis McCabe <fmccabe@gmail.com>
 */
 
 instruction(Halt,nOp,0,"Stop execution")
@@ -30,8 +30,6 @@ instruction(Jmp,off,0,"jump lbl")
 
 instruction(Drop,tOs,-1,"drop top of stack")
 instruction(Dup,tOs,1,"duplicate top of stack")
-instruction(Pull,i32,1,"copy nth stack entry to top of stack")
-instruction(Rot,i32,0,"rotate nth stack entry to top of stack")
 instruction(Rst,i32,0,"reset stack height to a fixed height")
 
 instruction(LdV,nOp,1,"Place a void value on stack")
@@ -46,7 +44,6 @@ instruction(StA,arg,-1,"store tos to args[xx]")
 instruction(StG,glb,-1,"store into a global variable")
 
 instruction(CLbl,off,-1,"T,Lbl --> test for a data term, branch if lbl")
-instruction(CVd,nOp,-1,"Lbl --> test for void, branch if void")
 instruction(Nth,i32,0,"T --> el, pick up the nth element")
 instruction(StNth,i32,-2,"T el --> store in nth element")
 instruction(Get,lit,0,"T --> el access a field from structure")
