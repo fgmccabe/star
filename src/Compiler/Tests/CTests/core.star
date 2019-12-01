@@ -25,8 +25,4 @@ star.core{
 
   public id:all a ~~ (a)=>a.
   id(X)=>X.
-
-  -- Issue with •, hence cannot do:
-  public (•):all a,b,c ~~ ((b)=>c,(a)=>b)=>(a)=>c.
-  F • G => (x)=>F(G(x)).
 }
