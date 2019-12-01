@@ -18,6 +18,7 @@ star.compiler.normalize{
     | localVar(string,string,string,tipe,crVar)
     | moduleCons(string,tipe)
     | labelArg(crExp,integer,crVar)
+    | labelVar(crExp)
     | importVar(crExp,string,tipe)
     | letVar(string,crExp,tipe).
 
@@ -34,6 +35,7 @@ star.compiler.normalize{
     disp(moduleVar(Nm,Tp)) => ssSeq([ss("module var "),ss(Nm),ss(":"),disp(Tp)]).
     disp(moduleCons(Nm,Tp)) => ssSeq([ss("module cons "),ss(Nm),ss(":"),disp(Tp)]).
     disp(localVar(Nm,_,_,Tp,V)) => ssSeq([ss("local var "),ss(Nm),ss("~"),disp(V),ss(":"),disp(Tp)]).
+    disp(labelVar(Vr)) => ssSeq([ss("label var"),disp(Vr)]).
     disp(labelArg(Base,Ix,Vr)) => ssSeq([ss("label arg"),disp(Vr),ss("@"),disp(Base),ss("["),disp(Ix),ss("]")]).
     disp(importVar(M,Nm,Tp)) => ssSeq([ss("import "),disp(M),ss("#"),ss(Nm),ss(":"),disp(Tp)]).
   .}  
@@ -48,14 +50,14 @@ star.compiler.normalize{
     typeOf(moduleVar(_,Tp)) => Tp.
     typeOf(localVar(_,_,_,Tp,_)) => Tp.
     typeOf(moduleCons(_,Tp)) => Tp.
+    typeOf(labelVar(V))=>typeOf(V).
     typeOf(labelArg(_,_,V)) => typeOf(V).
   .}
 
   public normalize:(pkgSpec,canon,reports)=>either[reports,crFlow].
   normalize(PkgSpec,Prg,Rp) => do{
-    logMsg("normalizing $(Prg)");
     Map = pkgMap(PkgSpec);
-    logMsg("package map $(Map)");
+--    logMsg("package map $(Map)");
     liftExp(Prg,Map,[],Rp)
   }
 
@@ -72,7 +74,13 @@ star.compiler.normalize{
 --      logMsg("no theta var for group $(Grp)");
       M = [lyr("",foldRight((D,LL)=>collectMtd(D,layerName(Outer),none,LL),[],Grp),none),..Outer];
       valis (M,none,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
-    } else {
+    } else if [FrVr].=FreeVars then {
+      ThVr = crVar(Lc,FrVr);
+      L = [crName(FrVr)->labelVar(ThVr)];
+      M = [lyr("",foldRight((D,LL)=>collectMtd(D,layerName(Outer),none,LL),L,Grp),none),..Outer];
+      valis (M,none,ThVr)
+    }
+    else {
       ThV = genVar("_ThVr",tupleType(FreeVars//typeOf));
 --      logMsg("theta var for group $(Grp) is $(ThV)");
       L = collectLabelVars(FreeVars,crVar(Lc,ThV),0,[]);
@@ -256,10 +264,7 @@ star.compiler.normalize{
   trVarPtn(Lc,Nm,Tp,Map,Ex,Rp) => implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex,Rp).
 
   implementVarPtn(Lc,Nm,none,Tp,_,Ex,_) => either((crVar(Lc,crId(Nm,Tp)),Ex)).
-  implementVarPtn(Lc,Nm,some(moduleVar(_,_)),Tp,_,_,Rp) => other(reportError(Rp,"not permitted",Lc)).
-  implementVarPtn(Lc,Nm,some(labelArg(Base,Ix,V)),Tp,Map,Ex,Rp) => do{
-    valis (crWhere(Lc,crVar(Lc,V),crMatch(Lc,crVar(Lc,V),crTplDte(Lc,Base,Ix,Tp))),Ex)
-  }
+  implementVarPtn(Lc,Nm,some(_),Tp,_,_,Rp) => other(reportError(Rp,"not permitted to match against $(Nm)",Lc)).
 
   liftExp:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftExp(vr(Lc,Nm,Tp),Map,Ex,Rp) => liftVarExp(Lc,Nm,Tp,Map,Ex,Rp).
@@ -363,6 +368,8 @@ star.compiler.normalize{
     either((crApply(Lc,crLbl(Lc,Fn,size(Args),FTp),Args,Tp),Ex)).
   implementFunCall(Lc,labelArg(Base,Ix,ThVr),_,Args,Tp,Map,Ex,Rp) =>
     either((crCall(Lc,crTplDte(Lc,Base,Ix,Tp),Args,Tp),Ex)).
+  implementFunCall(Lc,labelVar(FrVr),_,Args,Tp,Map,Ex,Rp) =>
+    either((crCall(Lc,FrVr,Args,Tp),Ex)).
 
   liftVarExp:(locn,string,tipe,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftVarExp(Lc,Nm,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
@@ -374,6 +381,8 @@ star.compiler.normalize{
     either((crCall(Lc,crVar(Lc,crId(Vn,VTp)),[crVar(Lc,ThVr)],Tp),Ex)).
   implementVarExp(Lc,labelArg(Base,Ix,ThVr),Tp,Map,Ex,Rp) =>
     either((crTplDte(Lc,Base,Ix,Tp),Ex)).
+  implementVarExp(Lc,labelVar(ThVr),Tp,Map,Ex,Rp) =>
+    either((ThVr,Ex)).
   implementVarExp(Lc,moduleCons(Enum,CTp),Tp,Map,Ex,Rp) =>
     either((crLbl(Lc,Enum,arity(CTp),Tp),Ex)).
   implementVarExp(Lc,moduleVar(FNm,FTp),Tp,Map,Ex,Rp) =>

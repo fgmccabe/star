@@ -28,8 +28,6 @@ star.compiler{
     _coerce(other(Y)) => err(Y)
   }
 
-  compilerOptions ::= compilerOptions(uri,uri).
-
   repoOption:optionsProcessor[compilerOptions].
   repoOption = {
     shortForm = "-R".
@@ -89,22 +87,24 @@ star.compiler{
     pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).
 
   addSpec:(pkgSpec,fileRepo) => fileRepo.
-  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::data)::string).
+  addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
 
   processPkgs:(list[importSpec],fileRepo,catalog,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Rp) => do{
     Repp := Repo;
     try{
       for pkgImp(Lc,_,P) in Pks do{
-	logMsg("Process $(P)");
+	logMsg("Process package $(P)");
 	if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 	  Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
 	  (PkgSpec,PkgFun) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canon)];
-	  logMsg("Checked spec $(PkgSpec)");
+	  logMsg("normalizing $(PkgSpec)");
 	  (PrgVal,NormDefs) <- normalize(PkgSpec,PkgFun,Rp)::action[reports,(crExp,list[crDefn])];
 	  Repp := addSpec(PkgSpec,Repp!);
-	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)")
+	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)");
+	  if \+ isEmpty(NormDefs) then
+	    throw reportError(Rp,"extra definitions found in $(P)",Lc)
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)
