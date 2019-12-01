@@ -7,7 +7,7 @@ star.compiler.ast{
 
   public ast ::=
       nme(locn,string)
-    | lit(locn,data)
+    | lit(locn,term)
     | tpl(locn,string,list[ast])
     | app(locn,ast,ast).
 

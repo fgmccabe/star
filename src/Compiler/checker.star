@@ -25,7 +25,6 @@ star.compiler.checker{
 
   public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,canon)].
   checkPkg(Repo,P,Base,Rp) => do{
-    logMsg("processing package $(P)");
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
@@ -57,8 +56,8 @@ star.compiler.checker{
       PkgType = faceType(Fields,Types);
       PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,ROthers,Rp);
       PkgArgs = PkgVars//((Nm,Tp))=>vr(Lc,Nm,Tp);
-      PkgFun = lambda(Lc,[eqn(Lc,tple(Lc,PkgArgs),PkgTheta)],funType(tupleType(PkgArgs//typeOf),PkgType));
-      valis (pkgSpec(Pkg,Imports,PkgType,Contracts,Impls,PkgVars),PkgFun)
+      PkgExp = lambda(Lc,[eqn(Lc,tple(Lc,PkgArgs),PkgTheta)],funType(tupleType(PkgArgs//typeOf),PkgType));
+      valis (pkgSpec(Pkg,Imports,PkgType,Contracts,Impls,PkgVars),PkgExp)
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
@@ -81,22 +80,6 @@ star.compiler.checker{
   exportedTypes:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
   exportedTypes(Defs,Vis,DVz) => [ (Nm,ExTp) |
       DD in Defs && typeDef(_,Nm,_,ExTp) in DD && (tpSp(Nm),V) in Vis && V>=DVz].
-
-  typeOfTheta:(locn,list[ast],tipe,dict,string,reports) => either[reports,canon].
-  typeOfTheta(Lc,Els,Tp,Env,Path,Rp) => do{
-    (Q,ETp) = evidence(Tp,[],Env);
-    FaceTp = faceOfType(Tp,Env);
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
-    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
-    if sameType(ThetaTp,Tp,Env) then{
---    logMsg("building record from theta");
-
-      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrain(Cx,ThetaTp),Rp)
-    }
-    else
-    throw reportError(Rp,"type of theta: $(ThetaTp) not consistent with $(Tp)",Lc)
-    }
 
   mkRecord:(locn,string,tipe,dict,list[list[canonDef]],tipe,reports) => either[reports,canon].
   mkRecord(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
@@ -513,8 +496,21 @@ star.compiler.checker{
     typeOfExp(promoteOption(A),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,R) ^= isEquation(A) =>
     typeOfLambda(Lc,Ar,R,Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTheta(A) =>
-    typeOfTheta(Lc,Els,Tp,Env,genNewName(Path,"θ"),Rp).
+  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
+    (Q,ETp) = evidence(Tp,[],Env);
+    FaceTp = faceOfType(Tp,Env);
+    (Cx,Face) = deConstrain(FaceTp);
+    Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
+    Path = genNewName(Pth,"θ");
+    (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
+    if sameType(ThetaTp,Tp,Env) then{
+--    logMsg("building record from theta");
+
+      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrain(Cx,ThetaTp),Rp)
+    }
+    else
+    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
+  }
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
     typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{

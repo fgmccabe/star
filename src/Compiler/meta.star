@@ -1,7 +1,9 @@
 star.compiler.meta{
   import star.
 
+  import star.uri.
   import star.pkg.
+
   import star.compiler.ast.
   import star.compiler.location.
 
@@ -85,4 +87,6 @@ star.compiler.meta{
   } in {.
     disp(S) => dispSpc(S)
   .}
+
+  public compilerOptions ::= compilerOptions(uri,uri).
 }
