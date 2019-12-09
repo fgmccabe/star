@@ -567,8 +567,8 @@ star.compiler.wff{
     some((Lc,Els)).
   isTheta(_) default => none.
 
-  public isQTheta:(ast) => option[(locn,list[ast])].
-  isQTheta(A) => isQBrTuple(A).
+  public isRecord:(ast) => option[(locn,list[ast])].
+  isRecord(A) => isQBrTuple(A).
 
   public macroSquarePtn:(locn,list[ast]) => ast.
   macroSquarePtn(Lc,Els) =>

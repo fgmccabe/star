@@ -55,7 +55,7 @@ star.compiler.impawt{
   }
 
   pickupPkg:(term) => either[(),pkg].
-  pickupPkg(term(lbl("pkg",2),[strg(Nm),V])) => do{
+  pickupPkg(term(tLbl("pkg",2),[strg(Nm),V])) => do{
     Vr <- pickupVersion(V);
     valis pkg(Nm,Vr)
   }
@@ -102,7 +102,7 @@ star.compiler.impawt{
   pickupImplementations(_,_) default => other(()).
 
   implementation coercion[pkg,term] => {
-    _coerce(pkg(P,defltVersion)) => term(lbl("pkg",2),[strg(P),strg("*")]).
+    _coerce(pkg(P,defltVersion)) => term(tLbl("pkg",2),[strg(P),strg("*")]).
   }
 
   implementation coercion[visibility,term] => {.
@@ -120,30 +120,28 @@ star.compiler.impawt{
   .}
   
   implementation coercion[importSpec,term] => {.
-    _coerce(pkgImp(_,Vz,Pk)) => term(lbl("import",2),[Vz::term,Pk::term])
+    _coerce(pkgImp(_,Vz,Pk)) => term(tLbl("import",2),[Vz::term,Pk::term])
   .}
 
   implementation coercion[canonDef,term] => {.
     _coerce(cnsDef(_,Nm,FullNm,Tp)) =>
-      term(lbl("constructor",3),[strg(Nm),strg(FullNm),Tp::term]).
+      term(tLbl("constructor",3),[strg(Nm),strg(FullNm),Tp::term]).
     _coerce(conDef(_,Nm,FullNm,Tp)) =>
-      term(lbl("contract",3),[strg(Nm),strg(FullNm),Tp::term]).
+      term(tLbl("contract",3),[strg(Nm),strg(FullNm),Tp::term]).
   .}
   
-  implementation all e ~~ coercion[e,term] |: coercion[list[e],term] => let{
-    mkList(L) => term(lbl("()$(size(L))",size(L)),L//(e)=>e::term)
-  } in {
-    _coerce(L)=>mkList(L)
-  }
+  implementation all e ~~ coercion[e,term] |: coercion[list[e],term] => {.
+    _coerce(L)=>mkTpl(L//(e)=>e::term)
+  .}
 
   implementation coercion[implSpec,term] => {.
     _coerce(implSpec(_,ConNm,FullNm,Spec)) =>
-      term(lbl("impl",3),[strg(ConNm),strg(FullNm),Spec::term])
+      term(tLbl("impl",3),[strg(ConNm),strg(FullNm),Spec::term])
   .}
   
   public implementation coercion[pkgSpec,term] => let{
     mkTerm(pkgSpec(Pkg,Imports,Fields,Contracts,Implementations,_)) =>
-      term(lbl("pkgSpec",5),[Pkg::term,
+      term(tLbl("pkgSpec",5),[Pkg::term,
 	  Imports::term,strg(encodeSignature(Fields)),Contracts::term,Implementations::term]).
   } in {
     _coerce(S) => mkTerm(S).

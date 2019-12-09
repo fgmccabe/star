@@ -114,6 +114,24 @@ star.compiler.checker{
     valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
   }
 
+  recordEnv:(locn,string,list[ast],tipe,dict,reports,visibility) =>
+    either[reports,(list[canonDef],dict,tipe)].
+  recordEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
+    logMsg("check record $(Els)");
+
+    (Vis,Opens,Annots,G) <- recordDefs(Els,Rp);
+    Base = pushFace(Face,Lc,Env);
+    
+    (Defs,Ev) <- checkGroup(G,[],Base,Pth,Rp);
+    logMsg("env after record $(Ev)");
+    logMsg("Defs: $(Defs)");
+    
+    PubVrTps = exportedFields([Defs],Vis,DefViz);
+    PubTps = exportedTypes([Defs],Vis,DefViz);
+--    logMsg("exported fields $(PubVrTps)");
+    valis (Defs,Ev,faceType(PubVrTps,PubTps))
+  }
+
   checkGroups:(list[list[defnSpec]],list[list[canonDef]],
     tipe,list[(string,ast)],dict,string,reports) =>
     either[reports,(list[list[canonDef]],dict)].
@@ -505,12 +523,25 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
 --    logMsg("building record from theta");
-
       mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrain(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
+  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isRecord(A) => do{
+    (Q,ETp) = evidence(Tp,[],Env);
+    FaceTp = faceOfType(Tp,Env);
+    (Cx,Face) = deConstrain(FaceTp);
+    Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
+    Path = genNewName(Pth,"θ");
+    (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,deFault);
+    if sameType(ThetaTp,Tp,Env) then{
+      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,[Defs],reConstrain(Cx,ThetaTp),Rp)
+    }
+    else
+    throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
+  }
+
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
     typeOfExp(binary(Lc,"-",lit(Lc,intgr(0)),I),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els,Bnd) ^= isLetDef(A) => do{

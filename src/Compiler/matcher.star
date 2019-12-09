@@ -21,7 +21,7 @@ star.compiler.matcher{
     Error = genRaise(Lc,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
     Reslt = matchTriples(Lc,NVrs,Trpls,Error);
-    (NArgs,NReslt) = pullVarLets(NVrs//(V)=>crVar(Lc,V),Reslt);
+    (NArgs,NReslt) = pullVarLets(NVrs,Reslt);
     valis fnDef(Lc,Nm,Tp,NArgs,NReslt)
   }
 
@@ -87,7 +87,7 @@ star.compiler.matcher{
   argMode(crFlot(_,_)) => inScalars.
   argMode(crStrg(_,_)) => inScalars.
   argMode(crLbl(_,_,_,_)) => inScalars.
-  argMode(crApply(_,crLbl(_,_,_,_),_,_)) => inConstructors.
+  argMode(crTerm(_,crLbl(_,_,_,_),_,_)) => inConstructors.
   argMode(_) default => inOthers.
 
   matchSegments([],_,_,Deflt) => Deflt.
@@ -139,11 +139,11 @@ star.compiler.matcher{
     (LLc,crStrg(LLc,Sx),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
   formCase(([crLbl(LLc,Nm,Ix,LTp),.._],_,_),Tpls,Lc,Vars,Deflt) =>
     (LLc,crLbl(LLc,Nm,Ix,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
-  formCase(([crApply(Lc,Lbl,Args,Tp),.._],_,_),Trpls,_,Vars,Deflt) => valof action{
+  formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Trpls,_,Vars,Deflt) => valof action{
     Vrs = Args//(E) => crId(genSym("_"),typeOf(E));
     NTrpls = subTriples(Trpls);
     Case = matchTriples(Lc,Vrs++Vars,NTrpls,Deflt);
-    valis (Lc,crApply(Lc,Lbl,Vrs//(V)=>crVar(Lc,V),Tp),Case)
+    valis (Lc,crTerm(Lc,Lbl,Vrs//(V)=>crVar(Lc,V),Tp),Case)
   }.
 
   pickMoreCases:(triple,list[triple],(triple,triple)=>boolean,
@@ -160,7 +160,7 @@ star.compiler.matcher{
 
   subTriples(Tpls) => (Tpls//subTriple).
     
-  subTriple(([crApply(_,_,CArgs,_),..Args],V,X)) =>
+  subTriple(([crTerm(_,_,CArgs,_),..Args],V,X)) =>
     (CArgs++Args,V,X).
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
@@ -190,18 +190,18 @@ star.compiler.matcher{
   compareConstructorTriple:(triple,triple) => boolean.
   compareConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => compareConstructor(A,B).
 
-  compareConstructor(crApply(_,crLbl(_,A,Ar,_),_,_),
-    crApply(_,crLbl(_,B,Br,_),_,_)) => A=<B && Ar==Br.
+  compareConstructor(crTerm(_,crLbl(_,A,Ar,_),_,_),
+    crTerm(_,crLbl(_,B,Br,_),_,_)) => A=<B && Ar==Br.
   
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
-  sameConstructor(crApply(_,crLbl(_,A,Ar,_),_,_), crApply(_,crLbl(_,B,Br,_),_,_)) =>
+  sameConstructor(crTerm(_,crLbl(_,A,Ar,_),_,_), crTerm(_,crLbl(_,B,Br,_),_,_)) =>
     A==B && Ar==Br.
 
-  pullVarLets:(list[crExp],crExp)=>(list[crExp],crExp).
+  pullVarLets:(list[crVar],crExp)=>(list[crVar],crExp).
   pullVarLets(Vrs,crLtt(Lc,vrDef(Vlc,V,crVar(_,A)),Exp)) =>
     pullVarLets(Vrs//replaceWith(A,V),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
-  replaceWith:(crVar,crVar) => (crExp)=>crExp.
-  replaceWith(A,B) => (X) => (crVar(Lc,A).=X?crVar(Lc,B)||X).
+  replaceWith:(crVar,crVar) => (crVar)=>crVar.
+  replaceWith(A,B) => (X) => (A==X?B||X).
 }
