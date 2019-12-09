@@ -1,4 +1,4 @@
-:- module(dependencies,[dependencies/3,collectDefinitions/6]).
+:- module(dependencies,[dependencies/3,collectDefinitions/5]).
 
 :- use_module(topsort).
 :- use_module(abstract).
@@ -13,25 +13,21 @@ dependencies(Dfs,Groups,Annots) :-
   topsort(Defs,Groups,misc:same).
   %showGroups(Groups).
 
-collectDefinitions([St|Stmts],Defs,P,A,I,Other) :-
-  collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,I,I0,Other,O0,dependencies:nop),
-  collectDefinitions(S0,D0,P0,A0,I0,O0).
-collectDefinitions([],[],[],[],[],[]).
+collectDefinitions([St|Stmts],Defs,P,A,Other) :-
+  collectDefinition(St,Stmts,S0,Defs,D0,P,P0,A,A0,Other,O0,dependencies:nop),
+  collectDefinitions(S0,D0,P0,A0,O0).
+collectDefinitions([],[],[],[],[]).
 
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|I],I,Other,Other,_) :-
-  isImport(St,_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|I],I,Other,Other,_) :-
-  isOpen(St,_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
+collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|Other],Other,_) :-
   isIntegrity(St,_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,[St|Other],Other,_) :-
+collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,[St|Other],Other,_) :-
   isShow(St,_,_).
-collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[Tp])|Defs],Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
+collectDefinition(St,Stmts,Stmts,[(cns(V),Lc,[Tp])|Defs],Defs,P,Px,[(V,T)|A],A,Other,Other,Export) :-
   isTypeAnnotation(St,Lc,L,T),
   (isIden(L,V),Ex=Export; isPrivate(L,_,V1),isIden(V1,V),Ex=dependencies:nop),
   isConstructorType(T,_,Tp),!,
   call(Ex,var(V),P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Export) :-
+collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,Other,Other,Export) :-
   isTypeAnnotation(St,Lc,L,T),
   (isIden(L,V) ->
    call(Export,var(V),P,Px) ;
@@ -39,42 +35,42 @@ collectDefinition(St,Stmts,Stmts,Defs,Defs,P,Px,[(V,T)|A],A,I,I,Other,Other,Expo
    call(dependencies:nop,var(V),P,Px);
    reportError("cannot understand type annotation of %s",[L],Lc),
    P=Px).
-collectDefinition(St,Stmts,Stx,Defs,Dfx,P,P,A,Ax,I,Ix,O,Ox,_) :-
+collectDefinition(St,Stmts,Stx,Defs,Dfx,P,P,A,Ax,O,Ox,_) :-
   isPrivate(St,_,Inner),
-  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,_,A,Ax,I,Ix,O,Ox,dependencies:nop).
-collectDefinition(St,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,I,Ix,O,Ox,_) :-
+  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,_,A,Ax,O,Ox,dependencies:nop).
+collectDefinition(St,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,O,Ox,_) :-
   isPublic(St,_,Inner),
-  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,I,Ix,O,Ox,dependencies:export).
-collectDefinition(St,Stmts,Stmts,[(Nm,Lc,[St])|Defs],Defs,P,Px,A,Ax,I,I,O,O,Export) :-
+  collectDefinition(Inner,Stmts,Stx,Defs,Dfx,P,Px,A,Ax,O,Ox,dependencies:export).
+collectDefinition(St,Stmts,Stmts,[(Nm,Lc,[St])|Defs],Defs,P,Px,A,Ax,O,O,Export) :-
   isContractStmt(St,Lc,Quants,Constraints,Con,Els),
   generateAnnotations(Els,Quants,[Con|Constraints],A,Ax),
   contractName(Con,Nm),
   call(Export,Nm,P,Px).
-collectDefinition(St,Stmts,Stmts,[(Nm,Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
+collectDefinition(St,Stmts,Stmts,[(Nm,Lc,[St])|Defs],Defs,P,Px,A,A,O,O,Export) :-
   isImplementationStmt(St,Lc,_,_,N,_),
   implementedContractName(N,Nm),
   call(Export,Nm,P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,I,I,O,O,_) :-
+collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,O,O,_) :-
   isBinary(St,_,"@",_,_).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,I,I,O,O,_) :-
+collectDefinition(St,Stmts,Stmts,Defs,Defs,Px,Px,A,A,O,O,_) :-
   isUnary(St,_,"@",_).
-collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
+collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,O,O,Export) :-
   isTypeExistsStmt(St,Lc,_,_,L,_),
   typeName(L,Nm),
   call(Export,tpe(Nm),P,Px).
-collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
+collectDefinition(St,Stmts,Stmts,[(tpe(Nm),Lc,[St])|Defs],Defs,P,Px,A,A,O,O,Export) :-
   isTypeFunStmt(St,Lc,_,_,L,_),
   typeName(L,Nm),
   call(Export,tpe(Nm),P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Dfx,P,Px,A,Ax,I,I,O,O,Export) :-
+collectDefinition(St,Stmts,Stmts,Defs,Dfx,P,Px,A,Ax,O,O,Export) :-
   isAlgebraicTypeStmt(St,_,_,_,_,_),
   reformAlgebraic(St,Defs,Dfx,A,Ax,Export,P,Px).
-collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,I,I,O,O,Export) :-
+collectDefinition(St,Stmts,Stx,[(Nm,Lc,[St|Defn])|Defs],Defs,P,Px,A,A,O,O,Export) :-
   ruleName(St,Nm,Kind),
   locOfAst(St,Lc),
   collectDefines(Stmts,Kind,Stx,Nm,Defn),
   call(Export,Nm,P,Px).
-collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,I,I,O,O,_) :-
+collectDefinition(St,Stmts,Stmts,Defs,Defs,P,P,A,A,O,O,_) :-
   locOfAst(St,Lc),
   reportError("Cannot fathom %s",[St],Lc).
 

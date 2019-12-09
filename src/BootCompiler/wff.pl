@@ -5,7 +5,7 @@
 	      isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
 	      isTypeLambda/4,
 	      isValType/3,
-	      isImport/3, isMacro/3,isPrivate/3,isPublic/3,
+	      isImport/3, findImport/3,isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
@@ -27,6 +27,7 @@
 	      isLetDef/4,mkLetDef/4,
 	      whereTerm/4,
 	      packageName/2,pkgName/2,
+	      collectImports/3,
 	      isComma/4,deComma/2,reComma/2,
 	      isUnaryMinus/3,
 	      mergeCond/4,
@@ -43,14 +44,28 @@ isImport(St,Lc,M) :-
 isImport(St,Lc,M) :-
   isUnary(St,Lc,"import",M).
 
+findImport(St,_,Spec) :-
+  isPrivate(St,_Lc,I),!,
+  findImport(I,private,Spec).
+findImport(St,_,Spec) :-
+  isPublic(St,_,I),!,
+  findImport(I,public,Spec).
+findImport(St,Viz,import(Lc,Viz,Pkg)) :-
+  isImport(St,Lc,P),!,
+  pkgName(P,Pkg).
+
+collectImports([],[],[]) :-!.
+collectImports([A|As],[Spec|I],Oth) :-
+  findImport(A,private,Spec),!,
+  collectImports(As,I,Oth).
+collectImports([A|As],I,[A|Oth]) :-
+  collectImports(As,I,Oth).
+
 isPrivate(St,Lc,I) :-
   isUnary(St,Lc,"private",I).
 
 isPublic(St,Lc,I) :-
   isUnary(St,Lc,"public",I).
-
-isMacro(St,Lc,M) :-
-  isUnary(St,Lc,"#",M).
 
 isTypeAnnotation(St,Lc,V,T) :-
   isBinary(St,Lc,":",V,T).
