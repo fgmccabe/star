@@ -24,33 +24,34 @@
 :- use_module(vartypes).
 
 checkProgram(Prog,Pkg,Repo,_Opts,
-	     prog(Pkg,Lc,Imports,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
+	     prog(Pkg,Lc,ImportSpecs,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   isBraceTerm(Prog,Lc,_,Els),
   pushScope(Base,Env),
   Pkg = pkg(Pk,_),
-  thetaEnv(Pk,Repo,Lc,Els,faceType([],[]),Env,_OEnv,Defs,Public,Imports,Others),
-  findImportedImplementations(Imports,[],OverDict),
+  collectImports(Els,Imps,Stmts),
+  importAll(Imps,Repo,AllImports),
+  importAllDefs(AllImports,ImportSpecs,Repo,Env,Env0),
+  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,_OEnv,Defs,Public,Others),
+  findImportedImplementations(ImportSpecs,[],OverDict),
   overload(Defs,OverDict,ODict,ODefs),
   overloadOthers(Others,ODict,OOthers),
   computeExport(Defs,faceType([],[]),Public,Exports,Types,Cons,Impls),!.
 
-thetaEnv(Pkg,Repo,Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots,Imps,Otrs),
+thetaEnv(Pkg,Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Others) :-
+  collectDefinitions(Stmts,Dfs,Public,Annots,Otrs),
   (noErrors ->
     dependencies(Dfs,Groups,Annots),
-    processImportGroup(Imps,Imports,Repo,Base,IBase),
-    pushFace(Fields,Lc,IBase,Env),
+    pushFace(Fields,Lc,Base,Env),
     checkGroups(Groups,Fields,Annots,Defs,Env,TheEnv,Pkg),
     checkOthers(Otrs,Others,TheEnv,Pkg);
-    Defs=[],Others=[],Imports=[],TheEnv=Base).
-%  dispDefs(Defs).
+    Defs=[],Others=[],TheEnv=Base).
+					%  dispDefs(Defs).
 
-recordEnv(Path,Repo,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Imports,Others) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots,Imps,Otrs),
-  processImportGroup(Imps,Imports,Repo,Base,TmpEnv),
-  parseAnnotations(Dfs,Fields,Annots,TmpEnv,Path,Face),
-  checkGroup(Dfs,Defs,[],TmpEnv,TheEnv,Face,Path),
+recordEnv(Path,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Others) :-
+  collectDefinitions(Stmts,Dfs,Public,Annots,Otrs),
+  parseAnnotations(Dfs,Fields,Annots,Base,Path,Face),
+  checkGroup(Dfs,Defs,[],Base,TheEnv,Face,Path),
   checkOthers(Otrs,Others,TheEnv,Path).
 %  dispDefs(Defs).
 
@@ -63,25 +64,6 @@ findAllImports([],[]).
 findAllImports([St|More],[Spec|Imports]) :-
   findImport(St,private,Spec),
   findAllImports(More,Imports).
-
-findImport(St,_,Spec) :-
-  isPrivate(St,_Lc,I),
-  findImport(I,private,Spec).
-findImport(St,_,Spec) :-
-  isPublic(St,_,I),
-  findImport(I,public,Spec).
-findImport(St,Viz,import(Lc,Viz,Pkg)) :-
-  isImport(St,Lc,P),
-  pkgName(P,Pkg).
-
-importAll(Imports,Repo,AllImports) :-
-  closure(Imports,[],checker:notAlreadyImported,checker:importMore(Repo),AllImports).
-
-importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
-  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,_,Imports)),
-  addPublicImports(Imports,Inp,More).
-importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
-  reportError("could not import package %s",[Pkg],Lc).
 
 importDefs(spec(Pkg,faceType(Exported,Types),Enums,Cons,Impls,_),Lc,E,Evx) :-
   importTypes(Types,Lc,E,E1),
@@ -124,14 +106,6 @@ importContracts([C|L],Lc,E,Env) :-
 
 notAlreadyImported(import(_,_,Pkg),SoFar) :-
   \+ is_member(import(_,_,Pkg),SoFar),!.
-
-addPublicImports([],Imp,Imp).
-addPublicImports([import(Lc,public,Pkg)|I],Rest,[import(Lc,transitive,Pkg)|Out]) :-
-  addPublicImports(I,Rest,Out).
-addPublicImports([import(_,private,_)|I],Rest,Out) :-
-  addPublicImports(I,Rest,Out).
-addPublicImports([import(_,transitive,_)|I],Rest,Out) :-
-  addPublicImports(I,Rest,Out).
 
 findImportedImplementations([import(_,_,_,_,_,Impls)|Specs],D,OverDict) :-
   rfold(Impls,checker:declImpl,D,D1),
@@ -368,7 +342,7 @@ checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Face2,Path) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  thetaEnv(Path,nullRepo,Lc,Els,Face,BaseEnv,OEnv,Defs,Public,_Imports,Others),
+  thetaEnv(Path,Lc,Els,Face,BaseEnv,OEnv,Defs,Public,Others),
   faceOfType(ETp,Env,FaceTp2),
   moveConstraints(FaceTp2,_,Face2),
   computeExport(Defs,Face2,Public,_,Types,[],[]),!.
@@ -380,20 +354,20 @@ checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  recordEnv(Path,nullRepo,Lc,Els,CFace,BaseEnv,OEnv,Defs,Public,_Imports,Others),
+  recordEnv(Path,Lc,Els,CFace,BaseEnv,OEnv,Defs,Public,Others),
   computeExport(Defs,Face,Public,_,Types,[],[]),!.
 
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  thetaEnv(ThPath,nullRepo,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,_Imports,Others),
+  thetaEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,Others),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  recordEnv(ThPath,nullRepo,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,_Imports,Others),
+  recordEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,Others),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,Inner,Bound),Path):-
   newTypeVar("_",ThTp),

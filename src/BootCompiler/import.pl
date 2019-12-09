@@ -1,12 +1,35 @@
-:- module(import, [importPkg/4,loadPkg/4,loadPrologPkg/4,consultPrologPkg/3]).
+:- module(import, [importAll/3,importPkg/4,loadPkg/4,
+		   loadPrologPkg/4,consultPrologPkg/3]).
 
 :- use_module(resource).
+:- use_module(dict).
 :- use_module(types).
 :- use_module(misc).
 :- use_module(uri).
+:- use_module(transitive).
 :- use_module(transutils).
 :- use_module(decode).
 :- use_module(repository).
+
+importAll(Imports,Repo,AllImports) :-
+  closure(Imports,[],import:notAlreadyImported,import:importMore(Repo),AllImports).
+
+importMore(Repo,import(Lc,Viz,Pkg),SoFar,[import(Lc,Viz,Pkg)|SoFar],Inp,More) :-
+  importPkg(Pkg,Lc,Repo,spec(_,_,_,_,_,Imports)),
+  addPublicImports(Imports,Inp,More).
+importMore(_,import(Lc,_,Pkg),SoFar,SoFar,Inp,Inp) :-
+  reportError("could not import package %s",[Pkg],Lc).
+
+notAlreadyImported(import(_,_,Pkg),SoFar) :-
+  \+ is_member(import(_,_,Pkg),SoFar),!.
+
+addPublicImports([],Imp,Imp).
+addPublicImports([import(Lc,public,Pkg)|I],Rest,[import(Lc,transitive,Pkg)|Out]) :-
+  addPublicImports(I,Rest,Out).
+addPublicImports([import(_,private,_)|I],Rest,Out) :-
+  addPublicImports(I,Rest,Out).
+addPublicImports([import(_,transitive,_)|I],Rest,Out) :-
+  addPublicImports(I,Rest,Out).
 
 importPkg(Pkg,Lc,Repo,
 	  spec(Act,Face,Classes,Contracts,Implementations,Imports)) :-
