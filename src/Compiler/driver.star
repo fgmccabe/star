@@ -15,6 +15,7 @@ star.compiler{
   import star.compiler.core.
   import star.compiler.dict.
   import star.compiler.errors.
+  import star.compiler.gencode.
   import star.compiler.grapher.
   import star.compiler.impawt.
   import star.compiler.meta.

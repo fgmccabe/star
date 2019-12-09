@@ -24,6 +24,14 @@ star.compiler.dependencies{
     valis (Pb,Opn,As,Groups)
   }
 
+  public recordDefs:(list[ast],reports) =>
+    either[reports,
+      (list[(defnSp,visibility)],list[ast],list[(string,ast)],list[defnSpec])].
+  recordDefs(Dfs,Rp) => do{
+    (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
+    valis (Pb,Opn,As,Defs)
+  }
+
   definitionSpec ::= definition(defnSp,locn,list[defnSp],list[ast]).
 
   implementation depends[definitionSpec->>defnSp] => {

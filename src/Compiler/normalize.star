@@ -200,7 +200,6 @@ star.compiler.normalize{
     Extra = extraVars(Map);
     logMsg("extra vars in function: $(Extra)");
     ATp = extendFunTp(deRef(Tp),Extra);
-    LclPrg = lbl(Nm,arity(ATp));
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Extra,Ex,Rp);
     logMsg("normalized equations for $(Nm)\: $(Eqs)");
     valis [functionMatcher(Lc,Nm,ATp,Eqs),..Ex1]
@@ -259,7 +258,7 @@ star.compiler.normalize{
   liftPtnCallOp(Lc,Nm,Args,Tp,Map,Ex,Rp) where Entry^= lookupVarName(Map,Nm) =>
     implementPtnCall(Lc,Entry,Args,Tp,Map,Ex,Rp).
 
-  implementPtnCall(Lc,moduleCons(Nm,CTp),Args,Tp,_,Ex,_) => either((crApply(Lc,crLbl(Lc,Nm,size(Args),CTp),Args,Tp),Ex)).
+  implementPtnCall(Lc,moduleCons(Nm,CTp),Args,Tp,_,Ex,_) => either((crTerm(Lc,crLbl(Lc,Nm,size(Args),CTp),Args,Tp),Ex)).
   
   trVarPtn(Lc,Nm,Tp,Map,Ex,Rp) => implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex,Rp).
 
@@ -312,11 +311,11 @@ star.compiler.normalize{
 --    logMsg("extra vars in lambda: $(Extra)");
     ATp = extendFunTp(deRef(Tp),Extra);
     FullNm = layerName(LMap);
-    (Eqs,Ex1) <- transformEquations(Eqns,LMap,Extra,Ex,Rp);
+    (Eqs,Ex1) <- transformEquations(Eqns,LMap,Extra,[],Rp);
 --    logMsg("normalized equations $(Eqs)");
     LamFun = functionMatcher(Lc,FullNm,ATp,Eqs);
 
-    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,LamFun,crClos(Lc,[crVar(Lc,crId(FullNm,ATp)),..Cl],ATp)),Ex1),Ex)
+    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,LamFun,crTpl(Lc,[crVar(Lc,crId(FullNm,ATp)),..Cl])),Ex1),Ex)
   }
 
 /*
@@ -365,7 +364,7 @@ star.compiler.normalize{
   implementFunCall(Lc,moduleVar(Fn,FTp),_,Args,Tp,Map,Ex,Rp) =>
     either((crCall(Lc,crLbl(Lc,Fn,size(Args),FTp),Args,Tp),Ex)).
   implementFunCall(Lc,moduleCons(Fn,FTp),_,Args,Tp,Map,Ex,Rp) =>
-    either((crApply(Lc,crLbl(Lc,Fn,size(Args),FTp),Args,Tp),Ex)).
+    either((crTerm(Lc,crLbl(Lc,Fn,size(Args),FTp),Args,Tp),Ex)).
   implementFunCall(Lc,labelArg(Base,Ix,ThVr),_,Args,Tp,Map,Ex,Rp) =>
     either((crCall(Lc,crTplDte(Lc,Base,Ix,Tp),Args,Tp),Ex)).
   implementFunCall(Lc,labelVar(FrVr),_,Args,Tp,Map,Ex,Rp) =>
@@ -453,13 +452,6 @@ star.compiler.normalize{
   collectLabelVars([V,..Vrs],ThV,Ix,Entries) where crId(Nm,_) .= V =>
     collectLabelVars(Vrs,ThV,Ix+1,Entries[Nm->labelArg(ThV,Ix,V)]).
 
-  makeFreeTerm:(set[crVar],set[crVar],nameMap,locn) => crExp.
-  makeFreeTerm(CellVars,FreeVrs,Map,Lc) =>
-    mkCrTpl(foldRight((V,FV) => [FV..,crVar(Lc,V)],
-	foldRight((V,FV)=>[FV..,emptyCell(V,Lc)],[],CellVars),FreeVrs),Lc).
-
-  emptyCell(V,Lc) => crVar(Lc,V).
-
   definedProgs:(nameMap)=>set[crVar].
   definedProgs(Map) => let{
     defProgs([],Df) => Df.
@@ -536,9 +528,9 @@ star.compiler.normalize{
   crTpl(Lc,Args) => let{
     Tp = tupleType(Args//typeOf).
     Ar = size(Args).
-  } in crApply(Lc,crLbl(Lc,tplLbl(Ar),Ar,Tp),Args,Tp).
+  } in crTerm(Lc,crLbl(Lc,tplLbl(Ar),Ar,Tp),Args,Tp).
 
   crCon:(locn,string,list[crExp],tipe) => crExp.
-  crCon(Lc,Nm,Args,Tp) => crApply(Lc,crLbl(Lc,Nm,size(Args),Tp),Args,Tp).
+  crCon(Lc,Nm,Args,Tp) => crTerm(Lc,crLbl(Lc,Nm,size(Args),Tp),Args,Tp).
   
 }
