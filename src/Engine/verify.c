@@ -278,7 +278,6 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
       case OTail:
       case Jmp:
       case Halt:
-      case Abort:
       case Ret: {
         splitSeg(blocks, *pc);
         return Ok;
@@ -424,7 +423,6 @@ retCode checkTgt(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode o
 //        case Jmp:
 //        case Tail:
 //        case OTail:
-//        case Abort:
 //        case Throw:
 //        case Unwind:
 //          break;

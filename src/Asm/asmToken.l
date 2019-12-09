@@ -101,8 +101,6 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "t"           RT(T);
 
 "halt"        RT(HALT);
-"abort"       RT(ABORT);
-"nop"         RT(NOP);
 
 "call"        RT(CALL);
 "escape"      RT(ESCAPE);

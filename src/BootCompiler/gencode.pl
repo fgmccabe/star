@@ -347,7 +347,7 @@ insCont(Ins,D,D,_,[Ins|C],C,Stk,Stk).
 raiseCont(Lc,Msg,Opts,D,Dx,End,C,Cx,Stk,none) :-
   locTerm(Lc,LT),
   mkTpl([LT,strg(Msg)],ATrm),
-  compTerm(ATrm,Lc,insCont(iAbort),Opts,D,Dx,End,C,Cx,Stk,_).
+  compTerm(ATrm,Lc,insCont(iHalt),Opts,D,Dx,End,C,Cx,Stk,_).
 
 indexCont(Ix,D,D,_,[iDup,iNth(Ix)|Cx],Cx).
 

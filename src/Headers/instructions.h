@@ -14,15 +14,13 @@
   Contact: Francis McCabe <fmccabe@gmail.com>
 */
 
-instruction(Halt,nOp,0,"Stop execution")
-instruction(Nop,nOp,0,"No operation")
+instruction(Halt,tOs,0,"Stop execution")
 
 instruction(Call,lit,0,"Call <prog>")
 instruction(OCall,art,0,"OCall")
 instruction(Escape,Es,1,"call C escape")
 instruction(Tail,lit,0,"Tail <prog>")
 instruction(OTail,art,0,"OTail")
-instruction(Abort,tOs,0,"Abort execution")
 
 instruction(Ret,tOs,-1,"return")
 
