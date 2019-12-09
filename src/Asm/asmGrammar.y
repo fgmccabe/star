@@ -52,7 +52,7 @@
 // Assembler mnemonics
 %token PUBLIC PKG IMPORT GLOBAL
 
-%token HALT ABORT NOP
+%token HALT 
 %token CALL OCALL TAIL OTAIL ESCAPE
 %token RET JMP CASE
 %token DROP DUP PULL ROT RST BF BT CLBL CMP
@@ -108,24 +108,14 @@ trailer: END nls { endFunction(currMtd); }
 
  nls: nls NL | NL;
 
- instruction: halt
-     | nop
-     | abort
-     | call
+ instruction: control
      | load
      | store
-     | caseins
      | heap
      | directive
      ;
 
- halt: HALT { AHalt(currMtd); };
-
- nop: NOP { ANop(currMtd); };
-
- abort: ABORT { AAbort(currMtd); };
-
- call: CALL literal { ACall(currMtd,$2); }
+ control: CALL literal { ACall(currMtd,$2); }
    | OCALL DECIMAL { AOCall(currMtd,$2); }
    | ESCAPE libName { AEscape(currMtd,$2); }
    | TAIL literal { ATail(currMtd,$2); }
@@ -136,6 +126,8 @@ trailer: END nls { endFunction(currMtd); }
    | BT label {ABt(currMtd,$2); }
    | CMP label {ACmp(currMtd,$2);}
    | CLBL label { ACLbl(currMtd,$2); }
+   | CASE DECIMAL { ACase(currMtd,$2); }
+   | HALT { AHalt(currMtd); }
    ;
 
  literal: FLOAT { $$=newFloatConstant(currMtd,$1); }
@@ -171,8 +163,6 @@ trailer: END nls { endFunction(currMtd); }
       yyerror(&yylloc,asmFile,pkg,"local var not defined");
     }
   };
-
- caseins: CASE DECIMAL { ACase(currMtd,$2); } ;
 
  heap: ALLOC literal { AAlloc(currMtd,$2); }
    ;

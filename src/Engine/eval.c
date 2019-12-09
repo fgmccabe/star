@@ -65,17 +65,10 @@ retCode run(processPo P) {
 #endif
 
     switch ((OpCode) (*PC++)) {
-      case Halt:
-        return Ok;
-
-      case Nop:
-        continue;
-
-      case Abort: {
-        logMsg(logFile, "Abort %T", pop());
+      case Halt:{
+        logMsg(logFile, "Halt %T", pop());
         bail();
       }
-
       case Call: {
         termPo nProg = nthArg(LITS, collectI32(PC));
 
