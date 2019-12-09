@@ -21,6 +21,7 @@ set(OPCODES_FILES opcodes.c)
 add_executable(opcodes ${OPCODES_FILES})
 target_link_libraries(opcodes ooio)
 
+set(OPERATORS_JSON "${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json")
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)
 set(ESCAPES_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/escapes.star)
 set(OPERATORS_PL ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler/operators.pl)
@@ -31,12 +32,30 @@ set(OPCODES_H ${CMAKE_CURRENT_SOURCE_DIR}/../Engine/Headers/opcdes.h)
 set(OPERATORS_TEXI ${CMAKE_CURRENT_SOURCE_DIR}/../../Docs/Reference/operators.texi)
 set(OPERATORS_EL ${CMAKE_SOURCE_DIR}/star-ops.el)
 
-add_custom_target(generate ALL
-        COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
-        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST}
-        COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_TEXI}
-        COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_EL}
-        COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
+add_custom_command(OUTPUT operators DEPENDS ${OPERATORS_JSON}
+  COMMAND ops -p -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.pl.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_PL}
+  COMMAND ops -i -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.texi.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_TEXI}
+  COMMAND ops -e -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.el.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_EL}
+  )
+
+add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS_JSON}
+  COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST}
+  COMMENT "Creating star operators in  ${OPERATORS_ST}"
+)  
+
+add_custom_target(star.operators DEPENDS ops ${OPERATORS_JSON})
+
+add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
+
+
+add_custom_command(OUTPUT ${ESCAPES_ST} DEPENDS genesc
+  COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
+  COMMENT "Creating star escapes"
+)  
+
+
+
+add_custom_target(generate ALL DEPENDS operators
         COMMAND genesc -p ${ESCAPES_PL}
         COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate -p ${ASM_PL}
         COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate -s ${ASM_ST}
