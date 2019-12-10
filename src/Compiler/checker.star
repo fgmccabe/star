@@ -83,7 +83,7 @@ star.compiler.checker{
 
   mkRecord:(locn,string,tipe,dict,list[list[canonDef]],tipe,reports) => either[reports,canon].
   mkRecord(Lc,Lbl,faceType(Flds,Tps),Env,Defs,Tp,Rp) => do{
-    logMsg("making record from $(faceType(Flds,Tps))");
+--    logMsg("making record from $(faceType(Flds,Tps))");
     Rc <- findDefs(Lc,Flds,[],Env,Rp);
     valis foldRight((Gp,I)=>letExp(Lc,Gp,I),record(Lc,Lbl,Rc,Tp),Defs)
   }

@@ -5,7 +5,7 @@ star.compiler.asm{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public codeSegment ::= method(termLbl,tipe,codeBlock) |
+  public codeSegment ::= codeSeg(termLbl,tipe,codeBlock) |
     struct(termLbl,tipe,tipe).
 
   public codeBlock ::= block(tipe,list[assemOp]) .
@@ -42,7 +42,6 @@ star.compiler.asm{
       iLet(string,tipe,codeBlock) |
       iEnter(codeBlock) |
       iFrame(tipe) |
-      idLine(locn) |
       idBug |
       idBreak |
       iLine(locn).
@@ -59,7 +58,7 @@ star.compiler.asm{
     disp(C) => dispAssem(C,"").
   .}
 
-  dispCode(method(Lbl,Tp,Block),Off) => ssSeq([ss(Off),disp(Lbl),ss(":"),disp(Tp),ss("\n"),dispBlock(Block,Off++"  ")]).
+  dispCode(codeSeg(Lbl,Tp,Block),Off) => ssSeq([ss(Off),disp(Lbl),ss(":"),disp(Tp),ss("\n"),dispBlock(Block,Off++"  ")]).
 
   dispAssem:(assemOp,string) => ss.
   dispAssem(iHalt,Off) => ssSeq([ss(Off),ss("Halt\n")]).

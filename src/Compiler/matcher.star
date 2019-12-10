@@ -118,7 +118,7 @@ star.compiler.matcher{
   applyVar(V,Trpls) => let{
     applyToTriple:(triple)=>triple.
     applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,Exp),Ix)) =>
-      (Args,(CLc,B,crLtt(VLc,vrDef(VLc,Vr,crVar(VLc,V)),Exp)),Ix).
+      (Args,(CLc,B,crLtt(VLc,Vr,crVar(VLc,V),Exp)),Ix).
   } in (Trpls//applyToTriple).
 
   formCases:(list[triple],(triple,triple)=>boolean,locn,list[crVar],crExp)=>
@@ -198,7 +198,7 @@ star.compiler.matcher{
     A==B && Ar==Br.
 
   pullVarLets:(list[crVar],crExp)=>(list[crVar],crExp).
-  pullVarLets(Vrs,crLtt(Lc,vrDef(Vlc,V,crVar(_,A)),Exp)) =>
+  pullVarLets(Vrs,crLtt(Lc,V,crVar(_,A),Exp)) =>
     pullVarLets(Vrs//replaceWith(A,V),Exp).
   pullVarLets(Vrs,Exp) => (Vrs,Exp).
 
