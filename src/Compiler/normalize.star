@@ -133,13 +133,13 @@ star.compiler.normalize{
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) where isFunctions(Defs) => do{
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,Map,Rp);
 --    logMsg("function group map $(GMap)");
-    (_,Ex1,BMap) <- transformGroup(Defs,GMap,[],[],Rp);
+    (_,Ex1,BMap) <- transformGroup(Defs,GMap,Ex,[],Rp);
 
     (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
     if GrpThVr ^= GrpVr then
-      valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,vrDef(Lc,GrpThVr,GrpFree),BndTrm),Ex2),Ex)
+      valis (crLtt(Lc,GrpThVr,GrpFree,BndTrm),Ex2)
     else
-    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),BndTrm,Ex2),Ex)
+    valis (BndTrm,Ex2)
   }
   liftLetExp(Lc,Defs,Bnd,Map,Ex,Rp) => do{
     (GMap,GrpVr,GrpFree) <- groupMap(Lc,Defs,Map,Rp);
@@ -157,9 +157,9 @@ star.compiler.normalize{
     (BndTrm,Ex2) <- liftExp(Bnd,BBMap,Ex1,Rp);
 
     if GrpThVr ^= GrpVr then
-      valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,vrDef(Lc,GrpThVr,GrpFree),BndTrm),Ex2),Ex)
+      valis (crLtt(Lc,GrpThVr,GrpFree,BndTrm),Ex2)
     else
-    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),BndTrm,Ex2),Ex)
+    valis (BndTrm,Ex2)
   }
 
   isFunctions:(list[canonDef])=>boolean.
@@ -167,7 +167,7 @@ star.compiler.normalize{
 
   mkLetBinding:(locn,crVar,crExp,crExp) => crExp.
   mkLetBinding(_,crId(Nm,_),crVar(Lc,W),Exp) => rewriteTerm(Exp,[Nm->crVar(Lc,W)]).
-  mkLetBinding(Lc,V,B,E) default => crLtt(Lc,vrDef(Lc,V,B),E).
+  mkLetBinding(Lc,V,B,E) default => crLtt(Lc,V,B,E).
 
   transformGroup:(list[canonDef],nameMap,list[crDefn],list[(crExp,crExp)],reports) => either[reports,(list[(crExp,crExp)],list[crDefn],nameMap)].
   transformGroup([],Map,D,Vs,_) => either((Vs,D,Map)).
@@ -311,12 +311,15 @@ star.compiler.normalize{
 --    logMsg("extra vars in lambda: $(Extra)");
     ATp = extendFunTp(deRef(Tp),Extra);
     FullNm = layerName(LMap);
-    (Eqs,Ex1) <- transformEquations(Eqns,LMap,Extra,[],Rp);
+    (Eqs,Ex1) <- transformEquations(Eqns,LMap,Extra,Ex,Rp);
 --    logMsg("normalized equations $(Eqs)");
     LamFun = functionMatcher(Lc,FullNm,ATp,Eqs);
 
-    valis (foldRight((D,I)=>crLtt(locOf(D),D,I),crLtt(Lc,LamFun,crTpl(Lc,[crVar(Lc,crId(FullNm,ATp)),..Cl])),Ex1),Ex)
+    valis (crTerm(Lc,crLbl(Lc,FullNm,size(Cl),closureType(Cl//typeOf,ATp)),Cl,ATp),[Ex1..,LamFun])
   }
+
+  closureType:(list[tipe],tipe)=>tipe.
+  closureType(Els,T) => consType(tupleType(Els),T).
 
 /*
     abstraction(locn,canon,canon,tipe) |

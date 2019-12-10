@@ -16,7 +16,7 @@
 %}
 
 %locations
-%pure-parser
+%define api.pure
 %defines
 %define parse.error verbose
 

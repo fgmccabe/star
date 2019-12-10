@@ -60,11 +60,12 @@ star.compiler{
 
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
   handleCmds(either((compilerOptions(RU,CU),Args))) => do{
---    logMsg("CU=$(CU), RU=$(RU)");
+    logMsg("CU=$(CU), RU=$(RU), Arg=$(Args)");
     Repo <- openupRepo(RU,CU);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(CU,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
+	    logMsg("look up $(P) in catalog");
 	    ErRp = reports([]);	
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
@@ -103,9 +104,7 @@ star.compiler{
 	  logMsg("normalizing $(PkgSpec)");
 	  (PrgVal,NormDefs) <- normalize(PkgSpec,PkgFun,Rp)::action[reports,(crExp,list[crDefn])];
 	  Repp := addSpec(PkgSpec,Repp!);
-	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)");
-	  if \+ isEmpty(NormDefs) then
-	    throw reportError(Rp,"extra definitions found in $(P)",Lc)
+	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)")
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)

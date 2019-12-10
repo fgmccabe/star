@@ -13,8 +13,8 @@ star.compiler.terms{
     | flot(float)
     | strg(string)
     | term(termLbl,list[term])
-    | enum(string)
-    | code(tipe,list[integer]).
+    | enum(string).
+
 
   public implementation display[termLbl] => {.
     disp(tLbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
