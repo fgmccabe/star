@@ -86,6 +86,7 @@ declareImportedVar(Lc,Nm,pkg(Pkg,_),Enums,Tp,Env,E0) :-
 
 importTypes([],_,Env,Env).
 importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
+%  reportMsg("import type %s with rule %s",[Nm,Rule]),
   typeTemplate(Nm,Rule,Type),
   declareType(Nm,tpDef(Lc,Type,Rule),Env,E0),
   importTypes(More,Lc,E0,Ex).
@@ -543,6 +544,11 @@ typeOfExp(P,Tp,Env,Ex,where(Lc,Ptn,Cond),Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isFieldAcc(Term,Lc,Rc,Fld),!,
   recordAccessExp(Lc,Rc,Fld,Tp,Env,Ev,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,replace(Lc,LExp,RExp),Path) :-
+  isRepl(Term,Lc,Lft,Rgt),!,
+  typeOfExp(Lft,Tp,Env,Ev,LExp,Path),
+  newTypeVar("_r",R),
+  typeOfExp(Rgt,R,Env,_,RExp,Path).
 typeOfExp(Term,Tp,Env,Ev,cond(Lc,Test,Then,Else,Tp),Path) :-
   isConditional(Term,Lc,Tst,Th,El),!,
   checkGoal(Tst,Env,E0,Test,Path),
@@ -586,7 +592,7 @@ typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
   checkRecordBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath),
   compExport(Defs,[],[],Fields,Tps,_,_,misc:bin_nop),
   checkType(Term,faceType(Fields,Tps),Tp,Env).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,false,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,Lbl,false,Defs,Others,Types,Tp),Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),

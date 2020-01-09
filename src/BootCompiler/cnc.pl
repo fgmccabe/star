@@ -5,7 +5,7 @@
 :- use_module(canon).
 :- use_module(unify).
 :- use_module(abstract).
-:- use_module(terms).
+:- use_module(lterms).
 :- use_module(misc).
 :- use_module(do).
 :- use_module(errors).

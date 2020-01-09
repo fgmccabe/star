@@ -1,7 +1,7 @@
 :- module(gensig,[genPkgSig/2,encPkg/2]).
 
 :- use_module(misc).
-:- use_module(terms).
+:- use_module(lterms).
 :- use_module(types).
 :- use_module(transutils).
 :- use_module(encode).

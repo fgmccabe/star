@@ -219,16 +219,18 @@ showCanonTerm(case(_,Bound,Cases,_),Dp,O,Ox) :-
   appStr(" in {",O1,O2),
   showRls("",Cases,Dp,O2,O3),
   appStr("}",O3,Ox).
-showCanonTerm(theta(_,_Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
-  appStr("{",O,O2),
+showCanonTerm(theta(_,Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
+  appIden(Path,O,O1),
+  appStr("{",O1,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
   showTypeDefs(Types,Dp2,O3,O4),
   showDefs(Defs,Dp2,O4,O5),
   showOthers(Others,Dp2,O5,O6),
   appStr("}",O6,Ox).
-showCanonTerm(record(_,_Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
-  appStr("{.",O,O2),
+showCanonTerm(record(_,Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
+  appIden(Path,O,O1),
+  appStr("{.",O1,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
   showTypeDefs(Types,Dp2,O3,O4),

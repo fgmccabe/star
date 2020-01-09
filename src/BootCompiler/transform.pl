@@ -14,7 +14,7 @@
 :- use_module(escapes).
 :- use_module(location).
 :- use_module(freevars).
-:- use_module(terms).
+:- use_module(lterms).
 :- use_module(cnc).
 
 /*
@@ -178,7 +178,7 @@ transformConsDef(Lc,Nm,consType(faceType(Els,Tps),Tp),Map,Opts,[CFun|D],Dx) :-
   genConsArgs(Lc,SrtEls,Args,Extra,BndArgs,Extra),
   extendFunTp(funType(tupleType([]),Tp),Args,ATp),
   CFun=fnDef(Lc,LclPrg,ATp,Args,ctpl(lbl(ConsNm,Ar),BndArgs)),
-  genConsAccessDef(Lc,ConsNm,faceType(Els,Tps),Map,Opts,D,Dx).
+  genConsAccessDef(Lc,LclName,faceType(Els,Tps),Map,Opts,D,Dx).
 transformConsDef(Lc,Nm,consType(tupleType(Els),Tp),Map,_Opts,[CFun|D],D) :-
   lookupVarName(Map,Nm,Reslt),
   programAccess(Reslt,LclName,ConsNm,Arity),
@@ -643,15 +643,19 @@ liftLetExp(Lc,Theta,Bnd,ltt(Lc,ThVr,FrTrm,Expr),Q,Qx,Map,Opts,Ex,Exx) :-
   liftTheta(Theta,ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
   liftExp(Bnd,Expr,Q,Qx,ThMap,Opts,Ex1,Exx).
 
-genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,ctpl(lbl(Path,Ar),Args),Ex,Exx) :-
+genRecord(Lc,Path,Anon,Defs,Map,Opts,Q,Qx,Exp,Ex,Exx) :-
   pickVarDefs(Defs,Map,Opts,VTerms,Q,Qx,Ex,Ex1),
   sort(VTerms,transform:cmpName,Els),
   project1(Els,Args),
   length(Args,Ar),
+  pickTypes(Defs,ElTps),
+  sort(ElTps,transform:cmpName,STps),
+  Tp =faceType(STps,[]),
   (Anon ->
-    pickTypes(Defs,ElTps),
-    genConsAccessDef(Lc,Path,faceType(ElTps,[]),Map,Opts,Ex1,Exx) ;
-    Ex1=Exx).
+   genConsAccessDef(Lc,Path,Tp,Map,Opts,Ex1,Exx),
+   Exp = ctpl(lbl(Path,Ar),Args);
+   trExpCallOp(Lc,v(Lc,Path,Tp),Args,Exp,Qx,_Qx,Map,Opts,Ex1,Exx)).
+
 cmpName((N1,_),(N2,_)) :- str_lt(N1,N2).
 
 pickVarDefs([],_,_,[],Q,Q,Ex,Ex).

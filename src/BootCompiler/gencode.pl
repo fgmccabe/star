@@ -2,7 +2,7 @@
 
 :- use_module(misc).
 :- use_module(types).
-:- use_module(terms).
+:- use_module(lterms).
 :- use_module(transutils).
 :- use_module(encode).
 :- use_module(uri).
@@ -152,50 +152,50 @@ compTerm(Lit,_,Cont,_,D,Dx,End,[iLdC(Lit)|C0],Cx,Stk,Stkx) :-
   isGround(Lit),!,
   Stk1 is Stk+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
-compTerm(idnt(Nm),_,Cont,_,D,Dx,End,C,Cx,Stk,Stkx) :-
-  isVar(Nm,V,D),!,
+compTerm(idnt(Nm),_,Cont,_,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  isVar(Nm,V,D),
   compVar(V,Cont,D,Dx,End,C,Cx,Stk,Stkx).
-compTerm(ctpl(St,A),Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk2) :-
+compTerm(ctpl(St,A),Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk2) :-!,
   compTerms(A,Lc,bothCont(allocCont(St),Cont),Opts,D,Dx,End,C,Cx,Stk,Stk2).
-compTerm(ecll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
+compTerm(ecll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
   compTerms(A,Lc,bothCont(escCont(Nm,Stk),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(cll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
+  chLine(Opts,OLc,Lc,C,C0),!,
   compTerms(A,Lc,cllCont(Nm,Stk,Cont,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
+  chLine(Opts,OLc,Lc,C,C0),!,
   compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Stk,Cont,Opts),Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(dte(Lc,Exp,Off),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
+  chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,idxCont(Cont,Off),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(case(Lc,T,Cases,Deflt),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
+  chLine(Opts,OLc,Lc,C,C0),!,
   compCase(T,Lc,Cases,Deflt,Cont,Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(varNames(Lc,Vrs,T),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  populateVarNames(Vrs,Lc,D,C0,C1),
+  populateVarNames(Vrs,Lc,D,C0,C1),!,
   compTerm(T,Lc,Cont,Opts,D,Dx,End,C1,Cx,Stk,Stkx).
 compTerm(whr(Lc,T,Cnd),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  genLbl(D,Nxt,D0),
+  genLbl(D,Nxt,D0),!,
   compCond(Cnd,Lc,contCont(Nxt),raiseCont(Lc,"where fail",Opts),Opts,D0,D2,End,C0,[iLbl(Nxt)|C1],Stk,Stk1),
   compTerm(T,Lc,Cont,Opts,D2,Dx,End,C1,Cx,Stk1,Stkx).
 compTerm(ltt(Lc,idnt(Nm),Val,Exp),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   genLbl(D,Lb,D0),
-  chLine(Opts,OLc,Lc,C,C0),
+  chLine(Opts,OLc,Lc,C,C0),!,
   defineLclVar(Nm,Lb,End,D0,D1,Off,C0,[iStV(Off)|C1]),
   compTerm(Val,Lc,stoCont(Off,Lb,compTerm(Exp,Lc,Cont,Opts)),Opts,D1,Dx,End,C1,Cx,Stk,Stkx).
-compTerm(error(Lc,Msg),_OLc,_Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
+compTerm(error(Lc,Msg),_OLc,_Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   raiseCont(Lc,Msg,Opts,D,Dx,End,C,Cx,Stk,Stkx). % no continuation after an error
 compTerm(cnd(Lc,dsj(TLc,TL,TR),L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   compTerm(cnd(Lc,TL,L,cnd(TLc,TR,L,R)),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(cnd(Lc,T,L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  splitCont(Cont,OC),
+  splitCont(Cont,OC),!,
   compCond(T,Lc,compTerm(L,Lc,OC,Opts),compTerm(R,Lc,OC,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
-compTerm(seq(Lc,L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  chLine(Opts,OLc,Lc,C,C0),
+compTerm(seq(Lc,L,R),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(L,Lc,bothCont(dropCont,compTerm(R,Lc,Cont,Opts)),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(Cond,Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   isCond(Cond),!,
@@ -205,7 +205,7 @@ compTerm(Cond,Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(Cont,D1,Dx,End,C1,Cx,Stk1,Stkx).
 compTerm(doAct(Lc,Act),OLc,Cont,Opts,D,Dx,_End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),
-  genLbl(D,End,D0),
+  genLbl(D,End,D0),!,
   compAction(Act,Lc,Cont,Opts,D0,Dx,End,C0,[iLbl(End)|Cx],Stk,Stkx).
   
 compTerm(T,Lc,_,_,Dx,Dx,_,C,C,Stk,Stk) :-
