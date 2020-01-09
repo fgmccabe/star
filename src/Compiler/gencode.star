@@ -3,7 +3,7 @@ star.compiler.gencode{
   import star.pkg.
   import star.sort.
 
-  import star.compiler.asm.
+  import star.compiler.assem.
   import star.compiler.core.
   import star.compiler.errors.
   import star.compiler.escapes.
@@ -14,198 +14,378 @@ star.compiler.gencode{
   import star.compiler.location.
   import star.compiler.terms.
 
-  label ::= label(string) | ulbl(integer).
+  srcLoc ::= lclVar(integer,tipe) |
+    argVar(integer,tipe) |
+    glbVar(string,tipe) |
+    onStack(tipe).
 
-  srcLoc ::= lclVar(integer,tipe) | argVar(integer,tipe) | glbVar(string,tipe) | cdeVar(string,tipe,codeSegment).
+  Cont ::= cont{
+    C:(codeCtx,list[assemOp],cons[tipe],reports)=>either[reports,(codeCtx,list[assemOp],cons[tipe])].
+    L:option[string]
+  }.
 
-  codeCtx ::= codeCtx(map[string,srcLoc],locn,integer).
+  codeCtx ::= codeCtx(map[string,srcLoc],locn,integer,integer).
 
-  emptyCtx(Lc) => codeCtx([],Lc,0).
+  emptyCtx:(locn,list[(string,tipe)])=>codeCtx.
+  emptyCtx(Lc,Glbs) => codeCtx(foldRight(((Pkg,Tp),G)=>G[Pkg->glbVar(Pkg,Tp)],[],Glbs),Lc,0,0).
 
-  public compDefs:(list[crDefn],compilerOptions,list[codeSegment],reports)=>
+  implementation display[codeCtx] => {.
+    disp(codeCtx(Vrs,_,Depth,_)) => ssSeq([ss("dict"),disp(Vrs)]).
+  .}
+
+  implementation sizeable[codeCtx] => {.
+    isEmpty(codeCtx(Vars,_,_,_))=>isEmpty(Vars).
+    size(codeCtx(Vars,_,_,_))=>size(Vars).
+  .}
+
+  implementation display[srcLoc] => {.
+    disp(lclVar(Off,Tpe)) =>ssSeq([ss("lcl "),disp(Off),ss(":"),disp(Tpe)]).
+    disp(argVar(Off,Tpe)) =>ssSeq([ss("arg "),disp(Off),ss(":"),disp(Tpe)]).
+    disp(glbVar(Off,Tpe)) =>ssSeq([ss("glb "),disp(Off),ss(":"),disp(Tpe)]).
+  .}
+
+  public compDefs:(list[crDefn],list[(string,tipe)],compilerOptions,list[codeSegment],reports)=>
     either[reports,list[codeSegment]].
-  compDefs([],_,Cs,_)=>either(Cs).
-  compDefs([D,..Dfs],Opts,Cs,Rp) => do{
-    Code<-compDefn(D,Opts,Rp);
-    compDefs(Dfs,Opts,[Cs..,Code],Rp)
+  compDefs([],_,_,Cs,_)=>either(Cs).
+  compDefs([D,..Dfs],Glbs,Opts,Cs,Rp) => do{
+    Code<-compDefn(D,Glbs,Opts,Rp);
+    compDefs(Dfs,Glbs,Opts,[Cs..,Code],Rp)
   }
 
-  public compDefn:(crDefn,compilerOptions,reports) => either[reports,codeSegment].
-  compDefn(fnDef(Lc,Nm,Tp,Args,Val),Opts,Rp) => do{
-    Ctx = emptyCtx(Lc);
+  compDefn:(crDefn,list[(string,tipe)],compilerOptions,reports) => either[reports,codeSegment].
+  compDefn(fnDef(Lc,Nm,Tp,Args,Val),Glbs,Opts,Rp) => do{
+    logMsg("compile fun $(fnDef(Lc,Nm,Tp,Args,Val))");
+    Ctx = emptyCtx(Lc,Glbs);
     Ctxa = argVars(Args,Ctx,0);
-    (Code,Stk) <- compExp(Val,Opts,Ctxa,[],Rp);
+    (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(),Ctxa,[],[],Rp);
     if [Top].=Stk then
-      valis codeSeg(tLbl(Nm,size(Args)),Tp,block(Top,Code))
+      valis method(tLbl(Nm,size(Args)),Tp,size(Ctxx),Code)
     else
     throw reportError(Rp,"top of stack should have exactly one type, not $(Stk)",Lc)
   }
+  compDefn(vrDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
+    logMsg("compile var $(Nm)\:$(Tp) = $(Val))");
+    Ctx = emptyCtx(Lc,Glbs);
+    (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(),Ctx,[],[],Rp);
+    if [Top].=Stk then
+      valis global(tLbl(Nm,0),Tp,size(Ctxx),Code)
+    else
+    throw reportError(Rp,"top of stack should have exactly one type, not $(Stk)",Lc).
+  }
 
-  compExp:(crExp,compilerOptions,codeCtx,list[tipe],reports) =>
-    either[reports,(list[assemOp],list[tipe])].
-  compExp(crInt(Lc,Ix),_,Ctx,Stk,Rp) => either(([iLdC(intgr(Ix))],[Stk..,intType])).
-  compExp(crFlot(Lc,Dx),_,Ctx,Stk,Rp) => either(([iLdC(flot(Dx))],[Stk..,fltType])).
-  compExp(crStrg(Lc,Sx),_,Ctx,Stk,Rp) => either(([iLdC(strg(Sx))],[Stk..,strType])).
-  compExp(crLbl(Lc,Nm,Ar,Tp),_,Ctx,Stk,Rp) => either(([iLdC(enum(Nm))],[Stk..,Tp])).
-  compExp(crVar(Lc,crId(Vr,Tp)),Opts,Ctx,Stk,Rp) => do{
+  compExp:(crExp,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compExp(crInt(Lc,Ix),_,Cont,Ctx,Cde,Stk,Rp) => Cont.C(Ctx,[Cde..,iLdC(intgr(Ix))],[Stk..,intType],Rp).
+  compExp(crFlot(Lc,Dx),_,Cont,Ctx,Cde,Stk,Rp) => Cont.C(Ctx,[Cde..,iLdC(flot(Dx))],[Stk..,fltType],Rp).
+  compExp(crStrg(Lc,Sx),_,Cont,Ctx,Cde,Stk,Rp) => Cont.C(Ctx,[Cde..,iLdC(strg(Sx))],[Stk..,strType],Rp).
+  compExp(crLbl(Lc,Nm,Tp),_,Cont,Ctx,Cde,Stk,Rp) => Cont.C(Ctx,[Cde..,iLdC(enum(tLbl(Nm,0)))],[Stk..,Tp],Rp).
+  compExp(crVar(Lc,crId(Vr,Tp)),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     if Loc^=locateVar(Vr,Ctx) then {
-      compVar(Lc,Loc,Opts,Ctx,Stk,Rp)
+      compVar(Lc,Vr,Loc,Opts,Cont,Ctx,Cde,Stk,Rp)
     } else
-    throw reportError(Rp,"cannot locate variable $(Vr)\:$(Tp)",Lc)
+    throw reportError(Rp,"cannot locate variable $(Vr)\:$(Tp) in $(Ctx)",Lc)
   }
-  compExp(crTerm(Lc,crLbl(_,Nm,Ar,_),Args,Tp),Opts,Ctx,Stk,Rp) => do{
-    if size(Args)==Ar then{
-      (ArgCode,ArgStk) <- compExps(Args,Opts,Ctx,[],Rp);
-      if size(ArgStk) == Ar then {
-	valis ([ArgCode..,iAlloc(tLbl(Nm,Ar))],[Stk..,Tp])
-      }
-      else
-      throw reportError(Rp,"stack depth should be $(Ar), got $(size(ArgStk))",Lc)
-    }
-    else
-    throw reportError(Rp,"expecting $(Ar) args, got $(Args)",Lc)
-  }
-  compExp(crECall(Lc,Nm,Args,Tp),Opts,Ctx,Stk,Rp) => do{
-    (LcC,Ctx0) = changeLoc(Lc,Opts,Ctx);
-    (ArgCode,ArgStk) <- compExps(Args,Opts,Ctx0,[],Rp);
-    (LcX,_) = changeLoc(locOf(Ctx),Opts,Ctx0);
-    valis (LcC++[ArgCode..,iEscape(Nm)]++LcX,[Stk..,Tp])
-  }
-  compExp(crCall(Lc,crLbl(_,Nm,Ar,_),Args,Tp),Opts,Ctx,Stk,Rp) => do{
-    if size(Args)==Ar then{
-      (LcC,Ctx0) = changeLoc(Lc,Opts,Ctx);
-      (ArgCode,ArgStk) <- compExps(Args,Opts,Ctx0,[],Rp);
-      (LcX,_) = changeLoc(locOf(Ctx),Opts,Ctx0);
-      valis (LcC++ArgCode++[iCall(tLbl(Nm,Ar))]++LcX,[Stk..,Tp])
-    }
-    else
-    throw reportError(Rp,"expecting $(Ar) args, got $(Args)",Lc)
-  }
-  compExp(crCall(Lc,Op,Args,Tp),Opts,Ctx,Stk,Rp) => do{
-    (LcC,Ctx0) = changeLoc(Lc,Opts,Ctx);
-    (ArgCode,ArgStk) <- compExps(Args,Opts,Ctx0,[],Rp);
-    (OpCode,OpStk) <- compExp(Op,Opts,Ctx,ArgStk,Rp);
-    (LcX,_) = changeLoc(locOf(Ctx),Opts,Ctx0);
-    valis (LcC++ArgCode++[OpCode..,iOCall(size(Args))]++LcX,[Stk..,Tp])
-  }
-  compExp(crOCall(Lc,Op,Args,Tp),Opts,Ctx,Stk,Rp) => do{
-    (LcC,Ctx0) = changeLoc(Lc,Opts,Ctx);
-    (ArgCode,ArgStk) <- compExps(Args,Opts,Ctx0,[],Rp);
-    (OpCode,OpStk) <- compExp(Op,Opts,Ctx,ArgStk,Rp);
-    (LcX,_) = changeLoc(locOf(Ctx),Opts,Ctx0);
-    valis (LcC++ArgCode++[OpCode..,iOCall(size(Args))]++LcX,[Stk..,Tp])
-  }
-  compExp(crRecord(Lc,Nm,Fields,Tp),Opts,Ctx,Stk,Rp) => do{
+  compExp(crTerm(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crECall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExps(Args,Opts,bothCont(escCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crCall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExps(Args,Opts,bothCont(callCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crCall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExps(Args,Opts,bothCont(callCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crOCall(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExps(Args,Opts,bothCont(expCont(Op,Opts,oclCont(size(Args),Tp,Stk)),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crRecord(Lc,Nm,Fields,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     Sorted = sort(Fields,((F1,_),(F2,_))=>F1<F2);
-    (ElCode,ElStk) <- compExps(Sorted//((_,V))=>V,Opts,Ctx,[],Rp);
-    valis ([ElCode..,iAlloc(tStrct(Nm,Sorted//((Nm,V))=>(Nm,typeOf(V))))],[Stk..,Tp])
+    Args = Sorted//((_,V))=>V;
+    compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).    
   }
-  compExp(crDte(Lc,Rc,Fld,Tp),Opts,Ctx,Stk,Rp) => do{
-    (RecCode,RecStk) <- compExp(Rc,Opts,Ctx,[],Rp);
-    valis (RecCode++[iGetFld(Fld)],[Stk..,Tp])
+  compExp(crDot(Lc,Rc,Field,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExp(Rc,Opts,bothCont(fldCont(Field,Tp),Cont),Ctx,Cde,Stk,Rp).
+  compExp(crTplOff(Lc,Rc,Ix,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    logMsg("compile $(crTplOff(Lc,Rc,Ix,Tp)), stack is $(Stk)");
+    compExp(Rc,Opts,bothCont(tplOffCont(Ix,Tp),Cont),Ctx,Cde,Stk,Rp)}
+  compExp(crLtt(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    logMsg("compile $(crLtt(Lc,V,Val,Exp)), stack = $(Stk)");
+    (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
+    compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
-  compExp(crTplDte(Lc,Rc,Ix,Tp),Opts,Ctx,Stk,Rp) => do{
-    (RecCode,RecStk) <- compExp(Rc,Opts,Ctx,[],Rp);
-    valis (RecCode++[iNth(Ix)],[Stk..,Tp])
-  }
-  compExp(crLtt(Lc,V,Val,Exp),Opts,Ctx,Stk,Rp) => do{
-    (VlCode,VlStk) <- compExp(Val,Opts,Ctx,[],Rp);
-    (Off,Ctx1) = defineLclVar(V,Ctx);
-    (Code,RStk) <- compExp(Exp,Opts,Ctx1,Stk,Rp);
-    valis (VlCode++[iStL(Off)]++Code,RStk)
-  }
-  compExp(C,Opts,Ctx,Stk,Rp) where isCrCond(C) => do{
-    Code <- compCond(C,block(boolType,[iLdC(enum("star.core$true"))]),
-      block(boolType,[iLdC(enum("star.core$false"))]),Opts,Ctx,Rp);
-    valis (Code,[Stk..,boolType])
+  compExp(C,Opts,Cont,Ctx,Cde,Stk,Rp) where isCrCond(C) =>
+    compCond(C,Opts,litCont(enum(tLbl("star.core$true",0)),boolType),
+      litCont(enum(tLbl("star.core$false",0)),boolType),Ctx,Cde,Stk,Rp).
+  compExp(crCnd(Lc,T,L,R),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    OS = onceCont(Cont);
+    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack = $(Stk)");
+    compCond(T,Opts,expCont(L,Opts,OS),expCont(R,Opts,OS),Ctx,Cde,Stk,Rp)
   }
 
-  compExps:(list[crExp],compilerOptions,codeCtx,list[tipe],reports) =>
-    either[reports,(list[assemOp],list[tipe])].
-  compExps([],_,Ctx,Stk,_)=>either(([],Stk)).
-  compExps([El,..Es],Opts,Ctx,Stk,Rp)=> do{
-    (ElCde,AStk) <- compExp(El,Opts,Ctx,Stk,Rp);
-    (ACde,RStk) <- compExps(Es,Opts,Ctx,AStk,Rp);
-    valis (ElCde++ACde,RStk)
+  compExps:(list[crExp],compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compExps([],Opts,Cont,Ctx,Cde,Stk,Rp)=>Cont.C(Ctx,Cde,Stk,Rp).
+  compExps([El,..Es],Opts,Cont,Ctx,Cde,Stk,Rp)=>
+    compExp(El,Opts,expsCont(Es,Opts,Cont),Ctx,Cde,Stk,Rp).
+  
+  compVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compVar(Lc,Nm,argVar(Off,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    Cont.C(Ctx,[Cde..,iLdA(Off)],[Stk..,Tp],Rp).
+  compVar(Lc,Nm,lclVar(Off,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    Cont.C(Ctx,[Cde..,iLdL(Off)],[Stk..,Tp],Rp).
+  compVar(Lc,_,glbVar(Nm,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    Cont.C(Ctx,[Cde..,iLdG(Nm)],[Stk..,Tp],Rp).
+  compVar(Lc,Nm,Loc,Opts,_,_,_,_,Rp) =>
+    other(reportError(Rp,"cannot compiler variable $(Nm)",Lc)).
+
+  compCond:(crExp,compilerOptions,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compCond(crCnj(Lc,L,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    OC = onceCont(Fail);
+    compCond(L,Opts,condCont(R,Opts,Succ,OC),OC,Ctx,Cde,Stk,Rp)
+  }
+  compCond(crDsj(Lc,L,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    OC = onceCont(Succ);
+    compCond(L,Opts,OC,condCont(R,Opts,OC,Fail),Ctx,Cde,Stk,Rp)
+  }
+  compCond(crNeg(Lc,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    logMsg("compile negated $(R), stack is $(Stk)");
+    compCond(R,Opts,Fail,Succ,Ctx,Cde,Stk,Rp)
+  }.
+  compCond(crCnd(Lc,T,L,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    OS = onceCont(Succ);
+    OF = onceCont(Fail);
+    compCond(T,Opts,condCont(L,Opts,OS,OF),condCont(R,Opts,OS,OF),Ctx,Cde,Stk,Rp)
+  }
+  compCond(crMatch(Lc,Ptn,Exp),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    logMsg("compile match $(crMatch(Lc,Ptn,Exp)), stack = $(Stk)");
+    compExp(Exp,Opts,ptnCont(Ptn,Opts,Succ,onceCont(Fail)),Ctx,Cde,Stk,Rp)
+  }
+  compCond(Exp,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
+    compExp(Exp,Opts,testCont(locOf(Exp),Succ,Fail),Ctx,Cde,Stk,Rp).
+
+  compPtn:(crExp,compilerOptions,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compPtn(crVar(Lc,crId(Vr,Tp)),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) where Loc ^= locateVar(Vr,Ctx) => do{
+    compPtnVar(Lc,Vr,Loc,Opts,Succ,Ctx,Cde,Stk,Rp)
+  }
+  compPtn(L,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) where T^=isLiteral(L) =>
+    ptnTest(locOf(L),Succ,Fail,Ctx,[Cde..,iLdC(T)],[Stk..,typeOf(L)],Rp).
+  compPtn(crTerm(Lc,Nm,Args,Tp),Opts,Succ,Fail,Ctx,Cde,[Stk..,_],Rp) => do{
+    (FLb,Ctx1) = defineLbl(Ctx);
+    (NLb,Ctx2) = defineLbl(Ctx1);
+    JCont = jmpCont(FLb);
+    (_,FlCode,Ctx3) <- Fail.C(Ctx2,[iLbl(FLb)],Stk,Rp);
+    RCont = lblCont(FLb,resetCont(size(Stk),JCont));
+    compPtns(Args,0,Opts,
+      resetCont(size(Stk),Succ),RCont,Ctx,
+      [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(al(NLb))]++FlCode,[Stk..,Tp],Rp)
+  }
+  compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
+    compPtn(Ptn,Opts,condCont(Cond,Opts,Succ,Fail),Fail,Ctx,Cde,Stk,Rp).
+
+
+  compPtns:(list[crExp],integer,compilerOptions,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compPtns([],_,_,Succ,_,Ctx,Cde,Stk,Rp) => Succ.C(Ctx,Cde,Stk,Rp).
+  compPtns([A,..As],Ix,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    (NLb,Ctx1) = defineLbl(Ctx);
+    NCont = jmpCont(NLb);
+    (Ctx2,Cde2,_) <- compPtn(A,Opts,NCont,Fail,Ctx1,[Cde..,iDup,iNth(Ix)],[Stk..,typeOf(A)],Rp);
+    compPtns(As,Ix+1,Opts,Succ,Fail,Ctx2,Cde2,Stk,Rp)
   }
   
-  compVar:(locn,srcLoc,compilerOptions,codeCtx,list[tipe],reports)=>
-    either[reports,(list[assemOp],list[tipe])].
-  compVar(Lc,argVar(Off,Tp),_,Ctx,Stk,_) => either(([iLdA(Off)],[Stk..,Tp])).
-  compVar(Lc,lclVar(Off,Tp),_,Ctx,Stk,_) => either(([iLdL(Off)],[Stk..,Tp])).
-  compVar(Lc,glbVar(Nm,Tp),_,Ctx,Stk,_) => either(([iLdG(Nm)],[Stk..,Tp])).
 
-  compCond:(crExp,codeBlock,codeBlock,compilerOptions,codeCtx,reports) => either[reports,list[assemOp]].
-  compCond(crCnj(Lc,L,R),IfT,IfF,Opts,Ctx,Rp) => do{
-    Rcde <- compCond(R,IfT,IfF,Opts,Ctx,Rp);
-    compCond(L,block(boolType,Rcde),IfF,Opts,Ctx,Rp)
-  }
-  compCond(crDsj(Lc,L,R),IfT,IfF,Opts,Ctx,Rp) => do{
-    Rcde <- compCond(R,IfT,IfF,Opts,Ctx,Rp);
-    Lcde <- compCond(L,IfT,block(boolType,Rcde),Opts,Ctx,Rp);
-    valis Lcde
-  }
-  compCond(crNeg(Lc,R),IfT,IfF,Opts,Ctx,Rp) =>
-    compCond(R,IfF,IfT,Opts,Ctx,Rp).
-  compCond(crCnd(Lc,T,L,R),IfT,IfF,Opts,Ctx,Rp) => do{
-    Rcde <- compCond(R,IfT,IfF,Opts,Ctx,Rp);
-    Lcde <- compCond(L,IfT,IfF,Opts,Ctx,Rp);
-    compCond(T,block(boolType,Lcde),block(boolType,Rcde),Opts,Ctx,Rp)
-  }
-  compCond(crWhere(Lc,Exp,Cond),IfT,IfF,Opts,Ctx,Rp) =>
-    compCond(crCnj(Lc,Exp,Cond),IfT,IfF,Opts,Ctx,Rp).
-  compCond(crMatch(Lc,Exp,Ptn),IfT,IfF,Opts,Ctx,Rp) => do{
-    (Cde,[sTp]) <- compExp(Exp,Opts,Ctx,[],Rp);
-    compPtn(Ptn,IfT,IfF,Opts,Ctx,sTp,Rp)
-  }
-  compCond(Exp,IfT,IfF,Opts,Ctx,Rp) => do{
-    (Cde,Stk) <- compExp(Exp,Opts,Ctx,[],Rp);
-    if \+size(Stk)==1 then
-      throw reportError(Rp,"expecting a single entry on stack",locOf(Exp))
-    else
-    valis [Cde..,iIf(IfT,IfF)]
+  compPtnVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compPtnVar(Lc,Nm,lclVar(Off,Tp),Opts,Cont,Ctx,Cde,[Stk..,_],Rp) =>
+    Cont.C(Ctx,[Cde..,iStL(Off)],Stk,Rp).
+  compPtnVar(Lc,Nm,Loc,_,_,_,_,_,Rp) => other(reportError(Rp,"cannot target var at $(Loc) in pattern",Lc)).
+
+  ptnTest:(locn,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+    either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  ptnTest(_,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) where Fl^=Fail.L =>
+    Succ.C(Ctx,[Cde..,iCmp(al(Fl))],Stk,Rp).
+  ptnTest(Lc,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) => do{
+    (Fl,Ctx1) = defineLbl(Ctx);
+    (Ctx2,Cde1,Stk1) <- Succ.C(Ctx1,[Cde..,iCmp(al(Fl))],Stk,Rp);
+    (Ctx3,Cde2,Stk2) <- Fail.C(Ctx2,[Cde1..,iLbl(Fl)],Stk,Rp);
+    Stkx <- mergeStack(Lc,Stk1,Stk2,Rp);
+    valis (Ctx3,Cde2,Stkx)
   }
 
-  compPtn:(crExp,codeBlock,codeBlock,compilerOptions,codeCtx,tipe,reports) => either[reports,list[assemOp]].
-  compPtn(crVar(Lc,crId(Vr,Tp)),IfT,_,Opts,Ctx,STp,Rp) where Loc ^= locateVar(Vr,Ctx) => do{
-    compPtnVar(Lc,Loc,IfT,Opts,Ctx,[],Rp)
+  isLiteral:(crExp)=>option[term].
+  isLiteral(crInt(_,Ix))=>some(intgr(Ix)).
+  isLiteral(crFlot(_,Dx))=>some(flot(Dx)).
+  isLiteral(crStrg(_,Sx))=>some(strg(Sx)).
+  isLiteral(crLbl(_,Nm,_))=>some(enum(tLbl(Nm,0))).
+  isLiteral(_) default => none.
+
+  -- continuations
+
+  ccont:((codeCtx,list[assemOp],cons[tipe],reports)=>either[reports,(codeCtx,list[assemOp],cons[tipe])])=>Cont.
+  ccont(C)=>cont{
+    C=C.
+    L=none.
   }
-  compPtn(crVar(Lc,crId(Vr,Tp)),IfT,_,Opts,Ctx,STp,Rp) => either([iStL(-1),iEnter(IfT)]).
 
-  compPtnVar:(locn,srcLoc,codeBlock,compilerOptions,codeCtx,list[tipe],reports)=>
-    either[reports,list[assemOp]].
-  compPtnVar(Lc,lclVar(Off,Tp),Nxt,_,Ctx,Stk,_) => either([iStL(Off),iEnter(Nxt)]).
-  compPtnVar(Lc,Loc,_,_,_,_,Rp) => other(reportError(Rp,"cannot target var in pattern",Lc)).
+  retCont:()=>Cont.
+  retCont() => ccont((Ctx,Cde,Stk,Rp) =>  do{
+--      logMsg("retCont, current stack: $(Stk)");
+      valis (Ctx,[Cde..,iRet],Stk)
+    })
 
+  jmpCont:(string)=>Cont.
+  jmpCont(Lb) => cont{
+    C(Ctx,Cde,Stk,Rp)=>either((Ctx,[Cde..,iJmp(al(Lb))],Stk)).
+    L=some(Lb).
+  }.
+
+  lblCont:(string,Cont)=>Cont.
+  lblCont(Lb,CC) => cont{
+    C(Ctx,Cde,Stk,Rp)=>CC.C(Ctx,[Cde..,iLbl(Lb)],Stk,Rp).
+    L=some(Lb).
+  }.
+
+  resetCont:(integer,Cont)=>Cont.
+  resetCont(Dpth,C)=>ccont((Ctx,Cde,Stk,Rp)=>
+      C.C(Ctx,[Cde..,iRst(Dpth)],trimStack(Stk,Dpth),Rp)).
+  
+  allocCont:(termLbl,tipe,cons[tipe])=>Cont.
+  allocCont(Lbl,Tp,OStk) => ccont((Ctx,Cde,Stk,Rp)=>either((Ctx,[Cde..,iAlloc(Lbl)],[OStk..,Tp]))).
+
+  escCont:(string,integer,tipe,cons[tipe])=>Cont.
+  escCont(Nm,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iEscape(Nm),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+
+  callCont:(string,integer,tipe,cons[tipe])=>Cont.
+  callCont(Nm,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iCall(tLbl(Nm,Ar)),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+
+  oclCont:(integer,tipe,cons[tipe])=>Cont.
+  oclCont(Ar,Tp,Stk) => ccont((Ctx,Cde,SStk,Rp) => do{
+      logMsg("oclCont, current stack: $(SStk), new stack: $([Stk..,Tp])");
+      valis (Ctx,[Cde..,iOCall(Ar),iFrame(size(Stk)+1)],[Stk..,Tp])
+    }).
+
+--      either((Ctx,[Cde..,iOCall(Ar),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+
+  expCont:(crExp,compilerOptions,Cont)=>Cont.
+  expCont(Exp,Opts,Cont) => ccont((Ctx,Cde,OStk,Rp) =>
+      compExp(Exp,Opts,Cont,Ctx,Cde,OStk,Rp)).
+
+  expsCont:(list[crExp],compilerOptions,Cont)=>Cont.
+  expsCont(Exps,Opts,Cont) => ccont((Ctx,Cde,Stk,Rp)=>
+      compExps(Exps,Opts,Cont,Ctx,Cde,Stk,Rp)).
+
+  condCont:(crExp,compilerOptions,Cont,Cont)=>Cont.
+  condCont(C,Opts,Succ,Fail)=>
+    ccont((Ctx,Cde,Stk,Rp) => compCond(C,Opts,Succ,Fail,Ctx,Cde,Stk,Rp)).
+  
+  ptnCont:(crExp,compilerOptions,Cont,Cont)=>Cont.
+  ptnCont(Ptn,Opts,Succ,Fail)=>ccont((Ctx,Cde,Stk,Rp)=> do{
+      logMsg("pattern cont $(Ptn), stack = $(Stk)");
+      compPtn(Ptn,Opts,Succ,Fail,Ctx,Cde,Stk,Rp)}).
+
+  fldCont:(string,tipe)=>Cont.
+  fldCont(Fld,Tp)=>ccont((Ctx,Cde,[Stk..,T],Rp) => do{
+--      logMsg("fldCont, current stack: $([Stk..,T]), new stack: $([Stk..,Tp])");
+      valis (Ctx,[Cde..,iGet(tLbl(Fld,0))],[Stk..,Tp])
+    }).
+
+--      either((Ctx,[Cde..,iGet(tLbl(Fld,0))],[Stk..,Tp]))).
+
+  tplOffCont:(integer,tipe)=>Cont.
+  tplOffCont(Ix,Tp)=>ccont((Ctx,Cde,[Stk..,T],Rp) =>  do{
+--      logMsg("offCont, current stack: $([Stk..,T]), new stack: $([Stk..,Tp])");
+      valis (Ctx,[Cde..,iNth(Ix)],[Stk..,Tp])
+    })
+  -- either((Ctx,[Cde..,iNth(Ix)],[Stk..,Tp]))).
+
+  litCont:(term,tipe)=>Cont.
+  litCont(T,Tp) => ccont((Ctx,Cde,Stk,Rp) => do{
+--      logMsg("push literal $(T), stack now $([Stk..,Tp])");
+      valis (Ctx,[Cde..,iLdC(T)],[Stk..,Tp])
+    }).
+--      either((Ctx,[Cde..,iLdC(T)],[Stk..,Tp]))).
+
+  stoCont:(crVar)=>Cont.
+  stoCont(V)=>ccont((Ctx,Cde,[Stk..,_],Rp) => do{
+      (Off,Ctx1) = defineLclVar(V,Ctx);
+      valis (Ctx1,[Cde..,iStL(Off)],Stk)
+    }).
+
+  updateCont:(srcLoc)=>Cont.
+  updateCont(lclVar(Off,_))=>ccont((Ctx,Cde,[Stk..,_],Rp) => either((Ctx,[Cde..,iStL(Off)],Stk))).
+  updateCont(argVar(Off,_))=>ccont((Ctx,Cde,[Stk..,_],Rp) => either((Ctx,[Cde..,iStA(Off)],Stk))).
+  updateCont(glbVar(Nm,_))=>ccont((Ctx,Cde,[Stk..,_],Rp) => either((Ctx,[Cde..,iStG(Nm)],Stk))).
+  updateCont(onStack(_))=>ccont((Ctx,Cde,Stk,Rp) => either((Ctx,Cde,Stk))).
+
+  bothCont:(Cont,Cont)=>Cont.
+  bothCont(F,G) => ccont((Ctx,Cde,Stk,Rp)=> do{
+      (Ct1,Cd1,Stk1) <- F.C(Ctx,Cde,Stk,Rp);
+--      logMsg("between conts, stack is $(Stk1)");
+      G.C(Ct1,Cd1,Stk1,Rp)
+    }).
+  onceCont:(Cont)=>Cont.
+  onceCont(C) where Lbl^=C.L => C.
+  onceCont(C)=> let{
+    d := none.
+    cc:Cont.
+    cc=ccont((Ctx,Cde,Stk,Rp) => do{
+	if (Lbl,Cx,Sk)^=d! then
+	  valis (Cx,[Cde..,iJmp(al(Lbl))],Sk)
+	else{
+	  (Lbl,Cx) = defineLbl(Ctx);
+	  d := some((Lbl,Cx,Stk));
+	  C.C(Ctx,[Cde..,iLbl(Lbl)],Stk,Rp)
+	}
+      })
+  } in cc.
+
+  testCont:(locn,Cont,Cont)=>Cont.
+  testCont(Lc,Succ,Fail)=>ccont((Ctx,Cde,[Stk..,_],Rp)=> do{
+      (Lb,C0) = defineLbl(Ctx);
+      (Ctx1,C1,Stk1) <- Succ.C(Ctx,[Cde..,iBf(al(Lb))],Stk,Rp);
+      (Ctx2,C2,Stk2) <- Fail.C(Ctx1,[C1..,iLbl(Lb)],Stk,Rp);
+      Stkx <- mergeStack(Lc,Stk1,Stk2,Rp);
+      valis (Ctx2,C2,Stkx)
+    }
+  ).
+
+
+  mergeStack:(locn,cons[tipe],cons[tipe],reports)=>either[reports,cons[tipe]].
+  mergeStack(Lc,S1,S2,_) where S1==S2 => either(S1).
+  mergeStack(Lc,S1,S2,Rp) => other(reportError(Rp,"inconsistent stacks: $(S1) vs $(S2)",Lc)).
+  
   locateVar:(string,codeCtx)=>option[srcLoc].
-    locateVar(Nm,codeCtx(Vars,_,_)) => Vars[Nm].
+  locateVar(Nm,codeCtx(Vars,_,_,_)) => Vars[Nm].
 
   defineLclVar:(crVar,codeCtx) => (integer,codeCtx).
-  defineLclVar(crId(Nm,Tp),codeCtx(Vrs,Lc,Count))=>
-    (Count,codeCtx(Vrs[Nm->lclVar(Count,Tp)],Lc,Count+1)).
+  defineLclVar(crId(Nm,Tp),codeCtx(Vrs,Lc,Count,Lbl))=>
+    (Count,codeCtx(Vrs[Nm->lclVar(Count,Tp)],Lc,Count+1,Lbl)).
+
+  defineLbl:(codeCtx)=>(string,codeCtx).
+  defineLbl(codeCtx(Vrs,Lc,Count,Lb))=>("L$(Lb)",codeCtx(Vrs,Lc,Count,Lb+1)).
 
   changeLoc:(locn,compilerOptions,codeCtx)=>(list[assemOp],codeCtx).
-  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp)) where Lc=!=Lc0 => ([iLine(Lc)],codeCtx(Vars,Lc,Dp)).
+  changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=!=Lc0 => ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
   changeLoc(_,_,Ctx)=>([],Ctx).
 
   implementation hasLoc[codeCtx] => {
-    locOf(codeCtx(_,Lc,_))=>Lc.
+    locOf(codeCtx(_,Lc,_,_))=>Lc.
   }
 
   ptnVars:(crExp,codeCtx) => codeCtx.
-  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count)) where _ ^= Vars[Nm] => codeCtx(Vars,CLc,Count).
-  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count)) => codeCtx(Vars[Nm->lclVar(Count,Tp)],CLc,Count+1).
+  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) where _ ^= Vars[Nm] => codeCtx(Vars,CLc,Count,Lb).
+  ptnVars(crVar(_,crId(Nm,Tp)),codeCtx(Vars,CLc,Count,Lb)) => codeCtx(Vars[Nm->lclVar(Count,Tp)],CLc,Count+1,Lb).
   ptnVars(crInt(_,_),Ctx) => Ctx.
   ptnVars(crFlot(_,_),Ctx) => Ctx.
   ptnVars(crStrg(_,_),Ctx) => Ctx.
-  ptnVars(crLbl(_,_,_,_),Ctx) => Ctx.
-  ptnVars(crTerm(_,Op,Els,_),Ctx) => foldRight(ptnVars,ptnVars(Op,Ctx),Els).
+  ptnVars(crLbl(_,_,_),Ctx) => Ctx.
+  ptnVars(crTerm(_,Op,Els,_),Ctx) => foldRight(ptnVars,Ctx,Els).
   ptnVars(crCall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crECall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crOCall(_,_,_,_),Ctx) => Ctx.
   ptnVars(crRecord(_,_,Els,_),Ctx) => foldRight(((_,El),X)=>ptnVars(El,X),Ctx,Els).
-  ptnVars(crDte(_,_,_,_),Ctx) => Ctx.
-  ptnVars(crTplDte(_,_,_,_),Ctx) => Ctx.
+  ptnVars(crDot(_,_,_,_),Ctx) => Ctx.
+  ptnVars(crTplOff(_,_,_,_),Ctx) => Ctx.
   ptnVars(crCnj(_,L,R),Ctx) => ptnVars(L,ptnVars(R,Ctx)).
   ptnVars(crDsj(_,L,R),Ctx) => mergeCtx(ptnVars(L,Ctx),ptnVars(R,Ctx),Ctx).
   ptnVars(crNeg(_,R),Ctx) => Ctx.
@@ -218,15 +398,22 @@ star.compiler.gencode{
 
   argVars:(list[crVar],codeCtx,integer) => codeCtx.
   argVars([],Ctx,_)=>Ctx.
-  argVars([crId(Nm,Tp),..As],codeCtx(Vars,CLc,Count),Arg) =>
-    argVars(As,codeCtx(Vars[Nm->argVar(Arg,Tp)],CLc,Count+1),Arg+1).
+  argVars([crId(Nm,Tp),..As],codeCtx(Vars,CLc,Count,Lb),Arg) =>
+    argVars(As,codeCtx(Vars[Nm->argVar(Arg,Tp)],CLc,Count+1,Lb),Arg+1).
   argVars([_,..As],Ctx,Arg) => argVars(As,Ctx,Arg+1).
 
   mergeCtx:(codeCtx,codeCtx,codeCtx)=>codeCtx.
-  mergeCtx(codeCtx(LV,_,_),codeCtx(RV,_,_),Base) => let{
+  mergeCtx(codeCtx(LV,_,_,Lb1),codeCtx(RV,_,_,Lb2),Base) => let{
     mergeVar:(string,srcLoc,codeCtx) => codeCtx.
     mergeVar(Nm,_,Vrs) where _ ^= locateVar(Nm,Base) => Vrs.
-    margeVar(Nm,_,codeCtx(Vs,Lc,Count)) where lclVar(_,Tp) ^= RV[Nm] => codeCtx(Vs[Nm->lclVar(Count,Tp)],Lc,Count+1).
+    mergeVar(Nm,_,codeCtx(Vs,Lc,Count,_)) where lclVar(_,Tp) ^= RV[Nm] => codeCtx(Vs[Nm->lclVar(Count,Tp)],Lc,Count+1,max(Lb1,Lb2)).
   } in ixRight(mergeVar,Base,LV).
 
+  drop:all x,e ~~ stream[x->>e] |: (x,integer)=>x.
+  drop(S,0)=>S.
+  drop([S..,_],N)=>drop(S,N-1).
+
+  trimStack:all x, e ~~ stream[x->>e],sizeable[x] |: (x,integer)=>x.
+  trimStack(L,N) =>drop(L,size(L)-N).
 }
+

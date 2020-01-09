@@ -13,8 +13,7 @@ star.compiler.terms{
     | flot(float)
     | strg(string)
     | term(termLbl,list[term])
-    | enum(string).
-
+    | enum(termLbl).
 
   public implementation display[termLbl] => {.
     disp(tLbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -22,17 +21,25 @@ star.compiler.terms{
       ssSeq([ss(Nm),ss("{"),ssSeq(interleave(Fields//((FN,FTp))=>ssSeq([ss(FN),ss(":"),disp(FTp)]),ss(","))),ss("}")]).
   .}
 
+  public implementation sizeable[termLbl] => {.
+    size(tLbl(_,Ar))=>Ar.
+    size(tStrct(_,F))=>size(F).
+
+    isEmpty(tLbl(_,Ar))=>Ar==0.
+    isEmpty(tStrct(_,F))=>F==[].
+  .}
+
   public implementation display[term] => let{
     dispT(intgr(Ix)) => disp(Ix).
     dispT(flot(Dx)) => disp(Dx).
     dispT(strg(Sx)) => disp(Sx).
-    dispT(term(tLbl("[]",_),Args)) => ssSeq([ss("["),ssSeq(dispTs(Args)),ss("]")]).
-    dispT(term(tLbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("("),ssSeq(dispTs(Args)),ss(")")]).
+--    dispT(term(tLbl("[]",_),Args)) => ssSeq([ss("["),ssSeq(dispTs(Args)),ss("]")]).
+    dispT(term(tLbl(T,_),Args)) where isTupleLbl(T) => ssSeq([ss("‹"),ssSeq(dispTs(Args)),ss("›")]).
 
-    dispT(term(tLbl(Op,_),Args)) => ssSeq([disp(Op),ss("("),ssSeq(dispTs(Args)),ss(")")]).
+    dispT(term(tLbl(Op,_),Args)) => ssSeq([disp(Op),ss("‹"),ssSeq(dispTs(Args)),ss("›")]).
 
     dispT(term(tStrct(Nm,Flds),Args)) => ssSeq([ss(Nm),ss("{"),ssSeq(dispFs(Flds,Args,"")),ss("}")]).
-    dispT(enum(Sx)) => ssSeq([ss("'"),ss(Sx),ss("'")]).
+    dispT(enum(Sx)) => ssSeq([ss("'"),disp(Sx),ss("'")]).
 
     dispTs(Els) => interleave(Els//dispT,ss(",")).
 
@@ -106,10 +113,13 @@ star.compiler.terms{
   encodeT(intgr(Ix),Cs) => encodeInt(Ix,[Cs..,0cx]).
   encodeT(flot(Dx),Cs) => encodeText(Dx::string,[Cs..,0cd]).
   encodeT(strg(Tx),Cs) => encodeText(Tx,[Cs..,0cs]).
-  encodeT(enum(Tx),Cs) => encodeText(Tx,[Cs..,0ce]).
+  encodeT(enum(Sym),Cs) => encodeL(Sym,[Cs..,0ce]).
   encodeT(term(Op,Args),Cs) =>
     encodeTerms(Args,encodeL(Op,encodeNat(size(Args),[Cs..,0cn]))).
 
+  public encodeLbl:(termLbl)=>string.
+  encodeLbl(Lb)=>encodeL(Lb,[])::string.
+  
   encodeL:(termLbl,list[integer])=>list[integer].
   encodeL(tLbl(Nm,Ar),Cs) => encodeText(Nm,encodeNat(Ar,[Cs..,0co])).
   encodeL(tStrct(Nm,Fs),Cs) => encodeText(Nm,encodeType(faceType(Fs,[]),[Cs..,0cO])).
@@ -127,8 +137,8 @@ star.compiler.terms{
     valis (flot(Txt::float),Lx)
   }
   decodeTerm([0ce,..Ls]) => do{
-    (Nm,Lx) <- decodeText(Ls);
-    valis (enum(Nm),Lx)
+    (Sym,Lx) <- decodeLabel(Ls);
+    valis (enum(Sym),Lx)
   }
   decodeTerm([0cs,..Ls]) => do{
     (Nm,Lx) <- decodeText(Ls);
@@ -254,7 +264,7 @@ star.compiler.terms{
   decodeType([0cF,..Ts]) => do{
     (A,T0) <- decodeType(Ts);
     (R,T1) <- decodeType(T0);
-    valis (funType(A,R),T1)
+    valis (fnType(A,R),T1)
   }
   decodeType([0cC,..Ts]) => do{
     (A,T0) <- decodeType(Ts);
@@ -377,8 +387,9 @@ star.compiler.terms{
   encodeInt(Ix,Ts) where Ix<0 => encodeNat(-Ix,[Ts..,0c-]).
   encodeInt(Ix,Ts) => encodeNat(Ix,Ts).
 
-  public locTerm:(locn)=>term.
-  locTerm(locn(Pkg,Line,Col,Off,Ln))=>mkTpl([pkgTerm(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)]).
+  public implementation coercion[locn,term]=>{
+    _coerce(locn(Pkg,Line,Col,Off,Ln))=>mkTpl([pkgTerm(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)]).
+  }
 
   public pkgTerm:(pkg)=>term.
   pkgTerm(pkg(Pk,_))=>strg(Pk).

@@ -44,7 +44,7 @@ star.compiler.dict{
 
   public declareCon:(string,string,option[locn],tipe,dict) => dict.
   declareCon(Nm,FullNm,Lc,Tp,Env) =>
-    declareVr(Nm,Lc,Tp,(L,T)=>enm(L,FullNm,T),Env).
+    declareVr(Nm,Lc,Tp,(L,T)=>enm(L,Nm,T),Env).
 
   public declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
