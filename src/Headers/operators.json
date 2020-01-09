@@ -138,6 +138,11 @@
     "desc": "reassignable variable definition"
   },
   {
+    "infixOp": "<<-",
+    "priorities": [974, 975, 974],
+    "desc": "record replacement"
+  },
+  {
     "infixOp": "=>",
     "priorities": [949, 950, 950],
     "desc": "function arrow"

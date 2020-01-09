@@ -98,6 +98,9 @@
 @item @code{\\+}
 @tab non-associative prefix
 @tab 905
+@item @code{<<-}
+@tab non-associative infix
+@tab 975
 @item @code{*}
 @tab non-associative postfix
 @tab 700
