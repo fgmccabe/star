@@ -323,6 +323,10 @@ star.compiler.types{
     typeOf(typeConstraint(Tp)) => Tp.
   .}
 
+  public implementation hasType[tipe] => {.
+    typeOf = id
+  .}
+
   public arity:(tipe)=>integer.
   arity(Tp) => let{
     ar(tupleType(A)) => size(A).
@@ -332,7 +336,9 @@ star.compiler.types{
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
 
-  public funType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
+  public funType(A,B) => fnType(tupleType(A),B).
+
+  public fnType(A,B) => tpExp(tpExp(tpFun("=>",2),A),B).
   public consType(A,B) => tpExp(tpExp(tpFun("<=>",2),A),B).
   public enumType(A) => tpExp(tpExp(tpFun("<=>",2),tupleType([])),A).
 
@@ -357,6 +363,9 @@ star.compiler.types{
       tpFun("<=>",2).=deRef(O2) => deRef(R).
   funTypeRes(allType(_,Tp)) => funTypeRes(deRef(Tp)).
   funTypeRes(constrainedType(T,_))=>funTypeRes(T).
+
+  public tplTypes:(tipe)=>list[tipe].
+  tplTypes(tupleType(Els))=>Els.
 
   public isFunType:(tipe) => option[(tipe,tipe)].
   isFunType(Tp) where

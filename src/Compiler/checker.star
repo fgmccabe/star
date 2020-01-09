@@ -23,12 +23,12 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,canon)].
+  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,canonDef)].
   checkPkg(Repo,P,Base,Rp) => do{
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
---      logMsg("imports found $(AllImports)");
+--      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
 --      logMsg("pkg env after imports $(PkgEnv)");
       
       Path = packageName(Pkg);
@@ -55,9 +55,7 @@ star.compiler.checker{
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
       PkgType = faceType(Fields,Types);
       PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,ROthers,Rp);
-      PkgArgs = PkgVars//((Nm,Tp))=>vr(Lc,Nm,Tp);
-      PkgExp = lambda(Lc,[eqn(Lc,tple(Lc,PkgArgs),PkgTheta)],funType(tupleType(PkgArgs//typeOf),PkgType));
-      valis (pkgSpec(Pkg,Imports,PkgType,Contracts,Impls,PkgVars),PkgExp)
+      valis (pkgSpec(Pkg,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),Path,PkgTheta,[],PkgType))
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
@@ -70,8 +68,8 @@ star.compiler.checker{
   exportedFields(Defs,Vis,DVz) =>
     [ (Nm,Tp) |
 	DD in Defs && D in DD &&
-	    ((varDef(_,Nm,_,_,Tp) .=D && isVisible(varSp(Nm),Vis,DVz)) ||
-	      (cnsDef(_,Nm,_,Tp) .=D && isVisible(cnsSp(Nm),Vis,DVz)) ||
+	    ((varDef(_,Nm,_,_,_,Tp) .=D && isVisible(varSp(Nm),Vis,DVz)) ||
+--	      (cnsDef(_,Nm,_,Tp) .=D && isVisible(cnsSp(Nm),Vis,DVz)) ||
 	      (implDef(_,N,Nm,_,Tp) .=D && isVisible(implSp(N),Vis,DVz)))].
 
   isVisible:(defnSp,list[(defnSp,visibility)],visibility) => boolean.
@@ -117,14 +115,14 @@ star.compiler.checker{
   recordEnv:(locn,string,list[ast],tipe,dict,reports,visibility) =>
     either[reports,(list[canonDef],dict,tipe)].
   recordEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
-    logMsg("check record $(Els)");
+--    logMsg("check record $(Els)");
 
     (Vis,Opens,Annots,G) <- recordDefs(Els,Rp);
     Base = pushFace(Face,Lc,Env);
     
     (Defs,Ev) <- checkGroup(G,[],Base,Pth,Rp);
-    logMsg("env after record $(Ev)");
-    logMsg("Defs: $(Defs)");
+--    logMsg("env after record $(Ev)");
+--    logMsg("Defs: $(Defs)");
     
     PubVrTps = exportedFields([Defs],Vis,DefViz);
     PubTps = exportedTypes([Defs],Vis,DefViz);
@@ -193,7 +191,7 @@ star.compiler.checker{
 	Es = declareConstraints(Cx,declareTypeVars(Q,Env));
 	if (_,Lhs,R) ^= isDefn(Stmt) then{
 	  Val <- typeOfExp(R,VarTp,Es,Path,Rp);
-	  valis (varDef(Lc,Nm,Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
+	  valis (varDef(Lc,Nm,Path,Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
 	}
 	else{
 	  throw reportError(Rp,"bad definition $(Stmt)",Lc)
@@ -223,7 +221,7 @@ star.compiler.checker{
     Es = declareConstraints(Cx,declareTypeVars(Q,Env));
     (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,Path,Rp);
 --    logMsg("we have equations for $(Nm)\:$(Rls) default $(Dflt)");
-    valis (varDef(Lc,Nm,lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
+    valis (varDef(Lc,Nm,Path,lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
   }.
 
   processEqns:(list[ast],tipe,list[equation],list[equation],dict,string,reports) =>
@@ -249,7 +247,7 @@ star.compiler.checker{
 	Ats = genArgTps(Arg);
 	RTp = newTypeVar("_R");
 	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
-	(Args,Ev) <- typeOfArgPtn(Arg,Ats,Env,Path,Rp);
+	(Args,Ev) <- typeOfArgPtn(Arg,tupleType(Ats),Env,Path,Rp);
 	Rep <- typeOfExp(R,RTp,Ev,Path,Rp);
 	valis (eqn(Lc,Args,Rep),IsDeflt)
       }.
@@ -522,7 +520,7 @@ star.compiler.checker{
     Path = genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
---    logMsg("building record from theta");
+--      logMsg("building record from theta, $(ThEnv)");
       mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrain(Cx,ThetaTp),Rp)
     }
     else
@@ -540,6 +538,21 @@ star.compiler.checker{
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
+  }
+  typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
+    Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
+    UpTp = newTypeVar("_");
+    Update <- typeOfExp(Upd,UpTp,Env,Pth,Rp);
+    faceType(RecFlds,_) = faceOfType(Tp,Env);
+    faceType(UpFlds,_) = faceOfType(UpTp,Env);
+    for (F,TU) in UpFlds do{
+      if (F,TR) in RecFlds then{
+	if \+sameType(TU,TR,Env) then
+	  throw reportError(Rp,"replacement for field $(F)\:$(TU) not consistent with record field $(TR)",Lc)
+      } else
+      throw reportError(Rp,"replacement for field $(F)\:$(TU) does not exist in record $(Rec)",Lc)
+    };
+    valis update(Lc,Rec,Update)
   }
 
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,I) ^= isUnary(A,"-") =>
@@ -582,7 +595,7 @@ star.compiler.checker{
 --      logMsg("we have apply $(apply(Lc,Fun,tple(Lc,Args),Tp))");
       valis apply(Lc,Fun,tple(Lc,Args),Tp)
     } else
-      throw reportError(Rp,"type of $(Op)\:$(ExTp) not consistent with $(funType(At,Tp))",Lc)
+      throw reportError(Rp,"type of $(Op)\:$(ExTp) not consistent with $(fnType(At,Tp))",Lc)
   }
 
   typeOfArgExp:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
@@ -626,8 +639,8 @@ star.compiler.checker{
     SrTp = newTypeVar("Sr");
     ElTp = newTypeVar("El");
     MdTp = tpExp(MTp,StTp);
-    ActionTp = funType(tupleType([ElTp,StTp]),MdTp);
-    IterTp = funType(tupleType([SrTp,MdTp,ActionTp]),MdTp);
+    ActionTp = funType([ElTp,StTp],MdTp);
+    IterTp = funType([SrTp,MdTp,ActionTp],MdTp);
     Iterator <- typeOfExp(nme(Lc,"_iter"),IterTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,ElTp,Env,Path,Rp);
     Gen <- typeOfExp(R,SrTp,Env,Path,Rp);
@@ -733,12 +746,12 @@ star.compiler.checker{
 
   checkCatch:(ast,dict,tipe,tipe,tipe,string,reports) => either[reports,canon].
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
-    HT = funType(tupleType([ErTp]),tpExp(StTp,ElTp));
+    HT = funType([ErTp],tpExp(StTp,ElTp));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
     valis lambda(Lc,[eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),act(locOf(A),H))],HT)
   }
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
-    HT = funType(tupleType([ErTp]),tpExp(StTp,ElTp));
+    HT = funType([ErTp],tpExp(StTp,ElTp));
     typeOfExp(A,HT,Env,Path,Rp)
   }
 
@@ -773,7 +786,7 @@ star.compiler.checker{
     Rt = newTypeVar("_R");
     (As,E0) <- typeOfArgPtn(A,At,Env,Path,Rp);
     Rep <- typeOfExp(R,Rt,E0,Path,Rp);
-    checkType(A,funType(At,Rt),Tp,Env,Rp);
+    checkType(A,fnType(At,Rt),Tp,Env,Rp);
     valis lambda(Lc,[eqn(Lc,As,Rep)],Tp)
   }
 
@@ -795,11 +808,11 @@ star.compiler.checker{
   genTpVars:(list[ast]) => list[tipe].
   genTpVars(Els) => (Els//(_)=>newTypeVar("_v")).
 
-  genArgTps:(ast) => tipe.
+  genArgTps:(ast) => list[tipe].
   genArgTps(A) where (_,Ar,_) ^= isWhere(A) =>
     genArgTps(Ar).
   genArgTps(A) where (_,Els) ^= isTuple(A) =>
-    tupleType(genTpVars(Els)).
+    genTpVars(Els).
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{

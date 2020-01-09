@@ -9,14 +9,14 @@ star.compiler.core{
     | crInt(locn,integer)
     | crFlot(locn,float)
     | crStrg(locn,string)
-    | crLbl(locn,string,integer,tipe)
-    | crTerm(locn,crExp,list[crExp],tipe)
-    | crCall(locn,crExp,list[crExp],tipe)
+    | crLbl(locn,string,tipe)
+    | crTerm(locn,string,list[crExp],tipe)
+    | crCall(locn,string,list[crExp],tipe)
     | crECall(locn,string,list[crExp],tipe)
     | crOCall(locn,crExp,list[crExp],tipe)
     | crRecord(locn,string,list[(string,crExp)],tipe)
-    | crDte(locn,crExp,string,tipe)
-    | crTplDte(locn,crExp,integer,tipe)
+    | crDot(locn,crExp,string,tipe)
+    | crTplOff(locn,crExp,integer,tipe)
     | crCnj(locn,crExp,crExp)
     | crDsj(locn,crExp,crExp)
     | crNeg(locn,crExp)
@@ -33,9 +33,8 @@ star.compiler.core{
 
   public crDefn ::= fnDef(locn,string,tipe,list[crVar],crExp) | vrDef(locn,crVar,crExp).
 
-  public defVar:(crDefn)=>crVar.
-  defVar(fnDef(_,Nm,Tp,_,_))=>crId(Nm,Tp).
-  defVar(vrDef(_,V,_)) => V.
+  public dispCrProg:(list[crDefn])=>ss.
+  dispCrProg(Defs) => ssSeq(interleave(Defs//disp,ss(".\n"))).
 
   public implementation display[crDefn] => {.
     disp(Df) => dspDef(Df,"  ").
@@ -43,25 +42,27 @@ star.compiler.core{
 
   dspDef:(crDefn,string) => ss.
   dspDef(fnDef(Lc,Nm,Tp,Args,Rep),Off) =>
-    ssSeq([ss("fun: "),ss(Nm),ss("("),
+    ssSeq([ss("fun: "), -- ss(Nm),ss(":"),disp(Tp),ss("\n"),ss(Off),
+	ss(Nm),ss("("),
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
-  dspDef(vrDef(Lc,Vr,Vl),Off) =>
-      ssSeq([ss("var: "), disp(Vr),ss("="),dspExp(Vl,Off)]).
+  dspDef(vrDef(Lc,V,Rep),Off) =>
+    ssSeq([ss("glb: "),disp(V),ss(":"),disp(typeOf(V)),ss("="),
+	dspExp(Rep,Off)]).
 
   dspExp:(crExp,string) => ss.
   dspExp(crVar(_,V),_) => disp(V).
   dspExp(crInt(_,Ix),_) => disp(Ix).
   dspExp(crFlot(_,Dx),_) => disp(Dx).
   dspExp(crStrg(_,Sx),_) => disp(Sx).
-  dspExp(crLbl(_,Lb,Ar,_),_) => ssSeq([ss(Lb),ss("/"),disp(Ar)]).
+  dspExp(crLbl(_,Lb,_),_) => ssSeq([ss("'"),ss(Lb),ss("'")]).
   dspExp(crECall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crOCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss(".("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crTerm(_,Op,As,_),Off) where isTplOp(Op) => ssSeq([ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crTerm(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crDte(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
-  dspExp(crTplDte(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
+  dspExp(crOCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("·("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
+  dspExp(crTerm(_,Op,As,_),Off) => ssSeq([ss(Op),ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
+  dspExp(crDot(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
+  dspExp(crTplOff(_,O,Ix,_),Off) => ssSeq([dspExp(O,Off),ss("."),disp(Ix)]).
   dspExp(crRecord(_,Path,Fs,_),Off) => ssSeq([ss(Path),ss("{"),ssSeq(dsplyFlds(Fs,Off++"  ")),ss("}")]).
   dspExp(crLtt(_,V,D,I),Off) where Off2.=Off++"  " =>
     ssSeq([ss("let "),disp(V),ss(" = "),dspExp(D,Off2),ss(" in\n"),ss(Off2),dspExp(I,Off2)]).
@@ -87,14 +88,14 @@ star.compiler.core{
     Gap = ss(",\n"++Off).
   } in interleave(Fs//((Nm,Vl))=>ssSeq([ss(Nm),ss(" = "),dspExp(Vl,Off)]),Gap).
 
-  isTplOp(crLbl(_,Nm,_,_)) => isTplLbl(Nm).
+  isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
   isTplOp(_) default => false.
 
   public mkCrTpl:(list[crExp],locn) => crExp.
   mkCrTpl(Args,Lc) => let{
     TpTp = tupleType(Args//typeOf).
     Ar = size(Args)
-  } in crTerm(Lc,crLbl(Lc,tplLbl(Ar),Ar,TpTp), Args, TpTp).
+  } in crTerm(Lc,tplLbl(Ar), Args, TpTp).
 
   public implementation equality[crVar] => {.
     crId(N1,T1) == crId(N2,T2) => N1==N2 && T1==T2.
@@ -109,14 +110,22 @@ star.compiler.core{
     locOf(crInt(Lc,_)) => Lc.
     locOf(crFlot(Lc,_)) => Lc.
     locOf(crStrg(Lc,_)) => Lc.
-    locOf(crLbl(Lc,_,_,_)) => Lc.
-    locOf(crDte(Lc,_,_,_)) => Lc.
-    locOf(crTplDte(Lc,_,_,_)) => Lc.
+    locOf(crLbl(Lc,_,_)) => Lc.
+    locOf(crDot(Lc,_,_,_)) => Lc.
+    locOf(crTplOff(Lc,_,_,_)) => Lc.
     locOf(crTerm(Lc,_,_,_)) => Lc.
     locOf(crWhere(Lc,_,_)) => Lc.
     locOf(crMatch(Lc,_,_)) => Lc.
     locOf(crLtt(Lc,_,_,_)) => Lc.
     locOf(crCase(Lc,_,_,_,_)) => Lc.
+    locOf(crCall(Lc,_,_,_))=>Lc.
+    locOf(crECall(Lc,_,_,_))=>Lc.
+    locOf(crOCall(Lc,_,_,_))=>Lc.
+    locOf(crRecord(Lc,_,_,_)) => Lc.
+    locOf(crCnj(Lc,_,_)) => Lc.
+    locOf(crDsj(Lc,_,_)) => Lc.
+    locOf(crNeg(Lc,_)) => Lc.
+    locOf(crCnd(Lc,_,_,_)) => Lc.
   }
 
   public implementation hasType[crExp] => let{
@@ -124,13 +133,13 @@ star.compiler.core{
     tpOf(crInt(_,_)) => intType.
     tpOf(crFlot(_,_)) => fltType.
     tpOf(crStrg(_,_)) => strType.
-    tpOf(crLbl(_,_,_,Tp)) => Tp.
+    tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
     tpOf(crOCall(_,_,_,Tp)) => Tp.
     tpOf(crCall(_,_,_,Tp)) => Tp.
-    tpOf(crDte(_,_,_,Tp)) => Tp.
-    tpOf(crTplDte(_,_,_,Tp)) => Tp.
+    tpOf(crDot(_,_,_,Tp)) => Tp.
+    tpOf(crTplOff(_,_,_,Tp)) => Tp.
     tpOf(crLtt(_,_,_,E)) => tpOf(E).
     tpOf(crCase(_,_,_,_,Tp)) => Tp.
     tpOf(crWhere(_,T,_)) => tpOf(T).
@@ -157,13 +166,13 @@ star.compiler.core{
   rewriteTerm(crInt(Lc,Ix),_) => crInt(Lc,Ix).
   rewriteTerm(crFlot(Lc,Dx),_) => crFlot(Lc,Dx).
   rewriteTerm(crStrg(Lc,Sx),_) => crStrg(Lc,Sx).
-  rewriteTerm(crLbl(Lc,Sx,Ar,Tp),_) => crLbl(Lc,Sx,Ar,Tp).
-  rewriteTerm(crDte(Lc,R,Ix,Tp),M) => crDte(Lc,R,Ix,Tp).
-  rewriteTerm(crTplDte(Lc,R,Ix,Tp),M) => crTplDte(Lc,R,Ix,Tp).
+  rewriteTerm(crLbl(Lc,Sx,Tp),_) => crLbl(Lc,Sx,Tp).
+  rewriteTerm(crDot(Lc,R,Ix,Tp),M) => crDot(Lc,R,Ix,Tp).
+  rewriteTerm(crTplOff(Lc,R,Ix,Tp),M) => crTplOff(Lc,R,Ix,Tp).
   rewriteTerm(crTerm(Lc,Op,Args,Tp),M) =>
-    crTerm(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
+    crTerm(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crCall(Lc,Op,Args,Tp),M) =>
-    crCall(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
+    crCall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crECall(Lc,Op,Args,Tp),M) =>
     crECall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
@@ -178,6 +187,8 @@ star.compiler.core{
 
   rewriteDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rewriteTerm(Val,M)).
+  rewriteDef(vrDef(Lc,V,Val),M) =>
+    vrDef(Lc,V,rewriteTerm(Val,M)).
 
   dropVar:(map[string,crExp],crVar)=>map[string,crExp].
   dropVar(M,crId(Nm,_)) => M[\+Nm].

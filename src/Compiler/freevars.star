@@ -43,8 +43,9 @@ star.compiler.freevars{
       (_,Fv1) .= freeVarsInCond(neg(Lc,R),Excl,Fv) => Fv1.
   freeVarsInTerm(lambda(_,Eqns,_),Excl,Fv) =>
     foldRight((Rl,F)=>freeVarsInEqn(Rl,Excl,F),Fv,Eqns).
-  freeVarsInTerm(letExp(_,D,E),Excl,Fv) =>
-    freeVarsInTerm(E,exclDfs(D,Excl,Fv),Fv).
+  freeVarsInTerm(letExp(_,D,E),Excl,Fv) => let{
+    XX = exclDfs(D,Excl,Fv)
+  } in freeVarsInTerm(E,XX,freeVarsInDefs(D,XX,Fv)).
   freeVarsInTerm(record(Lc,Pth,Fields,Tp),Excl,Fv) =>
     foldRight(((_,V),F)=>freeVarsInTerm(V,Excl,F),Fv,Fields).
 
@@ -76,9 +77,12 @@ star.compiler.freevars{
     Excl1 = exclDfs(Defs,Excl,Fv)
   } in foldRight((D,F)=>freeVarsInDef(D,Excl1,F),Fv,Defs).
 
-  freeVarsInDef(varDef(_,_,E,_,_),Excl,Fv) =>
+  freeVarsInDef(varDef(_,_,_,E,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
   freeVarsInDef(_,_,Fv) default => Fv.
+
+  freeVarsInDefs:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
+  freeVarsInDefs(Defs,Excl,Fv)=>foldRight((D,F)=>freeVarsInDef(D,Excl,F),Fv,Defs).
 
   freeVarsInAction(noDo(_),_,Fv) => Fv.
   freeVarsInAction(seqnDo(_,L,R),Excl,Fv) =>
@@ -115,8 +119,9 @@ star.compiler.freevars{
   exclDfs:(list[canonDef],set[crVar],set[crVar])=>set[crVar].
   exclDfs(Defs,Excl,Fv) => foldRight((D,Ex)=>exclDf(D,Ex,Fv),Excl,Defs).
 
-  exclDf(varDef(Lc,Nm,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
-  exclDf(cnsDef(_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
+  exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
+--  exclDf(varDef(Lc,Nm,_,lambda(_,_,_),_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
+--  exclDf(cnsDef(_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(implDef(_,_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(_,Excl,_) => Excl.
 

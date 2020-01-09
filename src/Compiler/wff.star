@@ -570,6 +570,9 @@ star.compiler.wff{
   public isRecord:(ast) => option[(locn,list[ast])].
   isRecord(A) => isQBrTuple(A).
 
+  public isRecordUpdate:(ast) => option[(locn,ast,ast)].
+  isRecordUpdate(A) => isBinary(A,"<<-").
+
   public macroSquarePtn:(locn,list[ast]) => ast.
   macroSquarePtn(Lc,Els) =>
     macroListEntries(Lc,Els,(Lx)=>mkWhere(Lx,"_eof"),

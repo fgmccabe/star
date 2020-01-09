@@ -33,7 +33,8 @@ star.compiler.canon{
     tple(locn,list[canon]) |
     lambda(locn,list[equation],tipe) |
     letExp(locn,list[canonDef],canon) |
-    record(locn,string,list[(string,canon)],tipe).
+    record(locn,string,list[(string,canon)],tipe) |
+    update(locn,canon,canon).
 
   public equation ::= eqn(locn,canon,canon).
 
@@ -51,26 +52,35 @@ star.compiler.canon{
     returnDo(locn,canon,tipe,tipe) |
     simpleDo(locn,canon,tipe,tipe).
     
-  public canonDef ::= varDef(locn,string,canon,list[constraint],tipe) |
+  public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
     implDef(locn,string,string,canon,tipe).
 
-  public implementation hasType[canon] => {.
+  public implementation hasType[canon] => {
     typeOf(vr(_,_,T)) => T.
+    typeOf(mtd(_,_,T)) => T.
+    typeOf(over(_,_,Tp,_)) => Tp.
     typeOf(intr(_,_)) => intType.
     typeOf(flot(_,_)) => fltType.
     typeOf(strng(_,_)) => strType.
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
-
-    typeOf(match(_,_,_)) => nomnal("star.core*boolean").
-    typeOf(conj(_,_,_)) => nomnal("star.core*boolean").
-    typeOf(disj(_,_,_)) => nomnal("star.core*boolean").
-    typeOf(serch(_,_,_,_)) => nomnal("star.core*boolean").
+    typeOf(lambda(_,_,Tp)) => Tp.
+    typeOf(letExp(_,_,E)) => typeOf(E).
+    typeOf(apply(_,_,_,Tp)) => Tp.
+    typeof(tple(_,Els)) => tupleType(Els//typeOf).
+    typeOf(record(_,_,_,Tp)) => Tp.
+    typeOf(dot(_,_,_,Tp)) => Tp.
+    typeOf(abstraction(_,_,_,Tp)) => Tp.
+    typeOf(whr(_,E,_)) => typeOf(E).
+    typeOf(match(_,_,_)) => boolType.
+    typeOf(conj(_,_,_)) => boolType.
+    typeOf(disj(_,_,_)) => boolType.
+    typeOf(serch(_,_,_,_)) => boolType.
     typeOf(cond(_,_,L,_)) => typeOf(L).
-  .}
+  }
 
   public implementation hasLoc[canon] => {.
     locOf(vr(Lc,_,_)) => Lc.
@@ -183,14 +193,14 @@ star.compiler.canon{
 
   showGroups:(list[list[canonDef]],string) => list[ss].
   showGroups([],_) => [].
-  showGroups([G,..Gs],Sp) => [ss("{"),showGroup(G,Sp),ss("}\n"),..showGroups(Gs,Sp)].
+  showGroups([G,..Gs],Sp) => [ss("{"),showGroup(G,Sp),ss(Sp),ss("}\n"),..showGroups(Gs,Sp)].
 
   showGroup:(list[canonDef],string) => ss.
-  showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"))).
+  showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"++Sp))).
 
   showDef:(canonDef,string)=>ss.
-  showDef(varDef(_,Nm,lambda(_,Rls,_),_,Tp),Sp) => showRls(Nm,Rls,Sp).
-  showDef(varDef(_,Nm,V,_,Tp),Sp) => ssSeq([ss(Nm),ss(" = "),showCanon(V,Sp)]).
+  showDef(varDef(_,Nm,Path,lambda(_,Rls,_),_,Tp),Sp) => showRls(Path++" # "++Nm,Rls,Sp).
+  showDef(varDef(_,Nm,Path,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(Path),ss(" # "),ss(Nm),ss(" = "),showCanon(V,Sp)]).
   showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
   showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).

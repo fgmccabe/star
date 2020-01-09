@@ -8,6 +8,7 @@ star.compiler{
   import star.repo.
   import star.repo.file.
 
+  import star.compiler.assem.
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.catalog.
@@ -35,8 +36,7 @@ star.compiler{
     alternatives = [].
     usage = "-R dir -- directory of repository".
     validator = some(isDir).
-    setOption(R,compilerOptions(_,W)) where RU ^= parseUri(R) && NR^=resolveUri(W,RU) =>
-      compilerOptions(NR,W).
+    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) => compilerOptions{repo=NR. cwd=Opts.cwd}.
   }
 
   wdOption:optionsProcessor[compilerOptions].
@@ -45,13 +45,12 @@ star.compiler{
     alternatives = [].
     usage = "-W dir -- working directory".
     validator = some(isDir).
-    setOption(W,compilerOptions(R,OW)) where RW ^= parseUri(W) && NW^=resolveUri(OW,RW)=>
-      compilerOptions(R,NW).
+    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=> compilerOptions{repo=Opts.repo. cwd=NW}.
   }
 
   public _main:(list[string])=>().
   _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
-    valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions(RI,WI))).
+    valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI. cwd=WI})).
 
   openupRepo:(uri,uri) => action[(), fileRepo].
   openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
@@ -59,21 +58,22 @@ star.compiler{
   }
 
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
-  handleCmds(either((compilerOptions(RU,CU),Args))) => do{
-    logMsg("CU=$(CU), RU=$(RU), Arg=$(Args)");
-    Repo <- openupRepo(RU,CU);
-    if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(CU,CatUri) &&
+  handleCmds(either((Opts,Args))) => do{
+--    logMsg("Opts = $(Opts), Arg=$(Args)");
+    Repo <- openupRepo(Opts.repo,Opts.cwd);
+    if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
-	    logMsg("look up $(P) in catalog");
+--	    logMsg("look up $(P) in catalog");
 	    ErRp = reports([]);	
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
 	      ::action[reports,list[(importSpec,list[importSpec])]];
 	      Pkgs = Sorted//((Pk,_))=>Pk;
-	      processPkgs(Pkgs,Repo,Cat,ErRp)
+	      processPkgs(Pkgs,Repo,Cat,Opts,ErRp)
 	    } catch (Er) => action{
-	      logMsg("$(Er)")
+	      logMsg("$(Er)");
+	      valis _abort(1,"compilation failed")
 	    }
 	  }
 	}
@@ -91,8 +91,10 @@ star.compiler{
   addSpec:(pkgSpec,fileRepo) => fileRepo.
   addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
 
-  processPkgs:(list[importSpec],fileRepo,catalog,reports) => action[reports,()].
-  processPkgs(Pks,Repo,Cat,Rp) => do{
+  importVars(pkgSpec(_,_,_,_,_,Vars))=>Vars.
+
+  processPkgs:(list[importSpec],fileRepo,catalog,compilerOptions,reports) => action[reports,()].
+  processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
     Repp := Repo;
     try{
       for pkgImp(Lc,_,P) in Pks do{
@@ -100,11 +102,16 @@ star.compiler{
 	if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
 	  Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
-	  (PkgSpec,PkgFun) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canon)];
-	  logMsg("normalizing $(PkgSpec)");
-	  (PrgVal,NormDefs) <- normalize(PkgSpec,PkgFun,Rp)::action[reports,(crExp,list[crDefn])];
+	  (PkgSpec,PkgFun) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
+	  logMsg("normalizing $(PkgFun), pkgSpec = $(PkgSpec)");
+	  NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,list[crDefn]];
 	  Repp := addSpec(PkgSpec,Repp!);
-	  logMsg("Normalized program: $(NormDefs) with $(PrgVal)")
+	  logMsg("Normalized package $(P)");
+	  logMsg(dispCrProg(NormDefs)::string);
+	  Ins <- compDefs(NormDefs,importVars(PkgSpec),Opts,[],Rp) :: action[reports,list[codeSegment]];
+	  logMsg("Generated instructions $(Ins)");
+	  Code = mkTpl(Ins//assem);
+	  logMsg("generated code $(encodeTerm(Code)::string)")
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)

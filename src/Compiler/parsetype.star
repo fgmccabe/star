@@ -54,7 +54,7 @@ star.compiler.typeparse{
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"=>") => do{
     A <- parseArgType(Q,Lhs,Env,Rp);
     R <- parseType(Q,Rhs,Env,Rp);
-    valis funType(A,R)
+    valis fnType(A,R)
   }
   parseType(Q,T,Env,Rp) where (Lc,Lhs,Rhs) ^= isBinary(T,"<=>") => do{
     A <- parseArgType(Q,Lhs,Env,Rp);

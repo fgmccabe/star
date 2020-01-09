@@ -18,7 +18,7 @@ star.core{
   public notEq:all x ~~ equality[x] |: (x,x)=>boolean.
   notEq(u,v) => u=!=v.
 
-  notOne:(integer)=>boolean.
+  public notOne:(integer)=>boolean.
   notOne(X) => X=!=1.
 
   public all t ~~ option[t] ::= none | some(t).

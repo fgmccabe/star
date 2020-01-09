@@ -8,10 +8,11 @@ star.compiler.misc{
   public genNewName:(string,string) => string.
   genNewName(Path,Prefix) => qualifiedName(Path,markerString(valMark),genSym(Prefix)).
 
-  public markerType ::= typeMark | valMark | conMark | overMark | pkgMark.
+  public markerType ::= typeMark | valMark | conMark | overMark | pkgMark | closMark.
 
   public markerString:(markerType)=>string.
   markerString(typeMark)=>"*".
+  markerString(closMark) => "^".
   markerString(valMark)=>"@".
   markerString(conMark)=>"#".
   markerString(overMark)=>"!".

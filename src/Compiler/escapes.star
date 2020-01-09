@@ -106,31 +106,31 @@ star.comp.escapes{
   escapeType("_file_size") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*integer"))).
   escapeType("_file_modified") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*integer"))).
   escapeType("_file_date") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")]))).
-  escapeType("_openInFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.io*fileHandle"))).
-  escapeType("_openOutFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.io*fileHandle"))).
-  escapeType("_openAppendFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.io*fileHandle"))).
-  escapeType("_openAppendIOFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.io*fileHandle"))).
-  escapeType("_popen") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")),tpExp(tpFun("star.core*list",1),tupleType([nomnal("star.core*string"),nomnal("star.core*string")]))])),tupleType([nomnal("star.io*fileHandle"),nomnal("star.io*fileHandle"),nomnal("star.io*fileHandle")]))).
-  escapeType("_close") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*sysResult"))).
-  escapeType("_end_of_file") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*boolean"))).
-  escapeType("_ready_to_read") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*boolean"))).
-  escapeType("_ready_to_write") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*boolean"))).
-  escapeType("_inchars") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
-  escapeType("_inbytes") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*list",1),nomnal("star.core*integer")))).
-  escapeType("_inchar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*integer"))).
-  escapeType("_inbyte") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*integer"))).
-  escapeType("_inline") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*string"))).
-  escapeType("_intext") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*string"))).
-  escapeType("_outchar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_outbyte") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_outbytes") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),tpExp(tpFun("star.core*list",1),nomnal("star.core*integer"))])),nomnal("star.core*sysResult"))).
-  escapeType("_outtext") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
-  escapeType("_stdfile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.io*fileHandle"))).
-  escapeType("_fposition") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*integer"))).
-  escapeType("_fseek") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
-  escapeType("_flush") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),nomnal("star.core*sysResult"))).
+  escapeType("_openInFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
+  escapeType("_openOutFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
+  escapeType("_openAppendFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
+  escapeType("_openAppendIOFile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
+  escapeType("_popen") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")),tpExp(tpFun("star.core*list",1),tupleType([nomnal("star.core*string"),nomnal("star.core*string")]))])),tupleType([nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle")]))).
+  escapeType("_close") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*sysResult"))).
+  escapeType("_end_of_file") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*boolean"))).
+  escapeType("_ready_to_read") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*boolean"))).
+  escapeType("_ready_to_write") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*boolean"))).
+  escapeType("_inchars") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*string"))).
+  escapeType("_inbytes") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),tpExp(tpFun("star.core*list",1),nomnal("star.core*integer")))).
+  escapeType("_inchar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*integer"))).
+  escapeType("_inbyte") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*integer"))).
+  escapeType("_inline") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*string"))).
+  escapeType("_intext") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*string"))).
+  escapeType("_outchar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_outbyte") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_outbytes") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),tpExp(tpFun("star.core*list",1),nomnal("star.core*integer"))])),nomnal("star.core*sysResult"))).
+  escapeType("_outtext") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
+  escapeType("_stdfile") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
+  escapeType("_fposition") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*integer"))).
+  escapeType("_fseek") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_flush") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),nomnal("star.core*sysResult"))).
   escapeType("_flushall") => some(tpExp(tpExp(tpFun("=>",2),tupleType([])),tupleType([]))).
-  escapeType("_setfileencoding") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
+  escapeType("_setfileencoding") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle"),nomnal("star.core*integer")])),nomnal("star.core*sysResult"))).
   escapeType("_get_file") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_put_file") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string")])),tupleType([]))).
   escapeType("_show") => some(tpExp(tpExp(tpFun("=>",2),tupleType([tupleType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer")]),nomnal("star.core*string")])),tupleType([]))).
@@ -139,9 +139,9 @@ star.comp.escapes{
   escapeType("_in_manifest") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*boolean"))).
   escapeType("_locate_in_manifest") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*string"),nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_logmsg") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*sysResult"))).
-  escapeType("_connect") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer")])),tupleType([nomnal("star.io*fileHandle"),nomnal("star.io*fileHandle")]))).
-  escapeType("_listen") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.io*fileHandle"))).
-  escapeType("_accept") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.io*fileHandle")])),tupleType([nomnal("star.io*fileHandle"),nomnal("star.io*fileHandle"),nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*string")]))).
+  escapeType("_connect") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*integer")])),tupleType([nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle")]))).
+  escapeType("_listen") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.file*fileHandle"))).
+  escapeType("_accept") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.file*fileHandle")])),tupleType([nomnal("star.file*fileHandle"),nomnal("star.file*fileHandle"),nomnal("star.core*string"),nomnal("star.core*integer"),nomnal("star.core*string")]))).
   escapeType("_hosttoip") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")))).
   escapeType("_iptohost") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string")])),nomnal("star.core*string"))).
   escapeType("_delay") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*sysResult"))).

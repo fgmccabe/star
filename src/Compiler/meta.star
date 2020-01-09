@@ -88,5 +88,12 @@ star.compiler.meta{
     disp(S) => dispSpc(S)
   .}
 
-  public compilerOptions ::= compilerOptions(uri,uri).
+  public compilerOptions ::=
+    compilerOptions{
+      repo:uri.
+      cwd:uri.
+      showCanon:boolean.
+      showCore:boolean.
+      showCode:boolean.
+    }.
 }
