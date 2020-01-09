@@ -10,7 +10,7 @@
 :- use_module(dict).
 :- use_module(types).
 :- use_module(freshen).
-:- use_module(terms).
+:- use_module(lterms).
 
 trCons(Nm,Arity,lbl(Name,Arity)) :-
   integer(Arity),!,

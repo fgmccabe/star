@@ -75,7 +75,7 @@ encType(Tp,Sig) :-
 
 encodeTp(T,C,Cx) :-
   deRef(T,Tp),
-  encodeType(Tp,C,Cx).
+  encodeType(Tp,C,Cx),!.
 
 encodeType(anonType,['_'|O],O).
 encodeType(voidType,['v'|O],O).

@@ -5,7 +5,7 @@
 :- use_module(types).
 :- use_module(misc).
 :- use_module(location).
-:- use_module(terms).
+:- use_module(lterms).
 :- use_module(transutils).
 
 functionMatcher(Lc,Ar,Nm,Tp,Eqns,fnDef(Lc,Nm,Tp,NVrs,Reslt)) :-

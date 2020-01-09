@@ -18,7 +18,7 @@
 :- use_module(import).
 :- use_module(repository).
 :- use_module(grapher).
-:- use_module(terms).
+:- use_module(lterms).
 
 parseFlags([],CWD,CWD,[],[]).
 parseFlags(['-g'|More],CWD,Cx,[debugging|Opts],Files) :-!,
