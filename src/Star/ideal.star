@@ -137,14 +137,16 @@ star.ideal{
   }
 
   public implementation all k,v ~~ display[k],display[v] |: display[map[k,v]] => let{
-    dispTree(ihEmpty) => ssSeq([]).
-    dispTree(ihLeaf(_,Els)) => ssSeq(dispEls(Els)).
-    dispTree(ihNode(A1,A2,A3,A4)) => ssSeq([dispTree(A1),dispTree(A2),dispTree(A3),dispTree(A4)]).
+    dispTree:(map[k,v],list[ss])=>list[ss].
+    dispTree(ihEmpty,SS) => SS.
+    dispTree(ihLeaf(_,Els),SS) => dispEls(Els,SS).
+    dispTree(ihNode(A1,A2,A3,A4),SS) => dispTree(A1,dispTree(A2,dispTree(A3,dispTree(A4,SS)))).
 
-    dispEls(nil)=>[].
-    dispEls(cons(K->V,T)) => [disp(K),ss("->"),disp(V),ss(","),..dispEls(T)].
+    dispEls:(cons[keyval[k,v]],list[ss])=>list[ss].
+    dispEls(nil,SS)=>SS.
+    dispEls(cons(K->V,T),SS) => dispEls(T,[SS..,ssSeq([disp(K),ss("->"),disp(V)])]).
   } in {
-     disp(Tr) => ssSeq([ss("["),dispTree(Tr),ss("]")]).
+    disp(Tr) => ssSeq([ss("["),ssSeq(interleave(dispTree(Tr,[]),ss(", "))),ss("]")]).
   }
 
   public implementation all k,v ~~ dump[k],dump[v] |: dump[map[k,v]] => let{
