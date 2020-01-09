@@ -43,20 +43,18 @@ add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS_JSON}
   COMMENT "Creating star operators in  ${OPERATORS_ST}"
 )  
 
-add_custom_target(star.operators DEPENDS ops ${OPERATORS_JSON})
+add_custom_target(star.operators DEPENDS ops ${OPERATORS_JSON}
+        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST})
 
 add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
-
 
 add_custom_command(OUTPUT ${ESCAPES_ST} DEPENDS genesc
   COMMAND genesc -s star.comp.escapes ${ESCAPES_ST}
   COMMENT "Creating star escapes"
 )  
 
-
-
-add_custom_target(generate ALL DEPENDS operators
-        COMMAND genesc -p ${ESCAPES_PL}
-        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate -p ${ASM_PL}
-        COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate -s ${ASM_ST}
-        )
+add_custom_target(generate ALL DEPENDS operators star.operators star.escapes
+  COMMAND genesc -p ${ESCAPES_PL}
+  COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.pl.plate -p ${ASM_PL}
+  COMMAND plmnem -t ${CMAKE_CURRENT_SOURCE_DIR}/assem.star.plate -s ${ASM_ST}
+  )

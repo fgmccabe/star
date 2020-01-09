@@ -13,6 +13,7 @@
 #include <memory.h>
 #include <labelsP.h>
 #include <globalsP.h>
+#include "heap.h"
 
 #ifdef TRACEMEM
 long gcCount = 0;                       /* Number of times GC is invoked */

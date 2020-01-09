@@ -77,8 +77,7 @@ void init_args(char **argv, int argc, int start) {
   argcnt = argc - start;
 }
 
-ReturnStatus g__command_line(processPo p, ptrPo tos) {
-  heapPo H = processHeap(p);
+termPo __command_line(heapPo H) {
   listPo line = allocateList(H, argcnt);
   int root = gcAddRoot(H, (ptrPo) &line);
 
@@ -88,7 +87,13 @@ ReturnStatus g__command_line(processPo p, ptrPo tos) {
   }
 
   gcReleaseRoot(H, root);
-  return (ReturnStatus) {.ret=Ok, .result=(termPo) line};
+  return (termPo) line;
+}
+
+ReturnStatus g__command_line(processPo p, ptrPo tos) {
+  heapPo H = processHeap(p);
+  termPo line = __command_line(H);
+  return (ReturnStatus) {.ret=Ok, .result=line};
 }
 
 extern char **environ;

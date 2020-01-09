@@ -10,7 +10,7 @@
 #define processState "t'star.thread*threadState'"
 #define threadType "t'star.thread*thread'"
 #define lockType "t'star.thread*lock'"
-#define fileType "t'star.io*fileHandle'"
+#define fileType "t'star.file*fileHandle'"
 #define udpType "t'star.io*udpHandle'"
 #define ssType "t'star.core*ss'"
 

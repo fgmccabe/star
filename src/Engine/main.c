@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
 
   initLogfile("-");
 
-  if ((narg = getOptions(argc, argv)) < 0) {
+  if ((narg = getStarOptions(argc, argv)) < 0) {
     exit(1);
   }
   initHistory(".star");
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
   initThr();
   initTime();        /* Initialize time stuff */
 
-  defltCWD();
+  char *rootWd = defltCWD();
   defltRepoDir();
 
   setupDebugChannels();
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 
   setupSignals();
 
-  switch(bootstrap(entry, bootInit)){
+  switch (bootstrap(bootEntry, bootInit, rootWd)){
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

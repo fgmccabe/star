@@ -264,6 +264,7 @@ retCode checkSplit(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode
     case Es:
     case lit:          /* constant literal */
     case lne:           // Location literal
+    case sym:           // Symbol
     case glb:           // Global variable name
       collect32(code, pc);
       return Ok;
@@ -406,6 +407,7 @@ retCode checkTgt(vectorPo blocks, insPo code, integer oPc, integer *pc, OpCode o
     }
     case Es:
     case lit:          /* constant literal */
+    case sym:           // Symbol
     case lne:           // Location literal
     case glb:           // Global variable name
       collect32(code, pc);
@@ -550,6 +552,7 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
       return Ok;
     }
     case lne:
+    case sym:
     case lit: {                          /* constant literal */
       int32 litNo = collect32(base, pc);
       if (litNo < 0 || litNo >= codeLitCount(seg->seg.mtd)) {

@@ -125,11 +125,11 @@ void initFileClass(classPo class, classPo request) {
 
   FileClassRec *req = (FileClassRec *) request;
   FileClassRec *template = (FileClassRec *) class;
-  
-  if (req->filePart.configure == O_INHERIT_DEF) 
+
+  if (req->filePart.configure == O_INHERIT_DEF)
     req->filePart.configure = template->filePart.configure;
 
-  if (req->filePart.seek == O_INHERIT_DEF) 
+  if (req->filePart.seek == O_INHERIT_DEF)
     req->filePart.seek = template->filePart.seek;
 
   if (req->filePart.filler == O_INHERIT_DEF) {
@@ -898,30 +898,30 @@ char *resolveFileName(char *cwd, const char *fn, integer fnLen,
                       char *buff, integer buffLen) {
   char wd[MAXFILELEN];
   integer fnPos = 0;
-  char *fileNm = (char*)fn;
-      
+  char *fileNm = (char *) fn;
+
   if (fn[0] == '/') {
     uniNCpy(buff, buffLen, fn, fnLen);
     return buff;
-  } else if(fn[0]=='~'){
-    integer fstSlash = uniIndexOf(fn,fnLen,1,'/');
-    if(fstSlash>0){
+  } else if (fn[0] == '~') {
+    integer fstSlash = uniIndexOf(fn, fnLen, 1, '/');
+    if (fstSlash > 0) {
       char User[MAXFILELEN];
-      if(fstSlash>1)
-        uniNCpy(User,NumberOf(User),fn+1,fstSlash-1);
+      if (fstSlash > 1)
+        uniNCpy(User, NumberOf(User), fn + 1, fstSlash - 1);
       else
-        uniCpy(User,NumberOf(User),getenv("USER"));
-      fileNm = (char*)&fn[fstSlash+1];
-      fnLen -= fstSlash+1;
-      
-      if(homeDir(User,wd,NumberOf(wd))!=Ok)
+        uniCpy(User, NumberOf(User), getenv("USER"));
+      fileNm = (char *) &fn[fstSlash + 1];
+      fnLen -= fstSlash + 1;
+
+      if (homeDir(User, wd, NumberOf(wd)) != Ok)
         return Null;
     }
-  }else{
+  } else {
     uniTrim(cwd, uniStrLen(cwd), "", "/", wd, NumberOf(wd));
-    fileNm = (char*)fn;
+    fileNm = (char *) fn;
   }
-  
+
   char fname[MAXFILELEN];
   uniTrim(fileNm, fnLen, "", "/", fname, NumberOf(fname));
   fnLen = uniStrLen(fname);
@@ -934,8 +934,8 @@ char *resolveFileName(char *cwd, const char *fn, integer fnLen,
       integer last = uniLastIndexOf(wd, wdLen, '/');
       if (last >= 0) {
         wdLen = last;
-          wd[last] = '\0';
-          pos += 3;
+        wd[last] = '\0';
+        pos += 3;
       } else
         break;
     } else if (pos < fnLen - 1 && fname[pos + 1] == '/') {
@@ -947,4 +947,43 @@ char *resolveFileName(char *cwd, const char *fn, integer fnLen,
   }
   strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
   return buff;
+}
+
+retCode resolvePath(char *root, integer rootLen, const char *fn, integer fnLen, char *buff, integer buffLen) {
+  char wd[MAXFILELEN];
+  char *fileNm = (char *) fn;
+
+  if (fn[0] == '/') {
+    return uniNCpy(buff, buffLen, fn, fnLen);
+  } else if (fn[0] == '~')
+    return Error;
+  else {
+    uniTrim(root, rootLen, "", "/", wd, NumberOf(wd));
+  }
+
+  char fname[MAXFILELEN];
+  uniTrim(fileNm, fnLen, "", "/", fname, NumberOf(fname));
+  fnLen = uniStrLen(fname);
+
+  integer wdLen = uniStrLen(wd);
+  integer pos = 0;
+
+  while (pos < fnLen && fname[pos] == '.') {
+    if (pos < fnLen - 2 && fname[pos + 1] == '.' && fname[pos + 2] == '/') {
+      integer last = uniLastIndexOf(wd, wdLen, '/');
+      if (last >= 0) {
+        wdLen = last;
+        wd[last] = '\0';
+        pos += 3;
+      } else
+        return Error;
+    } else if (pos < fnLen - 1 && fname[pos + 1] == '/') {
+      pos += 2;
+    } else if (pos == fnLen - 1)
+      pos++;
+    else
+      break;
+  }
+  strMsg(buff, buffLen, "%s/%s", wd, &fname[pos]);
+  return Ok;
 }
