@@ -1,0 +1,4 @@
+star.files{
+  import star.
+
+}
