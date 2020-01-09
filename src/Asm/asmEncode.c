@@ -79,7 +79,7 @@ static retCode encodeConstant(ioPo out, constPo con) {
   return con->con.encode(out, con);
 }
 
-static retCode encodeLine(ioPo out,linePo lne);
+static retCode encodeLine(ioPo out, linePo lne);
 
 static retCode encodeTplCount(ioPo out, integer cnt) {
   char buff[MAXFILELEN];
@@ -113,8 +113,8 @@ retCode encodeMethod(ioPo out, mtdPo mtd) {
   ProcessTable(encodeLocal, mtd->locals, &data);
 
   tryRet(encodeTplCount(out, lineCount(mtd))); /* Number of line records */
-  for(consPo lne=mtd->lines;lne!=nilList;lne=tail(lne)){
-    tryRet(encodeLine(out,O_LINE(head(lne))));
+  for (consPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
+    tryRet(encodeLine(out, O_LINE(head(lne))));
   }
 
   return Ok;
@@ -140,11 +140,11 @@ retCode encodeLocal(void *n, void *r, void *cl) {
   return encodeInt(out, vr->to->pc->pc / sizeof(uint16));
 }
 
-retCode encodeLine(ioPo out,linePo lne) {
-  tryRet(encodeTplCount(out,2));
+retCode encodeLine(ioPo out, linePo lne) {
+  tryRet(encodeTplCount(out, 2));
 
-  tryRet(encodeInt(out,lne->line.locRef));
-  return encodeInt(out,lne->line.lbl->pc->pc);
+  tryRet(encodeInt(out, lne->line.locRef));
+  return encodeInt(out, lne->line.lbl->pc->pc);
 }
 
 static retCode enc_nOp(ioPo out, assemInsPo ins) {
@@ -159,7 +159,6 @@ static retCode enc_art(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
-
 
 static retCode enc_i32(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
@@ -191,11 +190,15 @@ static retCode enc_lit(ioPo out, assemInsPo ins) {
   return encodeInt(out, ins->i);
 }
 
-static retCode enc_lne(ioPo out, assemInsPo ins) {
+static retCode enc_sym(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
   return encodeInt(out, ins->i);
 }
 
+static retCode enc_lne(ioPo out, assemInsPo ins) {
+  tryRet(encodeInt(out, ins->op));
+  return encodeInt(out, ins->i);
+}
 
 static retCode enc_Es(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));

@@ -363,6 +363,7 @@ void endFunction(mtdPo mtd) {
 #define szoff pc+=sizeof(int32);
 #define szEs pc+=sizeof(int32);
 #define szlit pc+=sizeof(int32);
+#define szsym pc+=sizeof(int32);
 #define szlne pc+=sizeof(int32);
 #define szglb pc+=sizeof(int32);
 
@@ -386,6 +387,7 @@ void endFunction(mtdPo mtd) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szsym
 #undef szlne
 #undef szglb
       default:;
@@ -492,6 +494,9 @@ static void fixup_off(assemInsPo ins) {
 }
 
 static void fixup_lit(assemInsPo ins) {
+}
+
+static void fixup_sym(assemInsPo ins) {
 }
 
 static void fixup_lne(assemInsPo ins) {
@@ -781,6 +786,12 @@ static assemInsPo asm_lit(mtdPo mtd, OpCode op, int32 ix) {
   return ins;
 }
 
+static assemInsPo asm_sym(mtdPo mtd, OpCode op, int32 ix) {
+  assemInsPo ins = newIns(mtd, op);
+  ins->i = ix;
+  return ins;
+}
+
 static assemInsPo asm_lne(mtdPo mtd, OpCode op, int32 ix) {
   assemInsPo ins = newIns(mtd, op);
   ins->i = ix;
@@ -840,6 +851,9 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #define oplne(X) ,int32 l##X
 #define arglne(X) ,l##X
 
+#define opsym(X) ,int32 l##X
+#define argsym(X) ,l##X
+
 #define opEs(X) ,char * f##X
 #define argEs(X) , f##X
 
@@ -872,6 +886,10 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef arglcs
 #undef oplne
 #undef arglne
+#undef opsym
+#undef argsym
+#undef oplit
+#undef arglit
 #undef opoff
 #undef argoff
 #undef opEs
@@ -898,6 +916,7 @@ int32 codeSize(mtdPo mtd) {
 #define szoff pc+=(sizeof(int32)/sizeof(uint16));
 #define szEs pc+=(sizeof(int32)/sizeof(uint16));
 #define szlit pc+=(sizeof(int32)/sizeof(uint16));
+#define szsym pc+=(sizeof(int32)/sizeof(uint16));
 #define szlne pc+=(sizeof(int32)/sizeof(uint16));
 #define szglb pc+=(sizeof(int32)/sizeof(uint16));
 
@@ -919,6 +938,7 @@ int32 codeSize(mtdPo mtd) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szsym
 #undef szlne
 #undef szglb
 #undef sznOp
@@ -976,6 +996,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #define szoff if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szEs if(ret==Ok)ret = encodeStr(O_IO(bfr),ins->txt,uniStrLen(ins->txt));
 #define szlit if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
+#define szsym if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szlne if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 #define szglb if(ret==Ok)ret = encodeInt(O_IO(bfr),ins->i);
 
@@ -997,6 +1018,7 @@ static retCode assembleIns(mtdPo mtd, bufferPo bfr) {
 #undef szoff
 #undef szEs
 #undef szlit
+#undef szsym
 #undef szglb
 #undef sznOp
 #undef sztOs

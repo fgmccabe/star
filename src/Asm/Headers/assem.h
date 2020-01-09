@@ -64,6 +64,7 @@ extern int32 lineCount(mtdPo mtd);
 #define oplcs(X) ,int32 i##X
 #define oparg(X) ,int32 i##X
 #define oplit(X) ,int32 i##X
+#define opsym(X) ,int32 i##X
 #define oplne(X) ,int32 i##X
 #define opoff(X) ,lPo l##X
 #define opEs(X) ,char * f##X
@@ -83,6 +84,7 @@ extern retCode A##Op(mtdPo mtd op##A1(1));
 #undef oplcs
 #undef oparg
 #undef oplit
+#undef opsym
 #undef oplne
 #undef opoff
 #undef opEs
