@@ -16,13 +16,13 @@
 
 instruction(Halt,tOs,0,"Stop execution")
 
-instruction(Call,lit,0,"Call <prog>")
+instruction(Call,sym,0,"Call <prog>")
 instruction(OCall,art,0,"OCall")
 instruction(Escape,Es,1,"call C escape")
-instruction(Tail,lit,0,"Tail <prog>")
+instruction(Tail,sym,0,"Tail <prog>")
 instruction(OTail,art,0,"OTail")
 
-instruction(Ret,tOs,-1,"return")
+instruction(Ret,tOs,0,"return")
 
 instruction(Jmp,off,0,"jump lbl")
 
@@ -44,12 +44,12 @@ instruction(StG,glb,-1,"store into a global variable")
 instruction(CLbl,off,-1,"T,Lbl --> test for a data term, branch if lbl")
 instruction(Nth,i32,0,"T --> el, pick up the nth element")
 instruction(StNth,i32,-2,"T el --> store in nth element")
-instruction(Get,lit,0,"T --> el access a field from structure")
-instruction(Set,lit,-1,"T el --> store in field of structure")
+instruction(Get,sym,0,"T --> el access a field from structure")
+instruction(Set,sym,-1,"T el --> store in field of structure")
 
 instruction(Case,i32,0,"T --> T, case <Max> ")
 
-instruction(Alloc,lit,1,"new closure, code from constant pool")
+instruction(Alloc,sym,1,"new closure, code from constant pool")
 
 instruction(Cmp,off,-1,"t1 t2 --> , branch to offset if not same literal")
 

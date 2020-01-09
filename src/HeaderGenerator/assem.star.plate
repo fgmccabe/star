@@ -1,6 +1,5 @@
--- Automatically Generated Assembler -- Do NOT Edit
-
 star.compiler.assem{
+  -- Automatically Generated Assembler -- Do NOT Edit
   import star.
   import star.sort.
 
@@ -8,8 +7,9 @@ star.compiler.assem{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public codeSegment ::= method(term,string,integer,list[assemOp]) |
-    struct(term,tipe,tipe).
+  public codeSegment ::= method(termLbl,tipe,integer,list[assemOp]) |
+    global(termLbl,tipe,integer,list[assemOp]) |
+    struct(termLbl,tipe,tipe).
 
   public assemOp ::=
 #(OpCodes)
@@ -17,13 +17,23 @@ star.compiler.assem{
     iLocal(string,string,string,integer) |
     iLine(term).
 
+  public assemLbl ::= al(string).
+
   public assem:(codeSegment) => term.
-  assem(method(Nm,Sig,Stx,Ins)) where
-    (Lt0,_) .= findLit([],Nm) &&
+  assem(method(Nm,Sig,Max,Ins)) where
+    (Lt0,_) .= findLit([],enum(Nm)) &&
     (Code,Lts,Lns,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,[]) =>
-    mkTpl([Nm,strg(Sig),intgr(Stx),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),mkTpl(sortLines(Lns))]).
+    term(tLbl("method",7),
+      [strg(encodeLbl(Nm)),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
+            mkTpl(sortLines(Lns))]).
+  assem(global(Nm,Sig,Max,Ins)) where
+    (Lt0,_) .= findLit([],enum(Nm)) &&
+    (Code,Lts,Lns,Lcs) .= mnem(Ins,genLblTbl(Ins,0,[]),Lt0,[],[],0,[]) =>
+    term(tLbl("global",7),
+       [strg(encodeLbl(Nm)),strg(encodeSignature(Sig)),intgr(Max),mkTpl(Code),litTbl(Lts),mkTpl(Lcs),
+            mkTpl(sortLines(Lns))]).
   assem(struct(Lbl,Tp,Flds)) =>
-    mkTpl([Lbl,strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
+    term(tLbl("struct",3),[enum(Lbl),strg(encodeSignature(Tp)),strg(encodeSignature(Flds))]).
 
   mnem:(list[assemOp],map[string,integer],map[term,integer],map[term,integer],set[term],integer,list[term]) =>
     (list[term],map[term,integer],map[term,integer],list[term]).
@@ -60,7 +70,12 @@ star.compiler.assem{
 
 
   public implementation display[codeSegment] => {.
-    disp(method(Nm,Sig,_Lx,Ins)) => ssSeq([disp(Nm),ss(":"),ss(Sig),ss("\n"),..showMnem(Ins,0,[])]).
+    disp(method(Nm,Sig,Mx,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
+    disp(global(Nm,Sig,Max,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
+  .}
+
+  implementation display[assemLbl] => {.
+    disp(al(Nm)) => ss(Nm).
   .}
 
   showMnem:(list[assemOp],integer,list[ss]) => list[ss].

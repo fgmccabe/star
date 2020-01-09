@@ -43,7 +43,7 @@ int getOptions(int argc, char **argv) {
 }
 
 static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, int delta, char *cmt);
 static void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
 static void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
 static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
         break;
       case genStar:
 #undef instruction
-#define instruction(M, A1, Dl, cmt) genStarIns(O_IO(mnemBuff),#M,M,A1,cmt);
+#define instruction(M, A1, Dl, cmt) genStarIns(O_IO(mnemBuff),#M,M,A1,Dl,cmt);
 
 #include "instructions.h"
     }
@@ -178,6 +178,7 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
     case tOs:
       return sep;
     case lit:
+    case sym:
     case lne:
     case glb:
     case Es:
@@ -186,9 +187,17 @@ static char *genArg(ioPo out, char *sep, opAndSpec A) {
     case arg:
     case lcl:
     case lcs:
-    case off:
       outMsg(out, "%sV", sep);
       return ",";
+    case off:
+      switch (genMode) {
+        case genProlog:
+          outMsg(out, "%sV", sep);
+          return ",";
+        case genStar:
+          outMsg(out, "%sal(V)", sep);
+          return ",";
+      }
     default:
       printf("Problem in generating opcode type\n");
       exit(11);
@@ -205,42 +214,7 @@ static void genPrologCode(ioPo out, int op, opAndSpec A) {
       break;
     case lne:
     case lit:
-      outMsg(out, "%d,LtNo|M]) :- Pc1 is Pc+3,\n", op);
-      outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
-      outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
-      return;
-    case i32:
-    case art:
-    case arg:
-    case lcl:
-    case lcs:
-      outMsg(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
-      break;
-    case glb:
-    case Es:                              // escape code (0..65535)
-      outMsg(out, "%d,V|M]) :- Pc1 is Pc+3,\n", op);
-      break;
-    case off:                            // program counter relative offset
-      outMsg(out, "%d,Off|M]) :- Pc1 is Pc+3,\n", op);
-      outMsg(out, "      findLbl(V,Lbls,Tgt),\n");
-      outMsg(out, "      pcGap(Pc1,Tgt,Off),\n");
-      break;
-    default:
-      outMsg(out, "Unknown instruction type code\n");
-      exit(1);
-  }
-  outMsg(out, "%s", tail);
-}
-
-
-static void genStarCode(ioPo out, int op, opAndSpec A) {
-  switch (A) {
-    case nOp:                             // No operand
-    case tOs:
-      outMsg(out, "mnem([%d,..M]) :- Pc1 is Pc+1,\n", op);
-      break;
-    case lne:
-    case lit:
+    case sym:
       outMsg(out, "%d,LtNo|M]) :- Pc1 is Pc+3,\n", op);
       outMsg(out, "      findLit(Lt,V,LtNo,Lt1),\n");
       outMsg(out, "      mnem(Ins,Lbls,Lt1,Ltx,Lc,Lcx,Lns,Lnx,Pc1,M).\n");
@@ -294,7 +268,7 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) 
   genPrologCode(out, op, A1);
 }
 
-static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, char *cmt) {
+static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, char *cmt) {
   char *sep = "(";
 
   outMsg(out, "  mnem([i%s", mnem);
@@ -315,8 +289,15 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, char *cmt) {
       break;
     case lne:
     case lit:
-      outMsg(out, "where (Lt1,LtNo) .= findLit(Lts,V) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(LtNo)]).\n", op);
+      outMsg(out,
+             "where (Lt1,LtNo) .= findLit(Lts,V) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(LtNo)]).\n",
+             op);
       return;
+    case sym:                            // symbol
+      outMsg(out,
+             "where (Lt1,LtNo) .= findLit(Lts,enum(V)) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(LtNo)]).\n",
+             op);
+      break;
     case i32:
     case art:
     case arg:
@@ -345,6 +326,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case tOs:
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -370,6 +352,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       outMsg(out, "Pc1 is Pc+1, ");
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -394,6 +377,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case tOs:
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -419,6 +403,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       outMsg(out, "genLblTbl(Ins,Pc+1,Lbls).\n");
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -443,6 +428,9 @@ void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case lne:
       outMsg(out, "(term)");
       break;
+    case sym:
+      outMsg(out, "(termLbl)");
+      break;
     case i32:
     case art:
     case arg:
@@ -452,6 +440,9 @@ void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
 
     case off:
+      outMsg(out, "(assemLbl)");
+      break;
+
     case Es:
     case glb:
       outMsg(out, "(string)");
@@ -472,6 +463,7 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt)
     case tOs:
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -504,6 +496,7 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt)
       break;
     case lne:
     case lit:
+    case sym:
       outMsg(out, "  showTerm(XX,0,O1,O2),\n");
       outMsg(out, "  appNl(O2,O3),\n");
       Oy = "O3";
@@ -537,6 +530,7 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt)
       outMsg(out, "  Pc1 is Pc+1,\n");
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -561,6 +555,7 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case tOs:
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -585,6 +580,7 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       outMsg(out, "Pc+1,");
       break;
     case lit:
+    case sym:
     case lne:
     case i32:
     case art:
@@ -607,6 +603,7 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
       break;
     case lne:
     case lit:
+    case sym:
     case i32:
     case art:
     case arg:
@@ -614,10 +611,10 @@ static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
     case lcs:
     case glb:
     case off:
-      outMsg(out, ",disp(XX),ss(\"\\n\")]).\n");
+      outMsg(out, ",ss(\" \"),disp(XX),ss(\"\\n\")]).\n");
       break;
     case Es:
-      outMsg(out, ",ss(XX),ss(\"\\n\")]).\n");
+      outMsg(out, ",ss(\" \"),ss(XX),ss(\"\\n\")]).\n");
       break;
   }
 }

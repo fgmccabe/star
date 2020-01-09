@@ -61,6 +61,12 @@ static retCode disp_lit(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
   return outMsg(f, "\n");
 }
 
+static retCode disp_sym(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
+  tryRet(outMsg(f, "%s ", op));
+  tryRet(showConstant(f, mtd, ins->i));
+  return outMsg(f, "\n");
+}
+
 static retCode showLine(ioPo f, mtdPo mtd, int64 ix) {
   constPo con = poolConstant(mtd, ix);
   if (con != Null)
