@@ -39,7 +39,7 @@ void initEngine() {
   halt.clss = methodClass;
 }
 
-retCode bootstrap(char *entry, char *init) {
+retCode bootstrap(char *entry, char *init, char *rootWd) {
   labelPo umain = declareLbl(entry, 0);
   methodPo mainMtd = labelCode(umain);
 
@@ -150,7 +150,7 @@ static ptrPo localVar(framePo fp, int64 off) {
 retCode extendStack(processPo p, integer sfactor) {
   integer stackSize = (integer) ((p->stackLimit - p->stackBase) * sfactor);
 
-  if(stackSize>maxStackSize)
+  if (stackSize > maxStackSize)
     return Error;
 
 #ifdef TRACEMEM
@@ -248,7 +248,7 @@ ProcessState processState(processPo p) {
   return p->state;
 }
 
-integer processNo(processPo p){
+integer processNo(processPo p) {
   return p->processNo;
 }
 

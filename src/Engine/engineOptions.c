@@ -44,7 +44,7 @@ char bootInit[MAX_SYMB_LEN] = "star.boot@init";
 
 PackageRec bootPkge = {.packageName="star.boot", .version="*"};
 
-char entry[MAX_SYMB_LEN] = "star.boot#__boot";  // entry point
+char bootEntry[MAX_SYMB_LEN] = "star.boot#__boot";  // entry point
 
 static retCode displayVersion(char *option, logical enable, void *cl) {
   return outMsg(logFile, "star - %s", version);
@@ -79,7 +79,7 @@ static integer parseSize(char *text) {
   return parseInteger(text, (integer) (p - text)) * scale;
 }
 
-void defltCWD() {
+char * defltCWD() {
   // set up working directory
   if (uniIsLit(CWD, "")) {
     char cbuff[MAXFILELEN];
@@ -89,6 +89,7 @@ void defltCWD() {
     else
       uniTrim(cwd, uniStrLen(cwd), "", "/", CWD, NumberOf(CWD));
   }
+  return CWD;
 }
 
 static retCode debugOption(char *option, logical enable, void *cl) {
@@ -287,7 +288,7 @@ static retCode setDebuggerPort(char *option, logical enable, void *cl) {
 }
 
 static retCode setMainEntry(char *option, logical enable, void *cl) {
-  uniCpy(entry, NumberOf(entry), option);
+  uniCpy(bootEntry, NumberOf(bootEntry), option);
   return Ok;
 }
 
@@ -353,7 +354,7 @@ Option options[] = {
   {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},
   {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setMaxStackSize, Null, "-S|--max-stack <size>"},};
 
-int getOptions(int argc, char **argv) {
+int getStarOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
   return processOptions(copyright, argc, argv, options, NumberOf(options));
 }

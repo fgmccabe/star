@@ -534,9 +534,9 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
     heapSummary(out, h);
   }
 #endif
-  outMsg(out, "\n");
+  outMsg(out, "\n%_");
 
-  while (fp->fp < (framePo) p->stackLimit) {
+  while (fp < (framePo) p->stackLimit) {
     showStackEntry(out, frameNo, mtd, pc, fp, sp, showStack);
 
     mtd = fp->prog;
@@ -544,12 +544,12 @@ void stackTrace(processPo p, ioPo out, logical showStack) {
     sp = (ptrPo) (fp + 1);
     fp = fp->fp;
     frameNo++;
+    assert(fp <= (framePo) p->stackLimit && fp >= (framePo) p->stackBase);
   }
   flushFile(out);
 }
 
 void dumpStackTrace(processPo p, ioPo out) {
-  heapPo h = processHeap(p);
   methodPo mtd = p->prog;
   framePo fp = p->fp;
   insPo pc = p->pc;
@@ -558,13 +558,15 @@ void dumpStackTrace(processPo p, ioPo out) {
 
   outMsg(out, "Stack dump for p: %d\n", processNo(p));
 
-  while (fp->fp < (framePo) p->stackLimit) {
+  while (fp < (framePo) p->stackLimit) {
     showStackCall(out, frameNo, mtd, pc, fp, displayDepth);
 
     mtd = fp->prog;
     pc = fp->rtn;
     fp = fp->fp;
     frameNo++;
+
+    assert(fp <= (framePo) p->stackLimit && fp >= (framePo) p->stackBase);
   }
   flushFile(out);
 }
@@ -627,7 +629,6 @@ DebugWaitFor dbgClearBreakPoint(char *line, processPo p, termPo loc, insWord ins
     outMsg(debugOutChnnl, "spy point cleared on %s\n%_", line);
   return moreDebug;
 }
-
 
 DebugWaitFor dbgShowBreakPoints(char *line, processPo p, termPo loc, insWord ins, void *cl) {
   retCode ret = showAllBreakPoints(debugOutChnnl);
@@ -1163,6 +1164,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
 #define show_lcs outMsg(out," l[%d]",collectI32(pc))
 #define show_off outMsg(out," PC[%d]",collectI32(pc))
+#define show_sym outMsg(out," PC[%d]",collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
 #define show_lne showConstant(out,mtd,collectI32(pc))

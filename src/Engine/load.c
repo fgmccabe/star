@@ -279,6 +279,8 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
 
   static char *structPreamble = "n3o3'()3'";
 
+  static char *globalPreamble = ""
+
   static retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize);
 
   retCode loadDefs(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgLen) {
@@ -291,6 +293,8 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
           ret = loadFunc(in, h, owner, errorMsg, msgLen);
         else if (isLookingAt(in, structPreamble) == Ok)
           ret = loadStruct(in, h, owner, errorMsg, msgLen);
+        else if(isLookingAt(in,globalPreamble)==Ok)
+          ret = loadGLobal(in,h,owner,errorMsg,msgLen);
         else {
           strMsg(errorMsg, msgLen, "invalid code stream");
           return Error;
@@ -352,6 +356,7 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
 #define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szlcs if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
 #define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
+#define szsym if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,lookupEscape(escNm)); (*ix)++;}
 #define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
 #define szlne if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
@@ -372,6 +377,7 @@ retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
 #undef szlcl
 #undef szlcs
 #undef szoff
+#undef szsym
 #undef szEs
 #undef szlit
 #undef szlne

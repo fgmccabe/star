@@ -2,7 +2,7 @@
 
 :- module(assemble,[assem/2, showIns/3, dispIns/1]).
 :- use_module(misc).
-:- use_module(terms).
+:- use_module(lterms).
 :- use_module(encode).
 
 assem(method(Nm,Sig,Lx,Ins),MTpl) :-

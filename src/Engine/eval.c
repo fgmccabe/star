@@ -65,9 +65,12 @@ retCode run(processPo P) {
 #endif
 
     switch ((OpCode) (*PC++)) {
-      case Halt:{
-        logMsg(logFile, "Halt %T", pop());
-        bail();
+      case Halt: {
+        if (insDebugging || lineDebugging) {
+          logMsg(logFile, "Halt %T", pop());
+          bail();
+        }
+        return Ok;
       }
       case Call: {
         termPo nProg = nthArg(LITS, collectI32(PC));

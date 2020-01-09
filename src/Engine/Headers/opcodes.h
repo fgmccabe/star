@@ -48,6 +48,7 @@ typedef enum {
   off,          /* offset within current code */
   Es,          // escape code 0..65535
   lit,          /* constant literal */
+  sym,          // Symbol
   lne,          // Constant that is a location
   glb           // Global variable name
 } opAndSpec;                    // Specification code for an operand

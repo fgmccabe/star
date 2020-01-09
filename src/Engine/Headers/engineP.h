@@ -48,7 +48,7 @@ typedef struct _stack_frame_ {
 extern void initEngine();
 extern retCode run(processPo P);
 
-retCode bootstrap(char *entry, char *init);
+retCode bootstrap(char *entry, char *init, char *rootWd);
 
 extern pthread_key_t processKey;
 pthread_t ps_threadID(processPo p);

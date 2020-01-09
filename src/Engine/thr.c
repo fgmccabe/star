@@ -88,6 +88,6 @@ threadPo allocateThread(heapPo H, processPo pr) {
   return thr;
 }
 
-threadPo newThread(processPo p){
-  return allocateThread(currHeap,p);
+threadPo newThread(processPo p) {
+  return allocateThread(currHeap, p);
 }

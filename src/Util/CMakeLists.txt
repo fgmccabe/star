@@ -48,7 +48,7 @@ set(HEADER_FILES
         Headers/vectorP.h
         Headers/integerP.h
         Headers/strngP.h
-        )
+        Headers/regexpP.h Headers/regexp.h)
 
 set(SOURCE_FILES
         class.c
@@ -86,7 +86,7 @@ set(SOURCE_FILES
 
         ${PUBLIC_HEADERS}
         ${HEADER_FILES}
-        vector.c integer.c strng.c editline.c )
+        vector.c integer.c strng.c editline.c regexp.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
 

@@ -2,6 +2,7 @@
 #define _HEAP_H_
 
 #include "config.h"
+#include "engineOptions.h"
 #include "ooio.h"
 #include "term.h"
 

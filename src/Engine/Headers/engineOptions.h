@@ -50,7 +50,7 @@ extern long maxHeapSize;         // Maximum permitted size of heap
 extern long initStackSize;       /* How big is the stack */
 extern long maxStackSize;        // How big may the stack grow?
 
-extern char entry[MAX_SYMB_LEN];
+extern char bootEntry[MAX_SYMB_LEN];
 extern char bootInit[MAX_SYMB_LEN];
 extern char bootVer[MAX_SYMB_LEN];
 extern PackageRec bootPkge;
@@ -58,8 +58,7 @@ extern PackageRec bootPkge;
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];
 
-
-int getOptions(int argc, char **argv);
-void defltCWD();
+int getStarOptions(int argc, char **argv);
+char * defltCWD();
 
 #endif
