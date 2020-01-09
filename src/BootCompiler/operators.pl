@@ -49,6 +49,7 @@
   operator("<-", [infixOp(904, 905, 904)]).
   operator(".>>>.", [infixOp(600, 600, 599)]).
   operator("\\+", [prefixOp(905, 904)]).
+  operator("<<-", [infixOp(974, 975, 974)]).
   operator("*", [postfixOp(699, 700), infixOp(700, 700, 699)]).
   operator("+", [postfixOp(699, 700), infixOp(720, 720, 719)]).
   operator(".>>.", [infixOp(600, 600, 599)]).
@@ -219,8 +220,10 @@
   follows('<','~','<~').
   follows('<','$','<$').
   follows('<','-','<-').
+  follows('<','<','<<').
   follows('<','=','<=').
   follows('<*','>','<*>').
+  follows('<<','-','<<-').
   follows('<=','>','<=>').
   follows('=','<','=<').
   follows('=','.','=.').
@@ -301,6 +304,7 @@
   final('<~',"<~").	 /* type interface rule */
   final('<$',"<$").	 /* constant replace */
   final('<-',"<-").	 /* variable bind */
+  final('<<-',"<<-").	 /* record replacement */
   final('<=',"<=").	 /* pattern arrow */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */

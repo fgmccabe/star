@@ -66,6 +66,7 @@ star.compiler.operators{
   oper("<-") => [infixOp(904,905,904)].
   oper(".>>>.") => [infixOp(600,600,599)].
   oper("\\+") => [prefixOp(905,904)].
+  oper("<<-") => [infixOp(974,975,974)].
   oper("*") => [postfixOp(699,700), infixOp(700,700,699)].
   oper("+") => [postfixOp(699,700), infixOp(720,720,719)].
   oper(".>>.") => [infixOp(600,600,599)].
@@ -256,8 +257,10 @@ star.compiler.operators{
   follows("<",0c~) => some("<~").
   follows("<",0c$) => some("<$").
   follows("<",0c-) => some("<-").
+  follows("<",0c<) => some("<<").
   follows("<",0c=) => some("<=").
   follows("<*",0c>) => some("<*>").
+  follows("<<",0c-) => some("<<-").
   follows("<=",0c>) => some("<=>").
   follows("=",0c<) => some("=<").
   follows("=",0c.) => some("=.").
@@ -339,6 +342,7 @@ star.compiler.operators{
   final("<~") => true.  /* type interface rule */
   final("<$") => true.  /* constant replace */
   final("<-") => true.  /* variable bind */
+  final("<<-") => true.  /* record replacement */
   final("<=") => true.  /* pattern arrow */
   final("<=>") => true.  /* constructor arrow */
   final("=") => true.  /* definition */
