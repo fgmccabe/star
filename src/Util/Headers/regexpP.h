@@ -12,6 +12,7 @@ typedef enum {
   dot,
   disj,
   seq,
+  star,
   literal
 } regexpOp;
 
