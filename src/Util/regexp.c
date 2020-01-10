@@ -45,11 +45,30 @@ static regexpPo pRegexp(char *ptn, integer *pos, integer length);
 
 static regexpPo pRegexps(char *ptn, integer *pos, integer length) {
   regexpPo left = pRegexp(ptn, pos, length);
-  while (*pos < length && ptn[*pos] != ')') {
-    regexpPo right = pRegexp(ptn, pos, length);
-    left = allocR(seq, 0, left, right);
+  while (*pos < length) {
+    switch(ptn[*pos]){
+      case '|':{
+        regexpPo right = pRegexp(ptn, pos, length);
+        left = allocR(disj, 0, left, right);
+        continue;
+      }
+      case '*':{
+        left = allocR(star,0,left,Null);
+        continue;
+      }
+      case '+':{
+        left = allocR(seq,0,left,allocR(star,0,left,Null));
+        continue;
+      }
+      case ')':
+        return left;
+      default:{
+        regexpPo right = pRegexp(ptn, pos, length);
+        left = allocR(seq, 0, left, right);
+        continue;
+      }
+    }
   }
-  return left;
 }
 
 regexpPo pRegexp(char *ptn, integer *pos, integer length) {
@@ -98,5 +117,26 @@ void closeRegexp(regexpPo reg) {
       closeRegexp(reg->arg.choice.right);
       freePool(prpool, reg);
     }
+    case star:{
+      closeRegexp(reg->arg.choice.left);
+      freePool(prpool, reg);
+    }
   }
+}
+
+retCode matchRegexp(regexpPo r,ioPo in);
+
+typedef struct {
+  regexpPo state;
+  integer inputCount;
+} MatchState, *matchStatePo;
+
+static retCode match(ioPo in,regexpPo r){
+  bufferPo str = newStringBuffer();
+  integer inputCount = 0;
+  MatchState fringe[1024];
+  integer fringeSize;
+
+  fringe[0] = {r,0};
+  fringeSize = 1;
 }
