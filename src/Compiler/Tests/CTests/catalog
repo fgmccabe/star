@@ -4,7 +4,8 @@
     "test.fl" : "fl.star",
     "test.ar" : "ar.star",
     "star.core": "core.star",
-    "test.c" : "c.star"
+    "test.c" : "c.star",
+    "star.boot" : "boot.star"
   },
   "version": "1.0.0",
   "default": "../catalog"
