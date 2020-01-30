@@ -433,6 +433,8 @@ star.compiler.wff{
   headName(A) where
       (_,D) ^= isDefault(A) =>
     headName(D).
+  headName(A) where (_,H,_) ^= isWhere(A) =>
+    headName(H).
   headName(_) default => none.
 
   public isDefn:(ast) => option[(locn,ast,ast)].
@@ -453,15 +455,15 @@ star.compiler.wff{
       (_,Els) ^= isBrTuple(Rhs) => some((Lc,Lhs,Els)).
   isCaseExp(_) => none.
 
-  public splitHead:(ast) => option[(string,ast,boolean)].
-  splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,false).
-  splitHead(A) => splitHd(A,false).
+  public splitHead:(ast) => option[(string,ast,option[ast],boolean)].
+  splitHead(A) where (_,[I]) ^= isTuple(A) => splitHd(I,none,false).
+  splitHead(A) => splitHd(A,none,false).
 
-  splitHd(A,_) where (_,I) ^= isDefault(A) => splitHd(I,true).
-  splitHd(A,D) where (Lc,Nm,As) ^= isRoundTerm(A) && (_,Id) ^= isName(Nm) => some((Id,rndTuple(Lc,As),D)).
-  splitHd(A,D) where (Lc,Id) ^= isName(A) => some((Id,rndTuple(Lc,[]),D)).
-  splitHd(A,D) where (Lc,L,C) ^= isWhere(A) && (Nm,Arg,Df) ^= splitHd(L,D) =>
-    some((Nm,binary(Lc,"where",Arg,C),D)).
+  splitHd:(ast,option[ast],boolean) => option[(string,ast,option[ast],boolean)].
+  splitHd(A,C,_) where (_,I) ^= isDefault(A) => splitHd(I,C,true).
+  splitHd(A,C,D) where (Lc,Nm,As) ^= isRoundTerm(A) && (_,Id) ^= isName(Nm) => some((Id,rndTuple(Lc,As),C,D)).
+  splitHd(A,C,D) where (Lc,Id) ^= isName(A) => some((Id,rndTuple(Lc,[]),C,D)).
+  splitHd(A,_,D) where (Lc,L,C) ^= isWhere(A) => splitHd(L,some(C),D).
   
   public isWhere:(ast) => option[(locn,ast,ast)].
   isWhere(A) => isBinary(A,"where").

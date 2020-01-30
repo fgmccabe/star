@@ -13,16 +13,17 @@ star.compiler.impawt{
   import star.compiler.terms.
   import star.compiler.types.
 
-  public importAll:all r ~~ repo[r]|:(list[importSpec],r,dict,list[importSpec],
+  public importAll:all r ~~ repo[r],display[r]|:(list[importSpec],r,dict,list[importSpec],
     list[(string,tipe)],reports) => either[reports,(dict,list[importSpec],list[(string,tipe)])].
   importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported,Sigs)).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
+    logMsg("import $(Pkg) from $(Repo)");
     PkgVar = packageVar(Pkg);
     if (PkgVar,_) in Sigs then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
       try{
-	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) = valof importPkg(Pkg,Lc,Repo);
+	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	
 	E0 = pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
 	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
@@ -38,12 +39,12 @@ star.compiler.impawt{
     }
   }
 
-  public importPkg:all r ~~ repo[r] |: (pkg,locn,r) => either[(),pkgSpec].
-  importPkg(Pkg,Lc,Repo) where Sig ^= hasSignature(Repo,Pkg) => pickupPkgSpec(Sig,Lc).
-  importPkg(_,_,_) default => other(()).
+  public importPkg:all r ~~ repo[r] |: (pkg,locn,r,reports) => either[reports,pkgSpec].
+  importPkg(Pkg,Lc,Repo,Rp) where Sig ^= hasSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).
+  importPkg(Pkg,Lc,_,Rp) default => other(reportError(Rp,"cannot import $(Pkg)",Lc)).
 
-  pickupPkgSpec:(string,locn) => either[(),pkgSpec].
-  pickupPkgSpec(Txt,Lc) => do{
+  pickupPkgSpec:(string,locn,reports) => either[(),pkgSpec].
+  pickupPkgSpec(Txt,Lc,Rp) => do{
     (term(_,[Pk,term(_,Imps),strg(FTps),term(_,ConSigs),
 	  term(_,ImplSigs)]),R) <- decodeTerm(Txt::list[integer]);
     Pkg <- pickupPkg(Pk);
@@ -103,6 +104,7 @@ star.compiler.impawt{
 
   implementation coercion[pkg,term] => {
     _coerce(pkg(P,defltVersion)) => term(tLbl("pkg",2),[strg(P),strg("*")]).
+    _coerce(pkg(P,vers(V))) => term(tLbl("pkg",2),[strg(P),strg(V)]).
   }
 
   implementation coercion[visibility,term] => {.
@@ -110,10 +112,6 @@ star.compiler.impawt{
     _coerce(pUblic) => strg("public").
     _coerce(transItive) => strg("transitive").
   .}
-
-  implementation coercion[string,term] => {
-    _coerce(S) => strg(S)
-  }
 
   implementation coercion[tipe,term] => {.
     _coerce(Tp) => strg(encodeSignature(Tp)).

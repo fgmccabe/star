@@ -6,9 +6,6 @@ star.compiler.grapher{
   import star.pkg.
   import star.uri.
 
-  import star.repo.
-  import star.repo.file.
-
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.catalog.
@@ -17,9 +14,10 @@ star.compiler.grapher{
   import star.compiler.location.
   import star.compiler.meta.
   import star.compiler.parser.
+  import star.compiler.term.repo.
   import star.compiler.wff.
 
-  public makeGraph:(importSpec,fileRepo,catalog,reports) => either[reports,list[(importSpec,list[importSpec])]].
+  public makeGraph:(importSpec,termRepo,catalog,reports) => either[reports,list[(importSpec,list[importSpec])]].
   makeGraph(Imp,Repo,Cat,Rp) => do{
     Defs <- scanPkgs([Imp],Repo,Cat,[],Rp);
     Gps = topsort(Defs);
@@ -31,7 +29,7 @@ star.compiler.grapher{
     references((_,R)) => R
   }
 
-  scanPkgs:(list[importSpec],fileRepo,catalog,list[(importSpec,list[importSpec])],reports)=>either[reports,list[(importSpec,list[importSpec])]].
+  scanPkgs:(list[importSpec],termRepo,catalog,list[(importSpec,list[importSpec])],reports)=>either[reports,list[(importSpec,list[importSpec])]].
   scanPkgs([],_,_,SoFar,_) => either(SoFar).
   scanPkgs([P,..Pkgs],Repo,Cat,SoFar,Rp) where pkgImp(Lc,Vz,Pkg) .=P => do{
     if (pkgImp(_,_,Pk),_) in SoFar && compatiblePkg(Pk,Pkg) then{
@@ -39,11 +37,11 @@ star.compiler.grapher{
     } else if (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) then {
       if newerFile(CodeUri,SrcUri) then {
 	try{
-	  pkgSpec(_,Imps,_,_,_,_) <- importPkg(Pkg,Lc,Repo);
+	  pkgSpec(_,Imps,_,_,_,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	  try{
 	    scanPkgs(Pkgs++Imps,Repo,Cat,[SoFar..,(P,Imps)],Rp)
 	  } catch {
-	    throw () -- This is kind of ugly.
+	    throw reportError(Rp,"cannot graph $(Pkg)",Lc) -- This is kind of ugly.
 	  }
 	} catch{
 	  throw reportError(Rp,"cannot import $(Pkg)",Lc)
@@ -54,7 +52,7 @@ star.compiler.grapher{
     scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp)
   }
 
-  scanCat:(locn,visibility,pkg,list[importSpec],fileRepo,catalog,list[(importSpec,list[importSpec])],reports) =>
+  scanCat:(locn,visibility,pkg,list[importSpec],termRepo,catalog,list[(importSpec,list[importSpec])],reports) =>
     either[reports,list[(importSpec,list[importSpec])]].
   scanCat(Lc,Vz,Pkg,Pkgs,Repo,Cat,SoFar,Rp) => do{
     if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(Pkg)) then{

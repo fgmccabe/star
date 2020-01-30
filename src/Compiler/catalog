@@ -29,6 +29,7 @@
     "star.compiler.operators": "operators.star",
     "star.compiler.resolve": "resolve.star",
     "test.comp.strrepo" : "stringrepo.star",
+    "star.compiler.term.repo" : "termrepo.star",
     "star.compiler.terms": "terms.star",
     "star.compiler.token": "token.star",
     "star.compiler.typeparse": "parsetype.star",

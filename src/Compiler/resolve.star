@@ -74,7 +74,7 @@ star.compiler.resolve{
     (Qx,Qt) = deQuant(Tp);
     (_,ITp) = deConstrain(Qt);
     CTp = reQuant(Qx,funType(Cx,ITp));
-    valis varDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),RVal)],CTp),[],Tp)
+    valis varDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),none,RVal)],CTp),[],Tp)
   }
 
   defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
@@ -191,10 +191,16 @@ star.compiler.resolve{
   }
 
   overloadRules([],Els,Dict,St,_) => either((St,Els)).
-  overloadRules([eqn(Lc,Ptn,Exp),..Ts],Els,Dict,St,Rp) => do{
+  overloadRules([eqn(Lc,Ptn,none,Exp),..Ts],Els,Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
     (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
-    overloadRules(Ts,[Els..,eqn(Lc,RPtn,RExp)],Dict,St2,Rp)
+    overloadRules(Ts,[Els..,eqn(Lc,RPtn,none,RExp)],Dict,St2,Rp)
+  }
+  overloadRules([eqn(Lc,Ptn,some(Wh),Exp),..Ts],Els,Dict,St,Rp) => do{
+    (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
+    (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
+    (Stx,RWh) <- overloadTerm(Wh,Dict,St2,Rp);
+    overloadRules(Ts,[Els..,eqn(Lc,RPtn,some(RWh),RExp)],Dict,Stx,Rp)
   }
 
   overloadTerms([],Els,Dict,St,_) => either((St,Els)).

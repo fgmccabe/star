@@ -7,7 +7,7 @@ star.comp.escapes{
   public escapeType:(string)=>option[tipe].
   escapeType("_exit") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),tupleType([]))).
   escapeType("_command_line") => some(tpExp(tpExp(tpFun("=>",2),tupleType([])),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")))).
-  escapeType("_abort") => some(allType(nomnal("s"),allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("s"),nomnal("t")])),tupleType([]))))).
+  escapeType("_abort") => some(allType(nomnal("s"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("s"),nomnal("star.core*string")])),tupleType([])))).
   escapeType("_identical") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("t"),nomnal("t")])),nomnal("star.core*boolean")))).
   escapeType("_definedLbl") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_callLbl") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer"),tpExp(tpFun("star.core*list",1),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")))])),tupleType([]))).

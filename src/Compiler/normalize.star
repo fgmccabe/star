@@ -216,7 +216,7 @@ star.compiler.normalize{
   transformDef(_,_,Ex,Vs,_) => either((Vs,Ex)).
 
   transformEquations:(list[equation],nameMap,list[crVar],list[crDefn],reports) =>
-    either[reports,(list[(locn,list[crExp],crExp)],list[crDefn])].
+    either[reports,(list[(locn,list[crExp],option[crExp],crExp)],list[crDefn])].
   transformEquations([],_,_,Ex,_) => either(([],Ex)).
   transformEquations([Eqn,..Eqns],Map,Extra,Ex,Rp) => do{
     (Trple,Ex1) <- transformEquation(Eqn,Map,Extra,Ex,Rp);
@@ -225,11 +225,17 @@ star.compiler.normalize{
   }
 
   transformEquation:(equation,nameMap,list[crVar],list[crDefn],reports) =>
-    either[reports,((locn,list[crExp],crExp),list[crDefn])].
-  transformEquation(eqn(Lc,tple(_,As),Val),Map,Extra,Ex,Rp) => do{
+    either[reports,((locn,list[crExp],option[crExp],crExp),list[crDefn])].
+  transformEquation(eqn(Lc,tple(_,As),none,Val),Map,Extra,Ex,Rp) => do{
     (Ptns,Ex1) <- liftPtns(As,Map,Ex,Rp);
     (Rep,Exx) <- liftExp(Val,Map,Ex1,Rp);
-    valis ((Lc,(Extra//(V)=>crVar(Lc,V))++Ptns,Rep),Exx)
+    valis ((Lc,(Extra//(V)=>crVar(Lc,V))++Ptns,none,Rep),Exx)
+  }
+  transformEquation(eqn(Lc,tple(_,As),some(Wh),Val),Map,Extra,Ex,Rp) => do{
+    (Ptns,Ex1) <- liftPtns(As,Map,Ex,Rp);
+    (Rep,Ex2) <- liftExp(Val,Map,Ex1,Rp);
+    (Cond,Exx) <- liftGoal(Wh,Map,Ex2,Rp);
+    valis ((Lc,(Extra//(V)=>crVar(Lc,V))++Ptns,some(Cond),Rep),Exx)
   }
 
   liftPtn:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].

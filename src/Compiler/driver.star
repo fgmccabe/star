@@ -6,7 +6,6 @@ star.compiler{
   import star.uri.
 
   import star.repo.
-  import star.repo.file.
 
   import star.compiler.assem.
   import star.compiler.ast.
@@ -23,7 +22,9 @@ star.compiler{
   import star.compiler.parser.
   import star.compiler.location.
   import star.compiler.normalize.
+  import star.compiler.term.repo.
   import star.compiler.terms.
+  import star.compiler.types.
 
   implementation all e,k ~~ coercion[either[e,k],action[e,k]] => {
     _coerce(either(X)) => done(X).
@@ -52,19 +53,19 @@ star.compiler{
   _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
     valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI. cwd=WI})).
 
-  openupRepo:(uri,uri) => action[(), fileRepo].
+  openupRepo:(uri,uri) => action[(), termRepo].
   openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
     valis openRepository(CRU)
   }
 
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
   handleCmds(either((Opts,Args))) => do{
---    logMsg("Opts = $(Opts), Arg=$(Args)");
+    logMsg("Arg=$(Args)");
     Repo <- openupRepo(Opts.repo,Opts.cwd);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
---	    logMsg("look up $(P) in catalog");
+	    logMsg("look up $(P) in catalog");
 	    ErRp = reports([]);	
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
@@ -88,21 +89,22 @@ star.compiler{
   extractPkgSpec(P) default =>
     pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).
 
-  addSpec:(pkgSpec,fileRepo) => fileRepo.
+  addSpec:(pkgSpec,termRepo) => termRepo.
   addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).
 
   importVars(pkgSpec(_,_,_,_,_,Vars))=>Vars.
 
-  processPkgs:(list[importSpec],fileRepo,catalog,compilerOptions,reports) => action[reports,()].
+  processPkgs:(list[importSpec],termRepo,catalog,compilerOptions,reports) => action[reports,()].
   processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
     Repp := Repo;
     try{
       for pkgImp(Lc,_,P) in Pks do{
 	logMsg("Process package $(P)");
 	if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
+--	  logMsg("source uri: $(SrcUri), CPkg=$(CPkg)");
 	  Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
-	  (PkgSpec,PkgFun) <- checkPkg(Repp!,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
+	  (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
 	  logMsg("normalizing $(PkgFun), pkgSpec = $(PkgSpec)");
 	  NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,list[crDefn]];
 	  Repp := addSpec(PkgSpec,Repp!);
@@ -110,8 +112,11 @@ star.compiler{
 	  logMsg(dispCrProg(NormDefs)::string);
 	  Ins <- compDefs(NormDefs,importVars(PkgSpec),Opts,[],Rp) :: action[reports,list[codeSegment]];
 	  logMsg("Generated instructions $(Ins)");
-	  Code = mkTpl(Ins//assem);
-	  logMsg("generated code $(encodeTerm(Code)::string)")
+	  Code = mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
+	      mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
+	      mkTpl(Ins//assem)]);
+	  logMsg("generated code $(encodeTerm(Code)::string)");
+	  Repp := addPackage(Repp!,P,encodeTerm(strg(encodeTerm(Code)::string))::string)
 	}
 	else
 	throw reportError(Rp,"cannot locate source of $(P)",Lc)
@@ -121,4 +126,7 @@ star.compiler{
       throw Erp
     }
   }
+
+  importTerm:(importSpec)=>term.
+  
 }
