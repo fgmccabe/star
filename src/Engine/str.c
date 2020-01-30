@@ -9,7 +9,7 @@
 static long strSize(specialClassPo cl, termPo o);
 static termPo strCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison strCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical strCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer strHash(specialClassPo cl, termPo o);
 static retCode strDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -76,12 +76,12 @@ termPo strScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + StringCellCount(str->length);
 }
 
-comparison strCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical strCmp(specialClassPo cl, termPo o1, termPo o2) {
   integer l1, l2;
   const char *tx1 = stringVal(o1, &l1);
   const char *tx2 = stringVal(o2, &l2);
 
-  return uniNCmp(tx1, l1, tx2, l2);
+  return (logical)(uniNCmp(tx1, l1, tx2, l2)==same);
 }
 
 static retCode qtChar(ioPo f, codePoint ch) {
@@ -136,7 +136,7 @@ retCode strDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   retCode ret = outChar(out, '"');
 
   if (ret == Ok)
-    ret = processString(str, cpDisp, out);
+    ret = processUnicodes(str->txt, str->length, cpDisp, out);
 
   if (ret == Ok)
     ret = outChar(out, '"');
@@ -156,24 +156,6 @@ integer stringHash(stringPo str) {
 
 integer stringLength(stringPo str){
   return str->length;
-}
-
-retCode processString(stringPo str, charProc p, void *cl) {
-  retCode ret = Ok;
-  integer ix = 0;
-  integer limit = str->length;
-  char *txt = str->txt;
-
-  while (ret == Ok && ix < limit) {
-    codePoint cp;
-
-    integer i = ix;
-    ret = nxtPoint(txt, &ix, limit, &cp);
-
-    if (ret == Ok)
-      ret = p(cp, i, cl);
-  }
-  return ret;
 }
 
 retCode copyString2Buff(stringPo str, char *buffer, integer buffLen) {

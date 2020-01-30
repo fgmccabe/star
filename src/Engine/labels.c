@@ -16,7 +16,7 @@ static retCode labelDel(labelPo lbl, labelPo l);
 static long lblSize(specialClassPo cl, termPo o);
 static termPo lblCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo lblScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison lblCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical lblCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lblHash(specialClassPo cl, termPo o);
 static retCode lblDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -92,11 +92,8 @@ comparison labelCmp(labelPo lb1, labelPo lb2) {
   return comp;
 }
 
-comparison lblCmp(specialClassPo cl, termPo o1, termPo o2) {
-  labelPo i1 = C_LBL(o1);
-  labelPo i2 = C_LBL(o2);
-
-  return labelCmp(i1, i2);
+logical lblCmp(specialClassPo cl, termPo o1, termPo o2) {
+  return (logical)(o1==o2);
 }
 
 static integer lblHash(specialClassPo cl, termPo o) {

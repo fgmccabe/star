@@ -173,7 +173,7 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
       for (integer ix = 0; ix < vectLength(blocks); ix++) {
         segPo seg = O_SEG(getVectEl(blocks, ix));
         if (!seg->seg.checked) {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ %x" RED_ESC_OFF, seg->seg.segNo, seg->seg.pc);
+          strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ PC:%d" RED_ESC_OFF, seg->seg.segNo, seg->seg.pc);
           ret = Error;
           break;
         }
@@ -525,6 +525,7 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
         seg->seg.locals[lclVr].read = False;
         return Ok;
       } else {
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, *pc);
         return Error;
       }
     }

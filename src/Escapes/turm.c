@@ -7,13 +7,9 @@
 #include <assert.h>
 #include "turm.h"
 
-logical sameTerm(termPo t1, termPo t2) {
-  return (logical) (compareTerm(t1, t2) == same);
-}
-
 ReturnStatus g__identical(processPo P, ptrPo tos) {
   return (ReturnStatus) {.ret=Ok,
-            .result=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
+    .result=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__tuple_nth(processPo P, ptrPo tos) {
@@ -33,5 +29,5 @@ ReturnStatus g__tuple_set_nth(processPo P, ptrPo tos) {
 
   setArg(tpl, ix, tos[2]);
 
-  return (ReturnStatus) {.ret=Ok, .result=(termPo)tpl };
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) tpl};
 }

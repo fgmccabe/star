@@ -92,12 +92,12 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
     return outMsg(out, "<<? 0x%x ?>>", t);
 }
 
-comparison compareTerm(termPo t1, termPo t2) {
+logical sameTerm(termPo t1, termPo t2) {
   clssPo c1 = classOf(t1);
   clssPo c2 = classOf(t2);
 
   if (c1 != c2)
-    return incomparible;
+    return False;
   else if (isSpecialClass(c1)) {
     return ((specialClassPo) c1)->compFun((specialClassPo) c1, t1, t2);
   } else {
@@ -105,11 +105,10 @@ comparison compareTerm(termPo t1, termPo t2) {
     normalPo n2 = C_TERM(t2);
     labelPo lbl = n1->lbl;
     for (integer ix = 0; ix < labelArity(lbl); ix++) {
-      comparison c = compareTerm(nthArg(n1, ix), nthArg(n2, ix));
-      if (c != same)
-        return c;
+      if (!sameTerm(nthArg(n1, ix), nthArg(n2, ix)))
+        return False;
     }
-    return same;
+    return True;
   }
 }
 
@@ -172,7 +171,7 @@ termPo getField(normalPo term, labelPo field) {
 
 retCode setField(normalPo term, labelPo field, termPo val) {
   integer offset = fieldOffset(term->lbl, field);
-  if(offset>=0) {
+  if (offset >= 0) {
     setArg(term, offset, val);
     return Ok;
   } else

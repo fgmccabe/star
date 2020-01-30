@@ -12,7 +12,7 @@ static termPo intCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static retCode intDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer intHash(specialClassPo cl, termPo o);
-static comparison intCmp(specialClassPo cl, termPo t1, termPo t2);
+static logical intCmp(specialClassPo cl, termPo t1, termPo t2);
 
 SpecialClass IntegerClass = {
   .clss = Null,
@@ -31,7 +31,7 @@ static termPo fltCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo fltScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
 static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 static integer fltHash(specialClassPo cl, termPo o);
-static comparison fltCmp(specialClassPo cl, termPo t1, termPo t2);
+static logical fltCmp(specialClassPo cl, termPo t1, termPo t2);
 
 SpecialClass FloatClass = {
   .clss = Null,
@@ -71,16 +71,11 @@ termPo intScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return (termPo) (o + IntegerCellCount);
 }
 
-comparison intCmp(specialClassPo cl, termPo t1, termPo t2) {
+logical intCmp(specialClassPo cl, termPo t1, termPo t2) {
   integer ix1 = integerVal(t1);
   integer ix2 = integerVal(t2);
 
-  if (ix1 == ix2)
-    return same;
-  else if (ix1 < ix2)
-    return smaller;
-  else
-    return bigger;
+  return (logical) (ix1 == ix2);
 }
 
 integer intHash(specialClassPo cl, termPo o) {
@@ -132,16 +127,14 @@ static retCode fltDisp(ioPo out, termPo t, integer precision, integer depth, log
   return outDouble(out, dx->dx, 'g', 0, (int) precision, ' ', True, False);
 }
 
-comparison fltCmp(specialClassPo cl, termPo t1, termPo t2) {
+logical fltCmp(specialClassPo cl, termPo t1, termPo t2) {
   double ix1 = floatVal(t1);
   double ix2 = floatVal(t2);
 
-  if (nearlyEqual(ix1,ix2,EPSILON))
-    return same;
-  else if (ix1 < ix2)
-    return smaller;
+  if (nearlyEqual(ix1, ix2, EPSILON))
+    return True;
   else
-    return bigger;
+    return False;
 }
 
 logical nearlyEqual(double dx1, double dx2, double eps) {

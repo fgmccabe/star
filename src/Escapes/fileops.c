@@ -326,7 +326,7 @@ ReturnStatus g__isdir(processPo P, ptrPo tos) {
   setProcessRunnable(P);
 
   return (ReturnStatus) {.ret=Ok,
-            .result = present == Ok ? trueEnum : falseEnum};
+    .result = present == Ok ? trueEnum : falseEnum};
 }
 
 /*
@@ -566,7 +566,7 @@ ReturnStatus g__openInFile(processPo P, ptrPo tos) {
 
   if (file != Null) {
     return (ReturnStatus) {.ret=Ok,
-              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
+      .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openInFile", eNOTFND);
 }
@@ -586,7 +586,7 @@ ReturnStatus g__openOutFile(processPo P, ptrPo tos) {
 
   if (file != Null) {
     return (ReturnStatus) {.ret=Ok,
-              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
+      .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openOutFile", eNOTFND);
 }
@@ -606,7 +606,7 @@ ReturnStatus g__openAppendFile(processPo P, ptrPo tos) {
 
   if (file != Null) {
     return (ReturnStatus) {.ret=Ok,
-              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
+      .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openAppendFile", eNOTFND);
 }
@@ -626,7 +626,7 @@ ReturnStatus g__openAppendIOFile(processPo P, ptrPo tos) {
 
   if (file != Null) {
     return (ReturnStatus) {.ret=Ok,
-              .result =(termPo) allocateIOChnnl(processHeap(P), file)};
+      .result =(termPo) allocateIOChnnl(processHeap(P), file)};
   } else
     return liberror(P, "_openAppendIOFile", eNOTFND);
 }

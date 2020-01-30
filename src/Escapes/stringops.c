@@ -18,7 +18,7 @@ ReturnStatus g__str_eq(processPo p, ptrPo tos) {
 
   logical eq = sameTerm(Arg1, Arg2);
 
-  return (ReturnStatus){.ret=Ok, .result=(eq ? trueEnum : falseEnum)};
+  return (ReturnStatus) {.ret=Ok, .result=(eq ? trueEnum : falseEnum)};
 }
 
 // Lexicographic comparison
@@ -39,15 +39,15 @@ ReturnStatus g__str_lt(processPo p, ptrPo tos) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      return (ReturnStatus){.ret=Ok, .result=trueEnum};
+      return (ReturnStatus) {.ret=Ok, .result=trueEnum};
     } else if (chl > ch2) {
-      return (ReturnStatus){.ret=Ok, .result=falseEnum};
+      return (ReturnStatus) {.ret=Ok, .result=falseEnum};
     }
   }
   if (li < llen) { // There is more on the right, so the left counts as being smaller
-    return (ReturnStatus){.ret=Ok, .result=trueEnum};
+    return (ReturnStatus) {.ret=Ok, .result=trueEnum};
   } else {
-    return (ReturnStatus){.ret=Ok, .result=falseEnum};
+    return (ReturnStatus) {.ret=Ok, .result=falseEnum};
   }
 }
 
@@ -68,15 +68,15 @@ ReturnStatus g__str_ge(processPo p, ptrPo tos) {
     codePoint ch2 = nextCodePoint(rhs, &ri, rlen);
 
     if (chl < ch2) {
-      return (ReturnStatus){.ret=Ok, .result=falseEnum};
+      return (ReturnStatus) {.ret=Ok, .result=falseEnum};
     } else if (chl > ch2) {
-      return (ReturnStatus){.ret=Ok, .result=trueEnum};
+      return (ReturnStatus) {.ret=Ok, .result=trueEnum};
     }
   }
   if (ri <= rlen) { // There is more on the right, so it counts as being bigger
-    return (ReturnStatus){.ret=Ok, .result=trueEnum};
+    return (ReturnStatus) {.ret=Ok, .result=trueEnum};
   } else {
-    return (ReturnStatus){.ret=Ok, .result=falseEnum};
+    return (ReturnStatus) {.ret=Ok, .result=falseEnum};
   }
 }
 
@@ -89,16 +89,16 @@ ReturnStatus g__str_hash(processPo p, ptrPo tos) {
     lhs->hash = uniNHash(str, len);
   }
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(p), lhs->hash)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateInteger(processHeap(p), lhs->hash)};
 }
 
 ReturnStatus g__str_len(processPo p, ptrPo tos) {
   integer len;
   const char *str = stringVal(tos[0], &len);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(p), len)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateInteger(processHeap(p), len)};
 }
 
 ReturnStatus g__str2flt(processPo p, ptrPo tos) {
@@ -107,8 +107,8 @@ ReturnStatus g__str2flt(processPo p, ptrPo tos) {
   double flt;
   retCode ret = parseDouble(str, len, &flt);
 
-  return (ReturnStatus){.ret=ret,
-            .result=(termPo) allocateFloat(processHeap(p), flt)};
+  return (ReturnStatus) {.ret=ret,
+    .result=(termPo) allocateFloat(processHeap(p), flt)};
 }
 
 ReturnStatus g__str2int(processPo p, ptrPo tos) {
@@ -116,8 +116,8 @@ ReturnStatus g__str2int(processPo p, ptrPo tos) {
   const char *str = stringVal(tos[0], &len);
   integer ix = parseInteger(str, len);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(p), ix)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateInteger(processHeap(p), ix)};
 }
 
 ReturnStatus g__str_gen(processPo p, ptrPo tos) {
@@ -127,8 +127,8 @@ ReturnStatus g__str_gen(processPo p, ptrPo tos) {
 
   strMsg(rnd, NumberOf(rnd), "%S%d", str, minimum(len, NumberOf(rnd) - INT64_DIGITS), randomInt());
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateString(processHeap(p), rnd, uniStrLen(rnd))};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateString(processHeap(p), rnd, uniStrLen(rnd))};
 }
 
 ReturnStatus g__stringOf(processPo p, ptrPo tos) {
@@ -142,8 +142,11 @@ ReturnStatus g__stringOf(processPo p, ptrPo tos) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  return (ReturnStatus){.ret=ret,
-            .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+  ReturnStatus result = {.ret=ret,
+    .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+
+  closeFile(O_IO(strb));
+  return result;
 }
 
 ReturnStatus g__explode(processPo p, ptrPo tos) {
@@ -165,7 +168,7 @@ ReturnStatus g__explode(processPo p, ptrPo tos) {
   }
 
   gcReleaseRoot(H, root);
-  return (ReturnStatus){.ret=Ok, .result=(termPo) list};
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) list};
 }
 
 ReturnStatus g__implode(processPo p, ptrPo tos) {
@@ -180,8 +183,11 @@ ReturnStatus g__implode(processPo p, ptrPo tos) {
   integer oLen;
   const char *buff = getTextFromBuffer(strb, &oLen);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+  termPo result = (termPo) allocateString(processHeap(p), buff, oLen);
+
+  closeFile(O_IO(strb));
+
+  return (ReturnStatus) {.ret=Ok, .result=result};
 }
 
 ReturnStatus g__str_find(processPo p, ptrPo tos) {
@@ -196,8 +202,8 @@ ReturnStatus g__str_find(processPo p, ptrPo tos) {
 
   integer found = uniSearch(str, len, start, tgt, tlen);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateInteger(processHeap(p), found)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateInteger(processHeap(p), found)};
 }
 
 ReturnStatus g__sub_str(processPo p, ptrPo tos) {
@@ -212,8 +218,8 @@ ReturnStatus g__sub_str(processPo p, ptrPo tos) {
   char buff[count + 1];
   uniNCpy(buff, count + 1, &str[start], count);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateString(processHeap(p), buff, count)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateString(processHeap(p), buff, count)};
 }
 
 ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
@@ -236,9 +242,9 @@ ReturnStatus g__str_hdtl(processPo p, ptrPo tos) {
     setArg(pair, 0, (termPo) chCode);
     setArg(pair, 1, (termPo) rest);
     gcReleaseRoot(H, mark);
-    return (ReturnStatus){.ret=Ok, .result=(termPo) pair};
+    return (ReturnStatus) {.ret=Ok, .result=(termPo) pair};
   } else {
-    return (ReturnStatus){.ret=ret, .result=voidEnum};
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -252,8 +258,8 @@ ReturnStatus g__str_cons(processPo p, ptrPo tos) {
   retCode ret = copyString2Buff(src, &str[offset], len + 16);
   heapPo H = processHeap(p);
 
-  return (ReturnStatus){.ret=ret,
-            .result=(termPo) allocateString(processHeap(p), str, offset + len)};
+  return (ReturnStatus) {.ret=ret,
+    .result=(termPo) allocateString(processHeap(p), str, offset + len)};
 }
 
 ReturnStatus g__str_apnd(processPo p, ptrPo tos) {
@@ -267,8 +273,8 @@ ReturnStatus g__str_apnd(processPo p, ptrPo tos) {
 
   retCode ret = appendCodePoint(str, &offset, len + 16, (codePoint) integerVal(tos[0]));
 
-  return (ReturnStatus){.ret=ret,
-            .result=(termPo) allocateString(processHeap(p), str, offset)};
+  return (ReturnStatus) {.ret=ret,
+    .result=(termPo) allocateString(processHeap(p), str, offset)};
 }
 
 ReturnStatus g__str_back(processPo p, ptrPo tos) {
@@ -291,9 +297,9 @@ ReturnStatus g__str_back(processPo p, ptrPo tos) {
     setArg(pair, 0, (termPo) rest);
     setArg(pair, 1, (termPo) chCode);
     gcReleaseRoot(H, mark);
-    return (ReturnStatus){.ret=Ok, .result=(termPo) pair};
+    return (ReturnStatus) {.ret=Ok, .result=(termPo) pair};
   } else {
-    return (ReturnStatus){.ret=ret, .result=voidEnum};
+    return (ReturnStatus) {.ret=ret, .result=voidEnum};
   }
 }
 
@@ -318,7 +324,7 @@ ReturnStatus g__str_split(processPo p, ptrPo tos) {
   setArg(pair, 1, rhs);
 
   gcReleaseRoot(H, root);
-  return (ReturnStatus){.ret=Ok, .result=(termPo) pair};
+  return (ReturnStatus) {.ret=Ok, .result=(termPo) pair};
 }
 
 ReturnStatus g__str_concat(processPo p, ptrPo tos) {
@@ -334,8 +340,8 @@ ReturnStatus g__str_concat(processPo p, ptrPo tos) {
   uniNCpy(buff, len, lhs, llen);
   uniNCpy(&buff[llen], len - llen, rhs, rlen);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateString(processHeap(p), buff, llen + rlen)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateString(processHeap(p), buff, llen + rlen)};
 }
 
 ReturnStatus g__str_splice(processPo p, ptrPo tos) {
@@ -365,8 +371,8 @@ ReturnStatus g__str_splice(processPo p, ptrPo tos) {
   uniNCpy(&buff[from], len - from, rhs, rlen);
   uniNCpy(&buff[from + rlen], len - from - rlen, &lhs[from + cnt], llen - from - cnt);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateString(processHeap(p), buff, len)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateString(processHeap(p), buff, len)};
 }
 
 ReturnStatus g__str_start(processPo p, ptrPo tos) {
@@ -377,8 +383,8 @@ ReturnStatus g__str_start(processPo p, ptrPo tos) {
   integer rlen;
   const char *rhs = stringVal(Arg2, &rlen);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(uniIsPrefix(lhs, llen, rhs, rlen) ? trueEnum : falseEnum)};
 }
 
 ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
@@ -396,7 +402,7 @@ ReturnStatus g__str_multicat(processPo p, ptrPo tos) {
   const char *buff = getTextFromBuffer(strb, &oLen);
 
   ReturnStatus rt = {.ret=Ok,
-                     .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+    .result=(termPo) allocateString(processHeap(p), buff, oLen)};
   closeFile(O_IO(strb));
   return rt;
 }
@@ -405,7 +411,7 @@ static retCode flatten(bufferPo str, normalPo ss) {
   integer cx = termArity(ss);
   retCode ret = Ok;
 
-  for (integer ix = 0; ret==Ok && ix < cx; ix++) {
+  for (integer ix = 0; ret == Ok && ix < cx; ix++) {
     termPo arg = nthArg(ss, ix);
     if (isString(arg)) {
       integer len;
@@ -413,8 +419,8 @@ static retCode flatten(bufferPo str, normalPo ss) {
       ret = outText(O_IO(str), elTxt, len);
     } else if (isNormalPo(arg)) {
       ret = flatten(str, C_TERM(arg));
-    } else if(isInteger(arg))
-      ret = outChar(O_IO(str),integerVal(arg));
+    } else if (isInteger(arg))
+      ret = outChar(O_IO(str), integerVal(arg));
   }
   return ret;
 }
@@ -430,12 +436,12 @@ ReturnStatus g__str_flatten(processPo p, ptrPo tos) {
     const char *buff = getTextFromBuffer(str, &oLen);
 
     ReturnStatus rt = {.ret=Ok,
-                       .result=(termPo) allocateString(processHeap(p), buff, oLen)};
+      .result=(termPo) allocateString(processHeap(p), buff, oLen)};
     closeFile(O_IO(str));
     return rt;
   } else {
     closeFile(O_IO(str));
-    return (ReturnStatus){.ret=ret, .result = voidEnum};
+    return (ReturnStatus) {.ret=ret, .result = voidEnum};
   }
 }
 
@@ -449,6 +455,6 @@ ReturnStatus g__str_reverse(processPo p, ptrPo tos) {
 
   uniReverse(buff, len);
 
-  return (ReturnStatus){.ret=Ok,
-            .result=(termPo) allocateString(processHeap(p), buff, len)};
+  return (ReturnStatus) {.ret=Ok,
+    .result=(termPo) allocateString(processHeap(p), buff, len)};
 }

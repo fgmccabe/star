@@ -79,7 +79,7 @@ static integer parseSize(char *text) {
   return parseInteger(text, (integer) (p - text)) * scale;
 }
 
-char * defltCWD() {
+char *defltCWD() {
   // set up working directory
   if (uniIsLit(CWD, "")) {
     char cbuff[MAXFILELEN];
@@ -204,7 +204,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       logMsg(logFile, "Resource tracing not enabled\n");
       return Error;
 #endif
-
+        continue;
       case 'P':    /* trace package operations  */
 #ifdef TRACEPKG
         tracePkg = True;

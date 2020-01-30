@@ -27,7 +27,7 @@ typedef termPo (*classCpyFun)(specialClassPo class, termPo dst, termPo src);
 
 typedef retCode (*classDispFun)(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
-typedef comparison (*classCmpFun)(specialClassPo class, termPo t1, termPo t2);
+typedef logical (*classSameFun)(specialClassPo class, termPo t1, termPo t2);
 
 typedef integer (*classHashFun)(specialClassPo class, termPo t1);
 
@@ -36,7 +36,7 @@ typedef struct special_class {
   classSizeFun sizeFun;        /* Function to compute size of object */
   classCpyFun copyFun;         /* Function to copy special object */
   classScanFun scanFun;        /* Function to scan object */
-  classCmpFun compFun;          // Compare two specials
+  classSameFun compFun;          // Compare two specials
   classHashFun hashFun;         // Compute a hash code of the value
   classDispFun dispFun;         // How to display the special object
 } SpecialClass;

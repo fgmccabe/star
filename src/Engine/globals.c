@@ -43,7 +43,7 @@ static retCode globalDel(globalPo glb, globalPo l);
 static long glbSize(specialClassPo cl, termPo o);
 static termPo glbCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison glbCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical glbCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer glbHash(specialClassPo cl, termPo o);
 static retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -98,7 +98,7 @@ globalPo C_GLOB(termPo t) {
   return (globalPo) t;
 }
 
-globalPo globalVar(const char *nm) {
+globalPo globalVar(const char *nm, termPo provider) {
   GlobalRecord tst = {.name=(char *) nm, .hash=uniHash(nm)};
   globalPo glb = hashGet(globals, &tst);
 
@@ -116,6 +116,7 @@ globalPo globalVar(const char *nm) {
 
     glb->name = uniDuplicate(nm);
     glb->content = Null;
+    glb->provider = provider;
     glb->clss = globalClass;
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
@@ -136,11 +137,11 @@ comparison globalCmp(globalPo lb1, globalPo lb2) {
   return uniCmp(lb1->name, lb2->name);
 }
 
-comparison glbCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical glbCmp(specialClassPo cl, termPo o1, termPo o2) {
   globalPo i1 = C_GLOB(o1);
   globalPo i2 = C_GLOB(o2);
 
-  return globalCmp(i1, i2);
+  return (logical) (globalCmp(i1, i2) == same);
 }
 
 static integer glbHash(specialClassPo cl, termPo o) {
@@ -166,12 +167,17 @@ termPo glbScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   if (glb->content != Null)
     helper((ptrPo) (&glb->content), c);
 
+  if (glb->provider != Null)
+    helper((ptrPo) (&glb->provider), c);
+
   return o + GlobalCellCount;
 }
 
 static void markGlobal(globalPo glb, gcSupportPo G) {
   if (glb->content != Null)
     glb->content = markPtr(G, (ptrPo) &glb->content);
+  if (glb->provider != Null)
+    glb->provider = markPtr(G, (ptrPo) &glb->provider);
 }
 
 void markGlobals(gcSupportPo G) {
@@ -201,14 +207,13 @@ globalPo findGlobalVar(int32 varNo) {
 }
 
 int32 globalVarNo(const char *nm) {
-  return (int32) (globalVar(nm)->varNo);
+  return (int32) (globalVar(nm, NULL)->varNo);
 }
 
-logical isValidGlobalVarNo(int32 varNo){
-  if(varNo>=0 && varNo<numGlbVars){
+logical isValidGlobalVarNo(int32 varNo) {
+  if (varNo >= 0 && varNo < numGlbVars) {
     return True;
-  }
-  else
+  } else
     return False;
 }
 
@@ -217,9 +222,13 @@ logical glbIsSet(globalPo glb) {
 }
 
 termPo setGlobalVar(globalPo v, termPo e) {
-  assert(e!=Null);
+  assert(e != Null);
 
   termPo prev = v->content;
   v->content = e;
   return prev;
+}
+
+termPo getProvider(globalPo glb) {
+  return glb->provider;
 }

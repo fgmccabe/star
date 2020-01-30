@@ -10,7 +10,7 @@
 static long sliceSize(specialClassPo cl, termPo o);
 static termPo sliceCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo sliceScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison sliceCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical sliceCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer sliceHash(specialClassPo cl, termPo o);
 static retCode sliceDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -29,7 +29,7 @@ clssPo listClass = (clssPo) &SliceClass;
 static long baseSize(specialClassPo cl, termPo o);
 static termPo baseCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo baseScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison baseCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical baseCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer baseHash(specialClassPo cl, termPo o);
 static retCode baseDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -77,7 +77,7 @@ termPo sliceScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) 
   return o + ListCellCount;
 }
 
-comparison sliceCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical sliceCmp(specialClassPo cl, termPo o1, termPo o2) {
   listPo l1 = C_LIST(o1);
   listPo l2 = C_LIST(o2);
   integer s1 = listSize(l1);
@@ -89,16 +89,11 @@ comparison sliceCmp(specialClassPo cl, termPo o1, termPo o2) {
     termPo e1 = nthEl(l1, ix);
     termPo e2 = nthEl(l2, ix);
 
-    comparison cmp = compareTerm(e1, e2);
-    if (cmp != same)
-      return cmp;
+    if (!sameTerm(e1, e2))
+      return False;
   }
-  if (s1 < s2)
-    return smaller;
-  else if (s1 > s2)
-    return bigger;
-  else
-    return same;
+
+  return (logical) (s1 == s2);
 }
 
 integer sliceHash(specialClassPo cl, termPo o) {
@@ -219,10 +214,10 @@ static termPo newSlice(heapPo H, basePo base, integer start, integer length) {
 }
 
 termPo sliceList(heapPo H, listPo list, integer from, integer to) {
-  assert(from >= 0 && to >= from && to-from <= list->length);
+  assert(from >= 0 && to >= from && to - from <= list->length);
   int root = gcAddRoot(H, (ptrPo) &list);
 
-  listPo slice = (listPo) newSlice(H, C_BASE(list->base), list->start + from, to-from);
+  listPo slice = (listPo) newSlice(H, C_BASE(list->base), list->start + from, to - from);
 
   gcReleaseRoot(H, root);
   return (termPo) slice;
@@ -388,11 +383,10 @@ listPo replaceListEl(heapPo H, listPo list, integer px, termPo vl) {
   }
 }
 
-listPo spliceList(heapPo H, listPo list, integer from, integer to, listPo rep)
-{
-  assert(from >= 0 && to>=from && to <= list->length);
+listPo spliceList(heapPo H, listPo list, integer from, integer to, listPo rep) {
+  assert(from >= 0 && to >= from && to <= list->length);
   int root = gcAddRoot(H, (ptrPo) &list);
-  gcAddRoot(H,(ptrPo) &rep);
+  gcAddRoot(H, (ptrPo) &rep);
 
   integer llen = list->length - to + from + rep->length;
 
@@ -555,11 +549,8 @@ termPo baseScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + BaseCellCount(base->length);
 }
 
-comparison baseCmp(specialClassPo cl, termPo o1, termPo o2) {
-  if (o1 == o2)
-    return same;
-  else
-    return incomparible;
+logical baseCmp(specialClassPo cl, termPo o1, termPo o2) {
+  return (logical) (o1 == o2);
 }
 
 integer baseHash(specialClassPo cl, termPo o) {

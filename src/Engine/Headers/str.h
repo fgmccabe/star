@@ -15,8 +15,6 @@ extern clssPo stringClass;
 
 extern stringPo C_STR(termPo t);
 
-typedef retCode (*charProc)(codePoint ch, integer ix, void *cl);
-
 static inline logical isString(termPo p) {
   return hasClass(p, stringClass);
 }
@@ -30,8 +28,6 @@ extern integer stringHash(stringPo str);
 extern stringPo allocateString(heapPo H, const char *txt, long length);
 
 extern stringPo allocateCString(heapPo H, const char *txt);
-
-extern retCode processString(stringPo str, charProc p, void *cl);
 
 extern retCode copyString2Buff(stringPo str, char *buffer, integer buffLen);
 

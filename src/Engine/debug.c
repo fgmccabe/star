@@ -452,7 +452,7 @@ static DebugWaitFor dbgShowGlobal(char *line, processPo p, termPo loc, insWord i
   }
   if (uniStrLen(buff) > 0) {
     appendCodePoint(buff, &pos, NumberOf(buff), 0);
-    globalPo glb = globalVar(buff);
+    globalPo glb = globalVar(buff, NULL);
     if (glb != Null) {
       termPo val = getGlobal(glb);
       if (val != Null)

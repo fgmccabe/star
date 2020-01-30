@@ -14,7 +14,7 @@ static hashPo packages;
 static long mtdSize(specialClassPo cl, termPo o);
 static termPo mtdCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison mtdCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical mtdCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer mtdHash(specialClassPo cl, termPo o);
 static retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -72,11 +72,8 @@ termPo mtdScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return ((termPo) o) + mtdSize(cl, o);
 }
 
-comparison mtdCmp(specialClassPo cl, termPo o1, termPo o2) {
-  if (o1 == o2)
-    return same;
-  else
-    return incomparible;
+logical mtdCmp(specialClassPo cl, termPo o1, termPo o2) {
+  return (logical) (o1 == o2);
 }
 
 integer mtdHash(specialClassPo cl, termPo o) {
@@ -91,35 +88,6 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
     return showLbl(out, precision, alt, lbl);
   } else
     return outMsg(out, "<unknown mtd>");
-}
-
-methodPo
-defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-          normalPo locals, normalPo lines) {
-  int root = gcAddRoot(H, (ptrPo) &lbl);
-  gcAddRoot(H, (ptrPo) &pool);
-  gcAddRoot(H, (ptrPo) &locals);
-  gcAddRoot(H, (ptrPo) &lines);
-
-  methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
-
-  for (integer ix = 0; ix < insCount; ix++)
-    mtd->code[ix] = ins[ix];
-
-  mtd->codeSize = insCount;
-  mtd->jit = Null;
-  mtd->arity = lbl->arity;
-  mtd->lclcnt = lclCount;
-  mtd->pool = pool;
-  mtd->locals = locals;
-  mtd->lines = lines;
-  mtd->stackDelta = stackDelta;
-
-  lbl->mtd = mtd;
-
-  gcReleaseRoot(H, root);
-
-  return mtd;
 }
 
 void markMtd(gcSupportPo G, methodPo mtd) {
@@ -138,14 +106,14 @@ logical validPC(methodPo mtd, insPo pc) {
   return (logical) (pc >= mtd->code && pc < &mtd->code[mtd->codeSize]);
 }
 
-integer mtdCodeSize(methodPo mtd){
+integer mtdCodeSize(methodPo mtd) {
   return mtd->codeSize;
 }
 
 termPo findPcLocation(methodPo mtd, integer pc) {
   normalPo lines = mtd->lines;
   integer start = 0;
-  integer limit = termArity(lines)-1;
+  integer limit = termArity(lines) - 1;
 
   integer lowerPc = -1;
   integer upperPc = mtdCodeSize(mtd);
@@ -162,13 +130,13 @@ termPo findPcLocation(methodPo mtd, integer pc) {
     if (testPc == pc)
       return testLoc;
     else if (testPc < pc) {
-      start = mid+1;
+      start = mid + 1;
       if (testPc > lowerPc) {
         lowerPc = testPc;
         lowerLoc = testLoc;
       }
     } else {
-      limit = mid-1;
+      limit = mid - 1;
 
       if (testPc < upperPc) {
         upperPc = testPc;
@@ -206,7 +174,7 @@ termPo getMtdLit(methodPo mtd, integer litNo) {
 }
 
 packagePo loadedPackage(const char *package) {
-  return (packagePo) hashGet(packages, (void*)package);
+  return (packagePo) hashGet(packages, (void *) package);
 }
 
 logical isLoadedPackage(packagePo pkg) {
@@ -265,4 +233,33 @@ integer lclCount(methodPo mtd) {
 
 integer codeArity(methodPo mtd) {
   return mtd->arity;
+}
+
+methodPo
+defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
+          normalPo locals, normalPo lines) {
+  int root = gcAddRoot(H, (ptrPo) &lbl);
+  gcAddRoot(H, (ptrPo) &pool);
+  gcAddRoot(H, (ptrPo) &locals);
+  gcAddRoot(H, (ptrPo) &lines);
+
+  methodPo mtd = (methodPo) allocateObject(H, methodClass, MtdCellCount(insCount));
+
+  for (integer ix = 0; ix < insCount; ix++)
+    mtd->code[ix] = ins[ix];
+
+  mtd->codeSize = insCount;
+  mtd->jit = Null;
+  mtd->arity = lbl->arity;
+  mtd->lclcnt = lclCount;
+  mtd->pool = pool;
+  mtd->locals = locals;
+  mtd->lines = lines;
+  mtd->stackDelta = stackDelta;
+
+  lbl->mtd = mtd;
+
+  gcReleaseRoot(H, root);
+
+  return mtd;
 }

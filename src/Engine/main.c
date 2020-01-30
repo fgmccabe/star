@@ -10,11 +10,11 @@
 #include <iochnnlP.h>
 #include <arrayP.h>
 #include <rrbP.h>
+#include <memoP.h>
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
 #include "formioP.h"
-#include "futureP.h"
 #include "arithP.h"
 #include "strP.h"
 #include "debug.h"
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
   initLbls();
   initGlobals();
   initCell();
-  initFuture();
+  initMemo();
   initCode();
   initLocks();
   initTerm();
