@@ -243,6 +243,22 @@ retCode uniReverse(char *dest, integer len) {
   return Ok;
 }
 
+retCode processUnicodes(const char *text, integer length, uniCodeProc p, void *cl) {
+  retCode ret = Ok;
+  integer ix = 0;
+
+  while (ret == Ok && ix < length) {
+    codePoint cp;
+
+    integer i = ix;
+    ret = nxtPoint(text, &ix, length, &cp);
+
+    if (ret == Ok)
+      ret = p(cp, i, cl);
+  }
+  return ret;
+}
+
 retCode uniCpy(char *dest, integer len, const char *src) {
   int pos = 0;
   char *s = (char *) src;
