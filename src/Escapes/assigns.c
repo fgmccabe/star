@@ -50,7 +50,7 @@ static globalPo globalLabel(termPo t) {
 
   copyString2Buff(C_STR(t), lblNm, NumberOf(lblNm));
 
-  return globalVar(lblNm);
+  return globalVar(lblNm, NULL);
 }
 
 ReturnStatus g__isDefinedVr(processPo p, ptrPo tos) {

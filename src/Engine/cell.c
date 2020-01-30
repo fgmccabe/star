@@ -10,7 +10,7 @@
 static long cellSize(specialClassPo cl, termPo o);
 static termPo cellCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison cellCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical cellCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer cellHash(specialClassPo cl, termPo o);
 static retCode cellDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -46,10 +46,10 @@ termPo cellScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + CellCellCount;
 }
 
-comparison cellCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical cellCmp(specialClassPo cl, termPo o1, termPo o2) {
   cellPo c1 = C_CELL(o1);
   cellPo c2 = C_CELL(o2);
-  return compareTerm(c1->content, c2->content);
+  return sameTerm(c1->content, c2->content);
 }
 
 integer cellHash(specialClassPo cl, termPo o) {

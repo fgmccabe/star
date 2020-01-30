@@ -11,7 +11,7 @@
 static long vectorSize(specialClassPo cl, termPo o);
 static termPo vectorCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo vectorScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison vectorCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical vectorCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer vectorHash(specialClassPo cl, termPo o);
 static retCode vectorDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -58,28 +58,23 @@ termPo vectorScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o)
   return o + VectorCellCount;
 }
 
-comparison vectorCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical vectorCmp(specialClassPo cl, termPo o1, termPo o2) {
   vectPo l1 = C_VECT(o1);
   vectPo l2 = C_VECT(o2);
-  integer s1 = vectorCount(l1);
-  integer s2 = vectorCount(l2);
+  integer sz = vectorCount(l1);
 
-  integer sz = minimum(s1, s2);
+  if (sz != vectorCount(l2))
+    return False;
+  else {
+    for (integer ix = 0; ix < sz; ix++) {
+      termPo e1 = nthEntry(l1, ix);
+      termPo e2 = nthEntry(l2, ix);
 
-  for (integer ix = 0; ix < sz; ix++) {
-    termPo e1 = nthEntry(l1, ix);
-    termPo e2 = nthEntry(l2, ix);
-
-    comparison cmp = compareTerm(e1, e2);
-    if (cmp != same)
-      return cmp;
+      if (!sameTerm(e1, e2))
+        return False;
+    }
+    return True;
   }
-  if (s1 < s2)
-    return smaller;
-  else if (s1 > s2)
-    return bigger;
-  else
-    return same;
 }
 
 static integer vectorDepth(vectPo vect) {

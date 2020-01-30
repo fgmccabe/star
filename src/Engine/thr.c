@@ -9,7 +9,7 @@
 static long thrSize(specialClassPo cl, termPo o);
 static termPo thrCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
-static comparison thrCmp(specialClassPo cl, termPo o1, termPo o2);
+static logical thrCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer thrHash(specialClassPo cl, termPo o);
 static retCode thrDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
 
@@ -56,14 +56,11 @@ termPo thrScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
   return o + ThreadCellCount;
 }
 
-comparison thrCmp(specialClassPo cl, termPo o1, termPo o2) {
+logical thrCmp(specialClassPo cl, termPo o1, termPo o2) {
   threadPo l1 = C_THREAD(o1);
   threadPo l2 = C_THREAD(o2);
 
-  if (l1 == l2)
-    return same;
-  else
-    return incomparible;
+  return (logical) (l1 == l2);
 }
 
 integer thrHash(specialClassPo cl, termPo o) {

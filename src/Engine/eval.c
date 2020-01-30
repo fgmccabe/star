@@ -324,11 +324,42 @@ retCode run(processPo P) {
       case LdG: {
         int32 glbNo = collectI32(PC);
         globalPo glb = findGlobalVar(glbNo);
-        termPo vr = getGlobal(glb);
 
-        check(vr != Null, "undefined global");
+        if (glbIsSet(glb)) {
+          termPo vr = getGlobal(glb);
 
-        push(vr);     /* load a global variable */
+          check(vr != Null, "undefined global");
+
+          push(vr);     /* load a global variable */
+        } else {
+          termPo prov = getProvider(glb);  // Set up an OCall to the provider
+
+          normalPo nProg = C_TERM(prov);
+
+          push(PROG);
+          push(PC);       /* build up the frame. */
+          labelPo oLbl = termLbl(nProg);
+          PROG = labelCode(objLabel(oLbl, 0));       /* set up for object call */
+          PC = entryPoint(PROG);
+          LITS = codeLits(PROG);
+
+          push(FP);
+          FP = (framePo) SP;     /* set the new frame pointer */
+
+          if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
+            saveRegisters(P, SP);
+            if (extendStack(P, 2) != Ok) bail();
+            restoreRegisters(P);
+          }
+          assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
+
+          integer lclCnt = lclCount(PROG);  /* How many locals do we have */
+          SP -= lclCnt;
+#ifdef TRACEEXEC
+          for (integer ix = 0; ix < lclCnt; ix++)
+            SP[ix] = voidEnum;
+#endif
+        }
         continue;
       }
 

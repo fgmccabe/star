@@ -66,8 +66,6 @@ static inline logical hasClass(termPo obj, clssPo clss) {
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt);
 retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt);
 
-logical sameTerm(termPo t1, termPo t2);
-
-extern comparison compareTerm(termPo t1, termPo t2);
+extern logical sameTerm(termPo t1, termPo t2);
 
 #endif //STAR_TERM_H
