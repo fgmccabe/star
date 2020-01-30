@@ -112,6 +112,9 @@ logical uniIsTrivial(const char *s, integer len);
 
 integer hash64(integer ix);
 
+typedef retCode (*uniCodeProc)(codePoint ch, integer ix, void *cl);
+extern retCode processUnicodes(const char *text, integer length, uniCodeProc p, void *cl);
+
 #ifndef uniEOF
 #define uniEOF (0xffff)
 #endif

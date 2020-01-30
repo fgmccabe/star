@@ -31,7 +31,7 @@ static retCode nullClose(ioPo f);
 
 IoClassRec IoClass = {
   {
-    (classPo)&LockedClass,                /* parent class is object */
+    (classPo) &LockedClass,                /* parent class is object */
     "io",                                 /* this is the io class */
     initIoClass,                          /* IO class initializer */
     O_INHERIT_DEF,                        /* IO object element creation */
@@ -454,8 +454,11 @@ retCode closeFile(ioPo f) {
     if (f == activeSet) {
       if (f->io.next == f && f->io.prev == f)
         activeSet = NULL;    /* no more active files */
-      else
+      else {
+        activeSet->io.prev->io.next = activeSet->io.next;
+        activeSet->io.next->io.prev = activeSet->io.prev;
         activeSet = f->io.next;  /* move the base pointer along */
+      }
     }
 
     f->io.next->io.prev = f->io.prev;
@@ -616,7 +619,19 @@ logical isWritingFile(ioPo f) {
   return ret;
 }
 
+static logical testChar(char mark, char ch, char *special) {
+  if (mark == '\1') {
+    if (*special == '\0') {
+      *special = ch;
+      return True;
+    } else
+      return (logical) (*special == ch);
+  } else
+    return (logical) (mark == ch);
+}
+
 retCode isLookingAt(ioPo f, char *prefix) {
+  char special = '\0';
   char *mark = prefix;
   retCode ret = Ok;
   byte ch = 0;
@@ -624,11 +639,14 @@ retCode isLookingAt(ioPo f, char *prefix) {
   while (ret == Ok && *mark != '\0') {
     ret = inByte(O_IO(f), &ch);
     if (ret == Ok) {
-      if (ch != *mark) {
+      if (!testChar(*mark, ch, &special)) {
         putBackByte(f, ch);
         while (mark > prefix) {
           byte b = (byte) *--mark;
-          putBackByte(f, b);
+          if (b == '\01')
+            putBackByte(f, special);
+          else
+            putBackByte(f, b);
         }
         return Fail;
       } else

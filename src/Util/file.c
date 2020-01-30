@@ -894,43 +894,41 @@ retCode skipShellPreamble(filePo f) {
   return ret;
 }
 
-char *resolveFileName(char *cwd, const char *fn, integer fnLen,
-                      char *buff, integer buffLen) {
+char *resolveFileName(char *base, const char *path, integer pathLen, char *buff, integer buffLen) {
   char wd[MAXFILELEN];
-  integer fnPos = 0;
-  char *fileNm = (char *) fn;
+  char *fileNm = (char *) path;
 
-  if (fn[0] == '/') {
-    uniNCpy(buff, buffLen, fn, fnLen);
+  if (path[0] == '/') {
+    uniNCpy(buff, buffLen, path, pathLen);
     return buff;
-  } else if (fn[0] == '~') {
-    integer fstSlash = uniIndexOf(fn, fnLen, 1, '/');
+  } else if (path[0] == '~') {
+    integer fstSlash = uniIndexOf(path, pathLen, 1, '/');
     if (fstSlash > 0) {
       char User[MAXFILELEN];
       if (fstSlash > 1)
-        uniNCpy(User, NumberOf(User), fn + 1, fstSlash - 1);
+        uniNCpy(User, NumberOf(User), path + 1, fstSlash - 1);
       else
         uniCpy(User, NumberOf(User), getenv("USER"));
-      fileNm = (char *) &fn[fstSlash + 1];
-      fnLen -= fstSlash + 1;
+      fileNm = (char *) &path[fstSlash + 1];
+      pathLen -= fstSlash + 1;
 
       if (homeDir(User, wd, NumberOf(wd)) != Ok)
         return Null;
     }
   } else {
-    uniTrim(cwd, uniStrLen(cwd), "", "/", wd, NumberOf(wd));
-    fileNm = (char *) fn;
+    uniTrim(base, uniStrLen(base), "", "/", wd, NumberOf(wd));
+    fileNm = (char *) path;
   }
 
   char fname[MAXFILELEN];
-  uniTrim(fileNm, fnLen, "", "/", fname, NumberOf(fname));
-  fnLen = uniStrLen(fname);
+  uniTrim(fileNm, pathLen, "", "/", fname, NumberOf(fname));
+  pathLen = uniStrLen(fname);
 
   integer wdLen = uniStrLen(wd);
   integer pos = 0;
 
-  while (pos < fnLen && fname[pos] == '.') {
-    if (pos < fnLen - 2 && fname[pos + 1] == '.' && fname[pos + 2] == '/') {
+  while (pos < pathLen && fname[pos] == '.') {
+    if (pos < pathLen - 2 && fname[pos + 1] == '.' && fname[pos + 2] == '/') {
       integer last = uniLastIndexOf(wd, wdLen, '/');
       if (last >= 0) {
         wdLen = last;
@@ -938,9 +936,9 @@ char *resolveFileName(char *cwd, const char *fn, integer fnLen,
         pos += 3;
       } else
         break;
-    } else if (pos < fnLen - 1 && fname[pos + 1] == '/') {
+    } else if (pos < pathLen - 1 && fname[pos + 1] == '/') {
       pos += 2;
-    } else if (pos == fnLen - 1)
+    } else if (pos == pathLen - 1)
       pos++;
     else
       break;
