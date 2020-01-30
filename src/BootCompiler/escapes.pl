@@ -4,7 +4,7 @@
 
 escapeType("_exit",funType(tupleType([type("star.core*integer")]),tupleType([]))).
 escapeType("_command_line",funType(tupleType([]),tpExp(tpFun("star.core*list",1),type("star.core*string")))).
-escapeType("_abort",allType(kVar("s"),allType(kVar("t"),funType(tupleType([kVar("s"),kVar("t")]),tupleType([]))))).
+escapeType("_abort",allType(kVar("s"),funType(tupleType([kVar("s"),type("star.core*string")]),tupleType([])))).
 escapeType("_identical",allType(kVar("t"),funType(tupleType([kVar("t"),kVar("t")]),type("star.core*boolean")))).
 escapeType("_definedLbl",funType(tupleType([type("star.core*string"),type("star.core*integer")]),type("star.core*boolean"))).
 escapeType("_callLbl",funType(tupleType([type("star.core*string"),type("star.core*integer"),tpExp(tpFun("star.core*list",1),tpExp(tpFun("star.core*list",1),type("star.core*string")))]),tupleType([]))).
