@@ -37,8 +37,4 @@ extern integer insOffset(methodPo m, insPo pc);
 extern insPo pcAddr(methodPo mtd, integer off);
 extern integer mtdCodeSize(methodPo mtd);
 
-extern methodPo
-defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
-          normalPo locals, normalPo lines);
-
 #endif

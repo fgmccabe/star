@@ -65,4 +65,8 @@ retCode loadPackage(packagePo p, char *errorMsg, long msgSize, void *cl);
 typedef retCode (*pickupPkg)(packagePo pkg, char *errorMsg, long msgLen, void *cl);
 extern retCode
 installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msgSize, pickupPkg pickup, void *cl);
+
+extern methodPo
+defineMtd(heapPo H, insPo ins, integer insCount, integer lclCount, integer stackDelta, labelPo lbl, normalPo pool,
+          normalPo locals, normalPo lines);
 #endif
