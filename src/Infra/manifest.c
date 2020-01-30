@@ -171,7 +171,7 @@ char *manifestCompatibleResource(char *pkg, char *version, char *kind) {
   manifestEntryPo entry = manifestEntry(pkg);
   if (entry != Null) {
     manifestVersionPo v = manifestVersion(entry, version);
-    if (version != Null) {
+    if (v != Null && version != Null) {
       manifestRsrcPo f = hashGet(v->resources, kind);
 
       if (f != NULL)
@@ -203,7 +203,11 @@ retCode loadManifest() {
   ioPo inFile = openInFile(manifestName, utf8Encoding);
 
   if (inFile != NULL) {
-    return decodeManifest(inFile);
+    retCode ret = decodeManifest(inFile);
+
+    if (traceManifest)
+      dispManifest(logFile);
+    return ret;
   } else {
     return Fail;
   }
@@ -468,7 +472,7 @@ typedef struct {
   logical first;
 } IndentPolicy;
 
-retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
+static retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
 
   char *sep = policy->first ? "" : ",\n";
@@ -477,7 +481,7 @@ retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
   return outMsg(policy->out, "%s%p\"%s\":\"%s\"", sep, policy->indent, rsrc->kind, rsrc->fn);
 }
 
-retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
+static retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
   IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out, .first=True};
 
@@ -494,7 +498,7 @@ retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
   return ret;
 }
 
-retCode dispEntry(char *v, manifestEntryPo entry, void *cl) {
+static retCode dispEntry(char *v, manifestEntryPo entry, void *cl) {
   IndentPolicy *policy = (IndentPolicy *) cl;
   IndentPolicy inner = {.indent=policy->indent + 2, .out=policy->out, .first=True};
 
