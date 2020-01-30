@@ -10,6 +10,7 @@
     "star.cons": "cons.star",
     "star.core": "core.star",
     "star.bits": "bits.star",
+    "star.capabilities": "capabilities.star",
     "star.coerce": "coerce.star",
     "star.combo": "combo.star",
     "star.display": "display.star",

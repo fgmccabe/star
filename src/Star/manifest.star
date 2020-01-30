@@ -8,9 +8,9 @@ star.repo.manifest{
 
   public manifest ::= man(map[string,pEntry]).
 
-  pEntry ::= pEntry(string,list[(version,mInfo)]).
+  public pEntry ::= pEntry(string,list[(version,mInfo)]).
 
-  mInfo ::= mInfo(version,map[string,string]).
+  public mInfo ::= mInfo(version,map[string,string]).
 
   public implementation coercion[json,manifest] => {
     _coerce(J) => fromJson(J).

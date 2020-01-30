@@ -265,6 +265,21 @@ star.uri{
   .}
 
   public implementation coercion[string,uri] => {.
-    _coerce(S) where parseUri(S)=.some(U) => U.
+    _coerce(S) where parseUri(S)=.some(U) => U
   .}
+
+  public editUriPath:(uri,(list[string])=>option[list[string]])=>option[uri].
+  editUriPath(absUri(Scheme,ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(absUri(Scheme,NRes,Qury)).
+  editUriPath(relUri(ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(relUri(NRes,Qury)).
+  editUriPath(_,_) default => none.
+
+  editUriResource:(rsrcName,(list[string])=>option[list[string]])=>option[rsrcName].
+  editUriResource(netRsrc(Auth,Path),F) where NPath^=editPath(Path,F) => some(netRsrc(Auth,NPath)).
+  editUriResource(localRsrc(Path),F) where NPath^=editPath(Path,F) => some(localRsrc(NPath)).
+  editUriResource(_,_) default => none.
+
+  editPath:(resourcePath,(list[string])=>option[list[string]])=>option[resourcePath].
+  editPath(absPath(Els),F) where NEls^=F(Els) => some(absPath(NEls)).
+  editPath(relPath(Els),F) where NEls^=F(Els) => some(relPath(NEls)).
+  editPath(_,_) default => none.
 }

@@ -60,7 +60,6 @@ star.repo.file{
       SU ^= parseUri(S) &&
       SrcFile ^= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
   packageCode(_,_) default => none.
-  
     
   public addPackage:(fileRepo,pkg,string) => fileRepo.
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
