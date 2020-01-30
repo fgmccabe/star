@@ -36,7 +36,7 @@ star.compiler.canon{
     record(locn,string,list[(string,canon)],tipe) |
     update(locn,canon,canon).
 
-  public equation ::= eqn(locn,canon,canon).
+  public equation ::= eqn(locn,canon,option[canon],canon).
 
   public canonAction ::= noDo(locn) |
     seqnDo(locn,canonAction,canonAction) |
@@ -109,12 +109,16 @@ star.compiler.canon{
   .}
 
   public implementation hasLoc[equation] => {.
-    locOf(eqn(Lc,_,_)) => Lc.
+    locOf(eqn(Lc,_,_,_)) => Lc.
   .}
 
   public implementation display[pkgSpec] => {.
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
       ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)").
+  .}
+
+  public implementation hasType[pkgSpec] => {.
+    typeOf(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Face
   .}
 
   public implementation display[implSpec] => let{
@@ -211,7 +215,10 @@ star.compiler.canon{
   showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"))).
 
   showRl:(string,equation,string) => ss.
-  showRl(Nm,eqn(_,Ptn,Val),Sp) => ssSeq([ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
+  showRl(Nm,eqn(_,Ptn,none,Val),Sp) => ssSeq([
+      ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
+  showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
+      ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
 
   public implementation display[canon] => {.
     disp(C) => showCanon(C,"")
@@ -240,4 +247,7 @@ star.compiler.canon{
   isGoal(neg(_,_)) => true.
   isGoal(cond(_,_,L,R)) => isGoal(L) && isGoal(R).
   isGoal(_) default => false.
+
+  public pkgImports:(pkgSpec)=>list[importSpec].
+  pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.
 }

@@ -4,6 +4,7 @@ star.compiler.core{
   import star.compiler.location.
   import star.compiler.terms.
   import star.compiler.types.
+  import star.pkg.
   
   public crExp ::= crVar(locn,crVar)
     | crInt(locn,integer)
@@ -75,6 +76,7 @@ star.compiler.core{
   dspExp(crCnd(_,T,L,R),Off) where Off2 .= Off++"  " =>
     ssSeq([ss("("),dspExp(T,Off),ss("? "),dspExp(L,Off2),ss(" ||\n"),ss(Off2),dspExp(R,Off2),ss(")")]).
   dspExp(crNeg(_,R),Off) => ssSeq([ss("\\+"),dspExp(R,Off)]).
+  dspExp(crAbort(_,Msg,_),Off) => ssSeq([ss("abort "),disp(Msg)]).
 
   dspCases(Cs,Off) => let{
     Gap = ss(";\n"++Off).
@@ -159,6 +161,11 @@ star.compiler.core{
 
   public implementation display[crVar] => {.
     disp(crId(Nm,_)) => ssSeq([ss("%"),ss(Nm)]).
+  .}
+
+  public implementation coercion[locn,crExp] => {.
+    _coerce(Lc) where locn(pkg(Nm,_),Line,Col,Off,Len).=Lc =>
+      mkCrTpl([crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)],Lc)
   .}
 
   public rewriteTerm:(crExp,map[string,crExp])=>crExp.

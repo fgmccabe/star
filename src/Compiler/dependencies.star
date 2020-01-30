@@ -128,6 +128,8 @@ star.compiler.dependencies{
 	Sp = varSp(Nm);
 	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],[(Sp,Vz),..Pb],As,Opn)
       }.
+  collectDefinition(A,_,_,_,_,_,_,Rp) =>
+    other(reportError(Rp,"cannot understand definition $(A)",locOf(A))).
 
   collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
   collectDefines([St,..Ss],Nm,Dfs) where

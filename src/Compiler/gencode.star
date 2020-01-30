@@ -59,7 +59,7 @@ star.compiler.gencode{
     Ctxa = argVars(Args,Ctx,0);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(),Ctxa,[],[],Rp);
     if [Top].=Stk then
-      valis method(tLbl(Nm,size(Args)),Tp,size(Ctxx),Code)
+      valis method(tLbl(Nm,size(Args)),Tp,Code)
     else
     throw reportError(Rp,"top of stack should have exactly one type, not $(Stk)",Lc)
   }
@@ -68,7 +68,7 @@ star.compiler.gencode{
     Ctx = emptyCtx(Lc,Glbs);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(),Ctx,[],[],Rp);
     if [Top].=Stk then
-      valis global(tLbl(Nm,0),Tp,size(Ctxx),Code)
+      valis global(tLbl(Nm,0),Tp,Code)
     else
     throw reportError(Rp,"top of stack should have exactly one type, not $(Stk)",Lc).
   }
@@ -110,6 +110,9 @@ star.compiler.gencode{
     (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
     compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
+  compExp(crAbort(Lc,Msg,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compExps([Lc::crExp,crStrg(Lc,Msg)],Opts,bothCont(escCont("_abort",2,Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
+
   compExp(C,Opts,Cont,Ctx,Cde,Stk,Rp) where isCrCond(C) =>
     compCond(C,Opts,litCont(enum(tLbl("star.core$true",0)),boolType),
       litCont(enum(tLbl("star.core$false",0)),boolType),Ctx,Cde,Stk,Rp).
@@ -164,8 +167,13 @@ star.compiler.gencode{
 
   compPtn:(crExp,compilerOptions,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
-  compPtn(crVar(Lc,crId(Vr,Tp)),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) where Loc ^= locateVar(Vr,Ctx) => do{
-    compPtnVar(Lc,Vr,Loc,Opts,Succ,Ctx,Cde,Stk,Rp)
+  compPtn(crVar(Lc,crId(Vr,Tp)),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    if Loc ^= locateVar(Vr,Ctx) then 
+      compPtnVar(Lc,Vr,Loc,Opts,Succ,Ctx,Cde,Stk,Rp)
+    else{
+      (Off,Ctx1) = defineLclVar(crId(Vr,Tp),Ctx);
+      compPtnVar(Lc,Vr,lclVar(Off,Tp),Opts,Succ,Ctx1,Cde,Stk,Rp)
+    }
   }
   compPtn(L,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) where T^=isLiteral(L) =>
     ptnTest(locOf(L),Succ,Fail,Ctx,[Cde..,iLdC(T)],[Stk..,typeOf(L)],Rp).
@@ -358,8 +366,8 @@ star.compiler.gencode{
   locateVar(Nm,codeCtx(Vars,_,_,_)) => Vars[Nm].
 
   defineLclVar:(crVar,codeCtx) => (integer,codeCtx).
-  defineLclVar(crId(Nm,Tp),codeCtx(Vrs,Lc,Count,Lbl))=>
-    (Count,codeCtx(Vrs[Nm->lclVar(Count,Tp)],Lc,Count+1,Lbl)).
+  defineLclVar(crId(Nm,Tp),codeCtx(Vrs,Lc,Count,Lbl)) where NxtCnt .= Count+1 =>
+    (NxtCnt,codeCtx(Vrs[Nm->lclVar(NxtCnt,Tp)],Lc,NxtCnt,Lbl)).
 
   defineLbl:(codeCtx)=>(string,codeCtx).
   defineLbl(codeCtx(Vrs,Lc,Count,Lb))=>("L$(Lb)",codeCtx(Vrs,Lc,Count,Lb+1)).

@@ -23,8 +23,8 @@ star.compiler.checker{
 
   -- package level of type checker
 
-  public checkPkg:all r ~~ repo[r]|:(r,ast,dict,reports) => either[reports,(pkgSpec,canonDef)].
-  checkPkg(Repo,P,Base,Rp) => do{
+  public checkPkg:all r ~~ repo[r],display[r]|:(r,pkg,ast,dict,reports) => either[reports,(pkgSpec,canonDef)].
+  checkPkg(Repo,Pkge,P,Base,Rp) => do{
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
@@ -55,7 +55,7 @@ star.compiler.checker{
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
       PkgType = faceType(Fields,Types);
       PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,ROthers,Rp);
-      valis (pkgSpec(Pkg,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),Path,PkgTheta,[],PkgType))
+      valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),Path,PkgTheta,[],PkgType))
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
@@ -162,7 +162,7 @@ star.compiler.checker{
 
   guessStmtType([],Nm,Lc,Rp) => other(reportError(Rp,"$(Nm) not declared",Lc)).
   guessStmtType([St,.._],Nm,Lc,Rp) => do{
-    if (_,H,_) ^= isEquation(St) && (_,Args,_) ^= splitHead(H) then {
+    if (_,H,_) ^= isEquation(St) && (_,Args,_,_) ^= splitHead(H) then {
       valis funType(genArgTps(Args),newTypeVar("_R"))
     } else if (_,_,_) ^= isAssignment(St) then{
       valis refType(newTypeVar("R"))
@@ -243,13 +243,20 @@ star.compiler.checker{
   }
 
   processEqn(St,ProgramType,Env,Path,Rp) where
-      (Lc,H,R) ^= isEquation(St) && (_,Arg,IsDeflt) ^= splitHead(H) => do{
+      (Lc,H,R) ^= isEquation(St) && (_,Arg,Cnd,IsDeflt) ^= splitHead(H) => do{
 	Ats = genArgTps(Arg);
 	RTp = newTypeVar("_R");
 	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
-	(Args,Ev) <- typeOfArgPtn(Arg,tupleType(Ats),Env,Path,Rp);
-	Rep <- typeOfExp(R,RTp,Ev,Path,Rp);
-	valis (eqn(Lc,Args,Rep),IsDeflt)
+	(Args,E0) <- typeOfArgPtn(Arg,tupleType(Ats),Env,Path,Rp);
+	if Wh^=Cnd then{
+	  (Cond,E1) <- checkGoal(Wh,E0,Path,Rp);
+	  Rep <- typeOfExp(R,RTp,E1,Path,Rp);
+	  
+	  valis (eqn(Lc,Args,some(Cond),Rep),IsDeflt)
+	} else{
+	  Rep <- typeOfExp(R,RTp,E0,Path,Rp);
+	  valis (eqn(Lc,Args,none,Rep),IsDeflt)
+	}
       }.
 
   checkImplementation:(locn,string,list[ast],list[ast],ast,ast,dict,string,reports) =>
@@ -449,7 +456,7 @@ star.compiler.checker{
     checkRle(E,RRp) where (Lc,H,R) ^= isEquation(E) => do{
       (Arg,E0) <- typeOfPtn(H,ETp,Env,Path,RRp);
       Rep <- typeOfExp(R,Tp,E0,Path,RRp);
-      valis eqn(Lc,Arg,Rep)
+      valis eqn(Lc,Arg,none,Rep)
     }
     checkRle(E,RRp) => other(reportError(RRp,"invalid case $(E)",locOf(E))).
 
@@ -748,7 +755,7 @@ star.compiler.checker{
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
     HT = funType([ErTp],tpExp(StTp,ElTp));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis lambda(Lc,[eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),act(locOf(A),H))],HT)
+    valis lambda(Lc,[eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),none,act(locOf(A),H))],HT)
   }
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
     HT = funType([ErTp],tpExp(StTp,ElTp));
@@ -787,7 +794,7 @@ star.compiler.checker{
     (As,E0) <- typeOfArgPtn(A,At,Env,Path,Rp);
     Rep <- typeOfExp(R,Rt,E0,Path,Rp);
     checkType(A,fnType(At,Rt),Tp,Env,Rp);
-    valis lambda(Lc,[eqn(Lc,As,Rep)],Tp)
+    valis lambda(Lc,[eqn(Lc,As,none,Rep)],Tp)
   }
 
   checkType:(ast,tipe,tipe,dict,reports) => either[reports,()].

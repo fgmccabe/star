@@ -12,9 +12,9 @@ star.compiler.matcher{
   import star.compiler.location.
   import star.compiler.terms.
 
-  triple ~> (list[crExp],(locn,list[(string,crVar)],crExp),integer).
+  triple ~> (list[crExp],(locn,list[(string,crVar)],option[crExp],crExp),integer).
 
-  public functionMatcher:(locn,string,tipe,list[(locn,list[crExp],crExp)]) => crDefn.
+  public functionMatcher:(locn,string,tipe,list[(locn,list[crExp],option[crExp],crExp)]) => crDefn.
   functionMatcher(Lc,Nm,Tp,Eqns) => valof action{
     NVrs = genVars(funTypeArg(Tp));
     Trpls = makeTriples(Eqns);
@@ -31,9 +31,9 @@ star.compiler.matcher{
     genV([T,..Ts]) => [crId(genSym("_"),T),..genV(Ts)].
   } in genV(L).
 
-  makeTriples:(list[(locn,list[crExp],crExp)]) => list[triple].
-  makeTriples(Eqns) => ixLeft((Ts,Ix,(Lc,Args,Exp))=>
-      [Ts..,(Args,(Lc,[],Exp),Ix)],[],Eqns).
+  makeTriples:(list[(locn,list[crExp],option[crExp],crExp)]) => list[triple].
+  makeTriples(Eqns) => ixLeft((Ts,Ix,(Lc,Args,Wh,Exp))=>
+      [Ts..,(Args,(Lc,[],Wh,Exp),Ix)],[],Eqns).
 
   genRaise(Lc,Tp) => crAbort(Lc,"no matches",Tp).
 
@@ -117,8 +117,10 @@ star.compiler.matcher{
   applyVar:(crVar,list[triple]) => list[triple].
   applyVar(V,Trpls) => let{
     applyToTriple:(triple)=>triple.
-    applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,Exp),Ix)) =>
-      (Args,(CLc,B,crLtt(VLc,Vr,crVar(VLc,V),Exp)),Ix).
+    applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,none,Exp),Ix)) =>
+      (Args,(CLc,B,none,crLtt(VLc,Vr,crVar(VLc,V),Exp)),Ix).
+    applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,some(Wh),Exp),Ix)) =>
+      (Args,(CLc,B,some(crLtt(VLc,Vr,crVar(VLc,V),Wh)),crLtt(VLc,Vr,crVar(VLc,V),Exp)),Ix).
   } in (Trpls//applyToTriple).
 
   formCases:(list[triple],(triple,triple)=>boolean,locn,list[crVar],crExp)=>
@@ -165,8 +167,10 @@ star.compiler.matcher{
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
   conditionalize([],Deflt) => Deflt.
-  conditionalize([(_,(Lc,Bnds,Val),_),..Trpls],Deflt) =>
+  conditionalize([(_,(Lc,Bnds,none,Val),_),..Trpls],Deflt) =>
     applyBindings(Bnds,Lc,conditionalize(Trpls,Val)).
+  conditionalize([(_,(Lc,Bnds,some(Wh),Val),_),..Trpls],Deflt) =>
+    applyBindings(Bnds,Lc,crCnd(Lc,Wh,conditionalize(Trpls,Val),Deflt)).
 
   applyBindings([],_,Val) => Val.
 

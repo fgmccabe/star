@@ -68,8 +68,11 @@ star.compiler.freevars{
       (_,Fv1) .= freeVarsInCond(R,Excl,Fv) => (Excl,Fv1).
   freeVarsInCond(T,Excl,Fv) => (Excl,freeVarsInTerm(T,Excl,Fv)).
 
-  freeVarsInEqn(eqn(_,Ptn,Exp),Excl,Fv) where
+  freeVarsInEqn(eqn(_,Ptn,none,Exp),Excl,Fv) where
       Excl1 .= extendExcl(Ptn,Excl,Fv) =>
+    freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,Fv)).
+  freeVarsInEqn(eqn(_,Ptn,some(Wh),Exp),Excl,Fv) where
+      Excl1 .= extendExcl(Wh,extendExcl(Ptn,Excl,Fv),Fv) =>
     freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,Fv)).
 
   public freeVarsInGroup:(list[canonDef],set[crVar],set[crVar])=>set[crVar].

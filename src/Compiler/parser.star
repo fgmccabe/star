@@ -22,7 +22,7 @@ star.compiler.parser{
       if errorFree(Rp1) then
 	valis Trm
       else
-      throw reportError(Rp,"could not parse $(P) properly",pkgLoc(P))
+      throw reportError(Rp1,"could not parse $(P) properly",pkgLoc(P))
     } else
     throw reportError(Rp,"Cannot locate $(P) in $(U)",pkgLoc(P))
   }

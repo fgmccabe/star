@@ -33,8 +33,8 @@ star.compiler.errors{
   countWarning(Ix,_) default => Ix.
 
   public reportError:(reports,string,locn) => reports.
-  reportError(reports(Ms),Msg,Lc) => reports([errorMsg(Lc,Msg),..Ms]).
+  reportError(reports(Ms),Msg,Lc) => reports([Ms..,errorMsg(Lc,Msg)]).
 
   public reportWarning:(reports,string,locn) => reports.
-  reportWarning(reports(Ms),Msg,Lc) => reports([warnMsg(Lc,Msg),..Ms]).
+  reportWarning(reports(Ms),Msg,Lc) => reports([Ms..,warnMsg(Lc,Msg)]).
 }
