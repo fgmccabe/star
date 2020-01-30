@@ -280,37 +280,39 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, cha
   else
     sep = "";
 
-  outMsg(out, "%s,..Ins],Lbls,Lts,Lns,Lcs,Pc,Code) ", sep);
+  outMsg(out, "%s,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) ", sep);
 
   switch (A) {
     case nOp:                             // No operand
     case tOs:
-      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,[Code..,intgr(%d)]).\n", op);
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(%d)]).\n", op);
       break;
     case lne:
     case lit:
       outMsg(out,
-             "where (Lt1,LtNo) .= findLit(Lts,V) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(LtNo)]).\n",
+             "where (Lt1,LtNo) .= findLit(Lts,V) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),intgr(LtNo)]).\n",
              op);
       return;
     case sym:                            // symbol
       outMsg(out,
-             "where (Lt1,LtNo) .= findLit(Lts,enum(V)) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(LtNo)]).\n",
+             "where (Lt1,LtNo) .= findLit(Lts,enum(V)) => mnem(Ins,Lbls,Lt1,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),intgr(LtNo)]).\n",
              op);
       break;
     case i32:
     case art:
     case arg:
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),intgr(V)]).\n", op);
+      break;
     case lcl:
     case lcs:
-      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(V)]).\n", op);
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,max(V,MxLcl),[Code..,intgr(%d),intgr(V)]).\n", op);
       break;
     case glb:
     case Es:                              // escape code (0..65535)
-      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,[Code..,intgr(%d),strg(V)]).\n", op);
+      outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),strg(V)]).\n", op);
       break;
     case off:                            // program counter relative offset
-      outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,[Code..,intgr(%d),intgr(Tgt-Pc-3)]).\n", op);
+      outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),intgr(Tgt-Pc-3)]).\n", op);
       break;
     default:
       outMsg(out, "Unknown instruction type code\n");

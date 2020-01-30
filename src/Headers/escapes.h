@@ -17,7 +17,7 @@
 /* Define the standard escapes */
 escape(_exit,"F(i)()","terminate engine")
 escape(_command_line,"F()LS","command line arguments")
-escape(_abort,":k's':k't'F(k's'k't')()","abort process")
+escape(_abort,":k's'F(k's'S)()","abort process")
 
 escape(_identical,":k't'F(k't'k't')l","test for identicality")
 
