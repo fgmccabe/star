@@ -44,11 +44,11 @@ set(SOURCE_FILES
         driver.c
         asmEncode.c
         errors.c
-        main.c
+        asm.c
 
         ${HEADER_FILES})
 
-add_executable(asm ${SOURCE_FILES})
-target_link_libraries(asm infra ooio)
+add_executable(sasm ${SOURCE_FILES})
+target_link_libraries(sasm infra ooio)
 
-install(TARGETS asm DESTINATION lib/star)
+install(TARGETS sasm DESTINATION lib/star)

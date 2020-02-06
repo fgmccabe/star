@@ -5,7 +5,7 @@
 #include <ooio.h>
 #include <stdarg.h>
 
-retCode reportError(int line, char *msg,...);
+retCode reportError(int line, int col, char *msg,...);
 retCode reportWarning(int line, char *msg,...);
 
 logical isErrorFree();

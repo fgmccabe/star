@@ -10,7 +10,7 @@
 #include "errors.h"
 #include <stdlib.h>
 
-char *copyright = "(c) 2010-2018 F.G.McCabe\nAll rights reserved";
+char *copyright = "(c) 2010-2020 F.G.McCabe\nAll rights reserved";
 char *version = PACKAGE " assembler - " VERSION " - " __DATE__;
 
 int main(int argc, char **argv) {
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     initLogfile(fn);
   }
 
-  if ((narg = getOptions(argc, argv)) < 0) {
+  if ((narg = getAsmOptions(argc, argv)) < 0) {
     exit(1);
   }
 

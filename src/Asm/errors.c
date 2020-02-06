@@ -9,11 +9,11 @@
 static int errorCount = 0;
 static int warningCount = 0;
 
-retCode reportError(int line, char *msg,...)
+retCode reportError(int line, int col, char *msg,...)
 {
   va_list args;
   va_start(args,msg);
-  outMsg(logFile,"error: %d\n",line);
+  outMsg(logFile,"error: line %d:%d\n",line,col);
   __voutMsg(logFile,msg,args);
   outStr(logFile,"\n");
   va_end(args);

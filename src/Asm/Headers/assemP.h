@@ -148,7 +148,7 @@ extern mtdPo getPkgMethod(pkPo pkg, const char *name, integer arity);
 extern mtdPo createMethod(pkPo pkg, char *name, char *sig);
 
 extern retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins);
-extern int32 codeSize(mtdPo mtd);
+extern int32 insCount(mtdPo mtd);
 extern int32 codeCount(mtdPo mtd);
 extern int64 poolCount(mtdPo mtd);
 extern int32 frameCount(mtdPo mtd);
