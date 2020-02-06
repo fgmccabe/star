@@ -40,6 +40,7 @@ instruction(StV,lcs,0,"clear a local to void")
 instruction(TL,lcs,0,"copy tos to local[xx]")
 instruction(StA,arg,-1,"store tos to args[xx]")
 instruction(StG,glb,-1,"store into a global variable")
+instruction(TG,glb,0,"copy into a global variable")
 
 instruction(CLbl,off,-1,"T,Lbl --> test for a data term, branch if lbl")
 instruction(Nth,i32,0,"T --> el, pick up the nth element")
