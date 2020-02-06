@@ -105,7 +105,10 @@ linePo defineLine(mtdPo mtd, char *pkg, int32 line, int32 off, int32 len, lPo lb
 }
 
 int32 lineCount(mtdPo mtd) {
-  return (int32) listCount(mtd->lines);
+  if (mtd->lines == Null)
+    return 0;
+  else
+    return (int32) listCount(mtd->lines);
 }
 
 void initAssem() {
@@ -262,7 +265,7 @@ retCode encodeLocation(char *buffer, integer buffLen, char *pkg, integer line, i
 
   retCode ret = encodeCons(O_IO(str), 4);
   if (ret == Ok)
-    ret = encodeStrct(O_IO(str), "()4", 4);
+    ret = encodeLbl(O_IO(str), "()4", 4);
   if (ret == Ok)
     ret = encodeStr(O_IO(str), pkg, uniStrLen(pkg));
   if (ret == Ok)
@@ -352,24 +355,26 @@ void endFunction(mtdPo mtd) {
 
 #undef instruction
 
+#define opsize (sizeof(int32)/sizeof(int16))
+
 #define sztos
 #define sznOp
 #define sztOs
-#define szi32 pc+=sizeof(int32);
-#define szart pc+=sizeof(int32);
-#define szarg pc+=sizeof(int32);
-#define szlcl pc+=sizeof(int32);
-#define szlcs pc+=sizeof(int32);
-#define szoff pc+=sizeof(int32);
-#define szEs pc+=sizeof(int32);
-#define szlit pc+=sizeof(int32);
-#define szsym pc+=sizeof(int32);
-#define szlne pc+=sizeof(int32);
-#define szglb pc+=sizeof(int32);
+#define szi32 pc+=opsize;
+#define szart pc+=opsize;
+#define szarg pc+=opsize;
+#define szlcl pc+=opsize;
+#define szlcs pc+=opsize;
+#define szoff pc+=opsize;
+#define szEs pc+=opsize;
+#define szlit pc+=opsize;
+#define szsym pc+=opsize;
+#define szlne pc+=opsize;
+#define szglb pc+=opsize;
 
 #define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
-  pc +=sizeof(uint16);      \
+  pc ++;      \
   sz##A1          \
     break;
 
@@ -418,6 +423,7 @@ static assemInsPo newIns(mtdPo mtd, OpCode op) {
 
   ins->op = op;
   ins->next = Null;
+  ins->pc = 0;
 
   return ins;
 }
@@ -678,11 +684,11 @@ retCode getStringConstant(mtdPo mtd, char **name) {
 }
 
 retCode showStructConstant(ioPo f, constPo cn) {
-  return outMsg(f, "%s:%d", cn->con.value.strct.name, cn->con.value.strct.arity);
+  return outMsg(f, "%s/%d", cn->con.value.strct.name, cn->con.value.strct.arity);
 }
 
 retCode encodeStructConstant(ioPo f, constPo c) {
-  return encodeStrct(f, (char *) c->con.value.strct.name, c->con.value.strct.arity);
+  return encodeLbl(f, (char *) c->con.value.strct.name, c->con.value.strct.arity);
 }
 
 retCode showPrgConstant(ioPo f, constPo cn) {
@@ -729,11 +735,6 @@ char *methodSignature(mtdPo mtd) {
     return Null;
 }
 
-static assemInsPo asm_tos(mtdPo mtd, OpCode op) {
-  assemInsPo ins = newIns(mtd, op);
-  return ins;
-}
-
 static assemInsPo asm_nOp(mtdPo mtd, OpCode op) {
   assemInsPo ins = newIns(mtd, op);
   return ins;
@@ -769,12 +770,6 @@ static assemInsPo asm_lcl(mtdPo mtd, OpCode op, int32 ix) {
 }
 
 static assemInsPo asm_lcs(mtdPo mtd, OpCode op, int32 ix) {
-  assemInsPo ins = newIns(mtd, op);
-  ins->i = ix;
-  return ins;
-}
-
-static assemInsPo asm_env(mtdPo mtd, OpCode op, int32 ix) {
   assemInsPo ins = newIns(mtd, op);
   ins->i = ix;
   return ins;
@@ -897,8 +892,8 @@ static assemInsPo asm_off(mtdPo mtd, OpCode op, lPo lbl) {
 #undef opglb
 #undef argglb
 
-int32 codeSize(mtdPo mtd) {
-  int32 pc = 0;
+int32 insCount(mtdPo mtd) {
+  int32 count = 0;
   assemInsPo ins = mtd->first;
 
   while (ins != Null) {
@@ -908,21 +903,21 @@ int32 codeSize(mtdPo mtd) {
 
 #define sznOp
 #define sztOs
-#define szart pc+=(sizeof(int32)/sizeof(uint16));
-#define szi32 pc+=(sizeof(int32)/sizeof(uint16));
-#define szarg pc+=(sizeof(int32)/sizeof(uint16));
-#define szlcl pc+=(sizeof(int32)/sizeof(uint16));
-#define szlcs pc+=(sizeof(int32)/sizeof(uint16));
-#define szoff pc+=(sizeof(int32)/sizeof(uint16));
-#define szEs pc+=(sizeof(int32)/sizeof(uint16));
-#define szlit pc+=(sizeof(int32)/sizeof(uint16));
-#define szsym pc+=(sizeof(int32)/sizeof(uint16));
-#define szlne pc+=(sizeof(int32)/sizeof(uint16));
-#define szglb pc+=(sizeof(int32)/sizeof(uint16));
+#define szart count++;
+#define szi32 count++;
+#define szarg count++;
+#define szlcl count++;
+#define szlcs count++;
+#define szoff count++;
+#define szEs count++;
+#define szlit count++;
+#define szsym count++;
+#define szlne count++;
+#define szglb count++;
 
 #define instruction(Op, A1, Dl, Cmt)    \
       case Op:          \
-  pc ++;          \
+  count ++;          \
   sz##A1          \
     break;
 
@@ -948,7 +943,7 @@ int32 codeSize(mtdPo mtd) {
 
     ins = ins->next;
   }
-  return pc;
+  return count;
 }
 
 int32 codeCount(mtdPo mtd) {

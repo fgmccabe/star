@@ -14,7 +14,7 @@ static retCode encodeMethod(ioPo out, mtdPo mtd);
 
 static retCode encodeFrame(ioPo out, mtdPo mtd, assemInsPo ins);
 static retCode encodeLocal(void *n, void *r, void *cl);
-static retCode encodeTplCount(ioPo out, integer cnt);
+static retCode encodeTpl(ioPo out, integer cnt);
 
 typedef struct {
   ioPo out;
@@ -29,39 +29,28 @@ static retCode encMtd(void *n, void *r, void *cl) {
 }
 
 static retCode encodeMtds(ioPo out, hashPo mtds) {
-  tryRet(encodeTplCount(out, hashSize(mtds)));
+  tryRet(encodeTpl(out, hashSize(mtds)));
   return ProcessTable(encMtd, mtds, out);
-}
-
-static retCode encodePkgName(ioPo out, packagePo pkg) {
-  tryRet(encodeStrct(out, "pkg", 2));
-  tryRet(encodeStr(out, pkg->packageName, uniStrLen(pkg->packageName)));
-  if (uniIsLit(pkg->version, "*")) {
-    return encodeEnum(out, "*");
-  } else {
-    tryRet(encodeStrct(out, "v", 1));
-    return encodeStr(out, pkg->version, uniStrLen(pkg->version));
-  }
 }
 
 static retCode encImport(void *n, void *r, void *cl) {
   ioPo out = (ioPo) cl;
   importPo i = (importPo) r;
 
-  tryRet(encodeStrct(out, "import", 2));
+  tryRet(encodeLbl(out, "import", 2));
   tryRet(encodeEnum(out, i->isPublic ? "public" : "private"));
   tryRet(encodePkgName(out, &i->pkg));
   return Ok;
 }
 
 static retCode encodeImports(ioPo out, hashPo imports) {
-  tryRet(encodeTplCount(out, hashSize(imports)));
+  tryRet(encodeTpl(out, hashSize(imports)));
   return ProcessTable(encImport, imports, out);
 }
 
 retCode encodePkg(ioPo out, pkPo pkg) {
   bufferPo str = newStringBuffer();
-  tryRet(encodeTplCount(O_IO(str), 4));
+  tryRet(encodeTpl(O_IO(str), 4));
   tryRet(encodePkgName(O_IO(str), &pkg->pkg));
   tryRet(encodeStr(O_IO(str), pkg->signature, uniStrLen(pkg->signature)));
   tryRet(encodeImports(O_IO(str), pkg->imports));
@@ -81,41 +70,39 @@ static retCode encodeConstant(ioPo out, constPo con) {
 
 static retCode encodeLine(ioPo out, linePo lne);
 
-static retCode encodeTplCount(ioPo out, integer cnt) {
-  char buff[MAXFILELEN];
-  strMsg(buff, NumberOf(buff), "()%d", cnt);
-  tryRet(outChar(out, dtaTrm));
-  return encodeStrct(out, buff, cnt);
+static retCode encodeTpl(ioPo out, integer cnt) {
+  tryRet(encodeCons(out, cnt));
+  return encodeTplLbl(out, cnt);
 }
 
 retCode encodeMethod(ioPo out, mtdPo mtd) {
-  tryRet(encodeCons(out, 7));
-  tryRet(encodeTplCount(out, 7));
-  tryRet(encodeStrct(out, (char *) mtd->name.name, mtd->name.arity)); /* signal tag w/name */
+  tryRet(encodeTpl(out, 7));
+  tryRet(encodeLbl(out, (char *) mtd->name.name, mtd->name.arity)); /* signal tag w/name */
 
   tryRet(encodeInt(out, mtd->sig));        /* Constant id for the type signature */
 
   tryRet(encodeInt(out, mtd->lclCount));   // how many locals
 
-  tryRet(encodeTplCount(out, codeSize(mtd)));
+  tryRet(encodeTpl(out, insCount(mtd)));
   for (assemInsPo pc = mtd->first; pc != Null; pc = pc->next) {
     tryRet(encodeIns(out, pc));
   }
 
-  tryRet(encodeTplCount(out, poolCount(mtd)));
+  tryRet(encodeTpl(out, poolCount(mtd)));
   for (consPo con = mtd->constants; con != nilList; con = tail(con)) {
     tryRet(encodeConstant(out, (constPo) head(con)));
   }
 
-  tryRet(encodeTplCount(out, localCount(mtd))); /* Number of local var records */
+  tryRet(encodeTpl(out, localCount(mtd))); /* Number of local var records */
 
   MtdData data = {.mtd = mtd, .out = out};
   ProcessTable(encodeLocal, mtd->locals, &data);
 
-  tryRet(encodeTplCount(out, lineCount(mtd))); /* Number of line records */
-  for (consPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
-    tryRet(encodeLine(out, O_LINE(head(lne))));
-  }
+  tryRet(encodeTpl(out, lineCount(mtd))); /* Number of line records */
+  if (mtd->lines != Null)
+    for (consPo lne = mtd->lines; lne != nilList; lne = tail(lne)) {
+      tryRet(encodeLine(out, O_LINE(head(lne))));
+    }
 
   return Ok;
 }
@@ -141,7 +128,7 @@ retCode encodeLocal(void *n, void *r, void *cl) {
 }
 
 retCode encodeLine(ioPo out, linePo lne) {
-  tryRet(encodeTplCount(out, 2));
+  tryRet(encodeTpl(out, 2));
 
   tryRet(encodeInt(out, lne->line.locRef));
   return encodeInt(out, lne->line.lbl->pc->pc);
@@ -202,12 +189,12 @@ static retCode enc_lne(ioPo out, assemInsPo ins) {
 
 static retCode enc_Es(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
-  return encodeInt(out, ins->i);
+  return encodeStr(out, ins->txt, uniStrLen(ins->txt));
 }
 
 static retCode enc_glb(ioPo out, assemInsPo ins) {
   tryRet(encodeInt(out, ins->op));
-  return encodeInt(out, ins->i);
+  return encodeStr(out, ins->txt, uniStrLen(ins->txt));
 }
 
 retCode encodeIns(ioPo out, assemInsPo ins) {

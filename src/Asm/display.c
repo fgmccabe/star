@@ -82,19 +82,15 @@ static retCode disp_lne(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
 }
 
 static retCode disp_Es(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
-  tryRet(outMsg(f, "%s ", op));
-  tryRet(showConstant(f, mtd, ins->i));
-  return outMsg(f, "\n");
+  return outMsg(f, "%s %s\n", op, ins->txt);
 }
 
 static retCode disp_glb(ioPo f, mtdPo mtd, assemInsPo ins, char *op) {
-  tryRet(outMsg(f, "%s ", op));
-  tryRet(showConstant(f, mtd, ins->i));
-  return outMsg(f, "\n");
+  return outMsg(f, "%s %s\n", op, ins->txt);
 }
 
 retCode dumpIns(ioPo f, mtdPo mtd, assemInsPo ins) {
-  outMsg(f, "0x%x: ", ins->pc);
+  outMsg(f, "%d: ", ins->pc);
 
   switch (ins->op) {
 #undef instruction

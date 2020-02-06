@@ -8,8 +8,10 @@
 #include "manifest.h"
 
 #include <stdlib.h>
+#include <manifestP.h>
 
 extern int ssparse(ioPo file, pkPo *pkg);
+int ssdebug = 0;
 
 static void initStdUri();
 
@@ -30,24 +32,24 @@ retCode parseContent(char *path) {
       char *codeName = manifestOutPath(&pkg->pkg, "co", buff, NumberOf(buff));
       char *outPath = repoRsrcPath(codeName, outFn, NumberOf(outFn));
       ioPo out = openOutFile(outPath, rawEncoding);
-      retCode ret = encodePkg(out, pkg);
+      tryRet(encodePkg(out, pkg));
 
-      closeFile(out);
+      tryRet(closeFile(out));
 
-      if (ret == Ok) {
-        ret = addToManifest(&pkg->pkg, "code", codeName, uniStrLen(codeName));
+      tryRet(addToManifest(&pkg->pkg, "code", codeName, uniStrLen(codeName)));
 
-        if (ret == Ok)
-          ret = flushManifest();
-      }
+      tryRet(flushManifest());
 
-      return ret;
+      return Ok;
     } else {
       outMsg(logFile, "output not written\n");
       return Fail;
     }
-  } else
+  } else {
+    outMsg(logFile, "cannot file source file %s\n", path);
+
     return Fail;
+  }
 }
 
 static char *starHome = NULL;

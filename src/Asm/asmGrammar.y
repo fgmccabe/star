@@ -16,7 +16,7 @@
 %defines
 %define parse.error verbose
 
-%debug
+//%debug
 
 %parse-param { ioPo asmFile }
 %parse-param { pkPo *pkg }
@@ -57,7 +57,7 @@
 %token RET JMP CASE
 %token DROP DUP PULL ROT RST BF BT CLBL CMP
 
-%token LD ST T LET
+%token LD LDG ST STG T GET SET LET
 
 %token A L
 %token ALLOC VOID
@@ -136,13 +136,13 @@ trailer: END nls { endFunction(currMtd); }
    | lbl
    ;
 
-  lbl: ID COLON DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
+  lbl: ID SLASH DECIMAL { $$=newStrctConstant(currMtd,$1,$3); }
 
  load: LD literal { ALdC(currMtd,$2); }
    | LD A LBRA DECIMAL RBRA { ALdA(currMtd,$4); }
    | LD L LBRA DECIMAL RBRA { ALdL(currMtd,$4); }
-   | LD DOT lbl { AGet(currMtd,$3); }
-   | LD ID { ALdG(currMtd,$2); }
+   | GET lbl { AGet(currMtd,$2); }
+   | LDG ID { ALdG(currMtd,$2); }
    | LD VOID { ALdV(currMtd); }
    | DROP { ADrop(currMtd); }
    | DUP { ADup(currMtd); }
@@ -152,9 +152,10 @@ trailer: END nls { endFunction(currMtd); }
 
  store: ST L LBRA local RBRA { AStL(currMtd,$4); }
    | ST LBRA local RBRA { AStNth(currMtd,$3); }
-   | ST ID { AStG(currMtd,$2); }
-   | ST DOT lbl { ASet(currMtd,$3); }
+   | STG ID { AStG(currMtd,$2); }
+   | SET lbl { ASet(currMtd,$2); }
    | T L LBRA local RBRA { ATL(currMtd,$4); }
+   | T ID {ATG(currMtd,$2); }
    ;
 
  local: ID {
@@ -168,7 +169,8 @@ trailer: END nls { endFunction(currMtd); }
    ;
 
  directive: label COLON { defineLbl(currMtd,$1); }
-   | FRAME signature { AFrame(currMtd,newStringConstant(currMtd,$2)); }
+   | FRAME DECIMAL { AFrame(currMtd,$2); }
+//   | FRAME signature { AFrame(currMtd,newStringConstant(currMtd,$2)); }
    | LINE ID AT DECIMAL SLASH DECIMAL COLON DECIMAL
           { defineLine(currMtd,$2,$4,$6,$8,currLbl(currMtd,genSym("_"))); }
    | DBG  { AdBug(currMtd); }
@@ -190,5 +192,5 @@ trailer: END nls { endFunction(currMtd); }
 
 static void yyerror(YYLTYPE *loc,ioPo asmFile,pkPo *p, char const *errmsg)
 {
-  reportError(loc->first_line,"%s\n",errmsg);
+  reportError(loc->first_line, loc->first_column, "%s\n",errmsg);
 }

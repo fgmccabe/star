@@ -3,7 +3,7 @@
 %option yylineno
 %option bison-bridge bison-locations
 %option noyywrap nounput
-%option debug
+/*%option debug */
 %option prefix="ss"
 
 %x comment
@@ -103,6 +103,7 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "halt"        RT(HALT);
 
 "call"        RT(CALL);
+"ocall"       RT(OCALL);
 "escape"      RT(ESCAPE);
 "tail"        RT(TAIL);
 "otail"       RT(OTAIL);
@@ -123,7 +124,11 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "rst"         RT(RST)
 
 "ld"          RT(LD);
+"ldg"         RT(LDG);
 "st"          RT(ST);
+"stg"         RT(STG);
+"get"         RT(GET);
+"set"         RT(SET);
 
 "void"        RT(VOID);
 

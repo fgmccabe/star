@@ -6,11 +6,10 @@
 
 #include <cmdOptions.h>
 #include "asmOptions.h"
-#include "manifest.h"
+#include "manifestP.h"
 
 logical debugAssem = False;    /* debug the assembling process */
 logical parseOnly = False;    /* set to true for parsing only */
-logical traceManifest = False;
 
 static retCode debugOption(char *option, logical enable, void *cl) {
   char *c = option;
@@ -19,40 +18,51 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       case 'a':      /* trace assembly */
 #ifdef TRACEASSM
         debugAssem = True;
-        continue;
 #else
       logMsg(logFile,"Assembly insDebugging not enabled\n");
       return Error;
 #endif
+        continue;
 
       case 'p':    /* help with insDebugging the parser */
 #ifdef DEBUGPARSE
-        ss_flex_debug = 1;
         ssdebug = 1;
-        continue;
 #else
       logMsg(logFile,"debug parse not enabled");
       return Error;
 #endif
+        continue;
 
       case 'l':    /* help with insDebugging the tokenizer */
 #ifdef DEBUGPARSE
         ss_flex_debug = 1;
-        continue;
 #else
       logMsg(logFile,"debug token not enabled");
       return Error;
 #endif
+        continue;
+
+      case 'M':     /* Trace manifest mgt */
+#ifdef TRACEMANIFEST
+        traceManifest = True;
+#else
+      logMsg(logFile, "manifest tracing not enabled\n");
+      return Error;
+#endif
+        continue;
 
       case '*':    /* trace everything */
 #ifdef ALLTRACE
         ss_flex_debug = 1;
         ssdebug = 1;
         debugAssem = True;
+        traceManifest = True;
 #else
       logMsg(logFile,"insDebugging not enabled\n");
       return Error;
 #endif
+        continue;
+
       default:;
     }
   }
@@ -88,15 +98,15 @@ static retCode setVersion(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",       hasArgument, Null,        debugOption,    Null, "-d|--debug <flags>"},
-  {'v', "version",     noArgument,  Null,        displayVersion, Null, "-v|--version"},
-  {'P', "parseOnly",   noArgument,  Null,        setParseOnly,   Null, "-P|--parseOnly"},
+  {'d', "debug",       hasArgument, Null,         debugOption,    Null, "-d|--debug <flags>"},
+  {'v', "version",     noArgument,  Null,         displayVersion, Null, "-v|--version"},
+  {'P', "parseOnly",   noArgument,  Null,         setParseOnly,   Null, "-P|--parseOnly"},
   {'H', "starHome",    hasArgument, STAR_HOME,    setHome,        Null, "-H|--starHome <path>"},
   {'L', "logFile",     hasArgument, STAR_LOGFILE, setLogFile,     Null, "-L|--logFile <path>"},
   {'R', "repository",  hasArgument, STAR_REPO,    setRepoDir,     Null, "-R|--repository <path>"},
-  {'V', "pkg-version", hasArgument, Null,        setVersion,     Null, "-V|--set-version <version>"}};
+  {'V', "pkg-version", hasArgument, Null,         setVersion,     Null, "-V|--set-version <version>"}};
 
-int getOptions(int argc, char **argv) {
+int getAsmOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);
   return processOptions(copyright, argc, argv, options, NumberOf(options));
 }

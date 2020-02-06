@@ -8,11 +8,14 @@
 #ifdef ALLTRACE
 #define DEBUGPARSE
 #define TRACEASSM
+#define TRACEMANIFEST
 #endif
 
 #ifdef DEBUGPARSE
 extern int ssdebug;
 extern int ss_flex_debug;
 #endif
+
+extern int getAsmOptions(int argc, char **argv);
 
 #endif
