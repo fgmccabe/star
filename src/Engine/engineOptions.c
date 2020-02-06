@@ -2,46 +2,26 @@
  * Process the command line options
  */
 #include "config.h"
-#include "engine.h"
 #include <stdlib.h>
-#include <getopt.h>
 #include <unistd.h>
 
 #include "cmdOptions.h"
 #include "version.h"      /* Version ID for the Star system */
-#include "debug.h"
 
-#include "manifest.h"
 #include "engineOptions.h"
 #include "heapP.h"
-
-long initHeapSize = 200 * 1024;   /* How much memory to give the heap */
-long maxHeapSize = 1024 * 1024 * 1024; // Maximum heap size 1G cells
-long initStackSize = 1024;        /* How big is the stack */
-long maxStackSize = 100 * 1024;     /* 100K cells is max stack size */
-
-logical insDebugging = False;     // instruction tracing option
-logical lineDebugging = False;
-logical debugDebugging = False;
-logical tracing = False;          /* tracing option */
-int debuggerPort = 0;                // Debug port to establish listener on
-logical showPkgFile = False;      // True if we show file names instead of package names
-logical showColors = True;        // True if we want to show colored output
-
-logical traceVerify = False;      // true if tracing code verification
-logical traceMessage = False;     // true if tracing message passing
-logical traceLock = False;        /* true if tracing locks */
-logical traceManifest = False;
-logical tracePkg = False;
-logical traceMemory = False;      /* memory tracing */
-logical validateMemory = False;   // Validate heap after every allocation
-logical interactive = False;      /* interaction instruction tracing */
-logical runStats = False;         // Count instructions etc.
+#include "manifestP.h"
+#include "verifyP.h"
+#include "debugP.h"
+#include "capabilityP.h"
+#include "engineP.h"
 
 char CWD[MAXFILELEN] = "";
+char rootCap[MAXFILELEN] = "/";
 char bootVer[MAX_SYMB_LEN] = "*";
-char bootInit[MAX_SYMB_LEN] = "star.boot@init";
 
+logical useMicroBoot = False;
+PackageRec microBootPkge = {.packageName="__star.boot", .version="*"};
 PackageRec bootPkge = {.packageName="star.boot", .version="*"};
 
 char bootEntry[MAX_SYMB_LEN] = "star.boot#__boot";  // entry point
@@ -205,6 +185,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
       return Error;
 #endif
         continue;
+
       case 'P':    /* trace package operations  */
 #ifdef TRACEPKG
         tracePkg = True;
@@ -219,6 +200,20 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 'C': // Toggle showing colors
         showColors = !showColors;
+        continue;
+
+      case 'c': // enable tracing of capability mgt
+        traceCapability = True;
+        continue;
+
+      case 'b': // switch microboot capability
+        if (useMicroBoot) {
+          useMicroBoot = False;
+          strMsg(bootEntry, NumberOf(bootEntry), "star.boot#__boot");
+        } else {
+          useMicroBoot = True;
+          strMsg(bootEntry, NumberOf(bootEntry), "__star_boot");
+        }
         continue;
 
       default:;
@@ -250,6 +245,9 @@ static retCode debugOptHelp(ioPo out, char opt, char *usage, void *cl) {
                      #endif
                      #ifdef TRACEMANIFEST
                      "M|"
+                     #endif
+                     #ifdef TRACECAPABILITY
+                     "C|"
                      #endif
                      #ifdef TRACEPKG
                      "P"
@@ -297,9 +295,13 @@ static retCode setWD(char *option, logical enable, void *cl) {
   return Ok;
 }
 
+static retCode setRootCapability(char *option, logical enable, void *cl) {
+  uniCpy(rootCap, NumberOf(rootCap), option);
+  return Ok;
+}
+
 static retCode setBootPkg(char *option, logical enable, void *cl) {
   uniCpy(&bootPkge.packageName[0], NumberOf(bootPkge.packageName), option);
-  strMsg(bootInit, NumberOf(bootInit), "%s@init", option);
   return Ok;
 }
 
@@ -338,21 +340,22 @@ static retCode setMaxStackSize(char *option, logical enable, void *cl) {
 }
 
 Option options[] = {
-  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,     Null, "-d|--debug <flags>", debugOptHelp},
-  {'p', "depth",         hasArgument, STAR_DBG_OPTS,      setDisplayDepth, Null, "-p|--depth <depth>"},
-  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,     Null, "-g|--symbol-debug"},
-  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort, Null, "-G|--debugger-port"},
-  {'v', "version",       noArgument,  Null,               displayVersion,  Null, "-v|--version"},
-  {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,      Null, "-b|--boot-pkg <pkg>"},
-  {'m', "main",          hasArgument, STAR_MAIN,          setMainEntry,    Null, "-m|--main <entry>"},
-  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,      Null, "-L|--logFile <path>"},
-  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,      Null, "-r|--repository <path>"},
-  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,           Null, "-w|--set-wd <dir>"},
-  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,       Null, "-V|--verify code"},
-  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,     Null, "-h|--heap <size>"},
-  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,  Null, "-H|--max-heap <size>"},
-  {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,    Null, "-s|--stack <size>"},
-  {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setMaxStackSize, Null, "-S|--max-stack <size>"},};
+  {'d', "debug",         hasArgument, STAR_DBG_OPTS,      debugOption,       Null, "-d|--debug <flags>", debugOptHelp},
+  {'p', "depth",         hasArgument, STAR_DBG_OPTS,      setDisplayDepth,   Null, "-p|--depth <depth>"},
+  {'g', "symbol-debug",  noArgument,  SYMBOL_DEBUG,       symbolDebug,       Null, "-g|--symbol-debug"},
+  {'G', "debugger-port", hasArgument, STAR_DEBUGGER_PORT, setDebuggerPort,   Null, "-G|--debugger-port"},
+  {'v', "version",       noArgument,  Null,               displayVersion,    Null, "-v|--version"},
+  {'b', "boot-pkg",      hasArgument, STAR_BOOT,          setBootPkg,        Null, "-b|--boot-pkg <pkg>"},
+  {'m', "main",          hasArgument, STAR_MAIN,          setMainEntry,      Null, "-m|--main <entry>"},
+  {'L', "logFile",       hasArgument, STAR_LOGFILE,       setLogFile,        Null, "-L|--logFile <path>"},
+  {'r', "repository",    hasArgument, STAR_REPO,          setRepoDir,        Null, "-r|--repository <path>"},
+  {'w', "set-wd",        hasArgument, STAR_WD,            setWD,             Null, "-w|--set-wd <dir>"},
+  {'W', "set-root-cap",  hasArgument, STAR_WD,            setRootCapability, Null, "-W|--set-root-cap <dir>"},
+  {'V', "verify",        noArgument,  STAR_VERIFY,        setVerify,         Null, "-V|--verify code"},
+  {'h', "heap",          hasArgument, STAR_INIT_HEAP,     setHeapSize,       Null, "-h|--heap <size>"},
+  {'H', "max-heap",      hasArgument, STAR_MAX_HEAP,      setMaxHeapSize,    Null, "-H|--max-heap <size>"},
+  {'s', "stack",         hasArgument, STAR_INIT_STACK,    setStackSize,      Null, "-s|--stack <size>"},
+  {'S', "max-stack",     hasArgument, STAR_MAX_STACK,     setMaxStackSize,   Null, "-S|--max-stack <size>"},};
 
 int getStarOptions(int argc, char **argv) {
   splitFirstArg(argc, argv, &argc, &argv);

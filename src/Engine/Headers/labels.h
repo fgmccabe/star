@@ -22,10 +22,15 @@ logical isLabel(termPo t);
 integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
 integer fieldOffset(labelPo lbl,labelPo field);
+logical isRecordLabel(labelPo lbl);
+
+typedef retCode (*fieldProc)(labelPo lbl, integer ix, void *cl);
+extern retCode applyFieldProc(labelPo lbl, integer ix, fieldProc p, void *cl);
 
 labelPo objLabel(labelPo lbl, integer arity);
 
-retCode showLbl(ioPo out, integer prec, logical alt, labelPo lbl);
+retCode showLbl(ioPo out, labelPo lbl, integer depth, integer prec, logical alt);
+retCode showLabel(ioPo f, void *data, long depth, long precision, logical alt);
 
 methodPo labelCode(labelPo lbl);
 

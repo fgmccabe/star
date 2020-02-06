@@ -11,6 +11,7 @@
 #include <arrayP.h>
 #include <rrbP.h>
 #include <memoP.h>
+#include "capabilityP.h"
 #include "manifest.h"
 #include "clock.h"
 #include "args.h"
@@ -22,7 +23,7 @@
 
 #include "stringBufferP.h"
 
-char *copyright = "(c) 2010-2019 F.G.McCabe\nApache Licence 2.0";
+char *copyright = "(c) 2010-2020 F.G.McCabe\nApache Licence 2.0";
 
 int main(int argc, char **argv) {
   int narg;
@@ -54,6 +55,7 @@ int main(int argc, char **argv) {
   initTerm();
   initVectors();
   initLists();
+  initCapability();
   initIoChnnl();
   initThr();
   initTime();        /* Initialize time stuff */
@@ -68,6 +70,7 @@ int main(int argc, char **argv) {
   installMsgProc('T', showTerm);
   installMsgProc('P', dispPkgNm);
   installMsgProc('B', showStringBuffer);
+  installMsgProc('A', showLabel);
 
   /* IMPORTANT -- Keep the order of these set up calls */
 
@@ -79,8 +82,13 @@ int main(int argc, char **argv) {
 
   char errMsg[MAXLINE];
 
+  if (useMicroBoot && loadPackage(&microBootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
+    logMsg(logFile, "Could not load micro boot pkg %s: %s", pkgName(&microBootPkge), errMsg);
+    exit(99);
+  }
+
   if (loadPackage(&bootPkge, errMsg, NumberOf(errMsg), Null) != Ok) {
-    logMsg(logFile, "Could not load boot pkg %s/%s: %s", bootPkge.packageName, bootVer, errMsg);
+    logMsg(logFile, "Could not load boot pkg %s/%s: %s", pkgName(&bootPkge), bootVer, errMsg);
     exit(99);
   }
 
@@ -88,7 +96,7 @@ int main(int argc, char **argv) {
 
   setupSignals();
 
-  switch (bootstrap(bootEntry, bootInit, rootWd)){
+  switch (bootstrap(bootEntry, rootWd)) {
     case Ok:
       return EXIT_SUCCEED;          /* exit the runtime system cleanly */
     case Error:

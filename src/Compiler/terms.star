@@ -7,7 +7,7 @@ star.compiler.terms{
   import star.compiler.types.
 
   public termLbl ::= tLbl(string,integer) |
-    tStrct(string,list[(string,tipe)]).
+    tRec(string,list[(string,tipe)]).
 
   public term ::= intgr(integer)
     | flot(float)
@@ -17,16 +17,16 @@ star.compiler.terms{
 
   public implementation display[termLbl] => {.
     disp(tLbl(Nm,Ar)) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-    disp(tStrct(Nm,Fields)) =>
+    disp(tRec(Nm,Fields)) =>
       ssSeq([ss(Nm),ss("{"),ssSeq(interleave(Fields//((FN,FTp))=>ssSeq([ss(FN),ss(":"),disp(FTp)]),ss(","))),ss("}")]).
   .}
 
   public implementation sizeable[termLbl] => {.
     size(tLbl(_,Ar))=>Ar.
-    size(tStrct(_,F))=>size(F).
+    size(tRec(_,F))=>size(F).
 
     isEmpty(tLbl(_,Ar))=>Ar==0.
-    isEmpty(tStrct(_,F))=>F==[].
+    isEmpty(tRec(_,F))=>F==[].
   .}
 
   public implementation display[term] => let{
@@ -37,7 +37,7 @@ star.compiler.terms{
 
     dispT(term(tLbl(Op,_),Args)) => ssSeq([disp(Op),ss("‹"),ssSeq(dispTs(Args)),ss("›")]).
 
-    dispT(term(tStrct(Nm,Flds),Args)) => ssSeq([ss(Nm),ss("{"),ssSeq(dispFs(Flds,Args,"")),ss("}")]).
+    dispT(term(tRec(Nm,Flds),Args)) => ssSeq([ss(Nm),ss("{"),ssSeq(dispFs(Flds,Args,"")),ss("}")]).
     dispT(enum(Sx)) => ssSeq([ss("'"),disp(Sx),ss("'")]).
 
     dispTs(Els) => interleave(Els//dispT,ss(",")).
@@ -54,7 +54,7 @@ star.compiler.terms{
 
   public implementation hash[termLbl] => {.
     hash(tLbl(Nm,Ar))=>hash(Nm)*37+Ar.
-    hash(tStrct(Nm,Fs))=>foldRight(((FN,_),H)=>H*37+hash(FN),hash(Nm),Fs).
+    hash(tRec(Nm,Fs))=>foldRight(((FN,_),H)=>H*37+hash(FN),hash(Nm),Fs).
   .}
 
   public implementation hash[term] => let{
@@ -70,7 +70,7 @@ star.compiler.terms{
 
   public implementation equality[termLbl] => {.
     tLbl(N1,A1)==tLbl(N2,A2) => N1==N2 && A1==A2.
-    tStrct(N1,F1)==tStrct(N2,F2) => N1==N2 && F1==F2
+    tRec(N1,F1)==tRec(N2,F2) => N1==N2 && F1==F2
   .}
 
   public implementation equality[term] => let{
@@ -129,7 +129,11 @@ star.compiler.terms{
   
   encodeL:(termLbl,list[integer])=>list[integer].
   encodeL(tLbl(Nm,Ar),Cs) => encodeText(Nm,encodeNat(Ar,[Cs..,0co])).
-  encodeL(tStrct(Nm,Fs),Cs) => encodeText(Nm,encodeType(faceType(Fs,[]),[Cs..,0cO])).
+  encodeL(tRec(Nm,Flds),Cs) =>
+    encodeT(mkLst(ixRight((Ix,(FNm,Tp),Fs)=>[Fs..,mkField(FNm,Ix,Tp)],[],Flds)), encodeText(Nm,[Cs..,0cO])).
+
+  mkField:(string,integer,tipe)=>term.
+  mkField(Nm,Ix,Tp)=>mkTpl([enum(tLbl("."++Nm,0)),strg(encodeSignature(Tp)),intgr(Ix),intgr(1)]).
 
   encodeTerms([],Cs) => Cs.
   encodeTerms([T,..Ts],Cs) => encodeTerms(Ts,encodeT(T,Cs)).
@@ -190,7 +194,7 @@ star.compiler.terms{
   decodeLabel([0cO,..Ls]) => do{
     (Nm,L0) <- decodeText(Ls);
     (faceType(Fs,_),Lx)<-decodeType(L0);
-    valis (tStrct(Nm,Fs),Lx)
+    valis (tRec(Nm,Fs),Lx)
   }
     
   decodeInt:(list[integer])=>either[(),(integer,list[integer])].

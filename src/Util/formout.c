@@ -703,7 +703,7 @@ static void initMsgProcs(void) {
   }
 }
 
-void installMsgProc(char key, fileMsgProc proc) {
+void installMsgProc(codePoint key, fileMsgProc proc) {
   initMsgProcs();
   procs[(unsigned int) key] = proc;
 }
@@ -794,7 +794,7 @@ retCode __voutMsg(ioPo f, char *format, va_list args) {
 
         if (procs[fcp] != NULL) {
           void *data = va_arg(args, void*); /* pick up a special value */
-          ret = procs[(unsigned int) fcp](f, data, depth, precision, alternate);
+          ret = procs[((unsigned int) fcp)&0xffu](f, data, depth, precision, alternate);
         } else
           switch (fcp) {
             case '_':

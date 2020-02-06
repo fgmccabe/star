@@ -19,4 +19,6 @@ extern void initCapability();
 
 #define CapabilityCellCount(len) CellCount(sizeof(CapabilityRecord)+(len)*sizeof(char))
 
+extern logical traceCapability;
+
 #endif //STAR_CAPABILITYP_H

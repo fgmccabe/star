@@ -32,7 +32,9 @@ star.compiler.core{
 
   public crCase ~> (locn,crExp,crExp).
 
-  public crDefn ::= fnDef(locn,string,tipe,list[crVar],crExp) | vrDef(locn,crVar,crExp).
+  public crDefn ::= fnDef(locn,string,tipe,list[crVar],crExp) |
+    vrDef(locn,crVar,crExp) |
+    rcDef(locn,string,tipe,list[(string,tipe,integer)]).
 
   public dispCrProg:(list[crDefn])=>ss.
   dispCrProg(Defs) => ssSeq(interleave(Defs//disp,ss(".\n"))).
@@ -50,6 +52,11 @@ star.compiler.core{
   dspDef(vrDef(Lc,V,Rep),Off) =>
     ssSeq([ss("glb: "),disp(V),ss(":"),disp(typeOf(V)),ss("="),
 	dspExp(Rep,Off)]).
+  dspDef(rcDef(Lc,Nm,Tp,Fields),Off) =>
+    ssSeq([ss("rec: "),ss(Nm),ss(":"),disp(Tp),ss("\n"),ss(Off),
+	ss(Nm),ss("{"),
+	ssSeq(interleave(Fields//((FNm,FTp,FIx))=>ssSeq([ss(Off),ss(FNm),ss(":"),disp(FTp),ss("@"),disp(FIx)]),ss(";\n"))),
+	ss("}")]).
 
   dspExp:(crExp,string) => ss.
   dspExp(crVar(_,V),_) => disp(V).

@@ -8,8 +8,6 @@
 #include "encoding.h"
 
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen);
-retCode copyEncoded(ioPo in, ioPo out, char *errorMsg, long msgLen);
-retCode decodeNm(ioPo in, char *buffer, integer buffLen);
-
+retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity, char *errorMsg, integer msgLen);
 
 #endif //STAR_STREAMDECODE_H

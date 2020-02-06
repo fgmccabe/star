@@ -7,10 +7,10 @@
 
 #include "config.h"
 
-#include <debug.h>
 #include <globals.h>
 #include <turm.h>
 #include "engineP.h"
+#include "debugP.h"
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -86,7 +86,10 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) bail();
+          if (extendStack(P, 2) != Ok) {
+            logMsg(logFile, "cannot extend stack");
+            bail();
+          }
           restoreRegisters(P);
         }
         assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
@@ -117,7 +120,10 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) bail();
+          if (extendStack(P, 2) != Ok) {
+            logMsg(logFile, "cannot extend stack");
+            bail();
+          }
           restoreRegisters(P);
         }
         assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
@@ -198,7 +204,10 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) bail();
+          if (extendStack(P, 2) != Ok) {
+            logMsg(logFile, "cannot extend stack");
+            bail();
+          }
           restoreRegisters(P);
         }
         assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
@@ -243,7 +252,10 @@ retCode run(processPo P) {
 
         if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
           saveRegisters(P, SP);
-          if (extendStack(P, 2) != Ok) bail();
+          if (extendStack(P, 2) != Ok) {
+            logMsg(logFile, "cannot extend stack");
+            bail();
+          }
           restoreRegisters(P);
         }
         assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
@@ -331,7 +343,7 @@ retCode run(processPo P) {
           check(vr != Null, "undefined global");
 
           push(vr);     /* load a global variable */
-        } else {
+        } else if (glbHasProvider(glb)) {
           termPo prov = getProvider(glb);  // Set up an OCall to the provider
 
           normalPo nProg = C_TERM(prov);
@@ -348,7 +360,10 @@ retCode run(processPo P) {
 
           if (SP - stackDelta(PROG) <= (ptrPo) P->stackBase) {
             saveRegisters(P, SP);
-            if (extendStack(P, 2) != Ok) bail();
+            if (extendStack(P, 2) != Ok) {
+              logMsg(logFile, "cannot extend stack");
+              bail();
+            }
             restoreRegisters(P);
           }
           assert(SP - stackDelta(PROG) > (ptrPo) P->stackBase);
@@ -359,6 +374,9 @@ retCode run(processPo P) {
           for (integer ix = 0; ix < lclCnt; ix++)
             SP[ix] = voidEnum;
 #endif
+        } else {
+          logMsg(logFile, "global %s not defined", globalVarName(glb));
+          bail();
         }
         continue;
       }
@@ -366,7 +384,13 @@ retCode run(processPo P) {
       case Get: {
         labelPo lbl = C_LBL(nthArg(LITS, collectI32(PC)));
         normalPo trm = C_TERM(pop());
-        push(getField(trm, lbl));
+        termPo el = getField(trm, lbl);
+        if (el != Null)
+          push(el);
+        else{
+          logMsg(logFile,"no field %T in %T",lbl,trm);
+          bail();
+        }
         continue;
       }
 
@@ -430,6 +454,14 @@ retCode run(processPo P) {
       case StG: {
         int32 glbNo = collectI32(PC);
         termPo val = pop();
+        globalPo glb = findGlobalVar(glbNo);
+        setGlobalVar(glb, val);      // Update the global variable
+        continue;
+      }
+
+      case TG: {
+        int32 glbNo = collectI32(PC);
+        termPo val = top();
         globalPo glb = findGlobalVar(glbNo);
         setGlobalVar(glb, val);      // Update the global variable
         continue;

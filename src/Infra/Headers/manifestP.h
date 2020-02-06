@@ -22,5 +22,8 @@ typedef struct _manifest_resource_ {
   char fn[MAXFILELEN];
 } ManifestRsrcRecord;
 
+extern logical traceManifest;
+
+retCode encodePkgName(ioPo out, packagePo pkg);
 
 #endif //LANDO_MANIFESTP_H

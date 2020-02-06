@@ -10,6 +10,9 @@
 #include "engineP.h"
 #include "decode.h"
 #include "globals.h"
+#include "debugP.h"
+
+logical runStats = False;         // Count instructions etc.
 
 static poolPo prPool;     /* pool of processes */
 
@@ -39,7 +42,7 @@ void initEngine() {
   halt.clss = methodClass;
 }
 
-retCode bootstrap(char *entry, char *init, char *rootWd) {
+retCode bootstrap(char *entry, char *rootWd) {
   labelPo umain = declareLbl(entry, 0);
   methodPo mainMtd = labelCode(umain);
 

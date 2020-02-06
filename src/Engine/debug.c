@@ -39,6 +39,16 @@ static sockPo debuggerListener = Null;
 static ioPo debugInChnnl = Null;
 static ioPo debugOutChnnl = Null;
 
+logical insDebugging = False;     // instruction tracing option
+logical lineDebugging = False;
+logical debugDebugging = False;
+logical tracing = False;          /* tracing option */
+int debuggerPort = 0;                // Debug port to establish listener on
+logical showPkgFile = False;      // True if we show file names instead of package names
+logical showColors = True;        // True if we want to show colored output
+
+logical interactive = False;      /* interaction instruction tracing */
+
 retCode setupDebugChannels() {
   if (debuggerPort > 0 && debugInChnnl == Null) {
     if (debuggerListener == Null) {
@@ -94,6 +104,11 @@ integer displayDepth = 1;
 
 void dC(termPo w) {
   outMsg(logFile, "%,*T\n", displayDepth, w);
+  flushOut();
+}
+
+void dA(termPo w) {
+  outMsg(logFile, "%#,*T\n", displayDepth, w);
   flushOut();
 }
 
@@ -1164,7 +1179,7 @@ insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)
 #define show_lcs outMsg(out," l[%d]",collectI32(pc))
 #define show_off outMsg(out," PC[%d]",collectI32(pc))
-#define show_sym outMsg(out," PC[%d]",collectI32(pc))
+#define show_sym showConstant(out,mtd,collectI32(pc))
 #define show_Es outMsg(out, " %s", getEscape(collectI32(pc))->name)
 #define show_lit showConstant(out,mtd,collectI32(pc))
 #define show_lne showConstant(out,mtd,collectI32(pc))

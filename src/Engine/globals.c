@@ -121,6 +121,8 @@ globalPo globalVar(const char *nm, termPo provider) {
     glb->hash = tst.hash;
     glb->varNo = numGlbVars - 1;
     hashPut(globals, glb, glb);
+  } else if(provider!=Null && glb->provider==Null){
+    glb->provider = provider;
   }
   return glb;
 }
@@ -198,6 +200,10 @@ termPo getGlobal(globalPo v) {
   return v->content;
 }
 
+globalPo getGlobalVar(char *nm) {
+  return globalVar(nm, Null);
+}
+
 char *globalVarName(globalPo v) {
   return v->name;
 }
@@ -227,6 +233,10 @@ termPo setGlobalVar(globalPo v, termPo e) {
   termPo prev = v->content;
   v->content = e;
   return prev;
+}
+
+logical glbHasProvider(globalPo glb) {
+  return (logical) (glb->provider != Null);
 }
 
 termPo getProvider(globalPo glb) {

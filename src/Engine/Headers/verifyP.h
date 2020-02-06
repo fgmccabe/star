@@ -45,4 +45,7 @@ typedef struct _segment_class_ {
 
 extern SegmentClassRec SegmentClass;
 
+extern logical traceVerify;
+extern logical enableVerify;      // Do we verify code that is loaded into engine
+
 #endif //STAR_VERIFYP_H

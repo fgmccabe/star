@@ -13,12 +13,12 @@
 #include "libEscapes.h"
 #include "codeP.h"
 #include "labelsP.h"
-#include "verify.h"
+#include "verifyP.h"
 #include "globalsP.h"
 
-static retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen);
+logical tracePkg = False;
 
-static retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity, char *errorMsg, integer msgLen);
+static retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen);
 
 static retCode decodeLoadedPkg(packagePo pkg, ioPo in, char *errorMsg, integer msgLen);
 
@@ -220,7 +220,8 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
         outStr(O_IO(vrB), "*");
       else if (isLookingAt(in, "s") == Ok) {
         ret = decodeText(O_IO(in), vrB);
-      }
+      } else
+        return Error;
     }
 
     outByte(O_IO(pkgB), 0);
@@ -231,33 +232,6 @@ retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen) {
     return ret;
   } else {
     strMsg(errorMsg, msgLen, "invalid package name encoding");
-    return Error;
-  }
-}
-
-retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
-                  char *errorMsg, integer msgLen) {
-  if (isLookingAt(in, "o") == Ok) {
-    retCode ret = decInt(O_IO(in), arity);
-
-    if (ret != Ok)
-      return ret;
-    else {
-      bufferPo pkgB = fixedStringBuffer(nm, nmLen);
-      ret = decodeText(O_IO(in), pkgB);
-      outByte(O_IO(pkgB), 0);
-      closeFile(O_IO(pkgB));
-      return ret;
-    }
-  } else if (isLookingAt(in, "e") == Ok) {
-    bufferPo pkgB = fixedStringBuffer(nm, nmLen);
-    retCode ret = decodeText(O_IO(in), pkgB);
-    outByte(O_IO(pkgB), 0);
-    closeFile(O_IO(pkgB));
-    *arity = 0;
-    return ret;
-  } else {
-    strMsg(errorMsg, msgLen, "invalid label encoding");
     return Error;
   }
 }
@@ -358,15 +332,15 @@ static retCode decodeIns(ioPo in, insPo *pc, integer *ix, integer *si, char *err
 #define sznOp
 #define sztOs
 #define szart return writeIntOperand(in,pc,ix);
-#define szi32 if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
-#define szarg if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
-#define szlcl if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
-#define szlcs if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++;}
-#define szoff if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
-#define szsym if(ret==Ok){ret = decodeInteger(in,&and); writeOperand(pc,(int32)and); (*ix)++; }
+#define szi32 if(ret==Ok){ret = writeIntOperand(in,pc,ix);}
+#define szarg if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
+#define szlcl if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
+#define szlcs if(ret==Ok){ret = writeIntOperand(in,pc,ix);}
+#define szoff if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
+#define szsym if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
 #define szEs if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,lookupEscape(escNm)); (*ix)++;}
-#define szlit if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
-#define szlne if(ret==Ok){ret = decodeInteger(in,&and);  writeOperand(pc,(int32)and); (*ix)++; }
+#define szlit if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
+#define szlne if(ret==Ok){ret = writeIntOperand(in,pc,ix); }
 #define szglb if(ret==Ok){ret = decodeString(in,escNm,NumberOf(escNm)); writeOperand(pc,globalVarNo(escNm)); (*ix)++;}
 
 #define instruction(Op, A1, Dl, Cmt)    \
@@ -430,7 +404,6 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
       insPo ins = (insPo) malloc(sizeof(insWord) * insCount * 2);
       insPo pc = ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
-        insPo ppc = pc;
         integer stackInc = 0;
         ret = decodeIns(in, &pc, &ix, &stackInc, errorMsg, msgSize);
         maxStack += stackInc;
@@ -512,7 +485,6 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
       insPo ins = (insPo) malloc(sizeof(insWord) * insCount * 2);
       insPo pc = ins;
       for (integer ix = 0; ret == Ok && ix < insCount;) {
-        insPo ppc = pc;
         integer stackInc = 0;
         ret = decodeIns(in, &pc, &ix, &stackInc, errorMsg, msgSize);
         maxStack += stackInc;
@@ -537,7 +509,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
             ret = decode(in, &support, H, &lines, tmpBuffer);
 
             if (ret == Ok) {
-              labelPo lbl = declareLbl(prgName, arity);
+              labelPo lbl = declareLbl(prgName, 0);
               gcAddRoot(H, (ptrPo) &lbl);
 
               methodPo mtd = defineMtd(H, ins, (integer) (pc - ins), lclCount, maxStack, lbl, C_TERM(pool),
@@ -547,7 +519,8 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
                 ret = verifyMethod(mtd, prgName, errorMsg, msgSize);
 
               if (ret == Ok) {
-                globalPo glb = globalVar(prgName, (termPo) mtd);
+                normalPo glbSym = allocateStruct(H, lbl); /* allocate a closure on the heap */
+                globalPo glb = globalVar(prgName, (termPo) glbSym);
                 if (glb == Null)
                   ret = Fail;
               }
@@ -566,8 +539,6 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
 
   return ret;
 }
-
-static char *fieldPreamble = "n4o4\1()4\1";
 
 retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgSize) {
   char lblName[MAX_SYMB_LEN];
@@ -605,7 +576,7 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
               integer offset, size;
               ret = decodeInteger(in, &offset);
               if (ret == Ok) {
-                setFieldTblEntry(fieldTbl, ix, field, offset);
+                setFieldTblEntry(fieldTbl, field, offset);
                 ret = decodeInteger(in, &size);
               }
             }

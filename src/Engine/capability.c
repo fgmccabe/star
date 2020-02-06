@@ -6,6 +6,8 @@
 #include <assert.h>
 #include <string.h>
 
+logical traceCapability = False;
+
 static long capSize(specialClassPo cl, termPo o);
 static termPo capCopy(specialClassPo cl, termPo dst, termPo src);
 static termPo capScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o);
@@ -54,6 +56,11 @@ capabilityPo allocateCapability(heapPo H, const char *path, integer pathLen, per
 
   memmove(cap->path, path, pathLen * sizeof(char));
 
+#ifdef TRACECAPABILITY
+  if(traceCapability)
+    logMsg(logFile,"create capability: %S with permissions %x",path,pathLen,perms);
+#endif
+
   return cap;
 }
 
@@ -96,13 +103,13 @@ static retCode cpDisp(codePoint ch, integer ix, void *cl) {
 
 static retCode outPerms(ioPo out, permission perms) {
   retCode ret = Ok;
-  if ((perms & readPermission) == readPermission)
+  if ((perms & (unsigned)readPermission) == readPermission)
     ret = outChar(out, 'r');
-  if (ret == Ok && (perms & writePermission) == writePermission)
+  if (ret == Ok && (perms & (unsigned)writePermission) == writePermission)
     ret = outChar(out, 'w');
-  if (ret == Ok && (perms & createPermission) == createPermission)
+  if (ret == Ok && (perms & (unsigned)createPermission) == createPermission)
     ret = outChar(out, 'w');
-  if (ret == Ok && (perms & deletePermission) == deletePermission)
+  if (ret == Ok && (perms & (unsigned)deletePermission) == deletePermission)
     ret = outChar(out, 'w');
   return ret;
 }
