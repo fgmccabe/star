@@ -8,7 +8,6 @@
   Lock synchronization functions
 */
 
-#include <string.h>
 
 #include <errno.h>
 #include "code.h"
@@ -26,6 +25,8 @@ static termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, term
 static logical lockCmp(specialClassPo cl, termPo o1, termPo o2);
 static integer lckHash(specialClassPo cl, termPo o);
 static retCode lockDisp(ioPo out, termPo t, integer precision, integer depth, logical alt);
+
+logical traceLock = False;        /* true if tracing locks */
 
 SpecialClass LockClass = {
   .clss = Null,
@@ -65,12 +66,12 @@ termPo lockScan(specialClassPo cl, specialHelperFun helper, void *c, termPo o) {
 }
 
 logical lockCmp(specialClassPo cl, termPo o1, termPo o2) {
-  return (logical)(o1==o2);
+  return (logical) (o1 == o2);
 }
 
-integer lckHash(specialClassPo cl, termPo o){
+integer lckHash(specialClassPo cl, termPo o) {
   lockPo l = C_LOCK(o);
-  return (integer)(&l->mutex);
+  return (integer) (&l->mutex);
 }
 
 static retCode lockDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -154,7 +155,7 @@ retCode releaseLock(lockPo l) {
 
       if (l->count <= 0) {
         l->count = 0;
-        l->owner = (pthread_t)Null;
+        l->owner = (pthread_t) Null;
         pthread_cond_broadcast(&l->cond);
       }
     }
@@ -187,7 +188,7 @@ retCode waitLock(lockPo l, double tmOut) {
   if ((pthread_equal(l->owner, pthread_self()) && l->count == 1) ||
       l->count == 0) {
     l->count = 0;
-    l->owner = (pthread_t)Null;    /* the equivalent of unlocking */
+    l->owner = (pthread_t) Null;    /* the equivalent of unlocking */
 
     if (tmOut == 0.0) {      /* treat as a no-timeout wait */
 #ifdef LOCKTRACE
@@ -246,14 +247,14 @@ retCode waitLock(lockPo l, double tmOut) {
 }
 
 void initLock(lockPo l) {
-  l->owner =(pthread_t) Null;
+  l->owner = (pthread_t) Null;
   l->count = 0;
 
   pthread_mutexattr_t attr;
 
   pthread_mutexattr_init(&attr);
 #ifdef TRACELOCK
-  pthread_mutexattr_settype(&attr,PTHREAD_MUTEX_ERRORCHECK);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
 #else
   pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
 #endif

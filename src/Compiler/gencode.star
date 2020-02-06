@@ -29,6 +29,9 @@ star.compiler.gencode{
   emptyCtx:(locn,list[(string,tipe)])=>codeCtx.
   emptyCtx(Lc,Glbs) => codeCtx(foldRight(((Pkg,Tp),G)=>G[Pkg->glbVar(Pkg,Tp)],[],Glbs),Lc,0,0).
 
+  ctxLbls:(codeCtx,codeCtx)=>codeCtx.
+  ctxLbls(codeCtx(Vrs,Lc,Mx1,Lb1),codeCtx(_,_,Mx2,Lb2))=>codeCtx(Vrs,Lc,max(Mx1,Mx2),max(Lb1,Lb2)).
+
   implementation display[codeCtx] => {.
     disp(codeCtx(Vrs,_,Depth,_)) => ssSeq([ss("dict"),disp(Vrs)]).
   .}
@@ -66,7 +69,7 @@ star.compiler.gencode{
   compDefn(vrDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
     logMsg("compile var $(Nm)\:$(Tp) = $(Val))");
     Ctx = emptyCtx(Lc,Glbs);
-    (Ctxx,Code,Stk) <- compExp(Val,Opts,retCont(),Ctx,[],[],Rp);
+    (Ctxx,Code,Stk) <- compExp(Val,Opts,bothCont(stoGlb(Nm),retCont()),Ctx,[],[],Rp);
     if [Top].=Stk then
       valis global(tLbl(Nm,0),Tp,Code)
     else
@@ -94,11 +97,11 @@ star.compiler.gencode{
   compExp(crCall(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(callCont(Nm,size(Args),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
   compExp(crOCall(Lc,Op,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
-    compExps(Args,Opts,bothCont(expCont(Op,Opts,oclCont(size(Args),Tp,Stk)),Cont),Ctx,Cde,Stk,Rp).
+    compExps(Args,Opts,bothCont(expCont(Op,Opts,oclCont(size(Args)+1,Tp,Stk)),Cont),Ctx,Cde,Stk,Rp).
   compExp(crRecord(Lc,Nm,Fields,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     Sorted = sort(Fields,((F1,_),(F2,_))=>F1<F2);
     Args = Sorted//((_,V))=>V;
-    compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).    
+    compExps(Args,Opts,bothCont(allocCont(tRec(Nm,Sorted//((F,V))=>(F,typeOf(V))),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).    
   }
   compExp(crDot(Lc,Rc,Field,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExp(Rc,Opts,bothCont(fldCont(Field,Tp),Cont),Ctx,Cde,Stk,Rp).
@@ -126,7 +129,7 @@ star.compiler.gencode{
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
   compExps([],Opts,Cont,Ctx,Cde,Stk,Rp)=>Cont.C(Ctx,Cde,Stk,Rp).
   compExps([El,..Es],Opts,Cont,Ctx,Cde,Stk,Rp)=>
-    compExp(El,Opts,expsCont(Es,Opts,Cont),Ctx,Cde,Stk,Rp).
+    compExps(Es,Opts,expCont(El,Opts,Cont),Ctx,Cde,Stk,Rp).
   
   compVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
@@ -181,10 +184,10 @@ star.compiler.gencode{
     (FLb,Ctx1) = defineLbl(Ctx);
     (NLb,Ctx2) = defineLbl(Ctx1);
     JCont = jmpCont(FLb);
-    (_,FlCode,Ctx3) <- Fail.C(Ctx2,[iLbl(FLb)],Stk,Rp);
+    (Ctx3,FlCode,_Stx3) <- Fail.C(Ctx2,[iLbl(FLb)],Stk,Rp);
     RCont = lblCont(FLb,resetCont(size(Stk),JCont));
     compPtns(Args,0,Opts,
-      resetCont(size(Stk),Succ),RCont,Ctx,
+      resetCont(size(Stk),Succ),RCont,ctxLbls(Ctx,Ctx3),
       [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(al(NLb))]++FlCode,[Stk..,Tp],Rp)
   }
   compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
@@ -201,7 +204,6 @@ star.compiler.gencode{
     compPtns(As,Ix+1,Opts,Succ,Fail,Ctx2,Cde2,Stk,Rp)
   }
   
-
   compPtnVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
   compPtnVar(Lc,Nm,lclVar(Off,Tp),Opts,Cont,Ctx,Cde,[Stk..,_],Rp) =>
@@ -319,6 +321,9 @@ star.compiler.gencode{
       valis (Ctx1,[Cde..,iStL(Off)],Stk)
     }).
 
+  stoGlb:(string)=>Cont.
+  stoGlb(V) => ccont((Ctx,Cde,Stk,Rp) => either((Ctx,[Cde..,iTG(V)],Stk))).
+
   updateCont:(srcLoc)=>Cont.
   updateCont(lclVar(Off,_))=>ccont((Ctx,Cde,[Stk..,_],Rp) => either((Ctx,[Cde..,iStL(Off)],Stk))).
   updateCont(argVar(Off,_))=>ccont((Ctx,Cde,[Stk..,_],Rp) => either((Ctx,[Cde..,iStA(Off)],Stk))).
@@ -342,21 +347,20 @@ star.compiler.gencode{
 	else{
 	  (Lbl,Cx) = defineLbl(Ctx);
 	  d := some((Lbl,Cx,Stk));
-	  C.C(Ctx,[Cde..,iLbl(Lbl)],Stk,Rp)
+	  C.C(Cx,[Cde..,iLbl(Lbl)],Stk,Rp)
 	}
       })
   } in cc.
 
   testCont:(locn,Cont,Cont)=>Cont.
   testCont(Lc,Succ,Fail)=>ccont((Ctx,Cde,[Stk..,_],Rp)=> do{
-      (Lb,C0) = defineLbl(Ctx);
-      (Ctx1,C1,Stk1) <- Succ.C(Ctx,[Cde..,iBf(al(Lb))],Stk,Rp);
-      (Ctx2,C2,Stk2) <- Fail.C(Ctx1,[C1..,iLbl(Lb)],Stk,Rp);
+      (Lb,Ctx0) = defineLbl(Ctx);
+      (Ctx1,C1,Stk1) <- Succ.C(Ctx0,[Cde..,iBf(al(Lb))],Stk,Rp);
+      (Ctx2,C2,Stk2) <- Fail.C(ctxLbls(Ctx,Ctx1),[C1..,iLbl(Lb)],Stk,Rp);
       Stkx <- mergeStack(Lc,Stk1,Stk2,Rp);
       valis (Ctx2,C2,Stkx)
     }
   ).
-
 
   mergeStack:(locn,cons[tipe],cons[tipe],reports)=>either[reports,cons[tipe]].
   mergeStack(Lc,S1,S2,_) where S1==S2 => either(S1).
@@ -406,8 +410,8 @@ star.compiler.gencode{
 
   argVars:(list[crVar],codeCtx,integer) => codeCtx.
   argVars([],Ctx,_)=>Ctx.
-  argVars([crId(Nm,Tp),..As],codeCtx(Vars,CLc,Count,Lb),Arg) =>
-    argVars(As,codeCtx(Vars[Nm->argVar(Arg,Tp)],CLc,Count+1,Lb),Arg+1).
+  argVars([crId(Nm,Tp),..As],codeCtx(Vars,CLc,Count,Lb),Ix) =>
+    argVars(As,codeCtx(Vars[Nm->argVar(Ix,Tp)],CLc,Count+1,Lb),Ix+1).
   argVars([_,..As],Ctx,Arg) => argVars(As,Ctx,Arg+1).
 
   mergeCtx:(codeCtx,codeCtx,codeCtx)=>codeCtx.

@@ -7,6 +7,7 @@
 #include "verifyP.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
+logical traceVerify = False;      // true if tracing code verification
 
 typedef struct {
   segPo *stack;
@@ -143,6 +144,11 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
 
   integer pc = 0;
   retCode ret = splitIns(blocks, entryPoint(mtd), &pc, insCount(mtd), True, errorMsg, msgLen);
+
+#ifdef TRACEVERIFY
+  if (traceVerify)
+    showSegs(blocks, name);
+#endif
 
   if (ret == Ok) {
     pc = 0;
@@ -705,7 +711,7 @@ static void showVar(char *nm, integer ix, varPo v);
 retCode showSeg(ioPo out, segPo seg) {
   integer i;
 
-  outMsg(out, "segment:%s %d (%d) [%d-%d](%d) depth=%d",
+  outMsg(out, "segment:%s %d (%d entrypoints) [%d-%d](%d) depth=%d",
          seg->seg.checked ? "¶" : "",
          seg->seg.segNo, seg->seg.entryPoints, seg->seg.pc, seg->seg.maxPc, seg->seg.maxPc - seg->seg.pc,
          seg->seg.stackDepth);

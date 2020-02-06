@@ -24,4 +24,6 @@ void initLock(lockPo kck);
 
 #define LockCellCount CellCount(sizeof(LockRecord))
 
+extern logical traceLock;
+
 #endif //STAR_LOCKVARP_H

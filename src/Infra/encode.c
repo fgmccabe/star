@@ -3,9 +3,9 @@
 //
 #include "config.h"
 #include <ooio.h>
+#include <star.h>
 #include "encoding.h"
 #include "signature.h"
-
 
 retCode encodeInt(ioPo out, int64 ix) {
   tryRet(outChar(out, intTrm));
@@ -51,22 +51,55 @@ retCode encodeTxt(ioPo out, char *str, integer len) {
   return ret;
 }
 
-retCode encodeEnum(ioPo out, char *nm){
-  return encodeStrct(out,nm,0);
+retCode encodeEnum(ioPo out, char *nm) {
+  tryRet(outChar(out,enuTrm));
+  return encodeTxt(out, nm, uniStrLen(nm));
 }
 
 retCode encodeFlt(ioPo out, double dx) {
-  tryRet(outChar(out,fltTrm));
+  tryRet(outChar(out, fltTrm));
   return outFloat(out, dx);
 }
 
-retCode encodeStrct(ioPo out, char *sx, integer ar) {
+retCode encodeLbl(ioPo out, char *sx, integer ar) {
   tryRet(outChar(out, lblTrm));
   tryRet(outInt(out, ar));
   return encodeTxt(out, sx, uniStrLen(sx));
 }
 
-retCode encodeCons(ioPo out, integer arity){
-  tryRet(outChar(out,dtaTrm));
-  return outInt(out,arity);
+retCode encodeTplLbl(ioPo out, integer ar) {
+  tryRet(outChar(out, lblTrm));
+  tryRet(outInt(out, ar));
+  char txt[MAX_SYMB_LEN];
+
+  strMsg(txt, NumberOf(txt), "()%d", ar);
+
+  return encodeTxt(out, txt, uniStrLen(txt));
+}
+
+retCode encodeLst(ioPo out, integer ar) {
+  tryRet(outChar(out, lstTrm));
+  return outInt(out, ar);
+}
+
+retCode encodeCons(ioPo out, integer arity) {
+  tryRet(outChar(out, dtaTrm));
+  return outInt(out, arity);
+}
+
+retCode encodePkgName(ioPo out, packagePo pkg) {
+  char *name = pkgName(pkg);
+  char *version = pkgVers(pkg);
+
+  tryRet(encodeCons(out, 2));
+  tryRet(encodeLbl(out, "pkg", 2));
+
+  tryRet(encodeStr(out, name, uniStrLen(name)));
+
+  if (uniIsLit(version, "*")) {
+    return encodeEnum(out, "*");
+  } else {
+    tryRet(encodeLbl(out, "v", 1));
+    return encodeStr(out, version, uniStrLen(version));
+  }
 }

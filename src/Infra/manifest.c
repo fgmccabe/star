@@ -45,6 +45,8 @@ typedef struct {
   integer fieldCount;
 } ParsingState, *statePo;
 
+logical traceManifest = False;
+
 static retCode startManifest(void *cl);
 static retCode endManifest(void *cl);
 static retCode startList(integer arity, void *cl);
@@ -53,6 +55,7 @@ static retCode startEntry(integer arity, void *cl);
 static retCode endEntry(void *cl);
 static retCode txtEntry(char *name, integer length, void *cl);
 static retCode lblEntry(char *name, integer arity, void *cl);
+static retCode recLblEntry(char *name, integer arity, FieldRec fields[], void *cl);
 static retCode intEntry(integer ix, void *cl);
 static retCode fltEntry(double dx, void *cl);
 static retCode badEntry(void *cl);
@@ -68,6 +71,7 @@ retCode decodeManifest(ioPo in) {
     intEntry,               // decInt
     fltEntry,               // decFlt
     lblEntry,               // decLbl
+    recLblEntry,            // record label
     txtEntry,               // decString
     startEntry,             // decCon
     endEntry,               // End of constructor entry
@@ -75,7 +79,7 @@ retCode decodeManifest(ioPo in) {
     endList
   };
 
-  return streamDecode(in, &decodeCB, &info);
+  return streamDecode(in, &decodeCB, &info, NULL, 0);
 }
 
 static poolPo manifestPool = NULL;
@@ -382,6 +386,10 @@ retCode lblEntry(char *name, integer arity, void *cl) {
   }
 }
 
+retCode recLblEntry(char *name, integer arity, FieldRec fields[], void *cl) {
+  return Error;
+}
+
 // No numeric entries in manifest
 retCode intEntry(integer ix, void *cl) {
   return Error;
@@ -528,6 +536,83 @@ retCode dispManifest(ioPo out) {
   return ret;
 }
 
+typedef struct {
+  ioPo out;
+  int count;
+} EncodeInfo;
+
+static retCode encodeRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
+  EncodeInfo *info = (EncodeInfo *) cl;
+
+  info->count++;
+
+  tryRet(encodeCons(info->out, 1));
+  tryRet(encodeLbl(info->out, rsrc->kind, 1));
+  return encodeStr(info->out, rsrc->fn, uniStrLen(rsrc->fn));
+}
+
+retCode encodeVersion(char *v, manifestVersionPo vers, void *cl) {
+  EncodeInfo *info = (EncodeInfo *) cl;
+  bufferPo rsrcBuf = newStringBuffer();
+  EncodeInfo rsrc = {.out = O_IO(rsrcBuf), .count = 0};
+
+  info->count++;
+
+  tryRet(ProcessTable((procFun) encodeRsrc, vers->resources, &rsrc));
+
+  tryRet(encodeCons(info->out, 2));
+  tryRet(encodeTplLbl(info->out, 2));
+
+  tryRet(encodeStr(info->out, vers->version, uniStrLen(vers->version)));
+
+  tryRet(encodeLst(info->out, rsrc.count));
+  {
+    integer len;
+    char *text = getTextFromBuffer(rsrcBuf, &len);
+    return outText(info->out, text, len);
+  }
+}
+
+retCode encodeEntry(char *v, manifestEntryPo entry, void *cl) {
+  EncodeInfo *info = (EncodeInfo *) cl;
+  bufferPo versBuf = newStringBuffer();
+  EncodeInfo vers = {.out = O_IO(versBuf), .count = 0};
+
+  info->count++;
+
+  tryRet(ProcessTable((procFun) encodeVersion, entry->versions, &vers));
+
+  tryRet(encodeCons(info->out, 2));
+  tryRet(encodeTplLbl(info->out, 2));
+
+  tryRet(encodeStr(info->out, entry->package, uniStrLen(entry->package)));
+
+  tryRet(encodeLst(info->out, vers.count));
+  {
+    integer len;
+    char *text = getTextFromBuffer(versBuf, &len);
+    return outText(info->out, text, len);
+  }
+}
+
+retCode encodeManifest(ioPo out) {
+  bufferPo buf = newStringBuffer();
+  EncodeInfo info = {.out = O_IO(buf), .count=0};
+
+  retCode ret = ProcessTable((procFun) encodeEntry, manifest, &info);
+
+  if (ret == Ok) {
+    ret = encodeLst(out, info.count);
+    if (ret == Ok) {
+      integer len;
+      char *text = getTextFromBuffer(buf, &len);
+      ret = outText(out, text, len);
+    }
+  }
+
+  return ret;
+}
+
 retCode flushManifest() {
   char manifestName[MAXFILELEN];
 
@@ -536,7 +621,7 @@ retCode flushManifest() {
   ioPo outFile = openOutFile(manifestName, utf8Encoding);
 
   if (outFile != NULL) {
-    retCode ret = dispManifest(outFile);
+    retCode ret = encodeManifest(outFile);
 
     if (ret == Ok)
       ret = closeFile(outFile);

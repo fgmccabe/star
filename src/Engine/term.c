@@ -4,6 +4,7 @@
 
 #include "codeP.h"
 #include <assert.h>
+#include <labelsP.h>
 #include "formioP.h"
 #include "labels.h"
 
@@ -63,6 +64,20 @@ retCode showTerm(ioPo f, void *data, long depth, long precision, logical alt) {
 void initTerm() {
 }
 
+typedef struct {
+  ioPo out;
+  normalPo trm;
+  integer precision;
+  integer depth;
+  logical alt;
+} FieldInfoRec;
+
+static retCode showField(labelPo fldLbl, integer ix, void *cl) {
+  FieldInfoRec *info = (FieldInfoRec *) cl;
+  tryRet(outMsg(info->out, "%T[%d] = ", fldLbl, ix));
+  return dispTerm(info->out, nthArg(info->trm, ix), info->precision, info->depth, info->alt);
+}
+
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
   clssPo clss = t->clss;
   if (isSpecialClass(clss)) {
@@ -71,23 +86,41 @@ retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical a
   } else if (isNormalPo(t)) {
     normalPo nml = C_TERM(t);
     labelPo lbl = nml->lbl;
-    retCode ret = (isTplLabel(lbl) ? Ok : showLbl(out, 24, alt, lbl));
-    if (ret == Ok)
-      ret = outChar(out, '(');
-    if (depth > 0) {
+    if (isRecordLabel(lbl)) {
+      FieldInfoRec Info = {.out = out, .depth=depth, .precision=precision, .alt=alt, .trm=nml};
+      integer arity = labelArity(lbl);
+      retCode ret = showLabel(out, lbl, depth, precision, alt);
       char *sep = "";
-      integer ar = labelArity(lbl);
-      for (integer ix = 0; ix < ar && ret == Ok; ix++) {
+      if (ret == Ok)
+        ret = outStr(out, "{ ");
+      for (integer ix = 0; ret == Ok && ix < arity; ix++) {
         ret = outStr(out, sep);
-        sep = ", ";
         if (ret == Ok)
-          ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
+          ret = applyFieldProc(lbl, ix, showField, &Info);
+        sep = "; ";
       }
-    } else
-      ret = outStr(out, "...");
-    if (ret == Ok)
-      ret = outChar(out, ')');
-    return ret;
+      if (ret == Ok)
+        ret = outStr(out, "}");
+      return ret;
+    } else {
+      retCode ret = (isTplLabel(lbl) ? Ok : showLbl(out, lbl, 0, 24, alt));
+      if (ret == Ok)
+        ret = outChar(out, '(');
+      if (depth > 0) {
+        char *sep = "";
+        integer ar = labelArity(lbl);
+        for (integer ix = 0; ix < ar && ret == Ok; ix++) {
+          ret = outStr(out, sep);
+          sep = ", ";
+          if (ret == Ok)
+            ret = dispTerm(out, nthArg(nml, ix), precision, depth - 1, alt);
+        }
+      } else
+        ret = outStr(out, "...");
+      if (ret == Ok)
+        ret = outChar(out, ')');
+      return ret;
+    }
   } else
     return outMsg(out, "<<? 0x%x ?>>", t);
 }

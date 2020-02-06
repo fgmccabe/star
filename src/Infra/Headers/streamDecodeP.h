@@ -9,13 +9,20 @@
 
 extern retCode decInt(ioPo in, integer *ii);
 extern retCode decFlt(ioPo in, double *dx);
-extern retCode decodeInteger(ioPo in,integer *ix);
+extern retCode decodeInteger(ioPo in, integer *ix);
 extern retCode decodeText(ioPo in, bufferPo buffer);
-extern retCode decodeString(ioPo in,char *buffer, integer buffLen);
+extern retCode decodeString(ioPo in, char *buffer, integer buffLen);
+
+typedef struct {
+  char field[MAX_SYMB_LEN];
+  integer offset;
+  integer size;
+} FieldRec;
 
 typedef retCode (*intProc)(integer ix, void *cl);
 typedef retCode (*fltProc)(double dx, void *cl);
 typedef retCode (*nameProc)(char *sx, integer ar, void *cl);
+typedef retCode (*recLblProc)(char *sx, integer ar, FieldRec fields[], void *cl);
 typedef retCode (*stringProc)(char *sx, integer len, void *cl);
 typedef retCode (*consProc)(integer len, void *cl);
 typedef retCode (*flagProc)(void *cl);
@@ -27,6 +34,7 @@ typedef struct {
   intProc decInt;
   fltProc decFlt;
   nameProc decLbl;
+  recLblProc decRecLbl;
   stringProc decString;
   consProc decCons;
   flagProc endCons;
@@ -34,6 +42,6 @@ typedef struct {
   flagProc endLst;
 } DecodeCallBacks, *decodeCallBackPo;
 
-retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl);
+retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, integer msgLen);
 
 #endif //STAR_STREAMDECODEP_H

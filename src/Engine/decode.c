@@ -10,13 +10,16 @@
 #include "strP.h"
 #include "heap.h"
 #include "signature.h"
-#include "labels.h"
+#include "labelsP.h"
+#include "streamDecode.h"
 
 /*
  * Decode a structure from an input stream
  */
 
 static retCode estimate(ioPo in, integer *amnt);
+static retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char *errorMsg, integer msgSize);
+static retCode decodeListCount(ioPo in, integer *count, char *errorMsg, integer msgSize);
 
 retCode decodeTerm(ioPo in, heapPo H, termPo *tgt, char *errorMsg, long msgSize) {
   EncodeSupport support = {errorMsg, msgSize, H};
@@ -158,6 +161,10 @@ static retCode estimateLbl(char *nm, integer arity, void *cl) {
   return Ok;
 }
 
+static retCode estimateRecLbl(char *nm, integer arity, FieldRec fields[], void *cl) {
+  return Ok;
+}
+
 static retCode estimateCns(integer arity, void *cl) {
   Estimation *info = (Estimation *) cl;
 
@@ -193,6 +200,7 @@ retCode estimate(ioPo in, integer *amnt) {
     estimateInt,            // decInt
     estimateFlt,            // decFlt
     estimateLbl,           // decLbl
+    estimateRecLbl,         // record label
     estimateString,         // decString
     estimateCns,            // decCon
     endEstimateCns,         // End of constructor
@@ -200,7 +208,7 @@ retCode estimate(ioPo in, integer *amnt) {
     endEstimateLst          // End of list
   };
 
-  retCode ret = streamDecode(in, &estimateCB, &info);
+  retCode ret = streamDecode(in, &estimateCB, &info, NULL, 0);
 
   if (ret == Ok) {
     *amnt = info.amnt;
@@ -258,6 +266,9 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       }
       return res;
     }
+    case recTrm: {
+      return decodeRecLbl(in, S, tgt, tmpBuffer, S->errorMsg, S->msgSize);
+    }
     case strTrm: {
       if ((res = decodeText(in, tmpBuffer)) == Ok) {
         integer len;
@@ -288,7 +299,7 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
 
         termPo el = voidEnum;
         gcAddRoot(H, &el);
-        gcAddRoot(H, (ptrPo)&obj);
+        gcAddRoot(H, (ptrPo) &obj);
 
         // In case of GC, we mark all the elements as void before doing any decoding
         for (integer ix = 0; ix < arity; ix++)
@@ -338,4 +349,81 @@ retCode decode(ioPo in, encodePo S, heapPo H, termPo *tgt, bufferPo tmpBuffer) {
       return Error;
     }
   }
+}
+
+retCode decodeTplCount(ioPo in, integer *count, char *errorMsg, integer msgSize) {
+  if (isLookingAt(in, "n") == Ok) {
+    char nm[MAXLINE];
+    integer ar;
+    retCode ret = decInt(in, count);
+    if (ret == Ok) {
+      ret = decodeLbl(in, nm, NumberOf(nm), &ar, errorMsg, msgSize);
+      if (ret == Ok) {
+        if (ar != *count) {
+          strMsg(errorMsg, msgSize, "invalid tuple arity encoding");
+          return Error;
+        }
+      }
+    }
+    return ret;
+  } else
+    return Fail;
+}
+
+retCode decodeListCount(ioPo in, integer *count, char *errorMsg, integer msgSize) {
+  if (isLookingAt(in, "l") == Ok) {
+    return decInt(in, count);
+  } else
+    return Fail;
+}
+
+retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char *errorMsg, integer msgSize) {
+  char lblName[MAX_SYMB_LEN];
+  bufferPo pkgB = fixedStringBuffer(lblName, NumberOf(lblName));
+
+  retCode ret = decodeText(in, pkgB);
+
+  if (ret == Ok) {
+    integer arity;
+    ret = decodeListCount(in, &arity, errorMsg, msgSize);
+
+    if (ret == Ok) {
+      integer lblLen;
+      char *Nm = getTextFromBuffer(pkgB, &lblLen);
+      labelPo lbl = declareLbl(Nm, arity);
+
+      fieldTblPo fieldTbl = newFieldTable(arity);
+      declareFields(lbl, fieldTbl);
+
+      for (integer ix = 0; ret == Ok && ix < arity; ix++) {
+        if (isLookingAt(in, fieldPreamble) == Ok) {
+          char fieldName[MAX_SYMB_LEN];
+          integer fieldArity;
+          ret = decodeLbl(in, fieldName, NumberOf(fieldName), &fieldArity, errorMsg, msgSize);
+          if (ret == Ok) {
+            labelPo field = declareLbl(fieldName, fieldArity);
+            ret = skipEncoded(in, errorMsg, msgSize); // Field signature
+            if (ret == Ok) {
+              integer offset, size;
+              ret = decodeInteger(in, &offset);
+              if (ret == Ok) {
+                setFieldTblEntry(fieldTbl, field, offset);
+                ret = decodeInteger(in, &size);
+              }
+            }
+          }
+        } else
+          ret = Fail;
+      }
+      if (ret != Ok) {
+        clearFieldTable(lbl);
+        *tgt = Null;
+      } else
+        *tgt = (termPo) lbl;
+    }
+  }
+  closeFile(O_IO(pkgB));
+
+  outMsg(logFile, "%#T\n", *tgt);
+  return ret;
 }

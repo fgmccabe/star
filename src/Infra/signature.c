@@ -71,6 +71,8 @@ logical validSig(char *sig, integer *start, integer end) {
     case lstSig:
       return validSig(sig, start, end);
     case faceSig: {
+      if(sig[(*start)++]!='{')
+        return False;
       while (*start < end && sig[*start] != '}')
         if (!skipId(sig, start, end) || !validSig(sig, start, end))
           return False;

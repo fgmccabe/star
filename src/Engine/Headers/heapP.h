@@ -33,6 +33,14 @@ extern HeapRecord heap;
 
 typedef struct _stack_frame_ *framePo;
 
+extern long initHeapSize;        /* How much memory to give the heap */
+extern long maxHeapSize;         // Maximum permitted size of heap
+extern long initStackSize;       /* How big is the stack */
+extern long maxStackSize;        // How big may the stack grow?
+
+extern logical traceMemory;      /* memory tracing */
+extern logical validateMemory;   // Validate heap after every allocation
+
 extern retCode gcCollect(heapPo H, long amount);
 
 typedef struct _gc_support_ {

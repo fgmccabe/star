@@ -2,9 +2,26 @@
 // Created by Francis McCabe on 2019-03-17.
 //
 
+#include "streamDecode.h"
+#include "heap.h"
+#include "strP.h"
+#include "arithP.h"
+#include <arrayP.h>
+#include <array.h>
+#include <hash.h>
+#include <unistd.h>
+#include "globalsP.h"
+#include "verifyP.h"
+#include "codeP.h"
+#include "libEscapes.h"
+#include "manifest.h"
+#include "decodeP.h"             /* pick up the term encoding definitions */
+#include <globals.h>
+#include "engine.h"
+#include "pkgP.h"
+#include <stdlib.h>
 #include "streamDecodeP.h"
 #include "signature.h"
-
 
 static logical isDigit(codePoint ch) {
   return (logical) (ch >= '0' && ch <= '9');
@@ -55,33 +72,11 @@ retCode decInt(ioPo in, integer *ii) {
   }
 }
 
-
 retCode decodeInteger(ioPo in, integer *ix) {
   if (isLookingAt(in, "x") == Ok)
     return decInt(in, ix);
   else
     return Fail;
-}
-
-retCode decodeNm(ioPo in, char *buffer, integer buffLen) {
-  codePoint delim;
-
-  retCode ret = inChar(in, &delim);
-
-  if (ret != Ok)
-    return ret;
-  else {
-    codePoint ch;
-    integer ix = 0;
-    while (ix < buffLen && (ret = inChar(in, &ch)) == Ok && ch != delim) {
-      ix = appendCodePoint(buffer, &ix, buffLen, ch);
-    }
-    if (ix < buffLen) {
-      appendCodePoint(buffer, &ix, buffLen, 0);
-      return ret;
-    } else
-      return Space;
-  }
 }
 
 retCode decodeText(ioPo in, bufferPo buffer) {
@@ -128,14 +123,14 @@ retCode decFlt(ioPo in, double *dx) {
   return ret;
 }
 
-static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buff);
+static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buff, char *errorMsg, integer msgLen);
 
-retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl) {
+retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl, char *errorMsg, integer msgLen) {
   bufferPo strBuffer = newStringBuffer();
   retCode ret = cb->startDecoding(cl);
 
   if (ret == Ok)
-    ret = decodeStream(in, cb, cl, strBuffer);
+    ret = decodeStream(in, cb, cl, strBuffer, errorMsg, msgLen);
 
   if (ret == Ok)
     cb->endDecoding(cl);
@@ -144,7 +139,7 @@ retCode streamDecode(ioPo in, decodeCallBackPo cb, void *cl) {
   return ret;
 }
 
-static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buff) {
+static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buff, char *errorMsg, integer msgLen) {
   codePoint ch;
   retCode res = inChar(in, &ch);
 
@@ -196,6 +191,56 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       }
       return res;
     }
+    case recTrm: {
+      clearBuffer(buff);
+      res = decodeText(in, buff);
+
+      if (res == Ok) {
+        integer arity;
+
+        res = inChar(in, &ch);
+
+        if (res != Ok)
+          return res;
+        else if (ch != lstTrm)
+          return Fail;
+
+        if ((res = decInt(in, &arity)) != Ok) /* How many elements in the list */
+          return res;
+
+        if (res == Ok) {
+          integer lblLen;
+          char *Nm = getTextFromBuffer(buff, &lblLen);
+
+          FieldRec fields[arity];
+
+          for (integer ix = 0; res == Ok && ix < arity; ix++) {
+            char fieldName[MAX_SYMB_LEN];
+            integer fieldArity;
+            char *fieldPreamble = "n4o4\1()4\1";
+
+            if (isLookingAt(in, fieldPreamble) == Ok) {
+
+              res = decodeLbl(in, fields[ix].field, NumberOf(fields[ix].field), &fieldArity, errorMsg, msgLen);
+              if (res == Ok) {
+                res = skipEncoded(in, errorMsg, msgLen); // Field signature
+                if (res == Ok) {
+                  integer offset, size;
+                  res = decodeInteger(in, &fields[ix].offset);
+                  if (res == Ok) {
+                    res = decodeInteger(in, &fields[ix].size);
+                  }
+                }
+              }
+            }
+          }
+
+          if (res == Ok)
+            res = cb->decRecLbl(Nm, arity, fields, cl);
+        }
+      }
+      return res;
+    }
     case strTrm: {
       clearBuffer(buff);
       res = decodeText(in, buff);
@@ -218,13 +263,13 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
         res = cb->decCons(arity, cl);
 
       if (res == Ok)
-        res = decodeStream(in, cb, cl, buff); // Handle the operator of the cons
+        res = decodeStream(in, cb, cl, buff, errorMsg, msgLen); // Handle the operator of the cons
 
       if (res == Ok) {
         integer i;
 
         for (i = 0; res == Ok && i < arity; i++)
-          res = decodeStream(in, cb, cl, buff);
+          res = decodeStream(in, cb, cl, buff, errorMsg, msgLen);
 
         if (res == Ok)
           res = cb->endCons(cl);
@@ -246,7 +291,7 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
         integer i;
 
         for (i = 0; res == Ok && i < count; i++)
-          res = decodeStream(in, cb, cl, buff);
+          res = decodeStream(in, cb, cl, buff, errorMsg, msgLen);
 
         if (res == Ok)
           res = cb->endLst(cl);
@@ -259,7 +304,6 @@ static retCode decodeStream(ioPo in, decodeCallBackPo cb, void *cl, bufferPo buf
       return Error;
   }
 }
-
 
 static retCode skipFlag(void *cl) {
   return Ok;
@@ -282,6 +326,10 @@ static retCode skipString(char *sx, integer len, void *cl) {
 }
 
 static retCode skipName(char *sx, integer ar, void *cl) {
+  return Ok;
+}
+
+static retCode skipRecLbl(char *sx, integer ar, FieldRec fields[], void *cl) {
   return Ok;
 }
 
@@ -308,6 +356,7 @@ static DecodeCallBacks skipCB = {
   skipInt,            // decInt
   skipFlt,            // decFlt
   skipName,           // decLbl
+  skipRecLbl,         // record label
   skipString,         // decString
   skipCns,            // decCons
   endSkipCns,         // End of constructor
@@ -316,7 +365,7 @@ static DecodeCallBacks skipCB = {
 };
 
 retCode skipEncoded(ioPo in, char *errorMsg, long msgLen) {
-  switch (streamDecode(in, &skipCB, NULL)) {
+  switch (streamDecode(in, &skipCB, NULL, errorMsg, msgLen)) {
     case Ok:
       return Ok;
     case Error:
@@ -330,7 +379,6 @@ retCode skipEncoded(ioPo in, char *errorMsg, long msgLen) {
       return Error;
   }
 }
-
 
 typedef struct {
   ioPo out;
@@ -380,6 +428,10 @@ static retCode encodeName(ioPo out, char *sx, integer len) {
   return ret;
 }
 
+static retCode copyRecLbl(char *sx, integer ar, FieldRec fields[], void *cl) {
+  return Error;
+}
+
 static retCode copyString(char *sx, integer len, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
   return encodeStr(out, sx, len);
@@ -387,7 +439,7 @@ static retCode copyString(char *sx, integer len, void *cl) {
 
 static retCode copyEnum(char *nm, integer ar, void *cl) {
   ioPo out = ((CopyRec *) cl)->out;
-  return encodeStrct(out, nm, ar);
+  return encodeLbl(out, nm, ar);
 }
 
 static retCode copyCons(integer ar, void *cl) {
@@ -417,6 +469,7 @@ static DecodeCallBacks copyCB = {
   copyInt,            // decInt
   copyFlt,            // decFlt
   copyEnum,           // decLbl
+  copyRecLbl,          // record label
   copyString,         // decString
   copyCons,            // decCons
   endCopyCons,        // Copying a structure
@@ -424,20 +477,29 @@ static DecodeCallBacks copyCB = {
   endCopyList         // End of copying a list
 };
 
-retCode copyEncoded(ioPo in, ioPo out, char *errorMsg, long msgLen) {
-  CopyRec rc = {out};
+retCode decodeLbl(ioPo in, char *nm, long nmLen, integer *arity,
+                  char *errorMsg, integer msgLen) {
+  if (isLookingAt(in, "o") == Ok) {
+    retCode ret = decInt(O_IO(in), arity);
 
-  switch (streamDecode(in, &copyCB, &rc)) {
-    case Ok:
-      return Ok;
-    case Error:
-      strMsg(errorMsg, msgLen, "problem in decoding");
-      return Error;
-    case Eof:
-      strMsg(errorMsg, msgLen, "unexpected EOF");
-      return Error;
-    default:
-      strMsg(errorMsg, msgLen, "problem in decoding");
-      return Error;
+    if (ret != Ok)
+      return ret;
+    else {
+      bufferPo pkgB = fixedStringBuffer(nm, nmLen);
+      ret = decodeText(O_IO(in), pkgB);
+      outByte(O_IO(pkgB), 0);
+      closeFile(O_IO(pkgB));
+      return ret;
+    }
+  } else if (isLookingAt(in, "e") == Ok) {
+    bufferPo pkgB = fixedStringBuffer(nm, nmLen);
+    retCode ret = decodeText(O_IO(in), pkgB);
+    outByte(O_IO(pkgB), 0);
+    closeFile(O_IO(pkgB));
+    *arity = 0;
+    return ret;
+  } else {
+    strMsg(errorMsg, msgLen, "invalid label encoding");
+    return Error;
   }
 }

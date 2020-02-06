@@ -85,7 +85,7 @@ retCode mtdDisp(ioPo out, termPo t, integer precision, integer depth, logical al
   normalPo pool = codeLits(mtd);
   if (pool != Null) {
     labelPo lbl = C_LBL(nthArg(pool, 0));
-    return showLbl(out, precision, alt, lbl);
+    return showLbl(out, lbl, 0, precision, alt);
   } else
     return outMsg(out, "<unknown mtd>");
 }

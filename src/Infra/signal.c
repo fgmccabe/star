@@ -18,7 +18,7 @@
 #include "starOptions.h"
 #include "engineOptions.h"
 #include "signals.h"
-#include "debug.h"
+#include "debugP.h"
 
 /* 
  * Signal handling functions

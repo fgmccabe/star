@@ -13,6 +13,7 @@
 #define TRACEMEM
 #define TRACEEXEC
 #define TRACEMANIFEST
+#define TRACECAPABILITY
 #define TRACEPKG
 #define TRACESTATS
 #define TRACEVERIFY
@@ -28,37 +29,16 @@
 
 extern char *copyright;
 
-extern logical enableVerify;      // Do we verify code that is loaded into engine
-extern logical tracing;        /* tracing option */
-extern logical insDebugging;
-extern logical lineDebugging;
-extern logical debugDebugging;
-extern int debuggerPort;
-extern logical showPkgFile;       // True if we show file instead of package during debugging
-extern logical showColors;
-extern logical interactive;      /* interactive instruction tracing option */
-extern logical runStats;
-
-extern logical traceMemory;      /* memory tracing */
-extern logical validateMemory;   // Validate heap after every allocation
-extern logical tracePkg;
-extern logical traceManifest;
-extern logical traceVerify;
-
-extern long initHeapSize;        /* How much memory to give the heap */
-extern long maxHeapSize;         // Maximum permitted size of heap
-extern long initStackSize;       /* How big is the stack */
-extern long maxStackSize;        // How big may the stack grow?
-
 extern char bootEntry[MAX_SYMB_LEN];
-extern char bootInit[MAX_SYMB_LEN];
 extern char bootVer[MAX_SYMB_LEN];
+extern logical useMicroBoot;
 extern PackageRec bootPkge;
+extern PackageRec microBootPkge;
 
 extern char CWD[MAXFILELEN];
 extern char repoDir[MAXFILELEN];
 
 int getStarOptions(int argc, char **argv);
-char * defltCWD();
+char *defltCWD();
 
 #endif

@@ -70,7 +70,7 @@ star.compiler.term.repo{
   extensionMapping:(string) => string.
   extensionMapping("source") => ".star".
   extensionMapping("term") => ".term".
-  extensionMapping("code") => ".cafe".
+  extensionMapping("code") => ".co".
 
   public implementation display[termRepo] => {.
     disp(repo(Root,Man)) => ssSeq([ss("file repo rooted at "),disp(Root),ss("\nmanifest:"),disp(Man)]).

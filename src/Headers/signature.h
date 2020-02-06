@@ -58,6 +58,7 @@ typedef enum {
   dtaTrm = 'n',         // Constructor data value
   lstTrm = 'l',
   lblTrm = 'o',         // A structure label identifier
+  recTrm = 'O',         // A record structure label
   enuTrm = 'e',         // An enumerated symbol
 } cafeTermSig;
 
