@@ -6,14 +6,14 @@ test.tsort{
 
   all x,y ~~ df[x,y] ::= df(x,list[y]).
 
-  implementation all x ~~ equality[x] |: depends[df[x,x]->>x] => {
+  implementation all x ~~ equality[x] |: depends[df[x,x]->>x] => {.
     defined(df(X,_),D)=>X==D.
     references(df(_,R)) => R.
-  }
+  .}
 
-  implementation all x,y ~~ display[x], display[y] |: display[df[x,y]] => {
+  implementation all x,y ~~ display[x], display[y] |: display[df[x,y]] => {.
     disp(D) => dispDf(D).
-  }
+  .}
 
   dispDf: all x,y ~~ display[x], display[y] |: (df[x,y]) => ss.
   dispDf(df(X,Y)) => ssSeq([ss("("),disp(X),ss(","),disp(Y),ss(")")]).
