@@ -45,7 +45,7 @@ isCanon(ifThenDo(_,_,_,_,_,_,_)).
 isCanon(whileDo(_,_,_,_,_)).
 isCanon(forDo(_,_,_,_,_)).
 isCanon(tryCatchDo(_,_,_,_,_,_)).
-isCanon(varDo(_,_,_)).
+isCanon(varDo(_,_,_,_,_,_)).
 isCanon(bindDo(_,_,_,_)).
 isCanon(returnDo(_,_,_,_)).
 isCanon(throwDo(_,_,_,_,_)).
@@ -76,7 +76,7 @@ isAction(tryCatch(_,_,_,_,_)).
 isAction(assign(_,_,_)).
 isAction(apply(_,_,_,_)).
 isAction(bindDo(_,_,_,_)).
-isAction(varDo(_,_,_)).
+isAction(varDo(_,_,_,_,_,_)).
 isAction(returnDo(_,_,_,_)).
 isAction(throwDo(_,_,_,_,_)).
 isAction(performDo(_,_,_,_,_)).
@@ -152,7 +152,7 @@ locOfCanon(assign(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
 locOfCanon(delayDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(bindDo(Lc,_,_,_),Lc) :-!.
-locOfCanon(varDo(Lc,_,_),Lc) :-!.
+locOfCanon(varDo(Lc,_,_,_,_,_),Lc) :-!.
 locOfCanon(returnDo(Lc,_,_,_),Lc) :-!.
 locOfCanon(throwDo(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(performDo(Lc,_,_,_,_),Lc) :-!.
@@ -340,9 +340,9 @@ showCanonAction(bindDo(_,Ptn,Exp,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
   appStr(" <- ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
-showCanonAction(varDo(_,Ptn,Exp),Dp,O,Ox) :-
+showCanonAction(varDo(_,Ptn,Exp,_,_,_),Dp,O,Ox) :-
   showCanonTerm(Ptn,Dp,O,O1),
-  appStr(" = ",O1,O2),
+  appStr(" .= ",O1,O2),
   showCanonTerm(Exp,Dp,O2,Ox).
 showCanonAction(ifThenDo(_,Tst,Th,noDo(_),_,_,_),Dp,O,Ox) :-
   appStr("if ",O,O1),

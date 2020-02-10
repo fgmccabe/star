@@ -883,23 +883,18 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   newTypeVar("_e",FV),
   checkAction(S1,Env,E1,Contract,ExTp,FV,ErTp,A1,Path),
   checkAction(S2,E1,Ev,Contract,ExTp,ValTp,ErTp,A2,Path).
-checkAction(Term,Env,Ev,_Contract,ExTp,_,ErTp,bindDo(Lc,Ptn,Gen,ExTp),Path) :-
+checkAction(Term,Env,Ev,_Contract,ExTp,VlTp,ErTp,bindDo(Lc,Ptn,Gen,ExTp),Path) :-
   isBind(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
   mkTypeExp(ExTp,[ErTp,PT],HType),  % in a bind, the type of the value must be in the same monad
   typeOfExp(Ex,HType,Env,E1,Gen,Path),
   typeOfPtn(P,PT,E1,Ev,Ptn,Path).
-checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
-  isDefn(Term,Lc,P,Ex),!,
-  newTypeVar("_P",PT),
-  typeOfPtn(P,PT,Env,Ev,Ptn,Path),
-  typeOfExp(Ex,PT,Env,_,Exp,Path).
-checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
+checkAction(Term,Env,Ev,_,ExTp,VlTp,ErTp,varDo(Lc,Ptn,Exp,ExTp,VlTp,ErTp),Path) :-
   isMatch(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
-checkAction(Term,Env,Ev,_,_ExTp,_ValTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :-
+checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,varDo(Lc,Lhs,cell(Lc,Rhs),ExTp,ValTp,ErTp),Path) :-
   isAssignment(Term,Lc,L,R),
   isIden(L,_,Vr),
   \+isVar(Vr,Env,_),!,
@@ -960,9 +955,12 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Exp,Path) :-
   isBraceTuple(Term,_,[Stmt]),!,
   checkAction(Stmt,Env,Ev,Contract,ExTp,ValTp,ErTp,Exp,Path).
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
-  locOfAst(Term,Lc),
+  isRoundTerm(Term,Lc,_,_),!,
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
+checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),Path) :-
+  locOfAst(Term,Lc),
+  reportError("invalid action: %s",[Term],Lc).
 
 checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
   (isIndexTerm(L,LLc,C,I) ->

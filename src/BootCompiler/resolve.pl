@@ -185,7 +185,7 @@ overloadAction(seqDo(Lc,A,B),Dict,St,Stx,seqDo(Lc,RA,RB)) :-
 overloadAction(bindDo(Lc,Ptn,Exp,ExTp),Dict,St,Stx,bindDo(Lc,RPtn,RExp,ExTp)) :-
   overloadTerm(Ptn,Dict,St,St1,RPtn),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
-overloadAction(varDo(Lc,Ptn,Exp),Dict,St,Stx,varDo(Lc,RPtn,RExp)) :-
+overloadAction(varDo(Lc,Ptn,Exp,ExTp,VlTp,ErTp),Dict,St,Stx,varDo(Lc,RPtn,RExp,ExTp,VlTp,ErTp)) :-
   overloadTerm(Ptn,Dict,St,St1,RPtn),
   overloadTerm(Exp,Dict,St1,Stx,RExp).
 overloadAction(ifthenDo(Lc,Tst,Th,El,StTp,ErTp),Dict,St,Stx,ifthenDo(Lc,RTst,RTh,REl,StTp,ErTp)) :-

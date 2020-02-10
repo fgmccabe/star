@@ -590,7 +590,7 @@ mkClosure(Lam,FreeVars,Closure) :-
 liftAction(seqDo(Lc,E1,E2),seq(Lc,L1,L2),Q,Qx,Map,Opts,Ex,Exx) :-
   liftAction(E1,L1,Q,Q0,Map,Opts,Ex,Ex1),
   liftAction(E2,L2,Q0,Qx,Map,Opts,Ex1,Exx).
-liftAction(varDo(Lc,P,E),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
+liftAction(varDo(Lc,P,E,_,_,_),varD(Lc,P1,E1),Q,Q,Map,Opts,Ex,Exx) :-
   liftPtn(P,P1,Q,Q0,Map,Opts,Ex,Ex0),
   liftExp(E,E1,Q0,_,Map,Opts,Ex0,Exx).
 liftAction(performDo(Lc,Exp,_,_,_),perf(Lc,E1),Q,Qx,Map,Opts,Ex,Exx) :-
