@@ -894,6 +894,11 @@ checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
+checkAction(Term,Env,Ev,_,_,_,_,varDo(Lc,Ptn,Exp),Path) :-
+  isMatch(Term,Lc,P,Ex),!,
+  newTypeVar("_P",PT),
+  typeOfPtn(P,PT,Env,Ev,Ptn,Path),
+  typeOfExp(Ex,PT,Env,_,Exp,Path).
 checkAction(Term,Env,Ev,_,_ExTp,_ValTp,_ErTp,varDo(Lc,Lhs,cell(Lc,Rhs)),Path) :-
   isAssignment(Term,Lc,L,R),
   isIden(L,_,Vr),

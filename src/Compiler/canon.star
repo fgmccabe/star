@@ -27,6 +27,7 @@ star.compiler.canon{
     match(locn,canon,canon) |
     conj(locn,canon,canon) |
     disj(locn,canon,canon) |
+    implies(locn,canon,canon) |
     neg(locn,canon) |
     cond(locn,canon,canon,canon) |
     apply(locn,canon,canon,tipe) |
@@ -42,15 +43,14 @@ star.compiler.canon{
     seqnDo(locn,canonAction,canonAction) |
     bindDo(locn,canon,canon,tipe,tipe,tipe) |
     varDo(locn,canon,canon) |
-    delayDo(locn,canonAction,tipe,tipe) |
-    assignDo(locn,canon,canon,tipe,tipe) |
-    ifThenDo(locn,canon,canonAction,canonAction,tipe,tipe) |
+    delayDo(locn,canonAction,tipe,tipe,tipe) |
+    ifThenElseDo(locn,canon,canonAction,canonAction,tipe,tipe,tipe) |
     whileDo(locn,canon,canonAction,tipe,tipe) |
     forDo(locn,canon,canonAction,tipe,tipe) |
     tryCatchDo(locn,canonAction,canon,tipe,tipe,tipe) |
-    throwDo(locn,canon,tipe,tipe) |
-    returnDo(locn,canon,tipe,tipe) |
-    simpleDo(locn,canon,tipe,tipe).
+    throwDo(locn,canon,tipe,tipe,tipe) |
+    returnDo(locn,canon,tipe,tipe,tipe) |
+    simpleDo(locn,canon,tipe).
     
   public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
     typeDef(locn,string,tipe,tipe) |
@@ -78,8 +78,10 @@ star.compiler.canon{
     typeOf(match(_,_,_)) => boolType.
     typeOf(conj(_,_,_)) => boolType.
     typeOf(disj(_,_,_)) => boolType.
+    typeOf(implies(_,_,_)) => boolType.
     typeOf(serch(_,_,_,_)) => boolType.
     typeOf(cond(_,_,L,_)) => typeOf(L).
+    typeOf(update(_,R,_)) => typeOf(R).
   }
 
   public implementation hasLoc[canon] => {.
@@ -99,6 +101,7 @@ star.compiler.canon{
     locOf(match(Lc,_,_)) => Lc.
     locOf(conj(Lc,_,_)) => Lc.
     locOf(disj(Lc,_,_)) => Lc.
+    locOf(implies(Lc,_,_)) => Lc.
     locOf(neg(Lc,_)) => Lc.
     locOf(cond(Lc,_,_,_)) => Lc.
     locOf(apply(Lc,_,_,_)) => Lc.
@@ -106,6 +109,7 @@ star.compiler.canon{
     locOf(lambda(Lc,_,_)) => Lc.
     locOf(letExp(Lc,_,_)) => Lc.
     locOf(record(Lc,_,_,_)) => Lc.
+    locOf(update(Lc,_,_)) => Lc.
   .}
 
   public implementation hasLoc[equation] => {.
@@ -177,6 +181,7 @@ star.compiler.canon{
   showCanon(match(_,Ptn,Gen),Sp) => ssSeq([showCanon(Ptn,Sp),ss(" .= "),showCanon(Gen,Sp)]).
   showCanon(conj(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" && "),showCanon(R,Sp)]).
   showCanon(disj(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" || "),showCanon(R,Sp),ss(")")]).
+  showCanon(implies(_,L,R),Sp) => ssSeq([ss("("),showCanon(L,Sp),ss(" *> "),showCanon(R,Sp),ss(")")]).
   showCanon(neg(_,R),Sp) => ssSeq([ss(" \\+ "),showCanon(R,Sp)]).
   showCanon(cond(_,T,L,R),Sp) =>
     ssSeq([ss("("),showCanon(T,Sp),ss("?"),showCanon(L,Sp),ss(" | "),showCanon(R,Sp),ss(")")]).
@@ -188,6 +193,7 @@ star.compiler.canon{
     ssSeq([ss("let "),ss("{"),showGroup(Defs,Sp++"  "),ss("}"),ss(" in\n"),ss(Sp),showCanon(Ep,Sp++"  ")]).
   showCanon(record(_,_,Fields,_),Sp) =>
     ssSeq([ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
+  showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
   
   showCases(Cs,Sp) => ssSeq([ss("{"),showRls("",Cs,Sp),ss("}")]).
 
@@ -244,10 +250,44 @@ star.compiler.canon{
   isGoal(serch(_,_,_,_)) => true.
   isGoal(conj(_,_,_)) => true.
   isGoal(disj(_,_,_)) => true.
+  isGoal(implies(_,_,_)) => true.
   isGoal(neg(_,_)) => true.
   isGoal(cond(_,_,L,R)) => isGoal(L) && isGoal(R).
   isGoal(_) default => false.
 
+  public isIterableGoal:(canon)=>boolean.
+  isIterableGoal(conj(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
+  isIterableGoal(disj(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
+  isIterableGoal(implies(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
+  isIterableGoal(neg(_,R)) => isIterableGoal(R).
+  isIterableGoal(serch(_,_,_,_)) => true.
+  isIterableGoal(_) default => false.
+
   public pkgImports:(pkgSpec)=>list[importSpec].
   pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.
+
+  public splitPtn:(canon) => (canon,option[canon]).
+  splitPtn(P) => let{
+    splitPttrn(apply(Lc,Op,Arg,Tp)) => let{
+      (SOp,OCond) = splitPttrn(Op).
+      (SArg,SCond) = splitPttrn(Arg).
+    } in (apply(Lc,SOp,SArg,Tp),mergeGl(OCond,SCond)).
+    splitPttrn(tple(Lc,Els)) => let{
+      (SEls,SCond) = splitPttrns(Els).
+    } in (tple(Lc,SEls),SCond).
+    splitPttrn(whr(Lc,Pt,C)) => let{
+      (SP,SCond) = splitPtrrn(Pt).
+    } in (SP,mergeGl(SCond,C)).
+    splitPttrn(Pt) => (Pt,none).
+
+    splitPttrns(Els) => foldRight(((E,C),(SEls,SCond))=>
+	([SEls..,E],mergeGl(C,SCond)),([],none),Els//splitPttrn).
+
+    mergeGl(none,C) => C.
+    mergeGl(C,none) => C.
+    mergeGl(some(A),some(B)) => some(conj(locOf(A),A,B)).
+
+  } in splitPtrrn(P).
+
+      
 }

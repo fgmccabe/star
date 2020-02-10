@@ -189,6 +189,11 @@ star.compiler.resolve{
     (Stx,RFields) <- overloadFields(Fields,[],Dict,St,Rp);
     valis (St,record(Lc,Nm,RFields,Tp))
   }
+  overloadTerm(update(Lc,T,C),Dict,St,Rp) => do{
+    (St1,OT) <- overloadTerm(T,Dict,St,Rp);
+    (Stx,OC) <- overloadTerm(C,Dict,St1,Rp);
+    valis (Stx,update(Lc,OT,OC))
+  }
 
   overloadRules([],Els,Dict,St,_) => either((St,Els)).
   overloadRules([eqn(Lc,Ptn,none,Exp),..Ts],Els,Dict,St,Rp) => do{

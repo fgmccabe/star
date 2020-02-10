@@ -170,6 +170,8 @@ star.compiler.wff{
 
   public isMatch(A) => isBinary(A,".=").
 
+  public isOptionMatch(A) => isBinary(A,"^=").
+
   public
   isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && \+ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
   isSearch(_) default => none.

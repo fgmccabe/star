@@ -50,10 +50,27 @@ test.ralist{
 	cons(one(updateTree(Ix,x,t1)),ts) ||
 	cons(one(t1),update(Ix-sz,x,ts))).
 
-  public implementation all e ~~ folding[ra[e]->>e] => {
+  removeFromTree:all e ~~ (integer,tree[e])=>digit[e].
+  removeFromTree(0,leaf(_)) => zer.
+  removeFromTree(Ix,node(w,t1,t2)) where w2.=w/2 =>
+    (Ix<w2 ?
+	node(w,remove(Ix,t1),t2) ||
+	node(w,t1,removeFromTree(Ix-w2,t2))).
+
+  remove:all e ~~ (integer,cons[digit[e]]) => cons[digit[e]].
+  remove(0,nil) => nil.
+  remove(Ix,cons(zer,ts)) => cons(zer,remove(Ix,ts)).
+  remove(Ix,cons(one(t1),ts)) where sz.=size(t1) =>
+    (Ix<sz ?
+	cons(removeFromTree(Ix,t1),ts) ||
+	cons(one(t1),remove(Ix-sz,ts))).
+
+  
+
+  public implementation all e ~~ folding[ra[e]->>e] => {.
     foldLeft(F,U,ra(Ds)) => foldDLeft(F,U,Ds).
     foldRight(F,U,ra(Ds)) => foldDRight(F,U,Ds).
-  }
+  .}
 
   foldDLeft:all e,x ~~ ((x,e)=>x,x,cons[digit[e]]) => x.
   foldDLeft(_,X,nil) => X.
@@ -73,39 +90,45 @@ test.ralist{
   foldTRight(F,X,leaf(E)) => F(E,X).
   foldTRight(F,X,node(_,L,R)) => foldTRight(F,foldTRight(F,X,R),L).
 
-  implementation all e ~~ sizeable[tree[e]] => {
+  implementation all e ~~ sizeable[tree[e]] => {.
     size(leaf(_)) => 1.
     size(node(w,_,_)) => w.
-  }
 
-  public implementation all e ~~ sequence[ra[e]->>e] => {
+    isEmpty(leaf(_))=>true.
+    isEmpty(node(_,_,_))=>false.
+  .}
+
+  public implementation all e ~~ sequence[ra[e]->>e] => {.
     _nil = ra(nil).
     _cons(E,ra(L)) => ra(consTree(leaf(E),L)).
-  }
+    _apnd(ra(L),E) => ra(consTree(leaf(E),L)).
+  .}
 
-  public implementation all e ~~ head[ra[e]->>e] => {
+  public implementation all e ~~ head[ra[e]->>e] => {.
     head(ra(nil)) => none.
     head(ra(ts)) where (leaf(h),_) ^= unconsTree(ts) => some(h).
 
     tail(ra(nil)) => none.
     tail(ra(ts)) where (_,tl) ^= unconsTree(ts) => some(ra(tl)).
-  }
+  .}
 
-  public implementation all e ~~ indexed[ra[e]->>integer,e] => {
+  public implementation all e ~~ indexed[ra[e]->>integer,e] => {.
     _index(ra(ts),Ix) => lookup(Ix,ts).
 
     _put(ra(ts),Ix,V) => ra(update(Ix,V,ts)).
 
+    _remove(ra(ts),Ix) => ra(remove(Ix,ts)).
+
     _empty = ra(nil).
-  }
+  .}
 
-  public implementation all e ~~ reversible[ra[e]] => {
+  public implementation all e ~~ reversible[ra[e]] => {.
     reverse(ra(L)) => foldDLeft((So,E)=>[E,..So],[],L).
-  }
+  .}
 
-  public implementation all e ~~ concat[ra[e]] => {
+  public implementation all e ~~ concat[ra[e]] => {.
     ra(L)++R => foldDRight((E,So)=>[E,..So],R,L).
-  }
+  .}
 
   public implementation all e ~~ filter[ra[e]->>e] => {
     (ra(L)^/F) => let{
