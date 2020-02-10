@@ -33,7 +33,7 @@ genAction(bindDo(Lc,Ptn,Gen,ExTp),Contract,Cont,Exp,_) :-
 	     true,[conTract(Contract,[ExTp],[])]),
   Exp = apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp).
 /* X = E --> ((X)=>Cont)(E) */
-genAction(varDo(Lc,Ptn,Ex),_Contract,Cont,Exp,_) :-
+genAction(varDo(Lc,Ptn,Ex,_ExTp,_VlTp,_ErTp),_Contract,Cont,Exp,_) :-
   (Cont = noDo(_) ->
    reportError("bind: %s=%s may not be last action",[Ptn,Ex],Lc);
    true),
