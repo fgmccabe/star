@@ -11,7 +11,7 @@ ADD_FLEX_BISON_DEPENDENCY(JsonTokeniser JsonParser)
 add_subdirectory("UnicodeStuff")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
-SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
+# SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
 include_directories("../Headers" "Headers")
 
@@ -89,6 +89,7 @@ set(SOURCE_FILES
         vector.c integer.c strng.c editline.c)
 
 add_library(ooio STATIC ${SOURCE_FILES})
+target_link_libraries(ooio pthread m)
 
 add_custom_command(OUTPUT ${UNITABLE.C} DEPENDS parseUni ${UNICODE}
   COMMAND ${CMAKE_CURRENT_BINARY_DIR}/UnicodeStuff/parseUni ${UNICODE} ${UNITABLE.C}
