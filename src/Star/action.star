@@ -38,7 +38,7 @@ star.action{
 
   public (:=):all a,m/2,e ~~ execution[m] |: (ref a,a) => m[e,()].
   (:=)(L,V) => do{
-    _ = _assign(L,V);
+    _ .= _assign(L,V);
     valis ()
   }
 
@@ -50,7 +50,7 @@ star.action{
 
   public logMsg:all m/2,e ~~ execution[m] |: (string)=>m[e,()].
   logMsg(Msg) => do{
-    _ = _logmsg(Msg);
+    _ .= _logmsg(Msg);
     valis ()
   }
 }

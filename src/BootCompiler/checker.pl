@@ -883,7 +883,7 @@ checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,seqDo(Lc,A1,A2),Path) :-
   newTypeVar("_e",FV),
   checkAction(S1,Env,E1,Contract,ExTp,FV,ErTp,A1,Path),
   checkAction(S2,E1,Ev,Contract,ExTp,ValTp,ErTp,A2,Path).
-checkAction(Term,Env,Ev,_Contract,ExTp,VlTp,ErTp,bindDo(Lc,Ptn,Gen,ExTp),Path) :-
+checkAction(Term,Env,Ev,_Contract,ExTp,_VlTp,ErTp,bindDo(Lc,Ptn,Gen,ExTp),Path) :-
   isBind(Term,Lc,P,Ex),!,
   newTypeVar("_P",PT),
   mkTypeExp(ExTp,[ErTp,PT],HType),  % in a bind, the type of the value must be in the same monad
@@ -958,7 +958,7 @@ checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
   isRoundTerm(Term,Lc,_,_),!,
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
-checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),Path) :-
+checkAction(Term,Env,Env,_,_,_,_,noDo(Lc),_) :-
   locOfAst(Term,Lc),
   reportError("invalid action: %s",[Term],Lc).
 

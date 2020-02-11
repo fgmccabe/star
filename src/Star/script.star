@@ -2,7 +2,7 @@ star.script{
   import star.
   import star.location.
 
-  assrt:all m/2,e ~~ execution[m], coercion[(string,locn),e] |: (()=>boolean,string,locn) => m[e,()].
+  public assrt:all m/2,e ~~ execution[m], coercion[(string,locn),e] |: (()=>boolean,string,locn) => m[e,()].
   assrt(Tst,Msg,Lc) => do{
     if Tst() then
       valis ()
