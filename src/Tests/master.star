@@ -17,4 +17,5 @@ test.mastermind{
       blacks(Ss,Gs,Cnt+1,SoFar).
     blacks([SC,..Ss],[GC,..Gs],Cnt,(S,G)) =>
       blacks(Ss,Gs,Cnt,(incColor(S,SC),incColor(G,GC))).
+  } in score{white=0. black=blacks
     

@@ -4,7 +4,7 @@ test.th{
 
   assign:all a,e/2 ~~ execution[e] |: (ref a,a) => e[(),()].
   assign(L,V) => do {
-    _ = _assign(L,V);
+    _ .= _assign(L,V);
     valis ()
   }
 

@@ -54,8 +54,12 @@ test.ralist{
   removeFromTree(0,leaf(_)) => zer.
   removeFromTree(Ix,node(w,t1,t2)) where w2.=w/2 =>
     (Ix<w2 ?
-	node(w,remove(Ix,t1),t2) ||
-	node(w,t1,removeFromTree(Ix-w2,t2))).
+	unwrapDigit(w,removeFromTree(Ix,t1),one(t2)) ||
+	unwrapDigit(w,one(t1),removeFromTree(Ix-w2,t2))).
+
+  unwrapDigit(w,zer,t) => t.
+  unwrapDigit(w,t,zer) => t.
+  unwrapDigit(w,one(l),one(r)) => one(node(w,l,r)).
 
   remove:all e ~~ (integer,cons[digit[e]]) => cons[digit[e]].
   remove(0,nil) => nil.

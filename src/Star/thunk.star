@@ -30,7 +30,7 @@ star.thunk{
     X := none.
     ff() where V^=X! => V.
     ff() => valof action{
-      V = F();
+      V .= F();
       X := some(V);
       valis V
     }
