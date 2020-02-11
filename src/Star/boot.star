@@ -32,7 +32,7 @@ star.boot{
     valof do{
       try{
 --	logMsg("starting boot");
-	Opts = processOptions(_command_line(),
+	Opts .= processOptions(_command_line(),
 	  [repoOption,wdOption],bootOptions("file:"++_repo(),"file:"++_cwd()));
         (Top,Args) <- handleCmdLineOpts(Opts);
         invokeMain(Top,Args)
@@ -47,7 +47,7 @@ star.boot{
       RU ^= parseUri(RepoDir) &&
       RD ^= resolveUri(CW,RU) &&
       Pkg ^= parsePkgName(Top) => do{
-	Repo = btRepo(RD);
+	Repo .= btRepo(RD);
 	setupPkg(Repo,Pkg);
 	valis (Top,Args)
       }.
@@ -73,7 +73,7 @@ star.boot{
 
   initialize:(pkg) => action[string,()].
   initialize(pkg(P,_)) => do{
-    Pred = P++"@init";
+    Pred .= P++"@init";
     if _definedLbl(Pred,0) then {
       valis _callLbl(Pred,0,[])
     } else
@@ -82,7 +82,7 @@ star.boot{
 
   invokeMain:(string,list[string]) => action[string,()].
   invokeMain(Top,Args) => do {
-    Pred = Top++"#_main";
+    Pred .= Top++"#_main";
     if _definedLbl(Pred,1) then {
       valis _callLbl(Pred,1,[Args])
     }
