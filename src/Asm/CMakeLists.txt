@@ -14,7 +14,6 @@ FLEX_TARGET(AsmTokeniser asmToken.l ${CMAKE_CURRENT_BINARY_DIR}/asmToken.c)
 ADD_FLEX_BISON_DEPENDENCY(AsmTokeniser AsmGrammar)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lpthread -lm")
 
 include_directories("../Headers" "Headers" "../Engine/Headers" "../Util/Headers" "../Infra/Headers")
 
