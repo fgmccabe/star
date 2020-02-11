@@ -8,9 +8,9 @@ test.bench{
 
   timer_finish : ((integer, integer, string)) => action[(),integer].
   timer_finish((start, count, msg)) => do {
-    stop = _ticks();
-    elapsed = ((stop - start)::float)/1.0e6;
-    ops_per_sec = ((count::float) / elapsed)::integer;
+    stop .= _ticks();
+    elapsed .= ((stop - start)::float)/1.0e6;
+    ops_per_sec .= ((count::float) / elapsed)::integer;
     logMsg("$(count)\t#(msg)\t$(elapsed) ms\t$(ops_per_sec) ops/sec");
     valis ops_per_sec
   }
@@ -25,7 +25,7 @@ test.bench{
 
   benchNativeList(Count) => action {
     timer := timer_start(Count, "");
-    idxes = iota(0, Count);
+    idxes .= iota(0, Count);
 
     logMsg("******* native lists ******");
     timer := timer_start(Count, "Creating native list of $(Count) elements");

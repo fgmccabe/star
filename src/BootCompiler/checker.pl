@@ -600,7 +600,7 @@ typeOfExp(Term,Tp,Env,Env,theta(Lc,Lbl,false,Defs,Others,Types,Tp),Path) :-
   thetaName(Path,Lbl,ThPath),
   deRef(FnTp,BTp),
   checkThetaBody(BTp,Lc,Els,E0,_,Defs,Others,Types,_,ThPath).
-typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,false,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,Lbl,false,Defs,Others,Types,Tp),Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),

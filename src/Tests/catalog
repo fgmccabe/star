@@ -39,7 +39,6 @@
     "test.j": "j.star",
     "test.let": "letish.star",
     "test.m": "m.star",
-    "test.master": "master.star",
     "test.mm": "mm.star",
     "test.ms" : "ms.star",
     "test.nm": "nm.star",
