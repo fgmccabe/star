@@ -36,7 +36,7 @@ test.dd{
     if valof ZZ == U then
       return 1
     else
-      YY
+      valis valof YY
   }
 
   -- Test different error types across try-catch

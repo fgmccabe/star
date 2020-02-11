@@ -91,19 +91,12 @@ test.dl{
       Cx := 1;
       Fx := 1;
 
-      let {
-        loop:()=>action[(),integer].
-        loop() =>
-          do{
-            if Cx! =< Lx then {
-              Fx := Fx! * Cx!;
-              Cx := Cx! + 1;
-              loop()
-            } else
-              return Fx!
-          }
-      } in loop()
-  }
+      while Cx! =< Lx do{
+	Fx := Fx! * Cx!;
+	Cx := Cx! + 1
+      };
+      valis Fx!
+    }
 
   show "QQ(3) = $(valof QQ(3))".
   show "QQ(4) = $(valof QQ(4))".
