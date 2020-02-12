@@ -1233,3 +1233,9 @@ mergeVDefs([_|D1],D2,Env,D3) :-
 sameDesc(vrEntry(_,C1,Tp1,_),vrEntry(_,C1,Tp2,_),Env) :-
   sameType(Tp1,Tp2,Env).
 
+declarePkg(,E,Ev) :-
+  stdType("package",PkgTp,PkgEx),
+  declareVar("_pkg_",vrEntry(std,checker:mkPkg(P),PkgTp,PkgEx),E,Ev).
+
+mkPkg(pkg(P,V),Lc,Tp,apply(Lc,vr(Lc,"pkg",funType([],Tp)),tple(Lc,[string(P),Vers]),Tp)) :-
+  mkVers(Lc,V,Vers).

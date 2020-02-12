@@ -163,11 +163,13 @@ stdDict(Base) :-
   stdType("integer",IntTp,ITpEx),
   stdType("string",StrTp,StpEx),
   stdType("float",FltTp,FtEx),
+  stdType("package",PkgTp,PkgEx),
   declareType("string",tpDef(std,StrTp,StpEx),B,B0),
   declareType("integer",tpDef(std,IntTp,ITpEx),B0,B1),
   declareType("float",tpDef(std,FltTp,FtEx),B1,B2),
   stdType("list",LstTp,LTp),
-  declareType("list",tpDef(std,LstTp,LTp),B2,Base).
+  declareType("list",tpDef(std,LstTp,LTp),B2,B3),
+  B3=Base.
 
 dispEnv(Env,Cx) :-
   processNames(Env,dict:showDictVarEntry,Cx,Chrs),
