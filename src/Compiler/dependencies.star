@@ -14,12 +14,12 @@ star.compiler.dependencies{
       (list[(defnSp,visibility)],list[ast],list[(string,ast)],list[list[defnSpec]])].
   dependencies(Dfs,Rp) => do{
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
-    AllRefs = Defs//((defnSpec(Nm,_,_))=>Nm);
+    AllRefs .= (Defs//((defnSpec(Nm,_,_))=>Nm));
 
 --    logMsg("found defs $(AllRefs)");
 
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
-    Groups = topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els))));
+    Groups .= (topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els)))));
     
     valis (Pb,Opn,As,Groups)
   }
@@ -113,19 +113,19 @@ star.compiler.dependencies{
       }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
-	Sp = varSp(Id);
+	Sp .= varSp(Id);
 	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)
       }.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
-	Sp = varSp(Id); -- map X:=E to X=!!E
+	Sp .= varSp(Id); -- map X:=E to X=!!E
 	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],
 	  [(Sp,Vz),..Pb],As,Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
-	(Ss,Dfs) = collectDefines(Stmts,Nm,[]);
-	Sp = varSp(Nm);
+	(Ss,Dfs) .= collectDefines(Stmts,Nm,[]);
+	Sp .= varSp(Nm);
 	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],[(Sp,Vz),..Pb],As,Opn)
       }.
   collectDefinition(A,_,_,_,_,_,_,Rp) =>
@@ -202,14 +202,14 @@ star.compiler.dependencies{
     collectTypeRefs(A,All,Rf,Rp).
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,L,R) ^= isTypeExistsStmt(A) => do{
-	A0 = filterOut(All,Q);
+	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
 	Rf1 <- collectTypeRefs(L,A0,Rf0,Rp);
 	collectTypeRefs(R,A0,Rf1,Rp)
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,L,R) ^= isTypeFunStmt(A) => do{
-	A0 = filterOut(All,Q);
+	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
 	Rf1 <- collectTypeRefs(L,A0,Rf0,Rp);
 	collectTypeRefs(R,A0,Rf1,Rp)
@@ -221,7 +221,7 @@ star.compiler.dependencies{
       }.
   collectStmtRefs(A,All,Annots,Rf,Rp) where
       (_,Q,Cx,Tp,Exp) ^= isImplementationStmt(A) => do{
-	A0 = filterOut(All,Q);
+	A0 .= filterOut(All,Q);
 	Rf0 <- collectConstraintRefs(Cx,A0,Rf,Rp);
 	Rf1 <- collectTypeRefs(Tp,A0,Rf0,Rp);
 	collectTermRefs(Exp,A0,Rf1,Rp)

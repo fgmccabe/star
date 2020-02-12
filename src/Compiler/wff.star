@@ -118,10 +118,10 @@ star.compiler.wff{
     either[reports,(list[defnSpec],
 	list[(defnSp,visibility)],list[(string,ast)])].
   reformAlgebraic(Lc,Q,Cx,H,R,Defs,Pb,As,Vz,Rp) => do{
-    Nm = typeName(H);
+    Nm .= typeName(H);
     Face <- algebraicFace(R,Rp);
-    ExTp = reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
-    Spec = tpSp(Nm);
+    ExTp .= reUQuant(Q,reConstrain(Cx,binary(Lc,"<~",H,Face)));
+    Spec .= tpSp(Nm);
     buildConstructors(R,Q,Cx,H,[defnSpec(Spec,Lc,[ExTp]),..Defs],[(Spec,Vz),..Pb],As,Vz,Rp)
   }
 
@@ -331,8 +331,8 @@ star.compiler.wff{
 
   public promoteOption:(ast) => ast.
   promoteOption(A) where (Lc,Op,Els) ^= isRoundTerm(A) => valof action{
-    V = genName(Lc,"_V");
-    (NEls,XV) = promoteArgs(Els,[],V);
+    V .= genName(Lc,"_V");
+    (NEls,XV) .= promoteArgs(Els,[],V);
     valis binary(Lc,">>=",XV,
       binary(Lc,"=>",rndTuple(Lc,[V]),roundTerm(Lc,Op,NEls)))
   }

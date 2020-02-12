@@ -94,11 +94,9 @@ star.compiler.freevars{
     freeVarsInTerm(R,Excl1,freeVarsInTerm(L,Excl1,Fv)).
   freeVarsInAction(varDo(_,L,R),Excl,Fv) where Excl1.=extendExcl(L,Excl,Fv) =>
     freeVarsInTerm(R,Excl1,freeVarsInTerm(L,Excl1,Fv)).
-  freeVarsInAction(assignDo(_,L,R,_,_),Excl,Fv) =>
-    freeVarsInTerm(R,Excl,freeVarsInTerm(L,Excl,Fv)).
-  freeVarsInAction(delayDo(_,A,_,_),Excl,Fv) =>
+  freeVarsInAction(delayDo(_,A,_,_,_),Excl,Fv) =>
     freeVarsInAction(A,Excl,Fv).
-  freeVarsInAction(ifThenDo(_,T,L,R,_,_),Excl,Fv) where
+  freeVarsInAction(ifThenElseDo(_,T,L,R,_,_,_),Excl,Fv) where
       (Excl1,Fv1) .= freeVarsInCond(T,Excl,Fv) =>
     freeVarsInAction(R,Excl,freeVarsInAction(L,Excl1,Fv1)).
   freeVarsInAction(whileDo(_,T,B,_,_),Excl,Fv) where
@@ -109,11 +107,11 @@ star.compiler.freevars{
     freeVarsInAction(B,Excl1,Fv1).
   freeVarsInAction(tryCatchDo(_,B,C,_,_,_),Excl,Fv) =>
       freeVarsInAction(B,Excl,freeVarsInTerm(C,Excl,Fv)).
-  freeVarsInAction(returnDo(_,E,_,_),Excl,Fv) =>
+  freeVarsInAction(returnDo(_,E,_,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
-  freeVarsInAction(throwDo(_,E,_,_),Excl,Fv) =>
+  freeVarsInAction(throwDo(_,E,_,_,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
-  freeVarsInAction(simpleDo(_,E,_,_),Excl,Fv) =>
+  freeVarsInAction(simpleDo(_,E,_),Excl,Fv) =>
     freeVarsInTerm(E,Excl,Fv).
 
   extendExcl:(canon,set[crVar],set[crVar]) => set[crVar].

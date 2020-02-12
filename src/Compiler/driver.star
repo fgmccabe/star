@@ -66,11 +66,11 @@ star.compiler{
 	Cat ^= loadCatalog(CatU) then{
 	  for P in Args do{
 	    logMsg("look up $(P) in catalog");
-	    ErRp = reports([]);	
+	    ErRp .= reports([]);	
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
 	      ::action[reports,list[(importSpec,list[importSpec])]];
-	      Pkgs = Sorted//((Pk,_))=>Pk;
+	      Pkgs .= (Sorted//((Pk,_))=>Pk);
 	      processPkgs(Pkgs,Repo,Cat,Opts,ErRp)
 	    } catch (Er) => action{
 	      logMsg("$(Er)");
@@ -112,7 +112,7 @@ star.compiler{
 	  logMsg(dispCrProg(NormDefs)::string);
 	  Ins <- compDefs(NormDefs,importVars(PkgSpec),Opts,[],Rp) :: action[reports,list[codeSegment]];
 	  logMsg("Generated instructions $(Ins)");
-	  Code = mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
+	  Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
 	      mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 	      mkTpl(Ins//assem)]);
 	  logMsg("generated code $(encodeTerm(Code)::string)");

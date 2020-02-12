@@ -159,21 +159,21 @@ star.compiler.action{
   */
   genCondition:(canon,string,lifted,lifted,lifted,reports) => either[reports,lifted].
   genCondition(serch(Lc,Ptn,Src,Iterator),Path,Lift,_Seq,Succ,Initial,Rp) => do{
-    PtnTp = typeOf(Ptn);
+    PtnTp .= typeOf(Ptn);
     logMsg("ptn in search has type $(PtnTp)");
-    Anon = anonVar(Lc,PtnTp);
-    ItrTp = typeOf(Iterator);
+    Anon .= anonVar(Lc,PtnTp);
+    ItrTp .= typeOf(Iterator);
     logMsg("iterator has type $(ItrTp)");
-    SrcTp = typeOf(Src);
-    ResltTp = newTypeVar("_strm");
-    St = genVar(Lc,"_st",ResltTp);
-    AddToFront = Succ(unlifted(St));
+    SrcTp .= typeOf(Src);
+    ResltTp .= newTypeVar("_strm");
+    St .= genVar(Lc,"_st",ResltTp);
+    AddToFront .= Succ(unlifted(St));
 
   splitPtn(Ptn,Pttrn,PtnCond),
   call(Lift,unlifted(St),Dflt),
   typeOfCanon(AddToFront,MdlTp),
   FnTp = funType(tupleType([PtnTp,RsltTp]),MdlTp),
-  %  reportMsg("entangle iterator type %s with monad %s",[ItrTp,funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp)]),
+    reportMsg("entangle iterator type %s with monad %s",[ItrTp,funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp)]),
   sameType(funType(tupleType([SrcTp,MdlTp,FnTp]),MdlTp),ItrTp,[]),
   %  reportMsg("local fun type: %s",[FnTp]),
   genstr("f",Fn),

@@ -86,16 +86,16 @@ star.compiler.unify{
     }
 
     bind(V,T,Env) where isUnbound(T) => valof do{
-      CV = constraintsOf(V);
-      CT = constraintsOf(T);
-      some(MM) = mergeConstraints(CV,CT,Env);
+      CV .= constraintsOf(V);
+      CT .= constraintsOf(T);
+      some(MM) .= mergeConstraints(CV,CT,Env);
       setConstraints(T,MM);
       setBinding(V,T);
       addVarBinding(V);
       valis true
     }.
     bind(V,T,Env) => valof do {
-      VC = constraintsOf(V);
+      VC .= constraintsOf(V);
       try {
 	setBinding(V,T);
 	addVarBinding(V);
@@ -135,10 +135,10 @@ star.compiler.unify{
 
     checkConstraint:(constraint,dict) => action[(),boolean].
     checkConstraint(typeConstraint(Tp),Env) => do {
-      INm=implementationName(Tp);
+      INm.=implementationName(Tp);
       if Im ^= findImplementation(Env,INm) then{
-        (_,FrTp) = freshen(typeOf(Im),[],Env);
-	(_,DeConTp) = deConstrain(FrTp);
+        (_,FrTp) .= freshen(typeOf(Im),[],Env);
+	(_,DeConTp) .= deConstrain(FrTp);
 	valis same(Tp,DeConTp,Env)
       } else{
 	valis true

@@ -20,7 +20,7 @@ star.compiler.grapher{
   public makeGraph:(importSpec,termRepo,catalog,reports) => either[reports,list[(importSpec,list[importSpec])]].
   makeGraph(Imp,Repo,Cat,Rp) => do{
     Defs <- scanPkgs([Imp],Repo,Cat,[],Rp);
-    Gps = topsort(Defs);
+    Gps .= topsort(Defs);
     valis flatten(Gps)
   }
 

@@ -171,7 +171,7 @@ star.compiler.core{
   .}
 
   public implementation coercion[locn,crExp] => {.
-    _coerce(Lc) where locn(pkg(Nm,_),Line,Col,Off,Len).=Lc =>
+    _coerce(Lc) where locn(Nm,Line,Col,Off,Len).=Lc =>
       mkCrTpl([crStrg(Lc,Nm),crInt(Lc,Line),crInt(Lc,Col),crInt(Lc,Off),crInt(Lc,Len)],Lc)
   .}
 

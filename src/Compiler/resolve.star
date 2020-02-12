@@ -16,7 +16,7 @@ star.compiler.resolve{
     either[reports,(list[list[canonDef]],list[canon])].
   overloadEnvironment(Gps,Ots,Dict,Rp) => do{
 --    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
-    TDict = declareImplementations(Gps,Dict);
+    TDict .= declareImplementations(Gps,Dict);
 --    logMsg("resolution dict = $(TDict)");
     RGps <- overloadGroups(Gps,[],TDict,Rp);
     ROts <- pickFailures(Ots//(T)=>resolveTerm(T,TDict,Rp));
@@ -46,7 +46,7 @@ star.compiler.resolve{
 
   overloadGroup:(list[canonDef],dict,reports)=>either[reports,(list[canonDef],dict)].
   overloadGroup(Dfs,Dict,Rp) => do{
-    TDict = declareImplementationsInGroup(Dfs,Dict);
+    TDict .= declareImplementationsInGroup(Dfs,Dict);
     RDefs <- overloadDefs(TDict,Dfs,[],Rp);
     valis (RDefs,TDict)
   }
@@ -69,11 +69,11 @@ star.compiler.resolve{
     valis varDef(Lc,Nm,FullNm,RVal,[],Tp)
   }
   overloadVarDef(Dict,Lc,Nm,FullNm,Val,Cx,Tp,Rp) => do{
-    (Cvrs,CDict) = defineCVars(Lc,Cx,[],Dict);
+    (Cvrs,CDict) .= defineCVars(Lc,Cx,[],Dict);
     RVal <- resolveTerm(Val,CDict,Rp);
-    (Qx,Qt) = deQuant(Tp);
-    (_,ITp) = deConstrain(Qt);
-    CTp = reQuant(Qx,funType(Cx,ITp));
+    (Qx,Qt) .= deQuant(Tp);
+    (_,ITp) .= deConstrain(Qt);
+    CTp .= reQuant(Qx,funType(Cx,ITp));
     valis varDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),none,RVal)],CTp),[],Tp)
   }
 
@@ -236,14 +236,9 @@ star.compiler.resolve{
     (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
     valis (St2,varDo(Lc,RLhs,RRhs))
   }
-  overloadAction(delayDo(Lc,A1,T1,T2),Dict,St,Rp) => do{
+  overloadAction(delayDo(Lc,A1,T1,T2,T3),Dict,St,Rp) => do{
     (St1,RA1) <- overloadAction(A1,Dict,St,Rp);
-    valis (St1,delayDo(Lc,RA1,T1,T2))
-  }
-  overloadAction(assignDo(Lc,Lhs,Rhs,T1,T2),Dict,St,Rp) => do{
-    (St1,RLhs) <- overloadTerm(Lhs,Dict,St,Rp);
-    (St2,RRhs) <- overloadTerm(Rhs,Dict,St1,Rp);
-    valis (St2,assignDo(Lc,RLhs,RRhs,T1,T2))
+    valis (St1,delayDo(Lc,RA1,T1,T2,T3))
   }
   overloadAction(whileDo(Lc,T,A,T1,T2),Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
@@ -255,28 +250,28 @@ star.compiler.resolve{
     (St2,RA) <- overloadAction(A,Dict,St1,Rp);
     valis (St2,forDo(Lc,RT,RA,T1,T2))
   }
-  overloadAction(ifThenDo(Lc,T,L,R,T1,T2),Dict,St,Rp) => do{
+  overloadAction(ifThenElseDo(Lc,T,L,R,T1,T2,T3),Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
     (St2,RL) <- overloadAction(L,Dict,St1,Rp);
     (St3,RR) <- overloadAction(R,Dict,St2,Rp);
-    valis (St3,ifThenDo(Lc,RT,RL,RR,T1,T2))
+    valis (St3,ifThenElseDo(Lc,RT,RL,RR,T1,T2,T3))
   }
   overloadAction(tryCatchDo(Lc,A,C,T1,T2,T3),Dict,St,Rp) => do{
     (St1,RA) <- overloadAction(A,Dict,St,Rp);
     (St2,RC) <- overloadTerm(C,Dict,St1,Rp);
     valis (St2,tryCatchDo(Lc,RA,RC,T1,T2,T3))
   }
-  overloadAction(throwDo(Lc,T,T1,T2),Dict,St,Rp) => do{
+  overloadAction(throwDo(Lc,T,T1,T2,T3),Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    valis (St1,throwDo(Lc,RT,T1,T2))
+    valis (St1,throwDo(Lc,RT,T1,T2,T3))
   }
-  overloadAction(returnDo(Lc,T,T1,T2),Dict,St,Rp) => do{
+  overloadAction(returnDo(Lc,T,T1,T2,T3),Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    valis (St1,returnDo(Lc,RT,T1,T2))
+    valis (St1,returnDo(Lc,RT,T1,T2,T3))
   }
-  overloadAction(simpleDo(Lc,T,T1,T2),Dict,St,Rp) => do{
+  overloadAction(simpleDo(Lc,T,T1),Dict,St,Rp) => do{
     (St1,RT) <- overloadTerm(T,Dict,St,Rp);
-    valis (St1,simpleDo(Lc,RT,T1,T2))
+    valis (St1,simpleDo(Lc,RT,T1))
   }
     
   resolveContracts:(locn,list[constraint],list[canon],dict,resolveState,reports) =>
@@ -289,11 +284,11 @@ star.compiler.resolve{
   
   resolveContract:(locn,tipe,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   resolveContract(Lc,Tp,Dict,St,Rp) => do{
-    ImpNm = implementationName(Tp);
+    ImpNm .= implementationName(Tp);
 --    logMsg("looking for implementation $(Tp) - $(ImpNm)");
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
 --      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
-      (_,VrTp) = freshen(VTp,[],Dict);
+      (_,VrTp) .= freshen(VTp,[],Dict);
       
       (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
 --      logMsg("deconstrained implementation $(ITp)");
