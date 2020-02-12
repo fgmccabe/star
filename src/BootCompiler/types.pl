@@ -342,6 +342,7 @@ stdType("float",type("star.core*float"),typeExists(type("star.core*float"),faceT
 stdType("boolean",type("star.core*boolean"),typeExists(type("star.core*boolean"),faceType([],[]))).
 stdType("string",type("star.core*string"),typeExists(type("star.core*string"),faceType([],[]))).
 stdType("list",tpFun("star.core*list",1),allType(kVar("e"),typeExists(tpExp(tpFun("star.core*list",1),kVar("e")),faceType([],[])))).
+stdType("package",type("star.pkg*pkg"),typeExists(type("star.pkg*pkg"),faceType([],[]))).
 
 isFixedSizeType(Tp) :- deRef(Tp,T),!,isFxTp(T).
 

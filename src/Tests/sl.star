@@ -5,3 +5,4 @@ test.sl{
   F = "foobar".
   
   assert F[3:3] == "bar".
+}
