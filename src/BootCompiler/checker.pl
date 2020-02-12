@@ -26,8 +26,9 @@
 checkProgram(Prog,Pkg,Repo,_Opts,
 	     prog(Pkg,Lc,ImportSpecs,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
+  declarePkg(Pkg,Base,B0),
   isBraceTerm(Prog,Lc,_,Els),
-  pushScope(Base,Env),
+  pushScope(B0,Env),
   Pkg = pkg(Pk,_),
   collectImports(Els,Imps,Stmts),
   importAll(Imps,Repo,AllImports),
@@ -1233,9 +1234,16 @@ mergeVDefs([_|D1],D2,Env,D3) :-
 sameDesc(vrEntry(_,C1,Tp1,_),vrEntry(_,C1,Tp2,_),Env) :-
   sameType(Tp1,Tp2,Env).
 
-declarePkg(,E,Ev) :-
-  stdType("package",PkgTp,PkgEx),
-  declareVar("_pkg_",vrEntry(std,checker:mkPkg(P),PkgTp,PkgEx),E,Ev).
+declarePkg(P,E,Ev) :-
+  stdType("string",StrTp,StrEx),
+  declareVar("__pkg__",vrEntry(std,checker:mkPkg(P),StrTp,StrEx),E,Ev).
 
-mkPkg(pkg(P,V),Lc,Tp,apply(Lc,vr(Lc,"pkg",funType([],Tp)),tple(Lc,[string(P),Vers]),Tp)) :-
-  mkVers(Lc,V,Vers).
+mkPkg(pkg(P,_),_,Tp,stringLit(P,Tp)).
+
+
+mkVers(Lc,defltVersion,v(Lc,"defltVersion",Tp)) :-
+  stdType("version",Tp,_).
+mkVers(Lc,ver(V),apply(Lc,v(Lc,"ver",consType(tupleType([StrTp]),VerTp)),
+		       tple(Lc,[stringLit(V,StrTp)]),VerTp)) :-
+  stdType("version",VerTp,_),
+  stdType("string",StrTp,_).
