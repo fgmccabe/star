@@ -410,7 +410,7 @@ star.compiler.terms{
   encodeInt(Ix,Ts) => encodeNat(Ix,Ts).
 
   public implementation coercion[locn,term]=>{
-    _coerce(locn(Pkg,Line,Col,Off,Ln))=>mkTpl([pkgTerm(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)]).
+    _coerce(locn(Pkg,Line,Col,Off,Ln))=>mkTpl([strg(Pkg),intgr(Line),intgr(Col),intgr(Off),intgr(Ln)]).
   }
 
   public pkgTerm:(pkg)=>term.

@@ -253,8 +253,8 @@ star.compiler.typeparse{
     Cx <- parseConstraints(C,Q,Env,Rp);
     Fce <- parseType(Q,B,Env,Rp);
     
-    Tmplte = pickTypeTemplate(Tp);
-    TpRl = reQuant(Q,reConstrain(Cx,typeExists(Tp,Fce)));
+    Tmplte .= pickTypeTemplate(Tp);
+    TpRl .= reQuant(Q,reConstrain(Cx,typeExists(Tp,Fce)));
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => do{
@@ -263,8 +263,8 @@ star.compiler.typeparse{
     Cx <- parseConstraints(C,Q,Env,Rp);
     RTp <- parseType(Q,B,Env,Rp);
     
-    Tmplte = pickTypeTemplate(Tp);
-    TpRl = reQuant(Q,reConstrain(Cx,typeLambda(Tp,RTp)));
+    Tmplte .= pickTypeTemplate(Tp);
+    TpRl .= reQuant(Q,reConstrain(Cx,typeLambda(Tp,RTp)));
 
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }
@@ -295,8 +295,8 @@ star.compiler.typeparse{
       
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
     Tp <- parseType([],St,Env,Rp);
-    Lc = locOf(St);
-    FullNm = qualifiedName(Path,markerString(conMark),Nm);
+    Lc .= locOf(St);
+    FullNm .= qualifiedName(Path,markerString(conMark),Nm);
     valis (cnsDef(Lc,Nm,FullNm,Tp),
       declareCon(Nm,FullNm,some(Lc),Tp,Env))
   }
@@ -309,7 +309,7 @@ star.compiler.typeparse{
       (_,Id) ^= isName(Op) => do{
 	BV <- parseBoundTpVars(Q,Rp);
 	(Flds,Tps) <- parseTypeFields(BV,Els,[],[],Env,Rp);
-	Face = faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)]);
+	Face .= faceType(Flds::list[(string,tipe)],Tps::list[(string,tipe)]);
 	Con <- parseTypeHead(BV,T,Env,Path,Rp);
 	valis reQuant(BV,typeExists(Con,Face))
       }

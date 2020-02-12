@@ -2,10 +2,10 @@ star.location{
   import star.
   import star.pkg.
 
-  public locn ::= locn(pkg,integer,integer,integer,integer).
+  public locn ::= locn(string,integer,integer,integer,integer).
 
   public implementation display[locn] => {.
-    disp(locn(pkg(P,_),Line,Col,_,Ln)) => ssSeq([ss(P),ss(":"),disp(Line),ss(":"),disp(Col),ss("("),disp(Ln),ss(")")]).
+    disp(locn(P,Line,Col,_,Ln)) => ssSeq([ss(P),ss(":"),disp(Line),ss(":"),disp(Col),ss("("),disp(Ln),ss(")")]).
   .}
 
   public implementation coercion[locn,string] => {.
@@ -21,7 +21,7 @@ star.location{
   .}
 
   public pkgLoc:(pkg)=>locn.
-  pkgLoc(P) => locn(P,1,0,0,0).
+  pkgLoc(P) => locn(pkgName(P),1,0,0,0).
 
   
 }

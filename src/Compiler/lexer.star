@@ -163,7 +163,7 @@ star.compiler.lexer{
   readExponent(St,St0,Mn) => some((St,tok(makeLoc(St0,St),fltTok(Mn)))).
 
   -- We define a tracking state to allow us to collect locations
-  public tokenState ::= tokenState(pkg,integer,integer,integer,list[integer]).
+  public tokenState ::= tokenState(string,integer,integer,integer,list[integer]).
 
   atEof:(tokenState) => boolean.
   atEof(tokenState(_,_,_,_,Str)) => _eof(Str).
@@ -195,7 +195,8 @@ star.compiler.lexer{
   lookingAt(_,_) default => none.
 
   makeLoc:(tokenState,tokenState)=>locn.
-  makeLoc(tokenState(Pk,Line,Col,Start,_),tokenState(_,_,_,End,_)) => locn(Pk,Line,Col,Start,End-Start).
+  makeLoc(tokenState(Pk,Line,Col,Start,_),tokenState(_,_,_,End,_)) =>
+    locn(Pk,Line,Col,Start,End-Start).
 
 
   skipToNx:(tokenState) => tokenState.

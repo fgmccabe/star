@@ -18,17 +18,17 @@ star.compiler.impawt{
   importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported,Sigs)).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
     logMsg("import $(Pkg) from $(Repo)");
-    PkgVar = packageVar(Pkg);
+    PkgVar .= packageVar(Pkg);
     if (PkgVar,_) in Sigs then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
     else{
       try{
 	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	
-	E0 = pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
-	E1 = foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
+	E0 .= pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
+	E1 .= foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
-	E2 = foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
+	E2 .= foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
 	    declareVr(FullNm,some(Lc),Tp,(LL,TT)=>dot(Lc,vr(Lc,PkgVar,Tp),FullNm,TT),
 	      declareImplementation(FullNm,Tp,EE)),E1,Impls);
 	importAll(Imports++PkgImps,Repo,E2,[Imported..,pkgImp(Lc,Viz,Pkg)],[Sigs..,(PkgVar,Sig)],Rp)

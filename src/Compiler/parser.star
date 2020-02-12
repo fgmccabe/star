@@ -16,9 +16,9 @@ star.compiler.parser{
   parseSrc(U,P,Rp) => do{
     if Txt ^= getResource(U) then{
 --      logMsg("input text $(Txt::list[integer])");
-      Toks = allTokens(initSt(pkgLoc(P),Txt::list[integer]));
+      Toks .= allTokens(initSt(pkgLoc(P),Txt::list[integer]));
 --      logMsg("input tokens are $(Toks)");
-      (Trm,Rp1,_) = astParse(Toks,Rp);
+      (Trm,Rp1,_) .= astParse(Toks,Rp);
       if errorFree(Rp1) then
 	valis Trm
       else

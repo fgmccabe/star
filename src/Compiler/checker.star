@@ -4,7 +4,7 @@ star.compiler.checker{
   import star.pkg.
   import star.repo.
 
-  import star.compiler.action.
+--  import star.compiler.action.
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.dependencies.
@@ -32,7 +32,7 @@ star.compiler.checker{
 --      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
 --      logMsg("pkg env after imports $(PkgEnv)");
       
-      Path = packageName(Pkg);
+      Path .= packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
       (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
       
@@ -42,19 +42,19 @@ star.compiler.checker{
 --      logMsg("Final Pkg dict $(ThEnv)");
 --      logMsg("Public names: $(Vis)");
 --      logMsg("Defs: $(Defs)");
-      Contracts = [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && (conSp(Nm),pUblic) in Vis];
+      Contracts .= [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && (conSp(Nm),pUblic) in Vis];
 --      logMsg("exported contracts: $(Contracts)");
-      Fields = exportedFields(Defs,Vis,pUblic);
+      Fields .= exportedFields(Defs,Vis,pUblic);
 --      logMsg("exported fields: $(Fields)");
-      Impls = [ implSpec(some(ILc),INm,FllNm,ITp) |
+      Impls .= [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
 	      (implSp(INm),V) in Vis && V>=pUblic];
 --      logMsg("exported implementations $(Impls)");
-      Types = exportedTypes(Defs,Vis,pUblic);
+      Types .= exportedTypes(Defs,Vis,pUblic);
 --      logMsg("exported types: $(Types)");
       (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
-      PkgType = faceType(Fields,Types);
+      PkgType .= faceType(Fields,Types);
       PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,ROthers,Rp);
       valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),Path,PkgTheta,[],PkgType))
     } else
@@ -103,12 +103,12 @@ star.compiler.checker{
     either[reports,(list[list[canonDef]],dict,tipe)].
   thetaEnv(Lc,Pth,Els,Face,Env,Rp,DefViz) => do{
     (Vis,Opens,Annots,Gps) <- dependencies(Els,Rp);
-    Base = pushFace(Face,Lc,Env);
+    Base .= pushFace(Face,Lc,Env);
     (Defs,ThEnv) <- checkGroups(Gps,[],Face,Annots,Base,Pth,Rp);
 
 --    logMsg("Defs: $(Defs)");
-    PubVrTps = exportedFields(Defs,Vis,DefViz);
-    PubTps = exportedTypes(Defs,Vis,DefViz);
+    PubVrTps .= exportedFields(Defs,Vis,DefViz);
+    PubTps .= exportedTypes(Defs,Vis,DefViz);
 --    logMsg("exported fields $(PubVrTps)");
     valis (Defs,ThEnv,faceType(PubVrTps,PubTps))
   }
@@ -119,14 +119,14 @@ star.compiler.checker{
 --    logMsg("check record $(Els)");
 
     (Vis,Opens,Annots,G) <- recordDefs(Els,Rp);
-    Base = pushFace(Face,Lc,Env);
+    Base .= pushFace(Face,Lc,Env);
     
     (Defs,Ev) <- checkGroup(G,[],Base,Pth,Rp);
 --    logMsg("env after record $(Ev)");
 --    logMsg("Defs: $(Defs)");
     
-    PubVrTps = exportedFields([Defs],Vis,DefViz);
-    PubTps = exportedTypes([Defs],Vis,DefViz);
+    PubVrTps .= exportedFields([Defs],Vis,DefViz);
+    PubTps .= exportedTypes([Defs],Vis,DefViz);
 --    logMsg("exported fields $(PubVrTps)");
     valis (Defs,Ev,faceType(PubVrTps,PubTps))
   }
@@ -187,9 +187,9 @@ star.compiler.checker{
     checkFunction(Nm,Tp,Lc,Stmts,Env,Path,Rp).
   checkDefn(defnSpec(varSp(Nm),Lc,[Stmt]),Env,Path,Rp) where
       vrEntry(_,_,Tp) ^= isVar(Nm,Env) => do{
-	(Q,ETp) = evidence(Tp,[],Env);
-	(Cx,VarTp) = deConstrain(ETp);
-	Es = declareConstraints(Cx,declareTypeVars(Q,Env));
+	(Q,ETp) .= evidence(Tp,[],Env);
+	(Cx,VarTp) .= deConstrain(ETp);
+	Es .= declareConstraints(Cx,declareTypeVars(Q,Env));
 	if (_,Lhs,R) ^= isDefn(Stmt) then{
 	  Val <- typeOfExp(R,VarTp,Es,Path,Rp);
 	  valis (varDef(Lc,Nm,Path,Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
@@ -217,9 +217,9 @@ star.compiler.checker{
   checkFunction:(string,tipe,locn,list[ast],dict,string,reports) =>
     either[reports,(canonDef,dict)].
   checkFunction(Nm,Tp,Lc,Stmts,Env,Path,Rp) => do{
-    (Q,ETp) = evidence(Tp,[],Env);
-    (Cx,ProgramTp) = deConstrain(ETp);
-    Es = declareConstraints(Cx,declareTypeVars(Q,Env));
+    (Q,ETp) .= evidence(Tp,[],Env);
+    (Cx,ProgramTp) .= deConstrain(ETp);
+    Es .= declareConstraints(Cx,declareTypeVars(Q,Env));
     (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,Path,Rp);
 --    logMsg("we have equations for $(Nm)\:$(Rls) default $(Dflt)");
     valis (varDef(Lc,Nm,Path,lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
@@ -245,8 +245,8 @@ star.compiler.checker{
 
   processEqn(St,ProgramType,Env,Path,Rp) where
       (Lc,H,R) ^= isEquation(St) && (_,Arg,Cnd,IsDeflt) ^= splitHead(H) => do{
-	Ats = genArgTps(Arg);
-	RTp = newTypeVar("_R");
+	Ats .= genArgTps(Arg);
+	RTp .= newTypeVar("_R");
 	checkType(St,funType(Ats,RTp),ProgramType,Env,Rp);
 	(Args,E0) <- typeOfArgPtn(Arg,tupleType(Ats),Env,Path,Rp);
 	if Wh^=Cnd then{
@@ -268,18 +268,18 @@ star.compiler.checker{
     Cx <- parseConstraints(C,BV,Env,Rp);
     Cn <- parseContractConstraint(BV,H,Env,Rp);
 --    logMsg("implemented contract type $(Cn)");
-    ConName = localName(tpName(Cn),typeMark);
+    ConName .= localName(tpName(Cn),typeMark);
     if Con ^= findContract(Env,ConName) then{
-      (_,typeExists(ConTp,ConFaceTp)) =
+      (_,typeExists(ConTp,ConFaceTp)) .=
 	freshen(Con,[],Env);
 --      logMsg("found contract type $(ConTp), implementation type $(ConFaceTp)");
       if sameType(ConTp,Cn,Env) then {
-	Es = declareConstraints(Cx,declareTypeVars(BV,Env));
+	Es .= declareConstraints(Cx,declareTypeVars(BV,Env));
 --	logMsg("check implementation body $(B) against $(ConFaceTp)");
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
-	FullNm = implementationName(ConTp);
+	FullNm .= implementationName(ConTp);
 --	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
-	ImplTp = rebind(BV,reConstrain(Cx,ConTp),Es);
+	ImplTp .= rebind(BV,reConstrain(Cx,ConTp),Es);
 --	logMsg("implementation type $(ImplTp)");
 	valis (implDef(Lc,Nm,FullNm,Impl,ImplTp),
 	  declareImplementation(FullNm,ImplTp,Env))
@@ -313,7 +313,7 @@ star.compiler.checker{
     }
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
-    Ev = declareVar(Id,some(Lc),Tp,Env);
+    Ev .= declareVar(Id,some(Lc),Tp,Env);
     valis (vr(Lc,Id,Tp),Ev)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where isLit(A) => do{
@@ -333,13 +333,13 @@ star.compiler.checker{
 	valis (whr(Lc,Ptn,Cond),Ev1)
       }.
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) => do{
-    SqPtn = macroSquarePtn(Lc,Els);
+    SqPtn .= macroSquarePtn(Lc,Els);
     typeOfPtn(SqPtn,Tp,Env,Path,Rp)
   }.
   typeOfPtn(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
     typeOfPtn(El,Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
-    Tvs = genTpVars(Els);
+    Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
@@ -347,7 +347,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Pt,Ex) ^= isOptionPtn(A) =>
     typeOfPtn(mkWherePtn(Lc,Pt,Ex),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Op,Els) ^= isRoundTerm(A) => do{
-    At = newTypeVar("A");
+    At .= newTypeVar("A");
 --    logMsg("checking round patterm $(A) for $(consType(At,Tp))");
     Fun <- typeOfExp(Op,consType(At,Tp),Env,Path,Rp);
     (Args,Ev) <- typeOfArgPtn(rndTuple(Lc,Els),At,Env,Path,Rp);
@@ -357,7 +357,7 @@ star.compiler.checker{
 
   typeOfArgPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfArgPtn(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
-    Tvs = genTpVars(Els);
+    Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
@@ -495,15 +495,15 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Stmts) ^= isActionTerm(A) &&
       (_,ActionTp,_) ^= findType(Env,"action") => do{
-	ErTp = newTypeVar("E");
-	XTp = newTypeVar("X");
+	ErTp .= newTypeVar("E");
+	XTp .= newTypeVar("X");
 	checkType(A,tpExp(tpExp(ActionTp,ErTp),XTp),Tp,Env,Rp);
 	checkDo(Stmts,Tp,Env,Path,Rp)
       }.
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Stmts) ^= isTaskTerm(A) &&
       (_,ActionTp,_) ^= findType(Env,"task") => do{
-	ErTp = newTypeVar("E");
-	XTp = newTypeVar("X");
+	ErTp .= newTypeVar("E");
+	XTp .= newTypeVar("X");
 	checkType(A,tpExp(tpExp(ActionTp,ErTp),XTp),Tp,Env,Rp);
 	checkDo(Stmts,Tp,Env,Path,Rp)
       }.
@@ -516,7 +516,7 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
-    Tvs = genTpVars(Els);
+    Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     Ptns <- typeOfExps(Els,Tvs,[],Env,Path,Rp);
     valis tple(Lc,Ptns)
@@ -528,11 +528,11 @@ star.compiler.checker{
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Ar,R) ^= isEquation(A) =>
     typeOfLambda(Lc,Ar,R,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isTheta(A) => do{
-    (Q,ETp) = evidence(Tp,[],Env);
-    FaceTp = faceOfType(Tp,Env);
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
-    Path = genNewName(Pth,"θ");
+    (Q,ETp) .= evidence(Tp,[],Env);
+    FaceTp .= faceOfType(Tp,Env);
+    (Cx,Face) .= deConstrain(FaceTp);
+    Base .= declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
+    Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
@@ -542,11 +542,11 @@ star.compiler.checker{
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Els) ^= isRecord(A) => do{
-    (Q,ETp) = evidence(Tp,[],Env);
-    FaceTp = faceOfType(Tp,Env);
-    (Cx,Face) = deConstrain(FaceTp);
-    Base = declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
-    Path = genNewName(Pth,"θ");
+    (Q,ETp) .= evidence(Tp,[],Env);
+    FaceTp .= faceOfType(Tp,Env);
+    (Cx,Face) .= deConstrain(FaceTp);
+    Base .= declareConstraints(Cx,declareTypeVars(Q,pushScope(Env)));
+    Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
       mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,[Defs],reConstrain(Cx,ThetaTp),Rp)
@@ -556,10 +556,10 @@ star.compiler.checker{
   }
   typeOfExp(A,Tp,Env,Pth,Rp) where (Lc,Rc,Upd) ^= isRecordUpdate(A) => do{
     Rec <- typeOfExp(Rc,Tp,Env,Pth,Rp);
-    UpTp = newTypeVar("_");
+    UpTp .= newTypeVar("_");
     Update <- typeOfExp(Upd,UpTp,Env,Pth,Rp);
-    faceType(RecFlds,_) = faceOfType(Tp,Env);
-    faceType(UpFlds,_) = faceOfType(UpTp,Env);
+    faceType(RecFlds,_) .= faceOfType(Tp,Env);
+    faceType(UpFlds,_) .= faceOfType(UpTp,Env);
     for (F,TU) in UpFlds do{
       if (F,TR) in RecFlds then{
 	if \+sameType(TU,TR,Env) then
@@ -577,7 +577,7 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,genNewName(Path,"Γ"),Els,faceType([],[]),Env,Rp,
       priVate);
     
-    BndEnv = pushFace(ThetaTp,Lc,Env);
+    BndEnv .= pushFace(ThetaTp,Lc,Env);
 --    logMsg("let env groups $(Defs)");
 --    logMsg("sub env is $(BndEnv)");
     El <- typeOfExp(Bnd,Tp,BndEnv,Path,Rp);
@@ -597,10 +597,10 @@ star.compiler.checker{
   typeOfRoundTerm:(locn,ast,list[ast],tipe,dict,string,reports) => either[reports,canon].
   typeOfRoundTerm(Lc,Op,As,Tp,Env,Path,Rp) => do{
 --    logMsg("checking round term $(Op)$(As) against $(Tp)");
-    Vrs = genTpVars(As);
-    At = tupleType(Vrs);
-    FFTp = newTypeFun("_F",2);
-    ExTp = mkTypeExp(FFTp,[At,Tp]);
+    Vrs .= genTpVars(As);
+    At .= tupleType(Vrs);
+    FFTp .= newTypeFun("_F",2);
+    ExTp .= mkTypeExp(FFTp,[At,Tp]);
     Fun <- typeOfExp(Op,ExTp,Env,Path,Rp);
 --    logMsg("type of $(Op) |- $(ExTp)");
     Args <- typeOfExps(As,Vrs,[],Env,Path,Rp);
@@ -614,7 +614,7 @@ star.compiler.checker{
 
   typeOfArgExp:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfArgExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isTuple(A) => do{
-    Tvs = genTpVars(Els);
+    Tvs .= genTpVars(Els);
     checkType(A,tupleType(Tvs),Tp,Env,Rp);
     (Ptns,Ev) <- typeOfPtns(Els,Tvs,[],Env,Path,Rp);
     valis (tple(Lc,Ptns),Ev)
@@ -645,25 +645,25 @@ star.compiler.checker{
     valis (cond(Lc,Tst,Thn,Els),mergeDict(E1,E2,Env))
   }.
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isMatch(A) => do{
-    PtnTp = newTypeVar("_M");
+    PtnTp .= newTypeVar("_M");
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) => do{
-    PtnTp = newTypeVar("_M");
+    PtnTp .= newTypeVar("_M");
     Val <- typeOfExp(R,PtnTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(unary(Lc,"some",L),PtnTp,Env,Path,Rp);
     valis (match(Lc,Ptn,Val),Ev)
   }
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isSearch(A) => do{
-    MTp = newTypeFun("M",1);
-    StTp = newTypeVar("X");
-    SrTp = newTypeVar("Sr");
-    ElTp = newTypeVar("El");
-    MdTp = tpExp(MTp,StTp);
-    ActionTp = funType([ElTp,StTp],MdTp);
-    IterTp = funType([SrTp,MdTp,ActionTp],MdTp);
+    MTp .= newTypeFun("M",1);
+    StTp .= newTypeVar("X");
+    SrTp .= newTypeVar("Sr");
+    ElTp .= newTypeVar("El");
+    MdTp .= tpExp(MTp,StTp);
+    ActionTp .= funType([ElTp,StTp],MdTp);
+    IterTp .= funType([SrTp,MdTp,ActionTp],MdTp);
     Iterator <- typeOfExp(nme(Lc,"_iter"),IterTp,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,ElTp,Env,Path,Rp);
     Gen <- typeOfExp(R,SrTp,Env,Path,Rp);
@@ -676,11 +676,11 @@ star.compiler.checker{
 
   checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
   checkDo(Stmts,Tp,Env,Path,Rp) => do{
-    VlTp = newTypeVar("_e");
-    ErTp = newTypeVar("_e");
-    Lc = locOf(Stmts);
+    VlTp .= newTypeVar("_e");
+    ErTp .= newTypeVar("_e");
+    Lc .= locOf(Stmts);
     if Con ^= findContract(Env,"execution") then{
-      (_,typeExists(funDeps(tpExp(Op,StTp),[]),_)) = freshen(Con,[],Env);
+      (_,typeExists(funDeps(tpExp(Op,StTp),[]),_)) .= freshen(Con,[],Env);
       if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
 	(Action,_) <- checkAction(Stmts,Env,StTp,VlTp,ErTp,Path,Rp);
 	valis act(Lc,Action)
@@ -694,34 +694,34 @@ star.compiler.checker{
     either[reports,(canonAction,dict)].
   checkAction(A,Env,_,_,_,_,_) where (Lc,"nothing") ^= isName(A) => either((noDo(Lc),Env)).
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isActionSeq(A) => do{
-    E = newTypeVar("_e");
+    E .= newTypeVar("_e");
     (Fst,E0) <- checkAction(L,Env,StTp,E,ErTp,Path,Rp);
     (Snd,E1) <- checkAction(R,E0,StTp,ElTp,ErTp,Path,Rp);
     valis (seqnDo(Lc,Fst,Snd),E1)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isBind(A) => do{
-    E = newTypeVar("P");
-    HT = tpExp(StTp,E); -- bound terms must be in the same monad
+    E .= newTypeVar("P");
+    HT .= tpExp(StTp,E); -- bound terms must be in the same monad
     Exp <- typeOfExp(R,HT,Env,Path,Rp);
     (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
     valis (bindDo(Lc,Ptn,Exp,E,StTp,ErTp),Ev)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isDefn(A) => do{
-    E = newTypeVar("P");
+    E .= newTypeVar("P");
     (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
     Exp <- typeOfExp(R,E,Env,Path,Rp);
 
     valis (varDo(Lc,Ptn,Exp),Ev)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isMatch(A) => do{
-    E = newTypeVar("P");
+    E .= newTypeVar("P");
     (Ptn,Ev) <- typeOfPtn(L,E,Env,Path,Rp);
     Exp <- typeOfExp(R,E,Env,Path,Rp);
 
     valis (varDo(Lc,Ptn,Exp),Ev)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
-    Et = newTypeVar("P");
+    Et .= newTypeVar("P");
     if (LLc,Coll,[Arg]) ^= isSquareTerm(L) then {
       Lhs <- typeOfExp(Coll,refType(Et),Env,Path,Rp);
       Rhs <- typeOfExp(ternary(LLc,"_put",unary(LLc,"!",Coll),Arg,R),Et,Env,Path,Rp);
@@ -741,7 +741,7 @@ star.compiler.checker{
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,L) ^= isIfThen(A) => do{
     (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
     (Th,E1) <- checkAction(L,Env,StTp,ElTp,ErTp,Path,Rp);
-    valis (ifThenDo(Lc,Cond,Th,noDo(Lc),StTp,ElTp),Env)
+    valis (ifThenElseDo(Lc,Cond,Th,noDo(Lc),StTp,ElTp,ErTp),Env)
   }
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,T,B) ^= isWhileDo(A) => do{
     (Cond,Ev0) <- checkCond(T,Env,Path,Rp);
@@ -776,18 +776,18 @@ star.compiler.checker{
 
   checkCatch:(ast,dict,tipe,tipe,tipe,string,reports) => either[reports,canon].
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,Stmts) ^= isBrTuple(A) => do{
-    HT = funType([ErTp],tpExp(StTp,ElTp));
+    HT .= funType([ErTp],tpExp(StTp,ElTp));
     (H,_) <- checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp);
     valis lambda(Lc,[eqn(Lc,tple(Lc,[vr(Lc,genSym("_"),ErTp)]),none,act(locOf(A),H))],HT)
   }
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
-    HT = funType([ErTp],tpExp(StTp,ElTp));
+    HT .= funType([ErTp],tpExp(StTp,ElTp));
     typeOfExp(A,HT,Env,Path,Rp)
   }
 
   typeOfVar:(locn,string,tipe,vrEntry,dict,reports) => either[reports,canon].
   typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
-    (_,VrTp) = freshen(VTp,[],Env);
+    (_,VrTp) .= freshen(VTp,[],Env);
     (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
 --    logMsg("check var $(Nm)\:$(MTp) against $(Tp)");
     if sameType(Tp,MTp,Env) || sameType(enumType(Tp),MTp,Env) then {
@@ -798,9 +798,9 @@ star.compiler.checker{
 
   typeOfField:(locn,canon,string,tipe,dict,string,reports) => either[reports,canon].
   typeOfField(Lc,Rc,Fld,Tp,Env,Path,Rp) => do{
-    faceType(Flds,_) = faceOfType(typeOf(Rc),Env);
+    faceType(Flds,_) .= faceOfType(typeOf(Rc),Env);
     if (Fld,FldTp) in Flds then{
-      (_,VrTp) = freshen(FldTp,[],Env);
+      (_,VrTp) .= freshen(FldTp,[],Env);
       (MTp,Term) <- manageConstraints(VrTp,[],Lc,dot(Lc,Rc,Fld,VrTp),Env,Rp);
       if sameType(Tp,VrTp,Env) then {
 	valis Term
@@ -812,8 +812,8 @@ star.compiler.checker{
 
   typeOfLambda:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   typeOfLambda(Lc,A,R,Tp,Env,Path,Rp) => do{
-    At = newTypeVar("_A");
-    Rt = newTypeVar("_R");
+    At .= newTypeVar("_A");
+    Rt .= newTypeVar("_R");
     (As,E0) <- typeOfArgPtn(A,At,Env,Path,Rp);
     Rep <- typeOfExp(R,Rt,E0,Path,Rp);
     checkType(A,fnType(At,Rt),Tp,Env,Rp);
@@ -856,7 +856,7 @@ star.compiler.checker{
   pickupContract:(locn,dict,string,reports) => either[reports,(tipe,tipe)].
   pickupContract(Lc,Env,Nm,Rp) => do{
     if Con ^= findContract(Env,Nm) then{
-      (_,typeExists(funDeps(tpExp(Op,StTp),[ErTp]),_)) =
+      (_,typeExists(funDeps(tpExp(Op,StTp),[ErTp]),_)) .=
 	freshen(Con,[],Env);
       valis (StTp,ErTp)
     } else
@@ -866,7 +866,7 @@ star.compiler.checker{
   pickupIxContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe,tipe)].
   pickupIxContract(Lc,Env,Nm,Rp) => do{
     if Con ^= findContract(Env,Nm) then{
-      (_,typeExists(funDeps(tpExp(Op,IxTp),[KyTp,VlTp]),_)) =
+      (_,typeExists(funDeps(tpExp(Op,IxTp),[KyTp,VlTp]),_)) .=
 	freshen(Con,[],Env);
       valis (Op,IxTp,KyTp,VlTp)
     } else

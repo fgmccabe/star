@@ -16,12 +16,12 @@ star.compiler.matcher{
 
   public functionMatcher:(locn,string,tipe,list[(locn,list[crExp],option[crExp],crExp)]) => crDefn.
   functionMatcher(Lc,Nm,Tp,Eqns) => valof action{
-    NVrs = genVars(funTypeArg(Tp));
-    Trpls = makeTriples(Eqns);
-    Error = genRaise(Lc,funTypeRes(Tp));
+    NVrs .= genVars(funTypeArg(Tp));
+    Trpls .= makeTriples(Eqns);
+    Error .= genRaise(Lc,funTypeRes(Tp));
 --    logMsg("function triples: $(Trpls)");
-    Reslt = matchTriples(Lc,NVrs,Trpls,Error);
-    (NArgs,NReslt) = pullVarLets(NVrs,Reslt);
+    Reslt .= matchTriples(Lc,NVrs,Trpls,Error);
+    (NArgs,NReslt) .= pullVarLets(NVrs,Reslt);
     valis fnDef(Lc,Nm,Tp,NArgs,NReslt)
   }
 
@@ -45,9 +45,9 @@ star.compiler.matcher{
     }.
 */
   matchTriples(Lc,Vrs,Trpls,Deflt) => valof action{
-    Parts = partitionTriples(Trpls);
+    Parts .= partitionTriples(Trpls);
 --    logMsg("partitioned $(Parts)");
-    Segs = matchSegments(Parts,Vrs,Lc,Deflt);
+    Segs .= matchSegments(Parts,Vrs,Lc,Deflt);
 --    logMsg("segments = $(Segs)");
     valis Segs
   }.
@@ -102,8 +102,8 @@ star.compiler.matcher{
     matchVars(Seg,Vrs,Lc,Deflt).
 
   matchScalars(Seg,[V,..Vrs],Lc,Deflt) => valof action{
-    ST = sort(Seg,compareScalarTriple);
-    Cases = formCases(ST,sameScalarTriple,Lc,Vrs,Deflt);
+    ST .= sort(Seg,compareScalarTriple);
+    Cases .= formCases(ST,sameScalarTriple,Lc,Vrs,Deflt);
     valis mkCase(Cases,Lc,crVar(Lc,V),Deflt)
   }
 
@@ -127,8 +127,8 @@ star.compiler.matcher{
     list[crCase].
   formCases([],_,_,_,_) => [].
   formCases([Tr,..Trpls],Eq,Lc,Vrs,Deflt) => valof action{
-    (Tx,More) = pickMoreCases(Tr,Trpls,Eq,[],[]);
-    Case = formCase(Tr,[Tr,..Trpls],Lc,Vrs,Deflt);
+    (Tx,More) .= pickMoreCases(Tr,Trpls,Eq,[],[]);
+    Case .= formCase(Tr,[Tr,..Trpls],Lc,Vrs,Deflt);
     valis [Case,..formCases(More,Eq,Lc,Vrs,Deflt)].
   }
 
@@ -142,9 +142,9 @@ star.compiler.matcher{
   formCase(([crLbl(LLc,Nm,LTp),.._],_,_),Tpls,Lc,Vars,Deflt) =>
     (LLc,crLbl(LLc,Nm,LTp),matchTriples(Lc,Vars,subTriples(Tpls),Deflt)).
   formCase(([crTerm(Lc,Lbl,Args,Tp),.._],_,_),Trpls,_,Vars,Deflt) => valof action{
-    Vrs = Args//(E) => crId(genSym("_"),typeOf(E));
-    NTrpls = subTriples(Trpls);
-    Case = matchTriples(Lc,Vrs++Vars,NTrpls,Deflt);
+    Vrs .= (Args//(E) => crId(genSym("_"),typeOf(E)));
+    NTrpls .= subTriples(Trpls);
+    Case .= matchTriples(Lc,Vrs++Vars,NTrpls,Deflt);
     valis (Lc,crTerm(Lc,Lbl,Vrs//(V)=>crVar(Lc,V),Tp),Case)
   }.
 

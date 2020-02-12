@@ -43,6 +43,7 @@ star.compiler.canon{
     seqnDo(locn,canonAction,canonAction) |
     bindDo(locn,canon,canon,tipe,tipe,tipe) |
     varDo(locn,canon,canon) |
+    assignDo(locn,canon,canon,tipe,tipe) |
     delayDo(locn,canonAction,tipe,tipe,tipe) |
     ifThenElseDo(locn,canon,canonAction,canonAction,tipe,tipe,tipe) |
     whileDo(locn,canon,canonAction,tipe,tipe) |
@@ -268,16 +269,19 @@ star.compiler.canon{
 
   public splitPtn:(canon) => (canon,option[canon]).
   splitPtn(P) => let{
-    splitPttrn(apply(Lc,Op,Arg,Tp)) => let{
-      (SOp,OCond) = splitPttrn(Op).
-      (SArg,SCond) = splitPttrn(Arg).
-    } in (apply(Lc,SOp,SArg,Tp),mergeGl(OCond,SCond)).
-    splitPttrn(tple(Lc,Els)) => let{
-      (SEls,SCond) = splitPttrns(Els).
-    } in (tple(Lc,SEls),SCond).
-    splitPttrn(whr(Lc,Pt,C)) => let{
-      (SP,SCond) = splitPtrrn(Pt).
-    } in (SP,mergeGl(SCond,C)).
+    splitPttrn(apply(Lc,Op,Arg,Tp)) => valof action{
+      (SOp,OCond) .= splitPttrn(Op);
+      (SArg,SCond) .= splitPttrn(Arg);
+      valis (apply(Lc,SOp,SArg,Tp),mergeGl(OCond,SCond))
+    }
+    splitPttrn(tple(Lc,Els)) => valof action{
+      (SEls,SCond) .= splitPttrns(Els);
+      valis (tple(Lc,SEls),SCond)
+    }
+    splitPttrn(whr(Lc,Pt,C)) => valof action{
+      (SP,SCond) .= splitPttrn(Pt);
+      valis (SP,mergeGl(SCond,some(C)))
+    }
     splitPttrn(Pt) => (Pt,none).
 
     splitPttrns(Els) => foldRight(((E,C),(SEls,SCond))=>
@@ -287,7 +291,5 @@ star.compiler.canon{
     mergeGl(C,none) => C.
     mergeGl(some(A),some(B)) => some(conj(locOf(A),A,B)).
 
-  } in splitPtrrn(P).
-
-      
+  } in splitPttrn(P).
 }

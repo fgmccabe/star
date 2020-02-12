@@ -59,10 +59,10 @@ star.compiler.normalize{
 
   public normalize:(pkgSpec,canonDef,reports)=>either[reports,list[crDefn]].
   normalize(PkgSpec,Prg,Rp) => do{
-    Map = pkgMap(PkgSpec);
+    Map .= pkgMap(PkgSpec);
     logMsg("package map $(Map)");
     (V,Defs) <- transformDef(Prg,Map,[],[],Rp);
-    Bound = V//((Vr,Vl))=>vrDef(locOf(Vl),Vr,Vl);
+    Bound .= (V//((Vr,Vl))=>vrDef(locOf(Vl),Vr,Vl));
     valis Bound++Defs
   }
 
@@ -73,27 +73,27 @@ star.compiler.normalize{
   groupMap:(locn,list[canonDef],string,nameMap,reports) => either[reports,(nameMap,option[crVar],crExp)].
   groupMap(Lc,Grp,Prefix,Outer,Rp) => do{
 --    logMsg("making map for group $(Grp), outer map = $(Outer)");
-    FreeVars = findFreeVarsInGroup(Grp,Outer);
+    FreeVars .= findFreeVarsInGroup(Grp,Outer);
 --    logMsg("free vars = $(FreeVars)");
 
     if isEmpty(FreeVars) then {
 --      logMsg("no theta var for group $(Grp)");
-      M = [lyr("",foldRight((D,LL)=>collectMtd(D,Prefix,none,LL),[],Grp),none),..Outer];
+      M .= [lyr("",foldRight((D,LL)=>collectMtd(D,Prefix,none,LL),[],Grp),none),..Outer];
       valis (M,none,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
     } else if [FrVr].=FreeVars then {
-      ThVr = crVar(Lc,FrVr);
-      L = [crName(FrVr)->labelVar(ThVr)];
-      M = [lyr("",foldRight((D,LL)=>collectMtd(D,Prefix,some(FrVr),LL),L,Grp),some(FrVr)),..Outer];
+      ThVr .= crVar(Lc,FrVr);
+      L .= [crName(FrVr)->labelVar(ThVr)];
+      M .= [lyr("",foldRight((D,LL)=>collectMtd(D,Prefix,some(FrVr),LL),L,Grp),some(FrVr)),..Outer];
       valis (M,some(FrVr),ThVr)
     }
     else {
-      ThV = genVar("_ThVr",tupleType(FreeVars//typeOf));
+      ThV .= genVar("_ThVr",tupleType(FreeVars//typeOf));
 --      logMsg("theta var for group $(Grp) is $(ThV)");
-      L = collectLabelVars(FreeVars,crVar(Lc,ThV),0,[]);
+      L .= collectLabelVars(FreeVars,crVar(Lc,ThV),0,[]);
 --      logMsg("new label vars $(L)");
-      ThVr = some(ThV);
+      ThVr .= some(ThV);
     
-      M = [lyr(Prefix,foldRight((D,LL)=>collectMtd(D,Prefix,ThVr,LL),L,Grp),ThVr),..Outer];
+      M .= [lyr(Prefix,foldRight((D,LL)=>collectMtd(D,Prefix,ThVr,LL),L,Grp),ThVr),..Outer];
       valis (M,ThVr,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
     }
   }
@@ -101,24 +101,24 @@ star.compiler.normalize{
   lambdaMap:(canon,nameMap,reports) => either[reports,(nameMap,option[crVar],list[crExp])].
   lambdaMap(Lam,Outer,Rp) => do{
 --    logMsg("making map for lambda $(Lam)");
-    freeVars = freeLabelVars(freeVarsInTerm(Lam,[],[]),Outer,[])::list[crVar];
-    Lc = locOf(Lam);
-    FullNm = genSym(layerName(Outer)++"λ");
+    freeVars .= freeLabelVars(freeVarsInTerm(Lam,[],[]),Outer,[])::list[crVar];
+    Lc .= locOf(Lam);
+    FullNm .= genSym(layerName(Outer)++"λ");
 
 --    logMsg("free vars = $(freeVars), full name $(FullNm)");
 
     if isEmpty(freeVars) then {
 --      logMsg("no theta var for lambda");
-      M = [lyr(FullNm,[],none),..Outer];
+      M .= [lyr(FullNm,[],none),..Outer];
       valis (M,none,[])
     } else {
-      ThV = genVar("_ThVr",tupleType(freeVars//typeOf));
+      ThV .= genVar("_ThVr",tupleType(freeVars//typeOf));
 --      logMsg("theta var is $(ThV)");
-      L = collectLabelVars(freeVars,crVar(Lc,ThV),0,[]);
+      L .= collectLabelVars(freeVars,crVar(Lc,ThV),0,[]);
 --      logMsg("new label vars $(L)");
-      ThVr = some(ThV);
+      ThVr .= some(ThV);
     
-      M = [lyr(FullNm,L,ThVr),..Outer];
+      M .= [lyr(FullNm,L,ThVr),..Outer];
       valis (M,ThVr,freeVars//(V)=>crVar(Lc,V))
     }
   }
@@ -146,7 +146,7 @@ star.compiler.normalize{
 
     (BndTrm,Ex2) <- liftExp(Bnd,BMap,Ex1,Rp);
 
-    Bound = foldRight(((Vr,Vl),X)=>crLtt(locOf(Vl),Vr,Vl,X),BndTrm,Vs);
+    Bound .= foldRight(((Vr,Vl),X)=>crLtt(locOf(Vl),Vr,Vl,X),BndTrm,Vs);
 
     if GrpThVr ^= GrpVr then
       valis (crLtt(Lc,GrpThVr,GrpFree,Bound),Ex2)
@@ -169,36 +169,36 @@ star.compiler.normalize{
     either[reports,(list[(crVar,crExp)],list[crDefn])].
   transformDef(varDef(Lc,Nm,Path,lambda(_,Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
 --    logMsg("transform function $(Nm)\:$(Tp)");
-    Extra = extraVars(Map);
+    Extra .= extraVars(Map);
 --    logMsg("extra vars in function: $(Extra), $(isEmpty(Extra))");
-    ATp = extendFunTp(deRef(Tp),Extra);
+    ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Extra,Ex,Rp);
 --    logMsg("normalized equations for $(Nm)\: $(Eqs)");
 
-    FnName = qualifiedName(Path,markerString(valMark),Nm);
+    FnName .= qualifiedName(Path,markerString(valMark),Nm);
 
-    ClosureNm = qualifiedName(Path,markerString(closMark),Nm);
-    ClVar = genVar(Nm,Tp);
-    ClVars = makeFunVars(Tp);
-    ClArgs = [ClVar,..ClVars];
+    ClosureNm .= qualifiedName(Path,markerString(closMark),Nm);
+    ClVar .= genVar(Nm,Tp);
+    ClVars .= makeFunVars(Tp);
+    ClArgs .= [ClVar,..ClVars];
 
-    ClosTp  = funType([Tp,..tplTypes(deRef(funTypeArg(Tp)))],funTypeRes(Tp));
+    ClosTp .= funType([Tp,..tplTypes(deRef(funTypeArg(Tp)))],funTypeRes(Tp));
 
     if isEmpty(Extra) then{
-      ClosEntry =
+      ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,
 	  ClArgs,crCall(Lc,FnName,ClVars//(V)=>crVar(Lc,V),funTypeRes(Tp)));
 
       valis (Vs,[functionMatcher(Lc,FnName,ATp,Eqs),ClosEntry,..Ex1])
     } else if [Exv].=Extra then {
-      ClosEntry =
+      ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  crCall(Lc,FnName,[crTplOff(Lc,crVar(Lc,ClVar),0,typeOf(Exv)),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
 --    logMsg("closure entry: $(ClosEntry)");
       valis (Vs,[functionMatcher(Lc,FnName,ATp,Eqs),ClosEntry,..Ex1])
     } else {
-      FrTp = tupleType(Extra//typeOf);
-      ClosEntry =
+      FrTp .= tupleType(Extra//typeOf);
+      ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  crCall(Lc,FnName,[crTplOff(Lc,crVar(Lc,ClVar),0,FrTp),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
 
@@ -208,7 +208,7 @@ star.compiler.normalize{
   }
   transformDef(varDef(Lc,Nm,_,Val,_,Tp),Map,Ex,Vs,Rp) => do{
     (Vl,Exx) <- liftExp(Val,Map,Ex,Rp);
-    Vr = crId(Nm,Tp);
+    Vr .= crId(Nm,Tp);
     valis ([Vs..,(Vr,Vl)],Exx)
   }
   transformDef(implDef(Lc,Nm,FullNm,Val,Tp),Map,Ex,Vs,Rp) =>
@@ -324,12 +324,12 @@ star.compiler.normalize{
   liftExp(Lam where lambda(Lc,Eqns,Tp).=Lam,Map,Ex,Rp) => do{
 --    logMsg("transform lambda $(Lam)");
     (LMap,ClV,Cl) <- lambdaMap(Lam,Map,Rp);
-    Extra = extraVars(LMap);
+    Extra .= extraVars(LMap);
 --    logMsg("extra vars in lambda: $(Extra)");
-    ATp = extendFunTp(deRef(Tp),Extra);
-    FullNm = layerName(LMap);
+    ATp .= extendFunTp(deRef(Tp),Extra);
+    FullNm .= layerName(LMap);
     (Eqs,Ex1) <- transformEquations(Eqns,LMap,Extra,Ex,Rp);
-    LamFun = functionMatcher(Lc,FullNm,ATp,Eqs);
+    LamFun .= functionMatcher(Lc,FullNm,ATp,Eqs);
 --    logMsg("lifted lambda $(LamFun)");
 
     valis (crTerm(Lc,FullNm,Cl,ATp),[Ex1..,LamFun])
