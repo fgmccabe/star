@@ -1,6 +1,7 @@
 :- module(checker,[checkProgram/5]).
 
 :- use_module(abstract).
+:- use_module(display).
 :- use_module(wff).
 :- use_module(macro).
 :- use_module(do).
@@ -19,7 +20,6 @@
 :- use_module(import).
 :- use_module(transitive).
 :- use_module(resolve).
-:- use_module(display).
 :- use_module(cnc).
 :- use_module(vartypes).
 
@@ -578,6 +578,14 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isDoTerm(Term,Lc,Stmts),!,
   checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
+  isScriptTerm(Term,Lc,Stmts),!,
+  findType("action",Lc,Env,ActionTp),
+  newTypeVar("E",ErTp),
+  newTypeVar("X",ElTp),
+  mkTypeExp(ActionTp,[ErTp,ElTp],MTp),
+  checkType(Term,MTp,Tp,Env),
+  checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
+typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
@@ -902,6 +910,17 @@ checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,varDo(Lc,Lhs,cell(Lc,Rhs),ExTp,ValTp,E
   newTypeVar("_V",PT),
   typeOfPtn(L,refType(PT),Env,Ev,Lhs,Path),
   typeOfExp(R,PT,Env,_,Rhs,Path).
+checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
+  isIntegrity(Term,Lc,Cond),!,
+  createIntegrityAction(Lc,Cond,IAc),
+%  display(IAc),
+  checkAction(IAc,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
+checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
+  isShow(Term,Lc,Exp),!,
+  createShowAction(Lc,Exp,IAc),
+%  display(IAc),
+  checkAction(IAc,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
+
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,Act,Path) :-
   isSplice(Term,Lc,S,F,T,R),!,
   unary(Lc,"!",S,Src),
@@ -971,6 +990,30 @@ checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
    binary(Lc,":=",L,R,Term)),
   mkTypeExp(ExTp,[ErTp,ValTp],MTp),
   typeOfExp(Term,MTp,Env,Ev,Exp,Path).
+
+/*
+ assert C 
+becomes
+ assrt(()=>C,"failed: C",Loc)
+*/
+createIntegrityAction(Lc,Cond,Act) :-
+  ast2String(Cond,Msg),
+  locOfAst(Cond,CLc),
+  eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Cond,Lam),
+  astOfLoc(CLc,Loc),
+  roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Act).
+
+/*
+ show E 
+becomes
+  shwMsg(()=>E,"E",Lc)
+*/
+createShowAction(Lc,Exp,Act) :-
+  ast2String(Exp,Txt),
+  locOfAst(Exp,ELc),
+  astOfLoc(ELc,Loc),
+  eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Exp,Lam),
+  roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
 
 checkCatch(Term,Env,Contract,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,

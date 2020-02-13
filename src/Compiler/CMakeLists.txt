@@ -11,7 +11,7 @@ add_custom_command(TARGET compiler DEPENDS sbc star.escapes
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.compiler"
   )
 
-add_custom_target(TARGET compiler DEPENDS sasm
+add_custom_target(TARGET compiler ALL DEPENDS sasm sbc
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../Asm/Samples
         COMMAND sasm "-R" "${REPO_DIR}" "boot.cafe")
 
