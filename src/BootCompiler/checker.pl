@@ -580,7 +580,7 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isScriptTerm(Term,Lc,Stmts),!,
   genScript(Lc,Stmts,Act),
-  display(Act),
+%  display(Act),
   typeOfExp(Act,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
@@ -910,7 +910,7 @@ checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,varDo(Lc,Lhs,cell(Lc,Rhs),ExTp,ValTp,E
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   isIntegrity(Term,Lc,Cond),!,
   createIntegrityAction(Lc,Cond,IAc),
-%  display(IAc),
+  display(IAc),
   checkAction(IAc,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   isShow(Term,Lc,Exp),!,
