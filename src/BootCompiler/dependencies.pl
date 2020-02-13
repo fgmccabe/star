@@ -492,6 +492,9 @@ collectTermRefs(T,A,R0,Refs) :-
   collectDoRefs(Stmts,A,R0,Refs).
 collectTermRefs(T,_A,Refs,Refs) :-
   isDoTerm(T,_),!.
+collectTermRefs(T,A,R0,Refs) :-
+  isScriptTerm(T,_,Stmts),!,
+  collectDoRefs(Stmts,A,R0,Refs).
 collectTermRefs(app(_,Op,Args),All,R,Refs) :-
   collectTermRefs(Op,All,R,R0),
   collectTermRefs(Args,All,R0,Refs).

@@ -181,7 +181,7 @@
 @tab 1235
 @item @code{show}
 @tab non-associative prefix
-@tab 1260
+@tab 1240
 @item @code{++}
 @tab right associative infix
 @tab 720
@@ -214,7 +214,7 @@
 @tab 1240
 @item @code{assert}
 @tab non-associative prefix
-@tab 1260
+@tab 1240
 @item @code{!!}
 @tab non-associative prefix
 @tab 900

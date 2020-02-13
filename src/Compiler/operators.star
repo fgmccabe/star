@@ -90,7 +90,7 @@ star.compiler.operators{
   oper(".=") => [infixOp(899,900,899)].
   oper("=") => [infixOp(974,975,974)].
   oper("|:") => [infixOp(1234,1235,1234)].
-  oper("show") => [prefixOp(1260,1259)].
+  oper("show") => [prefixOp(1240,1239)].
   oper("++") => [infixOp(719,720,720)].
   oper(">") => [infixOp(899,900,899)].
   oper("return") => [prefixOp(930,929)].
@@ -100,7 +100,7 @@ star.compiler.operators{
   oper("^|") => [infixOp(1248,1249,1249)].
   oper("open") => [prefixOp(900,899)].
   oper("~~") => [infixOp(1239,1240,1240)].
-  oper("assert") => [prefixOp(1260,1259)].
+  oper("assert") => [prefixOp(1240,1239)].
   oper("!!") => [prefixOp(900,899)].
   oper("=.") => [infixOp(899,900,899)].
   oper(".^.") => [infixOp(720,720,719)].

@@ -47,7 +47,7 @@
   keyword("of").
   keyword("exists").
   keyword("val").
-  keyword("script").
+%  keyword("script").
   keyword("assert").
   keyword("show").
   keyword("default").
