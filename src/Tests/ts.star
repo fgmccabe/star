@@ -36,6 +36,7 @@ test.ts{
   testl5 = valof script{
     assert fact(3)==6;
     show fact(5);
-    assert fact(2)==fact(4)
+    assert fact(2)==fact(4);
+    valis "alpha"
   }
 }
