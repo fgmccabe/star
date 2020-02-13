@@ -449,12 +449,12 @@
   },
   {
     "prefixOp": "assert",
-    "priorities": [1260, 1259],
+    "priorities": [1240, 1239],
     "desc": "assert condition"
   },
   {
     "prefixOp": "show",
-    "priorities": [1260, 1259],
+    "priorities": [1240, 1239],
     "desc": "display debug message"
   },
   {

@@ -10,7 +10,7 @@ test.ts{
     _coerce((X,Y)) => "("++X::string++","++Y::string++")"
   .}
 
-  testl2 = valof action{
+/*  testl2 = valof action{
     try{
       assrt(()=>fact(3)==5,"failed: fact(3)!=5",locn(__pkg__,0,0,0,0))
     } catch (Err)=> action{
@@ -31,5 +31,11 @@ test.ts{
 
   testl4 = valof action{
     show fact(3)
+  }
+*/
+  testl5 = valof script{
+    assert fact(3)==6;
+    show fact(5);
+    assert fact(2)==fact(4)
   }
 }

@@ -579,12 +579,9 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isScriptTerm(Term,Lc,Stmts),!,
-  findType("action",Lc,Env,ActionTp),
-  newTypeVar("E",ErTp),
-  newTypeVar("X",ElTp),
-  mkTypeExp(ActionTp,[ErTp,ElTp],MTp),
-  checkType(Term,MTp,Tp,Env),
-  checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
+  genScript(Lc,Stmts,Act),
+  display(Act),
+  typeOfExp(Act,Tp,Env,Ev,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
@@ -1014,6 +1011,27 @@ createShowAction(Lc,Exp,Act) :-
   astOfLoc(ELc,Loc),
   eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Exp,Lam),
   roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
+
+/*
+script{S}
+becomes
+action{
+  try{
+    S
+  } catch (Err) => action{
+    logMsg(Err)
+  }
+}
+*/
+genScript(Lc,Stmts,Act) :-
+  braceTuple(Lc,[Stmts],B),
+  genIden(Lc,Err),
+  roundTerm(Lc,name(Lc,"logMsg"),[Err],Rep),
+  braceTerm(Lc,name(Lc,"action"),[Rep],R1),
+  eqn(Lc,tuple(Lc,"()",[Err]),name(Lc,"true"),R1,Lam),
+  binary(Lc,"catch",B,Lam,R2),
+  unary(Lc,"try",R2,Body),
+  braceTerm(Lc,name(Lc,"action"),[Body],Act).
 
 checkCatch(Term,Env,Contract,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,

@@ -73,7 +73,7 @@
   operator(".=", [infixOp(899, 900, 899)]).
   operator("=", [infixOp(974, 975, 974)]).
   operator("|:", [infixOp(1234, 1235, 1234)]).
-  operator("show", [prefixOp(1260, 1259)]).
+  operator("show", [prefixOp(1240, 1239)]).
   operator("++", [infixOp(719, 720, 720)]).
   operator(">", [infixOp(899, 900, 899)]).
   operator("return", [prefixOp(930, 929)]).
@@ -83,7 +83,7 @@
   operator("^|", [infixOp(1248, 1249, 1249)]).
   operator("open", [prefixOp(900, 899)]).
   operator("~~", [infixOp(1239, 1240, 1240)]).
-  operator("assert", [prefixOp(1260, 1259)]).
+  operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [prefixOp(900, 899)]).
   operator("=.", [infixOp(899, 900, 899)]).
   operator(".^.", [infixOp(720, 720, 719)]).
