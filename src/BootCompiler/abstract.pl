@@ -1,4 +1,4 @@
-:- module(abstract,[locOfAst/2,isAst/1,
+:- module(abstract,[locOfAst/2,astOfLoc/2,isAst/1,
       nary/4,binary/5,unary/4,zeroary/3,apply/4,isApply/4,
       isUnary/3,isUnary/4,isBinary/5,isBinaryTerm/4,
       isTernary/5,ternary/6,isParen/2,deParen/2,
@@ -127,6 +127,14 @@ locOfAst(string(Lc,_),Lc).
 locOfAst(tuple(Lc,_,_),Lc).
 locOfAst(app(Lc,_,_),Lc).
 locOfAst(void(Lc),Lc).
+
+astOfLoc(Lc,app(Lc,name(Lc,"locn"),
+		tuple(Lc,"()",[string(Lc,Pk),
+			       integer(Lc,Line),
+			       integer(Lc,Col),
+			       integer(Lc,Off),
+			       integer(Lc,Len)]))) :-
+  Lc = loc(Pk,Line,Col,Off,Len).
 
 sameTerm(name(_,Nm),name(_,Nm)).
 sameTerm(integer(_,Ix),integer(_,Ix)).

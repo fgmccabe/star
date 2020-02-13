@@ -12,11 +12,24 @@ test.ts{
 
   testl2 = valof action{
     try{
-      assrt(()=>fact(3)==5,"failed: fact(3)!=5",locn(pkg(__pkg__,defltVersion),0,0,0,0))
+      assrt(()=>fact(3)==5,"failed: fact(3)!=5",locn(__pkg__,0,0,0,0))
     } catch (Err)=> action{
       logMsg("error "++Err);
       valis ()
     };
     valis ()
+  }
+
+  testl3 = valof action{
+    try{
+      assert fact(3)==5
+    } catch (Err)=> action{
+      logMsg(Err);
+      valis ()
+    }
+  }
+
+  testl4 = valof action{
+    show fact(3)
   }
 }

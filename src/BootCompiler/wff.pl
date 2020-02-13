@@ -20,7 +20,7 @@
 	      isForall/4,isNegation/3,isMatch/4,isSearch/4,
 	      isAbstraction/4,isListAbstraction/4,
 	      isCaseExp/4,
-	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,
+	      isDoTerm/3,isDoTerm/2,isDoTerm/1,isTaskTerm/3,isActionTerm/3,isScriptTerm/3,
 	      isBind/4,isValof/3,isThrow/3,isReturn/3,isTryCatch/4,
 	      isIfThenElse/5,isIfThen/4,isWhileDo/4,isForDo/4,
 	      isActionSeq/4,isActionSeq/3,
@@ -450,6 +450,9 @@ isActionTerm(A,Lc,Stmts) :-
 
 isTaskTerm(A,Lc,Stmts) :-
   isBrace(A,Lc,"task",[Stmts]).
+
+isScriptTerm(A,Lc,Stmts) :-
+  isBrace(A,Lc,"script",[Stmts]),!.
 
 isBind(T,Lc,B,E) :-
   isBinary(T,Lc,"<-",B,E),!.

@@ -43,7 +43,7 @@ add_custom_command(OUTPUT ${OPERATORS_ST} DEPENDS ops ${OPERATORS_JSON}
 )  
 
 add_custom_target(star.operators DEPENDS ops ${OPERATORS_JSON}
-        COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST})
+  COMMAND ops -s -t ${CMAKE_CURRENT_SOURCE_DIR}/starops.star.plate -o ${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json ${OPERATORS_ST})
 
 add_custom_target(star.escapes DEPENDS genesc ${ESCAPES_ST})
 

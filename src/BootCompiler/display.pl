@@ -1,4 +1,4 @@
-:-module(display,[dispAst/4,dispAstTerm/3,display/2,display/1,displayAll/1]).
+:-module(display,[dispAst/4,dispAstTerm/3,display/2,display/1,displayAll/1,ast2String/2]).
 :- use_module(operators).
 :- use_module(misc).
 
@@ -6,6 +6,10 @@ dispAstTerm(Msg,Term,Pr) :- write(Msg), display(Term,Pr), nl().
 
 display(Term) :- display(Term,2000).
 display(Term,Pr) :- dispAst(Term,Pr,Chrs,[]), string_chars(Res,Chrs), writeln(Res).
+
+ast2String(A,Txt) :-
+  dispAst(A,2000,Chrs,[]),
+  string_chars(Txt,Chrs).
 
 displayAll([]).
 displayAll([T|M]) :-
