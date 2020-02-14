@@ -1,18 +1,13 @@
 test.assign{
   import star.
+  import star.script.
 
   person ::= someone{name:ref string. age:integer} | student(string,integer).
 
---  alpha := 23.
+  alpha := 23.
 
---  assert alpha!==23.
-
---  checkInc:()=>boolean.
---  checkInc() where _ .= valof action {alpha := alpha!+1} => alpha!==24.
-
---  assert checkInc().
-
---  show alpha! .
+  checkInc:()=>boolean.
+  checkInc() where _ .= valof action {alpha := alpha!+1} => alpha!==24.
 
   rec : (integer)=>person.
   rec(A) => let{
@@ -22,19 +17,28 @@ test.assign{
 
   fred = rec(24).
 
-  assert valof action {
-    fred.name := "fred";
-    return fred.name!
-  } == "fred".
-
-  show fred.name! .
-
   -- peter:{name:string. age:integer}.
   peter = let{
     name = "fred" ++ "'s friend".
   } in {.name=name. age=23 .}.
 
-  show peter.name.
+  main:()=>action[(),()].
+  main() => do{
+    assert valof action {
+      fred.name := "fred";
+      return fred.name!
+    } == "fred";
 
-  -- assert peter.name=="fred's friend" && peter.age==23.
+    show fred.name!;
+    
+    show peter.name;
+
+    assert alpha!==23;
+
+    show alpha!;
+
+    assert checkInc();
+
+    assert peter.name=="fred's friend" && peter.age==23
+  }
 }

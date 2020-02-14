@@ -43,7 +43,7 @@ test.ts{
   }
 
   main:()=>action[(),()].
-  main() => do{
+  main() => action{
     try{
       assert fact(3)==6;
       show fact(5);

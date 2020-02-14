@@ -1,6 +1,6 @@
 star.script{
   import star.
-  import star.location.
+  public import star.location.
 
   public scriptMsg ::= scriptError(locn,string).
 

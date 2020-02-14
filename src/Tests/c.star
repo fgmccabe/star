@@ -1,11 +1,11 @@
 test.c {
   import star.
+  import star.script.
 
   all t ~~ person[t] ::= someOne{
     name : t.
     spouse: option[person[t]].
     spouse default = none.
-    assert spouse=!=none
   }
     
   implementation all t ~~ equality[t] |: equality[person[t]] => {.
@@ -21,10 +21,7 @@ test.c {
   fper:(string)=>person[string].
   fper(W) => someOne{name = W. spouse=none}.
 
-  assert fp.name == "".
-  assert fp.spouse == none.
 
-  assert fper("fred").name == "fred".
 
   fct:(integer)=>integer.
   fct(0)=>1.
@@ -34,5 +31,13 @@ test.c {
   tfct(0,X) => X.
   tfct(N,A) => tfct(_int_minus(N,1),_int_times(N,A)).
 
-  assert fct(3)==tfct(3,1).
+  main:()=>action[(),()].
+  main()=>do{
+    assert fp.name == "";
+    assert fp.spouse == none;
+
+    assert fper("fred").name == "fred";
+
+    assert fct(3)==tfct(3,1)
+  }
 }
