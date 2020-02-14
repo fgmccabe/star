@@ -1,5 +1,5 @@
 :- module(macro,[mkWhere/3,mkWherePtn/4,mkWhereEquality/2,
-    hasPromotion/1,promoteOption/2]).
+    hasPromotion/1,promoteOption/2,build_main/2]).
 
 :- use_module(abstract).
 :- use_module(wff).
@@ -44,3 +44,47 @@ promoteArgs([A|As],[V|As],V,AA) :-
   isUnary(A,_,"^",AA),!.
 promoteArgs([A|As],[A|NAs],V,XV) :-
   promoteArgs(As,NAs,V,XV).
+
+build_main(As,Bs) :-
+  look_for_signature(As,"main",Lc,Ms),
+  \+look_for_signature(As,"_main",_,_),!,
+  synthesize_main(Lc,Ms,As,Bs).
+build_main(A,A).
+
+look_for_signature([St|_],Nm,Lc,Ms) :-
+  isTypeAnnotation(St,Lc,V,T),
+  isIden(V,_,Nm),
+  isFunType(T,_,L,_),
+  isTuple(L,_,Ms),!.
+look_for_signature([_|As],Nm,Lc,Ms) :-
+  look_for_signature(As,Nm,Lc,Ms).
+
+synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
+  synthesize_coercions(Ts,Vs,Cs),
+  list_pttrn(Lc,Vs,Arg),
+  roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
+  roundTerm(Lc,name(Lc,"main"),Cs,Rhs),
+  unary(Lc,"valof",Rhs,MnCall),
+  eqn(Lc,Lhs,name(Lc,"true"),MnCall,Main),
+  squareTerm(Lc,name(Lc,"list"),[name(Lc,"string")],T1),
+  roundTuple(Lc,[T1],T3),
+  roundTuple(Lc,[],Unit),
+  binary(Lc,"=>",T3,Unit,TU),
+  binary(Lc,":",name(Lc,"_main"),TU,MainTp).
+%  display(Main),
+%  display(MainTp).
+  
+
+synthesize_coercions([],[],[]).
+synthesize_coercions([T|Ts],[V|Vs],[C|Cs]) :-
+  locOfAst(T,Lc),
+  genIden(Lc,V),
+  coerce(Lc,V,T,C),
+  synthesize_coercions(Ts,Vs,Cs).
+
+list_pttrn(Lc,[],Arg) :-
+  isSquareTuple(Arg,Lc,[]),!.
+list_pttrn(Lc,Ts,Arg) :-
+  reComma(Ts,As),
+  isSquareTuple(Arg,Lc,As).
+

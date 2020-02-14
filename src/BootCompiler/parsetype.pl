@@ -49,7 +49,7 @@ parseType(Sq,Env,Q,C0,Cx,Tp) :-
   doTypeFun(Lc,OOp,ArgTps,Env,C2,Cx,T),
   reBind(Qx,Env,T,Tp).
 parseType(F,Env,B,C0,Cx,funType(AT,RT)) :-
-  isBinary(F,_,"=>",L,R),
+  isFunType(F,_,L,R),
   parseArgType(L,Env,B,C0,C1,AT),
   parseType(R,Env,B,C1,Cx,RT).
 parseType(F,Env,B,C0,Cx,consType(AT,RT)) :-

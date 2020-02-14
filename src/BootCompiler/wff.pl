@@ -4,7 +4,7 @@
 	      isContractStmt/6,isImplementationStmt/6,
 	      isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
 	      isTypeLambda/4,
-	      isValType/3,
+	      isValType/3,isFunType/4,
 	      isImport/3, findImport/3,isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
@@ -12,7 +12,7 @@
 	      isConditional/5,conditional/5,isOfTerm/4,
 	      isEquation/5,isDefn/4,isAssignment/4,assignment/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
-	      isWhere/4,isCoerce/4,
+	      isWhere/4,isCoerce/4,coerce/4,
 	      isFieldAcc/4,isVarRef/3,isIndexTerm/4,isRepl/4,
 	      isSlice/5,isSplice/6,
 	      isOptionPtn/4,isOptionMatch/4,optionMatch/4,
@@ -165,6 +165,9 @@ isConstrainedTp(T,[],T).
 isValType(T,Lc,Tp) :-
   isUnary(T,"val",Lc,Tp).
 
+isFunType(T,Lc,Lh,Rh) :-
+  isBinary(T,Lc,"=>",Lh,Rh).
+
 isComma(T,Lc,L,R) :-
   isBinary(T,Lc,",",L,R).
 
@@ -314,6 +317,8 @@ optionMatch(Lc,Ptn,Exp,Term) :-
   binary(Lc,"^=",Ptn,Exp,Term).
 
 isCoerce(Trm,Lc,Lhs,Rhs) :-  isBinary(Trm,Lc,"::",Lhs,Rhs).
+
+coerce(Lc,Lhs,Rhs,Trm) :- binary(Lc,"::",Lhs,Rhs,Trm).
 
 isLiteralInteger(integer(Lc,Ix),Lc,Ix) :-!.
 isLiteralInteger(I,Lc,Nx) :-
