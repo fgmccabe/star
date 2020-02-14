@@ -1,5 +1,6 @@
 test.cstream{
   import star.
+  import star.script.
 
   aa = ([0]:list[_]).
 
@@ -7,7 +8,10 @@ test.cstream{
 
   cc = disp(aa)::string.
 
-  show cc::string.
+  main:()=>action[(),()].
+  main()=>do{
+    show cc::string;
 
-  show disp([0]:list[_])::string.
+    show disp([0]:list[_])::string
+  }
 }
