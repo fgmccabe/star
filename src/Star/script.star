@@ -10,8 +10,9 @@ star.script{
 
   public assrt:all m/2,e ~~ execution[m], coercion[scriptMsg,e] |: (()=>boolean,string,locn) => m[e,()].
   assrt(Tst,Msg,Lc) => do{
-    if Tst() then
-      valis ()
+    if Tst() then{
+      logMsg(Msg)
+    }
     else
       throw scriptError(Lc,Msg)::e
   }

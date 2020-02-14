@@ -1,9 +1,13 @@
 test.f{
-  import star.core.
+  import star.
+  import star.script.
   
   public fact:(integer)=>integer.
   fact(0)=>1.
   fact(N)=>_int_times(N,fact(_int_minus(N,1))).
 
-  assert _int_eq(fact(3),6).
+  main:()=>action[(),()].
+  main()=>do{
+    assert _int_eq(fact(3),6)
+  }
 }
