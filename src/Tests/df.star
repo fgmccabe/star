@@ -1,5 +1,6 @@
 test.df{
-  import star. 
+  import star.
+  import star.script.
   
   CX : (list[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{
@@ -17,13 +18,6 @@ test.df{
 
   CC = CX(IS,4).
     
-  show "CC(IS,2) = $(valof CX(IS,2))".
-
-  show "CC = $(valof CC)".
-  show "CC = $(valof CC)".
-
-  assert valof CC == valof CC.
-
   TX : (list[integer],integer) => action[integer,integer].
   TX(Is,Lm) => do{
       Cx := 0;
@@ -42,5 +36,14 @@ test.df{
       }
   }
     
-  show "TX(IS,2) = $(valof TX(IS,2))".
+  main:()=>action[(),()].
+  main()=>do{
+    show "CC(IS,2) = $(valof CX(IS,2))";
+
+    show "CC = $(valof CC)";
+    show "CC = $(valof CC)";
+
+    assert valof CC == valof CC;
+    show "TX(IS,2) = $(valof TX(IS,2))"
+  }
 }

@@ -1,5 +1,6 @@
 test.dq{
   import star.
+  import star.script.
 
   -- Test simple query expressions
 
@@ -8,13 +9,9 @@ test.dq{
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
 
-  show "$(Ps)".
-
 
   gp : (cons[(string,string)])=>cons[(string,string)].
   gp(parents) => { (X,Y) | (X,Z) in parents && (Z,Y) in parents}.
-
-  show "$(gp(Ps))".
 
   /* gp written by hand as iter query */
   Gx : action[(),list[(string,string)]].
@@ -24,10 +21,17 @@ test.dq{
           sF(_,St) => do { return St }
           } in _iter(Ps,do { return Cx },sF)).
   
-  show "Gx=$(valof Gx)".
 
   ggp : (cons[(string,string)])=>cons[(string,string)].
   ggp(parents) => { (X,Y) | (X,Z) in parents && (Z,W) in parents && (W,Y) in parents}
 
-  show "ggp(Ps) = $(ggp(Ps))".
+  main:()=>action[(),()].
+  main()=>do{
+    show "parents: $(Ps)";
+    show "grandparents: $(gp(Ps))";
+
+    show "hand written Gx= $(valof Gx)";
+
+    show "ggp(Ps) = $(ggp(Ps))"
+  }
 }
