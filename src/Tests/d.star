@@ -1,5 +1,6 @@
 test.d{
-  import star.core.
+  import star.
+  import star.script.
 
   xx : index[boolean].
   xx = xc{
@@ -16,5 +17,8 @@ test.d{
   yy : xx.ee.
   yy = xx.get(false).
 
-  assert xx.test.
+  main:()=>action[(),()].
+  main()=>do{
+    assert xx.test
+  }
 }

@@ -1,5 +1,6 @@
 test.dl{
   import star.
+  import star.script.
   import test.fact.
 
   -- Test iteration constructs
@@ -12,21 +13,14 @@ test.dl{
       return false
     }
 
-  show "SS(1,[3,2,1])=$(valof SS(1,[3,2,1]))".
-  show "SS(4,[3,2,1])=$(valof SS(4,[3,2,1]))".
 
   ST : (integer,list[integer]) => action[(),boolean].
   ST(Ix,Lx) => do {
     valis Ix in Lx
   }
 
-  show "ST(1,[3,2,1])=$(valof ST(1,[3,2,1]))".
-  show "ST(4,[3,2,1])=$(valof ST(4,[3,2,1]))".
-
   SM:(integer,list[integer]) => boolean.
   SM(X,L) => X in L.
-
-  assert SM(3,[1,2,3]).
 
   FF:(integer)=>action[(),integer].
   FF(Lx)=> action{
@@ -38,13 +32,6 @@ test.dl{
     };
     return Fx!
   }
-  show "FF(3) = $(valof FF(3))".
-  show "FF(4) = $(valof FF(4))".
-
-  FR = FF(4).
-
-  show "FR = $(valof FR)".
-  show "FR = $(valof FR)".
 
   II(Lx) =>
     return () >>=
@@ -60,8 +47,6 @@ test.dl{
               loop() => return Cx!
             } in loop()
             )(_cell(1))).
-
-  show "II(3) = $(valof II(3))".
 
   PP:(integer)=>action[(),integer].
   PP(Lx) =>
@@ -83,7 +68,6 @@ test.dl{
             (_cell(1))
              )(_cell(1))).
 
-  show "PP(4) = $(valof PP(4))".
 
   QQ:(integer)=>action[(),integer].
   QQ(Lx) =>
@@ -98,11 +82,34 @@ test.dl{
       valis Fx!
     }
 
-  show "QQ(3) = $(valof QQ(3))".
-  show "QQ(4) = $(valof QQ(4))".
-  show "QQ(2) = $(valof QQ(2))".
+  main:()=>action[(),()].
+  main()=>do{
+    assert SM(3,[1,2,3]);
+    
+    show "SS(1,[3,2,1])=$(valof SS(1,[3,2,1]))";
+    show "SS(4,[3,2,1])=$(valof SS(4,[3,2,1]))";
 
-  QR = QQ(4).
-  show "QR = $(valof QR)".
-  show "QR = $(valof QR)".
+    show "ST(1,[3,2,1])=$(valof ST(1,[3,2,1]))";
+    show "ST(4,[3,2,1])=$(valof ST(4,[3,2,1]))";
+
+    show "PP(4) = $(valof PP(4))";
+
+    show "QQ(3) = $(valof QQ(3))";
+    show "QQ(4) = $(valof QQ(4))";
+    show "QQ(2) = $(valof QQ(2))";
+
+    QR .= QQ(4);
+    show "QR = $(valof QR)";
+    show "QR = $(valof QR)";
+
+    FR .= FF(4);
+
+    show "FR = $(valof FR)";
+    show "FR = $(valof FR)";
+
+    show "FF(3) = $(valof FF(3))";
+    show "FF(4) = $(valof FF(4))";
+
+    show "II(3) = $(valof II(3))"
+  }
 }
