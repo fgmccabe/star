@@ -1,5 +1,6 @@
 test.qi{
   import star.
+  import star.script.
 
   -- Test query conditions
 
@@ -14,17 +15,19 @@ test.qi{
   m:cons[string].
   m = ["a","ab","d","f"].
 
-  show "parent = $(parent)".
-
   parentOf:(string)=>option[string].
   parentOf(X) where (P,X) in parent => some(P).
   parentOf(_) default => none.
-
-  show "parent of ab = $(parentOf("ab"))".
 
   gparentOf:(string)=>option[string].
   gparentOf(X) where (P,X) in parent && (G,P) in parent  => some(G).
   gparentOf(_) default => none.
 
-  show "grandparent of abc = $(parentOf("abc"))".
+  main:() => action[(),()].
+  main() => do{
+    show "parent = $(parent)";
+    show "parent of ab = $(parentOf("ab"))";
+
+    show "grandparent of abc = $(parentOf("abc"))"
+  }
 }

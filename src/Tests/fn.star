@@ -3,7 +3,6 @@ test.fn{
   import star.finger.
   import star.script.
 
-
   S : fingerTree[string].
   S = ["one","two","three","four","five","six","seven","eight","nine","ten"].
 
@@ -22,5 +21,4 @@ test.fn{
     show disp(head(S));
     show disp(tail(S))
   }
-
 }

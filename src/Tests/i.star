@@ -1,5 +1,6 @@
 test.i{
   import star.
+  import star.script.
 
   kk:map[string,integer].
   kk = ["alpha"->1, "beta"->2, "gamma"->3].
@@ -7,8 +8,11 @@ test.i{
   ll:map[string,integer].
   ll = _put(kk,"delta",4).
 
-  assert 1^=kk["alpha"].
-  assert some(1).=_index(ll,"alpha").
+  main:()=>action[(),()].
+  main()=>do{
+    assert 1^=kk["alpha"];
+    assert some(1).=_index(ll,"alpha")
+  }
 
   public all k,v ~~ mp[k,v] <~ {}.
 

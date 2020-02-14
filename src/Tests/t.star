@@ -1,5 +1,6 @@
 test.t{
   import star.
+  import star.script.
 
   all k,v ~~ kv[k,v] ::= pair(k,v).
 
@@ -8,5 +9,8 @@ test.t{
   t:myKv[string].
   t = pair(3,"fred").
 
-  assert t =. pair(K,V) && K==3.
+  main:() => action[(),()].
+  main() => do{
+    assert t =. pair(K,V) && K==3
+  }
 }

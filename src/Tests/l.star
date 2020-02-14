@@ -1,5 +1,6 @@
 test.l{
-  import star.core.
+  import star.
+  import star.script.
 
   fact:(integer)=>integer.
   fact(N) => let{
@@ -8,5 +9,8 @@ test.l{
     f() => _int_times(N,fact(_int_minus(N,1))).
   } in f().
 
-  assert _int_eq(fact(3),6).
+  main:()=>action[(),()].
+  main()=>do{
+    assert _int_eq(fact(3),6)
+  }
 }

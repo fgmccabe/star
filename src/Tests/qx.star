@@ -1,5 +1,6 @@
 test.qx{
   import star.
+  import star.script.
 
   -- Test indexed query conditions
 
@@ -10,8 +11,10 @@ test.qx{
   longNmes:map[string,string].
   longNmes = { K->V | K->V in parent && size(V)>1 }
 
-  show "long names $(longNmes)".
+  main:() => action[(),()].
+  main() => do{
+    show "long names $(longNmes)";
 
-  assert longNmes==["a"->"ab","b"->"ab","ab"->"abc", "e"->"de"].
-  
+    assert longNmes==["a"->"ab","b"->"ab","ab"->"abc", "e"->"de"]
+  }
 }

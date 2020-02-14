@@ -1,6 +1,7 @@
 test.ms{
   import star.
-
+  import star.script.
+  
   mapOver:all s/1,m/1,a,b ~~ stream[s[a]->>a],sequence[s[b]->>b],monad[m] |:
     ((a)=>m[b],s[a])=>m[s[b]].
   mapOver(F,S)=>let{
@@ -20,11 +21,14 @@ test.ms{
   LL : list[integer].
   LL = [1,2,3,0,5].
 
-  show "$(mapOver(doubleOrQuits,KK))".
+  main:() => action[(),()].
+  main() => do{
+    show "$(mapOver(doubleOrQuits,KK))";
 
-  show "$(mapOver(doubleOrQuits,LL))".
+    show "$(mapOver(doubleOrQuits,LL))";
 
-  assert [2,4,6,8,10] ^= mapOver(doubleOrQuits,KK).
+    assert [2,4,6,8,10] ^= mapOver(doubleOrQuits,KK);
 
-  assert mapOver(doubleOrQuits,LL)==none.
+    assert mapOver(doubleOrQuits,LL)==none
+  }
 }

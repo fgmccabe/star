@@ -1,6 +1,7 @@
 test.gp{
   import star.
   import star.iterable.
+  import star.script.
 
   -- Various ways of doing grandparents
 
@@ -8,8 +9,6 @@ test.gp{
   parent = [("a","ab"),("b","ab"),("a","c"),("c","aa"),("ab","abc"),
             ("de","abc"),("d","de"),("e","de"),
             ("f","a"),("g","f")].
-
-  show disp(parent).
 
   -- First a hacky way (i.e. direct recursive) way of finding grandparents
   findPs:(list[(string,string)],string,list[string]) => list[string].
@@ -29,8 +28,6 @@ test.gp{
   gp0:(string) => list[string].
   gp0(GC) => findGs(findPs(parent,GC,[]),[]).
 
-  show disp(gp0("abc")).
-
   -- Using fold over lists
   fPs:(list[(string,string)],string,list[string]) => list[string].
   fPs(Ps,Ch,S) => foldRight(let{
@@ -44,7 +41,6 @@ test.gp{
   gpF:(string) => list[string].
   gpF(GC) => fGps(fPs(parent,GC,[]),[]).
 
-  show disp(gpF("abc")).
 
   -- Translated from the query rule:
   -- gp(X,Y) <- parent(X,Z) && parent(Z,Y).
@@ -52,20 +48,27 @@ test.gp{
   qP1:()=>set[(string,string)].
   qP1() => { (X,Y) | (X,Z) in parent && (Z,Y) in parent }.
 
-  show disp(qP1()).
-
   -- As though translated from the query rule:
   -- gc(X) given (Y) <- parent(X,Z) && parent(Z,Y).
 
   qC2:(string) => list[string].
   qC2(Y) => { X | (X,Z) in parent && (Z,Y) in parent }.
 
-  show disp(qC2("abc")).
-
   -- By changing the order of the calls, it is more efficient
 
   qC3:(string)=>list[string].
   qC3(Y) => { X | (Z,Y) in parent && (X,Z) in parent }.
 
-  show disp(qC3("abc")).
+  main:()=>action[(),()].
+  main()=>do{
+    show disp(parent);
+    show disp(qP1());
+    show disp(gpF("abc"));
+
+    show disp(qC2("abc"));
+
+    show disp(gp0("abc"));
+
+    show disp(qC3("abc"))
+  }
 }

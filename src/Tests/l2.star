@@ -1,5 +1,6 @@
 test.l2{
   import star.
+  import star.script.
 
   tree[a] ::= empty | node(tree[a],a,tree[a]).
 
@@ -20,5 +21,8 @@ test.l2{
     }
   } in spl(T).
 
-  show "splits $(splits(node(node(empty,(1,"a"),empty),(2,"b"),empty)))"
+  main:()=>action[(),()].
+  main()=>do{
+    show "splits $(splits(node(node(empty,(1,"a"),empty),(2,"b"),empty)))"
+  }
 }

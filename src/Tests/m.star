@@ -1,5 +1,6 @@
 test.m{
   import star.
+  import star.script.
 
   i:all x ~~ (x)=>x.
   i(x) => x.
@@ -10,5 +11,8 @@ test.m{
   double:(integer)=>integer.
   double(x)=>x+x.
   
-  assert fog(id,double)(4) == double(4).
+  main:()=>action[(),()].
+  main()=>do{
+    assert fog(id,double)(4) == double(4)
+  }
 }

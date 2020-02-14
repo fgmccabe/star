@@ -2,8 +2,12 @@ test.pk{
   import star.
   import star.pkg.
   import star.location.
+  import star.script.
 
-  show __pkg__.
+  main:() => action[(),()].
+  main() => do{
+    show __pkg__;
 
-  assert __pkg__ == "test.pk"
+    assert __pkg__ == "test.pk"
+  }
 }

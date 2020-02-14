@@ -1,5 +1,6 @@
 test.implies{
   import star.
+  import star.script.
 
   pars : list[(string,string)].
   pars = [("a","b"),("c","b"),("b","d"),("e","d"),("f","e")].
@@ -10,10 +11,6 @@ test.implies{
   onlySons(P) => (P,S) in pars *> S in ms.
 
   hasD(P) => (P,S) in pars && \+ S in ms.
-
-  show "hasD(a) = $(hasD("a"))".
-  show "hasD(f) = $(hasD("f"))".
-  
 
   foldOnlySons:(string)=>option[()].
   foldOnlySons(P) => foldRight(
@@ -27,9 +24,6 @@ test.implies{
      } in checkSon,
      none,pars).
 
-  show disp(foldOnlySons("a")).
-  show disp(foldOnlySons("f")).
-
   actionOnlySons:(string) => action[(),option[()]].
   actionOnlySons(P) =>
     _iter(pars, _valis(none),
@@ -41,20 +35,26 @@ test.implies{
   		      checkMale(_,St) => _valis(St)
   		    } in checkMale).
   	    checkSon(_,So) => _valis(So)
-  	  } in checkSon).
+      } in checkSon).
 
-  show "actionOnlySons(a) = $(valof actionOnlySons("a"))".
-  show "actionOnlySons(f) = $(valof actionOnlySons("f"))".
+  main:()=>action[(),()].
+  main()=>do{
+    show "hasD(a) = $(hasD("a"))";
+    show "hasD(f) = $(hasD("f"))";
+  
+    show "actionOnlySons(a) = $(valof actionOnlySons("a"))";
+    show "actionOnlySons(f) = $(valof actionOnlySons("f"))";
 
-  assert onlySons("a").
+    assert onlySons("a");
 
-  show disp(onlySons("a")).
-  show disp(onlySons("f")).
+    show disp(onlySons("a"));
+    show disp(onlySons("f"));
 
-  assert \+onlySons("f").
+    assert \+onlySons("f");
 
-  show disp([X | (X,_) in pars && (X,C) in pars *> C in ms]).
+    show disp([X | (X,_) in pars && (X,C) in pars *> C in ms]);
 
-  _main:(list[string])=>().
-  _main([])=>().
+    show disp(foldOnlySons("a"));
+    show disp(foldOnlySons("f"))
+  }
 }

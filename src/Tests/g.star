@@ -1,5 +1,6 @@
 test.g{
   import star.
+  import star.script.
 
   all c ~~ parseState[c] ::= parseState(list[c],option[()=>parseState[c]]).
 
@@ -14,5 +15,8 @@ test.g{
   txt:list[integer].
   txt = "fred"::list[integer].
 
-  assert isTerm(txt,0cf)=.some(_).
+  main:()=>action[(),()].
+  main()=>do{
+    assert isTerm(txt,0cf)=.some(_)
+  }
 }
