@@ -10,12 +10,9 @@ test.mm{
   
   assert conc([1,2,3],[4,5])==([1,2,3,4,5]:list[integer]).
   
-  main:() => action[integer,()].
+  main:() => action[(),()].
   main() => do{
     logMsg(disp(conc([1,2,3],[4,5]))::string);
     valis ()
   }
-    
-  _main(_) =>
-    valof main()
 }

@@ -1,6 +1,7 @@
 test.th{
   import star.
   import star.thunk.
+  import star.script.
 
   assign:all a,e/2 ~~ execution[e] |: (ref a,a) => e[(),()].
   assign(L,V) => do {
@@ -16,17 +17,12 @@ test.th{
     valis XX!
   }
 
-  assert valof Thk == 2.
-
   Thl:thunk[(),integer].
   Thl = do{
     assign(XX,3);
     valis XX!
   }
-
-  assert valof Thl == 3.
   
-/*
   X := 0.
 
   Th = thunk(()=> valof action {
@@ -34,18 +30,14 @@ test.th{
       X := X!+2;
       valis 34}).
 
-  assert Th()==34.
-  assert Th()==34.
-  assert (X!)==2.
-*/
-
-/*  thk[e] ::= dun(e) | delaied(()=>e).
+  thk[e] ::= dun(e) | delaied(()=>e).
 
   fawce:all e ~~ (thk[e])=>e.
   fawce(Tk) => ff(Tk,Tk).
 
-  ff(dun(XX),_) => XX.
-  ff(delaied(F),Tk) where XX .= F() && _ .= _overwrite(Tk,dun(XX)) => XX.
+  ff:all e ~~ (thk[e],thk[e])=>e.
+  ff(dun(ZZ),_) => ZZ.
+  ff(delaied(F),Tk) where ZZ .= F() && _ .= _overwrite(Tk,dun(ZZ)) => ZZ.
 
   TTh = delaied(()=>valof action {
     logMsg("called TTh");
@@ -53,8 +45,18 @@ test.th{
     valis 42
     }).
 
-  assert fawce(TTh) == 42.
-  assert fawce(TTh) == 42.
-  assert (X!) == 5.
-*/
+  main:() => action[(),()].
+  main() => do{
+    assert valof Thk == 2;
+
+    assert valof Thl == 3;
+
+    assert Th()==34;
+    assert Th()==34;
+    assert (X!)==2;
+
+    assert fawce(TTh) == 42;
+    assert fawce(TTh) == 42;
+    assert (X!) == 5
+  }
 }

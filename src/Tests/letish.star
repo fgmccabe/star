@@ -1,5 +1,6 @@
 test.let{
   import star.
+  import star.script.
 
   kk:all x ~~ (x)=> (()=>x).
   kk(X) => let{
@@ -22,7 +23,10 @@ test.let{
     g(N)=>f(N-1)*N
   } in g.
 
-  assert inc(2)(3) == 5 && kk(3)=.k && k() == 3.
+  main:()=>action[(),()].
+  main()=>do{
+    assert inc(2)(3) == 5 && kk(3)=.k && k() == 3;
 
-  assert fg()(3) == 6.
+    assert fg()(3) == 6
+  }
 }

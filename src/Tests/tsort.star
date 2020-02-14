@@ -1,6 +1,7 @@
 test.tsort{
   import star.
   import star.topsort.
+  import star.script.
 
   -- Test the topsort implementation
 
@@ -27,25 +28,28 @@ test.tsort{
   a1:list[df[string,string]].
   a1 = [df("one",["one"]), df("two",["two"]), df("three",["three"]), df("four",["four"])].
 
-  show disp(topsort(a1)).
-
-  assert size(topsort(a1)) == 4.
-
   -- one big group
 
   a2:list[df[string,string]].
   a2 = [df("1",["2"]),df("2",["4"]),df("3",["1"]),df("4",["3"])].
-
-  show disp(topsort(a2)).
-
-  assert size(topsort(a2)) == 1.
 
   -- group with a tail
 
   a3:list[df[string,string]].
   a3 = [df("alpha",["beta"]),df("beta",["gamma"]),df("gamma",["alpha"]),df("delta",["gamma"])].
 
-  show disp(topsort(a3)).
+  main:()=>action[(),()].
+  main() => action{
+    show disp(topsort(a1));
 
-  assert size(topsort(a3)) == 2.
+    assert size(topsort(a1)) == 4;
+
+    show disp(topsort(a2));
+
+    assert size(topsort(a2)) == 1;
+
+    show disp(topsort(a3));
+
+    assert size(topsort(a3)) == 2
+  }
 }

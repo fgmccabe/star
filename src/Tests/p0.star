@@ -1,5 +1,6 @@
 test.p0{
   import star.
+  import star.script.
 
   public all el,st ~~ parser[st,el] ::= parser((st)=>list[(el,st)]).
 
@@ -17,7 +18,10 @@ test.p0{
 
   bb = disp(aa).
 
-  show bb::string.
+  main:() => action[(),()].
+  main() => do{
+    show bb::string;
 
-  show disp(parse(_item,([0]:list[integer])))::string.
+    show disp(parse(_item,([0]:list[integer])))::string
+  }
 }

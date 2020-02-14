@@ -1,5 +1,6 @@
 test.u{
   import star.
+  import star.script.
   import star.parse.
   import star.uri.
 
@@ -9,8 +10,11 @@ test.u{
 
   tt() => loop(() where _.=parse(uriParse,"http://foo.bar.com?query"::list[integer])=>(),100).
 
-  assert _.=tt().
+  main:()=>action[(),()].
+  main() => action{
+    assert _.=tt();
 
-  assert parse(uriParse,"http://foo.bar.com?query"::list[integer]) ==
-    [(absUri("http",netRsrc(server(none,host("foo.bar.com")),relPath([""])),qry("query")),[])].
+    assert parse(uriParse,"http://foo.bar.com?query"::list[integer]) ==
+      [(absUri("http",netRsrc(server(none,host("foo.bar.com")),relPath([""])),qry("query")),[])]
+  }
 }

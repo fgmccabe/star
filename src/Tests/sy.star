@@ -1,10 +1,8 @@
 test.sy{
   import star.
-  
+  import star.script.
 
   -- Test of syntax of star
-
-  show "fact(3) = $(fact(3))".
 
   CX : (list[integer],integer) => action[(),integer].
   CX(Is,Lm) => do{
@@ -38,7 +36,6 @@ test.sy{
 	  return true
 	}
 	|| false).
-
   
   foo(X) where
       bind(X) => 1.
@@ -58,8 +55,6 @@ test.sy{
 
   double(X) => action{ valis X+X }.
   
-  assert valof o == 1.			-- End comment
-  
   /* Block comment */
   assert _perform(p) == 4.		/* block comment */
 
@@ -69,18 +64,25 @@ test.sy{
     return x
   }
   
-  assert valof a == 4.
-
   fact:all e ~~ equality[e], arith[e],comp[e] |: (e)=>e. 
   fact(N)=>let{
     ff(zero,F) => F.
     ff(X,F) where X>zero => ff(X-one,F*X).
   } in ff(N,one).
-  
-  show """a multi
+
+  main:() => action[(),()].
+  main() => do{
+    show "fact(3) = $(fact(3))";
+    
+    show """a multi
   line
 string\n
-  """.
+    """;
  
-  assert valof p == 4.
+    assert valof a == 4;
+
+    assert valof o == 1;		-- End comment
+  
+    assert valof p == 4
+  }
 }

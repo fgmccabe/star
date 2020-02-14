@@ -1,8 +1,13 @@
 test.sl{
   import star.
+  import star.script.
 
   -- test slice and splice operators
   F = "foobar".
-  
-  assert F[3:3] == "bar".
+
+  main:()=>action[(),()].
+  main() => action{
+    show F[3:6];
+    assert F[3:6] == "bar"
+  }
 }

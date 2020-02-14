@@ -1,20 +1,17 @@
 test.p1{
   import star.
   import star.parse.
+  import star.script.
 
   a:parser[list[integer],integer].
   -- a = _item.
   a = _item >>= (C) => return C.
-
-  show disp(parse(a,"1"::list[integer]))::string.
 
   p:parser[list[integer],(integer,integer)].
   p = _item >>= (C) =>
       _item >>= (_) =>
       _item >>= (D) =>
       return (C,D).
-
-  assert parse(p,[1,2,3]) == [((1,3),[])].
 
   q:parser[list[integer],()].
   q = _tk(0c() >>= (_) => _tk(0c)) >>= (_) => return ().
@@ -26,16 +23,6 @@ test.p1{
   _is_member(_,_,Ix,Ix) => false.
   _is_member(E,L,Ix,_) where _list_nth(L,Ix)==E => true.
   _is_member(E,L,Ix,Lx) => _is_member(E,L,Ix+1,Lx).
-
-  assert parse(q,[0c(,0c)]) == [((),[])].
-
-  assert parse(_str("alpha"),"alpha0"::list[integer]) == [((),[0c0])].
-
-  assert listMem((([(),()]:list[()]),[]),parse(_plus(_str("a")),"aa"::list[integer])).
-
-  show disp(parse(_star(_str("a")),"aab"::list[integer]))::string.
-
-  assert listMem((([(),()]),[0cb]),parse(_star(_str("a")),"aab"::list[integer])).
 
   symb:(string)=>parser[list[integer],()].
   symb(S) => _str(S).
@@ -62,5 +49,22 @@ test.p1{
   digit:parser[list[integer],integer].
   digit = _sat(isDigit).
 
-  assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])].
+  main:() => action[(),()].
+  main() => do{
+    assert parse(p,[1,2,3]) == [((1,3),[])];
+
+    show disp(parse(a,"1"::list[integer]))::string;
+
+    assert parse(q,[0c(,0c)]) == [((),[])];
+
+    assert parse(_str("alpha"),"alpha0"::list[integer]) == [((),[0c0])];
+
+    assert listMem((([(),()]:list[()]),[]),parse(_plus(_str("a")),"aa"::list[integer]));
+
+    show disp(parse(_star(_str("a")),"aab"::list[integer]))::string;
+
+    assert listMem((([(),()]),[0cb]),parse(_star(_str("a")),"aab"::list[integer]));
+
+    assert parse(expr,"(3+5*3)"::list[integer]) == [(18,[])]
+  }
 }
