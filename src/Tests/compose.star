@@ -1,6 +1,7 @@
 test.compose{
   import star.
   import star.combo.
+  import star.script.
 
   digit:(list[integer]) => option[(list[integer],integer)].
   digit([digitVal^(D),..L]) => some((L,D)).
@@ -28,15 +29,18 @@ test.compose{
     moreDecimal(S1,D*10+D1).
   moreDecimal(S,D) => some((S,D)).
 
-  assert decimal("123"::list[integer])==some(([],123)).
 
   dec:(list[integer]) => option[(list[integer],integer)].
   dec(S) where digit(S)=.some((S1,D)) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
   dec(_) => none.
 
-  assert dec("1234"::list[integer])=.some(([],1234)).
+  main:()=>action[(),()].
+  main()=>do{
+    assert decimal("123"::list[integer])==some(([],123));
+    assert dec("1234"::list[integer])=.some(([],1234));
 
-  assert dec("123 "::list[integer])=.some(([0c ],123)).
+    assert dec("123 "::list[integer])=.some(([0c ],123));
 
-  show "dec(123) = $(dec("123 "::list[integer]))"
+    show "dec(123) = $(dec("123 "::list[integer]))"
+  }
 }

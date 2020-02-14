@@ -1,6 +1,9 @@
 test.cmd{
   import star.
+  import star.script.
 
-
-  show disp(_command_line())::string.
+  main:()=>action[(),()].
+  main()=>do{
+    show disp(_command_line())::string
+  }
 }

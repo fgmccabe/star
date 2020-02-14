@@ -1,5 +1,6 @@
 test.case{
   import star.
+  import star.script.
 
   foo ::= foo(string) | bar(integer).
 
@@ -8,10 +9,6 @@ test.case{
   strVal(foo("beta")) => some("two").
   strVal(bar(0)) => none.
   strVal(foo(X)) => some(X).
-
-  show disp(strVal(foo("t"))).
-
-  assert "TT" ^= strVal(foo("TT")).
 
   sVal:(foo) => option[string].
   sVal(X) => case X in {
@@ -22,7 +19,10 @@ test.case{
     _ default => none.
   }
 
-  assert "TT" ^= sVal(foo("TT")).
+  main:()=>action[(),()].
+  main()=>do{
+    assert "TT" ^= sVal(foo("TT"));
 
-  show "$(sVal(foo("beta")))".
+    show "$(sVal(foo("beta")))"
+  }
 }
