@@ -55,6 +55,7 @@
   keyword("valof").
   keyword("valis").
   keyword("prse").
+  keyword("case").
   keyword("if").
   keyword("then").
   keyword("else").
