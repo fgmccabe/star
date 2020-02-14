@@ -2,6 +2,7 @@ test.bench{
   import star.
   import star.finger.
   import star.skew.
+  import star.script.
   
   timer_start : (integer, string) => (integer, integer, string).
   timer_start(count, msg) => (_ticks(), count, msg).
@@ -125,5 +126,4 @@ test.bench{
   _main:(list[string])=>().
   _main([]) => valof main(10,"test").
   _main([Count]) => valof main(Count::integer,"test").
-
 }
