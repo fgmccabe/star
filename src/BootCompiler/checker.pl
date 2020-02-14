@@ -27,7 +27,8 @@ checkProgram(Prog,Pkg,Repo,_Opts,
 	     prog(Pkg,Lc,ImportSpecs,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   declarePkg(Pkg,Base,B0),
-  isBraceTerm(Prog,Lc,_,Els),
+  isBraceTerm(Prog,Lc,_,El0),
+  build_main(El0,Els),
   pushScope(B0,Env),
   Pkg = pkg(Pk,_),
   collectImports(Els,Imps,Stmts),
@@ -578,11 +579,6 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isDoTerm(Term,Lc,Stmts),!,
   checkDo(Lc,Stmts,Env,Ev,Tp,Exp,Path).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
-  isScriptTerm(Term,Lc,Stmts),!,
-  genScript(Lc,Stmts,Act),
-%  display(Act),
-  typeOfExp(Act,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
@@ -910,7 +906,7 @@ checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,varDo(Lc,Lhs,cell(Lc,Rhs),ExTp,ValTp,E
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   isIntegrity(Term,Lc,Cond),!,
   createIntegrityAction(Lc,Cond,IAc),
-  display(IAc),
+%  display(IAc),
   checkAction(IAc,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
   isShow(Term,Lc,Exp),!,
@@ -991,14 +987,30 @@ checkAssignment(Lc,L,R,Env,Ev,ExTp,ValTp,ErTp,simpleDo(Lc,Exp,ExTp),Path) :-
 /*
  assert C 
 becomes
- assrt(()=>C,"failed: C",Loc)
+ try{
+   assrt(()=>C,"failed: C",Loc)
+ } catch(Err) => action{
+   logMsg(Err)
+   throw ()
+  }
 */
 createIntegrityAction(Lc,Cond,Act) :-
   ast2String(Cond,Msg),
   locOfAst(Cond,CLc),
   eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Cond,Lam),
   astOfLoc(CLc,Loc),
-  roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Act).
+  roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Assert),
+
+  braceTuple(Lc,[Assert],B),
+  genIden(Lc,Err),
+  roundTerm(Lc,name(Lc,"logMsg"),[Err],Rep),
+  roundTuple(Lc,[],Unit),
+  unary(Lc,"throw",Unit,Thr),
+  binary(Lc,";",Rep,Thr,CtBd),
+  braceTerm(Lc,name(Lc,"action"),[CtBd],R1),
+  eqn(Lc,tuple(Lc,"()",[Err]),name(Lc,"true"),R1,ELam),
+  binary(Lc,"catch",B,ELam,R2),
+  unary(Lc,"try",R2,Act).
 
 /*
  show E 
@@ -1011,27 +1023,6 @@ createShowAction(Lc,Exp,Act) :-
   astOfLoc(ELc,Loc),
   eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Exp,Lam),
   roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
-
-/*
-script{S}
-becomes
-action{
-  try{
-    S
-  } catch (Err) => action{
-    logMsg(Err)
-  }
-}
-*/
-genScript(Lc,Stmts,Act) :-
-  braceTuple(Lc,[Stmts],B),
-  genIden(Lc,Err),
-  roundTerm(Lc,name(Lc,"logMsg"),[Err],Rep),
-  braceTerm(Lc,name(Lc,"action"),[Rep],R1),
-  eqn(Lc,tuple(Lc,"()",[Err]),name(Lc,"true"),R1,Lam),
-  binary(Lc,"catch",B,Lam,R2),
-  unary(Lc,"try",R2,Body),
-  braceTerm(Lc,name(Lc,"action"),[Body],Act).
 
 checkCatch(Term,Env,Contract,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-
   isBraceTuple(Term,Lc,[St]),!,

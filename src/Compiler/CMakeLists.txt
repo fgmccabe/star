@@ -7,7 +7,7 @@ add_dependencies(compiler sbc boot star.operators star.escapes)
 set(REPO_DIR "${CMAKE_BINARY_DIR}/.star-repo/")
 
 add_custom_command(TARGET compiler DEPENDS sbc star.escapes
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.compiler"
   )
 
