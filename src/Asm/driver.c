@@ -38,6 +38,10 @@ retCode parseContent(char *path) {
 
       tryRet(addToManifest(&pkg->pkg, "code", codeName, uniStrLen(codeName)));
 
+      tryRet(addToManifest(&pkg->pkg, "source", path, uniStrLen(path)));
+
+      tryRet(addToManifest(&pkg->pkg, "signature", pkg->signature, uniStrLen(pkg->signature)));
+
       tryRet(flushManifest());
 
       return Ok;

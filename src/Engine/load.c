@@ -16,7 +16,7 @@
 #include "verifyP.h"
 #include "globalsP.h"
 
-logical tracePkg = False;
+tracingLevel tracePkg = noTracing;
 
 static retCode decodePkgName(ioPo in, packagePo pkg, char *errorMsg, integer msgLen);
 
@@ -32,24 +32,24 @@ static char stringSig[] = {strTrm, 0};
 static char *pkgSig = "n4o4\1()4\1";
 
 static retCode ldPackage(packagePo pkg, char *errorMsg, long msgSize, pickupPkg pickup, void *cl) {
-  char *rsrc = manifestResource(pkg, "code");
+  char codeName[MAXFILELEN];
+  retCode ret = manifestResource(pkg, "code", codeName, NumberOf(codeName));
 
-  if (rsrc == NULL) {
+  if (ret !=Ok) {
     strMsg(errorMsg, msgSize, "cannot determine code for %P%_", pkg);
     return Error;
   } else {
     char codeFlNm[MAXFILELEN];
-    strMsg(codeFlNm, NumberOf(codeFlNm), "%s/%s", repoDir, rsrc);
+    strMsg(codeFlNm, NumberOf(codeFlNm), "%s/%s", repoDir, codeName);
 
     ioPo file = openInFile(codeFlNm, utf8Encoding);
 
 #ifdef TRACEPKG
-    if (tracePkg)
+    if (tracePkg>=generalTracing)
       logMsg(logFile, "loading package %P from file %s", pkg, codeFlNm);
 #endif
 
     if (file != NULL) {
-      retCode ret = Ok;
       if (fileStatus(file) == Ok) {
 
         skipShellPreamble(O_FILE(file));
@@ -132,7 +132,7 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
         ret = loadDefs(O_IO(sigBuffer), H, markLoaded(lddPkg.packageName, lddPkg.version), errorMsg, msgSize);
     }
 #ifdef TRACEPKG
-    else if (tracePkg)
+    else if (tracePkg>=generalTracing)
       logMsg(logFile, "package %P already installed", &lddPkg);
 #endif
   }
@@ -141,7 +141,7 @@ installPackage(char *pkgText, long pkgTxtLen, heapPo H, char *errorMsg, long msg
   closeFile(O_IO(sigBuffer));
 
 #ifdef TRACEPKG
-  if (tracePkg)
+  if (tracePkg>=generalTracing)
     logMsg(logFile, "package %P installed", &lddPkg);
 #endif
 
@@ -386,7 +386,7 @@ retCode loadFunc(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgSiz
                           errorMsg, msgSize);
 
 #ifdef TRACEPKG
-  if (tracePkg)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "loading function %s/%d", &prgName, arity);
 #endif
 
@@ -467,7 +467,7 @@ retCode loadGlobal(ioPo in, heapPo H, packagePo owner, char *errorMsg, long msgS
   }
 
 #ifdef TRACEPKG
-  if (tracePkg)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "loading global %s", &prgName);
 #endif
 
@@ -548,7 +548,7 @@ retCode loadStruct(ioPo in, heapPo h, packagePo owner, char *errorMsg, long msgS
                           errorMsg, msgSize);
 
 #ifdef TRACEPKG
-  if (tracePkg)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "loading structure definition %s/%d", &lblName, arity);
 #endif
 

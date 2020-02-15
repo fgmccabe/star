@@ -115,7 +115,7 @@ scanStmt(St,[pkg(Pk,defltVersion)|More],More) :-
 scanStmt(_,Imp,Imp).
 
 pkgOk(Pkg,Repo) :-
-  codePackagePresent(Repo,Pkg,_,_,_,SrcWhen,CodeWhen),
+  codePackagePresent(Repo,Pkg,_,_,_U,SrcWhen,CodeWhen),
   CodeWhen>SrcWhen.
 
 showGroups([]).

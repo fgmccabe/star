@@ -71,6 +71,7 @@ main(Args) :-
   getCWDUri(CW),
   parseFlags(Args,CW,CWD,Opts,Pkgs),!,
   openRepo(Opts,Repo),
+%  showRepoManifest(Repo),
   locateCatalog(CWD,Cat),!,
   (is_member(processStdin,Opts) ->
    Pkgs = [Pkg|_],

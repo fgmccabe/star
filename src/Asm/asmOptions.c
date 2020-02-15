@@ -44,7 +44,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 'M':     /* Trace manifest mgt */
 #ifdef TRACEMANIFEST
-        traceManifest = True;
+        traceManifest++;
 #else
       logMsg(logFile, "manifest tracing not enabled\n");
       return Error;
@@ -56,7 +56,7 @@ static retCode debugOption(char *option, logical enable, void *cl) {
         ss_flex_debug = 1;
         ssdebug = 1;
         debugAssem = True;
-        traceManifest = True;
+        traceManifest = generalTracing;
 #else
       logMsg(logFile,"insDebugging not enabled\n");
       return Error;

@@ -135,7 +135,7 @@ retCode endSrcMap(void *cl) {
 retCode startCollection(void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "Starting collection, state = %s", stNames[info->state]);
 
   switch (info->state) {
@@ -162,7 +162,7 @@ retCode startCollection(void *cl) {
 retCode endCollection(void *cl) {
   statePo info = (statePo) cl;
 
-  if (tracePkg)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "Ending collection, state = %s", stNames[info->state]);
 
   switch (info->state) {
@@ -202,7 +202,7 @@ retCode endArray(void *cl) {
 retCode startEntry(const char *name, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "Starting entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {
@@ -238,7 +238,7 @@ retCode startEntry(const char *name, void *cl) {
 retCode endEntry(const char *name, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "Ending entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {
@@ -253,7 +253,7 @@ retCode endEntry(const char *name, void *cl) {
 retCode numEntry(double dx, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "Numeric entry, state = %s, value=%g", stNames[info->state], dx);
 
   switch (info->state) {
@@ -271,7 +271,7 @@ retCode boolEntry(logical trueVal, void *cl) {
 retCode txtEntry(const char *name, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest)
+  if (tracePkg>=detailedTracing)
     logMsg(logFile, "Text entry, state = %s, name=%s", stNames[info->state], name);
 
   switch (info->state) {

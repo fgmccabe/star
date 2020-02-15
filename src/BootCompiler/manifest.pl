@@ -47,7 +47,7 @@ versionTerm((defltVersion,Sig,SrcUri,fl(Code)),
 	    ctpl(lbl("()2",2),[strg("*"),
 			       lst([SrcTerm,CodeTerm,SigTerm])])) :-
   showUri(SrcUri,U,[]),
-  string_chars(U,C),
+  string_chars(C,U),
   mkDetail("source",C,SrcTerm),
   mkDetail("code",Code,CodeTerm),
   mkDetail("signature",Sig,SigTerm).
@@ -55,7 +55,7 @@ versionTerm((ver(V),Sig,SrcUri,fl(Code)),
 	    ctpl(lbl("()2",2),[strg(V),
 			       lst([SrcTerm,CodeTerm,SigTerm])])) :-
   showUri(SrcUri,U,[]),
-  string_chars(U,C),
+  string_chars(C,U),
   mkDetail("source",C,SrcTerm),
   mkDetail("code",Code,CodeTerm),
   mkDetail("signature",Sig,SigTerm).

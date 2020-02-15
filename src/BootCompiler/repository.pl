@@ -4,7 +4,8 @@
 		      openCodePackageAsStream/6,
 		      codePackagePresent/7,
 		      addCodePackage/6,
-		      searchForRepo/2
+		      searchForRepo/2,
+		      showRepoManifest/1
 		      ]).
 
 % Implement a file-based repository.
@@ -14,6 +15,7 @@
 :- use_module(resource).
 :- use_module(parseUtils).
 :- use_module(manifest).
+:- use_module(errors).
 
 openRepository(Root,repo(Root,Manifest)) :-
   resolveFile(Root,"manifest",MF),
@@ -66,6 +68,10 @@ packageHash(Pkg,ver(V),Hash) :-
   stringHash(0,Pkg,H1),
   stringHash(H1,V,H2),
   hashSixtyFour(H2,Hash).
+
+showRepoManifest(repo(Root,Man)) :-
+  reportMsg("manifest of repo at %s",[Root]),
+  dispManifest(Man).
 
 codePackagePresent(repo(Root,Man),Pkg,Act,Sig,U,SrcWhen,When) :-
   locateVersion(Man,Pkg,Act,Sig,U,fl(PrFn)),

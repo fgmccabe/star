@@ -1,12 +1,12 @@
 import json
 from pprint import pprint
 import subprocess
-import sys, getopt
+import sys, getopt, os
 
 starExec = "@STAREXEC@"
 testDir = "@TESTDIR@/"
 sbc = "@STARCOMPILER@"
-repoDir = "@REPODIR@/"
+repoDir = "@REPODIR@"
 usage = "runtests.py -t <testpkg>"
 
 tracing = False

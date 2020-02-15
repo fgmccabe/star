@@ -19,9 +19,9 @@ integer countVersions(manifestEntryPo entry);
 
 retCode procVersions(manifestEntryPo entry,manifestProc,void *cl);
 
-char *manifestCompatibleResource(char *pkg,char *version,char *kind);
+retCode manifestCompatibleResource(char *pkg, char *version, char *kind, char *buffer, integer buffLen);
 
-char *manifestResource(packagePo pkg, char *kind);
+retCode manifestResource(packagePo pkg, char *kind, char *buffer, integer buffLen);
 
 retCode addToManifest(packagePo package, char *kind, char *resrc, integer length);
 char *manifestOutPath(packagePo pkg, char *suff, char *buffer, int bufLen);

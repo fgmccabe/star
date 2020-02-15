@@ -19,4 +19,10 @@
 #define STAR_MAX_STACK "STAR_MAX_STACK"
 #define STAR_VERIFY "STAR_ENABLE_VERIFY"
 
+typedef enum{
+  noTracing,
+  generalTracing,
+  detailedTracing
+} tracingLevel;
+
 #endif
