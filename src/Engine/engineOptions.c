@@ -179,7 +179,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 'M':     /* Trace manifest mgt */
 #ifdef TRACEMANIFEST
-        traceManifest = True;
+        if (traceManifest < detailedTracing)
+          traceManifest++;
 #else
       logMsg(logFile, "Resource tracing not enabled\n");
       return Error;
@@ -188,7 +189,8 @@ static retCode debugOption(char *option, logical enable, void *cl) {
 
       case 'P':    /* trace package operations  */
 #ifdef TRACEPKG
-        tracePkg = True;
+        if (tracePkg < detailedTracing)
+          tracePkg++;
         continue;
 #else
       logMsg(logFile,"package tracing not enabled");

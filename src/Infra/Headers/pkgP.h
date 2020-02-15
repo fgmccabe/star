@@ -24,6 +24,6 @@ static inline PackageRec makePkg(char *name,char *vers){
 
 extern retCode dispPkgNm(ioPo f, void *data, long depth, long precision, logical alt);
 
-extern logical tracePkg;
+extern tracingLevel tracePkg;
 
 #endif //STAR_PKGP_H

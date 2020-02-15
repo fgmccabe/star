@@ -6,6 +6,7 @@
 #define LANDO_MANIFESTP_H
 
 #include "manifest.h"
+#include "starOptions.h"
 
 typedef struct _manifest_entry_ {
   char package[MAX_SYMB_LEN];
@@ -19,10 +20,11 @@ typedef struct _manifest_version_ {
 
 typedef struct _manifest_resource_ {
   char kind[MAX_SYMB_LEN];
-  char fn[MAXFILELEN];
+  char *fn;
+  integer fnLen;
 } ManifestRsrcRecord;
 
-extern logical traceManifest;
+extern tracingLevel traceManifest;
 
 retCode encodePkgName(ioPo out, packagePo pkg);
 

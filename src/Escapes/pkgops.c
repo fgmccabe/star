@@ -95,6 +95,7 @@ ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
+  char rsrc[MAXFILELEN];
 
   retCode ret = copyString2Buff(C_STR(Arg1), ((char *) (pkg)), NumberOf(pkg));
   if (ret == Ok)
@@ -104,9 +105,9 @@ ReturnStatus g__in_manifest(processPo P, ptrPo tos) {
     ret = copyString2Buff(C_STR(Arg3), kind, NumberOf(kind));
 
   if (ret == Ok) {
-    char *rsrc = manifestCompatibleResource(pkg, version, kind);
+    ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
-    if (rsrc == Null) {
+    if (ret != Ok) {
       return (ReturnStatus) {.ret=Ok, .result= falseEnum};
     } else {
       return (ReturnStatus) {.ret=Ok, .result= trueEnum};
@@ -123,6 +124,7 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
   char pkg[MAX_SYMB_LEN];
   char version[MAX_SYMB_LEN];
   char kind[MAX_SYMB_LEN];
+  char rsrc[MAXFILELEN];
 
   retCode ret = copyString2Buff(C_STR(Arg1), pkg, NumberOf(pkg));
   if (ret == Ok)
@@ -132,13 +134,13 @@ ReturnStatus g__locate_in_manifest(processPo P, ptrPo tos) {
     ret = copyString2Buff(C_STR(Arg3), kind, NumberOf(kind));
 
   if (ret == Ok) {
-    char *rsrc = manifestCompatibleResource(pkg, version, kind);
+    ret = manifestCompatibleResource(pkg, version, kind, rsrc, NumberOf(rsrc));
 
-    if (rsrc == Null) {
+    if (ret!=Ok) {
       return (ReturnStatus) {.ret=Error, .result= voidEnum};
     } else {
       return (ReturnStatus) {.ret=Ok,
-                .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
+        .result=(termPo) allocateString(processHeap(P), rsrc, uniStrLen(rsrc))};
     }
   } else {
     return (ReturnStatus) {.ret=ret, .result= voidEnum};

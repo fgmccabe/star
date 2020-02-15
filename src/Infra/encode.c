@@ -17,10 +17,9 @@ retCode encodeStr(ioPo out, char *str, integer len) {
   return encodeTxt(out, str, len);
 }
 
-static codePoint findDelim(char *str, char *choices, codePoint deflt) {
+static codePoint findDelim(char *str, integer srcLen, char *choices, codePoint deflt) {
   integer chPos = 0;
   integer choiceLen = uniStrLen(choices);
-  integer srcLen = uniStrLen(str);
 
   while (chPos < choiceLen) {
     codePoint ch = nextCodePoint(choices, &chPos, choiceLen);
@@ -33,7 +32,7 @@ static codePoint findDelim(char *str, char *choices, codePoint deflt) {
 }
 
 retCode encodeTxt(ioPo out, char *str, integer len) {
-  codePoint delim = findDelim(str, "'\"|/%", '\"');
+  codePoint delim = findDelim(str, len, "'\"|/%", '\"');
   codePoint ch;
   retCode ret = outChar(out, delim);
 
@@ -52,7 +51,7 @@ retCode encodeTxt(ioPo out, char *str, integer len) {
 }
 
 retCode encodeEnum(ioPo out, char *nm) {
-  tryRet(outChar(out,enuTrm));
+  tryRet(outChar(out, enuTrm));
   return encodeTxt(out, nm, uniStrLen(nm));
 }
 

@@ -11,7 +11,6 @@ set_property(DIRECTORY PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${REPO_DIR}")
 
 add_custom_command(TARGET boot
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../BootCompiler
-  COMMENT "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc -w ${CMAKE_CURRENT_SOURCE_DIR}/ -r ${REPO_DIR} star.boot"
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.boot"
   )
 
