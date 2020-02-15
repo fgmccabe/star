@@ -33,5 +33,7 @@ retCode flushManifest();
 void defltRepoDir();
 retCode loadManifest();
 
+retCode pruneResources(char *kind);
+
 retCode setManifestPath(char *path);
 #endif //STAR_MANIFEST_H

@@ -79,6 +79,7 @@ int main(int argc, char **argv) {
   initEngine();
 
   loadManifest();
+  pruneResources("signature");
 
   char errMsg[MAXLINE];
 

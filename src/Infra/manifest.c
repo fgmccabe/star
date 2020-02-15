@@ -156,7 +156,7 @@ manifestRsrcPo newManifestResource(const char *kind, const char *text, integer l
   manifestRsrcPo f = (manifestRsrcPo) allocPool(rsrcPool);
 
   uniCpy((char *) &f->kind, NumberOf(f->kind), kind);
-  f->fn = uniDupl((char*)text,length);
+  f->fn = uniDupl((char *) text, length);
   f->fnLen = length;
 
   return f;
@@ -180,7 +180,7 @@ retCode manifestCompatibleResource(char *pkg, char *version, char *kind, char *b
       manifestRsrcPo f = hashGet(v->resources, kind);
 
       if (f != NULL)
-        return uniNCpy(buffer,buffLen,f->fn,f->fnLen);
+        return uniNCpy(buffer, buffLen, f->fn, f->fnLen);
     } else
       return Fail;
   }
@@ -198,6 +198,31 @@ retCode addToManifest(packagePo package, char *kind, char *resrc, integer length
   return addResource(v, kind, resrc, length);
 }
 
+static retCode pruneVersions(void *n, void *r, void *c) {
+  manifestVersionPo v = (manifestVersionPo) r;
+
+  manifestRsrcPo rsrc = (manifestRsrcPo) hashGet(v->resources, c);
+  if (rsrc != Null) {
+    hashRemove(v->resources, c);
+    if (rsrc->fn != Null) {
+      free(rsrc->fn);
+      rsrc->fn = Null;
+    }
+    freePool(rsrcPool, rsrc);
+  }
+  return Ok;
+}
+
+static retCode pruneEntries(void *n, void *r, void *c) {
+  manifestEntryPo entry = (manifestEntryPo) r;
+
+  return ProcessTable(pruneVersions, entry->versions, c);
+}
+
+retCode pruneResources(char *kind) {
+  return ProcessTable(pruneEntries, manifest, (void *) kind);
+}
+
 retCode loadManifest() {
   initManifest();
 
@@ -210,7 +235,7 @@ retCode loadManifest() {
   if (inFile != NULL) {
     retCode ret = decodeManifest(inFile);
 
-    if (traceManifest>=generalTracing)
+    if (traceManifest >= generalTracing)
       dispManifest(logFile);
     return ret;
   } else {
@@ -222,13 +247,13 @@ retCode startManifest(void *cl) {
   statePo info = (statePo) cl;
   info->state = initial;
 
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "Starting parse of manifest");
   return Ok;
 }
 
 retCode endManifest(void *cl) {
-  if (traceManifest>=detailedTracing) {
+  if (traceManifest >= detailedTracing) {
     logMsg(logFile, "Ending parse of manifest");
     dispManifest(logFile);
     flushFile(logFile);
@@ -239,7 +264,7 @@ retCode endManifest(void *cl) {
 retCode startList(integer arity, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "Starting sequence, state = %s, %d elements", stNames[info->state], arity);
 
   switch (info->state) {
@@ -268,7 +293,7 @@ retCode startList(integer arity, void *cl) {
 retCode endList(void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest>=detailedTracing) {
+  if (traceManifest >= detailedTracing) {
     logMsg(logFile, "Ending sequence, state = %s", stNames[info->state]);
   }
 
@@ -299,7 +324,7 @@ retCode endList(void *cl) {
 retCode startEntry(integer arity, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "Starting entry, state = %s, count=%d", stNames[info->state], arity);
 
   switch (info->state) {
@@ -328,7 +353,7 @@ retCode startEntry(integer arity, void *cl) {
 retCode endEntry(void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "End of entry, state = %s", stNames[info->state]);
 
   switch (info->state) {
@@ -358,7 +383,7 @@ retCode endEntry(void *cl) {
 retCode lblEntry(char *name, integer arity, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "Label, state = %s, name=%s/%d", stNames[info->state], name, arity);
 
   switch (info->state) {
@@ -407,7 +432,7 @@ retCode badEntry(void *cl) {
 retCode txtEntry(char *name, integer length, void *cl) {
   statePo info = (statePo) cl;
 
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "Text entry, state = %s(%s), name=%S", stNames[info->state],
            (info->state == inDetail ? resNmes[info->resState] : ""), name, length);
 
@@ -487,7 +512,7 @@ static retCode dumpRsrc(char *k, manifestRsrcPo rsrc, void *cl) {
   char *sep = policy->first ? "" : ",\n";
   policy->first = False;
 
-  return outMsg(policy->out, "%s%p\"%s\":\"%S\"", sep, policy->indent, rsrc->kind, rsrc->fn,rsrc->fnLen);
+  return outMsg(policy->out, "%s%p\"%s\":\"%S\"", sep, policy->indent, rsrc->kind, rsrc->fn, rsrc->fnLen);
 }
 
 static retCode dumpVersion(char *v, manifestVersionPo vers, void *cl) {
@@ -649,7 +674,7 @@ retCode setManifestPath(char *path) {
   } else
     strMsg(repoDir, NumberOf(repoDir), "%s", path);
 #ifdef TRACEMANIFEST
-  if (traceManifest>=detailedTracing)
+  if (traceManifest >= detailedTracing)
     logMsg(logFile, "repository manifest set to %s", repoDir);
 #endif
   return Ok;
