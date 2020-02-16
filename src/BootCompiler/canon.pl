@@ -13,7 +13,7 @@
 :- use_module(location).
 :- use_module(uri).
 
-isCanon(prog(_,_,_,_,_)).
+isCanon(prog(_,_,_,_,_,_,_,_)).
 isCanon(v(_,_,_)).
 isCanon(over(_,_,_,_)).
 isCanon(mtd(_,_,_)).
@@ -25,8 +25,8 @@ isCanon(dot(_,_,_,_)).
 isCanon(enm(_,_,_)).
 isCanon(cons(_,_,_)).
 isCanon(tple(_,_)).
-isCanon(theta(_,_,_,_,_,_,_)).
-isCanon(record(_,_,_,_,_,_)).
+isCanon(theta(_,_,_,_,_)).
+isCanon(record(_,_,_,_,_)).
 isCanon(where(_,_,_)).
 isCanon(conj(_,_,_)).
 isCanon(disj(_,_,_)).
@@ -104,8 +104,8 @@ typeOfCanon(conj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(disj(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(implies(_,_,_),type("star.core*boolean")) :-!.
 typeOfCanon(cond(_,_,_,_,Tp),Tp) :-!.
-typeOfCanon(theta(_,_,_,_,_,_,Tp),Tp) :-!.
-typeOfCanon(record(_,_,_,_,_,_,Tp),Tp) :-!.
+typeOfCanon(theta(_,_,_,_,Tp),Tp) :-!.
+typeOfCanon(record(_,_,_,_,Tp),Tp) :-!.
 typeOfCanon(letExp(_,_,Bnd),Tp) :- !,typeOfCanon(Bnd,Tp).
 typeOfCanon(apply(_,_,_,Tp),Tp) :-!.
 typeOfCanon(tple(_,Els),tupleType(Tps)) :-!,
@@ -134,8 +134,8 @@ locOfCanon(conj(Lc,_,_),Lc) :-!.
 locOfCanon(disj(Lc,_,_),Lc) :-!.
 locOfCanon(implies(Lc,_,_),Lc) :-!.
 locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
-locOfCanon(theta(Lc,_,_,_,_,_,_),Lc) :-!.
-locOfCanon(record(Lc,_,_,_,_,_,_),Lc) :-!.
+locOfCanon(theta(Lc,_,_,_,_),Lc) :-!.
+locOfCanon(record(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(letExp(Lc,_,_),Lc) :- !.
 locOfCanon(case(Lc,_,_,_),Lc) :- !.
 locOfCanon(apply(Lc,_,_,_),Lc) :-!.
@@ -170,7 +170,7 @@ dispProg(Pr) :-
   showCanonProg(Pr,Chrs,[]),
   string_chars(Res,Chrs),writeln(Res).
 
-showCanonProg(prog(Pkg,_,Imports,Defs,Others,_Fields,Types,Cons,Impls),O,Ox) :-
+showCanonProg(prog(Pkg,_,Imports,Defs,_Fields,Types,Cons,Impls),O,Ox) :-
   showPkg(Pkg,O,O1),
   appStr("{\n",O1,O2),
   showImports(Imports,O2,O3),!,
@@ -179,9 +179,7 @@ showCanonProg(prog(Pkg,_,Imports,Defs,Others,_Fields,Types,Cons,Impls),O,Ox) :-
   showContracts(Cons,O4a,O5),!,
   showImpls(Impls,O5,O6),!,
   showDefs(Defs,0,O6,O7),!,
-  appStr("\nOthers:\n",O7,O8),
-  showOthers(Others,0,O8,O9),!,
-  appStr("}.\n",O9,Ox),!.
+  appStr("}.\n",O7,Ox),!.
 
 showPkg(pkg(Nm,V),O,Ox) :-
   appStr(Nm,O,O1),
@@ -219,24 +217,20 @@ showCanonTerm(case(_,Bound,Cases,_),Dp,O,Ox) :-
   appStr(" in {",O1,O2),
   showRls("",Cases,Dp,O2,O3),
   appStr("}",O3,Ox).
-showCanonTerm(theta(_,Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
+showCanonTerm(theta(_,Path,_,Defs,_),Dp,O,Ox) :-
   appIden(Path,O,O1),
   appStr("{",O1,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
-  showTypeDefs(Types,Dp2,O3,O4),
-  showDefs(Defs,Dp2,O4,O5),
-  showOthers(Others,Dp2,O5,O6),
-  appStr("}",O6,Ox).
-showCanonTerm(record(_,Path,_,Defs,Others,Types,_),Dp,O,Ox) :-
+  showDefs(Defs,Dp2,O3,O5),
+  appStr("}",O5,Ox).
+showCanonTerm(record(_,Path,_,Defs,_),Dp,O,Ox) :-
   appIden(Path,O,O1),
   appStr("{.",O1,O2),
   Dp2 is Dp+2,
   appNwln(Dp2,O2,O3),
-  showTypeDefs(Types,Dp2,O3,O4),
-  showDefs(Defs,Dp2,O4,O5),
-  showOthers(Others,Dp2,O5,O6),
-  appStr(".}",O6,Ox).
+  showDefs(Defs,Dp2,O3,O5),
+  appStr(".}",O5,Ox).
 showCanonTerm(varRef(_,Inn),Dp,O,Ox) :-
   showCanonTerm(Inn,Dp,O,O1),
   appStr("!",O1,Ox).
@@ -516,20 +510,6 @@ showGuard(enm(_,"true",_),_,O,O) :- !.
 showGuard(C,Dp,O,Ox) :-
   appStr(" where ",O,O1),
   showCanonTerm(C,Dp,O1,Ox).
-
-showOthers([],_,O,O).
-showOthers([Stmt|Stmts],Dp,O,Ox) :-
-  showStmt(Stmt,Dp,O,O2),
-  appStr(".",O2,O3),
-  appNwln(Dp,O3,O4),
-  showOthers(Stmts,Dp,O4,Ox).
-
-showStmt(assertion(_,Cond),Dp,O,Ox) :-
-  appStr("  assert ",O,O1),
-  showCanonTerm(Cond,Dp,O1,Ox).
-showStmt(show(_,Vl),Dp,O,Ox) :-
-  appStr("  show ",O,O1),
-  showCanonTerm(Vl,Dp,O1,Ox).
 
 ruleArity(equation(_,tple(_,A),_),Ar) :-
   length(A,Ar).
