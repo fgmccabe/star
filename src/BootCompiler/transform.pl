@@ -51,13 +51,12 @@
 
 */
 
-transformProg(prog(pkg(Pkg,Vers),Lc,Imports,Defs,Others,Fields,Types,Contracts,Impls),
+transformProg(prog(pkg(Pkg,Vers),Lc,Imports,Defs,Fields,Types,Contracts,Impls),
     Opts,mdule(pkg(Pkg,Vers),Imports,faceType(Fields,Types),Classes,Dfs,Contracts,Impls)) :-
   makePkgMap(Pkg,Defs,Types,Imports,Classes,Map),
   mkUnit(I),
-  transformModuleDefs(Defs,Pkg,Map,Opts,I,I0,Dfs,D0),
-  transformOthers(Pkg,Map,Opts,Others,I0,Ix,D0,D1),
-  packageInit(Pkg,Lc,Map,Opts,Imports,Ix,D1,[]).
+  transformModuleDefs(Defs,Pkg,Map,Opts,I,Ix,Dfs,D0),
+  packageInit(Pkg,Lc,Map,Opts,Imports,Ix,D0,[]).
 
 makePkgMap(Pkg,Defs,Types,Imports,Enums,[lyr(Pkg,DfList,void,void)]) :-
   makeModuleMap(Pkg,Defs,DfList,Rest,Enums),
@@ -469,11 +468,11 @@ liftExp(cond(Lc,T,L,R,_),cnd(Lc,LT,LL,LR),Q,Qx,Map,Opts,Ex,Exx) :- !,
 liftExp(assertion(Lc,G),ecll(Lc,"_assert",[Gx,Lx]),Q,Qx,Map,Opts,Ex,Exx) :- !,
   liftGoal(G,Gx,Q,Qx,Map,Opts,Ex,Exx),
   locTerm(Lc,Lx).
-liftExp(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftTheta(theta(Lc,Path,Anon,Defs,Others,Types,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+liftExp(theta(Lc,Path,Anon,Defs,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftTheta(theta(Lc,Path,Anon,Defs,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
   genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
-liftExp(record(Lc,Path,Anon,Defs,Others,Types,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
-  liftTheta(record(Lc,Path,Anon,Defs,Others,Types,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
+liftExp(record(Lc,Path,Anon,Defs,Sig),ltt(Lc,ThVr,FrTrm,Recrd),Q,Qx,Map,Opts,Ex,Exx) :-!,
+  liftTheta(record(Lc,Path,Anon,Defs,Sig),ThVr,FrTrm,_ThCond,Q,Map,ThMap,Opts,Ex,Ex1),
   genRecord(Lc,Path,Anon,Defs,ThMap,Opts,Q,Qx,Recrd,Ex1,Exx).
 liftExp(letExp(Lc,Th,Bnd),Exp,Q,Qx,Map,Opts,Ex,Exx) :-!,
   liftLetExp(Lc,Th,Bnd,Exp,Q,Qx,Map,Opts,Ex,Exx).
@@ -624,15 +623,14 @@ liftGl(G,Gx,Q,Qx,Map,Opts,Ex,Exx) :-
 /* A theta or record is converted to a structure containing free variables */
 
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
-  Theta=theta(Lc,Path,_Anon,Defs,Others,_Types,_Sig),!,
+  Theta=theta(Lc,_Path,_Anon,Defs,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
 %  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
-  transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),I,Ex,Ex1),
-  transformOthers(Path,ThMap,Opts,Others,I,ThCond,Ex1,Exx).
+  transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
 %  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
-  Theta=record(Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),
+  Theta=record(Lc,_Path,_Anon,Defs,_Sig),
   genVar("_ThR",ThVr),
   recordMap(Theta,ThVr,Q,Map,Opts,ThMap,RMap,FreeTerm),
 %  (is_member(showTrCode,Opts) -> dispMap("Record map: ",RMap);true),
@@ -732,9 +730,9 @@ freeLabelVars([idnt(Nm)|Lv],Map,Fr,LmFr) :-
 freeLabelVars([_|Lv],Map,Fr,LmFr) :-
   freeLabelVars(Lv,Map,Fr,LmFr).
 
-cellVars(theta(_Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),CellVars) :-
+cellVars(theta(_Lc,_Path,_Anon,Defs,_Sig),CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
-cellVars(record(_Lc,_Path,_Anon,Defs,_Others,_Types,_Sig),CellVars) :-
+cellVars(record(_Lc,_Path,_Anon,Defs,_Sig),CellVars) :-
   rfold(Defs,transform:pickCellVar,[],CellVars).
 
 pickCellVar(varDef(_,Nm,_,_,Tp,_),F,Fv) :-
@@ -775,15 +773,15 @@ notVar(V) :- V\=idnt(_).
 
 isVar(idnt(_)).
 
-thetaLbl(theta(_,Path,_,_,_,_,_),_Map,Path).
-thetaLbl(record(_,Path,_,_,_,_,_),_Map,Path).
+thetaLbl(theta(_,Path,_,_,_),_Map,Path).
+thetaLbl(record(_,Path,_,_,_),_Map,Path).
 
 makeLblTerm(Nm,[],enum(Nm)) :- !.
 makeLblTerm(Nm,Extra,ctpl(lbl(Nm,Ar),Extra)) :- length(Extra,Ar).
 
-makeMtdMap(theta(_,_,_,Defs,_,_,_),OuterNm,ThVr,L,Lx) :-
+makeMtdMap(theta(_,_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx).
-makeMtdMap(record(_,_,_,Defs,_,_,_),OuterNm,ThVr,L,Lx) :-
+makeMtdMap(record(_,_,_,Defs,_),OuterNm,ThVr,L,Lx) :-
   collectMtds(Defs,OuterNm,ThVr,L,Lx).
 
 collectMtds([],_,_,List,List).

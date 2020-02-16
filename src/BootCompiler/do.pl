@@ -106,7 +106,7 @@ genAction(whileDo(Lc,Ts,Body,StTp,ErTp),Contract,Cont,Exp,Path) :-
 		      enm(Lc,"true",type("star.core*boolean")),
 		      cond(Lc,Ts,Then,Cont,LpTp))]),
   Exp = letExp(Lc,
-	      theta(Lc,ThNm,true,[FF],[],[],faceType([],[])),
+	      theta(Lc,ThNm,true,[FF],faceType([],[])),
 	       apply(Lc,v(Lc,Fn,FnTp),tple(Lc,[]),LpTp)).
 
 

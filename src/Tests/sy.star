@@ -56,7 +56,6 @@ test.sy{
   double(X) => action{ valis X+X }.
   
   /* Block comment */
-  assert _perform(p) == 4.		/* block comment */
 
   a = do{
     x <- p;
@@ -83,6 +82,7 @@ string\n
 
     assert valof o == 1;		-- End comment
   
-    assert valof p == 4
+    assert valof p == 4;
+    assert _perform(p) == 4		/* block comment */
   }
 }

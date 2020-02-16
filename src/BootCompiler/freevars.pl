@@ -42,13 +42,11 @@ freeVars(abstraction(_,B,C,Z,G,_),Ex,Q,F,FV) :-
   freeVars(C,Ex1,Q,F0,F1),
   freevars(Z,Ex1,Q,F1,F2),
   freeVars(G,Ex1,Q,F2,FV).
-freeVars(theta(_,_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
+freeVars(theta(_,_,_,Defs,_),Ex,Q,F,Fv) :-
   definedVars(Defs,Ex,Ex1),
-  freeVarsInDefs(Defs,Ex1,Q,F,F0),
-  freeVarsInOthers(Others,Ex1,Q,F0,Fv).
-freeVars(record(_,_,_,Defs,Others,_,_),Ex,Q,F,Fv) :-
-  freeVarsInDefs(Defs,Ex,Q,F,F0),
-  freeVarsInOthers(Others,Ex,Q,F0,Fv).
+  freeVarsInDefs(Defs,Ex1,Q,F,Fv).
+freeVars(record(_,_,_,Defs,_),Ex,Q,F,Fv) :-
+  freeVarsInDefs(Defs,Ex,Q,F,Fv).
 freeVars(letExp(_,Rc,Bnd),Ex,Q,F,Fv) :-
   freeVars(Rc,Ex,Q,F,F0),
   freeVars(Bnd,Ex,Q,F0,Fv).
@@ -66,9 +64,6 @@ qualifed(V,Q) :- is_member(idnt(V),Q).
 
 freeVarsInDefs(L,Ex,Q,F,Fv) :-
   varsInList(L,freevars:freeVarsInDef(Ex,Q),F,Fv).
-
-freeVarsInOthers(L,Ex,Q,F,Fv) :-
-  varsInList(L,freevars:freeVarsInOther(Ex,Q),F,Fv).
 
 freeVarsInDef(Ex,Q,funDef(_,_,_,_,_,Eqns),F,Fv) :-
   freeVarsInRules(Eqns,Ex,Q,F,Fv).
@@ -90,11 +85,6 @@ freeVarsList(L,Ex,Q,F,Fv) :- varsInList(L,freevars:frVars(Ex,Q),F,Fv).
 
 frVars(Ex,Q,Trm,F,Fv) :- freeVars(Trm,Ex,Q,F,Fv).
 
-freeVarsInOther(Ex,Q,assertion(_,C),F,Fv) :-
-  freeVars(C,Ex,Q,F,Fv).
-freeVarsInOther(Ex,Q,show(_,C),F,Fv) :-
-  freeVars(C,Ex,Q,F,Fv).
-
 ptnVars(v(Lc,Nm,Tp),A,Q,Qx) :- call(A,v(Lc,Nm,Tp),Q,Qx).
 ptnVars(intLit(_,_),_,Q,Q).
 ptnVars(floatLit(_,_),_,Q,Q).
@@ -104,8 +94,8 @@ ptnVars(cons(_,_,_),_,Q,Q).
 ptnVars(where(_,Ptn,C),A,Q,Qx) :- ptnVars(Ptn,A,Q,Q0), ptnGoalVars(C,A,Q0,Qx).
 ptnVars(tple(_,Els),A,Q,Qx) :- ptnVarsInList(Els,A,Q,Qx).
 ptnVars(apply(_,_,Arg,_),A,Q,Qx) :- ptnVars(Arg,A,Q,Qx).
-ptnVars(theta(_,_,Els,_,_,_),A,Q,Qx) :- ptnVarsInDefs(Els,A,Q,Qx).
-ptnVars(record(_,_,Els,_,_,_),A,Q,Qx) :- ptnVarsInDefs(Els,A,Q,Qx).
+ptnVars(theta(_,_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
+ptnVars(record(_,_,_,Defs,_),A,Q,Qx) :- ptnVarsInDefs(Defs,A,Q,Qx).
 ptnVars(dot(_,_,_,_),_,Q,Q).
 
 ptnVarsInList([],_,Q,Q).

@@ -24,7 +24,7 @@
 :- use_module(vartypes).
 
 checkProgram(Prog,Pkg,Repo,_Opts,
-	     prog(Pkg,Lc,ImportSpecs,ODefs,OOthers,Exports,Types,Cons,Impls)) :-
+	     prog(Pkg,Lc,ImportSpecs,ODefs,Exports,Types,Cons,Impls)) :-
   stdDict(Base),
   declarePkg(Pkg,Base,B0),
   isBraceTerm(Prog,Lc,_,El0),
@@ -34,27 +34,24 @@ checkProgram(Prog,Pkg,Repo,_Opts,
   collectImports(Els,Imps,Stmts),
   importAll(Imps,Repo,AllImports),
   importAllDefs(AllImports,ImportSpecs,Repo,Env,Env0),
-  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,_OEnv,Defs,Public,Others),
+  thetaEnv(Pk,Lc,Stmts,faceType([],[]),Env0,_OEnv,Defs,Public),
   findImportedImplementations(ImportSpecs,[],OverDict),
-  overload(Defs,OverDict,ODict,ODefs),
-  overloadOthers(Others,ODict,OOthers),
+  overload(Defs,OverDict,_Dict,ODefs),
   computeExport(Defs,faceType([],[]),Public,Exports,Types,Cons,Impls),!.
 
-thetaEnv(Pkg,Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Others) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots,Otrs),
+thetaEnv(Pkg,Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
+  collectDefinitions(Stmts,Dfs,Public,Annots),
   (noErrors ->
     dependencies(Dfs,Groups,Annots),
     pushFace(Fields,Lc,Base,Env),
-    checkGroups(Groups,Fields,Annots,Defs,Env,TheEnv,Pkg),
-    checkOthers(Otrs,Others,TheEnv,Pkg);
-    Defs=[],Others=[],TheEnv=Base).
+    checkGroups(Groups,Fields,Annots,Defs,Env,TheEnv,Pkg);
+    Defs=[],TheEnv=Base).
 					%  dispDefs(Defs).
 
-recordEnv(Path,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public,Others) :-
-  collectDefinitions(Stmts,Dfs,Public,Annots,Otrs),
+recordEnv(Path,_Lc,Stmts,Fields,Base,TheEnv,Defs,Public) :-
+  collectDefinitions(Stmts,Dfs,Public,Annots),
   parseAnnotations(Dfs,Fields,Annots,Base,Path,Face),
-  checkGroup(Dfs,Defs,[],Base,TheEnv,Face,Path),
-  checkOthers(Otrs,Others,TheEnv,Path).
+  checkGroup(Dfs,Defs,[],Base,TheEnv,Face,Path).
 %  dispDefs(Defs).
 
 processImportGroup(Stmts,ImportSpecs,Repo,Env,Ex) :-
@@ -122,25 +119,6 @@ importImplementations(Impls,Ev,Evx) :-
 
 declImplementation(imp(ImplNm,FullNm,Spec),Ev,Evx) :-
   declareImplementation(ImplNm,FullNm,Spec,Ev,Evx).
-
-checkOthers([],[],_,_).
-checkOthers([St|Stmts],Ass,Env,Path) :-
-  checkOther(St,Ass,More,Env,Path),!,
-  checkOthers(Stmts,More,Env,Path).
-checkOthers([St|Stmts],Ass,Env,Path) :-
-  locOfAst(St,Lc),
-  reportError("cannot understand statement: %s",[St],[Lc]),
-  checkOthers(Stmts,Ass,Env,Path).
-
-checkOther(St,[assertion(Lc,Cond)|More],More,Env,Path) :-
-  isIntegrity(St,Lc,C),!,
-  checkGoal(C,Env,_,Cond,Path).
-checkOther(St,[show(Lc,Vl)|More],More,Env,Path) :-
-  isShow(St,Lc,C),!,
-  findType("string",Lc,Env,StrTp),
-  unary(Lc,"_coerce",C,LT),
-  binary(Lc,":",LT,name(Lc,"string"),NT),
-  typeOfExp(NT,StrTp,Env,_,Vl,Path).
 
 checkGroups([],_,_,[],E,E,_).
 checkGroups([Gp|More],Fields,Annots,Defs,E,Ev,Path) :-
@@ -338,39 +316,39 @@ checkVarDefn(Lc,L,R,refType(Tp),[varDef(Lc,Nm,ExtNm,[],refType(Tp),cell(Lc,Reslt
 checkVarDefn(Lc,L,_,Tp,Defs,Defs,_,_) :-
   reportError("expecting an assignable type, not %s for %s",[Tp,L],Lc).
 
-checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Face2,Path) :-
+checkThetaBody(Tp,Lc,Els,Env,OEnv,Defs,Types,Face2,Path) :-
   evidence(Tp,Env,Q,ETp),
   faceOfType(ETp,Env,FaceTp),
   moveConstraints(FaceTp,Cx,Face),
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  thetaEnv(Path,Lc,Els,Face,BaseEnv,OEnv,Defs,Public,Others),
+  thetaEnv(Path,Lc,Els,Face,BaseEnv,OEnv,Defs,Public),
   faceOfType(ETp,Env,FaceTp2),
   moveConstraints(FaceTp2,_,Face2),
   computeExport(Defs,Face2,Public,_,Types,[],[]),!.
 
-checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Others,Types,Path) :-
+checkRecordBody(Tp,Lc,Els,Env,OEnv,Defs,Types,Path) :-
   evidence(Tp,Env,Q,ETp),
   faceOfType(ETp,Env,Face),
   moveConstraints(Face,Cx,CFace),
   pushScope(Env,Base),
   declareTypeVars(Q,Lc,Base,E0),
   declareConstraints(Cx,E0,BaseEnv),
-  recordEnv(Path,Lc,Els,CFace,BaseEnv,OEnv,Defs,Public,Others),
+  recordEnv(Path,Lc,Els,CFace,BaseEnv,OEnv,Defs,Public),
   computeExport(Defs,Face,Public,_,Types,[],[]),!.
 
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,theta(Lc,ThPath,true,Defs,faceType([],[])),Bound),Path):-
   isBraceTuple(Th,_,Els),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  thetaEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,Others),
+  thetaEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
-checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,Others,[],faceType([],[])),Bound),Path):-
+checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,record(Lc,ThPath,true,Defs,faceType([],[])),Bound),Path):-
   isQBraceTuple(Th,_,Els),!,
   genNewName(Path,"Γ",ThPath),
   pushScope(Env,ThEnv),
-  recordEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public,Others),
+  recordEnv(ThPath,Lc,Els,faceType([],[]),ThEnv,OEnv,Defs,_Public),
   typeOfExp(Ex,Tp,OEnv,_,Bound,Path).
 checkLetExp(Tp,Lc,Th,Ex,Env,letExp(Lc,Inner,Bound),Path):-
   newTypeVar("_",ThTp),
@@ -582,33 +560,33 @@ typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isSquareTuple(Term,Lc,Els),
   \+isListAbstraction(Term,_,_,_), !,
   squareTupleExp(Lc,Els,Tp,Env,Ev,Exp,Path).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,ThPath,true,Defs,Tp),Path) :-
   isBraceTuple(Term,Lc,Els),
   \+isAbstraction(Term,_,_,_),
   genNewName(Path,"θ",ThPath),
-  checkThetaBody(Tp,Lc,Els,Env,_,Defs,Others,Types,Face,ThPath),
+  checkThetaBody(Tp,Lc,Els,Env,_,Defs,_Types,Face,ThPath),
   checkType(Term,Face,Tp,Env).
-typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,true,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,record(Lc,ThPath,true,Defs,Tp),Path) :-
   isQBraceTuple(Term,Lc,Els),
   genNewName(Path,"ρ",ThPath),
-  checkRecordBody(Tp,Lc,Els,Env,_,Defs,Others,Types,ThPath),
+  checkRecordBody(Tp,Lc,Els,Env,_,Defs,_Types,ThPath),
   compExport(Defs,[],[],Fields,Tps,_,_,misc:bin_nop),
   checkType(Term,faceType(Fields,Tps),Tp,Env).
-typeOfExp(Term,Tp,Env,Env,theta(Lc,Lbl,false,Defs,Others,Types,Tp),Path) :-
+typeOfExp(Term,Tp,Env,Env,theta(Lc,Lbl,false,Defs,Tp),Path) :-
   isBraceTerm(Term,Lc,F,Els),
   newTypeVar("F",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
   thetaName(Path,Lbl,ThPath),
   deRef(FnTp,BTp),
-  checkThetaBody(BTp,Lc,Els,E0,_,Defs,Others,Types,_,ThPath).
-typeOfExp(Term,Tp,Env,Env,record(Lc,Lbl,false,Defs,Others,Types,Tp),Path) :-
+  checkThetaBody(BTp,Lc,Els,E0,_,Defs,_Types,_,ThPath).
+typeOfExp(Term,Tp,Env,Env,record(Lc,Lbl,false,Defs,Tp),Path) :-
   isQBraceTerm(Term,Lc,F,Els),
   newTypeVar("R",FnTp),
   typeOfKnown(F,consType(FnTp,Tp),Env,E0,Fun,Path),
   funLbl(Fun,Lbl),
   thetaName(Path,Lbl,ThPath),
-  checkRecordBody(FnTp,Lc,Els,E0,_,Defs,Others,Types,ThPath).
+  checkRecordBody(FnTp,Lc,Els,E0,_,Defs,_Types,ThPath).
 typeOfExp(Term,Tp,Ev,Ev,LetExp,Path) :-
   isLetDef(Term,Lc,Th,Ex),
   checkLetExp(Tp,Lc,Th,Ex,Ev,LetExp,Path).

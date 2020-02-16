@@ -102,12 +102,10 @@ overloadTerm(enm(Lc,Rf,Tp),_,St,St,enm(Lc,Rf,Tp)).
 overloadTerm(cons(Lc,Rf,Tp),_,St,St,cons(Lc,Rf,Tp)).
 overloadTerm(tple(Lc,Args),Dict,St,Stx,tple(Lc,RArgs)) :-
   overloadLst(Args,resolve:overloadTerm,Dict,St,Stx,RArgs).
-overloadTerm(theta(Lc,Path,Anon,Defs,Others,Types,Sig),Dict,St,St,theta(Lc,Path,Anon,RDefs,ROthers,Types,Sig)) :-
-  overload(Defs,Dict,RDict,RDefs),
-  overloadOthers(Others,RDict,ROthers).
-overloadTerm(record(Lc,Path,Anon,Defs,Others,Types,Sig),Dict,St,St,record(Lc,Path,Anon,RDefs,ROthers,Types,Sig)) :-
-  overload(Defs,Dict,RDict,RDefs),
-  overloadOthers(Others,RDict,ROthers).
+overloadTerm(theta(Lc,Path,Anon,Defs,Sig),Dict,St,St,theta(Lc,Path,Anon,RDefs,Sig)) :-
+  overload(Defs,Dict,_RDict,RDefs).
+overloadTerm(record(Lc,Path,Anon,Defs,Sig),Dict,St,St,record(Lc,Path,Anon,RDefs,Sig)) :-
+  overload(Defs,Dict,_RDict,RDefs).
 overloadTerm(varRef(Lc,Inn),Dict,St,Stx,varRef(Lc,Inn1)) :-
   overloadTerm(Inn,Dict,St,Stx,Inn1).
 overloadTerm(cell(Lc,Inn),Dict,St,Stx,cell(Lc,Inn1)) :-
@@ -329,9 +327,9 @@ resolveHead(Hd,[],Hd).
 resolveHead(enm(Lc,Nm,Tp),CVars,apply(Lc,v(Lc,Nm,Tp),CVars)).
 resolveHead(apply(Lc,v(ALc,Nm,Tp),Args,Tpx),CVars,apply(Lc,v(ALc,Nm,Tp),OArgs,Tpx)) :-
   addExtra(CVars,Args,OArgs).
-resolveHead(record(Lc,Lbl,Anon,Defs,[],[],Sig),CVars,record(Lc,Lbl,Anon,RDefs,[],[],Sig)) :-
+resolveHead(record(Lc,Lbl,Anon,Defs,Sig),CVars,record(Lc,Lbl,Anon,RDefs,Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
-resolveHead(theta(Lc,Lbl,Anon,Defs,[],[],Sig),CVars,theta(Lc,Lbl,Anon,RDefs,[],[],Sig)) :-
+resolveHead(theta(Lc,Lbl,Anon,Defs,Sig),CVars,theta(Lc,Lbl,Anon,RDefs,Sig)) :-
   addExtraDefs(CVars,Defs,RDefs).
 
 addExtra(Extra,tple(Lc,Els),tple(Lc,EEls)) :-
