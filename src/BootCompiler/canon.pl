@@ -132,6 +132,7 @@ locOfCanon(search(Lc,_,_,_),Lc) :-!.
 locOfCanon(match(Lc,_,_),Lc) :-!.
 locOfCanon(conj(Lc,_,_),Lc) :-!.
 locOfCanon(disj(Lc,_,_),Lc) :-!.
+locOfCanon(neg(Lc,_),Lc) :-!.
 locOfCanon(implies(Lc,_,_),Lc) :-!.
 locOfCanon(cond(Lc,_,_,_,_),Lc) :-!.
 locOfCanon(theta(Lc,_,_,_,_),Lc) :-!.

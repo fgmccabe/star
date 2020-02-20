@@ -72,7 +72,7 @@ genCondition(Other,_Path,Lift,Seq,Succ,Initial,Exp) :-
 negatedCondition(Lc,Qury,Path,Lift,Seq,Succ,Initial,Exp) :-
   LogicalTp = type("star.core*boolean"),
   genCondition(Qury,Path,Lift,Seq,
-	       cnc:mkLogical(Lc,Lift,"true"),
+	       cnc:mkLogical(Lc,Lift),
 	       unlifted(enm(Lc,"false",LogicalTp)),
 	       Negated),
 
@@ -84,8 +84,8 @@ negatedCondition(Lc,Qury,Path,Lift,Seq,Succ,Initial,Exp) :-
   call(Seq,St,lifted(Negated),cond(Lc,St,Init,SuccCase,Tp),Exp).
 %  reportMsg("negated condition -> %s",[Exp]).
 
-mkLogical(Lc,Lift,Case,_,Deflt) :-
-  call(Lift,unlifted(enm(Lc,Case,type("star.core*boolean"))),Deflt).
+mkLogical(Lc,Lift,_,Deflt) :-
+  call(Lift,unlifted(enm(Lc,"true",type("star.core*boolean"))),Deflt).
 
 typeOfInitial(lifted(C),T) :-!,
   typeOfCanon(C,T).

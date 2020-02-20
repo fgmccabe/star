@@ -63,21 +63,18 @@ genAction(throwDo(Lc,A,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
   Gen = over(Lc,mtd(Lc,"_raise",funType(tupleType([ErTp]),Tp)),
 	     true,[conTract(Contract,[ExTp],[])]),
   combineActs(Lc,apply(Lc,Gen,tple(Lc,[A]),Tp),Cont,Contract,ExTp,Exp).
-genAction(performDo(Lc,Ex,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-
+genAction(performDo(Lc,Ex,ExTp,VlTp,ErTp),Contract,Cont,Exp,_) :-!,
   genReturn(Lc,Ex,ExTp,VlTp,ErTp,Contract,Perf),
   combineActs(Lc,Perf,Cont,Contract,ExTp,Exp).
-genAction(simpleDo(Lc,SimpleExp,ExTp),Contract,Cont,Exp,_) :-
+genAction(simpleDo(Lc,SimpleExp,ExTp),Contract,Cont,Exp,_) :-!,
   combineActs(Lc,SimpleExp,Cont,Contract,ExTp,Exp).
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
 	  cond(Lc,Tst,Then,Else,MTp),Path) :-
   mkTypeExp(StTp,[ErTp,ValTp],MTp),
   isIterableGoal(Ts),!,
-
   genAction(Th,Contract,Cont,Then,Path),
   genAction(El,Contract,Cont,Else,Path),
-
   genIterableGl(Ts,Contract,Path,Tst).
-
 genAction(ifThenDo(Lc,Ts,Th,El,StTp,ValTp,ErTp),Contract,Cont,
 	  cond(Lc,Ts,Then,Else,MTp),Path) :-
   mkTypeExp(StTp,[ErTp,ValTp],MTp),

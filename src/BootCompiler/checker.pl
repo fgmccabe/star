@@ -851,7 +851,7 @@ checkDo(Lc,B,Env,Ev,Tp,EE,Path) :-
 %   reportMsg("execution type %s",[MTp]);
    reportError("execution contract not defined",[],Lc),
    newTypeVar("_t",ExTp)),
-  checkAction(B,Env,Ev,Contract,ExTp,ValTp,ErTp,Body,Path),
+  checkAction(B,Env,Ev,Contract,ExTp,ValTp,ErTp,Body,Path),!,
 %  reportMsg("Basic action %s",[doTerm(Lc,Body,ExTp,ValTp,ErTp)]),
   genAction(delayDo(Lc,Body,ExTp,ValTp,ErTp),Contract,noDo(Lc),EE,Path).
 %  reportMsg("Action-> %s",[EE]).
@@ -874,6 +874,11 @@ checkAction(Term,Env,Ev,_,ExTp,VlTp,ErTp,varDo(Lc,Ptn,Exp,ExTp,VlTp,ErTp),Path) 
   newTypeVar("_P",PT),
   typeOfPtn(P,PT,Env,Ev,Ptn,Path),
   typeOfExp(Ex,PT,Env,_,Exp,Path).
+checkAction(Term,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path) :-
+  isOptionMatch(Term,Lc,P,Exp),!,
+  unary(Lc,"some",P,OP),
+  binary(Lc,".=",OP,Exp,Term2),
+  checkAction(Term2,Env,Ev,Contract,ExTp,ValTp,ErTp,Act,Path).
 checkAction(Term,Env,Ev,_,ExTp,ValTp,ErTp,varDo(Lc,Lhs,cell(Lc,Rhs),ExTp,ValTp,ErTp),Path) :-
   isAssignment(Term,Lc,L,R),
   isIden(L,_,Vr),
