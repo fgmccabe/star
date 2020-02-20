@@ -30,6 +30,9 @@ star.compiler.misc{
   public packageVar:(pkg)=>string.
   packageVar(pkg(P,_)) => qualifiedName(P,markerString(pkgMark),"").
 
+  public packageVarName:(string,string)=>string.
+  packageVarName(P,L) => qualifiedName(P,markerString(pkgMark),L).
+
   public packageName:(pkg)=>string.
   packageName(pkg(P,_))=>P.
 

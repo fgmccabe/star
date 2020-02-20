@@ -51,7 +51,8 @@ star.compiler.canon{
     tryCatchDo(locn,canonAction,canon,tipe,tipe,tipe) |
     throwDo(locn,canon,tipe,tipe,tipe) |
     returnDo(locn,canon,tipe,tipe,tipe) |
-    simpleDo(locn,canon,tipe).
+    simpleDo(locn,canon,tipe) |
+    performDo(locn,canon,tipe,tipe,tipe).
     
   public canonDef ::= varDef(locn,string,string,canon,list[constraint],tipe) |
     typeDef(locn,string,tipe,tipe) |
@@ -116,6 +117,44 @@ star.compiler.canon{
   public implementation hasLoc[equation] => {.
     locOf(eqn(Lc,_,_,_)) => Lc.
   .}
+
+  public implementation hasLoc[canonAction] => {.
+    locOf(noDo(Lc)) => Lc.
+    locOf(seqnDo(Lc,_,_)) => Lc.
+    locOf(bindDo(Lc,_,_,_,_,_)) => Lc.
+    locOf(varDo(Lc,_,_)) => Lc.
+    locOf(assignDo(Lc,_,_,_,_)) => Lc.
+    locOf(delayDo(Lc,_,_,_,_)) => Lc.
+    locOf(ifThenElseDo(Lc,_,_,_,_,_,_)) => Lc.
+    locOf(whileDo(Lc,_,_,_,_)) => Lc.
+    locOf(forDo(Lc,_,_,_,_)) => Lc.
+    locOf(tryCatchDo(Lc,_,_,_,_,_)) => Lc.
+    locOf(throwDo(Lc,_,_,_,_)) => Lc.
+    locOf(returnDo(Lc,_,_,_,_)) => Lc.
+    locOf(simpleDo(Lc,_,_)) => Lc.
+    locOf(performDo(Lc,_,_,_,_)) => Lc.
+  .}
+
+
+    public implementation display[canonAction] => let{
+    dispAction(noDo(Lc)) => ss("{}").
+    dispAction(seqnDo(Lc,L,R)) => ssSeq([dispAction(L),ss(";"),dispAction(R)]).
+    dispAction(bindDo(Lc,Ptn,Exp,_,_,_)) => ssSeq([disp(Ptn),ss("<-"),disp(Exp)]).
+    dispAction(varDo(Lc,Ptn,Exp)) => ssSeq([disp(Ptn),ss(".="),disp(Exp)]).
+    dispAction(assignDo(Lc,L,R,_,_)) => ssSeq([disp(L),ss(":="),disp(R)]).
+    dispAction(delayDo(_,Act,_,_,_)) => ssSeq([ss("delay "),dispAction(Act)]).
+    dispAction(ifThenElseDo(Lc,Ts,Th,El,_,_,_)) =>  ssSeq([ss("if"),disp(Ts),ss("then"),dispAction(Th),ss("else"),dispAction(El)]).
+    dispAction(whileDo(Lc,Ts,Bd,_,_)) => ssSeq([ss("while "),disp(Ts),ss("do"),dispAction(Bd)]).
+    dispAction(forDo(Lc,Ts,Bd,_,_)) => ssSeq([ss("for "),disp(Ts),ss("do"),dispAction(Bd)]).
+    dispAction(tryCatchDo(Lc,Bdy,Catch,_,_,_)) => ssSeq([ss("try "),dispAction(Bdy),ss(" catch "),disp(Catch)]).
+    dispAction(throwDo(Lc,Exp,_,_,_)) => ssSeq([ss("throw "),disp(Exp)]).
+    dispAction(returnDo(Lc,Exp,_,_,_)) => ssSeq([ss("return "),disp(Exp)]).
+    dispAction(simpleDo(Lc,Exp,_)) => ssSeq([ss("do "),disp(Exp)]).
+    dispAction(performDo(Lc,Act,_,_,_)) => ssSeq([ss("perform "),disp(Act)]).
+  } in {.
+    disp = dispAction
+  .}
+
 
   public implementation display[pkgSpec] => {.
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
