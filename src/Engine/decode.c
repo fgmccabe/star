@@ -407,8 +407,9 @@ retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char 
               integer offset, size;
               ret = decodeInteger(in, &offset);
               if (ret == Ok) {
-                setFieldTblEntry(fieldTbl, field, offset);
                 ret = decodeInteger(in, &size);
+                if (ret == Ok)
+                  setFieldTblEntry(fieldTbl, field, offset, size);
               }
             }
           }

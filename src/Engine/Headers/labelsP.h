@@ -15,7 +15,8 @@
 
 typedef struct _field_bucket_ {
   labelPo lbl;
-  integer offset;
+  integer offset; // offset in bytes of field
+  integer size;   // Size in bytes of field
 } FieldBucket, *fieldPo;
 
 typedef struct _field_table_ {
@@ -43,5 +44,5 @@ void declareFields(labelPo lbl, fieldTblPo tbl);
 extern fieldTblPo newFieldTable(integer count);
 extern void clearFieldTable(labelPo lbl);
 extern void destroyFieldTable(fieldTblPo tbl);
-extern void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset);
+extern void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset, integer size);
 #endif //STAR_LABELSP_H
