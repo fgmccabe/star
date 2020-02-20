@@ -2,6 +2,7 @@ star.boot{
   -- special boot for testing in this directory
 
   import test.fl.
+  import test.ls.
 
   public __boot:()=>().
   __boot() where 
