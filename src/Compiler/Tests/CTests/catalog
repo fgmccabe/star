@@ -5,8 +5,8 @@
     "test.ar" : "ar.star",
     "star.core": "core.star",
     "test.c" : "c.star",
+    "test.ls" : "ls.star",
     "star.boot" : "boot.star"
   },
-  "version": "1.0.0",
-  "default": "../catalog"
+  "version": "1.0.0"
 }

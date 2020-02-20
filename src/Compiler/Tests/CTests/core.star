@@ -25,4 +25,11 @@ star.core{
 
   public id:all a ~~ (a)=>a.
   id(X)=>X.
+
+  public contract all S,E ~~ sequence[S->>E] ::= {
+    _cons:(E,S) => S.
+    _apnd:(S,E) => S.
+    _nil:S.
+  }
+  
 }
