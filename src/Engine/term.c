@@ -72,10 +72,10 @@ typedef struct {
   logical alt;
 } FieldInfoRec;
 
-static retCode showField(labelPo fldLbl, integer ix, void *cl) {
+static retCode showField(labelPo fldLbl, integer offset, integer size, void *cl) {
   FieldInfoRec *info = (FieldInfoRec *) cl;
-  tryRet(outMsg(info->out, "%T[%d] = ", fldLbl, ix));
-  return dispTerm(info->out, nthArg(info->trm, ix), info->precision, info->depth, info->alt);
+  tryRet(outMsg(info->out, "%T[%d] = ", fldLbl, offset));
+  return dispTerm(info->out, nthArg(info->trm, offset), info->precision, info->depth, info->alt);
 }
 
 retCode dispTerm(ioPo out, termPo t, integer precision, integer depth, logical alt) {
@@ -195,7 +195,7 @@ normalPo allocatePair(heapPo H, termPo lhs, termPo rhs) {
 }
 
 termPo getField(normalPo term, labelPo field) {
-  integer offset = fieldOffset(term->lbl, field);
+  integer offset = fieldIndex(term->lbl, field);
   if (offset >= 0)
     return nthArg(term, offset);
   else
@@ -203,7 +203,7 @@ termPo getField(normalPo term, labelPo field) {
 }
 
 retCode setField(normalPo term, labelPo field, termPo val) {
-  integer offset = fieldOffset(term->lbl, field);
+  integer offset = fieldIndex(term->lbl, field);
   if (offset >= 0) {
     setArg(term, offset, val);
     return Ok;

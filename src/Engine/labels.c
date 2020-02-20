@@ -244,7 +244,7 @@ logical isRecordLabel(labelPo lbl) {
   return lbl->fields != Null;
 }
 
-integer fieldOffset(labelPo lbl, labelPo field) {
+integer fieldIndex(labelPo lbl, labelPo field) {
   fieldTblPo fields = lbl->fields;
   if (fields == Null)
     return -1;
@@ -278,10 +278,11 @@ fieldTblPo newFieldTable(integer count) {
   return tbl;
 }
 
-void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset) {
+void setFieldTblEntry(fieldTblPo tbl, labelPo field, integer offset, integer size) {
   assert(offset >= 0 && offset < tbl->size);
   tbl->entries[offset].lbl = field;
   tbl->entries[offset].offset = offset;
+  tbl->entries[offset].size = size;
 }
 
 void destroyFieldTable(fieldTblPo tbl) {
@@ -297,8 +298,7 @@ void clearFieldTable(labelPo lbl) {
 retCode applyFieldProc(labelPo lbl, integer ix, fieldProc p, void *cl) {
   assert(ix >= 0 && ix < lbl->fields->size);
   fieldPo fld = &lbl->fields->entries[ix];
-  assert(fld->offset==ix);
-  return p(fld->lbl, ix, cl);
+  return p(fld->lbl, fld->offset, fld->size, cl);
 }
 
 retCode showFields(ioPo out, fieldTblPo tbl) {
@@ -310,7 +310,7 @@ retCode showFields(ioPo out, fieldTblPo tbl) {
     ret = outMsg(out, "{ ");
     for (integer ix = 0; ret == Ok && ix < tbl->size; ix++) {
       fieldPo fld = &tbl->entries[ix];
-      ret = outMsg(out, "%s%d: %A", sep, fld->offset, fld->lbl);
+      ret = outMsg(out, "%s%d(%d): %A", sep, fld->offset, fld->size, fld->lbl);
       sep = "; ";
     }
     if (ret == Ok)
