@@ -3,6 +3,7 @@ star.compiler.freevars{
   import star.sets.
 
   import star.compiler.canon.
+  import star.compiler.location.
   import star.compiler.core.
   import star.compiler.escapes.
   import star.compiler.types.
@@ -125,6 +126,9 @@ star.compiler.freevars{
 --  exclDf(cnsDef(_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(implDef(_,_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(_,Excl,_) => Excl.
+
+  public goalVars:(locn,canon)=>list[canon].
+  goalVars(Lc,Cond) => ((ptnVars(Cond,[],[])::list[crVar])//(crId(Nm,Tp))=>vr(Lc,Nm,Tp)).
 
   ptnVars:(canon,set[crVar],set[crVar]) => set[crVar].
   ptnVars(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,Tp) in Excl => Excl.

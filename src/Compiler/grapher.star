@@ -32,9 +32,12 @@ star.compiler.grapher{
   scanPkgs:(list[importSpec],termRepo,catalog,list[(importSpec,list[importSpec])],reports)=>either[reports,list[(importSpec,list[importSpec])]].
   scanPkgs([],_,_,SoFar,_) => either(SoFar).
   scanPkgs([P,..Pkgs],Repo,Cat,SoFar,Rp) where pkgImp(Lc,Vz,Pkg) .=P => do{
+--    logMsg("scanning $(P)");
     if (pkgImp(_,_,Pk),_) in SoFar && compatiblePkg(Pk,Pkg) then{
+--      logMsg("$(P) already ok");
       scanPkgs(Pkgs,Repo,Cat,SoFar,Rp)
     } else if (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) then {
+--      logMsg("$(P) in repo at $(CodeUri)");
       if newerFile(CodeUri,SrcUri) then {
 	try{
 	  pkgSpec(_,Imps,_,_,_,_) <- importPkg(Pkg,Lc,Repo,Rp);
@@ -63,7 +66,7 @@ star.compiler.grapher{
       } else
       throw reportError(Rp,"package in catalog $(CPkg) not compatible with requested package $(Pkg)",Lc)
     } else
-    throw reportError(Rp,"package $(Pkg) not in catalog",Lc)
+    throw reportError(Rp,"package $(Pkg) not in catalog $(Cat)",Lc)
   }
 
   scanForImports:(ast,reports) => either[reports,list[importSpec]].

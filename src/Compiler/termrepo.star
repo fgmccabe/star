@@ -26,6 +26,14 @@ star.compiler.term.repo{
 	RU ^= resolveUri(Root,Uri)  => getResource(RU).
     hasCode(_,_) default => none.
   }
+
+  flushRepo:(termRepo)=>termRepo.
+  flushRepo(repo(Root,Man)) => valof action{
+    MU ^= parseUri("manifest");
+    RepoUri ^= resolveUri(Root,MU);
+    () .= flushManifest(RepoUri,Man);
+    valis repo(Root,Man)
+  }
   
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
   addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) where
@@ -51,6 +59,10 @@ star.compiler.term.repo{
         newerFile(CodeFile,SrcFile).
   packageCodeOk(_,_) default => false.
 
+  public pkgOk:(termRepo,pkg)=>boolean.
+  pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) ?
+    newerFile(CodeUri,SrcUri) || false.
+
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
   packageCode(repo(Root,Man),Pkg) where
       U ^= locateInManifest(Man,Pkg,"code") &&
@@ -65,7 +77,7 @@ star.compiler.term.repo{
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
 
   public addSource:(termRepo,pkg,string) => termRepo.
-  addSource(repo(Root,Man),Pkg,Nm) => repo(Root,addToManifest(Man,Pkg,"source",Nm)).
+  addSource(repo(Root,Man),Pkg,Nm) => flushRepo(repo(Root,addToManifest(Man,Pkg,"source",Nm))).
 
   extensionMapping:(string) => string.
   extensionMapping("source") => ".star".

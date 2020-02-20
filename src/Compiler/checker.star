@@ -4,12 +4,13 @@ star.compiler.checker{
   import star.pkg.
   import star.repo.
 
---  import star.compiler.action.
+  import star.compiler.action.
   import star.compiler.ast.
   import star.compiler.canon.
   import star.compiler.dependencies.
   import star.compiler.dict.
   import star.compiler.errors.
+  import star.compiler.freshen.
   import star.compiler.impawt.
   import star.compiler.location.
   import star.compiler.meta.
@@ -18,7 +19,6 @@ star.compiler.checker{
   import star.compiler.terms.
   import star.compiler.types.
   import star.compiler.typeparse.
-  import star.compiler.freshen.
   import star.compiler.unify.
   import star.compiler.wff.
 
@@ -511,7 +511,7 @@ star.compiler.checker{
     checkDo(Stmts,Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Exp) ^= isValof(A) =>
     typeOfExp(unary(Lc,"_perform",Exp),Tp,Env,Path,Rp).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) =>
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Els) ^= isSqTuple(A) && \+ _ ^= isAbstraction(A) =>
     typeOfExp(macroSquareExp(Lc,Els),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where (_,[El]) ^= isTuple(A) && \+ _ ^= isTuple(El) =>
     typeOfExp(El,Tp,Env,Path,Rp).
@@ -621,7 +621,15 @@ star.compiler.checker{
   }
 
   checkCond:(ast,dict,string,reports) => either[reports,(canon,dict)].
-  checkCond(A,Env,Path,Rp) => checkGoal(A,Env,Path,Rp).
+  checkCond(A,Env,Path,Rp) => do{
+    (Gl,NE) <- checkGoal(A,Env,Path,Rp);
+    if isIterableGoal(Gl) then{
+      Cond <- processIterable(Gl,Path,NE,Rp);
+      valis (Cond,NE)
+    }
+    else
+    valis (Gl,NE)
+  }
 
   checkGoal:(ast,dict,string,reports) => either[reports,(canon,dict)].
   checkGoal(A,Env,Path,Rp) where (Lc,L,R) ^= isConjunct(A) => do{
@@ -720,6 +728,8 @@ star.compiler.checker{
 
     valis (varDo(Lc,Ptn,Exp),Ev)
   }
+  checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isOptionMatch(A) =>
+    checkAction(binary(Lc,".=",unary(Lc,"some",L),R),Env,StTp,ElTp,ErTp,Path,Rp).
   checkAction(A,Env,StTp,ElTp,ErTp,Path,Rp) where (Lc,L,R) ^= isAssignment(A) => do{
     Et .= newTypeVar("P");
     if (LLc,Coll,[Arg]) ^= isSquareTerm(L) then {
@@ -846,30 +856,71 @@ star.compiler.checker{
 
   checkAbstraction:(locn,ast,ast,tipe,dict,string,reports) => either[reports,canon].
   checkAbstraction(Lc,B,C,Tp,Env,Path,Rp) => do{
+    logMsg("checking abstraction $(B) | $(C)");
     (Cond,E0) <- checkGoal(C,Env,Path,Rp);
-    (StTp,BndTp) <- pickupContract(Lc,Env,"sequence",Rp);
+    (_,StTp,ElTp) <- pickupContract(locOf(Cond),Env,"sequence",Rp);
     checkType(B,Tp,StTp,Env,Rp);
-    Bnd <- typeOfExp(B,BndTp,E0,Path,Rp);
-    valis abstraction(Lc,Bnd,Cond,Tp)
+    Bnd <- typeOfExp(B,ElTp,E0,Path,Rp);
+    genAbstraction(Lc,Bnd,Cond,Env,Path,Rp)
   }
 
-  pickupContract:(locn,dict,string,reports) => either[reports,(tipe,tipe)].
-  pickupContract(Lc,Env,Nm,Rp) => do{
-    if Con ^= findContract(Env,Nm) then{
-      (_,typeExists(funDeps(tpExp(Op,StTp),[ErTp]),_)) .=
-	freshen(Con,[],Env);
-      valis (StTp,ErTp)
-    } else
-      throw reportError(Rp,"$(Nm) contract not defined",Lc)
+  processIterable:(canon,string,dict,reports)=>either[reports,canon].
+  processIterable(Cond,Path,Env,Rp) where isIterableGoal(Cond) => do {
+    (Contract,_,_) <- pickupContract(locOf(Cond),Env,"execution",Rp);
+    genIterableGoal(Cond,Contract,Path,Rp)
+  }
+  processIterable(apply(Lc,Op,Arg,Tp),Path,Env,Rp) => do{
+    NOp <- processIterable(Op,Path,Env,Rp);
+    NArg <- processIterable(Arg,Path,Env,Rp);
+    valis apply(Lc,NOp,NArg,Tp)
+  }
+  processIterable(dot(Lc,Rec,Fld,Tp),Path,Env,Rp) => do{
+    NRec <- processIterable(Rec,Path,Env,Rp);
+    valis dot(Lc,NRec,Fld,Tp)
+  }
+  processIterable(tple(Lc,Els),Path,Env,Rp) => do{
+    NEls <- _iter(Els,do{valis []},(El,Ot)=>either([Ot..,valof processIterable(El,Path,Env,Rp)]));
+    valis tple(Lc,NEls)
+  }
+  processIterable(whr(Lc,E,C),Path,Env,Rp) => do{
+    NE <- processIterable(E,Path,Env,Rp);
+    NC <- processIterable(C,Path,Env,Rp);
+    valis whr(Lc,NE,NC)
+  }
+  processIterable(conj(Lc,E,C),Path,Env,Rp) => do{
+    NE <- processIterable(E,Path,Env,Rp);
+    NC <- processIterable(C,Path,Env,Rp);
+    valis conj(Lc,NE,NC)
+  }
+  processIterable(disj(Lc,E,C),Path,Env,Rp) => do{
+    NE <- processIterable(E,Path,Env,Rp);
+    NC <- processIterable(C,Path,Env,Rp);
+    valis disj(Lc,NE,NC)
+  }
+  processIterable(implies(Lc,E,C),Path,Env,Rp) => do{
+    NE <- processIterable(E,Path,Env,Rp);
+    NC <- processIterable(C,Path,Env,Rp);
+    valis implies(Lc,NE,NC)
+  }
+  processIterable(cond(Lc,Ts,Th,El),Path,Env,Rp) => do{
+    NTs <- processIterable(Ts,Path,Env,Rp);
+    NTh <- processIterable(Th,Path,Env,Rp);
+    NEl <- processIterable(El,Path,Env,Rp);
+    valis cond(Lc,NTs,NTh,NEl)
+  }
+  processIterable(neg(Lc,C),Path,Env,Rp) => do{
+    NC <- processIterable(C,Path,Env,Rp);
+    valis neg(Lc,NC)
+  }
+  processIterable(match(Lc,E,C),Path,Env,Rp) => do{
+    NE <- processIterable(E,Path,Env,Rp);
+    NC <- processIterable(C,Path,Env,Rp);
+    valis match(Lc,NE,NC)
+  }
+  processIterable(E,Path,Env,Rp) default => do{
+    valis E
   }
 
-  pickupIxContract:(locn,dict,string,reports) => either[reports,(tipe,tipe,tipe,tipe)].
-  pickupIxContract(Lc,Env,Nm,Rp) => do{
-    if Con ^= findContract(Env,Nm) then{
-      (_,typeExists(funDeps(tpExp(Op,IxTp),[KyTp,VlTp]),_)) .=
-	freshen(Con,[],Env);
-      valis (Op,IxTp,KyTp,VlTp)
-    } else
-      throw reportError(Rp,"$(Nm) contract not defined",Lc)
-  }
+
+
 }
