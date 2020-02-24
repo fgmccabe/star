@@ -51,7 +51,7 @@ star.compiler.assem{
     idBug |
     idBreak |
 
-    iLbl(string) |
+    iLbl(assemLbl) |
     iLocal(string,string,string,integer) |
     iLine(term).
 
@@ -124,7 +124,7 @@ star.compiler.assem{
 
   genLblTbl:(list[assemOp],integer,map[string,integer]) => map[string,integer].
   genLblTbl([],_,Lbls) => Lbls.
-  genLblTbl([iLbl(Lbl),..Ins],Pc,Lbls) =>
+  genLblTbl([iLbl(al(Lbl)),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls[Lbl->Pc]).
   genLblTbl([iLocal(_,_,_,_),..Ins],Pc,Lbls) =>
     genLblTbl(Ins,Pc,Lbls).
@@ -182,7 +182,6 @@ star.compiler.assem{
   compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
   compLine(T1->P1,T2->P2) => P1<P2.
 
-
   public implementation display[codeSegment] => {.
     disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
     disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
@@ -194,7 +193,7 @@ star.compiler.assem{
 
   showMnem:(list[assemOp],integer,list[ss]) => list[ss].
   showMnem([],_,Out) => Out.
-  showMnem([iLbl(Lb),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Lb),ss(":\n")]).
+  showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Lb),ss(":\n")]).
   showMnem([iLocal(Nm,Frm,End,_Off),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Nm),ss("::"),disp(Frm),ss("-"),disp(End),ss("\n")]).
   showMnem([iHalt,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("Halt"),ss("\n")]).
   showMnem([iCall(XX),..Ins],Pc,Out) => showMnem(Ins,Pc+3,[Out..,disp(Pc),ss(":"),ss("Call"),ss(" "),disp(XX),ss("\n")]).
