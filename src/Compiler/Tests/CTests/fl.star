@@ -1,6 +1,7 @@
 test.fl{
   import star.core.
   import test.ar.
+--  import star.arith.
 --  import test.c.
   
   public fact:(integer)=>integer.

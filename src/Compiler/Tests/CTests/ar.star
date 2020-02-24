@@ -23,4 +23,13 @@ test.ar{
     one = 1.
     __minus(Ix) => _int_minus(0,Ix).
   }.
+
+  public implementation display[integer] => {
+    disp(X) => ss(_int2str(X,10,0,0c )).
+  }
+
+    public implementation equality[integer] => {
+    X == Y => _int_eq(X,Y).
+  }
+
 }  
