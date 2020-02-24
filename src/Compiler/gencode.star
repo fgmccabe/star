@@ -21,7 +21,7 @@ star.compiler.gencode{
 
   Cont ::= cont{
     C:(codeCtx,list[assemOp],cons[tipe],reports)=>either[reports,(codeCtx,list[assemOp],cons[tipe])].
-    L:option[string]
+    L:option[assemLbl]
   }.
 
   codeCtx ::= codeCtx(map[string,srcLoc],locn,integer,integer).
@@ -113,6 +113,8 @@ star.compiler.gencode{
     (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
     compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
+  compExp(crCase(Lc,Exp,Cases,Deflt,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
+    compCase(Lc,Exp,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp).
   compExp(crAbort(Lc,Msg,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps([Lc::crExp,crStrg(Lc,Msg)],Opts,bothCont(escCont("_abort",2,Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
 
@@ -130,7 +132,80 @@ star.compiler.gencode{
   compExps([],Opts,Cont,Ctx,Cde,Stk,Rp)=>Cont.C(Ctx,Cde,Stk,Rp).
   compExps([El,..Es],Opts,Cont,Ctx,Cde,Stk,Rp)=>
     compExps(Es,Opts,expCont(El,Opts,Cont),Ctx,Cde,Stk,Rp).
-  
+
+  compCase:(locn,crExp,list[crCase],crExp,tipe,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) => either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compCase(Lc,E,Cases,Deflt,Tp,Opts,Cont,Ctx,Cde,Stk,Rp) => do{
+    (Nxt,Ctx1) .= defineLbl(Ctx);
+    (DLbl,Ctx2) .= defineLbl(Ctx1);
+    OC .= onceCont(Cont);
+    (Ctx3,ECode,EStk) <- compExp(E,Opts,jmpCont(Nxt),Ctx2,Cde,Stk,Rp);
+    (Table,Max) .= genCaseTable(Cases);
+    logMsg("case max: $(Max), table $(Table)");
+    (Ctx4,CCode,_) <- compCases(Table,0,Max,Cont,jmpCont(DLbl),DLbl,Opts,Ctx3,[ECode..,iLbl(Nxt),iCase(Max)],EStk,Rp);
+    compExp(Deflt,Opts,Cont,Ctx4,[CCode..,iLbl(DLbl),iRst(size(Stk))],Stk,Rp)
+  }
+
+  genCaseTable(Cases) where Mx.=nextPrime(size(Cases)) =>
+    (sortCases(caseHashes(Cases,Mx)),Mx).
+
+  caseHashes:(list[crCase],integer)=>list[(locn,crExp,integer,crExp)].
+  caseHashes(Cases,Mx) => (Cases//((Lc,Pt,Ex))=>(Lc,Pt,caseHash(Pt,Mx),Ex)).
+
+  caseHash:(crExp,integer)=>integer.
+  caseHash(crVar(_,_),_) => 0.
+  caseHash(crInt(_,Ix),Mx) => Ix%Mx.
+  caseHash(crFlot(_,Dx),Mx) => hash(Dx)%Mx.
+  caseHash(crStrg(_,Sx),Mx) => hash(Sx)%Mx.
+  caseHash(crLbl(_,Nm,Tp),Mx) => (arity(Tp)*37+hash(Nm))%Mx.
+  caseHash(crTerm(_,Nm,Args,_),Mx) => (size(Args)*37+hash(Nm))%Mx.
+
+  sortCases(Cases) => mergeDuplicates(sort(Cases,((_,_,H1,_),(_,_,H2,_))=>H1<H2)).
+
+  mergeDuplicates:(list[(locn,crExp,integer,crExp)])=>list[(integer,list[(locn,crExp,crExp)])].
+  mergeDuplicates([])=>[].
+  mergeDuplicates([(Lc,Pt,Hx,Ex),..M]) where (D,Rs).=mergeDuplicate(M,Hx,[]) =>
+    [(Hx,[(Lc,Pt,Ex),..D]),..mergeDuplicates(Rs)].
+
+  mergeDuplicate([(Lc,Pt,Hx,Ex),..M],Hx,SoFar) =>
+    mergeDuplicate(M,Hx,[SoFar..,(Lc,Pt,Ex)]).
+  mergeDuplicate(M,_,SoFar) default => (SoFar,M).
+
+  compCases:(list[(integer,list[(locn,crExp,crExp)])],integer,integer,Cont,Cont,assemLbl,compilerOptions,
+    codeCtx,list[assemOp],cons[tipe],reports) => either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compCases([],Mx,Mx,_,_,_,_,Ctx,Cde,Stk,_) => either((Ctx,Cde,Stk)).
+  compCases([],Ix,Mx,Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) where Ix<Mx =>
+    compCases([],Ix+1,Mx,Succ,Fail,Deflt,Opts,Ctx,[Cde..,iJmp(Deflt)],Stk,Rp).
+  compCases([(Ix,Case),..Cases],Ix,Mx,Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) => do{
+    (Lb,Ctx1) .= defineLbl(Ctx);
+    (Ctx2,Cde2,_) <- compCases(Cases,Ix+1,Mx,Succ,Fail,Deflt,Opts,Ctx1,[Cde..,iJmp(Lb)],Stk,Rp);
+    compCaseBranch(Case,Succ,Fail,Deflt,Opts,Ctx2,[Cde2..,iLbl(Lb)],Stk,Rp)
+  }
+  compCases([(Iy,Case),..Cases],Ix,Mx,Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) =>
+    compCases([(Iy,Case),..Cases],Ix+1,Mx,Succ,Fail,Deflt,Opts,Ctx,[Cde..,iJmp(Deflt)],Stk,Rp).
+
+  compCaseBranch([(Lc,Ptn,Exp)],Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) => do{
+    (Nxt,Ctx1) .= defineLbl(Ctx);
+    (Ctx2,Cde2,Stk1)<-compPtn(Ptn,Opts,jmpCont(Nxt),Fail,Ctx1,Cde,Stk,Rp);
+    compExp(Exp,Opts,Succ,Ctx2,[Cde2..,iLbl(Nxt)],Stk1,Rp)
+  }
+  compCaseBranch([(Lc,Ptn,Exp),..More],Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) => do{
+--    (Nxt,Ctx1) .= defineLbl(Ctx);
+    (Fl,Ctx2) .= defineLbl(Ctx);
+    (VLb,Ctx3) .= defineLbl(Ctx2);
+    Vr .= crId(genSym("__"),typeOf(Ptn));
+    (Off,Ctx4) .= defineLclVar(Vr,Ctx3);
+    (Ctx5,Cde2,Stk1)<-compPtn(Ptn,Opts,expCont(Exp,Opts,Succ),jmpCont(Fl),Ctx4,[Cde..,iTL(Off)],Stk,Rp);
+    compMoreCase(More,Off,Succ,Fail,Opts,Ctx5,[Cde2..,iLbl(Fl)],Stk,Rp)
+  }
+
+  compMoreCase:(list[(locn,crExp,crExp)],integer,Cont,Cont,compilerOptions,codeCtx,list[assemOp],cons[tipe],reports) => either[reports,(codeCtx,list[assemOp],cons[tipe])].
+  compMoreCase([],_,_,Fail,Opts,Ctx,Cde,Stk,Rp) => Fail.C(Ctx,Cde,Stk,Rp).
+  compMoreCase([(Lc,Ptn,Exp),..More],Off,Succ,Fail,Opts,Ctx,Cde,Stk,Rp) => do{
+    (Fl,Ctx1) .= defineLbl(Ctx);
+    (Ctx5,Cde2,Stk1)<-compPtn(Ptn,Opts,expCont(Exp,Opts,Succ),jmpCont(Fl),Ctx1,[Cde..,iLdL(Off)],Stk,Rp);
+    compMoreCase(More,Off,Succ,Fail,Opts,Ctx5,[Cde2..,iLbl(Fl)],Stk,Rp)
+  }
+    
   compVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
   compVar(Lc,Nm,argVar(Off,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
@@ -188,7 +263,7 @@ star.compiler.gencode{
     RCont .= lblCont(FLb,resetCont(size(Stk),JCont));
     compPtns(Args,0,Opts,
       resetCont(size(Stk),Succ),RCont,ctxLbls(Ctx,Ctx3),
-      [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(al(NLb))]++FlCode,[Stk..,Tp],Rp)
+      [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(NLb)]++FlCode,[Stk..,Tp],Rp)
   }
   compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
     compPtn(Ptn,Opts,condCont(Cond,Opts,Succ,Fail),Fail,Ctx,Cde,Stk,Rp).
@@ -213,10 +288,10 @@ star.compiler.gencode{
   ptnTest:(locn,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
   ptnTest(_,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) where Fl^=Fail.L =>
-    Succ.C(Ctx,[Cde..,iCmp(al(Fl))],Stk,Rp).
+    Succ.C(Ctx,[Cde..,iCmp(Fl)],Stk,Rp).
   ptnTest(Lc,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) => do{
     (Fl,Ctx1) .= defineLbl(Ctx);
-    (Ctx2,Cde1,Stk1) <- Succ.C(Ctx1,[Cde..,iCmp(al(Fl))],Stk,Rp);
+    (Ctx2,Cde1,Stk1) <- Succ.C(Ctx1,[Cde..,iCmp(Fl)],Stk,Rp);
     (Ctx3,Cde2,Stk2) <- Fail.C(Ctx2,[Cde1..,iLbl(Fl)],Stk,Rp);
     Stkx <- mergeStack(Lc,Stk1,Stk2,Rp);
     valis (Ctx3,Cde2,Stkx)
@@ -243,13 +318,13 @@ star.compiler.gencode{
       valis (Ctx,[Cde..,iRet],Stk)
     })
 
-  jmpCont:(string)=>Cont.
+  jmpCont:(assemLbl)=>Cont.
   jmpCont(Lb) => cont{
-    C(Ctx,Cde,Stk,Rp)=>either((Ctx,[Cde..,iJmp(al(Lb))],Stk)).
+    C(Ctx,Cde,Stk,Rp)=>either((Ctx,[Cde..,iJmp(Lb)],Stk)).
     L=some(Lb).
   }.
 
-  lblCont:(string,Cont)=>Cont.
+  lblCont:(assemLbl,Cont)=>Cont.
   lblCont(Lb,CC) => cont{
     C(Ctx,Cde,Stk,Rp)=>CC.C(Ctx,[Cde..,iLbl(Lb)],Stk,Rp).
     L=some(Lb).
@@ -343,7 +418,7 @@ star.compiler.gencode{
     cc:Cont.
     cc=ccont((Ctx,Cde,Stk,Rp) => do{
 	if (Lbl,Cx,Sk)^=d! then
-	  valis (Cx,[Cde..,iJmp(al(Lbl))],Sk)
+	  valis (Cx,[Cde..,iJmp(Lbl)],Sk)
 	else{
 	  (Lbl,Cx) .= defineLbl(Ctx);
 	  d := some((Lbl,Cx,Stk));
@@ -355,7 +430,7 @@ star.compiler.gencode{
   testCont:(locn,Cont,Cont)=>Cont.
   testCont(Lc,Succ,Fail)=>ccont((Ctx,Cde,[Stk..,_],Rp)=> do{
       (Lb,Ctx0) .= defineLbl(Ctx);
-      (Ctx1,C1,Stk1) <- Succ.C(Ctx0,[Cde..,iBf(al(Lb))],Stk,Rp);
+      (Ctx1,C1,Stk1) <- Succ.C(Ctx0,[Cde..,iBf(Lb)],Stk,Rp);
       (Ctx2,C2,Stk2) <- Fail.C(ctxLbls(Ctx,Ctx1),[C1..,iLbl(Lb)],Stk,Rp);
       Stkx <- mergeStack(Lc,Stk1,Stk2,Rp);
       valis (Ctx2,C2,Stkx)
@@ -373,8 +448,8 @@ star.compiler.gencode{
   defineLclVar(crId(Nm,Tp),codeCtx(Vrs,Lc,Count,Lbl)) where NxtCnt .= Count+1 =>
     (NxtCnt,codeCtx(Vrs[Nm->lclVar(NxtCnt,Tp)],Lc,NxtCnt,Lbl)).
 
-  defineLbl:(codeCtx)=>(string,codeCtx).
-  defineLbl(codeCtx(Vrs,Lc,Count,Lb))=>("L$(Lb)",codeCtx(Vrs,Lc,Count,Lb+1)).
+  defineLbl:(codeCtx)=>(assemLbl,codeCtx).
+  defineLbl(codeCtx(Vrs,Lc,Count,Lb))=>(al("L$(Lb)"),codeCtx(Vrs,Lc,Count,Lb+1)).
 
   changeLoc:(locn,compilerOptions,codeCtx)=>(list[assemOp],codeCtx).
   changeLoc(Lc,_,codeCtx(Vars,Lc0,Dp,Lb)) where Lc=!=Lc0 => ([iLine(Lc::term)],codeCtx(Vars,Lc,Dp,Lb)).
