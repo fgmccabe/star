@@ -16,8 +16,6 @@ star.compiler.dependencies{
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
     AllRefs .= (Defs//((defnSpec(Nm,_,_))=>Nm));
 
---    logMsg("found defs $(AllRefs)");
-
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
     Groups .= (topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els)))));
     
@@ -48,6 +46,8 @@ star.compiler.dependencies{
       list[(string,ast)],list[ast])].
   
   collectDefs([],Defs,Pb,As,Opn,Rp) => either((Defs,Pb,As,Opn)).
+  collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) where _ ^= isAnnotation(A) =>
+    collectDefs(Ss,Defs,Pb,As,Opn,Rp).
   collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) => do{
     (SS1,Dfs1,Pb1,As1,Opn1) <- collectDefinition(A,Ss,Defs,Pb,As,Opn,deFault,Rp);
     collectDefs(SS1,Dfs1,Pb1,As1,Opn1,Rp)

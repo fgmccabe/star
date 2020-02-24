@@ -276,14 +276,16 @@ star.compiler.normalize{
   trVarPtn(Lc,Nm,Tp,Map,Ex,Rp) => implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex,Rp).
 
   implementVarPtn(Lc,Nm,none,Tp,_,Ex,_) => either((crVar(Lc,crId(Nm,Tp)),Ex)).
-  implementVarPtn(Lc,Nm,some(_),Tp,_,_,Rp) => other(reportError(Rp,"not permitted to match against $(Nm)",Lc)).
+  implementVarPtn(Lc,Nm,some(moduleCons(Enum,CTp)),Tp,_,Ex,_) where 0 ^= isConsType(CTp) =>
+    either((crLbl(Lc,Enum,CTp),Ex)).
+  implementVarPtn(Lc,Nm,some(V),Tp,Map,_,Rp) => other(reportError(Rp,"not permitted to match against $(Nm)\:$(V)",Lc)).
 
   liftExp:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
-  liftExp(vr(Lc,Nm,Tp),Map,Ex,Rp) => liftVarExp(Lc,Nm,Tp,Map,Ex,Rp).
+  liftExp(vr(Lc,Nm,Tp),Map,Ex,Rp) => liftVarExp(Lc,Nm,Tp,arity(Tp),Map,Ex,Rp).
   liftExp(intr(Lc,Ix),Map,Ex,Rp) => either((crInt(Lc,Ix),Ex)).
   liftExp(flot(Lc,Dx),Map,Ex,Rp) => either((crFlot(Lc,Dx),Ex)).
   liftExp(strng(Lc,Sx),Map,Ex,Rp) => either((crStrg(Lc,Sx),Ex)).
-  liftExp(enm(Lc,Nm,Tp),Map,Ex,Rp) => liftVarExp(Lc,Nm,Tp,Map,Ex,Rp).
+  liftExp(enm(Lc,Nm,Tp),Map,Ex,Rp) => liftVarExp(Lc,Nm,Tp,arity(Tp),Map,Ex,Rp).
   liftExp(tple(Lc,Els),Map,Ex,Rp) => do{
     (LEls,Exx) <- liftExps(Els,Map,Ex,Rp);
     valis (mkCrTpl(LEls,Lc),Exx)
@@ -378,7 +380,7 @@ star.compiler.normalize{
   implementFunCall:(locn,nameMapEntry,string,list[crExp],tipe,nameMap,list[crDefn],reports) =>
     either[reports,crFlow].
   implementFunCall(Lc,localVar(Fn,_,FTp,crId(ThNm,ThTp)),_,Args,Tp,Map,Ex,Rp) => do{
-    (ThVr,Ex1) <- liftVarExp(Lc,ThNm,ThTp,Map,Ex,Rp);
+    (ThVr,Ex1) <- liftVarExp(Lc,ThNm,ThTp,size(Args),Map,Ex,Rp);
     valis (crCall(Lc,Fn,[ThVr,..Args],Tp),Ex1)
   }
   implementFunCall(Lc,moduleVar(Fn,_,FTp),_,Args,Tp,Map,Ex,Rp) =>
@@ -392,28 +394,28 @@ star.compiler.normalize{
   implementFunCall(Lc,V,Vr,Args,Tp,Map,Ex,Rp) =>
     other(reportError(Rp,"illegal variable $(Vr)",Lc)).
 
-  liftVarExp:(locn,string,tipe,nameMap,list[crDefn],reports) => either[reports,crFlow].
-  liftVarExp(Lc,Nm,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) => do{
-    implementVarExp(Lc,Entry,Tp,Map,Ex,Rp)
+  liftVarExp:(locn,string,tipe,integer,nameMap,list[crDefn],reports) => either[reports,crFlow].
+  liftVarExp(Lc,Nm,Tp,Ar,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) => do{
+    implementVarExp(Lc,Entry,Tp,Ar,Map,Ex,Rp)
   }.
-  liftVarExp(Lc,Nm,Tp,Map,Ex,Rp) => do{
+  liftVarExp(Lc,Nm,Tp,_,Map,Ex,Rp) => do{
     valis (crVar(Lc,crId(Nm,Tp)),Ex)
   }
 
-  implementVarExp:(locn,nameMapEntry,tipe,nameMap,list[crDefn],reports) => either[reports,crFlow].
-  implementVarExp(Lc,localVar(_,Vn,VTp,ThVr),Tp,Map,Ex,Rp) =>
+  implementVarExp:(locn,nameMapEntry,tipe,integer,nameMap,list[crDefn],reports) => either[reports,crFlow].
+  implementVarExp(Lc,localVar(_,Vn,VTp,ThVr),Tp,_,Map,Ex,Rp) =>
     either((crTerm(Lc,Vn,[crVar(Lc,ThVr)],Tp),Ex)).
-  implementVarExp(Lc,labelArg(Base,Ix,ThVr),Tp,Map,Ex,Rp) =>
+  implementVarExp(Lc,labelArg(Base,Ix,ThVr),Tp,_,Map,Ex,Rp) =>
     either((crTplOff(Lc,Base,Ix,Tp),Ex)).
-  implementVarExp(Lc,labelVar(ThVr),Tp,Map,Ex,Rp) =>
+  implementVarExp(Lc,labelVar(ThVr),Tp,_,Map,Ex,Rp) =>
     either((ThVr,Ex)).
-  implementVarExp(Lc,moduleCons(Enum,CTp),Tp,Map,Ex,Rp) where arity(CTp)==0 =>
+  implementVarExp(Lc,moduleCons(Enum,CTp),Tp,Ar,Map,Ex,Rp) where arity(CTp)==Ar =>
     either((crLbl(Lc,Enum,Tp),Ex)).
-  implementVarExp(Lc,moduleCons(Enum,CTp),Tp,Map,Ex,Rp) =>
+  implementVarExp(Lc,moduleCons(Enum,CTp),Tp,_,Map,Ex,Rp) =>
     other(reportError(Rp,"invalid constructor $(Enum)",Lc)).
-  implementVarExp(Lc,moduleVar(_,V,FTp),Tp,Map,Ex,Rp) =>
+  implementVarExp(Lc,moduleVar(_,V,FTp),Tp,_,Map,Ex,Rp) =>
     either((crTerm(Lc,V,[],Tp),Ex)).
-  implementVarExp(Lc,globalVar(Nm,GTp),Tp,Map,Ex,Rp) => either((crVar(Lc,crId(Nm,GTp)),Ex)).
+  implementVarExp(Lc,globalVar(Nm,GTp),Tp,_,Map,Ex,Rp) => either((crVar(Lc,crId(Nm,GTp)),Ex)).
 
   liftGoal:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftGoal(conj(Lc,L,R),Map,Ex,Rp) => do{

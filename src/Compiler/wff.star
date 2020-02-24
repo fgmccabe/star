@@ -63,6 +63,11 @@ star.compiler.wff{
     some((deComma(Lh),deComma(Rh))).
   isDepends(_) default => none.
 
+  public isAnnotation:(ast) => option[(locn,ast,ast)].
+  isAnnotation(A) where (Lc,Lh,Rh) ^= isBinary(A,"@") => some((Lc,Lh,Rh)).
+  isAnnotation(A) where (Lc,Rh) ^= isUnary(A,"@") => some((Lc,nme(Lc,""),Rh)).
+  isAnnotation(_) default => none.
+
   public isTypeLambda:(ast) => option[(locn,ast,ast)].
   isTypeLambda(A) => isBinary(A,"~>").
 

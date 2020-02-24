@@ -202,6 +202,7 @@ star.compiler.lexer{
   skipToNx:(tokenState) => tokenState.
   skipToNx(St) where Ch ^= hedChar(St) && isNonPrint(Ch) => skipToNx(nxtSt(St)).
   skipToNx(St) where Nx ^= lookingAt(St,[0c-,0c-,0c ]) => skipToNx(lineComment(Nx)).
+  skipToNx(St) where Nx ^= lookingAt(St,[0c-,0c-,0c\t]) => skipToNx(lineComment(Nx)).
   skipToNx(St) where Nx ^= lookingAt(St,[0c/,0c*]) => skipToNx(blockComment(Nx)).
   skipToNx(St) => St.
 
