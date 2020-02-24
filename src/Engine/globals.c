@@ -185,6 +185,7 @@ static void markGlobal(globalPo glb, gcSupportPo G) {
 void markGlobals(gcSupportPo G) {
   for (int32 ix = 0; ix < numGlbVars; ix++)
     markGlobal(&glbVars[ix], G);
+  unitEnum =  markPtr(G, (ptrPo) &unitEnum);
 }
 
 retCode glbDisp(ioPo out, termPo t, integer precision, integer depth, logical alt) {
