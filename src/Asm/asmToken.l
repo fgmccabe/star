@@ -100,6 +100,9 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "l"           RT(L);
 "t"           RT(T);
 
+"i"           RT(I);
+"f"           RT(F);
+
 "halt"        RT(HALT);
 
 "call"        RT(CALL);
@@ -129,6 +132,11 @@ ID ([a-zA-Z_.$@#][a-zA-Z_.$@0-9#]*)|"'"[^']*"'"
 "stg"         RT(STG);
 "get"         RT(GET);
 "set"         RT(SET);
+
+"add"         RT(ADD);
+"sub"         RT(SUB);
+"mul"         RT(MUL);
+"div"         RT(DIV);
 
 "void"        RT(VOID);
 

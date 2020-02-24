@@ -62,6 +62,8 @@
 %token A L
 %token ALLOC VOID
 
+%token I F ADD SUB MUL DIV
+
 %token FRAME LINE DLINE DBG BREAK LOCAL
 %token END
 
@@ -111,6 +113,7 @@ trailer: END nls { endFunction(currMtd); }
  instruction: control
      | load
      | store
+     | arith
      | heap
      | directive
      ;
@@ -164,6 +167,16 @@ trailer: END nls { endFunction(currMtd); }
       yyerror(&yylloc,asmFile,pkg,"local var not defined");
     }
   };
+
+  arith: I DOT ADD { AIAdd(currMtd); }
+    | I DOT SUB { AISub(currMtd); }
+    | I DOT MUL { AIMul(currMtd); }
+    | I DOT DIV { AIDiv(currMtd); }
+    | F DOT ADD { AFAdd(currMtd); }
+    | F DOT SUB { AFSub(currMtd); }
+    | F DOT MUL { AFMul(currMtd); }
+    | F DOT DIV { AFDiv(currMtd); }
+  ;
 
  heap: ALLOC literal { AAlloc(currMtd,$2); }
    ;

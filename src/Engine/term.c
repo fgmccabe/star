@@ -74,7 +74,7 @@ typedef struct {
 
 static retCode showField(labelPo fldLbl, integer offset, integer size, void *cl) {
   FieldInfoRec *info = (FieldInfoRec *) cl;
-  tryRet(outMsg(info->out, "%T[%d] = ", fldLbl, offset));
+  tryRet(outMsg(info->out, "%T = ", fldLbl));
   return dispTerm(info->out, nthArg(info->trm, offset), info->precision, info->depth, info->alt);
 }
 

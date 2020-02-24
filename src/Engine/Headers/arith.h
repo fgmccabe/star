@@ -17,7 +17,7 @@ static inline logical isInteger(termPo p) {
   return hasClass(p, integerClass);
 }
 
-extern const integer integerVal(termPo o);
+extern integer integerVal(termPo o);
 
 extern integer integerHash(intPo ix);
 

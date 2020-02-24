@@ -64,8 +64,6 @@ star.comp.escapes{
   escapeType("_blsr") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_basr") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_bnot") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_nthb") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_bcount") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_cell") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("t")])),tpExp(tpFun("ref",1),nomnal("t"))))).
   escapeType("_get") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),nomnal("t"))])),nomnal("t")))).
   escapeType("_assign") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),nomnal("t")),nomnal("t")])),nomnal("t")))).
@@ -294,8 +292,6 @@ star.comp.escapes{
   isEscape("_blsr") => true.
   isEscape("_basr") => true.
   isEscape("_bnot") => true.
-  isEscape("_nthb") => true.
-  isEscape("_bcount") => true.
   isEscape("_cell") => true.
   isEscape("_get") => true.
   isEscape("_assign") => true.

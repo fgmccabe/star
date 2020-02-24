@@ -5,7 +5,6 @@
 #include <globals.h>
 #include <array.h>
 #include <arrayP.h>
-#include <decodeP.h>
 #include "arithP.h"
 #include "strP.h"
 #include "heap.h"
@@ -425,6 +424,6 @@ retCode decodeRecLbl(ioPo in, encodePo S, termPo *tgt, bufferPo tmpBuffer, char 
   }
   closeFile(O_IO(pkgB));
 
-  outMsg(logFile, "%#T\n", *tgt);
+//  outMsg(logFile, "%#T\n", *tgt);
   return ret;
 }

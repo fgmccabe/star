@@ -50,7 +50,37 @@ instruction(Set,sym,-1,"T el --> store in field of structure")
 
 instruction(Case,i32,0,"T --> T, case <Max> ")
 
-instruction(Alloc,sym,1,"new closure, code from constant pool")
+instruction(IAdd,tOs,-1,"L R --> L+R")
+instruction(ISub,tOs,-1,"L R --> L-R")
+instruction(IMul,tOs,-1,"L R --> L*R")
+instruction(IDiv,tOs,-1,"L R --> L/R")
+instruction(IMod,tOs,-1,"L R --> L%R")
+instruction(IAbs,tOs,0,"L --> abs(L)")
+
+instruction(IEq,tOs,-1,"L R --> L==R")
+instruction(ILt,tOs,-1,"L R --> L<R")
+instruction(IGe,tOs,-1,"L R --> L>=R")
+
+instruction(IAnd,tOs,-1,"L R --> L&R")
+instruction(IOr,tOs,-1,"L R --> L|R")
+instruction(IXor,tOs,-1,"L R --> L^R")
+instruction(Lsl,tOs,-1,"L R --> L<<R")
+instruction(Lsr,tOs,-1,"L R --> L>>R")
+instruction(Asr,tOs,-1,"L R --> L>>>R")
+instruction(INot,tOs,0,"L --> ~L")
+
+instruction(FAdd,tOs,-1,"L R --> L+R")
+instruction(FSub,tOs,-1,"L R --> L-R")
+instruction(FMul,tOs,-1,"L R --> L*R")
+instruction(FDiv,tOs,-1,"L R --> L/R")
+instruction(FMod,tOs,-1,"L R --> L%R")
+instruction(FAbs,tOs,0,"L --> abs(L)")
+
+instruction(FEq,tOs,-2,"L R e --> L==R")
+instruction(FLt,tOs,-1,"L R --> L<R")
+instruction(FGe,tOs,-1,"L R --> L>=R")
+
+instruction(Alloc,sym,1,"new structure, code from constant pool")
 
 instruction(Cmp,off,-1,"t1 t2 --> , branch to offset if not same literal")
 

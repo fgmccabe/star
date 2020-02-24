@@ -7,7 +7,7 @@ include_directories("Headers" "../Headers" "../Engine/Headers" "../Util/Headers"
 add_executable(ops genoperators.c trie.c trie.h trieP.h parseOperators.c parseOperators.h genoperators.h)
 target_link_libraries(ops ooio infra)
 
-set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/signature.h)
+set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/intrinsics.h ../Headers/signature.h)
 add_executable(genesc ${ESC_SOURCE_FILES})
 
 target_link_libraries(genesc ooio)

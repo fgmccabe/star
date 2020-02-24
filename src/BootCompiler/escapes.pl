@@ -61,8 +61,6 @@ escapeType("_blsl",funType(tupleType([type("star.core*integer"),type("star.core*
 escapeType("_blsr",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_basr",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_bnot",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
-escapeType("_nthb",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*boolean"))).
-escapeType("_bcount",funType(tupleType([type("star.core*integer")]),type("star.core*integer"))).
 escapeType("_cell",allType(kVar("t"),funType(tupleType([kVar("t")]),refType(kVar("t"))))).
 escapeType("_get",allType(kVar("t"),funType(tupleType([refType(kVar("t"))]),kVar("t")))).
 escapeType("_assign",allType(kVar("t"),funType(tupleType([refType(kVar("t")),kVar("t")]),kVar("t")))).
@@ -288,8 +286,6 @@ isEscape("_blsl").
 isEscape("_blsr").
 isEscape("_basr").
 isEscape("_bnot").
-isEscape("_nthb").
-isEscape("_bcount").
 isEscape("_cell").
 isEscape("_get").
 isEscape("_assign").
