@@ -29,23 +29,23 @@ star.compiler.checker{
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
---      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
---      logMsg("pkg env after imports $(PkgEnv)");
+      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
+      logMsg("pkg env after imports $(PkgEnv)");
       
       Path .= packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
       (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
       
---      logMsg("Package $(Pkg), groups: $(Gps)");
+      logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
       Others <- checkOthers(Opens,[],ThEnv,Path,Rp);
---      logMsg("Final Pkg dict $(ThEnv)");
---      logMsg("Public names: $(Vis)");
---      logMsg("Defs: $(Defs)");
+      logMsg("Final Pkg dict $(ThEnv)");
+      logMsg("Public names: $(Vis)");
+      logMsg("Defs: $(Defs)");
       Contracts .= [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && (conSp(Nm),pUblic) in Vis];
 --      logMsg("exported contracts: $(Contracts)");
       Fields .= exportedFields(Defs,Vis,pUblic);
---      logMsg("exported fields: $(Fields)");
+      logMsg("exported fields: $(Fields)");
       Impls .= [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
 	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
@@ -70,7 +70,7 @@ star.compiler.checker{
     [ (Nm,Tp) |
 	DD in Defs && D in DD &&
 	    ((varDef(_,Nm,_,_,_,Tp) .=D && isVisible(varSp(Nm),Vis,DVz)) ||
---	      (cnsDef(_,Nm,_,Tp) .=D && isVisible(cnsSp(Nm),Vis,DVz)) ||
+	      (cnsDef(_,Nm,_,Tp) .=D && isVisible(cnsSp(Nm),Vis,DVz)) ||
 	      (implDef(_,N,Nm,_,Tp) .=D && isVisible(implSp(N),Vis,DVz)))].
 
   isVisible:(defnSp,list[(defnSp,visibility)],visibility) => boolean.
@@ -303,7 +303,7 @@ star.compiler.checker{
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && Spec ^= isVar(Id,Env) => do{
-    if isConstructorType(vrType(Spec)) then{
+    if _ ^= isConsType(vrType(Spec)) then{
       Exp <- typeOfVar(Lc,Id,Tp,Spec,Env,Rp);
       valis (Exp,Env)
     }

@@ -118,6 +118,8 @@ star.compiler.typeparse{
   parseTypeFields:(tipes,list[ast],tipes,tipes,dict,reports) =>
     either[reports,(tipes,tipes)].
   parseTypeFields(Q,[],Flds,Tps,_,_) => either((Flds,Tps)).
+  parseTypeFields(Q,[A,..L],Flds,Tps,Env,Rp) where _ ^= isAnnotation(A) =>
+    parseTypeFields(Q,L,Flds,Tps,Env,Rp).
   parseTypeFields(Q,[F,..L],Flds,Tps,Env,Rp) => do{
     (FF,TT) <- parseTypeField(Q,F,Flds,Tps,Env,Rp);
     parseTypeFields(Q,L,FF,TT,Env,Rp)

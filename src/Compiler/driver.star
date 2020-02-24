@@ -72,7 +72,7 @@ star.compiler{
 	    try{
 	      Sorted <- makeGraph(extractPkgSpec(P),Repo,Cat,ErRp)
 	      ::action[reports,list[(importSpec,list[importSpec])]];
-	      logMsg("package groups $(Sorted)");
+--	      logMsg("package groups $(Sorted)");
 	      processPkgs(Sorted,Repo,Cat,Opts,ErRp)
 	    } catch (Er) => action{
 	      logMsg("$(Er)");
@@ -100,11 +100,9 @@ star.compiler{
   processPkgs(Pks,Repo,Cat,Opts,Rp) => do{
     Repp := Repo;
     try{
-      logMsg("repo is $(Repo)");
+--      logMsg("repo is $(Repo)");
       for (pkgImp(Lc,_,P),Imps) in Pks do{
-	logMsg("$(P) ok? $(pkgOk(Repo,P))");
-	for pkgImp(_,_,I) in Imps do{
-	  logMsg("import: $(I), $(pkgOk(Repo,I))")};
+--	logMsg("$(P) ok? $(pkgOk(Repo,P))");
 	if \+ (pkgOk(Repo,P) && pkgImp(_,_,I) in Imps *> pkgOk(Repo,I)) then{
 	  logMsg("Process package $(P)");
 	  if (SrcUri,CPkg) ^= resolveInCatalog(Cat,pkgName(P)) then{
@@ -135,7 +133,4 @@ star.compiler{
       throw Erp
     }
   }
-
-  importTerm:(importSpec)=>term.
-  
 }

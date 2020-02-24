@@ -36,16 +36,23 @@ star.compiler.term.repo{
   }
   
   public addToRepo:(termRepo,pkg,string,string) => termRepo.
-  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) where
-      Ext .= extensionMapping(Kind) &&
-      Fn .= Pk++(hash(Pk)::string)++Ext &&
-      FUri ^= parseUri(Fn) &&
-      FU ^= resolveUri(Root,FUri) &&
-      () .= putResource(FU,Text) &&
-      NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn)&&
-      MU ^= parseUri("manifest") &&
-      RepoUri ^= resolveUri(Root,MU) &&
-      () .= flushManifest(RepoUri,NM) => repo(Root,NM).
+  addToRepo(repo(Root,Man),pkg(Pk,Vr),Kind,Text) => valof action{
+    Ext .= extensionMapping(Kind);
+    Fn .= Pk++(hash(Pk)::string)++Ext;
+    FUri ^= parseUri(Fn);
+    FU ^= resolveUri(Root,FUri);
+    logMsg("dest uri $(FU)");
+    _ .= putResource(FU,Text);
+    logMsg("written");
+    NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
+    logMsg("added to manifest");
+    MU ^= parseUri("manifest");
+    RepoUri ^= resolveUri(Root,MU);
+    () .= flushManifest(RepoUri,NM);
+    logMsg("manifest flushed");
+    valis repo(Root,NM)
+  }
+
 
   public addSigToRepo:(termRepo,pkg,string) => termRepo.
   addSigToRepo(repo(Root,Man),Pk,Sig) =>

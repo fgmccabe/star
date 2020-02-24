@@ -39,12 +39,8 @@ star.compiler.matcher{
 
   matchTriples:(locn,list[crVar],list[triple],crExp) => crExp.
   matchTriples(_,[],Trpls,Deflt) => conditionalize(Trpls,Deflt).
-/*  matchTriples(_,[],Trpls,Deflt) => valof action{
-    Reslt = conditionalize(Trpls,Deflt);
-    logMsg("conditionalized $(Trpls) = $(Reslt)"); valis Reslt
-    }.
-*/
   matchTriples(Lc,Vrs,Trpls,Deflt) => valof action{
+--    logMsg("matching triples $(Trpls), default = $(Deflt)");
     Parts .= partitionTriples(Trpls);
 --    logMsg("partitioned $(Parts)");
     Segs .= matchSegments(Parts,Vrs,Lc,Deflt);
@@ -127,8 +123,11 @@ star.compiler.matcher{
     list[crCase].
   formCases([],_,_,_,_) => [].
   formCases([Tr,..Trpls],Eq,Lc,Vrs,Deflt) => valof action{
+--    logMsg("form case based on $(Tr)");
     (Tx,More) .= pickMoreCases(Tr,Trpls,Eq,[],[]);
-    Case .= formCase(Tr,[Tr,..Trpls],Lc,Vrs,Deflt);
+--    logMsg("same case = $(Tx)");
+    Case .= formCase(Tr,[Tr,..Tx],Lc,Vrs,Deflt);
+--    logMsg("case $(Case)");
     valis [Case,..formCases(More,Eq,Lc,Vrs,Deflt)].
   }
 

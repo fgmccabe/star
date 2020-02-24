@@ -328,10 +328,9 @@ star.compiler.types{
   .}
 
   public arity:(tipe)=>integer.
-  arity(Tp) => let{
-    ar(tupleType(A)) => size(A).
-    ar(_) => 1
-  } in ar(deRef(funTypeArg(deRef(Tp)))).
+  arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
+  arity(Tp) where tupleType(A).=deRef(Tp) => size(A).
+  arity(_) default => 0.
   
   mkTypeExp(Tp,[]) => Tp.
   mkTypeExp(Op,[T,..Rest]) => mkTypeExp(tpExp(Op,T),Rest).
@@ -408,8 +407,9 @@ star.compiler.types{
   reConstrain([],Tp) => Tp.
   reConstrain([Q,..Qs],Tp) => constrainedType(reConstrain(Qs,Tp),Q).
 
-  public isConstructorType:(tipe)=>boolean.
-  isConstructorType(Tp) => tpName(deRef(Tp))=="<=>".
+  public isConsType:(tipe)=>option[integer].
+  isConsType(Tp) where tpName(deRef(Tp))=="<=>" => some(arity(Tp)).
+  isConsType(_) default => none.
 
   public isMapType:(tipe)=>boolean.
   isMapType(Tp) => tpName(deRef(Tp))=="map".

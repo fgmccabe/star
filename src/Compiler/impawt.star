@@ -17,7 +17,7 @@ star.compiler.impawt{
     list[(string,tipe)],reports) => either[reports,(dict,list[importSpec],list[(string,tipe)])].
   importAll([],_,Env,Imported,Sigs,_) => either((Env,Imported,Sigs)).
   importAll([pkgImp(Lc,Viz,Pkg),..Imports],Repo,Env,Imported,Sigs,Rp) => do{
-    logMsg("import $(Pkg)");
+--    logMsg("import $(Pkg)");
     PkgVar .= packageVar(Pkg);
     if (PkgVar,_) in Sigs then
       importAll(Imports,Repo,Env,Imported,Sigs,Rp)
