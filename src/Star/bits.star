@@ -22,9 +22,4 @@ star.bits{
   public ( .~. ) : (integer) => integer.
   .~. X => _bnot(X).
 
-  public ( .#. ) : (integer,integer)=>boolean.
-  X .#. Y => _nthb(X,Y).
-
-  public ( .+. ) : (integer) => integer.
-  .+. X => _bcount(X).
 }

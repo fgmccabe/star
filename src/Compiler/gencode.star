@@ -338,7 +338,34 @@ star.compiler.gencode{
   allocCont(Lbl,Tp,OStk) => ccont((Ctx,Cde,Stk,Rp)=>either((Ctx,[Cde..,iAlloc(Lbl)],[OStk..,Tp]))).
 
   escCont:(string,integer,tipe,cons[tipe])=>Cont.
-  escCont(Nm,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iEscape(Nm),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+  escCont("_int_plus",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIAdd],[Stk..,Tp]))).
+  escCont("_int_minus",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iISub],[Stk..,Tp]))).
+  escCont("_int_times",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIMul],[Stk..,Tp]))).
+  escCont("_int_div",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIDiv],[Stk..,Tp]))).
+  escCont("_int_mod",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIMod],[Stk..,Tp]))).
+  escCont("_int_abs",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIAbs],[Stk..,Tp]))).
+  escCont("_int_eq",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIEq],[Stk..,Tp]))).
+  escCont("_int_lt",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iILt],[Stk..,Tp]))).
+  escCont("_int_ge",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIGe],[Stk..,Tp]))).
+  escCont("_band",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIAnd],[Stk..,Tp]))).
+  escCont("_bor",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIOr],[Stk..,Tp]))).
+  escCont("_bxor",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iIXor],[Stk..,Tp]))).
+  escCont("_bnot",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iINot],[Stk..,Tp]))).
+  escCont("_blsl",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iLsl],[Stk..,Tp]))).
+  escCont("_blsr",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iLsr],[Stk..,Tp]))).
+  escCont("_basr",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iAsr],[Stk..,Tp]))).
+
+  escCont("_flt_plus",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFAdd],[Stk..,Tp]))).
+  escCont("_flt_minus",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFSub],[Stk..,Tp]))).
+  escCont("_flt_times",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFMul],[Stk..,Tp]))).
+  escCont("_flt_div",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFDiv],[Stk..,Tp]))).
+  escCont("_flt_mod",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFMod],[Stk..,Tp]))).
+  escCont("_flt_abs",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFAbs],[Stk..,Tp]))).
+  escCont("_flt_eq",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFEq],[Stk..,Tp]))).
+  escCont("_flt_lt",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFLt],[Stk..,Tp]))).
+  escCont("_flt_ge",2,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iFGe],[Stk..,Tp]))).
+
+  escCont(Nm,Ar,Tp,Stk) default => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iEscape(Nm),iFrame(size(Stk)+1)],[Stk..,Tp]))).
 
   callCont:(string,integer,tipe,cons[tipe])=>Cont.
   callCont(Nm,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iCall(tLbl(Nm,Ar)),iFrame(size(Stk)+1)],[Stk..,Tp]))).

@@ -9,8 +9,10 @@
 
 #include <globals.h>
 #include <turm.h>
+#include <arithP.h>
 #include "engineP.h"
 #include "debugP.h"
+#include <math.h>
 
 #define collectI32(pc) (hi32 = (uint32)(*(pc)++), lo32 = *(pc)++, ((hi32<<(unsigned)16)|lo32))
 #define collectOff(pc) (hi32 = collectI32(pc), (pc)+(signed)hi32)
@@ -387,8 +389,8 @@ retCode run(processPo P) {
         termPo el = getField(trm, lbl);
         if (el != Null)
           push(el);
-        else{
-          logMsg(logFile,"no field %T in %T",lbl,trm);
+        else {
+          logMsg(logFile, "no field %T in %T", lbl, trm);
           bail();
         }
         continue;
@@ -472,6 +474,202 @@ retCode run(processPo P) {
         termPo val = pop();
         normalPo trm = C_TERM(pop());
         setField(trm, lbl, val);
+        continue;
+      }
+
+      case IAdd: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) + integerVal(Rhs));
+        push(Rs);
+        continue;
+      }
+
+      case ISub: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) - integerVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case IMul: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) * integerVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case IDiv: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) / integerVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case IMod: {
+        integer denom = integerVal(pop());
+        integer numerator = integerVal(pop());
+
+        integer reslt = denom % numerator;
+
+        termPo Rs = (termPo) allocateInteger(heap, reslt);
+
+        push(Rs);
+        continue;
+      }
+      case IAbs: {
+        termPo Trm = pop();
+        integer Arg = integerVal(Trm);
+
+        termPo Rs = (Arg < 0 ? (termPo) allocateInteger(heap, -Arg) : Trm);
+        push(Rs);
+        continue;
+      }
+      case IEq: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (integerVal(Lhs) == integerVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case ILt: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (integerVal(Lhs) < integerVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case IGe: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (integerVal(Lhs) >= integerVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case IAnd: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) & (unsigned) integerVal(Rhs)));
+        push(Rs);
+        continue;
+      }
+      case IOr: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) | (unsigned) integerVal(Rhs)));
+        push(Rs);
+        continue;
+      }
+      case IXor: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) ^ (unsigned) integerVal(Rhs)));
+        push(Rs);
+        continue;
+      }
+      case INot: {
+        termPo Lhs = pop();
+
+        termPo Rs = (termPo) allocateInteger(heap, ~(unsigned) integerVal(Lhs));
+        push(Rs);
+        continue;
+      }
+      case Lsl: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo)allocateInteger(heap, ((unsigned) integerVal(Lhs) << (unsigned) integerVal(Rhs)));
+        push(Rs);
+        continue;
+      }
+      case Lsr: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo)allocateInteger(heap, (((unsigned) integerVal(Lhs)) >> ((unsigned) integerVal(Rhs))));
+        push(Rs);
+        continue;
+      }
+      case Asr: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo)allocateInteger(heap, (integerVal(Lhs) >> integerVal(Rhs)));
+        push(Rs);
+        continue;
+      }
+      case FAdd: {
+        termPo Rhs = pop();
+        termPo Lhs = pop();
+
+        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) + floatVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case FSub: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) - floatVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case FMul: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) * floatVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case FDiv: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) / floatVal(Rhs));
+        push(Rs);
+        continue;
+      }
+      case FMod: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+        termPo Rs = (termPo) allocateFloat(heap, fmod(floatVal(Lhs), floatVal(Rhs)));
+        push(Rs);
+        continue;
+      }
+      case FEq: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+        termPo Eps = pop();
+
+        termPo Rs = (nearlyEqual(floatVal(Lhs), floatVal(Rhs), floatVal(Eps)) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case FLt: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (floatVal(Lhs) < floatVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
+        continue;
+      }
+      case FGe: {
+        termPo Lhs = pop();
+        termPo Rhs = pop();
+
+        termPo Rs = (floatVal(Lhs) >= floatVal(Rhs) ? trueEnum : falseEnum);
+        push(Rs);
         continue;
       }
 

@@ -90,8 +90,6 @@ escape(_blsl,"F(ii)i","logical left shift")
 escape(_blsr,"F(ii)i","logical right shift")
 escape(_basr,"F(ii)i","arithmetic right shift")
 escape(_bnot,"F(i)i","bitwise negate number")
-escape(_nthb,"F(ii)l","is nth bit set?")
-escape(_bcount,"F(i)i","count the number of bits set")
 
 escape(_cell,":k't'F(k't')rk't'","create a reference cell")
 escape(_get,":k't'F(rk't')k't'","access contents of reference cell")

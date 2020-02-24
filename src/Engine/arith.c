@@ -92,7 +92,7 @@ extern intPo C_INT(termPo t) {
   return (intPo) t;
 }
 
-const int64 integerVal(termPo o) {
+int64 integerVal(termPo o) {
   intPo ix = C_INT(o);
   return ix->ix;
 }
