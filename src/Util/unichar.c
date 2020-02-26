@@ -17,6 +17,10 @@
 #include "config.h"
 #include "unistrP.h"
 
+UniCharCategory uniCharCategory(codePoint ch) {
+  return genCatTbl[ch];
+}
+
 /* Other, Control */
 logical isCcChar(codePoint ch) {
   return (logical) (genCatTbl[ch] == Cc);

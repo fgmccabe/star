@@ -1,0 +1,12 @@
+star.compiler.intrinsics{
+  -- Automatically Generated Listing of intrinsics -- Do NOT Edit
+  import star.
+
+  import star.compiler.terms.
+  import star.compiler.types.
+  import star.compiler.assem.
+
+  public intrinsic:(string) => option[(tipe,assemOp)].
+#(Intrinsics)
+  intrinsic(_) default => none.
+}

@@ -7,6 +7,7 @@ star.compiler.normalize{
   import star.compiler.errors.
   import star.compiler.escapes.
   import star.compiler.freevars.
+  import star.compiler.intrinsics.
   import star.compiler.matcher.
   import star.compiler.misc.
   import star.compiler.types.
@@ -366,6 +367,8 @@ star.compiler.normalize{
     either[reports,crFlow].
   liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,Ex,Rp) where isEscape(Nm) =>
     either((crECall(Lc,Nm,Args,Tp),Ex)).
+  liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,Ex,Rp) where (_,Op) ^= intrinsic(Nm) =>
+    either((crIntrinsic(Lc,Op,Args,Tp),Ex)).
   liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex,Rp).
   liftExpCallOp(Lc,enm(_,Nm,_),Args,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>

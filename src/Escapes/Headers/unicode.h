@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "ooio.h"
+#include "unistr.h"
 
 #include "engine.h"
 #include "libEscapes.h"

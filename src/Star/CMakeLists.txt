@@ -14,7 +14,7 @@ add_custom_command(TARGET boot
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/../BootCompiler/sbc" "-w" "${CMAKE_CURRENT_SOURCE_DIR}/" "-r" "${REPO_DIR}" "star.boot"
   )
 
-add_custom_command(TARGET boot
+add_custom_command(TARGET boot DEPENDS sasm
   COMMENT "Creating bootstrap"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND sasm "-R" "${REPO_DIR}" "_boot.cafe"

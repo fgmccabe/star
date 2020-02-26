@@ -1,6 +1,7 @@
 star.compiler.core{
   import star.
 
+  import star.compiler.assem.
   import star.compiler.location.
   import star.compiler.terms.
   import star.compiler.types.
@@ -14,6 +15,7 @@ star.compiler.core{
     | crTerm(locn,string,list[crExp],tipe)
     | crCall(locn,string,list[crExp],tipe)
     | crECall(locn,string,list[crExp],tipe)
+    | crIntrinsic(locn,assemOp,list[crExp],tipe)
     | crOCall(locn,crExp,list[crExp],tipe)
     | crRecord(locn,string,list[(string,crExp)],tipe)
     | crDot(locn,crExp,string,tipe)
@@ -65,6 +67,7 @@ star.compiler.core{
   dspExp(crStrg(_,Sx),_) => disp(Sx).
   dspExp(crLbl(_,Lb,_),_) => ssSeq([ss("'"),ss(Lb),ss("'")]).
   dspExp(crECall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crIntrinsic(_,Op,As,_),Off) => ssSeq([disp(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crOCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("·("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).
@@ -128,6 +131,7 @@ star.compiler.core{
     locOf(crLtt(Lc,_,_,_)) => Lc.
     locOf(crCase(Lc,_,_,_,_)) => Lc.
     locOf(crCall(Lc,_,_,_))=>Lc.
+    locOf(crIntrinsic(Lc,_,_,_))=>Lc.
     locOf(crECall(Lc,_,_,_))=>Lc.
     locOf(crOCall(Lc,_,_,_))=>Lc.
     locOf(crRecord(Lc,_,_,_)) => Lc.
@@ -144,6 +148,7 @@ star.compiler.core{
     tpOf(crStrg(_,_)) => strType.
     tpOf(crLbl(_,_,Tp)) => Tp.
     tpOf(crTerm(_,_,_,Tp)) => Tp.
+    tpOf(crIntrinsic(_,_,_,Tp)) => Tp.
     tpOf(crECall(_,_,_,Tp)) => Tp.
     tpOf(crOCall(_,_,_,Tp)) => Tp.
     tpOf(crCall(_,_,_,Tp)) => Tp.
@@ -187,6 +192,8 @@ star.compiler.core{
     crTerm(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crCall(Lc,Op,Args,Tp),M) =>
     crCall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
+  rewriteTerm(crIntrinsic(Lc,Op,Args,Tp),M) =>
+    crIntrinsic(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crECall(Lc,Op,Args,Tp),M) =>
     crECall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>

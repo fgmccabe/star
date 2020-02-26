@@ -47,8 +47,6 @@ star.comp.keywords {
   keyword("all") => true.
   keyword("of") => true.
   keyword("exists") => true.
-  keyword("assert") => true.
-  keyword("show") => true.
   keyword("let") => true.
   keyword("default") => true.
   keyword("in") => true.

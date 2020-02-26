@@ -38,7 +38,9 @@ star.compiler.checker{
       
       logMsg("Package $(Pkg), groups: $(Gps)");
       (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
-      Others <- checkOthers(Opens,[],ThEnv,Path,Rp);
+      if [Open,.._] .= Opens then
+	throw reportError(Rp,"open statement $(Open) not permitted in package",locOf(Open));
+
       logMsg("Final Pkg dict $(ThEnv)");
       logMsg("Public names: $(Vis)");
       logMsg("Defs: $(Defs)");
@@ -53,16 +55,16 @@ star.compiler.checker{
 --      logMsg("exported implementations $(Impls)");
       Types .= exportedTypes(Defs,Vis,pUblic);
 --      logMsg("exported types: $(Types)");
-      (RDefs,ROthers) <- overloadEnvironment(Defs,Others,ThEnv,Rp);
+      RDefs <- overloadEnvironment(Defs,ThEnv,Rp);
       PkgType .= faceType(Fields,Types);
-      PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,ROthers,Rp);
+      PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,Rp);
       valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),Path,PkgTheta,[],PkgType))
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
 
-  makePkgTheta:(locn,string,tipe,dict,list[list[canonDef]],list[canon],reports)=>either[reports,canon].
-  makePkgTheta(Lc,Nm,Tp,Env,Defs,Oth,Rp) =>
+  makePkgTheta:(locn,string,tipe,dict,list[list[canonDef]],reports)=>either[reports,canon].
+  makePkgTheta(Lc,Nm,Tp,Env,Defs,Rp) =>
     mkRecord(Lc,Nm,Tp,Env,Defs,Tp,Rp).
 
   exportedFields:(list[list[canonDef]],list[(defnSp,visibility)],visibility) => list[(string,tipe)].
@@ -292,13 +294,6 @@ star.compiler.checker{
     }
   }
     
-  checkOthers:(list[ast],list[canon],dict,string,reports) => either[reports,list[canon]].
-  checkOthers([],Oth,_,_,_) => either(Oth).
-  checkOthers([O,..Ots],Oth,Env,Path,Rp) where (Lc,C) ^= isIntegrity(O) => do{
-    (Cond,_) <- checkCond(C,Env,Path,Rp);
-    checkOthers(Ots,[Oth..,Cond],Env,Path,Rp)
-  }
-  
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).

@@ -49,13 +49,13 @@ star.compiler.assem{
     iIEq |
     iILt |
     iIGe |
-    iIAnd |
-    iIOr |
-    iIXor |
-    iLsl |
-    iLsr |
-    iAsr |
-    iINot |
+    iBAnd |
+    iBOr |
+    iBXor |
+    iBLsl |
+    iBLsr |
+    iBAsr |
+    iBNot |
     iFAdd |
     iFSub |
     iFMul |
@@ -144,13 +144,13 @@ star.compiler.assem{
   mnem([iIEq,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(34)]).
   mnem([iILt,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(35)]).
   mnem([iIGe,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(36)]).
-  mnem([iIAnd,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(37)]).
-  mnem([iIOr,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(38)]).
-  mnem([iIXor,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(39)]).
-  mnem([iLsl,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(40)]).
-  mnem([iLsr,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(41)]).
-  mnem([iAsr,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(42)]).
-  mnem([iINot,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(43)]).
+  mnem([iBAnd,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(37)]).
+  mnem([iBOr,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(38)]).
+  mnem([iBXor,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(39)]).
+  mnem([iBLsl,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(40)]).
+  mnem([iBLsr,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(41)]).
+  mnem([iBAsr,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(42)]).
+  mnem([iBNot,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(43)]).
   mnem([iFAdd,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(44)]).
   mnem([iFSub,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(45)]).
   mnem([iFMul,..Ins],Lbls,Lts,Lns,Lcs,Pc,MxLcl,Code) => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+1,MxLcl,[Code..,intgr(46)]).
@@ -216,13 +216,13 @@ star.compiler.assem{
   genLblTbl([iIEq,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iILt,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iIGe,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iIAnd,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iIOr,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iIXor,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iLsl,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iLsr,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iAsr,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
-  genLblTbl([iINot,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBAnd,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBOr,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBXor,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBLsl,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBLsr,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBAsr,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
+  genLblTbl([iBNot,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iFAdd,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iFSub,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
   genLblTbl([iFMul,..Ins],Pc,Lbls) => genLblTbl(Ins,Pc+1,Lbls).
@@ -266,6 +266,10 @@ star.compiler.assem{
     disp(al(Nm)) => ss(Nm).
   .}
 
+  public implementation display[assemOp] => {.
+    disp(Op) => ssSeq(showMnem([Op],0,[])).
+  .}
+
   showMnem:(list[assemOp],integer,list[ss]) => list[ss].
   showMnem([],_,Out) => Out.
   showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Lb),ss(":\n")]).
@@ -307,13 +311,13 @@ star.compiler.assem{
   showMnem([iIEq,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("IEq"),ss("\n")]).
   showMnem([iILt,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("ILt"),ss("\n")]).
   showMnem([iIGe,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("IGe"),ss("\n")]).
-  showMnem([iIAnd,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("IAnd"),ss("\n")]).
-  showMnem([iIOr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("IOr"),ss("\n")]).
-  showMnem([iIXor,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("IXor"),ss("\n")]).
-  showMnem([iLsl,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("Lsl"),ss("\n")]).
-  showMnem([iLsr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("Lsr"),ss("\n")]).
-  showMnem([iAsr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("Asr"),ss("\n")]).
-  showMnem([iINot,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("INot"),ss("\n")]).
+  showMnem([iBAnd,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BAnd"),ss("\n")]).
+  showMnem([iBOr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BOr"),ss("\n")]).
+  showMnem([iBXor,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BXor"),ss("\n")]).
+  showMnem([iBLsl,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BLsl"),ss("\n")]).
+  showMnem([iBLsr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BLsr"),ss("\n")]).
+  showMnem([iBAsr,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BAsr"),ss("\n")]).
+  showMnem([iBNot,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("BNot"),ss("\n")]).
   showMnem([iFAdd,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("FAdd"),ss("\n")]).
   showMnem([iFSub,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("FSub"),ss("\n")]).
   showMnem([iFMul,..Ins],Pc,Out) => showMnem(Ins,Pc+1,[Out..,disp(Pc),ss(":"),ss("FMul"),ss("\n")]).

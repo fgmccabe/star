@@ -47,8 +47,6 @@
   keyword("of").
   keyword("exists").
   keyword("val").
-  keyword("assert").
-  keyword("show").
   keyword("default").
   keyword("in").
   keyword("do").

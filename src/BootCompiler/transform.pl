@@ -12,6 +12,7 @@
 :- use_module(matcher).
 :- use_module(misc).
 :- use_module(escapes).
+:- use_module(intrinsics).
 :- use_module(location).
 :- use_module(freevars).
 :- use_module(lterms).
@@ -394,6 +395,11 @@ implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
 implementVarPtn(notInMap,Nm,_,idnt(Nm),_,Q,Qx) :-                 % variable local to rule
   merge([idnt(Nm)],Q,Qx).
 
+
+trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),Q,Qx,_,_,Ex,Ex) :-
+  isIntrinsic(Nm,_,Op),!,
+  genVar("_X",X),
+  merge([X],Q,Qx).
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,ecll(Lc,Nm,Args))),Q,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!,
   genVar("_X",X),
@@ -514,6 +520,8 @@ implementVarExp(localFun(_Fn,_,Closure,_,ThVr),Lc,_,ctpl(lbl(Closure,1),[Vr]),Ma
 implementVarExp(_Other,Lc,Nm,idnt(Nm),_,Q,Q) :-
   reportError("cannot handle %s in expression",[Nm],Lc).
 
+trExpCallOp(Lc,v(_,Nm,_),Args,intrinsic(Lc,Op,Args),Qx,Qx,_,_,Ex,Ex) :-
+  isIntrinsic(Nm,_,Op),!.
 trExpCallOp(Lc,v(_,Nm,_),Args,ecll(Lc,Nm,Args),Qx,Qx,_,_,Ex,Ex) :-
   isEscape(Nm),!.
 trExpCallOp(Lc,v(_,Nm,_),Args,Exp,Q,Qx,Map,Opts,Ex,Exx) :-

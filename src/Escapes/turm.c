@@ -7,11 +7,6 @@
 #include <assert.h>
 #include "turm.h"
 
-ReturnStatus g__identical(processPo P, ptrPo tos) {
-  return (ReturnStatus) {.ret=Ok,
-    .result=(sameTerm(tos[1], tos[0]) ? trueEnum : falseEnum)};
-}
-
 ReturnStatus g__tuple_nth(processPo P, ptrPo tos) {
   normalPo tpl = C_TERM(tos[0]);
   integer ix = integerVal(tos[1]);
