@@ -7,6 +7,13 @@
 #include "unicode.h"
 #include "arith.h"
 
+ReturnStatus g__uniCodeCategory(processPo p, ptrPo tos) {
+  codePoint ch = (codePoint) integerVal(tos[0]);
+
+  termPo Rs = (termPo)allocateInteger(processHeap(p),uniCharCategory(ch));
+  return (ReturnStatus) {.ret=Ok, .result=Rs};
+}
+
 ReturnStatus g__isCcChar(processPo p, ptrPo tos) {
   codePoint ch = (codePoint) integerVal(tos[0]);
 

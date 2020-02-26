@@ -157,6 +157,9 @@ compTerm(idnt(Nm),_,Cont,_,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   compVar(V,Cont,D,Dx,End,C,Cx,Stk,Stkx).
 compTerm(ctpl(St,A),Lc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stk2) :-!,
   compTerms(A,Lc,bothCont(allocCont(St),Cont),Opts,D,Dx,End,C,Cx,Stk,Stk2).
+compTerm(intrinsic(Lc,Op,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
+  chLine(Opts,OLc,Lc,C,C0),!,
+  compTerms(A,Lc,bothCont(asmCont(Op,Stk),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(ecll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-!,
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerms(A,Lc,bothCont(escCont(Nm,Stk),Cont),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -276,51 +279,7 @@ stoCont(Off,Lb,Cont,D,Dx,End,[iStL(Off),iLbl(Lb)|C],Cx,Stk,Stkx) :-
 releaseCont(Nm,D,Dx,_,Cx,Cx,Stk,Stk) :-
   clearLclVar(Nm,D,Dx).
 
-escCont("_int_plus",Stk0,D,D,_,[iIAdd|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_minus",Stk0,D,D,_,[iISub|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_times",Stk0,D,D,_,[iIMul|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_div",Stk0,D,D,_,[iIDiv|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_mod",Stk0,D,D,_,[iIMod|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_abs",Stk0,D,D,_,[iIAbs|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_eq",Stk0,D,D,_,[iIEq|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_lt",Stk0,D,D,_,[iILt|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_int_ge",Stk0,D,D,_,[iIGe|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_band",Stk0,D,D,_,[iIAnd|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_bor",Stk0,D,D,_,[iIOr|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_bxor",Stk0,D,D,_,[iIXor|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_bnot",Stk0,D,D,_,[iINot|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_blsl",Stk0,D,D,_,[iLsl|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_blsr",Stk0,D,D,_,[iLsr|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_basr",Stk0,D,D,_,[iAsr|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_plus",Stk0,D,D,_,[iFAdd|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_minus",Stk0,D,D,_,[iFSub|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_times",Stk0,D,D,_,[iFMul|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_div",Stk0,D,D,_,[iFDiv|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_eq",Stk0,D,D,_,[iFEq|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_lt",Stk0,D,D,_,[iFLt|Cx],Cx,_,Stkx) :-!,
-  Stkx is Stk0+1.
-escCont("_flt_ge",Stk0,D,D,_,[iFGe|Cx],Cx,_,Stkx) :-!,
+asmCont(IOp,Stk0,D,D,_,[IOp|Cx],Cx,_,Stkx) :-
   Stkx is Stk0+1.
 
 escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-

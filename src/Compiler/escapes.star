@@ -8,28 +8,9 @@ star.comp.escapes{
   escapeType("_exit") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),tupleType([]))).
   escapeType("_command_line") => some(tpExp(tpExp(tpFun("=>",2),tupleType([])),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")))).
   escapeType("_abort") => some(allType(nomnal("s"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("s"),nomnal("star.core*string")])),tupleType([])))).
-  escapeType("_identical") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("t"),nomnal("t")])),nomnal("star.core*boolean")))).
   escapeType("_definedLbl") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_callLbl") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*string"),nomnal("star.core*integer"),tpExp(tpFun("star.core*list",1),tpExp(tpFun("star.core*list",1),nomnal("star.core*string")))])),tupleType([]))).
-  escapeType("_int_plus") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_int_minus") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_int_times") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_int_div") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_int_mod") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_int_hash") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_flt_plus") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
-  escapeType("_flt_minus") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
-  escapeType("_flt_times") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
-  escapeType("_flt_div") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
-  escapeType("_flt_mod") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*float"))).
-  escapeType("_int_abs") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_flt_abs") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_int_eq") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_int_lt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_int_ge") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
-  escapeType("_flt_eq") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*boolean"))).
-  escapeType("_flt_lt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*boolean"))).
-  escapeType("_flt_ge") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*float")])),nomnal("star.core*boolean"))).
   escapeType("_int2flt") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*float"))).
   escapeType("_flt2int") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),nomnal("star.core*integer"))).
   escapeType("_bits_float") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*float"))).
@@ -57,13 +38,6 @@ star.comp.escapes{
   escapeType("_ldexp") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float"),nomnal("star.core*integer")])),nomnal("star.core*float"))).
   escapeType("_frexp") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),tupleType([nomnal("star.core*float"),nomnal("star.core*integer")]))).
   escapeType("_modf") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),tupleType([nomnal("star.core*float"),nomnal("star.core*integer")]))).
-  escapeType("_band") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_bor") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_bxor") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_blsl") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_blsr") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_basr") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer")])),nomnal("star.core*integer"))).
-  escapeType("_bnot") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_cell") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("t")])),tpExp(tpFun("ref",1),nomnal("t"))))).
   escapeType("_get") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),nomnal("t"))])),nomnal("t")))).
   escapeType("_assign") => some(allType(nomnal("t"),tpExp(tpExp(tpFun("=>",2),tupleType([tpExp(tpFun("ref",1),nomnal("t")),nomnal("t")])),nomnal("t")))).
@@ -151,6 +125,7 @@ star.comp.escapes{
   escapeType("_time2utc") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*float")])),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*float"),nomnal("star.core*integer"),nomnal("star.core*integer")]))).
   escapeType("_date2time") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*float"),nomnal("star.core*integer")])),nomnal("star.core*float"))).
   escapeType("_utc2time") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*integer"),nomnal("star.core*float"),nomnal("star.core*integer")])),nomnal("star.core*float"))).
+  escapeType("_uniCodeCategory") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*integer"))).
   escapeType("_isCcChar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_isCfChar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
   escapeType("_isCnChar") => some(tpExp(tpExp(tpFun("=>",2),tupleType([nomnal("star.core*integer")])),nomnal("star.core*boolean"))).
@@ -236,28 +211,9 @@ star.comp.escapes{
   isEscape("_exit") => true.
   isEscape("_command_line") => true.
   isEscape("_abort") => true.
-  isEscape("_identical") => true.
   isEscape("_definedLbl") => true.
   isEscape("_callLbl") => true.
-  isEscape("_int_plus") => true.
-  isEscape("_int_minus") => true.
-  isEscape("_int_times") => true.
-  isEscape("_int_div") => true.
-  isEscape("_int_mod") => true.
   isEscape("_int_hash") => true.
-  isEscape("_flt_plus") => true.
-  isEscape("_flt_minus") => true.
-  isEscape("_flt_times") => true.
-  isEscape("_flt_div") => true.
-  isEscape("_flt_mod") => true.
-  isEscape("_int_abs") => true.
-  isEscape("_flt_abs") => true.
-  isEscape("_int_eq") => true.
-  isEscape("_int_lt") => true.
-  isEscape("_int_ge") => true.
-  isEscape("_flt_eq") => true.
-  isEscape("_flt_lt") => true.
-  isEscape("_flt_ge") => true.
   isEscape("_int2flt") => true.
   isEscape("_flt2int") => true.
   isEscape("_bits_float") => true.
@@ -285,13 +241,6 @@ star.comp.escapes{
   isEscape("_ldexp") => true.
   isEscape("_frexp") => true.
   isEscape("_modf") => true.
-  isEscape("_band") => true.
-  isEscape("_bor") => true.
-  isEscape("_bxor") => true.
-  isEscape("_blsl") => true.
-  isEscape("_blsr") => true.
-  isEscape("_basr") => true.
-  isEscape("_bnot") => true.
   isEscape("_cell") => true.
   isEscape("_get") => true.
   isEscape("_assign") => true.
@@ -379,6 +328,7 @@ star.comp.escapes{
   isEscape("_time2utc") => true.
   isEscape("_date2time") => true.
   isEscape("_utc2time") => true.
+  isEscape("_uniCodeCategory") => true.
   isEscape("_isCcChar") => true.
   isEscape("_isCfChar") => true.
   isEscape("_isCnChar") => true.

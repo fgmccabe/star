@@ -553,7 +553,7 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
-      case IAnd: {
+      case BAnd: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
@@ -561,7 +561,7 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
-      case IOr: {
+      case BOr: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
@@ -569,7 +569,7 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
-      case IXor: {
+      case BXor: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
@@ -577,14 +577,14 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
-      case INot: {
+      case BNot: {
         termPo Lhs = pop();
 
         termPo Rs = (termPo) allocateInteger(heap, ~(unsigned) integerVal(Lhs));
         push(Rs);
         continue;
       }
-      case Lsl: {
+      case BLsl: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
@@ -592,7 +592,7 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
-      case Lsr: {
+      case BLsr: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
@@ -600,7 +600,7 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
-      case Asr: {
+      case BAsr: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 

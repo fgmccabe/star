@@ -3,6 +3,7 @@
 
 :- use_module(resource).
 :- use_module(dict).
+:- use_module(errors).
 :- use_module(types).
 :- use_module(misc).
 :- use_module(uri).

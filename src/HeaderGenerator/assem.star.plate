@@ -77,6 +77,10 @@ star.compiler.assem{
     disp(al(Nm)) => ss(Nm).
   .}
 
+  public implementation display[assemOp] => {.
+    disp(Op) => ssSeq(showMnem([Op],0,[])).
+  .}
+
   showMnem:(list[assemOp],integer,list[ss]) => list[ss].
   showMnem([],_,Out) => Out.
   showMnem([iLbl(al(Lb)),..Ins],Pc,Out) => showMnem(Ins,Pc,[Out..,ss(Lb),ss(":\n")]).

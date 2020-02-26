@@ -14,6 +14,7 @@
 :- use_module(misc).
 :- use_module(types).
 :- use_module(escapes).
+:- use_module(intrinsics).
 
 isType(Nm,Env,Tp) :-
   marker(type,M),
@@ -40,6 +41,7 @@ declareVar(Nm,Vr,[scope(Types,Names,Cns,Impls,Contracts)|Outer],[scope(Types,Nam
   makeKey(Nm,Key),
   put_dict(Key,Names,Vr,Names1).
 
+isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp,dict:noFace)) :- isIntrinsic(Nm,Tp,_),!.
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp,dict:noFace)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
 

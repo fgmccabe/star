@@ -6,12 +6,14 @@ star.compiler.freevars{
   import star.compiler.location.
   import star.compiler.core.
   import star.compiler.escapes.
+  import star.compiler.intrinsics.
   import star.compiler.types.
 
   public freeVarsInTerm:(canon,set[crVar],set[crVar]) => set[crVar].
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Excl => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),Excl,Fv) where crId(Nm,_) in Fv => Fv.
   freeVarsInTerm(vr(_,Nm,_),_,Fv) where isEscape(Nm) => Fv.
+  freeVarsInTerm(vr(_,Nm,_),_,Fv) where _ ^= intrinsic(Nm) => Fv.
   freeVarsInTerm(vr(Lc,Nm,Tp),_,Fv) => _addMem(crId(Nm,Tp),Fv).
   freeVarsInTerm(intr(_,_),_,Fv) => Fv.
   freeVarsInTerm(flot(_,_),_,Fv) => Fv.

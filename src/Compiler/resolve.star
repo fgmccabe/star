@@ -12,16 +12,13 @@ star.compiler.resolve{
   import star.compiler.freshen.
   import star.compiler.unify.
 
-  public overloadEnvironment:(list[list[canonDef]],list[canon],dict,reports) =>
-    either[reports,(list[list[canonDef]],list[canon])].
-  overloadEnvironment(Gps,Ots,Dict,Rp) => do{
+  public overloadEnvironment:(list[list[canonDef]],dict,reports) =>
+    either[reports,list[list[canonDef]]].
+  overloadEnvironment(Gps,Dict,Rp) => do{
 --    logMsg("resolving definitions in $(Gps)\nenvironment $(Dict)");
     TDict .= declareImplementations(Gps,Dict);
 --    logMsg("resolution dict = $(TDict)");
-    RGps <- overloadGroups(Gps,[],TDict,Rp);
-    ROts <- pickFailures(Ots//(T)=>resolveTerm(T,TDict,Rp));
-
-    valis (RGps,ROts)
+    overloadGroups(Gps,[],TDict,Rp)
   }
 
   declareImplementations([],Dict) => Dict.

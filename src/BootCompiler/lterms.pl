@@ -100,6 +100,11 @@ showTerm(ecll(_,Es,Args),Dp,O,Ox) :-
   appStr(Es,O,O1),
   Dp1 is Dp+2,
   showArgs(Args,Dp1,O1,Ox).
+showTerm(intrinsic(_,Op,Args),Dp,O,Ox) :-
+  appStr("instr: ",O,O1),
+  appStr(Op,O1,O2),
+  Dp1 is Dp+2,
+  showArgs(Args,Dp1,O2,Ox).
 showTerm(dte(_,Exp,Off),Dp,O,Ox) :-
   Dp1 is Dp+2,
   showTerm(Exp,Dp1,O,O1),
@@ -272,6 +277,8 @@ rewriteTerm(QTest,dte(Lc,Op,Off),dte(Lc,NOp,NOff)) :-
   rewriteTerm(QTest,Off,NOff).
 rewriteTerm(QTest,ctpl(Op,Args),ctpl(NOp,NArgs)) :-
   rewriteTerm(QTest,Op,NOp),
+  rewriteTerms(QTest,Args,NArgs).
+rewriteTerm(QTest,intrinsic(Lc,Op,Args),intrinsic(Lc,Op,NArgs)) :-
   rewriteTerms(QTest,Args,NArgs).
 rewriteTerm(QTest,ecll(Lc,Call,Args),ecll(Lc,Call,NArgs)) :-
   rewriteTerms(QTest,Args,NArgs).
