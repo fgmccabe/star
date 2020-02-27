@@ -104,6 +104,10 @@ static integer lblHash(specialClassPo cl, termPo o) {
   return labelHash(lbl);
 }
 
+logical sameLabel(labelPo l1, labelPo l2) {
+  return (logical) (l1 == l2);
+}
+
 retCode labelDel(labelPo lbl, labelPo l) {
   uniDestroy(lbl->name);
   freePool(labelPool, lbl);

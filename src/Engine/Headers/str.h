@@ -31,4 +31,6 @@ extern stringPo allocateCString(heapPo H, const char *txt);
 
 extern retCode copyString2Buff(stringPo str, char *buffer, integer buffLen);
 
+extern logical sameString(stringPo s1, stringPo s2);
+
 #endif //STAR_STR_H

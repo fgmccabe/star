@@ -404,7 +404,7 @@ retCode run(processPo P) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
-          if (sameTerm(l, (termPo) termLbl(cl)))
+          if (isLabel(l) && sameLabel(C_LBL(l), termLbl(cl)))
             PC = exit;
         } else if (sameTerm(t, l))
           PC = exit;
@@ -588,7 +588,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo)allocateInteger(heap, ((unsigned) integerVal(Lhs) << (unsigned) integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) << (unsigned) integerVal(Rhs)));
         push(Rs);
         continue;
       }
@@ -596,7 +596,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo)allocateInteger(heap, (((unsigned) integerVal(Lhs)) >> ((unsigned) integerVal(Rhs))));
+        termPo Rs = (termPo) allocateInteger(heap, (((unsigned) integerVal(Lhs)) >> ((unsigned) integerVal(Rhs))));
         push(Rs);
         continue;
       }
@@ -604,7 +604,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo)allocateInteger(heap, (integerVal(Lhs) >> integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(heap, (integerVal(Lhs) >> integerVal(Rhs)));
         push(Rs);
         continue;
       }

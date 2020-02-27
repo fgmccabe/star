@@ -313,6 +313,18 @@ comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2) {
     return same;
 }
 
+logical uniSame(const char *s1,integer l1, const char *s2,integer l2){
+  integer ix = 0;
+  integer jx = 0;
+  while(ix<l1 && jx<l2){
+    codePoint ch1 = nextCodePoint(s1,&ix,l1);
+    codePoint ch2 = nextCodePoint(s2,&jx,l2);
+    if(ch1!=ch2)
+      return False;
+  }
+  return (logical)(ix==l1 && jx==l2);
+}
+
 integer uniIndexOf(const char *s, integer len, integer from, codePoint c) {
   integer pos = from;
 
