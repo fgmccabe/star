@@ -191,7 +191,6 @@ star.compiler.gencode{
     compExp(Exp,Opts,Succ,Ctx2,[Cde2..,iLbl(Nxt)],Stk1,Rp)
   }
   compCaseBranch([(Lc,Ptn,Exp),..More],Succ,Fail,Deflt,Opts,Ctx,Cde,Stk,Rp) => do{
---    (Nxt,Ctx1) .= defineLbl(Ctx);
     (Fl,Ctx2) .= defineLbl(Ctx);
     (VLb,Ctx3) .= defineLbl(Ctx2);
     Vr .= crId(genSym("__"),typeOf(Ptn));

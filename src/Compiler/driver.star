@@ -37,7 +37,12 @@ star.compiler{
     alternatives = [].
     usage = "-R dir -- directory of repository".
     validator = some(isDir).
-    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) => compilerOptions{repo=NR. cwd=Opts.cwd}.
+    setOption(R,Opts) where RU ^= parseUri(R) && NR^=resolveUri(Opts.cwd,RU) =>
+      compilerOptions{repo=NR.
+	cwd=Opts.cwd.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
   }
 
   wdOption:optionsProcessor[compilerOptions].
@@ -46,12 +51,25 @@ star.compiler{
     alternatives = [].
     usage = "-W dir -- working directory".
     validator = some(isDir).
-    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=> compilerOptions{repo=Opts.repo. cwd=NW}.
+    setOption(W,Opts) where RW ^= parseUri(W) && NW^=resolveUri(Opts.cwd,RW)=>
+      compilerOptions{repo=Opts.repo.
+	cwd=NW.
+	showCanon=Opts.showCanon.
+	showCore=Opts.showCore.
+	showCode=Opts.showCode}.
   }
 
   public _main:(list[string])=>().
-  _main(Args) where RI^=parseUri("file:"++_repo()) && WI^=parseUri("file:"++_cwd())=>
-    valof handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI. cwd=WI})).
+  _main(Args) => valof action{
+    RI^=parseUri("file:"++_repo());
+    WI^=parseUri("file:"++_cwd());
+    logMsg("driver args $(Args)");
+    handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI.
+	  cwd=WI.
+	  showCanon=false.
+	  showCore=false.
+	  showCode=false}))
+  }.
 
   openupRepo:(uri,uri) => action[(), termRepo].
   openupRepo(RU,CU) where CRU ^= resolveUri(CU,RU) => do{
@@ -83,6 +101,9 @@ star.compiler{
     else{
       logMsg("could not access catalog")
     }
+  }
+  handleCmds(other(Msg)) => do{
+    logMsg(Msg)
   }
 
   extractPkgSpec(P) where Lc .= _str_find(P,":",0) && Lc>0 => let{
