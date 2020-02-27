@@ -3,6 +3,7 @@ star.compiler.dict{
 
   import star.compiler.canon.
   import star.compiler.escapes.
+  import star.compiler.intrinsics.
   import star.compiler.errors.
   import star.compiler.location.
   import star.compiler.types.
@@ -51,6 +52,7 @@ star.compiler.dict{
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
 
   public isVar:(string,dict) => option[vrEntry].
+  isVar(Nm,_) where (Tp,_) ^= intrinsic(Nm) => some(vrEntry(none,(L,T)=>vr(L,Nm,T),Tp)).
   isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(none,(L,T)=>vr(L,Nm,T),Tp)).
   isVar(Nm,[]) => none.
   isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
