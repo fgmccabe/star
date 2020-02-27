@@ -5,7 +5,6 @@
 
 
 /* Define the standard intrinsics */
-intrinsic(_exit,"F(i)()","Halt","terminate engine")
 
 intrinsic(_int_plus,"F(ii)i","IAdd","add two integers")
 intrinsic(_int_minus,"F(ii)i","ISub","subtract two integers")

@@ -7,7 +7,6 @@ star.compiler.intrinsics{
   import star.compiler.assem.
 
   public intrinsic:(string) => option[(tipe,assemOp)].
-  intrinsic("_exit") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType])),tupleType([])),iHalt)).  -- terminate engine
   intrinsic("_int_plus") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),iIAdd)).  -- add two integers
   intrinsic("_int_minus") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),iISub)).  -- subtract two integers
   intrinsic("_int_times") => some((tpExp(tpExp(tpFun("=>",2),tupleType([intType,intType])),intType),iIMul)).  -- multiply two integers
