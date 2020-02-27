@@ -9,7 +9,6 @@
 #include <cellP.h>
 #include <iochnnlP.h>
 #include <arrayP.h>
-#include <rrbP.h>
 #include <memoP.h>
 #include "capabilityP.h"
 #include "manifest.h"
@@ -53,7 +52,6 @@ int main(int argc, char **argv) {
   initCode();
   initLocks();
   initTerm();
-  initVectors();
   initLists();
   initCapability();
   initIoChnnl();

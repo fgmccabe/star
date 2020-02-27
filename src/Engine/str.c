@@ -81,7 +81,11 @@ logical strCmp(specialClassPo cl, termPo o1, termPo o2) {
   const char *tx1 = stringVal(o1, &l1);
   const char *tx2 = stringVal(o2, &l2);
 
-  return (logical)(uniNCmp(tx1, l1, tx2, l2)==same);
+  return uniSame(tx1, l1, tx2, l2);
+}
+
+logical sameString(stringPo s1, stringPo s2){
+  return uniSame(s1->txt, s1->length, s2->txt, s2->length);
 }
 
 static retCode qtChar(ioPo f, codePoint ch) {

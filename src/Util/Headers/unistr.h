@@ -99,6 +99,7 @@ retCode uniCpy(char *dest, integer len, const char *src);
 retCode uniNCpy(char *dest, integer len, const char *src, integer sLen);
 comparison uniCmp(const char *s1, const char *s2);
 comparison uniNCmp(const char *s1, integer l1, const char *s2, integer l2);
+logical uniSame(const char *s1,integer l1, const char *s2,integer l2);
 retCode appendCodePoint(char *dest, integer *pos, integer len, codePoint ch);
 retCode uniAppend(char *dest, integer *pos, integer len, char *src);
 retCode uniNAppend(char *dest, integer *pos, integer len, char *src, integer sLen);

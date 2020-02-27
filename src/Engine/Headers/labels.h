@@ -24,6 +24,7 @@ char *labelName(labelPo lbl);
 integer fieldIndex(labelPo lbl, labelPo field);
 integer fieldSize(labelPo lbl,labelPo field);
 logical isRecordLabel(labelPo lbl);
+logical sameLabel(labelPo l1, labelPo l2);
 
 typedef retCode (*fieldProc)(labelPo lbl, integer offset, integer size, void *cl);
 extern retCode applyFieldProc(labelPo lbl, integer ix, fieldProc p, void *cl);

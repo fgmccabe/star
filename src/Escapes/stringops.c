@@ -13,10 +13,10 @@
 #include "arithmetic.h"
 
 ReturnStatus g__str_eq(processPo p, ptrPo tos) {
-  termPo Arg1 = tos[0];
-  termPo Arg2 = tos[1];
+  stringPo Arg1 = C_STR(tos[0]);
+  stringPo Arg2 = C_STR(tos[1]);
 
-  logical eq = sameTerm(Arg1, Arg2);
+  logical eq = sameString(Arg1, Arg2);
 
   return (ReturnStatus) {.ret=Ok, .result=(eq ? trueEnum : falseEnum)};
 }
