@@ -68,7 +68,7 @@ star.compiler.normalize{
   }
 
   pkgMap:(pkgSpec) => nameMap.
-  pkgMap(pkgSpec(Pkg,Imports,Tp,Defs,Impls,PkgVrs)) =>
+  pkgMap(pkgSpec(Pkg,Imports,Tp,Cons,Impls,PkgVrs)) =>
     [lyr(pkgName(Pkg),foldRight(((Nm,ITp),D)=>D[Nm->globalVar(Nm,ITp)],[],PkgVrs),none)].
 
   groupMap:(locn,list[canonDef],string,nameMap,reports) => either[reports,(nameMap,option[crVar],crExp)].
