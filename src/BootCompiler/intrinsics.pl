@@ -2,7 +2,6 @@
 
 :-module(intrinsics,[isIntrinsic/3]).
 
-isIntrinsic("_exit",funType(tupleType([type("star.core*integer")]),tupleType([])),iHalt).  % terminate engine
 isIntrinsic("_int_plus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iIAdd).  % add two integers
 isIntrinsic("_int_minus",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iISub).  % subtract two integers
 isIntrinsic("_int_times",funType(tupleType([type("star.core*integer"),type("star.core*integer")]),type("star.core*integer")),iIMul).  % multiply two integers
