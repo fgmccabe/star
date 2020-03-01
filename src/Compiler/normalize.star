@@ -61,7 +61,7 @@ star.compiler.normalize{
   public normalize:(pkgSpec,canonDef,reports)=>either[reports,list[crDefn]].
   normalize(PkgSpec,Prg,Rp) => do{
     Map .= pkgMap(PkgSpec);
-    logMsg("package map $(Map)");
+--    logMsg("package map $(Map)");
     (V,Defs) <- transformDef(Prg,Map,[],[],Rp);
     Bound .= (V//((Vr,Vl))=>vrDef(locOf(Vl),Vr,Vl));
     valis Bound++Defs
@@ -168,7 +168,7 @@ star.compiler.normalize{
 
   transformDef:(canonDef,nameMap,list[crDefn],list[(crVar,crExp)],reports) =>
     either[reports,(list[(crVar,crExp)],list[crDefn])].
-  transformDef(varDef(Lc,Nm,Path,lambda(_,Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
+  transformDef(varDef(Lc,Nm,FullNm,lambda(_,Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
 --    logMsg("transform function $(Nm)\:$(Tp)");
     Extra .= extraVars(Map);
 --    logMsg("extra vars in function: $(Extra), $(isEmpty(Extra))");
@@ -176,9 +176,7 @@ star.compiler.normalize{
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Extra,Ex,Rp);
 --    logMsg("normalized equations for $(Nm)\: $(Eqs)");
 
-    FnName .= qualifiedName(Path,markerString(valMark),Nm);
-
-    ClosureNm .= qualifiedName(Path,markerString(closMark),Nm);
+    ClosureNm .= closureNm(FullNm);
     ClVar .= genVar(Nm,Tp);
     ClVars .= makeFunVars(Tp);
     ClArgs .= [ClVar,..ClVars];
@@ -188,32 +186,32 @@ star.compiler.normalize{
     if isEmpty(Extra) then{
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,
-	  ClArgs,crCall(Lc,FnName,ClVars//(V)=>crVar(Lc,V),funTypeRes(Tp)));
+	  ClArgs,crCall(Lc,FullNm,ClVars//(V)=>crVar(Lc,V),funTypeRes(Tp)));
 
-      valis (Vs,[functionMatcher(Lc,FnName,ATp,Eqs),ClosEntry,..Ex1])
+      valis (Vs,[functionMatcher(Lc,FullNm,ATp,Eqs),ClosEntry,..Ex1])
     } else if [Exv].=Extra then {
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
-	  crCall(Lc,FnName,[crTplOff(Lc,crVar(Lc,ClVar),0,typeOf(Exv)),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
+	  crCall(Lc,FullNm,[crTplOff(Lc,crVar(Lc,ClVar),0,typeOf(Exv)),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
 --    logMsg("closure entry: $(ClosEntry)");
-      valis (Vs,[functionMatcher(Lc,FnName,ATp,Eqs),ClosEntry,..Ex1])
+      valis (Vs,[functionMatcher(Lc,FullNm,ATp,Eqs),ClosEntry,..Ex1])
     } else {
       FrTp .= tupleType(Extra//typeOf);
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
-	  crCall(Lc,FnName,[crTplOff(Lc,crVar(Lc,ClVar),0,FrTp),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
+	  crCall(Lc,FullNm,[crTplOff(Lc,crVar(Lc,ClVar),0,FrTp),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
 
 --    logMsg("closure entry: $(ClosEntry)");
-      valis (Vs,[functionMatcher(Lc,FnName,ATp,Eqs),ClosEntry,..Ex1])
+      valis (Vs,[functionMatcher(Lc,FullNm,ATp,Eqs),ClosEntry,..Ex1])
     }
   }
-  transformDef(varDef(Lc,Nm,_,Val,_,Tp),Map,Ex,Vs,Rp) => do{
+  transformDef(varDef(Lc,Nm,FullNm,Val,_,Tp),Map,Ex,Vs,Rp) => do{
     (Vl,Exx) <- liftExp(Val,Map,Ex,Rp);
-    Vr .= crId(Nm,Tp);
+    Vr .= crId(FullNm,Tp);
     valis ([Vs..,(Vr,Vl)],Exx)
   }
-  transformDef(implDef(Lc,Nm,FullNm,Val,Tp),Map,Ex,Vs,Rp) =>
-    transformDef(varDef(Lc,FullNm,"",Val,[],Tp),Map,Ex,Vs,Rp).
+  transformDef(implDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Ex,Vs,Rp) =>
+    transformDef(varDef(Lc,Nm,FullNm,Val,Cx,Tp),Map,Ex,Vs,Rp).
   transformDef(_,_,Ex,Vs,_) => either((Vs,Ex)).
 
   transformEquations:(list[equation],nameMap,list[crVar],list[crDefn],reports) =>
@@ -255,6 +253,10 @@ star.compiler.normalize{
     valis (crTpl(Lc,LEls),Exx)
   }
   liftPtn(apply(Lc,vr(VLc,VNm,_),tple(_,Els),Tp),Map,Ex,Rp) => do{
+    (LArgs,Ex1) <- liftPtns(Els,Map,Ex,Rp);
+    liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Ex1,Rp)
+  }
+  liftPtn(apply(Lc,enm(VLc,VNm,_),tple(_,Els),Tp),Map,Ex,Rp) => do{
     (LArgs,Ex1) <- liftPtns(Els,Map,Ex,Rp);
     liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Ex1,Rp)
   }
@@ -465,12 +467,10 @@ star.compiler.normalize{
   extendTplType(Es,[V,..Vs]) => [typeOf(V),..extendTplType(Es,Vs)].
 
   collectMtd:(canonDef,string,option[crVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
-  collectMtd(varDef(Lc,Nm,Path,lambda(_,_,_),_,Tp),Outer,some(ThVr),LL) =>
-    LL[Nm->localVar(qualifiedName(Path,markerString(valMark),Nm),
-	qualifiedName(Path,markerString(closMark),Nm),Tp,ThVr)].
-  collectMtd(varDef(Lc,Nm,Path,lambda(_,_,_),_,Tp),Outer,none,LL) =>
-    LL[Nm->moduleVar(qualifiedName(Path,markerString(valMark),Nm),
-	qualifiedName(Path,markerString(closMark),Nm),
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),Outer,some(ThVr),LL) =>
+    LL[Nm->localVar(FullNm,closureNm(FullNm),Tp,ThVr)].
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),Outer,none,LL) =>
+    LL[Nm->moduleVar(FullNm,closureNm(FullNm),
 	funType([],Tp))].
   collectMtd(cnsDef(Lc,Nm,FullNm,Tp),Outer,ThVr,LL) => LL[Nm->moduleCons(FullNm,Tp)].
   collectMtd(_,_,_,LL) default => LL.
@@ -533,5 +533,8 @@ star.compiler.normalize{
 
   crCon:(locn,string,list[crExp],tipe) => crExp.
   crCon(Lc,Nm,Args,Tp) => crTerm(Lc,Nm,Args,Tp).
+
+  closureNm:(string)=>string.
+  closureNm(Nm)=>Nm++"^".
   
 }

@@ -6,13 +6,15 @@ star.compiler.ast{
   import star.compiler.terms.
 
   public ast ::=
-      nme(locn,string)
-    | lit(locn,term)
-    | tpl(locn,string,list[ast])
-    | app(locn,ast,ast).
+    nme(locn,string)
+      | qnm(locn,string)
+      | lit(locn,term)
+      | tpl(locn,string,list[ast])
+      | app(locn,ast,ast).
 
   public implementation equality[ast] => {.
     nme(_,I1) == nme(_,I2) => I1==I2.
+    qnm(_,I1) == qnm(_,I2) => I1==I2.
     lit(_,L1) == lit(_,L2) => L1==L2.
     tpl(_,K1,E1) == tpl(_,K2,E2) => K1==K2 && E1==E2.
     app(_,O1,A1) == app(_,O2,A2) => O1==O2 && A1==A2.
@@ -26,16 +28,18 @@ star.compiler.ast{
   public dispAst:(ast,integer) => ss.
   dispAst(lit(_,Lt),_) => disp(Lt).
   dispAst(nme(_,Id),_) => dispId(Id).
+  dispAst(qnm(_,Id),_) => ssSeq([ss("'"),ss(Id),ss("'")]).
   dispAst(tpl(_,"{}",Els),_) =>
     ssSeq([ss("{"),ssSeq(interleave(Els//((E)=>dispAst(E,2000)),ss(". "))),ss("}")]).
+  dispAst(tpl(_,"()",[nme(_,Id)]),_) => ssSeq([ss("("),ss(Id),ss(")")]).
   dispAst(tpl(_,Bk,Els),_) where bkt(Lft,_,Rgt,Inn)^=isBracket(Bk) =>
     ssSeq([ss(Lft),ssSeq(interleave(Els//((E)=>dispAst(E,Inn)),ss(","))),ss(Rgt)]).
   dispAst(app(_,nme(_,Op),tpl(_,"()",[L,R])),Pr) where (Lf,P,Rg)^=isInfixOp(Op) =>
-    ssSeq([leftPar(P,Pr),dispAst(L,Lf),ss(Op),dispAst(R,Rg),rightPar(P,Pr)]).
+    ssSeq([leftPar(P,Pr),dispAst(L,Lf),ss(" "),ss(Op),ss(" "),dispAst(R,Rg),rightPar(P,Pr)]).
   dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPrefixOp(Op) =>
-    ssSeq([leftPar(P,Pr),ss(Op),dispAst(R,Rg),rightPar(P,Pr)]).
+    ssSeq([leftPar(P,Pr),ss(Op),ss(" "),dispAst(R,Rg),rightPar(P,Pr)]).
   dispAst(app(_,nme(_,Op),tpl(_,"()",[R])),Pr) where (P,Rg)^=isPostfixOp(Op) =>
-    ssSeq([leftPar(P,Pr),dispAst(R,Rg),ss(Op),rightPar(P,Pr)]).
+    ssSeq([leftPar(P,Pr),dispAst(R,Rg),ss(" "),ss(Op),rightPar(P,Pr)]).
   dispAst(app(_,Op,A),_) => ssSeq([dispAst(Op,0),dispAst(A,0)]).
 
   dispId:(string) => ss.
@@ -149,8 +153,7 @@ star.compiler.ast{
 
   public isRoundTerm:(ast) => option[(locn,ast,list[ast])].
   isRoundTerm(app(Lc,Op,tpl(_,"()",A))) where
-      (_,Id) ^= isName(Op) =>
-    (keyword(Id) ? none || some((Lc,Op,A))).
+      (_,Id) ^= isName(Op) => some((Lc,Op,A)).
   isRoundTerm(_) default => none.
 
   public roundTerm:(locn,ast,list[ast]) => ast.

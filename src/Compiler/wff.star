@@ -77,6 +77,9 @@ star.compiler.wff{
   public isTypeAnnotation:(ast)=>option[(locn,ast,ast)].
   isTypeAnnotation(A)=>isBinary(A,":").
 
+  public typeAnnotation:(locn,ast,ast)=>ast.
+  typeAnnotation(Lc,V,T) => binary(Lc,":",V,T).
+
   public isTypeExistsStmt:(ast) => option[(locn,list[ast],list[ast],ast,ast)].
   isTypeExistsStmt(A) where
       (Lc,Q,I) ^= isQuantified(A) &&
@@ -442,6 +445,7 @@ star.compiler.wff{
     headName(D).
   headName(A) where (_,H,_) ^= isWhere(A) =>
     headName(H).
+  headName(A) where (_,[E]) ^= isTuple(A) => headName(E).
   headName(_) default => none.
 
   public isDefn:(ast) => option[(locn,ast,ast)].
@@ -494,8 +498,8 @@ star.compiler.wff{
   isDefault(A) => isUnary(A,"default").
 
   public isDoTerm:(ast) => option[(locn,ast)].
-  isDoTerm(A) where (Lc,Op,Args) ^= isBrTerm(A) && (_,"do") ^= isName(Op) =>
-    some((Lc,brTuple(Lc,Args))).
+  isDoTerm(A) where (Lc,Arg) ^= isUnary(A,"do") && _ ^= isBrTuple(Arg) =>
+    some((Lc,Arg)).
   isDoTerm(_) default => none.
 
   public isActionTerm:(ast) => option[(locn,ast)].

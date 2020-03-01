@@ -58,7 +58,7 @@ star.compiler.canon{
     typeDef(locn,string,tipe,tipe) |
     conDef(locn,string,string,tipe) |
     cnsDef(locn,string,string,tipe) |
-    implDef(locn,string,string,canon,tipe).
+    implDef(locn,string,string,canon,list[constraint],tipe).
 
   public implementation hasType[canon] => {
     typeOf(vr(_,_,T)) => T.
@@ -136,26 +136,34 @@ star.compiler.canon{
   .}
 
 
-    public implementation display[canonAction] => let{
-    dispAction(noDo(Lc)) => ss("{}").
-    dispAction(seqnDo(Lc,L,R)) => ssSeq([dispAction(L),ss(";"),dispAction(R)]).
-    dispAction(bindDo(Lc,Ptn,Exp,_,_,_)) => ssSeq([disp(Ptn),ss("<-"),disp(Exp)]).
-    dispAction(varDo(Lc,Ptn,Exp)) => ssSeq([disp(Ptn),ss(".="),disp(Exp)]).
-    dispAction(assignDo(Lc,L,R,_,_)) => ssSeq([disp(L),ss(":="),disp(R)]).
-    dispAction(delayDo(_,Act,_,_,_)) => ssSeq([ss("delay "),dispAction(Act)]).
-    dispAction(ifThenElseDo(Lc,Ts,Th,El,_,_,_)) =>  ssSeq([ss("if"),disp(Ts),ss("then"),dispAction(Th),ss("else"),dispAction(El)]).
-    dispAction(whileDo(Lc,Ts,Bd,_,_)) => ssSeq([ss("while "),disp(Ts),ss("do"),dispAction(Bd)]).
-    dispAction(forDo(Lc,Ts,Bd,_,_)) => ssSeq([ss("for "),disp(Ts),ss("do"),dispAction(Bd)]).
-    dispAction(tryCatchDo(Lc,Bdy,Catch,_,_,_)) => ssSeq([ss("try "),dispAction(Bdy),ss(" catch "),disp(Catch)]).
-    dispAction(throwDo(Lc,Exp,_,_,_)) => ssSeq([ss("throw "),disp(Exp)]).
-    dispAction(returnDo(Lc,Exp,_,_,_)) => ssSeq([ss("return "),disp(Exp)]).
-    dispAction(simpleDo(Lc,Exp,_)) => ssSeq([ss("do "),disp(Exp)]).
-    dispAction(performDo(Lc,Act,_,_,_)) => ssSeq([ss("perform "),disp(Act)]).
-  } in {.
-    disp = dispAction
+  public implementation display[canonAction] => {.
+    disp(A) => ssSeq([ss("{"),dispAction(A,""),ss("}")]).
   .}
 
-
+  dispAction(noDo(Lc),_) => ss("{}").
+  dispAction(seqnDo(Lc,L,R),Sp) => ssSeq([dispAction(L,Sp),ss(";"),dispAction(R,Sp)]).
+  dispAction(bindDo(Lc,Ptn,Exp,_,_,_),Sp) =>
+    ssSeq([showCanon(Ptn,Sp),ss("<-"),showCanon(Exp,Sp)]).
+  dispAction(varDo(Lc,Ptn,Exp),Sp) =>
+    ssSeq([showCanon(Ptn,Sp),ss(".="),showCanon(Exp,Sp)]).
+  dispAction(assignDo(Lc,L,R,_,_),Sp) =>
+    ssSeq([showCanon(L,Sp),ss(":="),showCanon(R,Sp)]).
+  dispAction(delayDo(_,Act,_,_,_),Sp) => ssSeq([ss("delay "),dispAction(Act,Sp++"  ")]).
+  dispAction(ifThenElseDo(Lc,Ts,Th,El,_,_,_),Sp) =>
+    ssSeq([ss("if"),showCanon(Ts,Sp),ss("then"),
+	dispAction(Th,Sp++"  "),ss("else"),dispAction(El,Sp)]).
+  dispAction(whileDo(Lc,Ts,Bd,_,_),Sp) =>
+    ssSeq([ss("while "),showCanon(Ts,Sp),ss("do"),dispAction(Bd,Sp++"  ")]).
+  dispAction(forDo(Lc,Ts,Bd,_,_),Sp) =>
+    ssSeq([ss("for "),showCanon(Ts,Sp),ss("do"),dispAction(Bd,Sp++"  ")]).
+  dispAction(tryCatchDo(Lc,Bdy,Catch,_,_,_),Sp) =>
+    ssSeq([ss("try "),dispAction(Bdy,Sp++"  "),
+	ss(" catch "),showCanon(Catch,Sp)]).
+  dispAction(throwDo(Lc,Exp,_,_,_),Sp) => ssSeq([ss("throw "),showCanon(Exp,Sp)]).
+  dispAction(returnDo(Lc,Exp,_,_,_),Sp) => ssSeq([ss("return "),showCanon(Exp,Sp)]).
+  dispAction(simpleDo(Lc,Exp,_),Sp) => ssSeq([ss("do "),showCanon(Exp,Sp)]).
+  dispAction(performDo(Lc,Act,_,_,_),Sp) => ssSeq([ss("perform "),showCanon(Act,Sp)]).
+    
   public implementation display[pkgSpec] => {.
     disp(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) =>
       ss("Package: $(Pkg), imports=$(Imports), Signature=$(Face),Contracts=$(Cons),Implementations:$(Impls), pkg vars:$(PkgVrs)").
@@ -234,6 +242,7 @@ star.compiler.canon{
   showCanon(record(_,_,Fields,_),Sp) =>
     ssSeq([ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
   showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
+  showCanon(act(_,A),Sp) => ssSeq([ss("{"),dispAction(A,Sp),ss("}")]).
   
   showCases(Cs,Sp) => ssSeq([ss("{"),showRls("",Cs,Sp),ss("}")]).
 
@@ -241,21 +250,17 @@ star.compiler.canon{
 
   showField((Nm,Val),Sp) => ssSeq([ss(Nm),ss(" = "),showCanon(Val,Sp)]).
 
-  showGroups:(list[list[canonDef]],string) => list[ss].
-  showGroups([],_) => [].
-  showGroups([G,..Gs],Sp) => [ss("{"),showGroup(G,Sp),ss(Sp),ss("}\n"),..showGroups(Gs,Sp)].
-
   showGroup:(list[canonDef],string) => ss.
   showGroup(G,Sp) => ssSeq(interleave(G//(D)=>showDef(D,Sp),ss(".\n"++Sp))).
 
   showDef:(canonDef,string)=>ss.
-  showDef(varDef(_,Nm,Path,lambda(_,Rls,_),_,Tp),Sp) => showRls(Path++" # "++Nm,Rls,Sp).
-  showDef(varDef(_,Nm,Path,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(Path),ss(" # "),ss(Nm),ss(" = "),showCanon(V,Sp)]).
+  showDef(varDef(_,Nm,FullNm,lambda(_,Rls,_),_,Tp),Sp) => showRls(Nm,Rls,Sp).
+  showDef(varDef(_,Nm,FullNm,V,_,Tp),Sp) => ssSeq([ss("Var: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(V,Sp)]).
   showDef(typeDef(_,Nm,T,_),Sp) => ssSeq([ss("Type: "),ss(Nm),ss("~>"),disp(T)]).
   showDef(conDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Contract: "),ss(Nm),ss("::="),disp(Tp)]).
   showDef(cnsDef(_,_,Nm,Tp),Sp) => ssSeq([ss("Constructor: "),ss(Nm),ss(":"),disp(Tp)]).
-  showDef(implDef(_,Nm,FullNm,Exp,Tp),Sp) =>
-    ssSeq([ss("Implementation: "),ss(FullNm),ss(" = "),showCanon(Exp,Sp)]).
+  showDef(implDef(_,Nm,FullNm,Exp,_,Tp),Sp) =>
+    ssSeq([ss("Implementation: "),ss(FullNm),ss(" ["),ss(Nm),ss("] = "),showCanon(Exp,Sp)]).
 
   showRls:(string,list[equation],string) => ss.
   showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"))).

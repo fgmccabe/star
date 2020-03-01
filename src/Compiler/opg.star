@@ -101,7 +101,7 @@ star.compiler.opg{
   termArgs((Lhs,[tok(Lc,lftTok("[]")),..Toks],Rpt,_)) where
       (Arg,_,Toks1,Rpt1,_) .= term(Toks,Rpt,2000) &&
       (Lc2,Rpt2,Toks2) .= checkToken(rgtTok("[]"),Rpt1,Toks1) =>
-        termArgs((app(mergeLoc(locOf(Lhs),Lc2),Lhs,tpl(mergeLoc(Lc,Lc2),"[]",[Arg])),Toks2,Rpt,needOne)).
+    termArgs((app(mergeLoc(locOf(Lhs),Lc2),Lhs,tpl(mergeLoc(Lc,Lc2),"[]",deComma(Arg))),Toks2,Rpt,needOne)).
   termArgs((Left,[tok(Lc,lftTok("{}")),tok(Lcx,rgtTok("{}")),..Toks],Rpt,_)) =>
     (app(mergeLoc(locOf(Left),Lcx),Left,tpl(mergeLoc(Lc,Lcx),"{}",[])),0,Toks,Rpt,noNeed).
   termArgs((Lhs,[tok(Lc,lftTok("{}")),..Toks],Rpt,_)) where

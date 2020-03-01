@@ -47,7 +47,19 @@ star.compiler.gencode{
     disp(glbVar(Off,Tpe)) =>ssSeq([ss("glb "),disp(Off),ss(":"),disp(Tpe)]).
   .}
 
-  public compDefs:(list[crDefn],list[(string,tipe)],compilerOptions,list[codeSegment],reports)=>
+  public compCrProg:(list[crDefn],list[(string,tipe)],compilerOptions,reports)=>
+    either[reports,list[codeSegment]].
+  compCrProg(Defs,Globals,Opts,Rp) =>
+    compDefs(Defs,localFuns(Defs,Globals),Opts,[],Rp).
+
+  localFuns:(list[crDefn],list[(string,tipe)])=>list[(string,tipe)].
+  localFuns(Defs,Vars) => foldRight(defFun,Vars,Defs).
+
+  defFun(fnDef(Lc,Nm,Tp,_,_),Vrs) => [(Nm,Tp),..Vrs].
+  defFun(vrDef(Lc,crId(Nm,Tp),_),Vrs) => [(Nm,Tp),..Vrs].
+  defFun(rcDef(_,_,_,_),Vrs) => Vrs.
+  
+  compDefs:(list[crDefn],list[(string,tipe)],compilerOptions,list[codeSegment],reports)=>
     either[reports,list[codeSegment]].
   compDefs([],_,_,Cs,_)=>either(Cs).
   compDefs([D,..Dfs],Glbs,Opts,Cs,Rp) => do{
@@ -67,7 +79,7 @@ star.compiler.gencode{
     throw reportError(Rp,"top of stack should have exactly one type, not $(Stk)",Lc)
   }
   compDefn(vrDef(Lc,crId(Nm,Tp),Val),Glbs,Opts,Rp) => do{
-    logMsg("compile var $(Nm)\:$(Tp) = $(Val))");
+    logMsg("compile global $(Nm)\:$(Tp) = $(Val))");
     Ctx .= emptyCtx(Lc,Glbs);
     (Ctxx,Code,Stk) <- compExp(Val,Opts,bothCont(stoGlb(Nm),retCont()),Ctx,[],[],Rp);
     if [Top].=Stk then
@@ -108,10 +120,10 @@ star.compiler.gencode{
   compExp(crDot(Lc,Rc,Field,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExp(Rc,Opts,bothCont(fldCont(Field,Tp),Cont),Ctx,Cde,Stk,Rp).
   compExp(crTplOff(Lc,Rc,Ix,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
-    logMsg("compile $(crTplOff(Lc,Rc,Ix,Tp)), stack is $(Stk)");
+--    logMsg("compile $(crTplOff(Lc,Rc,Ix,Tp)), stack is $(Stk)");
     compExp(Rc,Opts,bothCont(tplOffCont(Ix,Tp),Cont),Ctx,Cde,Stk,Rp)}
   compExp(crLtt(Lc,V,Val,Exp),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
-    logMsg("compile $(crLtt(Lc,V,Val,Exp)), stack = $(Stk)");
+--    logMsg("compile $(crLtt(Lc,V,Val,Exp)), stack = $(Stk)");
     (Ctx1,Cd1,_)<-compExp(Val,Opts,stoCont(V),Ctx,Cde,Stk,Rp);
     compExp(Exp,Opts,Cont,Ctx1,Cd1,Stk,Rp)
   }
@@ -125,7 +137,7 @@ star.compiler.gencode{
       litCont(enum(tLbl("star.core$false",0)),boolType),Ctx,Cde,Stk,Rp).
   compExp(crCnd(Lc,T,L,R),Opts,Cont,Ctx,Cde,Stk,Rp) => do{
     OS .= onceCont(Cont);
-    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack = $(Stk)");
+--    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack = $(Stk)");
     compCond(T,Opts,expCont(L,Opts,OS),expCont(R,Opts,OS),Ctx,Cde,Stk,Rp)
   }
 
@@ -142,7 +154,7 @@ star.compiler.gencode{
     OC .= onceCont(Cont);
     (Ctx3,ECode,EStk) <- compExp(E,Opts,jmpCont(Nxt),Ctx2,Cde,Stk,Rp);
     (Table,Max) .= genCaseTable(Cases);
-    logMsg("case max: $(Max), table $(Table)");
+--    logMsg("case max: $(Max), table $(Table)");
     (Ctx4,CCode,_) <- compCases(Table,0,Max,Cont,jmpCont(DLbl),DLbl,Opts,Ctx3,[ECode..,iLbl(Nxt),iCase(Max)],EStk,Rp);
     compExp(Deflt,Opts,Cont,Ctx4,[CCode..,iLbl(DLbl),iRst(size(Stk))],Stk,Rp)
   }
@@ -229,17 +241,18 @@ star.compiler.gencode{
     compCond(L,Opts,OC,condCont(R,Opts,OC,Fail),Ctx,Cde,Stk,Rp)
   }
   compCond(crNeg(Lc,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
-    logMsg("compile negated $(R), stack is $(Stk)");
+--    logMsg("compile negated $(R), stack is $(Stk)");
     compCond(R,Opts,Fail,Succ,Ctx,Cde,Stk,Rp)
   }.
   compCond(crCnd(Lc,T,L,R),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
+    logMsg("compile conditional $(crCnd(Lc,T,L,R)), stack is $(Stk)");
     OS .= onceCont(Succ);
     OF .= onceCont(Fail);
     compCond(T,Opts,condCont(L,Opts,OS,OF),condCont(R,Opts,OS,OF),Ctx,Cde,Stk,Rp)
   }
   compCond(crMatch(Lc,Ptn,Exp),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
     logMsg("compile match $(crMatch(Lc,Ptn,Exp)), stack = $(Stk)");
-    compExp(Exp,Opts,ptnCont(Ptn,Opts,Succ,onceCont(Fail)),Ctx,Cde,Stk,Rp)
+    compExp(Exp,Opts,ptnCont(Ptn,Opts,Succ,Fail),Ctx,Cde,Stk,Rp)
   }
   compCond(Exp,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
     compExp(Exp,Opts,testCont(locOf(Exp),Succ,Fail),Ctx,Cde,Stk,Rp).
@@ -254,30 +267,33 @@ star.compiler.gencode{
       compPtnVar(Lc,Vr,lclVar(Off,Tp),Opts,Succ,Ctx1,Cde,Stk,Rp)
     }
   }
-  compPtn(L,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) where T^=isLiteral(L) =>
-    ptnTest(locOf(L),Succ,Fail,Ctx,[Cde..,iLdC(T)],[Stk..,typeOf(L)],Rp).
+  compPtn(L,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) where (T,Tp)^=isLiteral(L) =>
+    ptnTest(locOf(L),Tp,Succ,Fail,Ctx,[Cde..,iLdC(T)],[Stk..,Tp],Rp).
   compPtn(crTerm(Lc,Nm,Args,Tp),Opts,Succ,Fail,Ctx,Cde,[Stk..,_],Rp) => do{
+    logMsg("compiling term $(crTerm(Lc,Nm,Args,Tp))");
     (FLb,Ctx1) .= defineLbl(Ctx);
     (NLb,Ctx2) .= defineLbl(Ctx1);
     JCont .= jmpCont(FLb);
     (Ctx3,FlCode,_Stx3) <- Fail.C(Ctx2,[iLbl(FLb)],Stk,Rp);
     RCont .= lblCont(FLb,resetCont(size(Stk),JCont));
+
     compPtns(Args,0,Opts,
       resetCont(size(Stk),Succ),RCont,ctxLbls(Ctx,Ctx3),
-      [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(NLb)]++FlCode,[Stk..,Tp],Rp)
+      [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(NLb)]++FlCode++[iLbl(NLb)],[Stk..,Tp],Rp)
   }
   compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
     compPtn(Ptn,Opts,condCont(Cond,Opts,Succ,Fail),Fail,Ctx,Cde,Stk,Rp).
 
-
   compPtns:(list[crExp],integer,compilerOptions,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
-  compPtns([],_,_,Succ,_,Ctx,Cde,Stk,Rp) => Succ.C(Ctx,Cde,Stk,Rp).
+  compPtns([],_,_,Succ,_,Ctx,Cde,Stk,Rp) => do{
+    Succ.C(Ctx,Cde,Stk,Rp)
+  }
   compPtns([A,..As],Ix,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
     (NLb,Ctx1) .= defineLbl(Ctx);
     NCont .= jmpCont(NLb);
     (Ctx2,Cde2,_) <- compPtn(A,Opts,NCont,Fail,Ctx1,[Cde..,iDup,iNth(Ix)],[Stk..,typeOf(A)],Rp);
-    compPtns(As,Ix+1,Opts,Succ,Fail,Ctx2,Cde2,Stk,Rp)
+    compPtns(As,Ix+1,Opts,Succ,Fail,Ctx2,[Cde2..,iLbl(NLb)],Stk,Rp)
   }
   
   compPtnVar:(locn,string,srcLoc,compilerOptions,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
@@ -286,11 +302,13 @@ star.compiler.gencode{
     Cont.C(Ctx,[Cde..,iStL(Off)],Stk,Rp).
   compPtnVar(Lc,Nm,Loc,_,_,_,_,_,Rp) => other(reportError(Rp,"cannot target var at $(Loc) in pattern",Lc)).
 
-  ptnTest:(locn,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
+  ptnTest:(locn,tipe,Cont,Cont,codeCtx,list[assemOp],cons[tipe],reports) =>
     either[reports,(codeCtx,list[assemOp],cons[tipe])].
-  ptnTest(_,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) where Fl^=Fail.L =>
+  ptnTest(_,intType,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) where Fl^=Fail.L =>
+    Succ.C(Ctx,[Cde..,iICmp(Fl)],Stk,Rp).
+  ptnTest(_,Tp,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) where Fl^=Fail.L =>
     Succ.C(Ctx,[Cde..,iCmp(Fl)],Stk,Rp).
-  ptnTest(Lc,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) => do{
+  ptnTest(Lc,Tp,Succ,Fail,Ctx,Cde,[Stk..,_,_],Rp) => do{
     (Fl,Ctx1) .= defineLbl(Ctx);
     (Ctx2,Cde1,Stk1) <- Succ.C(Ctx1,[Cde..,iCmp(Fl)],Stk,Rp);
     (Ctx3,Cde2,Stk2) <- Fail.C(Ctx2,[Cde1..,iLbl(Fl)],Stk,Rp);
@@ -298,11 +316,11 @@ star.compiler.gencode{
     valis (Ctx3,Cde2,Stkx)
   }
 
-  isLiteral:(crExp)=>option[term].
-  isLiteral(crInt(_,Ix))=>some(intgr(Ix)).
-  isLiteral(crFlot(_,Dx))=>some(flot(Dx)).
-  isLiteral(crStrg(_,Sx))=>some(strg(Sx)).
-  isLiteral(crLbl(_,Nm,_))=>some(enum(tLbl(Nm,0))).
+  isLiteral:(crExp)=>option[(term,tipe)].
+  isLiteral(crInt(_,Ix))=>some((intgr(Ix),intType)).
+  isLiteral(crFlot(_,Dx))=>some((flot(Dx),fltType)).
+  isLiteral(crStrg(_,Sx))=>some((strg(Sx),strType)).
+  isLiteral(crLbl(_,Nm,Tp))=>some((enum(tLbl(Nm,0)),Tp)).
   isLiteral(_) default => none.
 
   -- continuations
@@ -327,8 +345,9 @@ star.compiler.gencode{
 
   lblCont:(assemLbl,Cont)=>Cont.
   lblCont(Lb,CC) => cont{
-    C(Ctx,Cde,Stk,Rp)=>CC.C(Ctx,[Cde..,iLbl(Lb)],Stk,Rp).
-    L=some(Lb).
+    C(Ctx,Cde,Stk,Rp)=>
+      CC.C(Ctx,[Cde..,iLbl(Lb)],Stk,Rp).
+    L=none.
   }.
 
   resetCont:(integer,Cont)=>Cont.
@@ -349,7 +368,7 @@ star.compiler.gencode{
 
   oclCont:(integer,tipe,cons[tipe])=>Cont.
   oclCont(Ar,Tp,Stk) => ccont((Ctx,Cde,SStk,Rp) => do{
-      logMsg("oclCont, current stack: $(SStk), new stack: $([Stk..,Tp])");
+--      logMsg("oclCont, current stack: $(SStk), new stack: $([Stk..,Tp])");
       valis (Ctx,[Cde..,iOCall(Ar),iFrame(size(Stk)+1)],[Stk..,Tp])
     }).
 
@@ -369,7 +388,7 @@ star.compiler.gencode{
   
   ptnCont:(crExp,compilerOptions,Cont,Cont)=>Cont.
   ptnCont(Ptn,Opts,Succ,Fail)=>ccont((Ctx,Cde,Stk,Rp)=> do{
-      logMsg("pattern cont $(Ptn), stack = $(Stk)");
+--      logMsg("pattern cont $(Ptn), stack = $(Stk)");
       compPtn(Ptn,Opts,Succ,Fail,Ctx,Cde,Stk,Rp)}).
 
   fldCont:(string,tipe)=>Cont.
@@ -415,17 +434,21 @@ star.compiler.gencode{
 --      logMsg("between conts, stack is $(Stk1)");
       G.C(Ct1,Cd1,Stk1,Rp)
     }).
+
   onceCont:(Cont)=>Cont.
   onceCont(C) where Lbl^=C.L => C.
   onceCont(C)=> let{
     d := none.
     cc:Cont.
     cc=ccont((Ctx,Cde,Stk,Rp) => do{
-	if (Lbl,Cx,Sk)^=d! then
-	  valis (Cx,[Cde..,iJmp(Lbl)],Sk)
+	if Lbl^=d! then{
+	  logMsg("reuse $(Lbl)");
+	  valis (Ctx,[Cde..,iJmp(Lbl)],Stk)
+	}
 	else{
 	  (Lbl,Cx) .= defineLbl(Ctx);
-	  d := some((Lbl,Cx,Stk));
+	  logMsg("triggering $(Lbl)");
+	  d := some(Lbl);
 	  C.C(Cx,[Cde..,iLbl(Lbl)],Stk,Rp)
 	}
       })
