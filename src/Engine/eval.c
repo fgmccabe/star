@@ -44,7 +44,7 @@ static inline ptrPo checkStack(processPo P, ptrPo SP) {
  * Execute program on a given process/thread structure
  */
 retCode run(processPo P) {
-  heapPo heap = P->heap;
+  heapPo H = P->heap;
   register insPo PC = P->pc;    /* Program counter */
   register framePo FP = P->fp;    /* Current locals + = arguments, - = locals */
   register methodPo PROG = P->prog; /* Current executing closure */
@@ -144,9 +144,9 @@ retCode run(processPo P) {
         int32 escNo = collectI32(PC); /* escape number */
         escapePo esc = getEscape(escNo);
         saveRegisters(P, SP + esc->arity);
-        assert(heap->topRoot == 0);
+        assert(H->topRoot == 0);
         ReturnStatus ret = esc->fun(P, SP);  /* invoke the escape */
-        assert(heap->topRoot == 0);
+        assert(H->topRoot == 0);
         restoreRegisters(P);
         switch (ret.ret) {
           case Ok:
@@ -481,7 +481,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) + integerVal(Rhs));
+        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) + integerVal(Rhs));
         push(Rs);
         continue;
       }
@@ -490,7 +490,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) - integerVal(Rhs));
+        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) - integerVal(Rhs));
         push(Rs);
         continue;
       }
@@ -498,7 +498,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) * integerVal(Rhs));
+        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) * integerVal(Rhs));
         push(Rs);
         continue;
       }
@@ -506,7 +506,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, integerVal(Lhs) / integerVal(Rhs));
+        termPo Rs = (termPo) allocateInteger(H, integerVal(Lhs) / integerVal(Rhs));
         push(Rs);
         continue;
       }
@@ -516,7 +516,7 @@ retCode run(processPo P) {
 
         integer reslt = denom % numerator;
 
-        termPo Rs = (termPo) allocateInteger(heap, reslt);
+        termPo Rs = (termPo) allocateInteger(H, reslt);
 
         push(Rs);
         continue;
@@ -525,7 +525,7 @@ retCode run(processPo P) {
         termPo Trm = pop();
         integer Arg = integerVal(Trm);
 
-        termPo Rs = (Arg < 0 ? (termPo) allocateInteger(heap, -Arg) : Trm);
+        termPo Rs = (Arg < 0 ? (termPo) allocateInteger(H, -Arg) : Trm);
         push(Rs);
         continue;
       }
@@ -553,11 +553,21 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
+      case ICmp: {
+        termPo i = pop();
+        termPo j = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (integerVal(i) != integerVal(j))
+          PC = exit;
+        continue;
+      }
       case BAnd: {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) & (unsigned) integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) & (unsigned) integerVal(Rhs)));
         push(Rs);
         continue;
       }
@@ -565,7 +575,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) | (unsigned) integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) | (unsigned) integerVal(Rhs)));
         push(Rs);
         continue;
       }
@@ -573,14 +583,14 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) ^ (unsigned) integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) ^ (unsigned) integerVal(Rhs)));
         push(Rs);
         continue;
       }
       case BNot: {
         termPo Lhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, ~(unsigned) integerVal(Lhs));
+        termPo Rs = (termPo) allocateInteger(H, ~(unsigned) integerVal(Lhs));
         push(Rs);
         continue;
       }
@@ -588,7 +598,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, ((unsigned) integerVal(Lhs) << (unsigned) integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(H, ((unsigned) integerVal(Lhs) << (unsigned) integerVal(Rhs)));
         push(Rs);
         continue;
       }
@@ -596,7 +606,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, (((unsigned) integerVal(Lhs)) >> ((unsigned) integerVal(Rhs))));
+        termPo Rs = (termPo) allocateInteger(H, (((unsigned) integerVal(Lhs)) >> ((unsigned) integerVal(Rhs))));
         push(Rs);
         continue;
       }
@@ -604,7 +614,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateInteger(heap, (integerVal(Lhs) >> integerVal(Rhs)));
+        termPo Rs = (termPo) allocateInteger(H, (integerVal(Lhs) >> integerVal(Rhs)));
         push(Rs);
         continue;
       }
@@ -612,7 +622,7 @@ retCode run(processPo P) {
         termPo Rhs = pop();
         termPo Lhs = pop();
 
-        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) + floatVal(Rhs));
+        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) + floatVal(Rhs));
         push(Rs);
         continue;
       }
@@ -620,7 +630,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) - floatVal(Rhs));
+        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) - floatVal(Rhs));
         push(Rs);
         continue;
       }
@@ -628,7 +638,7 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) * floatVal(Rhs));
+        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) * floatVal(Rhs));
         push(Rs);
         continue;
       }
@@ -636,14 +646,14 @@ retCode run(processPo P) {
         termPo Lhs = pop();
         termPo Rhs = pop();
 
-        termPo Rs = (termPo) allocateFloat(heap, floatVal(Lhs) / floatVal(Rhs));
+        termPo Rs = (termPo) allocateFloat(H, floatVal(Lhs) / floatVal(Rhs));
         push(Rs);
         continue;
       }
       case FMod: {
         termPo Lhs = pop();
         termPo Rhs = pop();
-        termPo Rs = (termPo) allocateFloat(heap, fmod(floatVal(Lhs), floatVal(Rhs)));
+        termPo Rs = (termPo) allocateFloat(H, fmod(floatVal(Lhs), floatVal(Rhs)));
         push(Rs);
         continue;
       }
@@ -672,6 +682,16 @@ retCode run(processPo P) {
         push(Rs);
         continue;
       }
+      case FCmp: {
+        termPo x = pop();
+        termPo y = pop();
+        insPo exit = collectOff(PC);
+        assert(validPC(PROG, exit));
+
+        if (floatVal(x) != floatVal(y))
+          PC = exit;
+        continue;
+      }
 
       case Case: {      /* case instruction */
         int32 mx = collectI32(PC);
@@ -684,14 +704,14 @@ retCode run(processPo P) {
 
       case Alloc: {      /* heap allocate term */
         labelPo cd = C_LBL(nthArg(LITS, collectI32(PC)));
-        if (enoughRoom(heap, cd) != Ok) {
+        if (enoughRoom(H, cd) != Ok) {
           saveRegisters(P, SP);
-          retCode ret = gcCollect(heap, NormalCellCount(cd->arity));
+          retCode ret = gcCollect(H, NormalCellCount(cd->arity));
           if (ret != Ok)
             return ret;
           restoreRegisters(P);
         }
-        normalPo cl = allocateStruct(heap, cd); /* allocate a closure on the heap */
+        normalPo cl = allocateStruct(H, cd); /* allocate a closure on the heap */
         for (int ix = 0; ix < cd->arity; ix++)
           cl->args[ix] = pop();   /* fill in free variables by popping from stack */
         push(cl);       /* put the closure back on the stack */
