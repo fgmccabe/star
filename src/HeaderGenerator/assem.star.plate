@@ -68,6 +68,10 @@ star.compiler.assem{
   compLine:(keyval[term,integer],keyval[term,integer])=>boolean.
   compLine(T1->P1,T2->P2) => P1<P2.
 
+  public implementation display[assemLbl] => {.
+    disp(al(L)) => ss(L)
+  .}
+
   public implementation display[codeSegment] => {.
     disp(method(Nm,Sig,Ins)) => ssSeq([disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).
     disp(global(Nm,Sig,Ins)) => ssSeq([ss("global "),disp(Nm),ss(":"),disp(Sig),ss("\n"),..showMnem(Ins,0,[])]).

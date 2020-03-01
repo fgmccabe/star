@@ -60,6 +60,7 @@ instruction(IAbs,tOs,0,"L --> abs(L)")
 instruction(IEq,tOs,-1,"L R --> L==R")
 instruction(ILt,tOs,-1,"L R --> L<R")
 instruction(IGe,tOs,-1,"L R --> L>=R")
+instruction(ICmp,off,-2,"L R --> branch if not same integer")
 
 instruction(BAnd,tOs,-1,"L R --> L&R")
 instruction(BOr,tOs,-1,"L R --> L|R")
@@ -79,6 +80,7 @@ instruction(FAbs,tOs,0,"L --> abs(L)")
 instruction(FEq,tOs,-2,"L R e --> L==R")
 instruction(FLt,tOs,-1,"L R --> L<R")
 instruction(FGe,tOs,-1,"L R --> L>=R")
+instruction(FCmp,off,-2,"L R --> branch if not same floating point")
 
 instruction(Alloc,sym,1,"new structure, code from constant pool")
 

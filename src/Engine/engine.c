@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <str.h>
 #include <lblops.h>
+#include <args.h>
 
 #include "engineP.h"
 #include "decode.h"
