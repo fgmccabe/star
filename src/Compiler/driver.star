@@ -63,7 +63,6 @@ star.compiler{
   _main(Args) => valof action{
     RI^=parseUri("file:"++_repo());
     WI^=parseUri("file:"++_cwd());
-    logMsg("driver args $(Args)");
     handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI.
 	  cwd=WI.
 	  showCanon=false.
@@ -80,7 +79,6 @@ star.compiler{
 
   handleCmds:(either[string,(compilerOptions,list[string])])=>action[(),()].
   handleCmds(either((Opts,Args))) => do{
-    logMsg("Arg=$(Args)");
     Repo <- openupRepo(Opts.repo,Opts.cwd);
     if CatUri ^= parseUri("catalog") && CatU ^= resolveUri(Opts.cwd,CatUri) &&
 	Cat ^= loadCatalog(CatU) then{
@@ -131,17 +129,18 @@ star.compiler{
 	    Ast <- parseSrc(SrcUri,CPkg,Rp)::action[reports,ast];
 --	  logMsg("Ast of $(P) is $(Ast)");
 	    (PkgSpec,PkgFun) <- checkPkg(Repp!,CPkg,Ast,stdDict,Rp) :: action[reports,(pkgSpec,canonDef)];
-	    logMsg("normalizing $(PkgFun), pkgSpec = $(PkgSpec)");
+	    logMsg("normalizing $(PkgFun)");
 	    NormDefs <- normalize(PkgSpec,PkgFun,Rp)::action[reports,list[crDefn]];
 	    Repp := addSpec(PkgSpec,Repp!);
 	    logMsg("Normalized package $(P)");
 	    logMsg(dispCrProg(NormDefs)::string);
-	    Ins <- compDefs(NormDefs,importVars(PkgSpec),Opts,[],Rp) :: action[reports,list[codeSegment]];
-	    logMsg("Generated instructions $(Ins)");
+	    Ins <- compCrProg(NormDefs,importVars(PkgSpec),Opts,Rp) :: action[reports,list[codeSegment]];
+--	    if Opts.showCode then
+	      logMsg("Generated instructions $(Ins)");
 	    Code .= mkTpl([pkgTerm(CPkg),strg(encodeSignature(typeOf(PkgSpec))),
 		mkTpl(pkgImports(PkgSpec)//(pkgImp(_,_,IPkg))=>pkgTerm(IPkg)),
 		mkTpl(Ins//assem)]);
-	    logMsg("generated code $(encodeTerm(Code)::string)");
+--	    logMsg("generated code $(encodeTerm(Code)::string)");
 	    Repp := addSource(addPackage(Repp!,P,encodeTerm(strg(encodeTerm(Code)::string))::string),P,
 	      SrcUri::string)
 	  }

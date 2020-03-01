@@ -41,15 +41,15 @@ star.compiler.term.repo{
     Fn .= Pk++(hash(Pk)::string)++Ext;
     FUri ^= parseUri(Fn);
     FU ^= resolveUri(Root,FUri);
-    logMsg("dest uri $(FU)");
+--    logMsg("dest uri $(FU)");
     _ .= putResource(FU,Text);
-    logMsg("written");
+--    logMsg("written");
     NM .= addToManifest(Man,pkg(Pk,Vr),Kind,Fn);
-    logMsg("added to manifest");
+--    logMsg("added to manifest");
     MU ^= parseUri("manifest");
     RepoUri ^= resolveUri(Root,MU);
     () .= flushManifest(RepoUri,NM);
-    logMsg("manifest flushed");
+--    logMsg("manifest flushed");
     valis repo(Root,NM)
   }
 

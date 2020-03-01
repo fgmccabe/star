@@ -64,31 +64,29 @@ star.compiler.dependencies{
       list[(defnSp,visibility)],list[(string,ast)],list[ast])].
 
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
-      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[A,..Opn])).
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
-      (Lc,V,T) ^= isTypeAnnotation(A) => do{
-	if _ ^= isConstructorType(T) then {
-	  if (_,V1) ^= isPrivate(V) && (ILc,Id) ^= isName(V1) then {
-	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      [(cnsSp(Id),priVate),..Pb],[(Id,T),..As],Opn)
-	  }
-	  else if (ILc,Id) ^= isName(V) then{
-	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
-	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
-	  }
-	  else
-	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
-	} else if (VLc,Id) ^= isName(V) then{
-	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
-	} else
-	  throw reportError(Rp,"cannot fathom type annotation $(A)",Lc)
-      }.
-  collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       (_,Ai) ^= isPublic(A) =>
     collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,pUblic,Rp).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       (_,Ai) ^= isPrivate(A) =>
     collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,priVate,Rp).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
+      Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[A,..Opn])).
+  collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
+      (Lc,V,T) ^= isTypeAnnotation(A) => do{
+	-- special handling for private; because its priority is low
+	if (_,Vr) ^= isPrivate(V) then{
+	  collectDefinition(typeAnnotation(Lc,Vr,T),Stmts,Defs,Pb,As,Opn,priVate,Rp)
+	} else if(ILc,Id) ^= isName(V) then{
+	  if _ ^= isConstructorType(T) then {
+	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
+	      [(cnsSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
+	  }
+	  else
+	  valis (Stmts,Defs,[(varSp(Id),Vz),..Pb],[(Id,T),..As],Opn)
+	}
+	else
+	throw reportError(Rp,"expecting an identifier, not $(V)",locOf(V))
+      }
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,S,Els) ^= isContractStmt(A) &&
       (_,Nm,Qs,Cs,T) ^= isContractSpec(S)  =>
@@ -114,22 +112,27 @@ star.compiler.dependencies{
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm,Rhs) ^= isDefn(A) && (_,Id) ^= isName(Nm) => do{
 	Sp .= varSp(Id);
-	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],[(Sp,Vz),..Pb],As,Opn)
-      }.
+	valis (Ss,[defnSpec(Sp,Lc,[A]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
+	}.
   collectDefinition(A,Ss,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm,Rhs) ^= isAssignment(A) && (LLc,Id) ^= isName(Nm) => do{
 	Sp .= varSp(Id); -- map X:=E to X=!!E
 	valis (Ss,[defnSpec(Sp,Lc,[binary(Lc,"=",Nm,unary(Lc,"!!",Rhs))]),..Defs],
-	  [(Sp,Vz),..Pb],As,Opn)
+	  publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,Nm) ^= ruleName(A) => do{
 	(Ss,Dfs) .= collectDefines(Stmts,Nm,[]);
 	Sp .= varSp(Nm);
-	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],[(Sp,Vz),..Pb],As,Opn)
+	valis (Ss,[defnSpec(Sp,Lc,[A,..Dfs]),..Defs],publishName(Sp,Vz,Pb),As,Opn)
       }.
   collectDefinition(A,_,_,_,_,_,_,Rp) =>
     other(reportError(Rp,"cannot understand definition $(A)",locOf(A))).
+
+  publishName:(defnSp,visibility,list[(defnSp,visibility)])=>
+    list[(defnSp,visibility)].
+  publishName(Nm,_,Pb) where (Nm,_) in Pb => Pb.
+  publishName(Nm,Vz,Pb) => [(Nm,Vz),..Pb].
 
   collectDefines:(list[ast],string,list[ast]) => (list[ast],list[ast]).
   collectDefines([St,..Ss],Nm,Dfs) where
@@ -254,6 +257,7 @@ star.compiler.dependencies{
     ((Id,Tp) in Annots ?
 	collectTypeRefs(Tp,All,Rf,Rp) ||
 	either(Rf)).
+  collectAnnotRefs(H,_,_,_,Rp) => other(reportError(Rp,"not a head: $(H)",locOf(H))).
 
   collectCondRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
   collectCondRefs(A,All,Rf,Rp) where (_,L,R) ^= isConjunct(A) => do{

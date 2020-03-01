@@ -52,7 +52,7 @@ star.compiler.core{
 	ssSeq(interleave(Args//disp,ss(","))),ss(") => "),
 	dspExp(Rep,Off)]).
   dspDef(vrDef(Lc,V,Rep),Off) =>
-    ssSeq([ss("glb: "),disp(V),ss(":"),disp(typeOf(V)),ss("="),
+    ssSeq([ss("glb: "),disp(V),/*ss(":"),disp(typeOf(V)),*/ss("="),
 	dspExp(Rep,Off)]).
   dspDef(rcDef(Lc,Nm,Tp,Fields),Off) =>
     ssSeq([ss("rec: "),ss(Nm),ss(":"),disp(Tp),ss("\n"),ss(Off),

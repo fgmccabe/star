@@ -164,9 +164,11 @@ star.compiler.typeparse{
     
   public parseBoundTpVars:(list[ast],reports)=>either[reports,tipes].
   parseBoundTpVars([],_) => either([]).
-  parseBoundTpVars([V,..R],Rp) =>
-    parseBoundTpVars(R,Rp) >>= (L) =>
-      parseBoundTpVar(V,Rp) >>= (Vr) => return [Vr,..L].
+  parseBoundTpVars([V,..R],Rp) => do{
+    L <- parseBoundTpVars(R,Rp);
+    Vr <- parseBoundTpVar(V,Rp);
+    valis [Vr,..L]
+  }
     
   parseBoundTpVar(Nm,_) where (_,Id) ^= isName(Nm) => either((Id,nomnal(Id))).
   parseBoundTpVar(FNm,_) where
@@ -256,7 +258,7 @@ star.compiler.typeparse{
     Fce <- parseType(Q,B,Env,Rp);
     
     Tmplte .= pickTypeTemplate(Tp);
-    TpRl .= reQuant(Q,reConstrain(Cx,typeExists(Tp,Fce)));
+    TpRl .= reQuant(Q,reConstrainType(Cx,typeExists(Tp,Fce)));
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }
   parseTypeDef(Nm,St,Env,Path,Rp) where (Lc,V,C,H,B) ^= isTypeFunStmt(St) => do{
@@ -266,25 +268,25 @@ star.compiler.typeparse{
     RTp <- parseType(Q,B,Env,Rp);
     
     Tmplte .= pickTypeTemplate(Tp);
-    TpRl .= reQuant(Q,reConstrain(Cx,typeLambda(Tp,RTp)));
+    TpRl .= reQuant(Q,reConstrainType(Cx,typeLambda(Tp,RTp)));
 
     valis (typeDef(Lc,Nm,Tmplte,TpRl),declareType(Nm,some(Lc),Tmplte,TpRl,Env))
   }
 
   parseTypeHead:(tipes,ast,dict,string,reports) => either[reports,tipe].
   parseTypeHead(Q,Tp,Env,Path,Rp) where (Lc,Nm) ^= isName(Tp) => 
-    either(nomnal(qualifiedName(Path,markerString(typeMark),Nm))).
+    either(nomnal(qualifiedName(Path,typeMark,Nm))).
   parseTypeHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	  ArgTps <- parseHeadArgs(Q,deComma(Lhs),[],Env,Rp);
 	  DepTps <- parseHeadArgs(Q,deComma(Rhs),[],Env,Rp);
-	  Inn <- doTypeFun(tpFun(qualifiedName(Path,markerString(typeMark),Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
+	  Inn <- doTypeFun(tpFun(qualifiedName(Path,typeMark,Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
 	  valis funDeps(Inn,DepTps)
 	}
 	else{
 	  ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
-	  Inn <- doTypeFun(tpFun(qualifiedName(Path,markerString(typeMark),Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
+	  Inn <- doTypeFun(tpFun(qualifiedName(Path,typeMark,Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
 	  valis Inn
 	}
       }.
@@ -298,7 +300,7 @@ star.compiler.typeparse{
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
     Tp <- parseType([],St,Env,Rp);
     Lc .= locOf(St);
-    FullNm .= qualifiedName(Path,markerString(conMark),Nm);
+    FullNm .= qualifiedName(Path,conMark,Nm);
     valis (cnsDef(Lc,Nm,FullNm,Tp),
       declareCon(Nm,FullNm,some(Lc),Tp,Env))
   }

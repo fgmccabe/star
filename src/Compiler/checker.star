@@ -29,36 +29,36 @@ star.compiler.checker{
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
-      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
-      logMsg("pkg env after imports $(PkgEnv)");
+--      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
+--      logMsg("pkg env after imports $(PkgEnv)");
       
-      Path .= packageName(Pkg);
+      PkgNm .= packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
       (Vis,Opens,Annots,Gps) <- dependencies(Stmts,Rp);
       
-      logMsg("Package $(Pkg), groups: $(Gps)");
-      (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,Path,Rp);
+--      logMsg("Package $(Pkg), groups: $(Gps)");
+      (Defs,ThEnv) <- checkGroups(Gps,[],faceType([],[]),Annots,PkgEnv,PkgNm,Rp);
       if [Open,.._] .= Opens then
 	throw reportError(Rp,"open statement $(Open) not permitted in package",locOf(Open));
 
-      logMsg("Final Pkg dict $(ThEnv)");
-      logMsg("Public names: $(Vis)");
-      logMsg("Defs: $(Defs)");
+--      logMsg("Final Pkg dict $(ThEnv)");
+--      logMsg("Public names: $(Vis)");
+--      logMsg("Defs: $(Defs)");
       Contracts .= [ D | DD in Defs && D in DD && conDef(_,Nm,_,_).=D && (conSp(Nm),pUblic) in Vis];
 --      logMsg("exported contracts: $(Contracts)");
       Fields .= exportedFields(Defs,Vis,pUblic);
       logMsg("exported fields: $(Fields)");
       Impls .= [ implSpec(some(ILc),INm,FllNm,ITp) |
 	  DD in Defs &&
-	      implDef(ILc,INm,FllNm,_,ITp) in DD &&
+	      implDef(ILc,INm,FllNm,_,_,ITp) in DD &&
 	      (implSp(INm),V) in Vis && V>=pUblic];
 --      logMsg("exported implementations $(Impls)");
       Types .= exportedTypes(Defs,Vis,pUblic);
 --      logMsg("exported types: $(Types)");
       RDefs <- overloadEnvironment(Defs,ThEnv,Rp);
       PkgType .= faceType(Fields,Types);
-      PkgTheta <- makePkgTheta(Lc,Path,PkgType,ThEnv,RDefs,Rp);
-      valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),Path,PkgTheta,[],PkgType))
+      PkgTheta <- makePkgTheta(Lc,PkgNm,PkgType,ThEnv,RDefs,Rp);
+      valis (pkgSpec(Pkge,Imports,PkgType,Contracts,Impls,PkgVars),varDef(Lc,packageVar(Pkg),PkgNm,PkgTheta,[],PkgType))
     } else
     throw reportError(Rp,"invalid package structure",locOf(P))
   }
@@ -73,7 +73,7 @@ star.compiler.checker{
 	DD in Defs && D in DD &&
 	    ((varDef(_,Nm,_,_,_,Tp) .=D && isVisible(varSp(Nm),Vis,DVz)) ||
 	      (cnsDef(_,Nm,_,Tp) .=D && isVisible(cnsSp(Nm),Vis,DVz)) ||
-	      (implDef(_,N,Nm,_,Tp) .=D && isVisible(implSp(N),Vis,DVz)))].
+	      (implDef(_,N,Nm,_,_,Tp) .=D && isVisible(implSp(N),Vis,DVz)))].
 
   isVisible:(defnSp,list[(defnSp,visibility)],visibility) => boolean.
   isVisible(Sp,Vis,DVz) => (Sp,V) in Vis && V >= DVz.
@@ -194,7 +194,7 @@ star.compiler.checker{
 	Es .= declareConstraints(Cx,declareTypeVars(Q,Env));
 	if (_,Lhs,R) ^= isDefn(Stmt) then{
 	  Val <- typeOfExp(R,VarTp,Es,Path,Rp);
-	  valis (varDef(Lc,Nm,Path,Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
+	  valis (varDef(Lc,Nm,qualifiedName(Path,valMark,Nm),Val,Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
 	}
 	else{
 	  throw reportError(Rp,"bad definition $(Stmt)",Lc)
@@ -223,8 +223,8 @@ star.compiler.checker{
     (Cx,ProgramTp) .= deConstrain(ETp);
     Es .= declareConstraints(Cx,declareTypeVars(Q,Env));
     (Rls,Dflt) <- processEqns(Stmts,deRef(ProgramTp),[],[],Es,Path,Rp);
---    logMsg("we have equations for $(Nm)\:$(Rls) default $(Dflt)");
-    valis (varDef(Lc,Nm,Path,lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
+    valis (varDef(Lc,Nm,qualifiedName(Path,valMark,Nm),
+	lambda(Lc,Rls++Dflt,Tp),Cx,Tp),declareVar(Nm,some(Lc),Tp,Env))
   }.
 
   processEqns:(list[ast],tipe,list[equation],list[equation],dict,string,reports) =>
@@ -281,9 +281,9 @@ star.compiler.checker{
 	Impl <- typeOfExp(B,ConFaceTp,Es,Path,Rp);
 	FullNm .= implementationName(ConTp);
 --	logMsg("full name of implementation of $(ConTp) is $(FullNm)");
-	ImplTp .= rebind(BV,reConstrain(Cx,ConTp),Es);
+	ImplTp .= rebind(BV,reConstrainType(Cx,ConTp),Es);
 --	logMsg("implementation type $(ImplTp)");
-	valis (implDef(Lc,Nm,FullNm,Impl,ImplTp),
+	valis (implDef(Lc,Nm,FullNm,Impl,Cx,ImplTp),
 	  declareImplementation(FullNm,ImplTp,Env))
       }
       else{
@@ -531,7 +531,7 @@ star.compiler.checker{
     (Defs,ThEnv,ThetaTp) <- thetaEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
 --      logMsg("building record from theta, $(ThEnv)");
-      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrain(Cx,ThetaTp),Rp)
+      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,Defs,reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
@@ -544,7 +544,7 @@ star.compiler.checker{
     Path .= genNewName(Pth,"θ");
     (Defs,ThEnv,ThetaTp) <- recordEnv(Lc,Path,Els,Face,Base,Rp,deFault);
     if sameType(ThetaTp,Tp,Env) then{
-      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,[Defs],reConstrain(Cx,ThetaTp),Rp)
+      mkRecord(Lc,Path,faceOfType(Tp,ThEnv),ThEnv,[Defs],reConstrainType(Cx,ThetaTp),Rp)
     }
     else
     throw reportError(Rp,"type of theta: $(ThetaTp)\nnot consistent with \n$(Tp)",Lc)
@@ -683,7 +683,8 @@ star.compiler.checker{
     ErTp .= newTypeVar("_e");
     Lc .= locOf(Stmts);
     if Con ^= findContract(Env,"execution") then{
-      (_,typeExists(funDeps(tpExp(Op,StTp),[]),_)) .= freshen(Con,[],Env);
+      logMsg("execution contract: $(Con)");
+      (_,typeExists(tpExp(Op,StTp),_)) .= freshen(Con,[],Env);
       if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
 	(Action,_) <- checkAction(Stmts,Env,StTp,VlTp,ErTp,Path,Rp);
 	valis act(Lc,Action)

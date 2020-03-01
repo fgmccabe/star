@@ -87,9 +87,9 @@ star.compiler.action{
    } in loop()
   */
   genAction(whileDo(Lc,Tst,Bdy,StTp,ErTp),Contract,some(Cont),Path,Rp) => do{
-    LclName .= genNewName(Path,"loop");
-    ThPath .= genNewName(Path,"lp");
     Fn .= genSym("loop");
+    LclName .= qualifiedName(Path,valMark,Fn);
+    ThPath .= qualifiedName(Path,valMark,"lp");
     UnitTp .= tupleType([]);
     LpTp .= mkTypeExp(StTp,[ErTp,UnitTp]);
     FnTp .= funType([],LpTp);

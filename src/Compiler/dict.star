@@ -84,7 +84,7 @@ star.compiler.dict{
   formMethods([],_,_,_,_,Dict) => Dict.
   formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) where
       (MQ,MI) .= deQuant(Tp) &&
-      MT .= reConstrain(Cx,constrainedType(Tp,typeConstraint(Con))) =>
+      MT .= reConstrainType(Cx,constrainedType(Tp,typeConstraint(Con))) =>
     formMethods(Mtds,Lc,Q,Cx,Con,
       declareMethod(Nm,Lc,reQuant(Q++MQ,MT),Dict)).
 

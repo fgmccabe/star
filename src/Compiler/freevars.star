@@ -126,7 +126,7 @@ star.compiler.freevars{
   exclDf(varDef(Lc,Nm,_,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
 --  exclDf(varDef(Lc,Nm,_,lambda(_,_,_),_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
 --  exclDf(cnsDef(_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
-  exclDf(implDef(_,_,Nm,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
+  exclDf(implDef(_,_,Nm,_,_,Tp),Excl,Fv) => _addMem(crId(Nm,Tp),Excl).
   exclDf(_,Excl,_) => Excl.
 
   public goalVars:(locn,canon)=>list[canon].

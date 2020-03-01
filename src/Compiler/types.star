@@ -403,9 +403,9 @@ star.compiler.types{
     deC(Tp,Qs) => (Qs,Tp).
   } in deC(T,[]).
 
-  public reConstrain:(list[constraint],tipe) => tipe.
-  reConstrain([],Tp) => Tp.
-  reConstrain([Q,..Qs],Tp) => constrainedType(reConstrain(Qs,Tp),Q).
+  public reConstrainType:(list[constraint],tipe) => tipe.
+  reConstrainType([],Tp) => Tp.
+  reConstrainType([Q,..Qs],Tp) => constrainedType(reConstrainType(Qs,Tp),Q).
 
   public isConsType:(tipe)=>option[integer].
   isConsType(Tp) where tpName(deRef(Tp))=="<=>" => some(arity(Tp)).
