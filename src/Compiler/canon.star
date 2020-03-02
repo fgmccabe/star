@@ -285,11 +285,11 @@ star.compiler.canon{
 
   -- Useful constants
   public trueEnum:(locn)=>canon.
-  trueEnum(Lc) => enm(Lc,"true",nomnal("star.core*boolean")).
+  trueEnum(Lc) => enm(Lc,"star.core#true",nomnal("star.core*boolean")).
 
   public isGoal:(canon)=>boolean.
-  isGoal(enm(_,"true",nomnal("star.core*boolean"))) => true.
-  isGoal(enm(_,"false",nomnal("star.core*boolean"))) => true.
+  isGoal(enm(_,"star.core#true",nomnal("star.core*boolean"))) => true.
+  isGoal(enm(_,"star.core#false",nomnal("star.core*boolean"))) => true.
   isGoal(whr(_,E,_)) => isGoal(E).
   isGoal(match(_,_,_)) => true.
   isGoal(serch(_,_,_,_)) => true.

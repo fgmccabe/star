@@ -11,6 +11,12 @@ We separate the @emph{specification} of an operation from its
 @refer{Action} and perform it to extract its value.
 @end quotation
 
+@quotation Note
+The @code{execution} contract is similar in spirit to the @code{monad}
+contract. However, it is somewhat richer as it embodies two additional
+concepts: handling exceptions and performing actions.
+@end quotation
+
 @float BNF,actionFig
 @caption{Types of Action}
 @display
