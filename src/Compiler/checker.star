@@ -29,8 +29,8 @@ star.compiler.checker{
     if (Lc,Pk,Els) ^= isBrTerm(P) && either(Pkg) .= pkgeName(Pk) then{
       (Imports,Stmts) <- collectImports(Els,[],[],Rp);
       (PkgEnv,AllImports,PkgVars) <- importAll(Imports,Repo,Base,[],[],Rp);
---      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
---      logMsg("pkg env after imports $(PkgEnv)");
+      logMsg("imports found $(AllImports), package vars = $(PkgVars)");
+      logMsg("pkg env after imports $(PkgEnv)");
       
       PkgNm .= packageName(Pkg);
       -- We treat a package specially, buts its essentially a theta record
@@ -679,15 +679,15 @@ star.compiler.checker{
 
   checkDo:(ast,tipe,dict,string,reports) => either[reports,canon].
   checkDo(Stmts,Tp,Env,Path,Rp) => do{
+    logMsg("process do $(Stmts)");
     VlTp .= newTypeVar("_e");
     ErTp .= newTypeVar("_e");
     Lc .= locOf(Stmts);
     if Con ^= findContract(Env,"execution") then{
-      logMsg("execution contract: $(Con)");
       (_,typeExists(tpExp(Op,StTp),_)) .= freshen(Con,[],Env);
       if sameType(mkTypeExp(StTp,[ErTp,VlTp]),Tp,Env) then {
 	(Action,_) <- checkAction(Stmts,Env,StTp,VlTp,ErTp,Path,Rp);
-	valis act(Lc,Action)
+	genAction(Action,Op,none,Path,Rp)
       } else
 	throw reportError(Rp,"$(tpExp(StTp,ErTp)) not consistent with expected type $(Tp)",Lc)
     } else

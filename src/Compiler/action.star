@@ -11,7 +11,7 @@ star.compiler.action{
   import star.compiler.types.
   import star.compiler.unify.
 
-  genAction:(canonAction,tipe,option[canon],string,reports) => either[reports,canon].
+  public genAction:(canonAction,tipe,option[canon],string,reports) => either[reports,canon].
   genAction(seqnDo(Lc,A,B),Contract,Cont,Path,Rp) => do{
     RR <- genAction(B,Contract,Cont,Path,Rp);
     genAction(A,Contract,some(RR),Path,Rp)

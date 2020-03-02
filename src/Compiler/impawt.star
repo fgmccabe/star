@@ -25,7 +25,7 @@ star.compiler.impawt{
       try{
 	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	
-	E0 .= pushSig(Sig,Lc,(I)=>(L,T)=>dot(L,vr(Lc,PkgVar,Sig),I,T),Env);
+	E0 .= pushSig(Sig,Lc,(I)=>(L,T)=>(_^=isConsType(T)?enm(L,qualifiedName(pkgName(Pkg),conMark,I),T)||dot(L,vr(Lc,PkgVar,Sig),I,T)),Env);
 	E1 .= foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
 	E2 .= foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
@@ -38,6 +38,8 @@ star.compiler.impawt{
       }
     }
   }
+
+  
 
   public importPkg:all r ~~ repo[r] |: (pkg,locn,r,reports) => either[reports,pkgSpec].
   importPkg(Pkg,Lc,Repo,Rp) where Sig ^= hasSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).

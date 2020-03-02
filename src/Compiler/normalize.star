@@ -60,8 +60,9 @@ star.compiler.normalize{
 
   public normalize:(pkgSpec,canonDef,reports)=>either[reports,list[crDefn]].
   normalize(PkgSpec,Prg,Rp) => do{
+    logMsg("normalize $(PkgSpec)");
     Map .= pkgMap(PkgSpec);
---    logMsg("package map $(Map)");
+    logMsg("package map $(Map)");
     (V,Defs) <- transformDef(Prg,Map,[],[],Rp);
     Bound .= (V//((Vr,Vl))=>vrDef(locOf(Vl),Vr,Vl));
     valis Bound++Defs
@@ -169,12 +170,12 @@ star.compiler.normalize{
   transformDef:(canonDef,nameMap,list[crDefn],list[(crVar,crExp)],reports) =>
     either[reports,(list[(crVar,crExp)],list[crDefn])].
   transformDef(varDef(Lc,Nm,FullNm,lambda(_,Eqns,Tp),_,_),Map,Ex,Vs,Rp) => do{
---    logMsg("transform function $(Nm)\:$(Tp)");
+    logMsg("transform function $(Nm)\:$(Tp)");
     Extra .= extraVars(Map);
---    logMsg("extra vars in function: $(Extra), $(isEmpty(Extra))");
+    logMsg("extra vars in function: $(Extra), $(isEmpty(Extra))");
     ATp .= extendFunTp(deRef(Tp),Extra);
     (Eqs,Ex1) <- transformEquations(Eqns,Map,Extra,Ex,Rp);
---    logMsg("normalized equations for $(Nm)\: $(Eqs)");
+    logMsg("normalized equations for $(Nm)\: $(Eqs)");
 
     ClosureNm .= closureNm(FullNm);
     ClVar .= genVar(Nm,Tp);
@@ -193,7 +194,7 @@ star.compiler.normalize{
       ClosEntry .=
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  crCall(Lc,FullNm,[crTplOff(Lc,crVar(Lc,ClVar),0,typeOf(Exv)),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
---    logMsg("closure entry: $(ClosEntry)");
+    logMsg("closure entry: $(ClosEntry)");
       valis (Vs,[functionMatcher(Lc,FullNm,ATp,Eqs),ClosEntry,..Ex1])
     } else {
       FrTp .= tupleType(Extra//typeOf);
@@ -201,7 +202,7 @@ star.compiler.normalize{
 	fnDef(Lc,ClosureNm,ClosTp,ClArgs,
 	  crCall(Lc,FullNm,[crTplOff(Lc,crVar(Lc,ClVar),0,FrTp),..(ClVars//(V)=>crVar(Lc,V))],funTypeRes(Tp)));
 
---    logMsg("closure entry: $(ClosEntry)");
+      logMsg("closure entry: $(ClosEntry)");
       valis (Vs,[functionMatcher(Lc,FullNm,ATp,Eqs),ClosEntry,..Ex1])
     }
   }
@@ -239,7 +240,7 @@ star.compiler.normalize{
 
   liftPtn:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
   liftPtn(vr(Lc,Nm,Tp),Map,Ex,Rp) => trVarPtn(Lc,Nm,Tp,Map,Ex,Rp).
-  liftPtn(enm(Lc,Nm,Tp),Map,Ex,Rp) => trVarPtn(Lc,Nm,Tp,Map,Ex,Rp).
+  liftPtn(enm(Lc,FullNm,Tp),Map,Ex,Rp) => either((crLbl(Lc,FullNm,Tp),Ex)).
   liftPtn(intr(Lc,Ix),Map,Ex,Rp) => either((crInt(Lc,Ix),Ex)).
   liftPtn(flot(Lc,Dx),Map,Ex,Rp) => either((crFlot(Lc,Dx),Ex)).
   liftPtn(strng(Lc,Sx),Map,Ex,Rp) => either((crStrg(Lc,Sx),Ex)).
@@ -256,9 +257,10 @@ star.compiler.normalize{
     (LArgs,Ex1) <- liftPtns(Els,Map,Ex,Rp);
     liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Ex1,Rp)
   }
-  liftPtn(apply(Lc,enm(VLc,VNm,_),tple(_,Els),Tp),Map,Ex,Rp) => do{
+  liftPtn(apply(Lc,enm(VLc,FullNm,_),tple(_,Els),Tp),Map,Ex,Rp) => do{
     (LArgs,Ex1) <- liftPtns(Els,Map,Ex,Rp);
-    liftPtnCallOp(Lc,VNm,LArgs,Tp,Map,Ex1,Rp)
+
+    valis (crTerm(Lc,FullNm,LArgs,Tp),Ex1)
   }
   
   liftPtns:(list[canon],nameMap,list[crDefn],reports) => either[reports,(list[crExp],list[crDefn])].
@@ -288,7 +290,7 @@ star.compiler.normalize{
   liftExp(intr(Lc,Ix),Map,Ex,Rp) => either((crInt(Lc,Ix),Ex)).
   liftExp(flot(Lc,Dx),Map,Ex,Rp) => either((crFlot(Lc,Dx),Ex)).
   liftExp(strng(Lc,Sx),Map,Ex,Rp) => either((crStrg(Lc,Sx),Ex)).
-  liftExp(enm(Lc,Nm,Tp),Map,Ex,Rp) => liftVarExp(Lc,Nm,Tp,arity(Tp),Map,Ex,Rp).
+  liftExp(enm(Lc,FullNm,Tp),Map,Ex,Rp) => either((crLbl(Lc,FullNm,Tp),Ex)).
   liftExp(tple(Lc,Els),Map,Ex,Rp) => do{
     (LEls,Exx) <- liftExps(Els,Map,Ex,Rp);
     valis (mkCrTpl(LEls,Lc),Exx)
@@ -301,7 +303,7 @@ star.compiler.normalize{
     (LRc,Ex1) <- liftExp(Rc,Map,Ex,Rp);
     valis (crDot(Lc,LRc,makeDotLbl(Fld),Tp),Ex1)
   }
-  liftExp(whr(_,E,enm(_,"true",nomnal("star.core*boolean"))),Map,Ex,Rp) =>
+  liftExp(whr(_,E,enm(_,"star.core#true",nomnal("star.core*boolean"))),Map,Ex,Rp) =>
     liftExp(E,Map,Ex,Rp).
   liftExp(whr(Lc,E,C),Map,Ex,Rp) => do{
     (LE,Ex1) <- liftExp(E,Map,Ex,Rp);
@@ -373,8 +375,8 @@ star.compiler.normalize{
     either((crIntrinsic(Lc,Op,Args,Tp),Ex)).
   liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex,Rp).
-  liftExpCallOp(Lc,enm(_,Nm,_),Args,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
-    implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex,Rp).
+  liftExpCallOp(Lc,enm(_,FullNm,_),Args,Tp,Map,Ex,Rp) =>
+    either((crTerm(Lc,FullNm,Args,Tp),Ex)).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Ex,Rp) => do{
     (LOp,Ex0) <- liftExp(Op,Map,Ex,Rp);
     valis (crOCall(Lc,LOp,Args,Tp),Ex0)

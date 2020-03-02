@@ -119,7 +119,7 @@ star.compiler.resolve{
   overloadTerm(intr(Lc,Ix),_,St,Rp) => either((St,intr(Lc,Ix))).
   overloadTerm(flot(Lc,Dx),_,St,Rp) => either((St,flot(Lc,Dx))).
   overloadTerm(strng(Lc,Sx),_,St,Rp) => either((St,strng(Lc,Sx))).
-  overloadTerm(enm(Lc,Nm,Tp),_,St,Rp) => either((St,enm(Lc,Nm,Tp))).
+  overloadTerm(enm(Lc,FullNm,Tp),_,St,Rp) => either((St,enm(Lc,FullNm,Tp))).
   overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Rp) => do{
     (Stx,Rc1) <- overloadTerm(Rc,Dict,St,Rp);
     valis (Stx,dot(Lc,Rc1,Fld,Tp))
