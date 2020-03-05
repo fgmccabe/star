@@ -42,7 +42,7 @@ star.ideal{
   insertTree(Dpth,Hash,ihLeaf(Hash,Els),Ky,Vl) => ihLeaf(Hash,mergeLf(Els,Ky,Vl)).
   insertTree(Dpth,Hash,ihLeaf(H,Els),Ky,Vl) =>
     insertTree(Dpth,Hash,singleVec(subKey(H,Dpth),ihLeaf(H,Els)),Ky,Vl).
-  insertTree(Dpth,Hash,Sub,Ky,Vl) where Ix.=subKey(Hash,Dpth) =>
+  insertTree(Dpth,Hash,Sub,Ky,Vl) where Dpth<maxDepth && Ix.=subKey(Hash,Dpth) =>
     patchVec(Sub,Ix,(Sb)=>insertTree(Dpth+2,Hash,Sb,Ky,Vl)).
 
   mergeLf:all k,v ~~ equality[k] |: (cons[keyval[k,v]],k,v)=>cons[keyval[k,v]].
@@ -108,6 +108,8 @@ star.ideal{
 
   subKey:(integer,integer) => integer.
   subKey(Hash,Depth) => _band(_blsr(Hash,Depth),0x3).
+
+  maxDepth = 64.
 
   -- Implement some standard contracts
 
