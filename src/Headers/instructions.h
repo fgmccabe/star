@@ -89,7 +89,7 @@ instruction(Cmp,off,-1,"t1 t2 --> , branch to offset if not same literal")
 instruction(Bf,off,-1,"bool --> branch if false")
 instruction(Bt,off,-1,"bool --> branch if true")
 
-instruction(Frame,i32,0,"frame instruction")
+instruction(Frame,lit,0,"frame instruction")
 
 instruction(Throw,off,0,"T --> T throw to handler or out")
 instruction(Unwind,off,0,"jump to handler")

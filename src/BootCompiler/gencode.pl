@@ -168,7 +168,10 @@ compTerm(cll(Lc,Nm,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   compTerms(A,Lc,cllCont(Nm,Stk,Cont,Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(ocall(Lc,Fn,A),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
-  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Stk,Cont,Opts),Opts),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
+  length(A,Ar),
+  Arity is Ar+1,
+  compTerms(A,Lc,compTerm(Fn,Lc,oclCont(Arity,Stk,Cont,Opts),Opts),
+	    Opts,D,Dx,End,C0,Cx,Stk,Stkx).
 compTerm(dte(Lc,Exp,Off),OLc,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
   chLine(Opts,OLc,Lc,C,C0),!,
   compTerm(Exp,Lc,idxCont(Cont,Off),Opts,D,Dx,End,C0,Cx,Stk,Stkx).
@@ -266,7 +269,7 @@ bothCont(L,R,D,Dx,End,C,Cx,Stk,Stkx) :-
   call(L,D,D0,End,C,C0,Stk,Stk0),
   call(R,D0,Dx,End,C0,Cx,Stk0,Stkx).
 
-allocCont(Str,D,D,_,[iAlloc(Str),iFrame(Stk)|Cx],Cx,Stk,Stkx) :-
+allocCont(Str,D,D,_,[iAlloc(Str),iFrame(intgr(Stk))|Cx],Cx,Stk,Stkx) :-
   popStack(Str,Stk,Stkx).
 
 resetCont(Lvl,D,D,_,Cx,Cx,Lvl,Lvl) :-!.
@@ -282,23 +285,21 @@ releaseCont(Nm,D,Dx,_,Cx,Cx,Stk,Stk) :-
 asmCont(IOp,Stk0,D,D,_,[IOp|Cx],Cx,_,Stkx) :-
   Stkx is Stk0+1.
 
-escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(Stkx)|Cx],Cx,_Stk,Stkx) :-
+escCont(Nm,Stk0,D,D,_,[iEscape(Nm),iFrame(intgr(Stkx))|Cx],Cx,_Stk,Stkx) :-
   Stkx is Stk0+1.
 
 cllCont(Nm,_Stk0,retCont(_),Opts,Dx,Dx,_,C,Cx,_Stk,none) :-!,
   genDbg(Opts,C,[iTail(Nm)|Cx]).
 cllCont(Nm,Stk0,Cont,Opts,D,Dx,End,C,Cx,_Stk,Stkx) :-
-  genDbg(Opts,C,[iCall(Nm),iFrame(Stk1)|C0]),
+  genDbg(Opts,C,[iCall(Nm),iFrame(intgr(Stk1))|C0]),
   Stk1 is Stk0+1,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
-oclCont(Stk0,retCont(_),Opts,Dx,Dx,_End,C,Cx,Stk,none) :-!,
-  genDbg(Opts,C,[iOTail(Arity)|Cx]),
-  Arity is Stk-Stk0.
-oclCont(Stk0,Cont,Opts,D,Dx,End,C,Cx,Stk,Stkx) :-
-  genDbg(Opts,C,[iOCall(Arity),iFrame(Stk1)|C0]),
+oclCont(Arity,_Stk0,retCont(_),Opts,Dx,Dx,_End,C,Cx,_,none) :-!,
+  genDbg(Opts,C,[iOTail(Arity)|Cx]).
+oclCont(Arity,Stk0,Cont,Opts,D,Dx,End,C,Cx,_,Stkx) :-
+  genDbg(Opts,C,[iOCall(Arity),iFrame(intgr(Stk1))|C0]),
   Stk1 is Stk0+1,
-  Arity is Stk-Stk0,
   call(Cont,D,Dx,End,C0,Cx,Stk1,Stkx).
 
 jmpCont(Lbl,D,D,_End,[iJmp(Lbl)|Cx],Cx,Stk,Stk).
