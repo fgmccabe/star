@@ -145,7 +145,7 @@ retCode gcCollect(heapPo H, long amount) {
 
 #ifdef TRACEMEM
   if (traceMemory) {
-    outMsg(logFile, "%d objects found\n%_", G->oCnt);
+    outMsg(logFile, "%d objects found\n", G->oCnt);
     outMsg(logFile, "%d bytes used\n", H->curr - H->start);
     outMsg(logFile, "%d bytes available\n%_", H->limit - H->curr);
   }

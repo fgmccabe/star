@@ -20,7 +20,7 @@ typedef struct class_record *clssPo;
 
 extern clssPo labelClass, normalClass, classClass;
 
-typedef termPo (*gcWalkPo)(clssPo clss,termPo term,void *cl);
+typedef termPo (*gcWalkPo)(clssPo clss, termPo term, void *cl);
 
 typedef struct term_record {
   clssPo clss;
@@ -30,27 +30,29 @@ typedef struct class_record {
   clssPo clss; // == classClass
 } ClassRecord;
 
-extern normalPo C_TERM(termPo t);
+normalPo C_TERM(termPo t);
 
-extern clssPo C_CLSS(termPo t);
+clssPo C_CLSS(termPo t);
 
-extern logical isNormalPo(termPo t);
+logical isNormalPo(termPo t);
 
-extern labelPo termLbl(normalPo t);
+labelPo termLbl(normalPo t);
 
-extern integer termHash(termPo t);
-extern integer hashTermLbl(termPo t);
+logical hasLabel(normalPo n, char *name, integer arity);
 
-extern integer termSize(normalPo t);
+integer termHash(termPo t);
+integer hashTermLbl(termPo t);
 
-extern integer termArity(normalPo term);
-extern ptrPo termArgs(normalPo term);
+integer termSize(normalPo t);
 
-extern termPo nthArg(normalPo term, integer ix);
-extern void setArg(normalPo term, integer ix, termPo arg);
+integer termArity(normalPo term);
+ptrPo termArgs(normalPo term);
 
-extern termPo getField(normalPo term,labelPo field);
-extern retCode setField(normalPo term, labelPo field, termPo val);
+termPo nthArg(normalPo term, integer ix);
+void setArg(normalPo term, integer ix, termPo arg);
+
+termPo getField(normalPo term, labelPo field);
+retCode setField(normalPo term, labelPo field, termPo val);
 
 extern termPo falseEnum;
 extern termPo trueEnum;

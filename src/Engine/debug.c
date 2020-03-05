@@ -783,7 +783,7 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
       {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
       {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
       {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"}},
-    .count = 18,
+    .count = 19,
     .deflt = Null
   };
 
@@ -1011,7 +1011,7 @@ DebugWaitFor lnDebug(processPo p, insWord ins, termPo ln, showCmd show) {
     {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
     {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
     {.c = 'y', .cmd=dbgInsDebug, .usage="y turn on instruction mode"}},
-    .count = 20,
+    .count = 19,
     .deflt = Null
   };
   methodPo mtd = p->prog;
