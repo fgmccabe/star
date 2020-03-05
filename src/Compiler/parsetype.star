@@ -36,7 +36,7 @@ star.compiler.typeparse{
     parseTypeName(Q,Lc,Nm,Env,Rp).
   parseType(Q,Tp,Env,Rp) where (Lc,O,Args) ^= isSquareTerm(Tp) => do{
     Op <- parseType(Q,O,Env,Rp);
-    if (Qx,OOp) .= freshen(Op,[],Env) then {
+    if (Qx,OOp) .= freshen(Op,Env) then {
       if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	ArgTps <- parseTypes(Q,deComma(Lhs),Env,Rp);
 	DepTps <- parseTypes(Q,deComma(Rhs),Env,Rp);
@@ -225,7 +225,7 @@ star.compiler.typeparse{
   parseContractName:(ast,dict,reports)=>either[reports,constraint].
   parseContractName(Op,Env,Rp) where (_,Id) ^= isName(Op) => do{
     if Con ^= findContract(Env,Id) then {
-      valis typeConstraint(snd(freshen(Con,[],Env)))
+      valis typeConstraint(snd(freshen(Con,Env)))
     }
       else
 	throw reportError(Rp,"contract $(Op) not defined",locOf(Op))

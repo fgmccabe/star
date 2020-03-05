@@ -67,7 +67,7 @@ star.compiler.core{
   dspExp(crStrg(_,Sx),_) => disp(Sx).
   dspExp(crLbl(_,Lb,_),_) => ssSeq([ss("'"),ss(Lb),ss("'")]).
   dspExp(crECall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
-  dspExp(crIntrinsic(_,Op,As,_),Off) => ssSeq([disp(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
+  dspExp(crIntrinsic(_,Op,As,_),Off) => ssSeq([ss("intrinsic{"),disp(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")}")]).
   dspExp(crOCall(_,Op,As,_),Off) => ssSeq([dspExp(Op,Off),ss("·("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crCall(_,Op,As,_),Off) => ssSeq([ss(Op),ss("("),ssSeq(dsplyExps(As,Off)),ss(")")]).
   dspExp(crTerm(_,Op,As,_),Off) where isTplLbl(Op) => ssSeq([ss("‹"),ssSeq(dsplyExps(As,Off)),ss("›")]).

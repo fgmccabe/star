@@ -243,7 +243,7 @@ star.compiler.action{
   pickupContract(Lc,Env,Nm,Rp) => do{
     if Con ^= findContract(Env,Nm) then{
       (_,typeExists(funDeps(tpExp(Op,StTp),[ErTp]),_)) .=
-	freshen(Con,[],Env);
+	freshen(Con,Env);
       valis (Op,StTp,ErTp)
     } else
     throw reportError(Rp,"$(Nm) contract not defined",Lc)
@@ -253,7 +253,7 @@ star.compiler.action{
   pickupIxContract(Lc,Env,Nm,Rp) => do{
     if Con ^= findContract(Env,Nm) then{
       (_,typeExists(funDeps(tpExp(Op,IxTp),[KyTp,VlTp]),_)) .=
-	freshen(Con,[],Env);
+	freshen(Con,Env);
       valis (Op,IxTp,KyTp,VlTp)
     } else
       throw reportError(Rp,"$(Nm) contract not defined",Lc)

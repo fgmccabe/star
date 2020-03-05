@@ -15,7 +15,7 @@ star.compiler.canon{
     mtd(locn,string,tipe) |
     over(locn,canon,tipe,list[constraint]) |
     intr(locn,integer) |
-    flot(locn,float) |
+    flt(locn,float) |
     strng(locn,string) |
     enm(locn,string,tipe) |
     whr(locn,canon,canon) |
@@ -65,7 +65,7 @@ star.compiler.canon{
     typeOf(mtd(_,_,T)) => T.
     typeOf(over(_,_,Tp,_)) => Tp.
     typeOf(intr(_,_)) => intType.
-    typeOf(flot(_,_)) => fltType.
+    typeOf(flt(_,_)) => fltType.
     typeOf(strng(_,_)) => strType.
     typeOf(enm(_,_,Tp)) => Tp.
     typeOf(csexp(_,_,_,Tp)) => Tp.
@@ -91,7 +91,7 @@ star.compiler.canon{
     locOf(mtd(Lc,_,_)) => Lc.
     locOf(over(Lc,_,_,_)) => Lc.
     locOf(intr(Lc,_)) => Lc.
-    locOf(flot(Lc,_)) => Lc.
+    locOf(flt(Lc,_)) => Lc.
     locOf(strng(Lc,_)) => Lc.
     locOf(enm(Lc,_,_)) => Lc.
     locOf(whr(Lc,_,_)) => Lc.
@@ -185,7 +185,7 @@ star.compiler.canon{
     eq(mtd(_,N1,T1),mtd(_,N2,T2)) => N1==N2 && T1==T2.
     eq(over(_,N1,T1,C1),over(_,N2,T2,C2)) => N1==N2 && T1==T2 && C1==C2.
     eq(intr(_,L1),intr(_,L2)) => L1==L2.
-    eq(flot(_,L1),flot(_,L2)) => L1==L2.
+    eq(flt(_,L1),flt(_,L2)) => L1==L2.
     eq(strng(_,L1),strng(_,L2)) => L1==L2.
     eq(enm(_,N1,T1),enm(_,N2,T2)) => N1==N2 && T1==T2.
     eq(apply(_,O1,A1,T1),apply(_,O2,A2,T2)) => eq(O1,O2) && eq(A1,A2) && T1==T2.
@@ -201,7 +201,7 @@ star.compiler.canon{
     hsh(mtd(_,N1,_)) => hash(N1).
     hsh(over(_,N1,T1,C1)) => hash(N1)*37+hash(T1).
     hsh(intr(_,Ix)) => hash(Ix).
-    hsh(flot(_,Dx)) => hash(Dx).
+    hsh(flt(_,Dx)) => hash(Dx).
     hsh(strng(_,Sx)) => hash(Sx).
     hsh(enm(_,N1,_)) => hash(N1).
     hsh(apply(_,O1,A1,T1)) => hsh(O1)*36+hsh(A1).
@@ -217,7 +217,7 @@ star.compiler.canon{
   showCanon(mtd(_,Fld,_),_) => ssSeq([ss("µ"),ss(Fld)]).
   showCanon(over(_,V,_,Cx),Sp) => ssSeq([disp(Cx),ss("|:"),showCanon(V,Sp)]).
   showCanon(intr(_,Lt),_) => disp(Lt).
-  showCanon(flot(_,Lt),_) => disp(Lt).
+  showCanon(flt(_,Lt),_) => disp(Lt).
   showCanon(strng(_,Lt),_) => disp(Lt).
   showCanon(enm(_,Nm,_),_) => ssSeq([ss("ϵ"),ss(Nm)]).
   showCanon(whr(_,E,C),Sp) => ssSeq([showCanon(E,Sp),ss(" where "),showCanon(C,Sp)]).
@@ -269,7 +269,7 @@ star.compiler.canon{
   showRl(Nm,eqn(_,Ptn,none,Val),Sp) => ssSeq([
       ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
   showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
-      ss(Nm),showCanon(Ptn,Sp),ss(" where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
+      ss(Nm),ss("["),showCanon(Ptn,Sp),ss("] where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
 
   public implementation display[canon] => {.
     disp(C) => showCanon(C,"")

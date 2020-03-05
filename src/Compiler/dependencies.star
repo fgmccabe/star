@@ -15,8 +15,8 @@ star.compiler.dependencies{
   dependencies(Dfs,Rp) => do{
     (Defs,Pb,As,Opn) <- collectDefinitions(Dfs,Rp);
     AllRefs .= (Defs//((defnSpec(Nm,_,_))=>Nm));
-
     InitDefs <- collectThetaRefs(Defs,AllRefs,As,[],Rp);
+
     Groups .= (topsort(InitDefs) // ((Gp)=>(Gp//((definition(Sp,Lc,_,Els))=>defnSpec(Sp,Lc,Els)))));
     
     valis (Pb,Opn,As,Groups)
@@ -36,6 +36,10 @@ star.compiler.dependencies{
     references(definition(_,_,Refs,_)) => Refs.
     defined(definition(Sp,_,_,_),Rf) => Sp==Rf.
   }
+
+  implementation display[definitionSpec] => {.
+    disp(definition(Sp,Lc,Refs,_)) => ssSeq([disp(Sp),ss("->"),disp(Refs)]).
+  .}
 
   collectDefinitions:(list[ast],
     reports) => either[reports,(list[defnSpec],list[(defnSp,visibility)],
@@ -158,6 +162,7 @@ star.compiler.dependencies{
   }
   collectThetaRefs([defnSpec(Defines,Lc,Stmts),..Defs],AllRefs,Annots,S,Rp) => do{
     Refs <- collectStmtsRefs(Stmts,AllRefs,Annots,[],Rp);
+--    logMsg("refs in $(Defines) are $(Refs)");
     collectThetaRefs(Defs,AllRefs,Annots,[definition(Defines,Lc,Refs,Stmts),..S],Rp)
   }.
 
@@ -300,6 +305,10 @@ star.compiler.dependencies{
     collectTermListRefs(Args,All,Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,Args) ^= isSqTuple(T) => 
     collectTermListRefs(Args,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isCons(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
   collectTermRefs(T,All,Rf,Rp) where (_,Bnd,Cond) ^= isComprehension(T) => do{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectCondRefs(Cond,All,Rf1,Rp)
@@ -312,6 +321,8 @@ star.compiler.dependencies{
     collectStmtsRefs(Sts,All,[],Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isQBrTuple(T) =>
     collectStmtsRefs(Sts,All,[],Rf,Rp).
+  collectTermRefs(_,_,Rf,_) default => either(Rf).
+
 
   collectCasesRefs([],_,Rf,_) => either(Rf).
   collectCasesRefs([St,..Sts],All,Rf,Rp) => do{
@@ -325,8 +336,6 @@ star.compiler.dependencies{
   collectCaseRefs(Cse,_,_,Rp) =>
     other(reportError(Rp,"invalid case in case expression $(Cse)",locOf(Cse))).
     
-  collectTermRefs(_,_,Rf,_) default => either(Rf).
-
   collectTermListRefs:(list[ast],list[defnSp],list[defnSp],reports) =>
     either[reports,list[defnSp]].
   collectTermListRefs([],_,R,_) => either(R).
