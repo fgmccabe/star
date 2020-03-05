@@ -404,7 +404,7 @@ retCode run(processPo P) {
 
         if (isNormalPo(t)) {
           normalPo cl = C_TERM(t);
-          if (isLabel(l) && sameLabel(C_LBL(l), termLbl(cl)))
+          if (isALabel(l) && sameLabel(C_LBL(l), termLbl(cl)))
             PC = exit;
         } else if (sameTerm(t, l))
           PC = exit;
@@ -749,10 +749,11 @@ retCode run(processPo P) {
         continue;
       }
 
-      case Frame:
-        PC += 2;
+      case Frame: {
+        termPo frame = nthArg(LITS, collectI32(PC));
+        // ignore frame entity for now
         continue;
-
+      }
       case Throw: {
         termPo item = pop();
         int32 off = collectI32(PC);

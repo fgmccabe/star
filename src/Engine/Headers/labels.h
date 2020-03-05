@@ -17,10 +17,11 @@ labelPo declareLbl(const char *name, integer arity);
 labelPo declareEnum(const char *name);
 labelPo tplLabel(integer arity);
 logical isTplLabel(labelPo lb);
-logical isLabel(termPo t);
+logical isALabel(termPo t);
 
 integer labelArity(labelPo lbl);
 char *labelName(labelPo lbl);
+logical isLabel(labelPo lbl, char *nm, integer arity);
 integer fieldIndex(labelPo lbl, labelPo field);
 integer fieldSize(labelPo lbl,labelPo field);
 logical isRecordLabel(labelPo lbl);

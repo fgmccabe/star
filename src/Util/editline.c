@@ -39,21 +39,21 @@ typedef struct {
 } LineState;
 
 enum KEY_ACTION {
-  CTRL_A = CTRL('A'),
-  CTRL_B = CTRL('B'),
-  CTRL_C = CTRL('C'),
-  CTRL_D = CTRL('D'),
-  CTRL_E = CTRL('E'),
-  CTRL_F = CTRL('F'),
-  CTRL_H = CTRL('H'),
+  CTRL_A = CTRL((unsigned) 'A'),
+  CTRL_B = CTRL((unsigned) 'B'),
+  CTRL_C = CTRL((unsigned) 'C'),
+  CTRL_D = CTRL((unsigned) 'D'),
+  CTRL_E = CTRL((unsigned) 'E'),
+  CTRL_F = CTRL((unsigned) 'F'),
+  CTRL_H = CTRL((unsigned) 'H'),
   TAB = '\t',            /* Tab */
-  CTRL_K = CTRL('K'),
-  CTRL_L = CTRL('L'),
+  CTRL_K = CTRL((unsigned) 'K'),
+  CTRL_L = CTRL((unsigned) 'L'),
   ENTER = 13,         /* Enter */
-  CTRL_N = CTRL('N'),
-  CTRL_P = CTRL('P'),
-  CTRL_T = CTRL('T'),
-  CTRL_U = CTRL('U'),
+  CTRL_N = CTRL((unsigned) 'N'),
+  CTRL_P = CTRL((unsigned) 'P'),
+  CTRL_T = CTRL((unsigned) 'T'),
+  CTRL_U = CTRL((unsigned) 'U'),
   ESC = 27,           /* Escape */
   SPACE = ' ',         // space
   BACKSPACE = 127    /* Backspace */
@@ -454,23 +454,25 @@ void addLineToHistory(bufferPo lineBuff) {
   while (len > 0 && (line[len - 1] == '\r' || line[len - 1] == '\n'))
     len--;
 
-  if (vectLength(history) > 0) {
-    strgPo last = O_STRG(getVectEl(history, vectLength(history) - 1));
+  if (len > 1) {
+    if (vectLength(history) > 0) {
+      strgPo last = O_STRG(getVectEl(history, vectLength(history) - 1));
 
-    char *lastText = strgVal(last);
-    integer lastLen = strgLen(last);
+      char *lastText = strgVal(last);
+      integer lastLen = strgLen(last);
 
-    if (uniNCmp(line, len, lastText, lastLen) != same && !uniIsTrivial(line, len)) {
+      if (uniNCmp(line, len, lastText, lastLen) != same && !uniIsTrivial(line, len)) {
+        strgPo text = newStrng(len, line);
+        appendVectEl(history, O_OBJECT(text));
+      }
+      if (vectLength(history) > history_max_len) {
+        objectPo first = removeVectEl(history, 0);
+        decReference(first);
+      }
+    } else {
       strgPo text = newStrng(len, line);
       appendVectEl(history, O_OBJECT(text));
     }
-    if (vectLength(history) > history_max_len) {
-      objectPo first = removeVectEl(history, 0);
-      decReference(first);
-    }
-  } else {
-    strgPo text = newStrng(len, line);
-    appendVectEl(history, O_OBJECT(text));
   }
 }
 

@@ -601,7 +601,7 @@ checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, inte
           return Error;
         }
         termPo lit = getMtdLit(seg->seg.mtd, litNo);
-        if (isLabel(lit)) {
+        if (isALabel(lit)) {
           integer arity = labelArity(C_LBL(lit));
           if (seg->seg.stackDepth < arity) {
             strMsg(errorMsg, msgLen, RED_ESC_ON "insufficient args on stack: %d @ %d" RED_ESC_OFF, arity, *pc);

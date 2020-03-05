@@ -218,6 +218,9 @@ char *labelName(labelPo lbl) {
   return lbl->name;
 }
 
+logical isLabel(labelPo lbl, char *nm, integer arity){
+  return uniCmp(lbl->name,nm)==same && lbl->arity==arity;
+}
 labelPo tplLabel(integer arity) {
   char txt[MAX_SYMB_LEN];
 
@@ -240,7 +243,7 @@ logical isTplLabel(labelPo lb) {
     return False;
 }
 
-logical isLabel(termPo t) {
+logical isALabel(termPo t) {
   return hasClass(t, labelClass);
 }
 
