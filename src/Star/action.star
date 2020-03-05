@@ -6,13 +6,13 @@ star.action{
 
   public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
 
-  public implementation all e ~~ monad[action[e]] => {.
+  public implementation all e ~~ monad[action[e]] => {
     (err(E) >>= _) => err(E).
     (done(A) >>= F) => delay(()=>F(A)).
     (delay(G) >>= F) => delay(()=>G()>>=F).
 
     return X => delay(()=>done(X)).
-  .}
+  }
 
   public implementation execution[action] => {
     _perform(done(X)) => X.
