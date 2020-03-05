@@ -93,6 +93,10 @@ star.compiler.types{
     V.constraints := [C,..V.constraints!];
     valis ()
   }
+  addCon(tFun(V,_,_),C) => do{
+    V.constraints := [C,..V.constraints!];
+    valis ()
+  }
 
   public deRef:(tipe) => tipe.
   deRef(tVar(B,_)) where T^=B.binding! => deRef(T).

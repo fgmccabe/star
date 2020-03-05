@@ -39,9 +39,9 @@ star.compiler.dict{
     disp(T) => dd(T)
   }
 
-  public declareVar:(string,option[locn],tipe,dict) => dict.
-  declareVar(Nm,Lc,Tp,Dict) =>
-    declareVr(Nm,Lc,Tp,(L,T)=>vr(L,Nm,T),Dict).
+  public declareVar:(string,string,option[locn],tipe,dict) => dict.
+  declareVar(Nm,FullNm,Lc,Tp,Dict) =>
+    declareVr(Nm,Lc,Tp,(L,T)=>vr(L,FullNm,T),Dict).
 
   public declareCon:(string,string,option[locn],tipe,dict) => dict.
   declareCon(Nm,FullNm,Lc,Tp,Env) =>
@@ -82,12 +82,19 @@ star.compiler.dict{
 
   formMethods:(list[(string,tipe)],option[locn],list[tipe],list[constraint],tipe,dict) => dict.
   formMethods([],_,_,_,_,Dict) => Dict.
-  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) where
+  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) => valof action{
+--    logMsg("raw method type of $(Nm) is $(Tp), constraints: $(Cx)");
+    (MQ,MI) .= deQuant(Tp);
+    MT .= reQuant(Q++MQ,reConstrainType([Cx..,typeConstraint(Con)],MI));
+--    logMsg("actual method type $(MT)");
+    valis formMethods(Mtds,Lc,Q,Cx,Con,declareMethod(Nm,Lc,MT,Dict))
+  }
+/*  formMethods([(Nm,Tp),..Mtds],Lc,Q,Cx,Con,Dict) where
       (MQ,MI) .= deQuant(Tp) &&
       MT .= reConstrainType(Cx,constrainedType(Tp,typeConstraint(Con))) =>
     formMethods(Mtds,Lc,Q,Cx,Con,
       declareMethod(Nm,Lc,reQuant(Q++MQ,MT),Dict)).
-
+*/
   public declareMethod:(string,option[locn],tipe,dict) => dict.
   declareMethod(Nm,Lc,Tp,Dict) =>
     declareVr(Nm,Lc,Tp,(L,T)=>mtd(L,Nm,T),Dict).
@@ -132,13 +139,14 @@ star.compiler.dict{
   declareTypeVars([(Nm,Tp),..Q],Env) =>
     declareTypeVars(Q,declareType(Nm,none,Tp,Tp,Env)).
 
-  public declareConstraints:(list[constraint],dict) => dict.
-  declareConstraints([],E) => E.
-  declareConstraints([typeConstraint(Con),..Cx],Env) =>
-    declareConstraints(Cx,
-      declareImplementation(implementationName(Con),Con,Env)).
-  declareConstraints([_,..Cx],Env) =>
-    declareConstraints(Cx,Env).
+  public declareConstraints:(locn,list[constraint],dict) => dict.
+  declareConstraints(_,[],E) => E.
+  declareConstraints(Lc,[typeConstraint(Con),..Cx],Env) where ConNm.=implementationName(Con) =>
+    declareConstraints(Lc,Cx,
+      declareVar(ConNm,ConNm,some(Lc),Con,
+	declareImplementation(implementationName(Con),Con,Env))).
+  declareConstraints(Lc,[_,..Cx],Env) =>
+    declareConstraints(Lc,Cx,Env).
 
   public manageConstraints:(tipe,list[constraint],locn,canon,dict,reports) =>
     either[reports,(tipe,canon)].

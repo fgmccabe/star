@@ -41,7 +41,7 @@ star.compiler.resolve{
     overloadGroups(Gps,[RG..,RGp],Dict,Rp)
   }
 
-  overloadGroup:(list[canonDef],dict,reports)=>either[reports,(list[canonDef],dict)].
+  public overloadGroup:(list[canonDef],dict,reports)=>either[reports,(list[canonDef],dict)].
   overloadGroup(Dfs,Dict,Rp) => do{
     TDict .= declareImplementationsInGroup(Dfs,Dict);
     RDefs <- overloadDefs(TDict,Dfs,[],Rp);
@@ -93,7 +93,7 @@ star.compiler.resolve{
   defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
   defineCVars(_,[],Vrs,D) => (Vrs,D).
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) =>
-    defineCVars(Lc,Tps,[Vrs..,vr(Lc,TpNm,T)],declareVar(TpNm,some(Lc),T,D)).
+    defineCVars(Lc,Tps,[Vrs..,vr(Lc,TpNm,T)],declareVar(TpNm,TpNm,some(Lc),T,D)).
 
   resolveState ::= inactive | resolved | active(locn,string).
 
@@ -117,7 +117,7 @@ star.compiler.resolve{
   overloadTerm:(canon,dict,resolveState,reports) => either[reports,(resolveState,canon)].
   overloadTerm(vr(Lc,Nm,Tp),_,St,Rp) => either((St,vr(Lc,Nm,Tp))).
   overloadTerm(intr(Lc,Ix),_,St,Rp) => either((St,intr(Lc,Ix))).
-  overloadTerm(flot(Lc,Dx),_,St,Rp) => either((St,flot(Lc,Dx))).
+  overloadTerm(flt(Lc,Dx),_,St,Rp) => either((St,flt(Lc,Dx))).
   overloadTerm(strng(Lc,Sx),_,St,Rp) => either((St,strng(Lc,Sx))).
   overloadTerm(enm(Lc,FullNm,Tp),_,St,Rp) => either((St,enm(Lc,FullNm,Tp))).
   overloadTerm(dot(Lc,Rc,Fld,Tp),Dict,St,Rp) => do{
@@ -301,7 +301,7 @@ star.compiler.resolve{
 --    logMsg("looking for implementation $(Tp) - $(ImpNm)");
     if vrEntry(_,Mk,VTp)^=isVar(ImpNm,Dict) then {
 --      logMsg("we have implementation $(Mk(Lc,Tp)) for $(VTp)");
-      (_,VrTp) .= freshen(VTp,[],Dict);
+      (_,VrTp) .= freshen(VTp,Dict);
       
       (ITp,Impl) <- manageConstraints(VrTp,[],Lc,Mk(Lc,Tp),Dict,Rp);
 --      logMsg("deconstrained implementation $(ITp)");

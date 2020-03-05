@@ -31,12 +31,18 @@ star.compiler.unify{
 	where size(E1)==size(E2) && size(T1)==size(T2) =>
       smFields(sort(T1,cmpField),sort(T2,cmpField),Env) &&
 	  smFields(sort(E1,cmpField),sort(E2,cmpField),Env).
+    smT(existType(V,T1),existType(V,T2),Env) =>
+      same(T1,T2,Env).
     smT(existType(V1,T1),existType(V2,T2),Env) =>
-      same(T1,T2,updateEnv(V1,V2,Env)).
+      same(T1,rewriteType(T2,[V2->V1]),Env).
+    smT(allType(V,T1),allType(V,T2),Env) =>
+      same(T1,T2,Env).
     smT(allType(V1,T1),allType(V2,T2),Env) =>
-      same(T1,T2,updateEnv(V1,V2,Env)).
+      same(T1,rewriteType(T2,[V2->V1]),Env).
     smT(funDeps(T1,D1),funDeps(T2,D2),Env) =>
       same(T1,T2,Env) && smTypes(D1,D2,Env).
+    smT(constrainedType(T1,C1),constrainedType(T2,C2),Env) =>
+      same(T1,T2,Env) && sameConstraint(C1,C2,Env).
     smT(T1,T2,_) default => valof resetBindings .
 
     smTypes([],[],_) => true.
@@ -50,6 +56,11 @@ star.compiler.unify{
 
     cmpField:((string,tipe),(string,tipe))=>boolean.
     cmpField((F1,_),(F2,_)) => F1<F2.
+
+    sameConstraint(typeConstraint(T1),typeConstraint(T2),Env) => 
+      same(T1,T2,Env).
+    sameConstraint(fieldConstraint(F1,T1),fieldConstraint(F2,T2),Env) =>
+      same(F1,F2,Env) && same(T1,T2,Env).
 
     updateEnv(nomnal(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
     updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
@@ -137,7 +148,7 @@ star.compiler.unify{
     checkConstraint(typeConstraint(Tp),Env) => do {
       INm.=implementationName(Tp);
       if Im ^= findImplementation(Env,INm) then{
-        (_,FrTp) .= freshen(typeOf(Im),[],Env);
+        (_,FrTp) .= freshen(typeOf(Im),Env);
 	(_,DeConTp) .= deConstrain(FrTp);
 	valis same(Tp,DeConTp,Env)
       } else{
@@ -163,7 +174,7 @@ star.compiler.unify{
       option[list[constraint]].
     mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
     mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
-      (Tp==Tp1 ? some(Cs) || none).
+      (same(Tp,Tp1,Env) ? some(Cs) || none).
     -- TODO: handle merging implementsFace more gracefully
     mergeConstraint(C,[_,..R],Cs,Env) => mergeConstraint(C,R,Cs,Env).
   } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? true || valof resetBindings).
@@ -187,7 +198,7 @@ star.compiler.unify{
   public faceOfType:(tipe,dict) => tipe.
   faceOfType(T,Env) => let{
     fcTp(T) where Nm^=tpName(T) && (_,_,Rl) ^= findType(Env,Nm) &&
-      (_,typeExists(Lhs,Rhs)) .= freshen(Rl,[],Env) &&
+      (_,typeExists(Lhs,Rhs)) .= freshen(Rl,Env) &&
 	sameType(Lhs,T,Env) => fcTp(deRef(Rhs)).
     fcTp(faceType(Flds,Tps)) => faceType(Flds,Tps).
     fcTp(_) default => faceType([],[]).
