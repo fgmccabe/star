@@ -361,18 +361,18 @@ star.compiler.gencode{
   asmCont(Op,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,Op],[Stk..,Tp]))).
 
   escCont:(string,integer,tipe,cons[tipe])=>Cont.
-  escCont(Nm,Ar,Tp,Stk) default => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iEscape(Nm),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+  escCont(Nm,Ar,Tp,Stk) default => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iEscape(Nm),iFrame(intgr(size(Stk)+1))],[Stk..,Tp]))).
 
   callCont:(string,integer,tipe,cons[tipe])=>Cont.
-  callCont(Nm,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iCall(tLbl(Nm,Ar)),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+  callCont(Nm,Ar,Tp,Stk) => ccont((Ctx,Cde,OStk,Rp) => either((Ctx,[Cde..,iCall(tLbl(Nm,Ar)),iFrame(intgr(size(Stk)+1))],[Stk..,Tp]))).
 
   oclCont:(integer,tipe,cons[tipe])=>Cont.
   oclCont(Ar,Tp,Stk) => ccont((Ctx,Cde,SStk,Rp) => do{
 --      logMsg("oclCont, current stack: $(SStk), new stack: $([Stk..,Tp])");
-      valis (Ctx,[Cde..,iOCall(Ar),iFrame(size(Stk)+1)],[Stk..,Tp])
+      valis (Ctx,[Cde..,iOCall(Ar),iFrame(intgr(size(Stk)+1))],[Stk..,Tp])
     }).
 
---      either((Ctx,[Cde..,iOCall(Ar),iFrame(size(Stk)+1)],[Stk..,Tp]))).
+--      either((Ctx,[Cde..,iOCall(Ar),iFrame(intgr(size(Stk)+1))],[Stk..,Tp]))).
 
   expCont:(crExp,compilerOptions,Cont)=>Cont.
   expCont(Exp,Opts,Cont) => ccont((Ctx,Cde,OStk,Rp) =>
