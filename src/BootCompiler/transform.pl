@@ -575,7 +575,6 @@ liftLambda(lambda(Lc,Eqn,Tp),Closure,Q,Map,Opts,[LamFun|Ex],Exx) :-
   is_member((_,Args,_,_),Rls),!,
   length(Args,Ar),
   functionMatcher(Lc,Ar,lbl(LclName,Ar),Tp,Rls,LamFun).
-%  (is_member(showTrCode,Opts) -> dispRuleSet(LamFun);true).
 
 lambdaLbl(Map,Variant,Nm) :-
   layerName(Map,Prefix),
@@ -585,13 +584,11 @@ lambdaLbl(Map,Variant,Nm) :-
 liftAbstraction(Ab,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
   genAbstraction(Ab,Path,AbExp),
-%  (is_member(showSetCode,Opts) -> dispCanonTerm(AbExp);true),
   liftExp(AbExp,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
 liftSearch(Serch,Rslt,Q,Qx,Map,Opts,Ex,Exx) :-
   layerName(Map,Path),
   genSearch(Serch,Path,AbGl),
-%  (is_member(showSetCode,Opts) -> dispCanonTerm(AbGl);true),
   liftExp(AbGl,Rslt,Q,Qx,Map,Opts,Ex,Exx).
 
 mkClosure(Lam,FreeVars,Closure) :-
@@ -640,7 +637,6 @@ liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-
   Theta=theta(Lc,_Path,_Anon,Defs,_Sig),!,
   genVar("_ThV",ThVr),
   thetaMap(Theta,ThVr,Q,Map,Opts,ThMap,FreeTerm),
-%  (is_member(showTrCode,Opts) -> dispMap("Theta map: ",ThMap);true),
   transformThetaDefs(ThMap,ThMap,Opts,Defs,FreeTerm,Fx,mtch(Lc,ThVr,Fx),ThCond,Ex,Exx).
 %  (is_member(showTrCode,Opts) -> dispTerm(Fx);true).
 liftTheta(Theta,ThVr,Fx,ThCond,Q,Map,ThMap,Opts,Ex,Exx) :-

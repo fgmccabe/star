@@ -53,11 +53,6 @@ defGlbl(_,D,D).
 genDefs(Defs,Opts,D,O,Ox) :-
   rfold(Defs,gencode:genDef(D,Opts),Ox,O).
 
-stop :- fail.
-
-genDef(_,_,fnDef(_,lbl("star.uri#sameQuery",2),_,_,_),_,_) :-
-  stop.
-
 genDef(D,Opts,fnDef(Lc,Nm,Tp,Args,Value),O,[CdTrm|O]) :-
   encType(Tp,Sig),
   genLbl(D,Ex,D0),
