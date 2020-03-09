@@ -101,7 +101,7 @@ star.compiler.core{
   } in interleave(Fs//((Nm,Vl))=>ssSeq([ss(Nm),ss(" = "),dspExp(Vl,Off)]),Gap).
 
   isTplOp(crLbl(_,Nm,_)) => isTplLbl(Nm).
-  isTplOp(_) default => false.
+  isTplOp(_) default => .false.
 
   public mkCrTpl:(list[crExp],locn) => crExp.
   mkCrTpl(Args,Lc) => let{
@@ -186,16 +186,28 @@ star.compiler.core{
   rewriteTerm(crFlot(Lc,Dx),_) => crFlot(Lc,Dx).
   rewriteTerm(crStrg(Lc,Sx),_) => crStrg(Lc,Sx).
   rewriteTerm(crLbl(Lc,Sx,Tp),_) => crLbl(Lc,Sx,Tp).
-  rewriteTerm(crDot(Lc,R,Ix,Tp),M) => crDot(Lc,R,Ix,Tp).
-  rewriteTerm(crTplOff(Lc,R,Ix,Tp),M) => crTplOff(Lc,R,Ix,Tp).
+  rewriteTerm(crDot(Lc,R,Ix,Tp),M) => crDot(Lc,rewriteTerm(R,M),Ix,Tp).
+  rewriteTerm(crTplOff(Lc,R,Ix,Tp),M) => crTplOff(Lc,rewriteTerm(R,M),Ix,Tp).
   rewriteTerm(crTerm(Lc,Op,Args,Tp),M) =>
-    crTerm(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
+    crTerm(Lc,Op,rewriteTerms(Args,M),Tp).
+  rewriteTerm(crRecord(Lc,Op,Flds,Tp),M) =>
+    crRecord(Lc,Op,Flds//((F,T))=>(F,rewriteTerm(T,M)),Tp).
   rewriteTerm(crCall(Lc,Op,Args,Tp),M) =>
     crCall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
+  rewriteTerm(crOCall(Lc,Op,Args,Tp),M) =>
+    crOCall(Lc,rewriteTerm(Op,M),Args//(A)=>rewriteTerm(A,M),Tp).
   rewriteTerm(crIntrinsic(Lc,Op,Args,Tp),M) =>
-    crIntrinsic(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
+    crIntrinsic(Lc,Op,rewriteTerms(Args,M),Tp).
   rewriteTerm(crECall(Lc,Op,Args,Tp),M) =>
     crECall(Lc,Op,Args//(A)=>rewriteTerm(A,M),Tp).
+  rewriteTerm(crCnj(Lc,L,R),M) =>
+    crCnj(Lc,rewriteTerm(L,M),rewriteTerm(R,M)).
+  rewriteTerm(crDsj(Lc,L,R),M) =>
+    crDsj(Lc,rewriteTerm(L,M),rewriteTerm(R,M)).
+  rewriteTerm(crNeg(Lc,R),M) =>
+    crNeg(Lc,rewriteTerm(R,M)).
+  rewriteTerm(crCnd(Lc,T,L,R),M) =>
+    crCnd(Lc,rewriteTerm(T,M),rewriteTerm(L,M),rewriteTerm(R,M)).
   rewriteTerm(crLtt(Lc,V,D,E),M) where M1 .= dropVar(M,V) =>
     crLtt(Lc,V,rewriteTerm(D,M1),rewriteTerm(E,M1)).
   rewriteTerm(crCase(Lc,Sel,Cases,Deflt,Tp),M) =>
@@ -205,6 +217,9 @@ star.compiler.core{
     crWhere(Lc,rewriteTerm(T,M),rewriteTerm(C,M)).
   rewriteTerm(crMatch(Lc,P,E),M) =>
     crMatch(Lc,rewriteTerm(P,M),rewriteTerm(E,M)).
+
+  public rewriteTerms:(list[crExp],map[string,crExp])=>list[crExp].
+  rewriteTerms(Els,Mp) => (Els//(E)=>rewriteTerm(E,Mp)).
 
   rewriteDef(fnDef(Lc,Nm,Tp,Args,Val),M) =>
     fnDef(Lc,Nm,Tp,Args,rewriteTerm(Val,M)).
@@ -230,12 +245,12 @@ star.compiler.core{
   crName(crId(Nm,_))=>Nm.
 
   public isCrCond:(crExp)=>boolean.
-  isCrCond(crCnj(_,_,_))=>true.
-  isCrCond(crDsj(_,_,_))=>true.
-  isCrCond(crNeg(_,_))=>true.
+  isCrCond(crCnj(_,_,_))=>.true.
+  isCrCond(crDsj(_,_,_))=>.true.
+  isCrCond(crNeg(_,_))=>.true.
   isCrCond(crCnd(_,_,L,R))=>isCrCond(L)||isCrCond(R).
   isCrCond(crWhere(_,L,_)) => isCrCond(L).
-  isCrCond(crMatch(_,_,_))=>true.
-  isCrCond(_) default => false.
+  isCrCond(crMatch(_,_,_))=>.true.
+  isCrCond(_) default => .false.
 
 }

@@ -2,10 +2,10 @@ test.l2{
   import star.
   import star.script.
 
-  tree[a] ::= empty | node(tree[a],a,tree[a]).
+  tree[a] ::= .empty | node(tree[a],a,tree[a]).
 
   implementation all e ~~ display[e] |: display[tree[e]] => let {
-    dTree(empty) => ss("e").
+    dTree(.empty) => ss("e").
     dTree(node(L,Lb,R)) => ssSeq([ss("<"),dTree(L),disp(Lb),dTree(R),ss(">")]).
   } in {.
     disp = dTree
@@ -13,7 +13,7 @@ test.l2{
 
   splits:(tree[(integer,string)]) => (tree[integer],list[string]).
   splits(T) => let{
-    spl(empty) => (empty,[]).
+    spl(.empty) => (.empty,[]).
     spl(node(L,(X,S),R)) => valof action{
       (LL,LX) .= spl(L);
       (RR,RX) .= spl(R);
@@ -23,6 +23,6 @@ test.l2{
 
   main:()=>action[(),()].
   main()=>do{
-    show "splits $(splits(node(node(empty,(1,"a"),empty),(2,"b"),empty)))"
+    show "splits $(splits(node(node(.empty,(1,"a"),.empty),(2,"b"),.empty)))"
   }
 }

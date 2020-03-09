@@ -135,6 +135,9 @@
 @tab left associative infix
 @tab 720
 @item @code{.}
+@tab non-associative prefix
+@tab 10
+@item @code{.}
 @tab left associative infix
 @tab 100
 @item @code{/}
@@ -217,9 +220,6 @@
 @tab 1240
 @item @code{!!}
 @tab non-associative prefix
-@tab 900
-@item @code{=.}
-@tab non-associative infix
 @tab 900
 @item @code{.^.}
 @tab left associative infix

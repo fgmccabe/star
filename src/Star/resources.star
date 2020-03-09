@@ -5,7 +5,7 @@ star.resources{
   public
   getResource:(uri) => option[string].
   getResource(U) where Fn .= getUriPath(U) && _file_present(Fn) => some(_get_file(Fn)).
-  getResource(_) default => none.
+  getResource(_) default => .none.
 
   public
   putResource:(uri,string)=>().
@@ -21,7 +21,7 @@ star.resources{
     _file_present(P1) &&
     _file_present(P2) =>
     _file_modified(P1) > _file_modified(P2).
-  newerFile(_,_) default => false.
+  newerFile(_,_) default => .false.
 
   public isDir:(string) => boolean.
   isDir(D) => _isdir(D).
@@ -40,6 +40,6 @@ star.resources{
 	  PU ^= resolveUri(C,P) &&
 	  P1 .= getUriPath(PU) && P1=!="/" =>
 	searchFor(PU).
-      searchFor(_) default => none
+      searchFor(_) default => .none
     } in searchFor(U).
 }

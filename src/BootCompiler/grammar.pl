@@ -91,9 +91,6 @@ term00([lftTok("()",Lcx)|Tks],T,Toks,rpar) :-
   checkToken(Tks2,Toks,rgtTok("()",Lcy),Lcy,"missing close parenthesis, got %s, left paren at %s",[Lcx]),
   mergeLoc(Lcx,Lcy,Lc),
   tupleize(Seq,Lc,"()",T).
-term00([lftTok("(..)",Lcx)|Tks],T,Toks,rpar) :-
-  term(Tks,2000,T,Tks2,_),
-  checkToken(Tks2,Toks,rgtTok("(..)",Lcy),Lcy,"missing close parenthesis, got %s, left paren at %s",[Lcx]).
 term00([lftTok("[]",Lc0),rgtTok("[]",Lc2)|Toks],tuple(Lc,"[]",[]),Toks,rbra) :-
   mergeLoc(Lc0,Lc2,Lc).
 term00([lftTok("[]",Lcx)|Tks],T,Toks,rbra) :-

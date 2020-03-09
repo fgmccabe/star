@@ -5,7 +5,7 @@ test.compose{
 
   digit:(list[integer]) => option[(list[integer],integer)].
   digit([digitVal^(D),..L]) => some((L,D)).
-  digit(_) => none.
+  digit(_) => .none.
 
   digitVal:(integer)=>option[integer].
   digitVal(0c0) => some(0).
@@ -18,11 +18,11 @@ test.compose{
   digitVal(0c7) => some(7).
   digitVal(0c8) => some(8).
   digitVal(0c9) => some(9).
-  digitVal(_) => none.
+  digitVal(_) => .none.
 
   decimal:(list[integer]) => option[(list[integer],integer)].
   decimal(S) where digit(S)=.some((S1,D)) => moreDecimal(S1,D).
-  decimal(_) => none.
+  decimal(_) => .none.
 
   moreDecimal:(list[integer],integer) => option[(list[integer],integer)].
   moreDecimal(S,D) where digit(S)=.some((S1,D1)) =>
@@ -32,7 +32,7 @@ test.compose{
 
   dec:(list[integer]) => option[(list[integer],integer)].
   dec(S) where digit(S)=.some((S1,D)) => iter(S1,digit,(Dg,Nm)=>Nm*10+Dg,D).
-  dec(_) => none.
+  dec(_) => .none.
 
   main:()=>action[(),()].
   main()=>do{

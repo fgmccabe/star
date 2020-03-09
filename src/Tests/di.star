@@ -2,7 +2,7 @@ test.di{
   import star.
   import star.script.
 
-  Is = cons(1,cons(2,cons(3,cons(4,nil)))).
+  Is = cons(1,cons(2,cons(3,cons(4,.nil)))).
 
   Px : action[(),integer].
   Px = _iter(Is,do{valis 1},(Ix,Cx)=>do{valis Ix*Cx}).

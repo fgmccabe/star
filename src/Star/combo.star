@@ -20,7 +20,7 @@ star.combo{
   term(P) => let{
       tt:(list[c])=>option[(list[c],c)].
       tt([C,..L]) where P(C) =>some((L,C)).
-      tt(_) => none.
+      tt(_) => .none.
   } in tt.
 
   public isK:all x ~~ equality[x] |: (x)=>((x) => boolean).

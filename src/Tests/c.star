@@ -5,7 +5,7 @@ test.c {
   all t ~~ person[t] ::= someOne{
     name : t.
     spouse: option[person[t]].
-    spouse default = none.
+    spouse default = .none.
   }
     
   implementation all t ~~ equality[t] |: equality[person[t]] => {.
@@ -16,10 +16,10 @@ test.c {
   foo = "".
   
   fp : person[string].
-  fp = someOne{ name = foo. spouse = none. /*assert name == foo*/}
+  fp = someOne{ name = foo. spouse = .none. /*assert name == foo*/}
 
   fper:(string)=>person[string].
-  fper(W) => someOne{name = W. spouse=none}.
+  fper(W) => someOne{name = W. spouse= .none}.
 
 
 
@@ -34,7 +34,7 @@ test.c {
   main:()=>action[(),()].
   main()=>do{
     assert fp.name == "";
-    assert fp.spouse == none;
+    assert fp.spouse == .none;
 
     assert fper("fred").name == "fred";
 

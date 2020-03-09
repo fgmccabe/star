@@ -29,7 +29,7 @@ star.treelist{
   tlSize(tlBlack(_,Sz,_,_)) => Sz.
 
   find_by_index:all e ~~ (tl[e],integer) => option[e].
-  find_by_index(tlEmpty,_) => none.
+  find_by_index(tlEmpty,_) => .none.
   find_by_index(tlRed(_,Ix,V,_),Ix) => some(V).
   find_by_index(tlBlack(_,Ix,V,_),Ix) => some(V).
   find_by_index(tlRed(L,_,_,R),Ix) where Ix<tlSize(L) => find_by_index(L,Ix).
@@ -63,16 +63,16 @@ star.treelist{
 
   public implementation all e ~~ stream[tl[e] ->> e] => let{
     eof:(tl[e]) => boolean.
-    eof(tlEmpty) => true.
-    eof(_) => false.
+    eof(tlEmpty) => .true.
+    eof(_) => .false.
 
     hdlt:(tl[e])=>option[(e,tl[e])].
     hdtl(tlLeaf(E)) => some((E,tlEmpty)).
     hdtl(tlRed(L,_,R)) where (E,Lr)^=hdtl(L) => some((E,rebalance(Lr,R))).
-    hdtl(tlEmpty) => none.
+    hdtl(tlEmpty) => .none.
 
     back:(tl[e]) => option[(tl[e],e)].
-    back(tlEmpty) => none.
+    back(tlEmpty) => .none.
     back(tlLeaf(E))=>some((tlEmpty,E)).
     back(tlRed(L,_,R)) where (Rr,E) ^= back(R) => some((rebalance(L,Rr),E)).
   } in {.

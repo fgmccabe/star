@@ -34,7 +34,7 @@
 
   and individual functions are augmented with their theta parameter:
 
-  aXX(Lbl,X) where Lbl =. thetaXX(Y)  => X+Y
+  aXX(Lbl,X) where thetaXX(Y) .= Lbl => X+Y
 
   Calls through variables access the closure form of functions:
 
@@ -355,8 +355,8 @@ liftPtn(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
   merge([ThVr],Q,Qx).
 liftPtn(v(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
   trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
-liftPtn(enm(Lc,Nm,_),A,Q,Qx,Map,Opts,Ex,Ex) :- !,
-  trVarPtn(Lc,Nm,A,Q,Qx,Map,Opts).
+liftPtn(enm(Lc,Nm,_),A,Q,Qx,Map,_Opts,Ex,Ex) :- !,
+  trEnum(Lc,Nm,A,Q,Qx,Map).
 liftPtn(void,voyd,Q,Q,_,_,Ex,Ex):-!.
 liftPtn(intLit(Ix,_),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.
 liftPtn(floatLit(Ix,_),float(Ix),Q,Q,_,_,Ex,Ex) :-!.
@@ -376,6 +376,7 @@ liftPtn(where(Lc,P,C),whr(Lc,LP,LC),Q,Qx,Map,Opts,Ex,Exx) :-
   liftPtn(P,LP,Q,Q0,Map,Opts,Ex,Ex0),
   liftGoal(C,LC,Q0,Qx,Map,Opts,Ex0,Exx).
 liftPtn(XX,whr(Lc,Vr,mtch(Lc,Vr,Val)),Q,Qx,Map,Opts,Ex,Exx) :-
+  locOfCanon(XX,Lc),
   genVar("_",Vr),
   liftExp(XX,Val,Q,Qx,Map,Opts,Ex,Exx).
 
@@ -394,7 +395,6 @@ implementVarPtn(labelArg(N,Ix,ThVr),_,Lc,whr(Lc,N,mtch(Lc,N,dte(Lc,Vr,intgr(Ix))
 implementVarPtn(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
 implementVarPtn(notInMap,Nm,_,idnt(Nm),_,Q,Qx) :-                 % variable local to rule
   merge([idnt(Nm)],Q,Qx).
-
 
 trPtnCallOp(Lc,Nm,Args,whr(Lc,X,mtch(Lc,X,intrinsic(Lc,Op,Args))),Q,Qx,_,_,Ex,Ex) :-
   isIntrinsic(Nm,_,Op),!,
@@ -419,6 +419,12 @@ implementPtnCall(moduleFun(Fn,_,Ar),Lc,_,Args,whr(Lc,X,mtch(Lc,X,cll(Lc,lbl(Fn,A
   merge([X],Q,Qx).
 implementPtnCall(moduleCons(Mdl,_,Ar),_,_,Args,ctpl(lbl(Mdl,Ar),Args),_,Q,Q).
 
+trEnum(Lc,Nm,A,Q,Qx,Map) :-
+  lookupVarName(Map,Nm,V),!,
+  implementEnum(V,Nm,Lc,A,Map,Q,Qx).
+
+implementEnum(moduleCons(Enum,_,0),_,_,enum(Enum),_,Q,Q).
+
 liftExps([],Args,Args,Q,Q,_,_,Ex,Ex) :-!.
 liftExps([P|More],[A|Args],Extra,Q,Qx,Map,Opts,Ex,Exx) :-
   liftExp(P,A,Q,Q0,Map,Opts,Ex,Ex0),
@@ -430,7 +436,7 @@ liftExp(v(_,"this",_),ThVr,Q,Qx,Map,_,Ex,Ex) :-
 liftExp(v(Lc,Nm,_),Vr,Q,Qx,Map,_Opts,Ex,Ex) :-
   trVarExp(Lc,Nm,Vr,Q,Qx,Map).
 liftExp(enm(Lc,Nm,_),Vr,Q,Qx,Map,_Opts,Ex,Ex) :- !,
-  trVarExp(Lc,Nm,Vr,Q,Qx,Map).
+  trEnum(Lc,Nm,Vr,Q,Qx,Map).
 liftExp(cons(Lc,Nm,_),Vr,Q,Qx,Map,_Opts,Ex,Ex) :- !,
   trVarExp(Lc,Nm,Vr,Q,Qx,Map).
 liftExp(intLit(Ix,_),intgr(Ix),Q,Q,_,_,Ex,Ex) :-!.

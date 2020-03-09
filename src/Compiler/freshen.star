@@ -13,23 +13,23 @@ star.compiler.freshen{
 
   freshQ:(tipe,dict) => (tipe,dict).
   freshQ(nomnal(V),Env) where NV.=newTypeVar(V) =>
-    (NV,declareType(V,none,NV,faceType([],[]),Env)).
+    (NV,declareType(V,.none,NV,faceType([],[]),Env)).
   freshQ(kFun(V,Ar),Env) where NV.=newTypeFun(V,Ar) =>
-    (NV,declareType(V,none,NV,faceType([],[]),Env)).
+    (NV,declareType(V,.none,NV,faceType([],[]),Env)).
 
   skolQ:(tipe,dict) => (tipe,dict).
   skolQ(nomnal(V),Env) where NV.=skolemFun(V,0) =>
-    (NV,declareType(V,none,NV,faceType([],[]),Env)).
+    (NV,declareType(V,.none,NV,faceType([],[]),Env)).
   skolQ(kFun(V,Ar),Env) where NV.=skolemFun(V,Ar) =>
-    (NV,declareType(V,none,NV,faceType([],[]),Env)).
+    (NV,declareType(V,.none,NV,faceType([],[]),Env)).
 
   freshQuants:(tipe,cons[(string,tipe)],dict)=>(tipe,cons[(string,tipe)],dict).
   freshQuants(allType(nomnal(V),T),B,Env) where NV.=newTypeVar(V) =>
-    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
   freshQuants(allType(kFun(V,Ar),T),B,Env) where NV.=newTypeFun(V,Ar) =>
-    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
   freshQuants(existType(nomnal(V),T),B,Env) where NV.=genSkolemFun(V,B) =>
-    freshQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+    freshQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
   freshQuants(T,B,Env) default => (T,B,Env).
 
   genSkolemFun(Nm,[]) => skolemFun(Nm,0).
@@ -44,16 +44,16 @@ star.compiler.freshen{
     (Q,frshn(deRef(T),Ev,freshQ,skolQ)).
   evidence(Tp,_) default => ([],Tp).
 
-  skolemQuants(allType(nomnal(V),T),B,Env) where none.=findType(Env,V) =>
+  skolemQuants(allType(nomnal(V),T),B,Env) where .none.=findType(Env,V) =>
     skolemQuants(deRef(T),[(V,nomnal(V)),..B],Env).
   skolemQuants(allType(nomnal(V),T),B,Env) where NV.=skolemFun(V,0) =>
-    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
-  skolemQuants(allType(kFun(V,Ar),T),B,Env)  where none.=findType(Env,V) =>
-    skolemQuants(deRef(T),[(V,kFun(V,Ar)),..B],declareType(V,none,kFun(V,Ar),faceType([],[]),Env)).
+    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
+  skolemQuants(allType(kFun(V,Ar),T),B,Env)  where .none.=findType(Env,V) =>
+    skolemQuants(deRef(T),[(V,kFun(V,Ar)),..B],declareType(V,.none,kFun(V,Ar),faceType([],[]),Env)).
   skolemQuants(allType(kFun(V,Ar),T),B,Env)  where NV.=skolemFun(V,Ar)=>
-    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
   skolemQuants(existType(nomnal(V),T),B,Env) where NV.=genTypeFun(V,B) =>
-    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,none,NV,faceType([],[]),Env)).
+    skolemQuants(deRef(T),[(V,NV),..B],declareType(V,.none,NV,faceType([],[]),Env)).
   skolemQuants(T,B,Env) default => (T,B,Env).
 
   genTypeFun(Nm,[]) => newTypeVar(Nm).

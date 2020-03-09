@@ -37,7 +37,7 @@ star.compiler.token{
   implementation equality[stringSegment] => {.
     segment(_,S1) == segment(_,S2) => S1==S2.
     interpolate(_,S1,F1) == interpolate(_,S2,F2) => S1==S2 && F1==F2.
-    _ == _ default => false.
+    _ == _ default => .false.
   .}
 
   public implementation equality[tk] => {.
@@ -48,13 +48,13 @@ star.compiler.token{
     strTok(S1) == strTok(S2) => S1==S2.
     lftTok(S1) == lftTok(S2) => S1==S2.
     rgtTok(S1) == rgtTok(S2) => S1==S2.
-    _ == _ default => false.
+    _ == _ default => .false.
   .}
 
   public implementation equality[token] => {.
     tok(_,T1)==tok(_,T2) => T1==T2.
-    endTok(_)==endTok(_) => true.
-    _ == _ default => false.
+    endTok(_)==endTok(_) => .true.
+    _ == _ default => .false.
   .}
 
   public implementation display[token] => {.

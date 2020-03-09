@@ -78,10 +78,11 @@ declareImportedFields([(Nm,Tp)|More],Pkg,Enums,Lc,Env,Ex) :-
 declareImportedVar(Lc,Nm,pkg(Pkg,_),Enums,Tp,Env,E0) :-
   marker(class,Mrk),
   localName(Pkg,Mrk,Nm,LclNm),
-  (is_member(LclNm,Enums),\+isProgramType(Tp) ->
-     faceOfType(Tp,Env,FcTp),
-     declareEnum(Lc,Nm,Tp,FcTp,Env,E0) ;
-     declareVr(Lc,Nm,Tp,Env,E0)).
+  (is_member(LclNm,Enums) ->
+   (isConType(Tp,0) ->
+    declareEnum(Lc,Nm,Tp,Env,E0) ;
+    declareCns(Lc,Nm,Tp,Env,E0)) ;
+   declareVr(Lc,Nm,Tp,Env,E0)).
 
 importTypes([],_,Env,Env).
 importTypes([(Nm,Rule)|More],Lc,Env,Ex) :-
@@ -167,11 +168,12 @@ formMethods([(Nm,Tp)|M],Lc,Q,Cx,Con,Env,Ev) :-
   formMethods(M,Lc,Q,Cx,Con,E0,Ev).
 
 parseConstructor(Nm,Lc,T,Env,Ev,[cnsDef(Lc,Nm,ConVr,Tp)|Defs],Defs,_) :-
+%  display(T),
   parseType(T,Env,Tp),
-  (isConType(Tp) ->
-    declareCns(Lc,Nm,Tp,Env,Ev), ConVr=cons(Lc,Nm,Tp) ;
-    faceOfType(Tp,Env,FcTp),
-    declareEnum(Lc,Nm,Tp,FcTp,Env,Ev), ConVr=enm(Lc,Nm,Tp)).
+  (isConType(Tp,0) ->
+   declareEnum(Lc,Nm,Tp,Env,Ev), ConVr=enm(Lc,Nm,Tp) ;
+   declareCns(Lc,Nm,Tp,Env,Ev), ConVr=cons(Lc,Nm,Tp)).
+%  dispDefs([cnsDef(Lc,Nm,ConVr,Tp)]).
 
 parseAnnotations(Defs,Fields,Annots,Env,Path,faceType(F,T)) :-
   parseAnnots(Defs,Fields,Annots,Env,[],F,[],T,Path).
@@ -416,14 +418,15 @@ typeOfPtn(V,Tp,Env,Env,v(Lc,N,Tp),_Path) :-
   genstr("_",N).
 typeOfPtn(V,Tp,Env,Ev,Term,Path) :-
   isIden(V,Lc,N),
-  isVar(N,Env,Spec),!,
-  (isEnumVr(Lc,Tp,Spec) ->
-    typeOfVar(Lc,N,Tp,Spec,Env,Ev,Term);
-    mkWhereEquality(V,TT),
-    typeOfPtn(TT,Tp,Env,Ev,Term,Path)).
+  isVar(N,Env,_),!,
+  mkWhereEquality(Lc,V,TT),
+  typeOfPtn(TT,Tp,Env,Ev,Term,Path).
 typeOfPtn(V,Tp,Ev,Env,v(Lc,N,Tp),_Path) :-
   isIden(V,Lc,N),
   declareVr(Lc,N,Tp,Ev,Env).
+typeOfPtn(Trm,Tp,Env,Ev,Term,Path) :-
+  isEnum(Trm,_,N),
+  typeOfKnown(N,consType(tupleType([]),Tp),Env,Ev,Term,Path).
 typeOfPtn(Trm,Tp,Env,Env,intLit(Ix,IntTp),_) :-
   isLiteralInteger(Trm,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
@@ -496,6 +499,9 @@ typeOfExp(V,Tp,Env,Ev,Term,_Path) :-
    reportError("variable '%s' not defined, expecting a %s",[V,Tp],Lc),
    Term=void,
    Env=Ev).
+typeOfExp(T,Tp,Env,Ev,Term,Path) :-
+  isEnum(T,_,N),
+  typeOfKnown(N,consType(tupleType([]),Tp),Env,Ev,Term,Path),!.
 typeOfExp(T,Tp,Env,Env,intLit(Ix,IntTp),_Path) :-
   isLiteralInteger(T,Lc,Ix),!,
   findType("integer",Lc,Env,IntTp),
@@ -615,6 +621,7 @@ typeOfExp(Term,Tp,Env,Env,Exp,Path) :-
   newTypeVar("_El",ElTp),
   checkType(Term,tpExp(LTp,ElTp),Tp,Env),
   checkAbstraction(Term,Lc,B,G,Tp,Env,Exp,Path).
+%  dispCanonTerm(Exp).
 typeOfExp(Term,Tp,Env,Ev,Exp,Path) :-
   isValof(Term,Lc,Ex),!,
   unary(Lc,"_perform",Ex,VV),
@@ -980,10 +987,9 @@ becomes
 createIntegrityAction(Lc,Cond,Act) :-
   ast2String(Cond,Msg),
   locOfAst(Cond,CLc),
-  eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Cond,Lam),
+  eqn(Lc,tuple(Lc,"()",[]),Cond,Lam),
   astOfLoc(CLc,Loc),
   roundTerm(Lc,name(Lc,"assrt"),[Lam,string(Lc,Msg),Loc],Assert),
-
   braceTuple(Lc,[Assert],B),
   genIden(Lc,Err),
   roundTerm(Lc,name(Lc,"logMsg"),[Err],Rep),
@@ -991,7 +997,7 @@ createIntegrityAction(Lc,Cond,Act) :-
   unary(Lc,"throw",Unit,Thr),
   binary(Lc,";",Rep,Thr,CtBd),
   braceTerm(Lc,name(Lc,"action"),[CtBd],R1),
-  eqn(Lc,tuple(Lc,"()",[Err]),name(Lc,"true"),R1,ELam),
+  eqn(Lc,tuple(Lc,"()",[Err]),R1,ELam),
   binary(Lc,"catch",B,ELam,R2),
   unary(Lc,"try",R2,Act).
 
@@ -1004,7 +1010,7 @@ createShowAction(Lc,Exp,Act) :-
   ast2String(Exp,Txt),
   locOfAst(Exp,ELc),
   astOfLoc(ELc,Loc),
-  eqn(Lc,tuple(Lc,"()",[]),name(Lc,"true"),Exp,Lam),
+  eqn(Lc,tuple(Lc,"()",[]),Exp,Lam),
   roundTerm(Lc,name(Lc,"shwMsg"),[Lam,string(Lc,Txt),Loc],Act).
 
 checkCatch(Term,Env,Contract,ExTp,ValTp,ErTp,BdErTp,Anon,Hndlr,Path) :-

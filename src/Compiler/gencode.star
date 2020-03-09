@@ -98,7 +98,7 @@ star.compiler.gencode{
     if Loc^=locateVar(Vr,Ctx) then {
       compVar(Lc,Vr,Loc,Opts,Cont,Ctx,Cde,Stk,Rp)
     } else
-    throw reportError(Rp,"cannot locate variable $(Vr)\:$(Tp) in $(Ctx)",Lc)
+    throw reportError(Rp,"cannot locate variable $(Vr)\:$(Tp)",Lc)
   }
   compExp(crTerm(Lc,Nm,Args,Tp),Opts,Cont,Ctx,Cde,Stk,Rp) =>
     compExps(Args,Opts,bothCont(allocCont(tLbl(Nm,size(Args)),Tp,Stk),Cont),Ctx,Cde,Stk,Rp).
@@ -279,7 +279,7 @@ star.compiler.gencode{
 
     compPtns(Args,0,Opts,
       resetCont(size(Stk),Succ),RCont,ctxLbls(Ctx,Ctx3),
-      [Cde..,iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(NLb)]++FlCode++[iLbl(NLb)],[Stk..,Tp],Rp)
+      [Cde..,.iDup,iLdC(enum(tLbl(Nm,size(Args)))),iCLbl(NLb)]++FlCode++[iLbl(NLb)],[Stk..,Tp],Rp)
   }
   compPtn(crWhere(Lc,Ptn,Cond),Opts,Succ,Fail,Ctx,Cde,Stk,Rp) =>
     compPtn(Ptn,Opts,condCont(Cond,Opts,Succ,Fail),Fail,Ctx,Cde,Stk,Rp).
@@ -292,7 +292,7 @@ star.compiler.gencode{
   compPtns([A,..As],Ix,Opts,Succ,Fail,Ctx,Cde,Stk,Rp) => do{
     (NLb,Ctx1) .= defineLbl(Ctx);
     NCont .= jmpCont(NLb);
-    (Ctx2,Cde2,_) <- compPtn(A,Opts,NCont,Fail,Ctx1,[Cde..,iDup,iNth(Ix)],[Stk..,typeOf(A)],Rp);
+    (Ctx2,Cde2,_) <- compPtn(A,Opts,NCont,Fail,Ctx1,[Cde..,.iDup,iNth(Ix)],[Stk..,typeOf(A)],Rp);
     compPtns(As,Ix+1,Opts,Succ,Fail,Ctx2,[Cde2..,iLbl(NLb)],Stk,Rp)
   }
   
@@ -321,20 +321,20 @@ star.compiler.gencode{
   isLiteral(crFlot(_,Dx))=>some((flot(Dx),fltType)).
   isLiteral(crStrg(_,Sx))=>some((strg(Sx),strType)).
   isLiteral(crLbl(_,Nm,Tp))=>some((enum(tLbl(Nm,0)),Tp)).
-  isLiteral(_) default => none.
+  isLiteral(_) default => .none.
 
   -- continuations
 
   ccont:((codeCtx,list[assemOp],cons[tipe],reports)=>either[reports,(codeCtx,list[assemOp],cons[tipe])])=>Cont.
   ccont(C)=>cont{
     C=C.
-    L=none.
+    L=.none.
   }
 
   retCont:()=>Cont.
   retCont() => ccont((Ctx,Cde,Stk,Rp) =>  do{
 --      logMsg("retCont, current stack: $(Stk)");
-      valis (Ctx,[Cde..,iRet],Stk)
+      valis (Ctx,[Cde..,.iRet],Stk)
     })
 
   jmpCont:(assemLbl)=>Cont.
@@ -347,7 +347,7 @@ star.compiler.gencode{
   lblCont(Lb,CC) => cont{
     C(Ctx,Cde,Stk,Rp)=>
       CC.C(Ctx,[Cde..,iLbl(Lb)],Stk,Rp).
-    L=none.
+    L=.none.
   }.
 
   resetCont:(integer,Cont)=>Cont.
@@ -438,7 +438,7 @@ star.compiler.gencode{
   onceCont:(Cont)=>Cont.
   onceCont(C) where Lbl^=C.L => C.
   onceCont(C)=> let{
-    d := none.
+    d := .none.
     cc:Cont.
     cc=ccont((Ctx,Cde,Stk,Rp) => do{
 	if Lbl^=d! then{

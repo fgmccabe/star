@@ -6,17 +6,22 @@ star.compiler.misc{
   genSym(Pre) => _str_gen(Pre).
 
   public genNewName:(string,string) => string.
-  genNewName(Path,Prefix) => qualifiedName(Path,valMark,genSym(Prefix)).
+  genNewName(Path,Prefix) => qualifiedName(Path,.valMark,genSym(Prefix)).
 
-  public markerType ::= typeMark | valMark | conMark | overMark | pkgMark | closMark.
+  public markerType ::= .typeMark |
+    .valMark |
+    .conMark |
+    .overMark |
+    .pkgMark |
+    .closMark.
 
   public markerString:(markerType)=>string.
-  markerString(typeMark)=>"*".
-  markerString(closMark) => "^".
-  markerString(valMark)=>"@".
-  markerString(conMark)=>"#".
-  markerString(overMark)=>"!".
-  markerString(pkgMark) => "#".
+  markerString(.typeMark)=>"*".
+  markerString(.closMark) => "^".
+  markerString(.valMark)=>"@".
+  markerString(.conMark)=>"#".
+  markerString(.overMark)=>"!".
+  markerString(.pkgMark) => "#".
 
   public qualifiedName:(string,markerType,string) => string.
   qualifiedName(_,Mrk,Nm) where Glue.=markerString(Mrk) &&
@@ -29,10 +34,10 @@ star.compiler.misc{
     _sub_str(QNm,Ix+MX,_str_len(QNm)-Ix-MX).
 
   public packageVar:(pkg)=>string.
-  packageVar(pkg(P,_)) => qualifiedName(P,pkgMark,"").
+  packageVar(pkg(P,_)) => qualifiedName(P,.pkgMark,"").
 
   public packageVarName:(string,string)=>string.
-  packageVarName(P,L) => qualifiedName(P,pkgMark,L).
+  packageVarName(P,L) => qualifiedName(P,.pkgMark,L).
 
   public packageName:(pkg)=>string.
   packageName(pkg(P,_))=>P.

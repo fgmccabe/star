@@ -7,7 +7,7 @@ star.result{
   public all a,e ~~ result[e,a] ::=
       _has_value(a)
     | _not_yet(()=>result[e,a])
-    | _no_result
+    | ._no_result
     | _failed(e).
 
 
@@ -29,6 +29,6 @@ star.result{
   }
 
   public implementation all e ~~ monadZero[result[e]] => {
-    zed = _no_result
+    zed = ._no_result
   }
 }

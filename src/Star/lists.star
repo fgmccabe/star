@@ -7,7 +7,7 @@ star.lists{
   public implementation all x ~~ equality[x] |: equality[list[x]] => {.
     L1 == L2 where _list_size(L1)==_list_size(L2) =>
       sameList(L1,L2,0,_list_size(L1)).
-    _ == _ => false.
+    _ == _ => .false.
   .}
 
   public implementation all x ~~ hash[x] |: hash[list[x]] => {
@@ -15,10 +15,10 @@ star.lists{
   }
 
   sameList:all e ~~ equality[e] |: (list[e],list[e],integer,integer)=>boolean.
-  sameList(_,_,X,X) => true.
+  sameList(_,_,X,X) => .true.
   sameList(L1,L2,Ix,X) where
     _list_nth(L1,Ix) == _list_nth(L2,Ix) => sameList(L1,L2,_int_plus(Ix,1),X).
-  sameList(_,_,_,_) => false.
+  sameList(_,_,_,_) => .false.
 
   listHash:all e ~~ hash[e] |: (list[e],integer,integer,integer)=>integer.
   listHash(_,Hx,M,M)=>Hx.
@@ -30,10 +30,10 @@ star.lists{
   public implementation all x ~~ stream[list[x] ->> x] => {
     _eof(X) => _list_empty(X).
     _hdtl(X) where \+_list_empty(X) => some((_list_nth(X,0),_list_back(X,1))).
-    _hdtl(_) => none.
+    _hdtl(_) => .none.
 
     _back(X) where \+_list_empty(X) && Last .=_list_size(X)-1 => some((_list_front(X,Last),_list_nth(X,Last))).
-    _back(_) => none.
+    _back(_) => .none.
   }
 
   public implementation all x ~~ sequence[list[x] ->> x] => {
@@ -81,16 +81,16 @@ star.lists{
   }
 
   public contains:all e~~equality[e] |: (e,list[e]) => boolean.
-  contains(X,[X,.._]) => true.
+  contains(X,[X,.._]) => .true.
   contains(X,[_,..L]) => contains(X,L).
-  contains(_,_) default => false.
+  contains(_,_) default => .false.
 
   public implementation all x ~~ head[list[x]->>x] => {
     head(X) where \+_list_empty(X) => some(_list_nth(X,0)).
-    head(_) => none.
+    head(_) => .none.
 
     tail(X) where \+_list_empty(X) => some(_list_back(X,1)).
-    tail(_) => none.
+    tail(_) => .none.
   }
 
   public subtract:all e ~~ equality[e] |: (e,list[e]) => list[e].
@@ -98,7 +98,7 @@ star.lists{
 
   public indexOf:all e ~~ equality[e] |: (e,list[e]) => option[integer].
   indexOf(El,L) => let{
-    ixOf(Mx,Mx) => none.
+    ixOf(Mx,Mx) => .none.
     ixOf(Ix,Mx) where Ix<Mx =>
       (_list_nth(L,Ix) == El ? some(Ix) ||
 	ixOf(Ix+1,Mx)).

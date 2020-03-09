@@ -7,16 +7,16 @@ test.case{
   strVal:(foo)=>option[string].
   strVal(foo("alpha"))=>some("aleph").
   strVal(foo("beta")) => some("two").
-  strVal(bar(0)) => none.
+  strVal(bar(0)) => .none.
   strVal(foo(X)) => some(X).
 
   sVal:(foo) => option[string].
   sVal(X) => case X in {
     foo("alpha")=>some("aleph").
     foo("beta") => some("two").
-    bar(0) => none.
+    bar(0) => .none.
     foo(U) => some(U).
-    _ default => none.
+    _ default => .none.
   }
 
   main:()=>action[(),()].

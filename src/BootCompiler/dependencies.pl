@@ -92,6 +92,9 @@ algebraicFace(C,F) :-
 algebraicFace(C,E) :-
   isIden(C,Lc,_),
   braceTuple(Lc,[],E).
+algebraicFace(C,E) :-
+  isEnum(C,Lc,_),
+  braceTuple(Lc,[],E).
 algebraicFace(C,Face) :-
   isRoundCon(C,_,_,Lc,_,_,dependencies:nop,_,_),
   braceTuple(Lc,[],Face).
@@ -134,8 +137,19 @@ buildConstructors(C,_,_,_,_,Defs,Defs,Ax,Ax,_,Px,Px) :-
   reportError("invalid constructor: %s",[C],Lc).
 
 buildConstructor(N,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
+  isEnum(N,Lc,En),!,
+  isIden(En,_,Nm),
+  roundTuple(Lc,[],Hd),
+  binary(Lc,"<=>",Hd,Tp,CnTp),
+  reConstrain(Constraints,CnTp,Rl),
+  reUQuant(Quants,Rl,St),
+  call(Export,var(Nm),P,Px).
+buildConstructor(N,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
   isIden(N,Lc,Nm),
-  reConstrain(Constraints,Tp,Rl),
+  reportMsg("use .%s instead of %s when defining enum",[N,N],Lc),
+  roundTuple(Lc,[],Hd),
+  binary(Lc,"<=>",Hd,Tp,CnTp),
+  reConstrain(Constraints,CnTp,Rl),
   reUQuant(Quants,Rl,St),
   call(Export,var(Nm),P,Px).
 buildConstructor(C,Quants,Constraints,_,Tp,(cns(Nm),Lc,[St]),Lx,Lx,[(Nm,St)|Ax],Ax,Export,P,Px) :-
@@ -450,6 +464,11 @@ collectTermRefs(V,A,Refs,[var(Nm)|Refs]) :-
   \+is_member(var(Nm),Refs).
 collectTermRefs(V,A,Refs,[cns(Nm)|Refs]) :-
   isName(V,Nm),
+  is_member(cns(Nm),A),
+  \+is_member(cns(Nm),Refs).
+collectTermRefs(T,A,Refs,[cns(Nm)|Refs]) :-
+  isEnum(T,_,I),
+  isName(I,Nm),
   is_member(cns(Nm),A),
   \+is_member(cns(Nm),Refs).
 collectTermRefs(T,A,R,Rx) :-

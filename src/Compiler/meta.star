@@ -7,40 +7,40 @@ star.compiler.meta{
   import star.compiler.ast.
   import star.compiler.location.
 
-  public visibility ::= priVate | deFault | pUblic | transItive.
+  public visibility ::= .priVate | .deFault | .pUblic | .transItive.
 
   public implementation display[visibility] => {
-    disp(priVate) => ss("private").
-    disp(pUblic) => ss("public").
-    disp(deFault) => ss("default").
-    disp(transItive) => ss("transitive").
+    disp(.priVate) => ss("private").
+    disp(.pUblic) => ss("public").
+    disp(.deFault) => ss("default").
+    disp(.transItive) => ss("transitive").
   }
 
   public implementation comp[visibility] => {
-    priVate < pUblic => true.
-    priVate < transItive => true.
-    priVate < deFault => true.
-    deFault < pUblic => true.
-    deFault < transItive => true.
-    pUblic < transItive => true.
-    _ < _ default => false.
+    .priVate < .pUblic => .true.
+    .priVate < .transItive => .true.
+    .priVate < .deFault => .true.
+    .deFault < .pUblic => .true.
+    .deFault < .transItive => .true.
+    .pUblic < .transItive => .true.
+    _ < _ default => .false.
 
-    priVate >= priVate => true.
-    deFault >= priVate => true.
-    deFault >= deFault => true.
-    pUblic >= priVate => true.
-    pUblic >= deFault => true.
-    pUblic >= pUblic => true.
-    transItive >= _ => true.
-    _ >= _ default => false.
+    .priVate >= .priVate => .true.
+    .deFault >= .priVate => .true.
+    .deFault >= .deFault => .true.
+    .pUblic >= .priVate => .true.
+    .pUblic >= .deFault => .true.
+    .pUblic >= .pUblic => .true.
+    .transItive >= _ => .true.
+    _ >= _ default => .false.
   }
 
   public implementation equality[visibility] => {
-    priVate == priVate => true.
-    deFault == deFault => true.
-    pUblic == pUblic => true.
-    transItive == transItive => true.
-    _ == _ default => false.
+    .priVate == .priVate => .true.
+    .deFault == .deFault => .true.
+    .pUblic == .pUblic => .true.
+    .transItive == .transItive => .true.
+    _ == _ default => .false.
   }
 
   public importSpec ::= pkgImp(locn,visibility,pkg).
@@ -69,7 +69,7 @@ star.compiler.meta{
     eql(varSp(S1),varSp(S2)) => S1==S2.
     eql(implSp(S1),implSp(S2)) => S1==S2.
     eql(conSp(S1),conSp(S2)) => S1==S2.
-    eql(_,_) default => false.
+    eql(_,_) default => .false.
   } in {
     S1 == S2 => eql(S1,S2)
   }

@@ -28,7 +28,8 @@ test.th{
   Th = thunk(()=> valof action {
       logMsg("called Th");
       X := X!+2;
-      valis 34}).
+      valis 34
+    }).
 
   thk[e] ::= dun(e) | delaied(()=>e).
 

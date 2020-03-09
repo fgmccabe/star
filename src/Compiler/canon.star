@@ -238,7 +238,7 @@ star.compiler.canon{
     ssSeq([ss("("),ssSeq(interleave(Els//(El)=>showCanon(El,Sp),ss(","))),ss(")")]).
   showCanon(lambda(_,Rls,Tp),Sp) => ssSeq([ss("("),showRls("λ",Rls,Sp++"  "),ss(")")]).
   showCanon(letExp(_,Defs,Ep),Sp) =>
-    ssSeq([ss("let "),ss("{"),showGroup(Defs,Sp++"  "),ss("}"),ss(" in\n"),ss(Sp),showCanon(Ep,Sp++"  ")]).
+    ssSeq([ss("let "),ss("{\n"),showGroup(Defs,Sp++"  "),ss("}"),ss(" in\n"),ss(Sp),showCanon(Ep,Sp++"  ")]).
   showCanon(record(_,_,Fields,_),Sp) =>
     ssSeq([ss("{."),showFields(Fields,Sp++"  "),ss(".}")]).
   showCanon(update(_,L,R),Sp) => ssSeq([showCanon(L,Sp),ss(" <<- "),showCanon(R,Sp)]).
@@ -266,7 +266,7 @@ star.compiler.canon{
   showRls(Nm,Rls,Sp) => ssSeq(interleave(Rls//(Rl)=>showRl(Nm,Rl,Sp),ss(".\n"))).
 
   showRl:(string,equation,string) => ss.
-  showRl(Nm,eqn(_,Ptn,none,Val),Sp) => ssSeq([
+  showRl(Nm,eqn(_,Ptn,.none,Val),Sp) => ssSeq([
       ss(Nm),showCanon(Ptn,Sp),ss(" => "),showCanon(Val,Sp)]).
   showRl(Nm,eqn(_,Ptn,some(C),Val),Sp) => ssSeq([
       ss(Nm),ss("["),showCanon(Ptn,Sp),ss("] where "),showCanon(C,Sp),ss(" => "),showCanon(Val,Sp)]).
@@ -288,25 +288,25 @@ star.compiler.canon{
   trueEnum(Lc) => enm(Lc,"star.core#true",nomnal("star.core*boolean")).
 
   public isGoal:(canon)=>boolean.
-  isGoal(enm(_,"star.core#true",nomnal("star.core*boolean"))) => true.
-  isGoal(enm(_,"star.core#false",nomnal("star.core*boolean"))) => true.
+  isGoal(enm(_,"star.core#true",nomnal("star.core*boolean"))) => .true.
+  isGoal(enm(_,"star.core#false",nomnal("star.core*boolean"))) => .true.
   isGoal(whr(_,E,_)) => isGoal(E).
-  isGoal(match(_,_,_)) => true.
-  isGoal(serch(_,_,_,_)) => true.
-  isGoal(conj(_,_,_)) => true.
-  isGoal(disj(_,_,_)) => true.
-  isGoal(implies(_,_,_)) => true.
-  isGoal(neg(_,_)) => true.
+  isGoal(match(_,_,_)) => .true.
+  isGoal(serch(_,_,_,_)) => .true.
+  isGoal(conj(_,_,_)) => .true.
+  isGoal(disj(_,_,_)) => .true.
+  isGoal(implies(_,_,_)) => .true.
+  isGoal(neg(_,_)) => .true.
   isGoal(cond(_,_,L,R)) => isGoal(L) && isGoal(R).
-  isGoal(_) default => false.
+  isGoal(_) default => .false.
 
   public isIterableGoal:(canon)=>boolean.
   isIterableGoal(conj(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
   isIterableGoal(disj(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
   isIterableGoal(implies(_,L,R)) => isIterableGoal(L)||isIterableGoal(R).
   isIterableGoal(neg(_,R)) => isIterableGoal(R).
-  isIterableGoal(serch(_,_,_,_)) => true.
-  isIterableGoal(_) default => false.
+  isIterableGoal(serch(_,_,_,_)) => .true.
+  isIterableGoal(_) default => .false.
 
   public pkgImports:(pkgSpec)=>list[importSpec].
   pkgImports(pkgSpec(Pkg,Imports,Face,Cons,Impls,PkgVrs)) => Imports.
@@ -326,13 +326,13 @@ star.compiler.canon{
       (SP,SCond) .= splitPttrn(Pt);
       valis (SP,mergeGl(SCond,some(C)))
     }
-    splitPttrn(Pt) => (Pt,none).
+    splitPttrn(Pt) => (Pt,.none).
 
     splitPttrns(Els) => foldRight(((E,C),(SEls,SCond))=>
-	([SEls..,E],mergeGl(C,SCond)),([],none),Els//splitPttrn).
+	([SEls..,E],mergeGl(C,SCond)),([],.none),Els//splitPttrn).
 
-    mergeGl(none,C) => C.
-    mergeGl(C,none) => C.
+    mergeGl(.none,C) => C.
+    mergeGl(C,.none) => C.
     mergeGl(some(A),some(B)) => some(conj(locOf(A),A,B)).
 
   } in splitPttrn(P).

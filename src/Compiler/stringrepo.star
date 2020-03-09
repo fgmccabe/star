@@ -9,8 +9,8 @@ test.comp.strrepo{
 
   public implementation repo[strRepo] => {
     hasSignature(strRepo(M),pkg(P,_)) where sigEntry(Sig)^=M[P] => some(Sig).
-    hasSignature(_,_) default => none.
-    hasCode(_,_) => none.
+    hasSignature(_,_) default => .none.
+    hasCode(_,_) => .none.
   }
 
   public implementation display[strRepo] => let{

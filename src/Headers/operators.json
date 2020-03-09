@@ -218,11 +218,6 @@
     "desc": "pattern match"
   },
   {
-    "infixOp": "=.",
-    "priorities": [899, 900, 899],
-    "desc": "pattern match"
-  },
-  {
     "infixOp": "^=",
     "priorities": [899, 900, 899],
     "desc": "optional decomposition match"
@@ -433,6 +428,11 @@
     "desc": "object access"
   },
   {
+    "prefixOp": ".",
+    "priorities": [10, 9],
+    "desc": "identify enumerator"
+  },
+  {
     "prefixOp": "#",
     "priorities": [1750, 1749],
     "desc": "Macro statement marker"
@@ -587,13 +587,6 @@
     "right":")",
     "priority" : 2000,
     "desc":"parentheses"
-  },
-  {
-    "bracket": "(..)",
-    "left":"(.",
-    "right":".)",
-    "priority" : 2000,
-    "desc":"hidden parentheses"
   },
   {
     "bracket": "[]",

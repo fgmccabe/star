@@ -8,9 +8,9 @@ test.dl{
   SS : (integer,list[integer]) => action[(),boolean].
   SS(Ix,Lx) => do {
     if Ix in Lx then
-      return true
+      return .true
       else
-      return false
+      return .false
     }
 
 

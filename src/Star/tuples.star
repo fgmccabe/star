@@ -11,7 +11,7 @@ star.tuples{
   }
 
   public implementation equality[()] => {
-    () == () => true.
+    () == () => .true.
   }
 
   public implementation hash[()] => {

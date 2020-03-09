@@ -4,8 +4,8 @@ test.cs {
   all t ~~ person[t] ::= someOne{
     name : t.
     spouse: option[person[t]].
-    spouse default = none.
-    assert spouse=!=none
+    spouse default = .none.
+    assert spouse=!=.none
   }
     
   implementation all t ~~ equality[t] |: equality[person[t]] => {.
@@ -16,13 +16,13 @@ test.cs {
   foo = "".
   
   fp : person[string].
-  fp = someOne{ name = foo. spouse = none. /*assert name == foo*/}
+  fp = someOne{ name = foo. spouse = .none. /*assert name == foo*/}
 
   fper:(string)=>person[string].
-  fper(W) => someOne{name = W. spouse=none}.
+  fper(W) => someOne{name = W. spouse=.none}.
 
   assert fp.name == "".
-  assert fp.spouse == none.
+  assert fp.spouse == .none.
 
   assert fper("fred").name == "fred".
 

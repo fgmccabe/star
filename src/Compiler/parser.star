@@ -32,6 +32,6 @@ star.compiler.parser{
     ( (Toks.=allTokens(initSt(Lc,Txt::list[integer])) &&
       (Trm,Rptx,_) .= astParse(Toks,Rpt)) ?
         (some(Trm),Rptx) ||
-        (none, reportError(Rpt,"Could not successfully parse",Lc))).
+        (.none, reportError(Rpt,"Could not successfully parse",Lc))).
 
 }

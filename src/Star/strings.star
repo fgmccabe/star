@@ -26,8 +26,8 @@ star.strings{
 
   public implementation sizeable[string] => {
     size(S) => _str_len(S).
-    isEmpty("") => true.
-    isEmpty(_) => false.
+    isEmpty("") => .true.
+    isEmpty(_) => .false.
   }
 
   public implementation concat[string] => {
@@ -60,9 +60,9 @@ star.strings{
   public implementation stream[string->>integer] => {.
     _eof(S) => S=="".
     _hdtl(S) default => some(_str_hdtl(S)).
-    _hdtl("") => none.
+    _hdtl("") => .none.
 
-    _back("") => none.
+    _back("") => .none.
     _back(S) => some(_str_back(S)).
   .}
 
@@ -93,7 +93,7 @@ star.strings{
   isHexDigit(0cD) => some(13).
   isHexDigit(0cE) => some(14).
   isHexDigit(0cF) => some(15).
-  isHexDigit(_) default => none.
+  isHexDigit(_) default => .none.
 
   public isSpace:(integer) => boolean.
   isSpace(Ch) => (_isZsChar(Ch) || _isZlChar(Ch) || Ch==0c\n || Ch==0c\t).

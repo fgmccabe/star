@@ -207,9 +207,8 @@ showCanonTerm(dot(_,Rc,Fld,_),Dp,O,Ox) :-
   appStr(".",O1,O2),
   appStr(Fld,O2,Ox).
 showCanonTerm(enm(_,Nm,_),_,O,Ox) :-
-  appStr("'",O,O1),
-  appStr(Nm,O1,O2),
-  appStr("'",O2,Ox).
+  appStr(".",O,O1),
+  appStr(Nm,O1,Ox).
 showCanonTerm(cons(_,Nm,_),_,O,Ox) :-
   appStr("%",O,O1),
   appStr(Nm,O1,Ox).

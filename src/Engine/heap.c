@@ -115,7 +115,7 @@ void validPtr(heapPo H, termPo t) {
 }
 
 void inStackPtr(processPo P, ptrPo o) {
-  assert(o >= (ptrPo) P->stackBase && o < (ptrPo) P->stackLimit);
+  assert(o >= (ptrPo) P->stackBase && o <= (ptrPo) P->stackLimit);
 }
 
 static retCode verifyScanHelper(ptrPo arg, void *c) {

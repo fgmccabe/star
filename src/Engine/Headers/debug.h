@@ -7,24 +7,26 @@
 
 #include "engine.h"
 
-extern termPo getLbl(termPo lbl, int32 arity);
+termPo getLbl(termPo lbl, int32 arity);
 
-extern DebugWaitFor insDebug(processPo p, insWord ins);
-extern DebugWaitFor lineDebug(processPo p, termPo line);
-extern DebugWaitFor enterDebug(processPo p);
+DebugWaitFor insDebug(processPo p, insWord ins);
+DebugWaitFor lineDebug(processPo p, termPo line);
+DebugWaitFor enterDebug(processPo p);
 
-extern retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
+retCode showLoc(ioPo f, void *data, long depth, long precision, logical alt);
 
-extern integer pcCount;     /* How many instructions executed so far? */
-extern void countIns(insWord ins);
-extern void dumpInsCount();
-extern void dumpInsStats();
+integer pcCount;     /* How many instructions executed so far? */
+void countIns(insWord ins);
+void dumpInsCount();
+void dumpInsStats();
 
-extern void stackTrace(processPo p, ioPo out, logical showStack);
-extern void dumpStackTrace(processPo p, ioPo out);
+void stackTrace(processPo p, ioPo out, logical showStack);
+void dumpStackTrace(processPo p, ioPo out);
 
-extern integer displayDepth;
+void showMethodCode(ioPo out, char *name, methodPo mtd);
 
-extern retCode setupDebugChannels();
+integer displayDepth;
+
+retCode setupDebugChannels();
 
 #endif //STAR_DEBUG_H

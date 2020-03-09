@@ -9,9 +9,9 @@ star.range{
   public implementation all a ~~ arith[a],comp[a] |: stream[range[a]->>a] => {.
     _eof(range(F,T,_)) => F>=T.
     _hdtl(range(F,T,S)) where F<T => some((F,range(F+S,T,S))).
-    _hdtl(_) default => none.
+    _hdtl(_) default => .none.
     _back(range(F,T,S)) where F<T => some((range(F,T-S,S),T)).
-    _back(_) default => none.
+    _back(_) default => .none.
   .}
 
   public implementation all a ~~ arith[a],comp[a] |: sequence[range[a]->>a] => {.

@@ -36,35 +36,35 @@ star.compiler.types{
 
   isIdent(tVar(_,K1),tVar(_,K2)) => K1==K2.
   isIdent(tFun(_,A1,K1),tFun(_,A2,K2)) => K1==K2 && A1==A2.
-  isIdent(_,_) default => false.
+  isIdent(_,_) default => .false.
 
   public isUnbound:(tipe) => boolean.
-  isUnbound(tVar(B,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
-  isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || true).
-  isUnbound(_) default => false.
+  isUnbound(tVar(B,_)) => ((T^=B.binding!) ? isUnbound(T) || .true).
+  isUnbound(tFun(B,_,_)) => ((T^=B.binding!) ? isUnbound(T) || .true).
+  isUnbound(_) default => .false.
 
   public isUnboundFVar:(tipe) => option[integer].
-  isUnboundFVar(tVar(B,_)) => ((T^=B.binding!) ? isUnboundFVar(T) || none).
+  isUnboundFVar(tVar(B,_)) => ((T^=B.binding!) ? isUnboundFVar(T) || .none).
   isUnboundFVar(tFun(B,Ar,_)) =>
     ((T^=B.binding!) ? isUnboundFVar(T) || some(Ar)).
-  isUnboundFVar(_) default => none.
+  isUnboundFVar(_) default => .none.
 
   public setBinding:(tipe,tipe) => action[(),()].
   setBinding(tVar(B,_),T) => bnd(B,T).
   setBinding(tFun(B,_,_),T) => bnd(B,T).
 
   bnd:(tv,tipe) => action[(),()].
-  bnd(B,T) where B.binding! == none => do {
+  bnd(B,T) where B.binding! == .none => do {
     B.binding := some(T)
   }
   bnd(_,_) default => done(()).
 
   public resetBinding:(tipe) => action[(),()].
   resetBinding(tVar(B,_)) => do {
-    B.binding := none
+    B.binding := .none
   }
   resetBinding(tFun(B,_,_)) => do{
-    B.binding := none
+    B.binding := .none
   }
 
   public constraintsOf:(tipe) => list[constraint].
@@ -104,10 +104,10 @@ star.compiler.types{
   deRef(Tp) default => Tp.
 
   public newTypeVar:(string) => tipe.
-  newTypeVar(Pre) => tVar(tv{binding := none. constraints := []. },genSym(Pre)).
+  newTypeVar(Pre) => tVar(tv{binding := .none. constraints := []. },genSym(Pre)).
 
   public newTypeFun:(string,integer) => tipe.
-  newTypeFun(Pre,Ax) => tFun(tv{binding := none. constraints := []. },Ax,genSym(Pre)).
+  newTypeFun(Pre,Ax) => tFun(tv{binding := .none. constraints := []. },Ax,genSym(Pre)).
 
   public mkTypeExp:(tipe,list[tipe])=>tipe.
   mkTypeExp(Tp,[]) => Tp.
@@ -128,7 +128,7 @@ star.compiler.types{
   identType(tpFun(N1,A1),tpFun(N2,A2),_) => N1==N2 && A1==A2.
   identType(tpExp(O1,A1),tpExp(O2,A2),Q) =>
     eqType(O1,O2,Q) && eqType(A1,A2,Q).
-  identType(tupleType(E1),tupleType(E2),Q) => identTypes(E1,E2,Q).
+  identType(tupleType(E1),tupleType(E2),Q) where size(E1)==size(E2) => identTypes(E1,E2,Q).
   identType(allType(V1,T1),allType(V2,T2),Q) =>
     eqType(V1,V2,Q) && eqType(T1,T2,Q).
   identType(existType(V1,T1),existType(V2,T2),Q) =>
@@ -143,28 +143,28 @@ star.compiler.types{
     eqType(T1,T2,Q) && identTypes(D1,D2,Q).
   identType(constrainedType(T1,C1),constrainedType(T2,C2),Q) =>
     eqType(T1,T2,Q).
-  identType(_,_,_) default => false.
+  identType(_,_,_) default => .false.
 
-  identTypes([],[],_) => true.
+  identTypes([],[],_) => .true.
   identTypes([E1,..L1],[E2,..L2],Q) =>
     eqType(E1,E2,Q) && identTypes(L1,L2,Q).
 
   identNmTypes(L1,L2,Q) => let{
     sortByNm(LL) => sort(LL,(((N1,_),(N2,_)) => N1<N2)).
-    identPrs([],[]) => true.
+    identPrs([],[]) => .true.
     identPrs([(Nm,E1),..l1],[(Nm,E2),..l2]) =>
       eqType(E1,E2,Q) && identPrs(l1,l2).
-    identPrs(_,_) => false.
+    identPrs(_,_) => .false.
   } in identPrs(sortByNm(L1),sortByNm(L2)).
 
   public implementation equality[constraint] => {.
     typeConstraint(T1) == typeConstraint(T2) => T1==T2.
     fieldConstraint(V1,T1) == fieldConstraint(V2,T2) => V1==V2 && T1==T2.
-    _ == _ default => false.
+    _ == _ default => .false.
   .}
 
   public implementation display[tipe] => {.
-    disp(T) => showType(T,false,10000)
+    disp(T) => showType(T,.false,10000)
   .}
 
   public implementation display[constraint] => {
@@ -176,8 +176,8 @@ star.compiler.types{
 
   shTipe:(tipe,boolean,integer) => ss.
   shTipe(kFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
-  shTipe(tVar(V,Nm),false,Dp) => ssSeq([ss("%"),ss(Nm)]).
-  shTipe(tVar(V,Nm),true,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
+  shTipe(tVar(V,Nm),.false,Dp) => ssSeq([ss("%"),ss(Nm)]).
+  shTipe(tVar(V,Nm),.true,Dp) => ssSeq([showAllConstraints(V.constraints!,Dp),ss("%"),ss(Nm)]).
   shTipe(tFun(_,Ar,Nm),_,_) => ssSeq([ss("%"),ss(Nm),ss("/"),disp(Ar)]).
   shTipe(nomnal(Nm),_,_) => ss(Nm).
   shTipe(tpFun(Nm,Ar),_,_) => ssSeq([ss(Nm),ss("/"),disp(Ar)]).
@@ -240,11 +240,11 @@ star.compiler.types{
   showMoreQuantified(allType(V,T),Sh,Dp) => [ss(","),showBound(V,Dp),..showMoreQuantified(T,Sh,Dp)].
   showMoreQuantified(T,Sh,Dp) => [ss(" ~~ "),showType(T,Sh,Dp)].
 
-  showBound(V,Dp) => showType(V,false,Dp).
+  showBound(V,Dp) => showType(V,.false,Dp).
 
-  showConstraint(typeConstraint(Tp),Dp) => showType(Tp,false,Dp).
+  showConstraint(typeConstraint(Tp),Dp) => showType(Tp,.false,Dp).
   showConstraint(fieldConstraint(Tp,Fc),Dp) =>
-    ssSeq([showType(Tp,false,Dp),ss("<~"),showType(Fc,false,Dp)]).
+    ssSeq([showType(Tp,.false,Dp),ss("<~"),showType(Fc,.false,Dp)]).
 
   -- in general, hashing types is not reliable because of unification
   public implementation hash[tipe] => let {
@@ -333,6 +333,7 @@ star.compiler.types{
 
   public arity:(tipe)=>integer.
   arity(Tp) where (A,_) ^= isFunType(Tp) => arity(A).
+  arity(Tp) where (A,_) ^= isConsType(Tp) => arity(A).
   arity(Tp) where tupleType(A).=deRef(Tp) => size(A).
   arity(_) default => 0.
   
@@ -375,8 +376,19 @@ star.compiler.types{
       tpExp(O,B).=deRef(Tp) &&
       tpExp(O2,A) .= deRef(O) &&
       tpFun("=>",2).=deRef(O2) => some((A,B)).
-  isFunType(_) default => none.
+  isFunType(_) default => .none.
 
+  public isConsType:(tipe) => option[(tipe,tipe)].
+  isConsType(Tp) where
+      tpExp(O,B).=deRef(Tp) &&
+      tpExp(O2,A) .= deRef(O) &&
+      tpFun("<=>",2).=deRef(O2) => some((A,B)).
+  isConsType(_) default => .none.
+
+  public isEnumType:(tipe)=>option[tipe].
+  isEnumType(Tp) where (A,T)^=isConsType(Tp) && deRef(A)==tupleType([]) => some(T).
+  isEnumType(_) default => .none.
+  
   public intType = nomnal("star.core*integer").
   public fltType = nomnal("star.core*float").
   public strType = nomnal("star.core*string").
@@ -410,10 +422,6 @@ star.compiler.types{
   public reConstrainType:(list[constraint],tipe) => tipe.
   reConstrainType([],Tp) => Tp.
   reConstrainType([Q,..Qs],Tp) => constrainedType(reConstrainType(Qs,Tp),Q).
-
-  public isConsType:(tipe)=>option[integer].
-  isConsType(Tp) where tpName(deRef(Tp))=="<=>" => some(arity(Tp)).
-  isConsType(_) default => none.
 
   public isMapType:(tipe)=>boolean.
   isMapType(Tp) => tpName(deRef(Tp))=="map".

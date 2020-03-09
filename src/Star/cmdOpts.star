@@ -27,7 +27,7 @@ star.cmdOpts{
 
   checkOption:all o ~~ (list[string],string,option[(string)=>boolean],(string,o) => o,list[optionsProcessor[o]],o) =>
     either[string,(o,list[string])].
-  checkOption(Args,O,none,setter,Specs,SoFar) => processAll(Args,Specs,setter(O,SoFar)).
+  checkOption(Args,O,.none,setter,Specs,SoFar) => processAll(Args,Specs,setter(O,SoFar)).
   checkOption([A,..Args],O,some(V),Setter,Specs,SoFar)
       where V(A) => processAll(Args,Specs,Setter(A,SoFar)).
   checkOption(_,_,_,_,Specs,_) => other(collectUsage(Specs)).

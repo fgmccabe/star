@@ -8,12 +8,12 @@ star.sort{
   mergeSort:all e ~~ (list[e],(e,e)=>boolean) => list[e].
   mergeSort([],_) => [].
   mergeSort([e],_) => [e].
-  mergeSort(L,P) where split(L) =. (L1,L2) => merge(mergeSort(L1,P),mergeSort(L2,P),P).
+  mergeSort(L,P) where (L1,L2).=split(L) => merge(mergeSort(L1,P),mergeSort(L2,P),P).
 
   split:all e ~~ (list[e])=>(list[e],list[e]).
   split([]) => ([],[]).
   split([e]) => ([],[e]).
-  split([e1,e2,..L]) where split(L) =. (L1,L2) => ([e1,..L1],[e2,..L2]).
+  split([e1,e2,..L]) where (L1,L2) .= split(L) => ([e1,..L1],[e2,..L2]).
 
   merge:all e ~~ (list[e],list[e],(e,e)=>boolean) => list[e].
   merge([],L,_) => L.

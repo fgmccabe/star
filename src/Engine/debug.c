@@ -32,7 +32,7 @@ static void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, fra
 static retCode localVName(methodPo mtd, insPo pc, integer vNo, char *buffer, integer bufLen);
 static void stackSummary(ioPo out, processPo P, ptrPo sp);
 
-static insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
+static insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp);
 
 static sockPo debuggerListener = Null;
 
@@ -121,7 +121,7 @@ static logical shouldWeStop(processPo p, insWord ins, termPo arg) {
     if (debugDebugging) {
       outMsg(logFile, "debug: traceDepth=%d, traceCount=%d, tracing=%s, ins: ", p->traceDepth, p->traceCount,
              (p->tracing ? "yes" : "no"));
-      disass(logFile, p, p->prog, p->pc, p->fp, p->sp);
+      disass(logFile, p->prog, p->pc, p->fp, p->sp);
       outMsg(logFile, "\n%_");
     }
     switch (ins) {
@@ -510,7 +510,7 @@ void showStackCall(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp
     outMsg(out, "%s%,*T", sep, displayDepth, fp->args[ix]);
     sep = ", ";
   }
-  outMsg(out, ")\n");
+  outMsg(out, ")\n%_");
 }
 
 void showStackEntry(ioPo out, integer frameNo, methodPo mtd, insPo pc, framePo fp, ptrPo sp, logical showStack) {
@@ -594,7 +594,7 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, termPo loc, insWord ins
   insPo last = entryPoint(mtd) + insCount(mtd);
 
   for (integer ix = 0; ix < count && pc < last; ix++) {
-    pc = disass(debugOutChnnl, p, mtd, pc, Null, Null);
+    pc = disass(debugOutChnnl, mtd, pc, Null, Null);
     outStr(debugOutChnnl, "\n");
   }
 
@@ -602,6 +602,18 @@ static DebugWaitFor dbgShowCode(char *line, processPo p, termPo loc, insWord ins
   resetDeflt("n");
 
   return moreDebug;
+}
+
+void showMethodCode(ioPo out, char *name, methodPo mtd) {
+  insPo pc = entryPoint(mtd);
+  insPo last = entryPoint(mtd) + insCount(mtd);
+
+  outMsg(out, "code for %s\n", name);
+
+  while (pc < last) {
+    pc = disass(out, mtd, pc, Null, Null);
+    outMsg(out, "\n");
+  }
 }
 
 static DebugWaitFor dbgInsDebug(char *line, processPo p, termPo loc, insWord ins, void *cl) {
@@ -616,6 +628,14 @@ static DebugWaitFor dbgSymbolDebug(char *line, processPo p, termPo loc, insWord 
   insDebugging = False;
   resetDeflt("n");
   return stepInto;
+}
+
+static DebugWaitFor dbgVerifyProcess(char *line, processPo p, termPo loc, insWord ins, void *cl) {
+  lineDebugging = True;
+  insDebugging = False;
+  resetDeflt("n");
+  verifyProc(p, processHeap(p));
+  return moreDebug;
 }
 
 static DebugWaitFor dbgAddBreakPoint(char *line, processPo p, termPo loc, insWord ins, void *cl) {
@@ -694,7 +714,7 @@ static logical shouldWeStopIns(processPo p, insWord ins) {
     if (debugDebugging) {
       outMsg(logFile, "debug: traceDepth=%d, traceCount=%d, tracing=%s, ins: ", p->traceDepth, p->traceCount,
              (p->tracing ? "yes" : "no"));
-      disass(logFile, p, p->prog, p->pc, p->fp, p->sp);
+      disass(logFile, p->prog, p->pc, p->fp, p->sp);
       outMsg(logFile, "\n%_");
     }
     switch (p->waitFor) {
@@ -782,8 +802,9 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
       {.c = '+', .cmd=dbgAddBreakPoint, .usage="+ add break point"},
       {.c = '-', .cmd=dbgClearBreakPoint, .usage="- clear break point"},
       {.c = 'B', .cmd=dbgShowBreakPoints, .usage="show all break points"},
-      {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"}},
-    .count = 19,
+      {.c = 'y', .cmd=dbgSymbolDebug, .usage="y turn on symbolic mode"},
+      {.c = 'v', .cmd=dbgVerifyProcess, .usage="v verify process"}},
+    .count = 20,
     .deflt = Null
   };
 
@@ -795,7 +816,7 @@ DebugWaitFor insDebug(processPo p, insWord ins) {
   logical stopping = shouldWeStopIns(p, ins);
   if (p->tracing || stopping) {
     outMsg(debugOutChnnl, "[%d]: ", pcCount);
-    disass(debugOutChnnl, p, mtd, pc, fp, sp);
+    disass(debugOutChnnl, mtd, pc, fp, sp);
 
     if (stopping) {
       while (interactive) {
@@ -1136,18 +1157,20 @@ void showAllStack(ioPo out, processPo p, methodPo mtd, framePo fp, ptrPo sp) {
   }
 }
 
-void showTopOfStack(ioPo out, processPo p, methodPo mtd, integer cnt, framePo fp, ptrPo sp) {
+void showTopOfStack(ioPo out, methodPo mtd, integer cnt, framePo fp, ptrPo sp) {
   ptrPo stackTop = ((ptrPo) fp) - lclCount(mtd);
   char *sep = "";
+  if (sp != Null) {
+    outMsg(out, " %s%,*T(", sep, displayDepth, *sp++);
 
-  outMsg(out, " %s%,*T(", sep, displayDepth, *sp++);
+    for (integer ix = 1; ix < cnt && sp < stackTop; ix++, sp++) {
+      outMsg(out, "%s%,*T", sep, displayDepth, *sp);
+      sep = ", ";
+    }
 
-  for (integer ix = 1; ix < cnt && sp < stackTop; ix++, sp++) {
-    outMsg(out, "%s%,*T", sep, displayDepth, *sp);
-    sep = ", ";
-  }
-
-  outMsg(out, ")\n%_");
+    outMsg(out, ")\n%_");
+  } else
+    outStr(out, "tos");
 }
 
 void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrPo sp) {
@@ -1159,23 +1182,23 @@ void showStack(ioPo out, processPo p, methodPo mtd, integer vr, framePo fp, ptrP
     outMsg(out, "invalid stack offset: %d", vr);
 }
 
-insPo disass(ioPo out, processPo p, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
+insPo disass(ioPo out, methodPo mtd, insPo pc, framePo fp, ptrPo sp) {
   int32 hi32, lo32;
 
   integer offset = (integer) (pc - entryPoint(mtd));
 
   normalPo lits = codeLits(mtd);
   if (lits != Null)
-    outMsg(out, "0x%x: %,*T(%d) ", pc, displayDepth, nthArg(codeLits(mtd), 0), offset);
+    outMsg(out, "%,*T [%d] ", displayDepth, nthArg(codeLits(mtd), 0),offset);
   else
-    outMsg(out, "0x%x: \?\?(%d) ", pc, offset);
+    outMsg(out, "\?\? [%d] ", offset);
 
   switch (*pc++) {
 #undef instruction
 
 #define show_nOp
 #define show_tOs showTos(out,fp,sp)
-#define show_art showTopOfStack(out,p,mtd,collectI32(pc),fp,sp)
+#define show_art showTopOfStack(out,mtd,collectI32(pc),fp,sp)
 #define show_i32 outMsg(out," #%d",collectI32(pc))
 #define show_arg showArg(out,collectI32(pc),mtd,fp,sp)
 #define show_lcl showLcl(out,collectI32(pc),mtd,fp,sp)

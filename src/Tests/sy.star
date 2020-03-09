@@ -25,7 +25,7 @@ test.sy{
 
   bind(X) where X>0 => valof action{
     logMsg("trying");
-    return true
+    return .true
   }
 
   bind(X) where
@@ -33,9 +33,9 @@ test.sy{
     (MM ^= some(X) ?
 	valof action{
 	  logMsg("trying");
-	  return true
+	  return .true
 	}
-	|| false).
+	|| .false).
   
   foo(X) where
       bind(X) => 1.
@@ -43,9 +43,9 @@ test.sy{
       bind(X) &&
       foo(X-1) > 1 => 2.
   
-  person ::= noone
-    | someone
-    | everyone.
+  person ::= .noone
+    | .someone
+    | .everyone.
 
   o : action[string,integer]. 
   o = return 1.

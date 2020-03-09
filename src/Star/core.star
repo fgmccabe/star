@@ -87,15 +87,15 @@ star.core {
   }
 
   -- Not strictly necessary, but makes for better symmetry.
-  public boolean ::= true | false.
+  public boolean ::= .true | .false.
 
   public implementation display[boolean] => {
-    disp(true) => ss("true").
-    disp(false) => ss("false").
+    disp(.true) => ss("true").
+    disp(.false) => ss("false").
   }
 
   option@"the option type is useful when a value is not always available".
-  public all t ~~ option[t] ::= none | some(t).
+  public all t ~~ option[t] ::= .none | some(t).
 
   public id:all a ~~ (a)=>a.
   id(X)=>X.
@@ -104,8 +104,8 @@ star.core {
   F • G => (x)=>F(G(x)).
 
   sysResult@"used by some escapes to encode a result".
-  public sysResult ::= ok
-	| fail
-	| eof
+  public sysResult ::= .ok
+	| .fail
+	| .eof
 	| error(string).
 }

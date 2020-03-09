@@ -73,7 +73,7 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis varDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),none,RVal)],CTp),[],Tp)
+    valis varDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
   }
 
   overloadImplDef(Dict,Lc,Nm,FullNm,Val,[],Tp,Rp) => do{
@@ -87,7 +87,7 @@ star.compiler.resolve{
     (Qx,Qt) .= deQuant(Tp);
     (_,ITp) .= deConstrain(Qt);
     CTp .= reQuant(Qx,funType(Cx,ITp));
-    valis implDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),none,RVal)],CTp),[],Tp)
+    valis implDef(Lc,Nm,FullNm,lambda(Lc,[eqn(Lc,tple(Lc,Cvrs),.none,RVal)],CTp),[],Tp)
   }
 
   defineCVars:(locn,list[tipe],list[canon],dict) => (list[canon],dict).
@@ -95,22 +95,22 @@ star.compiler.resolve{
   defineCVars(Lc,[T,..Tps],Vrs,D) where TpNm .= implementationName(T) =>
     defineCVars(Lc,Tps,[Vrs..,vr(Lc,TpNm,T)],declareVar(TpNm,TpNm,some(Lc),T,D)).
 
-  resolveState ::= inactive | resolved | active(locn,string).
+  resolveState ::= .inactive | .resolved | active(locn,string).
 
-  markResolved(inactive) => resolved.
+  markResolved(.inactive) => .resolved.
   markResolved(St) default => St.
 
   public resolveTerm(Term,Dict,Rp) => do{
-    (St,RTerm) <- overloadTerm(Term,Dict,inactive,Rp);
-    resolveAgain(inactive,St,RTerm,Dict,Rp)
+    (St,RTerm) <- overloadTerm(Term,Dict,.inactive,Rp);
+    resolveAgain(.inactive,St,RTerm,Dict,Rp)
   }
 
-  resolveAgain(_,resolved,Term,Dict,Rp) => resolveTerm(Term,Dict,Rp).
-  resolveAgain(_,inactive,Term,_,_) => either(Term).
+  resolveAgain(_,.resolved,Term,Dict,Rp) => resolveTerm(Term,Dict,Rp).
+  resolveAgain(_,.inactive,Term,_,_) => either(Term).
   resolveAgain(active(_,_),active(Lc,Msg),_,_,Rp) =>
     other(reportError(Rp,Msg,Lc)).
   resolveAgain(_,active(Lc,Msg),Term,Dict,Rp) => do{
-    (St,RTerm) <- overloadTerm(Term,Dict,inactive,Rp);
+    (St,RTerm) <- overloadTerm(Term,Dict,.inactive,Rp);
     resolveAgain(active(Lc,Msg),St,RTerm,Dict,Rp)
   }
 
@@ -209,10 +209,10 @@ star.compiler.resolve{
   }
 
   overloadRules([],Els,Dict,St,_) => either((St,Els)).
-  overloadRules([eqn(Lc,Ptn,none,Exp),..Ts],Els,Dict,St,Rp) => do{
+  overloadRules([eqn(Lc,Ptn,.none,Exp),..Ts],Els,Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
     (St2,RExp) <- overloadTerm(Exp,Dict,St1,Rp);
-    overloadRules(Ts,[Els..,eqn(Lc,RPtn,none,RExp)],Dict,St2,Rp)
+    overloadRules(Ts,[Els..,eqn(Lc,RPtn,.none,RExp)],Dict,St2,Rp)
   }
   overloadRules([eqn(Lc,Ptn,some(Wh),Exp),..Ts],Els,Dict,St,Rp) => do{
     (St1,RPtn) <- overloadTerm(Ptn,Dict,St,Rp);
@@ -312,7 +312,7 @@ star.compiler.resolve{
 	throw reportError(Rp,"implementation $(ITp) not consistent with $(Tp)",Lc)
       }
     } else{
-      throw reportError(Rp,"cannot find an implementation for $(Tp)",Lc)
+      throw reportError(Rp,"cannot find an implementation for $(Tp) in $(Dict)",Lc)
     }
   }
 }

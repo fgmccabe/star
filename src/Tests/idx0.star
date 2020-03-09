@@ -43,7 +43,7 @@ test.idx0{
   aa0 = zip(letters,0,1,[]).
 
   chek:all e ~~ (list[e],integer,integer,(integer,e)=>boolean)=>boolean.
-  chek(L,Ix,Inc,F) => snd(foldLeft(((I,S),E)=>(I+Inc,S&&F(I,E)),(Ix,true),L)).
+  chek(L,Ix,Inc,F) => snd(foldLeft(((I,S),E)=>(I+Inc,S&&F(I,E)),(Ix,.true),L)).
 
   unzip:all e ~~ (list[e],integer,integer,map[integer,e])=>map[integer,e].
   unzip(L,Ix,Inc,T0) => snd(foldLeft(((I,T),E)=>(I+Inc,T[\+I]),(Ix,T0),L)).
@@ -61,8 +61,8 @@ test.idx0{
     show disp(u1[8]);
     show disp(u1[12]);
 
-    assert u1[5]==none;
-    assert u0[12] == none;
+    assert u1[5]==.none;
+    assert u0[12] == .none;
 
     assert u1[12] == some("d");
 

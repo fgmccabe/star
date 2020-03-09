@@ -90,7 +90,7 @@ star.arith{
   abs(X) default => X.
 
   public implementation display[float] => {
-    disp(X) => ss(_flt2str(X,0,8,0cg,false)).
+    disp(X) => ss(_flt2str(X,0,8,0cg,.false)).
   }
 
   public implementation format[float] => {

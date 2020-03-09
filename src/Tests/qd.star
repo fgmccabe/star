@@ -6,7 +6,7 @@ test.qd{
   
   isName:(ast) => option[(integer,string)].
   isName(nme(L,S)) => some((L,S)).
-  isName(_) default => none.
+  isName(_) default => .none.
   
   filterOut:(list[string],list[ast]) => list[string].
   filterOut([],_) => [].

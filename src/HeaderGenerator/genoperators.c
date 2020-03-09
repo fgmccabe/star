@@ -148,7 +148,7 @@ static void dumpFinal(char *prefix, codePoint last, void *V, void *cl) {
         outMsg(out, "  final('%P%#c',\"%P\").\t /* %s */\n", prefix, last, op->name, op->cmt);
         break;
       case genStar:
-        outMsg(out, "  final(\"%P\") => true.  /* %s */\n", op->name, op->cmt);
+        outMsg(out, "  final(\"%P\") => .true.  /* %s */\n", op->name, op->cmt);
         break;
       case genTexi:
       default:

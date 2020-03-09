@@ -11,7 +11,7 @@ star.coerce{
   }
 
   public implementation coercion[float,string] => {
-    _coerce(Dx) => _flt2str(Dx,0,8,0cg,false)
+    _coerce(Dx) => _flt2str(Dx,0,8,0cg,.false)
   }
 
   public implementation coercion[string,float] => {

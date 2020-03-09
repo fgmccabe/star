@@ -16,7 +16,7 @@ star.compiler.operators{
   isInfixOp(Nm) => pickInfix(oper(Nm)).
 
   pickInfix:(list[operator]) => option[(integer,integer,integer)].
-  pickInfix([]) => none.
+  pickInfix([]) => .none.
   pickInfix([infixOp(Lf,Pr,Rg),.._]) => some((Lf,Pr,Rg)).
   pickInfix([_,..L]) => pickInfix(L).
 
@@ -24,7 +24,7 @@ star.compiler.operators{
   isPrefixOp(Nm) => pickPrefix(oper(Nm)).
 
   pickPrefix:(list[operator]) => option[(integer,integer)].
-  pickPrefix([]) => none.
+  pickPrefix([]) => .none.
   pickPrefix([prefixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPrefix([_,..L]) => pickPrefix(L).
 
@@ -32,7 +32,7 @@ star.compiler.operators{
   isPostfixOp(Nm) => pickPostfix(oper(Nm)).
 
   pickPostfix:(list[operator]) => option[(integer,integer)].
-  pickPostfix([]) => none.
+  pickPostfix([]) => .none.
   pickPostfix([postfixOp(Pr,Rg),.._]) => some((Pr,Rg)).
   pickPostfix([_,..L]) => pickPrefix(L).
 
@@ -40,7 +40,7 @@ star.compiler.operators{
 #(Operators)  oper(_) default => [].
 
   public isBracket:(string) => option[bracket].
-#(Brackets)  isBracket(_) default => none.
+#(Brackets)  isBracket(_) default => .none.
 
   public isLeftBracket:(string) => boolean.
   isLeftBracket(S) => bkt(S,_,_,_) ^= isBracket(S).
@@ -49,8 +49,8 @@ star.compiler.operators{
   isRightBracket(S) => bkt(_,_,S,_) ^= isBracket(S).
 
   public follows:(string,integer) => option[string].
-  #(Follows)  follows(_,_) default => none.
+  #(Follows)  follows(_,_) default => .none.
 
   public final:(string) => boolean.
-#(Final)  final(_) default => false.
+#(Final)  final(_) default => .false.
 }
