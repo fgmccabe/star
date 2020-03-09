@@ -65,9 +65,9 @@ star.compiler{
     WI^=parseUri("file:"++_cwd());
     handleCmds(processOptions(Args,[repoOption,wdOption],compilerOptions{repo=RI.
 	  cwd=WI.
-	  showCanon=false.
-	  showCore=false.
-	  showCode=false}))
+	  showCanon=.false.
+	  showCore=.false.
+	  showCode=.false}))
   }.
 
   openupRepo:(uri,uri) => action[(), termRepo].
@@ -106,9 +106,9 @@ star.compiler{
 
   extractPkgSpec(P) where Lc .= _str_find(P,":",0) && Lc>0 => let{
     Pkg = pkg(P[0:Lc],P[Lc+1:size(P)]::version).
-  } in pkgImp(pkgLoc(Pkg),priVate,Pkg).
+  } in pkgImp(pkgLoc(Pkg),.priVate,Pkg).
   extractPkgSpec(P) default =>
-    pkgImp(pkgLoc(pkg(P,defltVersion)),priVate,pkg(P,defltVersion)).
+    pkgImp(pkgLoc(pkg(P,.defltVersion)),.priVate,pkg(P,.defltVersion)).
 
   addSpec:(pkgSpec,termRepo) => termRepo.
   addSpec(Spec,R) where pkgSpec(Pkg,_,_,_,_,_) .= Spec => addSigToRepo(R,Pkg,(Spec::term)::string).

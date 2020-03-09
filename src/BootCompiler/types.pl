@@ -1,5 +1,6 @@
 :- module(types,
 	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
+	   netEnumType/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
 	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
@@ -40,6 +41,17 @@ isCnType(consType(H,_),A) :- tpArity(H,A).
 isCnType(allType(_,T),A) :- isConType(T,A).
 isCnType(existType(_,T),A) :- isConType(T,A).
 isCnType(constrained(T,_),A) :- isConType(T,A).
+
+netEnumType(T,T1) :-
+  deRef(T,Td),
+  ntEnumType(Td,T1).
+ntEnumType(allType(V,T),allType(V,T1)) :-
+  netEnumType(T,T1).
+ntEnumType(existType(V,T),existType(V,T1)):-
+  netEnumType(T,T1).
+ntEnumType(constrained(T,C),constrained(T1,C)) :-
+  netEnumType(T,T1).
+ntEnumType(consType(_,T),T).
 
 isFaceType(Tp) :- deRef(Tp,T),!,isFcType(T).
 

@@ -115,9 +115,8 @@ showTerm(ctpl(Op,A),Dp,O,Ox) :-
   Dp1 is Dp+2,
   showArgs(A,Dp1,O1,Ox).
 showTerm(enum(Nm),_,O,Ox) :-
-  appStr("'",O,O1),
-  appStr(Nm,O1,O2),
-  appStr("'",O2,Ox).
+  appStr(".",O,O1),
+  appIden(Nm,O1,Ox).
 showTerm(lbl(Nm,Ar),_,O,Ox) :-
   appStr(Nm,O,O1),
   appStr("%",O1,O2),

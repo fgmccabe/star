@@ -37,13 +37,15 @@ declareVr(Lc,Nm,Tp,Face,Env,Ev) :-
 declareMtd(Lc,Nm,Tp,Env,Ev) :-
   declareVar(Nm,vrEntry(Lc,vartypes:mkMtd(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
 declareEnum(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  netEnumType(Tp,ETp),
+  declareVar(Nm,vrEntry(Lc,vartypes:mkEnum(Nm),Tp,vartypes:faceTp(ETp)),Env,Ev).
 declareCns(Lc,Nm,Tp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(Tp)),Env,Ev).
+  netEnumType(Tp,ETp),
+  declareVar(Nm,vrEntry(Lc,vartypes:mkCns(Nm),Tp,vartypes:faceTp(ETp)),Env,Ev).
 
 mkMtd(Nm,Lc,Tp,mtd(Lc,Nm,Tp)).
 mkCns(Nm,Lc,Tp,cons(Lc,Nm,Tp)).
-mkEnum(Nm,Lc,Tp,enm(Lc,Nm,Tp)).
+mkEnum(Nm,Lc,Tp,enm(Lc,Nm,ETp)) :- netEnumType(Tp,ETp).
 
 gtType(Tp,Env,Type) :-
   freshen(Tp,Env,_,Type).
