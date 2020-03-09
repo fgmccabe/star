@@ -53,7 +53,7 @@ star.compiler.dependencies{
   collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) where _ ^= isAnnotation(A) =>
     collectDefs(Ss,Defs,Pb,As,Opn,Rp).
   collectDefs([A,..Ss],Defs,Pb,As,Opn,Rp) => do{
-    (SS1,Dfs1,Pb1,As1,Opn1) <- collectDefinition(A,Ss,Defs,Pb,As,Opn,deFault,Rp);
+    (SS1,Dfs1,Pb1,As1,Opn1) <- collectDefinition(A,Ss,Defs,Pb,As,Opn,.deFault,Rp);
     collectDefs(SS1,Dfs1,Pb1,As1,Opn1,Rp)
   }
     
@@ -69,17 +69,17 @@ star.compiler.dependencies{
 
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       (_,Ai) ^= isPublic(A) =>
-    collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,pUblic,Rp).
+    collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,.pUblic,Rp).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       (_,Ai) ^= isPrivate(A) =>
-    collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,priVate,Rp).
+    collectDefinition(Ai,Stmts,Defs,Pb,As,Opn,.priVate,Rp).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,_,Rp) where
       Spec ^= isOpen(A) => either((Stmts,Defs,Pb,As,[A,..Opn])).
   collectDefinition(A,Stmts,Defs,Pb,As,Opn,Vz,Rp) where
       (Lc,V,T) ^= isTypeAnnotation(A) => do{
 	-- special handling for private; because its priority is low
 	if (_,Vr) ^= isPrivate(V) then{
-	  collectDefinition(typeAnnotation(Lc,Vr,T),Stmts,Defs,Pb,As,Opn,priVate,Rp)
+	  collectDefinition(typeAnnotation(Lc,Vr,T),Stmts,Defs,Pb,As,Opn,.priVate,Rp)
 	} else if(ILc,Id) ^= isName(V) then{
 	  if _ ^= isConstructorType(T) then {
 	    valis (Stmts,[defnSpec(cnsSp(Id),Lc,[T]),..Defs],
@@ -289,6 +289,8 @@ star.compiler.dependencies{
     (varSp(Id) in All ?
 	either(collectName(varSp(Id),All,Rf)) ||
 	either(collectName(cnsSp(Id),All,Rf))).
+  collectTermRefs(T,All,Rf,Rp) where (_,Id) ^= isEnum(T) && (_,Nm) ^= isName(T) =>
+    either(collectName(cnsSp(Nm),All,Rf)).
   collectTermRefs(T,All,Rf,Rp) where (_,Lhs,Rhs) ^= isTypeAnnotation(T) => do{
     Rf1 <- collectTermRefs(Lhs,All,Rf,Rp);
     collectTypeRefs(Rhs,All,Rf1,Rp)
@@ -309,6 +311,10 @@ star.compiler.dependencies{
     Rf1 <- collectTermRefs(L,All,Rf,Rp);
     collectTermRefs(R,All,Rf1,Rp)
   }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isLCons(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
   collectTermRefs(T,All,Rf,Rp) where (_,Bnd,Cond) ^= isComprehension(T) => do{
     Rf1 <- collectTermRefs(Bnd,All,Rf,Rp);
     collectCondRefs(Cond,All,Rf1,Rp)
@@ -321,8 +327,120 @@ star.compiler.dependencies{
     collectStmtsRefs(Sts,All,[],Rf,Rp).
   collectTermRefs(T,All,Rf,Rp) where (_,Sts) ^= isQBrTuple(T) =>
     collectStmtsRefs(Sts,All,[],Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isMatch(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isOptionMatch(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isIndex(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,M,R) ^= isSlice(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    Rf2 <- collectTermRefs(L,All,Rf1,Rp);
+    collectTermRefs(R,All,Rf2,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isCoerce(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTypeRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(A,All,Rf,Rp) where (_,L,R) ^= isConjunct(A) => do{
+    Rf1 <- collectCondRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(A,All,Rf,Rp) where (_,L,R) ^= isDisjunct(A) => do{
+    Rf1 <- collectCondRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(A,All,Rf,Rp) where (_,R) ^= isNegation(A) => 
+    collectCondRefs(R,All,Rf,Rp).
+  collectTermRefs(A,All,Rf,Rp) where (_,T,L,R) ^= isConditional(A) => do{
+    Rf0 <- collectCondRefs(T,All,Rf,Rp);
+    Rf1 <- collectTermRefs(L,All,Rf0,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isEquation(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isWhere(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isOptionPtn(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isDoTerm(T) =>
+    collectDoRefs(L,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isActionTerm(T) =>
+    collectDoRefs(L,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isLazyTerm(T) =>
+    collectDoRefs(L,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isTaskTerm(T) =>
+    collectDoRefs(L,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L) ^= isValof(T) =>
+    collectTermRefs(L,All,Rf,Rp).
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isAbstraction(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectCondRefs(R,All,Rf1,Rp)
+  }
+  collectTermRefs(T,All,Rf,Rp) where (_,L,R) ^= isRecordUpdate(T) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
   collectTermRefs(_,_,Rf,_) default => either(Rf).
 
+  collectDoRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
+  collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isActionSeq(A) => do{
+    Rf1 <- collectDoRefs(L,All,Rf,Rp);
+    collectDoRefs(R,All,Rf1,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isBind(A) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isMatch(A) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isOptionMatch(A) => do{
+    Rf1 <- collectTermRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,R) ^= isValis(A) => 
+    collectTermRefs(R,All,Rf,Rp).
+  collectDoRefs(A,All,Rf,Rp) where (_,R) ^= isThrow(A) => 
+    collectTermRefs(R,All,Rf,Rp).
+  collectDoRefs(A,All,Rf,Rp) where (_,L,R) ^= isTryCatch(A) => do{
+    Rf1 <- collectDoRefs(L,All,Rf,Rp);
+    collectTermRefs(R,All,Rf1,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,T,L,R) ^= isIfThenElse(A) => do{
+    Rf0 <- collectTermRefs(T,All,Rf,Rp);
+    Rf1 <- collectDoRefs(L,All,Rf0,Rp);
+    collectDoRefs(R,All,Rf1,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,T,L) ^= isIfThen(A) => do{
+    Rf0 <- collectCondRefs(T,All,Rf,Rp);
+    collectDoRefs(L,All,Rf,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,T,L) ^= isWhileDo(A) => do{
+    Rf0 <- collectCondRefs(T,All,Rf,Rp);
+    collectDoRefs(L,All,Rf,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,T,L) ^= isForDo(A) => do{
+    Rf0 <- collectCondRefs(T,All,Rf,Rp);
+    collectDoRefs(L,All,Rf,Rp)
+  }
+  collectDoRefs(A,All,Rf,Rp) where (_,[S]) ^= isBrTuple(A) =>
+    collectDoRefs(S,All,Rf,Rp).
+  collectDoRefs(A,All,Rf,Rp) => collectTermRefs(A,All,Rf,Rp).
+  
 
   collectCasesRefs([],_,Rf,_) => either(Rf).
   collectCasesRefs([St,..Sts],All,Rf,Rp) => do{

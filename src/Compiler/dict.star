@@ -27,7 +27,7 @@ star.compiler.dict{
 
   public implementation display[vrEntry] => let{
     dd(vrEntry(some(Lc),Mk,Tp)) => ssSeq([disp(Mk(Lc,Tp)),ss("|-"),disp(Tp)]).
-    dd(vrEntry(none,Mk,Tp)) => disp(Tp).
+    dd(vrEntry(.none,Mk,Tp)) => disp(Tp).
   } in {
     disp(V) => dd(V)
   }
@@ -43,8 +43,15 @@ star.compiler.dict{
   declareVar(Nm,FullNm,Lc,Tp,Dict) =>
     declareVr(Nm,Lc,Tp,(L,T)=>vr(L,FullNm,T),Dict).
 
-  public declareCon:(string,string,option[locn],tipe,dict) => dict.
-  declareCon(Nm,FullNm,Lc,Tp,Env) =>
+  public undeclareVar:(string,dict) => dict.
+  undeclareVar(_,[]) => [].
+  undeclareVar(Nm,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
+    (_ ^= Vrs[Nm] ?
+	[scope(Tps,Vrs[\+Nm],Cns,Imps),..Ev] ||
+	[scope(Tps,Vrs,Cns,Imps),..undeclareVar(Nm,Ev)]).
+
+  public declareConstructor:(string,string,option[locn],tipe,dict) => dict.
+  declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
     declareVr(Nm,Lc,Tp,(L,T)=>enm(L,FullNm,T),Env).
 
   public declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
@@ -52,9 +59,9 @@ star.compiler.dict{
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
 
   public isVar:(string,dict) => option[vrEntry].
-  isVar(Nm,_) where (Tp,_) ^= intrinsic(Nm) => some(vrEntry(none,(L,T)=>vr(L,Nm,T),Tp)).
-  isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(none,(L,T)=>vr(L,Nm,T),Tp)).
-  isVar(Nm,[]) => none.
+  isVar(Nm,_) where (Tp,_) ^= intrinsic(Nm) => some(vrEntry(.none,(L,T)=>vr(L,Nm,T),Tp)).
+  isVar(Nm,_) where Tp ^= escapeType(Nm) => some(vrEntry(.none,(L,T)=>vr(L,Nm,T),Tp)).
+  isVar(Nm,[]) => .none.
   isVar(Nm,[scope(_,Vrs,_,_),.._]) where Entry^=Vrs[Nm] => some(Entry).
   isVar(Nm,[_,..D]) => isVar(Nm,D).
 
@@ -66,7 +73,7 @@ star.compiler.dict{
     [scope(Tps[Nm->tpDefn(Lc,Nm,Tp,TpRl)],Vrs,Cns,Imps),..Rest].
 
   public findType:(dict,string) => option[(option[locn],tipe,tipe)].
-  findType([],Nm) => none.
+  findType([],Nm) => .none.
   findType([scope(Tps,_,_,_),.._],Ky) where tpDefn(Lc,_,Tp,Rl)^=Tps[Ky] => some((Lc,Tp,Rl)).
   findType([_,..Rest],Ky) => findType(Rest,Ky).
 
@@ -100,14 +107,14 @@ star.compiler.dict{
     declareVr(Nm,Lc,Tp,(L,T)=>mtd(L,Nm,T),Dict).
       
   public findContract:(dict,string) => option[tipe].
-  findContract([],Nm) => none.
+  findContract([],Nm) => .none.
   findContract([scope(_,_,Cns,_),.._],Ky) where Con^=Cns[Ky] => some(Con).
   findContract([_,..Rest],Ky) => findContract(Rest,Ky).
 
   public findImplementation:(dict,string) => option[constraint].
   findImplementation([scope(_,_,_,Imps),.._],INm) where Imp ^= Imps[INm] => some(Imp).
   findImplementation([_,..Rest],INm) => findImplementation(Rest,INm).
-  findImplementation([],_) => none.
+  findImplementation([],_) => .none.
 
   public declareImplementation:(string,tipe,dict) => dict.
   declareImplementation(ImplNm,Con,[scope(Tps,Vrs,Cns,Imps),..Env]) =>
@@ -137,7 +144,7 @@ star.compiler.dict{
   public declareTypeVars:(cons[(string,tipe)],dict) => dict.
   declareTypeVars([],Env) => Env.
   declareTypeVars([(Nm,Tp),..Q],Env) =>
-    declareTypeVars(Q,declareType(Nm,none,Tp,Tp,Env)).
+    declareTypeVars(Q,declareType(Nm,.none,Tp,Tp,Env)).
 
   public declareConstraints:(locn,list[constraint],dict) => dict.
   declareConstraints(_,[],E) => E.
@@ -176,11 +183,11 @@ star.compiler.dict{
 -- Standard types are predefined by the language
   public stdDict:dict.
   stdDict =
-    declareType("integer",none,intType,typeExists(intType,emptyFace),
-      declareType("float",none,fltType,typeExists(fltType,emptyFace),
-	declareType("boolean",none,boolType,typeExists(boolType,emptyFace),
-	  declareType("string",none,strType,typeExists(strType,emptyFace),
-	    declareType("list",none,tpFun("star.core*list",1),
+    declareType("integer",.none,intType,typeExists(intType,emptyFace),
+      declareType("float",.none,fltType,typeExists(fltType,emptyFace),
+	declareType("boolean",.none,boolType,typeExists(boolType,emptyFace),
+	  declareType("string",.none,strType,typeExists(strType,emptyFace),
+	    declareType("list",.none,tpFun("star.core*list",1),
 	      allType(nomnal("e"),
 		typeExists(lstType(nomnal("e")),faceType([],[]))),
 	      [scope([],[],[],[])]))))).

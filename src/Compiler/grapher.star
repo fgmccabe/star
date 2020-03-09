@@ -83,7 +83,7 @@ star.compiler.grapher{
     throw reportError(Rp,"not a valid package $(Term)",locOf(Term))
   }
 
-  consistentVersion(defltVersion,_) => true.
-  consistentVersion(_,defltVersion) => true.
+  consistentVersion(.defltVersion,_) => .true.
+  consistentVersion(_,.defltVersion) => .true.
   consistentVersion(vers(V1),vers(V2)) => V1==V2.  
 }

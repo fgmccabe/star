@@ -52,9 +52,9 @@ star.repo.manifest{
   locateInManifest(man(M),pkg(P,V),K) where
     pEntry(_,Vs) ^= M[P] =>
         hasCompatibleVersion(Vs,V,K).
-  locateInManifest(_,_,_) => none.
+  locateInManifest(_,_,_) => .none.
 
-  hasCompatibleVersion([],_,_) => none.
+  hasCompatibleVersion([],_,_) => .none.
   hasCompatibleVersion([(Vr,mInfo(_,I)),.._],Vq,K) where
     compatibleVersion(Vr,Vq) => I[K].
   hasCompatibleVersion([_,..Vs],Vq,K) => hasCompatibleVersion(Vs,Vq,K).

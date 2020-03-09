@@ -42,6 +42,7 @@ int getOptions(int argc, char **argv) {
   return optind;
 }
 
+static char *dot(opAndSpec A);
 static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
 static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A1, int delta, char *cmt);
 static void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt);
@@ -268,10 +269,20 @@ static void genPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) 
   genPrologCode(out, op, A1);
 }
 
+char *dot(opAndSpec A) {
+  switch (A) {
+    case nOp:
+    case tOs:
+      return ".";
+    default:
+      return "";
+  }
+}
+
 static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, char *cmt) {
   char *sep = "(";
 
-  outMsg(out, "  mnem([i%s", mnem);
+  outMsg(out, "  mnem([%si%s", dot(A), mnem);
 
   sep = genArg(out, sep, A);
 
@@ -312,7 +323,8 @@ static void genStarIns(ioPo out, char *mnem, int op, opAndSpec A, int delta, cha
       outMsg(out, "=> mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),strg(V)]).\n", op);
       break;
     case off:                            // program counter relative offset
-      outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),intgr(Tgt-Pc-3)]).\n", op);
+      outMsg(out, "where Tgt ^= Lbls[V] => mnem(Ins,Lbls,Lts,Lns,Lcs,Pc+3,MxLcl,[Code..,intgr(%d),intgr(Tgt-Pc-3)]).\n",
+             op);
       break;
     default:
       outMsg(out, "Unknown instruction type code\n");
@@ -372,7 +384,7 @@ void prologPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
 }
 
 void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
-  outMsg(out, "  genLblTbl([i%s", mnem);
+  outMsg(out, "  genLblTbl([%si%s", dot(A1), mnem);
 
   switch (A1) {
     case nOp:                             // No operand
@@ -421,7 +433,7 @@ void starPc(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
 }
 
 void insOp(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
-  outMsg(out, "    i%s", mnem);
+  outMsg(out, "    %si%s", dot(A1), mnem);
   switch (A1) {
     case nOp:                             // No operand
     case tOs:
@@ -550,7 +562,7 @@ static void showPrologIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt)
 }
 
 static void showStarIns(ioPo out, char *mnem, int op, opAndSpec A1, char *cmt) {
-  outMsg(out, "  showMnem([i%s", mnem);
+  outMsg(out, "  showMnem([%si%s", dot(A1), mnem);
 
   switch (A1) {
     case nOp:                             // No operand

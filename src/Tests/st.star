@@ -4,7 +4,7 @@ test.st{
 
   hs:(string) => option[integer].
   hs([H,..T]) => some(H).
-  hs(_) default => none.
+  hs(_) default => .none.
 
   main:() => action[(),()].
   main() => do{

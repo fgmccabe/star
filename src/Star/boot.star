@@ -69,7 +69,7 @@ star.boot{
   importPkg(P,R,Ld) where
     Code ^= R.hasCode(P) &&
     Imps .= _install_pkg(Code) => some(Imps//(((Pk,V))=>pkg(Pk,V::version))).
-  importPkg(_,_,_) default => none.
+  importPkg(_,_,_) default => .none.
 
   initialize:(pkg) => action[string,()].
   initialize(pkg(P,_)) => do{

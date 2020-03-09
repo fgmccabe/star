@@ -32,7 +32,7 @@ test.j{
     show disp("{\"alpha\":1,\"beta\":[2,null]}"::json);
 
     assert "{\"alpha\":1,\"beta\":[2,null]}"::json ==
-      jColl(["alpha"->jNum(1.0),"beta"->jSeq([jNum(2.0),jNull])]);
+      jColl(["alpha"->jNum(1.0),"beta"->jSeq([jNum(2.0),.jNull])]);
 
     str .= """
   {

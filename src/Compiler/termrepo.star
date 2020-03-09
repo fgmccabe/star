@@ -24,7 +24,7 @@ star.compiler.term.repo{
 	U ^= locateInManifest(Man,Pkg,"code") &&
 	Uri ^= parseUri(U) &&
 	RU ^= resolveUri(Root,Uri)  => getResource(RU).
-    hasCode(_,_) default => none.
+    hasCode(_,_) default => .none.
   }
 
   flushRepo:(termRepo)=>termRepo.
@@ -64,11 +64,11 @@ star.compiler.term.repo{
     resourcePresent(CodeFile) &&
     resourcePresent(SrcFile) &&
         newerFile(CodeFile,SrcFile).
-  packageCodeOk(_,_) default => false.
+  packageCodeOk(_,_) default => .false.
 
   public pkgOk:(termRepo,pkg)=>boolean.
   pkgOk(Repo,Pkg) => (SrcUri,CodeUri) ^= packageCode(Repo,Pkg) ?
-    newerFile(CodeUri,SrcUri) || false.
+    newerFile(CodeUri,SrcUri) || .false.
 
   public packageCode:(termRepo,pkg) => option[(uri,uri)].
   packageCode(repo(Root,Man),Pkg) where
@@ -78,7 +78,7 @@ star.compiler.term.repo{
       CodeFile ^= resolveUri(Root,CU) &&
       SU ^= parseUri(S) &&
       SrcFile ^= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
-  packageCode(_,_) default => none.
+  packageCode(_,_) default => .none.
     
   public addPackage:(termRepo,pkg,string) => termRepo.
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
@@ -133,5 +133,5 @@ star.compiler.term.repo{
   readManifest(Url) where
       Txt ^= getResource(Url) &&
       J.=Txt::term => some(J::manifest).
-  readManifest(_) default => none.
+  readManifest(_) default => .none.
 }

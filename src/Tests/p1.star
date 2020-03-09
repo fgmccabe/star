@@ -20,8 +20,8 @@ test.p1{
   listMem(E,L) => _is_member(E,L,0,_list_size(L)).
 
   _is_member:all e ~~ equality[e] |: (e,list[e],integer,integer) => boolean.
-  _is_member(_,_,Ix,Ix) => false.
-  _is_member(E,L,Ix,_) where _list_nth(L,Ix)==E => true.
+  _is_member(_,_,Ix,Ix) => .false.
+  _is_member(E,L,Ix,_) where _list_nth(L,Ix)==E => .true.
   _is_member(E,L,Ix,Lx) => _is_member(E,L,Ix+1,Lx).
 
   symb:(string)=>parser[list[integer],()].

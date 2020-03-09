@@ -17,11 +17,11 @@ test.qi{
 
   parentOf:(string)=>option[string].
   parentOf(X) where (P,X) in parent => some(P).
-  parentOf(_) default => none.
+  parentOf(_) default => .none.
 
   gparentOf:(string)=>option[string].
   gparentOf(X) where (P,X) in parent && (G,P) in parent  => some(G).
-  gparentOf(_) default => none.
+  gparentOf(_) default => .none.
 
   main:() => action[(),()].
   main() => do{

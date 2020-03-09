@@ -2,7 +2,7 @@ test.ralist{
   import star.
 
   tree[e] ::= leaf(e) | node(integer,tree[e],tree[e]).
-  digit[e] ::= zer | one(tree[e]).
+  digit[e] ::= .zer | one(tree[e]).
 
   public all e ~~ ra[e] ::= ra(cons[digit[e]]).
 
@@ -10,26 +10,26 @@ test.ralist{
   link(t1,t2) => node(size(t1)+size(t2),t1,t2).
 
   consTree:all e ~~ (tree[e],cons[digit[e]])=>cons[digit[e]].
-  consTree(e,nil) => cons(one(e),nil).
-  consTree(e,cons(zer,ts)) => cons(one(e),ts).
-  consTree(e,cons(one(t1),ts)) => cons(zer,consTree(link(e,t1),ts)).
+  consTree(e,.nil) => cons(one(e),.nil).
+  consTree(e,cons(.zer,ts)) => cons(one(e),ts).
+  consTree(e,cons(one(t1),ts)) => cons(.zer,consTree(link(e,t1),ts)).
 
   unconsTree:all e ~~ (cons[digit[e]]) => option[(tree[e],cons[digit[e]])].
-  unconsTree(nil) => none.
-  unconsTree(cons(one(t),nil)) => some((t,nil)).
-  unconsTree(cons(one(t),ts)) => some((t,cons(zer,ts))).
-  unconsTree(cons(zer,ts)) where (node(_,t1,t2),ts1) ^= unconsTree(ts) =>
+  unconsTree(.nil) => .none.
+  unconsTree(cons(one(t),.nil)) => some((t,.nil)).
+  unconsTree(cons(one(t),ts)) => some((t,cons(.zer,ts))).
+  unconsTree(cons(.zer,ts)) where (node(_,t1,t2),ts1) ^= unconsTree(ts) =>
     some((t1,cons(one(t2),ts1))).
 
   lookupTree:all e ~~ (integer,tree[e]) => option[e].
   lookupTree(0,leaf(X)) => some(X).
-  lookupTree(Ix,leaf(_)) => none.
+  lookupTree(Ix,leaf(_)) => .none.
   lookupTree(Ix,node(W,t1,t2)) where Ix<W/2 => lookupTree(Ix,t1).
   lookupTree(Ix,node(W,t1,t2)) => lookupTree(Ix-W/2,t2).
 
   lookup:all e ~~ (integer,cons[digit[e]]) => option[e].
-  lookup(_,nil) => none.
-  lookup(Ix,cons(zer,ts)) => lookup(Ix,ts).
+  lookup(_,.nil) => .none.
+  lookup(Ix,cons(.zer,ts)) => lookup(Ix,ts).
   lookup(Ix,cons(one(t),ts)) where sz.=size(t) =>
     (Ix<sz ?
 	lookupTree(Ix,t) ||
@@ -43,27 +43,27 @@ test.ralist{
 	node(w,t1,updateTree(Ix-w2,x,t2))).
 
   update:all e ~~ (integer,e,cons[digit[e]]) => cons[digit[e]].
-  update(0,x,nil) => cons(one(leaf(x)),nil).
-  update(Ix,x,cons(zer,ts)) => cons(zer,update(Ix,x,ts)).
+  update(0,x,.nil) => cons(one(leaf(x)),.nil).
+  update(Ix,x,cons(.zer,ts)) => cons(.zer,update(Ix,x,ts)).
   update(Ix,x,cons(one(t1),ts)) where sz.=size(t1) =>
     (Ix<sz ?
 	cons(one(updateTree(Ix,x,t1)),ts) ||
 	cons(one(t1),update(Ix-sz,x,ts))).
 
   removeFromTree:all e ~~ (integer,tree[e])=>digit[e].
-  removeFromTree(0,leaf(_)) => zer.
+  removeFromTree(0,leaf(_)) => .zer.
   removeFromTree(Ix,node(w,t1,t2)) where w2.=w/2 =>
     (Ix<w2 ?
 	unwrapDigit(w,removeFromTree(Ix,t1),one(t2)) ||
 	unwrapDigit(w,one(t1),removeFromTree(Ix-w2,t2))).
 
-  unwrapDigit(w,zer,t) => t.
-  unwrapDigit(w,t,zer) => t.
+  unwrapDigit(w,.zer,t) => t.
+  unwrapDigit(w,t,.zer) => t.
   unwrapDigit(w,one(l),one(r)) => one(node(w,l,r)).
 
   remove:all e ~~ (integer,cons[digit[e]]) => cons[digit[e]].
-  remove(0,nil) => nil.
-  remove(Ix,cons(zer,ts)) => cons(zer,remove(Ix,ts)).
+  remove(0,.nil) => .nil.
+  remove(Ix,cons(.zer,ts)) => cons(.zer,remove(Ix,ts)).
   remove(Ix,cons(one(t1),ts)) where sz.=size(t1) =>
     (Ix<sz ?
 	cons(removeFromTree(Ix,t1),ts) ||
@@ -77,17 +77,17 @@ test.ralist{
   .}
 
   foldDLeft:all e,x ~~ ((x,e)=>x,x,cons[digit[e]]) => x.
-  foldDLeft(_,X,nil) => X.
+  foldDLeft(_,X,.nil) => X.
   foldDLeft(F,X,cons(one(T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
-  foldDLeft(F,X,cons(zer,R)) => foldDLeft(F,X,R).
+  foldDLeft(F,X,cons(.zer,R)) => foldDLeft(F,X,R).
 
   foldTLeft:all e,x ~~ ((x,e)=>x,x,tree[e]) => x.
   foldTLeft(F,X,leaf(E)) => F(X,E).
   foldTLeft(F,X,node(W,L,R)) => foldTLeft(F,foldTLeft(F,X,L),R).
 
   foldDRight:all e,x ~~ ((e,x)=>x,x,cons[digit[e]])=>x.
-  foldDRight(_,X,nil) => X.
-  foldDRight(F,X,cons(zer,R)) => foldDRight(F,X,R).
+  foldDRight(_,X,.nil) => X.
+  foldDRight(F,X,cons(.zer,R)) => foldDRight(F,X,R).
   foldDRight(F,X,cons(one(T),R)) => foldTRight(F,foldDRight(F,X,R),T).
 
   foldTRight:all e,x ~~ ((e,x)=>x,x,tree[e])=>x.
@@ -98,21 +98,21 @@ test.ralist{
     size(leaf(_)) => 1.
     size(node(w,_,_)) => w.
 
-    isEmpty(leaf(_))=>true.
-    isEmpty(node(_,_,_))=>false.
+    isEmpty(leaf(_))=>.true.
+    isEmpty(node(_,_,_))=>.false.
   .}
 
   public implementation all e ~~ sequence[ra[e]->>e] => {.
-    _nil = ra(nil).
+    _nil = ra(.nil).
     _cons(E,ra(L)) => ra(consTree(leaf(E),L)).
     _apnd(ra(L),E) => ra(consTree(leaf(E),L)).
   .}
 
   public implementation all e ~~ head[ra[e]->>e] => {.
-    head(ra(nil)) => none.
+    head(ra(.nil)) => .none.
     head(ra(ts)) where (leaf(h),_) ^= unconsTree(ts) => some(h).
 
-    tail(ra(nil)) => none.
+    tail(ra(.nil)) => .none.
     tail(ra(ts)) where (_,tl) ^= unconsTree(ts) => some(ra(tl)).
   .}
 
@@ -123,7 +123,7 @@ test.ralist{
 
     _remove(ra(ts),Ix) => ra(remove(Ix,ts)).
 
-    _empty = ra(nil).
+    _empty = ra(.nil).
   .}
 
   public implementation all e ~~ reversible[ra[e]] => {.
@@ -144,8 +144,8 @@ test.ralist{
   public implementation all e ~~ display[e] |: dump[ra[e]] => {
     dump(ra(ts)) => ssPr(ss("ra["),ssPr(dumpList(ts),ss("]"))).
 
-    dumpList(nil) => ss("").
-    dumpList(cons(zer,ts)) => ssPr(ss("."),dumpList(ts)).
+    dumpList(.nil) => ss("").
+    dumpList(cons(.zer,ts)) => ssPr(ss("."),dumpList(ts)).
     dumpList(cons(one(t),ts)) => ssPr(dumpTree(t),dumpList(ts)).
 
     dumpTree(leaf(x)) => disp(x).
@@ -157,8 +157,8 @@ test.ralist{
 
   public implementation all e ~~ display[e] |: display[ra[e]] => let{
     dispList:(cons[digit[e]])=>ss.
-    dispList(nil) => ss("").
-    dispList(cons(zer,ts))=>dispList(ts).
+    dispList(.nil) => ss("").
+    dispList(cons(.zer,ts))=>dispList(ts).
     dispList(cons(one(t),ts)) =>
       ssPr(dispTree(t),
 	dispList(ts)).

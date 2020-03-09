@@ -7,7 +7,7 @@ star.file{
   public
   getFile:(string) => option[string].
   getFile(Fn) where _file_present(Fn) => some(_get_file(Fn)).
-  getFile(_) default => none.
+  getFile(_) default => .none.
 
   public
   putFile:(string,string)=>().

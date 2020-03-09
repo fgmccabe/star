@@ -8,5 +8,5 @@ star.compiler.intrinsics{
 
   public intrinsic:(string) => option[(tipe,assemOp)].
 #(Intrinsics)
-  intrinsic(_) default => none.
+  intrinsic(_) default => .none.
 }

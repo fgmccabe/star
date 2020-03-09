@@ -275,18 +275,18 @@ star.compiler.typeparse{
 
   parseTypeHead:(tipes,ast,dict,string,reports) => either[reports,tipe].
   parseTypeHead(Q,Tp,Env,Path,Rp) where (Lc,Nm) ^= isName(Tp) => 
-    either(nomnal(qualifiedName(Path,typeMark,Nm))).
+    either(nomnal(qualifiedName(Path,.typeMark,Nm))).
   parseTypeHead(Q,Tp,Env,Path,Rp) where
       (Lc,O,Args) ^= isSquareTerm(Tp) && (_,Nm) ^= isName(O) => do{
 	if [A].=Args && (_,Lhs,Rhs)^=isBinary(A,"->>") then{
 	  ArgTps <- parseHeadArgs(Q,deComma(Lhs),[],Env,Rp);
 	  DepTps <- parseHeadArgs(Q,deComma(Rhs),[],Env,Rp);
-	  Inn <- doTypeFun(tpFun(qualifiedName(Path,typeMark,Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
+	  Inn <- doTypeFun(tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
 	  valis funDeps(Inn,DepTps)
 	}
 	else{
 	  ArgTps <- parseHeadArgs(Q,Args,[],Env,Rp);
-	  Inn <- doTypeFun(tpFun(qualifiedName(Path,typeMark,Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
+	  Inn <- doTypeFun(tpFun(qualifiedName(Path,.typeMark,Nm),size(ArgTps)),ArgTps,locOf(O),Env,Rp);
 	  valis Inn
 	}
       }.
@@ -300,9 +300,10 @@ star.compiler.typeparse{
   public parseConstructor(Nm,St,Env,Path,Rp) => do{
     Tp <- parseType([],St,Env,Rp);
     Lc .= locOf(St);
-    FullNm .= qualifiedName(Path,conMark,Nm);
+    FullNm .= qualifiedName(Path,.conMark,Nm);
+--    logMsg("declaring $(Nm) as $(FullNm)\:$(Tp)");
     valis (cnsDef(Lc,Nm,FullNm,Tp),
-      declareCon(Nm,FullNm,some(Lc),Tp,Env))
+      declareConstructor(Nm,FullNm,some(Lc),Tp,Env))
   }
 
   public parseContract:(ast,dict,string,reports) => either[reports,tipe].

@@ -1,4 +1,4 @@
-:- module(macro,[mkWhere/3,mkWherePtn/4,mkWhereEquality/2,
+:- module(macro,[mkWhere/3,mkWherePtn/4,mkWhereEquality/3,
     hasPromotion/1,promoteOption/2,build_main/2]).
 
 :- use_module(abstract).
@@ -11,12 +11,12 @@ mkWherePtn(Lc,Ptn,Ex,Ptrn) :-
   genIden(Lc,V), % create a new variable
   nary(Lc,Ex,[V],Cl), % call pattern generator
   unary(Lc,"some",Ptn,Lhs),
-  binary(Lc,"=.",Cl,Lhs,Test), % Ex(V)=.some(Ptn)
+  binary(Lc,".=",Lhs,Cl,Test), % Ex(V)=.some(Ptn)
   binary(Lc,"where",V,Test,Ptrn).
 
-mkWhereEquality(name(Lc,V),Ptrn) :-
+mkWhereEquality(Lc,name(ILc,V),Ptrn) :-
   genIden(Lc,V,VV),
-  binary(Lc,"==",VV,name(Lc,V),Test),
+  binary(Lc,"==",VV,name(ILc,V),Test),
   binary(Lc,"where",VV,Test,Ptrn).
 
 mkWhere(Lc,Fn,Ptrn) :-
@@ -36,7 +36,7 @@ promoteOption(Term,T1) :-
   promoteArgs(Els,NEls,V,XV),
   roundTerm(Lc,Op,NEls,Rs),
   roundTuple(Lc,[V],LA),
-  eqn(Lc,LA,name(Lc,"true"),Rs,Lm),
+  eqn(Lc,LA,Rs,Lm),
   binary(Lc,">>=",XV,Lm,T1).
 
 promoteArgs([],[],_,_) :- !.
@@ -65,7 +65,7 @@ synthesize_main(Lc,Ts,As,[MainTp,Main|As]) :-
   roundTerm(Lc,name(Lc,"_main"),[Arg],Lhs),
   roundTerm(Lc,name(Lc,"main"),Cs,Rhs),
   unary(Lc,"valof",Rhs,MnCall),
-  eqn(Lc,Lhs,name(Lc,"true"),MnCall,Main),
+  eqn(Lc,Lhs,MnCall,Main),
   squareTerm(Lc,name(Lc,"list"),[name(Lc,"string")],T1),
   roundTuple(Lc,[T1],T3),
   roundTuple(Lc,[],Unit),

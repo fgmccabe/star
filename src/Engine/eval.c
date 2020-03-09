@@ -54,6 +54,11 @@ retCode run(processPo P) {
 
   register uint32 hi32, lo32;    /* Temporary registers */
 
+#ifdef TRACEMEM
+  if (traceMemory)
+    verifyProc(P, H);
+#endif
+
   for (;;) {
 #ifdef TRACEEXEC
     pcCount++;        /* increment total number of executed */

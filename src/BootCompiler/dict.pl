@@ -1,6 +1,6 @@
 :- module(dict,[declareType/4,isType/3,
 		declareTypeVars/4,isTypeVar/3,
-		declareVar/4,declareEnum/6,
+		declareVar/4,
 		mkVr/4,isVar/3,currentVar/3,restoreVar/4,
 		declareContract/4,getContract/3,
 		declareImplementation/5,getImplementations/3,
@@ -44,9 +44,6 @@ declareVar(Nm,Vr,[scope(Types,Names,Cns,Impls,Contracts)|Outer],[scope(Types,Nam
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp,dict:noFace)) :- isIntrinsic(Nm,Tp,_),!.
 isVar(Nm,_,vrEntry(std,dict:mkVr(Nm),Tp,dict:noFace)) :- escapeType(Nm,Tp),!.
 isVar(Nm,Env,Vr) :- makeKey(Nm,Key), isVr(Key,Env,Vr).
-
-declareEnum(Lc,Nm,Tp,FcTp,Env,Ev) :-
-  declareVar(Nm,vrEntry(Lc,dict:mkEnum(Nm),Tp,FcTp),Env,Ev).
 
 mkEnum(Nm,Lc,Tp,enm(Lc,Nm,Tp)).
 

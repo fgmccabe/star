@@ -115,7 +115,7 @@ star.collection{
   public implementation all e ~~ search[list[e]->>e] => {
     search(L,F) => searchList(L,F).
 
-    searchList([],_) => none.
+    searchList([],_) => .none.
     searchList([E,..L],F) where F(E) => some(E).
     searchList([_,..L],F) => searchList(L,F).
   }
@@ -140,7 +140,7 @@ star.collection{
 
   public implementation all e ~~ indexed[list[e] ->> integer,e] => {
     _index(L,ix) where ix>=0 && ix<_list_size(L) => some(_list_nth(L,ix)).
-    _index(_,_) default => none.
+    _index(_,_) default => .none.
 
     _put(L,ix,v) => _list_replace(L,ix,v).
 

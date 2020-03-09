@@ -11,7 +11,7 @@ star.finger{
   -- 2-3 finger trees.
 
   public all a ~~ fingerTree[a] ::=
-    private eTree |
+    private .eTree |
     private single(a) |
     private deep(digit[a],fingerTree[node[a]],digit[a]).
 
@@ -76,7 +76,7 @@ star.finger{
 
   reducerTree:all a,e ~~ ((e,a)=>a) => ((fingerTree[e],a)=>a).
   reducerTree(F) => let{
-    rdr(eTree,z) => z.
+    rdr(.eTree,z) => z.
     rdr(single(u),z) => F(u,z).
     rdr(deep(lft,mid,rgt),z) => let{
       F1 = reducerDigits(F).
@@ -86,7 +86,7 @@ star.finger{
 
   reducelTree:all e,a ~~ ((a,e)=>a) => (a,fingerTree[e])=>a.
   reducelTree(F) => let{
-    rdl(z,eTree) => z.
+    rdl(z,.eTree) => z.
     rdl(z,single(u)) => F(z,u).
     rdl(z,deep(lft,mid,rgt)) => let{
       F1 = reducelDigits(F).
@@ -110,21 +110,21 @@ star.finger{
     head(three(x,_,_)) => some(x).
     head(four(x,_,_,_)) => some(x).
 
-    tail(one(_)) => none.
+    tail(one(_)) => .none.
     tail(two(_,x)) => some(one(x)).
     tail(three(_,y,z)) => some(two(y,z)).
     tail(four(_,x,y,z)) => some(three(x,y,z)).
   }
 
   prepend:all e ~~ (e,fingerTree[e]) => fingerTree[e].
-  prepend(a,eTree) => single(a).
-  prepend(a,single(b)) => deep(one(a),eTree,one(b)).
+  prepend(a,.eTree) => single(a).
+  prepend(a,single(b)) => deep(one(a),.eTree,one(b)).
   prepend(a,deep(four(x,y,z,u),mid,r)) => deep(two(a,x),prepend(node3(y,z,u),mid),r).
   prepend(a,deep(l,mid,r)) => deep(one(a)++l,mid,r).
 
   append:all e ~~ (fingerTree[e],e) => fingerTree[e].
-  append(eTree,x) => single(x).
-  append(single(a),x) => deep(one(a),eTree,one(x)).
+  append(.eTree,x) => single(x).
+  append(single(a),x) => deep(one(a),.eTree,one(x)).
   append(deep(l,mid,four(a,b,c,d)),x) => deep(l,append(mid,node3(a,b,c)),two(d,x)).
   append(deep(l,mid,r),x) => deep(l,mid,r++one(x)).
 
@@ -135,8 +135,8 @@ star.finger{
   liftAppend = reducel(append).
 
   app3:all a ~~ (fingerTree[a],list[a],fingerTree[a]) => fingerTree[a].
-  app3(eTree,ts,xs) => liftPrepend(ts,xs).
-  app3(xs,ts,eTree) => liftAppend(xs,ts).
+  app3(.eTree,ts,xs) => liftPrepend(ts,xs).
+  app3(xs,ts,.eTree) => liftAppend(xs,ts).
   app3(single(x),ts,xs) => prepend(x,liftPrepend(ts,xs)).
   app3(xs,ts,single(x)) => append(liftAppend(xs,ts),x).
   app3(deep(pr1,m1,sf1),ts,deep(pr2,m2,sf2)) =>
@@ -155,7 +155,7 @@ star.finger{
   public implementation all e ~~ sequence[fingerTree[e]->>e] => {
     _cons(e,t) => prepend(e,t).
     _apnd(t,e) => append(t,e).
-    _nil = eTree.
+    _nil = .eTree.
   }
 
   -- Implement iter contract
@@ -166,7 +166,7 @@ star.finger{
 
     iterOverFinger:all x,m/2,er ~~ execution[m] |:
       (fingerTree[e],m[er,x],(e,x)=>m[er,x]) => m[er,x].
-    iterOverFinger(eTree,St,_) => St.
+    iterOverFinger(.eTree,St,_) => St.
     iterOverFinger(Tr,St,Fn) where 
 	consl(El,tl) .= viewl(Tr) =>
       _sequence(St,(SS)=>iterOverFinger(tl,Fn(El,SS),Fn)).
@@ -174,11 +174,11 @@ star.finger{
 
   -- Implement display & dump
 
-  all s/1,a ~~ viewL[s,a] ::= nill | consl(a,s[a]).
+  all s/1,a ~~ viewL[s,a] ::= .nill | consl(a,s[a]).
 
   viewl:all e ~~ (fingerTree[e])=>viewL[fingerTree,e].
-  viewl(eTree) => nill.
-  viewl(single(E)) => consl(E,eTree).
+  viewl(.eTree) => .nill.
+  viewl(single(E)) => consl(E,.eTree).
   viewl(deep(Lft,Md,Rgt)) where H^=head(Lft) => consl(H,deepL(tail(Lft),Md,Rgt)).
 
   toDigit:all e ~~ (node[e])=>digit[e].
@@ -187,12 +187,12 @@ star.finger{
 
   toTree:all e ~~ (digit[e]) => fingerTree[e].
   toTree(one(x)) => single(x).
-  toTree(two(x,y)) => deep(one(x),eTree,one(y)).
-  toTree(three(x,y,z)) => deep(two(x,y),eTree,one(z)).
-  toTree(four(x,y,z,u)) => deep(two(x,y),eTree,two(z,u)).
+  toTree(two(x,y)) => deep(one(x),.eTree,one(y)).
+  toTree(three(x,y,z)) => deep(two(x,y),.eTree,one(z)).
+  toTree(four(x,y,z,u)) => deep(two(x,y),.eTree,two(z,u)).
 
   deepL:all e ~~ (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
-  deepL(none,Md,Rgt) =>
+  deepL(.none,Md,Rgt) =>
     ( consl(H,M) .= viewl(Md) ?
 	deep(toDigit(H),M,Rgt) ||
 	toTree(Rgt)).
@@ -200,21 +200,21 @@ star.finger{
 
   public implementation all e ~~ head[fingerTree[e]->>e] => {
     head(T) where consl(h,_) .= viewl(T) => some(h).
-    head(_) => none.
+    head(_) => .none.
 
     tail(T) where consl(_,t) .= viewl(T) => some(t).
-    tail(_) => none.
+    tail(_) => .none.
   }
 
-  all s/1,a ~~ viewR[s,a] ::= nilr | consr(a,s[a]).
+  all s/1,a ~~ viewR[s,a] ::= .nilr | consr(a,s[a]).
 
   viewr:all e ~~ (fingerTree[e])=>viewR[fingerTree,e].
-  viewr(eTree) => nilr.
-  viewr(single(E)) => consr(E,eTree).
+  viewr(.eTree) => .nilr.
+  viewr(single(E)) => consr(E,.eTree).
   viewr(deep(Lft,Md,Rgt)) where L^=last(Rgt) => consr(L,deepR(lead(Rgt),Md,Lft)).
 
   deepR:all e ~~ (option[digit[e]],fingerTree[node[e]],digit[e]) => fingerTree[e].
-  deepR(none,Md,Lft) =>
+  deepR(.none,Md,Lft) =>
     ( consr(L,F) .= viewr(Md) ?
 	deep(Lft,F,toDigit(L)) ||
 	toTree(Lft)).
@@ -226,7 +226,7 @@ star.finger{
     last(three(_,_,x)) => some(x).
     last(four(_,_,_,x)) => some(x).
 
-    lead(one(_)) => none.
+    lead(one(_)) => .none.
     lead(two(x,_)) => some(one(x)).
     lead(three(x,y,_)) => some(two(x,y)).
     lead(four(x,y,z,_)) => some(three(x,y,z)).
@@ -234,21 +234,21 @@ star.finger{
 
   public implementation all e ~~ back[fingerTree[e]->>e] => {
     last(T) where consr(l,_) .= viewr(T) => some(l).
-    last(_) => none.
+    last(_) => .none.
 
     lead(T) where consr(_,f) .= viewr(T) => some(f).
-    lead(_) => none.
+    lead(_) => .none.
   }
 
   public implementation all e ~~ stream[fingerTree[e]->>e] => {
-    _eof(eTree) => true.
-    _eof(_) => false.
+    _eof(.eTree) => .true.
+    _eof(_) => .false.
 
     _hdtl(T) where consl(h,t) .= viewl(T) => some((h,t)).
-    _hdtl(_) => none.
+    _hdtl(_) => .none.
 
     _back(T) where consr(l,f) .= viewr(T) => some((f,l)).
-    _back(_) => none.
+    _back(_) => .none.
   }
 
   public implementation all e ~~ display[e] |: dump[fingerTree[e]] => {
@@ -256,7 +256,7 @@ star.finger{
   }
 
   dumpTree:all e ~~ (fingerTree[e],(e)=>ss) => ss.
-  dumpTree(eTree,_) => sc(0x03d5).
+  dumpTree(.eTree,_) => sc(0x03d5).
   dumpTree(single(x),d) => d(x).
   dumpTree(deep(Lft,Md,Rgt),d) => ssPr(ss("<"),
     ssPr(dumpDigits(Lft,d),
@@ -304,16 +304,16 @@ star.finger{
 	      ss("3)"))))))).
 
   public implementation all e ~~ display[e] |: display[fingerTree[e]] => {.
-    disp(T) => ssPr(ss("["),ssPr(reform(dispTree(T,(x,L)=>cons(disp(x),L),nil)),ss("]"))).
+    disp(T) => ssPr(ss("["),ssPr(reform(dispTree(T,(x,L)=>cons(disp(x),L),.nil)),ss("]"))).
   .}
 
   reform:(cons[ss]) => ss.
-  reform(nil) => ss("").
-  reform(cons(x,nil)) => x.
+  reform(.nil) => ss("").
+  reform(cons(x,.nil)) => x.
   reform(cons(x,y)) => ssPr(x,ssPr(ss(","),reform(y))).
 
   dispTree:all e ~~ (fingerTree[e],(e,cons[ss])=>cons[ss],cons[ss]) => cons[ss].
-  dispTree(eTree,_,L) => L.
+  dispTree(.eTree,_,L) => L.
   dispTree(single(x),d,L) => d(x,L).
   dispTree(deep(Lft,Md,Rgt),d,L) =>
     dispDigits(Lft,d,

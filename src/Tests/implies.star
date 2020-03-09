@@ -17,21 +17,21 @@ test.implies{
      let{
        checkSon((P,S),So) => foldRight(
   	  let{
-  	    checkMale(S,none) => some(()).
+  	    checkMale(S,.none) => some(()).
   	    checkMale(_,St) => St.
   	  } in checkMale, So, ms).
        checkSon(_,So) => So.
      } in checkSon,
-     none,pars).
+     .none,pars).
 
   actionOnlySons:(string) => action[(),option[()]].
   actionOnlySons(P) =>
-    _iter(pars, _valis(none),
+    _iter(pars, _valis(.none),
   	  let{
   	    checkSon((P,S),So) =>
   	      _iter(ms, _valis(So),
   		    let{
-  		      checkMale(S,none) => _valis(some(())).
+  		      checkMale(S,.none) => _valis(some(())).
   		      checkMale(_,St) => _valis(St)
   		    } in checkMale).
   	    checkSon(_,So) => _valis(So)

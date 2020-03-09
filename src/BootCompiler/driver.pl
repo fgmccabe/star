@@ -50,6 +50,8 @@ parseFlags(['-f'|More],CWD,Cx,[forceCompile|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-di'|More],CWD,Cx,[showGenCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
+parseFlags(['-da'|More],CWD,Cx,[showAst|Opts],Files) :-!,
+  parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dt'|More],CWD,Cx,[showTCCode|Opts],Files) :-!,
   parseFlags(More,CWD,Cx,Opts,Files).
 parseFlags(['-dT'|More],CWD,Cx,[showTrCode|Opts],Files) :-!,
@@ -124,6 +126,7 @@ processFile(SrcUri,Pkg,Repo,Rx,Opts) :-
   locateResource(SrcUri,Src),
   parseFile(Pkg,Src,Term),!,
   noErrors,
+  (is_member(showAst,Opts) -> display(Term) ; true),
   checkProgram(Term,Pkg,Repo,Opts,Prog),!,
   (is_member(showTCCode,Opts) -> dispProg(Prog);true),
   noErrors,

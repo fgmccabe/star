@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <globals.h>
+#include <debug.h>
 #include "verifyP.h"
 
 logical enableVerify = True;         // True if we verify code as it is loaded
@@ -146,8 +147,11 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
   retCode ret = splitIns(blocks, entryPoint(mtd), &pc, insCount(mtd), True, errorMsg, msgLen);
 
 #ifdef TRACEVERIFY
-  if (traceVerify)
+  if (traceVerify) {
+    showMethodCode(logFile, name, mtd);
     showSegs(blocks, name);
+    flushOut();
+  }
 #endif
 
   if (ret == Ok) {
@@ -179,7 +183,8 @@ retCode verifyMethod(methodPo mtd, char *name, char *errorMsg, long msgLen) {
       for (integer ix = 0; ix < vectLength(blocks); ix++) {
         segPo seg = O_SEG(getVectEl(blocks, ix));
         if (!seg->seg.checked) {
-          strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ PC:%d" RED_ESC_OFF, seg->seg.segNo, seg->seg.pc);
+          strMsg(errorMsg, msgLen, RED_ESC_ON "unreachable segment %d @ PC:%d" RED_ESC_OFF, seg->seg.segNo,
+                 seg->seg.pc);
           ret = Error;
           break;
         }
@@ -480,7 +485,8 @@ checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, inte
                  integer delta, char *errorMsg, long msgLen);
 
 static retCode
-checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndSpec A, char *errorMsg, long msgLen) {
+checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer oPc, integer *pc, opAndSpec A, char *errorMsg,
+             long msgLen) {
   insPo base = entryPoint(seg->seg.mtd);
 
   switch (A) {
@@ -515,12 +521,11 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
           seg->seg.locals[lclVr].read = True;
           return Ok;
         } else {
-          strMsg(errorMsg, msgLen, RED_ESC_ON " access to uninitialized local var %d @ %d" RED_ESC_OFF, lclVr + 1,
-                 *pc);
+          strMsg(errorMsg, msgLen, RED_ESC_ON " access to uninitialized local var %d @ %d" RED_ESC_OFF, lclVr + 1, oPc);
           return Error;
         }
       } else {
-        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, *pc);
+        strMsg(errorMsg, msgLen, RED_ESC_ON "invalid local var number %d @ %d" RED_ESC_OFF, lclVr + 1, oPc);
         return Error;
       }
     }
@@ -587,7 +592,7 @@ checkOperand(vectorPo blocks, blockStackPo stack, segPo seg, integer *pc, opAndS
 retCode
 checkInstruction(vectorPo blocks, blockStackPo stack, segPo seg, OpCode op, integer oPc, integer *pc, opAndSpec A1,
                  integer delta, char *errorMsg, long msgLen) {
-  retCode ret = checkOperand(blocks, stack, seg, pc, A1, errorMsg, msgLen);
+  retCode ret = checkOperand(blocks, stack, seg, oPc, pc, A1, errorMsg, msgLen);
 
   if (ret == Ok) {
     seg->seg.stackDepth += delta;

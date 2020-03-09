@@ -106,7 +106,7 @@ corresponds to the familiar map function from other functional
 languages.
 @example
 apply:all s,t ~~ ((s)=>t,cons[s])=>cons[t].
-apply(f, nil) => nil.
+apply(f, .nil) => .nil.
 apply(f, cons(x, xs)) =>
       cons(f(x), apply(f, xs)).
 @end example
@@ -179,20 +179,30 @@ list’ a.k.a. single-linked list. Cons lists are defined using a type
 definition that introduces the type and its different ‘shapes’:
 
 @example
-all t ~~ cons[t] ::= nil | cons(t,cons[t]).
+all t ~~ cons[t] ::= .nil | cons(t,cons[t]).
 @end example
 
 This states that there are two forms of @code{cons} lists: the empty cons
-list @code{nil}, and a pairing @code{cons(x, xs)} where @code{x} is
+list @code{.nil}, and a pairing @code{cons(x, xs)} where @code{x} is
 the first element, and @code{xs} is the rest of the list. The
 @code{all} quantifier at the beginning of the declaration of the @code{cons}
 type marks the type as a generic type – specifically a universal type.
+
+@quotation Note
+Notice the period in front of the @code{.nil} enumeration symbol. This
+allows us (the compiler and the programmer) to be more obvious in
+distinguishing such symbols from variables. There are other benefits,
+but clarity is the main driver.@footnote{It @emph{does} have the
+somewhat unfortunate side-effect of requiring a period in front of
+boolean @code{.true} and @code{.false} literals.}
+@end quotation
+
 
 All Star values can be written as literals, including user defined
 types like cons. For example, the @code{cons} list:
 
 @example
-cons("alpha",cons("beta",cons("gamma",nil)))
+cons("alpha",cons("beta",cons("gamma",.nil)))
 @end example
 contains the strings @code{"alpha"}, @code{"beta"} and @code{"gamma"}.
 
@@ -209,7 +219,7 @@ Just as with sequences, we can define functions over @code{cons} lists via
 pattern matching:
 @example
 maxCons:(cons[integer]) => integer.
-maxCons(cons(x, nil)) => x.
+maxCons(cons(x, .nil)) => x.
 maxCons(cons(x, xs)) default => let @{
      maxRest = maxCons(xs).
    @} in (x > maxRest ? x || maxRest)

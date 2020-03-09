@@ -124,7 +124,7 @@ static char *dumpStarSig(char *sig, ioPo out);
 static void genStarIntrinsic(ioPo out, char *name, char *tipe, char *op, char *cmt) {
   outMsg(out, "  intrinsic(\"%s\") => some((", name);
   dumpStarSig(tipe, out);
-  outMsg(out, ",i%s)).  -- %s\n", capitalize(op), cmt);
+  outMsg(out, ",.i%s)).  -- %s\n", capitalize(op), cmt);
 }
 
 static char *dName(char *sig, ioPo out);

@@ -24,7 +24,7 @@ star.repo.file{
 	U ^= locateInManifest(Man,Pkg,"code") &&
 	Uri ^= parseUri(U) &&
 	RU ^= resolveUri(Root,Uri)  => getResource(RU).
-    hasCode(_,_) default => none.
+    hasCode(_,_) default => .none.
   }
   
   public addToRepo:(fileRepo,pkg,string,string) => fileRepo.
@@ -49,7 +49,7 @@ star.repo.file{
     resourcePresent(CodeFile) &&
     resourcePresent(SrcFile) &&
         newerFile(CodeFile,SrcFile).
-  packageCodeOk(_,_) default => false.
+  packageCodeOk(_,_) default => .false.
 
   public packageCode:(fileRepo,pkg) => option[(uri,uri)].
   packageCode(repo(Root,Man),Pkg) where
@@ -59,7 +59,7 @@ star.repo.file{
       CodeFile ^= resolveUri(Root,CU) &&
       SU ^= parseUri(S) &&
       SrcFile ^= resolveUri(Root,SU) => some((SrcFile,CodeFile)).
-  packageCode(_,_) default => none.
+  packageCode(_,_) default => .none.
     
   public addPackage:(fileRepo,pkg,string) => fileRepo.
   addPackage(Repo,Pkg,Text) => addToRepo(Repo,Pkg,"code",Text).
@@ -81,5 +81,5 @@ star.repo.file{
   readManifest(Url) where
       Txt ^= getResource(Url) &&
       J.=Txt::json => some(J::manifest).
-  readManifest(_) default => none.
+  readManifest(_) default => .none.
 }

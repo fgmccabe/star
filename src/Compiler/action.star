@@ -16,30 +16,30 @@ star.compiler.action{
     RR <- genAction(B,Contract,Cont,Path,Rp);
     genAction(A,Contract,some(RR),Path,Rp)
   }
-  genAction(returnDo(Lc,A,ExTp,VlTp,ErTp),Contract,none,Path,Rp) =>
+  genAction(returnDo(Lc,A,ExTp,VlTp,ErTp),Contract,.none,Path,Rp) =>
     genReturn(Lc,A,ExTp,VlTp,ErTp,Contract,Rp).
   genAction(returnDo(Lc,A,ExTp,VlTp,ErTp),Contract,some(_),Path,Rp) =>
     other(reportError(Rp,"return $(A) must be last action",Lc)).
-  genAction(bindDo(Lc,Ptn,Gen,ExTp,VlTp,ErTp),Contract,none,_,Rp) =>
+  genAction(bindDo(Lc,Ptn,Gen,ExTp,VlTp,ErTp),Contract,.none,_,Rp) =>
     other(reportError(Rp,"$(Ptn) <- $(Gen) may not be last action",Lc)).
   genAction(bindDo(Lc,Ptn,Gen,ExTp,VlTp,ErTp),Contract,some(Cont),_,Rp) => do{
     ConTp .= typeOf(Cont);
     PtnTp .= typeOf(Ptn);
     GenTp .= typeOf(Gen);
     LamTp .= funType([PtnTp],ConTp);
-    Lam .= lambda(Lc,[eqn(Lc,tple(Lc,[Ptn]),none,Cont)],LamTp);
+    Lam .= lambda(Lc,[eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
     SeqTp .= funType([GenTp,LamTp],ConTp);
     Seqn .= over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
     valis apply(Lc,Seqn,tple(Lc,[Gen,Lam]),ConTp)
   }
-  genAction(varDo(Lc,Ptn,Gen),Contract,none,_,Rp) =>
+  genAction(varDo(Lc,Ptn,Gen),Contract,.none,_,Rp) =>
     other(reportError(Rp,"$(Ptn) = $(Gen) may not be last action",Lc)).
   genAction(varDo(Lc,Ptn,Gen),Contract,some(Cont),_,Rp) => do{
     ConTp .= typeOf(Cont);
     PtnTp .= typeOf(Ptn);
     GenTp .= typeOf(Gen);
     LamTp .= funType([PtnTp],ConTp);
-    Lam .= lambda(Lc,[eqn(Lc,tple(Lc,[Ptn]),none,Cont)],LamTp);
+    Lam .= lambda(Lc,[eqn(Lc,tple(Lc,[Ptn]),.none,Cont)],LamTp);
     valis apply(Lc,Lam,tple(Lc,[Gen]),ConTp)
   }
   genAction(delayDo(Lc,Actn,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
@@ -50,7 +50,7 @@ star.compiler.action{
   genAction(tryCatchDo(Lc,Body,Hndlr,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     HndlrTp .= typeOf(Hndlr);
     ConTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
-    BdyExp <- genAction(Body,Contract,none,Path,Rp);
+    BdyExp <- genAction(Body,Contract,.none,Path,Rp);
     BType .= typeOf(BdyExp);
     LamType .= funType([BType,HndlrTp],ConTp);
     H .= over(Lc,mtd(Lc,"_handle",LamType),LamType,[typeConstraint(mkTypeExp(Contract,[ExTp]))]);
@@ -72,8 +72,8 @@ star.compiler.action{
   }
   genAction(ifThenElseDo(Lc,Tst,Th,El,ExTp,ValTp,ErTp),Contract,Cont,Path,Rp) => do{
     MdlTp .= mkTypeExp(ExTp,[ErTp,ValTp]);
-    Then <- genAction(Th,Contract,none,Path,Rp);
-    Else <- genAction(El,Contract,none,Path,Rp);
+    Then <- genAction(Th,Contract,.none,Path,Rp);
+    Else <- genAction(El,Contract,.none,Path,Rp);
     if isIterableGoal(Tst) then {
       ITst <- genIterableGoal(Tst,Contract,Path,Rp);
       valis combineActs(Lc,cond(Lc,ITst,Then,Else),Cont,Contract,ExTp)
@@ -88,15 +88,15 @@ star.compiler.action{
   */
   genAction(whileDo(Lc,Tst,Bdy,StTp,ErTp),Contract,some(Cont),Path,Rp) => do{
     Fn .= genSym("loop");
-    LclName .= qualifiedName(Path,valMark,Fn);
-    ThPath .= qualifiedName(Path,valMark,"lp");
+    LclName .= qualifiedName(Path,.valMark,Fn);
+    ThPath .= qualifiedName(Path,.valMark,"lp");
     UnitTp .= tupleType([]);
     LpTp .= mkTypeExp(StTp,[ErTp,UnitTp]);
     FnTp .= funType([],LpTp);
     FnCall .= apply(Lc,vr(Lc,Fn,FnTp),tple(Lc,[]),LpTp);
     Then <- genAction(seqnDo(Lc,Bdy,simpleDo(Lc,FnCall,StTp)),
-      Contract,none,ThPath,Rp);
-    FF .= varDef(Lc,Fn,LclName,lambda(Lc,[eqn(Lc,tple(Lc,[]),none,cond(Lc,Tst,Then,Cont))],FnTp),[],FnTp);
+      Contract,.none,ThPath,Rp);
+    FF .= varDef(Lc,Fn,LclName,lambda(Lc,[eqn(Lc,tple(Lc,[]),.none,cond(Lc,Tst,Then,Cont))],FnTp),[],FnTp);
     valis letExp(Lc,[FF],FnCall)
   }
     /*
@@ -152,13 +152,13 @@ star.compiler.action{
   } in apply(Lc,Gen,tple(Lc,[A]),MdTp).
 
   combineActs:(locn,canon,option[canon],tipe,tipe)=>canon.
-  combineActs(_,A1,none,_,_) => A1.
+  combineActs(_,A1,.none,_,_) => A1.
   combineActs(Lc,A1,some(A2),Contract,StTp) => let{.
     A1Tp = typeOf(A1).
     Anon = anonVar(Lc,A1Tp).
     ConTp = typeOf(A2).
     LamTp = funType([A1Tp],ConTp).
-    Lam = lambda(Lc,[eqn(Lc,tple(Lc,[Anon]),none,A2)],LamTp).
+    Lam = lambda(Lc,[eqn(Lc,tple(Lc,[Anon]),.none,A2)],LamTp).
     SeqTp = funType([A1Tp,LamTp],ConTp).
     Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[StTp]))]).
   .} in apply(Lc,Gen,tple(Lc,[A1,Lam]),ConTp).
@@ -168,7 +168,7 @@ star.compiler.action{
       ATp = typeOf(St).
       MdTp = mkTypeExp(StTp,[ErTp,ATp]).
       LamTp = funType([ATp],MdTp).
-      Lam = lambda(Lc,[eqn(Lc,tple(Lc,[St]),none,Reslt)],LamTp).
+      Lam = lambda(Lc,[eqn(Lc,tple(Lc,[St]),.none,Reslt)],LamTp).
       SeqTp = funType([MdTp,LamTp],MdTp).
       Gen = over(Lc,mtd(Lc,"_sequence",SeqTp),SeqTp,[typeConstraint(mkTypeExp(Contract,[StTp]))]).
       Initial = genRtn(Lc,StTp,VlTp,ErTp,Contract,Rp)(Init).
@@ -181,7 +181,7 @@ star.compiler.action{
   *
   * becomes:
   *
-  * either(some(PtnV)) .= <genCondition>(C,either(none),...)
+  * either(some(PtnV)) .= <genCondition>(C,either(.none),...)
   *
   * This will need more optimization ...
   */
@@ -303,7 +303,7 @@ star.compiler.action{
 
     FF.=varDef(Lc,sF,LclName,lambda(Lc,[
 	  eqn(Lc,tple(Lc,[Pttrn,St]),PtnCond,AddToFront),
-	  eqn(Lc,tple(Lc,[Anon,St]),none,Dflt)
+	  eqn(Lc,tple(Lc,[Anon,St]),.none,Dflt)
 	],sFTp),[],sFTp);
 
     Let .= letExp(Lc,[FF],vr(Lc,sF,sFTp));

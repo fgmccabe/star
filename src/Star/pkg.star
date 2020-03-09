@@ -4,7 +4,7 @@ star.pkg{
 
   public pkg ::= pkg(string,version).
 
-  public version ::= defltVersion | vers(string).
+  public version ::= .defltVersion | vers(string).
 
   public pkgName:(pkg)=>string.
   pkgName(pkg(Nm,_))=>Nm.
@@ -21,18 +21,18 @@ star.pkg{
   .}
 
   public implementation display[version] => {.
-    disp(defltVersion) => ss("*").
+    disp(.defltVersion) => ss("*").
     disp(vers(V)) => ss(V).
   .}
 
   public implementation equality[version] => {.
-    defltVersion == defltVersion => true.
+    .defltVersion == .defltVersion => .true.
     vers(V) == vers(W) => V==W.
-    _ == _ => false.
+    _ == _ => .false.
   .}
 
   public implementation hash[version] => {.
-    hash(defltVersion) => 0.
+    hash(.defltVersion) => 0.
     hash(vers(V)) => hash(V).
   .}
 
@@ -41,29 +41,29 @@ star.pkg{
   .}
 
   public implementation coercion[string,version] => {
-    _coerce("*") => defltVersion.
+    _coerce("*") => .defltVersion.
     _coerce(V) => vers(V).
   }
 
   public implementation coercion[version,string] => {
-    _coerce(defltVersion) => "*".
+    _coerce(.defltVersion) => "*".
     _coerce(vers(V)) => V.
   }
 
   public compatiblePkg:(pkg,pkg)=>boolean.
   compatiblePkg(pkg(P,V1),pkg(P,V2)) => compatibleVersion(V1,V2).
-  compatiblePkg(_,_) default => false.
+  compatiblePkg(_,_) default => .false.
 
   public compatibleVersion:(version,version)=>boolean.
-  compatibleVersion(defltVersion,_)=>true.
-  compatibleVersion(_,defltVersion)=>true.
+  compatibleVersion(.defltVersion,_)=>.true.
+  compatibleVersion(_,.defltVersion)=>.true.
   compatibleVersion(vers(V1),vers(V2))=>V1==V2.
-  compatibleVersion(_,_) => false.
+  compatibleVersion(_,_) => .false.
 
   public parsePkgName:(string) => option[pkg].
   parsePkgName(S) => first(parse(pkgParse,S::list[integer])).
 
-  first([])=>none.
+  first([])=>.none.
   first([(E,_),.._])=>some(E).
 
   public pkgParse:parser[list[integer],pkg].
@@ -79,9 +79,9 @@ star.pkg{
   segChr = _sat(isSegChr).
 
   isSegChr:(integer)=>boolean.
-  isSegChr(0c.) => true.
+  isSegChr(0c.) => .true.
   isSegChr(Ch) => isAlphaNum(Ch).
 
   parseVersion:parser[list[integer],version].
-  parseVersion = ((_str("#") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return defltVersion)).
+  parseVersion = ((_str("#") >>= (_) => segment >>= (Seg) => (return vers(Seg))) +++ (return .defltVersion)).
 }

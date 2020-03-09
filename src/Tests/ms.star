@@ -13,7 +13,7 @@ test.ms{
 
   doubleOrQuits:(integer)=>option[integer].
   doubleOrQuits(X) where X>0 => some(X+X).
-  doubleOrQuits(_) => none.
+  doubleOrQuits(_) => .none.
 
   KK : list[integer].
   KK = [1,2,3,4,5].
@@ -29,6 +29,6 @@ test.ms{
 
     assert [2,4,6,8,10] ^= mapOver(doubleOrQuits,KK);
 
-    assert mapOver(doubleOrQuits,LL)==none
+    assert mapOver(doubleOrQuits,LL)==.none
   }
 }

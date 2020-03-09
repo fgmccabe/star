@@ -13,6 +13,7 @@
 #include <memory.h>
 #include <labelsP.h>
 #include <globalsP.h>
+#include <debug.h>
 #include "heap.h"
 
 #ifdef TRACEMEM
@@ -88,11 +89,10 @@ retCode gcCollect(heapPo H, long amount) {
 #ifdef TRACEMEM
   gcCount++;
   if (traceMemory)
-    outMsg(logFile, "starting gc: %d\n%_", gcCount);
+    outMsg(logFile, "starting gc: %d (%d instructions)\n%_", gcCount, pcCount);
 #endif
 
 #ifdef TRACEMEM
-
   if (traceMemory) {
     if (H->owner != Null)
       verifyProc(H->owner, H);
@@ -238,8 +238,13 @@ static retCode markProcess(processPo P, gcSupportPo G) {
     integer off = insOffset(f->prog, f->rtn);
     f->prog = (methodPo) markPtr(G, (ptrPo) &f->prog);
     f->rtn = pcAddr(f->prog, off);
+
     t = (ptrPo) (f + 1);
     f = f->fp;
+  }
+  while (t < (ptrPo) f) {
+    *t = markPtr(G, t);
+    t++;
   }
 
   integer off = insOffset(P->prog, P->pc);
@@ -249,19 +254,22 @@ static retCode markProcess(processPo P, gcSupportPo G) {
 }
 
 void verifyProc(processPo P, heapPo H) {
-#ifdef TRACEMEM
-  if (traceMemory)
-    outMsg(logFile, "Verifying process %d%_", P->processNo);
-#endif
   integer lvl = 0;
 
   ptrPo t = P->sp;
   framePo f = P->fp;
+  methodPo mtd = P->prog;
+  insPo pc = P->pc;
 
   assert(t <= (ptrPo) f);
   assert((ptrPo) f < (ptrPo) P->stackLimit);
 
   while (f < (framePo) P->stackLimit) {
+    integer pcOffset = (integer) (pc - mtd->code);
+
+    assert(pcOffset >= 0 && pcOffset < mtd->codeSize);
+
+    inStackPtr(P, &f->args[argCount(mtd)]);
     inStackPtr(P, t);
     inStackPtr(P, (ptrPo) f);
 
@@ -273,14 +281,12 @@ void verifyProc(processPo P, heapPo H) {
     validPtr(H, (termPo) f->prog);
 
     t = (ptrPo) (f + 1);
+
+    mtd = f->prog;
+    pc = f->rtn;
     f = f->fp;
     lvl++;
   }
-
-#ifdef TRACEMEM
-  if (traceMemory)
-    outMsg(logFile, " ok\n%_", P->processNo);
-#endif
 }
 
 void dumpGcStats() {
@@ -297,7 +303,7 @@ retCode extendHeap(heapPo H, integer factor, integer hmin) {
 
   integer newSize = (integer) ((H->outerLimit - H->base) * factor + hmin);
 
-  if(newSize>maxHeapSize)
+  if (newSize > maxHeapSize)
     return Error;
 
   termPo newHeap = (termPo) malloc(sizeof(ptrPo) * newSize);

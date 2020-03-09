@@ -1,4 +1,5 @@
-:- module(vartypes,[typeOfVar/7,isEnumVr/3,declareVr/5,declareVr/6,declareCns/5,declareMtd/5]).
+:- module(vartypes,[typeOfVar/7,declareVr/5,declareVr/6,declareEnum/5,
+		    declareCns/5,declareMtd/5]).
 
 :- use_module(abstract).
 :- use_module(freshen).
@@ -12,12 +13,6 @@ typeOfVar(Lc,Vr,Tp,vrEntry(_,MkTerm,VTp,_),Env,Ev,Term) :-
   call(MkTerm,Lc,Tp,Exp),
   manageConstraints(VrTp,[],Lc,Exp,MTp,Env,Ev,Term),
   checkType(Vr,MTp,Tp,Env).
-
-isEnumVr(_,_,vrEntry(_,_,VTp,_)) :-
-  isCnsType(VTp,_),!.
-isEnumVr(Lc,Tp,vrEntry(_,MkTerm,_,_)) :-
-  call(MkTerm,Lc,Tp,V),
-  V\=v(_,_,_),V\=mtd(_,_,_).
 
 manageConstraints(constrained(Tp,implementsFace(TV,Fc)),Cons,Lc,V,MTp,Env,Ev,Exp) :- !,
   declareConstraint(implementsFace(TV,Fc),Env,E0),

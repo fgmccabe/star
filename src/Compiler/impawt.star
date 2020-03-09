@@ -25,7 +25,10 @@ star.compiler.impawt{
       try{
 	pkgSpec(_,PkgImps,Sig,Cons,Impls,_) <- importPkg(Pkg,Lc,Repo,Rp);
 	
-	E0 .= pushSig(Sig,Lc,(I)=>(L,T)=>(_^=isConsType(T)?enm(L,qualifiedName(pkgName(Pkg),conMark,I),T)||dot(L,vr(Lc,PkgVar,Sig),I,T)),Env);
+	E0 .= pushSig(Sig,Lc,(I)=>(L,T)=>	
+	    (_ ^= isConsType(T) ?
+		enm(L,qualifiedName(pkgName(Pkg),.conMark,I),T) ||
+		dot(L,vr(Lc,PkgVar,Sig),I,T)),Env);
 	E1 .= foldRight((conDef(_,CNm,CFNm,CTp),EE)=>
 	    declareContract(Lc,CNm,CTp,EE),E0,Cons);
 	E2 .= foldRight((implSpec(ILc,ConNm,FullNm,Tp),EE)=>
@@ -38,8 +41,6 @@ star.compiler.impawt{
       }
     }
   }
-
-  
 
   public importPkg:all r ~~ repo[r] |: (pkg,locn,r,reports) => either[reports,pkgSpec].
   importPkg(Pkg,Lc,Repo,Rp) where Sig ^= hasSignature(Repo,Pkg) => either (valof pickupPkgSpec(Sig,Lc,Rp)).
@@ -64,15 +65,15 @@ star.compiler.impawt{
   }
 
   pickupVersion:(term)=>either[(),version].
-  pickupVersion(strg("*")) => either(defltVersion).
+  pickupVersion(strg("*")) => either(.defltVersion).
   pickupVersion(strg(V)) => either(vers(V)).
   pickupVersion(_) default => other(()).
 
   pickupViz:(term)=>option[visibility].
-  pickupViz(strg("private")) => some(priVate).
-  pickupViz(strg("public")) => some(pUblic).
-  pickupViz(strg("transitive")) => some(transItive).
-  pickupVis(_) default => none.
+  pickupViz(strg("private")) => some(.priVate).
+  pickupViz(strg("public")) => some(.pUblic).
+  pickupViz(strg("transitive")) => some(.transItive).
+  pickupVis(_) default => .none.
 
   pickupImports:(list[term],locn) => either[(),list[importSpec]].
   pickupImports(Trms,Lc) => let{
@@ -100,19 +101,19 @@ star.compiler.impawt{
   pickupImplementations([],Imps) => either(Imps).
   pickupImplementations([term(_,[strg(ConNm),strg(FullNm),strg(Sig)]),..Is],Imps) => do{
     Spec <- decodeSignature(Sig);
-    pickupImplementations(Is,[Imps..,implSpec(none,ConNm,FullNm,Spec)])
+    pickupImplementations(Is,[Imps..,implSpec(.none,ConNm,FullNm,Spec)])
   }
   pickupImplementations(_,_) default => other(()).
 
   implementation coercion[pkg,term] => {
-    _coerce(pkg(P,defltVersion)) => term(tLbl("pkg",2),[strg(P),strg("*")]).
+    _coerce(pkg(P,.defltVersion)) => term(tLbl("pkg",2),[strg(P),strg("*")]).
     _coerce(pkg(P,vers(V))) => term(tLbl("pkg",2),[strg(P),strg(V)]).
   }
 
   implementation coercion[visibility,term] => {.
-    _coerce(priVate) => strg("private").
-    _coerce(pUblic) => strg("public").
-    _coerce(transItive) => strg("transitive").
+    _coerce(.priVate) => strg("private").
+    _coerce(.pUblic) => strg("public").
+    _coerce(.transItive) => strg("transitive").
   .}
 
   implementation coercion[tipe,term] => {.

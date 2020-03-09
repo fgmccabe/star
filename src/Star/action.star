@@ -2,6 +2,7 @@ star.action{
   import star.core.
   import star.iterable.
   import star.monad.
+  import star.option.
   import star.coerce.
 
   public all a,e ~~ action[e,a] ::= done(a) | delay(()=>action[e,a]) | err(e).
@@ -32,7 +33,7 @@ star.action{
   }
 
   public implementation all e ~~ coercion[option[e],action[(),e]] => {
-    _coerce(none) => err(()).
+    _coerce(.none) => err(()).
     _coerce(some(X)) => done(X).
   }
 

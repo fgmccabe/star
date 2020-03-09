@@ -25,7 +25,7 @@ star.skew{
   tl(cons((w,node(_,t1,t2)),ts)) => cons((w/2,t1),cons((w/2,t2),ts)).
 
   lookup:all a ~~ (integer,rlist[a]) => option[a].
-  lookup(_,nil) => none.
+  lookup(_,.nil) => .none.
   lookup(Ix,cons((w,t),ts)) where Ix<w => lookupTree(Ix,w,t).
   lookup(Ix,cons((w,_),ts)) => lookup(Ix-w,ts).
 
@@ -36,10 +36,10 @@ star.skew{
     (Ix=<w2 ?
 	lookupTree(Ix-1,w2,t1) ||
 	lookupTree(Ix-1-w2,w2,t2)).
-  lookupTree(_,_,_) default => none.
+  lookupTree(_,_,_) default => .none.
 
   update:all a ~~ (integer,rlist[a],a) => rlist[a].
-  update(_,nil,V) => cons((1,leaf(V)),nil). -- be slightly forgiving here
+  update(_,.nil,V) => cons((1,leaf(V)),.nil). -- be slightly forgiving here
   update(Ix,cons((w,T),rs),V) =>
     (Ix<w ?
 	cons((w,updateTree(Ix,w,V,T)),rs) ||
@@ -54,15 +54,15 @@ star.skew{
 	node(x,t1,updateTree(Ix-1-w2,w2,v,t2))).
 
   public implementation all e ~~ head[sk[e]->>e] => {
-    head(rl(nil)) => none.
+    head(rl(.nil)) => .none.
     head(rl(ts)) => some(hed(ts)).
 
-    tail(rl(nil)) => none.
+    tail(rl(.nil)) => .none.
     tail(rl(ts)) => some(rl(tl(ts))).
   }
 
   public implementation all e ~~ sequence[sk[e]->>e] => {
-    _nil = rl(nil).
+    _nil = rl(.nil).
     _cons(E,rl(L)) => rl(cns(E,L)).
   }
 
@@ -71,11 +71,11 @@ star.skew{
 
     _put(rl(ts),Ix,V) => rl(update(Ix,ts,V)).
 
-    _empty = rl(nil).
+    _empty = rl(.nil).
   }
 
   foldDLeft:all e,x ~~ ((x,e)=>x,x,rlist[e]) => x.
-  foldDLeft(_,X,nil) => X.
+  foldDLeft(_,X,.nil) => X.
   foldDLeft(F,X,cons((_,T),R)) => foldDLeft(F,foldTLeft(F,X,T),R).
 
   foldTLeft:all e,x ~~ ((x,e)=>x,x,tree[e]) => x.
@@ -83,7 +83,7 @@ star.skew{
   foldTLeft(F,X,node(W,L,R)) => foldTLeft(F,foldTLeft(F,F(X,W),L),R).
 
   foldDRight:all e,x ~~ ((e,x)=>x,x,rlist[e])=>x.
-  foldDRight(_,X,nil) => X.
+  foldDRight(_,X,.nil) => X.
   foldDRight(F,X,cons((_,T),R)) => foldTRight(F,foldDRight(F,X,R),T).
 
   foldTRight:all e,x ~~ ((e,x)=>x,x,tree[e])=>x.
@@ -96,7 +96,7 @@ star.skew{
   }
 
   public implementation all e ~~ reversible[sk[e]] => {
-    reverse(rl(L)) => rl(foldDLeft((So,E)=>cns(E,So),nil,L)).
+    reverse(rl(L)) => rl(foldDLeft((So,E)=>cns(E,So),.nil,L)).
   }
 
   public implementation all e ~~ concat[sk[e]] => {
@@ -124,7 +124,7 @@ star.skew{
   
   public implementation all e ~~ display[e] |: dump[sk[e]] => let{
     dumpList:all a ~~ display[a] |: (rlist[a]) => ss.
-    dumpList(nil) => ss("").
+    dumpList(.nil) => ss("").
     dumpList(cons((w,x),ts)) =>
       ssPr(ss("($(w)"),
 	ssPr(dumpTree(x),
@@ -146,7 +146,7 @@ star.skew{
 
   public implementation all e ~~ display[e] |: display[sk[e]] => let{
     dispList:all a ~~ display[a] |: (rlist[a],cons[ss]) => cons[ss].
-    dispList(nil,L) => L.
+    dispList(.nil,L) => L.
     dispList(cons((_,T),rs),L) => dispTree(T,dispList(rs,L)).
 
     dispTree:all a ~~ display[a] |: (tree[a],cons[ss]) => cons[ss].
@@ -154,40 +154,40 @@ star.skew{
     dispTree(node(X,t1,t2),L) => cons(disp(X),dispTree(t1,dispTree(t2,L))).
 
     rollup:(cons[ss]) => ss.
-    rollup(nil) => ss("").
-    rollup(cons(S,nil)) => S.
+    rollup(.nil) => ss("").
+    rollup(cons(S,.nil)) => S.
     rollup(cons(S,R)) => ssPr(S,ssPr(ss(","),rollup(R))).
   } in {
-    disp(rl(L)) => ssPr(ss("["),ssPr(rollup(dispList(L,nil)),ss("]"))).
+    disp(rl(L)) => ssPr(ss("["),ssPr(rollup(dispList(L,.nil)),ss("]"))).
   }
 
   public implementation all e ~~ equality[e] |: equality[sk[e]] => let{
-    equalList(nil,nil) => true.
+    equalList(.nil,.nil) => .true.
     equalList(cons((W1,T1),L1),cons((W2,T2),L2)) =>
       W1==W2 && equalTree(T1,T2) && equalList(L1,L2).
-    equalList(_,_) default => false.
+    equalList(_,_) default => .false.
 
     equalTree(leaf(L1),leaf(L2)) => L1==L2.
     equalTree(node(X1,L1,R1),node(X2,L2,R2)) =>
       X1==X2 && equalTree(L1,L2) && equalTree(R1,R2).
-    equalTree(_,_) default => false.
+    equalTree(_,_) default => .false.
   } in {
     rl(L1) == rl(L2) => equalList(L1,L2).
   }
 
   public implementation all e ~~ sizeable[sk[e]] => {
-    isEmpty(rl(nil)) => true.
-    isEmpty(rl(_)) => false.
+    isEmpty(rl(.nil)) => .true.
+    isEmpty(rl(_)) => .false.
 
     size(rl(L)) => countSizes(L,0).
 
-    countSizes(nil,Sz) => Sz.
+    countSizes(.nil,Sz) => Sz.
     countSizes(cons((W,_),L),Sz) => countSizes(L,Sz+W).
   }
 
   public implementation all t ~~ iter[sk[t]->>t] => let{
     iterList:all e,m/2,x ~~ execution[m] |: (rlist[t],m[e,x],(t,x)=>m[e,x])=>m[e,x].
-    iterList(nil,St,_) => St.
+    iterList(.nil,St,_) => St.
     iterList(cons((_,T),R),St,Fn) =>
       _sequence(iterTree(T,St,Fn),(SS)=>iterList(R,_valis(SS),Fn)).
 

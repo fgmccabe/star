@@ -30,7 +30,7 @@ star.compiler.normalize{
   implementation display[mapLayer] => {.
     disp(lyr(Path,Entries,some(ThVr))) =>
       ssSeq([disp(Path),ss(":"),disp(Entries),ss("\nTheta var: "),disp(ThVr),ss("\n")]).
-    disp(lyr(Path,Entries,none)) =>
+    disp(lyr(Path,Entries,.none)) =>
       ssSeq([disp(Path),ss(":"),disp(Entries),ss("\n")])
   .}
 
@@ -46,7 +46,7 @@ star.compiler.normalize{
   crFlow ~> (crExp,list[crDefn]).
 
   extraVars:(nameMap)=>list[crVar].
-  extraVars([lyr(_,_,none),.._]) => [].
+  extraVars([lyr(_,_,.none),.._]) => [].
   extraVars([lyr(_,_,some(V)),.._]) => [V].
 
   implementation hasType[nameMapEntry]=>{.
@@ -63,14 +63,14 @@ star.compiler.normalize{
     Map .= pkgMap(PkgSpec);
 --    logMsg("package map $(Map)");
     (V,Defs) <- transformDef(Prg,Map,[],[],Rp);
-    logMsg("raw transformed def: $(V)");
+--    logMsg("raw transformed def: $(V)");
     Bound .= (V//((Vr,Vl))=>vrDef(locOf(Vl),Vr,Vl));
     valis Bound++Defs
   }
 
   pkgMap:(pkgSpec) => nameMap.
   pkgMap(pkgSpec(Pkg,Imports,Tp,Cons,Impls,PkgVrs)) =>
-    [lyr(pkgName(Pkg),foldRight(((Nm,ITp),D)=>D[Nm->globalVar(Nm,ITp)],[],PkgVrs),none)].
+    [lyr(pkgName(Pkg),foldRight(((Nm,ITp),D)=>D[Nm->globalVar(Nm,ITp)],[],PkgVrs),.none)].
 
   groupMap:(locn,list[canonDef],string,nameMap,reports) => either[reports,(nameMap,option[crVar],crExp)].
   groupMap(Lc,Grp,Prefix,Outer,Rp) => do{
@@ -80,8 +80,8 @@ star.compiler.normalize{
 
     if isEmpty(FreeVars) then {
 --      logMsg("no theta var for group $(Grp)");
-      M .= [lyr("",foldRight((D,LL)=>collectMtd(D,Prefix,none,LL),[],Grp),none),..Outer];
-      valis (M,none,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
+      M .= [lyr("",foldRight((D,LL)=>collectMtd(D,Prefix,.none,LL),[],Grp),.none),..Outer];
+      valis (M,.none,crTpl(Lc,FreeVars//(V)=>crVar(Lc,V)))
     } else if [FrVr].=FreeVars then {
       ThVr .= crVar(Lc,FrVr);
       L .= [crName(FrVr)->labelVar(ThVr)];
@@ -112,8 +112,8 @@ star.compiler.normalize{
 
     if isEmpty(freeVars) then {
 --      logMsg("no theta var for lambda");
-      M .= [lyr(FullNm,[],none),..Outer];
-      valis (M,none,[])
+      M .= [lyr(FullNm,[],.none),..Outer];
+      valis (M,.none,[])
     } else if [FrVr].=freeVars then{
       ThVr .= crVar(Lc,FrVr);
       L .= [crName(FrVr)->labelVar(ThVr)];
@@ -231,10 +231,10 @@ star.compiler.normalize{
 
   transformEquation:(equation,nameMap,list[crVar],list[crDefn],reports) =>
     either[reports,((locn,list[crExp],option[crExp],crExp),list[crDefn])].
-  transformEquation(eqn(Lc,tple(_,As),none,Val),Map,Extra,Ex,Rp) => do{
+  transformEquation(eqn(Lc,tple(_,As),.none,Val),Map,Extra,Ex,Rp) => do{
     (Ptns,Ex1) <- liftPtns(As,Map,Ex,Rp);
     (Rep,Exx) <- liftExp(Val,Map,Ex1,Rp);
-    valis ((Lc,(Extra//(V)=>crVar(Lc,V))++Ptns,none,Rep),Exx)
+    valis ((Lc,(Extra//(V)=>crVar(Lc,V))++Ptns,.none,Rep),Exx)
   }
   transformEquation(eqn(Lc,tple(_,As),some(Wh),Val),Map,Extra,Ex,Rp) => do{
     (Ptns,Ex1) <- liftPtns(As,Map,Ex,Rp);
@@ -285,9 +285,9 @@ star.compiler.normalize{
   
   trVarPtn(Lc,Nm,Tp,Map,Ex,Rp) => implementVarPtn(Lc,Nm,lookupVarName(Map,Nm),Tp,Map,Ex,Rp).
 
-  implementVarPtn(Lc,Nm,none,Tp,_,Ex,_) => either((crVar(Lc,crId(Nm,Tp)),Ex)).
-  implementVarPtn(Lc,Nm,some(moduleCons(Enum,CTp)),Tp,_,Ex,_) where 0 ^= isConsType(CTp) =>
-    either((crLbl(Lc,Enum,CTp),Ex)).
+  implementVarPtn(Lc,Nm,.none,Tp,_,Ex,_) => either((crVar(Lc,crId(Nm,Tp)),Ex)).
+  implementVarPtn(Lc,Nm,some(moduleCons(Enum,CTp)),Tp,_,Ex,_) where ETp^=isEnumType(CTp) =>
+    either((crLbl(Lc,Enum,ETp),Ex)).
   implementVarPtn(Lc,Nm,some(V),Tp,Map,_,Rp) => other(reportError(Rp,"not permitted to match against $(Nm)\:$(V)",Lc)).
 
   liftExp:(canon,nameMap,list[crDefn],reports) => either[reports,crFlow].
@@ -478,7 +478,7 @@ star.compiler.normalize{
   collectMtd:(canonDef,string,option[crVar],map[string,nameMapEntry])=>map[string,nameMapEntry].
   collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),Outer,some(ThVr),LL) =>
     LL[Nm->localVar(FullNm,closureNm(FullNm),Tp,ThVr)].
-  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),Outer,none,LL) =>
+  collectMtd(varDef(Lc,Nm,FullNm,lambda(_,_,_),_,Tp),Outer,.none,LL) =>
     LL[Nm->moduleVar(FullNm,closureNm(FullNm),
 	funType([],Tp))].
   collectMtd(cnsDef(Lc,Nm,FullNm,Tp),Outer,ThVr,LL) => LL[Nm->moduleCons(FullNm,Tp)].
@@ -501,14 +501,14 @@ star.compiler.normalize{
   lookupThetaVar(V,_,FF) default => _addMem(V,FF).
 
   isLocal(localVar(_,_,_,ThVr))=>some(ThVr).
-  isLocal(_) default => none.
+  isLocal(_) default => .none.
 
-  isModule(moduleVar(_,_,_))=>some(true).
-  isModule(globalVar(_,_))=>some(true).
-  isModule(_) default => none.
+  isModule(moduleVar(_,_,_))=>some(.true).
+  isModule(globalVar(_,_))=>some(.true).
+  isModule(_) default => .none.
 
   lookup:all e ~~ (nameMap,string,(nameMapEntry)=>option[e])=>option[e].
-  lookup([],_,_) => none.
+  lookup([],_,_) => .none.
   lookup([lyr(_,Entries,_),..Map],Nm,P) where E ^= Entries[Nm] =>
     P(E).
   lookup([_,..Map],Nm,P) => lookup(Map,Nm,P).

@@ -12,15 +12,15 @@ star.compiler.unify{
     same(T1,T2,Env) => sm(deRef(T1),deRef(T2),Env).
     
 
-    sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => true.
+    sm(kFun(Nm,Ar),kFun(Nm,Ar),_) => .true.
     sm(T1,T2,Env) where tVar(_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where tVar(_,_) .= T2 => varBinding(T2,T1,Env).
     sm(T1,T2,Env) where tFun(_,_,_) .= T1 => varBinding(T1,T2,Env).
     sm(T1,T2,Env) where tFun(_,_,_) .= T2 => varBinding(T2,T1,Env).
     sm(T1,T2,Env) default => smT(T1,T2,Env).
 
-    smT(nomnal(Nm),nomnal(Nm),_) => true.
-    smT(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => true.
+    smT(nomnal(Nm),nomnal(Nm),_) => .true.
+    smT(tpFun(Nm,Ar),tpFun(Nm,Ar),_) => .true.
     smT(tpExp(O1,A1),tpExp(O2,A2),Env) =>
       same(O1,O2,Env) && same(A1,A2,Env).
     smT(tupleType(A1),tupleType(A2),Env) =>
@@ -45,12 +45,12 @@ star.compiler.unify{
       same(T1,T2,Env) && sameConstraint(C1,C2,Env).
     smT(T1,T2,_) default => valof resetBindings .
 
-    smTypes([],[],_) => true.
+    smTypes([],[],_) => .true.
     smTypes([E1,..L1],[E2,..L2],Env) =>
       same(E1,E2,Env) && smTypes(L1,L2,Env).
     smTypes(_,_,_) default => valof resetBindings.
 
-    smFields([],[],_) => true.
+    smFields([],[],_) => .true.
     smFields([(F1,T1),..FS1],[(F2,T2),..FS2],Env) =>
       F1==F2 && same(T1,T2,Env) && smFields(FS1,FS2,Env).
 
@@ -62,10 +62,10 @@ star.compiler.unify{
     sameConstraint(fieldConstraint(F1,T1),fieldConstraint(F2,T2),Env) =>
       same(F1,F2,Env) && same(T1,T2,Env).
 
-    updateEnv(nomnal(K),T,Env) => declareType(K,none,T,faceType([],[]),Env).
-    updateEnv(kFun(K,_),T,Env) => declareType(K,none,T,faceType([],[]),Env).
+    updateEnv(nomnal(K),T,Env) => declareType(K,.none,T,faceType([],[]),Env).
+    updateEnv(kFun(K,_),T,Env) => declareType(K,.none,T,faceType([],[]),Env).
 
-    varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => true.
+    varBinding(T1,T2,_) where isIdenticalVar(T1,T2) => .true.
     varBinding(T1,T2,Env) where \+ occursIn(T1,T2) => 
       bind(T1,T2,Env).
     varBinding(_,_,_) default => valof resetBindings.
@@ -83,7 +83,7 @@ star.compiler.unify{
 	  setConstraints(CxV,Cx)
 	}
       };
-      valis false
+      valis .false
     }
 
     addVarBinding(TV) => action{
@@ -103,7 +103,7 @@ star.compiler.unify{
       setConstraints(T,MM);
       setBinding(V,T);
       addVarBinding(V);
-      valis true
+      valis .true
     }.
     bind(V,T,Env) => valof do {
       VC .= constraintsOf(V);
@@ -112,7 +112,7 @@ star.compiler.unify{
 	addVarBinding(V);
 	checkConstraints(VC,Env)
       } catch {
-	valis false
+	valis .false
       }
     }.
 
@@ -122,25 +122,25 @@ star.compiler.unify{
 	    addVarConstraints(T);
 	    setConstraints(T,MM);
 	    setBinding(V,T);
-	    return true
+	    return .true
 	  }
-	  || false).
+	  || .false).
     bind(V,T,Env) where isUnbound(T) &&  MM ^= mergeConstraints(constraintsOf(V),constraintsOf(T),Env) => valof action{
       addVarConstraints(T);
       setConstraints(T,MM);
       setBinding(V,T);
-      return true
+      return .true
     }
-    bind(_,_,_) default => false.
+    bind(_,_,_) default => .false.
 
     checkConstraints:(list[constraint],dict) => action[(),boolean].
-    checkConstraints([],_) => do{ valis true }.
+    checkConstraints([],_) => do{ valis .true }.
     checkConstraints([C,..Rest],Env) => do{
       Lhs <- checkConstraint(C,Env);
       if Lhs then
 	checkConstraints(Rest,Env)
       else{
-	valis false
+	valis .false
       }
     }
 
@@ -152,12 +152,12 @@ star.compiler.unify{
 	(_,DeConTp) .= deConstrain(FrTp);
 	valis same(Tp,DeConTp,Env)
       } else{
-	valis true
+	valis .true
       }
     }
     checkConstraint(fieldConstraint(T,F),Env) where
 	Face .= faceOfType(T,Env) => do { valis subFace(deRef(F),deRef(Face),Env)}.
-    checkConstraint(_,_) default => do{ valis false}.
+    checkConstraint(_,_) default => do{ valis .false}.
 
     mergeConstraints:(list[constraint],list[constraint],dict) =>
       option[list[constraint]].
@@ -168,16 +168,16 @@ star.compiler.unify{
     mergeCons([],_,Cx,_) => some(Cx).
     mergeCons([C,..Cx],Cy,Sx,Env) where S1^=mergeConstraint(C,Cy,Sx,Env) =>
       mergeCons(Cx,Cy,S1,Env).
-    mergeCons(_,_,_,_) default => none.
+    mergeCons(_,_,_,_) default => .none.
 
     mergeConstraint:(constraint,list[constraint],list[constraint],dict) =>
       option[list[constraint]].
     mergeConstraint(C,[],Cs,_) => some([C,..Cs]).
     mergeConstraint(typeConstraint(Tp),[typeConstraint(Tp1),.._],Cs,Env) =>
-      (same(Tp,Tp1,Env) ? some(Cs) || none).
+      (same(Tp,Tp1,Env) ? some(Cs) || .none).
     -- TODO: handle merging implementsFace more gracefully
     mergeConstraint(C,[_,..R],Cs,Env) => mergeConstraint(C,R,Cs,Env).
-  } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? true || valof resetBindings).
+  } in (sm(deRef(Tp1),deRef(Tp2),Envir) ? .true || valof resetBindings).
 
 
   tpName:(tipe)=>option[string].
@@ -187,7 +187,7 @@ star.compiler.unify{
   tpName(nomnal(Nm)) => some(Nm).
   tpName(tpFun(Nm,_)) => some(Nm).
   tpName(tpExp(O,_)) => tpName(O).
-  tpName(_) => none.
+  tpName(_) => .none.
 
 
   subFace(faceType(E1,T1),faceType(E2,T2),Env) => let{.
@@ -217,7 +217,7 @@ star.compiler.unify{
   occIn(Id,typeLambda(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
   occIn(Id,typeExists(A,R)) => occIn(Id,deRef(A)) || occIn(Id,deRef(R)).
   occIn(Id,constrainedType(T,_)) => occIn(Id,deRef(T)).
-  occIn(_,_) default => false.
+  occIn(_,_) default => .false.
 
   vrNm(tVar(_,Nm)) => Nm.
   vrNm(tFun(_,_,Nm)) => Nm.

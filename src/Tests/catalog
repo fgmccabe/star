@@ -41,6 +41,7 @@
     "test.mm": "mm.star",
     "test.ms" : "ms.star",
     "test.nm": "nm.star",
+    "test.o": "o.star",
     "test.pk": "pk.star",
     "test.p": "p.star",
     "test.p0": "p0.star",

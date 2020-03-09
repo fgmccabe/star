@@ -34,12 +34,12 @@ star.topsort{
         analyseRefs(Refs,Df1,Stk1,Gps1,Lw1).
 
     pickDef:(t,list[d],list[d]) => option[(d,list[d])].
-    pickDef(_,[],_) => none.
+    pickDef(_,[],_) => .none.
     pickDef(Ref,[Df,..Dfs],SoFar) where defined(Df,Ref) => some((Df,SoFar++Dfs)).
     pickDef(Ref,[Df,..Dfs],SoFar) => pickDef(Ref,Dfs,[SoFar..,Df]).
 
     inStack:(t,list[defEntry])=>option[integer].
-    inStack(_,[]) => none.
+    inStack(_,[]) => .none.
     inStack(Ref,[E,..Stk]) where defined(E.df,Ref) => some(E.stackPt).
     inStack(Ref,[_,..Stk]) => inStack(Ref,Stk).
 

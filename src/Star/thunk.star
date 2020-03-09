@@ -27,11 +27,11 @@ star.thunk{
   
   public thunk:all x ~~ (()=>x) => ()=>x.
   thunk(F) => let{
-    X := none.
-    ff() where V^=X! => V.
+    memoX := .none.
+    ff() where V^=memoX! => V.
     ff() => valof action{
       V .= F();
-      X := some(V);
+      memoX := some(V);
       valis V
     }
   } in ff.

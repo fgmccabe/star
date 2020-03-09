@@ -16,7 +16,7 @@ star.either{
   public implementation all x,y ~~ equality[x], equality[y] |: equality[either[x,y]] => {.
     either(A)==either(B) => A==B.
     other(A)==other(B) => A==B.
-    _==_ => false.
+    _==_ => .false.
   .}
 
   public implementation all x,y ~~ hash[x],hash[y] |: hash[either[x,y]] => {.

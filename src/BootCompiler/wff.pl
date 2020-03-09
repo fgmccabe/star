@@ -4,13 +4,13 @@
 	      isContractStmt/6,isImplementationStmt/6,
 	      isTypeExistsStmt/6,isTypeFunStmt/6,isTypeAnnotation/4,
 	      isTypeLambda/4,
-	      isValType/3,isFunType/4,
+	      isValType/3,isFunType/4,isEnum/3,enum/3,
 	      isImport/3, findImport/3,isPrivate/3,isPublic/3,
 	      isDefault/3,isDefault/4,
 	      isLiteralInteger/3,isLiteralFloat/3,
 	      isIntegrity/3,isShow/3,isOpen/3,
 	      isConditional/5,conditional/5,isOfTerm/4,
-	      isEquation/5,isDefn/4,isAssignment/4,assignment/4,eqn/5,
+	      isEquation/5,isDefn/4,isAssignment/4,assignment/4,eqn/4,eqn/5,
 	      isCurriedRule/5,ruleHead/4,
 	      isWhere/4,isCoerce/4,coerce/4,
 	      isFieldAcc/4,isVarRef/3,isIndexTerm/4,isRepl/4,
@@ -84,6 +84,9 @@ isConstructor(C,Lc,Nm) :-
 isConstructor(C,Lc,Nm) :-
   isIden(C,Lc,Nm).
 isConstructor(C,Lc,Nm) :-
+  isEnum(C,Lc,E),
+  isIden(E,_,Nm).
+isConstructor(C,Lc,Nm) :-
   isRound(C,Lc,Nm,_).
 isConstructor(C,Lc,Nm) :-
   isBrace(C,Lc,Nm,_).
@@ -96,9 +99,14 @@ isConstructorType(C,Lc,Tp) :-
   isXQuantified(C,U,I),
   isConstructorType(I,Lc,T),!,
   reXQuant(U,T,Tp).
-isConstructorType(C,Lc,Tp) :-
-  isBinary(C,Lc,"<=>",Lhs,Rhs),!,
-  (isTuple(Lhs,_,[]) -> Tp=Rhs ; Tp=C).
+isConstructorType(C,Lc,C) :-
+  isBinary(C,Lc,"<=>",_Lhs,_Rhs),!.
+
+isEnum(C,Lc,Id) :-
+  isUnary(C,Lc,".",Id).
+
+enum(Lc,Id,E) :-
+  unary(Lc,".",name(Lc,Id),E).
 
 isQuantified(T,Q,B) :-
   isBinary(T,_,"~~",L,B),
@@ -257,18 +265,14 @@ ruleHead(Trm,Hd,Cond,true) :-
 ruleHead(Trm,Trm,name(Lc,"true"),false) :-
   isRound(Trm,Lc,_,_).
 
-mWhere(_,Hd,name(_,"true"),Hd) :- !.
-mWhere(Lc,H,Cond,Hd) :-
-  binary(Lc,"where",H,Cond,Hd).
-
 isEquation(Trm,Lc,Lhs,Cond,Rhs) :-
   isBinary(Trm,Lc,"=>",L,Rhs),
-  (isWhere(L,_,Lhs,Cond) ; L=Lhs, Cond=name(Lc,"true")).
+  (isWhere(L,_,Lhs,Cond) ; L=Lhs, enum(Lc,"true",Cond)).
 
-eqn(Lc,Lhs,name(_,"true"),Rhs,Eqn) :-!,
-  binary(Lc,"=>",Lhs,Rhs,Eqn).
 eqn(Lc,Args,Cond,Rhs,Eqn) :-
   whereTerm(Lc,Args,Cond,Lhs),
+  binary(Lc,"=>",Lhs,Rhs,Eqn).
+eqn(Lc,Lhs,Rhs,Eqn) :-
   binary(Lc,"=>",Lhs,Rhs,Eqn).
 
 % refactor f(A)(B) where C => D to f(A) => (B) where C =>D
@@ -304,6 +308,8 @@ assignment(Lc,Lhs,Rhs,Stmt) :-
 isWhere(Trm,Lc,Lhs,Rhs) :-
   isBinary(Trm,Lc,"where",Lhs,Rhs).
 
+whereTerm(_,Lhs,Cond,Lhs) :-
+  isEnum(Cond,_,name(_,"true")),!.
 whereTerm(Lc,Lhs,Rhs,Trm) :-
   binary(Lc,"where",Lhs,Rhs,Trm).
 
@@ -344,8 +350,6 @@ isForall(Trm,Lc,L,R) :-
 
 isMatch(Trm,Lc,P,E) :-
   isBinary(Trm,Lc,".=",P,E),!.
-isMatch(Trm,Lc,P,E) :-
-  isBinary(Trm,Lc,"=.",E,P).
 
 isSearch(Trm,Lc,Ptn,Gen) :-
   isBinary(Trm,Lc,"in",Ptn,Gen).
@@ -435,8 +439,8 @@ findVars(integer(_,_),Vrs,Vrs).
 findVars(float(_,_),Vrs,Vrs).
 findVars(string(_,_),Vrs,Vrs).
 
-mergeCond(name(_,"true"),R,_,R) :-!.
-mergeCond(L,name(_,"true"),_,L) :-!.
+mergeCond(L,R,_,R) :- isEnum(L,_,"true"),!.
+mergeCond(L,R,_,L) :- isEnum(R,_,"true"),!.
 mergeCond(L,R,Lc,Cnd) :-
   binary(Lc,"&&",L,R,Cnd).
 

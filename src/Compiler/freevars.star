@@ -62,7 +62,7 @@ star.compiler.freevars{
   freeVarsInCond(match(_,P,S),Excl,Fv) where Excl1 .= extendExcl(P,Excl,Fv) =>
     (Excl1,freeVarsInTerm(P,Excl1,freeVarsInTerm(S,Excl1,Fv))).
   freeVarsInCond(conj(Lc,L,R),Excl,Fv) where
-      (Excl1,Fv1) .= freeVarsInCond(conj(Lc,L,R),Excl,Fv) =>
+      (Excl1,Fv1) .= freeVarsInCond(L,Excl,Fv) =>
     freeVarsInCond(R,Excl1,Fv1).
   freeVarsInCond(disj(Lc,L,R),Excl,Fv) where
       (Excl1,Fv1) .= freeVarsInCond(L,Excl,Fv) &&
@@ -71,7 +71,7 @@ star.compiler.freevars{
       (_,Fv1) .= freeVarsInCond(R,Excl,Fv) => (Excl,Fv1).
   freeVarsInCond(T,Excl,Fv) => (Excl,freeVarsInTerm(T,Excl,Fv)).
 
-  freeVarsInEqn(eqn(_,Ptn,none,Exp),Excl,Fv) where
+  freeVarsInEqn(eqn(_,Ptn,.none,Exp),Excl,Fv) where
       Excl1 .= extendExcl(Ptn,Excl,Fv) =>
     freeVarsInTerm(Ptn,Excl1,freeVarsInTerm(Exp,Excl1,Fv)).
   freeVarsInEqn(eqn(_,Ptn,some(Wh),Exp),Excl,Fv) where

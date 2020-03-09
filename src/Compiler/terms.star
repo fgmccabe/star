@@ -46,8 +46,8 @@ star.compiler.terms{
     dispFs([(F,_),..Fs],[A,..As],Sep) =>
       [ss(Sep),ss(F),ss("="),disp(A),..dispFs(Fs,As,",")].
 
-    isTupleLbl(T) where [0c(,0c),.._] .= T::list[integer] => true.
-    isTupleLbl(_) default => false.
+    isTupleLbl(T) where [0c(,0c),.._] .= T::list[integer] => .true.
+    isTupleLbl(_) default => .false.
   } in {.
     disp(T) => dispT(T)
   .}
@@ -79,7 +79,7 @@ star.compiler.terms{
     eq(strg(X),strg(Y)) => X==Y.
     eq(enum(X),enum(Y)) => X==Y.
     eq(term(O1,A1),term(O2,A2)) => O1==O2 && A1==A2.
-    eq(_,_) default => false.
+    eq(_,_) default => .false.
   } in {.
     X==Y => eq(X,Y).
   .}
@@ -91,8 +91,8 @@ star.compiler.terms{
   tplLbl(Ar) => "()$(Ar)".
 
   public isTplLbl:(string)=>boolean.
-  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::list[integer]) => true.
-  isTplLbl(_) default => false.
+  isTplLbl(Nm) where [0c(,0c),..Ds].=(Nm::list[integer]) => .true.
+  isTplLbl(_) default => .false.
 
   public mkLst:(list[term]) => term.
   mkLst(Els) => term(tLbl("[]",size(Els)),Els).
@@ -101,11 +101,11 @@ star.compiler.terms{
   mkCons(Nm,Args) => term(tLbl(Nm,size(Args)),Args).
 
   public isScalar:(term)=>boolean.
-  isScalar(intgr(_)) => true.
-  isScalar(flot(_)) => true.
-  isScalar(strg(_)) => true.
-  isScalar(enum(_)) => true.
-  isScalar(_) default => false.
+  isScalar(intgr(_)) => .true.
+  isScalar(flot(_)) => .true.
+  isScalar(strg(_)) => .true.
+  isScalar(enum(_)) => .true.
+  isScalar(_) default => .false.
 
   public implementation coercion[term,string] => {
     _coerce(T) => _implode(encodeTerm(T)).
@@ -417,6 +417,6 @@ star.compiler.terms{
   pkgTerm(pkg(Pk,Ver))=>mkCons("pkg",[strg(Pk),versTerm(Ver)]).
 
   public versTerm:(version)=>term.
-  versTerm(defltVersion) => enum(tLbl("*",0)).
+  versTerm(.defltVersion) => enum(tLbl("*",0)).
   versTerm(vers(V)) => strg(V).
 }

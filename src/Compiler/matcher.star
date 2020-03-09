@@ -19,7 +19,7 @@ star.compiler.matcher{
     NVrs .= genVars(funTypeArg(Tp));
     Trpls .= makeTriples(Eqns);
     Error .= genRaise(Lc,funTypeRes(Tp));
---    logMsg("function triples: $(Trpls)");
+    logMsg("function triples: $(Trpls)");
     Reslt .= matchTriples(Lc,NVrs,Trpls,Error);
     (NArgs,NReslt) .= pullVarLets(NVrs,Reslt);
     valis fnDef(Lc,Nm,Tp,NArgs,NReslt)
@@ -40,11 +40,11 @@ star.compiler.matcher{
   matchTriples:(locn,list[crVar],list[triple],crExp) => crExp.
   matchTriples(_,[],Trpls,Deflt) => conditionalize(Trpls,Deflt).
   matchTriples(Lc,Vrs,Trpls,Deflt) => valof action{
---    logMsg("matching triples $(Trpls), default = $(Deflt)");
+    logMsg("matching triples $(Trpls), default = $(Deflt)");
     Parts .= partitionTriples(Trpls);
---    logMsg("partitioned $(Parts)");
+    logMsg("partitioned $(Parts)");
     Segs .= matchSegments(Parts,Vrs,Lc,Deflt);
---    logMsg("segments = $(Segs)");
+    logMsg("segments = $(Segs)");
     valis Segs
   }.
 
@@ -62,39 +62,38 @@ star.compiler.matcher{
 
   tripleArgMode(([A,.._],_,_)) => argMode(A).
 
-  argMode ::= inVars | inScalars | inConstructors | inOthers.
+  argMode ::= .inVars | .inScalars | .inConstructors.
 
   implementation display[argMode] => {.
-    disp(inVars) => ss("inVars").
-    disp(inScalars) => ss("inScalars").
-    disp(inConstructors) => ss("inConstructors").
-    disp(inOthers) => ss("inOthers").
+    disp(.inVars) => ss("inVars").
+    disp(.inScalars) => ss("inScalars").
+    disp(.inConstructors) => ss("inConstructors").
   .}
 
   implementation equality[argMode] => {
-    inVars == inVars => true.
-    inScalars == inScalars => true.
-    inConstructors == inConstructors => true.
-    _ == _ default => false.
+    .inVars == .inVars => .true.
+    .inScalars == .inScalars => .true.
+    .inConstructors == .inConstructors => .true.
+    _ == _ default => .false.
   }
 
-  argMode(crVar(_,_)) => inVars.
-  argMode(crInt(_,_)) => inScalars.
-  argMode(crFlot(_,_)) => inScalars.
-  argMode(crStrg(_,_)) => inScalars.
-  argMode(crLbl(_,_,_)) => inScalars.
-  argMode(crTerm(_,_,_,_)) => inConstructors.
-  argMode(_) default => inOthers.
+  argMode(crVar(_,_)) => .inVars.
+  argMode(crInt(_,_)) => .inScalars.
+  argMode(crFlot(_,_)) => .inScalars.
+  argMode(crStrg(_,_)) => .inScalars.
+  argMode(crLbl(_,_,_)) => .inConstructors.
+  argMode(crTerm(_,_,_,_)) => .inConstructors.
+  argMode(crWhere(_,T,_)) => argMode(T).
 
   matchSegments([],_,_,Deflt) => Deflt.
   matchSegments([(M,Seg),..Segs],Vrs,Lc,Deflt) =>
     compileMatch(M,Seg,Vrs,Lc,matchSegments(Segs,Vrs,Lc,Deflt)).
 
-  compileMatch(inScalars,Seg,Vrs,Lc,Deflt) =>
+  compileMatch(.inScalars,Seg,Vrs,Lc,Deflt) =>
     matchScalars(Seg,Vrs,Lc,Deflt).
-  compileMatch(inConstructors,Seg,Vrs,Lc,Deflt) =>
+  compileMatch(.inConstructors,Seg,Vrs,Lc,Deflt) =>
     matchConstructors(Seg,Vrs,Lc,Deflt).
-  compileMatch(inVars,Seg,Vrs,Lc,Deflt) =>
+  compileMatch(.inVars,Seg,Vrs,Lc,Deflt) =>
     matchVars(Seg,Vrs,Lc,Deflt).
 
   matchScalars(Seg,[V,..Vrs],Lc,Deflt) => valof action{
@@ -113,10 +112,25 @@ star.compiler.matcher{
   applyVar:(crVar,list[triple]) => list[triple].
   applyVar(V,Trpls) => let{
     applyToTriple:(triple)=>triple.
-    applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,none,Exp),Ix)) =>
-      (Args,(CLc,B,none,crLtt(VLc,Vr,crVar(VLc,V),Exp)),Ix).
-    applyToTriple(([crVar(VLc,Vr),..Args],(CLc,B,some(Wh),Exp),Ix)) =>
-      (Args,(CLc,B,some(crLtt(VLc,Vr,crVar(VLc,V),Wh)),crLtt(VLc,Vr,crVar(VLc,V),Exp)),Ix).
+    applyToTriple(([crVar(VLc,crId(Vr,_)),..Args],(CLc,B,Gl,Exp),Ix)) => valof action{
+      logMsg("replace $(Vr) with $(V) in $(Args) - $(Gl) and $(Exp)");
+      Mp .= [Vr->crVar(VLc,V)];
+      NArgs .= rewriteTerms(Args,Mp);
+      logMsg("Nargs = $(NArgs)");
+      NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
+      logMsg("NGl = $(NGl)");
+      NExp .= rewriteTerm(Exp,Mp);
+      logMsg("NExp = $(NExp)");
+      valis (NArgs, (CLc,B,NGl,NExp),Ix)
+    }
+    applyToTriple(([crWhere(Lc,crVar(VLc,crId(Vr,_)),Cond),..Args],(CLc,B,Gl,Exp),Ix)) => valof action{
+      Mp .= [Vr->crVar(VLc,V)];
+      NArgs .= rewriteTerms(Args,Mp);
+      NCond .= rewriteTerm(Cond,Mp);
+      NGl .= fmap((T)=>rewriteTerm(T,Mp),Gl);
+      NExp .= rewriteTerm(Exp,Mp);
+      valis (NArgs, (CLc,B,mergeGoal(VLc,some(NCond),NGl),NExp),Ix)
+    }
   } in (Trpls//applyToTriple).
 
   formCases:(list[triple],(triple,triple)=>boolean,locn,list[crVar],crExp)=>
@@ -166,11 +180,19 @@ star.compiler.matcher{
   subTriple(([_,..Args],V,X)) => (Args,V,X).
 
   conditionalize([],Deflt) => Deflt.
-  conditionalize([(_,(Lc,Bnds,none,Val),_),..Trpls],Deflt) =>
-    applyBindings(Bnds,Lc,conditionalize(Trpls,Val)).
+  conditionalize([(_,(Lc,Bnds,Test,Val),_),..Trpls],Deflt) => valof action{
+    (Vl,Cnd) .= pullWhere(Val,Test);
+    if Tst^= Cnd then
+      valis applyBindings(Bnds,Lc,crCnd(Lc,Tst,conditionalize(Trpls,Vl),Deflt))
+    else
+    valis applyBindings(Bnds,Lc,conditionalize(Trpls,Vl))
+  }
+
+/*  conditionalize([(_,(Lc,Bnds,.none,Val),_),..Trpls],Deflt) =>
   conditionalize([(_,(Lc,Bnds,some(Wh),Val),_),..Trpls],Deflt) =>
     applyBindings(Bnds,Lc,crCnd(Lc,Wh,conditionalize(Trpls,Val),Deflt)).
-
+  */
+  
   applyBindings([],_,Val) => Val.
 
   compareScalarTriple:(triple,triple) => boolean.
@@ -180,22 +202,27 @@ star.compiler.matcher{
   compareScalar(crFlot(_,A),crFlot(_,B)) => A<B.
   compareScalar(crStrg(_,A),crStrg(_,B)) => A<B.
   compareScalar(crLbl(_,A,_),crLbl(_,B,_)) => A<B.
-  compareScalar(_,_) default => false.
+  compareScalar(_,_) default => .false.
 
   sameScalarTriple:(triple,triple) => boolean.
   sameScalarTriple(([crInt(_,A),.._],_,_),([crInt(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([crFlot(_,A),.._],_,_),([crFlot(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([crStrg(_,A),.._],_,_),([crStrg(_,B),.._],_,_)) => A==B.
   sameScalarTriple(([crLbl(_,A,_),.._],_,_),([crLbl(_,B,_),.._],_,_)) => A==B.
-  sameScalarTriple(_,_) default => false.
+  sameScalarTriple(_,_) default => .false.
 
   compareConstructorTriple:(triple,triple) => boolean.
   compareConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => compareConstructor(A,B).
 
   compareConstructor(crTerm(_,A,_,_),crTerm(_,B,_,_)) => A=<B.
+  compareConstructor(crLbl(_,A,_),crLbl(_,B,_)) => A=<B.
+  compareConstructor(crLbl(_,A,_),crTerm(_,B,_,_)) => A=<B.
+  compareConstructor(crTerm(_,A,_,_),crLbl(_,B,_)) => A=<B.
   
   sameConstructorTriple(([A,.._],_,_),([B,.._],_,_)) => sameConstructor(A,B).
   sameConstructor(crTerm(_,A,_,_), crTerm(_,B,_,_)) => A==B.
+  sameConstructor(crLbl(_,A,Ar),crLbl(_,B,Br)) => A==B && Ar==Br.
+  sameConstructor(_,_) default => .false.
 
   pullVarLets:(list[crVar],crExp)=>(list[crVar],crExp).
   pullVarLets(Vrs,crLtt(Lc,V,crVar(_,A),Exp)) =>
@@ -204,4 +231,14 @@ star.compiler.matcher{
 
   replaceWith:(crVar,crVar) => (crVar)=>crVar.
   replaceWith(A,B) => (X) => (A==X?B||X).
+
+  pullWhere:(crExp,option[crExp]) => (crExp,option[crExp]).
+  pullWhere(crWhere(Lc,V,C),G) where (Val,G1) .= pullWhere(V,G) =>
+    (Val,mergeGoal(Lc,some(C),G1)).
+  pullWhere(Exp,G) default => (Exp,G).
+
+  mergeGoal:(locn,option[crExp],option[crExp])=>option[crExp].
+  mergeGoal(_,G,.none) => G.
+  mergeGoal(_,.none,G) => G.
+  mergeGoal(Lc,some(G),some(H)) => some(crCnj(Lc,G,H)).
 }

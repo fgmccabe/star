@@ -58,7 +58,7 @@
   operator("contract", [prefixOp(1260, 1259)]).
   operator("\\/", [infixOp(720, 720, 719)]).
   operator("-", [prefixOp(300, 299), infixOp(720, 720, 719)]).
-  operator(".", [infixOp(100, 100, 99)]).
+  operator(".", [prefixOp(10, 9), infixOp(100, 100, 99)]).
   operator("/", [infixOp(700, 700, 699)]).
   operator("<*>", [infixOp(949, 950, 950)]).
   operator("val", [prefixOp(900, 899)]).
@@ -85,7 +85,6 @@
   operator("~~", [infixOp(1239, 1240, 1240)]).
   operator("assert", [prefixOp(1240, 1239)]).
   operator("!!", [prefixOp(900, 899)]).
-  operator("=.", [infixOp(899, 900, 899)]).
   operator(".^.", [infixOp(720, 720, 719)]).
   operator("//", [infixOp(960, 960, 959)]).
   operator("public", [prefixOp(1700, 1699)]).
@@ -130,7 +129,6 @@
 
   bracket("{..}", "{.", ".}", 2000).
   bracket("[]", "[", "]", 2000).
-  bracket("(..)", "(.", ".)", 2000).
   bracket("()", "(", ")", 2000).
   bracket("{}", "{", "}", 2000).
 
@@ -163,7 +161,6 @@
   follows('','•','•').
   follows('','#','#').
   follows('&','&','&&').
-  follows('(','.','(.').
   follows('*','*','**').
   follows('*','>','*>').
   follows('+','+','++').
@@ -176,7 +173,6 @@
   follows('.','&','.&').
   follows('.','|','.|').
   follows('.','}','.}').
-  follows('.',')','.)').
   follows('.','~','.~').
   follows('.','<','.<').
   follows('.','^','.^').
@@ -226,7 +222,6 @@
   follows('<<','-','<<-').
   follows('<=','>','<=>').
   follows('=','<','=<').
-  follows('=','.','=.').
   follows('=','!','=!').
   follows('=','=','==').
   follows('=','>','=>').
@@ -241,7 +236,6 @@
   final('%',"%").	 /* modulo */
   final('&&',"&&").	 /* conjunction */
   final('(',"(").	 /* parentheses */
-  final('(.',"(.").	 /* hidden parentheses */
   final(')',")").	 /* parentheses */
   final('*',"*").	 /* zero or more repetitions */
   final('**',"**").	 /* exponentiation */
@@ -254,12 +248,11 @@
   final('-',"-").	 /* arithmetic negation */
   final('->',"->").	 /* map entry */
   final('->>',"->>").	 /* dependent type marker */
-  final('.',".").	 /* object access */
+  final('.',".").	 /* identify enumerator */
   final('.#.',".#.").	 /* test nth bit */
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
   final('.}',".}").	 /* non-recursive braces */
-  final('.)',".)").	 /* hidden parentheses */
   final('.~',".~").	 /* grammar parse */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
@@ -309,7 +302,6 @@
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
   final('=<',"=<").	 /* less than or equal */
-  final('=.',"=.").	 /* pattern match */
   final('=!=',"=!=").	 /* not equals */
   final('==',"==").	 /* equality predicate */
   final('=>',"=>").	 /* function arrow */

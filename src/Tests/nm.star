@@ -4,7 +4,7 @@ test.nm{
   import star.script.
 
   first:all e,k ~~ (list[(e,k)])=>option[e].
-  first([])=>none.
+  first([])=>.none.
   first([(E,_),.._])=>some(E).
 
   main:() => action[(),()].

@@ -373,7 +373,7 @@ static void starEscapeTypes(FILE *out) {
 
 #include "escapes.h"
 
-  fprintf(out, "  escapeType(_) default => none.\n");
+  fprintf(out, "  escapeType(_) default => .none.\n");
 
   closeFile(O_IO(buffer));
 }
@@ -406,7 +406,7 @@ static void prologIsEscape(FILE *out) {
 static void genStarIsEsc(FILE *out, bufferPo buffer, char *name) {
   outStr(O_IO(buffer), "  isEscape(");
   dumpStr(name, buffer);
-  outStr(O_IO(buffer), ") => true.\n");
+  outStr(O_IO(buffer), ") => .true.\n");
 
   integer len;
   char *text = (char *) getTextFromBuffer(buffer, &len);
@@ -421,7 +421,7 @@ static void starIsEscape(FILE *out) {
 
 #include "escapes.h"
 
-  fprintf(out,"  isEscape(_) default => false.\n");
+  fprintf(out,"  isEscape(_) default => .false.\n");
 
   closeFile(O_IO(buffer));
 }

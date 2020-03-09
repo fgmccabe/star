@@ -1,5 +1,5 @@
 :- module(types,
-	  [isType/1,isConType/1,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
+	  [isType/1,isConType/2,isFaceType/1,isConstraint/1,varConstraints/3,addConstraint/2,
 	   newTypeVar/2,skolemVar/2,newTypeFun/3,skolemFun/3,deRef/2,mkTpExp/3,
 	   progTypeArity/2,progArgTypes/2,isTypeLam/1,isTypeLam/2,isTypeExp/3,mkTypeExp/3,typeArity/2,
 	   isFunctionType/1,isFunctionType/2,isCnsType/2,
@@ -33,13 +33,13 @@ isType(valType(_)).
 isConstraint(conTract(_,_,_)).
 isConstraint(implementsFace(_,_)).
 
-isConType(Tp) :-
-  deRef(Tp,T),!,isCnType(T).
+isConType(Tp,A) :-
+  deRef(Tp,T),!,isCnType(T,A).
 
-isCnType(consType(_,_)).
-isCnType(allType(_,T)) :- isConType(T).
-isCnType(existType(_,T)) :- isConType(T).
-isCnType(constrained(T,_)) :- isConType(T).
+isCnType(consType(H,_),A) :- tpArity(H,A).
+isCnType(allType(_,T),A) :- isConType(T,A).
+isCnType(existType(_,T),A) :- isConType(T,A).
+isCnType(constrained(T,_),A) :- isConType(T,A).
 
 isFaceType(Tp) :- deRef(Tp,T),!,isFcType(T).
 
@@ -238,15 +238,19 @@ tArity(tpExp(Op,_),Ar) :-
 
 progTypeArity(Tp,Ar) :- deRef(Tp,TTp), tpArity(TTp,Ar).
 
-tpArity(allType(_,Tp),Ar) :- progTypeArity(Tp,Ar).
-tpArity(existType(_,Tp),Ar) :- progTypeArity(Tp,Ar).
-tpArity(constrained(Tp,conTract(_,_,_)),Ar) :- progTypeArity(Tp,A), Ar is A+1.
-tpArity(constrained(Tp,_),Ar) :- progTypeArity(Tp,Ar).
-tpArity(funType(A,_),Ar) :- progTypeArity(A,Ar).
-tpArity(consType(A,_),Ar) :- tpArity(A,Ar).
-tpArity(refType(A),Ar) :- progTypeArity(A,Ar).
-tpArity(tupleType(A),Ar) :- length(A,Ar).
-tpArity(faceType(A,_),Ar) :- length(A,Ar).
+tpArity(allType(_,Tp),Ar) :- !, progTypeArity(Tp,Ar).
+tpArity(existType(_,Tp),Ar) :- !, progTypeArity(Tp,Ar).
+tpArity(constrained(Tp,conTract(_,_,_)),Ar) :- !,
+  progTypeArity(Tp,A), Ar is A+1.
+tpArity(constrained(Tp,_),Ar) :- !,progTypeArity(Tp,Ar).
+tpArity(funType(A,_),Ar) :- !,
+  progTypeArity(A,Ar).
+tpArity(consType(A,_),Ar) :- !,
+  tpArity(A,Ar).
+tpArity(refType(A),Ar) :- !,
+  progTypeArity(A,Ar).
+tpArity(tupleType(A),Ar) :- !,length(A,Ar).
+tpArity(faceType(A,_),Ar) :- !,length(A,Ar).
 tpArity(_,0).
 
 progArgTypes(Tp,ArTps) :- deRef(Tp,TT), tpArgTypes(TT,ArTps).

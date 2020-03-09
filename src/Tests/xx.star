@@ -11,15 +11,15 @@ test.xx{
 
   face ::= exists a ~~ alpha[a] |: face{get: a. gg:(a) => boolean. type a : a. }
 
-  ineedOne(0) => face{ get = (true,0) }.
+  ineedOne(0) => face{ get = (.true,0) }.
   ineedOne(1) => face{
-    get = some(false).
+    get = some(.false).
 
     a ~> option[boolean].
   
     implementation alpha[option[boolean]] => {.
       gimme(some(X)) => X.
-      gimme(none) => false.
+      gimme(.none) => .false.
     .}
 
     gg(x) => gimme(x).

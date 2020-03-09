@@ -19,7 +19,7 @@ star.compiler.catalog{
     base=U.
     entries=deflt(M["content"]>>=(jColl(C))=>some(C///((_,jTxt(E))=>E)),()=>[]).
   }).
-  parseCat(_,_) => none.
+  parseCat(_,_) => .none.
 
   public loadCatalog:(uri)=>option[catalog].
   loadCatalog(U) => getResource(U) >>=(Txt)=>parseJson(Txt)>>=(J)=>parseCat(J,U).
@@ -29,10 +29,10 @@ star.compiler.catalog{
     E ^= Cat.entries[Pkg] &&
       CU ^= parseUri(E) &&
       PU ^= resolveUri(Cat.base,CU) =>
-    some((PU,pkg(Pkg,deflt(Cat.vers,()=>defltVersion)))).
+    some((PU,pkg(Pkg,deflt(Cat.vers,()=>.defltVersion)))).
   resolveInCatalog(Cat,Pkg) where
     P ^= Cat.parent => resolveInCatalog(P,Pkg).
-  resolveInCatalog(_,_) => none.
+  resolveInCatalog(_,_) => .none.
 
   public implementation display[catalog] => let{
     dispCat:(catalog)=>ss.

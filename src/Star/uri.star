@@ -15,12 +15,12 @@ star.uri{
 
   public host ::= hostPort(string,string) | host(string).
 
-  public query ::= qry(string) | noQ.
+  public query ::= qry(string) | .noQ.
 
   public parseUri:(string) => option[uri].
   parseUri(S) => first(parse(uriParse,S::list[integer])).
 
-  first([])=>none.
+  first([])=>.none.
   first([(E,_),.._])=>some(E).
 
   public uriParse:parser[list[integer],uri].
@@ -44,7 +44,7 @@ star.uri{
 
   authority:parser[list[integer],authority].
   authority = (userInfo >>= (U) => _tk(0c@) >>= (_) => hostNamePort >>= (H) => return server(some(U),H)) +++
-  (hostNamePort >>= (H) => return server(none,H)).
+  (hostNamePort >>= (H) => return server(.none,H)).
 
   userInfo:parser[list[integer],userInfo].
   userInfo = _star(userStar) >>= (U) => return user(U::string).
@@ -71,31 +71,31 @@ star.uri{
   segChr = _sat(isSegChr).
 
   isSegChr:(integer)=>boolean.
-  isSegChr(0c:) => true.
-  isSegChr(0c@) => true.
-  isSegChr(0c&) => true.
-  isSegChr(0c=) => true.
-  isSegChr(0c+) => true.
-  isSegChr(0c$) => true.
-  isSegChr(0c<) => true.
-  isSegChr(0c:) => true.
-  isSegChr(0c;) => true. -- This is a hack to merge parameters with the segment
+  isSegChr(0c:) => .true.
+  isSegChr(0c@) => .true.
+  isSegChr(0c&) => .true.
+  isSegChr(0c=) => .true.
+  isSegChr(0c+) => .true.
+  isSegChr(0c$) => .true.
+  isSegChr(0c<) => .true.
+  isSegChr(0c:) => .true.
+  isSegChr(0c;) => .true. -- This is a hack to merge parameters with the segment
   isSegChr(Ch) => isUnreserved(Ch).
 
   query:parser[list[integer],query].
-  query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return noQ).
+  query = (_tk(0c?) >>= (_) => _star(_sat(isUric)) >>= (QQ)=> return qry(QQ::string)) +++ (return .noQ).
 
   userStar:parser[list[integer],integer].
   userStar = _sat(userCh).
 
   userCh:(integer) => boolean.
-  userCh(0c$) => true.
-  userCh(0c,) => true.
-  userCh(0c;) => true.
-  userCh(0c:) => true.
-  userCh(0c&) => true.
-  userCh(0c=) => true.
-  userCh(0c+) => true.
+  userCh(0c$) => .true.
+  userCh(0c,) => .true.
+  userCh(0c;) => .true.
+  userCh(0c:) => .true.
+  userCh(0c&) => .true.
+  userCh(0c=) => .true.
+  userCh(0c+) => .true.
   userCh(Ch) => isUnreserved(Ch).
 
   hostNamePort:parser[list[integer],host].
@@ -133,40 +133,40 @@ star.uri{
   isUric(Ch) => (isReserved(Ch) || isAlphaNum(Ch) || isMark(Ch)).
 
   isReserved:(integer)=>boolean.
-  isReserved(0c;) => true.
-  isReserved(0c/) => true.
-  isReserved(0c?) => true.
-  isReserved(0c:) => true.
-  isReserved(0c@) => true.
-  isReserved(0c&) => true.
-  isReserved(0c=) => true.
-  isReserved(0c+) => true.
-  isReserved(0c$) => true.
-  isReserved(0c,) => true.
-  isReserved(_) => false.
+  isReserved(0c;) => .true.
+  isReserved(0c/) => .true.
+  isReserved(0c?) => .true.
+  isReserved(0c:) => .true.
+  isReserved(0c@) => .true.
+  isReserved(0c&) => .true.
+  isReserved(0c=) => .true.
+  isReserved(0c+) => .true.
+  isReserved(0c$) => .true.
+  isReserved(0c,) => .true.
+  isReserved(_) => .false.
 
   isMark:(integer)=>boolean.
-  isMark(0c-) => true.
-  isMark(0c_) => true.
-  isMark(0c.) => true.
-  isMark(0c!) => true.
-  isMark(0c~) => true.
-  isMark(0c*) => true.
-  isMark(0c\') => true.
-  isMark(0c\() => true.
-  isMark(0c\)) => true.
-  isMark(_) => false.
+  isMark(0c-) => .true.
+  isMark(0c_) => .true.
+  isMark(0c.) => .true.
+  isMark(0c!) => .true.
+  isMark(0c~) => .true.
+  isMark(0c*) => .true.
+  isMark(0c\') => .true.
+  isMark(0c\() => .true.
+  isMark(0c\)) => .true.
+  isMark(_) => .false.
 
   isUnreserved:(integer) => boolean.
   isUnreserved(Ch) => (isAlphaNum(Ch) || isMark(Ch)).
 
   isDelim:(integer)=>boolean.
-  isDelim(0c<) => true.
-  isDelim(0c>) => true.
-  isDelim(0c#) => true.
-  isDelim(0c%) => true.
-  isDelim(0c\") => true.
-  isDelim(_) => false.
+  isDelim(0c<) => .true.
+  isDelim(0c>) => .true.
+  isDelim(0c#) => .true.
+  isDelim(0c%) => .true.
+  isDelim(0c\") => .true.
+  isDelim(_) => .false.
 
   -- Implement equality for URIs
   public implementation equality[uri] => {
@@ -175,33 +175,33 @@ star.uri{
 
   sameUri(absUri(S1,R1,Q1),absUri(S2,R2,Q2)) => S1==S2 && sameRsrc(R1,R2) && sameQuery(Q1,Q2).
   sameUri(relUri(R1,Q1),relUri(R2,Q2)) => sameRsrc(R1,R2) && sameQuery(Q1,Q2).
-  sameUri(_,_) => false.
+  sameUri(_,_) => .false.
 
   sameRsrc(netRsrc(A1,P1),netRsrc(A2,P2)) => sameAuth(A1,A2) && samePath(P1,P2).
   sameRsrc(localRsrc(P1),localRsrc(P2)) => samePath(P1,P2).
-  sameRsrc(_,_) => false.
+  sameRsrc(_,_) => .false.
 
   samePath(absPath(P1),absPath(P2)) => P1==P2.
   samePath(relPath(P1),relPath(P2)) => P1==P2.
-  samePath(_,_) => false.
+  samePath(_,_) => .false.
 
   sameAuth(server(U1,H1),server(U2,H2)) => sameUser(U1,U2) && sameHost(H1,H2).
 
   sameUser(some(user(U1)),some(user(U2))) => U1==U2.
-  sameUser(none,none) => true.
-  sameUser(_,_) => false.
+  sameUser(.none,.none) => .true.
+  sameUser(_,_) => .false.
 
   sameHost(hostPort(H1,P1),hostPort(H2,P2)) => H1==H2 && P1==P2.
   sameHost(host(H1),host(H2)) => H1==H2.
-  sameHost(_,_) => false.
+  sameHost(_,_) => .false.
 
   sameQuery(qry(S1),qry(S2)) => S1==S2.
-  sameQuery(noQ,noQ) => true.
-  sameQuery(_,_) => false.
+  sameQuery(.noQ,.noQ) => .true.
+  sameQuery(_,_) => .false.
 
   -- Resolve a url against a base. The base must be an absolute URI, either net or local.
   public resolveUri:(uri,uri) => option[uri].
-  resolveUri(_,U) where U=.absUri(_,_,_) => some(U).
+  resolveUri(_,U) where absUri(_,_,_).=U => some(U).
   resolveUri(absUri(Scheme,Base,_),relUri(Path,Query)) where
     Pth ^= resolvePath(Base,Path) => some(absUri(Scheme,Pth,Query)).
 
@@ -220,14 +220,14 @@ star.uri{
 
   drop:all t ~~ (list[t])=>option[list[t]].
   drop([_,..L])=>some(L).
-  drop(_) default => none.
+  drop(_) default => .none.
 
   public implementation display[uri] => {
     disp(absUri(Scheme,Rsrc,Query)) => ssSeq([ss(Scheme),ss(":"),dispRsrc(Rsrc),dispQuery(Query)]).
     disp(relUri(Rsrc,Query)) => ssSeq([dispRsrc(Rsrc),dispQuery(Query)]).
 
     private dispQuery:(query)=>ss.
-    dispQuery(noQ) => ssSeq([]).
+    dispQuery(.noQ) => ssSeq([]).
     dispQuery(qry(Q)) => ssSeq([ss("?"),ss(Q)]).
   }
 
@@ -236,7 +236,7 @@ star.uri{
   dispRsrc(localRsrc(P)) => dispPath(P).
 
   dispAuthority:(authority)=>ss.
-  dispAuthority(server(none,H)) => dispHost(H).
+  dispAuthority(server(.none,H)) => dispHost(H).
   dispAuthority(server(some(U),H)) => ssSeq([dispUser(U),ss("@"),dispHost(H)]).
 
   dispUser:(userInfo)=>ss.
@@ -265,21 +265,21 @@ star.uri{
   .}
 
   public implementation coercion[string,uri] => {.
-    _coerce(S) where parseUri(S)=.some(U) => U
+    _coerce(S) where U^=parseUri(S) => U
   .}
 
   public editUriPath:(uri,(list[string])=>option[list[string]])=>option[uri].
   editUriPath(absUri(Scheme,ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(absUri(Scheme,NRes,Qury)).
   editUriPath(relUri(ResNam,Qury),F) where NRes^=editUriResource(ResNam,F) => some(relUri(NRes,Qury)).
-  editUriPath(_,_) default => none.
+  editUriPath(_,_) default => .none.
 
   editUriResource:(rsrcName,(list[string])=>option[list[string]])=>option[rsrcName].
   editUriResource(netRsrc(Auth,Path),F) where NPath^=editPath(Path,F) => some(netRsrc(Auth,NPath)).
   editUriResource(localRsrc(Path),F) where NPath^=editPath(Path,F) => some(localRsrc(NPath)).
-  editUriResource(_,_) default => none.
+  editUriResource(_,_) default => .none.
 
   editPath:(resourcePath,(list[string])=>option[list[string]])=>option[resourcePath].
   editPath(absPath(Els),F) where NEls^=F(Els) => some(absPath(NEls)).
   editPath(relPath(Els),F) where NEls^=F(Els) => some(relPath(NEls)).
-  editPath(_,_) default => none.
+  editPath(_,_) default => .none.
 }
