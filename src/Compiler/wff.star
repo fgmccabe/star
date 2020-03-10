@@ -140,7 +140,7 @@ star.compiler.wff{
     combineFaces(Lhs,Rhs,Rp)
   }
   algebraicFace(A,Rp) where (Lc,_,_) ^= isRoundTerm(A) => either(brTuple(Lc,[])).
-  algebraicFace(A,Rp) where (Lc,_) ^= isName(A) => either(brTuple(Lc,[])).
+  algebraicFace(A,Rp) where (Lc,_) ^= isEnum(A) => either(brTuple(Lc,[])).
   algebraicFace(A,Rp) where (Lc,_,Els) ^= isBrTerm(A) => either(brTuple(Lc,Els)).
 
   combineFaces(F1,F2,Rp) where (_,[]) ^= isBrTuple(F1) => either(F2).
@@ -182,6 +182,11 @@ star.compiler.wff{
 
   public isEnum(A) => isUnary(A,".").
 
+  public isEnumSymb(A) where (Lc,nme(_,N))^=isUnary(A,".") => some((Lc,N)).
+  isEnumSymb(_) default => .none.
+
+  public enum(Lc,Nm) => unary(Lc,".",nme(Lc,Nm)).
+
   public
   isSearch(A) where (Lc,P,G) ^= isBinary(A,"in") && \+ app(_,nme(_,"let"),Body) .= P => some((Lc,P,G)).
   isSearch(_) default => .none.
@@ -219,7 +224,7 @@ star.compiler.wff{
 	Def = defnSpec(Sp,Lc,[Con]).
       } in either(([Def,..Defs],[(Sp,Vz),..Pb],[(Nm,Con),..As])).
   buildConstructors(A,Qs,Cx,Tp,Defs,Pb,As,Vz,Rp) where
-      (Lc,Nm) ^= isName(A) => let{
+      (Lc,Nm) ^= isEnumSymb(A) => let{
 	Con = reUQuant(Qs,
 	  reConstrain(Cx,
 	    binary(Lc,"<=>",rndTuple(Lc,[]),Tp))).

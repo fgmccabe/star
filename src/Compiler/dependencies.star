@@ -286,11 +286,9 @@ star.compiler.dependencies{
     
   collectTermRefs:(ast,list[defnSp],list[defnSp],reports) => either[reports,list[defnSp]].
   collectTermRefs(V,All,Rf,Rp) where (_,Id) ^= isName(V) =>
-    (varSp(Id) in All ?
-	either(collectName(varSp(Id),All,Rf)) ||
-	either(collectName(cnsSp(Id),All,Rf))).
-  collectTermRefs(T,All,Rf,Rp) where (_,Id) ^= isEnum(T) && (_,Nm) ^= isName(T) =>
-    either(collectName(cnsSp(Nm),All,Rf)).
+    either(collectName(varSp(Id),All,Rf)).
+  collectTermRefs(T,All,Rf,Rp) where (_,Id) ^= isEnumSymb(T) =>
+    either(collectName(cnsSp(Id),All,Rf)).
   collectTermRefs(T,All,Rf,Rp) where (_,Lhs,Rhs) ^= isTypeAnnotation(T) => do{
     Rf1 <- collectTermRefs(Lhs,All,Rf,Rp);
     collectTypeRefs(Rhs,All,Rf1,Rp)
@@ -441,7 +439,6 @@ star.compiler.dependencies{
     collectDoRefs(S,All,Rf,Rp).
   collectDoRefs(A,All,Rf,Rp) => collectTermRefs(A,All,Rf,Rp).
   
-
   collectCasesRefs([],_,Rf,_) => either(Rf).
   collectCasesRefs([St,..Sts],All,Rf,Rp) => do{
     Rf0 <- collectCaseRefs(St,All,Rf,Rp);

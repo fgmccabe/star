@@ -86,6 +86,9 @@ star.compiler.ast{
   isStr(lit(Lc,strg(Sx))) => some((Lc,Sx)).
   isStr(_) default => .none.
 
+  public zeroary:(locn,string)=>ast.
+  zeroary(Lc,Op) => app(Lc,nme(Lc,Op),tpl(Lc,"()",[])).
+
   public unary:(locn,string,ast) => ast.
   unary(Lc,Op,Arg) => app(Lc,nme(Lc,Op),tpl(locOf(Arg),"()",[Arg])).
 

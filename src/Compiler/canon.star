@@ -219,7 +219,7 @@ star.compiler.canon{
   showCanon(intr(_,Lt),_) => disp(Lt).
   showCanon(flt(_,Lt),_) => disp(Lt).
   showCanon(strng(_,Lt),_) => disp(Lt).
-  showCanon(enm(_,Nm,_),_) => ssSeq([ss("ϵ"),ss(Nm)]).
+  showCanon(enm(_,Nm,Tp),_) => ssSeq([ss("."),ss(Nm),ss(":"),disp(Tp)]).
   showCanon(whr(_,E,C),Sp) => ssSeq([showCanon(E,Sp),ss(" where "),showCanon(C,Sp)]).
   showCanon(dot(_,R,F,_),Sp) => ssSeq([showCanon(R,Sp),ss("."),ss(F)]).
   showCanon(abstraction(_,Exp,Gen,_),Sp) =>
@@ -285,7 +285,7 @@ star.compiler.canon{
 
   -- Useful constants
   public trueEnum:(locn)=>canon.
-  trueEnum(Lc) => enm(Lc,"star.core#true",nomnal("star.core*boolean")).
+  trueEnum(Lc) => apply(Lc,enm(Lc,"star.core#true",enumType(boolType)),tple(Lc,[]),boolType).
 
   public isGoal:(canon)=>boolean.
   isGoal(enm(_,"star.core#true",nomnal("star.core*boolean"))) => .true.

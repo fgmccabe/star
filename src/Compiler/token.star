@@ -1,6 +1,5 @@
 star.compiler.token{
   import star.
-  import star.compiler.ast.
   import star.compiler.location.
 
   public token ::= tok(locn,tk) | endTok(locn).
