@@ -431,7 +431,7 @@ available to subsequent actions.
 @float BNF,defnActionFig
 @caption{Definition Action}
 @display
-@anchored{DefnAction} ::= @refer{Pattern} @code{'='} @refer{Expression}
+@anchored{DefnAction} ::= @refer{Pattern} @code{'.='} @refer{Expression}
 @end display
 @end float
 
@@ -467,7 +467,7 @@ We can unpack the results of a call to @code{ddivide} using a
 @refer{TuplePattern} on the left hand side of the declaration:
 
 @example
-(Q,R) = ddivide(34,3)
+(Q,R) .= ddivide(34,3)
 @end example
 
 which would have the effect of binding @code{Q} to @code{11}, and @code{R} to @code{1}.
