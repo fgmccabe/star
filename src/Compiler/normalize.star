@@ -381,6 +381,8 @@ star.compiler.normalize{
     either((crIntrinsic(Lc,Op,Args,Tp),Ex)).
   liftExpCallOp(Lc,vr(_,Nm,_),Args,Tp,Map,Ex,Rp) where Entry ^= lookupVarName(Map,Nm) =>
     implementFunCall(Lc,Entry,Nm,Args,Tp,Map,Ex,Rp).
+  liftExpCallOp(Lc,enm(_,FullNm,_),[],Tp,Map,Ex,Rp) =>
+    either((crLbl(Lc,FullNm,Tp),Ex)).
   liftExpCallOp(Lc,enm(_,FullNm,_),Args,Tp,Map,Ex,Rp) =>
     either((crTerm(Lc,FullNm,Args,Tp),Ex)).
   liftExpCallOp(Lc,Op,Args,Tp,Map,Ex,Rp) => do{

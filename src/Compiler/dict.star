@@ -54,6 +54,10 @@ star.compiler.dict{
   declareConstructor(Nm,FullNm,Lc,Tp,Env) =>
     declareVr(Nm,Lc,Tp,(L,T)=>enm(L,FullNm,T),Env).
 
+  public declareEnum:(string,string,option[locn],tipe,dict) => dict.
+  declareEnum(Nm,FullNm,Lc,Tp,Env) =>
+    declareVr(Nm,Lc,Tp,(L,T)=>enm(L,FullNm,netEnumType(T)),Env).
+  
   public declareVr:(string,option[locn],tipe,(locn,tipe)=>canon,dict) => dict.
   declareVr(Nm,Lc,Tp,MkVr,[scope(Tps,Vrs,Cns,Imps),..Ev]) =>
     [scope(Tps,Vrs[Nm->vrEntry(Lc,MkVr,Tp)],Cns,Imps),..Ev].
@@ -133,7 +137,7 @@ star.compiler.dict{
   
   pushFlds:(list[(string,tipe)],locn,(string)=>(locn,tipe)=>canon,dict) => dict.
   pushFlds([],Lc,_,Env) => Env.
-  pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env) =>
+  pushFlds([(Nm,Tp),..Vrs],Lc,Mkr,Env)  =>
     pushFlds(Vrs,Lc,Mkr,declareVr(Nm,some(Lc),Tp,Mkr(Nm),Env)).
 
   pushTypes:(list[(string,tipe)],locn,dict) => dict.

@@ -388,6 +388,14 @@ star.compiler.types{
   public isEnumType:(tipe)=>option[tipe].
   isEnumType(Tp) where (A,T)^=isConsType(Tp) && deRef(A)==tupleType([]) => some(T).
   isEnumType(_) default => .none.
+
+  public netEnumType:(tipe)=>tipe.
+  netEnumType(T)=>ntEnumTp(deRef(T)).
+
+  ntEnumTp(allType(V,T))=>allType(V,netEnumType(T)).
+  ntEnumTp(existType(V,T))=>existType(V,netEnumType(T)).
+  ntEnumTp(constrainedType(T,C))=>constrainedType(netEnumType(T),C).
+  ntEnumTp(T) where ET ^= isEnumType(T) => ET.
   
   public intType = nomnal("star.core*integer").
   public fltType = nomnal("star.core*float").

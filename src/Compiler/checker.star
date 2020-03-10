@@ -382,22 +382,14 @@ star.compiler.checker{
   typeOfPtn:(ast,tipe,dict,string,reports) => either[reports,(canon,dict)].
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,"_") ^= isName(A) =>
     either((vr(Lc,genSym("_"),Tp),Env)).
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && Spec ^= isVar(Id,Env) => do{
-    if _ ^= isEnumType(vrType(Spec)) then{
-      Exp <- typeOfVar(Lc,Id,Tp,Spec,Env,Rp);
---      logMsg("enum $(A) = $(Exp)\:$(Tp)");
-      valis (Exp,Env)
-    }
-    else{
-      typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp)
-    }
-  }
+  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) && Spec ^= isVar(Id,Env) =>
+    typeOfPtn(mkWhereEquality(A),Tp,Env,Path,Rp).
   typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
     Ev .= declareVar(Id,Id,some(Lc),Tp,Env);
     valis (vr(Lc,Id,Tp),Ev)
   }
-  typeOfPtn(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnum(A) => do{
-    Enm <- typeOfExp(Nm,enumType(Tp),Env,Path,Rp);
+  typeOfPtn(A,Tp,Env,Path,Rp) where _ ^= isEnum(A) => do{
+    Enm <- typeOfExp(A,Tp,Env,Path,Rp);
     valis (Enm,Env)
   }
   typeOfPtn(A,Tp,Env,Path,Rp) where isLit(A) => do{
@@ -456,12 +448,22 @@ star.compiler.checker{
   }
   
   typeOfExp:(ast,tipe,dict,string,reports) => either[reports,canon].
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) =>
-    (Spec ^= isVar(Id,Env) ?
-	typeOfVar(Lc,Id,Tp,Spec,Env,Rp) ||
-	other(reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",Lc))).
-  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnum(A) =>
-    typeOfExp(Nm,enumType(Tp),Env,Path,Rp).
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Id) ^= isName(A) => do{
+    if vrEntry(_,Mk,VTp) ^= isVar(Id,Env) then{
+--    logMsg("raw type of $(Nm) is $(VTp)");
+      (_,VrTp) .= freshen(VTp,Env);
+      (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
+--    logMsg("check var $(Nm)\:$(MTp) against $(Tp)");
+      if sameType(Tp,MTp,Env) then {
+	valis Term
+      } else
+      throw reportError(Rp,"variable $(Id)\:$(VTp) not consistent with expected type: $(Tp)",Lc)
+    }
+    else
+    throw reportError(Rp,"variable $(Id) not defined. Expecting a $(Tp)",locOf(A)).
+  }
+  typeOfExp(A,Tp,Env,Path,Rp) where (Lc,Nm) ^= isEnumSymb(A) =>
+    typeOfExp(zeroary(Lc,Nm),Tp,Env,Path,Rp).
   typeOfExp(A,Tp,Env,Path,Rp) where
       (Lc,Ix) ^= isInt(A) &&
       (_,IntTp,_) ^= findType(Env,"integer") => do{
@@ -881,18 +883,6 @@ star.compiler.checker{
   checkCatch(A,Env,StTp,ElTp,ErTp,Path,Rp) => do{
     HT .= funType([ErTp],tpExp(StTp,ElTp));
     typeOfExp(A,HT,Env,Path,Rp)
-  }
-
-  typeOfVar:(locn,string,tipe,vrEntry,dict,reports) => either[reports,canon].
-  typeOfVar(Lc,Nm,Tp,vrEntry(_,Mk,VTp),Env,Rp) => do{
---    logMsg("raw type of $(Nm) is $(VTp)");
-    (_,VrTp) .= freshen(VTp,Env);
-    (MTp,Term) <- manageConstraints(VrTp,[],Lc,Mk(Lc,VrTp),Env,Rp);
---    logMsg("check var $(Nm)\:$(MTp) against $(Tp)");
-    if sameType(Tp,MTp,Env) then {
-      valis Term
-    } else
-      throw reportError(Rp,"variable $(Nm)\:$(VTp) not consistent with expected type: $(Tp)",Lc)
   }
 
   typeOfField:(locn,canon,string,tipe,dict,string,reports) => either[reports,canon].
