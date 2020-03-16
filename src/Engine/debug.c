@@ -1268,7 +1268,7 @@ void countIns(insWord ins) {
 #define instruction(Op, Arg, Dl, Cmt) outMsg(debugOutChnnl,#Op": %d\n",insCounts[Op]);
 
 void dumpInsCount() {
-  logMsg(debugOutChnnl, "%d instructions executed\n", pcCount);
+  logMsg(debugOutChnnl, "%ld instructions executed\n", pcCount);
 }
 
 void dumpInsStats() {

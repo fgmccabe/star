@@ -15,7 +15,7 @@
 :- use_module(misc).
 :- use_module(canon).
 :- use_module(errors).
-:- use_module(keywords).
+:- use_module(operators).
 :- use_module(macro).
 :- use_module(import).
 :- use_module(transitive).

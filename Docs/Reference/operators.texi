@@ -155,9 +155,6 @@
 @item @code{exists}
 @tab non-associative prefix
 @tab 1010
-@item @code{<=}
-@tab non-associative infix
-@tab 950
 @item @code{if}
 @tab non-associative prefix
 @tab 1175
@@ -317,15 +314,9 @@
 @item @code{|}
 @tab left associative infix
 @tab 1248
-@item @code{.~}
-@tab non-associative infix
-@tab 500
 @item @code{.#.}
 @tab left associative infix
 @tab 600
-@item @code{~}
-@tab non-associative infix
-@tab 499
 @item @code{^//}
 @tab left associative infix
 @tab 800

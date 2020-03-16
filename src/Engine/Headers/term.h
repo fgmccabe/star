@@ -32,8 +32,6 @@ typedef struct class_record {
 
 normalPo C_TERM(termPo t);
 
-clssPo C_CLSS(termPo t);
-
 logical isNormalPo(termPo t);
 
 labelPo termLbl(normalPo t);

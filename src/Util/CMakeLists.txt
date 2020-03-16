@@ -60,6 +60,7 @@ set(SOURCE_FILES
         io.c
         ixTree.c
         cons.c
+        formexts.c
         locked.c
         managed.c
         object.c
