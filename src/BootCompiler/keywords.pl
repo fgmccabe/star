@@ -12,12 +12,10 @@
   keyword(",").
   keyword("?").
   keyword("^").
-  keyword("~").
   keyword("~~").
   keyword("=").
   keyword(".=").
   keyword("^=").
-  keyword(".~").
   keyword("=>").
   keyword("<=>").
   keyword("-->").
@@ -28,7 +26,6 @@
   keyword("\\+").
   keyword(",..").
   keyword("..,").
-  keyword("^^").
   keyword(".").
   keyword("|:").
   keyword("@").
@@ -51,7 +48,6 @@
   keyword("do").
   keyword("valof").
   keyword("valis").
-  keyword("prse").
   keyword("case").
   keyword("if").
   keyword("then").

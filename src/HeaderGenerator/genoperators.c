@@ -169,6 +169,8 @@ logical isAlphaNumeric(char *p) {
   return False;
 }
 
+static retCode pickKeywords(void *n, void *r, void *c);
+
 int main(int argc, char **argv) {
   initTries();
   initLogfile("-");
@@ -213,6 +215,11 @@ int main(int argc, char **argv) {
     char *allBkts = getTextFromBuffer(bracketBuff, &len);
     hashPut(vars, "Brackets", allBkts);
 
+    bufferPo keywordsBuff = newStringBuffer();
+    ProcessTable(pickKeywords, operators, keywordsBuff);
+    char *allKeywords = getTextFromBuffer(keywordsBuff, &len);
+    hashPut(vars, "Keywords", allKeywords);
+
     hashPut(vars, "Date", date);
 
     // dumpTrie(tokenTrie,Stdout());
@@ -237,6 +244,7 @@ typedef struct _operator_ {
   char name[MAXLINE];
   OperatorStyle style;
   int left, prior, right;
+  logical isKeyword;
 } Operator, *opPo;
 
 typedef struct _pair_ *pairPo;
@@ -255,13 +263,14 @@ void genToken(char *op, char *cmt) {
     addToTrie(op, tk, tokenTrie);
 }
 
-static opPo genOper(char *op, OperatorStyle style, int left, int prior, int right) {
+static opPo genOper(char *op, OperatorStyle style, int left, int prior, int right, logical isKeyword) {
   opPo oper = (opPo) malloc(sizeof(Operator));
   strcpy(oper->name, op);
   oper->style = style;
   oper->left = left;
   oper->prior = prior;
   oper->right = right;
+  oper->isKeyword = isKeyword;
 
   pairPo p = (pairPo) malloc(sizeof(Pair));
   p->op = oper;
@@ -271,18 +280,18 @@ static opPo genOper(char *op, OperatorStyle style, int left, int prior, int righ
   return oper;
 }
 
-void genInfix(char *op, int left, int prior, int right, char *cmt) {
-  opPo oper = genOper(op, infixOp, left, prior, right);
+void genInfix(char *op, int left, int prior, int right, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, infixOp, left, prior, right, isKeyword);
   genToken(oper->name, cmt);
 }
 
-void genPrefix(char *op, int prior, int right, char *cmt) {
-  opPo oper = genOper(op, prefixOp, 0, prior, right);
+void genPrefix(char *op, int prior, int right, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, prefixOp, 0, prior, right, isKeyword);
   genToken(oper->name, cmt);
 }
 
-void genPostfix(char *op, int left, int prior, char *cmt) {
-  opPo oper = genOper(op, postfixOp, left, prior, 0);
+void genPostfix(char *op, int left, int prior, logical isKeyword, char *cmt) {
+  opPo oper = genOper(op, postfixOp, left, prior, 0, isKeyword);
   genToken(oper->name, cmt);
 }
 
@@ -415,6 +424,39 @@ static retCode procOperator(void *n, void *r, void *c) {
     default:
       return Error;
   }
+}
+
+static retCode procKey(ioPo out, char *sep, opPo op) {
+  switch (genMode) {
+    case genProlog:
+      if (op->isKeyword)
+        return outMsg(out, "%skeyword(\"%P\").\n", sep, op->name);
+      else
+        return Ok;
+    case genStar:
+      if (op->isKeyword)
+        return outMsg(out, "%skeyword(\"%P\") => .true.\n", sep, op->name);
+      else
+        return Ok;
+    case genTexi:
+    case genEmacs:
+      return Ok;
+    default:
+      return Error;
+  }
+}
+
+retCode pickKeywords(void *n, void *r, void *c) {
+  ioPo out = (ioPo) c;
+  pairPo p = (pairPo) r;
+  char *nm = (char *) n;
+  retCode ret = Ok;
+
+  while (p != Null && ret == Ok) {
+    ret = procKey(out, "  ", p->op);
+    p = p->next;
+  }
+  return ret;
 }
 
 retCode procBrackets(void *n, void *r, void *c) {

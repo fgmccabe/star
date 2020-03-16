@@ -4,7 +4,7 @@
 :- use_module(abstract).
 :- use_module(errors).
 :- use_module(misc).
-:- use_module(keywords).
+:- use_module(operators).
 :- use_module(wff).
 
 dependencies(Dfs,Groups,Annots) :-
@@ -487,7 +487,7 @@ collectTermRefs(T,A,R0,Refs) :-
 collectTermRefs(T,A,Rf,Refs) :-
   isCaseExp(T,_,G,C),!,
   collectTermRefs(G,A,Rf,R0),
-  collectCaseRefs(C,A,R0,Refs).
+  collectCaseRefs(C,collectTermRefs,A,R0,Refs).
 collectTermRefs(T,A,R0,Refs) :-
   isAbstraction(T,_,B,G),!,
   collectTermRefs(B,A,R0,R1),
@@ -562,10 +562,13 @@ collectFaceRefs([St|L],All,R0,Refs) :-
   collectStmtRefs(St,All,R0,R1),
   collectFaceRefs(L,All,R1,Refs).
 
-collectCaseRefs([],_,Rf,Rf) :-!.
-collectCaseRefs([E|Cs],A,Rf,Refs) :-
-  collectTermRefs(E,A,Rf,R0),
-  collectCaseRefs(Cs,A,R0,Refs).
+collectCaseRefs([],_,_,Rf,Rf) :-!.
+collectCaseRefs([E|Cs],C,A,Rf,Refs) :-
+  isEquation(E,_,L,Cond,R),
+  collectTermRefs(L,A,Rf,R0),
+  collectTermRefs(Cond,A,R0,R1),
+  call(C,R,A,R1,R2),
+  collectCaseRefs(Cs,C,A,R2,Refs).
 
 collectDoRefs(T,All,Rf,Rfx) :-
   isActionSeq(T,_,L,R),!,
@@ -595,6 +598,11 @@ collectDoRefs(T,All,Rf,Rfx) :-
   isIfThen(T,_,Tt,H),!,
   collectTermRefs(Tt,All,Rf,Rf0),
   collectDoRefs(H,All,Rf0,Rfx).
+collectDoRefs(T,All,Rf,Rfx) :-
+  isCaseExp(T,_,Exp,Cases),!,
+  collectTermRefs(Exp,All,Rf,R0),
+  collectCaseRefs(Cases,collectDoRefs,All,R0,Rfx).
+  
 collectDoRefs(T,All,Rf,Rfx) :-
   isWhileDo(T,_,Tt,B),!,
   collectTermRefs(Tt,All,Rf,Rf0),

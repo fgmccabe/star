@@ -2,7 +2,6 @@ star.compiler.ast{
   import star.
   import star.compiler.location.
   import star.compiler.operators.
-  import star.compiler.keywords.
   import star.compiler.terms.
 
   public ast ::=

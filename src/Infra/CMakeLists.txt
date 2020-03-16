@@ -13,6 +13,6 @@ set(HEADER_FILES
         ../Engine/Headers/engineOptions.h
         Headers/streamDecodeP.h)
 
-set(SOURCE_FILES ${HEADER_FILES} manifest.c pkg.c encode.c signature.c formexts.c signal.c streamDecode.c Headers/streamDecode.h)
+set(SOURCE_FILES ${HEADER_FILES} manifest.c pkg.c encode.c signature.c signal.c streamDecode.c Headers/streamDecode.h)
 
 add_library(infra ${SOURCE_FILES} ${HEADER_FILES})

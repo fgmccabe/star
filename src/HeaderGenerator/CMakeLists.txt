@@ -9,7 +9,6 @@ target_link_libraries(ops ooio infra)
 
 set(ESC_SOURCE_FILES genescapes.c ../Headers/escapes.h ../Headers/intrinsics.h ../Headers/signature.h)
 add_executable(genesc ${ESC_SOURCE_FILES})
-
 target_link_libraries(genesc ooio)
 
 set(ASM_SOURCE_FILES platemnem.c)
@@ -23,6 +22,10 @@ target_link_libraries(intrinsic ooio infra)
 set(OPCODES_FILES opcodes.c)
 add_executable(opcodes ${OPCODES_FILES})
 target_link_libraries(opcodes ooio)
+
+set(JIT_HEDDER_SOURCE_FILES jithedder.c)
+add_executable(jithedder ${JIT_HEDDER_SOURCE_FILES})
+target_link_libraries(jithedder ooio)
 
 set(OPERATORS_JSON "${CMAKE_CURRENT_SOURCE_DIR}/../Headers/operators.json")
 set(OPERATORS_ST ${CMAKE_CURRENT_SOURCE_DIR}/../Compiler/operators.star)

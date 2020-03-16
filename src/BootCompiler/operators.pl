@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4]).
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4,keyword/1,isKeyword/1]).
 
   isOperator(O) :-
     operator(O,_).
@@ -64,7 +64,6 @@
   operator("val", [prefixOp(900, 899)]).
   operator("try", [prefixOp(1200, 1199)]).
   operator("exists", [prefixOp(1010, 1009)]).
-  operator("<=", [infixOp(949, 950, 949)]).
   operator("if", [prefixOp(1175, 1174)]).
   operator("background", [prefixOp(950, 949)]).
   operator(":", [infixOp(1249, 1250, 1249)]).
@@ -116,9 +115,7 @@
   operator("type", [prefixOp(1251, 1250)]).
   operator("implementation", [prefixOp(1260, 1259)]).
   operator("|", [infixOp(1248, 1248, 1247)]).
-  operator(".~", [infixOp(499, 500, 499)]).
   operator(".#.", [infixOp(600, 600, 599)]).
-  operator("~", [infixOp(489, 499, 489)]).
   operator("^//", [infixOp(800, 800, 799)]).
   operator("||", [infixOp(919, 920, 920)]).
   operator("else", [infixOp(1199, 1200, 1200)]).
@@ -253,7 +250,6 @@
   final('.&.',".&.").	 /* bitwise and */
   final('.|.',".|.").	 /* bitwise or */
   final('.}',".}").	 /* non-recursive braces */
-  final('.~',".~").	 /* grammar parse */
   final('.~.',".~.").	 /* bitwise 1's complement */
   final('.<<.',".<<.").	 /* shift left */
   final('.^.',".^.").	 /* bitwise xor */
@@ -273,7 +269,6 @@
   final('|:',"|:").	 /* constrained type */
   final('||',"||").	 /* disjunction */
   final('}',"}").	 /* braces */
-  final('~',"~").	 /* grammar remainder */
   final('~~',"~~").	 /* quantifier */
   final('~>',"~>").	 /* type function */
   final('[',"[").	 /* square brackets */
@@ -298,7 +293,6 @@
   final('<$',"<$").	 /* constant replace */
   final('<-',"<-").	 /* variable bind */
   final('<<-',"<<-").	 /* record replacement */
-  final('<=',"<=").	 /* pattern arrow */
   final('<=>',"<=>").	 /* constructor arrow */
   final('=',"=").	 /* definition */
   final('=<',"=<").	 /* less than or equal */
@@ -316,4 +310,73 @@
   final('!!',"!!").	 /* cell value */
   final('•',"•").	 /* function composition */
   final('#',"#").	 /* Macro statement marker */
+
+
+  keyword("all").
+  keyword("^=").
+  keyword("&&").
+  keyword("..,").
+  keyword("~>").
+  keyword("throw").
+  keyword("do").
+  keyword("do").
+  keyword("import").
+  keyword("catch").
+  keyword("of").
+  keyword("valis").
+  keyword(",..").
+  keyword("for").
+  keyword("then").
+  keyword("->>").
+  keyword("default").
+  keyword("#").
+  keyword("#").
+  keyword("<-").
+  keyword("\\+").
+  keyword("<<-").
+  keyword("*>").
+  keyword(",").
+  keyword("contract").
+  keyword(".").
+  keyword(".").
+  keyword("val").
+  keyword("try").
+  keyword("exists").
+  keyword("if").
+  keyword(":").
+  keyword(";").
+  keyword(".=").
+  keyword("=").
+  keyword("|:").
+  keyword("?").
+  keyword("@").
+  keyword("@").
+  keyword("in").
+  keyword("^|").
+  keyword("open").
+  keyword("~~").
+  keyword("public").
+  keyword("ref").
+  keyword("where").
+  keyword("!.").
+  keyword("case").
+  keyword("=>").
+  keyword("^").
+  keyword("^").
+  keyword("<=>").
+  keyword("valof").
+  keyword("while").
+  keyword("private").
+  keyword("::").
+  keyword("^.").
+  keyword("<~").
+  keyword("type").
+  keyword("implementation").
+  keyword("|").
+  keyword("||").
+  keyword("else").
+  keyword("::=").
+
+
+  isKeyword(X):- keyword(X), !.
 

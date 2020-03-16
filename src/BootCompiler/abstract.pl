@@ -11,7 +11,6 @@
       sameTerm/2,
       explodeString/2]).
 :- use_module(operators).
-:- use_module(keywords).
 :- use_module(misc).
 
 apply(Lc,Op,Args,app(Lc,Op,Args)).

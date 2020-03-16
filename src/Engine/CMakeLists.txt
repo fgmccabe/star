@@ -39,7 +39,7 @@ set(HEADER_FILES
         Headers/struct.h Headers/structP.h
         Headers/thr.h Headers/thrP.h
         Headers/repoP.h Headers/repo.h
-        Headers/verify.h Headers/verifyP.h Headers/srcMap.h Headers/srcMapP.h Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/memo.h Headers/memoP.h)
+        Headers/verify.h Headers/verifyP.h Headers/srcMap.h Headers/srcMapP.h Headers/debugP.h Headers/capability.h Headers/capabilityP.h Headers/memo.h Headers/memoP.h Headers/asm.h Headers/codegen.h)
 
 set(SOURCE_FILES
         decode.c debug.c eval.c engine.c engineOptions.c gc.c globals.c heap.c load.c main.c

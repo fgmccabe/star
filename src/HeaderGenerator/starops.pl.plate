@@ -1,6 +1,6 @@
 /* Automatically generated, do not edit */
 
-:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4]).
+:-module(operators,[infixOp/4,prefixOp/3,postfixOp/3,isOperator/1,follows/3,final/2,bracket/4,keyword/1,isKeyword/1]).
 
   isOperator(O) :-
     operator(O,_).
@@ -25,3 +25,8 @@
 #(Follows)
 
 #(Final)
+
+#(Keywords)
+
+  isKeyword(X):- keyword(X), !.
+

@@ -50,11 +50,12 @@ typedef enum {
   inLeft,
   inRight,
   inPriority,
+  inKeyword,
   unknownState
 } ParseState;
 
 static char *stNames[] = {"initial", "inDecl", "inOper", "token", "priorities", "desc", "bracket", "left", "right",
-                          "priority", "unknown"};
+                          "priority", "keyword", "unknown"};
 
 static OperatorStyle operatorMode(const char *name);
 static ParseState fromStName(const char *name);
@@ -65,6 +66,7 @@ typedef struct {
   int priorities[4];
   int numPriorities;
   integer priority;
+  logical isKeyword;
   char left[16];
   char right[16];
   char desc[1024];
@@ -97,6 +99,7 @@ retCode startCollection(void *cl) {
       info->state = inDecl;
       uniCpy((char *) &info->oper, NumberOf(info->oper), "");
       info->numPriorities = 0;
+      info->isKeyword = False;
       break;
 
     default:
@@ -118,13 +121,14 @@ retCode endCollection(void *cl) {
       info->state = initial;
       switch (info->mode) {
         case infixOp:
-          genInfix(info->oper, info->priorities[0], info->priorities[1], info->priorities[2], info->desc);
+          genInfix(info->oper, info->priorities[0], info->priorities[1], info->priorities[2], info->isKeyword,
+                   info->desc);
           return Ok;
         case prefixOp:
-          genPrefix(info->oper, info->priorities[0], info->priorities[1], info->desc);
+          genPrefix(info->oper, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
           return Ok;
         case postfixOp:
-          genPostfix(info->oper, info->priorities[0], info->priorities[1], info->desc);
+          genPostfix(info->oper, info->priorities[0], info->priorities[1], info->isKeyword, info->desc);
           return Ok;
         case brackets:
           genBracket(info->oper, info->priority, info->left, info->right, info->desc);
@@ -135,12 +139,9 @@ retCode endCollection(void *cl) {
         default:
           return Error;
       }
-      break;
     default:
       return Error;
   }
-
-  return Ok;
 }
 
 retCode startArray(void *cl) {
@@ -186,6 +187,9 @@ retCode startEntry(const char *name, void *cl) {
         case inBkt:
           info->mode = brackets;
           return Ok;
+        case inKeyword:
+          info->isKeyword = False;
+          return Ok;
         default:
           return Error;
       }
@@ -214,6 +218,7 @@ retCode endEntry(const char *name, void *cl) {
     case inRight:
     case inPriority:
     case inBkt:
+    case inKeyword:
       info->state = inDecl;
       return Ok;
 
@@ -241,12 +246,22 @@ retCode numEntry(double dx, void *cl) {
       return Ok;
     default:
       return Error;
-
   }
 }
 
 retCode boolEntry(logical trueVal, void *cl) {
-  return Ok;
+  statePo info = (statePo) cl;
+  if (traceParse)
+    logMsg(logFile, "Boolean entry, value=%d", trueVal);
+
+  switch (info->state) {
+    case inKeyword:
+      info->isKeyword = trueVal;
+      return Ok;
+
+    default:
+      return Error;
+  }
 }
 
 retCode txtEntry(const char *name, void *cl) {
